@@ -91,6 +91,10 @@ IDX_FLDS = "index fields"
 def getDbDetsObj(dbe, conn_dets, db, tbl):
     return DBE_MODULES[dbe].DbDets(conn_dets, db, tbl)
 
+def setDbInConnDets(dbe, conn_dets, db):
+    "Set database in connection details (if appropriate)"
+    DBE_MODULES[dbe].setDbInConnDets(conn_dets, db)
+    
 def getDbeSyntaxElements(dbe):
     """
     Returns if_clause, abs_wrapper_l, abs_wrapper_r - all strings.

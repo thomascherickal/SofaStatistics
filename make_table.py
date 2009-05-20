@@ -400,17 +400,7 @@ class MakeTable(object):
         datestamp = datetime.now().strftime("Script " + \
                                         "exported %d/%m/%Y at %I:%M %p")
         # Fresh connection for each in case it changes in between tables
-        
-        
-        
-        
-        # TODO - shift into class
-        if self.dbe == getdata.DBE_MYSQL:
-            self.conn_dets["db"] = self.db
-            
-            
-            
-            
+        getdata.setDbInConnDets(self.dbe, self.conn_dets, self.db)
         conn_dets_str = pprint.pformat(self.conn_dets)
         fil.write("\nconn_dets = %s" % conn_dets_str)
         fil.write("\nconn, cur, dbs, tbls, flds, has_unique, idxs = \\" + \

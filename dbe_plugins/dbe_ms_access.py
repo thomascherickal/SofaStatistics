@@ -267,7 +267,10 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
         return conn, cur, dbs, tbls, flds, has_unique, idxs
 
-
+def setDbInConnDets(conn_dets, db):
+    "Set database in connection details (if appropriate)"
+    pass # only ever one database
+    
 def InsertRow(conn, cur, tbl_name, data):
     """
     data = [(value as string, fld_name, fld_dets), ...]

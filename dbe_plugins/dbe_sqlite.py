@@ -149,6 +149,9 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
         return conn, cur, dbs, tbls, flds, has_unique, idxs
 
+def setDbInConnDets(conn_dets, db):
+    "Set database in connection details (if appropriate)"
+    pass # only ever one database
 
 def InsertRow(conn, cur, tbl_name, data):
     """
@@ -264,7 +267,8 @@ def setConnDetDefaults(parent):
 def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     parent.sqlite_grid.UpdateNewGridData()
     sqlite_default_db = parent.txtSqliteDefaultDb.GetValue()
-    sqlite_default_tbl = parent.txtSqliteDefaultTbl.GetValue()
+    sqlite_default_tbl = parent.txtSqliteDefaultTbldef setDbInConnDets(conn_dets):
+    pass # only ever one database.GetValue()
     has_sqlite_conn = sqlite_default_db and sqlite_default_tbl
     incomplete_sqlite = (sqlite_default_db or sqlite_default_tbl) \
         and not has_sqlite_conn

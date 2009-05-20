@@ -22,7 +22,6 @@ USER_PATH, LOCAL_PATH = util.get_user_paths()
 warnings.filterwarnings("ignore", r".*Data truncated.*")
 warnings.filterwarnings("ignore", r"UN[\w\s:]*.*")
 warnings.filterwarnings("ignore", r".*WebKitSupport.*")
-
 warnings.filterwarnings("ignore", r".*UserWarning.*[\w\s]*.*")
 
 
