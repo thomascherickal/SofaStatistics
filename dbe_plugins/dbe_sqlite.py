@@ -267,8 +267,7 @@ def setConnDetDefaults(parent):
 def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     parent.sqlite_grid.UpdateNewGridData()
     sqlite_default_db = parent.txtSqliteDefaultDb.GetValue()
-    sqlite_default_tbl = parent.txtSqliteDefaultTbldef setDbInConnDets(conn_dets):
-    pass # only ever one database.GetValue()
+    sqlite_default_tbl = parent.txtSqliteDefaultTbl.GetValue()
     has_sqlite_conn = sqlite_default_db and sqlite_default_tbl
     incomplete_sqlite = (sqlite_default_db or sqlite_default_tbl) \
         and not has_sqlite_conn

@@ -224,8 +224,7 @@ class DbDets(getdata.DbDets):
             fld_names = [x.strip() for x in raw_fld_names.split(",")]
             if unique_index:
                 has_unique = True
-            idx_dic = {getdata.IDX_
-                       NAME: idx_name, 
+            idx_dic = {getdata.IDX_NAME: idx_name, 
                        getdata.IDX_IS_UNIQUE: unique_index, 
                        getdata.IDX_FLDS: fld_names}
             idxs.append(idx_dic)
@@ -322,8 +321,7 @@ def InsertRow(conn, cur, tbl_name, data):
     data_tup = tuple(data_lst)
     if debug: pprint.pprint(data_tup)
     try:
-        cur.execute(SQL_insert,def setDbInConnDets(conn_dets):
-    pass # only ever one database data_tup)
+        cur.execute(SQL_insert, data_tup)
         conn.commit()
         return True
     except Exception, e:
