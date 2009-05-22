@@ -371,10 +371,14 @@ class StartFrame(wx.Frame):
         self.DrawBlankWallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_stats, 500, 260, True)
         panel_dc.SetTextForeground(TEXT_BROWN)
-        txt_stats = "Run statistical tests on your data e.g. a Chi Square." + \
+        txt_stats1 = "Run statistical tests on your data e.g. a Chi Square " + \
             "to see if there is a relationship between age and gender."
-        panel_dc.DrawLabel(GetTextToDraw(txt_stats, MAX_HELP_TEXT_WIDTH), 
+        panel_dc.DrawLabel(GetTextToDraw(txt_stats1, MAX_HELP_TEXT_WIDTH), 
                            wx.Rect(160, 248, 540, 260))
+        txt_stats2 = "SOFA focuses on the stats tests most users need most " + \
+            "of the time."
+        panel_dc.DrawLabel(GetTextToDraw(txt_stats2, MAX_HELP_TEXT_WIDTH), 
+                           wx.Rect(160, 290, 540, 320))
         event.Skip()
     
     def OnExitClick(self, event):

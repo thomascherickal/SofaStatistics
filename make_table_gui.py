@@ -44,9 +44,10 @@ class DlgMakeTable(wx.Dialog, make_table.MakeTable, dimtree.DimTree):
         # set up panel for frame
         self.panel = wx.Panel(self)
         ib = wx.IconBundle()
-        ib.AddIconFromFile(os.path.join(SCRIPT_PATH, "images", 
-                                        "python_logo_only_16.xpm"), 
-                           wx.BITMAP_TYPE_XPM)
+        ib.AddIconFromFile(os.path.join(SCRIPT_PATH, 
+                                        "images", 
+                                        "tinysofa.xpm"), 
+                           wx.BITMAP_TYPE_XPM)   
         self.SetIcons(ib)
         # Data details
         # Databases

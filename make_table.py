@@ -42,7 +42,7 @@ def AddClosingScriptCode(f):
     f.write("\nfil.close()")
 
 def getVarItem(var_labels, var_name):
-    return "%s (%s)" % (var_labels.get(var_name, var_name),
+    return "%s (%s)" % (var_labels.get(var_name, var_name.title()),
                         var_name)
 
 def extractVarDets(choice_text):
@@ -68,7 +68,7 @@ def GetColDets(coltree, colRoot, var_labels):
     full_col_labels = util.getSubTreeItems(coltree, colRoot)
     split_col_tree_labels = full_col_labels.split(", ")        
     col_names = [extractVarDets(x)[0] for x in split_col_tree_labels]
-    col_labels = [var_labels.get(x, x) for x in col_names]
+    col_labels = [var_labels.get(x, x.title()) for x in col_names]
     return col_names, col_labels
 
 

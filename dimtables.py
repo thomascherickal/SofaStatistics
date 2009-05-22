@@ -190,7 +190,7 @@ class DimTable(object):
             (len(tree_col_labels.getTerminalNodes()) + row_label_cols_n, 
              title_dets_html))
         #start off with spaceholder heading cell
-        col_label_rows_lst[1].append("<th class='firstcolvar' rowspan='%s' " % \
+        col_label_rows_lst[1].append("<th class='spaceholder' rowspan='%s' " % \
             (tree_col_labels.getDepth() - 1) + "colspan='%s'>&nbsp;&nbsp;</th>" % \
             row_label_cols_n)
         col_label_rows_lst = self.colLabelRowBuilder(\
