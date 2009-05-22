@@ -66,12 +66,17 @@ def GetDefaultCss():
             text-align: right;
             margin: 0;
         }
-        .firstcolvar, .firstrowvar {
+        .firstcolvar, .firstrowvar, .spaceholder {
             font-family: Arial, Helvetica, sans-serif;
             font-weight: bold;
             font-size: 15px;
             color: white;
-            background-color: #00016F;
+        }
+        .firstcolvar, .firstrowvar {
+            background-color: #333435;
+        }
+        .spaceholder {
+            background-color: #CCD9D7;
         }
         .firstcolvar{
             padding: 9px 6px;

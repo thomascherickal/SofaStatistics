@@ -148,8 +148,12 @@ class DimTree(object):
                 tree.SelectItem(new_id)
                 self.UpdateDemoDisplay()
     
-    def setInitialConfig(self, tree, dim, new_id, var_name):
-        "Set initial config for new item"
+    def setInitialConfig(self, tree, dim, new_id, var_name=None):
+        """
+        Set initial config for new item.
+        Variable name not applicable when a column config item rather than
+            a normal column variable.
+        """
         item_conf = make_table.ItemConfig()
         if (self.tab_type == make_table.COL_MEASURES \
                     and dim == dimtables.COLDIM):
@@ -159,7 +163,10 @@ class DimTree(object):
                     and dim == dimtables.ROWDIM):
             item_conf.measures_lst = \
                 [make_table.get_default_measure(make_table.ROW_SUMM)]
-        item_conf.bolnumeric = self.flds[var_name][getdata.FLD_BOLNUMERIC]
+        if var_name:
+            item_conf.bolnumeric = self.flds[var_name][getdata.FLD_BOLNUMERIC]
+        else:
+            item_conf.bolnumeric = False
         tree.SetItemPyData(new_id, item_conf)
         tree.SetItemText(new_id, item_conf.getSummary(), 1)
     
@@ -380,19 +387,24 @@ class DimTree(object):
         Configure column item e.g. measures, total.
         Either with columns vars or without.  If without, only filtering 
             by row vars.  Total doesn't make sense in this context.
+        
         """
-        empty_tree = not util.ItemHasChildren(tree=self.coltree, 
+        empty_coltree = not util.ItemHasChildren(tree=self.coltree, 
                                               parent=self.colRoot)
         # empty_tree = not self.coltree.ItemHasChildren(self.colRoot) #buggy if root hidden
         # i.e. if there is only the root there
         # no col vars - just set measures (without total)
-        if empty_tree and self.tab_type == make_table.COL_MEASURES:
+        if empty_coltree and self.tab_type == make_table.COL_MEASURES:
+            empty_rowtree = not util.ItemHasChildren(tree=self.rowtree, 
+                                                     parent=self.rowRoot)
+            if empty_rowtree:
+                return
             #add special node before getting config
             self.col_no_vars_item = \
                 self.coltree.AppendItem(self.colRoot, 
                                         make_table.COL_MEASURES_TREE_LBL)
-            self.demo_tab.setInitialConfig(dimtables.COLDIM, 
-                                           self.col_no_vars_item)
+            self.setInitialConfig(self.coltree, dimtables.COLDIM, 
+                                  self.col_no_vars_item)
             self.demo_tab.col_no_vars_item = self.col_no_vars_item
             self.coltree.ExpandAll(self.colRoot)
             self.coltree.SelectItem(self.col_no_vars_item)
@@ -401,7 +413,7 @@ class DimTree(object):
             self.getColConfig(node_ids=[self.col_no_vars_item], 
                                   has_col_vars=False)
             self.UpdateDemoDisplay()
-        elif empty_tree and self.tab_type == make_table.ROW_SUMM:
+        elif empty_coltree and self.tab_type == make_table.ROW_SUMM:
             return
         else: # not an empty col_measures or row summ table
             selected_ids = self.coltree.GetSelections()
@@ -409,7 +421,7 @@ class DimTree(object):
             # if one has children, they all must
             # if one has no children, none can
             config_ok = True
-            if not empty_tree:
+            if not empty_coltree:
                 first_has_children = util.ItemHasChildren(tree=self.coltree,
                                                           parent=selected_ids[0])
                 for selected_id in selected_ids[1:]:

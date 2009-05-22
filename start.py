@@ -236,9 +236,9 @@ class StartFrame(wx.Frame):
         img_stats = wx.Image(os.path.join(SCRIPT_PATH, "images", "stats.xpm"), 
                             wx.BITMAP_TYPE_XPM)
         self.bmp_stats = wx.BitmapFromImage(img_stats)
-        img_python = wx.Image(os.path.join(SCRIPT_PATH, "images", "python_small.xpm"), 
+        img_psal = wx.Image(os.path.join(SCRIPT_PATH, "images", "psal_logo.xpm"), 
                          wx.BITMAP_TYPE_XPM)
-        self.bmp_python = wx.BitmapFromImage(img_python)
+        self.bmp_psal = wx.BitmapFromImage(img_psal)
         self.HELP_TEXT_FONT = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
         self.active_proj = projects.SOFA_DEFAULT_PROJ
     
@@ -264,11 +264,11 @@ class StartFrame(wx.Frame):
                            wx.Rect(160, 248, 540, 260))
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel("SOFA\nThe Open Statistics Company\nAuckland, New Zealand", 
+        panel_dc.DrawLabel("SOFA\nPaton-Simpson & Associates Ltd\nAuckland, New Zealand", 
                            wx.Rect(160, 497, 100, 50))
-        panel_dc.DrawLabel("© 2009 The Open Statistics Company", 
-                           wx.Rect(610, 522, 100, 50))
-        panel_dc.DrawBitmap(self.bmp_python, 7, 495, True)
+        panel_dc.DrawLabel("© 2009 Paton-Simpson & Associates Ltd", 
+                           wx.Rect(500, 522, 100, 50))
+        panel_dc.DrawBitmap(self.bmp_psal, 125, 492, True)
         # make default db if not already there
         connSqlite = sqlite.connect(os.path.join(LOCAL_PATH, 
                                                  projects.INTERNAL_FOLDER, 
@@ -324,7 +324,7 @@ class StartFrame(wx.Frame):
         panel_dc.DrawBitmap(self.bmp_chart, 540, 260, True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_entry = "Enter data into a fresh dataset or select an existing " + \
-            "one to edit or add to."
+            "one to edit or add data to."
         panel_dc.DrawLabel(GetTextToDraw(txt_entry, MAX_HELP_TEXT_WIDTH), 
                            wx.Rect(160, 248, 540, 260))
         event.Skip()

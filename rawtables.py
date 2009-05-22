@@ -116,7 +116,7 @@ class RawTable(object):
                     elif row[i] == None:
                         row_val = "-"
                 # cell format
-                col_class_names = "\"" + ", ".join(col_class_lsts[i]) + "\""
+                col_class_names = "\"" + " ".join(col_class_lsts[i]) + "\""
                 col_classes = "class = %s" % col_class_names if col_class_names else ""
                 row_tds.append("<td %s>%s</td>" % (col_classes, row_val))
                 # process totals

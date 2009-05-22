@@ -8,6 +8,7 @@ import projects
 import util
 
 
+SCRIPT_PATH = util.get_script_path()
 USER_PATH, LOCAL_PATH = util.get_user_paths()
 
 class ProjSelectDlg(wx.Dialog):
@@ -20,6 +21,13 @@ class ProjSelectDlg(wx.Dialog):
         self.panel = wx.Panel(self)
         self.projs = projs
         self.read_only=False
+        # icon
+        ib = wx.IconBundle()
+        ib.AddIconFromFile(os.path.join(SCRIPT_PATH, 
+                                        "images", 
+                                        "tinysofa.xpm"), 
+                           wx.BITMAP_TYPE_XPM)
+        self.SetIcons(ib)       
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         lblChoose = wx.StaticText(self.panel, -1, "Choose an existing project ...")
         self.dropProjs = wx.Choice(self.panel, -1, choices=self.projs)

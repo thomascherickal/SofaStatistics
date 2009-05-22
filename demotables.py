@@ -121,7 +121,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                 else:
                     row_val = str(random.choice(str_data_seq))
                 # cell format
-                col_class_names = "\"" + ", ".join(col_class_lsts[j]) + "\""
+                col_class_names = "\"" + " ".join(col_class_lsts[j]) + "\""
                 col_classes = "class = %s" % col_class_names if col_class_names else ""
                 row_tds.append("<td %s>%s</td>" % (col_classes, row_val))
             body_html += "\n<tr>" + "".join(row_tds) + "</td></tr>"
