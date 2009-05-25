@@ -1,11 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import warnings
+warnings.simplefilter('ignore', DeprecationWarning)
+
 import os
 import shutil
 from pysqlite2 import dbapi2 as sqlite
 import sys
-import warnings
 import wx
 
 import dataselect
@@ -19,11 +21,6 @@ MAX_HELP_TEXT_WIDTH = 350 # pixels
 TEXT_BROWN = (90, 74, 61)
 SCRIPT_PATH = util.get_script_path()
 USER_PATH, LOCAL_PATH = util.get_user_paths()
-warnings.filterwarnings("ignore", r".*Data truncated.*")
-warnings.filterwarnings("ignore", r"UN[\w\s:]*.*")
-warnings.filterwarnings("ignore", r".*WebKitSupport.*")
-warnings.filterwarnings("ignore", r".*UserWarning.*[\w\s]*.*")
-
 
 def TextOnBitmap(bitmap, text, font, colour):
     """
@@ -227,7 +224,7 @@ class StartFrame(wx.Frame):
         img_chart = wx.Image(os.path.join(SCRIPT_PATH, "images", "demo_chart.xpm"), 
                               wx.BITMAP_TYPE_XPM)
         self.bmp_chart = wx.BitmapFromImage(img_chart)
-        img_proj = wx.Image(os.path.join(SCRIPT_PATH, "images", "mysql_dolphins.xpm"), 
+        img_proj = wx.Image(os.path.join(SCRIPT_PATH, "images", "briefcase.xpm"), 
                             wx.BITMAP_TYPE_XPM)
         self.bmp_proj = wx.BitmapFromImage(img_proj)
         img_tabs = wx.Image(os.path.join(SCRIPT_PATH, "images", "table.xpm"), 
