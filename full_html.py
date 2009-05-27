@@ -14,6 +14,7 @@ if util.in_windows():
                                      size=wx.Size(size[0], size[1]))
         
         def ShowHTML(self, strHTML):
+            """If first time, will have delay while initialising comtypes"""
             self.LoadString(strHTML)
     
 else:

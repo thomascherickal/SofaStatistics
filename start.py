@@ -11,11 +11,14 @@ import sys
 import wx
 
 import dataselect
+import full_html
 import getdata
 import make_table_gui
 import projects
 import projselect
 import util
+
+VERSION = "0.7.1"
 
 MAX_HELP_TEXT_WIDTH = 350 # pixels
 TEXT_BROWN = (90, 74, 61)
@@ -126,18 +129,18 @@ def InstallLocal():
 
 class SofaApp(wx.App):
 
-    debug = True
+    dev_debug = False
 
     def __init__(self):        
         # if wanting to initialise the parent class it must be run in child __init__ and nowhere else
-        if self.debug:
+        if self.dev_debug:
             redirect = False
             filename = None
         else:
             redirect = True
-            filename = os.path.join(os.getenv('HOME'), "sofa", 
-                                              projects.INTERNAL_FOLDER, 
-                                              'output.txt')
+            _, local_path = util.get_user_paths()
+            filename = os.path.join(local_path, projects.INTERNAL_FOLDER, 
+                                    'output.txt')
         wx.App.__init__(self, redirect=redirect, filename=filename) 
 
     def OnInit(self):
@@ -157,6 +160,7 @@ class StartFrame(wx.Frame):
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize()) # Windows doesn't include window decorations
         self.panel = wx.Panel(self)
+        self.InitComTypes(self.panel)
         self.panel.Bind(wx.EVT_PAINT, self.OnPaint)        
         # icon
         ib = wx.IconBundle()
@@ -239,6 +243,25 @@ class StartFrame(wx.Frame):
         self.HELP_TEXT_FONT = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
         self.active_proj = projects.SOFA_DEFAULT_PROJ
     
+    def InitComTypes(self, panel):
+        """
+        If first time opened, and in Windows, warn user about delay setting 
+            up (comtypes).
+        """
+        COMTYPES_HANDLED = "comtypes_handled.txt"
+        if util.in_windows() and not os.path.exists(os.path.join(LOCAL_PATH, 
+                                                            COMTYPES_HANDLED)):
+            wx.MessageBox("Preparing for first use of SOFA Statistics.\n\n" + \
+                          "Please wait a moment ...")
+            h = full_html.FullHTML(panel, (10, 10))
+            h.ShowHTML("")
+            h = None
+        if not os.path.exists(os.path.join(LOCAL_PATH, COMTYPES_HANDLED)):
+            # create file as tag we have done the changes to the proj file
+            f = file(os.path.join(LOCAL_PATH, COMTYPES_HANDLED), "w")
+            f.write("Comtypes handled successfully :-)")
+            f.close()
+    
     def OnPaint(self, event):
         """
         Cannot use static bitmaps and static text to replace.  In windows
@@ -249,6 +272,9 @@ class StartFrame(wx.Frame):
         panel_dc.DrawBitmap(self.bmp_sofa, 0, 0, True)
         panel_dc.DrawBitmap(self.bmp_chart, 540, 260, True)
         panel_dc.SetTextForeground(wx.WHITE)
+        panel_dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL))
+        panel_dc.DrawLabel("Version %s" % VERSION, 
+                           wx.Rect(160, 6, 100, 20))   
         panel_dc.SetFont(wx.Font(16, wx.SWISS, wx.NORMAL, wx.NORMAL))
         panel_dc.DrawLabel("Statistics Open For All", 
                            wx.Rect(160, 70, 100, 100))
@@ -391,7 +417,6 @@ class StartFrame(wx.Frame):
                            wx.Rect(160, 248, 540, 260))
         event.Skip()
 
-  
 InstallLocal()
 app = SofaApp()
 try:
