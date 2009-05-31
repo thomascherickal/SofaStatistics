@@ -25,7 +25,7 @@ def get_prog_path():
     if in_windows():
         prog_path = os.environ['PROGRAMFILES']
     else:
-        prog_path = os.path.join("usr", "share", "pyshared")
+        prog_path = os.path.join("/usr/share/pyshared")
     return prog_path
 
 class StaticWrapText(wx.StaticText):

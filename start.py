@@ -20,6 +20,7 @@ import util
 
 VERSION = "0.7.1"
 
+COPYRIGHT = "\xa9" if util.in_windows() else "©"
 MAX_HELP_TEXT_WIDTH = 350 # pixels
 TEXT_BROWN = (90, 74, 61)
 SCRIPT_PATH = util.get_script_path()
@@ -74,7 +75,7 @@ def InstallLocal():
     Modify default project settings to point to local (user) SOFA  directory.
     """
     sofa_prog_path = os.path.join(util.get_prog_path(), "sofa")
-    default_proj = os.path.join(LOCAL_PATH, "projs", 
+    default_proj = os.path.join(LOCAL_PATH, "projs",  
                                 "SOFA_Default_Project.proj")
     paths = ["css", projects.INTERNAL_FOLDER, "lbls", "projs", "reports", 
              "scripts"]
@@ -289,7 +290,7 @@ class StartFrame(wx.Frame):
         panel_dc.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
         panel_dc.DrawLabel("SOFA\nPaton-Simpson & Associates Ltd\nAuckland, New Zealand", 
                            wx.Rect(160, 497, 100, 50))
-        panel_dc.DrawLabel("© 2009 Paton-Simpson & Associates Ltd", 
+        panel_dc.DrawLabel("%s 2009 Paton-Simpson & Associates Ltd" % COPYRIGHT, 
                            wx.Rect(500, 522, 100, 50))
         panel_dc.DrawBitmap(self.bmp_psal, 125, 492, True)
         # make default db if not already there
