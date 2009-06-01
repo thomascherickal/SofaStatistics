@@ -25,13 +25,14 @@ class DlgMakeTable(wx.Dialog, make_table.MakeTable, dimtree.DimTree):
     def __init__(self, title, dbe, conn_dets, default_dbs=None, 
                  default_tbls=None, fil_labels="", fil_css="", fil_report="", 
                  fil_script="", var_labels=None, var_notes=None, 
-                 val_dics=None, pos=wx.DefaultPosition, size=wx.DefaultSize):
+                 val_dics=None):
          
-        wx.Dialog.__init__(self, parent=None, id=-1, title=title, pos=pos,
-                          style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
-                          wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
-                          wx.CAPTION | wx.CLOSE_BOX | \
-                          wx.CLIP_CHILDREN)
+        wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
+                           pos=(200, 0), 
+                           style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
+                           wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
+                           wx.CAPTION | wx.CLOSE_BOX | \
+                           wx.CLIP_CHILDREN)
         self.fil_labels = fil_labels
         self.fil_css = fil_css
         self.fil_report = fil_report
@@ -182,7 +183,7 @@ class DlgMakeTable(wx.Dialog, make_table.MakeTable, dimtree.DimTree):
         #btnExport.Bind(wx.EVT_ENTER_WINDOW, self.OnExportEnterWindow)
         #btnExport.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         btnHelp = wx.Button(self.panel, -1, "HELP")
-        #btnHelp.Bind(wx.EVT_BUTTON, self.OnButtonView)
+        btnHelp.Bind(wx.EVT_BUTTON, self.OnButtonHelp)
         #btnHelp.Bind(wx.EVT_ENTER_WINDOW, self.OnHelpEnterWindow)
         #btnHelp.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         btnClear = wx.Button(self.panel, -1, "CLEAR")
@@ -215,10 +216,7 @@ class DlgMakeTable(wx.Dialog, make_table.MakeTable, dimtree.DimTree):
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics,
                                  fil_css=self.fil_css)
-        self.html = full_html.FullHTML(self.panel, size=(200,250))
-        
-        #self.html = wx.webview.WebView(self.panel, -1, size=(200,250))
-        
+        self.html = full_html.FullHTML(self.panel, size=(200,250))        
         lbldemo_tbls = wx.StaticText(self.panel, -1, "Demonstration Table:")
         lbldemo_tbls.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         # main section SIZERS **************************************************************
@@ -348,8 +346,8 @@ class DlgMakeTable(wx.Dialog, make_table.MakeTable, dimtree.DimTree):
         szrMain.Add(szrConfig, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szrMain.Add(szrOutput, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szrMain.Add(szrMid, 0, wx.GROW|wx.ALL, 10)
-        szrMain.Add(szrDims, 1, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-        szrMain.Add(szrHtml, 2, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szrMain.Add(szrDims, 5, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        szrMain.Add(szrHtml, 8, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         #status bar
         #self.statusbar = self.CreateStatusBar()
         #attach main sizer to panel>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

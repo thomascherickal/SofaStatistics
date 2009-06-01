@@ -356,7 +356,7 @@ class TblEditor(wx.Dialog):
         self.debug = False
         wx.Dialog.__init__(self, None, 
                            title="Data from %s.%s" % (db, tbl_name),
-                           size=(500, 500),
+                           size=(500, 500), pos=(300, 0),
                            style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
                            wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
                            wx.CAPTION | wx.CLOSE_BOX | \

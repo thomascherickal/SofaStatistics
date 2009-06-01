@@ -20,7 +20,7 @@ class DataSelectDlg(wx.Dialog):
         wx.Dialog.__init__(self, parent=parent, title=title,
                            size=(500, 300), 
                            style=wx.CAPTION|wx.CLOSE_BOX|
-                           wx.SYSTEM_MENU, pos=(100, 100))
+                           wx.SYSTEM_MENU, pos=(300, 100))
         self.parent = parent
         self.panel = wx.Panel(self)
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -37,8 +37,8 @@ class DataSelectDlg(wx.Dialog):
         self.dropTables.Bind(wx.EVT_CHOICE, self.OnTableSel)
         self.chkReadOnly = wx.CheckBox(self.panel, -1, "Read Only")
         self.chkReadOnly.SetValue(True)
-        self.btnOpen = wx.Button(self.panel, wx.ID_OPEN)
-        self.btnOpen.Bind(wx.EVT_BUTTON, self.OnOpen)
+        btnOpen = wx.Button(self.panel, wx.ID_OPEN)
+        btnOpen.Bind(wx.EVT_BUTTON, self.OnOpen)
         szrExistingTop = wx.BoxSizer(wx.HORIZONTAL)
         lblDbs = wx.StaticText(self.panel, -1, "Databases:")
         lblDbs.SetFont(lblfont)
@@ -51,7 +51,7 @@ class DataSelectDlg(wx.Dialog):
         szrExistingBottom.Add(lblTbls, 0, wx.RIGHT, 5)
         szrExistingBottom.Add(self.dropTables, 1, wx.GROW|wx.RIGHT, 10)
         szrExistingBottom.Add(self.chkReadOnly, 0, wx.TOP|wx.LEFT, 5)
-        szrExistingBottom.Add(self.btnOpen, 0)
+        szrExistingBottom.Add(btnOpen, 0)
         bxExisting = wx.StaticBox(self.panel, -1, "Existing data tables")
         szrExisting = wx.StaticBoxSizer(bxExisting, wx.VERTICAL)
         szrExisting.Add(szrExistingTop, 0, wx.GROW|wx.ALL, 10)
@@ -60,34 +60,22 @@ class DataSelectDlg(wx.Dialog):
         szrNew = wx.StaticBoxSizer(bxNew, wx.HORIZONTAL)
         lblMakeNew = wx.StaticText(self.panel, -1, "... or make a new data table")
         btnMakeNew = wx.Button(self.panel, wx.ID_NEW)
-        #btnMakeNew.Bind(wx.EVT_BUTTON, self.OnNewClick)
+        btnMakeNew.Bind(wx.EVT_BUTTON, self.OnNewClick)
         szrNew.Add(lblMakeNew, 1, wx.GROW|wx.ALL, 10)
         szrNew.Add(btnMakeNew, 0, wx.ALL, 10)
-        self.SetupButtons()
         self.lblFeedback = wx.StaticText(self.panel, -1, "")
-        self.szrButtons.Add(self.lblFeedback, 0, wx.LEFT|wx.TOP, 10)
+        btnClose = wx.Button(self.panel, wx.ID_CLOSE)
+        btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
+        self.szrButtons = wx.BoxSizer(wx.HORIZONTAL)
+        self.szrButtons.Add(self.lblFeedback, 1, wx.GROW|wx.ALL, 10)
+        self.szrButtons.Add(btnClose, 0, wx.GROW|wx.RIGHT)        
         self.szrMain.Add(lblChoose, 0, wx.ALL, 10)
         self.szrMain.Add(szrExisting, 1, wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.GROW, 10)
         self.szrMain.Add(szrNew, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
-        self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
+        self.szrMain.Add(self.szrButtons, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
         self.Layout()
-        
-    def SetupButtons(self):
-        """
-        Must have ID of wx.ID_... to trigger validators (no event binding 
-            needed) and for std dialog button layout.
-        """
-        btnCancel = wx.Button(self.panel, wx.ID_CANCEL)
-        btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
-        btnOK = wx.Button(self.panel, wx.ID_OK)
-        btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
-        btnOK.SetDefault()
-        self.szrButtons = wx.StdDialogButtonSizer()
-        self.szrButtons.AddButton(btnCancel)
-        self.szrButtons.AddButton(btnOK)
-        self.szrButtons.Realize()
 
     def AddFeedback(self, feedback):
         self.lblFeedback.SetLabel(feedback)
@@ -114,10 +102,11 @@ class DataSelectDlg(wx.Dialog):
             dlg.ShowModal()
         event.Skip()
     
-    def OnCancel(self, event):
-        self.Destroy()
+    def OnNewClick(self, event):
+        wx.MessageBox("Not available yet in this version")
+        event.Skip()
     
-    def OnOK(self, event):
+    def OnClose(self, event):
         self.Destroy()
         
 

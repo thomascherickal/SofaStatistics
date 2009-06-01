@@ -16,7 +16,7 @@ class ProjSelectDlg(wx.Dialog):
         wx.Dialog.__init__(self, parent=parent, title="Projects",
                            size=wx.DefaultSize, 
                            style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
-                           wx.SYSTEM_MENU, pos=(100, 100))
+                           wx.SYSTEM_MENU, pos=(400, 100))
         self.parent = parent
         self.panel = wx.Panel(self)
         self.projs = projs

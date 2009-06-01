@@ -1,9 +1,10 @@
-import wx
-import random
 from datetime import datetime
-import pprint
-import sys
 import os
+import pprint
+import random
+import sys
+import time
+import wx
 
 import demotables
 import dimtables
@@ -210,6 +211,9 @@ class MakeTable(object):
     # table type
     def OnTabTypeChange(self, event):
         "Respond to change of table type"
+        self.UpdateByTabType()
+    
+    def UpdateByTabType(self):
         self.tab_type = self.radTabType.GetSelection() #for convenience
         #delete all row and col vars
         self.rowtree.DeleteChildren(self.rowRoot)
@@ -268,7 +272,7 @@ class MakeTable(object):
                      chkFirstAsLabel=self.chkFirstAsLabel)
         #in case they were disabled and then we changed tab type
         self.UpdateDemoDisplay()
-    
+        
     def EnableOpts(self, enable=True):
         "Enable (or disable) options"
         self.chkTotalsRow.Enable(enable)
@@ -296,7 +300,8 @@ class MakeTable(object):
         """
         Generate script to special location (INT_SCRIPT_PATH), 
             run script putting output in special location 
-            (INT_REPORT_PATH), display html output.
+            (INT_REPORT_PATH) and into report file, and finally, 
+            display html output.
         """
         run_ok, missing_dim, has_rows, has_cols = self.TableConfigOK()
         if run_ok:
@@ -319,11 +324,15 @@ class MakeTable(object):
             f = file(projects.INT_REPORT_PATH, "r")
             strContent = f.read()
             f.close()
+            # append into html file
+            self.SaveToReport(content=strContent)
             # Return to normal cursor
             curs = wx.StockCursor(wx.CURSOR_ARROW)
             self.SetCursor(curs)
             #self.statusbar.SetStatusText("")
             # display results
+            strContent = "<p>Output also saved to '%s'</p>" % \
+                self.fil_report + strContent
             dlg = showhtml.ShowHTML(parent=self, content=strContent, 
                                     file_name=projects.INT_REPORT_FILE, 
                                     title="Report", 
@@ -332,6 +341,24 @@ class MakeTable(object):
             dlg.Destroy()
         else:
             wx.MessageBox("Missing %s data" % missing_dim)
+
+    def SaveToReport(self, content):
+        """
+        If report exists, append content stripped of every thing up till 
+            and including body tag.
+        If not, create file, insert header, then stripped content.
+        """
+        body = "<body>"
+        start_idx = content.find(body) + len(body)
+        content = content[start_idx:]
+        if os.path.exists(self.fil_report):
+            f = file(self.fil_report, "a")
+        else:
+            f = file(self.fil_report, "w")
+            hdr_title = time.strftime("SOFA Statistics Report %Y-%m-%d_%H:%M:%S")
+            f.write(tabreports.getHtmlHdr(hdr_title, self.fil_css))
+        f.write(content)
+        f.close()
 
     #def OnRunEnterWindow(self, event):
     #    "Hover over RUN button"
@@ -381,7 +408,9 @@ class MakeTable(object):
         NB files always start from scratch per make tables session.
         """         
         fil.write("#! /usr/bin/env python")
-        fil.write("\n# -*- coding: utf-8 -*-\n")            
+        fil.write("\n# -*- coding: utf-8 -*-\n")
+        fil.write("\nimport sys")
+        fil.write("\nsys.path.append('%s')" % util.get_script_path())
         fil.write("\nimport dimtables")
         fil.write("\nimport rawtables")
         fil.write("\nimport tabreports")
@@ -552,6 +581,12 @@ class MakeTable(object):
     #    "Hover over EXPORT button"
     #    self.statusbar.SetStatusText("Export python code for making " + \
     #                                 "table to file")
+    
+    def OnButtonHelp(self, event):
+        """
+        Export script if enough data to create table.
+        """
+        wx.MessageBox("Not available yet in this version")
         
     # clear button
     def ClearDims(self):
@@ -572,6 +607,7 @@ class MakeTable(object):
         self.tab_type = COL_MEASURES
         self.rowtree.DeleteChildren(self.rowRoot)
         self.coltree.DeleteChildren(self.colRoot)
+        self.UpdateByTabType()
         self.UpdateDemoDisplay()
     
     # help

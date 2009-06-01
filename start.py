@@ -18,7 +18,7 @@ import projects
 import projselect
 import util
 
-VERSION = "0.7.1"
+VERSION = "0.7.2"
 
 COPYRIGHT = "\xa9" if util.in_windows() else "©"
 MAX_HELP_TEXT_WIDTH = 350 # pixels
@@ -201,7 +201,7 @@ class StartFrame(wx.Frame):
         self.btnTables = wx.BitmapButton(self.panel, -1, bmp_btn_tables, 
                                          pos=(btn_x_pos, g.next()))
         self.btnTables.Bind(wx.EVT_BUTTON, self.OnTablesClick)
-        self.btnTables.Bind(wx.EVT_ENTER_WINDOW, self.OnTablesEnter)
+        self.btnTables.Bind(wx.EVT_ENTER_WINDOW, self.OnTablesEnter)       
         bmp_btn_charts = TextOnBitmap(GetBlankButtonBitmap(), "View Charts", 
                                       font_buttons, "white")
         self.btnCharts = wx.BitmapButton(self.panel, -1, bmp_btn_charts, 
@@ -375,6 +375,7 @@ class StartFrame(wx.Frame):
         event.Skip()
     
     def OnChartsClick(self, event):
+        wx.MessageBox("Not available yet in version %s" % VERSION)
         event.Skip()
         
     def OnChartsEnter(self, event):
@@ -387,7 +388,8 @@ class StartFrame(wx.Frame):
                            wx.Rect(160, 248, 540, 260))
         event.Skip()
     
-    def OnStatsClick(self, event):
+    def OnStatsClick(self, event):        
+        wx.MessageBox("Not available yet in version %s" % VERSION)
         event.Skip()
         
     def OnStatsEnter(self, event):

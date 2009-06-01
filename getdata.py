@@ -57,10 +57,11 @@ DBE_MODULES = {}
 DBE_PLUGINS = [(DBE_SQLITE, "dbe_sqlite"), (DBE_MYSQL, "dbe_mysql"), 
                (DBE_MS_ACCESS, "dbe_ms_access")]
 for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
-    dbe_plugin_mod = os.path.join(util.get_script_path(), "dbe_plugins", 
+    access_yet_not_win = not util.in_windows() and dbe_plugin == DBE_MS_ACCESS
+    dbe_plugin_mod = os.path.join(os.path.dirname(__file__), "dbe_plugins", 
                                    "%s.py" % dbe_mod_name)
     if os.path.exists(dbe_plugin_mod):
-        if not (not util.in_windows() and dbe_plugin == DBE_MS_ACCESS):
+        if not access_yet_not_win: # i.e. OK to add module
             DBES.append(dbe_plugin)
             dbe_mod = import_dbe_plugin(dbe_plugin)
             DBE_MODULES[dbe_plugin] = dbe_mod
