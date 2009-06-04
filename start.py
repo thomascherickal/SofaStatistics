@@ -252,8 +252,8 @@ class StartFrame(wx.Frame):
         COMTYPES_HANDLED = "comtypes_handled.txt"
         if util.in_windows() and not os.path.exists(os.path.join(LOCAL_PATH, 
                                                             COMTYPES_HANDLED)):
-            wx.MessageBox("Preparing for first use of SOFA Statistics.\n\n" + \
-                          "Please wait a moment ...")
+            wx.MessageBox("Click OK to prepare for first use of SOFA Statistics.\n\n" + \
+                          "Preparation may take a moment ...")
             h = full_html.FullHTML(panel, (10, 10))
             h.ShowHTML("")
             h = None

@@ -74,7 +74,12 @@ class DimTree(object):
             new_val_dic = {}
             new_data_rows_n = len(new_grid_data)
             for i in range(new_data_rows_n):
+                # the key is always returned as a string but we may need to store it as a number
                 key, value = new_grid_data[i]
+                if val_type == table_entry.COL_FLOAT:
+                    key = float(key)
+                elif val_type == table_entry.COL_INT:
+                    key = int(key)
                 new_val_dic[key] = value
             self.val_dics[var_name] = new_val_dic
             # update lbl file
