@@ -282,7 +282,7 @@ class StartFrame(wx.Frame):
         panel_dc.SetFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL))
         panel_dc.SetTextForeground(TEXT_BROWN)
         panel_dc.DrawLabel("SOFA - Statistics Open For All" + \
-           "\nthe user-friendly, open-source\nstatistics & analysis package", 
+           "\nthe user-friendly, open-source statistics,\nanalysis & reporting package", 
            wx.Rect(160, 105, 100, 100))
         panel_dc.DrawLabel(GetTextToDraw(self.txtWelcome, MAX_HELP_TEXT_WIDTH), 
                            wx.Rect(160, 248, 540, 260))

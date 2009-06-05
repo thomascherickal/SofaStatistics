@@ -73,7 +73,7 @@ class DlgMakeTable(wx.Dialog, make_table.MakeTable, dimtree.DimTree):
         #btnLabelPath.Bind(wx.EVT_ENTER_WINDOW, self.LabelPathEnterWindow)
         #btnLabelPath.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         # CSS style config details
-        lblCssPath = wx.StaticText(self.panel, -1, "CSS file:")
+        lblCssPath = wx.StaticText(self.panel, -1, "Style:")
         lblCssPath.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         self.txtCssFile = wx.TextCtrl(self.panel, -1, self.fil_css, 
                                       size=(250,-1))
