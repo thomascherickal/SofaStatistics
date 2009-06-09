@@ -13,6 +13,7 @@ import wx
 import dataselect
 import full_html
 import getdata
+import importer
 import make_table_gui
 import projects
 import projselect
@@ -236,7 +237,10 @@ class StartFrame(wx.Frame):
         img_proj = wx.Image(os.path.join(SCRIPT_PATH, "images", "briefcase.xpm"), 
                             wx.BITMAP_TYPE_XPM)
         self.bmp_proj = wx.BitmapFromImage(img_proj)
-        img_import = wx.Image(os.path.join(SCRIPT_PATH, "images", "briefcase.xpm"), 
+        img_data = wx.Image(os.path.join(SCRIPT_PATH, "images", "data.xpm"), 
+                            wx.BITMAP_TYPE_XPM)
+        self.bmp_data = wx.BitmapFromImage(img_data)
+        img_import = wx.Image(os.path.join(SCRIPT_PATH, "images", "import.xpm"), 
                               wx.BITMAP_TYPE_XPM)
         self.bmp_import = wx.BitmapFromImage(img_import)
         img_tabs = wx.Image(os.path.join(SCRIPT_PATH, "images", "table.xpm"), 
@@ -355,7 +359,7 @@ class StartFrame(wx.Frame):
     def OnEnterEnter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.DrawBlankWallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_chart, 540, 260, True)
+        panel_dc.DrawBitmap(self.bmp_data, 540, 260, True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_entry = "Enter data into a fresh dataset or select an existing " + \
             "one to edit or add data to."
@@ -365,17 +369,18 @@ class StartFrame(wx.Frame):
 
     def OnImportClick(self, event):
         # open import data dialog
-        pass
+        dlg = importer.ImportFileSelectDlg(self)
+        dlg.ShowModal()
         event.Skip()
         
     def OnImportEnter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.DrawBlankWallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_import, 540, 260, True)
+        panel_dc.DrawBitmap(self.bmp_import, 530, 280, True)
         panel_dc.SetTextForeground(TEXT_BROWN)
-        txt_entry = "Import data e.g. a spreadsheets, csv file, or SPSS."
+        txt_entry = "Import data e.g. a spreadsheet, csv file, or SPSS sav file."
         panel_dc.DrawLabel(GetTextToDraw(txt_entry, MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, 248, 540, 260))
+                           wx.Rect(MAIN_LEFT, 248, 530, 260))
         event.Skip()
         
     def OnTablesClick(self, event):
@@ -440,7 +445,7 @@ class StartFrame(wx.Frame):
         panel_dc = wx.ClientDC(self.panel)
         self.DrawBlankWallpaper(panel_dc)
         panel_dc.SetTextForeground(TEXT_BROWN)
-        txt_exit = "Exit SOFA"
+        txt_exit = "Exit SOFA Statistics"
         panel_dc.DrawLabel(GetTextToDraw(txt_exit, MAX_HELP_TEXT_WIDTH), 
                            wx.Rect(MAIN_LEFT, 248, 540, 260))
         event.Skip()

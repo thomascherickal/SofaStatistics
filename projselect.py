@@ -27,7 +27,7 @@ class ProjSelectDlg(wx.Dialog):
                                         "images", 
                                         "tinysofa.xpm"), 
                            wx.BITMAP_TYPE_XPM)
-        self.SetIcons(ib)       
+        self.SetIcons(ib)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         lblChoose = wx.StaticText(self.panel, -1, "Choose an existing project ...")
         self.dropProjs = wx.Choice(self.panel, -1, choices=self.projs)
