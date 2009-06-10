@@ -2,7 +2,11 @@ import os
 import util
 import wx
 
+import csv_importer
+
 SCRIPT_PATH = util.get_script_path()
+FILE_CSV = "csv"
+FILE_UNKNOWN = "unknown"
 
 
 class ImportFileSelectDlg(wx.Dialog):
@@ -66,18 +70,41 @@ class ImportFileSelectDlg(wx.Dialog):
         #MUST have a parent to enforce modal in Windows
         if dlgGetFile.ShowModal() == wx.ID_OK:
             path = dlgGetFile.GetPath()
-            self.txtFile.SetValue("%s" % path)
-            self.txtIntName.SetValue(os.path.basename(path))
+            self.txtFile.SetValue(path)
+            filestart, _ = self.GetFilestartExt(path)
+            self.txtIntName.SetValue(filestart)
         dlgGetFile.Destroy()
         self.txtIntName.SetFocus()
         event.Skip()
+    
+    def GetFilestartExt(self, path):
+        _, filename = os.path.split(path)
+        filestart, extension = os.path.splitext(filename)
+        return filestart, extension
     
     def OnCancel(self, event):
         self.Destroy()
     
     def OnImport(self, event):
-        """"""
-        pass
+        """
+        Identify type of file by extension and open dialog if needed
+            to get any additional choices e.g. separator used in 'csv'.
+        """
+        file_path = self.txtFile.GetValue()
+        _, extension = self.GetFilestartExt(file_path)
+        if extension.lower() == ".csv":
+            self.file_type = FILE_CSV
+        else:
+            self.file_type = FILE_UNKNOWN
+        if self.file_type == FILE_CSV:
+            file_importer = csv_importer.FileImporter(\
+                                    file_path=file_path,
+                                    tbl_name=self.txtIntName.GetValue())
+        else:
+            wx.MessageBox("Files with the file name extension " + \
+                          "'%s' are not supported" % extension)
+            return
+        file_importer.GetParams()
         event.Skip()
            
 
