@@ -196,7 +196,7 @@ def datetime_str_valid(datetime_str):
     """
     Is the datetime string in a valid format?
     Returns tuple of Boolean and either a time object if True 
-        or None if False. 
+        or None if False. e.g. boldatetime, time_obj
     Used for checking user-entered datetimes.
     Doesn't cover all possibilities - just what is needed for typical data 
         entry.

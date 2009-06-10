@@ -2,6 +2,7 @@ import csv
 import wx
 
 import importer
+import util
 
 
 class FileImporter(object):
@@ -28,32 +29,58 @@ class FileImporter(object):
         """
         return True
     
-    def AssessDataSample(self, reader, has_header):
+    def AssessSampleFld(self, sample_data, fld_name):
         """
-        Assess data sample to see if consistent values in fields.
-        Returns fld_names, fld_types, sample_data.
-        If the data is consistent (i.e. possible to assign field types that
-            fit the existing data), fld_types dict will have 
-            field names as keys and field types as values.
-        In which case, sample_data will be a list of dicts containing the
-            first rows of data (no point reading them all again during 
-            subsequent steps).
-        If the data is not consistent, raise an exception.    
-
-        Sample first 50 rows (at most) to establish field types.  
-        If there is a header row, get the field names then skip it.
         For individual values, if numeric, assume numeric, 
             if date, assume date, 
-            if string, assume either string or missing value for another type.
-        For field sample, numeric if only contains numeric 
-            and possible missings.
-        Date if only contains dates and possible missings.
-        String if only contains strings and possible missings.
-        If none of those, unable to process.  Raise an exception which
-            provide useful information about the problem with the data.
-        The user might be able to manually fix these and try again.        
+            if string, either an empty string or an ordinary string.
+        For entire field sample, numeric if only contains numeric 
+            and empty strings (could be missings).
+        Date if only contains dates and empty strings (could be missings).
+        String otherwise.   
+        Return field type.
         """
-        rows_to_sample = 2
+        type_set = set()
+        numeric_only_set = set([importer.VAL_NUMERIC])
+        numeric_or_empt_str_set = set([importer.VAL_NUMERIC, 
+                                       importer.VAL_EMPTY_STRING])
+        datetime_only_set = set([importer.VAL_DATETIME])
+        datetime_or_empt_str_set = set([importer.VAL_DATETIME, 
+                                        importer.VAL_EMPTY_STRING])
+        for row in sample_data:
+            item = row[fld_name]
+            if util.isNumeric(item):
+                type_set.add(importer.VAL_NUMERIC)
+            else:
+                boldatetime, time_obj = util.datetime_str_valid(item)
+                if boldatetime:
+                    type_set.add(importer.VAL_DATETIME)
+                elif item == "":
+                    type_set.add(importer.VAL_EMPTY_STRING)
+                else:
+                    type_set.add(importer.VAL_STRING)
+        if type_set == numeric_only_set or \
+                type_set == numeric_or_empt_str_set:
+            fld_type = importer.FLD_NUMERIC
+        elif type_set == datetime_only_set or \
+                type_set == datetime_or_empt_str_set:
+            fld_type = importer.FLD_DATETIME
+        else:
+            fld_type = importer.FLD_STRING
+        return fld_type
+    
+    def AssessDataSample(self, reader, has_header):
+        """
+        Assess data sample to identify field types based on values in fields.
+        If a field has mixed data types will define as string.
+        Returns fld_names, fld_types, sample_data.
+        fld_types - dict with field names as keys and field types as values.
+        sample_data - list of dicts containing the first rows of data 
+            (no point reading them all again during subsequent steps).   
+        Sample first N rows (at most) to establish field types.  
+        If there is a header row, get the field names.     
+        """
+        rows_to_sample = 50
         bolhas_rows = False
         sample_data = []
         if has_header:
@@ -66,9 +93,11 @@ class FileImporter(object):
             sample_data.append(row)
             if i == (rows_to_sample - 1):
                 break
-        # TODO - populate fld_types with actual field types
-        bogus_types = [importer.FLD_STRING for x in range(len(fld_names))]
-        fld_types = dict(zip(fld_names, bogus_types))
+        fld_types = []
+        for fld_name in fld_names:
+            fld_type = self.AssessSampleFld(sample_data, fld_name)
+            fld_types.append(fld_type)
+        fld_types = dict(zip(fld_names, fld_types))
         if not bolhas_rows:
             raise "No data to import"
         return fld_names, fld_types, sample_data
@@ -106,15 +135,3 @@ class FileImporter(object):
         for i, row in enumerate(reader):
             print "Data to test and add: %s - %s" % (i, row)
         # rename table to final name
-
-
-
-
-
-
-
-
-
-
-
-

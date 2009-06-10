@@ -10,6 +10,10 @@ FILE_UNKNOWN = "unknown"
 FLD_NUMERIC = "numeric field"
 FLD_DATETIME = "datetime field"
 FLD_STRING = "string field"
+VAL_NUMERIC = "numeric value"
+VAL_DATETIME = "datetime value"
+VAL_STRING = "string value"
+VAL_EMPTY_STRING = "empty string value"
 
 
 class ImportFileSelectDlg(wx.Dialog):
