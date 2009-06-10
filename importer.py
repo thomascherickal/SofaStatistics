@@ -91,20 +91,29 @@ class ImportFileSelectDlg(wx.Dialog):
             to get any additional choices e.g. separator used in 'csv'.
         """
         file_path = self.txtFile.GetValue()
+        if not file_path:
+            wx.MessageBox("Please select a file")
+            return
+        # identify file type
         _, extension = self.GetFilestartExt(file_path)
         if extension.lower() == ".csv":
             self.file_type = FILE_CSV
         else:
-            self.file_type = FILE_UNKNOWN
-        if self.file_type == FILE_CSV:
-            file_importer = csv_importer.FileImporter(\
-                                    file_path=file_path,
-                                    tbl_name=self.txtIntName.GetValue())
-        else:
             wx.MessageBox("Files with the file name extension " + \
-                          "'%s' are not supported" % extension)
+                              "'%s' are not supported" % extension)
             return
-        file_importer.GetParams()
+        tbl_name = self.txtIntName.GetValue()
+        if not tbl_name:
+            wx.MessageBox("Please select a name for the file")
+            return
+        # import file
+        if self.file_type == FILE_CSV:
+            file_importer = csv_importer.FileImporter(file_path, tbl_name)
+        if file_importer.GetParams():
+            try:
+                file_importer.ImportContent()
+            except Exception, e:
+                wx.MessageBox("Unable to import data\n\nError: %s" % e)
         event.Skip()
            
 
