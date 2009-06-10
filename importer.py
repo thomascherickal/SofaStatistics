@@ -7,6 +7,9 @@ import csv_importer
 SCRIPT_PATH = util.get_script_path()
 FILE_CSV = "csv"
 FILE_UNKNOWN = "unknown"
+FLD_NUMERIC = "numeric field"
+FLD_DATETIME = "datetime field"
+FLD_STRING = "string field"
 
 
 class ImportFileSelectDlg(wx.Dialog):
