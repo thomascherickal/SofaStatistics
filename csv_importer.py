@@ -1,8 +1,11 @@
 import csv
 import wx
 
+import dbe_plugins.dbe_sqlite as dbe_sqlite
 import importer
 import util
+
+ROWS_TO_SAMPLE = 50
 
 
 class FileImporter(object):
@@ -22,46 +25,6 @@ class FileImporter(object):
         """
         return True
     
-    def AssessSampleFld(self, sample_data, fld_name):
-        """
-        For individual values, if numeric, assume numeric, 
-            if date, assume date, 
-            if string, either an empty string or an ordinary string.
-        For entire field sample, numeric if only contains numeric 
-            and empty strings (could be missings).
-        Date if only contains dates and empty strings (could be missings).
-        String otherwise.   
-        Return field type.
-        """
-        type_set = set()
-        numeric_only_set = set([importer.VAL_NUMERIC])
-        numeric_or_empt_str_set = set([importer.VAL_NUMERIC, 
-                                       importer.VAL_EMPTY_STRING])
-        datetime_only_set = set([importer.VAL_DATETIME])
-        datetime_or_empt_str_set = set([importer.VAL_DATETIME, 
-                                        importer.VAL_EMPTY_STRING])
-        for row in sample_data:
-            item = row[fld_name]
-            if util.isNumeric(item):
-                type_set.add(importer.VAL_NUMERIC)
-            else:
-                boldatetime, time_obj = util.datetime_str_valid(item)
-                if boldatetime:
-                    type_set.add(importer.VAL_DATETIME)
-                elif item == "":
-                    type_set.add(importer.VAL_EMPTY_STRING)
-                else:
-                    type_set.add(importer.VAL_STRING)
-        if type_set == numeric_only_set or \
-                type_set == numeric_or_empt_str_set:
-            fld_type = importer.FLD_NUMERIC
-        elif type_set == datetime_only_set or \
-                type_set == datetime_or_empt_str_set:
-            fld_type = importer.FLD_DATETIME
-        else:
-            fld_type = importer.FLD_STRING
-        return fld_type
-    
     def AssessDataSample(self, reader, has_header):
         """
         Assess data sample to identify field types based on values in fields.
@@ -73,7 +36,6 @@ class FileImporter(object):
         Sample first N rows (at most) to establish field types.  
         If there is a header row, get the field names.     
         """
-        rows_to_sample = 50
         bolhas_rows = False
         sample_data = []
         if has_header:
@@ -84,11 +46,11 @@ class FileImporter(object):
             bolhas_rows = True
             # process row
             sample_data.append(row)
-            if i == (rows_to_sample - 1):
+            if i == (ROWS_TO_SAMPLE - 1):
                 break
         fld_types = []
         for fld_name in fld_names:
-            fld_type = self.AssessSampleFld(sample_data, fld_name)
+            fld_type = importer.AssessSampleFld(sample_data, fld_name)
             fld_types.append(fld_type)
         fld_types = dict(zip(fld_names, fld_types))
         if not bolhas_rows:
@@ -106,9 +68,9 @@ class FileImporter(object):
         try:
             csvfile = open(self.file_path)
             sniffer = csv.Sniffer()
-            sample = csvfile.read(1024)
-            dialect = sniffer.sniff(sample)
-            has_header = sniffer.has_header(sample)
+            sniff_sample = csvfile.read(1024)
+            dialect = sniffer.sniff(sniff_sample)
+            has_header = sniffer.has_header(sniff_sample)
             csvfile.seek(0)
             reader = csv.DictReader(csvfile, dialect=dialect)
         except Exception, e:
@@ -117,14 +79,8 @@ class FileImporter(object):
             raise Exception, "Unable to open and read file"
         fld_names, fld_types, sample_data = self.AssessDataSample(reader, 
                                                                   has_header)
-        # create fresh disposable table to store data in
-        print "Field names are: %s" % fld_names
-        print "Field types are: %s" % fld_types
-        # add sample to disposable table
-        print "Sample data is: %s" % sample_data
-        # start adding remaining data (if any) to table
         # NB reader will be at position ready to access records after sample
-        # check it as we go
-        for i, row in enumerate(reader):
-            print "Data to test and add: %s - %s" % (i, row)
-        # rename table to final name
+        importer.AddToTable(self.file_path, self.tbl_name, 
+                            fld_names, fld_types, sample_data, 
+                            remaining_data=reader)
+
