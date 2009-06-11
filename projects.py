@@ -13,6 +13,7 @@ USER_PATH, LOCAL_PATH = util.get_user_paths()
 # http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
 EMPTY_PROJ_NAME = "GIVE ME A NAME ..."
 SOFA_DEFAULT_DB = "SOFA_Default_db"
+SOFA_DEFAULT_TBL = "SOFA_Default_tbl"
 SOFA_DEFAULT_PROJ = "SOFA_Default_Project.proj"
 SOFA_DEFAULT_LBLS = "SOFA_Default_Labels.lbls"
 SOFA_DEFAULT_STYLE = "SOFA_Default_Style.css"

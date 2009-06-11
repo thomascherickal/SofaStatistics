@@ -5,6 +5,7 @@ import re
 import wx
 
 import getdata
+import projects
 import table_entry
 
 # http://www.sqlite.org/lang_keywords.html
@@ -121,6 +122,7 @@ class DbDets(getdata.DbDets):
         Return connection, cursor, and get lists of 
             databases (only one for SQLite), tables, and fields 
             based on the SQLite database connection details provided.
+        The database used will be the default SOFA db if nothing provided.
         The table used will be the first if none provided.
         The field dets will be taken from the table used.
         Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
@@ -128,6 +130,8 @@ class DbDets(getdata.DbDets):
         conn_dets_sqlite = self.conn_dets.get(getdata.DBE_SQLITE)
         if not conn_dets_sqlite:
             raise Exception, "No connection details available for SQLite"
+        if not self.db:
+            self.db = projects.SOFA_DEFAULT_DB
         if not conn_dets_sqlite.get(self.db):
             raise Exception, "No connections for SQLite database %s" % \
                 self.db

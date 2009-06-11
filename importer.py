@@ -3,6 +3,8 @@ import util
 import wx
 
 import csv_importer
+import getdata
+import projects
 
 SCRIPT_PATH = util.get_script_path()
 FILE_CSV = "csv"
@@ -92,6 +94,46 @@ class ImportFileSelectDlg(wx.Dialog):
     def OnCancel(self, event):
         self.Destroy()
     
+    def CheckTblName(self, file_path, tbl_name):
+        """
+        Returns final_tbl_name.
+        Checks table name and gives user option of correcting it if problems.
+        Raises exception if no suitable name selected.
+        """
+        final_tbl_name = tbl_name # unless overridden
+        # check existing names
+        proj_dic = projects.GetProjSettingsDic(projects.SOFA_DEFAULT_PROJ)
+        dbdetsobj = getdata.getDbDetsObj(dbe=getdata.DBE_SQLITE, 
+                                         conn_dets=proj_dic["conn_dets"])
+        conn, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
+        if tbl_name in tbls:
+            msg = "A table named \"%s\" " % tbl_name + \
+                  "already exists in the SOFA default database.\n\n" + \
+                  "Do you want to replace it with the new data from " + \
+                  "\"%s\"?" % file_path
+            retCode = wx.MessageBox(msg, "TABLE ALREADY EXISTS",
+                wx.YES_NO|wx.CANCEL|wx.ICON_QUESTION)
+            if retCode == wx.CANCEL: # Not wx.ID_CANCEL
+                raise Exception, "Had a name collision but cancelled out " + \
+                    "of beginning to resolve it"
+            elif retCode == wx.NO:
+                # get new one
+                dlg = wx.TextEntryDialog(None, "Please enter new name for table",
+                                         "NEW TABLE NAME",
+                                         style=wx.OK|wx.CANCEL)
+                if dlg.ShowModal() == wx.ID_OK:
+                    val_entered = dlg.GetValue()
+                    if val_entered != "":
+                        final_tbl_name = self.CheckTblName(file_path, 
+                                                           val_entered)
+                        tbl_name = val_entered
+                    else:
+                        raise Exception, "No table name entered when give chance"
+                else:
+                    raise Exception, "Had a name collision but cancelled " + \
+                        "out of completing resolution of it"
+        return final_tbl_name
+    
     def OnImport(self, event):
         """
         Identify type of file by extension and open dialog if needed
@@ -113,16 +155,22 @@ class ImportFileSelectDlg(wx.Dialog):
         if not tbl_name:
             wx.MessageBox("Please select a name for the file")
             return
+        try:
+            final_tbl_name = self.CheckTblName(file_path, tbl_name)
+        except Exception:
+            wx.MessageBox("Please select a suitable table name and try again")
+            return
         # import file
         if self.file_type == FILE_CSV:
-            file_importer = csv_importer.FileImporter(file_path, tbl_name)
+            file_importer = csv_importer.FileImporter(file_path, 
+                                                      final_tbl_name)
         if file_importer.GetParams():
             try:
                 file_importer.ImportContent()
             except Exception, e:
                 wx.MessageBox("Unable to import data\n\nError: %s" % e)
         event.Skip()
-           
+        
 
 if __name__ == "__main__":
     app = wx.PySimpleApp()

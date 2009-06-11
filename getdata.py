@@ -8,6 +8,9 @@ import util
 class DbDets(object):
     
     def __init__ (self, conn_dets, db=None, tbl=None):
+        """
+        If db or tbl are none, subclasses must select one e.g. the first.
+        """
         self.conn_dets = conn_dets
         self.db = db
         self.tbl = tbl
@@ -89,7 +92,10 @@ IDX_NAME = "index name"
 IDX_IS_UNIQUE = "index is unique"
 IDX_FLDS = "index fields"
 
-def getDbDetsObj(dbe, conn_dets, db, tbl):
+def getDbDetsObj(dbe, conn_dets, db=None, tbl=None):
+    """
+    Pass in all conn_dets (the dbe will be used to select specific conn_dets).
+    """
     return DBE_MODULES[dbe].DbDets(conn_dets, db, tbl)
 
 def setDbInConnDets(dbe, conn_dets, db):

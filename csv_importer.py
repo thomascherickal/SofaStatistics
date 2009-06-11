@@ -9,20 +9,13 @@ class FileImporter(object):
     """
     Import csv file into default SOFA SQLite database.
     Needs to identify data types to ensure only consistent data in a field.
-    Checks table name first to ensure no collision.
     Adds unique index id so can identify unique records with certainty.
     """
     
-    def __init__(self, file_path, tbl_name):
-        "Initialise after checking no naming collision"
-        
-        
-        # TODO - check no naming collision
-        
-        
+    def __init__(self, file_path, tbl_name):                    
         self.file_path = file_path
         self.tbl_name = tbl_name
-                
+        
     def GetParams(self):
         """
         Get any user choices required.
@@ -99,7 +92,7 @@ class FileImporter(object):
             fld_types.append(fld_type)
         fld_types = dict(zip(fld_names, fld_types))
         if not bolhas_rows:
-            raise "No data to import"
+            raise Exception, "No data to import"
         return fld_names, fld_types, sample_data
     
     def ImportContent(self):
@@ -121,7 +114,7 @@ class FileImporter(object):
         except Exception, e:
             if debug:
                 print "Unable to open file.  Orig error: %s" % e
-            raise "Unable to open and read file"
+            raise Exception, "Unable to open and read file"
         fld_names, fld_types, sample_data = self.AssessDataSample(reader, 
                                                                   has_header)
         # create fresh disposable table to store data in
