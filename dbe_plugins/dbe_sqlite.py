@@ -37,6 +37,8 @@ class DbDets(getdata.DbDets):
         """
         NB SQLite never truncates whatever you specify.
         http://www.sqlite.org/faq.html#q9
+        Look for numbers in brackets (if any) to work out length.
+        If just, for example, TEXT, will return None.
         """
         reobj = re.compile(r"\w*()")
         match = reobj.search(type_text)    
