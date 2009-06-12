@@ -170,6 +170,7 @@ def datetime_split(datetime_str):
         (or time and date).
     """
     if " " in datetime_str:
+        date_then_time = True
         datetime_split = datetime_str.split(" ")
         if len(datetime_split) != 2:
             return (None, None, True)

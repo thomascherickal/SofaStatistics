@@ -74,7 +74,7 @@ def AssessSampleFld(sample_data, fld_name):
         fld_type = FLD_STRING
     return fld_type
 
-def ProcessVal(vals, row, fld_name, fld_types, check):
+def ProcessVal(vals, i, row, fld_name, fld_types, check):
     """
     If checking, will validate and turn empty strings into nulls
         as required.
@@ -105,11 +105,11 @@ def ProcessVal(vals, row, fld_name, fld_types, check):
             if boldatetime:
                 bolOK_data = True
                 val = "%s-%s-%s %s:%s:%s" % (time_obj[0], 
-                                             str(time_obj[1]).zfil(2),
-                                             str(time_obj[2]).zfil(2),
-                                             str(time_obj[3]).zfil(2),
-                                             str(time_obj[4]).zfil(2),
-                                             str(time_obj[5]).zfil(2))
+                                             str(time_obj[1]).zfill(2),
+                                             str(time_obj[2]).zfill(2),
+                                             str(time_obj[3]).zfill(2),
+                                             str(time_obj[4]).zfill(2),
+                                             str(time_obj[5]).zfill(2))
             elif val == "":
                 bolOK_data = True
                 val = "NULL"
@@ -117,7 +117,7 @@ def ProcessVal(vals, row, fld_name, fld_types, check):
             bolOK_data = True
         if not bolOK_data:
             raise Exception, "Unable to add \"%s\" " % val + \
-                "to field \"%s\" " % fld_name + \
+                "from row %s to field \"%s\" " % (i + 1, fld_name) + \
                 "which was identified as a %s based on " % fld_type + \
                 "a sample of the first records"
     if val != "NULL":
@@ -135,16 +135,20 @@ def AddRows(conn, cur, rows, fld_names, fld_types, check=False):
     debug = False
     fld_names_clause = ", ".join([dbe_sqlite.quote_identifier(x) \
                                   for x in fld_names])
-    for row in rows:
+    for i, row in enumerate(rows):
         vals = []
         for fld_name in fld_names:
-            ProcessVal(vals, row, fld_name, fld_types, check)
+            ProcessVal(vals, i, row, fld_name, fld_types, check)
         # quoting must happen earlier so we can pass in NULL  
         fld_vals_clause = ", ".join(["%s" % x for x in vals])
         SQL_insert_row = "INSERT INTO %s " % TMP_SQLITE_TBL + \
             "(%s) VALUES(%s)" % (fld_names_clause, fld_vals_clause)
         if debug: print SQL_insert_row
-        cur.execute(SQL_insert_row)
+        try:
+            cur.execute(SQL_insert_row)
+        except Exception, e:
+            raise Exception, "Unable to add row %s. " % (i+1,) + \
+                "Orig error: %s" % e
     conn.commit()
 
 def AddToTable(file_path, tbl_name, fld_names, fld_types, sample_data,
@@ -327,6 +331,14 @@ class ImportFileSelectDlg(wx.Dialog):
         tbl_name = self.txtIntName.GetValue()
         if not tbl_name:
             wx.MessageBox("Please select a name for the file")
+            return
+        bad_chars = ["-", " "]
+        for bad_char in bad_chars:
+            if bad_char in tbl_name:
+                wx.MessageBox("Do not include '%s' in name" % bad_char)
+                return
+        if tbl_name[0] in [str(x) for x in range(10)]:
+            wx.MessageBox("Table names cannot start with a digit")
             return
         try:
             final_tbl_name = self.CheckTblName(file_path, tbl_name)
