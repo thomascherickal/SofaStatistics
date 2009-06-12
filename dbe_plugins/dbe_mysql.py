@@ -282,7 +282,7 @@ def setDbInConnDets(conn_dets, db):
 
 def InsertRow(conn, cur, tbl_name, data):
     """
-    data = [(value as string, fld_name, fld_dets), ...]
+    data = [(value as string (or None), fld_name, fld_dets), ...]
     Modify any values (according to field details) to be ready for insertion.
     Use placeholders in execute statement.
     Commit insert statement.

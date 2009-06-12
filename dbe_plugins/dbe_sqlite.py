@@ -7,6 +7,7 @@ import wx
 import getdata
 import projects
 import table_entry
+import util
 
 # http://www.sqlite.org/lang_keywords.html
 # The following is non-standard but will work
@@ -62,7 +63,8 @@ class DbDets(getdata.DbDets):
                                               "real"]
             bolautonum = (pk == 1 and fld_type.lower() == "integer")            
             boldata_entry_ok = False if bolautonum else True
-            boldatetime = fld_type.lower() in ["date"]
+            boldatetime = fld_type.lower() in ["date", "datetime", "time", 
+                                               "timestamp"]
             fld_txt = not bolnumeric and not boldatetime
             dets_dic = {
                 getdata.FLD_SEQ: cid,
@@ -162,7 +164,7 @@ def setDbInConnDets(conn_dets, db):
 
 def InsertRow(conn, cur, tbl_name, data):
     """
-    data = [(value as string, fld_name, fld_dets), ...]
+    data = [(value as string (or None), fld_name, fld_dets), ...]
     Modify any values (according to field details) to be ready for insertion.
     Use placeholders in execute statement.
     Commit insert statement.
@@ -178,18 +180,21 @@ def InsertRow(conn, cur, tbl_name, data):
     # http://docs.python.org/library/sqlite3.html re placeholders
     fld_placeholders_clause = " (" + \
         ", ".join(["?" for x in range(len(data))]) + ") "
-    # e.g. " (%s, %s, %s ...) "
+    # e.g. " (?, ?, ? ...) "
     SQL_insert = "INSERT INTO `%s` " % tbl_name + fld_names_clause + \
         "VALUES %s" % fld_placeholders_clause
     if debug: print SQL_insert
     data_lst = []
     for i, data_dets in enumerate(data):
         if debug: pprint.pprint(data_dets)
-        str_val, fld_name, fld_dic = data_dets
-        if fld_dic[getdata.FLD_BOLDATETIME]:
-            valid_datetime, t = util.datetime_str_valid(str_val)
+        val, fld_name, fld_dic = data_dets
+        if val == None:
+            val2add = val
+        elif fld_dic[getdata.FLD_BOLDATETIME]:
+            valid_datetime, t = util.datetime_str_valid(val)
             if not valid_datetime:
-                return False # should have been tested already but ...
+                raise Exception, "Invalid datetime \"%s\" slipped through" % \
+                    val
             else:
                 if debug: print t
             # might as well store in same way as MySQL
@@ -197,7 +202,7 @@ def InsertRow(conn, cur, tbl_name, data):
                                              t[3], t[4], t[5])
             if debug: print val2add 
         else:
-            val2add = str_val
+            val2add = val
         data_lst.append(val2add)
     data_tup = tuple(data_lst)
     try:

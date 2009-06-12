@@ -181,9 +181,20 @@ class TblEditor(wx.Dialog):
             ok_to_move = not self.CellInvalid(self.current_row_idx, 
                                               self.current_col_idx)
         elif not was_new_row:
-            if self.debug: print "Was in existing row"
-            ok_to_move = self.CellOKToSave(self.current_row_idx, 
-                                           self.current_col_idx)
+            if self.debug: print "Was in existing, ordinary row"
+            if not self.CellOKToSave(self.current_row_idx, 
+                                     self.current_col_idx):
+                ok_to_move = False
+            else:
+                if self.dbtbl.bol_attempt_cell_update:
+                    ok_to_move = self.UpdateCell(self.current_row_idx,
+                                                 self.current_col_idx)
+                else:
+                    ok_to_move = True
+            # flush
+            self.dbtbl.bol_attempt_cell_update = False # unset tag
+            self.dbtbl.SQL_cell_to_update = None # to flush out unexpected bugs
+            self.dbtbl.val_of_cell_to_update = None # to flush out bugs
         elif was_new_row and not jump_row_new: # leaving new row
             if self.debug: print "Leaving new row"
             # only attempt to save if value is OK to save
@@ -227,11 +238,14 @@ class TblEditor(wx.Dialog):
         """
         cell_invalid = False # innocent until proven guilty
         if self.dbtbl.NewRow(row):
-            if self.debug: print "New buffer is " + str(self.dbtbl.new_buffer)
+            if self.debug: print "New buffer is %s" % self.dbtbl.new_buffer
             raw_val = self.dbtbl.new_buffer.get((row, col), 
                                                 db_tbl.MISSING_VAL_INDICATOR)
         else:
-            raw_val = self.grid.GetCellValue(row, col)
+            if self.dbtbl.bol_attempt_cell_update:
+                raw_val = self.dbtbl.val_of_cell_to_update
+            else:
+                raw_val = self.grid.GetCellValue(row, col)
             existing_row_data_lst = self.dbtbl.row_vals_dic.get(row)
             if existing_row_data_lst:
                 prev_val = str(existing_row_data_lst[col])
@@ -251,8 +265,7 @@ class TblEditor(wx.Dialog):
         elif not fld_dic[getdata.FLD_DATA_ENTRY_OK]: 
              # i.e. not autonumber, timestamp etc
              # and raw_val != db_tbl.MISSING_VAL_INDICATOR unnecessary
-            wx.MessageBox("This field does not accept user data entry.  " + \
-                          "Leave as missing value (.)")
+            wx.MessageBox("This field does not accept user data entry.")
             return True # i.e. invalid, not OK
         elif fld_dic[getdata.FLD_BOLNUMERIC]:
             if not util.isNumeric(raw_val):
@@ -343,6 +356,30 @@ class TblEditor(wx.Dialog):
         prev_row = row - 1
         self.grid.SetRowLabelValue(prev_row, str(prev_row))
         self.grid.SetRowLabelValue(row, "*")
+    
+    def UpdateCell(self, row, col):
+        """
+        Returns boolean - True if updated successfully.
+        Update cell and update cache.
+        """
+        bolUpdatedCell = True
+        try:
+            self.dbtbl.cur.execute(self.dbtbl.SQL_cell_to_update)
+            self.dbtbl.conn.commit()
+        except Exception, e:
+            if self.debug: 
+                print "SaveCell failed to save %s. " % \
+                    self.dbtbl.SQL_cell_to_update + \
+                    "Orig error: %s" % e
+            bolUpdatedCell = False
+        try:
+            existing_row_data_lst = self.dbtbl.row_vals_dic.get(row)
+            if existing_row_data_lst:
+                existing_row_data_lst[col] = self.dbtbl.val_of_cell_to_update
+        except Exception, e:
+            raise Exception, "Failed to update cache when updating cell. " + \
+                "Orig error: %s" % e 
+        return bolUpdatedCell
     
     def SaveRow(self, row):
         data = []

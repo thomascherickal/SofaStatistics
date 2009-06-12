@@ -29,7 +29,6 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.fld_names = getdata.FldsDic2FldNamesLst(flds_dic=self.flds)
         self.fld_labels = [var_labels.get(x, x.title()) for x in self.fld_names]
         self.idxs = idxs
-        
         self.idx_id, self.must_quote = self.GetIndexCol()
         self.id_col_name = self.fld_names[self.idx_id]
         self.SetRowIdDic()
@@ -39,6 +38,9 @@ class DbTbl(wx.grid.PyGridTableBase):
             pprint.pprint(self.fld_labels)
             pprint.pprint(self.flds)
             pprint.pprint(self.row_id_dic)
+        self.bol_attempt_cell_update = False
+        self.SQL_cell_to_update = None
+        self.val_of_cell_to_update = None
         self.new_buffer = {} # where new values are stored until 
             #ready to be saved
         self.new_is_dirty = False # TextEditor can set to True.  Is reset to 
@@ -208,29 +210,32 @@ class DbTbl(wx.grid.PyGridTableBase):
     
     def SetValue(self, row, col, value):
         """
-        Need to update database, and then update the table cache being used to 
-            get display values.
-        Not called if enter edit mode and then directly jump out ...
+        Only called if data entered.
+        If a new row, stores value in new row buffer ready to be saved if 
+            OK to save row.
+        If an existing, ordinary row, stores SQL to update cell if OK to update
+            cell.  Cache will be updated if, and only if, the cell is actually
+            updated.
         """
         if self.NewRow(row):
             self.new_buffer[(row, col)] = value
         else:
-            existing_row_data_lst = self.row_vals_dic.get(row)
-            if existing_row_data_lst:
-                existing_row_data_lst[col] = value
+            self.bol_attempt_cell_update = True
             row_id = self.GetValue(row, self.idx_id)
             col_name = self.fld_names[col]
+            self.val_of_cell_to_update = value
             if self.must_quote:
-                val_part = "\"%s\"" % self.row_id_dic[row]
+                id_val_part = "\"%s\"" % self.row_id_dic[row]
             else:
-                val_part = "%s" % self.row_id_dic[row]
+                id_val_part = "%s" % self.row_id_dic[row]
             SQL_update_value = "UPDATE %s " % self.tbl + \
                 " SET %s = \"%s\" " % (self.quote(col_name), value) + \
                 " WHERE %s = " % self.id_col_name + \
-                val_part
-            if self.debug: print SQL_update_value
-            self.cur.execute(SQL_update_value)
-            self.conn.commit()
+                id_val_part
+            if self.debug: 
+                print "SQL update value: %s" % SQL_update_value
+                print "Value of cell to update: %s" % self.val_of_cell_to_update
+            self.SQL_cell_to_update = SQL_update_value
 
     def DisplayNewRow(self):
         """

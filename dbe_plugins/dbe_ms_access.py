@@ -273,12 +273,11 @@ def setDbInConnDets(conn_dets, db):
     
 def InsertRow(conn, cur, tbl_name, data):
     """
-    data = [(value as string, fld_name, fld_dets), ...]
+    data = [(value as string (or None), fld_name, fld_dets), ...]
     Modify any values (according to field details) to be ready for insertion.
     Use placeholders in execute statement.
     Commit insert statement.
-    
-    TODO - test this when can use WebKit in Windows.
+    TODO - test this in Windows.
     """
     debug = False
     if debug: pprint.pprint(data)
@@ -295,9 +294,9 @@ def InsertRow(conn, cur, tbl_name, data):
     data_lst = []
     for i, data_dets in enumerate(data):
         if debug: pprint.pprint(data_dets)
-        str_val, fld_name, fld_dic = data_dets
+        val, fld_name, fld_dic = data_dets
         if fld_dic[getdata.FLD_BOLDATETIME]:
-            valid_datetime, t = util.datetime_str_valid(str_val)
+            valid_datetime, t = util.datetime_str_valid(val)
             if not valid_datetime:
                 return False # should have been tested already but ...
             else:
@@ -306,7 +305,7 @@ def InsertRow(conn, cur, tbl_name, data):
                                              t[3], t[4], t[5])
             if debug: print val2add 
         else:
-            val2add = str_val
+            val2add = val
         data_lst.append(val2add)
     data_tup = tuple(data_lst)
     try:
