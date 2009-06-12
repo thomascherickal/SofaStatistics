@@ -204,6 +204,8 @@ def datetime_str_valid(datetime_str):
     If only a date, use midnight as time e.g. MySQL 00:00:00
     Acceptable formats for date component are:
     2009, 2008-02-26, 1-1-2008, 01-01-2008, 01/01/2008, 1/1/2008.
+    NB not American format - instead assumed to be day, month, year.
+    TODO - handle better ;-)
     Acceptable formats for time are:
     2pm, 2:30pm, 14:30 , 14:30:00
     http://docs.python.org/library/datetime.html#module-datetime

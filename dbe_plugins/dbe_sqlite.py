@@ -56,7 +56,8 @@ class DbDets(getdata.DbDets):
         flds = {}
         for cid, fld_name, fld_type, notnull, dflt_value, pk in fld_dets:
             bolnullable = True if notnull == 0 else False
-            bolnumeric = fld_type.lower() in ["integer", "float", "numeric"]
+            bolnumeric = fld_type.lower() in ["integer", "float", "numeric", 
+                                              "real"]
             bolautonum = (pk == 1 and fld_type.lower() == "integer")            
             boldata_entry_ok = False if bolautonum else True
             boldatetime = fld_type.lower() in ["date"]

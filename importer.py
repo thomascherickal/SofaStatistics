@@ -53,14 +53,14 @@ def AssessSampleFld(sample_data, fld_name):
     datetime_only_set = set([VAL_DATETIME])
     datetime_or_empt_str_set = set([VAL_DATETIME, VAL_EMPTY_STRING])
     for row in sample_data:
-        item = row[fld_name]
-        if util.isNumeric(item):
+        val = row[fld_name]
+        if util.isNumeric(val):
             type_set.add(VAL_NUMERIC)
         else:
-            boldatetime, time_obj = util.datetime_str_valid(item)
+            boldatetime, time_obj = util.datetime_str_valid(val)
             if boldatetime:
                 type_set.add(VAL_DATETIME)
-            elif item == "":
+            elif val == "":
                 type_set.add(VAL_EMPTY_STRING)
             else:
                 type_set.add(VAL_STRING)
@@ -74,22 +74,76 @@ def AssessSampleFld(sample_data, fld_name):
         fld_type = FLD_STRING
     return fld_type
 
-def AddRows(conn, cur, rows, fld_names, check=False):
+def ProcessVal(vals, row, fld_name, fld_types, check):
+    """
+    If checking, will validate and turn empty strings into nulls
+        as required.
+    If not checking (e.g. because a pre-tested sample) only do the
+        empty string to null conversions.
+    If all is OK, will add val to vals.  NB val will need to be internally 
+        quoted unless it is a NULL. 
+    If not, will raise an exception.
+    """
+    val = row[fld_name]
+    fld_type = fld_types[fld_name]
+    if not check:
+        # still need to turn empty strings into NULLs for non string fields
+        if fld_type in [FLD_NUMERIC, FLD_DATETIME] and val == "":
+            val = "NULL"
+    else:            
+        bolOK_data = False
+        boldatetime, time_obj = util.datetime_str_valid(val)
+        if fld_type == FLD_NUMERIC:
+            # must be numeric or empty string (which we'll turn to NULL)
+            if util.isNumeric(val):
+                bolOK_data = True
+            elif val == "":
+                bolOK_data = True
+                val = "NULL"
+        elif fld_type == FLD_DATETIME:
+            # must be datetime or empty string (which we'll turn to NULL)
+            if boldatetime:
+                bolOK_data = True
+                val = "%s-%s-%s %s:%s:%s" % (time_obj[0], 
+                                             str(time_obj[1]).zfil(2),
+                                             str(time_obj[2]).zfil(2),
+                                             str(time_obj[3]).zfil(2),
+                                             str(time_obj[4]).zfil(2),
+                                             str(time_obj[5]).zfil(2))
+            elif val == "":
+                bolOK_data = True
+                val = "NULL"
+        elif fld_type == FLD_STRING:
+            bolOK_data = True
+        if not bolOK_data:
+            raise Exception, "Unable to add \"%s\" " % val + \
+                "to field \"%s\" " % fld_name + \
+                "which was identified as a %s based on " % fld_type + \
+                "a sample of the first records"
+    if val != "NULL":
+        val = "\"%s\"" % val
+    vals.append(val)
+    
+def AddRows(conn, cur, rows, fld_names, fld_types, check=False):
+    """
+    Add the rows of data, processing each cell as you go.
+    If checking, will validate and turn empty strings into nulls
+        as required.
+    If not checking (e.g. because a pre-tested sample) only do the
+        empty string to null conversions.
+    """
     debug = False
     fld_names_clause = ", ".join([dbe_sqlite.quote_identifier(x) \
                                   for x in fld_names])
     for row in rows:
-        
-        
-        # TODO - check each and every value against expected type before
-        # allowing in.  Raise exception if a problem.
-        
-        
-        fld_vals_clause = ", ".join(["\"%s\"" % row[x] for x in fld_names])
+        vals = []
+        for fld_name in fld_names:
+            ProcessVal(vals, row, fld_name, fld_types, check)
+        # quoting must happen earlier so we can pass in NULL  
+        fld_vals_clause = ", ".join(["%s" % x for x in vals])
         SQL_insert_row = "INSERT INTO %s " % TMP_SQLITE_TBL + \
             "(%s) VALUES(%s)" % (fld_names_clause, fld_vals_clause)
-        if debug:
-            print SQL_insert_row
+        if debug: print SQL_insert_row
         cur.execute(SQL_insert_row)
     conn.commit()
 
@@ -112,6 +166,7 @@ def AddToTable(file_path, tbl_name, fld_names, fld_types, sample_data,
         sqlite_type = FLD_TYPE_TO_SQLITE_TYPE[fld_type]
         fld_clause_items.append("%s %s" % \
                 (dbe_sqlite.quote_identifier(fld_name), sqlite_type))
+    fld_clause_items.append("UNIQUE(sofa_id)")
     fld_clause = ", ".join(fld_clause_items)
     SQL_drop_disp_tbl = "DROP TABLE IF EXISTS %s" % TMP_SQLITE_TBL
     cur.execute(SQL_drop_disp_tbl)
@@ -123,9 +178,9 @@ def AddToTable(file_path, tbl_name, fld_names, fld_types, sample_data,
     cur.execute(SQL_create_disp_tbl)
     conn.commit()
     # add sample to disposable table
-    AddRows(conn, cur, sample_data, fld_names, check=False)
+    AddRows(conn, cur, sample_data, fld_names, fld_types, check=False)
     # Add remaining data (if any) to table
-    AddRows(conn, cur, remaining_data, fld_names, check=True)
+    AddRows(conn, cur, remaining_data, fld_names, fld_types, check=True)
     # rename table to final name
     SQL_drop_tbl = "DROP TABLE IF EXISTS %s" % \
         dbe_sqlite.quote_identifier(tbl_name)

@@ -1063,6 +1063,7 @@ class SummTable(LiveTable):
         row_fld - the numeric field we are calculating the summary of.
         col_filter - so we only look at values in the column.
         """
+        debug = False
         col_filt_clause = " AND ".join(col_filter_lst)
         if col_filt_clause:
             filter = " WHERE " + col_filt_clause
@@ -1070,30 +1071,46 @@ class SummTable(LiveTable):
             filter = ""
         sql_for_raw_only = [MEDIAN, STD_DEV]
         if measure in sql_for_raw_only:
-            SQL_get_raw_vals = "SELECT " + row_fld + """
-                FROM """ + self.datasource + filter
+            SQL_get_raw_vals = "SELECT %s " % row_fld + \
+                "FROM %s %s" % (self.datasource, filter)
             self.cur.execute(SQL_get_raw_vals)
             data = [x[0] for x in self.cur.fetchall() if x[0]]
-            #print data #debug
+            if debug: print data
         if measure == SUM:
             SQL_get_sum = "SELECT SUM(%s) " % row_fld + \
                 "FROM " + self.datasource + filter
-            self.cur.execute(SQL_get_sum)
-            data_val = self.cur.fetchone()[0]
+            try:
+                self.cur.execute(SQL_get_sum)
+                data_val = self.cur.fetchone()[0]
+            except Exception, e:
+                raise Exception, "Unable to calculate sum of %s." % row_fld
         elif measure == MEAN:
-            SQL_get_mean = "SELECT AVG(" + row_fld + """
-                ) FROM """ + self.datasource + filter
-            self.cur.execute(SQL_get_mean)
-            data_val =  round(self.cur.fetchone()[0],2)
+            SQL_get_mean = "SELECT AVG(%s) " % row_fld + \
+                "FROM %s %s" % (self.datasource, filter)
+            try:
+                self.cur.execute(SQL_get_mean)
+                data_val =  round(self.cur.fetchone()[0],2)
+            except Exception, e:
+                raise Exception, "Unable to calculate mean of %s." % row_fld
         elif measure == MEDIAN:
-            data_val =  round(numpy.median(data),2)
+            try:
+                data_val =  round(numpy.median(data),2)
+            except Exception, e:
+                raise Exception, "Unable to calculate median for %s." % row_fld
         elif measure == SUMM_N:
-            SQL_get_n = "SELECT COUNT(" + row_fld + """)
-                FROM """ + self.datasource + filter
-            self.cur.execute(SQL_get_n)
-            data_val =  "N=%s" % self.cur.fetchone()[0]
+            SQL_get_n = "SELECT COUNT(%s) " % row_fld + \
+                "FROM %s %s" % (self.datasource, filter)
+            try:
+                self.cur.execute(SQL_get_n)
+                data_val =  "N=%s" % self.cur.fetchone()[0]
+            except Exception, e:
+                raise Exception, "Unable to calculate N for %s." % row_fld
         elif measure == STD_DEV:
-            data_val =  round(numpy.std(data),2)
+            try:
+                data_val =  round(numpy.std(data),2)
+            except Exception, e:
+                raise Exception, "Unable to calculate standard " + \
+                    "deviation for %s." % row_fld
         else:
             raise Exception, "Measure not available"
         return data_val
