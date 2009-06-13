@@ -67,36 +67,11 @@ class TextEditor(wx.grid.PyGridCellEditor):
         pass # N/A
     
     def OnTxtEdKeyDown(self, event):
-        """
-        Very tricky code re: impact of event.Skip().  Small changes can 
-            have big impacts. Test thoroughly.
-        """
+        "We are interested in TAB keypresses"
         if event.GetKeyCode() in [wx.WXK_TAB]:
-            raw_val = self.txt.GetValue()
-            if self.debug:
-                print "[OnTxtEdKeyDown] Tabbing away from field with " + \
-                    "value \"%s\"" % raw_val
-            if self.new_row:
-                if self.debug: print "Tabbing within new row"
-                self.new_buffer[(self.row, self.col)] = raw_val
-                final_col = (self.col == len(self.tbl_editor.flds) - 1)
-                if final_col:
-                    # only attempt to save if value is OK to save
-                    if not self.tbl_editor.CellOKToSave(self.row, self.col):
-                        self.tbl_editor.grid.SetFocus()
-                        return
-                    if self.debug: print "OnTxtEdKeyDown - Trying to leave " + \
-                        "new record"
-                    saved_ok = self.tbl_editor.SaveRow(self.row)
-                    if saved_ok:
-                        if self.debug: print "OnTxtEdKeyDown - Was able " + \
-                            "to save record after tabbing away"
-                    else:
-                        # CellOkToSave obviously failed to give correct answer
-                        if self.debug: print "OnTxtEdKeyDown - Unable " + \
-                            "to save record after tabbing away"
-                        wx.MessageBox("Unable to save record - please " + \
-                                      "check values")
-                    return
-        event.Skip()
-        
+            evt_row=self.row
+            evt_col=self.col
+            if self.debug: print "OnTxtEdKeyDown - Hit TAB from row " + \
+                "%s col %s" % (evt_row, evt_col)
+            self.ProcessMoveAway(event, move_source=KEYBOARD_MOVE, evt_row, 
+                                 evt_col)

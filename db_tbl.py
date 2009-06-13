@@ -15,7 +15,7 @@ class DbTbl(wx.grid.PyGridTableBase):
     def __init__(self, grid, dbe, conn, cur, tbl, flds, var_labels, idxs, 
                  read_only):
         wx.grid.PyGridTableBase.__init__(self)
-        self.debug = False
+        self.debug = True
         self.tbl = tbl
         self.grid = grid
         self.dbe = dbe
@@ -217,6 +217,8 @@ class DbTbl(wx.grid.PyGridTableBase):
             cell.  Cache will be updated if, and only if, the cell is actually
             updated.
         """
+        if self.debug: print "In SetValue with row %s, " % row + \
+            "col %s with value \"%s\"" % (col, value)
         if self.NewRow(row):
             self.new_buffer[(row, col)] = value
         else:
