@@ -61,7 +61,7 @@ EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 class TblEditor(wx.Dialog):
     def __init__(self, parent, dbe, conn, cur, db, tbl_name, flds, var_labels,
                  idxs, read_only=True):
-        self.debug = True
+        self.debug = False
         wx.Dialog.__init__(self, None, 
                            title="Data from %s.%s" % (db, tbl_name),
                            size=(500, 500), pos=(300, 0),
@@ -143,7 +143,7 @@ class TblEditor(wx.Dialog):
             AddCellMoveEvt for us is if we are tabbing right from the last col.
         """
         if event.GetKeyCode() in [wx.WXK_TAB]:
-            bolright = not event.ShiftDown()            
+            bolright = not event.ShiftDown()
             src_row=self.current_row_idx
             src_col=self.current_col_idx
             if self.debug: print "OnGridKeyDown - TAB keypress in row " + \
@@ -167,6 +167,9 @@ class TblEditor(wx.Dialog):
             have been made.
         Should not get here from a tab left in the first column 
             (not a cell move).
+        NB must get the table to refresh itself and thus call SetValue(). Other-
+            wise we can't get the value just entered so we can evaluate it for
+            validation.
         """
         if self.debug: print "OnCellMove ************************************"
         src_row=self.current_row_idx # row being moved from
@@ -175,8 +178,14 @@ class TblEditor(wx.Dialog):
         dest_col = event.dest_col # col being moved towards
         tab_key = event.tab_key # tab keypress
         bolright = event.bolright # moving with keyboard rightwards
+        self.ProcessCellMove(src_row, src_col, dest_row, dest_col, tab_key, 
+                             bolright)
+    
+    def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, tab_key, 
+                        bolright):
+        self.dbtbl.ForceRefresh()
         if self.debug:
-            print "OnCellMove - " + \
+            print "ProcessCellMove - " + \
                 "source row %s source col %s " % (src_row, src_col) + \
                 "dest row %s dest col %s " % (dest_row, dest_col) + \
                 "using tab: %s " % ("yes" if tab_key else "no",) + \
@@ -194,7 +203,8 @@ class TblEditor(wx.Dialog):
             self.grid.SetGridCursor(dest_row, dest_col)
             self.grid.MakeCellVisible(dest_row, dest_col)
             self.current_row_idx = dest_row
-            self.current_col_idx = dest_col
+            self.current_col_idx = dest_col        
+        
     
     def GetMoveDets(self, src_row, src_col, dest_row, dest_col, tab_key, 
                     bolright):
@@ -231,7 +241,7 @@ class TblEditor(wx.Dialog):
             move_type = LEAVING_NEW
         # 2) dest row and dest col
         if tab_key: # otherwise ok as is
-            if self.NewRow(src_row) and bolright and final_col:
+            if bolright and final_col:
                 dest_row = src_row + 1
                 dest_col = 0
             else:

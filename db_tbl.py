@@ -15,7 +15,7 @@ class DbTbl(wx.grid.PyGridTableBase):
     def __init__(self, grid, dbe, conn, cur, tbl, flds, var_labels, idxs, 
                  read_only):
         wx.grid.PyGridTableBase.__init__(self)
-        self.debug = True
+        self.debug = False
         self.tbl = tbl
         self.grid = grid
         self.dbe = dbe
@@ -260,3 +260,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.grid.ProcessTableMessage(msg)
         self.grid.EndBatch()
         self.grid.ForceRefresh()
+        
+    def ForceRefresh(self):
+        msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
+        self.grid.ProcessTableMessage(msg)

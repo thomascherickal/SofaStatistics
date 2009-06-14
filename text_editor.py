@@ -69,9 +69,17 @@ class TextEditor(wx.grid.PyGridCellEditor):
     def OnTxtEdKeyDown(self, event):
         "We are interested in TAB keypresses"
         if event.GetKeyCode() in [wx.WXK_TAB]:
-            evt_row=self.row
-            evt_col=self.col
-            if self.debug: print "OnTxtEdKeyDown - Hit TAB from row " + \
-                "%s col %s" % (evt_row, evt_col)
-            self.tbl_editor.ProcessMoveAway(event, KEYBOARD_MOVE, evt_row, 
-                                            evt_col)
+            src_row=self.row
+            src_col=self.col
+            bolright = not event.ShiftDown()
+            if self.debug: print "OnTxtEdKeyDown - Hit TAB in row " + \
+                "%s col %s" % (src_row, src_col)
+            final_col = (src_col == len(self.tbl_editor.flds) - 1)
+            if final_col and bolright:
+                self.tbl_editor.ProcessCellMove(src_row=self.row, 
+                            src_col=self.col, dest_row=None, dest_col=None, 
+                            tab_key=True, bolright=bolright)
+            else:
+                event.Skip()
+        else:
+            event.Skip()
