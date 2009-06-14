@@ -73,5 +73,5 @@ class TextEditor(wx.grid.PyGridCellEditor):
             evt_col=self.col
             if self.debug: print "OnTxtEdKeyDown - Hit TAB from row " + \
                 "%s col %s" % (evt_row, evt_col)
-            self.ProcessMoveAway(event, move_source=KEYBOARD_MOVE, evt_row, 
-                                 evt_col)
+            self.tbl_editor.ProcessMoveAway(event, KEYBOARD_MOVE, evt_row, 
+                                            evt_col)

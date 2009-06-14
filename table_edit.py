@@ -20,6 +20,11 @@ Navigation around inside the grid triggers data saving (cells updated or
     a new row added).  Validation occurs first to ensure that values will be
     acceptable to the underlying database.  If not, the cursor stays at the 
     original location.
+Because the important methods such as OnSelectCell and SetValue occur in 
+    a different sequence depending on whether we use the mouse or the keyboard,
+    a custom event is added to the end of the event queue.  It ensures that 
+    validation and decisions about where the cursor can go (or must stay) always 
+    happen after the other steps are complete.
 If a user enters a value, we see the new value, but nothing happens to the
     database until we move away with either the mouse or keyboard.
 SaveRow() and UpdateCell() are where actual changes to the database are made.
@@ -31,11 +36,26 @@ When SaveRow() is called, the cache is not updated.  It is better to force the
     e.g. timestamp, autoincrement etc
 """
 
-MOUSE_MOVE = "mouse move"
-KEYBOARD_MOVE = "keyboard move"
 MOVING_IN_NEW = "moving in new"
 LEAVING_EXISTING = "leaving existing"
 LEAVING_NEW = "leaving new"
+
+class CellMoveEvent(wx.PyCommandEvent):
+    "See 3.6.1 in wxPython in Action"
+    def __init__(self, evtType, id):
+        wx.PyCommandEvent.__init__(self, evtType, id)
+    
+    def AddDets(self, dest_row=None, dest_col=None, tab_key=False, 
+                bolright=True):
+        self.dest_row = dest_row
+        self.dest_col = dest_col
+        self.tab_key = tab_key
+        self.bolright = bolright
+    
+# new event type to pass around
+myEVT_CELL_MOVE = wx.NewEventType()
+# event to bind to
+EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 
 
 class TblEditor(wx.Dialog):
@@ -73,9 +93,11 @@ class TblEditor(wx.Dialog):
             self.FocusOnNewRow(new_row_idx)
             self.SetNewRowEd(new_row_idx)
         self.SetColWidths()
+        self.respond_to_select_cell = True
         self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnCellChange)
         self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnSelectCell)
         self.grid.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
+        self.grid.Bind(EVT_CELL_MOVE, self.OnCellMove)
         self.szrMain.Add(self.grid, 1, wx.GROW)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
@@ -84,166 +106,209 @@ class TblEditor(wx.Dialog):
     
     # processing MOVEMENTS AWAY FROM CELLS e.g. saving values ////////////////
     
+    def AddCellMoveEvt(self, dest_row=None, dest_col=None, tab_key=False, 
+                       bolright=True):
+        """
+        Add special cell move event.
+        dest_row - row we are going to (None if here by keystroke - 
+            yet to be determined).
+        dest_col - column we are going to (as above).
+        tab_key - tab keypress
+        bolright - moving with keyboard rightwards.
+        """
+        evt_cell_move = CellMoveEvent(myEVT_CELL_MOVE, self.grid.GetId())
+        evt_cell_move.AddDets(dest_row, dest_col, tab_key, bolright)
+        evt_cell_move.SetEventObject(self.grid)
+        self.grid.GetEventHandler().AddPendingEvent(evt_cell_move)
+    
     def OnSelectCell(self, event):
-        "OnSelectCell is fired when the mouse selects a cell"
-        evt_row=self.current_row_idx
-        evt_col=self.current_col_idx
-        if self.debug: print "OnSelectCell - clicked on row " + \
-            "%s col %s" % (evt_row, evt_col)
-        self.ProcessMoveAway(event, move_source=MOUSE_MOVE, evt_row, evt_col)
+        """
+        Capture use of move away from a cell.  May be result of mouse click 
+            or tabbing.
+        """
+        if not self.respond_to_select_cell:
+            self.respond_to_select_cell = True
+            event.Skip()
+            return
+        dest_row=event.GetRow()
+        dest_col=event.GetCol()
+        if self.debug: print "OnSelectCell - selected row %s col %s " % \
+            (dest_row, dest_col) + "**********************************"         
+        self.AddCellMoveEvt(dest_row, dest_col)
 
     def OnGridKeyDown(self, event):
-        "We are interested in TAB keypresses"
-        if event.GetKeyCode() in [wx.WXK_TAB]:
-            evt_row=self.current_row_idx
-            evt_col=self.current_col_idx
-            if self.debug: print "OnGridKeyDown - Hit TAB from row " + \
-                "%s col %s" % (evt_row, evt_col)
-            self.ProcessMoveAway(event, move_source=KEYBOARD_MOVE, evt_row, 
-                                 evt_col)
-    
-    def ProcessMoveAway(self, event, move_source, evt_row, evt_col):
         """
-        Process move away from a cell e.g. by mouse or keyboard.
+        Capture use of TAB key to move away from a cell.
+        The only case where we can't rely on OnSelectCell to take care of
+            AddCellMoveEvt for us is if we are tabbing right from the last col.
+        """
+        if event.GetKeyCode() in [wx.WXK_TAB]:
+            bolright = not event.ShiftDown()            
+            src_row=self.current_row_idx
+            src_col=self.current_col_idx
+            if self.debug: print "OnGridKeyDown - TAB keypress in row " + \
+                "%s col %s ******************************" % (src_row, src_col)
+            final_col = (src_col == len(self.flds) - 1)
+            if final_col and bolright:
+                self.AddCellMoveEvt(dest_row=None, dest_col=None, 
+                                    tab_key=True, bolright=bolright)
+            else:
+                event.Skip()
+        else:
+            event.Skip()
+    
+    def OnCellMove(self, event):
+        """
+        Response to custom event - used to start process of validating move and
+            allowing or disallowing.
+        Must occur after steps like SetValue (in case of changing data) so that
+            enough information is available to validate data in cell.
+        Only update self.current_row_idx and self.current_col_idx once decisions
+            have been made.
+        Should not get here from a tab left in the first column 
+            (not a cell move).
+        """
+        if self.debug: print "OnCellMove ************************************"
+        src_row=self.current_row_idx # row being moved from
+        src_col=self.current_col_idx # col being moved from
+        dest_row = event.dest_row # row being moved towards
+        dest_col = event.dest_col # col being moved towards
+        tab_key = event.tab_key # tab keypress
+        bolright = event.bolright # moving with keyboard rightwards
+        if self.debug:
+            print "OnCellMove - " + \
+                "source row %s source col %s " % (src_row, src_col) + \
+                "dest row %s dest col %s " % (dest_row, dest_col) + \
+                "using tab: %s " % ("yes" if tab_key else "no",) + \
+                "keyboard direction: %s" % ("right" if bolright else "left",)
+        move_type, dest_row, dest_col = self.GetMoveDets(src_row, src_col, 
+                                        dest_row, dest_col, tab_key, bolright)
+        if move_type == LEAVING_EXISTING:
+            move_to_dest = self.LeavingExistingCell()
+        elif move_type == MOVING_IN_NEW:
+            move_to_dest = self.MovingInNewRow()
+        elif move_type == LEAVING_NEW:
+            move_to_dest = self.LeavingNewRow(dest_row, dest_col)
+        if move_to_dest:
+            self.respond_to_select_cell = False # to prevent infinite loop!
+            self.grid.SetGridCursor(dest_row, dest_col)
+            self.grid.MakeCellVisible(dest_row, dest_col)
+            self.current_row_idx = dest_row
+            self.current_col_idx = dest_col
+    
+    def GetMoveDets(self, src_row, src_col, dest_row, dest_col, tab_key, 
+                    bolright):
+        """
+        Gets move details.
+        Returns move_type, dest_row, dest_col.
+        move_type - MOVING_IN_NEW, LEAVING_EXISTING, or LEAVING_NEW.
+        dest_row and dest_col may need to be worked out e.g. if cell move caused
+            by a tab keypress.
         Take into account whether a new row or not.
         If on new row, take into account if final column.
         Main task is to decide whether to allow the move.
-        If not, no event.Skip().
+        If not, set focus on source.
         Decide based on validation of cell and, if a new row, the row as a 
             whole.
         Don't allow to leave cell in invalid state.
-        Check the following:
+        Overview of checks made:
             If jumping around within new row, cell cannot be invalid.
             If not in a new row (i.e. in existing), cell must be ok to save.
             If leaving new row, must be ready to save whole row.
-        If any rules are broken, abort the jump by not running event.Skip()..
-        move_source - MOUSE_MOVE, KEYBOARD_MOVE
-        """
-        if move_source == MOUSE_MOVE:
-            move_type, row_if_ok, col_if_ok = \
-                self.GetMouseMoveDets(event, evt_row, evt_col)
-        elif move_source == KEYBOARD_MOVE:
-            move_type, row_if_ok, col_if_ok = \
-                self.GetKeyboardMoveDets(event, evt_row, evt_col)
-        if move_type == MOVING_IN_NEW:
-            ok_to_move = self.MovingInNewRow()
-        elif move_type == LEAVING_EXISTING:
-            ok_to_move = self.LeavingExistingCell()
-        elif move_type == LEAVING_NEW:
-            ok_to_move = self.LeavingNewRow(move_source, evt_row, evt_col)
-        if ok_to_move:
-            self.current_row_idx = row_if_ok
-            self.current_col_idx = col_if_ok
-            event.Skip() # will allow us to move to the new cell
-            
-    def GetMouseMoveDets(self, event, evt_row, evt_col):
-        """
-        Gets move details.
-        Returns move_type, row_if_ok, col_if_ok.
-        move_type - MOVING_IN_NEW, LEAVING_EXISTING, or LEAVING_NEW.
-        Moving in new: the last recorded current row is a new row and 
-                the mouse event row is also new.
-        Leaving existing: the last recorded current row is not a new row
-        Leaving new: the last recorded current row is a new row and 
-                the mouse event row is not new.
-        evt_row/col is where mouse clicked to i.e. not the cell just left.
-        """
-        if self.debug: print "In GetMouseMoveDets trying to move to " + \
-            "row %s col %s" % (evt_row, evt_col)
+        If any rules are broken, put focus on source cell. Otherwise got to
+            cell at destination row and col.
+        """            
+        # 1) move type
+        final_col = (src_col == len(self.flds) - 1)
         was_new_row = self.NewRow(self.current_row_idx)
-        jump_row_new = self.NewRow(evt_row)
-        if was_new_row and jump_row_new:
+        dest_row_is_new = self.DestRowIsNew(src_row, dest_row, tab_key, 
+                                            bolright, final_col)
+        if was_new_row and dest_row_is_new:
             move_type = MOVING_IN_NEW
         elif not was_new_row:
             move_type = LEAVING_EXISTING
-        elif was_new_row and not jump_row_new:
+        elif was_new_row and not dest_row_is_new:
             move_type = LEAVING_NEW
-        row_if_ok = evt_row
-        col_if_ok = evt_col
-        return move_type, row_if_ok, col_if_ok
-
-    def GetKeyboardMoveDets(self, event, evt_row, evt_col):
-        """
-        Gets move details.
-        Returns move_type, row_if_ok, col_if_ok.
-        move_type - MOVING_IN_NEW, LEAVING_EXISTING, or LEAVING_NEW.
-        Moving in new: the last recorded current row is a new row and the 
-            current column is not the final column.
-        Leaving existing: the last recorded current row is not a new row
-        Leaving new: the last recorded current row is a new row and the current 
-            column is the final column.
-        evt_row/col is for cell keypress happened in. I.e. cell we're trying
-            to leave by tabbing away.
-        """
-        if self.debug: print "In GetKeyboardMoveDets trying to jump to " + \
-            "row %s col %s" % (evt_row, evt_col)
-        is_new_row = self.NewRow(self.current_row_idx)
-        final_col = (evt_col == len(self.flds) - 1)
-        if is_new_row and not final_col:
-            move_type = MOVING_IN_NEW
-            row_if_ok = evt_row
-            col_if_ok = evt_col + 1
-        elif not is_new_row:
-            move_type = LEAVING_EXISTING
-            row_if_ok = evt_row + 1
-            col_if_ok = 0
-        elif is_new_row and final_col:
-            move_type = LEAVING_NEW
-            row_if_ok = evt_row + 1
-            col_if_ok = 0
-        return move_type, row_if_ok, col_if_ok
+        # 2) dest row and dest col
+        if tab_key: # otherwise ok as is
+            if self.NewRow(src_row) and bolright and final_col:
+                dest_row = src_row + 1
+                dest_col = 0
+            else:
+                dest_row = src_row
+                if bolright:
+                    dest_col = src_col + 1
+                else:
+                    dest_col = src_col - 1
+        return move_type, dest_row, dest_col
     
-    def LeavingNewRow(self, move_source, evt_row, evt_col):
-        """
-        Process attempt to leave (a cell in) the new row.
-        move_source - MOUSE_MOVE, KEYBOARD_MOVE
-        Return OK to move.
-        """
-        if self.debug: print "Leaving new row - %s" % move_source
-        # only attempt to save if value is OK to save
-        if not self.CellOKToSave(self.current_row_idx, 
-                                 self.current_col_idx):
-            ok_to_move = False
+    def DestRowIsNew(self, src_row, dest_row, tab_key, bolright, final_col):
+        "Is the destination row the new row?"
+        if tab_key:
+            if self.NewRow(src_row) and bolright and not final_col:
+                dest_row_is_new = True
+            elif self.NewRow(src_row) and not bolright:
+                # Should not get here from a tab left in the first column 
+                # (not a cell move) - see OnCellMove.
+                dest_row_is_new = True
+            else:
+                dest_row_is_new = False
+        elif dest_row != None:
+            dest_row_is_new = self.NewRow(dest_row)
         else:
-            if move_source == KEYBOARD_MOVE:
-                if self.debug: print "New buffer is %s" % self.dbtbl.new_buffer
-                if self.dbtbl.new_buffer.get((row, col)) == None:
-                    self.dbtbl.new_buffer[(row, col)] = \
-                        db_tbl.MISSING_VAL_INDICATOR
-            ok_to_move = self.SaveRow(self.current_row_idx)
-        return ok_to_move 
+            raise Exception, "Not a tab key move yet no destination row stored"
+        return dest_row_is_new
     
     def LeavingExistingCell(self):
         """
-        Process attempt to leave an existing cell.
-        Return OK to move.
+        Process the attempt to leave an existing cell.
+        Will not move if cell data not OK to save.
+        Will update a cell if there is changed data and if it is valid.
+        Return move_to_dest.
         """
         if self.debug: print "Was in existing, ordinary row"
         if not self.CellOKToSave(self.current_row_idx, 
                                  self.current_col_idx):
-            ok_to_move = False
+            move_to_dest = False
         else:
             if self.dbtbl.bol_attempt_cell_update:
-                ok_to_move = self.UpdateCell(self.current_row_idx,
-                                             self.current_col_idx)
+                move_to_dest = self.UpdateCell(self.current_row_idx,
+                                               self.current_col_idx)
             else:
-                ok_to_move = True
+                move_to_dest = True
         # flush
         self.dbtbl.bol_attempt_cell_update = False
         self.dbtbl.SQL_cell_to_update = None
         self.dbtbl.val_of_cell_to_update = None
-        return ok_to_move
+        return move_to_dest
     
     def MovingInNewRow(self):
         """
-        Process attempt to move away from cell in new row to another cell in the
-            same row.
-        Return OK to move.
+        Process the attempt to move away from a cell in the new row to another 
+            cell in the same row.  Will not move if cell is invalid.
+        Return move_to_dest.
         """
         if self.debug: print "Moving within new row"
-        ok_to_move = not self.CellInvalid(self.current_row_idx, 
-                                          self.current_col_idx)
-        return ok_to_move
+        move_to_dest = not self.CellInvalid(self.current_row_idx, 
+                                            self.current_col_idx)
+        return move_to_dest
+    
+    def LeavingNewRow(self, dest_row, dest_col):
+        """
+        Process the attempt to leave a cell in the new row.
+        Will not move if the cell is not OK to save or if the attempt to save 
+            the row failed.
+        Return move_to_dest.
+        """
+        if self.debug: print "LeavingNewRow - dest row %s dest col %s" % \
+            (dest_row, dest_col)
+        # only attempt to save if value is OK to save
+        if not self.CellOKToSave(self.current_row_idx, 
+                                 self.current_col_idx):
+            move_to_dest = False
+        else:
+            move_to_dest = self.SaveRow(self.current_row_idx)
+        return move_to_dest
 
     # VALIDATION //////////////////////////////////////////////////////////
     
@@ -282,10 +347,7 @@ class TblEditor(wx.Dialog):
             raw_val = self.dbtbl.new_buffer.get((row, col), 
                                                 db_tbl.MISSING_VAL_INDICATOR)
         else:
-            if self.dbtbl.bol_attempt_cell_update:
-                raw_val = self.dbtbl.val_of_cell_to_update
-            else:
-                raw_val = self.grid.GetCellValue(row, col)
+            raw_val = self.GetRawVal(row, col)
             existing_row_data_lst = self.dbtbl.row_vals_dic.get(row)
             if existing_row_data_lst:
                 prev_val = str(existing_row_data_lst[col])
@@ -347,7 +409,7 @@ class TblEditor(wx.Dialog):
             dbtbl.GetValue(), will not work.  It will get the cached version
             which is now out-of-date (we presumably just changed it).
         """
-        if self.debug: print "In GetRawVal for row %s col %s" % (row, col)
+        if self.debug: print "GetRawVal - row %s col %s" % (row, col)
         if self.dbtbl.bol_attempt_cell_update:
             raw_val = self.dbtbl.val_of_cell_to_update
         else:
@@ -359,7 +421,7 @@ class TblEditor(wx.Dialog):
         Cannot be an invalid value (must be valid or missing value).
         And if missing value, must be nullable field.
         """
-        if self.debug: print "In CellOKToSave row %s col %s" % (row, col)
+        if self.debug: print "CellOKToSave - row %s col %s" % (row, col)
         raw_val = self.GetRawVal(row, col)
         fld_dic = self.dbtbl.GetFldDic(col)
         missing_not_nullable_prob = \
@@ -383,14 +445,14 @@ class TblEditor(wx.Dialog):
             typed in 2pm and stored in CCYY-MM-DD HH:mm:ss as today's date time 
             stamp but at 2pm.
         """
-        if self.debug: print "Now updating cell row %s col %s" % (row, col)
+        if self.debug: print "UpdateCell - row %s col %s" % (row, col)
         bolUpdatedCell = True
         try:
             self.dbtbl.cur.execute(self.dbtbl.SQL_cell_to_update)
             self.dbtbl.conn.commit()
         except Exception, e:
             if self.debug: 
-                print "SaveCell failed to save %s. " % \
+                print "UpdateCell failed to save %s. " % \
                     self.dbtbl.SQL_cell_to_update + \
                     "Orig error: %s" % e
             bolUpdatedCell = False
@@ -412,15 +474,15 @@ class TblEditor(wx.Dialog):
         row_inserted = getdata.InsertRow(self.dbe, self.conn, self.cur, 
                                          self.tbl_name, data)
         if row_inserted:
-            if self.debug: print "Just inserted row in SaveRow()"
+            if self.debug: print "SaveRow - Just inserted row"
         else:
-            if self.debug: print "Unable to insert row in SaveRow()"
+            if self.debug: print "SaveRow - Unable to insert row"
             return False
         try:
             self.SetupNewRow(data)
             return True
         except:
-            if self.debug: print "Unable to setup new row"
+            if self.debug: print "SaveRow - Unable to setup new row"
             return False
 
     def SetupNewRow(self, data):
@@ -437,7 +499,14 @@ class TblEditor(wx.Dialog):
         self.DisplayNewRow()
         self.ResetRowLabels(new_row_idx)
         self.InitNewRowBuffer()
-        self.FocusOnNewRow(new_row_idx)
+        
+        
+        
+        # Do this as part of post validation focus setting
+        #self.FocusOnNewRow(new_row_idx)
+        
+        
+        
         self.ResetPrevRowEd(new_row_idx - 1)
         self.SetNewRowEd(new_row_idx)
     
@@ -521,5 +590,6 @@ class TblEditor(wx.Dialog):
         return new_row
         
     def OnCellChange(self, event):
+        print "Cell changed"
         self.grid.ForceRefresh()
         event.Skip()

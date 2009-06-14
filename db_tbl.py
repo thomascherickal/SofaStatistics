@@ -211,14 +211,18 @@ class DbTbl(wx.grid.PyGridTableBase):
     def SetValue(self, row, col, value):
         """
         Only called if data entered.
+        
+        Fires first if use mouse to move from a cell you have edited.
+        Fires after keypress and SelectCell if you use TAB to move.
+        
         If a new row, stores value in new row buffer ready to be saved if 
             OK to save row.
         If an existing, ordinary row, stores SQL to update cell if OK to update
             cell.  Cache will be updated if, and only if, the cell is actually
             updated.
         """
-        if self.debug: print "In SetValue with row %s, " % row + \
-            "col %s with value \"%s\"" % (col, value)
+        if self.debug: print "SetValue - row %s, " % row + \
+            "col %s with value \"%s\" *************************" % (col, value)
         if self.NewRow(row):
             self.new_buffer[(row, col)] = value
         else:
@@ -235,8 +239,9 @@ class DbTbl(wx.grid.PyGridTableBase):
                 " WHERE %s = " % self.id_col_name + \
                 id_val_part
             if self.debug: 
-                print "SQL update value: %s" % SQL_update_value
-                print "Value of cell to update: %s" % self.val_of_cell_to_update
+                print "SetValue - SQL update value: %s" % SQL_update_value
+                print "SetValue - Value of cell to update: %s" % \
+                    self.val_of_cell_to_update
             self.SQL_cell_to_update = SQL_update_value
 
     def DisplayNewRow(self):
