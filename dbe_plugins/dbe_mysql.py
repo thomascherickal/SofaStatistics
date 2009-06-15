@@ -303,21 +303,9 @@ def InsertRow(conn, cur, tbl_name, data):
     for i, data_dets in enumerate(data):
         if debug: pprint.pprint(data_dets)
         val, fld_name, fld_dic = data_dets
-        if val == None:
-            val2add = val
-        elif fld_dic[getdata.FLD_BOLDATETIME]:
-            valid_datetime, t = util.datetime_str_valid(val)
-            if not valid_datetime:
-                raise Exception, "Invalid datetime \"%s\" slipped through" % \
-                    val
-            else:
-                if debug: print t
-            val2add = "%s-%s-%s %s:%s:%s" % (t[0], t[1], t[2], 
-                                             t[3], t[4], t[5])
-        else:
-            val2add = val
-        if debug: print str(val2add) 
-        data_lst.append(val2add)
+        val2use = getdata.PrepValue(val, fld_dic)
+        if debug: print str(val2use) 
+        data_lst.append(val2use)
     data_tup = tuple(data_lst)
     if debug: pprint.pprint(data_tup)
     try:

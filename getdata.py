@@ -169,10 +169,39 @@ def extractDbDets(choice_text):
     db_name = choice_text[:start_idx - 2]
     return db_name, dbe
 
+def PrepValue(dbe, val, fld_dic):
+    """
+    Prepare raw value e.g. datetime, for insertion/update via SQL
+    NB accepts faulty datettime formats and will create faulty SQL.
+    Validation happens later and if it fails, the SQL will never run.
+    """
+    try:
+        prep_val = DBE_MODULES[dbe].PrepValue(val, fld_dic)
+    except AttributeError:
+        debug = False
+        if val in [None, "."]: # TODO - use a const without having to import db_tbl
+            val2use = None
+        elif fld_dic[FLD_BOLDATETIME]:
+            if val == "":
+                val2use = None
+            else:
+                valid_datetime, timeobj = util.valid_datetime_str(val)
+                if not valid_datetime:
+                    # will not execute successfully
+                    if debug: print "%s is not a valid datetime"
+                    val2use = val
+                else:
+                    if debug: print timeobj
+                    # might as well store in same way as MySQL
+                    val2use = util.timeobj_to_datetime_str(timeobj)
+        else:
+            val2use = val
+        if debug: print val2use
+        prep_val = val2use
+    return prep_val
+
 def InsertRow(dbe, conn, cur, tbl_name, data):
-    """
-    data = [(value as string, fld_dets), ...]
-    """
+    "data = [(value as string (or None), fld_dets), ...]"
     return DBE_MODULES[dbe].InsertRow(conn, cur, tbl_name, data)
 
 def setupDataDropdowns(parent, panel, dbe, conn_dets, default_dbs, 

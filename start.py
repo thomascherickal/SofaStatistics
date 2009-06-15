@@ -135,7 +135,8 @@ class SofaApp(wx.App):
     dev_debug = True
 
     def __init__(self):        
-        # if wanting to initialise the parent class it must be run in child __init__ and nowhere else
+        # if wanting to initialise the parent class it must be run in 
+        # child __init__ and nowhere else.
         if self.dev_debug:
             redirect = False
             filename = None
@@ -160,8 +161,9 @@ class StartFrame(wx.Frame):
         wx.Frame.__init__(self, None, title="SOFA Start", size=(800, 542),
               style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU,
               pos=(100, 100))
+        # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
-        self.SetClientSize(self.GetSize()) # Windows doesn't include window decorations
+        self.SetClientSize(self.GetSize())
         self.panel = wx.Panel(self)
         self.InitComTypes(self.panel)
         self.panel.Bind(wx.EVT_PAINT, self.OnPaint)        
@@ -177,10 +179,10 @@ class StartFrame(wx.Frame):
                             wx.BITMAP_TYPE_XPM)
         self.bmp_sofa = wx.BitmapFromImage(img_sofa)
         # slice of image to be refreshed (where text and image will be)
-        self.blank_wallpaper = self.bmp_sofa.GetSubBitmap(wx.Rect(MAIN_LEFT, 248, 
-                                                                  630, 250))
-        self.blank_proj_strip = self.bmp_sofa.GetSubBitmap(wx.Rect(MAIN_LEFT, 218, 
-                                                                   490, 30))
+        self.blank_wallpaper = self.bmp_sofa.GetSubBitmap(wx.Rect(MAIN_LEFT, 
+                                                                248, 630, 250))
+        self.blank_proj_strip = self.bmp_sofa.GetSubBitmap(wx.Rect(MAIN_LEFT, 
+                                                                218, 490, 30))
         # buttons
         font_buttons = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
         g = GetNextYPos(245, 34)
@@ -230,12 +232,13 @@ class StartFrame(wx.Frame):
         self.btnExit.Bind(wx.EVT_ENTER_WINDOW, self.OnExitEnter)
         # text
         # NB cannot have transparent background properly in Windows if using
-        # a static ctrl http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3045245
+        # a static ctrl 
+        # http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3045245
         self.txtWelcome = "Welcome to SOFA.  Hover the mouse over the " + \
             "buttons on the left to see what you can do."
         # help images
-        img_proj = wx.Image(os.path.join(SCRIPT_PATH, "images", "briefcase.xpm"), 
-                            wx.BITMAP_TYPE_XPM)
+        img_proj = wx.Image(os.path.join(SCRIPT_PATH, "images", 
+                                         "briefcase.xpm"), wx.BITMAP_TYPE_XPM)
         self.bmp_proj = wx.BitmapFromImage(img_proj)
         img_data = wx.Image(os.path.join(SCRIPT_PATH, "images", "data.xpm"), 
                             wx.BITMAP_TYPE_XPM)
@@ -246,14 +249,14 @@ class StartFrame(wx.Frame):
         img_tabs = wx.Image(os.path.join(SCRIPT_PATH, "images", "table.xpm"), 
                             wx.BITMAP_TYPE_XPM)
         self.bmp_tabs = wx.BitmapFromImage(img_tabs)
-        img_chart = wx.Image(os.path.join(SCRIPT_PATH, "images", "demo_chart.xpm"), 
-                              wx.BITMAP_TYPE_XPM)
+        img_chart = wx.Image(os.path.join(SCRIPT_PATH, "images", 
+                                          "demo_chart.xpm"), wx.BITMAP_TYPE_XPM)
         self.bmp_chart = wx.BitmapFromImage(img_chart)
         img_stats = wx.Image(os.path.join(SCRIPT_PATH, "images", "stats.xpm"), 
                             wx.BITMAP_TYPE_XPM)
         self.bmp_stats = wx.BitmapFromImage(img_stats)
-        img_psal = wx.Image(os.path.join(SCRIPT_PATH, "images", "psal_logo.xpm"), 
-                         wx.BITMAP_TYPE_XPM)
+        img_psal = wx.Image(os.path.join(SCRIPT_PATH, "images", 
+                                         "psal_logo.xpm"), wx.BITMAP_TYPE_XPM)
         self.bmp_psal = wx.BitmapFromImage(img_psal)
         self.HELP_TEXT_FONT = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
         self.active_proj = projects.SOFA_DEFAULT_PROJ
@@ -266,8 +269,8 @@ class StartFrame(wx.Frame):
         COMTYPES_HANDLED = "comtypes_handled.txt"
         if util.in_windows() and not os.path.exists(os.path.join(LOCAL_PATH, 
                                                             COMTYPES_HANDLED)):
-            wx.MessageBox("Click OK to prepare for first use of SOFA Statistics.\n\n" + \
-                          "Preparation may take a moment ...")
+            wx.MessageBox("Click OK to prepare for first use of SOFA " + \
+                          "Statistics.\n\nPreparation may take a moment ...")
             h = full_html.FullHTML(panel, (10, 10))
             h.ShowHTML("")
             h = None
@@ -296,13 +299,15 @@ class StartFrame(wx.Frame):
         panel_dc.SetFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL))
         panel_dc.SetTextForeground(TEXT_BROWN)
         panel_dc.DrawLabel("SOFA - Statistics Open For All" + \
-           "\nthe user-friendly, open-source statistics,\nanalysis & reporting package", 
+           "\nthe user-friendly, open-source statistics,\nanalysis & " + \
+           "reporting package", 
            wx.Rect(MAIN_LEFT, 105, 100, 100))
         panel_dc.DrawLabel(GetTextToDraw(self.txtWelcome, MAX_HELP_TEXT_WIDTH), 
                            wx.Rect(MAIN_LEFT, 248, 540, 260))
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel("SOFA\nPaton-Simpson & Associates Ltd\nAuckland, New Zealand", 
+        panel_dc.DrawLabel("SOFA\nPaton-Simpson & Associates Ltd" + \
+                           "\nAuckland, New Zealand", 
                            wx.Rect(MAIN_LEFT, 497, 100, 50))
         panel_dc.DrawLabel("%s 2009 Paton-Simpson & Associates Ltd" % COPYRIGHT, 
                            wx.Rect(500, 522, 100, 50))
@@ -378,7 +383,8 @@ class StartFrame(wx.Frame):
         self.DrawBlankWallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_import, 530, 280, True)
         panel_dc.SetTextForeground(TEXT_BROWN)
-        txt_entry = "Import data e.g. a spreadsheet, csv file, or SPSS sav file."
+        txt_entry = "Import data e.g. a spreadsheet, csv file, or " + \
+            "SPSS sav file."
         panel_dc.DrawLabel(GetTextToDraw(txt_entry, MAX_HELP_TEXT_WIDTH), 
                            wx.Rect(MAIN_LEFT, 248, 530, 260))
         event.Skip()

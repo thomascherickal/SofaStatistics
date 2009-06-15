@@ -7,6 +7,8 @@ TextEditor is the custom grid cell editor - currently only used for the cells
 import wx
 import wx.grid
 
+import table_edit
+
 
 class TextEditor(wx.grid.PyGridCellEditor):
     
@@ -69,16 +71,17 @@ class TextEditor(wx.grid.PyGridCellEditor):
     def OnTxtEdKeyDown(self, event):
         "We are interested in TAB keypresses"
         if event.GetKeyCode() in [wx.WXK_TAB]:
+            key_direction = table_edit.MOVE_LEFT \
+                if event.ShiftDown() else table_edit.MOVE_RIGHT
             src_row=self.row
             src_col=self.col
-            bolright = not event.ShiftDown()
-            if self.debug: print "OnTxtEdKeyDown - Hit TAB in row " + \
+            if self.debug: print "OnTxtEdKeyDown - Keypress in row " + \
                 "%s col %s" % (src_row, src_col)
             final_col = (src_col == len(self.tbl_editor.flds) - 1)
-            if final_col and bolright:
+            if final_col and key_direction == table_edit.MOVE_RIGHT:
                 self.tbl_editor.ProcessCellMove(src_row=self.row, 
                             src_col=self.col, dest_row=None, dest_col=None, 
-                            tab_key=True, bolright=bolright)
+                            key_direction=key_direction)
             else:
                 event.Skip()
         else:

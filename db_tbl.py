@@ -15,7 +15,7 @@ class DbTbl(wx.grid.PyGridTableBase):
     def __init__(self, grid, dbe, conn, cur, tbl, flds, var_labels, idxs, 
                  read_only):
         wx.grid.PyGridTableBase.__init__(self)
-        self.debug = False
+        self.debug = True
         self.tbl = tbl
         self.grid = grid
         self.dbe = dbe
@@ -229,13 +229,18 @@ class DbTbl(wx.grid.PyGridTableBase):
             self.bol_attempt_cell_update = True
             row_id = self.GetValue(row, self.idx_id)
             col_name = self.fld_names[col]
-            self.val_of_cell_to_update = value
+            raw_val_to_use = getdata.PrepValue(dbe=self.dbe, val=value, 
+                                               fld_dic=self.flds[col_name])
+            self.val_of_cell_to_update = raw_val_to_use
             if self.must_quote:
                 id_val_part = "\"%s\"" % self.row_id_dic[row]
             else:
                 id_val_part = "%s" % self.row_id_dic[row]
+            val2use = "NULL" if raw_val_to_use == None \
+                else "\"%s\"" % raw_val_to_use
+            # TODO - think about possibilities of SQL injection by hostile party
             SQL_update_value = "UPDATE %s " % self.tbl + \
-                " SET %s = \"%s\" " % (self.quote(col_name), value) + \
+                " SET %s = %s " % (self.quote(col_name), val2use) + \
                 " WHERE %s = " % self.id_col_name + \
                 id_val_part
             if self.debug: 

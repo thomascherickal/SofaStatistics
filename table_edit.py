@@ -35,7 +35,12 @@ When SaveRow() is called, the cache is not updated.  It is better to force the
     grid to look up the value from the db.  Thus it will show autocreated values
     e.g. timestamp, autoincrement etc
 """
-
+# key move directions
+MOVE_LEFT = "move left"
+MOVE_RIGHT = "move right"
+MOVE_UP = "move up"
+MOVE_DOWN = "move down"
+# cell move types
 MOVING_IN_NEW = "moving in new"
 LEAVING_EXISTING = "leaving existing"
 LEAVING_NEW = "leaving new"
@@ -45,12 +50,10 @@ class CellMoveEvent(wx.PyCommandEvent):
     def __init__(self, evtType, id):
         wx.PyCommandEvent.__init__(self, evtType, id)
     
-    def AddDets(self, dest_row=None, dest_col=None, tab_key=False, 
-                bolright=True):
+    def AddDets(self, dest_row=None, dest_col=None, key_direction=None):
         self.dest_row = dest_row
         self.dest_col = dest_col
-        self.tab_key = tab_key
-        self.bolright = bolright
+        self.key_direction = key_direction
     
 # new event type to pass around
 myEVT_CELL_MOVE = wx.NewEventType()
@@ -61,7 +64,7 @@ EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 class TblEditor(wx.Dialog):
     def __init__(self, parent, dbe, conn, cur, db, tbl_name, flds, var_labels,
                  idxs, read_only=True):
-        self.debug = False
+        self.debug = True
         wx.Dialog.__init__(self, None, 
                            title="Data from %s.%s" % (db, tbl_name),
                            size=(500, 500), pos=(300, 0),
@@ -106,25 +109,23 @@ class TblEditor(wx.Dialog):
     
     # processing MOVEMENTS AWAY FROM CELLS e.g. saving values ////////////////
     
-    def AddCellMoveEvt(self, dest_row=None, dest_col=None, tab_key=False, 
-                       bolright=True):
+    def AddCellMoveEvt(self, dest_row=None, dest_col=None, key_direction=None):
         """
         Add special cell move event.
         dest_row - row we are going to (None if here by keystroke - 
             yet to be determined).
         dest_col - column we are going to (as above).
-        tab_key - tab keypress
-        bolright - moving with keyboard rightwards.
+        key_direction - MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN
         """
         evt_cell_move = CellMoveEvent(myEVT_CELL_MOVE, self.grid.GetId())
-        evt_cell_move.AddDets(dest_row, dest_col, tab_key, bolright)
+        evt_cell_move.AddDets(dest_row, dest_col, key_direction)
         evt_cell_move.SetEventObject(self.grid)
         self.grid.GetEventHandler().AddPendingEvent(evt_cell_move)
     
     def OnSelectCell(self, event):
         """
         Capture use of move away from a cell.  May be result of mouse click 
-            or tabbing.
+            or a keypress.
         """
         if not self.respond_to_select_cell:
             self.respond_to_select_cell = True
@@ -138,20 +139,21 @@ class TblEditor(wx.Dialog):
 
     def OnGridKeyDown(self, event):
         """
-        Capture use of TAB key to move away from a cell.
+        Capture use of keypress to move away from a cell.
         The only case where we can't rely on OnSelectCell to take care of
-            AddCellMoveEvt for us is if we are tabbing right from the last col.
+            AddCellMoveEvt for us is if we are moving right from the last col
+            after a keypress.
         """
         if event.GetKeyCode() in [wx.WXK_TAB]:
-            bolright = not event.ShiftDown()
+            key_direction = MOVE_LEFT if event.ShiftDown() else MOVE_RIGHT
             src_row=self.current_row_idx
             src_col=self.current_col_idx
             if self.debug: print "OnGridKeyDown - TAB keypress in row " + \
                 "%s col %s ******************************" % (src_row, src_col)
             final_col = (src_col == len(self.flds) - 1)
-            if final_col and bolright:
+            if final_col and key_direction == MOVE_RIGHT:
                 self.AddCellMoveEvt(dest_row=None, dest_col=None, 
-                                    tab_key=True, bolright=bolright)
+                                    key_direction=MOVE_RIGHT)
             else:
                 event.Skip()
         else:
@@ -165,7 +167,7 @@ class TblEditor(wx.Dialog):
             enough information is available to validate data in cell.
         Only update self.current_row_idx and self.current_col_idx once decisions
             have been made.
-        Should not get here from a tab left in the first column 
+        Should not get here from a key move left in the first column 
             (not a cell move).
         NB must get the table to refresh itself and thus call SetValue(). Other-
             wise we can't get the value just entered so we can evaluate it for
@@ -176,22 +178,20 @@ class TblEditor(wx.Dialog):
         src_col=self.current_col_idx # col being moved from
         dest_row = event.dest_row # row being moved towards
         dest_col = event.dest_col # col being moved towards
-        tab_key = event.tab_key # tab keypress
-        bolright = event.bolright # moving with keyboard rightwards
-        self.ProcessCellMove(src_row, src_col, dest_row, dest_col, tab_key, 
-                             bolright)
+        key_direction = event.key_direction
+        self.ProcessCellMove(src_row, src_col, dest_row, dest_col, 
+                             key_direction)
     
-    def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, tab_key, 
-                        bolright):
+    def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, 
+                        key_direction):
         self.dbtbl.ForceRefresh()
         if self.debug:
             print "ProcessCellMove - " + \
                 "source row %s source col %s " % (src_row, src_col) + \
                 "dest row %s dest col %s " % (dest_row, dest_col) + \
-                "using tab: %s " % ("yes" if tab_key else "no",) + \
-                "keyboard direction: %s" % ("right" if bolright else "left",)
+                "key direction: %s" % key_direction
         move_type, dest_row, dest_col = self.GetMoveDets(src_row, src_col, 
-                                        dest_row, dest_col, tab_key, bolright)
+                                        dest_row, dest_col, key_direction)
         if move_type == LEAVING_EXISTING:
             move_to_dest = self.LeavingExistingCell()
         elif move_type == MOVING_IN_NEW:
@@ -206,8 +206,7 @@ class TblEditor(wx.Dialog):
             self.current_col_idx = dest_col        
         
     
-    def GetMoveDets(self, src_row, src_col, dest_row, dest_col, tab_key, 
-                    bolright):
+    def GetMoveDets(self, src_row, src_col, dest_row, dest_col, key_direction):
         """
         Gets move details.
         Returns move_type, dest_row, dest_col.
@@ -231,8 +230,8 @@ class TblEditor(wx.Dialog):
         # 1) move type
         final_col = (src_col == len(self.flds) - 1)
         was_new_row = self.NewRow(self.current_row_idx)
-        dest_row_is_new = self.DestRowIsNew(src_row, dest_row, tab_key, 
-                                            bolright, final_col)
+        dest_row_is_new = self.DestRowIsNew(src_row, dest_row, key_direction, 
+                                            final_col)
         if was_new_row and dest_row_is_new:
             move_type = MOVING_IN_NEW
         elif not was_new_row:
@@ -240,25 +239,26 @@ class TblEditor(wx.Dialog):
         elif was_new_row and not dest_row_is_new:
             move_type = LEAVING_NEW
         # 2) dest row and dest col
-        if tab_key: # otherwise ok as is
-            if bolright and final_col:
+        if key_direction: # otherwise ok as is
+            if key_direction == MOVE_RIGHT and final_col:
                 dest_row = src_row + 1
                 dest_col = 0
             else:
                 dest_row = src_row
-                if bolright:
+                if key_direction == MOVE_RIGHT:
                     dest_col = src_col + 1
                 else:
                     dest_col = src_col - 1
         return move_type, dest_row, dest_col
     
-    def DestRowIsNew(self, src_row, dest_row, tab_key, bolright, final_col):
+    def DestRowIsNew(self, src_row, dest_row, key_direction, final_col):
         "Is the destination row the new row?"
-        if tab_key:
-            if self.NewRow(src_row) and bolright and not final_col:
+        if key_direction:
+            if self.NewRow(src_row) and key_direction == MOVE_RIGHT \
+                    and not final_col:
                 dest_row_is_new = True
-            elif self.NewRow(src_row) and not bolright:
-                # Should not get here from a tab left in the first column 
+            elif self.NewRow(src_row) and not key_direction == MOVE_RIGHT:
+                # Should not get here from a move left in the first column 
                 # (not a cell move) - see OnCellMove.
                 dest_row_is_new = True
             else:
@@ -266,7 +266,7 @@ class TblEditor(wx.Dialog):
         elif dest_row != None:
             dest_row_is_new = self.NewRow(dest_row)
         else:
-            raise Exception, "Not a tab key move yet no destination row stored"
+            raise Exception, "Not a key move yet no destination row stored"
         return dest_row_is_new
     
     def LeavingExistingCell(self):
@@ -312,12 +312,15 @@ class TblEditor(wx.Dialog):
         """
         if self.debug: print "LeavingNewRow - dest row %s dest col %s" % \
             (dest_row, dest_col)
-        # only attempt to save if value is OK to save
-        if not self.CellOKToSave(self.current_row_idx, 
-                                 self.current_col_idx):
-            move_to_dest = False
+        # only attempt to save if new row is dirty and value is OK to save
+        if self.dbtbl.new_is_dirty:
+            if not self.CellOKToSave(self.current_row_idx, 
+                                     self.current_col_idx):
+                move_to_dest = False
+            else:
+                move_to_dest = self.SaveRow(self.current_row_idx)
         else:
-            move_to_dest = self.SaveRow(self.current_row_idx)
+            move_to_dest = True
         return move_to_dest
 
     # VALIDATION //////////////////////////////////////////////////////////
@@ -372,7 +375,7 @@ class TblEditor(wx.Dialog):
             print "\"%s\"" % raw_val
             print "Field dic is:"
             pprint.pprint(fld_dic)
-        if raw_val == db_tbl.MISSING_VAL_INDICATOR:
+        if raw_val == db_tbl.MISSING_VAL_INDICATOR or raw_val == None:
             return False
         elif not fld_dic[getdata.FLD_DATA_ENTRY_OK]: 
              # i.e. not autonumber, timestamp etc
@@ -390,12 +393,12 @@ class TblEditor(wx.Dialog):
                 return True
             return False
         elif fld_dic[getdata.FLD_BOLDATETIME]:
-            valid_datetime, _ = util.datetime_str_valid(raw_val)
+            valid_datetime, _ = util.valid_datetime_str(raw_val)
             if not valid_datetime:
                 wx.MessageBox("\"%s\" is not a valid datetime.\n\n" % \
                                 raw_val + \
                               "Either enter a valid date/ datetime\n" + \
-                              "e.g. 31/3/2009 or 2:30pm 31/3/2009 or " + \
+                              "e.g. 31/3/2009 or 2:30pm 31/3/2009\nor " + \
                               "the missing value character (.)")
                 return True
             return False
@@ -509,14 +512,6 @@ class TblEditor(wx.Dialog):
         self.DisplayNewRow()
         self.ResetRowLabels(new_row_idx)
         self.InitNewRowBuffer()
-        
-        
-        
-        # Do this as part of post validation focus setting
-        #self.FocusOnNewRow(new_row_idx)
-        
-        
-        
         self.ResetPrevRowEd(new_row_idx - 1)
         self.SetNewRowEd(new_row_idx)
     

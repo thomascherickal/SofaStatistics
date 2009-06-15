@@ -57,7 +57,7 @@ def AssessSampleFld(sample_data, fld_name):
         if util.isNumeric(val):
             type_set.add(VAL_NUMERIC)
         else:
-            boldatetime, time_obj = util.datetime_str_valid(val)
+            boldatetime, time_obj = util.valid_datetime_str(val)
             if boldatetime:
                 type_set.add(VAL_DATETIME)
             elif val == "":
@@ -92,7 +92,7 @@ def ProcessVal(vals, i, row, fld_name, fld_types, check):
             val = "NULL"
     else:            
         bolOK_data = False
-        boldatetime, time_obj = util.datetime_str_valid(val)
+        boldatetime, time_obj = util.valid_datetime_str(val)
         if fld_type == FLD_NUMERIC:
             # must be numeric or empty string (which we'll turn to NULL)
             if util.isNumeric(val):
@@ -104,12 +104,7 @@ def ProcessVal(vals, i, row, fld_name, fld_types, check):
             # must be datetime or empty string (which we'll turn to NULL)
             if boldatetime:
                 bolOK_data = True
-                val = "%s-%s-%s %s:%s:%s" % (time_obj[0], 
-                                             str(time_obj[1]).zfill(2),
-                                             str(time_obj[2]).zfill(2),
-                                             str(time_obj[3]).zfill(2),
-                                             str(time_obj[4]).zfill(2),
-                                             str(time_obj[5]).zfill(2))
+                val = util.timeobj_to_datetime_str(timeobj)
             elif val == "":
                 bolOK_data = True
                 val = "NULL"
@@ -295,7 +290,8 @@ class ImportFileSelectDlg(wx.Dialog):
                     "of beginning to resolve it"
             elif retCode == wx.NO:
                 # get new one
-                dlg = wx.TextEntryDialog(None, "Please enter new name for table",
+                dlg = wx.TextEntryDialog(None, 
+                                         "Please enter new name for table",
                                          "NEW TABLE NAME",
                                          style=wx.OK|wx.CANCEL)
                 if dlg.ShowModal() == wx.ID_OK:
@@ -305,7 +301,8 @@ class ImportFileSelectDlg(wx.Dialog):
                                                            val_entered)
                         tbl_name = val_entered
                     else:
-                        raise Exception, "No table name entered when give chance"
+                        raise Exception, "No table name entered " + \
+                            "when give chance"
                 else:
                     raise Exception, "Had a name collision but cancelled " + \
                         "out of completing resolution of it"

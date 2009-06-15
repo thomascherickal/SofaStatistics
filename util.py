@@ -89,8 +89,13 @@ def get_script_path():
 def get_local_path():
     return "%s/sofa" % os.getenv('HOME')
 
-def isInteger(val): #http://mail.python.org/pipermail/python-list/2006-February/368113.html
+def isInteger(val):
+    #http://mail.python.org/pipermail/python-list/2006-February/368113.html
     return isinstance(val, (int, long))
+
+def isString(val):
+    # http://mail.python.org/pipermail/winnipeg/2007-August/000237.html
+    return isinstance(val, basestring)
 
 def isNumeric(val):
     "http://www.rosettacode.org/wiki/IsNumeric#Python"
@@ -104,6 +109,16 @@ def isNumeric(val):
 def flip_date(date):
     """Reorder MySQL date e.g. 2008-11-23 -> 23-11-2008"""
     return "%s-%s-%s" % (date[-2:], date[5:7], date[:4])
+
+def timeobj_to_datetime_str(timeobj):
+    "Takes timeobj and returns standard datetime string"
+    datetime_str = "%s-%s-%s %s:%s:%s" % (timeobj[0], 
+                                          str(timeobj[1]).zfill(2),
+                                          str(timeobj[2]).zfill(2),
+                                          str(timeobj[3]).zfill(2),
+                                          str(timeobj[4]).zfill(2),
+                                          str(timeobj[5]).zfill(2))
+    return datetime_str
 
 def date_range2mysql(entered_start_date, entered_end_date):
     """
@@ -193,7 +208,7 @@ def datetime_split(datetime_str):
         else:
             return (None, None, date_then_time)
 
-def datetime_str_valid(datetime_str):
+def valid_datetime_str(val):
     """
     Is the datetime string in a valid format?
     Returns tuple of Boolean and either a time object if True 
@@ -214,8 +229,11 @@ def datetime_str_valid(datetime_str):
         (or time and date).
     """
     debug = False
+    if not isString(val):
+        if debug: print "%s is not a valid datetime string" % val
+        return (False, None)
     # evaluate date and/or time components against allowable formats
-    date_part, time_part, date_time_order = datetime_split(datetime_str)
+    date_part, time_part, date_time_order = datetime_split(val)
     if date_part == None and time_part == None:
         return False, None
     # gather information on all parts

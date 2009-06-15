@@ -270,7 +270,7 @@ class DbDets(getdata.DbDets):
 def setDbInConnDets(conn_dets, db):
     "Set database in connection details (if appropriate)"
     pass # only ever one database
-    
+
 def InsertRow(conn, cur, tbl_name, data):
     """
     data = [(value as string (or None), fld_name, fld_dets), ...]
@@ -295,18 +295,8 @@ def InsertRow(conn, cur, tbl_name, data):
     for i, data_dets in enumerate(data):
         if debug: pprint.pprint(data_dets)
         val, fld_name, fld_dic = data_dets
-        if fld_dic[getdata.FLD_BOLDATETIME]:
-            valid_datetime, t = util.datetime_str_valid(val)
-            if not valid_datetime:
-                return False # should have been tested already but ...
-            else:
-                if debug: print t
-            val2add = "%s-%s-%s %s:%s:%s" % (t[0], t[1], t[2], 
-                                             t[3], t[4], t[5])
-            if debug: print val2add 
-        else:
-            val2add = val
-        data_lst.append(val2add)
+        val2use = getdata.PrepValue(val, fld_dic)
+        data_lst.append(val2use)
     data_tup = tuple(data_lst)
     try:
         cur.execute(SQL_insert, data_tup)
