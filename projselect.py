@@ -20,7 +20,6 @@ class ProjSelectDlg(wx.Dialog):
         self.parent = parent
         self.panel = wx.Panel(self)
         self.projs = projs
-        self.read_only=False
         # icon
         ib = wx.IconBundle()
         ib.AddIconFromFile(os.path.join(SCRIPT_PATH, 
@@ -83,7 +82,6 @@ class ProjSelectDlg(wx.Dialog):
         self.szrButtons.AddButton(btnCancel)
         self.szrButtons.AddButton(btnOK)
         self.szrButtons.Realize()
-        self.SetReadOnly()
     
     def GetNotes(self, fil_proj):
         f = open(os.path.join(LOCAL_PATH, "projs", fil_proj), "r")
@@ -96,20 +94,17 @@ class ProjSelectDlg(wx.Dialog):
     def OnProjSelect(self, event):
         proj_sel_id = self.dropProjs.GetSelection()
         self.SetNotes(proj_sel_id)
-        self.SetReadOnly()
         event.Skip()
     
-    def SetReadOnly(self):       
-        proj_sel_id = self.dropProjs.GetSelection() 
-        self.read_only = (self.projs[proj_sel_id] == \
-                          projects.SOFA_DEFAULT_PROJ)
-    
-    def SetNotes(self, proj_sel_id):        
+    def SetNotes(self, proj_sel_id):
+        proj_sel_id = self.dropProjs.GetSelection()
         self.GetNotes(self.projs[proj_sel_id])
         self.txtProjNotes.SetValue(self.proj_notes)
-           
+        
     def OnEdit(self,event):
-        dlgProj = projects.ProjectDlg(parent=self, read_only=self.read_only,
+        proj_sel_id = self.dropProjs.GetSelection()        
+        read_only = (self.projs[proj_sel_id] == projects.SOFA_DEFAULT_PROJ)
+        dlgProj = projects.ProjectDlg(parent=self, read_only=read_only,
                           fil_proj=self.projs[self.dropProjs.GetSelection()])
         # refresh projects list and display accordingly
         ret_val = dlgProj.ShowModal()
@@ -119,12 +114,11 @@ class ProjSelectDlg(wx.Dialog):
             self.dropProjs.SetItems(self.projs)
             self.dropProjs.SetSelection(0)
             self.SetNotes(0)
-            self.SetReadOnly()
         elif ret_val == wx.ID_OK:
             self.SetToNameFromOK()
           
     def OnNewClick(self, event):
-        dlgProj = projects.ProjectDlg(parent=self, read_only=self.read_only)
+        dlgProj = projects.ProjectDlg(parent=self, read_only=False)
         ret_val = dlgProj.ShowModal()
         if ret_val == wx.ID_OK:
             self.SetToNameFromOK()
@@ -138,7 +132,6 @@ class ProjSelectDlg(wx.Dialog):
         proj_sel_id = self.projs.index(self.proj_name)
         self.dropProjs.SetSelection(proj_sel_id) # may have changed name
         self.SetNotes(proj_sel_id)
-        self.SetReadOnly()
 
     def OnCancel(self, event):
         self.Destroy()

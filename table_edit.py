@@ -64,7 +64,7 @@ EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 class TblEditor(wx.Dialog):
     def __init__(self, parent, dbe, conn, cur, db, tbl_name, flds, var_labels,
                  idxs, read_only=True):
-        self.debug = True
+        self.debug = False
         wx.Dialog.__init__(self, None, 
                            title="Data from %s.%s" % (db, tbl_name),
                            size=(500, 500), pos=(300, 0),

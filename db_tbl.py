@@ -15,7 +15,7 @@ class DbTbl(wx.grid.PyGridTableBase):
     def __init__(self, grid, dbe, conn, cur, tbl, flds, var_labels, idxs, 
                  read_only):
         wx.grid.PyGridTableBase.__init__(self)
-        self.debug = True
+        self.debug = False
         self.tbl = tbl
         self.grid = grid
         self.dbe = dbe

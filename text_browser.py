@@ -75,7 +75,7 @@ class TextBrowse(wx.PyControl):
     def OnBtnBrowseClick(self, event):
         "Open dialog and takes the file selected (if any)"
         dlgGetFile = wx.FileDialog(self, message=self.file_phrase, 
-                                   wildcard=self.wildcard) 
+                                   wildcard=self.wildcard)
             #defaultDir="spreadsheets", 
             #defaultFile="", )
         #MUST have a parent to enforce modal in Windows
