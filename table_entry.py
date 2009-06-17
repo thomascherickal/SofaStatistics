@@ -184,7 +184,8 @@ class TableEntry(object):
             if len(self.col_dets[col_idx]) == 5:
                 wildcard = self.col_dets[col_idx][4]
             else:
-                wildcard = "Any file (*.*)|*.*"
+                # use * - *.* will not pickup files without extensions in Ubuntu
+                wildcard = "Any file (*)|*"
             editor = text_browser.GridCellTextBrowseEditor(file_phrase, 
                                                            wildcard)
         else:
