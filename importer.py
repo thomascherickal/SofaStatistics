@@ -25,6 +25,13 @@ VAL_STRING = "string value"
 VAL_EMPTY_STRING = "empty string value"
 TMP_SQLITE_TBL = "tmptbl"
 
+
+class MismatchException(Exception):
+    def __init__(self, fld_name, details):
+        self.fld_name = fld_name
+        Exception.__init__(self, "Found data not matching expected " + \
+                           "column type.\n\n%s" % details)
+
 def GetDefaultDbDets():
     """
     Returns conn, cur, dbs, tbls, flds, has_unique, idxs from default
@@ -74,7 +81,7 @@ def AssessSampleFld(sample_data, fld_name):
         fld_type = FLD_STRING
     return fld_type
 
-def ProcessVal(vals, i, row, fld_name, fld_types, check):
+def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
     """
     If checking, will validate and turn empty strings into nulls
         as required.
@@ -111,10 +118,11 @@ def ProcessVal(vals, i, row, fld_name, fld_types, check):
         elif fld_type == FLD_STRING:
             bolOK_data = True
         if not bolOK_data:
-            raise Exception, "Unable to add \"%s\" " % val + \
-                "from row %s to field \"%s\" " % (i + 1, fld_name) + \
-                "which was identified as a %s based on " % fld_type + \
-                "a sample of the first records"
+            raise MismatchException(fld_name,
+                "Column: %s" % fld_name + \
+                "\nRow: %s" % row_num + \
+                "\nValue: \"%s\"" % val + \
+                "\nExpected column type: %s" % fld_type)
     if val != "NULL":
         val = "\"%s\"" % val
     vals.append(val)
@@ -126,6 +134,7 @@ def AddRows(conn, cur, rows, fld_names, fld_types, check=False):
         as required.
     If not checking (e.g. because a pre-tested sample) only do the
         empty string to null conversions.
+    TODO - insert multiple lines at once for performance
     """
     debug = False
     fld_names_clause = ", ".join([dbe_sqlite.quote_identifier(x) \
@@ -133,7 +142,8 @@ def AddRows(conn, cur, rows, fld_names, fld_types, check=False):
     for i, row in enumerate(rows):
         vals = []
         for fld_name in fld_names:
-            ProcessVal(vals, i, row, fld_name, fld_types, check)
+            row_num = i + 1
+            ProcessVal(vals, row_num, row, fld_name, fld_types, check)
         # quoting must happen earlier so we can pass in NULL  
         fld_vals_clause = ", ".join(["%s" % x for x in vals])
         SQL_insert_row = "INSERT INTO %s " % TMP_SQLITE_TBL + \
@@ -141,15 +151,17 @@ def AddRows(conn, cur, rows, fld_names, fld_types, check=False):
         if debug: print SQL_insert_row
         try:
             cur.execute(SQL_insert_row)
+        except MismatchException, e:
+            raise # keep this particular type of exception bubbling out
         except Exception, e:
             raise Exception, "Unable to add row %s. " % (i+1,) + \
                 "Orig error: %s" % e
     conn.commit()
 
-def AddToTable(file_path, tbl_name, fld_names, fld_types, sample_data,
-               remaining_data):
+def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types, 
+                  sample_data, remaining_data):
     """
-    Actually insert data into SQLite database.
+    Create fresh disposable table in SQLite and insert data into it.
     """
     debug = False
     if debug:
@@ -158,7 +170,6 @@ def AddToTable(file_path, tbl_name, fld_names, fld_types, sample_data,
         print "Sample data is: %s" % sample_data
     # create fresh disposable table to store data in.
     # give it a unique identifier field as well.
-    conn, cur, _, tbls, _, _, _ = GetDefaultDbDets()
     fld_clause_items = ["sofa_id INTEGER PRIMARY KEY"]
     for fld_name in fld_names:
         fld_type = fld_types[fld_name]
@@ -167,28 +178,66 @@ def AddToTable(file_path, tbl_name, fld_names, fld_types, sample_data,
                 (dbe_sqlite.quote_identifier(fld_name), sqlite_type))
     fld_clause_items.append("UNIQUE(sofa_id)")
     fld_clause = ", ".join(fld_clause_items)
-    SQL_drop_disp_tbl = "DROP TABLE IF EXISTS %s" % TMP_SQLITE_TBL
-    cur.execute(SQL_drop_disp_tbl)
-    conn.commit()
-    SQL_create_disp_tbl = "CREATE TABLE %s " % TMP_SQLITE_TBL + \
-        " (%s)" % fld_clause
-    if debug:
-        print SQL_create_disp_tbl
-    cur.execute(SQL_create_disp_tbl)
-    conn.commit()
-    # add sample to disposable table
-    AddRows(conn, cur, sample_data, fld_names, fld_types, check=False)
-    # Add remaining data (if any) to table
-    AddRows(conn, cur, remaining_data, fld_names, fld_types, check=True)
-    # rename table to final name
-    SQL_drop_tbl = "DROP TABLE IF EXISTS %s" % \
-        dbe_sqlite.quote_identifier(tbl_name)
-    cur.execute(SQL_drop_tbl)
-    SQL_rename_tbl = "ALTER TABLE %s RENAME TO %s" % \
-        (dbe_sqlite.quote_identifier(TMP_SQLITE_TBL), 
-         dbe_sqlite.quote_identifier(tbl_name))
-    cur.execute(SQL_rename_tbl)
-    conn.commit()
+    try:
+        conn.commit()
+        cur.execute("VACUUM") # otherwise it doesn't always seem to have the 
+            # latest data on which tables exist
+        SQL_drop_disp_tbl = "DROP TABLE IF EXISTS %s" % TMP_SQLITE_TBL
+        cur.execute(SQL_drop_disp_tbl)        
+        conn.commit()
+        if debug: print "Successfully dropped %s" % TMP_SQLITE_TBL
+    except Exception, e:
+        raise
+    try:
+        SQL_create_disp_tbl = "CREATE TABLE %s " % TMP_SQLITE_TBL + \
+            " (%s)" % fld_clause
+        if debug: print SQL_create_disp_tbl
+        cur.execute(SQL_create_disp_tbl)
+        conn.commit()
+        if debug: print "Successfully created  %s" % TMP_SQLITE_TBL
+    except Exception, e:
+        raise
+    try:
+        # add sample and then remaining data to disposable table
+        AddRows(conn, cur, sample_data, fld_names, fld_types, check=False)
+        AddRows(conn, cur, remaining_data, fld_names, fld_types, check=True)
+    except MismatchException, e:
+        conn.commit()
+        # go through again or raise an exception
+        retCode = wx.MessageBox("%s\n\nFix and keep going?" % e, 
+                                "KEEP GOING?", 
+                                wx.YES_NO | wx.ICON_QUESTION)
+        if retCode == wx.YES:
+            # change fld_type to string and start again
+            fld_types[e.fld_name] = FLD_STRING
+            AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types, 
+                          sample_data, remaining_data)
+        else:
+            raise Exception, "Mismatch between data in column and expected " + \
+                "column type"
+    
+def TmpToNamedTbl(conn, cur, tbl_name, file_path):
+    """
+    Rename table to final name.
+    Separated from AddToTmpTable to allow the latter to recurse.
+    This part is only called once at the end.
+    """
+    debug = False
+    try:
+        SQL_drop_tbl = "DROP TABLE IF EXISTS %s" % \
+            dbe_sqlite.quote_identifier(tbl_name)
+        if debug: print SQL_drop_tbl
+        cur.execute(SQL_drop_tbl)
+        conn.commit()
+        SQL_rename_tbl = "ALTER TABLE %s RENAME TO %s" % \
+            (dbe_sqlite.quote_identifier(TMP_SQLITE_TBL), 
+             dbe_sqlite.quote_identifier(tbl_name))
+        if debug: print SQL_rename_tbl
+        cur.execute(SQL_rename_tbl)
+        conn.commit()
+    except Exception, e:
+        raise Exception, "Unable to rename temporary table.  Orig error: %s" \
+            % e
     wx.MessageBox("Successfully imported data from '%s' " % file_path + \
                   "to '%s' in the default SOFA database" % tbl_name)
         
@@ -277,7 +326,7 @@ class ImportFileSelectDlg(wx.Dialog):
         """
         final_tbl_name = tbl_name # unless overridden
         # check existing names
-        _, _, _, tbls, _, _, _ = GetDefaultDbDets()
+        conn, _, _, tbls, _, _, _ = GetDefaultDbDets()
         if tbl_name in tbls:
             msg = "A table named \"%s\" " % tbl_name + \
                   "already exists in the SOFA default database.\n\n" + \
@@ -297,6 +346,7 @@ class ImportFileSelectDlg(wx.Dialog):
                 if dlg.ShowModal() == wx.ID_OK:
                     val_entered = dlg.GetValue()
                     if val_entered != "":
+                        conn.close()
                         final_tbl_name = self.CheckTblName(file_path, 
                                                            val_entered)
                         tbl_name = val_entered

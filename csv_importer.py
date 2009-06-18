@@ -5,7 +5,7 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import importer
 import util
 
-ROWS_TO_SAMPLE = 50
+ROWS_TO_SAMPLE = 500 # fast enough to sample quite a few
 
 
 class FileImporter(object):
@@ -63,7 +63,8 @@ class FileImporter(object):
         try:
             csvfile = open(self.file_path)
             sniffer = csv.Sniffer()
-            sniff_sample = csvfile.read(1024)
+            sniff_sample = csvfile.read(3072) # 1024 not enough if many fields
+            # if too small, will return error about newline inside string
             dialect = sniffer.sniff(sniff_sample)
             has_header = sniffer.has_header(sniff_sample)
         except Exception, e:
@@ -88,9 +89,14 @@ class FileImporter(object):
         except Exception, e:
             raise Exception, "Unable to create reader for file. " + \
                 "Orig error: %s" % e
+        conn, cur, _, _, _, _, _ = importer.GetDefaultDbDets()
         fld_types, sample_data = self.AssessDataSample(reader)
         # NB reader will be at position ready to access records after sample
-        importer.AddToTable(self.file_path, self.tbl_name, 
-                            fld_names, fld_types, sample_data, 
-                            remaining_data=reader)
+        importer.AddToTmpTable(conn, cur, self.file_path, self.tbl_name, 
+                               fld_names, fld_types, sample_data, 
+                               remaining_data=reader)
+        importer.TmpToNamedTbl(conn, cur, self.tbl_name, self.file_path)
+        cur.close()
+        conn.commit()
+        conn.close()
 

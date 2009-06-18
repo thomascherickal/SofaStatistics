@@ -173,7 +173,7 @@ class StartFrame(wx.Frame):
                                         "images", 
                                         "tinysofa.xpm"), 
                            wx.BITMAP_TYPE_XPM)
-        self.SetIcons(ib)        
+        self.SetIcons(ib)
         # background image
         img_sofa = wx.Image(os.path.join(SCRIPT_PATH, "images", "sofa2.xpm"), 
                             wx.BITMAP_TYPE_XPM)
