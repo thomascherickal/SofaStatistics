@@ -1,14 +1,17 @@
 import os
-import util
 import wx
 
 import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import csv_importer
+import util
+if util.in_windows():
+    import excel_importer
 import projects
 
 SCRIPT_PATH = util.get_script_path()
 FILE_CSV = "csv"
+FILE_EXCEL = "excel"
 FILE_UNKNOWN = "unknown"
 FLD_NUMERIC = "numeric field"
 FLD_DATETIME = "datetime field"
@@ -24,6 +27,7 @@ VAL_DATETIME = "datetime value"
 VAL_STRING = "string value"
 VAL_EMPTY_STRING = "empty string value"
 TMP_SQLITE_TBL = "tmptbl"
+GAUGE_RANGE = 50
 
 
 class MismatchException(Exception):
@@ -60,9 +64,11 @@ def AssessSampleFld(sample_data, fld_name):
     datetime_only_set = set([VAL_DATETIME])
     datetime_or_empt_str_set = set([VAL_DATETIME, VAL_EMPTY_STRING])
     for row in sample_data:
-        val = row[fld_name]
+        val = util.if_none(row[fld_name], "")
         if util.isNumeric(val):
             type_set.add(VAL_NUMERIC)
+        elif util.isPyTime(val): # COM on Windows
+            type_set.add(VAL_DATETIME)
         else:
             boldatetime, time_obj = util.valid_datetime_str(val)
             if boldatetime:
@@ -86,35 +92,46 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
     If checking, will validate and turn empty strings into nulls
         as required.
     If not checking (e.g. because a pre-tested sample) only do the
-        empty string to null conversions.
+        pytime (Excel) and empty string to null conversions.
     If all is OK, will add val to vals.  NB val will need to be internally 
         quoted unless it is a NULL. 
     If not, will raise an exception.
     """
     val = row[fld_name]
+    is_pytime = util.isPyTime(val)
     fld_type = fld_types[fld_name]
     if not check:
-        # still need to turn empty strings into NULLs for non string fields
-        if fld_type in [FLD_NUMERIC, FLD_DATETIME] and val == "":
-            val = "NULL"
+        # still need to handle pytime and turn empty strings into NULLs 
+        # for non string fields.
+        if is_pytime:
+            val = util.pytime_to_datetime_str(val)
+        if not is_pytime:
+            if fld_type in [FLD_NUMERIC, FLD_DATETIME] and \
+                    (val == "" or val == None):
+                val = "NULL"
     else:            
-        bolOK_data = False
-        boldatetime, time_obj = util.valid_datetime_str(val)
+        bolOK_data = False        
         if fld_type == FLD_NUMERIC:
             # must be numeric or empty string (which we'll turn to NULL)
             if util.isNumeric(val):
                 bolOK_data = True
-            elif val == "":
+            elif val == "" or val == None:
                 bolOK_data = True
                 val = "NULL"
         elif fld_type == FLD_DATETIME:
-            # must be datetime or empty string (which we'll turn to NULL)
-            if boldatetime:
+            # must be pytime or datetime 
+            # or empty string (which we'll turn to NULL).
+            if is_pytime:
                 bolOK_data = True
-                val = util.timeobj_to_datetime_str(timeobj)
-            elif val == "":
-                bolOK_data = True
-                val = "NULL"
+                val = util.pytime_to_datetime_str(val)
+            else:
+                boldatetime, time_obj = util.valid_datetime_str(val)
+                if boldatetime:
+                    bolOK_data = True
+                    val = util.timeobj_to_datetime_str(timeobj)
+                elif val == "" or val == None:
+                    bolOK_data = True
+                    val = "NULL"
         elif fld_type == FLD_STRING:
             bolOK_data = True
         if not bolOK_data:
@@ -127,7 +144,8 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
         val = "\"%s\"" % val
     vals.append(val)
     
-def AddRows(conn, cur, rows, fld_names, fld_types, check=False):
+def AddRows(conn, cur, rows, fld_names, fld_types, progBackup, gauge_chunk,
+            start_i=0, check=False):
     """
     Add the rows of data, processing each cell as you go.
     If checking, will validate and turn empty strings into nulls
@@ -139,11 +157,12 @@ def AddRows(conn, cur, rows, fld_names, fld_types, check=False):
     debug = False
     fld_names_clause = ", ".join([dbe_sqlite.quote_identifier(x) \
                                   for x in fld_names])
-    for i, row in enumerate(rows):
+    i = start_i
+    for row in rows:
+        i += 1
         vals = []
         for fld_name in fld_names:
-            row_num = i + 1
-            ProcessVal(vals, row_num, row, fld_name, fld_types, check)
+            ProcessVal(vals, i, row, fld_name, fld_types, check)
         # quoting must happen earlier so we can pass in NULL  
         fld_vals_clause = ", ".join(["%s" % x for x in vals])
         SQL_insert_row = "INSERT INTO %s " % TMP_SQLITE_TBL + \
@@ -151,15 +170,29 @@ def AddRows(conn, cur, rows, fld_names, fld_types, check=False):
         if debug: print SQL_insert_row
         try:
             cur.execute(SQL_insert_row)
+            gauge_val = i*gauge_chunk
+            progBackup.SetValue(gauge_val)
         except MismatchException, e:
             raise # keep this particular type of exception bubbling out
         except Exception, e:
-            raise Exception, "Unable to add row %s. " % (i+1,) + \
+            raise Exception, "Unable to add row %s. " % i + \
                 "Orig error: %s" % e
     conn.commit()
 
+def getGaugeChunkSize(n_rows, sample_n):
+    """
+    Needed for progress bar - how many rows before displaying another of the 
+        chunks as set by GAUGE_RANGE.
+    """
+    if n_rows != 0:
+        gauge_chunk = float(GAUGE_RANGE)/(n_rows + sample_n)
+    else:
+        gauge_chunk = None
+    return gauge_chunk
+
 def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types, 
-                  sample_data, remaining_data):
+                  sample_data, sample_n, remaining_data, progBackup, 
+                  gauge_chunk):
     """
     Create fresh disposable table in SQLite and insert data into it.
     """
@@ -180,7 +213,10 @@ def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types,
     fld_clause = ", ".join(fld_clause_items)
     try:
         conn.commit()
-        cur.execute("VACUUM") # otherwise it doesn't always seem to have the 
+        SQL_get_tbl_names = """SELECT name 
+            FROM sqlite_master 
+            WHERE type = 'table'"""
+        cur.execute(SQL_get_tbl_names) # otherwise it doesn't always seem to have the 
             # latest data on which tables exist
         SQL_drop_disp_tbl = "DROP TABLE IF EXISTS %s" % TMP_SQLITE_TBL
         cur.execute(SQL_drop_disp_tbl)        
@@ -196,13 +232,18 @@ def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types,
         conn.commit()
         if debug: print "Successfully created  %s" % TMP_SQLITE_TBL
     except Exception, e:
-        raise
+        raise   
     try:
         # add sample and then remaining data to disposable table
-        AddRows(conn, cur, sample_data, fld_names, fld_types, check=False)
-        AddRows(conn, cur, remaining_data, fld_names, fld_types, check=True)
+        AddRows(conn, cur, sample_data, fld_names, fld_types, progBackup,
+                gauge_chunk, start_i=sample_n) # already been through sample 
+            # once when assessing it so part way through already
+        remainder_start_i = 2*sample_n # been through sample twice already
+        AddRows(conn, cur, remaining_data, fld_names, fld_types, progBackup,
+                gauge_chunk, start_i=remainder_start_i, check=True)
     except MismatchException, e:
         conn.commit()
+        progBackup.SetValue(0)
         # go through again or raise an exception
         retCode = wx.MessageBox("%s\n\nFix and keep going?" % e, 
                                 "KEEP GOING?", 
@@ -211,7 +252,8 @@ def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types,
             # change fld_type to string and start again
             fld_types[e.fld_name] = FLD_STRING
             AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types, 
-                          sample_data, remaining_data)
+                          sample_data, sample_n, remaining_data, progBackup, 
+                          gauge_chunk)
         else:
             raise Exception, "Mismatch between data in column and expected " + \
                 "column type"
@@ -255,6 +297,7 @@ class ImportFileSelectDlg(wx.Dialog):
                            wx.SYSTEM_MENU, pos=(300, 100))
         self.parent = parent
         self.panel = wx.Panel(self)
+        self.file_type = FILE_UNKNOWN
         # icon
         ib = wx.IconBundle()
         ib.AddIconFromFile(os.path.join(SCRIPT_PATH, "images", "tinysofa.xpm"), 
@@ -273,7 +316,10 @@ class ImportFileSelectDlg(wx.Dialog):
         lblIntName = wx.StaticText(self.panel, -1, "SOFA Name:")
         lblIntName.SetFont(lblfont)
         self.txtIntName = wx.TextCtrl(self.panel, -1, "")
-        #buttons
+        # progress
+        self.progBackup = wx.Gauge(self.panel, -1, GAUGE_RANGE, size=(-1, 20),
+                                   style=wx.GA_PROGRESSBAR)
+        # buttons
         btnCancel = wx.Button(self.panel, wx.ID_CANCEL)
         btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
         btnImport = wx.Button(self.panel, -1, "IMPORT")
@@ -291,6 +337,7 @@ class ImportFileSelectDlg(wx.Dialog):
         self.szrButtons.Add(btnImport, 0, wx.GROW|wx.LEFT, 10)
         self.szrMain.Add(self.szrFilePath, 0, wx.GROW|wx.TOP, 20)
         self.szrMain.Add(self.szrIntName, 0, wx.GROW|wx.ALL, 10)
+        self.szrMain.Add(self.progBackup, 0, wx.EXPAND|wx.ALL, 10)
         self.szrMain.Add(self.szrButtons, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
@@ -363,6 +410,7 @@ class ImportFileSelectDlg(wx.Dialog):
         Identify type of file by extension and open dialog if needed
             to get any additional choices e.g. separator used in 'csv'.
         """
+        self.progBackup.SetValue(0)
         file_path = self.txtFile.GetValue()
         if not file_path:
             wx.MessageBox("Please select a file")
@@ -371,7 +419,15 @@ class ImportFileSelectDlg(wx.Dialog):
         _, extension = self.GetFilestartExt(file_path)
         if extension.lower() == ".csv":
             self.file_type = FILE_CSV
-        else:
+        if extension.lower() == ".xls":
+            if not util.in_windows():
+                wx.MessageBox("Excel spreadsheets are only supported on " + \
+                              "Windows.  Try exporting to CSV first from " + \
+                              "Excel (within Windows)")
+                return
+            else:
+                self.file_type = FILE_EXCEL
+        if self.file_type == FILE_UNKNOWN:
             wx.MessageBox("Files with the file name extension " + \
                               "'%s' are not supported" % extension)
             return
@@ -396,9 +452,12 @@ class ImportFileSelectDlg(wx.Dialog):
         if self.file_type == FILE_CSV:
             file_importer = csv_importer.FileImporter(file_path, 
                                                       final_tbl_name)
+        elif self.file_type == FILE_EXCEL:
+            file_importer = excel_importer.FileImporter(file_path,
+                                                        final_tbl_name)
         if file_importer.GetParams():
             try:
-                file_importer.ImportContent()
+                file_importer.ImportContent(self.progBackup)
             except Exception, e:
                 wx.MessageBox("Unable to import data\n\nError: %s" % e)
         event.Skip()

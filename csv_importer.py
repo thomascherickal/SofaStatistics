@@ -1,4 +1,5 @@
 import csv
+import os
 import wx
 
 import dbe_plugins.dbe_sqlite as dbe_sqlite
@@ -25,7 +26,7 @@ class FileImporter(object):
         """
         return True
     
-    def AssessDataSample(self, reader):
+    def AssessDataSample(self, reader, progBackup, gauge_chunk):
         """
         Assess data sample to identify field types based on values in fields.
         If a field has mixed data types will define as string.
@@ -41,6 +42,8 @@ class FileImporter(object):
             bolhas_rows = True
             # process row
             sample_data.append(row)
+            gauge_val = i*gauge_chunk
+            progBackup.SetValue(gauge_val)
             if i == (ROWS_TO_SAMPLE - 1):
                 break
         fld_types = []
@@ -52,7 +55,19 @@ class FileImporter(object):
             raise Exception, "No data to import"
         return fld_types, sample_data
     
-    def ImportContent(self):
+    def getAvgRowSize(self, tmp_reader):
+        # loop through at most 5 times
+        i = 0
+        size = 0
+        for row in tmp_reader:
+            size += len(", ".join(row.values()))
+            i += 1
+            if i == 5:
+                break
+        avg_row_size = float(size)/i
+        return avg_row_size
+        
+    def ImportContent(self, progBackup):
         """
         Get field types dict.  Use it to test each and every item before they 
             are added to database (after adding the records already tested).
@@ -84,19 +99,31 @@ class FileImporter(object):
                     fld_names = ["Fld_%s" % (x+1,) for x in range(len(row))]
                     break
                 csvfile.seek(0)
+            # estimate number of rows (only has to be good enough for progress)
+            tot_size = os.path.getsize(self.file_path)
+            row_size = self.getAvgRowSize(tmp_reader)
+            if debug:
+                print "tot_size: %s" % tot_size
+                print "row_size: %s" % row_size
+            csvfile.seek(0)
+            n_rows = float(tot_size)/row_size            
             reader = csv.DictReader(csvfile, dialect=dialect, 
                                     fieldnames=fld_names)
         except Exception, e:
             raise Exception, "Unable to create reader for file. " + \
                 "Orig error: %s" % e
         conn, cur, _, _, _, _, _ = importer.GetDefaultDbDets()
-        fld_types, sample_data = self.AssessDataSample(reader)
+        sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_rows else n_rows
+        gauge_chunk = importer.getGaugeChunkSize(n_rows, sample_n)
+        fld_types, sample_data = self.AssessDataSample(reader, progBackup, 
+                                                       gauge_chunk)
         # NB reader will be at position ready to access records after sample
         importer.AddToTmpTable(conn, cur, self.file_path, self.tbl_name, 
-                               fld_names, fld_types, sample_data, 
-                               remaining_data=reader)
+                               fld_names, fld_types, sample_data, sample_n,
+                               remaining_data=reader, progBackup=progBackup,
+                               gauge_chunk=gauge_chunk)
         importer.TmpToNamedTbl(conn, cur, self.tbl_name, self.file_path)
         cur.close()
         conn.commit()
         conn.close()
-
+        progBackup.SetValue(0)

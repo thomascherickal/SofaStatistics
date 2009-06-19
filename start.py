@@ -21,7 +21,7 @@ import util
 
 VERSION = "0.7.3"
 
-COPYRIGHT = "\xa9" if util.in_windows() else "©"
+COPYRIGHT = "(c)" if util.in_windows() else "©" # "\xa9" problems with utf-8
 MAX_HELP_TEXT_WIDTH = 350 # pixels
 TEXT_BROWN = (90, 74, 61)
 MAIN_LEFT = 170

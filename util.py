@@ -12,6 +12,9 @@ def in_windows():
         in_windows = False
     return in_windows
 
+if in_windows():
+    import pywintypes
+
 def get_user_paths():
     if in_windows():
         user_path = os.path.join(os.environ['HOMEDRIVE'], 
@@ -27,58 +30,6 @@ def get_prog_path():
     else:
         prog_path = os.path.join("/usr/share/pyshared")
     return prog_path
-
-class StaticWrapText(wx.StaticText):
-    """
-    A StaticText-like widget which implements word wrapping.
-    http://yergler.net/projects/stext/stext_py.txt
-    __id__ = "$Id: stext.py,v 1.1 2004/09/15 16:45:55 nyergler Exp $"
-    __version__ = "$Revision: 1.1 $"
-    __copyright__ = '(c) 2004, Nathan R. Yergler'
-    __license__ = 'licensed under the GNU GPL2'
-    """
-    
-    def __init__(self, *args, **kwargs):
-        wx.StaticText.__init__(self, *args, **kwargs)
-        # store the initial label
-        self.__label = super(StaticWrapText, self).GetLabel()
-        # listen for sizing events
-        self.Bind(wx.EVT_SIZE, self.OnSize)
-
-    def SetLabel(self, newLabel):
-        """Store the new label and recalculate the wrapped version."""
-        self.__label = newLabel
-        self.__wrap()
-
-    def GetLabel(self):
-        """Returns the label (unwrapped)."""
-        return self.__label
-    
-    def __wrap(self):
-        """Wraps the words in label."""
-        words = self.__label.split()
-        lines = []
-        # get the maximum width (that of our parent)
-        max_width = self.GetParent().GetVirtualSizeTuple()[0]        
-        index = 0
-        current = []
-        for word in words:
-            current.append(word)
-            if self.GetTextExtent(" ".join(current))[0] > max_width:
-                del current[-1]
-                lines.append(" ".join(current))
-                current = [word]
-        # pick up the last line of text
-        lines.append(" ".join(current))
-        # set the actual label property to the wrapped version
-        super(StaticWrapText, self).SetLabel("\n".join(lines))
-        # refresh the widget
-        self.Refresh()
-        
-    def OnSize(self, event):
-        # dispatch to the wrap method which will 
-        # determine if any changes are needed
-        self.__wrap()
 
 def get_script_path():
     """
@@ -99,16 +50,34 @@ def isString(val):
 
 def isNumeric(val):
     "http://www.rosettacode.org/wiki/IsNumeric#Python"
-    try:
-      i = float(val)
-    except ValueError:
+    if isPyTime(val):
+        return False
+    elif val == None:
         return False
     else:
-        return True
+        try:
+          i = float(val)
+        except ValueError:
+            return False
+        else:
+            return True
 
-def flip_date(date):
-    """Reorder MySQL date e.g. 2008-11-23 -> 23-11-2008"""
-    return "%s-%s-%s" % (date[-2:], date[5:7], date[:4])
+def isPyTime(val): 
+    #http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/511451
+    return type(val).__name__ == 'time'
+    
+def if_none(val, default):
+    """
+    Returns default if value is None - otherwise returns value.
+    While there is a regression in pywin32 cannot compare pytime with anything
+        see http://mail.python.org/pipermail/python-win32/2009-March/008920.html
+    """
+    if isPyTime(val):
+        return val
+    elif val == None:
+        return default
+    else:
+        return val
 
 def timeobj_to_datetime_str(timeobj):
     "Takes timeobj and returns standard datetime string"
@@ -119,6 +88,30 @@ def timeobj_to_datetime_str(timeobj):
                                           str(timeobj[4]).zfill(2),
                                           str(timeobj[5]).zfill(2))
     return datetime_str
+
+def pytime_to_datetime_str(pytime):
+    """
+    A PyTime object is used primarily when exchanging date/time information 
+        with COM objects or other win32 functions.
+    http://docs.activestate.com/activepython/2.4/pywin32/PyTime.html
+    See http://timgolden.me.uk/python/win32_how_do_i/use-a-pytime-value.html
+    And http://code.activestate.com/recipes/511451/    
+    """
+    try:
+        int_pytime = pywintypes.Time(int(pytime))
+        datetime_str = "%s-%s-%s %s:%s:%s" % (int_pytime.year, 
+                                              str(int_pytime.month).zfill(2),
+                                              str(int_pytime.day).zfill(2),
+                                              str(int_pytime.hour).zfill(2),
+                                              str(int_pytime.minute).zfill(2),
+                                              str(int_pytime.second).zfill(2))
+    except ValueError:
+        datetime_str = "NULL"
+    return datetime_str
+
+def flip_date(date):
+    """Reorder MySQL date e.g. 2008-11-23 -> 23-11-2008"""
+    return "%s-%s-%s" % (date[-2:], date[5:7], date[:4])
 
 def date_range2mysql(entered_start_date, entered_end_date):
     """
@@ -289,7 +282,8 @@ def get_time_taken(t1, t2):
     difference  = t2 - t1
     minutes, seconds = divmod(difference, 60)
     hours, minutes = divmod(minutes, 60)
-    time_taken_dic = {'hours': int(hours), 'minutes': int(minutes), 'seconds': int(seconds)}
+    time_taken_dic = {'hours': int(hours), 'minutes': int(minutes), 
+                      'seconds': int(seconds)}
     return time_taken_dic
 
 def get_datetime_stamp():
@@ -373,28 +367,22 @@ def getTreeAncestors(tree, child):
         item = tree.GetItemParent(item)
     return ancestors
 
-def if_none(value, default):
-    "Returns default if value is None - otherwise returns value"
-    if value == None:
-        return default
-    else:
-        return value
-
-def MySQL2string(value):
+def MySQL2string(val):
     """
     Takes field data in MySQL and processes for output.  
     In particular, handles dates.
     """
     import time
-    if value == None:
+    if val == None:
         return ""
-    elif type(value).__name__ == 'datetime': #http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/511451
-        date_portion = str(value)[0:10]
+    elif type(val).__name__ == 'datetime': #http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/511451
+        date_portion = str(val)[0:10]
         #Unless you put a "'" on the front, Calc treats older dates (about pre-1947) as strings not dates :-(
         #formats are in http://docs.python.org/lib/module-time.html
-        return time.strftime("%Y-%m-%d", time.strptime(date_portion, "%Y-%m-%d")) #unless YYY-mm-dd output, spreadsheets often misinterpret dates (US format issue probably)
+        return time.strftime("%Y-%m-%d", time.strptime(date_portion, "%Y-%m-%d"))
+        #unless YYYY-mm-dd output, spreadsheets often misinterpret dates (US format issue probably)
     else:
-        return str(value)
+        return str(val)
     
 def run_mysql_cmd(cmd, DB_HOST, DB_USER, DB_PWD):
     "Run a MySQL command as a subprocess that will not work using the cursor"
@@ -416,18 +404,72 @@ def get_new_id(start_value=0):
         id += 1
         yield id
     
-def empty_or_none_to_null(value, quote=False):
+def empty_or_none_to_null(val, quote=False):
     """
     Change empty strings and None to NULL or return string version of value.
     Can return string value single quoted for inclusion into SQL so that 
     either NULL or 'value' is returned as appropriate e.g. when running inserts.
     """
-    if value == None:
+    if val == None:
         return "NULL"
-    elif value == "":
+    elif val == "":
         return "NULL"
     else:
         if quote:
-            return "'" + str(value) + "'"
+            return "'%s'" % val
         else:
-            return str(value)
+            return str(val)
+
+    
+class StaticWrapText(wx.StaticText):
+    """
+    A StaticText-like widget which implements word wrapping.
+    http://yergler.net/projects/stext/stext_py.txt
+    __id__ = "$Id: stext.py,v 1.1 2004/09/15 16:45:55 nyergler Exp $"
+    __version__ = "$Revision: 1.1 $"
+    __copyright__ = '(c) 2004, Nathan R. Yergler'
+    __license__ = 'licensed under the GNU GPL2'
+    """
+    
+    def __init__(self, *args, **kwargs):
+        wx.StaticText.__init__(self, *args, **kwargs)
+        # store the initial label
+        self.__label = super(StaticWrapText, self).GetLabel()
+        # listen for sizing events
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+
+    def SetLabel(self, newLabel):
+        """Store the new label and recalculate the wrapped version."""
+        self.__label = newLabel
+        self.__wrap()
+
+    def GetLabel(self):
+        """Returns the label (unwrapped)."""
+        return self.__label
+    
+    def __wrap(self):
+        """Wraps the words in label."""
+        words = self.__label.split()
+        lines = []
+        # get the maximum width (that of our parent)
+        max_width = self.GetParent().GetVirtualSizeTuple()[0]        
+        index = 0
+        current = []
+        for word in words:
+            current.append(word)
+            if self.GetTextExtent(" ".join(current))[0] > max_width:
+                del current[-1]
+                lines.append(" ".join(current))
+                current = [word]
+        # pick up the last line of text
+        lines.append(" ".join(current))
+        # set the actual label property to the wrapped version
+        super(StaticWrapText, self).SetLabel("\n".join(lines))
+        # refresh the widget
+        self.Refresh()
+        
+    def OnSize(self, event):
+        # dispatch to the wrap method which will 
+        # determine if any changes are needed
+        self.__wrap()
+        
