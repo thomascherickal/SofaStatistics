@@ -4,6 +4,7 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import excel_reader
 import importer
 import util
+from my_exceptions import ImportCancelException
 
 ROWS_TO_SAMPLE = 500 # fast enough to sample quite a few
 
@@ -30,7 +31,8 @@ class FileImporter(object):
         self.has_header = (retCode == wx.YES)
         return True
     
-    def AssessDataSample(self, wksheet, fld_names, progBackup, gauge_chunk):
+    def AssessDataSample(self, wksheet, fld_names, progBackup, gauge_chunk, 
+                         keep_importing):
         """
         Assess data sample to identify field types based on values in fields.
         If a field has mixed data types will define as string.
@@ -44,6 +46,11 @@ class FileImporter(object):
         bolhas_rows = False
         sample_data = []
         for i, row in enumerate(wksheet):
+            if i % 50 == 0:
+                wx.Yield()
+                if keep_importing == set([False]):
+                    progBackup.SetValue(0)
+                    raise ImportCancelException
             if debug: print row
             # if has_header, starts at 1st data row
             bolhas_rows = True
@@ -62,7 +69,7 @@ class FileImporter(object):
             raise Exception, "No data to import"
         return fld_types, sample_data
     
-    def ImportContent(self, progBackup):
+    def ImportContent(self, progBackup, keep_importing):
         """
         Get field types dict.  Use it to test each and every item before they 
             are added to database (after adding the records already tested).
@@ -93,17 +100,19 @@ class FileImporter(object):
             print "gauge_chunk: %s" % gauge_chunk
             print "About to assess data sample"
         fld_types, sample_data = self.AssessDataSample(wksheet, fld_names,
-                                                       progBackup, gauge_chunk)
+                                        progBackup, gauge_chunk, keep_importing)
         if debug:
             print "Just finished assessing data sample"
             print fld_types
             print sample_data
         # NB wksheet will be at position ready to access records after sample
+        remaining_data = wksheet
         importer.AddToTmpTable(conn, cur, self.file_path, self.tbl_name, 
                                fld_names, fld_types, sample_data, sample_n,
-                               remaining_data=wksheet, progBackup=progBackup,
-                               gauge_chunk=gauge_chunk)
-        importer.TmpToNamedTbl(conn, cur, self.tbl_name, self.file_path)
+                               remaining_data, progBackup,
+                               gauge_chunk, keep_importing)
+        importer.TmpToNamedTbl(conn, cur, self.tbl_name, self.file_path,
+                               progBackup)
         cur.close()
         conn.commit()
         conn.close()

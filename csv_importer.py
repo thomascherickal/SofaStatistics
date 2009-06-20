@@ -3,8 +3,9 @@ import os
 import wx
 
 import dbe_plugins.dbe_sqlite as dbe_sqlite
-import importer
 import util
+from my_exceptions import ImportCancelException
+import importer
 
 ROWS_TO_SAMPLE = 500 # fast enough to sample quite a few
 
@@ -26,7 +27,7 @@ class FileImporter(object):
         """
         return True
     
-    def AssessDataSample(self, reader, progBackup, gauge_chunk):
+    def AssessDataSample(self, reader, progBackup, gauge_chunk, keep_importing):
         """
         Assess data sample to identify field types based on values in fields.
         If a field has mixed data types will define as string.
@@ -38,7 +39,12 @@ class FileImporter(object):
         """
         bolhas_rows = False
         sample_data = []
-        for i, row in enumerate(reader): # NB if has_header, starts at first data row
+        for i, row in enumerate(reader): # NB if has_header, starts at 1st data row
+            if i % 50 == 0:
+                wx.Yield()
+                if keep_importing == set([False]):
+                    progBackup.SetValue(0)
+                    raise ImportCancelException
             bolhas_rows = True
             # process row
             sample_data.append(row)
@@ -67,7 +73,7 @@ class FileImporter(object):
         avg_row_size = float(size)/i
         return avg_row_size
         
-    def ImportContent(self, progBackup):
+    def ImportContent(self, progBackup, keep_importing):
         """
         Get field types dict.  Use it to test each and every item before they 
             are added to database (after adding the records already tested).
@@ -116,13 +122,15 @@ class FileImporter(object):
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_rows else n_rows
         gauge_chunk = importer.getGaugeChunkSize(n_rows, sample_n)
         fld_types, sample_data = self.AssessDataSample(reader, progBackup, 
-                                                       gauge_chunk)
+                                                    gauge_chunk, keep_importing)
         # NB reader will be at position ready to access records after sample
+        remaining_data = reader
         importer.AddToTmpTable(conn, cur, self.file_path, self.tbl_name, 
                                fld_names, fld_types, sample_data, sample_n,
-                               remaining_data=reader, progBackup=progBackup,
-                               gauge_chunk=gauge_chunk)
-        importer.TmpToNamedTbl(conn, cur, self.tbl_name, self.file_path)
+                               remaining_data, progBackup, gauge_chunk, 
+                               keep_importing)
+        importer.TmpToNamedTbl(conn, cur, self.tbl_name, self.file_path, 
+                               progBackup)
         cur.close()
         conn.commit()
         conn.close()
