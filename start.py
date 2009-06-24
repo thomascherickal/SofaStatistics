@@ -17,9 +17,10 @@ import importer
 import make_table_gui
 import projects
 import projselect
+import quotes
 import util
 
-VERSION = "0.7.3"
+VERSION = "0.7.4"
 
 COPYRIGHT = "(c)" if util.in_windows() else "©" # "\xa9" problems with utf-8
 MAX_HELP_TEXT_WIDTH = 350 # pixels
@@ -132,7 +133,7 @@ def InstallLocal():
 
 class SofaApp(wx.App):
 
-    dev_debug = True
+    dev_debug = False
 
     def __init__(self):        
         # if wanting to initialise the parent class it must be run in 
@@ -431,16 +432,23 @@ class StartFrame(wx.Frame):
     def OnStatsEnter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.DrawBlankWallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_stats, 500, 260, True)
+        panel_dc.DrawBitmap(self.bmp_stats, 540, 260, True)
         panel_dc.SetTextForeground(TEXT_BROWN)
-        txt_stats1 = "Run statistical tests on your data e.g. a Chi Square " + \
-            "to see if there is a relationship between age and gender."
+        txt_stats1 = "Run statistical tests on your data - e.g. a " + \
+            "Chi Square to see if there is a relationship between " + \
+            "age group and gender."
         panel_dc.DrawLabel(GetTextToDraw(txt_stats1, MAX_HELP_TEXT_WIDTH), 
                            wx.Rect(MAIN_LEFT, 248, 540, 260))
-        txt_stats2 = "SOFA focuses on the stats tests most users need most " + \
-            "of the time."
+        txt_stats2 = "SOFA focuses on the statistical tests most users " + \
+            "need most of the time."
         panel_dc.DrawLabel(GetTextToDraw(txt_stats2, MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, 290, 540, 320))
+                           wx.Rect(MAIN_LEFT, 310, 540, 320))
+        txt_stats3 = "QUOTE:"
+        panel_dc.DrawLabel(GetTextToDraw(txt_stats3, MAX_HELP_TEXT_WIDTH), 
+                           wx.Rect(MAIN_LEFT, 355, 540, 320))
+        txt_stats4 = "%s (%s)" % quotes.get_quote()
+        panel_dc.DrawLabel(GetTextToDraw(txt_stats4, MAX_HELP_TEXT_WIDTH - 20), 
+                           wx.Rect(MAIN_LEFT + 10, 375, 530, 320))
         event.Skip()
     
     def OnExitClick(self, event):

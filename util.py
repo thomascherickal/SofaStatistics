@@ -81,12 +81,7 @@ def if_none(val, default):
 
 def timeobj_to_datetime_str(timeobj):
     "Takes timeobj and returns standard datetime string"
-    datetime_str = "%s-%s-%s %s:%s:%s" % (timeobj[0], 
-                                          str(timeobj[1]).zfill(2),
-                                          str(timeobj[2]).zfill(2),
-                                          str(timeobj[3]).zfill(2),
-                                          str(timeobj[4]).zfill(2),
-                                          str(timeobj[5]).zfill(2))
+    datetime_str = "%4d-%02d-%02d %02d:%02d:%02d" % (timeobj[:6])
     return datetime_str
 
 def pytime_to_datetime_str(pytime):
