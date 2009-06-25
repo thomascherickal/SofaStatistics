@@ -18,9 +18,10 @@ import make_table_gui
 import projects
 import projselect
 import quotes
+import stats_select
 import util
 
-VERSION = "0.7.4"
+VERSION = "0.8.0"
 
 COPYRIGHT = "(c)" if util.in_windows() else "©" # "\xa9" problems with utf-8
 MAX_HELP_TEXT_WIDTH = 350 # pixels
@@ -425,8 +426,10 @@ class StartFrame(wx.Frame):
                            wx.Rect(MAIN_LEFT, 248, 540, 260))
         event.Skip()
     
-    def OnStatsClick(self, event):        
-        wx.MessageBox("Not available yet in version %s" % VERSION)
+    def OnStatsClick(self, event):  
+        # open statistics selection dialog
+        dlg = stats_select.StatsSelectDlg()
+        dlg.ShowModal()
         event.Skip()
         
     def OnStatsEnter(self, event):
