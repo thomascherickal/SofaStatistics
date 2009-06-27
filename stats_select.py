@@ -3,6 +3,8 @@ import os
 import wx
 
 import my_exceptions
+import projects
+import ttest_gui
 import util
 
 TEXT_BROWN = (90, 74, 61)
@@ -31,11 +33,24 @@ DIV_LINE_WIDTH = 203
 
 class StatsSelectDlg(wx.Dialog):
     
-    def __init__(self):
+    def __init__(self, dbe, conn_dets, default_dbs=None, 
+                 default_tbls=None, fil_labels="", fil_css="", fil_report="", 
+                 fil_script="", var_labels=None, var_notes=None, 
+                 val_dics=None):
         wx.Dialog.__init__(self, None, title="Select Statistical Test", 
               size=(800, 542),
               style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU,
               pos=(100, 100))
+        self.dbe = dbe
+        self.conn_dets = conn_dets
+        self.default_dbs = default_dbs
+        self.default_tbls = default_tbls
+        self.fil_labels = fil_labels
+        self.fil_css = fil_css
+        self.fil_report = fil_report
+        self.fil_script = fil_script        
+        self.var_labels, self.var_notes, self.val_dics = \
+            projects.GetLabels(fil_labels)
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize())
@@ -434,7 +449,19 @@ class StatsSelectDlg(wx.Dialog):
         self.lstTests.Select(idx)
     
     def OnConfigClicked(self, event):
-        wx.MessageBox("A newer release will include these tests.")
+        idx = self.lstTests.GetFirstSelected()
+        try:
+            sel_test = STATS_TESTS[idx]
+        except Exception:
+            wx.MessageBox("Please select a statistical test on the list")
+        if sel_test == TEST_TTEST:
+            dlg = ttest_gui.DlgTTestConfig("Configure t-test", 
+                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
+                self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
+            dlg.ShowModal()
+        else:
+            wx.MessageBox("This release only includes the t-test")
+        event.Skip()
     
     def OnCloseClick(self, event):
         self.Destroy()

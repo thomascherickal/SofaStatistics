@@ -15,26 +15,29 @@ import full_html
 import gen_config
 import getdata
 import make_table
+import output_buttons
 import projects
 import util
 
 SCRIPT_PATH = util.get_script_path()
 
              
-class DlgMakeTable(wx.Dialog, gen_config.GenConfig, make_table.MakeTable, 
-                   dimtree.DimTree):
+class DlgMakeTable(wx.Dialog, 
+                   gen_config.GenConfig, output_buttons.OutputButtons,
+                   make_table.MakeTable, dimtree.DimTree):
     """
     GenConfig - provides reusable interface for data selection, setting labels 
         etc.  Sets values for db, default_tbl etc and responds to selections 
         etc.
+    OutputButtons - provides standard buttons for output dialogs.
     """
     
-    def __init__(self, title, dbe, conn_dets, default_dbs=None, 
+    def __init__(self, dbe, conn_dets, default_dbs=None, 
                  default_tbls=None, fil_labels="", fil_css="", fil_report="", 
                  fil_script="", var_labels=None, var_notes=None, 
                  val_dics=None):
          
-        wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
+        wx.Dialog.__init__(self, parent=None, id=-1, title="Make Report Table", 
                            pos=(200, 0), 
                            style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
                            wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
@@ -60,6 +63,7 @@ class DlgMakeTable(wx.Dialog, gen_config.GenConfig, make_table.MakeTable,
                            wx.BITMAP_TYPE_XPM)   
         self.SetIcons(ib)
         self.GenConfigSetup()
+        self.SetupOutputButtons()
         # title details
         lblTitles = wx.StaticText(self.panel, -1, "Title:")
         lblTitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -129,28 +133,7 @@ class DlgMakeTable(wx.Dialog, gen_config.GenConfig, make_table.MakeTable,
         self.btnColConf.Bind(wx.EVT_BUTTON, self.OnColConfig)
         #self.btnColConf.Bind(wx.EVT_ENTER_WINDOW, 
         #                self.OnConfigColEnterWindow)
-        #self.btnColConf.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        #main
-        btnRun = wx.Button(self.panel, -1, "RUN")
-        btnRun.Bind(wx.EVT_BUTTON, self.OnButtonRun)
-        #btnRun.Bind(wx.EVT_ENTER_WINDOW, self.OnRunEnterWindow)
-        #btnRun.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)        
-        btnExport = wx.Button(self.panel, -1, "EXPORT")
-        btnExport.Bind(wx.EVT_BUTTON, self.OnButtonExport)
-        #btnExport.Bind(wx.EVT_ENTER_WINDOW, self.OnExportEnterWindow)
-        #btnExport.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        btnHelp = wx.Button(self.panel, wx.ID_HELP)
-        btnHelp.Bind(wx.EVT_BUTTON, self.OnButtonHelp)
-        #btnHelp.Bind(wx.EVT_ENTER_WINDOW, self.OnHelpEnterWindow)
-        #btnHelp.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        btnClear = wx.Button(self.panel, -1, "CLEAR")
-        btnClear.Bind(wx.EVT_BUTTON, self.OnButtonClear)
-        #btnClear.Bind(wx.EVT_ENTER_WINDOW, self.OnClearEnterWindow)
-        #btnClear.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        btnClose = wx.Button(self.panel, wx.ID_CLOSE)
-        btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
-        #btnClose.Bind(wx.EVT_ENTER_WINDOW, self.OnCloseEnterWindow)
-        #btnClose.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
+        #self.btnColConf.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)       
         #trees
         self.rowtree = wx.gizmos.TreeListCtrl(self.panel, -1, 
               style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
@@ -236,26 +219,16 @@ class DlgMakeTable(wx.Dialog, gen_config.GenConfig, make_table.MakeTable,
         #3 TREES assemble
         szrTrees.Add(szrRows, 1, wx.GROW|wx.RIGHT, 2)
         szrTrees.Add(szrCols, 1, wx.GROW|wx.LEFT, 2)
-        #3 BUTTONS
-        szrButtons = wx.FlexGridSizer(rows=3, cols=1, hgap=5, vgap=5)
-        szrButtons.AddGrowableRow(2,2) #only relevant if surrounding sizer 
-        #  stretched vertically enough by its content
-        szrButtons.Add(btnRun, 0, wx.TOP, 0)
-        szrButtons.Add(btnExport, 0)
-        szrButtons.Add(btnHelp, 0)
-        szrButtons.Add(btnClear, 0)
-        szrButtons.Add(btnClose, 1, wx.ALIGN_BOTTOM)
+        # standard output buttons handled in output_buttons
         #2 MID assemble
         szrDims.Add(szrTrees, 1, wx.GROW|wx.RIGHT, 5)
-        szrDims.Add(szrButtons, 0, wx.GROW)
+        szrDims.Add(self.szrButtons, 0, wx.GROW)
         #2 HTML
         szrHtml = wx.BoxSizer(wx.VERTICAL)
         szrHtml.Add(lbldemo_tbls, 0)
         szrHtml.Add(self.html, 1, wx.GROW)
         #1 MAIN assemble
-        # from gen_config
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        # other
         szrMain.Add(szrMid, 0, wx.GROW|wx.ALL, 10)
         szrMain.Add(szrDims, 5, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         szrMain.Add(szrHtml, 8, wx.GROW|wx.LEFT|wx.RIGHT, 10)
@@ -268,3 +241,21 @@ class DlgMakeTable(wx.Dialog, gen_config.GenConfig, make_table.MakeTable,
         szrMain.SetSizeHints(self)
         self.Fit() #needed, otherwise initial display problem with 
         #  status bar
+        
+    # database/ tables (and views)
+    def OnDatabaseSel(self, event):
+        """
+        Reset dbe, database, cursor, tables, table, tables dropdown, 
+            fields, has_unique, and idxs after a database selection.
+        Clear dim areas.
+        """
+        gen_config.GenConfig.OnDatabaseSel(self, event)
+        self.ClearDims()
+        
+    def OnTableSel(self, event):
+        """
+        Reset table, fields, has_unique, and idxs.
+        Clear dim areas.
+        """       
+        gen_config.GenConfig.OnTableSel(self, event)
+        self.ClearDims()

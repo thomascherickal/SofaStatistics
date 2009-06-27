@@ -125,18 +125,12 @@ class GenConfig(object):
         """
         Reset dbe, database, cursor, tables, table, tables dropdown, 
             fields, has_unique, and idxs after a database selection.
-        Clear dim areas.
         """
         getdata.ResetDataAfterDbSel(self)
-        self.ClearDims()
                 
     def OnTableSel(self, event):
-        """
-        Reset table, fields, has_unique, and idxs.
-        Clear dim areas.
-        """       
+        "Reset table, fields, has_unique, and idxs."       
         getdata.ResetDataAfterTblSel(self)
-        self.ClearDims()
 
     # report output
     def OnButtonReportPath(self, event):

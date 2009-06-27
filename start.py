@@ -394,7 +394,7 @@ class StartFrame(wx.Frame):
     def OnTablesClick(self, event):
         "Open make table gui with settings as per active_proj"
         proj_dic = projects.GetProjSettingsDic(proj_name=self.active_proj)
-        dlg = make_table_gui.DlgMakeTable("Make Table", 
+        dlg = make_table_gui.DlgMakeTable( 
             proj_dic["default_dbe"], proj_dic["conn_dets"], 
             proj_dic["default_dbs"], proj_dic["default_tbls"], 
             proj_dic["fil_labels"], proj_dic["fil_css"], 
@@ -428,7 +428,12 @@ class StartFrame(wx.Frame):
     
     def OnStatsClick(self, event):  
         # open statistics selection dialog
-        dlg = stats_select.StatsSelectDlg()
+        proj_dic = projects.GetProjSettingsDic(proj_name=self.active_proj)
+        dlg = stats_select.StatsSelectDlg( 
+            proj_dic["default_dbe"], proj_dic["conn_dets"], 
+            proj_dic["default_dbs"], proj_dic["default_tbls"], 
+            proj_dic["fil_labels"], proj_dic["fil_css"], 
+            proj_dic["fil_report"], proj_dic["fil_script"])
         dlg.ShowModal()
         event.Skip()
         
