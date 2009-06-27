@@ -9,7 +9,6 @@ import wx
 import demotables
 import dimtables
 import getdata
-import make_table_gui
 import projects
 import rawtables
 import showhtml
@@ -74,83 +73,7 @@ def GetColDets(coltree, colRoot, var_labels):
 
 
 class MakeTable(object):
-    "Needed to split  modules for managability"
-
-    # database/ tables (and views)
-    def OnDatabaseSel(self, event):
-        """
-        Reset dbe, database, cursor, tables, table, tables dropdown, 
-            fields, has_unique, and idxs after a database selection.
-        Clear dim areas.
-        """
-        getdata.ResetDataAfterDbSel(self)
-        self.ClearDims()
-                
-    def OnTableSel(self, event):
-        """
-        Reset table, fields, has_unique, and idxs.
-        Clear dim areas.
-        """       
-        getdata.ResetDataAfterTblSel(self)
-        self.ClearDims()
-
-    # report output
-    def OnButtonReportPath(self, event):
-        "Open dialog and takes the report file selected (if any)"
-        dlgGetFile = wx.FileDialog(self, "Choose a report output file:", 
-            defaultDir=os.path.join(LOCAL_PATH, "reports"), 
-            defaultFile="", 
-            wildcard="HTML files (*.htm)|*.htm|HTML files (*.html)|*.html")
-            #MUST have a parent to enforce modal in Windows
-        if dlgGetFile.ShowModal() == wx.ID_OK:
-            self.fil_report = "%s" % dlgGetFile.GetPath()
-            self.txtReportFile.SetValue(self.fil_report)
-        dlgGetFile.Destroy()
-        
-    #def ReportPathEnterWindow(self, event):
-    #    "Hover over Report Path Browse button"
-    #    self.statusbar.SetStatusText("Select html file for reporting ...")
-    
-    def OnReportFileLostFocus(self, event):
-        "Reset report output file"
-        self.fil_report = self.txtReportFile.GetValue()
-    
-    # script output
-    def OnButtonScriptPath(self, event):
-        "Open dialog and takes the script file selected (if any)"
-        dlgGetFile = wx.FileDialog(self, "Choose a file to export scripts to:", 
-            defaultDir=os.path.join(LOCAL_PATH, "scripts"), 
-            defaultFile="", wildcard="Scripts (*.py)|*.py")
-            #MUST have a parent to enforce modal in Windows
-        if dlgGetFile.ShowModal() == wx.ID_OK:
-            self.fil_script = "%s" % dlgGetFile.GetPath()
-            self.txtScriptFile.SetValue(self.fil_script)
-        dlgGetFile.Destroy()
-    
-    #def ScriptPathEnterWindow(self, event):
-    #    "Hover over Script Path Browse button"
-    #    self.statusbar.SetStatusText("Select output script file ...")
-
-    def OnScriptFileLostFocus(self, event):
-        "Reset script file"
-        self.fil_script = self.txtScriptFile.GetValue()
-    
-    # label config
-    def OnLabelFileLostFocus(self, event):
-        ""
-        self.UpdateLabels()
-
-    def OnButtonLabelPath(self, event):
-        "Open dialog and takes the labels file selected (if any)"
-        dlgGetFile = wx.FileDialog(self, "Choose a label config file:", 
-            defaultDir=os.path.join(LOCAL_PATH, "lbls"), 
-            defaultFile="", wildcard="Config files (*.lbls)|*.lbls")
-            #MUST have a parent to enforce modal in Windows
-        if dlgGetFile.ShowModal() == wx.ID_OK:
-            fil_labels = "%s" % dlgGetFile.GetPath()
-            self.txtLabelsFile.SetValue(fil_labels)
-            self.UpdateLabels()
-        dlgGetFile.Destroy()
+    "Needed to split  modules for manageability"
         
     def UpdateLabels(self):
         "Update all labels, including those already displayed"
@@ -173,40 +96,6 @@ class MakeTable(object):
             var_name, _ = extractVarDets(tree.GetItemText(descendant))
             fresh_label = getVarItem(self.var_labels, var_name)
             tree.SetItemText(descendant, fresh_label)
-
-    #def LabelPathEnterWindow(self, event):
-    #    "Hover over Label Path Browse button"
-    #    self.statusbar.SetStatusText("Select source of variable " + \
-    #                                 "and value labels ...")
-        
-    # css table style
-    def OnButtonCssPath(self, event):
-        "Open dialog and takes the css file selected (if any)"
-        dlgGetFile = wx.FileDialog(self, "Choose a css table style file:", 
-            defaultDir=os.path.join(LOCAL_PATH, "css"), 
-            defaultFile="", 
-            wildcard="CSS files (*.css)|*.css")
-            #MUST have a parent to enforce modal in Windows
-        if dlgGetFile.ShowModal() == wx.ID_OK:
-            fil_css = "%s" % dlgGetFile.GetPath()
-            self.txtCssFile.SetValue(fil_css)
-            self.UpdateCss()
-        dlgGetFile.Destroy()
-    
-    def UpdateCss(self):
-        "Update css, including for demo table"
-        self.fil_css = self.txtCssFile.GetValue()
-        self.demo_tab.fil_css = self.fil_css
-        self.UpdateDemoDisplay()
-        
-    #def CssPathEnterWindow(self, event):
-    #    "Hover over Css Path Browse button"
-    #    self.statusbar.SetStatusText("Select css table style file for " + \
-    #                                 "reporting ...")
-    
-    def OnCssFileLostFocus(self, event):
-        "Reset css file"
-        self.UpdateCss()
 
     # table type
     def OnTabTypeChange(self, event):

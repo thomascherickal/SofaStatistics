@@ -12,6 +12,7 @@ import demotables
 import dimtables
 import dimtree
 import full_html
+import gen_config
 import getdata
 import make_table
 import projects
@@ -20,7 +21,13 @@ import util
 SCRIPT_PATH = util.get_script_path()
 
              
-class DlgMakeTable(wx.Dialog, make_table.MakeTable, dimtree.DimTree):
+class DlgMakeTable(wx.Dialog, gen_config.GenConfig, make_table.MakeTable, 
+                   dimtree.DimTree):
+    """
+    GenConfig - provides reusable interface for data selection, setting labels 
+        etc.  Sets values for db, default_tbl etc and responds to selections 
+        etc.
+    """
     
     def __init__(self, title, dbe, conn_dets, default_dbs=None, 
                  default_tbls=None, fil_labels="", fil_css="", fil_report="", 
@@ -33,6 +40,10 @@ class DlgMakeTable(wx.Dialog, make_table.MakeTable, dimtree.DimTree):
                            wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
                            wx.CAPTION | wx.CLOSE_BOX | \
                            wx.CLIP_CHILDREN)
+        self.dbe = dbe
+        self.conn_dets = conn_dets
+        self.default_dbs = default_dbs
+        self.default_tbls = default_tbls
         self.fil_labels = fil_labels
         self.fil_css = fil_css
         self.fil_report = fil_report
@@ -45,64 +56,10 @@ class DlgMakeTable(wx.Dialog, make_table.MakeTable, dimtree.DimTree):
         # set up panel for frame
         self.panel = wx.Panel(self)
         ib = wx.IconBundle()
-        ib.AddIconFromFile(os.path.join(SCRIPT_PATH, 
-                                        "images", 
-                                        "tinysofa.xpm"), 
+        ib.AddIconFromFile(os.path.join(SCRIPT_PATH, "images","tinysofa.xpm"), 
                            wx.BITMAP_TYPE_XPM)   
         self.SetIcons(ib)
-        # Data details
-        # Databases
-        lblDatabases = wx.StaticText(self.panel, -1, "Database:")
-        lblDatabases.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        # set up self.dropDatabases and self.dropTables
-        getdata.setupDataDropdowns(self, self.panel, dbe, conn_dets, 
-                                   default_dbs, default_tbls)
-        self.dropDatabases.Bind(wx.EVT_CHOICE, self.OnDatabaseSel)
-        # Tables
-        lblTables = wx.StaticText(self.panel, -1, "Table:")
-        lblTables.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.dropTables.Bind(wx.EVT_CHOICE, self.OnTableSel)
-        # Data config details
-        lblLabelPath = wx.StaticText(self.panel, -1, "Labels:")
-        lblLabelPath.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.txtLabelsFile = wx.TextCtrl(self.panel, -1, self.fil_labels, 
-                                         size=(250,-1))
-        self.txtLabelsFile.Bind(wx.EVT_KILL_FOCUS, self.OnLabelFileLostFocus)
-        btnLabelPath = wx.Button(self.panel, -1, "Browse ...")
-        btnLabelPath.Bind(wx.EVT_BUTTON, self.OnButtonLabelPath)
-        #btnLabelPath.Bind(wx.EVT_ENTER_WINDOW, self.LabelPathEnterWindow)
-        #btnLabelPath.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        # CSS style config details
-        lblCssPath = wx.StaticText(self.panel, -1, "Style:")
-        lblCssPath.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.txtCssFile = wx.TextCtrl(self.panel, -1, self.fil_css, 
-                                      size=(250,-1))
-        self.txtCssFile.Bind(wx.EVT_KILL_FOCUS, self.OnCssFileLostFocus)
-        btnCssPath = wx.Button(self.panel, -1, "Browse ...")
-        btnCssPath.Bind(wx.EVT_BUTTON, self.OnButtonCssPath)
-        #btnCssPath.Bind(wx.EVT_ENTER_WINDOW, self.CssPathEnterWindow)
-        #btnCssPath.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        # Output details
-        # report 
-        lblReportPath = wx.StaticText(self.panel, -1, "Report:")
-        lblReportPath.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.txtReportFile = wx.TextCtrl(self.panel, -1, self.fil_report, 
-                                         size=(250,-1))
-        self.txtReportFile.Bind(wx.EVT_KILL_FOCUS, self.OnReportFileLostFocus)
-        btnReportPath = wx.Button(self.panel, -1, "Browse ...")
-        btnReportPath.Bind(wx.EVT_BUTTON, self.OnButtonReportPath)
-        #btnReportPath.Bind(wx.EVT_ENTER_WINDOW, self.ReportPathEnterWindow)
-        #btnReportPath.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        # script
-        lblScriptPath = wx.StaticText(self.panel, -1, "Script:")
-        lblScriptPath.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.txtScriptFile = wx.TextCtrl(self.panel, -1, self.fil_script, 
-                                   size=(250,-1))
-        self.txtScriptFile.Bind(wx.EVT_KILL_FOCUS, self.OnScriptFileLostFocus)
-        btnScriptPath = wx.Button(self.panel, -1, "Browse ...")
-        btnScriptPath.Bind(wx.EVT_BUTTON, self.OnButtonScriptPath)
-        #btnScriptPath.Bind(wx.EVT_ENTER_WINDOW, self.ScriptPathEnterWindow)
-        #btnScriptPath.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
+        self.GenConfigSetup()
         # title details
         lblTitles = wx.StaticText(self.panel, -1, "Title:")
         lblTitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -182,7 +139,7 @@ class DlgMakeTable(wx.Dialog, make_table.MakeTable, dimtree.DimTree):
         btnExport.Bind(wx.EVT_BUTTON, self.OnButtonExport)
         #btnExport.Bind(wx.EVT_ENTER_WINDOW, self.OnExportEnterWindow)
         #btnExport.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        btnHelp = wx.Button(self.panel, -1, "HELP")
+        btnHelp = wx.Button(self.panel, wx.ID_HELP)
         btnHelp.Bind(wx.EVT_BUTTON, self.OnButtonHelp)
         #btnHelp.Bind(wx.EVT_ENTER_WINDOW, self.OnHelpEnterWindow)
         #btnHelp.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
@@ -190,7 +147,7 @@ class DlgMakeTable(wx.Dialog, make_table.MakeTable, dimtree.DimTree):
         btnClear.Bind(wx.EVT_BUTTON, self.OnButtonClear)
         #btnClear.Bind(wx.EVT_ENTER_WINDOW, self.OnClearEnterWindow)
         #btnClear.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        btnClose = wx.Button(self.panel, -1, "CLOSE")
+        btnClose = wx.Button(self.panel, wx.ID_CLOSE)
         btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
         #btnClose.Bind(wx.EVT_ENTER_WINDOW, self.OnCloseEnterWindow)
         #btnClose.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
@@ -221,55 +178,9 @@ class DlgMakeTable(wx.Dialog, make_table.MakeTable, dimtree.DimTree):
         lbldemo_tbls.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         # main section SIZERS **************************************************************
         szrMain = wx.BoxSizer(wx.VERTICAL)
-        bxData = wx.StaticBox(self.panel, -1, "Data Source")
-        szrData = wx.StaticBoxSizer(bxData, wx.HORIZONTAL)
-        szrConfig = wx.BoxSizer(wx.HORIZONTAL)
-        bxOutput = wx.StaticBox(self.panel, -1, "Output")
-        szrOutput = wx.StaticBoxSizer(bxOutput, wx.HORIZONTAL)
+        self.SetupGenConfigSizer()
         szrMid = wx.BoxSizer(wx.HORIZONTAL)
         szrDims = wx.BoxSizer(wx.HORIZONTAL)
-        #1 MAIN
-        #2 DATA
-        #3 DATA INNER
-        szrDataInner = wx.BoxSizer(wx.HORIZONTAL)
-        szrDataInner.Add(lblDatabases, 0, wx.LEFT|wx.RIGHT, 5)
-        szrDataInner.Add(self.dropDatabases, 0, wx.RIGHT, 10)
-        szrDataInner.Add(lblTables, 0, wx.RIGHT, 5)
-        szrDataInner.Add(self.dropTables, 0)
-        szrData.Add(szrDataInner)
-        #2 CONFIG
-        #3 DATA CONFIG
-        bxDataConfig = wx.StaticBox(self.panel, -1, "Data Config")
-        szrDataConfig = wx.StaticBoxSizer(bxDataConfig, wx.HORIZONTAL)
-        #3 DATA CONFIG INNER
-        szrDataConfigInner = wx.BoxSizer(wx.HORIZONTAL)
-        szrDataConfigInner.Add(lblLabelPath, 0, wx.LEFT|wx.RIGHT, 5)
-        szrDataConfigInner.Add(self.txtLabelsFile, 1, wx.GROW|wx.RIGHT, 10)
-        szrDataConfigInner.Add(btnLabelPath, 0)
-        szrDataConfig.Add(szrDataConfigInner, 1)
-        szrConfig.Add(szrDataConfig, 1, wx.RIGHT, 10)
-        #3 CSS CONFIG
-        bxCssConfig = wx.StaticBox(self.panel, -1, "Table Style")
-        szrCssConfig = wx.StaticBoxSizer(bxCssConfig, wx.HORIZONTAL)
-        #3 CSS CONFIG INNER
-        szrCssConfigInner = wx.BoxSizer(wx.HORIZONTAL)
-        szrCssConfigInner.Add(lblCssPath, 0, wx.LEFT|wx.RIGHT, 5)
-        szrCssConfigInner.Add(self.txtCssFile, 1, wx.GROW|wx.RIGHT, 10)
-        szrCssConfigInner.Add(btnCssPath, 0)
-        szrCssConfig.Add(szrCssConfigInner, 1)
-        szrConfig.Add(szrCssConfig, 1)
-        #2 OUTPUT
-        #3 OUTPUT INNER
-        szrOutputInner = wx.BoxSizer(wx.HORIZONTAL)
-        # report 
-        szrOutputInner.Add(lblReportPath, 0, wx.LEFT|wx.RIGHT, 5)
-        szrOutputInner.Add(self.txtReportFile, 1, wx.GROW|wx.RIGHT, 10)
-        szrOutputInner.Add(btnReportPath, 0, wx.RIGHT, 10)
-        # script
-        szrOutputInner.Add(lblScriptPath, 0, wx.LEFT|wx.RIGHT, 5)
-        szrOutputInner.Add(self.txtScriptFile, 1, wx.GROW|wx.RIGHT, 10)
-        szrOutputInner.Add(btnScriptPath, 0)
-        szrOutput.Add(szrOutputInner, 1)
         #2 MID
         #3 TABTYPE
         szrTabType = wx.BoxSizer(wx.HORIZONTAL)
@@ -342,12 +253,14 @@ class DlgMakeTable(wx.Dialog, make_table.MakeTable, dimtree.DimTree):
         szrHtml.Add(lbldemo_tbls, 0)
         szrHtml.Add(self.html, 1, wx.GROW)
         #1 MAIN assemble
-        szrMain.Add(szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szrMain.Add(szrConfig, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szrMain.Add(szrOutput, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        # from gen_config
+        szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        # other
         szrMain.Add(szrMid, 0, wx.GROW|wx.ALL, 10)
         szrMain.Add(szrDims, 5, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         szrMain.Add(szrHtml, 8, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szrMain.Add(self.szrConfig, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szrMain.Add(self.szrOutput, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         #status bar
         #self.statusbar = self.CreateStatusBar()
         #attach main sizer to panel>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

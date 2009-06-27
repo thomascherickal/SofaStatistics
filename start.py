@@ -134,7 +134,7 @@ def InstallLocal():
 
 class SofaApp(wx.App):
 
-    dev_debug = False
+    dev_debug = True
 
     def __init__(self):        
         # if wanting to initialise the parent class it must be run in 

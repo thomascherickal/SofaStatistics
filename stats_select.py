@@ -84,9 +84,10 @@ class StatsSelectDlg(wx.Dialog):
         self.rad3Groups.Bind(wx.EVT_RADIOBUTTON, self.OnRadio3GroupsButton)
         self.rad2Groups.Enable(False)
         self.rad3Groups.Enable(False)
-        self.btnGroupsHelp = wx.Button(self.panel, -1, "Help", 
+        self.btnGroupsHelp = wx.Button(self.panel, wx.ID_HELP, 
                                        pos=(HELP_LEFT, DIFF_LN_1 - BUTTON_LIFT))
         self.btnGroupsHelp.Enable(False)
+        self.btnGroupsHelp.Bind(wx.EVT_BUTTON, self.OnGroupsHelpButton)
         # divider
         wx.StaticLine(self.panel, pos=(BUTTON1_LEFT, DIFF_LN_1 + 30),
                       size=(DIV_LINE_WIDTH, 1))   
@@ -105,9 +106,9 @@ class StatsSelectDlg(wx.Dialog):
         
         self.radNormal1.Enable(False)
         self.radNotNormal1.Enable(False)
-        self.btnNormalHelp1 = wx.Button(self.panel, -1, "Help",
+        self.btnNormalHelp1 = wx.Button(self.panel, wx.ID_HELP,
                                     pos=(HELP_LEFT, DIFF_LN_2 - BUTTON_LIFT))
-        
+        self.btnNormalHelp1.Bind(wx.EVT_BUTTON, self.OnNormalHelp1Button)
         self.btnNormalHelp1.Enable(False)
         # divider
         wx.StaticLine(self.panel, pos=(BUTTON1_LEFT, DIFF_LN_2 + 30),
@@ -123,22 +124,24 @@ class StatsSelectDlg(wx.Dialog):
         self.radPaired.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButton)
         self.radIndep.Enable(False)
         self.radPaired.Enable(False)
-        self.btnIndepHelp = wx.Button(self.panel, -1, "Help",
-                                       pos=(HELP_LEFT, DIFF_LN_3 - BUTTON_LIFT)) 
+        self.btnIndepHelp = wx.Button(self.panel, wx.ID_HELP,
+                                       pos=(HELP_LEFT, DIFF_LN_3 - BUTTON_LIFT))
+        self.btnIndepHelp.Bind(wx.EVT_BUTTON, self.OnIndepHelpButton)
         self.btnIndepHelp.Enable(False)
         # choices line 4
         DIFF_LN_4 = REL_TOP + 60
-        self.radCats = wx.RadioButton(self.panel, -1, "Categories", 
+        self.radNominal = wx.RadioButton(self.panel, -1, "Names Only", 
                                       style=wx.RB_GROUP,
                                       pos=(BUTTON1_LEFT, DIFF_LN_4))
-        self.radCats.Bind(wx.EVT_RADIOBUTTON, self.OnRadioCatsButton)
-        self.radNums = wx.RadioButton(self.panel, -1, "Numbers",
+        self.radNominal.Bind(wx.EVT_RADIOBUTTON, self.OnRadioNominalButton)
+        self.radOrdered = wx.RadioButton(self.panel, -1, "Ordered",
                                       pos=(BUTTON2_LEFT, DIFF_LN_4))
-        self.radNums.Bind(wx.EVT_RADIOBUTTON, self.OnRadioNumsButton)
-        self.radCats.Enable(False)
-        self.radNums.Enable(False)
-        self.btnTypeHelp = wx.Button(self.panel, -1, "Help", 
+        self.radOrdered.Bind(wx.EVT_RADIOBUTTON, self.OnRadioOrderedButton)
+        self.radNominal.Enable(False)
+        self.radOrdered.Enable(False)
+        self.btnTypeHelp = wx.Button(self.panel, wx.ID_HELP, 
                                      pos=(HELP_LEFT, DIFF_LN_4 - BUTTON_LIFT))
+        self.btnTypeHelp.Bind(wx.EVT_BUTTON, self.OnTypeHelpButton)
         self.btnTypeHelp.Enable(False)
         # divider
         wx.StaticLine(self.panel, pos=(BUTTON1_LEFT, DIFF_LN_4 + 30),
@@ -154,8 +157,9 @@ class StatsSelectDlg(wx.Dialog):
         self.radNotNormal2.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButton)
         self.radNormal2.Enable(False)
         self.radNotNormal2.Enable(False)
-        self.btnNormalHelp2 = wx.Button(self.panel, -1, "Help",
-                                        pos=(HELP_LEFT, DIFF_LN_5)) 
+        self.btnNormalHelp2 = wx.Button(self.panel, wx.ID_HELP,
+                                        pos=(HELP_LEFT, DIFF_LN_5))
+        self.btnNormalHelp2.Bind(wx.EVT_BUTTON, self.OnNormalHelp2Button)
         self.btnNormalHelp2.Enable(False)
         # listbox of tests
         LST_LEFT = 580
@@ -276,7 +280,15 @@ class StatsSelectDlg(wx.Dialog):
     def OnRadio3GroupsButton(self, event):
         self.IndepSetup(enable=False)
         self.RespondToAssistedChoices()
-    
+
+    def OnGroupsHelpButton(self, event):
+        wx.MessageBox("Are you looking at the difference between two " + \
+          "groups or more?" + \
+          "\n\nExample with 2 groups: average vocabulary of Males vs " + \
+          "Females." + \
+          "\n\nExample with 3 or more groups: average sales figures for " + \
+          "the North, South, East, and West regions")
+        
     def OnRadioNormal1Button(self, event):
         self.IndepSetup(enable=False)
         self.RespondToAssistedChoices()
@@ -285,6 +297,9 @@ class StatsSelectDlg(wx.Dialog):
         enable = self.rad2Groups.GetValue()
         self.IndepSetup(enable=enable) # Mann_Whitney or Wilcoxon SR
         self.RespondToAssistedChoices()
+    
+    def OnNormalHelp1Button(self, event):
+        wx.MessageBox("Help Normal 1")
     
     def IndepSetup(self, enable=True):
         # set left first
@@ -296,27 +311,50 @@ class StatsSelectDlg(wx.Dialog):
         self.radPaired.Enable(enable)
         self.btnIndepHelp.Enable(enable)
         
+    def OnIndepHelpButton(self, event):
+        wx.MessageBox("Is your data for each group recorded in different " + \
+          "rows (independent) or together on same row (paired)?" + \
+          "\n\nExample of Independent data: if looking at Male vs Female " + \
+          "vocabulary we do not have both male and female scores in the " + \
+          "same rows. Male and Female data is independent." + \
+          "\n\nExample of Paired data: if looking at mental ability in the " + \
+          "Morning vs the Evening we might have one row per person with " + \
+          "both time periods in the same row. Morning and Evening data is " + \
+          "paired.")
+        
     def RelSetup(self, enable=True):
         "Enable options under Relationships section"
         if not enable:
             # set left first
             try:
-                self.radCats.SetValue(True)
+                self.radNominal.SetValue(True)
             except:
                 pass
-        self.radCats.Enable(enable)
-        self.radNums.Enable(enable)
+        self.radNominal.Enable(enable)
+        self.radOrdered.Enable(enable)
         self.btnTypeHelp.Enable(enable)
         self.NormalRelSetup(enable=False) # only set to True when cat selected
     
-    def OnRadioCatsButton(self, event):
+    def OnRadioNominalButton(self, event):
         self.NormalRelSetup(enable=False)
         self.RespondToAssistedChoices()
     
-    def OnRadioNumsButton(self, event):
+    def OnRadioOrderedButton(self, event):
         self.NormalRelSetup(enable=True)
         self.RespondToAssistedChoices()
-        
+    
+    def OnTypeHelpButton(self, event):
+        wx.MessageBox("Names only data (Nominal) is just labels or names. " + \
+          "Ordered data has a sense of order and includes Ordinal (order " + \
+          "but no amount) and Quantitative (actual numbers)." + \
+          "\n\nExample of Names Only data: sports codes ('Soccer', " + \
+          "'Badminton', 'Skiing' etc)" + \
+          "\n\nExample of Ordered data: ratings of restaurant " + \
+          "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc).")
+    
+    def OnNormalHelp2Button(self, event):
+        wx.MessageBox("Help Normal 2")
+    
     def NormalRelSetup(self, enable=True):
         # set left first
         try:
@@ -371,9 +409,9 @@ class StatsSelectDlg(wx.Dialog):
             else:
                 raise my_exceptions.InvalidTestSelectionException
         elif self.radRelationships.GetValue():
-            if self.radCats.GetValue():
+            if self.radNominal.GetValue():
                 test_type = TEST_CHI_SQUARE
-            elif self.radNums.GetValue():
+            elif self.radOrdered.GetValue():
                 if self.radNormal2.GetValue():
                     test_type = TEST_PEARSONS
                 elif self.radNotNormal2.GetValue():
