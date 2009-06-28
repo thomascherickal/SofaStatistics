@@ -42,7 +42,7 @@ class DimTree(object):
         choice_item = tree.GetItemText(event.GetItem())
         # get val_dic for variable (if any) and display in editable list
         data = []
-        var_name, var_label = make_table.extractVarDets(choice_item)
+        var_name, var_label = getdata.extractVarDets(choice_item)
         if self.val_dics.get(var_name):
             val_dic = self.val_dics.get(var_name)
             if val_dic:
@@ -91,7 +91,7 @@ class DimTree(object):
             f.close()
             # update var label in tree and update demo html
             tree.SetItemText(event.GetItem(), 
-                    make_table.getVarItem(self.var_labels, var_name))
+                    getdata.getVarItem(self.var_labels, var_name))
             self.UpdateDemoDisplay()
         
     def OnRowAdd(self, event):
@@ -112,7 +112,7 @@ class DimTree(object):
                   oth_dim_root):
         "Try adding a variable"
         choice_var_names = self.flds.keys()
-        choices = [make_table.getVarItem(self.var_labels, x) \
+        choices = [getdata.getVarItem(self.var_labels, x) \
                    for x in choice_var_names]
         choices.sort(key=lambda s: s.upper()) # sort case insensitive
         # http://www.python.org/doc/faq/programming/...
@@ -139,7 +139,7 @@ class DimTree(object):
                 elif self.tab_type == make_table.ROW_SUMM \
                         and tree == self.rowtree:
                     # check it is not numeric (and make sure it lacks a label)
-                    var_name, _ = make_table.extractVarDets(text)                
+                    var_name, _ = getdata.extractVarDets(text)                
                     if not self.flds[var_name][getdata.FLD_BOLNUMERIC] or \
                             var_name in self.val_dics:
                         wx.MessageBox("Variable '%s' is not numeric" % text)
@@ -147,7 +147,7 @@ class DimTree(object):
             # they all passed the tests so proceed
             for text in text_selected:
                 new_id = tree.AppendItem(root, text)
-                var_name, _ = make_table.extractVarDets(text)
+                var_name, _ = getdata.extractVarDets(text)
                 self.setInitialConfig(tree, dim, new_id, var_name)
             if text_selected:
                 tree.UnselectAll() # multiple
@@ -232,7 +232,7 @@ class DimTree(object):
         Only do so if OK e.g. no duplicate text in either dim.
         """
         choice_var_names = self.flds.keys()
-        choices = [make_table.getVarItem(self.var_labels, x) \
+        choices = [getdata.getVarItem(self.var_labels, x) \
                    for x in choice_var_names]
         choices.sort(key=lambda s: s.upper())
         dlg = wx.MultiChoiceDialog(self, "Select a variable", 
@@ -262,7 +262,7 @@ class DimTree(object):
             # they all passed the test so proceed        
             for text in text_selected:
                 new_id = tree.AppendItem(selected_id, text)
-                var_name, _ = make_table.extractVarDets(text)
+                var_name, _ = getdata.extractVarDets(text)
                 self.setInitialConfig(tree, dim, new_id, var_name)
                 # empty all measures from ancestors and ensure sorting 
                 # is appropriate

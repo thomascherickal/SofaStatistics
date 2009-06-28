@@ -41,25 +41,6 @@ def AddClosingScriptCode(f):
     f.write("\nfil.write(tabreports.getHtmlFtr())")
     f.write("\nfil.close()")
 
-def getVarItem(var_labels, var_name):
-    return "%s (%s)" % (var_labels.get(var_name, var_name.title()),
-                        var_name)
-
-def extractVarDets(choice_text):
-    """
-    Extract var_name, var_label from tree item e.g. return "gender"
-        and "Gender" from "Gender (gender)".
-    """
-    if choice_text == COL_MEASURES_TREE_LBL:
-        var_name = choice_text
-        var_label = choice_text
-    else:
-        start_idx = choice_text.index("(") + 1
-        end_idx = choice_text.index(")")
-        var_name = choice_text[start_idx:end_idx]
-        var_label = choice_text[:start_idx - 2]
-    return var_name, var_label
-
 def GetColDets(coltree, colRoot, var_labels):
     """
     Get names and labels of columns actually selected in GUI column tree.
@@ -67,7 +48,7 @@ def GetColDets(coltree, colRoot, var_labels):
     """
     full_col_labels = util.getSubTreeItems(coltree, colRoot)
     split_col_tree_labels = full_col_labels.split(", ")        
-    col_names = [extractVarDets(x)[0] for x in split_col_tree_labels]
+    col_names = [getdata.extractVarDets(x)[0] for x in split_col_tree_labels]
     col_labels = [var_labels.get(x, x.title()) for x in col_names]
     return col_names, col_labels
 
@@ -93,8 +74,8 @@ class MakeTable(object):
     def RefreshDescendants(self, tree, descendants):
         ""
         for descendant in descendants:
-            var_name, _ = extractVarDets(tree.GetItemText(descendant))
-            fresh_label = getVarItem(self.var_labels, var_name)
+            var_name, _ = getdata.extractVarDets(tree.GetItemText(descendant))
+            fresh_label = getdata.getVarItem(self.var_labels, var_name)
             tree.SetItemText(descendant, fresh_label)
 
     # table type
@@ -339,7 +320,7 @@ class MakeTable(object):
             for child in util.getTreeCtrlChildren(tree=self.rowtree, 
                                                   parent=self.rowRoot):
                 child_fld_name, _ = \
-                    extractVarDets(self.rowtree.GetItemText(child))
+                    getdata.extractVarDets(self.rowtree.GetItemText(child))
                 self.addToParent(script_lst=script_lst, tree=self.rowtree, 
                              parent=self.rowtree, 
                              parent_node_label="tree_rows",
@@ -349,7 +330,7 @@ class MakeTable(object):
                 for child in util.getTreeCtrlChildren(tree=self.coltree, 
                                                       parent=self.colRoot):
                     child_fld_name, _ = \
-                        extractVarDets(self.coltree.GetItemText(child))
+                        getdata.extractVarDets(self.coltree.GetItemText(child))
                     self.addToParent(script_lst=script_lst, tree=self.coltree, 
                                  parent=self.coltree, 
                                  parent_node_label="tree_cols",
@@ -459,7 +440,7 @@ class MakeTable(object):
         for grandchild in util.getTreeCtrlChildren(tree=tree, 
                                                    parent=child):
             grandchild_fld_name, _ = \
-                extractVarDets(tree.GetItemText(grandchild))
+                getdata.extractVarDets(tree.GetItemText(grandchild))
             self.addToParent(script_lst=script_lst, tree=tree, 
                              parent=child, 
                              parent_node_label=child_node_label,

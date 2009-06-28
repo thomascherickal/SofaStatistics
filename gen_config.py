@@ -15,22 +15,22 @@ class GenConfig(object):
         Sets up dropdowns for database and tables, and textboxes plus Browse
             buttons for labels, style, output, and script.
         """
+        self.LABEL_FONT = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         # Data details
         # Databases
         self.lblDatabases = wx.StaticText(self.panel, -1, "Database:")
-        self.lblDatabases.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, 
-                                               wx.BOLD))
+        self.lblDatabases.SetFont(self.LABEL_FONT)
         # set up self.dropDatabases and self.dropTables
         getdata.setupDataDropdowns(self, self.panel, self.dbe, self.conn_dets, 
                                    self.default_dbs, self.default_tbls)
         self.dropDatabases.Bind(wx.EVT_CHOICE, self.OnDatabaseSel)
         # Tables
         self.lblTables = wx.StaticText(self.panel, -1, "Table:")
-        self.lblTables.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        self.lblTables.SetFont(self.LABEL_FONT)
         self.dropTables.Bind(wx.EVT_CHOICE, self.OnTableSel)
         # Data config details
         self.lblLabelPath = wx.StaticText(self.panel, -1, "Labels:")
-        self.lblLabelPath.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        self.lblLabelPath.SetFont(self.LABEL_FONT)
         self.txtLabelsFile = wx.TextCtrl(self.panel, -1, self.fil_labels, 
                                          size=(250,-1))
         self.txtLabelsFile.Bind(wx.EVT_KILL_FOCUS, self.OnLabelFileLostFocus)
@@ -40,7 +40,7 @@ class GenConfig(object):
         #self.btnLabelPath.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         # CSS style config details
         self.lblCssPath = wx.StaticText(self.panel, -1, "Style:")
-        self.lblCssPath.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        self.lblCssPath.SetFont(self.LABEL_FONT)
         self.txtCssFile = wx.TextCtrl(self.panel, -1, self.fil_css, 
                                       size=(250,-1))
         self.txtCssFile.Bind(wx.EVT_KILL_FOCUS, self.OnCssFileLostFocus)
@@ -51,8 +51,7 @@ class GenConfig(object):
         # Output details
         # report 
         self.lblReportPath = wx.StaticText(self.panel, -1, "Report:")
-        self.lblReportPath.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, 
-                                                wx.BOLD))
+        self.lblReportPath.SetFont(self.LABEL_FONT)
         self.txtReportFile = wx.TextCtrl(self.panel, -1, self.fil_report, 
                                          size=(250,-1))
         self.txtReportFile.Bind(wx.EVT_KILL_FOCUS, self.OnReportFileLostFocus)
@@ -62,7 +61,7 @@ class GenConfig(object):
         #btnReportPath.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         # script
         self.lblScriptPath = wx.StaticText(self.panel, -1, "Script:")
-        self.lblScriptPath.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        self.lblScriptPath.SetFont(self.LABEL_FONT)
         self.txtScriptFile = wx.TextCtrl(self.panel, -1, self.fil_script, 
                                    size=(250,-1))
         self.txtScriptFile.Bind(wx.EVT_KILL_FOCUS, self.OnScriptFileLostFocus)
@@ -76,7 +75,7 @@ class GenConfig(object):
         self.szrData = wx.StaticBoxSizer(bxData, wx.HORIZONTAL)
         self.szrConfig = wx.BoxSizer(wx.HORIZONTAL)
         bxOutput = wx.StaticBox(self.panel, -1, "Output")
-        self.szrOutput = wx.StaticBoxSizer(bxOutput, wx.HORIZONTAL)
+        self.szrOutput = wx.StaticBoxSizer(bxOutput, wx.VERTICAL)
         #1 MAIN
         #2 DATA
         #3 DATA INNER

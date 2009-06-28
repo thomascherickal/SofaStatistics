@@ -233,7 +233,7 @@ class DlgMakeTable(wx.Dialog,
         szrMain.Add(szrDims, 5, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         szrMain.Add(szrHtml, 8, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szrMain.Add(self.szrConfig, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szrMain.Add(self.szrOutput, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szrMain.Add(self.szrOutput, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         #status bar
         #self.statusbar = self.CreateStatusBar()
         #attach main sizer to panel>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

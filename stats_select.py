@@ -55,6 +55,7 @@ class StatsSelectDlg(wx.Dialog):
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize())
         self.panel = wx.Panel(self, size=(800, 542)) # needed by Windows
+        self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.OnPaint)        
         # icon
         ib = wx.IconBundle()
@@ -465,10 +466,4 @@ class StatsSelectDlg(wx.Dialog):
     
     def OnCloseClick(self, event):
         self.Destroy()
-        
-if __name__ == "__main__": 
-    
-    app = wx.PySimpleApp()
-    dlg = StatsSelectDlg()
-    dlg.ShowModal()
-    app.MainLoop()
+       

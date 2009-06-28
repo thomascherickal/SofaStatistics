@@ -232,7 +232,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                                                         measure=measure))
         else:
             # add var e.g. gender then values below e.g. Male, Female
-            var_name, var_label = make_table.extractVarDets(\
+            var_name, var_label = getdata.extractVarDets(\
                 self.coltree.GetItemText(tree_dims_item))
             #print var_name #debug
             var_label = self.var_labels.get(var_name, var_name.title())

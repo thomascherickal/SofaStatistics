@@ -126,6 +126,26 @@ def FldsDic2FldNamesLst(flds_dic):
     flds_lst = sorted(flds_dic, key=lambda s: flds_dic[s][FLD_SEQ])
     return flds_lst
 
+def getVarItem(var_labels, var_name):
+    return "%s (%s)" % (var_labels.get(var_name, var_name.title()),
+                        var_name)
+
+def extractVarDets(choice_text):
+    """
+    Extract var_name, var_label from tree item e.g. return "gender"
+        and "Gender" from "Gender (gender)".
+    If not in this format, e.g. special col measures label, handle differently.
+    """
+    try:
+        start_idx = choice_text.index("(") + 1
+        end_idx = choice_text.index(")")
+        var_name = choice_text[start_idx:end_idx]
+        var_label = choice_text[:start_idx - 2]
+    except Exception:
+        var_name = choice_text
+        var_label = choice_text        
+    return var_name, var_label
+
 def setConnDetDefaults(parent):
     """
     Check project connection settings to handle missing values and set 
