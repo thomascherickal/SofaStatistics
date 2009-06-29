@@ -1,7 +1,7 @@
 from statlib import stats, pstat
 import math
 
-# Copyright notice for stats and pstat
+# Copyright notice for stats and pstats.
 
 # Functions taken from stats.py have their origin indicated in their doc string
 

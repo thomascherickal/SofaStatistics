@@ -1,9 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-CSS_ALIGN_RIGHT = "right"
-CSS_LBL = "lbl"
-
 def GetDefaultCss():
     """
     Get default CSS.  The "constants" are used so that we can 
@@ -111,9 +108,11 @@ def GetDefaultCss():
             width: auto;
             height: 18px;
         }"""
-    default_css += "\n    td.%s{\n        text-align: left;\n        "  % CSS_LBL + \
+    default_css += "\n    td.%s{\n        text-align: left;\n        "  % \
+        my_globals.CSS_LBL + \
         "background-color: #F5F5F5;\n    }"
-    default_css += "\n    td.%s{\n        text-align: right;\n    }" % CSS_ALIGN_RIGHT
+    default_css += "\n    td.%s{\n        text-align: right;\n    }" % \
+        my_globals.CSS_ALIGN_RIGHT
     return default_css
 
 default_hdr = """

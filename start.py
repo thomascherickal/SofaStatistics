@@ -10,6 +10,7 @@ from pysqlite2 import dbapi2 as sqlite
 import sys
 import wx
 
+import my_globals
 import dataselect
 import full_html
 import getdata

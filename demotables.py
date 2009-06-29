@@ -1,10 +1,11 @@
 
 import random
 
-import tabreports
+import my_globals
 import getdata
 import rawtables
 import make_table
+import output
 import util
 import dimtables
 
@@ -41,9 +42,8 @@ class DemoTable(object):
             self.subtitles = []
         if self.titles:
             self.titles[0] += " (random demo data only)"        
-        html = tabreports.getHtmlHdr(hdr_title="Report(s)", 
-                                     fil_css=self.fil_css)
-        html += "<table cellspacing='0'>\n" # IE6 doesn't support CSS borderspacing
+        html = output.getHtmlHdr(hdr_title="Report(s)", fil_css=self.fil_css)
+        html += "<table cellspacing='0'>\n" # IE6 - no support CSS borderspacing
         (hdr_html, body_html) = self.getHTMLParts()
         html += hdr_html
         html += body_html
@@ -101,11 +101,11 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         # pre-store css class(es) for each column
         col_class_lsts = [[] for x in col_names]
         if bolfirst_col_as_label:
-            col_class_lsts[0] = [tabreports.CSS_LBL]
+            col_class_lsts[0] = [my_globals.CSS_LBL]
         for i, col_name in enumerate(col_names):
             if self.flds[col_name][getdata.FLD_BOLNUMERIC] \
                     and not col_val_dics[i]:
-                col_class_lsts[i].append(tabreports.CSS_ALIGN_RIGHT)
+                col_class_lsts[i].append(my_globals.CSS_ALIGN_RIGHT)
         for i in range(4): # four rows enough for demo purposes
             row_tds = []
             # process cells within row
@@ -127,7 +127,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
             body_html += "\n<tr>" + "".join(row_tds) + "</td></tr>"
         if bolhas_totals_row:
             if bolfirst_col_as_label:
-                tot_cell = "<td class='%s'>TOTAL</td>" % tabreports.CSS_LBL
+                tot_cell = "<td class='%s'>TOTAL</td>" % my_globals.CSS_LBL
                 start_idx = 1
             else:
                 tot_cell = ""
@@ -143,9 +143,9 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                 else:
                     demo_row_data_lst.append(str(random.choice(num_data_seq)))
             # never a displayed total for strings (whether orig data or labels)
-            joiner = "</td><td class=\"%s\">" % tabreports.CSS_ALIGN_RIGHT
+            joiner = "</td><td class=\"%s\">" % my_globals.CSS_ALIGN_RIGHT
             body_html += "\n<tr class='total-row'>" + \
-                tot_cell + "<td class=\"%s\">"  % tabreports.CSS_ALIGN_RIGHT + \
+                tot_cell + "<td class=\"%s\">"  % my_globals.CSS_ALIGN_RIGHT + \
                 joiner.join(demo_row_data_lst) + "</td></tr>"
         body_html += "\n</tbody>"
         return (hdr_html, body_html)
@@ -197,7 +197,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                                                     parent=self.rowRoot):
             self.addSubtreeToLabelTree(tree_dims_item=row_child_item, 
                               tree_labels_node=tree_row_labels.root_node, 
-                              dim=dimtables.ROWDIM)
+                              dim=my_globals.ROWDIM)
         return self.processRowTree(tree_row_labels)
 
     def addSubtreeToLabelTree(self, tree_dims_item, tree_labels_node, dim):
@@ -213,11 +213,11 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         If not terminal, add a node for each var underneath 
           (e.g. Ethnicity and Age Gp) under each value node and 
           send through again.
-        dim - dimtables.ROWDIM or dimtables.COLDIM
+        dim - my_globals.ROWDIM or my_globals.COLDIM
         """
-        if dim == dimtables.COLDIM:
+        if dim == my_globals.COLDIM:
             item_conf = self.coltree.GetItemPyData(tree_dims_item)
-        elif dim == dimtables.ROWDIM:
+        elif dim == my_globals.ROWDIM:
             item_conf = self.rowtree.GetItemPyData(tree_dims_item)        
         if item_conf == None:
             item_conf = make_table.ItemConfig()
@@ -241,7 +241,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
             # terminal tree_dim_item (got any children)?
             item, cookie = self.coltree.GetFirstChild(tree_dims_item)
             is_terminal = not item #i.e. if there is only the root there
-            if dim==dimtables.ROWDIM and self.has_row_measures:
+            if dim==my_globals.ROWDIM and self.has_row_measures:
                 # add measure label nodes
                 if item_conf:
                     measures = item_conf.measures_lst
@@ -260,7 +260,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                     if i > 1:
                         break
                     subitems_lst.append(val_label)
-                if item_conf.sort_order == dimtables.SORT_LABEL:
+                if item_conf.sort_order == my_globals.SORT_LABEL:
                     subitems_lst.sort()
                 i=len(subitems_lst) + 1 # so first filler is Val 2 if first 
                 # value already filled
@@ -268,12 +268,12 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                     subitems_lst.append("Value %s" % i)
                     i=i+1
                 if item_conf.has_tot:
-                    subitems_lst.append(make_table.HAS_TOTAL)
+                    subitems_lst.append(my_globals.HAS_TOTAL)
                 for subitem in subitems_lst:
                     # make val node e.g. Male
                     subitem_node = dimtables.LabelNode(label=subitem)
                     new_var_node.addChild(subitem_node)                
-                    if is_terminal and dim==dimtables.COLDIM and \
+                    if is_terminal and dim==my_globals.COLDIM and \
                         self.has_col_measures:
                         # add measure label nodes
                         measures = item_conf.measures_lst
@@ -285,9 +285,9 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                                                 measure=measure))
                     else:
                         # for each child of tree_dims_item e.g. Eth and Age Gp
-                        if dim == dimtables.COLDIM:
+                        if dim == my_globals.COLDIM:
                             tree = self.coltree
-                        elif dim == dimtables.ROWDIM:
+                        elif dim == my_globals.ROWDIM:
                             tree = self.rowtree
                         child_items = util.getTreeCtrlChildren(tree=tree, 
                                                         parent=tree_dims_item)
@@ -310,7 +310,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         for col_child_item in col_children:
             self.addSubtreeToLabelTree(tree_dims_item=col_child_item, 
                           tree_labels_node=tree_col_labels.root_node, 
-                          dim=dimtables.COLDIM)
+                          dim=my_globals.COLDIM)
         return tree_col_labels
     
 
@@ -320,7 +320,7 @@ class GenDemoTable(DemoDimTable):
     has_row_measures = False
     has_row_vals = True
     has_col_measures = True
-    default_measure = make_table.get_default_measure(make_table.COL_MEASURES)
+    default_measure = make_table.get_default_measure(my_globals.COL_MEASURES)
     
     def __init__(self, txtTitles, txtSubtitles, colRoot, rowRoot, rowtree, 
                  coltree, col_no_vars_item, var_labels, val_dics, fil_css):
@@ -402,7 +402,7 @@ class GenDemoTable(DemoDimTable):
                     cellclass = "datacell"
                 #build data row list
                 data_val = random.choice(num_data_seq)
-                if colmeasure in [dimtables.ROWPCT, dimtables.COLPCT]:
+                if colmeasure in [my_globals.ROWPCT, my_globals.COLPCT]:
                     val = "%s%%" % data_val
                 else:
                     val = data_val
@@ -424,7 +424,7 @@ class SummDemoTable(DemoDimTable):
     has_row_measures = True
     has_row_vals = False
     has_col_measures = False
-    default_measure = make_table.get_default_measure(make_table.ROW_SUMM)
+    default_measure = make_table.get_default_measure(my_globals.ROW_SUMM)
     
     def __init__(self, txtTitles, txtSubtitles, colRoot, rowRoot, rowtree, 
                  coltree, col_no_vars_item, var_labels, val_dics, fil_css):
@@ -494,7 +494,7 @@ class SummDemoTable(DemoDimTable):
                 else:
                     cellclass = "datacell"
                 data_val = random.choice(num_data_seq)
-                if rowmeasure == dimtables.SUMM_N:
+                if rowmeasure == my_globals.SUMM_N:
                     val = "N=%s" % data_val
                 else:
                     val = data_val

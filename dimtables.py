@@ -1,59 +1,12 @@
+import my_globals
 import tree
 import numpy
 from operator import itemgetter
 import pprint
 import getdata
 
-"""
-v1.1 - shifted getHTML settings for header and footer into separate methods
-    to simplify interface when more complex setup.
-    Can now select css on a table-by-table basis.
-"""
-ROWDIM = "row" #double as labels
-COLDIM = "column"
-#actual options selected ...
-SORT_NONE = "None" #double as labels
-SORT_LABEL = "By Label"
-SORT_FREQ_ASC = "By Freq (Asc)"
-SORT_FREQ_DESC = "By Freq (Desc)"
+NOTNULL = " %s IS NOT NULL " # NOT ISNULL() is not universally supported
 
-# can use content of constant as a short label
-FREQ = "Freq"
-ROWPCT = "Row %"
-COLPCT = "Col %"
-SUM = "Sum"
-MEAN = "Mean"
-MEDIAN = "Median"
-SUMM_N = "N" # N used in Summary tables
-STD_DEV = "Std Dev"
-measures_long_label_dic = {FREQ: "Frequency", 
-                           ROWPCT: "Row %",
-                           COLPCT: "Column %",
-                           SUM: "Sum", 
-                           MEAN: "Mean",
-                           MEDIAN: "Median", 
-                           SUMM_N: "N",
-                           STD_DEV: "Standard Deviation"}
-# content of constant and constant (ready to include in exported script)
-# e.g. "dimtables.%s" "ROWPCT"
-script_export_measures_dic = {FREQ: "FREQ", 
-                              ROWPCT: "ROWPCT",
-                              COLPCT: "COLPCT",
-                              SUM: "SUM", 
-                              MEAN: "MEAN",
-                              MEDIAN: "MEDIAN", 
-                              SUMM_N: "SUMM_N",
-                              STD_DEV: "STD_DEV"}
-#NOTNULL = " NOT ISNULL(%s) "
-NOTNULL = " %s IS NOT NULL "
-
-DEF_CSS = r"c:\mypy\tbl_css\css_default.txt"
-
-def pct_1_dec(num):
-    return "%s%%" % round(num,1)
-def pct_2_dec(num):
-    return "%s%%" % round(num,2)
-data_format_dic = {FREQ: str, ROWPCT: pct_1_dec, COLPCT: pct_1_dec}
 
 class DimNodeTree(tree.NodeTree):
     """
@@ -93,13 +46,14 @@ class DimNode(tree.Node):
     labels - a dictionary of labels e.g. {"1": "Male", "2": "Female"}
     measures - e.g. FREQ
     has_tot - boolean
-    sort_order - dimtables.SORT_NONE, dimtables.SORT_LABEL, 
-        dimtables.SORT_FREQ_ASC, dimtables.SORT_FREQ_DESC
+    sort_order - my_globals.SORT_NONE, my_globals.SORT_LABEL, 
+        my_globals.SORT_FREQ_ASC, my_globals.SORT_FREQ_DESC
     bolnumeric - so can set up filters correctly e.g. gender = "1" or 
         gender = 1 as appropriate
     """
     def __init__(self, fld=None, label="", labels=None, measures=None, 
-                 has_tot=False, sort_order=SORT_NONE, bolnumeric=False):
+                 has_tot=False, sort_order=my_globals.SORT_NONE, 
+                 bolnumeric=False):
         ""
         self.fld = fld
         self.filt_flds = [] #only built up when added as a child to another DimNode
@@ -447,7 +401,7 @@ class LiveTable(DimTable):
         for child in self.tree_rows.root_node.children:
             self.addSubtreeToLabelTree(tree_dims_node=child, 
                                 tree_labels_node=tree_row_labels.root_node,
-                                dim=ROWDIM, 
+                                dim=my_globals.ROWDIM, 
                                 oth_dim_root=self.tree_cols.root_node)
         return self.processRowTree(tree_row_labels)        
     
@@ -460,13 +414,13 @@ class LiveTable(DimTable):
             for child in self.tree_cols.root_node.children:
                 self.addSubtreeToLabelTree(tree_dims_node=child, 
                             tree_labels_node=tree_col_labels.root_node,
-                            dim=COLDIM, 
+                            dim=my_globals.COLDIM, 
                             oth_dim_root=self.tree_rows.root_node)
         else:
             self.addSubtreeToLabelTree(tree_dims_node=\
                                self.tree_cols.root_node, 
                                tree_labels_node=tree_col_labels.root_node,
-                               dim=COLDIM, 
+                               dim=my_globals.COLDIM, 
                                oth_dim_root=self.tree_rows.root_node)
         return tree_col_labels
           
@@ -478,7 +432,7 @@ class LiveTable(DimTable):
         """
         has_fld = tree_dims_node.fld #None or a string        
         filt_flds = tree_dims_node.filt_flds
-        if dim == ROWDIM:
+        if dim == my_globals.ROWDIM:
             if not has_fld:
                 raise Exception, "All row nodes must have a variable " + \
                     "field specified"
@@ -489,7 +443,7 @@ class LiveTable(DimTable):
                 self.addSubtreeMeasuresOnly(tree_dims_node, 
                                             tree_labels_node, 
                                             filt_flds)            
-        elif dim == COLDIM:
+        elif dim == my_globals.COLDIM:
             if has_fld:
                 self.addSubtreeIfVals(tree_dims_node, tree_labels_node, 
                                   oth_dim_root, dim, filt_flds)            
@@ -536,11 +490,11 @@ class LiveTable(DimTable):
                               for (val, val_freq) in self.cur.fetchall()]
         # [(val, freq, val_label), ...]  
         #http://www.python.org/dev/peps/pep-0265/
-        if tree_dims_node.sort_order == SORT_FREQ_ASC:
+        if tree_dims_node.sort_order == my_globals.SORT_FREQ_ASC:
             val_freq_label_lst.sort(key=itemgetter(1)) #sort asc by freq
-        elif tree_dims_node.sort_order == SORT_FREQ_DESC:
+        elif tree_dims_node.sort_order == my_globals.SORT_FREQ_DESC:
             val_freq_label_lst.sort(key=itemgetter(1), reverse=True) #desc
-        elif tree_dims_node.sort_order == SORT_LABEL:
+        elif tree_dims_node.sort_order == my_globals.SORT_LABEL:
             val_freq_label_lst.sort(key=itemgetter(2)) #sort by label
         if not val_freq_label_lst:
             return #do not add subtree - no values
@@ -555,7 +509,7 @@ class LiveTable(DimTable):
             if terminal_var:
                 var_measures = tree_dims_node.measures
                 if not var_measures:
-                    var_measures = [FREQ]
+                    var_measures = [my_globals.FREQ]
             for val, val_freq, val_label in val_freq_label_lst:
                 """add level 2 to the data tree - the value nodes 
                 (plus total?); pass on and extend filtering from 
@@ -569,7 +523,7 @@ class LiveTable(DimTable):
                         val_node_filts.append("%s = %s" % (fld, val))
                     else:
                         val_node_filts.append("%s = \"%s\"" % (fld, val))
-                is_coltot=(is_tot and dim == COLDIM)
+                is_coltot=(is_tot and dim == my_globals.COLDIM)
                 val_node = \
                     node_lev1.addChild(LabelNode(label = val_label,
                         filts=val_node_filts))
@@ -578,8 +532,9 @@ class LiveTable(DimTable):
                 if terminal_var: #a terminal node - add measures
                     #only gen table cols and summ table rows can 
                     #  have measures
-                    if (dim == COLDIM and self.has_col_measures) or \
-                            (dim == ROWDIM and self.has_row_measures):
+                    if (dim == my_globals.COLDIM and self.has_col_measures) or \
+                            (dim == my_globals.ROWDIM and \
+                                self.has_row_measures):
                         self.addMeasures(label_node=val_node, 
                                          measures=var_measures, 
                                          is_coltot=is_coltot, 
@@ -886,7 +841,8 @@ class GenTable(LiveTable):
         # build the body row html
         for row in row_label_rows_lst:
             for j in range(len(col_term_nodes)):
-                data_format = data_format_dic[data_item_presn_lst[i][1]]
+                data_format = \
+                    my_globals.data_format_dic[data_item_presn_lst[i][1]]
                 data_val = data_format(results[i])
                 row.append(data_item_presn_lst[i][0] + \
                            data_val + data_item_presn_lst[i][2])
@@ -925,12 +881,12 @@ class GenTable(LiveTable):
                     row_filters_lst + all_but_last_col_filters_lst) + ")" + \
                     self.abs_wrapper_r
         #pprint.pprint(freq) # debug
-        if measure == FREQ:
+        if measure == my_globals.FREQ:
             if not is_coltot:
                 return freq
             else:
                 return col_freq
-        elif measure == COLPCT:
+        elif measure == my_globals.COLPCT:
             if not is_coltot:
                 numerator = freq
                 #we want to divide by all values where all the rows but the last match.
@@ -958,7 +914,7 @@ class GenTable(LiveTable):
             template = self.if_clause % (NOTNULL % perc, perc, 0)
             #print template #debug
             return template
-        elif measure == ROWPCT:
+        elif measure == my_globals.ROWPCT:
             if not is_coltot:
                 numerator = freq
                 #we want to divide by all values where all the rows match
@@ -1069,14 +1025,14 @@ class SummTable(LiveTable):
             filter = " WHERE " + col_filt_clause
         else: 
             filter = ""
-        sql_for_raw_only = [MEDIAN, STD_DEV]
+        sql_for_raw_only = [my_globals.MEDIAN, my_globals.STD_DEV]
         if measure in sql_for_raw_only:
             SQL_get_raw_vals = "SELECT %s " % row_fld + \
                 "FROM %s %s" % (self.datasource, filter)
             self.cur.execute(SQL_get_raw_vals)
             data = [x[0] for x in self.cur.fetchall() if x[0]]
             if debug: print data
-        if measure == SUM:
+        if measure == my_globals.SUM:
             SQL_get_sum = "SELECT SUM(%s) " % row_fld + \
                 "FROM " + self.datasource + filter
             try:
@@ -1084,7 +1040,7 @@ class SummTable(LiveTable):
                 data_val = self.cur.fetchone()[0]
             except Exception, e:
                 raise Exception, "Unable to calculate sum of %s." % row_fld
-        elif measure == MEAN:
+        elif measure == my_globals.MEAN:
             SQL_get_mean = "SELECT AVG(%s) " % row_fld + \
                 "FROM %s %s" % (self.datasource, filter)
             try:
@@ -1092,12 +1048,12 @@ class SummTable(LiveTable):
                 data_val =  round(self.cur.fetchone()[0],2)
             except Exception, e:
                 raise Exception, "Unable to calculate mean of %s." % row_fld
-        elif measure == MEDIAN:
+        elif measure == my_globals.MEDIAN:
             try:
                 data_val =  round(numpy.median(data),2)
             except Exception, e:
                 raise Exception, "Unable to calculate median for %s." % row_fld
-        elif measure == SUMM_N:
+        elif measure == my_globals.SUMM_N:
             SQL_get_n = "SELECT COUNT(%s) " % row_fld + \
                 "FROM %s %s" % (self.datasource, filter)
             try:
@@ -1105,7 +1061,7 @@ class SummTable(LiveTable):
                 data_val =  "N=%s" % self.cur.fetchone()[0]
             except Exception, e:
                 raise Exception, "Unable to calculate N for %s." % row_fld
-        elif measure == STD_DEV:
+        elif measure == my_globals.STD_DEV:
             try:
                 data_val =  round(numpy.std(data),2)
             except Exception, e:

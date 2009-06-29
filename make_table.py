@@ -6,39 +6,35 @@ import sys
 import time
 import wx
 
+import my_globals
 import demotables
 import dimtables
 import getdata
+import output
 import projects
 import rawtables
 import showhtml
 import table_entry
-import tabreports
 import util
 
 SCRIPT_PATH = util.get_script_path()
 LOCAL_PATH = util.get_local_path()
-HAS_TOTAL = "Total" #doubles as display label
-COL_MEASURES = 0 #indexes in tab type
-ROW_SUMM = 1
-RAW_DISPLAY = 2
 
-COL_MEASURES_TREE_LBL = "Column measures"
 
 # NB raw tables don't have measures
 def get_default_measure(tab_type):
     "Get default measure appropriate for table type"
-    if tab_type == COL_MEASURES: 
-        return dimtables.FREQ
-    elif tab_type == ROW_SUMM:
-        return dimtables.MEAN
+    if tab_type == my_globals.COL_MEASURES: 
+        return my_globals.FREQ
+    elif tab_type == my_globals.ROW_SUMM:
+        return my_globals.MEAN
     else:
         raise Exception, "Only dimension tables have measures"
     
 def AddClosingScriptCode(f):
     "Add ending code to script.  Nb leaves open file."
     f.write("\n\n#" + "-"*50 + "\n")
-    f.write("\nfil.write(tabreports.getHtmlFtr())")
+    f.write("\nfil.write(output.getHtmlFtr())")
     f.write("\nfil.close()")
 
 def GetColDets(coltree, colRoot, var_labels):
@@ -93,7 +89,7 @@ class MakeTable(object):
                   in self.txtTitles.GetValue().split("\n")]
         Subtitles = ["\"%s\"" % x for x \
                      in self.txtSubtitles.GetValue().split("\n")]
-        if self.tab_type == COL_MEASURES:
+        if self.tab_type == my_globals.COL_MEASURES:
             self.chkTotalsRow.SetValue(False)
             self.chkFirstAsLabel.SetValue(False)
             self.EnableOpts(enable=False)
@@ -109,7 +105,7 @@ class MakeTable(object):
                              var_labels=self.var_labels, 
                              val_dics=self.val_dics,
                              fil_css=self.fil_css)
-        elif self.tab_type == ROW_SUMM:
+        elif self.tab_type == my_globals.ROW_SUMM:
             self.chkTotalsRow.SetValue(False)
             self.chkFirstAsLabel.SetValue(False)
             self.EnableOpts(enable=False)
@@ -125,7 +121,7 @@ class MakeTable(object):
                              var_labels=self.var_labels, 
                              val_dics=self.val_dics,
                              fil_css=self.fil_css)
-        elif self.tab_type == RAW_DISPLAY:
+        elif self.tab_type == my_globals.RAW_DISPLAY:
             self.EnableOpts(enable=True)
             self.EnableRowSel(enable=False)
             self.btnColConf.Disable()
@@ -226,7 +222,7 @@ class MakeTable(object):
         else:
             f = file(self.fil_report, "w")
             hdr_title = time.strftime("SOFA Statistics Report %Y-%m-%d_%H:%M:%S")
-            f.write(tabreports.getHtmlHdr(hdr_title, self.fil_css))
+            f.write(output.getHtmlHdr(hdr_title, self.fil_css))
         f.write(content)
         f.close()
 
@@ -281,14 +277,15 @@ class MakeTable(object):
         fil.write("\n# -*- coding: utf-8 -*-\n")
         fil.write("\nimport sys")
         fil.write("\nsys.path.append('%s')" % util.get_script_path())
+        fil.write("\nimport my_globals")
         fil.write("\nimport dimtables")
         fil.write("\nimport rawtables")
-        fil.write("\nimport tabreports")
+        fil.write("\nimport output")
         fil.write("\nimport getdata\n")
         if not fil_report:
             fil_report = self.fil_report
         fil.write("\nfil = file(r\"%s\", \"w\")" % fil_report)
-        fil.write("\nfil.write(tabreports.getHtmlHdr(\"Report(s)\", " + \
+        fil.write("\nfil.write(output.getHtmlHdr(\"Report(s)\", " + \
                   "fil_css=r\"%s\"))" % self.fil_css)
     
     def AppendExportedScript(self, fil, has_rows, has_cols):
@@ -315,7 +312,7 @@ class MakeTable(object):
         "Build script from inputs"
         script_lst = []
         # set up variables required for passing into main table instantiation
-        if self.tab_type in [COL_MEASURES, ROW_SUMM]:
+        if self.tab_type in [my_globals.COL_MEASURES, my_globals.ROW_SUMM]:
             script_lst.append("tree_rows = dimtables.DimNodeTree()")
             for child in util.getTreeCtrlChildren(tree=self.rowtree, 
                                                   parent=self.rowRoot):
@@ -335,7 +332,7 @@ class MakeTable(object):
                                  parent=self.coltree, 
                                  parent_node_label="tree_cols",
                                  child=child, child_fld_name=child_fld_name)
-        elif self.tab_type == RAW_DISPLAY:
+        elif self.tab_type == my_globals.RAW_DISPLAY:
             col_names, col_labels = GetColDets(self.coltree, self.colRoot, 
                                                self.var_labels)
             script_lst.append("col_names = " + pprint.pformat(col_names))
@@ -349,7 +346,7 @@ class MakeTable(object):
         subtitles = ["%s" % x for x \
                      in self.txtSubtitles.GetValue().split("\n")]
         # NB the following text is all going to be run
-        if self.tab_type == COL_MEASURES:
+        if self.tab_type == my_globals.COL_MEASURES:
             script_lst.append("tab_test = dimtables.GenTable(titles=" + \
                               str(titles) + ",\n    subtitles=" + \
                               str(subtitles) + \
@@ -357,7 +354,7 @@ class MakeTable(object):
                               "\",\n    datasource=\"" + self.tbl_name + \
                               "\", cur=cur, tree_rows=tree_rows, " + \
                               "tree_cols=tree_cols)")
-        elif self.tab_type == ROW_SUMM:
+        elif self.tab_type == my_globals.ROW_SUMM:
             script_lst.append("tab_test = dimtables.SummTable(titles=" + \
                               str(titles) + ",\n    subtitles=" + \
                               str(subtitles) + \
@@ -365,7 +362,7 @@ class MakeTable(object):
                               "\",\n    datasource=\"" + self.tbl_name + \
                               "\", cur=cur, tree_rows=tree_rows, " + \
                               "tree_cols=tree_cols)")
-        elif self.tab_type == RAW_DISPLAY:
+        elif self.tab_type == my_globals.RAW_DISPLAY:
             tot_rows = "True" if self.chkTotalsRow.IsChecked() else "False"
             first_label = "True" if self.chkFirstAsLabel.IsChecked() \
                 else "False"
@@ -378,7 +375,7 @@ class MakeTable(object):
                 "\n    var_labels=var_labels, val_dics=val_dics, " + \
                 "add_total_row=%s, " % tot_rows + \
                 "\nfirst_col_as_label=%s)" % first_label)
-        if self.tab_type in [COL_MEASURES, ROW_SUMM]:
+        if self.tab_type in [my_globals.COL_MEASURES, my_globals.ROW_SUMM]:
             script_lst.append("tab_test.prepTable()")
             script_lst.append("max_cells = 5000")
             script_lst.append("if tab_test.getCellNOk(max_cells=max_cells):")
@@ -414,8 +411,8 @@ class MakeTable(object):
         child_node_label = "node_" + "_".join(child_fld_name.split(" "))
         item_conf = tree.GetItemPyData(child)
         measures_lst = item_conf.measures_lst
-        measures = ", ".join([("dimtables." + \
-                               dimtables.script_export_measures_dic[x]) for \
+        measures = ", ".join([("my_globals." + \
+                               my_globals.script_export_measures_dic[x]) for \
                                x in measures_lst])
         if measures:
             measures_arg = ", \n    measures=[%s]" % measures
@@ -473,8 +470,8 @@ class MakeTable(object):
         "Clear all settings"
         self.txtTitles.SetValue("")        
         self.txtSubtitles.SetValue("")
-        self.radTabType.SetSelection(COL_MEASURES)
-        self.tab_type = COL_MEASURES
+        self.radTabType.SetSelection(my_globals.COL_MEASURES)
+        self.tab_type = my_globals.COL_MEASURES
         self.rowtree.DeleteChildren(self.rowRoot)
         self.coltree.DeleteChildren(self.colRoot)
         self.UpdateByTabType()
@@ -530,17 +527,17 @@ class MakeTable(object):
                                          parent=self.colRoot)
         export_ok = False
         missing_dim = None
-        if self.tab_type == ROW_SUMM:
+        if self.tab_type == my_globals.ROW_SUMM:
             if has_rows:
                 export_ok = True
             else:
                 missing_dim = "row"
-        elif self.tab_type == RAW_DISPLAY:
+        elif self.tab_type == my_globals.RAW_DISPLAY:
             if has_cols:
                 export_ok = True
             else:
                 missing_dim = "column"
-        elif self.tab_type == COL_MEASURES:
+        elif self.tab_type == my_globals.COL_MEASURES:
             if has_rows and has_cols:
                 export_ok = True
             else:
@@ -555,7 +552,7 @@ class ItemConfig(object):
     """
     
     def __init__(self, measures_lst=None, has_tot=False, 
-                 sort_order=dimtables.SORT_NONE, bolnumeric=False):
+                 sort_order=my_globals.SORT_NONE, bolnumeric=False):
         if measures_lst:
             self.measures_lst = measures_lst
         else:
@@ -567,7 +564,7 @@ class ItemConfig(object):
     def hasData(self):
         "Has the item got any extra config e.g. measures, a total?"
         return self.measures_lst or self.has_tot or \
-            self.sort_order != dimtables.SORT_NONE
+            self.sort_order != my_globals.SORT_NONE
     
     def getSummary(self, verbose=False):
         "String summary of data"
@@ -575,13 +572,13 @@ class ItemConfig(object):
         total_part = "Has TOTAL" if self.has_tot else None
         if total_part:
             str_parts.append(total_part)
-        if self.sort_order == dimtables.SORT_NONE:
+        if self.sort_order == my_globals.SORT_NONE:
             sort_order_part = None
-        elif self.sort_order == dimtables.SORT_LABEL:
+        elif self.sort_order == my_globals.SORT_LABEL:
             sort_order_part = "Sort by Label"
-        elif self.sort_order == dimtables.SORT_FREQ_ASC:
+        elif self.sort_order == my_globals.SORT_FREQ_ASC:
             sort_order_part = "Sort by Freq (Asc)"
-        elif self.sort_order == dimtables.SORT_FREQ_DESC:
+        elif self.sort_order == my_globals.SORT_FREQ_DESC:
             sort_order_part = "Sort by Freq (Desc)"            
         if sort_order_part:
             str_parts.append(sort_order_part)

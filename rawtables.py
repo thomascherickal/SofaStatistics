@@ -1,11 +1,9 @@
 import os
 import datetime
 
+import my_globals
 import util
-import tabreports
 import getdata
-
-DEF_CSS = r"c:\projects\css\SOFA_Default_Style.css"
 
 
 class RawTable(object):
@@ -18,7 +16,7 @@ class RawTable(object):
                  var_labels, val_dics, datasource, cur, subtitles=None, 
                  add_total_row=False, first_col_as_label=False):
         """
-        Set up table details required to make output.
+        Set up table details required to make my_globals.
         dbe - only here so can use the same interface for all table types
         """
         self.titles = titles
@@ -74,8 +72,10 @@ class RawTable(object):
         When adding totals, will only do it if all values are numeric (Or None).
         """
         html = ""
-        html += "<table cellspacing='0'>\n" # IE6 doesn't support CSS borderspacing
+        html += "\n\n<table cellspacing='0'>\n" # IE6 - no support CSS borderspacing
         hdr_html = self.getHdrDets(self.col_labels)
+        html += hdr_html
+        # build body
         body_html = "\n\n<tbody>"
         row_tots = [0 for x in self.col_names]
         if self.first_col_as_label:
@@ -96,11 +96,11 @@ class RawTable(object):
         # pre-store css class(es) for each column
         col_class_lsts = [[] for x in self.col_names]
         if self.first_col_as_label:
-            col_class_lsts[0] = [tabreports.CSS_LBL]
+            col_class_lsts[0] = [my_globals.CSS_LBL]
         for i, col_name in enumerate(self.col_names):
             if self.flds[col_name][getdata.FLD_BOLNUMERIC] \
                     and not col_val_dics[i]:
-                col_class_lsts[i].append(tabreports.CSS_ALIGN_RIGHT)
+                col_class_lsts[i].append(my_globals.CSS_ALIGN_RIGHT)
         if self.add_total_row:
             row_tots = [0 for x in self.col_names] # initialise
         for row in rows:
@@ -117,7 +117,8 @@ class RawTable(object):
                         row_val = "-"
                 # cell format
                 col_class_names = "\"" + " ".join(col_class_lsts[i]) + "\""
-                col_classes = "class = %s" % col_class_names if col_class_names else ""
+                col_classes = "class = %s" % col_class_names \
+                    if col_class_names else ""
                 row_tds.append("<td %s>%s</td>" % (col_classes, row_val))
                 # process totals
                 if self.add_total_row:
@@ -133,21 +134,20 @@ class RawTable(object):
                         row_tots[i] += row_val
                     else:
                         row_tots[i] = "&nbsp;&nbsp;"
-            html += "\n<tr>" + "".join(row_tds) + "</td></tr>"
+            body_html += "\n<tr>" + "".join(row_tds) + "</td></tr>"
         if self.add_total_row:
             row_tot_vals = [str(x) for x in row_tots]
             if self.first_col_as_label:
-                tot_cell = "<td class='%s'>TOTAL</td>" % tabreports.CSS_LBL
+                tot_cell = "<td class='%s'>TOTAL</td>" % my_globals.CSS_LBL
                 row_tot_vals.pop(0)
             else:
                 tot_cell = ""
             # never a displayed total for strings (whether orig data or labels)
-            joiner = "</td><td class=\"%s\">" % tabreports.CSS_ALIGN_RIGHT
+            joiner = "</td><td class=\"%s\">" % my_globals.CSS_ALIGN_RIGHT
             body_html += "\n<tr class='total-row'>" + \
-                tot_cell + "<td class=\"%s\">"  % tabreports.CSS_ALIGN_RIGHT + \
+                tot_cell + "<td class=\"%s\">"  % my_globals.CSS_ALIGN_RIGHT + \
                 joiner.join(row_tot_vals) + "</td></tr>"
-        body_html += "\n</tbody>"        
-        html += hdr_html
+        body_html += "\n</tbody>"
         html += body_html
         html += "\n</table>"
         if page_break_after:

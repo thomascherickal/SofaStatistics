@@ -1,6 +1,7 @@
 
 import wx
 
+import my_globals
 import dimtables
 import util
 import make_table
@@ -97,14 +98,14 @@ class DimTree(object):
     def OnRowAdd(self, event):
         "Add row var under root"
         self.TryAdding(tree=self.rowtree, root=self.rowRoot, 
-                       dim=dimtables.ROWDIM, oth_dim=dimtables.COLDIM, 
+                       dim=my_globals.ROWDIM, oth_dim=my_globals.COLDIM, 
                        oth_dim_tree=self.coltree, 
                        oth_dim_root=self.colRoot)
      
     def OnColAdd(self, event):
         "Add column var under root"
         self.TryAdding(tree=self.coltree, root=self.colRoot, 
-                       dim=dimtables.COLDIM, oth_dim=dimtables.ROWDIM, 
+                       dim=my_globals.COLDIM, oth_dim=my_globals.ROWDIM, 
                        oth_dim_tree=self.rowtree, 
                        oth_dim_root=self.rowRoot)
     
@@ -130,13 +131,13 @@ class DimTree(object):
                                   text + "%s dimension" % oth_dim)
                     return
                 # in raw tables, can only use once
-                if self.tab_type == make_table.RAW_DISPLAY:
+                if self.tab_type == my_globals.RAW_DISPLAY:
                     used_in_this_dim = self.UsedInThisDim(text, tree, root)
                     if used_in_this_dim:
                         wx.MessageBox("Variable '%s' cannot be used more than once" \
                                       % text)
                         return
-                elif self.tab_type == make_table.ROW_SUMM \
+                elif self.tab_type == my_globals.ROW_SUMM \
                         and tree == self.rowtree:
                     # check it is not numeric (and make sure it lacks a label)
                     var_name, _ = getdata.extractVarDets(text)                
@@ -161,14 +162,14 @@ class DimTree(object):
             a normal column variable.
         """
         item_conf = make_table.ItemConfig()
-        if (self.tab_type == make_table.COL_MEASURES \
-                    and dim == dimtables.COLDIM):
+        if (self.tab_type == my_globals.COL_MEASURES \
+                    and dim == my_globals.COLDIM):
             item_conf.measures_lst = \
-                [make_table.get_default_measure(make_table.COL_MEASURES)]
-        elif (self.tab_type == make_table.ROW_SUMM \
-                    and dim == dimtables.ROWDIM):
+                [make_table.get_default_measure(my_globals.COL_MEASURES)]
+        elif (self.tab_type == my_globals.ROW_SUMM \
+                    and dim == my_globals.ROWDIM):
             item_conf.measures_lst = \
-                [make_table.get_default_measure(make_table.ROW_SUMM)]
+                [make_table.get_default_measure(my_globals.ROW_SUMM)]
         if var_name:
             item_conf.bolnumeric = self.flds[var_name][getdata.FLD_BOLNUMERIC]
         else:
@@ -183,13 +184,13 @@ class DimTree(object):
         """
         tree = self.rowtree
         root = self.rowRoot
-        dim = dimtables.ROWDIM
-        oth_dim = dimtables.COLDIM
+        dim = my_globals.ROWDIM
+        oth_dim = my_globals.COLDIM
         oth_dim_tree = self.coltree
         oth_dim_root = self.colRoot
         selected_ids = tree.GetSelections()
         if root not in selected_ids \
-                and self.tab_type != make_table.COL_MEASURES:
+                and self.tab_type != my_globals.COL_MEASURES:
             wx.MessageBox("Rows can only be nested in column " + \
                               "measures tables")
             return
@@ -210,8 +211,8 @@ class DimTree(object):
         """
         tree = self.coltree
         root = self.colRoot
-        dim = dimtables.COLDIM
-        oth_dim = dimtables.ROWDIM
+        dim = my_globals.COLDIM
+        oth_dim = my_globals.ROWDIM
         oth_dim_tree = self.rowtree
         oth_dim_root = self.rowRoot
         selected_ids = tree.GetSelections()
@@ -271,9 +272,9 @@ class DimTree(object):
                     if item_conf: #ignore root node
                         item_conf.measures_lst = []
                         if item_conf.sort_order in \
-                            [dimtables.SORT_FREQ_ASC, 
-                             dimtables.SORT_FREQ_DESC]:
-                            item_conf.sort_order = dimtables.SORT_NONE
+                            [my_globals.SORT_FREQ_ASC, 
+                             my_globals.SORT_FREQ_DESC]:
+                            item_conf.sort_order = my_globals.SORT_NONE
                         tree.SetItemText(ancestor, 
                                          item_conf.getSummary(), 1)                        
             if text_selected:
@@ -320,7 +321,7 @@ class DimTree(object):
         # if the rowtree is now empty, ensure 
         # colmeasures is wiped as well (and restore Add and Add Under 
         # buttons too ;-)
-        if self.tab_type == make_table.COL_MEASURES and \
+        if self.tab_type == my_globals.COL_MEASURES and \
                 not util.ItemHasChildren(tree=self.rowtree,
                                      parent=self.rowRoot) and \
                 self.col_no_vars_item:
@@ -369,8 +370,8 @@ class DimTree(object):
         selected_ids = self.rowtree.GetSelections()
         first_selected_id = selected_ids[0] 
         # get results from appropriate dialog and store as data
-        inc_measures = (self.tab_type == make_table.ROW_SUMM)
-        if self.tab_type == make_table.ROW_SUMM:
+        inc_measures = (self.tab_type == my_globals.ROW_SUMM)
+        if self.tab_type == my_globals.ROW_SUMM:
             sort_opt_allowed = SORT_OPT_NONE
         elif not util.ItemHasChildren(tree=self.rowtree, 
                                       parent=first_selected_id):
@@ -400,7 +401,7 @@ class DimTree(object):
         # empty_tree = not self.coltree.ItemHasChildren(self.colRoot) #buggy if root hidden
         # i.e. if there is only the root there
         # no col vars - just set measures (without total)
-        if empty_coltree and self.tab_type == make_table.COL_MEASURES:
+        if empty_coltree and self.tab_type == my_globals.COL_MEASURES:
             empty_rowtree = not util.ItemHasChildren(tree=self.rowtree, 
                                                      parent=self.rowRoot)
             if empty_rowtree:
@@ -408,8 +409,8 @@ class DimTree(object):
             #add special node before getting config
             self.col_no_vars_item = \
                 self.coltree.AppendItem(self.colRoot, 
-                                        make_table.COL_MEASURES_TREE_LBL)
-            self.setInitialConfig(self.coltree, dimtables.COLDIM, 
+                                        my_globals.COL_MEASURES_TREE_LBL)
+            self.setInitialConfig(self.coltree, my_globals.COLDIM, 
                                   self.col_no_vars_item)
             self.demo_tab.col_no_vars_item = self.col_no_vars_item
             self.coltree.ExpandAll(self.colRoot)
@@ -419,7 +420,7 @@ class DimTree(object):
             self.getColConfig(node_ids=[self.col_no_vars_item], 
                                   has_col_vars=False)
             self.UpdateDemoDisplay()
-        elif empty_coltree and self.tab_type == make_table.ROW_SUMM:
+        elif empty_coltree and self.tab_type == my_globals.ROW_SUMM:
             return
         else: # not an empty col_measures or row summ table
             selected_ids = self.coltree.GetSelections()
@@ -464,10 +465,10 @@ class DimTree(object):
         else:
             item, cookie = self.coltree.GetFirstChild(node_ids[0])
             has_children = True if item else False
-        inc_measures = ((self.tab_type == make_table.COL_MEASURES)
+        inc_measures = ((self.tab_type == my_globals.COL_MEASURES)
                         and not has_children)
         if self.col_no_vars_item in node_ids \
-                or self.tab_type != make_table.COL_MEASURES:
+                or self.tab_type != my_globals.COL_MEASURES:
             sort_opt_allowed = SORT_OPT_NONE
         elif not util.ItemHasChildren(tree=self.coltree, 
                                       parent=node_ids[0]):
@@ -629,7 +630,7 @@ class DlgConfig(wx.Dialog):
         if self.allow_tot:
             boxMisc = wx.StaticBox(self, -1, "Misc")
             szrMisc = wx.StaticBoxSizer(boxMisc, wx.VERTICAL)
-            self.chkTotal = wx.CheckBox(self, -1, make_table.HAS_TOTAL, 
+            self.chkTotal = wx.CheckBox(self, -1, my_globals.HAS_TOTAL, 
                                         size=chkSize)
             if item_conf.has_tot:
                 self.chkTotal.SetValue(True)
@@ -637,19 +638,19 @@ class DlgConfig(wx.Dialog):
             szrMain.Add(szrMisc, 0, wx.GROW|wx.ALL, 10)
         if self.sort_opt_allowed != SORT_OPT_NONE:
             self.radSortOpts = wx.RadioBox(self, -1, "Sort order",
-                                       choices=[dimtables.SORT_NONE, 
-                                                dimtables.SORT_LABEL,
-                                                dimtables.SORT_FREQ_ASC,
-                                                dimtables.SORT_FREQ_DESC],
+                                       choices=[my_globals.SORT_NONE, 
+                                                my_globals.SORT_LABEL,
+                                                my_globals.SORT_FREQ_ASC,
+                                                my_globals.SORT_FREQ_DESC],
                                        size=(400,50))
             # set selection according to existing item_conf
-            if item_conf.sort_order == dimtables.SORT_NONE:
+            if item_conf.sort_order == my_globals.SORT_NONE:
                 self.radSortOpts.SetSelection(0)
-            elif item_conf.sort_order == dimtables.SORT_LABEL:
+            elif item_conf.sort_order == my_globals.SORT_LABEL:
                 self.radSortOpts.SetSelection(1)
-            elif item_conf.sort_order == dimtables.SORT_FREQ_ASC:
+            elif item_conf.sort_order == my_globals.SORT_FREQ_ASC:
                 self.radSortOpts.SetSelection(2)
-            elif item_conf.sort_order == dimtables.SORT_FREQ_DESC:
+            elif item_conf.sort_order == my_globals.SORT_FREQ_DESC:
                 self.radSortOpts.SetSelection(3)
             if self.sort_opt_allowed == SORT_OPT_BY_LABEL:
                 # disable freq options
@@ -703,17 +704,17 @@ class DlgConfig(wx.Dialog):
         has_tot = self.allow_tot and self.chkTotal.GetValue()
         # sort order
         if self.sort_opt_allowed == SORT_OPT_NONE:
-            sort_order = dimtables.SORT_NONE
+            sort_order = my_globals.SORT_NONE
         else:
             sort_opt_selection = self.radSortOpts.GetSelection()
             if sort_opt_selection == 0:
-                sort_order = dimtables.SORT_NONE
+                sort_order = my_globals.SORT_NONE
             if sort_opt_selection == 1:
-                sort_order = dimtables.SORT_LABEL
+                sort_order = my_globals.SORT_LABEL
             if sort_opt_selection == 2:
-                sort_order = dimtables.SORT_FREQ_ASC
+                sort_order = my_globals.SORT_FREQ_ASC
             if sort_opt_selection == 3:
-                sort_order = dimtables.SORT_FREQ_DESC
+                sort_order = my_globals.SORT_FREQ_DESC
         for node_id in self.node_ids:
             bolnumeric = self.tree.GetItemPyData(node_id).bolnumeric
             item_conf = make_table.ItemConfig(measures_lst, has_tot, 
@@ -737,18 +738,18 @@ class DlgRowConfig(DlgConfig):
         title = "Configure Row Item"
         if inc_measures:
             self.measures = [
-                (dimtables.MEAN, 
-                    dimtables.measures_long_label_dic[dimtables.MEAN]), 
-                (dimtables.MEDIAN, 
-                    dimtables.measures_long_label_dic[dimtables.MEDIAN]), 
-                (dimtables.SUMM_N, 
-                    dimtables.measures_long_label_dic[dimtables.SUMM_N]), 
-                (dimtables.STD_DEV, 
-                    dimtables.measures_long_label_dic[dimtables.STD_DEV]),
-                (dimtables.SUM, 
-                    dimtables.measures_long_label_dic[dimtables.SUM]),
+                (my_globals.MEAN, 
+                    my_globals.measures_long_label_dic[my_globals.MEAN]), 
+                (my_globals.MEDIAN, 
+                    my_globals.measures_long_label_dic[my_globals.MEDIAN]), 
+                (my_globals.SUMM_N, 
+                    my_globals.measures_long_label_dic[my_globals.SUMM_N]), 
+                (my_globals.STD_DEV, 
+                    my_globals.measures_long_label_dic[my_globals.STD_DEV]),
+                (my_globals.SUM, 
+                    my_globals.measures_long_label_dic[my_globals.SUM]),
                 ]
-            self.min_measure = dimtables.MEAN
+            self.min_measure = my_globals.MEAN
         else:
             self.measures = []
             self.min_measure = None
@@ -764,14 +765,14 @@ class DlgColConfig(DlgConfig):
         title = "Configure Column Item"
         if inc_measures:
             self.measures = [
-                (dimtables.FREQ, 
-                    dimtables.measures_long_label_dic[dimtables.FREQ]), 
-                (dimtables.ROWPCT, 
-                    dimtables.measures_long_label_dic[dimtables.ROWPCT]),
-                (dimtables.COLPCT, 
-                    dimtables.measures_long_label_dic[dimtables.COLPCT])
+                (my_globals.FREQ, 
+                    my_globals.measures_long_label_dic[my_globals.FREQ]), 
+                (my_globals.ROWPCT, 
+                    my_globals.measures_long_label_dic[my_globals.ROWPCT]),
+                (my_globals.COLPCT, 
+                    my_globals.measures_long_label_dic[my_globals.COLPCT])
                 ]
-            self.min_measure = dimtables.FREQ
+            self.min_measure = my_globals.FREQ
         else:
             self.measures = []
             self.min_measure = None
