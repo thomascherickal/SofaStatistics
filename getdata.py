@@ -2,6 +2,7 @@ import os
 import pprint
 import wx
 
+import my_globals
 import util
 
 # must be before dbe import statements (they have classes based on DbDets)
@@ -23,7 +24,8 @@ class DbDets(object):
         """
         Must return dic of dics called flds.
         Gets dic of dics for each field with field name as key. Each field dic
-            has as keys the FLD_ variables listed below e.g. FLD_BOLNUMERIC.
+            has as keys the FLD_ variables listed in my_globals e.g. 
+            FLD_BOLNUMERIC.
         Need enough to present fields in order, validate data entry, 
             and guide labelling and reporting (e.g. numeric or categorical).
         """
@@ -40,27 +42,25 @@ class DbDets(object):
 """
 Include database engine in system if in dbe_plugins folder and os-appropriate.
 """
-# also used as labels in dropdowns
-DBE_SQLITE = "SQLite"
-DBE_MYSQL = "MySQL"
-DBE_MS_ACCESS = "MS Access"
 def import_dbe_plugin(dbe_plugin):
-    if dbe_plugin == DBE_SQLITE:
+    if dbe_plugin == my_globals.DBE_SQLITE:
         import dbe_plugins.dbe_sqlite as dbe_sqlite
         mod = dbe_sqlite
-    elif dbe_plugin == DBE_MYSQL:
+    elif dbe_plugin == my_globals.DBE_MYSQL:
         import dbe_plugins.dbe_mysql as dbe_mysql
         mod = dbe_mysql
-    elif dbe_plugin == DBE_MS_ACCESS:
+    elif dbe_plugin == my_globals.DBE_MS_ACCESS:
         import dbe_plugins.dbe_ms_access as dbe_ms_access
         mod = dbe_ms_access
     return mod
 DBES = []
 DBE_MODULES = {}
-DBE_PLUGINS = [(DBE_SQLITE, "dbe_sqlite"), (DBE_MYSQL, "dbe_mysql"), 
-               (DBE_MS_ACCESS, "dbe_ms_access")]
+DBE_PLUGINS = [(my_globals.DBE_SQLITE, "dbe_sqlite"), 
+               (my_globals.DBE_MYSQL, "dbe_mysql"), 
+               (my_globals.DBE_MS_ACCESS, "dbe_ms_access")]
 for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
-    access_yet_not_win = not util.in_windows() and dbe_plugin == DBE_MS_ACCESS
+    access_yet_not_win = not util.in_windows() and \
+        dbe_plugin == my_globals.DBE_MS_ACCESS
     dbe_plugin_mod = os.path.join(os.path.dirname(__file__), "dbe_plugins", 
                                    "%s.py" % dbe_mod_name)
     if os.path.exists(dbe_plugin_mod):
@@ -68,29 +68,6 @@ for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
             DBES.append(dbe_plugin)
             dbe_mod = import_dbe_plugin(dbe_plugin)
             DBE_MODULES[dbe_plugin] = dbe_mod
-# misc field dets
-FLD_SEQ = "field sequence"
-FLD_BOLNULLABLE = "field nullable"
-FLD_DATA_ENTRY_OK = "data entry ok" # e.g. not autonumber, timestamp etc
-FLD_COLUMN_DEFAULT = "field default"
-# test
-FLD_BOLTEXT = "field text"
-FLD_TEXT_LENGTH = "field text length"
-FLD_CHARSET = "field charset"
-# numbers
-FLD_BOLNUMERIC = "field numeric"
-FLD_BOLAUTONUMBER = "field autonumber"
-FLD_DECPTS = "field decpts"
-FLD_NUM_WIDTH = "field numeric display width" # used for column display only
-FLD_BOL_NUM_SIGNED = "field numeric signed"
-FLD_NUM_MIN_VAL = "field numeric minimum value"
-FLD_NUM_MAX_VAL = "field numeric maximum value"
-# datetime
-FLD_BOLDATETIME = "field datetime"
-# indexes
-IDX_NAME = "index name"
-IDX_IS_UNIQUE = "index is unique"
-IDX_FLDS = "index fields"
 
 def get_quoter_func(dbe):
     """
@@ -130,28 +107,29 @@ def getProjConnSettings(parent, proj_dic):
 
 def FldsDic2FldNamesLst(flds_dic):
     # pprint.pprint(flds_dic) # debug
-    flds_lst = sorted(flds_dic, key=lambda s: flds_dic[s][FLD_SEQ])
+    flds_lst = sorted(flds_dic, key=lambda s: flds_dic[s][my_globals.FLD_SEQ])
     return flds_lst
 
-def getVarItem(var_labels, var_name):
-    return "%s (%s)" % (var_labels.get(var_name, var_name.title()),
-                        var_name)
+def getChoiceItem(item_labels, item_val):
+    str_val = str(item_val)
+    return "%s (%s)" % (item_labels.get(item_val, str_val.title()), str_val)
 
-def extractVarDets(choice_text):
+def extractChoiceDets(choice_text):
     """
-    Extract var_name, var_label from tree item e.g. return "gender"
+    Extract name, label from item e.g. return "gender"
         and "Gender" from "Gender (gender)".
+    Returns as string (even if original was a number etc).
     If not in this format, e.g. special col measures label, handle differently.
     """
     try:
         start_idx = choice_text.index("(") + 1
         end_idx = choice_text.index(")")
-        var_name = choice_text[start_idx:end_idx]
-        var_label = choice_text[:start_idx - 2]
+        item_val = choice_text[start_idx:end_idx]
+        item_label = choice_text[:start_idx - 2]
     except Exception:
-        var_name = choice_text
-        var_label = choice_text        
-    return var_name, var_label
+        item_val = choice_text
+        item_label = choice_text        
+    return item_val, item_label
 
 def setConnDetDefaults(parent):
     """
@@ -208,7 +186,7 @@ def PrepValue(dbe, val, fld_dic):
         debug = False
         if val in [None, "."]: # TODO - use a const without having to import db_tbl
             val2use = None
-        elif fld_dic[FLD_BOLDATETIME]:
+        elif fld_dic[my_globals.FLD_BOLDATETIME]:
             if val == "":
                 val2use = None
             else:

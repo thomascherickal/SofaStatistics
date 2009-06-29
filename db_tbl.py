@@ -6,6 +6,7 @@ import pprint
 import wx
 import wx.grid
 
+import my_globals
 import getdata
 
 MISSING_VAL_INDICATOR = "."
@@ -76,13 +77,14 @@ class DbTbl(wx.grid.PyGridTableBase):
         idx_is_unique = 1
         idx_flds = 2
         for idx in self.idxs:
-            name = idx[getdata.IDX_NAME] 
-            is_unique = idx[getdata.IDX_IS_UNIQUE]
-            fld_names = idx[getdata.IDX_FLDS]
+            name = idx[my_globals.IDX_NAME] 
+            is_unique = idx[my_globals.IDX_IS_UNIQUE]
+            fld_names = idx[my_globals.IDX_FLDS]
             if is_unique:
                 # pretend only ever one field (TODO see above)
                 fld_to_use = fld_names[0]
-                must_quote = not self.flds[fld_to_use][getdata.FLD_BOLNUMERIC]
+                must_quote = not \
+                    self.flds[fld_to_use][my_globals.FLD_BOLNUMERIC]
                 col_idx = self.fld_names.index(fld_to_use)
                 if self.debug:
                     print "Col idx: %s" % col_idx

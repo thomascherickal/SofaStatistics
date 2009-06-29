@@ -44,7 +44,7 @@ def GetColDets(coltree, colRoot, var_labels):
     """
     full_col_labels = util.getSubTreeItems(coltree, colRoot)
     split_col_tree_labels = full_col_labels.split(", ")        
-    col_names = [getdata.extractVarDets(x)[0] for x in split_col_tree_labels]
+    col_names = [getdata.extractChoiceDets(x)[0] for x in split_col_tree_labels]
     col_labels = [var_labels.get(x, x.title()) for x in col_names]
     return col_names, col_labels
 
@@ -70,8 +70,9 @@ class MakeTable(object):
     def RefreshDescendants(self, tree, descendants):
         ""
         for descendant in descendants:
-            var_name, _ = getdata.extractVarDets(tree.GetItemText(descendant))
-            fresh_label = getdata.getVarItem(self.var_labels, var_name)
+            var_name, _ = \
+                getdata.extractChoiceDets(tree.GetItemText(descendant))
+            fresh_label = getdata.getChoiceItem(self.var_labels, var_name)
             tree.SetItemText(descendant, fresh_label)
 
     # table type
@@ -317,7 +318,7 @@ class MakeTable(object):
             for child in util.getTreeCtrlChildren(tree=self.rowtree, 
                                                   parent=self.rowRoot):
                 child_fld_name, _ = \
-                    getdata.extractVarDets(self.rowtree.GetItemText(child))
+                    getdata.extractChoiceDets(self.rowtree.GetItemText(child))
                 self.addToParent(script_lst=script_lst, tree=self.rowtree, 
                              parent=self.rowtree, 
                              parent_node_label="tree_rows",
@@ -327,7 +328,8 @@ class MakeTable(object):
                 for child in util.getTreeCtrlChildren(tree=self.coltree, 
                                                       parent=self.colRoot):
                     child_fld_name, _ = \
-                        getdata.extractVarDets(self.coltree.GetItemText(child))
+                        getdata.extractChoiceDets(\
+                                            self.coltree.GetItemText(child))
                     self.addToParent(script_lst=script_lst, tree=self.coltree, 
                                  parent=self.coltree, 
                                  parent_node_label="tree_cols",
@@ -437,7 +439,7 @@ class MakeTable(object):
         for grandchild in util.getTreeCtrlChildren(tree=tree, 
                                                    parent=child):
             grandchild_fld_name, _ = \
-                getdata.extractVarDets(tree.GetItemText(grandchild))
+                getdata.extractChoiceDets(tree.GetItemText(grandchild))
             self.addToParent(script_lst=script_lst, tree=tree, 
                              parent=child, 
                              parent_node_label=child_node_label,

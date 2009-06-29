@@ -4,6 +4,7 @@ import util
 import wx
 import wx.grid
 
+import my_globals
 import db_tbl
 import getdata
 import text_editor
@@ -327,8 +328,8 @@ class TblEditor(wx.Dialog):
     
     def ValueInRange(self, raw_val, fld_dic):
         "NB may be None if N/A e.g. SQLite"
-        min = fld_dic[getdata.FLD_NUM_MIN_VAL]
-        max = fld_dic[getdata.FLD_NUM_MAX_VAL]        
+        min = fld_dic[my_globals.FLD_NUM_MIN_VAL]
+        max = fld_dic[my_globals.FLD_NUM_MAX_VAL]        
         if min != None:
             if Decimal(raw_val) < Decimal(str(min)):
                 if self.debug: print "%s is < the min of %s" % (raw_val, min)
@@ -377,12 +378,12 @@ class TblEditor(wx.Dialog):
             pprint.pprint(fld_dic)
         if raw_val == db_tbl.MISSING_VAL_INDICATOR or raw_val == None:
             return False
-        elif not fld_dic[getdata.FLD_DATA_ENTRY_OK]: 
+        elif not fld_dic[my_globals.FLD_DATA_ENTRY_OK]: 
              # i.e. not autonumber, timestamp etc
              # and raw_val != db_tbl.MISSING_VAL_INDICATOR unnecessary
             wx.MessageBox("This field does not accept user data entry.")
             return True # i.e. invalid, not OK
-        elif fld_dic[getdata.FLD_BOLNUMERIC]:
+        elif fld_dic[my_globals.FLD_BOLNUMERIC]:
             if not util.isNumeric(raw_val):
                 wx.MessageBox("\"%s\" is not a valid number.\n\n" % raw_val + \
                               "Either enter a valid number or " + \
@@ -392,7 +393,7 @@ class TblEditor(wx.Dialog):
                 if self.debug: print "\"%s\" is invalid for data type" % raw_val
                 return True
             return False
-        elif fld_dic[getdata.FLD_BOLDATETIME]:
+        elif fld_dic[my_globals.FLD_BOLDATETIME]:
             valid_datetime, _ = util.valid_datetime_str(raw_val)
             if not valid_datetime:
                 wx.MessageBox("\"%s\" is not a valid datetime.\n\n" % \
@@ -402,8 +403,8 @@ class TblEditor(wx.Dialog):
                               "the missing value character (.)")
                 return True
             return False
-        elif fld_dic[getdata.FLD_BOLTEXT]:
-            max_len = fld_dic[getdata.FLD_TEXT_LENGTH]
+        elif fld_dic[my_globals.FLD_BOLTEXT]:
+            max_len = fld_dic[my_globals.FLD_TEXT_LENGTH]
             if max_len == None: # SQLite returns None if TEXT
                 return False
             if len(raw_val) > max_len:
@@ -439,8 +440,8 @@ class TblEditor(wx.Dialog):
         fld_dic = self.dbtbl.GetFldDic(col)
         missing_not_nullable_prob = \
             (raw_val == db_tbl.MISSING_VAL_INDICATOR and \
-             not fld_dic[getdata.FLD_BOLNULLABLE] and \
-             fld_dic[getdata.FLD_DATA_ENTRY_OK])
+             not fld_dic[my_globals.FLD_BOLNULLABLE] and \
+             fld_dic[my_globals.FLD_DATA_ENTRY_OK])
         if missing_not_nullable_prob:
             wx.MessageBox("This field will not allow missing values to " + \
                           "be stored")
@@ -562,14 +563,14 @@ class TblEditor(wx.Dialog):
         for col_idx, fld_name in enumerate(sorted_fld_names):
             fld_dic = self.flds[fld_name]
             col_width = None
-            if fld_dic[getdata.FLD_BOLTEXT]:
-                txt_len = fld_dic[getdata.FLD_TEXT_LENGTH]
+            if fld_dic[my_globals.FLD_BOLTEXT]:
+                txt_len = fld_dic[my_globals.FLD_TEXT_LENGTH]
                 col_width = txt_len*pix_per_char if txt_len != None \
                     and txt_len < 25 else None # leave for auto
-            elif fld_dic[getdata.FLD_BOLNUMERIC]:
-                num_len = fld_dic[getdata.FLD_NUM_WIDTH]
+            elif fld_dic[my_globals.FLD_BOLNUMERIC]:
+                num_len = fld_dic[my_globals.FLD_NUM_WIDTH]
                 col_width = num_len*pix_per_char if num_len != None else None
-            elif fld_dic[getdata.FLD_BOLDATETIME]:
+            elif fld_dic[my_globals.FLD_BOLDATETIME]:
                 col_width = 170
             if col_width:
                 if self.debug: print "Width of %s set to %s" % (fld_name, 

@@ -13,6 +13,7 @@ import win32com.client
 import wx
 import pprint
 
+import my_globals
 import getdata
 import table_entry
 
@@ -164,21 +165,21 @@ class DbDets(getdata.DbDets):
             num_prec = col.Precision
             min_val, max_val = self.GetMinMax(fld_type, num_prec, dec_pts)
             dets_dic = {
-                getdata.FLD_SEQ: extras[fld_name][0],
-                getdata.FLD_BOLNULLABLE: col.Properties("Nullable").Value,
-                getdata.FLD_DATA_ENTRY_OK: boldata_entry_ok,
-                getdata.FLD_COLUMN_DEFAULT: col.Properties("Default").Value,
-                getdata.FLD_BOLTEXT: fld_txt,
-                getdata.FLD_TEXT_LENGTH: col.DefinedSize,
-                getdata.FLD_CHARSET: extras[fld_name][1],
-                getdata.FLD_BOLNUMERIC: bolnumeric,
-                getdata.FLD_BOLAUTONUMBER: bolautonum,
-                getdata.FLD_DECPTS: dec_pts,
-                getdata.FLD_NUM_WIDTH: num_prec,
-                getdata.FLD_BOL_NUM_SIGNED: True,
-                getdata.FLD_NUM_MIN_VAL: min_val,
-                getdata.FLD_NUM_MAX_VAL: max_val,
-                getdata.FLD_BOLDATETIME: boldatetime, 
+                my_globals.FLD_SEQ: extras[fld_name][0],
+                my_globals.FLD_BOLNULLABLE: col.Properties("Nullable").Value,
+                my_globals.FLD_DATA_ENTRY_OK: boldata_entry_ok,
+                my_globals.FLD_COLUMN_DEFAULT: col.Properties("Default").Value,
+                my_globals.FLD_BOLTEXT: fld_txt,
+                my_globals.FLD_TEXT_LENGTH: col.DefinedSize,
+                my_globals.FLD_CHARSET: extras[fld_name][1],
+                my_globals.FLD_BOLNUMERIC: bolnumeric,
+                my_globals.FLD_BOLAUTONUMBER: bolautonum,
+                my_globals.FLD_DECPTS: dec_pts,
+                my_globals.FLD_NUM_WIDTH: num_prec,
+                my_globals.FLD_BOL_NUM_SIGNED: True,
+                my_globals.FLD_NUM_MIN_VAL: min_val,
+                my_globals.FLD_NUM_MAX_VAL: max_val,
+                my_globals.FLD_BOLDATETIME: boldatetime, 
             }
             flds[fld_name] = dets_dic
         debug = False 
@@ -203,9 +204,9 @@ class DbDets(getdata.DbDets):
             if index.Unique:
                 has_unique = True
             fld_names = [x.Name for x in index.Columns]
-            idx_dic = {getdata.IDX_NAME: index.Name, 
-                       getdata.IDX_IS_UNIQUE: index.Unique, 
-                       getdata.IDX_FLDS: fld_names}
+            idx_dic = {my_globals.IDX_NAME: index.Name, 
+                       my_globals.IDX_IS_UNIQUE: index.Unique, 
+                       my_globals.IDX_FLDS: fld_names}
             idxs.append(idx_dic)
         cat = None
         debug = False
@@ -226,7 +227,7 @@ class DbDets(getdata.DbDets):
         Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
         """
         
-        conn_dets_access = self.conn_dets.get(getdata.DBE_MS_ACCESS)
+        conn_dets_access = self.conn_dets.get(my_globals.DBE_MS_ACCESS)
         if not conn_dets_access:
             raise Exception, "No connection details available for MS Access"
         if not conn_dets_access.get(self.db):
@@ -363,11 +364,11 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
 def getProjSettings(parent, proj_dic):
     ""
     parent.msaccess_default_tbl = \
-        proj_dic["default_tbls"][getdata.DBE_MS_ACCESS]
-    if proj_dic["conn_dets"].get(getdata.DBE_MS_ACCESS):
+        proj_dic["default_tbls"][my_globals.DBE_MS_ACCESS]
+    if proj_dic["conn_dets"].get(my_globals.DBE_MS_ACCESS):
         parent.msaccess_data = [(x["database"], x["mdw"], x["user"], 
                                  x["pwd"]) \
-            for x in proj_dic["conn_dets"][getdata.DBE_MS_ACCESS].values()]
+            for x in proj_dic["conn_dets"][my_globals.DBE_MS_ACCESS].values()]
     else:
         parent.msaccess_data = []
 
@@ -395,9 +396,9 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     if incomplete_msaccess:
         wx.MessageBox("The MS Access details are incomplete")
         parent.txtMsaccessDefaultDb.SetFocus()
-    default_dbs[getdata.DBE_MS_ACCESS] = msaccess_default_db \
+    default_dbs[my_globals.DBE_MS_ACCESS] = msaccess_default_db \
         if msaccess_default_db else None            
-    default_tbls[getdata.DBE_MS_ACCESS] = msaccess_default_tbl \
+    default_tbls[my_globals.DBE_MS_ACCESS] = msaccess_default_tbl \
         if msaccess_default_tbl else None
     #pprint.pprint(parent.msaccess_new_grid_data) # debug
     msaccess_settings = parent.msaccess_new_grid_data
@@ -412,5 +413,5 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
             new_msaccess_dic["user"] = msaccess_setting[2]
             new_msaccess_dic["pwd"] = msaccess_setting[3]
             conn_dets_msaccess[db_name] = new_msaccess_dic
-        conn_dets[getdata.DBE_MS_ACCESS] = conn_dets_msaccess
+        conn_dets[my_globals.DBE_MS_ACCESS] = conn_dets_msaccess
     return incomplete_msaccess, has_msaccess_conn

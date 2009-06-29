@@ -4,6 +4,7 @@ import pprint
 import re
 import wx
 
+import my_globals
 import getdata
 import projects
 import table_entry
@@ -67,21 +68,21 @@ class DbDets(getdata.DbDets):
                                                "timestamp"]
             fld_txt = not bolnumeric and not boldatetime
             dets_dic = {
-                getdata.FLD_SEQ: cid,
-                getdata.FLD_BOLNULLABLE: bolnullable,
-                getdata.FLD_DATA_ENTRY_OK: boldata_entry_ok,
-                getdata.FLD_COLUMN_DEFAULT: dflt_value,
-                getdata.FLD_BOLTEXT: fld_txt,
-                getdata.FLD_TEXT_LENGTH: self.getCharLen(fld_type),
-                getdata.FLD_CHARSET: encoding,
-                getdata.FLD_BOLNUMERIC: bolnumeric,
-                getdata.FLD_BOLAUTONUMBER: bolautonum,
-                getdata.FLD_DECPTS: None, # not really applicable - no limit
-                getdata.FLD_NUM_WIDTH: None, # no limit (TODO unless check constraint)
-                getdata.FLD_BOL_NUM_SIGNED: True,
-                getdata.FLD_NUM_MIN_VAL: None, # not really applicable - no limit
-                getdata.FLD_NUM_MAX_VAL: None, # not really applicable - no limit
-                getdata.FLD_BOLDATETIME: boldatetime, 
+                my_globals.FLD_SEQ: cid,
+                my_globals.FLD_BOLNULLABLE: bolnullable,
+                my_globals.FLD_DATA_ENTRY_OK: boldata_entry_ok,
+                my_globals.FLD_COLUMN_DEFAULT: dflt_value,
+                my_globals.FLD_BOLTEXT: fld_txt,
+                my_globals.FLD_TEXT_LENGTH: self.getCharLen(fld_type),
+                my_globals.FLD_CHARSET: encoding,
+                my_globals.FLD_BOLNUMERIC: bolnumeric,
+                my_globals.FLD_BOLAUTONUMBER: bolautonum,
+                my_globals.FLD_DECPTS: None, # not really applicable - no limit
+                my_globals.FLD_NUM_WIDTH: None, # no limit (TODO unless check constraint)
+                my_globals.FLD_BOL_NUM_SIGNED: True,
+                my_globals.FLD_NUM_MIN_VAL: None, # not really applicable - no limit
+                my_globals.FLD_NUM_MAX_VAL: None, # not really applicable - no limit
+                my_globals.FLD_BOLDATETIME: boldatetime, 
                 }
             flds[fld_name] = dets_dic
         return flds
@@ -113,9 +114,9 @@ class DbDets(getdata.DbDets):
                 unique = (idx_lst[i][names_idx_unique] == 1)
                 if unique:
                     has_unique = True
-                idx_dic = {getdata.IDX_NAME: idx_name, 
-                           getdata.IDX_IS_UNIQUE: unique, 
-                           getdata.IDX_FLDS: fld_names}
+                idx_dic = {my_globals.IDX_NAME: idx_name, 
+                           my_globals.IDX_IS_UNIQUE: unique, 
+                           my_globals.IDX_FLDS: fld_names}
                 idxs.append(idx_dic)
         if debug:
             pprint.pprint(idxs)
@@ -132,7 +133,7 @@ class DbDets(getdata.DbDets):
         The field dets will be taken from the table used.
         Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
         """
-        conn_dets_sqlite = self.conn_dets.get(getdata.DBE_SQLITE)
+        conn_dets_sqlite = self.conn_dets.get(my_globals.DBE_SQLITE)
         if not conn_dets_sqlite:
             raise Exception, "No connection details available for SQLite"
         if not self.db:
@@ -240,11 +241,11 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
 
 def getProjSettings(parent, proj_dic):
     ""
-    parent.sqlite_default_db = proj_dic["default_dbs"][getdata.DBE_SQLITE]
-    parent.sqlite_default_tbl = proj_dic["default_tbls"][getdata.DBE_SQLITE]
-    if proj_dic["conn_dets"].get(getdata.DBE_SQLITE):
+    parent.sqlite_default_db = proj_dic["default_dbs"][my_globals.DBE_SQLITE]
+    parent.sqlite_default_tbl = proj_dic["default_tbls"][my_globals.DBE_SQLITE]
+    if proj_dic["conn_dets"].get(my_globals.DBE_SQLITE):
         parent.sqlite_data = [(x["database"],) \
-             for x in proj_dic["conn_dets"][getdata.DBE_SQLITE].values()]
+             for x in proj_dic["conn_dets"][my_globals.DBE_SQLITE].values()]
     else:
         parent.sqlite_data = []
 
@@ -272,9 +273,9 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     if incomplete_sqlite:
         wx.MessageBox("The SQLite details are incomplete")
         parent.txtSqliteDefaultDb.SetFocus()
-    default_dbs[getdata.DBE_SQLITE] = sqlite_default_db \
+    default_dbs[my_globals.DBE_SQLITE] = sqlite_default_db \
         if sqlite_default_db else None
-    default_tbls[getdata.DBE_SQLITE] = sqlite_default_tbl \
+    default_tbls[my_globals.DBE_SQLITE] = sqlite_default_tbl \
         if sqlite_default_tbl else None
     #pprint.pprint(parent.sqlite_new_grid_data) # debug
     sqlite_settings = parent.sqlite_new_grid_data
@@ -287,6 +288,6 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
             new_sqlite_dic = {}
             new_sqlite_dic["database"] = db_path
             conn_dets_sqlite[db_name] = new_sqlite_dic
-        conn_dets[getdata.DBE_SQLITE] = conn_dets_sqlite        
+        conn_dets[my_globals.DBE_SQLITE] = conn_dets_sqlite        
     return incomplete_sqlite, has_sqlite_conn
 

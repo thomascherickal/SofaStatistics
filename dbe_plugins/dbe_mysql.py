@@ -5,6 +5,7 @@ import MySQLdb
 import wx
 import pprint
 
+import my_globals
 import getdata
 import util
 
@@ -179,21 +180,21 @@ class DbDets(getdata.DbDets):
             bolsigned = (col_type.find("unsigned") == -1)
             min_val, max_val = self.GetMinMax(col_type, num_prec, dec_pts)
             dets_dic = {
-                        getdata.FLD_SEQ: ord_pos,
-                        getdata.FLD_BOLNULLABLE: bolnullable,
-                        getdata.FLD_DATA_ENTRY_OK: boldata_entry_ok,
-                        getdata.FLD_COLUMN_DEFAULT: fld_default,
-                        getdata.FLD_BOLTEXT: fld_txt,
-                        getdata.FLD_TEXT_LENGTH: max_len,
-                        getdata.FLD_CHARSET: charset,
-                        getdata.FLD_BOLNUMERIC: bolnumeric,
-                        getdata.FLD_BOLAUTONUMBER: autonum,
-                        getdata.FLD_DECPTS: dec_pts,
-                        getdata.FLD_NUM_WIDTH: num_prec,
-                        getdata.FLD_BOL_NUM_SIGNED: bolsigned,
-                        getdata.FLD_NUM_MIN_VAL: min_val,
-                        getdata.FLD_NUM_MAX_VAL: max_val,
-                        getdata.FLD_BOLDATETIME: boldatetime,
+                        my_globals.FLD_SEQ: ord_pos,
+                        my_globals.FLD_BOLNULLABLE: bolnullable,
+                        my_globals.FLD_DATA_ENTRY_OK: boldata_entry_ok,
+                        my_globals.FLD_COLUMN_DEFAULT: fld_default,
+                        my_globals.FLD_BOLTEXT: fld_txt,
+                        my_globals.FLD_TEXT_LENGTH: max_len,
+                        my_globals.FLD_CHARSET: charset,
+                        my_globals.FLD_BOLNUMERIC: bolnumeric,
+                        my_globals.FLD_BOLAUTONUMBER: autonum,
+                        my_globals.FLD_DECPTS: dec_pts,
+                        my_globals.FLD_NUM_WIDTH: num_prec,
+                        my_globals.FLD_BOL_NUM_SIGNED: bolsigned,
+                        my_globals.FLD_NUM_MIN_VAL: min_val,
+                        my_globals.FLD_NUM_MAX_VAL: max_val,
+                        my_globals.FLD_BOLDATETIME: boldatetime,
                         }
             flds[fld_name] = dets_dic
         return flds
@@ -224,9 +225,9 @@ class DbDets(getdata.DbDets):
             fld_names = [x.strip() for x in raw_fld_names.split(",")]
             if unique_index:
                 has_unique = True
-            idx_dic = {getdata.IDX_NAME: idx_name, 
-                       getdata.IDX_IS_UNIQUE: unique_index, 
-                       getdata.IDX_FLDS: fld_names}
+            idx_dic = {my_globals.IDX_NAME: idx_name, 
+                       my_globals.IDX_IS_UNIQUE: unique_index, 
+                       my_globals.IDX_FLDS: fld_names}
             idxs.append(idx_dic)
         debug = False
         if debug:
@@ -244,7 +245,7 @@ class DbDets(getdata.DbDets):
         The field dets will be taken from the table used.
         Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
         """
-        conn_dets_mysql = self.conn_dets.get(getdata.DBE_MYSQL)
+        conn_dets_mysql = self.conn_dets.get(my_globals.DBE_MYSQL)
         if not conn_dets_mysql:
             raise Exception, "No connection details available for MySQL"
         conn = MySQLdb.connect(**conn_dets_mysql)
@@ -389,13 +390,13 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     
 def getProjSettings(parent, proj_dic):
     ""
-    parent.mysql_default_db = proj_dic["default_dbs"][getdata.DBE_MYSQL]
-    parent.mysql_default_tbl = proj_dic["default_tbls"][getdata.DBE_MYSQL]
+    parent.mysql_default_db = proj_dic["default_dbs"][my_globals.DBE_MYSQL]
+    parent.mysql_default_tbl = proj_dic["default_tbls"][my_globals.DBE_MYSQL]
     # optional (although if any mysql, for eg, must have all)
-    if proj_dic["conn_dets"].get(getdata.DBE_MYSQL):
-        parent.mysql_host = proj_dic["conn_dets"][getdata.DBE_MYSQL]["host"]
-        parent.mysql_user = proj_dic["conn_dets"][getdata.DBE_MYSQL]["user"]
-        parent.mysql_pwd = proj_dic["conn_dets"][getdata.DBE_MYSQL]["passwd"]
+    if proj_dic["conn_dets"].get(my_globals.DBE_MYSQL):
+        parent.mysql_host = proj_dic["conn_dets"][my_globals.DBE_MYSQL]["host"]
+        parent.mysql_user = proj_dic["conn_dets"][my_globals.DBE_MYSQL]["user"]
+        parent.mysql_pwd = proj_dic["conn_dets"][my_globals.DBE_MYSQL]["passwd"]
     else:
         parent.mysql_host, parent.mysql_user, parent.mysql_pwd = "", "", ""
 
@@ -434,14 +435,14 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     if incomplete_mysql:
         wx.MessageBox("The MySQL details are incomplete")
         parent.txtMysqlDefaultDb.SetFocus()
-    default_dbs[getdata.DBE_MYSQL] = mysql_default_db \
+    default_dbs[my_globals.DBE_MYSQL] = mysql_default_db \
         if mysql_default_db else None    
-    default_tbls[getdata.DBE_MYSQL] = mysql_default_tbl \
+    default_tbls[my_globals.DBE_MYSQL] = mysql_default_tbl \
         if mysql_default_tbl else None
     if mysql_host and mysql_user and mysql_pwd:
         conn_dets_mysql = {"host": mysql_host, "user": mysql_user, 
                            "passwd": mysql_pwd}
-        conn_dets[getdata.DBE_MYSQL] = conn_dets_mysql
+        conn_dets[my_globals.DBE_MYSQL] = conn_dets_mysql
     return incomplete_mysql, has_mysql_conn
     
     

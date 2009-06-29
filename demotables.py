@@ -103,7 +103,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         if bolfirst_col_as_label:
             col_class_lsts[0] = [my_globals.CSS_LBL]
         for i, col_name in enumerate(col_names):
-            if self.flds[col_name][getdata.FLD_BOLNUMERIC] \
+            if self.flds[col_name][my_globals.FLD_BOLNUMERIC] \
                     and not col_val_dics[i]:
                 col_class_lsts[i].append(my_globals.CSS_ALIGN_RIGHT)
         for i in range(4): # four rows enough for demo purposes
@@ -114,9 +114,9 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                 if col_val_dics[j]: # choose a random value label
                     random_key = random.choice(col_val_dics[j].keys())
                     row_val = col_val_dics[j][random_key]
-                elif self.flds[col_names[j]][getdata.FLD_BOLNUMERIC]: # choose a random number
+                elif self.flds[col_names[j]][my_globals.FLD_BOLNUMERIC]: # choose a random number
                     row_val = str(random.choice(num_data_seq))
-                elif self.flds[col_names[j]][getdata.FLD_BOLDATETIME]: # choose a random date
+                elif self.flds[col_names[j]][my_globals.FLD_BOLDATETIME]: # choose a random date
                     row_val = str(random.choice(dtm_data_seq))
                 else:
                     row_val = str(random.choice(str_data_seq))
@@ -138,7 +138,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                 # if has value dic OR not numeric (e.g. date or string), 
                 # show empty cell as total
                 if col_val_dics[i] or \
-                    not self.flds[col_names[i]][getdata.FLD_BOLNUMERIC]: 
+                    not self.flds[col_names[i]][my_globals.FLD_BOLNUMERIC]: 
                     demo_row_data_lst.append("&nbsp;&nbsp;")
                 else:
                     demo_row_data_lst.append(str(random.choice(num_data_seq)))
@@ -232,7 +232,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                                                         measure=measure))
         else:
             # add var e.g. gender then values below e.g. Male, Female
-            var_name, var_label = getdata.extractVarDets(\
+            var_name, var_label = getdata.extractChoiceDets(\
                 self.coltree.GetItemText(tree_dims_item))
             #print var_name #debug
             var_label = self.var_labels.get(var_name, var_name.title())

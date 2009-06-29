@@ -43,7 +43,7 @@ class DimTree(object):
         choice_item = tree.GetItemText(event.GetItem())
         # get val_dic for variable (if any) and display in editable list
         data = []
-        var_name, var_label = getdata.extractVarDets(choice_item)
+        var_name, var_label = getdata.extractChoiceDets(choice_item)
         if self.val_dics.get(var_name):
             val_dic = self.val_dics.get(var_name)
             if val_dic:
@@ -51,8 +51,8 @@ class DimTree(object):
                     data.append((str(key), str(value)))
         new_grid_data = []
         # get new_grid_data back updated
-        bolnumeric = self.flds[var_name][getdata.FLD_BOLNUMERIC]
-        boldecimal = self.flds[var_name][getdata.FLD_DECPTS]
+        bolnumeric = self.flds[var_name][my_globals.FLD_BOLNUMERIC]
+        boldecimal = self.flds[var_name][my_globals.FLD_DECPTS]
         if bolnumeric:
             if boldecimal:
                 val_type = table_entry.COL_FLOAT
@@ -92,7 +92,7 @@ class DimTree(object):
             f.close()
             # update var label in tree and update demo html
             tree.SetItemText(event.GetItem(), 
-                    getdata.getVarItem(self.var_labels, var_name))
+                    getdata.getChoiceItem(self.var_labels, var_name))
             self.UpdateDemoDisplay()
         
     def OnRowAdd(self, event):
@@ -113,7 +113,7 @@ class DimTree(object):
                   oth_dim_root):
         "Try adding a variable"
         choice_var_names = self.flds.keys()
-        choices = [getdata.getVarItem(self.var_labels, x) \
+        choices = [getdata.getChoiceItem(self.var_labels, x) \
                    for x in choice_var_names]
         choices.sort(key=lambda s: s.upper()) # sort case insensitive
         # http://www.python.org/doc/faq/programming/...
@@ -140,15 +140,15 @@ class DimTree(object):
                 elif self.tab_type == my_globals.ROW_SUMM \
                         and tree == self.rowtree:
                     # check it is not numeric (and make sure it lacks a label)
-                    var_name, _ = getdata.extractVarDets(text)                
-                    if not self.flds[var_name][getdata.FLD_BOLNUMERIC] or \
+                    var_name, _ = getdata.extractChoiceDets(text)                
+                    if not self.flds[var_name][my_globals.FLD_BOLNUMERIC] or \
                             var_name in self.val_dics:
                         wx.MessageBox("Variable '%s' is not numeric" % text)
                         return
             # they all passed the tests so proceed
             for text in text_selected:
                 new_id = tree.AppendItem(root, text)
-                var_name, _ = getdata.extractVarDets(text)
+                var_name, _ = getdata.extractChoiceDets(text)
                 self.setInitialConfig(tree, dim, new_id, var_name)
             if text_selected:
                 tree.UnselectAll() # multiple
@@ -171,7 +171,8 @@ class DimTree(object):
             item_conf.measures_lst = \
                 [make_table.get_default_measure(my_globals.ROW_SUMM)]
         if var_name:
-            item_conf.bolnumeric = self.flds[var_name][getdata.FLD_BOLNUMERIC]
+            item_conf.bolnumeric = \
+                self.flds[var_name][my_globals.FLD_BOLNUMERIC]
         else:
             item_conf.bolnumeric = False
         tree.SetItemPyData(new_id, item_conf)
@@ -233,7 +234,7 @@ class DimTree(object):
         Only do so if OK e.g. no duplicate text in either dim.
         """
         choice_var_names = self.flds.keys()
-        choices = [getdata.getVarItem(self.var_labels, x) \
+        choices = [getdata.getChoiceItem(self.var_labels, x) \
                    for x in choice_var_names]
         choices.sort(key=lambda s: s.upper())
         dlg = wx.MultiChoiceDialog(self, "Select a variable", 
@@ -263,7 +264,7 @@ class DimTree(object):
             # they all passed the test so proceed        
             for text in text_selected:
                 new_id = tree.AppendItem(selected_id, text)
-                var_name, _ = getdata.extractVarDets(text)
+                var_name, _ = getdata.extractChoiceDets(text)
                 self.setInitialConfig(tree, dim, new_id, var_name)
                 # empty all measures from ancestors and ensure sorting 
                 # is appropriate
@@ -433,7 +434,7 @@ class DimTree(object):
                                                           parent=selected_ids[0])
                 for selected_id in selected_ids[1:]:
                     if util.ItemHasChildren(tree=self.coltree,
-                                            parent=selected_id) != first_has_children:
+                                    parent=selected_id) != first_has_children:
                         config_ok = False
                         break
             if config_ok:

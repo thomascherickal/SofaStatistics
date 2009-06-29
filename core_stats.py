@@ -10,10 +10,10 @@ def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val):
     Used, for example, in the independent samples t-test.
     """
     quoter = getdata.get_quoter_func(dbe)
-    strSQL = "SELECT %s FROM %s WHERE %s IS NOT NULL AND %s = ?" % \
+    SQL_get_list = "SELECT %s FROM %s WHERE %s IS NOT NULL AND %s = ?" % \
                     (quoter(fld_measure), quoter(tbl), quoter(fld_measure), 
                      quoter(fld_filter))
-    cur.execute(strSQL, (filter_val,))
+    cur.execute(SQL_get_list, (filter_val,))
     lst = [x[0] for x in cur.fetchall()]
     return lst
 
@@ -24,10 +24,10 @@ def get_paired_lsts(dbe, cur, tbl, fld_measure_a, fld_measure_b):
         Used in, for example, the paired samples t-test.
     """
     quoter = getdata.get_quoter_func(dbe)
-    strSQL = "SELECT %s, %s FROM %s WHERE %s IS NOT NULL AND %s IS NOT NULL" \
+    SQL_get_lists = "SELECT %s, %s FROM %s WHERE %s IS NOT NULL AND %s IS NOT NULL" \
         % (quoter(fld_measure_a), quoter(fld_measure_b), quoter(tbl), 
            quoter(fld_measure_a), quoter(fld_measure_b))
-    cur.execute(strSQL)
+    cur.execute(SQL_get_lists)
     data_tups = cur.fetchall()
     lst_a = [x[0] for x in data_tups]
     lst_b = [x[1] for x in data_tups]

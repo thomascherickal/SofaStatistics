@@ -98,7 +98,7 @@ class RawTable(object):
         if self.first_col_as_label:
             col_class_lsts[0] = [my_globals.CSS_LBL]
         for i, col_name in enumerate(self.col_names):
-            if self.flds[col_name][getdata.FLD_BOLNUMERIC] \
+            if self.flds[col_name][my_globals.FLD_BOLNUMERIC] \
                     and not col_val_dics[i]:
                 col_class_lsts[i].append(my_globals.CSS_ALIGN_RIGHT)
         if self.add_total_row:

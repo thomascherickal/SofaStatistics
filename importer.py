@@ -1,6 +1,7 @@
 import os
 import wx
 
+import my_globals
 import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import csv_importer
@@ -43,7 +44,7 @@ def GetDefaultDbDets():
         SOFA SQLite database.
     """
     proj_dic = projects.GetProjSettingsDic(projects.SOFA_DEFAULT_PROJ)
-    dbdetsobj = getdata.getDbDetsObj(dbe=getdata.DBE_SQLITE, 
+    dbdetsobj = getdata.getDbDetsObj(dbe=my_globals.DBE_SQLITE, 
                                      conn_dets=proj_dic["conn_dets"])
     conn, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
     return conn, cur, dbs, tbls, flds, has_unique, idxs

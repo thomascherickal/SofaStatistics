@@ -120,10 +120,10 @@ def InstallLocal():
         if util.in_windows():
             proj_str = proj_str.replace("default_dbs = {",
                                         "default_dbs = {'%s': None, " % \
-                                            getdata.DBE_MS_ACCESS)
+                                            my_globals.DBE_MS_ACCESS)
             proj_str = proj_str.replace("default_tbls = {",
                                         "default_tbls = {'%s': None, " % \
-                                            getdata.DBE_MS_ACCESS)
+                                            my_globals.DBE_MS_ACCESS)
         f = file(default_proj, "w")
         f.write(proj_str)
         f.close()

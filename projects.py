@@ -4,6 +4,7 @@ import pprint
 import sys
 import os
 
+import my_globals
 import getdata
 import projselect
 import util
@@ -130,7 +131,7 @@ class ProjectDlg(wx.Dialog):
         try:
             self.default_dbe
         except AttributeError:
-            self.default_dbe = os.path.join(getdata.DBE_SQLITE)
+            self.default_dbe = os.path.join(my_globals.DBE_SQLITE)
         getdata.setConnDetDefaults(self)
         # misc
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)

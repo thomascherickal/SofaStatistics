@@ -51,3 +51,31 @@ data_format_dic = {FREQ: str, ROWPCT: pct_1_dec, COLPCT: pct_1_dec}
 # output
 CSS_ALIGN_RIGHT = "right"
 CSS_LBL = "lbl"
+# getdata
+# misc field dets
+FLD_SEQ = "field sequence"
+FLD_BOLNULLABLE = "field nullable"
+FLD_DATA_ENTRY_OK = "data entry ok" # e.g. not autonumber, timestamp etc
+FLD_COLUMN_DEFAULT = "field default"
+# test
+FLD_BOLTEXT = "field text"
+FLD_TEXT_LENGTH = "field text length"
+FLD_CHARSET = "field charset"
+# numbers
+FLD_BOLNUMERIC = "field numeric"
+FLD_BOLAUTONUMBER = "field autonumber"
+FLD_DECPTS = "field decpts"
+FLD_NUM_WIDTH = "field numeric display width" # used for column display only
+FLD_BOL_NUM_SIGNED = "field numeric signed"
+FLD_NUM_MIN_VAL = "field numeric minimum value"
+FLD_NUM_MAX_VAL = "field numeric maximum value"
+# datetime
+FLD_BOLDATETIME = "field datetime"
+# indexes
+IDX_NAME = "index name"
+IDX_IS_UNIQUE = "index is unique"
+IDX_FLDS = "index fields"
+# also used as labels in dropdowns
+DBE_SQLITE = "SQLite"
+DBE_MYSQL = "MySQL"
+DBE_MS_ACCESS = "MS Access"
