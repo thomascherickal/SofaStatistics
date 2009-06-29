@@ -17,7 +17,7 @@ MEDIUMINT = "mediumint"
 SMALLINT = "smallint"
 TINYINT = "tinyint"
 
-def quote_identifier(raw_val):
+def quote_me(raw_val):
     return "`%s`" % raw_val
 
 def DbeSyntaxElements():

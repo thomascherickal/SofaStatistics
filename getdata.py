@@ -92,6 +92,13 @@ IDX_NAME = "index name"
 IDX_IS_UNIQUE = "index is unique"
 IDX_FLDS = "index fields"
 
+def get_quoter_func(dbe):
+    """
+    Get appropriate function to wrap content e.g. table or field name, 
+        in dbe-friendly way.
+    """
+    return DBE_MODULES[dbe].quote_me
+
 def getDbDetsObj(dbe, conn_dets, db=None, tbl=None):
     """
     Pass in all conn_dets (the dbe will be used to select specific conn_dets).

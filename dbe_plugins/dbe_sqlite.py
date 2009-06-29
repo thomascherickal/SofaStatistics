@@ -11,7 +11,7 @@ import util
 
 # http://www.sqlite.org/lang_keywords.html
 # The following is non-standard but will work
-def quote_identifier(raw_val):
+def quote_me(raw_val):
     return "`%s`" % raw_val
 
 def DbeSyntaxElements():

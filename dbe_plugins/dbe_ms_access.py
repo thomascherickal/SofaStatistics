@@ -35,7 +35,7 @@ AD_OPEN_KEYSET = 1
 AD_LOCK_OPTIMISTIC = 3
 AD_SCHEMA_COLUMNS = 4
 
-def quote_identifier(raw_val):
+def quote_me(raw_val):
     return "[%s]" % raw_val
 
 def DbeSyntaxElements():

@@ -1,5 +1,40 @@
-from statlib import stats, pstat
 import math
+
+from statlib import stats, pstat
+
+import getdata
+
+def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val):
+    """
+    Get list of non-missing values in field.
+    Used, for example, in the independent samples t-test.
+    """
+    quoter = getdata.get_quoter_func(dbe)
+    strSQL = "SELECT %s FROM %s WHERE %s IS NOT NULL AND %s = ?" % \
+                    (quoter(fld_measure), quoter(tbl), quoter(fld_measure), 
+                     quoter(fld_filter))
+    cur.execute(strSQL, (filter_val,))
+    lst = [x[0] for x in cur.fetchall()]
+    return lst
+
+def get_paired_lsts(dbe, cur, tbl, fld_measure_a, fld_measure_b):
+    """
+    For each field, returns a list of all non-missing values where there is also
+        a non-missing value in the other field.
+        Used in, for example, the paired samples t-test.
+    """
+    quoter = getdata.get_quoter_func(dbe)
+    strSQL = "SELECT %s, %s FROM %s WHERE %s IS NOT NULL AND %s IS NOT NULL" \
+        % (quoter(fld_measure_a), quoter(fld_measure_b), quoter(tbl), 
+           quoter(fld_measure_a), quoter(fld_measure_b))
+    cur.execute(strSQL)
+    data_tups = cur.fetchall()
+    lst_a = [x[0] for x in data_tups]
+    lst_b = [x[1] for x in data_tups]
+    return lst_a, lst_b
+
+
+# code below here is modified versions of code in stats.py and pstats.py
 
 # Copyright notice for stats and pstats.
 

@@ -19,7 +19,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.tbl = tbl
         self.grid = grid
         self.dbe = dbe
-        self.quote = getdata.DBE_MODULES[self.dbe].quote_identifier
+        self.quote = getdata.get_quoter_func(self.dbe)
         self.conn = conn
         self.cur = cur
         self.read_only = read_only        

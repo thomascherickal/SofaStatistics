@@ -156,8 +156,7 @@ def AddRows(conn, cur, rows, fld_names, fld_types, progBackup, gauge_chunk,
     TODO - insert multiple lines at once for performance
     """
     debug = False
-    fld_names_clause = ", ".join([dbe_sqlite.quote_identifier(x) \
-                                  for x in fld_names])
+    fld_names_clause = ", ".join([dbe_sqlite.quote_me(x) for x in fld_names])
     i = start_i
     for row in rows:
         if i % 50 == 0:
@@ -214,7 +213,7 @@ def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types,
         fld_type = fld_types[fld_name]
         sqlite_type = FLD_TYPE_TO_SQLITE_TYPE[fld_type]
         fld_clause_items.append("%s %s" % \
-                (dbe_sqlite.quote_identifier(fld_name), sqlite_type))
+                (dbe_sqlite.quote_me(fld_name), sqlite_type))
     fld_clause_items.append("UNIQUE(sofa_id)")
     fld_clause = ", ".join(fld_clause_items)
     try:
@@ -275,13 +274,13 @@ def TmpToNamedTbl(conn, cur, tbl_name, file_path, progBackup):
     debug = False
     try:
         SQL_drop_tbl = "DROP TABLE IF EXISTS %s" % \
-            dbe_sqlite.quote_identifier(tbl_name)
+            dbe_sqlite.quote_me(tbl_name)
         if debug: print SQL_drop_tbl
         cur.execute(SQL_drop_tbl)
         conn.commit()
         SQL_rename_tbl = "ALTER TABLE %s RENAME TO %s" % \
-            (dbe_sqlite.quote_identifier(TMP_SQLITE_TBL), 
-             dbe_sqlite.quote_identifier(tbl_name))
+            (dbe_sqlite.quote_me(TMP_SQLITE_TBL), 
+             dbe_sqlite.quote_me(tbl_name))
         if debug: print SQL_rename_tbl
         cur.execute(SQL_rename_tbl)
         conn.commit()
