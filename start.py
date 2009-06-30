@@ -28,8 +28,8 @@ COPYRIGHT = "(c)" if util.in_windows() else "©" # "\xa9" problems with utf-8
 MAX_HELP_TEXT_WIDTH = 350 # pixels
 TEXT_BROWN = (90, 74, 61)
 MAIN_LEFT = 170
-SCRIPT_PATH = util.get_script_path()
-USER_PATH, LOCAL_PATH = util.get_user_paths()
+SCRIPT_PATH = my_globals.SCRIPT_PATH
+LOCAL_PATH = my_globals.LOCAL_PATH
 
 def TextOnBitmap(bitmap, text, font, colour):
     """
@@ -82,7 +82,7 @@ def InstallLocal():
     sofa_prog_path = os.path.join(util.get_prog_path(), "sofa")
     default_proj = os.path.join(LOCAL_PATH, "projs",  
                                 "SOFA_Default_Project.proj")
-    paths = ["css", projects.INTERNAL_FOLDER, "lbls", "projs", "reports", 
+    paths = ["css", my_globals.INTERNAL_FOLDER, "lbls", "projs", "reports", 
              "scripts"]
     if not os.path.exists(LOCAL_PATH):
             # in Windows these steps are all completed by the installer
@@ -96,9 +96,9 @@ def InstallLocal():
                                      "SOFA_Default_Style.css"), 
                         os.path.join(LOCAL_PATH, "css", 
                                      "SOFA_Default_Style.css"))
-            shutil.copy(os.path.join(sofa_prog_path, projects.INTERNAL_FOLDER, 
+            shutil.copy(os.path.join(sofa_prog_path, my_globals.INTERNAL_FOLDER, 
                                      "SOFA_Default_db"), 
-                        os.path.join(LOCAL_PATH, projects.INTERNAL_FOLDER, 
+                        os.path.join(LOCAL_PATH, my_globals.INTERNAL_FOLDER, 
                                      "SOFA_Default_db"))
             shutil.copy(os.path.join(sofa_prog_path, "lbls", 
                                      "SOFA_Default_Labels.lbls"), 
@@ -146,7 +146,7 @@ class SofaApp(wx.App):
         else:
             redirect = True
             _, local_path = util.get_user_paths()
-            filename = os.path.join(local_path, projects.INTERNAL_FOLDER, 
+            filename = os.path.join(local_path, my_globals.INTERNAL_FOLDER, 
                                     'output.txt')
         wx.App.__init__(self, redirect=redirect, filename=filename) 
 
@@ -262,7 +262,7 @@ class StartFrame(wx.Frame):
                                          "psal_logo.xpm"), wx.BITMAP_TYPE_XPM)
         self.bmp_psal = wx.BitmapFromImage(img_psal)
         self.HELP_TEXT_FONT = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
-        self.active_proj = projects.SOFA_DEFAULT_PROJ
+        self.active_proj = my_globals.SOFA_DEFAULT_PROJ
     
     def InitComTypes(self, panel):
         """
@@ -317,8 +317,8 @@ class StartFrame(wx.Frame):
         panel_dc.DrawBitmap(self.bmp_psal, 125, 492, True)
         # make default db if not already there
         connSqlite = sqlite.connect(os.path.join(LOCAL_PATH, 
-                                                 projects.INTERNAL_FOLDER, 
-                                                 projects.SOFA_DEFAULT_DB))
+                                                 my_globals.INTERNAL_FOLDER, 
+                                                 my_globals.SOFA_DEFAULT_DB))
         connSqlite.close()
         panel_dc.DrawBitmap(self.blank_proj_strip, MAIN_LEFT, 218, False)
         panel_dc.SetTextForeground(wx.WHITE)

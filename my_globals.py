@@ -1,7 +1,13 @@
-# minimise likelihood of circular imports
-# stats output
+import os
+
+import util # safe to import - never refers to anything in other modules
+
+# my_globals exists to reduce likelihood of circular imports.
+
+# stats output ******************************************************
 OUTPUT_RESULTS_ONLY = "Output results only"
-# Making tables
+
+# Making tables ******************************************************
 HAS_TOTAL = "Total" #doubles as display label
 COL_MEASURES = 0 #indexes in tab type
 ROW_SUMM = 1
@@ -42,16 +48,17 @@ script_export_measures_dic = {FREQ: "FREQ",
                               MEDIAN: "MEDIAN", 
                               SUMM_N: "SUMM_N",
                               STD_DEV: "STD_DEV"}
-
 def pct_1_dec(num):
     return "%s%%" % round(num,1)
 def pct_2_dec(num):
     return "%s%%" % round(num,2)
 data_format_dic = {FREQ: str, ROWPCT: pct_1_dec, COLPCT: pct_1_dec}
+
 # output
 CSS_ALIGN_RIGHT = "right"
 CSS_LBL = "lbl"
-# getdata
+
+# getdata ******************************************************
 # misc field dets
 FLD_SEQ = "field sequence"
 FLD_BOLNULLABLE = "field nullable"
@@ -79,3 +86,20 @@ IDX_FLDS = "index fields"
 DBE_SQLITE = "SQLite"
 DBE_MYSQL = "MySQL"
 DBE_MS_ACCESS = "MS Access"
+
+# projects ******************************************************
+EMPTY_PROJ_NAME = "GIVE ME A NAME ..."
+SOFA_DEFAULT_DB = "SOFA_Default_db"
+SOFA_DEFAULT_TBL = "SOFA_Default_tbl"
+SOFA_DEFAULT_PROJ = "SOFA_Default_Project.proj"
+SOFA_DEFAULT_LBLS = "SOFA_Default_Labels.lbls"
+SOFA_DEFAULT_STYLE = "SOFA_Default_Style.css"
+SOFA_DEFAULT_SCRIPT = "SOFA_Default_Exported_Table_Scripts.py"
+SOFA_DEFAULT_REPORT = "SOFA_Default_New_Tables.htm"
+INTERNAL_FOLDER = "_internal"
+USER_PATH, LOCAL_PATH = util.get_user_paths()
+SCRIPT_PATH = util.get_script_path()
+# http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
+INT_SCRIPT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, "script.py")
+INT_REPORT_FILE = "report.htm"
+INT_REPORT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, INT_REPORT_FILE)

@@ -7,11 +7,12 @@ import wx
 import my_globals
 import gen_config
 import getdata
+import output
 import output_buttons
 import projects
-import util
 
-SCRIPT_PATH = util.get_script_path()
+OUTPUT_MODULES = ["my_globals", "core_stats", "getdata", "output", 
+                  "stats_output"]
 
 
 class DlgTTestConfig(wx.Dialog, 
@@ -52,7 +53,8 @@ class DlgTTestConfig(wx.Dialog,
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
 
         ib = wx.IconBundle()
-        ib.AddIconFromFile(os.path.join(SCRIPT_PATH, "images","tinysofa.xpm"), 
+        ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, "images",
+                                        "tinysofa.xpm"), 
                            wx.BITMAP_TYPE_XPM)   
         self.SetIcons(ib)
         self.GenConfigSetup()
@@ -130,13 +132,13 @@ class DlgTTestConfig(wx.Dialog,
         szrMidLeft = wx.BoxSizer(wx.VERTICAL)
         bxMidLeftTop = wx.StaticBox(self.panel, -1, "Type of t-test")
         szrMidLeftTop = wx.StaticBoxSizer(bxMidLeftTop, wx.HORIZONTAL)
-        radIndep = wx.RadioButton(self.panel, -1, "Independent", 
+        self.radIndep = wx.RadioButton(self.panel, -1, "Independent", 
                                   style=wx.RB_GROUP)
-        radPaired = wx.RadioButton(self.panel, -1, "Paired")
+        self.radPaired = wx.RadioButton(self.panel, -1, "Paired")
         self.btnIndepHelp = wx.Button(self.panel, wx.ID_HELP)
         self.btnIndepHelp.Bind(wx.EVT_BUTTON, self.OnIndepHelpButton)
-        szrMidLeftTop.Add(radIndep, 0, wx.RIGHT, 10)
-        szrMidLeftTop.Add(radPaired, 0, wx.RIGHT, 10)
+        szrMidLeftTop.Add(self.radIndep, 0, wx.RIGHT, 10)
+        szrMidLeftTop.Add(self.radPaired, 0, wx.RIGHT, 10)
         szrMidLeftTop.Add(self.btnIndepHelp, 0)
         szrMidLeftBottom = wx.BoxSizer(wx.HORIZONTAL)
         szrMidLeft.Add(szrMidLeftTop, 0, wx.ALL, 5)
@@ -200,27 +202,38 @@ class DlgTTestConfig(wx.Dialog,
         self.dropGroupA.SetSelection(0)
         self.dropGroupB.SetItems(vars_with_labels)
         self.dropGroupB.SetSelection(0)
-        
-    def UpdatePhrase(self):
+    
+    def GetDropVals(self):
         """
-        Update phrase based on GroupBy, Group A, Group B, and Averaged by field.
+        Get values from main drop downs.
+        Returns var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, 
+            label_avg.
         """
         choice_gp_text = self.dropGroupBy.GetStringSelection()
         if not choice_gp_text:
             return
-        _, label_gp = getdata.extractChoiceDets(choice_gp_text)
+        var_gp, label_gp = getdata.extractChoiceDets(choice_gp_text)
         choice_a_text = self.dropGroupA.GetStringSelection()
         if not choice_a_text:
             return
-        _, label_a = getdata.extractChoiceDets(choice_a_text)
+        val_a, label_a = getdata.extractChoiceDets(choice_a_text)
         choice_b_text = self.dropGroupB.GetStringSelection()
         if not choice_b_text:
             return
-        _, label_b = getdata.extractChoiceDets(choice_b_text)
+        val_b, label_b = getdata.extractChoiceDets(choice_b_text)
         choice_avg_text = self.dropAveraged.GetStringSelection()
         if not choice_avg_text:
             return
-        _, label_avg = getdata.extractChoiceDets(choice_avg_text)
+        var_avg, label_avg = getdata.extractChoiceDets(choice_avg_text)        
+        return var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
+            label_avg
+    
+    def UpdatePhrase(self):
+        """
+        Update phrase based on GroupBy, Group A, Group B, and Averaged by field.
+        """
+        var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
+            label_avg = self.GetDropVals()
         self.lblPhrase.SetLabel("Does %s \"%s\" have" % (label_gp, label_a) + \
             " a different average %s than \"%s\"?" % (label_avg, label_b))
         
@@ -252,23 +265,15 @@ class DlgTTestConfig(wx.Dialog,
             curs = wx.StockCursor(wx.CURSOR_WAIT)
             self.SetCursor(curs)
             script = self.getScript()
-            strContent = output.RunReport(self.fil_report, self.fil_css, script, 
-                            self.conn_dets, self.dbe, self.db, self.tbl_name)
+            strContent = output.RunReport(OUTPUT_MODULES, self.fil_report, 
+                self.fil_css, script, self.conn_dets, self.dbe, self.db, 
+                self.tbl_name)
             # Return to normal cursor
             curs = wx.StockCursor(wx.CURSOR_ARROW)
             self.SetCursor(curs)
-            self.DisplayReport(strContent)
+            output.DisplayReport(self, strContent)
         else:
             wx.MessageBox("Missing %s data" % missing_dim)
-
-    def DisplayReport(self, strContent):
-        # display results
-        dlg = showhtml.ShowHTML(parent=self, content=strContent, 
-                                file_name=projects.INT_REPORT_FILE, 
-                                title="Report", 
-                                print_folder=projects.INTERNAL_FOLDER)
-        dlg.ShowModal()
-        dlg.Destroy()
     
     def TestConfigOK(self):
         """
@@ -317,23 +322,45 @@ class DlgTTestConfig(wx.Dialog,
                 output.InsertPrelimCode(modules, f, self.fil_report, 
                                         self.fil_css)
             # insert exported script
-            self.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                                      self.db, self.tbl_name)
+            output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
+                                        self.db, self.tbl_name)
         else:
             # add file name to list, create file, insert preliminary code, 
             # and insert exported script.
             self.open_scripts.append(self.fil_script)
             f = file(self.fil_script, "w")
             output.InsertPrelimCode(modules, f, self.fil_report, self.fil_css)
-            self.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                                      self.db, self.tbl_name)
+            output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
+                                        self.db, self.tbl_name)
         f.close()
 
-    def getScript(self, has_rows, has_cols):
+    def getScript(self):
         "Build script from inputs"
         script_lst = []
-        
-        
+        var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
+            label_avg = self.GetDropVals()
+        if self.radIndep.GetValue():
+            strGet_Sample = "sample_%s = core_stats.get_list(" + \
+                "dbe=\"%s\", " % self.dbe + \
+                "cur=cur, tbl=\"%s\",\n    " % self.tbl_name + \
+                "fld_measure=\"%s\", " % var_avg + \
+                "fld_filter=\"%s\", " % var_gp + \
+                "filter_val=%s)"
+            script_lst.append(strGet_Sample % ("a", val_a))
+            script_lst.append(strGet_Sample % ("b", val_b))
+            script_lst.append("label_a = \"%s\"" % label_a)
+            script_lst.append("label_b = \"%s\"" % label_b)
+            script_lst.append("label_avg = \"%s\"" % label_avg)
+            script_lst.append("t, p, dic_a, dic_b = " + \
+                "core_stats.ttest_ind(sample_a, sample_b, label_a, label_b)")
+            script_lst.append("ttest_output = stats_output.ttest_output(" + \
+                "t, p, label_avg, dic_a, dic_b,\n    indep=True, " + \
+                "level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False)")
+            script_lst.append("fil.write(ttest_output)")
+        elif self.radPaired.GetValue():
+            pass
+        else:
+            raise Exception, "A t-test but neither paired nor independent"        
         return "\n".join(script_lst)
 
     def OnButtonHelp(self, event):
@@ -348,6 +375,12 @@ class DlgTTestConfig(wx.Dialog,
         "Close app"
         try:
             self.conn.close()
+            # add end to each open script file and close.
+            for fil_script in self.open_scripts:
+                # add ending code to script
+                f = file(fil_script, "a")
+                output.AddClosingScriptCode(f)
+                f.close()
         except Exception:
             pass
         finally:

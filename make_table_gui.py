@@ -8,6 +8,7 @@ import pprint
 import wx
 import wx.gizmos
 
+import my_globals
 import demotables
 import dimtables
 import dimtree
@@ -17,9 +18,6 @@ import getdata
 import make_table
 import output_buttons
 import projects
-import util
-
-SCRIPT_PATH = util.get_script_path()
 
              
 class DlgMakeTable(wx.Dialog, 
@@ -59,7 +57,8 @@ class DlgMakeTable(wx.Dialog,
         # set up panel for frame
         self.panel = wx.Panel(self)
         ib = wx.IconBundle()
-        ib.AddIconFromFile(os.path.join(SCRIPT_PATH, "images","tinysofa.xpm"), 
+        ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, "images",
+                                        "tinysofa.xpm"), 
                            wx.BITMAP_TYPE_XPM)   
         self.SetIcons(ib)
         self.GenConfigSetup()

@@ -2,13 +2,13 @@ import os
 
 import wx
 
+import my_globals
 import my_exceptions
 import projects
 import ttest_gui
 import util
 
 TEXT_BROWN = (90, 74, 61)
-SCRIPT_PATH = util.get_script_path()
 TEST_TTEST = "t-test"
 TEST_ANOVA = "ANOVA"
 TEST_WILCOXON = "Wilcoxon Signed Ranks"
@@ -59,13 +59,13 @@ class StatsSelectDlg(wx.Dialog):
         self.panel.Bind(wx.EVT_PAINT, self.OnPaint)        
         # icon
         ib = wx.IconBundle()
-        ib.AddIconFromFile(os.path.join(SCRIPT_PATH, 
+        ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, 
                                         "images", 
                                         "tinysofa.xpm"), 
                            wx.BITMAP_TYPE_XPM)
         self.SetIcons(ib)
         # background image
-        img_stats_select = wx.Image(os.path.join(SCRIPT_PATH, 
+        img_stats_select = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
                                                  "images", 
                                                  "stats_select.xpm"), 
                            wx.BITMAP_TYPE_XPM)
@@ -190,7 +190,8 @@ class StatsSelectDlg(wx.Dialog):
         self.idx_blank = 1
         tick = "tickwin" if INWIN else "tick" 
         for img in [tick, "blank"]:
-            bmp = wx.Bitmap(os.path.join(SCRIPT_PATH, "images", "%s.png" % img), 
+            bmp = wx.Bitmap(os.path.join(my_globals.SCRIPT_PATH, "images", 
+                                         "%s.png" % img), 
                                          wx.BITMAP_TYPE_PNG)
             il.Add(bmp)
         self.lstTests.AssignImageList(il, wx.IMAGE_LIST_SMALL)

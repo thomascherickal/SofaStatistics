@@ -11,7 +11,6 @@ if util.in_windows():
 import projects
 from my_exceptions import ImportCancelException
 
-SCRIPT_PATH = util.get_script_path()
 FILE_CSV = "csv"
 FILE_EXCEL = "excel"
 FILE_UNKNOWN = "unknown"
@@ -43,7 +42,7 @@ def GetDefaultDbDets():
     Returns conn, cur, dbs, tbls, flds, has_unique, idxs from default
         SOFA SQLite database.
     """
-    proj_dic = projects.GetProjSettingsDic(projects.SOFA_DEFAULT_PROJ)
+    proj_dic = projects.GetProjSettingsDic(my_globals.SOFA_DEFAULT_PROJ)
     dbdetsobj = getdata.getDbDetsObj(dbe=my_globals.DBE_SQLITE, 
                                      conn_dets=proj_dic["conn_dets"])
     conn, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
@@ -311,7 +310,8 @@ class ImportFileSelectDlg(wx.Dialog):
         self.file_type = FILE_UNKNOWN
         # icon
         ib = wx.IconBundle()
-        ib.AddIconFromFile(os.path.join(SCRIPT_PATH, "images", "tinysofa.xpm"), 
+        ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, "images", 
+                                        "tinysofa.xpm"), 
                            wx.BITMAP_TYPE_XPM)
         self.SetIcons(ib)
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)

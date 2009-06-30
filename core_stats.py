@@ -17,7 +17,7 @@ def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val):
     lst = [x[0] for x in cur.fetchall()]
     return lst
 
-def get_paired_lsts(dbe, cur, tbl, fld_measure_a, fld_measure_b):
+def get_paired_lists(dbe, cur, tbl, fld_measure_a, fld_measure_b):
     """
     For each field, returns a list of all non-missing values where there is also
         a non-missing value in the other field.

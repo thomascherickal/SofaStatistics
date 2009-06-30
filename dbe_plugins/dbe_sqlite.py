@@ -137,7 +137,7 @@ class DbDets(getdata.DbDets):
         if not conn_dets_sqlite:
             raise Exception, "No connection details available for SQLite"
         if not self.db:
-            self.db = projects.SOFA_DEFAULT_DB
+            self.db = my_globals.SOFA_DEFAULT_DB
         if not conn_dets_sqlite.get(self.db):
             raise Exception, "No connections for SQLite database %s" % \
                 self.db

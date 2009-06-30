@@ -3,13 +3,10 @@ import os
 import sys
 import wx
 
+import my_globals
 import getdata
 import projects
-import util
 
-
-SCRIPT_PATH = util.get_script_path()
-USER_PATH, LOCAL_PATH = util.get_user_paths()
 
 class ProjSelectDlg(wx.Dialog):
     def __init__(self, parent, projs):
@@ -22,7 +19,7 @@ class ProjSelectDlg(wx.Dialog):
         self.projs = projs
         # icon
         ib = wx.IconBundle()
-        ib.AddIconFromFile(os.path.join(SCRIPT_PATH, 
+        ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, 
                                         "images", 
                                         "tinysofa.xpm"), 
                            wx.BITMAP_TYPE_XPM)
@@ -84,7 +81,7 @@ class ProjSelectDlg(wx.Dialog):
         self.szrButtons.Realize()
     
     def GetNotes(self, fil_proj):
-        f = open(os.path.join(LOCAL_PATH, "projs", fil_proj), "r")
+        f = open(os.path.join(my_globals.LOCAL_PATH, "projs", fil_proj), "r")
         proj_dic = {}
         exec f in proj_dic
         f.close()
@@ -103,7 +100,7 @@ class ProjSelectDlg(wx.Dialog):
         
     def OnEdit(self,event):
         proj_sel_id = self.dropProjs.GetSelection()        
-        read_only = (self.projs[proj_sel_id] == projects.SOFA_DEFAULT_PROJ)
+        read_only = (self.projs[proj_sel_id] == my_globals.SOFA_DEFAULT_PROJ)
         dlgProj = projects.ProjectDlg(parent=self, read_only=read_only,
                           fil_proj=self.projs[self.dropProjs.GetSelection()])
         # refresh projects list and display accordingly

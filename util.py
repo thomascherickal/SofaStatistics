@@ -5,6 +5,8 @@ import sys
 import time
 import wx
 
+# must be kept safe to import - must never refer to anything in other modules
+
 def in_windows():
     try:
         in_windows = os.environ['OS'].lower().startswith("windows")

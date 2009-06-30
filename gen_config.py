@@ -1,10 +1,10 @@
 import os
 import wx
 
+import my_globals
 import getdata
-import util
 
-LOCAL_PATH = util.get_local_path()
+LOCAL_PATH = my_globals.LOCAL_PATH
 
 
 class GenConfig(object):

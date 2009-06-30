@@ -9,21 +9,7 @@ import getdata
 import projselect
 import util
 
-USER_PATH, LOCAL_PATH = util.get_user_paths()
-
-# http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
-EMPTY_PROJ_NAME = "GIVE ME A NAME ..."
-SOFA_DEFAULT_DB = "SOFA_Default_db"
-SOFA_DEFAULT_TBL = "SOFA_Default_tbl"
-SOFA_DEFAULT_PROJ = "SOFA_Default_Project.proj"
-SOFA_DEFAULT_LBLS = "SOFA_Default_Labels.lbls"
-SOFA_DEFAULT_STYLE = "SOFA_Default_Style.css"
-SOFA_DEFAULT_SCRIPT = "SOFA_Default_Exported_Table_Scripts.py"
-SOFA_DEFAULT_REPORT = "SOFA_Default_New_Tables.htm"
-INTERNAL_FOLDER = "_internal"
-INT_SCRIPT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, "script.py")
-INT_REPORT_FILE = "report.htm"
-INT_REPORT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, INT_REPORT_FILE)
+LOCAL_PATH = my_globals.LOCAL_PATH
 
 def GetProjs():
     "NB includes .proj at end"
@@ -97,7 +83,7 @@ class ProjectDlg(wx.Dialog):
         try:
             self.proj_name
         except AttributeError:
-            self.proj_name = EMPTY_PROJ_NAME
+            self.proj_name = my_globals.EMPTY_PROJ_NAME
         try:
             self.proj_notes
         except AttributeError:
@@ -107,7 +93,7 @@ class ProjectDlg(wx.Dialog):
         except AttributeError:
             # make empty labels file if necessary
             fil_default_lbls = os.path.join(LOCAL_PATH, "lbls", 
-                                            SOFA_DEFAULT_LBLS)
+                                            my_globals.SOFA_DEFAULT_LBLS)
             if not os.path.exists(fil_default_lbls):
                 f = open(fil_default_lbls, "w")
                 f.write("# add labels here")
@@ -117,17 +103,17 @@ class ProjectDlg(wx.Dialog):
             self.fil_css
         except AttributeError:
             self.fil_css = os.path.join(LOCAL_PATH, "css", 
-                                        SOFA_DEFAULT_STYLE)
+                                        my_globals.SOFA_DEFAULT_STYLE)
         try:            
             self.fil_report
         except AttributeError:       
             self.fil_report = os.path.join(LOCAL_PATH, "reports", 
-                                           SOFA_DEFAULT_REPORT)
+                                           my_globals.SOFA_DEFAULT_REPORT)
         try:            
             self.fil_script
         except AttributeError: 
             self.fil_script = os.path.join(LOCAL_PATH, "scripts", 
-                                           SOFA_DEFAULT_SCRIPT)
+                                           my_globals.SOFA_DEFAULT_SCRIPT)
         try:
             self.default_dbe
         except AttributeError:
@@ -406,7 +392,7 @@ class ProjectDlg(wx.Dialog):
         # get the data (separated for easier debugging)
         if not self.read_only:
             proj_name = self.txtName.GetValue()
-            if proj_name == EMPTY_PROJ_NAME:
+            if proj_name == my_globals.EMPTY_PROJ_NAME:
                 wx.MessageBox("Please provide a project name")
                 self.txtName.SetFocus()
                 return

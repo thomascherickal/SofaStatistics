@@ -12,12 +12,9 @@ import getdata
 import output
 import projects
 import rawtables
-import showhtml
 import table_entry
 import util
 
-SCRIPT_PATH = util.get_script_path()
-LOCAL_PATH = util.get_local_path()
 OUTPUT_MODULES = ["my_globals", "dimtables", "rawtables", "output", "getdata"]
 
 # NB raw tables don't have measures
@@ -169,23 +166,15 @@ class MakeTable(object):
             curs = wx.StockCursor(wx.CURSOR_WAIT)
             self.SetCursor(curs)
             script = self.getScript(has_rows, has_cols)
-            strContent = output.RunReport(self.fil_report, self.fil_css, script, 
-                            self.conn_dets, self.dbe, self.db, self.tbl_name)
+            strContent = output.RunReport(OUTPUT_MODULES, self.fil_report, 
+                self.fil_css, script, self.conn_dets, self.dbe, self.db, 
+                self.tbl_name)
             # Return to normal cursor
             curs = wx.StockCursor(wx.CURSOR_ARROW)
             self.SetCursor(curs)
-            self.DisplayReport(strContent)
+            output.DisplayReport(self, strContent)
         else:
             wx.MessageBox("Missing %s data" % missing_dim)
-
-    def DisplayReport(self, strContent):
-        # display results
-        dlg = showhtml.ShowHTML(parent=self, content=strContent, 
-                                file_name=projects.INT_REPORT_FILE, 
-                                title="Report", 
-                                print_folder=projects.INTERNAL_FOLDER)
-        dlg.ShowModal()
-        dlg.Destroy()
 
     # export script
     def OnButtonExport(self, event):
@@ -409,6 +398,7 @@ class MakeTable(object):
             pass
         finally:
             self.Destroy()
+            event.Skip()
             
     # demo table display
     def UpdateDemoDisplay(self):

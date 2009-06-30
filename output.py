@@ -2,9 +2,12 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
+import os
 import pprint
 
+import my_globals
 import getdata
+import showhtml
 import util
 
 def GetDefaultCss():
@@ -152,22 +155,23 @@ def getHtmlFtr():
     "Close HTML off cleanly"
     return "</body></html>"
 
-def RunReport(fil_report, fil_css, script, conn_dets, dbe, db, tbl_name):
+def RunReport(modules, fil_report, fil_css, inner_script, conn_dets, dbe, db, 
+              tbl_name):
     """
     Runs report and returns HTML representation of it.
     """
     # generate script
-    f = file(projects.INT_SCRIPT_PATH, "w")
-    InsertPrelimCode(OUTPUT_MODULES, f, projects.INT_REPORT_PATH, fil_css)
-    AppendExportedScript(f, script, conn_dets, dbe, db, tbl_name)
+    f = file(my_globals.INT_SCRIPT_PATH, "w")
+    InsertPrelimCode(modules, f, my_globals.INT_REPORT_PATH, fil_css)
+    AppendExportedScript(f, inner_script, conn_dets, dbe, db, tbl_name)
     AddClosingScriptCode(f)
     f.close()
     # run script
-    f = file(projects.INT_SCRIPT_PATH, "r")
+    f = file(my_globals.INT_SCRIPT_PATH, "r")
     script = f.read()
     f.close()
     exec(script)
-    f = file(projects.INT_REPORT_PATH, "r")
+    f = file(my_globals.INT_REPORT_PATH, "r")
     strContent = f.read()
     f.close()
     # append into html file
@@ -185,14 +189,14 @@ def InsertPrelimCode(modules, fil, fil_report, fil_css):
     fil.write("#! /usr/bin/env python")
     fil.write("\n# -*- coding: utf-8 -*-\n")
     fil.write("\nimport sys")
-    fil.write("\nsys.path.append('%s')" % util.get_script_path())
+    fil.write("\nsys.path.append('%s')" % my_globals.SCRIPT_PATH)
     for module in modules:
         fil.write("\nimport %s" % module)
     fil.write("\n\nfil = file(r\"%s\", \"w\")" % fil_report)
     fil.write("\nfil.write(output.getHtmlHdr(\"Report(s)\", " + \
               "fil_css=r\"%s\"))" % fil_css)
     
-def AppendExportedScript(fil, script, conn_dets, dbe, db, tbl_name):
+def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name):
     """
     Append exported script onto file.
     fil - open file handle ready for writing
@@ -209,7 +213,7 @@ def AppendExportedScript(fil, script, conn_dets, dbe, db, tbl_name):
             (dbe, db, tbl_name) + \
         ".getDbDets()" )
     fil.write("\n\n#%s\n#%s\n" % ("-"*50, datestamp))
-    fil.write(script)
+    fil.write(inner_script)
     fil.write("\nconn.close()")
 
 def SaveToReport(fil_report, fil_css, content):
@@ -235,4 +239,12 @@ def AddClosingScriptCode(f):
     f.write("\n\n#" + "-"*50 + "\n")
     f.write("\nfil.write(output.getHtmlFtr())")
     f.write("\nfil.close()")
-    
+
+def DisplayReport(parent, strContent):
+    # display results
+    dlg = showhtml.ShowHTML(parent=parent, content=strContent, 
+                            file_name=my_globals.INT_REPORT_FILE, 
+                            title="Report", 
+                            print_folder=my_globals.INTERNAL_FOLDER)
+    dlg.ShowModal()
+    dlg.Destroy()
