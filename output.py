@@ -1,6 +1,12 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
+import pprint
+
+import getdata
+import util
+
 def GetDefaultCss():
     """
     Get default CSS.  The "constants" are used so that we can 
@@ -144,4 +150,89 @@ def getHtmlHdr(hdr_title, fil_css=None):
 
 def getHtmlFtr():
     "Close HTML off cleanly"
-    return "</body></html>"  
+    return "</body></html>"
+
+def RunReport(fil_report, fil_css, script, conn_dets, dbe, db, tbl_name):
+    """
+    Runs report and returns HTML representation of it.
+    """
+    # generate script
+    f = file(projects.INT_SCRIPT_PATH, "w")
+    InsertPrelimCode(OUTPUT_MODULES, f, projects.INT_REPORT_PATH, fil_css)
+    AppendExportedScript(f, script, conn_dets, dbe, db, tbl_name)
+    AddClosingScriptCode(f)
+    f.close()
+    # run script
+    f = file(projects.INT_SCRIPT_PATH, "r")
+    script = f.read()
+    f.close()
+    exec(script)
+    f = file(projects.INT_REPORT_PATH, "r")
+    strContent = f.read()
+    f.close()
+    # append into html file
+    SaveToReport(fil_report, fil_css, strContent)
+    strContent = "<p>Output also saved to '%s'</p>" % \
+        fil_report + strContent
+    return strContent
+
+def InsertPrelimCode(modules, fil, fil_report, fil_css):
+    """
+    Insert preliminary code at top of file.
+    fil - open file handle ready for writing.
+    NB files always start from scratch per make tables session.
+    """         
+    fil.write("#! /usr/bin/env python")
+    fil.write("\n# -*- coding: utf-8 -*-\n")
+    fil.write("\nimport sys")
+    fil.write("\nsys.path.append('%s')" % util.get_script_path())
+    for module in modules:
+        fil.write("\nimport %s" % module)
+    fil.write("\n\nfil = file(r\"%s\", \"w\")" % fil_report)
+    fil.write("\nfil.write(output.getHtmlHdr(\"Report(s)\", " + \
+              "fil_css=r\"%s\"))" % fil_css)
+    
+def AppendExportedScript(fil, script, conn_dets, dbe, db, tbl_name):
+    """
+    Append exported script onto file.
+    fil - open file handle ready for writing
+    """
+    datestamp = datetime.now().strftime("Script " + \
+                                    "exported %d/%m/%Y at %I:%M %p")
+    # Fresh connection for each in case it changes in between tables
+    getdata.setDbInConnDets(dbe, conn_dets, db)
+    conn_dets_str = pprint.pformat(conn_dets)
+    fil.write("\nconn_dets = %s" % conn_dets_str)
+    fil.write("\nconn, cur, dbs, tbls, flds, has_unique, idxs = \\" + \
+        "\n    getdata.getDbDetsObj(" + \
+        """dbe="%s", conn_dets=conn_dets, \n    db="%s", tbl="%s")""" % \
+            (dbe, db, tbl_name) + \
+        ".getDbDets()" )
+    fil.write("\n\n#%s\n#%s\n" % ("-"*50, datestamp))
+    fil.write(script)
+    fil.write("\nconn.close()")
+
+def SaveToReport(fil_report, fil_css, content):
+    """
+    If report exists, append content stripped of every thing up till 
+        and including body tag.
+    If not, create file, insert header, then stripped content.
+    """
+    body = "<body>"
+    start_idx = content.find(body) + len(body)
+    content = content[start_idx:]
+    if os.path.exists(fil_report):
+        f = file(fil_report, "a")
+    else:
+        f = file(fil_report, "w")
+        hdr_title = time.strftime("SOFA Statistics Report %Y-%m-%d_%H:%M:%S")
+        f.write(getHtmlHdr(hdr_title, fil_css))
+    f.write(content)
+    f.close()
+
+def AddClosingScriptCode(f):
+    "Add ending code to script.  Nb leaves open file."
+    f.write("\n\n#" + "-"*50 + "\n")
+    f.write("\nfil.write(output.getHtmlFtr())")
+    f.write("\nfil.close()")
+    

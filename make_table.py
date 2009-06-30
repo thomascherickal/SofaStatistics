@@ -1,4 +1,3 @@
-from datetime import datetime
 import os
 import pprint
 import random
@@ -19,7 +18,7 @@ import util
 
 SCRIPT_PATH = util.get_script_path()
 LOCAL_PATH = util.get_local_path()
-
+OUTPUT_MODULES = ["my_globals", "dimtables", "rawtables", "output", "getdata"]
 
 # NB raw tables don't have measures
 def get_default_measure(tab_type):
@@ -30,12 +29,6 @@ def get_default_measure(tab_type):
         return my_globals.MEAN
     else:
         raise Exception, "Only dimension tables have measures"
-    
-def AddClosingScriptCode(f):
-    "Add ending code to script.  Nb leaves open file."
-    f.write("\n\n#" + "-"*50 + "\n")
-    f.write("\nfil.write(output.getHtmlFtr())")
-    f.write("\nfil.close()")
 
 def GetColDets(coltree, colRoot, var_labels):
     """
@@ -175,62 +168,25 @@ class MakeTable(object):
             # hourglass cursor
             curs = wx.StockCursor(wx.CURSOR_WAIT)
             self.SetCursor(curs)
-            #self.statusbar.SetStatusText("Please wait for report " + \
-            #                             "to be produced")   
-            # generate script
-            f = file(projects.INT_SCRIPT_PATH, "w")
-            self.InsertPrelimCode(fil=f, fil_report=projects.INT_REPORT_PATH)
-            self.AppendExportedScript(f, has_rows, has_cols)
-            AddClosingScriptCode(f)
-            f.close()
-            # run script
-            f = file(projects.INT_SCRIPT_PATH, "r")
-            script = f.read()
-            f.close()
-            exec(script)
-            f = file(projects.INT_REPORT_PATH, "r")
-            strContent = f.read()
-            f.close()
-            # append into html file
-            self.SaveToReport(content=strContent)
+            script = self.getScript(has_rows, has_cols)
+            strContent = output.RunReport(self.fil_report, self.fil_css, script, 
+                            self.conn_dets, self.dbe, self.db, self.tbl_name)
             # Return to normal cursor
             curs = wx.StockCursor(wx.CURSOR_ARROW)
             self.SetCursor(curs)
-            #self.statusbar.SetStatusText("")
-            # display results
-            strContent = "<p>Output also saved to '%s'</p>" % \
-                self.fil_report + strContent
-            dlg = showhtml.ShowHTML(parent=self, content=strContent, 
-                                    file_name=projects.INT_REPORT_FILE, 
-                                    title="Report", 
-                                    print_folder=projects.INTERNAL_FOLDER)
-            dlg.ShowModal()
-            dlg.Destroy()
+            self.DisplayReport(strContent)
         else:
             wx.MessageBox("Missing %s data" % missing_dim)
 
-    def SaveToReport(self, content):
-        """
-        If report exists, append content stripped of every thing up till 
-            and including body tag.
-        If not, create file, insert header, then stripped content.
-        """
-        body = "<body>"
-        start_idx = content.find(body) + len(body)
-        content = content[start_idx:]
-        if os.path.exists(self.fil_report):
-            f = file(self.fil_report, "a")
-        else:
-            f = file(self.fil_report, "w")
-            hdr_title = time.strftime("SOFA Statistics Report %Y-%m-%d_%H:%M:%S")
-            f.write(output.getHtmlHdr(hdr_title, self.fil_css))
-        f.write(content)
-        f.close()
+    def DisplayReport(self, strContent):
+        # display results
+        dlg = showhtml.ShowHTML(parent=self, content=strContent, 
+                                file_name=projects.INT_REPORT_FILE, 
+                                title="Report", 
+                                print_folder=projects.INTERNAL_FOLDER)
+        dlg.ShowModal()
+        dlg.Destroy()
 
-    #def OnRunEnterWindow(self, event):
-    #    "Hover over RUN button"
-    #    self.statusbar.SetStatusText("Export HTML table to file")
-        
     # export script
     def OnButtonExport(self, event):
         """
@@ -250,64 +206,29 @@ class MakeTable(object):
             the new exported script.
         If the file exists and is not empty, append the script on the end.
         """
+        modules = ["my_globals", "dimtables", "rawtables", "output", "getdata"]
+        script = self.getScript(has_rows, has_cols)
         if self.fil_script in self.open_scripts:
             # see if empty or not
             f = file(self.fil_script, "r+")
             lines = f.readlines()
             empty_fil = False if lines else True            
             if empty_fil:
-                self.InsertPrelimCode(fil=f)
+                output.InsertPrelimCode(OUTPUT_MODULES, f, self.fil_report, 
+                                        self.fil_css)
             # insert exported script
-            self.AppendExportedScript(f, has_rows, has_cols)
+            output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
+                                        self.db, self.tbl_name)
         else:
             # add file name to list, create file, insert preliminary code, 
             # and insert exported script.
             self.open_scripts.append(self.fil_script)
             f = file(self.fil_script, "w")
-            self.InsertPrelimCode(fil=f)
-            self.AppendExportedScript(f, has_rows, has_cols)
+            output.InsertPrelimCode(OUTPUT_MODULES, f, self.fil_report, 
+                                    self.fil_css)
+            output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
+                                        self.db, self.tbl_name)
         f.close()
-    
-    def InsertPrelimCode(self, fil, fil_report=None):
-        """
-        Insert preliminary code at top of file.
-        fil - open file handle ready for writing.
-        NB files always start from scratch per make tables session.
-        """         
-        fil.write("#! /usr/bin/env python")
-        fil.write("\n# -*- coding: utf-8 -*-\n")
-        fil.write("\nimport sys")
-        fil.write("\nsys.path.append('%s')" % util.get_script_path())
-        fil.write("\nimport my_globals")
-        fil.write("\nimport dimtables")
-        fil.write("\nimport rawtables")
-        fil.write("\nimport output")
-        fil.write("\nimport getdata\n")
-        if not fil_report:
-            fil_report = self.fil_report
-        fil.write("\nfil = file(r\"%s\", \"w\")" % fil_report)
-        fil.write("\nfil.write(output.getHtmlHdr(\"Report(s)\", " + \
-                  "fil_css=r\"%s\"))" % self.fil_css)
-    
-    def AppendExportedScript(self, fil, has_rows, has_cols):
-        """
-        Append exported script onto file.
-        fil - open file handle ready for writing
-        """
-        datestamp = datetime.now().strftime("Script " + \
-                                        "exported %d/%m/%Y at %I:%M %p")
-        # Fresh connection for each in case it changes in between tables
-        getdata.setDbInConnDets(self.dbe, self.conn_dets, self.db)
-        conn_dets_str = pprint.pformat(self.conn_dets)
-        fil.write("\nconn_dets = %s" % conn_dets_str)
-        fil.write("\nconn, cur, dbs, tbls, flds, has_unique, idxs = \\" + \
-            "\n    getdata.getDbDetsObj(" + \
-            """dbe="%s", conn_dets=conn_dets, \n    db="%s", tbl="%s")""" % \
-                (self.dbe, self.db, self.tbl_name) + \
-            ".getDbDets()" )
-        fil.write("\n\n#%s\n#%s\n" % ("-"*50, datestamp))
-        fil.write(self.getScript(has_rows, has_cols))
-        fil.write("\nconn.close()")
         
     def getScript(self, has_rows, has_cols):
         "Build script from inputs"
@@ -446,11 +367,6 @@ class MakeTable(object):
                              child=grandchild, 
                              child_fld_name=grandchild_fld_name)
     
-    #def OnExportEnterWindow(self, event):
-    #    "Hover over EXPORT button"
-    #    self.statusbar.SetStatusText("Export python code for making " + \
-    #                                 "table to file")
-    
     def OnButtonHelp(self, event):
         """
         Export script if enough data to create table.
@@ -478,16 +394,6 @@ class MakeTable(object):
         self.coltree.DeleteChildren(self.colRoot)
         self.UpdateByTabType()
         self.UpdateDemoDisplay()
-    
-    # help
-    #def OnHelpEnterWindow(self, event):
-    #    "Hover over HELP button"
-    #    self.statusbar.SetStatusText("Get help")    
-        
-    # close
-    #def OnCloseEnterWindow(self, event):
-    #    "Hover over CLOSE button"
-    #    self.statusbar.SetStatusText("Close application")
 
     def OnClose(self, event):
         "Close app"
@@ -497,7 +403,7 @@ class MakeTable(object):
             for fil_script in self.open_scripts:
                 # add ending code to script
                 f = file(fil_script, "a")
-                AddClosingScriptCode(f)
+                output.AddClosingScriptCode(f)
                 f.close()
         except Exception:
             pass
@@ -510,11 +416,6 @@ class MakeTable(object):
         demo_tbl_html = self.demo_tab.getDemoHTMLIfOK()
         #print "\n" + demo_tbl_html + "\n" #debug
         self.html.ShowHTML(demo_tbl_html)
-        
-    # misc
-    #def BlankStatusBar(self, event):
-    #    """Blank the status bar"""
-    #    self.statusbar.SetStatusText("")
 
     def TableConfigOK(self):
         """

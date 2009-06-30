@@ -83,15 +83,11 @@ class DlgTTestConfig(wx.Dialog,
         szrVarsRight = wx.BoxSizer(wx.VERTICAL)
         szrVarsLeftTop = wx.BoxSizer(wx.HORIZONTAL)
         szrVarsRightTop = wx.BoxSizer(wx.HORIZONTAL)
-        szrVarsLeftBottom = wx.BoxSizer(wx.HORIZONTAL)
+        szrVarsLeftMid = wx.BoxSizer(wx.HORIZONTAL)
         choice_var_names = self.flds.keys()
-        
-        
-        fld_choice_items = [getdata.getChoiceItem(self.var_labels, x) \
-                            for x in choice_var_names]
-        fld_choice_items.sort(key=lambda s: s.upper())
-        
-        
+        fld_choice_items = \
+            getdata.getSortedChoiceItems(dic_labels=self.var_labels, 
+                                         vals=choice_var_names)
         self.lblGroupBy = wx.StaticText(self.panel, -1, "Group By:")
         self.lblGroupBy.SetFont(self.LABEL_FONT)
         self.dropGroupBy = wx.Choice(self.panel, -1, choices=fld_choice_items)
@@ -99,37 +95,35 @@ class DlgTTestConfig(wx.Dialog,
         szrVarsLeftTop.Add(self.lblGroupBy, 0, wx.RIGHT, 5)
         szrVarsLeftTop.Add(self.dropGroupBy, 0, wx.GROW)
         self.lblGroupA = wx.StaticText(self.panel, -1, "Group A:")
-        self.dropGroupA = wx.Choice(self.panel, -1, choices=[])
+        self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
+        self.dropGroupA.Bind(wx.EVT_CHOICE, self.OnGroupByASel)
         self.lblGroupB = wx.StaticText(self.panel, -1, "Group B:")
-        self.dropGroupB = wx.Choice(self.panel, -1, choices=[])
-        szrVarsLeftBottom.Add(self.lblGroupA, 0, wx.RIGHT, 5)
-        szrVarsLeftBottom.Add(self.dropGroupA, 1, wx.RIGHT, 5)
-        szrVarsLeftBottom.Add(self.lblGroupB, 0, wx.RIGHT, 5)
-        szrVarsLeftBottom.Add(self.dropGroupB, 1)
+        self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
+        self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupByBSel)
+        self.SetGroupDropdowns()
+        szrVarsLeftMid.Add(self.lblGroupA, 0, wx.RIGHT, 5)
+        szrVarsLeftMid.Add(self.dropGroupA, 0, wx.RIGHT, 5)
+        szrVarsLeftMid.Add(self.lblGroupB, 0, wx.RIGHT, 5)
+        szrVarsLeftMid.Add(self.dropGroupB, 0)
         szrVarsLeft.Add(szrVarsLeftTop, 1, wx.GROW)
-        szrVarsLeft.Add(szrVarsLeftBottom, 0, wx.GROW)
+        szrVarsLeft.Add(szrVarsLeftMid, 0, wx.GROW)
         self.lblAveraged = wx.StaticText(self.panel, -1, "Averaged:")
         self.lblAveraged.SetFont(self.LABEL_FONT)
         # only want the fields which are numeric
-        
-        
-        
-        print self.flds
         numeric_var_names = [x for x in self.flds if \
                              self.flds[x][my_globals.FLD_BOLNUMERIC]]
-        print numeric_var_names
-        
-        
-        self.dropAveraged = wx.Choice(self.panel, -1, choices=fld_choice_items)
+        val_choice_items = \
+            getdata.getSortedChoiceItems(dic_labels=self.var_labels,
+                                         vals=numeric_var_names)
+        self.dropAveraged = wx.Choice(self.panel, -1, choices=val_choice_items)
         self.dropAveraged.Bind(wx.EVT_CHOICE, self.OnAveragedSel)
         szrVarsRightTop.Add(self.lblAveraged, 0, wx.LEFT, 10)
         szrVarsRightTop.Add(self.dropAveraged, 0, wx.LEFT, 5)
         szrVarsRight.Add(szrVarsRightTop, 0)
-        self.lblPhrase = wx.StaticText(self.panel, -1, "Does 'Male' have " + \
-                                "a different average 'vocab' from 'Female'?")
-        szrVarsRight.Add(self.lblPhrase, 0, wx.ALL, 10)
-        #szrVarsRight.Add(szrVarsRightBottom, 0)
-        szrVars.Add(szrVarsLeft, 1)
+        self.lblPhrase = wx.StaticText(self.panel, -1, "")
+        self.UpdatePhrase()
+        szrVarsLeft.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)        
+        szrVars.Add(szrVarsLeft, 1, wx.LEFT, 5)
         szrVars.Add(szrVarsRight, 0)
         self.SetupGenConfigSizer()
         szrMid = wx.BoxSizer(wx.HORIZONTAL)
@@ -173,6 +167,19 @@ class DlgTTestConfig(wx.Dialog,
         self.Fit()
     
     def OnGroupBySel(self, event):
+        self.SetGroupDropdowns()
+        self.UpdatePhrase()
+        event.Skip()
+    
+    def OnGroupByASel(self, event):        
+        self.UpdatePhrase()
+        event.Skip()
+        
+    def OnGroupByBSel(self, event):        
+        self.UpdatePhrase()
+        event.Skip()
+    
+    def SetGroupDropdowns(self):
         """
         Gets unique values for selected variable.
         Sets choices for dropGroupA and B accordingly.
@@ -193,9 +200,33 @@ class DlgTTestConfig(wx.Dialog,
         self.dropGroupA.SetSelection(0)
         self.dropGroupB.SetItems(vars_with_labels)
         self.dropGroupB.SetSelection(0)
-    
-    def OnAveragedSel(self, event):
-        pass
+        
+    def UpdatePhrase(self):
+        """
+        Update phrase based on GroupBy, Group A, Group B, and Averaged by field.
+        """
+        choice_gp_text = self.dropGroupBy.GetStringSelection()
+        if not choice_gp_text:
+            return
+        _, label_gp = getdata.extractChoiceDets(choice_gp_text)
+        choice_a_text = self.dropGroupA.GetStringSelection()
+        if not choice_a_text:
+            return
+        _, label_a = getdata.extractChoiceDets(choice_a_text)
+        choice_b_text = self.dropGroupB.GetStringSelection()
+        if not choice_b_text:
+            return
+        _, label_b = getdata.extractChoiceDets(choice_b_text)
+        choice_avg_text = self.dropAveraged.GetStringSelection()
+        if not choice_avg_text:
+            return
+        _, label_avg = getdata.extractChoiceDets(choice_avg_text)
+        self.lblPhrase.SetLabel("Does %s \"%s\" have" % (label_gp, label_a) + \
+            " a different average %s than \"%s\"?" % (label_avg, label_b))
+        
+    def OnAveragedSel(self, event):        
+        self.UpdatePhrase()
+        event.Skip()
     
     def OnIndepHelpButton(self, event):
         wx.MessageBox("Is your data for each group recorded in different " + \
@@ -209,16 +240,109 @@ class DlgTTestConfig(wx.Dialog,
           "paired.")
     
     def OnButtonRun(self, event):
-        pass
+        """
+        Generate script to special location (INT_SCRIPT_PATH), 
+            run script putting output in special location 
+            (INT_REPORT_PATH) and into report file, and finally, 
+            display html output.
+        """
+        run_ok = self.TestConfigOK()
+        if run_ok:
+            # hourglass cursor
+            curs = wx.StockCursor(wx.CURSOR_WAIT)
+            self.SetCursor(curs)
+            script = self.getScript()
+            strContent = output.RunReport(self.fil_report, self.fil_css, script, 
+                            self.conn_dets, self.dbe, self.db, self.tbl_name)
+            # Return to normal cursor
+            curs = wx.StockCursor(wx.CURSOR_ARROW)
+            self.SetCursor(curs)
+            self.DisplayReport(strContent)
+        else:
+            wx.MessageBox("Missing %s data" % missing_dim)
+
+    def DisplayReport(self, strContent):
+        # display results
+        dlg = showhtml.ShowHTML(parent=self, content=strContent, 
+                                file_name=projects.INT_REPORT_FILE, 
+                                title="Report", 
+                                print_folder=projects.INTERNAL_FOLDER)
+        dlg.ShowModal()
+        dlg.Destroy()
     
+    def TestConfigOK(self):
+        """
+        Are the appropriate selections made to enable an analysis to be run?
+        """
+        # group by and averaged variables cannot be the same
+        if self.dropGroupBy.GetStringSelection() == \
+                self.dropAveraged.GetStringSelection():
+            wx.MessageBox("The Grouped By Variable and the Averaged " + \
+                          "variable cannot be the same")
+            return False
+        # group A and B cannot be the same
+        if self.dropGroupA.GetStringSelection() == \
+                self.dropGroupB.GetStringSelection():
+            wx.MessageBox("Group A and Group B must be different")
+            return False
+        return True
+    
+   # export script
     def OnButtonExport(self, event):
-        pass
+        """
+        Export script if enough data to create table.
+        """
+        export_ok = self.TestConfigOK()
+        if export_ok:
+            self.ExportScript()
+        event.Skip()
     
+    def ExportScript(self):
+        """
+        Export script for table to file currently displayed.
+        If the file doesn't exist, make one and add the preliminary code.
+        If a file exists, but is empty, put the preliminary code in then
+            the new exported script.
+        If the file exists and is not empty, append the script on the end.
+        """
+        modules = ["my_globals", "core_stats", "getdata", "output", 
+                   "stats_output"]
+        script = self.getScript()
+        if self.fil_script in self.open_scripts:
+            # see if empty or not
+            f = file(self.fil_script, "r+")
+            lines = f.readlines()
+            empty_fil = False if lines else True            
+            if empty_fil:
+                output.InsertPrelimCode(modules, f, self.fil_report, 
+                                        self.fil_css)
+            # insert exported script
+            self.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
+                                      self.db, self.tbl_name)
+        else:
+            # add file name to list, create file, insert preliminary code, 
+            # and insert exported script.
+            self.open_scripts.append(self.fil_script)
+            f = file(self.fil_script, "w")
+            output.InsertPrelimCode(modules, f, self.fil_report, self.fil_css)
+            self.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
+                                      self.db, self.tbl_name)
+        f.close()
+
+    def getScript(self, has_rows, has_cols):
+        "Build script from inputs"
+        script_lst = []
+        
+        
+        return "\n".join(script_lst)
+
     def OnButtonHelp(self, event):
-        pass
+        wx.MessageBox("Under construction")
+        event.Skip()
     
     def OnButtonClear(self, event):
-        pass
+        wx.MessageBox("Under construction")
+        event.Skip()
     
     def OnClose(self, event):
         "Close app"
@@ -228,3 +352,4 @@ class DlgTTestConfig(wx.Dialog,
             pass
         finally:
             self.Destroy()
+            event.Skip()

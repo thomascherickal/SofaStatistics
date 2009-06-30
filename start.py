@@ -190,7 +190,7 @@ class StartFrame(wx.Frame):
         font_buttons = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
         g = GetNextYPos(245, 34)
         btn_x_pos = 5
-        bmp_btn_proj = TextOnBitmap(GetBlankButtonBitmap(), "Select project", 
+        bmp_btn_proj = TextOnBitmap(GetBlankButtonBitmap(), "Select Project", 
                                     font_buttons, "white")
         self.btnProj = wx.BitmapButton(self.panel, -1, bmp_btn_proj, 
                                        pos=(btn_x_pos, g.next()))
@@ -209,13 +209,13 @@ class StartFrame(wx.Frame):
                                          pos=(btn_x_pos, g.next()))
         self.btnImport.Bind(wx.EVT_BUTTON, self.OnImportClick)
         self.btnImport.Bind(wx.EVT_ENTER_WINDOW, self.OnImportEnter)
-        bmp_btn_tables = TextOnBitmap(GetBlankButtonBitmap(), "Make Tables", 
+        bmp_btn_tables = TextOnBitmap(GetBlankButtonBitmap(), "Report Tables", 
                                       font_buttons, "white")
         self.btnTables = wx.BitmapButton(self.panel, -1, bmp_btn_tables, 
                                          pos=(btn_x_pos, g.next()))
         self.btnTables.Bind(wx.EVT_BUTTON, self.OnTablesClick)
         self.btnTables.Bind(wx.EVT_ENTER_WINDOW, self.OnTablesEnter)       
-        bmp_btn_charts = TextOnBitmap(GetBlankButtonBitmap(), "View Charts", 
+        bmp_btn_charts = TextOnBitmap(GetBlankButtonBitmap(), "Charts", 
                                       font_buttons, "white")
         self.btnCharts = wx.BitmapButton(self.panel, -1, bmp_btn_charts, 
                                          pos=(btn_x_pos, g.next()))
@@ -408,9 +408,17 @@ class StartFrame(wx.Frame):
         self.DrawBlankWallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_tabs, 530, 255, True)
         panel_dc.SetTextForeground(TEXT_BROWN)
-        txt_tabs = "Make tables e.g. Age vs Gender"
-        panel_dc.DrawLabel(GetTextToDraw(txt_tabs, MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, 248, 540, 260))
+        txt_tabs1 = "Make report tables e.g. Age vs Gender"
+        panel_dc.DrawLabel(GetTextToDraw(txt_tabs1, MAX_HELP_TEXT_WIDTH), 
+                           wx.Rect(MAIN_LEFT, 248, 540, 260))       
+        txt_tabs2 = "Can make simple Frequency Tables, " + \
+            "Summary Tables (mean, median, N, standard deviation, sum), " + \
+            "and simple tabular reports of data as found in data source " + \
+            "(with labels and optional totals)."
+        panel_dc.DrawLabel(GetTextToDraw(txt_tabs2, MAX_HELP_TEXT_WIDTH), 
+                           wx.Rect(MAIN_LEFT, 278, 540, 260))
+        
+        
         event.Skip()
     
     def OnChartsClick(self, event):

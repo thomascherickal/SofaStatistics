@@ -131,6 +131,16 @@ def extractChoiceDets(choice_text):
         item_label = choice_text        
     return item_val, item_label
 
+def getSortedChoiceItems(dic_labels, vals):
+    """
+    dic_labels - could be for either variables of values.
+    vals - either variables or values.
+    Returns choice_items_sorted.
+    """
+    choice_items = [getChoiceItem(dic_labels, x) for x in vals]
+    choice_items.sort(key=lambda s: s.upper())
+    return choice_items
+
 def setConnDetDefaults(parent):
     """
     Check project connection settings to handle missing values and set 
