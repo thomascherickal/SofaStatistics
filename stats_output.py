@@ -1,18 +1,22 @@
 import my_globals
 
-def ttest_output(t, p, label_measure, dic_a, dic_b, indep=True, 
+def ttest_output(t, p, dic_a, dic_b, dp=3, indep=True, label_avg=None,
                  level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False):
     """
     Returns HTML table ready to display.
     dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
              "min": min_a, "max": max_a}
     """
-    test_type = "Independent" if indep else "Paired" 
-    html = "<h2>Results of %s t-test " % test_type + \
-        "of average \"%s\" for " % label_measure + \
-        "\"%s\" vs \"%s\"</h2>" % (dic_a["label"], dic_b["label"])
-    html += "\n<p>p value: %s</p>" % p
-    html += "\n<p>t statistic: %s</p>" % t
+    if indep:
+        html = "<h2>Results of Independent Samples t-test " + \
+            "of average \"%s\" for " % label_avg + \
+            "\"%s\" vs \"%s\"</h2>" % (dic_a["label"], dic_b["label"])
+    else:
+        html = "<h2>Results of Paired Samples t-test " + \
+            "of \"%s\" vs \"%s\"</h2>" % (dic_a["label"], dic_b["label"])
+    p_format = "\n<p>p value: %%.%sf</p>" % dp
+    html += p_format % round(p, dp)
+    html += "\n<p>t statistic: %s</p>" % round(t, dp)
     html += "\n\n<table>\n<thead>"
     html += "\n<tr><th class='firstcolvar'>Group</th>" + \
         "\n<th class='firstcolvar'>N</th>" + \
@@ -24,7 +28,8 @@ def ttest_output(t, p, label_measure, dic_a, dic_b, indep=True,
     row_tpl = "\n<tr><td class='lbl'>%s</td><td>%s</td><td>%s</td>" + \
         "<td>%s</td><td>%s</td><td>%s</td></tr>"
     for dic in [dic_a, dic_b]:
-        html += row_tpl % (dic["label"], dic["n"], dic["mean"], dic["sd"], 
+        html += row_tpl % (dic["label"], dic["n"], round(dic["mean"], dp), 
+                           round(dic["sd"],3), 
                            dic["min"], dic["max"])
     html += "\n</tbody>\n</table>\n"
     if page_break_after:

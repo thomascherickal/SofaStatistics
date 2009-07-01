@@ -237,23 +237,21 @@ class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
     def getScript(self):
         "Build script from inputs"
         script_lst = []
-        var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
-            label_avg = self.GetDropVals()
-        strGet_Sample = "sample_%s = core_stats.get_list(" + \
+        var_a, label_a, var_b, label_b = self.GetDropVals()
+        script_lst.append("sample_a, sample_b = " + \
+            "core_stats.get_paired_lists(" + \
             "dbe=\"%s\", " % self.dbe + \
             "cur=cur, tbl=\"%s\",\n    " % self.tbl_name + \
-            "fld_measure=\"%s\", " % var_avg + \
-            "fld_filter=\"%s\", " % var_gp + \
-            "filter_val=%s)"
-        script_lst.append(strGet_Sample % ("a", val_a))
-        script_lst.append(strGet_Sample % ("b", val_b))
+            "fld_measure_a=\"%s\", " % var_a + \
+            "fld_measure_b=\"%s\")" % var_b)
+        script_lst.append("dp = 3")
         script_lst.append("label_a = \"%s\"" % label_a)
         script_lst.append("label_b = \"%s\"" % label_b)
-        script_lst.append("label_avg = \"%s\"" % label_avg)
+        script_lst.append("indep = True")
         script_lst.append("t, p, dic_a, dic_b = " + \
-            "core_stats.ttest_ind(sample_a, sample_b, label_a, label_b)")
+            "core_stats.ttest_rel(sample_a, sample_b, label_a, label_b)")
         script_lst.append("ttest_output = stats_output.ttest_output(" + \
-            "t, p, label_avg, dic_a, dic_b,\n    indep=True, " + \
+            "t, p, dic_a, dic_b, dp, indep,\n    label_avg=None, " + \
             "level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False)")
         script_lst.append("fil.write(ttest_output)")
         return "\n".join(script_lst)

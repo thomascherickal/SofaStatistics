@@ -322,15 +322,17 @@ class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
             "fld_measure=\"%s\", " % var_avg + \
             "fld_filter=\"%s\", " % var_gp + \
             "filter_val=%s)"
+        script_lst.append("dp = 3")
         script_lst.append(strGet_Sample % ("a", val_a))
         script_lst.append(strGet_Sample % ("b", val_b))
         script_lst.append("label_a = \"%s\"" % label_a)
         script_lst.append("label_b = \"%s\"" % label_b)
         script_lst.append("label_avg = \"%s\"" % label_avg)
+        script_lst.append("indep = True")
         script_lst.append("t, p, dic_a, dic_b = " + \
             "core_stats.ttest_ind(sample_a, sample_b, label_a, label_b)")
         script_lst.append("ttest_output = stats_output.ttest_output(" + \
-            "t, p, label_avg, dic_a, dic_b,\n    indep=True, " + \
+            "t, p, dic_a, dic_b, dp, indep,\n    label_avg, " + \
             "level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False)")
         script_lst.append("fil.write(ttest_output)")
         return "\n".join(script_lst)

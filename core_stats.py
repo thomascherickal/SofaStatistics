@@ -90,8 +90,8 @@ def ttest_ind(sample_a, sample_b, label_a, label_b):
     min_b = min(sample_b)
     max_a = max(sample_a)
     max_b = max(sample_b)
-    sd_a = round(math.sqrt(se_a),3)
-    sd_b = round(math.sqrt(se_b),3)
+    sd_a = math.sqrt(se_a)
+    sd_b = math.sqrt(se_b)
     dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
              "min": min_a, "max": max_a}
     dic_b = {"label": label_b, "n": n_b, "mean": mean_b, "sd": sd_b, 
@@ -128,8 +128,8 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     min_b = min(sample_b)
     max_a = max(sample_a)
     max_b = max(sample_b)
-    sd_a = round(math.sqrt(var_a),3)
-    sd_b = round(math.sqrt(var_b),3)
+    sd_a = math.sqrt(var_a)
+    sd_b = math.sqrt(var_b)
     dic_a = {"label": label_a, "n": n, "mean": mean_a, "sd": sd_a, 
              "min": min_a, "max": max_a}
     dic_b = {"label": label_b, "n": n, "mean": mean_b, "sd": sd_b, 
