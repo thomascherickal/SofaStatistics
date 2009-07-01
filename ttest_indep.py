@@ -15,8 +15,7 @@ OUTPUT_MODULES = ["my_globals", "core_stats", "getdata", "output",
                   "stats_output"]
 
 
-class DlgTTestConfig(wx.Dialog, 
-                     gen_config.GenConfig, output_buttons.OutputButtons):
+class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
     """
     GenConfig - provides reusable interface for data selection, setting labels 
         etc.  Sets values for db, default_tbl etc and responds to selections 
@@ -47,11 +46,9 @@ class DlgTTestConfig(wx.Dialog,
             projects.GetLabels(fil_labels)            
         self.open_html = []
         self.open_scripts = []
-        self.col_no_vars_item = None # needed if no variable in columns
         # set up panel for frame
         self.panel = wx.Panel(self)
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
-
         ib = wx.IconBundle()
         ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, "images",
                                         "tinysofa.xpm"), 
@@ -76,9 +73,9 @@ class DlgTTestConfig(wx.Dialog,
         lblDesc3 = wx.StaticText(self.panel, -1,
             "Or do parents of pre-schoolers get the same amount of " + \
             "sleep on average as parents of teenagers?")
-        szrDesc.Add(szrDescTop, 1, wx.GROW)
-        szrDesc.Add(lblDesc2, 1, wx.GROW)
-        szrDesc.Add(lblDesc3, 1, wx.GROW)
+        szrDesc.Add(szrDescTop, 1, wx.GROW|wx.LEFT, 5)
+        szrDesc.Add(lblDesc2, 1, wx.GROW|wx.LEFT, 5)
+        szrDesc.Add(lblDesc3, 1, wx.GROW|wx.LEFT, 5)
         bxVars = wx.StaticBox(self.panel, -1, "Variables")
         szrVars = wx.StaticBoxSizer(bxVars, wx.HORIZONTAL)
         szrVarsLeft = wx.BoxSizer(wx.VERTICAL)
@@ -130,18 +127,7 @@ class DlgTTestConfig(wx.Dialog,
         self.SetupGenConfigSizer()
         szrMid = wx.BoxSizer(wx.HORIZONTAL)
         szrMidLeft = wx.BoxSizer(wx.VERTICAL)
-        bxMidLeftTop = wx.StaticBox(self.panel, -1, "Type of t-test")
-        szrMidLeftTop = wx.StaticBoxSizer(bxMidLeftTop, wx.HORIZONTAL)
-        self.radIndep = wx.RadioButton(self.panel, -1, "Independent", 
-                                  style=wx.RB_GROUP)
-        self.radPaired = wx.RadioButton(self.panel, -1, "Paired")
-        self.btnIndepHelp = wx.Button(self.panel, wx.ID_HELP)
-        self.btnIndepHelp.Bind(wx.EVT_BUTTON, self.OnIndepHelpButton)
-        szrMidLeftTop.Add(self.radIndep, 0, wx.RIGHT, 10)
-        szrMidLeftTop.Add(self.radPaired, 0, wx.RIGHT, 10)
-        szrMidLeftTop.Add(self.btnIndepHelp, 0)
         szrMidLeftBottom = wx.BoxSizer(wx.HORIZONTAL)
-        szrMidLeft.Add(szrMidLeftTop, 0, wx.ALL, 5)
         szrMidLeft.Add(szrMidLeftBottom, 0)
         szrMid.Add(szrMidLeft, 5, wx.GROW)
         szrMid.Add(self.szrButtons, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)   
@@ -157,6 +143,9 @@ class DlgTTestConfig(wx.Dialog,
                                  style=wx.RB_GROUP)
         radBrief = wx.RadioButton(self.panel, -1, "Brief Explanation")
         radResults = wx.RadioButton(self.panel, -1, "Results Only")
+        radFull.Enable(False)
+        radBrief.Enable(False)
+        radResults.Enable(False)
         szrLevel.Add(radFull, 0, wx.RIGHT, 10)
         szrLevel.Add(radBrief, 0, wx.RIGHT, 10)
         szrLevel.Add(radResults, 0, wx.RIGHT, 10)
@@ -241,17 +230,6 @@ class DlgTTestConfig(wx.Dialog,
         self.UpdatePhrase()
         event.Skip()
     
-    def OnIndepHelpButton(self, event):
-        wx.MessageBox("Is your data for each group recorded in different " + \
-          "rows (independent) or together on same row (paired)?" + \
-          "\n\nExample of Independent data: if looking at Male vs Female " + \
-          "vocabulary we do not have both male and female scores in the " + \
-          "same rows. Male and Female data is independent." + \
-          "\n\nExample of Paired data: if looking at mental ability in the " + \
-          "Morning vs the Evening we might have one row per person with " + \
-          "both time periods in the same row. Morning and Evening data is " + \
-          "paired.")
-    
     def OnButtonRun(self, event):
         """
         Generate script to special location (INT_SCRIPT_PATH), 
@@ -272,8 +250,7 @@ class DlgTTestConfig(wx.Dialog,
             curs = wx.StockCursor(wx.CURSOR_ARROW)
             self.SetCursor(curs)
             output.DisplayReport(self, strContent)
-        else:
-            wx.MessageBox("Missing %s data" % missing_dim)
+        event.Skip()
     
     def TestConfigOK(self):
         """
@@ -339,28 +316,23 @@ class DlgTTestConfig(wx.Dialog,
         script_lst = []
         var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
             label_avg = self.GetDropVals()
-        if self.radIndep.GetValue():
-            strGet_Sample = "sample_%s = core_stats.get_list(" + \
-                "dbe=\"%s\", " % self.dbe + \
-                "cur=cur, tbl=\"%s\",\n    " % self.tbl_name + \
-                "fld_measure=\"%s\", " % var_avg + \
-                "fld_filter=\"%s\", " % var_gp + \
-                "filter_val=%s)"
-            script_lst.append(strGet_Sample % ("a", val_a))
-            script_lst.append(strGet_Sample % ("b", val_b))
-            script_lst.append("label_a = \"%s\"" % label_a)
-            script_lst.append("label_b = \"%s\"" % label_b)
-            script_lst.append("label_avg = \"%s\"" % label_avg)
-            script_lst.append("t, p, dic_a, dic_b = " + \
-                "core_stats.ttest_ind(sample_a, sample_b, label_a, label_b)")
-            script_lst.append("ttest_output = stats_output.ttest_output(" + \
-                "t, p, label_avg, dic_a, dic_b,\n    indep=True, " + \
-                "level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False)")
-            script_lst.append("fil.write(ttest_output)")
-        elif self.radPaired.GetValue():
-            pass
-        else:
-            raise Exception, "A t-test but neither paired nor independent"        
+        strGet_Sample = "sample_%s = core_stats.get_list(" + \
+            "dbe=\"%s\", " % self.dbe + \
+            "cur=cur, tbl=\"%s\",\n    " % self.tbl_name + \
+            "fld_measure=\"%s\", " % var_avg + \
+            "fld_filter=\"%s\", " % var_gp + \
+            "filter_val=%s)"
+        script_lst.append(strGet_Sample % ("a", val_a))
+        script_lst.append(strGet_Sample % ("b", val_b))
+        script_lst.append("label_a = \"%s\"" % label_a)
+        script_lst.append("label_b = \"%s\"" % label_b)
+        script_lst.append("label_avg = \"%s\"" % label_avg)
+        script_lst.append("t, p, dic_a, dic_b = " + \
+            "core_stats.ttest_ind(sample_a, sample_b, label_a, label_b)")
+        script_lst.append("ttest_output = stats_output.ttest_output(" + \
+            "t, p, label_avg, dic_a, dic_b,\n    indep=True, " + \
+            "level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False)")
+        script_lst.append("fil.write(ttest_output)")
         return "\n".join(script_lst)
 
     def OnButtonHelp(self, event):

@@ -24,9 +24,11 @@ def get_paired_lists(dbe, cur, tbl, fld_measure_a, fld_measure_b):
         Used in, for example, the paired samples t-test.
     """
     quoter = getdata.get_quoter_func(dbe)
-    SQL_get_lists = "SELECT %s, %s FROM %s WHERE %s IS NOT NULL AND %s IS NOT NULL" \
-        % (quoter(fld_measure_a), quoter(fld_measure_b), quoter(tbl), 
-           quoter(fld_measure_a), quoter(fld_measure_b))
+    SQL_get_lists = "SELECT %s, %s " % (quoter(fld_measure_a), 
+                                        quoter(fld_measure_b)) + \
+        "FROM %s " % quoter(tbl) + \
+        "WHERE %s IS NOT NULL AND %s IS NOT NULL" % (quoter(fld_measure_a), 
+                                                     quoter(fld_measure_b))
     cur.execute(SQL_get_lists)
     data_tups = cur.fetchall()
     lst_a = [x[0] for x in data_tups]

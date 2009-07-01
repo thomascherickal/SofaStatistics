@@ -5,11 +5,13 @@ import wx
 import my_globals
 import my_exceptions
 import projects
-import ttest_gui
+import ttest_indep
+import ttest_paired
 import util
 
 TEXT_BROWN = (90, 74, 61)
-TEST_TTEST = "t-test"
+TEST_TTEST_INDEP = "Independent t-test"
+TEST_TTEST_PAIRED = "Paired t-test"
 TEST_ANOVA = "ANOVA"
 TEST_WILCOXON = "Wilcoxon Signed Ranks"
 TEST_MANN_WHITNEY = "Mann-Whitney U"
@@ -17,9 +19,9 @@ TEST_KRUSKAL_WALLIS = "Kruskal-Wallis H"
 TEST_CHI_SQUARE = "Chi Square"
 TEST_SPEARMANS = "Spearman's Correlation"
 TEST_PEARSONS = "Pearson's Correlation"
-STATS_TESTS = [TEST_TTEST, TEST_ANOVA, TEST_WILCOXON, TEST_MANN_WHITNEY,
-               TEST_KRUSKAL_WALLIS, TEST_CHI_SQUARE, TEST_SPEARMANS,
-               TEST_PEARSONS]
+STATS_TESTS = [TEST_TTEST_INDEP, TEST_TTEST_PAIRED, TEST_ANOVA, TEST_WILCOXON, 
+               TEST_MANN_WHITNEY, TEST_KRUSKAL_WALLIS, TEST_CHI_SQUARE, 
+               TEST_SPEARMANS, TEST_PEARSONS]
 MAIN_LEFT = 45
 HELP_LEFT = MAIN_LEFT + 235
 REL_TOP = 330
@@ -114,12 +116,10 @@ class StatsSelectDlg(wx.Dialog):
         self.radNormal1 = wx.RadioButton(self.panel, -1, lbl_normal, 
                                          style=wx.RB_GROUP,
                                          pos=(BUTTON1_LEFT, DIFF_LN_2))
-        self.radNormal1.Bind(wx.EVT_RADIOBUTTON, self.OnRadioNormal1Button)
+        self.radNormal1.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButton)
         self.radNotNormal1 = wx.RadioButton(self.panel, -1, lbl_not_normal,
                                             pos=(BUTTON2_LEFT, DIFF_LN_2))
-        self.radNotNormal1.Bind(wx.EVT_RADIOBUTTON, 
-                                self.OnRadioNotNormal1Button)
-        
+        self.radNotNormal1.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButton)
         self.radNormal1.Enable(False)
         self.radNotNormal1.Enable(False)
         self.btnNormalHelp1 = wx.Button(self.panel, wx.ID_HELP,
@@ -178,13 +178,14 @@ class StatsSelectDlg(wx.Dialog):
         self.btnNormalHelp2.Bind(wx.EVT_BUTTON, self.OnNormalHelp2Button)
         self.btnNormalHelp2.Enable(False)
         # listbox of tests
-        LST_LEFT = 580
+        LST_LEFT = 555
         LST_WIDTH = 200
         LST_TOP = 55
         LST_HEIGHT = 210
+        SCROLL_ALLOWANCE = 20
         self.lstTests = wx.ListCtrl(self.panel, -1, pos=(LST_LEFT, LST_TOP), 
-                                    size=(LST_WIDTH, LST_HEIGHT),
-                                    style=wx.LC_REPORT)
+                                size=(LST_WIDTH + SCROLL_ALLOWANCE, LST_HEIGHT),
+                                style=wx.LC_REPORT)
         il = wx.ImageList(16, 16)
         self.idx_tick = 0
         self.idx_blank = 1
@@ -196,9 +197,9 @@ class StatsSelectDlg(wx.Dialog):
             il.Add(bmp)
         self.lstTests.AssignImageList(il, wx.IMAGE_LIST_SMALL)
         self.lstTests.InsertColumn(0, "Statistical Test")
-        self.lstTests.SetColumnWidth(0, LST_WIDTH - 20)
+        self.lstTests.SetColumnWidth(0, LST_WIDTH - 25)
         self.lstTests.InsertColumn(1, "")
-        self.lstTests.SetColumnWidth(1, 20)
+        self.lstTests.SetColumnWidth(1, 25)
         for i, test in enumerate(STATS_TESTS):
             idx = self.lstTests.InsertStringItem(i, test)
             self.lstTests.SetStringItem(i, 1, "", self.idx_blank)
@@ -287,11 +288,10 @@ class StatsSelectDlg(wx.Dialog):
         self.radNormal1.Enable(enable)
         self.radNotNormal1.Enable(enable)
         self.btnNormalHelp1.Enable(enable)
-        self.IndepSetup(enable=False) # only set to True when paired selected
+        self.IndepSetup(enable=True)
     
     def OnRadio2GroupsButton(self, event):
-        enable = self.radNotNormal1.GetValue()
-        self.IndepSetup(enable=enable)
+        self.IndepSetup(enable=True)
         self.RespondToAssistedChoices()
     
     def OnRadio3GroupsButton(self, event):
@@ -306,15 +306,6 @@ class StatsSelectDlg(wx.Dialog):
           "\n\nExample with 3 or more groups: average sales figures for " + \
           "the North, South, East, and West regions")
         
-    def OnRadioNormal1Button(self, event):
-        self.IndepSetup(enable=False)
-        self.RespondToAssistedChoices()
-    
-    def OnRadioNotNormal1Button(self, event):
-        enable = self.rad2Groups.GetValue()
-        self.IndepSetup(enable=enable) # Mann_Whitney or Wilcoxon SR
-        self.RespondToAssistedChoices()
-    
     def OnNormalHelp1Button(self, event):
         wx.MessageBox("Help Normal 1")
     
@@ -400,15 +391,19 @@ class StatsSelectDlg(wx.Dialog):
         """
         Select which test meets the criteria selected.
         Returns test_type from STATS_TESTS.
-        STATS_TESTS = [TEST_TTEST, TEST_ANOVA, TEST_WILCOXON, TEST_MANN_WHITNEY,
-               TEST_KRUSKAL_WALLIS, TEST_CHI_SQUARE, TEST_SPEARMANS,
-               TEST_PEARSONS]
+        STATS_TESTS = [TEST_TTEST_INDEP, TEST_TTEST_PAIRED, TEST_ANOVA, 
+            TEST_WILCOXON, TEST_MANN_WHITNEY, TEST_KRUSKAL_WALLIS, 
+            TEST_CHI_SQUARE, TEST_SPEARMANS, TEST_PEARSONS
         """
         if self.radDifferences.GetValue():
             if self.rad2Groups.GetValue():
                 if self.radNormal1.GetValue():
-                    # indep vs paired dealt with internally
-                    test_type = TEST_TTEST
+                    if self.radIndep.GetValue():
+                        test_type = TEST_TTEST_INDEP
+                    elif self.radPaired.GetValue():
+                        test_type = TEST_TTEST_PAIRED
+                    else:
+                        raise my_exceptions.InvalidTestSelectionException
                 elif self.radNotNormal1.GetValue():
                     if self.radIndep.GetValue():
                         test_type = TEST_MANN_WHITNEY
@@ -456,11 +451,17 @@ class StatsSelectDlg(wx.Dialog):
             sel_test = STATS_TESTS[idx]
         except Exception:
             wx.MessageBox("Please select a statistical test on the list")
-        if sel_test == TEST_TTEST:
-            dlg = ttest_gui.DlgTTestConfig("Configure t-test", 
+        if sel_test == TEST_TTEST_INDEP:
+            dlg = ttest_indep.DlgConfig("Configure Independent t-test", 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
             dlg.ShowModal()
+        
+        elif sel_test == TEST_TTEST_PAIRED:
+            dlg = ttest_paired.DlgConfig("Configure Paired Samples t-test", 
+                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
+                self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
+            dlg.ShowModal()        
         else:
             wx.MessageBox("This release only includes the t-test")
         event.Skip()
