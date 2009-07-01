@@ -97,8 +97,8 @@ class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupSel)
         szrVarsTop.Add(self.lblGroupB, 0, wx.RIGHT, 5)
         szrVarsTop.Add(self.dropGroupB, 0, wx.GROW)
-        self.lblPhrase = wx.StaticText(self.panel, -1, "")
-        self.UpdatePhrase()
+        self.lblPhrase = wx.StaticText(self.panel, -1, 
+                                       "Start making your selections")
         szrVarsBottom.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
         szrVars.Add(szrVarsTop, 1, wx.LEFT, 5)
         szrVars.Add(szrVarsBottom, 0, wx.LEFT, 5)
@@ -142,12 +142,8 @@ class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
         Returns var_a, label_a, var_b, label_b.
         """
         choice_a_text = self.dropGroupA.GetStringSelection()
-        if not choice_a_text:
-            return
         var_a, label_a = getdata.extractChoiceDets(choice_a_text)
         choice_b_text = self.dropGroupB.GetStringSelection()
-        if not choice_b_text:
-            return
         var_b, label_b = getdata.extractChoiceDets(choice_b_text)
         return var_a, label_a, var_b, label_b
     
@@ -247,7 +243,7 @@ class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
         script_lst.append("dp = 3")
         script_lst.append("label_a = \"%s\"" % label_a)
         script_lst.append("label_b = \"%s\"" % label_b)
-        script_lst.append("indep = True")
+        script_lst.append("indep = False")
         script_lst.append("t, p, dic_a, dic_b = " + \
             "core_stats.ttest_rel(sample_a, sample_b, label_a, label_b)")
         script_lst.append("ttest_output = stats_output.ttest_output(" + \

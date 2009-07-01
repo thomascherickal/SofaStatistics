@@ -119,8 +119,8 @@ class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
         szrVarsRightTop.Add(self.lblAveraged, 0, wx.LEFT, 10)
         szrVarsRightTop.Add(self.dropAveraged, 0, wx.LEFT, 5)
         szrVarsRight.Add(szrVarsRightTop, 0)
-        self.lblPhrase = wx.StaticText(self.panel, -1, "")
-        self.UpdatePhrase()
+        self.lblPhrase = wx.StaticText(self.panel, -1, 
+                                       "Start making your selections")
         szrVarsLeft.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)        
         szrVars.Add(szrVarsLeft, 1, wx.LEFT, 5)
         szrVars.Add(szrVarsRight, 0)
@@ -199,20 +199,12 @@ class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
             label_avg.
         """
         choice_gp_text = self.dropGroupBy.GetStringSelection()
-        if not choice_gp_text:
-            return
         var_gp, label_gp = getdata.extractChoiceDets(choice_gp_text)
         choice_a_text = self.dropGroupA.GetStringSelection()
-        if not choice_a_text:
-            return
         val_a, label_a = getdata.extractChoiceDets(choice_a_text)
         choice_b_text = self.dropGroupB.GetStringSelection()
-        if not choice_b_text:
-            return
         val_b, label_b = getdata.extractChoiceDets(choice_b_text)
         choice_avg_text = self.dropAveraged.GetStringSelection()
-        if not choice_avg_text:
-            return
         var_avg, label_avg = getdata.extractChoiceDets(choice_avg_text)        
         return var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
             label_avg

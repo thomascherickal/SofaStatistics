@@ -189,7 +189,7 @@ class StatsSelectDlg(wx.Dialog):
         il = wx.ImageList(16, 16)
         self.idx_tick = 0
         self.idx_blank = 1
-        tick = "tickwin" if INWIN else "tick" 
+        tick = "tickwin" if INWIN else "tick"
         for img in [tick, "blank"]:
             bmp = wx.Bitmap(os.path.join(my_globals.SCRIPT_PATH, "images", 
                                          "%s.png" % img), 
