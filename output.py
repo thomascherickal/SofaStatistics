@@ -171,7 +171,12 @@ def RunReport(modules, fil_report, fil_css, inner_script, conn_dets, dbe, db,
     f = file(my_globals.INT_SCRIPT_PATH, "r")
     script = f.read()
     f.close()
-    exec(script)
+    try:
+        exec(script)
+    except Exception, e:
+        strContent = "<h1>Ooops!</h1>\n<p>Unable to run report.  " + \
+            "Error encountered.  Original error message: %s</p>" % e
+        return strContent
     f = file(my_globals.INT_REPORT_PATH, "r")
     strContent = f.read()
     f.close()
