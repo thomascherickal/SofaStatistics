@@ -1,7 +1,5 @@
 import math
 
-from statlib import stats, pstat
-
 import getdata
 
 def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val):
@@ -76,16 +74,16 @@ def ttest_ind(sample_a, sample_b, label_a, label_b):
     Calculates the t-obtained T-test on TWO INDEPENDENT samples of
     scores a, and b.  From Numerical Recipes, p.483.
     """
-    mean_a = stats.mean(sample_a)
-    mean_b = stats.mean(sample_b)
-    se_a = stats.stdev(sample_a)**2
-    se_b = stats.stdev(sample_b)**2
+    mean_a = mean(sample_a)
+    mean_b = mean(sample_b)
+    se_a = stdev(sample_a)**2
+    se_b = stdev(sample_b)**2
     n_a = len(sample_a)
     n_b = len(sample_b)
     df = n_a + n_b - 2
     svar = ((n_a - 1)*se_a + (n_b - 1)*se_b)/float(df)
     t = (mean_a - mean_b)/math.sqrt(svar*(1.0/n_a + 1.0/n_b))
-    p = stats.betai(0.5*df, 0.5, df/(df + t*t))
+    p = betai(0.5*df, 0.5, df/(df + t*t))
     min_a = min(sample_a)
     min_b = min(sample_b)
     max_a = max(sample_a)
@@ -111,10 +109,10 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     """
     if len(sample_a)<>len(sample_b):
         raise ValueError, 'Unequal length lists in ttest_rel.'
-    mean_a = stats.mean(sample_a)
-    mean_b = stats.mean(sample_b)
-    var_a = stats.var(sample_a)
-    var_b = stats.var(sample_b)
+    mean_a = mean(sample_a)
+    mean_b = mean(sample_b)
+    var_a = var(sample_a)
+    var_b = var(sample_b)
     n = len(sample_a)
     cov = 0
     for i in range(n):
@@ -123,7 +121,7 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     cov = cov / float(df)
     sd = math.sqrt((var_a + var_b - 2.0*cov) / float(n))
     t = (mean_a - mean_b)/sd
-    p = stats.betai(0.5*df, 0.5, df / (df + t*t))
+    p = betai(0.5*df, 0.5, df / (df + t*t))
     min_a = min(sample_a)
     min_b = min(sample_b)
     max_a = max(sample_a)
@@ -135,3 +133,134 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     dic_b = {"label": label_b, "n": n, "mean": mean_b, "sd": sd_b, 
              "min": min_b, "max": max_b}
     return t, p, dic_a, dic_b
+
+def mean (inlist):
+    """
+    From stats.py.  No changes.
+    Returns the arithematic mean of the values in the passed list.
+    Assumes a '1D' list, but will function on the 1st dim of an array(!).
+    
+    Usage:   mean(inlist)
+    """
+    sum = 0
+    for item in inlist:
+        sum = sum + item
+    return sum/float(len(inlist))
+
+def var (inlist):
+    """
+    From stats.py.  No changes.
+    Returns the variance of the values in the passed list using N-1
+    for the denominator (i.e., for estimating population variance).
+    
+    Usage:   var(inlist)
+    """
+    n = len(inlist)
+    mn = mean(inlist)
+    deviations = [0]*len(inlist)
+    for i in range(len(inlist)):
+        deviations[i] = inlist[i] - mn
+    return ss(deviations)/float(n-1)
+
+def stdev (inlist):
+    """
+    From stats.py.  No changes.
+    Returns the standard deviation of the values in the passed list
+    using N-1 in the denominator (i.e., to estimate population stdev).
+    
+    Usage:   stdev(inlist)
+    """
+    return math.sqrt(var(inlist))
+
+def betai(a, b, x):
+    """
+    From stats.py.  No changes.
+    Returns the incomplete beta function:
+    
+        I-sub-x(a,b) = 1/B(a,b)*(Integral(0,x) of t^(a-1)(1-t)^(b-1) dt)
+    
+    where a,b>0 and B(a,b) = G(a)*G(b)/(G(a+b)) where G(a) is the gamma
+    function of a.  The continued fraction formulation is implemented here,
+    using the betacf function.  (Adapted from: Numerical Recipies in C.)
+    
+    Usage:   betai(a,b,x)
+    """
+    if (x<0.0 or x>1.0):
+        raise ValueError, 'Bad x in lbetai'
+    if (x==0.0 or x==1.0):
+        bt = 0.0
+    else:
+        bt = math.exp(gammln(a+b)-gammln(a)-gammln(b)+a*math.log(x)+b*
+                      math.log(1.0-x))
+    if (x<(a+1.0)/(a+b+2.0)):
+        return bt*betacf(a,b,x)/float(a)
+    else:
+        return 1.0-bt*betacf(b,a,1.0-x)/float(b)
+
+def ss(inlist):
+    """
+    From stats.py.  No changes.
+    Squares each value in the passed list, adds up these squares and
+    returns the result.
+    
+    Usage:   ss(inlist)
+    """
+    ss = 0
+    for item in inlist:
+        ss = ss + item*item
+    return ss
+
+def gammln(xx):
+    """
+    From stats.py.  No changes.
+    Returns the gamma function of xx.
+        Gamma(z) = Integral(0,infinity) of t^(z-1)exp(-t) dt.
+    (Adapted from: Numerical Recipies in C.)
+    
+    Usage:   gammln(xx)
+    """
+    coeff = [76.18009173, -86.50532033, 24.01409822, -1.231739516,
+             0.120858003e-2, -0.536382e-5]
+    x = xx - 1.0
+    tmp = x + 5.5
+    tmp = tmp - (x+0.5)*math.log(tmp)
+    ser = 1.0
+    for j in range(len(coeff)):
+        x = x + 1
+        ser = ser + coeff[j]/x
+    return -tmp + math.log(2.50662827465*ser)
+
+
+def betacf(a,b,x):
+    """
+    From stats.py.  No changes.
+    This function evaluates the continued fraction form of the incomplete
+    Beta function, betai.  (Adapted from: Numerical Recipies in C.)
+    
+    Usage:   betacf(a,b,x)
+    """
+    ITMAX = 200
+    EPS = 3.0e-7
+
+    bm = az = am = 1.0
+    qab = a+b
+    qap = a+1.0
+    qam = a-1.0
+    bz = 1.0-qab*x/qap
+    for i in range(ITMAX+1):
+        em = float(i+1)
+        tem = em + em
+        d = em*(b-em)*x/((qam+tem)*(a+tem))
+        ap = az + d*am
+        bp = bz+d*bm
+        d = -(a+em)*(qab+em)*x/((qap+tem)*(a+tem))
+        app = ap+d*az
+        bpp = bp+d*bz
+        aold = az
+        am = ap/bpp
+        bm = bp/bpp
+        az = app/bpp
+        bz = 1.0
+        if (abs(az-aold)<(EPS*abs(az))):
+            return az
+    print 'a or b too big, or ITMAX too small in Betacf.'
