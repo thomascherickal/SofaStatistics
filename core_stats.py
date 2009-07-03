@@ -1,3 +1,4 @@
+import copy
 import math
 
 import getdata
@@ -133,6 +134,159 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     dic_b = {"label": label_b, "n": n, "mean": mean_b, "sd": sd_b, 
              "min": min_b, "max": max_b}
     return t, p, dic_a, dic_b
+
+def mannwhitneyu(x,y):
+    """
+    From stats.py.  No changes.  
+    -------------------------------------
+    Calculates a Mann-Whitney U statistic on the provided scores and
+    returns the result.  Use only when the n in each condition is < 20 and
+    you have 2 independent samples of ranks.  NOTE: Mann-Whitney U is
+    significant if the u-obtained is LESS THAN or equal to the critical
+    value of U found in the tables.  Equivalent to Kruskal-Wallis H with
+    just 2 groups.
+
+    Usage:   mannwhitneyu(data)
+    Returns: u-statistic, one-tailed p-value (i.e., p(z(U)))
+    """
+    n1 = len(x)
+    n2 = len(y)
+    ranked = rankdata(x+y)
+    rankx = ranked[0:n1]       # get the x-ranks
+    ranky = ranked[n1:]        # the rest are y-ranks
+    u1 = n1*n2 + (n1*(n1+1))/2.0 - sum(rankx)  # calc U for x
+    u2 = n1*n2 - u1                            # remainder is U for y
+    bigu = max(u1,u2)
+    smallu = min(u1,u2)
+    T = math.sqrt(tiecorrect(ranked))  # correction factor for tied scores
+    if T == 0:
+        raise ValueError, 'All numbers are identical in lmannwhitneyu'
+    sd = math.sqrt(T*n1*n2*(n1+n2+1)/12.0)
+    z = abs((bigu-n1*n2/2.0) / sd)  # normal approximation for prob calc
+    return smallu, 1.0 - zprob(z)
+
+def rankdata(inlist):
+    """
+    From stats.py.  No changes.  
+    -------------------------------------
+    Ranks the data in inlist, dealing with ties appropritely.  Assumes
+    a 1D inlist.  Adapted from Gary Perlman's |Stat ranksort.
+
+    Usage:   rankdata(inlist)
+    Returns: a list of length equal to inlist, containing rank scores
+    """
+    n = len(inlist)
+    svec, ivec = shellsort(inlist)
+    sumranks = 0
+    dupcount = 0
+    newlist = [0]*n
+    for i in range(n):
+        sumranks = sumranks + i
+        dupcount = dupcount + 1
+        if i==n-1 or svec[i] <> svec[i+1]:
+            averank = sumranks / float(dupcount) + 1
+            for j in range(i-dupcount+1,i+1):
+                newlist[ivec[j]] = averank
+            sumranks = 0
+            dupcount = 0
+    return newlist
+
+def shellsort(inlist):
+    """
+    From stats.py.  No changes.  
+    -------------------------------------
+    Shellsort algorithm.  Sorts a 1D-list.
+
+    Usage:   shellsort(inlist)
+    Returns: sorted-inlist, sorting-index-vector (for original list)
+    """
+    n = len(inlist)
+    svec = copy.deepcopy(inlist)
+    ivec = range(n)
+    gap = n/2   # integer division needed
+    while gap >0:
+        for i in range(gap,n):
+            for j in range(i-gap,-1,-gap):
+                while j>=0 and svec[j]>svec[j+gap]:
+                    temp        = svec[j]
+                    svec[j]     = svec[j+gap]
+                    svec[j+gap] = temp
+                    itemp       = ivec[j]
+                    ivec[j]     = ivec[j+gap]
+                    ivec[j+gap] = itemp
+        gap = gap / 2  # integer division needed
+    # svec is now sorted inlist, and ivec has the order svec[i] = vec[ivec[i]]
+    return svec, ivec
+
+def tiecorrect(rankvals):
+    """
+    From stats.py.  No changes.  
+    -------------------------------------
+    Corrects for ties in Mann Whitney U and Kruskal Wallis H tests.  See
+    Siegel, S. (1956) Nonparametric Statistics for the Behavioral Sciences.
+    New York: McGraw-Hill.  Code adapted from |Stat rankind.c code.
+
+    Usage:   tiecorrect(rankvals)
+    Returns: T correction factor for U or H
+    """
+    sorted,posn = shellsort(rankvals)
+    n = len(sorted)
+    T = 0.0
+    i = 0
+    while (i<n-1):
+        if sorted[i] == sorted[i+1]:
+            nties = 1
+            while (i<n-1) and (sorted[i] == sorted[i+1]):
+                nties = nties +1
+                i = i +1
+            T = T + nties**3 - nties
+        i = i+1
+    T = T / float(n**3-n)
+    return 1.0 - T
+
+
+def zprob(z):
+    """
+    From stats.py.  No changes.  
+    -------------------------------------
+    Returns the area under the normal curve 'to the left of' the given z value.
+    Thus, 
+        - for z<0, zprob(z) = 1-tail probability
+        - for z>0, 1.0-zprob(z) = 1-tail probability
+        - for any z, 2.0*(1.0-zprob(abs(z))) = 2-tail probability
+    Adapted from z.c in Gary Perlman's |Stat.
+
+    Usage:   zprob(z)
+    """
+    Z_MAX = 6.0    # maximum meaningful z-value
+    if z == 0.0:
+        x = 0.0
+    else:
+        y = 0.5 * math.fabs(z)
+        if y >= (Z_MAX*0.5):
+            x = 1.0
+        elif (y < 1.0):
+            w = y*y
+            x = ((((((((0.000124818987 * w
+                        -0.001075204047) * w +0.005198775019) * w
+                      -0.019198292004) * w +0.059054035642) * w
+                    -0.151968751364) * w +0.319152932694) * w
+                  -0.531923007300) * w +0.797884560593) * y * 2.0
+        else:
+            y = y - 2.0
+            x = (((((((((((((-0.000045255659 * y
+                             +0.000152529290) * y -0.000019538132) * y
+                           -0.000676904986) * y +0.001390604284) * y
+                         -0.000794620820) * y -0.002034254874) * y
+                       +0.006549791214) * y -0.010557625006) * y
+                     +0.011630447319) * y -0.009279453341) * y
+                   +0.005353579108) * y -0.002141268741) * y
+                 +0.000535310849) * y +0.999936657524
+    if z > 0.0:
+        prob = ((x+1.0)*0.5)
+    else:
+        prob = ((1.0-x)*0.5)
+    return prob
 
 def mean (inlist):
     """

@@ -15,7 +15,8 @@ OUTPUT_MODULES = ["my_globals", "core_stats", "getdata", "output",
                   "stats_output"]
 
 
-class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
+class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig, 
+                         output_buttons.OutputButtons):
     """
     GenConfig - provides reusable interface for data selection, setting labels 
         etc.  Sets values for db, default_tbl etc and responds to selections 
@@ -52,7 +53,7 @@ class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
         ib = wx.IconBundle()
         ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, "images",
                                         "tinysofa.xpm"), 
-                           wx.BITMAP_TYPE_XPM)   
+                           wx.BITMAP_TYPE_XPM)
         self.SetIcons(ib)
         self.GenConfigSetup()
         self.SetupOutputButtons()
@@ -63,45 +64,63 @@ class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
         lblPurpose = wx.StaticText(self.panel, -1,
             "Purpose:")
         lblPurpose.SetFont(self.LABEL_FONT)
-        lblDesc1 = wx.StaticText(self.panel, -1,
-            "Answers the question, are the elements of paired sets of data" + \
-                " different from each other?")
+        eg1, eg2, eg3 = self.GetExamples()
+        lblDesc1 = wx.StaticText(self.panel, -1, eg1)
         szrDescTop.Add(lblPurpose, 0, wx.RIGHT, 10)
         szrDescTop.Add(lblDesc1, 0, wx.GROW)
-        lblDesc2 = wx.StaticText(self.panel, -1,
-            "For example, do people have a higher average weight after a " + \
-                "diet compared with before?")
-        lblDesc3 = wx.StaticText(self.panel, -1,
-            "Or does average performance in IQ tests vary between morning " + \
-                "and mid afternoon?")
+        lblDesc2 = wx.StaticText(self.panel, -1, eg2)
+        lblDesc3 = wx.StaticText(self.panel, -1, eg3)
         szrDesc.Add(szrDescTop, 1, wx.GROW|wx.LEFT, 5)
         szrDesc.Add(lblDesc2, 1, wx.GROW|wx.LEFT, 5)
         szrDesc.Add(lblDesc3, 1, wx.GROW|wx.LEFT, 5)
         bxVars = wx.StaticBox(self.panel, -1, "Variables")
-        szrVars = wx.StaticBoxSizer(bxVars, wx.VERTICAL)
-        szrVarsTop = wx.BoxSizer(wx.HORIZONTAL)
-        szrVarsBottom = wx.BoxSizer(wx.HORIZONTAL)
+        szrVars = wx.StaticBoxSizer(bxVars, wx.HORIZONTAL)
+        szrVarsLeft = wx.BoxSizer(wx.VERTICAL)
+        szrVarsRight = wx.BoxSizer(wx.VERTICAL)
+        szrVarsLeftTop = wx.BoxSizer(wx.HORIZONTAL)
+        szrVarsRightTop = wx.BoxSizer(wx.HORIZONTAL)
+        szrVarsLeftMid = wx.BoxSizer(wx.HORIZONTAL)
         choice_var_names = self.flds.keys()
         fld_choice_items = \
             getdata.getSortedChoiceItems(dic_labels=self.var_labels, 
                                          vals=choice_var_names)
+        self.lblGroupBy = wx.StaticText(self.panel, -1, "Group By:")
+        self.lblGroupBy.SetFont(self.LABEL_FONT)
+        self.dropGroupBy = wx.Choice(self.panel, -1, choices=fld_choice_items)
+        self.dropGroupBy.Bind(wx.EVT_CHOICE, self.OnGroupBySel)
+        szrVarsLeftTop.Add(self.lblGroupBy, 0, wx.RIGHT, 5)
+        szrVarsLeftTop.Add(self.dropGroupBy, 0, wx.GROW)
         self.lblGroupA = wx.StaticText(self.panel, -1, "Group A:")
-        self.lblGroupA.SetFont(self.LABEL_FONT)
-        self.dropGroupA = wx.Choice(self.panel, -1, choices=fld_choice_items)
-        self.dropGroupA.Bind(wx.EVT_CHOICE, self.OnGroupSel)
-        szrVarsTop.Add(self.lblGroupA, 0, wx.RIGHT, 5)
-        szrVarsTop.Add(self.dropGroupA, 0, wx.GROW)
+        self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
+        self.dropGroupA.Bind(wx.EVT_CHOICE, self.OnGroupByASel)
         self.lblGroupB = wx.StaticText(self.panel, -1, "Group B:")
-        self.dropGroupB = wx.Choice(self.panel, -1, choices=fld_choice_items, 
-                                    size=(200, -1))
-        self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupSel)
-        szrVarsTop.Add(self.lblGroupB, 0, wx.RIGHT, 5)
-        szrVarsTop.Add(self.dropGroupB, 0, wx.GROW)
+        self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
+        self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupByBSel)
+        self.SetGroupDropdowns()
+        szrVarsLeftMid.Add(self.lblGroupA, 0, wx.RIGHT, 5)
+        szrVarsLeftMid.Add(self.dropGroupA, 0, wx.RIGHT, 5)
+        szrVarsLeftMid.Add(self.lblGroupB, 0, wx.RIGHT, 5)
+        szrVarsLeftMid.Add(self.dropGroupB, 0)
+        szrVarsLeft.Add(szrVarsLeftTop, 1, wx.GROW)
+        szrVarsLeft.Add(szrVarsLeftMid, 0, wx.GROW)
+        self.lblAveraged = wx.StaticText(self.panel, -1, "%s:" % self.averaged)
+        self.lblAveraged.SetFont(self.LABEL_FONT)
+        # only want the fields which are numeric
+        numeric_var_names = [x for x in self.flds if \
+                             self.flds[x][my_globals.FLD_BOLNUMERIC]]
+        val_choice_items = \
+            getdata.getSortedChoiceItems(dic_labels=self.var_labels,
+                                         vals=numeric_var_names)
+        self.dropAveraged = wx.Choice(self.panel, -1, choices=val_choice_items)
+        self.dropAveraged.Bind(wx.EVT_CHOICE, self.OnAveragedSel)
+        szrVarsRightTop.Add(self.lblAveraged, 0, wx.LEFT, 10)
+        szrVarsRightTop.Add(self.dropAveraged, 0, wx.LEFT, 5)
+        szrVarsRight.Add(szrVarsRightTop, 0)
         self.lblPhrase = wx.StaticText(self.panel, -1, 
                                        "Start making your selections")
-        szrVarsBottom.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
-        szrVars.Add(szrVarsTop, 1, wx.LEFT, 5)
-        szrVars.Add(szrVarsBottom, 0, wx.LEFT, 5)
+        szrVarsLeft.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)        
+        szrVars.Add(szrVarsLeft, 1, wx.LEFT, 5)
+        szrVars.Add(szrVarsRight, 0)
         self.SetupGenConfigSizer()
         szrMid = wx.BoxSizer(wx.HORIZONTAL)
         szrMidLeft = wx.BoxSizer(wx.VERTICAL)
@@ -114,6 +133,7 @@ class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
         szrMain.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(szrMid, 2, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 5)   
         szrMain.Add(self.szrConfig, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+
         bxLevel = wx.StaticBox(self.panel, -1, "Output Level")
         szrLevel = wx.StaticBoxSizer(bxLevel, wx.HORIZONTAL)
         radFull = wx.RadioButton(self.panel, -1, "Full Explanation", 
@@ -132,29 +152,62 @@ class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
         szrMain.SetSizeHints(self)
         self.Fit()
     
-    def OnGroupSel(self, event):
+    def OnGroupBySel(self, event):
+        self.SetGroupDropdowns()
+        self.UpdatePhrase()
+        event.Skip()
+    
+    def OnGroupByASel(self, event):        
         self.UpdatePhrase()
         event.Skip()
         
+    def OnGroupByBSel(self, event):        
+        self.UpdatePhrase()
+        event.Skip()
+    
+    def SetGroupDropdowns(self):
+        """
+        Gets unique values for selected variable.
+        Sets choices for dropGroupA and B accordingly.
+        """
+        choice_text = self.dropGroupBy.GetStringSelection()
+        if not choice_text:
+            return
+        var_name, var_label = getdata.extractChoiceDets(choice_text)
+        quoter = getdata.get_quoter_func(self.dbe)
+        SQL_get_sorted_vals = "SELECT %s FROM %s GROUP BY %s ORDER BY %s" % \
+            (quoter(var_name), quoter(self.tbl_name), quoter(var_name), 
+             quoter(var_name))
+        self.cur.execute(SQL_get_sorted_vals)
+        val_dic = self.val_dics.get(var_name, {})
+        vars_with_labels = [getdata.getChoiceItem(val_dic, x[0]) for \
+                            x in self.cur.fetchall()]
+        self.dropGroupA.SetItems(vars_with_labels)
+        self.dropGroupA.SetSelection(0)
+        self.dropGroupB.SetItems(vars_with_labels)
+        self.dropGroupB.SetSelection(0)
+    
     def GetDropVals(self):
         """
         Get values from main drop downs.
-        Returns var_a, label_a, var_b, label_b.
+        Returns var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, 
+            label_avg.
         """
+        choice_gp_text = self.dropGroupBy.GetStringSelection()
+        var_gp, label_gp = getdata.extractChoiceDets(choice_gp_text)
         choice_a_text = self.dropGroupA.GetStringSelection()
-        var_a, label_a = getdata.extractChoiceDets(choice_a_text)
+        val_a, label_a = getdata.extractChoiceDets(choice_a_text)
         choice_b_text = self.dropGroupB.GetStringSelection()
-        var_b, label_b = getdata.extractChoiceDets(choice_b_text)
-        return var_a, label_a, var_b, label_b
+        val_b, label_b = getdata.extractChoiceDets(choice_b_text)
+        choice_avg_text = self.dropAveraged.GetStringSelection()
+        var_avg, label_avg = getdata.extractChoiceDets(choice_avg_text)        
+        return var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
+            label_avg
+        
+    def OnAveragedSel(self, event):        
+        self.UpdatePhrase()
+        event.Skip()
     
-    def UpdatePhrase(self):
-        """
-        Update phrase based on GroupBy, Group A, Group B, and Averaged by field.
-        """
-        var_a, label_a, var_b, label_b = self.GetDropVals()
-        self.lblPhrase.SetLabel("Is \"%s\" different from " % label_a + \
-            "\"%s\"?" % label_b)
-            
     def OnButtonRun(self, event):
         """
         Generate script to special location (INT_SCRIPT_PATH), 
@@ -181,6 +234,12 @@ class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
         """
         Are the appropriate selections made to enable an analysis to be run?
         """
+        # group by and averaged variables cannot be the same
+        if self.dropGroupBy.GetStringSelection() == \
+                self.dropAveraged.GetStringSelection():
+            wx.MessageBox("The Grouped By Variable and " + \
+                    "the %s " % self.averaged + "variable cannot be the same")
+            return False
         # group A and B cannot be the same
         if self.dropGroupA.GetStringSelection() == \
                 self.dropGroupB.GetStringSelection():
@@ -230,28 +289,6 @@ class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
                                         self.db, self.tbl_name)
         f.close()
 
-    def getScript(self):
-        "Build script from inputs"
-        script_lst = []
-        var_a, label_a, var_b, label_b = self.GetDropVals()
-        script_lst.append("sample_a, sample_b = " + \
-            "core_stats.get_paired_lists(" + \
-            "dbe=\"%s\", " % self.dbe + \
-            "cur=cur, tbl=\"%s\",\n    " % self.tbl_name + \
-            "fld_measure_a=\"%s\", " % var_a + \
-            "fld_measure_b=\"%s\")" % var_b)
-        script_lst.append("dp = 3")
-        script_lst.append("label_a = \"%s\"" % label_a)
-        script_lst.append("label_b = \"%s\"" % label_b)
-        script_lst.append("indep = False")
-        script_lst.append("t, p, dic_a, dic_b = " + \
-            "core_stats.ttest_rel(sample_a, sample_b, label_a, label_b)")
-        script_lst.append("ttest_output = stats_output.ttest_output(" + \
-            "t, p, dic_a, dic_b, label_avg=\"\", dp=dp, indep=indep,\n    " + \
-            "level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False)")
-        script_lst.append("fil.write(ttest_output)")
-        return "\n".join(script_lst)
-
     def OnButtonHelp(self, event):
         wx.MessageBox("Under construction")
         event.Skip()
@@ -275,3 +312,4 @@ class DlgConfig(wx.Dialog, gen_config.GenConfig, output_buttons.OutputButtons):
         finally:
             self.Destroy()
             event.Skip()
+

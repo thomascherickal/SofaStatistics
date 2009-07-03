@@ -22,7 +22,7 @@ import quotes
 import stats_select
 import util
 
-VERSION = "0.8.0"
+VERSION = "0.8.1"
 
 COPYRIGHT = "(c)" if util.in_windows() else "©" # "\xa9" problems with utf-8
 MAX_HELP_TEXT_WIDTH = 350 # pixels
@@ -135,7 +135,7 @@ def InstallLocal():
 
 class SofaApp(wx.App):
 
-    dev_debug = False
+    dev_debug = True
 
     def __init__(self):        
         # if wanting to initialise the parent class it must be run in 

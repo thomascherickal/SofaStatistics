@@ -3,6 +3,7 @@ import os
 import wx
 
 import my_globals
+import mann_whitney
 import my_exceptions
 import projects
 import ttest_indep
@@ -461,9 +462,18 @@ class StatsSelectDlg(wx.Dialog):
             dlg = ttest_paired.DlgConfig("Configure Paired Samples t-test", 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
-            dlg.ShowModal()        
+            dlg.ShowModal()
+        elif sel_test == TEST_WILCOXON:
+            pass
+        elif sel_test == TEST_MANN_WHITNEY:
+            dlg = mann_whitney.DlgConfig("Configure Mann Whitney U test", 
+                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
+                self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
+            dlg.ShowModal()
         else:
-            wx.MessageBox("This release only includes the t-test")
+            wx.MessageBox("This release only includes the independent " + \
+                "samples t-test, paired samples t-test, Wilcoxon Signed " + \
+                "Ranks and the Mann Whitney U")
         event.Skip()
     
     def OnCloseClick(self, event):
