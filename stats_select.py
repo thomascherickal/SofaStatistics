@@ -9,6 +9,7 @@ import projects
 import ttest_indep
 import ttest_paired
 import util
+import wilcoxon
 
 TEXT_BROWN = (90, 74, 61)
 TEST_TTEST_INDEP = "Independent t-test"
@@ -464,7 +465,10 @@ class StatsSelectDlg(wx.Dialog):
                 self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
             dlg.ShowModal()
         elif sel_test == TEST_WILCOXON:
-            pass
+            dlg = wilcoxon.DlgConfig("Configure Wilcoxon Signed Ranks test", 
+                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
+                self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
+            dlg.ShowModal()
         elif sel_test == TEST_MANN_WHITNEY:
             dlg = mann_whitney.DlgConfig("Configure Mann Whitney U test", 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
