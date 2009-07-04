@@ -7,6 +7,7 @@ import mann_whitney
 import my_exceptions
 import pearsonsr
 import projects
+import spearmansr
 import ttest_indep
 import ttest_paired
 import util
@@ -20,11 +21,11 @@ TEST_WILCOXON = "Wilcoxon Signed Ranks"
 TEST_MANN_WHITNEY = "Mann-Whitney U"
 TEST_KRUSKAL_WALLIS = "Kruskal-Wallis H"
 TEST_CHI_SQUARE = "Chi Square"
-TEST_SPEARMANS = "Spearman's Correlation"
+TEST_SPEARMANS_R = "Spearman's Correlation"
 TEST_PEARSONS_R = "Pearson's Correlation"
 STATS_TESTS = [TEST_TTEST_INDEP, TEST_TTEST_PAIRED, TEST_ANOVA, TEST_WILCOXON, 
                TEST_MANN_WHITNEY, TEST_KRUSKAL_WALLIS, TEST_CHI_SQUARE, 
-               TEST_SPEARMANS, TEST_PEARSONS_R]
+               TEST_SPEARMANS_R, TEST_PEARSONS_R]
 MAIN_LEFT = 45
 HELP_LEFT = MAIN_LEFT + 235
 REL_TOP = 330
@@ -397,7 +398,7 @@ class StatsSelectDlg(wx.Dialog):
         Returns test_type from STATS_TESTS.
         STATS_TESTS = [TEST_TTEST_INDEP, TEST_TTEST_PAIRED, TEST_ANOVA, 
             TEST_WILCOXON, TEST_MANN_WHITNEY, TEST_KRUSKAL_WALLIS, 
-            TEST_CHI_SQUARE, TEST_SPEARMANS, TEST_PEARSONS_R
+            TEST_CHI_SQUARE, TEST_SPEARMANS_R, TEST_PEARSONS_R
         """
         if self.radDifferences.GetValue():
             if self.rad2Groups.GetValue():
@@ -431,7 +432,7 @@ class StatsSelectDlg(wx.Dialog):
                 if self.radNormal2.GetValue():
                     test_type = TEST_PEARSONS_R
                 elif self.radNotNormal2.GetValue():
-                    test_type = TEST_SPEARMANS
+                    test_type = TEST_SPEARMANS_R
                 else:
                     raise my_exceptions.InvalidTestSelectionException 
             else:
@@ -480,6 +481,11 @@ class StatsSelectDlg(wx.Dialog):
             dlg.ShowModal()
         elif sel_test == TEST_PEARSONS_R:
             dlg = pearsonsr.DlgConfig("Configure Pearson's R test", 
+                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
+                self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
+            dlg.ShowModal()
+        elif sel_test == TEST_SPEARMANS_R:
+            dlg = spearmansr.DlgConfig("Configure Spearman's R test", 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
             dlg.ShowModal()

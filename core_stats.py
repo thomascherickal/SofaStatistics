@@ -228,6 +228,31 @@ def pearsonr(x,y):
     prob = betai(0.5*df,0.5,df/float(df+t*t))
     return r, prob
 
+def spearmanr(x,y):
+    """
+    From stats.py.  No changes.  
+    -------------------------------------
+    Calculates a Spearman rank-order correlation coefficient.  Taken
+    from Heiman's Basic Statistics for the Behav. Sci (1st), p.192.
+
+    Usage:   spearmanr(x,y)      where x and y are equal-length lists
+    Returns: Spearman's r, two-tailed p-value
+    """
+    TINY = 1e-30
+    if len(x) <> len(y):
+        raise ValueError, 'Input values not paired in spearmanr.  Aborting.'
+    n = len(x)
+    rankx = rankdata(x)
+    ranky = rankdata(y)
+    dsq = sumdiffsquared(rankx,ranky)
+    rs = 1 - 6*dsq / float(n*(n**2-1))
+    t = rs * math.sqrt((n-2) / ((rs+1.0)*(1.0-rs)))
+    df = n-2
+    probrs = betai(0.5*df,0.5,df/(df+t*t))  # t already a float
+    # probability values for rs are from part 2 of the spearman function in
+    # Numerical Recipes, p.510.  They are close to tables, but not exact. (?)
+    return rs, probrs
+
 def rankdata(inlist):
     """
     From stats.py.  No changes.  
@@ -592,3 +617,17 @@ def square_of_sums(inlist):
     """
     s = sum(inlist)
     return float(s)*s
+
+def sumdiffsquared(x,y):
+    """
+    From stats.py.  No changes.
+    Takes pairwise differences of the values in lists x and y, squares
+    these differences, and returns the sum of these squares.
+
+    Usage:   sumdiffsquared(x,y)
+    Returns: sum[(x[i]-y[i])**2]
+    """
+    sds = 0
+    for i in range(len(x)):
+        sds = sds + (x[i]-y[i])**2
+    return sds
