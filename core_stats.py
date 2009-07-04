@@ -1,5 +1,6 @@
 import copy
 import math
+from types import ListType, TupleType
 
 import getdata
 
@@ -168,6 +169,8 @@ def mannwhitneyu(x,y):
 
 def wilcoxont(x,y):
     """
+    From stats.py.  No changes.  
+    -------------------------------------
     Calculates the Wilcoxon T-test for related samples and returns the
     result.  A non-parametric T-test.
 
@@ -197,6 +200,33 @@ def wilcoxont(x,y):
     z = math.fabs(wt-mn) / se
     prob = 2*(1.0 -zprob(abs(z)))
     return wt, prob
+
+def pearsonr(x,y):
+    """
+    From stats.py.  No changes.  
+    -------------------------------------
+    Calculates a Pearson correlation coefficient and the associated
+    probability value.  Taken from Heiman's Basic Statistics for the Behav.
+    Sci (2nd), p.195.
+
+    Usage:   pearsonr(x,y)      where x and y are equal-length lists
+    Returns: Pearson's r value, two-tailed p-value
+    """
+    TINY = 1.0e-30
+    if len(x) <> len(y):
+        raise ValueError, 'Input values not paired in pearsonr.  Aborting.'
+    n = len(x)
+    x = map(float,x)
+    y = map(float,y)
+    xmean = mean(x)
+    ymean = mean(y)
+    r_num = n*(summult(x,y)) - sum(x)*sum(y)
+    r_den = math.sqrt((n*ss(x) - square_of_sums(x))*(n*ss(y)-square_of_sums(y)))
+    r = (r_num / r_den)  # denominator already a float
+    df = n-2
+    t = r*math.sqrt(df/((1.0-r+TINY)*(1.0+r+TINY)))
+    prob = betai(0.5*df,0.5,df/float(df+t*t))
+    return r, prob
 
 def rankdata(inlist):
     """
@@ -451,3 +481,114 @@ def betacf(a,b,x):
         if (abs(az-aold)<(EPS*abs(az))):
             return az
     print 'a or b too big, or ITMAX too small in Betacf.'
+
+def summult (list1,list2):
+    """
+    From pstat.py.  No changes (apart from calling abut in existing module
+        instead of pstat).
+    Multiplies elements in list1 and list2, element by element, and
+    returns the sum of all resulting multiplications.  Must provide equal
+    length lists.
+
+    Usage:   summult(list1,list2)
+    """
+    if len(list1) <> len(list2):
+        raise ValueError, "Lists not equal length in summult."
+    s = 0
+    for item1,item2 in abut(list1,list2):
+        s = s + item1*item2
+    return s
+
+def abut (source,*args):
+    """
+    From pstat.py.  No changes.
+    Like the |Stat abut command.  It concatenates two lists side-by-side
+    and returns the result.  '2D' lists are also accomodated for either argument
+    (source or addon).  CAUTION:  If one list is shorter, it will be repeated
+    until it is as long as the longest list.  If this behavior is not desired,
+    use pstat.simpleabut().
+    
+    Usage:   abut(source, args)   where args=any # of lists
+    Returns: a list of lists as long as the LONGEST list past, source on the
+             'left', lists in <args> attached consecutively on the 'right'
+    """
+
+    if type(source) not in [ListType,TupleType]:
+        source = [source]
+    for addon in args:
+        if type(addon) not in [ListType,TupleType]:
+            addon = [addon]
+        if len(addon) < len(source):                # is source list longer?
+            if len(source) % len(addon) == 0:        # are they integer multiples?
+                repeats = len(source)/len(addon)    # repeat addon n times
+                origadd = copy.deepcopy(addon)
+                for i in range(repeats-1):
+                    addon = addon + origadd
+            else:
+                repeats = len(source)/len(addon)+1  # repeat addon x times,
+                origadd = copy.deepcopy(addon)      #    x is NOT an integer
+                for i in range(repeats-1):
+                    addon = addon + origadd
+                    addon = addon[0:len(source)]
+        elif len(source) < len(addon):                # is addon list longer?
+            if len(addon) % len(source) == 0:        # are they integer multiples?
+                repeats = len(addon)/len(source)    # repeat source n times
+                origsour = copy.deepcopy(source)
+                for i in range(repeats-1):
+                    source = source + origsour
+            else:
+                repeats = len(addon)/len(source)+1  # repeat source x times,
+                origsour = copy.deepcopy(source)    #   x is NOT an integer
+                for i in range(repeats-1):
+                    source = source + origsour
+                source = source[0:len(addon)]
+
+        source = simpleabut(source,addon)
+    return source
+
+def simpleabut (source, addon):
+    """
+    Concatenates two lists as columns and returns the result.  '2D' lists
+    are also accomodated for either argument (source or addon).  This DOES NOT
+    repeat either list to make the 2 lists of equal length.  Beware of list
+    pairs with different lengths ... the resulting list will be the length of 
+    the FIRST list passed.
+    
+    Usage: simpleabut(source,addon)  where source, addon=list (or list-of-lists)
+    Returns: a list of lists as long as source, with source on the 'left' and
+                     addon on the 'right'
+    """
+    if type(source) not in [ListType,TupleType]:
+        source = [source]
+    if type(addon) not in [ListType,TupleType]:
+        addon = [addon]
+    minlen = min(len(source),len(addon))
+    list = copy.deepcopy(source)                # start abut process
+    if type(source[0]) not in [ListType,TupleType]:
+        if type(addon[0]) not in [ListType,TupleType]:
+            for i in range(minlen):
+                list[i] = [source[i]] + [addon[i]]     # source/addon = column
+        else:
+            for i in range(minlen):
+                list[i] = [source[i]] + addon[i]      # addon=list-of-lists
+    else:
+        if type(addon[0]) not in [ListType,TupleType]:
+            for i in range(minlen):
+                list[i] = source[i] + [addon[i]]     # source=list-of-lists
+        else:
+            for i in range(minlen):
+                list[i] = source[i] + addon[i]    # source/addon = list-of-lists
+    source = list
+    return source
+
+def square_of_sums(inlist):
+    """
+    From stats.py.  No changes.
+    Adds the values in the passed list, squares the sum, and returns
+    the result.
+
+    Usage:   square_of_sums(inlist)
+    Returns: sum(inlist[i])**2
+    """
+    s = sum(inlist)
+    return float(s)*s

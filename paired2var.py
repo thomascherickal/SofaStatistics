@@ -77,10 +77,12 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrVars = wx.StaticBoxSizer(bxVars, wx.VERTICAL)
         szrVarsTop = wx.BoxSizer(wx.HORIZONTAL)
         szrVarsBottom = wx.BoxSizer(wx.HORIZONTAL)
-        choice_var_names = self.flds.keys()
+        # only want the fields which are numeric
+        numeric_var_names = [x for x in self.flds if \
+                         self.flds[x][my_globals.FLD_BOLNUMERIC]]        
         fld_choice_items = \
             getdata.getSortedChoiceItems(dic_labels=self.var_labels, 
-                                         vals=choice_var_names)
+                                         vals=numeric_var_names)
         self.lblGroupA = wx.StaticText(self.panel, -1, "Group A:")
         self.lblGroupA.SetFont(self.LABEL_FONT)
         self.dropGroupA = wx.Choice(self.panel, -1, choices=fld_choice_items)
@@ -145,7 +147,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
     
     def UpdatePhrase(self):
         """
-        Update phrase based on GroupBy, Group A, Group B, and Averaged by field.
+        Update phrase based on Group A and Group B.
         """
         var_a, label_a, var_b, label_b = self.GetDropVals()
         self.lblPhrase.SetLabel("Is \"%s\" different from " % label_a + \

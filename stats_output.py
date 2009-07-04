@@ -57,3 +57,14 @@ def wilcoxon_output(t, p, label_a, label_b, dp=3,
     if page_break_after:
         html += "<br><hr><br><div class='page-break-before'></div>"
     return html
+
+def pearsonsr_output(r, p, label_a, label_b, dp=3,
+                 level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False):
+    html = "<h2>Results of Pearson's Test of Linear Correlation for " + \
+            " \"%s\" and \"%s\"</h2>" % (label_a, label_b)
+    p_format = "\n<p>p value: %%.%sf</p>" % dp
+    html += p_format % round(p, dp)
+    html += "\n<p>Pearson's R statistic: %s</p>" % round(r, dp)
+    if page_break_after:
+        html += "<br><hr><br><div class='page-break-before'></div>"
+    return html

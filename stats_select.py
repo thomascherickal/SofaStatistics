@@ -5,6 +5,7 @@ import wx
 import my_globals
 import mann_whitney
 import my_exceptions
+import pearsonsr
 import projects
 import ttest_indep
 import ttest_paired
@@ -20,10 +21,10 @@ TEST_MANN_WHITNEY = "Mann-Whitney U"
 TEST_KRUSKAL_WALLIS = "Kruskal-Wallis H"
 TEST_CHI_SQUARE = "Chi Square"
 TEST_SPEARMANS = "Spearman's Correlation"
-TEST_PEARSONS = "Pearson's Correlation"
+TEST_PEARSONS_R = "Pearson's Correlation"
 STATS_TESTS = [TEST_TTEST_INDEP, TEST_TTEST_PAIRED, TEST_ANOVA, TEST_WILCOXON, 
                TEST_MANN_WHITNEY, TEST_KRUSKAL_WALLIS, TEST_CHI_SQUARE, 
-               TEST_SPEARMANS, TEST_PEARSONS]
+               TEST_SPEARMANS, TEST_PEARSONS_R]
 MAIN_LEFT = 45
 HELP_LEFT = MAIN_LEFT + 235
 REL_TOP = 330
@@ -183,7 +184,7 @@ class StatsSelectDlg(wx.Dialog):
         LST_LEFT = 555
         LST_WIDTH = 200
         LST_TOP = 55
-        LST_HEIGHT = 210
+        LST_HEIGHT = 220
         SCROLL_ALLOWANCE = 20
         self.lstTests = wx.ListCtrl(self.panel, -1, pos=(LST_LEFT, LST_TOP), 
                                 size=(LST_WIDTH + SCROLL_ALLOWANCE, LST_HEIGHT),
@@ -205,6 +206,7 @@ class StatsSelectDlg(wx.Dialog):
         for i, test in enumerate(STATS_TESTS):
             idx = self.lstTests.InsertStringItem(i, test)
             self.lstTests.SetStringItem(i, 1, "", self.idx_blank)
+        idx = self.lstTests.InsertStringItem(i+1, "")
         self.lstTests.Select(0)
         # run test button
         self.btnConfig = wx.Button(self.panel, -1, "CONFIGURE TEST >>>",
@@ -395,7 +397,7 @@ class StatsSelectDlg(wx.Dialog):
         Returns test_type from STATS_TESTS.
         STATS_TESTS = [TEST_TTEST_INDEP, TEST_TTEST_PAIRED, TEST_ANOVA, 
             TEST_WILCOXON, TEST_MANN_WHITNEY, TEST_KRUSKAL_WALLIS, 
-            TEST_CHI_SQUARE, TEST_SPEARMANS, TEST_PEARSONS
+            TEST_CHI_SQUARE, TEST_SPEARMANS, TEST_PEARSONS_R
         """
         if self.radDifferences.GetValue():
             if self.rad2Groups.GetValue():
@@ -427,7 +429,7 @@ class StatsSelectDlg(wx.Dialog):
                 test_type = TEST_CHI_SQUARE
             elif self.radOrdered.GetValue():
                 if self.radNormal2.GetValue():
-                    test_type = TEST_PEARSONS
+                    test_type = TEST_PEARSONS_R
                 elif self.radNotNormal2.GetValue():
                     test_type = TEST_SPEARMANS
                 else:
@@ -453,6 +455,8 @@ class StatsSelectDlg(wx.Dialog):
             sel_test = STATS_TESTS[idx]
         except Exception:
             wx.MessageBox("Please select a statistical test on the list")
+            event.Skip()
+            return
         if sel_test == TEST_TTEST_INDEP:
             dlg = ttest_indep.DlgConfig("Configure Independent t-test", 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
@@ -474,10 +478,14 @@ class StatsSelectDlg(wx.Dialog):
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
             dlg.ShowModal()
+        elif sel_test == TEST_PEARSONS_R:
+            dlg = pearsonsr.DlgConfig("Configure Pearson's R test", 
+                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
+                self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
+            dlg.ShowModal()
         else:
-            wx.MessageBox("This release only includes the independent " + \
-                "samples t-test, paired samples t-test, Wilcoxon Signed " + \
-                "Ranks and the Mann Whitney U")
+            wx.MessageBox("Under construction.  Will be available in a " + \
+                          "forthcoming release")
         event.Skip()
     
     def OnCloseClick(self, event):

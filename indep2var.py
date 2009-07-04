@@ -108,10 +108,10 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         # only want the fields which are numeric
         numeric_var_names = [x for x in self.flds if \
                              self.flds[x][my_globals.FLD_BOLNUMERIC]]
-        val_choice_items = \
+        var_choice_items = \
             getdata.getSortedChoiceItems(dic_labels=self.var_labels,
                                          vals=numeric_var_names)
-        self.dropAveraged = wx.Choice(self.panel, -1, choices=val_choice_items)
+        self.dropAveraged = wx.Choice(self.panel, -1, choices=var_choice_items)
         self.dropAveraged.Bind(wx.EVT_CHOICE, self.OnAveragedSel)
         szrVarsRightTop.Add(self.lblAveraged, 0, wx.LEFT, 10)
         szrVarsRightTop.Add(self.dropAveraged, 0, wx.LEFT, 5)
