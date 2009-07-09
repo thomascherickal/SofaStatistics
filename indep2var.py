@@ -26,8 +26,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
     
     def __init__(self, title, dbe, conn_dets, default_dbs=None, 
                  default_tbls=None, fil_labels="", fil_css="", fil_report="", 
-                 fil_script="", var_labels=None, var_notes=None, 
-                 val_dics=None):
+                 fil_script="", takes_range=False):
          
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
                            pos=(200, 0), 
@@ -42,7 +41,8 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.fil_labels = fil_labels
         self.fil_css = fil_css
         self.fil_report = fil_report
-        self.fil_script = fil_script        
+        self.fil_script = fil_script
+        self.takes_range = takes_range     
         self.var_labels, self.var_notes, self.val_dics = \
             projects.GetLabels(fil_labels)            
         self.open_html = []
@@ -245,6 +245,19 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
                 self.dropGroupB.GetStringSelection():
             wx.MessageBox("Group A and Group B must be different")
             return False
+        if self.takes_range:
+            var_gp, _, _, _, _, _, _, _ = self.GetDropVals()
+            # group a must be lower than group b
+            val_a, _ = \
+                getdata.extractChoiceDets(self.dropGroupA.GetStringSelection())
+            val_b, _ = \
+                getdata.extractChoiceDets(self.dropGroupB.GetStringSelection())
+            if self.flds[var_gp][my_globals.FLD_BOLNUMERIC]:
+                val_a = float(val_a)
+                val_b = float(val_b)
+            if  val_a > val_b:
+                wx.MessageBox("Group A must be lower than Group B")
+                return False
         return True
     
    # export script

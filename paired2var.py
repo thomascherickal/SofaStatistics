@@ -26,8 +26,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
     
     def __init__(self, title, dbe, conn_dets, default_dbs=None, 
                  default_tbls=None, fil_labels="", fil_css="", fil_report="", 
-                 fil_script="", var_labels=None, var_notes=None, 
-                 val_dics=None, num_vars_only=True):
+                 fil_script="", num_vars_only=True):
          
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
                            pos=(200, 0), 

@@ -4,6 +4,7 @@ import wx
 
 import my_globals
 import chisquare
+import kruskal_wallis
 import mann_whitney
 import my_exceptions
 import pearsonsr
@@ -478,6 +479,12 @@ class StatsSelectDlg(wx.Dialog):
             dlg = mann_whitney.DlgConfig("Configure Mann Whitney U test", 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
+            dlg.ShowModal()
+        elif sel_test == TEST_KRUSKAL_WALLIS:
+            dlg = kruskal_wallis.DlgConfig("Configure Kruskal Wallis H test", 
+                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
+                self.fil_labels, self.fil_css, self.fil_report, self.fil_script,
+                takes_range=True)
             dlg.ShowModal()
         elif sel_test == TEST_CHI_SQUARE:
             dlg = chisquare.DlgConfig("Configure Chi Square test", 
