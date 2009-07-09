@@ -1,5 +1,6 @@
 import copy
 import math
+import numpy as np
 from types import ListType, TupleType
 
 import getdata
@@ -17,54 +18,143 @@ def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val):
     lst = [x[0] for x in cur.fetchall()]
     return lst
 
-def get_paired_lists(dbe, cur, tbl, fld_measure_a, fld_measure_b):
+def get_paired_lists(dbe, cur, tbl, fld_a, fld_b):
     """
     For each field, returns a list of all non-missing values where there is also
         a non-missing value in the other field.
         Used in, for example, the paired samples t-test.
     """
     quoter = getdata.get_quoter_func(dbe)
-    SQL_get_lists = "SELECT %s, %s " % (quoter(fld_measure_a), 
-                                        quoter(fld_measure_b)) + \
+    SQL_get_lists = "SELECT %s, %s " % (quoter(fld_a), quoter(fld_b)) + \
         "FROM %s " % quoter(tbl) + \
-        "WHERE %s IS NOT NULL AND %s IS NOT NULL" % (quoter(fld_measure_a), 
-                                                     quoter(fld_measure_b))
+        "WHERE %s IS NOT NULL AND %s IS NOT NULL" % (quoter(fld_a), 
+                                                     quoter(fld_b))
     cur.execute(SQL_get_lists)
     data_tups = cur.fetchall()
     lst_a = [x[0] for x in data_tups]
     lst_b = [x[1] for x in data_tups]
     return lst_a, lst_b
 
+def get_obs_exp(dbe, cur, tbl, fld_a, fld_b):
+    """
+    Get list of observed and expected values ready for inclusion in Pearson's
+        Chi Square test.
+    Returns lst_obs, lst_exp, min_count, perc_cells_lt_5, df.    
+    """
+    quoter = getdata.get_quoter_func(dbe)
+    qtbl = quoter(tbl)
+    qfld_a = quoter(fld_a)
+    qfld_b = quoter(fld_b)
+    # observed values etc
+    SQL_get_obs = "SELECT %s, %s, COUNT(*) " % (qfld_a, qfld_b) + \
+        "FROM %s " % qtbl + \
+        "WHERE %s IS NOT NULL AND %s IS NOT NULL " % (qfld_a, qfld_b) + \
+        "GROUP BY %s, %s " %  (qfld_a, qfld_b) + \
+        "ORDER BY %s, %s" % (qfld_a, qfld_b)
+    cur.execute(SQL_get_obs)
+    data_tups = cur.fetchall()
+    if not data_tups:
+        raise Exception, "No observed values"
+    lst_obs = []
+    for data_tup in data_tups:
+        lst_obs.append(data_tup[2])
+    obs_total = sum(lst_obs)
+    # expected values
+    lst_fracs_a = get_fracs(cur, qtbl, qfld_a, qfld_b)
+    lst_fracs_b = get_fracs(cur, qtbl, qfld_b, qfld_a)
+    df = (len(lst_fracs_a)-1)*(len(lst_fracs_b)-1)
+    lst_exp = []
+    for frac_a in lst_fracs_a:
+        for frac_b in lst_fracs_b:
+            lst_exp.append(frac_a*frac_b*obs_total)
+    min_count = min(lst_exp)
+    lst_lt_5 = [x for x in lst_exp if x < 5]
+    perc_cells_lt_5 = 100*(len(lst_lt_5))/float(len(lst_exp))
+    return lst_obs, lst_exp, min_count, perc_cells_lt_5, df
+
+def get_fracs(cur, qtbl, qfld, qfld_oth):
+    """
+    What fraction of the cross tab values are for each value in field?
+    Leaves out values where data is missing or the other field is missing.
+    Returns lst_fracs
+    """
+    SQL_get_fracs = "SELECT %s, COUNT(*) " % qfld + \
+        "FROM %s " % qtbl + \
+        """WHERE %s IS NOT NULL
+            AND %s IS NOT NULL
+        GROUP BY %s
+        ORDER BY %s""" % (qfld, qfld_oth, qfld, qfld)    
+    cur.execute(SQL_get_fracs)
+    lst_counts = []
+    total = 0
+    for data_tup in cur.fetchall():
+        val = data_tup[1]
+        lst_counts.append(val)
+        total += val
+    lst_fracs = [x/float(total) for x in lst_counts]
+    return lst_fracs
+    
+    
 
 # code below here is modified versions of code in stats.py and pstats.py
 
-# Copyright notice for stats and pstats.
+# Copyright notice for scipy stats.py.
 
-# Functions taken from stats.py have their origin indicated in their doc string
+# Copyright (c) Gary Strangman.  All rights reserved
+#
+# Disclaimer
+#
+# This software is provided "as-is".  There are no expressed or implied
+# warranties of any kind, including, but not limited to, the warranties
+# of merchantability and fittness for a given application.  In no event
+# shall Gary Strangman be liable for any direct, indirect, incidental,
+# special, exemplary or consequential damages (including, but not limited
+# to, loss of use, data or profits, or business interruption) however
+# caused and on any theory of liability, whether in contract, strict
+# liability or tort (including negligence or otherwise) arising in any way
+# out of the use of this software, even if advised of the possibility of
+# such damage.
+#
 
-# Copyright (c) 1999-2007 Gary Strangman; All Rights Reserved.
 #
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-# 
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-# 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-#
-# Comments and/or additions are welcome (send e-mail to:
-# strang@nmr.mgh.harvard.edu).
-# 
+# Heavily adapted for use by SciPy 2002 by Travis Oliphant
+
+def chisquare(f_obs,f_exp=None, df=None):
+    """
+    From stats.py.  Modified to receive df e.g. when in a crosstab.
+    In a crosstab, df will NOT be k-1 it will be (a-1) x (b-1)
+          Male   Female
+    0-19
+    20-29
+    30-39
+    40-49
+    50+
+    k=(2x5) i.e. 10, k-1 = 9 but df should be (2-1) x (5-1) i.e. 4 
+    -------------------------------------
+    Calculates a one-way chi square for list of observed frequencies and returns
+    the result.  If no expected frequencies are given, the total N is assumed to
+    be equally distributed across all groups.
+
+    Usage:   chisquare(f_obs, f_exp=None)   f_obs = list of observed cell freq.
+    Returns: chisquare-statistic, associated p-value
+    """
+    k = len(f_obs)                 # number of groups
+    if f_exp == None:
+        f_exp = [sum(f_obs)/float(k)] * len(f_obs) # create k bins with = freq.
+    chisq = 0
+    for i in range(len(f_obs)):
+        chisq = chisq + (f_obs[i]-f_exp[i])**2 / float(f_exp[i])
+    if not df: df = k-1
+    return chisq, chisqprob(chisq, df)
+
+def pearsons_chisquare(dbe, cur, tbl, fld_a, fld_b):
+    """
+    Returns chisq, p, min_count, perc_cells_lt_5
+    """
+    lst_obs, lst_exp, min_count, perc_cells_lt_5, df = \
+        get_obs_exp(dbe, cur, tbl, fld_a, fld_b)
+    chisq, p = chisquare(lst_obs, lst_exp, df)
+    return chisq, p, lst_obs, lst_exp, min_count, perc_cells_lt_5, df
 
 def ttest_ind(sample_a, sample_b, label_a, label_b):
     """
@@ -378,7 +468,8 @@ def zprob(z):
 
 def mean (inlist):
     """
-    From stats.py.  No changes.
+    From stats.py.  No changes.  
+    -------------------------------------
     Returns the arithematic mean of the values in the passed list.
     Assumes a '1D' list, but will function on the 1st dim of an array(!).
     
@@ -391,7 +482,8 @@ def mean (inlist):
 
 def var (inlist):
     """
-    From stats.py.  No changes.
+    From stats.py.  No changes.  
+    -------------------------------------
     Returns the variance of the values in the passed list using N-1
     for the denominator (i.e., for estimating population variance).
     
@@ -406,7 +498,8 @@ def var (inlist):
 
 def stdev (inlist):
     """
-    From stats.py.  No changes.
+    From stats.py.  No changes.  
+    -------------------------------------
     Returns the standard deviation of the values in the passed list
     using N-1 in the denominator (i.e., to estimate population stdev).
     
@@ -416,7 +509,8 @@ def stdev (inlist):
 
 def betai(a, b, x):
     """
-    From stats.py.  No changes.
+    From stats.py.  No changes.  
+    -------------------------------------
     Returns the incomplete beta function:
     
         I-sub-x(a,b) = 1/B(a,b)*(Integral(0,x) of t^(a-1)(1-t)^(b-1) dt)
@@ -441,7 +535,8 @@ def betai(a, b, x):
 
 def ss(inlist):
     """
-    From stats.py.  No changes.
+    From stats.py.  No changes.  
+    -------------------------------------
     Squares each value in the passed list, adds up these squares and
     returns the result.
     
@@ -454,7 +549,8 @@ def ss(inlist):
 
 def gammln(xx):
     """
-    From stats.py.  No changes.
+    From stats.py.  No changes.  
+    -------------------------------------
     Returns the gamma function of xx.
         Gamma(z) = Integral(0,infinity) of t^(z-1)exp(-t) dt.
     (Adapted from: Numerical Recipies in C.)
@@ -473,9 +569,10 @@ def gammln(xx):
     return -tmp + math.log(2.50662827465*ser)
 
 
-def betacf(a,b,x):
+def betacf(a, b, x):
     """
-    From stats.py.  No changes.
+    From stats.py.  No changes.  
+    -------------------------------------
     This function evaluates the continued fraction form of the incomplete
     Beta function, betai.  (Adapted from: Numerical Recipies in C.)
     
@@ -507,7 +604,7 @@ def betacf(a,b,x):
             return az
     print 'a or b too big, or ITMAX too small in Betacf.'
 
-def summult (list1,list2):
+def summult (list1, list2):
     """
     From pstat.py.  No changes (apart from calling abut in existing module
         instead of pstat).
@@ -524,9 +621,10 @@ def summult (list1,list2):
         s = s + item1*item2
     return s
 
-def abut (source,*args):
+def abut (source, *args):
     """
-    From pstat.py.  No changes.
+    From pstat.py.  No changes.  
+    -------------------------------------
     Like the |Stat abut command.  It concatenates two lists side-by-side
     and returns the result.  '2D' lists are also accomodated for either argument
     (source or addon).  CAUTION:  If one list is shorter, it will be repeated
@@ -573,6 +671,8 @@ def abut (source,*args):
 
 def simpleabut (source, addon):
     """
+    From pstat.py.  No changes.  
+    -------------------------------------
     Concatenates two lists as columns and returns the result.  '2D' lists
     are also accomodated for either argument (source or addon).  This DOES NOT
     repeat either list to make the 2 lists of equal length.  Beware of list
@@ -608,7 +708,8 @@ def simpleabut (source, addon):
 
 def square_of_sums(inlist):
     """
-    From stats.py.  No changes.
+    From stats.py.  No changes.  
+    -------------------------------------
     Adds the values in the passed list, squares the sum, and returns
     the result.
 
@@ -620,7 +721,8 @@ def square_of_sums(inlist):
 
 def sumdiffsquared(x,y):
     """
-    From stats.py.  No changes.
+    From stats.py.  No changes.  
+    -------------------------------------
     Takes pairwise differences of the values in lists x and y, squares
     these differences, and returns the sum of these squares.
 
@@ -631,3 +733,65 @@ def sumdiffsquared(x,y):
     for i in range(len(x)):
         sds = sds + (x[i]-y[i])**2
     return sds
+
+
+def chisqprob(chisq, df):
+    """
+    From stats.py.  No changes.  
+    -------------------------------------
+    Returns the (1-tailed) probability value associated with the provided
+    chi-square value and df.  Adapted from chisq.c in Gary Perlman's |Stat.
+
+    Usage:   chisqprob(chisq,df)
+    """    
+    BIG = 20.0
+    def ex(x):
+        BIG = 20.0
+        if x < -BIG:
+            return 0.0
+        else:
+            return math.exp(x)
+
+    if chisq <=0 or df < 1:
+        return 1.0
+    a = 0.5 * chisq
+    if df%2 == 0:
+        even = 1
+    else:
+        even = 0
+    if df > 1:
+        y = ex(-a)
+    if even:
+        s = y
+    else:
+        s = 2.0 * zprob(-math.sqrt(chisq))
+    if (df > 2):
+        chisq = 0.5 * (df - 1.0)
+        if even:
+            z = 1.0
+        else:
+            z = 0.5
+        if a > BIG:
+            if even:
+                e = 0.0
+            else:
+                e = math.log(math.sqrt(math.pi))
+            c = math.log(a)
+            while (z <= chisq):
+                e = math.log(z) + e
+                s = s + ex(c*z-a-e)
+                z = z + 1.0
+            return s
+        else:
+            if even:
+                e = 1.0
+            else:
+                e = 1.0 / math.sqrt(math.pi) / math.sqrt(a)
+            c = 0.0
+            while (z <= chisq):
+                e = e * (a/float(z))
+                c = c + e
+                z = z + 1.0
+            return (c*y+s)
+    else:
+        return s

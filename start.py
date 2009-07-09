@@ -22,7 +22,7 @@ import quotes
 import stats_select
 import util
 
-VERSION = "0.8.1"
+VERSION = "0.8.2"
 
 COPYRIGHT = "(c)" if util.in_windows() else "©" # "\xa9" problems with utf-8
 MAX_HELP_TEXT_WIDTH = 350 # pixels

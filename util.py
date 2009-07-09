@@ -19,8 +19,7 @@ if in_windows():
 
 def get_user_paths():
     if in_windows():
-        user_path = os.path.join(os.environ['HOMEDRIVE'], 
-                                 os.environ['HOMEPATH'])
+        user_path = os.environ['USERPROFILE']
     else:
         user_path = os.environ['HOME']
     local_path = os.path.join(user_path, "sofa")

@@ -27,8 +27,8 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             "core_stats.get_paired_lists(" + \
             "dbe=\"%s\", " % self.dbe + \
             "cur=cur, tbl=\"%s\",\n    " % self.tbl_name + \
-            "fld_measure_a=\"%s\", " % var_a + \
-            "fld_measure_b=\"%s\")" % var_b)
+            "fld_a=\"%s\", " % var_a + \
+            "fld_b=\"%s\")" % var_b)
         script_lst.append("dp = 3")
         script_lst.append("label_a = \"%s\"" % label_a)
         script_lst.append("label_b = \"%s\"" % label_b)

@@ -27,7 +27,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
     def __init__(self, title, dbe, conn_dets, default_dbs=None, 
                  default_tbls=None, fil_labels="", fil_css="", fil_report="", 
                  fil_script="", var_labels=None, var_notes=None, 
-                 val_dics=None):
+                 val_dics=None, num_vars_only=True):
          
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
                            pos=(200, 0), 
@@ -77,12 +77,15 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrVars = wx.StaticBoxSizer(bxVars, wx.VERTICAL)
         szrVarsTop = wx.BoxSizer(wx.HORIZONTAL)
         szrVarsBottom = wx.BoxSizer(wx.HORIZONTAL)
-        # only want the fields which are numeric
-        numeric_var_names = [x for x in self.flds if \
-                         self.flds[x][my_globals.FLD_BOLNUMERIC]]        
+        if num_vars_only:
+            # only want the fields which are numeric
+            var_names = [x for x in self.flds if \
+                             self.flds[x][my_globals.FLD_BOLNUMERIC]]
+        else:
+            var_names = [x for x in self.flds]     
         fld_choice_items = \
             getdata.getSortedChoiceItems(dic_labels=self.var_labels, 
-                                         vals=numeric_var_names)
+                                         vals=var_names)
         self.lblGroupA = wx.StaticText(self.panel, -1, "Group A:")
         self.lblGroupA.SetFont(self.LABEL_FONT)
         self.dropGroupA = wx.Choice(self.panel, -1, choices=fld_choice_items)

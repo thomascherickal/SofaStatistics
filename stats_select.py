@@ -3,6 +3,7 @@ import os
 import wx
 
 import my_globals
+import chisquare
 import mann_whitney
 import my_exceptions
 import pearsonsr
@@ -312,7 +313,7 @@ class StatsSelectDlg(wx.Dialog):
           "the North, South, East, and West regions")
         
     def OnNormalHelp1Button(self, event):
-        wx.MessageBox("Help Normal 1")
+        wx.MessageBox("Under construction")
     
     def IndepSetup(self, enable=True):
         # set left first
@@ -366,7 +367,7 @@ class StatsSelectDlg(wx.Dialog):
           "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc).")
     
     def OnNormalHelp2Button(self, event):
-        wx.MessageBox("Help Normal 2")
+        wx.MessageBox("Under construction")
     
     def NormalRelSetup(self, enable=True):
         # set left first
@@ -462,8 +463,7 @@ class StatsSelectDlg(wx.Dialog):
             dlg = ttest_indep.DlgConfig("Configure Independent t-test", 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
-            dlg.ShowModal()
-        
+            dlg.ShowModal()        
         elif sel_test == TEST_TTEST_PAIRED:
             dlg = ttest_paired.DlgConfig("Configure Paired Samples t-test", 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
@@ -478,6 +478,12 @@ class StatsSelectDlg(wx.Dialog):
             dlg = mann_whitney.DlgConfig("Configure Mann Whitney U test", 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
+            dlg.ShowModal()
+        elif sel_test == TEST_CHI_SQUARE:
+            dlg = chisquare.DlgConfig("Configure Chi Square test", 
+                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
+                self.fil_labels, self.fil_css, self.fil_report, self.fil_script,
+                num_vars_only=False)
             dlg.ShowModal()
         elif sel_test == TEST_PEARSONS_R:
             dlg = pearsonsr.DlgConfig("Configure Pearson's R test", 
