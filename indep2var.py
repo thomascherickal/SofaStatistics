@@ -180,11 +180,12 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
              quoter(var_name))
         self.cur.execute(SQL_get_sorted_vals)
         val_dic = self.val_dics.get(var_name, {})
-        vars_with_labels = [getdata.getChoiceItem(val_dic, x[0]) for \
-                            x in self.cur.fetchall()]
-        self.dropGroupA.SetItems(vars_with_labels)
+        self.vals = [x[0] for x in self.cur.fetchall()]
+        vals_with_labels = [getdata.getChoiceItem(val_dic, x) \
+                            for x in self.vals]
+        self.dropGroupA.SetItems(vals_with_labels)
         self.dropGroupA.SetSelection(0)
-        self.dropGroupB.SetItems(vars_with_labels)
+        self.dropGroupB.SetItems(vals_with_labels)
         self.dropGroupB.SetSelection(0)
     
     def GetDropVals(self):

@@ -158,8 +158,8 @@ def pearsons_chisquare(dbe, cur, tbl, fld_a, fld_b):
 
 def anova(*lists):
     """
-    From stats.py.  No changes except replacing array versions e.g. amean
-        with list versions e.g. lmean and renaming to anova.  
+    From stats.py.  No changes except changing name to anova and replacing 
+        array versions e.g. amean with list versions e.g. lmean.  
     -------------------------------------
     Performs a 1-way ANOVA, returning an F-value and probability given
     any number of groups.  From Heiman, pp.394-7.
@@ -173,9 +173,8 @@ def anova(*lists):
     vars = [0]*a
     ns = [0]*a
     alldata = []
-    tmp = map(N.array,lists)
-    means = map(mean,tmp)
-    vars = map(var,tmp)
+    means = map(mean, lists)
+    vars = map(var, lists)
     ns = map(len,lists)
     for i in range(len(lists)):
         alldata = alldata + lists[i]
@@ -869,3 +868,16 @@ def chisqprob(chisq, df):
             return (c*y+s)
     else:
         return s
+
+def fprob (dfnum, dfden, F):
+    """
+    From stats.py.  No changes.  
+    -------------------------------------
+    Returns the (1-tailed) significance level (p-value) of an F
+    statistic given the degrees of freedom for the numerator (dfR-dfF) and
+    the degrees of freedom for the denominator (dfF).
+
+    Usage:   fprob(dfnum, dfden, F)   where usually dfnum=dfbn, dfden=dfwn
+    """
+    p = betai(0.5*dfden, 0.5*dfnum, dfden/float(dfden+dfnum*F))
+    return p

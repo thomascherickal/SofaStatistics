@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import my_globals
 import indep2var
 
 
@@ -30,36 +31,41 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         "Build script from inputs"
         script_lst = []
         var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
-            label_avg = self.GetDropVals()
-            
-        # need list of tuples (val, label)
-            
-            
-        strGet_Sample = "sample_%s = core_stats.get_list(" + \
+            label_avg = self.GetDropVals()        
+        # need list of values in range
+        if self.flds[var_gp][my_globals.FLD_BOLNUMERIC]:
+                val_a = float(val_a)
+                val_b = float(val_b)
+        idx_val_a = self.vals.index(val_a)
+        idx_val_b = self.vals.index(val_b)
+        vals_in_range = self.vals[idx_val_a: idx_val_b + 1]
+        strGet_Sample = "%s = core_stats.get_list(" + \
             "dbe=\"%s\", " % self.dbe + \
             "cur=cur, tbl=\"%s\",\n    " % self.tbl_name + \
             "fld_measure=\"%s\", " % var_avg + \
             "fld_filter=\"%s\", " % var_gp + \
             "filter_val=%s)"
         script_lst.append("dp = 3")
-        
-        
-        script_lst.append(strGet_Sample % ("a", val_a))
-        script_lst.append(strGet_Sample % ("b", val_b))
-        
-        
+        lst_samples = []
+        for i, val in enumerate(vals_in_range):
+            sample_name = "sample_%s" % i
+            script_lst.append(strGet_Sample % (sample_name, val))
+            lst_samples.append(sample_name)
+        # only need labels for start and end of range
+        samples = "(" + ", ".join(lst_samples) + ")"
+        script_lst.append("samples = %s" % samples)        
         script_lst.append("label_a = \"%s\"" % label_a)
         script_lst.append("label_b = \"%s\"" % label_b)
-        
-        
         script_lst.append("label_avg = \"%s\"" % label_avg)
         script_lst.append("indep = True")
-        script_lst.append("t, p, dic_a, dic_b = " + \
-            "core_stats.kruskal_wallis(sample_a, sample_b, label_a, label_b)")
+        script_lst.append("h, p = " + \
+            "core_stats.kruskalwallish(*samples)")
         script_lst.append("kruskal_wallis_output = " + \
             "stats_output.kruskal_wallis_output(" + \
-            "t, p, dic_a, dic_b, label_avg,\n    dp, indep, " + \
-            "level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False)")
+            "h, p, label_a," + \
+            "\n    label_b, label_avg, dp," + \
+            "\n    level=my_globals.OUTPUT_RESULTS_ONLY, " + \
+            "page_break_after=False)")
         script_lst.append("fil.write(kruskal_wallis_output)")
         return "\n".join(script_lst)
     

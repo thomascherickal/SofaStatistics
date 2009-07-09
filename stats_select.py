@@ -3,6 +3,7 @@ import os
 import wx
 
 import my_globals
+import anova
 import chisquare
 import kruskal_wallis
 import mann_whitney
@@ -470,6 +471,12 @@ class StatsSelectDlg(wx.Dialog):
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
             dlg.ShowModal()
+        elif sel_test == TEST_ANOVA:
+            dlg = anova.DlgConfig("Configure ANOVA test", 
+                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
+                self.fil_labels, self.fil_css, self.fil_report, self.fil_script,
+                takes_range=True)
+            dlg.ShowModal()
         elif sel_test == TEST_WILCOXON:
             dlg = wilcoxon.DlgConfig("Configure Wilcoxon Signed Ranks test", 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
@@ -503,8 +510,7 @@ class StatsSelectDlg(wx.Dialog):
                 self.fil_labels, self.fil_css, self.fil_report, self.fil_script)
             dlg.ShowModal()
         else:
-            wx.MessageBox("Under construction.  Will be available in a " + \
-                          "forthcoming release")
+            raise Exception, "Unknown test"
         event.Skip()
     
     def OnCloseClick(self, event):

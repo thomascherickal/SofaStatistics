@@ -98,3 +98,25 @@ def chisquare_output(chi, p, lst_obs, lst_exp, min_count, perc_cells_lt_5, df,
     if page_break_after:
         html += "<br><hr><br><div class='page-break-before'></div>"
     return html
+
+def kruskal_wallis_output(h, p, label_a, label_b, label_avg, dp=3,
+                 level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False):
+    html = "<h2>Results of Kruskal-Wallis H test of average %s" % label_avg + \
+            " for groups from \"%s\" to \"%s\"</h2>" % (label_a, label_b)
+    p_format = "\n<p>p value: %%.%sf</p>" % dp
+    html += p_format % round(p, dp)
+    html += "\n<p>Kruskal-Wallis H statistic: %s</p>" % round(h, dp)
+    if page_break_after:
+        html += "<br><hr><br><div class='page-break-before'></div>"
+    return html
+
+def anova_output(f, p, label_a, label_b, label_avg, dp=3,
+                 level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False):
+    html = "<h2>Results of ANOVA test of average %s" % label_avg + \
+            " for groups from \"%s\" to \"%s\"</h2>" % (label_a, label_b)
+    p_format = "\n<p>p value: %%.%sf</p>" % dp
+    html += p_format % round(p, dp)
+    html += "\n<p>ANOVA F statistic: %s</p>" % round(f, dp)
+    if page_break_after:
+        html += "<br><hr><br><div class='page-break-before'></div>"
+    return html
