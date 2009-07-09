@@ -156,6 +156,80 @@ def pearsons_chisquare(dbe, cur, tbl, fld_a, fld_b):
     chisq, p = chisquare(lst_obs, lst_exp, df)
     return chisq, p, lst_obs, lst_exp, min_count, perc_cells_lt_5, df
 
+def anova(*lists):
+    """
+    From stats.py.  No changes except replacing array versions e.g. amean
+        with list versions e.g. lmean and renaming to anova.  
+    -------------------------------------
+    Performs a 1-way ANOVA, returning an F-value and probability given
+    any number of groups.  From Heiman, pp.394-7.
+
+    Usage:   anova(*lists)    where *lists is any number of lists, one per 
+        treatment group
+    Returns: F value, one-tailed p-value
+    """
+    a = len(lists)           # ANOVA on 'a' groups, each in its own list
+    means = [0]*a
+    vars = [0]*a
+    ns = [0]*a
+    alldata = []
+    tmp = map(N.array,lists)
+    means = map(mean,tmp)
+    vars = map(var,tmp)
+    ns = map(len,lists)
+    for i in range(len(lists)):
+        alldata = alldata + lists[i]
+    bign = len(alldata)
+    sstot = ss(alldata)-(square_of_sums(alldata)/float(bign))
+    ssbn = 0
+    for list in lists:
+        ssbn = ssbn + square_of_sums(list)/float(len(list))
+    ssbn = ssbn - (square_of_sums(alldata)/float(bign))
+    sswn = sstot-ssbn
+    dfbn = a-1
+    dfwn = bign - a
+    msb = ssbn/float(dfbn)
+    msw = sswn/float(dfwn)
+    f = msb/msw
+    prob = fprob(dfbn, dfwn,f)
+    return f, prob
+
+def kruskalwallish(*args):
+    """
+    From stats.py.  No changes.  
+    -------------------------------------
+    The Kruskal-Wallis H-test is a non-parametric ANOVA for 3 or more
+    groups, requiring at least 5 subjects in each group.  This function
+    calculates the Kruskal-Wallis H-test for 3 or more independent samples
+    and returns the result.  
+
+    Usage:   kruskalwallish(*args)
+    Returns: H-statistic (corrected for ties), associated p-value
+    """
+    args = list(args)
+    n = [0]*len(args)
+    all = []
+    n = map(len,args)
+    for i in range(len(args)):
+        all = all + args[i]
+    ranked = rankdata(all)
+    T = tiecorrect(ranked)
+    for i in range(len(args)):
+        args[i] = ranked[0:n[i]]
+        del ranked[0:n[i]]
+    rsums = []
+    for i in range(len(args)):
+        rsums.append(sum(args[i])**2)
+        rsums[i] = rsums[i] / float(n[i])
+    ssbn = sum(rsums)
+    totaln = sum(n)
+    h = 12.0 / (totaln*(totaln+1)) * ssbn - 3*(totaln+1)
+    df = len(args) - 1
+    if T == 0:
+        raise ValueError, 'All numbers are identical in kruskalwallish'
+    h = h / float(T)
+    return h, chisqprob(h,df)
+
 def ttest_ind(sample_a, sample_b, label_a, label_b):
     """
     From stats.py - there are changes to variable labels and comments;
