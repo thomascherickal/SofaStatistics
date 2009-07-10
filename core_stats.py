@@ -332,13 +332,13 @@ def mannwhitneyu(x,y):
 
 def wilcoxont(x,y):
     """
-    From stats.py.  No changes.  
+    From stats.py.
     -------------------------------------
     Calculates the Wilcoxon T-test for related samples and returns the
     result.  A non-parametric T-test.
 
     Usage:   wilcoxont(x,y)
-    Returns: a t-statistic, two-tail probability estimate
+    Returns: a t-statistic, two-tail probability estimate, z
     """
     if len(x) <> len(y):
         raise ValueError, 'Unequal N in wilcoxont.  Aborting.'

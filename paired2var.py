@@ -3,6 +3,7 @@
 import os
 
 import wx
+import wx.html
 
 import my_globals
 import gen_config
@@ -106,7 +107,12 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrMid = wx.BoxSizer(wx.HORIZONTAL)
         szrMidLeft = wx.BoxSizer(wx.VERTICAL)
         szrMidLeftBottom = wx.BoxSizer(wx.HORIZONTAL)
-        szrMidLeft.Add(szrMidLeftBottom, 0)
+        self.html = wx.html.HtmlWindow(self.panel, size=(200, 250))
+        html2show = """<p>This panel is under construction - more support for 
+            the user and data visualisations coming.</p>"""
+        self.html.SetPage(html2show)
+        szrMidLeftBottom.Add(self.html, 1, wx.GROW|wx.LEFT|wx.BOTTOM, 5)   
+        szrMidLeft.Add(szrMidLeftBottom, 1, wx.GROW)
         szrMid.Add(szrMidLeft, 5, wx.GROW)
         szrMid.Add(self.szrButtons, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)   
         szrMain.Add(szrDesc, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
