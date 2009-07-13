@@ -103,3 +103,10 @@ SCRIPT_PATH = util.get_script_path()
 INT_SCRIPT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, "script.py")
 INT_REPORT_FILE = "report.htm"
 INT_REPORT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, INT_REPORT_FILE)
+# remember defaults in stats tests
+group_by_default = None
+group_avg_default = None
+group_a_default = None
+group_b_default = None
+val_a_default = None
+val_b_default = None

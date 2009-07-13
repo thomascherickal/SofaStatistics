@@ -82,19 +82,30 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrVarsLeftTop = wx.BoxSizer(wx.HORIZONTAL)
         szrVarsRightTop = wx.BoxSizer(wx.HORIZONTAL)
         szrVarsLeftMid = wx.BoxSizer(wx.HORIZONTAL)
+        # group by
         choice_var_names = self.flds.keys()
-        fld_choice_items = \
+        var_gp_by_choice_items = \
             getdata.getSortedChoiceItems(dic_labels=self.var_labels, 
                                          vals=choice_var_names)
         self.lblGroupBy = wx.StaticText(self.panel, -1, "Group By:")
         self.lblGroupBy.SetFont(self.LABEL_FONT)
-        self.dropGroupBy = wx.Choice(self.panel, -1, choices=fld_choice_items)
+        self.dropGroupBy = wx.Choice(self.panel, -1, 
+                                     choices=var_gp_by_choice_items)
         self.dropGroupBy.Bind(wx.EVT_CHOICE, self.OnGroupBySel)
+        idx_gp = 0
+        if my_globals.group_by_default:
+            try:
+                idx_gp = var_gp_by_choice_items.index(my_globals.group_by_default)
+            except ValueError:
+                pass
+        self.dropGroupBy.SetSelection(idx_gp)
         szrVarsLeftTop.Add(self.lblGroupBy, 0, wx.RIGHT, 5)
         szrVarsLeftTop.Add(self.dropGroupBy, 0, wx.GROW)
+        # group by A
         self.lblGroupA = wx.StaticText(self.panel, -1, "Group A:")
         self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
         self.dropGroupA.Bind(wx.EVT_CHOICE, self.OnGroupByASel)
+        # group by B
         self.lblGroupB = wx.StaticText(self.panel, -1, "Group B:")
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupByBSel)
@@ -105,16 +116,25 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrVarsLeftMid.Add(self.dropGroupB, 0)
         szrVarsLeft.Add(szrVarsLeftTop, 1, wx.GROW)
         szrVarsLeft.Add(szrVarsLeftMid, 0, wx.GROW)
+        # var averaged
         self.lblAveraged = wx.StaticText(self.panel, -1, "%s:" % self.averaged)
         self.lblAveraged.SetFont(self.LABEL_FONT)
         # only want the fields which are numeric
         numeric_var_names = [x for x in self.flds if \
                              self.flds[x][my_globals.FLD_BOLNUMERIC]]
-        var_choice_items = \
+        var_avg_choice_items = \
             getdata.getSortedChoiceItems(dic_labels=self.var_labels,
                                          vals=numeric_var_names)
-        self.dropAveraged = wx.Choice(self.panel, -1, choices=var_choice_items)
+        self.dropAveraged = wx.Choice(self.panel, -1, 
+                                      choices=var_avg_choice_items)
         self.dropAveraged.Bind(wx.EVT_CHOICE, self.OnAveragedSel)
+        idx_avg = 0
+        if my_globals.group_avg_default:
+            try:
+                idx_avg = var_avg_choice_items.index(my_globals.group_avg_default)
+            except ValueError:
+                pass
+        self.dropAveraged.SetSelection(idx_avg)
         szrVarsRightTop.Add(self.lblAveraged, 0, wx.LEFT, 10)
         szrVarsRightTop.Add(self.dropAveraged, 0, wx.LEFT, 5)
         szrVarsRight.Add(szrVarsRightTop, 0)
@@ -162,14 +182,23 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
     def OnGroupBySel(self, event):
         self.SetGroupDropdowns()
         self.UpdatePhrase()
+        self.UpdateDefaults()
         event.Skip()
+    
+    def UpdateDefaults(self):
+        my_globals.group_by_default = self.dropGroupBy.GetStringSelection()
+        my_globals.group_avg_default = self.dropAveraged.GetStringSelection()
+        my_globals.val_a_default = self.dropGroupA.GetStringSelection()
+        my_globals.val_b_default = self.dropGroupB.GetStringSelection()
     
     def OnGroupByASel(self, event):        
         self.UpdatePhrase()
+        self.UpdateDefaults()
         event.Skip()
         
     def OnGroupByBSel(self, event):        
         self.UpdatePhrase()
+        self.UpdateDefaults()
         event.Skip()
     
     def SetGroupDropdowns(self):
@@ -191,9 +220,22 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         vals_with_labels = [getdata.getChoiceItem(val_dic, x) \
                             for x in self.vals]
         self.dropGroupA.SetItems(vals_with_labels)
-        self.dropGroupA.SetSelection(0)
         self.dropGroupB.SetItems(vals_with_labels)
-        self.dropGroupB.SetSelection(0)
+        # defaults
+        idx_a = 0
+        if my_globals.val_a_default:
+            try:
+                idx_a = vals_with_labels.index(my_globals.val_a_default)
+            except ValueError:
+                pass
+        self.dropGroupA.SetSelection(idx_a)
+        idx_b = 0
+        if my_globals.val_b_default:
+            try:
+                idx_b = vals_with_labels.index(my_globals.val_b_default)
+            except ValueError:
+                pass
+        self.dropGroupB.SetSelection(idx_b)
     
     def GetDropVals(self):
         """
@@ -214,6 +256,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         
     def OnAveragedSel(self, event):        
         self.UpdatePhrase()
+        self.UpdateDefaults()
         event.Skip()
     
     def OnButtonRun(self, event):

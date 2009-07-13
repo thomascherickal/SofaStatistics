@@ -86,18 +86,35 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         fld_choice_items = \
             getdata.getSortedChoiceItems(dic_labels=self.var_labels, 
                                          vals=var_names)
+        # group A
         self.lblGroupA = wx.StaticText(self.panel, -1, "Group A:")
         self.lblGroupA.SetFont(self.LABEL_FONT)
         self.dropGroupA = wx.Choice(self.panel, -1, choices=fld_choice_items)
         self.dropGroupA.Bind(wx.EVT_CHOICE, self.OnGroupSel)
+        idx_a = 0
+        if my_globals.group_a_default:
+            try:
+                idx_a = fld_choice_items.index(my_globals.group_a_default)
+            except ValueError:
+                pass
+        self.dropGroupA.SetSelection(idx_a)
         szrVarsTop.Add(self.lblGroupA, 0, wx.RIGHT, 5)
         szrVarsTop.Add(self.dropGroupA, 0, wx.GROW)
+        # group B
         self.lblGroupB = wx.StaticText(self.panel, -1, "Group B:")
         self.dropGroupB = wx.Choice(self.panel, -1, choices=fld_choice_items, 
                                     size=(200, -1))
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupSel)
+        idx_b = 0
+        if my_globals.group_b_default:
+            try:
+                idx_b = fld_choice_items.index(my_globals.group_b_default)
+            except ValueError:
+                pass
+        self.dropGroupB.SetSelection(idx_b) 
         szrVarsTop.Add(self.lblGroupB, 0, wx.RIGHT, 5)
         szrVarsTop.Add(self.dropGroupB, 0, wx.GROW)
+        # phrase
         self.lblPhrase = wx.StaticText(self.panel, -1, 
                                        "Start making your selections")
         szrVarsBottom.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
@@ -140,6 +157,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
     
     def OnGroupSel(self, event):
         self.UpdatePhrase()
+        self.UpdateDefaults()
         event.Skip()
         
     def GetDropVals(self):
@@ -160,7 +178,11 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         var_a, label_a, var_b, label_b = self.GetDropVals()
         self.lblPhrase.SetLabel("Is \"%s\" different from " % label_a + \
             "\"%s\"?" % label_b)
-            
+    
+    def UpdateDefaults(self):
+        my_globals.group_a_default = self.dropGroupA.GetStringSelection()
+        my_globals.group_b_default = self.dropGroupB.GetStringSelection()
+    
     def OnButtonRun(self, event):
         """
         Generate script to special location (INT_SCRIPT_PATH), 
