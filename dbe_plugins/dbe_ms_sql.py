@@ -13,24 +13,9 @@ import wx
 import pprint
 
 import my_globals
+import dbe_plugins.dbe_globals as dbe_globals
 import getdata
 import table_entry
-
-
-# numeric
-BYTE = 'Byte - 1-byte unsigned integer'
-INTEGER = 'Integer - 2-byte signed integer'
-LONGINT = 'Long Integer - 4-byte signed integer'
-DECIMAL = 'Decimal'
-SINGLE = 'Single'
-DOUBLE = 'Double'
-CURRENCY = 'Currency'
-# other
-DATE = 'date'
-BOOLEAN = 'boolean'
-TIMESTAMP = 'timestamp'
-VARCHAR = 'varchar'
-LONGVARCHAR = 'longvarchar'
 
 AD_OPEN_KEYSET = 1
 AD_LOCK_OPTIMISTIC = 3
@@ -65,36 +50,36 @@ class DbDets(getdata.DbDets):
         cat = None
         return tbls
 
-    def getFldType(self, adotype):
+    def _getFldType(self, adotype):
         """
         http://www.devguru.com/Technologies/ado/quickref/field_type.html
         http://www.databasedev.co.uk/fields_datatypes.html
         """
         if adotype == win32com.client.constants.adUnsignedTinyInt:
-            fld_type = BYTE # 1-byte unsigned integer
+            fld_type = dbe_globals.ADO_BYTE # 1-byte unsigned integer
         elif adotype == win32com.client.constants.adSmallInt:
-            fld_type = INTEGER # 2-byte signed integer
+            fld_type = dbe_globals.ADO_INTEGER # 2-byte signed integer
         elif adotype == win32com.client.constants.adInteger:
-            fld_type = LONGINT # 4-byte signed integer
+            fld_type = dbe_globals.ADO_LONGINT # 4-byte signed integer
         elif adotype == win32com.client.constants.adSingle:
-            fld_type = SINGLE # Single-precision floating-point value
+            fld_type = dbe_globals.ADO_SINGLE # Single-precision floating-point value
         elif adotype == win32com.client.constants.adDouble:
-            fld_type = DOUBLE # Double precision floating-point
+            fld_type = dbe_globals.ADO_DOUBLE # Double precision floating-point
         elif adotype == win32com.client.constants.adNumeric:
-            fld_type = DECIMAL
+            fld_type = dbe_globals.ADO_DECIMAL
         elif adotype == win32com.client.constants.adCurrency:
-            fld_type = CURRENCY
+            fld_type = dbe_globals.ADO_CURRENCY
         elif adotype == win32com.client.constants.adVarWChar:
-            fld_type = VARCHAR
+            fld_type = dbe_globals.ADO_VARCHAR
         elif adotype == win32com.client.constants.adBoolean:
-            fld_type = BOOLEAN
+            fld_type = dbe_globals.ADO_BOOLEAN
         elif adotype == win32com.client.constants.adDBTimeStamp:
-            fld_type = TIMESTAMP
+            fld_type = dbe_globals.ADO_TIMESTAMP
         else:
             raise Exception, "Not an MS SQL Server ADO field type %d" % adotype
         return fld_type
 
-    def GetMinMax(self, fld_type, num_prec, dec_pts):
+    def _GetMinMax(self, fld_type, num_prec, dec_pts):
         """
         Returns minimum and maximum allowable numeric values.  
         Nones if not numeric.
@@ -103,26 +88,26 @@ class DbDets(getdata.DbDets):
             The database will store these as zero.
         http://www.databasedev.co.uk/fields_datatypes.html38 
         """
-        if fld_type == BYTE:
+        if fld_type == dbe_globals.ADO_BYTE:
             min = 0
             max = (2**8)-1 # 255
-        elif fld_type == INTEGER:
+        elif fld_type == dbe_globals.ADO_INTEGER:
             min = -(2**15)
             max = (2**15)-1            
-        elif fld_type == LONGINT:
+        elif fld_type == dbe_globals.ADO_LONGINT:
             min = -(2**31)
             max = (2**31)-1            
-        elif fld_type == DECIMAL:
+        elif fld_type == dbe_globals.ADO_DECIMAL:
             # (+- 38 if .adp as opposed to .mdb)
             min = -((10**38)-1)
             max = (10**38)-1
-        elif fld_type == SINGLE: # signed by default
+        elif fld_type == dbe_globals.ADO_SINGLE: # signed by default
             min = -3.402823466E+38
             max = 3.402823466E+38
-        elif fld_type == DOUBLE:
+        elif fld_type == dbe_globals.ADO_DOUBLE:
             min = -1.79769313486231E308
             max = 1.79769313486231E308
-        elif fld_type == CURRENCY:
+        elif fld_type == dbe_globals.ADO_CURRENCY:
             """
             Accurate to 15 digits to the left of the decimal point and 
                 4 digits to the right.
@@ -167,9 +152,11 @@ class DbDets(getdata.DbDets):
             # build dic of fields, each with dic of characteristics
             fld_name = col.Name
             if debug: print col.Type
-            fld_type = self.getFldType(col.Type)
-            bolnumeric = fld_type in [BYTE, INTEGER, LONGINT, DECIMAL, 
-                                      SINGLE, DOUBLE, CURRENCY]
+            fld_type = self._getFldType(col.Type)
+            bolnumeric = fld_type in [dbe_globals.ADO_BYTE, 
+                            dbe_globals.ADO_INTEGER, dbe_globals.ADO_LONGINT, 
+                            dbe_globals.ADO_DECIMAL, dbe_globals.ADO_SINGLE, 
+                            dbe_globals.ADO_DOUBLE, dbe_globals.ADO_CURRENCY]
             try:
                 bolautonum = col.Properties("AutoIncrement").Value
             except Exception:
@@ -184,10 +171,11 @@ class DbDets(getdata.DbDets):
                 default = ""
             boldata_entry_ok = False if bolautonum else True
             dec_pts = col.NumericScale if col.NumericScale < 18 else 0
-            boldatetime = fld_type in [DATE, TIMESTAMP]
+            boldatetime = fld_type in [dbe_globals.ADO_DATE, 
+                                       dbe_globals.ADO_TIMESTAMP]
             fld_txt = not bolnumeric and not boldatetime
             num_prec = col.Precision
-            min_val, max_val = self.GetMinMax(fld_type, num_prec, dec_pts)
+            min_val, max_val = self._GetMinMax(fld_type, num_prec, dec_pts)
             dets_dic = {
                 my_globals.FLD_SEQ: extras[fld_name][0],
                 my_globals.FLD_BOLNULLABLE: bolnullable,

@@ -47,7 +47,7 @@ class DbDets(getdata.DbDets):
         tbls.sort(key=lambda s: s.upper())
         return tbls
     
-    def GetMinMax(self, col_type, num_prec, dec_pts):
+    def _GetMinMax(self, col_type, num_prec, dec_pts):
         """
         Use col_type not fld_type.  The former is inconsistent - float 
             and double have unsigned at end but not rest!
@@ -182,7 +182,7 @@ class DbDets(getdata.DbDets):
             bolnumeric = True if numeric else False
             fld_txt = not bolnumeric and not boldatetime
             bolsigned = (col_type.find("unsigned") == -1)
-            min_val, max_val = self.GetMinMax(col_type, num_prec, dec_pts)
+            min_val, max_val = self._GetMinMax(col_type, num_prec, dec_pts)
             dets_dic = {
                         my_globals.FLD_SEQ: ord_pos,
                         my_globals.FLD_BOLNULLABLE: bolnullable,

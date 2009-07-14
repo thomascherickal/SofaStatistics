@@ -418,8 +418,6 @@ class StartFrame(wx.Frame):
             "(with labels and optional totals)."
         panel_dc.DrawLabel(GetTextToDraw(txt_tabs2, MAX_HELP_TEXT_WIDTH), 
                            wx.Rect(MAIN_LEFT, 278, 540, 260))
-        
-        
         event.Skip()
     
     def OnChartsClick(self, event):

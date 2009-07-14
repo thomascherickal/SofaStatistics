@@ -296,7 +296,7 @@ def setupDataDropdowns(parent, panel, dbe, conn_dets, default_dbs,
         parent.dropDatabases.SetSelection(n=0)
     parent.dropTables = wx.Choice(panel, -1, choices=parent.tbls)
     try:
-        idx_default_tbl = parent.tbls.index(parent.default_tbl)
+        idx_default_tbl = parent.tbls.index(parent.tbl_name)
         parent.dropTables.SetSelection(idx_default_tbl)
     except Exception:
         parent.dropTables.SetSelection(n=0)
