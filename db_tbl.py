@@ -20,7 +20,8 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.tbl = tbl
         self.grid = grid
         self.dbe = dbe
-        self.quote = getdata.get_quoter_func(self.dbe)
+        self.quote_obj = getdata.get_obj_quoter_func(self.dbe)
+        self.quote_val = getdata.get_val_quoter_func(self.dbe)
         self.conn = conn
         self.cur = cur
         self.read_only = read_only        
@@ -54,8 +55,8 @@ class DbTbl(wx.grid.PyGridTableBase):
             to value of the id field e.g. "ABC123" or 128797 or even 0 ;-).
         """
         SQL_get_id_vals = "SELECT %s FROM %s ORDER BY %s" % \
-            (self.quote(self.id_col_name), self.quote(self.tbl), 
-             self.quote(self.id_col_name))
+            (self.quote_obj(self.id_col_name), self.quote_obj(self.tbl), 
+             self.quote_obj(self.id_col_name))
         self.cur.execute(SQL_get_id_vals)
         # NB could easily be 10s or 100s of thousands of records
         ids_lst = [x[0] for x in self.cur.fetchall()]
@@ -98,7 +99,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         return num_cols
 
     def SetNumberRows(self):
-        SQL_num_rows = "SELECT COUNT(*) FROM %s" % self.quote(self.tbl)
+        SQL_num_rows = "SELECT COUNT(*) FROM %s" % self.quote_obj(self.tbl)
         self.cur.execute(SQL_num_rows)
         self.num_rows = self.cur.fetchone()[0]
         if not self.read_only:
@@ -177,18 +178,18 @@ class DbTbl(wx.grid.PyGridTableBase):
                 else self.rows_to_fill
             # create IN clause listing id values
             IN_clause_lst = []
-            if self.must_quote:
-                val_part = "\"%s\"" 
-            else:
-                val_part = "%s"
             for row_n in range(row_min, row_max + 1):
-                IN_clause_lst.append(val_part % self.row_id_dic[row_n])
+                if self.must_quote:
+                    value = self.quote_val(self.row_id_dic[row_n])
+                else:
+                    value = "%s" % self.row_id_dic[row_n]
+                IN_clause_lst.append(value)
             IN_clause = ", ".join(IN_clause_lst)
             SQL_get_values = "SELECT * " + \
-                " FROM %s " % self.quote(self.tbl) + \
-                " WHERE %s IN(%s)" % (self.quote(self.id_col_name), 
+                " FROM %s " % self.quote_obj(self.tbl) + \
+                " WHERE %s IN(%s)" % (self.quote_obj(self.id_col_name), 
                                       IN_clause) + \
-                " ORDER BY %s" % self.quote(self.id_col_name)
+                " ORDER BY %s" % self.quote_obj(self.id_col_name)
             if self.debug:
                 print SQL_get_values
             self.cur.execute(SQL_get_values)
@@ -233,18 +234,18 @@ class DbTbl(wx.grid.PyGridTableBase):
             col_name = self.fld_names[col]
             raw_val_to_use = getdata.PrepValue(dbe=self.dbe, val=value, 
                                                fld_dic=self.flds[col_name])
-            self.val_of_cell_to_update = raw_val_to_use
+            self.val_of_cell_to_update = raw_val_to_use            
             if self.must_quote:
-                id_val_part = "\"%s\"" % self.row_id_dic[row]
+                id_value = self.quote_val(self.row_id_dic[row])
             else:
-                id_val_part = "%s" % self.row_id_dic[row]
+                id_value = self.row_id_dic[row]
             val2use = "NULL" if raw_val_to_use == None \
                 else "\"%s\"" % raw_val_to_use
             # TODO - think about possibilities of SQL injection by hostile party
             SQL_update_value = "UPDATE %s " % self.tbl + \
-                " SET %s = %s " % (self.quote(col_name), val2use) + \
+                " SET %s = %s " % (self.quote_obj(col_name), val2use) + \
                 " WHERE %s = " % self.id_col_name + \
-                id_val_part
+                id_value
             if self.debug: 
                 print "SetValue - SQL update value: %s" % SQL_update_value
                 print "SetValue - Value of cell to update: %s" % \
@@ -269,5 +270,6 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.grid.ForceRefresh()
         
     def ForceRefresh(self):
-        msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
+        msg = wx.grid.GridTableMessage(self, 
+                wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
         self.grid.ProcessTableMessage(msg)

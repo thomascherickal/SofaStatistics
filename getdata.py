@@ -52,29 +52,41 @@ def import_dbe_plugin(dbe_plugin):
     elif dbe_plugin == my_globals.DBE_MS_ACCESS:
         import dbe_plugins.dbe_ms_access as dbe_ms_access
         mod = dbe_ms_access
+    elif dbe_plugin == my_globals.DBE_MS_SQL:
+        import dbe_plugins.dbe_ms_sql as dbe_ms_sql
+        mod = dbe_ms_sql
     return mod
 DBES = []
 DBE_MODULES = {}
 DBE_PLUGINS = [(my_globals.DBE_SQLITE, "dbe_sqlite"), 
                (my_globals.DBE_MYSQL, "dbe_mysql"), 
-               (my_globals.DBE_MS_ACCESS, "dbe_ms_access")]
+               (my_globals.DBE_MS_ACCESS, "dbe_ms_access"), 
+               (my_globals.DBE_MS_SQL, "dbe_ms_sql"),]
 for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
-    access_yet_not_win = not util.in_windows() and \
-        dbe_plugin == my_globals.DBE_MS_ACCESS
+    for_win_yet_not_win = not util.in_windows() and \
+        dbe_plugin in [my_globals.DBE_MS_ACCESS, my_globals.DBE_MS_SQL]
     dbe_plugin_mod = os.path.join(os.path.dirname(__file__), "dbe_plugins", 
                                    "%s.py" % dbe_mod_name)
     if os.path.exists(dbe_plugin_mod):
-        if not access_yet_not_win: # i.e. OK to add module
+        if not for_win_yet_not_win: # i.e. OK to add module
             DBES.append(dbe_plugin)
             dbe_mod = import_dbe_plugin(dbe_plugin)
             DBE_MODULES[dbe_plugin] = dbe_mod
 
-def get_quoter_func(dbe):
+
+def get_obj_quoter_func(dbe):
     """
     Get appropriate function to wrap content e.g. table or field name, 
         in dbe-friendly way.
     """
-    return DBE_MODULES[dbe].quote_me
+    return DBE_MODULES[dbe].quote_obj
+
+def get_val_quoter_func(dbe):
+    """
+    Get appropriate function to wrap values e.g. the contents of a string field,
+        in dbe-friendly way.
+    """
+    return DBE_MODULES[dbe].quote_val
 
 def getDbDetsObj(dbe, conn_dets, db=None, tbl=None):
     """

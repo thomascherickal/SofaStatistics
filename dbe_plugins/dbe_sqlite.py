@@ -12,8 +12,11 @@ import util
 
 # http://www.sqlite.org/lang_keywords.html
 # The following is non-standard but will work
-def quote_me(raw_val):
+def quote_obj(raw_val):
     return "`%s`" % raw_val
+
+def quote_val(raw_val):
+    return "\"%s\"" % raw_val
 
 def DbeSyntaxElements():
     if_clause = "CASE WHEN %s THEN %s ELSE %s END"

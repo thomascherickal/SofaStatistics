@@ -36,8 +36,11 @@ AD_OPEN_KEYSET = 1
 AD_LOCK_OPTIMISTIC = 3
 AD_SCHEMA_COLUMNS = 4
 
-def quote_me(raw_val):
+def quote_obj(raw_val):
     return "[%s]" % raw_val
+
+def quote_val(raw_val):
+    return "'%s'" % raw_val.replace("'", "''") # escape internal single quotes
 
 def DbeSyntaxElements():
     if_clause = "IIF(%s, %s, %s)"
@@ -74,7 +77,7 @@ class DbDets(getdata.DbDets):
         elif adotype == win32com.client.constants.adInteger:
             fld_type = LONGINT # 4-byte signed integer
         elif adotype == win32com.client.constants.adSingle:
-            fld_type = SINGLE # Single-pCURRENCYrecision floating-point value
+            fld_type = SINGLE # Single-precision floating-point value
         elif adotype == win32com.client.constants.adDouble:
             fld_type = DOUBLE # Double precision floating-point
         elif adotype == win32com.client.constants.adNumeric:

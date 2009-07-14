@@ -10,7 +10,7 @@ def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val):
     Get list of non-missing values in field.
     Used, for example, in the independent samples t-test.
     """
-    quoter = getdata.get_quoter_func(dbe)
+    quoter = getdata.get_obj_quoter_func(dbe)
     SQL_get_list = "SELECT %s FROM %s WHERE %s IS NOT NULL AND %s = ?" % \
                     (quoter(fld_measure), quoter(tbl), quoter(fld_measure), 
                      quoter(fld_filter))
@@ -24,7 +24,7 @@ def get_paired_lists(dbe, cur, tbl, fld_a, fld_b):
         a non-missing value in the other field.
         Used in, for example, the paired samples t-test.
     """
-    quoter = getdata.get_quoter_func(dbe)
+    quoter = getdata.get_obj_quoter_func(dbe)
     SQL_get_lists = "SELECT %s, %s " % (quoter(fld_a), quoter(fld_b)) + \
         "FROM %s " % quoter(tbl) + \
         "WHERE %s IS NOT NULL AND %s IS NOT NULL" % (quoter(fld_a), 
@@ -41,7 +41,7 @@ def get_obs_exp(dbe, cur, tbl, fld_a, fld_b):
         Chi Square test.
     Returns lst_obs, lst_exp, min_count, perc_cells_lt_5, df.    
     """
-    quoter = getdata.get_quoter_func(dbe)
+    quoter = getdata.get_obj_quoter_func(dbe)
     qtbl = quoter(tbl)
     qfld_a = quoter(fld_a)
     qfld_b = quoter(fld_b)

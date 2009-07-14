@@ -210,7 +210,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         if not choice_text:
             return
         var_name, var_label = getdata.extractChoiceDets(choice_text)
-        quoter = getdata.get_quoter_func(self.dbe)
+        quoter = getdata.get_obj_quoter_func(self.dbe)
         SQL_get_sorted_vals = "SELECT %s FROM %s GROUP BY %s ORDER BY %s" % \
             (quoter(var_name), quoter(self.tbl_name), quoter(var_name), 
              quoter(var_name))

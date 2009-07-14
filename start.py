@@ -76,7 +76,7 @@ def GetNextYPos(start, height):
 
 def InstallLocal():
     """
-    Install local set of files in user home dir if necessary (not on Windows).
+    Install local set of files in user home dir if necessary.
     Modify default project settings to point to local (user) SOFA  directory.
     """
     sofa_prog_path = os.path.join(util.get_prog_path(), "sofa")
@@ -85,7 +85,8 @@ def InstallLocal():
     paths = ["css", my_globals.INTERNAL_FOLDER, "lbls", "projs", "reports", 
              "scripts"]
     if not os.path.exists(LOCAL_PATH):
-            # in Windows these steps are all completed by the installer
+            # In Windows these steps are completed by the installer - but only
+            # for the first user.
             # create required folders
             for path in paths:
                 os.makedirs(os.path.join(LOCAL_PATH, path))

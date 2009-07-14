@@ -18,8 +18,12 @@ MEDIUMINT = "mediumint"
 SMALLINT = "smallint"
 TINYINT = "tinyint"
 
-def quote_me(raw_val):
+
+def quote_obj(raw_val):
     return "`%s`" % raw_val
+
+def quote_val(raw_val):
+    return "\"%s\"" % raw_val
 
 def DbeSyntaxElements():
     if_clause = "IF(%s, %s, %s)"

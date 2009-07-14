@@ -86,6 +86,7 @@ IDX_FLDS = "index fields"
 DBE_SQLITE = "SQLite"
 DBE_MYSQL = "MySQL"
 DBE_MS_ACCESS = "MS Access"
+DBE_MS_SQL = "MS SQL Server"
 
 # projects ******************************************************
 EMPTY_PROJ_NAME = "GIVE ME A NAME ..."
