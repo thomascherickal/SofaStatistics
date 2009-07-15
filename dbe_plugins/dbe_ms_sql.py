@@ -36,6 +36,109 @@ def DbeSyntaxElements():
 
     
 class DbDets(getdata.DbDets):
+    
+    """
+    __init__ supplies default_dbs, default_tbls, conn_dets and 
+        db and tbl (may be None).
+    """
+            
+    def getDbDets(self):
+        """
+        Return connection, cursor, and get lists of 
+            databases, tables, fields, and index info,
+            based on the MS SQL Server database connection details provided.
+        Sets db and tbl if not supplied.
+        The database used will be the default or the first if none provided.
+        The table used will be the default or the first if none provided.
+        The field dets will be taken from the table used.
+        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
+        """
+        conn_dets_mssql = self.conn_dets.get(my_globals.DBE_MS_SQL)
+        if not conn_dets_mssql:
+            raise Exception, "No connection details available for MS SQL Server"
+        user = conn_dets_mssql["user"]
+        pwd = conn_dets_mssql["passwd"]
+        dbs, self.db = self._getDbs(user, pwd)
+        DSN = """PROVIDER=SQLOLEDB;
+            Data Source=(local);
+            User ID='%s';
+            Password='%s';
+            Initial Catalog='%s';
+            Integrated Security=SSPI""" % (user, pwd, self.db)
+        try:
+            conn = adodbapi.connect(connstr=DSN)
+        except Exception, e:
+            raise Exception, "Unable to connect to MS SQL Server with " + \
+                "database %s: and supplied connection. " % self.db + \
+                "Orig error: %s" % e
+        cur = conn.cursor()
+        cur.adoconn = conn.adoConn # (need to be able to access from just the cursor)
+        tbls = self.getDbTbls(cur, self.db)        
+        tbls_lc = [x.lower() for x in tbls]        
+        # get table (default if possible otherwise first)
+        # NB table must be in the database
+        if not self.tbl:
+            # use default if possible
+            default_tbl_mssql = self.default_tbls.get(my_globals.DBE_MS_SQL)
+            if default_tbl_mssql and default_tbl_mssql.lower() in tbls_lc:
+                self.tbl = default_tbl_mssql
+            else:
+                self.tbl = tbls[0]
+        else:
+            if self.tbl.lower() not in tbls_lc:
+                raise Exception, "Table \"%s\" not found in database \"%s\"" % \
+                    (self.tbl, self.db)
+        # get field names (from first table if none provided)
+        flds = self.getTblFlds(cur, self.db, self.tbl)
+        has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
+        debug = False
+        if debug:
+            print self.db
+            print self.tbl
+            pprint.pprint(tbls)
+            pprint.pprint(flds)
+            pprint.pprint(idxs)
+        return conn, cur, dbs, tbls, flds, has_unique, idxs
+
+    def _getDbs(self, user, pwd):
+        """
+        Get dbs and the db to use.
+        NB need to use a separate connection here with db Initial Catalog) 
+            undefined.        
+        """
+        DSN = """PROVIDER=SQLOLEDB;
+            Data Source=(local);
+            User ID='%s';
+            Password='%s';
+            Initial Catalog='';
+            Integrated Security=SSPI""" % (user, pwd)
+        try:
+            conn = adodbapi.connect(connstr=DSN)
+        except Exception, e:
+            raise Exception, "Unable to connect to MS SQL Server " + \
+                "with user: %s and pwd: %s" % (user, pwd)
+        cur = conn.cursor() # must return tuples not dics
+        cur.execute("SELECT name FROM sysdatabases")
+        dbs = [x[0] for x in cur.fetchall()]
+        dbs_lc = [x.lower() for x in dbs]
+        # get db (default if possible otherwise first)
+        # NB db must be accessible from connection
+        if not self.db:
+            # use default if possible, or fall back to first
+            default_db_mssql = self.default_dbs.get(my_globals.DBE_MS_SQL)
+            if default_db_mssql.lower() in dbs_lc:
+                db = default_db_mssql
+            else:
+                db = dbs[0]
+        else:
+            if self.db.lower() not in dbs_lc:
+                raise Exception, "Database \"%s\" not available " % self.db + \
+                    "from supplied connection"
+            else:
+                db = self.db
+        cur.close()
+        conn.close()
+        return dbs, db
 
     def getDbTbls(self, cur, db):
         "Get table names given database and cursor. NB not system tables"
@@ -226,66 +329,6 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
             print has_unique
         return has_unique, idxs
-
-    def _getDbs(self, user, pwd):
-        """
-        Get dbs and the db to use.
-        NB need to use a separate connection with db undefined.        
-        """
-        DSN = """PROVIDER=SQLOLEDB;
-            Data Source=(local);
-            User ID='%s';
-            Password='%s';
-            Initial Catalog='';
-            Integrated Security=SSPI""" % (user, pwd)
-        conn = adodbapi.connect(connstr=DSN)
-        cur = conn.cursor() # must return tuples not dics
-        cur.execute("SELECT name FROM sysdatabases")
-        dbs = [x[0] for x in cur.fetchall()]
-        # get table names (from first db if none provided)
-        db_to_use = self.db if self.db else dbs[0]
-        cur.close()
-        conn.close()
-        return dbs, db_to_use
-
-    def getDbDets(self):
-        """
-        Return connection, cursor, and get lists of 
-            databases, tables, and fields 
-            based on the MySQL database connection details provided.
-        The database used will be the first if none provided.
-        The table used will be the first if none provided.
-        The field dets will be taken from the table used.
-        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
-        """
-        conn_dets_mssql = self.conn_dets.get(my_globals.DBE_MS_SQL)
-        if not conn_dets_mssql:
-            raise Exception, "No connection details available for MS SQL Server"
-        user = conn_dets_mssql["user"]
-        pwd = conn_dets_mssql["passwd"]
-        dbs, db_to_use = self._getDbs(user, pwd)
-        DSN = """PROVIDER=SQLOLEDB;
-            Data Source=(local);
-            User ID='%s';
-            Password='%s';
-            Initial Catalog='%s';
-            Integrated Security=SSPI""" % (user, pwd, db_to_use)
-        conn = adodbapi.connect(connstr=DSN)
-        cur = conn.cursor()
-        cur.adoconn = conn.adoConn # (need to be able to access from just the cursor)
-        tbls = self.getDbTbls(cur, db_to_use)
-        # get field names (from first table if none provided)
-        tbl_to_use = self.tbl if self.tbl else tbls[0]
-        flds = self.getTblFlds(cur, db_to_use, tbl_to_use)
-        has_unique, idxs = self.getIndexDets(cur, db_to_use, tbl_to_use)
-        debug = False
-        if debug:
-            print self.db
-            print self.tbl
-            pprint.pprint(tbls)
-            pprint.pprint(flds)
-            pprint.pprint(idxs)
-        return conn, cur, dbs, tbls, flds, has_unique, idxs
 
 def setDbInConnDets(conn_dets, db):
     "Set database in connection details (if appropriate)"

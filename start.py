@@ -117,7 +117,7 @@ def InstallLocal():
         for path in paths:
             proj_str = proj_str.replace("/home/g/sofa/%s/" % path, 
                                         os.path.join(LOCAL_PATH, path, ""))
-        # add MS Access into mix if Windows
+        # add MS Access and SQL Server into mix if Windows
         if util.in_windows():
             proj_str = proj_str.replace("default_dbs = {",
                                         "default_dbs = {'%s': None, " % \
@@ -125,6 +125,12 @@ def InstallLocal():
             proj_str = proj_str.replace("default_tbls = {",
                                         "default_tbls = {'%s': None, " % \
                                             my_globals.DBE_MS_ACCESS)
+            proj_str = proj_str.replace("default_dbs = {",
+                                        "default_dbs = {'%s': None, " % \
+                                            my_globals.DBE_MS_SQL)
+            proj_str = proj_str.replace("default_tbls = {",
+                                        "default_tbls = {'%s': None, " % \
+                                            my_globals.DBE_MS_SQL)
         f = file(default_proj, "w")
         f.write(proj_str)
         f.close()

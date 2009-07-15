@@ -10,12 +10,6 @@ import table_edit
 
 class DataSelectDlg(wx.Dialog):
     def __init__(self, parent, proj_name):
-        """
-        NB self.dbe etc are all set during getdata.setupDataDropdowns
-            because it calls getDbDetsObj to get the bits it needs
-            and gets all the rest at the same time.
-        No point getting them again in a more explicit way.
-        """
         title = "Data in \"%s\" Project" % proj_name
         wx.Dialog.__init__(self, parent=parent, title=title,
                            size=(500, 300), 
@@ -30,9 +24,23 @@ class DataSelectDlg(wx.Dialog):
         proj_dic = projects.GetProjSettingsDic(proj_name=proj_name)
         self.var_labels, self.var_notes, self.val_dics = \
             projects.GetLabels(proj_dic["fil_labels"])
-        getdata.setupDataDropdowns(self, self.panel, proj_dic["default_dbe"], 
-                             proj_dic["conn_dets"], proj_dic["default_dbs"], 
-                             proj_dic["default_tbls"])
+        self.dbe = proj_dic["default_dbe"]
+        self.conn_dets = proj_dic["conn_dets"]
+        self.default_dbs = proj_dic["default_dbs"] \
+            if proj_dic["default_dbs"] else []
+        self.default_tbls = proj_dic["default_tbls"] \
+            if proj_dic["default_tbls"] else []
+        # get various db settings
+        dbdetsobj = getdata.getDbDetsObj(self.dbe, self.default_dbs, 
+                                         self.default_tbls, self.conn_dets)
+        (self.conn, self.cur, self.dbs, self.tbls, self.flds, self.has_unique,  
+                self.idxs) = dbdetsobj.getDbDets()
+        # set up self.dropDatabases and self.dropTables
+        self.db = dbdetsobj.db
+        self.tbl = dbdetsobj.tbl
+        getdata.setupDataDropdowns(self, self.panel, self.dbe, self.default_dbs, 
+                                   self.default_tbls, self.conn_dets, 
+                                   self.dbs, self.db, self.tbls, self.tbl)
         self.dropDatabases.Bind(wx.EVT_CHOICE, self.OnDatabaseSel)
         self.dropTables.Bind(wx.EVT_CHOICE, self.OnTableSel)
         self.chkReadOnly = wx.CheckBox(self.panel, -1, "Read Only")
@@ -82,10 +90,16 @@ class DataSelectDlg(wx.Dialog):
         wx.Yield()
         
     def OnDatabaseSel(self, event):
-        getdata.ResetDataAfterDbSel(self)
+        (self.dbe, self.db, self.cur, self.tbls, self.tbl, self.flds, 
+                self.has_unique, self.idxs) = getdata.RefreshDbDets(self)
+        self.dropTables.SetItems(self.tbls)
+        tbls_lc = [x.lower() for x in tbls]
+        self.dropTables.SetSelection(self.tbls_lc.index(self.tbl.lower()))
     
     def OnTableSel(self, event):
-        getdata.ResetDataAfterTblSel(self)
+        "Reset key data details after table selection."       
+        self.tbl, self.flds, self.has_unique, self.idxs = \
+            getdata.RefreshTblDets(self)
     
     def OnOpen(self, event):
         ""
@@ -96,7 +110,7 @@ class DataSelectDlg(wx.Dialog):
         else:
             read_only = self.chkReadOnly.IsChecked()
             dlg = table_edit.TblEditor(self, self.dbe, self.conn, 
-                                       self.cur, self.db, self.tbl_name, 
+                                       self.cur, self.db, self.tbl, 
                                        self.flds, self.var_labels, self.idxs,
                                        read_only)
             dlg.ShowModal()

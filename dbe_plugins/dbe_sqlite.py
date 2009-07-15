@@ -26,7 +26,66 @@ def DbeSyntaxElements():
 
 
 class DbDets(getdata.DbDets):
-
+    
+    """
+    __init__ supplies default_dbs, default_tbls, conn_dets and 
+        db and tbl (may be None).
+    """
+            
+    def getDbDets(self):
+        """
+        Return connection, cursor, and get lists of 
+            databases (only 1 for SQLite), tables, fields, and index info, 
+            based on the SQLite database connection details provided.
+        Sets db and tbl if not supplied.
+        The database used will be the default SOFA db if nothing provided.
+        The table used will be the default or the first if none provided.
+        The field dets will be taken from the table used.
+        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
+        """
+        conn_dets_sqlite = self.conn_dets.get(my_globals.DBE_SQLITE)
+        if not conn_dets_sqlite:
+            raise Exception, "No connection details available for SQLite"
+        if not self.db:
+            self.db = my_globals.SOFA_DEFAULT_DB
+        if not conn_dets_sqlite.get(self.db):
+            raise Exception, "No connections for SQLite database %s" % \
+                self.db
+        try:
+            conn = sqlite.connect(**conn_dets_sqlite[self.db])
+        except Exception, e:
+            raise Exception, "Unable to connect to SQLite database " + \
+                "using supplied database: %s. " % self.db + \
+                "Orig error: %s" % e
+        cur = conn.cursor() # must return tuples not dics
+        dbs = [self.db]
+        tbls = self.getDbTbls(cur, self.db)
+        tbls_lc = [x.lower() for x in tbls]
+        # get table (default if possible otherwise first)
+        # NB table must be in the database
+        if not self.tbl:
+            # use default if possible
+            default_tbl_sqlite = self.default_tbls.get(my_globals.DBE_SQLITE)
+            if default_tbl_sqlite and default_tbl_sqlite.lower() in tbls_lc:
+                self.tbl = default_tbl_sqlite
+            else:
+                self.tbl = tbls[0]
+        else:
+            if self.tbl.lower() not in tbls_lc:
+                raise Exception, "Table \"%s\" not found in database \"%s\"" % \
+                    (self.tbl, self.db)
+        # get field names (from first table if none provided)
+        flds = self.getTblFlds(cur, self.db, self.tbl)
+        has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
+        debug = False
+        if debug:
+            print self.db
+            print self.tbl
+            pprint.pprint(tbls)
+            pprint.pprint(flds)
+            pprint.pprint(idxs)
+        return conn, cur, dbs, tbls, flds, has_unique, idxs
+    
     def getDbTbls(self, cur, db):
         "Get table names given database and cursor"
         SQL_get_tbl_names = """SELECT name 
@@ -125,42 +184,6 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
             print has_unique
         return has_unique, idxs
-        
-    def getDbDets(self):
-        """
-        Return connection, cursor, and get lists of 
-            databases (only one for SQLite), tables, and fields 
-            based on the SQLite database connection details provided.
-        The database used will be the default SOFA db if nothing provided.
-        The table used will be the first if none provided.
-        The field dets will be taken from the table used.
-        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
-        """
-        conn_dets_sqlite = self.conn_dets.get(my_globals.DBE_SQLITE)
-        if not conn_dets_sqlite:
-            raise Exception, "No connection details available for SQLite"
-        if not self.db:
-            self.db = my_globals.SOFA_DEFAULT_DB
-        if not conn_dets_sqlite.get(self.db):
-            raise Exception, "No connections for SQLite database %s" % \
-                self.db
-        conn = sqlite.connect(**conn_dets_sqlite[self.db])
-        cur = conn.cursor() # must return tuples not dics
-        dbs = [self.db]
-        db_to_use = self.db
-        tbls = self.getDbTbls(cur, self.db)
-        # get field names (from first table if none provided)
-        tbl_to_use = self.tbl if self.tbl else tbls[0]
-        flds = self.getTblFlds(cur, self.db, tbl_to_use)
-        has_unique, idxs = self.getIndexDets(cur, db_to_use, tbl_to_use)
-        debug = False
-        if debug:
-            print self.db
-            print self.tbl
-            pprint.pprint(tbls)
-            pprint.pprint(flds)
-            pprint.pprint(idxs)
-        return conn, cur, dbs, tbls, flds, has_unique, idxs
 
 def setDbInConnDets(conn_dets, db):
     "Set database in connection details (if appropriate)"
@@ -293,4 +316,3 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
             conn_dets_sqlite[db_name] = new_sqlite_dic
         conn_dets[my_globals.DBE_SQLITE] = conn_dets_sqlite        
     return incomplete_sqlite, has_sqlite_conn
-

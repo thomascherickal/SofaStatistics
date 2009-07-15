@@ -6,12 +6,11 @@
 # Microsoft ActiveX Data Objects 2.8 Library (2.8) - and 
 #select OK.  NB DAO has to be done separately from ADO etc.
 
-#"""
 import adodbapi
-import win32com.client
-#"""
-import wx
+import os
 import pprint
+import win32com.client
+import wx
 
 import my_globals
 import dbe_plugins.dbe_globals as dbe_globals
@@ -38,6 +37,88 @@ def DbeSyntaxElements():
 
     
 class DbDets(getdata.DbDets):
+    
+    """
+    __init__ supplies default_dbs, default_tbls, conn_dets and 
+        db and tbl (may be None).
+    """
+        
+    def getDbDets(self):
+        """
+        Return connection, cursor, and get lists of 
+            databases, tables, fields, and index info, 
+            based on the MS Access database connection details provided.
+        Sets db and tbl if not supplied.
+        Connection string as per the ADO documentation.
+        The database used will be the default or the first if none provided.
+        The table used will be the default or the first if none provided.
+        The field dets will be taken from the table used.
+        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
+        """
+        # get connection details for appropriate database
+        conn_dets_access = self.conn_dets.get(my_globals.DBE_MS_ACCESS)
+        if not conn_dets_access:
+            raise Exception, "No connection details available for MS Access"
+        # get the (only) database and use it to get the connection details
+        if not self.db:
+            # use default if possible, or fall back to random
+            default_db_access = self.default_dbs.get(my_globals.DBE_MS_ACCESS)
+            if default_db_access:
+                self.db = default_db_access
+            else:
+                # conn_dets_access[0]["database"] e.g. u'C:\\mydata\\data.mdb'
+                full_db_path = conn_dets_access[0]["database"]
+                self.db = os.path.split(full_db_path)[1]
+        if not conn_dets_access.get(self.db):
+            raise Exception, "No connections for MS Access database %s" % \
+                self.db
+        conn_dets_access_db = conn_dets_access[self.db]
+        """DSN syntax - http://support.microsoft.com/kb/193332 and 
+        http://www.codeproject.com/database/connectionstrings.asp ...
+        ... ?df=100&forumid=3917&exp=0&select=1598401"""
+        database = conn_dets_access_db["database"]
+        user = conn_dets_access_db["user"]
+        pwd = conn_dets_access_db["pwd"]
+        mdw = conn_dets_access_db["mdw"]
+        DSN = """PROVIDER=Microsoft.Jet.OLEDB.4.0;DATA SOURCE=%s;
+            USER ID=%s;PASSWORD=%s;Jet OLEDB:System Database=%s;""" % \
+            (database, user, pwd, mdw)
+        try:
+            conn = adodbapi.connect(connstr=DSN)
+        except Exception, e:
+            raise Exception, "Unable to connect to MS Access database " + \
+                "using supplied database: %s, user: %s, " % (database, user) + \
+                "pwd: %s, or mdw: %s.  Orig error: %s" % (pwx, mdw, e)
+        cur = conn.cursor() # must return tuples not dics
+        cur.adoconn = conn.adoConn # (need to be able to access from just the cursor)
+        # get database name
+        dbs = [self.db]
+        tbls = self.getDbTbls(cur, self.db)
+        tbls_lc = [x.lower() for x in tbls]
+        # get table (default if possible otherwise first)
+        # NB table must be in the database
+        if not self.tbl:
+            # use default if possible
+            default_tbl_access = self.default_tbls.get(my_globals.DBE_MS_ACCESS)
+            if default_tbl_access and default_tbl_access.lower() in tbls_lc:
+                self.tbl = default_tbl_access
+            else:
+                self.tbl = tbls[0]
+        else:
+            if self.tbl.lower() not in tbls_lc:
+                raise Exception, "Table \"%s\" not found in database \"%s\"" % \
+                    (self.tbl, self.db)
+        # get field names (from first table if none provided)
+        flds = self.getTblFlds(cur, db, tbl)
+        has_unique, idxs = self.getIndexDets(cur, db, tbl)
+        debug = False
+        if debug:
+            print self.db
+            print self.tbl
+            pprint.pprint(tbls)
+            pprint.pprint(flds)
+            pprint.pprint(idxs)
+        return conn, cur, dbs, tbls, flds, has_unique, idxs
 
     def getDbTbls(self, cur, db):
         "Get table names given database and cursor. NB not system tables"
@@ -71,6 +152,12 @@ class DbDets(getdata.DbDets):
             fld_type = dbe_globals.ADO_DECIMAL
         elif adotype == win32com.client.constants.adCurrency:
             fld_type = dbe_globals.ADO_CURRENCY
+        elif adotype == win32com.client.constants.adVarWChar:
+            fld_type = dbe_globals.ADO_VARCHAR
+        elif adotype == win32com.client.constants.adBoolean:
+            fld_type = dbe_globals.ADO_BOOLEAN
+        elif adotype == win32com.client.constants.adDate:
+            fld_type = dbe_globals.ADO_DATE
         else:
             raise Exception, "Not an MS Access ADO field type %d" % adotype
         return fld_type
@@ -114,7 +201,8 @@ class DbDets(getdata.DbDets):
             min = -abs_max
             max = abs_max
         else:
-            raise Exception, "Not a valid MS Access (ADO) numeric type"
+            min = None
+            max = None
         return min, max
 
     def getTblFlds(self, cur, db, tbl):
@@ -207,59 +295,6 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
             print has_unique
         return has_unique, idxs
-
-    def getDbDets(self):
-        """
-        Return connection, cursor, and get lists of 
-            databases, tables, and fields 
-            based on the MySQL database connection details provided.
-        Connection string as per the ADO documentation.
-        The database used will be the first if none provided.
-        The table used will be the first if none provided.
-        The field dets will be taken from the table used.
-        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
-        """
-        
-        conn_dets_access = self.conn_dets.get(my_globals.DBE_MS_ACCESS)
-        if not conn_dets_access:
-            raise Exception, "No connection details available for MS Access"
-        if not conn_dets_access.get(self.db):
-            raise Exception, "No connections for MS Access database %s" % \
-                self.db
-        conn_dets_access_db = conn_dets_access[self.db]
-        """DSN syntax - http://support.microsoft.com/kb/193332 and 
-        http://www.codeproject.com/database/connectionstrings.asp ...
-        ... ?df=100&forumid=3917&exp=0&select=1598401"""
-        database = conn_dets_access_db["database"]
-        user = conn_dets_access_db["user"]
-        pwd = conn_dets_access_db["pwd"]
-        mdw = conn_dets_access_db["mdw"]
-        DSN = """PROVIDER=Microsoft.Jet.OLEDB.4.0;DATA SOURCE=%s;
-            USER ID=%s;PASSWORD=%s;Jet OLEDB:System Database=%s;""" % \
-            (database, user, pwd, mdw)
-        conn = adodbapi.connect(connstr=DSN)
-        #wk = conn.adoConn.CreateWorkspace("", user, pwd)
-        #dbobj = wk.OpenDatabase(database) # quite useful
-        cur = conn.cursor() # must return tuples not dics
-        cur.adoconn = conn.adoConn # (need to be able to access from just the cursor)
-        # get database name
-        dbs = [self.db]
-        tbls = self.getDbTbls(cur, self.db)
-        # get table names (from first db if none provided)
-        db_to_use = self.db if self.db else dbs[0]
-        tbls = self.getDbTbls(cur, db_to_use)
-        # get field names (from first table if none provided)
-        tbl_to_use = self.tbl if self.tbl else tbls[0]
-        flds = self.getTblFlds(cur, db_to_use, tbl_to_use)
-        has_unique, idxs = self.getIndexDets(cur, db_to_use, tbl_to_use)
-        debug = False
-        if debug:
-            print self.db
-            print self.tbl
-            pprint.pprint(tbls)
-            pprint.pprint(flds)
-            pprint.pprint(idxs)
-        return conn, cur, dbs, tbls, flds, has_unique, idxs
 
 def setDbInConnDets(conn_dets, db):
     "Set database in connection details (if appropriate)"

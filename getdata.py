@@ -8,10 +8,17 @@ import util
 # must be before dbe import statements (they have classes based on DbDets)
 class DbDets(object):
     
-    def __init__ (self, conn_dets, db=None, tbl=None):
+    def __init__ (self, default_dbs, default_tbls, conn_dets, db=None, 
+                  tbl=None):
         """
-        If db or tbl are none, subclasses must select one e.g. the first.
+        If db or tbl are not supplied subclass must choose 
+            e.g. default or first.
         """
+        # default dbs e.g. {'MySQL': u'clicextract', 'SQLite': u'sodasipper'}
+        self.default_dbs = default_dbs
+        # default tbls e.g. {'MySQL': u'clicextract', 'SQLite': u'sodasipper'}
+        self.default_tbls = default_tbls
+        # conn_dets e.g. {'MySQL': {'host': u'localhost', 'passwd': ...}
         self.conn_dets = conn_dets
         self.db = db
         self.tbl = tbl
@@ -36,7 +43,13 @@ class DbDets(object):
         assert 0, "Must define getIndexDets in subclass"
        
     def getDbDets(self):
-        "Must return conn, cur, dbs, tbls, flds"
+        """
+        Return connection, cursor, and get lists of databases, tables, fields, 
+            and index info, based on the database connection details provided.
+        Sets db and tbl if not supplied.
+        Must return conn, cur, dbs, tbls, flds, has_unique, idxs.
+        dbs used to make dropdown of all dbe dbs (called more than once).
+        """
         assert 0, "Must define getDbDets in subclass"
 
 """
@@ -88,11 +101,12 @@ def get_val_quoter_func(dbe):
     """
     return DBE_MODULES[dbe].quote_val
 
-def getDbDetsObj(dbe, conn_dets, db=None, tbl=None):
+def getDbDetsObj(dbe, default_dbs, default_tbls, conn_dets, db=None, tbl=None):
     """
     Pass in all conn_dets (the dbe will be used to select specific conn_dets).
     """
-    return DBE_MODULES[dbe].DbDets(conn_dets, db, tbl)
+    return DBE_MODULES[dbe].DbDets(default_dbs, default_tbls, conn_dets, db, 
+                                   tbl)
 
 def setDbInConnDets(dbe, conn_dets, db):
     "Set database in connection details (if appropriate)"
@@ -231,44 +245,21 @@ def InsertRow(dbe, conn, cur, tbl_name, data):
     "data = [(value as string (or None), fld_dets), ...]"
     return DBE_MODULES[dbe].InsertRow(conn, cur, tbl_name, data)
 
-def setupDataDropdowns(parent, panel, dbe, conn_dets, default_dbs, 
-                       default_tbls):
+def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, conn_dets,
+                       dbs_of_default_dbe, db, tbls, tbl):
     """
-    Sets up frame with the following properties: dbe, conn_dets, conn, cur, 
-        default_dbs, default_db (possibly None), db (default db if possible), 
-        db_choice_items, tbls (for selected db), default_tbl, 
-        and tbl_name (default if possible).  Plus flds, has_unique and idxs.
     Adds dropDatabases and dropTables to frame with correct values 
-        and default selection.
-    """    
-    parent.dbe = dbe
-    parent.conn_dets = conn_dets
-    parent.default_dbs = default_dbs
-    if not parent.default_dbs:
-        parent.default_dbs = []
-        default_db = None
-    else:
-        default_db = parent.default_dbs.get(parent.dbe)
-    parent.default_tbls = default_tbls
-    if not default_tbls:
-        parent.default_tbls = []
-        parent.default_tbl = None
-    else:
-        parent.default_tbl = parent.default_tbls.get(parent.dbe)
-    # for default dbe, get default tbl (or first) and its fields
-    # for each other dbe, need to get database details to add to list
-    parent.conn, parent.cur, default_dbe_dbs, parent.tbls, parent.flds, \
-            parent.has_unique, parent.idxs = \
-        getDbDetsObj(parent.dbe, parent.conn_dets, db=default_db, 
-                     tbl=parent.default_tbl).getDbDets()
+        and default selection.  NB must have exact same names.
+    Adds db_choice_items to parent.
+    """
     # databases list needs to be tuple including dbe so can get both from 
     # sequence alone e.g. when identifying selection
-    db_choices = [(x, parent.dbe) for x in default_dbe_dbs]      
+    db_choices = [(x, dbe) for x in dbs_of_default_dbe]      
     dbes = DBES[:]
-    dbes.pop(dbes.index(parent.dbe))
+    dbes.pop(dbes.index(dbe))
     for oth_dbe in dbes: # may not have any connection details
-        oth_default_db = parent.default_dbs.get(oth_dbe)
-        dbdetsobj = getDbDetsObj(oth_dbe, parent.conn_dets, 
+        oth_default_db = default_dbs.get(oth_dbe)
+        dbdetsobj = getDbDetsObj(oth_dbe, default_dbs, default_tbls, conn_dets, 
                                  oth_default_db, None)
         try:
             _, _, oth_dbs, _, _, _, _ = dbdetsobj.getDbDets()
@@ -276,63 +267,35 @@ def setupDataDropdowns(parent, panel, dbe, conn_dets, default_dbs,
             db_choices.extend(oth_db_choices)
         except Exception, e:
             print str(e)
-            pass # no connection possible            
-    parent.db = default_db if default_db else default_dbe_dbs[0]
-    parent.tbl_name = parent.default_tbl if parent.default_tbl \
-        else parent.tbls[0]
+            pass # no connection possible
     parent.db_choice_items = [getDbItem(x[0], x[1]) for x in db_choices]
-    parent.dropDatabases = wx.Choice(panel, -1, 
-                                     choices=parent.db_choice_items)
-    if default_db:
-        # should be correct index if same sort order on choice items 
-        # as db list
-        dbs = [x[0] for x in db_choices]
-        try:
-            parent.dropDatabases.SetSelection(dbs.index(default_db))
-        except Exception:
-            pass # perhaps the default table is not in the default database ;-)
-    else:
-        # first database of default dbe (which was always first)
-        parent.dropDatabases.SetSelection(n=0)
-    parent.dropTables = wx.Choice(panel, -1, choices=parent.tbls)
-    try:
-        idx_default_tbl = parent.tbls.index(parent.tbl_name)
-        parent.dropTables.SetSelection(idx_default_tbl)
-    except Exception:
-        parent.dropTables.SetSelection(n=0)
+    parent.dropDatabases = wx.Choice(panel, -1, choices=parent.db_choice_items)
+    dbs_lc = [x.lower() for x in dbs_of_default_dbe]
+    parent.dropDatabases.SetSelection(dbs_lc.index(db.lower()))
+    parent.dropTables = wx.Choice(panel, -1, choices=tbls)
+    tbls_lc = [x.lower() for x in tbls]
+    parent.dropTables.SetSelection(tbls_lc.index(tbl.lower()))
 
-def ResetDataAfterDbSel(parent):
+def RefreshDbDets(parent):
     """
-    Reset dbe, database, cursor, tables, table, tables dropdown, 
-        fields, has_unique, and idxs after a database selection.
+    Returns dbe, db, cur, tbls, tbl, flds, has_unique, idxs.
+    Responds to a database selection.
     """
     db_choice_item = parent.db_choice_items[parent.dropDatabases.GetSelection()]
-    db_name, dbe = extractDbDets(db_choice_item)
-    parent.dbe = dbe
-    parent.db = db_name
-    default_tbl = parent.default_tbls.get(parent.dbe) 
-    # for default dbe, get default tbl (or first) and its fields
-    # for each other dbe, need to get database details to add to list
-    dbdetsobj = getDbDetsObj(parent.dbe, parent.conn_dets, db=db_name, 
-                             tbl=default_tbl)
-    parent.conn, parent.cur, sel_dbe_dbs, parent.tbls, parent.flds, \
-            parent.has_unique, parent.idxs = \
-        dbdetsobj.getDbDets()
-    default_tbl = parent.tbls[0] # default condition
-    if parent.default_tbls and parent.default_dbs:
-        if parent.db == parent.default_dbs[parent.dbe]:
-            default_tbl = parent.default_tbls.get(parent.dbe)
-    parent.tbl_name = default_tbl
-    parent.dropTables.SetItems(parent.tbls)
-    parent.dropTables.SetSelection(parent.tbls.index(default_tbl))
-    parent.flds = dbdetsobj.getTblFlds(parent.cur, parent.db, parent.tbl_name)
+    db, dbe = extractDbDets(db_choice_item)
+    dbdetsobj = getDbDetsObj(dbe, parent.default_dbs, parent.default_tbls, 
+                             parent.conn_dets, db)
+    conn, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
+    db = dbdetsobj.db
+    tbl = dbdetsobj.tbl
+    return dbe, db, cur, tbls, tbl, flds, has_unique, idxs
 
-def ResetDataAfterTblSel(parent):
+def RefreshTblDets(parent):
     "Reset table, fields, has_unique, and idxs after a table selection."
-    parent.tbl_name = parent.tbls[parent.dropTables.GetSelection()]
-    dbdetsobj = getDbDetsObj(parent.dbe, parent.conn_dets, parent.db, 
-                             parent.tbl_name)
-    parent.flds = dbdetsobj.getTblFlds(parent.cur, parent.db, parent.tbl_name)
-    parent.has_unique, parent.idxs = dbdetsobj.getIndexDets(parent.cur, 
-                                                parent.db, parent.tbl_name)    
+    tbl = parent.tbls[parent.dropTables.GetSelection()]
+    dbdetsobj = getDbDetsObj(parent.dbe, parent.default_dbs, 
+                         parent.default_tbls, parent.conn_dets, parent.db, tbl)
+    flds = dbdetsobj.getTblFlds(parent.cur, parent.db, tbl)
+    has_unique, idxs = dbdetsobj.getIndexDets(parent.cur, parent.db, tbl)
+    return tbl, flds, has_unique, idxs
     

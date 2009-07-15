@@ -33,7 +33,80 @@ def DbeSyntaxElements():
 
 
 class DbDets(getdata.DbDets):
-
+    
+    """
+    __init__ supplies default_dbs, default_tbls, conn_dets and 
+        db and tbl (may be None).
+    """
+            
+    def getDbDets(self):
+        """
+        Return connection, cursor, and get lists of 
+            databases, tables, fields, and index info,
+            based on the MySQL database connection details provided.
+        Sets db and tbl if not supplied.
+        The database used will be the default or the first if none provided.
+        The table used will be the default or the first if none provided.
+        The field dets will be taken from the table used.
+        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
+        """
+        conn_dets_mysql = self.conn_dets.get(my_globals.DBE_MYSQL)
+        if not conn_dets_mysql:
+            raise Exception, "No connection details available for MySQL"
+        try:
+            conn = MySQLdb.connect(**conn_dets_mysql)
+        except Exception, e:
+            raise Exception, "Unable to connect to MySQL db.  " + \
+                "Orig error: %s" % e
+        cur = conn.cursor() # must return tuples not dics
+        # get database name
+        SQL_get_db_names = """SELECT SCHEMA_NAME 
+            FROM information_schema.SCHEMATA
+            WHERE SCHEMA_NAME <> 'information_schema'"""
+        cur.execute(SQL_get_db_names)
+        dbs = [x[0] for x in cur.fetchall()]
+        dbs_lc = [x.lower() for x in dbs]
+        # get db (default if possible otherwise first)
+        # NB db must be accessible from connection
+        if not self.db:
+            # use default if possible, or fall back to first
+            default_db_mysql = self.default_dbs.get(my_globals.DBE_MYSQL)
+            if default_db_mysql.lower() in dbs_lc:
+                self.db = default_db_mysql
+            else:
+                self.db = dbs[0]
+        else:
+            if self.db.lower() not in dbs_lc:
+                raise Exception, "Database \"%s\" not available " % self.db + \
+                    "from supplied connection"
+        # get table names
+        tbls = self.getDbTbls(cur, self.db)
+        tbls_lc = [x.lower() for x in tbls]        
+        # get table (default if possible otherwise first)
+        # NB table must be in the database
+        if not self.tbl:
+            # use default if possible
+            default_tbl_mysql = self.default_tbls.get(my_globals.DBE_MYSQL)
+            if default_tbl_mysql and default_tbl_mysql.lower() in tbls_lc:
+                self.tbl = default_tbl_mysql
+            else:
+                self.tbl = tbls[0]
+        else:
+            if self.tbl.lower() not in tbls_lc:
+                raise Exception, "Table \"%s\" not found in database \"%s\"" % \
+                    (self.tbl, self.db)
+        # get field names (from first table if none provided)
+        flds = self.getTblFlds(cur, self.db, self.tbl)
+        has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
+        debug = False
+        if debug:
+            print self.db
+            print self.tbl
+            pprint.pprint(tbls)
+            pprint.pprint(flds)
+            pprint.pprint(idxs)
+        return conn, cur, dbs, tbls, flds, has_unique, idxs
+    
     def getDbTbls(self, cur, db):
         "Get table names given database and cursor"
         SQL_get_tbl_names = """SELECT TABLE_NAME 
@@ -238,48 +311,6 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
             print has_unique
         return has_unique, idxs
-
-    def getDbDets(self):
-        """
-        Return connection, cursor, and get lists of 
-            databases, tables, and fields 
-            based on the MySQL database connection details provided.
-        The database used will be the first if none provided.
-        The table used will be the first if none provided.
-        The field dets will be taken from the table used.
-        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
-        """
-        conn_dets_mysql = self.conn_dets.get(my_globals.DBE_MYSQL)
-        if not conn_dets_mysql:
-            raise Exception, "No connection details available for MySQL"
-        conn = MySQLdb.connect(**conn_dets_mysql)
-        cur = conn.cursor() # must return tuples not dics
-        # get database name
-        SQL_get_db_names = """SELECT SCHEMA_NAME 
-            FROM information_schema.SCHEMATA
-            WHERE SCHEMA_NAME <> 'information_schema'"""
-        cur.execute(SQL_get_db_names)
-        dbs = [x[0] for x in cur.fetchall()]
-        # get table names (from first db if none provided)
-        try:
-            conn.select_db(self.db)
-            db_to_use = self.db
-        except Exception:
-            db_to_use = dbs[0]
-        tbls = self.getDbTbls(cur, db_to_use)
-        # get field names (from first table if none provided)
-        tbl_to_use = self.tbl if self.tbl else tbls[0]
-        flds = self.getTblFlds(cur, db_to_use, tbl_to_use)
-        has_unique, idxs = self.getIndexDets(cur, db_to_use, tbl_to_use)
-        debug = False
-        if debug:
-            print self.db
-            print self.tbl
-            pprint.pprint(tbls)
-            pprint.pprint(flds)
-            pprint.pprint(idxs)
-        return conn, cur, dbs, tbls, flds, has_unique, idxs
-
 
 def setDbInConnDets(conn_dets, db):
     "Set database in connection details (if appropriate)"
