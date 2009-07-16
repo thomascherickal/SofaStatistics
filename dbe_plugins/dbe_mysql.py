@@ -339,7 +339,7 @@ def InsertRow(conn, cur, tbl_name, data):
     for i, data_dets in enumerate(data):
         if debug: pprint.pprint(data_dets)
         val, fld_name, fld_dic = data_dets
-        val2use = getdata.PrepValue(val, fld_dic)
+        val2use = getdata.PrepValue(my_globals.DBE_MYSQL, val, fld_dic)
         if debug: print str(val2use) 
         data_lst.append(val2use)
     data_tup = tuple(data_lst)
@@ -356,7 +356,8 @@ def InsertRow(conn, cur, tbl_name, data):
 def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""
     # default database
-    parent.lblMysqlDefaultDb = wx.StaticText(scroll, -1, "Default Database:")
+    parent.lblMysqlDefaultDb = wx.StaticText(scroll, -1, 
+                                             "Default Database (name only):")
     parent.lblMysqlDefaultDb.SetFont(lblfont)
     mysql_default_db = parent.mysql_default_db if parent.mysql_default_db \
         else ""
@@ -479,5 +480,4 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
                            "passwd": mysql_pwd}
         conn_dets[my_globals.DBE_MYSQL] = conn_dets_mysql
     return incomplete_mysql, has_mysql_conn
-    
     

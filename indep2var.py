@@ -212,7 +212,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         var_name, var_label = getdata.extractChoiceDets(choice_text)
         quoter = getdata.get_obj_quoter_func(self.dbe)
         SQL_get_sorted_vals = "SELECT %s FROM %s GROUP BY %s ORDER BY %s" % \
-            (quoter(var_name), quoter(self.tbl_name), quoter(var_name), 
+            (quoter(var_name), quoter(self.tbl), quoter(var_name), 
              quoter(var_name))
         self.cur.execute(SQL_get_sorted_vals)
         val_dic = self.val_dics.get(var_name, {})
@@ -274,7 +274,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
             script = self.getScript()
             strContent = output.RunReport(OUTPUT_MODULES, self.fil_report, 
                 self.fil_css, script, self.conn_dets, self.dbe, self.db, 
-                self.tbl_name)
+                self.tbl, self.default_dbs, self.default_tbls)
             # Return to normal cursor
             curs = wx.StockCursor(wx.CURSOR_ARROW)
             self.SetCursor(curs)
@@ -342,7 +342,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
                                         self.fil_css)
             # insert exported script
             output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                                        self.db, self.tbl_name)
+                                        self.db, self.tbl)
         else:
             # add file name to list, create file, insert preliminary code, 
             # and insert exported script.
@@ -350,7 +350,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
             f = file(self.fil_script, "w")
             output.InsertPrelimCode(modules, f, self.fil_report, self.fil_css)
             output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                                        self.db, self.tbl_name)
+                                        self.db, self.tbl)
         f.close()
 
     def OnButtonHelp(self, event):

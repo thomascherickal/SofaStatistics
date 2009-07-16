@@ -37,7 +37,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append("chisq, p, lst_obs, lst_exp, min_count, " + \
             "perc_cells_lt_5, df = \\\n" + \
             "    core_stats.pearsons_chisquare(dbe=\"%s\", " % self.dbe + \
-            "cur=cur, tbl=\"%s\", " % self.tbl_name + \
+            "cur=cur, tbl=\"%s\", " % self.tbl + \
             "fld_a=\"%s\", fld_b=\"%s\")" % (var_a, var_b))
         script_lst.append("chisquare_output = " + \
             "stats_output.chisquare_output(chisq, p, lst_obs, lst_exp," + \

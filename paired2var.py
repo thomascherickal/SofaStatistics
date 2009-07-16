@@ -198,7 +198,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
             script = self.getScript()
             strContent = output.RunReport(OUTPUT_MODULES, self.fil_report, 
                 self.fil_css, script, self.conn_dets, self.dbe, self.db, 
-                self.tbl_name)
+                self.tbl, self.default_dbs, self.default_tbls)
             # Return to normal cursor
             curs = wx.StockCursor(wx.CURSOR_ARROW)
             self.SetCursor(curs)
@@ -247,7 +247,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
                                         self.fil_css)
             # insert exported script
             output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                                        self.db, self.tbl_name)
+                                        self.db, self.tbl)
         else:
             # add file name to list, create file, insert preliminary code, 
             # and insert exported script.
@@ -255,7 +255,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
             f = file(self.fil_script, "w")
             output.InsertPrelimCode(modules, f, self.fil_report, self.fil_css)
             output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                                        self.db, self.tbl_name)
+                                        self.db, self.tbl)
         f.close()
 
     def OnButtonHelp(self, event):

@@ -13,7 +13,7 @@ COL_TEXT_BROWSE = "col_button"
 class TableEntryDlg(wx.Dialog):
     def __init__(self, title, grid_size, col_dets, data, new_grid_data):
         """
-        col_dets - [(col_type, col_label, col_width), ( , ) ...]
+        col_dets - see under TableEntry.
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
         new_grid_data - is effectively "returned".  Add details to it in form 
@@ -66,9 +66,11 @@ class TableEntry(object):
     def __init__(self, frame, panel, szr, read_only, grid_size, col_dets, 
                  data, new_grid_data):
         """
+        col_dets - list of dic.  Keys = "col_label", "col_type", 
+            and, optionally, "col_width", "file_phrase", "file_wildcard", 
+            "empty_ok", "col_min_val", "col_max_val", "col_precision".
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
-        col_dets - [(col_type, col_label), ( , ) ...]
         new_grid_data - is effectively "returned" - add details to it in form 
             of a list of tuples.
         """
@@ -76,21 +78,20 @@ class TableEntry(object):
         self.panel = panel
         self.szr = szr
         self.read_only = read_only
-        self.SetupGrid(grid_size, col_dets, data, new_grid_data)
+        self.col_dets = col_dets
+        self.SetupGrid(grid_size, data, new_grid_data)
         self.szr.Add(self.grid, 1, wx.GROW|wx.ALL, 5)
 
-    def SetupGrid(self, size, col_dets, data, new_grid_data):
+    def SetupGrid(self, size, data, new_grid_data):
         """
         Set up grid.  Convenient to separate so can reuse when subclassing,
             perhaps to add extra controls.
-        col dets - the col det tuple should be label, type, min, max
         """
-        self.col_dets = col_dets
         # store any fixed min col_widths
-        self.col_widths = [None for x in range(len(col_dets))] # initialise
+        self.col_widths = [None for x in range(len(self.col_dets))] # initialise
         for col_idx, col_det in enumerate(self.col_dets):
-            if len(col_det) >= 3:
-                self.col_widths[col_idx] = col_det[2]
+            if col_det.get("col_width"):
+                self.col_widths[col_idx] = col_det["col_width"]
         data.sort(key=lambda s: s[0])
         self.data = data
         self.new_grid_data = new_grid_data
@@ -105,8 +106,8 @@ class TableEntry(object):
             #pprint.pprint(data) # debug
             if data_cols_n != self.cols_n:
                 raise Exception, "There must be one set of column details " + \
-                    "per column of data (currently %s details for %s columns)" % \
-                    (self.cols_n, data_cols_n)
+                    "per column of data (currently %s details for " + \
+                    "%s columns)" % (self.cols_n, data_cols_n)
         self.grid.CreateGrid(numRows=self.rows_n + 1, # plus data entry row
                              numCols=self.cols_n)
         self.grid.EnableEditing(not self.read_only)
@@ -115,13 +116,14 @@ class TableEntry(object):
             col_width = self.col_widths[col_idx]
             if col_width:
                 self.grid.SetColMinimalWidth(col_idx, col_width)
-                self.grid.SetColSize(col_idx, col_width) # otherwise will only see effect after resizing
+                self.grid.SetColSize(col_idx, col_width)
+                # otherwise will only see effect after resizing
             else:
                 self.grid.AutoSizeColumn(col_idx, setAsMin=False)
         self.grid.ForceRefresh()
         # set col rendering and editing (string is default)
         for col_idx, col_det in enumerate(self.col_dets):
-            col_type = col_det[1]
+            col_type = col_det["col_type"]
             if col_type == COL_INT:
                 self.grid.SetColFormatNumber(col_idx)
             elif col_type == COL_FLOAT:
@@ -142,7 +144,7 @@ class TableEntry(object):
         self.grid.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelClick)
         for col_idx, col_det in enumerate(self.col_dets):
-            self.grid.SetColLabelValue(col_idx, col_det[0])
+            self.grid.SetColLabelValue(col_idx, col_det["col_label"])
         for i in range(self.rows_n):
             for j in range(self.cols_n):
                 self.grid.SetCellValue(row=i, col=j, s=str(data[i][j]))
@@ -162,16 +164,10 @@ class TableEntry(object):
         Returns renderer, editor.
         Nearly (but not quite) making classes ;-)
         """
-        col_type = self.col_dets[col_idx][1]
+        col_type = self.col_dets[col_idx]["col_type"]
         if col_type == COL_INT:
-            try:
-                min = self.col_dets[col_idx][2]
-            except Exception:
-                min = -1
-            try:
-                max = self.col_dets[col_idx][3]
-            except Exception:
-                max = min
+            min = self.col_dets[col_idx].get("col_min_val", -1) # -1 no minimum
+            max = self.col_dets[col_idx].get("col_max_val", min)
             renderer = wx.grid.GridCellNumberRenderer()
             editor = wx.grid.GridCellNumberEditor(min, max)
         elif col_type == COL_FLOAT:
@@ -180,12 +176,10 @@ class TableEntry(object):
             editor = wx.grid.GridCellFloatEditor(width, precision)
         elif col_type == COL_TEXT_BROWSE:
             renderer = wx.grid.GridCellStringRenderer()
-            file_phrase = self.col_dets[col_idx][3]
-            if len(self.col_dets[col_idx]) == 5:
-                wildcard = self.col_dets[col_idx][4]
-            else:
-                # use * - *.* will not pickup files without extensions in Ubuntu
-                wildcard = "Any file (*)|*"
+            file_phrase = self.col_dets[col_idx].get("file_phrase", "")
+            # use * - *.* will not pickup files without extensions in Ubuntu
+            wildcard = self.col_dets[col_idx].get("file_wildcard", 
+                                                  "Any file (*)|*")
             editor = text_browser.GridCellTextBrowseEditor(file_phrase, 
                                                            wildcard)
         else:
@@ -197,15 +191,8 @@ class TableEntry(object):
         """
         Returns width, precision.
         """
-        # the col tuple should be label, type, width, precision
-        try:
-            width = self.col_dets[col_idx][2]
-        except Exception:
-            width = 5
-        try:
-            precision = self.col_dets[col_idx][3]
-        except Exception:
-            precision = 1
+        width = self.col_dets[col_idx].get("col_width", 5)
+        precision = self.col_dets[col_idx].get("col_precision", 1)
         return width, precision
 
     def OnLabelClick(self, event):
@@ -347,11 +334,15 @@ class TableEntry(object):
                 break
 
     def ValidRow(self, row):
-        "Is row valid?"
+        """
+        Is row valid?
+        Very simple as default - each cell must have something unless empty_ok.
+        """
         row_complete = True
-        for i in range(self.cols_n):
+        for i, col_det in enumerate(self.col_dets):
+            empty_ok = col_det.get("empty_ok", False)
             cell_val = self.grid.GetCellValue(row=row, col=i)
-            if not cell_val:
+            if not cell_val and not empty_ok:
                 row_complete = False
                 break
         return row_complete
@@ -359,8 +350,7 @@ class TableEntry(object):
     def RowHasData(self, row):
         """
         Has the row got any data stored yet?
-        NB data won't be picked up if you are in the middle of entering 
-            it.
+        NB data won't be picked up if you are in the middle of entering it.
         """
         has_data = False
         for i in range(self.cols_n):
@@ -381,24 +371,3 @@ class TableEntry(object):
                 val = self.grid.GetCellValue(row=i, col=j)
                 row_data.append(val)
             self.new_grid_data.append(tuple(row_data))
-
-
-if __name__ == "__main__":
-    app = wx.PySimpleApp()
-    data = [(1, "Auckland"), (2, "Wellington"), (3, "Hamilton"), 
-            (4, "Waiuku"), (5, "Tuakau"), (6, "Pukekohe"), (7, "Orewa"),]
-    #        (8, "The People's Republic of China"), 
-    #        (9, "The Democratic Republic of Congo")]
-    new_grid_data = []
-    # For text_browse - col label, type, width, file phrase, wildcard
-    # example wildcard: "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif"
-    col_dets = [("Value", COL_INT, 1, 20), 
-                ("Path", COL_TEXT_BROWSE, 400, "Choose a SOFA label file", 
-                 "SOFA label files (*.lbl)|*.lbl")]
-    grid_size = (550, 350)
-    dlg = TableEntryDlg("Settings", grid_size, col_dets, data, new_grid_data)
-    dlg.Show()
-    app.MainLoop()
-    pprint.pprint(new_grid_data)
-
-

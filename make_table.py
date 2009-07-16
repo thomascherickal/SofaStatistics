@@ -168,7 +168,7 @@ class MakeTable(object):
             script = self.getScript(has_rows, has_cols)
             strContent = output.RunReport(OUTPUT_MODULES, self.fil_report, 
                 self.fil_css, script, self.conn_dets, self.dbe, self.db, 
-                self.tbl_name)
+                self.tbl, self.default_dbs, self.default_tbls)
             # Return to normal cursor
             curs = wx.StockCursor(wx.CURSOR_ARROW)
             self.SetCursor(curs)
@@ -207,7 +207,7 @@ class MakeTable(object):
                                         self.fil_css)
             # insert exported script
             output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                                        self.db, self.tbl_name)
+                                        self.db, self.tbl)
         else:
             # add file name to list, create file, insert preliminary code, 
             # and insert exported script.
@@ -216,7 +216,7 @@ class MakeTable(object):
             output.InsertPrelimCode(OUTPUT_MODULES, f, self.fil_report, 
                                     self.fil_css)
             output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                                        self.db, self.tbl_name)
+                                        self.db, self.tbl)
         f.close()
         
     def getScript(self, has_rows, has_cols):
@@ -263,7 +263,7 @@ class MakeTable(object):
                               str(titles) + ",\n    subtitles=" + \
                               str(subtitles) + \
                               ",\n    dbe=\"" + self.dbe + \
-                              "\",\n    datasource=\"" + self.tbl_name + \
+                              "\",\n    datasource=\"" + self.tbl + \
                               "\", cur=cur, tree_rows=tree_rows, " + \
                               "tree_cols=tree_cols)")
         elif self.tab_type == my_globals.ROW_SUMM:
@@ -271,7 +271,7 @@ class MakeTable(object):
                               str(titles) + ",\n    subtitles=" + \
                               str(subtitles) + \
                               ",\n    dbe=\"" + self.dbe + \
-                              "\",\n    datasource=\"" + self.tbl_name + \
+                              "\",\n    datasource=\"" + self.tbl + \
                               "\", cur=cur, tree_rows=tree_rows, " + \
                               "tree_cols=tree_cols)")
         elif self.tab_type == my_globals.RAW_DISPLAY:
@@ -282,7 +282,7 @@ class MakeTable(object):
                 str(titles) + ",\n    subtitles=" + \
                 str(subtitles) + \
                 ",\n    dbe=\"" + self.dbe + \
-                "\",\n    datasource=\"%s\"" % self.tbl_name + ", cur=cur," + \
+                "\",\n    datasource=\"%s\"" % self.tbl + ", cur=cur," + \
                 " col_names=col_names, col_labels=col_labels, flds=flds, " + \
                 "\n    var_labels=var_labels, val_dics=val_dics, " + \
                 "add_total_row=%s, " % tot_rows + \

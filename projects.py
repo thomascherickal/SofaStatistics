@@ -58,17 +58,17 @@ def GetLabels(fil_labels):
 class ProjectDlg(wx.Dialog):
     def __init__(self, parent, read_only=False, fil_proj=None):
         wx.Dialog.__init__(self, parent=parent, title="Project Settings",
-                           size=(1090, 580), 
+                           size=(1090, 730), 
                            style=wx.CAPTION|wx.CLOSE_BOX|
                            wx.SYSTEM_MENU, pos=(100, 100))
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.panel_top = wx.Panel(self, pos=(0,0))
         self.scroll_conn_dets = wx.PyScrolledWindow(self, pos=(10, 280 + y_start), 
-                                                    size=(1070, 240),
+                                                    size=(1070, 390),
                                                     style=wx.SUNKEN_BORDER)
         self.scroll_conn_dets.SetScrollbars(10, 10, -1, -1) # otherwise no scrollbars
-        self.scroll_conn_dets.SetVirtualSize((1270, 460))
-        self.panel_bottom = wx.Panel(self, pos=(0, 525 + y_start))
+        self.scroll_conn_dets.SetVirtualSize((1270, 610))
+        self.panel_bottom = wx.Panel(self, pos=(0, 675 + y_start))
         self.parent = parent
         self.szrTop = wx.BoxSizer(wx.VERTICAL)
         self.szrConn_Dets = wx.BoxSizer(wx.VERTICAL)
@@ -186,6 +186,8 @@ class ProjectDlg(wx.Dialog):
         self.dropDefault_Dbe.SetSelection(sel_dbe_id)
         self.dropDefault_Dbe.Bind(wx.EVT_CHOICE, self.OnDbeChoice)
         self.dropDefault_Dbe.Enable(not self.read_only)
+        lblScrollDown = wx.StaticText(self.scroll_conn_dets, -1, 
+                       "(scroll down for details of all your database engines)")
         # NOTES
         szrNotes = wx.BoxSizer(wx.HORIZONTAL)
         szrNotes.Add(lblProjNotes, 0, wx.RIGHT, 5)
@@ -230,6 +232,7 @@ class ProjectDlg(wx.Dialog):
         szrDefault_Dbe = wx.BoxSizer(wx.HORIZONTAL)
         szrDefault_Dbe.Add(lblDefault_Dbe, 0, wx.LEFT|wx.RIGHT, 5)
         szrDefault_Dbe.Add(self.dropDefault_Dbe, 0)
+        szrDefault_Dbe.Add(lblScrollDown, 0, wx.LEFT, 10)
         # Close
         self.SetupButtons()
         # sizers
@@ -425,8 +428,8 @@ class ProjectDlg(wx.Dialog):
             default_dbe_lacks_conn = default_dbe not in completed_dbes
             if default_dbe_lacks_conn:
                 wx.MessageBox("Connection details need to be completed " + \
-                      "for the default database engine (%s) to save a " + \
-                      "project file" % default_dbe)
+                      "for the default database engine (%s)" % default_dbe + \
+                      " to save a project file.")
                 return
             # write the data
             fil_name = os.path.join(LOCAL_PATH, "projs", "%s.proj" % \

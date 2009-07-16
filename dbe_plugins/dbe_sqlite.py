@@ -10,6 +10,9 @@ import projects
 import table_entry
 import util
 
+DEFAULT_DB = "sqlite_default_db"
+DEFAULT_TBL = "sqlite_default_tbl"
+
 # http://www.sqlite.org/lang_keywords.html
 # The following is non-standard but will work
 def quote_obj(raw_val):
@@ -215,7 +218,7 @@ def InsertRow(conn, cur, tbl_name, data):
     for i, data_dets in enumerate(data):
         if debug: pprint.pprint(data_dets)
         val, fld_name, fld_dic = data_dets
-        val2use = getdata.PrepValue(val, fld_dic)
+        val2use = getdata.PrepValue(my_globals.DBE_SQLITE, val, fld_dic)
         data_lst.append(val2use)
     data_tup = tuple(data_lst)
     try:
@@ -230,21 +233,19 @@ def InsertRow(conn, cur, tbl_name, data):
 def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""
     # default database
-    parent.lblSqliteDefaultDb = wx.StaticText(scroll, -1, "Default Database:")
+    parent.lblSqliteDefaultDb = wx.StaticText(scroll, -1, 
+                                              "Default Database (name only):")
     parent.lblSqliteDefaultDb.SetFont(lblfont)
-    sqlite_default_db = parent.sqlite_default_db if parent.sqlite_default_db \
-        else ""
-    parent.txtSqliteDefaultDb = wx.TextCtrl(scroll, -1, 
-                                            sqlite_default_db, 
+    DEFAULT_DB = parent.sqlite_default_db if parent.sqlite_default_db else ""
+    parent.txtSqliteDefaultDb = wx.TextCtrl(scroll, -1, DEFAULT_DB, 
                                             size=(250,-1))
     parent.txtSqliteDefaultDb.Enable(not read_only)
     # default table
     parent.lblSqliteDefaultTbl = wx.StaticText(scroll, -1, "Default Table:")
     parent.lblSqliteDefaultTbl.SetFont(lblfont)
-    sqlite_default_tbl = parent.sqlite_default_tbl if parent.sqlite_default_tbl \
+    DEFAULT_TBL = parent.sqlite_default_tbl if parent.sqlite_default_tbl \
         else ""
-    parent.txtSqliteDefaultTbl = wx.TextCtrl(scroll, -1,
-                                             sqlite_default_tbl, 
+    parent.txtSqliteDefaultTbl = wx.TextCtrl(scroll, -1, DEFAULT_TBL, 
                                              size=(250,-1))
     parent.txtSqliteDefaultTbl.Enable(not read_only)
     bxSqlite = wx.StaticBox(scroll, -1, "SQLite")
@@ -256,8 +257,9 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     szrSqliteInner.Add(parent.lblSqliteDefaultTbl, 0, wx.LEFT|wx.RIGHT, 5)
     szrSqliteInner.Add(parent.txtSqliteDefaultTbl, 1, wx.GROW|wx.RIGHT, 10)
     parent.szrSqlite.Add(szrSqliteInner, 0)
-    sqlite_col_dets = [("Database(s)", table_entry.COL_TEXT_BROWSE, 400, 
-                        "Choose an SQLite database file")]
+    sqlite_col_dets = [{"col_label": "Database(s)", "col_type": 
+                        table_entry.COL_TEXT_BROWSE, "col_width": 400, 
+                        "file_phrase": "Choose an SQLite database file"}]
     parent.sqlite_new_grid_data = []
     parent.sqlite_grid = table_entry.TableEntry(frame=parent, 
         panel=scroll, szr=parent.szrSqlite, read_only=read_only, 
@@ -266,7 +268,6 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     szr.Add(parent.szrSqlite, 0, wx.GROW|wx.ALL, 10)
 
 def getProjSettings(parent, proj_dic):
-    ""
     parent.sqlite_default_db = proj_dic["default_dbs"][my_globals.DBE_SQLITE]
     parent.sqlite_default_tbl = proj_dic["default_tbls"][my_globals.DBE_SQLITE]
     if proj_dic["conn_dets"].get(my_globals.DBE_SQLITE):
@@ -291,18 +292,15 @@ def setConnDetDefaults(parent):
 
 def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     parent.sqlite_grid.UpdateNewGridData()
-    sqlite_default_db = parent.txtSqliteDefaultDb.GetValue()
-    sqlite_default_tbl = parent.txtSqliteDefaultTbl.GetValue()
-    has_sqlite_conn = sqlite_default_db and sqlite_default_tbl
-    incomplete_sqlite = (sqlite_default_db or sqlite_default_tbl) \
-        and not has_sqlite_conn
+    DEFAULT_DB = parent.txtSqliteDefaultDb.GetValue()
+    DEFAULT_TBL = parent.txtSqliteDefaultTbl.GetValue()
+    has_sqlite_conn = DEFAULT_DB and DEFAULT_TBL
+    incomplete_sqlite = (DEFAULT_DB or DEFAULT_TBL) and not has_sqlite_conn
     if incomplete_sqlite:
         wx.MessageBox("The SQLite details are incomplete")
         parent.txtSqliteDefaultDb.SetFocus()
-    default_dbs[my_globals.DBE_SQLITE] = sqlite_default_db \
-        if sqlite_default_db else None
-    default_tbls[my_globals.DBE_SQLITE] = sqlite_default_tbl \
-        if sqlite_default_tbl else None
+    default_dbs[my_globals.DBE_SQLITE] = DEFAULT_DB if DEFAULT_DB else None
+    default_tbls[my_globals.DBE_SQLITE] = DEFAULT_TBL if DEFAULT_TBL else None
     #pprint.pprint(parent.sqlite_new_grid_data) # debug
     sqlite_settings = parent.sqlite_new_grid_data
     if sqlite_settings:

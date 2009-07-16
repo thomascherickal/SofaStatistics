@@ -145,16 +145,21 @@ class TblEditor(wx.Dialog):
             AddCellMoveEvt for us is if we are moving right from the last col
             after a keypress.
         """
-        if event.GetKeyCode() in [wx.WXK_TAB]:
-            key_direction = MOVE_LEFT if event.ShiftDown() else MOVE_RIGHT
+        keycode = event.GetKeyCode()
+        if keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
+            if event.ShiftDown() and keycode == wx.WXK_TAB:
+                key_direction = MOVE_LEFT
+            else:
+                key_direction = MOVE_RIGHT
             src_row=self.current_row_idx
             src_col=self.current_col_idx
-            if self.debug: print "OnGridKeyDown - TAB keypress in row " + \
+            if self.debug: print "OnGridKeyDown - keypress in row " + \
                 "%s col %s ******************************" % (src_row, src_col)
             final_col = (src_col == len(self.flds) - 1)
             if final_col and key_direction == MOVE_RIGHT:
                 self.AddCellMoveEvt(dest_row=None, dest_col=None, 
                                     key_direction=MOVE_RIGHT)
+                event.Skip()
             else:
                 event.Skip()
         else:
@@ -182,6 +187,7 @@ class TblEditor(wx.Dialog):
         key_direction = event.key_direction
         self.ProcessCellMove(src_row, src_col, dest_row, dest_col, 
                              key_direction)
+        event.Skip()
     
     def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, 
                         key_direction):
@@ -199,13 +205,14 @@ class TblEditor(wx.Dialog):
             move_to_dest = self.MovingInNewRow()
         elif move_type == LEAVING_NEW:
             move_to_dest = self.LeavingNewRow(dest_row, dest_col)
+        else:
+            raise Exception, "ProcessCellMove - Unknown move_type"
         if move_to_dest:
             self.respond_to_select_cell = False # to prevent infinite loop!
             self.grid.SetGridCursor(dest_row, dest_col)
             self.grid.MakeCellVisible(dest_row, dest_col)
             self.current_row_idx = dest_row
-            self.current_col_idx = dest_col        
-        
+            self.current_col_idx = dest_col
     
     def GetMoveDets(self, src_row, src_col, dest_row, dest_col, key_direction):
         """
@@ -365,12 +372,12 @@ class TblEditor(wx.Dialog):
             existing_row_data_lst = self.dbtbl.row_vals_dic.get(row)
             if existing_row_data_lst:
                 prev_val = str(existing_row_data_lst[col])
-            if self.debug: print "prev_val: %s raw_val: %s" % (prev_val,
+            if self.debug: print "prev_val: %s raw_val: %s" % (prev_val, 
                                                                raw_val)
             if raw_val == prev_val:
                 if self.debug: print "Unchanged"
                 return False # i.e. OK
-            print "%s is changed!" % raw_val
+            if self.debug: print "%s is changed!" % raw_val
         fld_dic = self.dbtbl.GetFldDic(col)        
         if self.debug: 
             print "\"%s\"" % raw_val
@@ -596,6 +603,7 @@ class TblEditor(wx.Dialog):
         return new_row
         
     def OnCellChange(self, event):
-        print "Cell changed"
+        debug = False
+        if debug: print "Cell changed"
         self.grid.ForceRefresh()
         event.Skip()

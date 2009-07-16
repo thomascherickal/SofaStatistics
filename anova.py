@@ -41,7 +41,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         vals_in_range = self.vals[idx_val_a: idx_val_b + 1]
         strGet_Sample = "%s = core_stats.get_list(" + \
             "dbe=\"%s\", " % self.dbe + \
-            "cur=cur, tbl=\"%s\",\n    " % self.tbl_name + \
+            "cur=cur, tbl=\"%s\",\n    " % self.tbl + \
             "fld_measure=\"%s\", " % var_avg + \
             "fld_filter=\"%s\", " % var_gp + \
             "filter_val=%s)"

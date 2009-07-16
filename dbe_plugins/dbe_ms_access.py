@@ -22,6 +22,9 @@ AD_OPEN_KEYSET = 1
 AD_LOCK_OPTIMISTIC = 3
 AD_SCHEMA_COLUMNS = 4
 
+MSACCESS_DEFAULT_DB = "msaccess_default_db"
+MSACCESS_DEFAULT_TBL = "msaccess_default_tbl"
+
 def quote_obj(raw_val):
     return "[%s]" % raw_val
 
@@ -109,8 +112,8 @@ class DbDets(getdata.DbDets):
                 raise Exception, "Table \"%s\" not found in database \"%s\"" % \
                     (self.tbl, self.db)
         # get field names (from first table if none provided)
-        flds = self.getTblFlds(cur, db, tbl)
-        has_unique, idxs = self.getIndexDets(cur, db, tbl)
+        flds = self.getTblFlds(cur, self.db, self.tbl)
+        has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
         debug = False
         if debug:
             print self.db
@@ -324,7 +327,7 @@ def InsertRow(conn, cur, tbl_name, data):
     for i, data_dets in enumerate(data):
         if debug: pprint.pprint(data_dets)
         val, fld_name, fld_dic = data_dets
-        val2use = getdata.PrepValue(val, fld_dic)
+        val2use = getdata.PrepValue(my_globals.DBE_MS_ACCESS, val, fld_dic)
         data_lst.append(val2use)
     data_tup = tuple(data_lst)
     try:
@@ -340,22 +343,22 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""
     # default database
     parent.lblMsaccessDefaultDb = wx.StaticText(scroll, -1, 
-                                                "Default Database:")
+                                                "Default Database (name only):")
     parent.lblMsaccessDefaultDb.SetFont(lblfont)
-    msaccess_default_db = parent.msaccess_default_db \
+    MSACCESS_DEFAULT_DB = parent.msaccess_default_db \
         if parent.msaccess_default_db else ""
     parent.txtMsaccessDefaultDb = wx.TextCtrl(scroll, -1, 
-                                              msaccess_default_db, 
+                                              MSACCESS_DEFAULT_DB, 
                                               size=(250,-1))
     parent.txtMsaccessDefaultDb.Enable(not read_only)
     # default table
     parent.lblMsaccessDefaultTbl = wx.StaticText(scroll, -1, 
                                                  "Default Table:")
     parent.lblMsaccessDefaultTbl.SetFont(lblfont)
-    msaccess_default_tbl = parent.msaccess_default_tbl \
+    MSACCESS_DEFAULT_TBL = parent.msaccess_default_tbl \
         if parent.msaccess_default_tbl else ""
     parent.txtMsaccessDefaultTbl = wx.TextCtrl(scroll, -1, 
-                                               msaccess_default_tbl, 
+                                               MSACCESS_DEFAULT_TBL, 
                                                size=(250,-1))
     parent.txtMsaccessDefaultTbl.Enable(not read_only)
     bxMsaccess= wx.StaticBox(scroll, -1, "MS Access")
@@ -371,16 +374,31 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     szrMsaccessInner.Add(parent.txtMsaccessDefaultTbl, 1, 
                          wx.GROW|wx.RIGHT, 10)
     parent.szrMsaccess.Add(szrMsaccessInner, 0)
-    msaccess_col_dets = [
-        ("Database(s)", table_entry.COL_TEXT_BROWSE, 300, 
-            "Choose an MS Access database file", 
-            "MS Access databases (*.mdb)|*.mdb"),
-        ("Security File (*.mdw)", table_entry.COL_TEXT_BROWSE, 300,
-            "Choose an MS Access security file",
-            "MS Access security files (*.mdw)|*.mdw"),
-        ("User Name (opt)", table_entry.COL_STR, 140),
-        ("Password (opt)", table_entry.COL_STR, 140),
-        ]
+    col_det_db = {"col_label": "Database(s)", 
+                  "col_type": table_entry.COL_TEXT_BROWSE, 
+                  "col_width": 300, 
+                  "file_phrase": "Choose an MS Access database file", 
+                  "file_wildcard": "MS Access databases (*.mdb)|*.mdb",
+                  "empty_ok": False}
+    col_det_sec = {"col_label": "Security File (*.mdw) (opt)", 
+                  "col_type": table_entry.COL_TEXT_BROWSE, 
+                  "col_width": 300, 
+                  "file_phrase": "Choose an MS Access security file", 
+                  "file_wildcard": "MS Access security files (*.mdw)|*.mdw",
+                  "empty_ok": True}
+    col_det_usr = {"col_label": "User Name (opt)", 
+                  "col_type": table_entry.COL_STR, 
+                  "col_width": 140, 
+                  "file_phrase": None, 
+                  "file_wildcard": None,
+                  "empty_ok": True}
+    col_det_pwd = {"col_label": "Password (opt)", 
+                  "col_type": table_entry.COL_STR, 
+                  "col_width": 140, 
+                  "file_phrase": None, 
+                  "file_wildcard": None,
+                  "empty_ok": True}
+    msaccess_col_dets = [col_det_db, col_det_sec, col_det_usr, col_det_pwd]
     parent.msaccess_new_grid_data = []
     parent.msaccess_grid = table_entry.TableEntry(frame=parent, 
         panel=scroll, szr=parent.szrMsaccess, read_only=read_only, 
@@ -391,6 +409,8 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
 
 def getProjSettings(parent, proj_dic):
     ""
+    parent.msaccess_default_db = \
+        proj_dic["default_dbs"][my_globals.DBE_MS_ACCESS]
     parent.msaccess_default_tbl = \
         proj_dic["default_tbls"][my_globals.DBE_MS_ACCESS]
     if proj_dic["conn_dets"].get(my_globals.DBE_MS_ACCESS):
@@ -416,18 +436,18 @@ def setConnDetDefaults(parent):
 
 def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     parent.msaccess_grid.UpdateNewGridData()
-    msaccess_default_db = parent.txtMsaccessDefaultDb.GetValue()
-    msaccess_default_tbl = parent.txtMsaccessDefaultTbl.GetValue()
-    has_msaccess_conn = msaccess_default_db and msaccess_default_tbl
-    incomplete_msaccess = (msaccess_default_db or msaccess_default_tbl) \
+    MSACCESS_DEFAULT_DB = parent.txtMsaccessDefaultDb.GetValue()
+    MSACCESS_DEFAULT_TBL = parent.txtMsaccessDefaultTbl.GetValue()
+    has_msaccess_conn = MSACCESS_DEFAULT_DB and MSACCESS_DEFAULT_TBL
+    incomplete_msaccess = (MSACCESS_DEFAULT_DB or MSACCESS_DEFAULT_TBL) \
         and not has_msaccess_conn
     if incomplete_msaccess:
         wx.MessageBox("The MS Access details are incomplete")
         parent.txtMsaccessDefaultDb.SetFocus()
-    default_dbs[my_globals.DBE_MS_ACCESS] = msaccess_default_db \
-        if msaccess_default_db else None            
-    default_tbls[my_globals.DBE_MS_ACCESS] = msaccess_default_tbl \
-        if msaccess_default_tbl else None
+    default_dbs[my_globals.DBE_MS_ACCESS] = MSACCESS_DEFAULT_DB \
+        if MSACCESS_DEFAULT_DB else None            
+    default_tbls[my_globals.DBE_MS_ACCESS] = MSACCESS_DEFAULT_TBL \
+        if MSACCESS_DEFAULT_TBL else None
     #pprint.pprint(parent.msaccess_new_grid_data) # debug
     msaccess_settings = parent.msaccess_new_grid_data
     if msaccess_settings:

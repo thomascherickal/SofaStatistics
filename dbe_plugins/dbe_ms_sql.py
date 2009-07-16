@@ -233,7 +233,7 @@ class DbDets(getdata.DbDets):
         NUMERIC_SCALE should be Null if not numeric (but is in fact 255 so 
             I must set to None!).
         """
-        debug = True
+        debug = False
         #http://msdn.microsoft.com/en-us/library/aa155430(office.10).aspx
         cat = win32com.client.Dispatch(r'ADOX.Catalog') # has everything I 
             # need but pos and charset
@@ -357,7 +357,7 @@ def InsertRow(conn, cur, tbl_name, data):
     for i, data_dets in enumerate(data):
         if debug: pprint.pprint(data_dets)
         val, fld_name, fld_dic = data_dets
-        val2use = getdata.PrepValue(val, fld_dic)
+        val2use = getdata.PrepValue(my_globals.DBE_MS_SQL, val, fld_dic)
         data_lst.append(val2use)
     data_tup = tuple(data_lst)
     try:
@@ -372,7 +372,8 @@ def InsertRow(conn, cur, tbl_name, data):
 def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""
     # default database
-    parent.lblMssqlDefaultDb = wx.StaticText(scroll, -1, "Default Database:")
+    parent.lblMssqlDefaultDb = wx.StaticText(scroll, -1, 
+                                             "Default Database (name only):")
     parent.lblMssqlDefaultDb.SetFont(lblfont)
     mssql_default_db = parent.mssql_default_db if parent.mssql_default_db \
         else ""

@@ -36,7 +36,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             label_ranked = self.GetDropVals()
         strGet_Sample = "sample_%s = core_stats.get_list(" + \
             "dbe=\"%s\", " % self.dbe + \
-            "cur=cur, tbl=\"%s\",\n    " % self.tbl_name + \
+            "cur=cur, tbl=\"%s\",\n    " % self.tbl + \
             "fld_measure=\"%s\", " % var_ranked + \
             "fld_filter=\"%s\", " % var_gp + \
             "filter_val=%s)"

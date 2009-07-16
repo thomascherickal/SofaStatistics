@@ -32,7 +32,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             label_avg = self.GetDropVals()
         strGet_Sample = "sample_%s = core_stats.get_list(" + \
             "dbe=\"%s\", " % self.dbe + \
-            "cur=cur, tbl=\"%s\",\n    " % self.tbl_name + \
+            "cur=cur, tbl=\"%s\",\n    " % self.tbl + \
             "fld_measure=\"%s\", " % var_avg + \
             "fld_filter=\"%s\", " % var_gp + \
             "filter_val=%s)"

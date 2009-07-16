@@ -93,8 +93,8 @@ class DataSelectDlg(wx.Dialog):
         (self.dbe, self.db, self.cur, self.tbls, self.tbl, self.flds, 
                 self.has_unique, self.idxs) = getdata.RefreshDbDets(self)
         self.dropTables.SetItems(self.tbls)
-        tbls_lc = [x.lower() for x in tbls]
-        self.dropTables.SetSelection(self.tbls_lc.index(self.tbl.lower()))
+        tbls_lc = [x.lower() for x in self.tbls]
+        self.dropTables.SetSelection(tbls_lc.index(self.tbl.lower()))
     
     def OnTableSel(self, event):
         "Reset key data details after table selection."       
@@ -105,7 +105,7 @@ class DataSelectDlg(wx.Dialog):
         ""
         if not self.has_unique:
             wx.MessageBox("Table \"%s\" cannot be opened because it " % \
-              self.tbl_name + \
+              self.tbl + \
               "lacks a unique index") # needed for caching even if read only
         else:
             read_only = self.chkReadOnly.IsChecked()

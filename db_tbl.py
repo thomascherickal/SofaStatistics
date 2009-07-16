@@ -244,8 +244,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             # TODO - think about possibilities of SQL injection by hostile party
             SQL_update_value = "UPDATE %s " % self.tbl + \
                 " SET %s = %s " % (self.quote_obj(col_name), val2use) + \
-                " WHERE %s = " % self.id_col_name + \
-                id_value
+                " WHERE %s = " % self.id_col_name + str(id_value)
             if self.debug: 
                 print "SetValue - SQL update value: %s" % SQL_update_value
                 print "SetValue - Value of cell to update: %s" % \

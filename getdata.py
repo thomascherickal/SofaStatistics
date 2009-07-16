@@ -194,7 +194,7 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
             DBE_MODULES[dbe].processConnDets(parent, default_dbs, 
                                              default_tbls, conn_dets)
         if has_incomplete:
-            return True, None
+            return True, None, completed_dbes
         if has_conn:
             completed_dbes.append(dbe)
             any_conns = True
@@ -252,6 +252,7 @@ def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, conn_dets,
         and default selection.  NB must have exact same names.
     Adds db_choice_items to parent.
     """
+    debug = False
     # databases list needs to be tuple including dbe so can get both from 
     # sequence alone e.g. when identifying selection
     db_choices = [(x, dbe) for x in dbs_of_default_dbe]      
@@ -266,7 +267,7 @@ def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, conn_dets,
             oth_db_choices = [(x, oth_dbe) for x in oth_dbs]
             db_choices.extend(oth_db_choices)
         except Exception, e:
-            print str(e)
+            if debug: print str(e)
             pass # no connection possible
     parent.db_choice_items = [getDbItem(x[0], x[1]) for x in db_choices]
     parent.dropDatabases = wx.Choice(panel, -1, choices=parent.db_choice_items)

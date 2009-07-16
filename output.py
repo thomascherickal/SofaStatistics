@@ -157,14 +157,15 @@ def getHtmlFtr():
     return "</body></html>"
 
 def RunReport(modules, fil_report, fil_css, inner_script, conn_dets, dbe, db, 
-              tbl_name):
+              tbl_name, default_dbs, default_tbls):
     """
     Runs report and returns HTML representation of it.
     """
     # generate script
     f = file(my_globals.INT_SCRIPT_PATH, "w")
     InsertPrelimCode(modules, f, my_globals.INT_REPORT_PATH, fil_css)
-    AppendExportedScript(f, inner_script, conn_dets, dbe, db, tbl_name)
+    AppendExportedScript(f, inner_script, conn_dets, dbe, db, tbl_name,
+                         default_dbs, default_tbls)
     AddClosingScriptCode(f)
     f.close()
     # run script
@@ -202,7 +203,8 @@ def InsertPrelimCode(modules, fil, fil_report, fil_css):
     fil.write("\nfil.write(output.getHtmlHdr(\"Report(s)\", " + \
               "fil_css=r\"%s\"))" % fil_css)
     
-def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name):
+def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name, 
+                         default_dbs, default_tbls):
     """
     Append exported script onto file.
     fil - open file handle ready for writing
@@ -213,11 +215,15 @@ def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name):
     getdata.setDbInConnDets(dbe, conn_dets, db)
     conn_dets_str = pprint.pformat(conn_dets)
     fil.write("\nconn_dets = %s" % conn_dets_str)
+    default_dbs_str = pprint.pformat(default_dbs)
+    fil.write("\ndefault_dbs = %s" % default_dbs_str)
+    default_tbls_str = pprint.pformat(default_tbls)
+    fil.write("\ndefault_tbls = %s" % default_tbls_str)
     fil.write("\nconn, cur, dbs, tbls, flds, has_unique, idxs = \\" + \
-        "\n    getdata.getDbDetsObj(" + \
-        """dbe="%s", conn_dets=conn_dets, \n    db="%s", tbl="%s")""" % \
-            (dbe, db, tbl_name) + \
-        ".getDbDets()" )
+        "\n    getdata.getDbDetsObj(\"%s\", " % dbe + \
+        "default_dbs, default_tbls, conn_dets=conn_dets," + \
+        "\n    db=\"%s\", tbl=\"%s\")" % (db, tbl_name) + \
+        ".getDbDets()")
     fil.write("\n\n#%s\n#%s\n" % ("-"*50, datestamp))
     fil.write(inner_script)
     fil.write("\nconn.close()")
