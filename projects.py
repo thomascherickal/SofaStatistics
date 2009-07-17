@@ -60,12 +60,12 @@ class ProjectDlg(wx.Dialog):
         wx.Dialog.__init__(self, parent=parent, title="Project Settings",
                            size=(1090, 730), 
                            style=wx.CAPTION|wx.CLOSE_BOX|
-                           wx.SYSTEM_MENU, pos=(100, 100))
+                           wx.SYSTEM_MENU|wx.TAB_TRAVERSAL, pos=(100, 100))
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.panel_top = wx.Panel(self, pos=(0,0))
         self.scroll_conn_dets = wx.PyScrolledWindow(self, pos=(10, 280 + y_start), 
                                                     size=(1070, 390),
-                                                    style=wx.SUNKEN_BORDER)
+                                                    style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
         self.scroll_conn_dets.SetScrollbars(10, 10, -1, -1) # otherwise no scrollbars
         self.scroll_conn_dets.SetVirtualSize((1270, 610))
         self.panel_bottom = wx.Panel(self, pos=(0, 675 + y_start))

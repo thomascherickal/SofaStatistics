@@ -53,27 +53,31 @@ class DbDets(getdata.DbDets):
         The field dets will be taken from the table used.
         Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
         """
+        debug = False
         conn_dets_mssql = self.conn_dets.get(my_globals.DBE_MS_SQL)
         if not conn_dets_mssql:
             raise Exception, "No connection details available for MS SQL Server"
+        host = conn_dets_mssql["host"]
         user = conn_dets_mssql["user"]
         pwd = conn_dets_mssql["passwd"]
-        dbs, self.db = self._getDbs(user, pwd)
+        dbs, self.db = self._getDbs(host, user, pwd)
         DSN = """PROVIDER=SQLOLEDB;
-            Data Source=(local);
+            Data Source='%s';
             User ID='%s';
             Password='%s';
             Initial Catalog='%s';
-            Integrated Security=SSPI""" % (user, pwd, self.db)
+            Integrated Security=SSPI""" % (host, user, pwd, self.db)
         try:
             conn = adodbapi.connect(connstr=DSN)
         except Exception, e:
             raise Exception, "Unable to connect to MS SQL Server with " + \
-                "database %s: and supplied connection. " % self.db + \
+                "database %s; and supplied connection: " % self.db + \
+                "host: %s; user: %s; pwd: %s. " % (host, user, pwd) + \
                 "Orig error: %s" % e
         cur = conn.cursor()
         cur.adoconn = conn.adoConn # (need to be able to access from just the cursor)
-        tbls = self.getDbTbls(cur, self.db)        
+        tbls = self.getDbTbls(cur, self.db)
+        if debug: print tbls
         tbls_lc = [x.lower() for x in tbls]        
         # get table (default if possible otherwise first)
         # NB table must be in the database
@@ -83,7 +87,10 @@ class DbDets(getdata.DbDets):
             if default_tbl_mssql and default_tbl_mssql.lower() in tbls_lc:
                 self.tbl = default_tbl_mssql
             else:
-                self.tbl = tbls[0]
+                if tbls:
+                    self.tbl = tbls[0]
+                else:
+                    raise Exception, "Empty database"
         else:
             if self.tbl.lower() not in tbls_lc:
                 raise Exception, "Table \"%s\" not found in database \"%s\"" % \
@@ -91,7 +98,6 @@ class DbDets(getdata.DbDets):
         # get field names (from first table if none provided)
         flds = self.getTblFlds(cur, self.db, self.tbl)
         has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
-        debug = False
         if debug:
             print self.db
             print self.tbl
@@ -100,23 +106,23 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
         return conn, cur, dbs, tbls, flds, has_unique, idxs
 
-    def _getDbs(self, user, pwd):
+    def _getDbs(self, host, user, pwd):
         """
         Get dbs and the db to use.
         NB need to use a separate connection here with db Initial Catalog) 
             undefined.        
         """
         DSN = """PROVIDER=SQLOLEDB;
-            Data Source=(local);
+            Data Source='%s';
             User ID='%s';
             Password='%s';
             Initial Catalog='';
-            Integrated Security=SSPI""" % (user, pwd)
+            Integrated Security=SSPI""" % (host, user, pwd)
         try:
             conn = adodbapi.connect(connstr=DSN)
         except Exception, e:
             raise Exception, "Unable to connect to MS SQL Server " + \
-                "with user: %s and pwd: %s" % (user, pwd)
+                "with host: %s; user: %s; and pwd: %s" % (host, user, pwd)
         cur = conn.cursor() # must return tuples not dics
         cur.execute("SELECT name FROM sysdatabases")
         dbs = [x[0] for x in cur.fetchall()]
@@ -153,79 +159,6 @@ class DbDets(getdata.DbDets):
         cat = None
         return tbls
 
-    def _getFldType(self, adotype):
-        """
-        http://www.devguru.com/Technologies/ado/quickref/field_type.html
-        http://www.databasedev.co.uk/fields_datatypes.html
-        """
-        if adotype == win32com.client.constants.adUnsignedTinyInt:
-            fld_type = dbe_globals.ADO_BYTE # 1-byte unsigned integer
-        elif adotype == win32com.client.constants.adSmallInt:
-            fld_type = dbe_globals.ADO_INTEGER # 2-byte signed integer
-        elif adotype == win32com.client.constants.adInteger:
-            fld_type = dbe_globals.ADO_LONGINT # 4-byte signed integer
-        elif adotype == win32com.client.constants.adSingle:
-            fld_type = dbe_globals.ADO_SINGLE # Single-precision floating-point value
-        elif adotype == win32com.client.constants.adDouble:
-            fld_type = dbe_globals.ADO_DOUBLE # Double precision floating-point
-        elif adotype == win32com.client.constants.adNumeric:
-            fld_type = dbe_globals.ADO_DECIMAL
-        elif adotype == win32com.client.constants.adCurrency:
-            fld_type = dbe_globals.ADO_CURRENCY
-        elif adotype == win32com.client.constants.adVarWChar:
-            fld_type = dbe_globals.ADO_VARCHAR
-        elif adotype == win32com.client.constants.adBoolean:
-            fld_type = dbe_globals.ADO_BOOLEAN
-        elif adotype == win32com.client.constants.adDBTimeStamp:
-            fld_type = dbe_globals.ADO_TIMESTAMP
-        else:
-            raise Exception, "Not an MS SQL Server ADO field type %d" % adotype
-        return fld_type
-
-    def _GetMinMax(self, fld_type, num_prec, dec_pts):
-        """
-        Returns minimum and maximum allowable numeric values.  
-        Nones if not numeric.
-        NB even though a floating point type will not store values closer 
-            to zero than a certain level, such values will be accepted here.
-            The database will store these as zero.
-        http://www.databasedev.co.uk/fields_datatypes.html38 
-        """
-        if fld_type == dbe_globals.ADO_BYTE:
-            min = 0
-            max = (2**8)-1 # 255
-        elif fld_type == dbe_globals.ADO_INTEGER:
-            min = -(2**15)
-            max = (2**15)-1            
-        elif fld_type == dbe_globals.ADO_LONGINT:
-            min = -(2**31)
-            max = (2**31)-1            
-        elif fld_type == dbe_globals.ADO_DECIMAL:
-            # (+- 38 if .adp as opposed to .mdb)
-            min = -((10**38)-1)
-            max = (10**38)-1
-        elif fld_type == dbe_globals.ADO_SINGLE: # signed by default
-            min = -3.402823466E+38
-            max = 3.402823466E+38
-        elif fld_type == dbe_globals.ADO_DOUBLE:
-            min = -1.79769313486231E308
-            max = 1.79769313486231E308
-        elif fld_type == dbe_globals.ADO_CURRENCY:
-            """
-            Accurate to 15 digits to the left of the decimal point and 
-                4 digits to the right.
-            e.g. 19,4 -> 999999999999999.9999
-            """
-            dec_pts = 4
-            num_prec = 15 + dec_pts
-            abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
-            min = -abs_max
-            max = abs_max
-        else:
-            min = None
-            max = None
-        return min, max
-
     def getTblFlds(self, cur, db, tbl):
         """
         Returns details for set of fields given database, table, and cursor.
@@ -255,11 +188,10 @@ class DbDets(getdata.DbDets):
             # build dic of fields, each with dic of characteristics
             fld_name = col.Name
             if debug: print col.Type
-            fld_type = self._getFldType(col.Type)
-            bolnumeric = fld_type in [dbe_globals.ADO_BYTE, 
-                            dbe_globals.ADO_INTEGER, dbe_globals.ADO_LONGINT, 
-                            dbe_globals.ADO_DECIMAL, dbe_globals.ADO_SINGLE, 
-                            dbe_globals.ADO_DOUBLE, dbe_globals.ADO_CURRENCY]
+            fld_type = dbe_globals.getADODic().get(col.Type)
+            if not fld_type:
+                raise Exception, "Not an MS SQL Server ADO field type %d" % col.Type
+            bolnumeric = fld_type in dbe_globals.NUMERIC_TYPES
             try:
                 bolautonum = col.Properties("AutoIncrement").Value
             except Exception:
@@ -274,11 +206,11 @@ class DbDets(getdata.DbDets):
                 default = ""
             boldata_entry_ok = False if bolautonum else True
             dec_pts = col.NumericScale if col.NumericScale < 18 else 0
-            boldatetime = fld_type in [dbe_globals.ADO_DATE, 
-                                       dbe_globals.ADO_TIMESTAMP]
+            boldatetime = fld_type in dbe_globals.DATETIME_TYPES
             fld_txt = not bolnumeric and not boldatetime
             num_prec = col.Precision
-            min_val, max_val = self._GetMinMax(fld_type, num_prec, dec_pts)
+            min_val, max_val = dbe_globals.GetMinMax(fld_type, num_prec, 
+                                                     dec_pts)
             dets_dic = {
                 my_globals.FLD_SEQ: extras[fld_name][0],
                 my_globals.FLD_BOLNULLABLE: bolnullable,
@@ -392,9 +324,10 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
                                             size=(250,-1))
     parent.txtMssqlDefaultTbl.Enable(not read_only)
     # host
-    parent.lblMssqlHost = wx.StaticText(scroll, -1, "Host:")
+    parent.lblMssqlHost = wx.StaticText(scroll, -1, 
+                                        "Host - (local) if own machine:")
     parent.lblMssqlHost.SetFont(lblfont)
-    mssql_host = parent.mssql_host if parent.mssql_host else ""
+    mssql_host = parent.mssql_host if parent.mssql_host else "(local)"
     parent.txtMssqlHost = wx.TextCtrl(scroll, -1, mssql_host, 
                                       size=(100,-1))
     parent.txtMssqlHost.Enable(not read_only)
@@ -406,7 +339,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
                                       size=(100,-1))
     parent.txtMssqlUser.Enable(not read_only)
     # password
-    parent.lblMssqlPwd = wx.StaticText(scroll, -1, "Password:")
+    parent.lblMssqlPwd = wx.StaticText(scroll, -1, "Password - space if none:")
     parent.lblMssqlPwd.SetFont(lblfont)
     mssql_pwd = parent.mssql_pwd if parent.mssql_pwd else ""
     parent.txtMssqlPwd = wx.TextCtrl(scroll, -1, mssql_pwd, 

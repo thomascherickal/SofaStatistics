@@ -130,7 +130,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         return self.fld_labels[col]
     
     def NoneToMissingVal(self, val):
-        if val == None:
+        if val is None:
             val = MISSING_VAL_INDICATOR
         return val
     
@@ -239,7 +239,7 @@ class DbTbl(wx.grid.PyGridTableBase):
                 id_value = self.quote_val(self.row_id_dic[row])
             else:
                 id_value = self.row_id_dic[row]
-            val2use = "NULL" if raw_val_to_use == None \
+            val2use = "NULL" if raw_val_to_use is None \
                 else "\"%s\"" % raw_val_to_use
             # TODO - think about possibilities of SQL injection by hostile party
             SQL_update_value = "UPDATE %s " % self.tbl + \

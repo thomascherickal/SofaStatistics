@@ -219,7 +219,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
             item_conf = self.coltree.GetItemPyData(tree_dims_item)
         elif dim == my_globals.ROWDIM:
             item_conf = self.rowtree.GetItemPyData(tree_dims_item)        
-        if item_conf == None:
+        if item_conf is None:
             item_conf = make_table.ItemConfig()
         if tree_dims_item == self.col_no_vars_item:
             # add measures only

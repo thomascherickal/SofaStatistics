@@ -113,7 +113,7 @@ class RawTable(object):
                 else:
                     if row[i] or row[i] in ("", 0):
                         row_val = row[i]
-                    elif row[i] == None:
+                    elif row[i] is None:
                         row_val = "-"
                 # cell format
                 col_class_names = "\"" + " ".join(col_class_lsts[i]) + "\""

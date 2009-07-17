@@ -136,78 +136,6 @@ class DbDets(getdata.DbDets):
         cat = None
         return tbls
 
-    def _getFldType(self, adotype):
-        """
-        http://www.devguru.com/Technologies/ado/quickref/field_type.html
-        http://www.databasedev.co.uk/fields_datatypes.html
-        """
-        if adotype == win32com.client.constants.adUnsignedTinyInt:
-            fld_type = dbe_globals.ADO_BYTE # 1-byte unsigned integer
-        elif adotype == win32com.client.constants.adSmallInt:
-            fld_type = dbe_globals.ADO_INTEGER # 2-byte signed integer
-        elif adotype == win32com.client.constants.adInteger:
-            fld_type = dbe_globals.ADO_LONGINT # 4-byte signed integer
-        elif adotype == win32com.client.constants.adSingle:
-            fld_type = dbe_globals.ADO_SINGLE # Single-precision floating-point value
-        elif adotype == win32com.client.constants.adDouble:
-            fld_type = dbe_globals.ADO_DOUBLE # Double precision floating-point
-        elif adotype == win32com.client.constants.adNumeric:
-            fld_type = dbe_globals.ADO_DECIMAL
-        elif adotype == win32com.client.constants.adCurrency:
-            fld_type = dbe_globals.ADO_CURRENCY
-        elif adotype == win32com.client.constants.adVarWChar:
-            fld_type = dbe_globals.ADO_VARCHAR
-        elif adotype == win32com.client.constants.adBoolean:
-            fld_type = dbe_globals.ADO_BOOLEAN
-        elif adotype == win32com.client.constants.adDate:
-            fld_type = dbe_globals.ADO_DATE
-        else:
-            raise Exception, "Not an MS Access ADO field type %d" % adotype
-        return fld_type
-
-    def _GetMinMax(self, fld_type, num_prec, dec_pts):
-        """
-        Returns minimum and maximum allowable numeric values.
-        NB even though a floating point type will not store values closer 
-            to zero than a certain level, such values will be accepted here.
-            The database will store these as zero.
-        http://www.databasedev.co.uk/fields_datatypes.html38 
-        """
-        if fld_type == dbe_globals.ADO_BYTE:
-            min = 0
-            max = (2**8)-1 # 255
-        elif fld_type == dbe_globals.ADO_INTEGER:
-            min = -(2**15)
-            max = (2**15)-1            
-        elif fld_type == dbe_globals.ADO_LONGINT:
-            min = -(2**31)
-            max = (2**31)-1            
-        elif fld_type == dbe_globals.ADO_DECIMAL:
-            # (+- 38 if .adp as opposed to .mdb)
-            min = -((10**28)-1)
-            max = (10**28)-1
-        elif fld_type == dbe_globals.ADO_SINGLE: # signed by default
-            min = -3.402823466E+38
-            max = 3.402823466E+38
-        elif fld_type == dbe_globals.ADO_DOUBLE:
-            min = -1.79769313486231E308
-            max = 1.79769313486231E308
-        elif fld_type == dbe_globals.ADO_CURRENCY:
-            """
-            Accurate to 15 digits to the left of the decimal point and 
-                4 digits to the right.
-            e.g. 19,4 -> 999999999999999.9999
-            """
-            dec_pts = 4
-            num_prec = 15 + dec_pts
-            abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
-            min = -abs_max
-            max = abs_max
-        else:
-            min = None
-            max = None
-        return min, max
-
     def getTblFlds(self, cur, db, tbl):
         """
         Returns details for set of fields given database, table, and cursor.
@@ -234,20 +162,19 @@ class DbDets(getdata.DbDets):
         flds = {}
         for col in cat.Tables(tbl).Columns:
             # build dic of fields, each with dic of characteristics
-            fld_name = col.Name
-            fld_type = self._getFldType(col.Type)
+            fld_name = col.Name            
+            fld_type = dbe_globals.getADODic().get(col.Type)
+            if not fld_type:
+                raise Exception, "Not an MS Access ADO field type %d" % col.Type
             bolautonum = col.Properties("AutoIncrement").Value
             boldata_entry_ok = False if bolautonum else True
-            bolnumeric = fld_type in [dbe_globals.ADO_BYTE, 
-                            dbe_globals.ADO_INTEGER, dbe_globals.ADO_LONGINT, 
-                            dbe_globals.ADO_DECIMAL, dbe_globals.ADO_SINGLE, 
-                            dbe_globals.ADO_DOUBLE, dbe_globals.ADO_CURRENCY]
+            bolnumeric = fld_type in dbe_globals.NUMERIC_TYPES
             dec_pts = col.NumericScale if col.NumericScale < 18 else 0
-            boldatetime = fld_type in [dbe_globals.ADO_DATE, 
-                                       dbe_globals.ADO_TIMESTAMP]
+            boldatetime = fld_type in dbe_globals.DATETIME_TYPES
             fld_txt = not bolnumeric and not boldatetime
             num_prec = col.Precision
-            min_val, max_val = self._GetMinMax(fld_type, num_prec, dec_pts)
+            min_val, max_val = dbe_globals.GetMinMax(fld_type, num_prec, 
+                                                     dec_pts)
             dets_dic = {
                 my_globals.FLD_SEQ: extras[fld_name][0],
                 my_globals.FLD_BOLNULLABLE: col.Properties("Nullable").Value,
@@ -347,8 +274,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     parent.lblMsaccessDefaultDb.SetFont(lblfont)
     MSACCESS_DEFAULT_DB = parent.msaccess_default_db \
         if parent.msaccess_default_db else ""
-    parent.txtMsaccessDefaultDb = wx.TextCtrl(scroll, -1, 
-                                              MSACCESS_DEFAULT_DB, 
+    parent.txtMsaccessDefaultDb = wx.TextCtrl(scroll, -1, MSACCESS_DEFAULT_DB, 
                                               size=(250,-1))
     parent.txtMsaccessDefaultDb.Enable(not read_only)
     # default table
@@ -357,8 +283,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     parent.lblMsaccessDefaultTbl.SetFont(lblfont)
     MSACCESS_DEFAULT_TBL = parent.msaccess_default_tbl \
         if parent.msaccess_default_tbl else ""
-    parent.txtMsaccessDefaultTbl = wx.TextCtrl(scroll, -1, 
-                                               MSACCESS_DEFAULT_TBL, 
+    parent.txtMsaccessDefaultTbl = wx.TextCtrl(scroll, -1, MSACCESS_DEFAULT_TBL, 
                                                size=(250,-1))
     parent.txtMsaccessDefaultTbl.Enable(not read_only)
     bxMsaccess= wx.StaticBox(scroll, -1, "MS Access")

@@ -48,7 +48,7 @@ def TextOnBitmap(bitmap, text, font, colour):
 def GetTextToDraw(orig_txt, max_width):
     "Return text broken into new lines so wraps within pixel width"
     mem = wx.MemoryDC()
-    # add words to it until its width is tooNeed Dun long then put int split
+    # add words to it until its width is too long then put int split
     lines = []
     words = orig_txt.split()
     line_words = []

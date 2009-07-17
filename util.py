@@ -53,7 +53,7 @@ def isNumeric(val):
     "http://www.rosettacode.org/wiki/IsNumeric#Python"
     if isPyTime(val):
         return False
-    elif val == None:
+    elif val is None:
         return False
     else:
         try:
@@ -75,7 +75,7 @@ def if_none(val, default):
     """
     if isPyTime(val):
         return val
-    elif val == None:
+    elif val is None:
         return default
     else:
         return val
@@ -223,7 +223,7 @@ def valid_datetime_str(val):
         return (False, None)
     # evaluate date and/or time components against allowable formats
     date_part, time_part, date_time_order = datetime_split(val)
-    if date_part == None and time_part == None:
+    if date_part is None and time_part is None:
         return False, None
     # gather information on all parts
     if date_part:
@@ -249,18 +249,18 @@ def valid_datetime_str(val):
             except:
                 pass
     # determine what type of valid datetime then make time object    
-    if date_part != None and time_part != None and ok_date and ok_time:
+    if date_part is not None and time_part is not None and ok_date and ok_time:
         if date_time_order: # date then time            
             t = time.strptime("%s %s" % (date_part, time_part), 
                               "%s %s" % (ok_date_format, ok_time_format))
         else: # time then date
             t = time.strptime("%s %s" % (time_part, date_part),
                               "%s %s" % (ok_time_format, ok_date_format))
-    elif date_part != None and time_part == None and ok_date:
+    elif date_part is not None and time_part is None and ok_date:
         # date only (add time of 00:00:00)
         t = time.strptime("%s 00:00:00" % date_part, 
                           "%s %%H:%%M:%%S" % ok_date_format)
-    elif date_part == None and time_part != None and ok_time:
+    elif date_part is None and time_part is not None and ok_time:
         # time only (assume today's date)
         today = time.localtime()
         t = time.strptime("%s-%s-%s %s" % (today[0], today[1], today[2], 
@@ -340,7 +340,7 @@ def getTreeCtrlDescendants(tree, parent, descendants=None):
     Get all descendants (descendent is an alternative spelling 
     in English grrr).
     """
-    if descendants == None:
+    if descendants is None:
         descendants = []
     children = getTreeCtrlChildren(tree, parent)
     for child in children:
@@ -369,7 +369,7 @@ def MySQL2string(val):
     In particular, handles dates.
     """
     import time
-    if val == None:
+    if val is None:
         return ""
     elif type(val).__name__ == 'datetime': #http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/511451
         date_portion = str(val)[0:10]
@@ -406,7 +406,7 @@ def empty_or_none_to_null(val, quote=False):
     Can return string value single quoted for inclusion into SQL so that 
     either NULL or 'value' is returned as appropriate e.g. when running inserts.
     """
-    if val == None:
+    if val is None:
         return "NULL"
     elif val == "":
         return "NULL"

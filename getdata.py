@@ -270,10 +270,11 @@ def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, conn_dets,
             if debug: print str(e)
             pass # no connection possible
     parent.db_choice_items = [getDbItem(x[0], x[1]) for x in db_choices]
-    parent.dropDatabases = wx.Choice(panel, -1, choices=parent.db_choice_items)
+    parent.dropDatabases = wx.Choice(panel, -1, choices=parent.db_choice_items,
+                                     size=(300, -1))
     dbs_lc = [x.lower() for x in dbs_of_default_dbe]
     parent.dropDatabases.SetSelection(dbs_lc.index(db.lower()))
-    parent.dropTables = wx.Choice(panel, -1, choices=tbls)
+    parent.dropTables = wx.Choice(panel, -1, choices=tbls, size=(300, -1))
     tbls_lc = [x.lower() for x in tbls]
     parent.dropTables.SetSelection(tbls_lc.index(tbl.lower()))
 

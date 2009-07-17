@@ -34,7 +34,9 @@ class TextEditor(wx.grid.PyGridCellEditor):
     
     def Create(self, parent, id, evt_handler):
         # created when clicked
-        self.txt = wx.TextCtrl(parent, -1, "")
+        # wx.TE_PROCESS_TAB very important otherwise TAB is swallowed by dialog
+        # (but not if grid on a frame or Dialog under Ubuntu - go figure!)
+        self.txt = wx.TextCtrl(parent, -1, "", style=wx.TE_PROCESS_TAB)
         self.SetControl(self.txt)
         if evt_handler:
             # so the control itself doesn't handle events but passes to handler
@@ -57,10 +59,10 @@ class TextEditor(wx.grid.PyGridCellEditor):
         return changed
         
     def StartingKey(self, event):
-        key_code = event.GetKeyCode()
-        if self.debug: print "Starting key was \"%s\"" % chr(key_code)
-        if key_code <= 255 :
-            self.txt.SetValue(chr(key_code))
+        keycode = event.GetKeyCode()
+        if self.debug: print "Starting key was \"%s\"" % chr(keycode)
+        if keycode <= 255 :
+            self.txt.SetValue(chr(keycode))
             self.txt.SetInsertionPoint(1)
         else:
             event.Skip()
@@ -70,13 +72,17 @@ class TextEditor(wx.grid.PyGridCellEditor):
     
     def OnTxtEdKeyDown(self, event):
         "We are interested in TAB keypresses"
-        if event.GetKeyCode() in [wx.WXK_TAB]:
+        keycode = event.GetKeyCode()
+        if self.debug: print "Keypress %s recognised in custom editor" % keycode
+        if keycode in [wx.WXK_TAB]:
             key_direction = table_edit.MOVE_LEFT \
                 if event.ShiftDown() else table_edit.MOVE_RIGHT
             src_row=self.row
             src_col=self.col
-            if self.debug: print "OnTxtEdKeyDown - Keypress in row " + \
-                "%s col %s" % (src_row, src_col)
+            if self.debug: 
+                print "OnTxtEdKeyDown - Keypress %s " % keycode + \
+                    "in row %s col %s" % (src_row, src_col)
+                print "Number fields: %s" % len(self.tbl_editor.flds)
             final_col = (src_col == len(self.tbl_editor.flds) - 1)
             if final_col and key_direction == table_edit.MOVE_RIGHT:
                 self.tbl_editor.ProcessCellMove(src_row=self.row, 

@@ -108,7 +108,7 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
             val = util.pytime_to_datetime_str(val)
         if not is_pytime:
             if fld_type in [FLD_NUMERIC, FLD_DATETIME] and \
-                    (val == "" or val == None):
+                    (val == "" or val is None):
                 val = "NULL"
     else:            
         bolOK_data = False        
@@ -116,7 +116,7 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
             # must be numeric or empty string (which we'll turn to NULL)
             if util.isNumeric(val):
                 bolOK_data = True
-            elif val == "" or val == None:
+            elif val == "" or val is None:
                 bolOK_data = True
                 val = "NULL"
         elif fld_type == FLD_DATETIME:
@@ -130,7 +130,7 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
                 if boldatetime:
                     bolOK_data = True
                     val = util.timeobj_to_datetime_str(timeobj)
-                elif val == "" or val == None:
+                elif val == "" or val is None:
                     bolOK_data = True
                     val = "NULL"
         elif fld_type == FLD_STRING:

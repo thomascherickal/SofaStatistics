@@ -57,7 +57,7 @@ class DimNode(tree.Node):
         ""
         self.fld = fld
         self.filt_flds = [] #only built up when added as a child to another DimNode
-        if not label and fld != None:
+        if not label and fld is not None:
             self.label = fld.title()
         else:
             self.label = label

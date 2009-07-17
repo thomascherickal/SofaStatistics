@@ -135,9 +135,9 @@ class TblEditor(wx.Dialog):
         dest_row=event.GetRow()
         dest_col=event.GetCol()
         if self.debug: print "OnSelectCell - selected row %s col %s " % \
-            (dest_row, dest_col) + "**********************************"         
+            (dest_row, dest_col) + "**********************************" 
         self.AddCellMoveEvt(dest_row, dest_col)
-
+        
     def OnGridKeyDown(self, event):
         """
         Capture use of keypress to move away from a cell.
@@ -146,6 +146,8 @@ class TblEditor(wx.Dialog):
             after a keypress.
         """
         keycode = event.GetKeyCode()
+        if self.debug: 
+            print "OnGridKeyDown - keycode %s pressed" % keycode 
         if keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
             if event.ShiftDown() and keycode == wx.WXK_TAB:
                 key_direction = MOVE_LEFT
@@ -207,6 +209,9 @@ class TblEditor(wx.Dialog):
             move_to_dest = self.LeavingNewRow(dest_row, dest_col)
         else:
             raise Exception, "ProcessCellMove - Unknown move_type"
+        if self.debug:
+            print "Move type: %s" % move_type
+            print "OK to move to dest?: %s" % move_to_dest
         if move_to_dest:
             self.respond_to_select_cell = False # to prevent infinite loop!
             self.grid.SetGridCursor(dest_row, dest_col)
@@ -271,7 +276,7 @@ class TblEditor(wx.Dialog):
                 dest_row_is_new = True
             else:
                 dest_row_is_new = False
-        elif dest_row != None:
+        elif dest_row is not None:
             dest_row_is_new = self.NewRow(dest_row)
         else:
             raise Exception, "Not a key move yet no destination row stored"
@@ -337,11 +342,11 @@ class TblEditor(wx.Dialog):
         "NB may be None if N/A e.g. SQLite"
         min = fld_dic[my_globals.FLD_NUM_MIN_VAL]
         max = fld_dic[my_globals.FLD_NUM_MAX_VAL]        
-        if min != None:
+        if min is not None:
             if Decimal(raw_val) < Decimal(str(min)):
                 if self.debug: print "%s is < the min of %s" % (raw_val, min)
                 return False
-        if max != None:
+        if max is not None:
             if Decimal(raw_val) > Decimal(str(max)):
                 if self.debug: print "%s is > the max of %s" % (raw_val, max)
                 return False
@@ -383,7 +388,7 @@ class TblEditor(wx.Dialog):
             print "\"%s\"" % raw_val
             print "Field dic is:"
             pprint.pprint(fld_dic)
-        if raw_val == db_tbl.MISSING_VAL_INDICATOR or raw_val == None:
+        if raw_val == db_tbl.MISSING_VAL_INDICATOR or raw_val is None:
             return False
         elif not fld_dic[my_globals.FLD_DATA_ENTRY_OK]: 
              # i.e. not autonumber, timestamp etc
@@ -412,7 +417,7 @@ class TblEditor(wx.Dialog):
             return False
         elif fld_dic[my_globals.FLD_BOLTEXT]:
             max_len = fld_dic[my_globals.FLD_TEXT_LENGTH]
-            if max_len == None: # SQLite returns None if TEXT
+            if max_len is None: # SQLite returns None if TEXT
                 return False
             if len(raw_val) > max_len:
                 wx.MessageBox("\"%s\" is longer than the maximum of %s" % \
@@ -572,11 +577,12 @@ class TblEditor(wx.Dialog):
             col_width = None
             if fld_dic[my_globals.FLD_BOLTEXT]:
                 txt_len = fld_dic[my_globals.FLD_TEXT_LENGTH]
-                col_width = txt_len*pix_per_char if txt_len != None \
+                col_width = txt_len*pix_per_char if txt_len is not None \
                     and txt_len < 25 else None # leave for auto
             elif fld_dic[my_globals.FLD_BOLNUMERIC]:
                 num_len = fld_dic[my_globals.FLD_NUM_WIDTH]
-                col_width = num_len*pix_per_char if num_len != None else None
+                col_width = num_len*pix_per_char if num_len is not None \
+                    else None
             elif fld_dic[my_globals.FLD_BOLDATETIME]:
                 col_width = 170
             if col_width:
