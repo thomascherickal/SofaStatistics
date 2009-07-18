@@ -32,7 +32,7 @@ def quote_val(raw_val):
     return "'%s'" % raw_val.replace("'", "''") # escape internal single quotes
 
 def get_placeholder():
-    return "%s"
+    return "?"
 
 def DbeSyntaxElements():
     if_clause = "IIF(%s, %s, %s)"

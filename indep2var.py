@@ -164,6 +164,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
     def OnPaint(self, event):
         if self.show_chop_warning:
             wx.CallAfter(self.ShowChopWarning)
+        event.Skip()
 
     def ShowChopWarning(self):
         self.show_chop_warning = False

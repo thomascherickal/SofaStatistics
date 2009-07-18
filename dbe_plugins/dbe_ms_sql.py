@@ -29,7 +29,7 @@ def quote_val(raw_val):
     return "'%s'" % raw_val.replace("'", "''")
 
 def get_placeholder():
-    return "%s"
+    return "?"
 
 def DbeSyntaxElements():
     if_clause = "CASE WHEN %s THEN %s ELSE %s END"
