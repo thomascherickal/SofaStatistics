@@ -21,6 +21,9 @@ def quote_obj(raw_val):
 def quote_val(raw_val):
     return "\"%s\"" % raw_val
 
+def get_placeholder():
+    return "?"
+
 def DbeSyntaxElements():
     if_clause = "CASE WHEN %s THEN %s ELSE %s END"
     abs_wrapper_l = ""
@@ -187,10 +190,6 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
             print has_unique
         return has_unique, idxs
-
-def setDbInConnDets(conn_dets, db):
-    "Set database in connection details (if appropriate)"
-    pass # only ever one database
 
 def InsertRow(conn, cur, tbl_name, data):
     """

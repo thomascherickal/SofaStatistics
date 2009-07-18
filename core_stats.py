@@ -11,9 +11,10 @@ def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val):
     Used, for example, in the independent samples t-test.
     """
     quoter = getdata.get_obj_quoter_func(dbe)
-    SQL_get_list = "SELECT %s FROM %s WHERE %s IS NOT NULL AND %s = ?" % \
+    placeholder = getdata.get_placeholder(dbe)
+    SQL_get_list = "SELECT %s FROM %s WHERE %s IS NOT NULL AND %s = %s" % \
                     (quoter(fld_measure), quoter(tbl), quoter(fld_measure), 
-                     quoter(fld_filter))
+                     quoter(fld_filter), placeholder)
     cur.execute(SQL_get_list, (filter_val,))
     lst = [x[0] for x in cur.fetchall()]
     return lst

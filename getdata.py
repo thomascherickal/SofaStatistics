@@ -12,7 +12,8 @@ class DbDets(object):
                   tbl=None):
         """
         If db or tbl are not supplied subclass must choose 
-            e.g. default or first.
+            e.g. default or first.  And once db identified, must update 
+            conn_dets.
         """
         # default dbs e.g. {'MySQL': u'clicextract', 'SQLite': u'sodasipper'}
         self.default_dbs = default_dbs
@@ -101,16 +102,15 @@ def get_val_quoter_func(dbe):
     """
     return DBE_MODULES[dbe].quote_val
 
+def get_placeholder(dbe):
+    return DBE_MODULES[dbe].get_placeholder()
+
 def getDbDetsObj(dbe, default_dbs, default_tbls, conn_dets, db=None, tbl=None):
     """
     Pass in all conn_dets (the dbe will be used to select specific conn_dets).
     """
     return DBE_MODULES[dbe].DbDets(default_dbs, default_tbls, conn_dets, db, 
                                    tbl)
-
-def setDbInConnDets(dbe, conn_dets, db):
-    "Set database in connection details (if appropriate)"
-    DBE_MODULES[dbe].setDbInConnDets(conn_dets, db)
     
 def getDbeSyntaxElements(dbe):
     """
@@ -161,11 +161,12 @@ def getSortedChoiceItems(dic_labels, vals):
     """
     dic_labels - could be for either variables of values.
     vals - either variables or values.
-    Returns choice_items_sorted.
+    Returns choice_items_sorted, orig_items_sorted.
     """
-    choice_items = [getChoiceItem(dic_labels, x) for x in vals]
-    choice_items.sort(key=lambda s: s.upper())
-    return choice_items
+    sorted_vals = vals
+    sorted_vals.sort(key=lambda s: getChoiceItem(dic_labels, s).upper())
+    choice_items = [getChoiceItem(dic_labels, x) for x in sorted_vals]
+    return choice_items, sorted_vals
 
 def setConnDetDefaults(parent):
     """
@@ -283,6 +284,7 @@ def RefreshDbDets(parent):
     Returns dbe, db, cur, tbls, tbl, flds, has_unique, idxs.
     Responds to a database selection.
     """
+    debug = False
     db_choice_item = parent.db_choice_items[parent.dropDatabases.GetSelection()]
     db, dbe = extractDbDets(db_choice_item)
     dbdetsobj = getDbDetsObj(dbe, parent.default_dbs, parent.default_tbls, 
@@ -290,6 +292,9 @@ def RefreshDbDets(parent):
     conn, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
     db = dbdetsobj.db
     tbl = dbdetsobj.tbl
+    if debug:
+        print "Db is: %s" % db
+        print "Tbl is: %s" % tbl
     return dbe, db, cur, tbls, tbl, flds, has_unique, idxs
 
 def RefreshTblDets(parent):

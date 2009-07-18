@@ -25,6 +25,9 @@ def quote_obj(raw_val):
 def quote_val(raw_val):
     return "\"%s\"" % raw_val
 
+def get_placeholder():
+    return "%s"
+
 def DbeSyntaxElements():
     if_clause = "IF(%s, %s, %s)"
     abs_wrapper_l = ""
@@ -36,7 +39,8 @@ class DbDets(getdata.DbDets):
     
     """
     __init__ supplies default_dbs, default_tbls, conn_dets and 
-        db and tbl (may be None).
+        db and tbl (may be None).  Db needs to be set in conn_dets once 
+        identified.
     """
             
     def getDbDets(self):
@@ -50,10 +54,16 @@ class DbDets(getdata.DbDets):
         The field dets will be taken from the table used.
         Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
         """
+        self.debug = False
+        if self.debug:
+            print "Received db is: %s" % self.db
+            print "Received tbl is: %s" % self.tbl
         conn_dets_mysql = self.conn_dets.get(my_globals.DBE_MYSQL)
         if not conn_dets_mysql:
             raise Exception, "No connection details available for MySQL"
         try:
+            if self.db:
+                conn_dets_mysql["db"] = self.db
             conn = MySQLdb.connect(**conn_dets_mysql)
         except Exception, e:
             raise Exception, "Unable to connect to MySQL db.  " + \
@@ -75,10 +85,17 @@ class DbDets(getdata.DbDets):
                 self.db = default_db_mysql
             else:
                 self.db = dbs[0]
+            # need to reset conn and cur
+            cur.close()
+            conn.close()
+            conn_dets_mysql["db"] = self.db
+            conn = MySQLdb.connect(**conn_dets_mysql)
+            cur = conn.cursor()
         else:
             if self.db.lower() not in dbs_lc:
                 raise Exception, "Database \"%s\" not available " % self.db + \
                     "from supplied connection"
+        if self.debug: pprint.pprint(self.conn_dets)
         # get table names
         tbls = self.getDbTbls(cur, self.db)
         tbls_lc = [x.lower() for x in tbls]        
@@ -98,10 +115,9 @@ class DbDets(getdata.DbDets):
         # get field names (from first table if none provided)
         flds = self.getTblFlds(cur, self.db, self.tbl)
         has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
-        debug = False
-        if debug:
-            print self.db
-            print self.tbl
+        if self.debug:
+            print "Db is: %s" % self.db
+            print "Tbl is: %s" % self.tbl
             pprint.pprint(tbls)
             pprint.pprint(flds)
             pprint.pprint(idxs)
@@ -311,10 +327,6 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
             print has_unique
         return has_unique, idxs
-
-def setDbInConnDets(conn_dets, db):
-    "Set database in connection details (if appropriate)"
-    conn_dets["db"] = db
 
 def InsertRow(conn, cur, tbl_name, data):
     """

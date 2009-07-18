@@ -3,6 +3,7 @@ import wx
 
 import my_globals
 import getdata
+import projects
 
 LOCAL_PATH = my_globals.LOCAL_PATH
 
@@ -127,6 +128,12 @@ class GenConfig(object):
         szrOutputInner.Add(self.btnScriptPath, 0)
         self.szrOutput.Add(szrOutputInner, 1)
 
+    def UpdateLabels(self):
+        "Update all labels, including those already displayed"
+        self.fil_labels = self.txtLabelsFile.GetValue()
+        self.var_labels, self.var_notes, self.val_dics = \
+            projects.GetLabels(self.fil_labels)
+
     # database/ tables (and views)
     def OnDatabaseSel(self, event):
         """
@@ -136,9 +143,9 @@ class GenConfig(object):
         (self.dbe, self.db, self.cur, self.tbls, self.tbl, self.flds, 
                 self.has_unique, self.idxs) = getdata.RefreshDbDets(self)
         self.dropTables.SetItems(self.tbls)
-        tbls_lc = [x.lower() for x in tbls]
-        self.dropTables.SetSelection(self.tbls_lc.index(self.tbl.lower()))
-                
+        tbls_lc = [x.lower() for x in self.tbls]
+        self.dropTables.SetSelection(tbls_lc.index(self.tbl.lower()))
+        
     def OnTableSel(self, event):
         "Reset key data details after table selection."       
         self.tbl, self.flds, self.has_unique, self.idxs = \
@@ -200,8 +207,7 @@ class GenConfig(object):
             fil_labels = "%s" % dlgGetFile.GetPath()
             self.txtLabelsFile.SetValue(fil_labels)
             self.UpdateLabels()
-        dlgGetFile.Destroy()
-        
+        dlgGetFile.Destroy()        
 
     #def LabelPathEnterWindow(self, event):
     #    "Hover over Label Path Browse button"

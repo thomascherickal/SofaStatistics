@@ -51,6 +51,10 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.open_scripts = []
         # set up panel for frame
         self.panel = wx.Panel(self)
+        self.panel.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.show_chop_warning = False
+        self.chop_warning = ""
+        self.chop_vars = set([]) # only want warnings when first time per var
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         ib = wx.IconBundle()
         ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, "images",
@@ -83,22 +87,11 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrVarsRightTop = wx.BoxSizer(wx.HORIZONTAL)
         szrVarsLeftMid = wx.BoxSizer(wx.HORIZONTAL)
         # group by
-        choice_var_names = self.flds.keys()
-        var_gp_by_choice_items = \
-            getdata.getSortedChoiceItems(dic_labels=self.var_labels, 
-                                         vals=choice_var_names)
         self.lblGroupBy = wx.StaticText(self.panel, -1, "Group By:")
         self.lblGroupBy.SetFont(self.LABEL_FONT)
-        self.dropGroupBy = wx.Choice(self.panel, -1, 
-                                     choices=var_gp_by_choice_items)
+        self.dropGroupBy = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
+        self.SetupGroupBy()
         self.dropGroupBy.Bind(wx.EVT_CHOICE, self.OnGroupBySel)
-        idx_gp = 0
-        if my_globals.group_by_default:
-            try:
-                idx_gp = var_gp_by_choice_items.index(my_globals.group_by_default)
-            except ValueError:
-                pass
-        self.dropGroupBy.SetSelection(idx_gp)
         szrVarsLeftTop.Add(self.lblGroupBy, 0, wx.RIGHT, 5)
         szrVarsLeftTop.Add(self.dropGroupBy, 0, wx.GROW)
         # group by A
@@ -109,7 +102,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.lblGroupB = wx.StaticText(self.panel, -1, "Group B:")
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupByBSel)
-        self.SetGroupDropdowns()
+        self.SetupGroupDropdowns()
         szrVarsLeftMid.Add(self.lblGroupA, 0, wx.RIGHT, 5)
         szrVarsLeftMid.Add(self.dropGroupA, 0, wx.RIGHT, 5)
         szrVarsLeftMid.Add(self.lblGroupB, 0, wx.RIGHT, 5)
@@ -120,21 +113,10 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.lblAveraged = wx.StaticText(self.panel, -1, "%s:" % self.averaged)
         self.lblAveraged.SetFont(self.LABEL_FONT)
         # only want the fields which are numeric
-        numeric_var_names = [x for x in self.flds if \
-                             self.flds[x][my_globals.FLD_BOLNUMERIC]]
-        var_avg_choice_items = \
-            getdata.getSortedChoiceItems(dic_labels=self.var_labels,
-                                         vals=numeric_var_names)
-        self.dropAveraged = wx.Choice(self.panel, -1, 
-                                      choices=var_avg_choice_items)
+        self.dropAveraged = wx.Choice(self.panel, -1, choices=[], 
+                                      size=(300, -1))
         self.dropAveraged.Bind(wx.EVT_CHOICE, self.OnAveragedSel)
-        idx_avg = 0
-        if my_globals.group_avg_default:
-            try:
-                idx_avg = var_avg_choice_items.index(my_globals.group_avg_default)
-            except ValueError:
-                pass
-        self.dropAveraged.SetSelection(idx_avg)
+        self.SetupAvg()
         szrVarsRightTop.Add(self.lblAveraged, 0, wx.LEFT, 10)
         szrVarsRightTop.Add(self.dropAveraged, 0, wx.LEFT, 5)
         szrVarsRight.Add(szrVarsRightTop, 0)
@@ -178,9 +160,88 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
         self.Fit()
+
+    def OnPaint(self, event):
+        if self.show_chop_warning:
+            wx.CallAfter(self.ShowChopWarning)
+
+    def ShowChopWarning(self):
+        self.show_chop_warning = False
+        wx.MessageBox(self.chop_warning)
+        self.chop_warning = ""
+        
+    def OnDatabaseSel(self, event):
+        """
+        Reset dbe, database, cursor, tables, table, tables dropdown, 
+            fields, has_unique, and idxs after a database selection.
+        """
+        gen_config.GenConfig.OnDatabaseSel(self, event)
+        # now update var dropdowns
+        self.UpdateLabels()
+        self.SetupGroupBy()
+        self.SetupAvg()
+        self.SetupGroupDropdowns()
+                
+    def OnTableSel(self, event):
+        "Reset key data details after table selection."       
+        gen_config.GenConfig.OnTableSel(self, event)
+        # now update var dropdowns
+        self.UpdateLabels()
+        self.SetupGroupBy()
+        self.SetupAvg()
+        self.SetupGroupDropdowns()
+    
+    def OnLabelFileLostFocus(self, event):
+        """
+        Want to retain already selected item - even though label and even 
+            position may have changed.
+        """
+        val_a, val_b = self.GetVals()
+        var_by, var_avg = self.GetVars()
+        gen_config.GenConfig.OnLabelFileLostFocus(self, event)
+        self.SetupGroupBy(var_by)
+        self.SetupAvg(var_avg)
+        self.SetupGroupDropdowns(val_a, val_b)
+        self.UpdateDefaults()
+        self.UpdatePhrase()
+        
+    def OnButtonLabelPath(self, event):
+        """
+        Want to retain already selected item - even though label and even 
+            position may have changed.
+        """
+        val_a, val_b = self.GetVals()
+        var_by, var_avg = self.GetVars()
+        gen_config.GenConfig.OnButtonLabelPath(self, event)
+        self.SetupGroupBy(var_by)
+        self.SetupAvg(var_avg)
+        self.SetupGroupDropdowns(val_a, val_b)
+        self.UpdateDefaults()
+        self.UpdatePhrase()
+    
+    def GetVars(self):
+        """
+        self.sorted_var_names_by and self.sorted_var_names_avg are set when 
+            dropdowns are set (and only changed when reset).
+        """
+        idx_by = self.dropGroupBy.GetSelection()
+        var_by = self.sorted_var_names_by[idx_by]
+        idx_avg = self.dropAveraged.GetSelection()
+        var_avg = self.sorted_var_names_avg[idx_avg]
+        return var_by, var_avg
+    
+    def GetVals(self):
+        """
+        self.vals is set when dropdowns are set (and only changed when reset).
+        """
+        idx_a = self.dropGroupA.GetSelection()
+        val_a = self.vals[idx_a]
+        idx_b = self.dropGroupB.GetSelection()
+        val_b = self.vals[idx_b]
+        return val_a, val_b
     
     def OnGroupBySel(self, event):
-        self.SetGroupDropdowns()
+        self.SetupGroupDropdowns()
         self.UpdatePhrase()
         self.UpdateDefaults()
         event.Skip()
@@ -201,7 +262,47 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.UpdateDefaults()
         event.Skip()
     
-    def SetGroupDropdowns(self):
+    def SetupGroupBy(self, var_a=None):
+        choice_var_names = self.flds.keys()
+        var_gp_by_choice_items, self.sorted_var_names_by = \
+            getdata.getSortedChoiceItems(dic_labels=self.var_labels, 
+                                         vals=choice_var_names)
+        self.dropGroupBy.SetItems(var_gp_by_choice_items)
+        # set selection
+        if var_a:
+            item_new_version_a = getdata.getChoiceItem(self.var_labels, var_a)
+            idx_gp = var_gp_by_choice_items.index(item_new_version_a)
+        else: # use default if possible
+            idx_gp = 0
+            if my_globals.group_by_default:
+                try:
+                    idx_gp = var_gp_by_choice_items.index(my_globals.group_by_default)
+                except ValueError:
+                    pass
+        self.dropGroupBy.SetSelection(idx_gp)
+    
+    def SetupAvg(self, var_b=None):
+        numeric_var_names = [x for x in self.flds if \
+                             self.flds[x][my_globals.FLD_BOLNUMERIC]]
+        var_avg_choice_items, self.sorted_var_names_avg = \
+            getdata.getSortedChoiceItems(dic_labels=self.var_labels,
+                                         vals=numeric_var_names)
+        self.dropAveraged.SetItems(var_avg_choice_items)
+        # set selection
+        if var_b:
+            item_new_version_b = getdata.getChoiceItem(self.var_labels, var_b)
+            idx_avg = var_avg_choice_items.index(item_new_version_b)
+        else: # use default if possible
+            idx_avg = 0
+            if my_globals.group_avg_default:
+                try:
+                    idx_avg = \
+                        var_avg_choice_items.index(my_globals.group_avg_default)
+                except ValueError:
+                    pass
+        self.dropAveraged.SetSelection(idx_avg)
+        
+    def SetupGroupDropdowns(self, val_a=None, val_b=None):
         """
         Gets unique values for selected variable.
         Sets choices for dropGroupA and B accordingly.
@@ -216,25 +317,42 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
              quoter(var_name))
         self.cur.execute(SQL_get_sorted_vals)
         val_dic = self.val_dics.get(var_name, {})
-        self.vals = [x[0] for x in self.cur.fetchall()]
+        # cope if variable has massive spread of values
+        all_vals = self.cur.fetchall()
+        if len(all_vals) > 20:
+            if var_name not in self.chop_vars: # once is enough :-)
+                self.chop_vars.add(var_name)
+                self.show_chop_warning = True
+                self.chop_warning = "More than 20 unique values in variable " + \
+                              "%s - only displaying first 20" % var_name
+            all_vals = all_vals[:20]
+        self.vals = [x[0] for x in all_vals]
         vals_with_labels = [getdata.getChoiceItem(val_dic, x) \
                             for x in self.vals]
         self.dropGroupA.SetItems(vals_with_labels)
         self.dropGroupB.SetItems(vals_with_labels)
-        # defaults
-        idx_a = 0
-        if my_globals.val_a_default:
-            try:
-                idx_a = vals_with_labels.index(my_globals.val_a_default)
-            except ValueError:
-                pass
+        # set selections
+        if val_a:
+            item_new_version_a = getdata.getChoiceItem(val_dic, val_a)
+            idx_a = vals_with_labels.index(item_new_version_a)
+        else: # use defaults if possible
+            idx_a = 0
+            if my_globals.val_a_default:
+                try:
+                    idx_a = vals_with_labels.index(my_globals.val_a_default)
+                except ValueError:
+                    pass
         self.dropGroupA.SetSelection(idx_a)
-        idx_b = 0
-        if my_globals.val_b_default:
-            try:
-                idx_b = vals_with_labels.index(my_globals.val_b_default)
-            except ValueError:
-                pass
+        if val_b:
+            item_new_version_b = getdata.getChoiceItem(val_dic, val_b)
+            idx_b = vals_with_labels.index(item_new_version_b)
+        else: # use defaults if possible
+            idx_b = 0
+            if my_globals.val_b_default:
+                try:
+                    idx_b = vals_with_labels.index(my_globals.val_b_default)
+                except ValueError:
+                    pass
         self.dropGroupB.SetSelection(idx_b)
     
     def GetDropVals(self):
@@ -376,4 +494,3 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         finally:
             self.Destroy()
             event.Skip()
-

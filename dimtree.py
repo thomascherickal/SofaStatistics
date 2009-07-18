@@ -552,11 +552,14 @@ class GetSettings(table_entry.TableEntryDlg):
         """
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
-        col_dets - [(col_type, col_label, col_width), ( , ) ...]
+        col_dets - See under table_entry.TableEntry
         new_grid_data - add details to it in form of a list of tuples.
         """
-        col_dets = [("Value", val_type, 50), 
-                    ("Label", table_entry.COL_STR, 200)]
+        col_dets = [{"col_label": "Value", "col_type": val_type, 
+                     "col_width": 50}, 
+                    {"col_label": "Label", "col_type": table_entry.COL_STR, 
+                     "col_width": 200},
+                     ]
         grid_size = (250, 250)
         wx.Dialog.__init__(self, None, title=title,
                           size=(400,400), 

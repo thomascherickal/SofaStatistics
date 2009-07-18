@@ -212,7 +212,6 @@ def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name,
     datestamp = datetime.now().strftime("Script " + \
                                     "exported %d/%m/%Y at %I:%M %p")
     # Fresh connection for each in case it changes in between tables
-    getdata.setDbInConnDets(dbe, conn_dets, db)
     conn_dets_str = pprint.pformat(conn_dets)
     fil.write("\nconn_dets = %s" % conn_dets_str)
     default_dbs_str = pprint.pformat(default_dbs)

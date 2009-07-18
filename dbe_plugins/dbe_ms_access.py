@@ -31,6 +31,9 @@ def quote_obj(raw_val):
 def quote_val(raw_val):
     return "'%s'" % raw_val.replace("'", "''") # escape internal single quotes
 
+def get_placeholder():
+    return "%s"
+
 def DbeSyntaxElements():
     if_clause = "IIF(%s, %s, %s)"
     # True is -1, not 1, in Access, thus the ABS before summing
@@ -225,10 +228,6 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
             print has_unique
         return has_unique, idxs
-
-def setDbInConnDets(conn_dets, db):
-    "Set database in connection details (if appropriate)"
-    pass # only ever one database
 
 def InsertRow(conn, cur, tbl_name, data):
     """

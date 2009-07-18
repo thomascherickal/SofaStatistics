@@ -28,6 +28,9 @@ def quote_obj(raw_val):
 def quote_val(raw_val):
     return "'%s'" % raw_val.replace("'", "''")
 
+def get_placeholder():
+    return "%s"
+
 def DbeSyntaxElements():
     if_clause = "CASE WHEN %s THEN %s ELSE %s END"
     abs_wrapper_l = ""
@@ -39,7 +42,8 @@ class DbDets(getdata.DbDets):
     
     """
     __init__ supplies default_dbs, default_tbls, conn_dets and 
-        db and tbl (may be None).
+        db and tbl (may be None).  Db needs to be set in conn_dets once 
+        identified.
     """
             
     def getDbDets(self):
@@ -61,6 +65,7 @@ class DbDets(getdata.DbDets):
         user = conn_dets_mssql["user"]
         pwd = conn_dets_mssql["passwd"]
         dbs, self.db = self._getDbs(host, user, pwd)
+        setDbInConnDets(conn_dets_mssql, self.db)
         DSN = """PROVIDER=SQLOLEDB;
             Data Source='%s';
             User ID='%s';

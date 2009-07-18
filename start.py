@@ -176,7 +176,7 @@ class StartFrame(wx.Frame):
         self.SetClientSize(self.GetSize())
         self.panel = wx.Panel(self)
         self.InitComTypes(self.panel)
-        self.panel.Bind(wx.EVT_PAINT, self.OnPaint)        
+        self.panel.Bind(wx.EVT_PAINT, self.OnPaint)
         # icon
         ib = wx.IconBundle()
         ib.AddIconFromFile(os.path.join(SCRIPT_PATH, 
