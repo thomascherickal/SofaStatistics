@@ -212,6 +212,7 @@ class StatsSelectDlg(wx.Dialog):
             self.lstTests.SetStringItem(i, 1, "", self.idx_blank)
         idx = self.lstTests.InsertStringItem(i+1, "")
         self.lstTests.Select(0)
+        self.lstTests.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnListItemSelected)
         # run test button
         self.btnConfig = wx.Button(self.panel, -1, "CONFIGURE TEST >>>",
                                 pos=(CONFIG_LEFT, LST_TOP + LST_HEIGHT + 20))
@@ -249,7 +250,7 @@ class StatsSelectDlg(wx.Dialog):
         panel_dc.DrawLabel("E.g. Does wealth increase with age?", 
            wx.Rect(BUTTON1_LEFT, REL_TOP + 27, 100, 100))
         event.Skip()
-        
+    
     def OnRadioDirectButton(self, event):        
         self.radDifferences.SetValue(True)
         self.radDifferences.Enable(False)
@@ -453,7 +454,13 @@ class StatsSelectDlg(wx.Dialog):
         self.lstTests.SetStringItem(idx, 1, "", self.idx_tick)
         self.lstTests.Select(idx)
     
+    def OnListItemSelected(self, event):
+        self.RespondToSelection(event)
+    
     def OnConfigClicked(self, event):
+        self.RespondToSelection(event)
+    
+    def RespondToSelection(self, event):
         idx = self.lstTests.GetFirstSelected()
         try:
             sel_test = STATS_TESTS[idx]
