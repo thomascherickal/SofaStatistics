@@ -359,8 +359,10 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
     def GetDropVals(self):
         """
         Get values from main drop downs.
-        Returns var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, 
-            label_avg.
+        Returns var_gp, label_gp, val_a, label_a, 
+            val_b, label_b, var_avg, label_avg.
+        val_a and val_b are quoted if not numeric e.g. '"firefox"' so ready to 
+            use in majority of cases.
         """
         choice_gp_text = self.dropGroupBy.GetStringSelection()
         var_gp, label_gp = getdata.extractChoiceDets(choice_gp_text)
@@ -369,9 +371,13 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         choice_b_text = self.dropGroupB.GetStringSelection()
         val_b, label_b = getdata.extractChoiceDets(choice_b_text)
         choice_avg_text = self.dropAveraged.GetStringSelection()
-        var_avg, label_avg = getdata.extractChoiceDets(choice_avg_text)        
-        return var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
-            label_avg
+        var_avg, label_avg = getdata.extractChoiceDets(choice_avg_text)
+        var_gp_numeric = self.flds[var_gp][my_globals.FLD_BOLNUMERIC]
+        if not var_gp_numeric:
+            val_a = "\"%s\"" % val_a
+            val_b = "\"%s\"" % val_b
+        return var_gp, label_gp, val_a, label_a, \
+            val_b, label_b, var_avg, label_avg
         
     def OnAveragedSel(self, event):        
         self.UpdatePhrase()

@@ -10,11 +10,13 @@ def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val):
     Get list of non-missing values in field.
     Used, for example, in the independent samples t-test.
     """
+    debug = False
     quoter = getdata.get_obj_quoter_func(dbe)
     placeholder = getdata.get_placeholder(dbe)
     SQL_get_list = "SELECT %s FROM %s WHERE %s IS NOT NULL AND %s = %s" % \
                     (quoter(fld_measure), quoter(tbl), quoter(fld_measure), 
                      quoter(fld_filter), placeholder)
+    if debug: print SQL_get_list
     cur.execute(SQL_get_list, (filter_val,))
     lst = [x[0] for x in cur.fetchall()]
     return lst

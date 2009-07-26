@@ -20,16 +20,16 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         """
         Update phrase based on GroupBy, Group A, Group B, and Averaged by field.
         """
-        var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
-            label_avg = self.GetDropVals()
+        var_gp, label_gp, val_a, label_a, val_b, label_b, \
+            var_avg, label_avg = self.GetDropVals()
         self.lblPhrase.SetLabel("Does %s \"%s\" have" % (label_gp, label_a) + \
             " a different average %s from \"%s\"?" % (label_avg, label_b))
 
     def getScript(self):
         "Build script from inputs"
         script_lst = []
-        var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
-            label_avg = self.GetDropVals()
+        var_gp, label_gp, val_a, label_a, val_b, label_b, \
+            var_avg, label_avg = self.GetDropVals()
         strGet_Sample = "sample_%s = core_stats.get_list(" + \
             "dbe=\"%s\", " % self.dbe + \
             "cur=cur, tbl=\"%s\",\n    " % self.tbl + \
