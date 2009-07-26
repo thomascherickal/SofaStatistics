@@ -332,7 +332,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     parent.lblMssqlHost = wx.StaticText(scroll, -1, 
                                         "Host - (local) if own machine:")
     parent.lblMssqlHost.SetFont(lblfont)
-    mssql_host = parent.mssql_host if parent.mssql_host else "(local)"
+    mssql_host = parent.mssql_host
     parent.txtMssqlHost = wx.TextCtrl(scroll, -1, mssql_host, 
                                       size=(100,-1))
     parent.txtMssqlHost.Enable(not read_only)
