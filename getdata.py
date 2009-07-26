@@ -159,6 +159,7 @@ def extractChoiceDets(choice_text):
 
 def getSortedChoiceItems(dic_labels, vals):
     """
+    Sorted by label, not name.
     dic_labels - could be for either variables of values.
     vals - either variables or values.
     Returns choice_items_sorted, orig_items_sorted.

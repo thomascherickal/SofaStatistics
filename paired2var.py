@@ -83,12 +83,14 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.lblGroupA.SetFont(self.LABEL_FONT)
         self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupA.Bind(wx.EVT_CHOICE, self.OnGroupSel)
+        self.dropGroupA.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickGroupA)
         szrVarsTop.Add(self.lblGroupA, 0, wx.RIGHT, 5)
         szrVarsTop.Add(self.dropGroupA, 0, wx.GROW)
         # group B
         self.lblGroupB = wx.StaticText(self.panel, -1, "Group B:")
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupSel)
+        self.dropGroupB.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickGroupB)
         self.SetupGroups()
         szrVarsTop.Add(self.lblGroupB, 0, wx.RIGHT, 5)
         szrVarsTop.Add(self.dropGroupB, 0, wx.GROW)
@@ -132,8 +134,37 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
         self.Fit()
-    
-    def SetupGroups(self, var_a=None, var_b=None):
+
+    def OnRightClickGroupA(self, event):
+        var_a, choice_item = self.GetVarA()
+        var_name, var_label = getdata.extractChoiceDets(choice_item)
+        updated = projects.SetVarProps(choice_item, var_name, var_label, 
+                                    self.flds, self.var_labels, self.var_notes, 
+                                    self.val_dics, self.fil_labels)
+        if updated:
+            fld_choice_items = self.GetGroupChoices()
+            self.SetupGroupA(fld_choice_items, var_a)
+            self.UpdateDefaults()
+            self.UpdatePhrase()
+
+    def OnRightClickGroupB(self, event):
+        var_b, choice_item = self.GetVarB()
+        var_name, var_label = getdata.extractChoiceDets(choice_item)
+        updated = projects.SetVarProps(choice_item, var_name, var_label, 
+                                    self.flds, self.var_labels, self.var_notes, 
+                                    self.val_dics, self.fil_labels)
+        if updated:
+            fld_choice_items = self.GetGroupChoices()
+            self.SetupGroupB(fld_choice_items, var_b)
+            self.UpdateDefaults()
+            self.UpdatePhrase()
+            
+    def GetGroupChoices(self):
+        """
+        Get group choice items.
+        Also stores var names, and var names sorted by their labels (for later 
+            reference).
+        """
         if self.num_vars_only:
             # only want the fields which are numeric
             self.var_names = [x for x in self.flds if \
@@ -143,8 +174,10 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         fld_choice_items, self.sorted_var_names = \
             getdata.getSortedChoiceItems(dic_labels=self.var_labels, 
                                          vals=self.var_names)
+        return fld_choice_items
+       
+    def SetupGroupA(self, fld_choice_items, var_a=None):        
         self.dropGroupA.SetItems(fld_choice_items)
-        # set selections
         if var_a:
             item_new_version_a = getdata.getChoiceItem(self.var_labels, var_a)
             idx_a = fld_choice_items.index(item_new_version_a)
@@ -155,7 +188,10 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
                     idx_a = fld_choice_items.index(my_globals.group_a_default)
                 except ValueError:
                     pass
-        self.dropGroupA.SetSelection(idx_a)
+        self.dropGroupA.SetSelection(idx_a)            
+
+    def SetupGroupB(self, fld_choice_items, var_b=None):        
+        self.dropGroupB.SetItems(fld_choice_items)
         self.dropGroupB.SetItems(fld_choice_items)
         if var_b:
             item_new_version_b = getdata.getChoiceItem(self.var_labels, var_b)
@@ -167,7 +203,12 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
                     idx_b = fld_choice_items.index(my_globals.group_b_default)
                 except ValueError:
                     pass
-        self.dropGroupB.SetSelection(idx_b) 
+        self.dropGroupB.SetSelection(idx_b)
+             
+    def SetupGroups(self, var_a=None, var_b=None):
+        fld_choice_items = self.GetGroupChoices()
+        self.SetupGroupA(fld_choice_items, var_a)
+        self.SetupGroupB(fld_choice_items, var_b)
     
     def OnDatabaseSel(self, event):
         """
@@ -184,15 +225,25 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.UpdateLabels()
         self.SetupGroups()
 
+    def GetVarA(self):
+        idx_a = self.dropGroupA.GetSelection()
+        var_a = self.sorted_var_names[idx_a]
+        var_a_item = self.dropGroupA.GetStringSelection()
+        return var_a, var_a_item
+
+    def GetVarB(self):
+        idx_b = self.dropGroupB.GetSelection()
+        var_b = self.sorted_var_names[idx_b]
+        var_b_item = self.dropGroupB.GetStringSelection()
+        return var_b, var_b_item
+    
     def GetVars(self):
         """
         self.sorted_var_names is set when dropdowns are set 
             (and only changed when reset).
         """
-        idx_a = self.dropGroupA.GetSelection()
-        var_a = self.sorted_var_names[idx_a]
-        idx_b = self.dropGroupB.GetSelection()
-        var_b = self.sorted_var_names[idx_b]
+        var_a, _ = self.GetVarA()
+        var_b, _ = self.GetVarB()
         return var_a, var_b
 
     def OnLabelFileLostFocus(self, event):

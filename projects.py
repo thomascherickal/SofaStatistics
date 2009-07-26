@@ -7,6 +7,7 @@ import os
 import my_globals
 import getdata
 import projselect
+import table_entry
 import util
 
 LOCAL_PATH = my_globals.LOCAL_PATH
@@ -53,6 +54,128 @@ def GetLabels(fil_labels):
             "'%s': var_labels, var_notes, and val_dics.  " + \
             "Please check file." % fil_labels
     return results
+
+def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes, 
+                val_dics, fil_labels):
+    """
+    For selected variable (name) gives user ability to set properties e.g.
+        value labels.  Then stores in appropriate labels file.
+    Returns True if user clicks OK to properties (presumably modified).
+    """
+    # get val_dic for variable (if any) and display in editable list
+    data = []
+    if val_dics.get(var_name):
+        val_dic = val_dics.get(var_name)
+        if val_dic:
+            for key, value in val_dic.items():
+                data.append((str(key), str(value)))
+    new_grid_data = []
+    # get new_grid_data back updated
+    bolnumeric = flds[var_name][my_globals.FLD_BOLNUMERIC]
+    boldecimal = flds[var_name][my_globals.FLD_DECPTS]
+    if bolnumeric:
+        if boldecimal:
+            val_type = table_entry.COL_FLOAT
+        else:
+            val_type = table_entry.COL_INT
+    else:
+        val_type = table_entry.COL_STR
+    title = "Settings for %s" % choice_item
+    notes = var_notes.get(var_name, "")
+    var_desc = [var_label, notes]
+    getsettings = GetSettings(title, var_desc, data, new_grid_data, 
+                              val_type)
+    ret = getsettings.ShowModal()
+    if ret == wx.ID_OK:
+        # var label
+        var_labels[var_name] = var_desc[0]
+        # var notes
+        var_notes[var_name] = var_desc[1]
+        # val dics
+        new_val_dic = {}
+        new_data_rows_n = len(new_grid_data)
+        for i in range(new_data_rows_n):
+            # the key is always returned as a string 
+            # but we may need to store it as a number
+            key, value = new_grid_data[i]
+            if val_type == table_entry.COL_FLOAT:
+                key = float(key)
+            elif val_type == table_entry.COL_INT:
+                key = int(key)
+            new_val_dic[key] = value
+        val_dics[var_name] = new_val_dic
+        # update lbl file
+        f = file(fil_labels, "w")
+        f.write("\nvar_labels=" + pprint.pformat(var_labels))
+        f.write("\nvar_notes=" + pprint.pformat(var_notes))
+        f.write("\n\nval_dics=" + pprint.pformat(val_dics))
+        f.close()
+        return True
+    else:
+        return False
+    
+    
+class GetSettings(table_entry.TableEntryDlg):
+    
+    def __init__(self, title, var_desc, data, new_grid_data, val_type):
+        """
+        data - list of tuples (must have at least one item, even if only a 
+            "rename me".
+        col_dets - See under table_entry.TableEntry
+        new_grid_data - add details to it in form of a list of tuples.
+        """
+        col_dets = [{"col_label": "Value", "col_type": val_type, 
+                     "col_width": 50}, 
+                    {"col_label": "Label", "col_type": table_entry.COL_STR, 
+                     "col_width": 200},
+                     ]
+        grid_size = (250, 250)
+        wx.Dialog.__init__(self, None, title=title,
+                          size=(400,400), 
+                          style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
+                              wx.SYSTEM_MENU)
+        self.panel = wx.Panel(self)
+        self.var_desc = var_desc
+        # New controls
+        lblVarLabel = wx.StaticText(self.panel, -1, "Variable Label:")
+        lblVarLabel.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        lblVarNotes = wx.StaticText(self.panel, -1, "Notes:")
+        lblVarNotes.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        self.txtVarLabel = wx.TextCtrl(self.panel, -1, self.var_desc[0], 
+                                       size=(250,-1))
+        self.txtVarNotes = wx.TextCtrl(self.panel, -1, self.var_desc[1], 
+                                       size=(50,40), style=wx.TE_MULTILINE)        
+        # sizers
+        self.szrMain = wx.BoxSizer(wx.VERTICAL)
+        self.szrVarLabel = wx.BoxSizer(wx.HORIZONTAL)
+        self.szrVarLabel.Add(lblVarLabel, 0, wx.RIGHT, 5)
+        self.szrVarLabel.Add(self.txtVarLabel, 1, wx.GROW)
+        self.szrVarNotes = wx.BoxSizer(wx.HORIZONTAL)
+        self.szrVarNotes.Add(lblVarNotes, 0, wx.GROW|wx.RIGHT, 5)
+        self.szrVarNotes.Add(self.txtVarNotes, 1, wx.GROW)
+        self.szrMain.Add(self.szrVarLabel, 0, wx.ALL, 10)
+        self.szrMain.Add(self.szrVarNotes, 1, 
+                         wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        self.tabentry = table_entry.TableEntry(self, self.panel, 
+                                               self.szrMain, False, 
+                                               grid_size, col_dets, data,  
+                                               new_grid_data)
+        self.SetupButtons()
+        self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
+        self.panel.SetSizer(self.szrMain)
+        self.szrMain.SetSizeHints(self)
+        self.Layout()
+        self.tabentry.grid.SetFocus()
+
+    def OnOK(self, event):
+        "Override so we can extend to include var label and notes"
+        self.var_desc.pop()
+        self.var_desc.pop() # emptied but same list
+        self.var_desc.append(self.txtVarLabel.GetValue())
+        self.var_desc.append(self.txtVarNotes.GetValue())
+        self.tabentry.UpdateNewGridData()
+        self.Destroy()
+        self.SetReturnCode(wx.ID_OK)
 
 
 class ProjectDlg(wx.Dialog):
