@@ -261,7 +261,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
                         "file_phrase": "Choose an SQLite database file"}]
     parent.sqlite_new_grid_data = []
     parent.sqlite_grid = table_entry.TableEntry(frame=parent, 
-        panel=scroll, szr=parent.szrSqlite, read_only=read_only, 
+        panel=scroll, szr=parent.szrSqlite, vert_share=1, read_only=read_only, 
         grid_size=(550, 100), col_dets=sqlite_col_dets, 
         data=parent.sqlite_data, new_grid_data=parent.sqlite_new_grid_data)
     szr.Add(parent.szrSqlite, 0, wx.GROW|wx.ALL, 10)

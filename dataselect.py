@@ -22,8 +22,8 @@ class DataSelectDlg(wx.Dialog):
         lblChoose = wx.StaticText(self.panel, -1, 
                                   "Choose an existing data table ...")
         proj_dic = projects.GetProjSettingsDic(proj_name=proj_name)
-        self.var_labels, self.var_notes, self.val_dics = \
-            projects.GetLabels(proj_dic["fil_labels"])
+        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
+            projects.GetVarDets(proj_dic["fil_var_dets"])
         self.dbe = proj_dic["default_dbe"]
         self.conn_dets = proj_dic["conn_dets"]
         self.default_dbs = proj_dic["default_dbs"] \

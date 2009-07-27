@@ -38,15 +38,15 @@ class GenConfig(object):
         self.lblTables.SetFont(self.LABEL_FONT)
         self.dropTables.Bind(wx.EVT_CHOICE, self.OnTableSel)
         # Data config details
-        self.lblLabelPath = wx.StaticText(self.panel, -1, "Labels:")
+        self.lblLabelPath = wx.StaticText(self.panel, -1, "Details:")
         self.lblLabelPath.SetFont(self.LABEL_FONT)
-        self.txtLabelsFile = wx.TextCtrl(self.panel, -1, self.fil_labels, 
+        self.txtVarDetsFile = wx.TextCtrl(self.panel, -1, self.fil_var_dets, 
                                          size=(250,-1))
-        self.txtLabelsFile.Bind(wx.EVT_KILL_FOCUS, self.OnLabelFileLostFocus)
-        self.btnLabelPath = wx.Button(self.panel, -1, "Browse ...")
-        self.btnLabelPath.Bind(wx.EVT_BUTTON, self.OnButtonLabelPath)
-        #self.btnLabelPath.Bind(wx.EVT_ENTER_WINDOW, self.LabelPathEnterWindow)
-        #self.btnLabelPath.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
+        self.txtVarDetsFile.Bind(wx.EVT_KILL_FOCUS, self.OnVarDetsFileLostFocus)
+        self.btnVarDetsPath = wx.Button(self.panel, -1, "Browse ...")
+        self.btnVarDetsPath.Bind(wx.EVT_BUTTON, self.OnButtonVarDetsPath)
+        #self.btnVarDetsPath.Bind(wx.EVT_ENTER_WINDOW, self.LabelPathEnterWindow)
+        #self.btnVarDetsPath.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         # CSS style config details
         self.lblCssPath = wx.StaticText(self.panel, -1, "Style:")
         self.lblCssPath.SetFont(self.LABEL_FONT)
@@ -96,13 +96,13 @@ class GenConfig(object):
         self.szrData.Add(szrDataInner)
         #2 CONFIG
         #3 DATA CONFIG
-        bxDataConfig = wx.StaticBox(self.panel, -1, "Data Config")
+        bxDataConfig = wx.StaticBox(self.panel, -1, "Variable Config")
         szrDataConfig = wx.StaticBoxSizer(bxDataConfig, wx.HORIZONTAL)
         #3 DATA CONFIG INNER
         szrDataConfigInner = wx.BoxSizer(wx.HORIZONTAL)
         szrDataConfigInner.Add(self.lblLabelPath, 0, wx.LEFT|wx.RIGHT, 5)
-        szrDataConfigInner.Add(self.txtLabelsFile, 1, wx.GROW|wx.RIGHT, 10)
-        szrDataConfigInner.Add(self.btnLabelPath, 0)
+        szrDataConfigInner.Add(self.txtVarDetsFile, 1, wx.GROW|wx.RIGHT, 10)
+        szrDataConfigInner.Add(self.btnVarDetsPath, 0)
         szrDataConfig.Add(szrDataConfigInner, 1)
         self.szrConfig.Add(szrDataConfig, 1, wx.RIGHT, 10)
         #3 CSS CONFIG
@@ -128,11 +128,11 @@ class GenConfig(object):
         szrOutputInner.Add(self.btnScriptPath, 0)
         self.szrOutput.Add(szrOutputInner, 1)
 
-    def UpdateLabels(self):
-        "Update all labels, including those already displayed"
-        self.fil_labels = self.txtLabelsFile.GetValue()
-        self.var_labels, self.var_notes, self.val_dics = \
-            projects.GetLabels(self.fil_labels)
+    def UpdateVarDets(self):
+        "Update all variable details, including those already displayed"
+        self.fil_var_dets = self.txtVarDetsFile.GetValue()
+        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
+            projects.GetVarDets(self.fil_var_dets)
 
     # database/ tables (and views)
     def OnDatabaseSel(self, event):
@@ -193,20 +193,20 @@ class GenConfig(object):
         self.fil_script = self.txtScriptFile.GetValue()
     
     # label config
-    def OnLabelFileLostFocus(self, event):
+    def OnVarDetsFileLostFocus(self, event):
         ""
-        self.UpdateLabels()
+        self.UpdateVarDets()
 
-    def OnButtonLabelPath(self, event):
-        "Open dialog and takes the labels file selected (if any)"
-        dlgGetFile = wx.FileDialog(self, "Choose a label config file:", 
-            defaultDir=os.path.join(LOCAL_PATH, "lbls"), 
-            defaultFile="", wildcard="Config files (*.lbls)|*.lbls")
+    def OnButtonVarDetsPath(self, event):
+        "Open dialog and takes the variable details file selected (if any)"
+        dlgGetFile = wx.FileDialog(self, "Choose a variable config file:", 
+            defaultDir=os.path.join(LOCAL_PATH, "vdts"), 
+            defaultFile="", wildcard="Config files (*.vdts)|*.vdts")
             #MUST have a parent to enforce modal in Windows
         if dlgGetFile.ShowModal() == wx.ID_OK:
-            fil_labels = "%s" % dlgGetFile.GetPath()
-            self.txtLabelsFile.SetValue(fil_labels)
-            self.UpdateLabels()
+            fil_var_dets = "%s" % dlgGetFile.GetPath()
+            self.txtVarDetsFile.SetValue(fil_var_dets)
+            self.UpdateVarDets()
         dlgGetFile.Destroy()        
 
     #def LabelPathEnterWindow(self, event):

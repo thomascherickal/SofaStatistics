@@ -31,7 +31,7 @@ class DlgMakeTable(wx.Dialog,
     """
     
     def __init__(self, dbe, conn_dets, default_dbs=None, 
-                 default_tbls=None, fil_labels="", fil_css="", fil_report="", 
+                 default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
                  fil_script="", var_labels=None, var_notes=None, 
                  val_dics=None):
          
@@ -45,12 +45,12 @@ class DlgMakeTable(wx.Dialog,
         self.conn_dets = conn_dets
         self.default_dbs = default_dbs
         self.default_tbls = default_tbls
-        self.fil_labels = fil_labels
+        self.fil_var_dets = fil_var_dets
         self.fil_css = fil_css
         self.fil_report = fil_report
         self.fil_script = fil_script        
-        self.var_labels, self.var_notes, self.val_dics = \
-            projects.GetLabels(fil_labels)            
+        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
+            projects.GetVarDets(fil_var_dets)            
         self.open_html = []
         self.open_scripts = []
         self.col_no_vars_item = None # needed if no variable in columns

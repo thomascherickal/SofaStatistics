@@ -26,7 +26,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
     """
     
     def __init__(self, title, dbe, conn_dets, default_dbs=None, 
-                 default_tbls=None, fil_labels="", fil_css="", fil_report="", 
+                 default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
                  fil_script="", num_vars_only=True):
          
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
@@ -39,13 +39,13 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.conn_dets = conn_dets
         self.default_dbs = default_dbs
         self.default_tbls = default_tbls
-        self.fil_labels = fil_labels
+        self.fil_var_dets = fil_var_dets
         self.fil_css = fil_css
         self.fil_report = fil_report
         self.fil_script = fil_script
         self.num_vars_only = num_vars_only
-        self.var_labels, self.var_notes, self.val_dics = \
-            projects.GetLabels(fil_labels)            
+        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
+            projects.GetVarDets(fil_var_dets)            
         self.open_html = []
         self.open_scripts = []
         # set up panel for frame
@@ -139,8 +139,8 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         var_a, choice_item = self.GetVarA()
         var_name, var_label = getdata.extractChoiceDets(choice_item)
         updated = projects.SetVarProps(choice_item, var_name, var_label, 
-                                    self.flds, self.var_labels, self.var_notes, 
-                                    self.val_dics, self.fil_labels)
+                            self.flds, self.var_labels, self.var_notes, 
+                            self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
             fld_choice_items = self.GetGroupChoices()
             self.SetupGroupA(fld_choice_items, var_a)
@@ -151,8 +151,8 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         var_b, choice_item = self.GetVarB()
         var_name, var_label = getdata.extractChoiceDets(choice_item)
         updated = projects.SetVarProps(choice_item, var_name, var_label, 
-                                    self.flds, self.var_labels, self.var_notes, 
-                                    self.val_dics, self.fil_labels)
+                            self.flds, self.var_labels, self.var_notes, 
+                            self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
             fld_choice_items = self.GetGroupChoices()
             self.SetupGroupB(fld_choice_items, var_b)
@@ -216,13 +216,13 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
             fields, has_unique, and idxs after a database selection.
         """
         gen_config.GenConfig.OnDatabaseSel(self, event)
-        self.UpdateLabels()
+        self.UpdateVarDets()
         self.SetupGroups()
                 
     def OnTableSel(self, event):
         "Reset key data details after table selection."       
         gen_config.GenConfig.OnTableSel(self, event)
-        self.UpdateLabels()
+        self.UpdateVarDets()
         self.SetupGroups()
 
     def GetVarA(self):
@@ -246,15 +246,15 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         var_b, _ = self.GetVarB()
         return var_a, var_b
 
-    def OnLabelFileLostFocus(self, event):
+    def OnVarDetsFileLostFocus(self, event):
         var_a, var_b = self.GetVars()
-        gen_config.GenConfig.OnLabelFileLostFocus(self, event)
+        gen_config.GenConfig.OnVarDetsFileLostFocus(self, event)
         self.SetupGroups(var_a, var_b)
         self.UpdatePhrase()
         
-    def OnButtonLabelPath(self, event):
+    def OnButtonVarDetsPath(self, event):
         var_a, var_b = self.GetVars()
-        gen_config.GenConfig.OnButtonLabelPath(self, event)
+        gen_config.GenConfig.OnButtonVarDetsPath(self, event)
         self.SetupGroups(var_a, var_b)
         self.UpdatePhrase()
         

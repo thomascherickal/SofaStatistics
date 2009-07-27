@@ -82,7 +82,7 @@ def InstallLocal():
     sofa_prog_path = os.path.join(util.get_prog_path(), "sofa")
     default_proj = os.path.join(LOCAL_PATH, "projs",  
                                 "SOFA_Default_Project.proj")
-    paths = ["css", my_globals.INTERNAL_FOLDER, "lbls", "projs", "reports", 
+    paths = ["css", my_globals.INTERNAL_FOLDER, "vdts", "projs", "reports", 
              "scripts"]
     if not os.path.exists(LOCAL_PATH):
             # In Windows these steps are completed by the installer - but only
@@ -90,7 +90,7 @@ def InstallLocal():
             # create required folders
             for path in paths:
                 os.makedirs(os.path.join(LOCAL_PATH, path))
-            # copy across default proj, lbls, css
+            # copy across default proj, vdts, css
             shutil.copy(os.path.join(sofa_prog_path, "css", "alt_style.css"), 
                         os.path.join(LOCAL_PATH, "css", "alt_style.css"))
             shutil.copy(os.path.join(sofa_prog_path, "css", 
@@ -101,10 +101,10 @@ def InstallLocal():
                                      "SOFA_Default_db"), 
                         os.path.join(LOCAL_PATH, my_globals.INTERNAL_FOLDER, 
                                      "SOFA_Default_db"))
-            shutil.copy(os.path.join(sofa_prog_path, "lbls", 
-                                     "SOFA_Default_Labels.lbls"), 
-                        os.path.join(LOCAL_PATH, "lbls", 
-                                     "SOFA_Default_Labels.lbls"))
+            shutil.copy(os.path.join(sofa_prog_path, "vdts", 
+                                     "SOFA_Default_Var_Dets.vdts"), 
+                        os.path.join(LOCAL_PATH, "vdts", 
+                                     "SOFA_Default_Var_Dets.vdts"))
             shutil.copy(os.path.join(sofa_prog_path, "projs", 
                                      "SOFA_Default_Project.proj"), 
                         default_proj)
@@ -221,7 +221,7 @@ class StartFrame(wx.Frame):
         self.btnTables = wx.BitmapButton(self.panel, -1, bmp_btn_tables, 
                                          pos=(btn_x_pos, g.next()))
         self.btnTables.Bind(wx.EVT_BUTTON, self.OnTablesClick)
-        self.btnTables.Bind(wx.EVT_ENTER_WINDOW, self.OnTablesEnter)       
+        self.btnTables.Bind(wx.EVT_ENTER_WINDOW, self.OnTablesEnter)
         bmp_btn_charts = TextOnBitmap(GetBlankButtonBitmap(), "Charts", 
                                       font_buttons, "white")
         self.btnCharts = wx.BitmapButton(self.panel, -1, bmp_btn_charts, 
@@ -405,7 +405,7 @@ class StartFrame(wx.Frame):
         dlg = make_table_gui.DlgMakeTable( 
             proj_dic["default_dbe"], proj_dic["conn_dets"], 
             proj_dic["default_dbs"], proj_dic["default_tbls"], 
-            proj_dic["fil_labels"], proj_dic["fil_css"], 
+            proj_dic["fil_var_dets"], proj_dic["fil_css"], 
             proj_dic["fil_report"], proj_dic["fil_script"])
         dlg.ShowModal()
         event.Skip()
@@ -446,7 +446,7 @@ class StartFrame(wx.Frame):
         dlg = stats_select.StatsSelectDlg( 
             proj_dic["default_dbe"], proj_dic["conn_dets"], 
             proj_dic["default_dbs"], proj_dic["default_tbls"], 
-            proj_dic["fil_labels"], proj_dic["fil_css"], 
+            proj_dic["fil_var_dets"], proj_dic["fil_css"], 
             proj_dic["fil_report"], proj_dic["fil_script"])
         dlg.ShowModal()
         event.Skip()

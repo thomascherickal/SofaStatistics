@@ -27,7 +27,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
     """
     
     def __init__(self, title, dbe, conn_dets, default_dbs=None, 
-                 default_tbls=None, fil_labels="", fil_css="", fil_report="", 
+                 default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
                  fil_script="", takes_range=False):
          
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
@@ -40,13 +40,13 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.conn_dets = conn_dets
         self.default_dbs = default_dbs
         self.default_tbls = default_tbls
-        self.fil_labels = fil_labels
+        self.fil_var_dets = fil_var_dets
         self.fil_css = fil_css
         self.fil_report = fil_report
         self.fil_script = fil_script
         self.takes_range = takes_range     
-        self.var_labels, self.var_notes, self.val_dics = \
-            projects.GetLabels(fil_labels)            
+        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
+            projects.GetVarDets(fil_var_dets)            
         self.open_html = []
         self.open_scripts = []
         # set up panel for frame
@@ -167,8 +167,8 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         var_by, choice_item = self.GetGroupBy()
         var_name, var_label = getdata.extractChoiceDets(choice_item)
         updated = projects.SetVarProps(choice_item, var_name, var_label, 
-                                    self.flds, self.var_labels, self.var_notes, 
-                                    self.val_dics, self.fil_labels)
+                            self.flds, self.var_labels, self.var_notes, 
+                            self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
             self.SetupGroupBy(var_by)
             self.UpdateDefaults()
@@ -178,8 +178,8 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         var_avg, choice_item = self.GetAvg()
         var_name, var_label = getdata.extractChoiceDets(choice_item)
         updated = projects.SetVarProps(choice_item, var_name, var_label, 
-                                    self.flds, self.var_labels, self.var_notes, 
-                                    self.val_dics, self.fil_labels)
+                            self.flds, self.var_labels, self.var_notes, 
+                            self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
             self.SetupAvg(var_avg)
             self.UpdateDefaults()
@@ -202,7 +202,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         """
         gen_config.GenConfig.OnDatabaseSel(self, event)
         # now update var dropdowns
-        self.UpdateLabels()
+        self.UpdateVarDets()
         self.SetupGroupBy()
         self.SetupAvg()
         self.SetupGroupDropdowns()
@@ -211,33 +211,33 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         "Reset key data details after table selection."       
         gen_config.GenConfig.OnTableSel(self, event)
         # now update var dropdowns
-        self.UpdateLabels()
+        self.UpdateVarDets()
         self.SetupGroupBy()
         self.SetupAvg()
         self.SetupGroupDropdowns()
     
-    def OnLabelFileLostFocus(self, event):
+    def OnVarDetsFileLostFocus(self, event):
         """
         Want to retain already selected item - even though label and even 
             position may have changed.
         """
         val_a, val_b = self.GetVals()
         var_by, var_avg = self.GetVars()
-        gen_config.GenConfig.OnLabelFileLostFocus(self, event)
+        gen_config.GenConfig.OnVarDetsFileLostFocus(self, event)
         self.SetupGroupBy(var_by)
         self.SetupAvg(var_avg)
         self.SetupGroupDropdowns(val_a, val_b)
         self.UpdateDefaults()
         self.UpdatePhrase()
         
-    def OnButtonLabelPath(self, event):
+    def OnButtonVarDetsPath(self, event):
         """
         Want to retain already selected item - even though label and even 
             position may have changed.
         """
         val_a, val_b = self.GetVals()
         var_by, var_avg = self.GetVars()
-        gen_config.GenConfig.OnButtonLabelPath(self, event)
+        gen_config.GenConfig.OnButtonVarDetsPath(self, event)
         self.SetupGroupBy(var_by)
         self.SetupAvg(var_avg)
         self.SetupGroupDropdowns(val_a, val_b)

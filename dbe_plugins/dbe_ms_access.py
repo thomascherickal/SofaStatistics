@@ -325,7 +325,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     msaccess_col_dets = [col_det_db, col_det_sec, col_det_usr, col_det_pwd]
     parent.msaccess_new_grid_data = []
     parent.msaccess_grid = table_entry.TableEntry(frame=parent, 
-        panel=scroll, szr=parent.szrMsaccess, read_only=read_only, 
+        panel=scroll, szr=parent.szrMsaccess, vert_share=1, read_only=read_only, 
         grid_size=(1000, 100), col_dets=msaccess_col_dets, 
         data=parent.msaccess_data, 
         new_grid_data=parent.msaccess_new_grid_data)

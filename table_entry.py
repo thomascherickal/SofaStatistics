@@ -25,7 +25,7 @@ class TableEntryDlg(wx.Dialog):
                               wx.SYSTEM_MENU, pos=(300, 0))
         self.panel = wx.Panel(self)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
-        self.tabentry = TableEntry(self, self.panel, self.szrMain, grid_size, 
+        self.tabentry = TableEntry(self, self.panel, self.szrMain, 1, grid_size, 
                                    col_dets, data, new_grid_data)
         # Close
         self.SetupButtons()
@@ -63,9 +63,10 @@ class TableEntryDlg(wx.Dialog):
     
                 
 class TableEntry(object):
-    def __init__(self, frame, panel, szr, read_only, grid_size, col_dets, 
-                 data, new_grid_data):
+    def __init__(self, frame, panel, szr, vert_share, read_only, grid_size, 
+                 col_dets, data, new_grid_data):
         """
+        vert_share - vertical share of sizer supplied.
         col_dets - list of dic.  Keys = "col_label", "col_type", 
             and, optionally, "col_width", "file_phrase", "file_wildcard", 
             "empty_ok", "col_min_val", "col_max_val", "col_precision".
@@ -80,7 +81,7 @@ class TableEntry(object):
         self.read_only = read_only
         self.col_dets = col_dets
         self.SetupGrid(grid_size, data, new_grid_data)
-        self.szr.Add(self.grid, 1, wx.GROW|wx.ALL, 5)
+        self.szr.Add(self.grid, vert_share, wx.GROW|wx.ALL, 5)
 
     def SetupGrid(self, size, data, new_grid_data):
         """

@@ -21,7 +21,7 @@ def GetProjs():
 
 def GetProjSettingsDic(proj_name):
     """
-    Returns proj_dic with keys such as conn_dets, fil_labels etc.
+    Returns proj_dic with keys such as conn_dets, fil_var_dets etc.
     proj_name MUST include .proj on end
     """
     f = open(os.path.join(LOCAL_PATH, "projs", proj_name), "r")
@@ -30,33 +30,34 @@ def GetProjSettingsDic(proj_name):
     f.close()
     return proj_dic
 
-def GetLabels(fil_labels):
+def GetVarDets(fil_var_dets):
     """
-    Get variable and value labels from fil_labels file.
-    Returns var_labels, var_notes, val_dics.
+    Get variable details from fil_var_dets file.
+    Returns var_labels, var_notes, var_types, val_dics.
     """
     try:
-        fil = file(fil_labels, "r")
+        fil = file(fil_var_dets, "r")
     except IOError:
         var_labels = {}
         var_notes = {}
+        var_types = {}
         val_dics = {}
-        return var_labels, var_notes, val_dics
+        return var_labels, var_notes, var_types, val_dics
     labels = fil.read()
     fil.close()
     labels_dic = {}
     exec labels in labels_dic
     try:
         results = labels_dic["var_labels"], labels_dic["var_notes"], \
-                      labels_dic["val_dics"]
+                      labels_dic["var_types"], labels_dic["val_dics"]
     except Exception, e:
         raise Exception, "Three variables needed in " + \
-            "'%s': var_labels, var_notes, and val_dics.  " + \
-            "Please check file." % fil_labels
+            "'%s': var_labels, var_notes, var_types, and val_dics.  " + \
+            "Please check file." % fil_var_dets
     return results
 
 def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes, 
-                val_dics, fil_labels):
+                var_types, val_dics, fil_var_dets):
     """
     For selected variable (name) gives user ability to set properties e.g.
         value labels.  Then stores in appropriate labels file.
@@ -73,6 +74,7 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
     # get new_grid_data back updated
     bolnumeric = flds[var_name][my_globals.FLD_BOLNUMERIC]
     boldecimal = flds[var_name][my_globals.FLD_DECPTS]
+    boldatetime = flds[var_name][my_globals.FLD_BOLDATETIME]
     if bolnumeric:
         if boldecimal:
             val_type = table_entry.COL_FLOAT
@@ -82,15 +84,25 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
         val_type = table_entry.COL_STR
     title = "Settings for %s" % choice_item
     notes = var_notes.get(var_name, "")
-    var_desc = [var_label, notes]
+    # if nothing recorded, choose useful default variable type
+    if bolnumeric:
+        def_type = my_globals.VAR_TYPE_QUANT # have to trust the user somewhat!
+    elif boldatetime:
+        def_type = my_globals.VAR_TYPE_ORD
+    else:
+        def_type = my_globals.VAR_TYPE_CAT
+    type = var_types.get(var_name, def_type)
+    var_desc = {"label": var_label, "notes": notes, "type": type}
     getsettings = GetSettings(title, var_desc, data, new_grid_data, 
                               val_type)
     ret = getsettings.ShowModal()
     if ret == wx.ID_OK:
         # var label
-        var_labels[var_name] = var_desc[0]
+        var_labels[var_name] = var_desc["label"]
         # var notes
-        var_notes[var_name] = var_desc[1]
+        var_notes[var_name] = var_desc["notes"]
+        # var type
+        var_types[var_name] = var_desc["type"]
         # val dics
         new_val_dic = {}
         new_data_rows_n = len(new_grid_data)
@@ -105,9 +117,10 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
             new_val_dic[key] = value
         val_dics[var_name] = new_val_dic
         # update lbl file
-        f = file(fil_labels, "w")
+        f = file(fil_var_dets, "w")
         f.write("\nvar_labels=" + pprint.pformat(var_labels))
         f.write("\nvar_notes=" + pprint.pformat(var_notes))
+        f.write("\nvar_types=" + pprint.pformat(var_types))
         f.write("\n\nval_dics=" + pprint.pformat(val_dics))
         f.close()
         return True
@@ -141,10 +154,15 @@ class GetSettings(table_entry.TableEntryDlg):
         lblVarLabel.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         lblVarNotes = wx.StaticText(self.panel, -1, "Notes:")
         lblVarNotes.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.txtVarLabel = wx.TextCtrl(self.panel, -1, self.var_desc[0], 
+        self.txtVarLabel = wx.TextCtrl(self.panel, -1, self.var_desc["label"], 
                                        size=(250,-1))
-        self.txtVarNotes = wx.TextCtrl(self.panel, -1, self.var_desc[1], 
-                                       size=(50,40), style=wx.TE_MULTILINE)        
+        self.txtVarNotes = wx.TextCtrl(self.panel, -1, self.var_desc["notes"], 
+                                       size=(50,20), style=wx.TE_MULTILINE)
+        self.radDataType = wx.RadioBox(self.panel, -1, "Data Type",
+                                       choices=[my_globals.VAR_TYPE_CAT,
+                                                my_globals.VAR_TYPE_ORD,
+                                                my_globals.VAR_TYPE_QUANT])
+        self.radDataType.SetStringSelection(self.var_desc["type"])
         # sizers
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         self.szrVarLabel = wx.BoxSizer(wx.HORIZONTAL)
@@ -156,8 +174,9 @@ class GetSettings(table_entry.TableEntryDlg):
         self.szrMain.Add(self.szrVarLabel, 0, wx.ALL, 10)
         self.szrMain.Add(self.szrVarNotes, 1, 
                          wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        self.szrMain.Add(self.radDataType, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         self.tabentry = table_entry.TableEntry(self, self.panel, 
-                                               self.szrMain, False, 
+                                               self.szrMain, 2, False, 
                                                grid_size, col_dets, data,  
                                                new_grid_data)
         self.SetupButtons()
@@ -168,11 +187,12 @@ class GetSettings(table_entry.TableEntryDlg):
         self.tabentry.grid.SetFocus()
 
     def OnOK(self, event):
-        "Override so we can extend to include var label and notes"
-        self.var_desc.pop()
-        self.var_desc.pop() # emptied but same list
-        self.var_desc.append(self.txtVarLabel.GetValue())
-        self.var_desc.append(self.txtVarNotes.GetValue())
+        """
+        Override so we can extend to include variable label, type, and notes.
+        """        
+        self.var_desc["label"] = self.txtVarLabel.GetValue()
+        self.var_desc["notes"] = self.txtVarNotes.GetValue()
+        self.var_desc["type"] = self.radDataType.GetStringSelection()
         self.tabentry.UpdateNewGridData()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
@@ -212,16 +232,16 @@ class ProjectDlg(wx.Dialog):
         except AttributeError:
             self.proj_notes = ""
         try:
-            self.fil_labels
+            self.fil_var_dets
         except AttributeError:
             # make empty labels file if necessary
-            fil_default_lbls = os.path.join(LOCAL_PATH, "lbls", 
+            fil_default_var_dets = os.path.join(LOCAL_PATH, "vdts", 
                                             my_globals.SOFA_DEFAULT_LBLS)
-            if not os.path.exists(fil_default_lbls):
-                f = open(fil_default_lbls, "w")
-                f.write("# add labels here")
+            if not os.path.exists(fil_default_var_dets):
+                f = open(fil_default_var_dets, "w")
+                f.write("# add variable details here")
                 f.close()
-            self.fil_labels = fil_default_lbls
+            self.fil_var_dets = fil_default_var_dets
         try:            
             self.fil_css
         except AttributeError:
@@ -262,12 +282,12 @@ class ProjectDlg(wx.Dialog):
         # Data config details
         lblLabelPath = wx.StaticText(self.panel_top, -1, "Labels:")
         lblLabelPath.SetFont(lblfont)
-        self.txtLabelsFile = wx.TextCtrl(self.panel_top, -1, self.fil_labels, 
-                                         size=(320,-1))
-        self.txtLabelsFile.Enable(not self.read_only)
-        btnLabelPath = wx.Button(self.panel_top, -1, "Browse ...")
-        btnLabelPath.Bind(wx.EVT_BUTTON, self.OnButtonLabelPath)
-        btnLabelPath.Enable(not self.read_only)
+        self.txtVarDetsFile = wx.TextCtrl(self.panel_top, -1, self.fil_var_dets, 
+                                          size=(320,-1))
+        self.txtVarDetsFile.Enable(not self.read_only)
+        btnVarDetsPath = wx.Button(self.panel_top, -1, "Browse ...")
+        btnVarDetsPath.Bind(wx.EVT_BUTTON, self.OnButtonVarDetsPath)
+        btnVarDetsPath.Enable(not self.read_only)
         # CSS style config details
         lblCssPath = wx.StaticText(self.panel_top, -1, "CSS:")
         lblCssPath.SetFont(lblfont)
@@ -323,8 +343,8 @@ class ProjectDlg(wx.Dialog):
         #3 DATA CONFIG INNER
         szrDataConfigInner = wx.BoxSizer(wx.HORIZONTAL)
         szrDataConfigInner.Add(lblLabelPath, 0, wx.LEFT|wx.RIGHT, 5)
-        szrDataConfigInner.Add(self.txtLabelsFile, 1, wx.GROW|wx.RIGHT, 10)
-        szrDataConfigInner.Add(btnLabelPath, 0)
+        szrDataConfigInner.Add(self.txtVarDetsFile, 1, wx.GROW|wx.RIGHT, 10)
+        szrDataConfigInner.Add(btnVarDetsPath, 0)
         szrDataConfig.Add(szrDataConfigInner, 1)
         szrConfig.Add(szrDataConfig, 1, wx.RIGHT, 10)
         #3 CSS CONFIG
@@ -394,7 +414,7 @@ class ProjectDlg(wx.Dialog):
         #   and adding them to this frame ready for use.
         # Must always be stored, even if only ""
         self.proj_notes = proj_dic["proj_notes"]
-        self.fil_labels = proj_dic["fil_labels"]
+        self.fil_var_dets = proj_dic["fil_var_dets"]
         self.fil_css = proj_dic["fil_css"]
         self.fil_report = proj_dic["fil_report"]
         self.fil_script = proj_dic["fil_script"]
@@ -427,15 +447,15 @@ class ProjectDlg(wx.Dialog):
         dlgGetFile.Destroy()
 
     # label config
-    def OnButtonLabelPath(self, event):
-        "Open dialog and takes the labels file selected (if any)"
-        dlgGetFile = wx.FileDialog(self, "Choose a label config file:", 
-            defaultDir=os.path.join(LOCAL_PATH, "lbls"), 
-            defaultFile="", wildcard="Config files (*.lbls)|*.lbls")
+    def OnButtonVarDetsPath(self, event):
+        "Open dialog and takes the variable details file selected (if any)"
+        dlgGetFile = wx.FileDialog(self, "Choose a variable config file:", 
+            defaultDir=os.path.join(LOCAL_PATH, "vdts"), 
+            defaultFile="", wildcard="Config files (*.vdts)|*.vdts")
             #MUST have a parent to enforce modal in Windows
         if dlgGetFile.ShowModal() == wx.ID_OK:
-            fil_labels = "%s" % dlgGetFile.GetPath()
-            self.txtLabelsFile.SetValue(fil_labels)
+            fil_var_dets = "%s" % dlgGetFile.GetPath()
+            self.txtVarDetsFile.SetValue(fil_var_dets)
         dlgGetFile.Destroy()
 
     # css table style
@@ -530,7 +550,7 @@ class ProjectDlg(wx.Dialog):
                 print "Failed to change to %s.proj" % proj_name
                 pass
             proj_notes = self.txtProjNotes.GetValue()
-            fil_labels = self.txtLabelsFile.GetValue()
+            fil_var_dets = self.txtVarDetsFile.GetValue()
             fil_css = self.txtCssFile.GetValue()
             fil_report = self.txtReportFile.GetValue()
             fil_script = self.txtScriptFile.GetValue()
@@ -559,7 +579,7 @@ class ProjectDlg(wx.Dialog):
                                   proj_name)
             f = open(fil_name, "w")
             f.write("proj_notes = \"%s\"" % proj_notes)
-            f.write("\nfil_labels = r\"%s\"" % fil_labels)
+            f.write("\nfil_var_dets = r\"%s\"" % fil_var_dets)
             f.write("\nfil_css = r\"%s\"" % fil_css)
             f.write("\nfil_report = r\"%s\"" % fil_report)
             f.write("\nfil_script = r\"%s\"" % fil_script)
