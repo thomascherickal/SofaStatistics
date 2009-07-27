@@ -163,6 +163,8 @@ def getSortedChoiceItems(dic_labels, vals):
     dic_labels - could be for either variables of values.
     vals - either variables or values.
     Returns choice_items_sorted, orig_items_sorted.
+    http://www.python.org/doc/faq/programming/#i-want-to-do-a-complicated- ...
+        ... sort-can-you-do-a-schwartzian-transform-in-python
     """
     sorted_vals = vals
     sorted_vals.sort(key=lambda s: getChoiceItem(dic_labels, s).upper())

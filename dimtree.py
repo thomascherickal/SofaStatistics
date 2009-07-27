@@ -69,14 +69,16 @@ class DimTree(object):
     def TryAdding(self, tree, root, dim, oth_dim, oth_dim_tree, 
                   oth_dim_root):
         "Try adding a variable"
-        choice_var_names = self.flds.keys()
-        choices = [getdata.getChoiceItem(self.var_labels, x) \
-                   for x in choice_var_names]
-        choices.sort(key=lambda s: s.upper()) # sort case insensitive
-        # http://www.python.org/doc/faq/programming/...
-        # ...#i-want-to-do-a-complicated-sort-can-you-do-a-schwartzian-transform-in-python
-        dlg = wx.MultiChoiceDialog(self, "Select a variable", 
-                                    "Variables", choices=choices)
+        if self.tab_type == my_globals.ROW_SUMM and tree == self.rowtree:
+            min_data_type = my_globals.VAR_TYPE_ORD
+        else:
+            min_data_type = my_globals.VAR_TYPE_CAT
+        var_names = projects.GetAppropVarNames(min_data_type, self.var_types, 
+                                               self.flds)
+        choices, _ = getdata.getSortedChoiceItems(\
+                                dic_labels=self.var_labels, vals=var_names)
+        dlg = wx.MultiChoiceDialog(self, "Select a variable", "Variables", 
+                                   choices=choices)
         if dlg.ShowModal() == wx.ID_OK:
             # only use in one dimension
             text_selected = [choices[x] for x in dlg.GetSelections()]
@@ -91,16 +93,8 @@ class DimTree(object):
                 if self.tab_type == my_globals.RAW_DISPLAY:
                     used_in_this_dim = self.UsedInThisDim(text, tree, root)
                     if used_in_this_dim:
-                        wx.MessageBox("Variable '%s' cannot be used more than once" \
-                                      % text)
-                        return
-                elif self.tab_type == my_globals.ROW_SUMM \
-                        and tree == self.rowtree:
-                    # check it is not numeric (and make sure it lacks a label)
-                    var_name, _ = getdata.extractChoiceDets(text)                
-                    if not self.flds[var_name][my_globals.FLD_BOLNUMERIC] or \
-                            var_name in self.val_dics:
-                        wx.MessageBox("Variable '%s' is not numeric" % text)
+                        wx.MessageBox("Variable '%s' cannot be used " % text + \
+                                      "more than once")
                         return
             # they all passed the tests so proceed
             for text in text_selected:
