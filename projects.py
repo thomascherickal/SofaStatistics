@@ -75,6 +75,7 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
     bolnumeric = flds[var_name][my_globals.FLD_BOLNUMERIC]
     boldecimal = flds[var_name][my_globals.FLD_DECPTS]
     boldatetime = flds[var_name][my_globals.FLD_BOLDATETIME]
+    boltext = flds[var_name][my_globals.FLD_BOLTEXT]
     if bolnumeric:
         if boldecimal:
             val_type = table_entry.COL_FLOAT
@@ -93,8 +94,8 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
         def_type = my_globals.VAR_TYPE_CAT
     type = var_types.get(var_name, def_type)
     var_desc = {"label": var_label, "notes": notes, "type": type}
-    getsettings = GetSettings(title, var_desc, data, new_grid_data, 
-                              val_type)
+    getsettings = GetSettings(title, boltext, boldatetime, var_desc, data, 
+                              new_grid_data, val_type)
     ret = getsettings.ShowModal()
     if ret == wx.ID_OK:
         # var label
@@ -127,11 +128,59 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
     else:
         return False
     
+def GetAppropVarNames(min_data_type, var_types, flds):
+    """
+    Get filtered list of variable names according to minimum data type.
+    """
+    if min_data_type == my_globals.VAR_TYPE_CAT:
+        var_names = [x for x in flds]
+    elif min_data_type == my_globals.VAR_TYPE_ORD:
+        # check for numeric as well in case user has manually 
+        # misconfigured var_type in vdts file.
+        var_names = [x for x in flds if flds[x][my_globals.FLD_BOLNUMERIC] and \
+                     var_types.get(x) in (None, my_globals.VAR_TYPE_ORD, 
+                                          my_globals.VAR_TYPE_QUANT)]
+    elif min_data_type == my_globals.VAR_TYPE_QUANT:
+        # check for numeric as well in case user has manually 
+        # misconfigured var_type in vdts file.
+        var_names = [x for x in flds if flds[x][my_globals.FLD_BOLNUMERIC] and \
+                     var_types.get(x) in (None, my_globals.VAR_TYPE_QUANT)]
+    return var_names
+
+def GetIdxToSelect(choice_items, drop_var, var_labels):
+    """
+    Get index to select.  If variable passed in, use that if possible.
+    It will not be possible if it has been removed from the list because
+        of a user reclassification of data type e.g. was quantitative but
+        has been redefined as categorical.
+    If no variable passed in, or it was but couldn't be used (see above),
+        use the default if possible.  If not possible, select the first 
+        item.
+    """
+    var_removed = False
+    if drop_var:
+        item_new_version_drop = getdata.getChoiceItem(var_labels, drop_var)
+        try:
+            idx = choice_items.index(item_new_version_drop)
+        except ValueError:
+            var_removed = True # e.g. may require QUANT and user changed to 
+            # ORD.  Variable will no longer appear in list. Cope!
+    if (not drop_var) or var_removed: # use default if possible
+        idx = 0
+        if my_globals.group_avg_default:
+            try:
+                idx = choice_items.index(my_globals.group_avg_default)
+            except ValueError:
+                pass
+    return idx
+    
     
 class GetSettings(table_entry.TableEntryDlg):
     
-    def __init__(self, title, var_desc, data, new_grid_data, val_type):
+    def __init__(self, title, boltext, boldatetime, var_desc, data, 
+                 new_grid_data, val_type):
         """
+        var_desc - dic with keys "label", "notes", and "type".
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
         col_dets - See under table_entry.TableEntry
@@ -159,10 +208,15 @@ class GetSettings(table_entry.TableEntryDlg):
         self.txtVarNotes = wx.TextCtrl(self.panel, -1, self.var_desc["notes"], 
                                        size=(50,20), style=wx.TE_MULTILINE)
         self.radDataType = wx.RadioBox(self.panel, -1, "Data Type",
-                                       choices=[my_globals.VAR_TYPE_CAT,
-                                                my_globals.VAR_TYPE_ORD,
-                                                my_globals.VAR_TYPE_QUANT])
+                                       choices=my_globals.VAR_TYPES)
         self.radDataType.SetStringSelection(self.var_desc["type"])
+        # if text or datetime, only enable categorical.
+        # datetime cannot be quant (if a measurement of seconds etc would be 
+        # numeric instead) and although ordinal, not used like that in any of 
+        # these tests.
+        if boltext or boldatetime:
+            self.radDataType.EnableItem(my_globals.VAR_IDX_ORD, False)
+            self.radDataType.EnableItem(my_globals.VAR_IDX_QUANT, False)
         # sizers
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         self.szrVarLabel = wx.BoxSizer(wx.HORIZONTAL)

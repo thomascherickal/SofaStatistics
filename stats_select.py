@@ -508,7 +508,7 @@ class StatsSelectDlg(wx.Dialog):
             dlg = chisquare.DlgConfig("Configure Chi Square test", 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_var_dets, self.fil_css, self.fil_report, 
-                self.fil_script, num_vars_only=False)
+                self.fil_script)
             dlg.ShowModal()
         elif sel_test == TEST_PEARSONS_R:
             dlg = pearsonsr.DlgConfig("Configure Pearson's R test", 

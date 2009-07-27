@@ -107,6 +107,10 @@ INT_REPORT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, INT_REPORT_FILE)
 VAR_TYPE_CAT = "Categorical (name only)"
 VAR_TYPE_ORD = "Ordinal (rank only)"
 VAR_TYPE_QUANT = "Quantity (is an amount)"
+VAR_TYPES = [VAR_TYPE_CAT, VAR_TYPE_ORD, VAR_TYPE_QUANT]
+VAR_IDX_CAT = 0
+VAR_IDX_ORD = 1
+VAR_IDX_QUANT = 2
 # remember defaults in stats tests
 group_by_default = None
 group_avg_default = None

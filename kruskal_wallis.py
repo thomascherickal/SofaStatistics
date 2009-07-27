@@ -8,6 +8,7 @@ import indep2var
 class DlgConfig(indep2var.DlgIndep2VarConfig):
 
     averaged = "Averaged"
+    min_data_type = my_globals.VAR_TYPE_ORD
 
     def GetExamples(self):
         eg1 = "Answers the question, do 3 or more groups have a " + \

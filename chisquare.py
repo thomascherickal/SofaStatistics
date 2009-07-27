@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+import my_globals
 import paired2var
 
 
@@ -10,7 +11,9 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         etc.
     OutputButtons - provides standard buttons for output dialogs.
     """
-   
+    
+    min_data_type = my_globals.VAR_TYPE_CAT
+    
     def GetExamples(self):
         eg1 = "Answers the question, is there a relationship " + \
             "between two variables."

@@ -4,12 +4,14 @@ import os
 
 import wx
 
+import my_globals
 import indep2var
 
 
 class DlgConfig(indep2var.DlgIndep2VarConfig):
 
     averaged = "Ranked"
+    min_data_type = my_globals.VAR_TYPE_ORD
 
     def GetExamples(self):
         eg1 = "Answers the question, do 2 groups have different results " + \

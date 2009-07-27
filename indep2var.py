@@ -311,30 +311,22 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
             idx_gp = 0
             if my_globals.group_by_default:
                 try:
-                    idx_gp = var_gp_by_choice_items.index(my_globals.group_by_default)
+                    idx_gp = \
+                       var_gp_by_choice_items.index(my_globals.group_by_default)
                 except ValueError:
                     pass
         self.dropGroupBy.SetSelection(idx_gp)
-    
-    def SetupAvg(self, var_b=None):
-        numeric_var_names = [x for x in self.flds if \
-                             self.flds[x][my_globals.FLD_BOLNUMERIC]]
+
+    def SetupAvg(self, var_avg=None):
+        var_names = projects.GetAppropVarNames(self.min_data_type, 
+                                               self.var_types, self.flds)
         var_avg_choice_items, self.sorted_var_names_avg = \
             getdata.getSortedChoiceItems(dic_labels=self.var_labels,
-                                         vals=numeric_var_names)
+                                         vals=var_names)
         self.dropAveraged.SetItems(var_avg_choice_items)
         # set selection
-        if var_b:
-            item_new_version_b = getdata.getChoiceItem(self.var_labels, var_b)
-            idx_avg = var_avg_choice_items.index(item_new_version_b)
-        else: # use default if possible
-            idx_avg = 0
-            if my_globals.group_avg_default:
-                try:
-                    idx_avg = \
-                        var_avg_choice_items.index(my_globals.group_avg_default)
-                except ValueError:
-                    pass
+        idx_avg = projects.GetIdxToSelect(var_avg_choice_items, var_avg, 
+                                          self.var_labels)
         self.dropAveraged.SetSelection(idx_avg)
         
     def SetupGroupDropdowns(self, val_a=None, val_b=None):

@@ -27,7 +27,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
     
     def __init__(self, title, dbe, conn_dets, default_dbs=None, 
                  default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
-                 fil_script="", num_vars_only=True):
+                 fil_script=""):
          
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
                            pos=(200, 0), 
@@ -43,7 +43,6 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.fil_css = fil_css
         self.fil_report = fil_report
         self.fil_script = fil_script
-        self.num_vars_only = num_vars_only
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.GetVarDets(fil_var_dets)            
         self.open_html = []
@@ -165,44 +164,23 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         Also stores var names, and var names sorted by their labels (for later 
             reference).
         """
-        if self.num_vars_only:
-            # only want the fields which are numeric
-            self.var_names = [x for x in self.flds if \
-                             self.flds[x][my_globals.FLD_BOLNUMERIC]]
-        else:
-            self.var_names = [x for x in self.flds]     
+        var_names = projects.GetAppropVarNames(self.min_data_type, 
+                                               self.var_types, self.flds)
         fld_choice_items, self.sorted_var_names = \
             getdata.getSortedChoiceItems(dic_labels=self.var_labels, 
-                                         vals=self.var_names)
+                                         vals=var_names)
         return fld_choice_items
        
     def SetupGroupA(self, fld_choice_items, var_a=None):        
         self.dropGroupA.SetItems(fld_choice_items)
-        if var_a:
-            item_new_version_a = getdata.getChoiceItem(self.var_labels, var_a)
-            idx_a = fld_choice_items.index(item_new_version_a)
-        else: # use defaults if possible
-            idx_a = 0
-            if my_globals.group_a_default:
-                try:
-                    idx_a = fld_choice_items.index(my_globals.group_a_default)
-                except ValueError:
-                    pass
+        idx_a = projects.GetIdxToSelect(fld_choice_items, var_a, 
+                                        self.var_labels)
         self.dropGroupA.SetSelection(idx_a)            
 
     def SetupGroupB(self, fld_choice_items, var_b=None):        
         self.dropGroupB.SetItems(fld_choice_items)
-        self.dropGroupB.SetItems(fld_choice_items)
-        if var_b:
-            item_new_version_b = getdata.getChoiceItem(self.var_labels, var_b)
-            idx_b = fld_choice_items.index(item_new_version_b)
-        else: # use defaults if possible
-            idx_b = 0
-            if my_globals.group_b_default:
-                try:
-                    idx_b = fld_choice_items.index(my_globals.group_b_default)
-                except ValueError:
-                    pass
+        idx_b = projects.GetIdxToSelect(fld_choice_items, var_b, 
+                                        self.var_labels)
         self.dropGroupB.SetSelection(idx_b)
              
     def SetupGroups(self, var_a=None, var_b=None):
