@@ -93,7 +93,14 @@ class TableEntry(object):
         for col_idx, col_det in enumerate(self.col_dets):
             if col_det.get("col_width"):
                 self.col_widths[col_idx] = col_det["col_width"]
+        
+        
+        
         data.sort(key=lambda s: s[0])
+        
+        
+        
+        
         self.data = data
         self.new_grid_data = new_grid_data
         self.prev_vals = []

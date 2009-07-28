@@ -69,7 +69,11 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
         val_dic = val_dics.get(var_name)
         if val_dic:
             for key, value in val_dic.items():
-                data.append((str(key), str(value)))
+                data.append((key, str(value)))
+                
+                
+                
+                
     new_grid_data = []
     # get new_grid_data back updated
     bolnumeric = flds[var_name][my_globals.FLD_BOLNUMERIC]
@@ -193,7 +197,7 @@ class GetSettings(table_entry.TableEntryDlg):
                      ]
         grid_size = (250, 250)
         wx.Dialog.__init__(self, None, title=title,
-                          size=(400,400), 
+                          size=(500,400), 
                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
                               wx.SYSTEM_MENU)
         self.panel = wx.Panel(self)
@@ -205,8 +209,8 @@ class GetSettings(table_entry.TableEntryDlg):
         lblVarNotes.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         self.txtVarLabel = wx.TextCtrl(self.panel, -1, self.var_desc["label"], 
                                        size=(250,-1))
-        self.txtVarNotes = wx.TextCtrl(self.panel, -1, self.var_desc["notes"], 
-                                       size=(50,20), style=wx.TE_MULTILINE)
+        self.txtVarNotes = wx.TextCtrl(self.panel, -1, self.var_desc["notes"],
+                                       style=wx.TE_MULTILINE)
         self.radDataType = wx.RadioBox(self.panel, -1, "Data Type",
                                        choices=my_globals.VAR_TYPES)
         self.radDataType.SetStringSelection(self.var_desc["type"])
@@ -217,18 +221,23 @@ class GetSettings(table_entry.TableEntryDlg):
         if boltext or boldatetime:
             self.radDataType.EnableItem(my_globals.VAR_IDX_ORD, False)
             self.radDataType.EnableItem(my_globals.VAR_IDX_QUANT, False)
+        btnTypeHelp = wx.Button(self.panel, wx.ID_HELP)
+        btnTypeHelp.Bind(wx.EVT_BUTTON, self.OnTypeHelpButton)
         # sizers
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         self.szrVarLabel = wx.BoxSizer(wx.HORIZONTAL)
         self.szrVarLabel.Add(lblVarLabel, 0, wx.RIGHT, 5)
-        self.szrVarLabel.Add(self.txtVarLabel, 1, wx.GROW)
+        self.szrVarLabel.Add(self.txtVarLabel, 1)
         self.szrVarNotes = wx.BoxSizer(wx.HORIZONTAL)
-        self.szrVarNotes.Add(lblVarNotes, 0, wx.GROW|wx.RIGHT, 5)
+        self.szrVarNotes.Add(lblVarNotes, 0, wx.RIGHT, 5)
         self.szrVarNotes.Add(self.txtVarNotes, 1, wx.GROW)
-        self.szrMain.Add(self.szrVarLabel, 0, wx.ALL, 10)
-        self.szrMain.Add(self.szrVarNotes, 1, 
-                         wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        self.szrMain.Add(self.szrVarLabel, 0, wx.GROW|wx.ALL, 10)
+        self.szrMain.Add(self.szrVarNotes, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.szrMain.Add(self.radDataType, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        szrDataType = wx.BoxSizer(wx.HORIZONTAL)
+        szrDataType.Add(self.radDataType, 0)  
+        szrDataType.Add(btnTypeHelp, 0, wx.LEFT|wx.TOP, 10)        
+        self.szrMain.Add(szrDataType, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         self.tabentry = table_entry.TableEntry(self, self.panel, 
                                                self.szrMain, 2, False, 
                                                grid_size, col_dets, data,  
@@ -239,6 +248,16 @@ class GetSettings(table_entry.TableEntryDlg):
         self.szrMain.SetSizeHints(self)
         self.Layout()
         self.tabentry.grid.SetFocus()
+
+    def OnTypeHelpButton(self, event):
+        wx.MessageBox("Nominal data (names only) is just labels or names. " + \
+          "Ordinal data has a sense of order but no amount, " + \
+          "and Quantity data has actual amount e.g. 2 is twice 1." + \
+          "\n\n* Example of Nominal (names only) data: sports codes (" + \
+          "'Soccer', 'Badminton', 'Skiing' etc)." + \
+          "\n\n* Example of Ordinal (ranked) data: ratings of restaurant " + \
+          "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc)." + \
+          "\n\n* Example of Quantity (amount) data: height in cm.")
 
     def OnOK(self, event):
         """
