@@ -70,10 +70,6 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
         if val_dic:
             for key, value in val_dic.items():
                 data.append((key, str(value)))
-                
-                
-                
-                
     new_grid_data = []
     # get new_grid_data back updated
     bolnumeric = flds[var_name][my_globals.FLD_BOLNUMERIC]

@@ -48,10 +48,11 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append("label_a = \"%s\"" % label_a)
         script_lst.append("label_b = \"%s\"" % label_b)
         script_lst.append("label_ranked = \"%s\"" % label_ranked)
-        script_lst.append("u, p = core_stats.mannwhitneyu(sample_a, sample_b)")
+        script_lst.append("u, p, dic_a, dic_b = " + \
+            "core_stats.mannwhitneyu(sample_a, sample_b, label_a, label_b)")
         script_lst.append("mann_whitney_output = " + \
             "stats_output.mann_whitney_output(" + \
-            "u, p, label_a, label_b, label_ranked, dp,\n     " + \
+            "u, p, dic_a, dic_b, label_ranked, dp,\n     " + \
             "level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False)")
         script_lst.append("fil.write(mann_whitney_output)")
         return "\n".join(script_lst)

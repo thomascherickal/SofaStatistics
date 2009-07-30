@@ -159,33 +159,36 @@ def pearsons_chisquare(dbe, cur, tbl, fld_a, fld_b):
     chisq, p = chisquare(lst_obs, lst_exp, df)
     return chisq, p, lst_obs, lst_exp, min_count, perc_cells_lt_5, df
 
-def anova(*lists):
+def anova(lst_samples, lst_labels):
     """
-    From stats.py.  No changes except changing name to anova and replacing 
-        array versions e.g. amean with list versions e.g. lmean.  
+    From stats.py.  Changed name to anova, replaced 
+        array versions e.g. amean with list versions e.g. lmean,
+        supply data as list of lists.  
     -------------------------------------
     Performs a 1-way ANOVA, returning an F-value and probability given
     any number of groups.  From Heiman, pp.394-7.
 
-    Usage:   anova(*lists)    where *lists is any number of lists, one per 
-        treatment group
     Returns: F value, one-tailed p-value
     """
-    a = len(lists)           # ANOVA on 'a' groups, each in its own list
-    means = [0]*a
-    vars = [0]*a
+    a = len(lst_samples)           # ANOVA on 'a' groups, each in its own list
+    n = len(lst_samples[0])
     ns = [0]*a
     alldata = []
-    means = map(mean, lists)
-    vars = map(var, lists)
-    ns = map(len,lists)
-    for i in range(len(lists)):
-        alldata = alldata + lists[i]
+    dics = []
+    for i in range(a):
+        sample = lst_samples[i]
+        label = lst_labels[i]
+        dics.append({"label": label, "n": n, "mean": mean(sample), 
+                     "sd": stdev(sample), "min": min(sample), 
+                     "max": max(sample)})
+    ns = map(len, lst_samples)
+    for i in range(len(lst_samples)):
+        alldata = alldata + lst_samples[i]
     bign = len(alldata)
     sstot = ss(alldata)-(square_of_sums(alldata)/float(bign))
     ssbn = 0
-    for list in lists:
-        ssbn = ssbn + square_of_sums(list)/float(len(list))
+    for sample in lst_samples:
+        ssbn = ssbn + square_of_sums(sample)/float(len(sample))
     ssbn = ssbn - (square_of_sums(alldata)/float(bign))
     sswn = sstot-ssbn
     dfbn = a-1
@@ -193,8 +196,8 @@ def anova(*lists):
     msb = ssbn/float(dfbn)
     msw = sswn/float(dfwn)
     f = msb/msw
-    prob = fprob(dfbn, dfwn,f)
-    return f, prob
+    p = fprob(dfbn, dfwn,f)
+    return f, p, dics
 
 def kruskalwallish(*args):
     """
@@ -236,7 +239,9 @@ def ttest_ind(sample_a, sample_b, label_a, label_b):
     """
     From stats.py - there are changes to variable labels and comments;
         and the output is extracted early to give greater control over 
-        presentation.  There are no changes to algorithms.
+        presentation.  There are no changes to algorithms apart from calculating 
+        sds once, rather than squaring to get var and taking sqrt to get sd 
+        again ;-).
     Returns t, p, dic_a, dic_b (p is the two-tailed probability)
     ---------------------------------------------------------------------
     Calculates the t-obtained T-test on TWO INDEPENDENT samples of
@@ -244,8 +249,10 @@ def ttest_ind(sample_a, sample_b, label_a, label_b):
     """
     mean_a = mean(sample_a)
     mean_b = mean(sample_b)
-    se_a = stdev(sample_a)**2
-    se_b = stdev(sample_b)**2
+    sd_a = stdev(sample_a)
+    sd_b = stdev(sample_b)
+    se_a = sd_a**2
+    se_b = sd_b**2
     n_a = len(sample_a)
     n_b = len(sample_b)
     df = n_a + n_b - 2
@@ -256,8 +263,6 @@ def ttest_ind(sample_a, sample_b, label_a, label_b):
     min_b = min(sample_b)
     max_a = max(sample_a)
     max_b = max(sample_b)
-    sd_a = math.sqrt(se_a)
-    sd_b = math.sqrt(se_b)
     dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
              "min": min_a, "max": max_a}
     dic_b = {"label": label_b, "n": n_b, "mean": mean_b, "sd": sd_b, 
@@ -302,9 +307,12 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
              "min": min_b, "max": max_b}
     return t, p, dic_a, dic_b
 
-def mannwhitneyu(x,y):
+def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     """
-    From stats.py.  No changes.  
+    From stats.py - there are changes to variable labels and comments;
+        and the output is extracted early to give greater control over 
+        presentation.  Also added calculation of mean ranks, plus min and 
+        max values.
     -------------------------------------
     Calculates a Mann-Whitney U statistic on the provided scores and
     returns the result.  Use only when the n in each condition is < 20 and
@@ -314,26 +322,36 @@ def mannwhitneyu(x,y):
     just 2 groups.
 
     Usage:   mannwhitneyu(data)
-    Returns: u-statistic, one-tailed p-value (i.e., p(z(U)))
+    Returns: u-statistic, one-tailed p-value (i.e., p(z(U))), dic_a, dic_b
     """
-    n1 = len(x)
-    n2 = len(y)
-    ranked = rankdata(x+y)
-    rankx = ranked[0:n1]       # get the x-ranks
-    ranky = ranked[n1:]        # the rest are y-ranks
-    u1 = n1*n2 + (n1*(n1+1))/2.0 - sum(rankx)  # calc U for x
-    u2 = n1*n2 - u1                            # remainder is U for y
-    bigu = max(u1,u2)
-    smallu = min(u1,u2)
+    n_a = len(sample_a)
+    n_b = len(sample_b)
+    ranked = rankdata(sample_a + sample_b)
+    rank_a = ranked[0:n_a]       # get the sample_a ranks
+    rank_b = ranked[n_a:]        # the rest are sample_b ranks
+    avg_rank_a = mean(rank_a)
+    avg_rank_b = mean(rank_b)
+    u_a = n_a*n_b + (n_a*(n_a + 1))/2.0 - sum(rank_a)  # calc U for sample_a
+    u_b = n_a*n_b - u_a                            # remainder is U for sample_b
+    bigu = max(u_a, u_b)
+    smallu = min(u_a, u_b)
     T = math.sqrt(tiecorrect(ranked))  # correction factor for tied scores
     if T == 0:
         raise ValueError, 'All numbers are identical in lmannwhitneyu'
-    sd = math.sqrt(T*n1*n2*(n1+n2+1)/12.0)
-    z = abs((bigu-n1*n2/2.0) / sd)  # normal approximation for prob calc
-    return smallu, 1.0 - zprob(z)
+    sd = math.sqrt(T*n_a*n_b*(n_a + n_b + 1)/12.0)
+    z = abs((bigu-n_a*n_b/2.0) / sd)  # normal approximation for prob calc
+    p = 1.0 - zprob(z)
+    min_a = min(sample_a)
+    min_b = min(sample_b)
+    max_a = max(sample_a)
+    max_b = max(sample_b)
+    dic_a = {"label": label_a, "n": n_a, "avg rank": avg_rank_a, 
+             "min": min_a, "max": max_a}
+    dic_b = {"label": label_b, "n": n_b, "avg rank": avg_rank_b, 
+             "min": min_b, "max": max_b}
+    return smallu, p, dic_a, dic_b
 
-
-def wilcoxont(x,y):
+def wilcoxont(x, y):
     """
     From stats.py.
     -------------------------------------
@@ -345,13 +363,14 @@ def wilcoxont(x,y):
     """
     if len(x) <> len(y):
         raise ValueError, 'Unequal N in wilcoxont.  Aborting.'
+    n = len(x)
     d=[]
     for i in range(len(x)):
         diff = x[i] - y[i]
         if diff <> 0:
             d.append(diff)
     count = len(d)
-    absd = map(abs,d)
+    absd = map(abs, d)
     absranked = rankdata(absd)
     r_plus = 0.0
     r_minus = 0.0

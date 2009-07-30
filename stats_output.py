@@ -29,20 +29,33 @@ def ttest_output(t, p, dic_a, dic_b, label_avg="", dp=3, indep=True,
         "<td>%s</td><td>%s</td><td>%s</td></tr>"
     for dic in [dic_a, dic_b]:
         html += row_tpl % (dic["label"], dic["n"], round(dic["mean"], dp), 
-                           round(dic["sd"],3), 
+                           round(dic["sd"], dp), 
                            dic["min"], dic["max"])
     html += "\n</tbody>\n</table>\n"
     if page_break_after:
         html += "<br><hr><br><div class='page-break-before'></div>"
     return html
 
-def mann_whitney_output(u, p, label_a, label_b, label_ranked, dp=3,
+def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
                  level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False):
     html = "<h2>Results of Mann Whitney U Test of \"%s\" for" % label_ranked + \
-            " \"%s\" vs \"%s\"</h2>" % (label_a, label_b)
+            " \"%s\" vs \"%s\"</h2>" % (dic_a["label"], dic_b["label"])
     p_format = "\n<p>p value: %%.%sf</p>" % dp
     html += p_format % round(p, dp)
     html += "\n<p>U statistic: %s</p>" % round(u, dp)
+    html += "\n\n<table>\n<thead>"
+    html += "\n<tr><th class='firstcolvar'>Group</th>" + \
+        "\n<th class='firstcolvar'>N</th>" + \
+        "\n<th class='firstcolvar'>Avg Rank</th>" + \
+        "\n<th class='firstcolvar'>Min</th>" + \
+        "\n<th class='firstcolvar'>Max</th></tr>"
+    html += "\n</thead>\n<tbody>"
+    row_tpl = "\n<tr><td class='lbl'>%s</td><td>%s</td><td>%s</td>" + \
+        "<td>%s</td><td>%s</td></tr>"
+    for dic in [dic_a, dic_b]:
+        html += row_tpl % (dic["label"], dic["n"], round(dic["avg rank"], dp),
+                           dic["min"], dic["max"])
+    html += "\n</tbody>\n</table>\n"
     if page_break_after:
         html += "<br><hr><br><div class='page-break-before'></div>"
     return html
@@ -93,7 +106,7 @@ def chisquare_output(chi, p, lst_obs, lst_exp, min_count, perc_cells_lt_5, df,
                                                       in lst_obs])
     html += "<p>Expected values: %s</p>" % ", ".join([str(round(x,1)) for x \
                                                       in lst_exp])
-    html += "<p>Minimum cell count: %s</p>" % round(min_count, 3)
+    html += "<p>Minimum cell count: %s</p>" % round(min_count, dp)
     html += "<p>%% cells with expected count < 5: %s</p>" % perc_cells_lt_5
     if page_break_after:
         html += "<br><hr><br><div class='page-break-before'></div>"
@@ -110,13 +123,27 @@ def kruskal_wallis_output(h, p, label_a, label_b, label_avg, dp=3,
         html += "<br><hr><br><div class='page-break-before'></div>"
     return html
 
-def anova_output(f, p, label_a, label_b, label_avg, dp=3,
+def anova_output(f, p, dics, label_a, label_b, label_avg, dp=3,
                  level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False):
     html = "<h2>Results of ANOVA test of average %s" % label_avg + \
             " for groups from \"%s\" to \"%s\"</h2>" % (label_a, label_b)
     p_format = "\n<p>p value: %%.%sf</p>" % dp
     html += p_format % round(p, dp)
     html += "\n<p>ANOVA F statistic: %s</p>" % round(f, dp)
+    html += "\n\n<table>\n<thead>"
+    html += "\n<tr><th class='firstcolvar'>Group</th>" + \
+        "\n<th class='firstcolvar'>N</th>" + \
+        "\n<th class='firstcolvar'>Mean</th>" + \
+        "\n<th class='firstcolvar'>Standard Deviation</th>" + \
+        "\n<th class='firstcolvar'>Min</th>" + \
+        "\n<th class='firstcolvar'>Max</th></tr>"
+    html += "\n</thead>\n<tbody>"
+    row_tpl = "\n<tr><td class='lbl'>%s</td><td>%s</td><td>%s</td>" + \
+        "<td>%s</td><td>%s</td><td>%s</td></tr>"
+    for dic in dics:
+        html += row_tpl % (dic["label"], dic["n"], round(dic["mean"], dp),
+                           round(dic["sd"], dp), dic["min"], dic["max"])
+    html += "\n</tbody>\n</table>\n"
     if page_break_after:
         html += "<br><hr><br><div class='page-break-before'></div>"
     return html

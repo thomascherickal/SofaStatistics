@@ -54,22 +54,25 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             "filter_val=%s)"
         script_lst.append("dp = 3")
         lst_samples = []
+        lst_labels = []
         for i, val in enumerate(vals_in_range):
             sample_name = "sample_%s" % i
             script_lst.append(strGet_Sample % (sample_name, val))
             lst_samples.append(sample_name)
-        # only need labels for start and end of range
-        samples = "(" + ", ".join(lst_samples) + ")"
-        script_lst.append("samples = %s" % samples)        
+            val_label = self.val_dics[var_gp].get(val)
+            lst_labels.append(val_label)
+        samples = "[" + ", ".join(lst_samples) + "]"
+        script_lst.append("lst_samples = %s" % samples)
+        script_lst.append("lst_labels = %s" % lst_labels)
         script_lst.append("label_a = \"%s\"" % label_a)
         script_lst.append("label_b = \"%s\"" % label_b)
         script_lst.append("label_avg = \"%s\"" % label_avg)
         script_lst.append("indep = True")
-        script_lst.append("f, p = " + \
-            "core_stats.anova(*samples)")
+        script_lst.append("f, p, dics = " + \
+            "core_stats.anova(lst_samples, lst_labels)")
         script_lst.append("anova_output = " + \
             "stats_output.anova_output(" + \
-            "f, p, label_a," + \
+            "f, p, dics, label_a," + \
             "\n    label_b, label_avg, dp," + \
             "\n    level=my_globals.OUTPUT_RESULTS_ONLY, " + \
             "page_break_after=False)")
