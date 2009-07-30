@@ -17,18 +17,18 @@ import util
 import wilcoxon
 
 TEXT_BROWN = (90, 74, 61)
-TEST_TTEST_INDEP = "Independent t-test"
-TEST_TTEST_PAIRED = "Paired t-test"
 TEST_ANOVA = "ANOVA"
-TEST_WILCOXON = "Wilcoxon Signed Ranks"
-TEST_MANN_WHITNEY = "Mann-Whitney U"
-TEST_KRUSKAL_WALLIS = "Kruskal-Wallis H"
 TEST_CHI_SQUARE = "Chi Square"
-TEST_SPEARMANS_R = "Spearman's Correlation"
-TEST_PEARSONS_R = "Pearson's Correlation"
-STATS_TESTS = [TEST_TTEST_INDEP, TEST_TTEST_PAIRED, TEST_ANOVA, TEST_WILCOXON, 
-               TEST_MANN_WHITNEY, TEST_KRUSKAL_WALLIS, TEST_CHI_SQUARE, 
-               TEST_SPEARMANS_R, TEST_PEARSONS_R]
+TEST_PEARSONS_R = "Correlation - Pearson's"
+TEST_SPEARMANS_R = "Correlation - Spearman's"
+TEST_KRUSKAL_WALLIS = "Kruskal-Wallis H"
+TEST_MANN_WHITNEY = "Mann-Whitney U"
+TEST_TTEST_INDEP = "t-test - independent"
+TEST_TTEST_PAIRED = "t-test - paired"
+TEST_WILCOXON = "Wilcoxon Signed Ranks"
+STATS_TESTS = [TEST_ANOVA, TEST_CHI_SQUARE, TEST_PEARSONS_R, TEST_SPEARMANS_R,
+               TEST_KRUSKAL_WALLIS, TEST_MANN_WHITNEY, TEST_TTEST_INDEP, 
+               TEST_TTEST_PAIRED, TEST_WILCOXON]
 MAIN_LEFT = 45
 HELP_LEFT = MAIN_LEFT + 235
 REL_TOP = 330

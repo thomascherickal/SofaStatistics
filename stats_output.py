@@ -93,19 +93,26 @@ def spearmansr_output(r, p, label_a, label_b, dp=3,
         html += "<br><hr><br><div class='page-break-before'></div>"
     return html
 
-def chisquare_output(chi, p, lst_obs, lst_exp, min_count, perc_cells_lt_5, df,
-                label_a, label_b, dp=3, level=my_globals.OUTPUT_RESULTS_ONLY, 
-                page_break_after=False):
+def chisquare_output(chi, p, var_label_a, var_label_b, 
+                     val_labels_a, val_labels_b, lst_obs, lst_exp, min_count, 
+                     perc_cells_lt_5, df, dp=3, 
+                     level=my_globals.OUTPUT_RESULTS_ONLY, 
+                     page_break_after=False):
     html = "<h2>Results of Pearson's Chi Square Test of Association Between" + \
-            " \"%s\" and \"%s\"</h2>" % (label_a, label_b)
+            " \"%s\" and \"%s\"</h2>" % (var_label_a, var_label_b)
     p_format = "\n<p>p value: %%.%sf</p>" % dp
     html += p_format % round(p, dp)
     html += "\n<p>Pearson's Chi Square statistic: %s</p>" % round(chi, dp)
     html += "<p>Degrees of Freedom (df): %s</p>" % df
+    
+    
     html += "<p>Observed values: %s</p>" % ", ".join([str(int(x)) for x \
                                                       in lst_obs])
     html += "<p>Expected values: %s</p>" % ", ".join([str(round(x,1)) for x \
                                                       in lst_exp])
+    
+    
+    
     html += "<p>Minimum cell count: %s</p>" % round(min_count, dp)
     html += "<p>%% cells with expected count < 5: %s</p>" % perc_cells_lt_5
     if page_break_after:

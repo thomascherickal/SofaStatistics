@@ -59,8 +59,14 @@ def get_obs_exp(dbe, cur, tbl, fld_a, fld_b):
     if not data_tups:
         raise Exception, "No observed values"
     lst_obs = []
-    for data_tup in data_tups:
-        lst_obs.append(data_tup[2])
+    vals_a = []
+    vals_b = []
+    for val_a, val_b, n_obs in data_tups:
+        if val_a not in vals_a:
+            vals_a.append(val_a)
+        if val_b not in vals_b:
+            vals_b.append(val_b)
+        lst_obs.append(n_obs)
     obs_total = sum(lst_obs)
     # expected values
     lst_fracs_a = get_fracs(cur, qtbl, qfld_a, qfld_b)
@@ -73,7 +79,7 @@ def get_obs_exp(dbe, cur, tbl, fld_a, fld_b):
     min_count = min(lst_exp)
     lst_lt_5 = [x for x in lst_exp if x < 5]
     perc_cells_lt_5 = 100*(len(lst_lt_5))/float(len(lst_exp))
-    return lst_obs, lst_exp, min_count, perc_cells_lt_5, df
+    return vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df
 
 def get_fracs(cur, qtbl, qfld, qfld_oth):
     """
@@ -154,10 +160,11 @@ def pearsons_chisquare(dbe, cur, tbl, fld_a, fld_b):
     """
     Returns chisq, p, min_count, perc_cells_lt_5
     """
-    lst_obs, lst_exp, min_count, perc_cells_lt_5, df = \
-        get_obs_exp(dbe, cur, tbl, fld_a, fld_b)
+    vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df = \
+                                        get_obs_exp(dbe, cur, tbl, fld_a, fld_b)
     chisq, p = chisquare(lst_obs, lst_exp, df)
-    return chisq, p, lst_obs, lst_exp, min_count, perc_cells_lt_5, df
+    return (chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, 
+        perc_cells_lt_5, df)
 
 def anova(lst_samples, lst_labels):
     """
