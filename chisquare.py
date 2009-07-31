@@ -43,7 +43,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             "min_count, perc_cells_lt_5, df = \\\n" + \
             "    core_stats.pearsons_chisquare(dbe=\"%s\", " % self.dbe + \
             "cur=cur, tbl=\"%s\"," % self.tbl + \
-            "\n    fld_a=\"%s\", fld_b=\"%s\")" % (var_a, var_b))
+            "\n    flds=flds, fld_a=\"%s\", fld_b=\"%s\")" % (var_a, var_b))
         val_dic_a = self.val_dics.get(var_a, {})
         val_dic_b = self.val_dics.get(var_b, {})
         script_lst.append("val_dic_a = %s" % pprint.pformat(val_dic_a))

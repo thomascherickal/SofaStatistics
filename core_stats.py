@@ -3,6 +3,7 @@ import math
 import numpy as np
 from types import ListType, TupleType
 
+import my_globals
 import getdata
 
 def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val):
@@ -38,39 +39,63 @@ def get_paired_lists(dbe, cur, tbl, fld_a, fld_b):
     lst_b = [x[1] for x in data_tups]
     return lst_a, lst_b
 
-def get_obs_exp(dbe, cur, tbl, fld_a, fld_b):
+def get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b):
     """
     Get list of observed and expected values ready for inclusion in Pearson's
         Chi Square test.
+    NB must return 0 if nothing.  All cells must be filled.
     Returns lst_obs, lst_exp, min_count, perc_cells_lt_5, df.    
     """
-    quoter = getdata.get_obj_quoter_func(dbe)
-    qtbl = quoter(tbl)
-    qfld_a = quoter(fld_a)
-    qfld_b = quoter(fld_b)
+    obj_quoter = getdata.get_obj_quoter_func(dbe)
+    qtbl = obj_quoter(tbl)
+    qfld_a = obj_quoter(fld_a)
+    qfld_b = obj_quoter(fld_b)
+    # need to filter by vals within SQL so may need quoting
+    if flds[fld_a][my_globals.FLD_BOLNUMERIC]:
+        val_quoter_a = lambda s: s
+    else:
+        val_quoter_a = getdata.get_val_quoter_func(dbe)
+    if flds[fld_b][my_globals.FLD_BOLNUMERIC]:
+        val_quoter_b = lambda s: s
+    else:
+        val_quoter_b = getdata.get_val_quoter_func(dbe)
     # observed values etc
-    SQL_get_obs = "SELECT %s, %s, COUNT(*) " % (qfld_a, qfld_b) + \
+    # get row vals used
+    SQL_row_vals_used = "SELECT %s " % qfld_a + \
         "FROM %s " % qtbl + \
-        "WHERE %s IS NOT NULL AND %s IS NOT NULL " % (qfld_a, qfld_b) + \
-        "GROUP BY %s, %s " %  (qfld_a, qfld_b) + \
-        "ORDER BY %s, %s" % (qfld_a, qfld_b)
+        "WHERE %s IS NOT NULL " % qfld_b + \
+        "GROUP BY %s " % qfld_a + \
+        "ORDER BY %s" % qfld_a
+    cur.execute(SQL_row_vals_used)
+    vals_a = [x[0] for x in cur.fetchall()]
+    # get col vals used
+    SQL_col_vals_used = "SELECT %s " % qfld_b + \
+        "FROM %s " % qtbl + \
+        "WHERE %s IS NOT NULL " % qfld_a + \
+        "GROUP BY %s " % qfld_b + \
+        "ORDER BY %s" % qfld_b
+    cur.execute(SQL_col_vals_used)
+    vals_b = [x[0] for x in cur.fetchall()]
+    # build SQL to get all observed values (for each a, through b's)
+    SQL_get_obs = "SELECT "
+    sql_lst = []
+    for val_a in vals_a:
+        for val_b in vals_b:
+            clause = "\nSUM(CASE WHEN %s = %s and %s = %s THEN 1 ELSE 0 END)" \
+                % (qfld_a, val_quoter_a(val_a), qfld_b, 
+                   val_quoter_b(val_b))
+            sql_lst.append(clause)
+    SQL_get_obs += ", ".join(sql_lst)
+    SQL_get_obs += "\nFROM %s " % qtbl
     cur.execute(SQL_get_obs)
-    data_tups = cur.fetchall()
-    if not data_tups:
+    tup_obs = cur.fetchall()[0]
+    if not tup_obs:
         raise Exception, "No observed values"
-    lst_obs = []
-    vals_a = []
-    vals_b = []
-    for val_a, val_b, n_obs in data_tups:
-        if val_a not in vals_a:
-            vals_a.append(val_a)
-        if val_b not in vals_b:
-            vals_b.append(val_b)
-        lst_obs.append(n_obs)
+    lst_obs = list(tup_obs)
     obs_total = sum(lst_obs)
     # expected values
-    lst_fracs_a = get_fracs(cur, qtbl, qfld_a, qfld_b)
-    lst_fracs_b = get_fracs(cur, qtbl, qfld_b, qfld_a)
+    lst_fracs_a = get_fracs(cur, qtbl, qfld_a)
+    lst_fracs_b = get_fracs(cur, qtbl, qfld_b)
     df = (len(lst_fracs_a)-1)*(len(lst_fracs_b)-1)
     lst_exp = []
     for frac_a in lst_fracs_a:
@@ -81,18 +106,17 @@ def get_obs_exp(dbe, cur, tbl, fld_a, fld_b):
     perc_cells_lt_5 = 100*(len(lst_lt_5))/float(len(lst_exp))
     return vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df
 
-def get_fracs(cur, qtbl, qfld, qfld_oth):
+def get_fracs(cur, qtbl, qfld):
     """
     What fraction of the cross tab values are for each value in field?
-    Leaves out values where data is missing or the other field is missing.
+    Leaves out values where data is missing.
     Returns lst_fracs
     """
     SQL_get_fracs = "SELECT %s, COUNT(*) " % qfld + \
         "FROM %s " % qtbl + \
         """WHERE %s IS NOT NULL
-            AND %s IS NOT NULL
         GROUP BY %s
-        ORDER BY %s""" % (qfld, qfld_oth, qfld, qfld)    
+        ORDER BY %s""" % (qfld, qfld, qfld)    
     cur.execute(SQL_get_fracs)
     lst_counts = []
     total = 0
@@ -156,12 +180,12 @@ def chisquare(f_obs,f_exp=None, df=None):
     if not df: df = k-1
     return chisq, chisqprob(chisq, df)
 
-def pearsons_chisquare(dbe, cur, tbl, fld_a, fld_b):
+def pearsons_chisquare(dbe, cur, tbl, flds, fld_a, fld_b):
     """
     Returns chisq, p, min_count, perc_cells_lt_5
     """
     vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df = \
-                                        get_obs_exp(dbe, cur, tbl, fld_a, fld_b)
+                                get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b)
     chisq, p = chisquare(lst_obs, lst_exp, df)
     return (chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, 
         perc_cells_lt_5, df)

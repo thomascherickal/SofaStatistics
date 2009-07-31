@@ -1,3 +1,5 @@
+import cgi
+
 import my_globals
 
 def ttest_output(t, p, dic_a, dic_b, label_avg="", dp=3, indep=True,
@@ -98,23 +100,76 @@ def chisquare_output(chi, p, var_label_a, var_label_b,
                      perc_cells_lt_5, df, dp=3, 
                      level=my_globals.OUTPUT_RESULTS_ONLY, 
                      page_break_after=False):
+    var_label_a = cgi.escape(var_label_a)
+    var_label_b = cgi.escape(var_label_b)
+    val_labels_a = map(cgi.escape, val_labels_a)
+    val_labels_b = map(cgi.escape, val_labels_b)
+    cells_per_col = 2
+    val_labels_a_n = len(val_labels_a)
+    val_labels_b_n = len(val_labels_b)
     html = "<h2>Results of Pearson's Chi Square Test of Association Between" + \
             " \"%s\" and \"%s\"</h2>" % (var_label_a, var_label_b)
     p_format = "\n<p>p value: %%.%sf</p>" % dp
     html += p_format % round(p, dp)
     html += "\n<p>Pearson's Chi Square statistic: %s</p>" % round(chi, dp)
-    html += "<p>Degrees of Freedom (df): %s</p>" % df
-    
-    
-    html += "<p>Observed values: %s</p>" % ", ".join([str(int(x)) for x \
-                                                      in lst_obs])
-    html += "<p>Expected values: %s</p>" % ", ".join([str(round(x,1)) for x \
-                                                      in lst_exp])
-    
-    
-    
-    html += "<p>Minimum cell count: %s</p>" % round(min_count, dp)
-    html += "<p>%% cells with expected count < 5: %s</p>" % perc_cells_lt_5
+    html += "\n<p>Degrees of Freedom (df): %s</p>" % df
+    # headings
+    html += "\n\n<table>\n<thead>"
+    html += "\n<tr><th class='spaceholder' colspan=2 rowspan=3></th>" # corner filler
+    html += "<th class='firstcolvar' colspan=%s>%s</th></tr>" % \
+        ((val_labels_b_n+1)*cells_per_col, var_label_b)
+    html += "\n<tr>"
+    for val in val_labels_b:
+        html += "<th colspan=%s>%s</th>" % (cells_per_col, val)
+    html += "<th colspan=%s>TOTAL</th></tr>\n<tr>" % cells_per_col
+    for i in range(val_labels_b_n + 1):
+        html += "<th>Obs</th><th>Exp</th>"
+    html += "</tr>"
+    # body
+    html += "\n\n</thead><tbody>"
+    item_i = 0
+    html += "\n<tr><td class='firstrowvar' rowspan=%s>%s</td>" % \
+        (val_labels_a_n + 1, var_label_a)
+    col_obs_tots = [0]*val_labels_b_n
+    col_exp_tots = [0]*val_labels_b_n
+    # total row totals
+    row_obs_tot_tot = 0 
+    row_exp_tot_tot = 0
+    for row_i, val_a in enumerate(val_labels_a):
+        row_obs_tot = 0
+        row_exp_tot = 0
+        html += "<td class='rowval'>%s</td>" % val_a        
+        for col_i, val_b in enumerate(val_labels_b):
+            obs = lst_obs[item_i]
+            exp = lst_exp[item_i]
+            html += "<td class='datacell'>%s</td><td class='datacell'>%s</td>" % \
+                (obs, round(exp, 1))
+            row_obs_tot += obs
+            row_exp_tot += exp
+            col_obs_tots[col_i] += obs
+            col_exp_tots[col_i] += exp
+            item_i += 1
+        # add total for row
+        row_obs_tot_tot += row_obs_tot
+        row_exp_tot_tot += row_exp_tot
+        html += "<td class='datacell'>%s</td><td class='datacell'>%s</td>" % \
+            (row_obs_tot, row_exp_tot)
+        html += "</tr>\n<tr>"
+    # add totals row
+    col_tots = zip(col_obs_tots, col_exp_tots)
+    html += "<td class='rowval'>TOTAL</td>"
+    for col_obs_tot, col_exp_tot in col_tots:
+        html += "<td class='datacell'>%s</td><td class='datacell'>%s</td>" % \
+            (col_obs_tot, round(col_exp_tot, 1))
+    # add total of totals
+    html += "<td class='datacell'>%s</td><td class='datacell'>%s</td>" % \
+        (row_obs_tot_tot, round(row_exp_tot_tot,1))
+    html += "</tr>"
+    html += "\n</tbody>\n</table>\n"
+    # warnings
+    html += "\n<p>Minimum expected cell count: %s</p>" % round(min_count, dp)
+    html += "\n<p>%% cells with expected count < 5: %s</p>" % \
+        round(perc_cells_lt_5, 1)
     if page_break_after:
         html += "<br><hr><br><div class='page-break-before'></div>"
     return html

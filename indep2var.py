@@ -51,10 +51,6 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.open_scripts = []
         # set up panel for frame
         self.panel = wx.Panel(self)
-        self.panel.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.show_chop_warning = False
-        self.chop_warning = ""
-        self.chop_vars = set([]) # only want warnings when first time per var
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         ib = wx.IconBundle()
         ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, "images",
@@ -93,8 +89,10 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.SetupGroupBy()
         self.dropGroupBy.Bind(wx.EVT_CHOICE, self.OnGroupBySel)
         self.dropGroupBy.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickGroupBy)
-        szrVarsLeftTop.Add(self.lblGroupBy, 0, wx.RIGHT, 5)
+        self.lblchop_warning = wx.wx.StaticText(self.panel, -1, "")
+        szrVarsLeftTop.Add(self.lblGroupBy, 0, wx.RIGHT|wx.TOP, 5)
         szrVarsLeftTop.Add(self.dropGroupBy, 0, wx.GROW)
+        szrVarsLeftTop.Add(self.lblchop_warning, 1, wx.TOP|wx.RIGHT, 5)
         # group by A
         self.lblGroupA = wx.StaticText(self.panel, -1, "Group A:")
         self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
@@ -104,12 +102,12 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupByBSel)
         self.SetupGroupDropdowns()
-        szrVarsLeftMid.Add(self.lblGroupA, 0, wx.RIGHT, 5)
+        szrVarsLeftMid.Add(self.lblGroupA, 0, wx.RIGHT|wx.TOP, 5)
         szrVarsLeftMid.Add(self.dropGroupA, 0, wx.RIGHT, 5)
-        szrVarsLeftMid.Add(self.lblGroupB, 0, wx.RIGHT, 5)
+        szrVarsLeftMid.Add(self.lblGroupB, 0, wx.RIGHT|wx.TOP, 5)
         szrVarsLeftMid.Add(self.dropGroupB, 0)
         szrVarsLeft.Add(szrVarsLeftTop, 1, wx.GROW)
-        szrVarsLeft.Add(szrVarsLeftMid, 0, wx.GROW)
+        szrVarsLeft.Add(szrVarsLeftMid, 0, wx.GROW|wx.TOP, 5)
         # var averaged
         self.lblAveraged = wx.StaticText(self.panel, -1, "%s:" % self.averaged)
         self.lblAveraged.SetFont(self.LABEL_FONT)
@@ -119,8 +117,8 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.dropAveraged.Bind(wx.EVT_CHOICE, self.OnAveragedSel)
         self.dropAveraged.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickAvg)
         self.SetupAvg()
-        szrVarsRightTop.Add(self.lblAveraged, 0, wx.LEFT, 10)
-        szrVarsRightTop.Add(self.dropAveraged, 0, wx.LEFT, 5)
+        szrVarsRightTop.Add(self.lblAveraged, 0, wx.LEFT|wx.TOP, 5)
+        szrVarsRightTop.Add(self.dropAveraged, 0)
         szrVarsRight.Add(szrVarsRightTop, 0)
         self.lblPhrase = wx.StaticText(self.panel, -1, 
                                        "Start making your selections")
@@ -190,11 +188,6 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
             wx.CallAfter(self.ShowChopWarning)
         event.Skip()
 
-    def ShowChopWarning(self):
-        self.show_chop_warning = False
-        wx.MessageBox(self.chop_warning)
-        self.chop_warning = ""
-        
     def OnDatabaseSel(self, event):
         """
         Reset dbe, database, cursor, tables, table, tables dropdown, 
@@ -347,12 +340,10 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         # cope if variable has massive spread of values
         all_vals = self.cur.fetchall()
         if len(all_vals) > 20:
-            if var_name not in self.chop_vars: # once is enough :-)
-                self.chop_vars.add(var_name)
-                self.show_chop_warning = True
-                self.chop_warning = "More than 20 unique values in variable " + \
-                              "%s - only displaying first 20" % var_name
+            self.lblchop_warning.SetLabel("(Showing 1st 20 unique values)")
             all_vals = all_vals[:20]
+        else:
+            self.lblchop_warning.SetLabel("")
         self.vals = [x[0] for x in all_vals]
         vals_with_labels = [getdata.getChoiceItem(val_dic, x) \
                             for x in self.vals]
