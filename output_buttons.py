@@ -36,3 +36,4 @@ class OutputButtons(object):
         self.szrButtons.Add(self.btnHelp, 0)
         self.szrButtons.Add(self.btnClear, 0)
         self.szrButtons.Add(self.btnClose, 1, wx.ALIGN_BOTTOM)
+        

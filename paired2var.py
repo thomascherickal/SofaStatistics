@@ -174,13 +174,15 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
     def SetupGroupA(self, fld_choice_items, var_a=None):        
         self.dropGroupA.SetItems(fld_choice_items)
         idx_a = projects.GetIdxToSelect(fld_choice_items, var_a, 
-                                        self.var_labels)
+                                        self.var_labels, 
+                                        my_globals.group_a_default)
         self.dropGroupA.SetSelection(idx_a)            
 
     def SetupGroupB(self, fld_choice_items, var_b=None):        
         self.dropGroupB.SetItems(fld_choice_items)
         idx_b = projects.GetIdxToSelect(fld_choice_items, var_b, 
-                                        self.var_labels)
+                                        self.var_labels, 
+                                        my_globals.group_b_default)
         self.dropGroupB.SetSelection(idx_b)
              
     def SetupGroups(self, var_a=None, var_b=None):

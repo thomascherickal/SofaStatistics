@@ -31,32 +31,31 @@ def GetDefaultCss():
         h2{
             font-size: 16px;
         }
-        tr.rowsetstart th, tr.rowsetstart td{
-            border-top: solid black 2px;
-        }
         tr, td, th{
             margin: 0;
         }
-        .tbltitlecell{
+        .%s{""" % my_globals.CSS_TBL_TITLE_CELL + """
             border: none;
             padding: 18px 0px 12px 0px;
             margin: 0;
         }
-        .tbltitle{
+        .%s{""" % my_globals.CSS_TBL_TITLE + """
             padding: 0;
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
             font-weight: bold;
             font-size: 18px;
         }
-        .tblsubtitle{
+        .%s{ """ % my_globals.CSS_SUBTITLE + """
             padding: 12px 0px 0px 0px;
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
             font-weight: bold;
             font-size: 14px;
         }
-        th, .rowvar, .rowval, .datacell, .firstdatacell {
+        th, .%s, .%s, .%s, .%s {""" % (my_globals.CSS_ROW_VAR, 
+                                my_globals.CSS_ROW_VAL, my_globals.CSS_DATACELL, 
+                                my_globals.CSS_FIRST_DATACELL) + """
             border: solid 1px #A1A1A1;
         }
         th{
@@ -66,53 +65,52 @@ def GetDefaultCss():
         td{
             padding: 2px 6px;
         }
-        .rowval{
+        .%s{""" % my_globals.CSS_ROW_VAL + """
             margin: 0;
         }
-        .datacell, .firstdatacell{
+        .%s, .%s{ """ % (my_globals.CSS_DATACELL, 
+                         my_globals.CSS_FIRST_DATACELL) + """
             text-align: right;
             margin: 0;
         }
-        .firstcolvar, .firstrowvar, .spaceholder {
+        .%s, .%s, .%s {""" % (my_globals.CSS_FIRST_COL_VAR, 
+                              my_globals.CSS_FIRST_ROW_VAR, 
+                              my_globals.CSS_SPACEHOLDER) + """
             font-family: Arial, Helvetica, sans-serif;
             font-weight: bold;
             font-size: 15px;
             color: white;
         }
-        .firstcolvar, .firstrowvar {
+        .%s, .%s { """ % (my_globals.CSS_FIRST_COL_VAR, 
+                          my_globals.CSS_FIRST_ROW_VAR) + """
             background-color: #333435;
         }
-        .spaceholder {
+        .%s {""" % my_globals.CSS_SPACEHOLDER + """
             background-color: #CCD9D7;
         }
-        .firstcolvar{
+        .%s{ """ % my_globals.CSS_FIRST_COL_VAR + """
             padding: 9px 6px;
             vertical-align: top;
         }
-        .rowvar, .colvar{
+        .%s, .%s{""" % (my_globals.CSS_ROW_VAR, my_globals.CSS_COL_VAR) + """
             font-family: Arial, Helvetica, sans-serif;
             font-weight: bold;
             font-size: 15px;
             color: #000146;
             background-color: white;
         }
-        .colvar{
+        .%s{""" % my_globals.CSS_COL_VAR + """
             padding: 6px 0px;            
         }            
-        .colval{
+        .%s{""" % my_globals.CSS_COL_VAL + """
             vertical-align: top;
         }
-        .measure, .firstmeasure{
-            vertical-align: top;
-            font-size: 11px;
-            font-weight: normal;
-        }
-        tr.total-row td{
+        tr.%s td{""" % my_globals.CSS_TOTAL_ROW + """
             font-weight: bold;
             border-top: solid 2px black;
             border-bottom: double 3px black;
         }
-        .page-break-before{
+        .%s{""" % my_globals.CSS_PAGE_BREAK_BEFORE + """
             page-break-before: always;
             border-bottom: none; /*3px dotted #AFAFAF;*/
             width: auto;
@@ -141,12 +139,28 @@ default_hdr = """
             </head>
             <body>\n"""
     
-def getHtmlHdr(hdr_title, fil_css=None):
-    """Get HTML header"""
-    if fil_css:
-        f = file(fil_css, "r")
-        css = f.read()
-        f.close()
+def getHtmlHdr(hdr_title, css_fils):
+    """
+    Get HTML header.
+    Add suffixes to each of the main classes so can have multiple styles in a
+        single HTML file.
+    """
+    debug = False
+    if css_fils:
+        css_lst = []
+        for i, css_fil in enumerate(css_fils):
+            f = file(css_fil, "r")
+            css_txt = f.read()
+            for css_class in my_globals.CSS_ELEMENTS:
+                # suffix all report-relevant css entities so distinct
+                old_class = "." + css_class
+                new_class = "." + \
+                    my_globals.CSS_SUFFIX_TEMPLATE % (css_class, i)
+                if debug: print old_class, new_class
+                css_txt = css_txt.replace(old_class, new_class)
+            css_lst.append(css_txt)
+            f.close()
+        css = "\n\n".join(css_lst)
     else:
         css = GetDefaultCss()
     hdr = default_hdr % (hdr_title, css)
@@ -163,7 +177,21 @@ def RunReport(modules, fil_report, fil_css, inner_script, conn_dets, dbe, db,
     """
     # generate script
     f = file(my_globals.INT_SCRIPT_PATH, "w")
-    InsertPrelimCode(modules, f, my_globals.INT_REPORT_PATH, fil_css)
+    
+    css_fils = my_globals.OUTPUT_CSS_DIC.get(fil_report)
+    if not css_fils:
+        my_globals.OUTPUT_CSS_DIC[fil_report] = [my_globals.DEFAULT_CSS_PATH]
+    else:
+        if fil_css not in css_fils:
+            css_fils.append(fil_css)
+    InsertPrelimCode(modules, f, my_globals.INT_REPORT_PATH, css_fils)
+    
+    
+    
+    
+    
+    
+    
     AppendExportedScript(f, inner_script, conn_dets, dbe, db, tbl_name,
                          default_dbs, default_tbls)
     AddClosingScriptCode(f)
@@ -182,12 +210,12 @@ def RunReport(modules, fil_report, fil_css, inner_script, conn_dets, dbe, db,
     strContent = f.read()
     f.close()
     # append into html file
-    SaveToReport(fil_report, fil_css, strContent)
+    SaveToReport(fil_report, css_fils, strContent)
     strContent = "<p>Output also saved to '%s'</p>" % \
         fil_report + strContent
     return strContent
 
-def InsertPrelimCode(modules, fil, fil_report, fil_css):
+def InsertPrelimCode(modules, fil, fil_report, css_fils):
     """
     Insert preliminary code at top of file.
     fil - open file handle ready for writing.
@@ -201,7 +229,7 @@ def InsertPrelimCode(modules, fil, fil_report, fil_css):
         fil.write("\nimport %s" % module)
     fil.write("\n\nfil = file(r\"%s\", \"w\")" % fil_report)
     fil.write("\nfil.write(output.getHtmlHdr(\"Report(s)\", " + \
-              "fil_css=r\"%s\"))" % fil_css)
+              "css_fils=%s))" % css_fils)
     
 def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name, 
                          default_dbs, default_tbls):
@@ -227,7 +255,7 @@ def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name,
     fil.write(inner_script)
     fil.write("\nconn.close()")
 
-def SaveToReport(fil_report, fil_css, content):
+def SaveToReport(fil_report, css_fils, content):
     """
     If report exists, append content stripped of every thing up till 
         and including body tag.
@@ -241,7 +269,7 @@ def SaveToReport(fil_report, fil_css, content):
     else:
         f = file(fil_report, "w")
         hdr_title = time.strftime("SOFA Statistics Report %Y-%m-%d_%H:%M:%S")
-        f.write(getHtmlHdr(hdr_title, fil_css))
+        f.write(getHtmlHdr(hdr_title, css_fils))
     f.write(content)
     f.close()
 

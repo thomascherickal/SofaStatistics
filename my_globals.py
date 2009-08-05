@@ -53,10 +53,32 @@ def pct_1_dec(num):
 def pct_2_dec(num):
     return "%s%%" % round(num,2)
 data_format_dic = {FREQ: str, ROWPCT: pct_1_dec, COLPCT: pct_1_dec}
-
-# output
+# output - NB never have a class which is the same as the start of another
+# simple search and replace is worth keeping
 CSS_ALIGN_RIGHT = "right"
 CSS_LBL = "lbl"
+CSS_TBL_TITLE = "tbltitle"
+CSS_TBL_TITLE_CELL = "tblcelltitle"
+CSS_SUBTITLE = "tblsubtitle"
+CSS_FIRST_COL_VAR = "firstcolvar"
+CSS_FIRST_ROW_VAR = "firstrowvar"
+CSS_DATACELL = "datacell"
+CSS_FIRST_DATACELL = "firstdatacell"
+CSS_SPACEHOLDER = "spaceholder"
+CSS_ROW_VAL = "rowval"
+CSS_COL_VAL = "colval"
+CSS_ROW_VAR = "rowvar"
+CSS_COL_VAR = "colvar"
+CSS_MEASURE = "measure"
+CSS_TOTAL_ROW = "total-row"
+CSS_PAGE_BREAK_BEFORE = "page-break-before"
+CSS_ELEMENTS = [CSS_ALIGN_RIGHT, CSS_LBL, CSS_TBL_TITLE, 
+                CSS_TBL_TITLE_CELL, CSS_SUBTITLE, CSS_FIRST_COL_VAR, 
+                CSS_FIRST_ROW_VAR, CSS_DATACELL, CSS_FIRST_DATACELL, 
+                CSS_SPACEHOLDER, CSS_ROW_VAL, CSS_COL_VAL, CSS_ROW_VAR, 
+                CSS_COL_VAR, CSS_MEASURE, CSS_TOTAL_ROW, CSS_PAGE_BREAK_BEFORE]
+CSS_SUFFIX_TEMPLATE = "%s%s"
+OUTPUT_CSS_DIC = {} # for an output file as key, what is the list of css files
 
 # getdata ******************************************************
 # misc field dets
@@ -104,6 +126,7 @@ SCRIPT_PATH = util.get_script_path()
 INT_SCRIPT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, "script.py")
 INT_REPORT_FILE = "report.htm"
 INT_REPORT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, INT_REPORT_FILE)
+DEFAULT_CSS_PATH = os.path.join(LOCAL_PATH, "css", SOFA_DEFAULT_STYLE)
 VAR_TYPE_CAT = "Nominal (names only)"
 VAR_TYPE_ORD = "Ordinal (rank only)"
 VAR_TYPE_QUANT = "Quantity (is an amount)"

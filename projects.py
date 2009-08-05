@@ -147,7 +147,7 @@ def GetAppropVarNames(min_data_type, var_types, flds):
                      var_types.get(x) in (None, my_globals.VAR_TYPE_QUANT)]
     return var_names
 
-def GetIdxToSelect(choice_items, drop_var, var_labels):
+def GetIdxToSelect(choice_items, drop_var, var_labels, default):
     """
     Get index to select.  If variable passed in, use that if possible.
     It will not be possible if it has been removed from the list because
@@ -167,9 +167,9 @@ def GetIdxToSelect(choice_items, drop_var, var_labels):
             # ORD.  Variable will no longer appear in list. Cope!
     if (not drop_var) or var_removed: # use default if possible
         idx = 0
-        if my_globals.group_avg_default:
+        if default:
             try:
-                idx = choice_items.index(my_globals.group_avg_default)
+                idx = choice_items.index(default)
             except ValueError:
                 pass
     return idx

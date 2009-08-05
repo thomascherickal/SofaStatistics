@@ -68,6 +68,8 @@ def get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b):
         "ORDER BY %s" % qfld_a
     cur.execute(SQL_row_vals_used)
     vals_a = [x[0] for x in cur.fetchall()]
+    if len(vals_a) > 30:
+        raise Exception, "Too many values in row variable"
     # get col vals used
     SQL_col_vals_used = "SELECT %s " % qfld_b + \
         "FROM %s " % qtbl + \
@@ -76,6 +78,10 @@ def get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b):
         "ORDER BY %s" % qfld_b
     cur.execute(SQL_col_vals_used)
     vals_b = [x[0] for x in cur.fetchall()]
+    if len(vals_b) > 30:
+        raise Exception, "Too many values in column variable"
+    if len(vals_a)*len(vals_b) > 60:
+        raise Exception, "Too many cells in contingency table."
     # build SQL to get all observed values (for each a, through b's)
     SQL_get_obs = "SELECT "
     sql_lst = []

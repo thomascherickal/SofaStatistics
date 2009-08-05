@@ -127,25 +127,27 @@ class DimTable(object):
         col_label_rows_n = tree_col_labels.getDepth()
         col_label_rows_lst = [["<tr>"] for x in range(col_label_rows_n)]
         #title/subtitle etc share their own row
-        titles_html = "\n<p class='tbltitle'>"
+        titles_html = "\n<p class='%s'>" % my_globals.CSS_TBL_TITLE
         for title in self.titles:
             titles_html += "%s<br>" % title
         titles_html += "</p>"
         if self.subtitles != [""]:
-            subtitles_html = "\n<p class='tblsubtitle'>"
+            subtitles_html = "\n<p class='%s'>" % my_globals.CSS_SUBTITLE
             for subtitle in self.subtitles:
                 subtitles_html += "%s<br>" % subtitle
             subtitles_html += "</p>"
         else:
             subtitles_html = ""
         title_dets_html = titles_html + subtitles_html
-        col_label_rows_lst[0].append("<th class='tbltitlecell' " + \
+        col_label_rows_lst[0].append("<th class='%s' " % \
+                                     my_globals.CSS_TBL_TITLE_CELL + \
                                      "colspan='%s'>%s</th>" % \
             (len(tree_col_labels.getTerminalNodes()) + row_label_cols_n, 
              title_dets_html))
         #start off with spaceholder heading cell
-        col_label_rows_lst[1].append("<th class='spaceholder' rowspan='%s' " % \
-            (tree_col_labels.getDepth() - 1) + "colspan='%s'>&nbsp;&nbsp;</th>" % \
+        col_label_rows_lst[1].append("<th class='%s' rowspan='%s' " % \
+            (my_globals.CSS_SPACEHOLDER, tree_col_labels.getDepth() - 1) + \
+            "colspan='%s'>&nbsp;&nbsp;</th>" % \
             row_label_cols_n)
         col_label_rows_lst = self.colLabelRowBuilder(\
                         node=tree_col_labels.root_node,
@@ -231,11 +233,11 @@ class DimTable(object):
             # styling
             if cols_to_right % 2 > 0: #odd
                 if cols_filled == 1:
-                    cellclass="class='firstrowvar'"
+                    cellclass="class='%s'" % my_globals.CSS_FIRST_ROW_VAR
                 else:
-                    cellclass="class='rowvar'"
+                    cellclass="class='%s'" % my_globals.CSS_ROW_VAR
             else:
-                cellclass="class='rowval'"
+                cellclass="class='%s'" % my_globals.CSS_ROW_VAL
             row_label_rows_lst[row_idx].append("<td %s %s %s>%s</td>" % \
                                 (cellclass, rowspan, colspan, node.label))
         for child in node.children:
@@ -284,20 +286,20 @@ class DimTable(object):
             if rows_below == 0:
                 cellclass="class='measure'"
             elif rows_below % 2 > 0: # odd
-                cellclass="class='colval'"
+                cellclass="class='%s'" % my_globals.CSS_COL_VAL
             else:
                 if rows_filled == 2:
-                    cellclass="class='firstcolvar'"
+                    cellclass="class='%s'" % my_globals.CSS_FIRST_COL_VAR
                 else:
-                    cellclass="class='colvar'"
+                    cellclass="class='%s'" % my_globals.CSS_COL_VAR
         else:
             if rows_below % 2 == 0: # even
-                cellclass="class='colval'"
+                cellclass="class='%s'" % my_globals.CSS_COL_VAL
             else:
                 if rows_filled == 2:
-                    cellclass="class='firstcolvar'"
+                    cellclass="class='%s'" % my_globals.CSS_FIRST_COL_VAR
                 else:
-                    cellclass="class='colvar'"
+                    cellclass="class='%s'" % my_globals.CSS_COL_VAR
         # cell dimensions
         if gap > 0:
             rowspan = " rowspan='%s' " % (1 + gap,)
@@ -332,6 +334,7 @@ class LiveTable(DimTable):
         """
         cur - must return tuples, not dictionaries
         """
+        self.debug = False
         self.titles = titles
         if subtitles:
             self.subtitles = subtitles
@@ -746,7 +749,7 @@ class GenTable(LiveTable):
         row_filters_lst = [x.filts for x in row_term_nodes]
         row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
         data_cells_n = len(row_term_nodes) * len(col_term_nodes)
-        print "%s data cells in table" % data_cells_n
+        if self.debug: print "%s data cells in table" % data_cells_n
         row_label_rows_lst = self.getRowLabelsRowLst(row_filters_lst, 
             row_filt_flds_lst, col_measures_lst, col_filters_lst, 
             col_tots_lst, col_filt_flds_lst, row_label_rows_lst, 
@@ -804,10 +807,10 @@ class GenTable(LiveTable):
                     last_col_filter = ""
                 #styling
                 if first:
-                    cellclass = "firstdatacell"
+                    cellclass = my_globals.CSS_FIRST_DATACELL
                     first = False
                 else:
-                    cellclass = "datacell"
+                    cellclass = my_globals.CSS_DATACELL
                 #build data row list
                 data_item_presn_lst.append(("<td class='%s'>" % cellclass, 
                                            colmeasure, "</td>"))
@@ -977,7 +980,7 @@ class SummTable(LiveTable):
         col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
         col_tots_lst = [x.is_coltot for x in col_term_nodes]
         data_cells_n = len(row_term_nodes) * len(col_term_nodes)
-        print "%s data cells in table" % data_cells_n
+        if self.debug: print "%s data cells in table" % data_cells_n
         row_label_rows_lst = self.getRowLabelsRowLst(row_filt_flds_lst, 
                                 row_measures_lst, col_filters_lst, 
                                 row_label_rows_lst, col_term_nodes)
@@ -998,10 +1001,10 @@ class SummTable(LiveTable):
             for col_filter_lst in col_filters_lst:
                 #styling
                 if first:
-                    cellclass = "firstdatacell"
+                    cellclass = my_globals.CSS_FIRST_DATACELL
                     first = False
                 else:
-                    cellclass = "datacell"
+                    cellclass = my_globals.CSS_DATACELL
                 data_val = self.getDataVal(rowmeasure, row_fld_lst[0], 
                                              col_filter_lst)
                 data_item_lst.append("<td class='%s'>%s</td>" % \

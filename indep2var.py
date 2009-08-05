@@ -290,24 +290,16 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.UpdateDefaults()
         event.Skip()
     
-    def SetupGroupBy(self, var_a=None):
+    def SetupGroupBy(self, var_gp=None):
         choice_var_names = self.flds.keys()
         var_gp_by_choice_items, self.sorted_var_names_by = \
             getdata.getSortedChoiceItems(dic_labels=self.var_labels, 
                                          vals=choice_var_names)
         self.dropGroupBy.SetItems(var_gp_by_choice_items)
         # set selection
-        if var_a:
-            item_new_version_a = getdata.getChoiceItem(self.var_labels, var_a)
-            idx_gp = var_gp_by_choice_items.index(item_new_version_a)
-        else: # use default if possible
-            idx_gp = 0
-            if my_globals.group_by_default:
-                try:
-                    idx_gp = \
-                       var_gp_by_choice_items.index(my_globals.group_by_default)
-                except ValueError:
-                    pass
+        idx_gp = projects.GetIdxToSelect(var_gp_by_choice_items, var_gp, 
+                                         self.var_labels, 
+                                         my_globals.group_by_default)
         self.dropGroupBy.SetSelection(idx_gp)
 
     def SetupAvg(self, var_avg=None):
@@ -319,7 +311,8 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.dropAveraged.SetItems(var_avg_choice_items)
         # set selection
         idx_avg = projects.GetIdxToSelect(var_avg_choice_items, var_avg, 
-                                          self.var_labels)
+                                          self.var_labels, 
+                                          my_globals.group_avg_default)
         self.dropAveraged.SetSelection(idx_avg)
         
     def SetupGroupDropdowns(self, val_a=None, val_b=None):

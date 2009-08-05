@@ -159,7 +159,8 @@ class SofaApp(wx.App):
 
     def OnInit(self):
         frame = StartFrame()
-        frame.CentreOnScreen()
+        frame.CentreOnScreen(wx.VERTICAL) # on dual monitor, 
+            # wx.BOTH puts in screen 2 (in Ubuntu at least)!
         frame.Show()
         self.SetTopWindow(frame)
         return True
@@ -169,8 +170,7 @@ class StartFrame(wx.Frame):
     
     def __init__(self):
         wx.Frame.__init__(self, None, title="SOFA Start", size=(800, 542),
-              style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU,
-              pos=(100, 100))
+              style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize())

@@ -42,25 +42,27 @@ class RawTable(object):
         Set up titles, subtitles, and col labels into table header.
         """
         # titles and subtitles
-        titles_html = "\n<p class='tbltitle'>"
+        titles_html = "\n<p class='%s'>" % my_globals.CSS_TBL_TITLE
         for title in self.titles:
             titles_html += "%s<br>" % title
         titles_html += "</p>"
         if self.subtitles != [""]:
-            subtitles_html = "\n<p class='tblsubtitle'>"
+            subtitles_html = "\n<p class='%s'>" % my_globals.CSS_SUBTITLE
             for subtitle in self.subtitles:
                 subtitles_html += "%s<br>" % subtitle
             subtitles_html += "</p>"
         else:
             subtitles_html = ""
         title_dets_html = titles_html + subtitles_html
-        hdr_html = "\n<thead>\n<tr><th class='tbltitlecell' colspan='%s'>" % \
-            len(col_labels) + \
+        hdr_html = "\n<thead>\n<tr><th " + \
+            "class='%s'" % my_globals.CSS_TBL_TITLE_CELL + \
+            " colspan='%s'>" % len(col_labels) + \
             "%s</th></tr>" % title_dets_html
         # col labels
         hdr_html += "\n<tr>"
         for col_label in col_labels:
-            hdr_html += "<th class='firstcolvar'>%s</th>" % col_label
+            hdr_html += "<th class='%s'>%s</th>" % \
+                (my_globals.CSS_FIRST_COL_VAR, col_label)
         hdr_html += "</tr>\n</thead>"
         return hdr_html
 
@@ -144,12 +146,13 @@ class RawTable(object):
                 tot_cell = ""
             # never a displayed total for strings (whether orig data or labels)
             joiner = "</td><td class=\"%s\">" % my_globals.CSS_ALIGN_RIGHT
-            body_html += "\n<tr class='total-row'>" + \
+            body_html += "\n<tr class='%s'>" % my_globals.CSS_TOTAL_ROW + \
                 tot_cell + "<td class=\"%s\">"  % my_globals.CSS_ALIGN_RIGHT + \
                 joiner.join(row_tot_vals) + "</td></tr>"
         body_html += "\n</tbody>"
         html += body_html
         html += "\n</table>"
         if page_break_after:
-            html += "<br><hr><br><div class='page-break-before'></div>"
+            html += "<br><hr><br><div class='%s'></div>" % \
+                my_globals.CSS_PAGE_BREAK_BEFORE
         return html   

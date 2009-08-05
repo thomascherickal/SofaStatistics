@@ -42,7 +42,7 @@ class DemoTable(object):
             self.subtitles = []
         if self.titles:
             self.titles[0] += " (random demo data only)"        
-        html = output.getHtmlHdr(hdr_title="Report(s)", fil_css=self.fil_css)
+        html = output.getHtmlHdr(hdr_title="Report(s)", css_fils=[self.fil_css])
         html += "<table cellspacing='0'>\n" # IE6 - no support CSS borderspacing
         (hdr_html, body_html) = self.getHTMLParts()
         html += hdr_html
@@ -144,7 +144,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                     demo_row_data_lst.append(str(random.choice(num_data_seq)))
             # never a displayed total for strings (whether orig data or labels)
             joiner = "</td><td class=\"%s\">" % my_globals.CSS_ALIGN_RIGHT
-            body_html += "\n<tr class='total-row'>" + \
+            body_html += "\n<tr class='%s'>" % my_globals.CSS_TOTAL_ROW + \
                 tot_cell + "<td class=\"%s\">"  % my_globals.CSS_ALIGN_RIGHT + \
                 joiner.join(demo_row_data_lst) + "</td></tr>"
         body_html += "\n</tbody>"
@@ -396,10 +396,10 @@ class GenDemoTable(DemoDimTable):
                         zip(col_measures_lst, col_filters_lst, 
                             col_tots_lst, col_filt_flds_lst):
                 if first:
-                    cellclass = "firstdatacell"
+                    cellclass = my_globals.CSS_FIRST_DATACELL
                     first = False
                 else:
-                    cellclass = "datacell"
+                    cellclass = my_globals.CSS_DATACELL
                 #build data row list
                 data_val = random.choice(num_data_seq)
                 if colmeasure in [my_globals.ROWPCT, my_globals.COLPCT]:
@@ -489,10 +489,10 @@ class SummDemoTable(DemoDimTable):
             for col_filter_lst in col_filters_lst:
                 #styling
                 if first:
-                    cellclass = "firstdatacell"
+                    cellclass = my_globals.CSS_FIRST_DATACELL
                     first = False
                 else:
-                    cellclass = "datacell"
+                    cellclass = my_globals.CSS_DATACELL
                 data_val = random.choice(num_data_seq)
                 if rowmeasure == my_globals.SUMM_N:
                     val = "N=%s" % data_val

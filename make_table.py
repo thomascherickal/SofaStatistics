@@ -207,7 +207,7 @@ class MakeTable(object):
                                         self.fil_css)
             # insert exported script
             output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                                        self.db, self.tbl)
+                        self.db, self.tbl, self.default_dbs, self.default_tbls)
         else:
             # add file name to list, create file, insert preliminary code, 
             # and insert exported script.
@@ -216,7 +216,7 @@ class MakeTable(object):
             output.InsertPrelimCode(OUTPUT_MODULES, f, self.fil_report, 
                                     self.fil_css)
             output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                                        self.db, self.tbl)
+                        self.db, self.tbl, self.default_dbs, self.default_tbls)
         f.close()
         
     def getScript(self, has_rows, has_cols):
@@ -291,13 +291,16 @@ class MakeTable(object):
             script_lst.append("tab_test.prepTable()")
             script_lst.append("max_cells = 5000")
             script_lst.append("if tab_test.getCellNOk(max_cells=max_cells):")
-            script_lst.append("    fil.write(tab_test.getHTML(page_break_after=False))")
+            script_lst.append("    " + \
+                        "fil.write(tab_test.getHTML(page_break_after=False))")
             script_lst.append("else:")
-            script_lst.append("    fil.write(\"Table not made.  Number \" + \\" + \
+            script_lst.append("    " + \
+                              "fil.write(\"Table not made.  Number \" + \\" + \
                               "\n        \"of cells exceeded limit \" + \\" + \
                               "\n        \"of %s\" % max_cells)")
         else:
-            script_lst.append("fil.write(tab_test.getHTML(page_break_after=False))")
+            script_lst.append("fil.write(tab_test.getHTML(" + \
+                              "page_break_after=False))")
         return "\n".join(script_lst)
 
     def addToParent(self, script_lst, tree, parent, parent_node_label, 
