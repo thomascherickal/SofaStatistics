@@ -278,9 +278,10 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
             # hourglass cursor
             curs = wx.StockCursor(wx.CURSOR_WAIT)
             self.SetCursor(curs)
-            script = self.getScript()
+            css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
+            script = self.getScript(css_idx)
             strContent = output.RunReport(OUTPUT_MODULES, self.fil_report, 
-                self.fil_css, script, self.conn_dets, self.dbe, self.db, 
+                css_fils, script, self.conn_dets, self.dbe, self.db, 
                 self.tbl, self.default_dbs, self.default_tbls)
             # Return to normal cursor
             curs = wx.StockCursor(wx.CURSOR_ARROW)
@@ -319,15 +320,15 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         """
         modules = ["my_globals", "core_stats", "getdata", "output", 
                    "stats_output"]
-        script = self.getScript()
+        css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
+        script = self.getScript(css_idx)
         if self.fil_script in self.open_scripts:
             # see if empty or not
             f = file(self.fil_script, "r+")
             lines = f.readlines()
             empty_fil = False if lines else True            
             if empty_fil:
-                output.InsertPrelimCode(modules, f, self.fil_report, 
-                                        self.fil_css)
+                output.InsertPrelimCode(modules, f, self.fil_report, css_fils)
             # insert exported script
             output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
                                         self.db, self.tbl)
@@ -336,7 +337,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
             # and insert exported script.
             self.open_scripts.append(self.fil_script)
             f = file(self.fil_script, "w")
-            output.InsertPrelimCode(modules, f, self.fil_report, self.fil_css)
+            output.InsertPrelimCode(modules, f, self.fil_report, css_fils)
             output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
                                         self.db, self.tbl)
         f.close()

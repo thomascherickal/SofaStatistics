@@ -19,15 +19,15 @@ class DemoTable(object):
     All demo tables, whether dim tables or raw tables, derive from this class.
     """
     
-    def getDemoHTMLIfOK(self):
+    def getDemoHTMLIfOK(self, css_idx):
         "Get HTML to display if enough data to display"
         assert 0, "getDemoHTMLIfOK must be defined by subclass"
 
-    def getHTMLParts(self):
+    def getHTMLParts(self, css_idx):
         "Returns (hdr_html, body_html)"
         assert 0, "getHTMLParts must be defined by subclass"
 
-    def getDemoHTML(self):
+    def getDemoHTML(self, css_idx):
         "Get demo HTML for table"
         # sort titles out first
         if self.txtTitles.GetValue():
@@ -44,7 +44,7 @@ class DemoTable(object):
             self.titles[0] += " (random demo data only)"        
         html = output.getHtmlHdr(hdr_title="Report(s)", css_fils=[self.fil_css])
         html += "<table cellspacing='0'>\n" # IE6 - no support CSS borderspacing
-        (hdr_html, body_html) = self.getHTMLParts()
+        (hdr_html, body_html) = self.getHTMLParts(css_idx)
         html += hdr_html
         html += body_html
         html += "\n</table>"
@@ -71,24 +71,30 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         self.chkTotalsRow = chkTotalsRow
         self.chkFirstAsLabel = chkFirstAsLabel
         
-    def getDemoHTMLIfOK(self):
+    def getDemoHTMLIfOK(self, css_idx):
         "Show demo table if sufficient data to do so"
         has_cols = util.getTreeCtrlChildren(tree=self.coltree, 
                                     parent=self.colRoot)
-        return self.getDemoHTML() if has_cols else ""
+        return self.getDemoHTML(css_idx) if has_cols else ""
       
-    def getHTMLParts(self):
+    def getHTMLParts(self, css_idx):
         """
         Returns (hdr_html, body_html).
         If value labels available, use these rather than random numbers.
         """
+        CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_LBL, css_idx)
+        CSS_ALIGN_RIGHT = my_globals.CSS_ALIGN_RIGHT % \
+            (my_globals.CSS_LBL, css_idx)
+        CSS_TOTAL_ROW = my_globals.CSS_ALIGN_RIGHT % \
+            (my_globals.CSS_TOTAL_ROW, css_idx)
         col_names, col_labels = make_table.GetColDets(self.coltree, 
                                                       self.colRoot, 
                                                       self.var_labels)
         cols_n = len(col_names)        
         bolhas_totals_row = self.chkTotalsRow.IsChecked()
         bolfirst_col_as_label = self.chkFirstAsLabel.IsChecked()
-        hdr_html = self.getHdrDets(col_labels)
+        hdr_html = self.getHdrDets(col_labels, css_idx)
         body_html = "\n<tbody>"        
         # pre-store val dics for each column where possible
         col_val_dics = []
@@ -101,11 +107,11 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         # pre-store css class(es) for each column
         col_class_lsts = [[] for x in col_names]
         if bolfirst_col_as_label:
-            col_class_lsts[0] = [my_globals.CSS_LBL]
+            col_class_lsts[0] = [CSS_LBL]
         for i, col_name in enumerate(col_names):
             if self.flds[col_name][my_globals.FLD_BOLNUMERIC] \
                     and not col_val_dics[i]:
-                col_class_lsts[i].append(my_globals.CSS_ALIGN_RIGHT)
+                col_class_lsts[i].append(CSS_ALIGN_RIGHT)
         for i in range(4): # four rows enough for demo purposes
             row_tds = []
             # process cells within row
@@ -127,7 +133,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
             body_html += "\n<tr>" + "".join(row_tds) + "</td></tr>"
         if bolhas_totals_row:
             if bolfirst_col_as_label:
-                tot_cell = "<td class='%s'>TOTAL</td>" % my_globals.CSS_LBL
+                tot_cell = "<td class='%s'>TOTAL</td>" % CSS_LBL
                 start_idx = 1
             else:
                 tot_cell = ""
@@ -143,9 +149,9 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                 else:
                     demo_row_data_lst.append(str(random.choice(num_data_seq)))
             # never a displayed total for strings (whether orig data or labels)
-            joiner = "</td><td class=\"%s\">" % my_globals.CSS_ALIGN_RIGHT
-            body_html += "\n<tr class='%s'>" % my_globals.CSS_TOTAL_ROW + \
-                tot_cell + "<td class=\"%s\">"  % my_globals.CSS_ALIGN_RIGHT + \
+            joiner = "</td><td class=\"%s\">" % CSS_ALIGN_RIGHT
+            body_html += "\n<tr class='%s'>" % CSS_TOTAL_ROW + \
+                tot_cell + "<td class=\"%s\">"  % CSS_ALIGN_RIGHT + \
                 joiner.join(demo_row_data_lst) + "</td></tr>"
         body_html += "\n</tbody>"
         return (hdr_html, body_html)
@@ -167,15 +173,15 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         self.val_dics = val_dics
         self.fil_css=fil_css
     
-    def getHTMLParts(self):
+    def getHTMLParts(self, css_idx):
         "Returns (hdr_html, body_html)"
         (row_label_rows_lst, tree_row_labels, row_label_cols_n) = \
-            self.getRowDets()
-        (tree_col_dets, hdr_html) = self.getHdrDets(row_label_cols_n)
+            self.getRowDets(css_idx)
+        (tree_col_dets, hdr_html) = self.getHdrDets(row_label_cols_n, css_idx)
         #print row_label_rows_lst #debug
         row_label_rows_lst = self.getBodyHtmlRows(row_label_rows_lst,
                                                   tree_row_labels, 
-                                                  tree_col_dets)        
+                                                  tree_col_dets, css_idx)        
         body_html = "\n\n<tbody>"
         for row in row_label_rows_lst:
             # flatten row list
@@ -183,7 +189,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         body_html += "\n</tbody>"
         return (hdr_html, body_html)
     
-    def getRowDets(self):
+    def getRowDets(self, css_idx):
         """
         Return row_label_rows_lst - need combination of row and col filters
             to add the data cells to the table body rows.
@@ -198,7 +204,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
             self.addSubtreeToLabelTree(tree_dims_item=row_child_item, 
                               tree_labels_node=tree_row_labels.root_node, 
                               dim=my_globals.ROWDIM)
-        return self.processRowTree(tree_row_labels)
+        return self.processRowTree(tree_row_labels, css_idx)
 
     def addSubtreeToLabelTree(self, tree_dims_item, tree_labels_node, dim):
         """
@@ -328,18 +334,18 @@ class GenDemoTable(DemoDimTable):
                            rowtree, coltree, col_no_vars_item, var_labels, 
                            val_dics, fil_css)
         
-    def getDemoHTMLIfOK(self):
+    def getDemoHTMLIfOK(self, css_idx):
         "Show demo table if sufficient data to do so"
         has_rows = util.getTreeCtrlChildren(tree=self.rowtree, 
                                     parent=self.rowRoot)
         has_cols = util.getTreeCtrlChildren(tree=self.coltree, 
                                          parent=self.colRoot)
         if has_rows and has_cols:
-            return self.getDemoHTML()
+            return self.getDemoHTML(css_idx)
         else:
             return ""
     
-    def getHdrDets(self, row_label_cols_n):
+    def getHdrDets(self, row_label_cols_n, css_idx):
         """
         Return tree_col_labels and the table header HTML.
         For HTML provide everything from <thead> to </thead>.
@@ -349,10 +355,10 @@ class GenDemoTable(DemoDimTable):
         if tree_col_labels.getDepth() == 1:
             raise Exception, "There must always be a column item " + \
                 "even if only the col no vars item"
-        return self.processHdrTree(tree_col_labels, row_label_cols_n)    
+        return self.processHdrTree(tree_col_labels, row_label_cols_n, css_idx)    
 
     def getBodyHtmlRows(self, row_label_rows_lst, tree_row_labels,
-                        tree_col_labels):
+                        tree_col_labels, css_idx):
         """
         Make table body rows based on contents of row_label_rows_lst:
         e.g. [["<tr>", "<td class='firstrowvar' rowspan='8'>Gender</td>" ...],
@@ -375,18 +381,22 @@ class GenDemoTable(DemoDimTable):
         row_label_rows_lst = self.getRowLabelsRowLst(row_filters_lst, 
             row_filt_flds_lst, col_measures_lst, col_filters_lst, 
             col_tots_lst, col_filt_flds_lst, row_label_rows_lst, 
-            data_cells_n, col_term_nodes)
+            data_cells_n, col_term_nodes, css_idx)
         return row_label_rows_lst
                 
     def getRowLabelsRowLst(self, row_filters_lst, row_filt_flds_lst, 
                            col_measures_lst, col_filters_lst, 
                            col_tots_lst, col_filt_flds_lst, 
                            row_label_rows_lst, data_cells_n,
-                           col_term_nodes):
+                           col_term_nodes, css_idx):
         """
         Get list of row data.  Each row in the list is represented
         by a row of strings to concatenate, one per data point.
         """
+        CSS_FIRST_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_FIRST_DATACELL, css_idx)
+        CSS_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_DATACELL, css_idx)
         i=0
         data_item_presn_lst = []
         for (row_filter, row_filt_flds) in zip(row_filters_lst,
@@ -396,10 +406,10 @@ class GenDemoTable(DemoDimTable):
                         zip(col_measures_lst, col_filters_lst, 
                             col_tots_lst, col_filt_flds_lst):
                 if first:
-                    cellclass = my_globals.CSS_FIRST_DATACELL
+                    cellclass = CSS_FIRST_DATACELL
                     first = False
                 else:
-                    cellclass = my_globals.CSS_DATACELL
+                    cellclass = CSS_DATACELL
                 #build data row list
                 data_val = random.choice(num_data_seq)
                 if colmeasure in [my_globals.ROWPCT, my_globals.COLPCT]:
@@ -432,13 +442,13 @@ class SummDemoTable(DemoDimTable):
                            rowtree, coltree, col_no_vars_item, var_labels, 
                            val_dics, fil_css)
 
-    def getDemoHTMLIfOK(self):
+    def getDemoHTMLIfOK(self, css_idx):
         "Show demo table if sufficient data to do so"
         has_rows = util.getTreeCtrlChildren(tree=self.rowtree, 
                                     parent=self.rowRoot)
-        return self.getDemoHTML() if has_rows else ""
+        return self.getDemoHTML(css_idx) if has_rows else ""
             
-    def getHdrDets(self, row_label_cols_n):
+    def getHdrDets(self, row_label_cols_n, css_idx):
         """
         Return tree_col_labels and the table header HTML.
         For HTML provide everything from <thead> to </thead>.
@@ -448,10 +458,10 @@ class SummDemoTable(DemoDimTable):
         tree_col_labels = self.addSubtreesToColLabelTree(tree_col_labels)
         if tree_col_labels.getDepth() == 1:
             tree_col_labels.addChild(dimtables.LabelNode(label="Measures"))
-        return self.processHdrTree(tree_col_labels, row_label_cols_n)
+        return self.processHdrTree(tree_col_labels, row_label_cols_n, css_idx)
 
     def getBodyHtmlRows(self, row_label_rows_lst, tree_row_labels,
-                        tree_col_labels):
+                        tree_col_labels, css_idx):
         """
         Make table body rows based on contents of row_label_rows_lst:
         e.g. [["<tr>", "<td class='firstrowvar' rowspan='8'>Gender</td>" ...],
@@ -471,17 +481,21 @@ class SummDemoTable(DemoDimTable):
         #print "%s data cells in table" % data_cells_n
         row_label_rows_lst = self.getRowLabelsRowLst(row_filt_flds_lst, 
                                 row_measures_lst, col_filters_lst, 
-                                row_label_rows_lst, col_term_nodes)
+                                row_label_rows_lst, col_term_nodes, css_idx)
         return row_label_rows_lst
     
     def getRowLabelsRowLst(self, row_flds_lst,  
                            row_measures_lst, col_filters_lst, 
-                           row_label_rows_lst, col_term_nodes):
+                           row_label_rows_lst, col_term_nodes, css_idx):
         """
         Get list of row data.  Each row in the list is represented
         by a row of strings to concatenate, one per data point.
         Get data values one at a time (no batches unlike Gen Tables).
         """
+        CSS_FIRST_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_FIRST_DATACELL, css_idx)
+        CSS_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_DATACELL, css_idx)
         data_item_lst = []
         for (rowmeasure, row_fld_lst) in zip(row_measures_lst, 
                                              row_flds_lst):
@@ -489,10 +503,10 @@ class SummDemoTable(DemoDimTable):
             for col_filter_lst in col_filters_lst:
                 #styling
                 if first:
-                    cellclass = my_globals.CSS_FIRST_DATACELL
+                    cellclass = CSS_FIRST_DATACELL
                     first = False
                 else:
-                    cellclass = my_globals.CSS_DATACELL
+                    cellclass = CSS_DATACELL
                 data_val = random.choice(num_data_seq)
                 if rowmeasure == my_globals.SUMM_N:
                     val = "N=%s" % data_val

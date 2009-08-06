@@ -37,17 +37,25 @@ class RawTable(object):
     def hasColMeasures(self):
         return False
 
-    def getHdrDets(self, col_labels):
+    def getHdrDets(self, col_labels, css_idx):
         """
         Set up titles, subtitles, and col labels into table header.
         """
+        CSS_TBL_TITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_TBL_TITLE, css_idx)
+        CSS_SUBTITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_SUBTITLE, css_idx)
+        CSS_TBL_TITLE_CELL = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_TBL_TITLE_CELL, css_idx)
+        CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_FIRST_COL_VAR, css_idx)
         # titles and subtitles
-        titles_html = "\n<p class='%s'>" % my_globals.CSS_TBL_TITLE
+        titles_html = "\n<p class='%s'>" % CSS_TBL_TITLE
         for title in self.titles:
             titles_html += "%s<br>" % title
         titles_html += "</p>"
         if self.subtitles != [""]:
-            subtitles_html = "\n<p class='%s'>" % my_globals.CSS_SUBTITLE
+            subtitles_html = "\n<p class='%s'>" % CSS_SUBTITLE
             for subtitle in self.subtitles:
                 subtitles_html += "%s<br>" % subtitle
             subtitles_html += "</p>"
@@ -55,27 +63,35 @@ class RawTable(object):
             subtitles_html = ""
         title_dets_html = titles_html + subtitles_html
         hdr_html = "\n<thead>\n<tr><th " + \
-            "class='%s'" % my_globals.CSS_TBL_TITLE_CELL + \
+            "class='%s'" % CSS_TBL_TITLE_CELL + \
             " colspan='%s'>" % len(col_labels) + \
             "%s</th></tr>" % title_dets_html
         # col labels
         hdr_html += "\n<tr>"
         for col_label in col_labels:
-            hdr_html += "<th class='%s'>%s</th>" % \
-                (my_globals.CSS_FIRST_COL_VAR, col_label)
+            hdr_html += "<th class='%s'>%s</th>" % (CSS_FIRST_COL_VAR, 
+                                                    col_label)
         hdr_html += "</tr>\n</thead>"
         return hdr_html
 
-    def getHTML(self, page_break_after=False):
+    def getHTML(self, css_idx, page_break_after=False):
         """
         Get HTML for table.
         SELECT statement lists values in same order
             as col names.
         When adding totals, will only do it if all values are numeric (Or None).
         """
+        CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_LBL, css_idx)
+        CSS_ALIGN_RIGHT = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_ALIGN_RIGHT, css_idx)
+        CSS_TOTAL_ROW = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_TOTAL_ROW, css_idx)
+        CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
         html = ""
         html += "\n\n<table cellspacing='0'>\n" # IE6 - no support CSS borderspacing
-        hdr_html = self.getHdrDets(self.col_labels)
+        hdr_html = self.getHdrDets(self.col_labels, css_idx)
         html += hdr_html
         # build body
         body_html = "\n\n<tbody>"
@@ -98,11 +114,11 @@ class RawTable(object):
         # pre-store css class(es) for each column
         col_class_lsts = [[] for x in self.col_names]
         if self.first_col_as_label:
-            col_class_lsts[0] = [my_globals.CSS_LBL]
+            col_class_lsts[0] = [CSS_LBL]
         for i, col_name in enumerate(self.col_names):
             if self.flds[col_name][my_globals.FLD_BOLNUMERIC] \
                     and not col_val_dics[i]:
-                col_class_lsts[i].append(my_globals.CSS_ALIGN_RIGHT)
+                col_class_lsts[i].append(CSS_ALIGN_RIGHT)
         if self.add_total_row:
             row_tots = [0 for x in self.col_names] # initialise
         for row in rows:
@@ -140,19 +156,18 @@ class RawTable(object):
         if self.add_total_row:
             row_tot_vals = [str(x) for x in row_tots]
             if self.first_col_as_label:
-                tot_cell = "<td class='%s'>TOTAL</td>" % my_globals.CSS_LBL
+                tot_cell = "<td class='%s'>TOTAL</td>" % CSS_LBL
                 row_tot_vals.pop(0)
             else:
                 tot_cell = ""
             # never a displayed total for strings (whether orig data or labels)
-            joiner = "</td><td class=\"%s\">" % my_globals.CSS_ALIGN_RIGHT
-            body_html += "\n<tr class='%s'>" % my_globals.CSS_TOTAL_ROW + \
-                tot_cell + "<td class=\"%s\">"  % my_globals.CSS_ALIGN_RIGHT + \
+            joiner = "</td><td class=\"%s\">" % CSS_ALIGN_RIGHT
+            body_html += "\n<tr class='%s'>" % CSS_TOTAL_ROW + \
+                tot_cell + "<td class=\"%s\">"  % CSS_ALIGN_RIGHT + \
                 joiner.join(row_tot_vals) + "</td></tr>"
         body_html += "\n</tbody>"
         html += body_html
         html += "\n</table>"
         if page_break_after:
-            html += "<br><hr><br><div class='%s'></div>" % \
-                my_globals.CSS_PAGE_BREAK_BEFORE
+            html += "<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
         return html   

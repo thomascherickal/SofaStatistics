@@ -26,7 +26,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         self.lblPhrase.SetLabel("Does %s \"%s\" have" % (label_gp, label_a) + \
             " a different average %s from \"%s\"?" % (label_avg, label_b))
 
-    def getScript(self):
+    def getScript(self, css_idx):
         "Build script from inputs"
         script_lst = []
         var_gp, label_gp, val_a, label_a, val_b, label_b, \
@@ -48,7 +48,8 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             "core_stats.ttest_ind(sample_a, sample_b, label_a, label_b)")
         script_lst.append("ttest_output = stats_output.ttest_output(" + \
             "t, p, dic_a, dic_b, label_avg,\n    dp, indep, " + \
-            "level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False)")
+            "level=my_globals.OUTPUT_RESULTS_ONLY, " + \
+            "css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append("fil.write(ttest_output)")
         return "\n".join(script_lst)
     

@@ -23,7 +23,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
                 "morning and mid afternoon?"
         return eg1, eg2, eg3
     
-    def getScript(self):
+    def getScript(self, css_idx):
         "Build script from inputs"
         script_lst = []
         var_a, label_a, var_b, label_b = self.GetDropVals()
@@ -41,6 +41,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             "core_stats.ttest_rel(sample_a, sample_b, label_a, label_b)")
         script_lst.append("ttest_output = stats_output.ttest_output(" + \
             "t, p, dic_a, dic_b, label_avg=\"\", dp=dp, indep=indep,\n    " + \
-            "level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False)")
+            "level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=%s, " % css_idx + \
+            "page_break_after=False)")
         script_lst.append("fil.write(ttest_output)")
         return "\n".join(script_lst)

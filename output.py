@@ -170,28 +170,52 @@ def getHtmlFtr():
     "Close HTML off cleanly"
     return "</body></html>"
 
-def RunReport(modules, fil_report, fil_css, inner_script, conn_dets, dbe, db, 
-              tbl_name, default_dbs, default_tbls):
+# The rest is GUI -> script oriented code
+
+def GetCssDets(fil_report, fil_css):
+    """
+    Returns css_fils, css_idx.
+    css_fils - list of full paths to css files.
+    Knowing the current report and the current css what is the full list of css 
+        files used by the report and what is the index for the current one in
+        that list?
+    Try reading from report file first.
+    If not there (empty report or manually broken by user?) make and use a new
+        one using fil_css.
+    """
+    css_fils = None
+    # read from report
+    if os.path.exists(fil_report):
+        f = file(fil_report, "r")
+        content = f.read()
+        f.close()
+        if content:
+            try:
+                idx_start = content.index("<!--css_fils") + len("<!--")
+                idx_end = content.index("-->")
+                css_fils_str = content[idx_start: idx_end]
+                css_dets_dic = {}
+                exec css_fils_str in css_dets_dic
+                css_fils = css_dets_dic["css_fils"]
+            except Exception:
+                pass
+    if not css_fils:
+        css_fils = [fil_css]
+    else:
+        if fil_css not in css_fils:
+            css_fils.append(fil_css)
+    #my_globals.OUTPUT_CSS_DIC[fil_report] = css_fils
+    css_idx = css_fils.index(fil_css)
+    return css_fils, css_idx
+
+def RunReport(modules, fil_report, css_fils, inner_script, 
+              conn_dets, dbe, db, tbl_name, default_dbs, default_tbls):
     """
     Runs report and returns HTML representation of it.
     """
     # generate script
     f = file(my_globals.INT_SCRIPT_PATH, "w")
-    
-    css_fils = my_globals.OUTPUT_CSS_DIC.get(fil_report)
-    if not css_fils:
-        my_globals.OUTPUT_CSS_DIC[fil_report] = [my_globals.DEFAULT_CSS_PATH]
-    else:
-        if fil_css not in css_fils:
-            css_fils.append(fil_css)
     InsertPrelimCode(modules, f, my_globals.INT_REPORT_PATH, css_fils)
-    
-    
-    
-    
-    
-    
-    
     AppendExportedScript(f, inner_script, conn_dets, dbe, db, tbl_name,
                          default_dbs, default_tbls)
     AddClosingScriptCode(f)
@@ -201,7 +225,8 @@ def RunReport(modules, fil_report, fil_css, inner_script, conn_dets, dbe, db,
     script = f.read()
     f.close()
     try:
-        exec(script)
+        dummy_dic = {}
+        exec script in dummy_dic
     except Exception, e:
         strContent = "<h1>Ooops!</h1>\n<p>Unable to run report.  " + \
             "Error encountered.  Original error message: %s</p>" % e
@@ -219,7 +244,7 @@ def InsertPrelimCode(modules, fil, fil_report, css_fils):
     """
     Insert preliminary code at top of file.
     fil - open file handle ready for writing.
-    NB files always start from scratch per make tables session.
+    NB script files always start from scratch per SOFA Statistics session.
     """         
     fil.write("#! /usr/bin/env python")
     fil.write("\n# -*- coding: utf-8 -*-\n")
@@ -228,8 +253,9 @@ def InsertPrelimCode(modules, fil, fil_report, css_fils):
     for module in modules:
         fil.write("\nimport %s" % module)
     fil.write("\n\nfil = file(r\"%s\", \"w\")" % fil_report)
-    fil.write("\nfil.write(output.getHtmlHdr(\"Report(s)\", " + \
-              "css_fils=%s))" % css_fils)
+    css_fils_str = pprint.pformat(css_fils)
+    fil.write("\ncss_fils=%s" % css_fils_str)
+    fil.write("\nfil.write(output.getHtmlHdr(\"Report(s)\", css_fils))")
     
 def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name, 
                          default_dbs, default_tbls):
@@ -255,22 +281,37 @@ def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name,
     fil.write(inner_script)
     fil.write("\nconn.close()")
 
-def SaveToReport(fil_report, css_fils, content):
-    """
-    If report exists, append content stripped of every thing up till 
-        and including body tag.
-    If not, create file, insert header, then stripped content.
-    """
+def _strip_hdr(html):
+    "Get html after the <body> tag."
     body = "<body>"
-    start_idx = content.find(body) + len(body)
-    content = content[start_idx:]
+    start_idx = html.find(body) + len(body)
+    return html[start_idx:]    
+
+def SaveToReport(fil_report, css_fils, new_html):
+    """
+    If report doesn't exist, make it.
+    If it does exist, extract existing content and then create empty version.
+    Add to empty file, new header, existing content, and new content.
+    A new header is required each time because there may be new css included.
+    New content is everything from "content" after the body tag.
+    """
+    new_no_hdr = _strip_hdr(new_html)
     if os.path.exists(fil_report):
-        f = file(fil_report, "a")
+        f = file(fil_report, "r")
+        existing_html = f.read()
+        existing_no_hdr = _strip_hdr(existing_html)
+        f.close()        
     else:
-        f = file(fil_report, "w")
-        hdr_title = time.strftime("SOFA Statistics Report %Y-%m-%d_%H:%M:%S")
-        f.write(getHtmlHdr(hdr_title, css_fils))
-    f.write(content)
+        existing_no_hdr = None
+    hdr_title = time.strftime("SOFA Statistics Report %Y-%m-%d_%H:%M:%S")
+    hdr = getHtmlHdr(hdr_title, css_fils)
+    f = file(fil_report, "w")
+    css_fils_str = pprint.pformat(css_fils)
+    f.write("<!--css_fils = %s-->\n\n" % css_fils_str)
+    f.write(hdr)
+    if existing_no_hdr:
+        f.write(existing_no_hdr)
+    f.write(new_no_hdr)
     f.close()
 
 def AddClosingScriptCode(f):

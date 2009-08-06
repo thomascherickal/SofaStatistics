@@ -28,7 +28,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         self.lblPhrase.SetLabel("Does average %s " % label_avg + "vary in " + \
             "the groups between \"%s\" and \"%s\"?" % (label_a, label_b))
 
-    def getScript(self):
+    def getScript(self, css_idx):
         "Build script from inputs"
         script_lst = []
         var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
@@ -66,7 +66,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             "h, p, label_a," + \
             "\n    label_b, label_avg, dp," + \
             "\n    level=my_globals.OUTPUT_RESULTS_ONLY, " + \
-            "page_break_after=False)")
+            "css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append("fil.write(kruskal_wallis_output)")
         return "\n".join(script_lst)
     

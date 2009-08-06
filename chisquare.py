@@ -32,7 +32,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         self.lblPhrase.SetLabel("Is there a relationship between " + \
             "\"%s\" and \"%s\"" % (label_a, label_b))
     
-    def getScript(self):
+    def getScript(self, css_idx):
         "Build script from inputs"
         script_lst = []
         var_a, label_a, var_b, label_b = self.GetDropVals()
@@ -58,6 +58,6 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             "\n    val_labels_a, val_labels_b," + \
             "\n    lst_obs, lst_exp, min_count, perc_cells_lt_5, df, dp=dp," + \
             "\n    level=my_globals.OUTPUT_RESULTS_ONLY, " + \
-            "page_break_after=False)")
+            "css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append("fil.write(chisquare_output)")
         return "\n".join(script_lst)

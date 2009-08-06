@@ -56,7 +56,7 @@ class MakeTable(object):
         self.demo_tab.var_labels = self.var_labels
         self.demo_tab.val_dics = self.val_dics
         self.UpdateDemoDisplay()
-    
+        
     def RefreshDescendants(self, tree, descendants):
         ""
         for descendant in descendants:
@@ -165,9 +165,10 @@ class MakeTable(object):
             # hourglass cursor
             curs = wx.StockCursor(wx.CURSOR_WAIT)
             self.SetCursor(curs)
-            script = self.getScript(has_rows, has_cols)
+            css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
+            script = self.getScript(has_rows, has_cols, css_idx)
             strContent = output.RunReport(OUTPUT_MODULES, self.fil_report, 
-                self.fil_css, script, self.conn_dets, self.dbe, self.db, 
+                css_fils, script, self.conn_dets, self.dbe, self.db, 
                 self.tbl, self.default_dbs, self.default_tbls)
             # Return to normal cursor
             curs = wx.StockCursor(wx.CURSOR_ARROW)
@@ -196,7 +197,8 @@ class MakeTable(object):
         If the file exists and is not empty, append the script on the end.
         """
         modules = ["my_globals", "dimtables", "rawtables", "output", "getdata"]
-        script = self.getScript(has_rows, has_cols)
+        css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
+        script = self.getScript(has_rows, has_cols, css_idx)
         if self.fil_script in self.open_scripts:
             # see if empty or not
             f = file(self.fil_script, "r+")
@@ -204,7 +206,7 @@ class MakeTable(object):
             empty_fil = False if lines else True            
             if empty_fil:
                 output.InsertPrelimCode(OUTPUT_MODULES, f, self.fil_report, 
-                                        self.fil_css)
+                                        css_fils)
             # insert exported script
             output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
                         self.db, self.tbl, self.default_dbs, self.default_tbls)
@@ -214,12 +216,12 @@ class MakeTable(object):
             self.open_scripts.append(self.fil_script)
             f = file(self.fil_script, "w")
             output.InsertPrelimCode(OUTPUT_MODULES, f, self.fil_report, 
-                                    self.fil_css)
+                                    css_fils)
             output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
                         self.db, self.tbl, self.default_dbs, self.default_tbls)
         f.close()
         
-    def getScript(self, has_rows, has_cols):
+    def getScript(self, has_rows, has_cols, css_idx):
         "Build script from inputs"
         script_lst = []
         # set up variables required for passing into main table instantiation
@@ -288,18 +290,19 @@ class MakeTable(object):
                 "add_total_row=%s, " % tot_rows + \
                 "\nfirst_col_as_label=%s)" % first_label)
         if self.tab_type in [my_globals.COL_MEASURES, my_globals.ROW_SUMM]:
-            script_lst.append("tab_test.prepTable()")
+            script_lst.append("tab_test.prepTable(%s)" % css_idx)
             script_lst.append("max_cells = 5000")
             script_lst.append("if tab_test.getCellNOk(max_cells=max_cells):")
             script_lst.append("    " + \
-                        "fil.write(tab_test.getHTML(page_break_after=False))")
+                        "fil.write(tab_test.getHTML(%s, " % css_idx + \
+                        "page_break_after=False))")
             script_lst.append("else:")
             script_lst.append("    " + \
                               "fil.write(\"Table not made.  Number \" + \\" + \
                               "\n        \"of cells exceeded limit \" + \\" + \
                               "\n        \"of %s\" % max_cells)")
         else:
-            script_lst.append("fil.write(tab_test.getHTML(" + \
+            script_lst.append("fil.write(tab_test.getHTML(%s, " % css_idx + \
                               "page_break_after=False))")
         return "\n".join(script_lst)
 
@@ -405,8 +408,11 @@ class MakeTable(object):
             
     # demo table display
     def UpdateDemoDisplay(self):
-        "Update demo table display with random data"
-        demo_tbl_html = self.demo_tab.getDemoHTMLIfOK()
+        """
+        Update demo table display with random data.
+        Always use one css only (the current one).
+        """
+        demo_tbl_html = self.demo_tab.getDemoHTMLIfOK(css_idx=0)
         #print "\n" + demo_tbl_html + "\n" #debug
         self.html.ShowHTML(demo_tbl_html)
 

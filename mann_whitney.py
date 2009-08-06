@@ -31,7 +31,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         self.lblPhrase.SetLabel("Does %s \"%s\" have" % (label_gp, label_a) + \
             " a different %s from \"%s\"?" % (label_avg, label_b))
 
-    def getScript(self):
+    def getScript(self, css_idx):
         "Build script from inputs"
         script_lst = []
         var_gp, label_gp, val_a, label_a, val_b, label_b, var_ranked, \
@@ -53,6 +53,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append("mann_whitney_output = " + \
             "stats_output.mann_whitney_output(" + \
             "u, p, dic_a, dic_b, label_ranked, dp,\n     " + \
-            "level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False)")
+            "level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=%s, " % css_idx + \
+            "page_break_after=False)")
         script_lst.append("fil.write(mann_whitney_output)")
         return "\n".join(script_lst)

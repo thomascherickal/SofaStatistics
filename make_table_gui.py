@@ -240,7 +240,13 @@ class DlgMakeTable(wx.Dialog,
         szrMain.SetSizeHints(self)
         self.Fit() #needed, otherwise initial display problem with 
         #  status bar
-        
+
+    def UpdateCss(self):
+        "Update css, including for demo table"
+        gen_config.GenConfig.UpdateCss(self)
+        self.demo_tab.fil_css = self.fil_css
+        self.UpdateDemoDisplay()
+    
     # database/ tables (and views)
     def OnDatabaseSel(self, event):
         """

@@ -78,7 +78,6 @@ CSS_ELEMENTS = [CSS_ALIGN_RIGHT, CSS_LBL, CSS_TBL_TITLE,
                 CSS_SPACEHOLDER, CSS_ROW_VAL, CSS_COL_VAL, CSS_ROW_VAR, 
                 CSS_COL_VAR, CSS_MEASURE, CSS_TOTAL_ROW, CSS_PAGE_BREAK_BEFORE]
 CSS_SUFFIX_TEMPLATE = "%s%s"
-OUTPUT_CSS_DIC = {} # for an output file as key, what is the list of css files
 
 # getdata ******************************************************
 # misc field dets

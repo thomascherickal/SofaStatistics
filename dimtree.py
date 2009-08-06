@@ -39,7 +39,7 @@ class DimTree(object):
     def OnColItemRightClick(self, event):
         ""
         self.ShowVarProperties(self.coltree, event)
-                
+        
     def ShowVarProperties(self, tree, event):
         choice_item = tree.GetItemText(event.GetItem())
         var_name, var_label = getdata.extractChoiceDets(choice_item)

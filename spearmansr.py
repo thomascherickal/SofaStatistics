@@ -31,7 +31,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             "\"%s\" correlated - do they change together in a " % label_b + \
             "linear fashion?")
     
-    def getScript(self):
+    def getScript(self, css_idx):
         "Build script from inputs"
         script_lst = []
         var_a, label_a, var_b, label_b = self.GetDropVals()
@@ -49,7 +49,8 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append("spearmansr_output = " + \
                           "stats_output.spearmansr_output(" + \
             "r, p, label_a, label_b, dp=dp,\n    " + \
-            "level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False)")
+            "level=my_globals.OUTPUT_RESULTS_ONLY, " + \
+            "css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append("fil.write(spearmansr_output)")
         return "\n".join(script_lst)
 

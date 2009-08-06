@@ -119,41 +119,48 @@ class DimTable(object):
     """
     Functionality that applies to both demo and live tables
     """
-    def processHdrTree(self, tree_col_labels, row_label_cols_n):
+    def processHdrTree(self, tree_col_labels, row_label_cols_n, css_idx):
         """
         Set up titles, subtitles, and col labels into table header.
         """
+        CSS_TBL_TITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_TBL_TITLE, css_idx)
+        CSS_SUBTITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_SUBTITLE, css_idx)
+        CSS_TBL_TITLE_CELL = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_TBL_TITLE_CELL, css_idx)
+        CSS_SPACEHOLDER = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_SPACEHOLDER, css_idx)        
         #print tree_col_labels #debug
         col_label_rows_n = tree_col_labels.getDepth()
         col_label_rows_lst = [["<tr>"] for x in range(col_label_rows_n)]
         #title/subtitle etc share their own row
-        titles_html = "\n<p class='%s'>" % my_globals.CSS_TBL_TITLE
+        titles_html = "\n<p class='%s'>" % CSS_TBL_TITLE
         for title in self.titles:
             titles_html += "%s<br>" % title
         titles_html += "</p>"
         if self.subtitles != [""]:
-            subtitles_html = "\n<p class='%s'>" % my_globals.CSS_SUBTITLE
+            subtitles_html = "\n<p class='%s'>" % CSS_SUBTITLE
             for subtitle in self.subtitles:
                 subtitles_html += "%s<br>" % subtitle
             subtitles_html += "</p>"
         else:
             subtitles_html = ""
         title_dets_html = titles_html + subtitles_html
-        col_label_rows_lst[0].append("<th class='%s' " % \
-                                     my_globals.CSS_TBL_TITLE_CELL + \
+        col_label_rows_lst[0].append("<th class='%s' " % CSS_TBL_TITLE_CELL + \
                                      "colspan='%s'>%s</th>" % \
             (len(tree_col_labels.getTerminalNodes()) + row_label_cols_n, 
              title_dets_html))
         #start off with spaceholder heading cell
         col_label_rows_lst[1].append("<th class='%s' rowspan='%s' " % \
-            (my_globals.CSS_SPACEHOLDER, tree_col_labels.getDepth() - 1) + \
+            (CSS_SPACEHOLDER, tree_col_labels.getDepth() - 1) + \
             "colspan='%s'>&nbsp;&nbsp;</th>" % \
             row_label_cols_n)
         col_label_rows_lst = self.colLabelRowBuilder(\
                         node=tree_col_labels.root_node,
                         col_label_rows_lst=col_label_rows_lst, 
-                        col_label_rows_n=col_label_rows_n, row_offset=0)
-        
+                        col_label_rows_n=col_label_rows_n, row_offset=0, 
+                        css_idx=css_idx)
         hdr_html = "\n<thead>"
         for row in col_label_rows_lst:
             #flatten row list
@@ -162,7 +169,7 @@ class DimTable(object):
         #print tree_col_labels
         return (tree_col_labels, hdr_html)
       
-    def processRowTree(self, tree_row_labels):
+    def processRowTree(self, tree_row_labels, css_idx):
         "Turn row label tree into labels"
         #print tree_row_labels #debug
         row_label_cols_n = tree_row_labels.getDepth() - 1 #exclude root node
@@ -175,11 +182,12 @@ class DimTable(object):
                         node=tree_row_labels.root_node,
                         row_label_rows_lst=row_label_rows_lst, 
                         row_label_cols_n=row_label_cols_n, 
-                        row_offset_dic=row_offset_dic, col_offset=0)
+                        row_offset_dic=row_offset_dic, col_offset=0, 
+                        css_idx=css_idx)
         return (row_label_rows_lst, tree_row_labels, row_label_cols_n)       
 
     def rowLabelRowBuilder(self, node, row_label_rows_lst, row_label_cols_n, 
-                           row_offset_dic, col_offset=0):
+                           row_offset_dic, col_offset, css_idx):
         """
         Adds cells to the row label rows list as it goes through all nodes.
             NB nodes are not processed level by level but from from 
@@ -209,6 +217,12 @@ class DimTable(object):
         Format cells according to whether variable or value.  Even level
             = value, odd level = variable.
         """
+        CSS_FIRST_ROW_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_FIRST_ROW_VAR, css_idx)
+        CSS_ROW_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_ROW_VAR, css_idx)
+        CSS_ROW_VAL = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_ROW_VAL, css_idx)
         #print node #debug
         level = node.level
         if level > 0: # skip adding cells for root node itself
@@ -233,17 +247,17 @@ class DimTable(object):
             # styling
             if cols_to_right % 2 > 0: #odd
                 if cols_filled == 1:
-                    cellclass="class='%s'" % my_globals.CSS_FIRST_ROW_VAR
+                    cellclass="class='%s'" % CSS_FIRST_ROW_VAR
                 else:
-                    cellclass="class='%s'" % my_globals.CSS_ROW_VAR
+                    cellclass="class='%s'" % CSS_ROW_VAR
             else:
-                cellclass="class='%s'" % my_globals.CSS_ROW_VAL
+                cellclass="class='%s'" % CSS_ROW_VAL
             row_label_rows_lst[row_idx].append("<td %s %s %s>%s</td>" % \
                                 (cellclass, rowspan, colspan, node.label))
         for child in node.children:
             row_label_rows_lst = self.rowLabelRowBuilder(child, 
                                     row_label_rows_lst, row_label_cols_n, 
-                                    row_offset_dic, col_offset)
+                                    row_offset_dic, col_offset, css_idx)
         # finish level, set all child levels to start with this one's final offset
         # Otherwise Gender, Gender->Asst problem (whereas Gender->Asst, Gender is fine)
         if level > 0: # don't do this on the root
@@ -252,7 +266,7 @@ class DimTable(object):
         return row_label_rows_lst
     
     def colLabelRowBuilder(self, node, col_label_rows_lst, col_label_rows_n, 
-                           row_offset=0):
+                           row_offset, css_idx):
         """
         Adds cells to the column label rows list as it goes through all nodes.
         Add cells to the correct row which means that the first cell
@@ -277,6 +291,12 @@ class DimTable(object):
         For General Tables, odd number of levels below = value, 
         even = variable.  For Summary Tables, vv.
         """
+        CSS_COL_VAL = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_COL_VAL, css_idx)
+        CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_FIRST_COL_VAR, css_idx)
+        CSS_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_COL_VAR, css_idx)
         rows_filled = node.level + 1 + row_offset
         rows_to_fill = col_label_rows_n - rows_filled
         rows_below = node.getDepth() - 1 # exclude self
@@ -286,20 +306,20 @@ class DimTable(object):
             if rows_below == 0:
                 cellclass="class='measure'"
             elif rows_below % 2 > 0: # odd
-                cellclass="class='%s'" % my_globals.CSS_COL_VAL
+                cellclass="class='%s'" % CSS_COL_VAL
             else:
                 if rows_filled == 2:
-                    cellclass="class='%s'" % my_globals.CSS_FIRST_COL_VAR
+                    cellclass="class='%s'" % CSS_FIRST_COL_VAR
                 else:
-                    cellclass="class='%s'" % my_globals.CSS_COL_VAR
+                    cellclass="class='%s'" % CSS_COL_VAR
         else:
             if rows_below % 2 == 0: # even
-                cellclass="class='%s'" % my_globals.CSS_COL_VAL
+                cellclass="class='%s'" % CSS_COL_VAL
             else:
                 if rows_filled == 2:
-                    cellclass="class='%s'" % my_globals.CSS_FIRST_COL_VAR
+                    cellclass="class='%s'" % CSS_FIRST_COL_VAR
                 else:
-                    cellclass="class='%s'" % my_globals.CSS_COL_VAR
+                    cellclass="class='%s'" % CSS_COL_VAR
         # cell dimensions
         if gap > 0:
             rowspan = " rowspan='%s' " % (1 + gap,)
@@ -318,7 +338,7 @@ class DimTable(object):
         for child in node.children:
             col_label_rows_lst = self.colLabelRowBuilder(child, 
                                 col_label_rows_lst, col_label_rows_n, 
-                                row_offset)
+                                row_offset, css_idx)
         return col_label_rows_lst
     
     
@@ -355,11 +375,12 @@ class LiveTable(DimTable):
         data_cell_n = len(row_term_nodes) * len(col_term_nodes)
         return data_cell_n
     
-    def prepTable(self):
+    def prepTable(self, css_idx):
         "Prepare table setup information towards generation of final html."
         (self.row_label_rows_lst, self.tree_row_labels, row_label_cols_n) = \
-            self.getRowDets()
-        self.tree_col_labels, self.hdr_html = self.getHdrDets(row_label_cols_n)
+            self.getRowDets(css_idx)
+        self.tree_col_labels, self.hdr_html = self.getHdrDets(row_label_cols_n, 
+                                                              css_idx)
     
     def getCellNOk(self, max_cells=5000):
         """
@@ -370,18 +391,18 @@ class LiveTable(DimTable):
                                         self.tree_row_labels)
         return max_cells >= data_cell_n
     
-    def getHTML(self, page_break_after=False):
+    def getHTML(self, css_idx, page_break_after=False):
         """
         Get HTML for table.
         """
         html = ""
         html += "<table cellspacing='0'>\n" # IE6 doesn't support CSS borderspacing
         (row_label_rows_lst, tree_row_labels, row_label_cols_n) = \
-            self.getRowDets()
-        (tree_col_dets, hdr_html) = self.getHdrDets(row_label_cols_n)
+            self.getRowDets(css_idx)
+        (tree_col_dets, hdr_html) = self.getHdrDets(row_label_cols_n, css_idx)
         row_label_rows_lst = self.getBodyHtmlRows(row_label_rows_lst,
                                                   tree_row_labels, 
-                                                  tree_col_dets)
+                                                  tree_col_dets, css_idx)
         body_html = "\n\n<tbody>"
         for row in row_label_rows_lst:
             #flatten row list
@@ -392,7 +413,7 @@ class LiveTable(DimTable):
         html += "\n</table>"
         return html
     
-    def getRowDets(self):
+    def getRowDets(self, css_idx):
         """
         Return row_label_rows_lst - need combination of row and col filters
             to add the data cells to the table body rows.
@@ -406,7 +427,7 @@ class LiveTable(DimTable):
                                 tree_labels_node=tree_row_labels.root_node,
                                 dim=my_globals.ROWDIM, 
                                 oth_dim_root=self.tree_cols.root_node)
-        return self.processRowTree(tree_row_labels)        
+        return self.processRowTree(tree_row_labels, css_idx)        
     
     def addSubtreesToColLabelTree(self, tree_col_labels):
         """
@@ -721,17 +742,17 @@ class GenTable(LiveTable):
     has_row_vals = True
     has_col_measures = True
 
-    def getHdrDets(self, row_label_cols_n):
+    def getHdrDets(self, row_label_cols_n, css_idx):
         """
         Return tree_col_labels and the table header HTML.
         For HTML provide everything from <thead> to </thead>.
         """
         tree_col_labels = LabelNodeTree()
         tree_col_labels = self.addSubtreesToColLabelTree(tree_col_labels)
-        return self.processHdrTree(tree_col_labels, row_label_cols_n)
+        return self.processHdrTree(tree_col_labels, row_label_cols_n, css_idx)
         
     def getBodyHtmlRows(self, row_label_rows_lst, tree_row_labels,
-                        tree_col_labels):
+                        tree_col_labels, css_idx):
         """
         Make table body rows based on contents of row_label_rows_lst:
         e.g. [["<tr>", "<td class='firstrowvar' rowspan='8'>Gender</td>" ...],
@@ -753,14 +774,14 @@ class GenTable(LiveTable):
         row_label_rows_lst = self.getRowLabelsRowLst(row_filters_lst, 
             row_filt_flds_lst, col_measures_lst, col_filters_lst, 
             col_tots_lst, col_filt_flds_lst, row_label_rows_lst, 
-            data_cells_n, col_term_nodes)
+            data_cells_n, col_term_nodes, css_idx)
         return row_label_rows_lst
                 
     def getRowLabelsRowLst(self, row_filters_lst, row_filt_flds_lst, 
                            col_measures_lst, col_filters_lst, 
                            col_tots_lst, col_filt_flds_lst, 
                            row_label_rows_lst, data_cells_n,
-                           col_term_nodes):
+                           col_term_nodes, css_idx):
         """
         Get list of row data.  Each row in the list is represented
         by a row of strings to concatenate, one per data point.
@@ -772,7 +793,12 @@ class GenTable(LiveTable):
             wrappers for data ("<td class='%s'>" % cellclass, "</td>").  
             As each data point is processed, a tuple is added to the list.
         results is built once per batch of data points for database 
-            efficiency reasons.  Each call returns multiple values."""
+            efficiency reasons.  Each call returns multiple values.
+        """
+        CSS_FIRST_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_FIRST_DATACELL, css_idx)
+        CSS_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_DATACELL, css_idx)
         i=0
         data_item_presn_lst = []
         results = ()
@@ -807,10 +833,10 @@ class GenTable(LiveTable):
                     last_col_filter = ""
                 #styling
                 if first:
-                    cellclass = my_globals.CSS_FIRST_DATACELL
+                    cellclass = CSS_FIRST_DATACELL
                     first = False
                 else:
-                    cellclass = my_globals.CSS_DATACELL
+                    cellclass = CSS_DATACELL
                 #build data row list
                 data_item_presn_lst.append(("<td class='%s'>" % cellclass, 
                                            colmeasure, "</td>"))
@@ -825,8 +851,7 @@ class GenTable(LiveTable):
                               all_but_last_col_filters_lst, #needed for rowpct
                           last_col_filter=last_col_filter, #needed for colpct
                           cols_not_null_lst=cols_not_null_lst, #needed for rowpct
-                          is_coltot=coltot
-                          )
+                          is_coltot=coltot)
                 SQL_table_select_clauses_lst.append(clause)
                 #process SQL queries when number of clauses reaches certain threshold
                 if len(SQL_table_select_clauses_lst) == max_select_vars \
@@ -950,7 +975,7 @@ class SummTable(LiveTable):
     has_row_vals = False
     has_col_measures = False
 
-    def getHdrDets(self, row_label_cols_n):
+    def getHdrDets(self, row_label_cols_n, css_idx):
         """
         Return tree_col_labels and the table header HTML.
         For HTML provide everything from <thead> to </thead>.
@@ -960,10 +985,10 @@ class SummTable(LiveTable):
         tree_col_labels = self.addSubtreesToColLabelTree(tree_col_labels)
         if tree_col_labels.getDepth() == 1:
             tree_col_labels.addChild(LabelNode(label="Measures"))
-        return self.processHdrTree(tree_col_labels, row_label_cols_n)
+        return self.processHdrTree(tree_col_labels, row_label_cols_n, css_idx)
         
     def getBodyHtmlRows(self, row_label_rows_lst, tree_row_labels,
-                        tree_col_labels):
+                        tree_col_labels, css_idx):
         """
         Make table body rows based on contents of row_label_rows_lst:
         e.g. [["<tr>", "<td class='firstrowvar' rowspan='8'>Gender</td>" ...],
@@ -983,17 +1008,21 @@ class SummTable(LiveTable):
         if self.debug: print "%s data cells in table" % data_cells_n
         row_label_rows_lst = self.getRowLabelsRowLst(row_filt_flds_lst, 
                                 row_measures_lst, col_filters_lst, 
-                                row_label_rows_lst, col_term_nodes)
+                                row_label_rows_lst, col_term_nodes, css_idx)
         return row_label_rows_lst
     
     def getRowLabelsRowLst(self, row_flds_lst,  
                            row_measures_lst, col_filters_lst, 
-                           row_label_rows_lst, col_term_nodes):
+                           row_label_rows_lst, col_term_nodes, css_idx):
         """
         Get list of row data.  Each row in the list is represented
         by a row of strings to concatenate, one per data point.
         Get data values one at a time (no batches unlike Gen Tables).
         """
+        CSS_FIRST_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_FIRST_DATACELL, css_idx)
+        CSS_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_DATACELL, css_idx)
         data_item_lst = []
         for (rowmeasure, row_fld_lst) in zip(row_measures_lst, 
                                              row_flds_lst):
@@ -1001,10 +1030,10 @@ class SummTable(LiveTable):
             for col_filter_lst in col_filters_lst:
                 #styling
                 if first:
-                    cellclass = my_globals.CSS_FIRST_DATACELL
+                    cellclass = CSS_FIRST_DATACELL
                     first = False
                 else:
-                    cellclass = my_globals.CSS_DATACELL
+                    cellclass = CSS_DATACELL
                 data_val = self.getDataVal(rowmeasure, row_fld_lst[0], 
                                              col_filter_lst)
                 data_item_lst.append("<td class='%s'>%s</td>" % \

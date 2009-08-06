@@ -22,7 +22,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         eg3 = "Or have house values changed since the recession began?"
         return eg1, eg2, eg3
     
-    def getScript(self):
+    def getScript(self, css_idx):
         "Build script from inputs"
         script_lst = []
         var_a, label_a, var_b, label_b = self.GetDropVals()
@@ -38,6 +38,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append("t, p = core_stats.wilcoxont(sample_a, sample_b)")
         script_lst.append("wilcoxon_output = stats_output.wilcoxon_output(" + \
             "t, p, label_a, label_b, dp=dp,\n    " + \
-            "level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False)")
+            "level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=%s, " % css_idx + \
+            "page_break_after=False)")
         script_lst.append("fil.write(wilcoxon_output)")
         return "\n".join(script_lst)

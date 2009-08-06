@@ -3,8 +3,8 @@ import cgi
 import my_globals
 
 def ttest_output(t, p, dic_a, dic_b, label_avg="", dp=3, indep=True,
-                 level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False,
-                 css_idx=0):
+                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                 page_break_after=False):
     """
     Returns HTML table ready to display.
     dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
@@ -44,8 +44,8 @@ def ttest_output(t, p, dic_a, dic_b, label_avg="", dp=3, indep=True,
     return html
 
 def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
-                 level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False,
-                 css_idx=0):
+                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                 page_break_after=False):
     CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
@@ -73,8 +73,8 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
     return html
 
 def wilcoxon_output(t, p, label_a, label_b, dp=3,
-                 level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False,
-                 css_idx=0):
+                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                 page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
     html = "<h2>Results of Wilcoxon Signed Ranks Test of " + \
@@ -87,8 +87,8 @@ def wilcoxon_output(t, p, label_a, label_b, dp=3,
     return html
 
 def pearsonsr_output(r, p, label_a, label_b, dp=3,
-                 level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False,
-                 css_idx=0):
+                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                 page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
     html = "<h2>Results of Pearson's Test of Linear Correlation for " + \
@@ -101,8 +101,8 @@ def pearsonsr_output(r, p, label_a, label_b, dp=3,
     return html
 
 def spearmansr_output(r, p, label_a, label_b, dp=3,
-                 level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False,
-                 css_idx=0):
+                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                 page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
     html = "<h2>Results of Spearman's Test of Linear Correlation for " + \
@@ -117,8 +117,8 @@ def spearmansr_output(r, p, label_a, label_b, dp=3,
 def chisquare_output(chi, p, var_label_a, var_label_b, 
                      val_labels_a, val_labels_b, lst_obs, lst_exp, min_count, 
                      perc_cells_lt_5, df, dp=3, 
-                     level=my_globals.OUTPUT_RESULTS_ONLY, 
-                     page_break_after=False, css_idx=0):
+                     level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                     page_break_after=False):
     CSS_SPACEHOLDER = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_SPACEHOLDER, css_idx)
     CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
@@ -212,8 +212,8 @@ def chisquare_output(chi, p, var_label_a, var_label_b,
     return html
 
 def kruskal_wallis_output(h, p, label_a, label_b, label_avg, dp=3,
-                 level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False,
-                 css_idx=0):
+                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                 page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx) 
     html = "<h2>Results of Kruskal-Wallis H test of average %s" % label_avg + \
@@ -226,8 +226,8 @@ def kruskal_wallis_output(h, p, label_a, label_b, label_avg, dp=3,
     return html
 
 def anova_output(f, p, dics, label_a, label_b, label_avg, dp=3,
-                 level=my_globals.OUTPUT_RESULTS_ONLY, page_break_after=False,
-                 css_idx=0):
+                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                 page_break_after=False):
     CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \

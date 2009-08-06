@@ -231,8 +231,6 @@ class GenConfig(object):
     def UpdateCss(self):
         "Update css, including for demo table"
         self.fil_css = self.txtCssFile.GetValue()
-        self.demo_tab.fil_css = self.fil_css
-        self.UpdateDemoDisplay()
         
     #def CssPathEnterWindow(self, event):
     #    "Hover over Css Path Browse button"
