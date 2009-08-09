@@ -1,4 +1,5 @@
 import os
+import re
 import wx
 
 import my_globals
@@ -391,6 +392,26 @@ class ImportFileSelectDlg(wx.Dialog):
         self.keep_importing.discard(True)
         self.keep_importing.add(False)
     
+    def _GetNewName(self, conn, file_path):
+        "Return new table name (or raise exception)"
+        dlg = wx.TextEntryDialog(None, 
+                                 "Please enter new name for table",
+                                 "NEW TABLE NAME",
+                                 style=wx.OK|wx.CANCEL)
+        if dlg.ShowModal() == wx.ID_OK:
+            val_entered = dlg.GetValue()
+            if val_entered != "":
+                conn.close()
+                final_tbl_name = self.CheckTblName(file_path, val_entered)
+                tbl_name = val_entered
+            else:
+                raise Exception, "No table name entered " + \
+                    "when given chance"
+        else:
+            raise Exception, "Had a problem with the SOFA table " + \
+                "name but user cancelled final steps to resolve it"
+        return tbl_name
+        
     def CheckTblName(self, file_path, tbl_name):
         """
         Returns final_tbl_name.
@@ -400,35 +421,38 @@ class ImportFileSelectDlg(wx.Dialog):
         final_tbl_name = tbl_name # unless overridden
         # check existing names
         conn, _, _, tbls, _, _, _ = GetDefaultDbDets()
-        if tbl_name in tbls:
+        # only allow alphanumeric
+        reobj = re.compile(r"\W+")
+        bad_parts = reobj.findall(tbl_name)
+        bad_name = True if bad_parts else False
+        if bad_name:
+            title = "FAULTY SOFA NAME"
+            bad_parts_txt = "'" + ", ".join(bad_parts) + "'"
+            msg = "You cannot use %s in a SOFA name.  " % bad_parts_txt + \
+                "Use another name?"
+            retCode = wx.MessageBox(msg, title,
+                wx.YES_NO|wx.ICON_QUESTION)
+            if retCode == wx.NO:
+                raise Exception, "Had a problem with faulty SOFA table " + \
+                    "name but user cancelled initial process of resolving it"
+            elif retCode == wx.YES:
+                final_tbl_name = self._GetNewName(conn, file_path)
+        duplicate = tbl_name in tbls
+        if duplicate:
+            title = "SOFA NAME ALREADY EXISTS"
             msg = "A table named \"%s\" " % tbl_name + \
                   "already exists in the SOFA default database.\n\n" + \
                   "Do you want to replace it with the new data from " + \
                   "\"%s\"?" % file_path
-            retCode = wx.MessageBox(msg, "TABLE ALREADY EXISTS",
+            retCode = wx.MessageBox(msg, title,
                 wx.YES_NO|wx.CANCEL|wx.ICON_QUESTION)
             if retCode == wx.CANCEL: # Not wx.ID_CANCEL
-                raise Exception, "Had a name collision but cancelled out " + \
-                    "of beginning to resolve it"
-            elif retCode == wx.NO:
-                # get new one
-                dlg = wx.TextEntryDialog(None, 
-                                         "Please enter new name for table",
-                                         "NEW TABLE NAME",
-                                         style=wx.OK|wx.CANCEL)
-                if dlg.ShowModal() == wx.ID_OK:
-                    val_entered = dlg.GetValue()
-                    if val_entered != "":
-                        conn.close()
-                        final_tbl_name = self.CheckTblName(file_path, 
-                                                           val_entered)
-                        tbl_name = val_entered
-                    else:
-                        raise Exception, "No table name entered " + \
-                            "when give chance"
-                else:
-                    raise Exception, "Had a name collision but cancelled " + \
-                        "out of completing resolution of it"
+                raise Exception, "Had a problem with duplicate SOFA table " + \
+                    "name but user cancelled initial process of resolving it"
+            elif retCode == wx.NO: # no overwrite so get new one (or else!)
+                final_tbl_name = self._GetNewName(conn, file_path)
+            elif retCode == wx.YES:
+                pass # use the new name
         return final_tbl_name
 
     def SetImportButtons(self, importing):
