@@ -66,7 +66,11 @@ class FileImporter(object):
         i = 0
         size = 0
         for row in tmp_reader:
-            size += len(", ".join(row.values()))
+            try:
+                values = row.values()
+            except AttributeError:
+                values = row
+            size += len(", ".join(values))
             i += 1
             if i == 5:
                 break
@@ -135,3 +139,4 @@ class FileImporter(object):
         conn.commit()
         conn.close()
         progBackup.SetValue(0)
+        

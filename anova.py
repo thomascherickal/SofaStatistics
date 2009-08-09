@@ -59,7 +59,10 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             sample_name = "sample_%s" % i
             script_lst.append(strGet_Sample % (sample_name, val))
             lst_samples.append(sample_name)
-            val_label = self.val_dics[var_gp].get(val)
+            try:
+                val_label = self.val_dics[var_gp].get(val)
+            except KeyError:
+                val_label = str(val).upper()
             lst_labels.append(val_label)
         samples = "[" + ", ".join(lst_samples) + "]"
         script_lst.append("lst_samples = %s" % samples)
