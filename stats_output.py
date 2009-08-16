@@ -13,7 +13,9 @@ def ttest_output(t, p, dic_a, dic_b, label_avg="", dp=3, indep=True,
     CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)    
+        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+    CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
+        (my_globals.CSS_LBL, css_idx)
     if indep:
         html = "<h2>Results of Independent Samples t-test " + \
             "of average \"%s\" for " % label_avg + \
@@ -32,7 +34,7 @@ def ttest_output(t, p, dic_a, dic_b, label_avg="", dp=3, indep=True,
         "\n<th class='%s'>Min</th>" % CSS_FIRST_COL_VAR + \
         "\n<th class='%s'>Max</th></tr>" % CSS_FIRST_COL_VAR
     html += "\n</thead>\n<tbody>"
-    row_tpl = "\n<tr><td class='lbl'>%s</td><td>%s</td><td>%s</td>" + \
+    row_tpl = "\n<tr><td class='%s'>%s</td><td>%s</td><td>%s</td>" % CSS_LBL + \
         "<td>%s</td><td>%s</td><td>%s</td></tr>"
     for dic in [dic_a, dic_b]:
         html += row_tpl % (dic["label"], dic["n"], round(dic["mean"], dp), 
@@ -49,7 +51,9 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
     CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx) 
+        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+    CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
+        (my_globals.CSS_LBL, css_idx)
     html = "<h2>Results of Mann Whitney U Test of \"%s\" for" % label_ranked + \
             " \"%s\" vs \"%s\"</h2>" % (dic_a["label"], dic_b["label"])
     p_format = "\n<p>p value: %%.%sf</p>" % dp
@@ -62,7 +66,7 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
         "\n<th class='%s'>Min</th>" % CSS_FIRST_COL_VAR + \
         "\n<th class='%s'>Max</th></tr>" % CSS_FIRST_COL_VAR
     html += "\n</thead>\n<tbody>"
-    row_tpl = "\n<tr><td class='lbl'>%s</td><td>%s</td><td>%s</td>" + \
+    row_tpl = "\n<tr><td class='%s'>%s</td><td>%s</td><td>%s</td>" % CSS_LBL + \
         "<td>%s</td><td>%s</td></tr>"
     for dic in [dic_a, dic_b]:
         html += row_tpl % (dic["label"], dic["n"], round(dic["avg rank"], dp),
@@ -225,19 +229,37 @@ def kruskal_wallis_output(h, p, label_a, label_b, label_avg, dp=3,
         html += "<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
     return html
 
-def anova_output(f, p, dics, label_a, label_b, label_avg, dp=3,
+def anova_output(F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, 
+                 mean_squ_bn, label_a, label_b, label_avg, dp=3,
                  level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
                  page_break_after=False):
     CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx) 
+        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+    CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
+        (my_globals.CSS_LBL, css_idx)
     html = "<h2>Results of ANOVA test of average %s" % label_avg + \
             " for groups from \"%s\" to \"%s\"</h2>" % (label_a, label_b)
-    p_format = "\n<p>p value: %%.%sf</p>" % dp
-    html += p_format % round(p, dp)
-    html += "\n<p>ANOVA F statistic: %s</p>" % round(f, dp)
-    html += "\n\n<table>\n<thead>"
+    html += "\n\n<h3>Analysis of variance table</h3>"
+    html += "\n<table>\n<thead>"
+    html += "\n<tr><th class='%s'>Source</th>" % CSS_FIRST_COL_VAR + \
+        "\n<th class='%s'>Sum of Squares</th>" % CSS_FIRST_COL_VAR + \
+        "\n<th class='%s'>df</th>" % CSS_FIRST_COL_VAR + \
+        "\n<th class='%s'>Mean Sum of Squares</th>" % CSS_FIRST_COL_VAR + \
+        "\n<th class='%s'>F</th>" % CSS_FIRST_COL_VAR + \
+        "\n<th class='%s'>p</th></tr>" % CSS_FIRST_COL_VAR
+    html += "\n</thead>\n<tbody>"
+    html += "\n<tr><td>Between</td><td>%s</td><td>%s</td>" % (round(ssbn, dp), 
+                                                              dfbn)
+    html += "<td>%s</td><td>%s</td><td>%s</td></tr>" % (round(mean_squ_bn, dp), 
+                                                    round(F, dp), round(p, dp))
+    html += "\n<tr><td>Within</td><td>%s</td><td>%s</td>" % (round(sswn, dp), 
+                                                             dfwn)
+    html += "<td>%s</td><td></td><td></td></tr>" % round(mean_squ_wn, dp)
+    html += "\n</tbody>\n</table>\n"
+    html += "\n\n<h3>Group summary details</h3>"
+    html += "\n<table>\n<thead>"
     html += "\n<tr><th class='%s'>Group</th>" % CSS_FIRST_COL_VAR + \
         "\n<th class='%s'>N</th>" % CSS_FIRST_COL_VAR + \
         "\n<th class='%s'>Mean</th>" % CSS_FIRST_COL_VAR + \
@@ -245,10 +267,11 @@ def anova_output(f, p, dics, label_a, label_b, label_avg, dp=3,
         "\n<th class='%s'>Min</th>" % CSS_FIRST_COL_VAR + \
         "\n<th class='%s'>Max</th></tr>" % CSS_FIRST_COL_VAR
     html += "\n</thead>\n<tbody>"
-    row_tpl = "\n<tr><td class='lbl'>%s</td><td>%s</td><td>%s</td>" + \
-        "<td>%s</td><td>%s</td><td>%s</td></tr>"
+    row_tpl = ("\n<tr><td class='%s'>" % CSS_LBL + \
+               "%s</td><td>%s</td><td>%s</td>"
+               "<td>%s</td><td>%s</td><td>%s</td></tr>")
     for dic in dics:
-        html += row_tpl % (dic["label"], dic["n"], round(dic["mean"], dp),
+        html += row_tpl % (dic["label"], dic["n"], round(dic["mean"], dp), 
                            round(dic["sd"], dp), dic["min"], dic["max"])
     html += "\n</tbody>\n</table>\n"
     if page_break_after:

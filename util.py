@@ -1,11 +1,29 @@
 
 import datetime
+import decimal
 import os
 import sys
 import time
 import wx
 
 # must be kept safe to import - must never refer to anything in other modules
+
+def f2d(f):
+    """
+    Convert a floating point number to a Decimal with no loss of information
+    http://docs.python.org/library/decimal.html
+    """
+    if not isinstance(f, float):
+        f = float(f)
+    n, d = f.as_integer_ratio()
+    numerator, denominator = decimal.Decimal(n), decimal.Decimal(d)
+    ctx = decimal.Context(prec=60)
+    result = ctx.divide(numerator, denominator)
+    while ctx.flags[decimal.Inexact]:
+        ctx.flags[decimal.Inexact] = False
+        ctx.prec *= 2
+        result = ctx.divide(numerator, denominator)
+    return result
 
 def in_windows():
     try:

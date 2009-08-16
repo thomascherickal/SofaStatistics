@@ -1,10 +1,15 @@
 import copy
+import decimal
 import math
 import numpy as np
 from types import ListType, TupleType
 
 import my_globals
 import getdata
+import util
+
+D = decimal.Decimal
+decimal.getcontext().prec = 200
 
 def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val):
     """
@@ -196,45 +201,96 @@ def pearsons_chisquare(dbe, cur, tbl, flds, fld_a, fld_b):
     return (chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, 
         perc_cells_lt_5, df)
 
-def anova(lst_samples, lst_labels):
+def anova(samples, labels, high=True):
     """
-    From stats.py.  Changed name to anova, replaced 
-        array versions e.g. amean with list versions e.g. lmean,
-        supply data as list of lists.  
-    -------------------------------------
-    Performs a 1-way ANOVA, returning an F-value and probability given
-    any number of groups.  From Heiman, pp.394-7.
-
-    Returns: F value, one-tailed p-value
+    From NIST algorithm used for their ANOVA tests.
+    high - high precision but much, much slower.  Multiplies each by 10 (and
+        divides by 10 and 100 as appropriate) plus uses decimal rather than
+        floating point.  Needed to handle difficult datasets e.g. ANOVA test 9 
+        from NIST site.
     """
-    a = len(lst_samples)           # ANOVA on 'a' groups, each in its own list
-    n = len(lst_samples[0])
-    ns = [0]*a
-    alldata = []
+    n_samples = len(samples)
+    sample_ns = map(len, samples)
     dics = []
-    for i in range(a):
-        sample = lst_samples[i]
-        label = lst_labels[i]
-        dics.append({"label": label, "n": n, "mean": mean(sample), 
-                     "sd": stdev(sample), "min": min(sample), 
-                     "max": max(sample)})
-    ns = map(len, lst_samples)
-    for i in range(len(lst_samples)):
-        alldata = alldata + lst_samples[i]
-    bign = len(alldata)
-    sstot = ss(alldata)-(square_of_sums(alldata)/float(bign))
-    ssbn = 0
-    for sample in lst_samples:
-        ssbn = ssbn + square_of_sums(sample)/float(len(sample))
-    ssbn = ssbn - (square_of_sums(alldata)/float(bign))
-    sswn = sstot-ssbn
-    dfbn = a-1
-    dfwn = bign - a
-    msb = ssbn/float(dfbn)
-    msw = sswn/float(dfwn)
-    f = msb/msw
-    p = fprob(dfbn, dfwn,f)
-    return f, p, dics
+    for i in range(n_samples):
+        sample = samples[i]
+        label = labels[i]
+        dics.append({"label": label, "n": sample_ns[i], 
+                     "mean": mean(sample, high), "sd": stdev(sample, high), 
+                     "min": min(sample), "max": max(sample)})
+    if high: # inflate
+        # if to 1 decimal point will push from float to integer (reduce errors)
+        inflated_samples = []
+        for sample in samples:
+            inflated_samples.append([x*10 for x in sample]) # NB inflated
+        samples = inflated_samples
+        sample_means = [util.f2d(mean(x, high)) for x in samples] # NB inflated
+    else:
+        sample_means = [mean(x, high) for x in samples]
+    sswn = get_sswn(samples, sample_means, high)
+    dfwn = sum(sample_ns) - n_samples
+    mean_squ_wn = sswn/dfwn
+    ssbn = get_ssbn(samples, sample_means, n_samples, sample_ns, high)
+    dfbn = n_samples - 1
+    mean_squ_bn = ssbn/dfbn
+    F = mean_squ_bn/mean_squ_wn
+    p = fprob(dfbn, dfwn, F)
+    return p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, mean_squ_bn
+
+def get_sswn(samples, sample_means, high=False):
+    "Get sum of squares within treatment"
+    if not high:
+        sswn = 0 # sum of squares within treatment
+        for i, sample in enumerate(samples):
+            diffs = []
+            sample_mean = sample_means[i]
+            for val in sample:
+                diffs.append(val - sample_mean)
+            squ_diffs = [(x**2) for x in diffs]
+            sum_squ_diffs = sum(squ_diffs)
+            sswn += sum_squ_diffs
+    else:
+        sswn = D("0") # sum of squares within treatment
+        for i, sample in enumerate(samples):
+            diffs = []
+            sample_mean = sample_means[i]
+            for val in sample:
+                diffs.append(util.f2d(val) - sample_mean)
+            squ_diffs = [(x**2) for x in diffs]
+            sum_squ_diffs = sum(squ_diffs)
+            sswn += sum_squ_diffs
+        sswn = sswn/10**2 # deflated    
+    return sswn
+
+def get_ssbn(samples, sample_means, n_samples, sample_ns, high=False):
+    """
+    Get sum of squares between treatment.
+    Has high-precision (but slower) version.  NB Samples and sample means are
+        inflated uniformly in the high precision versions.
+    """
+    if not high:
+        sum_all_vals = sum(sum(x) for x in samples)
+        n_tot = sum(sample_ns)
+        grand_mean = sum_all_vals/n_tot
+        squ_diffs = []
+        for i in range(n_samples):
+            squ_diffs.append((sample_means[i] - grand_mean)**2)
+        sum_n_x_squ_diffs = 0
+        for i in range(n_samples):
+            sum_n_x_squ_diffs += sample_ns[i]*squ_diffs[i]
+        ssbn = sum_n_x_squ_diffs
+    else:
+        sum_all_vals = util.f2d(sum(util.f2d(sum(x)) for x in samples))
+        n_tot = util.f2d(sum(sample_ns))
+        grand_mean = sum_all_vals/n_tot # NB inflated
+        squ_diffs = []
+        for i in range(n_samples):
+            squ_diffs.append((sample_means[i] - grand_mean)**2)
+        sum_n_x_squ_diffs = D("0")
+        for i in range(n_samples):
+            sum_n_x_squ_diffs += sample_ns[i]*squ_diffs[i]
+        ssbn = sum_n_x_squ_diffs/(10**2) # deflated
+    return ssbn
 
 def kruskalwallish(*args):
     """
@@ -306,7 +362,6 @@ def ttest_ind(sample_a, sample_b, label_a, label_b):
              "min": min_b, "max": max_b}
     return t, p, dic_a, dic_b
 
-
 def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     """
     From stats.py - there are changes to variable labels and comments;
@@ -321,8 +376,8 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
         raise ValueError, 'Unequal length lists in ttest_rel.'
     mean_a = mean(sample_a)
     mean_b = mean(sample_b)
-    var_a = var(sample_a)
-    var_b = var(sample_b)
+    var_a = variance(sample_a)
+    var_b = variance(sample_b)
     n = len(sample_a)
     cov = 0
     for i in range(n):
@@ -443,7 +498,8 @@ def pearsonr(x,y):
     xmean = mean(x)
     ymean = mean(y)
     r_num = n*(summult(x,y)) - sum(x)*sum(y)
-    r_den = math.sqrt((n*ss(x) - square_of_sums(x))*(n*ss(y)-square_of_sums(y)))
+    r_den = math.sqrt((n*sum_squares(x) - square_of_sums(x)) * 
+                      (n*sum_squares(y)-square_of_sums(y)))
     r = (r_num / r_den)  # denominator already a float
     df = n-2
     t = r*math.sqrt(df/((1.0-r+TINY)*(1.0+r+TINY)))
@@ -598,50 +654,74 @@ def zprob(z):
         prob = ((1.0-x)*0.5)
     return prob
 
-def mean (inlist):
+def mean(vals, high=False):
     """
-    From stats.py.  No changes.  
+    From stats.py.  No changes except option of using Decimals instead 
+        of floats.  
     -------------------------------------
-    Returns the arithematic mean of the values in the passed list.
+    Returns the arithmetic mean of the values in the passed list.
     Assumes a '1D' list, but will function on the 1st dim of an array(!).
     
-    Usage:   mean(inlist)
+    Usage:   mean(vals)
     """
-    sum = 0
-    for item in inlist:
-        sum = sum + item
-    return sum/float(len(inlist))
+    if not high:
+        sum = 0
+        for val in vals:
+            sum += val
+        mean = sum/float(len(vals))
+    else:
+        tot = D("0")
+        for val in vals:
+            tot += util.f2d(val)
+        mean = tot/len(vals)
+    return mean
 
-def var (inlist):
+def variance(vals, high=False):
     """
-    From stats.py.  No changes.  
+    From stats.py.  No changes except option of using Decimals not floats.  
     -------------------------------------
     Returns the variance of the values in the passed list using N-1
     for the denominator (i.e., for estimating population variance).
     
-    Usage:   var(inlist)
+    Usage:   variance(vals)
     """
-    n = len(inlist)
-    mn = mean(inlist)
-    deviations = [0]*len(inlist)
-    for i in range(len(inlist)):
-        deviations[i] = inlist[i] - mn
-    return ss(deviations)/float(n-1)
+    n = len(vals)
+    mn = mean(vals, high)
+    deviations = [0]*len(vals)
+    for i in range(len(vals)):
+        val = vals[i]
+        if high:
+            val = util.f2d(val)
+        deviations[i] = val - mn
+    if not high:
+        var = sum_squares(deviations)/n-1
+    else:
+        var = sum_squares(deviations, high)/util.f2d(n-1)
+    return var
 
-def stdev (inlist):
+def stdev(vals, high=False):
     """
-    From stats.py.  No changes.  
+    From stats.py.  No changes except option of using Decimals instead 
+        of floats.  
     -------------------------------------
     Returns the standard deviation of the values in the passed list
     using N-1 in the denominator (i.e., to estimate population stdev).
     
-    Usage:   stdev(inlist)
+    Usage:   stdev(vals)
     """
-    return math.sqrt(var(inlist))
+    try:
+        if not high:
+            stdev = math.sqrt(variance(vals))
+        else:
+            stdev = util.f2d(math.sqrt(variance(vals, high)))
+    except ValueError:
+        raise Exception, ("stdev - error getting square root.  Negative "
+                          "variance value?")
+    return stdev
 
 def betai(a, b, x):
     """
-    From stats.py.  No changes.  
+    From stats.py.  No changes apart from adding detail to error message.  
     -------------------------------------
     Returns the incomplete beta function:
     
@@ -653,40 +733,45 @@ def betai(a, b, x):
     
     Usage:   betai(a,b,x)
     """
-    if (x<0.0 or x>1.0):
-        
-        
-        print x # e.g. 1.18725718726
-        
-        
-        raise ValueError, 'Bad x in lbetai'
-    if (x==0.0 or x==1.0):
-        bt = 0.0
+    a = util.f2d(a)
+    b = util.f2d(b)
+    x = util.f2d(x)
+    if (x < D("0") or x > D("1")):
+        raise ValueError, "Bad x %s in betai" % x
+    if (x==D("0") or x==D("1")):
+        bt = D("0")
     else:
-        bt = math.exp(gammln(a+b)-gammln(a)-gammln(b)+a*math.log(x)+b*
-                      math.log(1.0-x))
-    if (x<(a+1.0)/(a+b+2.0)):
-        return bt*betacf(a,b,x)/float(a)
+        bt = util.f2d(   math.exp(gammln(a+b)-gammln(a)-gammln(b)+a  *  
+                                  util.f2d( math.log(x) ) + b*
+                  util.f2d(    math.log(D("1") - x)  )  ))
+    if (x<(a+  D("1") )/(a+b+  D("2") )):
+        return bt*betacf(a,b,x)/a
     else:
-        return 1.0-bt*betacf(b,a,1.0-x)/float(b)
+        return D("1")-bt*betacf(b, a, D("1")-x)/b
 
-def ss(inlist):
+def sum_squares(vals, high=False):
     """
-    From stats.py.  No changes.  
+    From stats.py.  No changes except option of using Decimal instead of float.  
     -------------------------------------
     Squares each value in the passed list, adds up these squares and
     returns the result.
     
-    Usage:   ss(inlist)
+    Usage:   sum_squares(vals)
     """
-    ss = 0
-    for item in inlist:
-        ss = ss + item*item
-    return ss
+    if not high:
+        sum_squares = D("0")
+        for val in vals:
+            decval = util.f2d(val)
+            sum_squares += (decval * decval)
+    else:
+        sum_squares = 0
+        for val in vals:
+            sum_squares += (val * val)
+    return sum_squares
 
 def gammln(xx):
     """
-    From stats.py.  No changes.  
+    From stats.py.  No changes except using Decimals not floats.  
     -------------------------------------
     Returns the gamma function of xx.
         Gamma(z) = Integral(0,infinity) of t^(z-1)exp(-t) dt.
@@ -694,17 +779,17 @@ def gammln(xx):
     
     Usage:   gammln(xx)
     """
-    coeff = [76.18009173, -86.50532033, 24.01409822, -1.231739516,
-             0.120858003e-2, -0.536382e-5]
-    x = xx - 1.0
-    tmp = x + 5.5
-    tmp = tmp - (x+0.5)*math.log(tmp)
-    ser = 1.0
+    xx = util.f2d(xx)
+    coeff = [D("76.18009173"), D("-86.50532033"), D("24.01409822"), 
+             D("-1.231739516"), D("0.120858003e-2"), D("-0.536382e-5")]
+    x = xx - D("1")
+    tmp = x + D("5.5")
+    tmp = tmp - (x+D("0.5"))*  util.f2d(math.log(tmp))
+    ser = D("1")
     for j in range(len(coeff)):
-        x = x + 1
+        x = x + D("1")
         ser = ser + coeff[j]/x
-    return -tmp + math.log(2.50662827465*ser)
-
+    return -tmp + util.f2d(math.log(D("2.50662827465")*ser))
 
 def betacf(a, b, x):
     """
@@ -715,16 +800,18 @@ def betacf(a, b, x):
     
     Usage:   betacf(a,b,x)
     """
-    ITMAX = 200
-    EPS = 3.0e-7
-
-    bm = az = am = 1.0
+    ITMAX = D("200")
+    EPS = D("3.0e-7")
+    a = util.f2d(a)
+    b = util.f2d(b)
+    x = util.f2d(x)
+    bm = az = am = D("1")
     qab = a+b
-    qap = a+1.0
-    qam = a-1.0
-    bz = 1.0-qab*x/qap
-    for i in range(ITMAX+1):
-        em = float(i+1)
+    qap = a+D("1")
+    qam = a-D("1")
+    bz = D("1")-qab*x/qap
+    for i in range(ITMAX+D("1")):
+        em = util.f2d(i) + D("1")
         tem = em + em
         d = em*(b-em)*x/((qam+tem)*(a+tem))
         ap = az + d*am
@@ -736,7 +823,7 @@ def betacf(a, b, x):
         am = ap/bpp
         bm = bp/bpp
         az = app/bpp
-        bz = 1.0
+        bz = D("1")
         if (abs(az-aold)<(EPS*abs(az))):
             return az
     print 'a or b too big, or ITMAX too small in Betacf.'
@@ -935,7 +1022,8 @@ def chisqprob(chisq, df):
 
 def fprob (dfnum, dfden, F):
     """
-    From stats.py.  No changes.  
+    From stats.py.  No changes except uses Decimals instead 
+        of floats.  
     -------------------------------------
     Returns the (1-tailed) significance level (p-value) of an F
     statistic given the degrees of freedom for the numerator (dfR-dfF) and
@@ -943,5 +1031,5 @@ def fprob (dfnum, dfden, F):
 
     Usage:   fprob(dfnum, dfden, F)   where usually dfnum=dfbn, dfden=dfwn
     """
-    p = betai(0.5*dfden, 0.5*dfnum, dfden/float(dfden+dfnum*F))
+    p = betai(D("0.5")*dfden, D("0.5")*dfnum, dfden/(dfden+dfnum*F))
     return p

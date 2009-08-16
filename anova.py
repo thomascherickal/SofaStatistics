@@ -65,19 +65,20 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                 val_label = str(val).upper()
             lst_labels.append(val_label)
         samples = "[" + ", ".join(lst_samples) + "]"
-        script_lst.append("lst_samples = %s" % samples)
-        script_lst.append("lst_labels = %s" % lst_labels)
+        script_lst.append("samples = %s" % samples)
+        script_lst.append("labels = %s" % lst_labels)
         script_lst.append("label_a = \"%s\"" % label_a)
         script_lst.append("label_b = \"%s\"" % label_b)
         script_lst.append("label_avg = \"%s\"" % label_avg)
         script_lst.append("indep = True")
-        script_lst.append("f, p, dics = " + \
-            "core_stats.anova(lst_samples, lst_labels)")
-        script_lst.append("anova_output = " + \
-            "stats_output.anova_output(" + \
-            "f, p, dics, label_a," + \
-            "\n    label_b, label_avg, dp," + \
-            "\n    level=my_globals.OUTPUT_RESULTS_ONLY, " + \
+        high = True
+        script_lst.append("p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, "
+            "mean_squ_bn = \\\n    core_stats.anova(samples, labels, "
+            "high=%s)" % high)
+        script_lst.append("anova_output = stats_output.anova_output("
+            "F, p, dics, sswn, dfwn, mean_squ_wn, \n    ssbn, dfbn, "
+            "mean_squ_bn, label_a, label_b, label_avg, dp,"
+            "\n    level=my_globals.OUTPUT_RESULTS_ONLY, "
             "css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append("fil.write(anova_output)")
         return "\n".join(script_lst)
