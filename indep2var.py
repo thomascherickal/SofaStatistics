@@ -78,7 +78,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         bxVars = wx.StaticBox(self.panel, -1, "Variables")
         szrVars = wx.StaticBoxSizer(bxVars, wx.HORIZONTAL)
         szrVarsLeft = wx.BoxSizer(wx.VERTICAL)
-        szrVarsRight = wx.BoxSizer(wx.VERTICAL)
+        self.szrVarsRight = wx.BoxSizer(wx.VERTICAL)
         szrVarsLeftTop = wx.BoxSizer(wx.HORIZONTAL)
         szrVarsRightTop = wx.BoxSizer(wx.HORIZONTAL)
         szrVarsLeftMid = wx.BoxSizer(wx.HORIZONTAL)
@@ -119,12 +119,12 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.SetupAvg()
         szrVarsRightTop.Add(self.lblAveraged, 0, wx.LEFT|wx.TOP, 5)
         szrVarsRightTop.Add(self.dropAveraged, 0)
-        szrVarsRight.Add(szrVarsRightTop, 0)
+        self.szrVarsRight.Add(szrVarsRightTop, 0)
         self.lblPhrase = wx.StaticText(self.panel, -1, 
                                        "Start making your selections")
         szrVarsLeft.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)        
         szrVars.Add(szrVarsLeft, 1, wx.LEFT, 5)
-        szrVars.Add(szrVarsRight, 0)
+        szrVars.Add(self.szrVarsRight, 0)
         self.SetupGenConfigSizer()
         szrMid = wx.BoxSizer(wx.HORIZONTAL)
         szrMidLeft = wx.BoxSizer(wx.VERTICAL)
@@ -157,9 +157,13 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrLevel.Add(radResults, 0, wx.RIGHT, 10)
         self.szrOutput.Add(szrLevel)        
         szrMain.Add(self.szrOutput, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        self.AddOtherVarOpts()
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
         self.Fit()
+
+    def AddOtherVarOpts(self):
+        pass
 
     def OnRightClickGroupBy(self, event):
         var_by, choice_item = self.GetGroupBy()
@@ -403,17 +407,13 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         """
         run_ok = self.TestConfigOK()
         if run_ok:
-            # hourglass cursor
-            curs = wx.StockCursor(wx.CURSOR_WAIT)
-            self.SetCursor(curs)
+            wx.BeginBusyCursor()
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.getScript(css_idx)
             strContent = output.RunReport(OUTPUT_MODULES, self.fil_report, 
                 css_fils, script, self.conn_dets, self.dbe, self.db, 
                 self.tbl, self.default_dbs, self.default_tbls)
-            # Return to normal cursor
-            curs = wx.StockCursor(wx.CURSOR_ARROW)
-            self.SetCursor(curs)
+            wx.EndBusyCursor()
             output.DisplayReport(self, strContent)
         event.Skip()
     

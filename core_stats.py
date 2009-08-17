@@ -201,9 +201,52 @@ def pearsons_chisquare(dbe, cur, tbl, flds, fld_a, fld_b):
     return (chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, 
         perc_cells_lt_5, df)
 
+def anova_orig(lst_samples, lst_labels, high=False):
+    """
+    Included for testing only.
+    From stats.py.  Changed name to anova, replaced 
+        array versions e.g. amean with list versions e.g. lmean,
+        supply data as list of lists.  
+    -------------------------------------
+    Performs a 1-way ANOVA, returning an F-value and probability given
+    any number of groups.  From Heiman, pp.394-7.
+
+    Returns: F value, one-tailed p-value
+    """
+    a = len(lst_samples)           # ANOVA on 'a' groups, each in its own list
+    n = len(lst_samples[0])
+    ns = [0]*a
+    alldata = []
+    dics = []
+    for i in range(a):
+        sample = lst_samples[i]
+        label = lst_labels[i]
+        dics.append({"label": label, "n": n, "mean": mean(sample), 
+                     "sd": stdev(sample), "min": min(sample), 
+                     "max": max(sample)})
+    ns = map(len, lst_samples)
+    for i in range(len(lst_samples)):
+        alldata = alldata + lst_samples[i]
+    bign = len(alldata)
+    sstot = sum_squares(alldata)-(square_of_sums(alldata)/float(bign))
+    ssbn = 0
+    for sample in lst_samples:
+        ssbn = ssbn + square_of_sums(sample)/float(len(sample))
+    ssbn = ssbn - (square_of_sums(alldata)/float(bign))
+    sswn = sstot-ssbn
+    dfbn = a-1
+    dfwn = bign - a
+    msb = ssbn/float(dfbn)
+    msw = sswn/float(dfwn)
+    F = msb/msw
+    p = fprob(dfbn, dfwn, F)
+    print "using orig with F: %s" % F
+    return p, F, dics, sswn, dfwn, msw, ssbn, dfbn, msb
+
 def anova(samples, labels, high=True):
     """
     From NIST algorithm used for their ANOVA tests.
+    Added correction factor.
     high - high precision but much, much slower.  Multiplies each by 10 (and
         divides by 10 and 100 as appropriate) plus uses decimal rather than
         floating point.  Needed to handle difficult datasets e.g. ANOVA test 9 
@@ -227,7 +270,7 @@ def anova(samples, labels, high=True):
         sample_means = [util.f2d(mean(x, high)) for x in samples] # NB inflated
     else:
         sample_means = [mean(x, high) for x in samples]
-    sswn = get_sswn(samples, sample_means, high)
+    sswn = get_sswn(samples, sample_means, sample_ns, high)
     dfwn = sum(sample_ns) - n_samples
     mean_squ_wn = sswn/dfwn
     ssbn = get_ssbn(samples, sample_means, n_samples, sample_ns, high)
@@ -237,7 +280,7 @@ def anova(samples, labels, high=True):
     p = fprob(dfbn, dfwn, F)
     return p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, mean_squ_bn
 
-def get_sswn(samples, sample_means, high=False):
+def get_sswn(samples, sample_means, sample_ns, high=False):
     "Get sum of squares within treatment"
     if not high:
         sswn = 0 # sum of squares within treatment
@@ -249,7 +292,7 @@ def get_sswn(samples, sample_means, high=False):
             squ_diffs = [(x**2) for x in diffs]
             sum_squ_diffs = sum(squ_diffs)
             sswn += sum_squ_diffs
-    else:
+    else:    
         sswn = D("0") # sum of squares within treatment
         for i, sample in enumerate(samples):
             diffs = []
@@ -259,7 +302,7 @@ def get_sswn(samples, sample_means, high=False):
             squ_diffs = [(x**2) for x in diffs]
             sum_squ_diffs = sum(squ_diffs)
             sswn += sum_squ_diffs
-        sswn = sswn/10**2 # deflated    
+        sswn = sswn/10**2 # deflated
     return sswn
 
 def get_ssbn(samples, sample_means, n_samples, sample_ns, high=False):
@@ -271,7 +314,7 @@ def get_ssbn(samples, sample_means, n_samples, sample_ns, high=False):
     if not high:
         sum_all_vals = sum(sum(x) for x in samples)
         n_tot = sum(sample_ns)
-        grand_mean = sum_all_vals/n_tot
+        grand_mean = sum_all_vals/float(n_tot) # correction factor
         squ_diffs = []
         for i in range(n_samples):
             squ_diffs.append((sample_means[i] - grand_mean)**2)
@@ -759,14 +802,14 @@ def sum_squares(vals, high=False):
     Usage:   sum_squares(vals)
     """
     if not high:
+        sum_squares = 0
+        for val in vals:
+            sum_squares += (val * val)
+    else:
         sum_squares = D("0")
         for val in vals:
             decval = util.f2d(val)
             sum_squares += (decval * decval)
-    else:
-        sum_squares = 0
-        for val in vals:
-            sum_squares += (val * val)
     return sum_squares
 
 def gammln(xx):

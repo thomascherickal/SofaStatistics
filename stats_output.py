@@ -34,8 +34,8 @@ def ttest_output(t, p, dic_a, dic_b, label_avg="", dp=3, indep=True,
         "\n<th class='%s'>Min</th>" % CSS_FIRST_COL_VAR + \
         "\n<th class='%s'>Max</th></tr>" % CSS_FIRST_COL_VAR
     html += "\n</thead>\n<tbody>"
-    row_tpl = "\n<tr><td class='%s'>%s</td><td>%s</td><td>%s</td>" % CSS_LBL + \
-        "<td>%s</td><td>%s</td><td>%s</td></tr>"
+    row_tpl = "\n<tr><td class='%s'>" % CSS_LBL + "%s</td><td>%s</td>" + \
+        "<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
     for dic in [dic_a, dic_b]:
         html += row_tpl % (dic["label"], dic["n"], round(dic["mean"], dp), 
                            round(dic["sd"], dp), 
@@ -66,8 +66,8 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
         "\n<th class='%s'>Min</th>" % CSS_FIRST_COL_VAR + \
         "\n<th class='%s'>Max</th></tr>" % CSS_FIRST_COL_VAR
     html += "\n</thead>\n<tbody>"
-    row_tpl = "\n<tr><td class='%s'>%s</td><td>%s</td><td>%s</td>" % CSS_LBL + \
-        "<td>%s</td><td>%s</td></tr>"
+    row_tpl = "\n<tr><td class='%s'>" % CSS_LBL + "%s</td><td>%s</td>" + \
+        "<td>%s</td><td>%s</td><td>%s</td></tr>"
     for dic in [dic_a, dic_b]:
         html += row_tpl % (dic["label"], dic["n"], round(dic["avg rank"], dp),
                            dic["min"], dic["max"])

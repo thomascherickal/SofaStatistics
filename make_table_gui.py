@@ -19,7 +19,7 @@ import make_table
 import output_buttons
 import projects
 
-             
+
 class DlgMakeTable(wx.Dialog, 
                    gen_config.GenConfig, output_buttons.OutputButtons,
                    make_table.MakeTable, dimtree.DimTree):

@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import wx
+
 import my_globals
 import indep2var
 
@@ -27,6 +29,13 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             label_avg = self.GetDropVals()
         self.lblPhrase.SetLabel("Does average %s " % label_avg + "vary in " + \
             "the groups between \"%s\" and \"%s\"?" % (label_a, label_b))
+
+    def AddOtherVarOpts(self):
+        self.radHigh = wx.RadioBox(self.panel, -1, "Algorithm", 
+                         choices=("Precision (best choice unless too slow)",
+                                  "Speed"),
+                         style=wx.RA_SPECIFY_COLS)
+        self.szrVarsRight.Add(self.radHigh, 0)
 
     def getScript(self, css_idx):
         "Build script from inputs"
@@ -71,7 +80,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append("label_b = \"%s\"" % label_b)
         script_lst.append("label_avg = \"%s\"" % label_avg)
         script_lst.append("indep = True")
-        high = True
+        high = not self.radHigh.GetSelection()
         script_lst.append("p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, "
             "mean_squ_bn = \\\n    core_stats.anova(samples, labels, "
             "high=%s)" % high)
