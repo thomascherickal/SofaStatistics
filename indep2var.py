@@ -47,7 +47,6 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.takes_range = takes_range     
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.GetVarDets(fil_var_dets)
-        self.open_scripts = []
         # set up panel for frame
         self.panel = wx.Panel(self)
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
@@ -449,46 +448,21 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
    # export script
     def OnButtonExport(self, event):
         """
-        Export script if enough data to create table.
-        """
-        export_ok = self.TestConfigOK()
-        if export_ok:
-            self.ExportScript()
-        event.Skip()
-    
-    def ExportScript(self):
-        """
-        Export script for table to file currently displayed.
+        Export script for table to file currently displayed (if enough data).
         If the file doesn't exist, make one and add the preliminary code.
         If a file exists, but is empty, put the preliminary code in then
             the new exported script.
         If the file exists and is not empty, append the script on the end.
         """
-        modules = ["my_globals", "core_stats", "getdata", "output", 
-                   "stats_output"]
-        css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
-        script = self.getScript(css_idx)
-        if self.fil_script in self.open_scripts:
-            # see if empty or not
-            f = file(self.fil_script, "r")
-            lines = f.readlines()
-            empty_fil = False if lines else True
-            f.close()
-            f = file(self.fil_script, "a")
-            if empty_fil:
-                output.InsertPrelimCode(modules, f, self.fil_report, css_fils)
-            # insert exported script
-            output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                        self.db, self.tbl, self.default_dbs, self.default_tbls)
-        else:
-            # add file name to list, create file, insert preliminary code, 
-            # and insert exported script.
-            self.open_scripts.append(self.fil_script)
-            f = file(self.fil_script, "w")
-            output.InsertPrelimCode(modules, f, self.fil_report, css_fils)
-            output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                        self.db, self.tbl, self.default_dbs, self.default_tbls)
-        f.close()
+        export_ok = self.TestConfigOK()
+        if export_ok:
+            css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
+            script = self.getScript(css_idx)
+            output.ExportScript(script, self.fil_script, 
+                                self.fil_report, css_fils, self.conn_dets, 
+                                self.dbe, self.db, self.tbl, self.default_dbs, 
+                                self.default_tbls)
+        event.Skip()
 
     def OnButtonHelp(self, event):
         wx.MessageBox("Under construction")

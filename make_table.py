@@ -179,49 +179,23 @@ class MakeTable(object):
     # export script
     def OnButtonExport(self, event):
         """
-        Export script if enough data to create table.
-        """
-        export_ok, missing_dim, has_rows, has_cols = self.TableConfigOK()
-        if export_ok:
-            self.ExportScript(has_rows, has_cols)
-        else:
-            wx.MessageBox("Missing %s data" % missing_dim) 
-    
-    def ExportScript(self, has_rows, has_cols):
-        """
-        Export script for table to file currently displayed.
+        Export script for table to file currently displayed (if enough data).
         If the file doesn't exist, make one and add the preliminary code.
         If a file exists, but is empty, put the preliminary code in then
             the new exported script.
         If the file exists and is not empty, append the script on the end.
         """
-        modules = ["my_globals", "dimtables", "rawtables", "output", "getdata"]
-        css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
-        script = self.getScript(has_rows, has_cols, css_idx)
-        if self.fil_script in self.open_scripts:
-            # see if empty or not
-            f = file(self.fil_script, "r+")
-            lines = f.readlines()
-            empty_fil = False if lines else True
-            f.close()
-            f = file(self.fil_script, "a")
-            if empty_fil:
-                output.InsertPrelimCode(OUTPUT_MODULES, f, self.fil_report, 
-                                        css_fils)
-            # insert exported script
-            output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                        self.db, self.tbl, self.default_dbs, self.default_tbls)
+        export_ok, missing_dim, has_rows, has_cols = self.TableConfigOK()
+        if export_ok:
+            css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
+            script = self.getScript(has_rows, has_cols, css_idx)
+            output.ExportScript(script, self.fil_script, 
+                                self.fil_report, css_fils, self.conn_dets, 
+                                self.dbe, self.db, self.tbl, self.default_dbs, 
+                                self.default_tbls)
         else:
-            # add file name to list, create file, insert preliminary code, 
-            # and insert exported script.
-            self.open_scripts.append(self.fil_script)
-            f = file(self.fil_script, "w")
-            output.InsertPrelimCode(OUTPUT_MODULES, f, self.fil_report, 
-                                    css_fils)
-            output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                        self.db, self.tbl, self.default_dbs, self.default_tbls)
-        f.close()
-        
+            wx.MessageBox("Missing %s data" % missing_dim) 
+    
     def getScript(self, has_rows, has_cols, css_idx):
         "Build script from inputs"
         script_lst = []

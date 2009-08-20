@@ -51,7 +51,6 @@ class DlgMakeTable(wx.Dialog,
         self.fil_script = fil_script        
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.GetVarDets(fil_var_dets)
-        self.open_scripts = []
         self.col_no_vars_item = None # needed if no variable in columns
         # set up panel for frame
         self.panel = wx.Panel(self)

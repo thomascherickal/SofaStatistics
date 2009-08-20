@@ -208,6 +208,42 @@ def GetCssDets(fil_report, fil_css):
     css_idx = css_fils.index(fil_css)
     return css_fils, css_idx
 
+def _strip_script(script):
+    """
+    Get script up till #sofa_script_end ...
+    """
+    try:
+        end_idx = script.index(my_globals.SCRIPT_END)
+        stripped = script[:end_idx]
+    except ValueError:
+        stripped = script
+    return stripped
+
+def ExportScript(modules, script, fil_script, fil_report, css_fils, conn_dets, 
+                 dbe, db, tbl, default_dbs, default_tbls):
+    modules = ["my_globals", "core_stats", "dimtables", "getdata", "output", 
+               "rawtables", "stats_output"]
+    if os.path.exists(fil_script):
+        f = file(fil_script, "r")
+        existing_script = f.read()             
+        f.close()
+    else:
+        existing_script = None
+    f = file(fil_script, "w")
+    if existing_script:
+        f.write(_strip_script(existing_script))
+    else:
+        InsertPrelimCode(modules, f, fil_report, css_fils)
+    AppendExportedScript(f, script, conn_dets, dbe, db, tbl, default_dbs, 
+                         default_tbls)
+    AddClosingScriptCode(f)
+    f.close()
+
+def GetSource(db, tbl_name):
+    datestamp = datetime.now().strftime("on %d/%m/%Y at %I:%M %p")
+    source = "\n<p>From %s.%s %s</p>" % (db, tbl_name, datestamp)
+    return source
+
 def RunReport(modules, fil_report, css_fils, inner_script, 
               conn_dets, dbe, db, tbl_name, default_dbs, default_tbls):
     """
@@ -232,8 +268,7 @@ def RunReport(modules, fil_report, css_fils, inner_script,
             "Error encountered.  Original error message: %s</p>" % e
         return strErrContent
     f = file(my_globals.INT_REPORT_PATH, "r")
-    datestamp = datetime.now().strftime("on %d/%m/%Y at %I:%M %p")
-    source = "\n<p>From %s.%s %s</p>" % (db, tbl_name, datestamp)
+    source = GetSource(db, tbl_name)
     strContent = f.read()
     f.close()
     # append into html file
@@ -246,6 +281,8 @@ def InsertPrelimCode(modules, fil, fil_report, css_fils):
     """
     Insert preliminary code at top of file.
     fil - open file handle ready for writing.
+    NB only one output file per script irrespective of selection as each script
+        exported.
     """         
     fil.write("#! /usr/bin/env python")
     fil.write("\n# -*- coding: utf-8 -*-\n")
@@ -256,7 +293,8 @@ def InsertPrelimCode(modules, fil, fil_report, css_fils):
     fil.write("\n\nfil = file(r\"%s\", \"w\")" % fil_report)
     css_fils_str = pprint.pformat(css_fils)
     fil.write("\ncss_fils=%s" % css_fils_str)
-    fil.write("\nfil.write(output.getHtmlHdr(\"Report(s)\", css_fils))")
+    fil.write("\nfil.write(output.getHtmlHdr(\"Report(s)\", css_fils))\n\n")
+    fil.write("# end of script 'header'\n\n")
     
 def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name, 
                          default_dbs, default_tbls):
@@ -266,6 +304,7 @@ def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name,
     """
     datestamp = datetime.now().strftime("Script exported %d/%m/%Y at %I:%M %p")
     # Fresh connection for each in case it changes in between tables
+    fil.write("#%s\n# %s\n" % ("-"*50, datestamp))
     conn_dets_str = pprint.pformat(conn_dets)
     fil.write("\nconn_dets = %s" % conn_dets_str)
     default_dbs_str = pprint.pformat(default_dbs)
@@ -277,11 +316,10 @@ def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name,
         "default_dbs, default_tbls, conn_dets=conn_dets," + \
         "\n    db=\"%s\", tbl=\"%s\")" % (db, tbl_name) + \
         ".getDbDets()")
-    fil.write("\n\n#%s\n#%s\n" % ("-"*50, datestamp))
-    fil.write("\n\n%s" % inner_script)
+    fil.write("\n%s" % inner_script)
     fil.write("\nconn.close()")
 
-def _strip_ends(html):
+def _strip_html(html):
     """
     Get html between the <body></body> tags.  The start tag must be present.
     """
@@ -299,6 +337,13 @@ def _strip_ends(html):
         stripped = html[start_idx:]
     return stripped
 
+def GetDivider(source):
+    """
+    Get the HTML divider between content -includes source e.g. database, table 
+        and time stamp.
+    """
+    return "\n<br><br>\n<hr>\n%s" % source
+
 def SaveToReport(fil_report, css_fils, source, new_html):
     """
     If report doesn't exist, make it.
@@ -307,30 +352,31 @@ def SaveToReport(fil_report, css_fils, source, new_html):
     A new header is required each time because there may be new css included.
     New content is everything from "content" after the body tag.
     """
-    new_no_hdr = _strip_ends(new_html)
+    new_no_hdr = _strip_html(new_html)
     if os.path.exists(fil_report):
         f = file(fil_report, "r")
         existing_html = f.read()
-        existing_no_hdr = _strip_ends(existing_html)
+        existing_no_ends = _strip_html(existing_html)
         f.close()        
     else:
-        existing_no_hdr = None
+        existing_no_ends = None
     hdr_title = time.strftime("SOFA Statistics Report %Y-%m-%d_%H:%M:%S")
     hdr = getHtmlHdr(hdr_title, css_fils)
     f = file(fil_report, "w")
     css_fils_str = pprint.pformat(css_fils)
     f.write("<!--css_fils = %s-->\n\n" % css_fils_str)
     f.write(hdr)
-    if existing_no_hdr:
-        f.write(existing_no_hdr)
-    f.write("\n<br><br>\n<hr>\n%s" % source)
+    if existing_no_ends:
+        f.write(existing_no_ends)
+    f.write(GetDivider(source))
     f.write(new_no_hdr)
     f.write(getHtmlFtr())
     f.close()
 
 def AddClosingScriptCode(f):
     "Add ending code to script.  Nb leaves open file."
-    f.write("\n\n#" + "-"*50 + "\n")
+    f.write("\n\n%s" % my_globals.SCRIPT_END + \
+            "-"*(50 - len(my_globals.SCRIPT_END)) + "\n")
     f.write("\nfil.write(output.getHtmlFtr())")
     f.write("\nfil.close()")
 
