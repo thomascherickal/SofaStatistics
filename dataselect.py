@@ -108,11 +108,13 @@ class DataSelectDlg(wx.Dialog):
               self.tbl + \
               "lacks a unique index") # needed for caching even if read only
         else:
+            wx.BeginBusyCursor()
             read_only = self.chkReadOnly.IsChecked()
             dlg = table_edit.TblEditor(self, self.dbe, self.conn, 
                                        self.cur, self.db, self.tbl, 
                                        self.flds, self.var_labels, self.idxs,
                                        read_only)
+            wx.EndBusyCursor()
             dlg.ShowModal()
         event.Skip()
     

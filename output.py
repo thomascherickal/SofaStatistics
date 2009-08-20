@@ -228,23 +228,24 @@ def RunReport(modules, fil_report, css_fils, inner_script,
         dummy_dic = {}
         exec script in dummy_dic
     except Exception, e:
-        strContent = "<h1>Ooops!</h1>\n<p>Unable to run report.  " + \
+        strErrContent = "<h1>Ooops!</h1>\n<p>Unable to run report.  " + \
             "Error encountered.  Original error message: %s</p>" % e
-        return strContent
+        return strErrContent
     f = file(my_globals.INT_REPORT_PATH, "r")
+    datestamp = datetime.now().strftime("on %d/%m/%Y at %I:%M %p")
+    source = "\n<p>From %s.%s %s</p>" % (db, tbl_name, datestamp)
     strContent = f.read()
     f.close()
     # append into html file
-    SaveToReport(fil_report, css_fils, strContent)
-    strContent = "<p>Output also saved to '%s'</p>" % \
-        fil_report + strContent
+    SaveToReport(fil_report, css_fils, source, strContent)
+    strContent = "\n<p>Output also saved to '%s'</p>" % fil_report + \
+                 source + strContent
     return strContent
 
 def InsertPrelimCode(modules, fil, fil_report, css_fils):
     """
     Insert preliminary code at top of file.
     fil - open file handle ready for writing.
-    NB script files always start from scratch per SOFA Statistics session.
     """         
     fil.write("#! /usr/bin/env python")
     fil.write("\n# -*- coding: utf-8 -*-\n")
@@ -260,11 +261,10 @@ def InsertPrelimCode(modules, fil, fil_report, css_fils):
 def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name, 
                          default_dbs, default_tbls):
     """
-    Append exported script onto file.
+    Append exported script onto existing script file.
     fil - open file handle ready for writing
     """
-    datestamp = datetime.now().strftime("Script " + \
-                                    "exported %d/%m/%Y at %I:%M %p")
+    datestamp = datetime.now().strftime("Script exported %d/%m/%Y at %I:%M %p")
     # Fresh connection for each in case it changes in between tables
     conn_dets_str = pprint.pformat(conn_dets)
     fil.write("\nconn_dets = %s" % conn_dets_str)
@@ -278,16 +278,28 @@ def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name,
         "\n    db=\"%s\", tbl=\"%s\")" % (db, tbl_name) + \
         ".getDbDets()")
     fil.write("\n\n#%s\n#%s\n" % ("-"*50, datestamp))
-    fil.write(inner_script)
+    fil.write("\n\n%s" % inner_script)
     fil.write("\nconn.close()")
 
-def _strip_hdr(html):
-    "Get html after the <body> tag."
-    body = "<body>"
-    start_idx = html.find(body) + len(body)
-    return html[start_idx:]    
+def _strip_ends(html):
+    """
+    Get html between the <body></body> tags.  The start tag must be present.
+    """
+    body_start = "<body>"
+    body_end = "</body>"
+    try:
+        start_idx = html.index(body_start) + len(body_start)
+    except ValueError:
+        raise Exception, ("Unable to process malformed HTML.  "
+                          "Original HTML: %s" % html)
+    try:
+        end_idx = html.index(body_end)
+        stripped = html[start_idx:end_idx]
+    except ValueError:
+        stripped = html[start_idx:]
+    return stripped
 
-def SaveToReport(fil_report, css_fils, new_html):
+def SaveToReport(fil_report, css_fils, source, new_html):
     """
     If report doesn't exist, make it.
     If it does exist, extract existing content and then create empty version.
@@ -295,11 +307,11 @@ def SaveToReport(fil_report, css_fils, new_html):
     A new header is required each time because there may be new css included.
     New content is everything from "content" after the body tag.
     """
-    new_no_hdr = _strip_hdr(new_html)
+    new_no_hdr = _strip_ends(new_html)
     if os.path.exists(fil_report):
         f = file(fil_report, "r")
         existing_html = f.read()
-        existing_no_hdr = _strip_hdr(existing_html)
+        existing_no_hdr = _strip_ends(existing_html)
         f.close()        
     else:
         existing_no_hdr = None
@@ -311,7 +323,9 @@ def SaveToReport(fil_report, css_fils, new_html):
     f.write(hdr)
     if existing_no_hdr:
         f.write(existing_no_hdr)
+    f.write("\n<br><br>\n<hr>\n%s" % source)
     f.write(new_no_hdr)
+    f.write(getHtmlFtr())
     f.close()
 
 def AddClosingScriptCode(f):

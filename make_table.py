@@ -2,7 +2,6 @@ import os
 import pprint
 import random
 import sys
-import time
 import wx
 
 import my_globals
@@ -203,7 +202,9 @@ class MakeTable(object):
             # see if empty or not
             f = file(self.fil_script, "r+")
             lines = f.readlines()
-            empty_fil = False if lines else True            
+            empty_fil = False if lines else True
+            f.close()
+            f = file(self.fil_script, "a")
             if empty_fil:
                 output.InsertPrelimCode(OUTPUT_MODULES, f, self.fil_report, 
                                         css_fils)

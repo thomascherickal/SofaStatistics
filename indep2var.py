@@ -46,8 +46,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.fil_script = fil_script
         self.takes_range = takes_range     
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-            projects.GetVarDets(fil_var_dets)            
-        self.open_html = []
+            projects.GetVarDets(fil_var_dets)
         self.open_scripts = []
         # set up panel for frame
         self.panel = wx.Panel(self)
@@ -471,14 +470,16 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         script = self.getScript(css_idx)
         if self.fil_script in self.open_scripts:
             # see if empty or not
-            f = file(self.fil_script, "r+")
+            f = file(self.fil_script, "r")
             lines = f.readlines()
-            empty_fil = False if lines else True            
+            empty_fil = False if lines else True
+            f.close()
+            f = file(self.fil_script, "a")
             if empty_fil:
                 output.InsertPrelimCode(modules, f, self.fil_report, css_fils)
             # insert exported script
             output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                                        self.db, self.tbl)
+                        self.db, self.tbl, self.default_dbs, self.default_tbls)
         else:
             # add file name to list, create file, insert preliminary code, 
             # and insert exported script.
@@ -486,7 +487,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
             f = file(self.fil_script, "w")
             output.InsertPrelimCode(modules, f, self.fil_report, css_fils)
             output.AppendExportedScript(f, script, self.conn_dets, self.dbe, 
-                                        self.db, self.tbl)
+                        self.db, self.tbl, self.default_dbs, self.default_tbls)
         f.close()
 
     def OnButtonHelp(self, event):

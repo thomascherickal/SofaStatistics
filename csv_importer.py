@@ -27,7 +27,8 @@ class FileImporter(object):
         """
         return True
     
-    def AssessDataSample(self, reader, progBackup, gauge_chunk, keep_importing):
+    def AssessDataSample(self, reader, has_header, progBackup, gauge_chunk, 
+                         keep_importing):
         """
         Assess data sample to identify field types based on values in fields.
         If a field has mixed data types will define as string.
@@ -39,12 +40,14 @@ class FileImporter(object):
         """
         bolhas_rows = False
         sample_data = []
-        for i, row in enumerate(reader): # NB if has_header, starts at 1st data row
+        for i, row in enumerate(reader):
             if i % 50 == 0:
                 wx.Yield()
                 if keep_importing == set([False]):
                     progBackup.SetValue(0)
                     raise ImportCancelException
+            if has_header and i == 0:
+                continue # skip first line
             bolhas_rows = True
             # process row
             sample_data.append(row)
@@ -125,10 +128,11 @@ class FileImporter(object):
         conn, cur, _, _, _, _, _ = importer.GetDefaultDbDets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_rows else n_rows
         gauge_chunk = importer.getGaugeChunkSize(n_rows, sample_n)
-        fld_types, sample_data = self.AssessDataSample(reader, progBackup, 
-                                                    gauge_chunk, keep_importing)
+        fld_types, sample_data = self.AssessDataSample(reader, has_header, 
+                                        progBackup, gauge_chunk, keep_importing)
         # NB reader will be at position ready to access records after sample
-        remaining_data = reader
+        remaining_data = list(reader) # must be a list not a reader or can't 
+        # start again from beginning of data (e.g. if correction made)
         importer.AddToTmpTable(conn, cur, self.file_path, self.tbl_name, 
                                fld_names, fld_types, sample_data, sample_n,
                                remaining_data, progBackup, gauge_chunk, 
