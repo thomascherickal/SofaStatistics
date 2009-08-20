@@ -219,8 +219,8 @@ def _strip_script(script):
         stripped = script
     return stripped
 
-def ExportScript(modules, script, fil_script, fil_report, css_fils, conn_dets, 
-                 dbe, db, tbl, default_dbs, default_tbls):
+def ExportScript(script, fil_script, fil_report, css_fils, conn_dets, dbe, db, 
+                 tbl, default_dbs, default_tbls):
     modules = ["my_globals", "core_stats", "dimtables", "getdata", "output", 
                "rawtables", "stats_output"]
     if os.path.exists(fil_script):
@@ -235,9 +235,14 @@ def ExportScript(modules, script, fil_script, fil_report, css_fils, conn_dets,
     else:
         InsertPrelimCode(modules, f, fil_report, css_fils)
     AppendExportedScript(f, script, conn_dets, dbe, db, tbl, default_dbs, 
-                         default_tbls)
+                         default_tbls, add_divider_code=True)
     AddClosingScriptCode(f)
     f.close()
+
+def AddDividerCode(f, db, tbl):
+    f.write("source = output.GetSource(\"%s\", \"%s\")" % (db, tbl))
+    f.write("\ndivider = output.GetDivider(source)")
+    f.write("\nfil.write(divider)\n")
 
 def GetSource(db, tbl_name):
     datestamp = datetime.now().strftime("on %d/%m/%Y at %I:%M %p")
@@ -253,7 +258,7 @@ def RunReport(modules, fil_report, css_fils, inner_script,
     f = file(my_globals.INT_SCRIPT_PATH, "w")
     InsertPrelimCode(modules, f, my_globals.INT_REPORT_PATH, css_fils)
     AppendExportedScript(f, inner_script, conn_dets, dbe, db, tbl_name,
-                         default_dbs, default_tbls)
+                         default_dbs, default_tbls, add_divider_code=False)
     AddClosingScriptCode(f)
     f.close()
     # run script
@@ -297,7 +302,7 @@ def InsertPrelimCode(modules, fil, fil_report, css_fils):
     fil.write("# end of script 'header'\n\n")
     
 def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name, 
-                         default_dbs, default_tbls):
+                         default_dbs, default_tbls, add_divider_code=False):
     """
     Append exported script onto existing script file.
     fil - open file handle ready for writing
@@ -305,6 +310,8 @@ def AppendExportedScript(fil, inner_script, conn_dets, dbe, db, tbl_name,
     datestamp = datetime.now().strftime("Script exported %d/%m/%Y at %I:%M %p")
     # Fresh connection for each in case it changes in between tables
     fil.write("#%s\n# %s\n" % ("-"*50, datestamp))
+    if add_divider_code:
+        AddDividerCode(fil, db, tbl_name)
     conn_dets_str = pprint.pformat(conn_dets)
     fil.write("\nconn_dets = %s" % conn_dets_str)
     default_dbs_str = pprint.pformat(default_dbs)
