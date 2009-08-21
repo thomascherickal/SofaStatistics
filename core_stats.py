@@ -277,7 +277,7 @@ def anova(samples, labels, high=True):
     dfbn = n_samples - 1
     mean_squ_bn = ssbn/dfbn
     F = mean_squ_bn/mean_squ_wn
-    p = fprob(dfbn, dfwn, F)
+    p = fprob(dfbn, dfwn, F, high)
     return p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, mean_squ_bn
 
 def get_sswn(samples, sample_means, sample_ns, high=False):
@@ -371,24 +371,33 @@ def kruskalwallish(*args):
     h = h / float(T)
     return h, chisqprob(h,df)
 
-def ttest_ind(sample_a, sample_b, label_a, label_b):
+def ttest_ind(sample_a, sample_b, label_a, label_b, use_orig_var=False):
     """
     From stats.py - there are changes to variable labels and comments;
         and the output is extracted early to give greater control over 
         presentation.  There are no changes to algorithms apart from calculating 
         sds once, rather than squaring to get var and taking sqrt to get sd 
-        again ;-).
+        again ;-).  Plus use variance to get var, not stdev then squared.
     Returns t, p, dic_a, dic_b (p is the two-tailed probability)
+    
+    use_orig_var = use original (flawed) approach to sd and var.  Needed for 
+        unit testing against stats.py.  Sort of like matching bug for bug ;-).
     ---------------------------------------------------------------------
     Calculates the t-obtained T-test on TWO INDEPENDENT samples of
     scores a, and b.  From Numerical Recipes, p.483.
     """
     mean_a = mean(sample_a)
     mean_b = mean(sample_b)
-    sd_a = stdev(sample_a)
-    sd_b = stdev(sample_b)
-    se_a = sd_a**2
-    se_b = sd_b**2
+    if use_orig_var:
+        se_a = stdev(sample_a)**2
+        se_b = stdev(sample_b)**2
+        sd_a = math.sqrt(se_a)
+        sd_b = math.sqrt(se_b)
+    else:
+        se_a = variance(sample_a)
+        se_b = variance(sample_b)
+        sd_a = stdev(sample_a)
+        sd_b = stdev(sample_a)
     n_a = len(sample_a)
     n_b = len(sample_b)
     df = n_a + n_b - 2
@@ -737,7 +746,7 @@ def variance(vals, high=False):
             val = util.f2d(val)
         deviations[i] = val - mn
     if not high:
-        var = sum_squares(deviations)/n-1
+        var = sum_squares(deviations)/float(n-1)
     else:
         var = sum_squares(deviations, high)/util.f2d(n-1)
     return var
@@ -753,16 +762,16 @@ def stdev(vals, high=False):
     Usage:   stdev(vals)
     """
     try:
-        if not high:
-            stdev = math.sqrt(variance(vals))
-        else:
+        if high:
             stdev = util.f2d(math.sqrt(variance(vals, high)))
+        else:
+            stdev = math.sqrt(variance(vals))
     except ValueError:
         raise Exception, ("stdev - error getting square root.  Negative "
                           "variance value?")
     return stdev
 
-def betai(a, b, x):
+def betai(a, b, x, high=False):
     """
     From stats.py.  No changes apart from adding detail to error message.  
     -------------------------------------
@@ -776,21 +785,35 @@ def betai(a, b, x):
     
     Usage:   betai(a,b,x)
     """
-    a = util.f2d(a)
-    b = util.f2d(b)
-    x = util.f2d(x)
-    if (x < D("0") or x > D("1")):
+    if high:        
+        a = util.f2d(a)
+        b = util.f2d(b)
+        x = util.f2d(x)
+        zero = D("0")
+        one = D("1")
+        two = D("2")
+    else:
+        zero = 0.0
+        one = 1.0
+        two = 2.0
+    if (x < zero or x > one):
         raise ValueError, "Bad x %s in betai" % x
-    if (x==D("0") or x==D("1")):
-        bt = D("0")
+    if (x==zero or x==one):
+        bt = zero
     else:
-        bt = util.f2d(   math.exp(gammln(a+b)-gammln(a)-gammln(b)+a  *  
-                                  util.f2d( math.log(x) ) + b*
-                  util.f2d(    math.log(D("1") - x)  )  ))
-    if (x<(a+  D("1") )/(a+b+  D("2") )):
-        return bt*betacf(a,b,x)/a
+        if high:
+            bt = util.f2d(   
+                math.exp(gammln(a+b, high)-gammln(a, high)-gammln(b, high)+a  *  
+                                      util.f2d( math.log(x) ) + b*
+                      util.f2d(    math.log(one - x)  )  ))
+        else:
+            bt = math.exp(gammln(a+b, high)-gammln(a, high)-gammln(b, high)+a  *  
+                                       math.log(x) + b*
+                      math.log(one - x)  )
+    if (x<(a+  one )/(a+b+  two )):
+        return bt*betacf(a,b,x, high)/a
     else:
-        return D("1")-bt*betacf(b, a, D("1")-x)/b
+        return one-bt*betacf(b, a, one-x, high)/b
 
 def sum_squares(vals, high=False):
     """
@@ -801,20 +824,20 @@ def sum_squares(vals, high=False):
     
     Usage:   sum_squares(vals)
     """
-    if not high:
-        sum_squares = 0
-        for val in vals:
-            sum_squares += (val * val)
-    else:
+    if high:
         sum_squares = D("0")
         for val in vals:
             decval = util.f2d(val)
             sum_squares += (decval * decval)
+    else:
+        sum_squares = 0
+        for val in vals:
+            sum_squares += (val * val)
     return sum_squares
 
-def gammln(xx):
+def gammln(xx, high=False):
     """
-    From stats.py.  No changes except using Decimals not floats.  
+    From stats.py.  No changes except using option of using Decimals not floats.  
     -------------------------------------
     Returns the gamma function of xx.
         Gamma(z) = Integral(0,infinity) of t^(z-1)exp(-t) dt.
@@ -822,19 +845,36 @@ def gammln(xx):
     
     Usage:   gammln(xx)
     """
-    xx = util.f2d(xx)
-    coeff = [D("76.18009173"), D("-86.50532033"), D("24.01409822"), 
-             D("-1.231739516"), D("0.120858003e-2"), D("-0.536382e-5")]
-    x = xx - D("1")
-    tmp = x + D("5.5")
-    tmp = tmp - (x+D("0.5"))*  util.f2d(math.log(tmp))
-    ser = D("1")
+    if high:
+        intone = D("1")
+        one = D("1.0")
+        fiveptfive = D("5.5")
+        xx = util.f2d(xx)
+        coeff = [D("76.18009173"), D("-86.50532033"), D("24.01409822"), 
+                 D("-1.231739516"), D("0.120858003e-2"), D("-0.536382e-5")]
+    else:
+        intone = 1
+        one = 1.0
+        fiveptfive = 5.5
+        coeff = [76.18009173, -86.50532033, 24.01409822, -1.231739516,
+                 0.120858003e-2, -0.536382e-5]
+    x = xx - one
+    tmp = x + fiveptfive
+    if high:
+        tmp = tmp - (x+D("0.5")*  util.f2d(math.log(tmp)))
+    else:
+        tmp = tmp - (x+0.5)*math.log(tmp)
+    ser = one
     for j in range(len(coeff)):
-        x = x + D("1")
+        x = x + intone
         ser = ser + coeff[j]/x
-    return -tmp + util.f2d(math.log(D("2.50662827465")*ser))
+    if high:
+        gammln = -tmp + util.f2d(math.log(D("2.50662827465")*ser))
+    else:
+        gammln = -tmp + math.log(2.50662827465*ser)
+    return gammln
 
-def betacf(a, b, x):
+def betacf(a, b, x, high=False):
     """
     From stats.py.  No changes.  
     -------------------------------------
@@ -843,18 +883,31 @@ def betacf(a, b, x):
     
     Usage:   betacf(a,b,x)
     """
-    ITMAX = D("200")
-    EPS = D("3.0e-7")
-    a = util.f2d(a)
-    b = util.f2d(b)
-    x = util.f2d(x)
-    bm = az = am = D("1")
-    qab = a+b
-    qap = a+D("1")
-    qam = a-D("1")
-    bz = D("1")-qab*x/qap
-    for i in range(ITMAX+D("1")):
-        em = util.f2d(i) + D("1")
+    if high:
+        one = D("1")
+        ITMAX = D("200")
+        EPS = D("3.0e-7")
+        a = util.f2d(a)
+        b = util.f2d(b)
+        x = util.f2d(x)
+        bm = az = am = one
+        qab = a+b
+        qap = a+one
+        qam = a-one
+        bz = one-qab*x/qap
+    else:
+        one = 1.0
+        ITMAX = 200
+        EPS = 3.0e-7
+        bm = az = am = one
+        qab = a+b
+        qap = a+one
+        qam = a-one
+        bz = one-qab*x/qap
+    for i in range(ITMAX+1):
+        if high:
+            i = util.f2d(i)
+        em = i + one
         tem = em + em
         d = em*(b-em)*x/((qam+tem)*(a+tem))
         ap = az + d*am
@@ -866,7 +919,7 @@ def betacf(a, b, x):
         am = ap/bpp
         bm = bp/bpp
         az = app/bpp
-        bz = D("1")
+        bz = one
         if (abs(az-aold)<(EPS*abs(az))):
             return az
     print 'a or b too big, or ITMAX too small in Betacf.'
@@ -1063,7 +1116,7 @@ def chisqprob(chisq, df):
     else:
         return s
 
-def fprob (dfnum, dfden, F):
+def fprob (dfnum, dfden, F, high=False):
     """
     From stats.py.  No changes except uses Decimals instead 
         of floats.  
@@ -1074,5 +1127,6 @@ def fprob (dfnum, dfden, F):
 
     Usage:   fprob(dfnum, dfden, F)   where usually dfnum=dfbn, dfden=dfwn
     """
-    p = betai(D("0.5")*dfden, D("0.5")*dfnum, dfden/(dfden+dfnum*F))
+    half = D("0.5") if high else 0.5
+    p = betai(half*dfden, half*dfnum, dfden/(dfden+dfnum*F), high)
     return p
