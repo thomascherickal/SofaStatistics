@@ -802,18 +802,23 @@ def betai(a, b, x, high=False):
         bt = zero
     else:
         if high:
-            bt = util.f2d(   
-                math.exp(gammln(a+b, high)-gammln(a, high)-gammln(b, high)+a  *  
-                                      util.f2d( math.log(x) ) + b*
-                      util.f2d(    math.log(one - x)  )  ))
+            bt_raw = math.exp(gammln(a+b, high) - gammln(a, high) - \
+                              gammln(b, high)+a*util.f2d(math.log(x)) + \
+                              b*util.f2d(math.log(one - x)))
+            bt = util.f2d(bt_raw)
         else:
-            bt = math.exp(gammln(a+b, high)-gammln(a, high)-gammln(b, high)+a  *  
-                                       math.log(x) + b*
-                      math.log(one - x)  )
-    if (x<(a+  one )/(a+b+  two )):
-        return bt*betacf(a,b,x, high)/a
+            bt = math.exp(gammln(a+b, high) - gammln(a, high) - gammln(b, high)
+                          + a*math.log(x) + b*math.log(1.0 - x))
+    if (x < (a + one)/(a + b + two)):
+        if high:
+            return bt*betacf(a,b,x, high)/a
+        else:
+            return bt*betacf(a,b,x)/float(a)
     else:
-        return one-bt*betacf(b, a, one-x, high)/b
+        if high:
+            return one-bt*betacf(b, a, one-x, high)/b
+        else:
+            return 1.0-bt*betacf(b,a,1.0-x)/float(b)
 
 def sum_squares(vals, high=False):
     """
@@ -856,14 +861,14 @@ def gammln(xx, high=False):
         intone = 1
         one = 1.0
         fiveptfive = 5.5
-        coeff = [76.18009173, -86.50532033, 24.01409822, -1.231739516,
-                 0.120858003e-2, -0.536382e-5]
+        coeff = [76.18009173, -86.50532033, 24.01409822, 
+                 -1.231739516, 0.120858003e-2, -0.536382e-5]
     x = xx - one
     tmp = x + fiveptfive
     if high:
-        tmp = tmp - (x+D("0.5")*  util.f2d(math.log(tmp)))
+        tmp = tmp - (x + D("0.5")) * util.f2d(math.log(tmp))
     else:
-        tmp = tmp - (x+0.5)*math.log(tmp)
+        tmp = tmp - (x + 0.5) * math.log(tmp)
     ser = one
     for j in range(len(coeff)):
         x = x + intone
@@ -1127,6 +1132,19 @@ def fprob (dfnum, dfden, F, high=False):
 
     Usage:   fprob(dfnum, dfden, F)   where usually dfnum=dfbn, dfden=dfwn
     """
-    half = D("0.5") if high else 0.5
-    p = betai(half*dfden, half*dfnum, dfden/(dfden+dfnum*F), high)
+    debug = True
+    if high:
+        dfnum = util.f2d(dfnum)
+        dfden = util.f2d(dfden)
+        F = util.f2d(F)
+        a = D("0.5")*dfden
+        b = D("0.5")*dfnum
+        x = dfden/(dfden + dfnum*F)
+        if debug:
+            print "a: %s" % a
+            print "b: %s" % b
+            print "x: %s" % x
+        p = betai(a, b, x, high)
+    else:
+        p = betai(0.5*dfden, 0.5*dfnum, dfden/float(dfden+dfnum*F), high)
     return p
