@@ -92,6 +92,13 @@ class TblEditor(wx.Dialog):
             self.current_row_idx = 0
             self.current_col_idx = 0
         else:
+            # disable any columns which do not allow data entry
+            for idx_col in range(len(self.flds)):
+                fld_dic = self.dbtbl.GetFldDic(idx_col)
+                if not fld_dic[my_globals.FLD_DATA_ENTRY_OK]:
+                    attr = wx.grid.GridCellAttr()
+                    attr.SetReadOnly(True)
+                    self.grid.SetColAttr(idx_col, attr)
             # start at new line
             new_row_idx = self.dbtbl.GetNumberRows() - 1
             self.FocusOnNewRow(new_row_idx)
@@ -393,8 +400,7 @@ class TblEditor(wx.Dialog):
         elif not fld_dic[my_globals.FLD_DATA_ENTRY_OK]: 
              # i.e. not autonumber, timestamp etc
              # and raw_val != db_tbl.MISSING_VAL_INDICATOR unnecessary
-            wx.MessageBox("This field does not accept user data entry.")
-            return True # i.e. invalid, not OK
+            raise Exception, "This field should have been read only"
         elif fld_dic[my_globals.FLD_BOLNUMERIC]:
             if not util.isNumeric(raw_val):
                 wx.MessageBox("\"%s\" is not a valid number.\n\n" % raw_val + \
@@ -488,14 +494,20 @@ class TblEditor(wx.Dialog):
         return bolUpdatedCell
     
     def SaveRow(self, row):
+        """
+        Only supplies InsertRow() with the tuples for cols to be inserted.  
+            Not autonumber or timestamp etc.
+        """
         data = []
         fld_names = getdata.FldsDic2FldNamesLst(self.flds) # sorted list
         for col in range(len(self.flds)):
+            fld_name = fld_names[col]
+            fld_dic = self.flds[fld_name]
+            if not fld_dic[my_globals.FLD_DATA_ENTRY_OK]:
+                continue
             raw_val = self.dbtbl.new_buffer.get((row, col), None)
             if raw_val == db_tbl.MISSING_VAL_INDICATOR:
                 raw_val = None
-            fld_name = fld_names[col]
-            fld_dic = self.flds[fld_name]
             data.append((raw_val, fld_name, fld_dic))
         row_inserted = getdata.InsertRow(self.dbe, self.conn, self.cur, 
                                          self.tbl_name, data)

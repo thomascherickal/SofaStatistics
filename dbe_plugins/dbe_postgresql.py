@@ -256,8 +256,7 @@ class DbDets(getdata.DbDets):
                     '%s', '%s') """ % (SMALLINT, INTEGER, BIGINT, DECIMAL, 
                                        NUMERIC, REAL, DOUBLE, MONEY) + """
             AS bolnumeric,
-                lower(columns.data_type) IN ('serial', 'big serial') 
-                    OR position('nextval' in columns.column_default) IS NOT NULL 
+                position('nextval' in columns.column_default) IS NOT NULL 
             AS autonumber,
                 columns.numeric_scale 
             AS dec_pts,
@@ -320,8 +319,7 @@ class DbDets(getdata.DbDets):
             SELECT indexrelid
             FROM pg_index INNER JOIN pg_class
             ON pg_class.oid=pg_index.indrelid
-            WHERE pg_class.relname='%s'
-            )""" % tbl
+            WHERE pg_class.relname='%s')""" % tbl
         cur.execute(SQL_get_main_index_dets)
         main_index_dets = cur.fetchall()
         idxs = []
@@ -339,8 +337,8 @@ class DbDets(getdata.DbDets):
                LEFT JOIN pg_attribute a
                ON a.attrelid = t.oid
                AND a.attnum = ANY(indkey)
-               WHERE t.relname = 'tblalt'
-               AND a.attnum IN(%s)""" % fld_oids
+               WHERE t.relname = '%s'
+               AND a.attnum IN(%s)""" % (tbl, fld_oids)
             cur.execute(SQL_get_idx_flds)
             fld_names = [x[1] for x in cur.fetchall()]
             idx_dic = {my_globals.IDX_NAME: idx_name, 
@@ -361,15 +359,15 @@ def InsertRow(conn, cur, tbl_name, data):
     Commit insert statement.
     """
     debug = False
-    # pprint.pprint(data)
+    if debug: pprint.pprint(data)
     fld_dics = [x[2] for x in data]
     fld_names = [x[1] for x in data]
-    fld_names_clause = " (`" + "`, `".join(fld_names) + "`) "
-    # e.g. (`fname`, `lname`, `dob` ...)
+    fld_names_clause = ' ("' + '", "'.join(fld_names) + '") '
+    # e.g. ("fname", "lname", "dob" ...)
     fld_placeholders_clause = " (" + \
         ", ".join(["%s" for x in range(len(data))]) + ") "
     # e.g. " (%s, %s, %s ...) "
-    SQL_insert = "INSERT INTO `%s` " % tbl_name + fld_names_clause + \
+    SQL_insert = "INSERT INTO \"%s\" " % tbl_name + fld_names_clause + \
         "VALUES %s" % fld_placeholders_clause
     if debug: print SQL_insert
     data_lst = []

@@ -1132,7 +1132,7 @@ def fprob (dfnum, dfden, F, high=False):
 
     Usage:   fprob(dfnum, dfden, F)   where usually dfnum=dfbn, dfden=dfwn
     """
-    debug = True
+    debug = False
     if high:
         dfnum = util.f2d(dfnum)
         dfden = util.f2d(dfden)
