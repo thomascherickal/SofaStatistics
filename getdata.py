@@ -5,6 +5,8 @@ import wx
 import my_globals
 import util
 
+debug = False
+
 # must be before dbe import statements (they have classes based on DbDets)
 class DbDets(object):
     
@@ -73,6 +75,7 @@ def import_dbe_plugin(dbe_plugin):
         import dbe_plugins.dbe_postgresql as dbe_postgresql
         mod = dbe_postgresql
     return mod
+
 DBES = []
 DBE_MODULES = {}
 DBE_PLUGINS = [(my_globals.DBE_SQLITE, "dbe_sqlite"), 
@@ -88,8 +91,13 @@ for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
                                    "%s.py" % dbe_mod_name)
     if os.path.exists(dbe_plugin_mod):
         if not for_win_yet_not_win: # i.e. OK to add module
+            try:
+                dbe_mod = import_dbe_plugin(dbe_plugin)
+            except Exception, e:
+                if debug: print "Problem adding dbe plugin %s" % dbe_plugin + \
+                    "Orig err: %s" % e
+                continue # skip bad module
             DBES.append(dbe_plugin)
-            dbe_mod = import_dbe_plugin(dbe_plugin)
             DBE_MODULES[dbe_plugin] = dbe_mod
 
 def get_obj_quoter_func(dbe):
