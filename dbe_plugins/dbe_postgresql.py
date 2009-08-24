@@ -22,6 +22,8 @@ CHAR = "character" # "fixed-length character string"
 CIDR = "cidr" # "IPv4 or IPv6 network address"
 CIRCLE = "circle" # "circle on a plane"
 DATE = "date" # "calendar date (year, month, day)"
+DECIMAL = "decimal" # The types decimal and numeric are equivalent. 
+  # Both types are part of the SQL standard. 
 DOUBLE = "double precision" # "double precision floating-point number (8 bytes)"
 INET = "inet" # "IPv4 or IPv6 host address"
 INTEGER = "integer" # "signed four-byte integer"
@@ -90,7 +92,7 @@ class DbDets(getdata.DbDets):
             raise Exception, "No connection details available for PostgreSQL"
         try:
             if self.db:
-                conn_dets_pgsql["db"] = self.db
+                conn_dets_pgsql["database"] = self.db
             conn = pgdb.connect(**conn_dets_pgsql)
         except Exception, e:
             raise Exception, "Unable to connect to PostgreSQL db.  " + \
@@ -105,7 +107,7 @@ class DbDets(getdata.DbDets):
         # NB db must be accessible from connection
         if not self.db:
             # use default if possible, or fall back to first
-            default_db_pgsql = self.default_dbs.get(my_globals.DBE_PGYSQL)
+            default_db_pgsql = self.default_dbs.get(my_globals.DBE_PGSQL)
             if default_db_pgsql.lower() in dbs_lc:
                 self.db = default_db_pgsql
             else:
@@ -113,7 +115,7 @@ class DbDets(getdata.DbDets):
             # need to reset conn and cur
             cur.close()
             conn.close()
-            conn_dets_pgsql["db"] = self.db
+            conn_dets_pgsql["database"] = self.db
             conn = pgdb.connect(**conn_dets_pgsql)
             cur = conn.cursor()
         else:
@@ -162,7 +164,7 @@ class DbDets(getdata.DbDets):
         tbls.sort(key=lambda s: s.upper())
         return tbls
     
-    def _GetMinMax(self, col_type, num_prec, dec_pts, autonum):
+    def _GetMinMax(self, fld_type, num_prec, dec_pts, autonum):
         """
         Returns minimum and maximum allowable numeric values.
         num_prec - precision e.g. 6 for 23.5141
@@ -183,33 +185,33 @@ class DbDets(getdata.DbDets):
             PostgreSQL.
         NB even though SERIAL and BIGSERIAL have a min of 1 they are not
         """
-        if col_type == SMALLINT:
+        if fld_type == SMALLINT:
             min = -(2**15)
             max = (2**15)-1
-        elif col_type == INTEGER:
+        elif fld_type == INTEGER:
             min = 1 if autonum else -(2**31)
             max = (2**31)-1
-        elif col_type == BIGINT:
+        elif fld_type == BIGINT:
             min = 1 if autonum else -(2**63)
             max = (2**63)-1
         # http://www.postgresql.org/docs/8.4/static/datatype-money.html
-        elif col_type == MONEY:
+        elif fld_type == MONEY:
             min = -92233720368547758.08
             max = 92233720368547758.07
         # TODO - check actual behaviour of postgresql with real fields and data
-        elif col_type == REAL:
+        elif fld_type == REAL:
             # variable-precision, inexact. 6 decimal digits precision.
             # e.g. 6,2 -> 9999.99
             abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
             min = -abs_max
             max = abs_max
-        elif col_type == DOUBLE:
+        elif fld_type == DOUBLE:
             # variable-precision, inexact. 15 decimal digits precision.
             # e.g. 6,2 -> 9999.99
             abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
             min = -abs_max
             max = abs_max
-        elif col_type == NUMERIC: #alias of decimal
+        elif fld_type == NUMERIC: #alias of decimal
             # variable-precision, inexact. 15 decimal digits precision.
             # e.g. 6,2 -> 9999.99
             abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
@@ -275,14 +277,15 @@ class DbDets(getdata.DbDets):
         # build dic of fields, each with dic of characteristics
         flds = {}
         for (fld_name, ord_pos, nullable, fld_default, fld_type, max_len, 
-                 charset, numeric, autonum, dec_pts, num_prec, col_type, 
-                 boldatetime, timestamp) in fld_dets:
+                 charset, numeric, autonum, dec_pts, num_prec, boldatetime, 
+                 timestamp) in fld_dets:
             bolnullable = True if nullable == "YES" else False
             boldata_entry_ok = False if (autonum or timestamp) else True
             bolnumeric = True if numeric else False
             fld_txt = not bolnumeric and not boldatetime
-            min_val, max_val = self._GetMinMax(col_type, num_prec, dec_pts, 
+            min_val, max_val = self._GetMinMax(fld_type, num_prec, dec_pts, 
                                                autonum)
+            bolsigned = bolnumeric and autonum
             dets_dic = {
                         my_globals.FLD_SEQ: ord_pos,
                         my_globals.FLD_BOLNULLABLE: bolnullable,
@@ -322,10 +325,13 @@ class DbDets(getdata.DbDets):
         cur.execute(SQL_get_main_index_dets)
         main_index_dets = cur.fetchall()
         idxs = []
+        has_unique = False
         for idx_name, indkey, unique_index in main_index_dets:
-            fld_names = [] 
+            fld_names = []
+            if unique_index:
+                has_unique = True
             # get field names
-            fld_oids = ind_key.replace(" ", ", ")
+            fld_oids = indkey.replace(" ", ", ")
             SQL_get_idx_flds = """SELECT t.relname, a.attname
                FROM pg_index c
                LEFT JOIN pg_class t
