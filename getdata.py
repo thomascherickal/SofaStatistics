@@ -69,13 +69,18 @@ def import_dbe_plugin(dbe_plugin):
     elif dbe_plugin == my_globals.DBE_MS_SQL:
         import dbe_plugins.dbe_ms_sql as dbe_ms_sql
         mod = dbe_ms_sql
+    elif dbe_plugin == my_globals.DBE_PGSQL:
+        import dbe_plugins.dbe_postgresql as dbe_postgresql
+        mod = dbe_postgresql
     return mod
 DBES = []
 DBE_MODULES = {}
 DBE_PLUGINS = [(my_globals.DBE_SQLITE, "dbe_sqlite"), 
                (my_globals.DBE_MYSQL, "dbe_mysql"), 
                (my_globals.DBE_MS_ACCESS, "dbe_ms_access"), 
-               (my_globals.DBE_MS_SQL, "dbe_ms_sql"),]
+               (my_globals.DBE_MS_SQL, "dbe_ms_sql"),
+               (my_globals.DBE_PGSQL, "dbe_postgresql"),
+               ]
 for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
     for_win_yet_not_win = not util.in_windows() and \
         dbe_plugin in [my_globals.DBE_MS_ACCESS, my_globals.DBE_MS_SQL]
@@ -86,7 +91,6 @@ for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
             DBES.append(dbe_plugin)
             dbe_mod = import_dbe_plugin(dbe_plugin)
             DBE_MODULES[dbe_plugin] = dbe_mod
-
 
 def get_obj_quoter_func(dbe):
     """
@@ -117,6 +121,8 @@ def getDbeSyntaxElements(dbe):
     Returns if_clause, abs_wrapper_l, abs_wrapper_r - all strings.
     if_clause receives 3 inputs - the test, result if true, result if false
     e.g. MySQL "IF(%s, %s, %s)"
+    abs_wrapper is needed when true is -1 rather than 1.  Sum and if statements
+        are used to get frequencies in SOFA Statistics.
     """
     return DBE_MODULES[dbe].DbeSyntaxElements()
 

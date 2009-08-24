@@ -110,6 +110,7 @@ DBE_SQLITE = "SQLite"
 DBE_MYSQL = "MySQL"
 DBE_MS_ACCESS = "MS Access"
 DBE_MS_SQL = "MS SQL Server"
+DBE_PGSQL = "PostgreSQL"
 
 # projects ******************************************************
 EMPTY_PROJ_NAME = "GIVE ME A NAME ..."
