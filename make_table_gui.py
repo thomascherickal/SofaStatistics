@@ -36,7 +36,7 @@ class DlgMakeTable(wx.Dialog,
                  val_dics=None):
          
         wx.Dialog.__init__(self, parent=None, id=-1, title="Make Report Table", 
-                           pos=(200, 0), 
+                           pos=(200, 0),
                            style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
                            wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
                            wx.CAPTION | wx.CLOSE_BOX | \
@@ -153,14 +153,14 @@ class DlgMakeTable(wx.Dialog,
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics,
                                  fil_css=self.fil_css)
-        self.html = full_html.FullHTML(self.panel, size=(200,250))        
+        self.html = full_html.FullHTML(self.panel, size=(200, 150))        
         lbldemo_tbls = wx.StaticText(self.panel, -1, "Demonstration Table:")
         lbldemo_tbls.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         # main section SIZERS **************************************************************
         szrMain = wx.BoxSizer(wx.VERTICAL)
         self.SetupGenConfigSizer()
         szrMid = wx.BoxSizer(wx.HORIZONTAL)
-        szrDims = wx.BoxSizer(wx.HORIZONTAL)
+        szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         #2 MID
         #3 TABTYPE
         szrTabType = wx.BoxSizer(wx.HORIZONTAL)
@@ -217,27 +217,28 @@ class DlgMakeTable(wx.Dialog,
         szrTrees.Add(szrRows, 1, wx.GROW|wx.RIGHT, 2)
         szrTrees.Add(szrCols, 1, wx.GROW|wx.LEFT, 2)
         # standard output buttons handled in output_buttons
-        #2 MID assemble
-        szrDims.Add(szrTrees, 1, wx.GROW|wx.RIGHT, 5)
-        szrDims.Add(self.szrButtons, 0, wx.GROW)
-        #2 HTML
+        #2 BOTTOM assemble
+        #3 BOTTOM LEFT        
+        #3 HTML
         szrHtml = wx.BoxSizer(wx.VERTICAL)
         szrHtml.Add(lbldemo_tbls, 0)
         szrHtml.Add(self.html, 1, wx.GROW)
+        szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
+        szrBottomLeft.Add(szrHtml, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szrBottomLeft.Add(self.szrConfigTop, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szrBottomLeft.Add(self.szrConfigBottom, 0, 
+                          wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        #3 BUTTONS
+        szrBottom.Add(szrBottomLeft, 1, wx.GROW)
+        szrBottom.Add(self.szrButtons, 0, wx.GROW|wx.BOTTOM|wx.RIGHT, 10)
         #1 MAIN assemble
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(szrMid, 0, wx.GROW|wx.ALL, 10)
-        szrMain.Add(szrDims, 5, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-        szrMain.Add(szrHtml, 8, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szrMain.Add(self.szrConfig, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szrMain.Add(self.szrOutput, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-        #status bar
-        #self.statusbar = self.CreateStatusBar()
-        #attach main sizer to panel>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        szrMain.Add(szrTrees, 1, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        szrMain.Add(szrBottom, 2, wx.GROW)
+        # attach main sizer to panel
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
-        self.Fit() #needed, otherwise initial display problem with 
-        #  status bar
 
     def UpdateCss(self):
         "Update css, including for demo table"

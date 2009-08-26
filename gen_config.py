@@ -38,95 +38,68 @@ class GenConfig(object):
         self.lblTables.SetFont(self.LABEL_FONT)
         self.dropTables.Bind(wx.EVT_CHOICE, self.OnTableSel)
         # Data config details
-        self.lblLabelPath = wx.StaticText(self.panel, -1, "Details:")
-        self.lblLabelPath.SetFont(self.LABEL_FONT)
         self.txtVarDetsFile = wx.TextCtrl(self.panel, -1, self.fil_var_dets, 
                                          size=(250,-1))
         self.txtVarDetsFile.Bind(wx.EVT_KILL_FOCUS, self.OnVarDetsFileLostFocus)
-        self.btnVarDetsPath = wx.Button(self.panel, -1, "Browse ...")
+        self.btnVarDetsPath = wx.Button(self.panel, -1, "Browse")
         self.btnVarDetsPath.Bind(wx.EVT_BUTTON, self.OnButtonVarDetsPath)
-        #self.btnVarDetsPath.Bind(wx.EVT_ENTER_WINDOW, self.LabelPathEnterWindow)
-        #self.btnVarDetsPath.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         # CSS style config details
-        self.lblCssPath = wx.StaticText(self.panel, -1, "Style:")
-        self.lblCssPath.SetFont(self.LABEL_FONT)
         self.txtCssFile = wx.TextCtrl(self.panel, -1, self.fil_css, 
                                       size=(250,-1))
         self.txtCssFile.Bind(wx.EVT_KILL_FOCUS, self.OnCssFileLostFocus)
-        self.btnCssPath = wx.Button(self.panel, -1, "Browse ...")
+        self.btnCssPath = wx.Button(self.panel, -1, "Browse")
         self.btnCssPath.Bind(wx.EVT_BUTTON, self.OnButtonCssPath)
-        #self.btnCssPath.Bind(wx.EVT_ENTER_WINDOW, self.CssPathEnterWindow)
-        #self.btnCssPath.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         # Output details
-        # report 
-        self.lblReportPath = wx.StaticText(self.panel, -1, "Report:")
-        self.lblReportPath.SetFont(self.LABEL_FONT)
+        # report
         self.txtReportFile = wx.TextCtrl(self.panel, -1, self.fil_report, 
                                          size=(250,-1))
         self.txtReportFile.Bind(wx.EVT_KILL_FOCUS, self.OnReportFileLostFocus)
-        self.btnReportPath = wx.Button(self.panel, -1, "Browse ...")
+        self.btnReportPath = wx.Button(self.panel, -1, "Browse")
         self.btnReportPath.Bind(wx.EVT_BUTTON, self.OnButtonReportPath)
-        #btnReportPath.Bind(wx.EVT_ENTER_WINDOW, self.ReportPathEnterWindow)
-        #btnReportPath.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         # script
-        self.lblScriptPath = wx.StaticText(self.panel, -1, "Script:")
-        self.lblScriptPath.SetFont(self.LABEL_FONT)
         self.txtScriptFile = wx.TextCtrl(self.panel, -1, self.fil_script, 
                                    size=(250,-1))
         self.txtScriptFile.Bind(wx.EVT_KILL_FOCUS, self.OnScriptFileLostFocus)
-        self.btnScriptPath = wx.Button(self.panel, -1, "Browse ...")
+        self.btnScriptPath = wx.Button(self.panel, -1, "Browse")
         self.btnScriptPath.Bind(wx.EVT_BUTTON, self.OnButtonScriptPath)
-        #self.btnScriptPath.Bind(wx.EVT_ENTER_WINDOW, self.ScriptPathEnterWindow)
-        #self.btnScriptPath.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
 
     def SetupGenConfigSizer(self):
         bxData = wx.StaticBox(self.panel, -1, "Data Source")
         self.szrData = wx.StaticBoxSizer(bxData, wx.HORIZONTAL)
-        self.szrConfig = wx.BoxSizer(wx.HORIZONTAL)
-        bxOutput = wx.StaticBox(self.panel, -1, "Output")
-        self.szrOutput = wx.StaticBoxSizer(bxOutput, wx.VERTICAL)
+        self.szrConfigTop = wx.BoxSizer(wx.HORIZONTAL)
+        self.szrConfigBottom = wx.BoxSizer(wx.HORIZONTAL)
         #1 MAIN
         #2 DATA
-        #3 DATA INNER
-        szrDataInner = wx.BoxSizer(wx.HORIZONTAL)
-        szrDataInner.Add(self.lblDatabases, 0, wx.LEFT|wx.RIGHT, 5)
-        szrDataInner.Add(self.dropDatabases, 0, wx.RIGHT, 10)
-        szrDataInner.Add(self.lblTables, 0, wx.RIGHT, 5)
-        szrDataInner.Add(self.dropTables, 0)
-        self.szrData.Add(szrDataInner)
-        #2 CONFIG
-        #3 DATA CONFIG
-        bxDataConfig = wx.StaticBox(self.panel, -1, "Variable Config")
-        szrDataConfig = wx.StaticBoxSizer(bxDataConfig, wx.HORIZONTAL)
-        #3 DATA CONFIG INNER
-        szrDataConfigInner = wx.BoxSizer(wx.HORIZONTAL)
-        szrDataConfigInner.Add(self.lblLabelPath, 0, wx.LEFT|wx.RIGHT, 5)
-        szrDataConfigInner.Add(self.txtVarDetsFile, 1, wx.GROW|wx.RIGHT, 10)
-        szrDataConfigInner.Add(self.btnVarDetsPath, 0)
-        szrDataConfig.Add(szrDataConfigInner, 1)
-        self.szrConfig.Add(szrDataConfig, 1, wx.RIGHT, 10)
+        self.szrData.Add(self.lblDatabases, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szrData.Add(self.dropDatabases, 0, wx.RIGHT, 10)
+        self.szrData.Add(self.lblTables, 0, wx.RIGHT, 5)
+        self.szrData.Add(self.dropTables, 0)
+        #2 CONFIG TOP
+        #3 VARIABLE CONFIG
+        bxVarConfig = wx.StaticBox(self.panel, -1, "Variable Config")
+        szrVarConfig = wx.StaticBoxSizer(bxVarConfig, wx.HORIZONTAL)
+        szrVarConfig.Add(self.txtVarDetsFile, 1, wx.GROW)
+        szrVarConfig.Add(self.btnVarDetsPath, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szrConfigTop.Add(szrVarConfig, 1, wx.RIGHT, 10)
         #3 CSS CONFIG
         bxCssConfig = wx.StaticBox(self.panel, -1, "Table Style")
         szrCssConfig = wx.StaticBoxSizer(bxCssConfig, wx.HORIZONTAL)
-        #3 CSS CONFIG INNER
-        szrCssConfigInner = wx.BoxSizer(wx.HORIZONTAL)
-        szrCssConfigInner.Add(self.lblCssPath, 0, wx.LEFT|wx.RIGHT, 5)
-        szrCssConfigInner.Add(self.txtCssFile, 1, wx.GROW|wx.RIGHT, 10)
-        szrCssConfigInner.Add(self.btnCssPath, 0)
-        szrCssConfig.Add(szrCssConfigInner, 1)
-        self.szrConfig.Add(szrCssConfig, 1)
-        #2 OUTPUT
-        #3 OUTPUT INNER
-        szrOutputInner = wx.BoxSizer(wx.HORIZONTAL)
-        # report 
-        szrOutputInner.Add(self.lblReportPath, 0, wx.LEFT|wx.RIGHT, 5)
-        szrOutputInner.Add(self.txtReportFile, 1, wx.GROW|wx.RIGHT, 10)
-        szrOutputInner.Add(self.btnReportPath, 0, wx.RIGHT, 10)
-        # script
-        szrOutputInner.Add(self.lblScriptPath, 0, wx.LEFT|wx.RIGHT, 5)
-        szrOutputInner.Add(self.txtScriptFile, 1, wx.GROW|wx.RIGHT, 10)
-        szrOutputInner.Add(self.btnScriptPath, 0)
-        self.szrOutput.Add(szrOutputInner, 1)
+        szrCssConfig.Add(self.txtCssFile, 1, wx.GROW)
+        szrCssConfig.Add(self.btnCssPath, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szrConfigTop.Add(szrCssConfig, 1)
+        #3 CONFIG BOTTOM
+        #3 REPORT
+        bxReportConfig = wx.StaticBox(self.panel, -1, "Output Report")
+        szrReportConfig = wx.StaticBoxSizer(bxReportConfig, wx.HORIZONTAL)
+        szrReportConfig.Add(self.txtReportFile, 1, wx.GROW)
+        szrReportConfig.Add(self.btnReportPath, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szrConfigBottom.Add(szrReportConfig, 1, wx.RIGHT, 10)
+        #3 SCRIPT
+        bxScriptConfig = wx.StaticBox(self.panel, -1, "Automation Script")
+        szrScriptConfig = wx.StaticBoxSizer(bxScriptConfig, wx.HORIZONTAL)
+        szrScriptConfig.Add(self.txtScriptFile, 1, wx.GROW)
+        szrScriptConfig.Add(self.btnScriptPath, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szrConfigBottom.Add(szrScriptConfig, 1)
 
     def UpdateVarDets(self):
         "Update all variable details, including those already displayed"
@@ -183,10 +156,6 @@ class GenConfig(object):
             self.fil_script = "%s" % dlgGetFile.GetPath()
             self.txtScriptFile.SetValue(self.fil_script)
         dlgGetFile.Destroy()
-    
-    #def ScriptPathEnterWindow(self, event):
-    #    "Hover over Script Path Browse button"
-    #    self.statusbar.SetStatusText("Select output script file ...")
 
     def OnScriptFileLostFocus(self, event):
         "Reset script file"
@@ -209,11 +178,6 @@ class GenConfig(object):
             self.UpdateVarDets()
         dlgGetFile.Destroy()        
 
-    #def LabelPathEnterWindow(self, event):
-    #    "Hover over Label Path Browse button"
-    #    self.statusbar.SetStatusText("Select source of variable " + \
-    #                                 "and value labels ...")
-        
     # css table style
     def OnButtonCssPath(self, event):
         "Open dialog and takes the css file selected (if any)"
@@ -231,11 +195,6 @@ class GenConfig(object):
     def UpdateCss(self):
         "Update css, including for demo table"
         self.fil_css = self.txtCssFile.GetValue()
-        
-    #def CssPathEnterWindow(self, event):
-    #    "Hover over Css Path Browse button"
-    #    self.statusbar.SetStatusText("Select css table style file for " + \
-    #                                 "reporting ...")
     
     def OnCssFileLostFocus(self, event):
         "Reset css file"
