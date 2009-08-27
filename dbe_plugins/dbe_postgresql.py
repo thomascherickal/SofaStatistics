@@ -183,7 +183,6 @@ class DbDets(getdata.DbDets):
             to zero than a certain level, such values will be accepted here.
             The database will store these as zero. TODO - confirm with 
             PostgreSQL.
-        NB even though SERIAL and BIGSERIAL have a min of 1 they are not
         """
         if fld_type == SMALLINT:
             min = -(2**15)
@@ -198,7 +197,6 @@ class DbDets(getdata.DbDets):
         elif fld_type == MONEY:
             min = -92233720368547758.08
             max = 92233720368547758.07
-        # TODO - check actual behaviour of postgresql with real fields and data
         elif fld_type == REAL:
             # variable-precision, inexact. 6 decimal digits precision.
             min = -(2**128)

@@ -1,5 +1,3 @@
-import win32com.client
-
 # http://www.devguru.com/Technologies/ado/quickref/field_type.html
 # numeric
 ADO_TINYINT = 'Tiny Int - 1-byte signed integer' # adTinyInt
@@ -49,38 +47,84 @@ DATETIME_TYPES = [ADO_DATE, ADO_DBDATE, ADO_DBTIME, ADO_DBTIMESTAMP]
 
 def getADODic():
     """
-    Fails unless run _after_ something else (not sure what) has run first.
+    Generate this using makepy via cli.
+    makepy.py -o grab_consts.py
+    NB have to manually put utf-8 encoding in after disabling assert in 
+        genpy.py.
     """
-    return {win32com.client.constants.adTinyInt: ADO_TINYINT,
-            win32com.client.constants.adUnsignedTinyInt: ADO_UNSIGNEDTINYINT,
-            win32com.client.constants.adSmallInt: ADO_SMALLINT,
-            win32com.client.constants.adUnsignedSmallInt: ADO_UNSIGNEDSMALLINT,
-            win32com.client.constants.adInteger: ADO_INTEGER,
-            win32com.client.constants.adUnsignedInt: ADO_UNSIGNEDINT,
-            win32com.client.constants.adBigInt: ADO_BIGINT,
-            win32com.client.constants.adUnsignedBigInt: ADO_UNSIGNEDBIGINT,
-            win32com.client.constants.adDecimal: ADO_DECIMAL,
-            win32com.client.constants.adSingle: ADO_SINGLE,
-            win32com.client.constants.adDouble: ADO_DOUBLE,
-            win32com.client.constants.adCurrency: ADO_CURRENCY,
-            win32com.client.constants.adNumeric: ADO_NUMERIC,
-            win32com.client.constants.adVarNumeric: ADO_VARNUMERIC,
-            win32com.client.constants.adBoolean: ADO_BOOLEAN,
-            win32com.client.constants.adDate: ADO_DATE,
-            win32com.client.constants.adDBDate: ADO_DBDATE,
-            win32com.client.constants.adDBTime: ADO_DBTIME,
-            win32com.client.constants.adDBTimeStamp: ADO_DBTIMESTAMP,
-            win32com.client.constants.adChar: ADO_CHAR,
-            win32com.client.constants.adWChar: ADO_WCHAR,
-            win32com.client.constants.adVarChar: ADO_VARCHAR,
-            win32com.client.constants.adVarWChar: ADO_VARWCHAR,
-            win32com.client.constants.adLongVarChar: ADO_LONGVARCHAR,
-            win32com.client.constants.adLongVarWChar: ADO_LONGVARWCHAR,
-            win32com.client.constants.adBinary: ADO_BINARY,
-            win32com.client.constants.adVarBinary: ADO_VARBINARY,
-            win32com.client.constants.adLongVarBinary: ADO_LONGVARBINARY,
-            win32com.client.constants.adVariant: ADO_VARIANT,
-            win32com.client.constants.adGUID: ADO_GUID,
+    adBigInt                      =20         # from enum DataTypeEnum
+    adBinary                      =128        # from enum DataTypeEnum
+    adBoolean                     =11         # from enum DataTypeEnum
+    adChapter                     =136        # from enum DataTypeEnum
+    adChar                        =129        # from enum DataTypeEnum
+    adCurrency                    =6          # from enum DataTypeEnum
+    adDBDate                      =133        # from enum DataTypeEnum
+    adDBTime                      =134        # from enum DataTypeEnum
+    adDBTimeStamp                 =135        # from enum DataTypeEnum
+    adDate                        =7          # from enum DataTypeEnum
+    adDecimal                     =14         # from enum DataTypeEnum
+    adDouble                      =5          # from enum DataTypeEnum
+    adEmpty                       =0          # from enum DataTypeEnum
+    adError                       =10         # from enum DataTypeEnum
+    adFileTime                    =64         # from enum DataTypeEnum
+    adGUID                        =72         # from enum DataTypeEnum
+    adIDispatch                   =9          # from enum DataTypeEnum
+    adIUnknown                    =13         # from enum DataTypeEnum
+    adInteger                     =3          # from enum DataTypeEnum
+    adLongVarBinary               =205        # from enum DataTypeEnum
+    adLongVarChar                 =201        # from enum DataTypeEnum
+    adLongVarWChar                =203        # from enum DataTypeEnum
+    adNumeric                     =131        # from enum DataTypeEnum
+    adPropVariant                 =138        # from enum DataTypeEnum
+    adSingle                      =4          # from enum DataTypeEnum
+    adSmallInt                    =2          # from enum DataTypeEnum
+    adTinyInt                     =16         # from enum DataTypeEnum
+    adUnsignedBigInt              =21         # from enum DataTypeEnum
+    adUnsignedInt                 =19         # from enum DataTypeEnum
+    adUnsignedSmallInt            =18         # from enum DataTypeEnum
+    adUnsignedTinyInt             =17         # from enum DataTypeEnum
+    adUserDefined                 =132        # from enum DataTypeEnum
+    adVarBinary                   =204        # from enum DataTypeEnum
+    adVarChar                     =200        # from enum DataTypeEnum
+    adVarNumeric                  =139        # from enum DataTypeEnum
+    adVarWChar                    =202        # from enum DataTypeEnum
+    adVariant                     =12         # from enum DataTypeEnum
+    adWChar                       =130        # from enum DataTypeEnum
+    adEditAdd                     =2          # from enum EditModeEnum
+    adEditDelete                  =4          # from enum EditModeEnum
+    adEditInProgress              =1          # from enum EditModeEnum
+    adEditNone                    =0          # from enum EditModeEnum
+
+    return {adTinyInt: ADO_TINYINT,
+            adUnsignedTinyInt: ADO_UNSIGNEDTINYINT,
+            adSmallInt: ADO_SMALLINT,
+            adUnsignedSmallInt: ADO_UNSIGNEDSMALLINT,
+            adInteger: ADO_INTEGER,
+            adUnsignedInt: ADO_UNSIGNEDINT,
+            adBigInt: ADO_BIGINT,
+            adUnsignedBigInt: ADO_UNSIGNEDBIGINT,
+            adDecimal: ADO_DECIMAL,
+            adSingle: ADO_SINGLE,
+            adDouble: ADO_DOUBLE,
+            adCurrency: ADO_CURRENCY,
+            adNumeric: ADO_NUMERIC,
+            adVarNumeric: ADO_VARNUMERIC,
+            adBoolean: ADO_BOOLEAN,
+            adDate: ADO_DATE,
+            adDBDate: ADO_DBDATE,
+            adDBTime: ADO_DBTIME,
+            adDBTimeStamp: ADO_DBTIMESTAMP,
+            adChar: ADO_CHAR,
+            adWChar: ADO_WCHAR,
+            adVarChar: ADO_VARCHAR,
+            adVarWChar: ADO_VARWCHAR,
+            adLongVarChar: ADO_LONGVARCHAR,
+            adLongVarWChar: ADO_LONGVARWCHAR,
+            adBinary: ADO_BINARY,
+            adVarBinary: ADO_VARBINARY,
+            adLongVarBinary: ADO_LONGVARBINARY,
+            adVariant: ADO_VARIANT,
+            adGUID: ADO_GUID,
             }
     
 def GetMinMax(fld_type, num_prec, dec_pts):
