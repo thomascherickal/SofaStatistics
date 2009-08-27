@@ -63,8 +63,11 @@ class DbTbl(wx.grid.PyGridTableBase):
         n_lst = range(len(ids_lst)) # 0-based to match row_n
         self.row_id_dic = dict(zip(n_lst, ids_lst))        
     
+    def GetFldName(self, col):
+        return self.fld_names[col]
+    
     def GetFldDic(self, col):
-        fld_name = self.fld_names[col]
+        fld_name = self.GetFldName(col)
         return self.flds[fld_name]
     
     def GetIndexCol(self):
@@ -192,7 +195,10 @@ class DbTbl(wx.grid.PyGridTableBase):
                 " ORDER BY %s" % self.quote_obj(self.id_col_name)
             if self.debug:
                 print SQL_get_values
+            self.conn.commit() # extra commits keep postgresql problems away
+                # when a cell change is rejected by SOFA Stats validation
             self.cur.execute(SQL_get_values)
+            self.conn.commit()
             row_idx = row_min
             for data_tup in self.cur.fetchall(): # tuple of values
                 self.AddDataToRowValsDic(self.row_vals_dic, row_idx, data_tup)

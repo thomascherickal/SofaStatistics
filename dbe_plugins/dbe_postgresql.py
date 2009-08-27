@@ -202,13 +202,13 @@ class DbDets(getdata.DbDets):
         elif fld_type == REAL:
             # variable-precision, inexact. 6 decimal digits precision.
             # e.g. 6,2 -> 9999.99
-            abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
+            abs_max = (10**(num_prec + 1))-1
             min = -abs_max
             max = abs_max
         elif fld_type == DOUBLE:
             # variable-precision, inexact. 15 decimal digits precision.
             # e.g. 6,2 -> 9999.99
-            abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
+            abs_max = (10**(num_prec + 1))-1
             min = -abs_max
             max = abs_max
         elif fld_type == NUMERIC: #alias of decimal
@@ -238,6 +238,7 @@ class DbDets(getdata.DbDets):
         Returns details for set of fields given database, table, and cursor.
         http://archives.postgresql.org/pgsql-sql/2007-01/msg00082.php
         """
+        debug = False
         SQL_get_fld_dets = """SELECT columns.column_name 
             AS col_name, 
                 columns.ordinal_position 
@@ -273,6 +274,7 @@ class DbDets(getdata.DbDets):
             ORDER BY columns.ordinal_position """ % tbl 
         cur.execute(SQL_get_fld_dets)
         fld_dets = cur.fetchall()
+        if debug: pprint.pprint(fld_dets)
         # build dic of fields, each with dic of characteristics
         flds = {}
         for (fld_name, ord_pos, nullable, fld_default, fld_type, max_len, 

@@ -225,6 +225,9 @@ class TblEditor(wx.Dialog):
             self.grid.MakeCellVisible(dest_row, dest_col)
             self.current_row_idx = dest_row
             self.current_col_idx = dest_col
+        else:
+            pass
+            #wx.MessageBox("Stay here at %s %s" % (src_row, src_col))
     
     def GetMoveDets(self, src_row, src_col, dest_row, dest_col, key_direction):
         """
@@ -408,7 +411,8 @@ class TblEditor(wx.Dialog):
                               "the missing value character (.)")
                 return True
             if not self.ValueInRange(raw_val, fld_dic):
-                if self.debug: print "\"%s\" is invalid for data type" % raw_val
+                wx.MessageBox("\"%s\" is invalid for data type %s" % \
+                              (raw_val, self.dbtbl.GetFldName(col)))
                 return True
             return False
         elif fld_dic[my_globals.FLD_BOLDATETIME]:
@@ -480,6 +484,7 @@ class TblEditor(wx.Dialog):
         if self.debug: print "UpdateCell - row %s col %s" % (row, col)
         bolUpdatedCell = True
         try:
+            self.dbtbl.conn.commit()
             self.dbtbl.cur.execute(self.dbtbl.SQL_cell_to_update)
             self.dbtbl.conn.commit()
         except Exception, e:
