@@ -201,37 +201,21 @@ class DbDets(getdata.DbDets):
         # TODO - check actual behaviour of postgresql with real fields and data
         elif fld_type == REAL:
             # variable-precision, inexact. 6 decimal digits precision.
-            # e.g. 6,2 -> 9999.99
-            abs_max = (10**(num_prec + 1))-1
-            min = -abs_max
-            max = abs_max
+            min = -(2**128)
+            max = (2**128)-1 # actually, rather a bit less, but this will do
         elif fld_type == DOUBLE:
             # variable-precision, inexact. 15 decimal digits precision.
-            # e.g. 6,2 -> 9999.99
-            abs_max = (10**(num_prec + 1))-1
-            min = -abs_max
-            max = abs_max
+            min = -(2**1024)
+            max = (2**1024)-1
         elif fld_type == NUMERIC: #alias of decimal
             # variable-precision, inexact. 15 decimal digits precision.
-            # e.g. 6,2 -> 9999.99
-            abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
+            abs_max = 10**(num_prec - dec_pts)
             min = -abs_max
             max = abs_max
         else:
             min = None
             max = None
         return min, max    
-        """
-        elif fld_type == ADO_CURRENCY:
-            Accurate to 15 digits to the left of the decimal point and 
-                4 digits to the right.
-            e.g. 19,4 -> 999999999999999.9999
-            dec_pts = 4
-            num_prec = 15 + dec_pts
-            abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
-            min = -abs_max
-            max = abs_max    
-        """
     
     def getTblFlds(self, cur, db, tbl):
         """
