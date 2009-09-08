@@ -438,8 +438,9 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     
 def getProjSettings(parent, proj_dic):
     ""
-    parent.mysql_default_db = proj_dic["default_dbs"][my_globals.DBE_MYSQL]
-    parent.mysql_default_tbl = proj_dic["default_tbls"][my_globals.DBE_MYSQL]
+    parent.mysql_default_db = proj_dic["default_dbs"].get(my_globals.DBE_MYSQL)
+    parent.mysql_default_tbl = \
+        proj_dic["default_tbls"].get(my_globals.DBE_MYSQL)
     # optional (although if any mysql, for eg, must have all)
     if proj_dic["conn_dets"].get(my_globals.DBE_MYSQL):
         parent.mysql_host = proj_dic["conn_dets"][my_globals.DBE_MYSQL]["host"]

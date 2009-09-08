@@ -334,9 +334,9 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
 def getProjSettings(parent, proj_dic):
     ""
     parent.msaccess_default_db = \
-        proj_dic["default_dbs"][my_globals.DBE_MS_ACCESS]
+        proj_dic["default_dbs"].get(my_globals.DBE_MS_ACCESS)
     parent.msaccess_default_tbl = \
-        proj_dic["default_tbls"][my_globals.DBE_MS_ACCESS]
+        proj_dic["default_tbls"].get(my_globals.DBE_MS_ACCESS)
     if proj_dic["conn_dets"].get(my_globals.DBE_MS_ACCESS):
         parent.msaccess_data = [(x["database"], x["mdw"], x["user"], 
                                  x["pwd"]) \
