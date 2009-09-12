@@ -25,6 +25,8 @@ QUOTES_EN = [
      "H.G. Wells, The Undying Fire"),
     ("Statistics may be defined as \"a body of methods for making wise " + \
      "decisions in the face of uncertainty.\"", "W.A. Wallis"),
+    ("[Science] is hard to do, unlike calculating t-statistics, which is " + \
+     "a simpleton's parlor game", "Ziliak & McCloskey"),
              ]
 QUOTES = {EN: QUOTES_EN}
 
