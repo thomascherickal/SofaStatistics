@@ -1,5 +1,10 @@
 import win32com.client
 
+# Copyright (c) Grant Paton-Simpson 2009. All rights reserved. 
+# Based on excel.py with major modifications
+# Copyright notice for excel.py: Copyright (c) Nicolas Lehuen 2005 
+# (Code available at http://code.activestate.com/recipes/440661)
+
 # http://www.w3schools.com/ADO/met_rs_open.asp
 adOpenForwardOnly = 0
 adOpenStatic = 3

@@ -130,7 +130,7 @@ def getADODic():
 def GetMinMax(fld_type, num_prec, dec_pts):
     """
     Returns minimum and maximum allowable numeric values.  
-    Nones if not numeric (or if an unknwon numeric e.g. ADO_VARNUMERIC).
+    Nones if not numeric (or if an unknown numeric e.g. ADO_VARNUMERIC).
     NB even though a floating point type will not store values closer 
         to zero than a certain level, such values will be accepted here.
         The database will store these as zero.
