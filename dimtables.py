@@ -361,8 +361,8 @@ class LiveTable(DimTable):
         else:
             self.subtitles = []
         self.dbe = dbe
-        self.if_clause, self.abs_wrapper_l, self.abs_wrapper_r = \
-            getdata.getDbeSyntaxElements(self.dbe)
+        (self.if_clause, self.quote_obj, self.quote_val, self.get_placeholder,
+            self.get_summable) = getdata.getDbeSyntaxElements(self.dbe)
         self.datasource = datasource
         self.cur = cur
         self.tree_rows = tree_rows
@@ -546,7 +546,8 @@ class LiveTable(DimTable):
                     if bolnumeric:
                         val_node_filts.append("%s = %s" % (fld, val))
                     else:
-                        val_node_filts.append("%s = \"%s\"" % (fld, val))
+                        val_node_filts.append("%s = " % fld + \
+                                              self.quote_val(val))
                 is_coltot=(is_tot and dim == my_globals.COLDIM)
                 val_node = \
                     node_lev1.addChild(LabelNode(label = val_label,
@@ -801,7 +802,11 @@ class GenTable(LiveTable):
             (my_globals.CSS_DATACELL, css_idx)
         i=0
         data_item_presn_lst = []
-        results = ()
+        
+        
+        results = []
+        
+        
         SQL_table_select_clauses_lst = []
         max_select_vars = 50 #same speed between about 30 and 100 but
         #twice as slow if much smaller or larger
@@ -861,6 +866,11 @@ class GenTable(LiveTable):
                              " FROM " + self.datasource
                     #print SQL_select_results #debug but reset max_select... low first
                     self.cur.execute(SQL_select_results)
+                    
+                    #print results # ()
+                    #print self.cur.fetchone() # [1,0,1,0,0,1 etc]
+                    
+                    
                     results += self.cur.fetchone()
                     SQL_table_select_clauses_lst = []
                 i=i+1
@@ -900,14 +910,11 @@ class GenTable(LiveTable):
         cols_not_null_lst - used for rowpct filtering
         is_coltot - boolean
         """
-        #To get freq, evaluate matching values to 1 (otherwise 0) then sum
-        # 
-        freq = self.abs_wrapper_l + "SUM(" + " AND ".join(\
-                                row_filters_lst + col_filters_lst) + ")" + \
-                                self.abs_wrapper_r
-        col_freq = self.abs_wrapper_l + "SUM(" + " AND ".join(\
-                    row_filters_lst + all_but_last_col_filters_lst) + ")" + \
-                    self.abs_wrapper_r
+        # To get freq, evaluate matching values to 1 (otherwise 0) then sum
+        # With most dbs, boolean returns 1 for True and 0 for False
+        freq = "SUM(" + self.get_summable(" AND ".join(row_filters_lst + col_filters_lst)) + ")"
+        col_freq = "SUM(" + self.get_summable(" AND ".join( row_filters_lst + \
+                                         all_but_last_col_filters_lst)) + ")"
         #pprint.pprint(freq) # debug
         if measure == my_globals.FREQ:
             if not is_coltot:
@@ -936,8 +943,8 @@ class GenTable(LiveTable):
             for filter in colpct_filter_lst:
                 if filter != "":
                     denom_filters_lst.append(filter)
-            denominator = self.abs_wrapper_l + "SUM(" + \
-                " AND ".join(denom_filters_lst) + ")" + self.abs_wrapper_r
+            denominator = "SUM(" + self.get_summable(" AND ".join(
+                                                    denom_filters_lst)) + ")"
             perc = "100*(%s)/%s" % (numerator, denominator)
             template = self.if_clause % (NOTNULL % perc, perc, 0)
             #print template #debug
@@ -956,8 +963,8 @@ class GenTable(LiveTable):
                 for filter in rowpct_filter_lst:
                     if filter != "":
                         denom_filters_lst.append(filter)
-                denominator = self.abs_wrapper_l + "SUM(" + \
-                    " AND ".join(denom_filters_lst) + ")" + self.abs_wrapper_r
+                denominator = "SUM(" + \
+                    self.get_summable(" AND ".join(denom_filters_lst)) + ")"
                 perc = "100*(%s)/%s" % (numerator, denominator)
                 template = self.if_clause % (NOTNULL % perc, perc, 0)
                 #print numerator, denominator

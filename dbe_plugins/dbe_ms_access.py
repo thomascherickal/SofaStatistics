@@ -34,12 +34,12 @@ def quote_val(raw_val):
 def get_placeholder():
     return "?"
 
+def get_summable(clause):
+    return "ABS(%s)" % clause # true is -1 so we need to get sum of +1s
+
 def DbeSyntaxElements():
     if_clause = "IIF(%s, %s, %s)"
-    # True is -1, not 1, in Access, thus the ABS before summing
-    abs_wrapper_l = " ABS("
-    abs_wrapper_r = ")"
-    return if_clause, abs_wrapper_l, abs_wrapper_r
+    return (if_clause, quote_obj, quote_val, get_placeholder, get_summable)
 
     
 class DbDets(getdata.DbDets):

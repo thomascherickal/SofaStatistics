@@ -126,11 +126,11 @@ def getDbDetsObj(dbe, default_dbs, default_tbls, conn_dets, db=None, tbl=None):
     
 def getDbeSyntaxElements(dbe):
     """
-    Returns if_clause, abs_wrapper_l, abs_wrapper_r - all strings.
+    Returns if_clause (a string), and 4 functions - quote_obj(), quote_val(), 
+        get_placeholder(), and get_summable().
     if_clause receives 3 inputs - the test, result if true, result if false
     e.g. MySQL "IF(%s, %s, %s)"
-    abs_wrapper is needed when true is -1 rather than 1.  Sum and if statements
-        are used to get frequencies in SOFA Statistics.
+    Sum and if statements are used to get frequencies in SOFA Statistics.
     """
     return DBE_MODULES[dbe].DbeSyntaxElements()
 
