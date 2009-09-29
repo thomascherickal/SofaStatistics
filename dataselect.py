@@ -119,6 +119,14 @@ class DataSelectDlg(wx.Dialog):
         event.Skip()
     
     def OnNewClick(self, event):
+        """
+        Get table name (must be unique etc), create empty table in SOFA Default 
+            database with that name, and start off with 5 fields ready to 
+            rename.  Must be able to add fields, and rename fields.
+        """
+        
+        
+        
         wx.MessageBox("Not available yet in this version")
         event.Skip()
     

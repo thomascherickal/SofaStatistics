@@ -802,11 +802,7 @@ class GenTable(LiveTable):
             (my_globals.CSS_DATACELL, css_idx)
         i=0
         data_item_presn_lst = []
-        
-        
         results = []
-        
-        
         SQL_table_select_clauses_lst = []
         max_select_vars = 50 #same speed between about 30 and 100 but
         #twice as slow if much smaller or larger

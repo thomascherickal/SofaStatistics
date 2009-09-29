@@ -109,7 +109,20 @@ class TblEditor(wx.Dialog):
         self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnSelectCell)
         self.grid.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
         self.grid.Bind(EVT_CELL_MOVE, self.OnCellMove)
+        if read_only:
+            szrBottom = wx.FlexGridSizer(rows=1, cols=1, hgap=5, vgap=5)
+            szrBottom.AddGrowableCol(0,2) # idx, propn
+        else:
+            szrBottom = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
+            szrBottom.AddGrowableCol(1,2) # idx, propn 
+            btnConfig = wx.Button(self.panel, -1, "Table Config")
+            btnConfig.Bind(wx.EVT_BUTTON, self.OnEdit)
+            szrBottom.Add(btnConfig, 0)
+        btnClose = wx.Button(self.panel, wx.ID_CLOSE)
+        btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
+        szrBottom.Add(btnClose, 0, wx.ALIGN_RIGHT)
         self.szrMain.Add(self.grid, 1, wx.GROW)
+        self.szrMain.Add(szrBottom, 0, wx.GROW|wx.ALL, 5)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
         self.panel.Layout()
@@ -630,3 +643,9 @@ class TblEditor(wx.Dialog):
         if debug: print "Cell changed"
         self.grid.ForceRefresh()
         event.Skip()
+    
+    def OnEdit(self, event):
+        pass
+    
+    def OnClose(self, event):
+        self.Destroy()
