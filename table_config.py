@@ -5,7 +5,7 @@ import table_entry
     
 class ConfigTable(table_entry.TableEntryDlg):
     
-    def __init__(self, data, new_grid_data):
+    def __init__(self, data, new_grid_data, inserted_data):
         """
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
@@ -29,7 +29,8 @@ class ConfigTable(table_entry.TableEntryDlg):
         # New controls
         lblTblLabel = wx.StaticText(self.panel, -1, "Variable Label:")
         lblTblLabel.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.txtTblLabel = wx.TextCtrl(self.panel, -1, "table001", size=(250,-1))
+        self.txtTblLabel = wx.TextCtrl(self.panel, -1, "table001", 
+                                       size=(250,-1))
         # sizers
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         self.szrTblLabel = wx.BoxSizer(wx.HORIZONTAL)
@@ -39,8 +40,8 @@ class ConfigTable(table_entry.TableEntryDlg):
         self.tabentry = table_entry.TableEntry(self, self.panel, 
                                                self.szrMain, 2, False, 
                                                grid_size, col_dets, data,  
-                                               new_grid_data)
-        self.SetupButtons(inc_delete=True)
+                                               new_grid_data, inserted_data)
+        self.SetupButtons(inc_delete=True, inc_insert=True)
         self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)

@@ -128,7 +128,8 @@ class DataSelectDlg(wx.Dialog):
         debug = False
         data = [("var001", "Numeric")]
         new_grid_data = []
-        dlgConfig = table_config.ConfigTable(data, new_grid_data)
+        inserted_data = [] 
+        dlgConfig = table_config.ConfigTable(data, new_grid_data, inserted_data)
         dlgConfig.ShowModal()
         if debug: pprint.pprint(new_grid_data)
         event.Skip()

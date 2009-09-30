@@ -12,14 +12,18 @@ COL_DROPDOWN = "col_dropdown"
 
 
 class TableEntryDlg(wx.Dialog):
-    def __init__(self, title, grid_size, col_dets, data, new_grid_data):
+    def __init__(self, title, grid_size, col_dets, data, new_grid_data, 
+                 inserted_data=None):
         """
         col_dets - see under TableEntry.
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
         new_grid_data - is effectively "returned".  Add details to it in form 
             of a list of tuples.
+        inserted_data - what data do you want to see in a new inserted row 
+            (if any)
         """
+        self.inserted_data = inserted_data
         wx.Dialog.__init__(self, None, title=title,
                           size=(400,400), 
                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
@@ -52,7 +56,7 @@ class TableEntryDlg(wx.Dialog):
             btnDelete = wx.Button(self.panel, wx.ID_DELETE)
             btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
         if inc_insert:
-            btnInsert = wx.Button(self.panel, -1, "Insert")
+            btnInsert = wx.Button(self.panel, -1, "Insert Before")
             btnInsert.Bind(wx.EVT_BUTTON, self.OnInsert)
         # using the approach which will follow the platform convention 
         # for standard buttons
@@ -84,7 +88,12 @@ class TableEntryDlg(wx.Dialog):
             wx.MessageBox("Only one row can be deleted at a time")
     
     def OnInsert(self, event):
-        pass
+        """
+        Insert before
+        """
+        selected_rows = self.tabentry.grid.GetSelectedRows()
+        pos = selected_rows[0]
+        self.tabentry.InsertRow(pos, self.row_data)
     
                 
 class TableEntry(object):
@@ -308,7 +317,7 @@ class TableEntry(object):
             # row 3 will be the new entry one
         if new_entry:
             if self.ValidRow(row=row):
-                self.AddRow(row)
+                self.AddNewRow(row)
                 event.Skip()
             else:
                 self.grid.SetRowLabelValue(self.rows_n, "...")
@@ -322,8 +331,26 @@ class TableEntry(object):
             else:
                 self.SafeLayoutAdjustment()
     
-    def AddRow(self, row):
-        ""
+    def InsertRow(self, pos, row_data=None):
+        """
+        Insert row.
+        If data supplied (list), insert values into row.
+        Change row labels appropriately.
+        """
+        self.grid.InsertRows(pos)
+        self.rows_n += 1
+        # reset label for all rows after insert
+        self.UpdateRowLabelsAfter(pos)
+        self.grid.SetRowLabelValue(self.rows_n, "*")
+    
+    def UpdateRowLabelsAfter(self, pos):
+        for i in range(pos, self.rows_n):
+            self.grid.SetRowLabelValue(i, str(i + 1))
+            
+    def AddNewRow(self, row):
+        """
+        Add new row.
+        """
         # change label from * and add a new entry row on end of grid
         self.grid.AppendRows()
         # set up cell rendering and editing
