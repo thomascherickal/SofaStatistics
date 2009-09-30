@@ -40,7 +40,7 @@ class ConfigTable(table_entry.TableEntryDlg):
                                                self.szrMain, 2, False, 
                                                grid_size, col_dets, data,  
                                                new_grid_data)
-        self.SetupButtons()
+        self.SetupButtons(inc_delete=True)
         self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)

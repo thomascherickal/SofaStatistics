@@ -37,8 +37,10 @@ class TableEntryDlg(wx.Dialog):
         self.Layout()
         self.tabentry.grid.SetFocus()
         
-    def SetupButtons(self):
-        "Separated for text_browser reuse"
+    def SetupButtons(self, inc_delete=False, inc_insert=False):
+        """
+        Separated for text_browser reuse
+        """
         btnCancel = wx.Button(self.panel, wx.ID_CANCEL)
         btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)            
         btnOK = wx.Button(self.panel, wx.ID_OK) # must have ID of wx.ID_OK 
@@ -46,12 +48,22 @@ class TableEntryDlg(wx.Dialog):
         # for std dialog button layout
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
         btnOK.SetDefault()
+        if inc_delete:
+            btnDelete = wx.Button(self.panel, wx.ID_DELETE)
+            btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
+        if inc_insert:
+            btnInsert = wx.Button(self.panel, -1, "Insert")
+            btnInsert.Bind(wx.EVT_BUTTON, self.OnInsert)
         # using the approach which will follow the platform convention 
         # for standard buttons
         self.szrButtons = wx.StdDialogButtonSizer()
         self.szrButtons.AddButton(btnCancel)
         self.szrButtons.AddButton(btnOK)
         self.szrButtons.Realize()
+        if inc_delete:
+            self.szrButtons.Insert(0, btnDelete, 0)
+        if inc_insert:
+            self.szrButtons.Insert(0, btnInsert, 0)
 
     def OnCancel(self, event):
         self.Destroy()
@@ -61,6 +73,18 @@ class TableEntryDlg(wx.Dialog):
         self.tabentry.UpdateNewGridData()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
+        
+    def OnDelete(self, event):
+        selected_rows = self.tabentry.grid.GetSelectedRows()
+        if len(selected_rows) == 1:
+            row = selected_rows[0]
+            if row != self.tabentry.rows_n:
+                self.tabentry.DeleteRow(row)
+        else:
+            wx.MessageBox("Only one row can be deleted at a time")
+    
+    def OnInsert(self, event):
+        pass
     
                 
 class TableEntry(object):
@@ -228,13 +252,19 @@ class TableEntry(object):
         if len(selected_rows) == 1:
             row = selected_rows[0]
             if row != self.rows_n:
-                self.grid.DeleteRows(pos=row, numRows=1)
-                self.rows_n -= 1
-                self.grid.SetRowLabelValue(self.rows_n, "*")
-                self.grid.SetGridCursor(self.rows_n, 0)
-                self.grid.HideCellEditControl()
-                self.grid.ForceRefresh()
-                self.SafeLayoutAdjustment()
+                self.DeleteRow(row)
+    
+    def DeleteRow(self, row):
+        """
+        Delete a row.
+        """
+        self.grid.DeleteRows(pos=row, numRows=1)
+        self.rows_n -= 1
+        self.grid.SetRowLabelValue(self.rows_n, "*")
+        self.grid.SetGridCursor(self.rows_n, 0)
+        self.grid.HideCellEditControl()
+        self.grid.ForceRefresh()
+        self.SafeLayoutAdjustment()
     
     def EditorShown(self, event):
         # disable resizing until finished
