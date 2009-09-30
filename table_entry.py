@@ -13,17 +13,16 @@ COL_DROPDOWN = "col_dropdown"
 
 class TableEntryDlg(wx.Dialog):
     def __init__(self, title, grid_size, col_dets, data, new_grid_data, 
-                 inserted_data=None):
+                 insert_data_func=None, row_validation_func=None):
         """
         col_dets - see under TableEntry.
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
         new_grid_data - is effectively "returned".  Add details to it in form 
             of a list of tuples.
-        inserted_data - what data do you want to see in a new inserted row 
-            (if any)
+        insert_data_func - what data do you want to see in a new inserted row 
+            (if any).  Must take row index as argument.
         """
-        self.inserted_data = inserted_data
         wx.Dialog.__init__(self, None, title=title,
                           size=(400,400), 
                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
@@ -31,7 +30,8 @@ class TableEntryDlg(wx.Dialog):
         self.panel = wx.Panel(self)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         self.tabentry = TableEntry(self, self.panel, self.szrMain, 1, grid_size, 
-                                   col_dets, data, new_grid_data)
+                                   col_dets, data, new_grid_data, 
+                                   insert_data_func, row_validation_func)
         # Close
         self.SetupButtons()
         # sizers
@@ -67,7 +67,7 @@ class TableEntryDlg(wx.Dialog):
         if inc_delete:
             self.szrButtons.Insert(0, btnDelete, 0)
         if inc_insert:
-            self.szrButtons.Insert(0, btnInsert, 0)
+            self.szrButtons.Insert(0, btnInsert, 0, wx.RIGHT, 10)
 
     def OnCancel(self, event):
         self.Destroy()
@@ -92,13 +92,30 @@ class TableEntryDlg(wx.Dialog):
         Insert before
         """
         selected_rows = self.tabentry.grid.GetSelectedRows()
+        if not selected_rows: 
+            return
         pos = selected_rows[0]
-        self.tabentry.InsertRow(pos, self.row_data)
+        self.tabentry.InsertRow(pos)
+        
     
-                
+def row_validation(row, grid, col_dets):
+    """
+    Very simple as default - each cell must have something unless empty_ok.
+    """
+    row_valid = True
+    for i, col_det in enumerate(col_dets):
+        empty_ok = col_det.get("empty_ok", False)
+        cell_val = grid.GetCellValue(row=row, col=i)
+        if not cell_val and not empty_ok:
+            row_valid = False
+            break
+    return row_valid
+
+
 class TableEntry(object):
     def __init__(self, frame, panel, szr, vert_share, read_only, grid_size, 
-                 col_dets, data, new_grid_data):
+                 col_dets, data, new_grid_data, insert_data_func=None, 
+                 row_validation_func=None):
         """
         vert_share - vertical share of sizer supplied.
         col_dets - list of dic.  Keys = "col_label", "col_type", 
@@ -109,12 +126,17 @@ class TableEntry(object):
             "rename me".
         new_grid_data - is effectively "returned" - add details to it in form 
             of a list of tuples.
+        insert_data_func - return row_data and receive row_idx, grid_data
+        row_validation_func - return boolean and receive row, grid, col_dets
         """
         self.frame = frame
         self.panel = panel
         self.szr = szr
         self.read_only = read_only
         self.col_dets = col_dets
+        self.insert_data_func = insert_data_func
+        self.row_validation_func = row_validation_func if row_validation_func \
+            else row_validation
         self.SetupGrid(grid_size, data, new_grid_data)
         self.szr.Add(self.grid, vert_share, wx.GROW|wx.ALL, 5)
 
@@ -331,13 +353,22 @@ class TableEntry(object):
             else:
                 self.SafeLayoutAdjustment()
     
-    def InsertRow(self, pos, row_data=None):
+    def InsertRow(self, pos):
         """
         Insert row.
         If data supplied (list), insert values into row.
         Change row labels appropriately.
         """
+        grid_data = self.GetGridData()
         self.grid.InsertRows(pos)
+        if self.insert_data_func:
+            row_data = self.insert_data_func(row_idx=pos, grid_data=grid_data)
+            for col_idx in range(len(self.col_dets)):
+                renderer, editor = self.GetNewRendererEditor(col_idx)
+                self.grid.SetCellRenderer(pos, col_idx, renderer)
+                self.grid.SetCellEditor(pos, col_idx, editor)
+            for i, value in enumerate(row_data):
+                self.grid.SetCellValue(pos, i, value)
         self.rows_n += 1
         # reset label for all rows after insert
         self.UpdateRowLabelsAfter(pos)
@@ -403,16 +434,8 @@ class TableEntry(object):
     def ValidRow(self, row):
         """
         Is row valid?
-        Very simple as default - each cell must have something unless empty_ok.
         """
-        row_complete = True
-        for i, col_det in enumerate(self.col_dets):
-            empty_ok = col_det.get("empty_ok", False)
-            cell_val = self.grid.GetCellValue(row=row, col=i)
-            if not cell_val and not empty_ok:
-                row_complete = False
-                break
-        return row_complete
+        return self.row_validation_func(row, self.grid, self.col_dets)
 
     def RowHasData(self, row):
         """
@@ -427,14 +450,23 @@ class TableEntry(object):
                 break
         return has_data
 
-    def UpdateNewGridData(self):
+    def GetGridData(self):
         """
-        Update new_grid_data.  Separated for reuse.
+        Get grid data.
         """
+        grid_data = []
         # get data from grid (except for final row (either empty or not saved)
         for i in range(self.rows_n):
             row_data = []
             for j, col_type in enumerate(self.col_dets):
                 val = self.grid.GetCellValue(row=i, col=j)
                 row_data.append(val)
-            self.new_grid_data.append(tuple(row_data))
+            grid_data.append(tuple(row_data))
+        return grid_data
+
+    def UpdateNewGridData(self):
+        """
+        Update new_grid_data.  Separated for reuse.
+        """
+        grid_data = self.GetGridData()
+        self.new_grid_data += grid_data    

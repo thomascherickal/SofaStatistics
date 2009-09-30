@@ -143,3 +143,8 @@ group_a_default = None
 group_b_default = None
 val_a_default = None
 val_b_default = None
+
+# table config
+CONF_NUMERIC = "Numeric"
+CONF_STRING = "String"
+CONF_DATE = "Date"
