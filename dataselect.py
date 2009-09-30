@@ -5,6 +5,7 @@ import pprint
 
 import getdata
 import projects
+import table_config
 import table_edit
 
 
@@ -124,19 +125,14 @@ class DataSelectDlg(wx.Dialog):
             database with that name, and start off with 5 fields ready to 
             rename.  Must be able to add fields, and rename fields.
         """
-        
-        
-        
-        wx.MessageBox("Not available yet in this version")
+        debug = False
+        data = [("var001", "Numeric")]
+        new_grid_data = []
+        dlgConfig = table_config.ConfigTable(data, new_grid_data)
+        dlgConfig.ShowModal()
+        if debug: pprint.pprint(new_grid_data)
         event.Skip()
     
     def OnClose(self, event):
         self.Destroy()
-        
-
-if __name__ == "__main__":
-    app = wx.PySimpleApp()
-    myframe = DataSelectDlg(None, "MOH.proj")
-    myframe.Show()
-    app.MainLoop()
     

@@ -8,6 +8,7 @@ COL_STR = "col_string"
 COL_INT = "col_integer"
 COL_FLOAT = "col_float"
 COL_TEXT_BROWSE = "col_button"
+COL_DROPDOWN = "col_dropdown"
 
 
 class TableEntryDlg(wx.Dialog):
@@ -70,6 +71,7 @@ class TableEntry(object):
         col_dets - list of dic.  Keys = "col_label", "col_type", 
             and, optionally, "col_width", "file_phrase", "file_wildcard", 
             "empty_ok", "col_min_val", "col_max_val", "col_precision".
+            Also "dropdown_vals" which is a list of values for the dropdown.
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
         new_grid_data - is effectively "returned" - add details to it in form 
@@ -183,6 +185,13 @@ class TableEntry(object):
                                                   "Any file (*)|*")
             editor = text_browser.GridCellTextBrowseEditor(file_phrase, 
                                                            wildcard)
+        elif col_type == COL_DROPDOWN:
+            dropdown_vals = self.col_dets[col_idx].get("dropdown_vals")
+            if dropdown_vals:
+                renderer = wx.grid.GridCellStringRenderer()
+                editor = wx.grid.GridCellChoiceEditor(dropdown_vals)
+            else:
+                raise Exception, "table_entry: needed to supply dropdown_vals"
         else:
             renderer = wx.grid.GridCellStringRenderer()
             editor = wx.grid.GridCellTextEditor()
