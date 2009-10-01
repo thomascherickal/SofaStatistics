@@ -2,6 +2,7 @@ import wx
 
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import excel_reader
+import getdata
 import importer
 import util
 from my_exceptions import ImportCancelException
@@ -93,7 +94,7 @@ class FileImporter(object):
         except Exception, e:
             raise Exception, "Unable to read spreadsheet. " + \
                 "Orig error: %s" % e
-        conn, cur, _, _, _, _, _ = importer.GetDefaultDbDets()
+        conn, cur, _, _, _, _, _ = getdata.GetDefaultDbDets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_rows else n_rows
         gauge_chunk = importer.getGaugeChunkSize(n_rows, sample_n)
         if debug: 

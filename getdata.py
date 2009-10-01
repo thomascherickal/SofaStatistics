@@ -3,6 +3,7 @@ import pprint
 import wx
 
 import my_globals
+import projects
 import util
 
 debug = False
@@ -322,4 +323,25 @@ def RefreshTblDets(parent):
     flds = dbdetsobj.getTblFlds(parent.cur, parent.db, tbl)
     has_unique, idxs = dbdetsobj.getIndexDets(parent.cur, parent.db, tbl)
     return tbl, flds, has_unique, idxs
+
+def GetDefaultDbDets():
+    """
+    Returns conn, cur, dbs, tbls, flds, has_unique, idxs from default
+        SOFA SQLite database.
+    """
+    proj_dic = projects.GetProjSettingsDic(my_globals.SOFA_DEFAULT_PROJ)
+    dbdetsobj = getDbDetsObj(dbe=my_globals.DBE_SQLITE, 
+                             default_dbs=proj_dic["default_dbs"],
+                             default_tbls=proj_dic["default_tbls"],
+                             conn_dets=proj_dic["conn_dets"])
+    conn, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
+    return conn, cur, dbs, tbls, flds, has_unique, idxs
+
+def dup_tbl_name(tbl_name):
+    """
+    Duplicate name in default SQLite SOFA database?
+    """
+    conn, _, _, tbls, _, _, _ = GetDefaultDbDets()
+    conn.close()
+    return tbl_name in tbls
     

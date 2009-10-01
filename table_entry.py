@@ -91,6 +91,7 @@ class TableEntryDlg(wx.Dialog):
         """
         Insert before
         """
+        print "OnInsert triggered"
         selected_rows = self.tabentry.grid.GetSelectedRows()
         if not selected_rows: 
             return

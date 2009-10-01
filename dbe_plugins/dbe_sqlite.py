@@ -316,3 +316,15 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
             conn_dets_sqlite[db_name] = new_sqlite_dic
         conn_dets[my_globals.DBE_SQLITE] = conn_dets_sqlite        
     return incomplete_sqlite, has_sqlite_conn
+
+# unique to SQLite (because used to store tables for user-entered data plus 
+# imported data)
+def valid_name(name):
+    """
+    Bad name for SQLite?  Also return bad_parts (empty unless a problem).
+    """
+    # only allow alphanumeric
+    reobj = re.compile(r"\W+")
+    bad_parts = reobj.findall(name)
+    bad_name = True if bad_parts else False
+    return not bad_name, bad_parts

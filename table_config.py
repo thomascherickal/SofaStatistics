@@ -1,6 +1,8 @@
 import wx
 
 import my_globals
+import getdata # must be anything referring to plugin modules
+import dbe_plugins.dbe_sqlite as dbe_sqlite
 import table_entry
 
 def insert_data(row_idx, grid_data):
@@ -81,13 +83,14 @@ class ConfigTable(table_entry.TableEntryDlg):
         # New controls
         lblTblLabel = wx.StaticText(self.panel, -1, "Table Name:")
         lblTblLabel.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.txtTblLabel = wx.TextCtrl(self.panel, -1, "table001", 
+        self.txtTblName = wx.TextCtrl(self.panel, -1, "table001", 
                                        size=(250,-1))
+        self.txtTblName.Bind(wx.EVT_KILL_FOCUS, self.OnLeaveTblName)
         # sizers
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         self.szrTblLabel = wx.BoxSizer(wx.HORIZONTAL)
         self.szrTblLabel.Add(lblTblLabel, 0, wx.RIGHT, 5)
-        self.szrTblLabel.Add(self.txtTblLabel, 1)
+        self.szrTblLabel.Add(self.txtTblName, 1)
         self.szrMain.Add(self.szrTblLabel, 0, wx.GROW|wx.ALL, 10)
         self.tabentry = table_entry.TableEntry(self, self.panel, 
                                                self.szrMain, 2, False, 
@@ -99,13 +102,35 @@ class ConfigTable(table_entry.TableEntryDlg):
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
         self.Layout()
-        self.txtTblLabel.SetFocus()
+        self.txtTblName.SetFocus()
+
+    def OnLeaveTblName(self, event):
+        if not self.ValidateTblName(self.txtTblName.GetValue()):
+            self.txtTblName.SetFocus()
+            self.txtTblName.SetInsertionPoint(0)
+        else:
+            event.Skip()
+
+    def ValidateTblName(self, tbl_name):
+        valid_name, bad_parts = dbe_sqlite.valid_name(tbl_name)
+        if not valid_name:
+            bad_parts_txt = "'" + ", ".join(bad_parts) + "'"
+            msg = "You cannot use %s in a SOFA name.  " % bad_parts_txt + \
+                "Use another name?"
+            wx.MessageBox(msg)
+            return False
+        duplicate = getdata.dup_tbl_name(tbl_name)
+        if duplicate:
+            wx.MessageBox("Cannot use this name.  " + \
+                          "A table named \"%s\"" % tbl_name + \
+                          "already exists in the default SOFA database")
+            return False
+        return True
 
     def OnOK(self, event):
         """
         Override so we can extend to include table name.
         """
-        debug = True
         self.tabentry.UpdateNewGridData()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)

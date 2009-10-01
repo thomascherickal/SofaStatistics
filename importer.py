@@ -1,5 +1,4 @@
 import os
-import re
 import wx
 
 import my_globals
@@ -38,18 +37,6 @@ class MismatchException(Exception):
         Exception.__init__(self, "Found data not matching expected " + \
                            "column type.\n\n%s" % details)
 
-def GetDefaultDbDets():
-    """
-    Returns conn, cur, dbs, tbls, flds, has_unique, idxs from default
-        SOFA SQLite database.
-    """
-    proj_dic = projects.GetProjSettingsDic(my_globals.SOFA_DEFAULT_PROJ)
-    dbdetsobj = getdata.getDbDetsObj(dbe=my_globals.DBE_SQLITE, 
-                                     default_dbs=proj_dic["default_dbs"],
-                                     default_tbls=proj_dic["default_tbls"],
-                                     conn_dets=proj_dic["conn_dets"])
-    conn, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
-    return conn, cur, dbs, tbls, flds, has_unique, idxs
 
 def AssessSampleFld(sample_data, fld_name):
     """
@@ -392,7 +379,7 @@ class ImportFileSelectDlg(wx.Dialog):
         self.keep_importing.discard(True)
         self.keep_importing.add(False)
     
-    def _GetNewName(self, conn, file_path):
+    def _GetNewName(self, file_path):
         "Return new table name (or raise exception)"
         dlg = wx.TextEntryDialog(None, 
                                  "Please enter new name for table",
@@ -401,7 +388,6 @@ class ImportFileSelectDlg(wx.Dialog):
         if dlg.ShowModal() == wx.ID_OK:
             val_entered = dlg.GetValue()
             if val_entered != "":
-                conn.close()
                 final_tbl_name = self.CheckTblName(file_path, val_entered)
                 tbl_name = val_entered
             else:
@@ -420,12 +406,8 @@ class ImportFileSelectDlg(wx.Dialog):
         """
         final_tbl_name = tbl_name # unless overridden
         # check existing names
-        conn, _, _, tbls, _, _, _ = GetDefaultDbDets()
-        # only allow alphanumeric
-        reobj = re.compile(r"\W+")
-        bad_parts = reobj.findall(tbl_name)
-        bad_name = True if bad_parts else False
-        if bad_name:
+        valid_name, bad_parts = dbe_sqlite.valid_name(tbl_name)
+        if not valid_name:
             title = "FAULTY SOFA NAME"
             bad_parts_txt = "'" + ", ".join(bad_parts) + "'"
             msg = "You cannot use %s in a SOFA name.  " % bad_parts_txt + \
@@ -436,8 +418,8 @@ class ImportFileSelectDlg(wx.Dialog):
                 raise Exception, "Had a problem with faulty SOFA table " + \
                     "name but user cancelled initial process of resolving it"
             elif retCode == wx.YES:
-                final_tbl_name = self._GetNewName(conn, file_path)
-        duplicate = tbl_name in tbls
+                final_tbl_name = self._GetNewName(file_path)
+        duplicate = getdata.dup_tbl_name(tbl_name)
         if duplicate:
             title = "SOFA NAME ALREADY EXISTS"
             msg = "A table named \"%s\" " % tbl_name + \
@@ -450,7 +432,7 @@ class ImportFileSelectDlg(wx.Dialog):
                 raise Exception, "Had a problem with duplicate SOFA table " + \
                     "name but user cancelled initial process of resolving it"
             elif retCode == wx.NO: # no overwrite so get new one (or else!)
-                final_tbl_name = self._GetNewName(conn, file_path)
+                final_tbl_name = self._GetNewName(file_path)
             elif retCode == wx.YES:
                 pass # use the new name
         return final_tbl_name

@@ -3,6 +3,7 @@ import os
 import wx
 
 import dbe_plugins.dbe_sqlite as dbe_sqlite
+import getdata
 import util
 from my_exceptions import ImportCancelException
 import importer
@@ -125,7 +126,7 @@ class FileImporter(object):
         except Exception, e:
             raise Exception, "Unable to create reader for file. " + \
                 "Orig error: %s" % e
-        conn, cur, _, _, _, _, _ = importer.GetDefaultDbDets()
+        conn, cur, _, _, _, _, _ = getdata.GetDefaultDbDets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_rows else n_rows
         gauge_chunk = importer.getGaugeChunkSize(n_rows, sample_n)
         fld_types, sample_data = self.AssessDataSample(reader, has_header, 
