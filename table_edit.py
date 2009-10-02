@@ -117,6 +117,7 @@ class TblEditor(wx.Dialog):
             szrBottom.AddGrowableCol(1,2) # idx, propn 
             btnConfig = wx.Button(self.panel, -1, "Table Config")
             btnConfig.Bind(wx.EVT_BUTTON, self.OnEdit)
+            btnConfig.Disable()
             szrBottom.Add(btnConfig, 0)
         btnClose = wx.Button(self.panel, wx.ID_CLOSE)
         btnClose.Bind(wx.EVT_BUTTON, self.OnClose)

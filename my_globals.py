@@ -4,7 +4,7 @@ import util # safe to import - never refers to anything in other modules
 
 # my_globals exists to reduce likelihood of circular imports.
 
-debug = True
+debug = False
 
 SCRIPT_END = "#sofa_script_end"
 
