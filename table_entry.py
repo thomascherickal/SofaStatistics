@@ -46,7 +46,7 @@ class TableEntryDlg(wx.Dialog):
         Separated for text_browser reuse
         """
         btnCancel = wx.Button(self.panel, wx.ID_CANCEL)
-        btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)            
+        btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
         btnOK = wx.Button(self.panel, wx.ID_OK) # must have ID of wx.ID_OK 
         # to trigger validators (no event binding needed) and 
         # for std dialog button layout
@@ -70,15 +70,20 @@ class TableEntryDlg(wx.Dialog):
             self.szrButtons.Insert(0, btnInsert, 0, wx.RIGHT, 10)
 
     def OnCancel(self, event):
+        # no validation - just get out
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL)
 
     def OnOK(self, event):
+        if not self.panel.Validate(): # runs validators on all assoc controls
+            return True
         self.tabentry.UpdateNewGridData()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
         
     def OnDelete(self, event):
+        if not self.panel.Validate(): # runs validators on all assoc controls
+            return True
         selected_rows = self.tabentry.grid.GetSelectedRows()
         if len(selected_rows) == 1:
             row = selected_rows[0]
@@ -91,7 +96,8 @@ class TableEntryDlg(wx.Dialog):
         """
         Insert before
         """
-        print "OnInsert triggered"
+        if not self.panel.Validate(): # runs validators on all assoc controls
+            return True
         selected_rows = self.tabentry.grid.GetSelectedRows()
         if not selected_rows: 
             return
