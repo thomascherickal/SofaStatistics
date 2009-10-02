@@ -4,6 +4,7 @@ import sys
 import pprint
 
 import my_globals
+import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
 import projects
 import table_config
@@ -29,9 +30,9 @@ class DataSelectDlg(wx.Dialog):
         self.dbe = proj_dic["default_dbe"]
         self.conn_dets = proj_dic["conn_dets"]
         self.default_dbs = proj_dic["default_dbs"] \
-            if proj_dic["default_dbs"] else []
+            if proj_dic["default_dbs"] else {}
         self.default_tbls = proj_dic["default_tbls"] \
-            if proj_dic["default_tbls"] else []
+            if proj_dic["default_tbls"] else {}
         # get various db settings
         dbdetsobj = getdata.getDbDetsObj(self.dbe, self.default_dbs, 
                                          self.default_tbls, self.conn_dets)
@@ -126,16 +127,48 @@ class DataSelectDlg(wx.Dialog):
             database with that name, and start off with 5 fields ready to 
             rename.  Must be able to add fields, and rename fields.
         """
-        debug = True
+        debug = False
         tbl_name_lst = [] # not quite worth using validator mechanism ;-)
         data = [("var001", "Numeric")]
         new_grid_data = []
         dlgConfig = table_config.ConfigTable(tbl_name_lst, data, new_grid_data)
-        dlgConfig.ShowModal()
+        ret = dlgConfig.ShowModal()
+        if ret != wx.ID_OK:
+            event.Skip()
+            return
+        # Make new table.  Include unique index on special field prepended as
+        # with data imported.
+        # Only interested in SQLite when making a fresh SOFA table
         tbl_name = tbl_name_lst[0]
-        print tbl_name
+        fld_clause_items = ["sofa_id INTEGER PRIMARY KEY"]
+        gen2sqlite_dic = {my_globals.CONF_NUMERIC: "REAL",
+                          my_globals.CONF_STRING: "TEXT",
+                          my_globals.CONF_DATE: "DATETIME",
+                          }
         for fld_name, fld_type in new_grid_data:
-            print fld_name, fld_type
+            if debug: print fld_name, fld_type
+            fld_clause_items.append("%s %s" % (dbe_sqlite.quote_obj(fld_name), 
+                                               gen2sqlite_dic[fld_type]))
+        fld_clause_items.append("UNIQUE(sofa_id)")
+        fld_clause = ", ".join(fld_clause_items)
+        SQL_make_tbl = """CREATE TABLE "%s" (%s)""" % (tbl_name, fld_clause)
+        conn = dbe_sqlite.GetConn(self.conn_dets, my_globals.SOFA_DEFAULT_DB)
+        cur = conn.cursor()
+        cur.execute(SQL_make_tbl)
+        conn.commit()
+        # prepare to connect to the newly created table
+        dbe = my_globals.DBE_SQLITE
+        dbdetsobj = getdata.getDbDetsObj(dbe, self.default_dbs, 
+                                         self.default_tbls, self.conn_dets, 
+                                         my_globals.SOFA_DEFAULT_DB, tbl_name)
+        (conn, cur, dbs, tbls, flds, has_unique, idxs) = dbdetsobj.getDbDets()
+        wx.BeginBusyCursor()
+        read_only = False
+        dlg = table_edit.TblEditor(self, dbe, conn, cur, 
+                                   my_globals.SOFA_DEFAULT_DB, tbl_name, flds, 
+                                   self.var_labels, idxs, read_only)
+        wx.EndBusyCursor()
+        dlg.ShowModal()
         event.Skip()
     
     def OnClose(self, event):

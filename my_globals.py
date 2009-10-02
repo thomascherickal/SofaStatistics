@@ -4,6 +4,8 @@ import util # safe to import - never refers to anything in other modules
 
 # my_globals exists to reduce likelihood of circular imports.
 
+debug = True
+
 SCRIPT_END = "#sofa_script_end"
 
 # stats output ******************************************************
@@ -81,37 +83,6 @@ CSS_ELEMENTS = [CSS_ALIGN_RIGHT, CSS_LBL, CSS_TBL_TITLE,
                 CSS_COL_VAR, CSS_MEASURE, CSS_TOTAL_ROW, CSS_PAGE_BREAK_BEFORE]
 CSS_SUFFIX_TEMPLATE = "%s%s"
 
-# getdata ******************************************************
-# misc field dets
-FLD_SEQ = "field sequence"
-FLD_BOLNULLABLE = "field nullable"
-FLD_DATA_ENTRY_OK = "data entry ok" # e.g. not autonumber, timestamp etc
-FLD_COLUMN_DEFAULT = "field default"
-# test
-FLD_BOLTEXT = "field text"
-FLD_TEXT_LENGTH = "field text length"
-FLD_CHARSET = "field charset"
-# numbers
-FLD_BOLNUMERIC = "field numeric"
-FLD_BOLAUTONUMBER = "field autonumber"
-FLD_DECPTS = "field decpts"
-FLD_NUM_WIDTH = "field numeric display width" # used for column display only
-FLD_BOL_NUM_SIGNED = "field numeric signed"
-FLD_NUM_MIN_VAL = "field numeric minimum value"
-FLD_NUM_MAX_VAL = "field numeric maximum value"
-# datetime
-FLD_BOLDATETIME = "field datetime"
-# indexes
-IDX_NAME = "index name"
-IDX_IS_UNIQUE = "index is unique"
-IDX_FLDS = "index fields"
-# also used as labels in dropdowns
-DBE_SQLITE = "SQLite"
-DBE_MYSQL = "MySQL"
-DBE_MS_ACCESS = "MS Access"
-DBE_MS_SQL = "MS SQL Server"
-DBE_PGSQL = "PostgreSQL"
-
 # projects ******************************************************
 EMPTY_PROJ_NAME = "GIVE ME A NAME ..."
 SOFA_DEFAULT_DB = "SOFA_Default_db"
@@ -143,7 +114,82 @@ group_a_default = None
 group_b_default = None
 val_a_default = None
 val_b_default = None
+# getdata ******************************************************
+# misc field dets
+FLD_SEQ = "field sequence"
+FLD_BOLNULLABLE = "field nullable"
+FLD_DATA_ENTRY_OK = "data entry ok" # e.g. not autonumber, timestamp etc
+FLD_COLUMN_DEFAULT = "field default"
+# test
+FLD_BOLTEXT = "field text"
+FLD_TEXT_LENGTH = "field text length"
+FLD_CHARSET = "field charset"
+# numbers
+FLD_BOLNUMERIC = "field numeric"
+FLD_BOLAUTONUMBER = "field autonumber"
+FLD_DECPTS = "field decpts"
+FLD_NUM_WIDTH = "field numeric display width" # used for column display only
+FLD_BOL_NUM_SIGNED = "field numeric signed"
+FLD_NUM_MIN_VAL = "field numeric minimum value"
+FLD_NUM_MAX_VAL = "field numeric maximum value"
+# datetime
+FLD_BOLDATETIME = "field datetime"
+# indexes
+IDX_NAME = "index name"
+IDX_IS_UNIQUE = "index is unique"
+IDX_FLDS = "index fields"
+# also used as labels in dropdowns
+DBE_SQLITE = "SQLite"
+DBE_MYSQL = "MySQL"
+DBE_MS_ACCESS = "MS Access"
+DBE_MS_SQL = "MS SQL Server"
+DBE_PGSQL = "PostgreSQL"
 
+"""
+Include database engine in system if in dbe_plugins folder and os-appropriate.
+"""
+def import_dbe_plugin(dbe_plugin):
+    if dbe_plugin == DBE_SQLITE:
+        import dbe_plugins.dbe_sqlite as dbe_sqlite
+        mod = dbe_sqlite
+    elif dbe_plugin == DBE_MYSQL:
+        import dbe_plugins.dbe_mysql as dbe_mysql
+        mod = dbe_mysql
+    elif dbe_plugin == DBE_MS_ACCESS:
+        import dbe_plugins.dbe_ms_access as dbe_ms_access
+        mod = dbe_ms_access
+    elif dbe_plugin == DBE_MS_SQL:
+        import dbe_plugins.dbe_ms_sql as dbe_ms_sql
+        mod = dbe_ms_sql
+    elif dbe_plugin == DBE_PGSQL:
+        import dbe_plugins.dbe_postgresql as dbe_postgresql
+        mod = dbe_postgresql
+    return mod
+
+DBES = []
+DBE_MODULES = {}
+DBE_PLUGINS = [(DBE_SQLITE, "dbe_sqlite"), 
+               (DBE_MYSQL, "dbe_mysql"), 
+               (DBE_MS_ACCESS, "dbe_ms_access"), 
+               (DBE_MS_SQL, "dbe_ms_sql"),
+               (DBE_PGSQL, "dbe_postgresql"),
+               ]
+for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
+    for_win_yet_not_win = not util.in_windows() and \
+        dbe_plugin in [DBE_MS_ACCESS, DBE_MS_SQL]
+    dbe_plugin_mod = os.path.join(os.path.dirname(__file__), "dbe_plugins", 
+                                   "%s.py" % dbe_mod_name)
+    if os.path.exists(dbe_plugin_mod):
+        if not for_win_yet_not_win: # i.e. OK to add module
+            try:
+                dbe_mod = import_dbe_plugin(dbe_plugin)
+            except Exception, e:
+                if debug: print "Problem adding dbe plugin %s" % dbe_plugin + \
+                    ". Orig err: %s" % e
+                continue # skip bad module
+            DBES.append(dbe_plugin)
+            DBE_MODULES[dbe_plugin] = dbe_mod
+            
 # table config
 CONF_NUMERIC = "Numeric"
 CONF_STRING = "String"

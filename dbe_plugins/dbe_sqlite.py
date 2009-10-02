@@ -32,6 +32,20 @@ def DbeSyntaxElements():
     if_clause = "CASE WHEN %s THEN %s ELSE %s END"
     return (if_clause, quote_obj, quote_val, get_placeholder, get_summable)
 
+def GetConn(conn_dets, db):
+    conn_dets_sqlite = conn_dets.get(my_globals.DBE_SQLITE)
+    if not conn_dets_sqlite:
+        raise Exception, "No connection details available for SQLite"
+    if not conn_dets_sqlite.get(db):
+        raise Exception, "No connections for SQLite database %s" % db
+    try:
+        conn = sqlite.connect(**conn_dets_sqlite[db])
+    except Exception, e:
+        raise Exception, "Unable to connect to SQLite database " + \
+            "using supplied database: %s. " % db + \
+            "Orig error: %s" % e
+    return conn
+
 
 class DbDets(getdata.DbDets):
     
@@ -51,20 +65,9 @@ class DbDets(getdata.DbDets):
         The field dets will be taken from the table used.
         Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
         """
-        conn_dets_sqlite = self.conn_dets.get(my_globals.DBE_SQLITE)
-        if not conn_dets_sqlite:
-            raise Exception, "No connection details available for SQLite"
         if not self.db:
             self.db = my_globals.SOFA_DEFAULT_DB
-        if not conn_dets_sqlite.get(self.db):
-            raise Exception, "No connections for SQLite database %s" % \
-                self.db
-        try:
-            conn = sqlite.connect(**conn_dets_sqlite[self.db])
-        except Exception, e:
-            raise Exception, "Unable to connect to SQLite database " + \
-                "using supplied database: %s. " % self.db + \
-                "Orig error: %s" % e
+        conn = GetConn(self.conn_dets, self.db)
         cur = conn.cursor() # must return tuples not dics
         dbs = [self.db]
         tbls = self.getDbTbls(cur, self.db)

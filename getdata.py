@@ -18,9 +18,9 @@ class DbDets(object):
             e.g. default or first.  And once db identified, must update 
             conn_dets.
         """
-        # default dbs e.g. {'MySQL': u'clicextract', 'SQLite': u'sodasipper'}
+        # default dbs e.g. {'MySQL': u'demo_db', 'SQLite': u'SOFA_Default_db'}
         self.default_dbs = default_dbs
-        # default tbls e.g. {'MySQL': u'clicextract', 'SQLite': u'sodasipper'}
+        # default tbls e.g. {'MySQL': u'demo_tbl', 'SQLite': u'SOFA_Default_tbl'}
         self.default_tbls = default_tbls
         # conn_dets e.g. {'MySQL': {'host': u'localhost', 'passwd': ...}
         self.conn_dets = conn_dets
@@ -56,74 +56,30 @@ class DbDets(object):
         """
         assert 0, "Must define getDbDets in subclass"
 
-"""
-Include database engine in system if in dbe_plugins folder and os-appropriate.
-"""
-def import_dbe_plugin(dbe_plugin):
-    if dbe_plugin == my_globals.DBE_SQLITE:
-        import dbe_plugins.dbe_sqlite as dbe_sqlite
-        mod = dbe_sqlite
-    elif dbe_plugin == my_globals.DBE_MYSQL:
-        import dbe_plugins.dbe_mysql as dbe_mysql
-        mod = dbe_mysql
-    elif dbe_plugin == my_globals.DBE_MS_ACCESS:
-        import dbe_plugins.dbe_ms_access as dbe_ms_access
-        mod = dbe_ms_access
-    elif dbe_plugin == my_globals.DBE_MS_SQL:
-        import dbe_plugins.dbe_ms_sql as dbe_ms_sql
-        mod = dbe_ms_sql
-    elif dbe_plugin == my_globals.DBE_PGSQL:
-        import dbe_plugins.dbe_postgresql as dbe_postgresql
-        mod = dbe_postgresql
-    return mod
-
-DBES = []
-DBE_MODULES = {}
-DBE_PLUGINS = [(my_globals.DBE_SQLITE, "dbe_sqlite"), 
-               (my_globals.DBE_MYSQL, "dbe_mysql"), 
-               (my_globals.DBE_MS_ACCESS, "dbe_ms_access"), 
-               (my_globals.DBE_MS_SQL, "dbe_ms_sql"),
-               (my_globals.DBE_PGSQL, "dbe_postgresql"),
-               ]
-for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
-    for_win_yet_not_win = not util.in_windows() and \
-        dbe_plugin in [my_globals.DBE_MS_ACCESS, my_globals.DBE_MS_SQL]
-    dbe_plugin_mod = os.path.join(os.path.dirname(__file__), "dbe_plugins", 
-                                   "%s.py" % dbe_mod_name)
-    if os.path.exists(dbe_plugin_mod):
-        if not for_win_yet_not_win: # i.e. OK to add module
-            try:
-                dbe_mod = import_dbe_plugin(dbe_plugin)
-            except Exception, e:
-                if debug: print "Problem adding dbe plugin %s" % dbe_plugin + \
-                    "Orig err: %s" % e
-                continue # skip bad module
-            DBES.append(dbe_plugin)
-            DBE_MODULES[dbe_plugin] = dbe_mod
 
 def get_obj_quoter_func(dbe):
     """
     Get appropriate function to wrap content e.g. table or field name, 
         in dbe-friendly way.
     """
-    return DBE_MODULES[dbe].quote_obj
+    return my_globals.DBE_MODULES[dbe].quote_obj
 
 def get_val_quoter_func(dbe):
     """
     Get appropriate function to wrap values e.g. the contents of a string field,
         in dbe-friendly way.
     """
-    return DBE_MODULES[dbe].quote_val
+    return my_globals.DBE_MODULES[dbe].quote_val
 
 def get_placeholder(dbe):
-    return DBE_MODULES[dbe].get_placeholder()
+    return my_globals.DBE_MODULES[dbe].get_placeholder()
 
 def getDbDetsObj(dbe, default_dbs, default_tbls, conn_dets, db=None, tbl=None):
     """
     Pass in all conn_dets (the dbe will be used to select specific conn_dets).
     """
-    return DBE_MODULES[dbe].DbDets(default_dbs, default_tbls, conn_dets, db, 
-                                   tbl)
+    return my_globals.DBE_MODULES[dbe].DbDets(default_dbs, default_tbls, 
+                                              conn_dets, db, tbl)
     
 def getDbeSyntaxElements(dbe):
     """
@@ -133,18 +89,18 @@ def getDbeSyntaxElements(dbe):
     e.g. MySQL "IF(%s, %s, %s)"
     Sum and if statements are used to get frequencies in SOFA Statistics.
     """
-    return DBE_MODULES[dbe].DbeSyntaxElements()
+    return my_globals.DBE_MODULES[dbe].DbeSyntaxElements()
 
 def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""
-    for dbe in DBES:
-        DBE_MODULES[dbe].setDataConnGui(parent, read_only, scroll, szr, 
-                                        lblfont)
+    for dbe in my_globals.DBES:
+        my_globals.DBE_MODULES[dbe].setDataConnGui(parent, read_only, scroll, 
+                                                   szr, lblfont)
 
 def getProjConnSettings(parent, proj_dic):
     "Get project connection settings"
-    for dbe in DBES:
-        DBE_MODULES[dbe].getProjSettings(parent, proj_dic)
+    for dbe in my_globals.DBES:
+        my_globals.DBE_MODULES[dbe].getProjSettings(parent, proj_dic)
 
 def FldsDic2FldNamesLst(flds_dic):
     # pprint.pprint(flds_dic) # debug
@@ -191,8 +147,8 @@ def setConnDetDefaults(parent):
     Check project connection settings to handle missing values and set 
         sensible defaults.
     """
-    for dbe in DBES:
-        DBE_MODULES[dbe].setConnDetDefaults(parent)
+    for dbe in my_globals.DBES:
+        my_globals.DBE_MODULES[dbe].setConnDetDefaults(parent)
 
 def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     """
@@ -206,12 +162,12 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     any_incomplete = False
     any_conns = False
     completed_dbes = [] # so can check the default dbe has details set
-    for dbe in DBES:
+    for dbe in my_globals.DBES:
         # has_incomplete means started but some key detail(s) missing
         # has_conn means all required details are completed
         has_incomplete, has_conn = \
-            DBE_MODULES[dbe].processConnDets(parent, default_dbs, 
-                                             default_tbls, conn_dets)
+            my_globals.DBE_MODULES[dbe].processConnDets(parent, default_dbs, 
+                                                        default_tbls, conn_dets)
         if has_incomplete:
             return True, None, completed_dbes
         if has_conn:
@@ -236,7 +192,7 @@ def PrepValue(dbe, val, fld_dic):
     Validation happens later and if it fails, the SQL will never run.
     """
     try:
-        prep_val = DBE_MODULES[dbe].PrepValue(val, fld_dic)
+        prep_val = my_globals.DBE_MODULES[dbe].PrepValue(val, fld_dic)
     except AttributeError:
         debug = False
         if val in [None, "."]: # TODO - use a const without having to import db_tbl
@@ -262,7 +218,7 @@ def PrepValue(dbe, val, fld_dic):
 
 def InsertRow(dbe, conn, cur, tbl_name, data):
     "data = [(value as string (or None), fld_dets), ...]"
-    return DBE_MODULES[dbe].InsertRow(conn, cur, tbl_name, data)
+    return my_globals.DBE_MODULES[dbe].InsertRow(conn, cur, tbl_name, data)
 
 def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, conn_dets,
                        dbs_of_default_dbe, db, tbls, tbl):
@@ -275,7 +231,7 @@ def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, conn_dets,
     # databases list needs to be tuple including dbe so can get both from 
     # sequence alone e.g. when identifying selection
     db_choices = [(x, dbe) for x in dbs_of_default_dbe]      
-    dbes = DBES[:]
+    dbes = my_globals.DBES[:]
     dbes.pop(dbes.index(dbe))
     for oth_dbe in dbes: # may not have any connection details
         oth_default_db = default_dbs.get(oth_dbe)

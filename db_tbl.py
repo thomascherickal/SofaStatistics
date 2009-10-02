@@ -11,6 +11,8 @@ import getdata
 
 MISSING_VAL_INDICATOR = "."
 
+debug = False
+
 
 class DbTbl(wx.grid.PyGridTableBase):
     def __init__(self, grid, dbe, conn, cur, tbl, flds, var_labels, idxs, 
@@ -57,6 +59,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         SQL_get_id_vals = "SELECT %s FROM %s ORDER BY %s" % \
             (self.quote_obj(self.id_col_name), self.quote_obj(self.tbl), 
              self.quote_obj(self.id_col_name))
+        if debug: print SQL_get_id_vals
         self.cur.execute(SQL_get_id_vals)
         # NB could easily be 10s or 100s of thousands of records
         ids_lst = [x[0] for x in self.cur.fetchall()]
