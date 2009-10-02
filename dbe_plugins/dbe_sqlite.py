@@ -2,6 +2,7 @@
 from pysqlite2 import dbapi2 as sqlite
 import pprint
 import re
+import string
 import wx
 
 import my_globals
@@ -323,8 +324,9 @@ def valid_name(name):
     """
     Bad name for SQLite?  Also return bad_parts (empty unless a problem).
     """
-    # only allow alphanumeric
-    reobj = re.compile(r"\W+")
-    bad_parts = reobj.findall(name)
-    bad_name = True if bad_parts else False
-    return not bad_name, bad_parts
+    # only allow alphanumeric and underscores
+    for char in name:
+        if char not in string.letters and char not in string.digits \
+                and char != "_":
+            return False
+    return True

@@ -406,12 +406,11 @@ class ImportFileSelectDlg(wx.Dialog):
         """
         final_tbl_name = tbl_name # unless overridden
         # check existing names
-        valid_name, bad_parts = dbe_sqlite.valid_name(tbl_name)
+        valid_name = dbe_sqlite.valid_name(tbl_name)
         if not valid_name:
             title = "FAULTY SOFA NAME"
-            bad_parts_txt = "'" + ", ".join(bad_parts) + "'"
-            msg = "You cannot use %s in a SOFA name.  " % bad_parts_txt + \
-                "Use another name?"
+            msg = "You can only use letters, numbers and underscores in a " + \
+                "SOFA name.  Use another name?"
             retCode = wx.MessageBox(msg, title,
                 wx.YES_NO|wx.ICON_QUESTION)
             if retCode == wx.NO:

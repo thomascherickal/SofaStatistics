@@ -42,6 +42,10 @@ def row_validation(row, grid, col_dets):
     if field_name.strip() == "":
         wx.MessageBox("Please complete a field name")
         return False
+    if not dbe_sqlite.valid_name(field_name):
+        wx.MessageBox("Field names can only contain letters, numbers, and " + \
+                      "underscores")
+        return False
     if field_name in other_fld_names:
         wx.MessageBox("%s has already been used as a field name" % field_name)
         return False
@@ -52,11 +56,10 @@ def row_validation(row, grid, col_dets):
     return True
 
 def ValidateTblName(tbl_name):
-    valid_name, bad_parts = dbe_sqlite.valid_name(tbl_name)
+    valid_name = dbe_sqlite.valid_name(tbl_name)
     if not valid_name:
-        bad_parts_txt = "'" + ", ".join(bad_parts) + "'"
-        msg = "You cannot use %s in a SOFA name.  " % bad_parts_txt + \
-            "Use another name?"
+        msg = "You can only use letters, numbers and underscores " + \
+            "in a SOFA name.  Use another name?"
         wx.MessageBox(msg)
         return False
     duplicate = getdata.dup_tbl_name(tbl_name)
@@ -111,13 +114,14 @@ class SafeTblNameValidator(wx.PyValidator):
     
 class ConfigTable(table_entry.TableEntryDlg):
     
-    def __init__(self, data, new_grid_data, insert_data_func=None, 
+    def __init__(self, tbl_name_lst, data, new_grid_data, insert_data_func=None, 
                  row_validation_func=None):
         """
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
         new_grid_data - add details to it in form of a list of tuples.
         """
+        self.tbl_name_lst = tbl_name_lst
         if not insert_data_func:
             insert_data_func = insert_data
         if not row_validation_func:
@@ -171,6 +175,7 @@ class ConfigTable(table_entry.TableEntryDlg):
         # http://www.nabble.com/validator-not-in-a-dialog-td23112169.html
         if not self.panel.Validate(): # runs validators on all assoc controls
             return True
+        self.tbl_name_lst.append(self.txtTblName.GetValue())
         self.tabentry.UpdateNewGridData()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)

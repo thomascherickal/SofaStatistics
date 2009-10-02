@@ -127,11 +127,15 @@ class DataSelectDlg(wx.Dialog):
             rename.  Must be able to add fields, and rename fields.
         """
         debug = True
+        tbl_name_lst = [] # not quite worth using validator mechanism ;-)
         data = [("var001", "Numeric")]
         new_grid_data = []
-        dlgConfig = table_config.ConfigTable(data, new_grid_data)
+        dlgConfig = table_config.ConfigTable(tbl_name_lst, data, new_grid_data)
         dlgConfig.ShowModal()
-        if debug: pprint.pprint(new_grid_data)
+        tbl_name = tbl_name_lst[0]
+        print tbl_name
+        for fld_name, fld_type in new_grid_data:
+            print fld_name, fld_type
         event.Skip()
     
     def OnClose(self, event):
