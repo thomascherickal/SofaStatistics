@@ -198,6 +198,7 @@ class TblEditor(wx.Dialog):
             AddCellMoveEvt for us is if we are moving right or down from the 
             last col after a keypress.
         Must process here.  NB dest row and col yet to be determined.
+        Basis for text_editor.TextEditor.OnTxtEdKeyDown
         """
         debug = False
         keycode = event.GetKeyCode()
@@ -218,7 +219,10 @@ class TblEditor(wx.Dialog):
             final_col = (src_col == len(self.flds) - 1)
             if final_col and direction in [MOVE_RIGHT, MOVE_DOWN]:
                 self.AddCellMoveEvt(direction)
-                event.Skip()
+                # Do not Skip and send event on its way.
+                # Smother the event here so our code can determine where the 
+                # selection goes next.  Otherwise, Return will appear in cell 
+                # below and trigger other responses.
             else:
                 event.Skip()
         else:
@@ -245,6 +249,7 @@ class TblEditor(wx.Dialog):
         dest_row = event.dest_row # row being moved towards
         dest_col = event.dest_col # col being moved towards
         direction = event.direction
+        # ProcessCellMove called from text editor as well so keep separate
         self.ProcessCellMove(src_row, src_col, dest_row, dest_col, direction)
         event.Skip()
     
@@ -305,9 +310,12 @@ class TblEditor(wx.Dialog):
         If any rules are broken, put focus on source cell. Otherwise got to
             cell at destination row and col.
         """
+        debug = False
         # 1) move type
         final_col = (src_col == len(self.flds) - 1)
         was_new_row = self.NewRow(self.current_row_idx)
+        if debug: print "Current row idx: %s, src_row: %s, was_new_row: %s" % \
+            (self.current_row_idx, src_row, was_new_row)
         dest_row_is_new = self.DestRowIsCurrentNew(src_row, dest_row, direction, 
                                                    final_col)
         if was_new_row and dest_row_is_new:
@@ -365,7 +373,7 @@ class TblEditor(wx.Dialog):
             # only down (inc down left and right), or right in final col, 
             # take to new
             if direction in [MOVE_DOWN, MOVE_DOWN_LEFT, MOVE_DOWN_RIGHT] or \
-                    (direction == MOVE_RIGHT and final_row):
+                    (direction == MOVE_RIGHT and final_col):
                 dest_row_is_new = True
             else:
                 dest_row_is_new = False
@@ -403,7 +411,8 @@ class TblEditor(wx.Dialog):
             cell in the same row.  Will not move if cell is invalid.
         Return move_to_dest.
         """
-        if self.debug: print "Moving within new row"
+        debug = False
+        if self.debug or debug: print "Moving within new row"
         move_to_dest = not self.CellInvalid(self.current_row_idx, 
                                             self.current_col_idx)
         return move_to_dest

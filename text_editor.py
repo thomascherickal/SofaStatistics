@@ -36,7 +36,8 @@ class TextEditor(wx.grid.PyGridCellEditor):
         # created when clicked
         # wx.TE_PROCESS_TAB very important otherwise TAB is swallowed by dialog
         # (but not if grid on a frame or Dialog under Ubuntu - go figure!)
-        self.txt = wx.TextCtrl(parent, -1, "", style=wx.TE_PROCESS_TAB)
+        self.txt = wx.TextCtrl(parent, -1, "", 
+                               style=wx.TE_PROCESS_TAB|wx.TE_PROCESS_ENTER)
         self.SetControl(self.txt)
         if evt_handler:
             # so the control itself doesn't handle events but passes to handler
@@ -71,23 +72,38 @@ class TextEditor(wx.grid.PyGridCellEditor):
         pass # N/A
     
     def OnTxtEdKeyDown(self, event):
-        "We are interested in TAB keypresses"
+        """
+        We are interested in TAB and return keypresses.
+        NB based on table_edit.TblEditor.OnGridKeyDown
+        """
+        debug = False
         keycode = event.GetKeyCode()
-        if self.debug: print "Keypress %s recognised in custom editor" % keycode
-        if keycode in [wx.WXK_TAB]:
-            key_direction = table_edit.MOVE_LEFT \
-                if event.ShiftDown() else table_edit.MOVE_RIGHT
+        if self.debug or debug: 
+            print "Keypress %s recognised in custom editor" % keycode
+        if keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
+            if keycode == wx.WXK_TAB:
+                if event.ShiftDown():
+                    direction = table_edit.MOVE_LEFT
+                else:
+                    direction = table_edit.MOVE_RIGHT
+            elif keycode == wx.WXK_RETURN:
+                direction = table_edit.MOVE_DOWN
             src_row=self.row
             src_col=self.col
-            if self.debug: 
+            if self.debug or debug: 
                 print "OnTxtEdKeyDown - Keypress %s " % keycode + \
                     "in row %s col %s" % (src_row, src_col)
                 print "Number fields: %s" % len(self.tbl_editor.flds)
-            final_col = (src_col == len(self.tbl_editor.flds) - 1)
-            if final_col and key_direction == table_edit.MOVE_RIGHT:
+            final_col = (src_col == len(self.tbl_editor.flds) - 1)            
+            if final_col and direction in [table_edit.MOVE_RIGHT, 
+                                           table_edit.MOVE_DOWN]:
                 self.tbl_editor.ProcessCellMove(src_row=self.row, 
                             src_col=self.col, dest_row=None, dest_col=None, 
-                            key_direction=key_direction)
+                            direction=direction)                
+                # Do not Skip and send event on its way.
+                # Smother the event here so our code can determine where the 
+                # selection goes next.  Otherwise, Return will appear in cell 
+                # below and trigger other responses.
             else:
                 event.Skip()
         else:
