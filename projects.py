@@ -393,8 +393,8 @@ class ProjectDlg(wx.Dialog):
                                        "Default Database Engine:")
         lblDefault_Dbe.SetFont(lblfont)
         self.dropDefault_Dbe = wx.Choice(self.scroll_conn_dets, -1, 
-                                         choices=getdata.DBES)
-        sel_dbe_id = getdata.DBES.index(self.default_dbe)
+                                         choices=my_globals.DBES)
+        sel_dbe_id = my_globals.DBES.index(self.default_dbe)
         self.dropDefault_Dbe.SetSelection(sel_dbe_id)
         self.dropDefault_Dbe.Bind(wx.EVT_CHOICE, self.OnDbeChoice)
         self.dropDefault_Dbe.Enable(not self.read_only)
@@ -547,7 +547,7 @@ class ProjectDlg(wx.Dialog):
     
     def OnDbeChoice(self, event):
         sel_dbe_id = self.dropDefault_Dbe.GetSelection()
-        self.default_dbe = getdata.DBES[sel_dbe_id]
+        self.default_dbe = my_globals.DBES[sel_dbe_id]
         event.Skip()
     
     def SetupButtons(self):
@@ -623,7 +623,7 @@ class ProjectDlg(wx.Dialog):
             fil_css = self.txtCssFile.GetValue()
             fil_report = self.txtReportFile.GetValue()
             fil_script = self.txtScriptFile.GetValue()
-            default_dbe = getdata.DBES[self.dropDefault_Dbe.GetSelection()]
+            default_dbe = my_globals.DBES[self.dropDefault_Dbe.GetSelection()]
             default_dbs = {}
             default_tbls = {}
             conn_dets = {}

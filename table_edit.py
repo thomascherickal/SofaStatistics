@@ -35,13 +35,21 @@ When UpdateCell is called, the cache for that row is wiped to force it to be
 When SaveRow() is called, the cache is not updated.  It is better to force the
     grid to look up the value from the db.  Thus it will show autocreated values
     e.g. timestamp, autoincrement etc
+Intended behaviour: tabbing moves left and right.  If at end, takes to next line
+    if possible.  Return moves down if possible or, if at end, to start of next
+    line if possible.
 """
-# key move directions
+# move directions
 MOVE_LEFT = "move left"
 MOVE_RIGHT = "move right"
 MOVE_UP = "move up"
 MOVE_DOWN = "move down"
+MOVE_UP_RIGHT = "move up right"
+MOVE_UP_LEFT = "move up left"
+MOVE_DOWN_RIGHT = "move down right"
+MOVE_DOWN_LEFT = "move down left"
 # cell move types
+MOVING_IN_EXISTING = "moving in existing"
 MOVING_IN_NEW = "moving in new"
 LEAVING_EXISTING = "leaving existing"
 LEAVING_NEW = "leaving new"
@@ -51,10 +59,10 @@ class CellMoveEvent(wx.PyCommandEvent):
     def __init__(self, evtType, id):
         wx.PyCommandEvent.__init__(self, evtType, id)
     
-    def AddDets(self, dest_row=None, dest_col=None, key_direction=None):
+    def AddDets(self, dest_row=None, dest_col=None, direction=None):
         self.dest_row = dest_row
         self.dest_col = dest_col
-        self.key_direction = key_direction
+        self.direction = direction
     
 # new event type to pass around
 myEVT_CELL_MOVE = wx.NewEventType()
@@ -129,18 +137,20 @@ class TblEditor(wx.Dialog):
         self.panel.Layout()
         self.grid.SetFocus()
     
-    # processing MOVEMENTS AWAY FROM CELLS e.g. saving values ////////////////
+    # processing MOVEMENTS AWAY FROM CELLS e.g. saving values //////////////////
     
-    def AddCellMoveEvt(self, dest_row=None, dest_col=None, key_direction=None):
+    def AddCellMoveEvt(self, direction, dest_row=None, dest_col=None):
         """
         Add special cell move event.
+        src_row and src_col - wherever we were last (only updated if a move is 
+            validated and allowed).
         dest_row - row we are going to (None if here by keystroke - 
             yet to be determined).
         dest_col - column we are going to (as above).
-        key_direction - MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN
+        direction - MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN
         """
         evt_cell_move = CellMoveEvent(myEVT_CELL_MOVE, self.grid.GetId())
-        evt_cell_move.AddDets(dest_row, dest_col, key_direction)
+        evt_cell_move.AddDets(dest_row, dest_col, direction)
         evt_cell_move.SetEventObject(self.grid)
         self.grid.GetEventHandler().AddPendingEvent(evt_cell_move)
     
@@ -153,35 +163,61 @@ class TblEditor(wx.Dialog):
             self.respond_to_select_cell = True
             event.Skip()
             return
+        src_row=self.current_row_idx # row being moved from
+        src_col=self.current_col_idx # col being moved from
         dest_row=event.GetRow()
         dest_col=event.GetCol()
+        if dest_row == src_row:
+            if dest_col > src_col:
+                direction = MOVE_RIGHT
+            else:
+                direction = MOVE_LEFT
+        elif dest_col == src_col:
+            if dest_row > src_row:
+                direction = MOVE_DOWN
+            else:
+                direction = MOVE_UP
+        elif dest_col > src_col and dest_row > src_row:
+                direction = MOVE_DOWN_RIGHT
+        elif dest_col > src_col and dest_row < src_row:
+                direction = MOVE_UP_RIGHT
+        elif dest_col < src_col and dest_row > src_row:
+                direction = MOVE_DOWN_LEFT
+        elif dest_col < src_col and dest_row < src_row:
+                direction = MOVE_UP_LEFT
+        else:
+            raise Exception, "table_edit.OnSelectCell - where is direction?"
         if self.debug: print "OnSelectCell - selected row %s col %s " % \
             (dest_row, dest_col) + "**********************************" 
-        self.AddCellMoveEvt(dest_row, dest_col)
+        self.AddCellMoveEvt(direction, dest_row, dest_col)
         
     def OnGridKeyDown(self, event):
         """
-        Capture use of keypress to move away from a cell.
+        Potentially capture use of keypress to move away from a cell.
         The only case where we can't rely on OnSelectCell to take care of
-            AddCellMoveEvt for us is if we are moving right from the last col
-            after a keypress.
+            AddCellMoveEvt for us is if we are moving right or down from the 
+            last col after a keypress.
+        Must process here.  NB dest row and col yet to be determined.
         """
+        debug = False
         keycode = event.GetKeyCode()
-        if self.debug: 
+        if self.debug or debug: 
             print "OnGridKeyDown - keycode %s pressed" % keycode 
         if keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
-            if event.ShiftDown() and keycode == wx.WXK_TAB:
-                key_direction = MOVE_LEFT
-            else:
-                key_direction = MOVE_RIGHT
+            if keycode == wx.WXK_TAB:
+                if event.ShiftDown():
+                    direction = MOVE_LEFT
+                else:
+                    direction = MOVE_RIGHT
+            elif keycode == wx.WXK_RETURN:
+                direction = MOVE_DOWN
             src_row=self.current_row_idx
             src_col=self.current_col_idx
-            if self.debug: print "OnGridKeyDown - keypress in row " + \
+            if self.debug or debug: print "OnGridKeyDown - keypress in row " + \
                 "%s col %s ******************************" % (src_row, src_col)
             final_col = (src_col == len(self.flds) - 1)
-            if final_col and key_direction == MOVE_RIGHT:
-                self.AddCellMoveEvt(dest_row=None, dest_col=None, 
-                                    key_direction=MOVE_RIGHT)
+            if final_col and direction in [MOVE_RIGHT, MOVE_DOWN]:
+                self.AddCellMoveEvt(direction)
                 event.Skip()
             else:
                 event.Skip()
@@ -202,35 +238,36 @@ class TblEditor(wx.Dialog):
             wise we can't get the value just entered so we can evaluate it for
             validation.
         """
-        if self.debug: print "OnCellMove ************************************"
+        debug = False
+        if self.debug or debug: print "OnCellMove *****************************"
         src_row=self.current_row_idx # row being moved from
         src_col=self.current_col_idx # col being moved from
         dest_row = event.dest_row # row being moved towards
         dest_col = event.dest_col # col being moved towards
-        key_direction = event.key_direction
-        self.ProcessCellMove(src_row, src_col, dest_row, dest_col, 
-                             key_direction)
+        direction = event.direction
+        self.ProcessCellMove(src_row, src_col, dest_row, dest_col, direction)
         event.Skip()
     
-    def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, 
-                        key_direction):
+    def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, direction):
+        "dest row and col still unknown if from a return or TAB keystroke"
+        debug = False
         self.dbtbl.ForceRefresh()
-        if self.debug:
+        if self.debug or debug:
             print "ProcessCellMove - " + \
                 "source row %s source col %s " % (src_row, src_col) + \
                 "dest row %s dest col %s " % (dest_row, dest_col) + \
-                "key direction: %s" % key_direction
+                "direction: %s" % direction
         move_type, dest_row, dest_col = self.GetMoveDets(src_row, src_col, 
-                                        dest_row, dest_col, key_direction)
-        if move_type == LEAVING_EXISTING:
+                                        dest_row, dest_col, direction)
+        if move_type in [MOVING_IN_EXISTING, LEAVING_EXISTING]:
             move_to_dest = self.LeavingExistingCell()
         elif move_type == MOVING_IN_NEW:
             move_to_dest = self.MovingInNewRow()
         elif move_type == LEAVING_NEW:
-            move_to_dest = self.LeavingNewRow(dest_row, dest_col)
+            move_to_dest = self.LeavingNewRow(dest_row, dest_col, direction)
         else:
             raise Exception, "ProcessCellMove - Unknown move_type"
-        if self.debug:
+        if self.debug or debug:
             print "Move type: %s" % move_type
             print "OK to move to dest?: %s" % move_to_dest
         if move_to_dest:
@@ -243,11 +280,14 @@ class TblEditor(wx.Dialog):
             pass
             #wx.MessageBox("Stay here at %s %s" % (src_row, src_col))
     
-    def GetMoveDets(self, src_row, src_col, dest_row, dest_col, key_direction):
+    def GetMoveDets(self, src_row, src_col, dest_row, dest_col, direction):
         """
         Gets move details.
         Returns move_type, dest_row, dest_col.
-        move_type - MOVING_IN_NEW, LEAVING_EXISTING, or LEAVING_NEW.
+        move_type - MOVING_IN_EXISTING, MOVING_IN_NEW, LEAVING_EXISTING, or 
+            LEAVING_NEW.
+        dest_row and dest_col are where we the selection should go unless there 
+            is a validation issue.
         dest_row and dest_col may need to be worked out e.g. if cell move caused
             by a tab keypress.
         Take into account whether a new row or not.
@@ -260,55 +300,83 @@ class TblEditor(wx.Dialog):
         Overview of checks made:
             If jumping around within new row, cell cannot be invalid.
             If not in a new row (i.e. in existing), cell must be ok to save.
-            If leaving new row, must be ready to save whole row.
+            If leaving new row, must be ready to save whole row unless a clean
+                row and moving up.
         If any rules are broken, put focus on source cell. Otherwise got to
             cell at destination row and col.
-        """            
+        """
         # 1) move type
         final_col = (src_col == len(self.flds) - 1)
         was_new_row = self.NewRow(self.current_row_idx)
-        dest_row_is_new = self.DestRowIsNew(src_row, dest_row, key_direction, 
-                                            final_col)
+        dest_row_is_new = self.DestRowIsCurrentNew(src_row, dest_row, direction, 
+                                                   final_col)
         if was_new_row and dest_row_is_new:
             move_type = MOVING_IN_NEW
-        elif not was_new_row:
-            move_type = LEAVING_EXISTING
         elif was_new_row and not dest_row_is_new:
             move_type = LEAVING_NEW
+        elif not was_new_row and not dest_row_is_new:
+            move_type = MOVING_IN_EXISTING
+        elif not was_new_row and dest_row_is_new:
+            move_type = LEAVING_EXISTING
+        else:
+            raise Exception, "table_edit.GetMoveDets().  Unknown move."
         # 2) dest row and dest col
-        if key_direction: # otherwise ok as is
-            if key_direction == MOVE_RIGHT and final_col:
+        if not dest_row and not dest_col: # known if sent from OnSelectCell
+            if final_col and direction in [MOVE_RIGHT, MOVE_DOWN]:
                 dest_row = src_row + 1
                 dest_col = 0
             else:
-                dest_row = src_row
-                if key_direction == MOVE_RIGHT:
+                if direction == MOVE_RIGHT:
+                    dest_row = src_row
                     dest_col = src_col + 1
+                elif direction == MOVE_LEFT:                    
+                    dest_row = src_row
+                    dest_col = src_col - 1 if src_col > 0 else 0
+                elif direction == MOVE_DOWN:
+                    dest_row = src_row + 1
+                    dest_col = src_col
                 else:
-                    dest_col = src_col - 1
+                    raise Exception, "table_edit.GetMoveDets no " + \
+                        "destination (so from a TAB or Return) yet not a " + \
+                        "left, right, or down."
         return move_type, dest_row, dest_col
     
-    def DestRowIsNew(self, src_row, dest_row, key_direction, final_col):
-        "Is the destination row the new row?"
-        if key_direction:
-            if self.NewRow(src_row) and key_direction == MOVE_RIGHT \
-                    and not final_col:
-                dest_row_is_new = True
-            elif self.NewRow(src_row) and not key_direction == MOVE_RIGHT:
-                # Should not get here from a move left in the first column 
-                # (not a cell move) - see OnCellMove.
+    def DestRowIsCurrentNew(self, src_row, dest_row, direction, final_col):
+        """
+        Is the destination row (assuming no validation problems) the current 
+            new row?
+        If currently on the new row and leaving it, the destination row, even 
+            if it becomes a new row is not the current new row.
+        """
+        #organised for clarity not minimal lines of code ;-)
+        if self.NewRow(src_row): # new row
+            if final_col:
+                # only LEFT stays in _current_ new row
+                if direction == MOVE_LEFT:
+                    dest_row_is_new = True
+                else:
+                    dest_row_is_new = False
+            else: # only left and right stay in _current_ new row
+                if direction in [MOVE_LEFT, MOVE_RIGHT]:
+                    dest_row_is_new = True # moving sideways within new
+                else:
+                    dest_row_is_new = False
+        elif self.NewRow(src_row + 1): # row just above the new row
+            # only down (inc down left and right), or right in final col, 
+            # take to new
+            if direction in [MOVE_DOWN, MOVE_DOWN_LEFT, MOVE_DOWN_RIGHT] or \
+                    (direction == MOVE_RIGHT and final_row):
                 dest_row_is_new = True
             else:
                 dest_row_is_new = False
-        elif dest_row is not None:
-            dest_row_is_new = self.NewRow(dest_row)
-        else:
-            raise Exception, "Not a key move yet no destination row stored"
+        else: # more than one row away from new row
+            dest_row_is_new = False
         return dest_row_is_new
     
     def LeavingExistingCell(self):
         """
-        Process the attempt to leave an existing cell.
+        Process the attempt to leave an existing cell (whether or not leaving
+            existing row).
         Will not move if cell data not OK to save.
         Will update a cell if there is changed data and if it is valid.
         Return move_to_dest.
@@ -340,27 +408,32 @@ class TblEditor(wx.Dialog):
                                             self.current_col_idx)
         return move_to_dest
     
-    def LeavingNewRow(self, dest_row, dest_col):
+    def LeavingNewRow(self, dest_row, dest_col, direction):
         """
         Process the attempt to leave a cell in the new row.
-        Will not move if the cell is not OK to save or if the attempt to save 
-            the row failed.
+        Always OK to leave new row in an upwards direction if it has not been 
+            altered (i.e. not dirty).
+        Otherwise, must see if row is OK to Save and successfully saved.  If 
+            either is not the case e.g. faulty data, keep selection where it
+            was.
         Return move_to_dest.
         """
-        if self.debug: print "LeavingNewRow - dest row %s dest col %s" % \
-            (dest_row, dest_col)
-        # only attempt to save if new row is dirty and value is OK to save
-        if self.dbtbl.new_is_dirty:
+        debug = False
+        if self.debug or debug: 
+            print "LeavingNewRow - dest row %s dest col %s direction %s" % \
+            (dest_row, dest_col, direction)
+        if direction in [MOVE_UP, MOVE_UP_RIGHT, MOVE_UP_LEFT] and \
+                not self.dbtbl.new_is_dirty:
+            move_to_dest = True # always OK
+        else: # must check OK to move
             if not self.CellOKToSave(self.current_row_idx, 
                                      self.current_col_idx):
                 move_to_dest = False
             else:
                 move_to_dest = self.SaveRow(self.current_row_idx)
-        else:
-            move_to_dest = True
         return move_to_dest
 
-    # VALIDATION //////////////////////////////////////////////////////////
+    # VALIDATION ///////////////////////////////////////////////////////////////
     
     def ValueInRange(self, raw_val, fld_dic):
         "NB may be None if N/A e.g. SQLite"
