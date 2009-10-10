@@ -26,34 +26,46 @@ def insert_data(row_idx, grid_data):
     row_data = ["var%03i" % free_num, my_globals.CONF_NUMERIC]
     return row_data
 
-def row_validation(row, grid, col_dets):
+def cell_invalidation(row, col, grid, col_dets):
     """
-    The first column text must be completed, alphanumeric (and underscores), 
-        and unique (field name) 
-        and the second must be from my_globals.CONF_... e.g. "numeric"
+    The first column text must be either empty, or 
+        alphanumeric (and underscores), and unique (field name) 
+        and the second must be empty or from my_globals.CONF_... e.g. "numeric"
     """
+    if col == 0:
+        return _invalid_fld_name(row, grid)
+    elif col == 1:
+        return _invalid_fld_type(row, grid)
+    else:
+        raise Exception, "Two many columns for default cell invalidation test"
+
+def _invalid_fld_name(row, grid):
     other_fld_names = []
     for i in range(grid.GetNumberRows()):
         if i == row:
             continue
         other_fld_names.append(grid.GetCellValue(row=i, col=0))
     field_name = grid.GetCellValue(row=row, col=0)
-    field_type = grid.GetCellValue(row=row, col=1)
     if field_name.strip() == "":
-        wx.MessageBox("Please complete a field name")
         return False
     if not dbe_sqlite.valid_name(field_name):
         wx.MessageBox("Field names can only contain letters, numbers, and " + \
                       "underscores")
-        return False
+        return True
     if field_name in other_fld_names:
         wx.MessageBox("%s has already been used as a field name" % field_name)
+        return True
+    return False
+
+def _invalid_fld_type(row, grid):
+    field_type = grid.GetCellValue(row=row, col=1)
+    if field_type.strip() == "":
         return False
     if field_type not in [my_globals.CONF_NUMERIC, my_globals.CONF_STRING, 
                           my_globals.CONF_DATE]:
         wx.MessageBox("%s is not a valid field type" % field_type)
-        return False
-    return True
+        return True    
+    return False
 
 def ValidateTblName(tbl_name):
     valid_name = dbe_sqlite.valid_name(tbl_name)
@@ -115,7 +127,7 @@ class SafeTblNameValidator(wx.PyValidator):
 class ConfigTable(table_entry.TableEntryDlg):
     
     def __init__(self, tbl_name_lst, data, new_grid_data, insert_data_func=None, 
-                 row_validation_func=None):
+                 cell_invalidation_func=None):
         """
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
@@ -124,8 +136,8 @@ class ConfigTable(table_entry.TableEntryDlg):
         self.tbl_name_lst = tbl_name_lst
         if not insert_data_func:
             insert_data_func = insert_data
-        if not row_validation_func:
-            row_validation_func = row_validation
+        if not cell_invalidation_func:
+            cell_invalidation_func = cell_invalidation
         # col_dets - See under table_entry.TableEntry
         col_dets = [{"col_label": "Field Name", 
                      "col_type": table_entry.COL_STR, 
@@ -158,7 +170,7 @@ class ConfigTable(table_entry.TableEntryDlg):
                                                self.szrMain, 2, False, 
                                                grid_size, col_dets, data,  
                                                new_grid_data, insert_data_func,
-                                               row_validation_func)
+                                               cell_invalidation_func)
         self.SetupButtons(inc_delete=True, inc_insert=True)
         self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)

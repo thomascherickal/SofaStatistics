@@ -112,8 +112,8 @@ class TableEntryDlg(wx.Dialog):
         self.SetReturnCode(wx.ID_OK)
         
     def OnDelete(self, event):
-        if not self.panel.Validate(): # runs validators on all assoc controls
-            return True
+        #if not self.panel.Validate(): # runs validators on all assoc controls
+        #    return True
         selected_rows = self.tabentry.grid.GetSelectedRows()
         if len(selected_rows) == 1:
             row = selected_rows[0]
@@ -126,8 +126,8 @@ class TableEntryDlg(wx.Dialog):
         """
         Insert before
         """
-        if not self.panel.Validate(): # runs validators on all assoc controls
-            return True
+        #if not self.panel.Validate(): # runs validators on all assoc controls
+        #    return True
         selected_rows = self.tabentry.grid.GetSelectedRows()
         if not selected_rows: 
             return
@@ -135,24 +135,14 @@ class TableEntryDlg(wx.Dialog):
         self.tabentry.InsertRow(pos)
         
     
-def row_validation(row, grid, col_dets):
-    """
-    Very simple as default - each cell must have something unless empty_ok.
-    """
-    row_valid = True
-    for i, col_det in enumerate(col_dets):
-        empty_ok = col_det.get("empty_ok", False)
-        cell_val = grid.GetCellValue(row=row, col=i)
-        if not cell_val and not empty_ok:
-            row_valid = False
-            break
-    return row_valid
+def cell_invalidation(row, col, grid, col_dets):
+    return True
 
 
 class TableEntry(object):
     def __init__(self, frame, panel, szr, vert_share, read_only, grid_size, 
                  col_dets, data, new_grid_data, insert_data_func=None, 
-                 row_validation_func=None):
+                 cell_invalidation_func=None):
         """
         vert_share - vertical share of sizer supplied.
         col_dets - list of dic.  Keys = "col_label", "col_type", 
@@ -164,7 +154,8 @@ class TableEntry(object):
         new_grid_data - is effectively "returned" - add details to it in form 
             of a list of tuples.
         insert_data_func - return row_data and receive row_idx, grid_data
-        row_validation_func - return boolean and receive row, grid, col_dets
+        cell_invalidation_func - return boolean and receive row, col, grid, 
+            col_dets
         """
         self.debug = False
         self.frame = frame
@@ -173,8 +164,8 @@ class TableEntry(object):
         self.read_only = read_only
         self.col_dets = col_dets
         self.insert_data_func = insert_data_func
-        self.row_validation_func = row_validation_func if row_validation_func \
-            else row_validation
+        self.cell_invalidation_func = cell_invalidation_func \
+            if cell_invalidation_func else cell_invalidation
         # store any fixed min col_widths
         self.col_widths = [None for x in range(len(self.col_dets))] # initialise
         for col_idx, col_det in enumerate(self.col_dets):
@@ -558,7 +549,8 @@ class TableEntry(object):
         Will not move if cell data not OK to save.
         Return move_to_dest.
         """
-        if self.debug: print "Was in existing, ordinary row"
+        debug = True
+        if self.debug or debug: print "Was in existing, ordinary row"
         move_to_dest = self.CellOKToSave(self.current_row_idx, 
                                          self.current_col_idx)
         return move_to_dest
@@ -571,7 +563,7 @@ class TableEntry(object):
         """
         debug = False
         if self.debug or debug: print "Moving within new row"
-        move_to_dest = not self.CellInvalid(self.current_row_idx, 
+        move_to_dest = not self.CellInvalid(self.current_row_idx,
                                             self.current_col_idx)
         return move_to_dest
     
@@ -606,20 +598,27 @@ class TableEntry(object):
                 self.AddNewRow()
         return move_to_dest
     
-    
-    
     # VALIDATION ///////////////////////////////////////////////////////////////
     
-    
-    
     def CellInvalid(self, row, col):
-        return False
+        return self.cell_invalidation_func(row, col, self.grid, self.col_dets)
     
     def CellOKToSave(self, row, col):
-        return True
-    
-   
-    # MISC /////////////////////////////////////////////////////
+        """
+        Cannot be an invalid value (must be valid or empty string).
+        And if empty string value, must be empty ok.
+        """
+        if self.debug: print "CellOKToSave - row %s col %s" % (row, col)
+        empty_ok = self.col_dets[col].get("empty_ok", False)
+        cell_val = self.grid.GetCellValue(row, col)
+        empty_not_ok_prob = (cell_val == "" and not empty_ok)
+        if empty_not_ok_prob:
+            wx.MessageBox("This field will not allow empty strings to " + \
+                          "be stored")
+        ok_to_save = not self.CellInvalid(row, col) and not empty_not_ok_prob
+        return ok_to_save    
+
+    # MISC /////////////////////////////////////////////////////////////////////
 
     def TryToDeleteRow(self):
         """
