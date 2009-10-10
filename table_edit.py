@@ -7,13 +7,9 @@ import wx.grid
 import my_globals
 import db_tbl
 import getdata
-import text_editor
 
 """
 DbTbl is the link between the grid and the underlying data.
-TextEditor is the custom grid cell editor - currently only used for the cells
-    in the new row.  Needed so that the edited value can be captured when
-    navigating away from a cell in editing mode (needed for validation).
 TblEditor is the grid (the Dialog containing the grid).
 Cell values are taken from the database in batches and cached for performance
     reasons.
@@ -187,8 +183,9 @@ class TblEditor(wx.Dialog):
                 direction = MOVE_UP_LEFT
         else:
             raise Exception, "table_edit.OnSelectCell - where is direction?"
-        if self.debug: print "OnSelectCell - selected row %s col %s " % \
-            (dest_row, dest_col) + "**********************************" 
+        if self.debug: 
+            print "OnSelectCell - selected row: %s, col: %s, direction: %s" % \
+            (dest_row, dest_col, direction) + "********************************" 
         self.AddCellMoveEvt(direction, dest_row, dest_col)
         
     def OnGridKeyDown(self, event):
@@ -198,7 +195,6 @@ class TblEditor(wx.Dialog):
             AddCellMoveEvt for us is if we are moving right or down from the 
             last col after a keypress.
         Must process here.  NB dest row and col yet to be determined.
-        Basis for text_editor.TextEditor.OnTxtEdKeyDown
         """
         debug = False
         keycode = event.GetKeyCode()
@@ -329,7 +325,7 @@ class TblEditor(wx.Dialog):
         else:
             raise Exception, "table_edit.GetMoveDets().  Unknown move."
         # 2) dest row and dest col
-        if not dest_row and not dest_col: # known if sent from OnSelectCell
+        if dest_row is None and dest_col is None: # known if from OnSelectCell
             if final_col and direction in [MOVE_RIGHT, MOVE_DOWN]:
                 dest_row = src_row + 1
                 dest_col = 0
@@ -638,7 +634,6 @@ class TblEditor(wx.Dialog):
         self.DisplayNewRow()
         self.ResetRowLabels(new_row_idx)
         self.InitNewRowBuffer()
-        self.ResetPrevRowEd(new_row_idx - 1)
         self.SetNewRowEd(new_row_idx)
     
     def DisplayNewRow(self):
@@ -663,18 +658,11 @@ class TblEditor(wx.Dialog):
         self.current_row_idx = new_row_idx
         self.current_col_idx = 0
 
-    def ResetPrevRowEd(self, prev_row_idx):
-        "Set new line custom cell editor for new row"
-        for col_idx in range(len(self.flds)):
-            self.grid.SetCellEditor(prev_row_idx, col_idx, 
-                                    wx.grid.GridCellTextEditor())
-
     def SetNewRowEd(self, new_row_idx):
-        "Set new line custom cell editor for new row"
+        "Set cell editor for cells in new row"
         for col_idx in range(len(self.flds)):
-            text_ed = text_editor.TextEditor(self, new_row_idx, col_idx, 
-                                new_row=True, new_buffer=self.dbtbl.new_buffer)
-            self.grid.SetCellEditor(new_row_idx, col_idx, text_ed)
+            self.grid.SetCellEditor(new_row_idx, col_idx, 
+                                    wx.grid.GridCellTextEditor())
 
     # MISC //////////////////////////////////////////////////////////////////
     

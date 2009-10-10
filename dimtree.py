@@ -7,7 +7,6 @@ import util
 import make_table
 import getdata
 import projects
-import table_entry
 import pprint
 
 SORT_OPT_NONE = 0 #No sorting options

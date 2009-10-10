@@ -11,7 +11,6 @@ import getdata
 import output
 import projects
 import rawtables
-import table_entry
 import util
 
 OUTPUT_MODULES = ["my_globals", "dimtables", "rawtables", "output", "getdata"]
