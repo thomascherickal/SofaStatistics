@@ -40,6 +40,7 @@ def cell_invalidation(row, col, grid, col_dets):
         raise Exception, "Two many columns for default cell invalidation test"
 
 def _invalid_fld_name(row, grid):
+    "Return boolean and string message"
     other_fld_names = []
     for i in range(grid.GetNumberRows()):
         if i == row:
@@ -47,40 +48,40 @@ def _invalid_fld_name(row, grid):
         other_fld_names.append(grid.GetCellValue(row=i, col=0))
     field_name = grid.GetCellValue(row=row, col=0)
     if field_name.strip() == "":
-        return False
+        return False, ""
     if not dbe_sqlite.valid_name(field_name):
-        wx.MessageBox("Field names can only contain letters, numbers, and " + \
-                      "underscores")
-        return True
+        msg = "Field names can only contain letters, numbers, and " + \
+              "underscores"
+        return True, msg
     if field_name in other_fld_names:
-        wx.MessageBox("%s has already been used as a field name" % field_name)
-        return True
-    return False
+        msg = "%s has already been used as a field name" % field_name
+        return True, msg
+    return False, ""
 
 def _invalid_fld_type(row, grid):
+    "Return boolean and string message"
     field_type = grid.GetCellValue(row=row, col=1)
     if field_type.strip() == "":
-        return False
+        return False, ""
     if field_type not in [my_globals.CONF_NUMERIC, my_globals.CONF_STRING, 
                           my_globals.CONF_DATE]:
-        wx.MessageBox("%s is not a valid field type" % field_type)
-        return True    
-    return False
+        msg = "%s is not a valid field type" % field_type
+        return True, msg
+    return False, ""
 
 def ValidateTblName(tbl_name):
+    "Returns boolean plus string message"
     valid_name = dbe_sqlite.valid_name(tbl_name)
     if not valid_name:
         msg = "You can only use letters, numbers and underscores " + \
             "in a SOFA name.  Use another name?"
-        wx.MessageBox(msg)
-        return False
+        return False, msg
     duplicate = getdata.dup_tbl_name(tbl_name)
     if duplicate:
-        wx.MessageBox("Cannot use this name.  " + \
-                      "A table named \"%s\"" % tbl_name + \
-                      "already exists in the default SOFA database")
-        return False
-    return True
+        msg = "Cannot use this name.  A table named \"%s\"" % tbl_name + \
+              "already exists in the default SOFA database"
+        return False, msg
+    return True, ""
 
 class SafeTblNameValidator(wx.PyValidator):
     def __init__(self):
@@ -93,7 +94,9 @@ class SafeTblNameValidator(wx.PyValidator):
     def Validate(self, win):
         textCtrl = self.GetWindow()
         text = textCtrl.GetValue()
-        if not ValidateTblName(text):
+        valid, msg = ValidateTblName(text)
+        if not valid:
+            wx.MessageBox(msg)
             textCtrl.SetFocus()
             textCtrl.Refresh()
             return False

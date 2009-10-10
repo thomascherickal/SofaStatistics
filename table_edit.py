@@ -434,6 +434,8 @@ class TblEditor(wx.Dialog):
             if not self.CellOKToSave(self.current_row_idx, 
                                      self.current_col_idx):
                 move_to_dest = False
+            elif not self.RowOKToSave(self.current_row_idx):
+                move_to_dest = False
             else:
                 move_to_dest = self.SaveRow(self.current_row_idx)
         return move_to_dest
@@ -562,6 +564,20 @@ class TblEditor(wx.Dialog):
         ok_to_save = not self.CellInvalid(row, col) and \
             not missing_not_nullable_prob
         return ok_to_save
+
+    def RowOKToSave(self, row):
+        """
+        Each cell must be OK to save.  NB validation may be stricter than what 
+            the database will accept into its fields e.g. must be one of three 
+            strings ("Numeric", "String", or "Date").
+        """
+        if self.debug: print "RowOKToSave - row %s" % row
+        for col_idx in range(len(self.flds)):
+            if not self.CellOKToSave(row=row, col=col_idx):
+                wx.MessageBox("Unable to save new row.  Invalid value " + \
+                              "in column %s" % (col_idx + 1))
+                return False
+        return True
 
     # CHANGING DATA /////////////////////////////////////////////////////////
        

@@ -136,7 +136,8 @@ class TableEntryDlg(wx.Dialog):
         
     
 def cell_invalidation(row, col, grid, col_dets):
-    return True
+    "Return boolean and string message"
+    return False, ""
 
 
 class TableEntry(object):
@@ -154,8 +155,8 @@ class TableEntry(object):
         new_grid_data - is effectively "returned" - add details to it in form 
             of a list of tuples.
         insert_data_func - return row_data and receive row_idx, grid_data
-        cell_invalidation_func - return boolean and receive row, col, grid, 
-            col_dets
+        cell_invalidation_func - return boolean, and string message 
+            and receives row, col, grid, col_dets
         """
         self.debug = False
         self.frame = frame
@@ -315,7 +316,7 @@ class TableEntry(object):
         Capture use of move away from a cell.  May be result of mouse click 
             or a keypress.
         """
-        debug = True
+        debug = False
         if not self.respond_to_select_cell:
             self.respond_to_select_cell = True
             event.Skip()
@@ -357,7 +358,7 @@ class TableEntry(object):
             last col after a keypress.
         Must process here.  NB dest row and col yet to be determined.
         """
-        debug = True
+        debug = False
         keycode = event.GetKeyCode()
         if self.debug or debug: 
             print "OnGridKeyDown - keycode %s pressed" % keycode 
@@ -412,7 +413,7 @@ class TableEntry(object):
     
     def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, direction):
         "dest row and col still unknown if from a return or TAB keystroke"
-        debug = True
+        debug = False
         if self.debug or debug:
             print "ProcessCellMove - " + \
                 "source row %s source col %s " % (src_row, src_col) + \
@@ -466,7 +467,7 @@ class TableEntry(object):
         If any rules are broken, put focus on source cell. Otherwise got to
             cell at destination row and col.
         """
-        debug = True
+        debug = False
         # 1) move type
         final_col = (src_col == len(self.col_dets) - 1)
         was_new_row = self.NewRow(self.current_row_idx)
@@ -549,10 +550,11 @@ class TableEntry(object):
         Will not move if cell data not OK to save.
         Return move_to_dest.
         """
-        debug = True
+        debug = False
         if self.debug or debug: print "Was in existing, ordinary row"
-        move_to_dest = self.CellOKToSave(self.current_row_idx, 
-                                         self.current_col_idx)
+        move_to_dest, msg = self.CellOKToSave(self.current_row_idx, 
+                                              self.current_col_idx)
+        if msg: wx.MessageBox(msg)
         return move_to_dest
     
     def MovingInNewRow(self):
@@ -563,8 +565,10 @@ class TableEntry(object):
         """
         debug = False
         if self.debug or debug: print "Moving within new row"
-        move_to_dest = not self.CellInvalid(self.current_row_idx,
-                                            self.current_col_idx)
+        invalid, msg = self.CellInvalid(self.current_row_idx, 
+                                        self.current_col_idx)
+        if msg: wx.MessageBox(msg)
+        move_to_dest = not invalid 
         return move_to_dest
     
     def LeavingNewRow(self, dest_row, dest_col, direction):
@@ -576,48 +580,75 @@ class TableEntry(object):
             keep selection where it was.  If OK, add new row.
         Return move_to_dest.
         """
-        debug = True
-        
-        
-        
-        
-        is_dirty = False
-        
-        
-        
-        
+        debug = False
+        is_dirty = self.IsDirty(self.current_row_idx)
         if self.debug or debug: 
-            print "LeavingNewRow - dest row %s dest col %s direction %s" % \
-            (dest_row, dest_col, direction)
+            print "LeavingNewRow - dest row %s dest col %s " % \
+                (dest_row, dest_col) + \
+                "direction %s dirty %s" % (direction, is_dirty)
         if direction in [MOVE_UP, MOVE_UP_RIGHT, MOVE_UP_LEFT] and not is_dirty:
             move_to_dest = True # always OK
         else: # must check OK to move
-            move_to_dest = self.CellOKToSave(self.current_row_idx, 
-                                             self.current_col_idx)
+            ok_to_save, msg = self.CellOKToSave(self.current_row_idx, 
+                                                self.current_col_idx)
+            if not ok_to_save:
+                wx.MessageBox(msg)
+                move_to_dest = False
+            elif not self.RowOKToSave(self.current_row_idx):
+                move_to_dest = False
+            else:
+                move_to_dest = True
             if move_to_dest:
                 self.AddNewRow()
         return move_to_dest
     
+    def IsDirty(self, row):
+        "Dirty means there are some values which are not empty strings"
+        for col_idx in range(len(self.col_dets)):
+            if self.grid.GetCellValue(row, col_idx) != "":
+                return True
+        return False
+    
     # VALIDATION ///////////////////////////////////////////////////////////////
     
     def CellInvalid(self, row, col):
+        "Return boolean and string message"
         return self.cell_invalidation_func(row, col, self.grid, self.col_dets)
     
     def CellOKToSave(self, row, col):
         """
         Cannot be an invalid value (must be valid or empty string).
         And if empty string value, must be empty ok.
+        Returns boolean and string message.
         """
-        if self.debug: print "CellOKToSave - row %s col %s" % (row, col)
+        debug = False
         empty_ok = self.col_dets[col].get("empty_ok", False)
         cell_val = self.grid.GetCellValue(row, col)
+        if self.debug or debug:
+            print "CellOKToSave - row: %s col: %s " % (row, col) + \
+                "empty_ok: %s cell_val: %s" % (empty_ok, cell_val)
         empty_not_ok_prob = (cell_val == "" and not empty_ok)
-        if empty_not_ok_prob:
-            wx.MessageBox("This field will not allow empty strings to " + \
-                          "be stored")
-        ok_to_save = not self.CellInvalid(row, col) and not empty_not_ok_prob
-        return ok_to_save    
+        valid, msg = self.CellInvalid(row, col)
+        if not msg and empty_not_ok_prob:
+            msg = "Not allowed to be empty."
+        ok_to_save = not valid and not empty_not_ok_prob
+        return ok_to_save, msg
 
+    def RowOKToSave(self, row):
+        """
+        Each cell must be OK to save.  NB validation may be stricter than what 
+            the database will accept into its fields e.g. must be one of three 
+            strings ("Numeric", "String", or "Date").
+        """
+        if self.debug: print "RowOKToSave - row %s" % row
+        for col_idx in range(len(self.col_dets)):
+            ok_to_save, msg = self.CellOKToSave(row=row, col=col_idx)
+            if not ok_to_save:
+                wx.MessageBox("Unable to save new row.  Invalid value " + \
+                              "in column %s. %s" % (col_idx + 1, msg))
+                return False
+        return True
+    
     # MISC /////////////////////////////////////////////////////////////////////
 
     def TryToDeleteRow(self):
@@ -638,7 +669,6 @@ class TableEntry(object):
         self.grid.DeleteRows(pos=row, numRows=1)
         self.rows_n -= 1
         self.grid.SetRowLabelValue(self.rows_n - 1, "*")
-        self.grid.SetGridCursor(self.rows_n - 1, 0)
         self.grid.HideCellEditControl()
         self.grid.ForceRefresh()
         self.SafeLayoutAdjustment()
@@ -659,7 +689,7 @@ class TableEntry(object):
         event.Skip()
 
     def OnCellChange(self, event):
-        debug = True
+        debug = False
         if self.debug or debug: print "Cell changed"
         self.grid.ForceRefresh()
         self.SafeLayoutAdjustment()
@@ -745,10 +775,10 @@ class TableEntry(object):
         """
         grid_data = []
         # get data from grid (except for final row (either empty or not saved)
-        for i in range(self.rows_n - 1):
+        for row_idx in range(self.rows_n - 1):
             row_data = []
-            for j, col_type in enumerate(self.col_dets):
-                val = self.grid.GetCellValue(row=i, col=j)
+            for col_idx in range(len(self.col_dets)):
+                val = self.grid.GetCellValue(row=row_idx, col=col_idx)
                 row_data.append(val)
             grid_data.append(tuple(row_data))
         return grid_data
