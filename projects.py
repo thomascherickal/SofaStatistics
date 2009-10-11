@@ -7,7 +7,7 @@ import os
 import my_globals
 import getdata
 import projselect
-import table_entry
+import settings_grid
 import util
 
 LOCAL_PATH = my_globals.LOCAL_PATH
@@ -78,11 +78,11 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
     boltext = flds[var_name][my_globals.FLD_BOLTEXT]
     if bolnumeric:
         if boldecimal:
-            val_type = table_entry.COL_FLOAT
+            val_type = settings_grid.COL_FLOAT
         else:
-            val_type = table_entry.COL_INT
+            val_type = settings_grid.COL_INT
     else:
-        val_type = table_entry.COL_STR
+        val_type = settings_grid.COL_STR
     title = "Settings for %s" % choice_item
     notes = var_notes.get(var_name, "")
     # if nothing recorded, choose useful default variable type
@@ -111,9 +111,9 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
             # the key is always returned as a string 
             # but we may need to store it as a number
             key, value = new_grid_data[i]
-            if val_type == table_entry.COL_FLOAT:
+            if val_type == settings_grid.COL_FLOAT:
                 key = float(key)
-            elif val_type == table_entry.COL_INT:
+            elif val_type == settings_grid.COL_INT:
                 key = int(key)
             new_val_dic[key] = value
         val_dics[var_name] = new_val_dic
@@ -175,7 +175,7 @@ def GetIdxToSelect(choice_items, drop_var, var_labels, default):
     return idx
     
     
-class GetSettings(table_entry.TableEntryDlg):
+class GetSettings(settings_grid.TableEntryDlg):
     
     def __init__(self, title, boltext, boldatetime, var_desc, data, 
                  new_grid_data, val_type):
@@ -183,12 +183,12 @@ class GetSettings(table_entry.TableEntryDlg):
         var_desc - dic with keys "label", "notes", and "type".
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
-        col_dets - See under table_entry.TableEntry
+        col_dets - See under settings_grid.TableEntry
         new_grid_data - add details to it in form of a list of tuples.
         """
         col_dets = [{"col_label": "Value", "col_type": val_type, 
                      "col_width": 50}, 
-                    {"col_label": "Label", "col_type": table_entry.COL_STR, 
+                    {"col_label": "Label", "col_type": settings_grid.COL_STR, 
                      "col_width": 200},
                      ]
         grid_size = (250, 250)
@@ -234,10 +234,10 @@ class GetSettings(table_entry.TableEntryDlg):
         szrDataType.Add(self.radDataType, 0)  
         szrDataType.Add(btnTypeHelp, 0, wx.LEFT|wx.TOP, 10)        
         self.szrMain.Add(szrDataType, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-        self.tabentry = table_entry.TableEntry(self, self.panel, 
-                                               self.szrMain, 2, False, 
-                                               grid_size, col_dets, data,  
-                                               new_grid_data)
+        self.tabentry = settings_grid.TableEntry(self, self.panel, 
+                                                 self.szrMain, 2, False, 
+                                                 grid_size, col_dets, data,  
+                                                 new_grid_data)
         self.SetupButtons()
         self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)

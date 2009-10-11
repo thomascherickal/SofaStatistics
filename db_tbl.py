@@ -47,7 +47,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.val_of_cell_to_update = None
         self.new_buffer = {} # where new values are stored until 
             #ready to be saved
-        self.new_is_dirty = False # TextEditor can set to True.  Is reset to 
+        self.new_is_dirty = False # db_grid can set to True.  Is reset to 
             # False when adding a new record
     
     def SetRowIdDic(self):

@@ -15,7 +15,6 @@ import pprint
 import my_globals
 import dbe_plugins.dbe_globals as dbe_globals
 import getdata
-import table_entry
 
 AD_OPEN_KEYSET = 1
 AD_LOCK_OPTIMISTIC = 3

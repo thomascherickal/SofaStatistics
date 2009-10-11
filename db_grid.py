@@ -7,6 +7,7 @@ import wx.grid
 import my_globals
 import db_tbl
 import getdata
+import text_editor
 
 """
 DbTbl is the link between the grid and the underlying data.
@@ -35,20 +36,7 @@ Intended behaviour: tabbing moves left and right.  If at end, takes to next line
     if possible.  Return moves down if possible or, if at end, to start of next
     line if possible.
 """
-# move directions
-MOVE_LEFT = "move left"
-MOVE_RIGHT = "move right"
-MOVE_UP = "move up"
-MOVE_DOWN = "move down"
-MOVE_UP_RIGHT = "move up right"
-MOVE_UP_LEFT = "move up left"
-MOVE_DOWN_RIGHT = "move down right"
-MOVE_DOWN_LEFT = "move down left"
-# cell move types
-MOVING_IN_EXISTING = "moving in existing"
-MOVING_IN_NEW = "moving in new"
-LEAVING_EXISTING = "leaving existing"
-LEAVING_NEW = "leaving new"
+
 
 class CellMoveEvent(wx.PyCommandEvent):
     "See 3.6.1 in wxPython in Action"
@@ -83,6 +71,7 @@ class TblEditor(wx.Dialog):
         self.cur = cur
         self.tbl_name = tbl_name
         self.flds = flds
+        self.val_being_entered = {} # use db_tbl instead
         self.panel = wx.Panel(self, -1)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         self.grid = wx.grid.Grid(self.panel, size=(500, 600))
@@ -143,7 +132,7 @@ class TblEditor(wx.Dialog):
         dest_row - row we are going to (None if here by keystroke - 
             yet to be determined).
         dest_col - column we are going to (as above).
-        direction - MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN
+        direction - MOVE_LEFT, MOVE_RIGHT, MOVE_UP, etc
         """
         evt_cell_move = CellMoveEvent(myEVT_CELL_MOVE, self.grid.GetId())
         evt_cell_move.AddDets(dest_row, dest_col, direction)
@@ -165,24 +154,24 @@ class TblEditor(wx.Dialog):
         dest_col=event.GetCol()
         if dest_row == src_row:
             if dest_col > src_col:
-                direction = MOVE_RIGHT
+                direction = my_globals.MOVE_RIGHT
             else:
-                direction = MOVE_LEFT
+                direction = my_globals.MOVE_LEFT
         elif dest_col == src_col:
             if dest_row > src_row:
-                direction = MOVE_DOWN
+                direction = my_globals.MOVE_DOWN
             else:
-                direction = MOVE_UP
+                direction = my_globals.MOVE_UP
         elif dest_col > src_col and dest_row > src_row:
-                direction = MOVE_DOWN_RIGHT
+                direction = my_globals.MOVE_DOWN_RIGHT
         elif dest_col > src_col and dest_row < src_row:
-                direction = MOVE_UP_RIGHT
+                direction = my_globals.MOVE_UP_RIGHT
         elif dest_col < src_col and dest_row > src_row:
-                direction = MOVE_DOWN_LEFT
+                direction = my_globals.MOVE_DOWN_LEFT
         elif dest_col < src_col and dest_row < src_row:
-                direction = MOVE_UP_LEFT
+                direction = my_globals.MOVE_UP_LEFT
         else:
-            raise Exception, "table_edit.OnSelectCell - where is direction?"
+            raise Exception, "db_grid.OnSelectCell - where is direction?"
         if self.debug: 
             print "OnSelectCell - selected row: %s, col: %s, direction: %s" % \
             (dest_row, dest_col, direction) + "********************************" 
@@ -203,17 +192,18 @@ class TblEditor(wx.Dialog):
         if keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
             if keycode == wx.WXK_TAB:
                 if event.ShiftDown():
-                    direction = MOVE_LEFT
+                    direction = my_globals.MOVE_LEFT
                 else:
-                    direction = MOVE_RIGHT
+                    direction = my_globals.MOVE_RIGHT
             elif keycode == wx.WXK_RETURN:
-                direction = MOVE_DOWN
+                direction = my_globals.MOVE_DOWN
             src_row=self.current_row_idx
             src_col=self.current_col_idx
             if self.debug or debug: print "OnGridKeyDown - keypress in row " + \
                 "%s col %s ******************************" % (src_row, src_col)
             final_col = (src_col == len(self.flds) - 1)
-            if final_col and direction in [MOVE_RIGHT, MOVE_DOWN]:
+            if final_col and direction in [my_globals.MOVE_RIGHT, 
+                                           my_globals.MOVE_DOWN]:
                 self.AddCellMoveEvt(direction)
                 # Do not Skip and send event on its way.
                 # Smother the event here so our code can determine where the 
@@ -239,18 +229,24 @@ class TblEditor(wx.Dialog):
             validation.
         """
         debug = False
-        if self.debug or debug: print "OnCellMove *****************************"
         src_row=self.current_row_idx # row being moved from
         src_col=self.current_col_idx # col being moved from
         dest_row = event.dest_row # row being moved towards
         dest_col = event.dest_col # col being moved towards
         direction = event.direction
+        if self.debug or debug: 
+            print "settings_grid.OnCellMove src_row: %s src_col %s " % \
+                (src_row, src_col) + "dest_row: %s dest_col: %s " % \
+                (dest_row, dest_col) + "direction %s" % direction
         # ProcessCellMove called from text editor as well so keep separate
         self.ProcessCellMove(src_row, src_col, dest_row, dest_col, direction)
         event.Skip()
     
     def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, direction):
-        "dest row and col still unknown if from a return or TAB keystroke"
+        """
+        dest row and col still unknown if from a return or TAB keystroke.
+        So is the direction (could be down or down_left if end of line).
+        """
         debug = False
         self.dbtbl.ForceRefresh()
         if self.debug or debug:
@@ -258,14 +254,15 @@ class TblEditor(wx.Dialog):
                 "source row %s source col %s " % (src_row, src_col) + \
                 "dest row %s dest col %s " % (dest_row, dest_col) + \
                 "direction: %s" % direction
-        move_type, dest_row, dest_col = self.GetMoveDets(src_row, src_col, 
+        move_type, dest_row, dest_col = self._getMoveDets(src_row, src_col, 
                                         dest_row, dest_col, direction)
-        if move_type in [MOVING_IN_EXISTING, LEAVING_EXISTING]:
-            move_to_dest = self.LeavingExistingCell()
-        elif move_type == MOVING_IN_NEW:
-            move_to_dest = self.MovingInNewRow()
-        elif move_type == LEAVING_NEW:
-            move_to_dest = self.LeavingNewRow(dest_row, dest_col, direction)
+        if move_type in [my_globals.MOVING_IN_EXISTING, 
+                         my_globals.LEAVING_EXISTING]:
+            move_to_dest = self._leavingExistingCell()
+        elif move_type == my_globals.MOVING_IN_NEW:
+            move_to_dest = self._movingInNewRow()
+        elif move_type == my_globals.LEAVING_NEW:
+            move_to_dest = self._leavingNewRow(dest_row, dest_col, direction)
         else:
             raise Exception, "ProcessCellMove - Unknown move_type"
         if self.debug or debug:
@@ -281,7 +278,7 @@ class TblEditor(wx.Dialog):
             pass
             #wx.MessageBox("Stay here at %s %s" % (src_row, src_col))
     
-    def GetMoveDets(self, src_row, src_col, dest_row, dest_col, direction):
+    def _getMoveDets(self, src_row, src_col, dest_row, dest_col, direction):
         """
         Gets move details.
         Returns move_type, dest_row, dest_col.
@@ -312,40 +309,41 @@ class TblEditor(wx.Dialog):
         was_new_row = self.NewRow(self.current_row_idx)
         if debug: print "Current row idx: %s, src_row: %s, was_new_row: %s" % \
             (self.current_row_idx, src_row, was_new_row)
-        dest_row_is_new = self.DestRowIsCurrentNew(src_row, dest_row, direction, 
-                                                   final_col)
+        dest_row_is_new = self._destRowIsCurrentNew(src_row, dest_row, 
+                                                    direction, final_col)
         if was_new_row and dest_row_is_new:
-            move_type = MOVING_IN_NEW
+            move_type = my_globals.MOVING_IN_NEW
         elif was_new_row and not dest_row_is_new:
-            move_type = LEAVING_NEW
+            move_type = my_globals.LEAVING_NEW
         elif not was_new_row and not dest_row_is_new:
-            move_type = MOVING_IN_EXISTING
+            move_type = my_globals.MOVING_IN_EXISTING
         elif not was_new_row and dest_row_is_new:
-            move_type = LEAVING_EXISTING
+            move_type = my_globals.LEAVING_EXISTING
         else:
-            raise Exception, "table_edit.GetMoveDets().  Unknown move."
+            raise Exception, "db_grid.GetMoveDets().  Unknown move."
         # 2) dest row and dest col
         if dest_row is None and dest_col is None: # known if from OnSelectCell
-            if final_col and direction in [MOVE_RIGHT, MOVE_DOWN]:
+            if final_col and direction in [my_globals.MOVE_RIGHT, 
+                                           my_globals.MOVE_DOWN]:
                 dest_row = src_row + 1
                 dest_col = 0
             else:
-                if direction == MOVE_RIGHT:
+                if direction == my_globals.MOVE_RIGHT:
                     dest_row = src_row
                     dest_col = src_col + 1
-                elif direction == MOVE_LEFT:                    
+                elif direction == my_globals.MOVE_LEFT:                    
                     dest_row = src_row
                     dest_col = src_col - 1 if src_col > 0 else 0
-                elif direction == MOVE_DOWN:
+                elif direction == my_globals.MOVE_DOWN:
                     dest_row = src_row + 1
                     dest_col = src_col
                 else:
-                    raise Exception, "table_edit.GetMoveDets no " + \
+                    raise Exception, "db_grid.GetMoveDets no " + \
                         "destination (so from a TAB or Return) yet not a " + \
                         "left, right, or down."
         return move_type, dest_row, dest_col
     
-    def DestRowIsCurrentNew(self, src_row, dest_row, direction, final_col):
+    def _destRowIsCurrentNew(self, src_row, dest_row, direction, final_col):
         """
         Is the destination row (assuming no validation problems) the current 
             new row?
@@ -356,20 +354,21 @@ class TblEditor(wx.Dialog):
         if self.NewRow(src_row): # new row
             if final_col:
                 # only LEFT stays in _current_ new row
-                if direction == MOVE_LEFT:
+                if direction == my_globals.MOVE_LEFT:
                     dest_row_is_new = True
                 else:
                     dest_row_is_new = False
             else: # only left and right stay in _current_ new row
-                if direction in [MOVE_LEFT, MOVE_RIGHT]:
+                if direction in [my_globals.MOVE_LEFT, my_globals.MOVE_RIGHT]:
                     dest_row_is_new = True # moving sideways within new
                 else:
                     dest_row_is_new = False
         elif self.NewRow(src_row + 1): # row just above the new row
             # only down (inc down left and right), or right in final col, 
             # take to new
-            if direction in [MOVE_DOWN, MOVE_DOWN_LEFT, MOVE_DOWN_RIGHT] or \
-                    (direction == MOVE_RIGHT and final_col):
+            if direction in [my_globals.MOVE_DOWN, my_globals.MOVE_DOWN_LEFT, 
+                             my_globals.MOVE_DOWN_RIGHT] or \
+                    (direction == my_globals.MOVE_RIGHT and final_col):
                 dest_row_is_new = True
             else:
                 dest_row_is_new = False
@@ -377,7 +376,7 @@ class TblEditor(wx.Dialog):
             dest_row_is_new = False
         return dest_row_is_new
     
-    def LeavingExistingCell(self):
+    def _leavingExistingCell(self):
         """
         Process the attempt to leave an existing cell (whether or not leaving
             existing row).
@@ -401,7 +400,7 @@ class TblEditor(wx.Dialog):
         self.dbtbl.val_of_cell_to_update = None
         return move_to_dest
     
-    def MovingInNewRow(self):
+    def _movingInNewRow(self):
         """
         Process the attempt to move away from a cell in the new row to another 
             cell in the same row.  Will not move if cell is invalid.
@@ -413,7 +412,7 @@ class TblEditor(wx.Dialog):
                                             self.current_col_idx)
         return move_to_dest
     
-    def LeavingNewRow(self, dest_row, dest_col, direction):
+    def _leavingNewRow(self, dest_row, dest_col, direction):
         """
         Process the attempt to leave a cell in the new row.
         Always OK to leave new row in an upwards direction if it has not been 
@@ -421,13 +420,15 @@ class TblEditor(wx.Dialog):
         Otherwise, must see if row is OK to Save and successfully saved.  If 
             either is not the case e.g. faulty data, keep selection where it
             was.
+        NB actual direction could be down_left instead of down if in final col.
         Return move_to_dest.
         """
         debug = False
         if self.debug or debug: 
-            print "LeavingNewRow - dest row %s dest col %s direction %s" % \
-            (dest_row, dest_col, direction)
-        if direction in [MOVE_UP, MOVE_UP_RIGHT, MOVE_UP_LEFT] and \
+            print "_leavingNewRow - dest row %s dest col %s orig directn %s" % \
+                (dest_row, dest_col, direction)
+        if direction in [my_globals.MOVE_UP, my_globals.MOVE_UP_RIGHT, 
+                         my_globals.MOVE_UP_LEFT] and \
                 not self.dbtbl.new_is_dirty:
             move_to_dest = True # always OK
         else: # must check OK to move
@@ -441,6 +442,9 @@ class TblEditor(wx.Dialog):
         return move_to_dest
 
     # VALIDATION ///////////////////////////////////////////////////////////////
+
+    def SetNewIsDirty(self, is_dirty):
+        self.dbtbl.new_is_dirty = is_dirty
     
     def ValueInRange(self, raw_val, fld_dic):
         "NB may be None if N/A e.g. SQLite"
@@ -674,13 +678,19 @@ class TblEditor(wx.Dialog):
         self.current_row_idx = new_row_idx
         self.current_col_idx = 0
 
-    def SetNewRowEd(self, new_row_idx):
+    def SetNewRowEd(self, row_idx):
         "Set cell editor for cells in new row"
         for col_idx in range(len(self.flds)):
-            self.grid.SetCellEditor(new_row_idx, col_idx, 
-                                    wx.grid.GridCellTextEditor())
+            editor = text_editor.TextEditor(self, row_idx, col_idx, 
+                                self.NewRow(row_idx))
+            #self.grid.SetCellEditor(row_idx, col_idx, 
+            #                        wx.grid.GridCellTextEditor())
+            self.grid.SetCellEditor(row_idx, col_idx, editor)
 
     # MISC //////////////////////////////////////////////////////////////////
+    
+    def GetColsN(self):
+        return len(self.flds)
     
     def SetColWidths(self):
         "Set column widths based on display widths of fields"
@@ -727,6 +737,10 @@ class TblEditor(wx.Dialog):
         
     def OnCellChange(self, event):
         debug = False
+        row = event.GetRow()
+        new_row = self.dbtbl.NewRow(row)
+        if new_row:
+            self.dbtbl.new_is_dirty = True
         if debug: print "Cell changed"
         self.grid.ForceRefresh()
         event.Skip()

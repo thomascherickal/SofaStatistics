@@ -194,3 +194,18 @@ for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
 CONF_NUMERIC = "Numeric"
 CONF_STRING = "String"
 CONF_DATE = "Date"
+# grids
+# move directions
+MOVE_LEFT = "move left"
+MOVE_RIGHT = "move right"
+MOVE_UP = "move up"
+MOVE_DOWN = "move down"
+MOVE_UP_RIGHT = "move up right"
+MOVE_UP_LEFT = "move up left"
+MOVE_DOWN_RIGHT = "move down right"
+MOVE_DOWN_LEFT = "move down left"
+# cell move types
+MOVING_IN_EXISTING = "moving in existing"
+MOVING_IN_NEW = "moving in new"
+LEAVING_EXISTING = "leaving existing"
+LEAVING_NEW = "leaving new"

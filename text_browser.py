@@ -21,7 +21,10 @@ EVT_TEXT_BROWSE_KEY_DOWN = wx.PyEventBinder(myEVT_TEXT_BROWSE_KEY_DOWN, 1)
 class TextBrowse(wx.PyControl):
     """
     Custom control with a text box and browse button (to populate text box).
-    Handles Enter key and tab key strokes as expected.
+    Handles Enter key and tab key strokes as expected. Tab from text takes you 
+        to the Browse button.  Enter in the text disables editor and we go down.
+        Tab from the Browse button and we go back to the text.  Enter is allowed 
+        to be processed normally.
     NB if Enter hit when in text box, custom event sent for processing.
     """
 
@@ -57,9 +60,13 @@ class TextBrowse(wx.PyControl):
             event.Skip()
     
     def OnBtnBrowseKeyDown(self, event):
-        if event.GetKeyCode() in [wx.WXK_TAB]:
+        """
+        Respond to keypresses on the browse button.
+        """
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_TAB:
             self.txt.SetFocus()
-        else:
+        else: # e.g. let it be processed
             event.Skip()
     
     def OnSize(self, event):

@@ -1,10 +1,10 @@
+import string
 import wx
 
 import my_globals
 import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
-import string
-import table_entry
+import settings_grid
 
 def insert_data(row_idx, grid_data):
     """
@@ -127,7 +127,7 @@ class SafeTblNameValidator(wx.PyValidator):
         return True
     
     
-class ConfigTable(table_entry.TableEntryDlg):
+class ConfigTable(settings_grid.TableEntryDlg):
     
     def __init__(self, tbl_name_lst, data, new_grid_data, insert_data_func=None, 
                  cell_invalidation_func=None):
@@ -141,12 +141,12 @@ class ConfigTable(table_entry.TableEntryDlg):
             insert_data_func = insert_data
         if not cell_invalidation_func:
             cell_invalidation_func = cell_invalidation
-        # col_dets - See under table_entry.TableEntry
+        # col_dets - See under settings_grid.TableEntry
         col_dets = [{"col_label": "Field Name", 
-                     "col_type": table_entry.COL_STR, 
+                     "col_type": settings_grid.COL_STR, 
                      "col_width": 100}, 
                     {"col_label": "Data Type", 
-                     "col_type": table_entry.COL_DROPDOWN, 
+                     "col_type": settings_grid.COL_DROPDOWN, 
                      "col_width": 100,
                      "dropdown_vals": [my_globals.CONF_NUMERIC, 
                                        my_globals.CONF_STRING, 
@@ -169,11 +169,11 @@ class ConfigTable(table_entry.TableEntryDlg):
         self.szrTblLabel.Add(lblTblLabel, 0, wx.RIGHT, 5)
         self.szrTblLabel.Add(self.txtTblName, 1)
         self.szrMain.Add(self.szrTblLabel, 0, wx.GROW|wx.ALL, 10)
-        self.tabentry = table_entry.TableEntry(self, self.panel, 
-                                               self.szrMain, 2, False, 
-                                               grid_size, col_dets, data,  
-                                               new_grid_data, insert_data_func,
-                                               cell_invalidation_func)
+        self.tabentry = settings_grid.TableEntry(self, self.panel, 
+                                                 self.szrMain, 2, False, 
+                                                 grid_size, col_dets, data,  
+                                                 new_grid_data, insert_data_func,
+                                                 cell_invalidation_func)
         self.SetupButtons(inc_delete=True, inc_insert=True)
         self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)

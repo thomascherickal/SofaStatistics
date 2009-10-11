@@ -15,7 +15,7 @@ import wx
 import my_globals
 import dbe_plugins.dbe_globals as dbe_globals
 import getdata
-import table_entry
+import settings_grid
 
 
 AD_OPEN_KEYSET = 1
@@ -299,32 +299,32 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
                          wx.GROW|wx.RIGHT, 10)
     parent.szrMsaccess.Add(szrMsaccessInner, 0)
     col_det_db = {"col_label": "Database(s)", 
-                  "col_type": table_entry.COL_TEXT_BROWSE, 
+                  "col_type": settings_grid.COL_TEXT_BROWSE, 
                   "col_width": 300, 
                   "file_phrase": "Choose an MS Access database file", 
                   "file_wildcard": "MS Access databases (*.mdb)|*.mdb",
                   "empty_ok": False}
     col_det_sec = {"col_label": "Security File (*.mdw) (opt)", 
-                  "col_type": table_entry.COL_TEXT_BROWSE, 
+                  "col_type": settings_grid.COL_TEXT_BROWSE, 
                   "col_width": 300, 
                   "file_phrase": "Choose an MS Access security file", 
                   "file_wildcard": "MS Access security files (*.mdw)|*.mdw",
                   "empty_ok": True}
     col_det_usr = {"col_label": "User Name (opt)", 
-                  "col_type": table_entry.COL_STR, 
+                  "col_type": settings_grid.COL_STR, 
                   "col_width": 140, 
                   "file_phrase": None, 
                   "file_wildcard": None,
                   "empty_ok": True}
     col_det_pwd = {"col_label": "Password (opt)", 
-                  "col_type": table_entry.COL_STR, 
+                  "col_type": settings_grid.COL_STR, 
                   "col_width": 140, 
                   "file_phrase": None, 
                   "file_wildcard": None,
                   "empty_ok": True}
     msaccess_col_dets = [col_det_db, col_det_sec, col_det_usr, col_det_pwd]
     parent.msaccess_new_grid_data = []
-    parent.msaccess_grid = table_entry.TableEntry(frame=parent, 
+    parent.msaccess_grid = settings_grid.TableEntry(frame=parent, 
         panel=scroll, szr=parent.szrMsaccess, vert_share=1, read_only=read_only, 
         grid_size=(1000, 100), col_dets=msaccess_col_dets, 
         data=parent.msaccess_data, 

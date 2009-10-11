@@ -4,11 +4,11 @@ import sys
 import pprint
 
 import my_globals
+import db_grid
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
 import projects
 import table_config
-import table_edit
 
 
 class DataSelectDlg(wx.Dialog):
@@ -113,10 +113,10 @@ class DataSelectDlg(wx.Dialog):
         else:
             wx.BeginBusyCursor()
             read_only = self.chkReadOnly.IsChecked()
-            dlg = table_edit.TblEditor(self, self.dbe, self.conn, 
-                                       self.cur, self.db, self.tbl, 
-                                       self.flds, self.var_labels, self.idxs,
-                                       read_only)
+            dlg = db_grid.TblEditor(self, self.dbe, self.conn, 
+                                    self.cur, self.db, self.tbl, 
+                                    self.flds, self.var_labels, self.idxs,
+                                    read_only)
             wx.EndBusyCursor()
             dlg.ShowModal()
         event.Skip()
@@ -164,9 +164,9 @@ class DataSelectDlg(wx.Dialog):
         (conn, cur, dbs, tbls, flds, has_unique, idxs) = dbdetsobj.getDbDets()
         wx.BeginBusyCursor()
         read_only = False
-        dlg = table_edit.TblEditor(self, dbe, conn, cur, 
-                                   my_globals.SOFA_DEFAULT_DB, tbl_name, flds, 
-                                   self.var_labels, idxs, read_only)
+        dlg = db_grid.TblEditor(self, dbe, conn, cur, 
+                                my_globals.SOFA_DEFAULT_DB, tbl_name, flds, 
+                                self.var_labels, idxs, read_only)
         wx.EndBusyCursor()
         dlg.ShowModal()
         event.Skip()

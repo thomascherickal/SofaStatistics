@@ -8,7 +8,7 @@ import wx
 import my_globals
 import getdata
 import projects
-import table_entry
+import settings_grid
 import util
 
 DEFAULT_DB = "sqlite_default_db"
@@ -262,10 +262,10 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     szrSqliteInner.Add(parent.txtSqliteDefaultTbl, 1, wx.GROW|wx.RIGHT, 10)
     parent.szrSqlite.Add(szrSqliteInner, 0)
     sqlite_col_dets = [{"col_label": "Database(s)", "col_type": 
-                        table_entry.COL_TEXT_BROWSE, "col_width": 400, 
+                        settings_grid.COL_TEXT_BROWSE, "col_width": 400, 
                         "file_phrase": "Choose an SQLite database file"}]
     parent.sqlite_new_grid_data = []
-    parent.sqlite_grid = table_entry.TableEntry(frame=parent, 
+    parent.sqlite_grid = settings_grid.TableEntry(frame=parent, 
         panel=scroll, szr=parent.szrSqlite, vert_share=1, read_only=read_only, 
         grid_size=(550, 100), col_dets=sqlite_col_dets, 
         data=parent.sqlite_data, new_grid_data=parent.sqlite_new_grid_data)
