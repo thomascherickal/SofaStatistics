@@ -7,7 +7,6 @@ import wx.grid
 import my_globals
 import db_tbl
 import getdata
-import text_editor
 
 """
 DbTbl is the link between the grid and the underlying data.
@@ -71,7 +70,6 @@ class TblEditor(wx.Dialog):
         self.cur = cur
         self.tbl_name = tbl_name
         self.flds = flds
-        self.val_being_entered = {} # use db_tbl instead
         self.panel = wx.Panel(self, -1)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         self.grid = wx.grid.Grid(self.panel, size=(500, 600))
@@ -542,13 +540,13 @@ class TblEditor(wx.Dialog):
         If it has just been edited, GetCellValue(), which calls 
             dbtbl.GetValue(), will not work.  It will get the cached version
             which is now out-of-date (we presumably just changed it).
+        Need to get version stored by editor. So MUST close editors which 
+            presumably flushes the value to where it becomes available to
+            GetCellValue().
         """
-        if self.debug: print "GetRawVal - row %s col %s" % (row, col)
-        if self.dbtbl.bol_attempt_cell_update:
-            raw_val = self.dbtbl.val_of_cell_to_update
-        else:
-            raw_val = self.grid.GetCellValue(row, col)
-        return raw_val
+        self.grid.DisableCellEditControl()
+        val = self.grid.GetCellValue(row, col)
+        return val
     
     def CellOKToSave(self, row, col):
         """
@@ -681,11 +679,8 @@ class TblEditor(wx.Dialog):
     def SetNewRowEd(self, row_idx):
         "Set cell editor for cells in new row"
         for col_idx in range(len(self.flds)):
-            editor = text_editor.TextEditor(self, row_idx, col_idx, 
-                                self.NewRow(row_idx))
-            #self.grid.SetCellEditor(row_idx, col_idx, 
-            #                        wx.grid.GridCellTextEditor())
-            self.grid.SetCellEditor(row_idx, col_idx, editor)
+            self.grid.SetCellEditor(row_idx, col_idx, 
+                                    wx.grid.GridCellTextEditor())
 
     # MISC //////////////////////////////////////////////////////////////////
     

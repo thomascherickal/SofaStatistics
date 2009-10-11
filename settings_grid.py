@@ -4,7 +4,6 @@ import pprint
 
 import my_globals
 import text_browser
-import text_editor
 
 COL_STR = "col_string"
 COL_INT = "col_integer"
@@ -100,15 +99,7 @@ class TableEntryDlg(wx.Dialog):
         self.SetReturnCode(wx.ID_OK)
         
     def OnDelete(self, event):
-        #if not self.panel.Validate(): # runs validators on all assoc controls
-        #    return True
-        selected_rows = self.tabentry.grid.GetSelectedRows()
-        if len(selected_rows) == 1:
-            row = selected_rows[0]
-            if row != self.tabentry.rows_n - 1:
-                self.tabentry.DeleteRow(row)
-        else:
-            wx.MessageBox("Only one row can be deleted at a time")
+        self.tabentry.TryToDeleteRow()
     
     def OnInsert(self, event):
         """
@@ -153,7 +144,6 @@ class TableEntry(object):
         self.szr = szr
         self.read_only = read_only
         self.col_dets = col_dets
-        self.val_being_entered = {}
         self.insert_data_func = insert_data_func
         self.cell_invalidation_func = cell_invalidation_func \
             if cell_invalidation_func else cell_invalidation
@@ -263,8 +253,7 @@ class TableEntry(object):
                     "needed to supply dropdown_vals"
         else:
             renderer = wx.grid.GridCellStringRenderer()
-            editor = text_editor.TextEditor(self, row_idx, col_idx, 
-                                            self.NewRow(row_idx))
+            editor = wx.grid.GridCellTextEditor()
         return renderer, editor
 
     def GetWidthPrecision(self, col_idx):
@@ -630,12 +619,12 @@ class TableEntry(object):
         """
         What was the value of a cell?
         If it has just been edited, GetCellValue(), will not have caught up yet.  
-        Need to get version stored by editor.
+        Need to get version stored by editor. So MUST close editors which 
+            presumably flushes the value to where it becomes available to
+            GetCellValue().
         """
-        if self.val_being_entered.get((row, col)):
-            val = self.val_being_entered[(row, col)]
-        else:
-            val = self.grid.GetCellValue(row, col)
+        self.grid.DisableCellEditControl()
+        val = self.grid.GetCellValue(row, col)
         return val
     
     def CellOKToSave(self, row, col):
@@ -681,17 +670,24 @@ class TableEntry(object):
         """
         Delete row if a row selected and not the data entry row
             and put focus on new line.
+        Return boolean and string.
         """
         selected_rows = self.grid.GetSelectedRows()
         if len(selected_rows) == 1:
             row = selected_rows[0]
             if not self.NewRow(row):
                 self.DeleteRow(row)
+                return True, ""
+            else:
+                return False, "Unable to delete new row"
+        else:
+            return False, "Can only delete one row at a time"            
     
     def DeleteRow(self, row):
         """
         Delete a row.
         """
+        # find what selected
         self.grid.DeleteRows(pos=row, numRows=1)
         self.rows_n -= 1
         self.grid.SetRowLabelValue(self.rows_n - 1, "*")
@@ -733,7 +729,7 @@ class TableEntry(object):
         if self.insert_data_func:
             row_data = self.insert_data_func(row_idx, grid_data)
             for col_idx in range(len(self.col_dets)):
-                renderer, editor = self.GetNewRendererEditor(col_idx)
+                renderer, editor = self.GetNewRendererEditor(row_idx, col_idx)
                 self.grid.SetCellRenderer(row_idx, col_idx, renderer)
                 self.grid.SetCellEditor(row_idx, col_idx, editor)
             for i, value in enumerate(row_data):
