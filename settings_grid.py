@@ -111,7 +111,7 @@ class TableEntryDlg(wx.Dialog):
         if not selected_rows: 
             return
         pos = selected_rows[0]
-        self.tabentry.InsertRow(pos)
+        self.tabentry.InsertRowAbove(pos)
         
     
 def cell_invalidation(row, col, grid, col_dets):
@@ -612,7 +612,11 @@ class TableEntry(object):
         return False
       
     def CellInvalid(self, row, col):
-        "Return boolean and string message"
+        """
+        Return boolean and string message.
+        NB must flush values in any open editors onto grid.
+        """
+        self.grid.DisableCellEditControl()
         return self.cell_invalidation_func(row, col, self.grid, self.col_dets)
     
     def GetVal(self, row, col):
@@ -686,14 +690,23 @@ class TableEntry(object):
     def DeleteRow(self, row):
         """
         Delete a row.
+        If the currently selected cell is in a row below that being deleted,
+            move up one.
+        Move to the correct cell and set self.respond_to_select_cell to False.
+        Assumed to be OK because not shifting cell as such.  Just following it 
+            :-) or jumping to a cell in an already-validated row.
         """
-        # find what selected
         self.grid.DeleteRows(pos=row, numRows=1)
         self.rows_n -= 1
         self.grid.SetRowLabelValue(self.rows_n - 1, "*")
         self.grid.HideCellEditControl()
         self.grid.ForceRefresh()
-        self.SafeLayoutAdjustment()
+        self.SafeLayoutAdjustment()        
+        self.respond_to_select_cell = False
+        if row < self.current_row_idx:
+            self.current_row_idx -= 1
+            self.grid.SetGridCursor(self.current_row_idx, self.current_col_idx)
+        self.grid.SetFocus()
     
     def EditorShown(self, event):
         # disable resizing until finished
@@ -717,11 +730,14 @@ class TableEntry(object):
         self.SafeLayoutAdjustment()
         event.Skip()
 
-    def InsertRow(self, pos):
+    def InsertRowAbove(self, pos):
         """
-        Insert row.
+        Insert row above selected row.
         If data supplied (list), insert values into row.
         Change row labels appropriately.
+        If below the rows being inserted, jump down a row and set 
+            self.respond_to_select_cell to False. Assumed to be OK because not 
+            shifting cell as such.  Just following it :-)
         """
         grid_data = self.GetGridData()
         row_idx = pos
@@ -738,6 +754,10 @@ class TableEntry(object):
         # reset label for all rows after insert
         self.UpdateRowLabelsAfter(row_idx)
         self.grid.SetRowLabelValue(self.rows_n - 1, "*")
+        if row_idx <= self.current_row_idx: # inserting above our selected cell
+            self.current_row_idx += 1
+            self.grid.SetGridCursor(self.current_row_idx, self.current_col_idx)
+        self.grid.SetFocus()
     
     def UpdateRowLabelsAfter(self, pos):
         for i in range(pos, self.rows_n - 1):
