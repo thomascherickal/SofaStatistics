@@ -677,7 +677,7 @@ class TableEntry(object):
         empty_not_ok_prob = (cell_val == "" and not empty_ok)
         valid, msg = self.CellInvalid(row, col)
         if not msg and empty_not_ok_prob:
-            msg = "Not allowed to be empty."
+            msg = "It is not allowed to be empty."
         ok_to_save = not valid and not empty_not_ok_prob
         return ok_to_save, msg
 
@@ -688,11 +688,12 @@ class TableEntry(object):
             strings ("Numeric", "String", or "Date").
         """
         if self.debug: print "RowOKToSave - row %s" % row
-        for col_idx in range(len(self.col_dets)):
+        for col_idx, col_det in enumerate(self.col_dets):
             ok_to_save, msg = self.CellOKToSave(row=row, col=col_idx)
             if not ok_to_save:
                 wx.MessageBox("Unable to save new row.  Invalid value " + \
-                              "in column %s. %s" % (col_idx + 1, msg))
+                              "in the \"%s\" column. %s" % \
+                              (col_det["col_label"], msg))
                 return False
         return True
     
