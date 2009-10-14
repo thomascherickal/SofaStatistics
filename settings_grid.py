@@ -100,6 +100,8 @@ class TableEntryDlg(wx.Dialog):
         
     def OnDelete(self, event):
         self.tabentry.TryToDeleteRow()
+        self.tabentry.grid.SetFocus()
+        event.Skip()
     
     def OnInsert(self, event):
         """
@@ -112,6 +114,8 @@ class TableEntryDlg(wx.Dialog):
             return
         pos = selected_rows[0]
         self.tabentry.InsertRowAbove(pos)
+        self.tabentry.grid.SetFocus()
+        event.Skip()
         
     
 def cell_invalidation(row, col, grid, col_dets):
@@ -120,6 +124,7 @@ def cell_invalidation(row, col, grid, col_dets):
 
 
 class TableEntry(object):
+    
     def __init__(self, frame, panel, szr, vert_share, read_only, grid_size, 
                  col_dets, data, new_grid_data, insert_data_func=None, 
                  cell_invalidation_func=None):
@@ -195,6 +200,12 @@ class TableEntry(object):
                 renderer, editor = self.GetNewRendererEditor(row_idx, col_idx)
                 self.grid.SetCellRenderer(row_idx, col_idx, renderer)
                 self.grid.SetCellEditor(row_idx, col_idx, editor)
+        # set min row height if text browser used
+        for col_idx, col_det in enumerate(self.col_dets):
+            col_type = col_det["col_type"]
+            if col_type == COL_TEXT_BROWSE:
+                self.grid.SetDefaultRowSize(45)
+                break
         # grid event handling
         self.grid.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
         self.grid.Bind(EVT_CELL_MOVE, self.OnCellMove)        
@@ -202,6 +213,8 @@ class TableEntry(object):
         self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnSelectCell)
         self.grid.Bind(text_browser.EVT_TEXT_BROWSE_KEY_DOWN, 
                        self.OnTextBrowseKeyDown)
+        self.frame.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, 
+                        self.OnGridEditorCreated)
         self.frame.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.EditorShown)
         self.frame.Bind(wx.grid.EVT_GRID_EDITOR_HIDDEN, self.EditorHidden)
         self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelClick)        
@@ -241,8 +254,8 @@ class TableEntry(object):
             # use * - *.* will not pickup files without extensions in Ubuntu
             wildcard = self.col_dets[col_idx].get("file_wildcard", 
                                                   "Any file (*)|*")
-            editor = text_browser.GridCellTextBrowseEditor(file_phrase, 
-                                                           wildcard)
+            editor = text_browser.GridCellTextBrowseEditor(self.grid, 
+                                                        file_phrase, wildcard)
         elif col_type == COL_DROPDOWN:
             dropdown_vals = self.col_dets[col_idx].get("dropdown_vals")
             if dropdown_vals:
@@ -325,6 +338,16 @@ class TableEntry(object):
             (dest_row, dest_col, direction) + "********************************" 
         self.AddCellMoveEvt(direction, dest_row, dest_col)
 
+    def OnGridEditorCreated(self, event):
+        """
+        Need to bind KeyDown to the control itself e.g. a choice control.
+        wx.WANTS_CHARS makes it work.
+        """
+        control = event.GetControl()
+        control.WindowStyle |= wx.WANTS_CHARS
+        control.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
+        event.Skip()
+
     def OnGridKeyDown(self, event):
         """
         Potentially capture use of keypress to move away from a cell.
@@ -366,10 +389,7 @@ class TableEntry(object):
         "Text browser - hit enter from text box part of composite control"
         if event.GetKeyCode() in [wx.WXK_RETURN]:
             self.grid.DisableCellEditControl()
-            #if final_col and direction in [my_globals.MOVE_RIGHT, my_globals.MOVE_DOWN]:
             self.AddCellMoveEvt(my_globals.MOVE_DOWN)
-            self.grid.SetFocus()
-            #self.grid.MoveCursorDown(expandSelection=False)
             
     def OnCellMove(self, event):
         """
@@ -397,6 +417,10 @@ class TableEntry(object):
                 (dest_row, dest_col) + "direction %s" % direction
         # ProcessCellMove called from text editor as well so keep separate
         self.ProcessCellMove(src_row, src_col, dest_row, dest_col, direction)
+        self.grid.SetFocus()
+        # http://www.nabble.com/Setting-focus-to-grid-td17920756.html
+        for window in self.grid.GetChildren():
+            window.SetFocus()
         event.Skip()
     
     def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, direction):

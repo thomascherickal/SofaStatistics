@@ -28,8 +28,10 @@ class TextBrowse(wx.PyControl):
     NB if Enter hit when in text box, custom event sent for processing.
     """
 
-    def __init__(self, parent, id, file_phrase, wildcard=""):
+    def __init__(self, parent, id, grid, file_phrase, wildcard=""):
         wx.Control.__init__(self, parent, -1)
+        self.parent = parent
+        self.grid = grid
         self.file_phrase = file_phrase
         self.wildcard = wildcard
         self.txt = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER)
@@ -39,11 +41,23 @@ class TextBrowse(wx.PyControl):
         self.btnBrowse.Bind(wx.EVT_BUTTON, self.OnBtnBrowseClick)
         self.btnBrowse.Bind(wx.EVT_KEY_DOWN, self.OnBtnBrowseKeyDown)
         szr = wx.BoxSizer(wx.HORIZONTAL)
-        szr.Add(self.txt, 1, wx.GROW|wx.RIGHT|wx.LEFT, 5)
-        szr.Add(self.btnBrowse, 0)
+        self.txt_margins = 5
+        self.btn_margin = 5
+        szr.Add(self.txt, 1, wx.RIGHT|wx.LEFT, self.txt_margins)
+        szr.Add(self.btnBrowse, 0, wx.RIGHT, self.btn_margin)
         szr.SetSizeHints(self)
         self.SetSizer(szr)
         self.Layout()
+        
+    def OnSize(self, event):
+        overall_width = self.GetSize()[0]
+        btn_width, btn_height = self.btnBrowse.GetSize()
+        inner_padding = (2*self.txt_margins) + self.btn_margin
+        self.txt.SetSize(wx.Size(overall_width - (btn_width + inner_padding), 
+                                 -1))
+        btn_x_pos = overall_width - (btn_width + self.btn_margin)
+        self.btnBrowse.SetDimensions(btn_x_pos, -1, btn_width, btn_height)
+        #event.Skip() # otherwise, resizing sets infinite number of EndEdits!    
     
     def OnTxtKeyDown(self, event):
         """
@@ -68,16 +82,6 @@ class TextBrowse(wx.PyControl):
             self.txt.SetFocus()
         else: # e.g. let it be processed
             event.Skip()
-    
-    def OnSize(self, event):
-        overall_width = self.GetSize()[0]
-        btn_size = self.btnBrowse.GetSize()
-        btn_width = btn_size[0]
-        btn_height = btn_size[1]
-        inner_padding = 10 # look at settings for left and right margins
-        self.txt.SetSize(wx.Size(overall_width - btn_width - inner_padding, -1))
-        self.btnBrowse.SetDimensions(overall_width - btn_width, -1, btn_width, btn_height)
-        #event.Skip() # otherwise, resizing sets infinite number of EndEdits!
     
     def OnBtnBrowseClick(self, event):
         "Open dialog and takes the file selected (if any)"
@@ -111,14 +115,15 @@ class GridCellTextBrowseEditor(wx.grid.PyGridCellEditor):
     The text browser can send a special event to the grid frame if Enter key
         pressed while in the text box.
     """
-    def __init__(self, file_phrase, wildcard):
+    def __init__(self, grid, file_phrase, wildcard):
         self.debug = False
         wx.grid.PyGridCellEditor.__init__(self)
+        self.grid = grid
         self.file_phrase = file_phrase
         self.wildcard = wildcard
     
     def Create(self, parent, id, evt_handler):
-        self.text_browse = TextBrowse(parent, -1, self.file_phrase, 
+        self.text_browse = TextBrowse(parent, -1, self.grid, self.file_phrase, 
                                       self.wildcard)
         self.SetControl(self.text_browse)
         if evt_handler:
