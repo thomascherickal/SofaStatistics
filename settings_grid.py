@@ -204,7 +204,7 @@ class TableEntry(object):
         for col_idx, col_det in enumerate(self.col_dets):
             col_type = col_det["col_type"]
             if col_type == COL_TEXT_BROWSE:
-                self.grid.SetDefaultRowSize(45)
+                self.grid.SetDefaultRowSize(30)
                 break
         # grid event handling
         self.grid.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
@@ -386,10 +386,17 @@ class TableEntry(object):
             event.Skip()
         
     def OnTextBrowseKeyDown(self, event):
-        "Text browser - hit enter from text box part of composite control"
+        """
+        Text browser - hit enter from text box part of composite control.  
+            If the final col, will go to left of new line.  Otherwise, will just
+            move right.
+        NB we only get here if editing the text browser.  If in the cell 
+            otherwise, enter will move you down, which is consistent with all 
+            other controls.
+        """
         if event.GetKeyCode() in [wx.WXK_RETURN]:
             self.grid.DisableCellEditControl()
-            self.AddCellMoveEvt(my_globals.MOVE_DOWN)
+            self.AddCellMoveEvt(my_globals.MOVE_RIGHT)
             
     def OnCellMove(self, event):
         """

@@ -41,8 +41,8 @@ class TextBrowse(wx.PyControl):
         self.btnBrowse.Bind(wx.EVT_BUTTON, self.OnBtnBrowseClick)
         self.btnBrowse.Bind(wx.EVT_KEY_DOWN, self.OnBtnBrowseKeyDown)
         szr = wx.BoxSizer(wx.HORIZONTAL)
-        self.txt_margins = 5
-        self.btn_margin = 5
+        self.txt_margins = 3
+        self.btn_margin = 3
         szr.Add(self.txt, 1, wx.RIGHT|wx.LEFT, self.txt_margins)
         szr.Add(self.btnBrowse, 0, wx.RIGHT, self.btn_margin)
         szr.SetSizeHints(self)
@@ -53,10 +53,11 @@ class TextBrowse(wx.PyControl):
         overall_width = self.GetSize()[0]
         btn_width, btn_height = self.btnBrowse.GetSize()
         inner_padding = (2*self.txt_margins) + self.btn_margin
-        self.txt.SetSize(wx.Size(overall_width - (btn_width + inner_padding), 
-                                 -1))
-        btn_x_pos = overall_width - (btn_width + self.btn_margin)
-        self.btnBrowse.SetDimensions(btn_x_pos, -1, btn_width, btn_height)
+        txt_width = overall_width - (btn_width + inner_padding)
+        self.txt.SetSize(wx.Size(txt_width, btn_height-2))
+        self.txt.SetDimensions(-1, 3, txt_width, -1)
+        btn_x_pos = overall_width - (btn_width + self.btn_margin)        
+        self.btnBrowse.SetDimensions(btn_x_pos, 2, btn_width, btn_height)
         #event.Skip() # otherwise, resizing sets infinite number of EndEdits!    
     
     def OnTxtKeyDown(self, event):
