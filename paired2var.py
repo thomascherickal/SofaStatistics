@@ -53,8 +53,8 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
                                         "tinysofa.xpm"), 
                            wx.BITMAP_TYPE_XPM)   
         self.SetIcons(ib)
-        self.GenConfigSetup()
-        self.SetupOutputButtons()
+        self.GenConfigSetup(self.panel) # mixin
+        self.SetupOutputButtons() # mixin
         szrMain = wx.BoxSizer(wx.VERTICAL)
         bxDesc = wx.StaticBox(self.panel, -1, "Variables")
         szrDesc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
@@ -97,7 +97,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrVarsBottom.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
         szrVars.Add(szrVarsTop, 1, wx.LEFT, 5)
         szrVars.Add(szrVarsBottom, 0, wx.LEFT, 5)
-        self.SetupGenConfigSizer()
+        self.SetupGenConfigSizer(self.panel) # mixin
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
         self.html = wx.html.HtmlWindow(self.panel, size=(200, 250))

@@ -59,8 +59,8 @@ class DlgMakeTable(wx.Dialog,
                                         "tinysofa.xpm"), 
                            wx.BITMAP_TYPE_XPM)   
         self.SetIcons(ib)
-        self.GenConfigSetup()
-        self.SetupOutputButtons()
+        self.GenConfigSetup(self.panel) # mixin
+        self.SetupOutputButtons() # mixin
         # title details
         lblTitles = wx.StaticText(self.panel, -1, "Title:")
         lblTitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -158,7 +158,7 @@ class DlgMakeTable(wx.Dialog,
         lbldemo_tbls.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         # main section SIZERS **************************************************************
         szrMain = wx.BoxSizer(wx.VERTICAL)
-        self.SetupGenConfigSizer()
+        self.SetupGenConfigSizer(self.panel) # mixin
         szrMid = wx.BoxSizer(wx.HORIZONTAL)
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         #2 MID

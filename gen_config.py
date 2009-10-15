@@ -5,21 +5,25 @@ import my_globals
 import getdata
 import projects
 
-LOCAL_PATH = my_globals.LOCAL_PATH
-
 
 class GenConfig(object):
     "The standard interface for choosing data, styles etc"
     
-    def GenConfigSetup(self):
+    def GenConfigSetup(self, panel):
         """
         Sets up dropdowns for database and tables, and textboxes plus Browse
             buttons for labels, style, output, and script.
         """
         self.LABEL_FONT = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
-        # Data details
-        # Databases
-        self.lblDatabases = wx.StaticText(self.panel, -1, "Database:")
+        self.DataConfigSetup(panel)
+        self.MiscConfigSetup(panel)
+        
+    def DataConfigSetup(self, panel):
+        """
+        Set up database details
+        """
+        # 1) Databases
+        self.lblDatabases = wx.StaticText(panel, -1, "Database:")
         self.lblDatabases.SetFont(self.LABEL_FONT)
         # get various db settings
         dbdetsobj = getdata.getDbDetsObj(self.dbe, self.default_dbs, 
@@ -29,73 +33,92 @@ class GenConfig(object):
         # set up self.dropDatabases and self.dropTables
         self.db = dbdetsobj.db
         self.tbl = dbdetsobj.tbl
-        getdata.setupDataDropdowns(self, self.panel, self.dbe, self.default_dbs, 
+        getdata.setupDataDropdowns(self, panel, self.dbe, self.default_dbs, 
                                    self.default_tbls, self.conn_dets, 
                                    self.dbs, self.db, self.tbls, self.tbl)
         self.dropDatabases.Bind(wx.EVT_CHOICE, self.OnDatabaseSel)
-        # Tables
-        self.lblTables = wx.StaticText(self.panel, -1, "Table:")
+        # 2) Tables
+        self.lblTables = wx.StaticText(panel, -1, "Table:")
         self.lblTables.SetFont(self.LABEL_FONT)
         self.dropTables.Bind(wx.EVT_CHOICE, self.OnTableSel)
+
+    def MiscConfigSetup(self, panel, readonly=False):
+        """
+        Set up details of data labels, table styles, output, and scripts
+        """
         # Data config details
-        self.txtVarDetsFile = wx.TextCtrl(self.panel, -1, self.fil_var_dets, 
+        self.txtVarDetsFile = wx.TextCtrl(panel, -1, self.fil_var_dets, 
                                          size=(250,-1))
         self.txtVarDetsFile.Bind(wx.EVT_KILL_FOCUS, self.OnVarDetsFileLostFocus)
-        self.btnVarDetsPath = wx.Button(self.panel, -1, "Browse")
+        self.txtVarDetsFile.Enable(not readonly)
+        self.btnVarDetsPath = wx.Button(panel, -1, "Browse")
         self.btnVarDetsPath.Bind(wx.EVT_BUTTON, self.OnButtonVarDetsPath)
+        self.btnVarDetsPath.Enable(not readonly)
         # CSS style config details
-        self.txtCssFile = wx.TextCtrl(self.panel, -1, self.fil_css, 
+        self.txtCssFile = wx.TextCtrl(panel, -1, self.fil_css, 
                                       size=(250,-1))
         self.txtCssFile.Bind(wx.EVT_KILL_FOCUS, self.OnCssFileLostFocus)
-        self.btnCssPath = wx.Button(self.panel, -1, "Browse")
+        self.txtCssFile.Enable(not readonly)
+        self.btnCssPath = wx.Button(panel, -1, "Browse")
         self.btnCssPath.Bind(wx.EVT_BUTTON, self.OnButtonCssPath)
+        self.btnCssPath.Enable(not readonly)
         # Output details
         # report
-        self.txtReportFile = wx.TextCtrl(self.panel, -1, self.fil_report, 
+        self.txtReportFile = wx.TextCtrl(panel, -1, self.fil_report, 
                                          size=(250,-1))
         self.txtReportFile.Bind(wx.EVT_KILL_FOCUS, self.OnReportFileLostFocus)
-        self.btnReportPath = wx.Button(self.panel, -1, "Browse")
+        self.txtReportFile.Enable(not readonly)
+        self.btnReportPath = wx.Button(panel, -1, "Browse")
         self.btnReportPath.Bind(wx.EVT_BUTTON, self.OnButtonReportPath)
+        self.btnReportPath.Enable(not readonly)
         # script
-        self.txtScriptFile = wx.TextCtrl(self.panel, -1, self.fil_script, 
+        self.txtScriptFile = wx.TextCtrl(panel, -1, self.fil_script, 
                                    size=(250,-1))
         self.txtScriptFile.Bind(wx.EVT_KILL_FOCUS, self.OnScriptFileLostFocus)
-        self.btnScriptPath = wx.Button(self.panel, -1, "Browse")
+        self.txtScriptFile.Enable(not readonly)
+        self.btnScriptPath = wx.Button(panel, -1, "Browse")
         self.btnScriptPath.Bind(wx.EVT_BUTTON, self.OnButtonScriptPath)
+        self.btnScriptPath.Enable(not readonly)
 
-    def SetupGenConfigSizer(self):
-        bxData = wx.StaticBox(self.panel, -1, "Data Source")
+    def SetupGenConfigSizer(self, panel):
+        self.SetupDataConfigSizer(panel)
+        self.SetupMiscConfigSizers(panel)
+        
+    def SetupDataConfigSizer(self, panel):
+        "Add pre-defined widgets to self.szrData"
+        bxData = wx.StaticBox(panel, -1, "Data Source")
         self.szrData = wx.StaticBoxSizer(bxData, wx.HORIZONTAL)
-        self.szrConfigTop = wx.BoxSizer(wx.HORIZONTAL)
-        self.szrConfigBottom = wx.BoxSizer(wx.HORIZONTAL)
-        #1 MAIN
-        #2 DATA
         self.szrData.Add(self.lblDatabases, 0, wx.LEFT|wx.RIGHT, 5)
         self.szrData.Add(self.dropDatabases, 0, wx.RIGHT, 10)
         self.szrData.Add(self.lblTables, 0, wx.RIGHT, 5)
         self.szrData.Add(self.dropTables, 0)
-        #2 CONFIG TOP
-        #3 VARIABLE CONFIG
-        bxVarConfig = wx.StaticBox(self.panel, -1, "Variable Config")
+              
+    def SetupMiscConfigSizers(self, panel):
+        "Add pre-defined widgets to self.szrConfigTop and self.szrConfigBottom"     
+        self.szrConfigTop = wx.BoxSizer(wx.HORIZONTAL)
+        self.szrConfigBottom = wx.BoxSizer(wx.HORIZONTAL)
+        # CONFIG TOP
+        # Variables
+        bxVarConfig = wx.StaticBox(panel, -1, "Variable Config")
         szrVarConfig = wx.StaticBoxSizer(bxVarConfig, wx.HORIZONTAL)
         szrVarConfig.Add(self.txtVarDetsFile, 1, wx.GROW)
         szrVarConfig.Add(self.btnVarDetsPath, 0, wx.LEFT|wx.RIGHT, 5)
         self.szrConfigTop.Add(szrVarConfig, 1, wx.RIGHT, 10)
-        #3 CSS CONFIG
-        bxCssConfig = wx.StaticBox(self.panel, -1, "Table Style")
+        # Css
+        bxCssConfig = wx.StaticBox(panel, -1, "Table Style")
         szrCssConfig = wx.StaticBoxSizer(bxCssConfig, wx.HORIZONTAL)
         szrCssConfig.Add(self.txtCssFile, 1, wx.GROW)
         szrCssConfig.Add(self.btnCssPath, 0, wx.LEFT|wx.RIGHT, 5)
         self.szrConfigTop.Add(szrCssConfig, 1)
-        #3 CONFIG BOTTOM
-        #3 REPORT
-        bxReportConfig = wx.StaticBox(self.panel, -1, "Output Report")
+        # CONFIG BOTTOM
+        # Report
+        bxReportConfig = wx.StaticBox(panel, -1, "Output Report")
         szrReportConfig = wx.StaticBoxSizer(bxReportConfig, wx.HORIZONTAL)
         szrReportConfig.Add(self.txtReportFile, 1, wx.GROW)
         szrReportConfig.Add(self.btnReportPath, 0, wx.LEFT|wx.RIGHT, 5)
         self.szrConfigBottom.Add(szrReportConfig, 1, wx.RIGHT, 10)
-        #3 SCRIPT
-        bxScriptConfig = wx.StaticBox(self.panel, -1, "Automation Script")
+        # Script
+        bxScriptConfig = wx.StaticBox(panel, -1, "Automation Script")
         szrScriptConfig = wx.StaticBoxSizer(bxScriptConfig, wx.HORIZONTAL)
         szrScriptConfig.Add(self.txtScriptFile, 1, wx.GROW)
         szrScriptConfig.Add(self.btnScriptPath, 0, wx.LEFT|wx.RIGHT, 5)
@@ -128,7 +151,7 @@ class GenConfig(object):
     def OnButtonReportPath(self, event):
         "Open dialog and takes the report file selected (if any)"
         dlgGetFile = wx.FileDialog(self, "Choose a report output file:", 
-            defaultDir=os.path.join(LOCAL_PATH, "reports"), 
+            defaultDir=os.path.join(my_globals.LOCAL_PATH, "reports"), 
             defaultFile="", 
             wildcard="HTML files (*.htm)|*.htm|HTML files (*.html)|*.html")
             #MUST have a parent to enforce modal in Windows
@@ -136,11 +159,7 @@ class GenConfig(object):
             self.fil_report = "%s" % dlgGetFile.GetPath()
             self.txtReportFile.SetValue(self.fil_report)
         dlgGetFile.Destroy()
-        
-    #def ReportPathEnterWindow(self, event):
-    #    "Hover over Report Path Browse button"
-    #    self.statusbar.SetStatusText("Select html file for reporting ...")
-    
+
     def OnReportFileLostFocus(self, event):
         "Reset report output file"
         self.fil_report = self.txtReportFile.GetValue()
@@ -149,7 +168,7 @@ class GenConfig(object):
     def OnButtonScriptPath(self, event):
         "Open dialog and takes the script file selected (if any)"
         dlgGetFile = wx.FileDialog(self, "Choose a file to export scripts to:", 
-            defaultDir=os.path.join(LOCAL_PATH, "scripts"), 
+            defaultDir=os.path.join(my_globals.LOCAL_PATH, "scripts"), 
             defaultFile="", wildcard="Scripts (*.py)|*.py")
             #MUST have a parent to enforce modal in Windows
         if dlgGetFile.ShowModal() == wx.ID_OK:
@@ -169,7 +188,7 @@ class GenConfig(object):
     def OnButtonVarDetsPath(self, event):
         "Open dialog and takes the variable details file selected (if any)"
         dlgGetFile = wx.FileDialog(self, "Choose a variable config file:", 
-            defaultDir=os.path.join(LOCAL_PATH, "vdts"), 
+            defaultDir=os.path.join(my_globals.LOCAL_PATH, "vdts"), 
             defaultFile="", wildcard="Config files (*.vdts)|*.vdts")
             #MUST have a parent to enforce modal in Windows
         if dlgGetFile.ShowModal() == wx.ID_OK:
@@ -182,7 +201,7 @@ class GenConfig(object):
     def OnButtonCssPath(self, event):
         "Open dialog and takes the css file selected (if any)"
         dlgGetFile = wx.FileDialog(self, "Choose a css table style file:", 
-            defaultDir=os.path.join(LOCAL_PATH, "css"), 
+            defaultDir=os.path.join(my_globals.LOCAL_PATH, "css"), 
             defaultFile="", 
             wildcard="CSS files (*.css)|*.css")
             #MUST have a parent to enforce modal in Windows

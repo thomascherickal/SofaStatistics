@@ -472,10 +472,13 @@ class TblEditor(wx.Dialog):
         If field is datetime, value must be valid date (or datetime).
         If field is text, cannot be longer than maximum length.
         """
-        if self.debug: print "In CellInvalid for row %s col %s" % (row, col)
+        debug = False
+        if self.debug or debug: 
+            print "In CellInvalid for row %s col %s" % (row, col)
         cell_invalid = False # innocent until proven guilty
         if self.dbtbl.NewRow(row):
-            if self.debug: print "New buffer is %s" % self.dbtbl.new_buffer
+            if self.debug or debug:
+                print "New buffer is %s" % self.dbtbl.new_buffer
             raw_val = self.dbtbl.new_buffer.get((row, col), 
                                                 db_tbl.MISSING_VAL_INDICATOR)
         else:
@@ -483,14 +486,14 @@ class TblEditor(wx.Dialog):
             existing_row_data_lst = self.dbtbl.row_vals_dic.get(row)
             if existing_row_data_lst:
                 prev_val = str(existing_row_data_lst[col])
-            if self.debug: print "prev_val: %s raw_val: %s" % (prev_val, 
-                                                               raw_val)
+            if self.debug or debug: 
+                print "prev_val: %s raw_val: %s" % (prev_val,  raw_val)
             if raw_val == prev_val:
-                if self.debug: print "Unchanged"
+                if self.debug or debug: print "Unchanged"
                 return False # i.e. OK
-            if self.debug: print "%s is changed!" % raw_val
+            if self.debug or debug: print "%s is changed!" % raw_val
         fld_dic = self.dbtbl.GetFldDic(col)        
-        if self.debug: 
+        if self.debug or debug: 
             print "\"%s\"" % raw_val
             print "Field dic is:"
             pprint.pprint(fld_dic)
@@ -544,16 +547,29 @@ class TblEditor(wx.Dialog):
             presumably flushes the value to where it becomes available to
             GetCellValue().
         """
-        self.grid.DisableCellEditControl()
-        val = self.grid.GetCellValue(row, col)
-        return val
+        debug = False
+        if self.dbtbl.bol_attempt_cell_update:
+            raw_val = self.dbtbl.val_of_cell_to_update
+            if self.debug or debug:
+                cell_val_unhidden = self.grid.GetCellValue(row, col)
+                self.grid.DisableCellEditControl()
+                cell_val_hidden = self.grid.GetCellValue(row, col)
+                print """val_of_cell_to_update: %s, cell_val_unhidden: %s, 
+                    cell_val_hidden: %s""" % (raw_val, cell_val_unhidden, 
+                                              cell_val_hidden)
+        else:
+            self.grid.DisableCellEditControl()
+            raw_val = self.grid.GetCellValue(row, col)
+        return raw_val
     
     def CellOKToSave(self, row, col):
         """
         Cannot be an invalid value (must be valid or missing value).
         And if missing value, must be nullable field.
         """
-        if self.debug: print "CellOKToSave - row %s col %s" % (row, col)
+        debug = False
+        if self.debug or debug: 
+            print "CellOKToSave - row %s col %s" % (row, col)
         raw_val = self.GetRawVal(row, col)
         fld_dic = self.dbtbl.GetFldDic(col)
         missing_not_nullable_prob = \

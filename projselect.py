@@ -100,8 +100,8 @@ class ProjSelectDlg(wx.Dialog):
         
     def OnEdit(self,event):
         proj_sel_id = self.dropProjs.GetSelection()        
-        read_only = (self.projs[proj_sel_id] == my_globals.SOFA_DEFAULT_PROJ)
-        dlgProj = projects.ProjectDlg(parent=self, read_only=read_only,
+        readonly = (self.projs[proj_sel_id] == my_globals.SOFA_DEFAULT_PROJ)
+        dlgProj = projects.ProjectDlg(parent=self, readonly=readonly,
                           fil_proj=self.projs[self.dropProjs.GetSelection()])
         # refresh projects list and display accordingly
         ret_val = dlgProj.ShowModal()
@@ -115,7 +115,7 @@ class ProjSelectDlg(wx.Dialog):
             self.SetToNameFromOK()
           
     def OnNewClick(self, event):
-        dlgProj = projects.ProjectDlg(parent=self, read_only=False)
+        dlgProj = projects.ProjectDlg(parent=self, readonly=False)
         ret_val = dlgProj.ShowModal()
         if ret_val == wx.ID_OK:
             self.SetToNameFromOK()
