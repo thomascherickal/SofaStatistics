@@ -271,15 +271,15 @@ class GetSettings(settings_grid.TableEntryDlg):
 class ProjectDlg(wx.Dialog, gen_config.GenConfig):
     def __init__(self, parent, readonly=False, fil_proj=None):
         wx.Dialog.__init__(self, parent=parent, title="Project Settings",
-                           size=(1090, 600),
+                           size=(1024, 600),
                            style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
-                           wx.TAB_TRAVERSAL, pos=(100, 0))
+                           wx.TAB_TRAVERSAL, pos=(0, 0))
         y_start = -15 if util.in_windows() else 0
         self.panel_top = wx.Panel(self, pos=(0,0))
         top_height = 185
         self.scroll_conn_dets = wx.PyScrolledWindow(self, 
                                         pos=(10, top_height + y_start), 
-                                        size=(1070, 355),
+                                        size=(1000, 355),
                                         style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
         self.scroll_conn_dets.SetScrollbars(10, 10, -1, -1) # else no scrollbars
         self.scroll_conn_dets.SetVirtualSize((1270, 620))
@@ -344,7 +344,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         lblProjNotes = wx.StaticText(self.panel_top, -1, "Notes:")
         lblProjNotes.SetFont(lblfont)
         self.txtProjNotes = wx.TextCtrl(self.panel_top, -1, self.proj_notes,
-                                        size=(670, 40), style=wx.TE_MULTILINE)
+                                        size=(600, 40), style=wx.TE_MULTILINE)
         self.txtProjNotes.Enable(not self.readonly)
         szrDesc = wx.BoxSizer(wx.HORIZONTAL)
         szrDesc.Add(lblName, 0, wx.RIGHT, 5)
