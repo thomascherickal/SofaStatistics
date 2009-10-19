@@ -22,8 +22,6 @@ import quotes
 import stats_select
 import util
 
-VERSION = "0.8.10"
-
 COPYRIGHT = "(c)" if util.in_windows() else "©" # "\xa9" problems with utf-8
 MAX_HELP_TEXT_WIDTH = 350 # pixels
 TEXT_BROWN = (90, 74, 61)
@@ -301,7 +299,7 @@ class StartFrame(wx.Frame):
         panel_dc.DrawBitmap(self.bmp_chart, 540, 260, True)
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel("Version %s" % VERSION, 
+        panel_dc.DrawLabel("Version %s" % my_globals.VERSION, 
                            wx.Rect(MAIN_LEFT, 6, 100, 20))   
         panel_dc.SetFont(wx.Font(16, wx.SWISS, wx.NORMAL, wx.NORMAL))
         panel_dc.DrawLabel("Statistics Open For All", 
@@ -427,7 +425,7 @@ class StartFrame(wx.Frame):
         event.Skip()
     
     def OnChartsClick(self, event):
-        wx.MessageBox("Not available yet in version %s" % VERSION)
+        wx.MessageBox("Not available yet in version %s" % my_globals.VERSION)
         event.Skip()
         
     def OnChartsEnter(self, event):

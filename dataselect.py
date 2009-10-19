@@ -14,8 +14,7 @@ import table_config
 class DataSelectDlg(wx.Dialog):
     def __init__(self, parent, proj_name):
         title = "Data in \"%s\" Project" % proj_name
-        wx.Dialog.__init__(self, parent=parent, title=title,
-                           size=(500, 300), 
+        wx.Dialog.__init__(self, parent=parent, title=title, 
                            style=wx.CAPTION|wx.CLOSE_BOX|
                            wx.SYSTEM_MENU, pos=(300, 100))
         self.parent = parent
@@ -50,23 +49,27 @@ class DataSelectDlg(wx.Dialog):
         self.chkReadOnly.SetValue(True)
         btnOpen = wx.Button(self.panel, wx.ID_OPEN)
         btnOpen.Bind(wx.EVT_BUTTON, self.OnOpen)
-        szrExistingTop = wx.BoxSizer(wx.HORIZONTAL)
+        self.btnDesign = wx.Button(self.panel, -1, "Design")
+        self.btnDesign.Bind(wx.EVT_BUTTON, self.OnDesign)
+        szrData = wx.FlexGridSizer(rows=2, cols=2, hgap=5, vgap=5)  
+        szrData.AddGrowableCol(1, 1)      
         lblDbs = wx.StaticText(self.panel, -1, "Databases:")
-        lblDbs.SetFont(lblfont)
-        szrExistingTop.Add(lblDbs, 0, wx.RIGHT, 5)
-        szrExistingTop.Add(self.dropDatabases, 0)
-        self.dropDatabases.Bind(wx.EVT_CHOICE, self.OnDatabaseSel)
-        szrExistingBottom = wx.BoxSizer(wx.HORIZONTAL)
+        lblDbs.SetFont(lblfont)        
+        szrData.Add(lblDbs, 0, wx.RIGHT, 5)
+        szrData.Add(self.dropDatabases, 0)
+        self.dropDatabases.Bind(wx.EVT_CHOICE, self.OnDatabaseSel)        
         lblTbls = wx.StaticText(self.panel, -1, "Data tables:")
         lblTbls.SetFont(lblfont)
-        szrExistingBottom.Add(lblTbls, 0, wx.RIGHT, 5)
-        szrExistingBottom.Add(self.dropTables, 1, wx.GROW|wx.RIGHT, 10)
-        szrExistingBottom.Add(self.chkReadOnly, 0, wx.TOP|wx.LEFT, 5)
+        szrData.Add(lblTbls, 0, wx.RIGHT, 5)
+        szrData.Add(self.dropTables, 1)        
+        szrExistingBottom = wx.BoxSizer(wx.HORIZONTAL)
+        szrExistingBottom.Add(self.chkReadOnly, 1, wx.TOP|wx.LEFT, 5)
+        szrExistingBottom.Add(self.btnDesign, 0, wx.RIGHT, 10)
         szrExistingBottom.Add(btnOpen, 0)
         bxExisting = wx.StaticBox(self.panel, -1, "Existing data tables")
         szrExisting = wx.StaticBoxSizer(bxExisting, wx.VERTICAL)
-        szrExisting.Add(szrExistingTop, 0, wx.GROW|wx.ALL, 10)
-        szrExisting.Add(szrExistingBottom, 0, wx.GROW|wx.ALL, 10)
+        szrExisting.Add(szrData, 0, wx.GROW|wx.ALL, 10)
+        szrExisting.Add(szrExistingBottom, 0, wx.GROW|wx.ALL, 10)        
         bxNew = wx.StaticBox(self.panel, -1, "")
         szrNew = wx.StaticBoxSizer(bxNew, wx.HORIZONTAL)
         lblMakeNew = wx.StaticText(self.panel, -1, "... or make a new data table")
@@ -77,20 +80,31 @@ class DataSelectDlg(wx.Dialog):
         self.lblFeedback = wx.StaticText(self.panel, -1, "")
         btnClose = wx.Button(self.panel, wx.ID_CLOSE)
         btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
+        szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         self.szrButtons = wx.BoxSizer(wx.HORIZONTAL)
         self.szrButtons.Add(self.lblFeedback, 1, wx.GROW|wx.ALL, 10)
-        self.szrButtons.Add(btnClose, 0, wx.RIGHT)        
+        self.szrButtons.Add(btnClose, 0, wx.RIGHT)
+        szrBottom.Add(self.szrButtons, 1, wx.GROW|wx.RIGHT, 15) # align with New        
         self.szrMain.Add(lblChoose, 0, wx.ALL, 10)
         self.szrMain.Add(szrExisting, 1, wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.GROW, 10)
         self.szrMain.Add(szrNew, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
-        self.szrMain.Add(self.szrButtons, 0, wx.GROW|wx.ALL, 10)
+        self.szrMain.Add(szrBottom, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
         self.Layout()
+        self._DesignButtonEnablement()
 
     def AddFeedback(self, feedback):
         self.lblFeedback.SetLabel(feedback)
         wx.Yield()
+    
+    def _DesignButtonEnablement(self):
+        """
+        Can only open dialog for design details for tables in the default SOFA 
+            database.
+        """
+        self.btnDesign.Enable(self.dbe == my_globals.DBE_SQLITE
+                              and self.db == my_globals.SOFA_DEFAULT_DB)       
         
     def OnDatabaseSel(self, event):
         (self.dbe, self.db, self.cur, self.tbls, self.tbl, self.flds, 
@@ -98,6 +112,7 @@ class DataSelectDlg(wx.Dialog):
         self.dropTables.SetItems(self.tbls)
         tbls_lc = [x.lower() for x in self.tbls]
         self.dropTables.SetSelection(tbls_lc.index(self.tbl.lower()))
+        self._DesignButtonEnablement()
     
     def OnTableSel(self, event):
         "Reset key data details after table selection."       
@@ -112,14 +127,61 @@ class DataSelectDlg(wx.Dialog):
               "lacks a unique index") # needed for caching even if read only
         else:
             wx.BeginBusyCursor()
-            read_only = self.chkReadOnly.IsChecked()
+            readonly = self.chkReadOnly.IsChecked()
             dlg = db_grid.TblEditor(self, self.dbe, self.conn, 
                                     self.cur, self.db, self.tbl, 
                                     self.flds, self.var_labels, self.idxs,
-                                    read_only)
+                                    readonly)
             wx.EndBusyCursor()
             dlg.ShowModal()
         event.Skip()
+    
+    def _getGenFldType(self, fld_type):
+        """
+        Get general field type from specific.
+        """
+        if fld_type.lower() in dbe_sqlite.NUMERIC_TYPES:
+            gen_fld_type = my_globals.CONF_NUMERIC
+        elif fld_type.lower() in dbe_sqlite.DATE_TYPES:
+            gen_fld_type = my_globals.CONF_DATE
+        else:
+            gen_fld_type = my_globals.CONF_STRING
+        return gen_fld_type
+    
+    def _getTableConfig(self, tbl_name):
+        """
+        Get ordered list of field names and field types for named table.
+        "Numeric", "Date", "String".
+        Only works for an SQLite database (should be the default one).
+        """
+        self.cur.execute("PRAGMA table_info(%s)" % tbl_name)
+        table_config = [(x[1], self._getGenFldType(fld_type=x[2])) for x in
+                         self.cur.fetchall()]
+        return table_config
+    
+    def OnDesign(self, event):
+        """
+        Open table config which reads values for the table.
+        NB only enabled (for either viewing or editing) for the default SQLite 
+            database.
+        """
+        tbl_name_lst = [self.tbl,]
+        data = self._getTableConfig(self.tbl)
+        new_grid_data = [] # not allowing change so not used
+        
+        if not self.chkReadOnly.IsChecked():
+            wx.MessageBox("Version %s of " % my_globals.VERSION +
+                "SOFA Statistics does not allow users to modify the design " +
+                "of existing databases.")
+            return
+        
+        # readonly = self.chkReadOnly.IsChecked() # only make live when can cope 
+        # with editing changes
+        readonly = True
+        
+        dlgConfig = table_config.ConfigTable(tbl_name_lst, data, new_grid_data, 
+                                             readonly)
+        ret = dlgConfig.ShowModal()
     
     def OnNewClick(self, event):
         """

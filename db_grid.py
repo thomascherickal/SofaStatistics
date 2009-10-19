@@ -5,6 +5,7 @@ import wx
 import wx.grid
 
 import my_globals
+import dbe_plugins.dbe_sqlite as dbe_sqlite 
 import db_tbl
 import getdata
 
@@ -36,7 +37,6 @@ Intended behaviour: tabbing moves left and right.  If at end, takes to next line
     line if possible.
 """
 
-
 class CellMoveEvent(wx.PyCommandEvent):
     "See 3.6.1 in wxPython in Action"
     def __init__(self, evtType, id):
@@ -55,7 +55,7 @@ EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 
 class TblEditor(wx.Dialog):
     def __init__(self, parent, dbe, conn, cur, db, tbl_name, flds, var_labels,
-                 idxs, read_only=True):
+                 idxs, readonly=True):
         self.debug = False
         wx.Dialog.__init__(self, None, 
                            title="Data from %s.%s" % (db, tbl_name),
@@ -73,12 +73,12 @@ class TblEditor(wx.Dialog):
         self.panel = wx.Panel(self, -1)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         self.grid = wx.grid.Grid(self.panel, size=(500, 600))
-        self.grid.EnableEditing(not read_only)
+        self.grid.EnableEditing(not readonly)
         self.dbtbl = db_tbl.DbTbl(self.grid, self.dbe, self.conn, self.cur, 
                                   tbl_name, self.flds, var_labels, idxs, 
-                                  read_only)
+                                  readonly)
         self.grid.SetTable(self.dbtbl, takeOwnership=True)
-        if read_only:
+        if readonly:
             self.grid.SetGridCursor(0, 0)
             self.current_row_idx = 0
             self.current_col_idx = 0
@@ -100,16 +100,8 @@ class TblEditor(wx.Dialog):
         self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnSelectCell)
         self.grid.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
         self.grid.Bind(EVT_CELL_MOVE, self.OnCellMove)
-        if read_only:
-            szrBottom = wx.FlexGridSizer(rows=1, cols=1, hgap=5, vgap=5)
-            szrBottom.AddGrowableCol(0,2) # idx, propn
-        else:
-            szrBottom = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
-            szrBottom.AddGrowableCol(1,2) # idx, propn 
-            btnConfig = wx.Button(self.panel, -1, "Table Config")
-            btnConfig.Bind(wx.EVT_BUTTON, self.OnEdit)
-            btnConfig.Disable()
-            szrBottom.Add(btnConfig, 0)
+        szrBottom = wx.FlexGridSizer(rows=1, cols=1, hgap=5, vgap=5)
+        szrBottom.AddGrowableCol(0,2) # idx, propn
         btnClose = wx.Button(self.panel, wx.ID_CLOSE)
         btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
         szrBottom.Add(btnClose, 0, wx.ALIGN_RIGHT)
@@ -755,9 +747,6 @@ class TblEditor(wx.Dialog):
         if debug: print "Cell changed"
         self.grid.ForceRefresh()
         event.Skip()
-    
-    def OnEdit(self, event):
-        pass
     
     def OnClose(self, event):
         self.Destroy()

@@ -107,8 +107,6 @@ class TableEntryDlg(wx.Dialog):
         """
         Insert before
         """
-        #if not self.panel.Validate(): # runs validators on all assoc controls
-        #    return True
         selected_rows = self.tabentry.grid.GetSelectedRows()
         if not selected_rows: 
             return

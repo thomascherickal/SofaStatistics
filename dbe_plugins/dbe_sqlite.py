@@ -13,6 +13,8 @@ import util
 
 DEFAULT_DB = "sqlite_default_db"
 DEFAULT_TBL = "sqlite_default_tbl"
+NUMERIC_TYPES = ["integer", "float", "numeric", "real"]
+DATE_TYPES = ["date", "datetime", "time", "timestamp"]
 
 # http://www.sqlite.org/lang_keywords.html
 # The following is non-standard but will work
@@ -121,7 +123,7 @@ class DbDets(getdata.DbDets):
             return int(match.group(1))
         except ValueError:
             return None
-
+    
     def getTblFlds(self, cur, db, tbl):
         "http://www.sqlite.org/pragma.html"
         # get encoding
@@ -133,12 +135,10 @@ class DbDets(getdata.DbDets):
         flds = {}
         for cid, fld_name, fld_type, notnull, dflt_value, pk in fld_dets:
             bolnullable = True if notnull == 0 else False
-            bolnumeric = fld_type.lower() in ["integer", "float", "numeric", 
-                                              "real"]
+            bolnumeric = fld_type.lower() in NUMERIC_TYPES
             bolautonum = (pk == 1 and fld_type.lower() == "integer")            
             boldata_entry_ok = False if bolautonum else True
-            boldatetime = fld_type.lower() in ["date", "datetime", "time", 
-                                               "timestamp"]
+            boldatetime = fld_type.lower() in DATE_TYPES
             fld_txt = not bolnumeric and not boldatetime
             dets_dic = {
                 my_globals.FLD_SEQ: cid,

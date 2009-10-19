@@ -129,14 +129,17 @@ class SafeTblNameValidator(wx.PyValidator):
     
 class ConfigTable(settings_grid.TableEntryDlg):
     
-    def __init__(self, tbl_name_lst, data, new_grid_data, insert_data_func=None, 
-                 cell_invalidation_func=None):
+    def __init__(self, tbl_name_lst, data, new_grid_data, readonly=False,
+                 insert_data_func=None, cell_invalidation_func=None):
         """
+        tbl_name_lst - passed in as a list so changes can be made without having 
+            to return anything. 
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
         new_grid_data - add details to it in form of a list of tuples.
         """
         self.tbl_name_lst = tbl_name_lst
+        self.readonly = readonly
         if not insert_data_func:
             insert_data_func = insert_data
         if not cell_invalidation_func:
@@ -161,7 +164,9 @@ class ConfigTable(settings_grid.TableEntryDlg):
         # New controls
         lblTblLabel = wx.StaticText(self.panel, -1, "Table Name:")
         lblTblLabel.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.txtTblName = wx.TextCtrl(self.panel, -1, "table001", size=(250,-1))
+        tbl_name = tbl_name_lst[0] if tbl_name_lst else "table001"
+        self.txtTblName = wx.TextCtrl(self.panel, -1, tbl_name, size=(250,-1))
+        self.txtTblName.Enable(not self.readonly)
         self.txtTblName.SetValidator(SafeTblNameValidator())
         # sizers
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
@@ -170,11 +175,12 @@ class ConfigTable(settings_grid.TableEntryDlg):
         self.szrTblLabel.Add(self.txtTblName, 1)
         self.szrMain.Add(self.szrTblLabel, 0, wx.GROW|wx.ALL, 10)
         self.tabentry = settings_grid.TableEntry(self, self.panel, 
-                                                 self.szrMain, 2, False, 
+                                                 self.szrMain, 2, self.readonly, 
                                                  grid_size, col_dets, data,  
                                                  new_grid_data, insert_data_func,
                                                  cell_invalidation_func)
-        self.SetupButtons(inc_delete=True, inc_insert=True)
+        self.SetupButtons(inc_delete=not self.readonly, 
+                          inc_insert=not self.readonly)
         self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
@@ -185,11 +191,12 @@ class ConfigTable(settings_grid.TableEntryDlg):
         """
         Override so we can extend to include table name.
         """
-        # NB must run Validate on the panel because the objects are contained by
-        # that and not the dialog itself. 
-        # http://www.nabble.com/validator-not-in-a-dialog-td23112169.html
-        if not self.panel.Validate(): # runs validators on all assoc controls
-            return True
+        if not self.readonly:
+            # NB must run Validate on the panel because the objects are 
+            # contained by that and not the dialog itself. 
+            # http://www.nabble.com/validator-not-in-a-dialog-td23112169.html
+            if not self.panel.Validate(): # runs validators on all assoc ctrls
+                return True
         self.tbl_name_lst.append(self.txtTblName.GetValue())
         self.tabentry.UpdateNewGridData()
         self.Destroy()

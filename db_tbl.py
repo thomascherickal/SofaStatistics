@@ -16,7 +16,7 @@ debug = False
 
 class DbTbl(wx.grid.PyGridTableBase):
     def __init__(self, grid, dbe, conn, cur, tbl, flds, var_labels, idxs, 
-                 read_only):
+                 readonly):
         wx.grid.PyGridTableBase.__init__(self)
         self.debug = False
         self.tbl = tbl
@@ -26,7 +26,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.quote_val = getdata.get_val_quoter_func(self.dbe)
         self.conn = conn
         self.cur = cur
-        self.read_only = read_only        
+        self.readonly = readonly        
         self.SetNumberRows()
         # dict with key = fld name and vals = dict of characteristics
         self.flds = flds 
@@ -108,11 +108,11 @@ class DbTbl(wx.grid.PyGridTableBase):
         SQL_num_rows = "SELECT COUNT(*) FROM %s" % self.quote_obj(self.tbl)
         self.cur.execute(SQL_num_rows)
         self.num_rows = self.cur.fetchone()[0]
-        if not self.read_only:
+        if not self.readonly:
             self.num_rows += 1
         if self.debug:
             print "N rows: %s" % self.num_rows
-        self.rows_to_fill = self.num_rows - 1 if self.read_only \
+        self.rows_to_fill = self.num_rows - 1 if self.readonly \
                 else self.num_rows - 2
     
     def GetNumberRows(self):
