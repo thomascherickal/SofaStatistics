@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 from datetime import datetime
 import os
 import pprint
@@ -156,7 +157,7 @@ def getHtmlHdr(hdr_title, css_fils):
                 old_class = "." + css_class
                 new_class = "." + \
                     my_globals.CSS_SUFFIX_TEMPLATE % (css_class, i)
-                if debug: print old_class, new_class
+                if debug: print(old_class, new_class)
                 css_txt = css_txt.replace(old_class, new_class)
             css_lst.append(css_txt)
             f.close()

@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from nose.tools import assert_equal
 from nose.tools import assert_almost_equal
@@ -26,8 +27,8 @@ def _test_ind_t_test(sample_a, sample_b, verbose=False):
     t2, p2, dic_a, dic_b = ttest_ind(sample_a, sample_b, "Male", "Female", 
                              use_orig_var=True)
     if verbose:
-        print "t1: %s t2: %s" % (t1, t2)
-        print "p1: %s p2: %s" % (p1, p2)
+        print("t1: %s t2: %s" % (t1, t2))
+        print("p1: %s p2: %s" % (p1, p2))
         pprint.pprint(dic_a)
         pprint.pprint(dic_b)
     assert_almost_equal(t1, t2)
@@ -37,8 +38,8 @@ def _test_mann_whitney(sample_a, sample_b, verbose=False):
     u1, p1 = stats.mannwhitneyu(sample_a, sample_b)
     u2, p2, dic_a, dic_b = mannwhitneyu(sample_a, sample_b, "Male", "Female")
     if verbose:
-        print "u1: %s u2: %s" % (u1, u2)
-        print "p1: %s p2: %s" % (p1, p2)
+        print("u1: %s u2: %s" % (u1, u2))
+        print("p1: %s p2: %s" % (p1, p2))
         pprint.pprint(dic_a)
         pprint.pprint(dic_b)
     assert_almost_equal(u1, u2)
@@ -59,8 +60,8 @@ def _test_rel_t_test(sample_a, sample_b, verbose=False):
     t1, p1 = stats.ttest_rel(sample_a, sample_b, True, "Male", "Female")
     t2, p2, dic_a, dic_b = ttest_rel(sample_a, sample_b, "Male", "Female")
     if verbose:
-        print "t1: %s t2: %s" % (t1, t2)
-        print "p1: %s p2: %s" % (p1, p2)
+        print("t1: %s t2: %s" % (t1, t2))
+        print("p1: %s p2: %s" % (p1, p2))
         pprint.pprint(dic_a)
         pprint.pprint(dic_b)
     assert_almost_equal(t1, t2)
@@ -70,8 +71,8 @@ def _test_wilcoxon(sample_a, sample_b, verbose=False):
     w1, p1 = stats.wilcoxont(sample_a, sample_b)
     w2, p2 = wilcoxont(sample_a, sample_b)
     if verbose:
-        print "w1: %s w2: %s" % (w1, w2)
-        print "p1: %s p2: %s" % (p1, p2)
+        print("w1: %s w2: %s" % (w1, w2))
+        print("p1: %s p2: %s" % (p1, p2))
     assert_almost_equal(w1, w2)
     assert_almost_equal(p1, p2)
     
@@ -79,8 +80,8 @@ def _test_pearsonr(sample_a, sample_b, verbose=False):
     r1, p1 = stats.pearsonr(sample_a, sample_b)
     r2, p2 = pearsonr(sample_a, sample_b)
     if verbose:
-        print "r1: %s r2: %s" % (r1, r2)
-        print "p1: %s p2: %s" % (p1, p2)
+        print("r1: %s r2: %s" % (r1, r2))
+        print("p1: %s p2: %s" % (p1, p2))
     assert_almost_equal(r1, r2)
     assert_almost_equal(p1, p2)
     
@@ -88,8 +89,8 @@ def _test_spearmanr(sample_a, sample_b, verbose=False):
     r1, p1 = stats.spearmanr(sample_a, sample_b)
     r2, p2 = spearmanr(sample_a, sample_b)
     if verbose:
-        print "r1: %s r2: %s" % (r1, r2)
-        print "p1: %s p2: %s" % (p1, p2)
+        print("r1: %s r2: %s" % (r1, r2))
+        print("p1: %s p2: %s" % (p1, p2))
     assert_almost_equal(r1, r2)
     assert_almost_equal(p1, p2)
  
@@ -127,8 +128,8 @@ def _test_kruskal_wallis_h(sample_lst, verbose=False):
     h1, p1 = stats.kruskalwallish(sample_lst)
     h2, p2 = kruskalwallish(sample_lst)
     if verbose:
-        print "h1: %s h2: %s" % (h1, h2)
-        print "p1: %s p2: %s" % (p1, p2)
+        print("h1: %s h2: %s" % (h1, h2))
+        print("p1: %s p2: %s" % (p1, p2))
     assert_almost_equal(h1, h2)
     assert_almost_equal(p1, p2)
 
@@ -139,8 +140,8 @@ def _test_anova(sample_lst, verbose=False):
     f2 = anova_res[1]
     p2 = anova_res[0]
     if verbose:
-        print "f1: %s f2: %s" % (f1, f2)
-        print "p1: %s p2: %s" % (p1, p2)
+        print("f1: %s f2: %s" % (f1, f2))
+        print("p1: %s p2: %s" % (p1, p2))
     assert_almost_equal(f1, float(f2))
     assert_almost_equal(p1, float(p2))
     
@@ -161,7 +162,7 @@ def test_betai():
         a = random.randint(600, 18000)/3.0 # 218
         b = random.randint(1,5)/3.0 # 1.5
         if x_near_edge:
-            print "Near edge"
+            print("Near edge")
             x = random.choice([0.000001234121, 0.99814821929386453580553591])
         else:
             x = random.random()
@@ -184,11 +185,11 @@ def test_betacf():
         a = random.randint(100, 10000)/3.0 # 660.333333333
         b = random.randint(1,5)/3.0 # 0.333333333333
         if x_near_edge:
-            print "Near edge"
+            print("Near edge")
             x = random.choice([0.000001234121, 0.994394814936])
         else:
             x = random.random()
-        print a, b, x
+        print(a, b, x)
         b1 = stats.lbetacf(a, b, x)
         b2 = float(betacf(a, b, x, high=True))
         assert_almost_equal(b1, b2)

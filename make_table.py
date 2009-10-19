@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import pprint
 import random
@@ -295,8 +296,8 @@ class MakeTable(object):
             fld_arg = ""
         else:
             fld_arg = "fld=\"%s\", " % child_fld_name
-        #print self.var_labels #debug
-        #print self.val_dics #debug
+        #print(self.var_labels) #debug
+        #print(self.val_dics) #debug
         var_label = self.var_labels.get(child_fld_name, 
                                         child_fld_name.title())
         labels_dic = self.val_dics.get(child_fld_name, {})
@@ -387,7 +388,7 @@ class MakeTable(object):
         Always use one css only (the current one).
         """
         demo_tbl_html = self.demo_tab.getDemoHTMLIfOK(css_idx=0)
-        #print "\n" + demo_tbl_html + "\n" #debug
+        #print("\n" + demo_tbl_html + "\n") #debug
         self.html.ShowHTML(demo_tbl_html)
 
     def TableConfigOK(self):

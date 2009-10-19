@@ -1,3 +1,4 @@
+from __future__ import print_function
 import wx
 import wx.grid
 import pprint
@@ -332,8 +333,8 @@ class TableEntry(object):
         else:
             raise Exception, "settings_grid.OnSelectCell - where is direction?"
         if self.debug or debug: 
-            print "OnSelectCell - selected row: %s, col: %s, direction: %s" % \
-            (dest_row, dest_col, direction) + "********************************" 
+            print("OnSelectCell - selected row: %s, col: %s, direction: %s" %
+            (dest_row, dest_col, direction) + "*******************************") 
         self.AddCellMoveEvt(direction, dest_row, dest_col)
 
     def OnGridEditorCreated(self, event):
@@ -357,7 +358,7 @@ class TableEntry(object):
         debug = False
         keycode = event.GetKeyCode()
         if self.debug or debug: 
-            print "OnGridKeyDown - keycode %s pressed" % keycode 
+            print("OnGridKeyDown - keycode %s pressed" % keycode) 
         if keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
             if keycode == wx.WXK_TAB:
                 if event.ShiftDown():
@@ -368,8 +369,8 @@ class TableEntry(object):
                 direction = my_globals.MOVE_DOWN
             src_row=self.current_row_idx
             src_col=self.current_col_idx
-            if self.debug or debug: print "OnGridKeyDown - keypress in row " + \
-                "%s col %s ******************************" % (src_row, src_col)
+            if self.debug or debug: print("OnGridKeyDown - keypress in row " +
+                "%s col %s ******************************" % (src_row, src_col))
             final_col = (src_col == len(self.col_dets) - 1)
             if final_col and direction in [my_globals.MOVE_RIGHT, 
                                            my_globals.MOVE_DOWN]:
@@ -417,9 +418,9 @@ class TableEntry(object):
         dest_col = event.dest_col # col being moved towards
         direction = event.direction
         if self.debug or debug: 
-            print "settings_grid.OnCellMove src_row: %s src_col %s " % \
-                (src_row, src_col) + "dest_row: %s dest_col: %s " % \
-                (dest_row, dest_col) + "direction %s" % direction
+            print("settings_grid.OnCellMove src_row: %s src_col %s " %
+                (src_row, src_col) + "dest_row: %s dest_col: %s " %
+                (dest_row, dest_col) + "direction %s" % direction)
         # ProcessCellMove called from text editor as well so keep separate
         self.ProcessCellMove(src_row, src_col, dest_row, dest_col, direction)
         self.grid.SetFocus()
@@ -435,10 +436,10 @@ class TableEntry(object):
         """
         debug = False
         if self.debug or debug:
-            print "ProcessCellMove - " + \
-                "source row %s source col %s " % (src_row, src_col) + \
-                "dest row %s dest col %s " % (dest_row, dest_col) + \
-                "direction: %s" % direction
+            print("ProcessCellMove - " +
+                "source row %s source col %s " % (src_row, src_col) +
+                "dest row %s dest col %s " % (dest_row, dest_col) +
+                "direction: %s" % direction)
         move_type, dest_row, dest_col = self._getMoveDets(src_row, src_col, 
                                         dest_row, dest_col, direction)
         if move_type in [my_globals.MOVING_IN_EXISTING, 
@@ -451,9 +452,9 @@ class TableEntry(object):
         else:
             raise Exception, "ProcessCellMove - Unknown move_type"
         if self.debug or debug:
-            print "move_type: %s move_to_dest: %s " % (move_type, 
-                                                       move_to_dest) + \
-                  "dest_row: %s dest_col: %s" % (dest_row, dest_col) 
+            print("move_type: %s move_to_dest: %s " % (move_type, 
+                                                       move_to_dest) +
+                  "dest_row: %s dest_col: %s" % (dest_row, dest_col))
         if move_to_dest:
             self.respond_to_select_cell = False # to prevent infinite loop!
             self.grid.SetGridCursor(dest_row, dest_col)
@@ -493,8 +494,8 @@ class TableEntry(object):
         # 1) move type
         final_col = (src_col == len(self.col_dets) - 1)
         was_new_row = self.NewRow(self.current_row_idx)
-        if debug: print "Current row idx: %s, src_row: %s, was_new_row: %s" % \
-            (self.current_row_idx, src_row, was_new_row)
+        if debug: print("Current row idx: %s, src_row: %s, was_new_row: %s" %
+                        (self.current_row_idx, src_row, was_new_row))
         dest_row_is_new = self._destRowIsCurrentNew(src_row, dest_row, 
                                                     direction, final_col)
         if was_new_row and dest_row_is_new:
@@ -575,7 +576,7 @@ class TableEntry(object):
         Return move_to_dest.
         """
         debug = False
-        if self.debug or debug: print "Was in existing, ordinary row"
+        if self.debug or debug: print("Was in existing, ordinary row")
         move_to_dest, msg = self.CellOKToSave(self.current_row_idx, 
                                               self.current_col_idx)
         if msg: wx.MessageBox(msg)
@@ -588,7 +589,7 @@ class TableEntry(object):
         Return move_to_dest.
         """
         debug = False
-        if self.debug or debug: print "Moving within new row"
+        if self.debug or debug: print("Moving within new row")
         invalid, msg = self.CellInvalid(self.current_row_idx, 
                                         self.current_col_idx)
         if msg: wx.MessageBox(msg)
@@ -608,9 +609,9 @@ class TableEntry(object):
         debug = False
         is_dirty = self.IsDirty(self.current_row_idx)
         if self.debug or debug: 
-            print "_leavingNewRow - dest row %s dest col %s " % \
-                (dest_row, dest_col) + \
-                "original direction %s dirty %s" % (direction, is_dirty)
+            print("_leavingNewRow - dest row %s dest col %s " %
+                (dest_row, dest_col) +
+                "original direction %s dirty %s" % (direction, is_dirty))
         if direction in [my_globals.MOVE_UP, my_globals.MOVE_UP_RIGHT, 
                          my_globals.MOVE_UP_LEFT] and not is_dirty:
             move_to_dest = True # always OK
@@ -670,8 +671,8 @@ class TableEntry(object):
         empty_ok = self.col_dets[col].get("empty_ok", False)
         cell_val = self.GetVal(row, col)
         if self.debug or debug:
-            print "CellOKToSave - row: %s, col: %s, " % (row, col) + \
-                "empty_ok: %s, cell_val: %s" % (empty_ok, cell_val)
+            print("CellOKToSave - row: %s, col: %s, " % (row, col) +
+                "empty_ok: %s, cell_val: %s" % (empty_ok, cell_val))
         empty_not_ok_prob = (cell_val == "" and not empty_ok)
         valid, msg = self.CellInvalid(row, col)
         if not msg and empty_not_ok_prob:
@@ -685,7 +686,7 @@ class TableEntry(object):
             the database will accept into its fields e.g. must be one of three 
             strings ("Numeric", "String", or "Date").
         """
-        if self.debug: print "RowOKToSave - row %s" % row
+        if self.debug: print("RowOKToSave - row %s" % row)
         for col_idx, col_det in enumerate(self.col_dets):
             ok_to_save, msg = self.CellOKToSave(row=row, col=col_idx)
             if not ok_to_save:
@@ -755,7 +756,7 @@ class TableEntry(object):
 
     def OnCellChange(self, event):
         debug = False
-        if self.debug or debug: print "Cell changed"
+        if self.debug or debug: print("Cell changed")
         self.grid.ForceRefresh()
         self.SafeLayoutAdjustment()
         event.Skip()

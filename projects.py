@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import wx
 import pprint
@@ -459,7 +460,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         try:
             fil_to_delete = os.path.join(LOCAL_PATH, "projs", 
                                    "%s.proj" % self.txtName.GetValue())
-            #print fil_to_delete # debug
+            #print(fil_to_delete) # debug
             os.remove(fil_to_delete)
         except Exception:
             pass
@@ -491,7 +492,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
                 # so OK to fail otherwise
                self.parent.StoreProjName("%s.proj" % proj_name)
             except Exception:
-                print "Failed to change to %s.proj" % proj_name
+                print("Failed to change to %s.proj" % proj_name)
                 pass
             proj_notes = self.txtProjNotes.GetValue()
             fil_var_dets = self.txtVarDetsFile.GetValue()

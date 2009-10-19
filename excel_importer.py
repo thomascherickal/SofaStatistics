@@ -1,3 +1,4 @@
+from __future__ import print_function
 import wx
 
 import dbe_plugins.dbe_sqlite as dbe_sqlite
@@ -52,7 +53,7 @@ class FileImporter(object):
                 if keep_importing == set([False]):
                     progBackup.SetValue(0)
                     raise ImportCancelException
-            if debug: print row
+            if debug: print(row)
             # if has_header, starts at 1st data row
             bolhas_rows = True
             # process row
@@ -81,13 +82,13 @@ class FileImporter(object):
         try:
             wkbook = excel_reader.Workbook(self.file_path)
             sheets = wkbook.GetSheets()
-            if debug: print sheets
+            if debug: print(sheets)
             wksheet = wkbook.GetSheet(name=sheets[0], 
                                       has_header=self.has_header)
             n_rows = wksheet.GetRowsN()
             # get field names
             fld_names = wksheet.GetFldNames()
-            if debug: print fld_names
+            if debug: print(fld_names)
             if self.has_header:
                 for row in wksheet: # prepare sheet to start after first row
                     break
@@ -98,14 +99,14 @@ class FileImporter(object):
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_rows else n_rows
         gauge_chunk = importer.getGaugeChunkSize(n_rows, sample_n)
         if debug: 
-            print "gauge_chunk: %s" % gauge_chunk
-            print "About to assess data sample"
+            print("gauge_chunk: %s" % gauge_chunk)
+            print("About to assess data sample")
         fld_types, sample_data = self.AssessDataSample(wksheet, fld_names,
                                         progBackup, gauge_chunk, keep_importing)
         if debug:
-            print "Just finished assessing data sample"
-            print fld_types
-            print sample_data
+            print("Just finished assessing data sample")
+            print(fld_types)
+            print(sample_data)
         # NB wksheet will be at position ready to access records after sample
         remaining_data = wksheet
         importer.AddToTmpTable(conn, cur, self.file_path, self.tbl_name, 

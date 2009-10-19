@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import wx
 
@@ -131,7 +132,7 @@ class GridCellTextBrowseEditor(wx.grid.PyGridCellEditor):
             self.text_browse.PushEventHandler(evt_handler)
     
     def BeginEdit(self, row, col, grid):
-        if self.debug: print "Beginning edit"
+        if self.debug: print("Beginning edit")
         self.text_browse.SetText(grid.GetCellValue(row, col))
         self.text_browse.SetFocus()
     

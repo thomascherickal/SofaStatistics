@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 
 import util # safe to import - never refers to anything in other modules
@@ -186,8 +187,8 @@ for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
             try:
                 dbe_mod = import_dbe_plugin(dbe_plugin)
             except Exception, e:
-                if debug: print "Problem adding dbe plugin %s" % dbe_plugin + \
-                    ". Orig err: %s" % e
+                if debug: print("Problem adding dbe plugin %s" % dbe_plugin +
+                    ". Orig err: %s" % e)
                 continue # skip bad module
             DBES.append(dbe_plugin)
             DBE_MODULES[dbe_plugin] = dbe_mod

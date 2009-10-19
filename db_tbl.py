@@ -59,7 +59,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         SQL_get_id_vals = "SELECT %s FROM %s ORDER BY %s" % \
             (self.quote_obj(self.id_col_name), self.quote_obj(self.tbl), 
              self.quote_obj(self.id_col_name))
-        if debug: print SQL_get_id_vals
+        if debug: print(SQL_get_id_vals)
         self.cur.execute(SQL_get_id_vals)
         # NB could easily be 10s or 100s of thousands of records
         ids_lst = [x[0] for x in self.cur.fetchall()]
@@ -94,14 +94,14 @@ class DbTbl(wx.grid.PyGridTableBase):
                     self.flds[fld_to_use][my_globals.FLD_BOLNUMERIC]
                 col_idx = self.fld_names.index(fld_to_use)
                 if self.debug:
-                    print "Col idx: %s" % col_idx
-                    print "Must quote:" + str(must_quote)
+                    print("Col idx: %s" % col_idx)
+                    print("Must quote:" + str(must_quote))
                 return col_idx, must_quote
     
     def GetNumberCols(self):
         num_cols = len(self.flds)
         if self.debug:
-            print "N cols: %s" % num_cols
+            print("N cols: %s" % num_cols)
         return num_cols
 
     def SetNumberRows(self):
@@ -111,7 +111,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         if not self.readonly:
             self.num_rows += 1
         if self.debug:
-            print "N rows: %s" % self.num_rows
+            print("N rows: %s" % self.num_rows)
         self.rows_to_fill = self.num_rows - 1 if self.readonly \
                 else self.num_rows - 2
     
@@ -197,7 +197,7 @@ class DbTbl(wx.grid.PyGridTableBase):
                                       IN_clause) + \
                 " ORDER BY %s" % self.quote_obj(self.id_col_name)
             if self.debug:
-                print SQL_get_values
+                print(SQL_get_values)
             self.conn.commit() # extra commits keep postgresql problems away
                 # when a cell change is rejected by SOFA Stats validation
             self.cur.execute(SQL_get_values)
@@ -233,8 +233,9 @@ class DbTbl(wx.grid.PyGridTableBase):
             cell.  Cache will be updated if, and only if, the cell is actually
             updated.
         """
-        if self.debug: print "SetValue - row %s, " % row + \
-            "col %s with value \"%s\" *************************" % (col, value)
+        if self.debug: 
+            print("SetValue - row %s, " % row +
+            "col %s with value \"%s\" *************************" % (col, value))
         if self.NewRow(row):
             self.new_buffer[(row, col)] = value
         else:
@@ -255,9 +256,9 @@ class DbTbl(wx.grid.PyGridTableBase):
                 " SET %s = %s " % (self.quote_obj(col_name), val2use) + \
                 " WHERE %s = " % self.id_col_name + str(id_value)
             if self.debug: 
-                print "SetValue - SQL update value: %s" % SQL_update_value
-                print "SetValue - Value of cell to update: %s" % \
-                    self.val_of_cell_to_update
+                print("SetValue - SQL update value: %s" % SQL_update_value)
+                print("SetValue - Value of cell to update: %s" %
+                    self.val_of_cell_to_update)
             self.SQL_cell_to_update = SQL_update_value
 
     def DisplayNewRow(self):

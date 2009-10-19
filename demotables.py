@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import random
 
@@ -49,7 +50,7 @@ class DemoTable(object):
         html += body_html
         html += "\n</table>"
         html += "\n</body>\n</html>"
-        #print html
+        #print(html)
         return html
 
 class DemoRawTable(rawtables.RawTable, DemoTable):
@@ -178,7 +179,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         (row_label_rows_lst, tree_row_labels, row_label_cols_n) = \
             self.getRowDets(css_idx)
         (tree_col_dets, hdr_html) = self.getHdrDets(row_label_cols_n, css_idx)
-        #print row_label_rows_lst #debug
+        #print(row_label_rows_lst) #debug
         row_label_rows_lst = self.getBodyHtmlRows(row_label_rows_lst,
                                                   tree_row_labels, 
                                                   tree_col_dets, css_idx)        
@@ -240,7 +241,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
             # add var e.g. gender then values below e.g. Male, Female
             var_name, var_label = getdata.extractChoiceDets(\
                 self.coltree.GetItemText(tree_dims_item))
-            #print var_name #debug
+            #print(var_name) #debug
             var_label = self.var_labels.get(var_name, var_name.title())
             new_var_node = tree_labels_node.addChild(\
                                             dimtables.LabelNode(label=var_label))
@@ -297,7 +298,8 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                             tree = self.rowtree
                         child_items = util.getTreeCtrlChildren(tree=tree, 
                                                         parent=tree_dims_item)
-                        #print util.getSubTreeItems(tree=tree, parent=tree_dims_item) #debug
+                        #print(util.getSubTreeItems(tree=tree, 
+                        #        parent=tree_dims_item)) #debug
                         for child_item in child_items:
                             self.addSubtreeToLabelTree(tree_dims_item=\
                                    child_item, tree_labels_node=subitem_node, 
@@ -367,7 +369,7 @@ class GenDemoTable(DemoDimTable):
         into the appropriate row list within row_label_rows_lst before
         concatenating and appending "</tr>".
         """
-        #print row_label_rows_lst #debug
+        #print(row_label_rows_lst) #debug
         col_term_nodes = tree_col_labels.getTerminalNodes()
         row_term_nodes = tree_row_labels.getTerminalNodes()
         col_filters_lst = [x.filts for x in col_term_nodes]
@@ -377,7 +379,7 @@ class GenDemoTable(DemoDimTable):
         row_filters_lst = [x.filts for x in row_term_nodes]
         row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
         data_cells_n = len(row_term_nodes) * len(col_term_nodes)
-        #print "%s data cells in table" % data_cells_n
+        #print("%s data cells in table" % data_cells_n)
         row_label_rows_lst = self.getRowLabelsRowLst(row_filters_lst, 
             row_filt_flds_lst, col_measures_lst, col_filters_lst, 
             col_tots_lst, col_filt_flds_lst, row_label_rows_lst, 
@@ -478,7 +480,7 @@ class SummDemoTable(DemoDimTable):
         col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
         col_tots_lst = [x.is_coltot for x in col_term_nodes]
         data_cells_n = len(row_term_nodes) * len(col_term_nodes)
-        #print "%s data cells in table" % data_cells_n
+        #print("%s data cells in table" % data_cells_n)
         row_label_rows_lst = self.getRowLabelsRowLst(row_filt_flds_lst, 
                                 row_measures_lst, col_filters_lst, 
                                 row_label_rows_lst, col_term_nodes, css_idx)

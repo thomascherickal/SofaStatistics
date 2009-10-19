@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import os
 import sys
@@ -55,14 +56,14 @@ class ProjSelectDlg(wx.Dialog):
         self.szrMain.Add(lblChoose, 0, wx.ALL, 10)
         self.szrMain.Add(szrExisting, 1, wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.GROW, 10)
         self.szrMain.Add(szrNew, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
-        self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
+        self.szrMain.Add(self.szrButtons, 0, wx.GROW|wx.ALL|wx.ALIGN_RIGHT, 25)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
         self.Layout()
     
     def StoreProjName(self, proj_name):
         "NB must have .proj on end"
-        #print proj_name # debug
+        #print(proj_name) # debug
         self.proj_name = proj_name
     
     def SetupButtons(self):

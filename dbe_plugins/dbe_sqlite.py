@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from pysqlite2 import dbapi2 as sqlite
 import pprint
@@ -92,8 +93,8 @@ class DbDets(getdata.DbDets):
         has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
         debug = False
         if debug:
-            print self.db
-            print self.tbl
+            print(self.db)
+            print(self.tbl)
             pprint.pprint(tbls)
             pprint.pprint(flds)
             pprint.pprint(idxs)
@@ -193,7 +194,7 @@ class DbDets(getdata.DbDets):
                 idxs.append(idx_dic)
         if debug:
             pprint.pprint(idxs)
-            print has_unique
+            print(has_unique)
         return has_unique, idxs
 
 def InsertRow(conn, cur, tbl_name, data):
@@ -217,7 +218,7 @@ def InsertRow(conn, cur, tbl_name, data):
     # e.g. " (?, ?, ? ...) "
     SQL_insert = "INSERT INTO `%s` " % tbl_name + fld_names_clause + \
         "VALUES %s" % fld_placeholders_clause
-    if debug: print SQL_insert
+    if debug: print(SQL_insert)
     data_lst = []
     for i, data_dets in enumerate(data):
         if debug: pprint.pprint(data_dets)
@@ -230,8 +231,8 @@ def InsertRow(conn, cur, tbl_name, data):
         conn.commit()
         return True
     except Exception, e:
-        if debug: print "Failed to insert row.  SQL: %s, Data: %s" % \
-            (SQL_insert, str(data_tup)) + "\n\nOriginal error: %s" % e
+        if debug: print("Failed to insert row.  SQL: %s, Data: %s" %
+            (SQL_insert, str(data_tup)) + "\n\nOriginal error: %s" % e)
         return False
 
 def setDataConnGui(parent, read_only, scroll, szr, lblfont):

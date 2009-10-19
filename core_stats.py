@@ -1,3 +1,5 @@
+
+from __future__ import print_function
 import copy
 import decimal
 import math
@@ -22,7 +24,7 @@ def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val):
     SQL_get_list = "SELECT %s FROM %s WHERE %s IS NOT NULL AND %s = %s" % \
                     (quoter(fld_measure), quoter(tbl), quoter(fld_measure), 
                      quoter(fld_filter), placeholder)
-    if debug: print SQL_get_list
+    if debug: print(SQL_get_list)
     cur.execute(SQL_get_list, (filter_val,))
     lst = [x[0] for x in cur.fetchall()]
     return lst
@@ -240,7 +242,7 @@ def anova_orig(lst_samples, lst_labels, high=False):
     msw = sswn/float(dfwn)
     F = msb/msw
     p = fprob(dfbn, dfwn, F)
-    print "using orig with F: %s" % F
+    print("using orig with F: %s" % F)
     return p, F, dics, sswn, dfwn, msw, ssbn, dfbn, msb
 
 def anova(samples, labels, high=True):
@@ -927,7 +929,7 @@ def betacf(a, b, x, high=False):
         bz = one
         if (abs(az-aold)<(EPS*abs(az))):
             return az
-    print 'a or b too big, or ITMAX too small in Betacf.'
+    print('a or b too big, or ITMAX too small in Betacf.')
 
 def summult (list1, list2):
     """
@@ -1141,9 +1143,9 @@ def fprob (dfnum, dfden, F, high=False):
         b = D("0.5")*dfnum
         x = dfden/(dfden + dfnum*F)
         if debug:
-            print "a: %s" % a
-            print "b: %s" % b
-            print "x: %s" % x
+            print("a: %s" % a)
+            print("b: %s" % b)
+            print("x: %s" % x)
         p = betai(a, b, x, high)
     else:
         p = betai(0.5*dfden, 0.5*dfnum, dfden/float(dfden+dfnum*F), high)

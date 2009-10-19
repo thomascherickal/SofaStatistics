@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import wx
 
@@ -162,7 +163,7 @@ def AddRows(conn, cur, rows, fld_names, fld_types, progBackup, gauge_chunk,
         fld_vals_clause = ", ".join(["%s" % x for x in vals])
         SQL_insert_row = "INSERT INTO %s " % TMP_SQLITE_TBL + \
             "(%s) VALUES(%s)" % (fld_names_clause, fld_vals_clause)
-        if debug: print SQL_insert_row
+        if debug: print(SQL_insert_row)
         try:
             cur.execute(SQL_insert_row)
             gauge_val = i*gauge_chunk
@@ -193,9 +194,9 @@ def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types,
     """
     debug = False
     if debug:
-        print "Field names are: %s" % fld_names
-        print "Field types are: %s" % fld_types
-        print "Sample data is: %s" % sample_data
+        print("Field names are: %s" % fld_names)
+        print("Field types are: %s" % fld_types)
+        print("Sample data is: %s" % sample_data)
     # create fresh disposable table to store data in.
     # give it a unique identifier field as well.
     fld_clause_items = ["sofa_id INTEGER PRIMARY KEY"]
@@ -216,16 +217,16 @@ def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types,
         SQL_drop_disp_tbl = "DROP TABLE IF EXISTS %s" % TMP_SQLITE_TBL
         cur.execute(SQL_drop_disp_tbl)        
         conn.commit()
-        if debug: print "Successfully dropped %s" % TMP_SQLITE_TBL
+        if debug: print("Successfully dropped %s" % TMP_SQLITE_TBL)
     except Exception, e:
         raise
     try:
         SQL_create_disp_tbl = "CREATE TABLE %s " % TMP_SQLITE_TBL + \
             " (%s)" % fld_clause
-        if debug: print SQL_create_disp_tbl
+        if debug: print(SQL_create_disp_tbl)
         cur.execute(SQL_create_disp_tbl)
         conn.commit()
-        if debug: print "Successfully created  %s" % TMP_SQLITE_TBL
+        if debug: print("Successfully created  %s" % TMP_SQLITE_TBL)
     except Exception, e:
         raise   
     try:
@@ -265,13 +266,13 @@ def TmpToNamedTbl(conn, cur, tbl_name, file_path, progBackup):
     try:
         SQL_drop_tbl = "DROP TABLE IF EXISTS %s" % \
             dbe_sqlite.quote_obj(tbl_name)
-        if debug: print SQL_drop_tbl
+        if debug: print(SQL_drop_tbl)
         cur.execute(SQL_drop_tbl)
         conn.commit()
         SQL_rename_tbl = "ALTER TABLE %s RENAME TO %s" % \
             (dbe_sqlite.quote_obj(TMP_SQLITE_TBL), 
              dbe_sqlite.quote_obj(tbl_name))
-        if debug: print SQL_rename_tbl
+        if debug: print(SQL_rename_tbl)
         cur.execute(SQL_rename_tbl)
         conn.commit()
     except Exception, e:

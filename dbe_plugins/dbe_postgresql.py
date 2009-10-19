@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import pgdb
 import wx
@@ -86,8 +87,8 @@ class DbDets(getdata.DbDets):
         """
         self.debug = False
         if self.debug:
-            print "Received db is: %s" % self.db
-            print "Received tbl is: %s" % self.tbl
+            print("Received db is: %s" % self.db)
+            print("Received tbl is: %s" % self.tbl)
         conn_dets_pgsql = self.conn_dets.get(my_globals.DBE_PGSQL)
         if not conn_dets_pgsql:
             raise Exception, "No connection details available for PostgreSQL"
@@ -144,8 +145,8 @@ class DbDets(getdata.DbDets):
         flds = self.getTblFlds(cur, self.db, self.tbl)
         has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
         if self.debug:
-            print "Db is: %s" % self.db
-            print "Tbl is: %s" % self.tbl
+            print("Db is: %s" % self.db)
+            print("Tbl is: %s" % self.tbl)
             pprint.pprint(tbls)
             pprint.pprint(flds)
             pprint.pprint(idxs)
@@ -333,7 +334,7 @@ class DbDets(getdata.DbDets):
         debug = False
         if debug:
             pprint.pprint(idxs)
-            print has_unique
+            print(has_unique)
         return has_unique, idxs
 
 def InsertRow(conn, cur, tbl_name, data):
@@ -354,13 +355,13 @@ def InsertRow(conn, cur, tbl_name, data):
     # e.g. " (%s, %s, %s ...) "
     SQL_insert = "INSERT INTO \"%s\" " % tbl_name + fld_names_clause + \
         "VALUES %s" % fld_placeholders_clause
-    if debug: print SQL_insert
+    if debug: print(SQL_insert)
     data_lst = []
     for i, data_dets in enumerate(data):
         if debug: pprint.pprint(data_dets)
         val, fld_name, fld_dic = data_dets
         val2use = getdata.PrepValue(my_globals.DBE_PGSQL, val, fld_dic)
-        if debug: print str(val2use) 
+        if debug: print(str(val2use)) 
         data_lst.append(val2use)
     data_tup = tuple(data_lst)
     if debug: pprint.pprint(data_tup)
@@ -369,8 +370,8 @@ def InsertRow(conn, cur, tbl_name, data):
         conn.commit()
         return True
     except Exception, e:
-        if debug: print "Failed to insert row.  SQL: %s, Data: %s" % \
-            (SQL_insert, str(data_tup)) + "\n\nOriginal error: %s" % e
+        if debug: print("Failed to insert row.  SQL: %s, Data: %s" %
+            (SQL_insert, str(data_tup)) + "\n\nOriginal error: %s" % e)
         return False
 
 def setDataConnGui(parent, read_only, scroll, szr, lblfont):

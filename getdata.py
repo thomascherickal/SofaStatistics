@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import pprint
 import wx
@@ -204,15 +205,15 @@ def PrepValue(dbe, val, fld_dic):
                 valid_datetime, timeobj = util.valid_datetime_str(val)
                 if not valid_datetime:
                     # will not execute successfully
-                    if debug: print "%s is not a valid datetime"
+                    if debug: print("%s is not a valid datetime")
                     val2use = val
                 else:
-                    if debug: print timeobj
+                    if debug: print(timeobj)
                     # might as well store in same way as MySQL
                     val2use = util.timeobj_to_datetime_str(timeobj)
         else:
             val2use = val
-        if debug: print val2use
+        if debug: print(val2use)
         prep_val = val2use
     return prep_val
 
@@ -242,7 +243,7 @@ def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, conn_dets,
             oth_db_choices = [(x, oth_dbe) for x in oth_dbs]
             db_choices.extend(oth_db_choices)
         except Exception, e:
-            if debug: print str(e)
+            if debug: print(str(e))
             pass # no connection possible
     parent.db_choice_items = [getDbItem(x[0], x[1]) for x in db_choices]
     parent.dropDatabases = wx.Choice(panel, -1, choices=parent.db_choice_items,
@@ -267,8 +268,8 @@ def RefreshDbDets(parent):
     db = dbdetsobj.db
     tbl = dbdetsobj.tbl
     if debug:
-        print "Db is: %s" % db
-        print "Tbl is: %s" % tbl
+        print("Db is: %s" % db)
+        print("Tbl is: %s" % tbl)
     return dbe, db, cur, tbls, tbl, flds, has_unique, idxs
 
 def RefreshTblDets(parent):

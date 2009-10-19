@@ -1,4 +1,6 @@
 
+from __future__ import print_function
+
 import wx
 import sys
 import pprint
@@ -101,10 +103,11 @@ class DataSelectDlg(wx.Dialog):
     def _DesignButtonEnablement(self):
         """
         Can only open dialog for design details for tables in the default SOFA 
-            database.
+            database (except for the default one).
         """
         self.btnDesign.Enable(self.dbe == my_globals.DBE_SQLITE
-                              and self.db == my_globals.SOFA_DEFAULT_DB)       
+                              and self.db == my_globals.SOFA_DEFAULT_DB
+                              and self.tbl != my_globals.SOFA_DEFAULT_TBL)       
         
     def OnDatabaseSel(self, event):
         (self.dbe, self.db, self.cur, self.tbls, self.tbl, self.flds, 
@@ -208,7 +211,7 @@ class DataSelectDlg(wx.Dialog):
                           my_globals.CONF_DATE: "DATETIME",
                           }
         for fld_name, fld_type in new_grid_data:
-            if debug: print fld_name, fld_type
+            if debug: print("%s %s" % (fld_name, fld_type))
             fld_clause_items.append("%s %s" % (dbe_sqlite.quote_obj(fld_name), 
                                                gen2sqlite_dic[fld_type]))
         fld_clause_items.append("UNIQUE(sofa_id)")

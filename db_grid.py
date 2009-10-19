@@ -1,3 +1,4 @@
+from __future__ import print_function
 from decimal import Decimal
 import pprint
 import util
@@ -163,8 +164,8 @@ class TblEditor(wx.Dialog):
         else:
             raise Exception, "db_grid.OnSelectCell - where is direction?"
         if self.debug: 
-            print "OnSelectCell - selected row: %s, col: %s, direction: %s" % \
-            (dest_row, dest_col, direction) + "********************************" 
+            print("OnSelectCell - selected row: %s, col: %s, direction: %s" %
+            (dest_row, dest_col, direction) + "*******************************") 
         self.AddCellMoveEvt(direction, dest_row, dest_col)
         
     def OnGridKeyDown(self, event):
@@ -178,7 +179,7 @@ class TblEditor(wx.Dialog):
         debug = False
         keycode = event.GetKeyCode()
         if self.debug or debug: 
-            print "OnGridKeyDown - keycode %s pressed" % keycode 
+            print("OnGridKeyDown - keycode %s pressed" % keycode) 
         if keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
             if keycode == wx.WXK_TAB:
                 if event.ShiftDown():
@@ -189,8 +190,9 @@ class TblEditor(wx.Dialog):
                 direction = my_globals.MOVE_DOWN
             src_row=self.current_row_idx
             src_col=self.current_col_idx
-            if self.debug or debug: print "OnGridKeyDown - keypress in row " + \
-                "%s col %s ******************************" % (src_row, src_col)
+            if self.debug or debug: 
+                print("OnGridKeyDown - keypress in row " +
+                "%s col %s ******************************" % (src_row, src_col))
             final_col = (src_col == len(self.flds) - 1)
             if final_col and direction in [my_globals.MOVE_RIGHT, 
                                            my_globals.MOVE_DOWN]:
@@ -225,9 +227,9 @@ class TblEditor(wx.Dialog):
         dest_col = event.dest_col # col being moved towards
         direction = event.direction
         if self.debug or debug: 
-            print "settings_grid.OnCellMove src_row: %s src_col %s " % \
-                (src_row, src_col) + "dest_row: %s dest_col: %s " % \
-                (dest_row, dest_col) + "direction %s" % direction
+            print("settings_grid.OnCellMove src_row: %s src_col %s " %
+                (src_row, src_col) + "dest_row: %s dest_col: %s " %
+                (dest_row, dest_col) + "direction %s" % direction)
         # ProcessCellMove called from text editor as well so keep separate
         self.ProcessCellMove(src_row, src_col, dest_row, dest_col, direction)
         event.Skip()
@@ -240,10 +242,10 @@ class TblEditor(wx.Dialog):
         debug = False
         self.dbtbl.ForceRefresh()
         if self.debug or debug:
-            print "ProcessCellMove - " + \
-                "source row %s source col %s " % (src_row, src_col) + \
-                "dest row %s dest col %s " % (dest_row, dest_col) + \
-                "direction: %s" % direction
+            print("ProcessCellMove - " +
+                "source row %s source col %s " % (src_row, src_col) +
+                "dest row %s dest col %s " % (dest_row, dest_col) +
+                "direction: %s" % direction)
         move_type, dest_row, dest_col = self._getMoveDets(src_row, src_col, 
                                         dest_row, dest_col, direction)
         if move_type in [my_globals.MOVING_IN_EXISTING, 
@@ -256,8 +258,8 @@ class TblEditor(wx.Dialog):
         else:
             raise Exception, "ProcessCellMove - Unknown move_type"
         if self.debug or debug:
-            print "Move type: %s" % move_type
-            print "OK to move to dest?: %s" % move_to_dest
+            print("Move type: %s" % move_type)
+            print("OK to move to dest?: %s" % move_to_dest)
         if move_to_dest:
             self.respond_to_select_cell = False # to prevent infinite loop!
             self.grid.SetGridCursor(dest_row, dest_col)
@@ -297,8 +299,8 @@ class TblEditor(wx.Dialog):
         # 1) move type
         final_col = (src_col == len(self.flds) - 1)
         was_new_row = self.NewRow(self.current_row_idx)
-        if debug: print "Current row idx: %s, src_row: %s, was_new_row: %s" % \
-            (self.current_row_idx, src_row, was_new_row)
+        if debug: print("Current row idx: %s, src_row: %s, was_new_row: %s" %
+            (self.current_row_idx, src_row, was_new_row))
         dest_row_is_new = self._destRowIsCurrentNew(src_row, dest_row, 
                                                     direction, final_col)
         if was_new_row and dest_row_is_new:
@@ -374,7 +376,7 @@ class TblEditor(wx.Dialog):
         Will update a cell if there is changed data and if it is valid.
         Return move_to_dest.
         """
-        if self.debug: print "Was in existing, ordinary row"
+        if self.debug: print("Was in existing, ordinary row")
         if not self.CellOKToSave(self.current_row_idx, 
                                  self.current_col_idx):
             move_to_dest = False
@@ -397,7 +399,7 @@ class TblEditor(wx.Dialog):
         Return move_to_dest.
         """
         debug = False
-        if self.debug or debug: print "Moving within new row"
+        if self.debug or debug: print("Moving within new row")
         move_to_dest = not self.CellInvalid(self.current_row_idx, 
                                             self.current_col_idx)
         return move_to_dest
@@ -415,8 +417,8 @@ class TblEditor(wx.Dialog):
         """
         debug = False
         if self.debug or debug: 
-            print "_leavingNewRow - dest row %s dest col %s orig directn %s" % \
-                (dest_row, dest_col, direction)
+            print("_leavingNewRow - dest row %s dest col %s orig directn %s" %
+                (dest_row, dest_col, direction))
         if direction in [my_globals.MOVE_UP, my_globals.MOVE_UP_RIGHT, 
                          my_globals.MOVE_UP_LEFT] and \
                 not self.dbtbl.new_is_dirty:
@@ -442,13 +444,13 @@ class TblEditor(wx.Dialog):
         max = fld_dic[my_globals.FLD_NUM_MAX_VAL]        
         if min is not None:
             if Decimal(raw_val) < Decimal(str(min)):
-                if self.debug: print "%s is < the min of %s" % (raw_val, min)
+                if self.debug: print("%s is < the min of %s" % (raw_val, min))
                 return False
         if max is not None:
             if Decimal(raw_val) > Decimal(str(max)):
-                if self.debug: print "%s is > the max of %s" % (raw_val, max)
+                if self.debug: print("%s is > the max of %s" % (raw_val, max))
                 return False
-        if self.debug: print "%s was accepted" % raw_val
+        if self.debug: print("%s was accepted" % raw_val)
         return True
     
     def CellInvalid(self, row, col):
@@ -466,11 +468,11 @@ class TblEditor(wx.Dialog):
         """
         debug = False
         if self.debug or debug: 
-            print "In CellInvalid for row %s col %s" % (row, col)
+            print("In CellInvalid for row %s col %s" % (row, col))
         cell_invalid = False # innocent until proven guilty
         if self.dbtbl.NewRow(row):
             if self.debug or debug:
-                print "New buffer is %s" % self.dbtbl.new_buffer
+                print("New buffer is %s" % self.dbtbl.new_buffer)
             raw_val = self.dbtbl.new_buffer.get((row, col), 
                                                 db_tbl.MISSING_VAL_INDICATOR)
         else:
@@ -479,15 +481,15 @@ class TblEditor(wx.Dialog):
             if existing_row_data_lst:
                 prev_val = str(existing_row_data_lst[col])
             if self.debug or debug: 
-                print "prev_val: %s raw_val: %s" % (prev_val,  raw_val)
+                print("prev_val: %s raw_val: %s" % (prev_val,  raw_val))
             if raw_val == prev_val:
-                if self.debug or debug: print "Unchanged"
+                if self.debug or debug: print("Unchanged")
                 return False # i.e. OK
-            if self.debug or debug: print "%s is changed!" % raw_val
+            if self.debug or debug: print("%s is changed!" % raw_val)
         fld_dic = self.dbtbl.GetFldDic(col)        
         if self.debug or debug: 
-            print "\"%s\"" % raw_val
-            print "Field dic is:"
+            print("\"%s\"" % raw_val)
+            print("Field dic is:")
             pprint.pprint(fld_dic)
         if raw_val == db_tbl.MISSING_VAL_INDICATOR or raw_val is None:
             return False
@@ -546,9 +548,9 @@ class TblEditor(wx.Dialog):
                 cell_val_unhidden = self.grid.GetCellValue(row, col)
                 self.grid.DisableCellEditControl()
                 cell_val_hidden = self.grid.GetCellValue(row, col)
-                print """val_of_cell_to_update: %s, cell_val_unhidden: %s, 
-                    cell_val_hidden: %s""" % (raw_val, cell_val_unhidden, 
-                                              cell_val_hidden)
+                print("""val_of_cell_to_update: %s, cell_val_unhidden: %s, 
+                      cell_val_hidden: %s""" % (raw_val, cell_val_unhidden, 
+                                                cell_val_hidden))
         else:
             self.grid.DisableCellEditControl()
             raw_val = self.grid.GetCellValue(row, col)
@@ -561,7 +563,7 @@ class TblEditor(wx.Dialog):
         """
         debug = False
         if self.debug or debug: 
-            print "CellOKToSave - row %s col %s" % (row, col)
+            print("CellOKToSave - row %s col %s" % (row, col))
         raw_val = self.GetRawVal(row, col)
         fld_dic = self.dbtbl.GetFldDic(col)
         missing_not_nullable_prob = \
@@ -581,7 +583,7 @@ class TblEditor(wx.Dialog):
             the database will accept into its fields e.g. must be one of three 
             strings ("Numeric", "String", or "Date").
         """
-        if self.debug: print "RowOKToSave - row %s" % row
+        if self.debug: print("RowOKToSave - row %s" % row)
         for col_idx in range(len(self.flds)):
             if not self.CellOKToSave(row=row, col=col_idx):
                 wx.MessageBox("Unable to save new row.  Invalid value " + \
@@ -599,7 +601,7 @@ class TblEditor(wx.Dialog):
             typed in 2pm and stored in CCYY-MM-DD HH:mm:ss as today's date time 
             stamp but at 2pm.
         """
-        if self.debug: print "UpdateCell - row %s col %s" % (row, col)
+        if self.debug: print("UpdateCell - row %s col %s" % (row, col))
         bolUpdatedCell = True
         try:
             self.dbtbl.conn.commit()
@@ -607,9 +609,9 @@ class TblEditor(wx.Dialog):
             self.dbtbl.conn.commit()
         except Exception, e:
             if self.debug: 
-                print "UpdateCell failed to save %s. " % \
-                    self.dbtbl.SQL_cell_to_update + \
-                    "Orig error: %s" % e
+                print("UpdateCell failed to save %s. " %
+                    self.dbtbl.SQL_cell_to_update +
+                    "Orig error: %s" % e)
             bolUpdatedCell = False
         if self.dbtbl.row_vals_dic.get(row):
             del self.dbtbl.row_vals_dic[row] # force a fresh read
@@ -635,15 +637,15 @@ class TblEditor(wx.Dialog):
         row_inserted = getdata.InsertRow(self.dbe, self.conn, self.cur, 
                                          self.tbl_name, data)
         if row_inserted:
-            if self.debug: print "SaveRow - Just inserted row"
+            if self.debug: print("SaveRow - Just inserted row")
         else:
-            if self.debug: print "SaveRow - Unable to insert row"
+            if self.debug: print("SaveRow - Unable to insert row")
             return False
         try:
             self.SetupNewRow(data)
             return True
         except:
-            if self.debug: print "SaveRow - Unable to setup new row"
+            if self.debug: print("SaveRow - Unable to setup new row")
             return False
 
     def SetupNewRow(self, data):
@@ -716,11 +718,11 @@ class TblEditor(wx.Dialog):
             elif fld_dic[my_globals.FLD_BOLDATETIME]:
                 col_width = 170
             if col_width:
-                if self.debug: print "Width of %s set to %s" % (fld_name, 
-                                                                col_width)
+                if self.debug: print("Width of %s set to %s" % (fld_name, 
+                                                                col_width))
                 self.grid.SetColSize(col_idx, col_width)
             else:
-                if self.debug: print "Autosizing %s" % fld_name
+                if self.debug: print("Autosizing %s" % fld_name)
                 self.grid.AutoSizeColumn(col_idx, setAsMin=False)            
             fld_name_width = len(fld_name)*pix_per_char
             # if actual column width is small and the label width is larger,
@@ -730,8 +732,8 @@ class TblEditor(wx.Dialog):
             if actual_width < 15*pix_per_char \
                     and actual_width < fld_name_width:
                 self.grid.SetColSize(col_idx, fld_name_width)
-            if self.debug: print "%s %s" % (fld_name, 
-                                            self.grid.GetColSize(col_idx))
+            if self.debug: print("%s %s" % (fld_name, 
+                                            self.grid.GetColSize(col_idx)))
         self.parent.AddFeedback("")
     
     def NewRow(self, row):
@@ -744,7 +746,7 @@ class TblEditor(wx.Dialog):
         new_row = self.dbtbl.NewRow(row)
         if new_row:
             self.dbtbl.new_is_dirty = True
-        if debug: print "Cell changed"
+        if debug: print("Cell changed")
         self.grid.ForceRefresh()
         event.Skip()
     

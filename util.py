@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import datetime
 import decimal
@@ -237,7 +238,7 @@ def valid_datetime_str(val):
     """
     debug = False
     if not isString(val):
-        if debug: print "%s is not a valid datetime string" % val
+        if debug: print("%s is not a valid datetime string" % val)
         return (False, None)
     # evaluate date and/or time components against allowable formats
     date_part, time_part, date_time_order = datetime_split(val)
@@ -286,7 +287,7 @@ def valid_datetime_str(val):
                           "%%Y-%%m-%%d %s" % ok_time_format)
     else:
         return False, None
-    if debug: print t
+    if debug: print(t)
     return True, t
 
 def get_time_taken(t1, t2):

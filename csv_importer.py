@@ -1,3 +1,4 @@
+from __future__ import print_function
 import csv
 import os
 import wx
@@ -109,7 +110,7 @@ class FileImporter(object):
                 # get number of fields
                 tmp_reader = csv.reader(csvfile, dialect=dialect)
                 for row in tmp_reader:
-                    if debug: print row
+                    if debug: print(row)
                     fld_names = ["Fld_%s" % (x+1,) for x in range(len(row))]
                     break
                 csvfile.seek(0)
@@ -117,8 +118,8 @@ class FileImporter(object):
             tot_size = os.path.getsize(self.file_path)
             row_size = self.getAvgRowSize(tmp_reader)
             if debug:
-                print "tot_size: %s" % tot_size
-                print "row_size: %s" % row_size
+                print("tot_size: %s" % tot_size)
+                print("row_size: %s" % row_size)
             csvfile.seek(0)
             n_rows = float(tot_size)/row_size            
             reader = csv.DictReader(csvfile, dialect=dialect, 

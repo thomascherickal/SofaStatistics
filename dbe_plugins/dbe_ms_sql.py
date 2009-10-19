@@ -6,6 +6,7 @@
 # Microsoft ActiveX Data Objects 2.8 Library (2.8) - and 
 #select OK.  NB DAO has to be done separately from ADO etc.
 
+from __future__ import print_function
 import adodbapi
 import win32com.client
 
@@ -82,7 +83,7 @@ class DbDets(getdata.DbDets):
         cur = conn.cursor()
         cur.adoconn = conn.adoConn # (need to be able to access from just the cursor)
         tbls = self.getDbTbls(cur, self.db)
-        if debug: print tbls
+        if debug: print(tbls)
         tbls_lc = [x.lower() for x in tbls]        
         # get table (default if possible otherwise first)
         # NB table must be in the database
@@ -104,8 +105,8 @@ class DbDets(getdata.DbDets):
         flds = self.getTblFlds(cur, self.db, self.tbl)
         has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
         if debug:
-            print self.db
-            print self.tbl
+            print(self.db)
+            print(self.tbl)
             pprint.pprint(tbls)
             pprint.pprint(flds)
             pprint.pprint(idxs)
@@ -192,7 +193,7 @@ class DbDets(getdata.DbDets):
         for col in cat.Tables(tbl).Columns:
             # build dic of fields, each with dic of characteristics
             fld_name = col.Name
-            if debug: print col.Type
+            if debug: print(col.Type)
             fld_type = dbe_globals.getADODic().get(col.Type)
             if not fld_type:
                 raise Exception, "Not an MS SQL Server ADO field type %d" % col.Type
@@ -264,7 +265,7 @@ class DbDets(getdata.DbDets):
         debug = False
         if debug:
             pprint.pprint(idxs)
-            print has_unique
+            print(has_unique)
         return has_unique, idxs
 
 def setDbInConnDets(conn_dets, db):
@@ -289,7 +290,7 @@ def InsertRow(conn, cur, tbl_name, data):
     # e.g. " (%s, %s, %s ...) "
     SQL_insert = "INSERT INTO `%s` " % tbl_name + fld_names_clause + \
         "VALUES %s" % fld_placeholders_clause
-    if debug: print SQL_insert
+    if debug: print(SQL_insert)
     data_lst = []
     for i, data_dets in enumerate(data):
         if debug: pprint.pprint(data_dets)
@@ -302,8 +303,8 @@ def InsertRow(conn, cur, tbl_name, data):
         conn.commit()
         return True
     except Exception, e:
-        if debug: print "Failed to insert row.  SQL: %s, Data: %s" % \
-            (SQL_insert, str(data_tup)) + "\n\nOriginal error: %s" % e
+        if debug: print("Failed to insert row.  SQL: %s, Data: %s" %
+            (SQL_insert, str(data_tup)) + "\n\nOriginal error: %s" % e)
         return False
 
 def setDataConnGui(parent, read_only, scroll, szr, lblfont):

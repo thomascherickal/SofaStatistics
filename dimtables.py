@@ -1,3 +1,4 @@
+from __future__ import print_function
 import my_globals
 import tree
 import numpy
@@ -131,7 +132,7 @@ class DimTable(object):
             (my_globals.CSS_TBL_TITLE_CELL, css_idx)
         CSS_SPACEHOLDER = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_SPACEHOLDER, css_idx)        
-        #print tree_col_labels #debug
+        #print(tree_col_labels) #debug
         col_label_rows_n = tree_col_labels.getDepth()
         col_label_rows_lst = [["<tr>"] for x in range(col_label_rows_n)]
         #title/subtitle etc share their own row
@@ -166,12 +167,12 @@ class DimTable(object):
             #flatten row list
             hdr_html += "\n" + "".join(row) + "</tr>"
         hdr_html += "\n</thead>"
-        #print tree_col_labels
+        #print(tree_col_labels)
         return (tree_col_labels, hdr_html)
       
     def processRowTree(self, tree_row_labels, css_idx):
         "Turn row label tree into labels"
-        #print tree_row_labels #debug
+        #print(tree_row_labels) #debug
         row_label_cols_n = tree_row_labels.getDepth() - 1 #exclude root node
         row_label_rows_n = len(tree_row_labels.getTerminalNodes())
         row_label_rows_lst = [["<tr>"] for x in range(row_label_rows_n)]
@@ -223,7 +224,7 @@ class DimTable(object):
             (my_globals.CSS_ROW_VAR, css_idx)
         CSS_ROW_VAL = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_ROW_VAL, css_idx)
-        #print node #debug
+        #print(node) #debug
         level = node.level
         if level > 0: # skip adding cells for root node itself
             row_offset = level - 1 # e.g. first row level is 0
@@ -498,7 +499,7 @@ class LiveTable(DimTable):
         val_labels = tree_dims_node.labels
         bolnumeric = tree_dims_node.bolnumeric
         fld = tree_dims_node.fld
-        #print tree_dims_node #debug        
+        #print(tree_dims_node) #debug        
         final_filt_clause = self.getValsFiltClause(tree_dims_node, 
                                                    tree_labels_node,
                                                    oth_dim_root)
@@ -506,7 +507,7 @@ class LiveTable(DimTable):
             " FROM " + self.datasource + \
             " WHERE " + final_filt_clause + \
             " GROUP BY " + fld
-        #print SQL_get_vals #debug
+        #print(SQL_get_vals) #debug
         self.cur.execute(SQL_get_vals)
         #get vals and their frequency (across all the other dimension)
         val_freq_label_lst = [(val, val_freq, \
@@ -771,7 +772,7 @@ class GenTable(LiveTable):
         row_filters_lst = [x.filts for x in row_term_nodes]
         row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
         data_cells_n = len(row_term_nodes) * len(col_term_nodes)
-        if self.debug: print "%s data cells in table" % data_cells_n
+        if self.debug: print("%s data cells in table" % data_cells_n)
         row_label_rows_lst = self.getRowLabelsRowLst(row_filters_lst, 
             row_filt_flds_lst, col_measures_lst, col_filters_lst, 
             col_tots_lst, col_filt_flds_lst, row_label_rows_lst, 
@@ -860,11 +861,11 @@ class GenTable(LiveTable):
                     SQL_select_results = "SELECT " + \
                              ", ".join(SQL_table_select_clauses_lst) + \
                              " FROM " + self.datasource
-                    #print SQL_select_results #debug but reset max_select... low first
+                    #print(SQL_select_results) #debug but reset max_select... low first
                     self.cur.execute(SQL_select_results)
                     
-                    #print results # ()
-                    #print self.cur.fetchone() # [1,0,1,0,0,1 etc]
+                    #print(results) # ()
+                    #print(self.cur.fetchone()) # [1,0,1,0,0,1 etc]
                     
                     
                     results += self.cur.fetchone()
@@ -943,7 +944,7 @@ class GenTable(LiveTable):
                                                     denom_filters_lst)) + ")"
             perc = "100*(%s)/%s" % (numerator, denominator)
             template = self.if_clause % (NOTNULL % perc, perc, 0)
-            #print template #debug
+            #print(template) #debug
             return template
         elif measure == my_globals.ROWPCT:
             if not is_coltot:
@@ -963,7 +964,7 @@ class GenTable(LiveTable):
                     self.get_summable(" AND ".join(denom_filters_lst)) + ")"
                 perc = "100*(%s)/%s" % (numerator, denominator)
                 template = self.if_clause % (NOTNULL % perc, perc, 0)
-                #print numerator, denominator
+                #print(numerator, denominator)
                 return template
             else:
                 return "100"
@@ -1008,7 +1009,7 @@ class SummTable(LiveTable):
         col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
         col_tots_lst = [x.is_coltot for x in col_term_nodes]
         data_cells_n = len(row_term_nodes) * len(col_term_nodes)
-        if self.debug: print "%s data cells in table" % data_cells_n
+        if self.debug: print("%s data cells in table" % data_cells_n)
         row_label_rows_lst = self.getRowLabelsRowLst(row_filt_flds_lst, 
                                 row_measures_lst, col_filters_lst, 
                                 row_label_rows_lst, col_term_nodes, css_idx)
@@ -1066,7 +1067,7 @@ class SummTable(LiveTable):
                 "FROM %s %s" % (self.datasource, filter)
             self.cur.execute(SQL_get_raw_vals)
             data = [x[0] for x in self.cur.fetchall() if x[0]]
-            if debug: print data
+            if debug: print(data)
         if measure == my_globals.SUM:
             SQL_get_sum = "SELECT SUM(%s) " % row_fld + \
                 "FROM " + self.datasource + filter
