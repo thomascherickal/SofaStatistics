@@ -27,8 +27,8 @@ class FileImporter(object):
         """
         Get any user choices required.
         """
-        retCode = wx.MessageBox("Does the spreadsheet have a header row?", 
-							    "HEADER ROW?", 
+        retCode = wx.MessageBox(_("Does the spreadsheet have a header row?"), 
+							    _("HEADER ROW?"), 
 							    wx.YES_NO | wx.ICON_INFORMATION)
         self.has_header = (retCode == wx.YES)
         return True
@@ -95,7 +95,8 @@ class FileImporter(object):
         except Exception, e:
             raise Exception, "Unable to read spreadsheet. " + \
                 "Orig error: %s" % e
-        conn, cur, _, _, _, _, _ = getdata.GetDefaultDbDets()
+        conn, cur, unused, unused, unused, unused, unused = \
+            getdata.GetDefaultDbDets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_rows else n_rows
         gauge_chunk = importer.getGaugeChunkSize(n_rows, sample_n)
         if debug: 

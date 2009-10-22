@@ -909,7 +909,9 @@ class GenTable(LiveTable):
         """
         # To get freq, evaluate matching values to 1 (otherwise 0) then sum
         # With most dbs, boolean returns 1 for True and 0 for False
-        freq = "SUM(" + self.get_summable(" AND ".join(row_filters_lst + col_filters_lst)) + ")"
+        freq = "SUM(" + \
+            self.get_summable(" AND ".join(row_filters_lst + col_filters_lst)) \
+            + ")"
         col_freq = "SUM(" + self.get_summable(" AND ".join( row_filters_lst + \
                                          all_but_last_col_filters_lst)) + ")"
         #pprint.pprint(freq) # debug
@@ -988,7 +990,7 @@ class SummTable(LiveTable):
         tree_col_labels = LabelNodeTree()
         tree_col_labels = self.addSubtreesToColLabelTree(tree_col_labels)
         if tree_col_labels.getDepth() == 1:
-            tree_col_labels.addChild(LabelNode(label="Measures"))
+            tree_col_labels.addChild(LabelNode(label=_("Measures")))
         return self.processHdrTree(tree_col_labels, row_label_cols_n, css_idx)
         
     def getBodyHtmlRows(self, row_label_rows_lst, tree_row_labels,

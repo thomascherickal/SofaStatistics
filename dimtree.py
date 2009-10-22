@@ -1,4 +1,6 @@
-
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+import pprint
 import wx
 
 import my_globals
@@ -7,7 +9,6 @@ import util
 import make_table
 import getdata
 import projects
-import pprint
 
 SORT_OPT_NONE = 0 #No sorting options
 SORT_OPT_BY_LABEL = 1 #Only provide option of sorting by label
@@ -74,9 +75,9 @@ class DimTree(object):
             min_data_type = my_globals.VAR_TYPE_CAT
         var_names = projects.GetAppropVarNames(min_data_type, self.var_types, 
                                                self.flds)
-        choices, _ = getdata.getSortedChoiceItems(\
+        choices, unused = getdata.getSortedChoiceItems(\
                                 dic_labels=self.var_labels, vals=var_names)
-        dlg = wx.MultiChoiceDialog(self, "Select a variable", "Variables", 
+        dlg = wx.MultiChoiceDialog(self, _("Select a variable"), _("Variables"), 
                                    choices=choices)
         if dlg.ShowModal() == wx.ID_OK:
             # only use in one dimension
@@ -85,20 +86,21 @@ class DimTree(object):
                 used_in_oth_dim = self.UsedInOthDim(text, oth_dim_tree, 
                                                     oth_dim_root)
                 if used_in_oth_dim:
-                    wx.MessageBox("Variable '%s' has already been used in " % \
-                                  text + "%s dimension" % oth_dim)
+                    wx.MessageBox(_("Variable '%(text)s' has already been "
+                                    "used in %(oth_dim)s dimension") % \
+                                    {"text": text, "oth_dim": oth_dim})
                     return
                 # in raw tables, can only use once
                 if self.tab_type == my_globals.RAW_DISPLAY:
                     used_in_this_dim = self.UsedInThisDim(text, tree, root)
                     if used_in_this_dim:
-                        wx.MessageBox("Variable '%s' cannot be used " % text + \
-                                      "more than once")
+                        wx.MessageBox(_("Variable '%s' cannot be used "
+                                      "more than once") % text)
                         return
             # they all passed the tests so proceed
             for text in text_selected:
                 new_id = tree.AppendItem(root, text)
-                var_name, _ = getdata.extractChoiceDets(text)
+                var_name, unused = getdata.extractChoiceDets(text)
                 self.setInitialConfig(tree, dim, new_id, var_name)
             if text_selected:
                 tree.UnselectAll() # multiple
@@ -142,17 +144,17 @@ class DimTree(object):
         selected_ids = tree.GetSelections()
         if root not in selected_ids \
                 and self.tab_type != my_globals.COL_MEASURES:
-            wx.MessageBox("Rows can only be nested in column " + \
-                              "measures tables")
+            wx.MessageBox(_("Rows can only be nested in column"
+                            " measures tables"))
             return
         if len(selected_ids) == 1:
             self.TryAddingUnder(tree, root, dim, oth_dim, selected_ids[0], 
                                 oth_dim_tree, oth_dim_root)
         elif len(selected_ids) == 0:
-            wx.MessageBox("Select a %s variable first" % dim)
+            wx.MessageBox(_("Select a %s variable first") % dim)
             return
         else:
-            wx.MessageBox("Can only add under a single selected item.")
+            wx.MessageBox(_("Can only add under a single selected item."))
             return
     
     def OnColAddUnder(self, event):
@@ -171,10 +173,10 @@ class DimTree(object):
             self.TryAddingUnder(tree, root, dim, oth_dim, selected_ids[0], 
                                 oth_dim_tree, oth_dim_root)
         elif len(selected_ids) == 0:
-            wx.MessageBox("Select a %s variable first" % dim)
+            wx.MessageBox(_("Select a %s variable first") % dim)
             return
         else:
-            wx.MessageBox("Can only add under a single selected item.")
+            wx.MessageBox(_("Can only add under a single selected item."))
             return
         
     def TryAddingUnder(self, tree, root, dim, oth_dim, selected_id, 
@@ -187,8 +189,8 @@ class DimTree(object):
         choices = [getdata.getChoiceItem(self.var_labels, x) \
                    for x in choice_var_names]
         choices.sort(key=lambda s: s.upper())
-        dlg = wx.MultiChoiceDialog(self, "Select a variable", 
-                                   "Variables", choices=choices)
+        dlg = wx.MultiChoiceDialog(self, _("Select a variable"), 
+                                   _("Variables"), choices=choices)
         if dlg.ShowModal() == wx.ID_OK:
             text_selected = [choices[x] for x in dlg.GetSelections()]
             for text in text_selected:
@@ -204,17 +206,18 @@ class DimTree(object):
                 used_in_oth_dim = self.UsedInOthDim(text, oth_dim_tree, 
                                                     oth_dim_root)                
                 if text in ancestor_labels:
-                    wx.MessageBox("Variable %s cannot be an " % text + \
-                                  "ancestor of itself" )
+                    wx.MessageBox(_("Variable %s cannot be an "
+                                  "ancestor of itself") % text)
                     return
                 elif used_in_oth_dim:
-                    wx.MessageBox("Variable %s already used in %s dimension" \
-                                  % (text, oth_dim))
+                    wx.MessageBox(_("Variable %(text)s already used in "
+                                    "%(oth_dim)s dimension") % {"text": text, 
+                                                            "oth_dim": oth_dim})
                     return
             # they all passed the test so proceed        
             for text in text_selected:
                 new_id = tree.AppendItem(selected_id, text)
-                var_name, _ = getdata.extractChoiceDets(text)
+                var_name, unused = getdata.extractChoiceDets(text)
                 self.setInitialConfig(tree, dim, new_id, var_name)
                 # empty all measures from ancestors and ensure sorting 
                 # is appropriate
@@ -395,8 +398,9 @@ class DimTree(object):
                     self.getColConfig(node_ids=selected_ids, has_col_vars=True)
                 self.UpdateDemoDisplay()
             else:
-                wx.MessageBox("If configuring multiple items at once, they must " + \
-                              "all have children or none can have children")
+                msg = _("If configuring multiple items at once, they "
+                    "must all have children or none can have children")
+                wx.MessageBox(msg)
             
     def getColConfig(self, node_ids, has_col_vars):
         """
@@ -432,47 +436,11 @@ class DimTree(object):
                            sort_opt_allowed=sort_opt_allowed, 
                            has_col_vars=has_col_vars)
         dlg.ShowModal()
-
-    def OnAddRowEnterWindow(self, event):
-        "Hover over Add (for Row) button"
-        self.statusbar.SetStatusText("Add row to table")
-            
-    def OnAddColEnterWindow(self, event):
-        "Hover over Add (for Column) button"
-        self.statusbar.SetStatusText("Add column to table")
-        
-    def OnAddRowUnderEnterWindow(self, event):
-        "Hover over Add Under (for Row) button"
-        self.statusbar.SetStatusText("Nest row under existing table row")
-
-    def OnAddColUnderEnterWindow(self, event):
-        "Hover over Add Under (for Column) button"
-        self.statusbar.SetStatusText("Nest column under existing " + \
-                                     "table column")
-        
-    def OnDeleteRowEnterWindow(self, event):
-        "Hover over Delete (for Row) button"
-        self.statusbar.SetStatusText("Delete table row and all rows " + \
-                                     "nested underneath")
-        
-    def OnDeleteColEnterWindow(self, event):
-        "Hover over Delete (for Column) button"
-        self.statusbar.SetStatusText("Delete table column and all " + \
-                                     "columns nested underneath")
-    def OnConfigRowEnterWindow(self, event):
-        "Hover over Config (for Row) button"
-        self.statusbar.SetStatusText("Configure row variable - " + \
-                                     "e.g. measures, totals")
-
-    def OnConfigColEnterWindow(self, event):
-        "Hover over Config (for column) button"
-        self.statusbar.SetStatusText("Configure column variable - " + \
-                                     "e.g. measures, totals")
-        
+       
     def setupDimTree(self, tree):
         "Setup Dim Tree and return root"
-        tree.AddColumn("Variable")
-        tree.AddColumn("Config")
+        tree.AddColumn(_("Variable"))
+        tree.AddColumn(_("Config"))
         tree.SetMainColumn(0)
         tree.SetColumnWidth(0, 150)
         tree.SetColumnWidth(1, 500)
@@ -519,7 +487,7 @@ class DlgConfig(wx.Dialog):
         lblVar = wx.StaticText(self, -1, tree.GetItemText(first_node_id))
         szrMain.Add(lblVar, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
         if self.allow_tot:
-            boxMisc = wx.StaticBox(self, -1, "Misc")
+            boxMisc = wx.StaticBox(self, -1, _("Misc"))
             szrMisc = wx.StaticBoxSizer(boxMisc, wx.VERTICAL)
             self.chkTotal = wx.CheckBox(self, -1, my_globals.HAS_TOTAL, 
                                         size=chkSize)
@@ -528,7 +496,7 @@ class DlgConfig(wx.Dialog):
             szrMisc.Add(self.chkTotal, 0, wx.LEFT, 5)
             szrMain.Add(szrMisc, 0, wx.GROW|wx.ALL, 10)
         if self.sort_opt_allowed != SORT_OPT_NONE:
-            self.radSortOpts = wx.RadioBox(self, -1, "Sort order",
+            self.radSortOpts = wx.RadioBox(self, -1, _("Sort order"),
                                        choices=[my_globals.SORT_NONE, 
                                                 my_globals.SORT_LABEL,
                                                 my_globals.SORT_FREQ_ASC,
@@ -551,7 +519,7 @@ class DlgConfig(wx.Dialog):
             szrMain.Add(self.radSortOpts, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.measure_chks_dic = {}
         if self.measures:
-            boxMeasures = wx.StaticBox(self, -1, "Measures")
+            boxMeasures = wx.StaticBox(self, -1, _("Measures"))
             szrMeasures = wx.StaticBoxSizer(boxMeasures, wx.VERTICAL)
             for measure, label in self.measures:
                 chk = wx.CheckBox(self, -1, label, 
@@ -626,7 +594,7 @@ class DlgRowConfig(DlgConfig):
     
     def __init__(self, parent, var_labels, node_ids, tree, inc_measures, 
                  sort_opt_allowed):
-        title = "Configure Row Item"
+        title = _("Configure Row Item")
         if inc_measures:
             self.measures = [
                 (my_globals.MEAN, 
@@ -653,7 +621,7 @@ class DlgColConfig(DlgConfig):
     
     def __init__(self, parent, var_labels, node_ids, tree, inc_measures, 
                  sort_opt_allowed, has_col_vars=True):
-        title = "Configure Column Item"
+        title = _("Configure Column Item")
         if inc_measures:
             self.measures = [
                 (my_globals.FREQ, 

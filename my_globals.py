@@ -21,30 +21,30 @@ ROW_SUMM = 1
 RAW_DISPLAY = 2
 COL_MEASURES_TREE_LBL = "Column measures"
 # dimension trees
-ROWDIM = "row" #double as labels
-COLDIM = "column"
+ROWDIM = _("row") #double as labels
+COLDIM = _("column")
 # actual options selected ...
-SORT_NONE = "None" #double as labels
-SORT_LABEL = "By Label"
-SORT_FREQ_ASC = "By Freq (Asc)"
-SORT_FREQ_DESC = "By Freq (Desc)"
+SORT_NONE = _("None") #double as labels
+SORT_LABEL = _("By Label")
+SORT_FREQ_ASC = _("By Freq (Asc)")
+SORT_FREQ_DESC = _("By Freq (Desc)")
 # can use content of constant as a short label
-FREQ = "Freq"
-ROWPCT = "Row %"
-COLPCT = "Col %"
-SUM = "Sum"
-MEAN = "Mean"
-MEDIAN = "Median"
+FREQ = _("Freq")
+ROWPCT = _("Row %")
+COLPCT = _("Col %")
+SUM = _("Sum")
+MEAN = _("Mean")
+MEDIAN = _("Median")
 SUMM_N = "N" # N used in Summary tables
-STD_DEV = "Std Dev"
-measures_long_label_dic = {FREQ: "Frequency", 
-                           ROWPCT: "Row %",
-                           COLPCT: "Column %",
-                           SUM: "Sum", 
-                           MEAN: "Mean",
-                           MEDIAN: "Median", 
+STD_DEV = _("Std Dev")
+measures_long_label_dic = {FREQ: _("Frequency"), 
+                           ROWPCT: _("Row %"),
+                           COLPCT: _("Column %"),
+                           SUM: _("Sum"), 
+                           MEAN: _("Mean"),
+                           MEDIAN: _("Median"), 
                            SUMM_N: "N",
-                           STD_DEV: "Standard Deviation"}
+                           STD_DEV: _("Standard Deviation")}
 # content of constant and constant (ready to include in exported script)
 # e.g. "dimtables.%s" "ROWPCT"
 script_export_measures_dic = {FREQ: "FREQ", 
@@ -87,7 +87,7 @@ CSS_ELEMENTS = [CSS_ALIGN_RIGHT, CSS_LBL, CSS_TBL_TITLE,
 CSS_SUFFIX_TEMPLATE = "%s%s"
 
 # projects ******************************************************
-EMPTY_PROJ_NAME = "GIVE ME A NAME ..."
+EMPTY_PROJ_NAME = _("GIVE ME A NAME ...")
 SOFA_DEFAULT_DB = "SOFA_Default_db"
 SOFA_DEFAULT_TBL = "SOFA_Default_tbl"
 SOFA_DEFAULT_PROJ = "SOFA_Default_Project.proj"
@@ -103,9 +103,9 @@ INT_SCRIPT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, "script.py")
 INT_REPORT_FILE = "report.htm"
 INT_REPORT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, INT_REPORT_FILE)
 DEFAULT_CSS_PATH = os.path.join(LOCAL_PATH, "css", SOFA_DEFAULT_STYLE)
-VAR_TYPE_CAT = "Nominal (names only)"
-VAR_TYPE_ORD = "Ordinal (rank only)"
-VAR_TYPE_QUANT = "Quantity (is an amount)"
+VAR_TYPE_CAT = _("Nominal (names only)")
+VAR_TYPE_ORD = _("Ordinal (rank only)")
+VAR_TYPE_QUANT = _("Quantity (is an amount)")
 VAR_TYPES = [VAR_TYPE_CAT, VAR_TYPE_ORD, VAR_TYPE_QUANT]
 VAR_IDX_CAT = 0
 VAR_IDX_ORD = 1
@@ -193,10 +193,10 @@ for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
             DBES.append(dbe_plugin)
             DBE_MODULES[dbe_plugin] = dbe_mod
             
-# table config
-CONF_NUMERIC = "Numeric"
-CONF_STRING = "String"
-CONF_DATE = "Date"
+# table config labels
+CONF_NUMERIC = _("Numeric")
+CONF_STRING = _("String")
+CONF_DATE = _("Date")
 # grids
 # move directions
 MOVE_LEFT = "move left"

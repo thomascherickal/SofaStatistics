@@ -35,7 +35,8 @@ class DlgMakeTable(wx.Dialog,
                  fil_script="", var_labels=None, var_notes=None, 
                  val_dics=None):
          
-        wx.Dialog.__init__(self, parent=None, id=-1, title="Make Report Table", 
+        wx.Dialog.__init__(self, parent=None, id=-1, 
+                           title=_("Make Report Table"), 
                            pos=(200, 0),
                            style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
                            wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
@@ -62,71 +63,71 @@ class DlgMakeTable(wx.Dialog,
         self.GenConfigSetup(self.panel) # mixin
         self.SetupOutputButtons() # mixin
         # title details
-        lblTitles = wx.StaticText(self.panel, -1, "Title:")
+        lblTitles = wx.StaticText(self.panel, -1, _("Title:"))
         lblTitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         self.txtTitles = wx.TextCtrl(self.panel, -1, size=(50,40), 
                                      style=wx.TE_MULTILINE)
         self.txtTitles.Bind(wx.EVT_TEXT, self.OnTitleChange)
-        lblSubtitles = wx.StaticText(self.panel, -1, "Subtitle:")
+        lblSubtitles = wx.StaticText(self.panel, -1, _("Subtitle:"))
         lblSubtitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, 
                                           wx.BOLD))
         self.txtSubtitles = wx.TextCtrl(self.panel, -1, size=(50,40), 
                                         style=wx.TE_MULTILINE)
         self.txtSubtitles.Bind(wx.EVT_TEXT, self.OnSubtitleChange)
         #radio
-        self.radTabType = wx.RadioBox(self.panel, -1, "Table Type", 
-                         choices=("Column measures e.g. FREQ, row % etc",
-                                  "Summarise rows e.g. MEAN, MEDIAN etc",
-                                  "Display table data as is"),
+        self.radTabType = wx.RadioBox(self.panel, -1, _("Table Type"), 
+                         choices=(_("Column measures e.g. FREQ, row % etc"),
+                                  _("Summarise rows e.g. MEAN, MEDIAN etc"),
+                                  _("Display table data as is")),
                          style=wx.RA_SPECIFY_ROWS)
         self.radTabType.Bind(wx.EVT_RADIOBOX, self.OnTabTypeChange)
         self.tab_type = self.radTabType.GetSelection()
         # option checkboxs
-        self.chkTotalsRow = wx.CheckBox(self.panel, -1, "Totals Row?")
+        self.chkTotalsRow = wx.CheckBox(self.panel, -1, _("Totals Row?"))
         self.chkTotalsRow.Bind(wx.EVT_CHECKBOX, self.OnChkTotalsRow)
         self.chkFirstAsLabel = wx.CheckBox(self.panel, -1, 
-                                           "First col as label?")
+                                           _("First col as label?"))
         self.chkFirstAsLabel.Bind(wx.EVT_CHECKBOX, self.OnChkFirstAsLabel)
         self.EnableOpts(enable=False)
         #text labels
-        lblRows = wx.StaticText(self.panel, -1, "Rows:")
+        lblRows = wx.StaticText(self.panel, -1, _("Rows:"))
         lblRows.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        lblCols = wx.StaticText(self.panel, -1, "Columns:")
+        lblCols = wx.StaticText(self.panel, -1, _("Columns:"))
         lblCols.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         #buttons
         #rows
-        self.btnRowAdd = wx.Button(self.panel, -1, "Add")
+        self.btnRowAdd = wx.Button(self.panel, -1, _("Add"))
         self.btnRowAdd.Bind(wx.EVT_BUTTON, self.OnRowAdd)
         #self.btnRowAdd.Bind(wx.EVT_ENTER_WINDOW, self.OnAddRowEnterWindow)
         #self.btnRowAdd.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        self.btnRowAddUnder = wx.Button(self.panel, -1, "Add Under")
+        self.btnRowAddUnder = wx.Button(self.panel, -1, _("Add Under"))
         self.btnRowAddUnder.Bind(wx.EVT_BUTTON, self.OnRowAddUnder)
         #self.btnRowAddUnder.Bind(wx.EVT_ENTER_WINDOW, self.OnAddRowUnderEnterWindow)
         #self.btnRowAddUnder.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        self.btnRowDel = wx.Button(self.panel, -1, "Delete")
+        self.btnRowDel = wx.Button(self.panel, -1, _("Delete"))
         self.btnRowDel.Bind(wx.EVT_BUTTON, self.OnRowDelete)
         #self.btnRowDel.Bind(wx.EVT_ENTER_WINDOW, self.OnDeleteRowEnterWindow)
         #self.btnRowDel.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        self.btnRowConf = wx.Button(self.panel, -1, "Config")
+        self.btnRowConf = wx.Button(self.panel, -1, _("Config"))
         self.btnRowConf.Bind(wx.EVT_BUTTON, self.OnRowConfig)
         #self.btnRowConf.Bind(wx.EVT_ENTER_WINDOW, self.OnConfigRowEnterWindow)
         #self.btnRowConf.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         #cols
-        self.btnColAdd = wx.Button(self.panel, -1, "Add")
+        self.btnColAdd = wx.Button(self.panel, -1, _("Add"))
         self.btnColAdd.Bind(wx.EVT_BUTTON, self.OnColAdd)
         #self.btnColAdd.Bind(wx.EVT_ENTER_WINDOW, self.OnAddColEnterWindow)
         #self.btnColAdd.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        self.btnColAddUnder = wx.Button(self.panel, -1, "Add Under")
+        self.btnColAddUnder = wx.Button(self.panel, -1, _("Add Under"))
         self.btnColAddUnder.Bind(wx.EVT_BUTTON, self.OnColAddUnder)
         #self.btnColAddUnder.Bind(wx.EVT_ENTER_WINDOW, 
         #                    self.OnAddColUnderEnterWindow)
         #self.btnColAddUnder.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        self.btnColDel = wx.Button(self.panel, -1, "Delete")
+        self.btnColDel = wx.Button(self.panel, -1, _("Delete"))
         self.btnColDel.Bind(wx.EVT_BUTTON, self.OnColDelete)
         #self.btnColDel.Bind(wx.EVT_ENTER_WINDOW, 
         #               self.OnDeleteColEnterWindow)
         #self.btnColDel.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        self.btnColConf = wx.Button(self.panel, -1, "Config")
+        self.btnColConf = wx.Button(self.panel, -1, _("Config"))
         self.btnColConf.Bind(wx.EVT_BUTTON, self.OnColConfig)
         #self.btnColConf.Bind(wx.EVT_ENTER_WINDOW, 
         #                self.OnConfigColEnterWindow)
@@ -154,7 +155,7 @@ class DlgMakeTable(wx.Dialog,
                                  val_dics=self.val_dics,
                                  fil_css=self.fil_css)
         self.html = full_html.FullHTML(self.panel, size=(200, 150))        
-        lbldemo_tbls = wx.StaticText(self.panel, -1, "Demonstration Table:")
+        lbldemo_tbls = wx.StaticText(self.panel, -1, _("Demonstration Table:"))
         lbldemo_tbls.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         # main section SIZERS **************************************************************
         szrMain = wx.BoxSizer(wx.VERTICAL)

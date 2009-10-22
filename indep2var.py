@@ -58,11 +58,10 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.GenConfigSetup(self.panel) # mixin
         self.SetupOutputButtons() # mixin
         szrMain = wx.BoxSizer(wx.VERTICAL)
-        bxDesc = wx.StaticBox(self.panel, -1, "Variables")
+        bxDesc = wx.StaticBox(self.panel, -1, _("Variables"))
         szrDesc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
         szrDescTop = wx.BoxSizer(wx.HORIZONTAL)
-        lblPurpose = wx.StaticText(self.panel, -1,
-            "Purpose:")
+        lblPurpose = wx.StaticText(self.panel, -1, _("Purpose:"))
         lblPurpose.SetFont(self.LABEL_FONT)
         eg1, eg2, eg3 = self.GetExamples()
         lblDesc1 = wx.StaticText(self.panel, -1, eg1)
@@ -73,7 +72,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrDesc.Add(szrDescTop, 1, wx.GROW|wx.LEFT, 5)
         szrDesc.Add(lblDesc2, 1, wx.GROW|wx.LEFT, 5)
         szrDesc.Add(lblDesc3, 1, wx.GROW|wx.LEFT, 5)
-        bxVars = wx.StaticBox(self.panel, -1, "Variables")
+        bxVars = wx.StaticBox(self.panel, -1, _("Variables"))
         szrVars = wx.StaticBoxSizer(bxVars, wx.HORIZONTAL)
         szrVarsLeft = wx.BoxSizer(wx.VERTICAL)
         self.szrVarsRight = wx.BoxSizer(wx.VERTICAL)
@@ -81,7 +80,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrVarsRightTop = wx.BoxSizer(wx.HORIZONTAL)
         szrVarsLeftMid = wx.BoxSizer(wx.HORIZONTAL)
         # group by
-        self.lblGroupBy = wx.StaticText(self.panel, -1, "Group By:")
+        self.lblGroupBy = wx.StaticText(self.panel, -1, _("Group By:"))
         self.lblGroupBy.SetFont(self.LABEL_FONT)
         self.dropGroupBy = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.SetupGroupBy()
@@ -92,11 +91,11 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrVarsLeftTop.Add(self.dropGroupBy, 0, wx.GROW)
         szrVarsLeftTop.Add(self.lblchop_warning, 1, wx.TOP|wx.RIGHT, 5)
         # group by A
-        self.lblGroupA = wx.StaticText(self.panel, -1, "Group A:")
+        self.lblGroupA = wx.StaticText(self.panel, -1, _("Group A:"))
         self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
         self.dropGroupA.Bind(wx.EVT_CHOICE, self.OnGroupByASel)
         # group by B
-        self.lblGroupB = wx.StaticText(self.panel, -1, "Group B:")
+        self.lblGroupB = wx.StaticText(self.panel, -1, _("Group B:"))
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupByBSel)
         self.SetupGroupDropdowns()
@@ -119,7 +118,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrVarsRightTop.Add(self.dropAveraged, 0)
         self.szrVarsRight.Add(szrVarsRightTop, 0)
         self.lblPhrase = wx.StaticText(self.panel, -1, 
-                                       "Start making your selections")
+                                       _("Start making your selections"))
         szrVarsLeft.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)        
         szrVars.Add(szrVarsLeft, 1, wx.LEFT, 5)
         szrVars.Add(self.szrVarsRight, 0)
@@ -127,18 +126,18 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
         self.html = wx.html.HtmlWindow(self.panel, size=(200, 250))
-        html2show = """<p>This panel is under construction - more support for 
-            the user and data visualisations coming.</p>"""
+        html2show = _("<p>This panel is under construction - more support for"
+                      " the user and data visualisations coming.</p>")
         self.html.SetPage(html2show)
         szrBottomLeft.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
         szrBottomLeft.Add(self.szrConfigTop, 0, wx.GROW)
         szrBottomLeft.Add(self.szrConfigBottom, 0, wx.GROW)
-        bxLevel = wx.StaticBox(self.panel, -1, "Output Level")
+        bxLevel = wx.StaticBox(self.panel, -1, _("Output Level"))
         szrLevel = wx.StaticBoxSizer(bxLevel, wx.HORIZONTAL)
-        radFull = wx.RadioButton(self.panel, -1, "Full Explanation", 
+        radFull = wx.RadioButton(self.panel, -1, _("Full Explanation"), 
                                  style=wx.RB_GROUP)
-        radBrief = wx.RadioButton(self.panel, -1, "Brief Explanation")
-        radResults = wx.RadioButton(self.panel, -1, "Results Only")
+        radBrief = wx.RadioButton(self.panel, -1, _("Brief Explanation"))
+        radResults = wx.RadioButton(self.panel, -1, _("Results Only"))
         radFull.Enable(False)
         radBrief.Enable(False)
         radResults.Enable(False)
@@ -252,8 +251,8 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.sorted_var_names_by and self.sorted_var_names_avg are set when 
             dropdowns are set (and only changed when reset).
         """
-        var_by, _ = self.GetGroupBy()
-        var_avg, _ = self.GetAvg()
+        var_by, unused = self.GetGroupBy()
+        var_avg, unused = self.GetAvg()
         return var_by, var_avg
     
     def GetVals(self):
@@ -331,7 +330,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         # cope if variable has massive spread of values
         all_vals = self.cur.fetchall()
         if len(all_vals) > 20:
-            self.lblchop_warning.SetLabel("(Showing 1st 20 unique values)")
+            self.lblchop_warning.SetLabel(_("(Showing 1st 20 unique values)"))
             all_vals = all_vals[:20]
         else:
             self.lblchop_warning.SetLabel("")
@@ -418,26 +417,27 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         # group by and averaged variables cannot be the same
         if self.dropGroupBy.GetStringSelection() == \
                 self.dropAveraged.GetStringSelection():
-            wx.MessageBox("The Grouped By Variable and " + \
-                    "the %s " % self.averaged + "variable cannot be the same")
+            wx.MessageBox(_("The Grouped By Variable and the %s variable "
+                            "cannot be the same") % self.averaged)
             return False
         # group A and B cannot be the same
         if self.dropGroupA.GetStringSelection() == \
                 self.dropGroupB.GetStringSelection():
-            wx.MessageBox("Group A and Group B must be different")
+            wx.MessageBox(_("Group A and Group B must be different"))
             return False
         if self.takes_range:
-            var_gp, _, _, _, _, _, _, _ = self.GetDropVals()
+            var_gp, unused, unused, unused, unused, unused, unused, unused = \
+                self.GetDropVals()
             # group a must be lower than group b
-            val_a, _ = \
+            val_a, unused = \
                 getdata.extractChoiceDets(self.dropGroupA.GetStringSelection())
-            val_b, _ = \
+            val_b, unused = \
                 getdata.extractChoiceDets(self.dropGroupB.GetStringSelection())
             if self.flds[var_gp][my_globals.FLD_BOLNUMERIC]:
                 val_a = float(val_a)
                 val_b = float(val_b)
             if  val_a > val_b:
-                wx.MessageBox("Group A must be lower than Group B")
+                wx.MessageBox(_("Group A must be lower than Group B"))
                 return False
         return True
     

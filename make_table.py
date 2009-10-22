@@ -59,7 +59,7 @@ class MakeTable(object):
     def RefreshDescendants(self, tree, descendants):
         ""
         for descendant in descendants:
-            var_name, _ = \
+            var_name, unused = \
                 getdata.extractChoiceDets(tree.GetItemText(descendant))
             fresh_label = getdata.getChoiceItem(self.var_labels, var_name)
             tree.SetItemText(descendant, fresh_label)
@@ -174,7 +174,7 @@ class MakeTable(object):
             self.SetCursor(curs)
             output.DisplayReport(self, strContent)
         else:
-            wx.MessageBox("Missing %s data" % missing_dim)
+            wx.MessageBox(_("Missing %s data") % missing_dim)
 
     # export script
     def OnButtonExport(self, event):
@@ -194,7 +194,7 @@ class MakeTable(object):
                                 self.dbe, self.db, self.tbl, self.default_dbs, 
                                 self.default_tbls)
         else:
-            wx.MessageBox("Missing %s data" % missing_dim) 
+            wx.MessageBox(_("Missing %s data") % missing_dim) 
     
     def getScript(self, has_rows, has_cols, css_idx):
         "Build script from inputs"
@@ -204,7 +204,7 @@ class MakeTable(object):
             script_lst.append("tree_rows = dimtables.DimNodeTree()")
             for child in util.getTreeCtrlChildren(tree=self.rowtree, 
                                                   parent=self.rowRoot):
-                child_fld_name, _ = \
+                child_fld_name, unused = \
                     getdata.extractChoiceDets(self.rowtree.GetItemText(child))
                 self.addToParent(script_lst=script_lst, tree=self.rowtree, 
                              parent=self.rowtree, 
@@ -214,7 +214,7 @@ class MakeTable(object):
             if has_cols:
                 for child in util.getTreeCtrlChildren(tree=self.coltree, 
                                                       parent=self.colRoot):
-                    child_fld_name, _ = \
+                    child_fld_name, unused = \
                         getdata.extractChoiceDets(\
                                             self.coltree.GetItemText(child))
                     self.addToParent(script_lst=script_lst, tree=self.coltree, 
@@ -329,7 +329,7 @@ class MakeTable(object):
         # send child through for each grandchild
         for grandchild in util.getTreeCtrlChildren(tree=tree, 
                                                    parent=child):
-            grandchild_fld_name, _ = \
+            grandchild_fld_name, unused = \
                 getdata.extractChoiceDets(tree.GetItemText(grandchild))
             self.addToParent(script_lst=script_lst, tree=tree, 
                              parent=child, 
@@ -408,17 +408,17 @@ class MakeTable(object):
             if has_rows:
                 export_ok = True
             else:
-                missing_dim = "row"
+                missing_dim = _("row")
         elif self.tab_type == my_globals.RAW_DISPLAY:
             if has_cols:
                 export_ok = True
             else:
-                missing_dim = "column"
+                missing_dim = _("column")
         elif self.tab_type == my_globals.COL_MEASURES:
             if has_rows and has_cols:
                 export_ok = True
             else:
-                missing_dim = "row and column"
+                missing_dim = _("row and column")
         return (export_ok, missing_dim, has_rows, has_cols)
             
 
@@ -446,26 +446,26 @@ class ItemConfig(object):
     def getSummary(self, verbose=False):
         "String summary of data"
         str_parts = []
-        total_part = "Has TOTAL" if self.has_tot else None
+        total_part = _("Has TOTAL") if self.has_tot else None
         if total_part:
             str_parts.append(total_part)
         if self.sort_order == my_globals.SORT_NONE:
             sort_order_part = None
         elif self.sort_order == my_globals.SORT_LABEL:
-            sort_order_part = "Sort by Label"
+            sort_order_part = _("Sort by Label")
         elif self.sort_order == my_globals.SORT_FREQ_ASC:
-            sort_order_part = "Sort by Freq (Asc)"
+            sort_order_part = _("Sort by Freq (Asc)")
         elif self.sort_order == my_globals.SORT_FREQ_DESC:
-            sort_order_part = "Sort by Freq (Desc)"            
+            sort_order_part = _("Sort by Freq (Desc)")            
         if sort_order_part:
             str_parts.append(sort_order_part)
         if verbose:
             if self.bolnumeric:
-                str_parts.append("Numeric")
+                str_parts.append(_("Numeric"))
             else:
-                str_parts.append("Not numeric")
+                str_parts.append(_("Not numeric"))
         measures = ", ".join(self.measures_lst)
-        measures_part = "Measures: %s" % measures if measures else None
+        measures_part = _("Measures: %s") % measures if measures else None
         if measures_part:
             str_parts.append(measures_part)
         return "; ".join(str_parts)

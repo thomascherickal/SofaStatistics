@@ -7,11 +7,11 @@ class OutputButtons(object):
     
     def SetupOutputButtons(self):
         #main
-        self.btnRun = wx.Button(self.panel, -1, "RUN")
+        self.btnRun = wx.Button(self.panel, -1, _("RUN"))
         self.btnRun.Bind(wx.EVT_BUTTON, self.OnButtonRun)
         #self.btnRun.Bind(wx.EVT_ENTER_WINDOW, self.OnRunEnterWindow)
         #self.btnRun.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)        
-        self.btnExport = wx.Button(self.panel, -1, "EXPORT")
+        self.btnExport = wx.Button(self.panel, -1, _("EXPORT"))
         self.btnExport.Bind(wx.EVT_BUTTON, self.OnButtonExport)
         #self.btnExport.Bind(wx.EVT_ENTER_WINDOW, self.OnExportEnterWindow)
         #self.btnExport.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
@@ -19,7 +19,7 @@ class OutputButtons(object):
         self.btnHelp.Bind(wx.EVT_BUTTON, self.OnButtonHelp)
         #self.btnHelp.Bind(wx.EVT_ENTER_WINDOW, self.OnHelpEnterWindow)
         #self.btnHelp.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
-        self.btnClear = wx.Button(self.panel, -1, "CLEAR")
+        self.btnClear = wx.Button(self.panel, -1, _("CLEAR"))
         self.btnClear.Bind(wx.EVT_BUTTON, self.OnButtonClear)
         #self.btnClear.Bind(wx.EVT_ENTER_WINDOW, self.OnClearEnterWindow)
         #self.btnClear.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
@@ -36,4 +36,3 @@ class OutputButtons(object):
         self.szrButtons.Add(self.btnHelp, 0)
         self.szrButtons.Add(self.btnClear, 0)
         self.szrButtons.Add(self.btnClose, 1, wx.ALIGN_BOTTOM)
-        

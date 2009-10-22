@@ -239,7 +239,8 @@ def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, conn_dets,
         dbdetsobj = getDbDetsObj(oth_dbe, default_dbs, default_tbls, conn_dets, 
                                  oth_default_db, None)
         try:
-            _, _, oth_dbs, _, _, _, _ = dbdetsobj.getDbDets()
+            unused, unused, oth_dbs, unused, unused, unused, unused = \
+                dbdetsobj.getDbDets()
             oth_db_choices = [(x, oth_dbe) for x in oth_dbs]
             db_choices.extend(oth_db_choices)
         except Exception, e:
@@ -298,7 +299,7 @@ def dup_tbl_name(tbl_name):
     """
     Duplicate name in default SQLite SOFA database?
     """
-    conn, _, _, tbls, _, _, _ = GetDefaultDbDets()
+    conn, unused, unused, tbls, unused, unused, unused = GetDefaultDbDets()
     conn.close()
     return tbl_name in tbls
     

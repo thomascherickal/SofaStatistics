@@ -370,7 +370,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""
     # default database
     parent.lblMysqlDefaultDb = wx.StaticText(scroll, -1, 
-                                             "Default Database (name only):")
+                                             _("Default Database (name only):"))
     parent.lblMysqlDefaultDb.SetFont(lblfont)
     mysql_default_db = parent.mysql_default_db if parent.mysql_default_db \
         else ""
@@ -380,7 +380,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     parent.txtMysqlDefaultDb.Enable(not read_only)
     # default table
     parent.lblMysqlDefaultTbl = wx.StaticText(scroll, -1, 
-                                       "Default Table:")
+                                       _("Default Table:"))
     parent.lblMysqlDefaultTbl.SetFont(lblfont)
     mysql_default_tbl = parent.mysql_default_tbl if parent.mysql_default_tbl \
         else ""
@@ -389,21 +389,21 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
                                             size=(250,-1))
     parent.txtMysqlDefaultTbl.Enable(not read_only)
     # host
-    parent.lblMysqlHost = wx.StaticText(scroll, -1, "Host:")
+    parent.lblMysqlHost = wx.StaticText(scroll, -1, _("Host:"))
     parent.lblMysqlHost.SetFont(lblfont)
     mysql_host = parent.mysql_host if parent.mysql_host else ""
     parent.txtMysqlHost = wx.TextCtrl(scroll, -1, mysql_host, 
                                       size=(100,-1))
     parent.txtMysqlHost.Enable(not read_only)
     # user
-    parent.lblMysqlUser = wx.StaticText(scroll, -1, "User:")
+    parent.lblMysqlUser = wx.StaticText(scroll, -1, _("User:"))
     parent.lblMysqlUser.SetFont(lblfont)
     mysql_user = parent.mysql_user if parent.mysql_user else ""
     parent.txtMysqlUser = wx.TextCtrl(scroll, -1, mysql_user, 
                                       size=(100,-1))
     parent.txtMysqlUser.Enable(not read_only)
     # password
-    parent.lblMysqlPwd = wx.StaticText(scroll, -1, "Password:")
+    parent.lblMysqlPwd = wx.StaticText(scroll, -1, _("Password:"))
     parent.lblMysqlPwd.SetFont(lblfont)
     mysql_pwd = parent.mysql_pwd if parent.mysql_pwd else ""
     parent.txtMysqlPwd = wx.TextCtrl(scroll, -1, mysql_pwd, 
@@ -483,7 +483,7 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     incomplete_mysql = (mysql_host or mysql_user or mysql_pwd \
         or mysql_default_db or mysql_default_tbl) and not has_mysql_conn
     if incomplete_mysql:
-        wx.MessageBox("The MySQL details are incomplete")
+        wx.MessageBox(_("The MySQL details are incomplete"))
         parent.txtMysqlDefaultDb.SetFocus()
     default_dbs[my_globals.DBE_MYSQL] = mysql_default_db \
         if mysql_default_db else None    

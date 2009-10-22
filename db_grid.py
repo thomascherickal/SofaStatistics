@@ -59,7 +59,7 @@ class TblEditor(wx.Dialog):
                  idxs, readonly=True):
         self.debug = False
         wx.Dialog.__init__(self, None, 
-                           title="Data from %s.%s" % (db, tbl_name),
+                           title=_("Data from ") + "%s.%s" % (db, tbl_name),
                            size=(500, 500), pos=(300, 0),
                            style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
                            wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
@@ -499,23 +499,24 @@ class TblEditor(wx.Dialog):
             raise Exception, "This field should have been read only"
         elif fld_dic[my_globals.FLD_BOLNUMERIC]:
             if not util.isNumeric(raw_val):
-                wx.MessageBox("\"%s\" is not a valid number.\n\n" % raw_val + \
-                              "Either enter a valid number or " + \
-                              "the missing value character (.)")
+                wx.MessageBox(_("\"%s\" is not a valid number.\n\n"
+                              "Either enter a valid number or "
+                              "the missing value character (.)") % raw_val)
                 return True
             if not self.ValueInRange(raw_val, fld_dic):
-                wx.MessageBox("\"%s\" is invalid for data type %s" % \
-                              (raw_val, self.dbtbl.GetFldName(col)))
+                wx.MessageBox("\"%s\" " % raw_val + \
+                              _("is invalid for data type ") + \
+                              "%s" % self.dbtbl.GetFldName(col))
                 return True
             return False
         elif fld_dic[my_globals.FLD_BOLDATETIME]:
-            valid_datetime, _ = util.valid_datetime_str(raw_val)
+            valid_datetime, unused = util.valid_datetime_str(raw_val)
             if not valid_datetime:
-                wx.MessageBox("\"%s\" is not a valid datetime.\n\n" % \
-                                raw_val + \
-                              "Either enter a valid date/ datetime\n" + \
-                              "e.g. 31/3/2009 or 2:30pm 31/3/2009\nor " + \
-                              "the missing value character (.)")
+                wx.MessageBox("\"%s\" " % raw_val + \
+                              _(" is not a valid datetime.\n\n"
+                                "Either enter a valid date/ datetime\n"
+                                "e.g. 31/3/2009 or 2:30pm 31/3/2009\nor "
+                                "the missing value character (.)"))
                 return True
             return False
         elif fld_dic[my_globals.FLD_BOLTEXT]:
@@ -523,9 +524,11 @@ class TblEditor(wx.Dialog):
             if max_len is None: # SQLite returns None if TEXT
                 return False
             if len(raw_val) > max_len:
-                wx.MessageBox("\"%s\" is longer than the maximum of %s" % \
-                              (raw_val, max_len) + "Either enter a shorter" + \
-                              "value or the missing value character (.)")
+                wx.MessageBox("\"%s\" " % raw_val + \
+                              _("is longer than the maximum of %s"
+                                "Either enter a shorter"
+                                "value or the missing value character (.)") % \
+                                max_len)
                 return True
             return False
         else:
@@ -571,8 +574,8 @@ class TblEditor(wx.Dialog):
              not fld_dic[my_globals.FLD_BOLNULLABLE] and \
              fld_dic[my_globals.FLD_DATA_ENTRY_OK])
         if missing_not_nullable_prob:
-            wx.MessageBox("This field will not allow missing values to " + \
-                          "be stored")
+            wx.MessageBox(_("This field will not allow missing values to "
+                          "be stored"))
         ok_to_save = not self.CellInvalid(row, col) and \
             not missing_not_nullable_prob
         return ok_to_save
@@ -586,8 +589,8 @@ class TblEditor(wx.Dialog):
         if self.debug: print("RowOKToSave - row %s" % row)
         for col_idx in range(len(self.flds)):
             if not self.CellOKToSave(row=row, col=col_idx):
-                wx.MessageBox("Unable to save new row.  Invalid value " + \
-                              "in column %s" % (col_idx + 1))
+                wx.MessageBox(_("Unable to save new row.  Invalid value "
+                              "in column") + "%s" % (col_idx + 1))
                 return False
         return True
 

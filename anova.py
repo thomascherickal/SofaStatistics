@@ -13,12 +13,12 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
     min_data_type = my_globals.VAR_TYPE_QUANT
 
     def GetExamples(self):
-        eg1 = "Answers the question, do 3 or more groups have a " + \
-            "different average?"
-        eg2 = "For example, is average IQ the same for students from " + \
-            "three different universities?"
-        eg3 = "Or is the average height different between " + \
-            "British, Australian, Canadian, and New Zealand adults?"
+        eg1 = _("Answers the question, do 3 or more groups have a "
+            "different average?")
+        eg2 = _("For example, is average IQ the same for students from "
+            "three different universities?")
+        eg3 = _("Or is the average height different between "
+            "British, Australian, Canadian, and New Zealand adults?")
         return eg1, eg2, eg3
     
     def UpdatePhrase(self):
@@ -27,13 +27,14 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         """
         var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
             label_avg = self.GetDropVals()
-        self.lblPhrase.SetLabel("Does average %s " % label_avg + "vary in " + \
-            "the groups between \"%s\" and \"%s\"?" % (label_a, label_b))
+        self.lblPhrase.SetLabel(_("Does average %(avg)s vary in the groups "
+            "between \"%(a)s\" and \"%(b)s\"?") % {"avg": label_avg, 
+                                                   "a": label_a, "b": label_b})
 
     def AddOtherVarOpts(self):
-        self.radHigh = wx.RadioBox(self.panel, -1, "Algorithm", 
-                         choices=("Precision (best choice unless too slow)",
-                                  "Speed"),
+        self.radHigh = wx.RadioBox(self.panel, -1, _("Algorithm"), 
+                         choices=(_("Precision (best choice unless too slow)"),
+                                  _("Speed")),
                          style=wx.RA_SPECIFY_COLS)
         self.szrVarsRight.Add(self.radHigh, 0)
 

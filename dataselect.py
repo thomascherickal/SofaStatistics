@@ -24,7 +24,7 @@ class DataSelectDlg(wx.Dialog):
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         lblChoose = wx.StaticText(self.panel, -1, 
-                                  "Choose an existing data table ...")
+                                  _("Choose an existing data table ..."))
         proj_dic = projects.GetProjSettingsDic(proj_name=proj_name)
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.GetVarDets(proj_dic["fil_var_dets"])
@@ -47,20 +47,20 @@ class DataSelectDlg(wx.Dialog):
                                    self.dbs, self.db, self.tbls, self.tbl)
         self.dropDatabases.Bind(wx.EVT_CHOICE, self.OnDatabaseSel)
         self.dropTables.Bind(wx.EVT_CHOICE, self.OnTableSel)
-        self.chkReadOnly = wx.CheckBox(self.panel, -1, "Read Only")
+        self.chkReadOnly = wx.CheckBox(self.panel, -1, _("Read Only"))
         self.chkReadOnly.SetValue(True)
         btnOpen = wx.Button(self.panel, wx.ID_OPEN)
         btnOpen.Bind(wx.EVT_BUTTON, self.OnOpen)
-        self.btnDesign = wx.Button(self.panel, -1, "Design")
+        self.btnDesign = wx.Button(self.panel, -1, _("Design"))
         self.btnDesign.Bind(wx.EVT_BUTTON, self.OnDesign)
         szrData = wx.FlexGridSizer(rows=2, cols=2, hgap=5, vgap=5)  
         szrData.AddGrowableCol(1, 1)      
-        lblDbs = wx.StaticText(self.panel, -1, "Databases:")
+        lblDbs = wx.StaticText(self.panel, -1, _("Databases:"))
         lblDbs.SetFont(lblfont)        
         szrData.Add(lblDbs, 0, wx.RIGHT, 5)
         szrData.Add(self.dropDatabases, 0)
         self.dropDatabases.Bind(wx.EVT_CHOICE, self.OnDatabaseSel)        
-        lblTbls = wx.StaticText(self.panel, -1, "Data tables:")
+        lblTbls = wx.StaticText(self.panel, -1, _("Data tables:"))
         lblTbls.SetFont(lblfont)
         szrData.Add(lblTbls, 0, wx.RIGHT, 5)
         szrData.Add(self.dropTables, 1)        
@@ -68,13 +68,14 @@ class DataSelectDlg(wx.Dialog):
         szrExistingBottom.Add(self.chkReadOnly, 1, wx.TOP|wx.LEFT, 5)
         szrExistingBottom.Add(self.btnDesign, 0, wx.RIGHT, 10)
         szrExistingBottom.Add(btnOpen, 0)
-        bxExisting = wx.StaticBox(self.panel, -1, "Existing data tables")
+        bxExisting = wx.StaticBox(self.panel, -1, _("Existing data tables"))
         szrExisting = wx.StaticBoxSizer(bxExisting, wx.VERTICAL)
         szrExisting.Add(szrData, 0, wx.GROW|wx.ALL, 10)
         szrExisting.Add(szrExistingBottom, 0, wx.GROW|wx.ALL, 10)        
         bxNew = wx.StaticBox(self.panel, -1, "")
         szrNew = wx.StaticBoxSizer(bxNew, wx.HORIZONTAL)
-        lblMakeNew = wx.StaticText(self.panel, -1, "... or make a new data table")
+        lblMakeNew = wx.StaticText(self.panel, -1, 
+                                   _("... or make a new data table"))
         btnMakeNew = wx.Button(self.panel, wx.ID_NEW)
         btnMakeNew.Bind(wx.EVT_BUTTON, self.OnNewClick)
         szrNew.Add(lblMakeNew, 1, wx.GROW|wx.ALL, 10)
@@ -129,9 +130,9 @@ class DataSelectDlg(wx.Dialog):
     def OnOpen(self, event):
         ""
         if not self.has_unique:
-            wx.MessageBox("Table \"%s\" cannot be opened because it " % \
-              self.tbl + \
-              "lacks a unique index") # needed for caching even if read only
+            msg = _("Table \"%s\" cannot be opened because it " \
+                   "lacks a unique index")
+            wx.MessageBox(msg % self.tbl) # needed for caching even if read only
         else:
             wx.BeginBusyCursor()
             readonly = self.chkReadOnly.IsChecked()
@@ -177,9 +178,9 @@ class DataSelectDlg(wx.Dialog):
         new_grid_data = [] # not allowing change so not used
         
         if not self.chkReadOnly.IsChecked():
-            wx.MessageBox("Version %s of " % my_globals.VERSION +
-                "SOFA Statistics does not allow users to modify the design " +
-                "of existing databases.")
+            msg = _("Version %s of SOFA Statistics does not allow users to "
+                "modify the design of existing databases.")
+            wx.MessageBox(msg % my_globals.VERSION)
             return
         
         # readonly = self.chkReadOnly.IsChecked() # only make live when can cope 

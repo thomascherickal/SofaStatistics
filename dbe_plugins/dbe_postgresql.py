@@ -378,7 +378,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""
     # default database
     parent.lblPgsqlDefaultDb = wx.StaticText(scroll, -1, 
-                                             "Default Database (name only):")
+                                             _("Default Database (name only):"))
     parent.lblPgsqlDefaultDb.SetFont(lblfont)
     pgsql_default_db = parent.pgsql_default_db if parent.pgsql_default_db \
         else ""
@@ -387,7 +387,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
                                            size=(250,-1))
     parent.txtPgsqlDefaultDb.Enable(not read_only)
     # default table
-    parent.lblPgsqlDefaultTbl = wx.StaticText(scroll, -1, "Default Table:")
+    parent.lblPgsqlDefaultTbl = wx.StaticText(scroll, -1, _("Default Table:"))
     parent.lblPgsqlDefaultTbl.SetFont(lblfont)
     pgsql_default_tbl = parent.pgsql_default_tbl if parent.pgsql_default_tbl \
         else ""
@@ -396,21 +396,21 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
                                             size=(250,-1))
     parent.txtPgsqlDefaultTbl.Enable(not read_only)
     # host
-    parent.lblPgsqlHost = wx.StaticText(scroll, -1, "Host:")
+    parent.lblPgsqlHost = wx.StaticText(scroll, -1, _("Host:"))
     parent.lblPgsqlHost.SetFont(lblfont)
     pgsql_host = parent.pgsql_host if parent.pgsql_host else ""
     parent.txtPgsqlHost = wx.TextCtrl(scroll, -1, pgsql_host, 
                                       size=(100,-1))
     parent.txtPgsqlHost.Enable(not read_only)
     # user
-    parent.lblPgsqlUser = wx.StaticText(scroll, -1, "User:")
+    parent.lblPgsqlUser = wx.StaticText(scroll, -1, _("User:"))
     parent.lblPgsqlUser.SetFont(lblfont)
     pgsql_user = parent.pgsql_user if parent.pgsql_user else ""
     parent.txtPgsqlUser = wx.TextCtrl(scroll, -1, pgsql_user, 
                                       size=(100,-1))
     parent.txtPgsqlUser.Enable(not read_only)
     # password
-    parent.lblPgsqlPwd = wx.StaticText(scroll, -1, "Password:")
+    parent.lblPgsqlPwd = wx.StaticText(scroll, -1, _("Password:"))
     parent.lblPgsqlPwd.SetFont(lblfont)
     pgsql_pwd = parent.pgsql_pwd if parent.pgsql_pwd else ""
     parent.txtPgsqlPwd = wx.TextCtrl(scroll, -1, pgsql_pwd, 
@@ -491,7 +491,7 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     incomplete_pgsql = (pgsql_host or pgsql_user or pgsql_pwd \
         or pgsql_default_db or pgsql_default_tbl) and not has_pgsql_conn
     if incomplete_pgsql:
-        wx.MessageBox("The PostgreSQL details are incomplete")
+        wx.MessageBox(_("The PostgreSQL details are incomplete"))
         parent.txtPgsqlDefaultDb.SetFocus()
     default_dbs[my_globals.DBE_PGSQL] = pgsql_default_db \
         if pgsql_default_db else None    

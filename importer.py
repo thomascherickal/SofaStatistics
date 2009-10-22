@@ -171,8 +171,7 @@ def AddRows(conn, cur, rows, fld_names, fld_types, progBackup, gauge_chunk,
         except MismatchException, e:
             raise # keep this particular type of exception bubbling out
         except Exception, e:
-            raise Exception, "Unable to add row %s. " % i + \
-                "Orig error: %s" % e
+            raise Exception, "Unable to add row %s. Orig error: %s" % (i, e)
     conn.commit()
 
 def getGaugeChunkSize(n_rows, sample_n):
@@ -243,8 +242,8 @@ def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types,
         conn.commit()
         progBackup.SetValue(0)
         # go through again or raise an exception
-        retCode = wx.MessageBox("%s\n\nFix and keep going?" % e, 
-                                "KEEP GOING?", 
+        retCode = wx.MessageBox("%s\n\n" % e + _("Fix and keep going?"), 
+                                _("KEEP GOING?"), 
                                 wx.YES_NO | wx.ICON_QUESTION)
         if retCode == wx.YES:
             # change fld_type to string and start again
@@ -279,8 +278,9 @@ def TmpToNamedTbl(conn, cur, tbl_name, file_path, progBackup):
         raise Exception, "Unable to rename temporary table.  Orig error: %s" \
             % e
     progBackup.SetValue(GAUGE_RANGE)
-    wx.MessageBox("Successfully imported data from '%s' " % file_path + \
-                  "to '%s' in the default SOFA database" % tbl_name)
+    msg = _("Successfully imported data from '%(fil)s' "
+            "to '%(tbl)s' in the default SOFA database")
+    wx.MessageBox(msg % {"fil": file_path, "tbl": tbl_name})
         
     
 class ImportFileSelectDlg(wx.Dialog):
@@ -289,7 +289,7 @@ class ImportFileSelectDlg(wx.Dialog):
         Make selection based on file extension 
             and possibly inspection of sample of rows (e.g. csv dialect).
         """
-        title = "Select file to import"
+        title = _("Select file to import")
         wx.Dialog.__init__(self, parent=parent, title=title,
                            size=(500, 300), 
                            style=wx.CAPTION|wx.CLOSE_BOX|
@@ -308,14 +308,14 @@ class ImportFileSelectDlg(wx.Dialog):
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         szrMain = wx.BoxSizer(wx.VERTICAL)
         # file path
-        lblFilePath = wx.StaticText(self.panel, -1, "File:")
+        lblFilePath = wx.StaticText(self.panel, -1, _("File:"))
         lblFilePath.SetFont(lblfont)
         self.txtFile = wx.TextCtrl(self.panel, -1, "", size=(320,-1))
         self.txtFile.SetFocus()
         btnFilePath = wx.Button(self.panel, -1, "Browse ...")
         btnFilePath.Bind(wx.EVT_BUTTON, self.OnButtonFilePath)
         # internal SOFA name
-        lblIntName = wx.StaticText(self.panel, -1, "SOFA Name:")
+        lblIntName = wx.StaticText(self.panel, -1, _("SOFA Name:"))
         lblIntName.SetFont(lblfont)
         self.txtIntName = wx.TextCtrl(self.panel, -1, "")
         # buttons
@@ -324,7 +324,7 @@ class ImportFileSelectDlg(wx.Dialog):
         self.btnCancel.Enable(False)
         self.btnClose = wx.Button(self.panel, wx.ID_CLOSE)
         self.btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
-        self.btnImport = wx.Button(self.panel, -1, "IMPORT")
+        self.btnImport = wx.Button(self.panel, -1, _("IMPORT"))
         self.btnImport.Bind(wx.EVT_BUTTON, self.OnImport)
         self.btnImport.SetDefault()
         # progress
@@ -362,7 +362,7 @@ class ImportFileSelectDlg(wx.Dialog):
         if dlgGetFile.ShowModal() == wx.ID_OK:
             path = dlgGetFile.GetPath()
             self.txtFile.SetValue(path)
-            filestart, _ = self.GetFilestartExt(path)
+            filestart, unused = self.GetFilestartExt(path)
             self.txtIntName.SetValue(filestart)
         dlgGetFile.Destroy()
         self.txtIntName.SetFocus()
@@ -383,8 +383,8 @@ class ImportFileSelectDlg(wx.Dialog):
     def _GetNewName(self, file_path):
         "Return new table name (or raise exception)"
         dlg = wx.TextEntryDialog(None, 
-                                 "Please enter new name for table",
-                                 "NEW TABLE NAME",
+                                 _("Please enter new name for table"),
+                                 _("NEW TABLE NAME"),
                                  style=wx.OK|wx.CANCEL)
         if dlg.ShowModal() == wx.ID_OK:
             val_entered = dlg.GetValue()
@@ -409,9 +409,9 @@ class ImportFileSelectDlg(wx.Dialog):
         # check existing names
         valid_name = dbe_sqlite.valid_name(tbl_name)
         if not valid_name:
-            title = "FAULTY SOFA NAME"
-            msg = "You can only use letters, numbers and underscores in a " + \
-                "SOFA name.  Use another name?"
+            title = _("FAULTY SOFA NAME")
+            msg = _("You can only use letters, numbers and underscores in a "
+                "SOFA name.  Use another name?")
             retCode = wx.MessageBox(msg, title,
                 wx.YES_NO|wx.ICON_QUESTION)
             if retCode == wx.NO:
@@ -421,13 +421,13 @@ class ImportFileSelectDlg(wx.Dialog):
                 final_tbl_name = self._GetNewName(file_path)
         duplicate = getdata.dup_tbl_name(tbl_name)
         if duplicate:
-            title = "SOFA NAME ALREADY EXISTS"
-            msg = "A table named \"%s\" " % tbl_name + \
-                  "already exists in the SOFA default database.\n\n" + \
-                  "Do you want to replace it with the new data from " + \
-                  "\"%s\"?" % file_path
-            retCode = wx.MessageBox(msg, title,
-                wx.YES_NO|wx.CANCEL|wx.ICON_QUESTION)
+            title = _("SOFA NAME ALREADY EXISTS")
+            msg = _("A table named \"%(tbl)s\" "
+                  "already exists in the SOFA default database.\n\n"
+                  "Do you want to replace it with the new data from "
+                  "\"%(fil)s\"?") 
+            retCode = wx.MessageBox(msg % {"tbl": tbl_name, "fil": file_path}, 
+                                    title, wx.YES_NO|wx.CANCEL|wx.ICON_QUESTION)
             if retCode == wx.CANCEL: # Not wx.ID_CANCEL
                 raise Exception, "Had a problem with duplicate SOFA table " + \
                     "name but user cancelled initial process of resolving it"
@@ -451,7 +451,7 @@ class ImportFileSelectDlg(wx.Dialog):
         self.progBackup.SetValue(0)
         file_path = self.txtFile.GetValue()
         if not file_path:
-            wx.MessageBox("Please select a file")
+            wx.MessageBox(_("Please select a file"))
             self.SetImportButtons(importing=False)
             return
         # identify file type
@@ -460,37 +460,38 @@ class ImportFileSelectDlg(wx.Dialog):
             self.file_type = FILE_CSV
         if extension.lower() == ".xls":
             if not util.in_windows():
-                wx.MessageBox("Excel spreadsheets are only supported on " + \
-                              "Windows.  Try exporting to CSV first from " + \
-                              "Excel (within Windows)")
+                wx.MessageBox(_("Excel spreadsheets are only supported on "
+                              "Windows.  Try exporting to CSV first from "
+                              "Excel (within Windows)"))
                 self.SetImportButtons(importing=False)
                 return
             else:
                 self.file_type = FILE_EXCEL
         if self.file_type == FILE_UNKNOWN:
-            wx.MessageBox("Files with the file name extension " + \
-                              "'%s' are not supported" % extension)
+            wx.MessageBox(_("Files with the file name extension "
+                            "'%s' are not supported") % extension)
             self.SetImportButtons(importing=False)
             return
         tbl_name = self.txtIntName.GetValue()
         if not tbl_name:
-            wx.MessageBox("Please select a name for the file")
+            wx.MessageBox(_("Please select a name for the file"))
             self.SetImportButtons(importing=False)
             return
         bad_chars = ["-", " "]
         for bad_char in bad_chars:
             if bad_char in tbl_name:
-                wx.MessageBox("Do not include '%s' in name" % bad_char)
+                wx.MessageBox(_("Do not include '%s' in name") % bad_char)
                 self.SetImportButtons(importing=False)
                 return
         if tbl_name[0] in [str(x) for x in range(10)]:
-            wx.MessageBox("Table names cannot start with a digit")
+            wx.MessageBox(_("Table names cannot start with a digit"))
             self.SetImportButtons(importing=False)
             return
         try:
             final_tbl_name = self.CheckTblName(file_path, tbl_name)
         except Exception:
-            wx.MessageBox("Please select a suitable table name and try again")
+            wx.MessageBox(_("Please select a suitable table name and "
+                            "try again"))
             self.SetImportButtons(importing=False)
             return
         # import file
@@ -509,13 +510,6 @@ class ImportFileSelectDlg(wx.Dialog):
                 self.keep_importing.add(True)
                 wx.MessageBox(str(e))
             except Exception, e:
-                wx.MessageBox("Unable to import data\n\nError: %s" % e)
+                wx.MessageBox(_("Unable to import data\n\nError") + ": %s" % e)
         self.SetImportButtons(importing=False)
         event.Skip()
-        
-
-if __name__ == "__main__":
-    app = wx.PySimpleApp()
-    myframe = ImportFileSelectDlg(None)
-    myframe.Show()
-    app.MainLoop()

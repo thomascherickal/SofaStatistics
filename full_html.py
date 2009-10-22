@@ -26,6 +26,4 @@ else:
             wx.webview.WebView.__init__(self, panel, -1, size=size)
         
         def ShowHTML(self, strHTML):
-            self.SetPageSource(strHTML)
-
-    
+            self.SetPageSource(strHTML)    

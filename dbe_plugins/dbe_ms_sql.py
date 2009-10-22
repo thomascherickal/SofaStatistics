@@ -311,7 +311,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""
     # default database
     parent.lblMssqlDefaultDb = wx.StaticText(scroll, -1, 
-                                             "Default Database (name only):")
+                                             _("Default Database (name only):"))
     parent.lblMssqlDefaultDb.SetFont(lblfont)
     mssql_default_db = parent.mssql_default_db if parent.mssql_default_db \
         else ""
@@ -321,7 +321,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     parent.txtMssqlDefaultDb.Enable(not read_only)
     # default table
     parent.lblMssqlDefaultTbl = wx.StaticText(scroll, -1, 
-                                       "Default Table:")
+                                       _("Default Table:"))
     parent.lblMssqlDefaultTbl.SetFont(lblfont)
     mssql_default_tbl = parent.mssql_default_tbl if parent.mssql_default_tbl \
         else ""
@@ -331,21 +331,22 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     parent.txtMssqlDefaultTbl.Enable(not read_only)
     # host
     parent.lblMssqlHost = wx.StaticText(scroll, -1, 
-                                        "Host - (local) if own machine:")
+                                        _("Host - (local) if own machine:"))
     parent.lblMssqlHost.SetFont(lblfont)
     mssql_host = parent.mssql_host
     parent.txtMssqlHost = wx.TextCtrl(scroll, -1, mssql_host, 
                                       size=(100,-1))
     parent.txtMssqlHost.Enable(not read_only)
     # user
-    parent.lblMssqlUser = wx.StaticText(scroll, -1, "User:")
+    parent.lblMssqlUser = wx.StaticText(scroll, -1, _("User:"))
     parent.lblMssqlUser.SetFont(lblfont)
     mssql_user = parent.mssql_user if parent.mssql_user else ""
     parent.txtMssqlUser = wx.TextCtrl(scroll, -1, mssql_user, 
                                       size=(100,-1))
     parent.txtMssqlUser.Enable(not read_only)
     # password
-    parent.lblMssqlPwd = wx.StaticText(scroll, -1, "Password - space if none:")
+    parent.lblMssqlPwd = wx.StaticText(scroll, -1, 
+                                       _("Password - space if none:"))
     parent.lblMssqlPwd.SetFont(lblfont)
     mssql_pwd = parent.mssql_pwd if parent.mssql_pwd else ""
     parent.txtMssqlPwd = wx.TextCtrl(scroll, -1, mssql_pwd, 
@@ -425,7 +426,7 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     incomplete_mssql = (mssql_host or mssql_user or mssql_pwd \
         or mssql_default_db or mssql_default_tbl) and not has_mssql_conn
     if incomplete_mssql:
-        wx.MessageBox("The SQL Server details are incomplete")
+        wx.MessageBox(_("The SQL Server details are incomplete"))
         parent.txtMssqlDefaultDb.SetFocus()
     default_dbs[my_globals.DBE_MS_SQL] = mssql_default_db \
         if mssql_default_db else None    

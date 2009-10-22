@@ -14,12 +14,12 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
     min_data_type = my_globals.VAR_TYPE_ORD
 
     def GetExamples(self):
-        eg1 = "Answers the question, do 2 groups have different results " + \
-            "(higher or lower ranks)?"
-        eg2 = "For example, do male or female tutors get different rating " + \
-            "scores from students?"
-        eg3 = "Or do IT graduates have a different income in their first " + \
-        " year in the workforce compared with law graduates?"
+        eg1 = _("Answers the question, do 2 groups have different results "
+            "(higher or lower ranks)?")
+        eg2 = _("For example, do male or female tutors get different rating "
+            "scores from students?")
+        eg3 = _("Or do IT graduates have a different income in their first "
+        " year in the workforce compared with law graduates?")
         return eg1, eg2, eg3
     
     def UpdatePhrase(self):
@@ -28,8 +28,10 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         """
         var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
             label_avg = self.GetDropVals()
-        self.lblPhrase.SetLabel("Does %s \"%s\" have" % (label_gp, label_a) + \
-            " a different %s from \"%s\"?" % (label_avg, label_b))
+        self.lblPhrase.SetLabel(_("Does %(gp)s \"%(a)s\" have a different "
+                                  "%(avg)s from \"%(b)s\"?") % \
+                                  {"gp": label_gp, "a": label_a, 
+                                   "avg": label_avg, "b": label_b})
 
     def getScript(self, css_idx):
         "Build script from inputs"

@@ -270,7 +270,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""
     # default database
     parent.lblMsaccessDefaultDb = wx.StaticText(scroll, -1, 
-                                                "Default Database (name only):")
+            _("Default Database (name only):"))
     parent.lblMsaccessDefaultDb.SetFont(lblfont)
     MSACCESS_DEFAULT_DB = parent.msaccess_default_db \
         if parent.msaccess_default_db else ""
@@ -279,7 +279,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     parent.txtMsaccessDefaultDb.Enable(not read_only)
     # default table
     parent.lblMsaccessDefaultTbl = wx.StaticText(scroll, -1, 
-                                                 "Default Table:")
+                                                 _("Default Table:"))
     parent.lblMsaccessDefaultTbl.SetFont(lblfont)
     MSACCESS_DEFAULT_TBL = parent.msaccess_default_tbl \
         if parent.msaccess_default_tbl else ""
@@ -299,25 +299,26 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     szrMsaccessInner.Add(parent.txtMsaccessDefaultTbl, 1, 
                          wx.GROW|wx.RIGHT, 10)
     parent.szrMsaccess.Add(szrMsaccessInner, 0)
-    col_det_db = {"col_label": "Database(s)", 
+    col_det_db = {"col_label": _("Database(s)"), 
                   "col_type": settings_grid.COL_TEXT_BROWSE, 
                   "col_width": 300, 
-                  "file_phrase": "Choose an MS Access database file", 
-                  "file_wildcard": "MS Access databases (*.mdb)|*.mdb",
+                  "file_phrase": _("Choose an MS Access database file"), 
+                  "file_wildcard": _("MS Access databases") + " (*.mdb)|*.mdb",
                   "empty_ok": False}
-    col_det_sec = {"col_label": "Security File (*.mdw) (opt)", 
+    col_det_sec = {"col_label": _("Security File") + " (*.mdw) (opt)", 
                   "col_type": settings_grid.COL_TEXT_BROWSE, 
                   "col_width": 300, 
-                  "file_phrase": "Choose an MS Access security file", 
-                  "file_wildcard": "MS Access security files (*.mdw)|*.mdw",
+                  "file_phrase": _("Choose an MS Access security file"), 
+                  "file_wildcard": _("MS Access security files") + \
+                        " (*.mdw)|*.mdw",
                   "empty_ok": True}
-    col_det_usr = {"col_label": "User Name (opt)", 
+    col_det_usr = {"col_label": _("User Name (opt)"), 
                   "col_type": settings_grid.COL_STR, 
                   "col_width": 140, 
                   "file_phrase": None, 
                   "file_wildcard": None,
                   "empty_ok": True}
-    col_det_pwd = {"col_label": "Password (opt)", 
+    col_det_pwd = {"col_label": _("Password (opt)"), 
                   "col_type": settings_grid.COL_STR, 
                   "col_width": 140, 
                   "file_phrase": None, 
@@ -367,7 +368,7 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     incomplete_msaccess = (MSACCESS_DEFAULT_DB or MSACCESS_DEFAULT_TBL) \
         and not has_msaccess_conn
     if incomplete_msaccess:
-        wx.MessageBox("The MS Access details are incomplete")
+        wx.MessageBox(_("The MS Access details are incomplete"))
         parent.txtMsaccessDefaultDb.SetFocus()
     default_dbs[my_globals.DBE_MS_ACCESS] = MSACCESS_DEFAULT_DB \
         if MSACCESS_DEFAULT_DB else None            

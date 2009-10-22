@@ -239,14 +239,14 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""
     # default database
     parent.lblSqliteDefaultDb = wx.StaticText(scroll, -1, 
-                                              "Default Database (name only):")
+                                      _("Default Database (name only):"))
     parent.lblSqliteDefaultDb.SetFont(lblfont)
     DEFAULT_DB = parent.sqlite_default_db if parent.sqlite_default_db else ""
     parent.txtSqliteDefaultDb = wx.TextCtrl(scroll, -1, DEFAULT_DB, 
                                             size=(250,-1))
     parent.txtSqliteDefaultDb.Enable(not read_only)
     # default table
-    parent.lblSqliteDefaultTbl = wx.StaticText(scroll, -1, "Default Table:")
+    parent.lblSqliteDefaultTbl = wx.StaticText(scroll, -1, _("Default Table:"))
     parent.lblSqliteDefaultTbl.SetFont(lblfont)
     DEFAULT_TBL = parent.sqlite_default_tbl if parent.sqlite_default_tbl \
         else ""
@@ -262,9 +262,10 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     szrSqliteInner.Add(parent.lblSqliteDefaultTbl, 0, wx.LEFT|wx.RIGHT, 5)
     szrSqliteInner.Add(parent.txtSqliteDefaultTbl, 1, wx.GROW|wx.RIGHT, 10)
     parent.szrSqlite.Add(szrSqliteInner, 0)
-    sqlite_col_dets = [{"col_label": "Database(s)", "col_type": 
-                        settings_grid.COL_TEXT_BROWSE, "col_width": 400, 
-                        "file_phrase": "Choose an SQLite database file"}]
+    sqlite_col_dets = [{"col_label": _("Database(s)"), 
+                        "col_type": settings_grid.COL_TEXT_BROWSE, 
+                        "col_width": 400, 
+                        "file_phrase": _("Choose an SQLite database file")}]
     parent.sqlite_new_grid_data = []
     parent.sqlite_grid = settings_grid.TableEntry(frame=parent, 
         panel=scroll, szr=parent.szrSqlite, vert_share=1, read_only=read_only, 
@@ -304,7 +305,7 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     has_sqlite_conn = DEFAULT_DB and DEFAULT_TBL
     incomplete_sqlite = (DEFAULT_DB or DEFAULT_TBL) and not has_sqlite_conn
     if incomplete_sqlite:
-        wx.MessageBox("The SQLite details are incomplete")
+        wx.MessageBox(_("The SQLite details are incomplete"))
         parent.txtSqliteDefaultDb.SetFocus()
     default_dbs[my_globals.DBE_SQLITE] = DEFAULT_DB if DEFAULT_DB else None
     default_tbls[my_globals.DBE_SQLITE] = DEFAULT_TBL if DEFAULT_TBL else None

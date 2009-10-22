@@ -217,8 +217,8 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.sorted_var_names is set when dropdowns are set 
             (and only changed when reset).
         """
-        var_a, _ = self.GetVarA()
-        var_b, _ = self.GetVarB()
+        var_a, unused = self.GetVarA()
+        var_b, unused = self.GetVarB()
         return var_a, var_b
 
     def OnVarDetsFileLostFocus(self, event):

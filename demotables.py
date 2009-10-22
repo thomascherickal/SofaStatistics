@@ -42,8 +42,9 @@ class DemoTable(object):
         else:
             self.subtitles = []
         if self.titles:
-            self.titles[0] += " (random demo data only)"        
-        html = output.getHtmlHdr(hdr_title="Report(s)", css_fils=[self.fil_css])
+            self.titles[0] += _(" (random demo data only)")        
+        html = output.getHtmlHdr(hdr_title=_("Report(s)"), 
+                                 css_fils=[self.fil_css])
         html += "<table cellspacing='0'>\n" # IE6 - no support CSS borderspacing
         (hdr_html, body_html) = self.getHTMLParts(css_idx)
         html += hdr_html
@@ -134,7 +135,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
             body_html += "\n<tr>" + "".join(row_tds) + "</td></tr>"
         if bolhas_totals_row:
             if bolfirst_col_as_label:
-                tot_cell = "<td class='%s'>TOTAL</td>" % CSS_LBL
+                tot_cell = "<td class='%s'>" % CSS_LBL + _("TOTAL") + "</td>"
                 start_idx = 1
             else:
                 tot_cell = ""

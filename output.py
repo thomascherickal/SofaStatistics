@@ -270,8 +270,8 @@ def RunReport(modules, fil_report, css_fils, inner_script,
         dummy_dic = {}
         exec script in dummy_dic
     except Exception, e:
-        strErrContent = "<h1>Ooops!</h1>\n<p>Unable to run report.  " + \
-            "Error encountered.  Original error message: %s</p>" % e
+        strErrContent = _("<h1>Ooops!</h1>\n<p>Unable to run report.  "
+            "Error encountered.  Original error message: %s</p>") % e
         return strErrContent
     f = file(my_globals.INT_REPORT_PATH, "r")
     source = GetSource(db, tbl_name)
@@ -368,7 +368,8 @@ def SaveToReport(fil_report, css_fils, source, new_html):
         f.close()        
     else:
         existing_no_ends = None
-    hdr_title = time.strftime("SOFA Statistics Report %Y-%m-%d_%H:%M:%S")
+    hdr_title = time.strftime(_("SOFA Statistics Report") + \
+                              " %Y-%m-%d_%H:%M:%S")
     hdr = getHtmlHdr(hdr_title, css_fils)
     f = file(fil_report, "w")
     css_fils_str = pprint.pformat(css_fils)
@@ -392,7 +393,7 @@ def DisplayReport(parent, strContent):
     # display results
     dlg = showhtml.ShowHTML(parent=parent, content=strContent, 
                             file_name=my_globals.INT_REPORT_FILE, 
-                            title="Report", 
+                            title=_("Report"), 
                             print_folder=my_globals.INTERNAL_FOLDER)
     dlg.ShowModal()
     dlg.Destroy()

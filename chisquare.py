@@ -17,11 +17,11 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
     min_data_type = my_globals.VAR_TYPE_CAT
     
     def GetExamples(self):
-        eg1 = "Answers the question, is there a relationship " + \
-            "between two variables."
-        eg2 = "For example, is there a relationship between ethnic " + \
-            "group and gender?"
-        eg3 = "Or between gender and political preference?"
+        eg1 = _("Answers the question, is there a relationship "
+            "between two variables.")
+        eg2 = _("For example, is there a relationship between ethnic "
+            "group and gender?")
+        eg3 = _("Or between gender and political preference?")
         return eg1, eg2, eg3
 
     def UpdatePhrase(self):
@@ -29,8 +29,8 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         Update phrase based on Group A and Group B.
         """
         var_a, label_a, var_b, label_b = self.GetDropVals()
-        self.lblPhrase.SetLabel("Is there a relationship between " + \
-            "\"%s\" and \"%s\"" % (label_a, label_b))
+        self.lblPhrase.SetLabel(_("Is there a relationship between "
+            "\"%(a)s\" and \"%(b)s\"") % {"a": label_a, "b": label_b})
     
     def getScript(self, css_idx):
         "Build script from inputs"
