@@ -1,10 +1,15 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import gettext
+# http://wiki.wxpython.org/RecipesI18n
+# Install gettext.  Now all strings enclosed in "_()" will automatically be
+# translated.
+gettext.install('sofa', './locale', unicode=False)
+
 import warnings
 warnings.simplefilter('ignore', DeprecationWarning)
 
-import gettext
 import os
 import shutil
 from pysqlite2 import dbapi2 as sqlite
@@ -22,14 +27,7 @@ import projselect
 import quotes
 import stats_select
 import util
-
-multiline_test = _("  line1"
-                   "  line2"
-                   "  line3")
-
-# http://wiki.wxpython.org/Internationalization
-gettext.install("sofa", "./locale", unicode=True)
-
+        
 COPYRIGHT = "(c)" if util.in_windows() else "©" # "\xa9" problems with utf-8
 MAX_HELP_TEXT_WIDTH = 350 # pixels
 TEXT_BROWN = (90, 74, 61)
@@ -175,7 +173,17 @@ class SofaApp(wx.App):
 class StartFrame(wx.Frame):
     
     def __init__(self):
-        wx.Frame.__init__(self, None, title="SOFA Start", size=(800, 542),
+        # http://wiki.wxpython.org/RecipesI18n
+        # Define supported languages
+        #self.presLan_en = gettext.translation('sofa', './locale', 
+        #                                      languages=['en']) # English
+        #self.presLan_es = gettext.translation('sofa', './locale', 
+            #languages=['es']) # Spanish
+        #self.presLan_fr = gettext.translation('sofa', './locale', 
+            #languages=['fr']) # French
+        # Install English as the initial language
+        #self.presLan_en.install()
+        wx.Frame.__init__(self, None, title=_("SOFA Start"), size=(800, 542),
               style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]

@@ -17,22 +17,25 @@ def ttest_output(t, p, dic_a, dic_b, label_avg="", dp=3, indep=True,
     CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_LBL, css_idx)
     if indep:
-        html = "<h2>Results of Independent Samples t-test " + \
-            "of average \"%s\" for " % label_avg + \
-            "\"%s\" vs \"%s\"</h2>" % (dic_a["label"], dic_b["label"])
+        html = _("<h2>Results of Independent Samples t-test "
+            "of average \"%(avg)s\" for \"%(a)s\" vs \"%(b)s\"</h2>") % \
+            {"avg": label_avg, "a": dic_a["label"], "b": dic_b["label"]}
     else:
-        html = "<h2>Results of Paired Samples t-test " + \
-            "of \"%s\" vs \"%s\"</h2>" % (dic_a["label"], dic_b["label"])
-    p_format = "\n<p>p value: %%.%sf</p>" % dp
+        html = _("<h2>Results of Paired Samples t-test "
+            "of \"%(a)s\" vs \"%(b)s\"</h2>") % {"a": dic_a["label"], "b": 
+                                                 dic_b["label"]}
+    p_format = "\n<p>" + _("p value") + ": %%.%sf</p>" % dp
     html += p_format % round(p, dp)
-    html += "\n<p>t statistic: %s</p>" % round(t, dp)
+    html += "\n<p>" + _("t statistic") + ": %s</p>" % round(t, dp)
     html += "\n\n<table>\n<thead>"
-    html += "\n<tr><th class='%s'>Group</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>N</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>Mean</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>Standard Deviation</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>Min</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>Max</th></tr>" % CSS_FIRST_COL_VAR
+    html += "\n<tr>" + \
+        "<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean") + "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Standard Deviation") + \
+            "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + "</th></tr>"
     html += "\n</thead>\n<tbody>"
     row_tpl = "\n<tr><td class='%s'>" % CSS_LBL + "%s</td><td>%s</td>" + \
         "<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
@@ -54,17 +57,20 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
     CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_LBL, css_idx)
-    html = "<h2>Results of Mann Whitney U Test of \"%s\" for" % label_ranked + \
-            " \"%s\" vs \"%s\"</h2>" % (dic_a["label"], dic_b["label"])
-    p_format = "\n<p>p value: %%.%sf</p>" % dp
+    html = _("<h2>Results of Mann Whitney U Test of \"%(ranked)s\" for "
+             "\"%(a)s\" vs \"%(b)s\"</h2>") % {"ranked": label_ranked, 
+                                               "a": dic_a["label"], 
+                                               "b": dic_b["label"]}
+    p_format = "\n<p>" + _("p value") + ": %%.%sf</p>" % dp
     html += p_format % round(p, dp)
-    html += "\n<p>U statistic: %s</p>" % round(u, dp)
+    html += "\n<p>" + _("U statistic") + ": %s</p>" % round(u, dp)
     html += "\n\n<table>\n<thead>"
-    html += "\n<tr><th class='%s'>Group</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>N</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>Avg Rank</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>Min</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>Max</th></tr>" % CSS_FIRST_COL_VAR
+    html += "\n<tr>" + \
+        "<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Avg Rank") + "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + "</th></tr>"
     html += "\n</thead>\n<tbody>"
     row_tpl = "\n<tr><td class='%s'>" % CSS_LBL + "%s</td><td>%s</td>" + \
         "<td>%s</td><td>%s</td><td>%s</td></tr>"
@@ -81,11 +87,12 @@ def wilcoxon_output(t, p, label_a, label_b, dp=3,
                  page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
-    html = "<h2>Results of Wilcoxon Signed Ranks Test of " + \
-            " \"%s\" vs \"%s\"</h2>" % (label_a, label_b)
+    html = _("<h2>Results of Wilcoxon Signed Ranks Test of \"%(a)s\" vs "
+             "\"%(b)s\"</h2>") % {"a": label_a, "b": label_b}
     p_format = "\n<p>p value: %%.%sf</p>" % dp
     html += p_format % round(p, dp)
-    html += "\n<p>Wilcoxon Signed Ranks statistic: %s</p>" % round(t, dp)
+    html += "\n<p>" + _("Wilcoxon Signed Ranks statistic") + ": %s</p>" % \
+        round(t, dp)
     if page_break_after:
         html += "<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
     return html
@@ -95,11 +102,11 @@ def pearsonsr_output(r, p, label_a, label_b, dp=3,
                  page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
-    html = "<h2>Results of Pearson's Test of Linear Correlation for " + \
-            " \"%s\" and \"%s\"</h2>" % (label_a, label_b)
-    p_format = "\n<p>p value: %%.%sf</p>" % dp
+    html = _("<h2>Results of Pearson's Test of Linear Correlation for \"%(a)s\""
+             " and \"%(b)s\"</h2>") % {"a": label_a, "b": label_b}
+    p_format = "\n<p>" + _("p value") + ": %%.%sf</p>" % dp
     html += p_format % round(p, dp)
-    html += "\n<p>Pearson's R statistic: %s</p>" % round(r, dp)
+    html += "\n<p>" + _("Pearson's R statistic") + ": %s</p>" % round(r, dp)
     if page_break_after:
         html += "<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
     return html
@@ -109,11 +116,11 @@ def spearmansr_output(r, p, label_a, label_b, dp=3,
                  page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
-    html = "<h2>Results of Spearman's Test of Linear Correlation for " + \
-            " \"%s\" and \"%s\"</h2>" % (label_a, label_b)
-    p_format = "\n<p>p value: %%.%sf</p>" % dp
+    html = _("<h2>Results of Spearman's Test of Linear Correlation for "
+             "\"%(a)s\" and \"%(b)s\"</h2>") % {"a": label_a, "b": label_b}
+    p_format = "\n<p>" + _("p value") + ": %%.%sf</p>" % dp
     html += p_format % round(p, dp)
-    html += "\n<p>Spearman's R statistic: %s</p>" % round(r, dp)
+    html += "\n<p>" + _("Spearman's R statistic") + ": %s</p>" % round(r, dp)
     if page_break_after:
         html += "<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
     return html
@@ -142,12 +149,14 @@ def chisquare_output(chi, p, var_label_a, var_label_b,
     cells_per_col = 2
     val_labels_a_n = len(val_labels_a)
     val_labels_b_n = len(val_labels_b)
-    html = "<h2>Results of Pearson's Chi Square Test of Association Between" + \
-            " \"%s\" and \"%s\"</h2>" % (var_label_a, var_label_b)
-    p_format = "\n<p>p value: %%.%sf</p>" % dp
+    html = _("<h2>Results of Pearson's Chi Square Test of Association Between"
+             " \"%(laba)s\" and \"%(labb)s\"</h2>") % {"laba": var_label_a, 
+                                                       "labb": var_label_b}
+    p_format = "\n<p>" + _("p value") + ": %%.%sf</p>" % dp
     html += p_format % round(p, dp)
-    html += "\n<p>Pearson's Chi Square statistic: %s</p>" % round(chi, dp)
-    html += "\n<p>Degrees of Freedom (df): %s</p>" % df
+    html += "\n<p>" + _("Pearson's Chi Square statistic") + ": %s</p>" % \
+        round(chi, dp)
+    html += "\n<p>" + _("Degrees of Freedom (df)") + ": %s</p>" % df
     # headings
     html += "\n\n<table>\n<thead>"
     html += "\n<tr><th class='%s' colspan=2 rowspan=3></th>" % CSS_SPACEHOLDER
@@ -157,9 +166,9 @@ def chisquare_output(chi, p, var_label_a, var_label_b,
     html += "\n<tr>"
     for val in val_labels_b:
         html += "<th colspan=%s>%s</th>" % (cells_per_col, val)
-    html += "<th colspan=%s>TOTAL</th></tr>\n<tr>" % cells_per_col
+    html += "<th colspan=%s>" + _("TOTAL") + "</th></tr>\n<tr>" % cells_per_col
     for i in range(val_labels_b_n + 1):
-        html += "<th>Obs</th><th>Exp</th>"
+        html += "<th>" + _("Obs") + "</th><th>" + _("Exp") + "</th>"
     html += "</tr>"
     # body
     html += "\n\n</thead><tbody>"
@@ -195,7 +204,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b,
         html += "</tr>\n<tr>"
     # add totals row
     col_tots = zip(col_obs_tots, col_exp_tots)
-    html += "<td class='%s'>TOTAL</td>" % CSS_ROW_VAL
+    html += "<td class='%s'>" + _("TOTAL") + "</td>" % CSS_ROW_VAL
     for col_obs_tot, col_exp_tot in col_tots:
         html += "<td class='%s'>" % CSS_DATACELL + \
         "%s</td><td class='%s'>%s</td>" % (col_obs_tot, CSS_DATACELL,
@@ -208,8 +217,9 @@ def chisquare_output(chi, p, var_label_a, var_label_b,
     html += "</tr>"
     html += "\n</tbody>\n</table>\n"
     # warnings
-    html += "\n<p>Minimum expected cell count: %s</p>" % round(min_count, dp)
-    html += "\n<p>%% cells with expected count < 5: %s</p>" % \
+    html += "\n<p>" + _("Minimum expected cell count") + ": %s</p>" % \
+        round(min_count, dp)
+    html += "\n<p>%% " + _("cells with expected count < 5") + ": %s</p>" % \
         round(perc_cells_lt_5, 1)
     if page_break_after:
         html += "<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
@@ -220,11 +230,13 @@ def kruskal_wallis_output(h, p, label_a, label_b, label_avg, dp=3,
                  page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx) 
-    html = "<h2>Results of Kruskal-Wallis H test of average %s" % label_avg + \
-            " for groups from \"%s\" to \"%s\"</h2>" % (label_a, label_b)
-    p_format = "\n<p>p value: %%.%sf</p>" % dp
+    html = _("<h2>Results of Kruskal-Wallis H test of average %(avg)s for "
+             "groups from \"%(a)s\" to \"%(b)s\"</h2>") % {"avg": label_avg, 
+                                                "a": label_a, "b": label_b}
+    p_format = "\n<p>" + _("p value") + ": %%.%sf</p>" % dp
     html += p_format % round(p, dp)
-    html += "\n<p>Kruskal-Wallis H statistic: %s</p>" % round(h, dp)
+    html += "\n<p>" + _("Kruskal-Wallis H statistic") + ": %s</p>" % \
+        round(h, dp)
     if page_break_after:
         html += "<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
     return html
@@ -239,33 +251,39 @@ def anova_output(F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
     CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_LBL, css_idx)
-    html = "<h2>Results of ANOVA test of average %s" % label_avg + \
-            " for groups from \"%s\" to \"%s\"</h2>" % (label_a, label_b)
-    html += "\n\n<h3>Analysis of variance table</h3>"
+    html = _("<h2>Results of ANOVA test of average %(avg)s for groups from"
+             " \"%(a)s\" to \"%(b)s\"</h2>") % {"avg": label_avg, "a": label_a, 
+                                                "b": label_b}
+    html += "\n\n<h3>" + _("Analysis of variance table") + "</h3>"
     html += "\n<table>\n<thead>"
-    html += "\n<tr><th class='%s'>Source</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>Sum of Squares</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>df</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>Mean Sum of Squares</th>" % CSS_FIRST_COL_VAR + \
+    html += "\n<tr>" + \
+        "<th class='%s'>" % CSS_FIRST_COL_VAR + _("Source") + "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Sum of Squares") + \
+            "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("df") + "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean Sum of Squares") + \
+            "</th>" + \
         "\n<th class='%s'>F</th>" % CSS_FIRST_COL_VAR + \
         "\n<th class='%s'>p</th></tr>" % CSS_FIRST_COL_VAR
     html += "\n</thead>\n<tbody>"
-    html += "\n<tr><td>Between</td><td>%s</td><td>%s</td>" % (round(ssbn, dp), 
-                                                              dfbn)
+    html += "\n<tr><td>" + _("Between") + \
+        "</td><td>%s</td><td>%s</td>" % (round(ssbn, dp), dfbn)
     html += "<td>%s</td><td>%s</td><td>%s</td></tr>" % (round(mean_squ_bn, dp), 
                                                     round(F, dp), round(p, dp))
-    html += "\n<tr><td>Within</td><td>%s</td><td>%s</td>" % (round(sswn, dp), 
-                                                             dfwn)
+    html += "\n<tr><td>" + _("Within") + \
+        "</td><td>%s</td><td>%s</td>" % (round(sswn, dp), dfwn)
     html += "<td>%s</td><td></td><td></td></tr>" % round(mean_squ_wn, dp)
     html += "\n</tbody>\n</table>\n"
-    html += "\n\n<h3>Group summary details</h3>"
+    html += "\n\n<h3>" + _("Group summary details") + "</h3>"
     html += "\n<table>\n<thead>"
-    html += "\n<tr><th class='%s'>Group</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>N</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>Mean</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>Standard Deviation</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>Min</th>" % CSS_FIRST_COL_VAR + \
-        "\n<th class='%s'>Max</th></tr>" % CSS_FIRST_COL_VAR
+    html += "\n<tr><th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + \
+            "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean") + "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Standard Deviation") + \
+            "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + "</th>" + \
+        "\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + "</th></tr>"
     html += "\n</thead>\n<tbody>"
     row_tpl = ("\n<tr><td class='%s'>" % CSS_LBL + \
                "%s</td><td>%s</td><td>%s</td>"

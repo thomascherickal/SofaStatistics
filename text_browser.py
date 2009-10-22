@@ -38,7 +38,7 @@ class TextBrowse(wx.PyControl):
         self.txt = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.txt.Bind(wx.EVT_KEY_DOWN, self.OnTxtKeyDown)
-        self.btnBrowse = wx.Button(self, -1, "Browse ...")
+        self.btnBrowse = wx.Button(self, -1, _("Browse ..."))
         self.btnBrowse.Bind(wx.EVT_BUTTON, self.OnBtnBrowseClick)
         self.btnBrowse.Bind(wx.EVT_KEY_DOWN, self.OnBtnBrowseKeyDown)
         szr = wx.BoxSizer(wx.HORIZONTAL)

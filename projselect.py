@@ -11,7 +11,7 @@ import projects
 
 class ProjSelectDlg(wx.Dialog):
     def __init__(self, parent, projs):
-        wx.Dialog.__init__(self, parent=parent, title="Projects",
+        wx.Dialog.__init__(self, parent=parent, title=_("Projects"),
                            size=wx.DefaultSize, 
                            style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
                            wx.SYSTEM_MENU, pos=(400, 100))
@@ -26,7 +26,8 @@ class ProjSelectDlg(wx.Dialog):
                            wx.BITMAP_TYPE_XPM)
         self.SetIcons(ib)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
-        lblChoose = wx.StaticText(self.panel, -1, "Choose an existing project ...")
+        lblChoose = wx.StaticText(self.panel, -1, 
+                                  _("Choose an existing project ..."))
         self.dropProjs = wx.Choice(self.panel, -1, choices=self.projs)
         self.dropProjs.SetSelection(0)
         self.StoreProjName(self.projs[0])
@@ -40,14 +41,15 @@ class ProjSelectDlg(wx.Dialog):
         self.txtProjNotes = wx.TextCtrl(self.panel, -1, self.proj_notes,
                                         style=wx.TE_MULTILINE|wx.TE_READONLY, 
                                         size=(400, 90))
-        bxExisting = wx.StaticBox(self.panel, -1, "Existing Projects")
+        bxExisting = wx.StaticBox(self.panel, -1, _("Existing Projects"))
         szrExisting = wx.StaticBoxSizer(bxExisting, wx.VERTICAL)
         
         szrExisting.Add(szrExistingTop, 0, wx.GROW|wx.ALL, 10)
         szrExisting.Add(self.txtProjNotes, 1, wx.GROW|wx.ALL, 10)
         bxNew = wx.StaticBox(self.panel, -1, "")
         szrNew = wx.StaticBoxSizer(bxNew, wx.HORIZONTAL)
-        lblMakeNew = wx.StaticText(self.panel, -1, "... or make a new project")
+        lblMakeNew = wx.StaticText(self.panel, -1, 
+                                   _("... or make a new project"))
         btnMakeNew = wx.Button(self.panel, wx.ID_NEW)
         btnMakeNew.Bind(wx.EVT_BUTTON, self.OnNewClick)
         szrNew.Add(lblMakeNew, 1, wx.GROW|wx.ALL, 10)
@@ -143,11 +145,3 @@ class ProjSelectDlg(wx.Dialog):
         except Exception:
             pass
         self.Destroy()
-
-#"""
-if __name__ == "__main__":
-    app = wx.PySimpleApp()
-    myframe = ProjSelectDlg(None, ["MOH.proj", "test.proj"])
-    myframe.Show()
-    app.MainLoop()
-#"""

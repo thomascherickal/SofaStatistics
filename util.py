@@ -293,48 +293,6 @@ def valid_datetime_str(val):
         return False, None
     if debug: print(t)
     return True, t
-
-def get_time_taken(t1, t2):
-    """Return hours, minutes, seconds of time taken between t1 and t2.
-    Use time.clock() to create t1 and t2 inputs"""
-    #http://pleac.sourceforge.net/pleac_python/datesandtimes.html
-    difference  = t2 - t1
-    minutes, seconds = divmod(difference, 60)
-    hours, minutes = divmod(minutes, 60)
-    time_taken_dic = {'hours': int(hours), 'minutes': int(minutes), 
-                      'seconds': int(seconds)}
-    return time_taken_dic
-
-def get_datetime_stamp():
-    """Get datetime stamp as string e.g. 2008-06-30-16-45-03"""
-    now = datetime.datetime.now() #http://pleac.sourceforge.net/pleac_python/datesandtimes.html
-    datetimestamp = now.strftime("%Y-%m-%d-%H-%M-%S")
-    return datetimestamp
-
-def getBytesUnit(intbytes):
-    """
-    Takes raw number of bytes and returns best string representation 
-    e.g. 0.4 MB
-    """
-    if intbytes < 1024:
-        return "%s bytes" % intbytes
-    elif intbytes < 1024*500:
-        return "%f KB" % (intbytes/1024.0)
-    elif intbytes < 1024*1024*500:
-        return "%.2f MB" % (intbytes/(1024.0*1024))
-    else:
-        return "%.2f GB" % (intbytes/(1024.0*1024*1024)) 
-
-def getText(parent, title, message, default=""):
-    "Get user text"
-    dlg = wx.TextEntryDialog(parent, message, title, default, 
-                             style=wx.OK|wx.CANCEL)
-    if dlg.ShowModal() == wx.ID_OK:
-        text = dlg.GetValue()
-    else:
-        text = None
-    dlg.Destroy()
-    return text
     
 def getTreeCtrlChildren(tree, parent):
     "Get children of TreeCtrl item"
@@ -385,59 +343,6 @@ def getTreeAncestors(tree, child):
         ancestors.append(item)
         item = tree.GetItemParent(item)
     return ancestors
-
-def MySQL2string(val):
-    """
-    Takes field data in MySQL and processes for output.  
-    In particular, handles dates.
-    """
-    import time
-    if val is None:
-        return ""
-    elif type(val).__name__ == 'datetime': #http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/511451
-        date_portion = str(val)[0:10]
-        #Unless you put a "'" on the front, Calc treats older dates (about pre-1947) as strings not dates :-(
-        #formats are in http://docs.python.org/lib/module-time.html
-        return time.strftime("%Y-%m-%d", time.strptime(date_portion, "%Y-%m-%d"))
-        #unless YYYY-mm-dd output, spreadsheets often misinterpret dates (US format issue probably)
-    else:
-        return str(val)
-    
-def run_mysql_cmd(cmd, DB_HOST, DB_USER, DB_PWD):
-    "Run a MySQL command as a subprocess that will not work using the cursor"
-    import subprocess
-    args = "\"C:\\Program Files\\MySQL\\MySQL Server 5.0\\bin\\mysql.exe\" " + \
-        " -h%s -u%s -p%s " % (DB_HOST, DB_USER, DB_PWD) + \
-        " --database=pgftransfer %s" % (cmd)
-    child = subprocess.Popen(args=args, shell=True, executable="C:\\windows\\system32\\cmd.exe")
-    
-def get_new_id(start_value=0):
-    """
-    Get next number in sequence - uses iterator rather than global
-    http://www.daniweb.com/forums/thread33025.html
-    NB if repeatedly define this generator, will be fresh each time.  Define once,
-    and call multiple times for the desired result ;-)
-    """
-    id = start_value
-    while True:
-        id += 1
-        yield id
-    
-def empty_or_none_to_null(val, quote=False):
-    """
-    Change empty strings and None to NULL or return string version of value.
-    Can return string value single quoted for inclusion into SQL so that 
-    either NULL or 'value' is returned as appropriate e.g. when running inserts.
-    """
-    if val is None:
-        return "NULL"
-    elif val == "":
-        return "NULL"
-    else:
-        if quote:
-            return "'%s'" % val
-        else:
-            return str(val)
 
     
 class StaticWrapText(wx.StaticText):

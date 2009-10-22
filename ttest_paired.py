@@ -15,12 +15,12 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
     min_data_type = my_globals.VAR_TYPE_QUANT
     
     def GetExamples(self):
-        eg1 = "Answers the question, are the elements of paired sets of " + \
-                "data different from each other?"
-        eg2 = "For example, do people have a higher average weight after a " + \
-                "diet compared with before?"
-        eg3 = "Or does average performance in IQ tests vary between " + \
-                "morning and mid afternoon?"
+        eg1 = _("Answers the question, are the elements of paired sets of "
+                "data different from each other?")
+        eg2 = _("For example, do people have a higher average weight after a "
+                "diet compared with before?")
+        eg3 = _("Or does average performance in IQ tests vary between "
+                "morning and mid afternoon?")
         return eg1, eg2, eg3
     
     def getScript(self, css_idx):

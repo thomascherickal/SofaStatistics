@@ -74,7 +74,7 @@ class TableEntryDlg(wx.Dialog):
             btnDelete = wx.Button(self.panel, wx.ID_DELETE)
             btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
         if inc_insert:
-            btnInsert = wx.Button(self.panel, -1, "Insert Before")
+            btnInsert = wx.Button(self.panel, -1, _("Insert Before"))
             btnInsert.Bind(wx.EVT_BUTTON, self.OnInsert)
         # using the approach which will follow the platform convention 
         # for standard buttons
@@ -252,7 +252,7 @@ class TableEntry(object):
             file_phrase = self.col_dets[col_idx].get("file_phrase", "")
             # use * - *.* will not pickup files without extensions in Ubuntu
             wildcard = self.col_dets[col_idx].get("file_wildcard", 
-                                                  "Any file (*)|*")
+                                                  _("Any file") + " (*)|*")
             editor = text_browser.GridCellTextBrowseEditor(self.grid, 
                                                         file_phrase, wildcard)
         elif col_type == COL_DROPDOWN:
@@ -676,7 +676,7 @@ class TableEntry(object):
         empty_not_ok_prob = (cell_val == "" and not empty_ok)
         valid, msg = self.CellInvalid(row, col)
         if not msg and empty_not_ok_prob:
-            msg = "It is not allowed to be empty."
+            msg = _("It is not allowed to be empty.")
         ok_to_save = not valid and not empty_not_ok_prob
         return ok_to_save, msg
 
@@ -690,9 +690,9 @@ class TableEntry(object):
         for col_idx, col_det in enumerate(self.col_dets):
             ok_to_save, msg = self.CellOKToSave(row=row, col=col_idx)
             if not ok_to_save:
-                wx.MessageBox("Unable to save new row.  Invalid value " + \
-                              "in the \"%s\" column. %s" % \
-                              (col_det["col_label"], msg))
+                wx.MessageBox(_("Unable to save new row.  Invalid value "
+                                "in the \"%(col_label)s\" column. %(msg)s") % \
+                                {"col_label": col_det["col_label"], "msg": msg})
                 return False
         return True
     
@@ -714,9 +714,9 @@ class TableEntry(object):
                 self.DeleteRow(row)
                 return True, ""
             else:
-                return False, "Unable to delete new row"
+                return False, _("Unable to delete new row")
         else:
-            return False, "Can only delete one row at a time"            
+            return False, _("Can only delete one row at a time")            
     
     def DeleteRow(self, row):
         """

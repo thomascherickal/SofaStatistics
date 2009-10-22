@@ -156,7 +156,7 @@ class RawTable(object):
         if self.add_total_row:
             row_tot_vals = [str(x) for x in row_tots]
             if self.first_col_as_label:
-                tot_cell = "<td class='%s'>TOTAL</td>" % CSS_LBL
+                tot_cell = "<td class='%s'>" % CSS_LBL + _("TOTAL") + "</td>"
                 row_tot_vals.pop(0)
             else:
                 tot_cell = ""

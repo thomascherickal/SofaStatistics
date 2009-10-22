@@ -6,15 +6,15 @@ import indep2var
 
 class DlgConfig(indep2var.DlgIndep2VarConfig):
 
-    averaged = "Averaged"
+    averaged = _("Averaged")
     min_data_type = my_globals.VAR_TYPE_QUANT
 
     def GetExamples(self):
-        eg1 = "Answers the question, do 2 groups have a different average?"
-        eg2 = "For example, do PhD graduates earn the same on average as " + \
-                    "Masters graduates?"
-        eg3 = "Or do parents of pre-schoolers get the same amount of " + \
-                    "sleep on average as parents of teenagers?"
+        eg1 = _("Answers the question, do 2 groups have a different average?")
+        eg2 = _("For example, do PhD graduates earn the same on average as "
+                    "Masters graduates?")
+        eg3 = _("Or do parents of pre-schoolers get the same amount of "
+                    "sleep on average as parents of teenagers?")
         return eg1, eg2, eg3
     
     def UpdatePhrase(self):
@@ -23,8 +23,10 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         """
         var_gp, label_gp, val_a, label_a, val_b, label_b, \
             var_avg, label_avg = self.GetDropVals()
-        self.lblPhrase.SetLabel("Does %s \"%s\" have" % (label_gp, label_a) + \
-            " a different average %s from \"%s\"?" % (label_avg, label_b))
+        self.lblPhrase.SetLabel(_("Does %(gp)s \"%(a)s\" have a different "
+                                  "average %(avg)s from \"%(b)s\"?") % \
+                                  {"gp": label_gp, "a": label_a, 
+                                   "avg": label_avg, "b": label_b})
 
     def getScript(self, css_idx):
         "Build script from inputs"

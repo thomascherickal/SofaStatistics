@@ -51,14 +51,14 @@ class ShowHTML(wx.Dialog):
         self.print_folder = print_folder
         html = full_html.FullHTML(self, size=wx.DefaultSize)
         html.ShowHTML(content)
-        btnClose = wx.Button(self, wx.ID_CLOSE, "Close")
+        btnClose = wx.Button(self, wx.ID_CLOSE, _("Close"))
         btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
         szrMain = wx.BoxSizer(wx.VERTICAL)
         szrMain.Add(html,1,wx.GROW|wx.ALL, 5)
         if util.in_windows():
             szrButtons = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
             szrButtons.AddGrowableCol(1,2)
-            btnPrint = wx.Button(self, -1, "Print")
+            btnPrint = wx.Button(self, -1, _("Print"))
             btnPrint.Bind(wx.EVT_BUTTON, self.OnPrint)        
             szrButtons.Add(btnPrint, 0, wx.ALL, 5)
             szrButtons.Add(btnClose, 0, wx.ALIGN_RIGHT|wx.ALL, 5)

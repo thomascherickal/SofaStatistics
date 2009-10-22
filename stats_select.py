@@ -17,15 +17,15 @@ import util
 import wilcoxon
 
 TEXT_BROWN = (90, 74, 61)
-TEST_ANOVA = "ANOVA"
-TEST_CHI_SQUARE = "Chi Square"
-TEST_PEARSONS_R = "Correlation - Pearson's"
-TEST_SPEARMANS_R = "Correlation - Spearman's"
-TEST_KRUSKAL_WALLIS = "Kruskal-Wallis H"
-TEST_MANN_WHITNEY = "Mann-Whitney U"
-TEST_TTEST_INDEP = "t-test - independent"
-TEST_TTEST_PAIRED = "t-test - paired"
-TEST_WILCOXON = "Wilcoxon Signed Ranks"
+TEST_ANOVA = _("ANOVA")
+TEST_CHI_SQUARE = _("Chi Square")
+TEST_PEARSONS_R = _("Correlation - Pearson's")
+TEST_SPEARMANS_R = _("Correlation - Spearman's")
+TEST_KRUSKAL_WALLIS = _("Kruskal-Wallis H")
+TEST_MANN_WHITNEY = _("Mann-Whitney U")
+TEST_TTEST_INDEP = _("t-test - independent")
+TEST_TTEST_PAIRED = _("t-test - paired")
+TEST_WILCOXON = _("Wilcoxon Signed Ranks")
 STATS_TESTS = [TEST_ANOVA, TEST_CHI_SQUARE, TEST_PEARSONS_R, TEST_SPEARMANS_R,
                TEST_KRUSKAL_WALLIS, TEST_MANN_WHITNEY, TEST_TTEST_INDEP, 
                TEST_TTEST_PAIRED, TEST_WILCOXON]
@@ -46,7 +46,7 @@ class StatsSelectDlg(wx.Dialog):
                  default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
                  fil_script="", var_labels=None, var_notes=None, 
                  val_dics=None):
-        wx.Dialog.__init__(self, None, title="Select Statistical Test", 
+        wx.Dialog.__init__(self, None, title=_("Select Statistical Test"), 
               size=(800, 542),
               style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU,
               pos=(100, 100))
@@ -100,11 +100,11 @@ class StatsSelectDlg(wx.Dialog):
         # choices (NB can't use RadioBoxes and wallpaper in Windows)
         # choices line 1
         DIFF_LN_1 = 190
-        self.rad2Groups = wx.RadioButton(self.panel, -1, "2 groups", 
+        self.rad2Groups = wx.RadioButton(self.panel, -1, _("2 groups"), 
                                          style=wx.RB_GROUP,
                                          pos=(BUTTON1_LEFT, DIFF_LN_1))
         self.rad2Groups.Bind(wx.EVT_RADIOBUTTON, self.OnRadio2GroupsButton)
-        self.rad3Groups = wx.RadioButton(self.panel, -1, "3 or more",
+        self.rad3Groups = wx.RadioButton(self.panel, -1, _("3 or more"),
                                          pos=(BUTTON2_LEFT, DIFF_LN_1))
         self.rad3Groups.Bind(wx.EVT_RADIOBUTTON, self.OnRadio3GroupsButton)
         self.rad2Groups.Enable(False)
@@ -118,8 +118,8 @@ class StatsSelectDlg(wx.Dialog):
                       size=(DIV_LINE_WIDTH, 1))   
         # choices line 2
         DIFF_LN_2 = 235
-        lbl_normal = "Normal"
-        lbl_not_normal = "Not normal"
+        lbl_normal = _("Normal")
+        lbl_not_normal = _("Not normal")
         self.radNormal1 = wx.RadioButton(self.panel, -1, lbl_normal, 
                                          style=wx.RB_GROUP,
                                          pos=(BUTTON1_LEFT, DIFF_LN_2))
@@ -138,11 +138,11 @@ class StatsSelectDlg(wx.Dialog):
                       size=(DIV_LINE_WIDTH, 1))
         # choices line 3
         DIFF_LN_3 = 280
-        self.radIndep = wx.RadioButton(self.panel, -1, "Independent", 
+        self.radIndep = wx.RadioButton(self.panel, -1, _("Independent"), 
                                        style=wx.RB_GROUP,
                                        pos=(BUTTON1_LEFT, DIFF_LN_3))
         self.radIndep.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButton)
-        self.radPaired = wx.RadioButton(self.panel, -1, "Paired",
+        self.radPaired = wx.RadioButton(self.panel, -1, _("Paired"),
                                         pos=(BUTTON2_LEFT, DIFF_LN_3))
         self.radPaired.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButton)
         self.radIndep.Enable(False)
@@ -153,11 +153,11 @@ class StatsSelectDlg(wx.Dialog):
         self.btnIndepHelp.Enable(False)
         # choices line 4
         DIFF_LN_4 = REL_TOP + 60
-        self.radNominal = wx.RadioButton(self.panel, -1, "Names Only", 
+        self.radNominal = wx.RadioButton(self.panel, -1, _("Names Only"), 
                                       style=wx.RB_GROUP,
                                       pos=(BUTTON1_LEFT, DIFF_LN_4))
         self.radNominal.Bind(wx.EVT_RADIOBUTTON, self.OnRadioNominalButton)
-        self.radOrdered = wx.RadioButton(self.panel, -1, "Ordered",
+        self.radOrdered = wx.RadioButton(self.panel, -1, _("Ordered"),
                                       pos=(BUTTON2_LEFT, DIFF_LN_4))
         self.radOrdered.Bind(wx.EVT_RADIOBUTTON, self.OnRadioOrderedButton)
         self.radNominal.Enable(False)
@@ -203,7 +203,7 @@ class StatsSelectDlg(wx.Dialog):
                                          wx.BITMAP_TYPE_PNG)
             il.Add(bmp)
         self.lstTests.AssignImageList(il, wx.IMAGE_LIST_SMALL)
-        self.lstTests.InsertColumn(0, "Statistical Test")
+        self.lstTests.InsertColumn(0, _("Statistical Test"))
         self.lstTests.SetColumnWidth(0, LST_WIDTH - 25)
         self.lstTests.InsertColumn(1, "")
         self.lstTests.SetColumnWidth(1, 25)
@@ -214,7 +214,7 @@ class StatsSelectDlg(wx.Dialog):
         self.lstTests.Select(0)
         self.lstTests.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnListItemSelected)
         # run test button
-        self.btnConfig = wx.Button(self.panel, -1, "CONFIGURE TEST >>>",
+        self.btnConfig = wx.Button(self.panel, -1, _("CONFIGURE TEST") + " >>>",
                                 pos=(CONFIG_LEFT, LST_TOP + LST_HEIGHT + 20))
         self.btnConfig.Bind(wx.EVT_BUTTON, self.OnConfigClicked)
         # close button
@@ -232,22 +232,22 @@ class StatsSelectDlg(wx.Dialog):
         panel_dc.DrawBitmap(self.bmp_stats_select, 0, 0, True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         panel_dc.SetFont(wx.Font(13, wx.SWISS, wx.NORMAL, wx.BOLD))
-        panel_dc.DrawLabel("SELECT A STATISTICAL TEST HERE", 
+        panel_dc.DrawLabel(_("SELECT A STATISTICAL TEST HERE"), 
            wx.Rect(MAIN_LEFT, 53, 100, 100))
-        panel_dc.DrawLabel("OR GET HELP CHOOSING BELOW", 
+        panel_dc.DrawLabel(_("OR GET HELP CHOOSING BELOW"), 
            wx.Rect(MAIN_LEFT, 95, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        panel_dc.DrawLabel("Tests that show if there is a difference", 
+        panel_dc.DrawLabel(_("Tests that show if there is a difference"), 
            wx.Rect(BUTTON1_LEFT, 135, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel("E.g. Do females have a larger vocabulary " + \
-                           "average than males?", 
+        panel_dc.DrawLabel(_("E.g. Do females have a larger vocabulary "
+                           "average than males?"), 
            wx.Rect(BUTTON1_LEFT, 160, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        panel_dc.DrawLabel("Tests that show if there is a relationship", 
+        panel_dc.DrawLabel(_("Tests that show if there is a relationship"), 
            wx.Rect(BUTTON1_LEFT, REL_TOP, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel("E.g. Does wealth increase with age?", 
+        panel_dc.DrawLabel(_("E.g. Does wealth increase with age?"), 
            wx.Rect(BUTTON1_LEFT, REL_TOP + 27, 100, 100))
         event.Skip()
     
@@ -308,12 +308,12 @@ class StatsSelectDlg(wx.Dialog):
         self.RespondToAssistedChoices()
 
     def OnGroupsHelpButton(self, event):
-        wx.MessageBox("Are you looking at the difference between two " + \
-          "groups or more?" + \
-          "\n\nExample with 2 groups: average vocabulary of Males vs " + \
-          "Females." + \
-          "\n\nExample with 3 or more groups: average sales figures for " + \
-          "the North, South, East, and West regions")
+        wx.MessageBox(_("Are you looking at the difference between two "
+          "groups or more?"
+          "\n\nExample with 2 groups: average vocabulary of Males vs "
+          "Females."
+          "\n\nExample with 3 or more groups: average sales figures for "
+          "the North, South, East, and West regions"))
         
     def OnNormalHelp1Button(self, event):
         wx.MessageBox("Under construction")
@@ -329,15 +329,15 @@ class StatsSelectDlg(wx.Dialog):
         self.btnIndepHelp.Enable(enable)
         
     def OnIndepHelpButton(self, event):
-        wx.MessageBox("Is your data for each group recorded in different " + \
-          "rows (independent) or together on same row (paired)?" + \
-          "\n\nExample of Independent data: if looking at Male vs Female " + \
-          "vocabulary we do not have both male and female scores in the " + \
-          "same rows. Male and Female data is independent." + \
-          "\n\nExample of Paired data: if looking at mental ability in the " + \
-          "Morning vs the Evening we might have one row per person with " + \
-          "both time periods in the same row. Morning and Evening data is " + \
-          "paired.")
+        wx.MessageBox(_("Is your data for each group recorded in different "
+          "rows (independent) or together on same row (paired)?"
+          "\n\nExample of Independent data: if looking at Male vs Female "
+          "vocabulary we do not have both male and female scores in the "
+          "same rows. Male and Female data is independent."
+          "\n\nExample of Paired data: if looking at mental ability in the "
+          "Morning vs the Evening we might have one row per person with "
+          "both time periods in the same row. Morning and Evening data is "
+          "paired."))
         
     def RelSetup(self, enable=True):
         "Enable options under Relationships section"
@@ -361,13 +361,13 @@ class StatsSelectDlg(wx.Dialog):
         self.RespondToAssistedChoices()
     
     def OnTypeHelpButton(self, event):
-        wx.MessageBox("Names only data (Nominal) is just labels or names. " + \
-          "Ordered data has a sense of order and includes Ordinal (order " + \
-          "but no amount) and Quantitative (actual numbers)." + \
-          "\n\nExample of Names Only data: sports codes ('Soccer', " + \
-          "'Badminton', 'Skiing' etc)" + \
-          "\n\nExample of Ordered data: ratings of restaurant " + \
-          "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc).")
+        wx.MessageBox(_("Names only data (Nominal) is just labels or names. "
+          "Ordered data has a sense of order and includes Ordinal (order "
+          "but no amount) and Quantitative (actual numbers)."
+          "\n\nExample of Names Only data: sports codes ('Soccer', "
+          "'Badminton', 'Skiing' etc)"
+          "\n\nExample of Ordered data: ratings of restaurant "
+          "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc)."))
     
     def OnNormalHelp2Button(self, event):
         wx.MessageBox("Under construction")
@@ -465,59 +465,59 @@ class StatsSelectDlg(wx.Dialog):
         try:
             sel_test = STATS_TESTS[idx]
         except Exception:
-            wx.MessageBox("Please select a statistical test on the list")
+            wx.MessageBox(_("Please select a statistical test on the list"))
             event.Skip()
             return
         if sel_test == TEST_TTEST_INDEP:
-            dlg = ttest_indep.DlgConfig("Configure Independent t-test", 
+            dlg = ttest_indep.DlgConfig(_("Configure Independent t-test"), 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_var_dets, self.fil_css, self.fil_report, 
                 self.fil_script)
             dlg.ShowModal()        
         elif sel_test == TEST_TTEST_PAIRED:
-            dlg = ttest_paired.DlgConfig("Configure Paired Samples t-test", 
+            dlg = ttest_paired.DlgConfig(_("Configure Paired Samples t-test"), 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_var_dets, self.fil_css, self.fil_report, 
                 self.fil_script)
             dlg.ShowModal()
         elif sel_test == TEST_ANOVA:
-            dlg = anova.DlgConfig("Configure ANOVA test", 
+            dlg = anova.DlgConfig(_("Configure ANOVA test"), 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls,
                 self.fil_var_dets, self.fil_css, self.fil_report, 
                 self.fil_script, takes_range=True)
             dlg.ShowModal()
         elif sel_test == TEST_WILCOXON:
-            dlg = wilcoxon.DlgConfig("Configure Wilcoxon Signed Ranks test", 
+            dlg = wilcoxon.DlgConfig(_("Configure Wilcoxon Signed Ranks test"), 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_var_dets, self.fil_css, self.fil_report, 
                 self.fil_script)
             dlg.ShowModal()
         elif sel_test == TEST_MANN_WHITNEY:
-            dlg = mann_whitney.DlgConfig("Configure Mann Whitney U test", 
+            dlg = mann_whitney.DlgConfig(_("Configure Mann Whitney U test"), 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_var_dets, self.fil_css, self.fil_report, 
                 self.fil_script)
             dlg.ShowModal()
         elif sel_test == TEST_KRUSKAL_WALLIS:
-            dlg = kruskal_wallis.DlgConfig("Configure Kruskal Wallis H test", 
+            dlg = kruskal_wallis.DlgConfig(_("Configure Kruskal Wallis H test"), 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_var_dets, self.fil_css, self.fil_report, 
                 self.fil_script, takes_range=True)
             dlg.ShowModal()
         elif sel_test == TEST_CHI_SQUARE:
-            dlg = chisquare.DlgConfig("Configure Chi Square test", 
+            dlg = chisquare.DlgConfig(_("Configure Chi Square test"), 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_var_dets, self.fil_css, self.fil_report, 
                 self.fil_script)
             dlg.ShowModal()
         elif sel_test == TEST_PEARSONS_R:
-            dlg = pearsonsr.DlgConfig("Configure Pearson's R test", 
+            dlg = pearsonsr.DlgConfig(_("Configure Pearson's R test"), 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_var_dets, self.fil_css, self.fil_report, 
                 self.fil_script)
             dlg.ShowModal()
         elif sel_test == TEST_SPEARMANS_R:
-            dlg = spearmansr.DlgConfig("Configure Spearman's R test", 
+            dlg = spearmansr.DlgConfig(_("Configure Spearman's R test"), 
                 self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
                 self.fil_var_dets, self.fil_css, self.fil_report, 
                 self.fil_script)

@@ -50,11 +50,11 @@ def _invalid_fld_name(row, grid):
     if field_name.strip() == "":
         return False, ""
     if not dbe_sqlite.valid_name(field_name):
-        msg = "Field names can only contain letters, numbers, and " + \
-              "underscores"
+        msg = _("Field names can only contain letters, numbers, and "
+              "underscores")
         return True, msg
     if field_name in other_fld_names:
-        msg = "%s has already been used as a field name" % field_name
+        msg = _("%s has already been used as a field name") % field_name
         return True, msg
     return False, ""
 
@@ -65,7 +65,7 @@ def _invalid_fld_type(row, grid):
         return False, ""
     if field_type not in [my_globals.CONF_NUMERIC, my_globals.CONF_STRING, 
                           my_globals.CONF_DATE]:
-        msg = "%s is not a valid field type" % field_type
+        msg = _("%s is not a valid field type") % field_type
         return True, msg
     return False, ""
 
@@ -73,13 +73,13 @@ def ValidateTblName(tbl_name):
     "Returns boolean plus string message"
     valid_name = dbe_sqlite.valid_name(tbl_name)
     if not valid_name:
-        msg = "You can only use letters, numbers and underscores " + \
-            "in a SOFA name.  Use another name?"
+        msg = _("You can only use letters, numbers and underscores "
+            "in a SOFA name.  Use another name?")
         return False, msg
     duplicate = getdata.dup_tbl_name(tbl_name)
     if duplicate:
-        msg = "Cannot use this name.  A table named \"%s\"" % tbl_name + \
-              "already exists in the default SOFA database"
+        msg = _("Cannot use this name.  A table named \"%s\" already exists in"
+                " the default SOFA database") % tbl_name
         return False, msg
     return True, ""
 
@@ -145,10 +145,10 @@ class ConfigTable(settings_grid.TableEntryDlg):
         if not cell_invalidation_func:
             cell_invalidation_func = cell_invalidation
         # col_dets - See under settings_grid.TableEntry
-        col_dets = [{"col_label": "Field Name", 
+        col_dets = [{"col_label": _("Field Name"), 
                      "col_type": settings_grid.COL_STR, 
                      "col_width": 100}, 
-                    {"col_label": "Data Type", 
+                    {"col_label": _("Data Type"), 
                      "col_type": settings_grid.COL_DROPDOWN, 
                      "col_width": 100,
                      "dropdown_vals": [my_globals.CONF_NUMERIC, 
@@ -156,15 +156,15 @@ class ConfigTable(settings_grid.TableEntryDlg):
                                        my_globals.CONF_DATE]},
                      ]
         grid_size = (250, 250)
-        wx.Dialog.__init__(self, None, title="Configure Data Table",
+        wx.Dialog.__init__(self, None, title=_("Configure Data Table"),
                           size=(500,400), 
                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
                               wx.SYSTEM_MENU)
         self.panel = wx.Panel(self)
         # New controls
-        lblTblLabel = wx.StaticText(self.panel, -1, "Table Name:")
+        lblTblLabel = wx.StaticText(self.panel, -1, _("Table Name:"))
         lblTblLabel.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        tbl_name = tbl_name_lst[0] if tbl_name_lst else "table001"
+        tbl_name = tbl_name_lst[0] if tbl_name_lst else _("table") + "001"
         self.txtTblName = wx.TextCtrl(self.panel, -1, tbl_name, size=(250,-1))
         self.txtTblName.Enable(not self.readonly)
         self.txtTblName.SetValidator(SafeTblNameValidator())

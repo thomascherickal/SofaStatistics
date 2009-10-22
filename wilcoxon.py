@@ -15,11 +15,11 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
     min_data_type = my_globals.VAR_TYPE_ORD
     
     def GetExamples(self):
-        eg1 = "Answers the question, are the elements of paired sets of " + \
-                "data different from each other?"
-        eg2 = "For example, do tutors get better student ratings after a " + \
-            "training session?"
-        eg3 = "Or have house values changed since the recession began?"
+        eg1 = _("Answers the question, are the elements of paired sets of "
+                "data different from each other?")
+        eg2 = _("For example, do tutors get better student ratings after a "
+            "training session?")
+        eg3 = _("Or have house values changed since the recession began?")
         return eg1, eg2, eg3
     
     def getScript(self, css_idx):
