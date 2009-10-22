@@ -16,7 +16,11 @@ def f2d(f):
     """
     if not isinstance(f, float):
         f = float(f)
-    n, d = f.as_integer_ratio()
+    try:
+        n, d = f.as_integer_ratio()
+    except Exception:
+        raise Exception, "Unable to turn value %s into integer ration " % f + \
+            "for unknown reason."
     numerator, denominator = decimal.Decimal(n), decimal.Decimal(d)
     ctx = decimal.Context(prec=60)
     result = ctx.divide(numerator, denominator)

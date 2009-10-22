@@ -112,15 +112,19 @@ class DataSelectDlg(wx.Dialog):
     def OnDatabaseSel(self, event):
         (self.dbe, self.db, self.cur, self.tbls, self.tbl, self.flds, 
                 self.has_unique, self.idxs) = getdata.RefreshDbDets(self)
+        self.ResetTblDropdown()
+        self._DesignButtonEnablement()
+        
+    def ResetTblDropdown(self):
         self.dropTables.SetItems(self.tbls)
         tbls_lc = [x.lower() for x in self.tbls]
         self.dropTables.SetSelection(tbls_lc.index(self.tbl.lower()))
-        self._DesignButtonEnablement()
     
     def OnTableSel(self, event):
         "Reset key data details after table selection."       
         self.tbl, self.flds, self.has_unique, self.idxs = \
             getdata.RefreshTblDets(self)
+        self._DesignButtonEnablement()
     
     def OnOpen(self, event):
         ""
@@ -227,6 +231,10 @@ class DataSelectDlg(wx.Dialog):
                                          self.default_tbls, self.conn_dets, 
                                          my_globals.SOFA_DEFAULT_DB, tbl_name)
         (conn, cur, dbs, tbls, flds, has_unique, idxs) = dbdetsobj.getDbDets()
+        # update tbl dropdown
+        self.tbls = tbls
+        self.ResetTblDropdown()
+        # open data          
         wx.BeginBusyCursor()
         read_only = False
         dlg = db_grid.TblEditor(self, dbe, conn, cur, 
