@@ -85,7 +85,7 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
             val_type = settings_grid.COL_INT
     else:
         val_type = settings_grid.COL_STR
-    title = "Settings for %s" % choice_item
+    title = _("Settings for %s") % choice_item
     notes = var_notes.get(var_name, "")
     # if nothing recorded, choose useful default variable type
     if bolnumeric:
@@ -188,9 +188,9 @@ class GetSettings(settings_grid.TableEntryDlg):
         col_dets - See under settings_grid.TableEntry
         new_grid_data - add details to it in form of a list of tuples.
         """
-        col_dets = [{"col_label": "Value", "col_type": val_type, 
+        col_dets = [{"col_label": _("Value"), "col_type": val_type, 
                      "col_width": 50}, 
-                    {"col_label": "Label", "col_type": settings_grid.COL_STR, 
+                    {"col_label": _("Label"), "col_type": settings_grid.COL_STR, 
                      "col_width": 200},
                      ]
         grid_size = (250, 250)
@@ -201,7 +201,7 @@ class GetSettings(settings_grid.TableEntryDlg):
         self.panel = wx.Panel(self)
         self.var_desc = var_desc
         # New controls
-        lblVarLabel = wx.StaticText(self.panel, -1, "Variable Label:")
+        lblVarLabel = wx.StaticText(self.panel, -1, _("Variable Label:"))
         lblVarLabel.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         lblVarNotes = wx.StaticText(self.panel, -1, "Notes:")
         lblVarNotes.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -209,7 +209,7 @@ class GetSettings(settings_grid.TableEntryDlg):
                                        size=(250,-1))
         self.txtVarNotes = wx.TextCtrl(self.panel, -1, self.var_desc["notes"],
                                        style=wx.TE_MULTILINE)
-        self.radDataType = wx.RadioBox(self.panel, -1, "Data Type",
+        self.radDataType = wx.RadioBox(self.panel, -1, _("Data Type"),
                                        choices=my_globals.VAR_TYPES)
         self.radDataType.SetStringSelection(self.var_desc["type"])
         # if text or datetime, only enable categorical.
@@ -248,14 +248,14 @@ class GetSettings(settings_grid.TableEntryDlg):
         self.tabentry.grid.SetFocus()
 
     def OnTypeHelpButton(self, event):
-        wx.MessageBox("Nominal data (names only) is just labels or names. " + \
-          "Ordinal data has a sense of order but no amount, " + \
-          "and Quantity data has actual amount e.g. 2 is twice 1." + \
-          "\n\n* Example of Nominal (names only) data: sports codes (" + \
-          "'Soccer', 'Badminton', 'Skiing' etc)." + \
-          "\n\n* Example of Ordinal (ranked) data: ratings of restaurant " + \
-          "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc)." + \
-          "\n\n* Example of Quantity (amount) data: height in cm.")
+        wx.MessageBox(_("Nominal data (names only) is just labels or names. "
+          "Ordinal data has a sense of order but no amount, "
+          "and Quantity data has actual amount e.g. 2 is twice 1."
+          "\n\n* Example of Nominal (names only) data: sports codes ("
+          "'Soccer', 'Badminton', 'Skiing' etc)."
+          "\n\n* Example of Ordinal (ranked) data: ratings of restaurant "
+          "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc)."
+          "\n\n* Example of Quantity (amount) data: height in cm."))
 
     def OnOK(self, event):
         """
@@ -337,12 +337,12 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         # misc
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         # Project Name and notes
-        lblName = wx.StaticText(self.panel_top, -1, "Project Name:")
+        lblName = wx.StaticText(self.panel_top, -1, _("Project Name:"))
         lblName.SetFont(lblfont)
         self.txtName = wx.TextCtrl(self.panel_top, -1, self.proj_name, 
                                    size=(200, -1))
         self.txtName.Enable(not self.readonly)
-        lblProjNotes = wx.StaticText(self.panel_top, -1, "Notes:")
+        lblProjNotes = wx.StaticText(self.panel_top, -1, _("Notes:"))
         lblProjNotes.SetFont(lblfont)
         self.txtProjNotes = wx.TextCtrl(self.panel_top, -1, self.proj_notes,
                                         size=(600, 40), style=wx.TE_MULTILINE)
@@ -355,10 +355,10 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         self.MiscConfigSetup(self.panel_top, readonly=self.readonly) # mixin
         # DATA CONNECTIONS
         lblDataConnDets = wx.StaticText(self.panel_top, -1, 
-                                        "Data Connection Details:")
+                                        _("Data Connection Details:"))
         # default dbe
         lblDefault_Dbe = wx.StaticText(self.scroll_conn_dets, -1, 
-                                       "Default Database Engine:")
+                                       _("Default Database Engine:"))
         lblDefault_Dbe.SetFont(lblfont)
         self.dropDefault_Dbe = wx.Choice(self.scroll_conn_dets, -1, 
                                          choices=my_globals.DBES)
@@ -367,7 +367,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         self.dropDefault_Dbe.Bind(wx.EVT_CHOICE, self.OnDbeChoice)
         self.dropDefault_Dbe.Enable(not self.readonly)
         lblScrollDown = wx.StaticText(self.scroll_conn_dets, -1, 
-                       "(scroll down for details of all your database engines)")
+                    _("(scroll down for details of all your database engines)"))
         # default dbe
         szrDefault_Dbe = wx.BoxSizer(wx.HORIZONTAL)
         szrDefault_Dbe.Add(lblDefault_Dbe, 0, wx.LEFT|wx.RIGHT, 5)
@@ -452,9 +452,9 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
 
     def OnDelete(self, event):
         proj_name = self.txtName.GetValue()
-        if wx.MessageBox("Deleting a project cannot be undone.  " + \
-                "Do you want to delete the \"%s\" project?" % \
-                proj_name, 
+        if wx.MessageBox(_("Deleting a project cannot be undone.  "
+                           "Do you want to delete the \"%s\" project?") % \
+                           proj_name, 
                 style=wx.YES|wx.NO|wx.ICON_EXCLAMATION|wx.NO_DEFAULT) == wx.NO:
             return
         try:
@@ -484,7 +484,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         if not self.readonly:
             proj_name = self.txtName.GetValue()
             if proj_name == my_globals.EMPTY_PROJ_NAME:
-                wx.MessageBox("Please provide a project name")
+                wx.MessageBox(_("Please provide a project name"))
                 self.txtName.SetFocus()
                 return
             try:
@@ -510,14 +510,14 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
                 return
             enough_completed = proj_name and any_conns
             if not enough_completed:
-                wx.MessageBox("Not enough details completed to " + \
-                              "save a project file")
+                wx.MessageBox(_("Not enough details completed to "
+                                "save a project file"))
                 return
             default_dbe_lacks_conn = default_dbe not in completed_dbes
             if default_dbe_lacks_conn:
-                wx.MessageBox("Connection details need to be completed " + \
-                      "for the default database engine (%s)" % default_dbe + \
-                      " to save a project file.")
+                wx.MessageBox(_("Connection details need to be completed "
+                      "for the default database engine (%s) to save a project"
+                      " file.") % default_dbe)
                 return
             # write the data
             fil_name = os.path.join(LOCAL_PATH, "projs", "%s.proj" % \

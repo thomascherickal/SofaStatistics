@@ -56,7 +56,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.GenConfigSetup(self.panel) # mixin
         self.SetupOutputButtons() # mixin
         szrMain = wx.BoxSizer(wx.VERTICAL)
-        bxDesc = wx.StaticBox(self.panel, -1, "Variables")
+        bxDesc = wx.StaticBox(self.panel, -1, _("Variables"))
         szrDesc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
         szrDescTop = wx.BoxSizer(wx.HORIZONTAL)
         lblPurpose = wx.StaticText(self.panel, -1,
@@ -71,12 +71,12 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrDesc.Add(szrDescTop, 1, wx.GROW|wx.LEFT, 5)
         szrDesc.Add(lblDesc2, 1, wx.GROW|wx.LEFT, 5)
         szrDesc.Add(lblDesc3, 1, wx.GROW|wx.LEFT, 5)
-        bxVars = wx.StaticBox(self.panel, -1, "Variables")
+        bxVars = wx.StaticBox(self.panel, -1, _("Variables"))
         szrVars = wx.StaticBoxSizer(bxVars, wx.VERTICAL)
         szrVarsTop = wx.BoxSizer(wx.HORIZONTAL)
         szrVarsBottom = wx.BoxSizer(wx.HORIZONTAL)
         # group A
-        self.lblGroupA = wx.StaticText(self.panel, -1, "Group A:")
+        self.lblGroupA = wx.StaticText(self.panel, -1, _("Group A:"))
         self.lblGroupA.SetFont(self.LABEL_FONT)
         self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupA.Bind(wx.EVT_CHOICE, self.OnGroupSel)
@@ -84,7 +84,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrVarsTop.Add(self.lblGroupA, 0, wx.RIGHT, 5)
         szrVarsTop.Add(self.dropGroupA, 0, wx.GROW)
         # group B
-        self.lblGroupB = wx.StaticText(self.panel, -1, "Group B:")
+        self.lblGroupB = wx.StaticText(self.panel, -1, _("Group B:"))
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupSel)
         self.dropGroupB.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickGroupB)
@@ -93,7 +93,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrVarsTop.Add(self.dropGroupB, 0, wx.GROW)
         # phrase
         self.lblPhrase = wx.StaticText(self.panel, -1, 
-                                       "Start making your selections")
+                                       _("Start making your selections"))
         szrVarsBottom.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
         szrVars.Add(szrVarsTop, 1, wx.LEFT, 5)
         szrVars.Add(szrVarsBottom, 0, wx.LEFT, 5)
@@ -101,18 +101,18 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
         self.html = wx.html.HtmlWindow(self.panel, size=(200, 250))
-        html2show = """<p>This panel is under construction - more support for 
-            the user and data visualisations coming.</p>"""
+        html2show = _("<p>This panel is under construction - more support for"
+                      " the user and data visualisations coming.</p>")
         self.html.SetPage(html2show)
         szrBottomLeft.Add(self.html, 1, wx.GROW|wx.LEFT|wx.BOTTOM, 5)
         szrBottomLeft.Add(self.szrConfigTop, 0, wx.GROW)
         szrBottomLeft.Add(self.szrConfigBottom, 0, wx.GROW)
-        bxLevel = wx.StaticBox(self.panel, -1, "Output Level")
+        bxLevel = wx.StaticBox(self.panel, -1, _("Output Level"))
         szrLevel = wx.StaticBoxSizer(bxLevel, wx.HORIZONTAL)
-        radFull = wx.RadioButton(self.panel, -1, "Full Explanation", 
+        radFull = wx.RadioButton(self.panel, -1, _("Full Explanation"), 
                                  style=wx.RB_GROUP)
-        radBrief = wx.RadioButton(self.panel, -1, "Brief Explanation")
-        radResults = wx.RadioButton(self.panel, -1, "Results Only")
+        radBrief = wx.RadioButton(self.panel, -1, _("Brief Explanation"))
+        radResults = wx.RadioButton(self.panel, -1, _("Results Only"))
         radFull.Enable(False)
         radBrief.Enable(False)
         radResults.Enable(False)
@@ -254,8 +254,8 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         Update phrase based on Group A and Group B.
         """
         var_a, label_a, var_b, label_b = self.GetDropVals()
-        self.lblPhrase.SetLabel("Is \"%s\" different from " % label_a + \
-            "\"%s\"?" % label_b)
+        self.lblPhrase.SetLabel(_("Is \"%(a)s\" different from \"%(b)s\"?") % \
+                                {"a": label_a, "b": label_b})
     
     def UpdateDefaults(self):
         my_globals.group_a_default = self.dropGroupA.GetStringSelection()
@@ -287,7 +287,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         # group A and B cannot be the same
         if self.dropGroupA.GetStringSelection() == \
                 self.dropGroupB.GetStringSelection():
-            wx.MessageBox("Group A and Group B must be different")
+            wx.MessageBox(_("Group A and Group B must be different"))
             return False
         return True
     

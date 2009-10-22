@@ -369,7 +369,7 @@ class ImportFileSelectDlg(wx.Dialog):
         event.Skip()
     
     def GetFilestartExt(self, path):
-        _, filename = os.path.split(path)
+        unused, filename = os.path.split(path)
         filestart, extension = os.path.splitext(filename)
         return filestart, extension
     
@@ -455,7 +455,7 @@ class ImportFileSelectDlg(wx.Dialog):
             self.SetImportButtons(importing=False)
             return
         # identify file type
-        _, extension = self.GetFilestartExt(file_path)
+        unused, extension = self.GetFilestartExt(file_path)
         if extension.lower() == ".csv":
             self.file_type = FILE_CSV
         if extension.lower() == ".xls":

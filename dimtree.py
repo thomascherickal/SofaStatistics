@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import pprint
 import wx
 
@@ -86,16 +87,17 @@ class DimTree(object):
                 used_in_oth_dim = self.UsedInOthDim(text, oth_dim_tree, 
                                                     oth_dim_root)
                 if used_in_oth_dim:
-                    wx.MessageBox(_("Variable '%(text)s' has already been "
-                                    "used in %(oth_dim)s dimension") % \
-                                    {"text": text, "oth_dim": oth_dim})
+                    msg = _("Variable '%(text)s' has already been "
+                            "used in %(oth_dim)s dimension")
+                    wx.MessageBox(msg % {"text": text, "oth_dim": oth_dim})
                     return
                 # in raw tables, can only use once
                 if self.tab_type == my_globals.RAW_DISPLAY:
                     used_in_this_dim = self.UsedInThisDim(text, tree, root)
                     if used_in_this_dim:
-                        wx.MessageBox(_("Variable '%s' cannot be used "
-                                      "more than once") % text)
+                        msg = _("Variable '%(text)s' cannot be used "
+                                "more than once")
+                        wx.MessageBox(msg % {"text": text})
                         return
             # they all passed the tests so proceed
             for text in text_selected:
@@ -144,8 +146,9 @@ class DimTree(object):
         selected_ids = tree.GetSelections()
         if root not in selected_ids \
                 and self.tab_type != my_globals.COL_MEASURES:
-            wx.MessageBox(_("Rows can only be nested in column"
-                            " measures tables"))
+            msg = _("Rows can only be nested in column"
+                    " measures tables")
+            wx.MessageBox(msg)
             return
         if len(selected_ids) == 1:
             self.TryAddingUnder(tree, root, dim, oth_dim, selected_ids[0], 
@@ -206,13 +209,14 @@ class DimTree(object):
                 used_in_oth_dim = self.UsedInOthDim(text, oth_dim_tree, 
                                                     oth_dim_root)                
                 if text in ancestor_labels:
-                    wx.MessageBox(_("Variable %s cannot be an "
-                                  "ancestor of itself") % text)
+                    msg = _("Variable %s cannot be an "
+                            "ancestor of itself")
+                    wx.MessageBox(msg % text)
                     return
                 elif used_in_oth_dim:
-                    wx.MessageBox(_("Variable %(text)s already used in "
-                                    "%(oth_dim)s dimension") % {"text": text, 
-                                                            "oth_dim": oth_dim})
+                    msg = _("Variable %(text)s already used in "
+                            "%(oth_dim)s dimension")
+                    wx.MessageBox(msg % {"text": text, "oth_dim": oth_dim})
                     return
             # they all passed the test so proceed        
             for text in text_selected:
@@ -399,7 +403,7 @@ class DimTree(object):
                 self.UpdateDemoDisplay()
             else:
                 msg = _("If configuring multiple items at once, they "
-                    "must all have children or none can have children")
+                     "must all have children or none can have children")
                 wx.MessageBox(msg)
             
     def getColConfig(self, node_ids, has_col_vars):

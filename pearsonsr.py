@@ -15,11 +15,11 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
     min_data_type = my_globals.VAR_TYPE_QUANT
     
     def GetExamples(self):
-        eg1 = "Answers the question, is there a linear relationship " + \
-            "between two variables i.e. do they both change together?"
-        eg2 = "For example, does IQ correlate with exam scores?"
-        eg3 = "Or does a brief measure of addiction correlate with a much " + \
-            "longer measure?"
+        eg1 = _("Answers the question, is there a linear relationship "
+                "between two variables i.e. do they both change together?")
+        eg2 = _("For example, does IQ correlate with exam scores?")
+        eg3 = _("Or does a brief measure of addiction correlate with a much "
+                "longer measure?")
         return eg1, eg2, eg3
 
     def UpdatePhrase(self):
@@ -27,9 +27,9 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         Update phrase based on Group A and Group B.
         """
         var_a, label_a, var_b, label_b = self.GetDropVals()
-        self.lblPhrase.SetLabel("Are \"%s\" and " % label_a + \
-            "\"%s\" correlated - do they change together in a " % label_b + \
-            "linear fashion?")
+        self.lblPhrase.SetLabel(_("Are \"%(a)s\" and \"%(b)s\" correlated - "
+                               "do they change together in a linear fashion?") \
+                                % {"a": label_a, "b": label_b})
     
     def getScript(self, css_idx):
         "Build script from inputs"

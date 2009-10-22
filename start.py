@@ -23,6 +23,9 @@ import quotes
 import stats_select
 import util
 
+multiline_test = _("  line1"
+                   "  line2"
+                   "  line3")
 
 # http://wiki.wxpython.org/Internationalization
 gettext.install("sofa", "./locale", unicode=True)
@@ -155,7 +158,7 @@ class SofaApp(wx.App):
             filename = None
         else:
             redirect = True
-            _, local_path = util.get_user_paths()
+            unused, local_path = util.get_user_paths()
             filename = os.path.join(local_path, my_globals.INTERNAL_FOLDER, 
                                     'output.txt')
         wx.App.__init__(self, redirect=redirect, filename=filename) 
