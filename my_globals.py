@@ -1,9 +1,33 @@
 from __future__ import print_function
 import os
-
+import platform
+import sys
+import wx
+import gettext
 import util # safe to import - never refers to anything in other modules
 
 # my_globals exists to reduce likelihood of circular imports.
+# 
+
+
+# http://wiki.wxpython.org/RecipesI18n
+# Install gettext.  Now all strings enclosed in "_()" will automatically be
+# translated.
+gettext.install('sofa', './locale', unicode=False)
+
+path = sys.path[0].decode(sys.getfilesystemencoding())
+langdir = os.path.join(path,u'locale')
+presLan_gl_ES = gettext.translation('sofa', langdir, 
+    languages=['gl_ES']) # Galician
+presLan_gl_ES.install()
+# the next line will only work if the locale is installed on the computer
+mylocale = wx.Locale(wx.LANGUAGE_GALICIAN) #, wx.LOCALE_LOAD_DEFAULT)
+if platform.system() == 'Linux':
+    try:
+        # to get some language settings to display properly:
+        os.environ['LANG'] = u"gl_ES.UTF-8"    
+    except (ValueError, KeyError):
+        pass
 
 debug = False
 

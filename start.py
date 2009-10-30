@@ -1,16 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import gettext
-# http://wiki.wxpython.org/RecipesI18n
-# Install gettext.  Now all strings enclosed in "_()" will automatically be
-# translated.
-gettext.install('sofa', './locale', unicode=False)
-
 import warnings
 warnings.simplefilter('ignore', DeprecationWarning)
 
 import os
+import platform
 import shutil
 from pysqlite2 import dbapi2 as sqlite
 import sys
@@ -146,7 +141,7 @@ def InstallLocal():
 
 class SofaApp(wx.App):
 
-    dev_debug = True
+    dev_debug = False
 
     def __init__(self):
         # if wanting to initialise the parent class it must be run in 
@@ -173,16 +168,7 @@ class SofaApp(wx.App):
 class StartFrame(wx.Frame):
     
     def __init__(self):
-        # http://wiki.wxpython.org/RecipesI18n
-        # Define supported languages
-        #self.presLan_en = gettext.translation('sofa', './locale', 
-        #                                      languages=['en']) # English
-        #self.presLan_es = gettext.translation('sofa', './locale', 
-            #languages=['es']) # Spanish
-        #self.presLan_fr = gettext.translation('sofa', './locale', 
-            #languages=['fr']) # French
-        # Install English as the initial language
-        #self.presLan_en.install()
+        # Gen set up
         wx.Frame.__init__(self, None, title=_("SOFA Start"), size=(800, 542),
               style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
         # Windows doesn't include window decorations
@@ -351,9 +337,9 @@ class StartFrame(wx.Frame):
         panel_dc.DrawBitmap(self.blank_proj_strip, MAIN_LEFT, 218, False)
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel(_("Currently using") +
+        panel_dc.DrawLabel(_("Currently using ") +
                            "\"%s\"" % self.active_proj[:-5] + 
-                           _("Project settings"),
+                           _(" Project settings"),
                            wx.Rect(MAIN_LEFT, 218, 400, 30))
         event.Skip()
     
