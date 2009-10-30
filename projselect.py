@@ -89,7 +89,7 @@ class ProjSelectDlg(wx.Dialog):
         exec f in proj_dic
         f.close()
         # must always be stored, even if only ""
-        self.proj_notes = proj_dic["proj_notes"]
+        self.proj_notes = projects.GetProjNotes(fil_proj, proj_dic)
     
     def OnProjSelect(self, event):
         proj_sel_id = self.dropProjs.GetSelection()

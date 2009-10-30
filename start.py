@@ -1,15 +1,39 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+dev_debug = False
+
 import warnings
 warnings.simplefilter('ignore', DeprecationWarning)
 
+import gettext
 import os
 import platform
 import shutil
 from pysqlite2 import dbapi2 as sqlite
 import sys
 import wx
+
+# Must internationalise before loading strings from my_globals etc
+# http://wiki.wxpython.org/RecipesI18n
+# Install gettext.  Now all strings enclosed in "_()" will automatically be
+# translated.
+gettext.install('sofa', './locale', unicode=False)
+path = sys.path[0].decode(sys.getfilesystemencoding())
+langdir = os.path.join(path,u'locale')
+langid = wx.LANGUAGE_DEFAULT # use OS default; or use wx.LANGUAGE_GALICIAN etc
+# the next line will only work if the locale is installed on the computer
+mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
+canon_name = mylocale.GetCanonicalName() # e.g. en_NZ, gl_ES etc
+mytrans = gettext.translation('sofa', langdir, languages=[canon_name], 
+                              fallback = True)
+mytrans.install()
+if platform.system() == 'Linux':
+    try:
+        # to get some language settings to display properly:
+        os.environ['LANG'] = u"%s.UTF-8" % canon_name
+    except (ValueError, KeyError):
+        pass
 
 import my_globals
 import dataselect
@@ -22,7 +46,7 @@ import projselect
 import quotes
 import stats_select
 import util
-        
+
 COPYRIGHT = "(c)" if util.in_windows() else "©" # "\xa9" problems with utf-8
 MAX_HELP_TEXT_WIDTH = 350 # pixels
 TEXT_BROWN = (90, 74, 61)
@@ -141,12 +165,10 @@ def InstallLocal():
 
 class SofaApp(wx.App):
 
-    dev_debug = False
-
     def __init__(self):
         # if wanting to initialise the parent class it must be run in 
         # child __init__ and nowhere else.
-        if self.dev_debug:
+        if dev_debug:
             redirect = False
             filename = None
         else:

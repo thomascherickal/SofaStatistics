@@ -21,6 +21,18 @@ def GetProjs():
     proj_fils.sort()
     return proj_fils
 
+def GetProjNotes(fil_proj, proj_dic):
+    """
+    If the default project, return the translated notes rather than what is 
+        actually stored in the file (notes in English).
+    """
+    if fil_proj == my_globals.SOFA_DEFAULT_PROJ:
+        proj_notes = _("Default project so users can get started without "
+                       "having to understand projects.  NB read only.")
+    else:
+        proj_notes = proj_dic["proj_notes"]
+    return proj_notes 
+    
 def GetProjSettingsDic(proj_name):
     """
     Returns proj_dic with keys such as conn_dets, fil_var_dets etc.
@@ -413,14 +425,14 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         # Taking settings from proj file (via exec and proj_dic)
         #   and adding them to this frame ready for use.
         # Must always be stored, even if only ""
-        self.proj_notes = proj_dic["proj_notes"]
+        self.proj_notes = GetProjNotes(fil_proj, proj_dic)
         self.fil_var_dets = proj_dic["fil_var_dets"]
         self.fil_css = proj_dic["fil_css"]
         self.fil_report = proj_dic["fil_report"]
         self.fil_script = proj_dic["fil_script"]
         self.default_dbe = proj_dic["default_dbe"]
         getdata.getProjConnSettings(self, proj_dic)
-      
+    
     def OnDbeChoice(self, event):
         sel_dbe_id = self.dropDefault_Dbe.GetSelection()
         self.default_dbe = my_globals.DBES[sel_dbe_id]
