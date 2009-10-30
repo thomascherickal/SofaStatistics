@@ -312,7 +312,7 @@ class ImportFileSelectDlg(wx.Dialog):
         lblFilePath.SetFont(lblfont)
         self.txtFile = wx.TextCtrl(self.panel, -1, "", size=(320,-1))
         self.txtFile.SetFocus()
-        btnFilePath = wx.Button(self.panel, -1, "Browse ...")
+        btnFilePath = wx.Button(self.panel, -1, _("Browse ..."))
         btnFilePath.Bind(wx.EVT_BUTTON, self.OnButtonFilePath)
         # internal SOFA name
         lblIntName = wx.StaticText(self.panel, -1, _("SOFA Name:"))

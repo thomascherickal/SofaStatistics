@@ -271,7 +271,7 @@ class GetSettings(settings_grid.TableEntryDlg):
 
 class ProjectDlg(wx.Dialog, gen_config.GenConfig):
     def __init__(self, parent, readonly=False, fil_proj=None):
-        wx.Dialog.__init__(self, parent=parent, title="Project Settings",
+        wx.Dialog.__init__(self, parent=parent, title=_("Project Settings"),
                            size=(1024, 600),
                            style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
                            wx.TAB_TRAVERSAL, pos=(0, 0))

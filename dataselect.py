@@ -15,7 +15,7 @@ import table_config
 
 class DataSelectDlg(wx.Dialog):
     def __init__(self, parent, proj_name):
-        title = "Data in \"%s\" Project" % proj_name
+        title = _("Data in \"%s\" Project") % proj_name
         wx.Dialog.__init__(self, parent=parent, title=title, 
                            style=wx.CAPTION|wx.CLOSE_BOX|
                            wx.SYSTEM_MENU, pos=(300, 100))

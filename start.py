@@ -308,7 +308,7 @@ class StartFrame(wx.Frame):
         panel_dc.DrawBitmap(self.bmp_chart, 540, 260, True)
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel("Version %s" % my_globals.VERSION, 
+        panel_dc.DrawLabel(_("Version ") + str(my_globals.VERSION), 
                            wx.Rect(MAIN_LEFT, 6, 100, 20))   
         panel_dc.SetFont(wx.Font(16, wx.SWISS, wx.NORMAL, wx.NORMAL))
         panel_dc.DrawLabel(_("Statistics Open For All"), 
