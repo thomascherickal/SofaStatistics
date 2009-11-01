@@ -63,6 +63,7 @@ class DbDets(getdata.DbDets):
         if not conn_dets_mysql:
             raise Exception, "No connection details available for MySQL"
         try:
+            conn_dets_mysql["use_unicode"] = True
             if self.db:
                 conn_dets_mysql["db"] = self.db
             conn = MySQLdb.connect(**conn_dets_mysql)

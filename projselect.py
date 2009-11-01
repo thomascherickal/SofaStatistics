@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import codecs
 import os
 import sys
 import wx
@@ -84,10 +85,12 @@ class ProjSelectDlg(wx.Dialog):
         self.szrButtons.Realize()
     
     def GetNotes(self, fil_proj):
-        f = open(os.path.join(my_globals.LOCAL_PATH, "projs", fil_proj), "r")
-        proj_dic = {}
-        exec f in proj_dic
+        proj_path = os.path.join(my_globals.LOCAL_PATH, "projs", fil_proj)
+        f = codecs.open(proj_path, "r", encoding="utf-8")
+        proj_cont = f.read()
         f.close()
+        proj_dic = {}
+        exec proj_cont in proj_dic
         # must always be stored, even if only ""
         self.proj_notes = projects.GetProjNotes(fil_proj, proj_dic)
     

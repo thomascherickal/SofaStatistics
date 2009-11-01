@@ -1,9 +1,10 @@
 from __future__ import print_function
 
-import wx
+import codecs
+import os
 import pprint
 import sys
-import os
+import wx
 
 import my_globals
 import gen_config
@@ -38,10 +39,12 @@ def GetProjSettingsDic(proj_name):
     Returns proj_dic with keys such as conn_dets, fil_var_dets etc.
     proj_name MUST include .proj on end
     """
-    f = open(os.path.join(LOCAL_PATH, "projs", proj_name), "r")
+    proj_path = os.path.join(LOCAL_PATH, "projs", proj_name)
+    f = codecs.open(proj_path, "r", encoding="utf-8")
+    proj_cont = f.read()
+    f.close() 
     proj_dic = {}
-    exec f in proj_dic # http://docs.python.org/reference/simple_stmts.html
-    f.close()
+    exec proj_cont in proj_dic # http://docs.python.org/reference/simple_stmts.html
     return proj_dic
 
 def GetVarDets(fil_var_dets):
@@ -50,7 +53,7 @@ def GetVarDets(fil_var_dets):
     Returns var_labels, var_notes, var_types, val_dics.
     """
     try:
-        fil = file(fil_var_dets, "r")
+        fil = codecs.open(fil_var_dets, "r", encoding="utf-8")
     except IOError:
         var_labels = {}
         var_notes = {}
@@ -132,7 +135,7 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
             new_val_dic[key] = value
         val_dics[var_name] = new_val_dic
         # update lbl file
-        f = file(fil_var_dets, "w")
+        f = codecs.file(fil_var_dets, "w", encoding="utf-8")
         f.write("\nvar_labels=" + pprint.pformat(var_labels))
         f.write("\nvar_notes=" + pprint.pformat(var_notes))
         f.write("\nvar_types=" + pprint.pformat(var_types))
@@ -417,10 +420,12 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         self.sqlite_grid.grid.SetFocus()
 
     def GetProjSettings(self, fil_proj):
-        f = open(os.path.join(LOCAL_PATH, "projs", fil_proj), "r")
-        proj_dic = {}
-        exec f in proj_dic
+        proj_path = os.path.join(LOCAL_PATH, "projs", fil_proj)
+        f = codecs.open(proj_path, "r", encoding="utf-8")
+        proj_cont = f.read()
         f.close()
+        proj_dic = {}
+        exec proj_cont in proj_dic
         self.proj_name = fil_proj[:-5]
         # Taking settings from proj file (via exec and proj_dic)
         #   and adding them to this frame ready for use.
@@ -534,8 +539,8 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
             # write the data
             fil_name = os.path.join(LOCAL_PATH, "projs", "%s.proj" % \
                                   proj_name)
-            f = open(fil_name, "w")
-            f.write("proj_notes = \"%s\"" % proj_notes)
+            f = codecs.open(fil_name, "w", encoding="utf-8")
+            f.write("proj_notes = r\"%s\"" % proj_notes)
             f.write("\nfil_var_dets = r\"%s\"" % fil_var_dets)
             f.write("\nfil_css = r\"%s\"" % fil_css)
             f.write("\nfil_report = r\"%s\"" % fil_report)
@@ -543,7 +548,10 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
             f.write("\ndefault_dbe = \"%s\"" % default_dbe)
             f.write("\n\ndefault_dbs = " + pprint.pformat(default_dbs))
             f.write("\n\ndefault_tbls = " + pprint.pformat(default_tbls))
-            f.write("\n\nconn_dets = " + pprint.pformat(conn_dets))
+            # these will often have backslashes and even \u - need to keep raw
+            conn_dets_str = pprint.pformat(conn_dets).replace("u'", "r'")
+            conn_dets_str = conn_dets_str.replace("u\"", "r\"")
+            f.write("\n\nconn_dets = " + conn_dets_str)
             f.close()
             if self.new_proj:
                 self.parent.parent.SetProj(proj_name)
