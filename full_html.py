@@ -3,7 +3,7 @@ import wx
 
 import util
 
-debug = False # if the renderer is not available and other testing is required
+debug = True # if the renderer is not available and other testing is required
 
 if debug:
     class FullHTML(wx.Window):

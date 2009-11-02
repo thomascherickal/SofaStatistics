@@ -8,6 +8,7 @@ import wx.grid
 
 import my_globals
 import getdata
+import util
 
 MISSING_VAL_INDICATOR = "."
 
@@ -163,6 +164,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         Turn None (Null) into . as missing value identifier.
         """
         # try cache first
+        debug = False
         try:
             return self.row_vals_dic[row][col]
         except KeyError:
@@ -204,6 +206,8 @@ class DbTbl(wx.grid.PyGridTableBase):
             self.conn.commit()
             row_idx = row_min
             for data_tup in self.cur.fetchall(): # tuple of values
+                # handle microsoft characters
+                data_tup = tuple([util.ms2utf8(x) for x in data_tup])
                 self.AddDataToRowValsDic(self.row_vals_dic, row_idx, data_tup)
                 row_idx += 1
             return self.row_vals_dic[row][col] # the bit we're interested in now
@@ -233,7 +237,8 @@ class DbTbl(wx.grid.PyGridTableBase):
             cell.  Cache will be updated if, and only if, the cell is actually
             updated.
         """
-        if self.debug: 
+        debug = False
+        if self.debug or debug: 
             print("SetValue - row %s, " % row +
             "col %s with value \"%s\" *************************" % (col, value))
         if self.NewRow(row):
@@ -255,7 +260,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             SQL_update_value = "UPDATE %s " % self.tbl + \
                 " SET %s = %s " % (self.quote_obj(col_name), val2use) + \
                 " WHERE %s = " % self.id_col_name + str(id_value)
-            if self.debug: 
+            if self.debug or debug: 
                 print("SetValue - SQL update value: %s" % SQL_update_value)
                 print("SetValue - Value of cell to update: %s" %
                     self.val_of_cell_to_update)

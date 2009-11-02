@@ -368,11 +368,11 @@ def InsertRow(conn, cur, tbl_name, data):
     try:
         cur.execute(SQL_insert, data_tup)
         conn.commit()
-        return True
+        return True, None
     except Exception, e:
         if debug: print("Failed to insert row.  SQL: %s, Data: %s" %
             (SQL_insert, str(data_tup)) + "\n\nOriginal error: %s" % e)
-        return False
+        return False, "%s" % e
 
 def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""

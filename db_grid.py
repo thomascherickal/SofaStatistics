@@ -604,18 +604,20 @@ class TblEditor(wx.Dialog):
             typed in 2pm and stored in CCYY-MM-DD HH:mm:ss as today's date time 
             stamp but at 2pm.
         """
-        if self.debug: print("UpdateCell - row %s col %s" % (row, col))
+        debug = True
+        if self.debug or debug: print("UpdateCell - row %s col %s" % (row, col))
         bolUpdatedCell = True
         try:
             self.dbtbl.conn.commit()
             self.dbtbl.cur.execute(self.dbtbl.SQL_cell_to_update)
             self.dbtbl.conn.commit()
         except Exception, e:
-            if self.debug: 
+            if self.debug or debug: 
                 print("UpdateCell failed to save %s. " %
                     self.dbtbl.SQL_cell_to_update +
                     "Orig error: %s" % e)
             bolUpdatedCell = False
+            wx.MessageBox(_("Unable to save change to database.  %s") % e)
         if self.dbtbl.row_vals_dic.get(row):
             del self.dbtbl.row_vals_dic[row] # force a fresh read
         self.dbtbl.grid.ForceRefresh()
@@ -637,12 +639,13 @@ class TblEditor(wx.Dialog):
             if raw_val == db_tbl.MISSING_VAL_INDICATOR:
                 raw_val = None
             data.append((raw_val, fld_name, fld_dic))
-        row_inserted = getdata.InsertRow(self.dbe, self.conn, self.cur, 
+        row_inserted, msg = getdata.InsertRow(self.dbe, self.conn, self.cur, 
                                          self.tbl_name, data)
         if row_inserted:
             if self.debug: print("SaveRow - Just inserted row")
         else:
             if self.debug: print("SaveRow - Unable to insert row")
+            wx.MessageBox(_("Unable to insert row. %s") % msg)
             return False
         try:
             self.SetupNewRow(data)

@@ -218,7 +218,10 @@ def PrepValue(dbe, val, fld_dic):
     return prep_val
 
 def InsertRow(dbe, conn, cur, tbl_name, data):
-    "data = [(value as string (or None), fld_dets), ...]"
+    """
+    Returns success (boolean) and message (None or error).
+    data = [(value as string (or None), fld_dets), ...]
+    """
     return my_globals.DBE_MODULES[dbe].InsertRow(conn, cur, tbl_name, data)
 
 def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, conn_dets,
