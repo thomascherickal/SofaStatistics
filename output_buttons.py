@@ -1,5 +1,7 @@
 import wx
 
+import util
+
 
 class OutputButtons(object):
     
@@ -9,7 +11,9 @@ class OutputButtons(object):
         #main
         self.btnRun = wx.Button(self.panel, -1, _("RUN"))
         self.btnRun.Bind(wx.EVT_BUTTON, self.OnButtonRun)
-        self.chkAddToReport = wx.CheckBox(self.panel, -1, _("Add to\nreport"))
+        label_divider = " " if util.in_windows() else "\n"
+        self.chkAddToReport = wx.CheckBox(self.panel, -1, 
+                                          _("Add to%sreport" % label_divider))
         self.chkAddToReport.SetValue(True)
         self.btnExport = wx.Button(self.panel, -1, _("EXPORT"))
         self.btnExport.Bind(wx.EVT_BUTTON, self.OnButtonExport)

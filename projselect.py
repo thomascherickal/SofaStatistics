@@ -86,7 +86,7 @@ class ProjSelectDlg(wx.Dialog):
     
     def GetNotes(self, fil_proj):
         proj_path = os.path.join(my_globals.LOCAL_PATH, "projs", fil_proj)
-        f = codecs.open(proj_path, "r", encoding="utf-8")
+        f = codecs.open(proj_path, "U", encoding="utf-8")
         proj_cont = f.read()
         f.close()
         proj_dic = {}
@@ -105,7 +105,7 @@ class ProjSelectDlg(wx.Dialog):
         self.txtProjNotes.SetValue(self.proj_notes)
         
     def OnEdit(self,event):
-        proj_sel_id = self.dropProjs.GetSelection()        
+        proj_sel_id = self.dropProjs.GetSelection()
         readonly = (self.projs[proj_sel_id] == my_globals.SOFA_DEFAULT_PROJ)
         dlgProj = projects.ProjectDlg(parent=self, readonly=readonly,
                           fil_proj=self.projs[self.dropProjs.GetSelection()])

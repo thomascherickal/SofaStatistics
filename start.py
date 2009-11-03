@@ -1,44 +1,26 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-dev_debug = True
+dev_debug = False
 test_lang = False
 
 import warnings
 warnings.simplefilter('ignore', DeprecationWarning)
 
+import wx
 import gettext
 import os
 import platform
 import shutil
 from pysqlite2 import dbapi2 as sqlite
 import sys
-import wx
 
-# Must internationalise before loading strings from my_globals etc
+# All i18n except for wx-based (which MUST happen after wx.App init)
 # http://wiki.wxpython.org/RecipesI18n
 # Install gettext.  Now all strings enclosed in "_()" will automatically be
 # translated.
 gettext.install('sofa', './locale', unicode=False)
-path = sys.path[0].decode(sys.getfilesystemencoding())
-langdir = os.path.join(path,u'locale')
-langid = wx.LANGUAGE_GALICIAN if test_lang else wx.LANGUAGE_DEFAULT
-# the next line will only work if the locale is installed on the computer
-mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
-canon_name = mylocale.GetCanonicalName() # e.g. en_NZ, gl_ES etc
-# want the main title to be the right size but some languages too long for that
-main_font_size = 20 if canon_name.startswith('en_') else 16
-mytrans = gettext.translation('sofa', langdir, languages=[canon_name], 
-                              fallback = True)
-mytrans.install()
-if platform.system() == 'Linux':
-    try:
-        # to get some language settings to display properly:
-        os.environ['LANG'] = u"%s.UTF-8" % canon_name
-    except (ValueError, KeyError):
-        pass
-
-import my_globals
+import my_globals # has translated text
 import dataselect
 import full_html
 import getdata
@@ -183,10 +165,28 @@ class SofaApp(wx.App):
             unused, local_path = util.get_user_paths()
             filename = os.path.join(local_path, my_globals.INTERNAL_FOLDER, 
                                     'output.txt')
-        wx.App.__init__(self, redirect=redirect, filename=filename) 
+        wx.App.__init__(self, redirect=redirect, filename=filename)
 
     def OnInit(self):
-        frame = StartFrame()
+        # http://wiki.wxpython.org/RecipesI18n
+        path = sys.path[0].decode(sys.getfilesystemencoding())
+        langdir = os.path.join(path,u'locale')
+        langid = wx.LANGUAGE_GALICIAN if test_lang else wx.LANGUAGE_DEFAULT
+        # the next line will only work if the locale is installed on the computer
+        mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
+        canon_name = mylocale.GetCanonicalName() # e.g. en_NZ, gl_ES etc
+        # want main title to be right size but some languages too long for that
+        self.main_font_size = 20 if canon_name.startswith('en_') else 16
+        mytrans = gettext.translation('sofa', langdir, languages=[canon_name], 
+                                      fallback = True)
+        mytrans.install()
+        if platform.system() == 'Linux':
+            try:
+                # to get some language settings to display properly:
+                os.environ['LANG'] = u"%s.UTF-8" % canon_name
+            except (ValueError, KeyError):
+                pass
+        frame = StartFrame(self.main_font_size)
         frame.CentreOnScreen(wx.VERTICAL) # on dual monitor, 
             # wx.BOTH puts in screen 2 (in Ubuntu at least)!
         frame.Show()
@@ -196,7 +196,8 @@ class SofaApp(wx.App):
 
 class StartFrame(wx.Frame):
     
-    def __init__(self):
+    def __init__(self, main_font_size):
+        self.main_font_size = main_font_size
         # Gen set up
         wx.Frame.__init__(self, None, title=_("SOFA Start"), size=(900, 600),
               style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
@@ -341,7 +342,7 @@ class StartFrame(wx.Frame):
         panel_dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL))
         panel_dc.DrawLabel(_("Version ") + str(my_globals.VERSION), 
                            wx.Rect(MAIN_LEFT, 9, 100, 20))   
-        panel_dc.SetFont(wx.Font(main_font_size, wx.SWISS, wx.NORMAL, 
+        panel_dc.SetFont(wx.Font(self.main_font_size, wx.SWISS, wx.NORMAL, 
                                  wx.NORMAL))
         panel_dc.DrawLabel(_("Statistics Open For All"), 
                            wx.Rect(MAIN_LEFT, 80, 100, 100))

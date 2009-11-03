@@ -604,7 +604,7 @@ class TblEditor(wx.Dialog):
             typed in 2pm and stored in CCYY-MM-DD HH:mm:ss as today's date time 
             stamp but at 2pm.
         """
-        debug = True
+        debug = False
         if self.debug or debug: print("UpdateCell - row %s col %s" % (row, col))
         bolUpdatedCell = True
         try:

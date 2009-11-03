@@ -40,7 +40,7 @@ def GetProjSettingsDic(proj_name):
     proj_name MUST include .proj on end
     """
     proj_path = os.path.join(LOCAL_PATH, "projs", proj_name)
-    f = codecs.open(proj_path, "r", encoding="utf-8")
+    f = codecs.open(proj_path, "U", encoding="utf-8")
     proj_cont = f.read()
     f.close() 
     proj_dic = {}
