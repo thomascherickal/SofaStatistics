@@ -330,7 +330,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         # cope if variable has massive spread of values
         all_vals = self.cur.fetchall()
         if len(all_vals) > 20:
-            self.lblchop_warning.SetLabel(_("(Showing 1st 20 unique values)"))
+            self.lblchop_warning.SetLabel(_("(1st 20 unique values)"))
             all_vals = all_vals[:20]
         else:
             self.lblchop_warning.SetLabel("")
@@ -404,8 +404,9 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.getScript(css_idx)
             strContent = output.RunReport(OUTPUT_MODULES, self.fil_report, 
-                css_fils, script, self.conn_dets, self.dbe, self.db, 
-                self.tbl, self.default_dbs, self.default_tbls)
+                self.chkAddToReport.IsChecked(), css_fils, script, 
+                self.conn_dets, self.dbe, self.db, self.tbl, self.default_dbs, 
+                self.default_tbls)
             wx.EndBusyCursor()
             output.DisplayReport(self, strContent)
         event.Skip()

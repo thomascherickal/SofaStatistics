@@ -250,10 +250,11 @@ def GetSource(db, tbl_name):
     source = "\n<p>From %s.%s %s</p>" % (db, tbl_name, datestamp)
     return source
 
-def RunReport(modules, fil_report, css_fils, inner_script, 
+def RunReport(modules, fil_report, add_to_report, css_fils, inner_script, 
               conn_dets, dbe, db, tbl_name, default_dbs, default_tbls):
     """
     Runs report and returns HTML representation of it.
+    add_to_report - also append result to current report.
     """
     # generate script
     f = file(my_globals.INT_SCRIPT_PATH, "w")
@@ -278,9 +279,10 @@ def RunReport(modules, fil_report, css_fils, inner_script,
     strContent = f.read()
     f.close()
     # append into html file
-    SaveToReport(fil_report, css_fils, source, strContent)
-    strContent = "\n<p>Output also saved to '%s'</p>" % fil_report + \
-                 source + strContent
+    if add_to_report:
+        SaveToReport(fil_report, css_fils, source, strContent)
+        strContent = "\n<p>Output also saved to '%s'</p>" % fil_report + \
+                     source + strContent
     return strContent
 
 def InsertPrelimCode(modules, fil, fil_report, css_fils):
