@@ -271,7 +271,8 @@ def RunReport(modules, fil_report, add_to_report, css_fils, inner_script,
         dummy_dic = {}
         exec script in dummy_dic
     except Exception, e:
-        strErrContent = _("<h1>Ooops!</h1>\n<p>Unable to run report.  "
+        strErrContent = _("<h1>Ooops!</h1>\n<p>Unable to run script " + \
+                          "to generate report.  "
             "Error encountered.  Original error message: %s</p>") % e
         return strErrContent
     f = file(my_globals.INT_REPORT_PATH, "r")
@@ -295,7 +296,9 @@ def InsertPrelimCode(modules, fil, fil_report, css_fils):
     fil.write("#! /usr/bin/env python")
     fil.write("\n# -*- coding: utf-8 -*-\n")
     fil.write("\nimport sys")
-    fil.write("\nsys.path.append('%s')" % my_globals.SCRIPT_PATH)
+    fil.write("\nimport gettext")
+    fil.write("\ngettext.install('sofa', './locale', unicode=False)")
+    fil.write("\nsys.path.append(r'%s')" % my_globals.SCRIPT_PATH)
     for module in modules:
         fil.write("\nimport %s" % module)
     fil.write("\n\nfil = file(r\"%s\", \"w\")" % fil_report)

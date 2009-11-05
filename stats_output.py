@@ -166,7 +166,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b,
     html += "\n<tr>"
     for val in val_labels_b:
         html += "<th colspan=%s>%s</th>" % (cells_per_col, val)
-    html += "<th colspan=%s>" + _("TOTAL") + "</th></tr>\n<tr>" % cells_per_col
+    html += "<th colspan=%s>" % cells_per_col + _("TOTAL") + "</th></tr>\n<tr>"
     for i in range(val_labels_b_n + 1):
         html += "<th>" + _("Obs") + "</th><th>" + _("Exp") + "</th>"
     html += "</tr>"
@@ -204,7 +204,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b,
         html += "</tr>\n<tr>"
     # add totals row
     col_tots = zip(col_obs_tots, col_exp_tots)
-    html += "<td class='%s'>" + _("TOTAL") + "</td>" % CSS_ROW_VAL
+    html += "<td class='%s'>" % CSS_ROW_VAL + _("TOTAL") + "</td>"
     for col_obs_tot, col_exp_tot in col_tots:
         html += "<td class='%s'>" % CSS_DATACELL + \
         "%s</td><td class='%s'>%s</td>" % (col_obs_tot, CSS_DATACELL,
