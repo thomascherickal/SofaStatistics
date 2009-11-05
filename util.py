@@ -167,11 +167,11 @@ def pytime_to_datetime_str(pytime):
     try:
         int_pytime = pywintypes.Time(int(pytime))
         datetime_str = "%s-%s-%s %s:%s:%s" % (int_pytime.year, 
-                                              str(int_pytime.month).zfill(2),
-                                              str(int_pytime.day).zfill(2),
-                                              str(int_pytime.hour).zfill(2),
-                                              str(int_pytime.minute).zfill(2),
-                                              str(int_pytime.second).zfill(2))
+                                              unicode(int_pytime.month).zfill(2),
+                                              unicode(int_pytime.day).zfill(2),
+                                              unicode(int_pytime.hour).zfill(2),
+                                              unicode(int_pytime.minute).zfill(2),
+                                              unicode(int_pytime.second).zfill(2))
     except ValueError:
         datetime_str = "NULL"
     return datetime_str

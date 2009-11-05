@@ -232,7 +232,7 @@ def InsertRow(conn, cur, tbl_name, data):
         return True, None
     except Exception, e:
         if debug: print("Failed to insert row.  SQL: %s, Data: %s" %
-            (SQL_insert, str(data_tup)) + "\n\nOriginal error: %s" % e)
+            (SQL_insert, unicode(data_tup)) + "\n\nOriginal error: %s" % e)
         return False, "%s" % e
 
 def setDataConnGui(parent, read_only, scroll, szr, lblfont):

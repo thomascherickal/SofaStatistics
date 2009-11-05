@@ -96,7 +96,7 @@ class DbTbl(wx.grid.PyGridTableBase):
                 col_idx = self.fld_names.index(fld_to_use)
                 if self.debug:
                     print("Col idx: %s" % col_idx)
-                    print("Must quote:" + str(must_quote))
+                    print("Must quote:" + unicode(must_quote))
                 return col_idx, must_quote
     
     def GetNumberCols(self):
@@ -259,7 +259,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             # TODO - think about possibilities of SQL injection by hostile party
             SQL_update_value = "UPDATE %s " % self.tbl + \
                 " SET %s = %s " % (self.quote_obj(col_name), val2use) + \
-                " WHERE %s = " % self.id_col_name + str(id_value)
+                " WHERE %s = " % self.id_col_name + unicode(id_value)
             if self.debug or debug: 
                 print("SetValue - SQL update value: %s" % SQL_update_value)
                 print("SetValue - Value of cell to update: %s" %

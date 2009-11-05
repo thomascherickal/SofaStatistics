@@ -238,16 +238,16 @@ class MakeTable(object):
         # NB the following text is all going to be run
         if self.tab_type == my_globals.COL_MEASURES:
             script_lst.append("tab_test = dimtables.GenTable(titles=" + \
-                              str(titles) + ",\n    subtitles=" + \
-                              str(subtitles) + \
+                              unicode(titles) + ",\n    subtitles=" + \
+                              unicode(subtitles) + \
                               ",\n    dbe=\"" + self.dbe + \
                               "\",\n    datasource=\"" + self.tbl + \
                               "\", cur=cur, tree_rows=tree_rows, " + \
                               "tree_cols=tree_cols)")
         elif self.tab_type == my_globals.ROW_SUMM:
             script_lst.append("tab_test = dimtables.SummTable(titles=" + \
-                              str(titles) + ",\n    subtitles=" + \
-                              str(subtitles) + \
+                              unicode(titles) + ",\n    subtitles=" + \
+                              v(subtitles) + \
                               ",\n    dbe=\"" + self.dbe + \
                               "\",\n    datasource=\"" + self.tbl + \
                               "\", cur=cur, tree_rows=tree_rows, " + \
@@ -257,8 +257,8 @@ class MakeTable(object):
             first_label = "True" if self.chkFirstAsLabel.IsChecked() \
                 else "False"
             script_lst.append("tab_test = rawtables.RawTable(titles=" + \
-                str(titles) + ",\n    subtitles=" + \
-                str(subtitles) + \
+                unicode(titles) + ",\n    subtitles=" + \
+                unicode(subtitles) + \
                 ",\n    dbe=\"" + self.dbe + \
                 "\",\n    datasource=\"%s\"" % self.tbl + ", cur=cur," + \
                 " col_names=col_names, col_labels=col_labels, flds=flds, " + \
@@ -321,8 +321,8 @@ class MakeTable(object):
         numeric_arg = ", \n    bolnumeric=%s" % item_conf.bolnumeric
         script_lst.append(child_node_label + \
                           " = dimtables.DimNode(" + fld_arg + \
-                          "\n    label=\"" + str(var_label) + \
-                          "\", \n    labels=" + str(labels_dic) + \
+                          "\n    label=\"" + unicode(var_label) + \
+                          "\", \n    labels=" + unicode(labels_dic) + \
                           measures_arg + tot_arg + sort_order_arg + \
                           numeric_arg + ")")
         script_lst.append("%s.addChild(%s)" % (parent_node_label, 

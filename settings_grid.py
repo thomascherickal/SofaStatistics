@@ -222,7 +222,7 @@ class TableEntry(object):
             self.grid.SetColLabelValue(col_idx, col_det["col_label"])
         for i in range(self.rows_n - 1):
             for j in range(self.cols_n):
-                self.grid.SetCellValue(row=i, col=j, s=str(data[i][j]))
+                self.grid.SetCellValue(row=i, col=j, s=unicode(data[i][j]))
         self.grid.SetRowLabelValue(self.rows_n - 1, "*")
         self.current_row_idx = self.rows_n - 1
         self.current_col_idx = 0
@@ -792,7 +792,7 @@ class TableEntry(object):
     
     def UpdateRowLabelsAfter(self, pos):
         for i in range(pos, self.rows_n - 1):
-            self.grid.SetRowLabelValue(i, str(i + 1))
+            self.grid.SetRowLabelValue(i, unicode(i + 1))
             
     def AddNewRow(self):
         """
@@ -808,7 +808,7 @@ class TableEntry(object):
             self.grid.SetCellRenderer(new_row_idx, col_idx, renderer)
             self.grid.SetCellEditor(new_row_idx, col_idx, editor)
         self.rows_n += 1
-        self.grid.SetRowLabelValue(self.rows_n - 2, str(self.rows_n - 1))
+        self.grid.SetRowLabelValue(self.rows_n - 2, unicode(self.rows_n - 1))
         self.grid.SetRowLabelValue(self.rows_n - 1, "*")
         self.SafeLayoutAdjustment()
         

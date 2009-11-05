@@ -72,7 +72,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             try:
                 val_label = self.val_dics[var_gp][val]
             except KeyError:
-                val_label = str(val).upper().strip('"')
+                val_label = unicode(val).upper().strip('"')
             lst_labels.append(val_label)
         samples = "[" + ", ".join(lst_samples) + "]"
         script_lst.append("samples = %s" % samples)

@@ -109,7 +109,7 @@ def FldsDic2FldNamesLst(flds_dic):
     return flds_lst
 
 def getChoiceItem(item_labels, item_val):
-    str_val = str(item_val)
+    str_val = unicode(item_val)
     return "%s (%s)" % (item_labels.get(item_val, str_val.title()), str_val)
 
 def extractChoiceDets(choice_text):
@@ -247,7 +247,7 @@ def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, conn_dets,
             oth_db_choices = [(x, oth_dbe) for x in oth_dbs]
             db_choices.extend(oth_db_choices)
         except Exception, e:
-            if debug: print(str(e))
+            if debug: print(unicode(e))
             pass # no connection possible
     parent.db_choice_items = [getDbItem(x[0], x[1]) for x in db_choices]
     parent.dropDatabases = wx.Choice(panel, -1, choices=parent.db_choice_items,

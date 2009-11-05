@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-dev_debug = False
+dev_debug = True
 test_lang = False
 
 import warnings
@@ -340,7 +340,7 @@ class StartFrame(wx.Frame):
                             True)
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel(_("Version ") + str(my_globals.VERSION), 
+        panel_dc.DrawLabel(_("Version ") + unicode(my_globals.VERSION), 
                            wx.Rect(MAIN_LEFT, 9, 100, 20))   
         panel_dc.SetFont(wx.Font(self.main_font_size, wx.SWISS, wx.NORMAL, 
                                  wx.NORMAL))
@@ -477,8 +477,8 @@ class StartFrame(wx.Frame):
         event.Skip()
     
     def OnChartsClick(self, event):
-        wx.MessageBox(_("Not available yet in version") + 
-                      str(my_globals.VERSION))
+        wx.MessageBox(_("Not available yet in version ") + 
+                      unicode(my_globals.VERSION))
         event.Skip()
         
     def OnChartsEnter(self, event):

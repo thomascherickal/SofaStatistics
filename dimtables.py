@@ -110,7 +110,7 @@ class LabelNode(tree.Node):
         tree.Node.__init__(self, dets_dic=None, label=label)
 
     def __str__(self):
-        return self.level*2*" " + "Level: " + str(self.level) + \
+        return self.level*2*" " + "Level: " + unicode(self.level) + \
             "; Label: " + self.label + \
             "; Measure: " + (self.measure if self.measure else "None") + \
             "; Col Total?: " + ("Yes" if self.is_coltot else "No") + \
@@ -511,7 +511,7 @@ class LiveTable(DimTable):
         self.cur.execute(SQL_get_vals)
         #get vals and their frequency (across all the other dimension)
         val_freq_label_lst = [(val, val_freq, \
-                              val_labels.get(val, str(val))) \
+                              val_labels.get(val, unicode(val))) \
                               for (val, val_freq) in self.cur.fetchall()]
         # [(val, freq, val_label), ...]  
         #http://www.python.org/dev/peps/pep-0265/

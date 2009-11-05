@@ -483,7 +483,7 @@ class ImportFileSelectDlg(wx.Dialog):
                 wx.MessageBox(_("Do not include '%s' in name") % bad_char)
                 self.SetImportButtons(importing=False)
                 return
-        if tbl_name[0] in [str(x) for x in range(10)]:
+        if tbl_name[0] in [unicode(x) for x in range(10)]:
             wx.MessageBox(_("Table names cannot start with a digit"))
             self.SetImportButtons(importing=False)
             return
@@ -508,7 +508,7 @@ class ImportFileSelectDlg(wx.Dialog):
             except ImportCancelException, e:
                 self.keep_importing.discard(False)
                 self.keep_importing.add(True)
-                wx.MessageBox(str(e))
+                wx.MessageBox(unicode(e))
             except Exception, e:
                 wx.MessageBox(_("Unable to import data\n\nError") + ": %s" % e)
         self.SetImportButtons(importing=False)

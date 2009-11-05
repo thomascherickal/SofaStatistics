@@ -154,7 +154,7 @@ class RawTable(object):
                         row_tots[i] = "&nbsp;&nbsp;"
             body_html += "\n<tr>" + "".join(row_tds) + "</td></tr>"
         if self.add_total_row:
-            row_tot_vals = [str(x) for x in row_tots]
+            row_tot_vals = [unicode(x) for x in row_tots]
             if self.first_col_as_label:
                 tot_cell = "<td class='%s'>" % CSS_LBL + _("TOTAL") + "</td>"
                 row_tot_vals.pop(0)

@@ -123,11 +123,11 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                     random_key = random.choice(col_val_dics[j].keys())
                     row_val = col_val_dics[j][random_key]
                 elif self.flds[col_names[j]][my_globals.FLD_BOLNUMERIC]: # choose a random number
-                    row_val = str(random.choice(num_data_seq))
+                    row_val = unicode(random.choice(num_data_seq))
                 elif self.flds[col_names[j]][my_globals.FLD_BOLDATETIME]: # choose a random date
-                    row_val = str(random.choice(dtm_data_seq))
+                    row_val = unicode(random.choice(dtm_data_seq))
                 else:
-                    row_val = str(random.choice(str_data_seq))
+                    row_val = unicode(random.choice(str_data_seq))
                 # cell format
                 col_class_names = "\"" + " ".join(col_class_lsts[j]) + "\""
                 col_classes = "class = %s" % col_class_names if col_class_names else ""
@@ -149,7 +149,8 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                     not self.flds[col_names[i]][my_globals.FLD_BOLNUMERIC]: 
                     demo_row_data_lst.append("&nbsp;&nbsp;")
                 else:
-                    demo_row_data_lst.append(str(random.choice(num_data_seq)))
+                    data = unicode(random.choice(num_data_seq))
+                    demo_row_data_lst.append(data)
             # never a displayed total for strings (whether orig data or labels)
             joiner = "</td><td class=\"%s\">" % CSS_ALIGN_RIGHT
             body_html += "\n<tr class='%s'>" % CSS_TOTAL_ROW + \

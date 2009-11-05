@@ -53,7 +53,7 @@ def GetVarDets(fil_var_dets):
     Returns var_labels, var_notes, var_types, val_dics.
     """
     try:
-        fil = codecs.open(fil_var_dets, "r", encoding="utf-8")
+        fil = codecs.open(fil_var_dets, "U", encoding="utf-8")
     except IOError:
         var_labels = {}
         var_notes = {}
@@ -86,7 +86,7 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
         val_dic = val_dics.get(var_name)
         if val_dic:
             for key, value in val_dic.items():
-                data.append((key, str(value)))
+                data.append((key, unicode(value)))
     new_grid_data = []
     # get new_grid_data back updated
     bolnumeric = flds[var_name][my_globals.FLD_BOLNUMERIC]
@@ -421,7 +421,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
 
     def GetProjSettings(self, fil_proj):
         proj_path = os.path.join(LOCAL_PATH, "projs", fil_proj)
-        f = codecs.open(proj_path, "r", encoding="utf-8")
+        f = codecs.open(proj_path, "U", encoding="utf-8")
         proj_cont = f.read()
         f.close()
         proj_dic = {}

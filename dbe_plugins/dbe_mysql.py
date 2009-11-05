@@ -354,7 +354,7 @@ def InsertRow(conn, cur, tbl_name, data):
         if debug: pprint.pprint(data_dets)
         val, fld_name, fld_dic = data_dets
         val2use = getdata.PrepValue(my_globals.DBE_MYSQL, val, fld_dic)
-        if debug: print(str(val2use)) 
+        if debug: print(unicode(val2use)) 
         data_lst.append(val2use)
     data_tup = tuple(data_lst)
     if debug: pprint.pprint(data_tup)
@@ -364,7 +364,7 @@ def InsertRow(conn, cur, tbl_name, data):
         return True, None
     except Exception, e:
         if debug: print("Failed to insert row.  SQL: %s, Data: %s" %
-            (SQL_insert, str(data_tup)) + "\n\nOriginal error: %s" % e)
+            (SQL_insert, unicode(data_tup)) + "\n\nOriginal error: %s" % e)
         return False, "%s" % e
 
 def setDataConnGui(parent, read_only, scroll, szr, lblfont):

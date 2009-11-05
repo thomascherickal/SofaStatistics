@@ -443,11 +443,11 @@ class TblEditor(wx.Dialog):
         min = fld_dic[my_globals.FLD_NUM_MIN_VAL]
         max = fld_dic[my_globals.FLD_NUM_MAX_VAL]        
         if min is not None:
-            if Decimal(raw_val) < Decimal(str(min)):
+            if Decimal(raw_val) < Decimal(unicode(min)):
                 if self.debug: print("%s is < the min of %s" % (raw_val, min))
                 return False
         if max is not None:
-            if Decimal(raw_val) > Decimal(str(max)):
+            if Decimal(raw_val) > Decimal(unicode(max)):
                 if self.debug: print("%s is > the max of %s" % (raw_val, max))
                 return False
         if self.debug: print("%s was accepted" % raw_val)
@@ -479,7 +479,7 @@ class TblEditor(wx.Dialog):
             raw_val = self.GetRawVal(row, col)
             existing_row_data_lst = self.dbtbl.row_vals_dic.get(row)
             if existing_row_data_lst:
-                prev_val = str(existing_row_data_lst[col])
+                prev_val = unicode(existing_row_data_lst[col])
             if self.debug or debug: 
                 print("prev_val: %s raw_val: %s" % (prev_val,  raw_val))
             if raw_val == prev_val:
@@ -677,7 +677,7 @@ class TblEditor(wx.Dialog):
     def ResetRowLabels(self, row):
         "Reset new row label and restore previous new row label to default"
         prev_row = row - 1
-        self.grid.SetRowLabelValue(prev_row, str(prev_row))
+        self.grid.SetRowLabelValue(prev_row, unicode(prev_row))
         self.grid.SetRowLabelValue(row, "*")
     
     def InitNewRowBuffer(self):
