@@ -298,6 +298,8 @@ class DimTable(object):
             (my_globals.CSS_FIRST_COL_VAR, css_idx)
         CSS_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_COL_VAR, css_idx)
+        CSS_MEASURE = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_MEASURE, css_idx)
         rows_filled = node.level + 1 + row_offset
         rows_to_fill = col_label_rows_n - rows_filled
         rows_below = node.getDepth() - 1 # exclude self
@@ -305,7 +307,7 @@ class DimTable(object):
         # styling
         if self.has_col_measures:
             if rows_below == 0:
-                cellclass="class='measure'"
+                cellclass="class='%s'" % CSS_MEASURE
             elif rows_below % 2 > 0: # odd
                 cellclass="class='%s'" % CSS_COL_VAL
             else:

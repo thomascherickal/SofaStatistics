@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-dev_debug = False
+dev_debug = True
 test_lang = False
 
 import warnings
@@ -19,7 +19,7 @@ import sys
 # http://wiki.wxpython.org/RecipesI18n
 # Install gettext.  Now all strings enclosed in "_()" will automatically be
 # translated.
-gettext.install('sofa', './locale', unicode=False)
+gettext.install('sofa', './locale', unicode=True)
 import my_globals # has translated text
 import dataselect
 import full_html
@@ -42,6 +42,7 @@ HELP_IMG_LEFT = 640
 HELP_IMG_TOP = 315
 SCRIPT_PATH = my_globals.SCRIPT_PATH
 LOCAL_PATH = my_globals.LOCAL_PATH
+print SCRIPT_PATH, LOCAL_PATH
 
 def TextOnBitmap(bitmap, text, font, colour):
     """
@@ -448,12 +449,19 @@ class StartFrame(wx.Frame):
         
     def OnTablesClick(self, event):
         "Open make table gui with settings as per active_proj"
-        proj_dic = projects.GetProjSettingsDic(proj_name=self.active_proj)
-        dlg = make_table_gui.DlgMakeTable( 
-            proj_dic["default_dbe"], proj_dic["conn_dets"], 
-            proj_dic["default_dbs"], proj_dic["default_tbls"], 
-            proj_dic["fil_var_dets"], proj_dic["fil_css"], 
-            proj_dic["fil_report"], proj_dic["fil_script"])
+        proj_name = self.active_proj
+        proj_dic = projects.GetProjSettingsDic(proj_name)
+        try:
+            dlg = make_table_gui.DlgMakeTable( 
+                proj_dic["default_dbe"], proj_dic["conn_dets"], 
+                proj_dic["default_dbs"], proj_dic["default_tbls"], 
+                proj_dic["fil_var_dets"], proj_dic["fil_css"], 
+                proj_dic["fil_report"], proj_dic["fil_script"])
+        except Exception, e:
+            wx.MessageBox(_("Unable to connect to data as defined in " 
+                "project %s.  Please check your settings." % proj_name))
+            raise Exception, unicode(e)
+            return
         dlg.ShowModal()
         event.Skip()
         
@@ -495,8 +503,9 @@ class StartFrame(wx.Frame):
     
     def OnStatsClick(self, event):  
         # open statistics selection dialog
-        proj_dic = projects.GetProjSettingsDic(proj_name=self.active_proj)
-        dlg = stats_select.StatsSelectDlg( 
+        proj_name = self.active_proj
+        proj_dic = projects.GetProjSettingsDic(proj_name)
+        dlg = stats_select.StatsSelectDlg(proj_name, 
             proj_dic["default_dbe"], proj_dic["conn_dets"], 
             proj_dic["default_dbs"], proj_dic["default_tbls"], 
             proj_dic["fil_var_dets"], proj_dic["fil_css"], 

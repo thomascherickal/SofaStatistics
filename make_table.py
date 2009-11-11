@@ -159,11 +159,13 @@ class MakeTable(object):
             (INT_REPORT_PATH) and into report file, and finally, 
             display html output.
         """
+        debug = False
         run_ok, missing_dim, has_rows, has_cols = self.TableConfigOK()
         if run_ok:
             # hourglass cursor
             curs = wx.StockCursor(wx.CURSOR_WAIT)
             self.SetCursor(curs)
+            if debug: print(self.fil_css)
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.getScript(has_rows, has_cols, css_idx)
             strContent = output.RunReport(OUTPUT_MODULES, self.fil_report, 

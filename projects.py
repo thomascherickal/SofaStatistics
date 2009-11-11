@@ -420,6 +420,9 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         self.sqlite_grid.grid.SetFocus()
 
     def GetProjSettings(self, fil_proj):
+        """
+        NB get any paths in form ready to display
+        """
         proj_path = os.path.join(LOCAL_PATH, "projs", fil_proj)
         f = codecs.open(proj_path, "U", encoding="utf-8")
         proj_cont = f.read()
@@ -431,10 +434,10 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         #   and adding them to this frame ready for use.
         # Must always be stored, even if only ""
         self.proj_notes = GetProjNotes(fil_proj, proj_dic)
-        self.fil_var_dets = proj_dic["fil_var_dets"]
-        self.fil_css = proj_dic["fil_css"]
-        self.fil_report = proj_dic["fil_report"]
-        self.fil_script = proj_dic["fil_script"]
+        self.fil_var_dets = util.get_path_to_display(proj_dic["fil_var_dets"])
+        self.fil_css = util.get_path_to_display(proj_dic["fil_css"])
+        self.fil_report = util.get_path_to_display(proj_dic["fil_report"])
+        self.fil_script = util.get_path_to_display(proj_dic["fil_script"])
         self.default_dbe = proj_dic["default_dbe"]
         getdata.getProjConnSettings(self, proj_dic)
     
@@ -490,11 +493,6 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
         # (MUST come after Destroy)
-
-    def getFileName(self, path):
-        "Works on Windows paths as well"
-        path = path.replace("\\", "/")
-        return os.path.split(path)[1]
        
     def OnOK(self, event):
         # get the data (separated for easier debugging)
@@ -537,21 +535,20 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
                       " file.") % default_dbe)
                 return
             # write the data
-            fil_name = os.path.join(LOCAL_PATH, "projs", "%s.proj" % \
-                                  proj_name)
+            fil_name = os.path.join(LOCAL_PATH, "projs", "%s.proj" % proj_name)
             f = codecs.open(fil_name, "w", encoding="utf-8")
-            f.write("proj_notes = r\"%s\"" % proj_notes)
-            f.write("\nfil_var_dets = r\"%s\"" % fil_var_dets)
-            f.write("\nfil_css = r\"%s\"" % fil_css)
-            f.write("\nfil_report = r\"%s\"" % fil_report)
-            f.write("\nfil_script = r\"%s\"" % fil_script)
-            f.write("\ndefault_dbe = \"%s\"" % default_dbe)
-            f.write("\n\ndefault_dbs = " + pprint.pformat(default_dbs))
-            f.write("\n\ndefault_tbls = " + pprint.pformat(default_tbls))
-            # these will often have backslashes and even \u - need to keep raw
-            conn_dets_str = pprint.pformat(conn_dets).replace("u'", "r'")
-            conn_dets_str = conn_dets_str.replace("u\"", "r\"")
-            f.write("\n\nconn_dets = " + conn_dets_str)
+            f.write(u"proj_notes = r\"%s\"" % proj_notes)
+            f.write(u"\nfil_var_dets = r\"%s\"" % 
+                    util.get_path_to_write(fil_var_dets))
+            f.write(u"\nfil_css = r\"%s\"" % util.get_path_to_write(fil_css))
+            f.write(u"\nfil_report = r\"%s\"" % 
+                    util.get_path_to_write(fil_report))
+            f.write(u"\nfil_script = r\"%s\"" % 
+                    util.get_path_to_write(fil_script))
+            f.write(u"\ndefault_dbe = \"%s\"" % default_dbe)
+            f.write(u"\n\ndefault_dbs = " + pprint.pformat(default_dbs))
+            f.write(u"\n\ndefault_tbls = " + pprint.pformat(default_tbls))
+            f.write(u"\n\nconn_dets = " + pprint.pformat(conn_dets))
             f.close()
             if self.new_proj:
                 self.parent.parent.SetProj(proj_name)

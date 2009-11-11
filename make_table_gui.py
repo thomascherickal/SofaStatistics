@@ -34,7 +34,7 @@ class DlgMakeTable(wx.Dialog,
                  default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
                  fil_script="", var_labels=None, var_notes=None, 
                  val_dics=None):
-         
+        debug = False
         wx.Dialog.__init__(self, parent=None, id=-1, 
                            title=_("Make Report Table"), 
                            pos=(200, 0),
@@ -144,6 +144,7 @@ class DlgMakeTable(wx.Dialog,
         self.coltree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnColItemRightClick)
         self.colRoot = self.setupDimTree(self.coltree)
         #setup demo table type
+        if debug: print(self.fil_css)
         self.demo_tab = demotables.GenDemoTable(txtTitles=self.txtTitles, 
                                  txtSubtitles=self.txtSubtitles,
                                  colRoot=self.colRoot, 

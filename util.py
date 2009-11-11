@@ -109,9 +109,27 @@ def get_script_path():
     """
     return sys.path[0]
 
+def get_path_to_display(raw_path):
+    """
+    Get path ready to display to a user - strips out escape backslashes as
+        required.
+    """
+    path = raw_path.replace("\\\\", "\\")
+    return path
+
+def get_path_to_write(raw_path):
+    "Set path - add escape backslashes as required"
+    path = raw_path.replace("\\", "\\\\")
+    return path
+
 def get_local_path():
     return "%s/sofa" % os.getenv('HOME')
 
+def getFileName(path):
+    "Works on Windows paths as well"
+    path = path.replace("\\\\", "\\").replace("\\", "/")
+    return os.path.split(path)[1]
+    
 def isInteger(val):
     #http://mail.python.org/pipermail/python-list/2006-February/368113.html
     return isinstance(val, (int, long))

@@ -9,11 +9,12 @@ import make_table
 import output
 import util
 import dimtables
-
+import wx
 
 num_data_seq = ("1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "12.0", "35.0")
 str_data_seq = ("Lorem", "ipsum", "dolor", "sit", "amet")
 dtm_data_seq = ("1 Feb 2009", "23 Aug 1994", "16 Sep 2001", "7 Nov 1986")
+
 
 class DemoTable(object):
     """
@@ -30,6 +31,7 @@ class DemoTable(object):
 
     def getDemoHTML(self, css_idx):
         "Get demo HTML for table"
+        debug = False
         # sort titles out first
         if self.txtTitles.GetValue():
             self.titles = ["%s" % x for x \
@@ -42,9 +44,14 @@ class DemoTable(object):
         else:
             self.subtitles = []
         if self.titles:
-            self.titles[0] += _(" (random demo data only)")        
-        html = output.getHtmlHdr(hdr_title=_("Report(s)"), 
-                                 css_fils=[self.fil_css])
+            self.titles[0] += _(" (random demo data only)")
+        if debug: print(self.fil_css)
+        try:
+            html = output.getHtmlHdr(hdr_title=_("Report(s)"), 
+                                     css_fils=[self.fil_css])
+        except Exception, e:
+            wx.MessageBox(_("Unable to make report.  Error details: %s" % unicode(e)))
+            raise Exception, unicode(e)
         html += "<table cellspacing='0'>\n" # IE6 - no support CSS borderspacing
         (hdr_html, body_html) = self.getHTMLParts(css_idx)
         html += hdr_html
@@ -165,6 +172,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
     
     def __init__(self, txtTitles, txtSubtitles, colRoot, rowRoot, rowtree, 
                  coltree, col_no_vars_item, var_labels, val_dics, fil_css):
+        self.debug = False
         self.txtTitles = txtTitles
         self.txtSubtitles = txtSubtitles
         self.colRoot = colRoot
@@ -175,6 +183,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         self.var_labels = var_labels
         self.val_dics = val_dics
         self.fil_css=fil_css
+        if self.debug: print(self.fil_css)
     
     def getHTMLParts(self, css_idx):
         "Returns (hdr_html, body_html)"

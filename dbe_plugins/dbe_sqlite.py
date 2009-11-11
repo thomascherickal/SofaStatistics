@@ -316,7 +316,7 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
         for sqlite_setting in sqlite_settings:
             # e.g. ("C:\.....\my_sqlite_db",)
             db_path = sqlite_setting[0]
-            db_name = parent.getFileName(db_path)
+            db_name = util.getFileName(db_path)
             new_sqlite_dic = {}
             new_sqlite_dic["database"] = db_path
             conn_dets_sqlite[db_name] = new_sqlite_dic

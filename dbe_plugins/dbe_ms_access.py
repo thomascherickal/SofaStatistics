@@ -17,6 +17,7 @@ import my_globals
 import dbe_plugins.dbe_globals as dbe_globals
 import getdata
 import settings_grid
+import util
 
 
 AD_OPEN_KEYSET = 1
@@ -381,7 +382,7 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
         conn_dets_msaccess = {}
         for msaccess_setting in msaccess_settings:
             db_path = msaccess_setting[0]
-            db_name = parent.getFileName(db_path)
+            db_name = util.getFileName(db_path)
             new_msaccess_dic = {}
             new_msaccess_dic["database"] = db_path
             new_msaccess_dic["mdw"] = msaccess_setting[1]

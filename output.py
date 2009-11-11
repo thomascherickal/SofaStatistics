@@ -116,6 +116,9 @@ def GetDefaultCss():
             border-bottom: none; /*3px dotted #AFAFAF;*/
             width: auto;
             height: 18px;
+        }
+        th.%s{""" % my_globals.CSS_MEASURE + """
+            background-color: white;
         }"""
     default_css += "\n    td.%s{\n        text-align: left;\n        "  % \
         my_globals.CSS_LBL + \
@@ -147,10 +150,14 @@ def getHtmlHdr(hdr_title, css_fils):
         single HTML file.
     """
     debug = False
+    if debug: print(css_fils[0])
     if css_fils:
         css_lst = []
         for i, css_fil in enumerate(css_fils):
-            f = file(css_fil, "r")
+            try:
+                f = file(css_fil, "r")
+            except IOError, e:
+                raise Exception, _("The css file %s doesn't exist" % css_fil)
             css_txt = f.read()
             for css_class in my_globals.CSS_ELEMENTS:
                 # suffix all report-relevant css entities so distinct
@@ -256,8 +263,10 @@ def RunReport(modules, fil_report, add_to_report, css_fils, inner_script,
     Runs report and returns HTML representation of it.
     add_to_report - also append result to current report.
     """
+    debug = False
     # generate script
     f = file(my_globals.INT_SCRIPT_PATH, "w")
+    if debug: print(css_fils)
     InsertPrelimCode(modules, f, my_globals.INT_REPORT_PATH, css_fils)
     AppendExportedScript(f, inner_script, conn_dets, dbe, db, tbl_name,
                          default_dbs, default_tbls, add_divider_code=False)
@@ -274,6 +283,7 @@ def RunReport(modules, fil_report, add_to_report, css_fils, inner_script,
         strErrContent = _("<h1>Ooops!</h1>\n<p>Unable to run script " + \
                           "to generate report.  "
             "Error encountered.  Original error message: %s</p>") % e
+        raise Exception, unicode(e)
         return strErrContent
     f = file(my_globals.INT_REPORT_PATH, "r")
     source = GetSource(db, tbl_name)
@@ -292,16 +302,18 @@ def InsertPrelimCode(modules, fil, fil_report, css_fils):
     fil - open file handle ready for writing.
     NB only one output file per script irrespective of selection as each script
         exported.
-    """         
+    """
+    debug = False
+    if debug: print(css_fils)
     fil.write("#! /usr/bin/env python")
     fil.write("\n# -*- coding: utf-8 -*-\n")
     fil.write("\nimport sys")
     fil.write("\nimport gettext")
     fil.write("\ngettext.install('sofa', './locale', unicode=False)")
-    fil.write("\nsys.path.append(r'%s')" % my_globals.SCRIPT_PATH)
+    fil.write("\nsys.path.append(u'%s')" % my_globals.SCRIPT_PATH)
     for module in modules:
         fil.write("\nimport %s" % module)
-    fil.write("\n\nfil = file(r\"%s\", \"w\")" % fil_report)
+    fil.write("\n\nfil = file(u\"%s\", \"w\")" % fil_report)
     css_fils_str = pprint.pformat(css_fils)
     fil.write("\ncss_fils=%s" % css_fils_str)
     fil.write("\nfil.write(output.getHtmlHdr(\"Report(s)\", css_fils))\n\n")

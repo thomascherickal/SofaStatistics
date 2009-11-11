@@ -15,6 +15,7 @@ import table_config
 
 class DataSelectDlg(wx.Dialog):
     def __init__(self, parent, proj_name):
+        debug = False
         title = _("Data in \"%s\" Project") % proj_name
         wx.Dialog.__init__(self, parent=parent, title=title, 
                            style=wx.CAPTION|wx.CLOSE_BOX|
@@ -30,6 +31,7 @@ class DataSelectDlg(wx.Dialog):
             projects.GetVarDets(proj_dic["fil_var_dets"])
         self.dbe = proj_dic["default_dbe"]
         self.conn_dets = proj_dic["conn_dets"]
+        if debug: print(self.conn_dets)
         self.default_dbs = proj_dic["default_dbs"] \
             if proj_dic["default_dbs"] else {}
         self.default_tbls = proj_dic["default_tbls"] \
@@ -37,8 +39,15 @@ class DataSelectDlg(wx.Dialog):
         # get various db settings
         dbdetsobj = getdata.getDbDetsObj(self.dbe, self.default_dbs, 
                                          self.default_tbls, self.conn_dets)
-        (self.conn, self.cur, self.dbs, self.tbls, self.flds, self.has_unique,  
-                self.idxs) = dbdetsobj.getDbDets()
+        try:
+            (self.conn, self.cur, self.dbs, self.tbls, self.flds, 
+                self.has_unique, self.idxs) = dbdetsobj.getDbDets()
+        except Exception, e:
+            wx.MessageBox(_("Unable to connect to data as defined in " 
+                "project %s.  Please check your settings." % proj_name))
+            raise Exception, unicode(e) # for debugging
+            self.Destroy()
+            return
         # set up self.dropDatabases and self.dropTables
         self.db = dbdetsobj.db
         self.tbl = dbdetsobj.tbl

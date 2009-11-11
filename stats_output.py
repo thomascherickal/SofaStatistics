@@ -219,7 +219,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b,
     # warnings
     html += "\n<p>" + _("Minimum expected cell count") + ": %s</p>" % \
         round(min_count, dp)
-    html += "\n<p>%% " + _("cells with expected count < 5") + ": %s</p>" % \
+    html += "\n<p>% " + _("cells with expected count < 5") + ": %s</p>" % \
         round(perc_cells_lt_5, 1)
     if page_break_after:
         html += "<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE

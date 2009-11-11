@@ -42,7 +42,7 @@ DIV_LINE_WIDTH = 203
 
 class StatsSelectDlg(wx.Dialog):
     
-    def __init__(self, dbe, conn_dets, default_dbs=None, 
+    def __init__(self, proj_name, dbe, conn_dets, default_dbs=None, 
                  default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
                  fil_script="", var_labels=None, var_notes=None, 
                  val_dics=None):
@@ -50,6 +50,7 @@ class StatsSelectDlg(wx.Dialog):
               size=(800, 542),
               style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU,
               pos=(100, 100))
+        self.proj_name = proj_name
         self.dbe = dbe
         self.conn_dets = conn_dets
         self.default_dbs = default_dbs
@@ -468,62 +469,70 @@ class StatsSelectDlg(wx.Dialog):
             wx.MessageBox(_("Please select a statistical test on the list"))
             event.Skip()
             return
-        if sel_test == TEST_TTEST_INDEP:
-            dlg = ttest_indep.DlgConfig(_("Configure Independent t-test"), 
-                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
-                self.fil_var_dets, self.fil_css, self.fil_report, 
-                self.fil_script)
-            dlg.ShowModal()        
-        elif sel_test == TEST_TTEST_PAIRED:
-            dlg = ttest_paired.DlgConfig(_("Configure Paired Samples t-test"), 
-                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
-                self.fil_var_dets, self.fil_css, self.fil_report, 
-                self.fil_script)
-            dlg.ShowModal()
-        elif sel_test == TEST_ANOVA:
-            dlg = anova.DlgConfig(_("Configure ANOVA test"), 
-                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls,
-                self.fil_var_dets, self.fil_css, self.fil_report, 
-                self.fil_script, takes_range=True)
-            dlg.ShowModal()
-        elif sel_test == TEST_WILCOXON:
-            dlg = wilcoxon.DlgConfig(_("Configure Wilcoxon Signed Ranks test"), 
-                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
-                self.fil_var_dets, self.fil_css, self.fil_report, 
-                self.fil_script)
-            dlg.ShowModal()
-        elif sel_test == TEST_MANN_WHITNEY:
-            dlg = mann_whitney.DlgConfig(_("Configure Mann Whitney U test"), 
-                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
-                self.fil_var_dets, self.fil_css, self.fil_report, 
-                self.fil_script)
-            dlg.ShowModal()
-        elif sel_test == TEST_KRUSKAL_WALLIS:
-            dlg = kruskal_wallis.DlgConfig(_("Configure Kruskal Wallis H test"), 
-                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
-                self.fil_var_dets, self.fil_css, self.fil_report, 
-                self.fil_script, takes_range=True)
-            dlg.ShowModal()
-        elif sel_test == TEST_CHI_SQUARE:
-            dlg = chisquare.DlgConfig(_("Configure Chi Square test"), 
-                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
-                self.fil_var_dets, self.fil_css, self.fil_report, 
-                self.fil_script)
-            dlg.ShowModal()
-        elif sel_test == TEST_PEARSONS_R:
-            dlg = pearsonsr.DlgConfig(_("Configure Pearson's R test"), 
-                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
-                self.fil_var_dets, self.fil_css, self.fil_report, 
-                self.fil_script)
-            dlg.ShowModal()
-        elif sel_test == TEST_SPEARMANS_R:
-            dlg = spearmansr.DlgConfig(_("Configure Spearman's R test"), 
-                self.dbe, self.conn_dets, self.default_dbs, self.default_tbls, 
-                self.fil_var_dets, self.fil_css, self.fil_report, 
-                self.fil_script)
-            dlg.ShowModal()
-        else:
-            raise Exception, "Unknown test"
+        try:
+            if sel_test == TEST_TTEST_INDEP:
+                dlg = ttest_indep.DlgConfig(_("Configure Independent t-test"), 
+                    self.dbe, self.conn_dets, self.default_dbs, 
+                    self.default_tbls, self.fil_var_dets, self.fil_css, 
+                    self.fil_report, self.fil_script)
+                dlg.ShowModal()        
+            elif sel_test == TEST_TTEST_PAIRED:
+                dlg = ttest_paired.DlgConfig(
+                    _("Configure Paired Samples t-test"), 
+                    self.dbe, self.conn_dets, self.default_dbs, 
+                    self.default_tbls, self.fil_var_dets, self.fil_css, 
+                    self.fil_report, self.fil_script)
+                dlg.ShowModal()
+            elif sel_test == TEST_ANOVA:
+                dlg = anova.DlgConfig(_("Configure ANOVA test"), 
+                    self.dbe, self.conn_dets, self.default_dbs, 
+                    self.default_tbls, self.fil_var_dets, self.fil_css, 
+                    self.fil_report, self.fil_script, takes_range=True)
+                dlg.ShowModal()
+            elif sel_test == TEST_WILCOXON:
+                dlg = wilcoxon.DlgConfig(
+                    _("Configure Wilcoxon Signed Ranks test"), 
+                    self.dbe, self.conn_dets, self.default_dbs, 
+                    self.default_tbls, self.fil_var_dets, self.fil_css, 
+                    self.fil_report, self.fil_script)
+                dlg.ShowModal()
+            elif sel_test == TEST_MANN_WHITNEY:
+                dlg = mann_whitney.DlgConfig(_("Configure Mann Whitney U test"), 
+                    self.dbe, self.conn_dets, self.default_dbs, 
+                    self.default_tbls, self.fil_var_dets, self.fil_css, 
+                    self.fil_report, self.fil_script)
+                dlg.ShowModal()
+            elif sel_test == TEST_KRUSKAL_WALLIS:
+                dlg = kruskal_wallis.DlgConfig(
+                    _("Configure Kruskal Wallis H test"), 
+                    self.dbe, self.conn_dets, self.default_dbs, 
+                    self.default_tbls, self.fil_var_dets, self.fil_css, 
+                    self.fil_report, self.fil_script, takes_range=True)
+                dlg.ShowModal()
+            elif sel_test == TEST_CHI_SQUARE:
+                dlg = chisquare.DlgConfig(_("Configure Chi Square test"), 
+                    self.dbe, self.conn_dets, self.default_dbs, 
+                    self.default_tbls, self.fil_var_dets, self.fil_css, 
+                    self.fil_report, self.fil_script)
+                dlg.ShowModal()
+            elif sel_test == TEST_PEARSONS_R:
+                dlg = pearsonsr.DlgConfig(_("Configure Pearson's R test"), 
+                    self.dbe, self.conn_dets, self.default_dbs, 
+                    self.default_tbls, self.fil_var_dets, self.fil_css, 
+                    self.fil_report, self.fil_script)
+                dlg.ShowModal()
+            elif sel_test == TEST_SPEARMANS_R:
+                dlg = spearmansr.DlgConfig(_("Configure Spearman's R test"), 
+                    self.dbe, self.conn_dets, self.default_dbs, 
+                    self.default_tbls, self.fil_var_dets, self.fil_css, 
+                    self.fil_report, self.fil_script)
+                dlg.ShowModal()
+            else:
+                raise Exception, "Unknown test"
+        except Exception, e:
+            wx.MessageBox(_("Unable to connect to data as defined in " 
+                "project %s.  Please check your settings." % self.proj_name))
+            raise Exception, unicode(e)
         event.Skip()
     
     def OnCloseClick(self, event):

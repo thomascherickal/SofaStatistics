@@ -153,7 +153,11 @@ def setConnDetDefaults(parent):
 
 def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     """
-    Populate default_dbs, default_tbls, conn_dets.
+    Populate default_dbs, default_tbls, and conn_dets.
+    conn_dets must contain paths ready to record i.e. double backslashes where
+        needed in paths.  Cannot use single backslashes as the standard approach
+        because want unicode strings and will sometimes encounter \U within such
+        string e.g. Vista and Win 7 C:\Users\...
     Returns any_incomplete (partially completed connection details), 
         any_conns (any of them set completely), and completed_dbes.
         Completed_dbes is so we can ensure the default dbe has conn details 

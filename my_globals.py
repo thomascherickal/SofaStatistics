@@ -6,7 +6,7 @@ import util # safe to import - never refers to anything in other modules
 
 debug = False
 
-VERSION = "0.8.10.9"
+VERSION = "0.8.12"
 
 SCRIPT_END = "#sofa_script_end"
 
