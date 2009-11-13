@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function
 
 import datetime
@@ -57,6 +60,24 @@ def ms2utf8(text):
         text = re.sub(u"[\x80-\x9f]", fixup, text)
     return text
 
+def get_unicode(raw):
+    """
+    If not a string, just return value unchanged.  Otherwise ...
+    Convert byte strings to unicode.
+    Convert any cp1252 text to unicode e.g. smart quotes.
+    Return safe unicode string (pure unicode and no unescaped backslashes).
+    """
+    if not isinstance(raw, basestring): # isinstance includes descendants
+        return raw
+    if type(raw) == "string":
+        try:
+            safe = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            safe = ms2utf8(raw)
+    else:
+        safe = ms2utf8(raw)
+    return safe
+
 def f2d(f):
     """
     Convert a floating point number to a Decimal with no loss of information
@@ -108,19 +129,6 @@ def get_script_path():
     NB won't work within an interpreter
     """
     return sys.path[0]
-
-def get_path_to_display(raw_path):
-    """
-    Get path ready to display to a user - strips out escape backslashes as
-        required.
-    """
-    path = raw_path.replace("\\\\", "\\")
-    return path
-
-def get_path_to_write(raw_path):
-    "Set path - add escape backslashes as required"
-    path = raw_path.replace("\\", "\\\\")
-    return path
 
 def get_local_path():
     return "%s/sofa" % os.getenv('HOME')
@@ -209,10 +217,11 @@ def date_range2mysql(entered_start_date, entered_end_date):
         time.strptime(entered_start_date, "%d-%m-%Y")
         time.strptime(entered_end_date, "%d-%m-%Y")
         def DDMMYYYY2MySQL(value):
-            #e.g. 26-04-2001 -> 2001-04-26 less flexible than using strptime and strftime together but much quicker
-            return "%s-%s-%s" % (value[-4:], value[3:5], value[:2]) #NB slice points, not start and length
-        start_date = DDMMYYYY2MySQL(entered_start_date)#now make MySQL-friendly dates
-        end_date = DDMMYYYY2MySQL(entered_end_date)#now make MySQL-friendly dates
+            #e.g. 26-04-2001 -> 2001-04-26 less flexible than using strptime and 
+            # strftime together but much quicker
+            return "%s-%s-%s" % (value[-4:], value[3:5], value[:2])
+        start_date = DDMMYYYY2MySQL(entered_start_date)# MySQL-friendly dates
+        end_date = DDMMYYYY2MySQL(entered_end_date)# MySQL-friendly dates
         return start_date, end_date     
     except:
         raise Exception, "Please pass valid start and " + \

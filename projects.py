@@ -434,10 +434,10 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         #   and adding them to this frame ready for use.
         # Must always be stored, even if only ""
         self.proj_notes = GetProjNotes(fil_proj, proj_dic)
-        self.fil_var_dets = util.get_path_to_display(proj_dic["fil_var_dets"])
-        self.fil_css = util.get_path_to_display(proj_dic["fil_css"])
-        self.fil_report = util.get_path_to_display(proj_dic["fil_report"])
-        self.fil_script = util.get_path_to_display(proj_dic["fil_script"])
+        self.fil_var_dets = proj_dic["fil_var_dets"]
+        self.fil_css = proj_dic["fil_css"]
+        self.fil_report = proj_dic["fil_report"]
+        self.fil_script = proj_dic["fil_script"]
         self.default_dbe = proj_dic["default_dbe"]
         getdata.getProjConnSettings(self, proj_dic)
     
@@ -537,14 +537,18 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
             # write the data
             fil_name = os.path.join(LOCAL_PATH, "projs", "%s.proj" % proj_name)
             f = codecs.open(fil_name, "w", encoding="utf-8")
-            f.write(u"proj_notes = r\"%s\"" % proj_notes)
-            f.write(u"\nfil_var_dets = r\"%s\"" % 
-                    util.get_path_to_write(fil_var_dets))
-            f.write(u"\nfil_css = r\"%s\"" % util.get_path_to_write(fil_css))
-            f.write(u"\nfil_report = r\"%s\"" % 
-                    util.get_path_to_write(fil_report))
-            f.write(u"\nfil_script = r\"%s\"" % 
-                    util.get_path_to_write(fil_script))
+            f.write("# Windows file paths _must_ have double not single "
+                    "backslashes")
+            f.write("\n# All file paths _must_ have a u before the quote-enclosed"
+                    " string")
+            f.write("""\n# u"C:\\\\Users\\\\demo.txt" is GOOD""")
+            f.write("""\n# u"C:\\Users\\demo.txt" is BAD""")
+            f.write("""\n# "C:\\\\Users\\\\demo.txt" is also BAD""")
+            f.write(u"\n\nproj_notes = u\"%s\"" % proj_notes)
+            f.write(u"\nfil_var_dets = u\"%s\"" % fil_var_dets)
+            f.write(u"\nfil_css = u\"%s\"" % fil_css)
+            f.write(u"\nfil_report = u\"%s\"" % fil_report)
+            f.write(u"\nfil_script = u\"%s\"" % fil_script)
             f.write(u"\ndefault_dbe = \"%s\"" % default_dbe)
             f.write(u"\n\ndefault_dbs = " + pprint.pformat(default_dbs))
             f.write(u"\n\ndefault_tbls = " + pprint.pformat(default_tbls))

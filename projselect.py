@@ -90,7 +90,18 @@ class ProjSelectDlg(wx.Dialog):
         proj_cont = f.read()
         f.close()
         proj_dic = {}
-        exec proj_cont in proj_dic
+        try:
+            exec proj_cont in proj_dic
+        except SyntaxError, e:
+            wx.MessageBox(\
+                _("Syntax error in project file \"%s\"." % fil_proj + \
+                          "\n\nDetails: %s" % unicode(e)))
+            raise Exception, unicode(e)
+        except Exception, e:
+            wx.MessageBox(\
+                _("Error processing project file \"%s\"." % fil_proj + \
+                          "\n\nDetails: %s" % unicode(e)))
+            raise Exception, unicode(e)
         # must always be stored, even if only ""
         self.proj_notes = projects.GetProjNotes(fil_proj, proj_dic)
     

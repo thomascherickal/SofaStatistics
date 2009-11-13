@@ -9,39 +9,30 @@ import gettext
 gettext.install('sofa', './locale', unicode=True)
 from nose.tools import assert_equal
 from nose.tools import assert_not_equal
+from nose.tools import assert_raises
 from .output import _strip_html
 from .output import _strip_script
-from .util import get_path_to_display
+from .util import get_unicode
 import my_globals
 import projects
 import util
 
-def test_get_path_to_display():
-    """
-    Microsoft used the backslash \ as a path delimiter.  This is a problem 
-        because it indicates an escape sequence in Python strings.
-    Raw strings are not a solution to this because we need to handle unicode at
-        least some of the time.
-    BTW u'C:\Users\...' creates special problems because \u is a special escape 
-        to allow unicode strings to be represented by their code point number.
-    Anyway, we should handle any string or path thrown at us including both 
-        unicode and byte strings, plus backslashes and escaped backslashes.
-    """    
-    tests = [(r"C:\abcd\defg\foo.txt", r"C:\abcd\defg\foo.txt"),
-             ("C:\\abcd\\defg\\foo.txt", r"C:\abcd\defg\foo.txt"),
-             (u"C:\\abcd\\defg\\foo.txt", 
-                r"C:\abcd\defg\foo.txt".decode("utf-8")),
-             (u"C:\\unicodebait\\defg\\foo.txt", 
-                r"C:\unicodebait\defg\foo.txt".decode("utf-8")),
-             (u"C:\\Identität\\defg\\foo.txt", 
-                r"C:\Identität\defg\foo.txt".decode("utf-8")),
-             ("/home/g/abcd/foo.txt", "/home/g/abcd/foo.txt"),
+
+def test_get_unicode():
+    tests = [(r"C:\abcd\defg\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
+             ("C:\\abcd\\defg\\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
+             (u"C:\\abcd\\defg\\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
+             (u"C:\\unicodebait\\foo.txt", u"C:\\unicodebait\\foo.txt"),
+             (u"C:\\Identität\\foo.txt", u"C:\\Identität\\foo.txt"),
+             (r"/home/g/abcd/foo.txt", u"/home/g/abcd/foo.txt"),
+             ("/home/g/abcd/foo.txt", u"/home/g/abcd/foo.txt"),
              (u"/home/René/abcd/foo.txt", u"/home/René/abcd/foo.txt"),
              (u"/home/Identität/abcd/foo.txt", u"/home/Identität/abcd/foo.txt"),
              (u"/home/François/abcd/foo.txt", u"/home/François/abcd/foo.txt"),
+             (u"\x93fred\x94", u"\u201Cfred\u201D"),
              ]
     for test in tests:
-        assert_equal(get_path_to_display(test[0]), test[1])
+        assert_equal(get_unicode(test[0]), test[1])
 
 def test_strip_html():
     tests = [("<body>Freddy</body>", "Freddy"), 
