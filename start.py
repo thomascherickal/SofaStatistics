@@ -125,7 +125,7 @@ def InstallLocal():
     if not os.path.exists(os.path.join(LOCAL_PATH, PROJ_CUSTOMISED_FILE)):
         # change home username
         f = file(default_proj, "r")
-        proj_str = f.read()
+        proj_str = f.read() # provided by me - no BOM on non-ascii 
         f.close()
         for path in paths:
             proj_str = proj_str.replace("/home/g/sofa/%s/" % path, 

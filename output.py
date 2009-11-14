@@ -133,7 +133,7 @@ default_hdr = """
             <html>
             <head>
             <meta http-equiv="P3P" content='CP="IDC DSP COR CURa ADMa OUR 
-            IND PHY ONL COM STA"'>
+            IND PHY ONL COM STA"; charset=utf-8'>
             <title>%s</title>
             <style type="text/css">
             <!--
@@ -168,7 +168,7 @@ def getHtmlHdr(hdr_title, css_fils):
                 css_txt = css_txt.replace(old_class, new_class)
             css_lst.append(css_txt)
             f.close()
-        css = "\n\n".join(css_lst)
+        css = (os.linesep + os.linesep).join(css_lst)
     else:
         css = GetDefaultCss()
     hdr = default_hdr % (hdr_title, css)
@@ -194,8 +194,8 @@ def GetCssDets(fil_report, fil_css):
     css_fils = None
     # read from report
     if os.path.exists(fil_report):
-        f = file(fil_report, "r")
-        content = f.read()
+        f = codecs.open(fil_report, "U", "utf-8")
+        content = util.clean_bom_utf8(f.read())
         f.close()
         if content:
             try:
@@ -232,8 +232,8 @@ def ExportScript(script, fil_script, fil_report, css_fils, conn_dets, dbe, db,
     modules = ["my_globals", "core_stats", "dimtables", "getdata", "output", 
                "rawtables", "stats_output"]
     if os.path.exists(fil_script):
-        f = file(fil_script, "r")
-        existing_script = f.read()             
+        f = codecs.open(fil_script, "U", "utf-8")
+        existing_script = util.clean_bom_utf8(f.read())             
         f.close()
     else:
         existing_script = None
@@ -273,8 +273,8 @@ def RunReport(modules, fil_report, add_to_report, css_fils, inner_script,
     AddClosingScriptCode(f)
     f.close()
     # run script
-    f = file(my_globals.INT_SCRIPT_PATH, "r")
-    script = f.read()
+    f = codecs.open(my_globals.INT_SCRIPT_PATH, "U", "utf-8")
+    script = util.clean_bom_utf8(f.read())
     f.close()
     try:
         dummy_dic = {}
@@ -285,9 +285,9 @@ def RunReport(modules, fil_report, add_to_report, css_fils, inner_script,
             "Error encountered.  Original error message: %s</p>") % e
         raise Exception, unicode(e)
         return strErrContent
-    f = file(my_globals.INT_REPORT_PATH, "r")
+    f = codecs.open(my_globals.INT_REPORT_PATH, "U", "utf-8")
     source = GetSource(db, tbl_name)
-    strContent = f.read()
+    strContent = util.clean_bom_utf8(f.read())
     f.close()
     # append into html file
     if add_to_report:
@@ -379,8 +379,8 @@ def SaveToReport(fil_report, css_fils, source, new_html):
     """
     new_no_hdr = _strip_html(new_html)
     if os.path.exists(fil_report):
-        f = file(fil_report, "r")
-        existing_html = f.read()
+        f = codecs.open(fil_report, "U", "utf-8")
+        existing_html = util.clean_bom_utf8(f.read())
         existing_no_ends = _strip_html(existing_html)
         f.close()        
     else:

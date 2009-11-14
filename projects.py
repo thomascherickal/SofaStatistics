@@ -72,20 +72,33 @@ def GetVarDets(fil_var_dets):
     Returns var_labels, var_notes, var_types, val_dics.
     """
     try:
-        fil = codecs.open(fil_var_dets, "U", encoding="utf-8")
+        f = codecs.open(fil_var_dets, "U", encoding="utf-8")
     except IOError:
         var_labels = {}
         var_notes = {}
         var_types = {}
         val_dics = {}
         return var_labels, var_notes, var_types, val_dics
-    labels = fil.read()
-    fil.close()
-    labels_dic = {}
-    exec labels in labels_dic
+    var_dets = util.clean_bom_utf8(f.read())
+    f.close()
+    var_dets_dic = {}
     try:
-        results = labels_dic["var_labels"], labels_dic["var_notes"], \
-                      labels_dic["var_types"], labels_dic["val_dics"]
+        # http://docs.python.org/reference/simple_stmts.html
+        exec var_dets in var_dets_dic
+    except SyntaxError, e:
+        wx.MessageBox(\
+            _("Syntax error in variable details file \"%s\"." % fil_var_dets + \
+                      os.linesep + os.linesep + "Details: %s" % unicode(e)))
+        raise Exception, unicode(e)
+    except Exception, e:
+        wx.MessageBox(\
+            _("Error processing variable"
+              " details file \"%s\"." % fil_var_dets + \
+              os.linesep + os.linesep + "Details: %s" % unicode(e)))
+        raise Exception, unicode(e)
+    try:
+        results = var_dets_dic["var_labels"], var_dets_dic["var_notes"], \
+                      var_dets_dic["var_types"], var_dets_dic["val_dics"]
     except Exception, e:
         raise Exception, "Three variables needed in " + \
             "'%s': var_labels, var_notes, var_types, and val_dics.  " + \
@@ -154,7 +167,7 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
             new_val_dic[key] = value
         val_dics[var_name] = new_val_dic
         # update lbl file
-        f = codecs.file(fil_var_dets, "w", encoding="utf-8")
+        f = codecs.open(fil_var_dets, "w", encoding="utf-8")
         f.write(os.linesep + "var_labels=" + pprint.pformat(var_labels))
         f.write(os.linesep + "var_notes=" + pprint.pformat(var_notes))
         f.write(os.linesep + "var_types=" + pprint.pformat(var_types))
