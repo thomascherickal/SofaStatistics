@@ -8,6 +8,7 @@ import wx
 import my_globals
 import getdata
 import projects
+import util
 
 
 class ProjSelectDlg(wx.Dialog):
@@ -87,7 +88,7 @@ class ProjSelectDlg(wx.Dialog):
     def GetNotes(self, fil_proj):
         proj_path = os.path.join(my_globals.LOCAL_PATH, "projs", fil_proj)
         f = codecs.open(proj_path, "U", encoding="utf-8")
-        proj_cont = f.read()
+        proj_cont = util.clean_bom_utf8(f.read())
         f.close()
         proj_dic = {}
         try:
@@ -95,12 +96,12 @@ class ProjSelectDlg(wx.Dialog):
         except SyntaxError, e:
             wx.MessageBox(\
                 _("Syntax error in project file \"%s\"." % fil_proj + \
-                          "\n\nDetails: %s" % unicode(e)))
+                          os.linesep + os.linesep + "Details: %s" % unicode(e)))
             raise Exception, unicode(e)
         except Exception, e:
             wx.MessageBox(\
                 _("Error processing project file \"%s\"." % fil_proj + \
-                          "\n\nDetails: %s" % unicode(e)))
+                          os.linesep + os.linesep + "Details: %s" % unicode(e)))
             raise Exception, unicode(e)
         # must always be stored, even if only ""
         self.proj_notes = projects.GetProjNotes(fil_proj, proj_dic)

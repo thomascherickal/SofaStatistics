@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 
+import codecs
 import datetime
 import decimal
 import os
@@ -78,6 +79,11 @@ def get_unicode(raw):
         safe = ms2utf8(raw)
     return safe
 
+def clean_bom_utf8(raw):
+    if raw.startswith(unicode(codecs.BOM_UTF8, "utf-8")):
+        raw = raw.strip(unicode(codecs.BOM_UTF8, "utf-8"))
+    return raw
+
 def f2d(f):
     """
     Convert a floating point number to a Decimal with no loss of information
@@ -132,6 +138,10 @@ def get_script_path():
 
 def get_local_path():
     return "%s/sofa" % os.getenv('HOME')
+
+def escape_win_path(path):
+    "Useful when writing a path to a text file"
+    return path.replace("\\", "\\\\")
 
 def getFileName(path):
     "Works on Windows paths as well"

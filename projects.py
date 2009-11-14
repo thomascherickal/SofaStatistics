@@ -16,8 +16,15 @@ import util
 LOCAL_PATH = my_globals.LOCAL_PATH
 
 def GetProjs():
-    "NB includes .proj at end"
-    proj_fils = os.listdir(os.path.join(LOCAL_PATH, "projs"))
+    """
+    NB includes .proj at end.
+    os.listdir()
+    Changed in version 2.3: On Windows NT/2k/XP and Unix, if path is a Unicode 
+        object, the result will be a list of Unicode objects. Undecodable 
+        filenames will still be returned as string objects.
+    May need unicode results so always provide a unicode path. 
+    """
+    proj_fils = os.listdir(unicode(os.path.join(LOCAL_PATH, "projs"), "utf-8"))
     proj_fils = [x for x in proj_fils if x.endswith(".proj")]
     proj_fils.sort()
     return proj_fils
@@ -41,10 +48,22 @@ def GetProjSettingsDic(proj_name):
     """
     proj_path = os.path.join(LOCAL_PATH, "projs", proj_name)
     f = codecs.open(proj_path, "U", encoding="utf-8")
-    proj_cont = f.read()
+    proj_cont = util.clean_bom_utf8(f.read())
     f.close() 
     proj_dic = {}
-    exec proj_cont in proj_dic # http://docs.python.org/reference/simple_stmts.html
+    try:
+        # http://docs.python.org/reference/simple_stmts.html
+        exec proj_cont in proj_dic
+    except SyntaxError, e:
+        wx.MessageBox(\
+            _("Syntax error in project file \"%s\"." % proj_name + \
+                      os.linesep + os.linesep + "Details: %s" % unicode(e)))
+        raise Exception, unicode(e)
+    except Exception, e:
+        wx.MessageBox(\
+            _("Error processing project file \"%s\"." % proj_name + \
+                      os.linesep + os.linesep + "Details: %s" % unicode(e)))
+        raise Exception, unicode(e)
     return proj_dic
 
 def GetVarDets(fil_var_dets):
@@ -136,10 +155,11 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
         val_dics[var_name] = new_val_dic
         # update lbl file
         f = codecs.file(fil_var_dets, "w", encoding="utf-8")
-        f.write("\nvar_labels=" + pprint.pformat(var_labels))
-        f.write("\nvar_notes=" + pprint.pformat(var_notes))
-        f.write("\nvar_types=" + pprint.pformat(var_types))
-        f.write("\n\nval_dics=" + pprint.pformat(val_dics))
+        f.write(os.linesep + "var_labels=" + pprint.pformat(var_labels))
+        f.write(os.linesep + "var_notes=" + pprint.pformat(var_notes))
+        f.write(os.linesep + "var_types=" + pprint.pformat(var_types))
+        f.write(os.linesep + os.linesep + "val_dics=" + \
+                pprint.pformat(val_dics))
         f.close()
         return True
     else:
@@ -425,10 +445,21 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         """
         proj_path = os.path.join(LOCAL_PATH, "projs", fil_proj)
         f = codecs.open(proj_path, "U", encoding="utf-8")
-        proj_cont = f.read()
+        proj_cont = util.clean_bom_utf8(f.read())
         f.close()
         proj_dic = {}
-        exec proj_cont in proj_dic
+        try:
+            exec proj_cont in proj_dic
+        except SyntaxError, e:
+            wx.MessageBox(\
+                _("Syntax error in project file \"%s\"." % fil_proj + \
+                          os.linesep + os.linesep + "Details: %s" % unicode(e)))
+            raise Exception, unicode(e)
+        except Exception, e:
+            wx.MessageBox(\
+                _("Error processing project file \"%s\"." % fil_proj + \
+                          os.linesep + os.linesep + "Details: %s" % unicode(e)))
+            raise Exception, unicode(e)
         self.proj_name = fil_proj[:-5]
         # Taking settings from proj file (via exec and proj_dic)
         #   and adding them to this frame ready for use.
@@ -539,20 +570,28 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
             f = codecs.open(fil_name, "w", encoding="utf-8")
             f.write("# Windows file paths _must_ have double not single "
                     "backslashes")
-            f.write("\n# All file paths _must_ have a u before the quote-enclosed"
-                    " string")
-            f.write("""\n# u"C:\\\\Users\\\\demo.txt" is GOOD""")
-            f.write("""\n# u"C:\\Users\\demo.txt" is BAD""")
-            f.write("""\n# "C:\\\\Users\\\\demo.txt" is also BAD""")
-            f.write(u"\n\nproj_notes = u\"%s\"" % proj_notes)
-            f.write(u"\nfil_var_dets = u\"%s\"" % fil_var_dets)
-            f.write(u"\nfil_css = u\"%s\"" % fil_css)
-            f.write(u"\nfil_report = u\"%s\"" % fil_report)
-            f.write(u"\nfil_script = u\"%s\"" % fil_script)
-            f.write(u"\ndefault_dbe = \"%s\"" % default_dbe)
-            f.write(u"\n\ndefault_dbs = " + pprint.pformat(default_dbs))
-            f.write(u"\n\ndefault_tbls = " + pprint.pformat(default_tbls))
-            f.write(u"\n\nconn_dets = " + pprint.pformat(conn_dets))
+            f.write(os.linesep + "# All file paths _must_ have a u before the"
+                    " quote-enclosed string")
+            f.write(os.linesep + """# u"C:\\\\Users\\\\demo.txt" is GOOD""")
+            f.write(os.linesep + """# u"C:\\Users\\demo.txt" is BAD""")
+            f.write(os.linesep + """# "C:\\\\Users\\\\demo.txt" is also BAD""")
+            f.write(os.linesep + os.linesep + u"proj_notes = u\"%s\"" % \
+                    proj_notes)
+            f.write(os.linesep + os.linesep + u"fil_var_dets = u\"%s\"" % 
+                    util.escape_win_path(fil_var_dets))
+            f.write(os.linesep + u"fil_css = u\"%s\"" % \
+                    util.escape_win_path(fil_css))
+            f.write(os.linesep + u"fil_report = u\"%s\"" % 
+                    util.escape_win_path(fil_report))
+            f.write(os.linesep + u"fil_script = u\"%s\"" % 
+                    util.escape_win_path(fil_script))
+            f.write(os.linesep + u"default_dbe = \"%s\"" % default_dbe)
+            f.write(os.linesep + os.linesep + u"default_dbs = " + \
+                    pprint.pformat(default_dbs))
+            f.write(os.linesep + os.linesep + u"default_tbls = " + \
+                    pprint.pformat(default_tbls))
+            f.write(os.linesep + os.linesep + u"conn_dets = " + \
+                    pprint.pformat(conn_dets))
             f.close()
             if self.new_proj:
                 self.parent.parent.SetProj(proj_name)
