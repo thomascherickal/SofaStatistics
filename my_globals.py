@@ -10,6 +10,9 @@ VERSION = "0.8.12"
 
 SCRIPT_END = "#sofa_script_end"
 
+PYTHON_ENCODING_DECLARATION = u"#! /usr/bin/env python" + os.linesep + \
+    u"# -*- coding: utf-8 -*-" + os.linesep
+
 # stats output ******************************************************
 OUTPUT_RESULTS_ONLY = "Output results only"
 
@@ -98,10 +101,13 @@ INTERNAL_FOLDER = "_internal"
 USER_PATH, LOCAL_PATH = util.get_user_paths()
 SCRIPT_PATH = util.get_script_path()
 # http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
-INT_SCRIPT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, "script.py")
+INT_SCRIPT_PATH = unicode(os.path.join(LOCAL_PATH, INTERNAL_FOLDER, 
+                                       "script.py"), "utf-8")
 INT_REPORT_FILE = "report.htm"
-INT_REPORT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, INT_REPORT_FILE)
-DEFAULT_CSS_PATH = os.path.join(LOCAL_PATH, "css", SOFA_DEFAULT_STYLE)
+INT_REPORT_PATH = unicode(os.path.join(LOCAL_PATH, INTERNAL_FOLDER, 
+                                       INT_REPORT_FILE), "utf-8")
+DEFAULT_CSS_PATH = unicode(os.path.join(LOCAL_PATH, "css", SOFA_DEFAULT_STYLE), 
+                          "utf-8")
 VAR_TYPE_CAT = _("Nominal (names only)")
 VAR_TYPE_ORD = _("Ordinal (rank only)")
 VAR_TYPE_QUANT = _("Quantity (is an amount)")

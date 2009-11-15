@@ -81,7 +81,7 @@ def get_unicode(raw):
 
 def clean_bom_utf8(raw):
     if raw.startswith(unicode(codecs.BOM_UTF8, "utf-8")):
-        raw = raw.strip(unicode(codecs.BOM_UTF8, "utf-8"))
+        raw = raw[len(unicode(codecs.BOM_UTF8, "utf-8")):]
     return raw
 
 def f2d(f):
