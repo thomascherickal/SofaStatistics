@@ -8,8 +8,8 @@ debug = False
 
 VERSION = "0.8.12"
 
-SCRIPT_END = "#sofa_script_end"
-
+MAIN_SCRIPT_START = u"#sofa_main_script_start"
+SCRIPT_END = u"#sofa_script_end"
 PYTHON_ENCODING_DECLARATION = u"#! /usr/bin/env python" + os.linesep + \
     u"# -*- coding: utf-8 -*-" + os.linesep
 

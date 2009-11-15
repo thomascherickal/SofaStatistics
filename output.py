@@ -13,13 +13,16 @@ import getdata
 import showhtml
 import util
 
+# do not use os.linesep for anything going to be read and exec'd
+# in Windows the \r\n makes it fail.
+
 def GetDefaultCss():
     """
     Get default CSS.  The "constants" are used so that we can 
         guarantee the class names we use later on are the same as
         used here.
     """
-    default_css = """
+    default_css = u"""
         body{
             font-size: 12px;
         }
@@ -36,19 +39,19 @@ def GetDefaultCss():
         tr, td, th{
             margin: 0;
         }
-        .%s{""" % my_globals.CSS_TBL_TITLE_CELL + """
+        .%s{""" % my_globals.CSS_TBL_TITLE_CELL + u"""
             border: none;
             padding: 18px 0px 12px 0px;
             margin: 0;
         }
-        .%s{""" % my_globals.CSS_TBL_TITLE + """
+        .%s{""" % my_globals.CSS_TBL_TITLE + u"""
             padding: 0;
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
             font-weight: bold;
             font-size: 18px;
         }
-        .%s{ """ % my_globals.CSS_SUBTITLE + """
+        .%s{ """ % my_globals.CSS_SUBTITLE + u"""
             padding: 12px 0px 0px 0px;
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
@@ -57,7 +60,7 @@ def GetDefaultCss():
         }
         th, .%s, .%s, .%s, .%s {""" % (my_globals.CSS_ROW_VAR, 
                                 my_globals.CSS_ROW_VAL, my_globals.CSS_DATACELL, 
-                                my_globals.CSS_FIRST_DATACELL) + """
+                                my_globals.CSS_FIRST_DATACELL) + u"""
             border: solid 1px #A1A1A1;
         }
         th{
@@ -67,68 +70,68 @@ def GetDefaultCss():
         td{
             padding: 2px 6px;
         }
-        .%s{""" % my_globals.CSS_ROW_VAL + """
+        .%s{""" % my_globals.CSS_ROW_VAL + u"""
             margin: 0;
         }
         .%s, .%s{ """ % (my_globals.CSS_DATACELL, 
-                         my_globals.CSS_FIRST_DATACELL) + """
+                         my_globals.CSS_FIRST_DATACELL) + u"""
             text-align: right;
             margin: 0;
         }
         .%s, .%s, .%s {""" % (my_globals.CSS_FIRST_COL_VAR, 
                               my_globals.CSS_FIRST_ROW_VAR, 
-                              my_globals.CSS_SPACEHOLDER) + """
+                              my_globals.CSS_SPACEHOLDER) + u"""
             font-family: Arial, Helvetica, sans-serif;
             font-weight: bold;
             font-size: 15px;
             color: white;
         }
         .%s, .%s { """ % (my_globals.CSS_FIRST_COL_VAR, 
-                          my_globals.CSS_FIRST_ROW_VAR) + """
+                          my_globals.CSS_FIRST_ROW_VAR) + u"""
             background-color: #333435;
         }
-        .%s {""" % my_globals.CSS_SPACEHOLDER + """
+        .%s {""" % my_globals.CSS_SPACEHOLDER + u"""
             background-color: #CCD9D7;
         }
-        .%s{ """ % my_globals.CSS_FIRST_COL_VAR + """
+        .%s{ """ % my_globals.CSS_FIRST_COL_VAR + u"""
             padding: 9px 6px;
             vertical-align: top;
         }
-        .%s, .%s{""" % (my_globals.CSS_ROW_VAR, my_globals.CSS_COL_VAR) + """
+        .%s, .%s{""" % (my_globals.CSS_ROW_VAR, my_globals.CSS_COL_VAR) + u"""
             font-family: Arial, Helvetica, sans-serif;
             font-weight: bold;
             font-size: 15px;
             color: #000146;
             background-color: white;
         }
-        .%s{""" % my_globals.CSS_COL_VAR + """
+        .%s{""" % my_globals.CSS_COL_VAR + u"""
             padding: 6px 0px;            
         }            
-        .%s{""" % my_globals.CSS_COL_VAL + """
+        .%s{""" % my_globals.CSS_COL_VAL + u"""
             vertical-align: top;
         }
-        tr.%s td{""" % my_globals.CSS_TOTAL_ROW + """
+        tr.%s td{""" % my_globals.CSS_TOTAL_ROW + u"""
             font-weight: bold;
             border-top: solid 2px black;
             border-bottom: double 3px black;
         }
-        .%s{""" % my_globals.CSS_PAGE_BREAK_BEFORE + """
+        .%s{""" % my_globals.CSS_PAGE_BREAK_BEFORE + u"""
             page-break-before: always;
             border-bottom: none; /*3px dotted #AFAFAF;*/
             width: auto;
             height: 18px;
         }
-        th.%s{""" % my_globals.CSS_MEASURE + """
+        th.%s{""" % my_globals.CSS_MEASURE + u"""
             background-color: white;
         }"""
-    default_css += "\n    td.%s{\n        text-align: left;\n        "  % \
+    default_css += u"\n    td.%s{\n        text-align: left;\n        "  % \
         my_globals.CSS_LBL + \
-        "background-color: #F5F5F5;\n    }"
-    default_css += "\n    td.%s{\n        text-align: right;\n    }" % \
+        u"background-color: #F5F5F5;\n    }"
+    default_css += u"\n    td.%s{\n        text-align: right;\n    }" % \
         my_globals.CSS_ALIGN_RIGHT
     return default_css
 
-default_hdr = """
+default_hdr = u"""
             <!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
             'http://www.w3.org/TR/html4/loose.dtd'>
             <html>
@@ -250,12 +253,12 @@ def ExportScript(script, fil_script, fil_report, css_fils, conn_dets, dbe, db,
 
 def AddDividerCode(f, db, tbl):
     f.write("source = output.GetSource(\"%s\", \"%s\")" % (db, tbl))
-    f.write(os.linesep + "divider = output.GetDivider(source)")
-    f.write(os.linesep + "fil.write(divider)\n")
+    f.write("\n" + "divider = output.GetDivider(source)")
+    f.write("\n" + "fil.write(divider)\n")
 
 def GetSource(db, tbl_name):
     datestamp = datetime.now().strftime("on %d/%m/%Y at %I:%M %p")
-    source = os.linesep + "<p>From %s.%s %s</p>" % (db, tbl_name, datestamp)
+    source = "\n" + "<p>From %s.%s %s</p>" % (db, tbl_name, datestamp)
     return source
 
 def RunReport(modules, fil_report, add_to_report, css_fils, inner_script, 
@@ -264,7 +267,7 @@ def RunReport(modules, fil_report, add_to_report, css_fils, inner_script,
     Runs report and returns HTML representation of it.
     add_to_report - also append result to current report.
     """
-    debug = True
+    debug = False
     # generate script
     f = codecs.open(my_globals.INT_SCRIPT_PATH, "w", "utf-8")
     if debug: print(css_fils)
@@ -274,9 +277,9 @@ def RunReport(modules, fil_report, add_to_report, css_fils, inner_script,
     AddClosingScriptCode(f)
     f.close()
     # run script
-    f = codecs.open(my_globals.INT_SCRIPT_PATH, "U", "utf-8")
+    f = codecs.open(my_globals.INT_SCRIPT_PATH, "r", "utf-8")
     script = util.clean_bom_utf8(f.read())    
-    script = script[len(my_globals.PYTHON_ENCODING_DECLARATION):]
+    script = script[script.index(my_globals.MAIN_SCRIPT_START):]
     f.close()
     try:
         dummy_dic = {}
@@ -295,8 +298,8 @@ def RunReport(modules, fil_report, add_to_report, css_fils, inner_script,
     # append into html file
     if add_to_report:
         SaveToReport(fil_report, css_fils, source, strContent)
-        strContent = os.linesep + "<p>Output also saved to '%s'</p>" % \
-            fil_report + source + strContent
+        strContent = "\n" + "<p>Output also saved to '%s'</p>" % \
+            util.escape_win_path(fil_report) + source + strContent
     return strContent
 
 def InsertPrelimCode(modules, f, fil_report, css_fils):
@@ -312,20 +315,21 @@ def InsertPrelimCode(modules, f, fil_report, css_fils):
     # try to run the script as a unicode string
     # else "encoding declaration in Unicode string".
     f.write(my_globals.PYTHON_ENCODING_DECLARATION)
-    f.write(os.linesep + "import codecs")
-    f.write(os.linesep + "import sys")
-    f.write(os.linesep + "import gettext")
-    f.write(os.linesep + "gettext.install('sofa', './locale', unicode=False)")
-    f.write(os.linesep + "sys.path.append(u'%s')" % my_globals.SCRIPT_PATH)
+    f.write("\n" + my_globals.MAIN_SCRIPT_START)
+    f.write("\n" + "import codecs")
+    f.write("\n" + "import sys")
+    f.write("\n" + "import gettext")
+    f.write("\n" + "gettext.install('sofa', './locale', unicode=False)")
+    f.write("\n" + "sys.path.append(u'%s')" % my_globals.SCRIPT_PATH)
     for module in modules:
-        f.write(os.linesep + "import %s" % module)
-    f.write(os.linesep + os.linesep + """fil = codecs.open(u"%s",""" % \
-              fil_report + """ "w", "utf-8")""")
+        f.write("\n" + "import %s" % module)
+    f.write("\n" + "\n" + """fil = codecs.open(u"%s",""" % \
+              util.escape_win_path(fil_report) + """ "w", "utf-8")""")
     css_fils_str = pprint.pformat(css_fils)
-    f.write(os.linesep + "css_fils=%s" % css_fils_str)
-    f.write(os.linesep + "fil.write(output.getHtmlHdr(\"Report(s)\", "
-              "css_fils))" + os.linesep + os.linesep)
-    f.write("# end of script 'header'" + os.linesep + os.linesep)
+    f.write("\n" + "css_fils=%s" % css_fils_str)
+    f.write("\n" + "fil.write(output.getHtmlHdr(\"Report(s)\", "
+              "css_fils))" + "\n" + "\n")
+    f.write("# end of script 'header'" + "\n" + "\n")
     
 def AppendExportedScript(f, inner_script, conn_dets, dbe, db, tbl_name, 
                          default_dbs, default_tbls, add_divider_code=False):
@@ -336,23 +340,23 @@ def AppendExportedScript(f, inner_script, conn_dets, dbe, db, tbl_name,
     datestamp = datetime.now().strftime("Script exported %d/%m/%Y at %I:%M %p")
     # Fresh connection for each in case it changes in between tables
     f.write("#%s" % ("-"*50))
-    f.write(os.linesep + "# %s" % datestamp)
+    f.write("\n" + "# %s" % datestamp)
     if add_divider_code:
         AddDividerCode(f, db, tbl_name)
     conn_dets_str = pprint.pformat(conn_dets)
-    f.write(os.linesep + "conn_dets = %s" % conn_dets_str)
+    f.write("\n" + "conn_dets = %s" % conn_dets_str)
     default_dbs_str = pprint.pformat(default_dbs)
-    f.write(os.linesep + "default_dbs = %s" % default_dbs_str)
+    f.write("\n" + "default_dbs = %s" % default_dbs_str)
     default_tbls_str = pprint.pformat(default_tbls)
-    f.write(os.linesep + "default_tbls = %s" % default_tbls_str)
-    f.write(os.linesep + \
+    f.write("\n" + "default_tbls = %s" % default_tbls_str)
+    f.write("\n" + \
         "conn, cur, dbs, tbls, flds, has_unique, idxs = \\" + \
         "\n" + "    getdata.getDbDetsObj(\"%s\", " % dbe + \
         "default_dbs, default_tbls, conn_dets=conn_dets," + \
         "\n" + "    db=\"%s\", tbl=\"%s\")" % (db, tbl_name) + \
         ".getDbDets()")
-    f.write(os.linesep + "%s" % inner_script)
-    f.write(os.linesep + "conn.close()")
+    f.write("\n" + "%s" % inner_script)
+    f.write("\n" + "conn.close()")
 
 def _strip_html(html):
     """
@@ -377,7 +381,7 @@ def GetDivider(source):
     Get the HTML divider between content -includes source e.g. database, table 
         and time stamp.
     """
-    return os.linesep + "<br><br>" + os.linesep + "<hr>" + os.linesep + source
+    return "\n" + "<br><br>" + "\n" + "<hr>" + "\n" + source
 
 def SaveToReport(fil_report, css_fils, source, new_html):
     """
@@ -411,10 +415,10 @@ def SaveToReport(fil_report, css_fils, source, new_html):
 
 def AddClosingScriptCode(f):
     "Add ending code to script.  Nb leaves open file."
-    f.write(os.linesep + os.linesep + my_globals.SCRIPT_END + \
-            "-"*(50 - len(my_globals.SCRIPT_END)) + os.linesep)
-    f.write(os.linesep + "fil.write(output.getHtmlFtr())")
-    f.write(os.linesep + "fil.close()")
+    f.write("\n" + "\n" + my_globals.SCRIPT_END + \
+            "-"*(50 - len(my_globals.SCRIPT_END)) + "\n")
+    f.write("\n" + "fil.write(output.getHtmlFtr())")
+    f.write("\n" + "fil.close()")
 
 def DisplayReport(parent, strContent):
     # display results
