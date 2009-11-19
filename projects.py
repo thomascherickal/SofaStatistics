@@ -24,7 +24,7 @@ def GetProjs():
         filenames will still be returned as string objects.
     May need unicode results so always provide a unicode path. 
     """
-    proj_fils = os.listdir(unicode(os.path.join(LOCAL_PATH, "projs"), "utf-8"))
+    proj_fils = os.listdir(os.path.join(LOCAL_PATH, u"projs"))
     proj_fils = [x for x in proj_fils if x.endswith(".proj")]
     proj_fils.sort()
     return proj_fils

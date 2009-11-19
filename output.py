@@ -320,7 +320,8 @@ def InsertPrelimCode(modules, f, fil_report, css_fils):
     f.write("\n" + "import sys")
     f.write("\n" + "import gettext")
     f.write("\n" + "gettext.install('sofa', './locale', unicode=False)")
-    f.write("\n" + "sys.path.append(u'%s')" % my_globals.SCRIPT_PATH)
+    f.write("\n" + "sys.path.append(u'%s')" % \
+            util.escape_win_path(my_globals.SCRIPT_PATH))
     for module in modules:
         f.write("\n" + "import %s" % module)
     f.write("\n" + "\n" + """fil = codecs.open(u"%s",""" % \

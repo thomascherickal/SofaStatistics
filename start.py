@@ -32,7 +32,7 @@ import quotes
 import stats_select
 import util
 
-COPYRIGHT = "(c)" if util.in_windows() else "©" # "\xa9" problems with utf-8
+COPYRIGHT = u"\u00a9"
 MAX_HELP_TEXT_WIDTH = 400 # pixels
 TEXT_BROWN = (90, 74, 61)
 MAIN_LEFT = 200
@@ -54,7 +54,7 @@ def TextOnBitmap(bitmap, text, font, colour):
     mem.SelectObject(bitmap)
     mem.SetFont(font)
     mem.SetTextForeground(colour)
-    mem.DrawText(text, 9, 3)
+    mem.DrawText(text, 9, 3)    
     mem.SelectObject(wx.NullBitmap)
     return bitmap
 
@@ -341,7 +341,7 @@ class StartFrame(wx.Frame):
                             True)
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel(_("Version ") + unicode(my_globals.VERSION), 
+        panel_dc.DrawLabel(_("Version %s") % my_globals.VERSION, 
                            wx.Rect(MAIN_LEFT, 9, 100, 20))   
         panel_dc.SetFont(wx.Font(self.main_font_size, wx.SWISS, wx.NORMAL, 
                                  wx.NORMAL))

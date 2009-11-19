@@ -6,7 +6,7 @@ import util # safe to import - never refers to anything in other modules
 
 debug = False
 
-VERSION = "0.8.12"
+VERSION = u"0.8.12"
 
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
@@ -14,14 +14,14 @@ PYTHON_ENCODING_DECLARATION = u"#! /usr/bin/env python" + os.linesep + \
     u"# -*- coding: utf-8 -*-" + os.linesep
 
 # stats output ******************************************************
-OUTPUT_RESULTS_ONLY = "Output results only"
+OUTPUT_RESULTS_ONLY = u"Output results only"
 
 # Making tables ******************************************************
-HAS_TOTAL = "Total" #doubles as display label
+HAS_TOTAL = _("Total") #doubles as display label
 COL_MEASURES = 0 #indexes in tab type
 ROW_SUMM = 1
 RAW_DISPLAY = 2
-COL_MEASURES_TREE_LBL = "Column measures"
+COL_MEASURES_TREE_LBL = _("Column measures")
 # dimension trees
 ROWDIM = _("row") #double as labels
 COLDIM = _("column")
@@ -49,14 +49,14 @@ measures_long_label_dic = {FREQ: _("Frequency"),
                            STD_DEV: _("Standard Deviation")}
 # content of constant and constant (ready to include in exported script)
 # e.g. "dimtables.%s" "ROWPCT"
-script_export_measures_dic = {FREQ: "FREQ", 
-                              ROWPCT: "ROWPCT",
-                              COLPCT: "COLPCT",
-                              SUM: "SUM", 
-                              MEAN: "MEAN",
-                              MEDIAN: "MEDIAN", 
-                              SUMM_N: "SUMM_N",
-                              STD_DEV: "STD_DEV"}
+script_export_measures_dic = {FREQ: u"FREQ", 
+                              ROWPCT: u"ROWPCT",
+                              COLPCT: u"COLPCT",
+                              SUM: u"SUM", 
+                              MEAN: u"MEAN",
+                              MEDIAN: u"MEDIAN", 
+                              SUMM_N: u"SUMM_N",
+                              STD_DEV: u"STD_DEV"}
 def pct_1_dec(num):
     return "%s%%" % round(num,1)
 def pct_2_dec(num):
@@ -64,23 +64,23 @@ def pct_2_dec(num):
 data_format_dic = {FREQ: str, ROWPCT: pct_1_dec, COLPCT: pct_1_dec}
 # output - NB never have a class which is the same as the start of another
 # simple search and replace is worth keeping
-CSS_ALIGN_RIGHT = "right"
-CSS_LBL = "lbl"
-CSS_TBL_TITLE = "tbltitle"
-CSS_TBL_TITLE_CELL = "tblcelltitle"
-CSS_SUBTITLE = "tblsubtitle"
-CSS_FIRST_COL_VAR = "firstcolvar"
-CSS_FIRST_ROW_VAR = "firstrowvar"
-CSS_DATACELL = "datacell"
-CSS_FIRST_DATACELL = "firstdatacell"
-CSS_SPACEHOLDER = "spaceholder"
-CSS_ROW_VAL = "rowval"
-CSS_COL_VAL = "colval"
-CSS_ROW_VAR = "rowvar"
-CSS_COL_VAR = "colvar"
-CSS_MEASURE = "measure"
-CSS_TOTAL_ROW = "total-row"
-CSS_PAGE_BREAK_BEFORE = "page-break-before"
+CSS_ALIGN_RIGHT = u"right"
+CSS_LBL = u"lbl"
+CSS_TBL_TITLE = u"tbltitle"
+CSS_TBL_TITLE_CELL = u"tblcelltitle"
+CSS_SUBTITLE = u"tblsubtitle"
+CSS_FIRST_COL_VAR = u"firstcolvar"
+CSS_FIRST_ROW_VAR = u"firstrowvar"
+CSS_DATACELL = u"datacell"
+CSS_FIRST_DATACELL = u"firstdatacell"
+CSS_SPACEHOLDER = u"spaceholder"
+CSS_ROW_VAL = u"rowval"
+CSS_COL_VAL = u"colval"
+CSS_ROW_VAR = u"rowvar"
+CSS_COL_VAR = u"colvar"
+CSS_MEASURE = u"measure"
+CSS_TOTAL_ROW = u"total-row"
+CSS_PAGE_BREAK_BEFORE = u"page-break-before"
 CSS_ELEMENTS = [CSS_ALIGN_RIGHT, CSS_LBL, CSS_TBL_TITLE, 
                 CSS_TBL_TITLE_CELL, CSS_SUBTITLE, CSS_FIRST_COL_VAR, 
                 CSS_FIRST_ROW_VAR, CSS_DATACELL, CSS_FIRST_DATACELL, 
@@ -90,24 +90,21 @@ CSS_SUFFIX_TEMPLATE = "%s%s"
 
 # projects ******************************************************
 EMPTY_PROJ_NAME = _("GIVE ME A NAME ...")
-SOFA_DEFAULT_DB = "SOFA_Default_db"
-SOFA_DEFAULT_TBL = "SOFA_Default_tbl"
-SOFA_DEFAULT_PROJ = "SOFA_Default_Project.proj"
-SOFA_DEFAULT_LBLS = "SOFA_Default_Var_Dets.vdts"
-SOFA_DEFAULT_STYLE = "SOFA_Default_Style.css"
-SOFA_DEFAULT_SCRIPT = "SOFA_Default_Exported_Table_Scripts.py"
-SOFA_DEFAULT_REPORT = "SOFA_Default_New_Tables.htm"
-INTERNAL_FOLDER = "_internal"
+SOFA_DEFAULT_DB = u"SOFA_Default_db"
+SOFA_DEFAULT_TBL = u"SOFA_Default_tbl"
+SOFA_DEFAULT_PROJ = u"SOFA_Default_Project.proj"
+SOFA_DEFAULT_LBLS = u"SOFA_Default_Var_Dets.vdts"
+SOFA_DEFAULT_STYLE = u"SOFA_Default_Style.css"
+SOFA_DEFAULT_SCRIPT = u"SOFA_Default_Exported_Table_Scripts.py"
+SOFA_DEFAULT_REPORT = u"SOFA_Default_New_Tables.htm"
+INTERNAL_FOLDER = u"_internal"
 USER_PATH, LOCAL_PATH = util.get_user_paths()
 SCRIPT_PATH = util.get_script_path()
 # http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
-INT_SCRIPT_PATH = unicode(os.path.join(LOCAL_PATH, INTERNAL_FOLDER, 
-                                       "script.py"), "utf-8")
-INT_REPORT_FILE = "report.htm"
-INT_REPORT_PATH = unicode(os.path.join(LOCAL_PATH, INTERNAL_FOLDER, 
-                                       INT_REPORT_FILE), "utf-8")
-DEFAULT_CSS_PATH = unicode(os.path.join(LOCAL_PATH, "css", SOFA_DEFAULT_STYLE), 
-                          "utf-8")
+INT_SCRIPT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, u"script.py")
+INT_REPORT_FILE = u"report.htm"
+INT_REPORT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, INT_REPORT_FILE)
+DEFAULT_CSS_PATH = os.path.join(LOCAL_PATH, "css", SOFA_DEFAULT_STYLE)
 VAR_TYPE_CAT = _("Nominal (names only)")
 VAR_TYPE_ORD = _("Ordinal (rank only)")
 VAR_TYPE_QUANT = _("Quantity (is an amount)")
@@ -124,34 +121,34 @@ val_a_default = None
 val_b_default = None
 # getdata ******************************************************
 # misc field dets
-FLD_SEQ = "field sequence"
-FLD_BOLNULLABLE = "field nullable"
-FLD_DATA_ENTRY_OK = "data entry ok" # e.g. not autonumber, timestamp etc
-FLD_COLUMN_DEFAULT = "field default"
+FLD_SEQ = u"field sequence"
+FLD_BOLNULLABLE = u"field nullable"
+FLD_DATA_ENTRY_OK = u"data entry ok" # e.g. not autonumber, timestamp etc
+FLD_COLUMN_DEFAULT = u"field default"
 # test
-FLD_BOLTEXT = "field text"
-FLD_TEXT_LENGTH = "field text length"
-FLD_CHARSET = "field charset"
+FLD_BOLTEXT = u"field text"
+FLD_TEXT_LENGTH = u"field text length"
+FLD_CHARSET = u"field charset"
 # numbers
-FLD_BOLNUMERIC = "field numeric"
-FLD_BOLAUTONUMBER = "field autonumber"
-FLD_DECPTS = "field decpts"
-FLD_NUM_WIDTH = "field numeric display width" # used for column display only
-FLD_BOL_NUM_SIGNED = "field numeric signed"
-FLD_NUM_MIN_VAL = "field numeric minimum value"
-FLD_NUM_MAX_VAL = "field numeric maximum value"
+FLD_BOLNUMERIC = u"field numeric"
+FLD_BOLAUTONUMBER = u"field autonumber"
+FLD_DECPTS = u"field decpts"
+FLD_NUM_WIDTH = u"field numeric display width" # used for column display only
+FLD_BOL_NUM_SIGNED = u"field numeric signed"
+FLD_NUM_MIN_VAL = u"field numeric minimum value"
+FLD_NUM_MAX_VAL = u"field numeric maximum value"
 # datetime
-FLD_BOLDATETIME = "field datetime"
+FLD_BOLDATETIME = u"field datetime"
 # indexes
-IDX_NAME = "index name"
-IDX_IS_UNIQUE = "index is unique"
-IDX_FLDS = "index fields"
+IDX_NAME = u"index name"
+IDX_IS_UNIQUE = u"index is unique"
+IDX_FLDS = u"index fields"
 # also used as labels in dropdowns
-DBE_SQLITE = "SQLite"
-DBE_MYSQL = "MySQL"
-DBE_MS_ACCESS = "MS Access"
-DBE_MS_SQL = "MS SQL Server"
-DBE_PGSQL = "PostgreSQL"
+DBE_SQLITE = u"SQLite"
+DBE_MYSQL = u"MySQL"
+DBE_MS_ACCESS = u"MS Access"
+DBE_MS_SQL = u"MS SQL Server"
+DBE_PGSQL = u"PostgreSQL"
 
 """
 Include database engine in system if in dbe_plugins folder and os-appropriate.
@@ -176,24 +173,24 @@ def import_dbe_plugin(dbe_plugin):
 
 DBES = []
 DBE_MODULES = {}
-DBE_PLUGINS = [(DBE_SQLITE, "dbe_sqlite"), 
-               (DBE_MYSQL, "dbe_mysql"), 
-               (DBE_MS_ACCESS, "dbe_ms_access"), 
-               (DBE_MS_SQL, "dbe_ms_sql"),
-               (DBE_PGSQL, "dbe_postgresql"),
+DBE_PLUGINS = [(DBE_SQLITE, u"dbe_sqlite"), 
+               (DBE_MYSQL, u"dbe_mysql"), 
+               (DBE_MS_ACCESS, u"dbe_ms_access"), 
+               (DBE_MS_SQL, u"dbe_ms_sql"),
+               (DBE_PGSQL, u"dbe_postgresql"),
                ]
 for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
     for_win_yet_not_win = not util.in_windows() and \
         dbe_plugin in [DBE_MS_ACCESS, DBE_MS_SQL]
-    dbe_plugin_mod = os.path.join(os.path.dirname(__file__), "dbe_plugins", 
-                                   "%s.py" % dbe_mod_name)
+    dbe_plugin_mod = os.path.join(os.path.dirname(__file__), u"dbe_plugins", 
+                                   u"%s.py" % dbe_mod_name)
     if os.path.exists(dbe_plugin_mod):
         if not for_win_yet_not_win: # i.e. OK to add module
             try:
                 dbe_mod = import_dbe_plugin(dbe_plugin)
             except Exception, e:
-                if debug: print("Problem adding dbe plugin %s" % dbe_plugin +
-                    ". Orig err: %s" % e)
+                if debug: print(u"Problem adding dbe plugin %s" % dbe_plugin +
+                    u". Orig err: %s" % e)
                 continue # skip bad module
             DBES.append(dbe_plugin)
             DBE_MODULES[dbe_plugin] = dbe_mod
@@ -204,16 +201,16 @@ CONF_STRING = _("String")
 CONF_DATE = _("Date")
 # grids
 # move directions
-MOVE_LEFT = "move left"
-MOVE_RIGHT = "move right"
-MOVE_UP = "move up"
-MOVE_DOWN = "move down"
-MOVE_UP_RIGHT = "move up right"
-MOVE_UP_LEFT = "move up left"
-MOVE_DOWN_RIGHT = "move down right"
-MOVE_DOWN_LEFT = "move down left"
+MOVE_LEFT = u"move left"
+MOVE_RIGHT = u"move right"
+MOVE_UP = u"move up"
+MOVE_DOWN = u"move down"
+MOVE_UP_RIGHT = u"move up right"
+MOVE_UP_LEFT = u"move up left"
+MOVE_DOWN_RIGHT = u"move down right"
+MOVE_DOWN_LEFT = u"move down left"
 # cell move types
-MOVING_IN_EXISTING = "moving in existing"
-MOVING_IN_NEW = "moving in new"
-LEAVING_EXISTING = "leaving existing"
-LEAVING_NEW = "leaving new"
+MOVING_IN_EXISTING = u"moving in existing"
+MOVING_IN_NEW = u"moving in new"
+LEAVING_EXISTING = u"leaving existing"
+LEAVING_NEW = u"leaving new"
