@@ -123,13 +123,6 @@ def get_user_paths():
     local_path = os.path.join(user_path, u"sofa")
     return user_path, local_path
 
-def get_prog_path():
-    if in_windows():
-        prog_path = unicode(os.environ['PROGRAMFILES'], "utf-8")
-    else:
-        prog_path = u"/usr/share/pyshared"
-    return prog_path
-
 def get_script_path():
     """
     NB won't work within an interpreter

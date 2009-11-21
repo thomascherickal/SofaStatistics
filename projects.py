@@ -330,8 +330,8 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
                                         pos=(10, top_height + y_start), 
                                         size=(1000, 355),
                                         style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
-        self.scroll_conn_dets.SetScrollbars(10, 10, -1, -1) # else no scrollbars
-        self.scroll_conn_dets.SetVirtualSize((1270, 620))
+        self.scroll_conn_dets.SetScrollbars(-1, 10, -1, -1) # else no scrollbars
+        self.scroll_conn_dets.SetVirtualSize((1000, 620))
         self.panel_bottom = wx.Panel(self, pos=(0, top_height + 360 + y_start))
         self.parent = parent
         self.szrConn_Dets = wx.BoxSizer(wx.VERTICAL)
@@ -355,27 +355,27 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
             self.fil_var_dets
         except AttributeError:
             # make empty labels file if necessary
-            fil_default_var_dets = os.path.join(LOCAL_PATH, "vdts", 
-                                            my_globals.SOFA_DEFAULT_LBLS)
+            fil_default_var_dets = os.path.join(LOCAL_PATH, u"vdts", 
+                                            my_globals.SOFA_DEFAULT_VDTS)
             if not os.path.exists(fil_default_var_dets):
                 f = open(fil_default_var_dets, "w")
-                f.write("# add variable details here")
+                f.write(u"# add variable details here")
                 f.close()
             self.fil_var_dets = fil_default_var_dets
         try:            
             self.fil_css
         except AttributeError:
-            self.fil_css = os.path.join(LOCAL_PATH, "css", 
+            self.fil_css = os.path.join(LOCAL_PATH, u"css", 
                                         my_globals.SOFA_DEFAULT_STYLE)
         try:            
             self.fil_report
         except AttributeError:       
-            self.fil_report = os.path.join(LOCAL_PATH, "reports", 
+            self.fil_report = os.path.join(LOCAL_PATH, u"reports", 
                                            my_globals.SOFA_DEFAULT_REPORT)
         try:            
             self.fil_script
         except AttributeError: 
-            self.fil_script = os.path.join(LOCAL_PATH, "scripts", 
+            self.fil_script = os.path.join(LOCAL_PATH, u"scripts", 
                                            my_globals.SOFA_DEFAULT_SCRIPT)
         try:
             self.default_dbe
@@ -383,7 +383,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
             self.default_dbe = os.path.join(my_globals.DBE_SQLITE)
         getdata.setConnDetDefaults(self)
         # misc
-        lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
+        lblfont = wx.Font(9, wx.SWISS, wx.NORMAL, wx.BOLD)
         # Project Name and notes
         lblName = wx.StaticText(self.panel_top, -1, _("Project Name:"))
         lblName.SetFont(lblfont)
@@ -443,7 +443,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         self.scroll_conn_dets.SetSizer(self.szrConn_Dets)
         # NEVER SetSizeHints or else grows beyond size!!!!
         self.szrConn_Dets.SetVirtualSizeHints(self.scroll_conn_dets)
-        #self.scroll_conn_dets.FitInside() # no effect
+        self.scroll_conn_dets.FitInside() # no effect
         # BOTTOM        
         self.szrBottom.Add(self.szrButtons, 0, wx.ALL, 10)
         self.panel_bottom.SetSizer(self.szrBottom)
@@ -451,6 +451,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         # FINAL
         self.Layout()
         self.sqlite_grid.grid.SetFocus()
+        self.txtName.SetFocus()
 
     def GetProjSettings(self, fil_proj):
         """

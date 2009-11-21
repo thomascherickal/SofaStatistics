@@ -205,9 +205,11 @@ class TableEntry(object):
             if col_type == COL_TEXT_BROWSE:
                 self.grid.SetDefaultRowSize(30)
                 break
+        # unlike normal grids, we can assume limited number of rows
+        self.grid.SetRowLabelSize(40)
         # grid event handling
         self.grid.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
-        self.grid.Bind(EVT_CELL_MOVE, self.OnCellMove)        
+        self.grid.Bind(EVT_CELL_MOVE, self.OnCellMove)
         self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnCellChange)
         self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnSelectCell)
         self.grid.Bind(text_browser.EVT_TEXT_BROWSE_KEY_DOWN, 
@@ -423,10 +425,14 @@ class TableEntry(object):
                 (dest_row, dest_col) + "direction %s" % direction)
         # ProcessCellMove called from text editor as well so keep separate
         self.ProcessCellMove(src_row, src_col, dest_row, dest_col, direction)
-        self.grid.SetFocus()
-        # http://www.nabble.com/Setting-focus-to-grid-td17920756.html
-        for window in self.grid.GetChildren():
-            window.SetFocus()
+        # only SetFocus if moving.  Otherwise if this is embedded, we can't set
+        # the focus anywhere else (because it triggers EVT_CELL_MOVE and then
+        # we grab the focus again below!).
+        if (src_row, src_col) != (dest_row, dest_col):
+            self.grid.SetFocus()
+            # http://www.nabble.com/Setting-focus-to-grid-td17920756.html
+            for window in self.grid.GetChildren():
+                window.SetFocus()
         event.Skip()
     
     def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, direction):

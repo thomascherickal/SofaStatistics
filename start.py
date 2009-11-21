@@ -42,7 +42,6 @@ HELP_IMG_LEFT = 640
 HELP_IMG_TOP = 315
 SCRIPT_PATH = my_globals.SCRIPT_PATH
 LOCAL_PATH = my_globals.LOCAL_PATH
-print SCRIPT_PATH, LOCAL_PATH
 
 def TextOnBitmap(bitmap, text, font, colour):
     """
@@ -92,11 +91,12 @@ def InstallLocal():
     Install local set of files in user home dir if necessary.
     Modify default project settings to point to local (user) SOFA  directory.
     """
-    sofa_prog_path = os.path.join(util.get_prog_path(), "sofa")
-    default_proj = os.path.join(LOCAL_PATH, "projs",  
-                                "SOFA_Default_Project.proj")
-    paths = ["css", my_globals.INTERNAL_FOLDER, "vdts", "projs", "reports", 
-             "scripts"]
+    prog_path = os.path.dirname(__file__)
+    sofa_prog_path = os.path.join(prog_path, u"sofa")
+    default_proj = os.path.join(LOCAL_PATH, u"projs", 
+                                my_globals.SOFA_DEFAULT_PROJ)
+    paths = ["css", my_globals.INTERNAL_FOLDER, u"vdts", u"projs", u"reports", 
+             u"scripts"]
     if not os.path.exists(LOCAL_PATH):
             # In Windows these steps are completed by the installer - but only
             # for the first user.
@@ -106,20 +106,20 @@ def InstallLocal():
             # copy across default proj, vdts, css
             shutil.copy(os.path.join(sofa_prog_path, "css", "alt_style.css"), 
                         os.path.join(LOCAL_PATH, "css", "alt_style.css"))
-            shutil.copy(os.path.join(sofa_prog_path, "css", 
-                                     "SOFA_Default_Style.css"), 
-                        os.path.join(LOCAL_PATH, "css", 
-                                     "SOFA_Default_Style.css"))
+            shutil.copy(os.path.join(sofa_prog_path, u"css", 
+                                     my_globals.SOFA_DEFAULT_STYLE), 
+                        os.path.join(LOCAL_PATH, u"css", 
+                                     my_globals.SOFA_DEFAULT_STYLE))
             shutil.copy(os.path.join(sofa_prog_path, my_globals.INTERNAL_FOLDER, 
-                                     "SOFA_Default_db"), 
+                                     my_globals.SOFA_DEFAULT_DB), 
                         os.path.join(LOCAL_PATH, my_globals.INTERNAL_FOLDER, 
-                                     "SOFA_Default_db"))
-            shutil.copy(os.path.join(sofa_prog_path, "vdts", 
-                                     "SOFA_Default_Var_Dets.vdts"), 
-                        os.path.join(LOCAL_PATH, "vdts", 
-                                     "SOFA_Default_Var_Dets.vdts"))
-            shutil.copy(os.path.join(sofa_prog_path, "projs", 
-                                     "SOFA_Default_Project.proj"), 
+                                     my_globals.SOFA_DEFAULT_DB))
+            shutil.copy(os.path.join(sofa_prog_path, u"vdts", 
+                                     my_globals.SOFA_DEFAULT_VDTS), 
+                        os.path.join(LOCAL_PATH, u"vdts", 
+                                     my_globals.SOFA_DEFAULT_VDTS))
+            shutil.copy(os.path.join(sofa_prog_path, u"projs", 
+                                     my_globals.SOFA_DEFAULT_PROJ), 
                         default_proj)
     PROJ_CUSTOMISED_FILE = "proj_file_customised.txt"
     if not os.path.exists(os.path.join(LOCAL_PATH, PROJ_CUSTOMISED_FILE)):
@@ -210,10 +210,8 @@ class StartFrame(wx.Frame):
         self.panel.Bind(wx.EVT_PAINT, self.OnPaint)
         # icon
         ib = wx.IconBundle()
-        ib.AddIconFromFile(os.path.join(SCRIPT_PATH, 
-                                        "images", 
-                                        "tinysofa.xpm"), 
-                           wx.BITMAP_TYPE_XPM)
+        tinysofa = os.path.join(SCRIPT_PATH, u"images", u"tinysofa.xpm")
+        ib.AddIconFromFile(tinysofa, wx.BITMAP_TYPE_XPM)
         self.SetIcons(ib)
         # background image
         img_sofa = wx.Image(os.path.join(SCRIPT_PATH, "images", "sofa2.xpm"), 
@@ -286,26 +284,26 @@ class StartFrame(wx.Frame):
         self.txtWelcome = _("Welcome to SOFA.  Hover the mouse over the "
             "buttons on the left to see what you can do.")
         # help images
-        img_proj = wx.Image(os.path.join(SCRIPT_PATH, "images", 
-                                         "briefcase.xpm"), wx.BITMAP_TYPE_XPM)
+        img_proj = wx.Image(os.path.join(SCRIPT_PATH, u"images", 
+                                         u"briefcase.xpm"), wx.BITMAP_TYPE_XPM)
         self.bmp_proj = wx.BitmapFromImage(img_proj)
-        img_data = wx.Image(os.path.join(SCRIPT_PATH, "images", "data.xpm"), 
+        img_data = wx.Image(os.path.join(SCRIPT_PATH, u"images", u"data.xpm"), 
                             wx.BITMAP_TYPE_XPM)
         self.bmp_data = wx.BitmapFromImage(img_data)
-        img_import = wx.Image(os.path.join(SCRIPT_PATH, "images", "import.xpm"), 
+        img_import = wx.Image(os.path.join(SCRIPT_PATH, u"images", u"import.xpm"), 
                               wx.BITMAP_TYPE_XPM)
         self.bmp_import = wx.BitmapFromImage(img_import)
-        img_tabs = wx.Image(os.path.join(SCRIPT_PATH, "images", "table.xpm"), 
+        img_tabs = wx.Image(os.path.join(SCRIPT_PATH, u"images", u"table.xpm"), 
                             wx.BITMAP_TYPE_XPM)
         self.bmp_tabs = wx.BitmapFromImage(img_tabs)
-        img_chart = wx.Image(os.path.join(SCRIPT_PATH, "images", 
-                                          "demo_chart.xpm"), wx.BITMAP_TYPE_XPM)
+        chart = os.path.join(SCRIPT_PATH, u"images", u"demo_chart.xpm")
+        img_chart = wx.Image(chart, wx.BITMAP_TYPE_XPM)
         self.bmp_chart = wx.BitmapFromImage(img_chart)
-        img_stats = wx.Image(os.path.join(SCRIPT_PATH, "images", "stats.xpm"), 
+        img_stats = wx.Image(os.path.join(SCRIPT_PATH, u"images", u"stats.xpm"), 
                             wx.BITMAP_TYPE_XPM)
         self.bmp_stats = wx.BitmapFromImage(img_stats)
-        img_psal = wx.Image(os.path.join(SCRIPT_PATH, "images", 
-                                         "psal_logo.xpm"), wx.BITMAP_TYPE_XPM)
+        psal = os.path.join(SCRIPT_PATH, u"images", u"psal_logo.xpm")
+        img_psal = wx.Image(psal, wx.BITMAP_TYPE_XPM)
         self.bmp_psal = wx.BitmapFromImage(img_psal)
         self.HELP_TEXT_FONT = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
         self.active_proj = my_globals.SOFA_DEFAULT_PROJ
@@ -315,7 +313,7 @@ class StartFrame(wx.Frame):
         If first time opened, and in Windows, warn user about delay setting 
             up (comtypes).
         """
-        COMTYPES_HANDLED = "comtypes_handled.txt"
+        COMTYPES_HANDLED = u"comtypes_handled.txt"
         if util.in_windows() and not os.path.exists(os.path.join(LOCAL_PATH, 
                                                             COMTYPES_HANDLED)):
             wx.MessageBox(_("Click OK to prepare for first use of SOFA "
@@ -326,7 +324,7 @@ class StartFrame(wx.Frame):
         if not os.path.exists(os.path.join(LOCAL_PATH, COMTYPES_HANDLED)):
             # create file as tag we have done the changes to the proj file
             f = file(os.path.join(LOCAL_PATH, COMTYPES_HANDLED), "w")
-            f.write("Comtypes handled successfully :-)")
+            f.write(u"Comtypes handled successfully :-)")
             f.close()
     
     def OnPaint(self, event):

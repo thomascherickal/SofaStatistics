@@ -377,7 +377,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
         else ""
     parent.txtMysqlDefaultDb = wx.TextCtrl(scroll, -1, 
                                            mysql_default_db, 
-                                           size=(250,-1))
+                                           size=(200,-1))
     parent.txtMysqlDefaultDb.Enable(not read_only)
     # default table
     parent.lblMysqlDefaultTbl = wx.StaticText(scroll, -1, 
@@ -387,7 +387,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
         else ""
     parent.txtMysqlDefaultTbl = wx.TextCtrl(scroll, -1, 
                                             mysql_default_tbl, 
-                                            size=(250,-1))
+                                            size=(200,-1))
     parent.txtMysqlDefaultTbl.Enable(not read_only)
     # host
     parent.lblMysqlHost = wx.StaticText(scroll, -1, _("Host:"))

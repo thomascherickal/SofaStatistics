@@ -303,26 +303,26 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     parent.szrMsaccess.Add(szrMsaccessInner, 0)
     col_det_db = {"col_label": _("Database(s)"), 
                   "col_type": settings_grid.COL_TEXT_BROWSE, 
-                  "col_width": 300, 
+                  "col_width": 250, 
                   "file_phrase": _("Choose an MS Access database file"), 
                   "file_wildcard": _("MS Access databases") + " (*.mdb)|*.mdb",
                   "empty_ok": False}
     col_det_sec = {"col_label": _("Security File") + " (*.mdw) (opt)", 
                   "col_type": settings_grid.COL_TEXT_BROWSE, 
-                  "col_width": 300, 
+                  "col_width": 250, 
                   "file_phrase": _("Choose an MS Access security file"), 
                   "file_wildcard": _("MS Access security files") + \
                         " (*.mdw)|*.mdw",
                   "empty_ok": True}
     col_det_usr = {"col_label": _("User Name (opt)"), 
                   "col_type": settings_grid.COL_STR, 
-                  "col_width": 140, 
+                  "col_width": 130, 
                   "file_phrase": None, 
                   "file_wildcard": None,
                   "empty_ok": True}
     col_det_pwd = {"col_label": _("Password (opt)"), 
                   "col_type": settings_grid.COL_STR, 
-                  "col_width": 140, 
+                  "col_width": 130, 
                   "file_phrase": None, 
                   "file_wildcard": None,
                   "empty_ok": True}
@@ -330,7 +330,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     parent.msaccess_new_grid_data = []
     parent.msaccess_grid = settings_grid.TableEntry(frame=parent, 
         panel=scroll, szr=parent.szrMsaccess, vert_share=1, read_only=read_only, 
-        grid_size=(1000, 100), col_dets=msaccess_col_dets, 
+        grid_size=(900, 100), col_dets=msaccess_col_dets, 
         data=parent.msaccess_data, 
         new_grid_data=parent.msaccess_new_grid_data)
     szr.Add(parent.szrMsaccess, 0, wx.GROW|wx.ALL, 10)
