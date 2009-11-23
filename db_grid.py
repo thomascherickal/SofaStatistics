@@ -378,7 +378,8 @@ class TblEditor(wx.Dialog):
         Process the attempt to leave an existing cell (whether or not leaving
             existing row).
         Will not move if cell data not OK to save 
-            OR readonly table and in final row and column and moving right.
+            OR readonly table and in final row and column and moving right or
+            down.
         Will update a cell if there is changed data and if it is valid.
         Return move_to_dest.
         """
@@ -386,7 +387,8 @@ class TblEditor(wx.Dialog):
         if self.debug or debug: print("Was in existing, ordinary row")
         if self.dbtbl.readonly:
             move_to_dest = not (was_final_row and was_final_col 
-                                and direction == my_globals.MOVE_RIGHT)
+                                and direction in(my_globals.MOVE_RIGHT,
+                                                 my_globals.MOVE_DOWN))
         else:
             if not self.CellOKToSave(self.current_row_idx, 
                                      self.current_col_idx):

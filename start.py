@@ -92,10 +92,9 @@ def InstallLocal():
     Modify default project settings to point to local (user) SOFA  directory.
     """
     prog_path = os.path.dirname(__file__)
-    sofa_prog_path = os.path.join(prog_path, u"sofa")
     default_proj = os.path.join(LOCAL_PATH, u"projs", 
                                 my_globals.SOFA_DEFAULT_PROJ)
-    paths = ["css", my_globals.INTERNAL_FOLDER, u"vdts", u"projs", u"reports", 
+    paths = [u"css", my_globals.INTERNAL_FOLDER, u"vdts", u"projs", u"reports", 
              u"scripts"]
     if not os.path.exists(LOCAL_PATH):
             # In Windows these steps are completed by the installer - but only
@@ -104,21 +103,21 @@ def InstallLocal():
             for path in paths:
                 os.makedirs(os.path.join(LOCAL_PATH, path))
             # copy across default proj, vdts, css
-            shutil.copy(os.path.join(sofa_prog_path, "css", "alt_style.css"), 
+            shutil.copy(os.path.join(prog_path, "css", "alt_style.css"), 
                         os.path.join(LOCAL_PATH, "css", "alt_style.css"))
-            shutil.copy(os.path.join(sofa_prog_path, u"css", 
+            shutil.copy(os.path.join(prog_path, u"css", 
                                      my_globals.SOFA_DEFAULT_STYLE), 
                         os.path.join(LOCAL_PATH, u"css", 
                                      my_globals.SOFA_DEFAULT_STYLE))
-            shutil.copy(os.path.join(sofa_prog_path, my_globals.INTERNAL_FOLDER, 
+            shutil.copy(os.path.join(prog_path, my_globals.INTERNAL_FOLDER, 
                                      my_globals.SOFA_DEFAULT_DB), 
                         os.path.join(LOCAL_PATH, my_globals.INTERNAL_FOLDER, 
                                      my_globals.SOFA_DEFAULT_DB))
-            shutil.copy(os.path.join(sofa_prog_path, u"vdts", 
+            shutil.copy(os.path.join(prog_path, u"vdts", 
                                      my_globals.SOFA_DEFAULT_VDTS), 
                         os.path.join(LOCAL_PATH, u"vdts", 
                                      my_globals.SOFA_DEFAULT_VDTS))
-            shutil.copy(os.path.join(sofa_prog_path, u"projs", 
+            shutil.copy(os.path.join(prog_path, u"projs", 
                                      my_globals.SOFA_DEFAULT_PROJ), 
                         default_proj)
     PROJ_CUSTOMISED_FILE = "proj_file_customised.txt"
@@ -128,8 +127,8 @@ def InstallLocal():
         proj_str = f.read() # provided by me - no BOM on non-ascii 
         f.close()
         for path in paths:
-            proj_str = proj_str.replace("/home/g/sofa/%s/" % path, 
-                                        os.path.join(LOCAL_PATH, path, ""))
+            new_str = util.escape_win_path(os.path.join(LOCAL_PATH, path, ""))
+            proj_str = proj_str.replace("/home/g/sofa/%s/" % path, new_str)
         # add MS Access and SQL Server into mix if Windows
         if util.in_windows():
             proj_str = proj_str.replace("default_dbs = {",

@@ -67,9 +67,14 @@ class DbDets(getdata.DbDets):
         The table used will be the default or the first if none provided.
         The field dets will be taken from the table used.
         Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
-        """
+        """        
         if not self.db:
-            self.db = my_globals.SOFA_DEFAULT_DB
+            # use default, or failing that, try the file_name
+            default_db_sqlite = self.default_dbs.get(my_globals.DBE_SQLITE)
+            if default_db_sqlite:
+                self.db = default_db_sqlite
+            else:
+                self.db = self.con_dets[my_globals.DBE_SQLITE].keys()[0]
         conn = GetConn(self.conn_dets, self.db)
         cur = conn.cursor() # must return tuples not dics
         dbs = [self.db]
