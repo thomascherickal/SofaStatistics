@@ -249,7 +249,7 @@ class MakeTable(object):
         elif self.tab_type == my_globals.ROW_SUMM:
             script_lst.append("tab_test = dimtables.SummTable(titles=" + \
                               unicode(titles) + ",\n    subtitles=" + \
-                              v(subtitles) + \
+                              unicode(subtitles) + \
                               ",\n    dbe=\"" + self.dbe + \
                               "\",\n    datasource=\"" + self.tbl + \
                               "\", cur=cur, tree_rows=tree_rows, " + \

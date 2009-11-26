@@ -1,13 +1,35 @@
 from __future__ import print_function
-import my_globals
-import tree
 import numpy
 from operator import itemgetter
 import pprint
+
+import my_globals
+import tree
 import getdata
+import util
 
 NOTNULL = " %s IS NOT NULL " # NOT ISNULL() is not universally supported
 
+def make_fld_val_clause_non_numeric(fld, val, quote_val):
+    clause = "%s = " % fld + quote_val(val)
+    return clause
+    
+def make_fld_val_clause(dbe, fld, val, bolnumeric, quote_val):
+    """
+    Make a filter clause with a field name = a value (numeric or non-numeric).
+    quote_val -- function specific to database engine for quoting values
+    """
+    num = True
+    if not bolnumeric:
+        num = False
+    elif dbe == my_globals.DBE_SQLITE: # if SQLite may still be non-numeric
+        if not util.isNumeric(val):
+            num = False
+    if num:
+        clause = "%s = %s" % (fld, val)
+    else:
+        clause = make_fld_val_clause_non_numeric(fld, val, quote_val)
+    return clause
 
 class DimNodeTree(tree.NodeTree):
     """
@@ -546,11 +568,9 @@ class LiveTable(DimTable):
                 if is_tot:
                     val_node_filts.append(NOTNULL % fld)
                 else:
-                    if bolnumeric:
-                        val_node_filts.append("%s = %s" % (fld, val))
-                    else:
-                        val_node_filts.append("%s = " % fld + \
-                                              self.quote_val(val))
+                    clause = make_fld_val_clause(self.dbe, fld, val, bolnumeric, 
+                                                 self.quote_val)
+                    val_node_filts.append(clause)
                 is_coltot=(is_tot and dim == my_globals.COLDIM)
                 val_node = \
                     node_lev1.addChild(LabelNode(label = val_label,
@@ -577,7 +597,7 @@ class LiveTable(DimTable):
                                         tree_labels_node=val_node,
                                         dim=dim, 
                                         oth_dim_root=oth_dim_root)
-                                    
+    
     def addSubtreeMeasuresOnly(self, tree_dims_node, tree_labels_node, 
                                filt_flds):
         """
@@ -765,6 +785,7 @@ class GenTable(LiveTable):
         into the appropriate row list within row_label_rows_lst before
         concatenating and appending "</tr>".
         """
+        debug = False
         col_term_nodes = tree_col_labels.getTerminalNodes()
         row_term_nodes = tree_row_labels.getTerminalNodes()
         col_filters_lst = [x.filts for x in col_term_nodes]
@@ -772,9 +793,10 @@ class GenTable(LiveTable):
         col_tots_lst = [x.is_coltot for x in col_term_nodes]
         col_measures_lst = [x.measure for x in col_term_nodes]
         row_filters_lst = [x.filts for x in row_term_nodes]
+        if debug: print(row_filters_lst)
         row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
         data_cells_n = len(row_term_nodes) * len(col_term_nodes)
-        if self.debug: print("%s data cells in table" % data_cells_n)
+        if self.debug or debug: print("%s data cells in table" % data_cells_n)
         row_label_rows_lst = self.getRowLabelsRowLst(row_filters_lst, 
             row_filt_flds_lst, col_measures_lst, col_filters_lst, 
             col_tots_lst, col_filt_flds_lst, row_label_rows_lst, 
@@ -799,6 +821,7 @@ class GenTable(LiveTable):
         results is built once per batch of data points for database 
             efficiency reasons.  Each call returns multiple values.
         """
+        debug = False
         CSS_FIRST_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_FIRST_DATACELL, css_idx)
         CSS_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
@@ -807,7 +830,7 @@ class GenTable(LiveTable):
         data_item_presn_lst = []
         results = []
         SQL_table_select_clauses_lst = []
-        max_select_vars = 50 #same speed between about 30 and 100 but
+        max_select_vars = 1 if debug else 50 #same speed between about 30 and 100 but
         #twice as slow if much smaller or larger
         for (row_filter, row_filt_flds) in zip(row_filters_lst,
                                                row_filt_flds_lst):
@@ -863,7 +886,7 @@ class GenTable(LiveTable):
                     SQL_select_results = "SELECT " + \
                              ", ".join(SQL_table_select_clauses_lst) + \
                              " FROM " + self.datasource
-                    #print(SQL_select_results) #debug but reset max_select... low first
+                    if debug: print(SQL_select_results)
                     self.cur.execute(SQL_select_results)
                     
                     #print(results) # ()
@@ -909,6 +932,7 @@ class GenTable(LiveTable):
         cols_not_null_lst - used for rowpct filtering
         is_coltot - boolean
         """
+        debug = False
         # To get freq, evaluate matching values to 1 (otherwise 0) then sum
         # With most dbs, boolean returns 1 for True and 0 for False
         freq = "SUM(" + \
@@ -916,7 +940,7 @@ class GenTable(LiveTable):
             + ")"
         col_freq = "SUM(" + self.get_summable(" AND ".join( row_filters_lst + \
                                          all_but_last_col_filters_lst)) + ")"
-        #pprint.pprint(freq) # debug
+        if debug: pprint.pprint(freq)
         if measure == my_globals.FREQ:
             if not is_coltot:
                 return freq
@@ -1053,10 +1077,26 @@ class SummTable(LiveTable):
                 i=i+1
         return row_label_rows_lst
     
+    def get_non_num_val(self, SQL_get_vals):
+        """
+        Returns first non-numeric value found (ignoring None).
+        Otherwise, returns None.
+        """
+        debug = False
+        self.cur.execute(SQL_get_vals)
+        val = None
+        while True:
+            val = self.cur.fetchone()[0]
+            if debug: print(val)
+            if val is not None and not util.isNumeric(val):
+                break
+        return val
+    
     def getDataVal(self, measure, row_fld, col_filter_lst):
         """
         measure - e.g. MEAN
-        row_fld - the numeric field we are calculating the summary of.
+        row_fld - the numeric field we are calculating the summary of.  NB if
+            SQLite, may be a numeric field with some non-numeric values in it.
         col_filter - so we only look at values in the column.
         """
         debug = False
@@ -1065,11 +1105,13 @@ class SummTable(LiveTable):
             filter = " WHERE " + col_filt_clause
         else: 
             filter = ""
+        # if using raw data (or finding bad data) must handle non-numeric values 
+        # myself
+        SQL_get_vals = "SELECT %s " % row_fld + \
+            "FROM %s %s" % (self.datasource, filter)
         sql_for_raw_only = [my_globals.MEDIAN, my_globals.STD_DEV]
         if measure in sql_for_raw_only:
-            SQL_get_raw_vals = "SELECT %s " % row_fld + \
-                "FROM %s %s" % (self.datasource, filter)
-            self.cur.execute(SQL_get_raw_vals)
+            self.cur.execute(SQL_get_vals)
             data = [x[0] for x in self.cur.fetchall() if x[0]]
             if debug: print(data)
         if measure == my_globals.SUM:
@@ -1092,7 +1134,15 @@ class SummTable(LiveTable):
             try:
                 data_val =  round(numpy.median(data),2)
             except Exception, e:
-                raise Exception, "Unable to calculate median for %s." % row_fld
+                bad_val = self.get_non_num_val(SQL_get_vals)
+                if bad_val is not None:
+                    raise Exception, \
+                        "Unable to calculate median for %s. " % row_fld + \
+                        "The field contains at least one non-numeric " + \
+                        "value: %s" % bad_val
+                else:
+                    raise Exception, "Unable to calculate median for %s." % \
+                        row_fld
         elif measure == my_globals.SUMM_N:
             SQL_get_n = "SELECT COUNT(%s) " % row_fld + \
                 "FROM %s %s" % (self.datasource, filter)
@@ -1105,8 +1155,16 @@ class SummTable(LiveTable):
             try:
                 data_val =  round(numpy.std(data),2)
             except Exception, e:
-                raise Exception, "Unable to calculate standard " + \
-                    "deviation for %s." % row_fld
+                bad_val = self.get_non_num_val(SQL_get_vals)
+                if bad_val is not None:
+                    raise Exception, \
+                        "Unable to calculate standard deviation for " + \
+                        " %s. " % row_fld + \
+                        "The field contains at least one non-numeric " + \
+                        "value: %s" % bad_val
+                else:
+                    raise Exception, "Unable to calculate standard " + \
+                        "deviation for %s." % row_fld
         else:
             raise Exception, "Measure not available"
         return data_val

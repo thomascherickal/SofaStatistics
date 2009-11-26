@@ -7,6 +7,7 @@ import codecs
 import datetime
 import decimal
 import os
+import pprint
 import re
 import sys
 import time
@@ -157,8 +158,8 @@ def isNumeric(val):
         return False
     else:
         try:
-          i = float(val)
-        except ValueError:
+            i = float(val)
+        except (ValueError, TypeError):
             return False
         else:
             return True

@@ -171,7 +171,7 @@ class SofaApp(wx.App):
         # http://wiki.wxpython.org/RecipesI18n
         path = sys.path[0].decode(sys.getfilesystemencoding())
         langdir = os.path.join(path,u'locale')
-        langid = wx.LANGUAGE_GALICIAN if test_lang else wx.LANGUAGE_DEFAULT
+        langid = wx.LANGUAGE_RUSSIAN if test_lang else wx.LANGUAGE_DEFAULT
         # the next line will only work if the locale is installed on the computer
         mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
         canon_name = mylocale.GetCanonicalName() # e.g. en_NZ, gl_ES etc

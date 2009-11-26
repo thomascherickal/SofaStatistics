@@ -10,13 +10,34 @@ gettext.install('sofa', './locale', unicode=True)
 from nose.tools import assert_equal
 from nose.tools import assert_not_equal
 from nose.tools import assert_raises
+from nose.tools import assert_true
 from .output import _strip_html
 from .output import _strip_script
 from .util import get_unicode
 import my_globals
+import dimtables
 import projects
 import util
 
+# make_fld_val_clause(dbe, fld, val, bolnumeric, quote_val):
+    
+def test_make_fld_val_clause():
+    
+    tests = [(my_globals.DBE_SQLITE, "name", "fred", False, ), "name = 'fred'"),
+             ("C:\\abcd\\defg\\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
+             (u"C:\\abcd\\defg\\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
+             (u"C:\\unicodebait\\foo.txt", u"C:\\unicodebait\\foo.txt"),
+             (u"C:\\Identität\\foo.txt", u"C:\\Identität\\foo.txt"),
+             (r"/home/g/abcd/foo.txt", u"/home/g/abcd/foo.txt"),
+             ("/home/g/abcd/foo.txt", u"/home/g/abcd/foo.txt"),
+             (u"/home/René/abcd/foo.txt", u"/home/René/abcd/foo.txt"),
+             (u"/home/Identität/abcd/foo.txt", u"/home/Identität/abcd/foo.txt"),
+             (u"/home/François/abcd/foo.txt", u"/home/François/abcd/foo.txt"),
+             (u"\x93fred\x94", u"\u201Cfred\u201D"),
+             ]
+    for test in tests:
+        assert_equal(get_unicode(test[0]), test[1])
+        assert_true(isinstance(get_unicode(test[0]), unicode))
 
 def test_get_unicode():
     tests = [(r"C:\abcd\defg\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
@@ -33,6 +54,7 @@ def test_get_unicode():
              ]
     for test in tests:
         assert_equal(get_unicode(test[0]), test[1])
+        assert_true(isinstance(get_unicode(test[0]), unicode))
 
 def test_strip_html():
     tests = [("<body>Freddy</body>", "Freddy"), 

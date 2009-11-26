@@ -93,10 +93,10 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         """
         CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_LBL, css_idx)
-        CSS_ALIGN_RIGHT = my_globals.CSS_ALIGN_RIGHT % \
-            (my_globals.CSS_LBL, css_idx)
-        CSS_TOTAL_ROW = my_globals.CSS_ALIGN_RIGHT % \
-            (my_globals.CSS_TOTAL_ROW, css_idx)
+        CSS_ALIGN_RIGHT = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_ALIGN_RIGHT, css_idx)
+        CSS_TOTAL_ROW = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_TOTAL_ROW, css_idx)   
         col_names, col_labels = make_table.GetColDets(self.coltree, 
                                                       self.colRoot, 
                                                       self.var_labels)

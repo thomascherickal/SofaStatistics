@@ -142,16 +142,13 @@ class RawTable(object):
                 if self.add_total_row:
                     # Skip if first col as val and this is first col
                     # Skip if prev was a Null ("-")
-                    # Add to running total if a number (and prev was a number)
-                    # If not adding, set to blank html cell string
+                    # Add to running total if a number
                     if (self.first_col_as_label and i == 0) or \
                         row_val == "-":
                         pass
                     elif util.isNumeric(row_val) and \
                             util.isNumeric(row_tots[i]):
                         row_tots[i] += row_val
-                    else:
-                        row_tots[i] = "&nbsp;&nbsp;"
             body_html += "\n<tr>" + "".join(row_tds) + "</td></tr>"
         if self.add_total_row:
             row_tot_vals = [unicode(x) for x in row_tots]
