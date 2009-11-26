@@ -91,12 +91,16 @@ def f2d(f):
     http://docs.python.org/library/decimal.html
     """
     if not isinstance(f, float):
-        f = float(f)
+        try:
+            f = float(f)
+        except (ValueError, TypeError):
+            raise Exception, "Unable to convert value to Decimal.  " + \
+                "Value was \"%s\"" % f
     try:
         n, d = f.as_integer_ratio()
     except Exception:
-        raise Exception, "Unable to turn value %s into integer ration " % f + \
-            "for unknown reason."
+        raise Exception, "Unable to turn value \"%s\" into integer " % f + \
+            "ratio for unknown reason."
     numerator, denominator = decimal.Decimal(n), decimal.Decimal(d)
     ctx = decimal.Context(prec=60)
     result = ctx.divide(numerator, denominator)

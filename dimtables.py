@@ -1139,7 +1139,7 @@ class SummTable(LiveTable):
                     raise Exception, \
                         "Unable to calculate median for %s. " % row_fld + \
                         "The field contains at least one non-numeric " + \
-                        "value: %s" % bad_val
+                        "value: \"%s\"" % bad_val
                 else:
                     raise Exception, "Unable to calculate median for %s." % \
                         row_fld
@@ -1161,7 +1161,7 @@ class SummTable(LiveTable):
                         "Unable to calculate standard deviation for " + \
                         " %s. " % row_fld + \
                         "The field contains at least one non-numeric " + \
-                        "value: %s" % bad_val
+                        "value: \"%s\"" % bad_val
                 else:
                     raise Exception, "Unable to calculate standard " + \
                         "deviation for %s." % row_fld

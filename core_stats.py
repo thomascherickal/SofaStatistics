@@ -46,6 +46,22 @@ def get_paired_lists(dbe, cur, tbl, fld_a, fld_b):
     lst_b = [x[1] for x in data_tups]
     return lst_a, lst_b
 
+def get_val_quoter(dbe, flds, fld, val):
+    """
+    Get function for quoting values according to field type and value.
+    """
+    num = True
+    if not flds[fld][my_globals.FLD_BOLNUMERIC]:
+        num = False
+    elif dbe == my_globals.DBE_SQLITE:
+        if not util.isNumeric(val):
+            num = False
+    if num:
+        val_quoter = lambda s: s
+    else:
+        val_quoter = getdata.get_val_quoter_func(dbe)
+    return val_quoter
+
 def get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b):
     """
     Get list of observed and expected values ready for inclusion in Pearson's
@@ -53,36 +69,29 @@ def get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b):
     NB must return 0 if nothing.  All cells must be filled.
     Returns lst_obs, lst_exp, min_count, perc_cells_lt_5, df.    
     """
+    debug = False
     obj_quoter = getdata.get_obj_quoter_func(dbe)
     qtbl = obj_quoter(tbl)
     qfld_a = obj_quoter(fld_a)
     qfld_b = obj_quoter(fld_b)
-    # need to filter by vals within SQL so may need quoting
-    if flds[fld_a][my_globals.FLD_BOLNUMERIC]:
-        val_quoter_a = lambda s: s
-    else:
-        val_quoter_a = getdata.get_val_quoter_func(dbe)
-    if flds[fld_b][my_globals.FLD_BOLNUMERIC]:
-        val_quoter_b = lambda s: s
-    else:
-        val_quoter_b = getdata.get_val_quoter_func(dbe)
-    # observed values etc
     # get row vals used
-    SQL_row_vals_used = "SELECT %s " % qfld_a + \
-        "FROM %s " % qtbl + \
-        "WHERE %s IS NOT NULL " % qfld_b + \
-        "GROUP BY %s " % qfld_a + \
-        "ORDER BY %s" % qfld_a
+    SQL_row_vals_used = """SELECT %(qfld_a)s
+        FROM %(qtbl)s
+        WHERE %(qfld_b)s IS NOT NULL AND %(qfld_a)s IS NOT NULL
+        GROUP BY %(qfld_a)s
+        ORDER BY %(qfld_a)s""" % {"qtbl": qtbl, "qfld_a": qfld_a, 
+                                  "qfld_b": qfld_b}
     cur.execute(SQL_row_vals_used)
     vals_a = [x[0] for x in cur.fetchall()]
     if len(vals_a) > 30:
         raise Exception, "Too many values in row variable"
     # get col vals used
-    SQL_col_vals_used = "SELECT %s " % qfld_b + \
-        "FROM %s " % qtbl + \
-        "WHERE %s IS NOT NULL " % qfld_a + \
-        "GROUP BY %s " % qfld_b + \
-        "ORDER BY %s" % qfld_b
+    SQL_col_vals_used = """SELECT %(qfld_b)s
+        FROM %(qtbl)s
+        WHERE %(qfld_a)s IS NOT NULL AND %(qfld_b)s IS NOT NULL
+        GROUP BY %(qfld_b)s
+        ORDER BY %(qfld_b)s""" % {"qtbl": qtbl, "qfld_a": qfld_a, 
+                                  "qfld_b": qfld_b}
     cur.execute(SQL_col_vals_used)
     vals_b = [x[0] for x in cur.fetchall()]
     if len(vals_b) > 30:
@@ -92,19 +101,24 @@ def get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b):
     # build SQL to get all observed values (for each a, through b's)
     SQL_get_obs = "SELECT "
     sql_lst = []
+    # need to filter by vals within SQL so may need quoting observed values etc
     for val_a in vals_a:
+        val_quoter_a = get_val_quoter(dbe, flds, fld_a, val_a)
         for val_b in vals_b:
+            val_quoter_b = get_val_quoter(dbe, flds, fld_b, val_b)
             clause = "\nSUM(CASE WHEN %s = %s and %s = %s THEN 1 ELSE 0 END)" \
                 % (qfld_a, val_quoter_a(val_a), qfld_b, 
                    val_quoter_b(val_b))
             sql_lst.append(clause)
     SQL_get_obs += ", ".join(sql_lst)
     SQL_get_obs += "\nFROM %s " % qtbl
+    if debug: print(SQL_get_obs)
     cur.execute(SQL_get_obs)
     tup_obs = cur.fetchall()[0]
     if not tup_obs:
         raise Exception, "No observed values"
     lst_obs = list(tup_obs)
+    if debug: print("lst_obs: %s" % lst_obs)
     obs_total = sum(lst_obs)
     # expected values
     lst_fracs_a = get_fracs(cur, qtbl, qfld_a)
@@ -114,6 +128,10 @@ def get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b):
     for frac_a in lst_fracs_a:
         for frac_b in lst_fracs_b:
             lst_exp.append(frac_a*frac_b*obs_total)
+    if debug: print("lst_exp: %s" % lst_exp)
+    if len(lst_obs) != len(lst_exp):
+        raise Exception, "Different number of observed and expected values." + \
+            " %s vs %s" % (len(lst_obs), len(lst_exp))
     min_count = min(lst_exp)
     lst_lt_5 = [x for x in lst_exp if x < 5]
     perc_cells_lt_5 = 100*(len(lst_lt_5))/float(len(lst_exp))
@@ -125,11 +143,13 @@ def get_fracs(cur, qtbl, qfld):
     Leaves out values where data is missing.
     Returns lst_fracs
     """
-    SQL_get_fracs = "SELECT %s, COUNT(*) " % qfld + \
-        "FROM %s " % qtbl + \
-        """WHERE %s IS NOT NULL
-        GROUP BY %s
-        ORDER BY %s""" % (qfld, qfld, qfld)    
+    debug = False
+    SQL_get_fracs = """SELECT %(qfld)s, COUNT(*)
+        FROM %(qtbl)s 
+        WHERE %(qfld)s IS NOT NULL
+        GROUP BY %(qfld)s
+        ORDER BY %(qfld)s""" % {"qfld": qfld, "qtbl": qtbl}
+    if debug: print(SQL_get_fracs)
     cur.execute(SQL_get_fracs)
     lst_counts = []
     total = 0
@@ -139,8 +159,18 @@ def get_fracs(cur, qtbl, qfld):
         total += val
     lst_fracs = [x/float(total) for x in lst_counts]
     return lst_fracs
-    
-    
+
+def pearsons_chisquare(dbe, cur, tbl, flds, fld_a, fld_b):
+    """
+    Returns chisq, p, min_count, perc_cells_lt_5
+    """
+    debug = False
+    vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df = \
+                                get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b)
+    if debug: print(lst_obs, lst_exp)
+    chisq, p = chisquare(lst_obs, lst_exp, df)
+    return (chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, 
+        perc_cells_lt_5, df)
 
 # code below here is modified versions of code in stats.py and pstats.py
 
@@ -192,16 +222,6 @@ def chisquare(f_obs,f_exp=None, df=None):
         chisq = chisq + (f_obs[i]-f_exp[i])**2 / float(f_exp[i])
     if not df: df = k-1
     return chisq, chisqprob(chisq, df)
-
-def pearsons_chisquare(dbe, cur, tbl, flds, fld_a, fld_b):
-    """
-    Returns chisq, p, min_count, perc_cells_lt_5
-    """
-    vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df = \
-                                get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b)
-    chisq, p = chisquare(lst_obs, lst_exp, df)
-    return (chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, 
-        perc_cells_lt_5, df)
 
 def anova_orig(lst_samples, lst_labels, high=False):
     """
@@ -499,7 +519,7 @@ def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
 
 def wilcoxont(x, y):
     """
-    From stats.py.
+    From stats.py.  Added error trapping.
     -------------------------------------
     Calculates the Wilcoxon T-test for related samples and returns the
     result.  A non-parametric T-test.
@@ -512,7 +532,11 @@ def wilcoxont(x, y):
     n = len(x)
     d=[]
     for i in range(len(x)):
-        diff = x[i] - y[i]
+        try:
+            diff = x[i] - y[i]
+        except TypeError, e:            
+            raise Exception, "Both values in pair must be numeric: %s and %s" \
+                % (x[i], y[i])
         if diff <> 0:
             d.append(diff)
     count = len(d)
@@ -534,7 +558,7 @@ def wilcoxont(x, y):
 
 def pearsonr(x,y):
     """
-    From stats.py.  No changes.  
+    From stats.py.  No changes apart from added error trapping.  
     -------------------------------------
     Calculates a Pearson correlation coefficient and the associated
     probability value.  Taken from Heiman's Basic Statistics for the Behav.
@@ -547,8 +571,11 @@ def pearsonr(x,y):
     if len(x) <> len(y):
         raise ValueError, 'Input values not paired in pearsonr.  Aborting.'
     n = len(x)
-    x = map(float,x)
-    y = map(float,y)
+    try:
+        x = map(float,x)
+        y = map(float,y)
+    except ValueError, e:
+        raise Exception, "Unable to calculate Pearson's R.  %s" % e 
     xmean = mean(x)
     ymean = mean(y)
     r_num = n*(summult(x,y)) - sum(x)*sum(y)
@@ -711,7 +738,7 @@ def zprob(z):
 def mean(vals, high=False):
     """
     From stats.py.  No changes except option of using Decimals instead 
-        of floats.  
+        of floats and adding error trapping. 
     -------------------------------------
     Returns the arithmetic mean of the values in the passed list.
     Assumes a '1D' list, but will function on the 1st dim of an array(!).
@@ -721,12 +748,18 @@ def mean(vals, high=False):
     if not high:
         sum = 0
         for val in vals:
-            sum += val
+            try:
+                sum += val
+            except Exception:
+                raise Exception, "Unable to add \"%s\" to running total." % val
         mean = sum/float(len(vals))
     else:
         tot = D("0")
         for val in vals:
-            tot += util.f2d(val)
+            try:
+                tot += util.f2d(val)
+            except Exception:
+                raise Exception, "Unable to add \"%s\" to running total." % val
         mean = tot/len(vals)
     return mean
 

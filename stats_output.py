@@ -200,7 +200,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b,
         row_exp_tot_tot += row_exp_tot
         html += "<td class='%s'>" % CSS_DATACELL + \
             "%s</td><td class='%s'>%s</td>" % (row_obs_tot, CSS_DATACELL, 
-                                               row_exp_tot)
+                                               round(row_exp_tot,1))
         html += "</tr>\n<tr>"
     # add totals row
     col_tots = zip(col_obs_tots, col_exp_tots)
