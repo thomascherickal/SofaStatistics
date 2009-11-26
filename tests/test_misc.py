@@ -18,26 +18,34 @@ import my_globals
 import dimtables
 import projects
 import util
+import dbe_plugins.dbe_sqlite as dbe_sqlite
+import dbe_plugins.dbe_mysql as dbe_mysql
+import dbe_plugins.dbe_postgresql as dbe_postgresql
 
-# make_fld_val_clause(dbe, fld, val, bolnumeric, quote_val):
     
 def test_make_fld_val_clause():
-    
-    tests = [(my_globals.DBE_SQLITE, "name", "fred", False, ), "name = 'fred'"),
-             ("C:\\abcd\\defg\\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
-             (u"C:\\abcd\\defg\\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
-             (u"C:\\unicodebait\\foo.txt", u"C:\\unicodebait\\foo.txt"),
-             (u"C:\\Identität\\foo.txt", u"C:\\Identität\\foo.txt"),
-             (r"/home/g/abcd/foo.txt", u"/home/g/abcd/foo.txt"),
-             ("/home/g/abcd/foo.txt", u"/home/g/abcd/foo.txt"),
-             (u"/home/René/abcd/foo.txt", u"/home/René/abcd/foo.txt"),
-             (u"/home/Identität/abcd/foo.txt", u"/home/Identität/abcd/foo.txt"),
-             (u"/home/François/abcd/foo.txt", u"/home/François/abcd/foo.txt"),
-             (u"\x93fred\x94", u"\u201Cfred\u201D"),
-             ]
+    quote_vals = {my_globals.DBE_SQLITE: dbe_sqlite.quote_val,
+                  my_globals.DBE_MYSQL: dbe_mysql.quote_val,
+                  my_globals.DBE_PGSQL: dbe_postgresql.quote_val,
+                  }
+    # make_fld_val_clause(dbe, fld, val, bolnumeric, quote_val):
+    tests = [((my_globals.DBE_SQLITE, "var", "fred", False, 
+         quote_vals[my_globals.DBE_SQLITE]), "var = \"fred\""),
+       ((my_globals.DBE_SQLITE, "var", 5, True, 
+         quote_vals[my_globals.DBE_SQLITE]), "var = 5"),
+       ((my_globals.DBE_SQLITE, "var", "spam", True, # numeric type but string
+         quote_vals[my_globals.DBE_SQLITE]), "var = \"spam\""),
+       ((my_globals.DBE_MYSQL, "var", "fred", False, 
+         quote_vals[my_globals.DBE_MYSQL]), "var = \"fred\""),
+       ((my_globals.DBE_MYSQL, "var", 5, True, 
+         quote_vals[my_globals.DBE_MYSQL]), "var = 5"),
+       ((my_globals.DBE_PGSQL, "var", "fred", False, 
+         quote_vals[my_globals.DBE_PGSQL]), "var = 'fred'"),
+       ((my_globals.DBE_PGSQL, "var", 5, True, 
+         quote_vals[my_globals.DBE_PGSQL]), "var = 5"),
+        ]
     for test in tests:
-        assert_equal(get_unicode(test[0]), test[1])
-        assert_true(isinstance(get_unicode(test[0]), unicode))
+        assert_equal(dimtables.make_fld_val_clause(*test[0]), test[1])
 
 def test_get_unicode():
     tests = [(r"C:\abcd\defg\foo.txt", u"C:\\abcd\\defg\\foo.txt"),

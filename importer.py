@@ -314,6 +314,10 @@ class ImportFileSelectDlg(wx.Dialog):
         self.txtFile.SetFocus()
         btnFilePath = wx.Button(self.panel, -1, _("Browse ..."))
         btnFilePath.Bind(wx.EVT_BUTTON, self.OnButtonFilePath)
+        # comment
+        lblComment = wx.StaticText(self.panel, -1, 
+            _("The file will be imported into the SOFA_Default_db database "
+              "with the table name recorded below"))
         # internal SOFA name
         lblIntName = wx.StaticText(self.panel, -1, _("SOFA Name:"))
         lblIntName.SetFont(lblfont)
@@ -346,6 +350,7 @@ class ImportFileSelectDlg(wx.Dialog):
         szrClose.AddGrowableCol(0,2) # idx, propn        
         szrClose.Add(self.btnClose, 0, wx.ALIGN_RIGHT)
         szrMain.Add(szrFilePath, 0, wx.GROW|wx.TOP, 20)
+        szrMain.Add(lblComment, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
         szrMain.Add(szrIntName, 0, wx.GROW|wx.ALL, 10)
         szrMain.Add(szrButtons, 0, wx.GROW|wx.ALL, 10)
         szrMain.Add(self.progBackup, 0, wx.GROW|wx.ALL, 10)
@@ -453,6 +458,7 @@ class ImportFileSelectDlg(wx.Dialog):
         if not file_path:
             wx.MessageBox(_("Please select a file"))
             self.SetImportButtons(importing=False)
+            self.txtFile.SetFocus()
             return
         # identify file type
         unused, extension = self.GetFilestartExt(file_path)
