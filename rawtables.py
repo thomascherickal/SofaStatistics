@@ -146,8 +146,8 @@ class RawTable(object):
                     if (self.first_col_as_label and i == 0) or \
                         row_val == "-":
                         pass
-                    elif util.isNumeric(row_val) and \
-                            util.isNumeric(row_tots[i]):
+                    elif util.is_basic_num(row_val) and \
+                            util.is_basic_num(row_tots[i]):
                         row_tots[i] += row_val
             body_html += "\n<tr>" + "".join(row_tds) + "</td></tr>"
         if self.add_total_row:

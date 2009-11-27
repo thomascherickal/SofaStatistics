@@ -39,8 +39,9 @@ class MismatchException(Exception):
                            "column type.\n\n%s" % details)
 
 
-def AssessSampleFld(sample_data, fld_name):
+def assess_sample_fld(sample_data, fld_name):
     """
+    sample_data -- dict
     For individual values, if numeric, assume numeric, 
         if date, assume date, 
         if string, either an empty string or an ordinary string.
@@ -57,7 +58,8 @@ def AssessSampleFld(sample_data, fld_name):
     datetime_or_empt_str_set = set([VAL_DATETIME, VAL_EMPTY_STRING])
     for row in sample_data:
         val = util.if_none(row[fld_name], "")
-        if util.isNumeric(val):
+        if util.is_numeric(val): # anything that SQLite can add _as a number_ 
+                # into a numeric field
             type_set.add(VAL_NUMERIC)
         elif util.isPyTime(val): # COM on Windows
             type_set.add(VAL_DATETIME)
@@ -105,7 +107,7 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
         bolOK_data = False        
         if fld_type == FLD_NUMERIC:
             # must be numeric or empty string (which we'll turn to NULL)
-            if util.isNumeric(val):
+            if util.is_numeric(val):
                 bolOK_data = True
             elif val == "" or val is None:
                 bolOK_data = True

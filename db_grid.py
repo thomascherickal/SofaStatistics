@@ -511,7 +511,7 @@ class TblEditor(wx.Dialog):
              # and raw_val != db_tbl.MISSING_VAL_INDICATOR unnecessary
             raise Exception, "This field should have been read only"
         elif fld_dic[my_globals.FLD_BOLNUMERIC]:
-            if not util.isNumeric(raw_val):
+            if not util.is_basic_num(raw_val):
                 wx.MessageBox(_("\"%s\" is not a valid number.\n\n"
                               "Either enter a valid number or "
                               "the missing value character (.)") % raw_val)

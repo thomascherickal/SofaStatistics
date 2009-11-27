@@ -435,8 +435,16 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
             val_b, unused = \
                 getdata.extractChoiceDets(self.dropGroupB.GetStringSelection())
             if self.flds[var_gp][my_globals.FLD_BOLNUMERIC]:
-                val_a = float(val_a)
-                val_b = float(val_b)
+                # NB SQLite could have a string in a numeric field
+                # could cause problems even if the string value is not one of 
+                # the ones being tested as a range boundary here.
+                try:
+                    val_a = float(val_a)
+                    val_b = float(val_b)
+                except ValueError:
+                    wx.MessageBox("Both values must be numeric.  "
+                        "Values selected were %s and %s" % (val_a, val_b))
+                    return False
             if  val_a > val_b:
                 wx.MessageBox(_("Group A must be lower than Group B"))
                 return False

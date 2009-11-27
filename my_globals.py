@@ -6,7 +6,7 @@ import util # safe to import - never refers to anything in other modules
 
 debug = False
 
-VERSION = u"0.8.12"
+VERSION = u"0.8.13"
 
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
@@ -17,8 +17,8 @@ PYTHON_ENCODING_DECLARATION = u"#! /usr/bin/env python" + os.linesep + \
 OUTPUT_RESULTS_ONLY = u"Output results only"
 
 # Making tables ******************************************************
-HAS_TOTAL = _("Total") #doubles as display label
-COL_MEASURES = 0 #indexes in tab type
+HAS_TOTAL = _("Total") # doubles as display label
+COL_MEASURES = 0 # indexes in tab type
 ROW_SUMM = 1
 RAW_DISPLAY = 2
 COL_MEASURES_TREE_LBL = _("Column measures")

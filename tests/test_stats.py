@@ -1,13 +1,17 @@
 from __future__ import print_function
 
+import gettext
+gettext.install('sofa', './locale', unicode=True)
+
 from nose.tools import assert_equal
 from nose.tools import assert_almost_equal
 #from nose.plugins.attrib import attr
 import pprint
 import random
-import stats
 
-from .core_stats import ttest_ind, ttest_rel, mannwhitneyu, wilcoxont, \
+import tests.stats as stats
+
+from core_stats import ttest_ind, ttest_rel, mannwhitneyu, wilcoxont, \
     pearsonr, spearmanr, kruskalwallish, anova, fprob, betai, gammln, betacf, \
     chisquare
 

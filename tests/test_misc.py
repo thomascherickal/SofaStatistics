@@ -11,18 +11,107 @@ from nose.tools import assert_equal
 from nose.tools import assert_not_equal
 from nose.tools import assert_raises
 from nose.tools import assert_true
-from .output import _strip_html
-from .output import _strip_script
-from .util import get_unicode
+import decimal
+
+#from .output import _strip_html
 import my_globals
 import dimtables
+import importer
+import output
 import projects
 import util
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
 
-    
+def test_assess_sample_fld():
+    sample_data = [{1: "2", 
+                   2: "2.0", 
+                   3: 2, 
+                   4: 2.0, 
+                   5: "1.245e10",
+                   6: "spam",
+                   7: "2009-01-31",
+                   8: "2009",
+                   9: "",
+                   10: "",
+                   11: 5},
+                   {1: "2", 
+                   2: "2.0", 
+                   3: 2, 
+                   4: 2.0, 
+                   5: "1.245e10",
+                   6: "spam",
+                   7: "2009-01-31",
+                   8: "2009",
+                   9: 5,
+                   10: "",
+                   11: "2009-01"}
+                   ]
+    # fld name, expected type
+    tests = [(1, importer.FLD_NUMERIC),
+             (2, importer.FLD_NUMERIC),
+             (3, importer.FLD_NUMERIC),
+             (4, importer.FLD_NUMERIC),
+             (5, importer.FLD_NUMERIC),
+             (6, importer.FLD_STRING),
+             (7, importer.FLD_DATETIME),
+             (8, importer.FLD_NUMERIC), # 2009 on own is a number
+             (9, importer.FLD_NUMERIC), # empty + numeric = numeric
+             (10, importer.FLD_STRING),
+             (11, importer.FLD_STRING), # empty + string (2009-01 is not number 
+                # or datetime) = string
+             ]
+    for test in tests:
+        assert_equal(importer.assess_sample_fld(sample_data, test[0]), test[1])
+
+def test_n2d():
+    """
+    Hard to test except for cases where float is stored in binary exactly 
+        because the code from http://docs.python.org/library/decimal.html is
+        the gold standard for me.
+    Still worth ensuring it works for simple cases to make sure nothing breaks 
+        it.
+    """
+    D = decimal.Decimal
+    tests = [(1, D("1")),
+             (-1, D("-1")),
+             ("34", D("34")),
+             ("34.00", D("34")),
+             (1.00000, D("1")),
+             (1.002e3, D("1002")),
+             ]
+    for test in tests:
+        assert_equal(util.n2d(test[0]), test[1])
+
+def test_is_basic_num(): # about type
+    tests = [(5, True),
+             ("5", False),
+             (1.2, True),
+             (decimal.Decimal("1"), False),
+             ((1 + 2j), False),
+             ("spam", False),
+             ]
+    for test in tests:
+        assert_equal(util.is_basic_num(test[0]), test[1])
+
+def test_is_numeric(): # about content
+    tests = [(5, True),
+             (1.000003, True),
+             (0.0000001, True),
+             ("5", True),
+             ("1e+10", True),
+             ("e+10", False),
+             ("spam", False),
+             ("2010-01-01", False),
+             (314j, False),
+             (1 + 14j, False),
+             ((1 + 14j), False),
+             ]
+    for test in tests:
+        print(test)
+        assert_equal(util.is_numeric(test[0]), test[1])
+
 def test_make_fld_val_clause():
     quote_vals = {my_globals.DBE_SQLITE: dbe_sqlite.quote_val,
                   my_globals.DBE_MYSQL: dbe_mysql.quote_val,
@@ -61,8 +150,8 @@ def test_get_unicode():
              (u"\x93fred\x94", u"\u201Cfred\u201D"),
              ]
     for test in tests:
-        assert_equal(get_unicode(test[0]), test[1])
-        assert_true(isinstance(get_unicode(test[0]), unicode))
+        assert_equal(util.get_unicode(test[0]), test[1])
+        assert_true(isinstance(util.get_unicode(test[0]), unicode))
 
 def test_strip_html():
     tests = [("<body>Freddy</body>", "Freddy"), 
@@ -70,13 +159,13 @@ def test_strip_html():
              ("<body>Freddy", "Freddy"),
              ]
     for test in tests:
-        assert_equal(_strip_html(test[0]), test[1])
+        assert_equal(output._strip_html(test[0]), test[1])
 
 def test_strip_script():
     tests = [("\nchunky chicken%s\nxzmxnzmxnz" % my_globals.SCRIPT_END, 
               "\nchunky chicken")]
     for test in tests:
-        assert_equal(_strip_script(test[0]), test[1])
+        assert_equal(output._strip_script(test[0]), test[1])
         
 def test_sofa_default_proj_settings():
     """

@@ -15,6 +15,82 @@ import wx
 
 # must be kept safe to import - must never refer to anything in other modules
 
+def is_numeric(val):
+    """
+    Is a value numeric?  This is operationalised to mean can a value be cast as 
+        a float.  
+    NB the string 5 is numeric.  Scientific notation is numeric. Complex numbers 
+        are considered not numeric for general use.  
+    The type may not be numeric but the "content" must be.
+    http://www.rosettacode.org/wiki/IsNumeric#Python
+    """
+    if isPyTime(val):
+        return False
+    elif val is None:
+        return False
+    else:
+        try:
+            i = float(val)
+        except (ValueError, TypeError):
+            return False
+        else:
+            return True
+
+def is_basic_num(val):
+    """
+    Is a value of a basic numeric type - i.e. integer, long, float?  NB complex 
+        or Decimal values are not considered basic numbers.
+    NB a string containing a numeric value is not a number type even though it
+        will pass is_numeric().
+    """
+    return type(val) in [int, long, float]
+    
+def get_unicode(raw):
+    """
+    If not a string, just return value unchanged.  Otherwise ...
+    Convert byte strings to unicode.
+    Convert any cp1252 text to unicode e.g. smart quotes.
+    Return safe unicode string (pure unicode and no unescaped backslashes).
+    """
+    if not isinstance(raw, basestring): # isinstance includes descendants
+        return raw
+    if type(raw) == str:
+        try:
+            safe = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            safe = ms2utf8(raw)
+    else:
+        safe = ms2utf8(raw)
+    return safe
+
+def n2d(f):
+    """
+    Convert a floating point number to a Decimal with no loss of information
+    http://docs.python.org/library/decimal.html with added error trapping and
+        handling of non-floats.
+    """
+    if not isinstance(f, float):
+        try:
+            f = float(f)
+        except (ValueError, TypeError):
+            raise Exception, "Unable to convert value to Decimal.  " + \
+                "Value was \"%s\"" % f
+    try:
+        n, d = f.as_integer_ratio()
+    except Exception:
+        raise Exception, "Unable to turn value \"%s\" into integer " % f + \
+            "ratio for unknown reason."
+    numerator, denominator = decimal.Decimal(n), decimal.Decimal(d)
+    ctx = decimal.Context(prec=60)
+    result = ctx.divide(numerator, denominator)
+    while ctx.flags[decimal.Inexact]:
+        ctx.flags[decimal.Inexact] = False
+        ctx.prec *= 2
+        result = ctx.divide(numerator, denominator)
+    return result
+
+# uncovered
+
 cp1252 = {
     # from http://www.microsoft.com/typography/unicode/1252.htm
     u"\x80": u"\u20AC", # EURO SIGN
@@ -62,53 +138,10 @@ def ms2utf8(text):
         text = re.sub(u"[\x80-\x9f]", fixup, text)
     return text
 
-def get_unicode(raw):
-    """
-    If not a string, just return value unchanged.  Otherwise ...
-    Convert byte strings to unicode.
-    Convert any cp1252 text to unicode e.g. smart quotes.
-    Return safe unicode string (pure unicode and no unescaped backslashes).
-    """
-    if not isinstance(raw, basestring): # isinstance includes descendants
-        return raw
-    if type(raw) == str:
-        try:
-            safe = raw.decode("utf-8")
-        except UnicodeDecodeError:
-            safe = ms2utf8(raw)
-    else:
-        safe = ms2utf8(raw)
-    return safe
-
 def clean_bom_utf8(raw):
     if raw.startswith(unicode(codecs.BOM_UTF8, "utf-8")):
         raw = raw[len(unicode(codecs.BOM_UTF8, "utf-8")):]
     return raw
-
-def f2d(f):
-    """
-    Convert a floating point number to a Decimal with no loss of information
-    http://docs.python.org/library/decimal.html
-    """
-    if not isinstance(f, float):
-        try:
-            f = float(f)
-        except (ValueError, TypeError):
-            raise Exception, "Unable to convert value to Decimal.  " + \
-                "Value was \"%s\"" % f
-    try:
-        n, d = f.as_integer_ratio()
-    except Exception:
-        raise Exception, "Unable to turn value \"%s\" into integer " % f + \
-            "ratio for unknown reason."
-    numerator, denominator = decimal.Decimal(n), decimal.Decimal(d)
-    ctx = decimal.Context(prec=60)
-    result = ctx.divide(numerator, denominator)
-    while ctx.flags[decimal.Inexact]:
-        ctx.flags[decimal.Inexact] = False
-        ctx.prec *= 2
-        result = ctx.divide(numerator, denominator)
-    return result
 
 def in_windows():
     try:
@@ -153,20 +186,6 @@ def isInteger(val):
 def isString(val):
     # http://mail.python.org/pipermail/winnipeg/2007-August/000237.html
     return isinstance(val, basestring)
-
-def isNumeric(val):
-    "http://www.rosettacode.org/wiki/IsNumeric#Python"
-    if isPyTime(val):
-        return False
-    elif val is None:
-        return False
-    else:
-        try:
-            i = float(val)
-        except (ValueError, TypeError):
-            return False
-        else:
-            return True
 
 def isPyTime(val): 
     #http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/511451

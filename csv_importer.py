@@ -3,15 +3,51 @@ import csv
 import os
 import wx
 
+import codecs
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
 import util
 from my_exceptions import ImportCancelException
+from my_exceptions import NewLineInUnquotedException
 import importer
 
 ROWS_TO_SAMPLE = 500 # fast enough to sample quite a few
 
+"""
+Support for unicode is lacking from the Python 2 series csv module and quite a
+    bit of wrapping is required to work around it.  Must wait for Python 3 or
+    spend a lot more time on this. But it still put Dörthe in correctly ;-).
+See http://docs.python.org/library/csv.html#examples
+http://bugs.python.org/issue1606092
+"""
 
+def consolidate_line_seps(str):
+    for sep in ["\n", "\r", "\r\n"]:
+        str = str.replace(sep, os.linesep)
+    return str
+
+def get_dialect(file_path):
+    debug = False
+    try:
+        csvfile = open(file_path) # don't use "U" - let it 
+            # fail if necessary and suggest an automatic cleanup
+        sniff_sample = csvfile.read(3072) # 1024 not enough if many fields
+        # if too small, will return error about newline inside string
+        sniffer = csv.Sniffer()
+        dialect = sniffer.sniff(sniff_sample)
+        #has_header = sniffer.has_header(sniff_sample)
+        if debug: print(dialect)
+    except csv.Error, e:
+        if str(e).startswith("new-line character seen in unquoted field"):
+            raise NewLineInUnquotedException
+        else:
+            raise Exception, str(e)
+    except Exception, e:
+        raise Exception, "Unable to open and sample csv file. " + \
+            "Orig error: %s" % e
+    return dialect
+    
+    
 class FileImporter(object):
     """
     Import csv file into default SOFA SQLite database.
@@ -22,15 +58,21 @@ class FileImporter(object):
     def __init__(self, file_path, tbl_name):                    
         self.file_path = file_path
         self.tbl_name = tbl_name
+        self.has_header = True
         
     def GetParams(self):
         """
         Get any user choices required.
+        Letting the csv module test for a header is too unreliable if mixed 
+            data.  Easier just to ask the user as with Excel.
         """
+        retCode = wx.MessageBox(_("Does the file have a header row?"), 
+                                _("HEADER ROW?"), 
+                                wx.YES_NO | wx.ICON_INFORMATION)
+        self.has_header = (retCode == wx.YES)
         return True
     
-    def AssessDataSample(self, reader, has_header, progBackup, gauge_chunk, 
-                         keep_importing):
+    def AssessDataSample(self, reader, progBackup, gauge_chunk, keep_importing):
         """
         Assess data sample to identify field types based on values in fields.
         If a field has mixed data types will define as string.
@@ -48,7 +90,7 @@ class FileImporter(object):
                 if keep_importing == set([False]):
                     progBackup.SetValue(0)
                     raise ImportCancelException
-            if has_header and i == 0:
+            if self.has_header and i == 0:
                 continue # skip first line
             bolhas_rows = True
             # process row
@@ -59,7 +101,7 @@ class FileImporter(object):
                 break
         fld_types = []
         for fld_name in reader.fieldnames:
-            fld_type = importer.AssessSampleFld(sample_data, fld_name)
+            fld_type = importer.assess_sample_fld(sample_data, fld_name)
             fld_types.append(fld_type)
         fld_types = dict(zip(reader.fieldnames, fld_types))
         if not bolhas_rows:
@@ -81,7 +123,25 @@ class FileImporter(object):
                 break
         avg_row_size = float(size)/i
         return avg_row_size
-        
+
+    def make_tidied_copy(self, path):        
+        """
+        Return renamed copy with line separators all turned to the one type
+            appropriate to the OS.
+        NB file may be broken csv so may need manual correction.
+        """
+        pathstart, filename = os.path.split(path)
+        filestart, extension = os.path.splitext(filename)
+        new_file = os.path.join(pathstart, filestart + "_tidied" + extension)
+        f = open(path)
+        raw = f.read()
+        f.close()
+        newstr = consolidate_line_seps(raw)
+        f = open(new_file, "w")
+        f.write(newstr)
+        f.close()
+        return new_file
+
     def ImportContent(self, progBackup, keep_importing):
         """
         Get field types dict.  Use it to test each and every item before they 
@@ -91,19 +151,25 @@ class FileImporter(object):
         """
         debug = False
         try:
-            csvfile = open(self.file_path)
-            sniffer = csv.Sniffer()
-            sniff_sample = csvfile.read(3072) # 1024 not enough if many fields
-            # if too small, will return error about newline inside string
-            dialect = sniffer.sniff(sniff_sample)
-            has_header = sniffer.has_header(sniff_sample)
-        except Exception, e:
-            raise Exception, "Unable to open and sample csv file. " + \
-                "Orig error: %s" % e
+            dialect = get_dialect(self.file_path)
+        except NewLineInUnquotedException:
+            ret = wx.MessageBox(_("The file needs new lines standardised first."
+                            " Can SOFA Statistics make a tidied copy for you?"), 
+                            caption=_("FIX TEXT?"), style=wx.YES_NO)
+            if ret == wx.YES:
+                new_file = self.make_tidied_copy(self.file_path)
+                wx.MessageBox(_("Please check tidied version \"%s\" "
+                                "before importing.  May have line "
+                                "breaks in the wrong places.") % new_file)
+                return
+            else:
+                wx.MessageBox(_("Unable to import file in current form"))
+                return                
         try:
-            csvfile.seek(0)
+            csvfile = open(self.file_path) # not "U" - 
+                # insist on _one_ type of line break
             # get field names
-            if has_header:
+            if self.has_header:
                 tmp_reader = csv.DictReader(csvfile, dialect=dialect)
                 fld_names = tmp_reader.fieldnames
             else:
@@ -124,6 +190,11 @@ class FileImporter(object):
             n_rows = float(tot_size)/row_size            
             reader = csv.DictReader(csvfile, dialect=dialect, 
                                     fieldnames=fld_names)
+        except csv.Error, e:
+            if str(e).startswith("new-line character seen in unquoted field"):
+                raise NewLineInUnquotedException
+            else:
+                raise Exception, str(e)
         except Exception, e:
             raise Exception, "Unable to create reader for file. " + \
                 "Orig error: %s" % e
@@ -131,8 +202,8 @@ class FileImporter(object):
             getdata.GetDefaultDbDets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_rows else n_rows
         gauge_chunk = importer.getGaugeChunkSize(n_rows, sample_n)
-        fld_types, sample_data = self.AssessDataSample(reader, has_header, 
-                                        progBackup, gauge_chunk, keep_importing)
+        fld_types, sample_data = self.AssessDataSample(reader, progBackup, 
+                                                gauge_chunk, keep_importing)
         # NB reader will be at position ready to access records after sample
         remaining_data = list(reader) # must be a list not a reader or can't 
         # start again from beginning of data (e.g. if correction made)

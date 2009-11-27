@@ -64,7 +64,7 @@ class FileImporter(object):
                 break
         fld_types = []
         for fld_name in fld_names:
-            fld_type = importer.AssessSampleFld(sample_data, fld_name)
+            fld_type = importer.assess_sample_fld(sample_data, fld_name)
             fld_types.append(fld_type)
         fld_types = dict(zip(fld_names, fld_types))
         if not bolhas_rows:

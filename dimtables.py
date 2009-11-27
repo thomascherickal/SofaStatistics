@@ -23,7 +23,7 @@ def make_fld_val_clause(dbe, fld, val, bolnumeric, quote_val):
     if not bolnumeric:
         num = False
     elif dbe == my_globals.DBE_SQLITE: # if SQLite may still be non-numeric
-        if not util.isNumeric(val):
+        if not util.is_basic_num(val):
             num = False
     if num:
         clause = "%s = %s" % (fld, val)
@@ -1088,7 +1088,7 @@ class SummTable(LiveTable):
         while True:
             val = self.cur.fetchone()[0]
             if debug: print(val)
-            if val is not None and not util.isNumeric(val):
+            if val is not None and not util.is_basic_num(val):
                 break
         return val
     
