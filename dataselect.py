@@ -231,7 +231,7 @@ class DataSelectDlg(wx.Dialog):
         fld_clause_items.append("UNIQUE(sofa_id)")
         fld_clause = ", ".join(fld_clause_items)
         SQL_make_tbl = """CREATE TABLE "%s" (%s)""" % (tbl_name, fld_clause)
-        conn = dbe_sqlite.GetConn(self.conn_dets, my_globals.SOFA_DEFAULT_DB)
+        conn = dbe_sqlite.get_conn(self.conn_dets, my_globals.SOFA_DEFAULT_DB)
         cur = conn.cursor()
         cur.execute(SQL_make_tbl)
         conn.commit()

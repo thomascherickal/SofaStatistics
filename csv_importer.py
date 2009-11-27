@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function
 import csv
 import os
@@ -38,10 +41,10 @@ def get_dialect(file_path):
         #has_header = sniffer.has_header(sniff_sample)
         if debug: print(dialect)
     except csv.Error, e:
-        if str(e).startswith("new-line character seen in unquoted field"):
+        if unicode(e).startswith("new-line character seen in unquoted field"):
             raise NewLineInUnquotedException
         else:
-            raise Exception, str(e)
+            raise Exception, unicode(e)
     except Exception, e:
         raise Exception, "Unable to open and sample csv file. " + \
             "Orig error: %s" % e
@@ -191,10 +194,11 @@ class FileImporter(object):
             reader = csv.DictReader(csvfile, dialect=dialect, 
                                     fieldnames=fld_names)
         except csv.Error, e:
-            if str(e).startswith("new-line character seen in unquoted field"):
+            if unicode(e).startswith("new-line character seen in unquoted"
+                                     " field"):
                 raise NewLineInUnquotedException
             else:
-                raise Exception, str(e)
+                raise Exception, unicode(e)
         except Exception, e:
             raise Exception, "Unable to create reader for file. " + \
                 "Orig error: %s" % e

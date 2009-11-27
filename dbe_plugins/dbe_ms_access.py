@@ -50,18 +50,11 @@ class DbDets(getdata.DbDets):
     __init__ supplies default_dbs, default_tbls, conn_dets and 
         db and tbl (may be None).
     """
-        
-    def getDbDets(self):
+    
+    def get_conn_cur(self):
         """
-        Return connection, cursor, and get lists of 
-            databases, tables, fields, and index info, 
-            based on the MS Access database connection details provided.
-        Sets db and tbl if not supplied.
-        Connection string as per the ADO documentation.
-        The database used will be the default or the first if none provided.
-        The table used will be the default or the first if none provided.
-        The field dets will be taken from the table used.
-        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
+        To get a cursor must also get a workable database.  So makes sense to
+            set self.db here
         """
         # get connection details for appropriate database
         conn_dets_access = self.conn_dets.get(my_globals.DBE_MS_ACCESS)
@@ -96,9 +89,24 @@ class DbDets(getdata.DbDets):
         except Exception, e:
             raise Exception, "Unable to connect to MS Access database " + \
                 "using supplied database: %s, user: %s, " % (database, user) + \
-                "pwd: %s, or mdw: %s.  Orig error: %s" % (pwx, mdw, e)
+                "pwd: %s, or mdw: %s.  Orig error: %s" % (pwd, mdw, e)
         cur = conn.cursor() # must return tuples not dics
-        cur.adoconn = conn.adoConn # (need to be able to access from just the cursor)
+        cur.adoconn = conn.adoConn # (need to access from just the cursor)
+        return conn, cur
+          
+    def getDbDets(self):
+        """
+        Return connection, cursor, and get lists of 
+            databases, tables, fields, and index info, 
+            based on the MS Access database connection details provided.
+        Sets db and tbl if not supplied.
+        Connection string as per the ADO documentation.
+        The database used will be the default or the first if none provided.
+        The table used will be the default or the first if none provided.
+        The field dets will be taken from the table used.
+        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
+        """
+        conn, cur = self.get_conn_cur()
         # get database name
         dbs = [self.db]
         tbls = self.getDbTbls(cur, self.db)

@@ -539,7 +539,7 @@ class TblEditor(wx.Dialog):
             if len(raw_val) > max_len:
                 wx.MessageBox("\"%s\" " % raw_val + \
                               _("is longer than the maximum of %s"
-                                "Either enter a shorter"
+                                "Either enter a shorter "
                                 "value or the missing value character (.)") % \
                                 max_len)
                 return True

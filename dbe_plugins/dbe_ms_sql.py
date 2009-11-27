@@ -46,19 +46,8 @@ class DbDets(getdata.DbDets):
         db and tbl (may be None).  Db needs to be set in conn_dets once 
         identified.
     """
-            
-    def getDbDets(self):
-        """
-        Return connection, cursor, and get lists of 
-            databases, tables, fields, and index info,
-            based on the MS SQL Server database connection details provided.
-        Sets db and tbl if not supplied.
-        The database used will be the default or the first if none provided.
-        The table used will be the default or the first if none provided.
-        The field dets will be taken from the table used.
-        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
-        """
-        debug = False
+    
+    def get_conn_cur(self):
         conn_dets_mssql = self.conn_dets.get(my_globals.DBE_MS_SQL)
         if not conn_dets_mssql:
             raise Exception, "No connection details available for MS SQL Server"
@@ -81,7 +70,22 @@ class DbDets(getdata.DbDets):
                 "host: %s; user: %s; pwd: %s. " % (host, user, pwd) + \
                 "Orig error: %s" % e
         cur = conn.cursor()
-        cur.adoconn = conn.adoConn # (need to be able to access from just the cursor)
+        cur.adoconn = conn.adoConn # (need to access from just the cursor)        
+        return conn, cur
+    
+    def getDbDets(self):
+        """
+        Return connection, cursor, and get lists of 
+            databases, tables, fields, and index info,
+            based on the MS SQL Server database connection details provided.
+        Sets db and tbl if not supplied.
+        The database used will be the default or the first if none provided.
+        The table used will be the default or the first if none provided.
+        The field dets will be taken from the table used.
+        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
+        """
+        debug = False
+        conn, cur = self.get_conn_cur()
         tbls = self.getDbTbls(cur, self.db)
         if debug: print(tbls)
         tbls_lc = [x.lower() for x in tbls]        

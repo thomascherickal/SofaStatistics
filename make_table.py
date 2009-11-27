@@ -150,8 +150,30 @@ class MakeTable(object):
     def OnSubtitleChange(self, event):
         "Update display as subtitles change"
         self.UpdateDemoDisplay()
-
-    # run    
+        
+    # run 
+    def too_long(self):
+        # check not a massive report table
+        too_long = False
+        if self.tab_type == my_globals.RAW_DISPLAY:
+            # get various db settings
+            dbdetsobj = getdata.getDbDetsObj(self.dbe, self.default_dbs, 
+                                             self.default_tbls, self.conn_dets)
+            conn, cur = dbdetsobj.get_conn_cur()
+            # count records in table
+            quoter = getdata.get_obj_quoter_func(self.dbe)
+            s = "SELECT COUNT(*) FROM %s" % quoter(self.tbl)
+            cur.execute(s)
+            n_rows = cur.fetchone()[0]
+            conn.close()
+            if n_rows > 500:
+                if wx.MessageBox(_("This report has %s rows. "
+                                   "Do you wish to run it?") % n_rows, 
+                                   caption=_("LONG REPORT"), 
+                                   style=wx.YES_NO) == wx.NO:
+                    too_long = True
+        return too_long
+   
     def OnButtonRun(self, event):
         """
         Generate script to special location (INT_SCRIPT_PATH), 
@@ -162,6 +184,8 @@ class MakeTable(object):
         debug = False
         run_ok, missing_dim, has_rows, has_cols = self.TableConfigOK()
         if run_ok:
+            if self.too_long():
+                return
             # hourglass cursor
             curs = wx.StockCursor(wx.CURSOR_WAIT)
             self.SetCursor(curs)

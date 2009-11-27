@@ -35,7 +35,7 @@ def DbeSyntaxElements():
     if_clause = "CASE WHEN %s THEN %s ELSE %s END"
     return (if_clause, quote_obj, quote_val, get_placeholder, get_summable)
 
-def GetConn(conn_dets, db):
+def get_conn(conn_dets, db):
     conn_dets_sqlite = conn_dets.get(my_globals.DBE_SQLITE)
     if not conn_dets_sqlite:
         raise Exception, "No connection details available for SQLite"
@@ -56,7 +56,19 @@ class DbDets(getdata.DbDets):
     __init__ supplies default_dbs, default_tbls, conn_dets and 
         db and tbl (may be None).
     """
-            
+    
+    def get_conn_cur(self):        
+        if not self.db:
+            # use default, or failing that, try the file_name
+            default_db_sqlite = self.default_dbs.get(my_globals.DBE_SQLITE)
+            if default_db_sqlite:
+                self.db = default_db_sqlite
+            else:
+                self.db = self.con_dets[my_globals.DBE_SQLITE].keys()[0]
+        conn = get_conn(self.conn_dets, self.db)
+        cur = conn.cursor() # must return tuples not dics
+        return conn, cur
+      
     def getDbDets(self):
         """
         Return connection, cursor, and get lists of 
@@ -67,16 +79,8 @@ class DbDets(getdata.DbDets):
         The table used will be the default or the first if none provided.
         The field dets will be taken from the table used.
         Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
-        """        
-        if not self.db:
-            # use default, or failing that, try the file_name
-            default_db_sqlite = self.default_dbs.get(my_globals.DBE_SQLITE)
-            if default_db_sqlite:
-                self.db = default_db_sqlite
-            else:
-                self.db = self.con_dets[my_globals.DBE_SQLITE].keys()[0]
-        conn = GetConn(self.conn_dets, self.db)
-        cur = conn.cursor() # must return tuples not dics
+        """
+        conn, cur = self.get_conn_cur()
         dbs = [self.db]
         tbls = self.getDbTbls(cur, self.db)
         tbls_lc = [x.lower() for x in tbls]

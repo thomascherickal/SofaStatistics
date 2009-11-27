@@ -121,6 +121,7 @@ class RawTable(object):
                 col_class_lsts[i].append(CSS_ALIGN_RIGHT)
         if self.add_total_row:
             row_tots = [0 for x in self.col_names] # initialise
+            row_tots_used = set() # some will never have anything added to them
         for row in rows:
             row_tds = []
             for i in range(cols_n):
@@ -149,22 +150,28 @@ class RawTable(object):
                     elif util.is_basic_num(row_val) and \
                             util.is_basic_num(row_tots[i]):
                         row_tots[i] += row_val
-            body_html += "\n<tr>" + "".join(row_tds) + "</td></tr>"
+                        row_tots_used.add(i)
+            body_html += u"\n<tr>" + u"".join(row_tds) + u"</td></tr>"
         if self.add_total_row:
-            row_tot_vals = [unicode(x) for x in row_tots]
+            row_tot_vals = []
+            for i in range(cols_n):
+                val = unicode(row_tots[i]) if i in row_tots_used \
+                    else u"&nbsp;&nbsp;"
+                row_tot_vals.append(val)
             if self.first_col_as_label:
                 tot_cell = "<td class='%s'>" % CSS_LBL + _("TOTAL") + "</td>"
                 row_tot_vals.pop(0)
             else:
                 tot_cell = ""
             # never a displayed total for strings (whether orig data or labels)
-            joiner = "</td><td class=\"%s\">" % CSS_ALIGN_RIGHT
-            body_html += "\n<tr class='%s'>" % CSS_TOTAL_ROW + \
-                tot_cell + "<td class=\"%s\">"  % CSS_ALIGN_RIGHT + \
-                joiner.join(row_tot_vals) + "</td></tr>"
-        body_html += "\n</tbody>"
+            joiner = u"</td><td class=\"%s\">" % CSS_ALIGN_RIGHT
+            body_html += u"\n<tr class='%s'>" % CSS_TOTAL_ROW + \
+                tot_cell + u"<td class=\"%s\">"  % CSS_ALIGN_RIGHT + \
+                joiner.join(row_tot_vals) + u"</td></tr>"
+        body_html += u"\n</tbody>"
         html += body_html
-        html += "\n</table>"
+        html += u"\n</table>"
         if page_break_after:
-            html += "<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
+            html += u"<br><hr><br><div class='%s'></div>" % \
+                CSS_PAGE_BREAK_BEFORE
         return html   

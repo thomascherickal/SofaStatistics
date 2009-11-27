@@ -43,6 +43,21 @@ class DbDets(getdata.DbDets):
         db and tbl (may be None).  Db needs to be set in conn_dets once 
         identified.
     """
+    
+    def get_conn_cur(self):
+        conn_dets_mysql = self.conn_dets.get(my_globals.DBE_MYSQL)
+        if not conn_dets_mysql:
+            raise Exception, "No connection details available for MySQL"
+        try:
+            conn_dets_mysql["use_unicode"] = True
+            if self.db:
+                conn_dets_mysql["db"] = self.db
+            conn = MySQLdb.connect(**conn_dets_mysql)
+        except Exception, e:
+            raise Exception, "Unable to connect to MySQL db.  " + \
+                "Orig error: %s" % e
+        cur = conn.cursor() # must return tuples not dics        
+        return conn, cur
             
     def getDbDets(self):
         """
@@ -59,18 +74,7 @@ class DbDets(getdata.DbDets):
         if self.debug:
             print("Received db is: %s" % self.db)
             print("Received tbl is: %s" % self.tbl)
-        conn_dets_mysql = self.conn_dets.get(my_globals.DBE_MYSQL)
-        if not conn_dets_mysql:
-            raise Exception, "No connection details available for MySQL"
-        try:
-            conn_dets_mysql["use_unicode"] = True
-            if self.db:
-                conn_dets_mysql["db"] = self.db
-            conn = MySQLdb.connect(**conn_dets_mysql)
-        except Exception, e:
-            raise Exception, "Unable to connect to MySQL db.  " + \
-                "Orig error: %s" % e
-        cur = conn.cursor() # must return tuples not dics
+        conn, cur = self.get_conn_cur()
         # get database name
         SQL_get_db_names = """SELECT SCHEMA_NAME 
             FROM information_schema.SCHEMATA

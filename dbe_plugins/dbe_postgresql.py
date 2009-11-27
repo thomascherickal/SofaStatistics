@@ -73,7 +73,21 @@ class DbDets(getdata.DbDets):
         db and tbl (may be None).  Db needs to be set in conn_dets once 
         identified.
     """
-            
+        
+    def get_conn_cur(self):
+        conn_dets_pgsql = self.conn_dets.get(my_globals.DBE_PGSQL)
+        if not conn_dets_pgsql:
+            raise Exception, "No connection details available for PostgreSQL"
+        try:
+            if self.db:
+                conn_dets_pgsql["database"] = self.db
+            conn = pgdb.connect(**conn_dets_pgsql)
+        except Exception, e:
+            raise Exception, "Unable to connect to PostgreSQL db.  " + \
+                "Orig error: %s" % e
+        cur = conn.cursor() # must return tuples not dics        
+        return conn, cur
+       
     def getDbDets(self):
         """
         Return connection, cursor, and get lists of 
@@ -89,17 +103,7 @@ class DbDets(getdata.DbDets):
         if self.debug:
             print("Received db is: %s" % self.db)
             print("Received tbl is: %s" % self.tbl)
-        conn_dets_pgsql = self.conn_dets.get(my_globals.DBE_PGSQL)
-        if not conn_dets_pgsql:
-            raise Exception, "No connection details available for PostgreSQL"
-        try:
-            if self.db:
-                conn_dets_pgsql["database"] = self.db
-            conn = pgdb.connect(**conn_dets_pgsql)
-        except Exception, e:
-            raise Exception, "Unable to connect to PostgreSQL db.  " + \
-                "Orig error: %s" % e
-        cur = conn.cursor() # must return tuples not dics
+        conn, cur = self.get_conn_cur()
         # get database name
         SQL_get_db_names = """SELECT datname FROM pg_database"""
         cur.execute(SQL_get_db_names)
