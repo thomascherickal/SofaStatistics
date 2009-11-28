@@ -113,7 +113,11 @@ class DbDets(getdata.DbDets):
             if default_tbl_mysql and default_tbl_mysql.lower() in tbls_lc:
                 self.tbl = default_tbl_mysql
             else:
-                self.tbl = tbls[0]
+                try:
+                    self.tbl = tbls[0]
+                except IndexError:
+                    raise Exception, "No tables found in database \"%s\"" % \
+                        self.db
         else:
             if self.tbl.lower() not in tbls_lc:
                 raise Exception, "Table \"%s\" not found in database \"%s\"" % \

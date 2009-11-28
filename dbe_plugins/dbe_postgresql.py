@@ -73,8 +73,14 @@ class DbDets(getdata.DbDets):
         db and tbl (may be None).  Db needs to be set in conn_dets once 
         identified.
     """
-        
+    debug = False
+    
     def get_conn_cur(self):
+        """
+        Get connection - with a database if possible, else without.  If without,
+            use connection to identify databases and select one.  Then remake
+            connection with selected database and remake cursor.
+        """
         conn_dets_pgsql = self.conn_dets.get(my_globals.DBE_PGSQL)
         if not conn_dets_pgsql:
             raise Exception, "No connection details available for PostgreSQL"
@@ -85,7 +91,32 @@ class DbDets(getdata.DbDets):
         except Exception, e:
             raise Exception, "Unable to connect to PostgreSQL db.  " + \
                 "Orig error: %s" % e
-        cur = conn.cursor() # must return tuples not dics        
+        cur = conn.cursor() # must return tuples not dics
+        # get database name
+        SQL_get_db_names = """SELECT datname FROM pg_database"""
+        cur.execute(SQL_get_db_names)
+        self.dbs = [x[0] for x in cur.fetchall()]
+        dbs_lc = [x.lower() for x in self.dbs]
+        # get db (default if possible otherwise first)
+        # NB db must be accessible from connection
+        if not self.db:
+            # use default if possible, or fall back to first
+            default_db_pgsql = self.default_dbs.get(my_globals.DBE_PGSQL)
+            if default_db_pgsql.lower() in dbs_lc:
+                self.db = default_db_pgsql
+            else:
+                self.db = self.dbs[0]
+            # need to reset conn and cur
+            cur.close()
+            conn.close()
+            conn_dets_pgsql["database"] = self.db
+            conn = pgdb.connect(**conn_dets_pgsql)
+            cur = conn.cursor()
+        else:
+            if self.db.lower() not in dbs_lc:
+                raise Exception, "Database \"%s\" not available " % self.db + \
+                    "from supplied connection"
+        if self.debug: pprint.pprint(self.conn_dets)        
         return conn, cur
        
     def getDbDets(self):
@@ -99,36 +130,10 @@ class DbDets(getdata.DbDets):
         The field dets will be taken from the table used.
         Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
         """
-        self.debug = False
         if self.debug:
             print("Received db is: %s" % self.db)
             print("Received tbl is: %s" % self.tbl)
         conn, cur = self.get_conn_cur()
-        # get database name
-        SQL_get_db_names = """SELECT datname FROM pg_database"""
-        cur.execute(SQL_get_db_names)
-        dbs = [x[0] for x in cur.fetchall()]
-        dbs_lc = [x.lower() for x in dbs]
-        # get db (default if possible otherwise first)
-        # NB db must be accessible from connection
-        if not self.db:
-            # use default if possible, or fall back to first
-            default_db_pgsql = self.default_dbs.get(my_globals.DBE_PGSQL)
-            if default_db_pgsql.lower() in dbs_lc:
-                self.db = default_db_pgsql
-            else:
-                self.db = dbs[0]
-            # need to reset conn and cur
-            cur.close()
-            conn.close()
-            conn_dets_pgsql["database"] = self.db
-            conn = pgdb.connect(**conn_dets_pgsql)
-            cur = conn.cursor()
-        else:
-            if self.db.lower() not in dbs_lc:
-                raise Exception, "Database \"%s\" not available " % self.db + \
-                    "from supplied connection"
-        if self.debug: pprint.pprint(self.conn_dets)
         # get table names
         tbls = self.getDbTbls(cur, self.db)
         tbls_lc = [x.lower() for x in tbls]        
@@ -140,7 +145,11 @@ class DbDets(getdata.DbDets):
             if default_tbl_pgsql and default_tbl_pgsql.lower() in tbls_lc:
                 self.tbl = default_tbl_pgsql
             else:
-                self.tbl = tbls[0]
+                try:
+                    self.tbl = tbls[0]
+                except IndexError:
+                    raise Exception, "No tables found in database \"%s\"" % \
+                        self.db
         else:
             if self.tbl.lower() not in tbls_lc:
                 raise Exception, "Table \"%s\" not found in database \"%s\"" % \
@@ -154,7 +163,7 @@ class DbDets(getdata.DbDets):
             pprint.pprint(tbls)
             pprint.pprint(flds)
             pprint.pprint(idxs)
-        return conn, cur, dbs, tbls, flds, has_unique, idxs
+        return conn, cur, self.dbs, tbls, flds, has_unique, idxs
     
     def getDbTbls(self, cur, db):
         """

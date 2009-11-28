@@ -97,10 +97,11 @@ class DbDets(getdata.DbDets):
             if default_tbl_mssql and default_tbl_mssql.lower() in tbls_lc:
                 self.tbl = default_tbl_mssql
             else:
-                if tbls:
+                try:
                     self.tbl = tbls[0]
-                else:
-                    raise Exception, "Empty database"
+                except IndexError:
+                    raise Exception, "No tables found in database \"%s\"" % \
+                        self.db
         else:
             if self.tbl.lower() not in tbls_lc:
                 raise Exception, "Table \"%s\" not found in database \"%s\"" % \
