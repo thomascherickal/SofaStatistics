@@ -20,19 +20,19 @@ TINYINT = "tinyint"
 
 
 def quote_obj(raw_val):
-    return "`%s`" % raw_val
+    return u"`%s`" % raw_val
 
 def quote_val(raw_val):
-    return "\"%s\"" % raw_val
+    return u"\"%s\"" % raw_val
 
 def get_placeholder():
-    return "%s"
+    return u"%s"
 
 def get_summable(clause):
     return clause
 
 def DbeSyntaxElements():
-    if_clause = "IF(%s, %s, %s)"
+    if_clause = u"IF(%s, %s, %s)"
     return (if_clause, quote_obj, quote_val, get_placeholder, get_summable)
 
 
@@ -47,15 +47,15 @@ class DbDets(getdata.DbDets):
     def get_conn_cur(self):
         conn_dets_mysql = self.conn_dets.get(my_globals.DBE_MYSQL)
         if not conn_dets_mysql:
-            raise Exception, "No connection details available for MySQL"
+            raise Exception, u"No connection details available for MySQL"
         try:
-            conn_dets_mysql["use_unicode"] = True
+            conn_dets_mysql[u"use_unicode"] = True
             if self.db:
-                conn_dets_mysql["db"] = self.db
+                conn_dets_mysql[u"db"] = self.db
             conn = MySQLdb.connect(**conn_dets_mysql)
         except Exception, e:
-            raise Exception, "Unable to connect to MySQL db.  " + \
-                "Orig error: %s" % e
+            raise Exception, u"Unable to connect to MySQL db.  " + \
+                u"Orig error: %s" % e
         cur = conn.cursor() # must return tuples not dics        
         return conn, cur
             
@@ -72,11 +72,11 @@ class DbDets(getdata.DbDets):
         """
         self.debug = False
         if self.debug:
-            print("Received db is: %s" % self.db)
-            print("Received tbl is: %s" % self.tbl)
+            print(u"Received db is: %s" % self.db)
+            print(u"Received tbl is: %s" % self.tbl)
         conn, cur = self.get_conn_cur()
         # get database name
-        SQL_get_db_names = """SELECT SCHEMA_NAME 
+        SQL_get_db_names = u"""SELECT SCHEMA_NAME 
             FROM information_schema.SCHEMATA
             WHERE SCHEMA_NAME <> 'information_schema'"""
         cur.execute(SQL_get_db_names)
@@ -94,13 +94,13 @@ class DbDets(getdata.DbDets):
             # need to reset conn and cur
             cur.close()
             conn.close()
-            conn_dets_mysql["db"] = self.db
+            conn_dets_mysql[u"db"] = self.db
             conn = MySQLdb.connect(**conn_dets_mysql)
             cur = conn.cursor()
         else:
             if self.db.lower() not in dbs_lc:
-                raise Exception, "Database \"%s\" not available " % self.db + \
-                    "from supplied connection"
+                raise Exception, u"Database \"%s\" not available " % self.db + \
+                    u"from supplied connection"
         if self.debug: pprint.pprint(self.conn_dets)
         # get table names
         tbls = self.getDbTbls(cur, self.db)
@@ -116,18 +116,18 @@ class DbDets(getdata.DbDets):
                 try:
                     self.tbl = tbls[0]
                 except IndexError:
-                    raise Exception, "No tables found in database \"%s\"" % \
+                    raise Exception, u"No tables found in database \"%s\"" % \
                         self.db
         else:
             if self.tbl.lower() not in tbls_lc:
-                raise Exception, "Table \"%s\" not found in database \"%s\"" % \
-                    (self.tbl, self.db)
+                raise Exception, u"Table \"%s\" not found " % self.tbl + \
+                    u"in database \"%s\"" % self.db
         # get field names (from first table if none provided)
         flds = self.getTblFlds(cur, self.db, self.tbl)
         has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
         if self.debug:
-            print("Db is: %s" % self.db)
-            print("Tbl is: %s" % self.tbl)
+            print(u"Db is: %s" % self.db)
+            print(u"Tbl is: %s" % self.tbl)
             pprint.pprint(tbls)
             pprint.pprint(flds)
             pprint.pprint(idxs)
@@ -135,7 +135,7 @@ class DbDets(getdata.DbDets):
     
     def getDbTbls(self, cur, db):
         "Get table names given database and cursor"
-        SQL_get_tbl_names = """SELECT TABLE_NAME 
+        SQL_get_tbl_names = u"""SELECT TABLE_NAME 
             FROM information_schema.TABLES
             WHERE TABLE_SCHEMA = '%s'
             UNION SELECT TABLE_NAME
@@ -239,11 +239,11 @@ class DbDets(getdata.DbDets):
         numeric_full_lst = []
         for num_type in numeric_lst:
             numeric_full_lst.append(num_type)
-            numeric_full_lst.append("%s unsigned" % num_type)
-        numeric_IN_clause = "('" + "', '".join(numeric_full_lst) + "')"
+            numeric_full_lst.append(u"%s unsigned" % num_type)
+        numeric_IN_clause = u"('" + u"', '".join(numeric_full_lst) + u"')"
         """SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME="" 
             AND TABLE_SCHEMA = "" """
-        SQL_get_fld_dets = """SELECT 
+        SQL_get_fld_dets = u"""SELECT 
             COLUMN_NAME,
                 ORDINAL_POSITION - 1
             AS ord_pos,
@@ -276,7 +276,7 @@ class DbDets(getdata.DbDets):
         for (fld_name, ord_pos, nullable, fld_default, fld_type, max_len, 
                  charset, numeric, autonum, dec_pts, num_prec, col_type, 
                  boldatetime, timestamp) in fld_dets:
-            bolnullable = True if nullable == "YES" else False
+            bolnullable = True if nullable == u"YES" else False
             boldata_entry_ok = False if (autonum or timestamp) else True
             bolnumeric = True if numeric else False
             fld_txt = not bolnumeric and not boldatetime
@@ -308,7 +308,7 @@ class DbDets(getdata.DbDets):
         idxs = [idx0, idx1, ...]
         each idx is a dict name, is_unique, flds
         """
-        SQL_get_index_dets = """SELECT 
+        SQL_get_index_dets = u"""SELECT 
             INDEX_NAME, 
                 GROUP_CONCAT(COLUMN_NAME) 
             AS fld_names,
@@ -349,13 +349,13 @@ def InsertRow(conn, cur, tbl_name, data):
     # pprint.pprint(data)
     fld_dics = [x[2] for x in data]
     fld_names = [x[1] for x in data]
-    fld_names_clause = " (`" + "`, `".join(fld_names) + "`) "
+    fld_names_clause = u" (`" + u"`, `".join(fld_names) + u"`) "
     # e.g. (`fname`, `lname`, `dob` ...)
     fld_placeholders_clause = " (" + \
-        ", ".join(["%s" for x in range(len(data))]) + ") "
+        u", ".join([u"%s" for x in range(len(data))]) + u") "
     # e.g. " (%s, %s, %s ...) "
-    SQL_insert = "INSERT INTO `%s` " % tbl_name + fld_names_clause + \
-        "VALUES %s" % fld_placeholders_clause
+    SQL_insert = u"INSERT INTO `%s` " % tbl_name + fld_names_clause + \
+        u"VALUES %s" % fld_placeholders_clause
     if debug: print(SQL_insert)
     data_lst = []
     for i, data_dets in enumerate(data):
@@ -371,9 +371,9 @@ def InsertRow(conn, cur, tbl_name, data):
         conn.commit()
         return True, None
     except Exception, e:
-        if debug: print("Failed to insert row.  SQL: %s, Data: %s" %
-            (SQL_insert, unicode(data_tup)) + "\n\nOriginal error: %s" % e)
-        return False, "%s" % e
+        if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
+            (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
+        return False, u"%s" % e
 
 def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""
@@ -463,23 +463,23 @@ def setConnDetDefaults(parent):
     try:
         parent.mysql_default_db
     except AttributeError:
-        parent.mysql_default_db = ""
+        parent.mysql_default_db = u""
     try:
         parent.mysql_default_tbl
     except AttributeError: 
-        parent.mysql_default_tbl = ""
+        parent.mysql_default_tbl = u""
     try:
         parent.mysql_host
     except AttributeError: 
-        parent.mysql_host = ""
+        parent.mysql_host = u""
     try:
         parent.mysql_user
     except AttributeError: 
-        parent.mysql_user = ""
+        parent.mysql_user = u""
     try:            
         parent.mysql_pwd
     except AttributeError: 
-        parent.mysql_pwd = ""
+        parent.mysql_pwd = u""
     
 def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     mysql_default_db = parent.txtMysqlDefaultDb.GetValue()

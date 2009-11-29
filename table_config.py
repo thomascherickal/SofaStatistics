@@ -15,7 +15,7 @@ def insert_data(row_idx, grid_data):
     nums_used = []
     existing_var_names = [x[0] for x in grid_data]
     for var_name in existing_var_names:
-        if not var_name.startswith("var"):
+        if not var_name.startswith(u"var"):
             continue
         try:
             num_used = int(var_name[-3:])
@@ -23,7 +23,7 @@ def insert_data(row_idx, grid_data):
             continue
         nums_used.append(num_used)
     free_num = max(nums_used) + 1 if nums_used else 1
-    row_data = ["var%03i" % free_num, my_globals.CONF_NUMERIC]
+    row_data = [u"var%03i" % free_num, my_globals.CONF_NUMERIC]
     return row_data
 
 def cell_invalidation(row, col, grid, col_dets):
@@ -37,7 +37,7 @@ def cell_invalidation(row, col, grid, col_dets):
     elif col == 1:
         return _invalid_fld_type(row, grid)
     else:
-        raise Exception, "Two many columns for default cell invalidation test"
+        raise Exception, u"Two many columns for default cell invalidation test"
 
 def _invalid_fld_name(row, grid):
     "Return boolean and string message"
@@ -47,7 +47,7 @@ def _invalid_fld_name(row, grid):
             continue
         other_fld_names.append(grid.GetCellValue(row=i, col=0))
     field_name = grid.GetCellValue(row=row, col=0)
-    if field_name.strip() == "":
+    if field_name.strip() == u"":
         return False, ""
     if not dbe_sqlite.valid_name(field_name):
         msg = _("Field names can only contain letters, numbers, and "
@@ -56,18 +56,18 @@ def _invalid_fld_name(row, grid):
     if field_name in other_fld_names:
         msg = _("%s has already been used as a field name") % field_name
         return True, msg
-    return False, ""
+    return False, u""
 
 def _invalid_fld_type(row, grid):
     "Return boolean and string message"
     field_type = grid.GetCellValue(row=row, col=1)
-    if field_type.strip() == "":
+    if field_type.strip() == u"":
         return False, ""
     if field_type not in [my_globals.CONF_NUMERIC, my_globals.CONF_STRING, 
                           my_globals.CONF_DATE]:
         msg = _("%s is not a valid field type") % field_type
         return True, msg
-    return False, ""
+    return False, u""
 
 def ValidateTblName(tbl_name):
     "Returns boolean plus string message"
@@ -81,7 +81,7 @@ def ValidateTblName(tbl_name):
         msg = _("Cannot use this name.  A table named \"%s\" already exists in"
                 " the default SOFA database") % tbl_name
         return False, msg
-    return True, ""
+    return True, u""
 
 class SafeTblNameValidator(wx.PyValidator):
     def __init__(self):
@@ -164,7 +164,7 @@ class ConfigTable(settings_grid.TableEntryDlg):
         # New controls
         lblTblLabel = wx.StaticText(self.panel, -1, _("Table Name:"))
         lblTblLabel.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        tbl_name = tbl_name_lst[0] if tbl_name_lst else _("table") + "001"
+        tbl_name = tbl_name_lst[0] if tbl_name_lst else _("table") + u"001"
         self.txtTblName = wx.TextCtrl(self.panel, -1, tbl_name, size=(250,-1))
         self.txtTblName.Enable(not self.readonly)
         self.txtTblName.SetValidator(SafeTblNameValidator())

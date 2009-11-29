@@ -171,7 +171,7 @@ class DataSelectDlg(wx.Dialog):
         "Numeric", "Date", "String".
         Only works for an SQLite database (should be the default one).
         """
-        self.cur.execute("PRAGMA table_info(%s)" % tbl_name)
+        self.cur.execute(u"PRAGMA table_info(%s)" % tbl_name)
         table_config = [(x[1], self._getGenFldType(fld_type=x[2])) for x in
                          self.cur.fetchall()]
         return table_config
@@ -219,18 +219,18 @@ class DataSelectDlg(wx.Dialog):
         # with data imported.
         # Only interested in SQLite when making a fresh SOFA table
         tbl_name = tbl_name_lst[0]
-        fld_clause_items = ["sofa_id INTEGER PRIMARY KEY"]
+        fld_clause_items = [u"sofa_id INTEGER PRIMARY KEY"]
         gen2sqlite_dic = {my_globals.CONF_NUMERIC: "REAL",
                           my_globals.CONF_STRING: "TEXT",
                           my_globals.CONF_DATE: "DATETIME",
                           }
         for fld_name, fld_type in new_grid_data:
-            if debug: print("%s %s" % (fld_name, fld_type))
-            fld_clause_items.append("%s %s" % (dbe_sqlite.quote_obj(fld_name), 
-                                               gen2sqlite_dic[fld_type]))
-        fld_clause_items.append("UNIQUE(sofa_id)")
-        fld_clause = ", ".join(fld_clause_items)
-        SQL_make_tbl = """CREATE TABLE "%s" (%s)""" % (tbl_name, fld_clause)
+            if debug: print(u"%s %s" % (fld_name, fld_type))
+            fld_clause_items.append(u"%s %s" % (dbe_sqlite.quote_obj(fld_name), 
+                                                gen2sqlite_dic[fld_type]))
+        fld_clause_items.append(u"UNIQUE(sofa_id)")
+        fld_clause = u", ".join(fld_clause_items)
+        SQL_make_tbl = u"""CREATE TABLE "%s" (%s)""" % (tbl_name, fld_clause)
         conn = dbe_sqlite.get_conn(self.conn_dets, my_globals.SOFA_DEFAULT_DB)
         cur = conn.cursor()
         cur.execute(SQL_make_tbl)

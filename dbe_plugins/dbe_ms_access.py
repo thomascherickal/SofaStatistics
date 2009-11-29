@@ -28,19 +28,19 @@ MSACCESS_DEFAULT_DB = "msaccess_default_db"
 MSACCESS_DEFAULT_TBL = "msaccess_default_tbl"
 
 def quote_obj(raw_val):
-    return "[%s]" % raw_val
+    return u"[%s]" % raw_val
 
 def quote_val(raw_val):
-    return "'%s'" % raw_val.replace("'", "''") # escape internal single quotes
+    return u"'%s'" % raw_val.replace("'", "''") # escape internal single quotes
 
 def get_placeholder():
-    return "?"
+    return u"?"
 
 def get_summable(clause):
-    return "ABS(%s)" % clause # true is -1 so we need to get sum of +1s
+    return u"ABS(%s)" % clause # true is -1 so we need to get sum of +1s
 
 def DbeSyntaxElements():
-    if_clause = "IIF(%s, %s, %s)"
+    if_clause = u"IIF(%s, %s, %s)"
     return (if_clause, quote_obj, quote_val, get_placeholder, get_summable)
 
     
@@ -59,7 +59,7 @@ class DbDets(getdata.DbDets):
         # get connection details for appropriate database
         conn_dets_access = self.conn_dets.get(my_globals.DBE_MS_ACCESS)
         if not conn_dets_access:
-            raise Exception, "No connection details available for MS Access"
+            raise Exception, u"No connection details available for MS Access"
         # get the (only) database and use it to get the connection details
         if not self.db:
             # use default if possible, or fall back to random
@@ -68,28 +68,28 @@ class DbDets(getdata.DbDets):
                 self.db = default_db_access
             else:
                 # conn_dets_access[0]["database"] e.g. u'C:\\mydata\\data.mdb'
-                full_db_path = conn_dets_access[0]["database"]
+                full_db_path = conn_dets_access[0][u"database"]
                 self.db = os.path.split(full_db_path)[1]
         if not conn_dets_access.get(self.db):
-            raise Exception, "No connections for MS Access database %s" % \
+            raise Exception, u"No connections for MS Access database %s" % \
                 self.db
         conn_dets_access_db = conn_dets_access[self.db]
         """DSN syntax - http://support.microsoft.com/kb/193332 and 
         http://www.codeproject.com/database/connectionstrings.asp ...
         ... ?df=100&forumid=3917&exp=0&select=1598401"""
-        database = conn_dets_access_db["database"]
-        user = conn_dets_access_db["user"]
-        pwd = conn_dets_access_db["pwd"]
-        mdw = conn_dets_access_db["mdw"]
-        DSN = """PROVIDER=Microsoft.Jet.OLEDB.4.0;DATA SOURCE=%s;
+        database = conn_dets_access_db[u"database"]
+        user = conn_dets_access_db[u"user"]
+        pwd = conn_dets_access_db[u"pwd"]
+        mdw = conn_dets_access_db[u"mdw"]
+        DSN = u"""PROVIDER=Microsoft.Jet.OLEDB.4.0;DATA SOURCE=%s;
             USER ID=%s;PASSWORD=%s;Jet OLEDB:System Database=%s;""" % \
             (database, user, pwd, mdw)
         try:
             conn = adodbapi.connect(connstr=DSN)
         except Exception, e:
-            raise Exception, "Unable to connect to MS Access database " + \
-                "using supplied database: %s, user: %s, " % (database, user) + \
-                "pwd: %s, or mdw: %s.  Orig error: %s" % (pwd, mdw, e)
+            raise Exception, u"Unable to connect to MS Access database " + \
+               u"using supplied database: %s, user: %s, " % (database, user) + \
+               u"pwd: %s, or mdw: %s.  Orig error: %s" % (pwd, mdw, e)
         cur = conn.cursor() # must return tuples not dics
         cur.adoconn = conn.adoConn # (need to access from just the cursor)
         return conn, cur
@@ -122,8 +122,8 @@ class DbDets(getdata.DbDets):
                 self.tbl = tbls[0]
         else:
             if self.tbl.lower() not in tbls_lc:
-                raise Exception, "Table \"%s\" not found in database \"%s\"" % \
-                    (self.tbl, self.db)
+                raise Exception, u"Table \"%s\" not found " % self.tbl + \
+                    u"in database \"%s\"" % self.db
         # get field names (from first table if none provided)
         flds = self.getTblFlds(cur, self.db, self.tbl)
         has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
@@ -144,7 +144,7 @@ class DbDets(getdata.DbDets):
         alltables = cat.Tables
         tbls = []
         for tab in alltables:
-            if tab.Type == 'TABLE':
+            if tab.Type == u"TABLE":
                 tbls.append(tab.Name)
         cat = None
         return tbls
@@ -167,9 +167,9 @@ class DbDets(getdata.DbDets):
         extras = {}
         rs = cur.adoconn.OpenSchema(AD_SCHEMA_COLUMNS, (None, None, tbl)) 
         while not rs.EOF:
-            fld_name = rs.Fields("COLUMN_NAME").Value
-            ord_pos = rs.Fields("ORDINAL_POSITION").Value
-            char_set = rs.Fields("CHARACTER_SET_NAME").Value
+            fld_name = rs.Fields(u"COLUMN_NAME").Value
+            ord_pos = rs.Fields(u"ORDINAL_POSITION").Value
+            char_set = rs.Fields(u"CHARACTER_SET_NAME").Value
             extras[fld_name] = (ord_pos, char_set)
             rs.MoveNext()
         flds = {}
@@ -178,8 +178,9 @@ class DbDets(getdata.DbDets):
             fld_name = col.Name            
             fld_type = dbe_globals.getADODic().get(col.Type)
             if not fld_type:
-                raise Exception, "Not an MS Access ADO field type %d" % col.Type
-            bolautonum = col.Properties("AutoIncrement").Value
+                raise Exception, 
+                    u"Not an MS Access ADO field type %d" % col.Type
+            bolautonum = col.Properties(u"AutoIncrement").Value
             boldata_entry_ok = False if bolautonum else True
             bolnumeric = fld_type in dbe_globals.NUMERIC_TYPES
             dec_pts = col.NumericScale if col.NumericScale < 18 else 0
@@ -190,9 +191,9 @@ class DbDets(getdata.DbDets):
                                                      dec_pts)
             dets_dic = {
                 my_globals.FLD_SEQ: extras[fld_name][0],
-                my_globals.FLD_BOLNULLABLE: col.Properties("Nullable").Value,
+                my_globals.FLD_BOLNULLABLE: col.Properties(u"Nullable").Value,
                 my_globals.FLD_DATA_ENTRY_OK: boldata_entry_ok,
-                my_globals.FLD_COLUMN_DEFAULT: col.Properties("Default").Value,
+                my_globals.FLD_COLUMN_DEFAULT: col.Properties(u"Default").Value,
                 my_globals.FLD_BOLTEXT: fld_txt,
                 my_globals.FLD_TEXT_LENGTH: col.DefinedSize,
                 my_globals.FLD_CHARSET: extras[fld_name][1],
@@ -251,13 +252,13 @@ def InsertRow(conn, cur, tbl_name, data):
     if debug: pprint.pprint(data)
     fld_dics = [x[2] for x in data]
     fld_names = [x[1] for x in data]
-    fld_names_clause = " ([" + "], [".join(fld_names) + "]) "
+    fld_names_clause = u" ([" + u"], [".join(fld_names) + u"]) "
     # e.g. (`fname`, `lname`, `dob` ...)
     fld_placeholders_clause = " (" + \
-        ", ".join(["%s" for x in range(len(data))]) + ") "
+        u", ".join([u"%s" for x in range(len(data))]) + u") "
     # e.g. " (%s, %s, %s ...) "
-    SQL_insert = "INSERT INTO `%s` " % tbl_name + fld_names_clause + \
-        "VALUES %s" % fld_placeholders_clause
+    SQL_insert = u"INSERT INTO `%s` " % tbl_name + fld_names_clause + \
+        u"VALUES %s" % fld_placeholders_clause
     if debug: print(SQL_insert)
     data_lst = []
     for i, data_dets in enumerate(data):
@@ -272,9 +273,9 @@ def InsertRow(conn, cur, tbl_name, data):
         conn.commit()
         return True, None
     except Exception, e:
-        if debug: print("Failed to insert row.  SQL: %s, Data: %s" %
-            (SQL_insert, unicode(data_tup)) + "\n\nOriginal error: %s" % e)
-        return False, "%s" % e
+        if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
+            (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
+        return False, u"%s" % e
 
 def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""
@@ -360,11 +361,11 @@ def setConnDetDefaults(parent):
     try:
         parent.msaccess_default_db
     except AttributeError:
-        parent.msaccess_default_db = ""
+        parent.msaccess_default_db = u""
     try:
         parent.msaccess_default_tbl
     except AttributeError:
-        parent.msaccess_default_tbl = ""
+        parent.msaccess_default_tbl = u""
     try:
         parent.msaccess_data
     except AttributeError:
@@ -392,10 +393,10 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
             db_path = msaccess_setting[0]
             db_name = util.getFileName(db_path)
             new_msaccess_dic = {}
-            new_msaccess_dic["database"] = db_path
-            new_msaccess_dic["mdw"] = msaccess_setting[1]
-            new_msaccess_dic["user"] = msaccess_setting[2]
-            new_msaccess_dic["pwd"] = msaccess_setting[3]
+            new_msaccess_dic[u"database"] = db_path
+            new_msaccess_dic[u"mdw"] = msaccess_setting[1]
+            new_msaccess_dic[u"user"] = msaccess_setting[2]
+            new_msaccess_dic[u"pwd"] = msaccess_setting[3]
             conn_dets_msaccess[db_name] = new_msaccess_dic
         conn_dets[my_globals.DBE_MS_ACCESS] = conn_dets_msaccess
     return incomplete_msaccess, has_msaccess_conn

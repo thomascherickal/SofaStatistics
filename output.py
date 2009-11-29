@@ -165,8 +165,8 @@ def getHtmlHdr(hdr_title, css_fils):
             css_txt = f.read()
             for css_class in my_globals.CSS_ELEMENTS:
                 # suffix all report-relevant css entities so distinct
-                old_class = "." + css_class
-                new_class = "." + \
+                old_class = u"." + css_class
+                new_class = u"." + \
                     my_globals.CSS_SUFFIX_TEMPLATE % (css_class, i)
                 if debug: print(old_class, new_class)
                 css_txt = css_txt.replace(old_class, new_class)
@@ -180,7 +180,7 @@ def getHtmlHdr(hdr_title, css_fils):
 
 def getHtmlFtr():
     "Close HTML off cleanly"
-    return "</body></html>"
+    return u"</body></html>"
 
 # The rest is GUI -> script oriented code
 
@@ -208,7 +208,7 @@ def GetCssDets(fil_report, fil_css):
                 css_fils_str = content[idx_start: idx_end]
                 css_dets_dic = {}
                 exec css_fils_str in css_dets_dic
-                css_fils = css_dets_dic["css_fils"]
+                css_fils = css_dets_dic[u"css_fils"]
             except Exception:
                 pass
     if not css_fils:
@@ -252,13 +252,13 @@ def ExportScript(script, fil_script, fil_report, css_fils, conn_dets, dbe, db,
     f.close()
 
 def AddDividerCode(f, db, tbl):
-    f.write("source = output.GetSource(\"%s\", \"%s\")" % (db, tbl))
-    f.write("\n" + "divider = output.GetDivider(source)")
-    f.write("\n" + "fil.write(divider)\n")
+    f.write(u"source = output.GetSource(\"%s\", \"%s\")" % (db, tbl))
+    f.write(u"\n" + u"divider = output.GetDivider(source)")
+    f.write(u"\n" + u"fil.write(divider)\n")
 
 def GetSource(db, tbl_name):
     datestamp = datetime.now().strftime("on %d/%m/%Y at %I:%M %p")
-    source = "\n" + "<p>From %s.%s %s</p>" % (db, tbl_name, datestamp)
+    source = u"\n" + u"<p>From %s.%s %s</p>" % (db, tbl_name, datestamp)
     return source
 
 def RunReport(modules, fil_report, add_to_report, css_fils, inner_script, 
@@ -298,7 +298,7 @@ def RunReport(modules, fil_report, add_to_report, css_fils, inner_script,
     # append into html file
     if add_to_report:
         SaveToReport(fil_report, css_fils, source, strContent)
-        strContent = "\n" + "<p>Output also saved to '%s'</p>" % \
+        strContent = u"\n" + u"<p>Output also saved to '%s'</p>" % \
             util.escape_win_path(fil_report) + source + strContent
     return strContent
 
@@ -315,22 +315,22 @@ def InsertPrelimCode(modules, f, fil_report, css_fils):
     # try to run the script as a unicode string
     # else "encoding declaration in Unicode string".
     f.write(my_globals.PYTHON_ENCODING_DECLARATION)
-    f.write("\n" + my_globals.MAIN_SCRIPT_START)
-    f.write("\n" + "import codecs")
-    f.write("\n" + "import sys")
-    f.write("\n" + "import gettext")
-    f.write("\n" + "gettext.install('sofa', './locale', unicode=False)")
-    f.write("\n" + "sys.path.append(u'%s')" % \
+    f.write(u"\n" + my_globals.MAIN_SCRIPT_START)
+    f.write(u"\n" + u"import codecs")
+    f.write(u"\n" + u"import sys")
+    f.write(u"\n" + u"import gettext")
+    f.write(u"\n" + u"gettext.install('sofa', './locale', unicode=False)")
+    f.write(u"\n" + u"sys.path.append(u'%s')" % \
             util.escape_win_path(my_globals.SCRIPT_PATH))
     for module in modules:
-        f.write("\n" + "import %s" % module)
-    f.write("\n" + "\n" + """fil = codecs.open(u"%s",""" % \
-              util.escape_win_path(fil_report) + """ "w", "utf-8")""")
+        f.write(u"\n" + u"import %s" % module)
+    f.write(u"\n" + u"\n" + u"""fil = codecs.open(u"%s",""" % \
+              util.escape_win_path(fil_report) + u""" "w", "utf-8")""")
     css_fils_str = pprint.pformat(css_fils)
-    f.write("\n" + "css_fils=%s" % css_fils_str)
-    f.write("\n" + "fil.write(output.getHtmlHdr(\"Report(s)\", "
-              "css_fils))" + "\n" + "\n")
-    f.write("# end of script 'header'" + "\n" + "\n")
+    f.write(u"\n" + u"css_fils=%s" % css_fils_str)
+    f.write(u"\n" + u"fil.write(output.getHtmlHdr(\"Report(s)\", "
+              u"css_fils))" + u"\n" + u"\n")
+    f.write(u"# end of script 'header'" + u"\n" + u"\n")
     
 def AppendExportedScript(f, inner_script, conn_dets, dbe, db, tbl_name, 
                          default_dbs, default_tbls, add_divider_code=False):
@@ -340,36 +340,36 @@ def AppendExportedScript(f, inner_script, conn_dets, dbe, db, tbl_name,
     """
     datestamp = datetime.now().strftime("Script exported %d/%m/%Y at %I:%M %p")
     # Fresh connection for each in case it changes in between tables
-    f.write("#%s" % ("-"*50))
-    f.write("\n" + "# %s" % datestamp)
+    f.write(u"#%s" % (u"-"*50))
+    f.write(u"\n" + u"# %s" % datestamp)
     if add_divider_code:
         AddDividerCode(f, db, tbl_name)
     conn_dets_str = pprint.pformat(conn_dets)
-    f.write("\n" + "conn_dets = %s" % conn_dets_str)
+    f.write(u"\n" + u"conn_dets = %s" % conn_dets_str)
     default_dbs_str = pprint.pformat(default_dbs)
-    f.write("\n" + "default_dbs = %s" % default_dbs_str)
+    f.write(u"\n" + u"default_dbs = %s" % default_dbs_str)
     default_tbls_str = pprint.pformat(default_tbls)
-    f.write("\n" + "default_tbls = %s" % default_tbls_str)
-    f.write("\n" + \
-        "conn, cur, dbs, tbls, flds, has_unique, idxs = \\" + \
-        "\n" + "    getdata.getDbDetsObj(\"%s\", " % dbe + \
-        "default_dbs, default_tbls, conn_dets=conn_dets," + \
-        "\n" + "    db=\"%s\", tbl=\"%s\")" % (db, tbl_name) + \
-        ".getDbDets()")
-    f.write("\n" + "%s" % inner_script)
-    f.write("\n" + "conn.close()")
+    f.write(u"\n" + u"default_tbls = %s" % default_tbls_str)
+    f.write(u"\n" + \
+        u"conn, cur, dbs, tbls, flds, has_unique, idxs = \\" + \
+        u"\n" + "    getdata.getDbDetsObj(\"%s\", " % dbe + \
+        u"default_dbs, default_tbls, conn_dets=conn_dets," + \
+        u"\n" + "    db=\"%s\", tbl=\"%s\")" % (db, tbl_name) + \
+        u".getDbDets()")
+    f.write(u"\n" + u"%s" % inner_script)
+    f.write(u"\n" + u"conn.close()")
 
 def _strip_html(html):
     """
     Get html between the <body></body> tags.  The start tag must be present.
     """
-    body_start = "<body>"
-    body_end = "</body>"
+    body_start = u"<body>"
+    body_end = u"</body>"
     try:
         start_idx = html.index(body_start) + len(body_start)
     except ValueError:
-        raise Exception, ("Unable to process malformed HTML.  "
-                          "Original HTML: %s" % html)
+        raise Exception, (u"Unable to process malformed HTML.  "
+                          u"Original HTML: %s" % html)
     try:
         end_idx = html.index(body_end)
         stripped = html[start_idx:end_idx]
@@ -382,7 +382,7 @@ def GetDivider(source):
     Get the HTML divider between content -includes source e.g. database, table 
         and time stamp.
     """
-    return "\n" + "<br><br>" + "\n" + "<hr>" + "\n" + source
+    return u"\n" + u"<br><br>" + u"\n" + u"<hr>" + u"\n" + source
 
 def SaveToReport(fil_report, css_fils, source, new_html):
     """
@@ -405,7 +405,7 @@ def SaveToReport(fil_report, css_fils, source, new_html):
     hdr = getHtmlHdr(hdr_title, css_fils)
     f = codecs.open(fil_report, "w", "utf-8")
     css_fils_str = pprint.pformat(css_fils)
-    f.write("<!--css_fils = %s-->\n\n" % css_fils_str)
+    f.write(u"<!--css_fils = %s-->\n\n" % css_fils_str)
     f.write(hdr)
     if existing_no_ends:
         f.write(existing_no_ends)
@@ -416,10 +416,10 @@ def SaveToReport(fil_report, css_fils, source, new_html):
 
 def AddClosingScriptCode(f):
     "Add ending code to script.  Nb leaves open file."
-    f.write("\n" + "\n" + my_globals.SCRIPT_END + \
-            "-"*(50 - len(my_globals.SCRIPT_END)) + "\n")
-    f.write("\n" + "fil.write(output.getHtmlFtr())")
-    f.write("\n" + "fil.close()")
+    f.write(u"\n" + u"\n" + my_globals.SCRIPT_END + \
+            u"-"*(50 - len(my_globals.SCRIPT_END)) + u"\n")
+    f.write(u"\n" + u"fil.write(output.getHtmlFtr())")
+    f.write(u"\n" + u"fil.close()")
 
 def DisplayReport(parent, strContent):
     # display results

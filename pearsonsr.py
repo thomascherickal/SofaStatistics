@@ -35,21 +35,21 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         "Build script from inputs"
         script_lst = []
         var_a, label_a, var_b, label_b = self.GetDropVals()
-        script_lst.append("sample_a, sample_b = " + \
-            "core_stats.get_paired_lists(" + \
-            "dbe=\"%s\", " % self.dbe + \
-            "cur=cur, tbl=\"%s\",\n    " % self.tbl + \
-            "fld_a=\"%s\", " % var_a + \
-            "fld_b=\"%s\")" % var_b)
-        script_lst.append("dp = 3")
-        script_lst.append("label_a = \"%s\"" % label_a)
-        script_lst.append("label_b = \"%s\"" % label_b)
-        script_lst.append("r, p = " + \
-            "core_stats.pearsonr(sample_a, sample_b)")
-        script_lst.append("pearsonsr_output = " + \
-                          "stats_output.pearsonsr_output(" + \
-            "r, p, label_a, label_b, dp=dp,\n    " + \
-            "level=my_globals.OUTPUT_RESULTS_ONLY, " + \
-            "css_idx=%s, page_break_after=False)" % css_idx)
-        script_lst.append("fil.write(pearsonsr_output)")
-        return "\n".join(script_lst)
+        script_lst.append(u"sample_a, sample_b = " + \
+            u"core_stats.get_paired_lists(" + \
+            u"dbe=\"%s\", " % self.dbe + \
+            u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
+            u"fld_a=\"%s\", " % var_a + \
+            u"fld_b=\"%s\")" % var_b)
+        script_lst.append(u"dp = 3")
+        script_lst.append(u"label_a = \"%s\"" % label_a)
+        script_lst.append(u"label_b = \"%s\"" % label_b)
+        script_lst.append(u"r, p = " + \
+            u"core_stats.pearsonr(sample_a, sample_b)")
+        script_lst.append(u"pearsonsr_output = " + \
+                          u"stats_output.pearsonsr_output(" + \
+            u"r, p, label_a, label_b, dp=dp,\n    " + \
+            u"level=my_globals.OUTPUT_RESULTS_ONLY, " + \
+            u"css_idx=%s, page_break_after=False)" % css_idx)
+        script_lst.append(u"fil.write(pearsonsr_output)")
+        return u"\n".join(script_lst)

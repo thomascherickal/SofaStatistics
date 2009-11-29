@@ -36,28 +36,28 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         "Build script from inputs"
         script_lst = []
         var_a, label_a, var_b, label_b = self.GetDropVals()
-        script_lst.append("dp = 3")
-        script_lst.append("var_label_a = \"%s\"" % label_a)
-        script_lst.append("var_label_b = \"%s\"" % label_b)
-        script_lst.append("chisq, p, vals_a, vals_b, lst_obs, lst_exp, " + \
-            "min_count, perc_cells_lt_5, df = \\\n" + \
-            "    core_stats.pearsons_chisquare(dbe=\"%s\", " % self.dbe + \
-            "cur=cur, tbl=\"%s\"," % self.tbl + \
-            "\n    flds=flds, fld_a=\"%s\", fld_b=\"%s\")" % (var_a, var_b))
+        script_lst.append(u"dp = 3")
+        script_lst.append(u"var_label_a = \"%s\"" % label_a)
+        script_lst.append(u"var_label_b = \"%s\"" % label_b)
+        script_lst.append(u"chisq, p, vals_a, vals_b, lst_obs, lst_exp, " + \
+            u"min_count, perc_cells_lt_5, df = \\\n" + \
+            u"    core_stats.pearsons_chisquare(dbe=\"%s\", " % self.dbe + \
+            u"cur=cur, tbl=\"%s\"," % self.tbl + \
+            u"\n    flds=flds, fld_a=\"%s\", fld_b=\"%s\")" % (var_a, var_b))
         val_dic_a = self.val_dics.get(var_a, {})
         val_dic_b = self.val_dics.get(var_b, {})
-        script_lst.append("val_dic_a = %s" % pprint.pformat(val_dic_a))
-        script_lst.append("val_dic_b = %s" % pprint.pformat(val_dic_b))
-        script_lst.append("val_labels_a = [val_dic_a.get(x, x) for " + \
-                          "x in vals_a]")
-        script_lst.append("val_labels_b = [val_dic_b.get(x, x) for " + \
-                          "x in vals_b]")        
-        script_lst.append("chisquare_output = " + \
-            "stats_output.chisquare_output(chisq, p, " + \
-            "var_label_a, var_label_b," + \
-            "\n    val_labels_a, val_labels_b," + \
-            "\n    lst_obs, lst_exp, min_count, perc_cells_lt_5, df, dp=dp," + \
-            "\n    level=my_globals.OUTPUT_RESULTS_ONLY, " + \
-            "css_idx=%s, page_break_after=False)" % css_idx)
-        script_lst.append("fil.write(chisquare_output)")
-        return "\n".join(script_lst)
+        script_lst.append(u"val_dic_a = %s" % pprint.pformat(val_dic_a))
+        script_lst.append(u"val_dic_b = %s" % pprint.pformat(val_dic_b))
+        script_lst.append(u"val_labels_a = [val_dic_a.get(x, x) for " + \
+                          u"x in vals_a]")
+        script_lst.append(u"val_labels_b = [val_dic_b.get(x, x) for " + \
+                          u"x in vals_b]")        
+        script_lst.append(u"chisquare_output = " + \
+            u"stats_output.chisquare_output(chisq, p, " + \
+            u"var_label_a, var_label_b," + \
+            u"\n    val_labels_a, val_labels_b," + \
+            u"\n    lst_obs, lst_exp, min_count, perc_cells_lt_5, df, dp=dp," + \
+            u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, " + \
+            u"css_idx=%s, page_break_after=False)" % css_idx)
+        script_lst.append(u"fil.write(chisquare_output)")
+        return u"\n".join(script_lst)

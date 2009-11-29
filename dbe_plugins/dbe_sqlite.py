@@ -12,41 +12,41 @@ import projects
 import settings_grid
 import util
 
-DEFAULT_DB = "sqlite_default_db"
-DEFAULT_TBL = "sqlite_default_tbl"
-NUMERIC_TYPES = ["integer", "float", "numeric", "real"]
-DATE_TYPES = ["date", "datetime", "time", "timestamp"]
+DEFAULT_DB = u"sqlite_default_db"
+DEFAULT_TBL = u"sqlite_default_tbl"
+NUMERIC_TYPES = [u"integer", u"float", u"numeric", u"real"]
+DATE_TYPES = [u"date", u"datetime", u"time", u"timestamp"]
 
 # http://www.sqlite.org/lang_keywords.html
 # The following is non-standard but will work
 def quote_obj(raw_val):
-    return "`%s`" % raw_val
+    return u"`%s`" % raw_val
 
 def quote_val(raw_val):
-    return "\"%s\"" % raw_val
+    return u"\"%s\"" % raw_val
 
 def get_placeholder():
-    return "?"
+    return u"?"
 
 def get_summable(clause):
     return clause
 
 def DbeSyntaxElements():
-    if_clause = "CASE WHEN %s THEN %s ELSE %s END"
+    if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
     return (if_clause, quote_obj, quote_val, get_placeholder, get_summable)
 
 def get_conn(conn_dets, db):
     conn_dets_sqlite = conn_dets.get(my_globals.DBE_SQLITE)
     if not conn_dets_sqlite:
-        raise Exception, "No connection details available for SQLite"
+        raise Exception, u"No connection details available for SQLite"
     if not conn_dets_sqlite.get(db):
-        raise Exception, "No connections for SQLite database %s" % db
+        raise Exception, u"No connections for SQLite database %s" % db
     try:
         conn = sqlite.connect(**conn_dets_sqlite[db])
     except Exception, e:
-        raise Exception, "Unable to connect to SQLite database " + \
-            "using supplied database: %s. " % db + \
-            "Orig error: %s" % e
+        raise Exception, u"Unable to connect to SQLite database " + \
+            u"using supplied database: %s. " % db + \
+            u"Orig error: %s" % e
     return conn
 
 
@@ -95,12 +95,12 @@ class DbDets(getdata.DbDets):
                 try:
                     self.tbl = tbls[0]
                 except IndexError:
-                    raise Exception, "No tables found in database \"%s\"" % \
+                    raise Exception, u"No tables found in database \"%s\"" % \
                         self.db
         else:
             if self.tbl.lower() not in tbls_lc:
-                raise Exception, "Table \"%s\" not found in database \"%s\"" % \
-                    (self.tbl, self.db)
+                raise Exception, u"Table \"%s\" not found " % self.tbl + \
+                    u"in database \"%s\"" % self.db
         # get field names (from first table if none provided)
         flds = self.getTblFlds(cur, self.db, self.tbl)
         has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
@@ -115,7 +115,7 @@ class DbDets(getdata.DbDets):
     
     def getDbTbls(self, cur, db):
         "Get table names given database and cursor"
-        SQL_get_tbl_names = """SELECT name 
+        SQL_get_tbl_names = u"""SELECT name 
             FROM sqlite_master 
             WHERE type = 'table'
             ORDER BY name"""
@@ -141,10 +141,10 @@ class DbDets(getdata.DbDets):
     def getTblFlds(self, cur, db, tbl):
         "http://www.sqlite.org/pragma.html"
         # get encoding
-        cur.execute("PRAGMA encoding")
+        cur.execute(u"PRAGMA encoding")
         encoding = cur.fetchone()[0]
         # get field details
-        cur.execute("PRAGMA table_info(%s)" % tbl)
+        cur.execute(u"PRAGMA table_info(%s)" % tbl)
         fld_dets = cur.fetchall() 
         flds = {}
         for cid, fld_name, fld_type, notnull, dflt_value, pk in fld_dets:
@@ -181,7 +181,7 @@ class DbDets(getdata.DbDets):
         each idx is a dict name, is_unique, flds
         """
         debug = False
-        cur.execute("PRAGMA index_list(\"%s\")" % tbl)
+        cur.execute(u"PRAGMA index_list(\"%s\")" % tbl)
         idx_lst = cur.fetchall() # [(seq, name, unique), ...]
         if debug: pprint.pprint(idx_lst)
         names_idx_name = 1
@@ -192,7 +192,7 @@ class DbDets(getdata.DbDets):
         if idx_lst:
             idx_names = [x[names_idx_name] for x in idx_lst]
             for i, idx_name in enumerate(idx_names):
-                cur.execute("PRAGMA index_info(\"%s\")" % idx_name)
+                cur.execute(u"PRAGMA index_info(\"%s\")" % idx_name)
                 # [(seqno, cid, name), ...]
                 flds_idx_names = 2
                 index_info = cur.fetchall()
@@ -229,8 +229,8 @@ def InsertRow(conn, cur, tbl_name, data):
     fld_placeholders_clause = " (" + \
         ", ".join(["?" for x in range(len(data))]) + ") "
     # e.g. " (?, ?, ? ...) "
-    SQL_insert = "INSERT INTO `%s` " % tbl_name + fld_names_clause + \
-        "VALUES %s" % fld_placeholders_clause
+    SQL_insert = u"INSERT INTO `%s` " % tbl_name + fld_names_clause + \
+        u"VALUES %s" % fld_placeholders_clause
     if debug: print(SQL_insert)
     data_lst = []
     for i, data_dets in enumerate(data):
@@ -244,9 +244,9 @@ def InsertRow(conn, cur, tbl_name, data):
         conn.commit()
         return True, None
     except Exception, e:
-        if debug: print("Failed to insert row.  SQL: %s, Data: %s" %
-            (SQL_insert, unicode(data_tup)) + "\n\nOriginal error: %s" % e)
-        return False, "%s" % e
+        if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
+            (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
+        return False, u"%s" % e
 
 def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""
@@ -301,11 +301,11 @@ def setConnDetDefaults(parent):
     try:            
         parent.sqlite_default_db
     except AttributeError: 
-        parent.sqlite_default_db = ""
+        parent.sqlite_default_db = u""
     try:
         parent.sqlite_default_tbl
     except AttributeError: 
-        parent.sqlite_default_tbl = ""
+        parent.sqlite_default_tbl = u""
     try:
         parent.sqlite_data
     except AttributeError: 
@@ -345,6 +345,6 @@ def valid_name(name):
     # only allow alphanumeric and underscores
     for char in name:
         if char not in string.letters and char not in string.digits \
-                and char != "_":
+                and char != u"_":
             return False
     return True

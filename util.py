@@ -167,9 +167,6 @@ def get_script_path():
     """
     return sys.path[0]
 
-def get_local_path():
-    return "%s/sofa" % os.getenv('HOME')
-
 def escape_win_path(path):
     "Useful when writing a path to a text file"
     return path.replace("\\", "\\\\")

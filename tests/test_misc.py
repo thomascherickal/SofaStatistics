@@ -138,16 +138,18 @@ def test_make_fld_val_clause():
 
 def test_get_unicode():
     tests = [(r"C:\abcd\defg\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
-             ("C:\\abcd\\defg\\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
-             (u"C:\\abcd\\defg\\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
-             (u"C:\\unicodebait\\foo.txt", u"C:\\unicodebait\\foo.txt"),
-             (u"C:\\Identität\\foo.txt", u"C:\\Identität\\foo.txt"),
-             (r"/home/g/abcd/foo.txt", u"/home/g/abcd/foo.txt"),
-             ("/home/g/abcd/foo.txt", u"/home/g/abcd/foo.txt"),
-             (u"/home/René/abcd/foo.txt", u"/home/René/abcd/foo.txt"),
-             (u"/home/Identität/abcd/foo.txt", u"/home/Identität/abcd/foo.txt"),
-             (u"/home/François/abcd/foo.txt", u"/home/François/abcd/foo.txt"),
-             (u"\x93fred\x94", u"\u201Cfred\u201D"),
+     ("C:\\abcd\\defg\\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
+     (u"C:\\abcd\\defg\\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
+     (u"C:\\unicodebait\\foo.txt", u"C:\\unicodebait\\foo.txt"),
+     (u"C:\\Identität\\foo.txt", u"C:\\Identität\\foo.txt"),
+     (r"/home/g/abcd/foo.txt", u"/home/g/abcd/foo.txt"),
+     ("/home/g/abcd/foo.txt", u"/home/g/abcd/foo.txt"),
+     (u"/home/René/abcd/foo.txt", u"/home/René/abcd/foo.txt"),
+     (u"/home/Identität/abcd/foo.txt", u"/home/Identität/abcd/foo.txt"),
+     (u"/home/François/abcd/foo.txt", u"/home/François/abcd/foo.txt"),
+     (u"\x93fred\x94", u"\u201Cfred\u201D"),
+     (r"C:\Documents and Settings\Παντελής\sofa\_internal", 
+      u'C:\\Documents and Settings\\\u03a0\u03b1\u03bd\u03c4\u03b5\u03bb\u03ae\u03c2\\sofa\\_internal')
              ]
     for test in tests:
         assert_equal(util.get_unicode(test[0]), test[1])

@@ -11,9 +11,10 @@ import util
 import dimtables
 import wx
 
-num_data_seq = ("1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "12.0", "35.0")
-str_data_seq = ("Lorem", "ipsum", "dolor", "sit", "amet")
-dtm_data_seq = ("1 Feb 2009", "23 Aug 1994", "16 Sep 2001", "7 Nov 1986")
+num_data_seq = (u"1.0", u"1.5", u"2.0", u"2.5", u"3.0", u"3.5", u"12.0", 
+                u"35.0")
+str_data_seq = (u"Lorem", u"ipsum", u"dolor", u"sit", u"amet")
+dtm_data_seq = (u"1 Feb 2009", u"23 Aug 1994", u"16 Sep 2001", u"7 Nov 1986")
 
 
 class DemoTable(object):
@@ -34,30 +35,30 @@ class DemoTable(object):
         debug = False
         # sort titles out first
         if self.txtTitles.GetValue():
-            self.titles = ["%s" % x for x \
-                      in self.txtTitles.GetValue().split("\n")]
+            self.titles = [u"%s" % x for x \
+                      in self.txtTitles.GetValue().split(u"\n")]
         else:
             self.titles = []
         if self.txtSubtitles.GetValue():
-            self.subtitles = ["%s" % x for x \
-                         in self.txtSubtitles.GetValue().split("\n")]
+            self.subtitles = [u"%s" % x for x \
+                         in self.txtSubtitles.GetValue().split(u"\n")]
         else:
             self.subtitles = []
         if self.titles:
             self.titles[0] += _(" (random demo data only)")
         if debug: print(self.fil_css)
         try:
-            html = output.getHtmlHdr(hdr_title=_("Report(s)"), 
+            html = output.getHtmlHdr(hdr_title=_(u"Report(s)"), 
                                      css_fils=[self.fil_css])
         except Exception, e:
             wx.MessageBox(_("Unable to make report.  Error details: %s" % unicode(e)))
             raise Exception, unicode(e)
-        html += "<table cellspacing='0'>\n" # IE6 - no support CSS borderspacing
+        html += u"<table cellspacing='0'>\n" # IE6 - no support CSS borderspacing
         (hdr_html, body_html) = self.getHTMLParts(css_idx)
         html += hdr_html
         html += body_html
-        html += "\n</table>"
-        html += "\n</body>\n</html>"
+        html += u"\n</table>"
+        html += u"\n</body>\n</html>"
         #print(html)
         return html
 
@@ -104,7 +105,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         bolhas_totals_row = self.chkTotalsRow.IsChecked()
         bolfirst_col_as_label = self.chkFirstAsLabel.IsChecked()
         hdr_html = self.getHdrDets(col_labels, css_idx)
-        body_html = "\n<tbody>"        
+        body_html = u"\n<tbody>"        
         # pre-store val dics for each column where possible
         col_val_dics = []
         for col_name in col_names:
@@ -136,16 +137,16 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                 else:
                     row_val = unicode(random.choice(str_data_seq))
                 # cell format
-                col_class_names = "\"" + " ".join(col_class_lsts[j]) + "\""
-                col_classes = "class = %s" % col_class_names if col_class_names else ""
-                row_tds.append("<td %s>%s</td>" % (col_classes, row_val))
-            body_html += "\n<tr>" + "".join(row_tds) + "</td></tr>"
+                col_class_names = u"\"" + u" ".join(col_class_lsts[j]) + u"\""
+                col_classes = u"class = %s" % col_class_names if col_class_names else ""
+                row_tds.append(u"<td %s>%s</td>" % (col_classes, row_val))
+            body_html += u"\n<tr>" + u"".join(row_tds) + u"</td></tr>"
         if bolhas_totals_row:
             if bolfirst_col_as_label:
-                tot_cell = "<td class='%s'>" % CSS_LBL + _("TOTAL") + "</td>"
+                tot_cell = u"<td class='%s'>" % CSS_LBL + _("TOTAL") + u"</td>"
                 start_idx = 1
             else:
-                tot_cell = ""
+                tot_cell = u""
                 start_idx = 0
             # get demo data
             demo_row_data_lst = []
@@ -154,16 +155,16 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                 # show empty cell as total
                 if col_val_dics[i] or \
                     not self.flds[col_names[i]][my_globals.FLD_BOLNUMERIC]: 
-                    demo_row_data_lst.append("&nbsp;&nbsp;")
+                    demo_row_data_lst.append(u"&nbsp;&nbsp;")
                 else:
                     data = unicode(random.choice(num_data_seq))
                     demo_row_data_lst.append(data)
             # never a displayed total for strings (whether orig data or labels)
-            joiner = "</td><td class=\"%s\">" % CSS_ALIGN_RIGHT
-            body_html += "\n<tr class='%s'>" % CSS_TOTAL_ROW + \
-                tot_cell + "<td class=\"%s\">"  % CSS_ALIGN_RIGHT + \
-                joiner.join(demo_row_data_lst) + "</td></tr>"
-        body_html += "\n</tbody>"
+            joiner = u"</td><td class=\"%s\">" % CSS_ALIGN_RIGHT
+            body_html += u"\n<tr class='%s'>" % CSS_TOTAL_ROW + \
+                tot_cell + u"<td class=\"%s\">"  % CSS_ALIGN_RIGHT + \
+                joiner.join(demo_row_data_lst) + u"</td></tr>"
+        body_html += u"\n</tbody>"
         return (hdr_html, body_html)
 
     
@@ -194,11 +195,11 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         row_label_rows_lst = self.getBodyHtmlRows(row_label_rows_lst,
                                                   tree_row_labels, 
                                                   tree_col_dets, css_idx)        
-        body_html = "\n\n<tbody>"
+        body_html = u"\n\n<tbody>"
         for row in row_label_rows_lst:
             # flatten row list
-            body_html += "\n" + "".join(row) + "</tr>"
-        body_html += "\n</tbody>"
+            body_html += u"\n" + u"".join(row) + u"</tr>"
+        body_html += u"\n</tbody>"
         return (hdr_html, body_html)
     
     def getRowDets(self, css_idx):
@@ -283,7 +284,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                 i=len(subitems_lst) + 1 # so first filler is Val 2 if first 
                 # value already filled
                 while len(subitems_lst) < 2:
-                    subitems_lst.append("Value %s" % i)
+                    subitems_lst.append(u"Value %s" % i)
                     i=i+1
                 if item_conf.has_tot:
                     subitems_lst.append(my_globals.HAS_TOTAL)
@@ -366,8 +367,8 @@ class GenDemoTable(DemoDimTable):
         tree_col_labels = dimtables.LabelNodeTree()
         tree_col_labels = self.addSubtreesToColLabelTree(tree_col_labels)
         if tree_col_labels.getDepth() == 1:
-            raise Exception, "There must always be a column item " + \
-                "even if only the col no vars item"
+            raise Exception, u"There must always be a column item " + \
+                u"even if only the col no vars item"
         return self.processHdrTree(tree_col_labels, row_label_cols_n, css_idx)    
 
     def getBodyHtmlRows(self, row_label_rows_lst, tree_row_labels,
@@ -426,10 +427,10 @@ class GenDemoTable(DemoDimTable):
                 #build data row list
                 data_val = random.choice(num_data_seq)
                 if colmeasure in [my_globals.ROWPCT, my_globals.COLPCT]:
-                    val = "%s%%" % data_val
+                    val = u"%s%%" % data_val
                 else:
                     val = data_val
-                data_item_presn_lst.append("<td class='%s'>%s</td>" % \
+                data_item_presn_lst.append(u"<td class='%s'>%s</td>" % \
                                            (cellclass, val))
                 i=i+1
         i=0
@@ -470,7 +471,7 @@ class SummDemoTable(DemoDimTable):
         tree_col_labels = dimtables.LabelNodeTree()
         tree_col_labels = self.addSubtreesToColLabelTree(tree_col_labels)
         if tree_col_labels.getDepth() == 1:
-            tree_col_labels.addChild(dimtables.LabelNode(label="Measures"))
+            tree_col_labels.addChild(dimtables.LabelNode(label=u"Measures"))
         return self.processHdrTree(tree_col_labels, row_label_cols_n, css_idx)
 
     def getBodyHtmlRows(self, row_label_rows_lst, tree_row_labels,
@@ -522,10 +523,10 @@ class SummDemoTable(DemoDimTable):
                     cellclass = CSS_DATACELL
                 data_val = random.choice(num_data_seq)
                 if rowmeasure == my_globals.SUMM_N:
-                    val = "N=%s" % data_val
+                    val = u"N=%s" % data_val
                 else:
                     val = data_val
-                data_item_lst.append("<td class='%s'>%s</td>" % \
+                data_item_lst.append(u"<td class='%s'>%s</td>" % \
                                      (cellclass, val))
         i=0
         for row in row_label_rows_lst:

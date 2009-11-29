@@ -37,7 +37,7 @@ COLPCT = _("Col %")
 SUM = _("Sum")
 MEAN = _("Mean")
 MEDIAN = _("Median")
-SUMM_N = "N" # N used in Summary tables
+SUMM_N = u"N" # N used in Summary tables
 STD_DEV = _("Std Dev")
 measures_long_label_dic = {FREQ: _("Frequency"), 
                            ROWPCT: _("Row %"),
@@ -86,7 +86,7 @@ CSS_ELEMENTS = [CSS_ALIGN_RIGHT, CSS_LBL, CSS_TBL_TITLE,
                 CSS_FIRST_ROW_VAR, CSS_DATACELL, CSS_FIRST_DATACELL, 
                 CSS_SPACEHOLDER, CSS_ROW_VAL, CSS_COL_VAL, CSS_ROW_VAR, 
                 CSS_COL_VAR, CSS_MEASURE, CSS_TOTAL_ROW, CSS_PAGE_BREAK_BEFORE]
-CSS_SUFFIX_TEMPLATE = "%s%s"
+CSS_SUFFIX_TEMPLATE = u"%s%s"
 
 # projects ******************************************************
 EMPTY_PROJ_NAME = _("GIVE ME A NAME ...")

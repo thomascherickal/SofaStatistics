@@ -57,7 +57,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             the same.  Need quick way of translating from row e.g. 0
             to value of the id field e.g. "ABC123" or 128797 or even 0 ;-).
         """
-        SQL_get_id_vals = "SELECT %s FROM %s ORDER BY %s" % \
+        SQL_get_id_vals = u"SELECT %s FROM %s ORDER BY %s" % \
             (self.quote_obj(self.id_col_name), self.quote_obj(self.tbl), 
              self.quote_obj(self.id_col_name))
         if debug: print(SQL_get_id_vals)
@@ -95,24 +95,24 @@ class DbTbl(wx.grid.PyGridTableBase):
                     self.flds[fld_to_use][my_globals.FLD_BOLNUMERIC]
                 col_idx = self.fld_names.index(fld_to_use)
                 if self.debug:
-                    print("Col idx: %s" % col_idx)
-                    print("Must quote:" + unicode(must_quote))
+                    print(u"Col idx: %s" % col_idx)
+                    print(u"Must quote:" + unicode(must_quote))
                 return col_idx, must_quote
     
     def GetNumberCols(self):
         num_cols = len(self.flds)
         if self.debug:
-            print("N cols: %s" % num_cols)
+            print(u"N cols: %s" % num_cols)
         return num_cols
 
     def SetNumberRows(self):
         debug = False
-        SQL_num_rows = "SELECT COUNT(*) FROM %s" % self.quote_obj(self.tbl)
+        SQL_num_rows = u"SELECT COUNT(*) FROM %s" % self.quote_obj(self.tbl)
         self.cur.execute(SQL_num_rows)
         self.num_rows = self.cur.fetchone()[0]
         if not self.readonly:
             self.num_rows += 1
-        if self.debug or debug: print("N rows: %s" % self.num_rows)
+        if self.debug or debug: print(u"N rows: %s" % self.num_rows)
         self.rows_to_fill = self.num_rows - 1 if self.readonly \
                 else self.num_rows - 2
     
@@ -131,9 +131,9 @@ class DbTbl(wx.grid.PyGridTableBase):
         new_row = row > self.rows_to_fill
         if new_row:
             if self.new_is_dirty:
-                return "..."
+                return u"..."
             else:
-                return "*"
+                return u"*"
         else:
             return row + 1
     
@@ -194,14 +194,14 @@ class DbTbl(wx.grid.PyGridTableBase):
                 if self.must_quote:
                     value = self.quote_val(self.row_id_dic[row_n])
                 else:
-                    value = "%s" % self.row_id_dic[row_n]
+                    value = u"%s" % self.row_id_dic[row_n]
                 IN_clause_lst.append(value)
-            IN_clause = ", ".join(IN_clause_lst)
-            SQL_get_values = "SELECT * " + \
-                " FROM %s " % self.quote_obj(self.tbl) + \
-                " WHERE %s IN(%s)" % (self.quote_obj(self.id_col_name), 
+            IN_clause = u", ".join(IN_clause_lst)
+            SQL_get_values = u"SELECT * " + \
+                u" FROM %s " % self.quote_obj(self.tbl) + \
+                u" WHERE %s IN(%s)" % (self.quote_obj(self.id_col_name), 
                                       IN_clause) + \
-                " ORDER BY %s" % self.quote_obj(self.id_col_name)
+                u" ORDER BY %s" % self.quote_obj(self.id_col_name)
             if self.debug:
                 print(SQL_get_values)
             self.conn.commit() # extra commits keep postgresql problems away
@@ -243,8 +243,8 @@ class DbTbl(wx.grid.PyGridTableBase):
         """
         debug = False
         if self.debug or debug: 
-            print("SetValue - row %s, " % row +
-            "col %s with value \"%s\" *************************" % (col, value))
+            print(u"SetValue - row %s, " % row +
+            u"col %s with value \"%s\" ************************" % (col, value))
         if self.NewRow(row):
             self.new_buffer[(row, col)] = value
         else:
@@ -258,15 +258,15 @@ class DbTbl(wx.grid.PyGridTableBase):
                 id_value = self.quote_val(self.row_id_dic[row])
             else:
                 id_value = self.row_id_dic[row]
-            val2use = "NULL" if raw_val_to_use is None \
+            val2use = u"NULL" if raw_val_to_use is None \
                 else self.quote_val(raw_val_to_use)
             # TODO - think about possibilities of SQL injection by hostile party
-            SQL_update_value = "UPDATE %s " % self.tbl + \
-                " SET %s = %s " % (self.quote_obj(col_name), val2use) + \
-                " WHERE %s = " % self.id_col_name + unicode(id_value)
+            SQL_update_value = u"UPDATE %s " % self.tbl + \
+                u" SET %s = %s " % (self.quote_obj(col_name), val2use) + \
+                u" WHERE %s = " % self.id_col_name + unicode(id_value)
             if self.debug or debug: 
-                print("SetValue - SQL update value: %s" % SQL_update_value)
-                print("SetValue - Value of cell to update: %s" %
+                print(u"SetValue - SQL update value: %s" % SQL_update_value)
+                print(u"SetValue - Value of cell to update: %s" %
                     self.val_of_cell_to_update)
             self.SQL_cell_to_update = SQL_update_value
 

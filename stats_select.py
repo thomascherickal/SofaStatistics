@@ -70,14 +70,14 @@ class StatsSelectDlg(wx.Dialog):
         # icon
         ib = wx.IconBundle()
         ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, 
-                                        "images", 
-                                        "tinysofa.xpm"), 
+                                        u"images", 
+                                        u"tinysofa.xpm"), 
                            wx.BITMAP_TYPE_XPM)
         self.SetIcons(ib)
         # background image
         img_stats_select = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
-                                                 "images", 
-                                                 "stats_select.xpm"), 
+                                                 u"images", 
+                                                 u"stats_select.xpm"), 
                            wx.BITMAP_TYPE_XPM)
         self.bmp_stats_select = wx.BitmapFromImage(img_stats_select)
         # direct or assisted
@@ -197,21 +197,21 @@ class StatsSelectDlg(wx.Dialog):
         il = wx.ImageList(16, 16)
         self.idx_tick = 0
         self.idx_blank = 1
-        tick = "tickwin" if INWIN else "tick"
-        for img in [tick, "blank"]:
-            bmp = wx.Bitmap(os.path.join(my_globals.SCRIPT_PATH, "images", 
-                                         "%s.png" % img), 
+        tick = u"tickwin" if INWIN else u"tick"
+        for img in [tick, u"blank"]:
+            bmp = wx.Bitmap(os.path.join(my_globals.SCRIPT_PATH, u"images", 
+                                         u"%s.png" % img), 
                                          wx.BITMAP_TYPE_PNG)
             il.Add(bmp)
         self.lstTests.AssignImageList(il, wx.IMAGE_LIST_SMALL)
         self.lstTests.InsertColumn(0, _("Statistical Test"))
         self.lstTests.SetColumnWidth(0, LST_WIDTH - 25)
-        self.lstTests.InsertColumn(1, "")
+        self.lstTests.InsertColumn(1, u"")
         self.lstTests.SetColumnWidth(1, 25)
         for i, test in enumerate(STATS_TESTS):
             idx = self.lstTests.InsertStringItem(i, test)
-            self.lstTests.SetStringItem(i, 1, "", self.idx_blank)
-        idx = self.lstTests.InsertStringItem(i+1, "")
+            self.lstTests.SetStringItem(i, 1, u"", self.idx_blank)
+        idx = self.lstTests.InsertStringItem(i+1, u"")
         self.lstTests.Select(0)
         self.lstTests.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnListItemSelected)
         # run test button
@@ -449,8 +449,8 @@ class StatsSelectDlg(wx.Dialog):
     def IndicateTest(self, test_const):
         "Select a test in the listbox with a tick and a selection."
         if test_const not in STATS_TESTS:
-            raise Exception, "IndicateTest was passed a test not from the " + \
-                "standard list"
+            raise Exception, u"IndicateTest was passed a test not from the " + \
+                u"standard list"
         idx=STATS_TESTS.index(test_const)
         self.lstTests.SetStringItem(idx, 1, "", self.idx_tick)
         self.lstTests.Select(idx)

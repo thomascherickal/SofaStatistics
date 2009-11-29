@@ -151,12 +151,12 @@ class GenConfig(object):
     def OnButtonReportPath(self, event):
         "Open dialog and takes the report file selected (if any)"
         dlgGetFile = wx.FileDialog(self, _("Choose a report output file:"), 
-            defaultDir=os.path.join(my_globals.LOCAL_PATH, "reports"), 
-            defaultFile="", 
+            defaultDir=os.path.join(my_globals.LOCAL_PATH, u"reports"), 
+            defaultFile=u"", 
             wildcard=_("HTML files (*.htm)|*.htm|HTML files (*.html)|*.html"))
             #MUST have a parent to enforce modal in Windows
         if dlgGetFile.ShowModal() == wx.ID_OK:
-            self.fil_report = "%s" % dlgGetFile.GetPath()
+            self.fil_report = u"%s" % dlgGetFile.GetPath()
             self.txtReportFile.SetValue(self.fil_report)
         dlgGetFile.Destroy()
 
@@ -173,7 +173,7 @@ class GenConfig(object):
             defaultFile="", wildcard=_("Scripts (*.py)|*.py"))
             #MUST have a parent to enforce modal in Windows
         if dlgGetFile.ShowModal() == wx.ID_OK:
-            self.fil_script = "%s" % dlgGetFile.GetPath()
+            self.fil_script = u"%s" % dlgGetFile.GetPath()
             self.txtScriptFile.SetValue(self.fil_script)
         dlgGetFile.Destroy()
 
@@ -189,11 +189,11 @@ class GenConfig(object):
     def OnButtonVarDetsPath(self, event):
         "Open dialog and takes the variable details file selected (if any)"
         dlgGetFile = wx.FileDialog(self, _("Choose a variable config file:"), 
-            defaultDir=os.path.join(my_globals.LOCAL_PATH, "vdts"), 
-            defaultFile="", wildcard=_("Config files (*.vdts)|*.vdts"))
+            defaultDir=os.path.join(my_globals.LOCAL_PATH, u"vdts"), 
+            defaultFile=u"", wildcard=_("Config files (*.vdts)|*.vdts"))
             #MUST have a parent to enforce modal in Windows
         if dlgGetFile.ShowModal() == wx.ID_OK:
-            fil_var_dets = "%s" % dlgGetFile.GetPath()
+            fil_var_dets = u"%s" % dlgGetFile.GetPath()
             self.txtVarDetsFile.SetValue(fil_var_dets)
             self.UpdateVarDets()
         dlgGetFile.Destroy()        
@@ -203,11 +203,11 @@ class GenConfig(object):
         "Open dialog and takes the css file selected (if any)"
         dlgGetFile = wx.FileDialog(self, _("Choose a css table style file:"), 
             defaultDir=os.path.join(my_globals.LOCAL_PATH, "css"), 
-            defaultFile="", 
+            defaultFile=u"", 
             wildcard=_("CSS files (*.css)|*.css"))
             #MUST have a parent to enforce modal in Windows
         if dlgGetFile.ShowModal() == wx.ID_OK:
-            fil_css = "%s" % dlgGetFile.GetPath()
+            fil_css = u"%s" % dlgGetFile.GetPath()
             self.txtCssFile.SetValue(fil_css)
             self.UpdateCss()
         dlgGetFile.Destroy()

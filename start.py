@@ -69,14 +69,14 @@ def GetTextToDraw(orig_txt, max_width):
         line_width = mem.GetTextExtent(" ".join(line_words))[0]
         if line_width > max_width:
             line_words.pop()
-            lines.append(" ".join(line_words))
+            lines.append(u" ".join(line_words))
             line_words = [word]
-    lines.append(" ".join(line_words))
-    wrapped_txt = "\n".join(lines)
+    lines.append(u" ".join(line_words))
+    wrapped_txt = u"\n".join(lines)
     return wrapped_txt
 
 def GetBlankButtonBitmap():
-    return wx.Image(os.path.join(SCRIPT_PATH, "images", "blankbutton.xpm"), 
+    return wx.Image(os.path.join(SCRIPT_PATH, u"images", u"blankbutton.xpm"), 
                     wx.BITMAP_TYPE_XPM).ConvertToBitmap()
 
 def GetNextYPos(start, height):
@@ -103,8 +103,8 @@ def InstallLocal():
             for path in paths:
                 os.makedirs(os.path.join(LOCAL_PATH, path))
             # copy across default proj, vdts, css
-            shutil.copy(os.path.join(prog_path, "css", "alt_style.css"), 
-                        os.path.join(LOCAL_PATH, "css", "alt_style.css"))
+            shutil.copy(os.path.join(prog_path, u"css", u"alt_style.css"), 
+                        os.path.join(LOCAL_PATH, u"css", u"alt_style.css"))
             shutil.copy(os.path.join(prog_path, u"css", 
                                      my_globals.SOFA_DEFAULT_STYLE), 
                         os.path.join(LOCAL_PATH, u"css", 
@@ -120,7 +120,7 @@ def InstallLocal():
             shutil.copy(os.path.join(prog_path, u"projs", 
                                      my_globals.SOFA_DEFAULT_PROJ), 
                         default_proj)
-    PROJ_CUSTOMISED_FILE = "proj_file_customised.txt"
+    PROJ_CUSTOMISED_FILE = u"proj_file_customised.txt"
     if not os.path.exists(os.path.join(LOCAL_PATH, PROJ_CUSTOMISED_FILE)):
         # change home username
         f = file(default_proj, "r")
@@ -128,27 +128,27 @@ def InstallLocal():
         f.close()
         for path in paths:
             new_str = util.escape_win_path(os.path.join(LOCAL_PATH, path, ""))
-            proj_str = proj_str.replace("/home/g/sofa/%s/" % path, new_str)
+            proj_str = proj_str.replace(u"/home/g/sofa/%s/" % path, new_str)
         # add MS Access and SQL Server into mix if Windows
         if util.in_windows():
-            proj_str = proj_str.replace("default_dbs = {",
-                                        "default_dbs = {'%s': None, " % \
+            proj_str = proj_str.replace(u"default_dbs = {",
+                                        u"default_dbs = {'%s': None, " % \
                                             my_globals.DBE_MS_ACCESS)
-            proj_str = proj_str.replace("default_tbls = {",
-                                        "default_tbls = {'%s': None, " % \
+            proj_str = proj_str.replace(u"default_tbls = {",
+                                        u"default_tbls = {'%s': None, " % \
                                             my_globals.DBE_MS_ACCESS)
-            proj_str = proj_str.replace("default_dbs = {",
-                                        "default_dbs = {'%s': None, " % \
+            proj_str = proj_str.replace(u"default_dbs = {",
+                                        u"default_dbs = {'%s': None, " % \
                                             my_globals.DBE_MS_SQL)
-            proj_str = proj_str.replace("default_tbls = {",
-                                        "default_tbls = {'%s': None, " % \
+            proj_str = proj_str.replace(u"default_tbls = {",
+                                        u"default_tbls = {'%s': None, " % \
                                             my_globals.DBE_MS_SQL)
         f = file(default_proj, "w")
         f.write(proj_str)
         f.close()
         # create file as tag we have done the changes to the proj file
         f = file(os.path.join(LOCAL_PATH, PROJ_CUSTOMISED_FILE), "w")
-        f.write("Local project file customised successfully :-)")
+        f.write(u"Local project file customised successfully :-)")
         f.close()
 
 
@@ -164,7 +164,7 @@ class SofaApp(wx.App):
             redirect = True
             unused, local_path = util.get_user_paths()
             filename = os.path.join(local_path, my_globals.INTERNAL_FOLDER, 
-                                    'output.txt')
+                                    u'output.txt')
         wx.App.__init__(self, redirect=redirect, filename=filename)
 
     def OnInit(self):
@@ -213,7 +213,7 @@ class StartFrame(wx.Frame):
         ib.AddIconFromFile(tinysofa, wx.BITMAP_TYPE_XPM)
         self.SetIcons(ib)
         # background image
-        img_sofa = wx.Image(os.path.join(SCRIPT_PATH, "images", "sofa2.xpm"), 
+        img_sofa = wx.Image(os.path.join(SCRIPT_PATH, u"images", u"sofa2.xpm"), 
                             wx.BITMAP_TYPE_XPM)
         self.bmp_sofa = wx.BitmapFromImage(img_sofa)
         # slice of image to be refreshed (where text and image will be)
@@ -355,10 +355,11 @@ class StartFrame(wx.Frame):
                                    260))
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel("SOFA\nPaton-Simpson & Associates Ltd" + \
-                           "\nAuckland, New Zealand", 
+        panel_dc.DrawLabel(u"SOFA\nPaton-Simpson & Associates Ltd" + \
+                           u"\nAuckland, New Zealand", 
                            wx.Rect(MAIN_LEFT, 547, 100, 50))
-        panel_dc.DrawLabel("%s 2009 Paton-Simpson & Associates Ltd" % COPYRIGHT, 
+        panel_dc.DrawLabel(u"%s 2009 Paton-Simpson & Associates Ltd" % \
+                           COPYRIGHT, 
                            wx.Rect(600, 560, 100, 50))
         panel_dc.DrawBitmap(self.bmp_psal, 155, 542, True)
         # make default db if not already there
@@ -377,7 +378,7 @@ class StartFrame(wx.Frame):
     
     def SetProj(self, proj_text=""):
         "proj_text must NOT have .proj on the end"
-        self.active_proj = "%s.proj" % proj_text
+        self.active_proj = u"%s.proj" % proj_text
         self.Refresh()
         
     def OnProjClick(self, event):
@@ -527,11 +528,11 @@ class StartFrame(wx.Frame):
         panel_dc.DrawLabel(GetTextToDraw(txt_stats2, MAX_HELP_TEXT_WIDTH), 
                            wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 76, 
                                    HELP_TEXT_WIDTH, 320))
-        txt_stats3 = "QUOTE:"
+        txt_stats3 = u"QUOTE:"
         panel_dc.DrawLabel(GetTextToDraw(txt_stats3, MAX_HELP_TEXT_WIDTH), 
                            wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 121, 
                                    HELP_TEXT_WIDTH, 320))
-        txt_stats4 = "%s (%s)" % quotes.get_quote()
+        txt_stats4 = u"%s (%s)" % quotes.get_quote()
         panel_dc.DrawLabel(GetTextToDraw(txt_stats4, MAX_HELP_TEXT_WIDTH - 20), 
                            wx.Rect(MAIN_LEFT + 10, HELP_TEXT_TOP + 141, 
                                    HELP_TEXT_WIDTH-10, 320))

@@ -51,8 +51,8 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.panel = wx.Panel(self)
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         ib = wx.IconBundle()
-        ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, "images",
-                                        "tinysofa.xpm"), 
+        ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, u"images",
+                                        u"tinysofa.xpm"), 
                            wx.BITMAP_TYPE_XPM)
         self.SetIcons(ib)
         self.GenConfigSetup(self.panel) # mixin
@@ -106,7 +106,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrVarsLeft.Add(szrVarsLeftTop, 1, wx.GROW)
         szrVarsLeft.Add(szrVarsLeftMid, 0, wx.GROW|wx.TOP, 5)
         # var averaged
-        self.lblAveraged = wx.StaticText(self.panel, -1, "%s:" % self.averaged)
+        self.lblAveraged = wx.StaticText(self.panel, -1, u"%s:" % self.averaged)
         self.lblAveraged.SetFont(self.LABEL_FONT)
         # only want the fields which are numeric
         self.dropAveraged = wx.Choice(self.panel, -1, choices=[], 
@@ -322,7 +322,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
             return
         var_name, var_label = getdata.extractChoiceDets(choice_text)
         quoter = getdata.get_obj_quoter_func(self.dbe)
-        SQL_get_sorted_vals = "SELECT %s FROM %s GROUP BY %s ORDER BY %s" % \
+        SQL_get_sorted_vals = u"SELECT %s FROM %s GROUP BY %s ORDER BY %s" % \
             (quoter(var_name), quoter(self.tbl), quoter(var_name), 
              quoter(var_name))
         self.cur.execute(SQL_get_sorted_vals)
@@ -333,7 +333,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
             self.lblchop_warning.SetLabel(_("(1st 20 unique values)"))
             all_vals = all_vals[:20]
         else:
-            self.lblchop_warning.SetLabel("")
+            self.lblchop_warning.SetLabel(u"")
         self.vals = [x[0] for x in all_vals]
         vals_with_labels = [getdata.getChoiceItem(val_dic, x) \
                             for x in self.vals]
@@ -381,8 +381,8 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         var_avg, label_avg = getdata.extractChoiceDets(choice_avg_text)
         var_gp_numeric = self.flds[var_gp][my_globals.FLD_BOLNUMERIC]
         if not var_gp_numeric:
-            val_a = "\"%s\"" % val_a
-            val_b = "\"%s\"" % val_b
+            val_a = u"\"%s\"" % val_a
+            val_b = u"\"%s\"" % val_b
         return var_gp, label_gp, val_a, label_a, \
             val_b, label_b, var_avg, label_avg
         
@@ -442,8 +442,8 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
                     val_a = float(val_a)
                     val_b = float(val_b)
                 except ValueError:
-                    wx.MessageBox("Both values must be numeric.  "
-                        "Values selected were %s and %s" % (val_a, val_b))
+                    wx.MessageBox(u"Both values must be numeric.  "
+                        u"Values selected were %s and %s" % (val_a, val_b))
                     return False
             if  val_a > val_b:
                 wx.MessageBox(_("Group A must be lower than Group B"))
@@ -470,11 +470,11 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         event.Skip()
 
     def OnButtonHelp(self, event):
-        wx.MessageBox("Under construction")
+        wx.MessageBox(u"Under construction")
         event.Skip()
     
     def OnButtonClear(self, event):
-        wx.MessageBox("Under construction")
+        wx.MessageBox(u"Under construction")
         event.Skip()
     
     def OnClose(self, event):

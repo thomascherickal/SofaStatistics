@@ -33,25 +33,25 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst = []
         var_gp, label_gp, val_a, label_a, val_b, label_b, \
             var_avg, label_avg = self.GetDropVals()
-        strGet_Sample = "sample_%s = core_stats.get_list(" + \
-            "dbe=\"%s\", " % self.dbe + \
-            "cur=cur, tbl=\"%s\",\n    " % self.tbl + \
-            "fld_measure=\"%s\", " % var_avg + \
-            "fld_filter=\"%s\", " % var_gp + \
-            "filter_val=%s)"
-        script_lst.append("dp = 3")
-        script_lst.append(strGet_Sample % ("a", val_a))
-        script_lst.append(strGet_Sample % ("b", val_b))
-        script_lst.append("label_a = \"%s\"" % label_a)
-        script_lst.append("label_b = \"%s\"" % label_b)
-        script_lst.append("label_avg = \"%s\"" % label_avg)
-        script_lst.append("indep = True")
-        script_lst.append("t, p, dic_a, dic_b = " + \
-            "core_stats.ttest_ind(sample_a, sample_b, label_a, label_b)")
-        script_lst.append("ttest_output = stats_output.ttest_output(" + \
-            "t, p, dic_a, dic_b, label_avg,\n    dp, indep, " + \
-            "level=my_globals.OUTPUT_RESULTS_ONLY, " + \
-            "css_idx=%s, page_break_after=False)" % css_idx)
-        script_lst.append("fil.write(ttest_output)")
-        return "\n".join(script_lst)
+        strGet_Sample = u"sample_%s = core_stats.get_list(" + \
+            u"dbe=\"%s\", " % self.dbe + \
+            u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
+            u"fld_measure=\"%s\", " % var_avg + \
+            u"fld_filter=\"%s\", " % var_gp + \
+            u"filter_val=%s)"
+        script_lst.append(u"dp = 3")
+        script_lst.append(strGet_Sample % (u"a", val_a))
+        script_lst.append(strGet_Sample % (u"b", val_b))
+        script_lst.append(u"label_a = \"%s\"" % label_a)
+        script_lst.append(u"label_b = \"%s\"" % label_b)
+        script_lst.append(u"label_avg = \"%s\"" % label_avg)
+        script_lst.append(u"indep = True")
+        script_lst.append(u"t, p, dic_a, dic_b = " + \
+            u"core_stats.ttest_ind(sample_a, sample_b, label_a, label_b)")
+        script_lst.append(u"ttest_output = stats_output.ttest_output(" + \
+            u"t, p, dic_a, dic_b, label_avg,\n    dp, indep, " + \
+            u"level=my_globals.OUTPUT_RESULTS_ONLY, " + \
+            u"css_idx=%s, page_break_after=False)" % css_idx)
+        script_lst.append(u"fil.write(ttest_output)")
+        return u"\n".join(script_lst)
     

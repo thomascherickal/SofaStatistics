@@ -21,7 +21,7 @@ def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val):
     debug = False
     quoter = getdata.get_obj_quoter_func(dbe)
     placeholder = getdata.get_placeholder(dbe)
-    SQL_get_list = "SELECT %s FROM %s WHERE %s IS NOT NULL AND %s = %s" % \
+    SQL_get_list = u"SELECT %s FROM %s WHERE %s IS NOT NULL AND %s = %s" % \
                     (quoter(fld_measure), quoter(tbl), quoter(fld_measure), 
                      quoter(fld_filter), placeholder)
     if debug: print(SQL_get_list)
@@ -36,10 +36,10 @@ def get_paired_lists(dbe, cur, tbl, fld_a, fld_b):
         Used in, for example, the paired samples t-test.
     """
     quoter = getdata.get_obj_quoter_func(dbe)
-    SQL_get_lists = "SELECT %s, %s " % (quoter(fld_a), quoter(fld_b)) + \
-        "FROM %s " % quoter(tbl) + \
-        "WHERE %s IS NOT NULL AND %s IS NOT NULL" % (quoter(fld_a), 
-                                                     quoter(fld_b))
+    SQL_get_lists = u"SELECT %s, %s " % (quoter(fld_a), quoter(fld_b)) + \
+        u"FROM %s " % quoter(tbl) + \
+        u"WHERE %s IS NOT NULL AND %s IS NOT NULL" % (quoter(fld_a), 
+                                                      quoter(fld_b))
     cur.execute(SQL_get_lists)
     data_tups = cur.fetchall()
     lst_a = [x[0] for x in data_tups]
@@ -77,7 +77,7 @@ def get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b):
     qfld_a = obj_quoter(fld_a)
     qfld_b = obj_quoter(fld_b)
     # get row vals used
-    SQL_row_vals_used = """SELECT %(qfld_a)s
+    SQL_row_vals_used = u"""SELECT %(qfld_a)s
         FROM %(qtbl)s
         WHERE %(qfld_b)s IS NOT NULL AND %(qfld_a)s IS NOT NULL
         GROUP BY %(qfld_a)s
@@ -88,7 +88,7 @@ def get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b):
     if len(vals_a) > 30:
         raise Exception, "Too many values in row variable"
     # get col vals used
-    SQL_col_vals_used = """SELECT %(qfld_b)s
+    SQL_col_vals_used = u"""SELECT %(qfld_b)s
         FROM %(qtbl)s
         WHERE %(qfld_a)s IS NOT NULL AND %(qfld_b)s IS NOT NULL
         GROUP BY %(qfld_b)s
@@ -97,30 +97,30 @@ def get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b):
     cur.execute(SQL_col_vals_used)
     vals_b = [x[0] for x in cur.fetchall()]
     if len(vals_b) > 30:
-        raise Exception, "Too many values in column variable"
+        raise Exception, u"Too many values in column variable"
     if len(vals_a)*len(vals_b) > 60:
-        raise Exception, "Too many cells in contingency table."
+        raise Exception, u"Too many cells in contingency table."
     # build SQL to get all observed values (for each a, through b's)
-    SQL_get_obs = "SELECT "
+    SQL_get_obs = u"SELECT "
     sql_lst = []
     # need to filter by vals within SQL so may need quoting observed values etc
     for val_a in vals_a:
         val_quoter_a = get_val_quoter(dbe, flds, fld_a, val_a)
         for val_b in vals_b:
             val_quoter_b = get_val_quoter(dbe, flds, fld_b, val_b)
-            clause = "\nSUM(CASE WHEN %s = %s and %s = %s THEN 1 ELSE 0 END)" \
+            clause = u"\nSUM(CASE WHEN %s = %s and %s = %s THEN 1 ELSE 0 END)" \
                 % (qfld_a, val_quoter_a(val_a), qfld_b, 
                    val_quoter_b(val_b))
             sql_lst.append(clause)
-    SQL_get_obs += ", ".join(sql_lst)
-    SQL_get_obs += "\nFROM %s " % qtbl
+    SQL_get_obs += u", ".join(sql_lst)
+    SQL_get_obs += u"\nFROM %s " % qtbl
     if debug: print(SQL_get_obs)
     cur.execute(SQL_get_obs)
     tup_obs = cur.fetchall()[0]
     if not tup_obs:
-        raise Exception, "No observed values"
+        raise Exception, u"No observed values"
     lst_obs = list(tup_obs)
-    if debug: print("lst_obs: %s" % lst_obs)
+    if debug: print(u"lst_obs: %s" % lst_obs)
     obs_total = sum(lst_obs)
     # expected values
     lst_fracs_a = get_fracs(cur, qtbl, qfld_a)
@@ -130,10 +130,10 @@ def get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b):
     for frac_a in lst_fracs_a:
         for frac_b in lst_fracs_b:
             lst_exp.append(frac_a*frac_b*obs_total)
-    if debug: print("lst_exp: %s" % lst_exp)
+    if debug: print(u"lst_exp: %s" % lst_exp)
     if len(lst_obs) != len(lst_exp):
-        raise Exception, "Different number of observed and expected values." + \
-            " %s vs %s" % (len(lst_obs), len(lst_exp))
+        raise Exception, u"Different number of observed and expected " + \
+            u"values. %s vs %s" % (len(lst_obs), len(lst_exp))
     min_count = min(lst_exp)
     lst_lt_5 = [x for x in lst_exp if x < 5]
     perc_cells_lt_5 = 100*(len(lst_lt_5))/float(len(lst_exp))
@@ -146,7 +146,7 @@ def get_fracs(cur, qtbl, qfld):
     Returns lst_fracs
     """
     debug = False
-    SQL_get_fracs = """SELECT %(qfld)s, COUNT(*)
+    SQL_get_fracs = u"""SELECT %(qfld)s, COUNT(*)
         FROM %(qtbl)s 
         WHERE %(qfld)s IS NOT NULL
         GROUP BY %(qfld)s
@@ -753,7 +753,7 @@ def mean(vals, high=False):
             try:
                 sum += val
             except Exception:
-                raise Exception, "Unable to add \"%s\" to running total." % val
+                raise Exception, u"Unable to add \"%s\" to running total." % val
         mean = sum/float(len(vals))
     else:
         tot = D("0")
@@ -761,7 +761,7 @@ def mean(vals, high=False):
             try:
                 tot += util.n2d(val)
             except Exception:
-                raise Exception, "Unable to add \"%s\" to running total." % val
+                raise Exception, u"Unable to add \"%s\" to running total." % val
         mean = tot/len(vals)
     return mean
 
@@ -804,8 +804,8 @@ def stdev(vals, high=False):
         else:
             stdev = math.sqrt(variance(vals))
     except ValueError:
-        raise Exception, ("stdev - error getting square root.  Negative "
-                          "variance value?")
+        raise Exception, (u"stdev - error getting square root.  Negative "
+                          u"variance value?")
     return stdev
 
 def betai(a, b, x, high=False):
@@ -834,7 +834,7 @@ def betai(a, b, x, high=False):
         one = 1.0
         two = 2.0
     if (x < zero or x > one):
-        raise ValueError, "Bad x %s in betai" % x
+        raise ValueError, u"Bad x %s in betai" % x
     if (x==zero or x==one):
         bt = zero
     else:
@@ -977,7 +977,7 @@ def summult (list1, list2):
     Usage:   summult(list1,list2)
     """
     if len(list1) <> len(list2):
-        raise ValueError, "Lists not equal length in summult."
+        raise ValueError, u"Lists not equal length in summult."
     s = 0
     for item1,item2 in abut(list1,list2):
         s = s + item1*item2

@@ -24,7 +24,7 @@ def get_default_measure(tab_type):
     elif tab_type == my_globals.ROW_SUMM:
         return my_globals.MEAN
     else:
-        raise Exception, "Only dimension tables have measures"
+        raise Exception, u"Only dimension tables have measures"
 
 def GetColDets(coltree, colRoot, var_labels):
     """
@@ -75,10 +75,10 @@ class MakeTable(object):
         self.rowtree.DeleteChildren(self.rowRoot)
         self.coltree.DeleteChildren(self.colRoot)
         #link to appropriate demo table type
-        titles = ["\"%s\"" % x for x \
-                  in self.txtTitles.GetValue().split("\n")]
-        Subtitles = ["\"%s\"" % x for x \
-                     in self.txtSubtitles.GetValue().split("\n")]
+        titles = [u"\"%s\"" % x for x \
+                  in self.txtTitles.GetValue().split(u"\n")]
+        Subtitles = [u"\"%s\"" % x for x \
+                     in self.txtSubtitles.GetValue().split(u"\n")]
         if self.tab_type == my_globals.COL_MEASURES:
             self.chkTotalsRow.SetValue(False)
             self.chkFirstAsLabel.SetValue(False)
@@ -162,7 +162,7 @@ class MakeTable(object):
             conn, cur = dbdetsobj.get_conn_cur()
             # count records in table
             quoter = getdata.get_obj_quoter_func(self.dbe)
-            s = "SELECT COUNT(*) FROM %s" % quoter(self.tbl)
+            s = u"SELECT COUNT(*) FROM %s" % quoter(self.tbl)
             cur.execute(s)
             n_rows = cur.fetchone()[0]
             conn.close()
@@ -228,16 +228,16 @@ class MakeTable(object):
         script_lst = []
         # set up variables required for passing into main table instantiation
         if self.tab_type in [my_globals.COL_MEASURES, my_globals.ROW_SUMM]:
-            script_lst.append("tree_rows = dimtables.DimNodeTree()")
+            script_lst.append(u"tree_rows = dimtables.DimNodeTree()")
             for child in util.getTreeCtrlChildren(tree=self.rowtree, 
                                                   parent=self.rowRoot):
                 child_fld_name, unused = \
                     getdata.extractChoiceDets(self.rowtree.GetItemText(child))
                 self.addToParent(script_lst=script_lst, tree=self.rowtree, 
                              parent=self.rowtree, 
-                             parent_node_label="tree_rows",
+                             parent_node_label=u"tree_rows",
                              child=child, child_fld_name=child_fld_name)
-            script_lst.append("tree_cols = dimtables.DimNodeTree()")
+            script_lst.append(u"tree_cols = dimtables.DimNodeTree()")
             if has_cols:
                 for child in util.getTreeCtrlChildren(tree=self.coltree, 
                                                       parent=self.colRoot):
@@ -246,67 +246,68 @@ class MakeTable(object):
                                             self.coltree.GetItemText(child))
                     self.addToParent(script_lst=script_lst, tree=self.coltree, 
                                  parent=self.coltree, 
-                                 parent_node_label="tree_cols",
+                                 parent_node_label=u"tree_cols",
                                  child=child, child_fld_name=child_fld_name)
         elif self.tab_type == my_globals.RAW_DISPLAY:
             col_names, col_labels = GetColDets(self.coltree, self.colRoot, 
                                                self.var_labels)
-            script_lst.append("col_names = " + pprint.pformat(col_names))
-            script_lst.append("col_labels = " + pprint.pformat(col_labels))
-            script_lst.append("flds = " + pprint.pformat(self.flds))
-            script_lst.append("var_labels = " + pprint.pformat(self.var_labels))
-            script_lst.append("val_dics = " + pprint.pformat(self.val_dics))
+            script_lst.append(u"col_names = " + pprint.pformat(col_names))
+            script_lst.append(u"col_labels = " + pprint.pformat(col_labels))
+            script_lst.append(u"flds = " + pprint.pformat(self.flds))
+            script_lst.append(u"var_labels = " + \
+                              pprint.pformat(self.var_labels))
+            script_lst.append(u"val_dics = " + pprint.pformat(self.val_dics))
         # process title dets
-        titles = ["%s" % x for x \
-                  in self.txtTitles.GetValue().split("\n")]
-        subtitles = ["%s" % x for x \
-                     in self.txtSubtitles.GetValue().split("\n")]
+        titles = [u"%s" % x for x \
+                  in self.txtTitles.GetValue().split(u"\n")]
+        subtitles = [u"%s" % x for x \
+                     in self.txtSubtitles.GetValue().split(u"\n")]
         # NB the following text is all going to be run
         if self.tab_type == my_globals.COL_MEASURES:
-            script_lst.append("tab_test = dimtables.GenTable(titles=" + \
-                              unicode(titles) + ",\n    subtitles=" + \
+            script_lst.append(u"tab_test = dimtables.GenTable(titles=" + \
+                              unicode(titles) + u",\n    subtitles=" + \
                               unicode(subtitles) + \
-                              ",\n    dbe=\"" + self.dbe + \
-                              "\",\n    datasource=\"" + self.tbl + \
-                              "\", cur=cur, tree_rows=tree_rows, " + \
-                              "tree_cols=tree_cols)")
+                              u",\n    dbe=\"" + self.dbe + \
+                              u"\",\n    datasource=\"" + self.tbl + \
+                              u"\", cur=cur, tree_rows=tree_rows, " + \
+                              u"tree_cols=tree_cols)")
         elif self.tab_type == my_globals.ROW_SUMM:
-            script_lst.append("tab_test = dimtables.SummTable(titles=" + \
-                              unicode(titles) + ",\n    subtitles=" + \
+            script_lst.append(u"tab_test = dimtables.SummTable(titles=" + \
+                              unicode(titles) + u",\n    subtitles=" + \
                               unicode(subtitles) + \
-                              ",\n    dbe=\"" + self.dbe + \
-                              "\",\n    datasource=\"" + self.tbl + \
-                              "\", cur=cur, tree_rows=tree_rows, " + \
-                              "tree_cols=tree_cols)")
+                              u",\n    dbe=\"" + self.dbe + \
+                              u"\",\n    datasource=\"" + self.tbl + \
+                              u"\", cur=cur, tree_rows=tree_rows, " + \
+                              u"tree_cols=tree_cols)")
         elif self.tab_type == my_globals.RAW_DISPLAY:
-            tot_rows = "True" if self.chkTotalsRow.IsChecked() else "False"
-            first_label = "True" if self.chkFirstAsLabel.IsChecked() \
-                else "False"
-            script_lst.append("tab_test = rawtables.RawTable(titles=" + \
-                unicode(titles) + ",\n    subtitles=" + \
+            tot_rows = u"True" if self.chkTotalsRow.IsChecked() else u"False"
+            first_label = u"True" if self.chkFirstAsLabel.IsChecked() \
+                else u"False"
+            script_lst.append(u"tab_test = rawtables.RawTable(titles=" + \
+                unicode(titles) + u",\n    subtitles=" + \
                 unicode(subtitles) + \
-                ",\n    dbe=\"" + self.dbe + \
-                "\",\n    datasource=\"%s\"" % self.tbl + ", cur=cur," + \
-                " col_names=col_names, col_labels=col_labels, flds=flds, " + \
-                "\n    var_labels=var_labels, val_dics=val_dics, " + \
-                "add_total_row=%s, " % tot_rows + \
-                "\nfirst_col_as_label=%s)" % first_label)
+                u",\n    dbe=\"" + self.dbe + \
+                u"\",\n    datasource=\"%s\"" % self.tbl + u", cur=cur," + \
+                u" col_names=col_names, col_labels=col_labels, flds=flds, " + \
+                u"\n    var_labels=var_labels, val_dics=val_dics, " + \
+                u"add_total_row=%s, " % tot_rows + \
+                u"\nfirst_col_as_label=%s)" % first_label)
         if self.tab_type in [my_globals.COL_MEASURES, my_globals.ROW_SUMM]:
-            script_lst.append("tab_test.prepTable(%s)" % css_idx)
-            script_lst.append("max_cells = 5000")
-            script_lst.append("if tab_test.getCellNOk(max_cells=max_cells):")
-            script_lst.append("    " + \
-                        "fil.write(tab_test.getHTML(%s, " % css_idx + \
-                        "page_break_after=False))")
-            script_lst.append("else:")
-            script_lst.append("    " + \
-                              "fil.write(\"Table not made.  Number \" + \\" + \
-                              "\n        \"of cells exceeded limit \" + \\" + \
-                              "\n        \"of %s\" % max_cells)")
+            script_lst.append(u"tab_test.prepTable(%s)" % css_idx)
+            script_lst.append(u"max_cells = 5000")
+            script_lst.append(u"if tab_test.getCellNOk(max_cells=max_cells):")
+            script_lst.append(u"    " + \
+                        u"fil.write(tab_test.getHTML(%s, " % css_idx + \
+                        u"page_break_after=False))")
+            script_lst.append(u"else:")
+            script_lst.append(u"    " + \
+                              u"fil.write(\"Table not made.  Number \" + \\" + \
+                              u"\n        \"of cells exceeded limit \" + \\" + \
+                              u"\n        \"of %s\" % max_cells)")
         else:
-            script_lst.append("fil.write(tab_test.getHTML(%s, " % css_idx + \
-                              "page_break_after=False))")
-        return "\n".join(script_lst)
+            script_lst.append(u"fil.write(tab_test.getHTML(%s, " % css_idx + \
+                              u"page_break_after=False))")
+        return u"\n".join(script_lst)
 
     def addToParent(self, script_lst, tree, parent, parent_node_label, 
                     child, child_fld_name):
@@ -320,39 +321,39 @@ class MakeTable(object):
         """
         # add child to parent
         if child == self.col_no_vars_item:
-            fld_arg = ""
+            fld_arg = u""
         else:
-            fld_arg = "fld=\"%s\", " % child_fld_name
+            fld_arg = u"fld=\"%s\", " % child_fld_name
         #print(self.var_labels) #debug
         #print(self.val_dics) #debug
         var_label = self.var_labels.get(child_fld_name, 
                                         child_fld_name.title())
         labels_dic = self.val_dics.get(child_fld_name, {})
-        child_node_label = "node_" + "_".join(child_fld_name.split(" "))
+        child_node_label = u"node_" + u"_".join(child_fld_name.split(u" "))
         item_conf = tree.GetItemPyData(child)
         measures_lst = item_conf.measures_lst
-        measures = ", ".join([("my_globals." + \
+        measures = u", ".join([(u"my_globals." + \
                                my_globals.script_export_measures_dic[x]) for \
                                x in measures_lst])
         if measures:
-            measures_arg = ", \n    measures=[%s]" % measures
+            measures_arg = u", \n    measures=[%s]" % measures
         else:
-            measures_arg = ""
+            measures_arg = u""
         if item_conf.has_tot:
-            tot_arg = ", \n    has_tot=True"
+            tot_arg = u", \n    has_tot=True"
         else:
-            tot_arg = ""
-        sort_order_arg = ", \n    sort_order=\"%s\"" % \
+            tot_arg = u""
+        sort_order_arg = u", \n    sort_order=\"%s\"" % \
             item_conf.sort_order
-        numeric_arg = ", \n    bolnumeric=%s" % item_conf.bolnumeric
+        numeric_arg = u", \n    bolnumeric=%s" % item_conf.bolnumeric
         script_lst.append(child_node_label + \
-                          " = dimtables.DimNode(" + fld_arg + \
-                          "\n    label=\"" + unicode(var_label) + \
-                          "\", \n    labels=" + unicode(labels_dic) + \
+                          u" = dimtables.DimNode(" + fld_arg + \
+                          u"\n    label=\"" + unicode(var_label) + \
+                          u"\", \n    labels=" + unicode(labels_dic) + \
                           measures_arg + tot_arg + sort_order_arg + \
                           numeric_arg + ")")
-        script_lst.append("%s.addChild(%s)" % (parent_node_label, 
-                                               child_node_label))
+        script_lst.append(u"%s.addChild(%s)" % (parent_node_label, 
+                                                child_node_label))
         # send child through for each grandchild
         for grandchild in util.getTreeCtrlChildren(tree=tree, 
                                                    parent=child):
@@ -495,4 +496,4 @@ class ItemConfig(object):
         measures_part = _("Measures: %s") % measures if measures else None
         if measures_part:
             str_parts.append(measures_part)
-        return "; ".join(str_parts)
+        return u"; ".join(str_parts)

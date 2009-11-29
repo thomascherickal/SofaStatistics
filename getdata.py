@@ -110,7 +110,7 @@ def FldsDic2FldNamesLst(flds_dic):
 
 def getChoiceItem(item_labels, item_val):
     str_val = unicode(item_val)
-    return "%s (%s)" % (item_labels.get(item_val, str_val.title()), str_val)
+    return u"%s (%s)" % (item_labels.get(item_val, str_val.title()), str_val)
 
 def extractChoiceDets(choice_text):
     """
@@ -181,11 +181,11 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     return any_incomplete, any_conns, completed_dbes
 
 def getDbItem(db_name, dbe):
-    return "%s (%s)" % (db_name, dbe)
+    return u"%s (%s)" % (db_name, dbe)
 
 def extractDbDets(choice_text):
-    start_idx = choice_text.index("(") + 1
-    end_idx = choice_text.index(")")
+    start_idx = choice_text.index(u"(") + 1
+    end_idx = choice_text.index(u")")
     dbe = choice_text[start_idx:end_idx]
     db_name = choice_text[:start_idx - 2]
     return db_name, dbe
@@ -200,16 +200,16 @@ def PrepValue(dbe, val, fld_dic):
         prep_val = my_globals.DBE_MODULES[dbe].PrepValue(val, fld_dic)
     except AttributeError:
         debug = False
-        if val in [None, "."]: # TODO - use a const without having to import db_tbl
+        if val in [None, u"."]: # TODO - use a const without having to import db_tbl
             val2use = None
         elif fld_dic[my_globals.FLD_BOLDATETIME]:
-            if val == "":
+            if val == u"":
                 val2use = None
             else:
                 valid_datetime, timeobj = util.valid_datetime_str(val)
                 if not valid_datetime:
                     # will not execute successfully
-                    if debug: print("%s is not a valid datetime")
+                    if debug: print(u"%s is not a valid datetime")
                     val2use = val
                 else:
                     if debug: print(timeobj)
@@ -276,8 +276,8 @@ def RefreshDbDets(parent):
     db = dbdetsobj.db
     tbl = dbdetsobj.tbl
     if debug:
-        print("Db is: %s" % db)
-        print("Tbl is: %s" % tbl)
+        print(u"Db is: %s" % db)
+        print(u"Tbl is: %s" % tbl)
     return dbe, db, cur, tbls, tbl, flds, has_unique, idxs
 
 def RefreshTblDets(parent):

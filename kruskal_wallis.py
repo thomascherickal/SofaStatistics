@@ -46,34 +46,34 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         idx_val_b = self.vals.index(val_b)
         vals_in_range = self.vals[idx_val_a: idx_val_b + 1]
         if not var_gp_numeric:
-            vals_in_range = ["\"%s\"" % x for x in vals_in_range]
-        strGet_Sample = "%s = core_stats.get_list(" + \
-            "dbe=\"%s\", " % self.dbe + \
-            "cur=cur, tbl=\"%s\",\n    " % self.tbl + \
-            "fld_measure=\"%s\", " % var_avg + \
-            "fld_filter=\"%s\", " % var_gp + \
-            "filter_val=%s)"
-        script_lst.append("dp = 3")
+            vals_in_range = [u"\"%s\"" % x for x in vals_in_range]
+        strGet_Sample = u"%s = core_stats.get_list(" + \
+            u"dbe=\"%s\", " % self.dbe + \
+            u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
+            u"fld_measure=\"%s\", " % var_avg + \
+            u"fld_filter=\"%s\", " % var_gp + \
+            u"filter_val=%s)"
+        script_lst.append(u"dp = 3")
         lst_samples = []
         for i, val in enumerate(vals_in_range):
-            sample_name = "sample_%s" % i
+            sample_name = u"sample_%s" % i
             script_lst.append(strGet_Sample % (sample_name, val))
             lst_samples.append(sample_name)
         # only need labels for start and end of range
-        samples = "(" + ", ".join(lst_samples) + ")"
-        script_lst.append("samples = %s" % samples)        
-        script_lst.append("label_a = \"%s\"" % label_a)
-        script_lst.append("label_b = \"%s\"" % label_b)
-        script_lst.append("label_avg = \"%s\"" % label_avg)
-        script_lst.append("indep = True")
-        script_lst.append("h, p = " + \
-            "core_stats.kruskalwallish(*samples)")
-        script_lst.append("kruskal_wallis_output = " + \
-            "stats_output.kruskal_wallis_output(" + \
-            "h, p, label_a," + \
-            "\n    label_b, label_avg, dp," + \
-            "\n    level=my_globals.OUTPUT_RESULTS_ONLY, " + \
-            "css_idx=%s, page_break_after=False)" % css_idx)
-        script_lst.append("fil.write(kruskal_wallis_output)")
-        return "\n".join(script_lst)
+        samples = u"(" + u", ".join(lst_samples) + u")"
+        script_lst.append(u"samples = %s" % samples)        
+        script_lst.append(u"label_a = \"%s\"" % label_a)
+        script_lst.append(u"label_b = \"%s\"" % label_b)
+        script_lst.append(u"label_avg = \"%s\"" % label_avg)
+        script_lst.append(u"indep = True")
+        script_lst.append(u"h, p = " + \
+            u"core_stats.kruskalwallish(*samples)")
+        script_lst.append(u"kruskal_wallis_output = " + \
+            u"stats_output.kruskal_wallis_output(" + \
+            u"h, p, label_a," + \
+            u"\n    label_b, label_avg, dp," + \
+            u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, " + \
+            u"css_idx=%s, page_break_after=False)" % css_idx)
+        script_lst.append(u"fil.write(kruskal_wallis_output)")
+        return u"\n".join(script_lst)
     

@@ -25,7 +25,7 @@ def GetProjs():
     May need unicode results so always provide a unicode path. 
     """
     proj_fils = os.listdir(os.path.join(LOCAL_PATH, u"projs"))
-    proj_fils = [x for x in proj_fils if x.endswith(".proj")]
+    proj_fils = [x for x in proj_fils if x.endswith(u".proj")]
     proj_fils.sort()
     return proj_fils
 
@@ -46,7 +46,7 @@ def GetProjSettingsDic(proj_name):
     Returns proj_dic with keys such as conn_dets, fil_var_dets etc.
     proj_name MUST include .proj on end
     """
-    proj_path = os.path.join(LOCAL_PATH, "projs", proj_name)
+    proj_path = os.path.join(LOCAL_PATH, u"projs", proj_name)
     f = codecs.open(proj_path, "U", encoding="utf-8")
     proj_cont = util.clean_bom_utf8(f.read())
     f.close() 
@@ -100,9 +100,9 @@ def GetVarDets(fil_var_dets):
         results = var_dets_dic["var_labels"], var_dets_dic["var_notes"], \
                       var_dets_dic["var_types"], var_dets_dic["val_dics"]
     except Exception, e:
-        raise Exception, "Three variables needed in " + \
-            "'%s': var_labels, var_notes, var_types, and val_dics.  " + \
-            "Please check file." % fil_var_dets
+        raise Exception, u"Three variables needed in " + \
+            u"'%s': var_labels, var_notes, var_types, and val_dics.  " + \
+            u"Please check file." % fil_var_dets
     return results
 
 def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes, 
@@ -168,10 +168,10 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
         val_dics[var_name] = new_val_dic
         # update lbl file
         f = codecs.open(fil_var_dets, "w", encoding="utf-8")
-        f.write(os.linesep + "var_labels=" + pprint.pformat(var_labels))
-        f.write(os.linesep + "var_notes=" + pprint.pformat(var_notes))
-        f.write(os.linesep + "var_types=" + pprint.pformat(var_types))
-        f.write(os.linesep + os.linesep + "val_dics=" + \
+        f.write(os.linesep + u"var_labels=" + pprint.pformat(var_labels))
+        f.write(os.linesep + u"var_notes=" + pprint.pformat(var_notes))
+        f.write(os.linesep + u"var_types=" + pprint.pformat(var_types))
+        f.write(os.linesep + os.linesep + u"val_dics=" + \
                 pprint.pformat(val_dics))
         f.close()
         return True
@@ -550,9 +550,9 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
             try:
                 # only needed if returning to projselect form
                 # so OK to fail otherwise
-               self.parent.StoreProjName("%s.proj" % proj_name)
+               self.parent.StoreProjName(u"%s.proj" % proj_name)
             except Exception:
-                print("Failed to change to %s.proj" % proj_name)
+                print(u"Failed to change to %s.proj" % proj_name)
                 pass
             proj_notes = self.txtProjNotes.GetValue()
             fil_var_dets = self.txtVarDetsFile.GetValue()
@@ -580,15 +580,16 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
                       " file.") % default_dbe)
                 return
             # write the data
-            fil_name = os.path.join(LOCAL_PATH, "projs", "%s.proj" % proj_name)
+            fil_name = os.path.join(LOCAL_PATH, u"projs", u"%s.proj" % \
+                                    proj_name)
             f = codecs.open(fil_name, "w", encoding="utf-8")
-            f.write("# Windows file paths _must_ have double not single "
-                    "backslashes")
-            f.write(os.linesep + "# All file paths _must_ have a u before the"
-                    " quote-enclosed string")
-            f.write(os.linesep + """# u"C:\\\\Users\\\\demo.txt" is GOOD""")
-            f.write(os.linesep + """# u"C:\\Users\\demo.txt" is BAD""")
-            f.write(os.linesep + """# "C:\\\\Users\\\\demo.txt" is also BAD""")
+            f.write(u"# Windows file paths _must_ have double not single "
+                    u"backslashes")
+            f.write(os.linesep + u"# All file paths _must_ have a u before the"
+                    u" quote-enclosed string")
+            f.write(os.linesep + u"""# u"C:\\\\Users\\\\demo.txt" is GOOD""")
+            f.write(os.linesep + u"""# u"C:\\Users\\demo.txt" is BAD""")
+            f.write(os.linesep + u"""# "C:\\\\Users\\\\demo.txt" is also BAD""")
             f.write(os.linesep + os.linesep + u"proj_notes = u\"%s\"" % \
                     proj_notes)
             f.write(os.linesep + os.linesep + u"fil_var_dets = u\"%s\"" % 

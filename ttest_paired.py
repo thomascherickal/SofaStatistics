@@ -27,21 +27,21 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         "Build script from inputs"
         script_lst = []
         var_a, label_a, var_b, label_b = self.GetDropVals()
-        script_lst.append("sample_a, sample_b = " + \
-            "core_stats.get_paired_lists(" + \
-            "dbe=\"%s\", " % self.dbe + \
-            "cur=cur, tbl=\"%s\",\n    " % self.tbl + \
-            "fld_a=\"%s\", " % var_a + \
-            "fld_b=\"%s\")" % var_b)
-        script_lst.append("dp = 3")
-        script_lst.append("label_a = \"%s\"" % label_a)
-        script_lst.append("label_b = \"%s\"" % label_b)
-        script_lst.append("indep = False")
-        script_lst.append("t, p, dic_a, dic_b = " + \
-            "core_stats.ttest_rel(sample_a, sample_b, label_a, label_b)")
-        script_lst.append("ttest_output = stats_output.ttest_output(" + \
-            "t, p, dic_a, dic_b, label_avg=\"\", dp=dp, indep=indep,\n    " + \
-            "level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=%s, " % css_idx + \
-            "page_break_after=False)")
-        script_lst.append("fil.write(ttest_output)")
-        return "\n".join(script_lst)
+        script_lst.append(u"sample_a, sample_b = " + \
+            u"core_stats.get_paired_lists(" + \
+            u"dbe=\"%s\", " % self.dbe + \
+            u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
+            u"fld_a=\"%s\", " % var_a + \
+            u"fld_b=\"%s\")" % var_b)
+        script_lst.append(u"dp = 3")
+        script_lst.append(u"label_a = \"%s\"" % label_a)
+        script_lst.append(u"label_b = \"%s\"" % label_b)
+        script_lst.append(u"indep = False")
+        script_lst.append(u"t, p, dic_a, dic_b = " + \
+            u"core_stats.ttest_rel(sample_a, sample_b, label_a, label_b)")
+        script_lst.append(u"ttest_output = stats_output.ttest_output(" + \
+            u"t, p, dic_a, dic_b, label_avg=\"\", dp=dp, indep=indep,\n    " + \
+            u"level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=%s, " % css_idx + \
+            u"page_break_after=False)")
+        script_lst.append(u"fil.write(ttest_output)")
+        return u"\n".join(script_lst)

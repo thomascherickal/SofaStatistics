@@ -9,60 +9,60 @@ import getdata
 import util
 
 # http://www.postgresql.org/docs/8.4/static/datatype.html
-BIGINT = "bigint" # "signed eight-byte integer"
+BIGINT = u"bigint" # "signed eight-byte integer"
 #BIGSERIAL = "autoincrementing eight-byte integer" # not a real type, only a
 #  notational convenience 
 # (see http://www.postgresql.org/docs/8.4/static/datatype-numeric.html)
-BIT = "bit" # "fixed-length bit string"
-BITVARYING = "bit varying" # "variable-length bit string"
-BOOLEAN = "boolean" # "logical Boolean (true/false)"
-BOX = "box" # "rectangular box on a plane"
-BYTEA = "bytea" # "binary data ('byte array')"
-CHARVARYING = "character varying" # "variable-length character string"
-CHAR = "character" # "fixed-length character string"
-CIDR = "cidr" # "IPv4 or IPv6 network address"
-CIRCLE = "circle" # "circle on a plane"
-DATE = "date" # "calendar date (year, month, day)"
-DECIMAL = "decimal" # The types decimal and numeric are equivalent. 
+BIT = u"bit" # "fixed-length bit string"
+BITVARYING = u"bit varying" # "variable-length bit string"
+BOOLEAN = u"boolean" # "logical Boolean (true/false)"
+BOX = u"box" # "rectangular box on a plane"
+BYTEA = u"bytea" # "binary data ('byte array')"
+CHARVARYING = u"character varying" # "variable-length character string"
+CHAR = u"character" # "fixed-length character string"
+CIDR = u"cidr" # "IPv4 or IPv6 network address"
+CIRCLE = u"circle" # "circle on a plane"
+DATE = u"date" # "calendar date (year, month, day)"
+DECIMAL = u"decimal" # The types decimal and numeric are equivalent. 
   # Both types are part of the SQL standard. 
-DOUBLE = "double precision" # "double precision floating-point number (8 bytes)"
-INET = "inet" # "IPv4 or IPv6 host address"
-INTEGER = "integer" # "signed four-byte integer"
-INTERVAL = "interval" # "time span"
-LINE = "line" # "infinite line on a plane"
-LSEG = "lseg" # "line segment on a plane"
-MACADDR = "macaddr" # "MAC (Media Access Control) address"
-MONEY = "money" # "currency amount"
-NUMERIC = "numeric" # "exact numeric of selectable precision"
-PATH = "path" # "geometric path on a plane"
-POINT = "point" # "geometric point on a plane"
-POLYGON = "polygon" # "closed geometric path on a plane"
-REAL = "real" # "single precision floating-point number (4 bytes)"
-SMALLINT = "smallint" # "signed two-byte integer"
+DOUBLE = u"double precision" # "double precision floating-point number (8 bytes)"
+INET = u"inet" # "IPv4 or IPv6 host address"
+INTEGER = u"integer" # "signed four-byte integer"
+INTERVAL = u"interval" # "time span"
+LINE = u"line" # "infinite line on a plane"
+LSEG = u"lseg" # "line segment on a plane"
+MACADDR = u"macaddr" # "MAC (Media Access Control) address"
+MONEY = u"money" # "currency amount"
+NUMERIC = u"numeric" # "exact numeric of selectable precision"
+PATH = u"path" # "geometric path on a plane"
+POINT = u"point" # "geometric point on a plane"
+POLYGON = u"polygon" # "closed geometric path on a plane"
+REAL = u"real" # "single precision floating-point number (4 bytes)"
+SMALLINT = u"smallint" # "signed two-byte integer"
 #SERIAL = "autoincrementing four-byte integer"
-TEXT = "text" # "variable-length character string"
-TIME = "time" # "time of day"
-TIMESTAMP = "timestamp" # "date and time"
-TSQUERY = "tsquery" # "text search query"
-TSVECTOR = "tsvector" # "text search document"
-TXID_SNAPSHOT = "txid_snapshot" # "user-level transaction ID snapshot"
-UUID = "uuid" # "universally unique identifier"
-XML = "xml" # "XML data"
+TEXT = u"text" # "variable-length character string"
+TIME = u"time" # "time of day"
+TIMESTAMP = u"timestamp" # "date and time"
+TSQUERY = u"tsquery" # "text search query"
+TSVECTOR = u"tsvector" # "text search document"
+TXID_SNAPSHOT = u"txid_snapshot" # "user-level transaction ID snapshot"
+UUID = u"uuid" # "universally unique identifier"
+XML = u"xml" # "XML data"
 
 def quote_obj(raw_val):
-    return '"%s"' % raw_val
+    return u'"%s"' % raw_val
 
 def quote_val(raw_val):
-    return "'%s'" % raw_val
+    return u"'%s'" % raw_val
 
 def get_placeholder():
-    return "%s"
+    return u"%s"
 
 def get_summable(clause):
-    return "CASE WHEN %s THEN 1 ELSE 0 END" % clause
+    return u"CASE WHEN %s THEN 1 ELSE 0 END" % clause
 
 def DbeSyntaxElements():
-    if_clause = "CASE WHEN %s THEN %s ELSE %s END"
+    if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
     return (if_clause, quote_obj, quote_val, get_placeholder, get_summable)
 
 
@@ -83,17 +83,17 @@ class DbDets(getdata.DbDets):
         """
         conn_dets_pgsql = self.conn_dets.get(my_globals.DBE_PGSQL)
         if not conn_dets_pgsql:
-            raise Exception, "No connection details available for PostgreSQL"
+            raise Exception, u"No connection details available for PostgreSQL"
         try:
             if self.db:
                 conn_dets_pgsql["database"] = self.db
             conn = pgdb.connect(**conn_dets_pgsql)
         except Exception, e:
-            raise Exception, "Unable to connect to PostgreSQL db.  " + \
-                "Orig error: %s" % e
+            raise Exception, u"Unable to connect to PostgreSQL db.  " + \
+                u"Orig error: %s" % e
         cur = conn.cursor() # must return tuples not dics
         # get database name
-        SQL_get_db_names = """SELECT datname FROM pg_database"""
+        SQL_get_db_names = u"""SELECT datname FROM pg_database"""
         cur.execute(SQL_get_db_names)
         self.dbs = [x[0] for x in cur.fetchall()]
         dbs_lc = [x.lower() for x in self.dbs]
@@ -114,8 +114,8 @@ class DbDets(getdata.DbDets):
             cur = conn.cursor()
         else:
             if self.db.lower() not in dbs_lc:
-                raise Exception, "Database \"%s\" not available " % self.db + \
-                    "from supplied connection"
+                raise Exception, u"Database \"%s\" not available " % self.db + \
+                    u"from supplied connection"
         if self.debug: pprint.pprint(self.conn_dets)        
         return conn, cur
        
@@ -131,8 +131,8 @@ class DbDets(getdata.DbDets):
         Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
         """
         if self.debug:
-            print("Received db is: %s" % self.db)
-            print("Received tbl is: %s" % self.tbl)
+            print(u"Received db is: %s" % self.db)
+            print(u"Received tbl is: %s" % self.tbl)
         conn, cur = self.get_conn_cur()
         # get table names
         tbls = self.getDbTbls(cur, self.db)
@@ -148,18 +148,18 @@ class DbDets(getdata.DbDets):
                 try:
                     self.tbl = tbls[0]
                 except IndexError:
-                    raise Exception, "No tables found in database \"%s\"" % \
+                    raise Exception, u"No tables found in database \"%s\"" % \
                         self.db
         else:
             if self.tbl.lower() not in tbls_lc:
-                raise Exception, "Table \"%s\" not found in database \"%s\"" % \
-                    (self.tbl, self.db)
+                raise Exception, u"Table \"%s\" not found " % self.tbl + \
+                    u"in database \"%s\"" % self.db
         # get field names (from first table if none provided)
         flds = self.getTblFlds(cur, self.db, self.tbl)
         has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
         if self.debug:
-            print("Db is: %s" % self.db)
-            print("Tbl is: %s" % self.tbl)
+            print(u"Db is: %s" % self.db)
+            print(u"Tbl is: %s" % self.tbl)
             pprint.pprint(tbls)
             pprint.pprint(flds)
             pprint.pprint(idxs)
@@ -170,7 +170,7 @@ class DbDets(getdata.DbDets):
         Get table names given database and cursor.
         http://www.alberton.info/postgresql_meta_info.html
         """
-        SQL_get_tbl_names = """SELECT table_name
+        SQL_get_tbl_names = u"""SELECT table_name
             FROM information_schema.tables
             WHERE table_type = 'BASE TABLE'
                 AND table_schema NOT IN ('pg_catalog', 'information_schema')"""
@@ -236,7 +236,7 @@ class DbDets(getdata.DbDets):
         http://archives.postgresql.org/pgsql-sql/2007-01/msg00082.php
         """
         debug = False
-        SQL_get_fld_dets = """SELECT columns.column_name 
+        SQL_get_fld_dets = u"""SELECT columns.column_name 
             AS col_name, 
                 columns.ordinal_position 
             AS ord_pos,  
@@ -252,7 +252,7 @@ class DbDets(getdata.DbDets):
             AS char_set_name,
                 lower(columns.data_type) IN ('%s', '%s', '%s', '%s', '%s', '%s', 
                     '%s', '%s') """ % (SMALLINT, INTEGER, BIGINT, DECIMAL, 
-                                       NUMERIC, REAL, DOUBLE, MONEY) + """
+                                       NUMERIC, REAL, DOUBLE, MONEY) + u"""
             AS bolnumeric,
                 position('nextval' in columns.column_default) IS NOT NULL 
             AS autonumber,
@@ -261,9 +261,9 @@ class DbDets(getdata.DbDets):
                 columns.numeric_precision 
             AS num_precision,
                 lower(columns.data_type) IN ('%s', '%s', '%s', '%s') """ % \
-                    (TIMESTAMP, DATE, TIME, INTERVAL) + """
+                    (TIMESTAMP, DATE, TIME, INTERVAL) + u"""
             AS boldatetime,
-                lower(columns.data_type) IN ('%s') """ % TIMESTAMP + """ 
+                lower(columns.data_type) IN ('%s') """ % TIMESTAMP + u""" 
             AS timestamp
             FROM information_schema.columns
             WHERE columns.table_schema::text = 'public'::text
@@ -277,7 +277,7 @@ class DbDets(getdata.DbDets):
         for (fld_name, ord_pos, nullable, fld_default, fld_type, max_len, 
                  charset, numeric, autonum, dec_pts, num_prec, boldatetime, 
                  timestamp) in fld_dets:
-            bolnullable = True if nullable == "YES" else False
+            bolnullable = True if nullable == u"YES" else False
             boldata_entry_ok = False if (autonum or timestamp) else True
             bolnumeric = True if numeric else False
             fld_txt = not bolnumeric and not boldatetime
@@ -311,7 +311,7 @@ class DbDets(getdata.DbDets):
         each idx is a dict name, is_unique, flds
         http://www.alberton.info/postgresql_meta_info.html
         """
-        SQL_get_main_index_dets = """SELECT relname, indkey, indisunique
+        SQL_get_main_index_dets = u"""SELECT relname, indkey, indisunique
             FROM pg_class, pg_index
             WHERE pg_class.oid = pg_index.indexrelid
             AND pg_class.oid IN (
@@ -328,8 +328,8 @@ class DbDets(getdata.DbDets):
             if unique_index:
                 has_unique = True
             # get field names
-            fld_oids = indkey.replace(" ", ", ")
-            SQL_get_idx_flds = """SELECT t.relname, a.attname
+            fld_oids = indkey.replace(u" ", u", ")
+            SQL_get_idx_flds = u"""SELECT t.relname, a.attname
                FROM pg_index c
                LEFT JOIN pg_class t
                ON c.indrelid  = t.oid
@@ -361,13 +361,13 @@ def InsertRow(conn, cur, tbl_name, data):
     if debug: pprint.pprint(data)
     fld_dics = [x[2] for x in data]
     fld_names = [x[1] for x in data]
-    fld_names_clause = ' ("' + '", "'.join(fld_names) + '") '
+    fld_names_clause = u' ("' + u'", "'.join(fld_names) + u'") '
     # e.g. ("fname", "lname", "dob" ...)
-    fld_placeholders_clause = " (" + \
-        ", ".join(["%s" for x in range(len(data))]) + ") "
+    fld_placeholders_clause = u" (" + \
+        u", ".join([u"%s" for x in range(len(data))]) + u") "
     # e.g. " (%s, %s, %s ...) "
-    SQL_insert = "INSERT INTO \"%s\" " % tbl_name + fld_names_clause + \
-        "VALUES %s" % fld_placeholders_clause
+    SQL_insert = u"INSERT INTO \"%s\" " % tbl_name + fld_names_clause + \
+        u"VALUES %s" % fld_placeholders_clause
     if debug: print(SQL_insert)
     data_lst = []
     for i, data_dets in enumerate(data):
@@ -383,9 +383,9 @@ def InsertRow(conn, cur, tbl_name, data):
         conn.commit()
         return True, None
     except Exception, e:
-        if debug: print("Failed to insert row.  SQL: %s, Data: %s" %
-            (SQL_insert, unicode(data_tup)) + "\n\nOriginal error: %s" % e)
-        return False, "%s" % e
+        if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
+            (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
+        return False, u"%s" % e
 
 def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""
@@ -475,23 +475,23 @@ def setConnDetDefaults(parent):
     try:
         parent.pgsql_default_db
     except AttributeError:
-        parent.pgsql_default_db = ""
+        parent.pgsql_default_db = u""
     try:
         parent.pgsql_default_tbl
     except AttributeError: 
-        parent.pgsql_default_tbl = ""
+        parent.pgsql_default_tbl = u""
     try:
         parent.pgsql_host
     except AttributeError: 
-        parent.pgsql_host = ""
+        parent.pgsql_host = u""
     try:
         parent.pgsql_user
     except AttributeError: 
-        parent.pgsql_user = ""
+        parent.pgsql_user = u""
     try:            
         parent.pgsql_pwd
     except AttributeError: 
-        parent.pgsql_pwd = ""
+        parent.pgsql_pwd = u""
     
 def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     pgsql_default_db = parent.txtPgsqlDefaultDb.GetValue()
@@ -515,4 +515,3 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
                            "password": pgsql_pwd}
         conn_dets[my_globals.DBE_PGSQL] = conn_dets_pgsql
     return incomplete_pgsql, has_pgsql_conn
-    

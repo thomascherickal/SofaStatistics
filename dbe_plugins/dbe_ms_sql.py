@@ -23,19 +23,19 @@ AD_SCHEMA_COLUMNS = 4
 
 
 def quote_obj(raw_val):
-    return "[%s]" % raw_val
+    return u"[%s]" % raw_val
 
 def quote_val(raw_val):
-    return "'%s'" % raw_val.replace("'", "''")
+    return u"'%s'" % raw_val.replace("'", "''")
 
 def get_placeholder():
-    return "?"
+    return u"?"
 
 def get_summable(clause):
     return clause
 
 def DbeSyntaxElements():
-    if_clause = "CASE WHEN %s THEN %s ELSE %s END"
+    if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
     return (if_clause, quote_obj, quote_val, get_placeholder, get_summable)
 
     
@@ -50,13 +50,14 @@ class DbDets(getdata.DbDets):
     def get_conn_cur(self):
         conn_dets_mssql = self.conn_dets.get(my_globals.DBE_MS_SQL)
         if not conn_dets_mssql:
-            raise Exception, "No connection details available for MS SQL Server"
-        host = conn_dets_mssql["host"]
-        user = conn_dets_mssql["user"]
-        pwd = conn_dets_mssql["passwd"]
+            raise Exception, (u"No connection details available for "
+                              "MS SQL Server")
+        host = conn_dets_mssql[u"host"]
+        user = conn_dets_mssql[u"user"]
+        pwd = conn_dets_mssql[u"passwd"]
         dbs, self.db = self._getDbs(host, user, pwd)
         setDbInConnDets(conn_dets_mssql, self.db)
-        DSN = """PROVIDER=SQLOLEDB;
+        DSN = u"""PROVIDER=SQLOLEDB;
             Data Source='%s';
             User ID='%s';
             Password='%s';
@@ -65,10 +66,10 @@ class DbDets(getdata.DbDets):
         try:
             conn = adodbapi.connect(connstr=DSN)
         except Exception, e:
-            raise Exception, "Unable to connect to MS SQL Server with " + \
-                "database %s; and supplied connection: " % self.db + \
-                "host: %s; user: %s; pwd: %s. " % (host, user, pwd) + \
-                "Orig error: %s" % e
+            raise Exception, u"Unable to connect to MS SQL Server with " + \
+                u"database %s; and supplied connection: " % self.db + \
+                u"host: %s; user: %s; pwd: %s. " % (host, user, pwd) + \
+                u"Orig error: %s" % e
         cur = conn.cursor()
         cur.adoconn = conn.adoConn # (need to access from just the cursor)        
         return conn, cur
@@ -100,12 +101,12 @@ class DbDets(getdata.DbDets):
                 try:
                     self.tbl = tbls[0]
                 except IndexError:
-                    raise Exception, "No tables found in database \"%s\"" % \
+                    raise Exception, u"No tables found in database \"%s\"" % \
                         self.db
         else:
             if self.tbl.lower() not in tbls_lc:
-                raise Exception, "Table \"%s\" not found in database \"%s\"" % \
-                    (self.tbl, self.db)
+                raise Exception, u"Table \"%s\" not found " % self.tbl + \
+                    "in database \"%s\"" % self.db
         # get field names (from first table if none provided)
         flds = self.getTblFlds(cur, self.db, self.tbl)
         has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
@@ -123,7 +124,7 @@ class DbDets(getdata.DbDets):
         NB need to use a separate connection here with db Initial Catalog) 
             undefined.        
         """
-        DSN = """PROVIDER=SQLOLEDB;
+        DSN = u"""PROVIDER=SQLOLEDB;
             Data Source='%s';
             User ID='%s';
             Password='%s';
@@ -132,10 +133,10 @@ class DbDets(getdata.DbDets):
         try:
             conn = adodbapi.connect(connstr=DSN)
         except Exception, e:
-            raise Exception, "Unable to connect to MS SQL Server " + \
-                "with host: %s; user: %s; and pwd: %s" % (host, user, pwd)
+            raise Exception, u"Unable to connect to MS SQL Server " + \
+                u"with host: %s; user: %s; and pwd: %s" % (host, user, pwd)
         cur = conn.cursor() # must return tuples not dics
-        cur.execute("SELECT name FROM sysdatabases")
+        cur.execute(u"SELECT name FROM sysdatabases")
         dbs = [x[0] for x in cur.fetchall()]
         dbs_lc = [x.lower() for x in dbs]
         # get db (default if possible otherwise first)
@@ -149,8 +150,8 @@ class DbDets(getdata.DbDets):
                 db = dbs[0]
         else:
             if self.db.lower() not in dbs_lc:
-                raise Exception, "Database \"%s\" not available " % self.db + \
-                    "from supplied connection"
+                raise Exception, u"Database \"%s\" not available " % self.db + \
+                    u"from supplied connection"
             else:
                 db = self.db
         cur.close()
@@ -165,7 +166,7 @@ class DbDets(getdata.DbDets):
         alltables = cat.Tables
         tbls = []
         for tab in alltables:
-            if tab.Type == 'TABLE':
+            if tab.Type == "TABLE":
                 tbls.append(tab.Name)
         cat = None
         return tbls
@@ -189,9 +190,9 @@ class DbDets(getdata.DbDets):
         extras = {}
         rs = cur.adoconn.OpenSchema(AD_SCHEMA_COLUMNS, (None, None, tbl)) 
         while not rs.EOF:
-            fld_name = rs.Fields("COLUMN_NAME").Value
-            ord_pos = rs.Fields("ORDINAL_POSITION").Value
-            char_set = rs.Fields("CHARACTER_SET_NAME").Value
+            fld_name = rs.Fields(u"COLUMN_NAME").Value
+            ord_pos = rs.Fields(u"ORDINAL_POSITION").Value
+            char_set = rs.Fields(u"CHARACTER_SET_NAME").Value
             extras[fld_name] = (ord_pos, char_set)
             rs.MoveNext()
         flds = {}
@@ -201,18 +202,19 @@ class DbDets(getdata.DbDets):
             if debug: print(col.Type)
             fld_type = dbe_globals.getADODic().get(col.Type)
             if not fld_type:
-                raise Exception, "Not an MS SQL Server ADO field type %d" % col.Type
+                raise Exception, u"Not an MS SQL Server ADO field type %d" % \
+                    col.Type
             bolnumeric = fld_type in dbe_globals.NUMERIC_TYPES
             try:
-                bolautonum = col.Properties("AutoIncrement").Value
+                bolautonum = col.Properties(u"AutoIncrement").Value
             except Exception:
                 bolautonum = False
             try:
-                bolnullable = col.Properties("Nullable").Value
+                bolnullable = col.Properties(u"Nullable").Value
             except Exception:
                 bolnullable = False
             try:
-                default = col.Properties("Default").Value
+                default = col.Properties(u"Default").Value
             except Exception:
                 default = ""
             boldata_entry_ok = False if bolautonum else True
@@ -275,7 +277,7 @@ class DbDets(getdata.DbDets):
 
 def setDbInConnDets(conn_dets, db):
     "Set database in connection details (if appropriate)"
-    conn_dets["db"] = db
+    conn_dets[u"db"] = db
 
 def InsertRow(conn, cur, tbl_name, data):
     """
@@ -288,13 +290,13 @@ def InsertRow(conn, cur, tbl_name, data):
     if debug: pprint.pprint(data)
     fld_dics = [x[2] for x in data]
     fld_names = [x[1] for x in data]
-    fld_names_clause = " ([" + "], [".join(fld_names) + "]) "
+    fld_names_clause = u" ([" + u"], [".join(fld_names) + u"]) "
     # e.g. (`fname`, `lname`, `dob` ...)
-    fld_placeholders_clause = " (" + \
-        ", ".join(["%s" for x in range(len(data))]) + ") "
+    fld_placeholders_clause = u" (" + \
+        u", ".join([u"%s" for x in range(len(data))]) + u") "
     # e.g. " (%s, %s, %s ...) "
-    SQL_insert = "INSERT INTO `%s` " % tbl_name + fld_names_clause + \
-        "VALUES %s" % fld_placeholders_clause
+    SQL_insert = u"INSERT INTO `%s` " % tbl_name + fld_names_clause + \
+        u"VALUES %s" % fld_placeholders_clause
     if debug: print(SQL_insert)
     data_lst = []
     for i, data_dets in enumerate(data):
@@ -308,9 +310,9 @@ def InsertRow(conn, cur, tbl_name, data):
         conn.commit()
         return True, None
     except Exception, e:
-        if debug: print("Failed to insert row.  SQL: %s, Data: %s" %
-            (SQL_insert, unicode(data_tup)) + "\n\nOriginal error: %s" % e)
-        return False, "%s" % e
+        if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
+            (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
+        return False, u"%s" % e
 
 def setDataConnGui(parent, read_only, scroll, szr, lblfont):
     ""
@@ -358,7 +360,7 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
                                      size=(300,-1))
     parent.txtMssqlPwd.Enable(not read_only)
     #2 MS SQL SERVER
-    bxMssql= wx.StaticBox(scroll, -1, "Microsoft SQL Server")
+    bxMssql= wx.StaticBox(scroll, -1, u"Microsoft SQL Server")
     parent.szrMssql = wx.StaticBoxSizer(bxMssql, wx.VERTICAL)
     #3 MSSQL INNER
     #4 MSSQL INNER TOP
@@ -387,11 +389,12 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
 
 def getProjSettings(parent, proj_dic):
     ""
-    parent.mssql_default_db = proj_dic["default_dbs"].get(my_globals.DBE_MS_SQL)
+    parent.mssql_default_db = \
+        proj_dic[u"default_dbs"].get(my_globals.DBE_MS_SQL)
     parent.mssql_default_tbl = \
-        proj_dic["default_tbls"].get(my_globals.DBE_MS_SQL)
+        proj_dic[u"default_tbls"].get(my_globals.DBE_MS_SQL)
     # optional (although if any mssql, for eg, must have all)
-    if proj_dic["conn_dets"].get(my_globals.DBE_MS_SQL):
+    if proj_dic[u"conn_dets"].get(my_globals.DBE_MS_SQL):
         parent.mssql_host = proj_dic["conn_dets"][my_globals.DBE_MS_SQL]["host"]
         parent.mssql_user = proj_dic["conn_dets"][my_globals.DBE_MS_SQL]["user"]
         parent.mssql_pwd = proj_dic["conn_dets"][my_globals.DBE_MS_SQL]["passwd"]
@@ -402,23 +405,23 @@ def setConnDetDefaults(parent):
     try:
         parent.mssql_default_db
     except AttributeError:
-        parent.mssql_default_db = ""
+        parent.mssql_default_db = u""
     try:
         parent.mssql_default_tbl
     except AttributeError: 
-        parent.mssql_default_tbl = ""
+        parent.mssql_default_tbl = u""
     try:
         parent.mssql_host
     except AttributeError: 
-        parent.mssql_host = ""
+        parent.mssql_host = u""
     try:
         parent.mssql_user
     except AttributeError: 
-        parent.mssql_user = ""
+        parent.mssql_user = u""
     try:            
         parent.mssql_pwd
     except AttributeError: 
-        parent.mssql_pwd = ""
+        parent.mssql_pwd = u""
 
 def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     mssql_default_db = parent.txtMssqlDefaultDb.GetValue()

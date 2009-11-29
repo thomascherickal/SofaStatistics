@@ -38,24 +38,24 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst = []
         var_gp, label_gp, val_a, label_a, val_b, label_b, var_ranked, \
             label_ranked = self.GetDropVals()
-        strGet_Sample = "sample_%s = core_stats.get_list(" + \
-            "dbe=\"%s\", " % self.dbe + \
-            "cur=cur, tbl=\"%s\",\n    " % self.tbl + \
-            "fld_measure=\"%s\", " % var_ranked + \
-            "fld_filter=\"%s\", " % var_gp + \
-            "filter_val=%s)"
-        script_lst.append("dp = 3")
-        script_lst.append(strGet_Sample % ("a", val_a))
-        script_lst.append(strGet_Sample % ("b", val_b))
-        script_lst.append("label_a = \"%s\"" % label_a)
-        script_lst.append("label_b = \"%s\"" % label_b)
-        script_lst.append("label_ranked = \"%s\"" % label_ranked)
-        script_lst.append("u, p, dic_a, dic_b = " + \
-            "core_stats.mannwhitneyu(sample_a, sample_b, label_a, label_b)")
-        script_lst.append("mann_whitney_output = " + \
-            "stats_output.mann_whitney_output(" + \
-            "u, p, dic_a, dic_b, label_ranked, dp,\n     " + \
-            "level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=%s, " % css_idx + \
-            "page_break_after=False)")
-        script_lst.append("fil.write(mann_whitney_output)")
-        return "\n".join(script_lst)
+        strGet_Sample = u"sample_%s = core_stats.get_list(" + \
+            u"dbe=\"%s\", " % self.dbe + \
+            u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
+            u"fld_measure=\"%s\", " % var_ranked + \
+            u"fld_filter=\"%s\", " % var_gp + \
+            u"filter_val=%s)"
+        script_lst.append(u"dp = 3")
+        script_lst.append(strGet_Sample % (u"a", val_a))
+        script_lst.append(strGet_Sample % (u"b", val_b))
+        script_lst.append(u"label_a = \"%s\"" % label_a)
+        script_lst.append(u"label_b = \"%s\"" % label_b)
+        script_lst.append(u"label_ranked = \"%s\"" % label_ranked)
+        script_lst.append(u"u, p, dic_a, dic_b = " + \
+            u"core_stats.mannwhitneyu(sample_a, sample_b, label_a, label_b)")
+        script_lst.append(u"mann_whitney_output = " + \
+            u"stats_output.mann_whitney_output(" + \
+            u"u, p, dic_a, dic_b, label_ranked, dp,\n     " + \
+            u"level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=%s, " % css_idx + \
+            u"page_break_after=False)")
+        script_lst.append(u"fil.write(mann_whitney_output)")
+        return u"\n".join(script_lst)

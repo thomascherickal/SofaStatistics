@@ -13,7 +13,7 @@ adSchemaTables = 20
 ROW_BUFFER = 256 # for iteration. -1 buffers the entire worksheet
 
 def get_numbered_flds(n_flds):
-    return ["Fld_%s" % (x+1,) for x in range(n_flds)]
+    return [u"Fld_%s" % (x+1,) for x in range(n_flds)]
 
 def PlainProcess(val):
     """

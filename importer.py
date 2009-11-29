@@ -35,8 +35,8 @@ GAUGE_RANGE = 50
 class MismatchException(Exception):
     def __init__(self, fld_name, details):
         self.fld_name = fld_name
-        Exception.__init__(self, "Found data not matching expected " + \
-                           "column type.\n\n%s" % details)
+        Exception.__init__(self, u"Found data not matching expected " + \
+                           u"column type.\n\n%s" % details)
 
 
 def assess_sample_fld(sample_data, fld_name):
@@ -57,7 +57,7 @@ def assess_sample_fld(sample_data, fld_name):
     datetime_only_set = set([VAL_DATETIME])
     datetime_or_empt_str_set = set([VAL_DATETIME, VAL_EMPTY_STRING])
     for row in sample_data:
-        val = util.if_none(row[fld_name], "")
+        val = util.if_none(row[fld_name], u"")
         if util.is_numeric(val): # anything that SQLite can add _as a number_ 
                 # into a numeric field
             type_set.add(VAL_NUMERIC)
@@ -67,7 +67,7 @@ def assess_sample_fld(sample_data, fld_name):
             boldatetime, time_obj = util.valid_datetime_str(val)
             if boldatetime:
                 type_set.add(VAL_DATETIME)
-            elif val == "":
+            elif val == u"":
                 type_set.add(VAL_EMPTY_STRING)
             else:
                 type_set.add(VAL_STRING)
@@ -102,16 +102,16 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
         if not is_pytime:
             if fld_type in [FLD_NUMERIC, FLD_DATETIME] and \
                     (val == "" or val is None):
-                val = "NULL"
+                val = u"NULL"
     else:            
         bolOK_data = False        
         if fld_type == FLD_NUMERIC:
             # must be numeric or empty string (which we'll turn to NULL)
             if util.is_numeric(val):
                 bolOK_data = True
-            elif val == "" or val is None:
+            elif val == u"" or val is None:
                 bolOK_data = True
-                val = "NULL"
+                val = u"NULL"
         elif fld_type == FLD_DATETIME:
             # must be pytime or datetime 
             # or empty string (which we'll turn to NULL).
@@ -123,19 +123,19 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
                 if boldatetime:
                     bolOK_data = True
                     val = util.timeobj_to_datetime_str(timeobj)
-                elif val == "" or val is None:
+                elif val == u"" or val is None:
                     bolOK_data = True
-                    val = "NULL"
+                    val = u"NULL"
         elif fld_type == FLD_STRING:
             bolOK_data = True
         if not bolOK_data:
             raise MismatchException(fld_name,
-                "Column: %s" % fld_name + \
-                "\nRow: %s" % row_num + \
-                "\nValue: \"%s\"" % val + \
-                "\nExpected column type: %s" % fld_type)
-    if val != "NULL":
-        val = "\"%s\"" % val
+                u"Column: %s" % fld_name + \
+                u"\nRow: %s" % row_num + \
+                u"\nValue: \"%s\"" % val + \
+                u"\nExpected column type: %s" % fld_type)
+    if val != u"NULL":
+        val = u"\"%s\"" % val
     vals.append(val)
     
 def AddRows(conn, cur, rows, fld_names, fld_types, progBackup, gauge_chunk,
@@ -149,7 +149,7 @@ def AddRows(conn, cur, rows, fld_names, fld_types, progBackup, gauge_chunk,
     TODO - insert multiple lines at once for performance
     """
     debug = False
-    fld_names_clause = ", ".join([dbe_sqlite.quote_obj(x) for x in fld_names])
+    fld_names_clause = u", ".join([dbe_sqlite.quote_obj(x) for x in fld_names])
     i = start_i
     for row in rows:
         if i % 50 == 0:
@@ -162,9 +162,9 @@ def AddRows(conn, cur, rows, fld_names, fld_types, progBackup, gauge_chunk,
         for fld_name in fld_names:
             ProcessVal(vals, i, row, fld_name, fld_types, check)
         # quoting must happen earlier so we can pass in NULL  
-        fld_vals_clause = ", ".join(["%s" % x for x in vals])
-        SQL_insert_row = "INSERT INTO %s " % TMP_SQLITE_TBL + \
-            "(%s) VALUES(%s)" % (fld_names_clause, fld_vals_clause)
+        fld_vals_clause = u", ".join([u"%s" % x for x in vals])
+        SQL_insert_row = u"INSERT INTO %s " % TMP_SQLITE_TBL + \
+            u"(%s) VALUES(%s)" % (fld_names_clause, fld_vals_clause)
         if debug: print(SQL_insert_row)
         try:
             cur.execute(SQL_insert_row)
@@ -173,7 +173,7 @@ def AddRows(conn, cur, rows, fld_names, fld_types, progBackup, gauge_chunk,
         except MismatchException, e:
             raise # keep this particular type of exception bubbling out
         except Exception, e:
-            raise Exception, "Unable to add row %s. Orig error: %s" % (i, e)
+            raise Exception, u"Unable to add row %s. Orig error: %s" % (i, e)
     conn.commit()
 
 def getGaugeChunkSize(n_rows, sample_n):
@@ -195,39 +195,39 @@ def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types,
     """
     debug = False
     if debug:
-        print("Field names are: %s" % fld_names)
-        print("Field types are: %s" % fld_types)
-        print("Sample data is: %s" % sample_data)
+        print(u"Field names are: %s" % fld_names)
+        print(u"Field types are: %s" % fld_types)
+        print(u"Sample data is: %s" % sample_data)
     # create fresh disposable table to store data in.
     # give it a unique identifier field as well.
-    fld_clause_items = ["sofa_id INTEGER PRIMARY KEY"]
+    fld_clause_items = [u"sofa_id INTEGER PRIMARY KEY"]
     for fld_name in fld_names:
         fld_type = fld_types[fld_name]
         sqlite_type = FLD_TYPE_TO_SQLITE_TYPE[fld_type]
-        fld_clause_items.append("%s %s" % \
+        fld_clause_items.append(u"%s %s" % \
                 (dbe_sqlite.quote_obj(fld_name), sqlite_type))
-    fld_clause_items.append("UNIQUE(sofa_id)")
-    fld_clause = ", ".join(fld_clause_items)
+    fld_clause_items.append(u"UNIQUE(sofa_id)")
+    fld_clause = u", ".join(fld_clause_items)
     try:
         conn.commit()
-        SQL_get_tbl_names = """SELECT name 
+        SQL_get_tbl_names = u"""SELECT name 
             FROM sqlite_master 
             WHERE type = 'table'"""
         cur.execute(SQL_get_tbl_names) # otherwise it doesn't always seem to have the 
             # latest data on which tables exist
-        SQL_drop_disp_tbl = "DROP TABLE IF EXISTS %s" % TMP_SQLITE_TBL
+        SQL_drop_disp_tbl = u"DROP TABLE IF EXISTS %s" % TMP_SQLITE_TBL
         cur.execute(SQL_drop_disp_tbl)        
         conn.commit()
-        if debug: print("Successfully dropped %s" % TMP_SQLITE_TBL)
+        if debug: print(u"Successfully dropped %s" % TMP_SQLITE_TBL)
     except Exception, e:
         raise
     try:
-        SQL_create_disp_tbl = "CREATE TABLE %s " % TMP_SQLITE_TBL + \
-            " (%s)" % fld_clause
+        SQL_create_disp_tbl = u"CREATE TABLE %s " % TMP_SQLITE_TBL + \
+            u" (%s)" % fld_clause
         if debug: print(SQL_create_disp_tbl)
         cur.execute(SQL_create_disp_tbl)
         conn.commit()
-        if debug: print("Successfully created  %s" % TMP_SQLITE_TBL)
+        if debug: print(u"Successfully created  %s" % TMP_SQLITE_TBL)
     except Exception, e:
         raise   
     try:
@@ -244,7 +244,7 @@ def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types,
         conn.commit()
         progBackup.SetValue(0)
         # go through again or raise an exception
-        retCode = wx.MessageBox("%s\n\n" % e + _("Fix and keep going?"), 
+        retCode = wx.MessageBox(u"%s\n\n" % e + _("Fix and keep going?"), 
                                 _("KEEP GOING?"), 
                                 wx.YES_NO | wx.ICON_QUESTION)
         if retCode == wx.YES:
@@ -254,8 +254,8 @@ def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types,
                           sample_data, sample_n, remaining_data, progBackup, 
                           gauge_chunk, keep_importing)
         else:
-            raise Exception, "Mismatch between data in column and expected " + \
-                "column type"
+            raise Exception, u"Mismatch between data in column and " + \
+                "expected column type"
     
 def TmpToNamedTbl(conn, cur, tbl_name, file_path, progBackup):
     """
@@ -265,19 +265,19 @@ def TmpToNamedTbl(conn, cur, tbl_name, file_path, progBackup):
     """
     debug = False
     try:
-        SQL_drop_tbl = "DROP TABLE IF EXISTS %s" % \
+        SQL_drop_tbl = u"DROP TABLE IF EXISTS %s" % \
             dbe_sqlite.quote_obj(tbl_name)
         if debug: print(SQL_drop_tbl)
         cur.execute(SQL_drop_tbl)
         conn.commit()
-        SQL_rename_tbl = "ALTER TABLE %s RENAME TO %s" % \
+        SQL_rename_tbl = u"ALTER TABLE %s RENAME TO %s" % \
             (dbe_sqlite.quote_obj(TMP_SQLITE_TBL), 
              dbe_sqlite.quote_obj(tbl_name))
         if debug: print(SQL_rename_tbl)
         cur.execute(SQL_rename_tbl)
         conn.commit()
     except Exception, e:
-        raise Exception, "Unable to rename temporary table.  Orig error: %s" \
+        raise Exception, u"Unable to rename temporary table.  Orig error: %s" \
             % e
     progBackup.SetValue(GAUGE_RANGE)
     msg = _("Successfully imported data from '%(fil)s' "
@@ -303,8 +303,8 @@ class ImportFileSelectDlg(wx.Dialog):
         self.file_type = FILE_UNKNOWN
         # icon
         ib = wx.IconBundle()
-        ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, "images", 
-                                        "tinysofa.xpm"), 
+        ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, u"images", 
+                                        u"tinysofa.xpm"), 
                            wx.BITMAP_TYPE_XPM)
         self.SetIcons(ib)
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -312,7 +312,7 @@ class ImportFileSelectDlg(wx.Dialog):
         # file path
         lblFilePath = wx.StaticText(self.panel, -1, _("File:"))
         lblFilePath.SetFont(lblfont)
-        self.txtFile = wx.TextCtrl(self.panel, -1, "", size=(320,-1))
+        self.txtFile = wx.TextCtrl(self.panel, -1, u"", size=(320,-1))
         self.txtFile.SetFocus()
         btnFilePath = wx.Button(self.panel, -1, _("Browse ..."))
         btnFilePath.Bind(wx.EVT_BUTTON, self.OnButtonFilePath)
@@ -399,11 +399,11 @@ class ImportFileSelectDlg(wx.Dialog):
                 final_tbl_name = self.CheckTblName(file_path, val_entered)
                 tbl_name = val_entered
             else:
-                raise Exception, "No table name entered " + \
-                    "when given chance"
+                raise Exception, u"No table name entered " + \
+                    u"when given chance"
         else:
-            raise Exception, "Had a problem with the SOFA table " + \
-                "name but user cancelled final steps to resolve it"
+            raise Exception, u"Had a problem with the SOFA table " + \
+                u"name but user cancelled final steps to resolve it"
         return tbl_name
         
     def CheckTblName(self, file_path, tbl_name):
@@ -422,8 +422,8 @@ class ImportFileSelectDlg(wx.Dialog):
             retCode = wx.MessageBox(msg, title,
                 wx.YES_NO|wx.ICON_QUESTION)
             if retCode == wx.NO:
-                raise Exception, "Had a problem with faulty SOFA table " + \
-                    "name but user cancelled initial process of resolving it"
+                raise Exception, u"Had a problem with faulty SOFA table " + \
+                    u"name but user cancelled initial process of resolving it"
             elif retCode == wx.YES:
                 final_tbl_name = self._GetNewName(file_path)
         duplicate = getdata.dup_tbl_name(tbl_name)
@@ -436,8 +436,8 @@ class ImportFileSelectDlg(wx.Dialog):
             retCode = wx.MessageBox(msg % {"tbl": tbl_name, "fil": file_path}, 
                                     title, wx.YES_NO|wx.CANCEL|wx.ICON_QUESTION)
             if retCode == wx.CANCEL: # Not wx.ID_CANCEL
-                raise Exception, "Had a problem with duplicate SOFA table " + \
-                    "name but user cancelled initial process of resolving it"
+                raise Exception, u"Had a problem with duplicate SOFA table " + \
+                    u"name but user cancelled initial process of resolving it"
             elif retCode == wx.NO: # no overwrite so get new one (or else!)
                 final_tbl_name = self._GetNewName(file_path)
             elif retCode == wx.YES:
@@ -464,9 +464,9 @@ class ImportFileSelectDlg(wx.Dialog):
             return
         # identify file type
         unused, extension = self.GetFilestartExt(file_path)
-        if extension.lower() == ".csv":
+        if extension.lower() == u".csv":
             self.file_type = FILE_CSV
-        if extension.lower() == ".xls":
+        if extension.lower() == u".xls":
             if not util.in_windows():
                 wx.MessageBox(_("Excel spreadsheets are only supported on "
                               "Windows.  Try exporting to CSV first from "
@@ -485,7 +485,7 @@ class ImportFileSelectDlg(wx.Dialog):
             wx.MessageBox(_("Please select a name for the file"))
             self.SetImportButtons(importing=False)
             return
-        bad_chars = ["-", " "]
+        bad_chars = [u"-", u" "]
         for bad_char in bad_chars:
             if bad_char in tbl_name:
                 wx.MessageBox(_("Do not include '%s' in name") % bad_char)
@@ -518,6 +518,6 @@ class ImportFileSelectDlg(wx.Dialog):
                 self.keep_importing.add(True)
                 wx.MessageBox(unicode(e))
             except Exception, e:
-                wx.MessageBox(_("Unable to import data\n\nError") + ": %s" % e)
+                wx.MessageBox(_("Unable to import data\n\nError") + u": %s" % e)
         self.SetImportButtons(importing=False)
         event.Skip()
