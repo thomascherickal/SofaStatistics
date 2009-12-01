@@ -26,13 +26,18 @@ def quote_obj(raw_val):
     return u"[%s]" % raw_val
 
 def quote_val(raw_val):
-    return u"'%s'" % raw_val.replace("'", "''")
+    try:
+        val = raw_val.replace("'", "''")
+    except AttributeError, e:
+        raise Exception, ("Inappropriate attempt to quote non-string value. "
+                          "Orig error: %s" % e)
+    return u"'%s'" % val
 
 def get_placeholder():
     return u"?"
 
 def get_summable(clause):
-    return clause
+    return u"CASE WHEN %s THEN 1 ELSE 0 END" % clause
 
 def DbeSyntaxElements():
     if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
@@ -47,15 +52,17 @@ class DbDets(getdata.DbDets):
         identified.
     """
     
+    debug = False
+    
     def get_conn_cur(self):
         conn_dets_mssql = self.conn_dets.get(my_globals.DBE_MS_SQL)
         if not conn_dets_mssql:
             raise Exception, (u"No connection details available for "
                               "MS SQL Server")
-        host = conn_dets_mssql[u"host"]
-        user = conn_dets_mssql[u"user"]
-        pwd = conn_dets_mssql[u"passwd"]
-        dbs, self.db = self._getDbs(host, user, pwd)
+        host = conn_dets_mssql["host"]
+        user = conn_dets_mssql["user"]
+        pwd = conn_dets_mssql["passwd"]
+        self.dbs, self.db = self._getDbs(host, user, pwd)
         setDbInConnDets(conn_dets_mssql, self.db)
         DSN = u"""PROVIDER=SQLOLEDB;
             Data Source='%s';
@@ -116,7 +123,7 @@ class DbDets(getdata.DbDets):
             pprint.pprint(tbls)
             pprint.pprint(flds)
             pprint.pprint(idxs)
-        return conn, cur, dbs, tbls, flds, has_unique, idxs
+        return conn, cur, self.dbs, tbls, flds, has_unique, idxs
 
     def _getDbs(self, host, user, pwd):
         """

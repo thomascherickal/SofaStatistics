@@ -268,6 +268,7 @@ def RefreshDbDets(parent):
     Responds to a database selection.
     """
     debug = False
+    wx.BeginBusyCursor()
     db_choice_item = parent.db_choice_items[parent.dropDatabases.GetSelection()]
     db, dbe = extractDbDets(db_choice_item)
     dbdetsobj = getDbDetsObj(dbe, parent.default_dbs, parent.default_tbls, 
@@ -278,15 +279,18 @@ def RefreshDbDets(parent):
     if debug:
         print(u"Db is: %s" % db)
         print(u"Tbl is: %s" % tbl)
+    wx.EndBusyCursor()
     return dbe, db, cur, tbls, tbl, flds, has_unique, idxs
 
 def RefreshTblDets(parent):
     "Reset table, fields, has_unique, and idxs after a table selection."
+    wx.BeginBusyCursor()
     tbl = parent.tbls[parent.dropTables.GetSelection()]
     dbdetsobj = getDbDetsObj(parent.dbe, parent.default_dbs, 
                          parent.default_tbls, parent.conn_dets, parent.db, tbl)
     flds = dbdetsobj.getTblFlds(parent.cur, parent.db, tbl)
     has_unique, idxs = dbdetsobj.getIndexDets(parent.cur, parent.db, tbl)
+    wx.EndBusyCursor()
     return tbl, flds, has_unique, idxs
 
 def GetDefaultDbDets():

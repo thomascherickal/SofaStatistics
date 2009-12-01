@@ -57,6 +57,8 @@ class DbDets(getdata.DbDets):
         db and tbl (may be None).
     """
     
+    debug = False
+    
     def get_conn_cur(self):        
         if not self.db:
             # use default, or failing that, try the file_name
@@ -80,6 +82,7 @@ class DbDets(getdata.DbDets):
         The field dets will be taken from the table used.
         Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
         """
+        debug = False
         conn, cur = self.get_conn_cur()
         dbs = [self.db]
         tbls = self.getDbTbls(cur, self.db)
@@ -104,7 +107,6 @@ class DbDets(getdata.DbDets):
         # get field names (from first table if none provided)
         flds = self.getTblFlds(cur, self.db, self.tbl)
         has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
-        debug = False
         if debug:
             print(self.db)
             print(self.tbl)

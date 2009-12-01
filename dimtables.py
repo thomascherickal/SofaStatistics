@@ -520,10 +520,11 @@ class LiveTable(DimTable):
         and column filters.  If any records remain, we can show the 
         cell.
         """
+        debug = False
         val_labels = tree_dims_node.labels
         bolnumeric = tree_dims_node.bolnumeric
         fld = tree_dims_node.fld
-        #print(tree_dims_node) #debug        
+        if debug: print(tree_dims_node)
         final_filt_clause = self.getValsFiltClause(tree_dims_node, 
                                                    tree_labels_node,
                                                    oth_dim_root)
@@ -531,7 +532,7 @@ class LiveTable(DimTable):
             u" FROM " + self.datasource + \
             u" WHERE " + final_filt_clause + \
             u" GROUP BY " + fld
-        #print(SQL_get_vals) #debug
+        if debug: print(SQL_get_vals)
         self.cur.execute(SQL_get_vals)
         #get vals and their frequency (across all the other dimension)
         val_freq_label_lst = [(val, val_freq, \

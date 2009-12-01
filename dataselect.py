@@ -22,6 +22,7 @@ class DataSelectDlg(wx.Dialog):
                            wx.SYSTEM_MENU, pos=(300, 100))
         self.parent = parent
         self.panel = wx.Panel(self)
+        wx.BeginBusyCursor()
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         lblChoose = wx.StaticText(self.panel, -1, 
@@ -105,6 +106,7 @@ class DataSelectDlg(wx.Dialog):
         self.szrMain.SetSizeHints(self)
         self.Layout()
         self._DesignButtonEnablement()
+        wx.EndBusyCursor()
 
     def AddFeedback(self, feedback):
         self.lblFeedback.SetLabel(feedback)
@@ -143,6 +145,16 @@ class DataSelectDlg(wx.Dialog):
                    "lacks a unique index")
             wx.MessageBox(msg % self.tbl) # needed for caching even if read only
         else:
+            obj_quoter = getdata.get_obj_quoter_func(self.dbe)
+            s = "SELECT COUNT(*) FROM %s" % obj_quoter(self.tbl)
+            self.cur.execute(s)
+            n_rows = self.cur.fetchone()[0]
+            if n_rows > 20000:
+                if wx.MessageBox(_("This table has %s rows. "
+                                   "Do you wish to open it?") % n_rows, 
+                                   caption=_("LONG REPORT"), 
+                                   style=wx.YES_NO) == wx.NO:
+                    return
             wx.BeginBusyCursor()
             readonly = self.chkReadOnly.IsChecked()
             dlg = db_grid.TblEditor(self, self.dbe, self.conn, 
@@ -207,6 +219,14 @@ class DataSelectDlg(wx.Dialog):
             rename.  Must be able to add fields, and rename fields.
         """
         debug = False
+        try:
+            conn = dbe_sqlite.get_conn(self.conn_dets, 
+                                       my_globals.SOFA_DEFAULT_DB)
+        except Exception:
+            wx.MessageBox(_("The current project does not include a link to "
+                            "the default SOFA database so a new table cannot "
+                            "be made there."))
+            return
         tbl_name_lst = [] # not quite worth using validator mechanism ;-)
         data = [("var001", "Numeric")]
         new_grid_data = []
@@ -244,6 +264,9 @@ class DataSelectDlg(wx.Dialog):
         # update tbl dropdown
         self.tbls = tbls
         self.ResetTblDropdown()
+        # explain to user
+        wx.MessageBox(_("Your new table has been added to the default SOFA "
+                        "database"))
         # open data          
         wx.BeginBusyCursor()
         read_only = False

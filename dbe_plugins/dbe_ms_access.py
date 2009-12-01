@@ -51,6 +51,8 @@ class DbDets(getdata.DbDets):
         db and tbl (may be None).
     """
     
+    debug = False
+    
     def get_conn_cur(self):
         """
         To get a cursor must also get a workable database.  So makes sense to
@@ -77,10 +79,10 @@ class DbDets(getdata.DbDets):
         """DSN syntax - http://support.microsoft.com/kb/193332 and 
         http://www.codeproject.com/database/connectionstrings.asp ...
         ... ?df=100&forumid=3917&exp=0&select=1598401"""
-        database = conn_dets_access_db[u"database"]
-        user = conn_dets_access_db[u"user"]
-        pwd = conn_dets_access_db[u"pwd"]
-        mdw = conn_dets_access_db[u"mdw"]
+        database = conn_dets_access_db["database"]
+        user = conn_dets_access_db["user"]
+        pwd = conn_dets_access_db["pwd"]
+        mdw = conn_dets_access_db["mdw"]
         DSN = u"""PROVIDER=Microsoft.Jet.OLEDB.4.0;DATA SOURCE=%s;
             USER ID=%s;PASSWORD=%s;Jet OLEDB:System Database=%s;""" % \
             (database, user, pwd, mdw)
@@ -178,7 +180,7 @@ class DbDets(getdata.DbDets):
             fld_name = col.Name            
             fld_type = dbe_globals.getADODic().get(col.Type)
             if not fld_type:
-                raise Exception, 
+                raise Exception, \
                     u"Not an MS Access ADO field type %d" % col.Type
             bolautonum = col.Properties(u"AutoIncrement").Value
             boldata_entry_ok = False if bolautonum else True

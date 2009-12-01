@@ -138,7 +138,8 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
     if bolnumeric:
         def_type = my_globals.VAR_TYPE_QUANT # have to trust the user somewhat!
     elif boldatetime:
-        def_type = my_globals.VAR_TYPE_ORD
+        def_type = my_globals.VAR_TYPE_CAT # see notes when enabling under 
+            # GetSettings
     else:
         def_type = my_globals.VAR_TYPE_CAT
     type = var_types.get(var_name, def_type)
@@ -342,6 +343,11 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
             self.new_proj = False
             self.GetProjSettings(fil_proj)
         else:
+            # prepopulate with default settings
+            self.GetProjSettings(fil_proj=my_globals.SOFA_DEFAULT_PROJ)
+            self.proj_name = my_globals.EMPTY_PROJ_NAME
+            self.proj_notes = _("The SOFA Default Database is needed to allow "
+                                "you to add new tables to SOFA Statistics")
             self.new_proj = True
         try:
             self.proj_name
@@ -600,7 +606,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
                     util.escape_win_path(fil_report))
             f.write(os.linesep + u"fil_script = u\"%s\"" % 
                     util.escape_win_path(fil_script))
-            f.write(os.linesep + u"default_dbe = \"%s\"" % default_dbe)
+            f.write(os.linesep + u"default_dbe = u\"%s\"" % default_dbe)
             f.write(os.linesep + os.linesep + u"default_dbs = " + \
                     pprint.pformat(default_dbs))
             f.write(os.linesep + os.linesep + u"default_tbls = " + \

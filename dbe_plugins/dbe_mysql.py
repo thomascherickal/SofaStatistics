@@ -44,19 +44,49 @@ class DbDets(getdata.DbDets):
         identified.
     """
     
+    debug = False
+    
     def get_conn_cur(self):
+        "Connection keywords must be plain strings not unicode strings"
         conn_dets_mysql = self.conn_dets.get(my_globals.DBE_MYSQL)
         if not conn_dets_mysql:
             raise Exception, u"No connection details available for MySQL"
         try:
-            conn_dets_mysql[u"use_unicode"] = True
+            conn_dets_mysql["use_unicode"] = True
             if self.db:
-                conn_dets_mysql[u"db"] = self.db
+                conn_dets_mysql["db"] = self.db
             conn = MySQLdb.connect(**conn_dets_mysql)
         except Exception, e:
             raise Exception, u"Unable to connect to MySQL db.  " + \
                 u"Orig error: %s" % e
-        cur = conn.cursor() # must return tuples not dics        
+        cur = conn.cursor() # must return tuples not dics
+        # get database name
+        SQL_get_db_names = u"""SELECT SCHEMA_NAME 
+            FROM information_schema.SCHEMATA
+            WHERE SCHEMA_NAME <> 'information_schema'"""
+        cur.execute(SQL_get_db_names)
+        self.dbs = [x[0] for x in cur.fetchall()]
+        dbs_lc = [x.lower() for x in self.dbs]
+        # get db (default if possible otherwise first)
+        # NB db must be accessible from connection
+        if not self.db:
+            # use default if possible, or fall back to first
+            default_db_mysql = self.default_dbs.get(my_globals.DBE_MYSQL)
+            if default_db_mysql.lower() in dbs_lc:
+                self.db = default_db_mysql
+            else:
+                self.db = self.dbs[0]
+            # need to reset conn and cur
+            cur.close()
+            conn.close()
+            conn_dets_mysql["db"] = self.db
+            conn = MySQLdb.connect(**conn_dets_mysql)
+            cur = conn.cursor()
+        else:
+            if self.db.lower() not in dbs_lc:
+                raise Exception, u"Database \"%s\" not available " % self.db + \
+                    u"from supplied connection"
+        if self.debug: pprint.pprint(self.conn_dets) 
         return conn, cur
             
     def getDbDets(self):
@@ -70,38 +100,11 @@ class DbDets(getdata.DbDets):
         The field dets will be taken from the table used.
         Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
         """
-        self.debug = False
         if self.debug:
             print(u"Received db is: %s" % self.db)
             print(u"Received tbl is: %s" % self.tbl)
         conn, cur = self.get_conn_cur()
-        # get database name
-        SQL_get_db_names = u"""SELECT SCHEMA_NAME 
-            FROM information_schema.SCHEMATA
-            WHERE SCHEMA_NAME <> 'information_schema'"""
-        cur.execute(SQL_get_db_names)
-        dbs = [x[0] for x in cur.fetchall()]
-        dbs_lc = [x.lower() for x in dbs]
-        # get db (default if possible otherwise first)
-        # NB db must be accessible from connection
-        if not self.db:
-            # use default if possible, or fall back to first
-            default_db_mysql = self.default_dbs.get(my_globals.DBE_MYSQL)
-            if default_db_mysql.lower() in dbs_lc:
-                self.db = default_db_mysql
-            else:
-                self.db = dbs[0]
-            # need to reset conn and cur
-            cur.close()
-            conn.close()
-            conn_dets_mysql[u"db"] = self.db
-            conn = MySQLdb.connect(**conn_dets_mysql)
-            cur = conn.cursor()
-        else:
-            if self.db.lower() not in dbs_lc:
-                raise Exception, u"Database \"%s\" not available " % self.db + \
-                    u"from supplied connection"
-        if self.debug: pprint.pprint(self.conn_dets)
+
         # get table names
         tbls = self.getDbTbls(cur, self.db)
         tbls_lc = [x.lower() for x in tbls]        
@@ -131,7 +134,7 @@ class DbDets(getdata.DbDets):
             pprint.pprint(tbls)
             pprint.pprint(flds)
             pprint.pprint(idxs)
-        return conn, cur, dbs, tbls, flds, has_unique, idxs
+        return conn, cur, self.dbs, tbls, flds, has_unique, idxs
     
     def getDbTbls(self, cur, db):
         "Get table names given database and cursor"

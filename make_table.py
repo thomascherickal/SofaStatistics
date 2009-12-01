@@ -39,7 +39,7 @@ def GetColDets(coltree, colRoot, var_labels):
 
 
 class MakeTable(object):
-    "Needed to split  modules for manageability"
+    "Needed to split modules for manageability"
         
     def UpdateVarDets(self):
         "Update all labels, including those already displayed"
@@ -186,9 +186,7 @@ class MakeTable(object):
         if run_ok:
             if self.too_long():
                 return
-            # hourglass cursor
-            curs = wx.StockCursor(wx.CURSOR_WAIT)
-            self.SetCursor(curs)
+            wx.BeginBusyCursor()
             if debug: print(self.fil_css)
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.getScript(has_rows, has_cols, css_idx)
@@ -196,9 +194,7 @@ class MakeTable(object):
                 self.chkAddToReport.IsChecked(), css_fils, script, 
                 self.conn_dets, self.dbe, self.db, self.tbl, self.default_dbs, 
                 self.default_tbls)
-            # Return to normal cursor
-            curs = wx.StockCursor(wx.CURSOR_ARROW)
-            self.SetCursor(curs)
+            wx.EndBusyCursor()
             output.DisplayReport(self, strContent)
         else:
             wx.MessageBox(_("Missing %s data") % missing_dim)

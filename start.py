@@ -7,13 +7,14 @@ test_lang = False
 import warnings
 warnings.simplefilter('ignore', DeprecationWarning)
 
-import wx
+import codecs
 import gettext
 import os
 import platform
 import shutil
 from pysqlite2 import dbapi2 as sqlite
 import sys
+import wx
 
 # All i18n except for wx-based (which MUST happen after wx.App init)
 # http://wiki.wxpython.org/RecipesI18n
@@ -123,11 +124,11 @@ def InstallLocal():
     PROJ_CUSTOMISED_FILE = u"proj_file_customised.txt"
     if not os.path.exists(os.path.join(LOCAL_PATH, PROJ_CUSTOMISED_FILE)):
         # change home username
-        f = file(default_proj, "r")
-        proj_str = f.read() # provided by me - no BOM on non-ascii 
+        f = codecs.open(default_proj, "r", "utf-8")
+        proj_str = f.read() # provided by me - no BOM or non-ascii 
         f.close()
         for path in paths:
-            new_str = util.escape_win_path(os.path.join(LOCAL_PATH, path, ""))
+            new_str = util.escape_win_path(os.path.join(LOCAL_PATH, path, u""))
             proj_str = proj_str.replace(u"/home/g/sofa/%s/" % path, new_str)
         # add MS Access and SQL Server into mix if Windows
         if util.in_windows():
@@ -143,7 +144,7 @@ def InstallLocal():
             proj_str = proj_str.replace(u"default_tbls = {",
                                         u"default_tbls = {'%s': None, " % \
                                             my_globals.DBE_MS_SQL)
-        f = file(default_proj, "w")
+        f = codecs.open(default_proj, "w", "utf-8")
         f.write(proj_str)
         f.close()
         # create file as tag we have done the changes to the proj file

@@ -202,12 +202,14 @@ class DbTbl(wx.grid.PyGridTableBase):
                 u" WHERE %s IN(%s)" % (self.quote_obj(self.id_col_name), 
                                       IN_clause) + \
                 u" ORDER BY %s" % self.quote_obj(self.id_col_name)
-            if self.debug:
-                print(SQL_get_values)
-            self.conn.commit() # extra commits keep postgresql problems away
+            if debug or self.debug: print(SQL_get_values)
+            #self.conn.commit() # extra commits keep postgresql problems away
                 # when a cell change is rejected by SOFA Stats validation
+                # [update - unable to confirm]
+            # problem accessing cursor if committed in MS SQL
+            # see http://support.microsoft.com/kb/321714
             self.cur.execute(SQL_get_values)
-            self.conn.commit()
+            #self.conn.commit()
             row_idx = row_min
             for data_tup in self.cur.fetchall(): # tuple of values
                 # handle microsoft characters
