@@ -130,8 +130,8 @@ class SafeTblNameValidator(wx.PyValidator):
     
 class ConfigTableEntry(settings_grid.TableEntry):
     """
-    new_grid_data should be returned as a list of tuples with each tuple being
-    (fld_name, orig_fld_name, fld_type, orig_fl_type)
+    new_grid_data should be returned as a list of dicts with the keys:
+    my_globals.TBL_FLD_NAME, etc
     """
     
     def OnCellMove(self, event):
@@ -147,7 +147,7 @@ class ConfigTableEntry(settings_grid.TableEntry):
             fld_type = self.grid.GetCellValue(src_row, 1)
             self.new_grid_data[src_row][my_globals.TBL_FLD_NAME] = fld_name
             self.new_grid_data[src_row][my_globals.TBL_FLD_TYPE] = fld_type
-            if self.debug: pprint.pprint(self.new_grid_data)
+            if debug: pprint.pprint(self.new_grid_data)
                 
     def UpdateNewGridData(self):
         """

@@ -9,10 +9,10 @@ import wx
 import codecs
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
+import importer
 import util
 from my_exceptions import ImportCancelException
 from my_exceptions import NewLineInUnquotedException
-import importer
 
 ROWS_TO_SAMPLE = 500 # fast enough to sample quite a few
 
@@ -176,7 +176,8 @@ class FileImporter(object):
             # get field names
             if self.has_header:
                 tmp_reader = csv.DictReader(csvfile, dialect=dialect)
-                fld_names = tmp_reader.fieldnames
+                raw_names = tmp_reader.fieldnames
+                fld_names = importer.process_fld_names(raw_names)
             else:
                 # get number of fields
                 tmp_reader = csv.reader(csvfile, dialect=dialect)

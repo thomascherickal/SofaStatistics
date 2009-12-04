@@ -24,6 +24,19 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
 
+def test_process_fld_names():
+    equal_tests = [([u"spam", u"eggs", u"knights who say ni", u"Παντελής 2"], 
+                    [u"spam", u"eggs", u"knights_who_say_ni", u"Παντελής_2"]),
+                    ]
+    for test in equal_tests:
+        assert_equal(importer.process_fld_names(test[0]), test[1])
+    raises_tests = [[u"unladen swallow", u"unladen_swallow", u"spam", u"eggs"],
+                    [5, u"6"],
+                    ]
+    for test in raises_tests:
+        #http://www.ibm.com/developerworks/aix/library/au-python_test/index.html
+        assert_raises(Exception, importer.process_fld_names, test)
+
 def test_assess_sample_fld():
     sample_data = [{1: "2", 
                    2: "2.0", 

@@ -111,7 +111,7 @@ class TableEntryDlg(wx.Dialog):
         """
         selected_rows = self.tabentry.grid.GetSelectedRows()
         if not selected_rows: 
-            return None
+            return None, None
         pos = selected_rows[0]
         row_data = self.tabentry.InsertRowAbove(pos)
         return pos, row_data

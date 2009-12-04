@@ -87,7 +87,8 @@ class FileImporter(object):
                                       has_header=self.has_header)
             n_rows = wksheet.GetRowsN()
             # get field names
-            fld_names = wksheet.GetFldNames()
+            raw_names = wksheet.GetFldNames()
+            fld_names = importer.process_fld_names(raw_names)
             if debug: print(fld_names)
             if self.has_header:
                 for row in wksheet: # prepare sheet to start after first row

@@ -38,6 +38,25 @@ class MismatchException(Exception):
         Exception.__init__(self, u"Found data not matching expected " + \
                            u"column type.\n\n%s" % details)
 
+def process_fld_names(raw_names):
+    """
+    Turn spaces into underscores and then check all names are unique.
+    Expects a list of field name strings.
+    """
+    debug = False
+    try:
+        if debug: print(raw_names)
+        names = [x.replace(u" ", u"_") for x in raw_names]
+    except AttributeError:
+        raise Exception, "Field names must all be text strings."
+    except TypeError:
+        raise Exception, "Field names should be supplied in a list"
+    except Exception:
+        raise Exception, "Unknown problem processing field names list"
+    if len(names) != len(set(names)):
+        raise Exception, ("Duplicate field name (once spaces turned to "
+                          "underscores)")
+    return names
 
 def assess_sample_fld(sample_data, fld_name):
     """

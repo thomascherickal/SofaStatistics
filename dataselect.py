@@ -194,6 +194,7 @@ class DataSelectDlg(wx.Dialog):
         NB only enabled (for either viewing or editing) for the default SQLite 
             database.
         """
+        debug = True
         tbl_name_lst = [self.tbl,]
         data = self._getTableConfig(self.tbl)
         new_grid_data = []
@@ -201,9 +202,7 @@ class DataSelectDlg(wx.Dialog):
         dlgConfig = table_config.ConfigTable(tbl_name_lst, data, new_grid_data, 
                                              readonly)
         ret = dlgConfig.ShowModal()
-        
-        pprint.pprint(new_grid_data)
-        
+        if debug: pprint.pprint(new_grid_data)
     
     def OnNewClick(self, event):
         """
