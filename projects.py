@@ -119,6 +119,7 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
         if val_dic:
             for key, value in val_dic.items():
                 data.append((key, unicode(value)))
+    data.sort(key=lambda s: s[0])
     new_grid_data = []
     # get new_grid_data back updated
     bolnumeric = flds[var_name][my_globals.FLD_BOLNUMERIC]
@@ -148,11 +149,9 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
                               new_grid_data, val_type)
     ret = getsettings.ShowModal()
     if ret == wx.ID_OK:
-        # var label
+        # var label, notes, and types
         var_labels[var_name] = var_desc["label"]
-        # var notes
         var_notes[var_name] = var_desc["notes"]
-        # var type
         var_types[var_name] = var_desc["type"]
         # val dics
         new_val_dic = {}
@@ -161,7 +160,9 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
             # the key is always returned as a string 
             # but we may need to store it as a number
             key, value = new_grid_data[i]
-            if val_type == settings_grid.COL_FLOAT:
+            if key == "":
+                continue
+            elif val_type == settings_grid.COL_FLOAT:
                 key = float(key)
             elif val_type == settings_grid.COL_INT:
                 key = int(key)
@@ -289,7 +290,7 @@ class GetSettings(settings_grid.TableEntryDlg):
                                                  self.szrMain, 2, False, 
                                                  grid_size, col_dets, data,  
                                                  new_grid_data)
-        self.SetupButtons()
+        self.SetupButtons(inc_delete=True, inc_insert=True)
         self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)

@@ -145,6 +145,18 @@ class FileImporter(object):
         f.close()
         return new_file
 
+    def fix_text(self):
+        ret = wx.MessageBox(_("The file needs new lines standardised first."
+                        " Can SOFA Statistics make a tidied copy for you?"), 
+                        caption=_("FIX TEXT?"), style=wx.YES_NO)
+        if ret == wx.YES:
+            new_file = self.make_tidied_copy(self.file_path)
+            wx.MessageBox(_("Please check tidied version \"%s\" "
+                            "before importing.  May have line "
+                            "breaks in the wrong places.") % new_file)
+        else:
+            wx.MessageBox(_("Unable to import file in current form"))        
+
     def ImportContent(self, progBackup, keep_importing):
         """
         Get field types dict.  Use it to test each and every item before they 
@@ -156,18 +168,8 @@ class FileImporter(object):
         try:
             dialect = get_dialect(self.file_path)
         except NewLineInUnquotedException:
-            ret = wx.MessageBox(_("The file needs new lines standardised first."
-                            " Can SOFA Statistics make a tidied copy for you?"), 
-                            caption=_("FIX TEXT?"), style=wx.YES_NO)
-            if ret == wx.YES:
-                new_file = self.make_tidied_copy(self.file_path)
-                wx.MessageBox(_("Please check tidied version \"%s\" "
-                                "before importing.  May have line "
-                                "breaks in the wrong places.") % new_file)
-                return
-            else:
-                wx.MessageBox(_("Unable to import file in current form"))
-                return                
+            self.fix_text()
+            return
         try:
             csvfile = open(self.file_path) # not "U" - 
                 # insist on _one_ type of line break
@@ -196,7 +198,8 @@ class FileImporter(object):
         except csv.Error, e:
             if unicode(e).startswith("new-line character seen in unquoted"
                                      " field"):
-                raise NewLineInUnquotedException
+                self.fix_text()
+                return
             else:
                 raise Exception, unicode(e)
         except Exception, e:

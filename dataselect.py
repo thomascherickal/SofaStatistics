@@ -196,21 +196,14 @@ class DataSelectDlg(wx.Dialog):
         """
         tbl_name_lst = [self.tbl,]
         data = self._getTableConfig(self.tbl)
-        new_grid_data = [] # not allowing change so not used
-        
-        if not self.chkReadOnly.IsChecked():
-            msg = _("Version %s of SOFA Statistics does not allow users to "
-                "modify the design of existing databases.")
-            wx.MessageBox(msg % my_globals.VERSION)
-            return
-        
-        # readonly = self.chkReadOnly.IsChecked() # only make live when can cope 
-        # with editing changes
-        readonly = True
-        
+        new_grid_data = []
+        readonly = self.chkReadOnly.IsChecked()
         dlgConfig = table_config.ConfigTable(tbl_name_lst, data, new_grid_data, 
                                              readonly)
         ret = dlgConfig.ShowModal()
+        
+        pprint.pprint(new_grid_data)
+        
     
     def OnNewClick(self, event):
         """

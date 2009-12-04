@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-dev_debug = False
+dev_debug = True
 test_lang = False
 
 import warnings
@@ -36,11 +36,13 @@ import util
 COPYRIGHT = u"\u00a9"
 MAX_HELP_TEXT_WIDTH = 400 # pixels
 TEXT_BROWN = (90, 74, 61)
+TOP_TOP = 9
 MAIN_LEFT = 200
 HELP_TEXT_TOP = 288
 HELP_TEXT_WIDTH = 570
 HELP_IMG_LEFT = 640
 HELP_IMG_TOP = 315
+MAIN_RIGHT = 600
 SCRIPT_PATH = my_globals.SCRIPT_PATH
 LOCAL_PATH = my_globals.LOCAL_PATH
 
@@ -339,8 +341,10 @@ class StartFrame(wx.Frame):
                             True)
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL))
+        panel_dc.DrawLabel(u"www.sofastatistics.com", 
+                           wx.Rect(MAIN_LEFT, TOP_TOP, 100, 50))
         panel_dc.DrawLabel(_("Version %s") % my_globals.VERSION, 
-                           wx.Rect(MAIN_LEFT, 9, 100, 20))   
+                           wx.Rect(MAIN_RIGHT, TOP_TOP, 100, 20))
         panel_dc.SetFont(wx.Font(self.main_font_size, wx.SWISS, wx.NORMAL, 
                                  wx.NORMAL))
         panel_dc.DrawLabel(_("Statistics Open For All"), 
@@ -356,12 +360,12 @@ class StartFrame(wx.Frame):
                                    260))
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel(u"SOFA\nPaton-Simpson & Associates Ltd" + \
-                           u"\nAuckland, New Zealand", 
+        panel_dc.DrawLabel(u"SOFA\nPaton-Simpson & Associates Ltd\n" + \
+                           _("Analysis & reporting specialists"), 
                            wx.Rect(MAIN_LEFT, 547, 100, 50))
         panel_dc.DrawLabel(u"%s 2009 Paton-Simpson & Associates Ltd" % \
                            COPYRIGHT, 
-                           wx.Rect(600, 560, 100, 50))
+                           wx.Rect(MAIN_RIGHT, 560, 100, 50))
         panel_dc.DrawBitmap(self.bmp_psal, 155, 542, True)
         # make default db if not already there
         connSqlite = sqlite.connect(os.path.join(LOCAL_PATH, 

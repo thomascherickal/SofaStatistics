@@ -291,7 +291,7 @@ class ImportFileSelectDlg(wx.Dialog):
         Make selection based on file extension 
             and possibly inspection of sample of rows (e.g. csv dialect).
         """
-        title = _("Select file to import")
+        title = _("Select file to import") + u" (csv/xls)"
         wx.Dialog.__init__(self, parent=parent, title=title,
                            size=(500, 300), 
                            style=wx.CAPTION|wx.CLOSE_BOX|

@@ -50,7 +50,7 @@ class TableEntryDlg(wx.Dialog):
         self.tabentry = TableEntry(self, self.panel, self.szrMain, 1, grid_size, 
                                    col_dets, data, new_grid_data, 
                                    insert_data_func, row_validation_func)
-        # Close
+        # Close only
         self.SetupButtons()
         # sizers
         self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
@@ -100,19 +100,27 @@ class TableEntryDlg(wx.Dialog):
         self.SetReturnCode(wx.ID_OK)
         
     def OnDelete(self, event):
-        self.tabentry.TryToDeleteRow()
+        row_del = self.tabentry.TryToDeleteRow()
         self.tabentry.grid.SetFocus()
         event.Skip()
+    
+    def insert_before(self):
+        """
+        Returns row inserted before (or None if no insertion) and row data (or 
+            None if no content added). 
+        """
+        selected_rows = self.tabentry.grid.GetSelectedRows()
+        if not selected_rows: 
+            return None
+        pos = selected_rows[0]
+        row_data = self.tabentry.InsertRowAbove(pos)
+        return pos, row_data
     
     def OnInsert(self, event):
         """
         Insert before
         """
-        selected_rows = self.tabentry.grid.GetSelectedRows()
-        if not selected_rows: 
-            return
-        pos = selected_rows[0]
-        self.tabentry.InsertRowAbove(pos)
+        row_before, row_data = self.insert_before()
         self.tabentry.grid.SetFocus()
         event.Skip()
         
@@ -156,7 +164,6 @@ class TableEntry(object):
         for col_idx, col_det in enumerate(self.col_dets):
             if col_det.get("col_width"):
                 self.col_widths[col_idx] = col_det["col_width"]
-        data.sort(key=lambda s: s[0])
         self.data = data
         self.new_grid_data = new_grid_data
         self.prev_vals = []
@@ -412,6 +419,7 @@ class TableEntry(object):
         NB must get the table to refresh itself and thus call SetValue(). Other-
             wise we can't get the value just entered so we can evaluate it for
             validation.
+        Returns moved, src_row.  Useful for table config grid.
         """
         debug = False
         src_row=self.current_row_idx # row being moved from
@@ -428,12 +436,15 @@ class TableEntry(object):
         # only SetFocus if moving.  Otherwise if this is embedded, we can't set
         # the focus anywhere else (because it triggers EVT_CELL_MOVE and then
         # we grab the focus again below!).
+        moved = False
         if (src_row, src_col) != (dest_row, dest_col):
+            moved = True
             self.grid.SetFocus()
             # http://www.nabble.com/Setting-focus-to-grid-td17920756.html
             for window in self.grid.GetChildren():
                 window.SetFocus()
         event.Skip()
+        return moved, src_row
     
     def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, direction):
         """
@@ -711,18 +722,19 @@ class TableEntry(object):
         """
         Delete row if a row selected and not the data entry row
             and put focus on new line.
-        Return boolean and string.
+        Return row deleted (or None if deletion did not occur).
         """
         selected_rows = self.grid.GetSelectedRows()
         if len(selected_rows) == 1:
             row = selected_rows[0]
             if not self.NewRow(row):
                 self.DeleteRow(row)
-                return True, ""
+                return row
             else:
-                return False, _("Unable to delete new row")
+                wx.MessageBox(_("Unable to delete new row"))            
         else:
-            return False, _("Can only delete one row at a time")            
+            wx.MessageBox(_("Can only delete one row at a time"))
+        return None
     
     def DeleteRow(self, row):
         """
@@ -775,10 +787,13 @@ class TableEntry(object):
         If below the rows being inserted, jump down a row and set 
             self.respond_to_select_cell to False. Assumed to be OK because not 
             shifting cell as such.  Just following it :-)
+        Returns row_data (list) if content put into inserted row, None if not
         """
-        grid_data = self.GetGridData()
+        grid_data = self.GetGridData() # only needed to prevent field name 
+            #collisions
         row_idx = pos
         self.grid.InsertRows(row_idx)
+        row_data = None
         if self.insert_data_func:
             row_data = self.insert_data_func(row_idx, grid_data)
             for col_idx in range(len(self.col_dets)):
@@ -795,6 +810,7 @@ class TableEntry(object):
             self.current_row_idx += 1
             self.grid.SetGridCursor(self.current_row_idx, self.current_col_idx)
         self.grid.SetFocus()
+        return row_data
     
     def UpdateRowLabelsAfter(self, pos):
         for i in range(pos, self.rows_n - 1):
@@ -852,10 +868,9 @@ class TableEntry(object):
 
     def GetGridData(self):
         """
-        Get grid data.
+        Get data from grid (except for final row (either empty or not saved).
         """
         grid_data = []
-        # get data from grid (except for final row (either empty or not saved)
         for row_idx in range(self.rows_n - 1):
             row_data = []
             for col_idx in range(len(self.col_dets)):
@@ -869,4 +884,4 @@ class TableEntry(object):
         Update new_grid_data.  Separated for reuse.
         """
         grid_data = self.GetGridData()
-        self.new_grid_data += grid_data    
+        self.new_grid_data += grid_data

@@ -1,3 +1,4 @@
+import pprint
 import string
 import wx
 
@@ -127,18 +128,59 @@ class SafeTblNameValidator(wx.PyValidator):
         return True
     
     
+class ConfigTableEntry(settings_grid.TableEntry):
+    """
+    new_grid_data should be returned as a list of tuples with each tuple being
+    (fld_name, orig_fld_name, fld_type, orig_fl_type)
+    """
+    
+    def OnCellMove(self, event):
+        debug = False
+        moved, src_row = settings_grid.TableEntry.OnCellMove(self, event)
+        if moved:
+            if debug: print("Row moved from was %s" % src_row)
+            if src_row >= len(self.new_grid_data):
+                return
+            # for row we're leaving, fill in new details.  Leave original values 
+            # alone.
+            fld_name = self.grid.GetCellValue(src_row, 0)
+            fld_type = self.grid.GetCellValue(src_row, 1)
+            self.new_grid_data[src_row][my_globals.TBL_FLD_NAME] = fld_name
+            self.new_grid_data[src_row][my_globals.TBL_FLD_TYPE] = fld_type
+            if self.debug: pprint.pprint(self.new_grid_data)
+                
+    def UpdateNewGridData(self):
+        """
+        Update new_grid_data.  Overridden so we can include original field 
+            details (needed when making new version of the original table).
+        Fill in details of fld_names and fld_types (leaving original versions
+            untouched).
+        """
+        debug = False
+        grid_data = self.GetGridData() # only saved data
+        for i, row in enumerate(grid_data):
+            self.new_grid_data[i][my_globals.TBL_FLD_NAME] = row[0]
+            self.new_grid_data[i][my_globals.TBL_FLD_TYPE] = row[1]
+        if debug: pprint.pprint(self.new_grid_data)
+        
+    
 class ConfigTable(settings_grid.TableEntryDlg):
+    
+    debug = False
     
     def __init__(self, tbl_name_lst, data, new_grid_data, readonly=False,
                  insert_data_func=None, cell_invalidation_func=None):
         """
-        tbl_name_lst - passed in as a list so changes can be made without having 
-            to return anything. 
-        data - list of tuples (must have at least one item, even if only a 
-            "rename me".
-        new_grid_data - add details to it in form of a list of tuples.
+        tbl_name_lst -- passed in as a list so changes can be made without 
+            having to return anything. 
+        data -- list of tuples (must have at least one tuple in the list, even
+            if only a "rename me".
+        new_grid_data -- add details to it in form of a list of tuples.
         """
         self.tbl_name_lst = tbl_name_lst
+        # set up new grid data based on data
+        self.new_grid_data = new_grid_data
+        self.init_new_grid_data(data)
         self.readonly = readonly
         if not insert_data_func:
             insert_data_func = insert_data
@@ -174,11 +216,11 @@ class ConfigTable(settings_grid.TableEntryDlg):
         self.szrTblLabel.Add(lblTblLabel, 0, wx.RIGHT, 5)
         self.szrTblLabel.Add(self.txtTblName, 1)
         self.szrMain.Add(self.szrTblLabel, 0, wx.GROW|wx.ALL, 10)
-        self.tabentry = settings_grid.TableEntry(self, self.panel, 
-                                                 self.szrMain, 2, self.readonly, 
-                                                 grid_size, col_dets, data,  
-                                                 new_grid_data, insert_data_func,
-                                                 cell_invalidation_func)
+        self.tabentry = ConfigTableEntry(self, self.panel, 
+                                         self.szrMain, 2, self.readonly, 
+                                         grid_size, col_dets, data,  
+                                         new_grid_data, insert_data_func,
+                                         cell_invalidation_func)
         self.SetupButtons(inc_delete=not self.readonly, 
                           inc_insert=not self.readonly)
         self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
@@ -186,6 +228,45 @@ class ConfigTable(settings_grid.TableEntryDlg):
         self.szrMain.SetSizeHints(self)
         self.Layout()
         self.txtTblName.SetFocus()
+
+    def init_new_grid_data(self, data):
+        extra = []
+        for row in data:
+            new_row = {my_globals.TBL_FLD_NAME: row[0], 
+                       my_globals.TBL_FLD_NAME_ORIG: row[0], 
+                       my_globals.TBL_FLD_TYPE: row[1], 
+                       my_globals.TBL_FLD_TYPE_ORIG: row[1]}
+            extra.append(new_row)
+        self.new_grid_data += extra
+
+    def OnInsert(self, event):
+        """
+        Insert before.
+        Overridden so we can update new_grid_data.
+        """
+        row_before, row_data = self.insert_before()
+        if row_before is not None:
+            if self.debug: print("Row we inserted before was %s" % row_before)
+            # insert new row into new_grid_data - Nones for the original values
+            new_row = {my_globals.TBL_FLD_NAME: row_data[0], 
+                       my_globals.TBL_FLD_NAME_ORIG: None, 
+                       my_globals.TBL_FLD_TYPE: row_data[1], 
+                       my_globals.TBL_FLD_TYPE_ORIG: None}
+            self.new_grid_data.insert(row_before, new_row)
+            if self.debug: pprint.pprint(self.new_grid_data)
+        self.tabentry.grid.SetFocus()
+        event.Skip()
+        
+    def OnDelete(self, event):
+        "Overridden so we can update new_grid_data."
+        row_del = self.tabentry.TryToDeleteRow()
+        if row_del is not None:
+            if self.debug: print("Row deleted was %s" % row_del)
+            # remove row from new_grid_data.
+            del self.new_grid_data[row_del]
+            if self.debug: pprint.pprint(self.new_grid_data)
+        self.tabentry.grid.SetFocus()
+        event.Skip()
 
     def OnOK(self, event):
         """

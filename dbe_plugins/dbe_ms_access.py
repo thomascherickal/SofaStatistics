@@ -339,11 +339,12 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
                   "empty_ok": True}
     msaccess_col_dets = [col_det_db, col_det_sec, col_det_usr, col_det_pwd]
     parent.msaccess_new_grid_data = []
+    data = parent.msaccess_data[:]
+    data.sort(key=lambda s: s[0])
     parent.msaccess_grid = settings_grid.TableEntry(frame=parent, 
         panel=scroll, szr=parent.szrMsaccess, vert_share=1, read_only=read_only, 
         grid_size=(900, 100), col_dets=msaccess_col_dets, 
-        data=parent.msaccess_data, 
-        new_grid_data=parent.msaccess_new_grid_data)
+        data=data, new_grid_data=parent.msaccess_new_grid_data)
     szr.Add(parent.szrMsaccess, 0, wx.GROW|wx.ALL, 10)
 
 def getProjSettings(parent, proj_dic):

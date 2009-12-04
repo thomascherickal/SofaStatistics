@@ -282,6 +282,8 @@ def setDataConnGui(parent, read_only, scroll, szr, lblfont):
                         "col_width": 400, 
                         "file_phrase": _("Choose an SQLite database file")}]
     parent.sqlite_new_grid_data = []
+    data = parent.sqlite_data[:]
+    data.sort(key=lambda s: s[0])
     parent.sqlite_grid = settings_grid.TableEntry(frame=parent, 
         panel=scroll, szr=parent.szrSqlite, vert_share=1, read_only=read_only, 
         grid_size=(550, 100), col_dets=sqlite_col_dets, 

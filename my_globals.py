@@ -6,7 +6,7 @@ import util # safe to import - never refers to anything in other modules
 
 debug = False
 
-VERSION = u"0.8.13"
+VERSION = u"0.8.14"
 
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
@@ -215,3 +215,8 @@ MOVING_IN_EXISTING = u"moving in existing"
 MOVING_IN_NEW = u"moving in new"
 LEAVING_EXISTING = u"leaving existing"
 LEAVING_NEW = u"leaving new"
+# table details
+TBL_FLD_NAME = "fld_name"
+TBL_FLD_NAME_ORIG = "fld_name_orig"
+TBL_FLD_TYPE = "fld_type"
+TBL_FLD_TYPE_ORIG = "fld_type_orig"
