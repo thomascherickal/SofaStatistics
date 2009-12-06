@@ -718,6 +718,16 @@ class TableEntry(object):
     def GetColsN(self):
         return len(self.col_dets)
     
+    def ok_to_delete_row(self, row):
+        """
+        Can delete any row except the new row.
+        Returns boolean and msg.
+        """
+        if self.NewRow(row):
+            return False, _("Unable to delete new row")
+        else:
+            return True, None
+    
     def TryToDeleteRow(self):
         """
         Delete row if a row selected and not the data entry row
@@ -727,11 +737,12 @@ class TableEntry(object):
         selected_rows = self.grid.GetSelectedRows()
         if len(selected_rows) == 1:
             row = selected_rows[0]
-            if not self.NewRow(row):
+            ok_to_delete, msg = self.ok_to_delete_row(row)
+            if ok_to_delete:
                 self.DeleteRow(row)
                 return row
             else:
-                wx.MessageBox(_("Unable to delete new row"))            
+                wx.MessageBox(msg)            
         else:
             wx.MessageBox(_("Can only delete one row at a time"))
         return None

@@ -199,10 +199,23 @@ class DataSelectDlg(wx.Dialog):
         data = self._getTableConfig(self.tbl)
         new_grid_data = []
         readonly = self.chkReadOnly.IsChecked()
-        dlgConfig = table_config.ConfigTable(tbl_name_lst, data, new_grid_data, 
-                                             readonly)
+        dlgConfig = table_config.ConfigTableDlg(tbl_name_lst, data, 
+                                                new_grid_data, readonly)
         ret = dlgConfig.ShowModal()
         if debug: pprint.pprint(new_grid_data)
+        if ret == wx.ID_OK:
+            """
+            Make temp table, copying across all fields which remain in the 
+                original table (possibly with new names and data types) plus add
+                in all the new fields.
+            If any conversion errors (e.g. trying to change a field which 
+                currently contains "fred" to a numeric field) give the user the
+                option of continuing with conversion - e.g. fred becomes Null -
+                or aborting reconfiguration.
+            Assuming reconfiguration is OK, finish up by dropping original 
+                table, and renaming temp table to the original table's name.
+            """
+            pass            
     
     def OnNewClick(self, event):
         """
@@ -222,7 +235,8 @@ class DataSelectDlg(wx.Dialog):
         tbl_name_lst = [] # not quite worth using validator mechanism ;-)
         data = [("var001", "Numeric")]
         new_grid_data = []
-        dlgConfig = table_config.ConfigTable(tbl_name_lst, data, new_grid_data)
+        dlgConfig = table_config.ConfigTableDlg(tbl_name_lst, data, 
+                                                new_grid_data)
         ret = dlgConfig.ShowModal()
         if ret != wx.ID_OK:
             event.Skip()

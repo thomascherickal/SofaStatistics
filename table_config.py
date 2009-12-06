@@ -134,11 +134,23 @@ class ConfigTableEntry(settings_grid.TableEntry):
     my_globals.TBL_FLD_NAME, etc
     """
     
+    def __init__(self, frame, panel, szr, vert_share, read_only, grid_size, 
+                col_dets, data, new_grid_data, insert_data_func=None, 
+                cell_invalidation_func=None):
+        settings_grid.TableEntry.__init__(self, frame, panel, szr, vert_share, 
+                read_only, grid_size, col_dets, data, new_grid_data, 
+                insert_data_func, cell_invalidation_func)
+        self.debug = False # otherwise set in the parent class ;-)
+        # disable first row (sofa_id)
+        attr = wx.grid.GridCellAttr()
+        attr.SetReadOnly(True)
+        self.grid.SetRowAttr(0, attr)
+    
     def OnCellMove(self, event):
         debug = False
         moved, src_row = settings_grid.TableEntry.OnCellMove(self, event)
         if moved:
-            if debug: print("Row moved from was %s" % src_row)
+            if self.debug or debug: print("Row moved from was %s" % src_row)
             if src_row >= len(self.new_grid_data):
                 return
             # for row we're leaving, fill in new details.  Leave original values 
@@ -147,7 +159,7 @@ class ConfigTableEntry(settings_grid.TableEntry):
             fld_type = self.grid.GetCellValue(src_row, 1)
             self.new_grid_data[src_row][my_globals.TBL_FLD_NAME] = fld_name
             self.new_grid_data[src_row][my_globals.TBL_FLD_TYPE] = fld_type
-            if debug: pprint.pprint(self.new_grid_data)
+            if self.debug or debug: pprint.pprint(self.new_grid_data)
                 
     def UpdateNewGridData(self):
         """
@@ -161,10 +173,22 @@ class ConfigTableEntry(settings_grid.TableEntry):
         for i, row in enumerate(grid_data):
             self.new_grid_data[i][my_globals.TBL_FLD_NAME] = row[0]
             self.new_grid_data[i][my_globals.TBL_FLD_TYPE] = row[1]
-        if debug: pprint.pprint(self.new_grid_data)
-        
+        if self.debug or debug: pprint.pprint(self.new_grid_data)
     
-class ConfigTable(settings_grid.TableEntryDlg):
+    def ok_to_delete_row(self, row):
+        """
+        Can delete any row except the new row or the sofa_id row
+        Returns boolean and msg.
+        """
+        if self.NewRow(row):
+            return False, _("Unable to delete new row")
+        elif row == 0:
+            return False, _("Unable to delete sofa id row")
+        else:
+            return True, None
+    
+    
+class ConfigTableDlg(settings_grid.TableEntryDlg):
     
     debug = False
     
@@ -238,6 +262,21 @@ class ConfigTable(settings_grid.TableEntryDlg):
                        my_globals.TBL_FLD_TYPE_ORIG: row[1]}
             extra.append(new_row)
         self.new_grid_data += extra
+    
+    def insert_before(self):
+        """
+        Returns row inserted before (or None if no insertion) and row data (or 
+            None if no content added). 
+        """
+        selected_rows = self.tabentry.grid.GetSelectedRows()
+        if not selected_rows: 
+            return None, None
+        pos = selected_rows[0]
+        if pos == 0:
+            wx.MessageBox(_("The sofa_id must always come first"))
+            return None, None
+        row_data = self.tabentry.InsertRowAbove(pos)
+        return pos, row_data
 
     def OnInsert(self, event):
         """
@@ -256,7 +295,7 @@ class ConfigTable(settings_grid.TableEntryDlg):
             if self.debug: pprint.pprint(self.new_grid_data)
         self.tabentry.grid.SetFocus()
         event.Skip()
-        
+    
     def OnDelete(self, event):
         "Overridden so we can update new_grid_data."
         row_del = self.tabentry.TryToDeleteRow()

@@ -246,7 +246,7 @@ def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types,
         if debug: print(SQL_create_disp_tbl)
         cur.execute(SQL_create_disp_tbl)
         conn.commit()
-        if debug: print(u"Successfully created  %s" % TMP_SQLITE_TBL)
+        if debug: print(u"Successfully created %s" % TMP_SQLITE_TBL)
     except Exception, e:
         raise   
     try:
