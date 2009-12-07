@@ -30,7 +30,7 @@ class DlgMakeTable(wx.Dialog,
     OutputButtons - provides standard buttons for output dialogs.
     """
     
-    def __init__(self, dbe, conn_dets, default_dbs=None, 
+    def __init__(self, dbe, con_dets, default_dbs=None, 
                  default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
                  fil_script="", var_labels=None, var_notes=None, 
                  val_dics=None):
@@ -43,7 +43,7 @@ class DlgMakeTable(wx.Dialog,
                            wx.CAPTION | wx.CLOSE_BOX | \
                            wx.CLIP_CHILDREN)
         self.dbe = dbe
-        self.conn_dets = conn_dets
+        self.con_dets = con_dets
         self.default_dbs = default_dbs
         self.default_tbls = default_tbls
         self.fil_var_dets = fil_var_dets

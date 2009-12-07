@@ -44,15 +44,15 @@ def EncodeProcess(val, encoding):
 class Workbook(object):
 
     def __init__(self, filename):
-        self.conn = win32com.client.Dispatch('ADODB.Connection')
-        self.conn.Open('PROVIDER=Microsoft.Jet.OLEDB.4.0;'+
+        self.con = win32com.client.Dispatch('ADODB.Connection')
+        self.con.Open('PROVIDER=Microsoft.Jet.OLEDB.4.0;'+
             'DATA SOURCE=%s;Extended Properties="Excel 8.0;HDR=1;IMEX=1"' % \
             filename)
 
     def GetSheets(self):
         "Get list of worksheet names"
         sheets = []
-        rs = self.conn.OpenSchema(adSchemaTables)
+        rs = self.con.OpenSchema(adSchemaTables)
         while not rs.EOF:
             sheets.append(rs.Fields[2].Value)
             rs.MoveNext()
@@ -76,8 +76,8 @@ class Workbook(object):
     def close(self):
         "Closes Excel Workbook. Automatically called when Workbook deleted."
         try:
-            self.conn.Close()
-            del self.conn
+            self.con.Close()
+            del self.con
         except Exception:
             pass
 
@@ -99,7 +99,7 @@ class Worksheet(object):
         http://www.w3schools.com/ado/prop_rs_recordcount.asp
         """
         rs = win32com.client.Dispatch('ADODB.Recordset')		
-        rs.Open(u"SELECT * FROM [%s]" % self.name, self.doc.conn, adOpenStatic,
+        rs.Open(u"SELECT * FROM [%s]" % self.name, self.doc.con, adOpenStatic,
                 adLockReadOnly)
         rows_n = rs.RecordCount
         rs.Close()
@@ -114,7 +114,7 @@ class Worksheet(object):
         """
         rs = win32com.client.Dispatch('ADODB.Recordset')		
         try:
-            rs.Open(u'SELECT * FROM [%s]' % self.name, self.doc.conn,
+            rs.Open(u'SELECT * FROM [%s]' % self.name, self.doc.con,
                 adOpenForwardOnly, adLockReadOnly)
         except Exception, e:
             if e[2][2] == 'Too many fields defined.':
@@ -148,7 +148,7 @@ class Worksheet(object):
             dicts with field names as keys.
         """
         rs = win32com.client.Dispatch('ADODB.Recordset')
-        rs.Open(u'SELECT * FROM [%s]' % self.name, self.doc.conn,
+        rs.Open(u'SELECT * FROM [%s]' % self.name, self.doc.con,
                 adOpenForwardOnly, adLockReadOnly)
         try:
             flds = self.GetFldNames()

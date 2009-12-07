@@ -24,7 +24,7 @@ def insert_data(row_idx, grid_data):
             continue
         nums_used.append(num_used)
     free_num = max(nums_used) + 1 if nums_used else 1
-    row_data = [u"var%03i" % free_num, my_globals.CONF_NUMERIC]
+    row_data = [u"var%03i" % free_num, my_globals.FLD_TYPE_NUMERIC]
     return row_data
 
 def cell_invalidation(row, col, grid, col_dets):
@@ -64,8 +64,9 @@ def _invalid_fld_type(row, grid):
     field_type = grid.GetCellValue(row=row, col=1)
     if field_type.strip() == u"":
         return False, ""
-    if field_type not in [my_globals.CONF_NUMERIC, my_globals.CONF_STRING, 
-                          my_globals.CONF_DATE]:
+    if field_type not in [my_globals.FLD_TYPE_NUMERIC, 
+                          my_globals.FLD_TYPE_STRING, 
+                          my_globals.FLD_TYPE_DATE]:
         msg = _("%s is not a valid field type") % field_type
         return True, msg
     return False, u""
@@ -217,9 +218,9 @@ class ConfigTableDlg(settings_grid.TableEntryDlg):
                     {"col_label": _("Data Type"), 
                      "col_type": settings_grid.COL_DROPDOWN, 
                      "col_width": 100,
-                     "dropdown_vals": [my_globals.CONF_NUMERIC, 
-                                       my_globals.CONF_STRING, 
-                                       my_globals.CONF_DATE]},
+                     "dropdown_vals": [my_globals.FLD_TYPE_NUMERIC, 
+                                       my_globals.FLD_TYPE_STRING, 
+                                       my_globals.FLD_TYPE_DATE]},
                      ]
         grid_size = (250, 250)
         wx.Dialog.__init__(self, None, title=_("Configure Data Table"),

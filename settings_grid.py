@@ -35,7 +35,7 @@ class TableEntryDlg(wx.Dialog):
         """
         col_dets - see under TableEntry.
         data - list of tuples (must have at least one item, even if only a 
-            "rename me".
+            "rename me").
         new_grid_data - is effectively "returned".  Add details to it in form 
             of a list of tuples.
         insert_data_func - what data do you want to see in a new inserted row 

@@ -43,7 +43,7 @@ def GetProjNotes(fil_proj, proj_dic):
     
 def GetProjSettingsDic(proj_name):
     """
-    Returns proj_dic with keys such as conn_dets, fil_var_dets etc.
+    Returns proj_dic with keys such as con_dets, fil_var_dets etc.
     proj_name MUST include .proj on end
     """
     proj_path = os.path.join(LOCAL_PATH, u"projs", proj_name)
@@ -328,15 +328,15 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         y_start = -15 if util.in_windows() else 0
         self.panel_top = wx.Panel(self, pos=(0,0))
         top_height = 185
-        self.scroll_conn_dets = wx.PyScrolledWindow(self, 
-                                        pos=(10, top_height + y_start), 
-                                        size=(1000, 355),
-                                        style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
-        self.scroll_conn_dets.SetScrollbars(-1, 10, -1, -1) # else no scrollbars
-        self.scroll_conn_dets.SetVirtualSize((1000, 620))
+        self.scroll_con_dets = wx.PyScrolledWindow(self, 
+                                    pos=(10, top_height + y_start), 
+                                    size=(1000, 355),
+                                    style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
+        self.scroll_con_dets.SetScrollbars(-1, 10, -1, -1) # else no scrollbars
+        self.scroll_con_dets.SetVirtualSize((1000, 620))
         self.panel_bottom = wx.Panel(self, pos=(0, top_height + 360 + y_start))
         self.parent = parent
-        self.szrConn_Dets = wx.BoxSizer(wx.VERTICAL)
+        self.szrCon_Dets = wx.BoxSizer(wx.VERTICAL)
         self.szrBottom = wx.BoxSizer(wx.VERTICAL)
         # get available settings
         self.readonly = readonly
@@ -388,7 +388,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
             self.default_dbe
         except AttributeError:
             self.default_dbe = os.path.join(my_globals.DBE_SQLITE)
-        getdata.setConnDetDefaults(self)
+        getdata.setConDetDefaults(self)
         # misc
         lblfont = wx.Font(9, wx.SWISS, wx.NORMAL, wx.BOLD)
         # Project Name and notes
@@ -409,19 +409,19 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         szrDesc.Add(self.txtProjNotes, 1, wx.GROW)
         self.MiscConfigSetup(self.panel_top, readonly=self.readonly) # mixin
         # DATA CONNECTIONS
-        lblDataConnDets = wx.StaticText(self.panel_top, -1, 
+        lblDataConDets = wx.StaticText(self.panel_top, -1, 
                                         _("Data Connection Details:"))
         # default dbe
-        lblDefault_Dbe = wx.StaticText(self.scroll_conn_dets, -1, 
+        lblDefault_Dbe = wx.StaticText(self.scroll_con_dets, -1, 
                                        _("Default Database Engine:"))
         lblDefault_Dbe.SetFont(lblfont)
-        self.dropDefault_Dbe = wx.Choice(self.scroll_conn_dets, -1, 
+        self.dropDefault_Dbe = wx.Choice(self.scroll_con_dets, -1, 
                                          choices=my_globals.DBES)
         sel_dbe_id = my_globals.DBES.index(self.default_dbe)
         self.dropDefault_Dbe.SetSelection(sel_dbe_id)
         self.dropDefault_Dbe.Bind(wx.EVT_CHOICE, self.OnDbeChoice)
         self.dropDefault_Dbe.Enable(not self.readonly)
-        lblScrollDown = wx.StaticText(self.scroll_conn_dets, -1, 
+        lblScrollDown = wx.StaticText(self.scroll_con_dets, -1, 
                     _("(scroll down for details of all your database engines)"))
         # default dbe
         szrDefault_Dbe = wx.BoxSizer(wx.HORIZONTAL)
@@ -439,18 +439,18 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         self.szrTop.Add(self.szrConfigTop, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.szrTop.Add(self.szrConfigBottom, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         #self.szrTop.Add(szrOutput, 0, wx.GROW|wx.ALL, 10)
-        self.szrTop.Add(lblDataConnDets, 0, wx.LEFT, 10)
+        self.szrTop.Add(lblDataConDets, 0, wx.LEFT, 10)
         self.panel_top.SetSizer(self.szrTop)
         self.szrTop.SetSizeHints(self.panel_top)
-        # CONN DETS
-        self.szrConn_Dets.Add(szrDefault_Dbe, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        getdata.setDataConnGui(parent=self, read_only=self.readonly, 
-                               scroll=self.scroll_conn_dets, 
-                               szr=self.szrConn_Dets, lblfont=lblfont)
-        self.scroll_conn_dets.SetSizer(self.szrConn_Dets)
+        # CON DETS
+        self.szrCon_Dets.Add(szrDefault_Dbe, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        getdata.setDataConGui(parent=self, read_only=self.readonly, 
+                               scroll=self.scroll_con_dets, 
+                               szr=self.szrCon_Dets, lblfont=lblfont)
+        self.scroll_con_dets.SetSizer(self.szrCon_Dets)
         # NEVER SetSizeHints or else grows beyond size!!!!
-        self.szrConn_Dets.SetVirtualSizeHints(self.scroll_conn_dets)
-        self.scroll_conn_dets.FitInside() # no effect
+        self.szrCon_Dets.SetVirtualSizeHints(self.scroll_con_dets)
+        self.scroll_con_dets.FitInside() # no effect
         # BOTTOM        
         self.szrBottom.Add(self.szrButtons, 0, wx.ALL, 10)
         self.panel_bottom.SetSizer(self.szrBottom)
@@ -491,7 +491,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         self.fil_report = proj_dic["fil_report"]
         self.fil_script = proj_dic["fil_script"]
         self.default_dbe = proj_dic["default_dbe"]
-        getdata.getProjConnSettings(self, proj_dic)
+        getdata.getProjConSettings(self, proj_dic)
     
     def OnDbeChoice(self, event):
         sel_dbe_id = self.dropDefault_Dbe.GetSelection()
@@ -569,19 +569,19 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
             default_dbe = my_globals.DBES[self.dropDefault_Dbe.GetSelection()]
             default_dbs = {}
             default_tbls = {}
-            conn_dets = {}
-            any_incomplete, any_conns, completed_dbes = \
-                getdata.processConnDets(self, default_dbs, default_tbls, 
-                                        conn_dets)
+            con_dets = {}
+            any_incomplete, any_cons, completed_dbes = \
+                getdata.processConDets(self, default_dbs, default_tbls, 
+                                        con_dets)
             if any_incomplete:
                 return
-            enough_completed = proj_name and any_conns
+            enough_completed = proj_name and any_cons
             if not enough_completed:
                 wx.MessageBox(_("Not enough details completed to "
                                 "save a project file"))
                 return
-            default_dbe_lacks_conn = default_dbe not in completed_dbes
-            if default_dbe_lacks_conn:
+            default_dbe_lacks_con = default_dbe not in completed_dbes
+            if default_dbe_lacks_con:
                 wx.MessageBox(_("Connection details need to be completed "
                       "for the default database engine (%s) to save a project"
                       " file.") % default_dbe)
@@ -612,8 +612,8 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
                     pprint.pformat(default_dbs))
             f.write(os.linesep + os.linesep + u"default_tbls = " + \
                     pprint.pformat(default_tbls))
-            f.write(os.linesep + os.linesep + u"conn_dets = " + \
-                    pprint.pformat(conn_dets))
+            f.write(os.linesep + os.linesep + u"con_dets = " + \
+                    pprint.pformat(con_dets))
             f.close()
             if self.new_proj:
                 self.parent.parent.SetProj(proj_name)

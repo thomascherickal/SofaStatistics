@@ -55,7 +55,7 @@ EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 
 
 class TblEditor(wx.Dialog):
-    def __init__(self, parent, dbe, conn, cur, db, tbl_name, flds, var_labels,
+    def __init__(self, parent, dbe, con, cur, db, tbl_name, flds, var_labels,
                  idxs, readonly=True):
         self.debug = False
         wx.Dialog.__init__(self, None, 
@@ -67,7 +67,7 @@ class TblEditor(wx.Dialog):
                            wx.CLIP_CHILDREN)
         self.parent = parent
         self.dbe = dbe
-        self.conn = conn
+        self.con = con
         self.cur = cur
         self.tbl_name = tbl_name
         self.flds = flds
@@ -75,7 +75,7 @@ class TblEditor(wx.Dialog):
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         self.grid = wx.grid.Grid(self.panel, size=(500, 600))
         self.grid.EnableEditing(not readonly)
-        self.dbtbl = db_tbl.DbTbl(self.grid, self.dbe, self.conn, self.cur, 
+        self.dbtbl = db_tbl.DbTbl(self.grid, self.dbe, self.con, self.cur, 
                                   tbl_name, self.flds, var_labels, idxs, 
                                   readonly)
         self.grid.SetTable(self.dbtbl, takeOwnership=True)
@@ -621,9 +621,9 @@ class TblEditor(wx.Dialog):
         if self.debug or debug: print("UpdateCell - row %s col %s" % (row, col))
         bolUpdatedCell = True
         try:
-            self.dbtbl.conn.commit()
+            self.dbtbl.con.commit()
             self.dbtbl.cur.execute(self.dbtbl.SQL_cell_to_update)
-            self.dbtbl.conn.commit()
+            self.dbtbl.con.commit()
         except Exception, e:
             if self.debug or debug: 
                 print("UpdateCell failed to save %s. " %
@@ -652,7 +652,7 @@ class TblEditor(wx.Dialog):
             if raw_val == db_tbl.MISSING_VAL_INDICATOR:
                 raw_val = None
             data.append((raw_val, fld_name, fld_dic))
-        row_inserted, msg = getdata.InsertRow(self.dbe, self.conn, self.cur, 
+        row_inserted, msg = getdata.InsertRow(self.dbe, self.con, self.cur, 
                                          self.tbl_name, data)
         if row_inserted:
             if self.debug: print("SaveRow - Just inserted row")

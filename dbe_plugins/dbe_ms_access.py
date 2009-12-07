@@ -47,20 +47,20 @@ def DbeSyntaxElements():
 class DbDets(getdata.DbDets):
     
     """
-    __init__ supplies default_dbs, default_tbls, conn_dets and 
+    __init__ supplies default_dbs, default_tbls, con_dets and 
         db and tbl (may be None).
     """
     
     debug = False
     
-    def get_conn_cur(self):
+    def get_con_cur(self):
         """
         To get a cursor must also get a workable database.  So makes sense to
             set self.db here
         """
         # get connection details for appropriate database
-        conn_dets_access = self.conn_dets.get(my_globals.DBE_MS_ACCESS)
-        if not conn_dets_access:
+        con_dets_access = self.con_dets.get(my_globals.DBE_MS_ACCESS)
+        if not con_dets_access:
             raise Exception, u"No connection details available for MS Access"
         # get the (only) database and use it to get the connection details
         if not self.db:
@@ -69,32 +69,32 @@ class DbDets(getdata.DbDets):
             if default_db_access:
                 self.db = default_db_access
             else:
-                # conn_dets_access[0]["database"] e.g. u'C:\\mydata\\data.mdb'
-                full_db_path = conn_dets_access[0][u"database"]
+                # con_dets_access[0]["database"] e.g. u'C:\\mydata\\data.mdb'
+                full_db_path = con_dets_access[0][u"database"]
                 self.db = os.path.split(full_db_path)[1]
-        if not conn_dets_access.get(self.db):
+        if not con_dets_access.get(self.db):
             raise Exception, u"No connections for MS Access database %s" % \
                 self.db
-        conn_dets_access_db = conn_dets_access[self.db]
+        con_dets_access_db = con_dets_access[self.db]
         """DSN syntax - http://support.microsoft.com/kb/193332 and 
         http://www.codeproject.com/database/connectionstrings.asp ...
         ... ?df=100&forumid=3917&exp=0&select=1598401"""
-        database = conn_dets_access_db["database"]
-        user = conn_dets_access_db["user"]
-        pwd = conn_dets_access_db["pwd"]
-        mdw = conn_dets_access_db["mdw"]
+        database = con_dets_access_db["database"]
+        user = con_dets_access_db["user"]
+        pwd = con_dets_access_db["pwd"]
+        mdw = con_dets_access_db["mdw"]
         DSN = u"""PROVIDER=Microsoft.Jet.OLEDB.4.0;DATA SOURCE=%s;
             USER ID=%s;PASSWORD=%s;Jet OLEDB:System Database=%s;""" % \
             (database, user, pwd, mdw)
         try:
-            conn = adodbapi.connect(connstr=DSN)
+            con = adodbapi.connect(connstr=DSN)
         except Exception, e:
             raise Exception, u"Unable to connect to MS Access database " + \
                u"using supplied database: %s, user: %s, " % (database, user) + \
                u"pwd: %s, or mdw: %s.  Orig error: %s" % (pwd, mdw, e)
-        cur = conn.cursor() # must return tuples not dics
-        cur.adoconn = conn.adoConn # (need to access from just the cursor)
-        return conn, cur
+        cur = con.cursor() # must return tuples not dics
+        cur.adoconn = con.adoConn # (need to access from just the cursor)
+        return con, cur
           
     def getDbDets(self):
         """
@@ -106,9 +106,9 @@ class DbDets(getdata.DbDets):
         The database used will be the default or the first if none provided.
         The table used will be the default or the first if none provided.
         The field dets will be taken from the table used.
-        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
+        Returns con, cur, dbs, tbls, flds, has_unique, idxs.
         """
-        conn, cur = self.get_conn_cur()
+        con, cur = self.get_con_cur()
         # get database name
         dbs = [self.db]
         tbls = self.getDbTbls(cur, self.db)
@@ -136,7 +136,7 @@ class DbDets(getdata.DbDets):
             pprint.pprint(tbls)
             pprint.pprint(flds)
             pprint.pprint(idxs)
-        return conn, cur, dbs, tbls, flds, has_unique, idxs
+        return con, cur, dbs, tbls, flds, has_unique, idxs
 
     def getDbTbls(self, cur, db):
         "Get table names given database and cursor. NB not system tables"
@@ -242,7 +242,7 @@ class DbDets(getdata.DbDets):
             print(has_unique)
         return has_unique, idxs
 
-def InsertRow(conn, cur, tbl_name, data):
+def InsertRow(con, cur, tbl_name, data):
     """
     data = [(value as string (or None), fld_name, fld_dets), ...]
     Modify any values (according to field details) to be ready for insertion.
@@ -272,14 +272,14 @@ def InsertRow(conn, cur, tbl_name, data):
     msg = None
     try:
         cur.execute(SQL_insert, data_tup)
-        conn.commit()
+        con.commit()
         return True, None
     except Exception, e:
         if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
             (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
         return False, u"%s" % e
 
-def setDataConnGui(parent, read_only, scroll, szr, lblfont):
+def setDataConGui(parent, read_only, scroll, szr, lblfont):
     ""
     # default database
     parent.lblMsaccessDefaultDb = wx.StaticText(scroll, -1, 
@@ -353,14 +353,14 @@ def getProjSettings(parent, proj_dic):
         proj_dic["default_dbs"].get(my_globals.DBE_MS_ACCESS)
     parent.msaccess_default_tbl = \
         proj_dic["default_tbls"].get(my_globals.DBE_MS_ACCESS)
-    if proj_dic["conn_dets"].get(my_globals.DBE_MS_ACCESS):
+    if proj_dic["con_dets"].get(my_globals.DBE_MS_ACCESS):
         parent.msaccess_data = [(x["database"], x["mdw"], x["user"], 
                                  x["pwd"]) \
-            for x in proj_dic["conn_dets"][my_globals.DBE_MS_ACCESS].values()]
+            for x in proj_dic["con_dets"][my_globals.DBE_MS_ACCESS].values()]
     else:
         parent.msaccess_data = []
 
-def setConnDetDefaults(parent):
+def setConDetDefaults(parent):
     try:
         parent.msaccess_default_db
     except AttributeError:
@@ -374,13 +374,13 @@ def setConnDetDefaults(parent):
     except AttributeError:
         parent.msaccess_data = []
 
-def processConnDets(parent, default_dbs, default_tbls, conn_dets):
+def processConDets(parent, default_dbs, default_tbls, con_dets):
     parent.msaccess_grid.UpdateNewGridData()
     MSACCESS_DEFAULT_DB = parent.txtMsaccessDefaultDb.GetValue()
     MSACCESS_DEFAULT_TBL = parent.txtMsaccessDefaultTbl.GetValue()
-    has_msaccess_conn = MSACCESS_DEFAULT_DB and MSACCESS_DEFAULT_TBL
+    has_msaccess_con = MSACCESS_DEFAULT_DB and MSACCESS_DEFAULT_TBL
     incomplete_msaccess = (MSACCESS_DEFAULT_DB or MSACCESS_DEFAULT_TBL) \
-        and not has_msaccess_conn
+        and not has_msaccess_con
     if incomplete_msaccess:
         wx.MessageBox(_("The MS Access details are incomplete"))
         parent.txtMsaccessDefaultDb.SetFocus()
@@ -391,7 +391,7 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     #pprint.pprint(parent.msaccess_new_grid_data) # debug
     msaccess_settings = parent.msaccess_new_grid_data
     if msaccess_settings:
-        conn_dets_msaccess = {}
+        con_dets_msaccess = {}
         for msaccess_setting in msaccess_settings:
             db_path = msaccess_setting[0]
             db_name = util.getFileName(db_path)
@@ -400,6 +400,6 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
             new_msaccess_dic[u"mdw"] = msaccess_setting[1]
             new_msaccess_dic[u"user"] = msaccess_setting[2]
             new_msaccess_dic[u"pwd"] = msaccess_setting[3]
-            conn_dets_msaccess[db_name] = new_msaccess_dic
-        conn_dets[my_globals.DBE_MS_ACCESS] = conn_dets_msaccess
-    return incomplete_msaccess, has_msaccess_conn
+            con_dets_msaccess[db_name] = new_msaccess_dic
+        con_dets[my_globals.DBE_MS_ACCESS] = con_dets_msaccess
+    return incomplete_msaccess, has_msaccess_con

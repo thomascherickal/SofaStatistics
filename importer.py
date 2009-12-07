@@ -15,15 +15,6 @@ from my_exceptions import ImportCancelException
 FILE_CSV = "csv"
 FILE_EXCEL = "excel"
 FILE_UNKNOWN = "unknown"
-FLD_NUMERIC = "numeric field"
-FLD_DATETIME = "datetime field"
-FLD_STRING = "string field"
-# DATETIME is not a native storage class but can still be discovered
-# via PRAGMA table_info()
-FLD_TYPE_TO_SQLITE_TYPE = {
-   FLD_NUMERIC: "REAL", 
-   FLD_DATETIME: "DATETIME",
-   FLD_STRING: "TEXT"}
 VAL_NUMERIC = "numeric value"
 VAL_DATETIME = "datetime value"
 VAL_STRING = "string value"
@@ -92,12 +83,12 @@ def assess_sample_fld(sample_data, fld_name):
                 type_set.add(VAL_STRING)
     if type_set == numeric_only_set or \
             type_set == numeric_or_empt_str_set:
-        fld_type = FLD_NUMERIC
+        fld_type = my_globals.FLD_TYPE_NUMERIC
     elif type_set == datetime_only_set or \
             type_set == datetime_or_empt_str_set:
-        fld_type = FLD_DATETIME
+        fld_type = my_globals.FLD_TYPE_DATE
     else:
-        fld_type = FLD_STRING
+        fld_type = my_globals.FLD_TYPE_STRING
     return fld_type
 
 def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
@@ -119,19 +110,20 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
         if is_pytime:
             val = util.pytime_to_datetime_str(val)
         if not is_pytime:
-            if fld_type in [FLD_NUMERIC, FLD_DATETIME] and \
-                    (val == "" or val is None):
+            if fld_type in [my_globals.FLD_TYPE_NUMERIC, 
+                            my_globals.FLD_TYPE_DATE] and \
+                           (val == "" or val is None):
                 val = u"NULL"
     else:            
         bolOK_data = False        
-        if fld_type == FLD_NUMERIC:
+        if fld_type == my_globals.FLD_TYPE_NUMERIC:
             # must be numeric or empty string (which we'll turn to NULL)
             if util.is_numeric(val):
                 bolOK_data = True
             elif val == u"" or val is None:
                 bolOK_data = True
                 val = u"NULL"
-        elif fld_type == FLD_DATETIME:
+        elif fld_type == my_globals.FLD_TYPE_DATE:
             # must be pytime or datetime 
             # or empty string (which we'll turn to NULL).
             if is_pytime:
@@ -145,7 +137,7 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
                 elif val == u"" or val is None:
                     bolOK_data = True
                     val = u"NULL"
-        elif fld_type == FLD_STRING:
+        elif fld_type == my_globals.FLD_TYPE_STRING:
             bolOK_data = True
         if not bolOK_data:
             raise MismatchException(fld_name,
@@ -157,7 +149,7 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
         val = u"\"%s\"" % val
     vals.append(val)
     
-def AddRows(conn, cur, rows, fld_names, fld_types, progBackup, gauge_chunk,
+def AddRows(con, cur, rows, fld_names, fld_types, progBackup, gauge_chunk,
             start_i=0, check=False, keep_importing=None):
     """
     Add the rows of data, processing each cell as you go.
@@ -193,7 +185,7 @@ def AddRows(conn, cur, rows, fld_names, fld_types, progBackup, gauge_chunk,
             raise # keep this particular type of exception bubbling out
         except Exception, e:
             raise Exception, u"Unable to add row %s. Orig error: %s" % (i, e)
-    conn.commit()
+    con.commit()
 
 def getGaugeChunkSize(n_rows, sample_n):
     """
@@ -206,29 +198,21 @@ def getGaugeChunkSize(n_rows, sample_n):
         gauge_chunk = None
     return gauge_chunk
 
-def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types, 
+def AddToTmpTable(con, cur, file_path, tbl_name, fld_names, fld_types, 
                   sample_data, sample_n, remaining_data, progBackup, 
                   gauge_chunk, keep_importing):
     """
     Create fresh disposable table in SQLite and insert data into it.
+    Give it a unique identifier field as well.
+    Set up the data type constraints needed.
     """
     debug = False
     if debug:
         print(u"Field names are: %s" % fld_names)
         print(u"Field types are: %s" % fld_types)
         print(u"Sample data is: %s" % sample_data)
-    # create fresh disposable table to store data in.
-    # give it a unique identifier field as well.
-    fld_clause_items = [u"sofa_id INTEGER PRIMARY KEY"]
-    for fld_name in fld_names:
-        fld_type = fld_types[fld_name]
-        sqlite_type = FLD_TYPE_TO_SQLITE_TYPE[fld_type]
-        fld_clause_items.append(u"%s %s" % \
-                (dbe_sqlite.quote_obj(fld_name), sqlite_type))
-    fld_clause_items.append(u"UNIQUE(sofa_id)")
-    fld_clause = u", ".join(fld_clause_items)
     try:
-        conn.commit()
+        con.commit()
         SQL_get_tbl_names = u"""SELECT name 
             FROM sqlite_master 
             WHERE type = 'table'"""
@@ -236,31 +220,28 @@ def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types,
             # latest data on which tables exist
         SQL_drop_disp_tbl = u"DROP TABLE IF EXISTS %s" % TMP_SQLITE_TBL
         cur.execute(SQL_drop_disp_tbl)        
-        conn.commit()
+        con.commit()
         if debug: print(u"Successfully dropped %s" % TMP_SQLITE_TBL)
     except Exception, e:
         raise
     try:
-        SQL_create_disp_tbl = u"CREATE TABLE %s " % TMP_SQLITE_TBL + \
-            u" (%s)" % fld_clause
-        if debug: print(SQL_create_disp_tbl)
-        cur.execute(SQL_create_disp_tbl)
-        conn.commit()
-        if debug: print(u"Successfully created %s" % TMP_SQLITE_TBL)
+        tbl_name = TMP_SQLITE_TBL
+        name_types = [(fld_name, fld_types[fld_name]) for fld_name in fld_names]
+        getdata.make_sofa_tbl(con, cur, tbl_name, name_types)
     except Exception, e:
         raise   
     try:
         # add sample and then remaining data to disposable table
-        AddRows(conn, cur, sample_data, fld_names, fld_types, progBackup,
+        AddRows(con, cur, sample_data, fld_names, fld_types, progBackup,
                 gauge_chunk, start_i=sample_n, check=False, 
                 keep_importing=keep_importing) # already been through sample 
             # once when assessing it so part way through already
         remainder_start_i = 2*sample_n # been through sample twice already
-        AddRows(conn, cur, remaining_data, fld_names, fld_types, progBackup,
+        AddRows(con, cur, remaining_data, fld_names, fld_types, progBackup,
                 gauge_chunk, start_i=remainder_start_i, check=True, 
                 keep_importing=keep_importing)
     except MismatchException, e:
-        conn.commit()
+        con.commit()
         progBackup.SetValue(0)
         # go through again or raise an exception
         retCode = wx.MessageBox(u"%s\n\n" % e + _("Fix and keep going?"), 
@@ -268,15 +249,15 @@ def AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types,
                                 wx.YES_NO | wx.ICON_QUESTION)
         if retCode == wx.YES:
             # change fld_type to string and start again
-            fld_types[e.fld_name] = FLD_STRING
-            AddToTmpTable(conn, cur, file_path, tbl_name, fld_names, fld_types, 
+            fld_types[e.fld_name] = my_globals.FLD_TYPE_STRING
+            AddToTmpTable(con, cur, file_path, tbl_name, fld_names, fld_types, 
                           sample_data, sample_n, remaining_data, progBackup, 
                           gauge_chunk, keep_importing)
         else:
             raise Exception, u"Mismatch between data in column and " + \
                 "expected column type"
     
-def TmpToNamedTbl(conn, cur, tbl_name, file_path, progBackup):
+def TmpToNamedTbl(con, cur, tbl_name, file_path, progBackup):
     """
     Rename table to final name.
     Separated from AddToTmpTable to allow the latter to recurse.
@@ -288,13 +269,13 @@ def TmpToNamedTbl(conn, cur, tbl_name, file_path, progBackup):
             dbe_sqlite.quote_obj(tbl_name)
         if debug: print(SQL_drop_tbl)
         cur.execute(SQL_drop_tbl)
-        conn.commit()
+        con.commit()
         SQL_rename_tbl = u"ALTER TABLE %s RENAME TO %s" % \
             (dbe_sqlite.quote_obj(TMP_SQLITE_TBL), 
              dbe_sqlite.quote_obj(tbl_name))
         if debug: print(SQL_rename_tbl)
         cur.execute(SQL_rename_tbl)
-        conn.commit()
+        con.commit()
     except Exception, e:
         raise Exception, u"Unable to rename temporary table.  Orig error: %s" \
             % e

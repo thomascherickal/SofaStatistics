@@ -35,31 +35,34 @@ def DbeSyntaxElements():
     if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
     return (if_clause, quote_obj, quote_val, get_placeholder, get_summable)
 
-def get_conn(conn_dets, db):
-    conn_dets_sqlite = conn_dets.get(my_globals.DBE_SQLITE)
-    if not conn_dets_sqlite:
+def get_con(con_dets, db):
+    con_dets_sqlite = con_dets.get(my_globals.DBE_SQLITE)
+    if not con_dets_sqlite:
         raise Exception, u"No connection details available for SQLite"
-    if not conn_dets_sqlite.get(db):
+    if not con_dets_sqlite.get(db):
         raise Exception, u"No connections for SQLite database %s" % db
     try:
-        conn = sqlite.connect(**conn_dets_sqlite[db])
+        con = sqlite.connect(**con_dets_sqlite[db])
     except Exception, e:
         raise Exception, u"Unable to connect to SQLite database " + \
             u"using supplied database: %s. " % db + \
             u"Orig error: %s" % e
-    return conn
+    # some user-defined functions needed for strict type checking constraints
+    con.create_function("is_numeric", 1, util.is_numeric)
+    con.create_function("valid_datetime_str", 1, util.valid_datetime_str)
+    return con
 
 
 class DbDets(getdata.DbDets):
     
     """
-    __init__ supplies default_dbs, default_tbls, conn_dets and 
+    __init__ supplies default_dbs, default_tbls, con_dets and 
         db and tbl (may be None).
     """
     
     debug = False
     
-    def get_conn_cur(self):        
+    def get_con_cur(self):        
         if not self.db:
             # use default, or failing that, try the file_name
             default_db_sqlite = self.default_dbs.get(my_globals.DBE_SQLITE)
@@ -67,9 +70,9 @@ class DbDets(getdata.DbDets):
                 self.db = default_db_sqlite
             else:
                 self.db = self.con_dets[my_globals.DBE_SQLITE].keys()[0]
-        conn = get_conn(self.conn_dets, self.db)
-        cur = conn.cursor() # must return tuples not dics
-        return conn, cur
+        con = get_con(self.con_dets, self.db)
+        cur = con.cursor() # must return tuples not dics
+        return con, cur
       
     def getDbDets(self):
         """
@@ -80,10 +83,10 @@ class DbDets(getdata.DbDets):
         The database used will be the default SOFA db if nothing provided.
         The table used will be the default or the first if none provided.
         The field dets will be taken from the table used.
-        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
+        Returns con, cur, dbs, tbls, flds, has_unique, idxs.
         """
         debug = False
-        conn, cur = self.get_conn_cur()
+        con, cur = self.get_con_cur()
         dbs = [self.db]
         tbls = self.getDbTbls(cur, self.db)
         tbls_lc = [x.lower() for x in tbls]
@@ -113,7 +116,7 @@ class DbDets(getdata.DbDets):
             pprint.pprint(tbls)
             pprint.pprint(flds)
             pprint.pprint(idxs)
-        return conn, cur, dbs, tbls, flds, has_unique, idxs
+        return con, cur, dbs, tbls, flds, has_unique, idxs
     
     def getDbTbls(self, cur, db):
         "Get table names given database and cursor"
@@ -212,7 +215,7 @@ class DbDets(getdata.DbDets):
             print(has_unique)
         return has_unique, idxs
 
-def InsertRow(conn, cur, tbl_name, data):
+def InsertRow(con, cur, tbl_name, data):
     """
     data = [(value as string (or None), fld_name, fld_dets), ...]
     Modify any values (according to field details) to be ready for insertion.
@@ -243,14 +246,14 @@ def InsertRow(conn, cur, tbl_name, data):
     data_tup = tuple(data_lst)
     try:
         cur.execute(SQL_insert, data_tup)
-        conn.commit()
+        con.commit()
         return True, None
     except Exception, e:
         if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
             (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
         return False, u"%s" % e
 
-def setDataConnGui(parent, read_only, scroll, szr, lblfont):
+def setDataConGui(parent, read_only, scroll, szr, lblfont):
     ""
     # default database
     parent.lblSqliteDefaultDb = wx.StaticText(scroll, -1, 
@@ -295,13 +298,13 @@ def getProjSettings(parent, proj_dic):
         proj_dic["default_dbs"].get(my_globals.DBE_SQLITE)
     parent.sqlite_default_tbl = \
         proj_dic["default_tbls"].get(my_globals.DBE_SQLITE)
-    if proj_dic["conn_dets"].get(my_globals.DBE_SQLITE):
+    if proj_dic["con_dets"].get(my_globals.DBE_SQLITE):
         parent.sqlite_data = [(x["database"],) \
-             for x in proj_dic["conn_dets"][my_globals.DBE_SQLITE].values()]
+             for x in proj_dic["con_dets"][my_globals.DBE_SQLITE].values()]
     else:
         parent.sqlite_data = []
 
-def setConnDetDefaults(parent):
+def setConDetDefaults(parent):
     try:            
         parent.sqlite_default_db
     except AttributeError: 
@@ -315,12 +318,12 @@ def setConnDetDefaults(parent):
     except AttributeError: 
         parent.sqlite_data = []
 
-def processConnDets(parent, default_dbs, default_tbls, conn_dets):
+def processConDets(parent, default_dbs, default_tbls, con_dets):
     parent.sqlite_grid.UpdateNewGridData()
     DEFAULT_DB = parent.txtSqliteDefaultDb.GetValue()
     DEFAULT_TBL = parent.txtSqliteDefaultTbl.GetValue()
-    has_sqlite_conn = DEFAULT_DB and DEFAULT_TBL
-    incomplete_sqlite = (DEFAULT_DB or DEFAULT_TBL) and not has_sqlite_conn
+    has_sqlite_con = DEFAULT_DB and DEFAULT_TBL
+    incomplete_sqlite = (DEFAULT_DB or DEFAULT_TBL) and not has_sqlite_con
     if incomplete_sqlite:
         wx.MessageBox(_("The SQLite details are incomplete"))
         parent.txtSqliteDefaultDb.SetFocus()
@@ -329,16 +332,16 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     #pprint.pprint(parent.sqlite_new_grid_data) # debug
     sqlite_settings = parent.sqlite_new_grid_data
     if sqlite_settings:
-        conn_dets_sqlite = {}
+        con_dets_sqlite = {}
         for sqlite_setting in sqlite_settings:
             # e.g. ("C:\.....\my_sqlite_db",)
             db_path = sqlite_setting[0]
             db_name = util.getFileName(db_path)
             new_sqlite_dic = {}
             new_sqlite_dic["database"] = db_path
-            conn_dets_sqlite[db_name] = new_sqlite_dic
-        conn_dets[my_globals.DBE_SQLITE] = conn_dets_sqlite        
-    return incomplete_sqlite, has_sqlite_conn
+            con_dets_sqlite[db_name] = new_sqlite_dic
+        con_dets[my_globals.DBE_SQLITE] = con_dets_sqlite        
+    return incomplete_sqlite, has_sqlite_con
 
 # unique to SQLite (because used to store tables for user-entered data plus 
 # imported data)

@@ -368,10 +368,10 @@ class StartFrame(wx.Frame):
                            wx.Rect(MAIN_RIGHT, 560, 100, 50))
         panel_dc.DrawBitmap(self.bmp_psal, 155, 542, True)
         # make default db if not already there
-        connSqlite = sqlite.connect(os.path.join(LOCAL_PATH, 
-                                                 my_globals.INTERNAL_FOLDER, 
-                                                 my_globals.SOFA_DEFAULT_DB))
-        connSqlite.close()
+        def_db = os.path.join(LOCAL_PATH, my_globals.INTERNAL_FOLDER, 
+                              my_globals.SOFA_DEFAULT_DB)
+        con = sqlite.connect(def_db)
+        con.close()
         panel_dc.DrawBitmap(self.blank_proj_strip, MAIN_LEFT, 218, False)
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
@@ -456,7 +456,7 @@ class StartFrame(wx.Frame):
         proj_dic = projects.GetProjSettingsDic(proj_name)
         try:
             dlg = make_table_gui.DlgMakeTable( 
-                proj_dic["default_dbe"], proj_dic["conn_dets"], 
+                proj_dic["default_dbe"], proj_dic["con_dets"], 
                 proj_dic["default_dbs"], proj_dic["default_tbls"], 
                 proj_dic["fil_var_dets"], proj_dic["fil_css"], 
                 proj_dic["fil_report"], proj_dic["fil_script"])
@@ -509,7 +509,7 @@ class StartFrame(wx.Frame):
         proj_name = self.active_proj
         proj_dic = projects.GetProjSettingsDic(proj_name)
         dlg = stats_select.StatsSelectDlg(proj_name, 
-            proj_dic["default_dbe"], proj_dic["conn_dets"], 
+            proj_dic["default_dbe"], proj_dic["con_dets"], 
             proj_dic["default_dbs"], proj_dic["default_tbls"], 
             proj_dic["fil_var_dets"], proj_dic["fil_css"], 
             proj_dic["fil_report"], proj_dic["fil_script"])

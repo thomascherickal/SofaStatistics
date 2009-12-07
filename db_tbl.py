@@ -16,7 +16,7 @@ debug = False
 
 
 class DbTbl(wx.grid.PyGridTableBase):
-    def __init__(self, grid, dbe, conn, cur, tbl, flds, var_labels, idxs, 
+    def __init__(self, grid, dbe, con, cur, tbl, flds, var_labels, idxs, 
                  readonly):
         wx.grid.PyGridTableBase.__init__(self)
         self.debug = False
@@ -25,7 +25,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.dbe = dbe
         self.quote_obj = getdata.get_obj_quoter_func(self.dbe)
         self.quote_val = getdata.get_val_quoter_func(self.dbe)
-        self.conn = conn
+        self.con = con
         self.cur = cur
         self.readonly = readonly        
         self.SetNumberRows()
@@ -203,13 +203,13 @@ class DbTbl(wx.grid.PyGridTableBase):
                                       IN_clause) + \
                 u" ORDER BY %s" % self.quote_obj(self.id_col_name)
             if debug or self.debug: print(SQL_get_values)
-            #self.conn.commit() # extra commits keep postgresql problems away
+            #self.con.commit() # extra commits keep postgresql problems away
                 # when a cell change is rejected by SOFA Stats validation
                 # [update - unable to confirm]
             # problem accessing cursor if committed in MS SQL
             # see http://support.microsoft.com/kb/321714
             self.cur.execute(SQL_get_values)
-            #self.conn.commit()
+            #self.con.commit()
             row_idx = row_min
             for data_tup in self.cur.fetchall(): # tuple of values
                 # handle microsoft characters

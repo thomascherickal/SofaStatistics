@@ -69,29 +69,29 @@ def DbeSyntaxElements():
 class DbDets(getdata.DbDets):
     
     """
-    __init__ supplies default_dbs, default_tbls, conn_dets and 
-        db and tbl (may be None).  Db needs to be set in conn_dets once 
+    __init__ supplies default_dbs, default_tbls, con_dets and 
+        db and tbl (may be None).  Db needs to be set in con_dets once 
         identified.
     """
     debug = False
     
-    def get_conn_cur(self):
+    def get_con_cur(self):
         """
         Get connection - with a database if possible, else without.  If without,
             use connection to identify databases and select one.  Then remake
             connection with selected database and remake cursor.
         """
-        conn_dets_pgsql = self.conn_dets.get(my_globals.DBE_PGSQL)
-        if not conn_dets_pgsql:
+        con_dets_pgsql = self.con_dets.get(my_globals.DBE_PGSQL)
+        if not con_dets_pgsql:
             raise Exception, u"No connection details available for PostgreSQL"
         try:
             if self.db:
-                conn_dets_pgsql["database"] = self.db
-            conn = pgdb.connect(**conn_dets_pgsql)
+                con_dets_pgsql["database"] = self.db
+            con = pgdb.connect(**con_dets_pgsql)
         except Exception, e:
             raise Exception, u"Unable to connect to PostgreSQL db.  " + \
                 u"Orig error: %s" % e
-        cur = conn.cursor() # must return tuples not dics
+        cur = con.cursor() # must return tuples not dics
         # get database name
         SQL_get_db_names = u"""SELECT datname FROM pg_database"""
         cur.execute(SQL_get_db_names)
@@ -106,18 +106,18 @@ class DbDets(getdata.DbDets):
                 self.db = default_db_pgsql
             else:
                 self.db = self.dbs[0]
-            # need to reset conn and cur
+            # need to reset con and cur
             cur.close()
-            conn.close()
-            conn_dets_pgsql["database"] = self.db
-            conn = pgdb.connect(**conn_dets_pgsql)
-            cur = conn.cursor()
+            con.close()
+            con_dets_pgsql["database"] = self.db
+            con = pgdb.connect(**con_dets_pgsql)
+            cur = con.cursor()
         else:
             if self.db.lower() not in dbs_lc:
                 raise Exception, u"Database \"%s\" not available " % self.db + \
                     u"from supplied connection"
-        if self.debug: pprint.pprint(self.conn_dets)        
-        return conn, cur
+        if self.debug: pprint.pprint(self.con_dets)        
+        return con, cur
        
     def getDbDets(self):
         """
@@ -128,12 +128,12 @@ class DbDets(getdata.DbDets):
         The database used will be the default or the first if none provided.
         The table used will be the default or the first if none provided.
         The field dets will be taken from the table used.
-        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
+        Returns con, cur, dbs, tbls, flds, has_unique, idxs.
         """
         if self.debug:
             print(u"Received db is: %s" % self.db)
             print(u"Received tbl is: %s" % self.tbl)
-        conn, cur = self.get_conn_cur()
+        con, cur = self.get_con_cur()
         # get table names
         tbls = self.getDbTbls(cur, self.db)
         tbls_lc = [x.lower() for x in tbls]        
@@ -163,7 +163,7 @@ class DbDets(getdata.DbDets):
             pprint.pprint(tbls)
             pprint.pprint(flds)
             pprint.pprint(idxs)
-        return conn, cur, self.dbs, tbls, flds, has_unique, idxs
+        return con, cur, self.dbs, tbls, flds, has_unique, idxs
     
     def getDbTbls(self, cur, db):
         """
@@ -350,7 +350,7 @@ class DbDets(getdata.DbDets):
             print(has_unique)
         return has_unique, idxs
 
-def InsertRow(conn, cur, tbl_name, data):
+def InsertRow(con, cur, tbl_name, data):
     """
     data = [(value as string (or None), fld_name, fld_dets), ...]
     Modify any values (according to field details) to be ready for insertion.
@@ -380,14 +380,14 @@ def InsertRow(conn, cur, tbl_name, data):
     if debug: pprint.pprint(data_tup)
     try:
         cur.execute(SQL_insert, data_tup)
-        conn.commit()
+        con.commit()
         return True, None
     except Exception, e:
         if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
             (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
         return False, u"%s" % e
 
-def setDataConnGui(parent, read_only, scroll, szr, lblfont):
+def setDataConGui(parent, read_only, scroll, szr, lblfont):
     ""
     # default database
     parent.lblPgsqlDefaultDb = wx.StaticText(scroll, -1, 
@@ -463,15 +463,15 @@ def getProjSettings(parent, proj_dic):
     parent.pgsql_default_tbl = \
         proj_dic["default_tbls"].get(my_globals.DBE_PGSQL)
     # optional (although if any pgsql, for eg, must have all)
-    if proj_dic["conn_dets"].get(my_globals.DBE_PGSQL):
-        parent.pgsql_host = proj_dic["conn_dets"][my_globals.DBE_PGSQL]["host"]
-        parent.pgsql_user = proj_dic["conn_dets"][my_globals.DBE_PGSQL]["user"]
+    if proj_dic["con_dets"].get(my_globals.DBE_PGSQL):
+        parent.pgsql_host = proj_dic["con_dets"][my_globals.DBE_PGSQL]["host"]
+        parent.pgsql_user = proj_dic["con_dets"][my_globals.DBE_PGSQL]["user"]
         parent.pgsql_pwd = \
-            proj_dic["conn_dets"][my_globals.DBE_PGSQL]["password"]
+            proj_dic["con_dets"][my_globals.DBE_PGSQL]["password"]
     else:
         parent.pgsql_host, parent.pgsql_user, parent.pgsql_pwd = "", "", ""
 
-def setConnDetDefaults(parent):
+def setConDetDefaults(parent):
     try:
         parent.pgsql_default_db
     except AttributeError:
@@ -493,16 +493,16 @@ def setConnDetDefaults(parent):
     except AttributeError: 
         parent.pgsql_pwd = u""
     
-def processConnDets(parent, default_dbs, default_tbls, conn_dets):
+def processConDets(parent, default_dbs, default_tbls, con_dets):
     pgsql_default_db = parent.txtPgsqlDefaultDb.GetValue()
     pgsql_default_tbl = parent.txtPgsqlDefaultTbl.GetValue()
     pgsql_host = parent.txtPgsqlHost.GetValue()
     pgsql_user = parent.txtPgsqlUser.GetValue()
     pgsql_pwd = parent.txtPgsqlPwd.GetValue()
-    has_pgsql_conn = pgsql_host and pgsql_user and pgsql_pwd \
+    has_pgsql_con = pgsql_host and pgsql_user and pgsql_pwd \
         and pgsql_default_db and pgsql_default_tbl
     incomplete_pgsql = (pgsql_host or pgsql_user or pgsql_pwd \
-        or pgsql_default_db or pgsql_default_tbl) and not has_pgsql_conn
+        or pgsql_default_db or pgsql_default_tbl) and not has_pgsql_con
     if incomplete_pgsql:
         wx.MessageBox(_("The PostgreSQL details are incomplete"))
         parent.txtPgsqlDefaultDb.SetFocus()
@@ -511,7 +511,7 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     default_tbls[my_globals.DBE_PGSQL] = pgsql_default_tbl \
         if pgsql_default_tbl else None
     if pgsql_host and pgsql_user and pgsql_pwd:
-        conn_dets_pgsql = {"host": pgsql_host, "user": pgsql_user, 
+        con_dets_pgsql = {"host": pgsql_host, "user": pgsql_user, 
                            "password": pgsql_pwd}
-        conn_dets[my_globals.DBE_PGSQL] = conn_dets_pgsql
-    return incomplete_pgsql, has_pgsql_conn
+        con_dets[my_globals.DBE_PGSQL] = con_dets_pgsql
+    return incomplete_pgsql, has_pgsql_con

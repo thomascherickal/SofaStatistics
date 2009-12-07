@@ -25,7 +25,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
     OutputButtons - provides standard buttons for output dialogs.
     """
     
-    def __init__(self, title, dbe, conn_dets, default_dbs=None, 
+    def __init__(self, title, dbe, con_dets, default_dbs=None, 
                  default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
                  fil_script=""):
          
@@ -36,7 +36,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
                            wx.CAPTION | wx.CLOSE_BOX | \
                            wx.CLIP_CHILDREN)
         self.dbe = dbe
-        self.conn_dets = conn_dets
+        self.con_dets = con_dets
         self.default_dbs = default_dbs
         self.default_tbls = default_tbls
         self.fil_var_dets = fil_var_dets
@@ -275,7 +275,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
             script = self.getScript(css_idx)
             strContent = output.RunReport(OUTPUT_MODULES, self.fil_report, 
                 self.chkAddToReport.IsChecked(), css_fils, script, 
-                self.conn_dets, self.dbe, self.db, self.tbl, self.default_dbs, 
+                self.con_dets, self.dbe, self.db, self.tbl, self.default_dbs, 
                 self.default_tbls)
             wx.EndBusyCursor()
             output.DisplayReport(self, strContent)
@@ -306,7 +306,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.getScript(css_idx)
             output.ExportScript(script, self.fil_script, 
-                                self.fil_report, css_fils, self.conn_dets, 
+                                self.fil_report, css_fils, self.con_dets, 
                                 self.dbe, self.db, self.tbl, self.default_dbs, 
                                 self.default_tbls)
         event.Skip()
@@ -322,7 +322,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
     def OnClose(self, event):
         "Close app"
         try:
-            self.conn.close()
+            self.con.close()
             # add end to each open script file and close.
             for fil_script in self.open_scripts:
                 # add ending code to script

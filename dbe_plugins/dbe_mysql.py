@@ -39,27 +39,27 @@ def DbeSyntaxElements():
 class DbDets(getdata.DbDets):
     
     """
-    __init__ supplies default_dbs, default_tbls, conn_dets and 
-        db and tbl (may be None).  Db needs to be set in conn_dets once 
+    __init__ supplies default_dbs, default_tbls, con_dets and 
+        db and tbl (may be None).  Db needs to be set in con_dets once 
         identified.
     """
     
     debug = False
     
-    def get_conn_cur(self):
+    def get_con_cur(self):
         "Connection keywords must be plain strings not unicode strings"
-        conn_dets_mysql = self.conn_dets.get(my_globals.DBE_MYSQL)
-        if not conn_dets_mysql:
+        con_dets_mysql = self.con_dets.get(my_globals.DBE_MYSQL)
+        if not con_dets_mysql:
             raise Exception, u"No connection details available for MySQL"
         try:
-            conn_dets_mysql["use_unicode"] = True
+            con_dets_mysql["use_unicode"] = True
             if self.db:
-                conn_dets_mysql["db"] = self.db
-            conn = MySQLdb.connect(**conn_dets_mysql)
+                con_dets_mysql["db"] = self.db
+            con = MySQLdb.connect(**con_dets_mysql)
         except Exception, e:
             raise Exception, u"Unable to connect to MySQL db.  " + \
                 u"Orig error: %s" % e
-        cur = conn.cursor() # must return tuples not dics
+        cur = con.cursor() # must return tuples not dics
         # get database name
         SQL_get_db_names = u"""SELECT SCHEMA_NAME 
             FROM information_schema.SCHEMATA
@@ -76,18 +76,18 @@ class DbDets(getdata.DbDets):
                 self.db = default_db_mysql
             else:
                 self.db = self.dbs[0]
-            # need to reset conn and cur
+            # need to reset con and cur
             cur.close()
-            conn.close()
-            conn_dets_mysql["db"] = self.db
-            conn = MySQLdb.connect(**conn_dets_mysql)
-            cur = conn.cursor()
+            con.close()
+            con_dets_mysql["db"] = self.db
+            con = MySQLdb.connect(**con_dets_mysql)
+            cur = con.cursor()
         else:
             if self.db.lower() not in dbs_lc:
                 raise Exception, u"Database \"%s\" not available " % self.db + \
                     u"from supplied connection"
-        if self.debug: pprint.pprint(self.conn_dets) 
-        return conn, cur
+        if self.debug: pprint.pprint(self.con_dets) 
+        return con, cur
             
     def getDbDets(self):
         """
@@ -98,12 +98,12 @@ class DbDets(getdata.DbDets):
         The database used will be the default or the first if none provided.
         The table used will be the default or the first if none provided.
         The field dets will be taken from the table used.
-        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
+        Returns con, cur, dbs, tbls, flds, has_unique, idxs.
         """
         if self.debug:
             print(u"Received db is: %s" % self.db)
             print(u"Received tbl is: %s" % self.tbl)
-        conn, cur = self.get_conn_cur()
+        con, cur = self.get_con_cur()
 
         # get table names
         tbls = self.getDbTbls(cur, self.db)
@@ -134,7 +134,7 @@ class DbDets(getdata.DbDets):
             pprint.pprint(tbls)
             pprint.pprint(flds)
             pprint.pprint(idxs)
-        return conn, cur, self.dbs, tbls, flds, has_unique, idxs
+        return con, cur, self.dbs, tbls, flds, has_unique, idxs
     
     def getDbTbls(self, cur, db):
         "Get table names given database and cursor"
@@ -341,7 +341,7 @@ class DbDets(getdata.DbDets):
             print(has_unique)
         return has_unique, idxs
 
-def InsertRow(conn, cur, tbl_name, data):
+def InsertRow(con, cur, tbl_name, data):
     """
     data = [(value as string (or None), fld_name, fld_dets), ...]
     Modify any values (according to field details) to be ready for insertion.
@@ -371,14 +371,14 @@ def InsertRow(conn, cur, tbl_name, data):
     if debug: pprint.pprint(data_tup)
     try:
         cur.execute(SQL_insert, data_tup)
-        conn.commit()
+        con.commit()
         return True, None
     except Exception, e:
         if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
             (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
         return False, u"%s" % e
 
-def setDataConnGui(parent, read_only, scroll, szr, lblfont):
+def setDataConGui(parent, read_only, scroll, szr, lblfont):
     ""
     # default database
     parent.lblMysqlDefaultDb = wx.StaticText(scroll, -1, 
@@ -455,14 +455,14 @@ def getProjSettings(parent, proj_dic):
     parent.mysql_default_tbl = \
         proj_dic["default_tbls"].get(my_globals.DBE_MYSQL)
     # optional (although if any mysql, for eg, must have all)
-    if proj_dic["conn_dets"].get(my_globals.DBE_MYSQL):
-        parent.mysql_host = proj_dic["conn_dets"][my_globals.DBE_MYSQL]["host"]
-        parent.mysql_user = proj_dic["conn_dets"][my_globals.DBE_MYSQL]["user"]
-        parent.mysql_pwd = proj_dic["conn_dets"][my_globals.DBE_MYSQL]["passwd"]
+    if proj_dic["con_dets"].get(my_globals.DBE_MYSQL):
+        parent.mysql_host = proj_dic["con_dets"][my_globals.DBE_MYSQL]["host"]
+        parent.mysql_user = proj_dic["con_dets"][my_globals.DBE_MYSQL]["user"]
+        parent.mysql_pwd = proj_dic["con_dets"][my_globals.DBE_MYSQL]["passwd"]
     else:
         parent.mysql_host, parent.mysql_user, parent.mysql_pwd = "", "", ""
 
-def setConnDetDefaults(parent):
+def setConDetDefaults(parent):
     try:
         parent.mysql_default_db
     except AttributeError:
@@ -484,16 +484,16 @@ def setConnDetDefaults(parent):
     except AttributeError: 
         parent.mysql_pwd = u""
     
-def processConnDets(parent, default_dbs, default_tbls, conn_dets):
+def processConDets(parent, default_dbs, default_tbls, con_dets):
     mysql_default_db = parent.txtMysqlDefaultDb.GetValue()
     mysql_default_tbl = parent.txtMysqlDefaultTbl.GetValue()
     mysql_host = parent.txtMysqlHost.GetValue()
     mysql_user = parent.txtMysqlUser.GetValue()
     mysql_pwd = parent.txtMysqlPwd.GetValue()
-    has_mysql_conn = mysql_host and mysql_user and mysql_pwd \
+    has_mysql_con = mysql_host and mysql_user and mysql_pwd \
         and mysql_default_db and mysql_default_tbl
     incomplete_mysql = (mysql_host or mysql_user or mysql_pwd \
-        or mysql_default_db or mysql_default_tbl) and not has_mysql_conn
+        or mysql_default_db or mysql_default_tbl) and not has_mysql_con
     if incomplete_mysql:
         wx.MessageBox(_("The MySQL details are incomplete"))
         parent.txtMysqlDefaultDb.SetFocus()
@@ -502,8 +502,8 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     default_tbls[my_globals.DBE_MYSQL] = mysql_default_tbl \
         if mysql_default_tbl else None
     if mysql_host and mysql_user and mysql_pwd:
-        conn_dets_mysql = {"host": mysql_host, "user": mysql_user, 
+        con_dets_mysql = {"host": mysql_host, "user": mysql_user, 
                            "passwd": mysql_pwd}
-        conn_dets[my_globals.DBE_MYSQL] = conn_dets_mysql
-    return incomplete_mysql, has_mysql_conn
+        con_dets[my_globals.DBE_MYSQL] = con_dets_mysql
+    return incomplete_mysql, has_mysql_con
     

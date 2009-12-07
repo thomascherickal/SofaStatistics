@@ -62,18 +62,18 @@ def test_assess_sample_fld():
                    11: "2009-01"}
                    ]
     # fld name, expected type
-    tests = [(1, importer.FLD_NUMERIC),
-             (2, importer.FLD_NUMERIC),
-             (3, importer.FLD_NUMERIC),
-             (4, importer.FLD_NUMERIC),
-             (5, importer.FLD_NUMERIC),
-             (6, importer.FLD_STRING),
-             (7, importer.FLD_DATETIME),
-             (8, importer.FLD_NUMERIC), # 2009 on own is a number
-             (9, importer.FLD_NUMERIC), # empty + numeric = numeric
-             (10, importer.FLD_STRING),
-             (11, importer.FLD_STRING), # empty + string (2009-01 is not number 
-                # or datetime) = string
+    tests = [(1, my_globals.FLD_TYPE_NUMERIC),
+             (2, my_globals.FLD_TYPE_NUMERIC),
+             (3, my_globals.FLD_TYPE_NUMERIC),
+             (4, my_globals.FLD_TYPE_NUMERIC),
+             (5, my_globals.FLD_TYPE_NUMERIC),
+             (6, my_globals.FLD_TYPE_STRING),
+             (7, my_globals.FLD_TYPE_DATE),
+             (8, my_globals.FLD_TYPE_NUMERIC), # 2009 on own is a number
+             (9, my_globals.FLD_TYPE_NUMERIC), # empty + numeric = numeric
+             (10, my_globals.FLD_TYPE_STRING),
+             (11, my_globals.FLD_TYPE_STRING), # empty + string (2009-01 is not 
+                # number or datetime) = string
              ]
     for test in tests:
         assert_equal(importer.assess_sample_fld(sample_data, test[0]), test[1])
@@ -194,7 +194,7 @@ def test_sofa_default_proj_settings():
         projects.GetVarDets(proj_dic["fil_var_dets"])
     fil_var_dets = proj_dic["fil_var_dets"]
     dbe = proj_dic["default_dbe"]
-    conn_dets = proj_dic["conn_dets"]
+    con_dets = proj_dic["con_dets"]
     default_dbs = proj_dic["default_dbs"] \
         if proj_dic["default_dbs"] else {}
     default_tbls = proj_dic["default_tbls"] \
@@ -203,7 +203,7 @@ def test_sofa_default_proj_settings():
     assert_equal(default_dbs[my_globals.DBE_SQLITE], my_globals.SOFA_DEFAULT_DB)
     assert_equal(default_tbls[my_globals.DBE_SQLITE], 
                  my_globals.SOFA_DEFAULT_TBL)
-    assert_equal(conn_dets[my_globals.DBE_SQLITE][my_globals.SOFA_DEFAULT_DB]\
+    assert_equal(con_dets[my_globals.DBE_SQLITE][my_globals.SOFA_DEFAULT_DB]\
                  ['database'].split("/")[-1], my_globals.SOFA_DEFAULT_DB)    
     
 def test_get_var_dets():

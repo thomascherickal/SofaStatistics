@@ -47,23 +47,23 @@ def DbeSyntaxElements():
 class DbDets(getdata.DbDets):
     
     """
-    __init__ supplies default_dbs, default_tbls, conn_dets and 
-        db and tbl (may be None).  Db needs to be set in conn_dets once 
+    __init__ supplies default_dbs, default_tbls, con_dets and 
+        db and tbl (may be None).  Db needs to be set in con_dets once 
         identified.
     """
     
     debug = False
     
-    def get_conn_cur(self):
-        conn_dets_mssql = self.conn_dets.get(my_globals.DBE_MS_SQL)
-        if not conn_dets_mssql:
+    def get_con_cur(self):
+        con_dets_mssql = self.con_dets.get(my_globals.DBE_MS_SQL)
+        if not con_dets_mssql:
             raise Exception, (u"No connection details available for "
                               "MS SQL Server")
-        host = conn_dets_mssql["host"]
-        user = conn_dets_mssql["user"]
-        pwd = conn_dets_mssql["passwd"]
+        host = con_dets_mssql["host"]
+        user = con_dets_mssql["user"]
+        pwd = con_dets_mssql["passwd"]
         self.dbs, self.db = self._getDbs(host, user, pwd)
-        setDbInConnDets(conn_dets_mssql, self.db)
+        setDbInConDets(con_dets_mssql, self.db)
         DSN = u"""PROVIDER=SQLOLEDB;
             Data Source='%s';
             User ID='%s';
@@ -71,15 +71,15 @@ class DbDets(getdata.DbDets):
             Initial Catalog='%s';
             Integrated Security=SSPI""" % (host, user, pwd, self.db)
         try:
-            conn = adodbapi.connect(connstr=DSN)
+            con = adodbapi.connect(connstr=DSN)
         except Exception, e:
             raise Exception, u"Unable to connect to MS SQL Server with " + \
                 u"database %s; and supplied connection: " % self.db + \
                 u"host: %s; user: %s; pwd: %s. " % (host, user, pwd) + \
                 u"Orig error: %s" % e
-        cur = conn.cursor()
-        cur.adoconn = conn.adoConn # (need to access from just the cursor)        
-        return conn, cur
+        cur = con.cursor()
+        cur.adoconn = con.adoConn # (need to access from just the cursor)        
+        return con, cur
     
     def getDbDets(self):
         """
@@ -90,10 +90,10 @@ class DbDets(getdata.DbDets):
         The database used will be the default or the first if none provided.
         The table used will be the default or the first if none provided.
         The field dets will be taken from the table used.
-        Returns conn, cur, dbs, tbls, flds, has_unique, idxs.
+        Returns con, cur, dbs, tbls, flds, has_unique, idxs.
         """
         debug = False
-        conn, cur = self.get_conn_cur()
+        con, cur = self.get_con_cur()
         tbls = self.getDbTbls(cur, self.db)
         if debug: print(tbls)
         tbls_lc = [x.lower() for x in tbls]        
@@ -123,7 +123,7 @@ class DbDets(getdata.DbDets):
             pprint.pprint(tbls)
             pprint.pprint(flds)
             pprint.pprint(idxs)
-        return conn, cur, self.dbs, tbls, flds, has_unique, idxs
+        return con, cur, self.dbs, tbls, flds, has_unique, idxs
 
     def _getDbs(self, host, user, pwd):
         """
@@ -138,11 +138,11 @@ class DbDets(getdata.DbDets):
             Initial Catalog='';
             Integrated Security=SSPI""" % (host, user, pwd)
         try:
-            conn = adodbapi.connect(connstr=DSN)
+            con = adodbapi.connect(connstr=DSN)
         except Exception, e:
             raise Exception, u"Unable to connect to MS SQL Server " + \
                 u"with host: %s; user: %s; and pwd: %s" % (host, user, pwd)
-        cur = conn.cursor() # must return tuples not dics
+        cur = con.cursor() # must return tuples not dics
         cur.execute(u"SELECT name FROM sysdatabases")
         dbs = [x[0] for x in cur.fetchall()]
         dbs_lc = [x.lower() for x in dbs]
@@ -162,7 +162,7 @@ class DbDets(getdata.DbDets):
             else:
                 db = self.db
         cur.close()
-        conn.close()
+        con.close()
         return dbs, db
 
     def getDbTbls(self, cur, db):
@@ -282,11 +282,11 @@ class DbDets(getdata.DbDets):
             print(has_unique)
         return has_unique, idxs
 
-def setDbInConnDets(conn_dets, db):
+def setDbInConDets(con_dets, db):
     "Set database in connection details (if appropriate)"
-    conn_dets[u"db"] = db
+    con_dets[u"db"] = db
 
-def InsertRow(conn, cur, tbl_name, data):
+def InsertRow(con, cur, tbl_name, data):
     """
     data = [(value as string (or None), fld_name, fld_dets), ...]
     Modify any values (according to field details) to be ready for insertion.
@@ -314,14 +314,14 @@ def InsertRow(conn, cur, tbl_name, data):
     data_tup = tuple(data_lst)
     try:
         cur.execute(SQL_insert, data_tup)
-        conn.commit()
+        con.commit()
         return True, None
     except Exception, e:
         if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
             (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
         return False, u"%s" % e
 
-def setDataConnGui(parent, read_only, scroll, szr, lblfont):
+def setDataConGui(parent, read_only, scroll, szr, lblfont):
     ""
     # default database
     parent.lblMssqlDefaultDb = wx.StaticText(scroll, -1, 
@@ -401,14 +401,14 @@ def getProjSettings(parent, proj_dic):
     parent.mssql_default_tbl = \
         proj_dic[u"default_tbls"].get(my_globals.DBE_MS_SQL)
     # optional (although if any mssql, for eg, must have all)
-    if proj_dic[u"conn_dets"].get(my_globals.DBE_MS_SQL):
-        parent.mssql_host = proj_dic["conn_dets"][my_globals.DBE_MS_SQL]["host"]
-        parent.mssql_user = proj_dic["conn_dets"][my_globals.DBE_MS_SQL]["user"]
-        parent.mssql_pwd = proj_dic["conn_dets"][my_globals.DBE_MS_SQL]["passwd"]
+    if proj_dic[u"con_dets"].get(my_globals.DBE_MS_SQL):
+        parent.mssql_host = proj_dic["con_dets"][my_globals.DBE_MS_SQL]["host"]
+        parent.mssql_user = proj_dic["con_dets"][my_globals.DBE_MS_SQL]["user"]
+        parent.mssql_pwd = proj_dic["con_dets"][my_globals.DBE_MS_SQL]["passwd"]
     else:
         parent.mssql_host, parent.mssql_user, parent.mssql_pwd = "", "", ""
 
-def setConnDetDefaults(parent):
+def setConDetDefaults(parent):
     try:
         parent.mssql_default_db
     except AttributeError:
@@ -430,16 +430,16 @@ def setConnDetDefaults(parent):
     except AttributeError: 
         parent.mssql_pwd = u""
 
-def processConnDets(parent, default_dbs, default_tbls, conn_dets):
+def processConDets(parent, default_dbs, default_tbls, con_dets):
     mssql_default_db = parent.txtMssqlDefaultDb.GetValue()
     mssql_default_tbl = parent.txtMssqlDefaultTbl.GetValue()
     mssql_host = parent.txtMssqlHost.GetValue()
     mssql_user = parent.txtMssqlUser.GetValue()
     mssql_pwd = parent.txtMssqlPwd.GetValue()
-    has_mssql_conn = mssql_host and mssql_user and mssql_pwd \
+    has_mssql_con = mssql_host and mssql_user and mssql_pwd \
         and mssql_default_db and mssql_default_tbl
     incomplete_mssql = (mssql_host or mssql_user or mssql_pwd \
-        or mssql_default_db or mssql_default_tbl) and not has_mssql_conn
+        or mssql_default_db or mssql_default_tbl) and not has_mssql_con
     if incomplete_mssql:
         wx.MessageBox(_("The SQL Server details are incomplete"))
         parent.txtMssqlDefaultDb.SetFocus()
@@ -448,7 +448,7 @@ def processConnDets(parent, default_dbs, default_tbls, conn_dets):
     default_tbls[my_globals.DBE_MS_SQL] = mssql_default_tbl \
         if mssql_default_tbl else None
     if mssql_host and mssql_user and mssql_pwd:
-        conn_dets_mssql = {"host": mssql_host, "user": mssql_user, 
+        con_dets_mssql = {"host": mssql_host, "user": mssql_user, 
                            "passwd": mssql_pwd}
-        conn_dets[my_globals.DBE_MS_SQL] = conn_dets_mssql
-    return incomplete_mssql, has_mssql_conn
+        con_dets[my_globals.DBE_MS_SQL] = con_dets_mssql
+    return incomplete_mssql, has_mssql_con

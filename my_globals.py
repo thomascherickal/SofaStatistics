@@ -196,10 +196,20 @@ for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
             DBES.append(dbe_plugin)
             DBE_MODULES[dbe_plugin] = dbe_mod
             
-# table config labels
-CONF_NUMERIC = _("Numeric")
-CONF_STRING = _("String")
-CONF_DATE = _("Date")
+# field type labels - must work as labels as well as consts
+FLD_TYPE_NUMERIC = _("Numeric")
+FLD_TYPE_STRING = _("String")
+FLD_TYPE_DATE = _("Date")
+GEN2SQLITE_DIC = {
+    FLD_TYPE_NUMERIC: {"sqlite_type": "REAL", 
+            "check_clause": "CHECK(is_numeric(%(fld_name)s))"},
+    FLD_TYPE_STRING: {"sqlite_type": "TEXT",
+            "check_clause": ""},
+    FLD_TYPE_DATE: {"sqlite_type": "DATETIME", # DATETIME not a native storage 
+                #class but can still be discovered via PRAGMA table_info()
+            "check_clause": "CHECK(valid_datetime_str(%(fld_name)s))"},
+    }
+
 # grids
 # move directions
 MOVE_LEFT = u"move left"

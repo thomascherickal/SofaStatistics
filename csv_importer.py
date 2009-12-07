@@ -206,7 +206,7 @@ class FileImporter(object):
         except Exception, e:
             raise Exception, "Unable to create reader for file. " + \
                 "Orig error: %s" % e
-        conn, cur, unused, unused, unused, unused, unused = \
+        con, cur, unused, unused, unused, unused, unused = \
             getdata.GetDefaultDbDets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_rows else n_rows
         gauge_chunk = importer.getGaugeChunkSize(n_rows, sample_n)
@@ -215,14 +215,14 @@ class FileImporter(object):
         # NB reader will be at position ready to access records after sample
         remaining_data = list(reader) # must be a list not a reader or can't 
         # start again from beginning of data (e.g. if correction made)
-        importer.AddToTmpTable(conn, cur, self.file_path, self.tbl_name, 
+        importer.AddToTmpTable(con, cur, self.file_path, self.tbl_name, 
                                fld_names, fld_types, sample_data, sample_n,
                                remaining_data, progBackup, gauge_chunk, 
                                keep_importing)
-        importer.TmpToNamedTbl(conn, cur, self.tbl_name, self.file_path, 
+        importer.TmpToNamedTbl(con, cur, self.tbl_name, self.file_path, 
                                progBackup)
         cur.close()
-        conn.commit()
-        conn.close()
+        con.commit()
+        con.close()
         progBackup.SetValue(0)
         

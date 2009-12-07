@@ -231,7 +231,7 @@ def _strip_script(script):
         stripped = script
     return stripped
 
-def ExportScript(script, fil_script, fil_report, css_fils, conn_dets, dbe, db, 
+def ExportScript(script, fil_script, fil_report, css_fils, con_dets, dbe, db, 
                  tbl, default_dbs, default_tbls):
     modules = ["my_globals", "core_stats", "dimtables", "getdata", "output", 
                "rawtables", "stats_output"]
@@ -246,7 +246,7 @@ def ExportScript(script, fil_script, fil_report, css_fils, conn_dets, dbe, db,
         f.write(_strip_script(existing_script))
     else:
         InsertPrelimCode(modules, f, fil_report, css_fils)
-    AppendExportedScript(f, script, conn_dets, dbe, db, tbl, default_dbs, 
+    AppendExportedScript(f, script, con_dets, dbe, db, tbl, default_dbs, 
                          default_tbls, add_divider_code=True)
     AddClosingScriptCode(f)
     f.close()
@@ -262,7 +262,7 @@ def GetSource(db, tbl_name):
     return source
 
 def RunReport(modules, fil_report, add_to_report, css_fils, inner_script, 
-              conn_dets, dbe, db, tbl_name, default_dbs, default_tbls):
+              con_dets, dbe, db, tbl_name, default_dbs, default_tbls):
     """
     Runs report and returns HTML representation of it.
     add_to_report - also append result to current report.
@@ -272,7 +272,7 @@ def RunReport(modules, fil_report, add_to_report, css_fils, inner_script,
     f = codecs.open(my_globals.INT_SCRIPT_PATH, "w", "utf-8")
     if debug: print(css_fils)
     InsertPrelimCode(modules, f, my_globals.INT_REPORT_PATH, css_fils)
-    AppendExportedScript(f, inner_script, conn_dets, dbe, db, tbl_name,
+    AppendExportedScript(f, inner_script, con_dets, dbe, db, tbl_name,
                          default_dbs, default_tbls, add_divider_code=False)
     AddClosingScriptCode(f)
     f.close()
@@ -332,7 +332,7 @@ def InsertPrelimCode(modules, f, fil_report, css_fils):
               u"css_fils))" + u"\n" + u"\n")
     f.write(u"# end of script 'header'" + u"\n" + u"\n")
     
-def AppendExportedScript(f, inner_script, conn_dets, dbe, db, tbl_name, 
+def AppendExportedScript(f, inner_script, con_dets, dbe, db, tbl_name, 
                          default_dbs, default_tbls, add_divider_code=False):
     """
     Append exported script onto existing script file.
@@ -344,20 +344,20 @@ def AppendExportedScript(f, inner_script, conn_dets, dbe, db, tbl_name,
     f.write(u"\n" + u"# %s" % datestamp)
     if add_divider_code:
         AddDividerCode(f, db, tbl_name)
-    conn_dets_str = pprint.pformat(conn_dets)
-    f.write(u"\n" + u"conn_dets = %s" % conn_dets_str)
+    con_dets_str = pprint.pformat(con_dets)
+    f.write(u"\n" + u"con_dets = %s" % con_dets_str)
     default_dbs_str = pprint.pformat(default_dbs)
     f.write(u"\n" + u"default_dbs = %s" % default_dbs_str)
     default_tbls_str = pprint.pformat(default_tbls)
     f.write(u"\n" + u"default_tbls = %s" % default_tbls_str)
     f.write(u"\n" + \
-        u"conn, cur, dbs, tbls, flds, has_unique, idxs = \\" + \
+        u"con, cur, dbs, tbls, flds, has_unique, idxs = \\" + \
         u"\n" + "    getdata.getDbDetsObj(\"%s\", " % dbe + \
-        u"default_dbs, default_tbls, conn_dets=conn_dets," + \
+        u"default_dbs, default_tbls, con_dets=con_dets," + \
         u"\n" + "    db=\"%s\", tbl=\"%s\")" % (db, tbl_name) + \
         u".getDbDets()")
     f.write(u"\n" + u"%s" % inner_script)
-    f.write(u"\n" + u"conn.close()")
+    f.write(u"\n" + u"con.close()")
 
 def _strip_html(html):
     """

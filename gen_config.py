@@ -27,14 +27,14 @@ class GenConfig(object):
         self.lblDatabases.SetFont(self.LABEL_FONT)
         # get various db settings
         dbdetsobj = getdata.getDbDetsObj(self.dbe, self.default_dbs, 
-                                         self.default_tbls, self.conn_dets)
-        (self.conn, self.cur, self.dbs, self.tbls, self.flds, self.has_unique,  
+                                         self.default_tbls, self.con_dets)
+        (self.con, self.cur, self.dbs, self.tbls, self.flds, self.has_unique,  
                 self.idxs) = dbdetsobj.getDbDets()
         # set up self.dropDatabases and self.dropTables
         self.db = dbdetsobj.db
         self.tbl = dbdetsobj.tbl
         getdata.setupDataDropdowns(self, panel, self.dbe, self.default_dbs, 
-                                   self.default_tbls, self.conn_dets, 
+                                   self.default_tbls, self.con_dets, 
                                    self.dbs, self.db, self.tbls, self.tbl)
         self.dropDatabases.Bind(wx.EVT_CHOICE, self.OnDatabaseSel)
         # 2) Tables
@@ -136,8 +136,8 @@ class GenConfig(object):
         Reset dbe, database, cursor, tables, table, tables dropdown, 
             fields, has_unique, and idxs after a database selection.
         """
-        (self.dbe, self.db, self.cur, self.tbls, self.tbl, self.flds, 
-                self.has_unique, self.idxs) = getdata.RefreshDbDets(self)
+        (self.dbe, self.db, self.con, self.cur, self.tbls, self.tbl, self.flds, 
+                self.has_unique, self.idxs) = getdata.refresh_db_dets(self)
         self.dropTables.SetItems(self.tbls)
         tbls_lc = [x.lower() for x in self.tbls]
         self.dropTables.SetSelection(tbls_lc.index(self.tbl.lower()))

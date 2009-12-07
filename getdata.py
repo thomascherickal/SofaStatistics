@@ -12,19 +12,19 @@ debug = False
 # must be before dbe import statements (they have classes based on DbDets)
 class DbDets(object):
     
-    def __init__ (self, default_dbs, default_tbls, conn_dets, db=None, 
+    def __init__ (self, default_dbs, default_tbls, con_dets, db=None, 
                   tbl=None):
         """
         If db or tbl are not supplied subclass must choose 
             e.g. default or first.  And once db identified, must update 
-            conn_dets.
+            con_dets.
         """
         # default dbs e.g. {'MySQL': u'demo_db', 'SQLite': u'SOFA_Default_db'}
         self.default_dbs = default_dbs
         # default tbls e.g. {'MySQL': u'demo_tbl', 'SQLite': u'SOFA_Default_tbl'}
         self.default_tbls = default_tbls
-        # conn_dets e.g. {'MySQL': {'host': u'localhost', 'passwd': ...}
-        self.conn_dets = conn_dets
+        # con_dets e.g. {'MySQL': {'host': u'localhost', 'passwd': ...}
+        self.con_dets = con_dets
         self.db = db
         self.tbl = tbl
     
@@ -52,7 +52,7 @@ class DbDets(object):
         Return connection, cursor, and get lists of databases, tables, fields, 
             and index info, based on the database connection details provided.
         Sets db and tbl if not supplied.
-        Must return conn, cur, dbs, tbls, flds, has_unique, idxs.
+        Must return con, cur, dbs, tbls, flds, has_unique, idxs.
         dbs used to make dropdown of all dbe dbs (called more than once).
         """
         assert 0, "Must define getDbDets in subclass"
@@ -75,12 +75,12 @@ def get_val_quoter_func(dbe):
 def get_placeholder(dbe):
     return my_globals.DBE_MODULES[dbe].get_placeholder()
 
-def getDbDetsObj(dbe, default_dbs, default_tbls, conn_dets, db=None, tbl=None):
+def getDbDetsObj(dbe, default_dbs, default_tbls, con_dets, db=None, tbl=None):
     """
-    Pass in all conn_dets (the dbe will be used to select specific conn_dets).
+    Pass in all con_dets (the dbe will be used to select specific con_dets).
     """
     return my_globals.DBE_MODULES[dbe].DbDets(default_dbs, default_tbls, 
-                                              conn_dets, db, tbl)
+                                              con_dets, db, tbl)
     
 def getDbeSyntaxElements(dbe):
     """
@@ -92,13 +92,13 @@ def getDbeSyntaxElements(dbe):
     """
     return my_globals.DBE_MODULES[dbe].DbeSyntaxElements()
 
-def setDataConnGui(parent, read_only, scroll, szr, lblfont):
+def setDataConGui(parent, read_only, scroll, szr, lblfont):
     ""
     for dbe in my_globals.DBES:
-        my_globals.DBE_MODULES[dbe].setDataConnGui(parent, read_only, scroll, 
+        my_globals.DBE_MODULES[dbe].setDataConGui(parent, read_only, scroll, 
                                                    szr, lblfont)
 
-def getProjConnSettings(parent, proj_dic):
+def getProjConSettings(parent, proj_dic):
     "Get project connection settings"
     for dbe in my_globals.DBES:
         my_globals.DBE_MODULES[dbe].getProjSettings(parent, proj_dic)
@@ -143,42 +143,42 @@ def getSortedChoiceItems(dic_labels, vals):
     choice_items = [getChoiceItem(dic_labels, x) for x in sorted_vals]
     return choice_items, sorted_vals
 
-def setConnDetDefaults(parent):
+def setConDetDefaults(parent):
     """
     Check project connection settings to handle missing values and set 
         sensible defaults.
     """
     for dbe in my_globals.DBES:
-        my_globals.DBE_MODULES[dbe].setConnDetDefaults(parent)
+        my_globals.DBE_MODULES[dbe].setConDetDefaults(parent)
 
-def processConnDets(parent, default_dbs, default_tbls, conn_dets):
+def processConDets(parent, default_dbs, default_tbls, con_dets):
     """
-    Populate default_dbs, default_tbls, and conn_dets.
-    conn_dets must contain paths ready to record i.e. double backslashes where
+    Populate default_dbs, default_tbls, and con_dets.
+    con_dets must contain paths ready to record i.e. double backslashes where
         needed in paths.  Cannot use single backslashes as the standard approach
         because want unicode strings and will sometimes encounter \U within such
         string e.g. Vista and Win 7 C:\Users\...
     Returns any_incomplete (partially completed connection details), 
-        any_conns (any of them set completely), and completed_dbes.
-        Completed_dbes is so we can ensure the default dbe has conn details 
+        any_cons (any of them set completely), and completed_dbes.
+        Completed_dbes is so we can ensure the default dbe has con details 
         set for it.
-    NB If any incomplete, stop processing and return None for any_conns.
+    NB If any incomplete, stop processing and return None for any_cons.
     """
     any_incomplete = False
-    any_conns = False
+    any_cons = False
     completed_dbes = [] # so can check the default dbe has details set
     for dbe in my_globals.DBES:
         # has_incomplete means started but some key detail(s) missing
-        # has_conn means all required details are completed
-        has_incomplete, has_conn = \
-            my_globals.DBE_MODULES[dbe].processConnDets(parent, default_dbs, 
-                                                        default_tbls, conn_dets)
+        # has_con means all required details are completed
+        has_incomplete, has_con = \
+            my_globals.DBE_MODULES[dbe].processConDets(parent, default_dbs, 
+                                                       default_tbls, con_dets)
         if has_incomplete:
             return True, None, completed_dbes
-        if has_conn:
+        if has_con:
             completed_dbes.append(dbe)
-            any_conns = True
-    return any_incomplete, any_conns, completed_dbes
+            any_cons = True
+    return any_incomplete, any_cons, completed_dbes
 
 def getDbItem(db_name, dbe):
     return u"%s (%s)" % (db_name, dbe)
@@ -221,14 +221,14 @@ def PrepValue(dbe, val, fld_dic):
         prep_val = val2use
     return prep_val
 
-def InsertRow(dbe, conn, cur, tbl_name, data):
+def InsertRow(dbe, con, cur, tbl_name, data):
     """
     Returns success (boolean) and message (None or error).
     data = [(value as string (or None), fld_dets), ...]
     """
-    return my_globals.DBE_MODULES[dbe].InsertRow(conn, cur, tbl_name, data)
+    return my_globals.DBE_MODULES[dbe].InsertRow(con, cur, tbl_name, data)
 
-def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, conn_dets,
+def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, con_dets,
                        dbs_of_default_dbe, db, tbls, tbl):
     """
     Adds dropDatabases and dropTables to frame with correct values 
@@ -243,7 +243,7 @@ def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, conn_dets,
     dbes.pop(dbes.index(dbe))
     for oth_dbe in dbes: # may not have any connection details
         oth_default_db = default_dbs.get(oth_dbe)
-        dbdetsobj = getDbDetsObj(oth_dbe, default_dbs, default_tbls, conn_dets, 
+        dbdetsobj = getDbDetsObj(oth_dbe, default_dbs, default_tbls, con_dets, 
                                  oth_default_db, None)
         try:
             unused, unused, oth_dbs, unused, unused, unused, unused = \
@@ -262,9 +262,9 @@ def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, conn_dets,
     tbls_lc = [x.lower() for x in tbls]
     parent.dropTables.SetSelection(tbls_lc.index(tbl.lower()))
 
-def RefreshDbDets(parent):
+def refresh_db_dets(parent):
     """
-    Returns dbe, db, cur, tbls, tbl, flds, has_unique, idxs.
+    Returns dbe, db, con, cur, tbls, tbl, flds, has_unique, idxs.
     Responds to a database selection.
     """
     debug = False
@@ -272,22 +272,22 @@ def RefreshDbDets(parent):
     db_choice_item = parent.db_choice_items[parent.dropDatabases.GetSelection()]
     db, dbe = extractDbDets(db_choice_item)
     dbdetsobj = getDbDetsObj(dbe, parent.default_dbs, parent.default_tbls, 
-                             parent.conn_dets, db)
-    conn, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
+                             parent.con_dets, db)
+    con, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
     db = dbdetsobj.db
     tbl = dbdetsobj.tbl
     if debug:
         print(u"Db is: %s" % db)
         print(u"Tbl is: %s" % tbl)
     wx.EndBusyCursor()
-    return dbe, db, cur, tbls, tbl, flds, has_unique, idxs
+    return dbe, db, con, cur, tbls, tbl, flds, has_unique, idxs
 
 def RefreshTblDets(parent):
     "Reset table, fields, has_unique, and idxs after a table selection."
     wx.BeginBusyCursor()
     tbl = parent.tbls[parent.dropTables.GetSelection()]
     dbdetsobj = getDbDetsObj(parent.dbe, parent.default_dbs, 
-                         parent.default_tbls, parent.conn_dets, parent.db, tbl)
+                         parent.default_tbls, parent.con_dets, parent.db, tbl)
     flds = dbdetsobj.getTblFlds(parent.cur, parent.db, tbl)
     has_unique, idxs = dbdetsobj.getIndexDets(parent.cur, parent.db, tbl)
     wx.EndBusyCursor()
@@ -295,22 +295,47 @@ def RefreshTblDets(parent):
 
 def GetDefaultDbDets():
     """
-    Returns conn, cur, dbs, tbls, flds, has_unique, idxs from default
+    Returns con, cur, dbs, tbls, flds, has_unique, idxs from default
         SOFA SQLite database.
     """
     proj_dic = projects.GetProjSettingsDic(my_globals.SOFA_DEFAULT_PROJ)
     dbdetsobj = getDbDetsObj(dbe=my_globals.DBE_SQLITE, 
                              default_dbs=proj_dic["default_dbs"],
                              default_tbls=proj_dic["default_tbls"],
-                             conn_dets=proj_dic["conn_dets"])
-    conn, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
-    return conn, cur, dbs, tbls, flds, has_unique, idxs
+                             con_dets=proj_dic["con_dets"])
+    con, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
+    return con, cur, dbs, tbls, flds, has_unique, idxs
 
 def dup_tbl_name(tbl_name):
     """
     Duplicate name in default SQLite SOFA database?
     """
-    conn, unused, unused, tbls, unused, unused, unused = GetDefaultDbDets()
-    conn.close()
+    con, unused, unused, tbls, unused, unused, unused = GetDefaultDbDets()
+    con.close()
     return tbl_name in tbls
-    
+
+def make_sofa_tbl(con, cur, tbl_name, name_types):
+    """
+    Make a table into the SOFA default database.  Must have autonumber sofa_id
+        and apply type checking constraint on fields.
+    """
+    debug = False
+    fld_clause_items = [u"sofa_id INTEGER PRIMARY KEY"]
+    for fld_name, fld_type in name_types:
+        tosqlite = my_globals.GEN2SQLITE_DIC[fld_type]
+        check = tosqlite["check_clause"] % {"fld_name": fld_name}
+        if debug: 
+            print(u"%s %s %s" % (fld_name, fld_type, check))
+        sqlite_quoter = get_obj_quoter_func(my_globals.DBE_SQLITE)
+        clause = u"%(fld_name)s %(fld_type)s %(check_clause)s" % \
+                            {"fld_name": sqlite_quoter(fld_name), 
+                            "fld_type": tosqlite["sqlite_type"],
+                            "check_clause": check}
+        fld_clause_items.append(clause)
+    fld_clause_items.append(u"UNIQUE(sofa_id)")
+    fld_clause = u", ".join(fld_clause_items)
+    SQL_make_tbl = u"""CREATE TABLE "%s" (%s)""" % (tbl_name, fld_clause)
+    if debug: print(SQL_make_tbl)
+    cur.execute(SQL_make_tbl)
+    con.commit()
+    if debug: print(u"Successfully created %s" % tbl_name)  

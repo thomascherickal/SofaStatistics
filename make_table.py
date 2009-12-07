@@ -158,14 +158,14 @@ class MakeTable(object):
         if self.tab_type == my_globals.RAW_DISPLAY:
             # get various db settings
             dbdetsobj = getdata.getDbDetsObj(self.dbe, self.default_dbs, 
-                                             self.default_tbls, self.conn_dets)
-            conn, cur = dbdetsobj.get_conn_cur()
+                                             self.default_tbls, self.con_dets)
+            con, cur = dbdetsobj.get_con_cur()
             # count records in table
             quoter = getdata.get_obj_quoter_func(self.dbe)
             s = u"SELECT COUNT(*) FROM %s" % quoter(self.tbl)
             cur.execute(s)
             n_rows = cur.fetchone()[0]
-            conn.close()
+            con.close()
             if n_rows > 500:
                 if wx.MessageBox(_("This report has %s rows. "
                                    "Do you wish to run it?") % n_rows, 
@@ -192,7 +192,7 @@ class MakeTable(object):
             script = self.getScript(has_rows, has_cols, css_idx)
             strContent = output.RunReport(OUTPUT_MODULES, self.fil_report, 
                 self.chkAddToReport.IsChecked(), css_fils, script, 
-                self.conn_dets, self.dbe, self.db, self.tbl, self.default_dbs, 
+                self.con_dets, self.dbe, self.db, self.tbl, self.default_dbs, 
                 self.default_tbls)
             wx.EndBusyCursor()
             output.DisplayReport(self, strContent)
@@ -213,7 +213,7 @@ class MakeTable(object):
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.getScript(has_rows, has_cols, css_idx)
             output.ExportScript(script, self.fil_script, 
-                                self.fil_report, css_fils, self.conn_dets, 
+                                self.fil_report, css_fils, self.con_dets, 
                                 self.dbe, self.db, self.tbl, self.default_dbs, 
                                 self.default_tbls)
         else:
@@ -392,7 +392,7 @@ class MakeTable(object):
     def OnClose(self, event):
         "Close app"
         try:
-            self.conn.close()
+            self.con.close()
             # add end to each open script file and close.
             for fil_script in self.open_scripts:
                 # add ending code to script
