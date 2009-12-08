@@ -30,13 +30,13 @@ EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 
 
 class TableEntryDlg(wx.Dialog):
-    def __init__(self, title, grid_size, col_dets, data, new_grid_data, 
+    def __init__(self, title, grid_size, col_dets, data, final_grid_data, 
                  insert_data_func=None, row_validation_func=None):
         """
         col_dets - see under TableEntry.
         data - list of tuples (must have at least one item, even if only a 
             "rename me").
-        new_grid_data - is effectively "returned".  Add details to it in form 
+        final_grid_data - is effectively "returned".  Add details to it in form 
             of a list of tuples.
         insert_data_func - what data do you want to see in a new inserted row 
             (if any).  Must take row index as argument.
@@ -48,7 +48,7 @@ class TableEntryDlg(wx.Dialog):
         self.panel = wx.Panel(self)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         self.tabentry = TableEntry(self, self.panel, self.szrMain, 1, grid_size, 
-                                   col_dets, data, new_grid_data, 
+                                   col_dets, data, final_grid_data, 
                                    insert_data_func, row_validation_func)
         # Close only
         self.SetupButtons()
@@ -95,7 +95,7 @@ class TableEntryDlg(wx.Dialog):
     def OnOK(self, event):
         if not self.panel.Validate(): # runs validators on all assoc controls
             return True
-        self.tabentry.UpdateNewGridData()
+        self.tabentry.update_final_grid_data()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
         
@@ -133,7 +133,7 @@ def cell_invalidation(row, col, grid, col_dets):
 class TableEntry(object):
     
     def __init__(self, frame, panel, szr, vert_share, read_only, grid_size, 
-                 col_dets, data, new_grid_data, insert_data_func=None, 
+                 col_dets, data, final_grid_data, insert_data_func=None, 
                  cell_invalidation_func=None):
         """
         vert_share - vertical share of sizer supplied.
@@ -143,7 +143,7 @@ class TableEntry(object):
             Also "dropdown_vals" which is a list of values for the dropdown.
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
-        new_grid_data - is effectively "returned" - add details to it in form 
+        final_grid_data - is effectively "returned" - add details to it in form 
             of a list of tuples.
         insert_data_func - return row_data and receive row_idx, grid_data
         cell_invalidation_func - return boolean, and string message 
@@ -165,7 +165,7 @@ class TableEntry(object):
             if col_det.get("col_width"):
                 self.col_widths[col_idx] = col_det["col_width"]
         self.data = data
-        self.new_grid_data = new_grid_data
+        self.final_grid_data = final_grid_data
         self.prev_vals = []
         self.new_editor_shown = False
         # grid control
@@ -890,9 +890,9 @@ class TableEntry(object):
             grid_data.append(tuple(row_data))
         return grid_data
 
-    def UpdateNewGridData(self):
+    def update_final_grid_data(self):
         """
-        Update new_grid_data.  Separated for reuse.
+        Update final_grid_data.  Separated for reuse.
         """
         grid_data = self.GetGridData()
-        self.new_grid_data += grid_data
+        self.final_grid_data += grid_data

@@ -120,8 +120,8 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
             for key, value in val_dic.items():
                 data.append((key, unicode(value)))
     data.sort(key=lambda s: s[0])
-    new_grid_data = []
-    # get new_grid_data back updated
+    final_grid_data = []
+    # get final_grid_data back updated
     bolnumeric = flds[var_name][my_globals.FLD_BOLNUMERIC]
     boldecimal = flds[var_name][my_globals.FLD_DECPTS]
     boldatetime = flds[var_name][my_globals.FLD_BOLDATETIME]
@@ -146,7 +146,7 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
     type = var_types.get(var_name, def_type)
     var_desc = {"label": var_label, "notes": notes, "type": type}
     getsettings = GetSettings(title, boltext, boldatetime, var_desc, data, 
-                              new_grid_data, val_type)
+                              final_grid_data, val_type)
     ret = getsettings.ShowModal()
     if ret == wx.ID_OK:
         # var label, notes, and types
@@ -155,11 +155,11 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
         var_types[var_name] = var_desc["type"]
         # val dics
         new_val_dic = {}
-        new_data_rows_n = len(new_grid_data)
+        new_data_rows_n = len(final_grid_data)
         for i in range(new_data_rows_n):
             # the key is always returned as a string 
             # but we may need to store it as a number
-            key, value = new_grid_data[i]
+            key, value = final_grid_data[i]
             if key == "":
                 continue
             elif val_type == settings_grid.COL_FLOAT:
@@ -230,13 +230,13 @@ def GetIdxToSelect(choice_items, drop_var, var_labels, default):
 class GetSettings(settings_grid.TableEntryDlg):
     
     def __init__(self, title, boltext, boldatetime, var_desc, data, 
-                 new_grid_data, val_type):
+                 final_grid_data, val_type):
         """
         var_desc - dic with keys "label", "notes", and "type".
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
         col_dets - See under settings_grid.TableEntry
-        new_grid_data - add details to it in form of a list of tuples.
+        final_grid_data - add details to it in form of a list of tuples.
         """
         col_dets = [{"col_label": _("Value"), "col_type": val_type, 
                      "col_width": 50}, 
@@ -289,7 +289,7 @@ class GetSettings(settings_grid.TableEntryDlg):
         self.tabentry = settings_grid.TableEntry(self, self.panel, 
                                                  self.szrMain, 2, False, 
                                                  grid_size, col_dets, data,  
-                                                 new_grid_data)
+                                                 final_grid_data)
         self.SetupButtons(inc_delete=True, inc_insert=True)
         self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
@@ -314,7 +314,7 @@ class GetSettings(settings_grid.TableEntryDlg):
         self.var_desc["label"] = self.txtVarLabel.GetValue()
         self.var_desc["notes"] = self.txtVarNotes.GetValue()
         self.var_desc["type"] = self.radDataType.GetStringSelection()
-        self.tabentry.UpdateNewGridData()
+        self.tabentry.update_final_grid_data()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
 

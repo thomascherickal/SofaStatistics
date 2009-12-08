@@ -284,13 +284,13 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
                         "col_type": settings_grid.COL_TEXT_BROWSE, 
                         "col_width": 400, 
                         "file_phrase": _("Choose an SQLite database file")}]
-    parent.sqlite_new_grid_data = []
+    parent.sqlite_final_grid_data = []
     data = parent.sqlite_data[:]
     data.sort(key=lambda s: s[0])
     parent.sqlite_grid = settings_grid.TableEntry(frame=parent, 
         panel=scroll, szr=parent.szrSqlite, vert_share=1, read_only=read_only, 
         grid_size=(550, 100), col_dets=sqlite_col_dets, 
-        data=parent.sqlite_data, new_grid_data=parent.sqlite_new_grid_data)
+        data=parent.sqlite_data, final_grid_data=parent.sqlite_final_grid_data)
     szr.Add(parent.szrSqlite, 0, wx.GROW|wx.ALL, 10)
 
 def getProjSettings(parent, proj_dic):
@@ -319,7 +319,7 @@ def setConDetDefaults(parent):
         parent.sqlite_data = []
 
 def processConDets(parent, default_dbs, default_tbls, con_dets):
-    parent.sqlite_grid.UpdateNewGridData()
+    parent.sqlite_grid.update_final_grid_data()
     DEFAULT_DB = parent.txtSqliteDefaultDb.GetValue()
     DEFAULT_TBL = parent.txtSqliteDefaultTbl.GetValue()
     has_sqlite_con = DEFAULT_DB and DEFAULT_TBL
@@ -329,8 +329,8 @@ def processConDets(parent, default_dbs, default_tbls, con_dets):
         parent.txtSqliteDefaultDb.SetFocus()
     default_dbs[my_globals.DBE_SQLITE] = DEFAULT_DB if DEFAULT_DB else None
     default_tbls[my_globals.DBE_SQLITE] = DEFAULT_TBL if DEFAULT_TBL else None
-    #pprint.pprint(parent.sqlite_new_grid_data) # debug
-    sqlite_settings = parent.sqlite_new_grid_data
+    #pprint.pprint(parent.sqlite_final_grid_data) # debug
+    sqlite_settings = parent.sqlite_final_grid_data
     if sqlite_settings:
         con_dets_sqlite = {}
         for sqlite_setting in sqlite_settings:

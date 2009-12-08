@@ -3,7 +3,6 @@ DbTbl is the link between the grid and the underlying data.
 """
 
 import pprint
-import re
 import wx
 import wx.grid
 
@@ -219,14 +218,8 @@ class DbTbl(wx.grid.PyGridTableBase):
                 self.AddDataToRowValsDic(self.row_vals_dic, row_idx, data_tup)
                 row_idx += 1
             val = self.row_vals_dic[row][col] # the bit we're interested in now
-        # Avoid scientific notation
-        try:
-            strval = str(val)
-            if re.search(r"\d+e[+-]\d+", strval): # num(s) e +or- num(s)
-                val = repr(val) # 1000000000000.4 rather than 1e+12
-        except Exception:
-            pass
-        return val
+        new_val = util.avoid_sci_notn(val)
+        return new_val
     
     def AddDataToRowValsDic(self, row_vals_dic, row_idx, data_tup):
         """

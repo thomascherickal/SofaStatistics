@@ -15,6 +15,18 @@ import wx
 
 # must be kept safe to import - must never refer to anything in other modules
 
+def avoid_sci_notn(val):
+    # Avoid scientific notation
+    try:
+        strval = str(val)
+        if re.search(r"\d+e[+-]\d+", strval): # num(s) e +or- num(s)
+            new_val = repr(val) # 1000000000000.4 rather than 1e+12
+        else:
+            new_val = val
+    except Exception:
+        new_val = val
+    return new_val
+
 def is_numeric(val):
     """
     Is a value numeric?  This is operationalised to mean can a value be cast as 
