@@ -9,6 +9,7 @@ import util
 
 debug = False
 
+
 # must be before dbe import statements (they have classes based on DbDets)
 class DbDets(object):
     
@@ -56,7 +57,6 @@ class DbDets(object):
         dbs used to make dropdown of all dbe dbs (called more than once).
         """
         assert 0, "Must define getDbDets in subclass"
-
 
 def get_obj_quoter_func(dbe):
     """
@@ -314,26 +314,67 @@ def dup_tbl_name(tbl_name):
     con.close()
     return tbl_name in tbls
 
-def make_sofa_tbl(con, cur, tbl_name, name_types):
+def make_select_renamed_flds_clause(orig_new_names):
     """
-    Make a table into the SOFA default database.  Must have autonumber sofa_id
-        and apply type checking constraint on fields.
+    Create a clause ready to put in a select statement which maps old to new 
+        names as needed.
+    orig_new_names -- [(orig_name, new_name), ...] where orig_name can be None.
     """
     debug = False
-    fld_clause_items = [u"sofa_id INTEGER PRIMARY KEY"]
+    sqlite_quoter = get_obj_quoter_func(my_globals.DBE_SQLITE)
+    fld_clause_items = [my_globals.SOFA_ID]
+    for orig_name, new_name in orig_new_names:
+        if orig_name is None:
+            clause = "NULL %s" % sqlite_quoter(new_name)
+        elif orig_name == new_name:
+            clause = "%s" % sqlite_quoter(new_name)
+        else:
+            clause = "%s %s" % (sqlite_quoter(orig_name), 
+                                sqlite_quoter(new_name))
+        fld_clause_items.append(clause)
+    fld_clause = u", ".join(fld_clause_items)
+    return fld_clause
+
+def make_create_tbl_fld_clause(name_types, strict_typing=False):
+    """
+    Make clause for defining fields in default SOFA SQLite database.
+    Starts with autonumber SOFA_ID.
+    """
+    debug = False
+    sqlite_quoter = get_obj_quoter_func(my_globals.DBE_SQLITE)
+    fld_clause_items = [u"%s INTEGER PRIMARY KEY" % \
+                        sqlite_quoter(my_globals.SOFA_ID)]
     for fld_name, fld_type in name_types:
         tosqlite = my_globals.GEN2SQLITE_DIC[fld_type]
-        check = tosqlite["check_clause"] % {"fld_name": fld_name}
+        if strict_typing:
+            check = tosqlite["check_clause"] % \
+                {"fld_name": sqlite_quoter(fld_name)}
+        else:
+            check = ""
         if debug: 
             print(u"%s %s %s" % (fld_name, fld_type, check))
-        sqlite_quoter = get_obj_quoter_func(my_globals.DBE_SQLITE)
         clause = u"%(fld_name)s %(fld_type)s %(check_clause)s" % \
                             {"fld_name": sqlite_quoter(fld_name), 
                             "fld_type": tosqlite["sqlite_type"],
                             "check_clause": check}
         fld_clause_items.append(clause)
-    fld_clause_items.append(u"UNIQUE(sofa_id)")
+    fld_clause_items.append(u"UNIQUE(%s)" % sqlite_quoter(my_globals.SOFA_ID))
     fld_clause = u", ".join(fld_clause_items)
+    return fld_clause
+
+def make_sofa_tbl(con, cur, tbl_name, name_types, strict_typing=False):
+    """
+    Make a table into the SOFA default database.  Must have autonumber SOFA_ID.
+    Optionally may apply type checking constraint on fields (NB no longer able
+        to open database outside of this application which using user-defined
+        functions in table definitions).
+    name_types -- [(fld_name, fld_type), ...].  No need to reference old names 
+        or types.
+    strict_typing -- uses user-defined functions to apply strict typing via
+        check clauses as part of create table statements.
+    """
+    debug = False
+    fld_clause = make_create_tbl_fld_clause(name_types, strict_typing)
     SQL_make_tbl = u"""CREATE TABLE "%s" (%s)""" % (tbl_name, fld_clause)
     if debug: print(SQL_make_tbl)
     cur.execute(SQL_make_tbl)

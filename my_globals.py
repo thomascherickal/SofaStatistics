@@ -202,12 +202,14 @@ FLD_TYPE_STRING = _("String")
 FLD_TYPE_DATE = _("Date")
 GEN2SQLITE_DIC = {
     FLD_TYPE_NUMERIC: {"sqlite_type": "REAL", 
-            "check_clause": "CHECK(is_numeric(%(fld_name)s))"},
+            "check_clause": ("CHECK(typeof(%(fld_name)s) = 'null' "
+            "or is_numeric(%(fld_name)s))")},
     FLD_TYPE_STRING: {"sqlite_type": "TEXT",
             "check_clause": ""},
     FLD_TYPE_DATE: {"sqlite_type": "DATETIME", # DATETIME not a native storage 
                 #class but can still be discovered via PRAGMA table_info()
-            "check_clause": "CHECK(valid_datetime_str(%(fld_name)s))"},
+            "check_clause": ("CHECK(typeof(%(fld_name)s) = 'null' "
+            "or valid_datetime_str(%(fld_name)s))")},
     }
 
 # grids
@@ -230,3 +232,5 @@ TBL_FLD_NAME = "fld_name"
 TBL_FLD_NAME_ORIG = "fld_name_orig"
 TBL_FLD_TYPE = "fld_type"
 TBL_FLD_TYPE_ORIG = "fld_type_orig"
+TMP_TBL_NAME = "sofa_tmp_tbl"
+SOFA_ID = "sofa_id"

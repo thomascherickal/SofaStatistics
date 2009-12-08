@@ -71,14 +71,17 @@ def _invalid_fld_type(row, grid):
         return True, msg
     return False, u""
 
-def ValidateTblName(tbl_name):
+def ValidateTblName(tbl_name, name_ok_to_reuse):
     "Returns boolean plus string message"
     valid_name = dbe_sqlite.valid_name(tbl_name)
     if not valid_name:
         msg = _("You can only use letters, numbers and underscores "
             "in a SOFA name.  Use another name?")
         return False, msg
-    duplicate = getdata.dup_tbl_name(tbl_name)
+    if tbl_name == name_ok_to_reuse: # we're just editing an existing table
+        duplicate = False
+    else:
+        duplicate = getdata.dup_tbl_name(tbl_name)
     if duplicate:
         msg = _("Cannot use this name.  A table named \"%s\" already exists in"
                 " the default SOFA database") % tbl_name
@@ -86,17 +89,18 @@ def ValidateTblName(tbl_name):
     return True, u""
 
 class SafeTblNameValidator(wx.PyValidator):
-    def __init__(self):
-        wx.PyValidator.__init__(self)        
+    def __init__(self, name_ok_to_reuse):
+        wx.PyValidator.__init__(self)
+        self.name_ok_to_reuse = name_ok_to_reuse
         self.Bind(wx.EVT_CHAR, self.OnChar)
     
     def Clone(self):
-        return SafeTblNameValidator()
+        return SafeTblNameValidator(self.name_ok_to_reuse)
         
     def Validate(self, win):
         textCtrl = self.GetWindow()
         text = textCtrl.GetValue()
-        valid, msg = ValidateTblName(text)
+        valid, msg = ValidateTblName(text, self.name_ok_to_reuse)
         if not valid:
             wx.MessageBox(msg)
             textCtrl.SetFocus()
@@ -142,7 +146,7 @@ class ConfigTableEntry(settings_grid.TableEntry):
                 read_only, grid_size, col_dets, data, new_grid_data, 
                 insert_data_func, cell_invalidation_func)
         self.debug = False # otherwise set in the parent class ;-)
-        # disable first row (sofa_id)
+        # disable first row (SOFA_ID)
         attr = wx.grid.GridCellAttr()
         attr.SetReadOnly(True)
         self.grid.SetRowAttr(0, attr)
@@ -171,6 +175,7 @@ class ConfigTableEntry(settings_grid.TableEntry):
         """
         debug = False
         grid_data = self.GetGridData() # only saved data
+        if debug: print(grid_data)
         for i, row in enumerate(grid_data):
             self.new_grid_data[i][my_globals.TBL_FLD_NAME] = row[0]
             self.new_grid_data[i][my_globals.TBL_FLD_TYPE] = row[1]
@@ -178,7 +183,7 @@ class ConfigTableEntry(settings_grid.TableEntry):
     
     def ok_to_delete_row(self, row):
         """
-        Can delete any row except the new row or the sofa_id row
+        Can delete any row except the new row or the SOFA_ID row
         Returns boolean and msg.
         """
         if self.NewRow(row):
@@ -202,6 +207,10 @@ class ConfigTableDlg(settings_grid.TableEntryDlg):
             if only a "rename me".
         new_grid_data -- add details to it in form of a list of tuples.
         """
+        if tbl_name_lst:
+            name_ok_to_reuse = tbl_name_lst[0]
+        else:
+            name_ok_to_reuse = None
         self.tbl_name_lst = tbl_name_lst
         # set up new grid data based on data
         self.new_grid_data = new_grid_data
@@ -234,7 +243,7 @@ class ConfigTableDlg(settings_grid.TableEntryDlg):
         tbl_name = tbl_name_lst[0] if tbl_name_lst else _("table") + u"001"
         self.txtTblName = wx.TextCtrl(self.panel, -1, tbl_name, size=(250,-1))
         self.txtTblName.Enable(not self.readonly)
-        self.txtTblName.SetValidator(SafeTblNameValidator())
+        self.txtTblName.SetValidator(SafeTblNameValidator(name_ok_to_reuse))
         # sizers
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         self.szrTblLabel = wx.BoxSizer(wx.HORIZONTAL)
@@ -274,7 +283,8 @@ class ConfigTableDlg(settings_grid.TableEntryDlg):
             return None, None
         pos = selected_rows[0]
         if pos == 0:
-            wx.MessageBox(_("The sofa_id must always come first"))
+            wx.MessageBox(_("The %s must always come first") % \
+                          my_globals.SOFA_ID)
             return None, None
         row_data = self.tabentry.InsertRowAbove(pos)
         return pos, row_data
@@ -318,6 +328,8 @@ class ConfigTableDlg(settings_grid.TableEntryDlg):
             # http://www.nabble.com/validator-not-in-a-dialog-td23112169.html
             if not self.panel.Validate(): # runs validators on all assoc ctrls
                 return True
+        if self.tbl_name_lst: # empty ready to repopulate
+            del self.tbl_name_lst[0]
         self.tbl_name_lst.append(self.txtTblName.GetValue())
         self.tabentry.UpdateNewGridData()
         self.Destroy()

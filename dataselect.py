@@ -4,6 +4,7 @@ from __future__ import print_function
 import wx
 import sys
 import pprint
+import pysqlite2
 
 import my_globals
 import db_grid
@@ -201,19 +202,19 @@ class DataSelectDlg(wx.Dialog):
         """
         Delete selected table (giving user choice to back out).
         """
-        obj_quoter = getdata.get_obj_quoter_func(self.dbe)
-        if wx.MessageBox(_("Do you wish to delete %s?") % obj_quoter(self.tbl), 
+        if wx.MessageBox(_("Do you wish to delete \"%s\"?") % self.tbl, 
                            caption=_("DELETE"), 
                            style=wx.YES_NO|wx.NO_DEFAULT) == wx.YES:
+            obj_quoter = getdata.get_obj_quoter_func(self.dbe)
             self.cur.execute("DROP TABLE IF EXISTS %s" % obj_quoter(self.tbl))
             self.con.commit()
         dbe = my_globals.DBE_SQLITE
         dbdetsobj = getdata.getDbDetsObj(dbe, self.default_dbs, 
                                          self.default_tbls, self.con_dets, 
                                          my_globals.SOFA_DEFAULT_DB)
-        (con, cur, dbs, tbls, flds, has_unique, idxs) = dbdetsobj.getDbDets()
+        (self.con, self.cur, dbs, self.tbls, flds, has_unique, idxs) = \
+            dbdetsobj.getDbDets()
         # update tbl dropdown
-        self.tbls = tbls
         self.tbl = self.tbls[0]
         self.reset_tbl_dropdown()
         self._button_enablement()
@@ -225,7 +226,7 @@ class DataSelectDlg(wx.Dialog):
         NB only enabled (for either viewing or editing) for the default SQLite 
             database.
         """
-        debug = False
+        debug = True
         tbl_name_lst = [self.tbl,]
         data = self._get_tbl_config(self.tbl)
         if debug: print(data)
@@ -235,13 +236,12 @@ class DataSelectDlg(wx.Dialog):
                                                 new_grid_data, readonly)
         ret = dlgConfig.ShowModal()
         if debug: pprint.pprint(new_grid_data)
-        if ret == wx.ID_OK:
+        if ret == wx.ID_OK and not readonly:
             """
-            Make temp table, with strict type enforcement for any fields that 
-                have changed type e.g. from string to numeric.  Copy across all 
-                fields which remain in the original table (possibly with new 
-                names and data types) plus add in all the new fields.
-            NB sofa_id must be autoincrement.
+            Make temp table, with strict type enforcement for all fields.  
+            Copy across all fields which remain in the original table (possibly 
+                with new names and data types) plus add in all the new fields.
+            NB SOFA_ID must be autoincrement.
             If any conversion errors (e.g. trying to change a field which 
                 currently contains "fred" to a numeric field) abort 
                 reconfiguration (with encouragement to fix source data or change
@@ -252,7 +252,52 @@ class DataSelectDlg(wx.Dialog):
                 final table as SQLite Database Browser can't open the database
                 anymore.
             """
-            pass
+            self.tbl = tbl_name_lst[0]
+            sqlite_quoter = getdata.get_obj_quoter_func(my_globals.DBE_SQLITE)
+            name_types = \
+                [(x[my_globals.TBL_FLD_NAME], x[my_globals.TBL_FLD_TYPE]) \
+                 for x in new_grid_data if x[my_globals.TBL_FLD_NAME] != \
+                 my_globals.SOFA_ID]
+            create_fld_clause = getdata.make_create_tbl_fld_clause(name_types, 
+                                                            strict_typing=True)
+            orig_new_names = \
+                [(x[my_globals.TBL_FLD_NAME_ORIG], x[my_globals.TBL_FLD_NAME]) \
+                 for x in new_grid_data if x[my_globals.TBL_FLD_NAME] != \
+                 my_globals.SOFA_ID]
+            select_fld_clause = \
+                getdata.make_select_renamed_flds_clause(orig_new_names)
+            SQL_drop_tmp_tbl = "DROP TABLE IF EXISTS %s" % \
+                                    sqlite_quoter(my_globals.TMP_TBL_NAME)
+            self.cur.execute(SQL_drop_tmp_tbl)
+            SQL_make_tmp_tbl = "CREATE TABLE %s (%s) " % \
+                (sqlite_quoter(my_globals.TMP_TBL_NAME), create_fld_clause)
+            if debug: print(SQL_make_tmp_tbl)
+            self.cur.execute(SQL_make_tmp_tbl)
+            # unable to use CREATE ... AS SELECT at same time as defining table.
+            SQL_insert_all = "INSERT INTO %s SELECT %s FROM %s""" % \
+                (sqlite_quoter(my_globals.TMP_TBL_NAME), select_fld_clause,
+                 sqlite_quoter(self.tbl))
+            if debug: print(SQL_insert_all)
+            try:
+                self.cur.execute(SQL_insert_all)
+            except pysqlite2.dbapi2.IntegrityError, e:
+                if debug: print(unicode(e))
+                wx.MessageBox(_("Unable to modify table.  Some data does not "
+                                "match the column type.  Please edit and try "
+                                "again.\n\nOriginal error: %s" % e))
+                self.cur.execute(SQL_drop_tmp_tbl)
+                self.con.commit()
+                return
+            SQL_drop_orig = "DROP TABLE %s" % sqlite_quoter(self.tbl)
+            self.cur.execute(SQL_drop_orig)
+            SQL_rename_tmp = "ALTER TABLE %s RENAME TO %s" % \
+                                (sqlite_quoter(my_globals.TMP_TBL_NAME), 
+                                 sqlite_quoter(self.tbl))
+            self.cur.execute(SQL_rename_tmp)
+            self.con.commit()
+            # refresh fld details etc
+            self.tbl, self.flds, self.has_unique, self.idxs = \
+            getdata.RefreshTblDets(self)
     
     def OnNewClick(self, event):
         """
@@ -285,7 +330,8 @@ class DataSelectDlg(wx.Dialog):
         # functions)
         self.cur = self.con.cursor()
         tbl_name = tbl_name_lst[0]        
-        name_types = [(x["fld_name"], x["fld_type"]) for x in new_grid_data]
+        name_types = [(x[my_globals.TBL_FLD_NAME], x[my_globals.TBL_FLD_TYPE]) \
+                      for x in new_grid_data]
         if debug: print(new_grid_data)
         getdata.make_sofa_tbl(self.con, self.cur, tbl_name, name_types)
         # prepare to connect to the newly created table
