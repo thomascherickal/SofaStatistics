@@ -85,9 +85,13 @@ class FileImporter(object):
             (no point reading them all again during subsequent steps).   
         Sample first N rows (at most) to establish field types.   
         """
+        debug = False
         bolhas_rows = False
         sample_data = []
         for i, row in enumerate(reader):
+            if debug:
+                if i < 10:
+                    print(row)
             if i % 50 == 0:
                 wx.Yield()
                 if keep_importing == set([False]):

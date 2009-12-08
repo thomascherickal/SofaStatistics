@@ -3,6 +3,7 @@ DbTbl is the link between the grid and the underlying data.
 """
 
 import pprint
+import re
 import wx
 import wx.grid
 
@@ -170,7 +171,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         # try cache first
         debug = False
         try:
-            return self.row_vals_dic[row][col]
+            val = self.row_vals_dic[row][col]
         except KeyError:
             extra = 10
             """
@@ -214,17 +215,28 @@ class DbTbl(wx.grid.PyGridTableBase):
             for data_tup in self.cur.fetchall(): # tuple of values
                 # handle microsoft characters
                 data_tup = tuple([util.ms2utf8(x) for x in data_tup])
+                if debug or self.debug: print(data_tup)
                 self.AddDataToRowValsDic(self.row_vals_dic, row_idx, data_tup)
                 row_idx += 1
-            return self.row_vals_dic[row][col] # the bit we're interested in now
+            val = self.row_vals_dic[row][col] # the bit we're interested in now
+        # Avoid scientific notation
+        try:
+            strval = str(val)
+            if re.search(r"\d+e[+-]\d+", strval): # num(s) e +or- num(s)
+                val = repr(val) # 1000000000000.4 rather than 1e+12
+        except Exception:
+            pass
+        return val
     
     def AddDataToRowValsDic(self, row_vals_dic, row_idx, data_tup):
         """
         row_vals_dic - key = row, val = tuple of values
         Add new row to row_vals_dic.
         """
+        debug = False # only do this for a small table!
         proc_data_lst = [self.NoneToMissingVal(x) for x in data_tup]
         row_vals_dic[row_idx] = proc_data_lst
+        if self.debug or debug: print(row_vals_dic)
     
     def IsEmptyCell(self, row, col):
         value = self.GetValue(row, col)

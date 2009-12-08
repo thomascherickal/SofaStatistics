@@ -101,6 +101,7 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
         quoted unless it is a NULL. 
     If not, will raise an exception.
     """
+    debug = False
     val = row[fld_name]
     is_pytime = util.isPyTime(val)
     fld_type = fld_types[fld_name]
@@ -148,6 +149,7 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
     if val != u"NULL":
         val = u"\"%s\"" % val
     vals.append(val)
+    if debug: print(val)
     
 def AddRows(con, cur, rows, fld_names, fld_types, progBackup, gauge_chunk,
             start_i=0, check=False, keep_importing=None):

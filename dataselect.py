@@ -226,7 +226,7 @@ class DataSelectDlg(wx.Dialog):
         NB only enabled (for either viewing or editing) for the default SQLite 
             database.
         """
-        debug = True
+        debug = False
         tbl_name_lst = [self.tbl,]
         data = self._get_tbl_config(self.tbl)
         if debug: print(data)
