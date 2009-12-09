@@ -93,7 +93,7 @@ class TblEditor(wx.Dialog):
                     self.grid.SetColAttr(idx_col, attr)
             # start at new line
             new_row_idx = self.dbtbl.GetNumberRows() - 1
-            self.FocusOnNewRow(new_row_idx)
+            self.focus_on_new_row(new_row_idx)
             self.SetNewRowEd(new_row_idx)
         self.SetColWidths()
         self.respond_to_select_cell = True
@@ -698,7 +698,7 @@ class TblEditor(wx.Dialog):
         self.dbtbl.new_is_dirty = False
         self.dbtbl.new_buffer = {}
     
-    def FocusOnNewRow(self, new_row_idx):
+    def focus_on_new_row(self, new_row_idx):
         "Focus on cell in new row - set current to refer to that cell etc"
         self.grid.SetGridCursor(new_row_idx, 0)
         self.grid.MakeCellVisible(new_row_idx, 0)

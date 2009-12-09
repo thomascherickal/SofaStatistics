@@ -29,16 +29,16 @@ myEVT_CELL_MOVE = wx.NewEventType()
 EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 
 
-class TableEntryDlg(wx.Dialog):
+class SettingsEntryDlg(wx.Dialog):
     def __init__(self, title, grid_size, col_dets, data, final_grid_data, 
                  insert_data_func=None, row_validation_func=None):
         """
-        col_dets - see under TableEntry.
-        data - list of tuples (must have at least one item, even if only a 
+        col_dets -- see under SettingsEntry.
+        data -- list of tuples (must have at least one item, even if only a 
             "rename me").
-        final_grid_data - is effectively "returned".  Add details to it in form 
+        final_grid_data -- is effectively "returned".  Add details to it in form 
             of a list of tuples.
-        insert_data_func - what data do you want to see in a new inserted row 
+        insert_data_func -- what data do you want to see in a new inserted row 
             (if any).  Must take row index as argument.
         """
         wx.Dialog.__init__(self, None, title=title,
@@ -47,9 +47,11 @@ class TableEntryDlg(wx.Dialog):
                               wx.SYSTEM_MENU, pos=(300, 0))
         self.panel = wx.Panel(self)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
-        self.tabentry = TableEntry(self, self.panel, self.szrMain, 1, grid_size, 
-                                   col_dets, data, final_grid_data, 
-                                   insert_data_func, row_validation_func)
+        force_focus = False
+        self.tabentry = SettingsEntry(self, self.panel, self.szrMain, 1, 
+                                grid_size, col_dets, data, final_grid_data, 
+                                force_focus, insert_data_func, 
+                                row_validation_func)
         # Close only
         self.SetupButtons()
         # sizers
@@ -130,11 +132,11 @@ def cell_invalidation(row, col, grid, col_dets):
     return False, ""
 
 
-class TableEntry(object):
+class SettingsEntry(object):
     
     def __init__(self, frame, panel, szr, vert_share, read_only, grid_size, 
-                 col_dets, data, final_grid_data, insert_data_func=None, 
-                 cell_invalidation_func=None):
+                 col_dets, data, final_grid_data, force_focus=False,
+                 insert_data_func=None, cell_invalidation_func=None):
         """
         vert_share - vertical share of sizer supplied.
         col_dets - list of dic.  Keys = "col_label", "col_type", 
@@ -145,6 +147,7 @@ class TableEntry(object):
             "rename me".
         final_grid_data - is effectively "returned" - add details to it in form 
             of a list of tuples.
+        force_focus -- force focus - needed sometimes and better without others.
         insert_data_func - return row_data and receive row_idx, grid_data
         cell_invalidation_func - return boolean, and string message 
             and receives row, col, grid, col_dets
@@ -156,6 +159,7 @@ class TableEntry(object):
         self.szr = szr
         self.read_only = read_only
         self.col_dets = col_dets
+        self.force_focus = force_focus
         self.insert_data_func = insert_data_func
         self.cell_invalidation_func = cell_invalidation_func \
             if cell_invalidation_func else cell_invalidation
@@ -437,7 +441,7 @@ class TableEntry(object):
         # the focus anywhere else (because it triggers EVT_CELL_MOVE and then
         # we grab the focus again below!).
         moved = False
-        if (src_row, src_col) != (dest_row, dest_col):
+        if self.force_focus and (src_row, src_col) != (dest_row, dest_col):
             moved = True
             self.grid.SetFocus()
             # http://www.nabble.com/Setting-focus-to-grid-td17920756.html

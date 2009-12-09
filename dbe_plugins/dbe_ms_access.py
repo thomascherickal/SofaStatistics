@@ -341,10 +341,11 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
     parent.msaccess_final_grid_data = []
     data = parent.msaccess_data[:]
     data.sort(key=lambda s: s[0])
-    parent.msaccess_grid = settings_grid.TableEntry(frame=parent, 
+    parent.msaccess_grid = settings_grid.SettingsEntry(frame=parent, 
         panel=scroll, szr=parent.szrMsaccess, vert_share=1, read_only=read_only, 
         grid_size=(900, 100), col_dets=msaccess_col_dets, 
-        data=data, final_grid_data=parent.msaccess_final_grid_data)
+        data=data, final_grid_data=parent.msaccess_final_grid_data, 
+        force_focus=True)
     szr.Add(parent.szrMsaccess, 0, wx.GROW|wx.ALL, 10)
 
 def getProjSettings(parent, proj_dic):

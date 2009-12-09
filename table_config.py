@@ -133,7 +133,7 @@ class SafeTblNameValidator(wx.PyValidator):
         return True
     
     
-class ConfigTableEntry(settings_grid.TableEntry):
+class ConfigTableEntry(settings_grid.SettingsEntry):
     """
     final_grid_data should be returned as a list of dicts with the keys:
     my_globals.TBL_FLD_NAME, etc
@@ -142,9 +142,10 @@ class ConfigTableEntry(settings_grid.TableEntry):
     def __init__(self, frame, panel, szr, vert_share, read_only, grid_size, 
                 col_dets, data, final_grid_data, insert_data_func=None, 
                 cell_invalidation_func=None):
-        settings_grid.TableEntry.__init__(self, frame, panel, szr, vert_share, 
-                read_only, grid_size, col_dets, data, final_grid_data, 
-                insert_data_func, cell_invalidation_func)
+        force_focus = False
+        settings_grid.SettingsEntry.__init__(self, frame, panel, szr, 
+            vert_share, read_only, grid_size, col_dets, data, final_grid_data, 
+            force_focus, insert_data_func, cell_invalidation_func)
         self.debug = False # otherwise set in the parent class ;-)
         # disable first row (SOFA_ID)
         attr = wx.grid.GridCellAttr()
@@ -153,7 +154,7 @@ class ConfigTableEntry(settings_grid.TableEntry):
     
     def OnCellMove(self, event):
         debug = False
-        moved, src_row = settings_grid.TableEntry.OnCellMove(self, event)
+        moved, src_row = settings_grid.SettingsEntry.OnCellMove(self, event)
         if moved:
             if self.debug or debug: print("Row moved from was %s" % src_row)
             if src_row >= len(self.final_grid_data):
@@ -194,7 +195,7 @@ class ConfigTableEntry(settings_grid.TableEntry):
             return True, None
     
     
-class ConfigTableDlg(settings_grid.TableEntryDlg):
+class ConfigTableDlg(settings_grid.SettingsEntryDlg):
     
     debug = False
     
@@ -220,7 +221,7 @@ class ConfigTableDlg(settings_grid.TableEntryDlg):
             insert_data_func = insert_data
         if not cell_invalidation_func:
             cell_invalidation_func = cell_invalidation
-        # col_dets - See under settings_grid.TableEntry
+        # col_dets - See under settings_grid.SettingsEntry
         col_dets = [{"col_label": _("Field Name"), 
                      "col_type": settings_grid.COL_STR, 
                      "col_width": 100}, 

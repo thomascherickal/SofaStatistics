@@ -227,7 +227,7 @@ def GetIdxToSelect(choice_items, drop_var, var_labels, default):
     return idx
     
     
-class GetSettings(settings_grid.TableEntryDlg):
+class GetSettings(settings_grid.SettingsEntryDlg):
     
     def __init__(self, title, boltext, boldatetime, var_desc, data, 
                  final_grid_data, val_type):
@@ -235,7 +235,7 @@ class GetSettings(settings_grid.TableEntryDlg):
         var_desc - dic with keys "label", "notes", and "type".
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
-        col_dets - See under settings_grid.TableEntry
+        col_dets - See under settings_grid.SettingsEntry
         final_grid_data - add details to it in form of a list of tuples.
         """
         col_dets = [{"col_label": _("Value"), "col_type": val_type, 
@@ -286,10 +286,10 @@ class GetSettings(settings_grid.TableEntryDlg):
         szrDataType.Add(self.radDataType, 0)  
         szrDataType.Add(btnTypeHelp, 0, wx.LEFT|wx.TOP, 10)        
         self.szrMain.Add(szrDataType, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-        self.tabentry = settings_grid.TableEntry(self, self.panel, 
-                                                 self.szrMain, 2, False, 
-                                                 grid_size, col_dets, data,  
-                                                 final_grid_data)
+        self.tabentry = settings_grid.SettingsEntry(self, self.panel, 
+                                                    self.szrMain, 2, False, 
+                                                    grid_size, col_dets, data,  
+                                                    final_grid_data)
         self.SetupButtons(inc_delete=True, inc_insert=True)
         self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
