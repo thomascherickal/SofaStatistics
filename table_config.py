@@ -153,18 +153,25 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
         self.grid.SetRowAttr(0, attr)
     
     def OnCellMove(self, event):
-        debug = False
-        moved, src_row = settings_grid.SettingsEntry.OnCellMove(self, event)
-        if moved:
+        debug = True
+        src_row, left_row = settings_grid.SettingsEntry.OnCellMove(self, event)
+        if left_row:
             if self.debug or debug: print("Row moved from was %s" % src_row)
-            if src_row >= len(self.final_grid_data):
-                return
-            # for row we're leaving, fill in new details.  Leave original values 
-            # alone.
+            # For row we're leaving, fill in new details.
+            # If an existing row, leave original values alone.
             fld_name = self.grid.GetCellValue(src_row, 0)
             fld_type = self.grid.GetCellValue(src_row, 1)
-            self.final_grid_data[src_row][my_globals.TBL_FLD_NAME] = fld_name
-            self.final_grid_data[src_row][my_globals.TBL_FLD_TYPE] = fld_type
+            try:
+                self.final_grid_data[src_row][my_globals.TBL_FLD_NAME] = \
+                    fld_name
+                self.final_grid_data[src_row][my_globals.TBL_FLD_TYPE] = \
+                    fld_type
+            except IndexError: # leaving what was the new row
+                new_row = {my_globals.TBL_FLD_NAME: fld_name, 
+                           my_globals.TBL_FLD_NAME_ORIG: None, 
+                           my_globals.TBL_FLD_TYPE: fld_type, 
+                           my_globals.TBL_FLD_TYPE_ORIG: None}
+                self.final_grid_data.append(new_row)
             if self.debug or debug: pprint.pprint(self.final_grid_data)
                 
     def update_final_grid_data(self):
@@ -175,9 +182,12 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
             untouched).
         """
         debug = False
-        grid_data = self.GetGridData() # only saved data
-        if debug: print(grid_data)
+        grid_data = self.get_grid_data() # only saved data
+        if debug: 
+            print(grid_data)
+            pprint.pprint(self.final_grid_data)
         for i, row in enumerate(grid_data):
+            if debug: print(row)
             self.final_grid_data[i][my_globals.TBL_FLD_NAME] = row[0]
             self.final_grid_data[i][my_globals.TBL_FLD_TYPE] = row[1]
         if self.debug or debug: pprint.pprint(self.final_grid_data)

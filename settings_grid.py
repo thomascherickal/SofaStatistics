@@ -423,7 +423,7 @@ class SettingsEntry(object):
         NB must get the table to refresh itself and thus call SetValue(). Other-
             wise we can't get the value just entered so we can evaluate it for
             validation.
-        Returns moved, src_row.  Useful for table config grid.
+        Returns src_row, left_row.  Useful for table config grid.
         """
         debug = False
         src_row=self.current_row_idx # row being moved from
@@ -440,15 +440,15 @@ class SettingsEntry(object):
         # only SetFocus if moving.  Otherwise if this is embedded, we can't set
         # the focus anywhere else (because it triggers EVT_CELL_MOVE and then
         # we grab the focus again below!).
-        moved = False
-        if self.force_focus and (src_row, src_col) != (dest_row, dest_col):
-            moved = True
+        moved = ((src_row, src_col) != (dest_row, dest_col))
+        left_row = (src_row != dest_row)
+        if self.force_focus and moved:
             self.grid.SetFocus()
             # http://www.nabble.com/Setting-focus-to-grid-td17920756.html
             for window in self.grid.GetChildren():
                 window.SetFocus()
         event.Skip()
-        return moved, src_row
+        return src_row, left_row
     
     def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, direction):
         """
@@ -804,7 +804,7 @@ class SettingsEntry(object):
             shifting cell as such.  Just following it :-)
         Returns row_data (list) if content put into inserted row, None if not
         """
-        grid_data = self.GetGridData() # only needed to prevent field name 
+        grid_data = self.get_grid_data() # only needed to prevent field name 
             #collisions
         row_idx = pos
         self.grid.InsertRows(row_idx)
@@ -881,7 +881,7 @@ class SettingsEntry(object):
                 break
         return has_data
 
-    def GetGridData(self):
+    def get_grid_data(self):
         """
         Get data from grid (except for final row (either empty or not saved).
         """
@@ -898,5 +898,5 @@ class SettingsEntry(object):
         """
         Update final_grid_data.  Separated for reuse.
         """
-        grid_data = self.GetGridData()
+        grid_data = self.get_grid_data()
         self.final_grid_data += grid_data
