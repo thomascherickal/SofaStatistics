@@ -61,7 +61,7 @@ class MakeTable(object):
         for descendant in descendants:
             var_name, unused = \
                 getdata.extractChoiceDets(tree.GetItemText(descendant))
-            fresh_label = getdata.getChoiceItem(self.var_labels, var_name)
+            fresh_label = getdata.get_choice_item(self.var_labels, var_name)
             tree.SetItemText(descendant, fresh_label)
 
     # table type
@@ -84,7 +84,7 @@ class MakeTable(object):
             self.chkFirstAsLabel.SetValue(False)
             self.EnableOpts(enable=False)
             self.EnableRowSel(enable=True)
-            self.EnableColButtons()
+            self.enable_col_btns()
             self.demo_tab = demotables.GenDemoTable(txtTitles=self.txtTitles, 
                              txtSubtitles=self.txtSubtitles,
                              colRoot=self.colRoot,                               
@@ -100,7 +100,7 @@ class MakeTable(object):
             self.chkFirstAsLabel.SetValue(False)
             self.EnableOpts(enable=False)
             self.EnableRowSel(enable=True)
-            self.EnableColButtons()
+            self.enable_col_btns()
             self.demo_tab = demotables.SummDemoTable(txtTitles=self.txtTitles, 
                              txtSubtitles=self.txtSubtitles,
                              colRoot=self.colRoot,                                  

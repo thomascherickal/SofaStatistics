@@ -108,9 +108,10 @@ def FldsDic2FldNamesLst(flds_dic):
     flds_lst = sorted(flds_dic, key=lambda s: flds_dic[s][my_globals.FLD_SEQ])
     return flds_lst
 
-def getChoiceItem(item_labels, item_val):
-    str_val = unicode(item_val)
-    return u"%s (%s)" % (item_labels.get(item_val, str_val.title()), str_val)
+def get_choice_item(item_labels, item_val):
+    val_label = util.any2unicode(item_val)
+    return u"%s (%s)" % (item_labels.get(item_val, val_label.title()), 
+                         val_label)
 
 def extractChoiceDets(choice_text):
     """
@@ -129,7 +130,7 @@ def extractChoiceDets(choice_text):
         item_label = choice_text        
     return item_val, item_label
 
-def getSortedChoiceItems(dic_labels, vals):
+def get_sorted_choice_items(dic_labels, vals):
     """
     Sorted by label, not name.
     dic_labels - could be for either variables of values.
@@ -139,8 +140,8 @@ def getSortedChoiceItems(dic_labels, vals):
         ... sort-can-you-do-a-schwartzian-transform-in-python
     """
     sorted_vals = vals
-    sorted_vals.sort(key=lambda s: getChoiceItem(dic_labels, s).upper())
-    choice_items = [getChoiceItem(dic_labels, x) for x in sorted_vals]
+    sorted_vals.sort(key=lambda s: get_choice_item(dic_labels, s).upper())
+    choice_items = [get_choice_item(dic_labels, x) for x in sorted_vals]
     return choice_items, sorted_vals
 
 def setConDetDefaults(parent):

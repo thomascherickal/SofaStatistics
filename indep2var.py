@@ -12,9 +12,31 @@ import getdata
 import output
 import output_buttons
 import projects
+import util
 
 OUTPUT_MODULES = ["my_globals", "core_stats", "getdata", "output", 
                   "stats_output"]
+
+def get_range_idxs(vals, val_a, val_b):
+    """
+    Get range indexes for two values from list of strings.
+    NB the two values are strings as displayed in dropdowns even if the 
+        underlying data is not.
+    E.g. u'1' and u'5' in [1, 2, 3, 4, 5]
+    or u'"Chrome"' and u'"Safari"' in [u'Chrome', u'Firefox', ...]
+    or u'1000000000000.2' etc in ['1000000000000.2', '1000000000000.3', ...].
+    val_a and val_b are deliberately wrapped in double quotes if strings by 
+        all valid inputs to this function.
+    """
+    debug = False
+    if debug:
+        print(vals)
+        print(type(val_a).__name__, val_a)
+        print(type(val_b).__name__, val_b)
+    uvals = [util.any2unicode(x) for x in vals]
+    idx_val_a = uvals.index(val_a.strip('"'))
+    idx_val_b = uvals.index(val_b.strip('"'))
+    return idx_val_a, idx_val_b
 
 
 class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig, 
@@ -98,7 +120,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.lblGroupB = wx.StaticText(self.panel, -1, _("Group B:"))
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupByBSel)
-        self.SetupGroupDropdowns()
+        self.setup_group_dropdowns()
         szrVarsLeftMid.Add(self.lblGroupA, 0, wx.RIGHT|wx.TOP, 5)
         szrVarsLeftMid.Add(self.dropGroupA, 0, wx.RIGHT, 5)
         szrVarsLeftMid.Add(self.lblGroupB, 0, wx.RIGHT|wx.TOP, 5)
@@ -195,7 +217,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.UpdateVarDets()
         self.SetupGroupBy()
         self.SetupAvg()
-        self.SetupGroupDropdowns()
+        self.setup_group_dropdowns()
                 
     def OnTableSel(self, event):
         "Reset key data details after table selection."       
@@ -204,7 +226,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.UpdateVarDets()
         self.SetupGroupBy()
         self.SetupAvg()
-        self.SetupGroupDropdowns()
+        self.setup_group_dropdowns()
     
     def OnVarDetsFileLostFocus(self, event):
         """
@@ -216,7 +238,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         gen_config.GenConfig.OnVarDetsFileLostFocus(self, event)
         self.SetupGroupBy(var_by)
         self.SetupAvg(var_avg)
-        self.SetupGroupDropdowns(val_a, val_b)
+        self.setup_group_dropdowns(val_a, val_b)
         self.UpdateDefaults()
         self.UpdatePhrase()
         
@@ -230,7 +252,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         gen_config.GenConfig.OnButtonVarDetsPath(self, event)
         self.SetupGroupBy(var_by)
         self.SetupAvg(var_avg)
-        self.SetupGroupDropdowns(val_a, val_b)
+        self.setup_group_dropdowns(val_a, val_b)
         self.UpdateDefaults()
         self.UpdatePhrase()
     
@@ -266,7 +288,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         return val_a, val_b
     
     def OnGroupBySel(self, event):
-        self.SetupGroupDropdowns()
+        self.setup_group_dropdowns()
         self.UpdatePhrase()
         self.UpdateDefaults()
         event.Skip()
@@ -290,8 +312,8 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
     def SetupGroupBy(self, var_gp=None):
         choice_var_names = self.flds.keys()
         var_gp_by_choice_items, self.sorted_var_names_by = \
-            getdata.getSortedChoiceItems(dic_labels=self.var_labels, 
-                                         vals=choice_var_names)
+            getdata.get_sorted_choice_items(dic_labels=self.var_labels, 
+                                            vals=choice_var_names)
         self.dropGroupBy.SetItems(var_gp_by_choice_items)
         # set selection
         idx_gp = projects.GetIdxToSelect(var_gp_by_choice_items, var_gp, 
@@ -303,8 +325,8 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         var_names = projects.GetAppropVarNames(self.min_data_type, 
                                                self.var_types, self.flds)
         var_avg_choice_items, self.sorted_var_names_avg = \
-            getdata.getSortedChoiceItems(dic_labels=self.var_labels,
-                                         vals=var_names)
+            getdata.get_sorted_choice_items(dic_labels=self.var_labels,
+                                            vals=var_names)
         self.dropAveraged.SetItems(var_avg_choice_items)
         # set selection
         idx_avg = projects.GetIdxToSelect(var_avg_choice_items, var_avg, 
@@ -312,7 +334,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
                                           my_globals.group_avg_default)
         self.dropAveraged.SetSelection(idx_avg)
         
-    def SetupGroupDropdowns(self, val_a=None, val_b=None):
+    def setup_group_dropdowns(self, val_a=None, val_b=None):
         """
         Gets unique values for selected variable.
         Sets choices for dropGroupA and B accordingly.
@@ -335,13 +357,13 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         else:
             self.lblchop_warning.SetLabel(u"")
         self.vals = [x[0] for x in all_vals]
-        vals_with_labels = [getdata.getChoiceItem(val_dic, x) \
+        vals_with_labels = [getdata.get_choice_item(val_dic, x) \
                             for x in self.vals]
         self.dropGroupA.SetItems(vals_with_labels)
         self.dropGroupB.SetItems(vals_with_labels)
         # set selections
         if val_a:
-            item_new_version_a = getdata.getChoiceItem(val_dic, val_a)
+            item_new_version_a = getdata.get_choice_item(val_dic, val_a)
             idx_a = vals_with_labels.index(item_new_version_a)
         else: # use defaults if possible
             idx_a = 0
@@ -352,7 +374,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
                     pass
         self.dropGroupA.SetSelection(idx_a)
         if val_b:
-            item_new_version_b = getdata.getChoiceItem(val_dic, val_b)
+            item_new_version_b = getdata.get_choice_item(val_dic, val_b)
             idx_b = vals_with_labels.index(item_new_version_b)
         else: # use defaults if possible
             idx_b = 0

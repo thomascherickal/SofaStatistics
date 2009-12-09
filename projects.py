@@ -211,7 +211,7 @@ def GetIdxToSelect(choice_items, drop_var, var_labels, default):
     """
     var_removed = False
     if drop_var:
-        item_new_version_drop = getdata.getChoiceItem(var_labels, drop_var)
+        item_new_version_drop = getdata.get_choice_item(var_labels, drop_var)
         try:
             idx = choice_items.index(item_new_version_drop)
         except ValueError:

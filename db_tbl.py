@@ -218,8 +218,8 @@ class DbTbl(wx.grid.PyGridTableBase):
                 self.AddDataToRowValsDic(self.row_vals_dic, row_idx, data_tup)
                 row_idx += 1
             val = self.row_vals_dic[row][col] # the bit we're interested in now
-        new_val = util.avoid_sci_notn(val)
-        return new_val
+        display_val = util.any2unicode(val)
+        return display_val
     
     def AddDataToRowValsDic(self, row_vals_dic, row_idx, data_tup):
         """

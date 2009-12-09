@@ -50,7 +50,7 @@ class DimTree(object):
         if updated:
             # update var label in tree and update demo html
             tree.SetItemText(event.GetItem(), 
-                    getdata.getChoiceItem(self.var_labels, var_name))
+                    getdata.get_choice_item(self.var_labels, var_name))
             self.UpdateDemoDisplay()
     
     def OnRowAdd(self, event):
@@ -76,7 +76,7 @@ class DimTree(object):
             min_data_type = my_globals.VAR_TYPE_CAT
         var_names = projects.GetAppropVarNames(min_data_type, self.var_types, 
                                                self.flds)
-        choices, unused = getdata.getSortedChoiceItems(\
+        choices, unused = getdata.get_sorted_choice_items(\
                                 dic_labels=self.var_labels, vals=var_names)
         dlg = wx.MultiChoiceDialog(self, _("Select a variable"), _("Variables"), 
                                    choices=choices)
@@ -189,7 +189,7 @@ class DimTree(object):
         Only do so if OK e.g. no duplicate text in either dim.
         """
         choice_var_names = self.flds.keys()
-        choices = [getdata.getChoiceItem(self.var_labels, x) \
+        choices = [getdata.get_choice_item(self.var_labels, x) \
                    for x in choice_var_names]
         choices.sort(key=lambda s: s.upper())
         dlg = wx.MultiChoiceDialog(self, _("Select a variable"), 
@@ -460,7 +460,7 @@ class DimTree(object):
         self.btnRowConf.Enable(enable)
         self.rowtree.Enable(enable)
         
-    def EnableColButtons(self, enable=True):
+    def enable_col_btns(self, enable=True):
         "Enable (or disable) col buttons"
         self.btnColAdd.Enable(enable)
         self.btnColAddUnder.Enable(enable)

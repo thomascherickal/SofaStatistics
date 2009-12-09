@@ -240,6 +240,7 @@ class DimTable(object):
         Format cells according to whether variable or value.  Even level
             = value, odd level = variable.
         """
+        debug = False
         CSS_FIRST_ROW_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_FIRST_ROW_VAR, css_idx)
         CSS_ROW_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
@@ -277,6 +278,7 @@ class DimTable(object):
                 cellclass=u"class='%s'" % CSS_ROW_VAL
             row_label_rows_lst[row_idx].append(u"<td %s %s %s>%s</td>" % \
                                 (cellclass, rowspan, colspan, node.label))
+            if debug: print(node.label)
         for child in node.children:
             row_label_rows_lst = self.rowLabelRowBuilder(child, 
                                     row_label_rows_lst, row_label_cols_n, 
@@ -534,11 +536,17 @@ class LiveTable(DimTable):
             u" GROUP BY " + fld
         if debug: print(SQL_get_vals)
         self.cur.execute(SQL_get_vals)
-        #get vals and their frequency (across all the other dimension)
-        val_freq_label_lst = [(val, val_freq, \
-                              val_labels.get(val, unicode(val))) \
-                              for (val, val_freq) in self.cur.fetchall()]
+        # get vals and their frequency (across all the other dimension)
         # [(val, freq, val_label), ...]  
+        all_vals = self.cur.fetchall()
+        if debug: print(all_vals)
+        val_freq_label_lst = []
+        for (val, val_freq) in all_vals:
+            def_val_label = util.any2unicode(val)
+            val_label = val_labels.get(val, def_val_label)
+            val_tup = (val, val_freq, val_label)
+            if debug: print(val_tup)
+            val_freq_label_lst.append(val_tup)
         #http://www.python.org/dev/peps/pep-0265/
         if tree_dims_node.sort_order == my_globals.SORT_FREQ_ASC:
             val_freq_label_lst.sort(key=itemgetter(1)) #sort asc by freq
@@ -571,6 +579,7 @@ class LiveTable(DimTable):
                 else:
                     clause = make_fld_val_clause(self.dbe, fld, val, bolnumeric, 
                                                  self.quote_val)
+                    if debug: print(clause)
                     val_node_filts.append(clause)
                 is_coltot=(is_tot and dim == my_globals.COLDIM)
                 val_node = \

@@ -35,16 +35,9 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
             label_avg = self.GetDropVals()        
         # need list of values in range
-        var_gp_numeric = self.flds[var_gp][my_globals.FLD_BOLNUMERIC]
-        if var_gp_numeric:
-            val_a = float(val_a)
-            val_b = float(val_b)
-        else:
-            val_a = val_a.strip('"')
-            val_b = val_b.strip('"')
-        idx_val_a = self.vals.index(val_a)
-        idx_val_b = self.vals.index(val_b)
+        idx_val_a, idx_val_b = indep2var.get_range_idxs(self.vals, val_a, val_b)
         vals_in_range = self.vals[idx_val_a: idx_val_b + 1]
+        var_gp_numeric = self.flds[var_gp][my_globals.FLD_BOLNUMERIC]
         if not var_gp_numeric:
             vals_in_range = [u"\"%s\"" % x for x in vals_in_range]
         strGet_Sample = u"%s = core_stats.get_list(" + \

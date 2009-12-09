@@ -136,7 +136,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
-            fld_choice_items = self.GetGroupChoices()
+            fld_choice_items = self.get_group_choices()
             self.SetupGroupA(fld_choice_items, var_a)
             self.UpdateDefaults()
             self.UpdatePhrase()
@@ -148,12 +148,12 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
-            fld_choice_items = self.GetGroupChoices()
+            fld_choice_items = self.get_group_choices()
             self.SetupGroupB(fld_choice_items, var_b)
             self.UpdateDefaults()
             self.UpdatePhrase()
             
-    def GetGroupChoices(self):
+    def get_group_choices(self):
         """
         Get group choice items.
         Also stores var names, and var names sorted by their labels (for later 
@@ -162,8 +162,8 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         var_names = projects.GetAppropVarNames(self.min_data_type, 
                                                self.var_types, self.flds)
         fld_choice_items, self.sorted_var_names = \
-            getdata.getSortedChoiceItems(dic_labels=self.var_labels, 
-                                         vals=var_names)
+            getdata.get_sorted_choice_items(dic_labels=self.var_labels, 
+                                            vals=var_names)
         return fld_choice_items
        
     def SetupGroupA(self, fld_choice_items, var_a=None):        
@@ -181,7 +181,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.dropGroupB.SetSelection(idx_b)
              
     def SetupGroups(self, var_a=None, var_b=None):
-        fld_choice_items = self.GetGroupChoices()
+        fld_choice_items = self.get_group_choices()
         self.SetupGroupA(fld_choice_items, var_a)
         self.SetupGroupB(fld_choice_items, var_b)
     

@@ -17,12 +17,29 @@ import decimal
 import my_globals
 import dimtables
 import importer
+import indep2var
 import output
 import projects
 import util
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
+
+def test_get_range_idxs():
+    """
+    val_a and val_b are deliberately wrapped in double quotes if strings by 
+        all valid inputs to this function.
+    """
+    tests = [
+        ([1, 2, 3, 4, 5], u"1", u"3", (0, 2)),
+        ([u'Chrome', u'Firefox', u"Internet Explorer", u"Safari"],
+            u'"Firefox"', u'"Internet Explorer"', (1, 2)),
+        (['1000000000000.1', '1000000000000.2', '1000000000000.3', 
+                '1000000000000.4', '1000000000000.5', '1000000000000.6'], 
+            u'1000000000000.2', u'1000000000000.4', (1, 3)),
+             ]
+    for vals, val_a, val_b, idx_tup in tests:
+        assert_equal(indep2var.get_range_idxs(vals, val_a, val_b), idx_tup)
 
 def test_process_fld_names():
     equal_tests = [([u"spam", u"eggs", u"knights who say ni", u"Παντελής 2"], 
@@ -149,8 +166,13 @@ def test_make_fld_val_clause():
     for test in tests:
         assert_equal(dimtables.make_fld_val_clause(*test[0]), test[1])
 
-def test_get_unicode():
-    tests = [(r"C:\abcd\defg\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
+def test_any2unicode():
+    tests = [
+     (1, u"1"),
+     (0.3, u"0.3"),
+     (10000000000.2, u"10000000000.2"),
+     (1000000000000000.2, u"1000000000000000.2"), # fails if any longer
+     (r"C:\abcd\defg\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
      ("C:\\abcd\\defg\\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
      (u"C:\\abcd\\defg\\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
      (u"C:\\unicodebait\\foo.txt", u"C:\\unicodebait\\foo.txt"),
@@ -165,8 +187,28 @@ def test_get_unicode():
       u'C:\\Documents and Settings\\\u03a0\u03b1\u03bd\u03c4\u03b5\u03bb\u03ae\u03c2\\sofa\\_internal')
              ]
     for test in tests:
-        assert_equal(util.get_unicode(test[0]), test[1])
-        assert_true(isinstance(util.get_unicode(test[0]), unicode))
+        assert_equal(util.any2unicode(test[0]), test[1])
+        assert_true(isinstance(util.any2unicode(test[0]), unicode))
+
+def test_str2unicode():
+    tests = [
+     (r"C:\abcd\defg\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
+     ("C:\\abcd\\defg\\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
+     (u"C:\\abcd\\defg\\foo.txt", u"C:\\abcd\\defg\\foo.txt"),
+     (u"C:\\unicodebait\\foo.txt", u"C:\\unicodebait\\foo.txt"),
+     (u"C:\\Identität\\foo.txt", u"C:\\Identität\\foo.txt"),
+     (r"/home/g/abcd/foo.txt", u"/home/g/abcd/foo.txt"),
+     ("/home/g/abcd/foo.txt", u"/home/g/abcd/foo.txt"),
+     (u"/home/René/abcd/foo.txt", u"/home/René/abcd/foo.txt"),
+     (u"/home/Identität/abcd/foo.txt", u"/home/Identität/abcd/foo.txt"),
+     (u"/home/François/abcd/foo.txt", u"/home/François/abcd/foo.txt"),
+     (u"\x93fred\x94", u"\u201Cfred\u201D"),
+     (r"C:\Documents and Settings\Παντελής\sofa\_internal", 
+      u'C:\\Documents and Settings\\\u03a0\u03b1\u03bd\u03c4\u03b5\u03bb\u03ae\u03c2\\sofa\\_internal')
+             ]
+    for test in tests:
+        assert_equal(util.str2unicode(test[0]), test[1])
+        assert_true(isinstance(util.str2unicode(test[0]), unicode))
 
 def test_strip_html():
     tests = [("<body>Freddy</body>", "Freddy"), 

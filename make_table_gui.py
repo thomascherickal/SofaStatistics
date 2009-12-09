@@ -256,6 +256,7 @@ class DlgMakeTable(wx.Dialog,
         Clear dim areas.
         """
         gen_config.GenConfig.OnDatabaseSel(self, event)
+        self.enable_col_btns()
         self.ClearDims()
         
     def OnTableSel(self, event):
@@ -264,4 +265,5 @@ class DlgMakeTable(wx.Dialog,
         Clear dim areas.
         """       
         gen_config.GenConfig.OnTableSel(self, event)
+        self.enable_col_btns()
         self.ClearDims()

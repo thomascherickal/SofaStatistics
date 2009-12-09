@@ -15,18 +15,6 @@ import wx
 
 # must be kept safe to import - must never refer to anything in other modules
 
-def avoid_sci_notn(val):
-    # Avoid scientific notation
-    try:
-        strval = str(val)
-        if re.search(r"\d+e[+-]\d+", strval): # num(s) e +or- num(s)
-            new_val = repr(val) # 1000000000000.4 rather than 1e+12
-        else:
-            new_val = val
-    except Exception:
-        new_val = val
-    return new_val
-
 def is_numeric(val):
     """
     Is a value numeric?  This is operationalised to mean can a value be cast as 
@@ -56,8 +44,26 @@ def is_basic_num(val):
         will pass is_numeric().
     """
     return type(val) in [int, long, float]
+
+def any2unicode(raw):
+    """
+    Get unicode string back from any input.
+    If a number, avoids scientific notation if up to 16 places.
+    """
+    if is_basic_num(raw):
+        # only work with repr if you have to
+        # 0.3 -> 0.3 if print() but 0.29999999999999999 if repr() 
+        strval = unicode(raw)
+        if re.search(r"\d+e[+-]\d+", strval): # num(s) e +or- num(s)
+            return unicode(repr(raw)) # 1000000000000.4 rather than 1e+12
+        else:
+            return unicode(raw)
+    elif isinstance(raw, basestring): # isinstance includes descendants
+        return str2unicode(raw)
+    else:
+        return unicode(raw)
     
-def get_unicode(raw):
+def str2unicode(raw):
     """
     If not a string, just return value unchanged.  Otherwise ...
     Convert byte strings to unicode.
