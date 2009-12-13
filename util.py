@@ -173,10 +173,7 @@ if in_windows():
 
 def get_user_paths():
     local_encoding = sys.getfilesystemencoding()
-    if in_windows():
-        user_path = unicode(os.environ['USERPROFILE'], local_encoding)
-    else:
-        user_path = unicode(os.environ['HOME'], local_encoding)
+    user_path = unicode(os.path.expanduser("~"), local_encoding)
     local_path = os.path.join(user_path, u"sofa")
     return user_path, local_path
 

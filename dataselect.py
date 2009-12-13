@@ -214,8 +214,8 @@ class DataSelectDlg(wx.Dialog):
         dbdetsobj = getdata.getDbDetsObj(dbe, self.default_dbs, 
                                          self.default_tbls, self.con_dets, 
                                          my_globals.SOFA_DEFAULT_DB)
-        (self.con, self.cur, dbs, self.tbls, flds, has_unique, idxs) = \
-            dbdetsobj.getDbDets()
+        (self.con, self.cur, self.dbs, self.tbls, self.flds, self.has_unique, 
+         self.idxs) = dbdetsobj.getDbDets()
         # update tbl dropdown
         self.tbl = self.tbls[0]
         self.reset_tbl_dropdown()
@@ -325,7 +325,7 @@ class DataSelectDlg(wx.Dialog):
             self.make_redesigned_tbl(final_name_types, final_grid_data)
             # refresh fld details etc
             self.tbl, self.flds, self.has_unique, self.idxs = \
-            getdata.RefreshTblDets(self)
+                getdata.RefreshTblDets(self)
     
     def OnNewClick(self, event):
         """
@@ -367,9 +367,9 @@ class DataSelectDlg(wx.Dialog):
         dbe = my_globals.DBE_SQLITE
         dbdetsobj = getdata.getDbDetsObj(dbe, self.default_dbs, 
                                          self.default_tbls, self.con_dets, 
-                                         my_globals.SOFA_DEFAULT_DB, tbl_name)
-        (self.con, self.cur, dbs, self.tbls, flds, has_unique, idxs) = \
-            dbdetsobj.getDbDets()
+                                         my_globals.SOFA_DEFAULT_DB, self.tbl)
+        (self.con, self.cur, self.dbs, self.tbls, self.flds, self.has_unique, 
+            self.idxs) = dbdetsobj.getDbDets()
         # update tbl dropdown
         self.reset_tbl_dropdown()
         # explain to user
@@ -379,8 +379,8 @@ class DataSelectDlg(wx.Dialog):
         wx.BeginBusyCursor()
         read_only = False
         dlg = db_grid.TblEditor(self, dbe, self.con, self.cur, 
-                                my_globals.SOFA_DEFAULT_DB, tbl_name, flds, 
-                                self.var_labels, idxs, read_only)
+                                my_globals.SOFA_DEFAULT_DB, self.tbl, self.flds, 
+                                self.var_labels, self.idxs, read_only)
         wx.EndBusyCursor()
         dlg.ShowModal()
         self._button_enablement()

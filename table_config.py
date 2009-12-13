@@ -131,79 +131,7 @@ class SafeTblNameValidator(wx.PyValidator):
     
     def TransferFromWindow(self):
         return True
-    
-    
-class ConfigTableEntry(settings_grid.SettingsEntry):
-    """
-    final_grid_data should be returned as a list of dicts with the keys:
-    my_globals.TBL_FLD_NAME, etc
-    """
-    
-    def __init__(self, frame, panel, szr, vert_share, read_only, grid_size, 
-                col_dets, data, final_grid_data, insert_data_func=None, 
-                cell_invalidation_func=None):
-        force_focus = False
-        settings_grid.SettingsEntry.__init__(self, frame, panel, szr, 
-            vert_share, read_only, grid_size, col_dets, data, final_grid_data, 
-            force_focus, insert_data_func, cell_invalidation_func)
-        self.debug = False # otherwise set in the parent class ;-)
-        # disable first row (SOFA_ID)
-        attr = wx.grid.GridCellAttr()
-        attr.SetReadOnly(True)
-        self.grid.SetRowAttr(0, attr)
-    
-    def OnCellMove(self, event):
-        debug = True
-        src_row, left_row = settings_grid.SettingsEntry.OnCellMove(self, event)
-        if left_row:
-            if self.debug or debug: print("Row moved from was %s" % src_row)
-            # For row we're leaving, fill in new details.
-            # If an existing row, leave original values alone.
-            fld_name = self.grid.GetCellValue(src_row, 0)
-            fld_type = self.grid.GetCellValue(src_row, 1)
-            try:
-                self.final_grid_data[src_row][my_globals.TBL_FLD_NAME] = \
-                    fld_name
-                self.final_grid_data[src_row][my_globals.TBL_FLD_TYPE] = \
-                    fld_type
-            except IndexError: # leaving what was the new row
-                new_row = {my_globals.TBL_FLD_NAME: fld_name, 
-                           my_globals.TBL_FLD_NAME_ORIG: None, 
-                           my_globals.TBL_FLD_TYPE: fld_type, 
-                           my_globals.TBL_FLD_TYPE_ORIG: None}
-                self.final_grid_data.append(new_row)
-            if self.debug or debug: pprint.pprint(self.final_grid_data)
-                
-    def update_final_grid_data(self):
-        """
-        Update final_grid_data.  Overridden so we can include original field 
-            details (needed when making new version of the original table).
-        Fill in details of fld_names and fld_types (leaving original versions
-            untouched).
-        """
-        debug = False
-        grid_data = self.get_grid_data() # only saved data
-        if debug: 
-            print(grid_data)
-            pprint.pprint(self.final_grid_data)
-        for i, row in enumerate(grid_data):
-            if debug: print(row)
-            self.final_grid_data[i][my_globals.TBL_FLD_NAME] = row[0]
-            self.final_grid_data[i][my_globals.TBL_FLD_TYPE] = row[1]
-        if self.debug or debug: pprint.pprint(self.final_grid_data)
-    
-    def ok_to_delete_row(self, row):
-        """
-        Can delete any row except the new row or the SOFA_ID row
-        Returns boolean and msg.
-        """
-        if self.NewRow(row):
-            return False, _("Unable to delete new row")
-        elif row == 0:
-            return False, _("Unable to delete sofa id row")
-        else:
-            return True, None
-    
+
     
 class ConfigTableDlg(settings_grid.SettingsEntryDlg):
     
@@ -345,3 +273,75 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.tabentry.update_final_grid_data()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
+        
+    
+class ConfigTableEntry(settings_grid.SettingsEntry):
+    """
+    final_grid_data should be returned as a list of dicts with the keys:
+    my_globals.TBL_FLD_NAME, etc
+    """
+    
+    def __init__(self, frame, panel, szr, vert_share, read_only, grid_size, 
+                col_dets, data, final_grid_data, insert_data_func=None, 
+                cell_invalidation_func=None):
+        force_focus = False
+        settings_grid.SettingsEntry.__init__(self, frame, panel, szr, 
+            vert_share, read_only, grid_size, col_dets, data, final_grid_data, 
+            force_focus, insert_data_func, cell_invalidation_func)
+        self.debug = False # otherwise set in the parent class ;-)
+        # disable first row (SOFA_ID)
+        attr = wx.grid.GridCellAttr()
+        attr.SetReadOnly(True)
+        self.grid.SetRowAttr(0, attr)
+    
+    def OnCellMove(self, event):
+        debug = False
+        src_row, left_row = settings_grid.SettingsEntry.OnCellMove(self, event)
+        if left_row:
+            if self.debug or debug: print("Row moved from was %s" % src_row)
+            # For row we're leaving, fill in new details.
+            # If an existing row, leave original values alone.
+            fld_name = self.grid.GetCellValue(src_row, 0)
+            fld_type = self.grid.GetCellValue(src_row, 1)
+            try:
+                self.final_grid_data[src_row][my_globals.TBL_FLD_NAME] = \
+                    fld_name
+                self.final_grid_data[src_row][my_globals.TBL_FLD_TYPE] = \
+                    fld_type
+            except IndexError: # leaving what was the new row
+                new_row = {my_globals.TBL_FLD_NAME: fld_name, 
+                           my_globals.TBL_FLD_NAME_ORIG: None, 
+                           my_globals.TBL_FLD_TYPE: fld_type, 
+                           my_globals.TBL_FLD_TYPE_ORIG: None}
+                self.final_grid_data.append(new_row)
+            if self.debug or debug: pprint.pprint(self.final_grid_data)
+                
+    def update_final_grid_data(self):
+        """
+        Update final_grid_data.  Overridden so we can include original field 
+            details (needed when making new version of the original table).
+        Fill in details of fld_names and fld_types (leaving original versions
+            untouched).
+        """
+        debug = False
+        grid_data = self.get_grid_data() # only saved data
+        if debug: 
+            print(grid_data)
+            pprint.pprint(self.final_grid_data)
+        for i, row in enumerate(grid_data):
+            if debug: print(row)
+            self.final_grid_data[i][my_globals.TBL_FLD_NAME] = row[0]
+            self.final_grid_data[i][my_globals.TBL_FLD_TYPE] = row[1]
+        if self.debug or debug: pprint.pprint(self.final_grid_data)
+    
+    def ok_to_delete_row(self, row):
+        """
+        Can delete any row except the new row or the SOFA_ID row
+        Returns boolean and msg.
+        """
+        if self.NewRow(row):
+            return False, _("Unable to delete new row")
+        elif row == 0:
+            return False, _("Unable to delete sofa id row")
+        else:
+            return True, None
