@@ -392,17 +392,17 @@ class GenDemoTable(DemoDimTable):
         row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
         data_cells_n = len(row_term_nodes) * len(col_term_nodes)
         #print("%s data cells in table" % data_cells_n)
-        row_label_rows_lst = self.getRowLabelsRowLst(row_filters_lst, 
+        row_label_rows_lst = self.get_row_labels_row_lst(row_filters_lst, 
             row_filt_flds_lst, col_measures_lst, col_filters_lst, 
             col_tots_lst, col_filt_flds_lst, row_label_rows_lst, 
             data_cells_n, col_term_nodes, css_idx)
         return row_label_rows_lst
                 
-    def getRowLabelsRowLst(self, row_filters_lst, row_filt_flds_lst, 
-                           col_measures_lst, col_filters_lst, 
-                           col_tots_lst, col_filt_flds_lst, 
-                           row_label_rows_lst, data_cells_n,
-                           col_term_nodes, css_idx):
+    def get_row_labels_row_lst(self, row_filters_lst, row_filt_flds_lst, 
+                               col_measures_lst, col_filters_lst, 
+                               col_tots_lst, col_filt_flds_lst, 
+                               row_label_rows_lst, data_cells_n,
+                               col_term_nodes, css_idx):
         """
         Get list of row data.  Each row in the list is represented
         by a row of strings to concatenate, one per data point.
@@ -493,14 +493,14 @@ class SummDemoTable(DemoDimTable):
         col_tots_lst = [x.is_coltot for x in col_term_nodes]
         data_cells_n = len(row_term_nodes) * len(col_term_nodes)
         #print("%s data cells in table" % data_cells_n)
-        row_label_rows_lst = self.getRowLabelsRowLst(row_filt_flds_lst, 
+        row_label_rows_lst = self.get_row_labels_row_lst(row_filt_flds_lst, 
                                 row_measures_lst, col_filters_lst, 
                                 row_label_rows_lst, col_term_nodes, css_idx)
         return row_label_rows_lst
     
-    def getRowLabelsRowLst(self, row_flds_lst,  
-                           row_measures_lst, col_filters_lst, 
-                           row_label_rows_lst, col_term_nodes, css_idx):
+    def get_row_labels_row_lst(self, row_flds_lst,  
+                               row_measures_lst, col_filters_lst, 
+                               row_label_rows_lst, col_term_nodes, css_idx):
         """
         Get list of row data.  Each row in the list is represented
         by a row of strings to concatenate, one per data point.

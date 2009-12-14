@@ -9,6 +9,13 @@ import util
 
 debug = False
 
+def getDbDetsObj(dbe, default_dbs, default_tbls, con_dets, db=None, tbl=None):
+    """
+    Pass in all con_dets (the dbe will be used to select specific con_dets).
+    """
+    return my_globals.DBE_MODULES[dbe].DbDets(default_dbs, default_tbls, 
+                                              con_dets, db, tbl)
+
 
 # must be before dbe import statements (they have classes based on DbDets)
 class DbDets(object):
@@ -58,6 +65,7 @@ class DbDets(object):
         """
         assert 0, "Must define getDbDets in subclass"
 
+    
 def get_obj_quoter_func(dbe):
     """
     Get appropriate function to wrap content e.g. table or field name, 
@@ -75,13 +83,6 @@ def get_val_quoter_func(dbe):
 def get_placeholder(dbe):
     return my_globals.DBE_MODULES[dbe].get_placeholder()
 
-def getDbDetsObj(dbe, default_dbs, default_tbls, con_dets, db=None, tbl=None):
-    """
-    Pass in all con_dets (the dbe will be used to select specific con_dets).
-    """
-    return my_globals.DBE_MODULES[dbe].DbDets(default_dbs, default_tbls, 
-                                              con_dets, db, tbl)
-    
 def getDbeSyntaxElements(dbe):
     """
     Returns if_clause (a string), and 4 functions - quote_obj(), quote_val(), 

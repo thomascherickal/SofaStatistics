@@ -8,6 +8,40 @@ import tree
 import getdata
 import util
 
+"""
+Dimension node trees are things like:
+    row node = gender
+    col nodes = age group > ethnicity
+These are what the GUI builds when we configure the table.
+Label node trees are what we need to actually display the results.
+    E.g. col label nodes
+    Age Group 
+    1,    2,    3,    5  (4 might be missing if the value hasn't been used)
+    Freq, Freq, Freq, Freq
+The program runs through the label nodes to actually construct the HTML we will
+    be displaying.
+The step of determining which cells are actually needed (e.g. will there be a
+    value 4 for Age Group) involves running SQL with the appropriate filter.
+    Filters are additive as we move towards the end of tree e.g. If we are 
+    looking under gender = 1 and eth = 3 what are the value labels we will need
+    for nation, for instance?
+If there is a global filter to be applied it must be applied everywhere the data
+    is queried.
+We may also need a TOTAl column or row.
+If we have reached the end of the line, we then need to have a cell for each 
+    measure e.g. we may need a frequency, a col and a row %.
+"""
+
+GLOBAL_FILTER = u""
+# global filters must still work if empty strings (for performance when no 
+# filter required).
+if GLOBAL_FILTER:
+    AND_GLOBAL_FILTER = u" AND " + GLOBAL_FILTER
+    WHERE_GLOBAL_FILTER = u" WHERE " + GLOBAL_FILTER
+else:
+    AND_GLOBAL_FILTER = u""
+    WHERE_GLOBAL_FILTER = u""
+
 NOTNULL = u" %s IS NOT NULL " # NOT ISNULL() is not universally supported
 
 def make_fld_val_clause_non_numeric(fld, val, quote_val):
@@ -488,125 +522,221 @@ class LiveTable(DimTable):
                 raise Exception, u"All row nodes must have a variable " + \
                     u"field specified"
             if self.has_row_vals:
-                self.addSubtreeIfVals(tree_dims_node, tree_labels_node, 
-                                  oth_dim_root, dim, filt_flds)
+                self.add_subtree_if_vals(tree_dims_node, tree_labels_node, 
+                                         oth_dim_root, dim, filt_flds)
             else:
                 self.addSubtreeMeasuresOnly(tree_dims_node, 
                                             tree_labels_node, 
                                             filt_flds)            
         elif dim == my_globals.COLDIM:
             if has_fld:
-                self.addSubtreeIfVals(tree_dims_node, tree_labels_node, 
-                                  oth_dim_root, dim, filt_flds)            
+                self.add_subtree_if_vals(tree_dims_node, tree_labels_node, 
+                                         oth_dim_root, dim, filt_flds)            
             else:
                 if self.has_col_measures:
                     self.addColMeasuresSubtreeIfNoFld(tree_dims_node, 
                                                   tree_labels_node)                
-
-    def addSubtreeIfVals(self, tree_dims_node, tree_labels_node, 
-                         oth_dim_root, dim, filt_flds):
+    
+    def get_vals_filt_clause(self, tree_dims_node, tree_labels_node, 
+                             oth_dim_root):
         """
-        If the var node has values to display (if any found in data)
-        (i.e. must have a field not be a summary table row), 
-        the subtree will have two initial 
-        levels - 1) a node for the variable itself
-        (storing labels in its dets_dic),
-        and 2) a set of values nodes - one for each value plus
-        one for the total (if appropriate).
-        Then we need to follow the subtree down a level below each 
-        of the values nodes (assuming the tree_dims_node has any children).        
-        
-        To display a cell, we must know that there will be at least 
-        one descendant cell to show underneath it.              
-        We do this by filtering the raw data by the appropriate row 
-        and column filters.  If any records remain, we can show the 
-        cell.
+        To display a cell, we must know that there will be at least one 
+            descendant cell to show underneath it. We do this by filtering the 
+            raw data by the appropriate row and column filters.  If any records 
+            remain, we can show the cell. As to showing the values beneath the 
+            variable, we should work from the same filtered dataset. For the 
+            cell, we only look at variable subtrees under the cell and all 
+            variable subtrees under the root of the other dimension.        
+        E.g. cols:
+                          gender
+           eth                            agegp
+                                nation            religion
+                                region
+                                
+        and rows:
+                year                    year
+                month
+       
+        Should we show gender? E.g.
+        SELECT gender
+        FROM datasource
+        WHERE NOT ISNULL(gender)
+            AND ( 
+            (NOT ISNULL(agegp) AND NOT ISNULL(nation) AND NOT ISNULL(region))
+                OR
+            (NOT ISNULL(agegp) AND NOT ISNULL(religion))
+            )
+            AND (
+            (NOT ISNULL(year) AND NOT ISNULL(month)) 
+                OR
+            (NOT ISNULL(year))
+            )
+        GROUP BY gender                
+        1) parent filters must all be true (none in example above)
+        2) self field cannot be null
+        3) for each subtree, no fields in subtree can be null
+        4) In the other dimension, for each subtree, 
+        none of the fields can have a Null value.
+        """
+        # 1) e.g. []
+        if tree_labels_node.filts:
+            parent_filts = u" AND ".join(tree_labels_node.filts)
+        else:
+            parent_filts = u""
+        # 2) e.g. " NOT ISNULL(gender) "
+        self_filt = NOTNULL % tree_dims_node.fld
+        # 3) Identify fields already filtered in 1) or 2) already
+        #we will remove them from field lists of subtree term nodes
+        flds_done = len(tree_dims_node.filt_flds)
+        #get subtree term node field lists (with already done fields sliced out)
+        #e.g. gender>eth, gender>agegp>nation>region, agegp>religion
+        # becomes [[eth],[agegp,nation,region],[agegp,religion]]
+        subtree_term_nodes = []
+        for child in tree_dims_node.children:            
+            subtree_term_nodes += child.getTerminalNodes()
+        if subtree_term_nodes:
+            subtree_filt_fld_lsts = [x.filt_flds[flds_done:] for x \
+                                     in subtree_term_nodes]
+            dim_clause = self.tree_fld_lsts_to_clause(\
+                                    tree_fld_lsts=subtree_filt_fld_lsts)
+        else:
+            dim_clause = ""
+        # 4) get all subtree term node field lists (no slicing this time)
+        #  e.g. year>month, year becomes [[year,month],[year]]
+        oth_subtree_term_nodes = []
+        for child in oth_dim_root.children:
+            oth_subtree_term_nodes += child.getTerminalNodes()
+        if oth_subtree_term_nodes:
+            # NB the other dimension could be fieldless e.g. we are a row dim 
+            # and the oth dim has col measures and no field set
+            oth_subtree_filt_fld_lsts = [x.filt_flds for x \
+                                     in oth_subtree_term_nodes \
+                                     if x.filt_flds != [None]]
+            oth_dim_clause = self.tree_fld_lsts_to_clause(\
+                                    tree_fld_lsts=oth_subtree_filt_fld_lsts)
+        else:
+            oth_dim_clause = u""
+        # assemble
+        main_clauses = []
+        for clause in [parent_filts, self_filt, dim_clause, 
+                       oth_dim_clause]:
+            if clause:
+                main_clauses.append(clause)
+        final_filt_clause = u" AND ".join(main_clauses)
+        return final_filt_clause
+
+    def get_vals_sql(self, fld, tree_dims_node, tree_labels_node, oth_dim_root):
+        """
+        Return vals and freqs for a given field with a given set of filtering.
         """
         debug = False
-        val_labels = tree_dims_node.labels
-        bolnumeric = tree_dims_node.bolnumeric
-        fld = tree_dims_node.fld
-        if debug: print(tree_dims_node)
-        final_filt_clause = self.getValsFiltClause(tree_dims_node, 
-                                                   tree_labels_node,
-                                                   oth_dim_root)
+        final_filt_clause = self.get_vals_filt_clause(tree_dims_node, 
+                                                tree_labels_node, oth_dim_root)
         SQL_get_vals = u"SELECT " + fld + u", COUNT(*)" + \
             u" FROM " + self.datasource + \
-            u" WHERE " + final_filt_clause + \
+            u" WHERE " + final_filt_clause + AND_GLOBAL_FILTER + \
             u" GROUP BY " + fld
         if debug: print(SQL_get_vals)
-        self.cur.execute(SQL_get_vals)
-        # get vals and their frequency (across all the other dimension)
-        # [(val, freq, val_label), ...]  
-        all_vals = self.cur.fetchall()
-        if debug: print(all_vals)
+        return SQL_get_vals
+
+    def sort_value_labels(self, sort_order, val_freq_label_lst):
+        """
+        Sort value labels list according to sort option selected.
+        A total cell should be added, or not, after this stage.
+        http://www.python.org/dev/peps/pep-0265/
+        """
+        if sort_order == my_globals.SORT_FREQ_ASC:
+            val_freq_label_lst.sort(key=itemgetter(1)) #sort asc by freq
+        elif sort_order == my_globals.SORT_FREQ_DESC:
+            val_freq_label_lst.sort(key=itemgetter(1), reverse=True) #desc
+        elif sort_order == my_globals.SORT_LABEL:
+            val_freq_label_lst.sort(key=itemgetter(2)) #sort by label
+            
+    def get_sorted_val_freq_label_lst(self, all_vals, tree_dims_node):
+        """
+        Get vals, their freq (across all the other dimension), and their label.
+        [(val, freq, val_label), ...] sorted appropriately.
+        """
+        debug = False
         val_freq_label_lst = []
         for (val, val_freq) in all_vals:
             def_val_label = util.any2unicode(val)
-            val_label = val_labels.get(val, def_val_label)
+            val_label = tree_dims_node.labels.get(val, def_val_label)
             val_tup = (val, val_freq, val_label)
             if debug: print(val_tup)
             val_freq_label_lst.append(val_tup)
-        #http://www.python.org/dev/peps/pep-0265/
-        if tree_dims_node.sort_order == my_globals.SORT_FREQ_ASC:
-            val_freq_label_lst.sort(key=itemgetter(1)) #sort asc by freq
-        elif tree_dims_node.sort_order == my_globals.SORT_FREQ_DESC:
-            val_freq_label_lst.sort(key=itemgetter(1), reverse=True) #desc
-        elif tree_dims_node.sort_order == my_globals.SORT_LABEL:
-            val_freq_label_lst.sort(key=itemgetter(2)) #sort by label
-        if not val_freq_label_lst:
-            return #do not add subtree - no values
-        else:
-            #add level 1 to data tree - the var
-            node_lev1 = tree_labels_node.addChild(LabelNode(label=\
-                                                tree_dims_node.label))
-            if tree_dims_node.has_tot:
-                #freq not needed now that sorting has already occurred
-                val_freq_label_lst.append((u"_tot_", 0, u"TOTAL"))
-            terminal_var = not tree_dims_node.children
-            if terminal_var:
-                var_measures = tree_dims_node.measures
-                if not var_measures:
-                    var_measures = [my_globals.FREQ]
-            for val, val_freq, val_label in val_freq_label_lst:
-                """add level 2 to the data tree - the value nodes 
-                (plus total?); pass on and extend filtering from 
-                higher level in data tree"""
-                val_node_filts = tree_labels_node.filts[:]
-                is_tot = (val == u"_tot_")
-                if is_tot:
-                    val_node_filts.append(NOTNULL % fld)
+        self.sort_value_labels(tree_dims_node.sort_order, val_freq_label_lst)
+        return val_freq_label_lst
+
+    def add_subtree_if_vals(self, tree_dims_node, tree_labels_node, 
+                            oth_dim_root, dim, filt_flds):
+        """
+        If the variable node has values to display (i.e. must have a field, not 
+            be a summary table row, and must find values in data), the subtree 
+            will have two initial levels:
+            1) a node for the variable itself (storing labels in its dets_dic),
+            2) a set of values nodes - one for each value plus one for the 
+            total (if appropriate).
+        Then we need to follow the subtree down a level below each 
+            of the values nodes (assuming the tree_dims_node has any children).       
+        To display a cell, we must know that there will be at least one
+            descendant cell to show underneath it.              
+        We do this by filtering the raw data by the appropriate row and column 
+            filters.  If any records remain, we can show the cell.
+        """
+        debug = False
+        if debug: print(tree_dims_node)
+        fld = tree_dims_node.fld
+        SQL_get_vals = self.get_vals_sql(fld, tree_dims_node, tree_labels_node, 
+                                         oth_dim_root)
+        self.cur.execute(SQL_get_vals)
+        all_vals = self.cur.fetchall()
+        if debug: print(all_vals)
+        if not all_vals:
+            return # do not add subtree - no values
+        # add level 1 to data tree - the var
+        node_lev1 = tree_labels_node.addChild(LabelNode(label=\
+                                                        tree_dims_node.label))
+        val_freq_label_lst = self.get_sorted_val_freq_label_lst(all_vals,
+                                                                tree_dims_node)
+        if tree_dims_node.has_tot:
+            val_freq_label_lst.append((u"_tot_", 0, u"TOTAL"))
+        terminal_var = not tree_dims_node.children
+        if terminal_var:
+            var_measures = tree_dims_node.measures
+            if not var_measures:
+                var_measures = [my_globals.FREQ]
+        for val, val_freq, val_label in val_freq_label_lst:
+            # add level 2 to the data tree - the value nodes (plus total?); 
+            # pass on and extend filtering from higher level in data tree
+            val_node_filts = tree_labels_node.filts[:]
+            is_tot = (val == u"_tot_")
+            if is_tot:
+                val_node_filts.append(NOTNULL % fld)
+            else:
+                bolnumeric = tree_dims_node.bolnumeric
+                clause = make_fld_val_clause(self.dbe, fld, val, bolnumeric, 
+                                             self.quote_val)
+                if debug: print(clause)
+                val_node_filts.append(clause)
+            is_coltot=(is_tot and dim == my_globals.COLDIM)
+            val_node = node_lev1.addChild(LabelNode(label = val_label,
+                                                    filts=val_node_filts))
+            # if node has children, send through again to add further subtree
+            if terminal_var: # a terminal node - add measures
+                # only gen table cols and summ table rows can have measures
+                if (dim == my_globals.COLDIM and self.has_col_measures) or \
+                        (dim == my_globals.ROWDIM and self.has_row_measures):
+                    self.addMeasures(label_node=val_node, measures=var_measures, 
+                                     is_coltot=is_coltot, filt_flds=filt_flds,
+                                     filts=val_node_filts) 
                 else:
-                    clause = make_fld_val_clause(self.dbe, fld, val, bolnumeric, 
-                                                 self.quote_val)
-                    if debug: print(clause)
-                    val_node_filts.append(clause)
-                is_coltot=(is_tot and dim == my_globals.COLDIM)
-                val_node = \
-                    node_lev1.addChild(LabelNode(label = val_label,
-                        filts=val_node_filts))
-                #if tree_dims_node has children, send through again 
-                # to add further subtree
-                if terminal_var: #a terminal node - add measures
-                    #only gen table cols and summ table rows can 
-                    #  have measures
-                    if (dim == my_globals.COLDIM and self.has_col_measures) or \
-                            (dim == my_globals.ROWDIM and \
-                                self.has_row_measures):
-                        self.addMeasures(label_node=val_node, 
-                                         measures=var_measures, 
-                                         is_coltot=is_coltot, 
-                                         filt_flds=filt_flds,
-                                         filts=val_node_filts) 
-                    else:
-                        val_node.filt_flds = filt_flds
-                else:
-                    for child in tree_dims_node.children:
-                        self.addSubtreeToLabelTree(\
-                                        tree_dims_node=child, 
-                                        tree_labels_node=val_node,
-                                        dim=dim, 
-                                        oth_dim_root=oth_dim_root)
+                    val_node.filt_flds = filt_flds
+            else:
+                for child in tree_dims_node.children:
+                    self.addSubtreeToLabelTree(tree_dims_node=child, 
+                                           tree_labels_node=val_node,
+                                           dim=dim, oth_dim_root=oth_dim_root)
     
     def addSubtreeMeasuresOnly(self, tree_dims_node, tree_labels_node, 
                                filt_flds):
@@ -650,98 +780,7 @@ class LiveTable(DimTable):
             measure_node.filt_flds = filt_flds
             label_node.addChild(measure_node)
     
-    def getValsFiltClause(self, tree_dims_node, tree_labels_node, 
-                          oth_dim_root):
-        """
-        To display a cell, we must know that there will be at least 
-        one descendant cell to show underneath it. We do this by 
-        filtering the raw data by the appropriate row 
-        and column filters.  If any records remain, we can show the 
-        cell. As to showing the values beneath the variable, we should 
-        work from the same filtered dataset. For the cell, we only look 
-        at variable subtrees under the cell and all variable subtrees 
-        under the root of the other dimension.
-        
-        E.g. cols:
-                          gender
-           eth                            agegp
-                                nation            religion
-                                region
-                                
-        and rows:
-                year                    year
-                month
-       
-        Should we show gender? E.g.
-        SELECT gender
-        FROM datasource
-        WHERE NOT ISNULL(gender)
-            AND ( 
-            (NOT ISNULL(agegp) AND NOT ISNULL(nation) AND NOT ISNULL(region))
-                OR
-            (NOT ISNULL(agegp) AND NOT ISNULL(religion))
-            )
-            AND (
-            (NOT ISNULL(year) AND NOT ISNULL(month)) 
-                OR
-            (NOT ISNULL(year))
-            )
-        GROUP BY gender                
-        1) parent filters must all be true (none in example above)
-        2) self field cannot be null
-        3) for each subtree, no fields in subtree can be null
-        4) In the other dimension, for each subtree, 
-        none of the fields can have a Null value.
-        """
-        #1) e.g. []
-        if tree_labels_node.filts:
-            parent_filts = u" AND ".join(tree_labels_node.filts)
-        else:
-            parent_filts = u""
-        #2) e.g. " NOT ISNULL(gender) "
-        self_filt = NOTNULL % tree_dims_node.fld
-        #3 Identify fields already filtered in 1) or 2) already
-        #we will remove them from field lists of subtree term nodes
-        flds_done = len(tree_dims_node.filt_flds)
-        #get subtree term node field lists (with already done fields sliced out)
-        #e.g. gender>eth, gender>agegp>nation>region, agegp>religion
-        # becomes [[eth],[agegp,nation,region],[agegp,religion]]
-        subtree_term_nodes = []
-        for child in tree_dims_node.children:            
-            subtree_term_nodes += child.getTerminalNodes()
-        if subtree_term_nodes:
-            subtree_filt_fld_lsts = [x.filt_flds[flds_done:] for x \
-                                     in subtree_term_nodes]
-            dim_clause = self.treeFldLstsToClause(tree_fld_lsts=\
-                                             subtree_filt_fld_lsts)
-        else:
-            dim_clause = ""
-        #4 - get all subtree term node field lists (no slicing this time)
-        #  e.g. year>month, year becomes [[year,month],[year]]
-        oth_subtree_term_nodes = []
-        for child in oth_dim_root.children:
-            oth_subtree_term_nodes += child.getTerminalNodes()
-        if oth_subtree_term_nodes:
-            #NB the other dimension could be fieldless e.g. 
-            #  we are a row dim and the oth dim has col measures
-            #  and no field set
-            oth_subtree_filt_fld_lsts = [x.filt_flds for x \
-                                     in oth_subtree_term_nodes \
-                                     if x.filt_flds != [None]]
-            oth_dim_clause = self.treeFldLstsToClause(tree_fld_lsts=\
-                                             oth_subtree_filt_fld_lsts)
-        else:
-            oth_dim_clause = u""
-        #assemble
-        main_clauses = []
-        for clause in [parent_filts, self_filt, dim_clause, 
-                       oth_dim_clause]:
-            if clause:
-                main_clauses.append(clause)
-        final_filt_clause = u" AND ".join(main_clauses)
-        return final_filt_clause
-    
-    def treeFldLstsToClause(self, tree_fld_lsts):
+    def tree_fld_lsts_to_clause(self, tree_fld_lsts):
         """
         [[eth],[agegp,nation,region],[agegp,religion]]
         becomes
@@ -807,20 +846,32 @@ class GenTable(LiveTable):
         row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
         data_cells_n = len(row_term_nodes) * len(col_term_nodes)
         if self.debug or debug: print(u"%s data cells in table" % data_cells_n)
-        row_label_rows_lst = self.getRowLabelsRowLst(row_filters_lst, 
+        row_label_rows_lst = self.get_row_labels_row_lst(row_filters_lst, 
             row_filt_flds_lst, col_measures_lst, col_filters_lst, 
             col_tots_lst, col_filt_flds_lst, row_label_rows_lst, 
             data_cells_n, col_term_nodes, css_idx)
         return row_label_rows_lst
-                
-    def getRowLabelsRowLst(self, row_filters_lst, row_filt_flds_lst, 
-                           col_measures_lst, col_filters_lst, 
-                           col_tots_lst, col_filt_flds_lst, 
-                           row_label_rows_lst, data_cells_n,
-                           col_term_nodes, css_idx):
+    
+    def get_data_sql(self, SQL_table_select_clauses_lst):
+        """
+        Get SQL for data values e.g. percentages, frequencies etc.
+        """
+        debug = False
+        SQL_select_results = u"SELECT " + \
+                 u", ".join(SQL_table_select_clauses_lst) + \
+                 u" FROM " + self.datasource + \
+                 WHERE_GLOBAL_FILTER
+        if debug: print(SQL_select_results)
+        return SQL_select_results
+            
+    def get_row_labels_row_lst(self, row_filters_lst, row_filt_flds_lst, 
+                               col_measures_lst, col_filters_lst, 
+                               col_tots_lst, col_filt_flds_lst, 
+                               row_label_rows_lst, data_cells_n,
+                               col_term_nodes, css_idx):
         """
         Get list of row data.  Each row in the list is represented
-        by a row of strings to concatenate, one per data point.
+            by a row of strings to concatenate, one per data point.
         """
         
         """Build lists of data item HTML (data_item_presn_lst)
@@ -874,11 +925,11 @@ class GenTable(LiveTable):
                     first = False
                 else:
                     cellclass = CSS_DATACELL
-                #build data row list
+                # build data row list
                 data_item_presn_lst.append((u"<td class='%s'>" % cellclass, 
                                            colmeasure, u"</td>"))
-                #build SQL clauses for next SQL query
-                clause = self.getFuncClause(measure=colmeasure,
+                # build SQL clauses for next SQL query
+                clause = self.get_func_clause(measure=colmeasure,
                           row_filters_lst=row_filter, 
                           col_filters_lst=col_filter, 
                           all_but_last_row_filters_lst=\
@@ -890,19 +941,14 @@ class GenTable(LiveTable):
                           cols_not_null_lst=cols_not_null_lst, #needed for rowpct
                           is_coltot=coltot)
                 SQL_table_select_clauses_lst.append(clause)
-                #process SQL queries when number of clauses reaches certain threshold
+                # process SQL queries when number of clauses reaches threshold
                 if len(SQL_table_select_clauses_lst) == max_select_vars \
-                    or i == data_cells_n - 1:
-                    SQL_select_results = u"SELECT " + \
-                             u", ".join(SQL_table_select_clauses_lst) + \
-                             u" FROM " + self.datasource
-                    if debug: print(SQL_select_results)
+                        or i == data_cells_n - 1:
+                    SQL_select_results = \
+                        self.get_data_sql(SQL_table_select_clauses_lst)
                     self.cur.execute(SQL_select_results)
-                    
                     #print(results) # ()
                     #print(self.cur.fetchone()) # [1,0,1,0,0,1 etc]
-                    
-                    
                     results += self.cur.fetchone()
                     SQL_table_select_clauses_lst = []
                 i=i+1
@@ -919,10 +965,10 @@ class GenTable(LiveTable):
                 i=i+1
         return row_label_rows_lst
     
-    def getFuncClause(self, measure, row_filters_lst, col_filters_lst, 
-                      all_but_last_row_filters_lst, last_row_filter,
-                      all_but_last_col_filters_lst, last_col_filter,
-                      cols_not_null_lst, is_coltot):
+    def get_func_clause(self, measure, row_filters_lst, col_filters_lst, 
+                        all_but_last_row_filters_lst, last_row_filter,
+                        all_but_last_col_filters_lst, last_col_filter,
+                        cols_not_null_lst, is_coltot):
         """
         measure - e.g. FREQ
         row_filters_lst - effectively applies filtering to
@@ -945,23 +991,22 @@ class GenTable(LiveTable):
         debug = False
         # To get freq, evaluate matching values to 1 (otherwise 0) then sum
         # With most dbs, boolean returns 1 for True and 0 for False
-        freq = u"SUM(" + \
-            self.get_summable(u" AND ".join(row_filters_lst + col_filters_lst)) \
-            + u")"
-        col_freq = u"SUM(" + \
+        freq = u"SUM(%s)" % \
+            self.get_summable(u" AND ".join(row_filters_lst + col_filters_lst))
+        col_freq = u"SUM(%s)" % \
             self.get_summable(u" AND ".join( row_filters_lst + \
-                                         all_but_last_col_filters_lst)) + u")"
+                                         all_but_last_col_filters_lst))
         if debug: pprint.pprint(freq)
         if measure == my_globals.FREQ:
             if not is_coltot:
-                return freq
+                func_clause = freq
             else:
-                return col_freq
+                func_clause = col_freq
         elif measure == my_globals.COLPCT:
             if not is_coltot:
                 numerator = freq
-                #we want to divide by all values where all the rows but the last match.
-                #the last row cannot be null.  And all column values must match.
+                # must divide by all values where all but the last row match.
+                # the last row cannot be null and all column values must match.
                 denom_filters_lst = []
                 colpct_filter_lst = []
                 colpct_filter_lst.append(u" AND ".join(all_but_last_row_filters_lst))
@@ -969,8 +1014,8 @@ class GenTable(LiveTable):
                 colpct_filter_lst.append(u" AND ".join(col_filters_lst))
             else:
                 numerator = col_freq
-                #we want to divide by all values where all the rows but the last match.
-                #the last row cannot be null. And the col values cannot be null.
+                # must divide by all values where all but the last row match.
+                # the last row cannot be null and the col values cannot be null.
                 denom_filters_lst = []
                 colpct_filter_lst = []
                 colpct_filter_lst.append(u" AND ".join(all_but_last_row_filters_lst))
@@ -979,12 +1024,12 @@ class GenTable(LiveTable):
             for filter in colpct_filter_lst:
                 if filter != u"":
                     denom_filters_lst.append(filter)
-            denominator = u"SUM(" + self.get_summable(u" AND ".join(
-                                                    denom_filters_lst)) + u")"
+            denominator = u"SUM(%s)" % \
+                            self.get_summable(u" AND ".join(denom_filters_lst))
             perc = u"100*(%s)/%s" % (numerator, denominator)
             template = self.if_clause % (NOTNULL % perc, perc, 0)
             #print(template) #debug
-            return template
+            func_clause = template
         elif measure == my_globals.ROWPCT:
             if not is_coltot:
                 numerator = freq
@@ -999,16 +1044,18 @@ class GenTable(LiveTable):
                 for filter in rowpct_filter_lst:
                     if filter != u"":
                         denom_filters_lst.append(filter)
-                denominator = u"SUM(" + \
-                    self.get_summable(u" AND ".join(denom_filters_lst)) + u")"
+                denominator = u"SUM(%s)" % \
+                            self.get_summable(u" AND ".join(denom_filters_lst))
                 perc = u"100*(%s)/%s" % (numerator, denominator)
                 template = self.if_clause % (NOTNULL % perc, perc, 0)
                 #print(numerator, denominator)
-                return template
+                func_clause = template
             else:
-                return u"100"
+                func_clause = u"100"
         else:
             raise Exception, u"Measure %s not available" % measure
+        if debug: print(func_clause)
+        return func_clause
         
                     
 class SummTable(LiveTable):
@@ -1049,14 +1096,14 @@ class SummTable(LiveTable):
         col_tots_lst = [x.is_coltot for x in col_term_nodes]
         data_cells_n = len(row_term_nodes) * len(col_term_nodes)
         if self.debug: print(u"%s data cells in table" % data_cells_n)
-        row_label_rows_lst = self.getRowLabelsRowLst(row_filt_flds_lst, 
+        row_label_rows_lst = self.get_row_labels_row_lst(row_filt_flds_lst, 
                                 row_measures_lst, col_filters_lst, 
                                 row_label_rows_lst, col_term_nodes, css_idx)
         return row_label_rows_lst
     
-    def getRowLabelsRowLst(self, row_flds_lst,  
-                           row_measures_lst, col_filters_lst, 
-                           row_label_rows_lst, col_term_nodes, css_idx):
+    def get_row_labels_row_lst(self, row_flds_lst,  
+                               row_measures_lst, col_filters_lst, 
+                               row_label_rows_lst, col_term_nodes, css_idx):
         """
         Get list of row data.  Each row in the list is represented
         by a row of strings to concatenate, one per data point.
@@ -1077,7 +1124,7 @@ class SummTable(LiveTable):
                     first = False
                 else:
                     cellclass = CSS_DATACELL
-                data_val = self.getDataVal(rowmeasure, row_fld_lst[0], 
+                data_val = self.get_data_val(rowmeasure, row_fld_lst[0], 
                                              col_filter_lst)
                 data_item_lst.append(u"<td class='%s'>%s</td>" % \
                                      (cellclass, data_val))
@@ -1103,7 +1150,7 @@ class SummTable(LiveTable):
                 break
         return val
     
-    def getDataVal(self, measure, row_fld, col_filter_lst):
+    def get_data_val(self, measure, row_fld, col_filter_lst):
         """
         measure - e.g. MEAN
         row_fld - the numeric field we are calculating the summary of.  NB if
@@ -1113,9 +1160,9 @@ class SummTable(LiveTable):
         debug = False
         col_filt_clause = u" AND ".join(col_filter_lst)
         if col_filt_clause:
-            filter = u" WHERE " + col_filt_clause
+            filter = u" WHERE " + col_filt_clause + AND_GLOBAL_FILTER
         else: 
-            filter = u""
+            filter = WHERE_GLOBAL_FILTER
         # if using raw data (or finding bad data) must handle non-numeric values 
         # myself
         SQL_get_vals = u"SELECT %s " % row_fld + \
