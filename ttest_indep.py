@@ -21,8 +21,8 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         """
         Update phrase based on GroupBy, Group A, Group B, and Averaged by field.
         """
-        var_gp, label_gp, val_a, label_a, val_b, label_b, \
-            var_avg, label_avg = self.GetDropVals()
+        unused, unused, label_gp, unused, label_a, unused, label_b, unused, \
+            label_avg = self.get_drop_vals()
         self.lblPhrase.SetLabel(_("Does %(gp)s \"%(a)s\" have a different "
                                   "average %(avg)s from \"%(b)s\"?") % \
                                   {"gp": label_gp, "a": label_a, 
@@ -31,14 +31,15 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
     def getScript(self, css_idx):
         "Build script from inputs"
         script_lst = []
-        var_gp, label_gp, val_a, label_a, val_b, label_b, \
-            var_avg, label_avg = self.GetDropVals()
+        var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \
+            var_avg, label_avg = self.get_drop_vals()
         strGet_Sample = u"sample_%s = core_stats.get_list(" + \
             u"dbe=\"%s\", " % self.dbe + \
             u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
             u"fld_measure=\"%s\", " % var_avg + \
             u"fld_filter=\"%s\", " % var_gp + \
-            u"filter_val=%s)"
+            u"filter_val=%s, " + \
+            u"bolnumeric=%s)" % var_gp_numeric
         script_lst.append(u"dp = 3")
         script_lst.append(strGet_Sample % (u"a", val_a))
         script_lst.append(strGet_Sample % (u"b", val_b))
@@ -53,5 +54,4 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             u"level=my_globals.OUTPUT_RESULTS_ONLY, " + \
             u"css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append(u"fil.write(ttest_output)")
-        return u"\n".join(script_lst)
-    
+        return u"\n".join(script_lst)    

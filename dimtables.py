@@ -44,26 +44,6 @@ else:
 
 NOTNULL = u" %s IS NOT NULL " # NOT ISNULL() is not universally supported
 
-def make_fld_val_clause_non_numeric(fld, val, quote_val):
-    clause = "%s = " % fld + quote_val(val)
-    return clause
-    
-def make_fld_val_clause(dbe, fld, val, bolnumeric, quote_val):
-    """
-    Make a filter clause with a field name = a value (numeric or non-numeric).
-    quote_val -- function specific to database engine for quoting values
-    """
-    num = True
-    if not bolnumeric:
-        num = False
-    elif dbe == my_globals.DBE_SQLITE: # if SQLite may still be non-numeric
-        if not util.is_basic_num(val):
-            num = False
-    if num:
-        clause = u"%s = %s" % (fld, val)
-    else:
-        clause = make_fld_val_clause_non_numeric(fld, val, quote_val)
-    return clause
 
 class DimNodeTree(tree.NodeTree):
     """
@@ -715,8 +695,9 @@ class LiveTable(DimTable):
                 val_node_filts.append(NOTNULL % fld)
             else:
                 bolnumeric = tree_dims_node.bolnumeric
-                clause = make_fld_val_clause(self.dbe, fld, val, bolnumeric, 
-                                             self.quote_val)
+                bolsqlite = (dbe == my_globals.DBE_SQLITE)
+                clause = util.make_fld_val_clause(bolsqlite, fld, val, 
+                                                  bolnumeric, self.quote_val)
                 if debug: print(clause)
                 val_node_filts.append(clause)
             is_coltot=(is_tot and dim == my_globals.COLDIM)

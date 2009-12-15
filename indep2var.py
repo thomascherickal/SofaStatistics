@@ -385,7 +385,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
                     pass
         self.dropGroupB.SetSelection(idx_b)
     
-    def GetDropVals(self):
+    def get_drop_vals(self):
         """
         Get values from main drop downs.
         Returns var_gp, label_gp, val_a, label_a, 
@@ -405,7 +405,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         if not var_gp_numeric:
             val_a = u"\"%s\"" % val_a
             val_b = u"\"%s\"" % val_b
-        return var_gp, label_gp, val_a, label_a, \
+        return var_gp_numeric, var_gp, label_gp, val_a, label_a, \
             val_b, label_b, var_avg, label_avg
         
     def OnAveragedSel(self, event):        
@@ -449,14 +449,14 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
             wx.MessageBox(_("Group A and Group B must be different"))
             return False
         if self.takes_range:
-            var_gp, unused, unused, unused, unused, unused, unused, unused = \
-                self.GetDropVals()
+            var_gp_numeric, var_gp, unused, unused, unused, unused, unused, \
+                unused, unused = self.get_drop_vals()
             # group a must be lower than group b
             val_a, unused = \
                 getdata.extractChoiceDets(self.dropGroupA.GetStringSelection())
             val_b, unused = \
                 getdata.extractChoiceDets(self.dropGroupB.GetStringSelection())
-            if self.flds[var_gp][my_globals.FLD_BOLNUMERIC]:
+            if var_gp_numeric:
                 # NB SQLite could have a string in a numeric field
                 # could cause problems even if the string value is not one of 
                 # the ones being tested as a range boundary here.

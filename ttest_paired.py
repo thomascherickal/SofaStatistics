@@ -26,7 +26,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
     def getScript(self, css_idx):
         "Build script from inputs"
         script_lst = []
-        var_a, label_a, var_b, label_b = self.GetDropVals()
+        var_a, label_a, var_b, label_b = self.get_drop_vals()
         script_lst.append(u"sample_a, sample_b = " + \
             u"core_stats.get_paired_lists(" + \
             u"dbe=\"%s\", " % self.dbe + \

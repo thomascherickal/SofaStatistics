@@ -15,6 +15,27 @@ import wx
 
 # must be kept safe to import - must never refer to anything in other modules
 
+def make_fld_val_clause_non_numeric(fld, val, quote_val):
+    clause = "%s = " % fld + quote_val(val)
+    return clause
+    
+def make_fld_val_clause(bolsqlite, fld, val, bolnumeric, quote_val):
+    """
+    Make a filter clause with a field name = a value (numeric or non-numeric).
+    quote_val -- function specific to database engine for quoting values
+    """
+    num = True
+    if not bolnumeric:
+        num = False
+    elif bolsqlite: # if SQLite may still be non-numeric
+        if not is_basic_num(val):
+            num = False
+    if num:
+        clause = u"%s = %s" % (fld, val)
+    else:
+        clause = make_fld_val_clause_non_numeric(fld, val, quote_val)
+    return clause
+
 def is_numeric(val):
     """
     Is a value numeric?  This is operationalised to mean can a value be cast as 

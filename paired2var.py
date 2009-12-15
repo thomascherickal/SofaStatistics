@@ -238,7 +238,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.UpdateDefaults()
         event.Skip()
         
-    def GetDropVals(self):
+    def get_drop_vals(self):
         """
         Get values from main drop downs.
         Returns var_a, label_a, var_b, label_b.
@@ -253,7 +253,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         """
         Update phrase based on Group A and Group B.
         """
-        var_a, label_a, var_b, label_b = self.GetDropVals()
+        var_a, label_a, var_b, label_b = self.get_drop_vals()
         self.lblPhrase.SetLabel(_("Is \"%(a)s\" different from \"%(b)s\"?") % \
                                 {"a": label_a, "b": label_b})
     

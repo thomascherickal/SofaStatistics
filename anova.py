@@ -26,8 +26,8 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         """
         Update phrase based on GroupBy, Group A, Group B, and Averaged by field.
         """
-        var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
-            label_avg = self.GetDropVals()
+        unused, unused, unused, unused, label_a, unused, label_b, unused, \
+            label_avg = self.get_drop_vals()
         self.lblPhrase.SetLabel(_("Does average %(avg)s vary in the groups "
             "between \"%(a)s\" and \"%(b)s\"?") % {"avg": label_avg, 
                                                    "a": label_a, "b": label_b})
@@ -42,34 +42,32 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
     def getScript(self, css_idx):
         "Build script from inputs"
         debug = False
-        script_lst = []
-        var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, \
-            label_avg = self.GetDropVals()        
-        # need list of values in range
-        idx_val_a, idx_val_b = indep2var.get_range_idxs(self.vals, val_a, val_b)
-        vals_in_range = self.vals[idx_val_a: idx_val_b + 1]
-        var_gp_numeric = self.flds[var_gp][my_globals.FLD_BOLNUMERIC]
-        if not var_gp_numeric:
-            vals_in_range = ["\"%s\"" % x for x in vals_in_range]
+        var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \
+            var_avg, label_avg = self.get_drop_vals()
         strGet_Sample = u"%s = core_stats.get_list(" + \
             u"dbe=\"%s\", " % self.dbe + \
             u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
             u"fld_measure=\"%s\", " % var_avg + \
             u"fld_filter=\"%s\", " % var_gp + \
-            u"filter_val=%s)"
-        script_lst.append(u"dp = 3")
+            u"filter_val=%s, " + \
+            u"bolnumeric=%s)" % var_gp_numeric
+        # need sample for each of the values in range
+        script_lst = [u"dp = 3"]
         lst_samples = []
         lst_labels = []
+        idx_val_a, idx_val_b = indep2var.get_range_idxs(self.vals, val_a, val_b)
+        vals_in_range = self.vals[idx_val_a: idx_val_b + 1]
         for i, val in enumerate(vals_in_range):
             sample_name = u"sample_%s" % i
-            script_lst.append(strGet_Sample % (sample_name, val))
+            val_str_quoted = val if var_gp_numeric else "\"%s\"" % val
+            script_lst.append(strGet_Sample % (sample_name, val_str_quoted))
             lst_samples.append(sample_name)
             try:
                 val_label = self.val_dics[var_gp][val]
             except KeyError:
-                val_label = unicode(val).upper().strip('"')
+                val_label = unicode(val).upper()
             lst_labels.append(val_label)
-        samples = u"[" + u", ".join(lst_samples) + u"]"
+        samples = u"[%s]" % u", ".join(lst_samples)
         script_lst.append(u"samples = %s" % samples)
         script_lst.append(u"labels = %s" % lst_labels)
         script_lst.append(u"label_a = \"%s\"" % label_a)
@@ -86,5 +84,4 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, "
             u"css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append(u"fil.write(anova_output)")
-        return u"\n".join(script_lst)
-    
+        return u"\n".join(script_lst)    

@@ -28,14 +28,14 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         """
         Update phrase based on Group A and Group B.
         """
-        var_a, label_a, var_b, label_b = self.GetDropVals()
+        unused, label_a, unused, label_b = self.get_drop_vals()
         self.lblPhrase.SetLabel(_("Is there a relationship between "
             "\"%(a)s\" and \"%(b)s\"") % {"a": label_a, "b": label_b})
     
     def getScript(self, css_idx):
         "Build script from inputs"
         script_lst = []
-        var_a, label_a, var_b, label_b = self.GetDropVals()
+        var_a, label_a, var_b, label_b = self.get_drop_vals()
         script_lst.append(u"dp = 3")
         script_lst.append(u"var_label_a = \"%s\"" % label_a)
         script_lst.append(u"var_label_b = \"%s\"" % label_b)

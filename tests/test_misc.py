@@ -15,7 +15,6 @@ import decimal
 
 #from .output import _strip_html
 import my_globals
-import dimtables
 import importer
 import indep2var
 import output
@@ -148,23 +147,23 @@ def test_make_fld_val_clause():
                   my_globals.DBE_PGSQL: dbe_postgresql.quote_val,
                   }
     # make_fld_val_clause(dbe, fld, val, bolnumeric, quote_val):
-    tests = [((my_globals.DBE_SQLITE, "var", "fred", False, 
+    tests = [((True, "var", "fred", False, 
          quote_vals[my_globals.DBE_SQLITE]), "var = \"fred\""),
-       ((my_globals.DBE_SQLITE, "var", 5, True, 
+       ((True, "var", 5, True, 
          quote_vals[my_globals.DBE_SQLITE]), "var = 5"),
-       ((my_globals.DBE_SQLITE, "var", "spam", True, # numeric type but string
+       ((True, "var", "spam", True, # numeric type but string
          quote_vals[my_globals.DBE_SQLITE]), "var = \"spam\""),
-       ((my_globals.DBE_MYSQL, "var", "fred", False, 
+       ((False, "var", "fred", False, 
          quote_vals[my_globals.DBE_MYSQL]), "var = \"fred\""),
-       ((my_globals.DBE_MYSQL, "var", 5, True, 
+       ((False, "var", 5, True, 
          quote_vals[my_globals.DBE_MYSQL]), "var = 5"),
-       ((my_globals.DBE_PGSQL, "var", "fred", False, 
+       ((False, "var", "fred", False, 
          quote_vals[my_globals.DBE_PGSQL]), "var = 'fred'"),
-       ((my_globals.DBE_PGSQL, "var", 5, True, 
+       ((False, "var", 5, True, 
          quote_vals[my_globals.DBE_PGSQL]), "var = 5"),
         ]
     for test in tests:
-        assert_equal(dimtables.make_fld_val_clause(*test[0]), test[1])
+        assert_equal(util.make_fld_val_clause(*test[0]), test[1])
 
 def test_any2unicode():
     tests = [

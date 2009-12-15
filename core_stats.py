@@ -13,19 +13,34 @@ import util
 D = decimal.Decimal
 decimal.getcontext().prec = 200
 
-def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val):
+GLOBAL_FILTER = u""
+# global filters must still work if empty strings (for performance when no 
+# filter required).
+if GLOBAL_FILTER:
+    AND_GLOBAL_FILTER = u" AND " + GLOBAL_FILTER
+    WHERE_GLOBAL_FILTER = u" WHERE " + GLOBAL_FILTER
+else:
+    AND_GLOBAL_FILTER = u""
+    WHERE_GLOBAL_FILTER = u""
+
+
+def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val, bolnumeric):
     """
     Get list of non-missing values in field.
     Used, for example, in the independent samples t-test.
     """
     debug = False
-    quoter = getdata.get_obj_quoter_func(dbe)
-    placeholder = getdata.get_placeholder(dbe)
-    SQL_get_list = u"SELECT %s FROM %s WHERE %s IS NOT NULL AND %s = %s" % \
-                    (quoter(fld_measure), quoter(tbl), quoter(fld_measure), 
-                     quoter(fld_filter), placeholder)
+    val_quoter = getdata.get_val_quoter_func(dbe)
+    bolsqlite = (dbe == my_globals.DBE_SQLITE)
+    fld_val_clause = util.make_fld_val_clause(bolsqlite, fld_filter, filter_val, 
+                                              bolnumeric, val_quoter)
+    obj_quoter = getdata.get_obj_quoter_func(dbe)
+    SQL_get_list = u"SELECT %s " % obj_quoter(fld_measure) + \
+        "FROM %s " % obj_quoter(tbl) + \
+        "WHERE %s IS NOT NULL " % obj_quoter(fld_measure) + \
+        "AND %s " % fld_val_clause + AND_GLOBAL_FILTER
     if debug: print(SQL_get_list)
-    cur.execute(SQL_get_list, (filter_val,))
+    cur.execute(SQL_get_list)
     lst = [x[0] for x in cur.fetchall()]
     return lst
 
@@ -38,8 +53,8 @@ def get_paired_lists(dbe, cur, tbl, fld_a, fld_b):
     quoter = getdata.get_obj_quoter_func(dbe)
     SQL_get_lists = u"SELECT %s, %s " % (quoter(fld_a), quoter(fld_b)) + \
         u"FROM %s " % quoter(tbl) + \
-        u"WHERE %s IS NOT NULL AND %s IS NOT NULL" % (quoter(fld_a), 
-                                                      quoter(fld_b))
+        u"WHERE %s IS NOT NULL " % quoter(fld_a) + \
+        u" AND %s IS NOT NULL " % quoter(fld_b) + AND_GLOBAL_FILTER
     cur.execute(SQL_get_lists)
     data_tups = cur.fetchall()
     lst_a = [x[0] for x in data_tups]
@@ -80,9 +95,11 @@ def get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b):
     SQL_row_vals_used = u"""SELECT %(qfld_a)s
         FROM %(qtbl)s
         WHERE %(qfld_b)s IS NOT NULL AND %(qfld_a)s IS NOT NULL
+        %(and_global_filter)s
         GROUP BY %(qfld_a)s
         ORDER BY %(qfld_a)s""" % {"qtbl": qtbl, "qfld_a": qfld_a, 
-                                  "qfld_b": qfld_b}
+                                  "qfld_b": qfld_b, 
+                                  "and_global_filter": AND_GLOBAL_FILTER}
     cur.execute(SQL_row_vals_used)
     vals_a = [x[0] for x in cur.fetchall()]
     if len(vals_a) > 30:
@@ -91,9 +108,11 @@ def get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b):
     SQL_col_vals_used = u"""SELECT %(qfld_b)s
         FROM %(qtbl)s
         WHERE %(qfld_a)s IS NOT NULL AND %(qfld_b)s IS NOT NULL
+        %(and_global_filter)s
         GROUP BY %(qfld_b)s
         ORDER BY %(qfld_b)s""" % {"qtbl": qtbl, "qfld_a": qfld_a, 
-                                  "qfld_b": qfld_b}
+                                  "qfld_b": qfld_b, 
+                                  "and_global_filter": AND_GLOBAL_FILTER}
     cur.execute(SQL_col_vals_used)
     vals_b = [x[0] for x in cur.fetchall()]
     if len(vals_b) > 30:
@@ -114,6 +133,7 @@ def get_obs_exp(dbe, cur, tbl, flds, fld_a, fld_b):
             sql_lst.append(clause)
     SQL_get_obs += u", ".join(sql_lst)
     SQL_get_obs += u"\nFROM %s " % qtbl
+    SQL_get_obs += u"\n%s " % WHERE_GLOBAL_FILTER
     if debug: print(SQL_get_obs)
     cur.execute(SQL_get_obs)
     tup_obs = cur.fetchall()[0]
@@ -149,8 +169,10 @@ def get_fracs(cur, qtbl, qfld):
     SQL_get_fracs = u"""SELECT %(qfld)s, COUNT(*)
         FROM %(qtbl)s 
         WHERE %(qfld)s IS NOT NULL
+        %(and_global_filter)s
         GROUP BY %(qfld)s
-        ORDER BY %(qfld)s""" % {"qfld": qfld, "qtbl": qtbl}
+        ORDER BY %(qfld)s""" % {"qfld": qfld, "qtbl": qtbl, 
+                                "and_global_filter": AND_GLOBAL_FILTER}
     if debug: print(SQL_get_fracs)
     cur.execute(SQL_get_fracs)
     lst_counts = []
