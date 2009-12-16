@@ -81,6 +81,8 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupA.Bind(wx.EVT_CHOICE, self.OnGroupSel)
         self.dropGroupA.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickGroupA)
+        self.dropGroupA.SetToolTipString(_("Right click variables to view/edit "
+                                           "details"))
         szrVarsTop.Add(self.lblGroupA, 0, wx.RIGHT, 5)
         szrVarsTop.Add(self.dropGroupA, 0, wx.GROW)
         # group B
@@ -88,6 +90,8 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupSel)
         self.dropGroupB.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickGroupB)
+        self.dropGroupB.SetToolTipString(_("Right click variables to view/edit "
+                                           "details"))
         self.setup_groups()
         szrVarsTop.Add(self.lblGroupB, 0, wx.RIGHT, 5)
         szrVarsTop.Add(self.dropGroupB, 0, wx.GROW)
@@ -121,7 +125,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrLevel.Add(radResults, 0, wx.RIGHT, 10)
         szrBottomLeft.Add(szrLevel, 0)
         szrBottom.Add(szrBottomLeft, 1, wx.GROW)
-        szrBottom.Add(self.szrButtons, 0, wx.GROW|wx.LEFT, 10)
+        szrBottom.Add(self.szrBtns, 0, wx.GROW|wx.LEFT, 10)
         szrMain.Add(szrDesc, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
@@ -132,7 +136,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
     def OnRightClickGroupA(self, event):
         var_a, choice_item = self.get_var_a()
         var_name, var_label = getdata.extractChoiceDets(choice_item)
-        updated = projects.SetVarProps(choice_item, var_name, var_label, 
+        updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
@@ -141,7 +145,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
     def OnRightClickGroupB(self, event):
         var_b, choice_item = self.get_var_b()
         var_name, var_label = getdata.extractChoiceDets(choice_item)
-        updated = projects.SetVarProps(choice_item, var_name, var_label, 
+        updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:

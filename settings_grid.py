@@ -53,22 +53,22 @@ class SettingsEntryDlg(wx.Dialog):
                                 force_focus, insert_data_func, 
                                 row_validation_func)
         # Close only
-        self.SetupButtons()
+        self.setup_btns()
         # sizers
-        self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
+        self.szrMain.Add(self.szrBtns, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
         self.Layout()
         self.tabentry.grid.SetFocus()
         
-    def SetupButtons(self, inc_delete=False, inc_insert=False):
+    def setup_btns(self, inc_delete=False, inc_insert=False):
         """
         Separated for text_browser reuse
         """
         btnCancel = wx.Button(self.panel, wx.ID_CANCEL)
         btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
-        btnOK = wx.Button(self.panel, wx.ID_OK) # must have ID of wx.ID_OK 
-        # to trigger validators (no event binding needed) and 
+        btnOK = wx.Button(self.panel, wx.ID_OK, _("Update")) # must have ID of 
+        # wx.ID_OK to trigger validators (no event binding needed) and 
         # for std dialog button layout
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
         btnOK.SetDefault()
@@ -80,14 +80,14 @@ class SettingsEntryDlg(wx.Dialog):
             btnInsert.Bind(wx.EVT_BUTTON, self.OnInsert)
         # using the approach which will follow the platform convention 
         # for standard buttons
-        self.szrButtons = wx.StdDialogButtonSizer()
-        self.szrButtons.AddButton(btnCancel)
-        self.szrButtons.AddButton(btnOK)
-        self.szrButtons.Realize()
+        self.szrBtns = wx.StdDialogButtonSizer()
+        self.szrBtns.AddButton(btnCancel)
+        self.szrBtns.AddButton(btnOK)
+        self.szrBtns.Realize()
         if inc_delete:
-            self.szrButtons.Insert(0, btnDelete, 0)
+            self.szrBtns.Insert(0, btnDelete, 0)
         if inc_insert:
-            self.szrButtons.Insert(0, btnInsert, 0, wx.RIGHT, 10)
+            self.szrBtns.Insert(0, btnInsert, 0, wx.RIGHT, 10)
 
     def OnCancel(self, event):
         # no validation - just get out

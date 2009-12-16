@@ -17,7 +17,8 @@ class FiltSelectDlg(wx.Dialog):
         self.var_types = var_types
         self.val_dics = val_dics
         self.fil_var_dets = fil_var_dets
-        if bolnew:
+        self.bolnew = bolnew
+        if self.bolnew:
             title = _("Apply filter")
         else:
             title = _("Current filter")
@@ -29,11 +30,12 @@ class FiltSelectDlg(wx.Dialog):
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         szrMain = wx.BoxSizer(wx.VERTICAL)
         szrQuick = wx.BoxSizer(wx.HORIZONTAL)
-        szrFlexible = wx.BoxSizer(wx.HORIZONTAL)
-        radQuick = wx.RadioButton(self.panel, -1, _("Quick"))
-        radFlexible = wx.RadioButton(self.panel, -1, _("Flexible"))
+        szrFlex = wx.BoxSizer(wx.HORIZONTAL)
+        radQuick = wx.RadioButton(self.panel, -1, _("Quick"), style=wx.RB_GROUP)
+        radFlex = wx.RadioButton(self.panel, -1, _("Flexible"))
         radQuick.Bind(wx.EVT_RADIOBUTTON, self.OnRadQuickSel)
-        radFlexible.Bind(wx.EVT_RADIOBUTTON, self.OnRadFlexSel)
+        radFlex.Bind(wx.EVT_RADIOBUTTON, self.OnRadFlexSel)
+        # quick content
         self.dropVars = wx.Choice(self.panel, -1, size=(300, -1))
         self.dropVars.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickVars)
         self.setup_vars()
@@ -44,9 +46,24 @@ class FiltSelectDlg(wx.Dialog):
         szrQuick.Add(self.dropVars, 1, wx.LEFT|wx.RIGHT, 5)
         szrQuick.Add(self.dropGTE, 0)
         szrQuick.Add(self.txtVal, 0)
-        szrFlexible.Add(radFlexible, 0)
+        # flexible content
+        self.txtFlexFilter = wx.TextCtrl(self.panel, -1, "",
+                                         style=wx.TE_MULTILINE|wx.TE_READONLY, 
+                                         size=(-1, 75))
+        szrFlex.Add(radFlex, 0)
+        szrFlex.Add(self.txtFlexFilter, 1, wx.LEFT, 5)
+        if self.bolnew:
+            radQuick.SetValue(True)
+            self.enable_quick_dets(True)
+            self.enable_flex_dets(False)
+        else:
+            radFlex.SetValue(True)
+            self.enable_quick_dets(False)
+            self.enable_flex_dets(True)
+        self.setup_btns()
         szrMain.Add(szrQuick, 0, wx.ALL, 5)
-        szrMain.Add(szrFlexible, 0, wx.ALL, 5)
+        szrMain.Add(szrFlex, 0, wx.GROW|wx.ALL, 5)
+        szrMain.Add(self.szrBtns, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
         self.Layout()
@@ -60,18 +77,69 @@ class FiltSelectDlg(wx.Dialog):
         idx = self.sorted_var_names.index(var) if var else 0
         self.dropVars.SetSelection(idx)
 
+    def setup_btns(self):
+        """
+        Must have ID of wx.ID_... to trigger validators (no event binding 
+            needed) and for std dialog button layout.
+        NB can only add some buttons as part of standard sizer to be realised.
+        Insert or Add others after the Realize() as required.
+        See http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605904
+        and http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605432
+        """
+        btnDelete = wx.Button(self.panel, wx.ID_DELETE, _("Remove"))
+        btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
+        btnCancel = wx.Button(self.panel, wx.ID_CANCEL) # 
+        btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
+        if self.bolnew:
+            btnDelete.Disable()
+        btnOK = wx.Button(self.panel, wx.ID_OK, _("Apply"))
+        btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
+        self.szrBtns = wx.StdDialogButtonSizer()
+        self.szrBtns.AddButton(btnCancel)
+        self.szrBtns.AddButton(btnOK)
+        self.szrBtns.Realize()
+        self.szrBtns.Insert(0, btnDelete, 0)
+
+    def OnDelete(self, event):
+        
+        # TODO - remove filter details (and adjust table name?)
+        
+        self.Destroy()
+        self.SetReturnCode(wx.ID_DELETE) # only for dialogs 
+        # (MUST come after Destroy)
+    
+    def OnCancel(self, event):
+        self.Destroy()
+        self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
+        # (MUST come after Destroy)
+
+    def OnOK(self, event):
+        
+        
+        # TODO - build validator
+        
+        self.Destroy()
+        self.SetReturnCode(wx.ID_OK) # or nothing happens!  
+        # Prebuilt dialogs must do this internally.
+
     def OnRadQuickSel(self, event):
         ""
         self.enable_quick_dets(True)
+        self.enable_flex_dets(False)
         
     def OnRadFlexSel(self, event):
         ""
         self.enable_quick_dets(False)
+        self.enable_flex_dets(True)
+        self.txtFlexFilter.SetFocus()
         
     def enable_quick_dets(self, enable):
         self.dropVars.Enable(enable)
         self.dropGTE.Enable(enable)
         self.txtVal.Enable(enable)
+        
+    def enable_flex_dets(self, enable):
+        self.txtFlexFilter.Enable(enable)
 
     def get_var(self):
         idx = self.dropVars.GetSelection()
@@ -82,7 +150,7 @@ class FiltSelectDlg(wx.Dialog):
     def OnRightClickVars(self, event):
         var, choice_item = self.get_var()
         var_name, var_label = getdata.extractChoiceDets(choice_item)
-        updated = projects.SetVarProps(choice_item, var_name, var_label, 
+        updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:

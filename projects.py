@@ -105,8 +105,8 @@ def GetVarDets(fil_var_dets):
             u"Please check file." % fil_var_dets
     return results
 
-def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes, 
-                var_types, val_dics, fil_var_dets):
+def set_var_props(choice_item, var_name, var_label, flds, var_labels, var_notes, 
+                  var_types, val_dics, fil_var_dets):
     """
     For selected variable (name) gives user ability to set properties e.g.
         value labels.  Then stores in appropriate labels file.
@@ -291,8 +291,8 @@ class GetSettings(settings_grid.SettingsEntryDlg):
                                                     self.szrMain, 2, False, 
                                                     grid_size, col_dets, data,  
                                                     final_grid_data)
-        self.SetupButtons(inc_delete=True, inc_insert=True)
-        self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
+        self.setup_btns(inc_delete=True, inc_insert=True)
+        self.szrMain.Add(self.szrBtns, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
         self.Layout()
@@ -430,7 +430,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         szrDefault_Dbe.Add(self.dropDefault_Dbe, 0)
         szrDefault_Dbe.Add(lblScrollDown, 0, wx.LEFT, 10)
         # Close
-        self.SetupButtons()
+        self.setup_btns()
         # sizers
         # TOP
         self.szrTop = wx.BoxSizer(wx.VERTICAL)
@@ -453,7 +453,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         self.szrCon_Dets.SetVirtualSizeHints(self.scroll_con_dets)
         self.scroll_con_dets.FitInside() # no effect
         # BOTTOM        
-        self.szrBottom.Add(self.szrButtons, 0, wx.ALL, 10)
+        self.szrBottom.Add(self.szrBtns, 0, wx.ALL, 10)
         self.panel_bottom.SetSizer(self.szrBottom)
         self.szrBottom.SetSizeHints(self.panel_bottom)
         # FINAL
@@ -499,7 +499,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         self.default_dbe = my_globals.DBES[sel_dbe_id]
         event.Skip()
     
-    def SetupButtons(self):
+    def setup_btns(self):
         """
         Must have ID of wx.ID_... to trigger validators (no event binding 
             needed) and for std dialog button layout.
@@ -515,13 +515,13 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         if self.readonly:
             btnDelete.Disable()
             btnCancel.Disable()
-        btnOK = wx.Button(self.panel_bottom, wx.ID_OK)
+        btnOK = wx.Button(self.panel_bottom, wx.ID_OK, _("Update"))
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
-        self.szrButtons = wx.StdDialogButtonSizer()
-        self.szrButtons.AddButton(btnCancel)
-        self.szrButtons.AddButton(btnOK)
-        self.szrButtons.Realize()
-        self.szrButtons.Insert(0, btnDelete, 0)
+        self.szrBtns = wx.StdDialogButtonSizer()
+        self.szrBtns.AddButton(btnCancel)
+        self.szrBtns.AddButton(btnOK)
+        self.szrBtns.Realize()
+        self.szrBtns.Insert(0, btnDelete, 0)
 
     def OnDelete(self, event):
         proj_name = self.txtName.GetValue()

@@ -88,6 +88,7 @@ def ValidateTblName(tbl_name, name_ok_to_reuse):
         return False, msg
     return True, u""
 
+
 class SafeTblNameValidator(wx.PyValidator):
     def __init__(self, name_ok_to_reuse):
         wx.PyValidator.__init__(self)
@@ -194,9 +195,9 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                                          grid_size, col_dets, data,  
                                          final_grid_data, insert_data_func,
                                          cell_invalidation_func)
-        self.SetupButtons(inc_delete=not self.readonly, 
-                          inc_insert=not self.readonly)
-        self.szrMain.Add(self.szrButtons, 0, wx.ALL, 10)
+        self.setup_btns(inc_delete=not self.readonly, 
+                        inc_insert=not self.readonly)
+        self.szrMain.Add(self.szrBtns, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
         self.Layout()

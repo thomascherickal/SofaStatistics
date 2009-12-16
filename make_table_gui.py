@@ -98,51 +98,37 @@ class DlgMakeTable(wx.Dialog,
         #rows
         self.btnRowAdd = wx.Button(self.panel, -1, _("Add"))
         self.btnRowAdd.Bind(wx.EVT_BUTTON, self.OnRowAdd)
-        #self.btnRowAdd.Bind(wx.EVT_ENTER_WINDOW, self.OnAddRowEnterWindow)
-        #self.btnRowAdd.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         self.btnRowAddUnder = wx.Button(self.panel, -1, _("Add Under"))
         self.btnRowAddUnder.Bind(wx.EVT_BUTTON, self.OnRowAddUnder)
-        #self.btnRowAddUnder.Bind(wx.EVT_ENTER_WINDOW, self.OnAddRowUnderEnterWindow)
-        #self.btnRowAddUnder.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         self.btnRowDel = wx.Button(self.panel, -1, _("Delete"))
         self.btnRowDel.Bind(wx.EVT_BUTTON, self.OnRowDelete)
-        #self.btnRowDel.Bind(wx.EVT_ENTER_WINDOW, self.OnDeleteRowEnterWindow)
-        #self.btnRowDel.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         self.btnRowConf = wx.Button(self.panel, -1, _("Config"))
         self.btnRowConf.Bind(wx.EVT_BUTTON, self.OnRowConfig)
-        #self.btnRowConf.Bind(wx.EVT_ENTER_WINDOW, self.OnConfigRowEnterWindow)
-        #self.btnRowConf.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         #cols
         self.btnColAdd = wx.Button(self.panel, -1, _("Add"))
         self.btnColAdd.Bind(wx.EVT_BUTTON, self.OnColAdd)
-        #self.btnColAdd.Bind(wx.EVT_ENTER_WINDOW, self.OnAddColEnterWindow)
-        #self.btnColAdd.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         self.btnColAddUnder = wx.Button(self.panel, -1, _("Add Under"))
         self.btnColAddUnder.Bind(wx.EVT_BUTTON, self.OnColAddUnder)
-        #self.btnColAddUnder.Bind(wx.EVT_ENTER_WINDOW, 
-        #                    self.OnAddColUnderEnterWindow)
-        #self.btnColAddUnder.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         self.btnColDel = wx.Button(self.panel, -1, _("Delete"))
         self.btnColDel.Bind(wx.EVT_BUTTON, self.OnColDelete)
-        #self.btnColDel.Bind(wx.EVT_ENTER_WINDOW, 
-        #               self.OnDeleteColEnterWindow)
-        #self.btnColDel.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)
         self.btnColConf = wx.Button(self.panel, -1, _("Config"))
         self.btnColConf.Bind(wx.EVT_BUTTON, self.OnColConfig)
-        #self.btnColConf.Bind(wx.EVT_ENTER_WINDOW, 
-        #                self.OnConfigColEnterWindow)
-        #self.btnColConf.Bind(wx.EVT_LEAVE_WINDOW, self.BlankStatusBar)       
         #trees
         self.rowtree = wx.gizmos.TreeListCtrl(self.panel, -1, 
               style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
         self.rowtree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnRowItemActivated)
         self.rowtree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, 
                           self.OnRowItemRightClick)
+        self.rowtree.SetToolTipString(_("Right click variables to view/edit "
+                                        "details"))
         self.rowRoot = self.setupDimTree(self.rowtree)
         self.coltree = wx.gizmos.TreeListCtrl(self.panel, -1, 
               style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
         self.coltree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnColItemActivated)
-        self.coltree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnColItemRightClick)
+        self.coltree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, 
+                          self.OnColItemRightClick)
+        self.coltree.SetToolTipString(_("Right click variables to view/edit "
+                                        "details"))
         self.colRoot = self.setupDimTree(self.coltree)
         #setup demo table type
         if debug: print(self.fil_css)
@@ -233,7 +219,7 @@ class DlgMakeTable(wx.Dialog,
                           wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         #3 BUTTONS
         szrBottom.Add(szrBottomLeft, 1, wx.GROW)
-        szrBottom.Add(self.szrButtons, 0, wx.GROW|wx.BOTTOM|wx.RIGHT, 10)
+        szrBottom.Add(self.szrBtns, 0, wx.GROW|wx.BOTTOM|wx.RIGHT, 10)
         #1 MAIN assemble
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(szrMid, 0, wx.GROW|wx.ALL, 10)

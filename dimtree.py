@@ -44,7 +44,7 @@ class DimTree(object):
     def ShowVarProperties(self, tree, event):
         choice_item = tree.GetItemText(event.GetItem())
         var_name, var_label = getdata.extractChoiceDets(choice_item)
-        updated = projects.SetVarProps(choice_item, var_name, var_label, 
+        updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
@@ -542,11 +542,11 @@ class DlgConfig(wx.Dialog):
         btnOK.SetDefault()
         # using the approach which will follow the platform convention 
         # for standard buttons
-        szrButtons = wx.StdDialogButtonSizer()
-        szrButtons.AddButton(btnCancel)
-        szrButtons.AddButton(btnOK)
-        szrButtons.Realize()
-        szrMain.Add(szrButtons, 0, wx.ALL, 10)
+        szrBtns = wx.StdDialogButtonSizer()
+        szrBtns.AddButton(btnCancel)
+        szrBtns.AddButton(btnOK)
+        szrBtns.Realize()
+        szrMain.Add(szrBtns, 0, wx.ALL, 10)
         szrMain.SetSizeHints(self)
         self.SetSizer(szrMain)
         self.Fit()
@@ -621,6 +621,7 @@ class DlgRowConfig(DlgConfig):
                            title, size, allow_tot=not inc_measures,
                            sort_opt_allowed=sort_opt_allowed)
         
+
 class DlgColConfig(DlgConfig):
     
     def __init__(self, parent, var_labels, node_ids, tree, inc_measures, 

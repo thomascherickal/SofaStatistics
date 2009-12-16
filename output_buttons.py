@@ -24,12 +24,12 @@ class OutputButtons(object):
         self.btnClose = wx.Button(self.panel, wx.ID_CLOSE)
         self.btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
         # add to sizer
-        self.szrButtons = wx.FlexGridSizer(rows=3, cols=1, hgap=5, vgap=5)
-        self.szrButtons.AddGrowableRow(2,2) #only relevant if surrounding sizer 
+        self.szrBtns = wx.FlexGridSizer(rows=3, cols=1, hgap=5, vgap=5)
+        self.szrBtns.AddGrowableRow(2,2) #only relevant if surrounding sizer 
         #  stretched vertically enough by its content
-        self.szrButtons.Add(self.btnRun, 0)
-        self.szrButtons.Add(self.chkAddToReport)
-        self.szrButtons.Add(self.btnExport, 0, wx.TOP, 8)
-        self.szrButtons.Add(self.btnHelp, 0)
-        self.szrButtons.Add(self.btnClear, 0)
-        self.szrButtons.Add(self.btnClose, 1, wx.ALIGN_BOTTOM)
+        self.szrBtns.Add(self.btnRun, 0)
+        self.szrBtns.Add(self.chkAddToReport)
+        self.szrBtns.Add(self.btnExport, 0, wx.TOP, 8)
+        self.szrBtns.Add(self.btnHelp, 0)
+        self.szrBtns.Add(self.btnClear, 0)
+        self.szrBtns.Add(self.btnClose, 1, wx.ALIGN_BOTTOM)

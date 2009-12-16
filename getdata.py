@@ -230,8 +230,8 @@ def InsertRow(dbe, con, cur, tbl_name, data):
     """
     return my_globals.DBE_MODULES[dbe].InsertRow(con, cur, tbl_name, data)
 
-def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, con_dets,
-                       dbs_of_default_dbe, db, tbls, tbl):
+def setup_data_dropdowns(parent, panel, dbe, default_dbs, default_tbls, 
+                         con_dets, dbs_of_default_dbe, db, tbls, tbl):
     """
     Adds dropDatabases and dropTables to frame with correct values 
         and default selection.  NB must have exact same names.
@@ -258,11 +258,14 @@ def setupDataDropdowns(parent, panel, dbe, default_dbs, default_tbls, con_dets,
     parent.db_choice_items = [getDbItem(x[0], x[1]) for x in db_choices]
     parent.dropDatabases = wx.Choice(panel, -1, choices=parent.db_choice_items,
                                      size=(300, -1))
+    parent.dropDatabases.Bind(wx.EVT_CHOICE, parent.OnDatabaseSel)
     dbs_lc = [x.lower() for x in dbs_of_default_dbe]
     parent.dropDatabases.SetSelection(dbs_lc.index(db.lower()))
     parent.dropTables = wx.Choice(panel, -1, choices=tbls, size=(300, -1))
+    parent.dropTables.Bind(wx.EVT_CHOICE, parent.OnTableSel)
     tbls_lc = [x.lower() for x in tbls]
     parent.dropTables.SetSelection(tbls_lc.index(tbl.lower()))
+    return parent.dropDatabases, parent.dropTables
 
 def refresh_db_dets(parent):
     """

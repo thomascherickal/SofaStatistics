@@ -105,10 +105,12 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.lblGroupBy = wx.StaticText(self.panel, -1, _("Group By:"))
         self.lblGroupBy.SetFont(self.LABEL_FONT)
         self.dropGroupBy = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
-        self.setup_group_by()
         self.dropGroupBy.Bind(wx.EVT_CHOICE, self.OnGroupBySel)
         self.dropGroupBy.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickGroupBy)
-        self.lblchop_warning = wx.wx.StaticText(self.panel, -1, "")
+        self.dropGroupBy.SetToolTipString(_("Right click variables to view/edit"
+                                            " details"))
+        self.setup_group_by()
+        self.lblchop_warning = wx.StaticText(self.panel, -1, "")
         szrVarsLeftTop.Add(self.lblGroupBy, 0, wx.RIGHT|wx.TOP, 5)
         szrVarsLeftTop.Add(self.dropGroupBy, 0, wx.GROW)
         szrVarsLeftTop.Add(self.lblchop_warning, 1, wx.TOP|wx.RIGHT, 5)
@@ -135,6 +137,8 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
                                       size=(300, -1))
         self.dropAveraged.Bind(wx.EVT_CHOICE, self.OnAveragedSel)
         self.dropAveraged.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickAvg)
+        self.dropAveraged.SetToolTipString(_("Right click variables to "
+                                             "view/edit details"))
         self.setup_avg()
         szrVarsRightTop.Add(self.lblAveraged, 0, wx.LEFT|wx.TOP, 5)
         szrVarsRightTop.Add(self.dropAveraged, 0)
@@ -168,7 +172,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrLevel.Add(radResults, 0, wx.RIGHT, 10)
         szrBottomLeft.Add(szrLevel, 0)
         szrBottom.Add(szrBottomLeft, 1, wx.GROW)
-        szrBottom.Add(self.szrButtons, 0, wx.GROW|wx.LEFT, 10)           
+        szrBottom.Add(self.szrBtns, 0, wx.GROW|wx.LEFT, 10)           
         szrMain.Add(szrDesc, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
@@ -183,7 +187,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
     def OnRightClickGroupBy(self, event):
         var_gp, choice_item = self.get_group_by()
         var_name, var_label = getdata.extractChoiceDets(choice_item)
-        updated = projects.SetVarProps(choice_item, var_name, var_label, 
+        updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
@@ -192,7 +196,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
     def OnRightClickAvg(self, event):
         var_avg, choice_item = self.get_avg()
         var_name, var_label = getdata.extractChoiceDets(choice_item)
-        updated = projects.SetVarProps(choice_item, var_name, var_label, 
+        updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:

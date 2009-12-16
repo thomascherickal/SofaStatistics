@@ -38,7 +38,7 @@ class ProjSelectDlg(wx.Dialog):
         szrExistingTop = wx.BoxSizer(wx.HORIZONTAL)
         szrExistingTop.Add(self.dropProjs, 1, wx.GROW|wx.RIGHT, 10)
         szrExistingTop.Add(self.btnEdit, 0)
-        self.GetNotes(fil_proj=self.projs[0])
+        self.get_notes(fil_proj=self.projs[0])
         self.txtProjNotes = wx.TextCtrl(self.panel, -1, self.proj_notes,
                                         style=wx.TE_MULTILINE|wx.TE_READONLY, 
                                         size=(400, 90))
@@ -55,11 +55,11 @@ class ProjSelectDlg(wx.Dialog):
         btnMakeNew.Bind(wx.EVT_BUTTON, self.OnNewClick)
         szrNew.Add(lblMakeNew, 1, wx.GROW|wx.ALL, 10)
         szrNew.Add(btnMakeNew, 0, wx.ALL, 10)
-        self.SetupButtons()
+        self.setup_btns()
         self.szrMain.Add(lblChoose, 0, wx.ALL, 10)
         self.szrMain.Add(szrExisting, 1, wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.GROW, 10)
         self.szrMain.Add(szrNew, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
-        self.szrMain.Add(self.szrButtons, 0, wx.GROW|wx.ALL|wx.ALIGN_RIGHT, 25)
+        self.szrMain.Add(self.szrBtns, 0, wx.GROW|wx.ALL|wx.ALIGN_RIGHT, 25)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
         self.Layout()
@@ -69,7 +69,7 @@ class ProjSelectDlg(wx.Dialog):
         #print(proj_name) # debug
         self.proj_name = proj_name
     
-    def SetupButtons(self):
+    def setup_btns(self):
         """
         Must have ID of wx.ID_... to trigger validators (no event binding 
             needed) and for std dialog button layout.
@@ -79,12 +79,12 @@ class ProjSelectDlg(wx.Dialog):
         btnOK = wx.Button(self.panel, wx.ID_OK)
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
         btnOK.SetDefault()
-        self.szrButtons = wx.StdDialogButtonSizer()
-        self.szrButtons.AddButton(btnCancel)
-        self.szrButtons.AddButton(btnOK)
-        self.szrButtons.Realize()
+        self.szrBtns = wx.StdDialogButtonSizer()
+        self.szrBtns.AddButton(btnCancel)
+        self.szrBtns.AddButton(btnOK)
+        self.szrBtns.Realize()
     
-    def GetNotes(self, fil_proj):
+    def get_notes(self, fil_proj):
         proj_path = os.path.join(my_globals.LOCAL_PATH, "projs", fil_proj)
         f = codecs.open(proj_path, "U", encoding="utf-8")
         proj_cont = util.clean_bom_utf8(f.read())
@@ -112,7 +112,7 @@ class ProjSelectDlg(wx.Dialog):
     
     def SetNotes(self, proj_sel_id):
         proj_sel_id = self.dropProjs.GetSelection()
-        self.GetNotes(self.projs[proj_sel_id])
+        self.get_notes(self.projs[proj_sel_id])
         self.txtProjNotes.SetValue(self.proj_notes)
         
     def OnEdit(self,event):

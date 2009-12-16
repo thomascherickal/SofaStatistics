@@ -53,11 +53,10 @@ class DataSelectDlg(wx.Dialog):
         # set up self.dropDatabases and self.dropTables
         self.db = dbdetsobj.db
         self.tbl = dbdetsobj.tbl
-        getdata.setupDataDropdowns(self, self.panel, self.dbe, self.default_dbs, 
-                                   self.default_tbls, self.con_dets, 
-                                   self.dbs, self.db, self.tbls, self.tbl)
-        self.dropDatabases.Bind(wx.EVT_CHOICE, self.OnDatabaseSel)
-        self.dropTables.Bind(wx.EVT_CHOICE, self.OnTableSel)
+        self.dropDatabases, self.dropTables = \
+            getdata.setup_data_dropdowns(self, self.panel, self.dbe, 
+                            self.default_dbs, self.default_tbls, self.con_dets, 
+                            self.dbs, self.db, self.tbls, self.tbl)
         self.chkReadOnly = wx.CheckBox(self.panel, -1, _("Read Only"))
         self.chkReadOnly.SetValue(True)
         self.btnDelete = wx.Button(self.panel, -1, _("Delete"))
@@ -71,8 +70,7 @@ class DataSelectDlg(wx.Dialog):
         lblDbs = wx.StaticText(self.panel, -1, _("Databases:"))
         lblDbs.SetFont(lblfont)        
         szrData.Add(lblDbs, 0, wx.RIGHT, 5)
-        szrData.Add(self.dropDatabases, 0)
-        self.dropDatabases.Bind(wx.EVT_CHOICE, self.OnDatabaseSel)        
+        szrData.Add(self.dropDatabases, 0)     
         lblTbls = wx.StaticText(self.panel, -1, _("Data tables:"))
         lblTbls.SetFont(lblfont)
         szrData.Add(lblTbls, 0, wx.RIGHT, 5)
@@ -98,10 +96,10 @@ class DataSelectDlg(wx.Dialog):
         btnClose = wx.Button(self.panel, wx.ID_CLOSE)
         btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
-        self.szrButtons = wx.BoxSizer(wx.HORIZONTAL)
-        self.szrButtons.Add(self.lblFeedback, 1, wx.GROW|wx.ALL, 10)
-        self.szrButtons.Add(btnClose, 0, wx.RIGHT)
-        szrBottom.Add(self.szrButtons, 1, wx.GROW|wx.RIGHT, 15) # align with New        
+        self.szrBtns = wx.BoxSizer(wx.HORIZONTAL)
+        self.szrBtns.Add(self.lblFeedback, 1, wx.GROW|wx.ALL, 10)
+        self.szrBtns.Add(btnClose, 0, wx.RIGHT)
+        szrBottom.Add(self.szrBtns, 1, wx.GROW|wx.RIGHT, 15) # align with New        
         self.szrMain.Add(lblChoose, 0, wx.ALL, 10)
         self.szrMain.Add(szrExisting, 1, wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.GROW, 10)
         self.szrMain.Add(szrNew, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
@@ -109,14 +107,14 @@ class DataSelectDlg(wx.Dialog):
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
         self.Layout()
-        self._button_enablement()
+        self.button_enablement()
         wx.EndBusyCursor()
 
     def AddFeedback(self, feedback):
         self.lblFeedback.SetLabel(feedback)
         wx.Yield()
     
-    def _button_enablement(self):
+    def button_enablement(self):
         """
         Can only open dialog for design details for tables in the default SOFA 
             database (except for the default one).
@@ -131,9 +129,10 @@ class DataSelectDlg(wx.Dialog):
         (self.dbe, self.db, self.con, self.cur, self.tbls, self.tbl, self.flds, 
                 self.has_unique, self.idxs) = getdata.refresh_db_dets(self)
         self.reset_tbl_dropdown()
-        self._button_enablement()
+        self.button_enablement()
         
     def reset_tbl_dropdown(self):
+        "Set tables dropdown items and select item according to self.tbl"
         self.dropTables.SetItems(self.tbls)
         tbls_lc = [x.lower() for x in self.tbls]
         self.dropTables.SetSelection(tbls_lc.index(self.tbl.lower()))
@@ -142,8 +141,8 @@ class DataSelectDlg(wx.Dialog):
         "Reset key data details after table selection."       
         self.tbl, self.flds, self.has_unique, self.idxs = \
             getdata.RefreshTblDets(self)
-        self._button_enablement()
-    
+        self.button_enablement()
+
     def OnOpen(self, event):
         ""
         if not self.has_unique:
@@ -217,7 +216,7 @@ class DataSelectDlg(wx.Dialog):
         # update tbl dropdown
         self.tbl = self.tbls[0]
         self.reset_tbl_dropdown()
-        self._button_enablement()
+        self.button_enablement()
         event.Skip()
     
     def make_strict_typing_tbl(self, tbl_name, final_name_types, 
@@ -381,7 +380,7 @@ class DataSelectDlg(wx.Dialog):
                                 self.var_labels, self.idxs, read_only)
         wx.EndBusyCursor()
         dlg.ShowModal()
-        self._button_enablement()
+        self.button_enablement()
         event.Skip()
     
     def OnClose(self, event):

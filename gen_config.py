@@ -34,15 +34,16 @@ class GenConfig(object):
         # set up self.dropDatabases and self.dropTables
         self.db = dbdetsobj.db
         self.tbl = dbdetsobj.tbl
-        getdata.setupDataDropdowns(self, panel, self.dbe, self.default_dbs, 
-                                   self.default_tbls, self.con_dets, 
-                                   self.dbs, self.db, self.tbls, self.tbl)
-        self.dropDatabases.Bind(wx.EVT_CHOICE, self.OnDatabaseSel)
+        self.dropDatabases, self.dropTables = \
+            getdata.setup_data_dropdowns(self, panel, self.dbe, 
+                        self.default_dbs, self.default_tbls, self.con_dets, 
+                        self.dbs, self.db, self.tbls, self.tbl)
+        # not wanted in all cases when dropdowns used e.g. data select
+        self.dropTables.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickTables)
+        self.dropTables.SetToolTipString(_("Right click to add/remove filter"))
         # 2) Tables
         self.lblTables = wx.StaticText(panel, -1, _("Table:"))
         self.lblTables.SetFont(self.LABEL_FONT)
-        self.dropTables.Bind(wx.EVT_CHOICE, self.OnTableSel)
-        self.dropTables.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickTables)
 
     def MiscConfigSetup(self, panel, readonly=False):
         """
@@ -149,8 +150,7 @@ class GenConfig(object):
         self.tbl, self.flds, self.has_unique, self.idxs = \
             getdata.RefreshTblDets(self)
 
-    def OnRightClickTables(self, event):
-        ""
+    def filt_select(self):
         dlg = filtselect.FiltSelectDlg(self, self.flds, self.var_labels, 
                                        self.var_notes, self.var_types, 
                                        self.val_dics, self.fil_var_dets,        
@@ -161,8 +161,11 @@ class GenConfig(object):
         # selection
         
         
-        
         self.refresh_vars()
+
+    def OnRightClickTables(self, event):
+        "Allow addition or removal of data filter"
+        self.filt_select()
         event.Skip()
 
     # report output
