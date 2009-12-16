@@ -1,10 +1,8 @@
-
 from __future__ import print_function
-
-import wx
-import sys
 import pprint
 import pysqlite2
+import sys
+import wx
 
 import my_globals
 import db_grid

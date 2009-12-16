@@ -22,15 +22,16 @@ import wx
 # translated.
 gettext.install('sofa', './locale', unicode=True)
 import my_globals # has translated text
-import dataselect
+
+# importing delayed until needed where possible for startup performance
+# import dataselect
 import full_html
-import getdata
-import importer
-import make_table_gui
+# import importer
+# import make_table_gui
 import projects
 import projselect
 import quotes
-import stats_select
+# import stats_select
 import util
 
 COPYRIGHT = u"\u00a9"
@@ -413,6 +414,7 @@ class StartFrame(wx.Frame):
     
     def OnEnterClick(self, event):
         # open proj selection form
+        import dataselect
         proj_name = self.active_proj
         dlgData = dataselect.DataSelectDlg(self, proj_name)
         dlgData.ShowModal()
@@ -434,6 +436,7 @@ class StartFrame(wx.Frame):
 
     def OnImportClick(self, event):
         # open import data dialog
+        import importer
         dlg = importer.ImportFileSelectDlg(self)
         dlg.ShowModal()
         event.Skip()
@@ -452,6 +455,7 @@ class StartFrame(wx.Frame):
         
     def OnTablesClick(self, event):
         "Open make table gui with settings as per active_proj"
+        import make_table_gui
         proj_name = self.active_proj
         proj_dic = projects.GetProjSettingsDic(proj_name)
         try:
@@ -504,8 +508,9 @@ class StartFrame(wx.Frame):
                                    260))
         event.Skip()
     
-    def OnStatsClick(self, event):  
+    def OnStatsClick(self, event):
         # open statistics selection dialog
+        import stats_select
         proj_name = self.active_proj
         proj_dic = projects.GetProjSettingsDic(proj_name)
         dlg = stats_select.StatsSelectDlg(proj_name, 

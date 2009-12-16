@@ -57,10 +57,7 @@ class FiltSelectDlg(wx.Dialog):
             getdata.get_sorted_choice_items(dic_labels=self.var_labels, 
                                             vals=var_names)
         self.dropVars.SetItems(var_choices)
-        if var:
-            idx = self.sorted_var_names.index(var)
-        else:
-            idx = 0
+        idx = self.sorted_var_names.index(var) if var else 0
         self.dropVars.SetSelection(idx)
 
     def OnRadQuickSel(self, event):
@@ -89,5 +86,4 @@ class FiltSelectDlg(wx.Dialog):
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
-            self.setup_vars(var)
-        
+            self.setup_vars(var)        

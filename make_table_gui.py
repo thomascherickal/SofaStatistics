@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#leave one of these out and it might fail silently!
 import sys
 import os
 import pprint
