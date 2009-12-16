@@ -180,7 +180,8 @@ def SetVarProps(choice_item, var_name, var_label, flds, var_labels, var_notes,
     else:
         return False
     
-def GetAppropVarNames(min_data_type, var_types, flds):
+def get_approp_var_names(flds, var_types=None,
+                         min_data_type=my_globals.VAR_TYPE_CAT):
     """
     Get filtered list of variable names according to minimum data type.
     """
@@ -618,6 +619,6 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
             if self.new_proj:
                 self.parent.parent.SetProj(proj_name)
         self.Destroy()
-        self.SetReturnCode(wx.ID_OK) # only for dialogs 
+        self.SetReturnCode(wx.ID_OK) # only for dialogs
         # (MUST come after Destroy)
-        
+            

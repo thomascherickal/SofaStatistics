@@ -2,6 +2,7 @@ import os
 import wx
 
 import my_globals
+import filtselect
 import getdata
 import projects
 
@@ -41,6 +42,7 @@ class GenConfig(object):
         self.lblTables = wx.StaticText(panel, -1, _("Table:"))
         self.lblTables.SetFont(self.LABEL_FONT)
         self.dropTables.Bind(wx.EVT_CHOICE, self.OnTableSel)
+        self.dropTables.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickTables)
 
     def MiscConfigSetup(self, panel, readonly=False):
         """
@@ -124,7 +126,7 @@ class GenConfig(object):
         szrScriptConfig.Add(self.btnScriptPath, 0, wx.LEFT|wx.RIGHT, 5)
         self.szrConfigBottom.Add(szrScriptConfig, 1)
 
-    def UpdateVarDets(self):
+    def update_var_dets(self):
         "Update all variable details, including those already displayed"
         self.fil_var_dets = self.txtVarDetsFile.GetValue()
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
@@ -146,6 +148,22 @@ class GenConfig(object):
         "Reset key data details after table selection."       
         self.tbl, self.flds, self.has_unique, self.idxs = \
             getdata.RefreshTblDets(self)
+
+    def OnRightClickTables(self, event):
+        ""
+        dlg = filtselect.FiltSelectDlg(self, self.flds, self.var_labels, 
+                                       self.var_notes, self.var_types, 
+                                       self.val_dics, self.fil_var_dets,        
+                                       bolnew=True)
+        dlg.ShowModal()
+        
+        # TODO - if a filter applied, redisplay tables but keeping existing 
+        # selection
+        
+        
+        
+        self.refresh_vars()
+        event.Skip()
 
     # report output
     def OnButtonReportPath(self, event):
@@ -184,7 +202,7 @@ class GenConfig(object):
     # label config
     def OnVarDetsFileLostFocus(self, event):
         ""
-        self.UpdateVarDets()
+        self.update_var_dets()
 
     def OnButtonVarDetsPath(self, event):
         "Open dialog and takes the variable details file selected (if any)"
@@ -195,7 +213,7 @@ class GenConfig(object):
         if dlgGetFile.ShowModal() == wx.ID_OK:
             fil_var_dets = u"%s" % dlgGetFile.GetPath()
             self.txtVarDetsFile.SetValue(fil_var_dets)
-            self.UpdateVarDets()
+            self.update_var_dets()
         dlgGetFile.Destroy()        
 
     # css table style

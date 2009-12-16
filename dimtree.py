@@ -74,8 +74,8 @@ class DimTree(object):
             min_data_type = my_globals.VAR_TYPE_ORD
         else:
             min_data_type = my_globals.VAR_TYPE_CAT
-        var_names = projects.GetAppropVarNames(min_data_type, self.var_types, 
-                                               self.flds)
+        var_names = projects.get_approp_var_names(self.flds, self.var_types,
+                                                  min_data_type)
         choices, unused = getdata.get_sorted_choice_items(\
                                 dic_labels=self.var_labels, vals=var_names)
         dlg = wx.MultiChoiceDialog(self, _("Select a variable"), _("Variables"), 

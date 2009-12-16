@@ -105,7 +105,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.lblGroupBy = wx.StaticText(self.panel, -1, _("Group By:"))
         self.lblGroupBy.SetFont(self.LABEL_FONT)
         self.dropGroupBy = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
-        self.SetupGroupBy()
+        self.setup_group_by()
         self.dropGroupBy.Bind(wx.EVT_CHOICE, self.OnGroupBySel)
         self.dropGroupBy.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickGroupBy)
         self.lblchop_warning = wx.wx.StaticText(self.panel, -1, "")
@@ -135,7 +135,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
                                       size=(300, -1))
         self.dropAveraged.Bind(wx.EVT_CHOICE, self.OnAveragedSel)
         self.dropAveraged.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickAvg)
-        self.SetupAvg()
+        self.setup_avg()
         szrVarsRightTop.Add(self.lblAveraged, 0, wx.LEFT|wx.TOP, 5)
         szrVarsRightTop.Add(self.dropAveraged, 0)
         self.szrVarsRight.Add(szrVarsRightTop, 0)
@@ -181,27 +181,30 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         pass
 
     def OnRightClickGroupBy(self, event):
-        var_by, choice_item = self.GetGroupBy()
+        var_gp, choice_item = self.get_group_by()
         var_name, var_label = getdata.extractChoiceDets(choice_item)
         updated = projects.SetVarProps(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
-            self.SetupGroupBy(var_by)
-            self.UpdateDefaults()
-            self.UpdatePhrase()
+            self.refresh_vars()
 
     def OnRightClickAvg(self, event):
-        var_avg, choice_item = self.GetAvg()
+        var_avg, choice_item = self.get_avg()
         var_name, var_label = getdata.extractChoiceDets(choice_item)
         updated = projects.SetVarProps(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
-            self.SetupAvg(var_avg)
-            self.UpdateDefaults()
-            self.UpdatePhrase()
-
+            self.refresh_vars()
+    
+    def refresh_vars(self):
+        var_gp, var_avg = self.get_vars()
+        self.setup_group_by(var_gp)
+        self.setup_avg(var_avg)
+        self.UpdateDefaults()
+        self.UpdatePhrase()
+        
     def OnPaint(self, event):
         if self.show_chop_warning:
             wx.CallAfter(self.ShowChopWarning)
@@ -214,18 +217,18 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         """
         gen_config.GenConfig.OnDatabaseSel(self, event)
         # now update var dropdowns
-        self.UpdateVarDets()
-        self.SetupGroupBy()
-        self.SetupAvg()
+        self.update_var_dets()
+        self.setup_group_by()
+        self.setup_avg()
         self.setup_group_dropdowns()
                 
     def OnTableSel(self, event):
         "Reset key data details after table selection."       
         gen_config.GenConfig.OnTableSel(self, event)
         # now update var dropdowns
-        self.UpdateVarDets()
-        self.SetupGroupBy()
-        self.SetupAvg()
+        self.update_var_dets()
+        self.setup_group_by()
+        self.setup_avg()
         self.setup_group_dropdowns()
     
     def OnVarDetsFileLostFocus(self, event):
@@ -234,10 +237,10 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
             position may have changed.
         """
         val_a, val_b = self.GetVals()
-        var_by, var_avg = self.GetVars()
+        var_gp, var_avg = self.get_vars()
         gen_config.GenConfig.OnVarDetsFileLostFocus(self, event)
-        self.SetupGroupBy(var_by)
-        self.SetupAvg(var_avg)
+        self.setup_group_by(var_gp)
+        self.setup_avg(var_avg)
         self.setup_group_dropdowns(val_a, val_b)
         self.UpdateDefaults()
         self.UpdatePhrase()
@@ -248,34 +251,34 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
             position may have changed.
         """
         val_a, val_b = self.GetVals()
-        var_by, var_avg = self.GetVars()
+        var_gp, var_avg = self.get_vars()
         gen_config.GenConfig.OnButtonVarDetsPath(self, event)
-        self.SetupGroupBy(var_by)
-        self.SetupAvg(var_avg)
+        self.setup_group_by(var_gp)
+        self.setup_avg(var_avg)
         self.setup_group_dropdowns(val_a, val_b)
         self.UpdateDefaults()
         self.UpdatePhrase()
     
-    def GetGroupBy(self):
+    def get_group_by(self):
         idx_by = self.dropGroupBy.GetSelection()
-        var_by = self.sorted_var_names_by[idx_by]
-        var_by_item = self.dropGroupBy.GetStringSelection()
-        return var_by, var_by_item
+        var_gp = self.sorted_var_names_by[idx_by]
+        var_gp_item = self.dropGroupBy.GetStringSelection()
+        return var_gp, var_gp_item
     
-    def GetAvg(self):
+    def get_avg(self):
         idx_avg = self.dropAveraged.GetSelection()
         var_avg = self.sorted_var_names_avg[idx_avg]
         var_avg_item = self.dropAveraged.GetStringSelection()
         return var_avg, var_avg_item
     
-    def GetVars(self):
+    def get_vars(self):
         """
         self.sorted_var_names_by and self.sorted_var_names_avg are set when 
             dropdowns are set (and only changed when reset).
         """
-        var_by, unused = self.GetGroupBy()
-        var_avg, unused = self.GetAvg()
-        return var_by, var_avg
+        var_gp, unused = self.get_group_by()
+        var_avg, unused = self.get_avg()
+        return var_gp, var_avg
     
     def GetVals(self):
         """
@@ -309,21 +312,20 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.UpdateDefaults()
         event.Skip()
     
-    def SetupGroupBy(self, var_gp=None):
-        choice_var_names = self.flds.keys()
+    def setup_group_by(self, var_gp=None):
+        var_names = projects.get_approp_var_names(self.flds)
         var_gp_by_choice_items, self.sorted_var_names_by = \
             getdata.get_sorted_choice_items(dic_labels=self.var_labels, 
-                                            vals=choice_var_names)
+                                            vals=var_names)
         self.dropGroupBy.SetItems(var_gp_by_choice_items)
         # set selection
         idx_gp = projects.GetIdxToSelect(var_gp_by_choice_items, var_gp, 
-                                         self.var_labels, 
-                                         my_globals.group_by_default)
+                                self.var_labels, my_globals.group_by_default)
         self.dropGroupBy.SetSelection(idx_gp)
 
-    def SetupAvg(self, var_avg=None):
-        var_names = projects.GetAppropVarNames(self.min_data_type, 
-                                               self.var_types, self.flds)
+    def setup_avg(self, var_avg=None):
+        var_names = projects.get_approp_var_names(self.flds, self.var_types,
+                                                  self.min_data_type)
         var_avg_choice_items, self.sorted_var_names_avg = \
             getdata.get_sorted_choice_items(dic_labels=self.var_labels,
                                             vals=var_names)

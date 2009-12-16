@@ -18,6 +18,7 @@ import getdata
 import make_table
 import output_buttons
 import projects
+import util
 
 
 class DlgMakeTable(wx.Dialog, 
@@ -136,7 +137,8 @@ class DlgMakeTable(wx.Dialog,
         self.rowtree = wx.gizmos.TreeListCtrl(self.panel, -1, 
               style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
         self.rowtree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnRowItemActivated)
-        self.rowtree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnRowItemRightClick)
+        self.rowtree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, 
+                          self.OnRowItemRightClick)
         self.rowRoot = self.setupDimTree(self.rowtree)
         self.coltree = wx.gizmos.TreeListCtrl(self.panel, -1, 
               style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
@@ -158,7 +160,7 @@ class DlgMakeTable(wx.Dialog,
         self.html = full_html.FullHTML(self.panel, size=(200, 150))        
         lbldemo_tbls = wx.StaticText(self.panel, -1, _("Demonstration Table:"))
         lbldemo_tbls.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        # main section SIZERS **************************************************************
+        # main section SIZERS **************************************************
         szrMain = wx.BoxSizer(wx.VERTICAL)
         self.SetupGenConfigSizer(self.panel) # mixin
         szrMid = wx.BoxSizer(wx.HORIZONTAL)
@@ -267,3 +269,19 @@ class DlgMakeTable(wx.Dialog,
         gen_config.GenConfig.OnTableSel(self, event)
         self.enable_col_btns()
         self.ClearDims()
+    
+    def update_var_dets(self):
+        "Update all labels, including those already displayed"
+        gen_config.GenConfig.update_var_dets(self)
+        # update dim trees
+        rowdescendants = util.getTreeCtrlDescendants(self.rowtree, self.rowRoot)
+        self.RefreshDescendants(self.rowtree, rowdescendants)
+        coldescendants = util.getTreeCtrlDescendants(self.coltree, self.colRoot)
+        self.RefreshDescendants(self.coltree, coldescendants)
+        # update demo area
+        self.demo_tab.var_labels = self.var_labels
+        self.demo_tab.val_dics = self.val_dics
+        self.UpdateDemoDisplay()    
+    
+    def refresh_vars(self):
+        self.update_var_dets()

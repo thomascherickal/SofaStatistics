@@ -40,22 +40,7 @@ def GetColDets(coltree, colRoot, var_labels):
 
 class MakeTable(object):
     "Needed to split modules for manageability"
-        
-    def UpdateVarDets(self):
-        "Update all labels, including those already displayed"
-        self.fil_var_dets = self.txtVarDetsFile.GetValue()
-        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-            projects.GetVarDets(self.fil_var_dets)
-        # update dim trees
-        rowdescendants = util.getTreeCtrlDescendants(self.rowtree, self.rowRoot)
-        self.RefreshDescendants(self.rowtree, rowdescendants)
-        coldescendants = util.getTreeCtrlDescendants(self.coltree, self.colRoot)
-        self.RefreshDescendants(self.coltree, coldescendants)
-        # update demo area
-        self.demo_tab.var_labels = self.var_labels
-        self.demo_tab.val_dics = self.val_dics
-        self.UpdateDemoDisplay()
-        
+           
     def RefreshDescendants(self, tree, descendants):
         ""
         for descendant in descendants:

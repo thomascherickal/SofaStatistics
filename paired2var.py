@@ -88,7 +88,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupSel)
         self.dropGroupB.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickGroupB)
-        self.SetupGroups()
+        self.setup_groups()
         szrVarsTop.Add(self.lblGroupB, 0, wx.RIGHT, 5)
         szrVarsTop.Add(self.dropGroupB, 0, wx.GROW)
         # phrase
@@ -130,60 +130,62 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrMain.SetSizeHints(self)
 
     def OnRightClickGroupA(self, event):
-        var_a, choice_item = self.GetVarA()
+        var_a, choice_item = self.get_var_a()
         var_name, var_label = getdata.extractChoiceDets(choice_item)
         updated = projects.SetVarProps(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
-            fld_choice_items = self.get_group_choices()
-            self.SetupGroupA(fld_choice_items, var_a)
-            self.UpdateDefaults()
-            self.UpdatePhrase()
+            self.refresh_vars()
 
     def OnRightClickGroupB(self, event):
-        var_b, choice_item = self.GetVarB()
+        var_b, choice_item = self.get_var_b()
         var_name, var_label = getdata.extractChoiceDets(choice_item)
         updated = projects.SetVarProps(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
-            fld_choice_items = self.get_group_choices()
-            self.SetupGroupB(fld_choice_items, var_b)
-            self.UpdateDefaults()
-            self.UpdatePhrase()
-            
+            self.refresh_vars()
+
+    def refresh_vars(self):
+        var_a, var_b = self.get_vars()
+        fld_choice_items = self.get_group_choices()
+        self.setup_group_a(fld_choice_items, var_a)
+        self.setup_group_b(fld_choice_items, var_b)
+        self.UpdateDefaults()
+        self.UpdatePhrase()
+        
     def get_group_choices(self):
         """
         Get group choice items.
         Also stores var names, and var names sorted by their labels (for later 
             reference).
         """
-        var_names = projects.GetAppropVarNames(self.min_data_type, 
-                                               self.var_types, self.flds)
+        var_names = projects.get_approp_var_names(self.flds, self.var_types,
+                                                  self.min_data_type)
         fld_choice_items, self.sorted_var_names = \
             getdata.get_sorted_choice_items(dic_labels=self.var_labels, 
                                             vals=var_names)
         return fld_choice_items
        
-    def SetupGroupA(self, fld_choice_items, var_a=None):        
+    def setup_group_a(self, fld_choice_items, var_a=None):        
         self.dropGroupA.SetItems(fld_choice_items)
         idx_a = projects.GetIdxToSelect(fld_choice_items, var_a, 
                                         self.var_labels, 
                                         my_globals.group_a_default)
         self.dropGroupA.SetSelection(idx_a)            
 
-    def SetupGroupB(self, fld_choice_items, var_b=None):        
+    def setup_group_b(self, fld_choice_items, var_b=None):        
         self.dropGroupB.SetItems(fld_choice_items)
         idx_b = projects.GetIdxToSelect(fld_choice_items, var_b, 
                                         self.var_labels, 
                                         my_globals.group_b_default)
         self.dropGroupB.SetSelection(idx_b)
-             
-    def SetupGroups(self, var_a=None, var_b=None):
+        
+    def setup_groups(self, var_a=None, var_b=None):
         fld_choice_items = self.get_group_choices()
-        self.SetupGroupA(fld_choice_items, var_a)
-        self.SetupGroupB(fld_choice_items, var_b)
+        self.setup_group_a(fld_choice_items, var_a)
+        self.setup_group_b(fld_choice_items, var_b)
     
     def OnDatabaseSel(self, event):
         """
@@ -191,46 +193,46 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
             fields, has_unique, and idxs after a database selection.
         """
         gen_config.GenConfig.OnDatabaseSel(self, event)
-        self.UpdateVarDets()
-        self.SetupGroups()
+        self.update_var_dets()
+        self.setup_groups()
                 
     def OnTableSel(self, event):
         "Reset key data details after table selection."       
         gen_config.GenConfig.OnTableSel(self, event)
-        self.UpdateVarDets()
-        self.SetupGroups()
+        self.update_var_dets()
+        self.setup_groups()
 
-    def GetVarA(self):
+    def get_var_a(self):
         idx_a = self.dropGroupA.GetSelection()
         var_a = self.sorted_var_names[idx_a]
         var_a_item = self.dropGroupA.GetStringSelection()
         return var_a, var_a_item
 
-    def GetVarB(self):
+    def get_var_b(self):
         idx_b = self.dropGroupB.GetSelection()
         var_b = self.sorted_var_names[idx_b]
         var_b_item = self.dropGroupB.GetStringSelection()
         return var_b, var_b_item
     
-    def GetVars(self):
+    def get_vars(self):
         """
         self.sorted_var_names is set when dropdowns are set 
             (and only changed when reset).
         """
-        var_a, unused = self.GetVarA()
-        var_b, unused = self.GetVarB()
+        var_a, unused = self.get_var_a()
+        var_b, unused = self.get_var_b()
         return var_a, var_b
 
     def OnVarDetsFileLostFocus(self, event):
-        var_a, var_b = self.GetVars()
+        var_a, var_b = self.get_vars()
         gen_config.GenConfig.OnVarDetsFileLostFocus(self, event)
-        self.SetupGroups(var_a, var_b)
+        self.setup_groups(var_a, var_b)
         self.UpdatePhrase()
         
     def OnButtonVarDetsPath(self, event):
-        var_a, var_b = self.GetVars()
+        var_a, var_b = self.get_vars()
         gen_config.GenConfig.OnButtonVarDetsPath(self, event)
-        self.SetupGroups(var_a, var_b)
+        self.setup_groups(var_a, var_b)
         self.UpdatePhrase()
         
     def OnGroupSel(self, event):
