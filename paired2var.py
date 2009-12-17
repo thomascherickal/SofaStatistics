@@ -11,6 +11,7 @@ import getdata
 import output
 import output_buttons
 import projects
+import util
 
 OUTPUT_MODULES = ["my_globals", "core_stats", "getdata", "output", 
                   "stats_output"]
@@ -45,6 +46,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.fil_script = fil_script
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.GetVarDets(fil_var_dets)
+        variables_rc_msg = _("Right click variables to view/edit details")
         # set up panel for frame
         self.panel = wx.Panel(self)
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
@@ -59,8 +61,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         bxDesc = wx.StaticBox(self.panel, -1, _("Variables"))
         szrDesc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
         szrDescTop = wx.BoxSizer(wx.HORIZONTAL)
-        lblPurpose = wx.StaticText(self.panel, -1,
-            "Purpose:")
+        lblPurpose = wx.StaticText(self.panel, -1, "Purpose:")
         lblPurpose.SetFont(self.LABEL_FONT)
         eg1, eg2, eg3 = self.GetExamples()
         lblDesc1 = wx.StaticText(self.panel, -1, eg1)
@@ -72,35 +73,37 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrDesc.Add(lblDesc2, 1, wx.GROW|wx.LEFT, 5)
         szrDesc.Add(lblDesc3, 1, wx.GROW|wx.LEFT, 5)
         bxVars = wx.StaticBox(self.panel, -1, _("Variables"))
+        if not util.in_windows(): # http://trac.wxwidgets.org/ticket/9859
+            bxVars.SetToolTipString(variables_rc_msg)
         szrVars = wx.StaticBoxSizer(bxVars, wx.VERTICAL)
+        #szrVars = wx.BoxSizer(wx.HORIZONTAL) # removes tooltip bug in gtk
         szrVarsTop = wx.BoxSizer(wx.HORIZONTAL)
         szrVarsBottom = wx.BoxSizer(wx.HORIZONTAL)
+        szrVars.Add(szrVarsTop, 1, wx.LEFT, 5)
+        szrVars.Add(szrVarsBottom, 0, wx.LEFT, 5)
         # group A
         self.lblGroupA = wx.StaticText(self.panel, -1, _("Group A:"))
         self.lblGroupA.SetFont(self.LABEL_FONT)
         self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupA.Bind(wx.EVT_CHOICE, self.OnGroupSel)
         self.dropGroupA.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickGroupA)
-        self.dropGroupA.SetToolTipString(_("Right click variables to view/edit "
-                                           "details"))
+        self.dropGroupA.SetToolTipString(variables_rc_msg)
         szrVarsTop.Add(self.lblGroupA, 0, wx.RIGHT, 5)
         szrVarsTop.Add(self.dropGroupA, 0, wx.GROW)
         # group B
         self.lblGroupB = wx.StaticText(self.panel, -1, _("Group B:"))
+        self.lblGroupB.SetFont(self.LABEL_FONT)
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupSel)
         self.dropGroupB.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickGroupB)
-        self.dropGroupB.SetToolTipString(_("Right click variables to view/edit "
-                                           "details"))
+        self.dropGroupB.SetToolTipString(variables_rc_msg)
         self.setup_groups()
-        szrVarsTop.Add(self.lblGroupB, 0, wx.RIGHT, 5)
+        szrVarsTop.Add(self.lblGroupB, 0, wx.LEFT|wx.RIGHT, 5)
         szrVarsTop.Add(self.dropGroupB, 0, wx.GROW)
         # phrase
         self.lblPhrase = wx.StaticText(self.panel, -1, 
                                        _("Start making your selections"))
         szrVarsBottom.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
-        szrVars.Add(szrVarsTop, 1, wx.LEFT, 5)
-        szrVars.Add(szrVarsBottom, 0, wx.LEFT, 5)
         self.SetupGenConfigSizer(self.panel) # mixin
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         szrBottomLeft = wx.BoxSizer(wx.VERTICAL)

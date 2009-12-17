@@ -17,6 +17,7 @@ class OutputButtons(object):
         self.chkAddToReport.SetValue(True)
         self.btnExport = wx.Button(self.panel, -1, _("EXPORT"))
         self.btnExport.Bind(wx.EVT_BUTTON, self.OnButtonExport)
+        self.btnExport.SetToolTipString(_("Export to script for reuse"))
         self.btnHelp = wx.Button(self.panel, wx.ID_HELP)
         self.btnHelp.Bind(wx.EVT_BUTTON, self.OnButtonHelp)
         self.btnClear = wx.Button(self.panel, -1, _("CLEAR"))

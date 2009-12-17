@@ -69,6 +69,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.takes_range = takes_range     
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.GetVarDets(fil_var_dets)
+        variables_rc_msg = _("Right click variables to view/edit details")
         # set up panel for frame
         self.panel = wx.Panel(self)
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
@@ -95,6 +96,8 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrDesc.Add(lblDesc2, 1, wx.GROW|wx.LEFT, 5)
         szrDesc.Add(lblDesc3, 1, wx.GROW|wx.LEFT, 5)
         bxVars = wx.StaticBox(self.panel, -1, _("Variables"))
+        if not util.in_windows(): # http://trac.wxwidgets.org/ticket/9859
+            bxVars.SetToolTipString(variables_rc_msg)
         szrVars = wx.StaticBoxSizer(bxVars, wx.HORIZONTAL)
         szrVarsLeft = wx.BoxSizer(wx.VERTICAL)
         self.szrVarsRight = wx.BoxSizer(wx.VERTICAL)
@@ -107,8 +110,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.dropGroupBy = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupBy.Bind(wx.EVT_CHOICE, self.OnGroupBySel)
         self.dropGroupBy.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickGroupBy)
-        self.dropGroupBy.SetToolTipString(_("Right click variables to view/edit"
-                                            " details"))
+        self.dropGroupBy.SetToolTipString(variables_rc_msg)
         self.setup_group_by()
         self.lblchop_warning = wx.StaticText(self.panel, -1, "")
         szrVarsLeftTop.Add(self.lblGroupBy, 0, wx.RIGHT|wx.TOP, 5)
@@ -137,8 +139,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
                                       size=(300, -1))
         self.dropAveraged.Bind(wx.EVT_CHOICE, self.OnAveragedSel)
         self.dropAveraged.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickAvg)
-        self.dropAveraged.SetToolTipString(_("Right click variables to "
-                                             "view/edit details"))
+        self.dropAveraged.SetToolTipString(variables_rc_msg)
         self.setup_avg()
         szrVarsRightTop.Add(self.lblAveraged, 0, wx.LEFT|wx.TOP, 5)
         szrVarsRightTop.Add(self.dropAveraged, 0)

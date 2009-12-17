@@ -533,6 +533,7 @@ class StatsSelectDlg(wx.Dialog):
             wx.MessageBox(_("Unable to connect to data as defined in " 
                 "project %s.  Please check your settings." % self.proj_name))
             raise Exception, unicode(e)
+        dlg.Destroy()
         event.Skip()
     
     def OnCloseClick(self, event):

@@ -44,7 +44,7 @@ class GenConfig(object):
         # 2) Tables
         self.lblTables = wx.StaticText(panel, -1, _("Table:"))
         self.lblTables.SetFont(self.LABEL_FONT)
-
+        
     def MiscConfigSetup(self, panel, readonly=False):
         """
         Set up details of data labels, table styles, output, and scripts

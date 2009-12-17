@@ -38,6 +38,8 @@ class FiltSelectDlg(wx.Dialog):
         # quick content
         self.dropVars = wx.Choice(self.panel, -1, size=(300, -1))
         self.dropVars.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickVars)
+        self.dropVars.SetToolTipString(_("Right click variable to view/edit "
+                                         "details"))
         self.setup_vars()
         gte_choices = ["=", "!=", ">", "<", ">=", "<="]
         self.dropGTE = wx.Choice(self.panel, -1, choices=gte_choices)
