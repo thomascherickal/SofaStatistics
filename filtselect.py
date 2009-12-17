@@ -28,9 +28,11 @@ class FiltSelectDlg(wx.Dialog):
         self.parent = parent
         self.panel = wx.Panel(self)
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
+        # szrs
         szrMain = wx.BoxSizer(wx.VERTICAL)
         szrQuick = wx.BoxSizer(wx.HORIZONTAL)
-        szrFlex = wx.BoxSizer(wx.HORIZONTAL)
+        szrFlex = wx.BoxSizer(wx.VERTICAL)
+        # assemble
         radQuick = wx.RadioButton(self.panel, -1, _("Quick"), style=wx.RB_GROUP)
         radFlex = wx.RadioButton(self.panel, -1, _("Flexible"))
         radQuick.Bind(wx.EVT_RADIOBUTTON, self.OnRadQuickSel)
@@ -48,12 +50,17 @@ class FiltSelectDlg(wx.Dialog):
         szrQuick.Add(self.dropVars, 1, wx.LEFT|wx.RIGHT, 5)
         szrQuick.Add(self.dropGTE, 0)
         szrQuick.Add(self.txtVal, 0)
+        # split
+        lnSplit = wx.StaticLine(self.panel) 
         # flexible content
         self.txtFlexFilter = wx.TextCtrl(self.panel, -1, "",
                                          style=wx.TE_MULTILINE|wx.TE_READONLY, 
                                          size=(-1, 75))
+        self.lblExample = wx.StaticText(self.panel, -1, _("(enter a filter e.g."
+                                                          " agegp > 5)"))
         szrFlex.Add(radFlex, 0)
-        szrFlex.Add(self.txtFlexFilter, 1, wx.LEFT, 5)
+        szrFlex.Add(self.txtFlexFilter, 1, wx.GROW)
+        szrFlex.Add(self.lblExample, 0)
         if self.bolnew:
             radQuick.SetValue(True)
             self.enable_quick_dets(True)
@@ -63,9 +70,10 @@ class FiltSelectDlg(wx.Dialog):
             self.enable_quick_dets(False)
             self.enable_flex_dets(True)
         self.setup_btns()
-        szrMain.Add(szrQuick, 0, wx.ALL, 5)
-        szrMain.Add(szrFlex, 0, wx.GROW|wx.ALL, 5)
-        szrMain.Add(self.szrBtns, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+        szrMain.Add(szrQuick, 0, wx.ALL, 10)
+        szrMain.Add(lnSplit, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szrMain.Add(szrFlex, 0, wx.GROW|wx.ALL, 10)
+        szrMain.Add(self.szrBtns, 0, wx.ALL|wx.GROW, 10)
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
         self.Layout()
@@ -88,6 +96,8 @@ class FiltSelectDlg(wx.Dialog):
         See http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605904
         and http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605432
         """
+        btnVarDets = wx.Button(self.panel, -1, _("Variable Details"))
+        btnVarDets.Bind(wx.EVT_BUTTON, self.OnVarDets)
         btnDelete = wx.Button(self.panel, wx.ID_DELETE, _("Remove"))
         btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
         btnCancel = wx.Button(self.panel, wx.ID_CANCEL) # 
@@ -96,11 +106,31 @@ class FiltSelectDlg(wx.Dialog):
             btnDelete.Disable()
         btnOK = wx.Button(self.panel, wx.ID_OK, _("Apply"))
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
-        self.szrBtns = wx.StdDialogButtonSizer()
-        self.szrBtns.AddButton(btnCancel)
-        self.szrBtns.AddButton(btnOK)
-        self.szrBtns.Realize()
-        self.szrBtns.Insert(0, btnDelete, 0)
+        # szrs
+        self.szrBtns = wx.BoxSizer(wx.HORIZONTAL)
+        szrExtraBtns = wx.BoxSizer(wx.HORIZONTAL)
+        szrStdBtns = wx.StdDialogButtonSizer()
+        # assemble
+        szrExtraBtns.Add(btnVarDets, 0, wx.ALIGN_LEFT)
+        szrStdBtns.AddButton(btnCancel)
+        szrStdBtns.AddButton(btnOK)
+        szrStdBtns.Realize()
+        szrStdBtns.Insert(0, btnDelete, 0)
+        self.szrBtns.Add(szrExtraBtns, 1)
+        self.szrBtns.Add(szrStdBtns, 0)
+
+    def OnVarDets(self, event):
+        """
+        Open dialog with list of variables. On selection, opens standard get 
+            settings dialog.
+        """
+        pass
+    
+    
+    
+    
+    
+    
 
     def OnDelete(self, event):
         
@@ -141,6 +171,7 @@ class FiltSelectDlg(wx.Dialog):
         self.txtVal.Enable(enable)
         
     def enable_flex_dets(self, enable):
+        self.lblExample.Enable(enable)
         self.txtFlexFilter.Enable(enable)
 
     def get_var(self):
