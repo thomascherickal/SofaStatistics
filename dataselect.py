@@ -54,7 +54,7 @@ class DataSelectDlg(wx.Dialog):
         self.db = dbdetsobj.db
         self.tbl = dbdetsobj.tbl
         self.dropDatabases, self.dropTables = \
-            getdata.setup_data_dropdowns(self, self.panel, self.dbe, 
+            getdata.get_data_dropdowns(self, self.panel, self.dbe, 
                             self.default_dbs, self.default_tbls, self.con_dets, 
                             self.dbs, self.db, self.tbls, self.tbl)
         self.chkReadOnly = wx.CheckBox(self.panel, -1, _("Read Only"))

@@ -35,9 +35,9 @@ class GenConfig(object):
         self.db = dbdetsobj.db
         self.tbl = dbdetsobj.tbl
         self.dropDatabases, self.dropTables = \
-            getdata.setup_data_dropdowns(self, panel, self.dbe, 
-                        self.default_dbs, self.default_tbls, self.con_dets, 
-                        self.dbs, self.db, self.tbls, self.tbl)
+            getdata.get_data_dropdowns(self, panel, self.dbe, self.default_dbs, 
+                                       self.default_tbls, self.con_dets,
+                                       self.dbs, self.db, self.tbls, self.tbl)
         # not wanted in all cases when dropdowns used e.g. data select
         self.dropTables.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickTables)
         self.dropTables.SetToolTipString(_("Right click to add/remove filter"))

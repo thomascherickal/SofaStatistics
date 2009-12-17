@@ -230,8 +230,8 @@ def InsertRow(dbe, con, cur, tbl_name, data):
     """
     return my_globals.DBE_MODULES[dbe].InsertRow(con, cur, tbl_name, data)
 
-def setup_data_dropdowns(parent, panel, dbe, default_dbs, default_tbls, 
-                         con_dets, dbs_of_default_dbe, db, tbls, tbl):
+def get_data_dropdowns(parent, panel, dbe, default_dbs, default_tbls, con_dets, 
+                       dbs_of_default_dbe, db, tbls, tbl):
     """
     Adds dropDatabases and dropTables to frame with correct values 
         and default selection.  NB must have exact same names.
