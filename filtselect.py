@@ -30,6 +30,7 @@ class FiltSelectDlg(wx.Dialog):
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         # szrs
         szrMain = wx.BoxSizer(wx.VERTICAL)
+        szrLabel = wx.BoxSizer(wx.HORIZONTAL)
         szrQuick = wx.BoxSizer(wx.HORIZONTAL)
         szrFlex = wx.BoxSizer(wx.VERTICAL)
         # assemble
@@ -37,6 +38,11 @@ class FiltSelectDlg(wx.Dialog):
         radFlex = wx.RadioButton(self.panel, -1, _("Flexible"))
         radQuick.Bind(wx.EVT_RADIOBUTTON, self.OnRadQuickSel)
         radFlex.Bind(wx.EVT_RADIOBUTTON, self.OnRadFlexSel)
+        # label content
+        lblLabel = wx.StaticText(self.panel, -1, _("Label (optional):"))
+        txtLabel = wx.TextCtrl(self.panel, -1, "")
+        szrLabel.Add(lblLabel, 0, wx.RIGHT, 10)
+        szrLabel.Add(txtLabel, 1)
         # quick content
         self.dropVars = wx.Choice(self.panel, -1, size=(300, -1))
         self.dropVars.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickVars)
@@ -45,6 +51,7 @@ class FiltSelectDlg(wx.Dialog):
         self.setup_vars()
         gte_choices = ["=", "!=", ">", "<", ">=", "<="]
         self.dropGTE = wx.Choice(self.panel, -1, choices=gte_choices)
+        self.dropGTE.SetSelection(0)
         self.txtVal = wx.TextCtrl(self.panel, -1, "")
         szrQuick.Add(radQuick, 0)
         szrQuick.Add(self.dropVars, 1, wx.LEFT|wx.RIGHT, 5)
@@ -54,8 +61,7 @@ class FiltSelectDlg(wx.Dialog):
         lnSplit = wx.StaticLine(self.panel) 
         # flexible content
         self.txtFlexFilter = wx.TextCtrl(self.panel, -1, "",
-                                         style=wx.TE_MULTILINE|wx.TE_READONLY, 
-                                         size=(-1, 75))
+                                         style=wx.TE_MULTILINE, size=(-1, 75))
         self.lblExample = wx.StaticText(self.panel, -1, _("(enter a filter e.g."
                                                           " agegp > 5)"))
         szrFlex.Add(radFlex, 0)
@@ -70,6 +76,7 @@ class FiltSelectDlg(wx.Dialog):
             self.enable_quick_dets(False)
             self.enable_flex_dets(True)
         self.setup_btns()
+        szrMain.Add(szrLabel, 0, wx.GROW|wx.ALL, 10)
         szrMain.Add(szrQuick, 0, wx.ALL, 10)
         szrMain.Add(lnSplit, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szrMain.Add(szrFlex, 0, wx.GROW|wx.ALL, 10)
@@ -77,6 +84,7 @@ class FiltSelectDlg(wx.Dialog):
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
         self.Layout()
+        txtLabel.SetFocus()
 
     def setup_vars(self, var=None):
         var_names = projects.get_approp_var_names(self.flds)

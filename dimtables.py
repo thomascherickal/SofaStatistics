@@ -695,7 +695,7 @@ class LiveTable(DimTable):
                 val_node_filts.append(NOTNULL % fld)
             else:
                 bolnumeric = tree_dims_node.bolnumeric
-                bolsqlite = (dbe == my_globals.DBE_SQLITE)
+                bolsqlite = (self.dbe == my_globals.DBE_SQLITE)
                 clause = util.make_fld_val_clause(bolsqlite, fld, val, 
                                                   bolnumeric, self.quote_val)
                 if debug: print(clause)
