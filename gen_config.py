@@ -151,10 +151,9 @@ class GenConfig(object):
             getdata.RefreshTblDets(self)
 
     def filt_select(self):
-        dlg = filtselect.FiltSelectDlg(self, self.flds, self.var_labels, 
-                                       self.var_notes, self.var_types, 
-                                       self.val_dics, self.fil_var_dets,        
-                                       bolnew=True)
+        dlg = filtselect.FiltSelectDlg(self, self.dbe, self.con, self.cur, 
+                    self.flds, self.var_labels, self.var_notes, self.var_types, 
+                    self.val_dics, self.fil_var_dets, bolnew=True)
         dlg.ShowModal()
         
         # TODO - if a filter applied, redisplay tables but keeping existing 

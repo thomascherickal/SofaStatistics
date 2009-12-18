@@ -5,12 +5,16 @@ import wx
 import my_globals
 import getdata
 import projects
+import util
 
 
 class FiltSelectDlg(wx.Dialog):
-    def __init__(self, parent, flds, var_labels, var_notes, var_types, val_dics,
-                 fil_var_dets, bolnew=True):
+    def __init__(self, parent, dbe, con, cur, flds, var_labels, var_notes, 
+                 var_types, val_dics, fil_var_dets, bolnew=True):
         debug = False
+        self.dbe = dbe
+        self.con = con
+        self.cur = cur
         self.flds = flds
         self.var_labels = var_labels
         self.var_notes = var_notes
@@ -34,9 +38,9 @@ class FiltSelectDlg(wx.Dialog):
         szrQuick = wx.BoxSizer(wx.HORIZONTAL)
         szrFlex = wx.BoxSizer(wx.VERTICAL)
         # assemble
-        radQuick = wx.RadioButton(self.panel, -1, _("Quick"), style=wx.RB_GROUP)
+        self.radQuick = wx.RadioButton(self.panel, -1, _("Quick"), style=wx.RB_GROUP)
         radFlex = wx.RadioButton(self.panel, -1, _("Flexible"))
-        radQuick.Bind(wx.EVT_RADIOBUTTON, self.OnRadQuickSel)
+        self.radQuick.Bind(wx.EVT_RADIOBUTTON, self.OnRadQuickSel)
         radFlex.Bind(wx.EVT_RADIOBUTTON, self.OnRadFlexSel)
         # label content
         lblLabel = wx.StaticText(self.panel, -1, _("Label (optional):"))
@@ -53,7 +57,10 @@ class FiltSelectDlg(wx.Dialog):
         self.dropGTE = wx.Choice(self.panel, -1, choices=gte_choices)
         self.dropGTE.SetSelection(0)
         self.txtVal = wx.TextCtrl(self.panel, -1, "")
-        szrQuick.Add(radQuick, 0)
+        self.lblQuickInstructions = wx.StaticText(self.panel, -1, 
+                              _("(don't quote strings e.g. John not \"John\". "
+                                "Null for missing)"))
+        szrQuick.Add(self.radQuick, 0)
         szrQuick.Add(self.dropVars, 1, wx.LEFT|wx.RIGHT, 5)
         szrQuick.Add(self.dropGTE, 0)
         szrQuick.Add(self.txtVal, 0)
@@ -62,13 +69,13 @@ class FiltSelectDlg(wx.Dialog):
         # flexible content
         self.txtFlexFilter = wx.TextCtrl(self.panel, -1, "",
                                          style=wx.TE_MULTILINE, size=(-1, 75))
-        self.lblExample = wx.StaticText(self.panel, -1, _("(enter a filter e.g."
-                                                          " agegp > 5)"))
+        self.lblFlexExample = wx.StaticText(self.panel, -1, 
+                                        _("(enter a filter e.g. agegp > 5)"))
         szrFlex.Add(radFlex, 0)
+        szrFlex.Add(self.lblFlexExample, 0)
         szrFlex.Add(self.txtFlexFilter, 1, wx.GROW)
-        szrFlex.Add(self.lblExample, 0)
         if self.bolnew:
-            radQuick.SetValue(True)
+            self.radQuick.SetValue(True)
             self.enable_quick_dets(True)
             self.enable_flex_dets(False)
         else:
@@ -78,6 +85,8 @@ class FiltSelectDlg(wx.Dialog):
         self.setup_btns()
         szrMain.Add(szrLabel, 0, wx.GROW|wx.ALL, 10)
         szrMain.Add(szrQuick, 0, wx.ALL, 10)
+        szrMain.Add(self.lblQuickInstructions, 0, 
+                    wx.ALIGN_RIGHT|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         szrMain.Add(lnSplit, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szrMain.Add(szrFlex, 0, wx.GROW|wx.ALL, 10)
         szrMain.Add(self.szrBtns, 0, wx.ALL|wx.GROW, 10)
@@ -153,10 +162,70 @@ class FiltSelectDlg(wx.Dialog):
         self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
         # (MUST come after Destroy)
 
+    def get_val(self, raw_val, bolnumeric, boldatetime):
+        """
+        Value is validated first.  Will always be a string.
+        If numeric, must be a number, an empty string (turned to Null), 
+            or any variant of Null.
+        If a date, must be a valid date, an empty string, or Null.  Empty 
+            strings are turned to Null.
+        If a string, can be anything.  Variants of Null are treated specially.
+        Null values (or any variant of Null) are turned to None which will be 
+            processed correctly as a Null when clauses are made.
+        """
+        if bolnumeric:
+            if util.is_numeric(raw_val):
+                return float(raw_val)
+            else: # not a num - a valid string?
+                if isinstance(raw_val, basestring):
+                    if raw_val == "" or raw_val.lower() == "null":
+                        return None
+            raise Exception, ("Only a number, an empty string, or Null can "
+                              "be entered for filtering a numeric field")
+        elif boldatetime:
+            if util.valid_datetime_str(raw_val):
+                return raw_val
+            else: # not a datetime - a valid string?
+                if isinstance(raw_val, basestring):
+                    if raw_val == "" or raw_val.lower() == "null":
+                        return None
+            raise Exception, ("Only a datetime, an empty string, or Null can "
+                              "be entered for filtering a datetime field")
+        else:
+            if raw_val.lower() == "null":
+                return None
+            else:
+                return raw_val
+
+    def get_quick_filter(self):
+        "Get filter from quick setting"
+        debug = True
+        bolsqlite = (self.dbe == my_globals.DBE_SQLITE)
+        choice_text = self.dropVars.GetStringSelection()
+        fld, unused = getdata.extractChoiceDets(choice_text)
+        bolnumeric = self.flds[fld][my_globals.FLD_BOLNUMERIC]
+        boldatetime = self.flds[fld][my_globals.FLD_BOLDATETIME]
+        val = self.get_val(self.txtVal.GetValue(), bolnumeric, boldatetime)
+        quote_obj = getdata.get_obj_quoter_func(self.dbe)
+        quote_val = getdata.get_val_quoter_func(self.dbe)
+        
+        
+        # TODO - only handles = . Extend.
+        
+        
+        filt = getdata.make_fld_val_clause(bolsqlite, fld, val, bolnumeric, 
+                                           quote_obj, quote_val)
+        if debug: print(filt)
+        return filt
+
     def OnOK(self, event):
+        if self.radQuick.GetValue() :
+            filt = self.get_quick_filter()
+        
+        # Must work with a simple query to that database
         
         
-        # TODO - build validator
+        
         
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
@@ -177,9 +246,10 @@ class FiltSelectDlg(wx.Dialog):
         self.dropVars.Enable(enable)
         self.dropGTE.Enable(enable)
         self.txtVal.Enable(enable)
+        self.lblQuickInstructions.Enable(enable)
         
     def enable_flex_dets(self, enable):
-        self.lblExample.Enable(enable)
+        self.lblFlexExample.Enable(enable)
         self.txtFlexFilter.Enable(enable)
 
     def get_var(self):

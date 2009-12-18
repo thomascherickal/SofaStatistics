@@ -65,7 +65,39 @@ class DbDets(object):
         """
         assert 0, "Must define getDbDets in subclass"
 
+def make_fld_val_clause_non_numeric(fld, val, quote_obj, quote_val):
+    if val is None:
+        clause = u"%s IS NULL" % quote_obj(fld)
+    else:
+        clause = "%s = " % quote_obj(fld) + quote_val(val)
+    return clause
     
+def make_fld_val_clause(bolsqlite, fld, val, bolnumeric, quote_obj, quote_val):
+    """
+    Make a filter clause with a field name = a value (numeric or non-numeric).
+    quote_obj -- function specific to database engine for quoting objects
+    quote_val -- function specific to database engine for quoting values
+    Handle val=None.  Treat as Null for clause.
+    If a string number is received e.g. u'56' it will be treated as a string
+        if the dbe is SQLite and will be treated differently from 56 for 
+        filtering.
+    """
+    if val is None:
+        clause = u"%s IS NULL" % quote_obj(fld)
+    else:
+        num = True
+        if not bolnumeric:
+            num = False
+        elif bolsqlite: # if SQLite may still be non-numeric
+            if not util.is_basic_num(val):
+                num = False
+        if num:
+            clause = u"%s = %s" % (quote_obj(fld), val)
+        else:
+            clause = make_fld_val_clause_non_numeric(fld, val, quote_obj,
+                                                     quote_val)
+    return clause
+
 def get_obj_quoter_func(dbe):
     """
     Get appropriate function to wrap content e.g. table or field name, 

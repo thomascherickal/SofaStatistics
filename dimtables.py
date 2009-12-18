@@ -696,8 +696,8 @@ class LiveTable(DimTable):
             else:
                 bolnumeric = tree_dims_node.bolnumeric
                 bolsqlite = (self.dbe == my_globals.DBE_SQLITE)
-                clause = util.make_fld_val_clause(bolsqlite, fld, val, 
-                                                  bolnumeric, self.quote_val)
+                clause = getdata.make_fld_val_clause(bolsqlite, fld, val, 
+                                                     bolnumeric, self.quote_val)
                 if debug: print(clause)
                 val_node_filts.append(clause)
             is_coltot=(is_tot and dim == my_globals.COLDIM)

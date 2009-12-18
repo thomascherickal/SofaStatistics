@@ -15,6 +15,7 @@ import decimal
 
 #from .output import _strip_html
 import my_globals
+import getdata
 import importer
 import indep2var
 import output
@@ -146,24 +147,32 @@ def test_make_fld_val_clause():
                   my_globals.DBE_MYSQL: dbe_mysql.quote_val,
                   my_globals.DBE_PGSQL: dbe_postgresql.quote_val,
                   }
-    # make_fld_val_clause(dbe, fld, val, bolnumeric, quote_val):
-    tests = [((True, "var", "fred", False, 
-         quote_vals[my_globals.DBE_SQLITE]), "var = \"fred\""),
-       ((True, "var", 5, True, 
-         quote_vals[my_globals.DBE_SQLITE]), "var = 5"),
-       ((True, "var", "spam", True, # numeric type but string
-         quote_vals[my_globals.DBE_SQLITE]), "var = \"spam\""),
-       ((False, "var", "fred", False, 
-         quote_vals[my_globals.DBE_MYSQL]), "var = \"fred\""),
-       ((False, "var", 5, True, 
-         quote_vals[my_globals.DBE_MYSQL]), "var = 5"),
-       ((False, "var", "fred", False, 
-         quote_vals[my_globals.DBE_PGSQL]), "var = 'fred'"),
-       ((False, "var", 5, True, 
-         quote_vals[my_globals.DBE_PGSQL]), "var = 5"),
+    quote_objs = {my_globals.DBE_SQLITE: dbe_sqlite.quote_obj,
+                  my_globals.DBE_MYSQL: dbe_mysql.quote_obj,
+                  my_globals.DBE_PGSQL: dbe_postgresql.quote_obj,
+                  }
+    # make_fld_val_clause(bolsqlite, fld, val, bolnumeric, quote_obj, quote_val)
+    tests = [((True, "var", "fred", False, quote_objs[my_globals.DBE_SQLITE],
+         quote_vals[my_globals.DBE_SQLITE]), "`var` = \"fred\""),
+       ((True, "var", 5, True, quote_objs[my_globals.DBE_SQLITE],
+         quote_vals[my_globals.DBE_SQLITE]), "`var` = 5"),# num type but string
+       ((True, "var", "spam", True, quote_objs[my_globals.DBE_SQLITE], 
+         quote_vals[my_globals.DBE_SQLITE]), "`var` = \"spam\""),
+       ((True, "var", None, True, quote_objs[my_globals.DBE_SQLITE],
+         quote_vals[my_globals.DBE_SQLITE]), "`var` IS NULL"),
+       ((False, "var", "fred", False, quote_objs[my_globals.DBE_MYSQL],
+         quote_vals[my_globals.DBE_MYSQL]), "`var` = \"fred\""),
+       ((False, "var", 5, True, quote_objs[my_globals.DBE_MYSQL],
+         quote_vals[my_globals.DBE_MYSQL]), "`var` = 5"),
+       ((False, "var", None, True, quote_objs[my_globals.DBE_MYSQL],
+         quote_vals[my_globals.DBE_MYSQL]), "`var` IS NULL"),
+       ((False, "var", "fred", False, quote_objs[my_globals.DBE_PGSQL],
+         quote_vals[my_globals.DBE_PGSQL]), "\"var\" = 'fred'"),
+       ((False, "var", 5, True, quote_objs[my_globals.DBE_PGSQL],
+         quote_vals[my_globals.DBE_PGSQL]), "\"var\" = 5"),
         ]
     for test in tests:
-        assert_equal(util.make_fld_val_clause(*test[0]), test[1])
+        assert_equal(getdata.make_fld_val_clause(*test[0]), test[1])
 
 def test_any2unicode():
     tests = [

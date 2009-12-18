@@ -32,8 +32,8 @@ def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val, bolnumeric):
     debug = False
     val_quoter = getdata.get_val_quoter_func(dbe)
     bolsqlite = (dbe == my_globals.DBE_SQLITE)
-    fld_val_clause = util.make_fld_val_clause(bolsqlite, fld_filter, filter_val, 
-                                              bolnumeric, val_quoter)
+    fld_val_clause = getdata.make_fld_val_clause(bolsqlite, fld_filter, 
+                                            filter_val, bolnumeric, val_quoter)
     obj_quoter = getdata.get_obj_quoter_func(dbe)
     SQL_get_list = u"SELECT %s " % obj_quoter(fld_measure) + \
         "FROM %s " % obj_quoter(tbl) + \
