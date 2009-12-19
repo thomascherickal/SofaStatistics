@@ -217,11 +217,6 @@ def if_none(val, default):
     else:
         return val
 
-def timeobj_to_datetime_str(timeobj):
-    "Takes timeobj and returns standard datetime string"
-    datetime_str = "%4d-%02d-%02d %02d:%02d:%02d" % (timeobj[:6])
-    return datetime_str
-
 def pytime_to_datetime_str(pytime):
     """
     A PyTime object is used primarily when exchanging date/time information 
@@ -281,14 +276,14 @@ def mysql2textdate(mysql_date, output_format):
 def is_date_part(datetime_str):
     """
     Assumes date will have - or / and time will not.
-    If a mishmash will fail ok_date later.
+    If a mishmash will fail bad_date later.
     """
     return "-" in datetime_str or "/" in datetime_str
 
 def is_time_part(datetime_str):
     """
     Assumes time will have : (or am/pm) and date will not.
-    If a mishmash will fail ok_time later.
+    If a mishmash will fail bad_time later.
     """
     return ":" in datetime_str or "am" in datetime_str.lower() \
         or "pm" in datetime_str.lower()
@@ -335,16 +330,94 @@ def datetime_split(datetime_str):
         else:
             return (None, None, date_then_time)
 
-def valid_datetime_str(val):
+def get_dets_of_usable_datetime_str(raw_datetime_str):
     """
-    Is the datetime string in a valid format?
-    Returns tuple of Boolean and either a time object if True 
-        or None if False. e.g. boldatetime, time_obj
-    Used for checking user-entered datetimes.
+    Returns (date_part, date_format, time_part, time_format, date_time_order) if 
+        a usable datetime.  NB usable doesn't mean valid as such.  E.g. we may 
+        need to add a date to the time to make it valid.
+    Returns None if not usable.
+    These parts can be used to make a valid time object ready for conversion 
+        into a standard string for data entry.
+    """
+    debug = False
+    if not isString(raw_datetime_str):
+        if debug: print("%s is not a valid datetime string" % raw_datetime_str)
+        return None
+    # evaluate date and/or time components against allowable formats
+    date_part, time_part, date_time_order = datetime_split(raw_datetime_str)
+    if date_part is None and time_part is None:
+        if debug: print("Both date and time parts are empty.")
+        return None
+    # gather information on the parts we have (we have at least one)
+    date_format = None
+    if date_part:
+        bad_date = True
+        ok_date_formats = ["%d-%m-%Y", "%d/%m/%Y", "%Y-%m-%d", "%Y"]
+        for ok_date_format in ok_date_formats:
+            try:
+                t = time.strptime(date_part, ok_date_format)
+                date_format = ok_date_format
+                bad_date = False
+                break
+            except:
+                pass
+        if bad_date:
+            return None
+    time_format = None
+    if time_part:
+        bad_time = True
+        ok_time_formats = ["%I%p", "%I:%M%p", "%H:%M", "%H:%M:%S"]
+        for ok_time_format in ok_time_formats:
+            try:
+                t = time.strptime(time_part, ok_time_format)
+                time_format = ok_time_format
+                bad_time = False
+                break
+            except:
+                pass
+        if bad_time:
+            return None
+    # have at least one part and no bad parts
+    return (date_part, date_format, time_part, time_format, date_time_order)
+
+def is_usable_datetime_str(raw_datetime_str):
+    """
+    Is the datetime string usable?  Used for checking user-entered datetimes.
     Doesn't cover all possibilities - just what is needed for typical data 
         entry.
-    If only a time, use today's date.
-    If only a date, use midnight as time e.g. MySQL 00:00:00
+    If only a time, can always use today's date later to prepare for SQL.
+    If only a date, can use midnight as time e.g. MySQL 00:00:00
+    Acceptable formats for date component are:
+    2009, 2008-02-26, 1-1-2008, 01-01-2008, 01/01/2008, 1/1/2008.
+    NB not American format - instead assumed to be day, month, year.
+    TODO - handle better ;-)
+    Acceptable formats for time are:
+    2pm, 2:30pm, 14:30 , 14:30:00
+    http://docs.python.org/library/datetime.html#module-datetime
+    Should only be one space in string (if any) - between date and time
+        (or time and date).
+    """
+    return get_dets_of_usable_datetime_str(raw_datetime_str) is not None
+    
+def is_std_datetime_str(raw_datetime_str):
+    """
+    The only format accepted as valid for SQL is yyyy-mm-dd hh:mm:ss.
+    NB lots of other formats may be usable, but this is the only one acceptable
+        for direct entry into a database.
+    """
+    try:
+        t = time.strptime(raw_datetime_str, "%Y-%m-%d %H:%M:%S")
+        return True
+    except Exception:
+        return False
+
+def get_time_obj_from_datetime_str(raw_datetime_str):
+    """
+    Is the datetime string usable?  Used for checking user-entered datetimes.
+    Doesn't cover all possibilities - just what is needed for typical data 
+        entry.
+    If only a time, can use today's date.
+    If only a date, can use midnight as time e.g. MySQL 00:00:00
     Acceptable formats for date component are:
     2009, 2008-02-26, 1-1-2008, 01-01-2008, 01/01/2008, 1/1/2008.
     NB not American format - instead assumed to be day, month, year.
@@ -356,58 +429,42 @@ def valid_datetime_str(val):
         (or time and date).
     """
     debug = False
-    if not isString(val):
-        if debug: print("%s is not a valid datetime string" % val)
-        return (False, None)
-    # evaluate date and/or time components against allowable formats
-    date_part, time_part, date_time_order = datetime_split(val)
-    if date_part is None and time_part is None:
-        return False, None
-    # gather information on all parts
-    if date_part:
-        ok_date = False
-        ok_date_format = None
-        ok_date_formats = ["%d-%m-%Y", "%d/%m/%Y", "%Y-%m-%d", "%Y"]
-        for ok_date_format in ok_date_formats:
-            try:
-                t = time.strptime(date_part, ok_date_format)
-                ok_date = True
-                break
-            except:
-                pass
-    if time_part:
-        ok_time = False
-        ok_time_format = None
-        ok_time_formats = ["%I%p", "%I:%M%p", "%H:%M", "%H:%M:%S"]
-        for ok_time_format in ok_time_formats:
-            try:
-                t = time.strptime(time_part, ok_time_format)
-                ok_time = True
-                break
-            except:
-                pass
-    # determine what type of valid datetime then make time object    
-    if date_part is not None and time_part is not None and ok_date and ok_time:
-        if date_time_order: # date then time            
-            t = time.strptime("%s %s" % (date_part, time_part), 
-                              "%s %s" % (ok_date_format, ok_time_format))
-        else: # time then date
-            t = time.strptime("%s %s" % (time_part, date_part),
-                              "%s %s" % (ok_time_format, ok_date_format))
-    elif date_part is not None and time_part is None and ok_date:
-        # date only (add time of 00:00:00)
-        t = time.strptime("%s 00:00:00" % date_part, 
-                          "%s %%H:%%M:%%S" % ok_date_format)
-    elif date_part is None and time_part is not None and ok_time:
-        # time only (assume today's date)
-        today = time.localtime()
-        t = time.strptime("%s-%s-%s %s" % (today[0], today[1], today[2], 
-                                           time_part), 
-                          "%%Y-%%m-%%d %s" % ok_time_format)
-    else:
-        return False, None
-    if debug: print(t)
-    return True, t
+    datetime_dets = get_dets_of_usable_datetime_str(raw_datetime_str)
+    if datetime_dets is None:
+        return False # not usable
+    else: 
+        # usable (possibly requiring a date to be added to a time)
+        # has at least one part (date/time) and anything it has is ok
+        (date_part, date_format, time_part, time_format, date_time_order) = \
+            datetime_dets
+        # determine what type of valid datetime then make time object    
+        if date_part is not None and time_part is not None:
+            if date_time_order: # date then time            
+                time_obj = time.strptime("%s %s" % (date_part, time_part), 
+                                         "%s %s" % (date_format, time_format))
+            else: # time then date
+                time_obj = time.strptime("%s %s" % (time_part, date_part),
+                                         "%s %s" % (time_format, date_format))
+        elif date_part is not None and time_part is None:
+            # date only (add time of 00:00:00)
+            time_obj = time.strptime("%s 00:00:00" % date_part, 
+                                     "%s %%H:%%M:%%S" % date_format)
+        elif date_part is None and time_part is not None:
+            # time only (assume today's date)
+            today = time.localtime()
+            time_obj = time.strptime("%s-%s-%s %s" % (today[0], today[1], 
+                                                      today[2], time_part), 
+                                     "%%Y-%%m-%%d %s" % time_format)
+        else:
+            raise Exception, ("Supposedly a usable datetime str but no usable "
+                              "parts")
+        if debug: print(time_obj)
+        return time_obj
+
+def time_obj_to_datetime_str(time_obj):
+    "Takes time_obj and returns standard datetime string"
+    datetime_str = "%4d-%02d-%02d %02d:%02d:%02d" % (time_obj[:6])
+    return datetime_str
     
 def getTreeCtrlChildren(tree, parent):
     "Get children of TreeCtrl item"

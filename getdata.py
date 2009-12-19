@@ -245,29 +245,42 @@ def extractDbDets(choice_text):
 
 def PrepValue(dbe, val, fld_dic):
     """
-    Prepare raw value e.g. datetime, for insertion/update via SQL
-    NB accepts faulty datettime formats and will create faulty SQL.
-    Validation happens later and if it fails, the SQL will never run.
+    Prepare raw value for insertion/update via SQL.
+    Missing (.) and None -> None.
+    Any non-missing/null values in numeric fields are simply passed through.
+    Values in datetime fields are returned as datetime strings (if valid) ready 
+        to include in SQL.  If not valid, the faulty value is returned as is in 
+        the knowledge that it will fail validation later (CellInvalid) and not
+        actually be saved to a database (in db_grid.UpdateCell()).
+    Why is a faulty datetime allowed through?  Because we don't want to have to 
+        handle exceptions at this point (things can happen in a different order 
+        depending on whether a mouse click or tabbing occurred).
+        It is cleaner to just rely on the validation step which occurs to all 
+        data (numbers etc), which not only prevents faulty data being entered, 
+        but also gives the user helpful feedback in an orderly way.
     """
+    debug = False
     try:
+        # most modules won't need to have a special function
         prep_val = my_globals.DBE_MODULES[dbe].PrepValue(val, fld_dic)
     except AttributeError:
-        debug = False
-        if val in [None, u"."]: # TODO - use a const without having to import db_tbl
+        # the most common path
+        if val in [None, my_globals.MISSING_VAL_INDICATOR]:
             val2use = None
         elif fld_dic[my_globals.FLD_BOLDATETIME]:
             if val == u"":
                 val2use = None
             else:
-                valid_datetime, timeobj = util.valid_datetime_str(val)
-                if not valid_datetime:
-                    # will not execute successfully
-                    if debug: print(u"%s is not a valid datetime")
-                    val2use = val
-                else:
-                    if debug: print(timeobj)
+                try:
+                    time_obj = get_time_obj_from_datetime_str(val)
+                    if debug: print(time_obj)
                     # might as well store in same way as MySQL
-                    val2use = util.timeobj_to_datetime_str(timeobj)
+                    val2use = util.time_obj_to_datetime_str(time_obj)
+                except Exception:
+                    # will not pass cell validation later and better to
+                    # avoid throwing exceptions in the middle of things
+                    if debug: print(u"%s is not a valid datetime")
+                    val2use = val                   
         else:
             val2use = val
         if debug: print(val2use)

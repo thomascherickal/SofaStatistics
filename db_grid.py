@@ -487,7 +487,7 @@ class TblEditor(wx.Dialog):
             if self.debug or debug:
                 print("New buffer is %s" % self.dbtbl.new_buffer)
             raw_val = self.dbtbl.new_buffer.get((row, col), 
-                                                db_tbl.MISSING_VAL_INDICATOR)
+                                            my_globals.MISSING_VAL_INDICATOR)
         else:
             raw_val = self.GetRawVal(row, col)
             existing_row_data_lst = self.dbtbl.row_vals_dic.get(row)
@@ -504,11 +504,11 @@ class TblEditor(wx.Dialog):
             print("\"%s\"" % raw_val)
             print("Field dic is:")
             pprint.pprint(fld_dic)
-        if raw_val == db_tbl.MISSING_VAL_INDICATOR or raw_val is None:
+        if raw_val == my_globals.MISSING_VAL_INDICATOR or raw_val is None:
             return False
         elif not fld_dic[my_globals.FLD_DATA_ENTRY_OK]: 
              # i.e. not autonumber, timestamp etc
-             # and raw_val != db_tbl.MISSING_VAL_INDICATOR unnecessary
+             # and raw_val != my_globals.MISSING_VAL_INDICATOR unnecessary
             raise Exception, "This field should have been read only"
         elif fld_dic[my_globals.FLD_BOLNUMERIC]:
             if not util.is_numeric(raw_val):
@@ -523,8 +523,8 @@ class TblEditor(wx.Dialog):
                 return True
             return False
         elif fld_dic[my_globals.FLD_BOLDATETIME]:
-            valid_datetime, unused = util.valid_datetime_str(raw_val)
-            if not valid_datetime:
+            usable_datetime = util.is_usable_datetime_str(raw_val)
+            if not usable_datetime:
                 wx.MessageBox("\"%s\" " % raw_val + \
                               _(" is not a valid datetime.\n\n"
                                 "Either enter a valid date/ datetime\n"
@@ -583,7 +583,7 @@ class TblEditor(wx.Dialog):
         raw_val = self.GetRawVal(row, col)
         fld_dic = self.dbtbl.GetFldDic(col)
         missing_not_nullable_prob = \
-            (raw_val == db_tbl.MISSING_VAL_INDICATOR and \
+            (raw_val == my_globals.MISSING_VAL_INDICATOR and \
              not fld_dic[my_globals.FLD_BOLNULLABLE] and \
              fld_dic[my_globals.FLD_DATA_ENTRY_OK])
         if missing_not_nullable_prob:
@@ -649,7 +649,7 @@ class TblEditor(wx.Dialog):
             if not fld_dic[my_globals.FLD_DATA_ENTRY_OK]:
                 continue
             raw_val = self.dbtbl.new_buffer.get((row, col), None)
-            if raw_val == db_tbl.MISSING_VAL_INDICATOR:
+            if raw_val == my_globals.MISSING_VAL_INDICATOR:
                 raw_val = None
             data.append((raw_val, fld_name, fld_dic))
         row_inserted, msg = getdata.InsertRow(self.dbe, self.con, self.cur, 

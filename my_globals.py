@@ -144,6 +144,8 @@ FLD_BOLDATETIME = u"field datetime"
 IDX_NAME = u"index name"
 IDX_IS_UNIQUE = u"index is unique"
 IDX_FLDS = u"index fields"
+# misc data
+MISSING_VAL_INDICATOR = u"."
 # must be defined before dbe modules called - used in them
 GTE_EQUALS = "="
 GTE_NOT_EQUALS = "not =" # each dbe converts to appropriate SQL operators
@@ -216,7 +218,7 @@ GEN2SQLITE_DIC = {
     FLD_TYPE_DATE: {"sqlite_type": "DATETIME", # DATETIME not a native storage 
                 #class but can still be discovered via PRAGMA table_info()
             "check_clause": ("CHECK(typeof(%(fld_name)s) = 'null' "
-            "or valid_datetime_str(%(fld_name)s))")},
+            "or is_std_datetime_str(%(fld_name)s))")},
     }
 # grids
 # move directions

@@ -15,6 +15,7 @@ import decimal
 
 #from .output import _strip_html
 import my_globals
+import filtselect
 import getdata
 import importer
 import indep2var
@@ -24,6 +25,29 @@ import util
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
+
+def test_get_val():
+    "Must be useful for making WHERE clauses"
+    flds = {"numvar": {my_globals.FLD_BOLNUMERIC: True, 
+                       my_globals.FLD_BOLDATETIME: False},
+            "strvar": {my_globals.FLD_BOLNUMERIC: False, 
+                       my_globals.FLD_BOLDATETIME: False},
+            "datevar": {my_globals.FLD_BOLNUMERIC: False, 
+                        my_globals.FLD_BOLDATETIME: True},
+            }
+    tests = [(("12", flds, "numvar"), 12),
+             (("", flds, "numvar"), None),
+             (("NuLL", flds, "numvar"), None),
+             (("NULL", flds, "strvar"), None),
+             (("", flds, "strvar"), ""),
+             (("12", flds, "strvar"), "12"),
+             (("", flds, "datevar"), None),
+             (("nuLL", flds, "datevar"), None),
+             (("2009-01-31", flds, "datevar"), "2009-01-31 00:00:00"),
+             (("2009", flds, "datevar"), "2009-01-01 00:00:00"),
+             ]
+    for test in tests:
+        assert_equal(filtselect.get_val(*test[0]), test[1])
 
 def test_get_range_idxs():
     """

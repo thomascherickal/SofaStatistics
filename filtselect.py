@@ -8,6 +8,48 @@ import projects
 import util
 
 
+def get_val(raw_val, flds, fld_name):
+    """
+    Value is validated first.  Raw value will always be a string.
+    If numeric, must be a number, an empty string (turned to Null), 
+        or any variant of Null.
+    If a date, must be a usable date, an empty string, or Null.  Empty 
+        strings are turned to Null.  Usable dates are returned as std datetimes.
+    If a string, can be anything.  Variants of Null are treated specially.
+    Null values (or any variant of Null) are turned to None which will be 
+        processed correctly as a Null when clauses are made.
+    """
+    debug = False
+    bolnumeric = flds[fld_name][my_globals.FLD_BOLNUMERIC]
+    boldatetime = flds[fld_name][my_globals.FLD_BOLDATETIME]
+    if bolnumeric:
+        if util.is_numeric(raw_val):
+            return float(raw_val)
+        else: # not a num - a valid string?
+            if isinstance(raw_val, basestring):
+                if raw_val == "" or raw_val.lower() == "null":
+                    return None
+        raise Exception, ("Only a number, an empty string, or Null can "
+                          "be entered for filtering a numeric field")
+    elif boldatetime:
+        usable_datetime = util.is_usable_datetime_str(raw_val)
+        if usable_datetime:
+            if debug: print("A valid datetime: '%s'" % raw_val)
+            time_obj = util.get_time_obj_from_datetime_str(raw_val)
+            return util.time_obj_to_datetime_str(time_obj) 
+        else: # not a datetime - a valid string?
+            if isinstance(raw_val, basestring):
+                if raw_val == "" or raw_val.lower() == "null":
+                    return None
+        raise Exception, ("Only a datetime, an empty string, or Null can "
+                          "be entered for filtering a datetime field")
+    else:
+        if raw_val.lower() == "null":
+            return None
+        else:
+            return raw_val
+        
+
 class FiltSelectDlg(wx.Dialog):
     def __init__(self, parent, dbe, con, cur, flds, var_labels, var_notes, 
                  var_types, val_dics, fil_var_dets, bolnew=True):
@@ -162,49 +204,12 @@ class FiltSelectDlg(wx.Dialog):
         self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
         # (MUST come after Destroy)
 
-    def get_val(self, raw_val, fld_name):
-        """
-        Value is validated first.  Raw value will always be a string.
-        If numeric, must be a number, an empty string (turned to Null), 
-            or any variant of Null.
-        If a date, must be a valid date, an empty string, or Null.  Empty 
-            strings are turned to Null.
-        If a string, can be anything.  Variants of Null are treated specially.
-        Null values (or any variant of Null) are turned to None which will be 
-            processed correctly as a Null when clauses are made.
-        """
-        bolnumeric = self.flds[fld_name][my_globals.FLD_BOLNUMERIC]
-        boldatetime = self.flds[fld_name][my_globals.FLD_BOLDATETIME]
-        if bolnumeric:
-            if util.is_numeric(raw_val):
-                return float(raw_val)
-            else: # not a num - a valid string?
-                if isinstance(raw_val, basestring):
-                    if raw_val == "" or raw_val.lower() == "null":
-                        return None
-            raise Exception, ("Only a number, an empty string, or Null can "
-                              "be entered for filtering a numeric field")
-        elif boldatetime:
-            if util.valid_datetime_str(raw_val):
-                return raw_val
-            else: # not a datetime - a valid string?
-                if isinstance(raw_val, basestring):
-                    if raw_val == "" or raw_val.lower() == "null":
-                        return None
-            raise Exception, ("Only a datetime, an empty string, or Null can "
-                              "be entered for filtering a datetime field")
-        else:
-            if raw_val.lower() == "null":
-                return None
-            else:
-                return raw_val
-
     def get_quick_filter(self):
         "Get filter from quick setting"
         debug = False
         choice_text = self.dropVars.GetStringSelection()
         fld_name, unused = getdata.extractChoiceDets(choice_text)
-        val = self.get_val(self.txtVal.GetValue(), fld_name)
+        val = get_val(self.txtVal.GetValue(), self.flds, fld_name)
         gte = self.dropGTE.GetStringSelection()
         filt = getdata.make_fld_val_clause(self.dbe, self.flds, fld_name, val, 
                                            gte)
@@ -216,8 +221,6 @@ class FiltSelectDlg(wx.Dialog):
             filt = self.get_quick_filter()
         
         # Must work with a simple query to that database
-        
-        
         
         
         self.Destroy()

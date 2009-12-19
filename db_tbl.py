@@ -10,8 +10,6 @@ import my_globals
 import getdata
 import util
 
-MISSING_VAL_INDICATOR = "."
-
 debug = False
 
 
@@ -142,7 +140,7 @@ class DbTbl(wx.grid.PyGridTableBase):
     
     def NoneToMissingVal(self, val):
         if val is None:
-            val = MISSING_VAL_INDICATOR
+            val = my_globals.MISSING_VAL_INDICATOR
         return val
     
     def GetValue(self, row, col):
@@ -183,7 +181,8 @@ class DbTbl(wx.grid.PyGridTableBase):
                 so do it as needed.
             """
             if self.NewRow(row):
-                return self.new_buffer.get((row, col), MISSING_VAL_INDICATOR)
+                return self.new_buffer.get((row, col), 
+                                           my_globals.MISSING_VAL_INDICATOR)
             # identify row range            
             row_min = row - extra if row - extra > 0 else 0
             row_max = row + extra if row + extra < self.rows_to_fill \
@@ -233,18 +232,16 @@ class DbTbl(wx.grid.PyGridTableBase):
     
     def IsEmptyCell(self, row, col):
         value = self.GetValue(row, col)
-        return value == MISSING_VAL_INDICATOR
+        return value == my_globals.MISSING_VAL_INDICATOR
     
     def SetValue(self, row, col, value):
         """
-        Only called if data entered.
-        
+        Only called if data entered.        
         Fires first if use mouse to move from a cell you have edited.
         Fires after keypress and SelectCell if you use TAB to move.
-        
         If a new row, stores value in new row buffer ready to be saved if 
             OK to save row.
-        If an existing, ordinary row, stores SQL to update cell if OK to update
+        If an existing, ordinary row, stores SQL_cell_to_update if OK to update
             cell.  Cache will be updated if, and only if, the cell is actually
             updated.
         """

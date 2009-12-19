@@ -50,7 +50,7 @@ def get_con(con_dets, db):
             u"Orig error: %s" % e
     # some user-defined functions needed for strict type checking constraints
     con.create_function("is_numeric", 1, util.is_numeric)
-    con.create_function("valid_datetime_str", 1, util.valid_datetime_str)
+    con.create_function("is_std_datetime_str", 1, util.is_std_datetime_str)
     return con
 
 

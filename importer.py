@@ -74,8 +74,8 @@ def assess_sample_fld(sample_data, fld_name):
         elif util.isPyTime(val): # COM on Windows
             type_set.add(VAL_DATETIME)
         else:
-            boldatetime, time_obj = util.valid_datetime_str(val)
-            if boldatetime:
+            usable_datetime = util.is_usable_datetime_str(val)
+            if usable_datetime:
                 type_set.add(VAL_DATETIME)
             elif val == u"":
                 type_set.add(VAL_EMPTY_STRING)
@@ -115,7 +115,7 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
                             my_globals.FLD_TYPE_DATE] and \
                            (val == "" or val is None):
                 val = u"NULL"
-    else:            
+    else: # checking
         bolOK_data = False        
         if fld_type == my_globals.FLD_TYPE_NUMERIC:
             # must be numeric or empty string (which we'll turn to NULL)
@@ -131,13 +131,16 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
                 bolOK_data = True
                 val = util.pytime_to_datetime_str(val)
             else:
-                boldatetime, time_obj = util.valid_datetime_str(val)
-                if boldatetime:
-                    bolOK_data = True
-                    val = util.timeobj_to_datetime_str(timeobj)
-                elif val == u"" or val is None:
+                if val == u"" or val is None:
                     bolOK_data = True
                     val = u"NULL"
+                else:
+                    try:
+                        time_obj = util.get_time_obj_from_datetime_str(val)
+                        val = util.time_obj_to_datetime_str(time_obj)
+                        bolOK_data = True
+                    except Exception:
+                        pass # leave val as is for error reporting
         elif fld_type == my_globals.FLD_TYPE_STRING:
             bolOK_data = True
         if not bolOK_data:
