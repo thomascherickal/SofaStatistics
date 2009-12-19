@@ -47,10 +47,10 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         strGet_Sample = u"%s = core_stats.get_list(" + \
             u"dbe=\"%s\", " % self.dbe + \
             u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
+            u"flds=flds, " + \
             u"fld_measure=\"%s\", " % var_avg + \
             u"fld_filter=\"%s\", " % var_gp + \
-            u"filter_val=%s, " + \
-            u"bolnumeric=%s)" % var_gp_numeric
+            u"filter_val=%s)"
         # need sample for each of the values in range
         script_lst = [u"dp = 3"]
         lst_samples = []

@@ -17,6 +17,10 @@ DEFAULT_TBL = u"sqlite_default_tbl"
 NUMERIC_TYPES = [u"integer", u"float", u"numeric", u"real"]
 DATE_TYPES = [u"date", u"datetime", u"time", u"timestamp"]
 
+if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
+placeholder = u"?"
+gte_not_equals = u"!="
+
 # http://www.sqlite.org/lang_keywords.html
 # The following is non-standard but will work
 def quote_obj(raw_val):
@@ -25,15 +29,12 @@ def quote_obj(raw_val):
 def quote_val(raw_val):
     return u"\"%s\"" % raw_val
 
-def get_placeholder():
-    return u"?"
-
 def get_summable(clause):
     return clause
 
-def DbeSyntaxElements():
-    if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
-    return (if_clause, quote_obj, quote_val, get_placeholder, get_summable)
+def get_syntax_elements():
+    return (if_clause, quote_obj, quote_val, placeholder, get_summable, 
+            gte_not_equals)
 
 def get_con(con_dets, db):
     con_dets_sqlite = con_dets.get(my_globals.DBE_SQLITE)

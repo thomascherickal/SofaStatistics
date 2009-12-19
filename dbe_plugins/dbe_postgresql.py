@@ -49,21 +49,27 @@ TXID_SNAPSHOT = u"txid_snapshot" # "user-level transaction ID snapshot"
 UUID = u"uuid" # "universally unique identifier"
 XML = u"xml" # "XML data"
 
+if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
+placeholder = u"?"
+gte_not_equals = u"!="
+
 def quote_obj(raw_val):
     return u'"%s"' % raw_val
 
 def quote_val(raw_val):
-    return u"'%s'" % raw_val
-
-def get_placeholder():
-    return u"%s"
+    try:
+        val = raw_val.replace("'", "''")
+    except AttributeError, e:
+        raise Exception, ("Inappropriate attempt to quote non-string value. "
+                          "Orig error: %s" % e)
+    return u"'%s'" % val
 
 def get_summable(clause):
     return u"CASE WHEN %s THEN 1 ELSE 0 END" % clause
 
-def DbeSyntaxElements():
-    if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
-    return (if_clause, quote_obj, quote_val, get_placeholder, get_summable)
+def get_syntax_elements():
+    return (if_clause, quote_obj, quote_val, placeholder, get_summable,
+            gte_not_equals)
 
 
 class DbDets(getdata.DbDets):

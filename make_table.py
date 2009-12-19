@@ -246,20 +246,20 @@ class MakeTable(object):
         # NB the following text is all going to be run
         if self.tab_type == my_globals.COL_MEASURES:
             script_lst.append(u"tab_test = dimtables.GenTable(titles=" + \
-                              unicode(titles) + u",\n    subtitles=" + \
-                              unicode(subtitles) + \
-                              u",\n    dbe=\"" + self.dbe + \
-                              u"\",\n    datasource=\"" + self.tbl + \
-                              u"\", cur=cur, tree_rows=tree_rows, " + \
-                              u"tree_cols=tree_cols)")
+                          unicode(titles) + u",\n    subtitles=" + \
+                          unicode(subtitles) + \
+                          u",\n    dbe=\"" + self.dbe + \
+                          u"\",\n    datasource=\"" + self.tbl + \
+                          u"\", cur=cur, flds=flds, tree_rows=tree_rows, " + \
+                          u"tree_cols=tree_cols)")
         elif self.tab_type == my_globals.ROW_SUMM:
             script_lst.append(u"tab_test = dimtables.SummTable(titles=" + \
-                              unicode(titles) + u",\n    subtitles=" + \
-                              unicode(subtitles) + \
-                              u",\n    dbe=\"" + self.dbe + \
-                              u"\",\n    datasource=\"" + self.tbl + \
-                              u"\", cur=cur, tree_rows=tree_rows, " + \
-                              u"tree_cols=tree_cols)")
+                          unicode(titles) + u",\n    subtitles=" + \
+                          unicode(subtitles) + \
+                          u",\n    dbe=\"" + self.dbe + \
+                          u"\",\n    datasource=\"" + self.tbl + \
+                          u"\", cur=cur, flds=flds, tree_rows=tree_rows, " + \
+                          u"tree_cols=tree_cols)")
         elif self.tab_type == my_globals.RAW_DISPLAY:
             tot_rows = u"True" if self.chkTotalsRow.IsChecked() else u"False"
             first_label = u"True" if self.chkFirstAsLabel.IsChecked() \

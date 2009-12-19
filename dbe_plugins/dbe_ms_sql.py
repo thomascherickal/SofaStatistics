@@ -21,6 +21,9 @@ AD_OPEN_KEYSET = 1
 AD_LOCK_OPTIMISTIC = 3
 AD_SCHEMA_COLUMNS = 4
 
+if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
+placeholder = u"?"
+gte_not_equals = u"!="
 
 def quote_obj(raw_val):
     return u"[%s]" % raw_val
@@ -33,15 +36,12 @@ def quote_val(raw_val):
                           "Orig error: %s" % e)
     return u"'%s'" % val
 
-def get_placeholder():
-    return u"?"
-
 def get_summable(clause):
     return u"CASE WHEN %s THEN 1 ELSE 0 END" % clause
 
-def DbeSyntaxElements():
-    if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
-    return (if_clause, quote_obj, quote_val, get_placeholder, get_summable)
+def get_syntax_elements():
+    return (if_clause, quote_obj, quote_val, placeholder, get_summable, 
+            gte_not_equals)
 
     
 class DbDets(getdata.DbDets):

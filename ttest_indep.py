@@ -36,11 +36,13 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         strGet_Sample = u"sample_%s = core_stats.get_list(" + \
             u"dbe=\"%s\", " % self.dbe + \
             u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
+            u"flds=flds, " + \
             u"fld_measure=\"%s\", " % var_avg + \
             u"fld_filter=\"%s\", " % var_gp + \
-            u"filter_val=%s, " + \
-            u"bolnumeric=%s)" % var_gp_numeric
+            u"filter_val=%s)"
         script_lst.append(u"dp = 3")
+        val_str_quoted_a = val if var_gp_numeric else "\"%s\"" % val_a
+        val_str_quoted_b = val if var_gp_numeric else "\"%s\"" % val_b
         script_lst.append(strGet_Sample % (u"a", val_a))
         script_lst.append(strGet_Sample % (u"b", val_b))
         script_lst.append(u"label_a = \"%s\"" % label_a)

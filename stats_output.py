@@ -144,8 +144,11 @@ def chisquare_output(chi, p, var_label_a, var_label_b,
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
     var_label_a = cgi.escape(var_label_a)
     var_label_b = cgi.escape(var_label_b)
-    val_labels_a = map(cgi.escape, val_labels_a)
-    val_labels_b = map(cgi.escape, val_labels_b)
+    try:
+        val_labels_a = map(cgi.escape, val_labels_a)
+        val_labels_b = map(cgi.escape, val_labels_b)
+    except AttributeError:
+        pass # e.g. an int
     cells_per_col = 2
     val_labels_a_n = len(val_labels_a)
     val_labels_b_n = len(val_labels_b)

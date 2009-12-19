@@ -390,7 +390,7 @@ class LiveTable(DimTable):
     and colpct, etc etc.
     """
     
-    def __init__(self, titles, dbe, datasource, cur, tree_rows, tree_cols, 
+    def __init__(self, titles, dbe, datasource, cur, flds, tree_rows, tree_cols, 
                  subtitles=None):
         """
         cur - must return tuples, not dictionaries
@@ -402,10 +402,12 @@ class LiveTable(DimTable):
         else:
             self.subtitles = []
         self.dbe = dbe
-        (self.if_clause, self.quote_obj, self.quote_val, self.get_placeholder,
-            self.get_summable) = getdata.getDbeSyntaxElements(self.dbe)
+        (self.if_clause, self.quote_obj, self.quote_val, self.placeholder,
+            self.get_summable, self.gte_not_equals) = \
+                getdata.get_dbe_syntax_elements(self.dbe)
         self.datasource = datasource
         self.cur = cur
+        self.flds = flds
         self.tree_rows = tree_rows
         self.tree_cols = tree_cols
     
@@ -694,10 +696,8 @@ class LiveTable(DimTable):
             if is_tot:
                 val_node_filts.append(NOTNULL % fld)
             else:
-                bolnumeric = tree_dims_node.bolnumeric
-                bolsqlite = (self.dbe == my_globals.DBE_SQLITE)
-                clause = getdata.make_fld_val_clause(bolsqlite, fld, val, 
-                                                     bolnumeric, self.quote_val)
+                clause = getdata.make_fld_val_clause(self.dbe, self.flds, fld, 
+                                                     val, my_globals.GTE_EQUALS)
                 if debug: print(clause)
                 val_node_filts.append(clause)
             is_coltot=(is_tot and dim == my_globals.COLDIM)

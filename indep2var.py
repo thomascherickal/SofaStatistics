@@ -74,9 +74,9 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         self.panel = wx.Panel(self)
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         ib = wx.IconBundle()
-        ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, u"images",
-                                        u"tinysofa.xpm"), 
-                           wx.BITMAP_TYPE_XPM)
+        icon_path = os.path.join(my_globals.SCRIPT_PATH, u"images", 
+                                 u"tinysofa.xpm")
+        ib.AddIconFromFile(icon_path, wx.BITMAP_TYPE_XPM)
         self.SetIcons(ib)
         self.GenConfigSetup(self.panel) # mixin
         self.SetupOutputButtons() # mixin
@@ -395,10 +395,8 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
     def get_drop_vals(self):
         """
         Get values from main drop downs.
-        Returns var_gp, label_gp, val_a, label_a, 
-            val_b, label_b, var_avg, label_avg.
-        val_a and val_b are quoted if not numeric e.g. '"firefox"' so ready to 
-            use in majority of cases.
+        Returns var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, 
+            label_avg.
         """
         choice_gp_text = self.dropGroupBy.GetStringSelection()
         var_gp, label_gp = getdata.extractChoiceDets(choice_gp_text)
@@ -409,9 +407,6 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         choice_avg_text = self.dropAveraged.GetStringSelection()
         var_avg, label_avg = getdata.extractChoiceDets(choice_avg_text)
         var_gp_numeric = self.flds[var_gp][my_globals.FLD_BOLNUMERIC]
-        if not var_gp_numeric:
-            val_a = u"\"%s\"" % val_a
-            val_b = u"\"%s\"" % val_b
         return var_gp_numeric, var_gp, label_gp, val_a, label_a, \
             val_b, label_b, var_avg, label_avg
         

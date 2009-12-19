@@ -480,15 +480,13 @@ class StartFrame(wx.Frame):
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_tabs1 = _("Make report tables e.g. Age vs Gender")
         panel_dc.DrawLabel(GetTextToDraw(txt_tabs1, MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 
-                                   260))       
+                        wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))       
         txt_tabs2 = _("Can make simple Frequency Tables, "
             "Summary Tables (mean, median, N, standard deviation, sum), "
             "and simple tabular reports of data as found in data source "
             "(with labels and optional totals).")
         panel_dc.DrawLabel(GetTextToDraw(txt_tabs2, MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP+30, HELP_TEXT_WIDTH, 
-                                   260))
+                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP+30, HELP_TEXT_WIDTH, 260))
         event.Skip()
     
     def OnChartsClick(self, event):
@@ -504,8 +502,7 @@ class StartFrame(wx.Frame):
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_charts = _("Make attractive charts e.g. a pie chart of regions")
         panel_dc.DrawLabel(GetTextToDraw(txt_charts, MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 
-                                   260))
+                        wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
     
     def OnStatsClick(self, event):
@@ -536,8 +533,7 @@ class StartFrame(wx.Frame):
         txt_stats2 = _("SOFA focuses on the statistical tests most users "
             "need most of the time.")
         panel_dc.DrawLabel(GetTextToDraw(txt_stats2, MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 76, 
-                                   HELP_TEXT_WIDTH, 320))
+                wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 76, HELP_TEXT_WIDTH, 320))
         txt_stats3 = u"QUOTE:"
         panel_dc.DrawLabel(GetTextToDraw(txt_stats3, MAX_HELP_TEXT_WIDTH), 
                            wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 121, 

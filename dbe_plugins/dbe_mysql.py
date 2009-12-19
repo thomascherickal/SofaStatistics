@@ -18,6 +18,9 @@ MEDIUMINT = "mediumint"
 SMALLINT = "smallint"
 TINYINT = "tinyint"
 
+if_clause = u"IF(%s, %s, %s)"
+placeholder = u"?"
+gte_not_equals = u"!="
 
 def quote_obj(raw_val):
     return u"`%s`" % raw_val
@@ -25,15 +28,12 @@ def quote_obj(raw_val):
 def quote_val(raw_val):
     return u"\"%s\"" % raw_val
 
-def get_placeholder():
-    return u"%s"
-
 def get_summable(clause):
     return clause
 
-def DbeSyntaxElements():
-    if_clause = u"IF(%s, %s, %s)"
-    return (if_clause, quote_obj, quote_val, get_placeholder, get_summable)
+def get_syntax_elements():
+    return (if_clause, quote_obj, quote_val, placeholder, get_summable,
+            gte_not_equals)
 
 
 class DbDets(getdata.DbDets):

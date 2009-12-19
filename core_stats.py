@@ -23,17 +23,14 @@ else:
     AND_GLOBAL_FILTER = u""
     WHERE_GLOBAL_FILTER = u""
 
-
-def get_list(dbe, cur, tbl, fld_measure, fld_filter, filter_val, bolnumeric):
+def get_list(dbe, cur, tbl, flds, fld_measure, fld_filter, filter_val):
     """
     Get list of non-missing values in field.
     Used, for example, in the independent samples t-test.
     """
     debug = False
-    val_quoter = getdata.get_val_quoter_func(dbe)
-    bolsqlite = (dbe == my_globals.DBE_SQLITE)
-    fld_val_clause = getdata.make_fld_val_clause(bolsqlite, fld_filter, 
-                                            filter_val, bolnumeric, val_quoter)
+    fld_val_clause = getdata.make_fld_val_clause(dbe, flds, fld_filter, 
+                                                 filter_val)
     obj_quoter = getdata.get_obj_quoter_func(dbe)
     SQL_get_list = u"SELECT %s " % obj_quoter(fld_measure) + \
         "FROM %s " % obj_quoter(tbl) + \
@@ -789,7 +786,8 @@ def mean(vals, high=False):
 
 def variance(vals, high=False):
     """
-    From stats.py.  No changes except option of using Decimals not floats.  
+    From stats.py.  No changes except option of using Decimals not floats.
+    Plus trapping n=1 error (results in div by zero  with /n-1) and n=0.  
     -------------------------------------
     Returns the variance of the values in the passed list using N-1
     for the denominator (i.e., for estimating population variance).
@@ -797,6 +795,9 @@ def variance(vals, high=False):
     Usage:   variance(vals)
     """
     n = len(vals)
+    if n < 2:
+        raise Exception, ("Need more than 1 value to calculate variance.  "
+                          "Values supplied: %s" % vals)
     mn = mean(vals, high)
     deviations = [0]*len(vals)
     for i in range(len(vals)):

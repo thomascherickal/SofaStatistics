@@ -65,14 +65,14 @@ class DbDets(object):
         """
         assert 0, "Must define getDbDets in subclass"
 
-def make_fld_val_clause_non_numeric(fld, val, quote_obj, quote_val):
-    if val is None:
-        clause = u"%s IS NULL" % quote_obj(fld)
-    else:
-        clause = "%s = " % quote_obj(fld) + quote_val(val)
+def make_fld_val_clause_non_numeric(fld_name, val, dbe_gte, quote_obj, 
+                                    quote_val):
+    debug = False
+    clause = "%s %s %s" % (quote_obj(fld_name), dbe_gte, quote_val(val))
+    if debug: print(clause)
     return clause
     
-def make_fld_val_clause(bolsqlite, fld, val, bolnumeric, quote_obj, quote_val):
+def make_fld_val_clause(dbe, flds, fld_name, val, gte=my_globals.GTE_EQUALS):
     """
     Make a filter clause with a field name = a value (numeric or non-numeric).
     quote_obj -- function specific to database engine for quoting objects
@@ -82,8 +82,21 @@ def make_fld_val_clause(bolsqlite, fld, val, bolnumeric, quote_obj, quote_val):
         if the dbe is SQLite and will be treated differently from 56 for 
         filtering.
     """
+    debug = False
+    bolsqlite = (dbe == my_globals.DBE_SQLITE)
+    quote_obj = get_obj_quoter_func(dbe)
+    quote_val = get_val_quoter_func(dbe)
+    dbe_gte = get_gte(dbe, gte)
+    bolnumeric = flds[fld_name][my_globals.FLD_BOLNUMERIC]
+    boldatetime = flds[fld_name][my_globals.FLD_BOLDATETIME]
     if val is None:
-        clause = u"%s IS NULL" % quote_obj(fld)
+        if gte == my_globals.GTE_EQUALS:
+            clause = u"%s IS NULL" % quote_obj(fld_name)
+        elif gte == my_globals.GTE_NOT_EQUALS:
+            clause = u"%s IS NOT NULL" % quote_obj(fld_name)
+        else:
+            raise Exception, "Can only use = or " + \
+                "%s with missing or Null values." % my_globals.GTE_NOT_EQUALS
     else:
         num = True
         if not bolnumeric:
@@ -92,10 +105,11 @@ def make_fld_val_clause(bolsqlite, fld, val, bolnumeric, quote_obj, quote_val):
             if not util.is_basic_num(val):
                 num = False
         if num:
-            clause = u"%s = %s" % (quote_obj(fld), val)
+            clause = u"%s %s %s" % (quote_obj(fld_name), dbe_gte, val)
         else:
-            clause = make_fld_val_clause_non_numeric(fld, val, quote_obj,
-                                                     quote_val)
+            clause = make_fld_val_clause_non_numeric(fld_name, val, dbe_gte, 
+                                                     quote_obj, quote_val)
+    if debug: print(clause)
     return clause
 
 def get_obj_quoter_func(dbe):
@@ -113,9 +127,14 @@ def get_val_quoter_func(dbe):
     return my_globals.DBE_MODULES[dbe].quote_val
 
 def get_placeholder(dbe):
-    return my_globals.DBE_MODULES[dbe].get_placeholder()
+    return my_globals.DBE_MODULES[dbe].placeholder
 
-def getDbeSyntaxElements(dbe):
+def get_gte(dbe, gte):
+    if gte == my_globals.GTE_NOT_EQUALS:
+        return my_globals.DBE_MODULES[dbe].gte_not_equals
+    return gte
+
+def get_dbe_syntax_elements(dbe):
     """
     Returns if_clause (a string), and 4 functions - quote_obj(), quote_val(), 
         get_placeholder(), and get_summable().
@@ -123,7 +142,7 @@ def getDbeSyntaxElements(dbe):
     e.g. MySQL "IF(%s, %s, %s)"
     Sum and if statements are used to get frequencies in SOFA Statistics.
     """
-    return my_globals.DBE_MODULES[dbe].DbeSyntaxElements()
+    return my_globals.DBE_MODULES[dbe].get_syntax_elements()
 
 def setDataConGui(parent, read_only, scroll, szr, lblfont):
     ""

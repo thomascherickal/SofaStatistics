@@ -53,7 +53,7 @@ class FiltSelectDlg(wx.Dialog):
         self.dropVars.SetToolTipString(_("Right click variable to view/edit "
                                          "details"))
         self.setup_vars()
-        gte_choices = ["=", "!=", ">", "<", ">=", "<="]
+        gte_choices = my_globals.GTES
         self.dropGTE = wx.Choice(self.panel, -1, choices=gte_choices)
         self.dropGTE.SetSelection(0)
         self.txtVal = wx.TextCtrl(self.panel, -1, "")
@@ -162,9 +162,9 @@ class FiltSelectDlg(wx.Dialog):
         self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
         # (MUST come after Destroy)
 
-    def get_val(self, raw_val, bolnumeric, boldatetime):
+    def get_val(self, raw_val, fld_name):
         """
-        Value is validated first.  Will always be a string.
+        Value is validated first.  Raw value will always be a string.
         If numeric, must be a number, an empty string (turned to Null), 
             or any variant of Null.
         If a date, must be a valid date, an empty string, or Null.  Empty 
@@ -173,6 +173,8 @@ class FiltSelectDlg(wx.Dialog):
         Null values (or any variant of Null) are turned to None which will be 
             processed correctly as a Null when clauses are made.
         """
+        bolnumeric = self.flds[fld_name][my_globals.FLD_BOLNUMERIC]
+        boldatetime = self.flds[fld_name][my_globals.FLD_BOLDATETIME]
         if bolnumeric:
             if util.is_numeric(raw_val):
                 return float(raw_val)
@@ -199,22 +201,13 @@ class FiltSelectDlg(wx.Dialog):
 
     def get_quick_filter(self):
         "Get filter from quick setting"
-        debug = True
-        bolsqlite = (self.dbe == my_globals.DBE_SQLITE)
+        debug = False
         choice_text = self.dropVars.GetStringSelection()
-        fld, unused = getdata.extractChoiceDets(choice_text)
-        bolnumeric = self.flds[fld][my_globals.FLD_BOLNUMERIC]
-        boldatetime = self.flds[fld][my_globals.FLD_BOLDATETIME]
-        val = self.get_val(self.txtVal.GetValue(), bolnumeric, boldatetime)
-        quote_obj = getdata.get_obj_quoter_func(self.dbe)
-        quote_val = getdata.get_val_quoter_func(self.dbe)
-        
-        
-        # TODO - only handles = . Extend.
-        
-        
-        filt = getdata.make_fld_val_clause(bolsqlite, fld, val, bolnumeric, 
-                                           quote_obj, quote_val)
+        fld_name, unused = getdata.extractChoiceDets(choice_text)
+        val = self.get_val(self.txtVal.GetValue(), fld_name)
+        gte = self.dropGTE.GetStringSelection()
+        filt = getdata.make_fld_val_clause(self.dbe, self.flds, fld_name, val, 
+                                           gte)
         if debug: print(filt)
         return filt
 

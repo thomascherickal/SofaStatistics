@@ -144,13 +144,20 @@ FLD_BOLDATETIME = u"field datetime"
 IDX_NAME = u"index name"
 IDX_IS_UNIQUE = u"index is unique"
 IDX_FLDS = u"index fields"
+# must be defined before dbe modules called - used in them
+GTE_EQUALS = "="
+GTE_NOT_EQUALS = "not =" # each dbe converts to appropriate SQL operators
+GTE_GT = ">"
+GTE_LT = "<"
+GTE_GTE = ">="
+GTE_LTE = "<="
+GTES = [GTE_EQUALS, GTE_NOT_EQUALS, GTE_GT, GTE_LT, GTE_GTE, GTE_LTE]
 # also used as labels in dropdowns
 DBE_SQLITE = u"SQLite"
 DBE_MYSQL = u"MySQL"
 DBE_MS_ACCESS = u"MS Access"
 DBE_MS_SQL = u"MS SQL Server"
 DBE_PGSQL = u"PostgreSQL"
-
 """
 Include database engine in system if in dbe_plugins folder and os-appropriate.
 """
@@ -211,7 +218,6 @@ GEN2SQLITE_DIC = {
             "check_clause": ("CHECK(typeof(%(fld_name)s) = 'null' "
             "or valid_datetime_str(%(fld_name)s))")},
     }
-
 # grids
 # move directions
 MOVE_LEFT = u"move left"

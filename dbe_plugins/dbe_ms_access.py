@@ -27,21 +27,29 @@ AD_SCHEMA_COLUMNS = 4
 MSACCESS_DEFAULT_DB = "msaccess_default_db"
 MSACCESS_DEFAULT_TBL = "msaccess_default_tbl"
 
+if_clause = u"IIF(%s, %s, %s)"
+placeholder = u"?"
+# http://ask.metafilter.com/38350/ ...
+# ... How-does-not-equal-translate-into-Access-Language
+gte_not_equals = u"<>" # all the others accept both
+
 def quote_obj(raw_val):
     return u"[%s]" % raw_val
 
 def quote_val(raw_val):
-    return u"'%s'" % raw_val.replace("'", "''") # escape internal single quotes
-
-def get_placeholder():
-    return u"?"
+    try:
+        val = raw_val.replace("'", "''") # escape internal single quotes
+    except AttributeError, e:
+        raise Exception, ("Inappropriate attempt to quote non-string value. "
+                          "Orig error: %s" % e)
+    return u"'%s'" % val
 
 def get_summable(clause):
     return u"ABS(%s)" % clause # true is -1 so we need to get sum of +1s
 
-def DbeSyntaxElements():
-    if_clause = u"IIF(%s, %s, %s)"
-    return (if_clause, quote_obj, quote_val, get_placeholder, get_summable)
+def get_syntax_elements():
+    return (if_clause, quote_obj, quote_val, placeholder, get_summable, 
+            gte_not_equals)
 
     
 class DbDets(getdata.DbDets):
