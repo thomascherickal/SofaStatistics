@@ -305,9 +305,10 @@ def datetime_split(datetime_str):
     Return None for any missing components.
     Must be only one space in string (if any) - between date and time
         (or time and date).
+    boldate_then_time -- only False if time then date with both present.
     """
     if " " in datetime_str:
-        date_then_time = True
+        boldate_then_time = True
         datetime_split = datetime_str.split(" ")
         if len(datetime_split) != 2:
             return (None, None, True)
@@ -316,25 +317,26 @@ def datetime_split(datetime_str):
             return (datetime_split[0], datetime_split[1], True)
         elif is_date_part(datetime_split[1]) \
                 and is_time_part(datetime_split[0]):
-            return (datetime_split[1], datetime_split[0], False)
+            boldate_then_time = False
+            return (datetime_split[1], datetime_split[0], boldate_then_time)
         else:
-            return (None, None, date_then_time)
+            return (None, None, boldate_then_time)
     elif IsYear(datetime_str):
         return (datetime_str, None, True)
     else: # only one part
-        date_then_time = True
+        boldate_then_time = True
         if is_date_part(datetime_str):
-            return (datetime_str, None, date_then_time)
+            return (datetime_str, None, boldate_then_time)
         elif is_time_part(datetime_str):
-            return (None, datetime_str, date_then_time)
+            return (None, datetime_str, boldate_then_time)
         else:
-            return (None, None, date_then_time)
+            return (None, None, boldate_then_time)
 
 def get_dets_of_usable_datetime_str(raw_datetime_str):
     """
-    Returns (date_part, date_format, time_part, time_format, date_time_order) if 
-        a usable datetime.  NB usable doesn't mean valid as such.  E.g. we may 
-        need to add a date to the time to make it valid.
+    Returns (date_part, date_format, time_part, time_format, boldate_then_time) 
+        if a usable datetime.  NB usable doesn't mean valid as such.  E.g. we 
+        may need to add a date to the time to make it valid.
     Returns None if not usable.
     These parts can be used to make a valid time object ready for conversion 
         into a standard string for data entry.
@@ -344,7 +346,7 @@ def get_dets_of_usable_datetime_str(raw_datetime_str):
         if debug: print("%s is not a valid datetime string" % raw_datetime_str)
         return None
     # evaluate date and/or time components against allowable formats
-    date_part, time_part, date_time_order = datetime_split(raw_datetime_str)
+    date_part, time_part, boldate_then_time = datetime_split(raw_datetime_str)
     if date_part is None and time_part is None:
         if debug: print("Both date and time parts are empty.")
         return None
@@ -378,7 +380,7 @@ def get_dets_of_usable_datetime_str(raw_datetime_str):
         if bad_time:
             return None
     # have at least one part and no bad parts
-    return (date_part, date_format, time_part, time_format, date_time_order)
+    return (date_part, date_format, time_part, time_format, boldate_then_time)
 
 def is_usable_datetime_str(raw_datetime_str):
     """
@@ -435,11 +437,11 @@ def get_time_obj_from_datetime_str(raw_datetime_str):
     else: 
         # usable (possibly requiring a date to be added to a time)
         # has at least one part (date/time) and anything it has is ok
-        (date_part, date_format, time_part, time_format, date_time_order) = \
+        (date_part, date_format, time_part, time_format, boldate_then_time) = \
             datetime_dets
         # determine what type of valid datetime then make time object    
         if date_part is not None and time_part is not None:
-            if date_time_order: # date then time            
+            if boldate_then_time:           
                 time_obj = time.strptime("%s %s" % (date_part, time_part), 
                                          "%s %s" % (date_format, time_format))
             else: # time then date

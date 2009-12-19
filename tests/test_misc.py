@@ -26,6 +26,20 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
 
+def test_get_dets_of_usable_datetime_str():
+    # date_part, date_format, time_part, time_format, boldate_then_time
+    tests = [("2009", ("2009", "%Y", None, None, True)),
+             ("2009-01-31", ("2009-01-31", "%Y-%m-%d", None, None, True)),
+             ("31/01/2009", ("31/01/2009", "%d/%m/%Y", None, None, True)),
+             ("31/1/2009", ("31/1/2009", "%d/%m/%Y", None, None, True)),
+             ("2pm", (None, None, "2pm", "%I%p", True)),
+             ("2:30pm", (None, None, "2:30pm", "%I:%M%p", True)),
+             ("14:30", (None, None, "14:30", "%H:%M", True)),
+             ("14:30:00", (None, None, "14:30:00", "%H:%M:%S", True)),
+             ]
+    for test in tests:
+        assert_equal(util.get_dets_of_usable_datetime_str(test[0]), test[1])
+
 def test_get_val():
     "Must be useful for making WHERE clauses"
     flds = {"numvar": {my_globals.FLD_BOLNUMERIC: True, 
