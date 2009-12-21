@@ -7,6 +7,7 @@ import pprint
 import wx
 
 import my_globals
+import config
 
 
 class PrefsDlg(wx.Dialog):
@@ -59,7 +60,6 @@ class PrefsDlg(wx.Dialog):
         # (MUST come after Destroy)
     
     def OnOK(self, event):
-        my_globals.DATE_FORMATS_IN_USE = self.radDateFormat.GetSelection()
         self.prefs_dic[my_globals.PREFS_KEY][my_globals.DATE_ENTRY_FORMAT] = \
             self.radDateFormat.GetSelection()
         prefs_path = os.path.join(my_globals.LOCAL_PATH, 
@@ -69,6 +69,7 @@ class PrefsDlg(wx.Dialog):
         f.write(u"%s = " % my_globals.PREFS_KEY + \
                 pprint.pformat(self.prefs_dic[my_globals.PREFS_KEY]))
         f.close()
+        config.update_ok_date_formats_globals() # run after prefs file updated
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
         # Prebuilt dialogs must do this internally.

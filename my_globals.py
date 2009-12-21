@@ -254,8 +254,10 @@ PREFS_KEY = "Prefs"
 DATE_ENTRY_FORMAT = "Date entry format"
 INT_DATE_ENTRY_FORMAT = 0
 ALWAYS_OK_DATE_FORMATS = ["%Y-%m-%d", "%Y", "%d.%m.%Y", "%d.%m.%y"]
-OK_DATE_FORMATS = []
 OK_TIME_FORMATS = ["%I%p", "%I:%M%p", "%H:%M", "%H:%M:%S"]
 DATE_FORMATS_IN_USE = INT_DATE_ENTRY_FORMAT
 import config
-config.update_ok_date_formats_setting()
+# need to be populated in initial config
+OK_DATE_FORMATS = []
+OK_DATE_FORMAT_EXAMPLES = []
+config.update_ok_date_formats_globals()

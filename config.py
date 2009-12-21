@@ -41,16 +41,18 @@ def get_settings_dic(subfolder, fil_name):
         raise Exception, unicode(e)
     return settings_dic
 
-def update_ok_date_formats_setting():
+def update_ok_date_formats_globals():
     try:
         prefs_dic = get_settings_dic(subfolder=my_globals.INTERNAL_FOLDER, 
                                      fil_name=my_globals.INT_PREFS_FILE)
     except Exception:
         return # if no settings, leave status quo
-    if my_globals.DATE_FORMATS_IN_USE == INT_DATE_ENTRY_FORMAT:
+    if my_globals.DATE_FORMATS_IN_USE == my_globals.INT_DATE_ENTRY_FORMAT:
         extra_ok_date_formats = ["%d-%m-%y", "%d/%m/%y", "%d-%m-%Y", "%d/%m/%Y"]
+        my_globals.OK_DATE_FORMAT_EXAMPLES = ["31/3/09", "2:30pm 31/3/2009"]
     else:
         # needed for US, Canada, the Philippines etc
         extra_ok_date_formats = ["%m-%d-%y", "%m/%d/%y", "%m-%d-%Y", "%m/%d/%Y"]
+        my_globals.OK_DATE_FORMAT_EXAMPLES = ["3/31/09", "2:30pm 3/31/2009"]
     my_globals.OK_DATE_FORMATS =  extra_ok_date_formats + \
         my_globals.ALWAYS_OK_DATE_FORMATS

@@ -525,11 +525,13 @@ class TblEditor(wx.Dialog):
         elif fld_dic[my_globals.FLD_BOLDATETIME]:
             usable_datetime = util.is_usable_datetime_str(raw_val)
             if not usable_datetime:
+                eg1 = my_globals.OK_DATE_FORMAT_EXAMPLES[0]
+                eg2 = my_globals.OK_DATE_FORMAT_EXAMPLES[1]
                 wx.MessageBox("\"%s\" " % raw_val + \
-                              _(" is not a valid datetime.\n\n"
-                                "Either enter a valid date/ datetime\n"
-                                "e.g. 31/3/2009 or 2:30pm 31/3/2009\nor "
-                                "the missing value character (.)"))
+                      _(" is not a valid datetime.\n\n"
+                        "Either enter a valid date/ datetime\n") + \
+                      _("e.g. %s or %s") % (eg1, eg2) + \
+                      _("\nor the missing value character (.)"))
                 return True
             return False
         elif fld_dic[my_globals.FLD_BOLTEXT]:
