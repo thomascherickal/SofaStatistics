@@ -13,14 +13,15 @@ import sys
 import time
 import wx
 
+import my_globals
+
 # must be kept safe to import - must never refer to anything in other modules
 
 def get_settings_dic(subfolder, fil_name):
     """
     Returns settings_dic with keys for each setting.
     """
-    unused, LOCAL_PATH = get_user_paths()
-    settings_path = os.path.join(LOCAL_PATH, subfolder, fil_name)
+    settings_path = os.path.join(my_globals.LOCAL_PATH, subfolder, fil_name)
     try:
         f = codecs.open(settings_path, "U", encoding="utf-8")
     except IOError:
@@ -190,27 +191,8 @@ def clean_bom_utf8(raw):
         raw = raw[len(unicode(codecs.BOM_UTF8, "utf-8")):]
     return raw
 
-def in_windows():
-    try:
-        in_windows = os.environ['OS'].lower().startswith("windows")
-    except Exception:
-        in_windows = False
-    return in_windows
-
-if in_windows():
+if my_globals.IN_WINDOWS:
     import pywintypes
-
-def get_user_paths():
-    local_encoding = sys.getfilesystemencoding()
-    user_path = unicode(os.path.expanduser("~"), local_encoding)
-    local_path = os.path.join(user_path, u"sofa")
-    return user_path, local_path
-
-def get_script_path():
-    """
-    NB won't work within an interpreter
-    """
-    return sys.path[0]
 
 def escape_win_path(path):
     "Useful when writing a path to a text file"
@@ -304,10 +286,10 @@ def mysql2textdate(mysql_date, output_format):
 
 def is_date_part(datetime_str):
     """
-    Assumes date will have - or / and time will not.
+    Assumes date will have - or / or . and time will not.
     If a mishmash will fail bad_date later.
     """
-    return "-" in datetime_str or "/" in datetime_str
+    return "-" in datetime_str or "/" in datetime_str or "." in datetime_str
 
 def is_time_part(datetime_str):
     """
@@ -385,7 +367,8 @@ def get_dets_of_usable_datetime_str(raw_datetime_str):
         # see CellInvalid for message about correct datetime entry formats
         # TODO - look at whether d-m-y or m-d-y depending on locale?
         bad_date = True
-        ok_date_formats = ["%d-%m-%Y", "%d/%m/%Y", "%Y-%m-%d", "%Y"]
+        ok_date_formats = ["%d-%m-%y", "%d/%m/%y", "%d-%m-%Y", "%d/%m/%Y", 
+                           "%Y-%m-%d", "%Y", "%d.%m.%Y", "%d.%m.%y"]
         for ok_date_format in ok_date_formats:
             try:
                 t = time.strptime(date_part, ok_date_format)
@@ -594,5 +577,4 @@ class StaticWrapText(wx.StaticText):
     def OnSize(self, event):
         # dispatch to the wrap method which will 
         # determine if any changes are needed
-        self.__wrap()
-        
+        self.__wrap()        

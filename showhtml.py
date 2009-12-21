@@ -1,8 +1,8 @@
 import wx
 import os
 
+import my_globals
 import full_html
-import util
 
 def get_html(title, content, template, root="", file_name="", print_folder=""):
     """
@@ -55,7 +55,7 @@ class ShowHTML(wx.Dialog):
         btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
         szrMain = wx.BoxSizer(wx.VERTICAL)
         szrMain.Add(html,1,wx.GROW|wx.ALL, 5)
-        if util.in_windows():
+        if my_globals.IN_WINDOWS:
             szrBtns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
             szrBtns.AddGrowableCol(1,2)
             btnPrint = wx.Button(self, -1, _("Print"))

@@ -1,6 +1,6 @@
 import wx
 
-import util
+import my_globals
 
 
 class OutputButtons(object):
@@ -11,7 +11,7 @@ class OutputButtons(object):
         #main
         self.btnRun = wx.Button(self.panel, -1, _("RUN"))
         self.btnRun.Bind(wx.EVT_BUTTON, self.OnButtonRun)
-        label_divider = " " if util.in_windows() else "\n"
+        label_divider = " " if my_globals.IN_WINDOWS else "\n"
         self.chkAddToReport = wx.CheckBox(self.panel, -1, 
                                           _("Add to%sreport" % label_divider))
         self.chkAddToReport.SetValue(True)

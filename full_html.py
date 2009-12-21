@@ -1,7 +1,7 @@
 
 import wx
 
-import util
+import my_globals
 
 debug = False # if the renderer is not available and other testing is required
 
@@ -14,7 +14,7 @@ if debug:
         def ShowHTML(self, strHTML):
             pass
 else:
-    if util.in_windows():
+    if my_globals.IN_WINDOWS:
         
         import wx.lib.iewin as ie
         

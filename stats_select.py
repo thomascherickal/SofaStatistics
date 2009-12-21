@@ -13,7 +13,6 @@ import projects
 import spearmansr
 import ttest_indep
 import ttest_paired
-import util
 import wilcoxon
 
 TEXT_BROWN = (90, 74, 61)
@@ -34,9 +33,8 @@ HELP_LEFT = MAIN_LEFT + 235
 REL_TOP = 330
 BUTTON1_LEFT = MAIN_LEFT + 20
 BUTTON2_LEFT = MAIN_LEFT + 130
-INWIN = util.in_windows()
-CONFIG_LEFT = 620 if not INWIN else 630
-BUTTON_LIFT = 0 if INWIN else 4
+CONFIG_LEFT = 620 if not my_globals.IN_WINDOWS else 630
+BUTTON_LIFT = 0 if my_globals.IN_WINDOWS else 4
 DIV_LINE_WIDTH = 203
 
 
@@ -197,7 +195,7 @@ class StatsSelectDlg(wx.Dialog):
         il = wx.ImageList(16, 16)
         self.idx_tick = 0
         self.idx_blank = 1
-        tick = u"tickwin" if INWIN else u"tick"
+        tick = u"tickwin" if my_globals.IN_WINDOWS else u"tick"
         for img in [tick, u"blank"]:
             bmp = wx.Bitmap(os.path.join(my_globals.SCRIPT_PATH, u"images", 
                                          u"%s.png" % img), 

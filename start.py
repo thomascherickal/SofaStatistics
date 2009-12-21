@@ -139,7 +139,7 @@ def InstallLocal():
             new_str = util.escape_win_path(os.path.join(LOCAL_PATH, path, u""))
             proj_str = proj_str.replace(u"/home/g/sofa/%s/" % path, new_str)
         # add MS Access and SQL Server into mix if Windows
-        if util.in_windows():
+        if my_globals.IN_WINDOWS:
             proj_str = proj_str.replace(u"default_dbs = {",
                                         u"default_dbs = {'%s': None, " % \
                                             my_globals.DBE_MS_ACCESS)
@@ -171,7 +171,7 @@ class SofaApp(wx.App):
             filename = None
         else:
             redirect = True
-            unused, local_path = util.get_user_paths()
+            my_globals.LOCAL_PATH
             filename = os.path.join(local_path, my_globals.INTERNAL_FOLDER, 
                                     u'output.txt')
         wx.App.__init__(self, redirect=redirect, filename=filename)
@@ -345,7 +345,7 @@ class StartFrame(wx.Frame):
             up (comtypes).
         """
         COMTYPES_HANDLED = u"comtypes_handled.txt"
-        if util.in_windows() and not os.path.exists(os.path.join(LOCAL_PATH, 
+        if my_globals.IN_WINDOWS and not os.path.exists(os.path.join(LOCAL_PATH, 
                                                             COMTYPES_HANDLED)):
             wx.MessageBox(_("Click OK to prepare for first use of SOFA "
                           "Statistics.\n\nPreparation may take a moment ..."))
@@ -442,16 +442,16 @@ class StartFrame(wx.Frame):
     
     def OnPrefsClick(self, event):
         import prefs
+        debug = False
         try:
             prefs_dic = \
                 util.get_settings_dic(subfolder=my_globals.INTERNAL_FOLDER, 
                                       fil_name=my_globals.INT_PREFS_FILE)
         except Exception:
             prefs_dic = {}
-        print(prefs_dic)
-        dlg = prefs.PrefsDlg(parent=self)
+        if debug: print(prefs_dic)
+        dlg = prefs.PrefsDlg(parent=self, prefs_dic=prefs_dic)
         dlg.ShowModal()
-        dlg.Destroy()
         event.Skip()
     
     def OnPrefsEnter(self, event):

@@ -11,7 +11,6 @@ import getdata
 import output
 import output_buttons
 import projects
-import util
 
 OUTPUT_MODULES = ["my_globals", "core_stats", "getdata", "output", 
                   "stats_output"]
@@ -73,7 +72,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrDesc.Add(lblDesc2, 1, wx.GROW|wx.LEFT, 5)
         szrDesc.Add(lblDesc3, 1, wx.GROW|wx.LEFT, 5)
         bxVars = wx.StaticBox(self.panel, -1, _("Variables"))
-        if not util.in_windows(): # http://trac.wxwidgets.org/ticket/9859
+        if not my_globals.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
             bxVars.SetToolTipString(variables_rc_msg)
         szrVars = wx.StaticBoxSizer(bxVars, wx.VERTICAL)
         #szrVars = wx.BoxSizer(wx.HORIZONTAL) # removes tooltip bug in gtk

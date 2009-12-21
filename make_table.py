@@ -381,7 +381,7 @@ class MakeTable(object):
             # add end to each open script file and close.
             for fil_script in self.open_scripts:
                 # add ending code to script
-                f = file(fil_script, "a")
+                f = open(fil_script, "a")
                 output.AddClosingScriptCode(f)
                 f.close()
         except Exception:

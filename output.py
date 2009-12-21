@@ -159,7 +159,7 @@ def getHtmlHdr(hdr_title, css_fils):
         css_lst = []
         for i, css_fil in enumerate(css_fils):
             try:
-                f = file(css_fil, "r")
+                f = open(css_fil, "r")
             except IOError, e:
                 raise Exception, _("The css file %s doesn't exist" % css_fil)
             css_txt = f.read()

@@ -72,7 +72,6 @@ class FiltSelectDlg(wx.Dialog):
                            wx.SYSTEM_MENU, pos=(300, 100))
         self.parent = parent
         self.panel = wx.Panel(self)
-        lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         # szrs
         szrMain = wx.BoxSizer(wx.VERTICAL)
         szrLabel = wx.BoxSizer(wx.HORIZONTAL)
@@ -176,6 +175,7 @@ class FiltSelectDlg(wx.Dialog):
         szrStdBtns.Insert(0, btnDelete, 0)
         self.szrBtns.Add(szrExtraBtns, 1)
         self.szrBtns.Add(szrStdBtns, 0)
+        btnOK.SetDefault()
 
     def OnVarDets(self, event):
         """
@@ -216,7 +216,7 @@ class FiltSelectDlg(wx.Dialog):
         return filt
 
     def OnOK(self, event):
-        if self.radQuick.GetValue() :
+        if self.radQuick.GetValue():
             filt = self.get_quick_filter()
         
         # Must work with a simple query to that database

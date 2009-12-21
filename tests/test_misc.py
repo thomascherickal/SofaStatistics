@@ -34,6 +34,8 @@ def test_is_usable_datetime_str():
              ("1876", True),
              ("1666-09-02", True),
              ("1666/09/02", False), # wrong order if using slashes
+             ("31.3.1988", True),
+             ("31/3/88", True),
              ]
     for test in tests:
         assert_equal(util.is_usable_datetime_str(test[0]), test[1])
@@ -46,6 +48,8 @@ def test_get_std_datetime_str():
              ("11am 2009-01-31", "2009-01-31 11:00:00"),
              ("2009-01-31 3:30pm", "2009-01-31 15:30:00"),
              ("02/09/1666 00:12:16", "1666-09-02 00:12:16"), #http://en.wikipedia.org/wiki/Great_Fire_of_London
+             ("12.2.2001 2:35pm", "2001-02-12 14:35:00"),
+             ("12.2.01 2:35pm", "2001-02-12 14:35:00"),
              ]
     for test in tests:
         assert_equal(util.get_std_datetime_str(test[0]), test[1])
@@ -56,6 +60,8 @@ def test_get_dets_of_usable_datetime_str():
              ("2009-01-31", ("2009-01-31", "%Y-%m-%d", None, None, True)),
              ("31/01/2009", ("31/01/2009", "%d/%m/%Y", None, None, True)),
              ("31/1/2009", ("31/1/2009", "%d/%m/%Y", None, None, True)),
+             ("31/01/09", ("31/01/09", "%d/%m/%y", None, None, True)),
+             ("31/1/09", ("31/1/09", "%d/%m/%y", None, None, True)),
              ("2pm", (None, None, "2pm", "%I%p", True)),
              ("2:30pm", (None, None, "2:30pm", "%I:%M%p", True)),
              ("14:30", (None, None, "14:30", "%H:%M", True)),
@@ -66,6 +72,11 @@ def test_get_dets_of_usable_datetime_str():
                                       "%H:%M:%S", False)),
              ("1am 2009-01-31", ("2009-01-31", "%Y-%m-%d", "1am", "%I%p", 
                                  False)),
+             ("31.3.1988", ("31.3.1988", "%d.%m.%Y", None, None, True)),
+             ("31.3.1988 2:45am", ("31.3.1988", "%d.%m.%Y", "2:45am", "%I:%M%p", 
+                            True)),
+             ("31.3.88 2:45am", ("31.3.88", "%d.%m.%y", "2:45am", "%I:%M%p", 
+                            True)),
              ]
     for test in tests:
         assert_equal(util.get_dets_of_usable_datetime_str(test[0]), test[1])

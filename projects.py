@@ -301,7 +301,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
                            size=(1024, 600),
                            style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
                            wx.TAB_TRAVERSAL, pos=(0, 0))
-        y_start = -15 if util.in_windows() else 0
+        y_start = -15 if my_globals.IN_WINDOWS else 0
         self.panel_top = wx.Panel(self, pos=(0,0))
         top_height = 185
         self.scroll_con_dets = wx.PyScrolledWindow(self, 

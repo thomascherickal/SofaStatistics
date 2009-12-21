@@ -1,8 +1,10 @@
 from __future__ import print_function
 import os
-import util # safe to import - never refers to anything in other modules
+import sys
 
 # my_globals exists to reduce likelihood of circular imports.
+# don't do any local importing at all.  This should complete before any other 
+# local scripts are called
 
 debug = False
 
@@ -99,8 +101,10 @@ SOFA_DEFAULT_SCRIPT = u"SOFA_Default_Exported_Table_Scripts.py"
 SOFA_DEFAULT_REPORT = u"SOFA_Default_New_Tables.htm"
 SOFA_DEFAULT_PATHS = u"SOFA_Default_Paths.txt"
 INTERNAL_FOLDER = u"_internal"
-USER_PATH, LOCAL_PATH = util.get_user_paths()
-SCRIPT_PATH = util.get_script_path()
+local_encoding = sys.getfilesystemencoding()
+USER_PATH = unicode(os.path.expanduser("~"), local_encoding)
+LOCAL_PATH = os.path.join(USER_PATH, u"sofa")
+SCRIPT_PATH = sys.path[0] # NB won't work within an interpreter
 # http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
 INT_SCRIPT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, u"script.py")
 INT_REPORT_FILE = u"report.htm"
@@ -181,7 +185,10 @@ def import_dbe_plugin(dbe_plugin):
         import dbe_plugins.dbe_postgresql as dbe_postgresql
         mod = dbe_postgresql
     return mod
-
+try:
+    IN_WINDOWS = os.environ['OS'].lower().startswith("windows")
+except Exception:
+    IN_WINDOWS = False
 DBES = []
 DBE_MODULES = {}
 DBE_PLUGINS = [(DBE_SQLITE, u"dbe_sqlite"), 
@@ -191,7 +198,7 @@ DBE_PLUGINS = [(DBE_SQLITE, u"dbe_sqlite"),
                (DBE_PGSQL, u"dbe_postgresql"),
                ]
 for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
-    for_win_yet_not_win = not util.in_windows() and \
+    for_win_yet_not_win = not IN_WINDOWS and \
         dbe_plugin in [DBE_MS_ACCESS, DBE_MS_SQL]
     dbe_plugin_mod = os.path.join(os.path.dirname(__file__), u"dbe_plugins", 
                                    u"%s.py" % dbe_mod_name)
@@ -243,3 +250,6 @@ TBL_FLD_TYPE = "fld_type"
 TBL_FLD_TYPE_ORIG = "fld_type_orig"
 TMP_TBL_NAME = "sofa_tmp_tbl"
 SOFA_ID = "sofa_id"
+PREFS_KEY = "Prefs"
+DATE_ENTRY_FORMAT = "Date entry format"
+INT_DATE_ENTRY_FORMAT = 0

@@ -7,7 +7,7 @@ import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import csv_importer
 import util
-if util.in_windows():
+if my_globals.IN_WINDOWS:
     import excel_importer
 import projects
 from my_exceptions import ImportCancelException
@@ -471,7 +471,7 @@ class ImportFileSelectDlg(wx.Dialog):
         if extension.lower() == u".csv":
             self.file_type = FILE_CSV
         if extension.lower() == u".xls":
-            if not util.in_windows():
+            if not my_globals.IN_WINDOWS:
                 wx.MessageBox(_("Excel spreadsheets are only supported on "
                               "Windows.  Try exporting to CSV first from "
                               "Excel (within Windows)"))
