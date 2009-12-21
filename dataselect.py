@@ -5,12 +5,12 @@ import sys
 import wx
 
 import my_globals
+import config
 import db_grid
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
 import projects
 import table_config
-import util
 
 sqlite_quoter = getdata.get_obj_quoter_func(my_globals.DBE_SQLITE)
 
@@ -29,7 +29,8 @@ class DataSelectDlg(wx.Dialog):
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         lblChoose = wx.StaticText(self.panel, -1, 
                                   _("Choose an existing data table ..."))
-        proj_dic = util.get_settings_dic(subfolder=u"projs", fil_name=proj_name)
+        proj_dic = config.get_settings_dic(subfolder=u"projs", 
+                                           fil_name=proj_name)
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.GetVarDets(proj_dic["fil_var_dets"])
         self.dbe = proj_dic["default_dbe"]

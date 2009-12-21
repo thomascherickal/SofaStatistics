@@ -3,8 +3,8 @@ import os
 import sys
 
 # my_globals exists to reduce likelihood of circular imports.
-# don't do any local importing at all.  This should complete before any other 
-# local scripts are called
+# It does't do any local importing at all until the last line, where it imports
+# config (used for initial config plus re-config).
 
 debug = False
 
@@ -253,3 +253,9 @@ SOFA_ID = "sofa_id"
 PREFS_KEY = "Prefs"
 DATE_ENTRY_FORMAT = "Date entry format"
 INT_DATE_ENTRY_FORMAT = 0
+ALWAYS_OK_DATE_FORMATS = ["%Y-%m-%d", "%Y", "%d.%m.%Y", "%d.%m.%y"]
+OK_DATE_FORMATS = []
+OK_TIME_FORMATS = ["%I%p", "%I:%M%p", "%H:%M", "%H:%M:%S"]
+DATE_FORMATS_IN_USE = INT_DATE_ENTRY_FORMAT
+import config
+config.update_ok_date_formats_setting()

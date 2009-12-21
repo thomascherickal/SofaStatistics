@@ -22,7 +22,7 @@ import wx
 # translated.
 gettext.install('sofa', './locale', unicode=True)
 import my_globals # has translated text
-
+import config
 # importing delayed until needed where possible for startup performance
 # import dataselect
 import full_html
@@ -445,8 +445,8 @@ class StartFrame(wx.Frame):
         debug = False
         try:
             prefs_dic = \
-                util.get_settings_dic(subfolder=my_globals.INTERNAL_FOLDER, 
-                                      fil_name=my_globals.INT_PREFS_FILE)
+                config.get_settings_dic(subfolder=my_globals.INTERNAL_FOLDER, 
+                                        fil_name=my_globals.INT_PREFS_FILE)
         except Exception:
             prefs_dic = {}
         if debug: print(prefs_dic)
@@ -509,7 +509,8 @@ class StartFrame(wx.Frame):
         "Open make table gui with settings as per active_proj"
         import make_table_gui
         proj_name = self.active_proj
-        proj_dic = util.get_settings_dic(subfolder=u"projs", fil_name=proj_name)
+        proj_dic = config.get_settings_dic(subfolder=u"projs", 
+                                           fil_name=proj_name)
         try:
             dlg = make_table_gui.DlgMakeTable( 
                 proj_dic["default_dbe"], proj_dic["con_dets"], 
@@ -561,7 +562,8 @@ class StartFrame(wx.Frame):
         # open statistics selection dialog
         import stats_select
         proj_name = self.active_proj
-        proj_dic = util.get_settings_dic(subfolder=u"projs", fil_name=proj_name)
+        proj_dic = config.get_settings_dic(subfolder=u"projs", 
+                                           fil_name=proj_name)
         dlg = stats_select.StatsSelectDlg(proj_name, 
             proj_dic["default_dbe"], proj_dic["con_dets"], 
             proj_dic["default_dbs"], proj_dic["default_tbls"], 

@@ -16,6 +16,7 @@ import time
 
 #from .output import _strip_html
 import my_globals
+import config
 import filtselect
 import getdata
 import importer
@@ -340,8 +341,8 @@ def test_sofa_default_proj_settings():
     if they are smart enough to do that they should be smart enough to change 
     this test too ;-)
     """
-    proj_dic = util.get_settings_dic(subfolder=u"projs", 
-                                     fil_name=my_globals.SOFA_DEFAULT_PROJ)
+    proj_dic = config.get_settings_dic(subfolder=u"projs", 
+                                       fil_name=my_globals.SOFA_DEFAULT_PROJ)
     var_labels, var_notes, var_types, val_dics = \
         projects.GetVarDets(proj_dic["fil_var_dets"])
     fil_var_dets = proj_dic["fil_var_dets"]
@@ -364,8 +365,8 @@ def test_get_var_dets():
     if they are smart enough to do that they should be smart enough to change 
     this test too ;-)
     """
-    proj_dic = util.get_settings_dic(subfolder=u"projs", 
-                                     fil_name=my_globals.SOFA_DEFAULT_PROJ)
+    proj_dic = config.get_settings_dic(subfolder=u"projs", 
+                                       fil_name=my_globals.SOFA_DEFAULT_PROJ)
     var_labels, var_notes, var_types, val_dics = \
         projects.GetVarDets(proj_dic["fil_var_dets"])
     assert_not_equal(var_labels.get('Name'), None)

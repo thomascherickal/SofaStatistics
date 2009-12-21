@@ -15,36 +15,6 @@ import wx
 
 import my_globals
 
-# must be kept safe to import - must never refer to anything in other modules
-
-def get_settings_dic(subfolder, fil_name):
-    """
-    Returns settings_dic with keys for each setting.
-    """
-    settings_path = os.path.join(my_globals.LOCAL_PATH, subfolder, fil_name)
-    try:
-        f = codecs.open(settings_path, "U", encoding="utf-8")
-    except IOError:
-        raise Exception, "Unable to get settings from non-existent file %s" % \
-            settings_path
-    settings_cont = clean_bom_utf8(f.read())
-    f.close()
-    settings_dic = {}
-    try:
-        # http://docs.python.org/reference/simple_stmts.html
-        exec settings_cont in settings_dic
-    except SyntaxError, e:
-        wx.MessageBox(\
-            _("Syntax error in settings file \"%s\"." % fil_name + \
-                      os.linesep + os.linesep + "Details: %s" % unicode(e)))
-        raise Exception, unicode(e)
-    except Exception, e:
-        wx.MessageBox(\
-            _("Error processing settings file \"%s\"." % fil_name + \
-                      os.linesep + os.linesep + "Details: %s" % unicode(e)))
-        raise Exception, unicode(e)
-    return settings_dic
-
 def is_numeric(val):
     """
     Is a value numeric?  This is operationalised to mean can a value be cast as 
@@ -365,11 +335,8 @@ def get_dets_of_usable_datetime_str(raw_datetime_str):
     date_format = None
     if date_part:
         # see CellInvalid for message about correct datetime entry formats
-        # TODO - look at whether d-m-y or m-d-y depending on locale?
         bad_date = True
-        ok_date_formats = ["%d-%m-%y", "%d/%m/%y", "%d-%m-%Y", "%d/%m/%Y", 
-                           "%Y-%m-%d", "%Y", "%d.%m.%Y", "%d.%m.%y"]
-        for ok_date_format in ok_date_formats:
+        for ok_date_format in my_globals.OK_DATE_FORMATS:
             try:
                 t = time.strptime(date_part, ok_date_format)
                 date_format = ok_date_format
@@ -383,7 +350,7 @@ def get_dets_of_usable_datetime_str(raw_datetime_str):
     if time_part:
         bad_time = True
         ok_time_formats = ["%I%p", "%I:%M%p", "%H:%M", "%H:%M:%S"]
-        for ok_time_format in ok_time_formats:
+        for ok_time_format in my_globals.OK_TIME_FORMATS:
             try:
                 t = time.strptime(time_part, ok_time_format)
                 time_format = ok_time_format

@@ -59,6 +59,7 @@ class PrefsDlg(wx.Dialog):
         # (MUST come after Destroy)
     
     def OnOK(self, event):
+        my_globals.DATE_FORMATS_IN_USE = self.radDateFormat.GetSelection()
         self.prefs_dic[my_globals.PREFS_KEY][my_globals.DATE_ENTRY_FORMAT] = \
             self.radDateFormat.GetSelection()
         prefs_path = os.path.join(my_globals.LOCAL_PATH, 
