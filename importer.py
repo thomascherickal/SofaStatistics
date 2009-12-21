@@ -136,8 +136,7 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
                     val = u"NULL"
                 else:
                     try:
-                        time_obj = util.get_time_obj_from_datetime_str(val)
-                        val = util.time_obj_to_datetime_str(time_obj)
+                        val = util.get_std_datetime_str(val)
                         bolOK_data = True
                     except Exception:
                         pass # leave val as is for error reporting

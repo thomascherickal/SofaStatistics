@@ -104,6 +104,7 @@ SCRIPT_PATH = util.get_script_path()
 # http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
 INT_SCRIPT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, u"script.py")
 INT_REPORT_FILE = u"report.htm"
+INT_PREFS_FILE = u"prefs.txt"
 INT_REPORT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, INT_REPORT_FILE)
 DEFAULT_CSS_PATH = os.path.join(LOCAL_PATH, u"css", SOFA_DEFAULT_STYLE)
 VAR_TYPE_CAT = _("Nominal (names only)")

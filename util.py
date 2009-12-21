@@ -15,6 +15,35 @@ import wx
 
 # must be kept safe to import - must never refer to anything in other modules
 
+def get_settings_dic(subfolder, fil_name):
+    """
+    Returns settings_dic with keys for each setting.
+    """
+    unused, LOCAL_PATH = get_user_paths()
+    settings_path = os.path.join(LOCAL_PATH, subfolder, fil_name)
+    try:
+        f = codecs.open(settings_path, "U", encoding="utf-8")
+    except IOError:
+        raise Exception, "Unable to get settings from non-existent file %s" % \
+            settings_path
+    settings_cont = clean_bom_utf8(f.read())
+    f.close()
+    settings_dic = {}
+    try:
+        # http://docs.python.org/reference/simple_stmts.html
+        exec settings_cont in settings_dic
+    except SyntaxError, e:
+        wx.MessageBox(\
+            _("Syntax error in settings file \"%s\"." % fil_name + \
+                      os.linesep + os.linesep + "Details: %s" % unicode(e)))
+        raise Exception, unicode(e)
+    except Exception, e:
+        wx.MessageBox(\
+            _("Error processing settings file \"%s\"." % fil_name + \
+                      os.linesep + os.linesep + "Details: %s" % unicode(e)))
+        raise Exception, unicode(e)
+    return settings_dic
+
 def is_numeric(val):
     """
     Is a value numeric?  This is operationalised to mean can a value be cast as 
@@ -292,7 +321,7 @@ def IsYear(datetime_str):
     is_year = False
     try:
         year = int(datetime_str)
-        is_year = (1900 <= year < 10000) 
+        is_year = (1 <= year < 10000) 
     except Exception:
         pass
     return is_year
@@ -353,6 +382,8 @@ def get_dets_of_usable_datetime_str(raw_datetime_str):
     # gather information on the parts we have (we have at least one)
     date_format = None
     if date_part:
+        # see CellInvalid for message about correct datetime entry formats
+        # TODO - look at whether d-m-y or m-d-y depending on locale?
         bad_date = True
         ok_date_formats = ["%d-%m-%Y", "%d/%m/%Y", "%Y-%m-%d", "%Y"]
         for ok_date_format in ok_date_formats:
@@ -406,6 +437,7 @@ def is_std_datetime_str(raw_datetime_str):
     The only format accepted as valid for SQL is yyyy-mm-dd hh:mm:ss.
     NB lots of other formats may be usable, but this is the only one acceptable
         for direct entry into a database.
+    http://www.cl.cam.ac.uk/~mgk25/iso-time.html
     """
     try:
         t = time.strptime(raw_datetime_str, "%Y-%m-%d %H:%M:%S")
@@ -413,27 +445,19 @@ def is_std_datetime_str(raw_datetime_str):
     except Exception:
         return False
 
-def get_time_obj_from_datetime_str(raw_datetime_str):
+def get_std_datetime_str(raw_datetime_str):
     """
-    Is the datetime string usable?  Used for checking user-entered datetimes.
-    Doesn't cover all possibilities - just what is needed for typical data 
-        entry.
-    If only a time, can use today's date.
-    If only a date, can use midnight as time e.g. MySQL 00:00:00
-    Acceptable formats for date component are:
-    2009, 2008-02-26, 1-1-2008, 01-01-2008, 01/01/2008, 1/1/2008.
-    NB not American format - instead assumed to be day, month, year.
-    TODO - handle better ;-)
-    Acceptable formats for time are:
-    2pm, 2:30pm, 14:30 , 14:30:00
-    http://docs.python.org/library/datetime.html#module-datetime
-    Should only be one space in string (if any) - between date and time
-        (or time and date).
+    Takes a string and checks if there is a usable datetime in there (even a
+        time without a date is OK).
+    If there is, creates a complete time_obj and then turns that into a standard
+        datetime string.
+    
     """
     debug = False
     datetime_dets = get_dets_of_usable_datetime_str(raw_datetime_str)
     if datetime_dets is None:
-        return False # not usable
+        raise Exception, ("Need a usable datetime string to return a standard "
+                          "datetime string.")
     else: 
         # usable (possibly requiring a date to be added to a time)
         # has at least one part (date/time) and anything it has is ok
@@ -461,7 +485,8 @@ def get_time_obj_from_datetime_str(raw_datetime_str):
             raise Exception, ("Supposedly a usable datetime str but no usable "
                               "parts")
         if debug: print(time_obj)
-        return time_obj
+        std_datetime_str = time_obj_to_datetime_str(time_obj)
+        return std_datetime_str
 
 def time_obj_to_datetime_str(time_obj):
     "Takes time_obj and returns standard datetime string"

@@ -272,10 +272,7 @@ def PrepValue(dbe, val, fld_dic):
                 val2use = None
             else:
                 try:
-                    time_obj = get_time_obj_from_datetime_str(val)
-                    if debug: print(time_obj)
-                    # might as well store in same way as MySQL
-                    val2use = util.time_obj_to_datetime_str(time_obj)
+                    val2use = util.get_std_datetime_str(val)
                 except Exception:
                     # will not pass cell validation later and better to
                     # avoid throwing exceptions in the middle of things
@@ -367,7 +364,8 @@ def GetDefaultDbDets():
     Returns con, cur, dbs, tbls, flds, has_unique, idxs from default
         SOFA SQLite database.
     """
-    proj_dic = projects.GetProjSettingsDic(my_globals.SOFA_DEFAULT_PROJ)
+    proj_dic = util.get_settings_dic(subfolder=u"projs", 
+                                     fil_name=my_globals.SOFA_DEFAULT_PROJ)
     dbdetsobj = getDbDetsObj(dbe=my_globals.DBE_SQLITE, 
                              default_dbs=proj_dic["default_dbs"],
                              default_tbls=proj_dic["default_tbls"],

@@ -35,8 +35,7 @@ def get_val(raw_val, flds, fld_name):
         usable_datetime = util.is_usable_datetime_str(raw_val)
         if usable_datetime:
             if debug: print("A valid datetime: '%s'" % raw_val)
-            time_obj = util.get_time_obj_from_datetime_str(raw_val)
-            return util.time_obj_to_datetime_str(time_obj) 
+            return util.get_std_datetime_str(raw_val)
         else: # not a datetime - a valid string?
             if isinstance(raw_val, basestring):
                 if raw_val == "" or raw_val.lower() == "null":

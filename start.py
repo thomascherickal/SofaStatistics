@@ -35,13 +35,18 @@ import quotes
 import util
 
 COPYRIGHT = u"\u00a9"
-MAX_HELP_TEXT_WIDTH = 400 # pixels
+SCREEN_WIDTH = 1000
 TEXT_BROWN = (90, 74, 61)
 TOP_TOP = 9
+BTN_LEFT= 5
+BTN_WIDTH = 170
+BTN_RIGHT = SCREEN_WIDTH - (BTN_WIDTH + 18)
+BTN_DROP = 40
 MAIN_LEFT = 200
 HELP_TEXT_TOP = 288
-HELP_TEXT_WIDTH = 570
-HELP_IMG_LEFT = 640
+MAX_HELP_TEXT_WIDTH = 330 # pixels
+HELP_TEXT_WIDTH = 330
+HELP_IMG_LEFT = 580
 HELP_IMG_TOP = 315
 MAIN_RIGHT = 600
 SCRIPT_PATH = my_globals.SCRIPT_PATH
@@ -203,7 +208,8 @@ class StartFrame(wx.Frame):
     def __init__(self, main_font_size):
         self.main_font_size = main_font_size
         # Gen set up
-        wx.Frame.__init__(self, None, title=_("SOFA Start"), size=(900, 600),
+        wx.Frame.__init__(self, None, title=_("SOFA Start"), 
+              size=(SCREEN_WIDTH, 600),
               style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
@@ -223,61 +229,77 @@ class StartFrame(wx.Frame):
         # slice of image to be refreshed (where text and image will be)
         self.blank_wallpaper = \
             self.bmp_sofa.GetSubBitmap(wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, 
-                                               HELP_IMG_LEFT+60, 250))
+                                               HELP_IMG_LEFT+35, 250))
         self.blank_proj_strip = self.bmp_sofa.GetSubBitmap(wx.Rect(MAIN_LEFT, 
-                                                                218, 490, 30))
+                                                                218, 590, 30))
         # buttons
         font_buttons = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
-        g = GetNextYPos(284, 34)
-        btn_x_pos = 5
+        g = GetNextYPos(284, BTN_DROP)
+        # Proj
         bmp_btn_proj = TextOnBitmap(GetBlankButtonBitmap(), 
                                     _("Select Project"), 
                                     font_buttons, "white")
         self.btnProj = wx.BitmapButton(self.panel, -1, bmp_btn_proj, 
-                                       pos=(btn_x_pos, g.next()))
+                                       pos=(BTN_LEFT, g.next()))
         self.btnProj.Bind(wx.EVT_BUTTON, self.OnProjClick)
         self.btnProj.Bind(wx.EVT_ENTER_WINDOW, self.OnProjEnter)
         self.btnProj.SetDefault()
+        # Prefs
+        bmp_btn_pref = TextOnBitmap(GetBlankButtonBitmap(), 
+                                    _("Preferences"), 
+                                    font_buttons, "white")
+        self.btnPrefs = wx.BitmapButton(self.panel, -1, bmp_btn_pref, 
+                                       pos=(BTN_LEFT, g.next()))
+        self.btnPrefs.Bind(wx.EVT_BUTTON, self.OnPrefsClick)
+        self.btnPrefs.Bind(wx.EVT_ENTER_WINDOW, self.OnPrefsEnter)
+        # Data entry
         bmp_btn_enter = TextOnBitmap(GetBlankButtonBitmap(), 
                                      _("Enter/Edit Data"), 
                                      font_buttons, "white")
         self.btnEnter = wx.BitmapButton(self.panel, -1, bmp_btn_enter, 
-                                        pos=(btn_x_pos, g.next()))
+                                        pos=(BTN_LEFT, g.next()))
         self.btnEnter.Bind(wx.EVT_BUTTON, self.OnEnterClick)
-        self.btnEnter.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterEnter)       
+        self.btnEnter.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterEnter)
+        # Import       
         bmp_btn_import = TextOnBitmap(GetBlankButtonBitmap(), 
                                       _("Import Data"), 
                                       font_buttons, "white")
         self.btnImport = wx.BitmapButton(self.panel, -1, bmp_btn_import, 
-                                         pos=(btn_x_pos, g.next()))
+                                         pos=(BTN_LEFT, g.next()))
         self.btnImport.Bind(wx.EVT_BUTTON, self.OnImportClick)
         self.btnImport.Bind(wx.EVT_ENTER_WINDOW, self.OnImportEnter)
+        # Right
+        g = GetNextYPos(284, BTN_DROP)
+        # Report tables
         bmp_btn_tables = TextOnBitmap(GetBlankButtonBitmap(),
                                       _("Report Tables"), 
                                       font_buttons, "white")
         self.btnTables = wx.BitmapButton(self.panel, -1, bmp_btn_tables, 
-                                         pos=(btn_x_pos, g.next()))
+                                         pos=(BTN_RIGHT, g.next()))
         self.btnTables.Bind(wx.EVT_BUTTON, self.OnTablesClick)
         self.btnTables.Bind(wx.EVT_ENTER_WINDOW, self.OnTablesEnter)
+        # Charts
         bmp_btn_charts = TextOnBitmap(GetBlankButtonBitmap(), 
                                       _("Charts"), 
                                       font_buttons, "white")
         self.btnCharts = wx.BitmapButton(self.panel, -1, bmp_btn_charts, 
-                                         pos=(btn_x_pos, g.next()))
+                                         pos=(BTN_RIGHT, g.next()))
         self.btnCharts.Bind(wx.EVT_BUTTON, self.OnChartsClick)
         self.btnCharts.Bind(wx.EVT_ENTER_WINDOW, self.OnChartsEnter)
+        # Stats
         bmp_btn_stats = TextOnBitmap(GetBlankButtonBitmap(),
                                      _("Statistics"), 
                                      font_buttons, "white")
         self.btnStatistics = wx.BitmapButton(self.panel, -1, bmp_btn_stats, 
-                                             pos=(btn_x_pos, g.next()))
+                                             pos=(BTN_RIGHT, g.next()))
         self.btnStatistics.Bind(wx.EVT_BUTTON, self.OnStatsClick)
         self.btnStatistics.Bind(wx.EVT_ENTER_WINDOW, self.OnStatsEnter)
+        # Exit  
         bmp_btn_exit = TextOnBitmap(GetBlankButtonBitmap(), 
                                     _("Exit"), 
                                     font_buttons, "white")
         self.btnExit = wx.BitmapButton(self.panel, -1, bmp_btn_exit, 
-                                       pos=(btn_x_pos, g.next()))
+                                       pos=(BTN_RIGHT, g.next()))
         self.btnExit.Bind(wx.EVT_BUTTON, self.OnExitClick)
         self.btnExit.Bind(wx.EVT_ENTER_WINDOW, self.OnExitEnter)
         # text
@@ -290,6 +312,9 @@ class StartFrame(wx.Frame):
         img_proj = wx.Image(os.path.join(SCRIPT_PATH, u"images", 
                                          u"briefcase.xpm"), wx.BITMAP_TYPE_XPM)
         self.bmp_proj = wx.BitmapFromImage(img_proj)
+        img_prefs = wx.Image(os.path.join(SCRIPT_PATH, u"images", 
+                                          u"prefs.xpm"), wx.BITMAP_TYPE_XPM)
+        self.bmp_prefs = wx.BitmapFromImage(img_prefs)
         img_data = wx.Image(os.path.join(SCRIPT_PATH, u"images", u"data.xpm"), 
                             wx.BITMAP_TYPE_XPM)
         self.bmp_data = wx.BitmapFromImage(img_data)
@@ -305,6 +330,9 @@ class StartFrame(wx.Frame):
         img_stats = wx.Image(os.path.join(SCRIPT_PATH, u"images", u"stats.xpm"), 
                             wx.BITMAP_TYPE_XPM)
         self.bmp_stats = wx.BitmapFromImage(img_stats)
+        img_exit = wx.Image(os.path.join(SCRIPT_PATH, u"images", u"exit.xpm"), 
+                            wx.BITMAP_TYPE_XPM)
+        self.bmp_exit = wx.BitmapFromImage(img_exit)
         psal = os.path.join(SCRIPT_PATH, u"images", u"psal_logo.xpm")
         img_psal = wx.Image(psal, wx.BITMAP_TYPE_XPM)
         self.bmp_psal = wx.BitmapFromImage(img_psal)
@@ -381,7 +409,11 @@ class StartFrame(wx.Frame):
                            _(" Project settings"),
                            wx.Rect(MAIN_LEFT, 247, 400, 30))
         event.Skip()
-    
+
+    def DrawBlankWallpaper(self, panel_dc):
+        panel_dc.DrawBitmap(self.blank_wallpaper, MAIN_LEFT, HELP_TEXT_TOP, 
+                            False)
+        
     def SetProj(self, proj_text=""):
         "proj_text must NOT have .proj on the end"
         self.active_proj = u"%s.proj" % proj_text
@@ -394,10 +426,6 @@ class StartFrame(wx.Frame):
         dlgProj.ShowModal()
         dlgProj.Destroy()
         event.Skip()
-
-    def DrawBlankWallpaper(self, panel_dc):
-        panel_dc.DrawBitmap(self.blank_wallpaper, MAIN_LEFT, HELP_TEXT_TOP, 
-                            False)
 
     def OnProjEnter(self, event):
         panel_dc = wx.ClientDC(self.panel)
@@ -412,6 +440,30 @@ class StartFrame(wx.Frame):
                                    260))
         event.Skip()
     
+    def OnPrefsClick(self, event):
+        import prefs
+        try:
+            prefs_dic = \
+                util.get_settings_dic(subfolder=my_globals.INTERNAL_FOLDER, 
+                                      fil_name=my_globals.INT_PREFS_FILE)
+        except Exception:
+            prefs_dic = {}
+        print(prefs_dic)
+        dlg = prefs.PrefsDlg(parent=self)
+        dlg.ShowModal()
+        dlg.Destroy()
+        event.Skip()
+    
+    def OnPrefsEnter(self, event):
+        panel_dc = wx.ClientDC(self.panel)
+        self.DrawBlankWallpaper(panel_dc)
+        panel_dc.DrawBitmap(self.bmp_prefs, HELP_IMG_LEFT+50, HELP_IMG_TOP-10, 
+                            True)
+        panel_dc.SetTextForeground(TEXT_BROWN)
+        txt_pref = _("Set preferences e.g. format for entering dates")
+        panel_dc.DrawLabel(GetTextToDraw(txt_pref, MAX_HELP_TEXT_WIDTH), 
+                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 
+                                   260))
     def OnEnterClick(self, event):
         # open proj selection form
         import dataselect
@@ -457,7 +509,7 @@ class StartFrame(wx.Frame):
         "Open make table gui with settings as per active_proj"
         import make_table_gui
         proj_name = self.active_proj
-        proj_dic = projects.GetProjSettingsDic(proj_name)
+        proj_dic = util.get_settings_dic(subfolder=u"projs", fil_name=proj_name)
         try:
             dlg = make_table_gui.DlgMakeTable( 
                 proj_dic["default_dbe"], proj_dic["con_dets"], 
@@ -509,7 +561,7 @@ class StartFrame(wx.Frame):
         # open statistics selection dialog
         import stats_select
         proj_name = self.active_proj
-        proj_dic = projects.GetProjSettingsDic(proj_name)
+        proj_dic = util.get_settings_dic(subfolder=u"projs", fil_name=proj_name)
         dlg = stats_select.StatsSelectDlg(proj_name, 
             proj_dic["default_dbe"], proj_dic["con_dets"], 
             proj_dic["default_dbs"], proj_dic["default_tbls"], 
@@ -533,10 +585,10 @@ class StartFrame(wx.Frame):
         txt_stats2 = _("SOFA focuses on the statistical tests most users "
             "need most of the time.")
         panel_dc.DrawLabel(GetTextToDraw(txt_stats2, MAX_HELP_TEXT_WIDTH), 
-                wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 76, HELP_TEXT_WIDTH, 320))
+                wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 66, HELP_TEXT_WIDTH, 320))
         txt_stats3 = u"QUOTE:"
         panel_dc.DrawLabel(GetTextToDraw(txt_stats3, MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 121, 
+                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 111, 
                                    HELP_TEXT_WIDTH, 320))
         txt_stats4 = u"%s (%s)" % quotes.get_quote()
         panel_dc.DrawLabel(GetTextToDraw(txt_stats4, MAX_HELP_TEXT_WIDTH - 20), 
@@ -551,6 +603,8 @@ class StartFrame(wx.Frame):
     def OnExitEnter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.DrawBlankWallpaper(panel_dc)
+        panel_dc.DrawBitmap(self.bmp_exit, HELP_IMG_LEFT-30, HELP_IMG_TOP-50, 
+                            True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_exit = _("Exit SOFA Statistics")
         panel_dc.DrawLabel(GetTextToDraw(txt_exit, MAX_HELP_TEXT_WIDTH), 

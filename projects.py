@@ -41,31 +41,6 @@ def GetProjNotes(fil_proj, proj_dic):
         proj_notes = proj_dic["proj_notes"]
     return proj_notes 
     
-def GetProjSettingsDic(proj_name):
-    """
-    Returns proj_dic with keys such as con_dets, fil_var_dets etc.
-    proj_name MUST include .proj on end
-    """
-    proj_path = os.path.join(LOCAL_PATH, u"projs", proj_name)
-    f = codecs.open(proj_path, "U", encoding="utf-8")
-    proj_cont = util.clean_bom_utf8(f.read())
-    f.close() 
-    proj_dic = {}
-    try:
-        # http://docs.python.org/reference/simple_stmts.html
-        exec proj_cont in proj_dic
-    except SyntaxError, e:
-        wx.MessageBox(\
-            _("Syntax error in project file \"%s\"." % proj_name + \
-                      os.linesep + os.linesep + "Details: %s" % unicode(e)))
-        raise Exception, unicode(e)
-    except Exception, e:
-        wx.MessageBox(\
-            _("Error processing project file \"%s\"." % proj_name + \
-                      os.linesep + os.linesep + "Details: %s" % unicode(e)))
-        raise Exception, unicode(e)
-    return proj_dic
-
 def GetVarDets(fil_var_dets):
     """
     Get variable details from fil_var_dets file.

@@ -12,6 +12,7 @@ from nose.tools import assert_not_equal
 from nose.tools import assert_raises
 from nose.tools import assert_true
 import decimal
+import time
 
 #from .output import _strip_html
 import my_globals
@@ -26,6 +27,29 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
 
+
+def test_is_usable_datetime_str():
+    tests = [("June 2009", False),
+             ("1901", True),
+             ("1876", True),
+             ("1666-09-02", True),
+             ("1666/09/02", False), # wrong order if using slashes
+             ]
+    for test in tests:
+        assert_equal(util.is_usable_datetime_str(test[0]), test[1])
+
+def test_get_std_datetime_str():
+    ymd = "%4d-%02d-%02d" % time.localtime()[:3]
+    tests = [("2pm", "%s 14:00:00" % ymd),
+             ("14:30", "%s 14:30:00" % ymd),
+             ("2009-01-31", "2009-01-31 00:00:00"),
+             ("11am 2009-01-31", "2009-01-31 11:00:00"),
+             ("2009-01-31 3:30pm", "2009-01-31 15:30:00"),
+             ("02/09/1666 00:12:16", "1666-09-02 00:12:16"), #http://en.wikipedia.org/wiki/Great_Fire_of_London
+             ]
+    for test in tests:
+        assert_equal(util.get_std_datetime_str(test[0]), test[1])
+        
 def test_get_dets_of_usable_datetime_str():
     # date_part, date_format, time_part, time_format, boldate_then_time
     tests = [("2009", ("2009", "%Y", None, None, True)),
@@ -36,6 +60,12 @@ def test_get_dets_of_usable_datetime_str():
              ("2:30pm", (None, None, "2:30pm", "%I:%M%p", True)),
              ("14:30", (None, None, "14:30", "%H:%M", True)),
              ("14:30:00", (None, None, "14:30:00", "%H:%M:%S", True)),
+             ("2009-01-31 14:03:00", ("2009-01-31", "%Y-%m-%d", "14:03:00", 
+                                      "%H:%M:%S", True)),
+             ("14:03:00 2009-01-31", ("2009-01-31", "%Y-%m-%d", "14:03:00", 
+                                      "%H:%M:%S", False)),
+             ("1am 2009-01-31", ("2009-01-31", "%Y-%m-%d", "1am", "%I%p", 
+                                 False)),
              ]
     for test in tests:
         assert_equal(util.get_dets_of_usable_datetime_str(test[0]), test[1])
@@ -299,8 +329,8 @@ def test_sofa_default_proj_settings():
     if they are smart enough to do that they should be smart enough to change 
     this test too ;-)
     """
-    proj_dic = projects.GetProjSettingsDic(\
-                proj_name=my_globals.SOFA_DEFAULT_PROJ)
+    proj_dic = util.get_settings_dic(subfolder=u"projs", 
+                                     fil_name=my_globals.SOFA_DEFAULT_PROJ)
     var_labels, var_notes, var_types, val_dics = \
         projects.GetVarDets(proj_dic["fil_var_dets"])
     fil_var_dets = proj_dic["fil_var_dets"]
@@ -323,8 +353,8 @@ def test_get_var_dets():
     if they are smart enough to do that they should be smart enough to change 
     this test too ;-)
     """
-    proj_dic = projects.GetProjSettingsDic(\
-                proj_name=my_globals.SOFA_DEFAULT_PROJ)
+    proj_dic = util.get_settings_dic(subfolder=u"projs", 
+                                     fil_name=my_globals.SOFA_DEFAULT_PROJ)
     var_labels, var_notes, var_types, val_dics = \
         projects.GetVarDets(proj_dic["fil_var_dets"])
     assert_not_equal(var_labels.get('Name'), None)
