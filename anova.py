@@ -44,20 +44,21 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         debug = False
         var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \
             var_avg, label_avg = self.get_drop_vals()
+        script_lst = [u"dp = 3"]
+        script_lst.append(util.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
+        lst_samples = []
+        lst_labels = []
+        # need sample for each of the values in range
+        idx_val_a, idx_val_b = indep2var.get_range_idxs(self.vals, val_a, val_b)
+        vals_in_range = self.vals[idx_val_a: idx_val_b + 1]
         strGet_Sample = u"%s = core_stats.get_list(" + \
             u"dbe=\"%s\", " % self.dbe + \
-            u"db=\"%s\", " % self.db + \
             u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
+            u"tbl_filt=tbl_filt, " + \
             u"flds=flds, " + \
             u"fld_measure=\"%s\", " % var_avg + \
             u"fld_filter=\"%s\", " % var_gp + \
-            u"filter_val=%s)"
-        # need sample for each of the values in range
-        script_lst = [u"dp = 3"]
-        lst_samples = []
-        lst_labels = []
-        idx_val_a, idx_val_b = indep2var.get_range_idxs(self.vals, val_a, val_b)
-        vals_in_range = self.vals[idx_val_a: idx_val_b + 1]
+            u"filter_val=%s)"        
         for i, val in enumerate(vals_in_range):
             sample_name = u"sample_%s" % i
             val_str_quoted = val if var_gp_numeric else "\"%s\"" % val

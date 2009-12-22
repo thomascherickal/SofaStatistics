@@ -15,18 +15,31 @@ import wx
 
 import my_globals
 
-def get_filts(dbe, db, tbl):
+def get_tbl_filt(dbe, db, tbl):
+    try:
+        tbl_filt = my_globals.DBE_TBL_FILTS[dbe][db][tbl]
+    except KeyError:
+        tbl_filt = u""
+    return tbl_filt
+
+def get_tbl_filt_clause(dbe, db, tbl):
+    tbl_filt = get_tbl_filt(dbe, db, tbl)
+    return 'tbl_filt = """ %s """' % tbl_filt
+
+def get_tbl_filts(tbl_filt):
     """
     Returns filters ready to use as WHERE and AND filters:
         where_filt, and_filt
     Filters must still work if empty strings (for performance when no filter 
         required).
     """
-    try:
-        filt = my_globals.DBE_TBL_FILTS[dbe][db][tbl]
-        return u" WHERE %s" % filt, u" AND %s" % filt
-    except KeyError:
-        return u"", u""
+    if tbl_filt.strip() != "":
+        where_tbl_filt = u" WHERE %s" % tbl_filt
+        and_tbl_filt = u" AND %s" % tbl_filt
+    else:
+        where_tbl_filt = u""
+        and_tbl_filt = u""
+    return where_tbl_filt, and_tbl_filt
 
 def is_numeric(val):
     """

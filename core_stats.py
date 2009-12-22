@@ -13,7 +13,8 @@ import util
 D = decimal.Decimal
 decimal.getcontext().prec = 200
 
-def get_list(dbe, db, cur, tbl, flds, fld_measure, fld_filter, filter_val):
+def get_list(dbe, cur, tbl, tbl_filt, flds, fld_measure, fld_filter, 
+             filter_val):
     """
     Get list of non-missing values in field.
     Used, for example, in the independent samples t-test.
@@ -22,28 +23,28 @@ def get_list(dbe, db, cur, tbl, flds, fld_measure, fld_filter, filter_val):
     fld_val_clause = getdata.make_fld_val_clause(dbe, flds, fld_filter, 
                                                  filter_val)
     obj_quoter = getdata.get_obj_quoter_func(dbe)
-    unused, and_filt = util.get_filts(dbe, db, tbl)
+    unused, and_tbl_filt = util.get_tbl_filts(tbl_filt)
     SQL_get_list = u"SELECT %s " % obj_quoter(fld_measure) + \
         "FROM %s " % obj_quoter(tbl) + \
         "WHERE %s IS NOT NULL " % obj_quoter(fld_measure) + \
-        "AND %s " % fld_val_clause + and_filt
+        "AND %s " % fld_val_clause + and_tbl_filt
     if debug: print(SQL_get_list)
     cur.execute(SQL_get_list)
     lst = [x[0] for x in cur.fetchall()]
     return lst
 
-def get_paired_lists(dbe, db, cur, tbl, fld_a, fld_b):
+def get_paired_lists(dbe, cur, tbl, tbl_filt, fld_a, fld_b):
     """
     For each field, returns a list of all non-missing values where there is also
         a non-missing value in the other field.
         Used in, for example, the paired samples t-test.
     """
     quoter = getdata.get_obj_quoter_func(dbe)
-    unused, and_filt = util.get_filts(dbe, db, tbl)
+    unused, and_tbl_filt = util.get_tbl_filts(tbl_filt)
     SQL_get_lists = u"SELECT %s, %s " % (quoter(fld_a), quoter(fld_b)) + \
         u"FROM %s " % quoter(tbl) + \
         u"WHERE %s IS NOT NULL " % quoter(fld_a) + \
-        u" AND %s IS NOT NULL " % quoter(fld_b) + and_filt
+        u" AND %s IS NOT NULL " % quoter(fld_b) + and_tbl_filt
     cur.execute(SQL_get_lists)
     data_tups = cur.fetchall()
     lst_a = [x[0] for x in data_tups]
@@ -68,7 +69,7 @@ def get_val_quoter(dbe, flds, fld, val):
         val_quoter = getdata.get_val_quoter_func(dbe)
     return val_quoter
 
-def get_obs_exp(dbe, db, cur, tbl, flds, fld_a, fld_b):
+def get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b):
     """
     Get list of observed and expected values ready for inclusion in Pearson's
         Chi Square test.
@@ -80,16 +81,16 @@ def get_obs_exp(dbe, db, cur, tbl, flds, fld_a, fld_b):
     qtbl = obj_quoter(tbl)
     qfld_a = obj_quoter(fld_a)
     qfld_b = obj_quoter(fld_b)
-    where_filt, and_filt = util.get_filts(dbe, db, tbl)
+    where_tbl_filt, and_tbl_filt = util.get_tbl_filts(tbl_filt)
     # get row vals used
     SQL_row_vals_used = u"""SELECT %(qfld_a)s
         FROM %(qtbl)s
         WHERE %(qfld_b)s IS NOT NULL AND %(qfld_a)s IS NOT NULL
-        %(and_global_filter)s
+        %(and_tbl_filt)s
         GROUP BY %(qfld_a)s
         ORDER BY %(qfld_a)s""" % {"qtbl": qtbl, "qfld_a": qfld_a, 
                                   "qfld_b": qfld_b, 
-                                  "and_global_filter": and_filt}
+                                  "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_row_vals_used)
     vals_a = [x[0] for x in cur.fetchall()]
     if len(vals_a) > 30:
@@ -98,11 +99,11 @@ def get_obs_exp(dbe, db, cur, tbl, flds, fld_a, fld_b):
     SQL_col_vals_used = u"""SELECT %(qfld_b)s
         FROM %(qtbl)s
         WHERE %(qfld_a)s IS NOT NULL AND %(qfld_b)s IS NOT NULL
-        %(and_global_filter)s
+        %(and_tbl_filt)s
         GROUP BY %(qfld_b)s
         ORDER BY %(qfld_b)s""" % {"qtbl": qtbl, "qfld_a": qfld_a, 
                                   "qfld_b": qfld_b, 
-                                  "and_global_filter": and_filt}
+                                  "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_col_vals_used)
     vals_b = [x[0] for x in cur.fetchall()]
     if len(vals_b) > 30:
@@ -123,7 +124,7 @@ def get_obs_exp(dbe, db, cur, tbl, flds, fld_a, fld_b):
             sql_lst.append(clause)
     SQL_get_obs += u", ".join(sql_lst)
     SQL_get_obs += u"\nFROM %s " % qtbl
-    SQL_get_obs += u"\n%s " % where_filt
+    SQL_get_obs += u"\n%s " % where_tbl_filt
     if debug: print(SQL_get_obs)
     cur.execute(SQL_get_obs)
     tup_obs = cur.fetchall()[0]
@@ -133,8 +134,8 @@ def get_obs_exp(dbe, db, cur, tbl, flds, fld_a, fld_b):
     if debug: print(u"lst_obs: %s" % lst_obs)
     obs_total = sum(lst_obs)
     # expected values
-    lst_fracs_a = get_fracs(cur, dbe, db, tbl, qtbl, qfld_a)
-    lst_fracs_b = get_fracs(cur, dbe, db, tbl, qtbl, qfld_b)
+    lst_fracs_a = get_fracs(cur, tbl_filt, qtbl, qfld_a)
+    lst_fracs_b = get_fracs(cur, tbl_filt, qtbl, qfld_b)
     df = (len(lst_fracs_a)-1)*(len(lst_fracs_b)-1)
     lst_exp = []
     for frac_a in lst_fracs_a:
@@ -149,21 +150,21 @@ def get_obs_exp(dbe, db, cur, tbl, flds, fld_a, fld_b):
     perc_cells_lt_5 = 100*(len(lst_lt_5))/float(len(lst_exp))
     return vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df
 
-def get_fracs(cur, dbe, db, tbl, qtbl, qfld):
+def get_fracs(cur, tbl_filt, qtbl, qfld):
     """
     What fraction of the cross tab values are for each value in field?
     Leaves out values where data is missing.
     Returns lst_fracs
     """
     debug = False
-    unused, and_filt = util.get_filts(dbe, db, tbl)
+    unused, and_tbl_filt = util.get_tbl_filts(tbl_filt)
     SQL_get_fracs = u"""SELECT %(qfld)s, COUNT(*)
         FROM %(qtbl)s 
         WHERE %(qfld)s IS NOT NULL
-        %(and_global_filter)s
+        %(and_tbl_filt)s
         GROUP BY %(qfld)s
         ORDER BY %(qfld)s""" % {"qfld": qfld, "qtbl": qtbl, 
-                                "and_global_filter": and_filt}
+                                "and_tbl_filt": and_tbl_filt}
     if debug: print(SQL_get_fracs)
     cur.execute(SQL_get_fracs)
     lst_counts = []
@@ -180,8 +181,9 @@ def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b):
     Returns chisq, p, min_count, perc_cells_lt_5
     """
     debug = False
+    tbl_filt = util.get_tbl_filt(dbe, db, tbl)
     vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df = \
-                            get_obs_exp(dbe, db, cur, tbl, flds, fld_a, fld_b)
+                    get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b)
     if debug: print(lst_obs, lst_exp)
     chisq, p = chisquare(lst_obs, lst_exp, df)
     return (chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, 

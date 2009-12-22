@@ -141,16 +141,14 @@ class MakeTable(object):
         # check not a massive report table
         too_long = False
         if self.tab_type == my_globals.RAW_DISPLAY:
-            # get various db settings
-            dbdetsobj = getdata.getDbDetsObj(self.dbe, self.default_dbs, 
-                                             self.default_tbls, self.con_dets)
-            con, cur = dbdetsobj.get_con_cur()
             # count records in table
             quoter = getdata.get_obj_quoter_func(self.dbe)
-            s = u"SELECT COUNT(*) FROM %s" % quoter(self.tbl)
-            cur.execute(s)
-            n_rows = cur.fetchone()[0]
-            con.close()
+            tbl_filt = util.get_tbl_filt(self.dbe, self.db, self.tbl)
+            where_tbl_filt, unused = util.get_tbl_filts(tbl_filt)
+            s = u"SELECT COUNT(*) FROM %s %s" % (quoter(self.tbl), 
+                                                 where_tbl_filt)
+            self.cur.execute(s)
+            n_rows = self.cur.fetchone()[0]
             if n_rows > 500:
                 if wx.MessageBox(_("This report has %s rows. "
                                    "Do you wish to run it?") % n_rows, 
@@ -243,38 +241,40 @@ class MakeTable(object):
                   in self.txtTitles.GetValue().split(u"\n")]
         subtitles = [u"%s" % x for x \
                      in self.txtSubtitles.GetValue().split(u"\n")]
+        script_lst.append(util.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
         # NB the following text is all going to be run
         if self.tab_type == my_globals.COL_MEASURES:
-            script_lst.append(u"tab_test = dimtables.GenTable(titles=" + \
-                          unicode(titles) + u",\n    subtitles=" + \
-                          unicode(subtitles) + \
-                          u",\n    dbe=\"%s\", " % self.dbe + \
-                          u"db=\"%s\"," % self.db + \
-                          u"\n    tbl=\"%s\", " % self.tbl + \
-                          u"cur=cur, flds=flds, tree_rows=tree_rows, " + \
-                          u"tree_cols=tree_cols)")
+            script_lst.append(u"tab_test = dimtables.GenTable(" + \
+                u"titles=%s," % unicode(titles) + \
+                u"\n    subtitles=%s," % unicode(subtitles) + \
+                u"\n    dbe=\"%s\", " % self.dbe + \
+                u"tbl=\"%s\", " % self.tbl + \
+                u"tbl_filt=tbl_filt," + \
+                u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " + \
+                u"tree_cols=tree_cols)")
         elif self.tab_type == my_globals.ROW_SUMM:
-            script_lst.append(u"tab_test = dimtables.SummTable(titles=" + \
-                          unicode(titles) + u",\n    subtitles=" + \
-                          unicode(subtitles) + \
-                          u",\n    dbe=\"%s\", " % self.dbe + \
-                          u"db=\"%s\"," % self.db + \
-                          u"\n    tbl=\"%s\", " % self.tbl + \
-                          u"cur=cur, flds=flds, tree_rows=tree_rows, " + \
-                          u"tree_cols=tree_cols)")
+            script_lst.append(u"tab_test = dimtables.SummTable(" + \
+                u"titles=%s," % unicode(titles) + \
+                u"\n    subtitles=%s," % unicode(subtitles) + \
+                u"\n    dbe=\"%s\", " % self.dbe + \
+                u"tbl=\"%s\", " % self.tbl + \
+                u"tbl_filt=tbl_filt," + \
+                u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " + \
+                u"tree_cols=tree_cols)")
         elif self.tab_type == my_globals.RAW_DISPLAY:
             tot_rows = u"True" if self.chkTotalsRow.IsChecked() else u"False"
             first_label = u"True" if self.chkFirstAsLabel.IsChecked() \
                 else u"False"
-            script_lst.append(u"tab_test = rawtables.RawTable(titles=" + \
-                unicode(titles) + u",\n    subtitles=" + \
-                unicode(subtitles) + \
-                u",\n    dbe=\"" + self.dbe + \
-                u"\",\n    tbl=\"%s\"" % self.tbl + u", cur=cur," + \
-                u" col_names=col_names, col_labels=col_labels, flds=flds, " + \
+            script_lst.append(u"tab_test = rawtables.RawTable(" + \
+                u"titles=%s, " % unicode(titles) + \
+                u"\n    subtitles=%s, " % unicode(subtitles) + \
+                u"\n    dbe=\"%s\", " % self.dbe + \
+                u"col_names=col_names, col_labels=col_labels, flds=flds," + \
                 u"\n    var_labels=var_labels, val_dics=val_dics, " + \
-                u"add_total_row=%s, " % tot_rows + \
-                u"\nfirst_col_as_label=%s)" % first_label)
+                u"tbl=\"%s\"," % self.tbl + \
+                u"\n    tbl_filt=tbl_filt, cur=cur, add_total_row=%s, " % \
+                    tot_rows + \
+                u"\n    first_col_as_label=%s)" % first_label)
         if self.tab_type in [my_globals.COL_MEASURES, my_globals.ROW_SUMM]:
             script_lst.append(u"tab_test.prepTable(%s)" % css_idx)
             script_lst.append(u"max_cells = 5000")

@@ -380,24 +380,18 @@ class LiveTable(DimTable):
     and colpct, etc etc.
     """
     
-    def __init__(self, titles, dbe, db, tbl, filt, cur, flds, tree_rows, 
-                 tree_cols, subtitles=None):
+    def __init__(self, titles, subtitles, dbe, tbl, tbl_filt, cur, flds, 
+                 tree_rows, tree_cols):
         """
         cur - must return tuples, not dictionaries
         """
         self.debug = False
         self.titles = titles
-        if subtitles:
-            self.subtitles = subtitles
-        else:
-            self.subtitles = []
+        self.subtitles = subtitles
         self.dbe = dbe
-        self.db = db
         self.tbl = tbl
-        self.filt = filt
-        
-        
-        
+        self.tbl_filt = tbl_filt
+        self.where_tbl_filt, self.and_tbl_filt = util.get_tbl_filts(tbl_filt)
         self.cur = cur
         self.flds = flds
         (self.if_clause, self.quote_obj, self.quote_val, self.placeholder,
@@ -609,10 +603,9 @@ class LiveTable(DimTable):
         debug = False
         final_filt_clause = self.get_vals_filt_clause(tree_dims_node, 
                                                 tree_labels_node, oth_dim_root)
-        unused, and_filt = util.get_filts(self.dbe, self.db, self.tbl)
         SQL_get_vals = u"SELECT " + fld + u", COUNT(*)" + \
             u" FROM " + self.tbl + \
-            u" WHERE " + final_filt_clause + and_filt + \
+            u" WHERE " + final_filt_clause + self.and_tbl_filt + \
             u" GROUP BY " + fld
         if debug: print(SQL_get_vals)
         return SQL_get_vals
@@ -834,11 +827,10 @@ class GenTable(LiveTable):
         Get SQL for data values e.g. percentages, frequencies etc.
         """
         debug = False
-        where_filt, and_filt = util.get_filts(self.dbe, self.db, self.tbl)
         SQL_select_results = u"SELECT " + \
                  u", ".join(SQL_table_select_clauses_lst) + \
                  u" FROM " + self.tbl + \
-                 where_filt
+                 self.where_tbl_filt
         if debug: print(SQL_select_results)
         return SQL_select_results
             
@@ -1137,11 +1129,10 @@ class SummTable(LiveTable):
         """
         debug = False
         col_filt_clause = u" AND ".join(col_filter_lst)
-        where_filt, and_filt = util.get_filts(self.dbe, self.db, self.tbl)
         if col_filt_clause:
-            filter = u" WHERE " + col_filt_clause + and_filt
+            filter = u" WHERE " + col_filt_clause + self.and_tbl_filt
         else: 
-            filter = where_filt
+            filter = self.where_tbl_filt
         # if using raw data (or finding bad data) must handle non-numeric values 
         # myself
         SQL_get_vals = u"SELECT %s " % row_fld + \

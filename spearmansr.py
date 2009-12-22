@@ -35,11 +35,12 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         "Build script from inputs"
         script_lst = []
         var_a, label_a, var_b, label_b = self.get_drop_vals()
+        script_lst.append(util.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
         script_lst.append(u"sample_a, sample_b = " + \
             u"core_stats.get_paired_lists(" + \
             u"dbe=\"%s\", " % self.dbe + \
-            u"db=\"%s\", " % self.db + \
             u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
+            u"tbl_filt=tbl_filt, " + \
             u"fld_a=\"%s\", " % var_a + \
             u"fld_b=\"%s\")" % var_b)
         script_lst.append(u"dp = 3")

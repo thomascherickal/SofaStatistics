@@ -12,24 +12,26 @@ class RawTable(object):
     Can add totals row.
     Can have the first column formatted as labels
     """
-    def __init__(self, titles, dbe, col_names, col_labels, flds, 
-                 var_labels, val_dics, tbl, cur, subtitles=None, 
+    def __init__(self, titles, subtitles, dbe, col_names, col_labels, flds, 
+                 var_labels, val_dics, tbl, tbl_filt, cur, 
                  add_total_row=False, first_col_as_label=False):
         """
         Set up table details required to make my_globals.
         dbe - only here so can use the same interface for all table types
         """
+        debug = True
         self.titles = titles
-        if subtitles:
-            self.subtitles = subtitles
-        else:
-            self.subtitles = []
+        self.subtitles = subtitles
         self.col_names = col_names
         self.col_labels = col_labels
         self.flds = flds
         self.var_labels = var_labels
         self.val_dics = val_dics
         self.tbl = tbl
+        self.where_tbl_filt, unused = util.get_tbl_filts(tbl_filt)
+        if debug: 
+            print(tbl_filt)
+            print(self.where_tbl_filt)
         self.cur = cur
         self.add_total_row = add_total_row
         self.first_col_as_label = first_col_as_label
@@ -81,6 +83,7 @@ class RawTable(object):
             as col names.
         When adding totals, will only do it if all values are numeric (Or None).
         """
+        debug = False
         CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_LBL, css_idx)
         CSS_ALIGN_RIGHT = my_globals.CSS_SUFFIX_TEMPLATE % \
@@ -98,9 +101,10 @@ class RawTable(object):
         row_tots = [0 for x in self.col_names]
         if self.first_col_as_label:
             del row_tots[0] # ignore label col
-        SQL_get_data = u"SELECT %s FROM %s" % (u", ".join(self.col_names), 
-                                               self.tbl)
-        self.cur.execute(SQL_get_data)   
+        SQL_get_data = u"SELECT %s FROM %s %s" % (u", ".join(self.col_names), 
+                                                  self.tbl, self.where_tbl_filt)
+        if debug: print(SQL_get_data)
+        self.cur.execute(SQL_get_data)
         rows = self.cur.fetchall()
         cols_n = len(self.col_names)
         # pre-store val dics for each column where possible

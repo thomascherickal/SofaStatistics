@@ -37,15 +37,16 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         "Build script from inputs"
         var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \
             var_ranked, label_ranked = self.get_drop_vals()
+        script_lst = [u"dp = 3"]
+        script_lst.append(util.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
         strGet_Sample = u"sample_%s = core_stats.get_list(" + \
             u"dbe=\"%s\", " % self.dbe + \
-            u"db=\"%s\", " % self.db + \
             u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
+            u"tbl_filt=tbl_filt, " + \
             u"flds=flds, " + \
             u"fld_measure=\"%s\", " % var_ranked + \
             u"fld_filter=\"%s\", " % var_gp + \
             u"filter_val=%s)"
-        script_lst = [u"dp = 3"]
         val_str_quoted_a = val if var_gp_numeric else "\"%s\"" % val_a
         val_str_quoted_b = val if var_gp_numeric else "\"%s\"" % val_b
         script_lst.append(strGet_Sample % (u"a", val_str_quoted_a))
