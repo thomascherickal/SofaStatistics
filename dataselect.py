@@ -135,9 +135,8 @@ class DataSelectDlg(wx.Dialog):
         
     def reset_tbl_dropdown(self):
         "Set tables dropdown items and select item according to self.tbl"
-        self.dropTables.SetItems(self.tbls)
-        tbls_lc = [x.lower() for x in self.tbls]
-        self.dropTables.SetSelection(tbls_lc.index(self.tbl.lower()))
+        getdata.setup_drop_tbls(self.dropTables, self.dbe, self.db, self.tbls, 
+                                self.tbl)
     
     def OnTableSel(self, event):
         "Reset key data details after table selection."       

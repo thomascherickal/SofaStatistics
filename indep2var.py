@@ -48,7 +48,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
     OutputButtons - provides standard buttons for output dialogs.
     """
     
-    def __init__(self, title, dbe, con_dets, default_dbs=None, 
+    def __init__(self, title, dbe, con_dets, default_dbs=None,
                  default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
                  fil_script="", takes_range=False):
          

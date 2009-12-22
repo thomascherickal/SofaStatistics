@@ -248,17 +248,19 @@ class MakeTable(object):
             script_lst.append(u"tab_test = dimtables.GenTable(titles=" + \
                           unicode(titles) + u",\n    subtitles=" + \
                           unicode(subtitles) + \
-                          u",\n    dbe=\"" + self.dbe + \
-                          u"\",\n    datasource=\"" + self.tbl + \
-                          u"\", cur=cur, flds=flds, tree_rows=tree_rows, " + \
+                          u",\n    dbe=\"%s\", " % self.dbe + \
+                          u"db=\"%s\"," % self.db + \
+                          u"\n    tbl=\"%s\", " % self.tbl + \
+                          u"cur=cur, flds=flds, tree_rows=tree_rows, " + \
                           u"tree_cols=tree_cols)")
         elif self.tab_type == my_globals.ROW_SUMM:
             script_lst.append(u"tab_test = dimtables.SummTable(titles=" + \
                           unicode(titles) + u",\n    subtitles=" + \
                           unicode(subtitles) + \
-                          u",\n    dbe=\"" + self.dbe + \
-                          u"\",\n    datasource=\"" + self.tbl + \
-                          u"\", cur=cur, flds=flds, tree_rows=tree_rows, " + \
+                          u",\n    dbe=\"%s\", " % self.dbe + \
+                          u"db=\"%s\"," % self.db + \
+                          u"\n    tbl=\"%s\", " % self.tbl + \
+                          u"cur=cur, flds=flds, tree_rows=tree_rows, " + \
                           u"tree_cols=tree_cols)")
         elif self.tab_type == my_globals.RAW_DISPLAY:
             tot_rows = u"True" if self.chkTotalsRow.IsChecked() else u"False"
@@ -268,7 +270,7 @@ class MakeTable(object):
                 unicode(titles) + u",\n    subtitles=" + \
                 unicode(subtitles) + \
                 u",\n    dbe=\"" + self.dbe + \
-                u"\",\n    datasource=\"%s\"" % self.tbl + u", cur=cur," + \
+                u"\",\n    tbl=\"%s\"" % self.tbl + u", cur=cur," + \
                 u" col_names=col_names, col_labels=col_labels, flds=flds, " + \
                 u"\n    var_labels=var_labels, val_dics=val_dics, " + \
                 u"add_total_row=%s, " % tot_rows + \

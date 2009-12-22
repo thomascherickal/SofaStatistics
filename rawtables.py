@@ -13,7 +13,7 @@ class RawTable(object):
     Can have the first column formatted as labels
     """
     def __init__(self, titles, dbe, col_names, col_labels, flds, 
-                 var_labels, val_dics, datasource, cur, subtitles=None, 
+                 var_labels, val_dics, tbl, cur, subtitles=None, 
                  add_total_row=False, first_col_as_label=False):
         """
         Set up table details required to make my_globals.
@@ -29,7 +29,7 @@ class RawTable(object):
         self.flds = flds
         self.var_labels = var_labels
         self.val_dics = val_dics
-        self.datasource = datasource
+        self.tbl = tbl
         self.cur = cur
         self.add_total_row = add_total_row
         self.first_col_as_label = first_col_as_label
@@ -99,7 +99,7 @@ class RawTable(object):
         if self.first_col_as_label:
             del row_tots[0] # ignore label col
         SQL_get_data = u"SELECT %s FROM %s" % (u", ".join(self.col_names), 
-                                               self.datasource)
+                                               self.tbl)
         self.cur.execute(SQL_get_data)   
         rows = self.cur.fetchall()
         cols_n = len(self.col_names)

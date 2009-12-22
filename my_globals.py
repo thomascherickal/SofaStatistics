@@ -250,6 +250,9 @@ TBL_FLD_TYPE = "fld_type"
 TBL_FLD_TYPE_ORIG = "fld_type_orig"
 TMP_TBL_NAME = "sofa_tmp_tbl"
 SOFA_ID = "sofa_id"
+# filters
+DBE_TBL_FILTS = {}
+# preferences
 PREFS_KEY = "Prefs"
 DATE_ENTRY_FORMAT = "Date entry format"
 INT_DATE_ENTRY_FORMAT = 0

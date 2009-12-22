@@ -32,16 +32,6 @@ If we have reached the end of the line, we then need to have a cell for each
     measure e.g. we may need a frequency, a col and a row %.
 """
 
-GLOBAL_FILTER = u""
-# global filters must still work if empty strings (for performance when no 
-# filter required).
-if GLOBAL_FILTER:
-    AND_GLOBAL_FILTER = u" AND " + GLOBAL_FILTER
-    WHERE_GLOBAL_FILTER = u" WHERE " + GLOBAL_FILTER
-else:
-    AND_GLOBAL_FILTER = u""
-    WHERE_GLOBAL_FILTER = u""
-
 NOTNULL = u" %s IS NOT NULL " # NOT ISNULL() is not universally supported
 
 
@@ -390,8 +380,8 @@ class LiveTable(DimTable):
     and colpct, etc etc.
     """
     
-    def __init__(self, titles, dbe, datasource, cur, flds, tree_rows, tree_cols, 
-                 subtitles=None):
+    def __init__(self, titles, dbe, db, tbl, filt, cur, flds, tree_rows, 
+                 tree_cols, subtitles=None):
         """
         cur - must return tuples, not dictionaries
         """
@@ -402,12 +392,17 @@ class LiveTable(DimTable):
         else:
             self.subtitles = []
         self.dbe = dbe
+        self.db = db
+        self.tbl = tbl
+        self.filt = filt
+        
+        
+        
+        self.cur = cur
+        self.flds = flds
         (self.if_clause, self.quote_obj, self.quote_val, self.placeholder,
             self.get_summable, self.gte_not_equals) = \
                 getdata.get_dbe_syntax_elements(self.dbe)
-        self.datasource = datasource
-        self.cur = cur
-        self.flds = flds
         self.tree_rows = tree_rows
         self.tree_cols = tree_cols
     
@@ -614,9 +609,10 @@ class LiveTable(DimTable):
         debug = False
         final_filt_clause = self.get_vals_filt_clause(tree_dims_node, 
                                                 tree_labels_node, oth_dim_root)
+        unused, and_filt = util.get_filts(self.dbe, self.db, self.tbl)
         SQL_get_vals = u"SELECT " + fld + u", COUNT(*)" + \
-            u" FROM " + self.datasource + \
-            u" WHERE " + final_filt_clause + AND_GLOBAL_FILTER + \
+            u" FROM " + self.tbl + \
+            u" WHERE " + final_filt_clause + and_filt + \
             u" GROUP BY " + fld
         if debug: print(SQL_get_vals)
         return SQL_get_vals
@@ -838,10 +834,11 @@ class GenTable(LiveTable):
         Get SQL for data values e.g. percentages, frequencies etc.
         """
         debug = False
+        where_filt, and_filt = util.get_filts(self.dbe, self.db, self.tbl)
         SQL_select_results = u"SELECT " + \
                  u", ".join(SQL_table_select_clauses_lst) + \
-                 u" FROM " + self.datasource + \
-                 WHERE_GLOBAL_FILTER
+                 u" FROM " + self.tbl + \
+                 where_filt
         if debug: print(SQL_select_results)
         return SQL_select_results
             
@@ -1140,14 +1137,15 @@ class SummTable(LiveTable):
         """
         debug = False
         col_filt_clause = u" AND ".join(col_filter_lst)
+        where_filt, and_filt = util.get_filts(self.dbe, self.db, self.tbl)
         if col_filt_clause:
-            filter = u" WHERE " + col_filt_clause + AND_GLOBAL_FILTER
+            filter = u" WHERE " + col_filt_clause + and_filt
         else: 
-            filter = WHERE_GLOBAL_FILTER
+            filter = where_filt
         # if using raw data (or finding bad data) must handle non-numeric values 
         # myself
         SQL_get_vals = u"SELECT %s " % row_fld + \
-            u"FROM %s %s" % (self.datasource, filter)
+            u"FROM %s %s" % (self.tbl, filter)
         sql_for_raw_only = [my_globals.MEDIAN, my_globals.STD_DEV]
         if measure in sql_for_raw_only:
             self.cur.execute(SQL_get_vals)
@@ -1155,7 +1153,7 @@ class SummTable(LiveTable):
             if debug: print(data)
         if measure == my_globals.SUM:
             SQL_get_sum = u"SELECT SUM(%s) " % row_fld + \
-                u"FROM " + self.datasource + filter
+                u"FROM " + self.tbl + filter
             try:
                 self.cur.execute(SQL_get_sum)
                 data_val = self.cur.fetchone()[0]
@@ -1163,7 +1161,7 @@ class SummTable(LiveTable):
                 raise Exception, u"Unable to calculate sum of %s." % row_fld
         elif measure == my_globals.MEAN:
             SQL_get_mean = u"SELECT AVG(%s) " % row_fld + \
-                u"FROM %s %s" % (self.datasource, filter)
+                u"FROM %s %s" % (self.tbl, filter)
             try:
                 self.cur.execute(SQL_get_mean)
                 data_val =  round(self.cur.fetchone()[0],2)
@@ -1184,7 +1182,7 @@ class SummTable(LiveTable):
                         row_fld
         elif measure == my_globals.SUMM_N:
             SQL_get_n = u"SELECT COUNT(%s) " % row_fld + \
-                u"FROM %s %s" % (self.datasource, filter)
+                u"FROM %s %s" % (self.tbl, filter)
             try:
                 self.cur.execute(SQL_get_n)
                 data_val = u"N=%s" % self.cur.fetchone()[0]

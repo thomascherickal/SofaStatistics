@@ -50,23 +50,26 @@ def get_val(raw_val, flds, fld_name):
         
 
 class FiltSelectDlg(wx.Dialog):
-    def __init__(self, parent, dbe, con, cur, flds, var_labels, var_notes, 
-                 var_types, val_dics, fil_var_dets, bolnew=True):
+    def __init__(self, parent, dbe, con, cur, db, tbl, flds, var_labels, 
+                 var_notes, var_types, val_dics, fil_var_dets):
         debug = False
         self.dbe = dbe
         self.con = con
         self.cur = cur
+        self.db = db
+        self.tbl = tbl
         self.flds = flds
         self.var_labels = var_labels
         self.var_notes = var_notes
         self.var_types = var_types
         self.val_dics = val_dics
         self.fil_var_dets = fil_var_dets
-        self.bolnew = bolnew
-        if self.bolnew:
-            title = _("Apply filter")
-        else:
-            title = _("Current filter")
+        try:
+            self.existing_filt = \
+                my_globals.DBE_TBL_FILTS[self.dbe][self.db][self.tbl]
+        except KeyError:
+            self.existing_filt = None
+        title = _("Current filter") if self.existing_filt else _("Apply filter")
         wx.Dialog.__init__(self, parent=parent, title=title, 
                            style=wx.CAPTION|wx.CLOSE_BOX|
                            wx.SYSTEM_MENU, pos=(300, 100))
@@ -78,7 +81,8 @@ class FiltSelectDlg(wx.Dialog):
         szrQuick = wx.BoxSizer(wx.HORIZONTAL)
         szrFlex = wx.BoxSizer(wx.VERTICAL)
         # assemble
-        self.radQuick = wx.RadioButton(self.panel, -1, _("Quick"), style=wx.RB_GROUP)
+        self.radQuick = wx.RadioButton(self.panel, -1, _("Quick"), 
+                                       style=wx.RB_GROUP)
         radFlex = wx.RadioButton(self.panel, -1, _("Flexible"))
         self.radQuick.Bind(wx.EVT_RADIOBUTTON, self.OnRadQuickSel)
         radFlex.Bind(wx.EVT_RADIOBUTTON, self.OnRadFlexSel)
@@ -114,14 +118,15 @@ class FiltSelectDlg(wx.Dialog):
         szrFlex.Add(radFlex, 0)
         szrFlex.Add(self.lblFlexExample, 0)
         szrFlex.Add(self.txtFlexFilter, 1, wx.GROW)
-        if self.bolnew:
-            self.radQuick.SetValue(True)
-            self.enable_quick_dets(True)
-            self.enable_flex_dets(False)
-        else:
+        if self.existing_filt:
             radFlex.SetValue(True)
             self.enable_quick_dets(False)
             self.enable_flex_dets(True)
+            self.txtFlexFilter.SetValue(self.existing_filt)
+        else:
+            self.radQuick.SetValue(True)
+            self.enable_quick_dets(True)
+            self.enable_flex_dets(False)
         self.setup_btns()
         szrMain.Add(szrLabel, 0, wx.GROW|wx.ALL, 10)
         szrMain.Add(szrQuick, 0, wx.ALL, 10)
@@ -159,7 +164,7 @@ class FiltSelectDlg(wx.Dialog):
         btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
         btnCancel = wx.Button(self.panel, wx.ID_CANCEL) # 
         btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
-        if self.bolnew:
+        if not self.existing_filt:
             btnDelete.Disable()
         btnOK = wx.Button(self.panel, wx.ID_OK, _("Apply"))
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
@@ -182,17 +187,22 @@ class FiltSelectDlg(wx.Dialog):
         Open dialog with list of variables. On selection, opens standard get 
             settings dialog.
         """
-        pass
-    
-    
-    
-    
-    
-    
-
-    def OnDelete(self, event):
         
-        # TODO - remove filter details (and adjust table name?)
+        
+        # TODO - show variable details
+        
+        
+        pass
+        
+    def OnDelete(self, event):
+        try:
+            del my_globals.DBE_TBL_FILTS[self.dbe][self.db][self.tbl]
+        except KeyError:
+            raise Exception, ("Tried to delete filter but not in global "
+                              "dictionary")
+        
+        # TODO - adjust table name
+        
         
         self.Destroy()
         self.SetReturnCode(wx.ID_DELETE) # only for dialogs 
@@ -216,12 +226,34 @@ class FiltSelectDlg(wx.Dialog):
         return filt
 
     def OnOK(self, event):
+        debug = False
         if self.radQuick.GetValue():
-            filt = self.get_quick_filter()
-        
+            try:
+                filt = self.get_quick_filter()
+            except Exception, e:
+                wx.MessageBox(_("Problem with design of filter: %s") % e)
+                return
+        else:
+            filt = self.txtFlexFilter.GetValue()
+            if not filt:
+                wx.MessageBox(_("Please enter a filter"))
+                return
         # Must work with a simple query to that database
-        
-        
+        obj_quoter = getdata.get_obj_quoter_func(self.dbe)
+        filt_test_SQL = "SELECT * FROM %s " % obj_quoter(self.tbl) + \
+            "WHERE (%s)" % filt
+        if debug: print("Filter: %s" % filt_test_SQL)
+        try:
+            self.cur.execute(filt_test_SQL)
+        except Exception:
+            wx.MessageBox(_("Problem applying filter \"%s\" to \"%s\"") % \
+                          (filt, self.tbl))
+            return
+        if self.dbe not in my_globals.DBE_TBL_FILTS:
+            my_globals.DBE_TBL_FILTS[self.dbe] = {}
+        if self.db not in my_globals.DBE_TBL_FILTS[self.dbe]:
+            my_globals.DBE_TBL_FILTS[self.dbe][self.db] = {}
+        my_globals.DBE_TBL_FILTS[self.dbe][self.db][self.tbl] = filt
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
         # Prebuilt dialogs must do this internally.

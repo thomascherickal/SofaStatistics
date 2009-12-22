@@ -323,11 +323,32 @@ def get_data_dropdowns(parent, panel, dbe, default_dbs, default_tbls, con_dets,
     parent.dropDatabases.Bind(wx.EVT_CHOICE, parent.OnDatabaseSel)
     dbs_lc = [x.lower() for x in dbs_of_default_dbe]
     parent.dropDatabases.SetSelection(dbs_lc.index(db.lower()))
-    parent.dropTables = wx.Choice(panel, -1, choices=tbls, size=(300, -1))
+    parent.dropTables = wx.Choice(panel, -1, choices=[], size=(300, -1))
+    setup_drop_tbls(parent.dropTables, dbe, db, tbls, tbl)
     parent.dropTables.Bind(wx.EVT_CHOICE, parent.OnTableSel)
-    tbls_lc = [x.lower() for x in tbls]
-    parent.dropTables.SetSelection(tbls_lc.index(tbl.lower()))
     return parent.dropDatabases, parent.dropTables
+
+def setup_drop_tbls(dropTables, dbe, db, tbls, tbl):
+    """
+    Set-up tables dropdown.  Any tables with filtering should have (filtered)
+        appended to end of name.
+    """
+    debug = False
+    tbls_with_filts = []
+    for i, tbl_name in enumerate(tbls):
+        if tbl_name == tbl:
+            idx_tbl = i
+        try:
+            has_filt = my_globals.DBE_TBL_FILTS[dbe][db][tbl_name]
+            tbl_with_filt = "%s %s" % (tbl_name, _("(filtered)"))
+        except KeyError:
+            tbl_with_filt = tbl_name
+        tbls_with_filts.append(tbl_with_filt)
+    dropTables.SetItems(tbls_with_filts)
+    try:
+        dropTables.SetSelection(idx_tbl)
+    except NameError:
+        raise Exception, "Table \"%s\" not found in tables list" % self.tbl
 
 def refresh_db_dets(parent):
     """

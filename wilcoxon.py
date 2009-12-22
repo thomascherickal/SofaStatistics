@@ -29,6 +29,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append(u"sample_a, sample_b = " + \
             u"core_stats.get_paired_lists(" + \
             u"dbe=\"%s\", " % self.dbe + \
+            u"db=\"%s\", " % self.db + \
             u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
             u"fld_a=\"%s\", " % var_a + \
             u"fld_b=\"%s\")" % var_b)

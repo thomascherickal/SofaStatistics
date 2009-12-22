@@ -15,6 +15,19 @@ import wx
 
 import my_globals
 
+def get_filts(dbe, db, tbl):
+    """
+    Returns filters ready to use as WHERE and AND filters:
+        where_filt, and_filt
+    Filters must still work if empty strings (for performance when no filter 
+        required).
+    """
+    try:
+        filt = my_globals.DBE_TBL_FILTS[dbe][db][tbl]
+        return u" WHERE %s" % filt, u" AND %s" % filt
+    except KeyError:
+        return u"", u""
+
 def is_numeric(val):
     """
     Is a value numeric?  This is operationalised to mean can a value be cast as 

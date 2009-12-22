@@ -29,6 +29,12 @@ import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
 
 
+test_us_style = False
+if test_us_style:
+    # ignore prefs and allow test_us_style to determine config
+    my_globals.DATE_FORMATS_IN_USE = 1 # US-style
+    config.update_ok_date_formats_globals(ignore_prefs=False)
+
 def test_is_usable_datetime_str():
     tests = [("June 2009", False),
              ("1901", True),
@@ -36,8 +42,17 @@ def test_is_usable_datetime_str():
              ("1666-09-02", True),
              ("1666/09/02", False), # wrong order if using slashes
              ("31.3.1988", True),
-             ("31/3/88", True),
              ]
+    if my_globals.DATE_FORMATS_IN_USE == my_globals.INT_DATE_ENTRY_FORMAT:
+        tests.extend([
+             ("31/3/88", True),
+             ("3/31/88", False),
+             ])
+    else: # US-style
+        tests.extend([
+             ("31/3/88", False),
+             ("3/31/88", True),
+             ])    
     for test in tests:
         assert_equal(util.is_usable_datetime_str(test[0]), test[1])
 
@@ -48,10 +63,19 @@ def test_get_std_datetime_str():
              ("2009-01-31", "2009-01-31 00:00:00"),
              ("11am 2009-01-31", "2009-01-31 11:00:00"),
              ("2009-01-31 3:30pm", "2009-01-31 15:30:00"),
-             ("02/09/1666 00:12:16", "1666-09-02 00:12:16"), #http://en.wikipedia.org/wiki/Great_Fire_of_London
              ("12.2.2001 2:35pm", "2001-02-12 14:35:00"),
              ("12.2.01 2:35pm", "2001-02-12 14:35:00"),
              ]
+    if my_globals.DATE_FORMATS_IN_USE == my_globals.INT_DATE_ENTRY_FORMAT:
+        tests.extend([
+             ("02/09/1666 00:12:16", "1666-09-02 00:12:16"), #http://en.wikipedia.org/wiki/Great_Fire_of_London
+             ("31/3/88", "1988-03-31 00:00:00"),
+             ])
+    else: # US-style
+        tests.extend([
+             ("09/02/1666 00:12:16", "1666-09-02 00:12:16"), #http://en.wikipedia.org/wiki/Great_Fire_of_London
+             ("3/31/88", "1988-03-31 00:00:00"),
+             ])    
     for test in tests:
         assert_equal(util.get_std_datetime_str(test[0]), test[1])
         
@@ -59,10 +83,6 @@ def test_get_dets_of_usable_datetime_str():
     # date_part, date_format, time_part, time_format, boldate_then_time
     tests = [("2009", ("2009", "%Y", None, None, True)),
              ("2009-01-31", ("2009-01-31", "%Y-%m-%d", None, None, True)),
-             ("31/01/2009", ("31/01/2009", "%d/%m/%Y", None, None, True)),
-             ("31/1/2009", ("31/1/2009", "%d/%m/%Y", None, None, True)),
-             ("31/01/09", ("31/01/09", "%d/%m/%y", None, None, True)),
-             ("31/1/09", ("31/1/09", "%d/%m/%y", None, None, True)),
              ("2pm", (None, None, "2pm", "%I%p", True)),
              ("2:30pm", (None, None, "2:30pm", "%I:%M%p", True)),
              ("14:30", (None, None, "14:30", "%H:%M", True)),
@@ -79,6 +99,20 @@ def test_get_dets_of_usable_datetime_str():
              ("31.3.88 2:45am", ("31.3.88", "%d.%m.%y", "2:45am", "%I:%M%p", 
                             True)),
              ]
+    if my_globals.DATE_FORMATS_IN_USE == my_globals.INT_DATE_ENTRY_FORMAT:
+        tests.extend([
+             ("31/01/2009", ("31/01/2009", "%d/%m/%Y", None, None, True)),
+             ("31/1/2009", ("31/1/2009", "%d/%m/%Y", None, None, True)),
+             ("31/01/09", ("31/01/09", "%d/%m/%y", None, None, True)),
+             ("31/1/09", ("31/1/09", "%d/%m/%y", None, None, True)),
+             ])
+    else: # US-style
+        tests.extend([
+             ("01/31/2009", ("01/31/2009", "%m/%d/%Y", None, None, True)),
+             ("1/31/2009", ("1/31/2009", "%m/%d/%Y", None, None, True)),
+             ("01/31/09", ("01/31/09", "%m/%d/%y", None, None, True)),
+             ("1/31/09", ("1/31/09", "%m/%d/%y", None, None, True)),
+             ])  
     for test in tests:
         assert_equal(util.get_dets_of_usable_datetime_str(test[0]), test[1])
 

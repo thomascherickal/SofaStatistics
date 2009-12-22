@@ -14,6 +14,8 @@ class GenConfig(object):
         """
         Sets up dropdowns for database and tables, and textboxes plus Browse
             buttons for labels, style, output, and script.
+        Make the following available: self.con, self.cur, self.dbs, self.tbls, 
+            self.flds, self.has_unique, self.idxs, self.db, and self.tbl.
         """
         self.LABEL_FONT = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         self.DataConfigSetup(panel)
@@ -152,9 +154,10 @@ class GenConfig(object):
 
     def filt_select(self):
         dlg = filtselect.FiltSelectDlg(self, self.dbe, self.con, self.cur, 
-                    self.flds, self.var_labels, self.var_notes, self.var_types, 
-                    self.val_dics, self.fil_var_dets, bolnew=True)
+                self.db, self.tbl, self.flds, self.var_labels, self.var_notes, 
+                self.var_types, self.val_dics, self.fil_var_dets)
         dlg.ShowModal()
+        
         
         # TODO - if a filter applied, redisplay tables but keeping existing 
         # selection
@@ -165,6 +168,8 @@ class GenConfig(object):
     def OnRightClickTables(self, event):
         "Allow addition or removal of data filter"
         self.filt_select()
+        getdata.setup_drop_tbls(self.dropTables, self.dbe, self.db, self.tbls, 
+                                self.tbl)
         event.Skip()
 
     # report output
