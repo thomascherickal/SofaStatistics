@@ -3,9 +3,10 @@ import wx
 
 import my_globals
 
-debug = False # if the renderer is not available and other testing is required
+use_renderer = True # False if renderer not available and other testing required
+debug = False
 
-if debug:
+if not use_renderer:
     class FullHTML(wx.Window):
 
         def __init__(self, panel, size):
@@ -37,4 +38,5 @@ else:
                 wx.webview.WebView.__init__(self, panel, -1, size=size)
             
             def ShowHTML(self, strHTML):
+                if debug: print("strHTML is: %s" % strHTML)
                 self.SetPageSource(strHTML)    

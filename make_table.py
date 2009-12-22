@@ -398,8 +398,11 @@ class MakeTable(object):
         Update demo table display with random data.
         Always use one css only (the current one).
         """
+        debug = False
         demo_tbl_html = self.demo_tab.getDemoHTMLIfOK(css_idx=0)
-        #print("\n" + demo_tbl_html + "\n") #debug
+        if debug: print("\n" + demo_tbl_html + "\n")
+        if demo_tbl_html.strip() == "":
+            demo_tbl_html = "<p></p>"
         self.html.ShowHTML(demo_tbl_html)
 
     def TableConfigOK(self):

@@ -19,7 +19,7 @@ class RawTable(object):
         Set up table details required to make my_globals.
         dbe - only here so can use the same interface for all table types
         """
-        debug = True
+        debug = False
         self.titles = titles
         self.subtitles = subtitles
         self.col_names = col_names
