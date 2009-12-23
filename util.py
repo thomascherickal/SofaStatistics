@@ -16,14 +16,17 @@ import wx
 import my_globals
 
 def get_tbl_filt(dbe, db, tbl):
+    """
+    Returns tbl_filt_label, tbl_filt
+    """
     try:
-        tbl_filt = my_globals.DBE_TBL_FILTS[dbe][db][tbl]
+        tbl_filt_label, tbl_filt = my_globals.DBE_TBL_FILTS[dbe][db][tbl]
     except KeyError:
-        tbl_filt = u""
-    return tbl_filt
+        tbl_filt_label, tbl_filt = u"", u""
+    return tbl_filt_label, tbl_filt
 
 def get_tbl_filt_clause(dbe, db, tbl):
-    tbl_filt = get_tbl_filt(dbe, db, tbl)
+    tbl_filt_label, tbl_filt = get_tbl_filt(dbe, db, tbl)
     return 'tbl_filt = """ %s """' % tbl_filt
 
 def get_tbl_filts(tbl_filt):

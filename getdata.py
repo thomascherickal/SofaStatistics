@@ -338,11 +338,11 @@ def setup_drop_tbls(dropTables, dbe, db, tbls, tbl):
     for i, tbl_name in enumerate(tbls):
         if tbl_name == tbl:
             idx_tbl = i
-        try:
-            has_filt = my_globals.DBE_TBL_FILTS[dbe][db][tbl_name]
-            tbl_with_filt = "%s %s" % (tbl_name, _("(filtered)"))
-        except KeyError:
-            tbl_with_filt = tbl_name
+            tbl_filt_label, tbl_filt = util.get_tbl_filt(dbe, db, tbl_name)
+            if tbl_filt:
+                tbl_with_filt = "%s %s" % (tbl_name, _("(filtered)"))
+            else:
+                tbl_with_filt = tbl_name
         tbls_with_filts.append(tbl_with_filt)
     dropTables.SetItems(tbls_with_filts)
     try:

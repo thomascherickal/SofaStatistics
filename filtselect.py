@@ -64,12 +64,9 @@ class FiltSelectDlg(wx.Dialog):
         self.var_types = var_types
         self.val_dics = val_dics
         self.fil_var_dets = fil_var_dets
-        try:
-            self.existing_filt = \
-                my_globals.DBE_TBL_FILTS[self.dbe][self.db][self.tbl]
-        except KeyError:
-            self.existing_filt = None
-        title = _("Current filter") if self.existing_filt else _("Apply filter")
+        tbl_filt_label, self.tbl_filt = util.get_tbl_filt(self.dbe, self.db, 
+                                                          self.tbl)
+        title = _("Current filter") if self.tbl_filt else _("Apply filter")
         wx.Dialog.__init__(self, parent=parent, title=title, 
                            style=wx.CAPTION|wx.CLOSE_BOX|
                            wx.SYSTEM_MENU, pos=(300, 100))
@@ -88,9 +85,9 @@ class FiltSelectDlg(wx.Dialog):
         radFlex.Bind(wx.EVT_RADIOBUTTON, self.OnRadFlexSel)
         # label content
         lblLabel = wx.StaticText(self.panel, -1, _("Label (optional):"))
-        txtLabel = wx.TextCtrl(self.panel, -1, "")
+        self.txtLabel = wx.TextCtrl(self.panel, -1, tbl_filt_label)
         szrLabel.Add(lblLabel, 0, wx.RIGHT, 10)
-        szrLabel.Add(txtLabel, 1)
+        szrLabel.Add(self.txtLabel, 1)
         # quick content
         self.dropVars = wx.Choice(self.panel, -1, size=(300, -1))
         self.dropVars.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickVars)
@@ -118,11 +115,11 @@ class FiltSelectDlg(wx.Dialog):
         szrFlex.Add(radFlex, 0)
         szrFlex.Add(self.lblFlexExample, 0)
         szrFlex.Add(self.txtFlexFilter, 1, wx.GROW)
-        if self.existing_filt:
+        if self.tbl_filt:
             radFlex.SetValue(True)
             self.enable_quick_dets(False)
             self.enable_flex_dets(True)
-            self.txtFlexFilter.SetValue(self.existing_filt)
+            self.txtFlexFilter.SetValue(self.tbl_filt)
         else:
             self.radQuick.SetValue(True)
             self.enable_quick_dets(True)
@@ -138,7 +135,7 @@ class FiltSelectDlg(wx.Dialog):
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
         self.Layout()
-        txtLabel.SetFocus()
+        self.txtLabel.SetFocus()
 
     def setup_vars(self, var=None):
         var_names = projects.get_approp_var_names(self.flds)
@@ -164,7 +161,7 @@ class FiltSelectDlg(wx.Dialog):
         btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
         btnCancel = wx.Button(self.panel, wx.ID_CANCEL) # 
         btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
-        if not self.existing_filt:
+        if not self.tbl_filt:
             btnDelete.Disable()
         btnOK = wx.Button(self.panel, wx.ID_OK, _("Apply"))
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
@@ -187,12 +184,16 @@ class FiltSelectDlg(wx.Dialog):
         Open dialog with list of variables. On selection, opens standard get 
             settings dialog.
         """
-        
-        
-        # TODO - show variable details
-        
-        
-        pass
+        updated = set() # will get populated with a True to indicate update
+        dlg = projects.ListVarsDlg(self.flds, self.var_labels, self.var_notes, 
+                                   self.var_types, self.val_dics, 
+                                   self.fil_var_dets, updated)
+        dlg.ShowModal()
+        if updated:
+            choice_text = self.dropVars.GetStringSelection()
+            fld_name, unused = getdata.extractChoiceDets(choice_text)
+            self.setup_vars(var=fld_name)
+        event.Skip()
         
     def OnDelete(self, event):
         try:
@@ -200,10 +201,6 @@ class FiltSelectDlg(wx.Dialog):
         except KeyError:
             raise Exception, ("Tried to delete filter but not in global "
                               "dictionary")
-        
-        # TODO - adjust table name
-        
-        
         self.Destroy()
         self.SetReturnCode(wx.ID_DELETE) # only for dialogs 
         # (MUST come after Destroy)
@@ -227,33 +224,46 @@ class FiltSelectDlg(wx.Dialog):
 
     def OnOK(self, event):
         debug = False
+        tbl_filt_label = self.txtLabel.GetValue() 
         if self.radQuick.GetValue():
             try:
-                filt = self.get_quick_filter()
+                tbl_filt = self.get_quick_filter()
             except Exception, e:
                 wx.MessageBox(_("Problem with design of filter: %s") % e)
                 return
         else:
-            filt = self.txtFlexFilter.GetValue()
-            if not filt:
+            tbl_filt = self.txtFlexFilter.GetValue()
+            if not tbl_filt:
                 wx.MessageBox(_("Please enter a filter"))
                 return
         # Must work with a simple query to that database
         obj_quoter = getdata.get_obj_quoter_func(self.dbe)
         filt_test_SQL = "SELECT * FROM %s " % obj_quoter(self.tbl) + \
-            "WHERE (%s)" % filt
+            "WHERE (%s)" % tbl_filt
         if debug: print("Filter: %s" % filt_test_SQL)
         try:
             self.cur.execute(filt_test_SQL)
         except Exception:
+            val_quoter = getdata.get_val_quoter_func(self.dbe)
+            demo = ((_("\n\nFilters for %(dbe)s data should look like this:") + \
+                u"\n\ne.g. %(city)s = %(vancouver)s" + \
+                u"\ne.g. %(age)s >= 20" + \
+                u"\ne.g. (%(city)s = %(vancouver)s AND %(age)s >= 20) " + \
+                "OR %(gender)s = 2") %
+                      {"dbe": self.dbe,
+                       "city": obj_quoter("city"), 
+                       "vancouver": val_quoter("Vancouver"),
+                       "age": obj_quoter("age"),
+                       "gender": obj_quoter("gender")})
             wx.MessageBox(_("Problem applying filter \"%s\" to \"%s\"") % \
-                          (filt, self.tbl))
+                          (tbl_filt, self.tbl) + demo)
             return
         if self.dbe not in my_globals.DBE_TBL_FILTS:
             my_globals.DBE_TBL_FILTS[self.dbe] = {}
         if self.db not in my_globals.DBE_TBL_FILTS[self.dbe]:
             my_globals.DBE_TBL_FILTS[self.dbe][self.db] = {}
-        my_globals.DBE_TBL_FILTS[self.dbe][self.db][self.tbl] = filt
+        my_globals.DBE_TBL_FILTS[self.dbe][self.db][self.tbl] = \
+            (tbl_filt_label, tbl_filt)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
         # Prebuilt dialogs must do this internally.

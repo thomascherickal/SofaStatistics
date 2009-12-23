@@ -181,7 +181,7 @@ def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b):
     Returns chisq, p, min_count, perc_cells_lt_5
     """
     debug = False
-    tbl_filt = util.get_tbl_filt(dbe, db, tbl)
+    unused, tbl_filt = util.get_tbl_filt(dbe, db, tbl)
     vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df = \
                     get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b)
     if debug: print(lst_obs, lst_exp)

@@ -147,7 +147,7 @@ default_hdr = u"""
             </head>
             <body>\n"""
     
-def getHtmlHdr(hdr_title, css_fils):
+def get_html_hdr(hdr_title, css_fils):
     """
     Get HTML header.
     Add suffixes to each of the main classes so can have multiple styles in a
@@ -231,8 +231,8 @@ def _strip_script(script):
         stripped = script
     return stripped
 
-def ExportScript(script, fil_script, fil_report, css_fils, con_dets, dbe, db, 
-                 tbl, default_dbs, default_tbls):
+def export_script(script, fil_script, fil_report, css_fils, con_dets, dbe, db, 
+                  tbl, default_dbs, default_tbls):
     modules = ["my_globals", "core_stats", "dimtables", "getdata", "output", 
                "rawtables", "stats_output"]
     if os.path.exists(fil_script):
@@ -246,34 +246,57 @@ def ExportScript(script, fil_script, fil_report, css_fils, con_dets, dbe, db,
         f.write(_strip_script(existing_script))
     else:
         InsertPrelimCode(modules, f, fil_report, css_fils)
-    AppendExportedScript(f, script, con_dets, dbe, db, tbl, default_dbs, 
-                         default_tbls, add_divider_code=True)
+    tbl_filt_label, tbl_filt = util.get_tbl_filt(dbe, db, tbl)
+    append_exported_script(f, script, con_dets, dbe, db, tbl, tbl_filt_label,
+                           tbl_filt, default_dbs, default_tbls, 
+                           inc_divider=True)
     AddClosingScriptCode(f)
     f.close()
 
-def AddDividerCode(f, db, tbl):
-    f.write(u"source = output.GetSource(\"%s\", \"%s\")" % (db, tbl))
-    f.write(u"\n" + u"divider = output.GetDivider(source)")
-    f.write(u"\n" + u"fil.write(divider)\n")
+def add_divider_code(f, db, tbl, tbl_filt_label, tbl_filt):
+    """
+    Adds divider code to a script file.
+    """
+    f.write(u"\nsource = output.get_source(\"%s\", \"%s\")" % (db, tbl))
+    f.write(u"\ndivider = output.get_divider(source, "
+            u" \"\"\" %s \"\"\", \"%s\")" % (tbl_filt_label, tbl_filt))
+    f.write(u"\nfil.write(divider)\n")
 
-def GetSource(db, tbl_name):
+def get_divider(source, tbl_filt_label, tbl_filt):
+    """
+    Get the HTML divider between content -includes source e.g. database, table 
+        and time stamp; and a filter description.
+    """    
+    if tbl_filt.strip() != "":
+        if tbl_filt_label.strip() != "":
+            filt_msg = _("Data filter \"%s\" applied: %s") % (tbl_filt_label, 
+                                                              tbl_filt.strip())
+        else:
+            filt_msg = _("Data filtered by: ") + tbl_filt.strip()
+    else:
+        filt_msg = _("Data unfiltered")
+    return u"\n<br><br>\n<hr>\n%s\n%s" % (source, filt_msg)
+
+def get_source(db, tbl_name):
     datestamp = datetime.now().strftime("on %d/%m/%Y at %I:%M %p")
     source = u"\n" + u"<p>From %s.%s %s</p>" % (db, tbl_name, datestamp)
     return source
 
-def RunReport(modules, fil_report, add_to_report, css_fils, inner_script, 
-              con_dets, dbe, db, tbl_name, default_dbs, default_tbls):
+def run_report(modules, fil_report, add_to_report, css_fils, inner_script, 
+               con_dets, dbe, db, tbl_name, default_dbs, default_tbls):
     """
     Runs report and returns HTML representation of it.
-    add_to_report - also append result to current report.
+    add_to_report -- also append result to current report.
     """
     debug = False
     # generate script
     f = codecs.open(my_globals.INT_SCRIPT_PATH, "w", "utf-8")
     if debug: print(css_fils)
     InsertPrelimCode(modules, f, my_globals.INT_REPORT_PATH, css_fils)
-    AppendExportedScript(f, inner_script, con_dets, dbe, db, tbl_name,
-                         default_dbs, default_tbls, add_divider_code=False)
+    tbl_filt_label, tbl_filt = util.get_tbl_filt(dbe, db, tbl_name)
+    append_exported_script(f, inner_script, con_dets, dbe, db, tbl_name,
+                           tbl_filt_label, tbl_filt, default_dbs, default_tbls, 
+                           inc_divider=False)
     AddClosingScriptCode(f)
     f.close()
     # run script
@@ -292,12 +315,13 @@ def RunReport(modules, fil_report, add_to_report, css_fils, inner_script,
             raise Exception, unicode(e)
         return strErrContent
     f = codecs.open(my_globals.INT_REPORT_PATH, "U", "utf-8")
-    source = GetSource(db, tbl_name)
+    source = get_source(db, tbl_name)
     strContent = util.clean_bom_utf8(f.read())
     f.close()
     # append into html file
     if add_to_report:
-        SaveToReport(fil_report, css_fils, source, strContent)
+        save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt, 
+                       strContent)
         strContent = u"\n" + u"<p>Output also saved to '%s'</p>" % \
             util.escape_win_path(fil_report) + source + strContent
     return strContent
@@ -328,12 +352,13 @@ def InsertPrelimCode(modules, f, fil_report, css_fils):
               util.escape_win_path(fil_report) + u""" "w", "utf-8")""")
     css_fils_str = pprint.pformat(css_fils)
     f.write(u"\n" + u"css_fils=%s" % css_fils_str)
-    f.write(u"\n" + u"fil.write(output.getHtmlHdr(\"Report(s)\", "
+    f.write(u"\n" + u"fil.write(output.get_html_hdr(\"Report(s)\", "
               u"css_fils))" + u"\n" + u"\n")
     f.write(u"# end of script 'header'" + u"\n" + u"\n")
     
-def AppendExportedScript(f, inner_script, con_dets, dbe, db, tbl_name, 
-                         default_dbs, default_tbls, add_divider_code=False):
+def append_exported_script(f, inner_script, con_dets, dbe, db, tbl_name, 
+                           tbl_filt_label, tbl_filt, default_dbs, default_tbls, 
+                           inc_divider=False):
     """
     Append exported script onto existing script file.
     f - open file handle ready for writing
@@ -342,8 +367,8 @@ def AppendExportedScript(f, inner_script, con_dets, dbe, db, tbl_name,
     # Fresh connection for each in case it changes in between tables
     f.write(u"#%s" % (u"-"*50))
     f.write(u"\n" + u"# %s" % datestamp)
-    if add_divider_code:
-        AddDividerCode(f, db, tbl_name)
+    if inc_divider:
+        add_divider_code(f, db, tbl_name, tbl_filt_label, tbl_filt)
     con_dets_str = pprint.pformat(con_dets)
     f.write(u"\n" + u"con_dets = %s" % con_dets_str)
     default_dbs_str = pprint.pformat(default_dbs)
@@ -377,14 +402,8 @@ def _strip_html(html):
         stripped = html[start_idx:]
     return stripped
 
-def GetDivider(source):
-    """
-    Get the HTML divider between content -includes source e.g. database, table 
-        and time stamp.
-    """
-    return u"\n" + u"<br><br>" + u"\n" + u"<hr>" + u"\n" + source
-
-def SaveToReport(fil_report, css_fils, source, new_html):
+def save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt, 
+                   new_html):
     """
     If report doesn't exist, make it.
     If it does exist, extract existing content and then create empty version.
@@ -402,14 +421,14 @@ def SaveToReport(fil_report, css_fils, source, new_html):
         existing_no_ends = None
     hdr_title = time.strftime(_("SOFA Statistics Report") + \
                               " %Y-%m-%d_%H:%M:%S")
-    hdr = getHtmlHdr(hdr_title, css_fils)
+    hdr = get_html_hdr(hdr_title, css_fils)
     f = codecs.open(fil_report, "w", "utf-8")
     css_fils_str = pprint.pformat(css_fils)
     f.write(u"<!--css_fils = %s-->\n\n" % css_fils_str)
     f.write(hdr)
     if existing_no_ends:
         f.write(existing_no_ends)
-    f.write(GetDivider(source))
+    f.write(get_divider(source, tbl_filt_label, tbl_filt))
     f.write(new_no_hdr)
     f.write(getHtmlFtr())
     f.close()

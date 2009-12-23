@@ -281,7 +281,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
             wx.BeginBusyCursor()
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.getScript(css_idx)
-            strContent = output.RunReport(OUTPUT_MODULES, self.fil_report, 
+            strContent = output.run_report(OUTPUT_MODULES, self.fil_report, 
                 self.chkAddToReport.IsChecked(), css_fils, script, 
                 self.con_dets, self.dbe, self.db, self.tbl, self.default_dbs, 
                 self.default_tbls)
@@ -313,10 +313,10 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         if export_ok:
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.getScript(css_idx)
-            output.ExportScript(script, self.fil_script, 
-                                self.fil_report, css_fils, self.con_dets, 
-                                self.dbe, self.db, self.tbl, self.default_dbs, 
-                                self.default_tbls)
+            output.export_script(script, self.fil_script, 
+                                 self.fil_report, css_fils, self.con_dets, 
+                                 self.dbe, self.db, self.tbl, self.default_dbs, 
+                                 self.default_tbls)
         event.Skip()
 
     def OnButtonHelp(self, event):

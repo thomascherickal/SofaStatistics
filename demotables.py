@@ -48,8 +48,8 @@ class DemoTable(object):
             self.titles[0] += _(" (random demo data only)")
         if debug: print(self.fil_css)
         try:
-            html = output.getHtmlHdr(hdr_title=_(u"Report(s)"), 
-                                     css_fils=[self.fil_css])
+            html = output.get_html_hdr(hdr_title=_(u"Report(s)"), 
+                                       css_fils=[self.fil_css])
         except Exception, e:
             wx.MessageBox(_("Unable to make report.  Error details: %s" % unicode(e)))
             raise Exception, unicode(e)

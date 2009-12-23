@@ -104,26 +104,26 @@ class GenConfig(object):
         self.szrConfigBottom = wx.BoxSizer(wx.HORIZONTAL)
         # CONFIG TOP
         # Variables
-        bxVarConfig = wx.StaticBox(panel, -1, _("Variable Config"))
+        bxVarConfig = wx.StaticBox(panel, -1, _("Variable config from ..."))
         szrVarConfig = wx.StaticBoxSizer(bxVarConfig, wx.HORIZONTAL)
         szrVarConfig.Add(self.txtVarDetsFile, 1, wx.GROW)
         szrVarConfig.Add(self.btnVarDetsPath, 0, wx.LEFT|wx.RIGHT, 5)
         self.szrConfigTop.Add(szrVarConfig, 1, wx.RIGHT, 10)
         # Css
-        bxCssConfig = wx.StaticBox(panel, -1, _("Table Style"))
+        bxCssConfig = wx.StaticBox(panel, -1, _("Style output using ..."))
         szrCssConfig = wx.StaticBoxSizer(bxCssConfig, wx.HORIZONTAL)
         szrCssConfig.Add(self.txtCssFile, 1, wx.GROW)
         szrCssConfig.Add(self.btnCssPath, 0, wx.LEFT|wx.RIGHT, 5)
         self.szrConfigTop.Add(szrCssConfig, 1)
         # CONFIG BOTTOM
         # Report
-        bxReportConfig = wx.StaticBox(panel, -1, _("Output Report"))
+        bxReportConfig = wx.StaticBox(panel, -1, _("Send output to ..."))
         szrReportConfig = wx.StaticBoxSizer(bxReportConfig, wx.HORIZONTAL)
         szrReportConfig.Add(self.txtReportFile, 1, wx.GROW)
         szrReportConfig.Add(self.btnReportPath, 0, wx.LEFT|wx.RIGHT, 5)
         self.szrConfigBottom.Add(szrReportConfig, 1, wx.RIGHT, 10)
         # Script
-        bxScriptConfig = wx.StaticBox(panel, -1, _("Automation Script"))
+        bxScriptConfig = wx.StaticBox(panel, -1, _("Export here to reuse"))
         szrScriptConfig = wx.StaticBoxSizer(bxScriptConfig, wx.HORIZONTAL)
         szrScriptConfig.Add(self.txtScriptFile, 1, wx.GROW)
         szrScriptConfig.Add(self.btnScriptPath, 0, wx.LEFT|wx.RIGHT, 5)

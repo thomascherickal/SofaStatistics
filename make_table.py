@@ -143,7 +143,7 @@ class MakeTable(object):
         if self.tab_type == my_globals.RAW_DISPLAY:
             # count records in table
             quoter = getdata.get_obj_quoter_func(self.dbe)
-            tbl_filt = util.get_tbl_filt(self.dbe, self.db, self.tbl)
+            unused, tbl_filt = util.get_tbl_filt(self.dbe, self.db, self.tbl)
             where_tbl_filt, unused = util.get_tbl_filts(tbl_filt)
             s = u"SELECT COUNT(*) FROM %s %s" % (quoter(self.tbl), 
                                                  where_tbl_filt)
@@ -173,7 +173,7 @@ class MakeTable(object):
             if debug: print(self.fil_css)
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.getScript(has_rows, has_cols, css_idx)
-            strContent = output.RunReport(OUTPUT_MODULES, self.fil_report, 
+            strContent = output.run_report(OUTPUT_MODULES, self.fil_report, 
                 self.chkAddToReport.IsChecked(), css_fils, script, 
                 self.con_dets, self.dbe, self.db, self.tbl, self.default_dbs, 
                 self.default_tbls)
@@ -195,10 +195,10 @@ class MakeTable(object):
         if export_ok:
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.getScript(has_rows, has_cols, css_idx)
-            output.ExportScript(script, self.fil_script, 
-                                self.fil_report, css_fils, self.con_dets, 
-                                self.dbe, self.db, self.tbl, self.default_dbs, 
-                                self.default_tbls)
+            output.export_script(script, self.fil_script, 
+                                 self.fil_report, css_fils, self.con_dets, 
+                                 self.dbe, self.db, self.tbl, self.default_dbs, 
+                                 self.default_tbls)
         else:
             wx.MessageBox(_("Missing %s data") % missing_dim) 
     

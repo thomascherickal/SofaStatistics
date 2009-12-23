@@ -203,6 +203,74 @@ def GetIdxToSelect(choice_items, drop_var, var_labels, default):
     return idx
     
     
+class ListVarsDlg(wx.Dialog):
+    def __init__(self, flds, var_labels, var_notes, var_types, val_dics, 
+                 fil_var_dets, updated):
+        "updated -- empty set - add True to 'return' updated True"
+        wx.Dialog.__init__(self, None, title=_("Variable Details"),
+                  size=(500,600), 
+                  style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU)
+        self.flds = flds
+        self.var_labels = var_labels
+        self.var_notes = var_notes
+        self.var_types = var_types
+        self.val_dics = val_dics
+        self.fil_var_dets = fil_var_dets
+        self.updated = updated
+        self.panel = wx.Panel(self)
+        self.szrMain = wx.BoxSizer(wx.VERTICAL)
+        szrStdBtns = wx.StdDialogButtonSizer()
+        self.lstVars = wx.ListBox(self.panel, -1, choices=[])
+        self.lstVars.Bind(wx.EVT_LISTBOX, self.OnLstClick)
+        self.setup_vars()
+        btnOK = wx.Button(self.panel, wx.ID_OK)
+        btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
+        self.panel.SetSizer(self.szrMain)
+        self.szrMain.Add(self.lstVars, 0, wx.ALL, 10)
+        szrStdBtns.AddButton(btnOK)
+        szrStdBtns.Realize()
+        self.szrMain.Add(szrStdBtns, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
+        self.szrMain.SetSizeHints(self)
+        self.Layout()
+    
+    def OnLstClick(self, event):
+        debug = False
+        try:
+            var, choice_item = self.get_var()
+        except Exception: # seems to be triggered
+            return
+        var_name, var_label = getdata.extractChoiceDets(choice_item)
+        if debug: 
+            print(var_name)
+            pprint.pprint(self.flds)
+        updated = set_var_props(choice_item, var_name, var_label, self.flds, 
+                                self.var_labels, self.var_notes, self.var_types, 
+                                self.val_dics, self.fil_var_dets)
+        if updated:
+            self.setup_vars(var)
+            self.updated.add(True)
+    
+    def OnOK(self, event):
+        self.Destroy()
+    
+    def setup_vars(self, var=None):
+        var_names = get_approp_var_names(self.flds)
+        var_choices, self.sorted_var_names = \
+            getdata.get_sorted_choice_items(dic_labels=self.var_labels, 
+                                            vals=var_names)
+        self.lstVars.SetItems(var_choices)
+        idx = self.sorted_var_names.index(var) if var else -1
+        self.lstVars.SetSelection(idx)
+
+    def get_var(self):
+        idx = self.lstVars.GetSelection()
+        if idx == -1:
+            raise Exception, "Nothing selected"
+        var = self.sorted_var_names[idx]
+        var_item = self.lstVars.GetStringSelection()
+        return var, var_item
+    
+    
 class GetSettings(settings_grid.SettingsEntryDlg):
     
     def __init__(self, title, boltext, boldatetime, var_desc, data, 
