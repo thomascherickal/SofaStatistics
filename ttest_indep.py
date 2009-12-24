@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import my_globals
 import indep2var
+import util
 
 
 class DlgConfig(indep2var.DlgIndep2VarConfig):

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import my_globals
 import paired2var
+import util
 
 
 class DlgConfig(paired2var.DlgPaired2VarConfig):

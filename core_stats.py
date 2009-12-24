@@ -132,7 +132,7 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b):
         raise Exception, u"No observed values"
     lst_obs = list(tup_obs)
     if debug: print(u"lst_obs: %s" % lst_obs)
-    obs_total = sum(lst_obs)
+    obs_total = float(sum(lst_obs))
     # expected values
     lst_fracs_a = get_fracs(cur, tbl_filt, qtbl, qfld_a)
     lst_fracs_b = get_fracs(cur, tbl_filt, qtbl, qfld_b)
@@ -223,6 +223,8 @@ def chisquare(f_obs,f_exp=None, df=None):
     40-49
     50+
     k=(2x5) i.e. 10, k-1 = 9 but df should be (2-1) x (5-1) i.e. 4 
+    Also turns f_obs[i] explicitly into a float so no mismatching between floats
+        and decimals.
     -------------------------------------
     Calculates a one-way chi square for list of observed frequencies and returns
     the result.  If no expected frequencies are given, the total N is assumed to
@@ -236,7 +238,7 @@ def chisquare(f_obs,f_exp=None, df=None):
         f_exp = [sum(f_obs)/float(k)] * len(f_obs) # create k bins with = freq.
     chisq = 0
     for i in range(len(f_obs)):
-        chisq = chisq + (f_obs[i]-f_exp[i])**2 / float(f_exp[i])
+        chisq = chisq + (float(f_obs[i])-float(f_exp[i]))**2 / float(f_exp[i])
     if not df: df = k-1
     return chisq, chisqprob(chisq, df)
 

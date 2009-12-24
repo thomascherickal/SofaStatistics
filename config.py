@@ -56,7 +56,7 @@ def update_ok_date_formats_globals(ignore_prefs=False):
             my_globals.DATE_FORMATS_IN_USE = \
                 prefs_dic[my_globals.PREFS_KEY][my_globals.DATE_ENTRY_FORMAT]
         except Exception:
-            return # if no settings, leave international status quo
+            pass # if no settings, leave international status quo
     if my_globals.DATE_FORMATS_IN_USE == my_globals.INT_DATE_ENTRY_FORMAT:
         extra_ok_date_formats = ["%d-%m-%y", "%d/%m/%y", "%d-%m-%Y", "%d/%m/%Y"]
         my_globals.OK_DATE_FORMAT_EXAMPLES = ["31/3/09", "2:30pm 31/3/2009"]

@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
-
 import wx
 
 import my_globals
 import indep2var
+import util
 
 
 class DlgConfig(indep2var.DlgIndep2VarConfig):

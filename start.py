@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-dev_debug = True
+dev_debug = False
 test_lang = False
 
 import warnings
@@ -171,8 +171,8 @@ class SofaApp(wx.App):
             filename = None
         else:
             redirect = True
-            my_globals.LOCAL_PATH
-            filename = os.path.join(local_path, my_globals.INTERNAL_FOLDER, 
+            filename = os.path.join(my_globals.LOCAL_PATH, 
+                                    my_globals.INTERNAL_FOLDER, 
                                     u'output.txt')
         wx.App.__init__(self, redirect=redirect, filename=filename)
 
