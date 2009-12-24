@@ -8,7 +8,7 @@ import sys
 
 debug = False
 
-VERSION = u"0.8.15"
+VERSION = u"0.9.0"
 
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
@@ -118,13 +118,6 @@ VAR_TYPES = [VAR_TYPE_CAT, VAR_TYPE_ORD, VAR_TYPE_QUANT]
 VAR_IDX_CAT = 0
 VAR_IDX_ORD = 1
 VAR_IDX_QUANT = 2
-# remember defaults in stats tests
-group_by_default = None
-group_avg_default = None
-group_a_default = None
-group_b_default = None
-val_a_default = None
-val_b_default = None
 # getdata ******************************************************
 # misc field dets
 FLD_SEQ = u"field sequence"
@@ -259,6 +252,18 @@ INT_DATE_ENTRY_FORMAT = 0
 ALWAYS_OK_DATE_FORMATS = ["%Y-%m-%d", "%Y", "%d.%m.%Y", "%d.%m.%y"]
 OK_TIME_FORMATS = ["%I%p", "%I:%M%p", "%H:%M", "%H:%M:%S"]
 DATE_FORMATS_IN_USE = INT_DATE_ENTRY_FORMAT
+# remember defaults
+# stats tests
+GROUP_BY_DEFAULT = None
+GROUP_AVG_DEFAULT = None
+GROUP_A_DEFAULT = None
+GROUP_B_DEFAULT = None
+VAL_A_DEFAULT = None
+VAL_B_DEFAULT = None
+# data last selected
+DB_DEFAULT = None
+TBL_DEFAULT = None
+# ////////////////////////////////////////////////////////////
 import config
 # need to be populated in initial config
 OK_DATE_FORMATS = []

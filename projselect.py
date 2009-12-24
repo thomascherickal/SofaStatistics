@@ -11,7 +11,7 @@ import util
 
 
 class ProjSelectDlg(wx.Dialog):
-    def __init__(self, parent, projs):
+    def __init__(self, parent, projs, proj):
         wx.Dialog.__init__(self, parent=parent, title=_("Projects"),
                            size=wx.DefaultSize, 
                            style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
@@ -30,8 +30,9 @@ class ProjSelectDlg(wx.Dialog):
         lblChoose = wx.StaticText(self.panel, -1, 
                                   _("Choose an existing project ..."))
         self.dropProjs = wx.Choice(self.panel, -1, choices=self.projs)
-        self.dropProjs.SetSelection(0)
-        self.StoreProjName(self.projs[0])
+        idx_proj = self.projs.index(proj)
+        self.dropProjs.SetSelection(idx_proj)
+        self.StoreProjName(self.projs[idx_proj])
         self.dropProjs.Bind(wx.EVT_CHOICE, self.OnProjSelect)
         self.btnEdit = wx.Button(self.panel, wx.ID_EDIT)
         self.btnEdit.Bind(wx.EVT_BUTTON, self.OnEdit)

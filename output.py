@@ -262,24 +262,31 @@ def add_divider_code(f, db, tbl, tbl_filt_label, tbl_filt):
             u" \"\"\" %s \"\"\", \"%s\")" % (tbl_filt_label, tbl_filt))
     f.write(u"\nfil.write(divider)\n")
 
+def get_filt_msg(tbl_filt_label, tbl_filt):
+    """
+    Return filter message in HTML.
+    """
+    if tbl_filt.strip() != "":
+        if tbl_filt_label.strip() != "":
+            filt_msg = _("Data filtered by \"%s\": %s") % (tbl_filt_label, 
+                                                              tbl_filt.strip())
+        else:
+            filt_msg = _("Data filtered by: ") + tbl_filt.strip()
+    else:
+        filt_msg = _("All data in table included - no filtering")
+    return u"<p>%s</p>" % filt_msg   
+
 def get_divider(source, tbl_filt_label, tbl_filt):
     """
     Get the HTML divider between content -includes source e.g. database, table 
         and time stamp; and a filter description.
     """    
-    if tbl_filt.strip() != "":
-        if tbl_filt_label.strip() != "":
-            filt_msg = _("Data filter \"%s\" applied: %s") % (tbl_filt_label, 
-                                                              tbl_filt.strip())
-        else:
-            filt_msg = _("Data filtered by: ") + tbl_filt.strip()
-    else:
-        filt_msg = _("Data unfiltered")
+    filt_msg = get_filt_msg(tbl_filt_label, tbl_filt)
     return u"\n<br><br>\n<hr>\n%s\n%s" % (source, filt_msg)
 
 def get_source(db, tbl_name):
     datestamp = datetime.now().strftime("on %d/%m/%Y at %I:%M %p")
-    source = u"\n" + u"<p>From %s.%s %s</p>" % (db, tbl_name, datestamp)
+    source = u"\n<p>From %s.%s %s</p>" % (db, tbl_name, datestamp)
     return source
 
 def run_report(modules, fil_report, add_to_report, css_fils, inner_script, 
@@ -308,23 +315,26 @@ def run_report(modules, fil_report, add_to_report, css_fils, inner_script,
         dummy_dic = {}
         exec script in dummy_dic
     except Exception, e:
-        strErrContent = _(u"<h1>Ooops!</h1>\n<p>Unable to run script " + \
-                          u"to generate report.  "
-            u"Error encountered.  Original error message: %s</p>") % e
+        err_content = _(u"<h1>Ooops!</h1>\n<p>Unable to run script " + \
+                        u"to generate report. Error encountered: %s</p>") % e
         if debug:
             raise Exception, unicode(e)
-        return strErrContent
+        return err_content
     f = codecs.open(my_globals.INT_REPORT_PATH, "U", "utf-8")
-    source = get_source(db, tbl_name)
-    strContent = util.clean_bom_utf8(f.read())
+    raw_content = util.clean_bom_utf8(f.read())
     f.close()
+    source = get_source(db, tbl_name)
+    filt_msg = get_filt_msg(tbl_filt_label, tbl_filt)
+    main_content = source + filt_msg + raw_content
     # append into html file
     if add_to_report:
         save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt, 
-                       strContent)
-        strContent = u"\n" + u"<p>Output also saved to '%s'</p>" % \
-            util.escape_win_path(fil_report) + source + strContent
-    return strContent
+                       raw_content) # handles source and filter desc internally
+        display_content = u"\n<p>Output also saved to '%s'</p>" % \
+                        util.escape_win_path(fil_report) + main_content
+    else:
+        display_content = main_content
+    return display_content
 
 def InsertPrelimCode(modules, f, fil_report, css_fils):
     """
@@ -377,7 +387,7 @@ def append_exported_script(f, inner_script, con_dets, dbe, db, tbl_name,
     f.write(u"\n" + u"default_tbls = %s" % default_tbls_str)
     f.write(u"\n" + \
         u"con, cur, dbs, tbls, flds, has_unique, idxs = \\" + \
-        u"\n" + "    getdata.getDbDetsObj(\"%s\", " % dbe + \
+        u"\n" + "    getdata.get_db_dets_obj(\"%s\", " % dbe + \
         u"default_dbs, default_tbls, con_dets=con_dets," + \
         u"\n" + "    db=\"%s\", tbl=\"%s\")" % (db, tbl_name) + \
         u".getDbDets()")

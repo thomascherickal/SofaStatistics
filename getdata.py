@@ -10,7 +10,8 @@ import util
 
 debug = False
 
-def getDbDetsObj(dbe, default_dbs, default_tbls, con_dets, db=None, tbl=None):
+def get_db_dets_obj(dbe, default_dbs, default_tbls, con_dets, db=None, 
+                    tbl=None):
     """
     Pass in all con_dets (the dbe will be used to select specific con_dets).
     """
@@ -307,8 +308,8 @@ def get_data_dropdowns(parent, panel, dbe, default_dbs, default_tbls, con_dets,
     dbes.pop(dbes.index(dbe))
     for oth_dbe in dbes: # may not have any connection details
         oth_default_db = default_dbs.get(oth_dbe)
-        dbdetsobj = getDbDetsObj(oth_dbe, default_dbs, default_tbls, con_dets, 
-                                 oth_default_db, None)
+        dbdetsobj = get_db_dets_obj(oth_dbe, default_dbs, default_tbls, 
+                                    con_dets, oth_default_db, None)
         try:
             unused, unused, oth_dbs, unused, unused, unused, unused = \
                 dbdetsobj.getDbDets()
@@ -359,8 +360,8 @@ def refresh_db_dets(parent):
     wx.BeginBusyCursor()
     db_choice_item = parent.db_choice_items[parent.dropDatabases.GetSelection()]
     db, dbe = extractDbDets(db_choice_item)
-    dbdetsobj = getDbDetsObj(dbe, parent.default_dbs, parent.default_tbls, 
-                             parent.con_dets, db)
+    dbdetsobj = get_db_dets_obj(dbe, parent.default_dbs, parent.default_tbls, 
+                                parent.con_dets, db)
     con, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
     db = dbdetsobj.db
     tbl = dbdetsobj.tbl
@@ -374,7 +375,7 @@ def RefreshTblDets(parent):
     "Reset table, fields, has_unique, and idxs after a table selection."
     wx.BeginBusyCursor()
     tbl = parent.tbls[parent.dropTables.GetSelection()]
-    dbdetsobj = getDbDetsObj(parent.dbe, parent.default_dbs, 
+    dbdetsobj = get_db_dets_obj(parent.dbe, parent.default_dbs, 
                          parent.default_tbls, parent.con_dets, parent.db, tbl)
     flds = dbdetsobj.getTblFlds(parent.cur, parent.db, tbl)
     has_unique, idxs = dbdetsobj.getIndexDets(parent.cur, parent.db, tbl)
@@ -388,10 +389,10 @@ def GetDefaultDbDets():
     """
     proj_dic = config.get_settings_dic(subfolder=u"projs", 
                                        fil_name=my_globals.SOFA_DEFAULT_PROJ)
-    dbdetsobj = getDbDetsObj(dbe=my_globals.DBE_SQLITE, 
-                             default_dbs=proj_dic["default_dbs"],
-                             default_tbls=proj_dic["default_tbls"],
-                             con_dets=proj_dic["con_dets"])
+    dbdetsobj = get_db_dets_obj(dbe=my_globals.DBE_SQLITE, 
+                                default_dbs=proj_dic["default_dbs"],
+                                default_tbls=proj_dic["default_tbls"],
+                                con_dets=proj_dic["con_dets"])
     con, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
     return con, cur, dbs, tbls, flds, has_unique, idxs
 

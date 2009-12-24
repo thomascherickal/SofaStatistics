@@ -9,18 +9,19 @@ class OutputButtons(object):
     
     def SetupOutputButtons(self):
         #main
-        self.btnRun = wx.Button(self.panel, -1, _("RUN"))
+        self.btnRun = wx.Button(self.panel, -1, _("Run"))
         self.btnRun.Bind(wx.EVT_BUTTON, self.OnButtonRun)
         label_divider = " " if my_globals.IN_WINDOWS else "\n"
         self.chkAddToReport = wx.CheckBox(self.panel, -1, 
                                           _("Add to%sreport" % label_divider))
         self.chkAddToReport.SetValue(True)
-        self.btnExport = wx.Button(self.panel, -1, _("EXPORT"))
+        self.btnExport = wx.Button(self.panel, -1, _("Export"))
         self.btnExport.Bind(wx.EVT_BUTTON, self.OnButtonExport)
         self.btnExport.SetToolTipString(_("Export to script for reuse"))
         self.btnHelp = wx.Button(self.panel, wx.ID_HELP)
         self.btnHelp.Bind(wx.EVT_BUTTON, self.OnButtonHelp)
-        self.btnClear = wx.Button(self.panel, -1, _("CLEAR"))
+        self.btnClear = wx.Button(self.panel, -1, _("Clear"))
+        self.btnClear.SetToolTipString(_("Clear settings"))
         self.btnClear.Bind(wx.EVT_BUTTON, self.OnButtonClear)
         self.btnClose = wx.Button(self.panel, wx.ID_CLOSE)
         self.btnClose.Bind(wx.EVT_BUTTON, self.OnClose)

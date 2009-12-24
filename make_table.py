@@ -172,13 +172,13 @@ class MakeTable(object):
             wx.BeginBusyCursor()
             if debug: print(self.fil_css)
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
-            script = self.getScript(has_rows, has_cols, css_idx)
-            strContent = output.run_report(OUTPUT_MODULES, self.fil_report, 
+            script = self.get_script(has_rows, has_cols, css_idx)
+            str_content = output.run_report(OUTPUT_MODULES, self.fil_report, 
                 self.chkAddToReport.IsChecked(), css_fils, script, 
                 self.con_dets, self.dbe, self.db, self.tbl, self.default_dbs, 
                 self.default_tbls)
             wx.EndBusyCursor()
-            output.DisplayReport(self, strContent)
+            output.DisplayReport(self, str_content)
         else:
             wx.MessageBox(_("Missing %s data") % missing_dim)
 
@@ -194,15 +194,17 @@ class MakeTable(object):
         export_ok, missing_dim, has_rows, has_cols = self.TableConfigOK()
         if export_ok:
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
-            script = self.getScript(has_rows, has_cols, css_idx)
+            script = self.get_script(has_rows, has_cols, css_idx)
             output.export_script(script, self.fil_script, 
                                  self.fil_report, css_fils, self.con_dets, 
                                  self.dbe, self.db, self.tbl, self.default_dbs, 
                                  self.default_tbls)
+            wx.MessageBox(_("Script added to end of %s " % self.fil_script +
+                            "ready for reuse and automation"))
         else:
             wx.MessageBox(_("Missing %s data") % missing_dim) 
     
-    def getScript(self, has_rows, has_cols, css_idx):
+    def get_script(self, has_rows, has_cols, css_idx):
         "Build script from inputs"
         script_lst = []
         # set up variables required for passing into main table instantiation

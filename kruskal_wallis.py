@@ -30,7 +30,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                                  "between \"%(a)s\" and \"%(b)s\"?") % \
                                  {"avg": label_avg, "a": label_a, "b": label_b})
 
-    def getScript(self, css_idx):
+    def get_script(self, css_idx):
         "Build script from inputs"
         debug = False
         var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \

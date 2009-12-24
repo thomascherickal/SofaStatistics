@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-dev_debug = False
+dev_debug = True
 test_lang = False
 
 import warnings
@@ -392,7 +392,7 @@ class StartFrame(wx.Frame):
         panel_dc.DrawLabel(u"SOFA\nPaton-Simpson & Associates Ltd\n" + \
                            _("Analysis & reporting specialists"), 
                            wx.Rect(MAIN_LEFT, 547, 100, 50))
-        panel_dc.DrawLabel(u"%s 2009 Paton-Simpson & Associates Ltd" % \
+        panel_dc.DrawLabel(u"%s 2009-2010 Paton-Simpson & Associates Ltd" % \
                            COPYRIGHT, 
                            wx.Rect(MAIN_RIGHT, 560, 100, 50))
         panel_dc.DrawBitmap(self.bmp_psal, 155, 542, True)
@@ -422,7 +422,7 @@ class StartFrame(wx.Frame):
     def OnProjClick(self, event):
         proj_fils = projects.GetProjs() # should always be the default present
         # open proj selection form
-        dlgProj = projselect.ProjSelectDlg(self, proj_fils)
+        dlgProj = projselect.ProjSelectDlg(self, proj_fils, self.active_proj)
         dlgProj.ShowModal()
         dlgProj.Destroy()
         event.Skip()
@@ -587,14 +587,14 @@ class StartFrame(wx.Frame):
         txt_stats2 = _("SOFA focuses on the statistical tests most users "
             "need most of the time.")
         panel_dc.DrawLabel(GetTextToDraw(txt_stats2, MAX_HELP_TEXT_WIDTH), 
-                wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 66, HELP_TEXT_WIDTH, 320))
+                wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 61, HELP_TEXT_WIDTH, 320))
         txt_stats3 = u"QUOTE:"
         panel_dc.DrawLabel(GetTextToDraw(txt_stats3, MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 111, 
+                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 106, 
                                    HELP_TEXT_WIDTH, 320))
         txt_stats4 = u"%s (%s)" % quotes.get_quote()
         panel_dc.DrawLabel(GetTextToDraw(txt_stats4, MAX_HELP_TEXT_WIDTH - 20), 
-                           wx.Rect(MAIN_LEFT + 10, HELP_TEXT_TOP + 141, 
+                           wx.Rect(MAIN_LEFT + 10, HELP_TEXT_TOP + 131, 
                                    HELP_TEXT_WIDTH-10, 320))
         event.Skip()
     

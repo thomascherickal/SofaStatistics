@@ -32,7 +32,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
                                "do they change together in a linear fashion?") \
                                 % {"a": label_a, "b": label_b})
     
-    def getScript(self, css_idx):
+    def get_script(self, css_idx):
         "Build script from inputs"
         script_lst = []
         script_lst.append(util.get_tbl_filt_clause(self.dbe, self.db, self.tbl))

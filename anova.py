@@ -39,7 +39,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                          style=wx.RA_SPECIFY_COLS)
         self.szrVarsRight.Add(self.radHigh, 0)
     
-    def getScript(self, css_idx):
+    def get_script(self, css_idx):
         "Build script from inputs"
         debug = False
         var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \

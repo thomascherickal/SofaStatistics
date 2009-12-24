@@ -24,7 +24,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
                 "morning and mid afternoon?")
         return eg1, eg2, eg3
     
-    def getScript(self, css_idx):
+    def get_script(self, css_idx):
         "Build script from inputs"
         script_lst = []
         var_a, label_a, var_b, label_b = self.get_drop_vals()

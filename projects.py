@@ -151,6 +151,7 @@ def set_var_props(choice_item, var_name, var_label, flds, var_labels, var_notes,
         f.write(os.linesep + os.linesep + u"val_dics=" + \
                 pprint.pformat(val_dics))
         f.close()
+        wx.MessageBox(_("Settings saved to \"%s\"" % fil_var_dets))
         return True
     else:
         return False
@@ -175,12 +176,12 @@ def get_approp_var_names(flds, var_types=None,
                      var_types.get(x) in (None, my_globals.VAR_TYPE_QUANT)]
     return var_names
 
-def GetIdxToSelect(choice_items, drop_var, var_labels, default):
+def get_idx_to_select(choice_items, drop_var, var_labels, default):
     """
     Get index to select.  If variable passed in, use that if possible.
-    It will not be possible if it has been removed from the list because
-        of a user reclassification of data type e.g. was quantitative but
-        has been redefined as categorical.
+    It will not be possible if it has been removed from the list e.g. because
+        of a user reclassification of data type (e.g. was quantitative but
+        has been redefined as categorical); or because of a change of filtering.
     If no variable passed in, or it was but couldn't be used (see above),
         use the default if possible.  If not possible, select the first 
         item.
@@ -331,9 +332,8 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         szrDataType.Add(btnTypeHelp, 0, wx.LEFT|wx.TOP, 10)        
         self.szrMain.Add(szrDataType, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         self.tabentry = settings_grid.SettingsEntry(self, self.panel, 
-                                                    self.szrMain, 2, False, 
-                                                    grid_size, col_dets, data,  
-                                                    final_grid_data)
+                                            self.szrMain, 2, False, grid_size, 
+                                            col_dets, data, final_grid_data)
         self.setup_btns(inc_delete=True, inc_insert=True)
         self.szrMain.Add(self.szrBtns, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
@@ -354,7 +354,7 @@ class GetSettings(settings_grid.SettingsEntryDlg):
     def OnOK(self, event):
         """
         Override so we can extend to include variable label, type, and notes.
-        """        
+        """
         self.var_desc["label"] = self.txtVarLabel.GetValue()
         self.var_desc["notes"] = self.txtVarNotes.GetValue()
         self.var_desc["type"] = self.radDataType.GetStringSelection()
@@ -558,7 +558,9 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         if self.readonly:
             btnDelete.Disable()
             btnCancel.Disable()
-        btnOK = wx.Button(self.panel_bottom, wx.ID_OK, _("Update"))
+            btnOK = wx.Button(self.panel_bottom, wx.ID_OK)
+        else:
+            btnOK = wx.Button(self.panel_bottom, wx.ID_OK, _("Update"))
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
         self.szrBtns = wx.StdDialogButtonSizer()
         self.szrBtns.AddButton(btnCancel)

@@ -32,7 +32,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         self.lblPhrase.SetLabel(_("Is there a relationship between "
             "\"%(a)s\" and \"%(b)s\"") % {"a": label_a, "b": label_b})
     
-    def getScript(self, css_idx):
+    def get_script(self, css_idx):
         "Build script from inputs"
         script_lst = []
         var_a, label_a, var_b, label_b = self.get_drop_vals()

@@ -176,16 +176,16 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
        
     def setup_group_a(self, fld_choice_items, var_a=None):        
         self.dropGroupA.SetItems(fld_choice_items)
-        idx_a = projects.GetIdxToSelect(fld_choice_items, var_a, 
-                                        self.var_labels, 
-                                        my_globals.group_a_default)
+        idx_a = projects.get_idx_to_select(fld_choice_items, var_a, 
+                                           self.var_labels, 
+                                           my_globals.GROUP_A_DEFAULT)
         self.dropGroupA.SetSelection(idx_a)            
 
     def setup_group_b(self, fld_choice_items, var_b=None):        
         self.dropGroupB.SetItems(fld_choice_items)
-        idx_b = projects.GetIdxToSelect(fld_choice_items, var_b, 
-                                        self.var_labels, 
-                                        my_globals.group_b_default)
+        idx_b = projects.get_idx_to_select(fld_choice_items, var_b, 
+                                           self.var_labels, 
+                                           my_globals.GROUP_B_DEFAULT)
         self.dropGroupB.SetSelection(idx_b)
         
     def setup_groups(self, var_a=None, var_b=None):
@@ -266,8 +266,8 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
                                 {"a": label_a, "b": label_b})
     
     def UpdateDefaults(self):
-        my_globals.group_a_default = self.dropGroupA.GetStringSelection()
-        my_globals.group_b_default = self.dropGroupB.GetStringSelection()
+        my_globals.GROUP_A_DEFAULT = self.dropGroupA.GetStringSelection()
+        my_globals.GROUP_B_DEFAULT = self.dropGroupB.GetStringSelection()
     
     def OnButtonRun(self, event):
         """
@@ -280,7 +280,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         if run_ok:
             wx.BeginBusyCursor()
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
-            script = self.getScript(css_idx)
+            script = self.get_script(css_idx)
             strContent = output.run_report(OUTPUT_MODULES, self.fil_report, 
                 self.chkAddToReport.IsChecked(), css_fils, script, 
                 self.con_dets, self.dbe, self.db, self.tbl, self.default_dbs, 
@@ -312,7 +312,7 @@ class DlgPaired2VarConfig(wx.Dialog, gen_config.GenConfig,
         export_ok = self.TestConfigOK()
         if export_ok:
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
-            script = self.getScript(css_idx)
+            script = self.get_script(css_idx)
             output.export_script(script, self.fil_script, 
                                  self.fil_report, css_fils, self.con_dets, 
                                  self.dbe, self.db, self.tbl, self.default_dbs, 

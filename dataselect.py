@@ -34,19 +34,31 @@ class DataSelectDlg(wx.Dialog):
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.GetVarDets(proj_dic["fil_var_dets"])
         self.dbe = proj_dic["default_dbe"]
-        self.con_dets = proj_dic["con_dets"]
+        try:
+            self.con_dets = proj_dic["con_dets"]
+        except KeyError, e:
+            wx.EndBusyCursor()
+            msg = (u"The \"%s\" project uses the old " % proj_name +
+                   u"conn_dets label rather than the new con_dets label. "
+                   u" Please fix and try again.")
+            wx.MessageBox(msg)
+            raise Exception, msg # for debugging
+            self.Destroy()
+            return
         if debug: print(self.con_dets)
         self.default_dbs = proj_dic["default_dbs"] \
             if proj_dic["default_dbs"] else {}
         self.default_tbls = proj_dic["default_tbls"] \
             if proj_dic["default_tbls"] else {}
         # get various db settings
-        dbdetsobj = getdata.getDbDetsObj(self.dbe, self.default_dbs, 
-                                         self.default_tbls, self.con_dets)
+        dbdetsobj = getdata.get_db_dets_obj(self.dbe, self.default_dbs, 
+                        self.default_tbls, self.con_dets,
+                        db=my_globals.DB_DEFAULT, tbl=my_globals.TBL_DEFAULT)
         try:
             (self.con, self.cur, self.dbs, self.tbls, self.flds, 
                 self.has_unique, self.idxs) = dbdetsobj.getDbDets()
         except Exception, e:
+            wx.EndBusyCursor()
             wx.MessageBox(_("Unable to connect to data as defined in " 
                 "project %s.  Please check your settings." % proj_name))
             raise Exception, unicode(e) # for debugging
@@ -209,9 +221,9 @@ class DataSelectDlg(wx.Dialog):
             self.cur.execute("DROP TABLE IF EXISTS %s" % obj_quoter(self.tbl))
             self.con.commit()
         dbe = my_globals.DBE_SQLITE
-        dbdetsobj = getdata.getDbDetsObj(dbe, self.default_dbs, 
-                                         self.default_tbls, self.con_dets, 
-                                         my_globals.SOFA_DEFAULT_DB)
+        dbdetsobj = getdata.get_db_dets_obj(dbe, self.default_dbs, 
+                                            self.default_tbls, self.con_dets, 
+                                            my_globals.SOFA_DEFAULT_DB)
         (self.con, self.cur, self.dbs, self.tbls, self.flds, self.has_unique, 
          self.idxs) = dbdetsobj.getDbDets()
         # update tbl dropdown
@@ -363,9 +375,9 @@ class DataSelectDlg(wx.Dialog):
         # prepare to connect to the newly created table
         self.tbl = tbl_name
         dbe = my_globals.DBE_SQLITE
-        dbdetsobj = getdata.getDbDetsObj(dbe, self.default_dbs, 
-                                         self.default_tbls, self.con_dets, 
-                                         my_globals.SOFA_DEFAULT_DB, self.tbl)
+        dbdetsobj = getdata.get_db_dets_obj(dbe, self.default_dbs, 
+                                        self.default_tbls, self.con_dets, 
+                                        my_globals.SOFA_DEFAULT_DB, self.tbl)
         (self.con, self.cur, self.dbs, self.tbls, self.flds, self.has_unique, 
             self.idxs) = dbdetsobj.getDbDets()
         # update tbl dropdown
@@ -385,4 +397,6 @@ class DataSelectDlg(wx.Dialog):
         event.Skip()
     
     def OnClose(self, event):
+        my_globals.DB_DEFAULT = self.db
+        my_globals.TBL_DEFAULT = self.tbl
         self.Destroy()    

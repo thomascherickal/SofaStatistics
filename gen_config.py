@@ -29,8 +29,8 @@ class GenConfig(object):
         self.lblDatabases = wx.StaticText(panel, -1, _("Database:"))
         self.lblDatabases.SetFont(self.LABEL_FONT)
         # get various db settings
-        dbdetsobj = getdata.getDbDetsObj(self.dbe, self.default_dbs, 
-                                         self.default_tbls, self.con_dets)
+        dbdetsobj = getdata.get_db_dets_obj(self.dbe, self.default_dbs, 
+                                            self.default_tbls, self.con_dets)
         (self.con, self.cur, self.dbs, self.tbls, self.flds, self.has_unique,  
                 self.idxs) = dbdetsobj.getDbDets()
         # set up self.dropDatabases and self.dropTables
@@ -157,12 +157,6 @@ class GenConfig(object):
                 self.db, self.tbl, self.flds, self.var_labels, self.var_notes, 
                 self.var_types, self.val_dics, self.fil_var_dets)
         dlg.ShowModal()
-        
-        
-        # TODO - if a filter applied, redisplay tables but keeping existing 
-        # selection
-        
-        
         self.refresh_vars()
 
     def OnRightClickTables(self, event):

@@ -29,7 +29,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                                   {"gp": label_gp, "a": label_a, 
                                    "avg": label_avg, "b": label_b})
 
-    def getScript(self, css_idx):
+    def get_script(self, css_idx):
         "Build script from inputs"
         script_lst = []
         var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \

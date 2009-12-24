@@ -185,6 +185,14 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
     def AddOtherVarOpts(self):
         pass
 
+    def OnRightClickTables(self, event):
+        """
+        Extend to pass on filter changes to group by val options a and b.
+        """
+        gen_config.GenConfig.OnRightClickTables(self, event)
+        self.refresh_vals()
+        event.Skip()
+
     def OnRightClickGroupBy(self, event):
         var_gp, choice_item = self.get_group_by()
         var_name, var_label = getdata.extractChoiceDets(choice_item)
@@ -296,16 +304,19 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         return val_a, val_b
     
     def OnGroupBySel(self, event):
+        self.refresh_vals()
+        event.Skip()
+        
+    def refresh_vals(self):
         self.setup_group_dropdowns()
         self.UpdatePhrase()
         self.UpdateDefaults()
-        event.Skip()
     
     def UpdateDefaults(self):
-        my_globals.group_by_default = self.dropGroupBy.GetStringSelection()
-        my_globals.group_avg_default = self.dropAveraged.GetStringSelection()
-        my_globals.val_a_default = self.dropGroupA.GetStringSelection()
-        my_globals.val_b_default = self.dropGroupB.GetStringSelection()
+        my_globals.GROUP_BY_DEFAULT = self.dropGroupBy.GetStringSelection()
+        my_globals.GROUP_AVG_DEFAULT = self.dropAveraged.GetStringSelection()
+        my_globals.VAL_A_DEFAULT = self.dropGroupA.GetStringSelection()
+        my_globals.VAL_B_DEFAULT = self.dropGroupB.GetStringSelection()
     
     def OnGroupByASel(self, event):        
         self.UpdatePhrase()
@@ -324,8 +335,8 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
                                             vals=var_names)
         self.dropGroupBy.SetItems(var_gp_by_choice_items)
         # set selection
-        idx_gp = projects.GetIdxToSelect(var_gp_by_choice_items, var_gp, 
-                                self.var_labels, my_globals.group_by_default)
+        idx_gp = projects.get_idx_to_select(var_gp_by_choice_items, var_gp, 
+                                self.var_labels, my_globals.GROUP_BY_DEFAULT)
         self.dropGroupBy.SetSelection(idx_gp)
 
     def setup_avg(self, var_avg=None):
@@ -336,9 +347,9 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
                                             vals=var_names)
         self.dropAveraged.SetItems(var_avg_choice_items)
         # set selection
-        idx_avg = projects.GetIdxToSelect(var_avg_choice_items, var_avg, 
-                                          self.var_labels, 
-                                          my_globals.group_avg_default)
+        idx_avg = projects.get_idx_to_select(var_avg_choice_items, var_avg, 
+                                             self.var_labels, 
+                                             my_globals.GROUP_AVG_DEFAULT)
         self.dropAveraged.SetSelection(idx_avg)
         
     def setup_group_dropdowns(self, val_a=None, val_b=None):
@@ -346,14 +357,22 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         Gets unique values for selected variable.
         Sets choices for dropGroupA and B accordingly.
         """
+        debug = False
         choice_text = self.dropGroupBy.GetStringSelection()
         if not choice_text:
             return
         var_name, var_label = getdata.extractChoiceDets(choice_text)
         quoter = getdata.get_obj_quoter_func(self.dbe)
-        SQL_get_sorted_vals = u"SELECT %s FROM %s GROUP BY %s ORDER BY %s" % \
-            (quoter(var_name), quoter(self.tbl), quoter(var_name), 
-             quoter(var_name))
+        unused, tbl_filt = util.get_tbl_filt(self.dbe, self.db, self.tbl)
+        where_filt, unused = util.get_tbl_filts(tbl_filt)
+        SQL_get_sorted_vals = u"""SELECT %(var_name)s 
+            FROM %(tbl)s 
+            %(where_filt)s
+            GROUP BY %(var_name)s 
+            ORDER BY %(var_name)s""" % {"var_name": quoter(var_name), 
+                                        "tbl": quoter(self.tbl),
+                                        "where_filt": where_filt}
+        if debug: print(SQL_get_sorted_vals)
         self.cur.execute(SQL_get_sorted_vals)
         val_dic = self.val_dics.get(var_name, {})
         # cope if variable has massive spread of values
@@ -374,9 +393,9 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
             idx_a = vals_with_labels.index(item_new_version_a)
         else: # use defaults if possible
             idx_a = 0
-            if my_globals.val_a_default:
+            if my_globals.VAL_A_DEFAULT:
                 try:
-                    idx_a = vals_with_labels.index(my_globals.val_a_default)
+                    idx_a = vals_with_labels.index(my_globals.VAL_A_DEFAULT)
                 except ValueError:
                     pass
         self.dropGroupA.SetSelection(idx_a)
@@ -385,9 +404,9 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
             idx_b = vals_with_labels.index(item_new_version_b)
         else: # use defaults if possible
             idx_b = 0
-            if my_globals.val_b_default:
+            if my_globals.VAL_B_DEFAULT:
                 try:
-                    idx_b = vals_with_labels.index(my_globals.val_b_default)
+                    idx_b = vals_with_labels.index(my_globals.VAL_B_DEFAULT)
                 except ValueError:
                     pass
         self.dropGroupB.SetSelection(idx_b)
@@ -426,7 +445,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         if run_ok:
             wx.BeginBusyCursor()
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
-            script = self.getScript(css_idx)
+            script = self.get_script(css_idx)
             strContent = output.run_report(OUTPUT_MODULES, self.fil_report, 
                 self.chkAddToReport.IsChecked(), css_fils, script, 
                 self.con_dets, self.dbe, self.db, self.tbl, 
@@ -486,7 +505,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         export_ok = self.TestConfigOK()
         if export_ok:
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
-            script = self.getScript(css_idx)
+            script = self.get_script(css_idx)
             output.export_script(script, self.fil_script, 
                                  self.fil_report, css_fils, self.con_dets, 
                                  self.dbe, self.db, self.tbl, self.default_dbs, 
