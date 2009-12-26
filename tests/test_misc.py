@@ -16,7 +16,7 @@ import time
 
 #from .output import _strip_html
 import my_globals
-import config
+import config_globals
 import filtselect
 import getdata
 import importer
@@ -33,7 +33,7 @@ test_us_style = False
 if test_us_style:
     # ignore prefs and allow test_us_style to determine config
     my_globals.DATE_FORMATS_IN_USE = 1 # US-style
-    config.update_ok_date_formats_globals(ignore_prefs=False)
+    config_globals.update_ok_date_formats_globals(ignore_prefs=False)
 
 def test_is_usable_datetime_str():
     tests = [("June 2009", False),
@@ -375,7 +375,7 @@ def test_sofa_default_proj_settings():
     if they are smart enough to do that they should be smart enough to change 
     this test too ;-)
     """
-    proj_dic = config.get_settings_dic(subfolder=u"projs", 
+    proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                        fil_name=my_globals.SOFA_DEFAULT_PROJ)
     var_labels, var_notes, var_types, val_dics = \
         projects.GetVarDets(proj_dic["fil_var_dets"])
@@ -399,7 +399,7 @@ def test_get_var_dets():
     if they are smart enough to do that they should be smart enough to change 
     this test too ;-)
     """
-    proj_dic = config.get_settings_dic(subfolder=u"projs", 
+    proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                        fil_name=my_globals.SOFA_DEFAULT_PROJ)
     var_labels, var_notes, var_types, val_dics = \
         projects.GetVarDets(proj_dic["fil_var_dets"])

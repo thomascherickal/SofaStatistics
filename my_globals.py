@@ -264,8 +264,8 @@ VAL_B_DEFAULT = None
 DB_DEFAULT = None
 TBL_DEFAULT = None
 # ////////////////////////////////////////////////////////////
-import config
+import config_globals
 # need to be populated in initial config
 OK_DATE_FORMATS = []
 OK_DATE_FORMAT_EXAMPLES = []
-config.update_ok_date_formats_globals()
+config_globals.update_ok_date_formats_globals()

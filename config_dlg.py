@@ -7,25 +7,40 @@ import getdata
 import projects
 
 
-class GenConfig(object):
-    "The standard interface for choosing data, styles etc"
+class ConfigDlg(object):
+    """
+    The standard interface for choosing data, styles etc.
+    Can get sizers ready to use complete with widgets, event methods, and even
+        properties e.g. self.con, self.cur etc.
+    """
 
-    def setup_gen_config_szrs(self, panel, readonly=False):
+    def get_gen_config_szrs(self, panel, readonly=False):
         """
-        Sets up szrs complete with widgets.
-        Szrs: szrData, szrConfigTop (vars and css), szrConfigBottom (reports and
-            scripts).
-        Sets up dropdowns for database and tables, and textboxes plus Browse
-            buttons for labels, style, output, and script.
-        Make the following available: self.con, self.cur, self.dbs, self.tbls, 
-            self.flds, self.has_unique, self.idxs, self.db, and self.tbl.
+        Returns self.szrData, self.szrConfigBottom (vars and css), 
+            self.szrConfigTop (reports and scripts) complete
+            with widgets and the following setup ready to use: self.con, 
+            self.cur, self.dbs, self.tbls, self.flds, self.has_unique, 
+            self.idxs, self.db, and self.tbl.
+        Widgets include dropdowns for database and tables, and textboxes plus 
+            Browse buttons for labels, style, output, and script.
+        Each widget has a set of events ready to go as well.
+        Assumes self has quite a few properties already set e.g. dbe, 
+            default_dbs, fil_script etc.
         """
-        self.setup_szrData(panel)
-        self.setup_misc_config_szrs(panel, readonly)
+        self.szrData = self.get_szrData(panel)
+        self.szrConfigBottom, self.szrConfigTop = \
+            self.get_misc_config_szrs(panel, readonly)
+        return self.szrData, self.szrConfigBottom, self.szrConfigTop
         
-    def setup_szrData(self, panel):
+    def get_szrData(self, panel):
         """
-        Add pre-defined widgets to self.szrData.
+        Returns self.szrData complete with widgets and the following setup ready 
+            to use: self.con, self.cur, self.dbs, self.tbls, self.flds, 
+            self.has_unique, self.idxs, self.db, and self.tbl.
+        Widgets include dropdowns for database and tables.
+        Each widget has a set of events ready to go as well.
+        Assumes self has quite a few properties already set e.g. dbe, 
+            default_dbs etc.
         """
         self.LABEL_FONT = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         # 1) Databases
@@ -55,12 +70,16 @@ class GenConfig(object):
         self.szrData.Add(self.dropDatabases, 0, wx.RIGHT, 10)
         self.szrData.Add(self.lblTables, 0, wx.RIGHT, 5)
         self.szrData.Add(self.dropTables, 0)
+        return self.szrData
               
-    def setup_misc_config_szrs(self, panel, readonly=False):
+    def get_misc_config_szrs(self, panel, readonly=False):
         """
-        Add data labels, table styles, output, and scripts widgets to 
-            szrConfigTop (vars and css), and szrConfigBottom (reports and
-            scripts).
+        Returns self.szrConfigBottom (vars and css), self.szrConfigTop (reports 
+            and scripts) complete with widgets.
+        Widgets include textboxes plus Browse buttons for labels, style, output, 
+            and script.
+        Each widget has a set of events ready to go as well.
+        Assumes self has quite a few properties already set e.g. fil_script etc.
         """
         # Data config details
         self.txtVarDetsFile = wx.TextCtrl(panel, -1, self.fil_var_dets, 
@@ -124,6 +143,38 @@ class GenConfig(object):
         szrScriptConfig.Add(self.txtScriptFile, 1, wx.GROW)
         szrScriptConfig.Add(self.btnScriptPath, 0, wx.LEFT|wx.RIGHT, 5)
         self.szrConfigBottom.Add(szrScriptConfig, 1)
+        return self.szrConfigBottom, self.szrConfigTop
+
+    def get_szrOutputBtns(self, panel):
+        #main
+        self.btnRun = wx.Button(panel, -1, _("Run"))
+        self.btnRun.Bind(wx.EVT_BUTTON, self.OnButtonRun)
+        label_divider = " " if my_globals.IN_WINDOWS else "\n"
+        self.chkAddToReport = wx.CheckBox(panel, -1, 
+                                          _("Add to%sreport" % label_divider))
+        self.chkAddToReport.SetValue(True)
+        self.btnExport = wx.Button(panel, -1, _("Export"))
+        self.btnExport.Bind(wx.EVT_BUTTON, self.OnButtonExport)
+        self.btnExport.SetToolTipString(_("Export to script for reuse"))
+        self.btnHelp = wx.Button(panel, wx.ID_HELP)
+        self.btnHelp.Bind(wx.EVT_BUTTON, self.OnButtonHelp)
+        self.btnClear = wx.Button(panel, -1, _("Clear"))
+        self.btnClear.SetToolTipString(_("Clear settings"))
+        self.btnClear.Bind(wx.EVT_BUTTON, self.OnButtonClear)
+        self.btnClose = wx.Button(panel, wx.ID_CLOSE)
+        self.btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
+        # add to sizer
+        self.szrOutputButtons = wx.FlexGridSizer(rows=3, cols=1, hgap=5, vgap=5)
+        self.szrOutputButtons.AddGrowableRow(2,2) 
+        # only relevant if surrounding sizer stretched vertically enough by its 
+        # content.
+        self.szrOutputButtons.Add(self.btnRun, 0)
+        self.szrOutputButtons.Add(self.chkAddToReport)
+        self.szrOutputButtons.Add(self.btnExport, 0, wx.TOP, 8)
+        self.szrOutputButtons.Add(self.btnHelp, 0)
+        self.szrOutputButtons.Add(self.btnClear, 0)
+        self.szrOutputButtons.Add(self.btnClose, 1, wx.ALIGN_BOTTOM)
+        return self.szrOutputButtons
 
     def reread_fil_var_dets(self):
         self.fil_var_dets = self.txtVarDetsFile.GetValue()
@@ -240,7 +291,10 @@ class GenConfig(object):
         self.UpdateCss()
         
     # explanation level
-    def setup_level_widgets(self, panel):
+    def get_szrLevel(self, panel):
+        """
+        Get self.szrLevel with radio widgets. 
+        """
         self.radFull = wx.RadioButton(panel, -1, _("Full Explanation"), 
                                       style=wx.RB_GROUP)
         self.radBrief = wx.RadioButton(panel, -1, _("Brief Explanation"))
@@ -248,10 +302,15 @@ class GenConfig(object):
         self.radFull.Enable(False)
         self.radBrief.Enable(False)
         self.radResults.Enable(False)
-        
-    def setup_szrLevel(self, panel):
         bxLevel = wx.StaticBox(panel, -1, _("Output Level"))
         self.szrLevel = wx.StaticBoxSizer(bxLevel, wx.HORIZONTAL)
         self.szrLevel.Add(self.radFull, 0, wx.RIGHT, 10)
         self.szrLevel.Add(self.radBrief, 0, wx.RIGHT, 10)
         self.szrLevel.Add(self.radResults, 0, wx.RIGHT, 10)
+        return self.szrLevel
+
+def add_icon(frame):
+    ib = wx.IconBundle()
+    icon_path = os.path.join(my_globals.SCRIPT_PATH, u"images", u"tinysofa.xpm")
+    ib.AddIconFromFile(icon_path, wx.BITMAP_TYPE_XPM)
+    frame.SetIcons(ib)

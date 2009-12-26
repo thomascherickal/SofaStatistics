@@ -6,11 +6,10 @@ import wx
 import wx.html
 
 import my_globals
+import config_dlg
 import full_html
-import gen_config
 import getdata
 import output
-import output_buttons
 import projects
 import util
 
@@ -39,13 +38,11 @@ def get_range_idxs(vals, val_a, val_b):
     return idx_val_a, idx_val_b
 
 
-class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig, 
-                         output_buttons.OutputButtons):
+class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     """
-    GenConfig - provides reusable interface for data selection, setting labels 
-        etc.  Sets values for db, default_tbl etc and responds to selections 
-        etc.
-    OutputButtons - provides standard buttons for output dialogs.
+    ConfigDlg - provides reusable interface for data selection, setting labels, 
+        exporting scripts buttons etc.  Sets values for db, default_tbl etc and 
+        responds to selections etc.
     """
     
     def __init__(self, title, dbe, con_dets, default_dbs=None,
@@ -73,13 +70,10 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         # set up panel for frame
         self.panel = wx.Panel(self)
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
-        ib = wx.IconBundle()
-        icon_path = os.path.join(my_globals.SCRIPT_PATH, u"images", 
-                                 u"tinysofa.xpm")
-        ib.AddIconFromFile(icon_path, wx.BITMAP_TYPE_XPM)
-        self.SetIcons(ib)
-        self.setup_gen_config_szrs(self.panel) # mixin
-        self.SetupOutputButtons() # mixin
+        config_dlg.add_icon(frame=self)
+        self.szrData, self.szrConfigBottom, self.szrConfigTop = \
+            self.get_gen_config_szrs(self.panel) # mixin
+        self.szrOutputButtons = self.get_szrOutputBtns(self.panel) # mixin
         szrMain = wx.BoxSizer(wx.VERTICAL)
         bxDesc = wx.StaticBox(self.panel, -1, _("Variables"))
         szrDesc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
@@ -158,11 +152,10 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrBottomLeft.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
         szrBottomLeft.Add(self.szrConfigTop, 0, wx.GROW)
         szrBottomLeft.Add(self.szrConfigBottom, 0, wx.GROW)
-        self.setup_level_widgets(self.panel) # mixin
-        self.setup_szrLevel(self.panel) # mixin
+        self.szrLevel = self.get_szrLevel(self.panel) # mixin
         szrBottomLeft.Add(self.szrLevel, 0)
         szrBottom.Add(szrBottomLeft, 1, wx.GROW)
-        szrBottom.Add(self.szrBtns, 0, wx.GROW|wx.LEFT, 10)           
+        szrBottom.Add(self.szrOutputButtons, 0, wx.GROW|wx.LEFT, 10)           
         szrMain.Add(szrDesc, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
@@ -178,7 +171,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         """
         Extend to pass on filter changes to group by val options a and b.
         """
-        gen_config.GenConfig.OnRightClickTables(self, event)
+        config_dlg.ConfigDlg.OnRightClickTables(self, event)
         self.refresh_vals()
         event.Skip()
 
@@ -217,7 +210,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         Reset dbe, database, cursor, tables, table, tables dropdown, 
             fields, has_unique, and idxs after a database selection.
         """
-        gen_config.GenConfig.OnDatabaseSel(self, event)
+        config_dlg.ConfigDlg.OnDatabaseSel(self, event)
         # now update var dropdowns
         self.update_var_dets()
         self.setup_group_by()
@@ -226,7 +219,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
                 
     def OnTableSel(self, event):
         "Reset key data details after table selection."       
-        gen_config.GenConfig.OnTableSel(self, event)
+        config_dlg.ConfigDlg.OnTableSel(self, event)
         # now update var dropdowns
         self.update_var_dets()
         self.setup_group_by()
@@ -240,7 +233,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         """
         val_a, val_b = self.GetVals()
         var_gp, var_avg = self.get_vars()
-        gen_config.GenConfig.OnVarDetsFileLostFocus(self, event)
+        config_dlg.ConfigDlg.OnVarDetsFileLostFocus(self, event)
         self.setup_group_by(var_gp)
         self.setup_avg(var_avg)
         self.setup_group_dropdowns(val_a, val_b)
@@ -254,7 +247,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         """
         val_a, val_b = self.GetVals()
         var_gp, var_avg = self.get_vars()
-        gen_config.GenConfig.OnButtonVarDetsPath(self, event)
+        config_dlg.ConfigDlg.OnButtonVarDetsPath(self, event)
         self.setup_group_by(var_gp)
         self.setup_avg(var_avg)
         self.setup_group_dropdowns(val_a, val_b)

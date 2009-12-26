@@ -8,26 +8,23 @@ import wx
 import wx.gizmos
 
 import my_globals
+import config_dlg
 import demotables
 import dimtables
 import dimtree
 import full_html
-import gen_config
 import getdata
 import make_table
-import output_buttons
 import projects
 import util
 
 
-class DlgMakeTable(wx.Dialog, 
-                   gen_config.GenConfig, output_buttons.OutputButtons,
-                   make_table.MakeTable, dimtree.DimTree):
+class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, make_table.MakeTable, 
+                   dimtree.DimTree):
     """
-    GenConfig - provides reusable interface for data selection, setting labels 
+    ConfigDlg - provides reusable interface for data selection, setting labels 
         etc.  Sets values for db, default_tbl etc and responds to selections 
         etc.
-    OutputButtons - provides standard buttons for output dialogs.
     """
     
     def __init__(self, dbe, con_dets, default_dbs=None, 
@@ -55,12 +52,8 @@ class DlgMakeTable(wx.Dialog,
         self.col_no_vars_item = None # needed if no variable in columns
         # set up panel for frame
         self.panel = wx.Panel(self)
-        ib = wx.IconBundle()
-        ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, "images",
-                                        "tinysofa.xpm"), 
-                           wx.BITMAP_TYPE_XPM)   
-        self.SetIcons(ib)
-        self.SetupOutputButtons() # mixin
+        config_dlg.add_icon(frame=self)
+        self.szrOutputButtons = self.get_szrOutputBtns(self.panel) # mixin
         # title details
         lblTitles = wx.StaticText(self.panel, -1, _("Title:"))
         lblTitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -146,7 +139,8 @@ class DlgMakeTable(wx.Dialog,
         lbldemo_tbls.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         # main section SIZERS **************************************************
         szrMain = wx.BoxSizer(wx.VERTICAL)
-        self.setup_gen_config_szrs(self.panel) # mixin
+        self.szrData, self.szrConfigBottom, self.szrConfigTop = \
+            self.get_gen_config_szrs(self.panel) # mixin
         szrMid = wx.BoxSizer(wx.HORIZONTAL)
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         #2 MID
@@ -204,7 +198,6 @@ class DlgMakeTable(wx.Dialog,
         #3 TREES assemble
         szrTrees.Add(szrRows, 1, wx.GROW|wx.RIGHT, 2)
         szrTrees.Add(szrCols, 1, wx.GROW|wx.LEFT, 2)
-        # standard output buttons handled in output_buttons
         #2 BOTTOM assemble
         #3 BOTTOM LEFT        
         #3 HTML
@@ -218,7 +211,7 @@ class DlgMakeTable(wx.Dialog,
                           wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         #3 BUTTONS
         szrBottom.Add(szrBottomLeft, 1, wx.GROW)
-        szrBottom.Add(self.szrBtns, 0, wx.GROW|wx.BOTTOM|wx.RIGHT, 10)
+        szrBottom.Add(self.szrOutputButtons, 0, wx.GROW|wx.BOTTOM|wx.RIGHT, 10)
         #1 MAIN assemble
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(szrMid, 0, wx.GROW|wx.ALL, 10)
@@ -230,7 +223,7 @@ class DlgMakeTable(wx.Dialog,
 
     def UpdateCss(self):
         "Update css, including for demo table"
-        gen_config.GenConfig.UpdateCss(self)
+        gen_config.ConfigDlg.UpdateCss(self)
         self.demo_tab.fil_css = self.fil_css
         self.UpdateDemoDisplay()
     
@@ -241,7 +234,7 @@ class DlgMakeTable(wx.Dialog,
             fields, has_unique, and idxs after a database selection.
         Clear dim areas.
         """
-        gen_config.GenConfig.OnDatabaseSel(self, event)
+        gen_config.ConfigDlg.OnDatabaseSel(self, event)
         self.enable_col_btns()
         self.ClearDims()
         
@@ -250,13 +243,13 @@ class DlgMakeTable(wx.Dialog,
         Reset table, fields, has_unique, and idxs.
         Clear dim areas.
         """       
-        gen_config.GenConfig.OnTableSel(self, event)
+        gen_config.ConfigDlg.OnTableSel(self, event)
         self.enable_col_btns()
         self.ClearDims()
     
     def update_var_dets(self):
         "Update all labels, including those already displayed"
-        gen_config.GenConfig.update_var_dets(self)
+        gen_config.ConfigDlg.update_var_dets(self)
         # update dim trees
         rowdescendants = util.getTreeCtrlDescendants(self.rowtree, self.rowRoot)
         self.RefreshDescendants(self.rowtree, rowdescendants)

@@ -199,8 +199,6 @@ class MakeTable(object):
                                  self.fil_report, css_fils, self.con_dets, 
                                  self.dbe, self.db, self.tbl, self.default_dbs, 
                                  self.default_tbls)
-            wx.MessageBox(_("Script added to end of %s " % self.fil_script +
-                            "ready for reuse and automation"))
         else:
             wx.MessageBox(_("Missing %s data") % missing_dim) 
     

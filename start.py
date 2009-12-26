@@ -22,7 +22,8 @@ import wx
 # translated.
 gettext.install('sofa', './locale', unicode=True)
 import my_globals # has translated text
-import config
+import config_globals
+import config_dlg
 # importing delayed until needed where possible for startup performance
 # import dataselect
 import full_html
@@ -217,11 +218,7 @@ class StartFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.InitComTypes(self.panel)
         self.panel.Bind(wx.EVT_PAINT, self.OnPaint)
-        # icon
-        ib = wx.IconBundle()
-        tinysofa = os.path.join(SCRIPT_PATH, u"images", u"tinysofa.xpm")
-        ib.AddIconFromFile(tinysofa, wx.BITMAP_TYPE_XPM)
-        self.SetIcons(ib)
+        config_dlg.add_icon(frame=self)
         # background image
         img_sofa = wx.Image(os.path.join(SCRIPT_PATH, u"images", u"sofa2.xpm"), 
                             wx.BITMAP_TYPE_XPM)
@@ -445,8 +442,9 @@ class StartFrame(wx.Frame):
         debug = False
         try:
             prefs_dic = \
-                config.get_settings_dic(subfolder=my_globals.INTERNAL_FOLDER, 
-                                        fil_name=my_globals.INT_PREFS_FILE)
+                config_globals.get_settings_dic(\
+                        subfolder=my_globals.INTERNAL_FOLDER, 
+                        fil_name=my_globals.INT_PREFS_FILE)
         except Exception:
             prefs_dic = {}
         if debug: print(prefs_dic)
@@ -509,8 +507,8 @@ class StartFrame(wx.Frame):
         "Open make table gui with settings as per active_proj"
         import make_table_gui
         proj_name = self.active_proj
-        proj_dic = config.get_settings_dic(subfolder=u"projs", 
-                                           fil_name=proj_name)
+        proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
+                                                   fil_name=proj_name)
         try:
             dlg = make_table_gui.DlgMakeTable( 
                 proj_dic["default_dbe"], proj_dic["con_dets"], 
@@ -562,8 +560,8 @@ class StartFrame(wx.Frame):
         # open statistics selection dialog
         import stats_select
         proj_name = self.active_proj
-        proj_dic = config.get_settings_dic(subfolder=u"projs", 
-                                           fil_name=proj_name)
+        proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
+                                                   fil_name=proj_name)
         dlg = stats_select.StatsSelectDlg(proj_name, 
             proj_dic["default_dbe"], proj_dic["con_dets"], 
             proj_dic["default_dbs"], proj_dic["default_tbls"], 

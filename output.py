@@ -7,6 +7,7 @@ from datetime import datetime
 import os
 import pprint
 import time
+import wx
 
 import my_globals
 import getdata
@@ -252,6 +253,8 @@ def export_script(script, fil_script, fil_report, css_fils, con_dets, dbe, db,
                            inc_divider=True)
     AddClosingScriptCode(f)
     f.close()
+    wx.MessageBox(_("Script added to end of %s " % fil_script +
+                    "ready for reuse and automation"))
 
 def add_divider_code(f, db, tbl, tbl_filt_label, tbl_filt):
     """

@@ -4,7 +4,7 @@ import pprint
 import wx
 
 import my_globals
-import config
+import config_globals
 import projects
 import util
 
@@ -387,8 +387,8 @@ def GetDefaultDbDets():
     Returns con, cur, dbs, tbls, flds, has_unique, idxs from default
         SOFA SQLite database.
     """
-    proj_dic = config.get_settings_dic(subfolder=u"projs", 
-                                       fil_name=my_globals.SOFA_DEFAULT_PROJ)
+    proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
+                                        fil_name=my_globals.SOFA_DEFAULT_PROJ)
     dbdetsobj = get_db_dets_obj(dbe=my_globals.DBE_SQLITE, 
                                 default_dbs=proj_dic["default_dbs"],
                                 default_tbls=proj_dic["default_tbls"],

@@ -7,7 +7,7 @@ import sys
 import wx
 
 import my_globals
-import gen_config
+import config_dlg
 import getdata
 import projselect
 import settings_grid
@@ -363,7 +363,7 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         self.SetReturnCode(wx.ID_OK)
 
 
-class ProjectDlg(wx.Dialog, gen_config.GenConfig):
+class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
     def __init__(self, parent, readonly=False, fil_proj=None):
         wx.Dialog.__init__(self, parent=parent, title=_("Project Settings"),
                            size=(1024, 600),
@@ -478,7 +478,8 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         self.szrTop = wx.BoxSizer(wx.VERTICAL)
         self.szrTop.Add(szrDesc, 1, wx.GROW|wx.ALL, 10)
         # mixin supplying self.szrConfigTop and self.szrConfigBottom
-        self.setup_misc_config_szrs(self.panel_top, readonly=self.readonly)
+        self.szrConfigBottom, self.szrConfigTop = \
+            self.get_misc_config_szrs(self.panel_top, readonly=self.readonly)
         self.szrTop.Add(self.szrConfigTop, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.szrTop.Add(self.szrConfigBottom, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         #self.szrTop.Add(szrOutput, 0, wx.GROW|wx.ALL, 10)

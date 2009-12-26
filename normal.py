@@ -3,15 +3,16 @@
 
 import wx
 
-import gen_config
+import config_dlg
 
 
-class NormalDlg(wx.Dialog, gen_config.GenConfig):
+class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
     def __init__(self, parent, dbe, con_dets, default_dbs, default_tbls,
                  var_labels, var_notes, var_types, val_dics, fil_var_dets):
         wx.Dialog.__init__(self, parent=parent, title=_("Normal Data?"),
                            size=(1024, 600),
                            style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU)
+        # the following properties all required to utilise get_szrData
         self.dbe = dbe
         self.con_dets = con_dets
         self.default_dbs = default_dbs
@@ -27,9 +28,8 @@ class NormalDlg(wx.Dialog, gen_config.GenConfig):
         szrMain = wx.BoxSizer(wx.VERTICAL)
         
         
-        self.setup_szrData(self.panel) # mixin
-        self.setup_level_widgets(self.panel) # mixin
-        self.setup_szrLevel(self.panel) # mixin
+        self.szrData = self.get_szrData(self.panel) # mixin
+        self.szrLevel = self.get_szrLevel(self.panel) # mixin
         
         btnOK = wx.Button(self.panel, wx.ID_OK)
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
@@ -48,4 +48,4 @@ class NormalDlg(wx.Dialog, gen_config.GenConfig):
         event.Skip()
         
     def refresh_vars(self):
-        gen_config.GenConfig.update_var_dets(self)
+        config_dlg.ConfigDlg.update_var_dets(self)

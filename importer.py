@@ -3,6 +3,8 @@ import os
 import wx
 
 import my_globals
+from my_exceptions import ImportCancelException
+import config_dlg
 import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import csv_importer
@@ -10,7 +12,6 @@ import util
 if my_globals.IN_WINDOWS:
     import excel_importer
 import projects
-from my_exceptions import ImportCancelException
 
 FILE_CSV = "csv"
 FILE_EXCEL = "excel"
@@ -305,12 +306,7 @@ class ImportFileSelectDlg(wx.Dialog):
         self.keep_importing = set([True]) # can change and running script can 
             # check on it.
         self.file_type = FILE_UNKNOWN
-        # icon
-        ib = wx.IconBundle()
-        ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, u"images", 
-                                        u"tinysofa.xpm"), 
-                           wx.BITMAP_TYPE_XPM)
-        self.SetIcons(ib)
+        config_dlg.add_icon(frame=self)
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         szrMain = wx.BoxSizer(wx.VERTICAL)
         # file path

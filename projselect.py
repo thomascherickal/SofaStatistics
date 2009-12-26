@@ -5,6 +5,7 @@ import sys
 import wx
 
 import my_globals
+import config_dlg
 import getdata
 import projects
 import util
@@ -19,13 +20,7 @@ class ProjSelectDlg(wx.Dialog):
         self.parent = parent
         self.panel = wx.Panel(self)
         self.projs = projs
-        # icon
-        ib = wx.IconBundle()
-        ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, 
-                                        "images", 
-                                        "tinysofa.xpm"), 
-                           wx.BITMAP_TYPE_XPM)
-        self.SetIcons(ib)
+        config_dlg.add_icon(frame=self)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         lblChoose = wx.StaticText(self.panel, -1, 
                                   _("Choose an existing project ..."))

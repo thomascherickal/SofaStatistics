@@ -6,6 +6,7 @@ import my_globals
 import my_exceptions
 import anova
 import chisquare
+import config_dlg
 import kruskal_wallis
 import mann_whitney
 import normal
@@ -66,13 +67,7 @@ class StatsSelectDlg(wx.Dialog):
         self.panel = wx.Panel(self, size=(800, 542)) # needed by Windows
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.OnPaint)        
-        # icon
-        ib = wx.IconBundle()
-        ib.AddIconFromFile(os.path.join(my_globals.SCRIPT_PATH, 
-                                        u"images", 
-                                        u"tinysofa.xpm"), 
-                           wx.BITMAP_TYPE_XPM)
-        self.SetIcons(ib)
+        config_dlg.add_icon(frame=self)
         # background image
         img_stats_select = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
                                                  u"images", 

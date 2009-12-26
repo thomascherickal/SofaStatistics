@@ -7,12 +7,6 @@ import paired2var
 
 
 class DlgConfig(paired2var.DlgPaired2VarConfig):
-    """
-    GenConfig - provides reusable interface for data selection, setting labels 
-        etc.  Sets values for db, default_tbl etc and responds to selections 
-        etc.
-    OutputButtons - provides standard buttons for output dialogs.
-    """
     
     min_data_type = my_globals.VAR_TYPE_CAT
     

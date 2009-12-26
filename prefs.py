@@ -7,7 +7,7 @@ import pprint
 import wx
 
 import my_globals
-import config
+import config_globals
 
 
 class PrefsDlg(wx.Dialog):
@@ -69,7 +69,8 @@ class PrefsDlg(wx.Dialog):
         f.write(u"%s = " % my_globals.PREFS_KEY + \
                 pprint.pformat(self.prefs_dic[my_globals.PREFS_KEY]))
         f.close()
-        config.update_ok_date_formats_globals() # run after prefs file updated
+        config_globals.update_ok_date_formats_globals() # run after prefs 
+            # file updated.
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
         # Prebuilt dialogs must do this internally.
