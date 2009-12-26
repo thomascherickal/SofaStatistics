@@ -9,22 +9,25 @@ import projects
 
 class GenConfig(object):
     "The standard interface for choosing data, styles etc"
-    
-    def GenConfigSetup(self, panel):
+
+    def setup_gen_config_szrs(self, panel, readonly=False):
         """
+        Sets up szrs complete with widgets.
+        Szrs: szrData, szrConfigTop (vars and css), szrConfigBottom (reports and
+            scripts).
         Sets up dropdowns for database and tables, and textboxes plus Browse
             buttons for labels, style, output, and script.
         Make the following available: self.con, self.cur, self.dbs, self.tbls, 
             self.flds, self.has_unique, self.idxs, self.db, and self.tbl.
         """
-        self.LABEL_FONT = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
-        self.DataConfigSetup(panel)
-        self.MiscConfigSetup(panel)
+        self.setup_szrData(panel)
+        self.setup_misc_config_szrs(panel, readonly)
         
-    def DataConfigSetup(self, panel):
+    def setup_szrData(self, panel):
         """
-        Set up database details
+        Add pre-defined widgets to self.szrData.
         """
+        self.LABEL_FONT = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         # 1) Databases
         self.lblDatabases = wx.StaticText(panel, -1, _("Database:"))
         self.lblDatabases.SetFont(self.LABEL_FONT)
@@ -46,10 +49,18 @@ class GenConfig(object):
         # 2) Tables
         self.lblTables = wx.StaticText(panel, -1, _("Table:"))
         self.lblTables.SetFont(self.LABEL_FONT)
-        
-    def MiscConfigSetup(self, panel, readonly=False):
+        bxData = wx.StaticBox(panel, -1, _("Data Source"))
+        self.szrData = wx.StaticBoxSizer(bxData, wx.HORIZONTAL)
+        self.szrData.Add(self.lblDatabases, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szrData.Add(self.dropDatabases, 0, wx.RIGHT, 10)
+        self.szrData.Add(self.lblTables, 0, wx.RIGHT, 5)
+        self.szrData.Add(self.dropTables, 0)
+              
+    def setup_misc_config_szrs(self, panel, readonly=False):
         """
-        Set up details of data labels, table styles, output, and scripts
+        Add data labels, table styles, output, and scripts widgets to 
+            szrConfigTop (vars and css), and szrConfigBottom (reports and
+            scripts).
         """
         # Data config details
         self.txtVarDetsFile = wx.TextCtrl(panel, -1, self.fil_var_dets, 
@@ -83,23 +94,8 @@ class GenConfig(object):
         self.txtScriptFile.Enable(not readonly)
         self.btnScriptPath = wx.Button(panel, -1, _("Browse"))
         self.btnScriptPath.Bind(wx.EVT_BUTTON, self.OnButtonScriptPath)
-        self.btnScriptPath.Enable(not readonly)
-
-    def SetupGenConfigSizer(self, panel):
-        self.SetupDataConfigSizer(panel)
-        self.SetupMiscConfigSizers(panel)
-        
-    def SetupDataConfigSizer(self, panel):
-        "Add pre-defined widgets to self.szrData"
-        bxData = wx.StaticBox(panel, -1, _("Data Source"))
-        self.szrData = wx.StaticBoxSizer(bxData, wx.HORIZONTAL)
-        self.szrData.Add(self.lblDatabases, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szrData.Add(self.dropDatabases, 0, wx.RIGHT, 10)
-        self.szrData.Add(self.lblTables, 0, wx.RIGHT, 5)
-        self.szrData.Add(self.dropTables, 0)
-              
-    def SetupMiscConfigSizers(self, panel):
-        "Add pre-defined widgets to self.szrConfigTop and self.szrConfigBottom"     
+        self.btnScriptPath.Enable(not readonly)        
+          
         self.szrConfigTop = wx.BoxSizer(wx.HORIZONTAL)
         self.szrConfigBottom = wx.BoxSizer(wx.HORIZONTAL)
         # CONFIG TOP
@@ -129,9 +125,11 @@ class GenConfig(object):
         szrScriptConfig.Add(self.btnScriptPath, 0, wx.LEFT|wx.RIGHT, 5)
         self.szrConfigBottom.Add(szrScriptConfig, 1)
 
+    def reread_fil_var_dets(self):
+        self.fil_var_dets = self.txtVarDetsFile.GetValue()
+        
     def update_var_dets(self):
         "Update all variable details, including those already displayed"
-        self.fil_var_dets = self.txtVarDetsFile.GetValue()
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.GetVarDets(self.fil_var_dets)
 
@@ -203,6 +201,7 @@ class GenConfig(object):
     # label config
     def OnVarDetsFileLostFocus(self, event):
         ""
+        self.reread_fil_var_dets()
         self.update_var_dets()
 
     def OnButtonVarDetsPath(self, event):
@@ -214,6 +213,7 @@ class GenConfig(object):
         if dlgGetFile.ShowModal() == wx.ID_OK:
             fil_var_dets = u"%s" % dlgGetFile.GetPath()
             self.txtVarDetsFile.SetValue(fil_var_dets)
+            self.reread_fil_var_dets()
             self.update_var_dets()
         dlgGetFile.Destroy()        
 
@@ -238,3 +238,20 @@ class GenConfig(object):
     def OnCssFileLostFocus(self, event):
         "Reset css file"
         self.UpdateCss()
+        
+    # explanation level
+    def setup_level_widgets(self, panel):
+        self.radFull = wx.RadioButton(panel, -1, _("Full Explanation"), 
+                                      style=wx.RB_GROUP)
+        self.radBrief = wx.RadioButton(panel, -1, _("Brief Explanation"))
+        self.radResults = wx.RadioButton(panel, -1, _("Results Only"))
+        self.radFull.Enable(False)
+        self.radBrief.Enable(False)
+        self.radResults.Enable(False)
+        
+    def setup_szrLevel(self, panel):
+        bxLevel = wx.StaticBox(panel, -1, _("Output Level"))
+        self.szrLevel = wx.StaticBoxSizer(bxLevel, wx.HORIZONTAL)
+        self.szrLevel.Add(self.radFull, 0, wx.RIGHT, 10)
+        self.szrLevel.Add(self.radBrief, 0, wx.RIGHT, 10)
+        self.szrLevel.Add(self.radResults, 0, wx.RIGHT, 10)

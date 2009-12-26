@@ -3,11 +3,12 @@ import os
 import wx
 
 import my_globals
+import my_exceptions
 import anova
 import chisquare
 import kruskal_wallis
 import mann_whitney
-import my_exceptions
+import normal
 import pearsonsr
 import projects
 import spearmansr
@@ -315,7 +316,10 @@ class StatsSelectDlg(wx.Dialog):
           "the North, South, East, and West regions"))
         
     def OnNormalHelp1Button(self, event):
-        wx.MessageBox("Under construction")
+        dlg = normal.NormalDlg(self, self.dbe, self.con_dets, self.default_dbs, 
+                        self.default_tbls, self.var_labels, self.var_notes, 
+                        self.var_types, self.val_dics, self.fil_var_dets)
+        dlg.ShowModal()
     
     def IndepSetup(self, enable=True):
         # set left first

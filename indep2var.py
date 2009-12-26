@@ -78,7 +78,7 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
                                  u"tinysofa.xpm")
         ib.AddIconFromFile(icon_path, wx.BITMAP_TYPE_XPM)
         self.SetIcons(ib)
-        self.GenConfigSetup(self.panel) # mixin
+        self.setup_gen_config_szrs(self.panel) # mixin
         self.SetupOutputButtons() # mixin
         szrMain = wx.BoxSizer(wx.VERTICAL)
         bxDesc = wx.StaticBox(self.panel, -1, _("Variables"))
@@ -149,7 +149,6 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrVarsLeft.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)        
         szrVars.Add(szrVarsLeft, 1, wx.LEFT, 5)
         szrVars.Add(self.szrVarsRight, 0)
-        self.SetupGenConfigSizer(self.panel) # mixin
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
         self.html = wx.html.HtmlWindow(self.panel, size=(200, 250))
@@ -159,19 +158,9 @@ class DlgIndep2VarConfig(wx.Dialog, gen_config.GenConfig,
         szrBottomLeft.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
         szrBottomLeft.Add(self.szrConfigTop, 0, wx.GROW)
         szrBottomLeft.Add(self.szrConfigBottom, 0, wx.GROW)
-        bxLevel = wx.StaticBox(self.panel, -1, _("Output Level"))
-        szrLevel = wx.StaticBoxSizer(bxLevel, wx.HORIZONTAL)
-        radFull = wx.RadioButton(self.panel, -1, _("Full Explanation"), 
-                                 style=wx.RB_GROUP)
-        radBrief = wx.RadioButton(self.panel, -1, _("Brief Explanation"))
-        radResults = wx.RadioButton(self.panel, -1, _("Results Only"))
-        radFull.Enable(False)
-        radBrief.Enable(False)
-        radResults.Enable(False)
-        szrLevel.Add(radFull, 0, wx.RIGHT, 10)
-        szrLevel.Add(radBrief, 0, wx.RIGHT, 10)
-        szrLevel.Add(radResults, 0, wx.RIGHT, 10)
-        szrBottomLeft.Add(szrLevel, 0)
+        self.setup_level_widgets(self.panel) # mixin
+        self.setup_szrLevel(self.panel) # mixin
+        szrBottomLeft.Add(self.szrLevel, 0)
         szrBottom.Add(szrBottomLeft, 1, wx.GROW)
         szrBottom.Add(self.szrBtns, 0, wx.GROW|wx.LEFT, 10)           
         szrMain.Add(szrDesc, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)

@@ -451,7 +451,6 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         szrDesc.Add(self.txtName, 0, wx.RIGHT, 10)
         szrDesc.Add(lblProjNotes, 0, wx.RIGHT, 5)
         szrDesc.Add(self.txtProjNotes, 1, wx.GROW)
-        self.MiscConfigSetup(self.panel_top, readonly=self.readonly) # mixin
         # DATA CONNECTIONS
         lblDataConDets = wx.StaticText(self.panel_top, -1, 
                                         _("Data Connection Details:"))
@@ -479,7 +478,7 @@ class ProjectDlg(wx.Dialog, gen_config.GenConfig):
         self.szrTop = wx.BoxSizer(wx.VERTICAL)
         self.szrTop.Add(szrDesc, 1, wx.GROW|wx.ALL, 10)
         # mixin supplying self.szrConfigTop and self.szrConfigBottom
-        self.SetupMiscConfigSizers(self.panel_top)
+        self.setup_misc_config_szrs(self.panel_top, readonly=self.readonly)
         self.szrTop.Add(self.szrConfigTop, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.szrTop.Add(self.szrConfigBottom, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         #self.szrTop.Add(szrOutput, 0, wx.GROW|wx.ALL, 10)
