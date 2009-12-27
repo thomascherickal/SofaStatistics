@@ -4,8 +4,8 @@
 import wx
 
 import my_globals
+import lib
 import indep2var
-import util
 
 
 class DlgConfig(indep2var.DlgIndep2VarConfig):
@@ -45,7 +45,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \
             var_avg, label_avg = self.get_drop_vals()
         script_lst = [u"dp = 3"]
-        script_lst.append(util.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
+        script_lst.append(lib.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
         lst_samples = []
         lst_labels = []
         # need sample for each of the values in range

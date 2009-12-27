@@ -6,12 +6,12 @@ import wx
 import wx.html
 
 import my_globals
+import lib
 import config_dlg
 import full_html
 import getdata
 import output
 import projects
-import util
 
 OUTPUT_MODULES = ["my_globals", "core_stats", "getdata", "output", 
                   "stats_output"]
@@ -32,7 +32,7 @@ def get_range_idxs(vals, val_a, val_b):
         print(vals)
         print(type(val_a).__name__, val_a)
         print(type(val_b).__name__, val_b)
-    uvals = [util.any2unicode(x) for x in vals]
+    uvals = [lib.any2unicode(x) for x in vals]
     idx_val_a = uvals.index(val_a.strip('"'))
     idx_val_b = uvals.index(val_b.strip('"'))
     return idx_val_a, idx_val_b
@@ -75,18 +75,13 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             self.get_gen_config_szrs(self.panel) # mixin
         self.szrOutputButtons = self.get_szrOutputBtns(self.panel) # mixin
         szrMain = wx.BoxSizer(wx.VERTICAL)
-        bxDesc = wx.StaticBox(self.panel, -1, _("Variables"))
+        bxDesc = wx.StaticBox(self.panel, -1, _("Purpose"))
         szrDesc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
-        szrDescTop = wx.BoxSizer(wx.HORIZONTAL)
-        lblPurpose = wx.StaticText(self.panel, -1, _("Purpose:"))
-        lblPurpose.SetFont(self.LABEL_FONT)
         eg1, eg2, eg3 = self.GetExamples()
         lblDesc1 = wx.StaticText(self.panel, -1, eg1)
-        szrDescTop.Add(lblPurpose, 0, wx.RIGHT, 10)
-        szrDescTop.Add(lblDesc1, 0, wx.GROW)
         lblDesc2 = wx.StaticText(self.panel, -1, eg2)
         lblDesc3 = wx.StaticText(self.panel, -1, eg3)
-        szrDesc.Add(szrDescTop, 1, wx.GROW|wx.LEFT, 5)
+        szrDesc.Add(lblDesc1, 1, wx.GROW|wx.LEFT, 5)
         szrDesc.Add(lblDesc2, 1, wx.GROW|wx.LEFT, 5)
         szrDesc.Add(lblDesc3, 1, wx.GROW|wx.LEFT, 5)
         bxVars = wx.StaticBox(self.panel, -1, _("Variables"))
@@ -177,7 +172,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
 
     def OnRightClickGroupBy(self, event):
         var_gp, choice_item = self.get_group_by()
-        var_name, var_label = getdata.extractChoiceDets(choice_item)
+        var_name, var_label = lib.extract_var_choice_dets(choice_item)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
@@ -186,7 +181,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
 
     def OnRightClickAvg(self, event):
         var_avg, choice_item = self.get_avg()
-        var_name, var_label = getdata.extractChoiceDets(choice_item)
+        var_name, var_label = lib.extract_var_choice_dets(choice_item)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
@@ -313,8 +308,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def setup_group_by(self, var_gp=None):
         var_names = projects.get_approp_var_names(self.flds)
         var_gp_by_choice_items, self.sorted_var_names_by = \
-            getdata.get_sorted_choice_items(dic_labels=self.var_labels, 
-                                            vals=var_names)
+            lib.get_sorted_choice_items(dic_labels=self.var_labels, 
+                                        vals=var_names)
         self.dropGroupBy.SetItems(var_gp_by_choice_items)
         # set selection
         idx_gp = projects.get_idx_to_select(var_gp_by_choice_items, var_gp, 
@@ -325,8 +320,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_names = projects.get_approp_var_names(self.flds, self.var_types,
                                                   self.min_data_type)
         var_avg_choice_items, self.sorted_var_names_avg = \
-            getdata.get_sorted_choice_items(dic_labels=self.var_labels,
-                                            vals=var_names)
+            lib.get_sorted_choice_items(dic_labels=self.var_labels,
+                                        vals=var_names)
         self.dropAveraged.SetItems(var_avg_choice_items)
         # set selection
         idx_avg = projects.get_idx_to_select(var_avg_choice_items, var_avg, 
@@ -343,10 +338,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         choice_text = self.dropGroupBy.GetStringSelection()
         if not choice_text:
             return
-        var_name, var_label = getdata.extractChoiceDets(choice_text)
+        var_name, var_label = lib.extract_var_choice_dets(choice_text)
         quoter = getdata.get_obj_quoter_func(self.dbe)
-        unused, tbl_filt = util.get_tbl_filt(self.dbe, self.db, self.tbl)
-        where_filt, unused = util.get_tbl_filts(tbl_filt)
+        unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
+        where_filt, unused = lib.get_tbl_filts(tbl_filt)
         SQL_get_sorted_vals = u"""SELECT %(var_name)s 
             FROM %(tbl)s 
             %(where_filt)s
@@ -365,13 +360,12 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         else:
             self.lblchop_warning.SetLabel(u"")
         self.vals = [x[0] for x in all_vals]
-        vals_with_labels = [getdata.get_choice_item(val_dic, x) \
-                            for x in self.vals]
+        vals_with_labels = [lib.get_choice_item(val_dic, x) for x in self.vals]
         self.dropGroupA.SetItems(vals_with_labels)
         self.dropGroupB.SetItems(vals_with_labels)
         # set selections
         if val_a:
-            item_new_version_a = getdata.get_choice_item(val_dic, val_a)
+            item_new_version_a = lib.get_choice_item(val_dic, val_a)
             idx_a = vals_with_labels.index(item_new_version_a)
         else: # use defaults if possible
             idx_a = 0
@@ -382,7 +376,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                     pass
         self.dropGroupA.SetSelection(idx_a)
         if val_b:
-            item_new_version_b = getdata.get_choice_item(val_dic, val_b)
+            item_new_version_b = lib.get_choice_item(val_dic, val_b)
             idx_b = vals_with_labels.index(item_new_version_b)
         else: # use defaults if possible
             idx_b = 0
@@ -400,13 +394,13 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             label_avg.
         """
         choice_gp_text = self.dropGroupBy.GetStringSelection()
-        var_gp, label_gp = getdata.extractChoiceDets(choice_gp_text)
+        var_gp, label_gp = lib.extract_var_choice_dets(choice_gp_text)
         choice_a_text = self.dropGroupA.GetStringSelection()
-        val_a, label_a = getdata.extractChoiceDets(choice_a_text)
+        val_a, label_a = lib.extract_var_choice_dets(choice_a_text)
         choice_b_text = self.dropGroupB.GetStringSelection()
-        val_b, label_b = getdata.extractChoiceDets(choice_b_text)
+        val_b, label_b = lib.extract_var_choice_dets(choice_b_text)
         choice_avg_text = self.dropAveraged.GetStringSelection()
-        var_avg, label_avg = getdata.extractChoiceDets(choice_avg_text)
+        var_avg, label_avg = lib.extract_var_choice_dets(choice_avg_text)
         var_gp_numeric = self.flds[var_gp][my_globals.FLD_BOLNUMERIC]
         return var_gp_numeric, var_gp, label_gp, val_a, label_a, \
             val_b, label_b, var_avg, label_avg
@@ -455,10 +449,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             var_gp_numeric, var_gp, unused, unused, unused, unused, unused, \
                 unused, unused = self.get_drop_vals()
             # group a must be lower than group b
-            val_a, unused = \
-                getdata.extractChoiceDets(self.dropGroupA.GetStringSelection())
-            val_b, unused = \
-                getdata.extractChoiceDets(self.dropGroupB.GetStringSelection())
+            val_a, unused = lib.extract_var_choice_dets(
+                                        self.dropGroupA.GetStringSelection())
+            val_b, unused = lib.extract_var_choice_dets(
+                                        self.dropGroupB.GetStringSelection())
             if var_gp_numeric:
                 # NB SQLite could have a string in a numeric field
                 # could cause problems even if the string value is not one of 

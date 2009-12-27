@@ -6,7 +6,6 @@ import pprint
 
 import my_globals
 import getdata
-import util
 
 # http://www.postgresql.org/docs/8.4/static/datatype.html
 BIGINT = u"bigint" # "signed eight-byte integer"

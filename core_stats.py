@@ -7,8 +7,8 @@ import numpy as np
 from types import ListType, TupleType
 
 import my_globals
+import lib
 import getdata
-import util
 
 D = decimal.Decimal
 decimal.getcontext().prec = 200
@@ -23,7 +23,7 @@ def get_list(dbe, cur, tbl, tbl_filt, flds, fld_measure, fld_filter,
     fld_val_clause = getdata.make_fld_val_clause(dbe, flds, fld_filter, 
                                                  filter_val)
     obj_quoter = getdata.get_obj_quoter_func(dbe)
-    unused, and_tbl_filt = util.get_tbl_filts(tbl_filt)
+    unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     SQL_get_list = u"SELECT %s " % obj_quoter(fld_measure) + \
         "FROM %s " % obj_quoter(tbl) + \
         "WHERE %s IS NOT NULL " % obj_quoter(fld_measure) + \
@@ -40,7 +40,7 @@ def get_paired_lists(dbe, cur, tbl, tbl_filt, fld_a, fld_b):
         Used in, for example, the paired samples t-test.
     """
     quoter = getdata.get_obj_quoter_func(dbe)
-    unused, and_tbl_filt = util.get_tbl_filts(tbl_filt)
+    unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     SQL_get_lists = u"SELECT %s, %s " % (quoter(fld_a), quoter(fld_b)) + \
         u"FROM %s " % quoter(tbl) + \
         u"WHERE %s IS NOT NULL " % quoter(fld_a) + \
@@ -61,7 +61,7 @@ def get_val_quoter(dbe, flds, fld, val):
     if not flds[fld][my_globals.FLD_BOLNUMERIC]:
         num = False
     elif dbe == my_globals.DBE_SQLITE:
-        if not util.is_basic_num(val):
+        if not lib.is_basic_num(val):
             num = False
     if num:
         val_quoter = lambda s: s
@@ -81,7 +81,7 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b):
     qtbl = obj_quoter(tbl)
     qfld_a = obj_quoter(fld_a)
     qfld_b = obj_quoter(fld_b)
-    where_tbl_filt, and_tbl_filt = util.get_tbl_filts(tbl_filt)
+    where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     # get row vals used
     SQL_row_vals_used = u"""SELECT %(qfld_a)s
         FROM %(qtbl)s
@@ -157,7 +157,7 @@ def get_fracs(cur, tbl_filt, qtbl, qfld):
     Returns lst_fracs
     """
     debug = False
-    unused, and_tbl_filt = util.get_tbl_filts(tbl_filt)
+    unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     SQL_get_fracs = u"""SELECT %(qfld)s, COUNT(*)
         FROM %(qtbl)s 
         WHERE %(qfld)s IS NOT NULL
@@ -181,7 +181,7 @@ def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b):
     Returns chisq, p, min_count, perc_cells_lt_5
     """
     debug = False
-    unused, tbl_filt = util.get_tbl_filt(dbe, db, tbl)
+    unused, tbl_filt = lib.get_tbl_filt(dbe, db, tbl)
     vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df = \
                     get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b)
     if debug: print(lst_obs, lst_exp)
@@ -308,7 +308,7 @@ def anova(samples, labels, high=True):
         for sample in samples:
             inflated_samples.append([x*10 for x in sample]) # NB inflated
         samples = inflated_samples
-        sample_means = [util.n2d(mean(x, high)) for x in samples] # NB inflated
+        sample_means = [lib.n2d(mean(x, high)) for x in samples] # NB inflated
     else:
         sample_means = [mean(x, high) for x in samples]
     sswn = get_sswn(samples, sample_means, sample_ns, high)
@@ -339,7 +339,7 @@ def get_sswn(samples, sample_means, sample_ns, high=False):
             diffs = []
             sample_mean = sample_means[i]
             for val in sample:
-                diffs.append(util.n2d(val) - sample_mean)
+                diffs.append(lib.n2d(val) - sample_mean)
             squ_diffs = [(x**2) for x in diffs]
             sum_squ_diffs = sum(squ_diffs)
             sswn += sum_squ_diffs
@@ -364,8 +364,8 @@ def get_ssbn(samples, sample_means, n_samples, sample_ns, high=False):
             sum_n_x_squ_diffs += sample_ns[i]*squ_diffs[i]
         ssbn = sum_n_x_squ_diffs
     else:
-        sum_all_vals = util.n2d(sum(util.n2d(sum(x)) for x in samples))
-        n_tot = util.n2d(sum(sample_ns))
+        sum_all_vals = lib.n2d(sum(lib.n2d(sum(x)) for x in samples))
+        n_tot = lib.n2d(sum(sample_ns))
         grand_mean = sum_all_vals/n_tot # NB inflated
         squ_diffs = []
         for i in range(n_samples):
@@ -776,7 +776,7 @@ def mean(vals, high=False):
         tot = D("0")
         for val in vals:
             try:
-                tot += util.n2d(val)
+                tot += lib.n2d(val)
             except Exception:
                 raise Exception, u"Unable to add \"%s\" to running total." % val
         mean = tot/len(vals)
@@ -801,12 +801,12 @@ def variance(vals, high=False):
     for i in range(len(vals)):
         val = vals[i]
         if high:
-            val = util.n2d(val)
+            val = lib.n2d(val)
         deviations[i] = val - mn
     if not high:
         var = sum_squares(deviations)/float(n-1)
     else:
-        var = sum_squares(deviations, high)/util.n2d(n-1)
+        var = sum_squares(deviations, high)/lib.n2d(n-1)
     return var
 
 def stdev(vals, high=False):
@@ -821,7 +821,7 @@ def stdev(vals, high=False):
     """
     try:
         if high:
-            stdev = util.n2d(math.sqrt(variance(vals, high)))
+            stdev = lib.n2d(math.sqrt(variance(vals, high)))
         else:
             stdev = math.sqrt(variance(vals))
     except ValueError:
@@ -844,9 +844,9 @@ def betai(a, b, x, high=False):
     Usage:   betai(a,b,x)
     """
     if high:        
-        a = util.n2d(a)
-        b = util.n2d(b)
-        x = util.n2d(x)
+        a = lib.n2d(a)
+        b = lib.n2d(b)
+        x = lib.n2d(x)
         zero = D("0")
         one = D("1")
         two = D("2")
@@ -861,9 +861,9 @@ def betai(a, b, x, high=False):
     else:
         if high:
             bt_raw = math.exp(gammln(a+b, high) - gammln(a, high) - \
-                              gammln(b, high)+a*util.n2d(math.log(x)) + \
-                              b*util.n2d(math.log(one - x)))
-            bt = util.n2d(bt_raw)
+                              gammln(b, high)+a*lib.n2d(math.log(x)) + \
+                              b*lib.n2d(math.log(one - x)))
+            bt = lib.n2d(bt_raw)
         else:
             bt = math.exp(gammln(a+b, high) - gammln(a, high) - gammln(b, high)
                           + a*math.log(x) + b*math.log(1.0 - x))
@@ -890,7 +890,7 @@ def sum_squares(vals, high=False):
     if high:
         sum_squares = D("0")
         for val in vals:
-            decval = util.n2d(val)
+            decval = lib.n2d(val)
             sum_squares += (decval * decval)
     else:
         sum_squares = 0
@@ -912,7 +912,7 @@ def gammln(xx, high=False):
         intone = D("1")
         one = D("1.0")
         fiveptfive = D("5.5")
-        xx = util.n2d(xx)
+        xx = lib.n2d(xx)
         coeff = [D("76.18009173"), D("-86.50532033"), D("24.01409822"), 
                  D("-1.231739516"), D("0.120858003e-2"), D("-0.536382e-5")]
     else:
@@ -924,7 +924,7 @@ def gammln(xx, high=False):
     x = xx - one
     tmp = x + fiveptfive
     if high:
-        tmp = tmp - (x + D("0.5")) * util.n2d(math.log(tmp))
+        tmp = tmp - (x + D("0.5")) * lib.n2d(math.log(tmp))
     else:
         tmp = tmp - (x + 0.5) * math.log(tmp)
     ser = one
@@ -932,7 +932,7 @@ def gammln(xx, high=False):
         x = x + intone
         ser = ser + coeff[j]/x
     if high:
-        gammln = -tmp + util.n2d(math.log(D("2.50662827465")*ser))
+        gammln = -tmp + lib.n2d(math.log(D("2.50662827465")*ser))
     else:
         gammln = -tmp + math.log(2.50662827465*ser)
     return gammln
@@ -950,9 +950,9 @@ def betacf(a, b, x, high=False):
         one = D("1")
         ITMAX = D("200")
         EPS = D("3.0e-7")
-        a = util.n2d(a)
-        b = util.n2d(b)
-        x = util.n2d(x)
+        a = lib.n2d(a)
+        b = lib.n2d(b)
+        x = lib.n2d(x)
         bm = az = am = one
         qab = a+b
         qap = a+one
@@ -969,7 +969,7 @@ def betacf(a, b, x, high=False):
         bz = one-qab*x/qap
     for i in range(ITMAX+1):
         if high:
-            i = util.n2d(i)
+            i = lib.n2d(i)
         em = i + one
         tem = em + em
         d = em*(b-em)*x/((qam+tem)*(a+tem))
@@ -1192,9 +1192,9 @@ def fprob (dfnum, dfden, F, high=False):
     """
     debug = False
     if high:
-        dfnum = util.n2d(dfnum)
-        dfden = util.n2d(dfden)
-        F = util.n2d(F)
+        dfnum = lib.n2d(dfnum)
+        dfden = lib.n2d(dfden)
+        F = lib.n2d(F)
         a = D("0.5")*dfden
         b = D("0.5")*dfnum
         x = dfden/(dfden + dfnum*F)

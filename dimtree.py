@@ -5,10 +5,8 @@ import pprint
 import wx
 
 import my_globals
+import lib
 import dimtables
-import util
-import make_table
-import getdata
 import projects
 
 SORT_OPT_NONE = 0 #No sorting options
@@ -43,14 +41,14 @@ class DimTree(object):
         
     def ShowVarProperties(self, tree, event):
         choice_item = tree.GetItemText(event.GetItem())
-        var_name, var_label = getdata.extractChoiceDets(choice_item)
+        var_name, var_label = lib.extract_var_choice_dets(choice_item)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
             # update var label in tree and update demo html
             tree.SetItemText(event.GetItem(), 
-                    getdata.get_choice_item(self.var_labels, var_name))
+                    lib.get_choice_item(self.var_labels, var_name))
             self.UpdateDemoDisplay()
     
     def OnRowAdd(self, event):
@@ -76,7 +74,7 @@ class DimTree(object):
             min_data_type = my_globals.VAR_TYPE_CAT
         var_names = projects.get_approp_var_names(self.flds, self.var_types,
                                                   min_data_type)
-        choices, unused = getdata.get_sorted_choice_items(\
+        choices, unused = lib.get_sorted_choice_items(
                                 dic_labels=self.var_labels, vals=var_names)
         dlg = wx.MultiChoiceDialog(self, _("Select a variable"), _("Variables"), 
                                    choices=choices)
@@ -102,7 +100,7 @@ class DimTree(object):
             # they all passed the tests so proceed
             for text in text_selected:
                 new_id = tree.AppendItem(root, text)
-                var_name, unused = getdata.extractChoiceDets(text)
+                var_name, unused = lib.extract_var_choice_dets(text)
                 self.setInitialConfig(tree, dim, new_id, var_name)
             if text_selected:
                 tree.UnselectAll() # multiple
@@ -115,15 +113,15 @@ class DimTree(object):
         Variable name not applicable when a column config item rather than
             a normal column variable.
         """
-        item_conf = make_table.ItemConfig()
+        item_conf = lib.ItemConfig()
         if (self.tab_type == my_globals.COL_MEASURES \
                     and dim == my_globals.COLDIM):
             item_conf.measures_lst = \
-                [make_table.get_default_measure(my_globals.COL_MEASURES)]
+                [lib.get_default_measure(my_globals.COL_MEASURES)]
         elif (self.tab_type == my_globals.ROW_SUMM \
                     and dim == my_globals.ROWDIM):
             item_conf.measures_lst = \
-                [make_table.get_default_measure(my_globals.ROW_SUMM)]
+                [lib.get_default_measure(my_globals.ROW_SUMM)]
         if var_name:
             item_conf.bolnumeric = \
                 self.flds[var_name][my_globals.FLD_BOLNUMERIC]
@@ -189,7 +187,7 @@ class DimTree(object):
         Only do so if OK e.g. no duplicate text in either dim.
         """
         choice_var_names = self.flds.keys()
-        choices = [getdata.get_choice_item(self.var_labels, x) \
+        choices = [lib.get_choice_item(self.var_labels, x) \
                    for x in choice_var_names]
         choices.sort(key=lambda s: s.upper())
         dlg = wx.MultiChoiceDialog(self, _("Select a variable"), 
@@ -201,7 +199,7 @@ class DimTree(object):
                 ancestor_labels = []
                 parent_text = tree.GetItemText(selected_id)
                 ancestor_labels.append(parent_text)
-                ancestors = util.getTreeAncestors(tree, selected_id)
+                ancestors = lib.getTreeAncestors(tree, selected_id)
                 parent_ancestor_labels = [tree.GetItemText(x) for \
                                           x in ancestors]
                 ancestor_labels += parent_ancestor_labels
@@ -221,11 +219,11 @@ class DimTree(object):
             # they all passed the test so proceed        
             for text in text_selected:
                 new_id = tree.AppendItem(selected_id, text)
-                var_name, unused = getdata.extractChoiceDets(text)
+                var_name, unused = lib.extract_var_choice_dets(text)
                 self.setInitialConfig(tree, dim, new_id, var_name)
                 # empty all measures from ancestors and ensure sorting 
                 # is appropriate
-                for ancestor in util.getTreeAncestors(tree, new_id):
+                for ancestor in lib.get_tree_ancestors(tree, new_id):
                     item_conf = tree.GetItemPyData(ancestor)
                     if item_conf: #ignore root node
                         item_conf.measures_lst = []
@@ -243,16 +241,15 @@ class DimTree(object):
     
     def UsedInOthDim(self, text, oth_dim_tree, oth_dim_root):
         "Is this variable used in the other dimension at all?"
-        oth_dim_items = util.getTreeCtrlDescendants(oth_dim_tree, 
-                                                    oth_dim_root)
+        oth_dim_items = lib.get_tree_ctrl_descendants(oth_dim_tree, 
+                                                      oth_dim_root)
         oth_dim_labels = [oth_dim_tree.GetItemText(x) for \
                                   x in oth_dim_items]
         return text in oth_dim_labels
     
     def UsedInThisDim(self, text, dim_tree, dim_root):
         "Is this variable already used in this dimension?"
-        dim_items = util.getTreeCtrlDescendants(dim_tree, 
-                                                dim_root)
+        dim_items = lib.get_tree_ctrl_descendants(dim_tree, dim_root)
         dim_labels = [dim_tree.GetItemText(x) for x in dim_items]
         return text in dim_labels
                 
@@ -280,8 +277,8 @@ class DimTree(object):
         # colmeasures is wiped as well (and restore Add and Add Under 
         # buttons too ;-)
         if self.tab_type == my_globals.COL_MEASURES and \
-                not util.ItemHasChildren(tree=self.rowtree,
-                                     parent=self.rowRoot) and \
+                not lib.item_has_children(tree=self.rowtree,
+                                          parent=self.rowRoot) and \
                 self.col_no_vars_item:
             self.coltree.DeleteChildren(self.colRoot)
             self.btnColAdd.Enable()
@@ -323,7 +320,7 @@ class DimTree(object):
         Terminal nodes can have either label or freq sorting and
             other nodes can only have label sorting.
         """
-        if not util.ItemHasChildren(self.rowtree, self.rowRoot):
+        if not lib.item_has_children(self.rowtree, self.rowRoot):
             return
         selected_ids = self.rowtree.GetSelections()
         first_selected_id = selected_ids[0] 
@@ -331,8 +328,8 @@ class DimTree(object):
         inc_measures = (self.tab_type == my_globals.ROW_SUMM)
         if self.tab_type == my_globals.ROW_SUMM:
             sort_opt_allowed = SORT_OPT_NONE
-        elif not util.ItemHasChildren(tree=self.rowtree, 
-                                      parent=first_selected_id):
+        elif not lib.item_has_children(tree=self.rowtree, 
+                                       parent=first_selected_id):
             sort_opt_allowed = SORT_OPT_ALL
         else:
             sort_opt_allowed = SORT_OPT_BY_LABEL
@@ -354,14 +351,14 @@ class DimTree(object):
             by row vars.  Total doesn't make sense in this context.
         
         """
-        empty_coltree = not util.ItemHasChildren(tree=self.coltree, 
-                                              parent=self.colRoot)
-        # empty_tree = not self.coltree.ItemHasChildren(self.colRoot) #buggy if root hidden
-        # i.e. if there is only the root there
+        empty_coltree = not lib.item_has_children(tree=self.coltree, 
+                                                  parent=self.colRoot)
+        # empty_tree = not self.coltree.ItemHasChildren(self.colRoot) 
+        # buggy if root hidden i.e. if there is only the root there
         # no col vars - just set measures (without total)
         if empty_coltree and self.tab_type == my_globals.COL_MEASURES:
-            empty_rowtree = not util.ItemHasChildren(tree=self.rowtree, 
-                                                     parent=self.rowRoot)
+            empty_rowtree = not lib.item_has_children(tree=self.rowtree, 
+                                                      parent=self.rowRoot)
             if empty_rowtree:
                 return
             #add special node before getting config
@@ -387,10 +384,10 @@ class DimTree(object):
             # if one has no children, none can
             config_ok = True
             if not empty_coltree:
-                first_has_children = util.ItemHasChildren(tree=self.coltree,
-                                                          parent=selected_ids[0])
+                first_has_children = lib.item_has_children(tree=self.coltree,
+                                                           parent=selected_ids[0])
                 for selected_id in selected_ids[1:]:
-                    if util.ItemHasChildren(tree=self.coltree,
+                    if lib.item_has_children(tree=self.coltree,
                                     parent=selected_id) != first_has_children:
                         config_ok = False
                         break
@@ -429,8 +426,7 @@ class DimTree(object):
         if self.col_no_vars_item in node_ids \
                 or self.tab_type != my_globals.COL_MEASURES:
             sort_opt_allowed = SORT_OPT_NONE
-        elif not util.ItemHasChildren(tree=self.coltree, 
-                                      parent=node_ids[0]):
+        elif not lib.item_has_children(tree=self.coltree, parent=node_ids[0]):
             sort_opt_allowed = SORT_OPT_ALL
         else:
             sort_opt_allowed = SORT_OPT_BY_LABEL
@@ -580,8 +576,8 @@ class DlgConfig(wx.Dialog):
                 sort_order = my_globals.SORT_FREQ_DESC
         for node_id in self.node_ids:
             bolnumeric = self.tree.GetItemPyData(node_id).bolnumeric
-            item_conf = make_table.ItemConfig(measures_lst, has_tot, 
-                                              sort_order, bolnumeric)
+            item_conf = lib.ItemConfig(measures_lst, has_tot, sort_order, 
+                                       bolnumeric)
             self.tree.SetItemPyData(node_id, item_conf)        
             self.tree.SetItemText(node_id, item_conf.getSummary(), 1)
         self.Destroy()

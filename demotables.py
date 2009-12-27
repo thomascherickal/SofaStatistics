@@ -3,12 +3,10 @@ from __future__ import print_function
 import random
 
 import my_globals
-import getdata
-import rawtables
-import make_table
-import output
-import util
+import lib
 import dimtables
+import output
+import rawtables
 import wx
 
 num_data_seq = (u"1.0", u"1.5", u"2.0", u"2.5", u"3.0", u"3.5", u"12.0", 
@@ -83,8 +81,8 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         
     def getDemoHTMLIfOK(self, css_idx):
         "Show demo table if sufficient data to do so"
-        has_cols = util.getTreeCtrlChildren(tree=self.coltree, 
-                                    parent=self.colRoot)
+        has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
+                                              parent=self.colRoot)
         return self.getDemoHTML(css_idx) if has_cols else ""
       
     def getHTMLParts(self, css_idx):
@@ -98,9 +96,8 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
             (my_globals.CSS_ALIGN_RIGHT, css_idx)
         CSS_TOTAL_ROW = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_TOTAL_ROW, css_idx)   
-        col_names, col_labels = make_table.GetColDets(self.coltree, 
-                                                      self.colRoot, 
-                                                      self.var_labels)
+        col_names, col_labels = lib.get_col_dets(self.coltree, self.colRoot, 
+                                                 self.var_labels)
         cols_n = len(col_names)        
         bolhas_totals_row = self.chkTotalsRow.IsChecked()
         bolfirst_col_as_label = self.chkFirstAsLabel.IsChecked()
@@ -212,8 +209,8 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
             row labels).
         """
         tree_row_labels = dimtables.LabelNodeTree()
-        for row_child_item in util.getTreeCtrlChildren(tree=self.rowtree, 
-                                                    parent=self.rowRoot):
+        for row_child_item in lib.get_tree_ctrl_children(tree=self.rowtree, 
+                                                         parent=self.rowRoot):
             self.addSubtreeToLabelTree(tree_dims_item=row_child_item, 
                               tree_labels_node=tree_row_labels.root_node, 
                               dim=my_globals.ROWDIM)
@@ -239,7 +236,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         elif dim == my_globals.ROWDIM:
             item_conf = self.rowtree.GetItemPyData(tree_dims_item)        
         if item_conf is None:
-            item_conf = make_table.ItemConfig()
+            item_conf = lib.ItemConfig()
         if tree_dims_item == self.col_no_vars_item:
             # add measures only
             if item_conf:
@@ -251,7 +248,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                                                         measure=measure))
         else:
             # add var e.g. gender then values below e.g. Male, Female
-            var_name, var_label = getdata.extractChoiceDets(\
+            var_name, var_label = lib.extract_var_choice_dets(\
                 self.coltree.GetItemText(tree_dims_item))
             #print(var_name) #debug
             var_label = self.var_labels.get(var_name, var_name.title())
@@ -308,9 +305,9 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                             tree = self.coltree
                         elif dim == my_globals.ROWDIM:
                             tree = self.rowtree
-                        child_items = util.getTreeCtrlChildren(tree=tree, 
+                        child_items = lib.get_tree_ctrl_children(tree=tree, 
                                                         parent=tree_dims_item)
-                        #print(util.getSubTreeItems(tree=tree, 
+                        #print(lib.get_sub_tree_items(tree=tree, 
                         #        parent=tree_dims_item)) #debug
                         for child_item in child_items:
                             self.addSubtreeToLabelTree(tree_dims_item=\
@@ -325,8 +322,8 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         by the calling class e.g. by adding measures or raising an
         exception.
         """
-        col_children = util.getTreeCtrlChildren(tree=self.coltree, 
-                                                parent=self.colRoot)
+        col_children = lib.get_tree_ctrl_children(tree=self.coltree, 
+                                                  parent=self.colRoot)
         for col_child_item in col_children:
             self.addSubtreeToLabelTree(tree_dims_item=col_child_item, 
                           tree_labels_node=tree_col_labels.root_node, 
@@ -340,7 +337,7 @@ class GenDemoTable(DemoDimTable):
     has_row_measures = False
     has_row_vals = True
     has_col_measures = True
-    default_measure = make_table.get_default_measure(my_globals.COL_MEASURES)
+    default_measure = lib.get_default_measure(my_globals.COL_MEASURES)
     
     def __init__(self, txtTitles, txtSubtitles, colRoot, rowRoot, rowtree, 
                  coltree, col_no_vars_item, var_labels, val_dics, fil_css):
@@ -350,10 +347,10 @@ class GenDemoTable(DemoDimTable):
         
     def getDemoHTMLIfOK(self, css_idx):
         "Show demo table if sufficient data to do so"
-        has_rows = util.getTreeCtrlChildren(tree=self.rowtree, 
-                                    parent=self.rowRoot)
-        has_cols = util.getTreeCtrlChildren(tree=self.coltree, 
-                                         parent=self.colRoot)
+        has_rows = lib.get_tree_ctrl_children(tree=self.rowtree, 
+                                              parent=self.rowRoot)
+        has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
+                                              parent=self.colRoot)
         if has_rows and has_cols:
             return self.getDemoHTML(css_idx)
         else:
@@ -448,7 +445,7 @@ class SummDemoTable(DemoDimTable):
     has_row_measures = True
     has_row_vals = False
     has_col_measures = False
-    default_measure = make_table.get_default_measure(my_globals.ROW_SUMM)
+    default_measure = lib.get_default_measure(my_globals.ROW_SUMM)
     
     def __init__(self, txtTitles, txtSubtitles, colRoot, rowRoot, rowtree, 
                  coltree, col_no_vars_item, var_labels, val_dics, fil_css):
@@ -458,8 +455,8 @@ class SummDemoTable(DemoDimTable):
 
     def getDemoHTMLIfOK(self, css_idx):
         "Show demo table if sufficient data to do so"
-        has_rows = util.getTreeCtrlChildren(tree=self.rowtree, 
-                                    parent=self.rowRoot)
+        has_rows = lib.get_tree_ctrl_children(tree=self.rowtree, 
+                                              parent=self.rowRoot)
         return self.getDemoHTML(css_idx) if has_rows else ""
             
     def getHdrDets(self, row_label_cols_n, css_idx):

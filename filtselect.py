@@ -3,9 +3,9 @@
 import wx
 
 import my_globals
+import lib
 import getdata
 import projects
-import util
 
 
 def get_val(raw_val, flds, fld_name):
@@ -23,7 +23,7 @@ def get_val(raw_val, flds, fld_name):
     bolnumeric = flds[fld_name][my_globals.FLD_BOLNUMERIC]
     boldatetime = flds[fld_name][my_globals.FLD_BOLDATETIME]
     if bolnumeric:
-        if util.is_numeric(raw_val):
+        if lib.is_numeric(raw_val):
             return float(raw_val)
         else: # not a num - a valid string?
             if isinstance(raw_val, basestring):
@@ -32,10 +32,10 @@ def get_val(raw_val, flds, fld_name):
         raise Exception, ("Only a number, an empty string, or Null can "
                           "be entered for filtering a numeric field")
     elif boldatetime:
-        usable_datetime = util.is_usable_datetime_str(raw_val)
+        usable_datetime = lib.is_usable_datetime_str(raw_val)
         if usable_datetime:
             if debug: print("A valid datetime: '%s'" % raw_val)
-            return util.get_std_datetime_str(raw_val)
+            return lib.get_std_datetime_str(raw_val)
         else: # not a datetime - a valid string?
             if isinstance(raw_val, basestring):
                 if raw_val == "" or raw_val.lower() == "null":
@@ -64,8 +64,8 @@ class FiltSelectDlg(wx.Dialog):
         self.var_types = var_types
         self.val_dics = val_dics
         self.fil_var_dets = fil_var_dets
-        tbl_filt_label, self.tbl_filt = util.get_tbl_filt(self.dbe, self.db, 
-                                                          self.tbl)
+        tbl_filt_label, self.tbl_filt = lib.get_tbl_filt(self.dbe, self.db, 
+                                                         self.tbl)
         title = _("Current filter") if self.tbl_filt else _("Apply filter")
         wx.Dialog.__init__(self, parent=parent, title=title, 
                            style=wx.CAPTION|wx.CLOSE_BOX|
@@ -139,9 +139,8 @@ class FiltSelectDlg(wx.Dialog):
 
     def setup_vars(self, var=None):
         var_names = projects.get_approp_var_names(self.flds)
-        var_choices, self.sorted_var_names = \
-            getdata.get_sorted_choice_items(dic_labels=self.var_labels, 
-                                            vals=var_names)
+        var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
+                                    dic_labels=self.var_labels, vals=var_names)
         self.dropVars.SetItems(var_choices)
         idx = self.sorted_var_names.index(var) if var else 0
         self.dropVars.SetSelection(idx)
@@ -191,7 +190,7 @@ class FiltSelectDlg(wx.Dialog):
         dlg.ShowModal()
         if updated:
             choice_text = self.dropVars.GetStringSelection()
-            fld_name, unused = getdata.extractChoiceDets(choice_text)
+            fld_name, unused = lib.extract_var_choice_dets(choice_text)
             self.setup_vars(var=fld_name)
         event.Skip()
         
@@ -214,7 +213,7 @@ class FiltSelectDlg(wx.Dialog):
         "Get filter from quick setting"
         debug = False
         choice_text = self.dropVars.GetStringSelection()
-        fld_name, unused = getdata.extractChoiceDets(choice_text)
+        fld_name, unused = lib.extract_var_choice_dets(choice_text)
         val = get_val(self.txtVal.GetValue(), self.flds, fld_name)
         gte = self.dropGTE.GetStringSelection()
         filt = getdata.make_fld_val_clause(self.dbe, self.flds, fld_name, val, 
@@ -297,7 +296,7 @@ class FiltSelectDlg(wx.Dialog):
     
     def OnRightClickVars(self, event):
         var, choice_item = self.get_var()
-        var_name, var_label = getdata.extractChoiceDets(choice_item)
+        var_name, var_label = lib.extract_var_choice_dets(choice_item)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)

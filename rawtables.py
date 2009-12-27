@@ -2,7 +2,7 @@ import os
 import datetime
 
 import my_globals
-import util
+import lib
 import getdata
 
 
@@ -28,7 +28,7 @@ class RawTable(object):
         self.var_labels = var_labels
         self.val_dics = val_dics
         self.tbl = tbl
-        self.where_tbl_filt, unused = util.get_tbl_filts(tbl_filt)
+        self.where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
         if debug: 
             print(tbl_filt)
             print(self.where_tbl_filt)
@@ -151,8 +151,8 @@ class RawTable(object):
                     if (self.first_col_as_label and i == 0) or \
                         row_val == u"-":
                         pass
-                    elif util.is_basic_num(row_val) and \
-                            util.is_basic_num(row_tots[i]):
+                    elif lib.is_basic_num(row_val) and \
+                            lib.is_basic_num(row_tots[i]):
                         row_tots[i] += row_val
                         row_tots_used.add(i)
             body_html += u"\n<tr>" + u"".join(row_tds) + u"</td></tr>"

@@ -5,8 +5,8 @@ import wx
 
 import my_globals
 import config_globals
+import lib
 import projects
-import util
 
 debug = False
 
@@ -104,7 +104,7 @@ def make_fld_val_clause(dbe, flds, fld_name, val, gte=my_globals.GTE_EQUALS):
         if not bolnumeric:
             num = False
         elif bolsqlite: # if SQLite may still be non-numeric
-            if not util.is_basic_num(val):
+            if not lib.is_basic_num(val):
                 num = False
         if num:
             clause = u"%s %s %s" % (quote_obj(fld_name), dbe_gte, val)
@@ -161,42 +161,6 @@ def FldsDic2FldNamesLst(flds_dic):
     # pprint.pprint(flds_dic) # debug
     flds_lst = sorted(flds_dic, key=lambda s: flds_dic[s][my_globals.FLD_SEQ])
     return flds_lst
-
-def get_choice_item(item_labels, item_val):
-    val_label = util.any2unicode(item_val)
-    return u"%s (%s)" % (item_labels.get(item_val, val_label.title()), 
-                         val_label)
-
-def extractChoiceDets(choice_text):
-    """
-    Extract name, label from item e.g. return "gender"
-        and "Gender" from "Gender (gender)".
-    Returns as string (even if original was a number etc).
-    If not in this format, e.g. special col measures label, handle differently.
-    """
-    try:
-        start_idx = choice_text.index("(") + 1
-        end_idx = choice_text.index(")")
-        item_val = choice_text[start_idx:end_idx]
-        item_label = choice_text[:start_idx - 2]
-    except Exception:
-        item_val = choice_text
-        item_label = choice_text        
-    return item_val, item_label
-
-def get_sorted_choice_items(dic_labels, vals):
-    """
-    Sorted by label, not name.
-    dic_labels - could be for either variables of values.
-    vals - either variables or values.
-    Returns choice_items_sorted, orig_items_sorted.
-    http://www.python.org/doc/faq/programming/#i-want-to-do-a-complicated- ...
-        ... sort-can-you-do-a-schwartzian-transform-in-python
-    """
-    sorted_vals = vals
-    sorted_vals.sort(key=lambda s: get_choice_item(dic_labels, s).upper())
-    choice_items = [get_choice_item(dic_labels, x) for x in sorted_vals]
-    return choice_items, sorted_vals
 
 def setConDetDefaults(parent):
     """
@@ -274,7 +238,7 @@ def PrepValue(dbe, val, fld_dic):
                 val2use = None
             else:
                 try:
-                    val2use = util.get_std_datetime_str(val)
+                    val2use = lib.get_std_datetime_str(val)
                 except Exception:
                     # will not pass cell validation later and better to
                     # avoid throwing exceptions in the middle of things
@@ -339,7 +303,7 @@ def setup_drop_tbls(dropTables, dbe, db, tbls, tbl):
     for i, tbl_name in enumerate(tbls):
         if tbl_name == tbl:
             idx_tbl = i
-        tbl_filt_label, tbl_filt = util.get_tbl_filt(dbe, db, tbl_name)
+        tbl_filt_label, tbl_filt = lib.get_tbl_filt(dbe, db, tbl_name)
         if tbl_filt:
             tbl_with_filt = "%s %s" % (tbl_name, _("(filtered)"))
         else:

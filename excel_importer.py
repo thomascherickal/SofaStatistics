@@ -5,7 +5,6 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import excel_reader
 import getdata
 import importer
-import util
 from my_exceptions import ImportCancelException
 
 ROWS_TO_SAMPLE = 500 # fast enough to sample quite a few

@@ -7,7 +7,6 @@ import pprint
 
 import my_globals
 import getdata
-import util
 
 BIGINT = "bigint"
 DECIMAL = "decimal"

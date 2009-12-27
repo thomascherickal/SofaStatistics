@@ -7,11 +7,11 @@ import sys
 import wx
 
 import my_globals
+import lib
 import config_dlg
 import getdata
 import projselect
 import settings_grid
-import util
 
 LOCAL_PATH = my_globals.LOCAL_PATH
 
@@ -54,7 +54,7 @@ def GetVarDets(fil_var_dets):
         var_types = {}
         val_dics = {}
         return var_labels, var_notes, var_types, val_dics
-    var_dets = util.clean_bom_utf8(f.read())
+    var_dets = lib.clean_bom_utf8(f.read())
     f.close()
     var_dets_dic = {}
     try:
@@ -188,7 +188,7 @@ def get_idx_to_select(choice_items, drop_var, var_labels, default):
     """
     var_removed = False
     if drop_var:
-        item_new_version_drop = getdata.get_choice_item(var_labels, drop_var)
+        item_new_version_drop = lib.get_choice_item(var_labels, drop_var)
         try:
             idx = choice_items.index(item_new_version_drop)
         except ValueError:
@@ -240,7 +240,7 @@ class ListVarsDlg(wx.Dialog):
             var, choice_item = self.get_var()
         except Exception: # seems to be triggered
             return
-        var_name, var_label = getdata.extractChoiceDets(choice_item)
+        var_name, var_label = lib.extract_var_choice_dets(choice_item)
         if debug: 
             print(var_name)
             pprint.pprint(self.flds)
@@ -256,9 +256,8 @@ class ListVarsDlg(wx.Dialog):
     
     def setup_vars(self, var=None):
         var_names = get_approp_var_names(self.flds)
-        var_choices, self.sorted_var_names = \
-            getdata.get_sorted_choice_items(dic_labels=self.var_labels, 
-                                            vals=var_names)
+        var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
+                                    dic_labels=self.var_labels, vals=var_names)
         self.lstVars.SetItems(var_choices)
         idx = self.sorted_var_names.index(var) if var else -1
         self.lstVars.SetSelection(idx)
@@ -510,7 +509,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         """
         proj_path = os.path.join(LOCAL_PATH, "projs", fil_proj)
         f = codecs.open(proj_path, "U", encoding="utf-8")
-        proj_cont = util.clean_bom_utf8(f.read())
+        proj_cont = lib.clean_bom_utf8(f.read())
         f.close()
         proj_dic = {}
         try:
@@ -646,13 +645,13 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             f.write(os.linesep + os.linesep + u"proj_notes = u\"%s\"" % \
                     proj_notes)
             f.write(os.linesep + os.linesep + u"fil_var_dets = u\"%s\"" % 
-                    util.escape_win_path(fil_var_dets))
+                    lib.escape_win_path(fil_var_dets))
             f.write(os.linesep + u"fil_css = u\"%s\"" % \
-                    util.escape_win_path(fil_css))
+                    lib.escape_win_path(fil_css))
             f.write(os.linesep + u"fil_report = u\"%s\"" % 
-                    util.escape_win_path(fil_report))
+                    lib.escape_win_path(fil_report))
             f.write(os.linesep + u"fil_script = u\"%s\"" % 
-                    util.escape_win_path(fil_script))
+                    lib.escape_win_path(fil_script))
             f.write(os.linesep + u"default_dbe = u\"%s\"" % default_dbe)
             f.write(os.linesep + os.linesep + u"default_dbs = " + \
                     pprint.pformat(default_dbs))

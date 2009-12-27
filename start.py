@@ -22,18 +22,18 @@ import wx
 # translated.
 gettext.install('sofa', './locale', unicode=True)
 import my_globals # has translated text
+import lib
 import config_globals
 import config_dlg
 # importing delayed until needed where possible for startup performance
 # import dataselect
 import full_html
 # import importer
-# import make_table_gui
+# import report_table
 import projects
 import projselect
 import quotes
 # import stats_select
-import util
 
 COPYRIGHT = u"\u00a9"
 SCREEN_WIDTH = 1000
@@ -137,7 +137,7 @@ def InstallLocal():
         proj_str = f.read() # provided by me - no BOM or non-ascii 
         f.close()
         for path in paths:
-            new_str = util.escape_win_path(os.path.join(LOCAL_PATH, path, u""))
+            new_str = lib.escape_win_path(os.path.join(LOCAL_PATH, path, u""))
             proj_str = proj_str.replace(u"/home/g/sofa/%s/" % path, new_str)
         # add MS Access and SQL Server into mix if Windows
         if my_globals.IN_WINDOWS:
@@ -505,12 +505,12 @@ class StartFrame(wx.Frame):
         
     def OnTablesClick(self, event):
         "Open make table gui with settings as per active_proj"
-        import make_table_gui
+        import report_table
         proj_name = self.active_proj
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=proj_name)
         try:
-            dlg = make_table_gui.DlgMakeTable( 
+            dlg = report_table.DlgMakeTable( 
                 proj_dic["default_dbe"], proj_dic["con_dets"], 
                 proj_dic["default_dbs"], proj_dic["default_tbls"], 
                 proj_dic["fil_var_dets"], proj_dic["fil_css"], 

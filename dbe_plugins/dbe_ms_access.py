@@ -14,10 +14,10 @@ import win32com.client
 import wx
 
 import my_globals
+import lib
 import dbe_plugins.dbe_globals as dbe_globals
 import getdata
 import settings_grid
-import util
 
 
 AD_OPEN_KEYSET = 1
@@ -403,7 +403,7 @@ def processConDets(parent, default_dbs, default_tbls, con_dets):
         con_dets_msaccess = {}
         for msaccess_setting in msaccess_settings:
             db_path = msaccess_setting[0]
-            db_name = util.getFileName(db_path)
+            db_name = lib.getFileName(db_path)
             new_msaccess_dic = {}
             new_msaccess_dic[u"database"] = db_path
             new_msaccess_dic[u"mdw"] = msaccess_setting[1]

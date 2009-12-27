@@ -7,10 +7,10 @@ import string
 import wx
 
 import my_globals
+import lib
 import getdata
 import projects
 import settings_grid
-import util
 
 DEFAULT_DB = u"sqlite_default_db"
 DEFAULT_TBL = u"sqlite_default_tbl"
@@ -49,8 +49,8 @@ def get_con(con_dets, db):
             u"using supplied database: %s. " % db + \
             u"Orig error: %s" % e
     # some user-defined functions needed for strict type checking constraints
-    con.create_function("is_numeric", 1, util.is_numeric)
-    con.create_function("is_std_datetime_str", 1, util.is_std_datetime_str)
+    con.create_function("is_numeric", 1, lib.is_numeric)
+    con.create_function("is_std_datetime_str", 1, lib.is_std_datetime_str)
     return con
 
 
@@ -338,7 +338,7 @@ def processConDets(parent, default_dbs, default_tbls, con_dets):
         for sqlite_setting in sqlite_settings:
             # e.g. ("C:\.....\my_sqlite_db",)
             db_path = sqlite_setting[0]
-            db_name = util.getFileName(db_path)
+            db_name = lib.getFileName(db_path)
             new_sqlite_dic = {}
             new_sqlite_dic["database"] = db_path
             con_dets_sqlite[db_name] = new_sqlite_dic

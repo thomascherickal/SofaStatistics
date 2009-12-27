@@ -7,8 +7,8 @@ import wx
 import wx.grid
 
 import my_globals
+import lib
 import getdata
-import util
 
 debug = False
 
@@ -212,12 +212,12 @@ class DbTbl(wx.grid.PyGridTableBase):
             row_idx = row_min
             for data_tup in self.cur.fetchall(): # tuple of values
                 # handle microsoft characters
-                data_tup = tuple([util.ms2utf8(x) for x in data_tup])
+                data_tup = tuple([lib.ms2utf8(x) for x in data_tup])
                 if debug or self.debug: print(data_tup)
                 self.AddDataToRowValsDic(self.row_vals_dic, row_idx, data_tup)
                 row_idx += 1
             val = self.row_vals_dic[row][col] # the bit we're interested in now
-        display_val = util.any2unicode(val)
+        display_val = lib.any2unicode(val)
         return display_val
     
     def AddDataToRowValsDic(self, row_vals_dic, row_idx, data_tup):

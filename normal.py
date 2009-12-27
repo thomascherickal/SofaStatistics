@@ -3,7 +3,10 @@
 
 import wx
 
+import my_globals
+import lib
 import config_dlg
+import projects
 
 
 class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
@@ -26,17 +29,44 @@ class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
 
         # szrs
         szrMain = wx.BoxSizer(wx.VERTICAL)
-        
-        
+        bxDesc = wx.StaticBox(self.panel, -1, _("Purpose"))
+        szrDesc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
         self.szrData = self.get_szrData(self.panel) # mixin
+        bxVars = wx.StaticBox(self.panel, -1, _("Variable to Check"))
+        szrVars = wx.StaticBoxSizer(bxVars, wx.VERTICAL)
+        szrVarsTop = wx.BoxSizer(wx.HORIZONTAL)
         self.szrLevel = self.get_szrLevel(self.panel) # mixin
-        
+        # assembly
+        lblDesc1 = wx.StaticText(self.panel, -1, 
+                _("Is the frequency curve for the variable close enough to the "
+                  "normal distribution curve for use with tests requiring that?"
+                  ))
+        lblDesc2 = wx.StaticText(self.panel, -1, 
+                _("Select a variable to check."))
+        szrDesc.Add(lblDesc1, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szrDesc.Add(lblDesc2, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        lblVars = wx.StaticText(self.panel, -1, _("Variable:"))
+        lblVars.SetFont(self.LABEL_FONT)
+        self.dropVars = wx.Choice(self.panel, -1, size=(300, -1))
+        self.dropVars.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickVars)
+        self.dropVars.SetToolTipString(_("Right click variable to view/edit "
+                                         "details"))
+        self.setup_vars()
+        lblexplanation = wx.StaticText(self.panel, -1, 
+                   _("Only quantity (number) variables are listed here. "
+                     "Anything else is automatically not normal."))
+        szrVarsTop.Add(lblVars, 0, wx.LEFT|wx.RIGHT, 5)
+        szrVarsTop.Add(self.dropVars, 0)
+        szrVars.Add(szrVarsTop, 0)
+        szrVars.Add(lblexplanation, 0, wx.ALL, 5)
         btnOK = wx.Button(self.panel, wx.ID_OK)
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
         szrStdBtns = wx.StdDialogButtonSizer()
         szrStdBtns.AddButton(btnOK)
         szrStdBtns.Realize()
-        szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szrMain.Add(szrDesc, 0, wx.ALL, 10)
+        szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szrMain.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(self.szrLevel, 0, wx.ALL, 10)
         szrMain.Add(szrStdBtns, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
         self.panel.SetSizer(szrMain)
@@ -46,6 +76,30 @@ class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
     def OnOK(self, event):
         self.Destroy()
         event.Skip()
-        
+
+    def setup_vars(self, var=None):
+        var_names = projects.get_approp_var_names(self.flds, self.var_types,
+                                        min_data_type=my_globals.VAR_TYPE_QUANT)
+        var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
+                                    dic_labels=self.var_labels, vals=var_names)
+        self.dropVars.SetItems(var_choices)
+        idx = self.sorted_var_names.index(var) if var else 0
+        self.dropVars.SetSelection(idx)
+
     def refresh_vars(self):
         config_dlg.ConfigDlg.update_var_dets(self)
+        
+    def get_var(self):
+        idx = self.dropVars.GetSelection()
+        var = self.sorted_var_names[idx]
+        var_item = self.dropVars.GetStringSelection()
+        return var, var_item
+    
+    def OnRightClickVars(self, event):
+        var, choice_item = self.get_var()
+        var_name, var_label = lib.extract_var_choice_dets(choice_item)
+        updated = projects.set_var_props(choice_item, var_name, var_label, 
+                            self.flds, self.var_labels, self.var_notes, 
+                            self.var_types, self.val_dics, self.fil_var_dets)
+        if updated:
+            self.setup_vars(var)  

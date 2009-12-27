@@ -3,12 +3,12 @@ import os
 import wx
 
 import my_globals
+import lib
 from my_exceptions import ImportCancelException
 import config_dlg
 import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import csv_importer
-import util
 if my_globals.IN_WINDOWS:
     import excel_importer
 import projects
@@ -68,14 +68,14 @@ def assess_sample_fld(sample_data, fld_name):
     datetime_only_set = set([VAL_DATETIME])
     datetime_or_empt_str_set = set([VAL_DATETIME, VAL_EMPTY_STRING])
     for row in sample_data:
-        val = util.if_none(row[fld_name], u"")
-        if util.is_numeric(val): # anything that SQLite can add _as a number_ 
+        val = lib.if_none(row[fld_name], u"")
+        if lib.is_numeric(val): # anything that SQLite can add _as a number_ 
                 # into a numeric field
             type_set.add(VAL_NUMERIC)
-        elif util.isPyTime(val): # COM on Windows
+        elif lib.isPyTime(val): # COM on Windows
             type_set.add(VAL_DATETIME)
         else:
-            usable_datetime = util.is_usable_datetime_str(val)
+            usable_datetime = lib.is_usable_datetime_str(val)
             if usable_datetime:
                 type_set.add(VAL_DATETIME)
             elif val == u"":
@@ -104,13 +104,13 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
     """
     debug = False
     val = row[fld_name]
-    is_pytime = util.isPyTime(val)
+    is_pytime = lib.isPyTime(val)
     fld_type = fld_types[fld_name]
     if not check:
         # still need to handle pytime and turn empty strings into NULLs 
         # for non string fields.
         if is_pytime:
-            val = util.pytime_to_datetime_str(val)
+            val = lib.pytime_to_datetime_str(val)
         if not is_pytime:
             if fld_type in [my_globals.FLD_TYPE_NUMERIC, 
                             my_globals.FLD_TYPE_DATE] and \
@@ -120,7 +120,7 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
         bolOK_data = False        
         if fld_type == my_globals.FLD_TYPE_NUMERIC:
             # must be numeric or empty string (which we'll turn to NULL)
-            if util.is_numeric(val):
+            if lib.is_numeric(val):
                 bolOK_data = True
             elif val == u"" or val is None:
                 bolOK_data = True
@@ -130,14 +130,14 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
             # or empty string (which we'll turn to NULL).
             if is_pytime:
                 bolOK_data = True
-                val = util.pytime_to_datetime_str(val)
+                val = lib.pytime_to_datetime_str(val)
             else:
                 if val == u"" or val is None:
                     bolOK_data = True
                     val = u"NULL"
                 else:
                     try:
-                        val = util.get_std_datetime_str(val)
+                        val = lib.get_std_datetime_str(val)
                         bolOK_data = True
                     except Exception:
                         pass # leave val as is for error reporting

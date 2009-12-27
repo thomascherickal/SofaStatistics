@@ -10,7 +10,6 @@ import codecs
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
 import importer
-import util
 from my_exceptions import ImportCancelException
 from my_exceptions import NewLineInUnquotedException
 

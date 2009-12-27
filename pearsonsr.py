@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 import my_globals
+import lib
 import paired2var
-import util
 
 
 class DlgConfig(paired2var.DlgPaired2VarConfig):
@@ -29,7 +29,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
     def get_script(self, css_idx):
         "Build script from inputs"
         script_lst = []
-        script_lst.append(util.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
+        script_lst.append(lib.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
         var_a, label_a, var_b, label_b = self.get_drop_vals()
         script_lst.append(u"sample_a, sample_b = " + \
             u"core_stats.get_paired_lists(" + \

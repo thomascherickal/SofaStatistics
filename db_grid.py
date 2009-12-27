@@ -1,11 +1,11 @@
 from __future__ import print_function
 from decimal import Decimal
 import pprint
-import util
 import wx
 import wx.grid
 
 import my_globals
+import lib
 import dbe_plugins.dbe_sqlite as dbe_sqlite 
 import db_tbl
 import getdata
@@ -511,7 +511,7 @@ class TblEditor(wx.Dialog):
              # and raw_val != my_globals.MISSING_VAL_INDICATOR unnecessary
             raise Exception, "This field should have been read only"
         elif fld_dic[my_globals.FLD_BOLNUMERIC]:
-            if not util.is_numeric(raw_val):
+            if not lib.is_numeric(raw_val):
                 wx.MessageBox(_("\"%s\" is not a valid number.\n\n"
                               "Either enter a valid number or "
                               "the missing value character (.)") % raw_val)
@@ -523,7 +523,7 @@ class TblEditor(wx.Dialog):
                 return True
             return False
         elif fld_dic[my_globals.FLD_BOLDATETIME]:
-            usable_datetime = util.is_usable_datetime_str(raw_val)
+            usable_datetime = lib.is_usable_datetime_str(raw_val)
             if not usable_datetime:
                 eg1 = my_globals.OK_DATE_FORMAT_EXAMPLES[0]
                 eg2 = my_globals.OK_DATE_FORMAT_EXAMPLES[1]

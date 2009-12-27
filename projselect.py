@@ -5,10 +5,10 @@ import sys
 import wx
 
 import my_globals
+import lib
 import config_dlg
 import getdata
 import projects
-import util
 
 
 class ProjSelectDlg(wx.Dialog):
@@ -83,7 +83,7 @@ class ProjSelectDlg(wx.Dialog):
     def get_notes(self, fil_proj):
         proj_path = os.path.join(my_globals.LOCAL_PATH, "projs", fil_proj)
         f = codecs.open(proj_path, "U", encoding="utf-8")
-        proj_cont = util.clean_bom_utf8(f.read())
+        proj_cont = lib.clean_bom_utf8(f.read())
         f.close()
         proj_dic = {}
         try:

@@ -7,7 +7,6 @@ import wx.html
 
 import my_globals
 import config_dlg
-import getdata
 import output
 import projects
 
@@ -51,18 +50,13 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             self.get_gen_config_szrs(self.panel) # mixin
         self.szrOutputButtons = self.get_szrOutputBtns(self.panel) # mixin
         szrMain = wx.BoxSizer(wx.VERTICAL)
-        bxDesc = wx.StaticBox(self.panel, -1, _("Variables"))
+        bxDesc = wx.StaticBox(self.panel, -1, _("Purpose"))
         szrDesc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
-        szrDescTop = wx.BoxSizer(wx.HORIZONTAL)
-        lblPurpose = wx.StaticText(self.panel, -1, "Purpose:")
-        lblPurpose.SetFont(self.LABEL_FONT)
         eg1, eg2, eg3 = self.GetExamples()
         lblDesc1 = wx.StaticText(self.panel, -1, eg1)
-        szrDescTop.Add(lblPurpose, 0, wx.RIGHT, 10)
-        szrDescTop.Add(lblDesc1, 0, wx.GROW)
         lblDesc2 = wx.StaticText(self.panel, -1, eg2)
         lblDesc3 = wx.StaticText(self.panel, -1, eg3)
-        szrDesc.Add(szrDescTop, 1, wx.GROW|wx.LEFT, 5)
+        szrDesc.Add(lblDesc1, 1, wx.GROW|wx.LEFT, 5)
         szrDesc.Add(lblDesc2, 1, wx.GROW|wx.LEFT, 5)
         szrDesc.Add(lblDesc3, 1, wx.GROW|wx.LEFT, 5)
         bxVars = wx.StaticBox(self.panel, -1, _("Variables"))
@@ -119,7 +113,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
 
     def OnRightClickGroupA(self, event):
         var_a, choice_item = self.get_var_a()
-        var_name, var_label = getdata.extractChoiceDets(choice_item)
+        var_name, var_label = lib.extract_var_choice_dets(choice_item)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
@@ -128,7 +122,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
 
     def OnRightClickGroupB(self, event):
         var_b, choice_item = self.get_var_b()
-        var_name, var_label = getdata.extractChoiceDets(choice_item)
+        var_name, var_label = lib.extract_var_choice_dets(choice_item)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
@@ -151,9 +145,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         """
         var_names = projects.get_approp_var_names(self.flds, self.var_types,
                                                   self.min_data_type)
-        fld_choice_items, self.sorted_var_names = \
-            getdata.get_sorted_choice_items(dic_labels=self.var_labels, 
-                                            vals=var_names)
+        fld_choice_items, self.sorted_var_names = lib.get_sorted_choice_items(
+                                dic_labels=self.var_labels, vals=var_names)
         return fld_choice_items
        
     def setup_group_a(self, fld_choice_items, var_a=None):        
@@ -234,9 +227,9 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         Returns var_a, label_a, var_b, label_b.
         """
         choice_a_text = self.dropGroupA.GetStringSelection()
-        var_a, label_a = getdata.extractChoiceDets(choice_a_text)
+        var_a, label_a = lib.extract_var_choice_dets(choice_a_text)
         choice_b_text = self.dropGroupB.GetStringSelection()
-        var_b, label_b = getdata.extractChoiceDets(choice_b_text)
+        var_b, label_b = lib.extract_var_choice_dets(choice_b_text)
         return var_a, label_a, var_b, label_b
     
     def UpdatePhrase(self):

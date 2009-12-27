@@ -10,9 +10,9 @@ import time
 import wx
 
 import my_globals
+import lib
 import getdata
 import showhtml
-import util
 
 # do not use os.linesep for anything going to be read and exec'd
 # in Windows the \r\n makes it fail.
@@ -200,7 +200,7 @@ def GetCssDets(fil_report, fil_css):
     # read from report
     if os.path.exists(fil_report):
         f = codecs.open(fil_report, "U", "utf-8")
-        content = util.clean_bom_utf8(f.read())
+        content = lib.clean_bom_utf8(f.read())
         f.close()
         if content:
             try:
@@ -238,7 +238,7 @@ def export_script(script, fil_script, fil_report, css_fils, con_dets, dbe, db,
                "rawtables", "stats_output"]
     if os.path.exists(fil_script):
         f = codecs.open(fil_script, "U", "utf-8")
-        existing_script = util.clean_bom_utf8(f.read())             
+        existing_script = lib.clean_bom_utf8(f.read())             
         f.close()
     else:
         existing_script = None
@@ -247,7 +247,7 @@ def export_script(script, fil_script, fil_report, css_fils, con_dets, dbe, db,
         f.write(_strip_script(existing_script))
     else:
         InsertPrelimCode(modules, f, fil_report, css_fils)
-    tbl_filt_label, tbl_filt = util.get_tbl_filt(dbe, db, tbl)
+    tbl_filt_label, tbl_filt = lib.get_tbl_filt(dbe, db, tbl)
     append_exported_script(f, script, con_dets, dbe, db, tbl, tbl_filt_label,
                            tbl_filt, default_dbs, default_tbls, 
                            inc_divider=True)
@@ -303,7 +303,7 @@ def run_report(modules, fil_report, add_to_report, css_fils, inner_script,
     f = codecs.open(my_globals.INT_SCRIPT_PATH, "w", "utf-8")
     if debug: print(css_fils)
     InsertPrelimCode(modules, f, my_globals.INT_REPORT_PATH, css_fils)
-    tbl_filt_label, tbl_filt = util.get_tbl_filt(dbe, db, tbl_name)
+    tbl_filt_label, tbl_filt = lib.get_tbl_filt(dbe, db, tbl_name)
     append_exported_script(f, inner_script, con_dets, dbe, db, tbl_name,
                            tbl_filt_label, tbl_filt, default_dbs, default_tbls, 
                            inc_divider=False)
@@ -311,7 +311,7 @@ def run_report(modules, fil_report, add_to_report, css_fils, inner_script,
     f.close()
     # run script
     f = codecs.open(my_globals.INT_SCRIPT_PATH, "r", "utf-8")
-    script = util.clean_bom_utf8(f.read())    
+    script = lib.clean_bom_utf8(f.read())    
     script = script[script.index(my_globals.MAIN_SCRIPT_START):]
     f.close()
     try:
@@ -324,7 +324,7 @@ def run_report(modules, fil_report, add_to_report, css_fils, inner_script,
             raise Exception, unicode(e)
         return err_content
     f = codecs.open(my_globals.INT_REPORT_PATH, "U", "utf-8")
-    raw_content = util.clean_bom_utf8(f.read())
+    raw_content = lib.clean_bom_utf8(f.read())
     f.close()
     source = get_source(db, tbl_name)
     filt_msg = get_filt_msg(tbl_filt_label, tbl_filt)
@@ -334,7 +334,7 @@ def run_report(modules, fil_report, add_to_report, css_fils, inner_script,
         save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt, 
                        raw_content) # handles source and filter desc internally
         display_content = u"\n<p>Output also saved to '%s'</p>" % \
-                        util.escape_win_path(fil_report) + main_content
+                        lib.escape_win_path(fil_report) + main_content
     else:
         display_content = main_content
     return display_content
@@ -358,11 +358,11 @@ def InsertPrelimCode(modules, f, fil_report, css_fils):
     f.write(u"\n" + u"import gettext")
     f.write(u"\n" + u"gettext.install('sofa', './locale', unicode=False)")
     f.write(u"\n" + u"sys.path.append(u'%s')" % \
-            util.escape_win_path(my_globals.SCRIPT_PATH))
+            lib.escape_win_path(my_globals.SCRIPT_PATH))
     for module in modules:
         f.write(u"\n" + u"import %s" % module)
     f.write(u"\n" + u"\n" + u"""fil = codecs.open(u"%s",""" % \
-              util.escape_win_path(fil_report) + u""" "w", "utf-8")""")
+              lib.escape_win_path(fil_report) + u""" "w", "utf-8")""")
     css_fils_str = pprint.pformat(css_fils)
     f.write(u"\n" + u"css_fils=%s" % css_fils_str)
     f.write(u"\n" + u"fil.write(output.get_html_hdr(\"Report(s)\", "
@@ -427,7 +427,7 @@ def save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt,
     new_no_hdr = _strip_html(new_html)
     if os.path.exists(fil_report):
         f = codecs.open(fil_report, "U", "utf-8")
-        existing_html = util.clean_bom_utf8(f.read())
+        existing_html = lib.clean_bom_utf8(f.read())
         existing_no_ends = _strip_html(existing_html)
         f.close()        
     else:

@@ -368,7 +368,10 @@ class StatsSelectDlg(wx.Dialog):
           "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc)."))
     
     def OnNormalHelp2Button(self, event):
-        wx.MessageBox("Under construction")
+        dlg = normal.NormalDlg(self, self.dbe, self.con_dets, self.default_dbs, 
+                        self.default_tbls, self.var_labels, self.var_notes, 
+                        self.var_types, self.val_dics, self.fil_var_dets)
+        dlg.ShowModal()
     
     def NormalRelSetup(self, enable=True):
         # set left first

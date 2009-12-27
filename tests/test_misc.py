@@ -17,13 +17,13 @@ import time
 #from .output import _strip_html
 import my_globals
 import config_globals
+import lib
 import filtselect
 import getdata
 import importer
 import indep2var
 import output
 import projects
-import util
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
@@ -54,7 +54,7 @@ def test_is_usable_datetime_str():
              ("3/31/88", True),
              ])    
     for test in tests:
-        assert_equal(util.is_usable_datetime_str(test[0]), test[1])
+        assert_equal(lib.is_usable_datetime_str(test[0]), test[1])
 
 def test_get_std_datetime_str():
     ymd = "%4d-%02d-%02d" % time.localtime()[:3]
@@ -77,7 +77,7 @@ def test_get_std_datetime_str():
              ("3/31/88", "1988-03-31 00:00:00"),
              ])    
     for test in tests:
-        assert_equal(util.get_std_datetime_str(test[0]), test[1])
+        assert_equal(lib.get_std_datetime_str(test[0]), test[1])
         
 def test_get_dets_of_usable_datetime_str():
     # date_part, date_format, time_part, time_format, boldate_then_time
@@ -114,7 +114,7 @@ def test_get_dets_of_usable_datetime_str():
              ("1/31/09", ("1/31/09", "%m/%d/%y", None, None, True)),
              ])  
     for test in tests:
-        assert_equal(util.get_dets_of_usable_datetime_str(test[0]), test[1])
+        assert_equal(lib.get_dets_of_usable_datetime_str(test[0]), test[1])
 
 def test_get_val():
     "Must be useful for making WHERE clauses"
@@ -226,7 +226,7 @@ def test_n2d():
              (1.002e3, D("1002")),
              ]
     for test in tests:
-        assert_equal(util.n2d(test[0]), test[1])
+        assert_equal(lib.n2d(test[0]), test[1])
 
 def test_is_basic_num(): # about type
     tests = [(5, True),
@@ -237,7 +237,7 @@ def test_is_basic_num(): # about type
              ("spam", False),
              ]
     for test in tests:
-        assert_equal(util.is_basic_num(test[0]), test[1])
+        assert_equal(lib.is_basic_num(test[0]), test[1])
 
 def test_is_numeric(): # about content
     tests = [(5, True),
@@ -254,7 +254,7 @@ def test_is_numeric(): # about content
              ]
     for test in tests:
         print(test)
-        assert_equal(util.is_numeric(test[0]), test[1])
+        assert_equal(lib.is_numeric(test[0]), test[1])
 
 def test_make_fld_val_clause():
     flds = {"numvar": {my_globals.FLD_BOLNUMERIC: True, 
@@ -332,8 +332,8 @@ def test_any2unicode():
       u'C:\\Documents and Settings\\\u03a0\u03b1\u03bd\u03c4\u03b5\u03bb\u03ae\u03c2\\sofa\\_internal')
              ]
     for test in tests:
-        assert_equal(util.any2unicode(test[0]), test[1])
-        assert_true(isinstance(util.any2unicode(test[0]), unicode))
+        assert_equal(lib.any2unicode(test[0]), test[1])
+        assert_true(isinstance(lib.any2unicode(test[0]), unicode))
 
 def test_str2unicode():
     tests = [
@@ -352,8 +352,8 @@ def test_str2unicode():
       u'C:\\Documents and Settings\\\u03a0\u03b1\u03bd\u03c4\u03b5\u03bb\u03ae\u03c2\\sofa\\_internal')
              ]
     for test in tests:
-        assert_equal(util.str2unicode(test[0]), test[1])
-        assert_true(isinstance(util.str2unicode(test[0]), unicode))
+        assert_equal(lib.str2unicode(test[0]), test[1])
+        assert_true(isinstance(lib.str2unicode(test[0]), unicode))
 
 def test_strip_html():
     tests = [("<body>Freddy</body>", "Freddy"), 

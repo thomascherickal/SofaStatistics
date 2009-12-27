@@ -13,6 +13,7 @@ import sys
 import time
 import wx
 
+# only import my_globals from local modules
 import my_globals
 
 def get_tbl_filt(dbe, db, tbl):
@@ -471,8 +472,118 @@ def time_obj_to_datetime_str(time_obj):
     "Takes time_obj and returns standard datetime string"
     datetime_str = "%4d-%02d-%02d %02d:%02d:%02d" % (time_obj[:6])
     return datetime_str
+
+# data
+def get_choice_item(item_labels, item_val):
+    val_label = any2unicode(item_val)
+    return u"%s (%s)" % (item_labels.get(item_val, val_label.title()), 
+                         val_label)
+
+def get_sorted_choice_items(dic_labels, vals):
+    """
+    Sorted by label, not name.
+    dic_labels - could be for either variables of values.
+    vals - either variables or values.
+    Returns choice_items_sorted, orig_items_sorted.
+    http://www.python.org/doc/faq/programming/#i-want-to-do-a-complicated- ...
+        ... sort-can-you-do-a-schwartzian-transform-in-python
+    """
+    sorted_vals = vals
+    sorted_vals.sort(key=lambda s: get_choice_item(dic_labels, s).upper())
+    choice_items = [get_choice_item(dic_labels, x) for x in sorted_vals]
+    return choice_items, sorted_vals
+
+def extract_var_choice_dets(choice_text):
+    """
+    Extract name, label from item
+    e.g. return "gender" and "Gender" from "Gender (gender)".
+    Returns as string (even if original was a number etc).
+    If not in this format, e.g. special col measures label, handle differently.
+    """
+    try:
+        start_idx = choice_text.index("(") + 1
+        end_idx = choice_text.index(")")
+        item_val = choice_text[start_idx:end_idx]
+        item_label = choice_text[:start_idx - 2]
+    except Exception:
+        item_val = choice_text
+        item_label = choice_text        
+    return item_val, item_label
+
+# report tables
+def get_default_measure(tab_type):
+    """
+    Get default measure appropriate for table type
+    NB raw tables don't have measures
+    """
+    if tab_type == my_globals.COL_MEASURES: 
+        return my_globals.FREQ
+    elif tab_type == my_globals.ROW_SUMM:
+        return my_globals.MEAN
+    else:
+        raise Exception, u"Only dimension tables have measures"
+
+def get_col_dets(coltree, colRoot, var_labels):
+    """
+    Get names and labels of columns actually selected in GUI column tree.
+    Returns col_names, col_labels.
+    """
+    full_col_labels = get_sub_tree_items(coltree, colRoot)
+    split_col_tree_labels = full_col_labels.split(", ")        
+    col_names = [extract_var_choice_dets(x)[0] for x in split_col_tree_labels]
+    col_labels = [var_labels.get(x, x.title()) for x in col_names]
+    return col_names, col_labels
+
+
+class ItemConfig(object):
+    """
+    Item config storage and retrieval.
+    Has: measures, has_tot, sort order, bolnumeric
+    """
     
-def getTreeCtrlChildren(tree, parent):
+    def __init__(self, measures_lst=None, has_tot=False, 
+                 sort_order=my_globals.SORT_NONE, bolnumeric=False):
+        if measures_lst:
+            self.measures_lst = measures_lst
+        else:
+            self.measures_lst = []
+        self.has_tot = has_tot
+        self.sort_order = sort_order
+        self.bolnumeric = bolnumeric
+    
+    def hasData(self):
+        "Has the item got any extra config e.g. measures, a total?"
+        return self.measures_lst or self.has_tot or \
+            self.sort_order != my_globals.SORT_NONE
+    
+    def getSummary(self, verbose=False):
+        "String summary of data"
+        str_parts = []
+        total_part = _("Has TOTAL") if self.has_tot else None
+        if total_part:
+            str_parts.append(total_part)
+        if self.sort_order == my_globals.SORT_NONE:
+            sort_order_part = None
+        elif self.sort_order == my_globals.SORT_LABEL:
+            sort_order_part = _("Sort by Label")
+        elif self.sort_order == my_globals.SORT_FREQ_ASC:
+            sort_order_part = _("Sort by Freq (Asc)")
+        elif self.sort_order == my_globals.SORT_FREQ_DESC:
+            sort_order_part = _("Sort by Freq (Desc)")            
+        if sort_order_part:
+            str_parts.append(sort_order_part)
+        if verbose:
+            if self.bolnumeric:
+                str_parts.append(_("Numeric"))
+            else:
+                str_parts.append(_("Not numeric"))
+        measures = ", ".join(self.measures_lst)
+        measures_part = _("Measures: %s") % measures if measures else None
+        if measures_part:
+            str_parts.append(measures_part)
+        return u"; ".join(str_parts)
+
+def get_tree_ctrl_children(tree, parent):
     "Get children of TreeCtrl item"
     children = []
     item, cookie = tree.GetFirstChild(parent) #p.471 wxPython
@@ -481,9 +592,9 @@ def getTreeCtrlChildren(tree, parent):
         item, cookie = tree.GetNextChild(parent, cookie)
     return children
 
-def ItemHasChildren(tree, parent):
+def item_has_children(tree, parent):
     """
-    tree.ItemHasChildren(item_id) doesn't work if root is hidden.
+    tree.item_has_children(item_id) doesn't work if root is hidden.
     E.g. self.tree = wx.gizmos.TreeListCtrl(self, -1, 
                       style=wx.TR_FULL_ROW_HIGHLIGHT | \
                       wx.TR_HIDE_ROOT)
@@ -494,26 +605,26 @@ def ItemHasChildren(tree, parent):
     item, cookie = tree.GetFirstChild(parent)
     return True if item else False
 
-def getTreeCtrlDescendants(tree, parent, descendants=None):
+def get_tree_ctrl_descendants(tree, parent, descendants=None):
     """
     Get all descendants (descendent is an alternative spelling 
     in English grrr).
     """
     if descendants is None:
         descendants = []
-    children = getTreeCtrlChildren(tree, parent)
+    children = get_tree_ctrl_children(tree, parent)
     for child in children:
         descendants.append(child)
-        getTreeCtrlDescendants(tree, child, descendants)
+        get_tree_ctrl_descendants(tree, child, descendants)
     return descendants
 
-def getSubTreeItems(tree, parent):
+def get_sub_tree_items(tree, parent):
     "Return string representing subtree"
-    descendants = getTreeCtrlDescendants(tree, parent)
+    descendants = get_tree_ctrl_descendants(tree, parent)
     descendant_labels = [tree.GetItemText(x) for x in descendants]
     return ", ".join(descendant_labels)
 
-def getTreeAncestors(tree, child):
+def get_tree_ancestors(tree, child):
     "Get ancestors of TreeCtrl item"
     ancestors = []
     item = tree.GetItemParent(child)
@@ -573,4 +684,4 @@ class StaticWrapText(wx.StaticText):
     def OnSize(self, event):
         # dispatch to the wrap method which will 
         # determine if any changes are needed
-        self.__wrap()        
+        self.__wrap()

@@ -4,9 +4,9 @@ from operator import itemgetter
 import pprint
 
 import my_globals
-import tree
+import lib
 import getdata
-import util
+import tree
 
 """
 Dimension node trees are things like:
@@ -391,7 +391,7 @@ class LiveTable(DimTable):
         self.dbe = dbe
         self.tbl = tbl
         self.tbl_filt = tbl_filt
-        self.where_tbl_filt, self.and_tbl_filt = util.get_tbl_filts(tbl_filt)
+        self.where_tbl_filt, self.and_tbl_filt = lib.get_tbl_filts(tbl_filt)
         self.cur = cur
         self.flds = flds
         (self.if_clause, self.quote_obj, self.quote_val, self.placeholder,
@@ -631,7 +631,7 @@ class LiveTable(DimTable):
         debug = False
         val_freq_label_lst = []
         for (val, val_freq) in all_vals:
-            def_val_label = util.any2unicode(val)
+            def_val_label = lib.any2unicode(val)
             val_label = tree_dims_node.labels.get(val, def_val_label)
             val_tup = (val, val_freq, val_label)
             if debug: print(val_tup)
@@ -1116,7 +1116,7 @@ class SummTable(LiveTable):
         while True:
             val = self.cur.fetchone()[0]
             if debug: print(val)
-            if val is not None and not util.is_basic_num(val):
+            if val is not None and not lib.is_basic_num(val):
                 break
         return val
     
