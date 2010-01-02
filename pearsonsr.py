@@ -9,7 +9,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
     
     min_data_type = my_globals.VAR_TYPE_QUANT
     
-    def GetExamples(self):
+    def get_examples(self):
         eg1 = _("Answers the question, is there a linear relationship "
                 "between two variables i.e. do they both change together?")
         eg2 = _("For example, does IQ correlate with exam scores?")
@@ -17,7 +17,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
                 "longer measure?")
         return eg1, eg2, eg3
 
-    def UpdatePhrase(self):
+    def update_phrase(self):
         """
         Update phrase based on Group A and Group B.
         """

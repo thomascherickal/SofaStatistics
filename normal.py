@@ -2,11 +2,42 @@
 # -*- coding: utf-8 -*-
 
 import wx
+import wxmpl
+from pylab import normpdf, randn
 
 import my_globals
 import lib
+import getdata
 import config_dlg
+import core_stats
 import projects
+
+
+class HistoDlg(wxmpl.PlotDlg):
+    def __init__(self, parent, var_label, vals):
+        wxmpl.PlotDlg.__init__(self, parent, 
+		    title="Similar to normal distribution curve?", size=(10.0, 6.0), 
+		    dpi=96)
+        btnOK = wx.Button(self, wx.ID_OK)
+        btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
+        self.sizer.Add(btnOK, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
+        fig = self.get_figure()
+        axes = fig.gca()
+        n, bins, patches = axes.hist(vals, 100, normed=1, 
+            facecolor="#f87526", edgecolor="#8f8f8f")
+        mu = core_stats.mean(vals)
+        sigma = core_stats.stdev(vals)
+        y = normpdf( bins, mu, sigma)
+        l = axes.plot(bins, y,  color="#5a4a3d", linewidth=4)
+        axes.set_xlabel(var_label)
+        axes.set_ylabel('P')
+        axes.set_title("Histogram for %s" % var_label)
+        self.draw()
+        self.SetSizer(self.sizer)
+        self.Fit()
+
+    def OnOK(self, event):
+        self.Destroy()
 
 
 class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
@@ -26,7 +57,6 @@ class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.val_dics = val_dics
         self.fil_var_dets = fil_var_dets
         self.panel = wx.Panel(self)
-
         # szrs
         szrMain = wx.BoxSizer(wx.VERTICAL)
         bxDesc = wx.StaticBox(self.panel, -1, _("Purpose"))
@@ -36,6 +66,7 @@ class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrVars = wx.StaticBoxSizer(bxVars, wx.VERTICAL)
         szrVarsTop = wx.BoxSizer(wx.HORIZONTAL)
         self.szrLevel = self.get_szrLevel(self.panel) # mixin
+        self.szrExamine = wx.BoxSizer(wx.VERTICAL)
         # assembly
         lblDesc1 = wx.StaticText(self.panel, -1, 
                 _("Is the frequency curve for the variable close enough to the "
@@ -48,6 +79,7 @@ class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
         lblVars = wx.StaticText(self.panel, -1, _("Variable:"))
         lblVars.SetFont(self.LABEL_FONT)
         self.dropVars = wx.Choice(self.panel, -1, size=(300, -1))
+        self.dropVars.Bind(wx.EVT_CHOICE, self.OnVarsSel)
         self.dropVars.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickVars)
         self.dropVars.SetToolTipString(_("Right click variable to view/edit "
                                          "details"))
@@ -59,6 +91,11 @@ class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrVarsTop.Add(self.dropVars, 0)
         szrVars.Add(szrVarsTop, 0)
         szrVars.Add(lblexplanation, 0, wx.ALL, 5)
+
+
+        #imgHisto = 
+
+
         btnOK = wx.Button(self.panel, wx.ID_OK)
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
         szrStdBtns = wx.StdDialogButtonSizer()
@@ -68,6 +105,7 @@ class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szrMain.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(self.szrLevel, 0, wx.ALL, 10)
+        szrMain.Add(self.szrExamine, 1)
         szrMain.Add(szrStdBtns, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
@@ -95,6 +133,24 @@ class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
         var_item = self.dropVars.GetStringSelection()
         return var, var_item
     
+    def OnVarsSel(self, event):
+        var, choice_item = self.get_var()
+        var_name, var_label = lib.extract_var_choice_dets(choice_item)
+        unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
+        where_filt, unused = lib.get_tbl_filts(tbl_filt)
+        obj_quoter = getdata.get_obj_quoter_func(self.dbe)
+        s = """SELECT %(var)s
+            FROM %(tbl)s 
+            %(where_filt)s
+            ORDER BY %(var)s""" % {"var": obj_quoter(var), 
+                                   "tbl": obj_quoter(self.tbl),
+                                   "where_filt": where_filt}
+        self.cur.execute(s)
+        vals = [x[0] for x in self.cur.fetchall()]
+        dlg = HistoDlg(parent=self, var_label=var_label, vals=vals)
+        dlg.ShowModal()
+        event.Skip()
+    
     def OnRightClickVars(self, event):
         var, choice_item = self.get_var()
         var_name, var_label = lib.extract_var_choice_dets(choice_item)
@@ -102,4 +158,5 @@ class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
-            self.setup_vars(var)  
+            self.setup_vars(var)
+

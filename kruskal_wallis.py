@@ -11,7 +11,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
     averaged = _("Averaged")
     min_data_type = my_globals.VAR_TYPE_ORD
 
-    def GetExamples(self):
+    def get_examples(self):
         eg1 = _("Answers the question, do 3 or more groups have a "
             "different average?")
         eg2 = _("For example, is average income the same for people from "
@@ -20,7 +20,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             "between dog, cat, and pony owners?")
         return eg1, eg2, eg3
     
-    def UpdatePhrase(self):
+    def update_phrase(self):
         """
         Update phrase based on GroupBy, Group A, Group B, and Averaged by field.
         """

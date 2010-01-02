@@ -77,7 +77,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szrMain = wx.BoxSizer(wx.VERTICAL)
         bxDesc = wx.StaticBox(self.panel, -1, _("Purpose"))
         szrDesc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
-        eg1, eg2, eg3 = self.GetExamples()
+        eg1, eg2, eg3 = self.get_examples()
         lblDesc1 = wx.StaticText(self.panel, -1, eg1)
         lblDesc2 = wx.StaticText(self.panel, -1, eg2)
         lblDesc3 = wx.StaticText(self.panel, -1, eg3)
@@ -155,11 +155,11 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(szrBottom, 2, wx.GROW|wx.ALL, 10)
-        self.AddOtherVarOpts()
+        self.add_other_var_opts()
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
 
-    def AddOtherVarOpts(self):
+    def add_other_var_opts(self):
         pass
 
     def OnRightClickTables(self, event):
@@ -192,8 +192,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_gp, var_avg = self.get_vars()
         self.setup_group_by(var_gp)
         self.setup_avg(var_avg)
-        self.UpdateDefaults()
-        self.UpdatePhrase()
+        self.update_defaults()
+        self.update_phrase()
         
     def OnPaint(self, event):
         if self.show_chop_warning:
@@ -232,8 +232,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.setup_group_by(var_gp)
         self.setup_avg(var_avg)
         self.setup_group_dropdowns(val_a, val_b)
-        self.UpdateDefaults()
-        self.UpdatePhrase()
+        self.update_defaults()
+        self.update_phrase()
         
     def OnButtonVarDetsPath(self, event):
         """
@@ -246,8 +246,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.setup_group_by(var_gp)
         self.setup_avg(var_avg)
         self.setup_group_dropdowns(val_a, val_b)
-        self.UpdateDefaults()
-        self.UpdatePhrase()
+        self.update_defaults()
+        self.update_phrase()
     
     def get_group_by(self):
         idx_by = self.dropGroupBy.GetSelection()
@@ -286,23 +286,23 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         
     def refresh_vals(self):
         self.setup_group_dropdowns()
-        self.UpdatePhrase()
-        self.UpdateDefaults()
+        self.update_phrase()
+        self.update_defaults()
     
-    def UpdateDefaults(self):
+    def update_defaults(self):
         my_globals.GROUP_BY_DEFAULT = self.dropGroupBy.GetStringSelection()
         my_globals.GROUP_AVG_DEFAULT = self.dropAveraged.GetStringSelection()
         my_globals.VAL_A_DEFAULT = self.dropGroupA.GetStringSelection()
         my_globals.VAL_B_DEFAULT = self.dropGroupB.GetStringSelection()
     
     def OnGroupByASel(self, event):        
-        self.UpdatePhrase()
-        self.UpdateDefaults()
+        self.update_phrase()
+        self.update_defaults()
         event.Skip()
         
     def OnGroupByBSel(self, event):        
-        self.UpdatePhrase()
-        self.UpdateDefaults()
+        self.update_phrase()
+        self.update_defaults()
         event.Skip()
     
     def setup_group_by(self, var_gp=None):
@@ -406,8 +406,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             val_b, label_b, var_avg, label_avg
         
     def OnAveragedSel(self, event):        
-        self.UpdatePhrase()
-        self.UpdateDefaults()
+        self.update_phrase()
+        self.update_defaults()
         event.Skip()
     
     def OnButtonRun(self, event):
@@ -417,7 +417,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             (INT_REPORT_PATH) and into report file, and finally, 
             display html output.
         """
-        run_ok = self.TestConfigOK()
+        run_ok = self.test_config_ok()
         if run_ok:
             wx.BeginBusyCursor()
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
@@ -430,7 +430,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             output.DisplayReport(self, strContent)
         event.Skip()
     
-    def TestConfigOK(self):
+    def test_config_ok(self):
         """
         Are the appropriate selections made to enable an analysis to be run?
         """
@@ -478,7 +478,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             the new exported script.
         If the file exists and is not empty, append the script on the end.
         """
-        export_ok = self.TestConfigOK()
+        export_ok = self.test_config_ok()
         if export_ok:
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.get_script(css_idx)

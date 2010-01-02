@@ -9,7 +9,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
     
     min_data_type = my_globals.VAR_TYPE_ORD
     
-    def GetExamples(self):
+    def get_examples(self):
         eg1 = _("Answers the question, are the elements of paired sets of "
                 "data different from each other?")
         eg2 = _("For example, do tutors get better student ratings after a "

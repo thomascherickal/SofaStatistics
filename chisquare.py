@@ -10,7 +10,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
     
     min_data_type = my_globals.VAR_TYPE_CAT
     
-    def GetExamples(self):
+    def get_examples(self):
         eg1 = _("Answers the question, is there a relationship "
             "between two variables.")
         eg2 = _("For example, is there a relationship between ethnic "
@@ -18,7 +18,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         eg3 = _("Or between gender and political preference?")
         return eg1, eg2, eg3
 
-    def UpdatePhrase(self):
+    def update_phrase(self):
         """
         Update phrase based on Group A and Group B.
         """

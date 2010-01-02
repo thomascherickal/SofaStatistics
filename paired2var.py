@@ -52,7 +52,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szrMain = wx.BoxSizer(wx.VERTICAL)
         bxDesc = wx.StaticBox(self.panel, -1, _("Purpose"))
         szrDesc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
-        eg1, eg2, eg3 = self.GetExamples()
+        eg1, eg2, eg3 = self.get_examples()
         lblDesc1 = wx.StaticText(self.panel, -1, eg1)
         lblDesc2 = wx.StaticText(self.panel, -1, eg2)
         lblDesc3 = wx.StaticText(self.panel, -1, eg3)
@@ -134,8 +134,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         fld_choice_items = self.get_group_choices()
         self.setup_group_a(fld_choice_items, var_a)
         self.setup_group_b(fld_choice_items, var_b)
-        self.UpdateDefaults()
-        self.UpdatePhrase()
+        self.update_defaults()
+        self.update_phrase()
         
     def get_group_choices(self):
         """
@@ -208,17 +208,17 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_a, var_b = self.get_vars()
         config_dlg.ConfigDlg.OnVarDetsFileLostFocus(self, event)
         self.setup_groups(var_a, var_b)
-        self.UpdatePhrase()
+        self.update_phrase()
         
     def OnButtonVarDetsPath(self, event):
         var_a, var_b = self.get_vars()
         config_dlg.ConfigDlg.OnButtonVarDetsPath(self, event)
         self.setup_groups(var_a, var_b)
-        self.UpdatePhrase()
+        self.update_phrase()
         
     def OnGroupSel(self, event):
-        self.UpdatePhrase()
-        self.UpdateDefaults()
+        self.update_phrase()
+        self.update_defaults()
         event.Skip()
         
     def get_drop_vals(self):
@@ -232,7 +232,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_b, label_b = lib.extract_var_choice_dets(choice_b_text)
         return var_a, label_a, var_b, label_b
     
-    def UpdatePhrase(self):
+    def update_phrase(self):
         """
         Update phrase based on Group A and Group B.
         """
@@ -240,7 +240,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.lblPhrase.SetLabel(_("Is \"%(a)s\" different from \"%(b)s\"?") % \
                                 {"a": label_a, "b": label_b})
     
-    def UpdateDefaults(self):
+    def update_defaults(self):
         my_globals.GROUP_A_DEFAULT = self.dropGroupA.GetStringSelection()
         my_globals.GROUP_B_DEFAULT = self.dropGroupB.GetStringSelection()
     
@@ -251,7 +251,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             (INT_REPORT_PATH) and into report file, and finally, 
             display html output.
         """
-        run_ok = self.TestConfigOK()
+        run_ok = self.test_config_ok()
         if run_ok:
             wx.BeginBusyCursor()
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
@@ -264,7 +264,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             output.DisplayReport(self, strContent)
         event.Skip()
     
-    def TestConfigOK(self):
+    def test_config_ok(self):
         """
         Are the appropriate selections made to enable an analysis to be run?
         """
@@ -284,7 +284,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             the new exported script.
         If the file exists and is not empty, append the script on the end.
         """
-        export_ok = self.TestConfigOK()
+        export_ok = self.test_config_ok()
         if export_ok:
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.get_script(css_idx)

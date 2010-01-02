@@ -3,7 +3,6 @@ from __future__ import print_function
 import copy
 import decimal
 import math
-import numpy as np
 from types import ListType, TupleType
 
 import my_globals

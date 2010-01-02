@@ -13,7 +13,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
     averaged = _("Averaged")    
     min_data_type = my_globals.VAR_TYPE_QUANT
 
-    def GetExamples(self):
+    def get_examples(self):
         eg1 = _("Answers the question, do 3 or more groups have a "
             "different average?")
         eg2 = _("For example, is average IQ the same for students from "
@@ -22,7 +22,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             "British, Australian, Canadian, and New Zealand adults?")
         return eg1, eg2, eg3
     
-    def UpdatePhrase(self):
+    def update_phrase(self):
         """
         Update phrase based on GroupBy, Group A, Group B, and Averaged by field.
         """
@@ -32,7 +32,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             "between \"%(a)s\" and \"%(b)s\"?") % {"avg": label_avg, 
                                                    "a": label_a, "b": label_b})
 
-    def AddOtherVarOpts(self):
+    def add_other_var_opts(self):
         self.radHigh = wx.RadioBox(self.panel, -1, _("Algorithm"), 
                          choices=(_("Precision (best choice unless too slow)"),
                                   _("Speed")),

@@ -13,7 +13,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
     averaged = _("Ranked")
     min_data_type = my_globals.VAR_TYPE_ORD
 
-    def GetExamples(self):
+    def get_examples(self):
         eg1 = _("Answers the question, do 2 groups have different results "
             "(higher or lower ranks)?")
         eg2 = _("For example, do male or female tutors get different rating "
@@ -22,7 +22,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         " year in the workforce compared with law graduates?")
         return eg1, eg2, eg3
     
-    def UpdatePhrase(self):
+    def update_phrase(self):
         """
         Update phrase based on GroupBy, Group A, Group B, and Ranked by field.
         """
