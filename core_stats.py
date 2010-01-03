@@ -3,7 +3,8 @@ from __future__ import print_function
 import copy
 import decimal
 import math
-from types import ListType, TupleType
+from types import IntType, FloatType, ListType, TupleType
+import numpy as np
 
 import my_globals
 import lib
@@ -709,7 +710,6 @@ def tiecorrect(rankvals):
     T = T / float(n**3-n)
     return 1.0 - T
 
-
 def zprob(z):
     """
     From stats.py.  No changes.  
@@ -753,6 +753,46 @@ def zprob(z):
         prob = ((1.0-x)*0.5)
     return prob
 
+def azprob(z):
+    """
+    From stats.py.  No changes except N->np.  
+    -------------------------------------
+    Returns the area under the normal curve 'to the left of' the given z value.
+    Thus, 
+        - for z < 0, zprob(z) = 1-tail probability
+        - for z > 0, 1.0-zprob(z) = 1-tail probability
+        - for any z, 2.0*(1.0-zprob(abs(z))) = 2 - tail probability
+    Adapted from z.c in Gary Perlman's |Stat.  Can handle multiple dimensions.
+    
+    Usage:   azprob(z)    where z is a z-value
+    """
+    def yfunc(y):
+        x = (((((((((((((-0.000045255659 * y
+                         +0.000152529290) * y -0.000019538132) * y
+                       -0.000676904986) * y +0.001390604284) * y
+                     -0.000794620820) * y -0.002034254874) * y
+                   +0.006549791214) * y -0.010557625006) * y
+                 +0.011630447319) * y -0.009279453341) * y
+               +0.005353579108) * y -0.002141268741) * y
+             +0.000535310849) * y +0.999936657524
+        return x
+
+    def wfunc(w):
+        x = ((((((((0.000124818987 * w
+                    -0.001075204047) * w +0.005198775019) * w
+                  -0.019198292004) * w +0.059054035642) * w
+                -0.151968751364) * w +0.319152932694) * w
+              -0.531923007300) * w +0.797884560593) * np.sqrt(w) * 2.0
+        return x
+
+    Z_MAX = 6.0    # maximum meaningful z-value
+    x = np.zeros(z.shape, np.float_) # initialize
+    y = 0.5 * np.fabs(z)
+    x = np.where(np.less(y,1.0),wfunc(y*y),yfunc(y-2.0)) # get x's
+    x = np.where(np.greater(y, Z_MAX*0.5), 1.0, x)          # kill those with big Z
+    prob = np.where(np.greater(z,0), (x+1)*0.5, (1-x)*0.5)
+    return prob
+
 def mean(vals, high=False):
     """
     From stats.py.  No changes except option of using Decimals instead 
@@ -780,6 +820,50 @@ def mean(vals, high=False):
                 raise Exception, u"Unable to add \"%s\" to running total." % val
         mean = tot/len(vals)
     return mean
+
+def amean (inarray,dimension=None,keepdims=0):
+    """
+    From stats.py.  No changes except renamed functions, and N->np. 
+    -------------------------------------
+    Calculates the arithmatic mean of the values in the passed array.
+    That is:  1/n * (x1 + x2 + ... + xn).  Defaults to ALL values in the
+    passed array.  Use dimension=None to flatten array first.  REMEMBER: if
+    dimension=0, it collapses over dimension 0 ('rows' in a 2D array) only, and
+    if dimension is a sequence, it collapses over all specified dimensions.  If
+    keepdims is set to 1, the resulting array will have as many dimensions as
+    inarray, with only 1 'level' per dim that was collapsed over.
+    
+    Usage:   amean(inarray,dimension=None,keepdims=0)
+    Returns: arithematic mean calculated over dim(s) in dimension
+    """
+    if inarray.dtype in [np.int_, np.short, np.ubyte]:
+        inarray = inarray.astype(np.float_)
+    if dimension == None:
+        inarray = np.ravel(inarray)
+        sum = np.add.reduce(inarray)
+        denom = float(len(inarray))
+    elif type(dimension) in [IntType, FloatType]:
+        sum = asum(inarray, dimension)
+        denom = float(inarray.shape[dimension])
+        if keepdims == 1:
+            shp = list(inarray.shape)
+            shp[dimension] = 1
+            sum = np.reshape(sum, shp)
+    else: # must be a TUPLE of dims to average over
+        dims = list(dimension)
+        dims.sort()
+        dims.reverse()
+        sum = inarray *1.0
+        for dim in dims:
+            sum = np.add.reduce(sum, dim)
+        denom = np.array(np.multiply.reduce(np.take(inarray.shape,dims)),
+                         np.float_)
+        if keepdims == 1:
+            shp = list(inarray.shape)
+            for dim in dims:
+                shp[dim] = 1
+            sum = np.reshape(sum, shp)
+    return sum/denom
 
 def variance(vals, high=False):
     """
@@ -1205,3 +1289,277 @@ def fprob (dfnum, dfden, F, high=False):
     else:
         p = betai(0.5*dfden, 0.5*dfnum, dfden/float(dfden+dfnum*F), high)
     return p
+
+
+def moment(a, moment=1, dimension=None):
+    """
+    From stats.py.  No changes except renamed function, N->np.  
+    ------------------------------------
+    Calculates the nth moment about the mean for a sample (defaults to the
+    1st moment).  Generally used to calculate coefficients of skewness and
+    kurtosis.  Dimension can equal None (ravel array first), an integer
+    (the dimension over which to operate), or a sequence (operate over
+    multiple dimensions).
+    
+    Usage:   moment(a, moment=1, dimension=None)
+    Returns: appropriate moment along given dimension
+    """
+    if dimension == None:
+        a = np.ravel(a)
+        dimension = 0
+    if moment == 1:
+        return 0.0
+    else:
+        mn = amean(a, dimension, 1)  # 1=keepdims
+        s = np.power((a-mn), moment)
+        return amean(s, dimension)
+
+def skew(a, dimension=None): 
+    """
+    From stats.py.  No changes except renamed function, N->np, print updated.  
+    ------------------------------------
+    Returns the skewness of a distribution (normal ==> 0.0; >0 means extra
+    weight in left tail).  Use skewtest() to see if it's close enough.
+    Dimension can equal None (ravel array first), an integer (the
+    dimension over which to operate), or a sequence (operate over multiple
+    dimensions).
+    
+    Usage:   skew(a, dimension=None)
+    Returns: skew of vals in a along dimension, returning ZERO where all vals 
+        equal
+    """
+    denom = np.power(moment(a, 2, dimension), 1.5)
+    zero = np.equal(denom, 0)
+    if type(denom) == np.ndarray and asum(zero) <> 0:
+        print("Number of zeros in askew: ", asum(zero))
+    denom = denom + zero  # prevent divide-by-zero
+    return np.where(zero, 0, moment(a, 3, dimension)/denom)
+
+def asum(a, dimension=None, keepdims=0):
+    """
+    From stats.py.  No changes except N->np.  
+    ------------------------------------
+    An alternative to the Numeric.add.reduce function, which allows one to
+    (1) collapse over multiple dimensions at once, and/or (2) to retain
+    all dimensions in the original array (squashing one down to size.
+    Dimension can equal None (ravel array first), an integer (the
+    dimension over which to operate), or a sequence (operate over multiple
+    dimensions).  If keepdims=1, the resulting array will have as many
+    dimensions as the input array.
+    
+    Usage: asum(a, dimension=None, keepdims=0)
+    Returns: array summed along 'dimension'(s), same _number_ of dims if 
+        keepdims=1
+    """
+    if type(a) == np.ndarray and a.dtype in [np.int_, np.short, np.ubyte]:
+        a = a.astype(np.float_)
+    if dimension == None:
+        s = np.sum(np.ravel(a))
+    elif type(dimension) in [IntType,FloatType]:
+        s = np.add.reduce(a, dimension)
+        if keepdims == 1:
+            shp = list(a.shape)
+            shp[dimension] = 1
+            s = np.reshape(s,shp)
+    else: # must be a SEQUENCE of dims to sum over
+        dims = list(dimension)
+        dims.sort()
+        dims.reverse()
+        s = a *1.0
+        for dim in dims:
+            s = np.add.reduce(s,dim)
+        if keepdims == 1:
+            shp = list(a.shape)
+            for dim in dims:
+                shp[dim] = 1
+            s = np.reshape(s,shp)
+    return s
+
+def kurtosis(a, dimension=None):
+    """
+    From stats.py.  No changes except renamed function, N->np, print updated.  
+    ------------------------------------
+    Returns the kurtosis of a distribution (normal ==> 3.0; >3 means
+    heavier in the tails, and usually more peaked).  Use kurtosistest()
+    to see if it's close enough.  Dimension can equal None (ravel array
+    first), an integer (the dimension over which to operate), or a
+    sequence (operate over multiple dimensions).
+    
+    Usage:   kurtosis(a,dimension=None)
+    Returns: kurtosis of values in a along dimension, and ZERO where all vals 
+        equal
+    """
+    denom = np.power(moment(a, 2, dimension), 2)
+    zero = np.equal(denom, 0)
+    if type(denom) == np.ndarray and asum(zero) <> 0:
+        print("Number of zeros in akurtosis: ", asum(zero))
+    denom = denom + zero  # prevent divide-by-zero
+    return np.where(zero, 0, moment(a, 4, dimension)/denom)
+
+def achisqprob(chisq, df):
+    """
+    From stats.py.  No changes except renamed function, N->np, print updated.  
+    ------------------------------------
+    Returns the (1-tail) probability value associated with the provided 
+    chi-square value and df.  Heavily modified from chisq.c in Gary Perlman's 
+    |Stat.  Can handle multiple dimensions.
+    
+    Usage: chisqprob(chisq,df)    chisq=chisquare stat., df=degrees of freedom
+    """
+    BIG = 200.0
+    def ex(x):
+        BIG = 200.0
+        exponents = np.where(np.less(x,-BIG),-BIG,x)
+        return np.exp(exponents)
+
+    if type(chisq) == np.ndarray:
+        arrayflag = 1
+    else:
+        arrayflag = 0
+        chisq = np.array([chisq])
+    if df < 1:
+        return np.ones(chisq.shape, np.float)
+    probs = np.zeros(chisq.shape, np.float_)
+    probs = np.where(np.less_equal(chisq,0), 1.0, probs) #set prob=1 for chisq<0
+    a = 0.5 * chisq
+    if df > 1:
+        y = ex(-a)
+    if df%2 == 0:
+        even = 1
+        s = y*1
+        s2 = s*1
+    else:
+        even = 0
+        s = 2.0 * azprob(-np.sqrt(chisq))
+        s2 = s*1
+    if (df > 2):
+        chisq = 0.5 * (df - 1.0)
+        if even:
+            z = np.ones(probs.shape, np.float_)
+        else:
+            z = 0.5 *np.ones(probs.shape, np.float_)
+        if even:
+            e = np.zeros(probs.shape, np.float_)
+        else:
+            e = np.log(np.sqrt(np.pi)) *np.ones(probs.shape, np.float_)
+        c = np.log(a)
+        mask = np.zeros(probs.shape)
+        a_big = np.greater(a, BIG)
+        a_big_frozen = -1 *np.ones(probs.shape, np.float_)
+        totalelements = np.multiply.reduce(np.array(probs.shape))
+        while asum(mask)<>totalelements:
+            e = np.log(z) + e
+            s = s + ex(c*z-a-e)
+            z = z + 1.0
+    #            print(z, e, s)
+            newmask = np.greater(z,chisq)
+            a_big_frozen = np.where(newmask*np.equal(mask,0)*a_big, s, 
+                                    a_big_frozen)
+            mask = np.clip(newmask + mask, 0, 1)
+        if even:
+            z = np.ones(probs.shape, np.float_)
+            e = np.ones(probs.shape, np.float_)
+        else:
+            z = 0.5 *np.ones(probs.shape, np.float_)
+            e = 1.0 / np.sqrt(np.pi) / np.sqrt(a) * np.ones(probs.shape, 
+                                                            np.float_)
+        c = 0.0
+        mask = np.zeros(probs.shape)
+        a_notbig_frozen = -1 *np.ones(probs.shape, np.float_)
+        while asum(mask)<>totalelements:
+            e = e * (a/z.astype(np.float_))
+            c = c + e
+            z = z + 1.0
+    #            print('#2', z, e, c, s, c*y+s2)
+            newmask = np.greater(z, chisq)
+            a_notbig_frozen = np.where(newmask*np.equal(mask,0)*(1-a_big),
+                                      c*y+s2, a_notbig_frozen)
+            mask = np.clip(newmask+mask,0,1)
+        probs = np.where(np.equal(probs,1),1,
+                    np.where(np.greater(a,BIG), a_big_frozen, a_notbig_frozen))
+        return probs
+    else:
+        return s
+
+#####################################
+########  NORMALITY TESTS  ##########
+#####################################
+
+def skewtest(a, dimension=None):
+    """
+    From stats.py.  No changes except renamed function, N->np.  
+    ------------------------------------
+    Tests whether the skew is significantly different from a normal
+    distribution.  Dimension can equal None (ravel array first), an
+    integer (the dimension over which to operate), or a sequence (operate
+    over multiple dimensions).
+    
+    Usage:   skewtest(a,dimension=None)
+    Returns: z-score and 2-tail z-probability
+    """
+    if dimension == None:
+        a = np.ravel(a)
+        dimension = 0
+    b2 = skew(a,dimension)
+    n = float(a.shape[dimension])
+    y = b2 * np.sqrt(((n+1)*(n+3)) / (6.0*(n-2)) )
+    beta2 = ( 3.0*(n*n+27*n-70)*(n+1)*(n+3) ) / ( (n-2.0)*(n+5)*(n+7)*(n+9) )
+    W2 = -1 + np.sqrt(2*(beta2-1))
+    delta = 1/np.sqrt(np.log(np.sqrt(W2)))
+    alpha = np.sqrt(2/(W2-1))
+    y = np.where(y==0,1,y)
+    Z = delta*np.log(y/alpha + np.sqrt((y/alpha)**2+1))
+    return Z, (1.0-azprob(Z))*2
+
+def kurtosistest(a, dimension=None):
+    """
+    From stats.py.  No changes except renamed function, N->np, print updated.
+    ------------------------------------
+    Tests whether a dataset has normal kurtosis (i.e.,
+    kurtosis=3(n-1)/(n+1)) Valid only for n>20.  Dimension can equal None
+    (ravel array first), an integer (the dimension over which to operate),
+    or a sequence (operate over multiple dimensions).
+    
+    Usage:   kurtosistest(a,dimension=None)
+    Returns: z-score and 2-tail z-probability, returns 0 for bad pixels
+    """
+    if dimension == None:
+        a = np.ravel(a)
+        dimension = 0
+    n = float(a.shape[dimension])
+    if n<20:
+        print("kurtosistest only valid for n>=20 ... continuing anyway, n=", n)
+    b2 = kurtosis(a, dimension)
+    E = 3.0*(n-1) /(n+1)
+    varb2 = 24.0*n*(n-2)*(n-3) / ((n+1)*(n+1)*(n+3)*(n+5))
+    x = (b2-E)/np.sqrt(varb2)
+    sqrtbeta1 = 6.0*(n*n-5*n+2)/((n+7)*(n+9)) * np.sqrt((6.0*(n+3)*(n+5))/
+                                                       (n*(n-2)*(n-3)))
+    A = 6.0 + 8.0/sqrtbeta1 *(2.0/sqrtbeta1 + np.sqrt(1+4.0/(sqrtbeta1**2)))
+    term1 = 1 -2/(9.0*A)
+    denom = 1 +x*np.sqrt(2/(A-4.0))
+    denom = np.where(np.less(denom,0), 99, denom)
+    term2 = np.where(np.equal(denom,0), term1, np.power((1-2.0/A)/denom,1/3.0))
+    Z = ( term1 - term2 ) / np.sqrt(2/(9.0*A))
+    Z = np.where(np.equal(denom,99), 0, Z)
+    return Z, (1.0-azprob(Z))*2
+
+def normaltest(a, dimension=None):
+    """
+    From stats.py.  No changes except renamed function, N->np.  
+    ------------------------------------
+    Tests whether skew and/OR kurtosis of dataset differs from normal
+    curve.  Can operate over multiple dimensions.  Dimension can equal
+    None (ravel array first), an integer (the dimension over which to
+    operate), or a sequence (operate over multiple dimensions).
+    
+    Usage:   normaltest(a,dimension=None)
+    Returns: z-score and 2-tail probability
+    """
+    if dimension == None:
+        a = np.ravel(a)
+        dimension = 0
+    s,p = skewtest(a,dimension)
+    k,p = kurtosistest(a,dimension)
+    k2 = np.power(s,2) + np.power(k,2)
+    return k2, achisqprob(k2, 2)

@@ -85,6 +85,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.szrLevel = self.get_szrLevel(self.panel) # mixin
         self.szrExamine = wx.BoxSizer(wx.VERTICAL)
         szrShape = wx.BoxSizer(wx.HORIZONTAL)
+        szrNormalityTest = wx.BoxSizer(wx.HORIZONTAL)
         # assembly
         lblDesc1 = wx.StaticText(self.panel, -1, 
                 _("Is the frequency curve for the variable close enough to the "
@@ -126,6 +127,11 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrShape.Add(self.imgHisto, 0)
         szrShape.Add(self.btnDetails, 0, wx.LEFT, 10)
         self.szrExamine.Add(szrShape, 0, wx.ALL, 10)
+        self.lblNormalityTest = wx.StaticText(self.panel, -1, 
+                                          _("Select a variable to check to "
+                                            "see results of normality test"))
+        szrNormalityTest.Add(self.lblNormalityTest, 0)
+        self.szrExamine.Add(szrNormalityTest, 0, wx.ALL, 10)
         btnOK = wx.Button(self.panel, wx.ID_OK)
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
         szrStdBtns = wx.StdDialogButtonSizer()
@@ -178,7 +184,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         var_item = self.dropVars.GetStringSelection()
         return var, var_item
     
-    def get_histo_input(self):
+    def get_exam_inputs(self):
         var, choice_item = self.get_var()
         var_name, var_label = lib.extract_var_choice_dets(choice_item)
         unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
@@ -199,7 +205,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         Create and display thumbnail of histogram with normal dist curve.
         """
         self.btnDetails.Enable(True)
-        self.var_label, self.vals = self.get_histo_input()
+        self.var_label, self.vals = self.get_exam_inputs()
+        # histogram
         fig = pylab.figure()
         fig.set_figsize_inches((2.3, 1.0)) # see dpi to get image size in pixels
         config_histo(fig, self.var_label, self.vals, thumbnail=True)
@@ -209,6 +216,9 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         rem_blank_axes_rect = wx.Rect(15, 0, 200, 100)
         thumbnail = thumbnail_uncropped.GetSubBitmap(rem_blank_axes_rect)
         self.imgHisto.SetBitmap(thumbnail)
+        # normality test (includes both kurtosis and skew)
+        k2, p = core_stats.normaltest(self.vals)
+        self.lblNormalityTest.SetLabel(_("p: %s" % p))
         event.Skip()
         
     def OnDetailsClick(self, event):

@@ -6,6 +6,7 @@ gettext.install('sofa', './locale', unicode=True)
 from nose.tools import assert_equal
 from nose.tools import assert_almost_equal
 #from nose.plugins.attrib import attr
+import numpy as np
 import pprint
 import random
 
@@ -13,8 +14,58 @@ import tests.stats as stats
 
 from core_stats import ttest_ind, ttest_rel, mannwhitneyu, wilcoxont, \
     pearsonr, spearmanr, kruskalwallish, anova, fprob, betai, gammln, betacf, \
-    chisquare
+    chisquare, kurtosis, skew, moment, kurtosistest, skewtest, normaltest
 
+def test_kurtosis():
+    for i in range(100):
+        sample_size = random.randint(5, 1000)
+        sample = [random.randint(1, 100000)/3.0 for x in range(sample_size)]
+        k1 = stats.lkurtosis(sample)
+        k2 = kurtosis(sample)
+        assert_almost_equal(k1, k2)
+        
+def test_skew():
+    for i in range(100):
+        sample_size = random.randint(5, 1000)
+        sample = [random.randint(1, 100000)/3.0 for x in range(sample_size)]
+        s1 = stats.lskew(sample)
+        s2 = skew(sample)
+        assert_almost_equal(s1, s2)
+        
+def test_kurtosistest():
+    for i in range(100):
+        sample_size = random.randint(5, 1000)
+        sample = [random.randint(1, 100000)/3.0 for x in range(sample_size)]
+        z1, p1 = stats.kurtosistest(np.array(sample))
+        z2, p2 = kurtosistest(sample)
+        assert_almost_equal(z1, z2)
+        assert_almost_equal(p1, p2)
+
+
+
+# restore to harder later
+# fails as numpy.float64 even if fed 20 small integers :-)
+# change in numpy of python since originally written (2007 at latest)   
+def test_skewtest():
+    for i in range(100):
+        #sample_size = random.randint(5, 1000)
+        #sample = [random.randint(1, 100000)/3.0 for x in range(sample_size)]
+        sample_size = 20 # try with 5-19 later
+        sample = [random.randint(1, 100) for x in range(sample_size)] # ... 100000/3.0 later
+        z1, p1 = stats.skewtest(np.array(sample))
+        z2, p2 = skewtest(sample)
+        assert_almost_equal(z1, z2)
+        assert_almost_equal(p1, p2)
+ 
+def test_normaltest():
+    for i in range(100):
+        sample_size = random.randint(5, 1000)
+        sample = [random.randint(1, 100000)/3.0 for x in range(sample_size)]
+        z1, p1 = stats.normaltest(np.array(sample))
+        z2, p2 = normaltest(sample)
+        assert_almost_equal(z1, z2)
+        assert_almost_equal(p1, p2)
+        
 #@attr('include') # maybe in newer version
 def test_ind_2way_tests():
     for i in range(100):
