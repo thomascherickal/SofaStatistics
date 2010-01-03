@@ -70,8 +70,7 @@ class StatsSelectDlg(wx.Dialog):
         config_dlg.add_icon(frame=self)
         # background image
         img_stats_select = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
-                                                 u"images", 
-                                                 u"stats_select.xpm"), 
+                                            u"images", u"stats_select.xpm"), 
                            wx.BITMAP_TYPE_XPM)
         self.bmp_stats_select = wx.BitmapFromImage(img_stats_select)
         # direct or assisted
@@ -311,9 +310,10 @@ class StatsSelectDlg(wx.Dialog):
           "the North, South, East, and West regions"))
         
     def OnNormalHelp1Button(self, event):
-        dlg = normal.NormalDlg(self, self.dbe, self.con_dets, self.default_dbs, 
-                        self.default_tbls, self.var_labels, self.var_notes, 
-                        self.var_types, self.val_dics, self.fil_var_dets)
+        dlg = normal.NormalityDlg(self, self.dbe, self.con_dets, 
+                        self.default_dbs, self.default_tbls, self.var_labels, 
+                        self.var_notes, self.var_types, self.val_dics, 
+                        self.fil_var_dets)
         dlg.ShowModal()
     
     def IndepSetup(self, enable=True):
@@ -368,9 +368,10 @@ class StatsSelectDlg(wx.Dialog):
           "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc)."))
     
     def OnNormalHelp2Button(self, event):
-        dlg = normal.NormalDlg(self, self.dbe, self.con_dets, self.default_dbs, 
-                        self.default_tbls, self.var_labels, self.var_notes, 
-                        self.var_types, self.val_dics, self.fil_var_dets)
+        dlg = normal.NormalityDlg(self, self.dbe, self.con_dets, 
+                        self.default_dbs, self.default_tbls, self.var_labels, 
+                        self.var_notes, self.var_types, self.val_dics, 
+                        self.fil_var_dets)
         dlg.ShowModal()
     
     def NormalRelSetup(self, enable=True):

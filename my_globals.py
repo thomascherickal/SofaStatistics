@@ -106,10 +106,11 @@ USER_PATH = unicode(os.path.expanduser("~"), local_encoding)
 LOCAL_PATH = os.path.join(USER_PATH, u"sofa")
 SCRIPT_PATH = sys.path[0] # NB won't work within an interpreter
 # http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
-INT_SCRIPT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, u"script.py")
+INT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER)
+INT_SCRIPT_PATH = os.path.join(INT_PATH, u"script.py")
 INT_REPORT_FILE = u"report.htm"
 INT_PREFS_FILE = u"prefs.txt"
-INT_REPORT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER, INT_REPORT_FILE)
+INT_REPORT_PATH = os.path.join(INT_PATH, INT_REPORT_FILE)
 DEFAULT_CSS_PATH = os.path.join(LOCAL_PATH, u"css", SOFA_DEFAULT_STYLE)
 VAR_TYPE_CAT = _("Nominal (names only)")
 VAR_TYPE_ORD = _("Ordinal (rank only)")
@@ -245,6 +246,11 @@ TMP_TBL_NAME = "sofa_tmp_tbl"
 SOFA_ID = "sofa_id"
 # filters
 DBE_TBL_FILTS = {}
+# Matplotlib
+FACECOLOR = "#f87526"
+EDGECOLOR = "#8f8f8f"
+NORM_LINE_COLOR = "#5a4a3d"
+HIST_PNG = os.path.join(INT_PATH, u"hist.png")
 # preferences
 PREFS_KEY = "Prefs"
 DATE_ENTRY_FORMAT = "Date entry format"
@@ -252,7 +258,7 @@ INT_DATE_ENTRY_FORMAT = 0
 ALWAYS_OK_DATE_FORMATS = ["%Y-%m-%d", "%Y", "%d.%m.%Y", "%d.%m.%y"]
 OK_TIME_FORMATS = ["%I%p", "%I:%M%p", "%H:%M", "%H:%M:%S"]
 DATE_FORMATS_IN_USE = INT_DATE_ENTRY_FORMAT
-# remember defaults
+# remember defaults //////////
 # stats tests
 GROUP_BY_DEFAULT = None
 GROUP_AVG_DEFAULT = None

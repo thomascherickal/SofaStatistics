@@ -47,56 +47,24 @@ MAIN_LEFT = 200
 HELP_TEXT_TOP = 288
 MAX_HELP_TEXT_WIDTH = 330 # pixels
 HELP_TEXT_WIDTH = 330
-HELP_IMG_LEFT = 580
+HELP_IMG_LEFT = 575
 HELP_IMG_TOP = 315
 MAIN_RIGHT = 600
 SCRIPT_PATH = my_globals.SCRIPT_PATH
 LOCAL_PATH = my_globals.LOCAL_PATH
 
-def TextOnBitmap(bitmap, text, font, colour):
-    """
-    Add short text to bitmap with standard left margin.
-    Can then use bitmap for a bitmap button.
-    See http://wiki.wxpython.org/index.cgi/WorkingWithImages
-    """
-    mem = wx.MemoryDC()
-    mem.SelectObject(bitmap)
-    mem.SetFont(font)
-    mem.SetTextForeground(colour)
-    mem.DrawText(text, 9, 3)    
-    mem.SelectObject(wx.NullBitmap)
-    return bitmap
-
-def GetTextToDraw(orig_txt, max_width):
-    "Return text broken into new lines so wraps within pixel width"
-    mem = wx.MemoryDC()
-    # add words to it until its width is too long then put int split
-    lines = []
-    words = orig_txt.split()
-    line_words = []
-    for word in words:
-        line_words.append(word)
-        line_width = mem.GetTextExtent(" ".join(line_words))[0]
-        if line_width > max_width:
-            line_words.pop()
-            lines.append(u" ".join(line_words))
-            line_words = [word]
-    lines.append(u" ".join(line_words))
-    wrapped_txt = u"\n".join(lines)
-    return wrapped_txt
-
-def GetBlankButtonBitmap():
+def get_blank_btn_bmp():
     return wx.Image(os.path.join(SCRIPT_PATH, u"images", u"blankbutton.xpm"), 
                     wx.BITMAP_TYPE_XPM).ConvertToBitmap()
 
-def GetNextYPos(start, height):
+def get_next_y_pos(start, height):
     "Facilitate regular y position of buttons"
     i = 0
     while True:
         yield start + (i*height)
         i += 1
 
-def InstallLocal():
+def install_local():
     """
     Install local set of files in user home dir if necessary.
     Modify default project settings to point to local (user) SOFA  directory.
@@ -220,81 +188,71 @@ class StartFrame(wx.Frame):
         self.panel.Bind(wx.EVT_PAINT, self.OnPaint)
         config_dlg.add_icon(frame=self)
         # background image
-        img_sofa = wx.Image(os.path.join(SCRIPT_PATH, u"images", u"sofa2.xpm"), 
-                            wx.BITMAP_TYPE_XPM)
-        self.bmp_sofa = wx.BitmapFromImage(img_sofa)
+        sofa = os.path.join(SCRIPT_PATH, u"images", u"sofa2.xpm")
+        self.bmp_sofa = wx.Image(sofa, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         # slice of image to be refreshed (where text and image will be)
-        self.blank_wallpaper = \
-            self.bmp_sofa.GetSubBitmap(wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, 
-                                               HELP_IMG_LEFT+35, 250))
-        self.blank_proj_strip = self.bmp_sofa.GetSubBitmap(wx.Rect(MAIN_LEFT, 
-                                                                218, 590, 30))
+        blankwp_rect = wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_IMG_LEFT+35, 250)
+        self.blank_wallpaper = self.bmp_sofa.GetSubBitmap(blankwp_rect)
+        blankps_rect = wx.Rect(MAIN_LEFT, 218, 610, 30)
+        self.blank_proj_strip = self.bmp_sofa.GetSubBitmap(blankps_rect)
         # buttons
         font_buttons = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
-        g = GetNextYPos(284, BTN_DROP)
+        g = get_next_y_pos(284, BTN_DROP)
         # Proj
-        bmp_btn_proj = TextOnBitmap(GetBlankButtonBitmap(), 
-                                    _("Select Project"), 
-                                    font_buttons, "white")
+        bmp_btn_proj = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
+                        _("Select Project"), font_buttons, "white")
         self.btnProj = wx.BitmapButton(self.panel, -1, bmp_btn_proj, 
                                        pos=(BTN_LEFT, g.next()))
         self.btnProj.Bind(wx.EVT_BUTTON, self.OnProjClick)
         self.btnProj.Bind(wx.EVT_ENTER_WINDOW, self.OnProjEnter)
         self.btnProj.SetDefault()
         # Prefs
-        bmp_btn_pref = TextOnBitmap(GetBlankButtonBitmap(), 
-                                    _("Preferences"), 
-                                    font_buttons, "white")
+        bmp_btn_pref = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
+                       _("Preferences"), font_buttons, "white")
         self.btnPrefs = wx.BitmapButton(self.panel, -1, bmp_btn_pref, 
                                        pos=(BTN_LEFT, g.next()))
         self.btnPrefs.Bind(wx.EVT_BUTTON, self.OnPrefsClick)
         self.btnPrefs.Bind(wx.EVT_ENTER_WINDOW, self.OnPrefsEnter)
         # Data entry
-        bmp_btn_enter = TextOnBitmap(GetBlankButtonBitmap(), 
-                                     _("Enter/Edit Data"), 
-                                     font_buttons, "white")
+        bmp_btn_enter = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
+                        _("Enter/Edit Data"), font_buttons, "white")
         self.btnEnter = wx.BitmapButton(self.panel, -1, bmp_btn_enter, 
                                         pos=(BTN_LEFT, g.next()))
         self.btnEnter.Bind(wx.EVT_BUTTON, self.OnEnterClick)
         self.btnEnter.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterEnter)
-        # Import       
-        bmp_btn_import = TextOnBitmap(GetBlankButtonBitmap(), 
-                                      _("Import Data"), 
-                                      font_buttons, "white")
+        # Import
+        bmp_btn_import = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
+                         _("Import Data"), font_buttons, "white")
         self.btnImport = wx.BitmapButton(self.panel, -1, bmp_btn_import, 
                                          pos=(BTN_LEFT, g.next()))
         self.btnImport.Bind(wx.EVT_BUTTON, self.OnImportClick)
         self.btnImport.Bind(wx.EVT_ENTER_WINDOW, self.OnImportEnter)
         # Right
-        g = GetNextYPos(284, BTN_DROP)
+        g = get_next_y_pos(284, BTN_DROP)
         # Report tables
-        bmp_btn_tables = TextOnBitmap(GetBlankButtonBitmap(),
-                                      _("Report Tables"), 
-                                      font_buttons, "white")
+        bmp_btn_tables = lib.add_text_to_bitmap(get_blank_btn_bmp(),
+                         _("Report Tables"), font_buttons, "white")
         self.btnTables = wx.BitmapButton(self.panel, -1, bmp_btn_tables, 
                                          pos=(BTN_RIGHT, g.next()))
         self.btnTables.Bind(wx.EVT_BUTTON, self.OnTablesClick)
         self.btnTables.Bind(wx.EVT_ENTER_WINDOW, self.OnTablesEnter)
         # Charts
-        bmp_btn_charts = TextOnBitmap(GetBlankButtonBitmap(), 
-                                      _("Charts"), 
-                                      font_buttons, "white")
+        bmp_btn_charts = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
+                         _("Charts"), font_buttons, "white")
         self.btnCharts = wx.BitmapButton(self.panel, -1, bmp_btn_charts, 
                                          pos=(BTN_RIGHT, g.next()))
         self.btnCharts.Bind(wx.EVT_BUTTON, self.OnChartsClick)
         self.btnCharts.Bind(wx.EVT_ENTER_WINDOW, self.OnChartsEnter)
         # Stats
-        bmp_btn_stats = TextOnBitmap(GetBlankButtonBitmap(),
-                                     _("Statistics"), 
-                                     font_buttons, "white")
+        bmp_btn_stats = lib.add_text_to_bitmap(get_blank_btn_bmp(),
+                        _("Statistics"), font_buttons, "white")
         self.btnStatistics = wx.BitmapButton(self.panel, -1, bmp_btn_stats, 
                                              pos=(BTN_RIGHT, g.next()))
         self.btnStatistics.Bind(wx.EVT_BUTTON, self.OnStatsClick)
         self.btnStatistics.Bind(wx.EVT_ENTER_WINDOW, self.OnStatsEnter)
         # Exit  
-        bmp_btn_exit = TextOnBitmap(GetBlankButtonBitmap(), 
-                                    _("Exit"), 
-                                    font_buttons, "white")
+        bmp_btn_exit = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
+                       _("Exit"), font_buttons, "white")
         self.btnExit = wx.BitmapButton(self.panel, -1, bmp_btn_exit, 
                                        pos=(BTN_RIGHT, g.next()))
         self.btnExit.Bind(wx.EVT_BUTTON, self.OnExitClick)
@@ -304,35 +262,26 @@ class StartFrame(wx.Frame):
         # a static ctrl 
         # http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3045245
         self.txtWelcome = _("Welcome to SOFA.  Hover the mouse over the "
-            "buttons on the left to see what you can do.")
+                            "buttons on the left to see what you can do.")
         # help images
-        img_proj = wx.Image(os.path.join(SCRIPT_PATH, u"images", 
-                                         u"briefcase.xpm"), wx.BITMAP_TYPE_XPM)
-        self.bmp_proj = wx.BitmapFromImage(img_proj)
-        img_prefs = wx.Image(os.path.join(SCRIPT_PATH, u"images", 
-                                          u"prefs.xpm"), wx.BITMAP_TYPE_XPM)
-        self.bmp_prefs = wx.BitmapFromImage(img_prefs)
-        img_data = wx.Image(os.path.join(SCRIPT_PATH, u"images", u"data.xpm"), 
-                            wx.BITMAP_TYPE_XPM)
-        self.bmp_data = wx.BitmapFromImage(img_data)
-        img_import = wx.Image(os.path.join(SCRIPT_PATH, u"images", u"import.xpm"), 
-                              wx.BITMAP_TYPE_XPM)
-        self.bmp_import = wx.BitmapFromImage(img_import)
-        img_tabs = wx.Image(os.path.join(SCRIPT_PATH, u"images", u"table.xpm"), 
-                            wx.BITMAP_TYPE_XPM)
-        self.bmp_tabs = wx.BitmapFromImage(img_tabs)
+        proj = os.path.join(SCRIPT_PATH, u"images", u"briefcase.xpm")
+        self.bmp_proj = wx.Image(proj, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        prefs = os.path.join(SCRIPT_PATH, u"images", u"prefs.xpm")
+        self.bmp_prefs = wx.Image(prefs, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        data = os.path.join(SCRIPT_PATH, u"images", u"data.xpm")
+        self.bmp_data = wx.Image(data, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        imprt = os.path.join(SCRIPT_PATH, u"images", u"import.xpm")
+        self.bmp_import = wx.Image(imprt, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        tabs = os.path.join(SCRIPT_PATH, u"images", u"table.xpm")
+        self.bmp_tabs = wx.Image(tabs, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         chart = os.path.join(SCRIPT_PATH, u"images", u"demo_chart.xpm")
-        img_chart = wx.Image(chart, wx.BITMAP_TYPE_XPM)
-        self.bmp_chart = wx.BitmapFromImage(img_chart)
-        img_stats = wx.Image(os.path.join(SCRIPT_PATH, u"images", u"stats.xpm"), 
-                            wx.BITMAP_TYPE_XPM)
-        self.bmp_stats = wx.BitmapFromImage(img_stats)
-        img_exit = wx.Image(os.path.join(SCRIPT_PATH, u"images", u"exit.xpm"), 
-                            wx.BITMAP_TYPE_XPM)
-        self.bmp_exit = wx.BitmapFromImage(img_exit)
+        self.bmp_chart = wx.Image(chart, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        stats = os.path.join(SCRIPT_PATH, u"images", u"stats.xpm")
+        self.bmp_stats = wx.Image(stats, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        exit = os.path.join(SCRIPT_PATH, u"images", u"exit.xpm")
+        self.bmp_exit = wx.Image(exit, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         psal = os.path.join(SCRIPT_PATH, u"images", u"psal_logo.xpm")
-        img_psal = wx.Image(psal, wx.BITMAP_TYPE_XPM)
-        self.bmp_psal = wx.BitmapFromImage(img_psal)
+        self.bmp_psal = wx.Image(psal, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.HELP_TEXT_FONT = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
         self.active_proj = my_globals.SOFA_DEFAULT_PROJ
     
@@ -381,9 +330,9 @@ class StartFrame(wx.Frame):
            "\nthe user-friendly, open-source statistics,\nanalysis & "
            "reporting package"), 
            wx.Rect(MAIN_LEFT, 115, 100, 100))
-        panel_dc.DrawLabel(GetTextToDraw(self.txtWelcome, MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 
-                                   260))
+        panel_dc.DrawLabel(lib.get_text_to_draw(self.txtWelcome, 
+                                                MAX_HELP_TEXT_WIDTH), 
+                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
         panel_dc.DrawLabel(u"SOFA\nPaton-Simpson & Associates Ltd\n" + \
@@ -432,9 +381,8 @@ class StartFrame(wx.Frame):
         txt_projs = _("Projects are a way of storing all related reports, "
             "data files, and configuration info in one place.  The "
             "default project will be OK to get you started.")
-        panel_dc.DrawLabel(GetTextToDraw(txt_projs, MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 
-                                   260))
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_projs, MAX_HELP_TEXT_WIDTH), 
+                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
     
     def OnPrefsClick(self, event):
@@ -459,9 +407,8 @@ class StartFrame(wx.Frame):
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_pref = _("Set preferences e.g. format for entering dates")
-        panel_dc.DrawLabel(GetTextToDraw(txt_pref, MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 
-                                   260))
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_pref, MAX_HELP_TEXT_WIDTH), 
+                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
     def OnEnterClick(self, event):
         # open proj selection form
         import dataselect
@@ -479,9 +426,8 @@ class StartFrame(wx.Frame):
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_entry = _("Enter data into a fresh dataset or select an existing "
             "one to edit or add data to.")
-        panel_dc.DrawLabel(GetTextToDraw(txt_entry, MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 
-                                   260))
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_entry, MAX_HELP_TEXT_WIDTH), 
+                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
 
     def OnImportClick(self, event):
@@ -498,9 +444,8 @@ class StartFrame(wx.Frame):
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_entry = _("Import data e.g. an Excel spreadsheet or a csv file.")
-        panel_dc.DrawLabel(GetTextToDraw(txt_entry, MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH-10, 
-                                   260))
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_entry, MAX_HELP_TEXT_WIDTH), 
+                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH-10, 260))
         event.Skip()
         
     def OnTablesClick(self, event):
@@ -530,13 +475,13 @@ class StartFrame(wx.Frame):
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_tabs1 = _("Make report tables e.g. Age vs Gender")
-        panel_dc.DrawLabel(GetTextToDraw(txt_tabs1, MAX_HELP_TEXT_WIDTH), 
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_tabs1, MAX_HELP_TEXT_WIDTH), 
                         wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))       
         txt_tabs2 = _("Can make simple Frequency Tables, "
             "Summary Tables (mean, median, N, standard deviation, sum), "
             "and simple tabular reports of data as found in data source "
             "(with labels and optional totals).")
-        panel_dc.DrawLabel(GetTextToDraw(txt_tabs2, MAX_HELP_TEXT_WIDTH), 
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_tabs2, MAX_HELP_TEXT_WIDTH), 
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP+30, HELP_TEXT_WIDTH, 260))
         event.Skip()
     
@@ -552,7 +497,7 @@ class StartFrame(wx.Frame):
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_charts = _("Make attractive charts e.g. a pie chart of regions")
-        panel_dc.DrawLabel(GetTextToDraw(txt_charts, MAX_HELP_TEXT_WIDTH), 
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_charts, MAX_HELP_TEXT_WIDTH), 
                         wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
     
@@ -579,19 +524,23 @@ class StartFrame(wx.Frame):
         txt_stats1 = _("Run statistical tests on your data - e.g. a "
             "Chi Square to see if there is a relationship between "
             "age group and gender.")
-        panel_dc.DrawLabel(GetTextToDraw(txt_stats1, MAX_HELP_TEXT_WIDTH), 
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_stats1, 
+                                                MAX_HELP_TEXT_WIDTH), 
                            wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 
                                    260))
         txt_stats2 = _("SOFA focuses on the statistical tests most users "
             "need most of the time.")
-        panel_dc.DrawLabel(GetTextToDraw(txt_stats2, MAX_HELP_TEXT_WIDTH), 
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_stats2, 
+                                                MAX_HELP_TEXT_WIDTH), 
                 wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 61, HELP_TEXT_WIDTH, 320))
         txt_stats3 = u"QUOTE:"
-        panel_dc.DrawLabel(GetTextToDraw(txt_stats3, MAX_HELP_TEXT_WIDTH), 
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_stats3, 
+                                                MAX_HELP_TEXT_WIDTH), 
                            wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 106, 
                                    HELP_TEXT_WIDTH, 320))
         txt_stats4 = u"%s (%s)" % quotes.get_quote()
-        panel_dc.DrawLabel(GetTextToDraw(txt_stats4, MAX_HELP_TEXT_WIDTH - 20), 
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_stats4, 
+                                                MAX_HELP_TEXT_WIDTH - 20), 
                            wx.Rect(MAIN_LEFT + 10, HELP_TEXT_TOP + 131, 
                                    HELP_TEXT_WIDTH-10, 320))
         event.Skip()
@@ -607,12 +556,11 @@ class StartFrame(wx.Frame):
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_exit = _("Exit SOFA Statistics")
-        panel_dc.DrawLabel(GetTextToDraw(txt_exit, MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 
-                                   260))
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_exit, MAX_HELP_TEXT_WIDTH), 
+                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
 
-InstallLocal()
+install_local()
 app = SofaApp()
 try:
     app.MainLoop()

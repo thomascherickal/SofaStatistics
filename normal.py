@@ -10,28 +10,44 @@ import lib
 import getdata
 import config_dlg
 import core_stats
+import os
 import projects
+import pylab
 
+def config_histo(fig, var_label, vals, thumbnail=False):    
+    """
+    Configure histogram with subplot of normal distribution curve.
+    """
+    axes = fig.gca()
+    if thumbnail:
+        nbins = 20
+        axes.axis("off")
+        normal_line_width = 1
+    else:
+        nbins = 100
+        axes.set_xlabel(var_label)
+        axes.set_ylabel('P')
+        axes.set_title(_("Histogram for %s") % var_label)
+        normal_line_width = 4
+    n, bins, patches = axes.hist(vals, nbins, normed=1, 
+        facecolor=my_globals.FACECOLOR, edgecolor=my_globals.EDGECOLOR)
+    mu = core_stats.mean(vals)
+    sigma = core_stats.stdev(vals)
+    y = normpdf(bins, mu, sigma)
+    l = axes.plot(bins, y,  color=my_globals.NORM_LINE_COLOR, 
+                  linewidth=normal_line_width)
 
+        
 class HistoDlg(wxmpl.PlotDlg):
     def __init__(self, parent, var_label, vals):
         wxmpl.PlotDlg.__init__(self, parent, 
-		    title="Similar to normal distribution curve?", size=(10.0, 6.0), 
+		    title=_("Similar to normal distribution curve?"), size=(10.0, 6.0), 
 		    dpi=96)
         btnOK = wx.Button(self, wx.ID_OK)
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
         self.sizer.Add(btnOK, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
         fig = self.get_figure()
-        axes = fig.gca()
-        n, bins, patches = axes.hist(vals, 100, normed=1, 
-            facecolor="#f87526", edgecolor="#8f8f8f")
-        mu = core_stats.mean(vals)
-        sigma = core_stats.stdev(vals)
-        y = normpdf( bins, mu, sigma)
-        l = axes.plot(bins, y,  color="#5a4a3d", linewidth=4)
-        axes.set_xlabel(var_label)
-        axes.set_ylabel('P')
-        axes.set_title("Histogram for %s" % var_label)
+        config_histo(fig, var_label, vals)
         self.draw()
         self.SetSizer(self.sizer)
         self.Fit()
@@ -40,7 +56,8 @@ class HistoDlg(wxmpl.PlotDlg):
         self.Destroy()
 
 
-class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
+class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
+    
     def __init__(self, parent, dbe, con_dets, default_dbs, default_tbls,
                  var_labels, var_notes, var_types, val_dics, fil_var_dets):
         wx.Dialog.__init__(self, parent=parent, title=_("Normal Data?"),
@@ -67,6 +84,7 @@ class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrVarsTop = wx.BoxSizer(wx.HORIZONTAL)
         self.szrLevel = self.get_szrLevel(self.panel) # mixin
         self.szrExamine = wx.BoxSizer(wx.VERTICAL)
+        szrShape = wx.BoxSizer(wx.HORIZONTAL)
         # assembly
         lblDesc1 = wx.StaticText(self.panel, -1, 
                 _("Is the frequency curve for the variable close enough to the "
@@ -91,11 +109,23 @@ class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrVarsTop.Add(self.dropVars, 0)
         szrVars.Add(szrVarsTop, 0)
         szrVars.Add(lblexplanation, 0, wx.ALL, 5)
-
-
-        #imgHisto = 
-
-
+        self.imgHisto = wx.StaticBitmap(self.panel, -1, size=(200, 100), 
+                                        pos=(0,0))
+        msg_font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
+        img_blank_histo = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
+                                                u"images", u"blankhisto.xpm"), 
+                                                wx.BITMAP_TYPE_XPM)
+        self.bmp_blank_histo = wx.BitmapFromImage(img_blank_histo)
+        msg = lib.get_text_to_draw(_("Select variable to see graph"), 160)
+        lib.add_text_to_bitmap(self.bmp_blank_histo, msg, msg_font, "white", 
+                               left=20, top=30)
+        self.set_shape_to_blank()
+        self.btnDetails = wx.Button(self.panel, -1, _("Details"))
+        self.btnDetails.Bind(wx.EVT_BUTTON, self.OnDetailsClick)
+        self.btnDetails.Enable(False)
+        szrShape.Add(self.imgHisto, 0)
+        szrShape.Add(self.btnDetails, 0, wx.LEFT, 10)
+        self.szrExamine.Add(szrShape, 0, wx.ALL, 10)
         btnOK = wx.Button(self.panel, wx.ID_OK)
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
         szrStdBtns = wx.StdDialogButtonSizer()
@@ -111,10 +141,25 @@ class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrMain.SetSizeHints(self)
         self.Layout()
 
+    def set_shape_to_blank(self):
+        self.imgHisto.SetBitmap(self.bmp_blank_histo)
+
     def OnOK(self, event):
         self.Destroy()
         event.Skip()
 
+    def OnDatabaseSel(self, event):
+        config_dlg.ConfigDlg.OnDatabaseSel(self, event)
+        self.set_shape_to_blank()
+        
+    def OnTableSel(self, event):
+        config_dlg.ConfigDlg.OnTableSel(self, event)
+        self.set_shape_to_blank()
+        
+    def OnRightClickTables(self, event):
+        config_dlg.ConfigDlg.OnRightClickTables(self, event)
+        self.set_shape_to_blank()
+        
     def setup_vars(self, var=None):
         var_names = projects.get_approp_var_names(self.flds, self.var_types,
                                         min_data_type=my_globals.VAR_TYPE_QUANT)
@@ -133,7 +178,7 @@ class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
         var_item = self.dropVars.GetStringSelection()
         return var, var_item
     
-    def OnVarsSel(self, event):
+    def get_histo_input(self):
         var, choice_item = self.get_var()
         var_name, var_label = lib.extract_var_choice_dets(choice_item)
         unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
@@ -146,8 +191,28 @@ class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
                                    "tbl": obj_quoter(self.tbl),
                                    "where_filt": where_filt}
         self.cur.execute(s)
-        vals = [x[0] for x in self.cur.fetchall()]
-        dlg = HistoDlg(parent=self, var_label=var_label, vals=vals)
+        vals = [x[0] for x in self.cur.fetchall()]        
+        return var_label, vals
+    
+    def OnVarsSel(self, event):
+        """
+        Create and display thumbnail of histogram with normal dist curve.
+        """
+        self.btnDetails.Enable(True)
+        self.var_label, self.vals = self.get_histo_input()
+        fig = pylab.figure()
+        fig.set_figsize_inches((2.3, 1.0)) # see dpi to get image size in pixels
+        config_histo(fig, self.var_label, self.vals, thumbnail=True)
+        pylab.savefig(my_globals.HIST_PNG, dpi=100)
+        thumbnail_uncropped = wx.Image(my_globals.HIST_PNG, 
+                                       wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+        rem_blank_axes_rect = wx.Rect(15, 0, 200, 100)
+        thumbnail = thumbnail_uncropped.GetSubBitmap(rem_blank_axes_rect)
+        self.imgHisto.SetBitmap(thumbnail)
+        event.Skip()
+        
+    def OnDetailsClick(self, event):
+        dlg = HistoDlg(parent=self, var_label=self.var_label, vals=self.vals)
         dlg.ShowModal()
         event.Skip()
     
@@ -159,4 +224,3 @@ class NormalDlg(wx.Dialog, config_dlg.ConfigDlg):
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
             self.setup_vars(var)
-

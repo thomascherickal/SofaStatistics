@@ -62,8 +62,7 @@ class PrefsDlg(wx.Dialog):
     def OnOK(self, event):
         self.prefs_dic[my_globals.PREFS_KEY][my_globals.DATE_ENTRY_FORMAT] = \
             self.radDateFormat.GetSelection()
-        prefs_path = os.path.join(my_globals.LOCAL_PATH, 
-                                  my_globals.INTERNAL_FOLDER,
+        prefs_path = os.path.join(my_globals.INT_PATH, 
                                   my_globals.INT_PREFS_FILE)
         f = codecs.open(prefs_path, "w", "utf-8")
         f.write(u"%s = " % my_globals.PREFS_KEY + \

@@ -16,6 +16,38 @@ import wx
 # only import my_globals from local modules
 import my_globals
 
+def get_text_to_draw(orig_txt, max_width):
+    "Return text broken into new lines so wraps within pixel width"
+    mem = wx.MemoryDC()
+    # add words to it until its width is too long then put int split
+    lines = []
+    words = orig_txt.split()
+    line_words = []
+    for word in words:
+        line_words.append(word)
+        line_width = mem.GetTextExtent(" ".join(line_words))[0]
+        if line_width > max_width:
+            line_words.pop()
+            lines.append(u" ".join(line_words))
+            line_words = [word]
+    lines.append(u" ".join(line_words))
+    wrapped_txt = u"\n".join(lines)
+    return wrapped_txt
+
+def add_text_to_bitmap(bitmap, text, font, colour, left=9, top=3):
+    """
+    Add short text to bitmap with standard left margin.
+    Can then use bitmap for a bitmap button.
+    See http://wiki.wxpython.org/index.cgi/WorkingWithImages
+    """
+    mem = wx.MemoryDC()
+    mem.SelectObject(bitmap)
+    mem.SetFont(font)
+    mem.SetTextForeground(colour)
+    mem.DrawText(text, left, top)    
+    mem.SelectObject(wx.NullBitmap)
+    return bitmap
+
 def get_tbl_filt(dbe, db, tbl):
     """
     Returns tbl_filt_label, tbl_filt
