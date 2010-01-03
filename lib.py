@@ -44,7 +44,8 @@ def add_text_to_bitmap(bitmap, text, font, colour, left=9, top=3):
     mem.SelectObject(bitmap)
     mem.SetFont(font)
     mem.SetTextForeground(colour)
-    mem.DrawText(text, left, top)    
+    rect = wx.Rect(left, top, bitmap.GetWidth(), bitmap.GetHeight())
+    mem.DrawLabel(text, rect)    
     mem.SelectObject(wx.NullBitmap)
     return bitmap
 
