@@ -47,8 +47,8 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             u"fld_measure=\"%s\", " % var_ranked + \
             u"fld_filter=\"%s\", " % var_gp + \
             u"filter_val=%s)"
-        val_str_quoted_a = val if var_gp_numeric else "\"%s\"" % val_a
-        val_str_quoted_b = val if var_gp_numeric else "\"%s\"" % val_b
+        val_str_quoted_a = val_a if var_gp_numeric else "\"%s\"" % val_a
+        val_str_quoted_b = val_b if var_gp_numeric else "\"%s\"" % val_b
         script_lst.append(strGet_Sample % (u"a", val_str_quoted_a))
         script_lst.append(strGet_Sample % (u"b", val_str_quoted_b))
         script_lst.append(u"label_a = \"%s\"" % label_a)

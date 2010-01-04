@@ -36,8 +36,8 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             var_avg, label_avg = self.get_drop_vals()
         script_lst.append(u"dp = 3")
         script_lst.append(lib.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
-        val_str_quoted_a = val if var_gp_numeric else "\"%s\"" % val_a
-        val_str_quoted_b = val if var_gp_numeric else "\"%s\"" % val_b
+        val_str_quoted_a = val_a if var_gp_numeric else "\"%s\"" % val_a
+        val_str_quoted_b = val_b if var_gp_numeric else "\"%s\"" % val_b
         strGet_Sample = u"sample_%s = core_stats.get_list(" + \
             u"dbe=\"%s\", " % self.dbe + \
             u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
