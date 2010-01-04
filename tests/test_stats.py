@@ -18,7 +18,7 @@ from core_stats import ttest_ind, ttest_rel, mannwhitneyu, wilcoxont, \
 
 def test_kurtosis():
     for i in range(100):
-        sample_size = random.randint(5, 1000)
+        sample_size = random.randint(20, 1000)
         sample = [random.randint(1, 100000)/3.0 for x in range(sample_size)]
         k1 = stats.lkurtosis(sample)
         k2 = kurtosis(sample)
@@ -26,7 +26,7 @@ def test_kurtosis():
         
 def test_skew():
     for i in range(100):
-        sample_size = random.randint(5, 1000)
+        sample_size = random.randint(20, 1000)
         sample = [random.randint(1, 100000)/3.0 for x in range(sample_size)]
         s1 = stats.lskew(sample)
         s2 = skew(sample)
@@ -34,35 +34,28 @@ def test_skew():
         
 def test_kurtosistest():
     for i in range(100):
-        sample_size = random.randint(5, 1000)
+        sample_size = random.randint(20, 1000)
         sample = [random.randint(1, 100000)/3.0 for x in range(sample_size)]
         z1, p1 = stats.kurtosistest(np.array(sample))
-        z2, p2 = kurtosistest(sample)
+        z2, p2, unused = kurtosistest(sample)
         assert_almost_equal(z1, z2)
         assert_almost_equal(p1, p2)
 
-
-
-# restore to harder later
-# fails as numpy.float64 even if fed 20 small integers :-)
-# change in numpy of python since originally written (2007 at latest)   
 def test_skewtest():
     for i in range(100):
-        #sample_size = random.randint(5, 1000)
-        #sample = [random.randint(1, 100000)/3.0 for x in range(sample_size)]
-        sample_size = 20 # try with 5-19 later
-        sample = [random.randint(1, 100) for x in range(sample_size)] # ... 100000/3.0 later
+        sample_size = random.randint(20, 1000)
+        sample = [random.randint(1, 100000)/3.0 for x in range(sample_size)]
         z1, p1 = stats.skewtest(np.array(sample))
-        z2, p2 = skewtest(sample)
+        z2, p2, unused = skewtest(sample)
         assert_almost_equal(z1, z2)
         assert_almost_equal(p1, p2)
  
 def test_normaltest():
     for i in range(100):
-        sample_size = random.randint(5, 1000)
+        sample_size = random.randint(20, 1000)
         sample = [random.randint(1, 100000)/3.0 for x in range(sample_size)]
         z1, p1 = stats.normaltest(np.array(sample))
-        z2, p2 = normaltest(sample)
+        z2, p2, unused, unused, unused, unused = normaltest(sample)
         assert_almost_equal(z1, z2)
         assert_almost_equal(p1, p2)
         

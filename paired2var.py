@@ -6,6 +6,7 @@ import wx
 import wx.html
 
 import my_globals
+import lib
 import config_dlg
 import output
 import projects

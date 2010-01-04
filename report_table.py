@@ -227,7 +227,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
 
     def UpdateCss(self):
         "Update css, including for demo table"
-        gen_config.ConfigDlg.UpdateCss(self)
+        config_dlg.ConfigDlg.UpdateCss(self)
         self.demo_tab.fil_css = self.fil_css
         self.UpdateDemoDisplay()
     
@@ -238,7 +238,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             fields, has_unique, and idxs after a database selection.
         Clear dim areas.
         """
-        gen_config.ConfigDlg.OnDatabaseSel(self, event)
+        config_dlg.ConfigDlg.OnDatabaseSel(self, event)
         self.enable_col_btns()
         self.ClearDims()
         
@@ -247,13 +247,13 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         Reset table, fields, has_unique, and idxs.
         Clear dim areas.
         """       
-        gen_config.ConfigDlg.OnTableSel(self, event)
+        config_dlg.ConfigDlg.OnTableSel(self, event)
         self.enable_col_btns()
         self.ClearDims()
     
     def update_var_dets(self):
         "Update all labels, including those already displayed"
-        gen_config.ConfigDlg.update_var_dets(self)
+        config_dlg.ConfigDlg.update_var_dets(self)
         # update dim trees
         rowdescendants = lib.get_tree_ctrl_descendants(self.rowtree, 
                                                        self.rowRoot)

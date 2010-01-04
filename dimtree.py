@@ -199,7 +199,7 @@ class DimTree(object):
                 ancestor_labels = []
                 parent_text = tree.GetItemText(selected_id)
                 ancestor_labels.append(parent_text)
-                ancestors = lib.getTreeAncestors(tree, selected_id)
+                ancestors = lib.get_tree_ancestors(tree, selected_id)
                 parent_ancestor_labels = [tree.GetItemText(x) for \
                                           x in ancestors]
                 ancestor_labels += parent_ancestor_labels

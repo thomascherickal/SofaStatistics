@@ -7,6 +7,7 @@ from pylab import normpdf, randn
 
 import my_globals
 import lib
+import full_html
 import getdata
 import config_dlg
 import core_stats
@@ -62,7 +63,10 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                  var_labels, var_notes, var_types, val_dics, fil_var_dets):
         wx.Dialog.__init__(self, parent=parent, title=_("Normal Data?"),
                            size=(1024, 600),
-                           style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU)
+                           style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
+                           wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
+                           wx.CAPTION | wx.CLOSE_BOX | \
+                           wx.CLIP_CHILDREN)
         # the following properties all required to utilise get_szrData
         self.dbe = dbe
         self.con_dets = con_dets
@@ -88,11 +92,11 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrNormalityTest = wx.BoxSizer(wx.HORIZONTAL)
         # assembly
         lblDesc1 = wx.StaticText(self.panel, -1, 
-                _("Is the frequency curve for the variable close enough to the "
-                  "normal distribution curve for use with tests requiring that?"
-                  ))
+            _("Is the frequency curve for the variable close enough to the "
+              "normal distribution curve for use with tests requiring that?"
+              ))
         lblDesc2 = wx.StaticText(self.panel, -1, 
-                _("Select a variable to check."))
+            _("Select a variable to check."))
         szrDesc.Add(lblDesc1, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrDesc.Add(lblDesc2, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         lblVars = wx.StaticText(self.panel, -1, _("Variable:"))
@@ -127,11 +131,11 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrShape.Add(self.imgHisto, 0)
         szrShape.Add(self.btnDetails, 0, wx.LEFT, 10)
         self.szrExamine.Add(szrShape, 0, wx.ALL, 10)
-        self.lblNormalityTest = wx.StaticText(self.panel, -1, 
-                                          _("Select a variable to check to "
-                                            "see results of normality test"))
-        szrNormalityTest.Add(self.lblNormalityTest, 0)
-        self.szrExamine.Add(szrNormalityTest, 0, wx.ALL, 10)
+        self.html = full_html.FullHTML(self.panel, size=(200, 150))
+        msg = _("Select a variable to check to see results of normality test")
+        self.html.ShowHTML("<p>%s</p>" % msg)
+        szrNormalityTest.Add(self.html, 1, wx.GROW)
+        self.szrExamine.Add(szrNormalityTest, 1, wx.GROW|wx.ALL, 10)
         btnOK = wx.Button(self.panel, wx.ID_OK)
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
         szrStdBtns = wx.StdDialogButtonSizer()
@@ -141,7 +145,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szrMain.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(self.szrLevel, 0, wx.ALL, 10)
-        szrMain.Add(self.szrExamine, 1)
+        szrMain.Add(self.szrExamine, 1, wx.GROW)
         szrMain.Add(szrStdBtns, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
@@ -156,15 +160,15 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
 
     def OnDatabaseSel(self, event):
         config_dlg.ConfigDlg.OnDatabaseSel(self, event)
-        self.set_shape_to_blank()
+        self.update_examination()
         
     def OnTableSel(self, event):
         config_dlg.ConfigDlg.OnTableSel(self, event)
-        self.set_shape_to_blank()
+        self.update_examination()
         
     def OnRightClickTables(self, event):
         config_dlg.ConfigDlg.OnRightClickTables(self, event)
-        self.set_shape_to_blank()
+        self.update_examination()
         
     def setup_vars(self, var=None):
         var_names = projects.get_approp_var_names(self.flds, self.var_types,
@@ -200,9 +204,10 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         vals = [x[0] for x in self.cur.fetchall()]        
         return var_label, vals
     
-    def OnVarsSel(self, event):
+    def update_examination(self):
         """
-        Create and display thumbnail of histogram with normal dist curve.
+        Create and display thumbnail of histogram with normal dist curve plus
+            discussion of normality test results.
         """
         self.btnDetails.Enable(True)
         self.var_label, self.vals = self.get_exam_inputs()
@@ -217,8 +222,52 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         thumbnail = thumbnail_uncropped.GetSubBitmap(rem_blank_axes_rect)
         self.imgHisto.SetBitmap(thumbnail)
         # normality test (includes both kurtosis and skew)
-        k2, p = core_stats.normaltest(self.vals)
-        self.lblNormalityTest.SetLabel(_("p: %s" % p))
+        n_vals = len(self.vals)
+        USUAL_FAIL_N = 100
+        if n_vals < 20:
+            msg = _("Need at least 20 values to test normality.  Rely entirely "
+                "on visual inspection of graph above.")
+        else:
+            unused, p_arr, cskew, unused, ckurtosis, unused = \
+                    core_stats.normaltest(self.vals)
+            p = p_arr[0]
+            if abs(cskew) <= 1:
+                sindic = "a great sign"
+            elif abs(cskew) <= 2:
+                sindic = "a good sign"
+            else:
+                sindic = "not a good sign"
+            skew_msg = _("Skew (lopsidedness) is %s which is probably %s.") % \
+                (cskew, sindic)   
+            if abs(ckurtosis) <= 1:
+                kindic = "a great sign"
+            elif abs(ckurtosis) <= 2:
+                kindic = "a good sign"
+            else:
+                kindic = "not a good sign"
+            kurtosis_msg = _("Kurtosis (peakedness or flatness) is %s which is "
+                             "probably %s.") % (ckurtosis, kindic)               
+            if n_vals > USUAL_FAIL_N:
+                msg = _("Rely on visual inspection of graph above.  With more " 
+                    "than %s results (%s), most real-world data-sets will fail "
+                    "the normality test for even slight differences from the "
+                    "perfect normal distribution curve. %s %s") % (USUAL_FAIL_N, 
+                            n_vals, skew_msg, kurtosis_msg)
+            else:
+                if p < 0.05:
+                    msg = _("The distribution of %s passed one test for "
+                        "normality.  Confirm or reject based on visual "
+                        "inspection of graph above. %s %s") % (self.var_label, 
+                                                        skew_msg, kurtosis_msg)
+                else:
+                    msg = _("Although the distribution of %s is not perfectly "
+                        "'normal', it may still be 'normal' enough for use.  "
+                        "View graph above to decide. %s %s") % (self.var_label, 
+                                                        skew_msg, kurtosis_msg)
+        self.html.ShowHTML("<p>%s</p>" % msg)
+        
+    def OnVarsSel(self, event):
+        self.update_examination()
         event.Skip()
         
     def OnDetailsClick(self, event):

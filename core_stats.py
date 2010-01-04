@@ -189,6 +189,10 @@ def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b):
     return (chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, 
         perc_cells_lt_5, df)
 
+# Taken from v1.1 of statlib http://code.google.com/p/python-statlib/
+# NB lots of ongoing change at 
+# http://projects.scipy.org/scipy/browser/trunk/scipy/stats/stats.py
+
 # code below here is modified versions of code in stats.py and pstats.py
 
 # Copyright notice for scipy stats.py.
@@ -1487,7 +1491,8 @@ def achisqprob(chisq, df):
 
 def skewtest(a, dimension=None):
     """
-    From stats.py.  No changes except renamed function, N->np.  
+    From stats.py.  No changes except renamed function, N->np, and returns skew 
+        value.  
     ------------------------------------
     Tests whether the skew is significantly different from a normal
     distribution.  Dimension can equal None (ravel array first), an
@@ -1500,7 +1505,7 @@ def skewtest(a, dimension=None):
     if dimension == None:
         a = np.ravel(a)
         dimension = 0
-    b2 = skew(a,dimension)
+    b2 = skew(a, dimension)
     n = float(a.shape[dimension])
     y = b2 * np.sqrt(((n+1)*(n+3)) / (6.0*(n-2)) )
     beta2 = ( 3.0*(n*n+27*n-70)*(n+1)*(n+3) ) / ( (n-2.0)*(n+5)*(n+7)*(n+9) )
@@ -1509,11 +1514,12 @@ def skewtest(a, dimension=None):
     alpha = np.sqrt(2/(W2-1))
     y = np.where(y==0,1,y)
     Z = delta*np.log(y/alpha + np.sqrt((y/alpha)**2+1))
-    return Z, (1.0-azprob(Z))*2
+    return Z, (1.0-azprob(Z))*2, b2
 
 def kurtosistest(a, dimension=None):
     """
-    From stats.py.  No changes except renamed function, N->np, print updated.
+    From stats.py.  No changes except renamed function, N->np, print updated, 
+        and returns kurtosis value.
     ------------------------------------
     Tests whether a dataset has normal kurtosis (i.e.,
     kurtosis=3(n-1)/(n+1)) Valid only for n>20.  Dimension can equal None
@@ -1542,11 +1548,19 @@ def kurtosistest(a, dimension=None):
     term2 = np.where(np.equal(denom,0), term1, np.power((1-2.0/A)/denom,1/3.0))
     Z = ( term1 - term2 ) / np.sqrt(2/(9.0*A))
     Z = np.where(np.equal(denom,99), 0, Z)
-    return Z, (1.0-azprob(Z))*2
+    return Z, (1.0-azprob(Z))*2, b2
 
 def normaltest(a, dimension=None):
     """
-    From stats.py.  No changes except renamed function, N->np.  
+    From stats.py.  No changes except renamed function, some vars names, N->np, 
+        and included in return the results for skew and kurtosis.
+    This function tests the null hypothesis that a sample comes from a normal 
+        distribution.  It is based on D'Agostino and Pearson's test that 
+        combines skew and kurtosis to produce an omnibus test of normality.
+    D'Agostino, R. B. and Pearson, E. S. (1971), "An Omnibus Test of Normality 
+        for Moderate and Large Sample Size," Biometrika, 58, 341-348
+    D'Agostino, R. B. and Pearson, E. S. (1973), "Testing for departures from 
+        Normality," Biometrika, 60, 613-622.
     ------------------------------------
     Tests whether skew and/OR kurtosis of dataset differs from normal
     curve.  Can operate over multiple dimensions.  Dimension can equal
@@ -1559,7 +1573,7 @@ def normaltest(a, dimension=None):
     if dimension == None:
         a = np.ravel(a)
         dimension = 0
-    s,p = skewtest(a,dimension)
-    k,p = kurtosistest(a,dimension)
-    k2 = np.power(s,2) + np.power(k,2)
-    return k2, achisqprob(k2, 2)
+    zskew, p, cskew = skewtest(a, dimension)
+    zkurtosis, p, ckurtosis = kurtosistest(a, dimension)
+    k2 = np.power(zskew, 2) + np.power(zkurtosis, 2)
+    return k2, achisqprob(k2, 2), cskew, zskew, ckurtosis, zkurtosis
