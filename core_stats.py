@@ -1381,7 +1381,9 @@ def asum(a, dimension=None, keepdims=0):
 
 def kurtosis(a, dimension=None):
     """
-    From stats.py.  No changes except renamed function, N->np, print updated.  
+    From stats.py.  No changes except renamed function, N->np, print updated,
+        and subtracted 3. Using Fisher's definition, which subtracts 3.0 from 
+        the result to give 0.0 for a normal distribution. 
     ------------------------------------
     Returns the kurtosis of a distribution (normal ==> 3.0; >3 means
     heavier in the tails, and usually more peaked).  Use kurtosistest()
@@ -1393,12 +1395,13 @@ def kurtosis(a, dimension=None):
     Returns: kurtosis of values in a along dimension, and ZERO where all vals 
         equal
     """
+    FISHER_ADJUSTMENT = 3.0
     denom = np.power(moment(a, 2, dimension), 2)
     zero = np.equal(denom, 0)
     if type(denom) == np.ndarray and asum(zero) <> 0:
         print("Number of zeros in akurtosis: ", asum(zero))
     denom = denom + zero  # prevent divide-by-zero
-    return np.where(zero, 0, moment(a, 4, dimension)/denom)
+    return np.where(zero, 0, moment(a, 4, dimension)/denom) - FISHER_ADJUSTMENT
 
 def achisqprob(chisq, df):
     """
@@ -1519,7 +1522,8 @@ def skewtest(a, dimension=None):
 def kurtosistest(a, dimension=None):
     """
     From stats.py.  No changes except renamed function, N->np, print updated, 
-        and returns kurtosis value.
+        returns kurtosis value and add 3 to value to restore to what is expected 
+        here (removed in kurtosis as per Fisher so normal = 0).
     ------------------------------------
     Tests whether a dataset has normal kurtosis (i.e.,
     kurtosis=3(n-1)/(n+1)) Valid only for n>20.  Dimension can equal None
@@ -1529,13 +1533,14 @@ def kurtosistest(a, dimension=None):
     Usage:   kurtosistest(a,dimension=None)
     Returns: z-score and 2-tail z-probability, returns 0 for bad pixels
     """
+    FISHER_ADJUSTMENT = 3.0
     if dimension == None:
         a = np.ravel(a)
         dimension = 0
     n = float(a.shape[dimension])
     if n<20:
         print("kurtosistest only valid for n>=20 ... continuing anyway, n=", n)
-    b2 = kurtosis(a, dimension)
+    b2 = kurtosis(a, dimension) + FISHER_ADJUSTMENT
     E = 3.0*(n-1) /(n+1)
     varb2 = 24.0*n*(n-2)*(n-3) / ((n+1)*(n+1)*(n+3)*(n+5))
     x = (b2-E)/np.sqrt(varb2)

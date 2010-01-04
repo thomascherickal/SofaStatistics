@@ -238,7 +238,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             else:
                 sindic = "not a good sign"
             skew_msg = _("Skew (lopsidedness) is %s which is probably %s.") % \
-                (cskew, sindic)   
+                (round(cskew, 3), sindic)   
             if abs(ckurtosis) <= 1:
                 kindic = "a great sign"
             elif abs(ckurtosis) <= 2:
@@ -246,7 +246,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             else:
                 kindic = "not a good sign"
             kurtosis_msg = _("Kurtosis (peakedness or flatness) is %s which is "
-                             "probably %s.") % (ckurtosis, kindic)               
+                             "probably %s.") % (round(ckurtosis, 3), kindic)               
             if n_vals > USUAL_FAIL_N:
                 msg = _("Rely on visual inspection of graph above.  With more " 
                     "than %s results (%s), most real-world data-sets will fail "

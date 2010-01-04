@@ -17,11 +17,12 @@ from core_stats import ttest_ind, ttest_rel, mannwhitneyu, wilcoxont, \
     chisquare, kurtosis, skew, moment, kurtosistest, skewtest, normaltest
 
 def test_kurtosis():
+    FISHER_ADJUSTMENT = 3.0
     for i in range(100):
         sample_size = random.randint(20, 1000)
         sample = [random.randint(1, 100000)/3.0 for x in range(sample_size)]
         k1 = stats.lkurtosis(sample)
-        k2 = kurtosis(sample)
+        k2 = kurtosis(sample) + FISHER_ADJUSTMENT
         assert_almost_equal(k1, k2)
         
 def test_skew():
