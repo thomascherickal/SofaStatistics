@@ -132,8 +132,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrShape.Add(self.btnDetails, 0, wx.LEFT, 10)
         self.szrExamine.Add(szrShape, 0, wx.ALL, 10)
         self.html = full_html.FullHTML(self.panel, size=(200, 150))
-        msg = _("Select a variable to check to see results of normality test")
-        self.html.ShowHTML("<p>%s</p>" % msg)
+        self.set_output_to_blank()
         szrNormalityTest.Add(self.html, 1, wx.GROW)
         self.szrExamine.Add(szrNormalityTest, 1, wx.GROW|wx.ALL, 10)
         btnOK = wx.Button(self.panel, wx.ID_OK)
@@ -154,17 +153,25 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
     def set_shape_to_blank(self):
         self.imgHisto.SetBitmap(self.bmp_blank_histo)
 
+    def set_output_to_blank(self):
+        msg = _("Select a variable to check to see results of normality test")
+        self.html.ShowHTML("<p>%s</p>" % msg)
+
     def OnOK(self, event):
         self.Destroy()
         event.Skip()
 
     def OnDatabaseSel(self, event):
         config_dlg.ConfigDlg.OnDatabaseSel(self, event)
-        self.update_examination()
+        self.setup_vars()
+        self.set_shape_to_blank()
+        self.set_output_to_blank()
         
     def OnTableSel(self, event):
         config_dlg.ConfigDlg.OnTableSel(self, event)
-        self.update_examination()
+        self.setup_vars()
+        self.set_shape_to_blank()
+        self.set_output_to_blank()
         
     def OnRightClickTables(self, event):
         config_dlg.ConfigDlg.OnRightClickTables(self, event)
@@ -189,17 +196,22 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         return var, var_item
     
     def get_exam_inputs(self):
+        """
+        Get variable label and a list of the non-null values (with any 
+            additional filtering applied).
+        """
         var, choice_item = self.get_var()
         var_name, var_label = lib.extract_var_choice_dets(choice_item)
         unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
-        where_filt, unused = lib.get_tbl_filts(tbl_filt)
+        unused, and_filt = lib.get_tbl_filts(tbl_filt)
         obj_quoter = getdata.get_obj_quoter_func(self.dbe)
         s = """SELECT %(var)s
-            FROM %(tbl)s 
-            %(where_filt)s
+            FROM %(tbl)s
+            WHERE %(var)s IS NOT NULL 
+            %(and_filt)s
             ORDER BY %(var)s""" % {"var": obj_quoter(var), 
                                    "tbl": obj_quoter(self.tbl),
-                                   "where_filt": where_filt}
+                                   "and_filt": and_filt}
         self.cur.execute(s)
         vals = [x[0] for x in self.cur.fetchall()]        
         return var_label, vals
