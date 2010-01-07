@@ -102,7 +102,7 @@ class SettingsEntryDlg(wx.Dialog):
         self.SetReturnCode(wx.ID_OK)
         
     def OnDelete(self, event):
-        row_del = self.tabentry.TryToDeleteRow()
+        row_del = self.tabentry.try_to_delete_row()
         self.tabentry.grid.SetFocus()
         event.Skip()
     
@@ -229,7 +229,7 @@ class SettingsEntry(object):
                         self.OnGridEditorCreated)
         self.frame.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.EditorShown)
         self.frame.Bind(wx.grid.EVT_GRID_EDITOR_HIDDEN, self.EditorHidden)
-        self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelClick)        
+        self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelClick)
         # misc
         for col_idx, col_det in enumerate(self.col_dets):
             self.grid.SetColLabelValue(col_idx, col_det["col_label"])
@@ -732,21 +732,24 @@ class SettingsEntry(object):
         else:
             return True, None
     
-    def TryToDeleteRow(self):
+    def try_to_delete_row(self):
         """
         Delete row if a row selected and not the data entry row
             and put focus on new line.
         Return row deleted (or None if deletion did not occur).
         """
         selected_rows = self.grid.GetSelectedRows()
-        if len(selected_rows) == 1:
+        sel_rows_n = len(selected_rows)
+        if sel_rows_n == 1:
             row = selected_rows[0]
             ok_to_delete, msg = self.ok_to_delete_row(row)
             if ok_to_delete:
                 self.DeleteRow(row)
                 return row
             else:
-                wx.MessageBox(msg)            
+                wx.MessageBox(msg)
+        elif sel_rows_n == 0:
+            wx.MessageBox(_("Please select a row first"))
         else:
             wx.MessageBox(_("Can only delete one row at a time"))
         return None

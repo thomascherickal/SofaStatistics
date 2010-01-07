@@ -9,6 +9,7 @@ import lib
 import dbe_plugins.dbe_sqlite as dbe_sqlite 
 import db_tbl
 import getdata
+import projects
 
 """
 DbTbl is the link between the grid and the underlying data.
@@ -56,7 +57,8 @@ EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 
 class TblEditor(wx.Dialog):
     def __init__(self, parent, dbe, con, cur, db, tbl_name, flds, var_labels,
-                 val_dics, idxs, readonly=True):
+                 var_notes, var_types, val_dics, fil_var_dets, idxs, 
+                 readonly=True):
         self.debug = False
         wx.Dialog.__init__(self, None, 
                            title=_("Data from ") + "%s.%s" % (db, tbl_name),
@@ -71,7 +73,11 @@ class TblEditor(wx.Dialog):
         self.cur = cur
         self.tbl_name = tbl_name
         self.flds = flds
+        self.var_labels = var_labels
+        self.var_notes = var_notes
+        self.var_types = var_types
         self.val_dics = val_dics
+        self.fil_var_dets = fil_var_dets
         self.panel = wx.Panel(self, -1)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         self.grid = wx.grid.Grid(self.panel, size=(500, 600))
@@ -97,6 +103,8 @@ class TblEditor(wx.Dialog):
             self.focus_on_new_row(new_row_idx)
             self.SetNewRowEd(new_row_idx)
         self.SetColWidths()
+        self.grid.GetGridColLabelWindow().SetToolTipString(_("Right click "
+                                            "variable to view/edit details"))
         self.respond_to_select_cell = True
         self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnCellChange)
         self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnSelectCell)
@@ -104,6 +112,8 @@ class TblEditor(wx.Dialog):
         self.grid.Bind(EVT_CELL_MOVE, self.OnCellMove)
         self.prev_row_col = (None, None)
         self.grid.GetGridWindow().Bind(wx.EVT_MOTION, self.OnMouseMove)
+        self.grid.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, 
+                       self.OnLabelRightClick)
         szrBottom = wx.FlexGridSizer(rows=1, cols=1, hgap=5, vgap=5)
         szrBottom.AddGrowableCol(0,2) # idx, propn
         btnClose = wx.Button(self.panel, wx.ID_CLOSE)
@@ -717,6 +727,19 @@ class TblEditor(wx.Dialog):
                                     wx.grid.GridCellTextEditor())
 
     # MISC //////////////////////////////////////////////////////////////////
+    
+    def OnLabelRightClick(self, event):
+        debug = False
+        col = event.GetCol()
+        if col >= 0:
+            if debug: wx.MessageBox("Col %s was clicked" % col)
+            var_name = self.dbtbl.fld_names[col]
+            var_label = self.var_labels.get(var_name, "")
+            choice_item = lib.get_choice_item(self.var_labels, var_name)
+            projects.set_var_props(choice_item, var_name, var_label, 
+                                   self.flds, self.var_labels, self.var_notes, 
+                                   self.var_types, self.val_dics, 
+                                   self.fil_var_dets)
     
     def get_cell_tooltip(self, row, col):
         """

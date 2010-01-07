@@ -249,7 +249,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
     
     def OnDelete(self, event):
         "Overridden so we can update final_grid_data."
-        row_del = self.tabentry.TryToDeleteRow()
+        row_del = self.tabentry.try_to_delete_row()
         if row_del is not None:
             if self.debug: print("Row deleted was %s" % row_del)
             # remove row from final_grid_data.

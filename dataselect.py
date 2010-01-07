@@ -31,8 +31,9 @@ class DataSelectDlg(wx.Dialog):
                                   _("Choose an existing data table ..."))
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=proj_name)
+        self.fil_var_dets = proj_dic["fil_var_dets"]
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-            projects.get_var_dets(proj_dic["fil_var_dets"])
+            projects.get_var_dets(self.fil_var_dets)
         self.dbe = proj_dic["default_dbe"]
         try:
             self.con_dets = proj_dic["con_dets"]
@@ -177,7 +178,9 @@ class DataSelectDlg(wx.Dialog):
             readonly = self.chkReadOnly.IsChecked()
             dlg = db_grid.TblEditor(self, self.dbe, self.con, self.cur, self.db, 
                                     self.tbl, self.flds, self.var_labels, 
-                                    self.val_dics, self.idxs, readonly)
+                                    self.var_notes, self.var_types,
+                                    self.val_dics, self.fil_var_dets, self.idxs, 
+                                    readonly)
             wx.EndBusyCursor()
             dlg.ShowModal()
         event.Skip()
@@ -390,7 +393,8 @@ class DataSelectDlg(wx.Dialog):
         read_only = False
         dlg = db_grid.TblEditor(self, dbe, self.con, self.cur, 
                                 my_globals.SOFA_DEFAULT_DB, self.tbl, self.flds, 
-                                self.var_labels, self.val_dics, self.idxs, 
+                                self.var_labels, self.var_notes, self.var_types,
+                                self.val_dics, self.fil_var_dets, self.idxs, 
                                 readonly)
         wx.EndBusyCursor()
         dlg.ShowModal()
