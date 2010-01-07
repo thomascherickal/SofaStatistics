@@ -335,7 +335,7 @@ def refresh_db_dets(parent):
     wx.EndBusyCursor()
     return dbe, db, con, cur, tbls, tbl, flds, has_unique, idxs
 
-def RefreshTblDets(parent):
+def refresh_tbl_dets(parent):
     "Reset table, fields, has_unique, and idxs after a table selection."
     wx.BeginBusyCursor()
     tbl = parent.tbls[parent.dropTables.GetSelection()]

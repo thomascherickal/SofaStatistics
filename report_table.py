@@ -52,7 +52,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.fil_report = fil_report
         self.fil_script = fil_script        
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-            projects.GetVarDets(fil_var_dets)
+            projects.get_var_dets(fil_var_dets)
         self.col_no_vars_item = None # needed if no variable in columns
         # set up panel for frame
         self.panel = wx.Panel(self)

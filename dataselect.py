@@ -32,7 +32,7 @@ class DataSelectDlg(wx.Dialog):
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=proj_name)
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-            projects.GetVarDets(proj_dic["fil_var_dets"])
+            projects.get_var_dets(proj_dic["fil_var_dets"])
         self.dbe = proj_dic["default_dbe"]
         try:
             self.con_dets = proj_dic["con_dets"]
@@ -153,7 +153,7 @@ class DataSelectDlg(wx.Dialog):
     def OnTableSel(self, event):
         "Reset key data details after table selection."       
         self.tbl, self.flds, self.has_unique, self.idxs = \
-            getdata.RefreshTblDets(self)
+            getdata.refresh_tbl_dets(self)
         self.button_enablement()
 
     def OnOpen(self, event):
@@ -177,7 +177,7 @@ class DataSelectDlg(wx.Dialog):
             readonly = self.chkReadOnly.IsChecked()
             dlg = db_grid.TblEditor(self, self.dbe, self.con, self.cur, self.db, 
                                     self.tbl, self.flds, self.var_labels, 
-                                    self.idxs, readonly)
+                                    self.val_dics, self.idxs, readonly)
             wx.EndBusyCursor()
             dlg.ShowModal()
         event.Skip()
@@ -335,7 +335,7 @@ class DataSelectDlg(wx.Dialog):
             self.make_redesigned_tbl(final_name_types, final_grid_data)
             # refresh fld details etc
             self.tbl, self.flds, self.has_unique, self.idxs = \
-                getdata.RefreshTblDets(self)
+                getdata.refresh_tbl_dets(self)
     
     def OnNewClick(self, event):
         """
@@ -390,7 +390,8 @@ class DataSelectDlg(wx.Dialog):
         read_only = False
         dlg = db_grid.TblEditor(self, dbe, self.con, self.cur, 
                                 my_globals.SOFA_DEFAULT_DB, self.tbl, self.flds, 
-                                self.var_labels, self.idxs, read_only)
+                                self.var_labels, self.val_dics, self.idxs, 
+                                readonly)
         wx.EndBusyCursor()
         dlg.ShowModal()
         self.button_enablement()

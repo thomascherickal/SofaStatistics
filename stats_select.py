@@ -58,9 +58,7 @@ class StatsSelectDlg(wx.Dialog):
         self.fil_var_dets = fil_var_dets
         self.fil_css = fil_css
         self.fil_report = fil_report
-        self.fil_script = fil_script        
-        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-            projects.GetVarDets(fil_var_dets)
+        self.fil_script = fil_script
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize())
@@ -308,13 +306,19 @@ class StatsSelectDlg(wx.Dialog):
           "Females."
           "\n\nExample with 3 or more groups: average sales figures for "
           "the North, South, East, and West regions"))
-        
-    def OnNormalHelp1Button(self, event):
+    
+    def examine_normality(self):
+        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
+            projects.get_var_dets(self.fil_var_dets)
         dlg = normal.NormalityDlg(self, self.dbe, self.con_dets, 
                         self.default_dbs, self.default_tbls, self.var_labels, 
                         self.var_notes, self.var_types, self.val_dics, 
                         self.fil_var_dets)
         dlg.ShowModal()
+    
+    def OnNormalHelp1Button(self, event):
+        self.examine_normality()
+        event.Skip()
     
     def IndepSetup(self, enable=True):
         # set left first
@@ -368,11 +372,8 @@ class StatsSelectDlg(wx.Dialog):
           "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc)."))
     
     def OnNormalHelp2Button(self, event):
-        dlg = normal.NormalityDlg(self, self.dbe, self.con_dets, 
-                        self.default_dbs, self.default_tbls, self.var_labels, 
-                        self.var_notes, self.var_types, self.val_dics, 
-                        self.fil_var_dets)
-        dlg.ShowModal()
+        self.examine_normality()
+        event.Skip()
     
     def NormalRelSetup(self, enable=True):
         # set left first

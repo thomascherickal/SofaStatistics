@@ -8,7 +8,7 @@ import sys
 
 debug = False
 
-VERSION = u"0.9.0"
+VERSION = u"0.9.1"
 
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"

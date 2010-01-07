@@ -41,7 +41,7 @@ def GetProjNotes(fil_proj, proj_dic):
         proj_notes = proj_dic["proj_notes"]
     return proj_notes 
     
-def GetVarDets(fil_var_dets):
+def get_var_dets(fil_var_dets):
     """
     Get variable details from fil_var_dets file.
     Returns var_labels, var_notes, var_types, val_dics.

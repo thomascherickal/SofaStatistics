@@ -378,7 +378,7 @@ def test_sofa_default_proj_settings():
     proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                        fil_name=my_globals.SOFA_DEFAULT_PROJ)
     var_labels, var_notes, var_types, val_dics = \
-        projects.GetVarDets(proj_dic["fil_var_dets"])
+        projects.get_var_dets(proj_dic["fil_var_dets"])
     fil_var_dets = proj_dic["fil_var_dets"]
     dbe = proj_dic["default_dbe"]
     con_dets = proj_dic["con_dets"]
@@ -402,7 +402,7 @@ def test_get_var_dets():
     proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                        fil_name=my_globals.SOFA_DEFAULT_PROJ)
     var_labels, var_notes, var_types, val_dics = \
-        projects.GetVarDets(proj_dic["fil_var_dets"])
+        projects.get_var_dets(proj_dic["fil_var_dets"])
     assert_not_equal(var_labels.get('Name'), None)
     assert_not_equal(var_notes.get('age'), None)
     assert_equal(var_types['browser'][:11], "Categorical")

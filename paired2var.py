@@ -41,7 +41,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.fil_report = fil_report
         self.fil_script = fil_script
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-            projects.GetVarDets(fil_var_dets)
+            projects.get_var_dets(fil_var_dets)
         variables_rc_msg = _("Right click variables to view/edit details")
         # set up panel for frame
         self.panel = wx.Panel(self)

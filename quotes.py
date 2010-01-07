@@ -29,6 +29,9 @@ QUOTES = [
      u"Common Saying"),
     (u"Statistical thinking will one day be as necessary for efficient "
      u"citizenship as the ability to read and write", u"H.G. Wells"),
+    (u"Absolutely nothing should be concluded from these figures "
+     u"except that no conclusion can be drawn from them.", 
+     u"Joseph L. Brothers"),
     ]
 
 def get_quote():

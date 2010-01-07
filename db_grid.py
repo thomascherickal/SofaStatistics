@@ -56,7 +56,7 @@ EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 
 class TblEditor(wx.Dialog):
     def __init__(self, parent, dbe, con, cur, db, tbl_name, flds, var_labels,
-                 idxs, readonly=True):
+                 val_dics, idxs, readonly=True):
         self.debug = False
         wx.Dialog.__init__(self, None, 
                            title=_("Data from ") + "%s.%s" % (db, tbl_name),
@@ -71,6 +71,7 @@ class TblEditor(wx.Dialog):
         self.cur = cur
         self.tbl_name = tbl_name
         self.flds = flds
+        self.val_dics = val_dics
         self.panel = wx.Panel(self, -1)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         self.grid = wx.grid.Grid(self.panel, size=(500, 600))
@@ -101,6 +102,8 @@ class TblEditor(wx.Dialog):
         self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnSelectCell)
         self.grid.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
         self.grid.Bind(EVT_CELL_MOVE, self.OnCellMove)
+        self.prev_row_col = (None, None)
+        self.grid.GetGridWindow().Bind(wx.EVT_MOTION, self.OnMouseMove)
         szrBottom = wx.FlexGridSizer(rows=1, cols=1, hgap=5, vgap=5)
         szrBottom.AddGrowableCol(0,2) # idx, propn
         btnClose = wx.Button(self.panel, wx.ID_CLOSE)
@@ -489,7 +492,7 @@ class TblEditor(wx.Dialog):
             raw_val = self.dbtbl.new_buffer.get((row, col), 
                                             my_globals.MISSING_VAL_INDICATOR)
         else:
-            raw_val = self.GetRawVal(row, col)
+            raw_val = self.get_raw_val(row, col)
             existing_row_data_lst = self.dbtbl.row_vals_dic.get(row)
             if existing_row_data_lst:
                 prev_val = unicode(existing_row_data_lst[col])
@@ -549,9 +552,10 @@ class TblEditor(wx.Dialog):
         else:
             raise Exception, "Field supposedly not numeric, datetime, or text"
     
-    def GetRawVal(self, row, col):
+    def get_raw_val(self, row, col):
         """
         What was the value of a cell?
+        NB always returned as a string.
         If it has just been edited, GetCellValue(), which calls 
             dbtbl.GetValue(), will not work.  It will get the cached version
             which is now out-of-date (we presumably just changed it).
@@ -582,7 +586,7 @@ class TblEditor(wx.Dialog):
         debug = False
         if self.debug or debug: 
             print("CellOKToSave - row %s col %s" % (row, col))
-        raw_val = self.GetRawVal(row, col)
+        raw_val = self.get_raw_val(row, col)
         fld_dic = self.dbtbl.GetFldDic(col)
         missing_not_nullable_prob = \
             (raw_val == my_globals.MISSING_VAL_INDICATOR and \
@@ -644,9 +648,8 @@ class TblEditor(wx.Dialog):
             Not autonumber or timestamp etc.
         """
         data = []
-        fld_names = getdata.FldsDic2FldNamesLst(self.flds) # sorted list
         for col in range(len(self.flds)):
-            fld_name = fld_names[col]
+            fld_name = self.dbtbl.fld_names[col]
             fld_dic = self.flds[fld_name]
             if not fld_dic[my_globals.FLD_DATA_ENTRY_OK]:
                 continue
@@ -655,7 +658,7 @@ class TblEditor(wx.Dialog):
                 raw_val = None
             data.append((raw_val, fld_name, fld_dic))
         row_inserted, msg = getdata.InsertRow(self.dbe, self.con, self.cur, 
-                                         self.tbl_name, data)
+                                              self.tbl_name, data)
         if row_inserted:
             if self.debug: print("SaveRow - Just inserted row")
         else:
@@ -715,6 +718,46 @@ class TblEditor(wx.Dialog):
 
     # MISC //////////////////////////////////////////////////////////////////
     
+    def get_cell_tooltip(self, row, col):
+        """
+        Get tooltip for cell based on value dict if possible.
+        """
+        debug = False
+        fld_name = self.dbtbl.fld_names[col]
+        fld_val_dic = self.val_dics.get(fld_name, {})
+        raw_val = self.get_raw_val(row, col)
+        # raw_val is always a string - won't necessarily match vals dic e.g. "5"
+        # won't match {5: "5's label"}
+        tip = fld_val_dic.get(raw_val)
+        if tip is None:
+            try:
+                tip = fld_val_dic.get(int(raw_val))
+            except Exception:
+                pass
+        if tip is None:
+            try:
+                tip = fld_val_dic.get(float(raw_val))
+            except Exception:
+                pass
+        if tip is None:
+            tip = raw_val
+        if debug: print(tip)
+        return tip
+    
+    def OnMouseMove(self, event):
+        """
+        Only respond if a change in row or col.
+        See http://wiki.wxpython.org/wxGrid%20ToolTips
+        """
+        x, y = self.grid.CalcUnscrolledPosition(event.GetPosition())
+        row = self.grid.YToRow(y)
+        col = self.grid.XToCol(x)
+        if (row, col) != self.prev_row_col and row >= 0 and col >= 0:
+            self.prev_row_col = (row, col)
+            tip = self.get_cell_tooltip(row, col)
+            self.grid.GetGridWindow().SetToolTipString(tip)
+        event.Skip()
+        
     def GetColsN(self):
         return len(self.flds)
     

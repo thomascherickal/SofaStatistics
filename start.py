@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-dev_debug = False
+dev_debug = True
 test_lang = False
 
 import warnings

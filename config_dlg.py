@@ -182,7 +182,7 @@ class ConfigDlg(object):
     def update_var_dets(self):
         "Update all variable details, including those already displayed"
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-            projects.GetVarDets(self.fil_var_dets)
+            projects.get_var_dets(self.fil_var_dets)
 
     # database/ tables (and views)
     def OnDatabaseSel(self, event):
@@ -199,7 +199,7 @@ class ConfigDlg(object):
     def OnTableSel(self, event):
         "Reset key data details after table selection."       
         self.tbl, self.flds, self.has_unique, self.idxs = \
-            getdata.RefreshTblDets(self)
+            getdata.refresh_tbl_dets(self)
 
     def filt_select(self):
         dlg = filtselect.FiltSelectDlg(self, self.dbe, self.con, self.cur, 
