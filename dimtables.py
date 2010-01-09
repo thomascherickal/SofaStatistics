@@ -660,6 +660,7 @@ class LiveTable(DimTable):
         fld = tree_dims_node.fld
         SQL_get_vals = self.get_vals_sql(fld, tree_dims_node, tree_labels_node, 
                                          oth_dim_root)
+        if debug: print(SQL_get_vals)
         self.cur.execute(SQL_get_vals)
         all_vals = self.cur.fetchall()
         if debug: print(all_vals)

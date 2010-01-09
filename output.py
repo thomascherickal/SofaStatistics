@@ -262,7 +262,8 @@ def add_divider_code(f, db, tbl, tbl_filt_label, tbl_filt):
     """
     f.write(u"\nsource = output.get_source(\"%s\", \"%s\")" % (db, tbl))
     f.write(u"\ndivider = output.get_divider(source, "
-            u" \"\"\" %s \"\"\", \"%s\")" % (tbl_filt_label, tbl_filt))
+            u" \"\"\" %s \"\"\", \"\"\" %s \"\"\")" % (tbl_filt_label, 
+                                                       tbl_filt))
     f.write(u"\nfil.write(divider)\n")
 
 def get_filt_msg(tbl_filt_label, tbl_filt):
