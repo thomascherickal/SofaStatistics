@@ -4,18 +4,18 @@ import wx
 
 import my_globals
 import my_exceptions
-import anova
-import chisquare
+#import anova # import as needed for performance
+#import chisquare
 import config_dlg
-import kruskal_wallis
-import mann_whitney
+#import kruskal_wallis
+#import mann_whitney
 import normal
-import pearsonsr
+#import pearsonsr
 import projects
-import spearmansr
-import ttest_indep
-import ttest_paired
-import wilcoxon
+#import spearmansr
+#import ttest_indep
+#import ttest_paired
+#import wilcoxon
 
 TEXT_BROWN = (90, 74, 61)
 TEST_ANOVA = _("ANOVA")
@@ -473,12 +473,14 @@ class StatsSelectDlg(wx.Dialog):
             return
         try:
             if sel_test == TEST_TTEST_INDEP:
+                import ttest_indep
                 dlg = ttest_indep.DlgConfig(_("Configure Independent t-test"), 
                     self.dbe, self.con_dets, self.default_dbs, 
                     self.default_tbls, self.fil_var_dets, self.fil_css, 
                     self.fil_report, self.fil_script)
                 dlg.ShowModal()        
             elif sel_test == TEST_TTEST_PAIRED:
+                import ttest_paired
                 dlg = ttest_paired.DlgConfig(
                     _("Configure Paired Samples t-test"), 
                     self.dbe, self.con_dets, self.default_dbs, 
@@ -486,12 +488,14 @@ class StatsSelectDlg(wx.Dialog):
                     self.fil_report, self.fil_script)
                 dlg.ShowModal()
             elif sel_test == TEST_ANOVA:
+                import anova
                 dlg = anova.DlgConfig(_("Configure ANOVA test"), 
                     self.dbe, self.con_dets, self.default_dbs, 
                     self.default_tbls, self.fil_var_dets, self.fil_css, 
                     self.fil_report, self.fil_script, takes_range=True)
                 dlg.ShowModal()
             elif sel_test == TEST_WILCOXON:
+                import wilcoxon
                 dlg = wilcoxon.DlgConfig(
                     _("Configure Wilcoxon Signed Ranks test"), 
                     self.dbe, self.con_dets, self.default_dbs, 
@@ -499,12 +503,14 @@ class StatsSelectDlg(wx.Dialog):
                     self.fil_report, self.fil_script)
                 dlg.ShowModal()
             elif sel_test == TEST_MANN_WHITNEY:
+                import mann_whitney
                 dlg = mann_whitney.DlgConfig(_("Configure Mann Whitney U test"), 
                     self.dbe, self.con_dets, self.default_dbs, 
                     self.default_tbls, self.fil_var_dets, self.fil_css, 
                     self.fil_report, self.fil_script)
                 dlg.ShowModal()
             elif sel_test == TEST_KRUSKAL_WALLIS:
+                import kruskal_wallis
                 dlg = kruskal_wallis.DlgConfig(
                     _("Configure Kruskal Wallis H test"), 
                     self.dbe, self.con_dets, self.default_dbs, 
@@ -512,18 +518,21 @@ class StatsSelectDlg(wx.Dialog):
                     self.fil_report, self.fil_script, takes_range=True)
                 dlg.ShowModal()
             elif sel_test == TEST_CHI_SQUARE:
+                import chisquare
                 dlg = chisquare.DlgConfig(_("Configure Chi Square test"), 
                     self.dbe, self.con_dets, self.default_dbs, 
                     self.default_tbls, self.fil_var_dets, self.fil_css, 
                     self.fil_report, self.fil_script)
                 dlg.ShowModal()
             elif sel_test == TEST_PEARSONS_R:
+                import pearsonsr
                 dlg = pearsonsr.DlgConfig(_("Configure Pearson's R test"), 
                     self.dbe, self.con_dets, self.default_dbs, 
                     self.default_tbls, self.fil_var_dets, self.fil_css, 
                     self.fil_report, self.fil_script)
                 dlg.ShowModal()
             elif sel_test == TEST_SPEARMANS_R:
+                import spearmansr
                 dlg = spearmansr.DlgConfig(_("Configure Spearman's R test"), 
                     self.dbe, self.con_dets, self.default_dbs, 
                     self.default_tbls, self.fil_var_dets, self.fil_css, 

@@ -14,8 +14,17 @@ import tests.stats as stats
 
 from core_stats import ttest_ind, ttest_rel, mannwhitneyu, wilcoxont, \
     pearsonr, spearmanr, kruskalwallish, anova, fprob, betai, gammln, betacf, \
-    chisquare, kurtosis, skew, moment, kurtosistest, skewtest, normaltest
+    chisquare, kurtosis, skew, moment, kurtosistest, skewtest, normaltest, \
+    sim_variance
 
+def test_sim_variance():
+    sample_a = [random.randint(1, 100000)/3.0 for x in range(10)]
+    sample_b = [x*1.2 for x in sample_a if round(x,0) % 2 == 0]
+    print(sample_a)
+    print(sample_b)
+    bolsim, p = sim_variance(sample_a, sample_b)
+    assert_equal(bolsim, True)
+    
 def test_kurtosis():
     FISHER_ADJUSTMENT = 3.0
     for i in range(100):

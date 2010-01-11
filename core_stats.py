@@ -3,7 +3,7 @@ from __future__ import print_function
 import copy
 import decimal
 import math
-from types import IntType, FloatType, ListType, TupleType
+from types import IntType, FloatType, ListType, TupleType, StringType
 import numpy as np
 
 import my_globals
@@ -1582,3 +1582,88 @@ def normaltest(a, dimension=None):
     zkurtosis, p, ckurtosis = kurtosistest(a, dimension)
     k2 = np.power(zskew, 2) + np.power(zkurtosis, 2)
     return k2, achisqprob(k2, 2), cskew, zskew, ckurtosis, zkurtosis
+
+def obrientransform(*args):
+    """
+    From stats.py.  No changes except renamed function and renamed var to 
+        variance, plus raise ValueError as soon as check = 0 without continuing
+        to pointlessly loop through other items.
+    ------------------------------------
+    Computes a transform on input data (any number of columns).  Used to
+        test for homogeneity of variance prior to running one-way stats.  From
+        Maxwell and Delaney, p.112.
+
+    Usage:   obrientransform(*args)
+    Returns: transformed data for use in an ANOVA
+    """
+    TINY = 1e-10
+    k = len(args)
+    n = [0.0]*k
+    v = [0.0]*k
+    m = [0.0]*k
+    nargs = []
+    for i in range(k):
+        nargs.append(copy.deepcopy(args[i]))
+        n[i] = float(len(nargs[i]))
+        v[i] = variance(nargs[i])
+        m[i] = mean(nargs[i])
+    for j in range(k):
+        for i in range(n[j]):
+            t1 = (n[j]-1.5)*n[j]*(nargs[j][i]-m[j])**2
+            t2 = 0.5*v[j]*(n[j]-1.0)
+            t3 = (n[j]-1.0)*(n[j]-2.0)
+            nargs[j][i] = (t1-t2) / float(t3)
+    for j in range(k):
+        if v[j] - mean(nargs[j]) > TINY:
+            raise ValueError, "Problem in obrientransform."
+    return nargs
+
+def colex (listoflists, cnums):
+    """
+    From pstat.py.  No changes except renamed function
+    Extracts column(s).
+    ------------------------------------
+    Extracts from listoflists the columns specified in the list 'cnums'
+        (cnums can be an integer, a sequence of integers, or a string-expression 
+        that corresponds to a slice operation on the variable x ... 
+        e.g., 'x[3:]' will colex columns 3 onward from the listoflists).
+    
+    Usage:   colex (listoflists,cnums)
+    Returns: a list-of-lists corresponding to the columns from listoflists
+             specified by cnums, in the order the column numbers appear in cnums
+    """
+    global index
+    column = 0
+    if type(cnums) in [ListType, TupleType]:   # if multiple columns to get
+        index = cnums[0]
+        column = map(lambda x: x[index], listoflists)
+        for col in cnums[1:]:
+            index = col
+            column = abut(column,map(lambda x: x[index], listoflists))
+    elif type(cnums) == StringType:           # if an 'x[3:]' type expr.
+        evalstring = 'map(lambda x: x' + cnums + ', listoflists)'
+        column = eval(evalstring)
+    else:                                     # else it's just 1 col to get
+        index = cnums
+        column = map(lambda x: x[index], listoflists)
+    return column
+
+def sim_variance(x, y, threshold=0.05):
+    """
+    From stats.py.  From inside lpaired. F_oneway changed to anova. Not only 
+        able to use 0.05 as threshold.
+    ------------------------------------
+    Comparing variances.
+    Using O'BRIEN'S TEST FOR HOMOGENEITY OF VARIANCE, Maxwell & delaney, p.112
+    """
+    debug = True
+    r = obrientransform(x, y)
+    cols0 = colex(r, 0)
+    cols1 = colex(r, 1)
+    if debug:
+        print("Cols 0: %s" % cols0)
+        print("Cols 1: %s" % cols1)
+    f, p = anova(cols0, cols1)
+    bolsim = (p >= threshold)
+    p = str(round(p, 4))
+    return bolsim, p
