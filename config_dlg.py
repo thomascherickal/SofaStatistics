@@ -7,6 +7,20 @@ import getdata
 import projects
 
 
+# explanation level
+def get_szrLevel(parent, panel):
+    """
+    Get self.szrLevel with radio widgets. 
+    """
+    parent.radLevel = wx.RadioBox(panel, -1, _("Output Level"), 
+                                choices=my_globals.LEVELS, 
+                                style=wx.RA_SPECIFY_COLS)
+    parent.radLevel.SetStringSelection(my_globals.DEFAULT_LEVEL)
+    parent.szrLevel = wx.BoxSizer(wx.HORIZONTAL)
+    parent.szrLevel.Add(parent.radLevel, 0, wx.RIGHT, 10)
+    return parent.szrLevel
+    
+
 class ConfigDlg(object):
     """
     The standard interface for choosing data, styles etc.
@@ -295,19 +309,10 @@ class ConfigDlg(object):
         """
         Get self.szrLevel with radio widgets. 
         """
-        self.radFull = wx.RadioButton(panel, -1, _("Full Explanation"), 
-                                      style=wx.RB_GROUP)
-        self.radBrief = wx.RadioButton(panel, -1, _("Brief Explanation"))
-        self.radResults = wx.RadioButton(panel, -1, _("Results Only"))
-        self.radFull.Enable(False)
-        self.radBrief.Enable(False)
-        self.radResults.Enable(False)
-        bxLevel = wx.StaticBox(panel, -1, _("Output Level"))
-        self.szrLevel = wx.StaticBoxSizer(bxLevel, wx.HORIZONTAL)
-        self.szrLevel.Add(self.radFull, 0, wx.RIGHT, 10)
-        self.szrLevel.Add(self.radBrief, 0, wx.RIGHT, 10)
-        self.szrLevel.Add(self.radResults, 0, wx.RIGHT, 10)
-        return self.szrLevel
+        szrLevel = get_szrLevel(self, panel)
+        self.radLevel.Enable(False)
+        return szrLevel
+
 
 def add_icon(frame):
     ib = wx.IconBundle()

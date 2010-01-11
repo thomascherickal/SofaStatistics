@@ -9,12 +9,43 @@ import decimal
 import os
 import pprint
 import re
+import subprocess
 import sys
 import time
 import wx
 
 # only import my_globals from local modules
 import my_globals
+
+def get_date_fmt():
+    """
+    On Windows, get local datetime_format.
+    With insights from code by Denis Barmenkov <barmenkov at bpc.ru>
+        (see http://win32com.goermezer.de/content/view/210/291/) and registry
+        details from http://windowsitpro.com/article/articleid/71636/...
+        ...jsi-tip-0311---regional-settings-in-the-registry.html.
+    On Linux and possibly OS-X, locale command works.
+    Returns MM_DD_YY, DD_MM_YY, or YY_MM_DD.
+    """
+    if my_globals.IN_WINDOWS:
+        # the following must have been specially installed
+        import win32api
+        import win32con
+        retval2const = {"0": my_globals.MM_DD_YY, "1": my_globals.DD_MM_YY, 
+                        "2": my_globals.YY_MM_DD}
+        rkey = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, 
+                                   'Control Panel\\International')
+        retval = win32api.RegQueryValueEx(rkey, "iDate")[0]
+        date_const = retval2const.get(retval)
+        win32api.RegCloseKey(rkey)
+    else:
+        cmd = 'locale -k LC_TIME'
+        child = subprocess.Popen(cmd, shell=True,
+                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        locale_dets = child.stdout.read().strip().split()
+        d_fmt_str = [x for x in locale_dets if x.startswith("d_fmt")][0]
+        d_fmt = d_fmt_str.split("=")[1].strip()
+    return date_const
 
 def get_text_to_draw(orig_txt, max_width):
     "Return text broken into new lines so wraps within pixel width"

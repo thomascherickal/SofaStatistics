@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os
+import subprocess
 import sys
 
 # my_globals exists to reduce likelihood of circular imports.
@@ -251,13 +252,76 @@ FACECOLOR = "#f87526"
 EDGECOLOR = "#8f8f8f"
 NORM_LINE_COLOR = "#5a4a3d"
 HIST_PNG = os.path.join(INT_PATH, u"hist.png")
+# date formats
+MM_DD_YY = "mm/dd/yy"
+DD_MM_YY = "dd/mm/yy"
+YY_MM_DD = "yy/mm/dd"
+def get_date_fmt():
+    """
+    On Windows, get local datetime_format.
+    With insights from code by Denis Barmenkov <barmenkov at bpc.ru>
+        (see http://win32com.goermezer.de/content/view/210/291/) and registry
+        details from http://windowsitpro.com/article/articleid/71636/...
+        ...jsi-tip-0311---regional-settings-in-the-registry.html.
+    On Linux and possibly OS-X, locale command works.
+    Returns MM_DD_YY, DD_MM_YY, or YY_MM_DD.
+    """
+    debug = False
+    try:
+        if IN_WINDOWS:
+            # the following must have been specially installed
+            import win32api
+            import win32con
+            rkey = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, 
+                                       'Control Panel\\International')
+            raw_d_fmt = win32api.RegQueryValueEx(rkey, "iDate")[0]
+            raw2const = {"0": MM_DD_YY, "1": DD_MM_YY, "2": YY_MM_DD}
+            win32api.RegCloseKey(rkey)
+        else:
+            cmd = 'locale -k LC_TIME'
+            child = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, 
+                                     stdout=subprocess.PIPE)
+            locale_dets = child.stdout.read().strip().split()
+            d_fmt_str = [x for x in locale_dets if x.startswith("d_fmt")][0]
+            raw_d_fmt = d_fmt_str.split("=")[1].strip().strip('"')
+            raw2const = {"%m/%d/%y": MM_DD_YY, "%d/%m/%y": DD_MM_YY, 
+                         "%y/%m/%d": YY_MM_DD}
+    except Exception, e:
+        raise Exception, "Unable to get date format. %s" % e
+    try:
+        if debug: print("%s %s" % (raw2const, raw_d_fmt))
+        d_fmt = raw2const[raw_d_fmt]
+    except KeyError:
+        raise Exception, "Unexpected raw_d_fmt (%s) in get_date_fmt()" % \
+            raw_d_fmt
+    return d_fmt
+d_fmt = get_date_fmt()
+def get_date_fmt_lists(d_fmt):
+    if d_fmt == DD_MM_YY:
+        extra_ok_date_formats = ["%d-%m-%y", "%d/%m/%y", "%d-%m-%Y", "%d/%m/%Y"]
+        ok_date_format_examples = ["31/3/09", "2:30pm 31/3/2009"]
+    elif d_fmt == MM_DD_YY:
+        # needed for US, Canada, the Philippines etc
+        extra_ok_date_formats = ["%m-%d-%y", "%m/%d/%y", "%m-%d-%Y", "%m/%d/%Y"]
+        ok_date_format_examples = ["3/31/09", "2:30pm 3/31/2009"]
+    elif d_fmt == YY_MM_DD:
+        extra_ok_date_formats = []
+        ok_date_format_examples = ["09/03/31", "2:30pm 09/03/31"]
+    else:
+        raise Exception, "Unexpected d_fmt value (%s) in get_date_fmt_lists()" \
+            % d_fmt
+    always_ok_date_formats = ["%Y-%m-%d", "%Y", "%d.%m.%Y", "%d.%m.%y"]
+    ok_date_formats =  extra_ok_date_formats + always_ok_date_formats
+    return ok_date_formats, ok_date_format_examples
+OK_DATE_FORMATS, OK_DATE_FORMAT_EXAMPLES = get_date_fmt_lists(d_fmt)
+OK_TIME_FORMATS = ["%I%p", "%I:%M%p", "%H:%M", "%H:%M:%S"]
 # preferences
 PREFS_KEY = "Prefs"
-DATE_ENTRY_FORMAT = "Date entry format"
-INT_DATE_ENTRY_FORMAT = 0
-ALWAYS_OK_DATE_FORMATS = ["%Y-%m-%d", "%Y", "%d.%m.%Y", "%d.%m.%y"]
-OK_TIME_FORMATS = ["%I%p", "%I:%M%p", "%H:%M", "%H:%M:%S"]
-DATE_FORMATS_IN_USE = INT_DATE_ENTRY_FORMAT
+DEFAULT_LEVEL_KEY = "default level key"
+LEVEL_FULL = _("Full Explanation")
+LEVEL_BRIEF = _("Brief Explanation")
+LEVEL_RESULTS_ONLY = _("Results Only")
+LEVELS = (LEVEL_FULL, LEVEL_BRIEF, LEVEL_RESULTS_ONLY)
 # remember defaults //////////
 # stats tests
 GROUP_BY_DEFAULT = None
@@ -271,7 +335,4 @@ DB_DEFAULT = None
 TBL_DEFAULT = None
 # ////////////////////////////////////////////////////////////
 import config_globals
-# need to be populated in initial config
-OK_DATE_FORMATS = []
-OK_DATE_FORMAT_EXAMPLES = []
-config_globals.update_ok_date_formats_globals()
+config_globals.set_DEFAULT_LEVEL()

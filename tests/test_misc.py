@@ -28,12 +28,10 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
 
-
 test_us_style = False
 if test_us_style:
-    # ignore prefs and allow test_us_style to determine config
-    my_globals.DATE_FORMATS_IN_USE = 1 # US-style
-    config_globals.update_ok_date_formats_globals(ignore_prefs=False)
+    my_globals.OK_DATE_FORMATS, my_globals.OK_DATE_FORMAT_EXAMPLES = \
+        my_globals.get_date_fmt_lists(d_fmt=my_globals.MM_DD_YY)
 
 def test_is_usable_datetime_str():
     tests = [("June 2009", False),
@@ -43,15 +41,15 @@ def test_is_usable_datetime_str():
              ("1666/09/02", False), # wrong order if using slashes
              ("31.3.1988", True),
              ]
-    if my_globals.DATE_FORMATS_IN_USE == my_globals.INT_DATE_ENTRY_FORMAT:
-        tests.extend([
-             ("31/3/88", True),
-             ("3/31/88", False),
-             ])
-    else: # US-style
+    if test_us_style:
         tests.extend([
              ("31/3/88", False),
              ("3/31/88", True),
+             ])
+    else:
+        tests.extend([
+             ("31/3/88", True),
+             ("3/31/88", False),
              ])    
     for test in tests:
         assert_equal(lib.is_usable_datetime_str(test[0]), test[1])
@@ -66,15 +64,15 @@ def test_get_std_datetime_str():
              ("12.2.2001 2:35pm", "2001-02-12 14:35:00"),
              ("12.2.01 2:35pm", "2001-02-12 14:35:00"),
              ]
-    if my_globals.DATE_FORMATS_IN_USE == my_globals.INT_DATE_ENTRY_FORMAT:
-        tests.extend([
-             ("02/09/1666 00:12:16", "1666-09-02 00:12:16"), #http://en.wikipedia.org/wiki/Great_Fire_of_London
-             ("31/3/88", "1988-03-31 00:00:00"),
-             ])
-    else: # US-style
+    if test_us_style:
         tests.extend([
              ("09/02/1666 00:12:16", "1666-09-02 00:12:16"), #http://en.wikipedia.org/wiki/Great_Fire_of_London
              ("3/31/88", "1988-03-31 00:00:00"),
+             ])
+    else:
+        tests.extend([
+             ("02/09/1666 00:12:16", "1666-09-02 00:12:16"), #http://en.wikipedia.org/wiki/Great_Fire_of_London
+             ("31/3/88", "1988-03-31 00:00:00"),
              ])    
     for test in tests:
         assert_equal(lib.get_std_datetime_str(test[0]), test[1])
@@ -99,19 +97,19 @@ def test_get_dets_of_usable_datetime_str():
              ("31.3.88 2:45am", ("31.3.88", "%d.%m.%y", "2:45am", "%I:%M%p", 
                             True)),
              ]
-    if my_globals.DATE_FORMATS_IN_USE == my_globals.INT_DATE_ENTRY_FORMAT:
-        tests.extend([
-             ("31/01/2009", ("31/01/2009", "%d/%m/%Y", None, None, True)),
-             ("31/1/2009", ("31/1/2009", "%d/%m/%Y", None, None, True)),
-             ("31/01/09", ("31/01/09", "%d/%m/%y", None, None, True)),
-             ("31/1/09", ("31/1/09", "%d/%m/%y", None, None, True)),
-             ])
-    else: # US-style
+    if test_us_style:
         tests.extend([
              ("01/31/2009", ("01/31/2009", "%m/%d/%Y", None, None, True)),
              ("1/31/2009", ("1/31/2009", "%m/%d/%Y", None, None, True)),
              ("01/31/09", ("01/31/09", "%m/%d/%y", None, None, True)),
              ("1/31/09", ("1/31/09", "%m/%d/%y", None, None, True)),
+             ])
+    else:
+        tests.extend([
+             ("31/01/2009", ("31/01/2009", "%d/%m/%Y", None, None, True)),
+             ("31/1/2009", ("31/1/2009", "%d/%m/%Y", None, None, True)),
+             ("31/01/09", ("31/01/09", "%d/%m/%y", None, None, True)),
+             ("31/1/09", ("31/1/09", "%d/%m/%y", None, None, True)),
              ])  
     for test in tests:
         assert_equal(lib.get_dets_of_usable_datetime_str(test[0]), test[1])
@@ -405,6 +403,6 @@ def test_get_var_dets():
         projects.get_var_dets(proj_dic["fil_var_dets"])
     assert_not_equal(var_labels.get('Name'), None)
     assert_not_equal(var_notes.get('age'), None)
-    assert_equal(var_types['browser'][:11], "Categorical")
+    assert_equal(var_types['browser'], my_globals.VAR_TYPE_CAT)
     assert_equal(val_dics['country'][1], "Japan")
     
