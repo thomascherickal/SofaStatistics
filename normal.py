@@ -2,58 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import wx
-import wxmpl
 import pylab # must import after wxmpl so matplotlib.use() is always first
 
 import my_globals
 import lib
 import full_html
 import getdata
+import charting_pylab as charts
 import config_dlg
 import core_stats
 import os
 import projects
-
-def config_histo(fig, var_label, vals, thumbnail=False):    
-    """
-    Configure histogram with subplot of normal distribution curve.
-    """
-    axes = fig.gca()
-    if thumbnail:
-        nbins = 20
-        axes.axis("off")
-        normal_line_width = 1
-    else:
-        nbins = 100
-        axes.set_xlabel(var_label)
-        axes.set_ylabel('P')
-        axes.set_title(_("Histogram for %s") % var_label)
-        normal_line_width = 4
-    n, bins, patches = axes.hist(vals, nbins, normed=1, 
-        facecolor=my_globals.FACECOLOR, edgecolor=my_globals.EDGECOLOR)
-    mu = core_stats.mean(vals)
-    sigma = core_stats.stdev(vals)
-    y = pylab.normpdf(bins, mu, sigma)
-    l = axes.plot(bins, y,  color=my_globals.NORM_LINE_COLOR, 
-                  linewidth=normal_line_width)
-
-        
-class HistoDlg(wxmpl.PlotDlg):
-    def __init__(self, parent, var_label, vals):
-        wxmpl.PlotDlg.__init__(self, parent, 
-		    title=_("Similar to normal distribution curve?"), size=(10.0, 6.0), 
-		    dpi=96)
-        btnOK = wx.Button(self, wx.ID_OK)
-        btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
-        self.sizer.Add(btnOK, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
-        fig = self.get_figure()
-        config_histo(fig, var_label, vals)
-        self.draw()
-        self.SetSizer(self.sizer)
-        self.Fit()
-
-    def OnOK(self, event):
-        self.Destroy()
 
 
 class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
@@ -223,11 +182,12 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.btnDetails.Enable(True)
         self.var_label, self.vals = self.get_exam_inputs()
         # histogram
+        charts.gen_config()
         fig = pylab.figure()
         fig.set_figsize_inches((2.3, 1.0)) # see dpi to get image size in pixels
-        config_histo(fig, self.var_label, self.vals, thumbnail=True)
-        pylab.savefig(my_globals.INT_IMG1, dpi=100)
-        thumbnail_uncropped = wx.Image(my_globals.INT_IMG1, 
+        charts.config_histo(fig, self.vals, self.var_label, thumbnail=True)
+        pylab.savefig(my_globals.INT_IMG_ROOT + u".png", dpi=100)
+        thumbnail_uncropped = wx.Image(my_globals.INT_IMG_ROOT + u".png", 
                                        wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         rem_blank_axes_rect = wx.Rect(15, 0, 200, 100)
         thumbnail = thumbnail_uncropped.GetSubBitmap(rem_blank_axes_rect)
@@ -282,7 +242,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         event.Skip()
         
     def OnDetailsClick(self, event):
-        dlg = HistoDlg(parent=self, var_label=self.var_label, vals=self.vals)
+        dlg = charts.HistoDlg(parent=self, var_label=self.var_label, 
+                              vals=self.vals)
         dlg.ShowModal()
         event.Skip()
     

@@ -3,6 +3,7 @@ import numpy as np
 import pylab
 
 import my_globals
+import charting_pylab as charts
 import core_stats
 
 """
@@ -62,12 +63,20 @@ def ttest_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg="", dp=3,
     ttest_basic_results(t, p, dic_a, dic_b, label_avg, dp, indep, css_idx, 
                         page_break_after, html, CSS_FIRST_COL_VAR, 
                         CSS_PAGE_BREAK_BEFORE, CSS_LBL)
-    fig = pylab.figure()
-    x1s, y1s = core_stats.get_freqs(sample_a)
-    x2s, y2s = core_stats.get_freqs(sample_b)
-    pylab.plot(np.array(x1s), np.array(y1s), np.array(x2s), np.array(y2s))
-    pylab.savefig(my_globals.INT_IMG1)
-    html.append(u"<img src='%s'>" % my_globals.INT_IMG1)
+    if indep:
+        sample_dets = [(u"a", sample_a, dic_a["label"]), 
+                       (u"b", sample_b, dic_b["label"])]
+        for (suffix, sample, histo_label) in sample_dets:
+            # histogram
+            # http://www.scipy.org/Cookbook/Matplotlib/LaTeX_Examples
+            charts.gen_config(axes_labelsize=10, xtick_labelsize=8, 
+                              ytick_labelsize=8)
+            fig = pylab.figure()
+            fig.set_figsize_inches((5.0, 3.5)) # see dpi to get image size in pixels
+            charts.config_histo(fig, sample, label_avg, histo_label)
+            img = my_globals.INT_IMG_ROOT + u"%s.png" % suffix
+            pylab.savefig(img, dpi=100)
+            html.append(u"<img src='%s'>" % img)
     html_str = "\n".join(html)
     return html_str
 

@@ -17,6 +17,7 @@ decimal.getcontext().prec = 200
 def get_freqs(sample):
     """
     From a given data sample, return a sorted list of values and frequencies.
+    Useful for line plotting.
     NB when in Python 2.7 or 3.1+ use collection Counter
     http://docs.python.org/dev/py3k/library/collections.html#collections.Counter
     """
