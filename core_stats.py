@@ -1,5 +1,6 @@
 
 from __future__ import print_function
+from collections import defaultdict
 import copy
 import decimal
 import math
@@ -12,6 +13,23 @@ import getdata
 
 D = decimal.Decimal
 decimal.getcontext().prec = 200
+
+def get_freqs(sample):
+    """
+    From a given data sample, return a sorted list of values and frequencies.
+    NB when in Python 2.7 or 3.1+ use collection Counter
+    http://docs.python.org/dev/py3k/library/collections.html#collections.Counter
+    """
+    d = defaultdict(int)
+    xs = []
+    ys = []
+    for item in sample:
+        d[item] += 1
+    keys = sorted(d.keys())
+    for key in keys:
+        xs.append(key)
+        ys.append(d[key])
+    return xs, ys
 
 def get_list(dbe, cur, tbl, tbl_filt, flds, fld_measure, fld_filter, 
              filter_val):
@@ -1204,7 +1222,6 @@ def sumdiffsquared(x,y):
         sds = sds + (x[i]-y[i])**2
     return sds
 
-
 def chisqprob(chisq, df):
     """
     From stats.py.  No changes.  
@@ -1583,20 +1600,30 @@ def normaltest(a, dimension=None):
     k2 = np.power(zskew, 2) + np.power(zkurtosis, 2)
     return k2, achisqprob(k2, 2), cskew, zskew, ckurtosis, zkurtosis
 
+# misc
+
 def obrientransform(*args):
     """
-    From stats.py.  No changes except renamed function and renamed var to 
+    From stats.py. One big change - reset TINY to be 1e-7 rather than 1e-10.
+        Always "failed to converge" if values were above about 1000.  Unable to
+        determine reason for such a tiny threshold of difference.
+    No other changes except renamed function and renamed var to 
         variance, plus raise ValueError as soon as check = 0 without continuing
         to pointlessly loop through other items.
+    Also n[j] is cast as int when used in range. And updated error message
+        and desc text.  And added debug print.
     ------------------------------------
-    Computes a transform on input data (any number of columns).  Used to
-        test for homogeneity of variance prior to running one-way stats.  From
-        Maxwell and Delaney, p.112.
-
+    Computes a transform on input data (any number of columns).  Used to test 
+        for homogeneity of variance prior to running one-way stats.  Each array 
+        in *args is one level of a factor.  If an F_oneway() run on the trans-
+        formed data and found significant, variances are unequal.   
+        From Maxwell and Delaney, p.112.
+    
     Usage:   obrientransform(*args)
     Returns: transformed data for use in an ANOVA
     """
-    TINY = 1e-10
+    debug = False
+    TINY = 1e-7 # 1e-10 was original value
     k = len(args)
     n = [0.0]*k
     v = [0.0]*k
@@ -1608,14 +1635,20 @@ def obrientransform(*args):
         v[i] = variance(nargs[i])
         m[i] = mean(nargs[i])
     for j in range(k):
-        for i in range(n[j]):
+        for i in range(int(n[j])):
             t1 = (n[j]-1.5)*n[j]*(nargs[j][i]-m[j])**2
             t2 = 0.5*v[j]*(n[j]-1.0)
             t3 = (n[j]-1.0)*(n[j]-2.0)
             nargs[j][i] = (t1-t2) / float(t3)
+    # Check for convergence before allowing results to be returned
     for j in range(k):
         if v[j] - mean(nargs[j]) > TINY:
-            raise ValueError, "Problem in obrientransform."
+            if debug:
+                print("Diff: %s " % (v[j] - mean(nargs[j])))
+                print("\nv[j]: %s" % repr(v[j]))
+                print("\nnargs[j]: %s" % nargs[j])
+                print("\nmean(nargs[j]): %s" % repr(mean(nargs[j])))
+            raise ValueError, "Lack of convergence in obrientransform."
     return nargs
 
 def colex (listoflists, cnums):
@@ -1634,7 +1667,7 @@ def colex (listoflists, cnums):
     """
     global index
     column = 0
-    if type(cnums) in [ListType, TupleType]:   # if multiple columns to get
+    if type(cnums) in [ListType, TupleType]:  # if multiple columns to get
         index = cnums[0]
         column = map(lambda x: x[index], listoflists)
         for col in cnums[1:]:
@@ -1648,7 +1681,7 @@ def colex (listoflists, cnums):
         column = map(lambda x: x[index], listoflists)
     return column
 
-def sim_variance(x, y, threshold=0.05):
+def sim_variance(samples, threshold=0.05):
     """
     From stats.py.  From inside lpaired. F_oneway changed to anova. Not only 
         able to use 0.05 as threshold.
@@ -1657,13 +1690,16 @@ def sim_variance(x, y, threshold=0.05):
     Using O'BRIEN'S TEST FOR HOMOGENEITY OF VARIANCE, Maxwell & delaney, p.112
     """
     debug = True
-    r = obrientransform(x, y)
+    r = obrientransform(*samples)
     cols0 = colex(r, 0)
     cols1 = colex(r, 1)
     if debug:
         print("Cols 0: %s" % cols0)
         print("Cols 1: %s" % cols1)
-    f, p = anova(cols0, cols1)
+    samples = [cols0, cols1]
+    labels = ["sample a", "sample b"]
+    p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, mean_squ_bn = \
+        anova(samples, labels)
     bolsim = (p >= threshold)
     p = str(round(p, 4))
     return bolsim, p

@@ -39,4 +39,5 @@ else:
             
             def ShowHTML(self, strHTML):
                 if debug: print("strHTML is: %s" % strHTML)
-                self.SetPageSource(strHTML)    
+                # NB no issue with backslashes because not used in Windows ;-)
+                self.SetPageSource(strHTML, "file://%s/" % my_globals.INT_PATH)

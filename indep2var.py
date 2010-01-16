@@ -141,8 +141,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
         self.html = wx.html.HtmlWindow(self.panel, size=(200, 250))
-        html2show = _("<p>This panel is under construction - more support for"
-                      " the user and data visualisations coming.</p>")
+        html2show = _("<p>Waiting for a report to be run.</p>")
         self.html.SetPage(html2show)
         szrBottomLeft.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
         szrBottomLeft.Add(self.szrConfigTop, 0, wx.GROW)

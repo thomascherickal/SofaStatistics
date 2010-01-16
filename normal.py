@@ -3,7 +3,7 @@
 
 import wx
 import wxmpl
-from pylab import normpdf, randn
+import pylab # must import after wxmpl so matplotlib.use() is always first
 
 import my_globals
 import lib
@@ -13,7 +13,6 @@ import config_dlg
 import core_stats
 import os
 import projects
-import pylab
 
 def config_histo(fig, var_label, vals, thumbnail=False):    
     """
@@ -34,7 +33,7 @@ def config_histo(fig, var_label, vals, thumbnail=False):
         facecolor=my_globals.FACECOLOR, edgecolor=my_globals.EDGECOLOR)
     mu = core_stats.mean(vals)
     sigma = core_stats.stdev(vals)
-    y = normpdf(bins, mu, sigma)
+    y = pylab.normpdf(bins, mu, sigma)
     l = axes.plot(bins, y,  color=my_globals.NORM_LINE_COLOR, 
                   linewidth=normal_line_width)
 
@@ -227,8 +226,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         fig = pylab.figure()
         fig.set_figsize_inches((2.3, 1.0)) # see dpi to get image size in pixels
         config_histo(fig, self.var_label, self.vals, thumbnail=True)
-        pylab.savefig(my_globals.HIST_PNG, dpi=100)
-        thumbnail_uncropped = wx.Image(my_globals.HIST_PNG, 
+        pylab.savefig(my_globals.INT_IMG1, dpi=100)
+        thumbnail_uncropped = wx.Image(my_globals.INT_IMG1, 
                                        wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         rem_blank_axes_rect = wx.Rect(15, 0, 200, 100)
         thumbnail = thumbnail_uncropped.GetSubBitmap(rem_blank_axes_rect)

@@ -11,19 +11,76 @@ import pprint
 import random
 
 import tests.stats as stats
+import tests.pstat as pstat
 
 from core_stats import ttest_ind, ttest_rel, mannwhitneyu, wilcoxont, \
     pearsonr, spearmanr, kruskalwallish, anova, fprob, betai, gammln, betacf, \
     chisquare, kurtosis, skew, moment, kurtosistest, skewtest, normaltest, \
-    sim_variance
+    obrientransform, sim_variance
+    
+def test_obrien():
+    """
+    Fails to converge (enough) if large values in samples. 1e-10 is too strict.
+    """
+    samples = []
+    for i in range(10):
+        sample_a = [random.randint(1, 1000)/3.0 for x in range(100)]
+        sample_b = [random.randint(1, 1000)/3.0 for x in range(100)]
+        #sample_b = [x*1.2 for x in sample_a if round(x,0) % 2 == 0]
+        samples.append((sample_a, sample_b))
+    for sample_a, sample_b in samples:
+        print(sample_a)
+        print(sample_b)
+        r = obrientransform(sample_a, sample_b)
+        assert_equal(True, True)
+
+def test_obrien_orig():
+    samples = []
+    for i in range(10):
+        sample_a = [random.randint(1, 100000) for x in range(100)]
+        sample_b = [random.randint(1, 100000) for x in range(100)]
+        #sample_b = [x*1.2 for x in sample_a if round(x,0) % 2 == 0]
+        samples.append((sample_a, sample_b))
+    for sample_a, sample_b in samples:
+        print(sample_a)
+        print(sample_b)
+        r = stats.obrientransform(sample_a, sample_b)
+        assert_equal(True, True)
+
+def stats_get_obrien_p(x, y):
+    """
+    The closest I can get to something raw from stats to test against.
+    Taken from lpaired.
+    """
+    r = stats.obrientransform(x,y)
+    unused, p = stats.F_oneway(pstat.colex(r,0),pstat.colex(r,1))
+    p = str(round(p, 4))
+    return p
 
 def test_sim_variance():
-    sample_a = [random.randint(1, 100000)/3.0 for x in range(10)]
-    sample_b = [x*1.2 for x in sample_a if round(x,0) % 2 == 0]
-    print(sample_a)
-    print(sample_b)
-    bolsim, p = sim_variance(sample_a, sample_b)
-    assert_equal(bolsim, True)
+    sample_a = [0, 4, 6, 21, 24, 30, 36, 42, 72, 36, 70, 11, 72, 26, 14, 75, 96, 
+        119, 54, 171, 140, 168, 198, 92, 216, 25, 104, 108, 196, 116, 210, 186, 
+        224, 198, 68, 280, 144, 185, 304, 39, 360, 246, 336, 172, 308, 315, 138, 
+        282, 96, 147, 350, 102, 104, 212, 432, 55, 336, 171, 290, 59, 360, 61, 
+        62, 315, 384, 325, 594, 536, 408, 414, 140, 284, 288, 219, 370, 75, 304, 
+        385, 624, 553, 480, 324, 492, 664, 336, 425, 688, 783, 176, 534, 720, 
+        364, 460, 651, 564, 760, 864, 97, 588, 891]
+    sample_b = [0, 3, 2, 3, 32, 40, 18, 49, 8, 54, 70, 22, 108, 13, 126, 15, 64, 
+        51, 90, 133, 140, 126, 88, 23, 48, 25, 234, 108, 168, 232, 90, 217, 288, 
+        297, 68, 280, 252, 111, 228, 78, 40, 369, 168, 301, 220, 45, 184, 94, 
+        144, 147, 350, 306, 104, 477, 324, 330, 504, 171, 406, 472, 240, 305, 
+        248, 126, 256, 130, 396, 67, 612, 69, 70, 497, 360, 292, 148, 150, 456, 
+        231, 702, 316, 640, 567, 328, 332, 84, 680, 774, 609, 440, 267, 810, 
+        273, 276, 372, 470, 760, 384, 873, 392, 396]
+    samples = [(sample_a, sample_b), ]
+    for i in range(10):
+        sample_a = [random.randint(1, 1000) for x in range(10)]
+        sample_b = [x*1.2 for x in sample_a if round(x,0) % 2 == 0]
+        samples.append((sample_a, sample_b))
+    for sample_a, sample_b in samples:
+        unused, p1 = sim_variance([sample_a, sample_b])
+        p2 = stats_get_obrien_p(sample_a, sample_b)
+        assert_equal(p1, p2)
     
 def test_kurtosis():
     FISHER_ADJUSTMENT = 3.0

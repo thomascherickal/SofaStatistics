@@ -251,7 +251,7 @@ DBE_TBL_FILTS = {}
 FACECOLOR = "#f87526"
 EDGECOLOR = "#8f8f8f"
 NORM_LINE_COLOR = "#5a4a3d"
-HIST_PNG = os.path.join(INT_PATH, u"hist.png")
+INT_IMG1 = os.path.join(INT_PATH, u"_img1.png")
 # date formats
 MM_DD_YY = "mm/dd/yy"
 DD_MM_YY = "dd/mm/yy"

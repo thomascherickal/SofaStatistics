@@ -1,52 +1,75 @@
 import cgi
+import numpy as np
+import pylab
 
 import my_globals
+import core_stats
 
-def ttest_output(t, p, dic_a, dic_b, label_avg="", dp=3, indep=True,
-                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
-                 page_break_after=False):
-    """
-    Returns HTML table ready to display.
-    dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
-             "min": min_a, "max": max_a}
-    """
-    CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_FIRST_COL_VAR, css_idx)
-    CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
-    CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_LBL, css_idx)
+"""
+Output doesn't include the calculation of any values.  These are in discrete
+    functions in core_stats, amenable to unit testing.
+"""
+
+def ttest_basic_results(t, p, dic_a, dic_b, label_avg, dp, indep, css_idx, 
+                        page_break_after, html, CSS_FIRST_COL_VAR, 
+                        CSS_PAGE_BREAK_BEFORE, CSS_LBL):
     if indep:
-        html = _("<h2>Results of Independent Samples t-test "
+        html.append(_("<h2>Results of Independent Samples t-test "
             "of average \"%(avg)s\" for \"%(a)s\" vs \"%(b)s\"</h2>") % \
-            {"avg": label_avg, "a": dic_a["label"], "b": dic_b["label"]}
+            {"avg": label_avg, "a": dic_a["label"], "b": dic_b["label"]})
     else:
-        html = _("<h2>Results of Paired Samples t-test "
+        html.append(_("<h2>Results of Paired Samples t-test "
             "of \"%(a)s\" vs \"%(b)s\"</h2>") % {"a": dic_a["label"], "b": 
-                                                 dic_b["label"]}
+                                                 dic_b["label"]})
     p_format = u"\n<p>" + _("p value") + u": %%.%sf</p>" % dp
-    html += p_format % round(p, dp)
-    html += u"\n<p>" + _("t statistic") + u": %s</p>" % round(t, dp)
-    html += u"\n\n<table>\n<thead>"
-    html += u"\n<tr>" + \
+    html.append(p_format % round(p, dp))
+    html.append(u"\n<p>" + _("t statistic") + u": %s</p>" % round(t, dp))
+    html.append(u"\n\n<table>\n<thead>")
+    html.append(u"\n<tr>" + \
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + u"</th>" + \
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" + \
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean") + u"</th>" + \
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Standard Deviation") + \
             u"</th>" + \
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th></tr>"
-    html += u"\n</thead>\n<tbody>"
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th></tr>")
+    html.append(u"\n</thead>\n<tbody>")
     row_tpl = u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" + \
         u"<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
     for dic in [dic_a, dic_b]:
-        html += row_tpl % (dic["label"], dic["n"], round(dic["mean"], dp), 
-                           round(dic["sd"], dp), 
-                           dic["min"], dic["max"])
-    html += u"\n</tbody>\n</table>\n"
+        html.append(row_tpl % (dic["label"], dic["n"], round(dic["mean"], dp), 
+                               round(dic["sd"], dp), dic["min"], dic["max"]))
+    html.append(u"\n</tbody>\n</table>\n")
     if page_break_after:
-        html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
-    return html
+        html.append(u"<br><hr><br><div class='%s'></div>" % \
+                    CSS_PAGE_BREAK_BEFORE)
+
+def ttest_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg="", dp=3, 
+                 indep=True, level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                 page_break_after=False):
+    """
+    Returns HTML table ready to display.
+    dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
+             "min": min_a, "max": max_a}
+    """
+    html = []
+    CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
+        (my_globals.CSS_FIRST_COL_VAR, css_idx)
+    CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
+        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+    CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
+        (my_globals.CSS_LBL, css_idx)
+    ttest_basic_results(t, p, dic_a, dic_b, label_avg, dp, indep, css_idx, 
+                        page_break_after, html, CSS_FIRST_COL_VAR, 
+                        CSS_PAGE_BREAK_BEFORE, CSS_LBL)
+    fig = pylab.figure()
+    x1s, y1s = core_stats.get_freqs(sample_a)
+    x2s, y2s = core_stats.get_freqs(sample_b)
+    pylab.plot(np.array(x1s), np.array(y1s), np.array(x2s), np.array(y2s))
+    pylab.savefig(my_globals.INT_IMG1)
+    html.append(u"<img src='%s'>" % my_globals.INT_IMG1)
+    html_str = "\n".join(html)
+    return html_str
 
 def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
                  level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
