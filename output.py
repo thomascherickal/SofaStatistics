@@ -266,27 +266,13 @@ def add_divider_code(f, db, tbl, tbl_filt_label, tbl_filt):
                                                        tbl_filt))
     f.write(u"\nfil.write(divider)\n")
 
-def get_filt_msg(tbl_filt_label, tbl_filt):
-    """
-    Return filter message in HTML.
-    """
-    if tbl_filt.strip() != "":
-        if tbl_filt_label.strip() != "":
-            filt_msg = _("Data filtered by \"%s\": %s") % (tbl_filt_label, 
-                                                              tbl_filt.strip())
-        else:
-            filt_msg = _("Data filtered by: ") + tbl_filt.strip()
-    else:
-        filt_msg = _("All data in table included - no filtering")
-    return u"<p>%s</p>" % filt_msg   
-
 def get_divider(source, tbl_filt_label, tbl_filt):
     """
     Get the HTML divider between content -includes source e.g. database, table 
         and time stamp; and a filter description.
     """    
-    filt_msg = get_filt_msg(tbl_filt_label, tbl_filt)
-    return u"\n<br><br>\n<hr>\n%s\n%s" % (source, filt_msg)
+    filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
+    return u"\n<br><br>\n<hr>\n%s\n<p>%s</p>" % (source, filt_msg)
 
 def get_source(db, tbl_name):
     datestamp = datetime.now().strftime("on %d/%m/%Y at %I:%M %p")
@@ -328,8 +314,8 @@ def run_report(modules, fil_report, add_to_report, css_fils, inner_script,
     raw_content = lib.clean_bom_utf8(f.read())
     f.close()
     source = get_source(db, tbl_name)
-    filt_msg = get_filt_msg(tbl_filt_label, tbl_filt)
-    main_content = source + filt_msg + raw_content
+    filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
+    main_content = source + u"<p>%s</p>" % filt_msg + raw_content
     # append into html file
     if add_to_report:
         save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt, 
@@ -454,7 +440,7 @@ def AddClosingScriptCode(f):
     f.write(u"\n" + u"fil.write(output.getHtmlFtr())")
     f.write(u"\n" + u"fil.close()")
 
-def DisplayReport(parent, strContent):
+def display_report(parent, strContent):
     # display results
     dlg = showhtml.ShowHTML(parent=parent, content=strContent, 
                             file_name=my_globals.INT_REPORT_FILE, 

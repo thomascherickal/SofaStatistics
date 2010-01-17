@@ -80,7 +80,7 @@ def test_sim_variance():
     for sample_a, sample_b in samples:
         unused, p1 = sim_variance([sample_a, sample_b])
         p2 = stats_get_obrien_p(sample_a, sample_b)
-        assert_equal(p1, p2)
+        assert_equal(str(round(p1, 4)), p2)
     
 def test_kurtosis():
     FISHER_ADJUSTMENT = 3.0

@@ -49,7 +49,7 @@ class DimTree(object):
             # update var label in tree and update demo html
             tree.SetItemText(event.GetItem(), 
                     lib.get_choice_item(self.var_labels, var_name))
-            self.UpdateDemoDisplay()
+            self.update_demo_display()
     
     def OnRowAdd(self, event):
         "Add row var under root"
@@ -105,7 +105,7 @@ class DimTree(object):
             if text_selected:
                 tree.UnselectAll() # multiple
                 tree.SelectItem(new_id)
-                self.UpdateDemoDisplay()
+                self.update_demo_display()
     
     def setInitialConfig(self, tree, dim, new_id, var_name=None):
         """
@@ -237,7 +237,7 @@ class DimTree(object):
                 tree.ExpandAll(root)
                 tree.UnselectAll() # multiple
                 tree.SelectItem(new_id)
-                self.UpdateDemoDisplay()
+                self.update_demo_display()
     
     def UsedInOthDim(self, text, oth_dim_tree, oth_dim_root):
         "Is this variable used in the other dimension at all?"
@@ -284,7 +284,7 @@ class DimTree(object):
             self.btnColAdd.Enable()
             self.btnColAddUnder.Enable()
             self.col_no_vars_item = None #it will be reallocated
-        self.UpdateDemoDisplay()
+        self.update_demo_display()
             
     def OnColDelete(self, event):
         "Delete col var and all its children"
@@ -302,7 +302,7 @@ class DimTree(object):
         if self.colRoot not in selected_ids:
             for selected_id in selected_ids:
                 self.coltree.Delete(selected_id)
-            self.UpdateDemoDisplay()
+            self.update_demo_display()
         if self.col_no_vars_item in selected_ids:
             self.btnColAdd.Enable()
             self.btnColAddUnder.Enable()
@@ -338,7 +338,7 @@ class DimTree(object):
                            inc_measures=inc_measures,
                            sort_opt_allowed=sort_opt_allowed)
         dlg.ShowModal()
-        self.UpdateDemoDisplay()
+        self.update_demo_display()
     
     def OnColConfig(self, event):
         "Configure column button clicked."
@@ -374,7 +374,7 @@ class DimTree(object):
             self.btnColAddUnder.Disable()
             self.getColConfig(node_ids=[self.col_no_vars_item], 
                                   has_col_vars=False)
-            self.UpdateDemoDisplay()
+            self.update_demo_display()
         elif empty_coltree and self.tab_type == my_globals.ROW_SUMM:
             return
         else: # not an empty col_measures or row summ table
@@ -397,7 +397,7 @@ class DimTree(object):
                                       has_col_vars=False)
                 elif self.colRoot not in selected_ids:
                     self.getColConfig(node_ids=selected_ids, has_col_vars=True)
-                self.UpdateDemoDisplay()
+                self.update_demo_display()
             else:
                 msg = _("If configuring multiple items at once, they "
                      "must all have children or none can have children")

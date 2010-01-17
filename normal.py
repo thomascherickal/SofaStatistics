@@ -42,21 +42,27 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrDesc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
         self.szrData = self.get_szrData(self.panel) # mixin
         bxVars = wx.StaticBox(self.panel, -1, _("Variable to Check"))
-        szrVars = wx.StaticBoxSizer(bxVars, wx.VERTICAL)
-        szrVarsTop = wx.BoxSizer(wx.HORIZONTAL)
+        szrVars = wx.StaticBoxSizer(bxVars, wx.HORIZONTAL)
+        szrVarsRight = wx.BoxSizer(wx.VERTICAL)
         self.szrLevel = self.get_szrLevel(self.panel) # mixin
         self.szrExamine = wx.BoxSizer(wx.VERTICAL)
         szrShape = wx.BoxSizer(wx.HORIZONTAL)
         szrNormalityTest = wx.BoxSizer(wx.HORIZONTAL)
         # assembly
         lblDesc1 = wx.StaticText(self.panel, -1, 
-            _("Is the frequency curve for the variable close enough to the "
-              "normal distribution curve for use with tests requiring that?"
-              ))
+            _("Select the variable you are interested in. Is its distribution "
+              "close enough to the normal curve for use with tests requiring "
+              "that?"))
         lblDesc2 = wx.StaticText(self.panel, -1, 
-            _("Select a variable to check."))
+            _("Look for gross outliers, extreme skewing, and clustering into "
+              "groups."))
+        lblDesc3 = wx.StaticText(self.panel, -1, 
+            _("Note: if comparing samples, each sample must be normal enough. "
+              "Filter for each sample by right clicking on the table "
+              "selector."))
         szrDesc.Add(lblDesc1, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrDesc.Add(lblDesc2, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        szrDesc.Add(lblDesc3, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         lblVars = wx.StaticText(self.panel, -1, _("Variable:"))
         lblVars.SetFont(self.LABEL_FONT)
         self.dropVars = wx.Choice(self.panel, -1, size=(300, -1))
@@ -67,26 +73,25 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.setup_vars()
         lblexplanation = wx.StaticText(self.panel, -1, 
                    _("Only quantity (number) variables are listed here. "
-                     "Anything else is automatically not normal."))
-        szrVarsTop.Add(lblVars, 0, wx.LEFT|wx.RIGHT, 5)
-        szrVarsTop.Add(self.dropVars, 0)
-        szrVars.Add(szrVarsTop, 0)
+                     "Anything else is not normal."))
+        szrVars.Add(lblVars, 0, wx.LEFT|wx.RIGHT, 5)
+        szrVars.Add(self.dropVars, 0)
         szrVars.Add(lblexplanation, 0, wx.ALL, 5)
-        self.imgHisto = wx.StaticBitmap(self.panel, -1, size=(200, 100), 
+        self.imgHist = wx.StaticBitmap(self.panel, -1, size=(200, 100), 
                                         pos=(0,0))
         msg_font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
-        img_blank_histo = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
-                                                u"images", u"blankhisto.xpm"), 
-                                                wx.BITMAP_TYPE_XPM)
-        self.bmp_blank_histo = wx.BitmapFromImage(img_blank_histo)
+        img_blank_hist = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
+                                               u"images", u"blankhisto.xpm"), 
+                                               wx.BITMAP_TYPE_XPM)
+        self.bmp_blank_hist = wx.BitmapFromImage(img_blank_hist)
         msg = lib.get_text_to_draw(_("Select variable to see graph"), 160)
-        lib.add_text_to_bitmap(self.bmp_blank_histo, msg, msg_font, "white", 
+        lib.add_text_to_bitmap(self.bmp_blank_hist, msg, msg_font, "white", 
                                left=20, top=30)
         self.set_shape_to_blank()
         self.btnDetails = wx.Button(self.panel, -1, _("Details"))
         self.btnDetails.Bind(wx.EVT_BUTTON, self.OnDetailsClick)
         self.btnDetails.Enable(False)
-        szrShape.Add(self.imgHisto, 0)
+        szrShape.Add(self.imgHist, 0)
         szrShape.Add(self.btnDetails, 0, wx.LEFT, 10)
         self.szrExamine.Add(szrShape, 0, wx.ALL, 10)
         self.html = full_html.FullHTML(self.panel, size=(200, 150))
@@ -101,15 +106,15 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrMain.Add(szrDesc, 0, wx.ALL, 10)
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szrMain.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szrMain.Add(self.szrLevel, 0, wx.ALL, 10)
         szrMain.Add(self.szrExamine, 1, wx.GROW)
-        szrMain.Add(szrStdBtns, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
+        szrStdBtns.Insert(0, self.szrLevel, wx.ALIGN_LEFT|wx.ALL, 10)
+        szrMain.Add(szrStdBtns, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
         self.Layout()
 
     def set_shape_to_blank(self):
-        self.imgHisto.SetBitmap(self.bmp_blank_histo)
+        self.imgHist.SetBitmap(self.bmp_blank_hist)
 
     def set_output_to_blank(self):
         msg = _("Select a variable to check to see results of normality test")
@@ -185,13 +190,13 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         charts.gen_config()
         fig = pylab.figure()
         fig.set_figsize_inches((2.3, 1.0)) # see dpi to get image size in pixels
-        charts.config_histo(fig, self.vals, self.var_label, thumbnail=True)
+        charts.config_hist(fig, self.vals, self.var_label, thumbnail=True)
         pylab.savefig(my_globals.INT_IMG_ROOT + u".png", dpi=100)
         thumbnail_uncropped = wx.Image(my_globals.INT_IMG_ROOT + u".png", 
                                        wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         rem_blank_axes_rect = wx.Rect(15, 0, 200, 100)
         thumbnail = thumbnail_uncropped.GetSubBitmap(rem_blank_axes_rect)
-        self.imgHisto.SetBitmap(thumbnail)
+        self.imgHist.SetBitmap(thumbnail)
         # normality test (includes both kurtosis and skew)
         n_vals = len(self.vals)
         USUAL_FAIL_N = 100
@@ -219,11 +224,11 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             kurtosis_msg = _("Kurtosis (peakedness or flatness) is %s which is "
                              "probably %s.") % (round(ckurtosis, 3), kindic)               
             if n_vals > USUAL_FAIL_N:
-                msg = _("Rely on visual inspection of graph above.  With more " 
-                    "than %s results (%s), most real-world data-sets will fail "
-                    "the normality test for even slight differences from the "
-                    "perfect normal distribution curve. %s %s") % (USUAL_FAIL_N, 
-                            n_vals, skew_msg, kurtosis_msg)
+                msg = _("Rely on visual inspection of graph above.  Although "
+                    "the data failed the ideal normality test, most real-world "
+                    "data-sets with as many results (%s) would fail for even "
+                    "slight differences from the perfect normal curve. %s %s") \
+                    % (n_vals, skew_msg, kurtosis_msg)
             else:
                 if p < 0.05:
                     msg = _("The distribution of %s passed one test for "
@@ -235,15 +240,18 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                         "'normal', it may still be 'normal' enough for use.  "
                         "View graph above to decide. %s %s") % (self.var_label, 
                                                         skew_msg, kurtosis_msg)
-        self.html.ShowHTML("<p>%s</p>" % msg)
+        self.html.ShowHTML(u"<p>%s</p>" % msg)
         
     def OnVarsSel(self, event):
         self.update_examination()
         event.Skip()
         
     def OnDetailsClick(self, event):
-        dlg = charts.HistoDlg(parent=self, var_label=self.var_label, 
-                              vals=self.vals)
+        tbl_filt_label, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
+        filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
+        hist_label = u"Histogram of %s. %s" % (self.var_label, filt_msg)
+        dlg = charts.HistDlg(parent=self, vals=self.vals, 
+                             var_label=self.var_label, hist_label=hist_label)
         dlg.ShowModal()
         event.Skip()
     

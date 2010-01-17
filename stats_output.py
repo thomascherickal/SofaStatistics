@@ -11,72 +11,153 @@ Output doesn't include the calculation of any values.  These are in discrete
     functions in core_stats, amenable to unit testing.
 """
 
-def ttest_basic_results(t, p, dic_a, dic_b, label_avg, dp, indep, css_idx, 
-                        page_break_after, html, CSS_FIRST_COL_VAR, 
-                        CSS_PAGE_BREAK_BEFORE, CSS_LBL):
-    if indep:
-        html.append(_("<h2>Results of Independent Samples t-test "
-            "of average \"%(avg)s\" for \"%(a)s\" vs \"%(b)s\"</h2>") % \
-            {"avg": label_avg, "a": dic_a["label"], "b": dic_b["label"]})
-    else:
-        html.append(_("<h2>Results of Paired Samples t-test "
-            "of \"%(a)s\" vs \"%(b)s\"</h2>") % {"a": dic_a["label"], "b": 
-                                                 dic_b["label"]})
-    p_format = u"\n<p>" + _("p value") + u": %%.%sf</p>" % dp
-    html.append(p_format % round(p, dp))
-    html.append(u"\n<p>" + _("t statistic") + u": %s</p>" % round(t, dp))
-    html.append(u"\n\n<table>\n<thead>")
-    html.append(u"\n<tr>" + \
-        u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean") + u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Standard Deviation") + \
-            u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th></tr>")
-    html.append(u"\n</thead>\n<tbody>")
-    row_tpl = u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" + \
-        u"<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
-    for dic in [dic_a, dic_b]:
-        html.append(row_tpl % (dic["label"], dic["n"], round(dic["mean"], dp), 
-                               round(dic["sd"], dp), dic["min"], dic["max"]))
-    html.append(u"\n</tbody>\n</table>\n")
-    if page_break_after:
-        html.append(u"<br><hr><br><div class='%s'></div>" % \
-                    CSS_PAGE_BREAK_BEFORE)
-
-def ttest_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg="", dp=3, 
-                 indep=True, level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
-                 page_break_after=False):
+def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp, 
+                        indep, css_idx, page_break_after, html):
     """
-    Returns HTML table ready to display.
-    dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
-             "min": min_a, "max": max_a}
+    Footnotes are autonumbered at end.  The links to them will need numbering 
+        though.
     """
-    html = []
     CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
     CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_LBL, css_idx)
-    ttest_basic_results(t, p, dic_a, dic_b, label_avg, dp, indep, css_idx, 
-                        page_break_after, html, CSS_FIRST_COL_VAR, 
-                        CSS_PAGE_BREAK_BEFORE, CSS_LBL)
+    CSS_TBL_HDR_FTNOTE = my_globals.CSS_SUFFIX_TEMPLATE % \
+        (my_globals.CSS_TBL_HDR_FTNOTE, css_idx)
+    footnotes = []
     if indep:
-        sample_dets = [(u"a", sample_a, dic_a["label"]), 
-                       (u"b", sample_b, dic_b["label"])]
-        for (suffix, sample, histo_label) in sample_dets:
-            # histogram
-            # http://www.scipy.org/Cookbook/Matplotlib/LaTeX_Examples
-            charts.gen_config(axes_labelsize=10, xtick_labelsize=8, 
-                              ytick_labelsize=8)
-            fig = pylab.figure()
-            fig.set_figsize_inches((5.0, 3.5)) # see dpi to get image size in pixels
-            charts.config_histo(fig, sample, label_avg, histo_label)
-            img = my_globals.INT_IMG_ROOT + u"%s.png" % suffix
-            pylab.savefig(img, dpi=100)
-            html.append(u"<img src='%s'>" % img)
+        html.append(_("<h2>Results of Independent Samples t-test "
+            "of average \"%(avg)s\" for \"%(a)s\" vs \"%(b)s\"</h2>") % \
+            {"avg": label_avg, "a": dic_a["label"], "b": dic_b["label"]})
+    else:
+        html.append(_("<h2>Results of Paired Samples t-test "
+            "of \"%(a)s\" vs \"%(b)s\"</h2>") % 
+            {"a": dic_a["label"], "b": dic_b["label"]})
+    # always footnote 1
+    html.append(u"\n<p>" + _("p value") + u": %s" % round(p, dp) + 
+                u" <a href='ft1'><sup>1</sup></a></p>")
+    footnotes.append("\n<p><a name='#ft%s'></a><sup>%s</sup> If p is small, "
+        "e.g. less than 0.01, or 0.001, you can assume the result is "
+        "statistically significant i.e. there is a difference.</p>")
+    html.append(u"\n<p>" + _("t statistic") + u": %s</p>" % round(t, dp))
+    if indep:
+        try:
+            bolsim, p_sim = core_stats.sim_variance([sample_a, sample_b], 
+                                                    threshold=0.01)
+            msg = round(p_sim, dp)
+        except Exception:
+            msg = "Unable to calculate"
+        # always footnote 2 if present
+        html.append(u"\n<p>" + _("O'Brien's test for homogeneity of variance") \
+                    + u": %s" % msg + u" <a href='#ft2'><sup>2</sup></a></p>")
+        footnotes.append("\n<p><a name='ft%s'></a><sup>%s</sup> If the value is"
+            " small, e.g. less than 0.01, or 0.001, you can assume there is a "
+            "difference in variance.</p>")
+    html.append(u"\n\n<table>\n<thead>")
+    next_ft = len(footnotes) + 1
+    html.append(u"\n<tr>" + \
+        u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Standard Deviation") +
+            u"<a class='%s' href='ft%s'><sup>%s</sup></a></th>" % 
+            (CSS_TBL_HDR_FTNOTE, next_ft, next_ft) +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th>")
+    footnotes.append("\n<p><a name='#ft%s'></a><sup>%s</sup> Standard "
+                     "Deviation measures the spread of values.</p>")
+    if indep:
+        # if here, always 4,5,6
+        html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Kurtosis") + 
+                    u"<a class='%s' href='#ft4'><sup>4</sup></a></th>" % 
+                    CSS_TBL_HDR_FTNOTE)
+        html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Skew") + 
+                    u"<a class='%s' href='#ft5'><sup>5</sup></a></th>" %
+                    CSS_TBL_HDR_FTNOTE)
+        html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("p abnormal") + 
+                    u"<a class='%s' href='#ft6'><sup>6</sup></a></th>" %
+                    CSS_TBL_HDR_FTNOTE)
+        footnotes += ("\n<p><a name='ft%s'></a><sup>%s</sup> " +
+            _("Kurtosis measures the peakedness or flatness of values.  "
+                  "Between -1 and 1 is probably great. Between -2 and 2 is "
+                  "probably good.</p>"),
+              "\n<p><a name='ft%s'></a><sup>%s</sup> " +
+            _("Skew measures the lopsidedness of values.  Between -1 and 1 is "
+                  "probably great. Between -2 and 2 is probably good.</p>"),
+              "\n<p><a name='ft%s'></a><sup>%s</sup> " +
+            _("This provides a single measure of normality. If p is small, e.g."
+                  " less than 0.01, or 0.001, you can assume the distribution "
+                  "is not strictly normal.  Note - it may be normal enough "
+                  "though.</p>"),
+            )
+    html.append(u"</tr>")
+    html.append(u"\n</thead>\n<tbody>")
+    if indep:
+        row_tpl = (u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" +
+            u"<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>"
+            "<td>%s</td><td>%s</td></tr>")
+    else:
+        row_tpl = (u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" +
+            u"<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>")
+    for dic, sample in [(dic_a, sample_a), (dic_b, sample_b)]:
+        results = (dic["label"], dic["n"], round(dic["mean"], dp), 
+                  round(dic["sd"], dp), dic["min"], dic["max"])
+        if indep:
+            unused, p_arr, cskew, unused, ckurtosis, unused = \
+                    core_stats.normaltest(sample)
+            results += (round(ckurtosis, dp), round(cskew, dp), 
+                        round(p_arr[0], dp))
+        html.append(row_tpl % results)
+    html.append(u"\n</tbody>\n</table>\n")
+    html.append("\n<hr class='ftnote-line'>")
+    for i, footnote in enumerate(footnotes):
+        next_ft = i + 1
+        html.append(footnote % (next_ft, next_ft))
+    if page_break_after:
+        html.append(u"<br><hr><br><div class='%s'></div>" % \
+                    CSS_PAGE_BREAK_BEFORE)
+
+def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp=3, 
+                       level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                       page_break_after=False):
+    """
+    Returns HTML table ready to display.
+    dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
+             "min": min_a, "max": max_a}
+    """
+    html = []
+    indep = True
+    ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp, 
+                        indep, css_idx, page_break_after, html)
+    sample_dets = [(u"a", sample_a, dic_a["label"]), 
+                   (u"b", sample_b, dic_b["label"])]
+    for (suffix, sample, hist_label) in sample_dets:
+        # histogram
+        # http://www.scipy.org/Cookbook/Matplotlib/LaTeX_Examples
+        charts.gen_config(axes_labelsize=10, xtick_labelsize=8, 
+                          ytick_labelsize=8)
+        fig = pylab.figure()
+        fig.set_figsize_inches((5.0, 3.5)) # see dpi to get image size in pixels
+        charts.config_hist(fig, sample, label_avg, hist_label)
+        img = my_globals.INT_IMG_ROOT + u"%s.png" % suffix
+        pylab.savefig(img, dpi=100)
+        html.append(u"<img src='%s'>" % img)
+    html_str = "\n".join(html)
+    return html_str
+
+def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg="", 
+                        dp=3, level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                        page_break_after=False):
+    """
+    Returns HTML table ready to display.
+    dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
+             "min": min_a, "max": max_a}
+    """
+    html = []
+    indep = False
+    ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp, 
+                        indep, css_idx, page_break_after, html)
     html_str = "\n".join(html)
     return html_str
 

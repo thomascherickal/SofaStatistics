@@ -20,15 +20,15 @@ class DemoTable(object):
     All demo tables, whether dim tables or raw tables, derive from this class.
     """
     
-    def getDemoHTMLIfOK(self, css_idx):
+    def get_demo_html_if_ok(self, css_idx):
         "Get HTML to display if enough data to display"
-        assert 0, "getDemoHTMLIfOK must be defined by subclass"
+        assert 0, "get_demo_html_if_ok must be defined by subclass"
 
     def getHTMLParts(self, css_idx):
         "Returns (hdr_html, body_html)"
         assert 0, "getHTMLParts must be defined by subclass"
 
-    def getDemoHTML(self, css_idx):
+    def get_demo_html(self, css_idx):
         "Get demo HTML for table"
         debug = False
         # sort titles out first
@@ -42,8 +42,6 @@ class DemoTable(object):
                          in self.txtSubtitles.GetValue().split(u"\n")]
         else:
             self.subtitles = []
-        if self.titles:
-            self.titles[0] += _(" (random demo data only)")
         if debug: print(self.fil_css)
         try:
             html = output.get_html_hdr(hdr_title=_(u"Report(s)"), 
@@ -79,11 +77,11 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         self.chkTotalsRow = chkTotalsRow
         self.chkFirstAsLabel = chkFirstAsLabel
         
-    def getDemoHTMLIfOK(self, css_idx):
+    def get_demo_html_if_ok(self, css_idx):
         "Show demo table if sufficient data to do so"
         has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
                                               parent=self.colRoot)
-        return self.getDemoHTML(css_idx) if has_cols else ""
+        return self.get_demo_html(css_idx) if has_cols else ""
       
     def getHTMLParts(self, css_idx):
         """
@@ -345,14 +343,14 @@ class GenDemoTable(DemoDimTable):
                            rowtree, coltree, col_no_vars_item, var_labels, 
                            val_dics, fil_css)
         
-    def getDemoHTMLIfOK(self, css_idx):
+    def get_demo_html_if_ok(self, css_idx):
         "Show demo table if sufficient data to do so"
         has_rows = lib.get_tree_ctrl_children(tree=self.rowtree, 
                                               parent=self.rowRoot)
         has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
                                               parent=self.colRoot)
         if has_rows and has_cols:
-            return self.getDemoHTML(css_idx)
+            return self.get_demo_html(css_idx)
         else:
             return ""
     
@@ -453,11 +451,11 @@ class SummDemoTable(DemoDimTable):
                            rowtree, coltree, col_no_vars_item, var_labels, 
                            val_dics, fil_css)
 
-    def getDemoHTMLIfOK(self, css_idx):
+    def get_demo_html_if_ok(self, css_idx):
         "Show demo table if sufficient data to do so"
         has_rows = lib.get_tree_ctrl_children(tree=self.rowtree, 
                                               parent=self.rowRoot)
-        return self.getDemoHTML(css_idx) if has_rows else ""
+        return self.get_demo_html(css_idx) if has_rows else ""
             
     def getHdrDets(self, row_label_cols_n, css_idx):
         """

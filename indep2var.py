@@ -140,9 +140,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szrVars.Add(self.szrVarsRight, 0)
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
-        self.html = wx.html.HtmlWindow(self.panel, size=(200, 250))
+        self.html = full_html.FullHTML(self.panel, size=(200, 250))
         html2show = _("<p>Waiting for a report to be run.</p>")
-        self.html.SetPage(html2show)
+        self.html.ShowHTML(html2show)
         szrBottomLeft.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
         szrBottomLeft.Add(self.szrConfigTop, 0, wx.GROW)
         szrBottomLeft.Add(self.szrConfigBottom, 0, wx.GROW)
@@ -409,6 +409,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.update_defaults()
         event.Skip()
     
+    def update_local_display(self, strContent):
+        self.html.ShowHTML(strContent)
+    
     def OnButtonRun(self, event):
         """
         Generate script to special location (INT_SCRIPT_PATH), 
@@ -421,12 +424,12 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             wx.BeginBusyCursor()
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.get_script(css_idx)
-            strContent = output.run_report(OUTPUT_MODULES, self.fil_report, 
+            str_content = output.run_report(OUTPUT_MODULES, self.fil_report, 
                 self.chkAddToReport.IsChecked(), css_fils, script, 
                 self.con_dets, self.dbe, self.db, self.tbl, 
                 self.default_dbs, self.default_tbls)
             wx.EndBusyCursor()
-            output.DisplayReport(self, strContent)
+            self.update_local_display(str_content)
         event.Skip()
     
     def test_config_ok(self):

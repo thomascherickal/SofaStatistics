@@ -16,7 +16,7 @@ def gen_config(axes_labelsize=14, xtick_labelsize=10, ytick_labelsize=10):
               }
     pylab.rcParams.update(params)
 
-def config_histo(fig, vals, var_label, histo_label=None, thumbnail=False):    
+def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False):    
     """
     Configure histogram with subplot of normal distribution curve.
     """
@@ -29,9 +29,9 @@ def config_histo(fig, vals, var_label, histo_label=None, thumbnail=False):
         nbins = 100
         axes.set_xlabel(var_label)
         axes.set_ylabel('P')
-        if not histo_label:
-            histo_label = _("Histogram for %s") % var_label
-        axes.set_title(histo_label)
+        if not hist_label:
+            hist_label = _("Histogram for %s") % var_label
+        axes.set_title(hist_label)
         normal_line_width = 4
     n, bins, patches = axes.hist(vals, nbins, normed=1, 
         facecolor=my_globals.FACECOLOR, edgecolor=my_globals.EDGECOLOR)
@@ -42,18 +42,16 @@ def config_histo(fig, vals, var_label, histo_label=None, thumbnail=False):
                   linewidth=normal_line_width)
 
         
-class HistoDlg(wxmpl.PlotDlg):
-    def __init__(self, parent, var_label, vals):
+class HistDlg(wxmpl.PlotDlg):
+    def __init__(self, parent, vals, var_label, hist_label):
         wxmpl.PlotDlg.__init__(self, parent, 
             title=_("Similar to normal distribution curve?"), size=(10.0, 6.0), 
             dpi=96)
         btnOK = wx.Button(self, wx.ID_OK)
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
         self.sizer.Add(btnOK, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
-        
-        
         fig = self.get_figure()
-        config_histo(fig, vals, var_label)
+        config_hist(fig, vals, var_label, hist_label)
         self.draw()
         self.SetSizer(self.sizer)
         self.Fit()

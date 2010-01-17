@@ -109,6 +109,20 @@ def get_tbl_filts(tbl_filt):
         and_tbl_filt = u""
     return where_tbl_filt, and_tbl_filt
 
+def get_filt_msg(tbl_filt_label, tbl_filt):
+    """
+    Return filter message.
+    """
+    if tbl_filt.strip() != "":
+        if tbl_filt_label.strip() != "":
+            filt_msg = _("Data filtered by \"%s\": %s") % (tbl_filt_label, 
+                                                              tbl_filt.strip())
+        else:
+            filt_msg = _("Data filtered by: ") + tbl_filt.strip()
+    else:
+        filt_msg = _("All data in table included - no filtering")
+    return filt_msg
+
 def is_numeric(val):
     """
     Is a value numeric?  This is operationalised to mean can a value be cast as 

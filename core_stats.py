@@ -461,7 +461,7 @@ def ttest_ind(sample_a, sample_b, label_a, label_b, use_orig_var=False):
         se_a = variance(sample_a)
         se_b = variance(sample_b)
         sd_a = stdev(sample_a)
-        sd_b = stdev(sample_a)
+        sd_b = stdev(sample_b)
     n_a = len(sample_a)
     n_b = len(sample_b)
     df = n_a + n_b - 2
@@ -1684,13 +1684,14 @@ def colex (listoflists, cnums):
 
 def sim_variance(samples, threshold=0.05):
     """
+    Returns bolsim, p
     From stats.py.  From inside lpaired. F_oneway changed to anova. Not only 
-        able to use 0.05 as threshold.
+        able to use 0.05 as threshold. Changed return.
     ------------------------------------
     Comparing variances.
     Using O'BRIEN'S TEST FOR HOMOGENEITY OF VARIANCE, Maxwell & delaney, p.112
     """
-    debug = True
+    debug = False
     r = obrientransform(*samples)
     cols0 = colex(r, 0)
     cols1 = colex(r, 1)
@@ -1702,5 +1703,4 @@ def sim_variance(samples, threshold=0.05):
     p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, mean_squ_bn = \
         anova(samples, labels)
     bolsim = (p >= threshold)
-    p = str(round(p, 4))
     return bolsim, p

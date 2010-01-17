@@ -22,6 +22,7 @@ import projects
 import rawtables
 
 OUTPUT_MODULES = ["my_globals", "dimtables", "rawtables", "output", "getdata"]
+WAITING_MSG = _("<p>Waiting for enough settings.</p>")
 
 
 class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
@@ -138,9 +139,13 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics,
                                  fil_css=self.fil_css)
-        self.html = full_html.FullHTML(self.panel, size=(200, 150))        
-        lbldemo_tbls = wx.StaticText(self.panel, -1, _("Demonstration Table:"))
+        self.html = full_html.FullHTML(self.panel, size=(200, 150))
+        self.html.ShowHTML(WAITING_MSG)
+        lbldemo_tbls = wx.StaticText(self.panel, -1, _("Output Table:"))
         lbldemo_tbls.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        self.btnExpand = wx.Button(self.panel, -1, _("Expand"))
+        self.btnExpand.Bind(wx.EVT_BUTTON, self.OnButtonExpand)
+        self.btnExpand.Enable(False)
         # main section SIZERS **************************************************
         szrMain = wx.BoxSizer(wx.VERTICAL)
         self.szrData, self.szrConfigBottom, self.szrConfigTop = \
@@ -215,6 +220,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                           wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         #3 BUTTONS
         szrBottom.Add(szrBottomLeft, 1, wx.GROW)
+        self.szrOutputButtons.Insert(2, self.btnExpand, wx.ALIGN_TOP)
         szrBottom.Add(self.szrOutputButtons, 0, wx.GROW|wx.BOTTOM|wx.RIGHT, 10)
         #1 MAIN assemble
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
@@ -229,7 +235,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         "Update css, including for demo table"
         config_dlg.ConfigDlg.UpdateCss(self)
         self.demo_tab.fil_css = self.fil_css
-        self.UpdateDemoDisplay()
+        self.update_demo_display()
     
     # database/ tables (and views)
     def OnDatabaseSel(self, event):
@@ -264,7 +270,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         # update demo area
         self.demo_tab.var_labels = self.var_labels
         self.demo_tab.val_dics = self.val_dics
-        self.UpdateDemoDisplay()    
+        self.update_demo_display()    
     
     def refresh_vars(self):
         self.update_var_dets()
@@ -341,7 +347,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                      chkTotalsRow=self.chkTotalsRow,
                      chkFirstAsLabel=self.chkFirstAsLabel)
         #in case they were disabled and then we changed tab type
-        self.UpdateDemoDisplay()
+        self.update_demo_display()
         
     def EnableOpts(self, enable=True):
         "Enable (or disable) options"
@@ -350,20 +356,20 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         
     def OnChkTotalsRow(self, event):
         "Update display as total rows checkbox changes"
-        self.UpdateDemoDisplay()
+        self.update_demo_display()
 
     def OnChkFirstAsLabel(self, event):
         "Update display as first column as label checkbox changes"
-        self.UpdateDemoDisplay()
+        self.update_demo_display()
                 
     # titles/subtitles
     def OnTitleChange(self, event):
         "Update display as titles change"
-        self.UpdateDemoDisplay()
+        self.update_demo_display()
 
     def OnSubtitleChange(self, event):
         "Update display as subtitles change"
-        self.UpdateDemoDisplay()
+        self.update_demo_display()
         
     # run 
     def too_long(self):
@@ -385,7 +391,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                    style=wx.YES_NO) == wx.NO:
                     too_long = True
         return too_long
-   
+    
+    def update_local_display(self, strContent):
+        self.html.ShowHTML(strContent)
+    
     def OnButtonRun(self, event):
         """
         Generate script to special location (INT_SCRIPT_PATH), 
@@ -407,10 +416,16 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 self.con_dets, self.dbe, self.db, self.tbl, self.default_dbs, 
                 self.default_tbls)
             wx.EndBusyCursor()
-            output.DisplayReport(self, str_content)
+            self.update_local_display(str_content)
+            self.str_content = str_content
+            self.btnExpand.Enable(True)
         else:
             wx.MessageBox(_("Missing %s data") % missing_dim)
-
+    
+    def OnButtonExpand(self, event):
+        output.display_report(self, self.str_content)
+        event.Skip()
+    
     # export script
     def OnButtonExport(self, event):
         """
@@ -586,7 +601,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         "Clear dim trees"
         self.rowtree.DeleteChildren(self.rowRoot)
         self.coltree.DeleteChildren(self.colRoot)
-        self.UpdateDemoDisplay()
+        self.update_demo_display()
 
     #def OnClearEnterWindow(self, event):
     #    "Hover over CLEAR button"
@@ -601,7 +616,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.rowtree.DeleteChildren(self.rowRoot)
         self.coltree.DeleteChildren(self.colRoot)
         self.UpdateByTabType()
-        self.UpdateDemoDisplay()
+        self.update_demo_display()
 
     def OnClose(self, event):
         "Close app"
@@ -620,14 +635,20 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             event.Skip()
             
     # demo table display
-    def UpdateDemoDisplay(self):
+    def update_demo_display(self):
         """
         Update demo table display with random data.
         Always use one css only (the current one).
         """
         debug = False
-        demo_tbl_html = self.demo_tab.getDemoHTMLIfOK(css_idx=0)
-        if debug: print("\n" + demo_tbl_html + "\n")
+        self.btnExpand.Enable(False)
+        demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
+        if demo_html == "":
+            demo_tbl_html = WAITING_MSG
+        else:
+            demo_tbl_html = ("<h1>%s</h1>\n" % 
+                             _("Random demonstration data only") + demo_html)
+        if debug: print(u"\n" + demo_tbl_html + "\n")
         if demo_tbl_html.strip() == "":
             demo_tbl_html = "<p></p>"
         self.html.ShowHTML(demo_tbl_html)
