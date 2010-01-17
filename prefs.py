@@ -17,8 +17,8 @@ class PrefsDlg(wx.Dialog):
                            style=wx.CAPTION|wx.CLOSE_BOX|
                            wx.SYSTEM_MENU, pos=(300, 100))
         if not prefs_dic:
-            prefs_dic[my_globals.PREFS_KEY] = {my_globals.DATE_ENTRY_FORMAT: \
-                                               my_globals.INT_DATE_ENTRY_FORMAT}
+            prefs_dic[my_globals.PREFS_KEY] = {my_globals.DEFAULT_LEVEL_KEY: \
+                                               my_globals.LEVEL_BRIEF}
         self.prefs_dic = prefs_dic
         self.parent = parent
         self.panel = wx.Panel(self)

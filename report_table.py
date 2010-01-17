@@ -364,12 +364,20 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 
     # titles/subtitles
     def OnTitleChange(self, event):
-        "Update display as titles change"
+        """
+        Update display as titles change
+        Need to SetFocus back to titles because in Windows, IEHTMLWindow steals
+            the focus if you have previously clicked it at some point.
+        """
         self.update_demo_display()
+        self.txtTitles.SetFocus()
 
     def OnSubtitleChange(self, event):
-        "Update display as subtitles change"
+        """
+        Update display as subtitles change.  See OnTitleChange comment.
+        """
         self.update_demo_display()
+        self.txtSubtitles.SetFocus()
         
     # run 
     def too_long(self):

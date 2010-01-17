@@ -246,7 +246,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         my_globals.GROUP_B_DEFAULT = self.dropGroupB.GetStringSelection()
         
     def update_local_display(self, strContent):
-        self.html.ShowHTML(strContent)
+        self.html.ShowHTML(strContent, url_load=True) # allow footnotes
 
     def OnButtonRun(self, event):
         """

@@ -1,4 +1,4 @@
-
+import os
 import wx
 
 import my_globals
@@ -25,10 +25,20 @@ else:
                 ie.IEHtmlWindow.__init__(self, panel, -1, 
                                          size=wx.Size(size[0], size[1]))
             
-            def ShowHTML(self, strHTML):
-                """If first time, will have delay while initialising comtypes"""
-                self.LoadString(strHTML)
-        
+            def ShowHTML(self, strHTML, url_load=False):
+                """
+                If first time, will have delay while initialising comtypes.
+                url_load -- so internal links like footnotes will work.
+                """
+                if url_load:
+                    url_fil = os.path.join(my_globals.INT_PATH, u"my_url.htm")
+                    print(url_fil)
+                    f = open(url_fil, "w")
+                    f.write(strHTML)
+                    f.close()
+                    self.LoadUrl("file:///%s" % url_fil)
+                else:
+                    self.LoadString(strHTML)
     else:
         import wx.webview
         

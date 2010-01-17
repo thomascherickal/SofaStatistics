@@ -36,8 +36,8 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp,
             {"a": dic_a["label"], "b": dic_b["label"]})
     # always footnote 1
     html.append(u"\n<p>" + _("p value") + u": %s" % round(p, dp) + 
-                u" <a href='ft1'><sup>1</sup></a></p>")
-    footnotes.append("\n<p><a name='#ft%s'></a><sup>%s</sup> If p is small, "
+                u" <a href='#ft1'><sup>1</sup></a></p>")
+    footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> If p is small, "
         "e.g. less than 0.01, or 0.001, you can assume the result is "
         "statistically significant i.e. there is a difference.</p>")
     html.append(u"\n<p>" + _("t statistic") + u": %s</p>" % round(t, dp))
@@ -51,7 +51,7 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp,
         # always footnote 2 if present
         html.append(u"\n<p>" + _("O'Brien's test for homogeneity of variance") \
                     + u": %s" % msg + u" <a href='#ft2'><sup>2</sup></a></p>")
-        footnotes.append("\n<p><a name='ft%s'></a><sup>%s</sup> If the value is"
+        footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> If the value is"
             " small, e.g. less than 0.01, or 0.001, you can assume there is a "
             "difference in variance.</p>")
     html.append(u"\n\n<table>\n<thead>")
@@ -61,11 +61,11 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp,
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Standard Deviation") +
-            u"<a class='%s' href='ft%s'><sup>%s</sup></a></th>" % 
+            u"<a class='%s' href='#ft%s'><sup>%s</sup></a></th>" % 
             (CSS_TBL_HDR_FTNOTE, next_ft, next_ft) +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th>")
-    footnotes.append("\n<p><a name='#ft%s'></a><sup>%s</sup> Standard "
+    footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> Standard "
                      "Deviation measures the spread of values.</p>")
     if indep:
         # if here, always 4,5,6
@@ -78,14 +78,14 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp,
         html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("p abnormal") + 
                     u"<a class='%s' href='#ft6'><sup>6</sup></a></th>" %
                     CSS_TBL_HDR_FTNOTE)
-        footnotes += ("\n<p><a name='ft%s'></a><sup>%s</sup> " +
+        footnotes += ("\n<p><a id='ft%s'></a><sup>%s</sup> " +
             _("Kurtosis measures the peakedness or flatness of values.  "
                   "Between -1 and 1 is probably great. Between -2 and 2 is "
                   "probably good.</p>"),
-              "\n<p><a name='ft%s'></a><sup>%s</sup> " +
+              "\n<p><a id='ft%s'></a><sup>%s</sup> " +
             _("Skew measures the lopsidedness of values.  Between -1 and 1 is "
                   "probably great. Between -2 and 2 is probably good.</p>"),
-              "\n<p><a name='ft%s'></a><sup>%s</sup> " +
+              "\n<p><a id='ft%s'></a><sup>%s</sup> " +
             _("This provides a single measure of normality. If p is small, e.g."
                   " less than 0.01, or 0.001, you can assume the distribution "
                   "is not strictly normal.  Note - it may be normal enough "

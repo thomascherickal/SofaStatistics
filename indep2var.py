@@ -410,7 +410,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         event.Skip()
     
     def update_local_display(self, strContent):
-        self.html.ShowHTML(strContent)
+        self.html.ShowHTML(strContent, url_load=True) # allow footnotes
     
     def OnButtonRun(self, event):
         """
