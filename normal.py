@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import wx
+import wxmpl
 import pylab # must import after wxmpl so matplotlib.use() is always first
 
 import my_globals

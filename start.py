@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-dev_debug = False
+dev_debug = True
 test_lang = False
 
 import warnings
@@ -450,6 +450,7 @@ class StartFrame(wx.Frame):
         
     def OnTablesClick(self, event):
         "Open make table gui with settings as per active_proj"
+        wx.BeginBusyCursor()
         import report_table
         proj_name = self.active_proj
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
@@ -461,10 +462,12 @@ class StartFrame(wx.Frame):
                 proj_dic["fil_var_dets"], proj_dic["fil_css"], 
                 proj_dic["fil_report"], proj_dic["fil_script"])
         except Exception, e:
+            wx.EndBusyCursor()
             wx.MessageBox(_("Unable to connect to data as defined in " 
                 "project %s.  Please check your settings." % proj_name))
             raise Exception, unicode(e)
             return
+        wx.EndBusyCursor()
         dlg.ShowModal()
         event.Skip()
         
@@ -503,6 +506,7 @@ class StartFrame(wx.Frame):
     
     def OnStatsClick(self, event):
         # open statistics selection dialog
+        wx.BeginBusyCursor()
         import stats_select
         proj_name = self.active_proj
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
@@ -512,6 +516,7 @@ class StartFrame(wx.Frame):
             proj_dic["default_dbs"], proj_dic["default_tbls"], 
             proj_dic["fil_var_dets"], proj_dic["fil_css"], 
             proj_dic["fil_report"], proj_dic["fil_script"])
+        wx.EndBusyCursor()
         dlg.ShowModal()
         event.Skip()
         

@@ -655,7 +655,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             demo_tbl_html = WAITING_MSG
         else:
             demo_tbl_html = ("<h1>%s</h1>\n" % 
-                             _("Random demonstration data only") + demo_html)
+                 _("Example data - click 'Run' for actual results") + demo_html)
         if debug: print(u"\n" + demo_tbl_html + "\n")
         if demo_tbl_html.strip() == "":
             demo_tbl_html = "<p></p>"

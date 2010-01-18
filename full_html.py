@@ -6,13 +6,15 @@ import my_globals
 use_renderer = True # False if renderer not available and other testing required
 debug = False
 
+# url_load only needed for Windows
+
 if not use_renderer:
     class FullHTML(wx.Window):
 
         def __init__(self, panel, size):
             wx.Window.__init__(self, panel, -1, size=wx.Size(size[0], size[1]))
         
-        def ShowHTML(self, strHTML):
+        def ShowHTML(self, strHTML, url_load=False):
             pass
 else:
     if my_globals.IN_WINDOWS:
@@ -47,7 +49,7 @@ else:
             def __init__(self, panel, size):
                 wx.webview.WebView.__init__(self, panel, -1, size=size)
             
-            def ShowHTML(self, strHTML):
+            def ShowHTML(self, strHTML, url_load=False):
                 if debug: print("strHTML is: %s" % strHTML)
                 # NB no issue with backslashes because not used in Windows ;-)
                 self.SetPageSource(strHTML, "file://%s/" % my_globals.INT_PATH)
