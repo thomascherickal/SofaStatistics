@@ -73,7 +73,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         config_dlg.add_icon(frame=self)
         self.szrData, self.szrConfigBottom, self.szrConfigTop = \
             self.get_gen_config_szrs(self.panel) # mixin
-        self.szrOutputButtons = self.get_szrOutputBtns(self.panel) # mixin
+        self.szrOutputButtons = self.get_szrOutputBtns(self.panel, 
+                                                       inc_clear=False) # mixin
         szrMain = wx.BoxSizer(wx.VERTICAL)
         bxDesc = wx.StaticBox(self.panel, -1, _("Purpose"))
         szrDesc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
@@ -430,6 +431,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                 self.default_dbs, self.default_tbls)
             wx.EndBusyCursor()
             self.update_local_display(str_content)
+            self.str_content = str_content
+            self.btnExpand.Enable(True)
         event.Skip()
     
     def test_config_ok(self):

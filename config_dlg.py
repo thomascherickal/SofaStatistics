@@ -4,6 +4,7 @@ import wx
 import my_globals
 import filtselect
 import getdata
+import output
 import projects
 
 
@@ -159,10 +160,11 @@ class ConfigDlg(object):
         self.szrConfigBottom.Add(szrScriptConfig, 1)
         return self.szrConfigBottom, self.szrConfigTop
 
-    def get_szrOutputBtns(self, panel):
+    def get_szrOutputBtns(self, panel, inc_clear=True):
         #main
         self.btnRun = wx.Button(panel, -1, _("Run"))
         self.btnRun.Bind(wx.EVT_BUTTON, self.OnButtonRun)
+        self.btnRun.SetToolTipString(_("Run report and display results"))
         label_divider = " " if my_globals.IN_WINDOWS else "\n"
         self.chkAddToReport = wx.CheckBox(panel, -1, 
                                           _("Add to%sreport" % label_divider))
@@ -170,23 +172,30 @@ class ConfigDlg(object):
         self.btnExport = wx.Button(panel, -1, _("Export"))
         self.btnExport.Bind(wx.EVT_BUTTON, self.OnButtonExport)
         self.btnExport.SetToolTipString(_("Export to script for reuse"))
+        self.btnExpand = wx.Button(self.panel, -1, _("Expand"))
+        self.btnExpand.Bind(wx.EVT_BUTTON, self.OnButtonExpand)
+        self.btnExpand.SetToolTipString(_("Open report in own window"))
+        self.btnExpand.Enable(False)
         self.btnHelp = wx.Button(panel, wx.ID_HELP)
         self.btnHelp.Bind(wx.EVT_BUTTON, self.OnButtonHelp)
-        self.btnClear = wx.Button(panel, -1, _("Clear"))
-        self.btnClear.SetToolTipString(_("Clear settings"))
-        self.btnClear.Bind(wx.EVT_BUTTON, self.OnButtonClear)
+        if inc_clear:
+            self.btnClear = wx.Button(panel, -1, _("Clear"))
+            self.btnClear.SetToolTipString(_("Clear settings"))
+            self.btnClear.Bind(wx.EVT_BUTTON, self.OnButtonClear)
         self.btnClose = wx.Button(panel, wx.ID_CLOSE)
         self.btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
         # add to sizer
-        self.szrOutputButtons = wx.FlexGridSizer(rows=3, cols=1, hgap=5, vgap=5)
-        self.szrOutputButtons.AddGrowableRow(2,2) 
+        self.szrOutputButtons = wx.FlexGridSizer(rows=7, cols=1, hgap=5, vgap=5)
+        self.szrOutputButtons.AddGrowableRow(5,2) # idx, propn
         # only relevant if surrounding sizer stretched vertically enough by its 
         # content.
         self.szrOutputButtons.Add(self.btnRun, 0)
         self.szrOutputButtons.Add(self.chkAddToReport)
+        self.szrOutputButtons.Add(self.btnExpand, wx.ALIGN_TOP)
         self.szrOutputButtons.Add(self.btnExport, 0, wx.TOP, 8)
         self.szrOutputButtons.Add(self.btnHelp, 0)
-        self.szrOutputButtons.Add(self.btnClear, 0)
+        if inc_clear:
+            self.szrOutputButtons.Add(self.btnClear, 0)
         self.szrOutputButtons.Add(self.btnClose, 1, wx.ALIGN_BOTTOM)
         return self.szrOutputButtons
 
@@ -312,7 +321,10 @@ class ConfigDlg(object):
         szrLevel = get_szrLevel(self, panel)
         self.radLevel.Enable(False)
         return szrLevel
-
+    
+    def OnButtonExpand(self, event):
+        output.display_report(self, self.str_content)
+        event.Skip()
 
 def add_icon(frame):
     ib = wx.IconBundle()

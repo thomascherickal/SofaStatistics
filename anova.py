@@ -81,7 +81,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             u"mean_squ_bn = \\\n    core_stats.anova(samples, labels, "
             u"high=%s)" % high)
         script_lst.append(u"anova_output = stats_output.anova_output("
-            u"F, p, dics, sswn, dfwn, mean_squ_wn, \n    ssbn, dfbn, "
+            u"samples, F, p, dics, sswn, dfwn, mean_squ_wn, \n    ssbn, dfbn, "
             u"mean_squ_bn, label_a, label_b, label_avg, dp,"
             u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, "
             u"css_idx=%s, page_break_after=False)" % css_idx)

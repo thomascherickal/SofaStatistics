@@ -143,9 +143,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.html.ShowHTML(WAITING_MSG)
         lbldemo_tbls = wx.StaticText(self.panel, -1, _("Output Table:"))
         lbldemo_tbls.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.btnExpand = wx.Button(self.panel, -1, _("Expand"))
-        self.btnExpand.Bind(wx.EVT_BUTTON, self.OnButtonExpand)
-        self.btnExpand.Enable(False)
         # main section SIZERS **************************************************
         szrMain = wx.BoxSizer(wx.VERTICAL)
         self.szrData, self.szrConfigBottom, self.szrConfigTop = \
@@ -220,7 +217,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                           wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         #3 BUTTONS
         szrBottom.Add(szrBottomLeft, 1, wx.GROW)
-        self.szrOutputButtons.Insert(2, self.btnExpand, wx.ALIGN_TOP)
         szrBottom.Add(self.szrOutputButtons, 0, wx.GROW|wx.BOTTOM|wx.RIGHT, 10)
         #1 MAIN assemble
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
@@ -429,10 +425,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             self.btnExpand.Enable(True)
         else:
             wx.MessageBox(_("Missing %s data") % missing_dim)
-    
-    def OnButtonExpand(self, event):
-        output.display_report(self, self.str_content)
-        event.Skip()
     
     # export script
     def OnButtonExport(self, event):

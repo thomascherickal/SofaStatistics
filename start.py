@@ -6,6 +6,7 @@ test_lang = False
 
 import warnings
 warnings.simplefilter('ignore', DeprecationWarning)
+warnings.simplefilter('ignore', UserWarning)
 
 import codecs
 import gettext

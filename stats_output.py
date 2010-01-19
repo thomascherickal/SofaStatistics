@@ -11,16 +11,143 @@ Output doesn't include the calculation of any values.  These are in discrete
     functions in core_stats, amenable to unit testing.
 """
 
+def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, 
+                 mean_squ_bn, label_a, label_b, label_avg, dp=3,
+                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                 page_break_after=False):
+    CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
+        (my_globals.CSS_FIRST_COL_VAR, css_idx)
+    CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
+        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+    CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
+        (my_globals.CSS_LBL, css_idx)
+    CSS_TBL_HDR_FTNOTE = my_globals.CSS_SUFFIX_TEMPLATE % \
+        (my_globals.CSS_TBL_HDR_FTNOTE, css_idx)
+    footnotes = []
+    html = []
+    html.append(_("<h2>Results of ANOVA test of average %(avg)s for groups from"
+             " \"%(a)s\" to \"%(b)s\"</h2>") % {"avg": label_avg, "a": label_a, 
+                                                "b": label_b})
+    html.append(u"\n\n<h3>" + _("Analysis of variance table") + u"</h3>")
+    html.append(u"\n<table>\n<thead>")
+    html.append(u"\n<tr>" + \
+        u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Source") + u"</th>" + \
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Sum of Squares") + \
+            u"</th>" + \
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("df") + u"</th>" + \
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean Sum of Squares") + \
+            u"</th>" + \
+        u"\n<th class='%s'>F</th>" % CSS_FIRST_COL_VAR)
+    # footnote 1
+    html.append(u"\n<th class='%s'>" % CSS_FIRST_COL_VAR +
+                u"p<a class='%s' href='#ft1'><sup>1</sup></a></th></tr>" %
+                CSS_TBL_HDR_FTNOTE)
+    footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> If p is small, "
+        "e.g. less than 0.01, or 0.001, you can assume the result is "
+        "statistically significant i.e. there is a difference.</p>")
+    html.append(u"\n</thead>\n<tbody>")
+    html.append(u"\n<tr><td>" + _("Between") +
+                u"</td><td>%s</td><td>%s</td>" % (round(ssbn, dp), dfbn))
+    html.append(u"<td>%s</td><td>%s</td><td>%s</td></tr>" %
+                (round(mean_squ_bn, dp), round(F, dp), round(p, dp)))
+    html.append(u"\n<tr><td>" + _("Within") +
+                u"</td><td>%s</td><td>%s</td>" % (round(sswn, dp), dfwn))
+    html.append(u"<td>%s</td><td></td><td></td></tr>" % round(mean_squ_wn, dp))
+    html.append(u"\n</tbody>\n</table>\n")
+    try:
+        bolsim, p_sim = core_stats.sim_variance(samples, threshold=0.01)
+        msg = round(p_sim, dp)
+    except Exception:
+        msg = "Unable to calculate"
+    # footnote 2
+    html.append(u"\n<p>" + _("O'Brien's test for homogeneity of variance") \
+                + u": %s" % msg + u" <a href='#ft2'><sup>2</sup></a></p>")
+    footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> If the value is"
+        " small, e.g. less than 0.01, or 0.001, you can assume there is a "
+        "difference in variance.</p>")
+    html.append(u"\n\n<h3>" + _("Group summary details") + u"</h3>")
+    html.append(u"\n<table>\n<thead>")
+    html.append(u"\n<tr><th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") +
+            u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean") + u"</th>")
+    # footnote 3
+    html.append(u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + 
+                _("Standard Deviation") + u"<a class='%s" % CSS_TBL_HDR_FTNOTE +
+                "' href='#ft3'><sup>3</sup></a></th></th>")
+    footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> Standard "
+                     "Deviation measures the spread of values.</p>")
+    html.append(u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th>")
+    # footnotes 4,5,6
+    html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Kurtosis") + 
+                u"<a class='%s' href='#ft4'><sup>4</sup></a></th>" % 
+                CSS_TBL_HDR_FTNOTE)
+    html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Skew") + 
+                u"<a class='%s' href='#ft5'><sup>5</sup></a></th>" %
+                CSS_TBL_HDR_FTNOTE)
+    html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("p abnormal") + 
+                u"<a class='%s' href='#ft6'><sup>6</sup></a></th>" %
+                CSS_TBL_HDR_FTNOTE)
+    html.append(u"</tr>")
+    footnotes += ("\n<p><a id='ft%s'></a><sup>%s</sup> " +
+        _("Kurtosis measures the peakedness or flatness of values.  "
+              "Between -1 and 1 is probably great. Between -2 and 2 is "
+              "probably good.</p>"),
+          "\n<p><a id='ft%s'></a><sup>%s</sup> " +
+        _("Skew measures the lopsidedness of values.  Between -1 and 1 is "
+              "probably great. Between -2 and 2 is probably good.</p>"),
+          "\n<p><a id='ft%s'></a><sup>%s</sup> " +
+        _("This provides a single measure of normality. If p is small, e.g."
+              " less than 0.01, or 0.001, you can assume the distribution "
+              "is not strictly normal.  Note - it may be normal enough "
+              "though.</p>"),
+        )    
+    html.append(u"\n</thead>\n<tbody>")
+    row_tpl = (u"\n<tr><td class='%s'>" % CSS_LBL + \
+               u"%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>"
+               u"<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>")
+    dic_sample_tups = zip(dics, samples)
+    for dic, sample in dic_sample_tups:
+        results = (dic["label"], dic["n"], round(dic["mean"], dp), 
+                   round(dic["sd"], dp), dic["min"], dic["max"])
+        unused, p_arr, cskew, unused, ckurtosis, unused = \
+                core_stats.normaltest(sample)
+        results += (round(ckurtosis, dp), round(cskew, dp), 
+                    round(p_arr[0], dp))
+        html.append(row_tpl % results)
+    html.append(u"\n</tbody>\n</table>\n")
+    for i, footnote in enumerate(footnotes):
+        next_ft = i + 1
+        html.append(footnote % (next_ft, next_ft))
+        
+    for i, dic_sample_tup in enumerate(dic_sample_tups):
+        suffix = u"%s" % i
+        dic, sample = dic_sample_tup
+        hist_label = dic["label"]
+        # histogram
+        # http://www.scipy.org/Cookbook/Matplotlib/LaTeX_Examples
+        charts.gen_config(axes_labelsize=10, xtick_labelsize=8, 
+                          ytick_labelsize=8)
+        fig = pylab.figure()
+        fig.set_figsize_inches((5.0, 3.5)) # see dpi to get image size in pixels
+        charts.config_hist(fig, sample, label_avg, hist_label)
+        img = my_globals.INT_IMG_ROOT + u"%s.png" % suffix
+        pylab.savefig(img, dpi=100)
+        html.append(u"<img src='%s'>" % img)
+    if page_break_after:
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
+    return "".join(html)
+
 def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp, 
-                        indep, css_idx, page_break_after, html):
+                        indep, css_idx, html):
     """
     Footnotes are autonumbered at end.  The links to them will need numbering 
         though.
     """
     CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_FIRST_COL_VAR, css_idx)
-    CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
     CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_LBL, css_idx)
     CSS_TBL_HDR_FTNOTE = my_globals.CSS_SUFFIX_TEMPLATE % \
@@ -114,9 +241,6 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp,
     for i, footnote in enumerate(footnotes):
         next_ft = i + 1
         html.append(footnote % (next_ft, next_ft))
-    if page_break_after:
-        html.append(u"<br><hr><br><div class='%s'></div>" % \
-                    CSS_PAGE_BREAK_BEFORE)
 
 def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp=3, 
                        level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
@@ -129,7 +253,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp=3,
     html = []
     indep = True
     ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp, 
-                        indep, css_idx, page_break_after, html)
+                        indep, css_idx, html)
     sample_dets = [(u"a", sample_a, dic_a["label"]), 
                    (u"b", sample_b, dic_b["label"])]
     for (suffix, sample, hist_label) in sample_dets:
@@ -143,6 +267,11 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp=3,
         img = my_globals.INT_IMG_ROOT + u"%s.png" % suffix
         pylab.savefig(img, dpi=100)
         html.append(u"<img src='%s'>" % img)
+    if page_break_after:
+        CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+        html.append(u"<br><hr><br><div class='%s'></div>" % \
+                    CSS_PAGE_BREAK_BEFORE)
     html_str = "\n".join(html)
     return html_str
 
@@ -157,7 +286,12 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg="",
     html = []
     indep = False
     ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp, 
-                        indep, css_idx, page_break_after, html)
+                        indep, css_idx, html)
+    if page_break_after:
+        CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+        html.append(u"<br><hr><br><div class='%s'></div>" % \
+                    CSS_PAGE_BREAK_BEFORE)
     html_str = "\n".join(html)
     return html_str
 
@@ -356,59 +490,4 @@ def kruskal_wallis_output(h, p, label_a, label_b, label_avg, dp=3,
         round(h, dp)
     if page_break_after:
         html += "<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
-    return html
-
-def anova_output(F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, 
-                 mean_squ_bn, label_a, label_b, label_avg, dp=3,
-                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
-                 page_break_after=False):
-    CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_FIRST_COL_VAR, css_idx)
-    CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
-    CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_LBL, css_idx)
-    html = _("<h2>Results of ANOVA test of average %(avg)s for groups from"
-             " \"%(a)s\" to \"%(b)s\"</h2>") % {"avg": label_avg, "a": label_a, 
-                                                "b": label_b}
-    html += u"\n\n<h3>" + _("Analysis of variance table") + u"</h3>"
-    html += u"\n<table>\n<thead>"
-    html += u"\n<tr>" + \
-        u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Source") + u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Sum of Squares") + \
-            u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("df") + u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean Sum of Squares") + \
-            u"</th>" + \
-        u"\n<th class='%s'>F</th>" % CSS_FIRST_COL_VAR + \
-        u"\n<th class='%s'>p</th></tr>" % CSS_FIRST_COL_VAR
-    html += u"\n</thead>\n<tbody>"
-    html += u"\n<tr><td>" + _("Between") + \
-        u"</td><td>%s</td><td>%s</td>" % (round(ssbn, dp), dfbn)
-    html += u"<td>%s</td><td>%s</td><td>%s</td></tr>" % (round(mean_squ_bn, dp), 
-                                                     round(F, dp), round(p, dp))
-    html += u"\n<tr><td>" + _("Within") + \
-        u"</td><td>%s</td><td>%s</td>" % (round(sswn, dp), dfwn)
-    html += u"<td>%s</td><td></td><td></td></tr>" % round(mean_squ_wn, dp)
-    html += u"\n</tbody>\n</table>\n"
-    html += u"\n\n<h3>" + _("Group summary details") + u"</h3>"
-    html += u"\n<table>\n<thead>"
-    html += u"\n<tr><th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + \
-            u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean") + u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Standard Deviation") + \
-            u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th></tr>"
-    html += u"\n</thead>\n<tbody>"
-    row_tpl = (u"\n<tr><td class='%s'>" % CSS_LBL + \
-               u"%s</td><td>%s</td><td>%s</td>"
-               u"<td>%s</td><td>%s</td><td>%s</td></tr>")
-    for dic in dics:
-        html += row_tpl % (dic["label"], dic["n"], round(dic["mean"], dp), 
-                           round(dic["sd"], dp), dic["min"], dic["max"])
-    html += u"\n</tbody>\n</table>\n"
-    if page_break_after:
-        html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
     return html
