@@ -45,8 +45,8 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             u"core_stats.pearsonr(sample_a, sample_b)")
         script_lst.append(u"pearsonsr_output = " + \
                           u"stats_output.pearsonsr_output(" + \
-            u"r, p, label_a, label_b, dp=dp,\n    " + \
-            u"level=my_globals.OUTPUT_RESULTS_ONLY, " + \
+            u"sample_a, sample_b, r, p, label_a, label_b, dp=dp,"
+            u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, " + \
             u"css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append(u"fil.write(pearsonsr_output)")
         return u"\n".join(script_lst)

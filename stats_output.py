@@ -344,21 +344,40 @@ def wilcoxon_output(t, p, label_a, label_b, dp=3,
         html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
     return html
 
-def pearsonsr_output(r, p, label_a, label_b, dp=3,
-                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
-                 page_break_after=False):
+def add_scatterplot(sample_a, sample_b, a_vs_b, title, html):
+    p = pylab.polyfit(sample_a, sample_b, 1)
+    fig = pylab.figure()
+    fig.set_figsize_inches((7.5, 4.5)) # see dpi to get image size in pixels
+    pylab.plot(sample_a, sample_b, 'o', color=my_globals.FACECOLOR, label=a_vs_b)
+    pylab.plot(sample_a, pylab.polyval(p, sample_a), "-", 
+               color=my_globals.NORM_LINE_COLOR, linewidth=4,
+               label="Line of best fit")
+    pylab.legend(loc="best")
+    img = my_globals.INT_IMG_ROOT + u".png"
+    pylab.savefig(img, dpi=100)
+    html.append(u"<img src='%s'>" % img)
+
+def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, dp=3,
+                     level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                     page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
-    html = _("<h2>Results of Pearson's Test of Linear Correlation for \"%(a)s\""
-             " and \"%(b)s\"</h2>") % {"a": label_a, "b": label_b}
+    html = []
+    a_vs_b = '"%s"' % label_a + _(" vs ") + '"%s"' % label_b
+    title = (_("Results of Pearson's Test of Linear Correlation "
+               "for %s") % a_vs_b)
+    html.append("<h2>%s</h2>" % title)
     p_format = u"\n<p>" + _("p value") + u": %%.%sf</p>" % dp
-    html += p_format % round(p, dp)
-    html += u"\n<p>" + _("Pearson's R statistic") + u": %s</p>" % round(r, dp)
+    html.append(p_format % round(p, dp))
+    html.append(u"\n<p>" + _("Pearson's R statistic") +
+                u": %s</p>" % round(r, dp))
+    add_scatterplot(sample_a, sample_b, a_vs_b, title, html)
     if page_break_after:
-        html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
-    return html
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
+    return "".join(html)
 
-def spearmansr_output(r, p, label_a, label_b, dp=3,
+def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, dp=3,
                  level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
                  page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
@@ -368,6 +387,7 @@ def spearmansr_output(r, p, label_a, label_b, dp=3,
     p_format = u"\n<p>" + _("p value") + u": %%.%sf</p>" % dp
     html += p_format % round(p, dp)
     html += u"\n<p>" + _("Spearman's R statistic") + u": %s</p>" % round(r, dp)
+    add_scatterplot(sample_a, sample_b, a_vs_b, title, html)
     if page_break_after:
         html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
     return html
