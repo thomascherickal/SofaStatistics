@@ -39,7 +39,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                          style=wx.RA_SPECIFY_COLS)
         self.szrVarsRight.Add(self.radHigh, 0)
     
-    def get_script(self, css_idx):
+    def get_script(self, css_idx, add_to_report, report_name):
         "Build script from inputs"
         debug = False
         var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \
@@ -75,15 +75,18 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"label_a = \"%s\"" % label_a)
         script_lst.append(u"label_b = \"%s\"" % label_b)
         script_lst.append(u"label_avg = \"%s\"" % label_avg)
-        script_lst.append(u"indep = True")
+        script_lst.append(u"report_name = \"%s\"" % report_name)
+        script_lst.append(u"add_to_report = %s" % ("True" if add_to_report \
+                          else "False"))
         high = not self.radHigh.GetSelection()
         script_lst.append(u"p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, "
             u"mean_squ_bn = \\\n    core_stats.anova(samples, labels, "
             u"high=%s)" % high)
         script_lst.append(u"anova_output = stats_output.anova_output("
-            u"samples, F, p, dics, sswn, dfwn, mean_squ_wn, \n    ssbn, dfbn, "
-            u"mean_squ_bn, label_a, label_b, label_avg, dp,"
+            u"samples, F, p, dics, sswn, dfwn, mean_squ_wn, "
+            u"\n    ssbn, dfbn, mean_squ_bn, label_a, label_b, label_avg, "
+            u"add_to_report, report_name, dp,"
             u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, "
             u"css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append(u"fil.write(anova_output)")
-        return u"\n".join(script_lst)    
+        return u"\n".join(script_lst)

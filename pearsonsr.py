@@ -26,7 +26,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
                                "do they change together in a linear fashion?") \
                                 % {"a": label_a, "b": label_b})
     
-    def get_script(self, css_idx):
+    def get_script(self, css_idx, add_to_report, report_name):
         "Build script from inputs"
         script_lst = []
         script_lst.append(lib.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
@@ -38,15 +38,19 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             u"tbl_filt=tbl_filt, " + \
             u"fld_a=\"%s\", " % var_a + \
             u"fld_b=\"%s\")" % var_b)
+        script_lst.append(u"report_name = \"%s\"" % report_name)
+        script_lst.append(u"add_to_report = %s" % ("True" if add_to_report \
+                          else "False"))
         script_lst.append(u"dp = 3")
         script_lst.append(u"label_a = \"%s\"" % label_a)
         script_lst.append(u"label_b = \"%s\"" % label_b)
         script_lst.append(u"r, p = " + \
             u"core_stats.pearsonr(sample_a, sample_b)")
-        script_lst.append(u"pearsonsr_output = " + \
-                          u"stats_output.pearsonsr_output(" + \
-            u"sample_a, sample_b, r, p, label_a, label_b, dp=dp,"
-            u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, " + \
-            u"css_idx=%s, page_break_after=False)" % css_idx)
+        script_lst.append(u"pearsonsr_output = " +
+            u"stats_output.pearsonsr_output(sample_a, sample_b, r, p,")
+        script_lst.append(u"    label_a, label_b, add_to_report, report_name, "
+                          u"dp, ")
+        script_lst.append(u"    level=my_globals.OUTPUT_RESULTS_ONLY, "
+                          u"css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append(u"fil.write(pearsonsr_output)")
         return u"\n".join(script_lst)

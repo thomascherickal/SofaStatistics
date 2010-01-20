@@ -412,13 +412,13 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             if self.too_long():
                 return
             wx.BeginBusyCursor()
+            add_to_report = self.chkAddToReport.IsChecked()
             if debug: print(self.fil_css)
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.get_script(has_rows, has_cols, css_idx)
             str_content = output.run_report(OUTPUT_MODULES, self.fil_report, 
-                self.chkAddToReport.IsChecked(), css_fils, script, 
-                self.con_dets, self.dbe, self.db, self.tbl, self.default_dbs, 
-                self.default_tbls)
+                    add_to_report, css_fils, script, self.con_dets, self.dbe, 
+                    self.db, self.tbl, self.default_dbs, self.default_tbls)
             wx.EndBusyCursor()
             self.update_local_display(str_content)
             self.str_content = str_content
@@ -447,7 +447,12 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             wx.MessageBox(_("Missing %s data") % missing_dim) 
     
     def get_script(self, has_rows, has_cols, css_idx):
-        "Build script from inputs"
+        """
+        Build script from inputs.
+        Unlike the stats test output, no need to link to images etc, so no need
+            to know what this report will be called (so we can know where any
+            images are to link to).
+        """
         script_lst = []
         # set up variables required for passing into main table instantiation
         if self.tab_type in [my_globals.COL_MEASURES, my_globals.ROW_SUMM]:

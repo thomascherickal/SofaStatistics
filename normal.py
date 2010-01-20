@@ -190,7 +190,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         # histogram
         charts.gen_config()
         fig = pylab.figure()
-        fig.set_figsize_inches((2.3, 1.0)) # see dpi to get image size in pixels
+        fig.set_size_inches((2.3, 1.0)) # see dpi to get image size in pixels
         charts.config_hist(fig, self.vals, self.var_label, thumbnail=True)
         pylab.savefig(my_globals.INT_IMG_ROOT + u".png", dpi=100)
         thumbnail_uncropped = wx.Image(my_globals.INT_IMG_ROOT + u".png", 

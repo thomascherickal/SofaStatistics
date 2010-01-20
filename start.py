@@ -10,6 +10,7 @@ warnings.simplefilter('ignore', UserWarning)
 
 import codecs
 import gettext
+import glob
 import os
 import platform
 import shutil
@@ -552,6 +553,15 @@ class StartFrame(wx.Frame):
         event.Skip()
     
     def OnExitClick(self, event):
+        debug = False
+        wx.BeginBusyCursor()
+        # wipe any internal images
+        int_img_pattern = os.path.join(my_globals.INT_PATH, "*.png")
+        if debug: print(int_img_pattern)
+        for delme in glob.glob(int_img_pattern):
+            if debug: print(delme)
+            os.remove(delme)
+        wx.EndBusyCursor()
         self.Destroy()
         sys.exit()
         

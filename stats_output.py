@@ -1,5 +1,6 @@
 import cgi
 import numpy as np
+import os
 import pylab
 
 import my_globals
@@ -11,10 +12,12 @@ Output doesn't include the calculation of any values.  These are in discrete
     functions in core_stats, amenable to unit testing.
 """
 
+int_imgs_n = 0 # for internal images so always unique
+
 def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, 
-                 mean_squ_bn, label_a, label_b, label_avg, dp=3,
-                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
-                 page_break_after=False):
+                 mean_squ_bn, label_a, label_b, label_avg, add_to_report,
+                 report_name, dp=3, level=my_globals.OUTPUT_RESULTS_ONLY, 
+                 css_idx=0, page_break_after=False):
     CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
@@ -120,7 +123,6 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     for i, footnote in enumerate(footnotes):
         next_ft = i + 1
         html.append(footnote % (next_ft, next_ft))
-        
     for i, dic_sample_tup in enumerate(dic_sample_tups):
         suffix = u"%s" % i
         dic, sample = dic_sample_tup
@@ -130,11 +132,11 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         charts.gen_config(axes_labelsize=10, xtick_labelsize=8, 
                           ytick_labelsize=8)
         fig = pylab.figure()
-        fig.set_figsize_inches((5.0, 3.5)) # see dpi to get image size in pixels
+        fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
         charts.config_hist(fig, sample, label_avg, hist_label)
-        img = my_globals.INT_IMG_ROOT + u"%s.png" % suffix
-        pylab.savefig(img, dpi=100)
-        html.append(u"<img src='%s'>" % img)
+        img_src = save_report_img(add_to_report, report_name)
+        pylab.savefig(img_src, dpi=100)
+        html.append(u"<img src='%s'>" % img_src)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -242,7 +244,8 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp,
         next_ft = i + 1
         html.append(footnote % (next_ft, next_ft))
 
-def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp=3, 
+def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, 
+                       add_to_report, report_name, dp=3, 
                        level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
                        page_break_after=False):
     """
@@ -262,11 +265,11 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp=3,
         charts.gen_config(axes_labelsize=10, xtick_labelsize=8, 
                           ytick_labelsize=8)
         fig = pylab.figure()
-        fig.set_figsize_inches((5.0, 3.5)) # see dpi to get image size in pixels
+        fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
         charts.config_hist(fig, sample, label_avg, hist_label)
-        img = my_globals.INT_IMG_ROOT + u"%s.png" % suffix
-        pylab.savefig(img, dpi=100)
-        html.append(u"<img src='%s'>" % img)
+        img_src = save_report_img(add_to_report, report_name)
+        pylab.savefig(img_src, dpi=100)
+        html.append(u"<img src='%s'>" % img_src)
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
@@ -344,22 +347,66 @@ def wilcoxon_output(t, p, label_a, label_b, dp=3,
         html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
     return html
 
-def add_scatterplot(sample_a, sample_b, a_vs_b, title, html):
+def save_report_img(add_to_report, report_name):
+    """
+    If adding to report, save image to a subfolder in reports named after the 
+        report.  Return a relative image source. Make subfolder if not present.
+        Use image name guaranteed not to collide.  Count items in subfolder and
+        use index as part of name.
+    If not adding to report, save image to internal folder, and return absolute
+        image source.  Remember to alternate sets of names so always the 
+        freshest image showing in html (without having to reload etc).
+    """
+    debug = False
+    if add_to_report:
+        # look in report folder for subfolder
+        imgs_path = os.path.join(my_globals.INT_REPORT_PATH,
+                                 report_name[:-len(".htm")], u"")
+        if debug: print(imgs_path)
+        try:
+            os.mkdir(imgs_path)
+        except OSError:
+            pass
+        n_imgs = len(os.listdir(imgs_path))
+        img_src = os.path.join(imgs_path, u"%03d.png" % n_imgs)
+        if debug: print(img_src)
+    else:
+        if not add_to_report:
+            # must ensure internal images are always different each time we
+            # refresh html.  Otherwise might just show old version of same-named 
+            # image file!
+            global int_imgs_n
+            int_imgs_n += 1
+            img_src = my_globals.INT_IMG_ROOT + u"_%03d.png" % int_imgs_n
+            if debug: print(img_src)
+    pylab.savefig(img_src, dpi=100)
+    if debug: print("Just saved %s" % img_src)
+    return img_src
+
+def add_scatterplot(sample_a, sample_b, a_vs_b, title, add_to_report, 
+                    report_name, html):
+    """
+    Toggle prefix so every time this is run internally only, a different image 
+        is referred to in the html <img src=...>.
+    This works because there is only ever one scatterplot per internal html.
+    """
+    debug = False
     p = pylab.polyfit(sample_a, sample_b, 1)
     fig = pylab.figure()
-    fig.set_figsize_inches((7.5, 4.5)) # see dpi to get image size in pixels
-    pylab.plot(sample_a, sample_b, 'o', color=my_globals.FACECOLOR, label=a_vs_b)
+    fig.set_size_inches((7.5, 4.5)) # see dpi to get image size in pixels
+    pylab.plot(sample_a, sample_b, 'o', color=my_globals.FACECOLOR, 
+               label=a_vs_b)
     pylab.plot(sample_a, pylab.polyval(p, sample_a), "-", 
                color=my_globals.NORM_LINE_COLOR, linewidth=4,
                label="Line of best fit")
     pylab.legend(loc="best")
-    img = my_globals.INT_IMG_ROOT + u".png"
-    pylab.savefig(img, dpi=100)
-    html.append(u"<img src='%s'>" % img)
+    img_src = save_report_img(add_to_report, report_name)
+    html.append(u"<img src='%s'>" % img_src)
+    if debug: print("Just linked to %s" % img_src)
 
-def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, dp=3,
-                     level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
-                     page_break_after=False):
+def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
+                     report_name, dp=3, level=my_globals.OUTPUT_RESULTS_ONLY, 
+                     css_idx=0, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
     html = []
@@ -371,26 +418,33 @@ def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, dp=3,
     html.append(p_format % round(p, dp))
     html.append(u"\n<p>" + _("Pearson's R statistic") +
                 u": %s</p>" % round(r, dp))
-    add_scatterplot(sample_a, sample_b, a_vs_b, title, html)
+    add_scatterplot(sample_a, sample_b, a_vs_b, title, add_to_report, 
+                    report_name, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
     return "".join(html)
 
-def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, dp=3,
-                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
-                 page_break_after=False):
+def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
+                      report_name, dp=3, level=my_globals.OUTPUT_RESULTS_ONLY, 
+                      css_idx=0, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
-    html = _("<h2>Results of Spearman's Test of Linear Correlation for "
-             "\"%(a)s\" and \"%(b)s\"</h2>") % {"a": label_a, "b": label_b}
+    html = []
+    a_vs_b = '"%s"' % label_a + _(" vs ") + '"%s"' % label_b
+    title = (_("Results of Spearman's Test of Linear Correlation "
+               "for %s") % a_vs_b)
+    html.append("<h2>%s</h2>" % title)
     p_format = u"\n<p>" + _("p value") + u": %%.%sf</p>" % dp
-    html += p_format % round(p, dp)
-    html += u"\n<p>" + _("Spearman's R statistic") + u": %s</p>" % round(r, dp)
-    add_scatterplot(sample_a, sample_b, a_vs_b, title, html)
+    html.append(p_format % round(p, dp))
+    html.append(u"\n<p>" + _("Spearman's R statistic") + 
+                u": %s</p>" % round(r, dp))
+    add_scatterplot(sample_a, sample_b, a_vs_b, title, add_to_report, 
+                    report_name, html)
     if page_break_after:
-        html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
-    return html
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
+    return "".join(html)
 
 def chisquare_output(chi, p, var_label_a, var_label_b, 
                      val_labels_a, val_labels_b, lst_obs, lst_exp, min_count, 
