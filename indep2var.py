@@ -426,8 +426,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             add_to_report = self.chkAddToReport.IsChecked()
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.get_script(css_idx, add_to_report, self.fil_report)
-            str_content = output.run_report(OUTPUT_MODULES, self.fil_report, 
-                    add_to_report, css_fils, script, self.con_dets, self.dbe, 
+            str_content = output.run_report(OUTPUT_MODULES, add_to_report, 
+                    self.fil_report, css_fils, script, self.con_dets, self.dbe, 
                     self.db, self.tbl, self.default_dbs, self.default_tbls)
             wx.EndBusyCursor()
             self.update_local_display(str_content)

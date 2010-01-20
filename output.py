@@ -279,7 +279,22 @@ def get_source(db, tbl_name):
     source = u"\n<p>From %s.%s %s</p>" % (db, tbl_name, datestamp)
     return source
 
-def run_report(modules, fil_report, add_to_report, css_fils, inner_script, 
+def rel2abs(strhtml, fil_report):
+    """
+    fil_report -- e.g. /home/g/sofa/reports/my_report_name.htm
+    Turn my_report_name/001.png to e.g. 
+        /home/g/sofa/reports/my_report_name/001.png so that the html can be 
+        written to, and read from, anywhere (and still show the images!) in the
+        temporary GUI displays.
+    """
+    debug = False
+    to_insert = os.path.split(fil_report)[0]
+    abs_display_content = strhtml.replace(u"src='", 
+                                    u"src='%s" % os.path.join(to_insert, u""))
+    if debug: print("From \n\n%s\n\nto\n\n%s" % (strhtml, abs_display_content))
+    return abs_display_content
+
+def run_report(modules, add_to_report, fil_report, css_fils, inner_script, 
                con_dets, dbe, db, tbl_name, default_dbs, default_tbls):
     """
     Runs report and returns HTML representation of it.
@@ -320,8 +335,10 @@ def run_report(modules, fil_report, add_to_report, css_fils, inner_script,
     if add_to_report:
         save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt, 
                        raw_content) # handles source and filter desc internally
-        display_content = u"\n<p>Output also saved to '%s'</p>" % \
-                        lib.escape_win_path(fil_report) + main_content
+        rel_display_content = u"\n<p>Output also saved to '%s'</p>" % \
+                               lib.escape_win_path(fil_report) + main_content
+        # make relative links absolute so GI viewers can display images
+        display_content = rel2abs(rel_display_content, fil_report)
     else:
         display_content = main_content
     return display_content

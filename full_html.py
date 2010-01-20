@@ -32,15 +32,20 @@ else:
                 If first time, will have delay while initialising comtypes.
                 url_load -- so internal links like footnotes will work.
                 """
+                debug = False
                 if url_load:
-                    url_fil = os.path.join(my_globals.INT_PATH, u"my_url.htm")
-                    print(url_fil)
+                    url_fil = os.path.join(my_globals.INT_PATH, 
+                                           u"ready2load.htm")
+                    if debug: print(url_fil)
                     f = open(url_fil, "w")
                     f.write(strHTML)
                     f.close()
                     self.LoadUrl("file:///%s" % url_fil)
                 else:
                     self.LoadString(strHTML)
+                    
+            def LoadUrl(self, url):
+                self.LoadUrl(url)
     else:
         import wx.webview
         
@@ -50,6 +55,10 @@ else:
                 wx.webview.WebView.__init__(self, panel, -1, size=size)
             
             def ShowHTML(self, strHTML, url_load=False):
+                debug = False
                 if debug: print("strHTML is: %s" % strHTML)
                 # NB no issue with backslashes because not used in Windows ;-)
                 self.SetPageSource(strHTML, "file://%s/" % my_globals.INT_PATH)
+            
+            def LoadUrl(self, url):
+                self.LoadURL(url)

@@ -135,8 +135,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
         charts.config_hist(fig, sample, label_avg, hist_label)
         img_src = save_report_img(add_to_report, report_name)
-        pylab.savefig(img_src, dpi=100)
-        html.append(u"<img src='%s'>" % img_src)
+        html.append(u"\n<img src='%s'>" % img_src)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -268,8 +267,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg,
         fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
         charts.config_hist(fig, sample, label_avg, hist_label)
         img_src = save_report_img(add_to_report, report_name)
-        pylab.savefig(img_src, dpi=100)
-        html.append(u"<img src='%s'>" % img_src)
+        html.append(u"\n<img src='%s'>" % img_src)
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
@@ -349,6 +347,7 @@ def wilcoxon_output(t, p, label_a, label_b, dp=3,
 
 def save_report_img(add_to_report, report_name):
     """
+    report_name -- full path to report
     If adding to report, save image to a subfolder in reports named after the 
         report.  Return a relative image source. Make subfolder if not present.
         Use image name guaranteed not to collide.  Count items in subfolder and
@@ -360,27 +359,31 @@ def save_report_img(add_to_report, report_name):
     debug = False
     if add_to_report:
         # look in report folder for subfolder
-        imgs_path = os.path.join(my_globals.INT_REPORT_PATH,
-                                 report_name[:-len(".htm")], u"")
-        if debug: print(imgs_path)
+        imgs_path = os.path.join(report_name[:-len(".htm")], u"")
+        if debug: print("imgs_path: %s" % imgs_path)
         try:
             os.mkdir(imgs_path)
         except OSError:
             pass
         n_imgs = len(os.listdir(imgs_path))
-        img_src = os.path.join(imgs_path, u"%03d.png" % n_imgs)
-        if debug: print(img_src)
+        file_name = u"%03d.png" % n_imgs
+        img_path = os.path.join(imgs_path, file_name) # absolute
+        pylab.savefig(img_path, dpi=100)
+        if debug: print("Just saved %s" % img_path)
+        subfolder = os.path.split(imgs_path[:-1])[1]
+        img_src = os.path.join(subfolder, file_name) #relative so can shift html
+        if debug: print("add_to_report img_src: %s" % img_src)
     else:
-        if not add_to_report:
-            # must ensure internal images are always different each time we
-            # refresh html.  Otherwise might just show old version of same-named 
-            # image file!
-            global int_imgs_n
-            int_imgs_n += 1
-            img_src = my_globals.INT_IMG_ROOT + u"_%03d.png" % int_imgs_n
-            if debug: print(img_src)
-    pylab.savefig(img_src, dpi=100)
-    if debug: print("Just saved %s" % img_src)
+        # must ensure internal images are always different each time we
+        # refresh html.  Otherwise might just show old version of same-named 
+        # image file!
+        global int_imgs_n
+        int_imgs_n += 1
+        img_src = my_globals.INT_IMG_ROOT + u"_%03d.png" % int_imgs_n
+        if debug: print(img_src)
+        pylab.savefig(img_src, dpi=100)
+        if debug: print("Just saved %s" % img_src)
+    if debug: print("img_src: %s" % img_src)
     return img_src
 
 def add_scatterplot(sample_a, sample_b, a_vs_b, title, add_to_report, 
@@ -401,7 +404,7 @@ def add_scatterplot(sample_a, sample_b, a_vs_b, title, add_to_report,
                label="Line of best fit")
     pylab.legend(loc="best")
     img_src = save_report_img(add_to_report, report_name)
-    html.append(u"<img src='%s'>" % img_src)
+    html.append(u"\n<img src='%s'>" % img_src)
     if debug: print("Just linked to %s" % img_src)
 
 def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
