@@ -386,23 +386,17 @@ def save_report_img(add_to_report, report_name):
     if debug: print("img_src: %s" % img_src)
     return img_src
 
-def add_scatterplot(sample_a, sample_b, a_vs_b, title, add_to_report, 
-                    report_name, html):
+def add_scatterplot(sample_a, sample_b, label_a, label_b, a_vs_b, title, 
+                    add_to_report, report_name, html):
     """
     Toggle prefix so every time this is run internally only, a different image 
         is referred to in the html <img src=...>.
     This works because there is only ever one scatterplot per internal html.
     """
     debug = False
-    p = pylab.polyfit(sample_a, sample_b, 1)
     fig = pylab.figure()
     fig.set_size_inches((7.5, 4.5)) # see dpi to get image size in pixels
-    pylab.plot(sample_a, sample_b, 'o', color=my_globals.FACECOLOR, 
-               label=a_vs_b)
-    pylab.plot(sample_a, pylab.polyval(p, sample_a), "-", 
-               color=my_globals.NORM_LINE_COLOR, linewidth=4,
-               label="Line of best fit")
-    pylab.legend(loc="best")
+    charts.config_scatterplot(fig, sample_a, sample_b, label_a, label_b, a_vs_b)
     img_src = save_report_img(add_to_report, report_name)
     html.append(u"\n<img src='%s'>" % img_src)
     if debug: print("Just linked to %s" % img_src)
@@ -421,8 +415,8 @@ def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
     html.append(p_format % round(p, dp))
     html.append(u"\n<p>" + _("Pearson's R statistic") +
                 u": %s</p>" % round(r, dp))
-    add_scatterplot(sample_a, sample_b, a_vs_b, title, add_to_report, 
-                    report_name, html)
+    add_scatterplot(sample_a, sample_b, label_a, label_b, a_vs_b, title, 
+                    add_to_report, report_name, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -442,8 +436,8 @@ def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
     html.append(p_format % round(p, dp))
     html.append(u"\n<p>" + _("Spearman's R statistic") + 
                 u": %s</p>" % round(r, dp))
-    add_scatterplot(sample_a, sample_b, a_vs_b, title, add_to_report, 
-                    report_name, html)
+    add_scatterplot(sample_a, sample_b, label_a, label_b, a_vs_b, title, 
+                    add_to_report, report_name, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

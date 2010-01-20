@@ -337,7 +337,7 @@ def run_report(modules, add_to_report, fil_report, css_fils, inner_script,
                        raw_content) # handles source and filter desc internally
         rel_display_content = u"\n<p>Output also saved to '%s'</p>" % \
                                lib.escape_win_path(fil_report) + main_content
-        # make relative links absolute so GI viewers can display images
+        # make relative links absolute so GUI viewers can display images
         display_content = rel2abs(rel_display_content, fil_report)
     else:
         display_content = main_content

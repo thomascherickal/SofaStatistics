@@ -19,6 +19,7 @@ def gen_config(axes_labelsize=14, xtick_labelsize=10, ytick_labelsize=10):
 def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False):    
     """
     Configure histogram with subplot of normal distribution curve.
+    Size is set externally. 
     """
     axes = fig.gca()
     if thumbnail:
@@ -40,6 +41,22 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False):
     y = pylab.normpdf(bins, mu, sigma)
     l = axes.plot(bins, y,  color=my_globals.NORM_LINE_COLOR, 
                   linewidth=normal_line_width)
+
+def config_scatterplot(fig, sample_a, sample_b, label_a, label_b, a_vs_b):
+    """
+    Configure scatterplot with line of best fit.
+    Size is set externally. 
+    """
+    pylab.plot(sample_a, sample_b, 'o', color=my_globals.FACECOLOR, 
+               label=a_vs_b)
+    p = pylab.polyfit(sample_a, sample_b, 1)
+    pylab.plot(sample_a, pylab.polyval(p, sample_a), "-", 
+               color=my_globals.NORM_LINE_COLOR, linewidth=4,
+               label="Line of best fit")
+    axes = fig.gca()
+    axes.set_xlabel(label_a)
+    axes.set_ylabel(label_b)
+    pylab.legend(loc="best")
 
         
 class HistDlg(wxmpl.PlotDlg):
