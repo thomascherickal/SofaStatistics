@@ -24,9 +24,9 @@ class DemoTable(object):
         "Get HTML to display if enough data to display"
         assert 0, "get_demo_html_if_ok must be defined by subclass"
 
-    def getHTMLParts(self, css_idx):
+    def get_html_parts(self, css_idx):
         "Returns (hdr_html, body_html)"
-        assert 0, "getHTMLParts must be defined by subclass"
+        assert 0, "get_html_parts must be defined by subclass"
 
     def get_demo_html(self, css_idx):
         "Get demo HTML for table"
@@ -50,7 +50,7 @@ class DemoTable(object):
             wx.MessageBox(_("Unable to make report.  Error details: %s" % unicode(e)))
             raise Exception, unicode(e)
         html += u"<table cellspacing='0'>\n" # IE6 - no support CSS borderspacing
-        (hdr_html, body_html) = self.getHTMLParts(css_idx)
+        (hdr_html, body_html) = self.get_html_parts(css_idx)
         html += hdr_html
         html += body_html
         html += u"\n</table>"
@@ -83,7 +83,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                                               parent=self.colRoot)
         return self.get_demo_html(css_idx) if has_cols else ""
       
-    def getHTMLParts(self, css_idx):
+    def get_html_parts(self, css_idx):
         """
         Returns (hdr_html, body_html).
         If value labels available, use these rather than random numbers.
@@ -99,7 +99,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         cols_n = len(col_names)        
         bolhas_totals_row = self.chkTotalsRow.IsChecked()
         bolfirst_col_as_label = self.chkFirstAsLabel.IsChecked()
-        hdr_html = self.getHdrDets(col_labels, css_idx)
+        hdr_html = self.get_hdr_dets(col_labels, css_idx)
         body_html = u"\n<tbody>"        
         # pre-store val dics for each column where possible
         col_val_dics = []
@@ -133,7 +133,8 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                     row_val = unicode(random.choice(str_data_seq))
                 # cell format
                 col_class_names = u"\"" + u" ".join(col_class_lsts[j]) + u"\""
-                col_classes = u"class = %s" % col_class_names if col_class_names else ""
+                col_classes = u"class = %s" % col_class_names \
+                    if col_class_names else ""
                 row_tds.append(u"<td %s>%s</td>" % (col_classes, row_val))
             body_html += u"\n<tr>" + u"".join(row_tds) + u"</td></tr>"
         if bolhas_totals_row:
@@ -181,11 +182,11 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         self.fil_css=fil_css
         if self.debug: print(self.fil_css)
     
-    def getHTMLParts(self, css_idx):
+    def get_html_parts(self, css_idx):
         "Returns (hdr_html, body_html)"
         (row_label_rows_lst, tree_row_labels, row_label_cols_n) = \
-            self.getRowDets(css_idx)
-        (tree_col_dets, hdr_html) = self.getHdrDets(row_label_cols_n, css_idx)
+                                                        self.getRowDets(css_idx)
+        (tree_col_dets, hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)
         #print(row_label_rows_lst) #debug
         row_label_rows_lst = self.getBodyHtmlRows(row_label_rows_lst,
                                                   tree_row_labels, 
@@ -354,7 +355,7 @@ class GenDemoTable(DemoDimTable):
         else:
             return ""
     
-    def getHdrDets(self, row_label_cols_n, css_idx):
+    def get_hdr_dets(self, row_label_cols_n, css_idx):
         """
         Return tree_col_labels and the table header HTML.
         For HTML provide everything from <thead> to </thead>.
@@ -364,7 +365,7 @@ class GenDemoTable(DemoDimTable):
         if tree_col_labels.getDepth() == 1:
             raise Exception, u"There must always be a column item " + \
                 u"even if only the col no vars item"
-        return self.processHdrTree(tree_col_labels, row_label_cols_n, css_idx)    
+        return self.process_hdr_tree(tree_col_labels, row_label_cols_n, css_idx)    
 
     def getBodyHtmlRows(self, row_label_rows_lst, tree_row_labels,
                         tree_col_labels, css_idx):
@@ -457,7 +458,7 @@ class SummDemoTable(DemoDimTable):
                                               parent=self.rowRoot)
         return self.get_demo_html(css_idx) if has_rows else ""
             
-    def getHdrDets(self, row_label_cols_n, css_idx):
+    def get_hdr_dets(self, row_label_cols_n, css_idx):
         """
         Return tree_col_labels and the table header HTML.
         For HTML provide everything from <thead> to </thead>.
@@ -467,7 +468,7 @@ class SummDemoTable(DemoDimTable):
         tree_col_labels = self.addSubtreesToColLabelTree(tree_col_labels)
         if tree_col_labels.getDepth() == 1:
             tree_col_labels.addChild(dimtables.LabelNode(label=u"Measures"))
-        return self.processHdrTree(tree_col_labels, row_label_cols_n, css_idx)
+        return self.process_hdr_tree(tree_col_labels, row_label_cols_n, css_idx)
 
     def getBodyHtmlRows(self, row_label_rows_lst, tree_row_labels,
                         tree_col_labels, css_idx):

@@ -179,7 +179,7 @@ def get_html_hdr(hdr_title, css_fils):
     hdr = default_hdr % (hdr_title, css)
     return hdr
 
-def getHtmlFtr():
+def get_html_ftr():
     "Close HTML off cleanly"
     return u"</body></html>"
 
@@ -447,14 +447,14 @@ def save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt,
         f.write(existing_no_ends)
     f.write(get_divider(source, tbl_filt_label, tbl_filt))
     f.write(new_no_hdr)
-    f.write(getHtmlFtr())
+    f.write(get_html_ftr())
     f.close()
 
 def AddClosingScriptCode(f):
     "Add ending code to script.  Nb leaves open file."
     f.write(u"\n" + u"\n" + my_globals.SCRIPT_END + \
             u"-"*(50 - len(my_globals.SCRIPT_END)) + u"\n")
-    f.write(u"\n" + u"fil.write(output.getHtmlFtr())")
+    f.write(u"\n" + u"fil.write(output.get_html_ftr())")
     f.write(u"\n" + u"fil.close()")
 
 def display_report(parent, strContent):

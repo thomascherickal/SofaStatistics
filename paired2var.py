@@ -98,7 +98,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
         self.html = full_html.FullHTML(self.panel, size=(200, 250))
         html2show = _("<p>Waiting for a report to be run.</p>")
-        self.html.ShowHTML(html2show)
+        self.html.show_html(html2show)
         szrBottomLeft.Add(self.html, 1, wx.GROW|wx.LEFT|wx.BOTTOM, 5)
         szrBottomLeft.Add(self.szrConfigTop, 0, wx.GROW)
         szrBottomLeft.Add(self.szrConfigBottom, 0, wx.GROW)
@@ -247,7 +247,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         my_globals.GROUP_B_DEFAULT = self.dropGroupB.GetStringSelection()
         
     def update_local_display(self, strContent):
-        self.html.ShowHTML(strContent, url_load=True) # allow footnotes
+        self.html.show_html(strContent, url_load=True) # allow footnotes
 
     def OnButtonRun(self, event):
         """

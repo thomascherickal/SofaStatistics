@@ -39,7 +39,7 @@ class RawTable(object):
     def hasColMeasures(self):
         return False
 
-    def getHdrDets(self, col_labels, css_idx):
+    def get_hdr_dets(self, col_labels, css_idx):
         """
         Set up titles, subtitles, and col labels into table header.
         """
@@ -52,17 +52,20 @@ class RawTable(object):
         CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_FIRST_COL_VAR, css_idx)
         # titles and subtitles
-        titles_html = u"\n<p class='%s'>" % CSS_TBL_TITLE
-        for title in self.titles:
-            titles_html += u"%s<br>" % title
-        titles_html += u"</p>"
+        titles_html = u"\n<p class='%s'>%s" % (CSS_TBL_TITLE, 
+                                               my_globals.TBL_TITLE_START)
+        titles_html = lib.get_titles_inner_html(titles_html, self.titles)
+        titles_html += u"%s</p>" % my_globals.TBL_TITLE_END
         if self.subtitles != [u""]:
-            subtitles_html = u"\n<p class='%s'>" % CSS_SUBTITLE
-            for subtitle in self.subtitles:
-                subtitles_html += u"%s<br>" % subtitle
-            subtitles_html += u"</p>"
+            subtitles_html = u"\n<p class='%s'>%s" % (CSS_SUBTITLE, 
+                                                my_globals.TBL_SUBTITLE_START)
+            subtitles_html = lib.get_subtitles_inner_html(subtitles_html, 
+                                                          self.subtitles)
+            subtitles_html += u"%s</p>" % my_globals.TBL_SUBTITLE_END
         else:
-            subtitles_html = u""
+            # leave something behind so demotables can replace subtitle with
+            # correct css style idx
+            subtitles_html = my_globals.TBL_SUBTITLE_LEVEL % css_idx
         title_dets_html = titles_html + subtitles_html
         hdr_html = u"\n<thead>\n<tr><th " + \
             u"class='%s'" % CSS_TBL_TITLE_CELL + \
@@ -94,7 +97,7 @@ class RawTable(object):
             (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
         html = u""
         html += u"\n\n<table cellspacing='0'>\n" # IE6 - no support CSS borderspacing
-        hdr_html = self.getHdrDets(self.col_labels, css_idx)
+        hdr_html = self.get_hdr_dets(self.col_labels, css_idx)
         html += hdr_html
         # build body
         body_html = u"\n\n<tbody>"

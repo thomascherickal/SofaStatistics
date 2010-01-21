@@ -140,7 +140,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  val_dics=self.val_dics,
                                  fil_css=self.fil_css)
         self.html = full_html.FullHTML(self.panel, size=(200, 150))
-        self.html.ShowHTML(WAITING_MSG)
+        self.html.show_html(WAITING_MSG)
         lbldemo_tbls = wx.StaticText(self.panel, -1, _("Output Table:"))
         lbldemo_tbls.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         # main section SIZERS **************************************************
@@ -365,14 +365,14 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         Need to SetFocus back to titles because in Windows, IEHTMLWindow steals
             the focus if you have previously clicked it at some point.
         """
-        self.update_demo_display()
+        self.update_demo_display(titles_only=True)
         self.txtTitles.SetFocus()
 
     def OnSubtitleChange(self, event):
         """
         Update display as subtitles change.  See OnTitleChange comment.
         """
-        self.update_demo_display()
+        self.update_demo_display(titles_only=True)
         self.txtSubtitles.SetFocus()
         
     # run 
@@ -397,7 +397,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         return too_long
     
     def update_local_display(self, strContent):
-        self.html.ShowHTML(strContent)
+        self.html.show_html(strContent)
     
     def OnButtonRun(self, event):
         """
@@ -407,7 +407,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             display html output.
         """
         debug = False
-        run_ok, missing_dim, has_rows, has_cols = self.TableConfigOK()
+        run_ok, missing_dim, has_rows, has_cols = self.table_config_ok()
         if run_ok:
             if self.too_long():
                 return
@@ -435,7 +435,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             the new exported script.
         If the file exists and is not empty, append the script on the end.
         """
-        export_ok, missing_dim, has_rows, has_cols = self.TableConfigOK()
+        export_ok, missing_dim, has_rows, has_cols = self.table_config_ok()
         if export_ok:
             css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
             script = self.get_script(has_rows, has_cols, css_idx)
@@ -445,6 +445,16 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  self.default_tbls)
         else:
             wx.MessageBox(_("Missing %s data") % missing_dim) 
+    
+    def get_titles(self):
+        """
+        Get titles list and subtitles list from GUI.
+        """
+        titles = [u"%s" % x for x \
+                  in self.txtTitles.GetValue().split(u"\n")]
+        subtitles = [u"%s" % x for x \
+                     in self.txtSubtitles.GetValue().split(u"\n")]
+        return titles, subtitles
     
     def get_script(self, has_rows, has_cols, css_idx):
         """
@@ -485,10 +495,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                               pprint.pformat(self.var_labels))
             script_lst.append(u"val_dics = " + pprint.pformat(self.val_dics))
         # process title dets
-        titles = [u"%s" % x for x \
-                  in self.txtTitles.GetValue().split(u"\n")]
-        subtitles = [u"%s" % x for x \
-                     in self.txtSubtitles.GetValue().split(u"\n")]
+        titles, subtitles = self.get_titles()
         script_lst.append(lib.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
         # NB the following text is all going to be run
         if self.tab_type == my_globals.COL_MEASURES:
@@ -638,27 +645,99 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         finally:
             self.Destroy()
             event.Skip()
-            
+    
+    def replace_titles_only(self, orig):
+        """
+        Have original html
+            <p class='tbltitle0'></p> # or other n
+            <p class='tblsubtitle0'></p> # ditto
+        Have list of titles and subtitles (both or either could be empty).
+        Use specific tags to slice it up and reassemble it.  
+        Will always have TBL_TITLE_START and TBL_TITLE_END.
+        Will either have TBL_SUBTITLE_START and TBL_SUBTITLE_END
+            OR TBL_SUBTITLE_LEVEL_START and TBL_SUBTITLE_LEVEL_END.  If the 
+            latter, need to build entire subtitle html into gap, not just the 
+            subtitle.  Use the level to do it in a way which matches what was 
+            there.
+        """
+        debug = False
+        titles, subtitles = self.get_titles()
+        titles_inner_html = ""
+        titles_inner_html = lib.get_titles_inner_html(titles_inner_html, titles)
+        subtitles_inner_html = ""
+        subtitles_inner_html = \
+                lib.get_subtitles_inner_html(subtitles_inner_html, subtitles)
+        pre_title_idx = orig.index(my_globals.TBL_TITLE_START) + \
+            len(my_globals.TBL_TITLE_START)
+        pre_title = orig[: pre_title_idx]
+        post_title = orig[orig.index(my_globals.TBL_TITLE_END):]
+        # a placeholder only or a proper subtitle?
+        try:
+            orig.index(my_globals.TBL_SUBTITLE_LEVEL_START)
+            has_placeholder = True
+        except ValueError:
+            has_placeholder = False
+        if has_placeholder:
+            # get level and build own subtitle
+            level_start_idx = orig.index(my_globals.TBL_SUBTITLE_LEVEL_START) \
+                + len(my_globals.TBL_SUBTITLE_LEVEL_START)
+            level_end_idx = orig.index(my_globals.TBL_SUBTITLE_LEVEL_END)
+            css_idx = orig[level_start_idx, level_end_idx]
+            if debug: print("css_idx: %s" % css_idx)
+            CSS_SUBTITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
+                (my_globals.CSS_SUBTITLE, css_idx)
+            subtitles_html = u"\n<p class='%s'>%s" % (CSS_SUBTITLE, 
+                                                my_globals.TBL_SUBTITLE_START)
+            subtitles_html += subtitles_inner_html
+            subtitles_html += u"%s</p>" % my_globals.TBL_SUBTITLE_END
+            between_title_and_sub = ""
+            post_subtitle = orig[orig.index(my_globals.TBL_SUBTITLE_LEVEL_END):]
+        else: # proper subtitle
+            sub_start_idx = post_title.index(my_globals.TBL_SUBTITLE_START) + \
+                len(my_globals.TBL_SUBTITLE_START)
+            between_title_and_sub = post_title[: sub_start_idx]
+            subtitles_html = subtitles_inner_html
+            post_sub_start_idx = post_title.index(my_globals.TBL_SUBTITLE_END)
+            post_subtitle = post_title[post_sub_start_idx :]
+        # put it all back together
+        demo_tbl_html = pre_title + titles_inner_html + between_title_and_sub \
+            + subtitles_html + post_subtitle
+        if debug: print(("pre_title: %s\n\ntitles_inner_html: %s\n\n"
+                     "between_title_and_sub: %s\n\nsubtitles_html: %s\n\n"
+                     "post_subtitle: %s") % (pre_title, titles_inner_html,
+                     between_title_and_sub, subtitles_html, post_subtitle))
+        return demo_tbl_html
+    
     # demo table display
-    def update_demo_display(self):
+    def update_demo_display(self, titles_only=False):
         """
         Update demo table display with random data.
         Always use one css only (the current one).
+        If titles_only, and the last demo was a table, change the title and 
+            subtitle text only.
+        Easiest to do with crude slicing and inserting.  Best to leave the 
+            table-making processes code alone.
         """
         debug = False
         self.btnExpand.Enable(False)
-        demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
-        if demo_html == "":
-            demo_tbl_html = WAITING_MSG
+        if titles_only:
+            if self.prev_demo:
+                # replace titles and subtitles
+                demo_tbl_html = self.replace_titles_only(self.prev_demo)
+                self.prev_demo = demo_tbl_html
         else:
-            demo_tbl_html = ("<h1>%s</h1>\n" % 
-                 _("Example data - click 'Run' for actual results") + demo_html)
+            demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
+            if demo_html == "":
+                demo_tbl_html = WAITING_MSG
+                self.prev_demo = None
+            else:
+                demo_tbl_html = ("<h1>%s</h1>\n" % 
+                     _("Example data - click 'Run' for actual results") + demo_html)
+                self.prev_demo = demo_tbl_html
         if debug: print(u"\n" + demo_tbl_html + "\n")
-        if demo_tbl_html.strip() == "":
-            demo_tbl_html = "<p></p>"
-        self.html.ShowHTML(demo_tbl_html)
+        self.html.show_html(demo_tbl_html)
 
-    def TableConfigOK(self):
+    def table_config_ok(self):
         """
         Is the table configuration sufficient to export as script or HTML?
         Summary only requires rows (can have both)

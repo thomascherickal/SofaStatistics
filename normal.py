@@ -119,7 +119,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
 
     def set_output_to_blank(self):
         msg = _("Select a variable to check to see results of normality test")
-        self.html.ShowHTML("<p>%s</p>" % msg)
+        self.html.show_html("<p>%s</p>" % msg)
 
     def OnOK(self, event):
         self.Destroy()
@@ -241,7 +241,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                         "'normal', it may still be 'normal' enough for use.  "
                         "View graph above to decide. %s %s") % (self.var_label, 
                                                         skew_msg, kurtosis_msg)
-        self.html.ShowHTML(u"<p>%s</p>" % msg)
+        self.html.show_html(u"<p>%s</p>" % msg)
         
     def OnVarsSel(self, event):
         self.update_examination()

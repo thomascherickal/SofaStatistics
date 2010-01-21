@@ -17,6 +17,22 @@ import wx
 # only import my_globals from local modules
 import my_globals
 
+def get_titles_inner_html(titles_html, titles):
+    """
+    Just the bits within the tags, css etc.
+    """
+    for title in titles:
+            titles_html += u"%s<br>" % title
+    return titles_html
+
+def get_subtitles_inner_html(subtitles_html, subtitles):
+    """
+    Just the bits within the tags, css etc.
+    """
+    for subtitle in subtitles:
+            subtitles_html += u"%s<br>" % subtitle
+    return subtitles_html
+
 def get_date_fmt():
     """
     On Windows, get local datetime_format.

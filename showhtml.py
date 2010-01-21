@@ -50,7 +50,7 @@ class ShowHTML(wx.Dialog):
         self.file_name = file_name
         self.print_folder = print_folder
         html = full_html.FullHTML(self, size=wx.DefaultSize)
-        html.ShowHTML(content)
+        html.show_html(content)
         btnClose = wx.Button(self, wx.ID_CLOSE, _("Close"))
         btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
         szrMain = wx.BoxSizer(wx.VERTICAL)

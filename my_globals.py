@@ -60,6 +60,17 @@ script_export_measures_dic = {FREQ: u"FREQ",
                               MEDIAN: u"MEDIAN", 
                               SUMM_N: u"SUMM_N",
                               STD_DEV: u"STD_DEV"}
+# Used to make it easy to slice into html and replace titles and subtitles only.
+# Changing the return values of get html functions to get html_pre_title, 
+# html_title, html_post_title etc was deemed an even worse approach ;-)
+TBL_TITLE_START = u"<!--_title_start-->"
+TBL_TITLE_END = u"<!--_title_end-->"
+TBL_SUBTITLE_START = u"<!--_subtitle_start-->"
+TBL_SUBTITLE_END = u"<!--_subtitle_end-->"
+TBL_SUBTITLE_LEVEL_START = u"<!--subtitle_level"
+TBL_SUBTITLE_LEVEL_END = u"-->"
+TBL_SUBTITLE_LEVEL = u"%s%%s%s" % (TBL_SUBTITLE_LEVEL_START, 
+                                   TBL_SUBTITLE_LEVEL_END)
 def pct_1_dec(num):
     return "%s%%" % round(num,1)
 def pct_2_dec(num):

@@ -146,7 +146,7 @@ class DimTable(object):
     """
     Functionality that applies to both demo and live tables
     """
-    def processHdrTree(self, tree_col_labels, row_label_cols_n, css_idx):
+    def process_hdr_tree(self, tree_col_labels, row_label_cols_n, css_idx):
         """
         Set up titles, subtitles, and col labels into table header.
         """
@@ -158,27 +158,30 @@ class DimTable(object):
             (my_globals.CSS_TBL_TITLE_CELL, css_idx)
         CSS_SPACEHOLDER = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_SPACEHOLDER, css_idx)        
-        #print(tree_col_labels) #debug
+        # print(tree_col_labels) #debug
         col_label_rows_n = tree_col_labels.getDepth()
         col_label_rows_lst = [[u"<tr>"] for x in range(col_label_rows_n)]
-        #title/subtitle etc share their own row
-        titles_html = u"\n<p class='%s'>" % CSS_TBL_TITLE
-        for title in self.titles:
-            titles_html += u"%s<br>" % title
-        titles_html += u"</p>"
+        # title/subtitle etc share their own row
+        titles_html = u"\n<p class='%s'>%s" % (CSS_TBL_TITLE, 
+                                               my_globals.TBL_TITLE_START)
+        titles_html = lib.get_titles_inner_html(titles_html, self.titles)
+        titles_html += u"%s</p>" % my_globals.TBL_TITLE_END
         if self.subtitles != [u""]:
-            subtitles_html = u"\n<p class='%s'>" % CSS_SUBTITLE
-            for subtitle in self.subtitles:
-                subtitles_html += u"%s<br>" % subtitle
-            subtitles_html += u"</p>"
+            subtitles_html = u"\n<p class='%s'>%s" % (CSS_SUBTITLE, 
+                                                my_globals.TBL_SUBTITLE_START)
+            subtitles_html = lib.get_subtitles_inner_html(subtitles_html, 
+                                                          self.subtitles)
+            subtitles_html += u"%s</p>" % my_globals.TBL_SUBTITLE_END
         else:
-            subtitles_html = u""
+            # leave something behind so demotables can replace subtitle with
+            # correct css style idx
+            subtitles_html = my_globals.TBL_SUBTITLE_LEVEL % css_idx
         title_dets_html = titles_html + subtitles_html
         col_label_rows_lst[0].append(u"<th class='%s' " % CSS_TBL_TITLE_CELL + \
                                      u"colspan='%s'>%s</th>" % \
             (len(tree_col_labels.getTerminalNodes()) + row_label_cols_n, 
              title_dets_html))
-        #start off with spaceholder heading cell
+        # start off with spaceholder heading cell
         col_label_rows_lst[1].append(u"<th class='%s' rowspan='%s' " % \
             (CSS_SPACEHOLDER, tree_col_labels.getDepth() - 1) + \
             u"colspan='%s'>&nbsp;&nbsp;</th>" % \
@@ -411,8 +414,8 @@ class LiveTable(DimTable):
         "Prepare table setup information towards generation of final html."
         (self.row_label_rows_lst, self.tree_row_labels, row_label_cols_n) = \
             self.getRowDets(css_idx)
-        self.tree_col_labels, self.hdr_html = self.getHdrDets(row_label_cols_n, 
-                                                              css_idx)
+        self.tree_col_labels, self.hdr_html = \
+                                    self.get_hdr_dets(row_label_cols_n, css_idx)
     
     def getCellNOk(self, max_cells=5000):
         """
@@ -431,7 +434,7 @@ class LiveTable(DimTable):
         html += u"<table cellspacing='0'>\n" # IE6 doesn't support CSS borderspacing
         (row_label_rows_lst, tree_row_labels, row_label_cols_n) = \
             self.getRowDets(css_idx)
-        (tree_col_dets, hdr_html) = self.getHdrDets(row_label_cols_n, css_idx)
+        (tree_col_dets, hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)
         row_label_rows_lst = self.getBodyHtmlRows(row_label_rows_lst,
                                                   tree_row_labels, 
                                                   tree_col_dets, css_idx)
@@ -786,14 +789,14 @@ class GenTable(LiveTable):
     has_row_vals = True
     has_col_measures = True
 
-    def getHdrDets(self, row_label_cols_n, css_idx):
+    def get_hdr_dets(self, row_label_cols_n, css_idx):
         """
         Return tree_col_labels and the table header HTML.
         For HTML provide everything from <thead> to </thead>.
         """
         tree_col_labels = LabelNodeTree()
         tree_col_labels = self.addSubtreesToColLabelTree(tree_col_labels)
-        return self.processHdrTree(tree_col_labels, row_label_cols_n, css_idx)
+        return self.process_hdr_tree(tree_col_labels, row_label_cols_n, css_idx)
         
     def getBodyHtmlRows(self, row_label_rows_lst, tree_row_labels,
                         tree_col_labels, css_idx):
@@ -1036,7 +1039,7 @@ class SummTable(LiveTable):
     has_row_vals = False
     has_col_measures = False
 
-    def getHdrDets(self, row_label_cols_n, css_idx):
+    def get_hdr_dets(self, row_label_cols_n, css_idx):
         """
         Return tree_col_labels and the table header HTML.
         For HTML provide everything from <thead> to </thead>.
@@ -1046,7 +1049,7 @@ class SummTable(LiveTable):
         tree_col_labels = self.addSubtreesToColLabelTree(tree_col_labels)
         if tree_col_labels.getDepth() == 1:
             tree_col_labels.addChild(LabelNode(label=_("Measures")))
-        return self.processHdrTree(tree_col_labels, row_label_cols_n, css_idx)
+        return self.process_hdr_tree(tree_col_labels, row_label_cols_n, css_idx)
         
     def getBodyHtmlRows(self, row_label_rows_lst, tree_row_labels,
                         tree_col_labels, css_idx):

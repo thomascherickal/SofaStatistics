@@ -14,7 +14,7 @@ if not use_renderer:
         def __init__(self, panel, size):
             wx.Window.__init__(self, panel, -1, size=wx.Size(size[0], size[1]))
         
-        def ShowHTML(self, strHTML, url_load=False):
+        def show_html(self, strHTML, url_load=False):
             pass
 else:
     if my_globals.IN_WINDOWS:
@@ -27,7 +27,7 @@ else:
                 ie.IEHtmlWindow.__init__(self, panel, -1, 
                                          size=wx.Size(size[0], size[1]))
             
-            def ShowHTML(self, strHTML, url_load=False):
+            def show_html(self, strHTML, url_load=False):
                 """
                 If first time, will have delay while initialising comtypes.
                 url_load -- so internal links like footnotes will work.
@@ -54,7 +54,7 @@ else:
             def __init__(self, panel, size):
                 wx.webview.WebView.__init__(self, panel, -1, size=size)
             
-            def ShowHTML(self, strHTML, url_load=False):
+            def show_html(self, strHTML, url_load=False):
                 debug = False
                 if debug: print("strHTML is: %s" % strHTML)
                 # NB no issue with backslashes because not used in Windows ;-)

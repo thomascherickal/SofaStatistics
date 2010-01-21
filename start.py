@@ -298,7 +298,7 @@ class StartFrame(wx.Frame):
             wx.MessageBox(_("Click OK to prepare for first use of SOFA "
                           "Statistics.\n\nPreparation may take a moment ..."))
             h = full_html.FullHTML(panel, (10, 10))
-            h.ShowHTML("")
+            h.show_html("")
             h = None
         if not os.path.exists(os.path.join(LOCAL_PATH, COMTYPES_HANDLED)):
             # create file as tag we have done the changes to the proj file
