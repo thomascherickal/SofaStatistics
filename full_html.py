@@ -16,6 +16,9 @@ if not use_renderer:
         
         def show_html(self, strHTML, url_load=False):
             pass
+        
+        def load_url(self, url):
+            pass
 else:
     if my_globals.IN_WINDOWS:
         
@@ -44,7 +47,7 @@ else:
                 else:
                     self.LoadString(strHTML)
                     
-            def LoadUrl(self, url):
+            def load_url(self, url):
                 self.LoadUrl(url)
     else:
         import wx.webview
@@ -60,5 +63,5 @@ else:
                 # NB no issue with backslashes because not used in Windows ;-)
                 self.SetPageSource(strHTML, "file://%s/" % my_globals.INT_PATH)
             
-            def LoadUrl(self, url):
+            def load_url(self, url):
                 self.LoadURL(url)
