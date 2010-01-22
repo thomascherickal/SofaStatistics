@@ -17,21 +17,39 @@ import wx
 # only import my_globals from local modules
 import my_globals
 
+def get_title_dets_html(titles, subtitles, CSS_TBL_TITLE, CSS_TBL_SUBTITLE):
+    """
+    Table title and subtitle html ready to put in a cell.
+    Applies to dim tables and raw tables.
+    Do not want block display - if title and/or subtitle are empty, want minimal
+        display height.
+    """
+    titles_html = u"\n<span class='%s'>%s" % (CSS_TBL_TITLE, 
+                                           my_globals.TBL_TITLE_START)
+    titles_inner_html = get_titles_inner_html(titles_html, titles)
+    titles_html += titles_inner_html
+    titles_html += u"%s</span>" % my_globals.TBL_TITLE_END
+    subtitles_html = u"\n<span class='%s'>%s" % (CSS_TBL_SUBTITLE, 
+                                        my_globals.TBL_SUBTITLE_START)
+    subtitles_inner_html = get_subtitles_inner_html(subtitles_html, 
+                                                        subtitles)
+    subtitles_html += subtitles_inner_html 
+    subtitles_html += u"%s</span>" % my_globals.TBL_SUBTITLE_END
+    joiner = u"<br>" if titles_inner_html and subtitles_inner_html else u""
+    title_dets_html = titles_html + joiner + subtitles_html
+    return title_dets_html
+
 def get_titles_inner_html(titles_html, titles):
     """
     Just the bits within the tags, css etc.
     """
-    for title in titles:
-            titles_html += u"%s<br>" % title
-    return titles_html
+    return u"<br>".join(titles)
 
 def get_subtitles_inner_html(subtitles_html, subtitles):
     """
     Just the bits within the tags, css etc.
     """
-    for subtitle in subtitles:
-            subtitles_html += u"%s<br>" % subtitle
-    return subtitles_html
+    return u"<br>".join(subtitles)
 
 def get_date_fmt():
     """

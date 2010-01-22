@@ -45,28 +45,14 @@ class RawTable(object):
         """
         CSS_TBL_TITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_TBL_TITLE, css_idx)
-        CSS_SUBTITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_SUBTITLE, css_idx)
+        CSS_TBL_SUBTITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_TBL_SUBTITLE, css_idx)
         CSS_TBL_TITLE_CELL = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_TBL_TITLE_CELL, css_idx)
         CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_FIRST_COL_VAR, css_idx)
-        # titles and subtitles
-        titles_html = u"\n<p class='%s'>%s" % (CSS_TBL_TITLE, 
-                                               my_globals.TBL_TITLE_START)
-        titles_html = lib.get_titles_inner_html(titles_html, self.titles)
-        titles_html += u"%s</p>" % my_globals.TBL_TITLE_END
-        if self.subtitles != [u""]:
-            subtitles_html = u"\n<p class='%s'>%s" % (CSS_SUBTITLE, 
-                                                my_globals.TBL_SUBTITLE_START)
-            subtitles_html = lib.get_subtitles_inner_html(subtitles_html, 
-                                                          self.subtitles)
-            subtitles_html += u"%s</p>" % my_globals.TBL_SUBTITLE_END
-        else:
-            # leave something behind so demotables can replace subtitle with
-            # correct css style idx
-            subtitles_html = my_globals.TBL_SUBTITLE_LEVEL % css_idx
-        title_dets_html = titles_html + subtitles_html
+        title_dets_html = lib.get_title_dets_html(self.titles, self.subtitles,
+                                                CSS_TBL_TITLE, CSS_TBL_SUBTITLE)
         hdr_html = u"\n<thead>\n<tr><th " + \
             u"class='%s'" % CSS_TBL_TITLE_CELL + \
             u" colspan='%s'>" % len(col_labels) + \

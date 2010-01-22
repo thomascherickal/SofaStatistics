@@ -302,16 +302,16 @@ class ConfigDlg(object):
         if dlgGetFile.ShowModal() == wx.ID_OK:
             fil_css = u"%s" % dlgGetFile.GetPath()
             self.txtCssFile.SetValue(fil_css)
-            self.UpdateCss()
+            self.update_css()
         dlgGetFile.Destroy()
     
-    def UpdateCss(self):
+    def update_css(self):
         "Update css, including for demo table"
         self.fil_css = self.txtCssFile.GetValue()
     
     def OnCssFileLostFocus(self, event):
         "Reset css file"
-        self.UpdateCss()
+        self.update_css()
         
     # explanation level
     def get_szrLevel(self, panel):

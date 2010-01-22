@@ -17,7 +17,7 @@ import showhtml
 # do not use os.linesep for anything going to be read and exec'd
 # in Windows the \r\n makes it fail.
 
-def GetDefaultCss():
+def get_default_css():
     """
     Get default CSS.  The "constants" are used so that we can 
         guarantee the class names we use later on are the same as
@@ -52,7 +52,7 @@ def GetDefaultCss():
             font-weight: bold;
             font-size: 18px;
         }
-        .%s{ """ % my_globals.CSS_SUBTITLE + u"""
+        .%s{ """ % my_globals.CSS_TBL_SUBTITLE + u"""
             padding: 12px 0px 0px 0px;
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
@@ -175,7 +175,7 @@ def get_html_hdr(hdr_title, css_fils):
             f.close()
         css = (os.linesep + os.linesep).join(css_lst)
     else:
-        css = GetDefaultCss()
+        css = get_default_css()
     hdr = default_hdr % (hdr_title, css)
     return hdr
 
@@ -185,7 +185,7 @@ def get_html_ftr():
 
 # The rest is GUI -> script oriented code
 
-def GetCssDets(fil_report, fil_css):
+def get_css_dets(fil_report, fil_css):
     """
     Returns css_fils, css_idx.
     css_fils - list of full paths to css files.
@@ -246,12 +246,12 @@ def export_script(script, fil_script, fil_report, css_fils, con_dets, dbe, db,
     if existing_script:
         f.write(_strip_script(existing_script))
     else:
-        InsertPrelimCode(modules, f, fil_report, css_fils)
+        insert_prelim_code(modules, f, fil_report, css_fils)
     tbl_filt_label, tbl_filt = lib.get_tbl_filt(dbe, db, tbl)
     append_exported_script(f, script, con_dets, dbe, db, tbl, tbl_filt_label,
                            tbl_filt, default_dbs, default_tbls, 
                            inc_divider=True)
-    AddClosingScriptCode(f)
+    add_end_script_code(f)
     f.close()
     wx.MessageBox(_("Script added to end of %s " % fil_script +
                     "ready for reuse and automation"))
@@ -288,28 +288,28 @@ def rel2abs(strhtml, fil_report):
         temporary GUI displays.
     """
     debug = False
-    to_insert = os.path.split(fil_report)[0]
-    abs_display_content = strhtml.replace(u"src='", 
-                                    u"src='%s" % os.path.join(to_insert, u""))
+    to_insert = os.path.join(os.path.split(fil_report)[0], u"")
+    abs_display_content = strhtml.replace(u"src='", u"src='%s" % to_insert)
+    abs_display_content = abs_display_content.replace(u"src=\"", 
+                                                      u"src=\"%s" % to_insert)
     if debug: print("From \n\n%s\n\nto\n\n%s" % (strhtml, abs_display_content))
     return abs_display_content
 
 def run_report(modules, add_to_report, fil_report, css_fils, inner_script, 
                con_dets, dbe, db, tbl_name, default_dbs, default_tbls):
     """
-    Runs report and returns HTML representation of it.
+    Runs report and returns HTML representation of it for GUI display.
     add_to_report -- also append result to current report.
     """
     debug = False
     # generate script
     f = codecs.open(my_globals.INT_SCRIPT_PATH, "w", "utf-8")
     if debug: print(css_fils)
-    InsertPrelimCode(modules, f, my_globals.INT_REPORT_PATH, css_fils)
+    insert_prelim_code(modules, f, my_globals.INT_REPORT_PATH, css_fils)
     tbl_filt_label, tbl_filt = lib.get_tbl_filt(dbe, db, tbl_name)
     append_exported_script(f, inner_script, con_dets, dbe, db, tbl_name,
-                           tbl_filt_label, tbl_filt, default_dbs, default_tbls, 
-                           inc_divider=False)
-    AddClosingScriptCode(f)
+        tbl_filt_label, tbl_filt, default_dbs, default_tbls, inc_divider=False)
+    add_end_script_code(f)
     f.close()
     # run script
     f = codecs.open(my_globals.INT_SCRIPT_PATH, "r", "utf-8")
@@ -326,24 +326,25 @@ def run_report(modules, add_to_report, fil_report, css_fils, inner_script,
             raise Exception, unicode(e)
         return err_content
     f = codecs.open(my_globals.INT_REPORT_PATH, "U", "utf-8")
-    raw_content = lib.clean_bom_utf8(f.read())
+    raw_results = lib.clean_bom_utf8(f.read())
     f.close()
     source = get_source(db, tbl_name)
     filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
-    main_content = source + u"<p>%s</p>" % filt_msg + raw_content
-    # append into html file
+    results_with_source = source + u"<p>%s</p>" % filt_msg + raw_results
     if add_to_report:
+        # append into html file
         save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt, 
-                       raw_content) # handles source and filter desc internally
+                       raw_results) # handles source and filter desc internally
+                       # when making divider between output
         rel_display_content = u"\n<p>Output also saved to '%s'</p>" % \
-                               lib.escape_win_path(fil_report) + main_content
+                        lib.escape_win_path(fil_report) + results_with_source
         # make relative links absolute so GUI viewers can display images
-        display_content = rel2abs(rel_display_content, fil_report)
+        gui_display_content = rel2abs(rel_display_content, fil_report)
     else:
-        display_content = main_content
-    return display_content
+        gui_display_content = results_with_source
+    return gui_display_content
 
-def InsertPrelimCode(modules, f, fil_report, css_fils):
+def insert_prelim_code(modules, f, fil_report, css_fils):
     """
     Insert preliminary code at top of file.
     f - open file handle ready for writing.
@@ -450,8 +451,8 @@ def save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt,
     f.write(get_html_ftr())
     f.close()
 
-def AddClosingScriptCode(f):
-    "Add ending code to script.  Nb leaves open file."
+def add_end_script_code(f):
+    "Add ending code to script.  NB leaves open file."
     f.write(u"\n" + u"\n" + my_globals.SCRIPT_END + \
             u"-"*(50 - len(my_globals.SCRIPT_END)) + u"\n")
     f.write(u"\n" + u"fil.write(output.get_html_ftr())")

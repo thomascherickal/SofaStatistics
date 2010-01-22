@@ -28,6 +28,35 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
 
+def test_replace_titles_subtitles():
+    """
+
+    """
+    tests = [((orig, titles, subtitles), output),
+             ]
+    for test in tests:
+        assert_equal(report_table.replace_titles_subtitles(*test[0]), test[1])
+
+def test_rel2abs():
+    """
+    rel2abs(strhtml, fil_report):
+    fil_report -- e.g. /home/g/sofa/reports/my_report_name.htm
+    Turn my_report_name/001.png to e.g. 
+        /home/g/sofa/reports/my_report_name/001.png
+    """
+    tests = [
+        (("<h1>Hi there!</h1><img src='my report name/my_img.png'", 
+              "/home/g/sofa/reports/my_report_name.htm"), 
+             ("<h1>Hi there!</h1><img "
+              "src='/home/g/sofa/reports/my report name/my_img.png'")),
+        ((u"<h1>Hi there!</h1><img src=\"Identität/my_img.png\"", 
+              u"/home/g/sofa/reports/Identität.html"), 
+             (u"<h1>Hi there!</h1><img "
+              u"src=\"/home/g/sofa/reports/Identität/my_img.png\"")),
+             ]
+    for test in tests:
+        assert_equal(output.rel2abs(*test[0]), test[1])
+
 test_us_style = False
 if test_us_style:
     my_globals.OK_DATE_FORMATS, my_globals.OK_DATE_FORMAT_EXAMPLES = \

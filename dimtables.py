@@ -149,38 +149,30 @@ class DimTable(object):
     def process_hdr_tree(self, tree_col_labels, row_label_cols_n, css_idx):
         """
         Set up titles, subtitles, and col labels into table header.
+        Having titles, and or subtitles, is optional but there will always be a 
+            row there (may be a row with little height).  May contain heightless
+            placeholders needed by demo table if not titles or subtitles.
         """
+        debug = False
         CSS_TBL_TITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_TBL_TITLE, css_idx)
-        CSS_SUBTITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_SUBTITLE, css_idx)
+        CSS_TBL_SUBTITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
+            (my_globals.CSS_TBL_SUBTITLE, css_idx)
         CSS_TBL_TITLE_CELL = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_TBL_TITLE_CELL, css_idx)
         CSS_SPACEHOLDER = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_SPACEHOLDER, css_idx)        
-        # print(tree_col_labels) #debug
+        if debug: print(tree_col_labels)
+        # includes root so -1, includes title/subtitle row so +1 (share row)
         col_label_rows_n = tree_col_labels.getDepth()
         col_label_rows_lst = [[u"<tr>"] for x in range(col_label_rows_n)]
-        # title/subtitle etc share their own row
-        titles_html = u"\n<p class='%s'>%s" % (CSS_TBL_TITLE, 
-                                               my_globals.TBL_TITLE_START)
-        titles_html = lib.get_titles_inner_html(titles_html, self.titles)
-        titles_html += u"%s</p>" % my_globals.TBL_TITLE_END
-        if self.subtitles != [u""]:
-            subtitles_html = u"\n<p class='%s'>%s" % (CSS_SUBTITLE, 
-                                                my_globals.TBL_SUBTITLE_START)
-            subtitles_html = lib.get_subtitles_inner_html(subtitles_html, 
-                                                          self.subtitles)
-            subtitles_html += u"%s</p>" % my_globals.TBL_SUBTITLE_END
-        else:
-            # leave something behind so demotables can replace subtitle with
-            # correct css style idx
-            subtitles_html = my_globals.TBL_SUBTITLE_LEVEL % css_idx
-        title_dets_html = titles_html + subtitles_html
-        col_label_rows_lst[0].append(u"<th class='%s' " % CSS_TBL_TITLE_CELL + \
-                                     u"colspan='%s'>%s</th>" % \
-            (len(tree_col_labels.getTerminalNodes()) + row_label_cols_n, 
-             title_dets_html))
+        title_dets_html = lib.get_title_dets_html(self.titles, self.subtitles, 
+                                                CSS_TBL_TITLE, CSS_TBL_SUBTITLE)
+        title_span = len(tree_col_labels.getTerminalNodes())
+        extra_title_row_html = u"<th class='%s' " % CSS_TBL_TITLE_CELL + \
+            u"colspan='%s'>%s</th>" % (title_span + row_label_cols_n, 
+                                       title_dets_html)
+        col_label_rows_lst[0].append(extra_title_row_html)
         # start off with spaceholder heading cell
         col_label_rows_lst[1].append(u"<th class='%s' rowspan='%s' " % \
             (CSS_SPACEHOLDER, tree_col_labels.getDepth() - 1) + \
@@ -193,10 +185,10 @@ class DimTable(object):
                         css_idx=css_idx)
         hdr_html = u"\n<thead>"
         for row in col_label_rows_lst:
-            #flatten row list
+            # flatten row list
             hdr_html += u"\n" + u"".join(row) + u"</tr>"
         hdr_html += u"\n</thead>"
-        #print(tree_col_labels)
+        if debug: print(tree_col_labels)
         return (tree_col_labels, hdr_html)
       
     def processRowTree(self, tree_row_labels, css_idx):

@@ -67,8 +67,8 @@ TBL_TITLE_START = u"<!--_title_start-->"
 TBL_TITLE_END = u"<!--_title_end-->"
 TBL_SUBTITLE_START = u"<!--_subtitle_start-->"
 TBL_SUBTITLE_END = u"<!--_subtitle_end-->"
-TBL_SUBTITLE_LEVEL_START = u"<!--subtitle_level"
-TBL_SUBTITLE_LEVEL_END = u"-->"
+TBL_SUBTITLE_LEVEL_START = u"<!--subtitle_level_start"
+TBL_SUBTITLE_LEVEL_END = u"subtitle_level_end-->"
 TBL_SUBTITLE_LEVEL = u"%s%%s%s" % (TBL_SUBTITLE_LEVEL_START, 
                                    TBL_SUBTITLE_LEVEL_END)
 def pct_1_dec(num):
@@ -82,7 +82,7 @@ CSS_ALIGN_RIGHT = u"right"
 CSS_LBL = u"lbl"
 CSS_TBL_TITLE = u"tbltitle"
 CSS_TBL_TITLE_CELL = u"tblcelltitle"
-CSS_SUBTITLE = u"tblsubtitle"
+CSS_TBL_SUBTITLE = u"tblsubtitle"
 CSS_FIRST_COL_VAR = u"firstcolvar"
 CSS_FIRST_ROW_VAR = u"firstrowvar"
 CSS_DATACELL = u"datacell"
@@ -97,7 +97,7 @@ CSS_TOTAL_ROW = u"total-row"
 CSS_PAGE_BREAK_BEFORE = u"page-break-before"
 CSS_TBL_HDR_FTNOTE = u"tbl-header-ftnote"
 CSS_ELEMENTS = [CSS_ALIGN_RIGHT, CSS_LBL, CSS_TBL_TITLE, 
-    CSS_TBL_TITLE_CELL, CSS_SUBTITLE, CSS_FIRST_COL_VAR, CSS_FIRST_ROW_VAR, 
+    CSS_TBL_TITLE_CELL, CSS_TBL_SUBTITLE, CSS_FIRST_COL_VAR, CSS_FIRST_ROW_VAR, 
     CSS_DATACELL, CSS_FIRST_DATACELL, CSS_SPACEHOLDER, CSS_ROW_VAL, CSS_COL_VAL, 
     CSS_ROW_VAR, CSS_COL_VAR, CSS_MEASURE, CSS_TOTAL_ROW, CSS_PAGE_BREAK_BEFORE,
     CSS_TBL_HDR_FTNOTE]

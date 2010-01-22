@@ -424,7 +424,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         if run_ok:
             wx.BeginBusyCursor()
             add_to_report = self.chkAddToReport.IsChecked()
-            css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
+            css_fils, css_idx = output.get_css_dets(self.fil_report, 
+                                                    self.fil_css)
             script = self.get_script(css_idx, add_to_report, self.fil_report)
             str_content = output.run_report(OUTPUT_MODULES, add_to_report, 
                     self.fil_report, css_fils, script, self.con_dets, self.dbe, 
@@ -486,7 +487,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         export_ok = self.test_config_ok()
         if export_ok:
             add_to_report = self.chkAddToReport.IsChecked()
-            css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
+            css_fils, css_idx = output.get_css_dets(self.fil_report, 
+                                                    self.fil_css)
             script = self.get_script(css_idx, self.fil_report, add_to_report)
             output.export_script(script, self.fil_script, 
                                  self.fil_report, css_fils, self.con_dets, 
@@ -510,7 +512,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             for fil_script in self.open_scripts:
                 # add ending code to script
                 f = file(fil_script, "a")
-                output.AddClosingScriptCode(f)
+                output.add_end_script_code(f)
                 f.close()
         except Exception:
             pass

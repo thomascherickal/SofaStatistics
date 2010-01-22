@@ -24,7 +24,58 @@ import rawtables
 OUTPUT_MODULES = ["my_globals", "dimtables", "rawtables", "output", "getdata"]
 WAITING_MSG = _("<p>Waiting for enough settings.</p>")
 
-
+def replace_titles_subtitles(orig, titles, subtitles):
+    """
+    Have original html
+        <span class='tbltitle0'><tag>Title<tag></span> # or other n
+        <span class='tblsubtitle0'><tag>Subtitle<tag></span> # or other n
+    Have list of titles and subtitles (both or either could be empty).
+    Use specific tags to slice it up and reassemble it. Easiest to do with crude 
+        slicing and inserting.  Best to leave the table-making processes code 
+        alone. 
+    Will have TBL_TITLE_START and TBL_TITLE_END. We only change what is between.
+    Subtitles follows the same approach.
+    NB if either or both of the titles and subtitles are empty, the row should 
+        be of minimal height (using span instead of block display).
+    pre_title = everything before the actual content of the title
+    titles_html = just the inner html (words with lines sep by <br>)
+    post_title = everything after the actual content of the title
+    between_title_and_sub = everything between the title content and the 
+        subtitle content.
+    post_subtitle = everything after the subtitle content e.g. 2010 data
+    """
+    debug = False
+    if debug: print("orig: %s\n\ntitles: %s\n\nsubtitles: %s\n\n" % (orig, 
+                                                            titles, subtitles))
+    titles_inner_html = u""
+    titles_inner_html = lib.get_titles_inner_html(titles_inner_html, titles)
+    subtitles_inner_html = u""
+    subtitles_inner_html = \
+            lib.get_subtitles_inner_html(subtitles_inner_html, subtitles)
+    # need break between titles and subtitles if both present
+    if titles_inner_html and subtitles_inner_html:
+        subtitles_inner_html = u"<br>" + subtitles_inner_html
+    title_start_idx = orig.index(my_globals.TBL_TITLE_START) + \
+        len(my_globals.TBL_TITLE_START)
+    pre_title = orig[ : title_start_idx]
+    title_end_idx = orig.index(my_globals.TBL_TITLE_END)
+    post_title = orig[title_end_idx :] # everything after title inc subtitles
+    # use shorter post_title instead or orig from here on
+    subtitle_start_idx = post_title.index(my_globals.TBL_SUBTITLE_START) + \
+        len(my_globals.TBL_SUBTITLE_START)
+    between_title_and_sub = post_title[ : subtitle_start_idx]
+    post_subtitle = post_title[post_title.index(my_globals.TBL_SUBTITLE_END):]
+    # put it all back together
+    demo_tbl_html = pre_title + titles_inner_html + between_title_and_sub \
+        + subtitles_inner_html + post_subtitle
+    if debug: 
+        print(("pre_title: %s\n\ntitles_inner_html: %s\n\n"
+               "between_title_and_sub: %s\n\nsubtitles_inner_html: %s\n\n"
+               "post_subtitle: %s") % (pre_title, titles_inner_html,
+               between_title_and_sub, subtitles_inner_html, post_subtitle))
+        print("\n\n" + "*"*50 + "\n\n")
+    return demo_tbl_html  
+    
 class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     """
     ConfigDlg - provides reusable interface for data selection, setting labels 
@@ -85,7 +136,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.chkFirstAsLabel = wx.CheckBox(self.panel, -1, 
                                            _("First col as label?"))
         self.chkFirstAsLabel.Bind(wx.EVT_CHECKBOX, self.OnChkFirstAsLabel)
-        self.EnableOpts(enable=False)
+        self.enable_opts(enable=False)
         #text labels
         lblRows = wx.StaticText(self.panel, -1, _("Rows:"))
         lblRows.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -129,6 +180,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.colRoot = self.setupDimTree(self.coltree)
         #setup demo table type
         if debug: print(self.fil_css)
+        self.prev_demo = None
         self.demo_tab = demotables.GenDemoTable(txtTitles=self.txtTitles, 
                                  txtSubtitles=self.txtSubtitles,
                                  colRoot=self.colRoot, 
@@ -227,9 +279,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
 
-    def UpdateCss(self):
+    def update_css(self):
         "Update css, including for demo table"
-        config_dlg.ConfigDlg.UpdateCss(self)
+        config_dlg.ConfigDlg.update_css(self)
         self.demo_tab.fil_css = self.fil_css
         self.update_demo_display()
     
@@ -242,7 +294,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         """
         config_dlg.ConfigDlg.OnDatabaseSel(self, event)
         self.enable_col_btns()
-        self.ClearDims()
+        self.clear_dims()
         
     def OnTableSel(self, event):
         """
@@ -251,7 +303,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         """       
         config_dlg.ConfigDlg.OnTableSel(self, event)
         self.enable_col_btns()
-        self.ClearDims()
+        self.clear_dims()
     
     def update_var_dets(self):
         "Update all labels, including those already displayed"
@@ -259,10 +311,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         # update dim trees
         rowdescendants = lib.get_tree_ctrl_descendants(self.rowtree, 
                                                        self.rowRoot)
-        self.RefreshDescendants(self.rowtree, rowdescendants)
+        self.refresh_descendants(self.rowtree, rowdescendants)
         coldescendants = lib.get_tree_ctrl_descendants(self.coltree, 
                                                        self.colRoot)
-        self.RefreshDescendants(self.coltree, coldescendants)
+        self.refresh_descendants(self.coltree, coldescendants)
         # update demo area
         self.demo_tab.var_labels = self.var_labels
         self.demo_tab.val_dics = self.val_dics
@@ -272,7 +324,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.update_var_dets()
         
            
-    def RefreshDescendants(self, tree, descendants):
+    def refresh_descendants(self, tree, descendants):
         ""
         for descendant in descendants:
             var_name, unused = \
@@ -283,9 +335,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     # table type
     def OnTabTypeChange(self, event):
         "Respond to change of table type"
-        self.UpdateByTabType()
+        self.update_by_tab_type()
     
-    def UpdateByTabType(self):
+    def update_by_tab_type(self):
         self.tab_type = self.radTabType.GetSelection() #for convenience
         #delete all row and col vars
         self.rowtree.DeleteChildren(self.rowRoot)
@@ -298,7 +350,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         if self.tab_type == my_globals.COL_MEASURES:
             self.chkTotalsRow.SetValue(False)
             self.chkFirstAsLabel.SetValue(False)
-            self.EnableOpts(enable=False)
+            self.enable_opts(enable=False)
             self.EnableRowSel(enable=True)
             self.enable_col_btns()
             self.demo_tab = demotables.GenDemoTable(txtTitles=self.txtTitles, 
@@ -314,7 +366,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         elif self.tab_type == my_globals.ROW_SUMM:
             self.chkTotalsRow.SetValue(False)
             self.chkFirstAsLabel.SetValue(False)
-            self.EnableOpts(enable=False)
+            self.enable_opts(enable=False)
             self.EnableRowSel(enable=True)
             self.enable_col_btns()
             self.demo_tab = demotables.SummDemoTable(txtTitles=self.txtTitles, 
@@ -328,7 +380,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                              val_dics=self.val_dics,
                              fil_css=self.fil_css)
         elif self.tab_type == my_globals.RAW_DISPLAY:
-            self.EnableOpts(enable=True)
+            self.enable_opts(enable=True)
             self.EnableRowSel(enable=False)
             self.btnColConf.Disable()
             self.btnColAddUnder.Disable()
@@ -345,7 +397,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         #in case they were disabled and then we changed tab type
         self.update_demo_display()
         
-    def EnableOpts(self, enable=True):
+    def enable_opts(self, enable=True):
         "Enable (or disable) options"
         self.chkTotalsRow.Enable(enable)
         self.chkFirstAsLabel.Enable(enable)
@@ -414,7 +466,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             wx.BeginBusyCursor()
             add_to_report = self.chkAddToReport.IsChecked()
             if debug: print(self.fil_css)
-            css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
+            css_fils, css_idx = output.get_css_dets(self.fil_report, 
+                                                    self.fil_css)
             script = self.get_script(has_rows, has_cols, css_idx)
             str_content = output.run_report(OUTPUT_MODULES, add_to_report, 
                     self.fil_report, css_fils, script, self.con_dets, self.dbe, 
@@ -437,7 +490,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         """
         export_ok, missing_dim, has_rows, has_cols = self.table_config_ok()
         if export_ok:
-            css_fils, css_idx = output.GetCssDets(self.fil_report, self.fil_css)
+            css_fils, css_idx = output.get_css_dets(self.fil_report, 
+                                                    self.fil_css)
             script = self.get_script(has_rows, has_cols, css_idx)
             output.export_script(script, self.fil_script, 
                                  self.fil_report, css_fils, self.con_dets, 
@@ -450,10 +504,18 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         """
         Get titles list and subtitles list from GUI.
         """
-        titles = [u"%s" % x for x \
-                  in self.txtTitles.GetValue().split(u"\n")]
-        subtitles = [u"%s" % x for x \
-                     in self.txtSubtitles.GetValue().split(u"\n")]
+        debug = False
+        raw_titles = self.txtTitles.GetValue()
+        if raw_titles:
+            titles = [u"%s" % x for x in raw_titles.split(u"\n")]
+        else:
+            titles = []
+        raw_subtitles = self.txtSubtitles.GetValue()
+        if raw_subtitles:
+            subtitles = [u"%s" % x for x in raw_subtitles.split(u"\n")]
+        else:
+            subtitles = []
+        if debug: print("%s %s" % (titles, subtitles))
         return titles, subtitles
     
     def get_script(self, has_rows, has_cols, css_idx):
@@ -609,7 +671,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         wx.MessageBox("Not available yet in this version")
         
     # clear button
-    def ClearDims(self):
+    def clear_dims(self):
         "Clear dim trees"
         self.rowtree.DeleteChildren(self.rowRoot)
         self.coltree.DeleteChildren(self.colRoot)
@@ -627,7 +689,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.tab_type = my_globals.COL_MEASURES
         self.rowtree.DeleteChildren(self.rowRoot)
         self.coltree.DeleteChildren(self.colRoot)
-        self.UpdateByTabType()
+        self.update_by_tab_type()
         self.update_demo_display()
 
     def OnClose(self, event):
@@ -638,7 +700,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             for fil_script in self.open_scripts:
                 # add ending code to script
                 f = open(fil_script, "a")
-                output.AddClosingScriptCode(f)
+                output.add_end_script_code(f)
                 f.close()
         except Exception:
             pass
@@ -646,85 +708,26 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             self.Destroy()
             event.Skip()
     
-    def replace_titles_only(self, orig):
-        """
-        Have original html
-            <p class='tbltitle0'></p> # or other n
-            <p class='tblsubtitle0'></p> # ditto
-        Have list of titles and subtitles (both or either could be empty).
-        Use specific tags to slice it up and reassemble it.  
-        Will always have TBL_TITLE_START and TBL_TITLE_END.
-        Will either have TBL_SUBTITLE_START and TBL_SUBTITLE_END
-            OR TBL_SUBTITLE_LEVEL_START and TBL_SUBTITLE_LEVEL_END.  If the 
-            latter, need to build entire subtitle html into gap, not just the 
-            subtitle.  Use the level to do it in a way which matches what was 
-            there.
-        """
-        debug = False
+    def update_titles_subtitles(self, orig):
         titles, subtitles = self.get_titles()
-        titles_inner_html = ""
-        titles_inner_html = lib.get_titles_inner_html(titles_inner_html, titles)
-        subtitles_inner_html = ""
-        subtitles_inner_html = \
-                lib.get_subtitles_inner_html(subtitles_inner_html, subtitles)
-        pre_title_idx = orig.index(my_globals.TBL_TITLE_START) + \
-            len(my_globals.TBL_TITLE_START)
-        pre_title = orig[: pre_title_idx]
-        post_title = orig[orig.index(my_globals.TBL_TITLE_END):]
-        # a placeholder only or a proper subtitle?
-        try:
-            orig.index(my_globals.TBL_SUBTITLE_LEVEL_START)
-            has_placeholder = True
-        except ValueError:
-            has_placeholder = False
-        if has_placeholder:
-            # get level and build own subtitle
-            level_start_idx = orig.index(my_globals.TBL_SUBTITLE_LEVEL_START) \
-                + len(my_globals.TBL_SUBTITLE_LEVEL_START)
-            level_end_idx = orig.index(my_globals.TBL_SUBTITLE_LEVEL_END)
-            css_idx = orig[level_start_idx, level_end_idx]
-            if debug: print("css_idx: %s" % css_idx)
-            CSS_SUBTITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
-                (my_globals.CSS_SUBTITLE, css_idx)
-            subtitles_html = u"\n<p class='%s'>%s" % (CSS_SUBTITLE, 
-                                                my_globals.TBL_SUBTITLE_START)
-            subtitles_html += subtitles_inner_html
-            subtitles_html += u"%s</p>" % my_globals.TBL_SUBTITLE_END
-            between_title_and_sub = ""
-            post_subtitle = orig[orig.index(my_globals.TBL_SUBTITLE_LEVEL_END):]
-        else: # proper subtitle
-            sub_start_idx = post_title.index(my_globals.TBL_SUBTITLE_START) + \
-                len(my_globals.TBL_SUBTITLE_START)
-            between_title_and_sub = post_title[: sub_start_idx]
-            subtitles_html = subtitles_inner_html
-            post_sub_start_idx = post_title.index(my_globals.TBL_SUBTITLE_END)
-            post_subtitle = post_title[post_sub_start_idx :]
-        # put it all back together
-        demo_tbl_html = pre_title + titles_inner_html + between_title_and_sub \
-            + subtitles_html + post_subtitle
-        if debug: print(("pre_title: %s\n\ntitles_inner_html: %s\n\n"
-                     "between_title_and_sub: %s\n\nsubtitles_html: %s\n\n"
-                     "post_subtitle: %s") % (pre_title, titles_inner_html,
-                     between_title_and_sub, subtitles_html, post_subtitle))
-        return demo_tbl_html
+        return replace_titles_subtitles(orig, titles, subtitles)
     
     # demo table display
     def update_demo_display(self, titles_only=False):
         """
         Update demo table display with random data.
         Always use one css only (the current one).
-        If titles_only, and the last demo was a table, change the title and 
-            subtitle text only.
-        Easiest to do with crude slicing and inserting.  Best to leave the 
-            table-making processes code alone.
+        If only changing titles or subtitles, keep the rest constant.
         """
         debug = False
         self.btnExpand.Enable(False)
         if titles_only:
             if self.prev_demo:
                 # replace titles and subtitles
-                demo_tbl_html = self.replace_titles_only(self.prev_demo)
+                demo_tbl_html = self.update_titles_subtitles(self.prev_demo)
                 self.prev_demo = demo_tbl_html
+            else:
+                demo_tbl_html = WAITING_MSG
         else:
             demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
             if demo_html == "":
@@ -732,7 +735,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 self.prev_demo = None
             else:
                 demo_tbl_html = ("<h1>%s</h1>\n" % 
-                     _("Example data - click 'Run' for actual results") + demo_html)
+                     _("Example data - click 'Run' for actual results") +
+                     demo_html)
                 self.prev_demo = demo_tbl_html
         if debug: print(u"\n" + demo_tbl_html + "\n")
         self.html.show_html(demo_tbl_html)
