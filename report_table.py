@@ -329,7 +329,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     
     def refresh_vars(self):
         self.update_var_dets()
-        
            
     def refresh_descendants(self, tree, descendants):
         ""
