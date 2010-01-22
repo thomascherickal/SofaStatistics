@@ -35,7 +35,8 @@ def get_html_header(title, header_template):
 class ShowHTML(wx.Dialog):
     "Show HTML window with content displayed"    
     
-    def __init__(self, parent, content, file_name, title, print_folder):
+    def __init__(self, parent, content, file_name, title, print_folder, 
+                 url_load=False):
         """
         content - html ready to display.
         file_name - excludes any path information. Needed for printing.
@@ -50,7 +51,7 @@ class ShowHTML(wx.Dialog):
         self.file_name = file_name
         self.print_folder = print_folder
         html = full_html.FullHTML(self, size=wx.DefaultSize)
-        html.show_html(content)
+        html.show_html(content, url_load)
         btnClose = wx.Button(self, wx.ID_CLOSE, _("Close"))
         btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
         szrMain = wx.BoxSizer(wx.VERTICAL)

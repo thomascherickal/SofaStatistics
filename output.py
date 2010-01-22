@@ -458,11 +458,12 @@ def add_end_script_code(f):
     f.write(u"\n" + u"fil.write(output.get_html_ftr())")
     f.write(u"\n" + u"fil.close()")
 
-def display_report(parent, strContent):
+def display_report(parent, strContent, url_load=False):
     # display results
     dlg = showhtml.ShowHTML(parent=parent, content=strContent, 
                             file_name=my_globals.INT_REPORT_FILE, 
                             title=_("Report"), 
-                            print_folder=my_globals.INTERNAL_FOLDER)
+                            print_folder=my_globals.INTERNAL_FOLDER,
+                            url_load=url_load)
     dlg.ShowModal()
     dlg.Destroy()

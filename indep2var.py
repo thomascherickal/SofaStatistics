@@ -63,7 +63,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.fil_css = fil_css
         self.fil_report = fil_report
         self.fil_script = fil_script
-        self.takes_range = takes_range     
+        self.takes_range = takes_range
+        self.url_load = True # btnExpand
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.get_var_dets(fil_var_dets)
         variables_rc_msg = _("Right click variables to view/edit details")

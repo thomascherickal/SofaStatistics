@@ -323,7 +323,7 @@ class ConfigDlg(object):
         return szrLevel
     
     def OnButtonExpand(self, event):
-        output.display_report(self, self.str_content)
+        output.display_report(self, self.str_content, self.url_load)
         event.Skip()
 
 def add_icon(frame):
