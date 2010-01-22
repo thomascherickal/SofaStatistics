@@ -293,8 +293,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         Clear dim areas.
         """
         config_dlg.ConfigDlg.OnDatabaseSel(self, event)
-        self.enable_col_btns()
-        self.clear_dims()
+        self.data_changed()
         
     def OnTableSel(self, event):
         """
@@ -302,9 +301,17 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         Clear dim areas.
         """       
         config_dlg.ConfigDlg.OnTableSel(self, event)
-        self.enable_col_btns()
-        self.clear_dims()
+        self.data_changed()
     
+    def data_changed(self):
+        """
+        Things to do after the data source has changed.
+        """
+        self.enable_col_btns()
+        if self.tab_type == my_globals.RAW_DISPLAY:
+            self.demo_tab.update_flds(self.flds)
+        self.clear_dims()
+        
     def update_var_dets(self):
         "Update all labels, including those already displayed"
         config_dlg.ConfigDlg.update_var_dets(self)
@@ -339,14 +346,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     
     def update_by_tab_type(self):
         self.tab_type = self.radTabType.GetSelection() #for convenience
-        #delete all row and col vars
+        # delete all row and col vars
         self.rowtree.DeleteChildren(self.rowRoot)
         self.coltree.DeleteChildren(self.colRoot)
-        #link to appropriate demo table type
-        titles = [u"\"%s\"" % x for x \
-                  in self.txtTitles.GetValue().split(u"\n")]
-        Subtitles = [u"\"%s\"" % x for x \
-                     in self.txtSubtitles.GetValue().split(u"\n")]
+        # link to appropriate demo table type
         if self.tab_type == my_globals.COL_MEASURES:
             self.chkTotalsRow.SetValue(False)
             self.chkFirstAsLabel.SetValue(False)
@@ -388,7 +391,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                      txtSubtitles=self.txtSubtitles,                                 
                      colRoot=self.colRoot, 
                      coltree=self.coltree, 
-                     flds=self.flds,
+                     flds=self.flds, # needs to be reset if table changes
                      var_labels=self.var_labels,
                      val_dics=self.val_dics,
                      fil_css=self.fil_css,

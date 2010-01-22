@@ -236,6 +236,7 @@ class DbDets(getdata.DbDets):
             Null if not numeric.
         NUMERIC_SCALE will be Null if not numeric.
         """
+        debug = False
         numeric_lst = [BIGINT, DECIMAL, DOUBLE, FLOAT, INT, MEDIUMINT, 
                        SMALLINT, TINYINT]
         numeric_full_lst = []
@@ -302,6 +303,7 @@ class DbDets(getdata.DbDets):
                         my_globals.FLD_BOLDATETIME: boldatetime,
                         }
             flds[fld_name] = dets_dic
+        if debug: print("flds: %s" % flds)
         return flds
 
     def getIndexDets(self, cur, db, tbl):

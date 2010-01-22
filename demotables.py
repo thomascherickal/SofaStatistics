@@ -76,7 +76,14 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         self.fil_css=fil_css
         self.chkTotalsRow = chkTotalsRow
         self.chkFirstAsLabel = chkFirstAsLabel
-        
+    
+    def update_flds(self, flds):
+        """
+        Needed if table selected changes after the table type has been set to 
+            raw.
+        """
+        self.flds = flds
+    
     def get_demo_html_if_ok(self, css_idx):
         "Show demo table if sufficient data to do so"
         has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
@@ -88,6 +95,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         Returns (hdr_html, body_html).
         If value labels available, use these rather than random numbers.
         """
+        debug = False
         CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_LBL, css_idx)
         CSS_ALIGN_RIGHT = my_globals.CSS_SUFFIX_TEMPLATE % \
@@ -114,8 +122,11 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         if bolfirst_col_as_label:
             col_class_lsts[0] = [CSS_LBL]
         for i, col_name in enumerate(col_names):
-            if self.flds[col_name][my_globals.FLD_BOLNUMERIC] \
-                    and not col_val_dics[i]:
+            if debug: 
+                print("%s" % self.flds[col_name])
+                print("%s" % col_val_dics)
+            bolnumeric = self.flds[col_name][my_globals.FLD_BOLNUMERIC]
+            if bolnumeric and not col_val_dics[i]:
                 col_class_lsts[i].append(CSS_ALIGN_RIGHT)
         for i in range(4): # four rows enough for demo purposes
             row_tds = []

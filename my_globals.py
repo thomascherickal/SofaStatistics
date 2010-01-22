@@ -67,10 +67,6 @@ TBL_TITLE_START = u"<!--_title_start-->"
 TBL_TITLE_END = u"<!--_title_end-->"
 TBL_SUBTITLE_START = u"<!--_subtitle_start-->"
 TBL_SUBTITLE_END = u"<!--_subtitle_end-->"
-TBL_SUBTITLE_LEVEL_START = u"<!--subtitle_level_start"
-TBL_SUBTITLE_LEVEL_END = u"subtitle_level_end-->"
-TBL_SUBTITLE_LEVEL = u"%s%%s%s" % (TBL_SUBTITLE_LEVEL_START, 
-                                   TBL_SUBTITLE_LEVEL_END)
 def pct_1_dec(num):
     return "%s%%" % round(num,1)
 def pct_2_dec(num):
