@@ -56,11 +56,11 @@ def test_rel2abs():
              ]
     for test in tests:
         assert_equal(output.rel2abs(*test[0]), test[1])
-
+        
 test_us_style = False
 if test_us_style:
     my_globals.OK_DATE_FORMATS, my_globals.OK_DATE_FORMAT_EXAMPLES = \
-        my_globals.get_date_fmt_lists(d_fmt=my_globals.MM_DD_YY)
+        my_globals.get_date_fmt_lists(d_fmt=my_globals.MDY)
 
 def test_is_usable_datetime_str():
     tests = [("June 2009", False),

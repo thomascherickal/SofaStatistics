@@ -261,9 +261,9 @@ EDGECOLOR = "#8f8f8f"
 NORM_LINE_COLOR = "#5a4a3d"
 INT_IMG_ROOT = os.path.join(INT_PATH, u"_img")
 # date formats
-MM_DD_YY = "mm/dd/yy"
-DD_MM_YY = "dd/mm/yy"
-YY_MM_DD = "yy/mm/dd"
+MDY = "month_day_year"
+DMY = "day_month_year"
+YMD = "year_month_day"
 def get_date_fmt():
     """
     On Windows, get local datetime_format.
@@ -272,7 +272,7 @@ def get_date_fmt():
         details from http://windowsitpro.com/article/articleid/71636/...
         ...jsi-tip-0311---regional-settings-in-the-registry.html.
     On Linux and possibly OS-X, locale command works.
-    Returns MM_DD_YY, DD_MM_YY, or YY_MM_DD.
+    Returns MDY, DMY, or YMD.
     """
     debug = False
     try:
@@ -283,7 +283,7 @@ def get_date_fmt():
             rkey = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, 
                                        'Control Panel\\International')
             raw_d_fmt = win32api.RegQueryValueEx(rkey, "iDate")[0]
-            raw2const = {"0": MM_DD_YY, "1": DD_MM_YY, "2": YY_MM_DD}
+            raw2const = {"0": MDY, "1": DMY, "2": YMD}
             win32api.RegCloseKey(rkey)
         else:
             cmd = 'locale -k LC_TIME'
@@ -292,33 +292,36 @@ def get_date_fmt():
             locale_dets = child.stdout.read().strip().split()
             d_fmt_str = [x for x in locale_dets if x.startswith("d_fmt")][0]
             raw_d_fmt = d_fmt_str.split("=")[1].strip().strip('"')
-            raw2const = {"%m/%d/%y": MM_DD_YY, "%d/%m/%y": DD_MM_YY, 
-                         "%y/%m/%d": YY_MM_DD}
+            raw2const = {"%m/%d/%y": MDY, "%m/%d/%Y": MDY,
+                         "%d/%m/%y": DMY, "%d/%m/%Y": DMY,
+                         "%y/%m/%d": YMD, "%Y/%m/%d": YMD}
     except Exception, e:
         raise Exception, "Unable to get date format. %s" % e
     try:
         if debug: print("%s %s" % (raw2const, raw_d_fmt))
         d_fmt = raw2const[raw_d_fmt]
     except KeyError:
-        raise Exception, "Unexpected raw_d_fmt (%s) in get_date_fmt()" % \
-            raw_d_fmt
+        print("Unexpected raw_d_fmt (%s) in get_date_fmt()" % raw_d_fmt)
+        d_fmt = DMY
     return d_fmt
 d_fmt = get_date_fmt()
 def get_date_fmt_lists(d_fmt):
-    if d_fmt == DD_MM_YY:
-        extra_ok_date_formats = ["%d-%m-%y", "%d/%m/%y", "%d-%m-%Y", "%d/%m/%Y"]
+    if d_fmt == DMY:
+        extra_ok_date_formats = ["%d-%m-%y", "%d-%m-%Y",
+                                 "%d/%m/%y", "%d/%m/%Y",
+                                 "%d.%m.%y", "%d.%m.%Y"] # European
         ok_date_format_examples = ["31/3/09", "2:30pm 31/3/2009"]
-    elif d_fmt == MM_DD_YY:
+    elif d_fmt == MDY:
         # needed for US, Canada, the Philippines etc
         extra_ok_date_formats = ["%m-%d-%y", "%m/%d/%y", "%m-%d-%Y", "%m/%d/%Y"]
         ok_date_format_examples = ["3/31/09", "2:30pm 3/31/2009"]
-    elif d_fmt == YY_MM_DD:
+    elif d_fmt == YMD:
         extra_ok_date_formats = []
         ok_date_format_examples = ["09/03/31", "2:30pm 09/03/31"]
     else:
         raise Exception, "Unexpected d_fmt value (%s) in get_date_fmt_lists()" \
             % d_fmt
-    always_ok_date_formats = ["%Y-%m-%d", "%Y", "%d.%m.%Y", "%d.%m.%y"]
+    always_ok_date_formats = ["%Y-%m-%d", "%Y"]
     ok_date_formats =  extra_ok_date_formats + always_ok_date_formats
     return ok_date_formats, ok_date_format_examples
 OK_DATE_FORMATS, OK_DATE_FORMAT_EXAMPLES = get_date_fmt_lists(d_fmt)

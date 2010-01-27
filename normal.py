@@ -214,33 +214,36 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                 sindic = "a good sign"
             else:
                 sindic = "not a good sign"
-            skew_msg = _("Skew (lopsidedness) is %s which is probably %s.") % \
-                (round(cskew, 3), sindic)   
+            skew_msg = _("Skew (lopsidedness) is %(skew)s which is probably "
+                         "%(indic)s.") % {"skew": round(cskew, 3), 
+                                          "indic": sindic}   
             if abs(ckurtosis) <= 1:
                 kindic = "a great sign"
             elif abs(ckurtosis) <= 2:
                 kindic = "a good sign"
             else:
                 kindic = "not a good sign"
-            kurtosis_msg = _("Kurtosis (peakedness or flatness) is %s which is "
-                             "probably %s.") % (round(ckurtosis, 3), kindic)               
+            kurtosis_msg = _("Kurtosis (peakedness or flatness) is %(kurt)s "
+                             "which is probably %(indic)s.") % \
+                             {"kurt": round(ckurtosis, 3), "indic": kindic}               
             if n_vals > USUAL_FAIL_N:
                 msg = _("Rely on visual inspection of graph above.  Although "
                     "the data failed the ideal normality test, most real-world "
                     "data-sets with as many results (%s) would fail for even "
-                    "slight differences from the perfect normal curve. %s %s") \
-                    % (n_vals, skew_msg, kurtosis_msg)
+                    "slight differences from the perfect "
+                    "normal curve") % n_vals + u" " + skew_msg + u" " + \
+                    kurtosis_msg
             else:
                 if p < 0.05:
                     msg = _("The distribution of %s passed one test for "
                         "normality.  Confirm or reject based on visual "
-                        "inspection of graph above. %s %s") % (self.var_label, 
-                                                        skew_msg, kurtosis_msg)
+                        "inspection of graph above.") % self.var_label + u" " \
+                        + skew_msg + u" " + kurtosis_msg
                 else:
                     msg = _("Although the distribution of %s is not perfectly "
                         "'normal', it may still be 'normal' enough for use.  "
-                        "View graph above to decide. %s %s") % (self.var_label, 
-                                                        skew_msg, kurtosis_msg)
+                        "View graph above to decide.") % self.var_label + u" " \
+                        + skew_msg + u" " + kurtosis_msg
         self.html.show_html(u"<p>%s</p>" % msg)
         
     def OnVarsSel(self, event):

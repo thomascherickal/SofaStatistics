@@ -254,8 +254,9 @@ class FiltSelectDlg(wx.Dialog):
                        "vancouver": val_quoter("Vancouver"),
                        "age": obj_quoter("age"),
                        "gender": obj_quoter("gender")})
-            wx.MessageBox(_("Problem applying filter \"%s\" to \"%s\"") % \
-                          (tbl_filt, self.tbl) + demo)
+            wx.MessageBox(_("Problem applying filter \"%(filt)s\" to"
+                            " \"%(tbl)s\"") % {"filt": tbl_filt, 
+                                               "tbl": self.tbl} + demo)
             return
         if self.dbe not in my_globals.DBE_TBL_FILTS:
             my_globals.DBE_TBL_FILTS[self.dbe] = {}

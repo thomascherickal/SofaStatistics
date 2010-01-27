@@ -543,7 +543,7 @@ class TblEditor(wx.Dialog):
                 wx.MessageBox("\"%s\" " % raw_val + \
                       _(" is not a valid datetime.\n\n"
                         "Either enter a valid date/ datetime\n") + \
-                      _("e.g. %s or %s") % (eg1, eg2) + \
+                      _("e.g. %(eg1)s or %(eg2)s") % {"eg1": eg1, "eg2": eg2} +
                       _("\nor the missing value character (.)"))
                 return True
             return False
