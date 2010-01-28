@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import boomslang
 import wx
 import wxmpl
 import pylab # must import after wxmpl so matplotlib.use() is always first

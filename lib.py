@@ -17,6 +17,19 @@ import wx
 # only import my_globals from local modules
 import my_globals
 
+def split_lst(lst, slice_size):
+    cut_a = 0
+    cut_b = slice_size
+    split_lst = []
+    while True:
+        slice = lst[cut_a: cut_b]
+        split_lst.append(slice)
+        cut_a += slice_size
+        cut_b += slice_size
+        if cut_b > len(lst):
+            break
+    return split_lst
+
 def get_title_dets_html(titles, subtitles, CSS_TBL_TITLE, CSS_TBL_SUBTITLE):
     """
     Table title and subtitle html ready to put in a cell.

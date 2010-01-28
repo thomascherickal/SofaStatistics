@@ -9,6 +9,7 @@ import numpy as np
 
 import my_globals
 import lib
+import my_exceptions
 import getdata
 
 D = decimal.Decimal
@@ -93,7 +94,8 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b):
     Get list of observed and expected values ready for inclusion in Pearson's
         Chi Square test.
     NB must return 0 if nothing.  All cells must be filled.
-    Returns lst_obs, lst_exp, min_count, perc_cells_lt_5, df.    
+    Returns lst_obs, lst_exp, min_count, perc_cells_lt_5, df.
+    The lists are b within a e.g. a1b1, a1b2, a1b3, a2b1, a2b2 ...    
     """
     debug = False
     obj_quoter = getdata.get_obj_quoter_func(dbe)
@@ -112,8 +114,6 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b):
                                   "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_row_vals_used)
     vals_a = [x[0] for x in cur.fetchall()]
-    if len(vals_a) > 30:
-        raise Exception, "Too many values in row variable"
     # get col vals used
     SQL_col_vals_used = u"""SELECT %(qfld_b)s
         FROM %(qtbl)s
@@ -125,10 +125,8 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b):
                                   "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_col_vals_used)
     vals_b = [x[0] for x in cur.fetchall()]
-    if len(vals_b) > 30:
-        raise Exception, u"Too many values in column variable"
-    if len(vals_a)*len(vals_b) > 60:
-        raise Exception, u"Too many cells in contingency table."
+    if len(vals_a)*len(vals_b) > 26:
+        raise my_exceptions.TooManyCellsInChiSquareException
     # build SQL to get all observed values (for each a, through b's)
     SQL_get_obs = u"SELECT "
     sql_lst = []

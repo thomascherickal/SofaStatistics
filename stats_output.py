@@ -134,7 +134,8 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         fig = pylab.figure()
         fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
         charts.config_hist(fig, sample, label_avg, hist_label)
-        img_src = save_report_img(add_to_report, report_name)
+        img_src = save_report_img(add_to_report, report_name, 
+                                  save_func=pylab.savefig, dpi=100)
         html.append(u"\n<img src='%s'>" % img_src)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -266,7 +267,8 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg,
         fig = pylab.figure()
         fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
         charts.config_hist(fig, sample, label_avg, hist_label)
-        img_src = save_report_img(add_to_report, report_name)
+        img_src = save_report_img(add_to_report, report_name, 
+                                  save_func=pylab.savefig, dpi=100)
         html.append(u"\n<img src='%s'>" % img_src)
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
@@ -345,7 +347,8 @@ def wilcoxon_output(t, p, label_a, label_b, dp=3,
         html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
     return html
 
-def save_report_img(add_to_report, report_name):
+def save_report_img(add_to_report, report_name, save_func=pylab.savefig, 
+                    dpi=None):
     """
     report_name -- full path to report
     If adding to report, save image to a subfolder in reports named after the 
@@ -368,7 +371,10 @@ def save_report_img(add_to_report, report_name):
         n_imgs = len(os.listdir(imgs_path))
         file_name = u"%03d.png" % n_imgs
         img_path = os.path.join(imgs_path, file_name) # absolute
-        pylab.savefig(img_path, dpi=100)
+        args = [img_path]
+        if dpi:
+            args.append(dpi)
+        save_func(*args)
         if debug: print("Just saved %s" % img_path)
         subfolder = os.path.split(imgs_path[:-1])[1]
         img_src = os.path.join(subfolder, file_name) #relative so can shift html
@@ -381,7 +387,10 @@ def save_report_img(add_to_report, report_name):
         int_imgs_n += 1
         img_src = my_globals.INT_IMG_ROOT + u"_%03d.png" % int_imgs_n
         if debug: print(img_src)
-        pylab.savefig(img_src, dpi=100)
+        args = [img_src]
+        if dpi:
+            args.append(dpi)
+        save_func(*args)
         if debug: print("Just saved %s" % img_src)
     if debug: print("img_src: %s" % img_src)
     return img_src
@@ -397,7 +406,8 @@ def add_scatterplot(sample_a, sample_b, label_a, label_b, a_vs_b, title,
     fig = pylab.figure()
     fig.set_size_inches((7.5, 4.5)) # see dpi to get image size in pixels
     charts.config_scatterplot(fig, sample_a, sample_b, label_a, label_b, a_vs_b)
-    img_src = save_report_img(add_to_report, report_name)
+    img_src = save_report_img(add_to_report, report_name, 
+                              save_func=pylab.savefig, dpi=100)
     html.append(u"\n<img src='%s'>" % img_src)
     if debug: print("Just linked to %s" % img_src)
 
@@ -443,11 +453,12 @@ def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
                     CSS_PAGE_BREAK_BEFORE)
     return "".join(html)
 
-def chisquare_output(chi, p, var_label_a, var_label_b, 
-                     val_labels_a, val_labels_b, lst_obs, lst_exp, min_count, 
-                     perc_cells_lt_5, df, dp=3, 
+def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report, 
+                     report_name, val_labels_a, val_labels_b, lst_obs, lst_exp, 
+                     min_count, perc_cells_lt_5, df, dp=3, 
                      level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
                      page_break_after=False):
+    debug = True
     CSS_SPACEHOLDER = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_SPACEHOLDER, css_idx)
     CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
@@ -470,33 +481,35 @@ def chisquare_output(chi, p, var_label_a, var_label_b,
     cells_per_col = 2
     val_labels_a_n = len(val_labels_a)
     val_labels_b_n = len(val_labels_b)
-    html = _("<h2>Results of Pearson's Chi Square Test of Association Between"
-             " \"%(laba)s\" and \"%(labb)s\"</h2>") % {"laba": var_label_a, 
-                                                       "labb": var_label_b}
+    html = []
+    html.append(_("<h2>Results of Pearson's Chi Square Test of Association "
+        "Between \"%(laba)s\" and \"%(labb)s\"</h2>") % {"laba": var_label_a, 
+                                                         "labb": var_label_b})
     p_format = u"\n<p>" + _("p value") + u": %%.%sf</p>" % dp
-    html += p_format % round(p, dp)
-    html += u"\n<p>" + _("Pearson's Chi Square statistic") + u": %s</p>" % \
-        round(chi, dp)
-    html += u"\n<p>" + _("Degrees of Freedom (df)") + u": %s</p>" % df
+    html.append(p_format % round(p, dp))
+    html.append(u"\n<p>" + _("Pearson's Chi Square statistic") + u": %s</p>" %
+                round(chi, dp))
+    html.append(u"\n<p>" + _("Degrees of Freedom (df)") + u": %s</p>" % df)
     # headings
-    html += u"\n\n<table>\n<thead>"
-    html += u"\n<tr><th class='%s' colspan=2 rowspan=3></th>" % CSS_SPACEHOLDER
-    html += u"<th class='%s' " % CSS_FIRST_COL_VAR + \
-        u"colspan=%s>%s</th></tr>" % ((val_labels_b_n+1)*cells_per_col, 
-                                      var_label_b)
-    html += u"\n<tr>"
+    html.append(u"\n\n<table>\n<thead>")
+    html.append(u"\n<tr><th class='%s' colspan=2 rowspan=3></th>" % 
+                CSS_SPACEHOLDER)
+    html.append(u"<th class='%s' " % CSS_FIRST_COL_VAR +
+                u"colspan=%s>%s</th></tr>" % ((val_labels_b_n+1)*cells_per_col, 
+                                              var_label_b))
+    html.append(u"\n<tr>")
     for val in val_labels_b:
-        html += u"<th colspan=%s>%s</th>" % (cells_per_col, val)
-    html += u"<th colspan=%s>" % cells_per_col + _("TOTAL") + \
-        u"</th></tr>\n<tr>"
+        html.append(u"<th colspan=%s>%s</th>" % (cells_per_col, val))
+    html.append(u"<th colspan=%s>" % cells_per_col + _("TOTAL") +
+                u"</th></tr>\n<tr>")
     for i in range(val_labels_b_n + 1):
-        html += u"<th>" + _("Obs") + u"</th><th>" + _("Exp") + u"</th>"
-    html += u"</tr>"
+        html.append(u"<th>" + _("Obs") + u"</th><th>" + _("Exp") + u"</th>")
+    html.append(u"</tr>")
     # body
-    html += u"\n\n</thead><tbody>"
+    html.append(u"\n\n</thead><tbody>")
     item_i = 0
-    html += u"\n<tr><td class='%s' rowspan=%s>%s</td>" % \
-        (CSS_FIRST_ROW_VAR, val_labels_a_n + 1, var_label_a)
+    html.append(u"\n<tr><td class='%s' rowspan=%s>%s</td>" % (CSS_FIRST_ROW_VAR, 
+                                            val_labels_a_n + 1, var_label_a))
     col_obs_tots = [0]*val_labels_b_n
     col_exp_tots = [0]*val_labels_b_n
     # total row totals
@@ -505,13 +518,13 @@ def chisquare_output(chi, p, var_label_a, var_label_b,
     for row_i, val_a in enumerate(val_labels_a):
         row_obs_tot = 0
         row_exp_tot = 0
-        html += u"<td class='%s'>%s</td>" % (CSS_ROW_VAL, val_a)        
+        html.append(u"<td class='%s'>%s</td>" % (CSS_ROW_VAL, val_a))        
         for col_i, val_b in enumerate(val_labels_b):
             obs = lst_obs[item_i]
             exp = lst_exp[item_i]
-            html += u"<td class='%s'>" % CSS_DATACELL + \
-                u"%s</td><td class='%s'>%s</td>" % (obs, CSS_DATACELL, 
-                                                    round(exp, 1))
+            html.append(u"<td class='%s'>" % CSS_DATACELL +
+                        u"%s</td><td class='%s'>%s</td>" % (obs, CSS_DATACELL, 
+                                                            round(exp, 1)))
             row_obs_tot += obs
             row_exp_tot += exp
             col_obs_tots[col_i] += obs
@@ -520,32 +533,67 @@ def chisquare_output(chi, p, var_label_a, var_label_b,
         # add total for row
         row_obs_tot_tot += row_obs_tot
         row_exp_tot_tot += row_exp_tot
-        html += u"<td class='%s'>" % CSS_DATACELL + \
-            u"%s</td><td class='%s'>%s</td>" % (row_obs_tot, CSS_DATACELL, 
-                                                round(row_exp_tot,1))
-        html += u"</tr>\n<tr>"
+        html.append(u"<td class='%s'>" % CSS_DATACELL +
+                u"%s</td><td class='%s'>%s</td>" % (row_obs_tot, CSS_DATACELL, 
+                                                    round(row_exp_tot,1)))
+        html.append(u"</tr>\n<tr>")
     # add totals row
     col_tots = zip(col_obs_tots, col_exp_tots)
-    html += u"<td class='%s'>" % CSS_ROW_VAL + _("TOTAL") + u"</td>"
+    html.append(u"<td class='%s'>" % CSS_ROW_VAL + _("TOTAL") + u"</td>")
     for col_obs_tot, col_exp_tot in col_tots:
-        html += u"<td class='%s'>" % CSS_DATACELL + \
+        html.append(u"<td class='%s'>" % CSS_DATACELL +
             u"%s</td><td class='%s'>%s</td>" % (col_obs_tot, CSS_DATACELL,
-                                                round(col_exp_tot, 1))
+                                                round(col_exp_tot, 1)))
     # add total of totals
-    html += u"<td class='%s'>" % CSS_DATACELL + \
-        u"%s</td><td class='%s'>%s</td>" % (row_obs_tot_tot, 
-                                            CSS_DATACELL, 
-                                            round(row_exp_tot_tot,1))
-    html += u"</tr>"
-    html += u"\n</tbody>\n</table>\n"
+    html.append(u"<td class='%s'>" % CSS_DATACELL + \
+                u"%s</td><td class='%s'>%s</td>" % (row_obs_tot_tot, 
+                                                    CSS_DATACELL, 
+                                                    round(row_exp_tot_tot,1)))
+    html.append(u"</tr>")
+    html.append(u"\n</tbody>\n</table>\n")
     # warnings
-    html += u"\n<p>" + _("Minimum expected cell count") + u": %s</p>" % \
-        round(min_count, dp)
-    html += u"\n<p>% " + _("cells with expected count < 5") + u": %s</p>" % \
-        round(perc_cells_lt_5, 1)
+    html.append(u"\n<p>" + _("Minimum expected cell count") + u": %s</p>" %
+                round(min_count, dp))
+    html.append(u"\n<p>% " + _("cells with expected count < 5") + u": %s</p>" %
+                round(perc_cells_lt_5, 1))
     if page_break_after:
-        html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
-    return html
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
+    # clustered bar charts
+    # Var A defines the clusters and B the split within the clusters
+    # e.g. gender vs country = gender as boomslang bars and country as values 
+    # within bars.
+    import boomslang
+    import lib
+    colours = ["#333435", "#CCD9D7", "#333345", "white", "black", 
+               "#F87526", "#5A4A3D", "#F87526", "red", "blue"]
+    clustered_bars = boomslang.ClusteredBars()
+    # NB list_obs is bs within a and we need the other way around
+    bs_in_as_lst = lib.split_lst(lst=lst_obs, slice_size=val_labels_b_n)
+    bs_in_as = np.array(bs_in_as_lst)
+    as_in_bs_lst = bs_in_as.transpose().tolist()
+    if debug: 
+        print(bs_in_as_lst)
+        print(bs_in_as)
+        print(as_in_bs_lst)
+    for i, val_label_b in enumerate(val_labels_b):
+        cluster = boomslang.Bar()
+        cluster.xValues = range(val_labels_a_n)
+        y_vals = as_in_bs_lst[i]
+        if debug: print(y_vals)
+        cluster.yValues = y_vals
+        cluster.color = colours[i]
+        cluster.label = val_label_b
+        clustered_bars.add(cluster)
+    clustered_bars.spacing = 0.5
+    clustered_bars.xTickLabels = val_labels_a
+    plot = boomslang.Plot()
+    plot.add(clustered_bars)
+    plot.hasLegend()
+    img_src = save_report_img(add_to_report, report_name, save_func=plot.save, 
+                              dpi=None)
+    html.append(u"\n<img src='%s'>" % img_src)
+    return "".join(html)
 
 def kruskal_wallis_output(h, p, label_a, label_b, label_avg, dp=3,
                  level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 

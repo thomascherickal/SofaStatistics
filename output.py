@@ -11,6 +11,7 @@ import wx
 
 import my_globals
 import lib
+import my_exceptions
 import getdata
 import showhtml
 
@@ -319,6 +320,10 @@ def run_report(modules, add_to_report, fil_report, css_fils, inner_script,
     try:
         dummy_dic = {}
         exec script in dummy_dic
+    except my_exceptions.TooManyCellsInChiSquareException:
+        wx.MessageBox(_("Please select variables which have fewer values.  "
+            "Too many values in contingency table."))
+        return u""
     except Exception, e:
         err_content = _(u"<h1>Ooops!</h1>\n<p>Unable to run script " + \
                         u"to generate report. Error encountered: %s</p>") % e

@@ -3,6 +3,7 @@
 import pprint
 
 import my_globals
+import lib
 import paired2var
 
 
@@ -30,6 +31,10 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         "Build script from inputs"
         script_lst = []
         var_a, label_a, var_b, label_b = self.get_drop_vals()
+        script_lst.append(u"report_name = \"%s\"" % 
+                          lib.escape_win_path(report_name))
+        script_lst.append(u"add_to_report = %s" % ("True" if add_to_report \
+                          else "False"))
         script_lst.append(u"dp = 3")
         script_lst.append(u"var_label_a = \"%s\"" % label_a)
         script_lst.append(u"var_label_b = \"%s\"" % label_b)
@@ -49,7 +54,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
                           u"x in vals_b]")        
         script_lst.append(u"chisquare_output = " + \
             u"stats_output.chisquare_output(chisq, p, " + \
-            u"var_label_a, var_label_b," + \
+            u"var_label_a, var_label_b, add_to_report, report_name, " + \
             u"\n    val_labels_a, val_labels_b," + \
             u"\n    lst_obs, lst_exp, min_count, perc_cells_lt_5, df, dp=dp," + \
             u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, " + \
