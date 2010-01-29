@@ -114,6 +114,8 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b):
                                   "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_row_vals_used)
     vals_a = [x[0] for x in cur.fetchall()]
+    if len(vals_a) > 6:
+        raise my_exceptions.TooManyRowsInChiSquareException
     # get col vals used
     SQL_col_vals_used = u"""SELECT %(qfld_b)s
         FROM %(qtbl)s
@@ -125,7 +127,9 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b):
                                   "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_col_vals_used)
     vals_b = [x[0] for x in cur.fetchall()]
-    if len(vals_a)*len(vals_b) > 26:
+    if len(vals_b) > 6:
+        raise my_exceptions.TooManyColsInChiSquareException
+    if len(vals_a)*len(vals_b) > 25:
         raise my_exceptions.TooManyCellsInChiSquareException
     # build SQL to get all observed values (for each a, through b's)
     SQL_get_obs = u"SELECT "

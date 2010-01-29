@@ -28,17 +28,6 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
 
-
-def test_split_lst():
-    tests = [(([1,2,3,4,5,6,7,8,9,10], 2), 
-                [[1,2],[3,4],[5,6],[7,8],[9,10]]),
-            (([1,2,3,4,5,6,7,8,9,10], 5), 
-                [[1,2,3,4,5], [6,7,8,9,10]]),
-             ]
-    for test in tests:
-        print(test[0])
-        assert_equal(lib.split_lst(*test[0]), test[1])
-
 def test_replace_titles_subtitles():
     """
     

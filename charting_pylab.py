@@ -17,6 +17,33 @@ def gen_config(axes_labelsize=14, xtick_labelsize=10, ytick_labelsize=10):
               }
     pylab.rcParams.update(params)
 
+def config_clustered_barchart(plot, var_label_a, y_label, val_labels_a_n, 
+                              val_labels_a, val_labels_b, as_in_bs_lst):
+    """
+    Clustered bar charts
+    Var A defines the clusters and B the split within the clusters
+    e.g. gender vs country = gender as boomslang bars and country as values 
+        within bars.
+    """
+    debug = False
+    # only need 6 because program limits to that. See core_stats.get_obs_exp().
+    colours = ["#333435", "#CCD9D7", "white", "#909090", "black", "#333345"]
+    clustered_bars = boomslang.ClusteredBars()
+    for i, val_label_b in enumerate(val_labels_b):
+        cluster = boomslang.Bar()
+        cluster.xValues = range(val_labels_a_n)
+        y_vals = as_in_bs_lst[i]
+        if debug: print(y_vals)
+        cluster.yValues = y_vals
+        cluster.color = colours[i]
+        cluster.label = val_label_b
+        clustered_bars.add(cluster)
+    clustered_bars.spacing = 0.5
+    clustered_bars.xTickLabels = val_labels_a
+    plot.add(clustered_bars)
+    plot.setXLabel(var_label_a)
+    plot.setYLabel(y_label)
+
 def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False):    
     """
     Configure histogram with subplot of normal distribution curve.

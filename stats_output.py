@@ -2,6 +2,7 @@ import cgi
 import numpy as np
 import os
 import pylab
+import boomslang
 
 import my_globals
 import charting_pylab as charts
@@ -458,7 +459,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
                      min_count, perc_cells_lt_5, df, dp=3, 
                      level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
                      page_break_after=False):
-    debug = True
+    debug = False
     CSS_SPACEHOLDER = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_SPACEHOLDER, css_idx)
     CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
@@ -474,8 +475,8 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
     var_label_a = cgi.escape(var_label_a)
     var_label_b = cgi.escape(var_label_b)
     try:
-        val_labels_a = map(cgi.escape, val_labels_a)
-        val_labels_b = map(cgi.escape, val_labels_b)
+        val_labels_a_html = map(cgi.escape, val_labels_a)
+        val_labels_b_html = map(cgi.escape, val_labels_b)
     except AttributeError:
         pass # e.g. an int
     cells_per_col = 2
@@ -515,11 +516,11 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
     # total row totals
     row_obs_tot_tot = 0 
     row_exp_tot_tot = 0
-    for row_i, val_a in enumerate(val_labels_a):
+    for row_i, val_a in enumerate(val_labels_a_html):
         row_obs_tot = 0
         row_exp_tot = 0
         html.append(u"<td class='%s'>%s</td>" % (CSS_ROW_VAL, val_a))        
-        for col_i, val_b in enumerate(val_labels_b):
+        for col_i, val_b in enumerate(val_labels_b_html):
             obs = lst_obs[item_i]
             exp = lst_exp[item_i]
             html.append(u"<td class='%s'>" % CSS_DATACELL +
@@ -545,7 +546,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
             u"%s</td><td class='%s'>%s</td>" % (col_obs_tot, CSS_DATACELL,
                                                 round(col_exp_tot, 1)))
     # add total of totals
-    html.append(u"<td class='%s'>" % CSS_DATACELL + \
+    html.append(u"<td class='%s'>" % CSS_DATACELL +
                 u"%s</td><td class='%s'>%s</td>" % (row_obs_tot_tot, 
                                                     CSS_DATACELL, 
                                                     round(row_exp_tot_tot,1)))
@@ -560,40 +561,64 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
     # clustered bar charts
-    # Var A defines the clusters and B the split within the clusters
-    # e.g. gender vs country = gender as boomslang bars and country as values 
-    # within bars.
-    import boomslang
-    import lib
-    colours = ["#333435", "#CCD9D7", "#333345", "white", "black", 
-               "#F87526", "#5A4A3D", "#F87526", "red", "blue"]
-    clustered_bars = boomslang.ClusteredBars()
+    add_clustered_barcharts(lst_obs, var_label_a, var_label_b, 
+                            val_labels_a, val_labels_b, val_labels_a_n, 
+                            val_labels_b_n, add_to_report, report_name, html)
+    return "".join(html)
+
+def add_clustered_barcharts(lst_obs, var_label_a, var_label_b, 
+                            val_labels_a, val_labels_b, val_labels_a_n, 
+                            val_labels_b_n, add_to_report, report_name, html):
     # NB list_obs is bs within a and we need the other way around
-    bs_in_as_lst = lib.split_lst(lst=lst_obs, slice_size=val_labels_b_n)
-    bs_in_as = np.array(bs_in_as_lst)
+    debug = False
+    rows_n = len(lst_obs)/val_labels_b_n
+    cols_n = val_labels_b_n
+    bs_in_as = np.array(lst_obs).reshape(rows_n, cols_n)
     as_in_bs_lst = bs_in_as.transpose().tolist()
-    if debug: 
-        print(bs_in_as_lst)
+    # proportions of b within a
+    propns_bs_in_as = []
+    bs_in_as_lst = bs_in_as.tolist()
+    for bs in bs_in_as_lst:
+        propns_lst = []
+        for b in bs:
+            propns_lst.append(b/float(sum(bs)))
+        propns_bs_in_as.append(propns_lst)
+    propns_as_in_bs_lst = np.array(propns_bs_in_as).transpose().tolist()
+    if debug:
         print(bs_in_as)
         print(as_in_bs_lst)
-    for i, val_label_b in enumerate(val_labels_b):
-        cluster = boomslang.Bar()
-        cluster.xValues = range(val_labels_a_n)
-        y_vals = as_in_bs_lst[i]
-        if debug: print(y_vals)
-        cluster.yValues = y_vals
-        cluster.color = colours[i]
-        cluster.label = val_label_b
-        clustered_bars.add(cluster)
-    clustered_bars.spacing = 0.5
-    clustered_bars.xTickLabels = val_labels_a
+        print(propns_as_in_bs_lst)
+    title_tmp = _("%(laba)s and %(labb)s - %(y)s")
+    title_overrides = {"fontsize": 14}
+    # chart 1 - proportions
     plot = boomslang.Plot()
-    plot.add(clustered_bars)
-    plot.hasLegend()
+    y_label = _("Proportion")
+    plot.setTitle(title_tmp % {"laba": var_label_a, "labb": var_label_b, 
+                               "y": y_label}, title_overrides)
+    plot.setDimensions(7) # allow height to be set by golden ratio
+    plot.hasLegend(columns=val_labels_b_n, location="lower left")
+    plot.setAxesLabelSize(11)
+    plot.setLegendLabelSize(9)
+    charts.config_clustered_barchart(plot, var_label_a, y_label, val_labels_a_n, 
+                                     val_labels_a, val_labels_b, 
+                                     propns_as_in_bs_lst)
     img_src = save_report_img(add_to_report, report_name, save_func=plot.save, 
                               dpi=None)
     html.append(u"\n<img src='%s'>" % img_src)
-    return "".join(html)
+    # chart 2 - freqs
+    plot = boomslang.Plot()
+    y_label = _("Frequency")
+    plot.setTitle(title_tmp % {"laba": var_label_a, "labb": var_label_b, 
+                               "y": y_label}, title_overrides)
+    plot.setDimensions(7) # allow height to be set by golden ratio
+    plot.hasLegend(columns=val_labels_b_n, location="lower left")
+    plot.setAxesLabelSize(11)
+    plot.setLegendLabelSize(9)
+    charts.config_clustered_barchart(plot, var_label_a, y_label, val_labels_a_n, 
+                                     val_labels_a, val_labels_b, as_in_bs_lst)
+    img_src = save_report_img(add_to_report, report_name, save_func=plot.save, 
+                              dpi=None)
+    html.append(u"\n<img src='%s'>" % img_src)
 
 def kruskal_wallis_output(h, p, label_a, label_b, label_avg, dp=3,
                  level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
