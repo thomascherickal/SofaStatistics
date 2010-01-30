@@ -356,7 +356,7 @@ class DataSelectDlg(wx.Dialog):
                             "be made there."))
             return
         tbl_name_lst = [] # not quite worth using validator mechanism ;-)
-        data = [("var001", "Numeric")]
+        data = [("sofa_id", "Numeric")]
         final_grid_data = []
         dlgConfig = table_config.ConfigTableDlg(tbl_name_lst, data, 
                                                 final_grid_data)

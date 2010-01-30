@@ -190,6 +190,9 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.szrTblLabel.Add(lblTblLabel, 0, wx.RIGHT, 5)
         self.szrTblLabel.Add(self.txtTblName, 1)
         self.szrMain.Add(self.szrTblLabel, 0, wx.GROW|wx.ALL, 10)
+        lblsofa_id = wx.StaticText(self.panel, -1, _("The sofa_id is required "
+                                                     "and cannot be edited"))
+        self.szrMain.Add(lblsofa_id, 0, wx.ALL, 10)
         self.tabentry = ConfigTableEntry(self, self.panel, 
                                          self.szrMain, 2, self.readonly, 
                                          grid_size, col_dets, data,  
