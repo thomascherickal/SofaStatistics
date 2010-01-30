@@ -139,7 +139,8 @@ default_hdr = u"""
             <html>
             <head>
             <meta http-equiv="P3P" content='CP="IDC DSP COR CURa ADMa OUR 
-            IND PHY ONL COM STA"; charset=utf-8'>
+            IND PHY ONL COM STA"'>
+            <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
             <title>%s</title>
             <style type="text/css">
             <!--
