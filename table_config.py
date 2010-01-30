@@ -198,8 +198,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                                          grid_size, col_dets, data,  
                                          final_grid_data, insert_data_func,
                                          cell_invalidation_func)
-        self.setup_btns(inc_delete=not self.readonly, 
-                        inc_insert=not self.readonly)
+        self.setup_btns(self.readonly)
         self.szrMain.Add(self.szrBtns, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
@@ -285,12 +284,12 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
     my_globals.TBL_FLD_NAME, etc
     """
     
-    def __init__(self, frame, panel, szr, vert_share, read_only, grid_size, 
+    def __init__(self, frame, panel, szr, vert_share, readonly, grid_size, 
                 col_dets, data, final_grid_data, insert_data_func=None, 
                 cell_invalidation_func=None):
         force_focus = False
         settings_grid.SettingsEntry.__init__(self, frame, panel, szr, 
-            vert_share, read_only, grid_size, col_dets, data, final_grid_data, 
+            vert_share, readonly, grid_size, col_dets, data, final_grid_data, 
             force_focus, insert_data_func, cell_invalidation_func)
         self.debug = False # otherwise set in the parent class ;-)
         # disable first row (SOFA_ID)
@@ -343,7 +342,7 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
         Can delete any row except the new row or the SOFA_ID row
         Returns boolean and msg.
         """
-        if self.NewRow(row):
+        if self.is_new_row(row):
             return False, _("Unable to delete new row")
         elif row == 0:
             return False, _("Unable to delete sofa id row")

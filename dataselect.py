@@ -356,7 +356,9 @@ class DataSelectDlg(wx.Dialog):
                             "be made there."))
             return
         tbl_name_lst = [] # not quite worth using validator mechanism ;-)
-        data = [("sofa_id", "Numeric")]
+        data = [("sofa_id", "Numeric"),
+                ("var001", "Numeric"),
+                ]
         final_grid_data = []
         dlgConfig = table_config.ConfigTableDlg(tbl_name_lst, data, 
                                                 final_grid_data)
@@ -390,7 +392,7 @@ class DataSelectDlg(wx.Dialog):
                         "database"))
         # open data          
         wx.BeginBusyCursor()
-        read_only = False
+        readonly = False
         dlg = db_grid.TblEditor(self, dbe, self.con, self.cur, 
                                 my_globals.SOFA_DEFAULT_DB, self.tbl, self.flds, 
                                 self.var_labels, self.var_notes, self.var_types,

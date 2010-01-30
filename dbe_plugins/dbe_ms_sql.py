@@ -321,7 +321,7 @@ def InsertRow(con, cur, tbl_name, data):
             (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
         return False, u"%s" % e
 
-def setDataConGui(parent, read_only, scroll, szr, lblfont):
+def setDataConGui(parent, readonly, scroll, szr, lblfont):
     ""
     # default database
     parent.lblMssqlDefaultDb = wx.StaticText(scroll, -1, 
@@ -332,7 +332,7 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
     parent.txtMssqlDefaultDb = wx.TextCtrl(scroll, -1, 
                                            mssql_default_db, 
                                            size=(250,-1))
-    parent.txtMssqlDefaultDb.Enable(not read_only)
+    parent.txtMssqlDefaultDb.Enable(not readonly)
     # default table
     parent.lblMssqlDefaultTbl = wx.StaticText(scroll, -1, 
                                        _("Default Table:"))
@@ -342,7 +342,7 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
     parent.txtMssqlDefaultTbl = wx.TextCtrl(scroll, -1, 
                                             mssql_default_tbl, 
                                             size=(250,-1))
-    parent.txtMssqlDefaultTbl.Enable(not read_only)
+    parent.txtMssqlDefaultTbl.Enable(not readonly)
     # host
     parent.lblMssqlHost = wx.StaticText(scroll, -1, 
                                         _("Host - (local) if own machine:"))
@@ -350,14 +350,14 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
     mssql_host = parent.mssql_host
     parent.txtMssqlHost = wx.TextCtrl(scroll, -1, mssql_host, 
                                       size=(100,-1))
-    parent.txtMssqlHost.Enable(not read_only)
+    parent.txtMssqlHost.Enable(not readonly)
     # user
     parent.lblMssqlUser = wx.StaticText(scroll, -1, _("User:"))
     parent.lblMssqlUser.SetFont(lblfont)
     mssql_user = parent.mssql_user if parent.mssql_user else ""
     parent.txtMssqlUser = wx.TextCtrl(scroll, -1, mssql_user, 
                                       size=(100,-1))
-    parent.txtMssqlUser.Enable(not read_only)
+    parent.txtMssqlUser.Enable(not readonly)
     # password
     parent.lblMssqlPwd = wx.StaticText(scroll, -1, 
                                        _("Password - space if none:"))
@@ -365,7 +365,7 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
     mssql_pwd = parent.mssql_pwd if parent.mssql_pwd else ""
     parent.txtMssqlPwd = wx.TextCtrl(scroll, -1, mssql_pwd, 
                                      size=(300,-1))
-    parent.txtMssqlPwd.Enable(not read_only)
+    parent.txtMssqlPwd.Enable(not readonly)
     #2 MS SQL SERVER
     bxMssql= wx.StaticBox(scroll, -1, u"Microsoft SQL Server")
     parent.szrMssql = wx.StaticBoxSizer(bxMssql, wx.VERTICAL)

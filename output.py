@@ -473,6 +473,7 @@ def add_end_script_code(f):
 
 def display_report(parent, strContent, url_load=False):
     # display results
+    wx.BeginBusyCursor()
     dlg = showhtml.ShowHTML(parent=parent, content=strContent, 
                             file_name=my_globals.INT_REPORT_FILE, 
                             title=_("Report"), 
@@ -480,3 +481,4 @@ def display_report(parent, strContent, url_load=False):
                             url_load=url_load)
     dlg.ShowModal()
     dlg.Destroy()
+    wx.EndBusyCursor()

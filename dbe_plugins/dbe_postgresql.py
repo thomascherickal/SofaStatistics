@@ -392,7 +392,7 @@ def InsertRow(con, cur, tbl_name, data):
             (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
         return False, u"%s" % e
 
-def setDataConGui(parent, read_only, scroll, szr, lblfont):
+def setDataConGui(parent, readonly, scroll, szr, lblfont):
     ""
     # default database
     parent.lblPgsqlDefaultDb = wx.StaticText(scroll, -1, 
@@ -403,7 +403,7 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
     parent.txtPgsqlDefaultDb = wx.TextCtrl(scroll, -1, 
                                            pgsql_default_db, 
                                            size=(250,-1))
-    parent.txtPgsqlDefaultDb.Enable(not read_only)
+    parent.txtPgsqlDefaultDb.Enable(not readonly)
     # default table
     parent.lblPgsqlDefaultTbl = wx.StaticText(scroll, -1, _("Default Table:"))
     parent.lblPgsqlDefaultTbl.SetFont(lblfont)
@@ -412,28 +412,28 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
     parent.txtPgsqlDefaultTbl = wx.TextCtrl(scroll, -1, 
                                             pgsql_default_tbl, 
                                             size=(250,-1))
-    parent.txtPgsqlDefaultTbl.Enable(not read_only)
+    parent.txtPgsqlDefaultTbl.Enable(not readonly)
     # host
     parent.lblPgsqlHost = wx.StaticText(scroll, -1, _("Host:"))
     parent.lblPgsqlHost.SetFont(lblfont)
     pgsql_host = parent.pgsql_host if parent.pgsql_host else ""
     parent.txtPgsqlHost = wx.TextCtrl(scroll, -1, pgsql_host, 
                                       size=(100,-1))
-    parent.txtPgsqlHost.Enable(not read_only)
+    parent.txtPgsqlHost.Enable(not readonly)
     # user
     parent.lblPgsqlUser = wx.StaticText(scroll, -1, _("User:"))
     parent.lblPgsqlUser.SetFont(lblfont)
     pgsql_user = parent.pgsql_user if parent.pgsql_user else ""
     parent.txtPgsqlUser = wx.TextCtrl(scroll, -1, pgsql_user, 
                                       size=(100,-1))
-    parent.txtPgsqlUser.Enable(not read_only)
+    parent.txtPgsqlUser.Enable(not readonly)
     # password
     parent.lblPgsqlPwd = wx.StaticText(scroll, -1, _("Password:"))
     parent.lblPgsqlPwd.SetFont(lblfont)
     pgsql_pwd = parent.pgsql_pwd if parent.pgsql_pwd else ""
     parent.txtPgsqlPwd = wx.TextCtrl(scroll, -1, pgsql_pwd, 
                                      size=(300,-1))
-    parent.txtPgsqlPwd.Enable(not read_only)
+    parent.txtPgsqlPwd.Enable(not readonly)
     #2 pgsql
     bxpgsql= wx.StaticBox(scroll, -1, "pgsql")
     parent.szrpgsql = wx.StaticBoxSizer(bxpgsql, wx.VERTICAL)

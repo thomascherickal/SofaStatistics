@@ -287,7 +287,7 @@ def InsertRow(con, cur, tbl_name, data):
             (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
         return False, u"%s" % e
 
-def setDataConGui(parent, read_only, scroll, szr, lblfont):
+def setDataConGui(parent, readonly, scroll, szr, lblfont):
     ""
     # default database
     parent.lblMsaccessDefaultDb = wx.StaticText(scroll, -1, 
@@ -297,7 +297,7 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
         if parent.msaccess_default_db else ""
     parent.txtMsaccessDefaultDb = wx.TextCtrl(scroll, -1, MSACCESS_DEFAULT_DB, 
                                               size=(250,-1))
-    parent.txtMsaccessDefaultDb.Enable(not read_only)
+    parent.txtMsaccessDefaultDb.Enable(not readonly)
     # default table
     parent.lblMsaccessDefaultTbl = wx.StaticText(scroll, -1, 
                                                  _("Default Table:"))
@@ -306,7 +306,7 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
         if parent.msaccess_default_tbl else ""
     parent.txtMsaccessDefaultTbl = wx.TextCtrl(scroll, -1, MSACCESS_DEFAULT_TBL, 
                                                size=(250,-1))
-    parent.txtMsaccessDefaultTbl.Enable(not read_only)
+    parent.txtMsaccessDefaultTbl.Enable(not readonly)
     bxMsaccess= wx.StaticBox(scroll, -1, "MS Access")
     parent.szrMsaccess = wx.StaticBoxSizer(bxMsaccess, wx.VERTICAL)
     #3 MS ACCESS INNER
@@ -350,7 +350,7 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
     data = parent.msaccess_data[:]
     data.sort(key=lambda s: s[0])
     parent.msaccess_grid = settings_grid.SettingsEntry(frame=parent, 
-        panel=scroll, szr=parent.szrMsaccess, vert_share=1, read_only=read_only, 
+        panel=scroll, szr=parent.szrMsaccess, vert_share=1, readonly=readonly, 
         grid_size=(900, 100), col_dets=msaccess_col_dets, 
         data=data, final_grid_data=parent.msaccess_final_grid_data, 
         force_focus=True)

@@ -379,7 +379,7 @@ def InsertRow(con, cur, tbl_name, data):
             (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
         return False, u"%s" % e
 
-def setDataConGui(parent, read_only, scroll, szr, lblfont):
+def setDataConGui(parent, readonly, scroll, szr, lblfont):
     ""
     # default database
     parent.lblMysqlDefaultDb = wx.StaticText(scroll, -1, 
@@ -390,7 +390,7 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
     parent.txtMysqlDefaultDb = wx.TextCtrl(scroll, -1, 
                                            mysql_default_db, 
                                            size=(200,-1))
-    parent.txtMysqlDefaultDb.Enable(not read_only)
+    parent.txtMysqlDefaultDb.Enable(not readonly)
     # default table
     parent.lblMysqlDefaultTbl = wx.StaticText(scroll, -1, 
                                        _("Default Table:"))
@@ -400,28 +400,28 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
     parent.txtMysqlDefaultTbl = wx.TextCtrl(scroll, -1, 
                                             mysql_default_tbl, 
                                             size=(200,-1))
-    parent.txtMysqlDefaultTbl.Enable(not read_only)
+    parent.txtMysqlDefaultTbl.Enable(not readonly)
     # host
     parent.lblMysqlHost = wx.StaticText(scroll, -1, _("Host:"))
     parent.lblMysqlHost.SetFont(lblfont)
     mysql_host = parent.mysql_host if parent.mysql_host else ""
     parent.txtMysqlHost = wx.TextCtrl(scroll, -1, mysql_host, 
                                       size=(100,-1))
-    parent.txtMysqlHost.Enable(not read_only)
+    parent.txtMysqlHost.Enable(not readonly)
     # user
     parent.lblMysqlUser = wx.StaticText(scroll, -1, _("User:"))
     parent.lblMysqlUser.SetFont(lblfont)
     mysql_user = parent.mysql_user if parent.mysql_user else ""
     parent.txtMysqlUser = wx.TextCtrl(scroll, -1, mysql_user, 
                                       size=(100,-1))
-    parent.txtMysqlUser.Enable(not read_only)
+    parent.txtMysqlUser.Enable(not readonly)
     # password
     parent.lblMysqlPwd = wx.StaticText(scroll, -1, _("Password:"))
     parent.lblMysqlPwd.SetFont(lblfont)
     mysql_pwd = parent.mysql_pwd if parent.mysql_pwd else ""
     parent.txtMysqlPwd = wx.TextCtrl(scroll, -1, mysql_pwd, 
                                      size=(300,-1))
-    parent.txtMysqlPwd.Enable(not read_only)
+    parent.txtMysqlPwd.Enable(not readonly)
     #2 MYSQL
     bxMysql= wx.StaticBox(scroll, -1, "MySQL")
     parent.szrMysql = wx.StaticBoxSizer(bxMysql, wx.VERTICAL)

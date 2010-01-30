@@ -61,32 +61,35 @@ class SettingsEntryDlg(wx.Dialog):
         self.Layout()
         self.tabentry.grid.SetFocus()
         
-    def setup_btns(self, inc_delete=False, inc_insert=False):
+    def setup_btns(self, readonly=False):
         """
         Separated for text_browser reuse
         """
-        btnCancel = wx.Button(self.panel, wx.ID_CANCEL)
-        btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
-        btnOK = wx.Button(self.panel, wx.ID_OK, _("Update")) # must have ID of 
-        # wx.ID_OK to trigger validators (no event binding needed) and 
-        # for std dialog button layout
+        if not readonly:
+            btnCancel = wx.Button(self.panel, wx.ID_CANCEL)
+            btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
+        if readonly:
+            btnOK = wx.Button(self.panel, wx.ID_OK)
+        else:
+            btnOK = wx.Button(self.panel, wx.ID_OK, _("Update")) # must have ID 
+            # of wx.ID_OK to trigger validators (no event binding needed) and 
+            # for std dialog button layout
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
         btnOK.SetDefault()
-        if inc_delete:
+        if not readonly:
             btnDelete = wx.Button(self.panel, wx.ID_DELETE)
             btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
-        if inc_insert:
             btnInsert = wx.Button(self.panel, -1, _("Insert Before"))
             btnInsert.Bind(wx.EVT_BUTTON, self.OnInsert)
         # using the approach which will follow the platform convention 
         # for standard buttons
         self.szrBtns = wx.StdDialogButtonSizer()
-        self.szrBtns.AddButton(btnCancel)
+        if not readonly:
+            self.szrBtns.AddButton(btnCancel)
         self.szrBtns.AddButton(btnOK)
         self.szrBtns.Realize()
-        if inc_delete:
+        if not readonly:
             self.szrBtns.Insert(0, btnDelete, 0)
-        if inc_insert:
             self.szrBtns.Insert(0, btnInsert, 0, wx.RIGHT, 10)
 
     def OnCancel(self, event):
@@ -134,7 +137,7 @@ def cell_invalidation(row, col, grid, col_dets):
 
 class SettingsEntry(object):
     
-    def __init__(self, frame, panel, szr, vert_share, read_only, grid_size, 
+    def __init__(self, frame, panel, szr, vert_share, readonly, grid_size, 
                  col_dets, data, final_grid_data, force_focus=False,
                  insert_data_func=None, cell_invalidation_func=None):
         """
@@ -157,7 +160,7 @@ class SettingsEntry(object):
         self.frame = frame
         self.panel = panel
         self.szr = szr
-        self.read_only = read_only
+        self.readonly = readonly
         self.col_dets = col_dets
         self.force_focus = force_focus
         self.insert_data_func = insert_data_func
@@ -174,8 +177,10 @@ class SettingsEntry(object):
         self.new_editor_shown = False
         # grid control
         self.grid = wx.grid.Grid(self.panel, size=grid_size)        
-        self.respond_to_select_cell = True        
-        self.rows_n = len(self.data) + 1
+        self.respond_to_select_cell = True      
+        self.rows_n = len(self.data)
+        if not readonly:
+            self.rows_n += 1
         self.cols_n = len(self.col_dets)
         if self.rows_n > 1:
             data_cols_n = len(data[0])
@@ -186,7 +191,7 @@ class SettingsEntry(object):
                     u"%s columns)" % (self.cols_n, data_cols_n)
         self.grid.CreateGrid(numRows=self.rows_n,
                              numCols=self.cols_n)
-        self.grid.EnableEditing(not self.read_only)
+        self.grid.EnableEditing(not self.readonly)
         # Set any col min widths specifically specified
         for col_idx in range(len(self.col_dets)):
             col_width = self.col_widths[col_idx]
@@ -207,7 +212,7 @@ class SettingsEntry(object):
                 self.grid.SetColFormatFloat(col_idx, width, precision)
             # must set editor cell by cell amazingly
             for row_idx in range(self.rows_n):
-                renderer, editor = self.GetNewRendererEditor(row_idx, col_idx)
+                renderer, editor = self.get_new_renderer_editor(col_idx)
                 self.grid.SetCellRenderer(row_idx, col_idx, renderer)
                 self.grid.SetCellEditor(row_idx, col_idx, editor)
         # set min row height if text browser used
@@ -233,17 +238,23 @@ class SettingsEntry(object):
         # misc
         for col_idx, col_det in enumerate(self.col_dets):
             self.grid.SetColLabelValue(col_idx, col_det["col_label"])
-        for i in range(self.rows_n - 1):
+        self.rows_to_fill = self.rows_n if self.readonly else self.rows_n - 1
+        for i in range(self.rows_to_fill):
             for j in range(self.cols_n):
                 self.grid.SetCellValue(row=i, col=j, s=unicode(data[i][j]))
-        self.grid.SetRowLabelValue(self.rows_n - 1, u"*")
-        self.current_row_idx = self.rows_n - 1
+        if not self.readonly:
+                self.grid.SetRowLabelValue(self.rows_n - 1, u"*")
         self.current_col_idx = 0
-        self.grid.SetGridCursor(self.rows_n - 1, 0) # triggers OnSelect
-        self.grid.MakeCellVisible(self.rows_n - 1, 0)
+        if self.readonly:
+            self.current_row_idx = 0
+            self.grid.SetGridCursor(0, 0)
+        else:
+            self.current_row_idx = self.rows_n - 1
+            self.grid.SetGridCursor(self.rows_n - 1, 0) # triggers OnSelect
+            self.grid.MakeCellVisible(self.rows_n - 1, 0)
         self.szr.Add(self.grid, vert_share, wx.GROW|wx.ALL, 5)
     
-    def GetNewRendererEditor(self, row_idx, col_idx):
+    def get_new_renderer_editor(self, col_idx):
         """
         For a given column index, return a fresh renderer and editor object.
         Objects must be unique to cell.
@@ -274,7 +285,7 @@ class SettingsEntry(object):
                 renderer = wx.grid.GridCellStringRenderer()
                 editor = wx.grid.GridCellChoiceEditor(dropdown_vals)
             else:
-                raise Exception, u"settings_grid.GetNewRendererEditor: " + \
+                raise Exception, u"settings_grid.get_new_renderer_editor: " + \
                     u"needed to supply dropdown_vals"
         else:
             renderer = wx.grid.GridCellStringRenderer()
@@ -514,7 +525,7 @@ class SettingsEntry(object):
         debug = False
         # 1) move type
         final_col = (src_col == len(self.col_dets) - 1)
-        was_new_row = self.NewRow(self.current_row_idx)
+        was_new_row = self.is_new_row(self.current_row_idx)
         if debug: print(u"Current row idx: %s, src_row: %s, was_new_row: %s" %
                         (self.current_row_idx, src_row, was_new_row))
         dest_row_is_new = self._destRowIsCurrentNew(src_row, dest_row, 
@@ -559,7 +570,7 @@ class SettingsEntry(object):
             if it becomes a new row is not the current new row.
         """
         #organised for clarity not minimal lines of code ;-)
-        if self.NewRow(src_row): # new row
+        if self.is_new_row(src_row): # new row
             if final_col:
                 # only LEFT stays in _current_ new row
                 if direction == my_globals.MOVE_LEFT:
@@ -571,7 +582,7 @@ class SettingsEntry(object):
                     dest_row_is_new = True # moving sideways within new
                 else:
                     dest_row_is_new = False
-        elif self.NewRow(src_row + 1): # row just above the new row
+        elif self.is_new_row(src_row + 1): # row just above the new row
             # only down (inc down left and right), or right in final col, 
             # take to new
             if direction in [my_globals.MOVE_DOWN, my_globals.MOVE_DOWN_LEFT, 
@@ -584,9 +595,9 @@ class SettingsEntry(object):
             dest_row_is_new = False
         return dest_row_is_new
     
-    def NewRow(self, row):
+    def is_new_row(self, row):
         "2 rows inc new - new row if idx = 1 i.e. subtract 1"
-        new_row = (row == self.rows_n - 1)
+        new_row = (row == self.rows_to_fill)
         return new_row
     
     def _leavingExistingCell(self):
@@ -727,7 +738,7 @@ class SettingsEntry(object):
         Can delete any row except the new row.
         Returns boolean and msg.
         """
-        if self.NewRow(row):
+        if self.is_new_row(row):
             return False, _("Unable to delete new row")
         else:
             return True, None
@@ -815,7 +826,7 @@ class SettingsEntry(object):
         if self.insert_data_func:
             row_data = self.insert_data_func(row_idx, grid_data)
             for col_idx in range(len(self.col_dets)):
-                renderer, editor = self.GetNewRendererEditor(row_idx, col_idx)
+                renderer, editor = self.get_new_renderer_editor(col_idx)
                 self.grid.SetCellRenderer(row_idx, col_idx, renderer)
                 self.grid.SetCellEditor(row_idx, col_idx, editor)
             for i, value in enumerate(row_data):
@@ -844,7 +855,7 @@ class SettingsEntry(object):
         self.grid.AppendRows()
         # set up cell rendering and editing
         for col_idx in range(self.cols_n):
-            renderer, editor = self.GetNewRendererEditor(new_row_idx, col_idx)
+            renderer, editor = self.get_new_renderer_editor(col_idx)
             self.grid.SetCellRenderer(new_row_idx, col_idx, renderer)
             self.grid.SetCellEditor(new_row_idx, col_idx, editor)
         self.rows_n += 1

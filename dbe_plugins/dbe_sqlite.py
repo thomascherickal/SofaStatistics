@@ -254,7 +254,7 @@ def InsertRow(con, cur, tbl_name, data):
             (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
         return False, u"%s" % e
 
-def setDataConGui(parent, read_only, scroll, szr, lblfont):
+def setDataConGui(parent, readonly, scroll, szr, lblfont):
     ""
     # default database
     parent.lblSqliteDefaultDb = wx.StaticText(scroll, -1, 
@@ -263,7 +263,7 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
     DEFAULT_DB = parent.sqlite_default_db if parent.sqlite_default_db else ""
     parent.txtSqliteDefaultDb = wx.TextCtrl(scroll, -1, DEFAULT_DB, 
                                             size=(250,-1))
-    parent.txtSqliteDefaultDb.Enable(not read_only)
+    parent.txtSqliteDefaultDb.Enable(not readonly)
     # default table
     parent.lblSqliteDefaultTbl = wx.StaticText(scroll, -1, _("Default Table:"))
     parent.lblSqliteDefaultTbl.SetFont(lblfont)
@@ -271,7 +271,7 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
         else ""
     parent.txtSqliteDefaultTbl = wx.TextCtrl(scroll, -1, DEFAULT_TBL, 
                                              size=(250,-1))
-    parent.txtSqliteDefaultTbl.Enable(not read_only)
+    parent.txtSqliteDefaultTbl.Enable(not readonly)
     bxSqlite = wx.StaticBox(scroll, -1, "SQLite")
     parent.szrSqlite = wx.StaticBoxSizer(bxSqlite, wx.VERTICAL)
     #3 SQLITE INNER
@@ -289,7 +289,7 @@ def setDataConGui(parent, read_only, scroll, szr, lblfont):
     data = parent.sqlite_data[:]
     data.sort(key=lambda s: s[0])
     parent.sqlite_grid = settings_grid.SettingsEntry(frame=parent, 
-        panel=scroll, szr=parent.szrSqlite, vert_share=1, read_only=read_only, 
+        panel=scroll, szr=parent.szrSqlite, vert_share=1, readonly=readonly, 
         grid_size=(550, 100), col_dets=sqlite_col_dets, 
         data=parent.sqlite_data, final_grid_data=parent.sqlite_final_grid_data, 
         force_focus=True)

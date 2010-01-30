@@ -333,7 +333,7 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         self.tabentry = settings_grid.SettingsEntry(self, self.panel, 
                                             self.szrMain, 2, False, grid_size, 
                                             col_dets, data, final_grid_data)
-        self.setup_btns(inc_delete=True, inc_insert=True)
+        self.setup_btns(readonly=False)
         self.szrMain.Add(self.szrBtns, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
@@ -487,7 +487,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.szrTop.SetSizeHints(self.panel_top)
         # CON DETS
         self.szrCon_Dets.Add(szrDefault_Dbe, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        getdata.setDataConGui(parent=self, read_only=self.readonly, 
+        getdata.setDataConGui(parent=self, readonly=self.readonly, 
                                scroll=self.scroll_con_dets, 
                                szr=self.szrCon_Dets, lblfont=lblfont)
         self.scroll_con_dets.SetSizer(self.szrCon_Dets)

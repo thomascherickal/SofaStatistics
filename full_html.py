@@ -1,3 +1,4 @@
+import codecs
 import os
 import wx
 
@@ -40,7 +41,7 @@ else:
                     url_fil = os.path.join(my_globals.INT_PATH, 
                                            u"ready2load.htm")
                     if debug: print(url_fil)
-                    f = open(url_fil, "w")
+                    f = codecs.open(url_fil, "U", encoding="utf-8")
                     f.write(strHTML)
                     f.close()
                     self.LoadUrl("file:///%s" % url_fil)

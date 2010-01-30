@@ -146,10 +146,10 @@ def get_dbe_syntax_elements(dbe):
     """
     return my_globals.DBE_MODULES[dbe].get_syntax_elements()
 
-def setDataConGui(parent, read_only, scroll, szr, lblfont):
+def setDataConGui(parent, readonly, scroll, szr, lblfont):
     ""
     for dbe in my_globals.DBES:
-        my_globals.DBE_MODULES[dbe].setDataConGui(parent, read_only, scroll, 
+        my_globals.DBE_MODULES[dbe].setDataConGui(parent, readonly, scroll, 
                                                    szr, lblfont)
 
 def getProjConSettings(parent, proj_dic):
@@ -392,13 +392,15 @@ def make_select_renamed_flds_clause(orig_new_names):
 def make_create_tbl_fld_clause(name_types, strict_typing=False):
     """
     Make clause for defining fields in default SOFA SQLite database.
-    Starts with autonumber SOFA_ID.
+    Always starts with autonumber SOFA_ID (so skip details from name_types for 
+        first field).
     """
     debug = False
     sqlite_quoter = get_obj_quoter_func(my_globals.DBE_SQLITE)
     fld_clause_items = [u"%s INTEGER PRIMARY KEY" % \
                         sqlite_quoter(my_globals.SOFA_ID)]
-    for fld_name, fld_type in name_types:
+    fld_dets = name_types[1:] # skip sofa id field - only do once
+    for fld_name, fld_type in fld_dets:
         tosqlite = my_globals.GEN2SQLITE_DIC[fld_type]
         if strict_typing:
             check = tosqlite["check_clause"] % \
@@ -423,7 +425,8 @@ def make_sofa_tbl(con, cur, tbl_name, name_types, strict_typing=False):
         to open database outside of this application which using user-defined
         functions in table definitions).
     name_types -- [(fld_name, fld_type), ...].  No need to reference old names 
-        or types.
+        or types.  NB always includes sofa_id first because GUI pre-fills that
+        and prevents it being removed or edited.
     strict_typing -- uses user-defined functions to apply strict typing via
         check clauses as part of create table statements.
     """

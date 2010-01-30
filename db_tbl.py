@@ -105,17 +105,17 @@ class DbTbl(wx.grid.PyGridTableBase):
 
     def SetNumberRows(self):
         debug = False
-        SQL_num_rows = u"SELECT COUNT(*) FROM %s" % self.quote_obj(self.tbl)
-        self.cur.execute(SQL_num_rows)
-        self.num_rows = self.cur.fetchone()[0]
+        SQL_rows_n = u"SELECT COUNT(*) FROM %s" % self.quote_obj(self.tbl)
+        self.cur.execute(SQL_rows_n)
+        self.rows_n = self.cur.fetchone()[0]
         if not self.readonly:
-            self.num_rows += 1
-        if self.debug or debug: print(u"N rows: %s" % self.num_rows)
-        self.rows_to_fill = self.num_rows - 1 if self.readonly \
-                else self.num_rows - 2
+            self.rows_n += 1
+        if self.debug or debug: print(u"N rows: %s" % self.rows_n)
+        self.rows_to_fill = self.rows_n - 1 if self.readonly \
+                else self.rows_n - 2
     
     def GetNumberRows(self):
-        return self.num_rows
+        return self.rows_n
     
     def NewRow(self, row):
         new_row = row > self.rows_to_fill
