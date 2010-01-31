@@ -203,11 +203,13 @@ def getGaugeChunkSize(n_rows, sample_n):
         gauge_chunk = None
     return gauge_chunk
 
-def AddToTmpTable(con, cur, file_path, tbl_name, fld_names, fld_types, 
-                  sample_data, sample_n, remaining_data, progBackup, 
-                  gauge_chunk, keep_importing):
+def add_to_tmp_tbl(con, cur, file_path, tbl_name, fld_names, fld_types, 
+                   sample_data, sample_n, remaining_data, progBackup, 
+                   gauge_chunk, keep_importing):
     """
     Create fresh disposable table in SQLite and insert data into it.
+    fld_names -- field names (shouldn't have a sofa_id field)
+    fld_types -- field types for names
     Give it a unique identifier field as well.
     Set up the data type constraints needed.
     """
@@ -231,8 +233,9 @@ def AddToTmpTable(con, cur, file_path, tbl_name, fld_names, fld_types,
         raise
     try:
         tbl_name = TMP_SQLITE_TBL
-        name_types = [(fld_name, fld_types[fld_name]) for fld_name in fld_names]
-        getdata.make_sofa_tbl(con, cur, tbl_name, name_types)
+        oth_name_types = [(fld_name, fld_types[fld_name]) for fld_name \
+                          in fld_names]
+        getdata.make_sofa_tbl(con, cur, tbl_name, oth_name_types)
     except Exception, e:
         raise   
     try:
@@ -255,9 +258,9 @@ def AddToTmpTable(con, cur, file_path, tbl_name, fld_names, fld_types,
         if retCode == wx.YES:
             # change fld_type to string and start again
             fld_types[e.fld_name] = my_globals.FLD_TYPE_STRING
-            AddToTmpTable(con, cur, file_path, tbl_name, fld_names, fld_types, 
-                          sample_data, sample_n, remaining_data, progBackup, 
-                          gauge_chunk, keep_importing)
+            add_to_tmp_tbl(con, cur, file_path, tbl_name, fld_names, fld_types, 
+                           sample_data, sample_n, remaining_data, progBackup, 
+                           gauge_chunk, keep_importing)
         else:
             raise Exception, u"Mismatch between data in column and " + \
                 "expected column type"
@@ -265,7 +268,7 @@ def AddToTmpTable(con, cur, file_path, tbl_name, fld_names, fld_types,
 def TmpToNamedTbl(con, cur, tbl_name, file_path, progBackup):
     """
     Rename table to final name.
-    Separated from AddToTmpTable to allow the latter to recurse.
+    Separated from add_to_tmp_tbl to allow the latter to recurse.
     This part is only called once at the end.
     """
     debug = False

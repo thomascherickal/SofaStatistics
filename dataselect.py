@@ -235,16 +235,12 @@ class DataSelectDlg(wx.Dialog):
         self.button_enablement()
         event.Skip()
     
-    def make_strict_typing_tbl(self, tbl_name, final_name_types, 
-                               final_grid_data):
+    def make_strict_typing_tbl(self, tbl_name, final_name_types, config_data):
         ""
         debug = False
-        create_fld_clause = getdata.make_create_tbl_fld_clause(final_name_types, 
+        create_fld_clause = getdata.get_create_flds_txt(final_name_types, 
                                                         strict_typing=True)
-        orig_new_names = \
-            [(x[my_globals.TBL_FLD_NAME_ORIG], x[my_globals.TBL_FLD_NAME]) \
-             for x in final_grid_data if x[my_globals.TBL_FLD_NAME] != \
-             my_globals.SOFA_ID]
+        orig_new_names = getdata.get_oth_name_types(config_data)
         select_fld_clause = \
             getdata.make_select_renamed_flds_clause(orig_new_names)
         SQL_drop_tmp_tbl = "DROP TABLE IF EXISTS %s" % \
@@ -261,13 +257,13 @@ class DataSelectDlg(wx.Dialog):
         if debug: print(SQL_insert_all)
         self.cur.execute(SQL_insert_all)
     
-    def make_redesigned_tbl(self, final_name_types, final_grid_data):
+    def make_redesigned_tbl(self, oth_name_types, config_data):
         """
         Make new table with all the fields from the tmp table but the SOFA_ID
             field autoincrementing and an index.
         """
         debug = False
-        create_fld_clause = getdata.make_create_tbl_fld_clause(final_name_types, 
+        create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
                                                         strict_typing=False)
         SQL_drop_orig = "DROP TABLE %s" % sqlite_quoter(self.tbl)
         self.cur.execute(SQL_drop_orig)
@@ -289,16 +285,16 @@ class DataSelectDlg(wx.Dialog):
         NB only enabled (for either viewing or editing) for the default SQLite 
             database.
         """
-        debug = False
+        debug = True
         tbl_name_lst = [self.tbl,]
         data = self._get_tbl_config(self.tbl)
         if debug: print(data)
-        final_grid_data = []
+        config_data = []
         readonly = self.chkReadOnly.IsChecked()
-        dlgConfig = table_config.ConfigTableDlg(tbl_name_lst, data, 
-                                                final_grid_data, readonly)
+        dlgConfig = table_config.ConfigTableDlg(tbl_name_lst, data, config_data, 
+                                                readonly)
         ret = dlgConfig.ShowModal()
-        if debug: pprint.pprint(final_grid_data)
+        if debug: pprint.pprint(config_data)
         if ret == wx.ID_OK and not readonly:
             """
             Make temp table, with strict type enforcement for all fields.  
@@ -317,14 +313,11 @@ class DataSelectDlg(wx.Dialog):
                 anymore.
             """
             self.tbl = tbl_name_lst[0]
-            final_name_types = \
-                [(x[my_globals.TBL_FLD_NAME], x[my_globals.TBL_FLD_TYPE]) \
-                 for x in final_grid_data if x[my_globals.TBL_FLD_NAME] != \
-                 my_globals.SOFA_ID] # SOFA_ID handled differently (autonum +
-                    # index)
+            # other (i.e. not the sofa_id) field details
+            oth_name_types = getdata.get_oth_name_types(config_data)
             try:
-                self.make_strict_typing_tbl(self.tbl, final_name_types, 
-                                            final_grid_data)
+                self.make_strict_typing_tbl(self.tbl, oth_name_types, 
+                                            config_data)
             except pysqlite2.dbapi2.IntegrityError, e:
                 if debug: print(unicode(e))
                 wx.MessageBox(_("Unable to modify table.  Some data does not "
@@ -335,7 +328,7 @@ class DataSelectDlg(wx.Dialog):
                 self.cur.execute(SQL_drop_tmp_tbl)
                 self.con.commit()
                 return
-            self.make_redesigned_tbl(final_name_types, final_grid_data)
+            self.make_redesigned_tbl(oth_name_types, config_data)
             # refresh fld details etc
             self.tbl, self.flds, self.has_unique, self.idxs = \
                 getdata.refresh_tbl_dets(self)
@@ -359,9 +352,8 @@ class DataSelectDlg(wx.Dialog):
         data = [("sofa_id", "Numeric"),
                 ("var001", "Numeric"),
                 ]
-        final_grid_data = []
-        dlgConfig = table_config.ConfigTableDlg(tbl_name_lst, data, 
-                                                final_grid_data)
+        config_data = []
+        dlgConfig = table_config.ConfigTableDlg(tbl_name_lst, data, config_data)
         ret = dlgConfig.ShowModal()
         if ret != wx.ID_OK:
             event.Skip()
@@ -373,10 +365,9 @@ class DataSelectDlg(wx.Dialog):
         # functions)
         self.cur = self.con.cursor()
         tbl_name = tbl_name_lst[0]        
-        name_types = [(x[my_globals.TBL_FLD_NAME], x[my_globals.TBL_FLD_TYPE]) \
-                      for x in final_grid_data]
-        if debug: print(final_grid_data)
-        getdata.make_sofa_tbl(self.con, self.cur, tbl_name, name_types)
+        oth_name_types = getdata.get_oth_name_types(config_data)
+        if debug: print(config_data)
+        getdata.make_sofa_tbl(self.con, self.cur, tbl_name, oth_name_types)
         # prepare to connect to the newly created table
         self.tbl = tbl_name
         dbe = my_globals.DBE_SQLITE

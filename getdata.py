@@ -1,6 +1,7 @@
 from __future__ import print_function
 import os
 import pprint
+import sys
 import wx
 
 import my_globals
@@ -389,49 +390,60 @@ def make_select_renamed_flds_clause(orig_new_names):
     fld_clause = u", ".join(fld_clause_items)
     return fld_clause
 
-def make_create_tbl_fld_clause(name_types, strict_typing=False):
+def get_oth_name_types(config_data):
+    oth_name_types = [(x[my_globals.TBL_FLD_NAME], x[my_globals.TBL_FLD_TYPE]) \
+                            for x in config_data \
+                            if x[my_globals.TBL_FLD_NAME] != my_globals.SOFA_ID]
+    return oth_name_types
+
+def get_create_flds_txt(oth_name_types, strict_typing=False):
     """
-    Make clause for defining fields in default SOFA SQLite database.
-    Always starts with autonumber SOFA_ID (so skip details from name_types for 
-        first field).
+    Get text clause for use in an SQLite SQL create table statement which 
+        defines _all_ the fields i.e. must include the sofa_id.  Because the 
+        table will be created inside the default SOFA SQLite database, the text 
+        must also define the sofa_id as UNIQUE.
+    oth_name_types -- fld_name, fld_type.  Must NOT include sofa_id.  This will 
+        be added automatically.
+    strict_typing -- add check constraints to fields.
     """
     debug = False
-    sqlite_quoter = get_obj_quoter_func(my_globals.DBE_SQLITE)
-    fld_clause_items = [u"%s INTEGER PRIMARY KEY" % \
-                        sqlite_quoter(my_globals.SOFA_ID)]
-    fld_dets = name_types[1:] # skip sofa id field - only do once
-    for fld_name, fld_type in fld_dets:
+    quoter = get_obj_quoter_func(my_globals.DBE_SQLITE)
+    fld_clause_items = [u"%s INTEGER PRIMARY KEY" % quoter(my_globals.SOFA_ID)]
+    for fld_name, fld_type in oth_name_types:
+        if fld_name == my_globals.SOFA:
+            raise Exception, "Do not pass sofa_id into %s" % \
+                sys._getframe().f_code.co_name
+        if fld_name == "":
+            raise Exception, ("Do not pass fields with empty string names into "
+                              "%s" % sys._getframe().f_code.co_name)
         tosqlite = my_globals.GEN2SQLITE_DIC[fld_type]
         if strict_typing:
-            check = tosqlite["check_clause"] % \
-                {"fld_name": sqlite_quoter(fld_name)}
+            check = tosqlite["check_clause"] % {"fld_name": quoter(fld_name)}
         else:
             check = ""
-        if debug: 
-            print(u"%s %s %s" % (fld_name, fld_type, check))
+        if debug: print(u"%s %s %s" % (fld_name, fld_type, check))
         clause = u"%(fld_name)s %(fld_type)s %(check_clause)s" % \
-                            {"fld_name": sqlite_quoter(fld_name), 
-                            "fld_type": tosqlite["sqlite_type"],
-                            "check_clause": check}
+                                            {"fld_name": quoter(fld_name), 
+                                            "fld_type": tosqlite["sqlite_type"],
+                                            "check_clause": check}
         fld_clause_items.append(clause)
-    fld_clause_items.append(u"UNIQUE(%s)" % sqlite_quoter(my_globals.SOFA_ID))
+    fld_clause_items.append(u"UNIQUE(%s)" % quoter(my_globals.SOFA_ID))
     fld_clause = u", ".join(fld_clause_items)
     return fld_clause
 
-def make_sofa_tbl(con, cur, tbl_name, name_types, strict_typing=False):
+def make_sofa_tbl(con, cur, tbl_name, oth_name_types, strict_typing=False):
     """
     Make a table into the SOFA default database.  Must have autonumber SOFA_ID.
     Optionally may apply type checking constraint on fields (NB no longer able
         to open database outside of this application which using user-defined
         functions in table definitions).
     name_types -- [(fld_name, fld_type), ...].  No need to reference old names 
-        or types.  NB always includes sofa_id first because GUI pre-fills that
-        and prevents it being removed or edited.
+        or types.
     strict_typing -- uses user-defined functions to apply strict typing via
         check clauses as part of create table statements.
     """
     debug = False
-    fld_clause = make_create_tbl_fld_clause(name_types, strict_typing)
+    fld_clause = get_create_flds_txt(oth_name_types, strict_typing)
     SQL_make_tbl = u"""CREATE TABLE "%s" (%s)""" % (tbl_name, fld_clause)
     if debug: print(SQL_make_tbl)
     cur.execute(SQL_make_tbl)

@@ -32,8 +32,8 @@ class FileImporter(object):
         self.has_header = (retCode == wx.YES)
         return True
     
-    def AssessDataSample(self, wksheet, fld_names, progBackup, gauge_chunk, 
-                         keep_importing):
+    def assess_sample(self, wksheet, fld_names, progBackup, gauge_chunk, 
+                      keep_importing):
         """
         Assess data sample to identify field types based on values in fields.
         If a field has mixed data types will define as string.
@@ -102,7 +102,7 @@ class FileImporter(object):
         if debug: 
             print("gauge_chunk: %s" % gauge_chunk)
             print("About to assess data sample")
-        fld_types, sample_data = self.AssessDataSample(wksheet, fld_names,
+        fld_types, sample_data = self.assess_sample(wksheet, fld_names,
                                         progBackup, gauge_chunk, keep_importing)
         if debug:
             print("Just finished assessing data sample")
@@ -110,10 +110,10 @@ class FileImporter(object):
             print(sample_data)
         # NB wksheet will be at position ready to access records after sample
         remaining_data = wksheet
-        importer.AddToTmpTable(con, cur, self.file_path, self.tbl_name, 
-                               fld_names, fld_types, sample_data, sample_n,
-                               remaining_data, progBackup,
-                               gauge_chunk, keep_importing)
+        importer.add_to_tmp_tbl(con, cur, self.file_path, self.tbl_name, 
+                                fld_names, fld_types, sample_data, sample_n,
+                                remaining_data, progBackup,
+                                gauge_chunk, keep_importing)
         importer.TmpToNamedTbl(con, cur, self.tbl_name, self.file_path,
                                progBackup)
         cur.close()

@@ -346,13 +346,13 @@ def setDataConGui(parent, readonly, scroll, szr, lblfont):
                   "file_wildcard": None,
                   "empty_ok": True}
     msaccess_col_dets = [col_det_db, col_det_sec, col_det_usr, col_det_pwd]
-    parent.msaccess_final_grid_data = []
+    parent.msaccess_config_data = []
     data = parent.msaccess_data[:]
     data.sort(key=lambda s: s[0])
     parent.msaccess_grid = settings_grid.SettingsEntry(frame=parent, 
         panel=scroll, szr=parent.szrMsaccess, vert_share=1, readonly=readonly, 
         grid_size=(900, 100), col_dets=msaccess_col_dets, 
-        data=data, final_grid_data=parent.msaccess_final_grid_data, 
+        data=data, config_data=parent.msaccess_config_data, 
         force_focus=True)
     szr.Add(parent.szrMsaccess, 0, wx.GROW|wx.ALL, 10)
 
@@ -384,7 +384,7 @@ def setConDetDefaults(parent):
         parent.msaccess_data = []
 
 def processConDets(parent, default_dbs, default_tbls, con_dets):
-    parent.msaccess_grid.update_final_grid_data()
+    parent.msaccess_grid.update_config_data()
     MSACCESS_DEFAULT_DB = parent.txtMsaccessDefaultDb.GetValue()
     MSACCESS_DEFAULT_TBL = parent.txtMsaccessDefaultTbl.GetValue()
     has_msaccess_con = MSACCESS_DEFAULT_DB and MSACCESS_DEFAULT_TBL
@@ -397,8 +397,8 @@ def processConDets(parent, default_dbs, default_tbls, con_dets):
         if MSACCESS_DEFAULT_DB else None            
     default_tbls[my_globals.DBE_MS_ACCESS] = MSACCESS_DEFAULT_TBL \
         if MSACCESS_DEFAULT_TBL else None
-    #pprint.pprint(parent.msaccess_final_grid_data) # debug
-    msaccess_settings = parent.msaccess_final_grid_data
+    #pprint.pprint(parent.msaccess_config_data) # debug
+    msaccess_settings = parent.msaccess_config_data
     if msaccess_settings:
         con_dets_msaccess = {}
         for msaccess_setting in msaccess_settings:

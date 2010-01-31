@@ -95,8 +95,8 @@ def set_var_props(choice_item, var_name, var_label, flds, var_labels, var_notes,
             for key, value in val_dic.items():
                 data.append((key, unicode(value)))
     data.sort(key=lambda s: s[0])
-    final_grid_data = []
-    # get final_grid_data back updated
+    config_data = []
+    # get config_data back updated
     bolnumeric = flds[var_name][my_globals.FLD_BOLNUMERIC]
     boldecimal = flds[var_name][my_globals.FLD_DECPTS]
     boldatetime = flds[var_name][my_globals.FLD_BOLDATETIME]
@@ -121,7 +121,7 @@ def set_var_props(choice_item, var_name, var_label, flds, var_labels, var_notes,
     type = var_types.get(var_name, def_type)
     var_desc = {"label": var_label, "notes": notes, "type": type}
     getsettings = GetSettings(title, boltext, boldatetime, var_desc, data, 
-                              final_grid_data, val_type)
+                              config_data, val_type)
     ret = getsettings.ShowModal()
     if ret == wx.ID_OK:
         # var label, notes, and types
@@ -130,11 +130,11 @@ def set_var_props(choice_item, var_name, var_label, flds, var_labels, var_notes,
         var_types[var_name] = var_desc["type"]
         # val dics
         new_val_dic = {}
-        new_data_rows_n = len(final_grid_data)
+        new_data_rows_n = len(config_data)
         for i in range(new_data_rows_n):
             # the key is always returned as a string 
             # but we may need to store it as a number
-            key, value = final_grid_data[i]
+            key, value = config_data[i]
             if key == "":
                 continue
             elif val_type == settings_grid.COL_FLOAT:
@@ -274,13 +274,13 @@ class ListVarsDlg(wx.Dialog):
 class GetSettings(settings_grid.SettingsEntryDlg):
     
     def __init__(self, title, boltext, boldatetime, var_desc, data, 
-                 final_grid_data, val_type):
+                 config_data, val_type):
         """
         var_desc - dic with keys "label", "notes", and "type".
         data - list of tuples (must have at least one item, even if only a 
             "rename me".
         col_dets - See under settings_grid.SettingsEntry
-        final_grid_data - add details to it in form of a list of tuples.
+        config_data - add details to it in form of a list of tuples.
         """
         col_dets = [{"col_label": _("Value"), "col_type": val_type, 
                      "col_width": 50}, 
@@ -332,7 +332,7 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         self.szrMain.Add(szrDataType, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         self.tabentry = settings_grid.SettingsEntry(self, self.panel, 
                                             self.szrMain, 2, False, grid_size, 
-                                            col_dets, data, final_grid_data)
+                                            col_dets, data, config_data)
         self.setup_btns(readonly=False)
         self.szrMain.Add(self.szrBtns, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
@@ -357,7 +357,7 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         self.var_desc["label"] = self.txtVarLabel.GetValue()
         self.var_desc["notes"] = self.txtVarNotes.GetValue()
         self.var_desc["type"] = self.radDataType.GetStringSelection()
-        self.tabentry.update_final_grid_data()
+        self.tabentry.update_config_data()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
 

@@ -74,7 +74,7 @@ class FileImporter(object):
         self.has_header = (retCode == wx.YES)
         return True
     
-    def AssessDataSample(self, reader, progBackup, gauge_chunk, keep_importing):
+    def assess_sample(self, reader, progBackup, gauge_chunk, keep_importing):
         """
         Assess data sample to identify field types based on values in fields.
         If a field has mixed data types will define as string.
@@ -213,12 +213,12 @@ class FileImporter(object):
             getdata.GetDefaultDbDets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_rows else n_rows
         gauge_chunk = importer.getGaugeChunkSize(n_rows, sample_n)
-        fld_types, sample_data = self.AssessDataSample(reader, progBackup, 
-                                                gauge_chunk, keep_importing)
+        fld_types, sample_data = self.assess_sample(reader, progBackup,
+                                                    gauge_chunk, keep_importing)
         # NB reader will be at position ready to access records after sample
         remaining_data = list(reader) # must be a list not a reader or can't 
         # start again from beginning of data (e.g. if correction made)
-        importer.AddToTmpTable(con, cur, self.file_path, self.tbl_name, 
+        importer.add_to_tmp_tbl(con, cur, self.file_path, self.tbl_name, 
                                fld_names, fld_types, sample_data, sample_n,
                                remaining_data, progBackup, gauge_chunk, 
                                keep_importing)

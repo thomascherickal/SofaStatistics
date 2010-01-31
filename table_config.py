@@ -112,9 +112,9 @@ class SafeTblNameValidator(wx.PyValidator):
             return True
     
     def OnChar(self, event):
-        # allow backspace and delete (both)
+        # allow backspace and delete (both) etc
         if event.GetKeyCode() in [wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE, 
-                                  wx.WXK_BACK]:
+                                  wx.WXK_BACK, wx.WXK_LEFT, wx.WXK_RIGHT]:
             event.Skip()
             return
         try:
@@ -138,14 +138,14 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
     
     debug = False
     
-    def __init__(self, tbl_name_lst, data, final_grid_data, readonly=False,
+    def __init__(self, tbl_name_lst, data, config_data, readonly=False,
                  insert_data_func=None, cell_invalidation_func=None):
         """
         tbl_name_lst -- passed in as a list so changes can be made without 
             having to return anything. 
         data -- list of tuples (must have at least one tuple in the list, even
             if only a "rename me".
-        final_grid_data -- add details to it in form of a list of tuples.
+        config_data -- add details to it in form of a list of tuples.
         """
         if tbl_name_lst:
             name_ok_to_reuse = tbl_name_lst[0]
@@ -153,8 +153,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             name_ok_to_reuse = None
         self.tbl_name_lst = tbl_name_lst
         # set up new grid data based on data
-        self.final_grid_data = final_grid_data
-        self.init_final_grid_data(data)
+        self.config_data = config_data
+        self.init_config_data(data)
         self.readonly = readonly
         if not insert_data_func:
             insert_data_func = insert_data
@@ -196,7 +196,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.tabentry = ConfigTableEntry(self, self.panel, 
                                          self.szrMain, 2, self.readonly, 
                                          grid_size, col_dets, data,  
-                                         final_grid_data, insert_data_func,
+                                         config_data, insert_data_func,
                                          cell_invalidation_func)
         self.setup_btns(self.readonly)
         self.szrMain.Add(self.szrBtns, 0, wx.ALL, 10)
@@ -205,7 +205,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.Layout()
         self.txtTblName.SetFocus()
 
-    def init_final_grid_data(self, data):
+    def init_config_data(self, data):
         extra = []
         for row in data:
             new_row = {my_globals.TBL_FLD_NAME: row[0], 
@@ -213,7 +213,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                        my_globals.TBL_FLD_TYPE: row[1], 
                        my_globals.TBL_FLD_TYPE_ORIG: row[1]}
             extra.append(new_row)
-        self.final_grid_data += extra
+        self.config_data += extra
     
     def insert_before(self):
         """
@@ -228,35 +228,35 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             wx.MessageBox(_("The %s must always come first") % \
                           my_globals.SOFA_ID)
             return None, None
-        row_data = self.tabentry.InsertRowAbove(pos)
+        row_data = self.tabentry.insert_row_above(pos)
         return pos, row_data
 
     def OnInsert(self, event):
         """
         Insert before.
-        Overridden so we can update final_grid_data.
+        Overridden so we can update config_data.
         """
         row_before, row_data = self.insert_before()
         if row_before is not None:
             if self.debug: print("Row we inserted before was %s" % row_before)
-            # insert new row into final_grid_data - Nones for original values
+            # insert new row into config_data - Nones for original values
             new_row = {my_globals.TBL_FLD_NAME: row_data[0], 
                        my_globals.TBL_FLD_NAME_ORIG: None, 
                        my_globals.TBL_FLD_TYPE: row_data[1], 
                        my_globals.TBL_FLD_TYPE_ORIG: None}
-            self.final_grid_data.insert(row_before, new_row)
-            if self.debug: pprint.pprint(self.final_grid_data)
+            self.config_data.insert(row_before, new_row)
+            if self.debug: pprint.pprint(self.config_data)
         self.tabentry.grid.SetFocus()
         event.Skip()
     
     def OnDelete(self, event):
-        "Overridden so we can update final_grid_data."
+        "Overridden so we can update config_data."
         row_del = self.tabentry.try_to_delete_row()
         if row_del is not None:
             if self.debug: print("Row deleted was %s" % row_del)
-            # remove row from final_grid_data.
-            del self.final_grid_data[row_del]
-            if self.debug: pprint.pprint(self.final_grid_data)
+            # remove row from config_data.
+            del self.config_data[row_del]
+            if self.debug: pprint.pprint(self.config_data)
         self.tabentry.grid.SetFocus()
         event.Skip()
 
@@ -273,23 +273,24 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         if self.tbl_name_lst: # empty ready to repopulate
             del self.tbl_name_lst[0]
         self.tbl_name_lst.append(self.txtTblName.GetValue())
-        self.tabentry.update_final_grid_data()
+        self.tabentry.update_config_data()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
         
     
 class ConfigTableEntry(settings_grid.SettingsEntry):
     """
-    final_grid_data should be returned as a list of dicts with the keys:
+    config_data should be returned as a list of dicts with the keys:
     my_globals.TBL_FLD_NAME, etc
     """
     
     def __init__(self, frame, panel, szr, vert_share, readonly, grid_size, 
-                col_dets, data, final_grid_data, insert_data_func=None, 
+                col_dets, data, config_data, insert_data_func=None, 
                 cell_invalidation_func=None):
+        self.readonly = readonly
         force_focus = False
         settings_grid.SettingsEntry.__init__(self, frame, panel, szr, 
-            vert_share, readonly, grid_size, col_dets, data, final_grid_data, 
+            vert_share, readonly, grid_size, col_dets, data, config_data, 
             force_focus, insert_data_func, cell_invalidation_func)
         self.debug = False # otherwise set in the parent class ;-)
         # disable first row (SOFA_ID)
@@ -307,21 +308,21 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
             fld_name = self.grid.GetCellValue(src_row, 0)
             fld_type = self.grid.GetCellValue(src_row, 1)
             try:
-                self.final_grid_data[src_row][my_globals.TBL_FLD_NAME] = \
+                self.config_data[src_row][my_globals.TBL_FLD_NAME] = \
                     fld_name
-                self.final_grid_data[src_row][my_globals.TBL_FLD_TYPE] = \
+                self.config_data[src_row][my_globals.TBL_FLD_TYPE] = \
                     fld_type
             except IndexError: # leaving what was the new row
                 new_row = {my_globals.TBL_FLD_NAME: fld_name, 
                            my_globals.TBL_FLD_NAME_ORIG: None, 
                            my_globals.TBL_FLD_TYPE: fld_type, 
                            my_globals.TBL_FLD_TYPE_ORIG: None}
-                self.final_grid_data.append(new_row)
-            if self.debug or debug: pprint.pprint(self.final_grid_data)
+                self.config_data.append(new_row)
+            if self.debug or debug: pprint.pprint(self.config_data)
                 
-    def update_final_grid_data(self):
+    def update_config_data(self):
         """
-        Update final_grid_data.  Overridden so we can include original field 
+        Update config_data.  Overridden so we can include original field 
             details (needed when making new version of the original table).
         Fill in details of fld_names and fld_types (leaving original versions
             untouched).
@@ -330,12 +331,12 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
         grid_data = self.get_grid_data() # only saved data
         if debug: 
             print(grid_data)
-            pprint.pprint(self.final_grid_data)
+            pprint.pprint(self.config_data)
         for i, row in enumerate(grid_data):
             if debug: print(row)
-            self.final_grid_data[i][my_globals.TBL_FLD_NAME] = row[0]
-            self.final_grid_data[i][my_globals.TBL_FLD_TYPE] = row[1]
-        if self.debug or debug: pprint.pprint(self.final_grid_data)
+            self.config_data[i][my_globals.TBL_FLD_NAME] = row[0]
+            self.config_data[i][my_globals.TBL_FLD_TYPE] = row[1]
+        if self.debug or debug: pprint.pprint(self.config_data)
     
     def ok_to_delete_row(self, row):
         """
