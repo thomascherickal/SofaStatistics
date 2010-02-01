@@ -242,11 +242,11 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         """
         bolinserted, row_before, row_data = self.insert_before()
         if bolinserted:
-            self.add_new_to_config(row_data) # should be only the change
+            self.add_new_to_config(row_before, row_data) # should be only change
         self.tabentry.grid.SetFocus()
         event.Skip()
     
-    def add_new_to_config(self, row_data):
+    def add_new_to_config(self, row_before, row_data):
         if self.debug: print("Row we inserted before was %s" % row_before)
         # insert new row into config_data - Nones for original values
         new_row = {my_globals.TBL_FLD_NAME: row_data[0], 
