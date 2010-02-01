@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-dev_debug = True
+dev_debug = False
 test_lang = False
 
 import warnings
@@ -30,6 +30,7 @@ import config_dlg
 # importing delayed until needed where possible for startup performance
 # import dataselect
 import full_html
+import getdata
 # import importer
 # import report_table
 import projects
@@ -449,7 +450,21 @@ class StartFrame(wx.Frame):
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_entry, MAX_HELP_TEXT_WIDTH), 
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH-10, 260))
         event.Skip()
-        
+
+    def get_dbe_and_default_dbs_tbls(self, proj_dic):
+        """
+        Which dbe? If a default, use that.  If not, use project default.
+        Also grab the default_dbs and default_tbls as lists that can be 
+            manipulated later.
+        """
+        if my_globals.DBE_DEFAULT:
+            dbe = my_globals.DBE_DEFAULT
+        else:
+            dbe = proj_dic["default_dbe"]
+        default_dbs = proj_dic["default_dbs"]
+        default_tbls = proj_dic["default_tbls"]
+        return dbe, default_dbs, default_tbls
+    
     def OnTablesClick(self, event):
         "Open make table gui with settings as per active_proj"
         wx.BeginBusyCursor()
@@ -458,20 +473,23 @@ class StartFrame(wx.Frame):
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=proj_name)
         try:
-            dlg = report_table.DlgMakeTable( 
-                proj_dic["default_dbe"], proj_dic["con_dets"], 
-                proj_dic["default_dbs"], proj_dic["default_tbls"], 
-                proj_dic["fil_var_dets"], proj_dic["fil_css"], 
-                proj_dic["fil_report"], proj_dic["fil_script"])
-        except Exception, e:
+            dbe, default_dbs, default_tbls = \
+                                    self.get_dbe_and_default_dbs_tbls(proj_dic)
+            getdata.refresh_default_dbs_tbls(dbe, default_dbs, default_tbls)
+            dlg = report_table.DlgMakeTable(dbe, proj_dic["con_dets"], 
+                                default_dbs, default_tbls, 
+                                proj_dic["fil_var_dets"], proj_dic["fil_css"], 
+                                proj_dic["fil_report"], proj_dic["fil_script"])
             wx.EndBusyCursor()
-            wx.MessageBox(_("Unable to connect to data as defined in " 
-                "project %s.  Please check your settings." % proj_name))
-            raise Exception, unicode(e)
-            return
-        wx.EndBusyCursor()
-        dlg.ShowModal()
-        event.Skip()
+            dlg.ShowModal()
+        except Exception:
+            msg = _("Unable to connect to data as defined in project %s.  "
+                    "Please check your settings." % proj_name)
+            wx.MessageBox(msg)
+            raise Exception, msg
+        finally:
+            wx.EndBusyCursor()
+            event.Skip()
         
     def OnTablesEnter(self, event):
         panel_dc = wx.ClientDC(self.panel)
@@ -513,14 +531,24 @@ class StartFrame(wx.Frame):
         proj_name = self.active_proj
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=proj_name)
-        dlg = stats_select.StatsSelectDlg(proj_name, 
-            proj_dic["default_dbe"], proj_dic["con_dets"], 
-            proj_dic["default_dbs"], proj_dic["default_tbls"], 
-            proj_dic["fil_var_dets"], proj_dic["fil_css"], 
-            proj_dic["fil_report"], proj_dic["fil_script"])
-        wx.EndBusyCursor()
-        dlg.ShowModal()
-        event.Skip()
+        try:
+            dbe, default_dbs, default_tbls = \
+                                    self.get_dbe_and_default_dbs_tbls(proj_dic)
+            getdata.refresh_default_dbs_tbls(dbe, default_dbs, default_tbls)
+            dlg = stats_select.StatsSelectDlg(proj_name, 
+                        dbe, proj_dic["con_dets"], default_dbs, default_tbls, 
+                        proj_dic["fil_var_dets"], proj_dic["fil_css"], 
+                        proj_dic["fil_report"], proj_dic["fil_script"])
+            wx.EndBusyCursor()
+            dlg.ShowModal()
+        except Exception:
+            msg = _("Unable to connect to data as defined in project %s.  "
+                    "Please check your settings." % proj_name)
+            wx.MessageBox(msg)
+            raise Exception, msg
+        finally:
+            wx.EndBusyCursor()
+            event.Skip()
         
     def OnStatsEnter(self, event):
         panel_dc = wx.ClientDC(self.panel)

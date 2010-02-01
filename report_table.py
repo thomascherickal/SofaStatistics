@@ -472,13 +472,14 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             css_fils, css_idx = output.get_css_dets(self.fil_report, 
                                                     self.fil_css)
             script = self.get_script(has_rows, has_cols, css_idx)
-            str_content = output.run_report(OUTPUT_MODULES, add_to_report, 
-                    self.fil_report, css_fils, script, self.con_dets, self.dbe, 
-                    self.db, self.tbl, self.default_dbs, self.default_tbls)
+            bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
+                    add_to_report, self.fil_report, css_fils, script, 
+                    self.con_dets, self.dbe, self.db, self.tbl, 
+                    self.default_dbs, self.default_tbls)
             wx.EndBusyCursor()
             self.update_local_display(str_content)
             self.str_content = str_content
-            self.btnExpand.Enable(True)
+            self.btnExpand.Enable(bolran_report)
         else:
             wx.MessageBox(_("Missing %s data") % missing_dim)
     
@@ -604,9 +605,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                         u"page_break_after=False))")
             script_lst.append(u"else:")
             script_lst.append(u"    " + \
-                              u"fil.write(\"Table not made.  Number \" + \\" + \
-                              u"\n        \"of cells exceeded limit \" + \\" + \
-                              u"\n        \"of %s\" % max_cells)")
+                  u"raise my_exceptions.ExcessReportTableCellsException("
+                  u"max_cells)")
         else:
             script_lst.append(u"fil.write(tab_test.getHTML(%s, " % css_idx + \
                               u"page_break_after=False))")
@@ -708,6 +708,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         except Exception:
             pass
         finally:
+            my_globals.DBE_DEFAULT = self.dbe
+            my_globals.DB_DEFAULTS[self.dbe] = self.db
+            my_globals.TBL_DEFAULTS[self.dbe] = self.tbl
             self.Destroy()
             event.Skip()
     

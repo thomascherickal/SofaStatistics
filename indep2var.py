@@ -428,13 +428,14 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             css_fils, css_idx = output.get_css_dets(self.fil_report, 
                                                     self.fil_css)
             script = self.get_script(css_idx, add_to_report, self.fil_report)
-            str_content = output.run_report(OUTPUT_MODULES, add_to_report, 
-                    self.fil_report, css_fils, script, self.con_dets, self.dbe, 
-                    self.db, self.tbl, self.default_dbs, self.default_tbls)
+            bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
+                    add_to_report, self.fil_report, css_fils, script, 
+                    self.con_dets, self.dbe, self.db, self.tbl, 
+                    self.default_dbs, self.default_tbls)
             wx.EndBusyCursor()
             self.update_local_display(str_content)
             self.str_content = str_content
-            self.btnExpand.Enable(True)
+            self.btnExpand.Enable(bolran_report)
         event.Skip()
     
     def test_config_ok(self):
@@ -518,5 +519,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         except Exception:
             pass
         finally:
+            my_globals.DBE_DEFAULT = self.dbe
+            my_globals.DB_DEFAULTS[self.dbe] = self.db
+            my_globals.TBL_DEFAULTS[self.dbe] = self.tbl
             self.Destroy()
             event.Skip()

@@ -116,16 +116,16 @@ class SettingsEntryDlg(wx.Dialog):
         """
         selected_rows = self.tabentry.grid.GetSelectedRows()
         if not selected_rows: 
-            return None, None
+            return False, None, None
         pos = selected_rows[0]
-        row_data = self.tabentry.insert_row_above(pos)
-        return pos, row_data
+        bolinserted, row_data = self.tabentry.insert_row_above(pos)
+        return bolinserted, pos, row_data
     
     def OnInsert(self, event):
         """
-        Insert before
+        Insert before.
         """
-        row_before, row_data = self.insert_before()
+        bolinserted, row_before, row_data = self.insert_before()
         self.tabentry.grid.SetFocus()
         event.Skip()
         
@@ -366,7 +366,12 @@ class SettingsEntry(object):
         Need to bind KeyDown to the control itself e.g. a choice control.
         wx.WANTS_CHARS makes it work.
         """
+        debug = False
         control = event.GetControl()
+        if debug: 
+            if isinstance(control, wx.ComboBox):
+                self.update_new_is_dirty()
+                print("Selected combobox")
         control.WindowStyle |= wx.WANTS_CHARS
         control.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
         event.Skip()
@@ -406,8 +411,16 @@ class SettingsEntry(object):
             else:
                 event.Skip()
         else:
+            self.update_new_is_dirty()
             event.Skip()
-        
+    
+    def update_new_is_dirty(self):
+        debug = False
+        if self.is_new_row(self.current_row_idx):
+            if debug: print("Updated new_is_dirty to True")
+            self.new_is_dirty = True
+            self.grid.SetRowLabelValue(self.current_row_idx, u"...")
+    
     def OnTextBrowseKeyDown(self, event):
         """
         Text browser - hit enter from text box part of composite control.  
@@ -465,22 +478,25 @@ class SettingsEntry(object):
         """
         dest row and col still unknown if from a return or TAB keystroke.
         So is the direction (could be down or down_left if end of line).
+        Returns saved_new_row (needed for table config).
         """
         debug = False
+        saved_new_row = False
         if self.debug or debug:
             print(u"ProcessCellMove - " +
                 u"source row %s source col %s " % (src_row, src_col) +
                 u"dest row %s dest col %s " % (dest_row, dest_col) +
                 u"direction: %s" % direction)
         move_type, dest_row, dest_col = self._getMoveDets(src_row, src_col, 
-                                        dest_row, dest_col, direction)
+                                                dest_row, dest_col, direction)
         if move_type in [my_globals.MOVING_IN_EXISTING, 
                          my_globals.LEAVING_EXISTING]:
-            move_to_dest = self._leavingExistingCell()
+            move_to_dest = self.leaving_existing_cell()
         elif move_type == my_globals.MOVING_IN_NEW:
             move_to_dest = self._movingInNewRow()
         elif move_type == my_globals.LEAVING_NEW:
-            move_to_dest = self._leavingNewRow(dest_row, dest_col, direction)
+            move_to_dest, saved_new_row = self.leaving_new_row(dest_row, 
+                                                            dest_col, direction)
         else:
             raise Exception, u"ProcessCellMove - Unknown move_type"
         if self.debug or debug:
@@ -496,6 +512,7 @@ class SettingsEntry(object):
         else:
             pass
             #wx.MessageBox("Stay here at %s %s" % (src_row, src_col))
+        return saved_new_row
     
     def _getMoveDets(self, src_row, src_col, dest_row, dest_col, direction):
         """
@@ -526,10 +543,12 @@ class SettingsEntry(object):
         # 1) move type
         final_col = (src_col == len(self.col_dets) - 1)
         was_new_row = self.is_new_row(self.current_row_idx)
-        if debug: print(u"Current row idx: %s, src_row: %s, was_new_row: %s" %
-                        (self.current_row_idx, src_row, was_new_row))
         dest_row_is_new = self._destRowIsCurrentNew(src_row, dest_row, 
                                                     direction, final_col)
+        if debug or self.debug:
+            print(u"Current row idx: %s, src_row: %s, was_new_row: %s, "
+                  u"dest_row_is_new: %s" % (self.current_row_idx, src_row, 
+                                            was_new_row, dest_row_is_new))
         if was_new_row and dest_row_is_new:
             move_type = my_globals.MOVING_IN_NEW
         elif was_new_row and not dest_row_is_new:
@@ -597,10 +616,12 @@ class SettingsEntry(object):
     
     def is_new_row(self, row):
         "2 rows inc new - new row if idx = 1 i.e. subtract 1"
+        debug = False
+        if debug: print("row: %s; rows_to_fill: %s" % (row, self.rows_to_fill))
         new_row = (row == self.rows_to_fill)
         return new_row
     
-    def _leavingExistingCell(self):
+    def leaving_existing_cell(self):
         """
         Process the attempt to leave an existing cell (whether or not leaving
             existing row).
@@ -609,8 +630,8 @@ class SettingsEntry(object):
         """
         debug = False
         if self.debug or debug: print(u"Was in existing, ordinary row")
-        move_to_dest, msg = self.CellOKToSave(self.current_row_idx, 
-                                              self.current_col_idx)
+        move_to_dest, msg = self.cell_ok_to_save(self.current_row_idx, 
+                                                 self.current_col_idx)
         if msg: wx.MessageBox(msg)
         return move_to_dest
     
@@ -628,7 +649,7 @@ class SettingsEntry(object):
         move_to_dest = not invalid 
         return move_to_dest
     
-    def _leavingNewRow(self, dest_row, dest_col, direction):
+    def leaving_new_row(self, dest_row, dest_col, direction):
         """
         Process the attempt to leave a cell in the new row.
         Always OK to leave new row in an upwards direction if it has not been 
@@ -636,37 +657,38 @@ class SettingsEntry(object):
         Otherwise, must see if row is OK to Save.  If not, e.g. faulty data, 
             keep selection where it was.  If OK, add new row.
         NB actual direction could be down_left instead of down if in final col.
-        Return move_to_dest.
+        Return move_to_dest, saved_new_row (used by table config when processing 
+            cell move).
         """
         debug = False
-        is_dirty = self.IsDirty(self.current_row_idx)
+        saved_new_row = False
+        is_dirty = self.is_dirty(self.current_row_idx)
         if self.debug or debug: 
-            print(u"_leavingNewRow - dest row %s dest col %s " %
+            print(u"leaving_new_row - dest row %s dest col %s " %
                 (dest_row, dest_col) +
                 u"original direction %s dirty %s" % (direction, is_dirty))
         if direction in [my_globals.MOVE_UP, my_globals.MOVE_UP_RIGHT, 
                          my_globals.MOVE_UP_LEFT] and not is_dirty:
             move_to_dest = True # always OK
         else: # must check OK to move
-            ok_to_save, msg = self.CellOKToSave(self.current_row_idx, 
-                                                self.current_col_idx)
+            ok_to_save, msg = self.cell_ok_to_save(self.current_row_idx, 
+                                                   self.current_col_idx)
             if not ok_to_save:
                 wx.MessageBox(msg)
                 move_to_dest = False
-            elif not self.RowOKToSave(self.current_row_idx):
+            elif not self.row_ok_to_save(self.current_row_idx):
                 move_to_dest = False
             else:
                 move_to_dest = True
             if move_to_dest:
-                self.AddNewRow()
-        return move_to_dest
+                self.add_new_row()
+                if debug or self.debug: print("Added new row")
+                saved_new_row = True
+        return move_to_dest, saved_new_row
     
     # VALIDATION ///////////////////////////////////////////////////////////////
     
-    def SetNewIsDirty(self, is_dirty):
-        self.new_is_dirty = is_dirty
-    
-    def IsDirty(self, row):
+    def is_dirty(self, row):
         "Dirty means there are some values which are not empty strings"
         for col_idx in range(len(self.col_dets)):
             if self.grid.GetCellValue(row, col_idx) != "":
@@ -693,7 +715,7 @@ class SettingsEntry(object):
         val = self.grid.GetCellValue(row, col)
         return val
     
-    def CellOKToSave(self, row, col):
+    def cell_ok_to_save(self, row, col):
         """
         Cannot be an invalid value (must be valid or empty string).
         And if empty string value, must be empty ok.
@@ -703,24 +725,24 @@ class SettingsEntry(object):
         empty_ok = self.col_dets[col].get(u"empty_ok", False)
         cell_val = self.GetVal(row, col)
         if self.debug or debug:
-            print(u"CellOKToSave - row: %s, col: %s, " % (row, col) +
+            print(u"cell_ok_to_save - row: %s, col: %s, " % (row, col) +
                 u"empty_ok: %s, cell_val: %s" % (empty_ok, cell_val))
         empty_not_ok_prob = (cell_val == "" and not empty_ok)
         valid, msg = self.CellInvalid(row, col)
         if not msg and empty_not_ok_prob:
-            msg = _("It is not allowed to be empty.")
+            msg = _("Data cell cannot be empty.")
         ok_to_save = not valid and not empty_not_ok_prob
         return ok_to_save, msg
 
-    def RowOKToSave(self, row):
+    def row_ok_to_save(self, row):
         """
         Each cell must be OK to save.  NB validation may be stricter than what 
             the database will accept into its fields e.g. must be one of three 
             strings ("Numeric", "String", or "Date").
         """
-        if self.debug: print(u"RowOKToSave - row %s" % row)
+        if self.debug: print(u"row_ok_to_save - row %s" % row)
         for col_idx, col_det in enumerate(self.col_dets):
-            ok_to_save, msg = self.CellOKToSave(row=row, col=col_idx)
+            ok_to_save, msg = self.cell_ok_to_save(row=row, col=col_idx)
             if not ok_to_save:
                 wx.MessageBox(_("Unable to save new row.  Invalid value "
                                 "in the \"%(col_label)s\" column. %(msg)s") % \
@@ -740,6 +762,9 @@ class SettingsEntry(object):
         """
         if self.is_new_row(row):
             return False, _("Unable to delete new row")
+        elif self.new_is_dirty:
+            return False, _("Cannot delete a row while in the middle of making "
+                            "a new one")
         else:
             return True, None
     
@@ -755,7 +780,7 @@ class SettingsEntry(object):
             row = selected_rows[0]
             ok_to_delete, msg = self.ok_to_delete_row(row)
             if ok_to_delete:
-                self.DeleteRow(row)
+                self.delete_row(row)
                 return row
             else:
                 wx.MessageBox(msg)
@@ -765,7 +790,7 @@ class SettingsEntry(object):
             wx.MessageBox(_("Can only delete one row at a time"))
         return None
     
-    def DeleteRow(self, row):
+    def delete_row(self, row):
         """
         Delete a row.
         If the currently selected cell is in a row below that being deleted,
@@ -775,7 +800,7 @@ class SettingsEntry(object):
             :-) or jumping to a cell in an already-validated row.
         """
         self.grid.DeleteRows(pos=row, numRows=1)
-        self.rows_n -= 1
+        self.reset_row_n(change=-1)
         self.grid.SetRowLabelValue(self.rows_n - 1, "*")
         self.grid.HideCellEditControl()
         self.grid.ForceRefresh()
@@ -803,6 +828,8 @@ class SettingsEntry(object):
 
     def OnCellChange(self, event):
         debug = False
+        if debug: print("Current row idx is: %s" % self.current_row_idx)
+        self.update_new_is_dirty()
         if self.debug or debug: print(u"Cell changed")
         self.grid.ForceRefresh()
         self.SafeLayoutAdjustment()
@@ -816,8 +843,14 @@ class SettingsEntry(object):
         If below the rows being inserted, jump down a row and set 
             self.respond_to_select_cell to False. Assumed to be OK because not 
             shifting cell as such.  Just following it :-)
-        Returns row_data (list) if content put into inserted row, None if not
+        Returns bolinserted, and row_data (list if content put into inserted 
+            row, None if not).
         """
+        debug = False
+        if self.new_is_dirty:
+            wx.MessageBox(_("Cannot insert a row while in the middle of making "
+                            "a new one"))
+            return False, None
         grid_data = self.get_grid_data() # only needed to prevent
             # field name collisions
         row_idx = pos
@@ -831,21 +864,26 @@ class SettingsEntry(object):
                 self.grid.SetCellEditor(row_idx, col_idx, editor)
             for i, value in enumerate(row_data):
                 self.grid.SetCellValue(row_idx, i, value)
-        self.rows_n += 1
+        self.reset_row_n(change=1)
         # reset label for all rows after insert
-        self.UpdateRowLabelsAfter(row_idx)
+        self.update_next_row_labels(row_idx)
         self.grid.SetRowLabelValue(self.rows_n - 1, "*")
         if row_idx <= self.current_row_idx: # inserting above our selected cell
             self.current_row_idx += 1
             self.grid.SetGridCursor(self.current_row_idx, self.current_col_idx)
         self.grid.SetFocus()
-        return row_data
+        return True, row_data
     
-    def UpdateRowLabelsAfter(self, pos):
+    def update_next_row_labels(self, pos):
         for i in range(pos, self.rows_n - 1):
             self.grid.SetRowLabelValue(i, unicode(i + 1))
-            
-    def AddNewRow(self):
+    
+    def reset_row_n(self, change=1):
+        "Reset rows_n and rows_to_fill by incrementing or decrementing."
+        self.rows_n += change
+        self.rows_to_fill += change
+    
+    def add_new_row(self):
         """
         Add new row.
         """
@@ -858,7 +896,7 @@ class SettingsEntry(object):
             renderer, editor = self.get_new_renderer_editor(col_idx)
             self.grid.SetCellRenderer(new_row_idx, col_idx, renderer)
             self.grid.SetCellEditor(new_row_idx, col_idx, editor)
-        self.rows_n += 1
+        self.reset_row_n(change=1)
         self.grid.SetRowLabelValue(self.rows_n - 2, unicode(self.rows_n - 1))
         self.grid.SetRowLabelValue(self.rows_n - 1, u"*")
         self.SafeLayoutAdjustment()
@@ -902,7 +940,7 @@ class SettingsEntry(object):
         If not readonly, get all but final row (either empty or not saved).
         """
         grid_data = []
-        data_rows_n = self.rows_n if readonly else self.rows_n - 1 
+        data_rows_n = self.rows_n if self.readonly else self.rows_n - 1 
         for row_idx in range(data_rows_n):
             row_data = []
             for col_idx in range(len(self.col_dets)):

@@ -316,6 +316,19 @@ def setup_drop_tbls(dropTables, dbe, db, tbls, tbl):
     except NameError:
         raise Exception, "Table \"%s\" not found in tables list" % self.tbl
 
+def refresh_default_dbs_tbls(dbe, default_dbs, default_tbls):
+    """
+    Check to see what the default database and table has been for this database
+        engine.  If available, override the defaults taken from the project file
+        for this point on (until session closed).
+    """
+    recent_db = my_globals.DB_DEFAULTS.get(dbe)
+    if recent_db:
+        default_dbs[dbe] = recent_db
+    recent_tbl = my_globals.TBL_DEFAULTS.get(dbe)
+    if recent_tbl:
+        default_tbls[dbe] = recent_tbl
+
 def refresh_db_dets(parent):
     """
     Returns dbe, db, con, cur, tbls, tbl, flds, has_unique, idxs.
@@ -325,6 +338,10 @@ def refresh_db_dets(parent):
     wx.BeginBusyCursor()
     db_choice_item = parent.db_choice_items[parent.dropDatabases.GetSelection()]
     db, dbe = extractDbDets(db_choice_item)
+    # update globals - will be used in refresh ...
+    my_globals.DBE_DEFAULT = dbe
+    my_globals.DB_DEFAULTS[dbe] = db
+    refresh_default_dbs_tbls(dbe, parent.default_dbs, parent.default_tbls)
     dbdetsobj = get_db_dets_obj(dbe, parent.default_dbs, parent.default_tbls, 
                                 parent.con_dets, db)
     con, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
@@ -410,7 +427,7 @@ def get_create_flds_txt(oth_name_types, strict_typing=False):
     quoter = get_obj_quoter_func(my_globals.DBE_SQLITE)
     fld_clause_items = [u"%s INTEGER PRIMARY KEY" % quoter(my_globals.SOFA_ID)]
     for fld_name, fld_type in oth_name_types:
-        if fld_name == my_globals.SOFA:
+        if fld_name == my_globals.SOFA_ID:
             raise Exception, "Do not pass sofa_id into %s" % \
                 sys._getframe().f_code.co_name
         if fld_name == "":

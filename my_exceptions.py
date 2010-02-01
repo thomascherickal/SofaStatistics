@@ -21,3 +21,7 @@ class TooManyColsInChiSquareException(Exception):
 class TooManyCellsInChiSquareException(Exception):
     def __init__(self):
         Exception.__init__(self, "Too many cells in contingency table")
+        
+class ExcessReportTableCellsException(Exception):
+    def __init__(self, max):
+        Exception.__init__(self, "Only allowed %s cells in report table" % max)

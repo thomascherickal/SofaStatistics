@@ -300,7 +300,8 @@ def rel2abs(strhtml, fil_report):
 def run_report(modules, add_to_report, fil_report, css_fils, inner_script, 
                con_dets, dbe, db, tbl_name, default_dbs, default_tbls):
     """
-    Runs report and returns HTML representation of it for GUI display.
+    Runs report and returns bolran_report, and HTML representation of report 
+        (or of the error) for GUI display.
     add_to_report -- also append result to current report.
     """
     debug = False
@@ -321,24 +322,27 @@ def run_report(modules, add_to_report, fil_report, css_fils, inner_script,
     try:
         dummy_dic = {}
         exec script in dummy_dic
+    except my_exceptions.ExcessReportTableCellsException, e:
+        wx.MessageBox(unicode(e))
+        return False, u""
     except my_exceptions.TooManyRowsInChiSquareException:
         wx.MessageBox(_("Please select a variable with fewer values for Group "
                         "A."))
-        return u""
+        return False, u""
     except my_exceptions.TooManyColsInChiSquareException:
         wx.MessageBox(_("Please select a variable with fewer values for Group "
                         "B."))
-        return u""
+        return False, u""
     except my_exceptions.TooManyCellsInChiSquareException:
         wx.MessageBox(_("Please select variables which have fewer different "
                         "values.  Too many values in contingency table."))
-        return u""
+        return False, u""
     except Exception, e:
         err_content = _(u"<h1>Ooops!</h1>\n<p>Unable to run script " + \
                         u"to generate report. Error encountered: %s</p>") % e
         if debug:
             raise Exception, unicode(e)
-        return err_content
+        return False, err_content
     f = codecs.open(my_globals.INT_REPORT_PATH, "U", "utf-8")
     raw_results = lib.clean_bom_utf8(f.read())
     f.close()
@@ -356,7 +360,7 @@ def run_report(modules, add_to_report, fil_report, css_fils, inner_script,
         gui_display_content = rel2abs(rel_display_content, fil_report)
     else:
         gui_display_content = results_with_source
-    return gui_display_content
+    return True, gui_display_content
 
 def insert_prelim_code(modules, f, fil_report, css_fils):
     """
@@ -372,6 +376,7 @@ def insert_prelim_code(modules, f, fil_report, css_fils):
     # else "encoding declaration in Unicode string".
     f.write(my_globals.PYTHON_ENCODING_DECLARATION)
     f.write(u"\n" + my_globals.MAIN_SCRIPT_START)
+    f.write(u"\n" + u"import my_exceptions")
     f.write(u"\n" + u"import codecs")
     f.write(u"\n" + u"import sys")
     f.write(u"\n" + u"import gettext")

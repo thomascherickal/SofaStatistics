@@ -342,8 +342,9 @@ GROUP_B_DEFAULT = None
 VAL_A_DEFAULT = None
 VAL_B_DEFAULT = None
 # data last selected
-DB_DEFAULT = None
-TBL_DEFAULT = None
+DBE_DEFAULT = None
+DB_DEFAULTS = {}
+TBL_DEFAULTS = {}
 # ////////////////////////////////////////////////////////////
 import config_globals
 config_globals.set_DEFAULT_LEVEL()

@@ -206,6 +206,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.txtTblName.SetFocus()
 
     def init_config_data(self, data):
+        debug = False
         extra = []
         for row in data:
             new_row = {my_globals.TBL_FLD_NAME: row[0], 
@@ -214,41 +215,47 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                        my_globals.TBL_FLD_TYPE_ORIG: row[1]}
             extra.append(new_row)
         self.config_data += extra
+        if debug: print("Initialised extra config data: %s" % self.config_data)
     
     def insert_before(self):
         """
-        Returns row inserted before (or None if no insertion) and row data (or 
-            None if no content added). 
+        Overrides SettingsEntryDlg (only part where different is if pos == 0.
+        Returns bolinserted, row inserted before (or None if no insertion),
+            and row data (or None if no content added). 
         """
         selected_rows = self.tabentry.grid.GetSelectedRows()
         if not selected_rows: 
-            return None, None
+            return False, None, None
         pos = selected_rows[0]
-        if pos == 0:
+        if pos == 0: # for table config only
             wx.MessageBox(_("The %s must always come first") % \
                           my_globals.SOFA_ID)
-            return None, None
-        row_data = self.tabentry.insert_row_above(pos)
-        return pos, row_data
+            return False, None, None
+        bolinserted, row_data = self.tabentry.insert_row_above(pos)
+        return bolinserted, pos, row_data
 
     def OnInsert(self, event):
         """
         Insert before.
-        Overridden so we can update config_data.
+        Overridden so we can update config_data with details of new row.
+        Also need overridden insert_before().
         """
-        row_before, row_data = self.insert_before()
-        if row_before is not None:
-            if self.debug: print("Row we inserted before was %s" % row_before)
-            # insert new row into config_data - Nones for original values
-            new_row = {my_globals.TBL_FLD_NAME: row_data[0], 
-                       my_globals.TBL_FLD_NAME_ORIG: None, 
-                       my_globals.TBL_FLD_TYPE: row_data[1], 
-                       my_globals.TBL_FLD_TYPE_ORIG: None}
-            self.config_data.insert(row_before, new_row)
-            if self.debug: pprint.pprint(self.config_data)
+        bolinserted, row_before, row_data = self.insert_before()
+        if bolinserted:
+            self.add_new_to_config(row_data) # should be only the change
         self.tabentry.grid.SetFocus()
         event.Skip()
     
+    def add_new_to_config(self, row_data):
+        if self.debug: print("Row we inserted before was %s" % row_before)
+        # insert new row into config_data - Nones for original values
+        new_row = {my_globals.TBL_FLD_NAME: row_data[0], 
+                   my_globals.TBL_FLD_NAME_ORIG: None, 
+                   my_globals.TBL_FLD_TYPE: row_data[1], 
+                   my_globals.TBL_FLD_TYPE_ORIG: None}
+        self.config_data.insert(row_before, new_row)
+        if self.debug: pprint.pprint(self.config_data)
+            
     def OnDelete(self, event):
         "Overridden so we can update config_data."
         row_del = self.tabentry.try_to_delete_row()
@@ -298,20 +305,23 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
         attr.SetReadOnly(True)
         self.grid.SetRowAttr(0, attr)
     
-    def OnCellMove(self, event):
+    def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, direction):
+        """
+        dest row and col still unknown if from a return or TAB keystroke.
+        So is the direction (could be down or down_left if end of line).
+        """
         debug = False
-        src_row, left_row = settings_grid.SettingsEntry.OnCellMove(self, event)
-        if left_row:
+        saved_new_row = settings_grid.SettingsEntry.ProcessCellMove(self, 
+                                src_row, src_col, dest_row, dest_col, direction)
+        if saved_new_row:
             if self.debug or debug: print("Row moved from was %s" % src_row)
             # For row we're leaving, fill in new details.
             # If an existing row, leave original values alone.
             fld_name = self.grid.GetCellValue(src_row, 0)
             fld_type = self.grid.GetCellValue(src_row, 1)
             try:
-                self.config_data[src_row][my_globals.TBL_FLD_NAME] = \
-                    fld_name
-                self.config_data[src_row][my_globals.TBL_FLD_TYPE] = \
-                    fld_type
+                self.config_data[src_row][my_globals.TBL_FLD_NAME] = fld_name
+                self.config_data[src_row][my_globals.TBL_FLD_TYPE] = fld_type
             except IndexError: # leaving what was the new row
                 new_row = {my_globals.TBL_FLD_NAME: fld_name, 
                            my_globals.TBL_FLD_NAME_ORIG: None, 
@@ -319,7 +329,7 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
                            my_globals.TBL_FLD_TYPE_ORIG: None}
                 self.config_data.append(new_row)
             if self.debug or debug: pprint.pprint(self.config_data)
-                
+            
     def update_config_data(self):
         """
         Update config_data.  Overridden so we can include original field 
@@ -330,16 +340,21 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
         debug = False
         grid_data = self.get_grid_data() # only saved data
         if debug: 
-            print(grid_data)
+            print("grid data: %s" % grid_data)
+            print("Original config data:")
             pprint.pprint(self.config_data)
         for i, row in enumerate(grid_data):
             if debug: print(row)
             self.config_data[i][my_globals.TBL_FLD_NAME] = row[0]
             self.config_data[i][my_globals.TBL_FLD_TYPE] = row[1]
-        if self.debug or debug: pprint.pprint(self.config_data)
+        if self.debug or debug:
+            print("Final config data:")
+            pprint.pprint(self.config_data)
     
     def ok_to_delete_row(self, row):
         """
+        Overridden settings_grid.SettingsEntry to handle row == 0.
+        Should be the same otherwise.
         Can delete any row except the new row or the SOFA_ID row
         Returns boolean and msg.
         """
@@ -347,5 +362,8 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
             return False, _("Unable to delete new row")
         elif row == 0:
             return False, _("Unable to delete sofa id row")
+        elif self.new_is_dirty:
+            return False, _("Cannot delete a row while in the middle of making "
+                            "a new one")
         else:
             return True, None

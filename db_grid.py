@@ -461,9 +461,6 @@ class TblEditor(wx.Dialog):
 
     # VALIDATION ///////////////////////////////////////////////////////////////
 
-    def SetNewIsDirty(self, is_dirty):
-        self.dbtbl.new_is_dirty = is_dirty
-    
     def ValueInRange(self, raw_val, fld_dic):
         "NB may be None if N/A e.g. SQLite"
         min = fld_dic[my_globals.FLD_NUM_MIN_VAL]

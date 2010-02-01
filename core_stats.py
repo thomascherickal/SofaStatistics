@@ -1543,7 +1543,8 @@ def kurtosistest(a, dimension=None):
     """
     From stats.py.  No changes except renamed function, N->np, print updated, 
         returns kurtosis value and add 3 to value to restore to what is expected 
-        here (removed in kurtosis as per Fisher so normal = 0).
+        here (removed in kurtosis as per Fisher so normal = 0), and trapping of 
+        zero division error.
     ------------------------------------
     Tests whether a dataset has normal kurtosis (i.e.,
     kurtosis=3(n-1)/(n+1)) Valid only for n>20.  Dimension can equal None
@@ -1564,8 +1565,12 @@ def kurtosistest(a, dimension=None):
     E = 3.0*(n-1) /(n+1)
     varb2 = 24.0*n*(n-2)*(n-3) / ((n+1)*(n+1)*(n+3)*(n+5))
     x = (b2-E)/np.sqrt(varb2)
-    sqrtbeta1 = 6.0*(n*n-5*n+2)/((n+7)*(n+9)) * np.sqrt((6.0*(n+3)*(n+5))/
-                                                       (n*(n-2)*(n-3)))
+    try:
+        sqrtbeta1 = 6.0*(n*n-5*n+2)/((n+7)*(n+9)) * np.sqrt((6.0*(n+3)*(n+5))/
+                                                           (n*(n-2)*(n-3)))
+    except ZeroDivisionError:
+        raise Exception, ("Unable to calculate kurtosis test.  Zero division "
+                          "error")
     A = 6.0 + 8.0/sqrtbeta1 *(2.0/sqrtbeta1 + np.sqrt(1+4.0/(sqrtbeta1**2)))
     term1 = 1 -2/(9.0*A)
     denom = 1 +x*np.sqrt(2/(A-4.0))

@@ -34,7 +34,11 @@ class DataSelectDlg(wx.Dialog):
         self.fil_var_dets = proj_dic["fil_var_dets"]
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.get_var_dets(self.fil_var_dets)
-        self.dbe = proj_dic["default_dbe"]
+        # which dbe? If a default, use that.  If not, use project default.
+        if my_globals.DBE_DEFAULT:
+            self.dbe = my_globals.DBE_DEFAULT
+        else:
+            self.dbe = proj_dic["default_dbe"]
         try:
             self.con_dets = proj_dic["con_dets"]
         except KeyError, e:
@@ -51,10 +55,13 @@ class DataSelectDlg(wx.Dialog):
             if proj_dic["default_dbs"] else {}
         self.default_tbls = proj_dic["default_tbls"] \
             if proj_dic["default_tbls"] else {}
+        # Try to use database and tables most recently used in session for this 
+        # database engine.
+        getdata.refresh_default_dbs_tbls(self.dbe, self.default_dbs, 
+                                         self.default_tbls)
         # get various db settings
         dbdetsobj = getdata.get_db_dets_obj(self.dbe, self.default_dbs, 
-                        self.default_tbls, self.con_dets,
-                        db=my_globals.DB_DEFAULT, tbl=my_globals.TBL_DEFAULT)
+                        self.default_tbls, self.con_dets)
         try:
             (self.con, self.cur, self.dbs, self.tbls, self.flds, 
                 self.has_unique, self.idxs) = dbdetsobj.getDbDets()
@@ -285,16 +292,18 @@ class DataSelectDlg(wx.Dialog):
         NB only enabled (for either viewing or editing) for the default SQLite 
             database.
         """
-        debug = True
+        debug = False
         tbl_name_lst = [self.tbl,]
         data = self._get_tbl_config(self.tbl)
-        if debug: print(data)
+        if debug: print("Initial table config data: %s" % data)
         config_data = []
         readonly = self.chkReadOnly.IsChecked()
         dlgConfig = table_config.ConfigTableDlg(tbl_name_lst, data, config_data, 
                                                 readonly)
         ret = dlgConfig.ShowModal()
-        if debug: pprint.pprint(config_data)
+        if debug:
+            print("Config data coming back:") 
+            pprint.pprint(config_data)
         if ret == wx.ID_OK and not readonly:
             """
             Make temp table, with strict type enforcement for all fields.  
@@ -395,6 +404,11 @@ class DataSelectDlg(wx.Dialog):
         event.Skip()
     
     def OnClose(self, event):
-        my_globals.DB_DEFAULT = self.db
-        my_globals.TBL_DEFAULT = self.tbl
+        debug = False
+        my_globals.DBE_DEFAULT = self.dbe
+        my_globals.DB_DEFAULTS[self.dbe] = self.db
+        my_globals.TBL_DEFAULTS[self.dbe] = self.tbl
+        if debug:
+            print("For %s, default DB saved as: %s and default table saved as: "
+                  "%s" % (self.dbe, self.db, self.tbl))
         self.Destroy()    

@@ -373,9 +373,8 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         file_name = u"%03d.png" % n_imgs
         img_path = os.path.join(imgs_path, file_name) # absolute
         args = [img_path]
-        if dpi:
-            args.append(dpi)
-        save_func(*args)
+        kwargs = {"dpi": dpi} if dpi else {}
+        save_func(*args, **kwargs)
         if debug: print("Just saved %s" % img_path)
         subfolder = os.path.split(imgs_path[:-1])[1]
         img_src = os.path.join(subfolder, file_name) #relative so can shift html
@@ -389,9 +388,8 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         img_src = my_globals.INT_IMG_ROOT + u"_%03d.png" % int_imgs_n
         if debug: print(img_src)
         args = [img_src]
-        if dpi:
-            args.append(dpi)
-        save_func(*args)
+        kwargs = {"dpi": dpi} if dpi else {}
+        save_func(*args, **kwargs)
         if debug: print("Just saved %s" % img_src)
     if debug: print("img_src: %s" % img_src)
     return img_src
