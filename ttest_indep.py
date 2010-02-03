@@ -46,8 +46,8 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             u"fld_measure=\"%s\", " % var_avg + \
             u"fld_filter=\"%s\", " % var_gp + \
             u"filter_val=%s)"
-        script_lst.append(strGet_Sample % (u"a", val_a))
-        script_lst.append(strGet_Sample % (u"b", val_b))
+        script_lst.append(strGet_Sample % (u"a", val_str_quoted_a))
+        script_lst.append(strGet_Sample % (u"b", val_str_quoted_b))
         script_lst.append(u"label_a = \"%s\"" % label_a)
         script_lst.append(u"label_b = \"%s\"" % label_b)
         script_lst.append(u"label_avg = \"%s\"" % label_avg)
