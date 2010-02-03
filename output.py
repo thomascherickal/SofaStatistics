@@ -376,7 +376,6 @@ def insert_prelim_code(modules, f, fil_report, css_fils):
     # else "encoding declaration in Unicode string".
     f.write(my_globals.PYTHON_ENCODING_DECLARATION)
     f.write(u"\n" + my_globals.MAIN_SCRIPT_START)
-    f.write(u"\n" + u"import my_exceptions")
     f.write(u"\n" + u"import codecs")
     f.write(u"\n" + u"import sys")
     f.write(u"\n" + u"import gettext")
@@ -385,6 +384,7 @@ def insert_prelim_code(modules, f, fil_report, css_fils):
             lib.escape_win_path(my_globals.SCRIPT_PATH))
     for module in modules:
         f.write(u"\n" + u"import %s" % module)
+    f.write(u"\n" + u"import my_exceptions")
     f.write(u"\n" + u"\n" + u"""fil = codecs.open(u"%s",""" % \
               lib.escape_win_path(fil_report) + u""" "w", "utf-8")""")
     css_fils_str = pprint.pformat(css_fils)
