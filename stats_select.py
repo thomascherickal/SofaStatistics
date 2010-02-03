@@ -307,17 +307,18 @@ class StatsSelectDlg(wx.Dialog):
           "\n\nExample with 3 or more groups: average sales figures for "
           "the North, South, East, and West regions"))
     
-    def examine_normality(self):
+    def examine_normality(self, paired=False):
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.get_var_dets(self.fil_var_dets)
         dlg = normal.NormalityDlg(self, self.dbe, self.con_dets, 
                         self.default_dbs, self.default_tbls, self.var_labels, 
                         self.var_notes, self.var_types, self.val_dics, 
-                        self.fil_var_dets)
+                        self.fil_var_dets, paired)
         dlg.ShowModal()
     
     def OnNormalHelp1Button(self, event):
-        self.examine_normality()
+        paired = self.radPaired.GetValue()
+        self.examine_normality(paired)
         event.Skip()
     
     def IndepSetup(self, enable=True):

@@ -24,4 +24,9 @@ class TooManyCellsInChiSquareException(Exception):
         
 class ExcessReportTableCellsException(Exception):
     def __init__(self, max):
-        Exception.__init__(self, "Only allowed %s cells in report table" % max)
+        Exception.__init__(self, _("Only allowed %s cells in report table" % 
+                                   max))
+
+class TooFewValsForDisplay(Exception):
+    def __init__(self):
+        Exception.__init__(self, "Too few values for display")
