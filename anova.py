@@ -75,19 +75,19 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"label_a = \"%s\"" % label_a)
         script_lst.append(u"label_b = \"%s\"" % label_b)
         script_lst.append(u"label_avg = \"%s\"" % label_avg)
-        script_lst.append(u"report_name = \"%s\"" % 
-                          lib.escape_win_path(report_name))
         script_lst.append(u"add_to_report = %s" % ("True" if add_to_report \
                           else "False"))
+        script_lst.append(u"report_name = \"%s\"" % 
+                          lib.escape_win_path(report_name))
         high = not self.radHigh.GetSelection()
         script_lst.append(u"p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, "
             u"mean_squ_bn = \\\n    core_stats.anova(samples, labels, "
             u"high=%s)" % high)
         script_lst.append(u"anova_output = stats_output.anova_output("
-            u"samples, F, p, dics, sswn, dfwn, mean_squ_wn, "
+                u"samples, F, p, dics, sswn, dfwn, mean_squ_wn, "
             u"\n    ssbn, dfbn, mean_squ_bn, label_a, label_b, label_avg, "
-            u"add_to_report, report_name, dp,"
+                u"add_to_report, report_name, dp,"
             u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, "
-            u"css_idx=%s, page_break_after=False)" % css_idx)
+                u"css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append(u"fil.write(anova_output)")
         return u"\n".join(script_lst)

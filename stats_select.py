@@ -289,7 +289,7 @@ class StatsSelectDlg(wx.Dialog):
         self.radNormal1.Enable(enable)
         self.radNotNormal1.Enable(enable)
         self.btnNormalHelp1.Enable(enable)
-        self.IndepSetup(enable=True)
+        self.IndepSetup(enable=enable)
     
     def OnRadio2GroupsButton(self, event):
         self.IndepSetup(enable=True)

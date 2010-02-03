@@ -51,10 +51,10 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"label_a = \"%s\"" % label_a)
         script_lst.append(u"label_b = \"%s\"" % label_b)
         script_lst.append(u"label_avg = \"%s\"" % label_avg)
-        script_lst.append(u"report_name = \"%s\"" % 
-                          lib.escape_win_path(report_name))
         script_lst.append(u"add_to_report = %s" % ("True" if add_to_report \
                           else "False"))
+        script_lst.append(u"report_name = \"%s\"" % 
+                          lib.escape_win_path(report_name))
         script_lst.append(u"t, p, dic_a, dic_b = " + \
             u"core_stats.ttest_ind(sample_a, sample_b, label_a, label_b)")
         script_lst.append(u"ttest_indep_output = "

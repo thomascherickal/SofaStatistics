@@ -173,7 +173,8 @@ def test_paired_tests():
 
 def _test_rel_t_test(sample_a, sample_b, verbose=False):
     t1, p1 = stats.ttest_rel(sample_a, sample_b, True, "Male", "Female")
-    t2, p2, dic_a, dic_b = ttest_rel(sample_a, sample_b, "Male", "Female")
+    t2, p2, dic_a, dic_b, diffs = ttest_rel(sample_a, sample_b, "Male", 
+                                            "Female")
     if verbose:
         print("t1: %s t2: %s" % (t1, t2))
         print("p1: %s p2: %s" % (p1, p2))

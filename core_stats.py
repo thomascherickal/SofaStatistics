@@ -484,8 +484,9 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     """
     From stats.py - there are changes to variable labels and comments;
         and the output is extracted early to give greater control over 
-        presentation.  There are no changes to algorithms.
-    Returns t, p, dic_a, dic_b (p is the two-tailed probability)
+        presentation.  A list of the differences is extracted along the way.
+        There are no changes to algorithms.
+    Returns t, p, dic_a, dic_b (p is the two-tailed probability), diffs
     ---------------------------------------------------------------------
     Calculates the t-obtained T-test on TWO RELATED samples of scores,
     a and b.  From Numerical Recipes, p.483.
@@ -498,8 +499,13 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     var_b = variance(sample_b)
     n = len(sample_a)
     cov = 0
+    diffs = []
     for i in range(n):
-        cov = cov + (sample_a[i] - mean_a) * (sample_b[i] - mean_b)
+        item_a = sample_a[i]
+        item_b = sample_b[i]
+        diff = item_b - item_a
+        diffs.append(diff)
+        cov = cov + (item_a - mean_a) * (item_b - mean_b)
     df = n - 1
     cov = cov / float(df)
     sd = math.sqrt((var_a + var_b - 2.0*cov) / float(n))
@@ -515,7 +521,7 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
              "min": min_a, "max": max_a}
     dic_b = {"label": label_b, "n": n, "mean": mean_b, "sd": sd_b, 
              "min": min_b, "max": max_b}
-    return t, p, dic_a, dic_b
+    return t, p, dic_a, dic_b, diffs
 
 def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     """

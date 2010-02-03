@@ -279,9 +279,10 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg,
     html_str = "\n".join(html)
     return html_str
 
-def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg="", 
-                        dp=3, level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
-                        page_break_after=False):
+def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, diffs, 
+                                add_to_report, report_name, label_avg="", dp=3, 
+                                level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                                page_break_after=False):
     """
     Returns HTML table ready to display.
     dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
@@ -291,6 +292,17 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg="",
     indep = False
     ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp, 
                         indep, css_idx, html)
+    # histogram
+    charts.gen_config(axes_labelsize=10, xtick_labelsize=8, 
+                      ytick_labelsize=8)
+    fig = pylab.figure()
+    fig.set_size_inches((7.5, 3.5)) # see dpi to get image size in pixels
+    hist_label = u"Differences between %s and %s" % (dic_a["label"], 
+                                                     dic_b["label"])
+    charts.config_hist(fig, diffs, _("Differences"), hist_label)
+    img_src = save_report_img(add_to_report, report_name, 
+                              save_func=pylab.savefig, dpi=100)
+    html.append(u"\n<img src='%s'>" % img_src)
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
             (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
