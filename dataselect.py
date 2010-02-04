@@ -242,50 +242,70 @@ class DataSelectDlg(wx.Dialog):
         self.button_enablement()
         event.Skip()
     
-    def make_strict_typing_tbl(self, tbl_name, final_name_types, config_data):
-        ""
+    def make_strict_typing_tbl(self, oth_name_types, config_data):
+        """
+        Make table for purpose of forcing all data into strict type fields.  Not
+            necessary to check sofa_id field (autoincremented integer) so not 
+            included.
+        Make table with all the fields apart from the sofa_id.  The fields
+            should be set with strict check constraints so that, even though the
+            table is SQLite, it cannot accept inappropriate data.
+        Try to insert into strict table all fields in original table (apart from 
+            the sofa_id which will be autoincremented from scratch).
+        oth_name_types - name, type tuples excluding sofa_id.
+        config_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
+            TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
+        """
         debug = False
-        create_fld_clause = getdata.get_create_flds_txt(final_name_types, 
-                                                        strict_typing=True)
-        orig_new_names = getdata.get_oth_name_types(config_data)
-        select_fld_clause = \
-            getdata.make_select_renamed_flds_clause(orig_new_names)
-        SQL_drop_tmp_tbl = "DROP TABLE IF EXISTS %s" % \
-                                sqlite_quoter(my_globals.TMP_TBL_NAME)
+        tmp_name = sqlite_quoter(my_globals.TMP_TBL_NAME)
+        SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % tmp_name
         self.cur.execute(SQL_drop_tmp_tbl)
-        SQL_make_tmp_tbl = "CREATE TABLE %s (%s) " % \
-            (sqlite_quoter(my_globals.TMP_TBL_NAME), create_fld_clause)
+        # create table with strictly-typed fields
+        create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
+                                                        strict_typing=True,
+                                                        inc_sofa_id=False)
+        SQL_make_tmp_tbl = u"CREATE TABLE %s (%s) " % (tmp_name, 
+                                                       create_fld_clause)
         if debug: print(SQL_make_tmp_tbl)
         self.cur.execute(SQL_make_tmp_tbl)
         # unable to use CREATE ... AS SELECT at same time as defining table.
-        SQL_insert_all = "INSERT INTO %s SELECT %s FROM %s""" % \
-            (sqlite_quoter(my_globals.TMP_TBL_NAME), select_fld_clause,
-             sqlite_quoter(self.tbl))
+        # attempt to insert data into strictly-typed fields.
+        select_fld_clause = getdata.make_flds_clause(config_data)
+        SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (tmp_name, 
+                                    select_fld_clause, sqlite_quoter(self.tbl))
         if debug: print(SQL_insert_all)
         self.cur.execute(SQL_insert_all)
     
     def make_redesigned_tbl(self, oth_name_types, config_data):
         """
-        Make new table with all the fields from the tmp table but the SOFA_ID
-            field autoincrementing and an index.
+        Make new table with all the fields from the tmp table (which doesn't 
+            have the sofa_id field) plus the sofa_id field.
+        config_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
+            TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
         """
-        debug = False
+        debug = True
+        tmp_name = sqlite_quoter(my_globals.TMP_TBL_NAME)
+        final_name = sqlite_quoter(self.tbl)
         create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
-                                                        strict_typing=False)
-        SQL_drop_orig = "DROP TABLE %s" % sqlite_quoter(self.tbl)
+                                                        strict_typing=False,
+                                                        inc_sofa_id=True)
+        SQL_drop_orig = u"DROP TABLE %s" % final_name
         self.cur.execute(SQL_drop_orig)
-        SQL_make_redesigned_tbl = "CREATE TABLE %s (%s)" % \
-                                    (sqlite_quoter(self.tbl), create_fld_clause)
+        if debug: print(create_fld_clause)
+        SQL_make_redesigned_tbl = u"CREATE TABLE %s (%s)" % (final_name, 
+                                                             create_fld_clause)
         self.cur.execute(SQL_make_redesigned_tbl)
-        SQL_insert_all = "INSERT INTO %s SELECT * FROM %s""" % \
-                                        (sqlite_quoter(self.tbl), 
-                                         sqlite_quoter(my_globals.TMP_TBL_NAME))
+        oth_names = [sqlite_quoter(x[0]) for x in oth_name_types]
+        null_plus_oth_flds = u" NULL, " + u", ".join(oth_names)
+        SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (final_name, 
+                                                            null_plus_oth_flds, 
+                                                            tmp_name)
         if debug: print(SQL_insert_all)
         self.cur.execute(SQL_insert_all)
-        SQL_drop_tmp = "DROP TABLE %s" % sqlite_quoter(my_globals.TMP_TBL_NAME)
+        SQL_drop_tmp = u"DROP TABLE %s" % tmp_name
         self.cur.execute(SQL_drop_tmp)
         self.con.commit()
-    
+
     def OnDesign(self, event):
         """
         Open table config which reads values for the table.
@@ -324,9 +344,10 @@ class DataSelectDlg(wx.Dialog):
             self.tbl = tbl_name_lst[0]
             # other (i.e. not the sofa_id) field details
             oth_name_types = getdata.get_oth_name_types(config_data)
+            if debug: print("oth_name_types to feed into " 
+                            "make_strict_typing_tbl %s" % oth_name_types)
             try:
-                self.make_strict_typing_tbl(self.tbl, oth_name_types, 
-                                            config_data)
+                self.make_strict_typing_tbl(oth_name_types, config_data)
             except pysqlite2.dbapi2.IntegrityError, e:
                 if debug: print(unicode(e))
                 wx.MessageBox(_("Unable to modify table.  Some data does not "

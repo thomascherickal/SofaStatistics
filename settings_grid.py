@@ -950,6 +950,7 @@ class SettingsEntry(object):
         Get data from grid.
         If readonly, get all rows.
         If not readonly, get all but final row (either empty or not saved).
+        Only returns values - not types etc.
         """
         grid_data = []
         data_rows_n = self.rows_n if self.readonly else self.rows_n - 1 

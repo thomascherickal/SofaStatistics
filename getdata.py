@@ -386,46 +386,68 @@ def dup_tbl_name(tbl_name):
     con.close()
     return tbl_name in tbls
 
-def make_select_renamed_flds_clause(orig_new_names):
+def make_flds_clause(config_data):
     """
-    Create a clause ready to put in a select statement which maps old to new 
-        names as needed.
-    orig_new_names -- [(orig_name, new_name), ...] where orig_name can be None.
+    Create a clause ready to put in a select statement which takes into account
+        original and new names if an existing field which has changed name. 
+        Does not include the sofa_id.  NB a new field will only have a new name 
+        so the orig name will be None.
+    config_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
+        TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
     debug = False
     sqlite_quoter = get_obj_quoter_func(my_globals.DBE_SQLITE)
-    fld_clause_items = [my_globals.SOFA_ID]
+    # get orig_name, new_name tuples for all fields in final table apart 
+    # from the sofa_id.
+    orig_new_names = [(x[my_globals.TBL_FLD_NAME_ORIG], 
+                       x[my_globals.TBL_FLD_NAME]) \
+                       for x in config_data \
+                       if x[my_globals.TBL_FLD_NAME_ORIG] != my_globals.SOFA_ID]
+    if debug:
+        print("config_data: %s" % config_data)
+        print("orig_new_names: %s" % orig_new_names)
+    fld_clause_items = []
     for orig_name, new_name in orig_new_names:
+        qorig_name = sqlite_quoter(orig_name)
+        qnew_name = sqlite_quoter(new_name)
         if orig_name is None:
-            clause = "NULL %s" % sqlite_quoter(new_name)
+            clause = u"NULL %s" % qnew_name
         elif orig_name == new_name:
-            clause = "%s" % sqlite_quoter(new_name)
+            clause = u"%s" % qnew_name
         else:
-            clause = "%s %s" % (sqlite_quoter(orig_name), 
-                                sqlite_quoter(new_name))
+            clause = u"%s %s" % (qorig_name, qnew_name)
         fld_clause_items.append(clause)
     fld_clause = u", ".join(fld_clause_items)
     return fld_clause
 
 def get_oth_name_types(config_data):
+    """
+    Returns name, type tuples for all fields except for the sofa_id.
+    config_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
+        TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
+    """
     oth_name_types = [(x[my_globals.TBL_FLD_NAME], x[my_globals.TBL_FLD_TYPE]) \
                             for x in config_data \
                             if x[my_globals.TBL_FLD_NAME] != my_globals.SOFA_ID]
     return oth_name_types
 
-def get_create_flds_txt(oth_name_types, strict_typing=False):
+def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):
     """
-    Get text clause for use in an SQLite SQL create table statement which 
-        defines _all_ the fields i.e. must include the sofa_id.  Because the 
-        table will be created inside the default SOFA SQLite database, the text 
-        must also define the sofa_id as UNIQUE.
-    oth_name_types -- fld_name, fld_type.  Must NOT include sofa_id.  This will 
-        be added automatically.
+    Get text clause which defines fields for use in an SQLite create table 
+        statement. The table will be created inside the default SOFA SQLite 
+        database.  If the sofa_id is included, the text must define the sofa_id 
+        as UNIQUE.
+    oth_name_types -- fld_name, fld_type.  Does not include sofa_id. The sofa_id 
+        can be added below if required.
     strict_typing -- add check constraints to fields.
     """
     debug = False
     quoter = get_obj_quoter_func(my_globals.DBE_SQLITE)
-    fld_clause_items = [u"%s INTEGER PRIMARY KEY" % quoter(my_globals.SOFA_ID)]
+    sofa_id = quoter(my_globals.SOFA_ID)
+    if inc_sofa_id:
+        fld_clause_items = [u"%s INTEGER PRIMARY KEY" % sofa_id]
+    else:
+        fld_clause_items = []
     for fld_name, fld_type in oth_name_types:
         if fld_name == my_globals.SOFA_ID:
             raise Exception, "Do not pass sofa_id into %s" % \
@@ -444,7 +466,8 @@ def get_create_flds_txt(oth_name_types, strict_typing=False):
                                             "fld_type": tosqlite["sqlite_type"],
                                             "check_clause": check}
         fld_clause_items.append(clause)
-    fld_clause_items.append(u"UNIQUE(%s)" % quoter(my_globals.SOFA_ID))
+    if inc_sofa_id:
+        fld_clause_items.append(u"UNIQUE(%s)" % sofa_id)
     fld_clause = u", ".join(fld_clause_items)
     return fld_clause
 
@@ -460,7 +483,9 @@ def make_sofa_tbl(con, cur, tbl_name, oth_name_types, strict_typing=False):
         check clauses as part of create table statements.
     """
     debug = False
-    fld_clause = get_create_flds_txt(oth_name_types, strict_typing)
+    fld_clause = get_create_flds_txt(oth_name_types, 
+                                     strict_typing=strict_typing, 
+                                     inc_sofa_id=True)
     SQL_make_tbl = u"""CREATE TABLE "%s" (%s)""" % (tbl_name, fld_clause)
     if debug: print(SQL_make_tbl)
     cur.execute(SQL_make_tbl)
