@@ -90,6 +90,7 @@ class TblEditor(wx.Dialog):
             self.grid.SetGridCursor(0, 0)
             self.current_row_idx = 0
             self.current_col_idx = 0
+            self.editor_shown = False
         else:
             # disable any columns which do not allow data entry
             for idx_col in range(len(self.flds)):
@@ -102,14 +103,19 @@ class TblEditor(wx.Dialog):
             new_row_idx = self.dbtbl.GetNumberRows() - 1
             self.focus_on_new_row(new_row_idx)
             self.SetNewRowEd(new_row_idx)
+            self.editor_shown = True
         self.SetColWidths()
         self.grid.GetGridColLabelWindow().SetToolTipString(_("Right click "
                                             "variable to view/edit details"))
         self.respond_to_select_cell = True
+        self.control = None
         self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnCellChange)
         self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnSelectCell)
         self.grid.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
         self.grid.Bind(EVT_CELL_MOVE, self.OnCellMove)
+        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.OnGridEditorCreated)
+        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.EditorShown)
+        self.Bind(wx.grid.EVT_GRID_EDITOR_HIDDEN, self.EditorHidden)
         self.prev_row_col = (None, None)
         self.grid.GetGridWindow().Bind(wx.EVT_MOTION, self.OnMouseMove)
         self.grid.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, 
@@ -234,6 +240,7 @@ class TblEditor(wx.Dialog):
             validation.
         """
         debug = False
+        src_ctrl = self.control
         src_row=self.current_row_idx # row being moved from
         src_col=self.current_col_idx # col being moved from
         dest_row = event.dest_row # row being moved towards
@@ -243,11 +250,13 @@ class TblEditor(wx.Dialog):
             print("settings_grid.OnCellMove src_row: %s src_col %s " %
                 (src_row, src_col) + "dest_row: %s dest_col: %s " %
                 (dest_row, dest_col) + "direction %s" % direction)
-        # ProcessCellMove called from text editor as well so keep separate
-        self.ProcessCellMove(src_row, src_col, dest_row, dest_col, direction)
+        # process_cell_move called from text editor as well so keep separate
+        self.process_cell_move(src_ctrl, src_row, src_col, dest_row, dest_col, 
+                               direction)
         event.Skip()
     
-    def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, direction):
+    def process_cell_move(self, src_ctrl, src_row, src_col, dest_row, dest_col, 
+                          direction):
         """
         dest row and col still unknown if from a return or TAB keystroke.
         So is the direction (could be down or down_left if end of line).
@@ -255,7 +264,7 @@ class TblEditor(wx.Dialog):
         debug = False
         self.dbtbl.ForceRefresh()
         if self.debug or debug:
-            print("ProcessCellMove - " +
+            print("process_cell_move - " +
                 "source row %s source col %s " % (src_row, src_col) +
                 "dest row %s dest col %s " % (dest_row, dest_col) +
                 "direction: %s" % direction)
@@ -271,7 +280,7 @@ class TblEditor(wx.Dialog):
         elif move_type == my_globals.LEAVING_NEW:
             move_to_dest = self._leavingNewRow(dest_row, dest_col, direction)
         else:
-            raise Exception, "ProcessCellMove - Unknown move_type"
+            raise Exception, "process_cell_move - Unknown move_type"
         if self.debug or debug:
             print("Move type: %s" % move_type)
             print("OK to move to dest?: %s" % move_to_dest)
@@ -282,8 +291,17 @@ class TblEditor(wx.Dialog):
             self.current_row_idx = dest_row
             self.current_col_idx = dest_col
         else:
-            pass
-            #wx.MessageBox("Stay here at %s %s" % (src_row, src_col))
+            if debug: print("Stay here at %s %s" % (src_row, src_col))
+            #self.respond_to_select_cell = False # to prevent infinite loop!
+            if src_ctrl:
+                if debug: 
+                    print("Last control was: %s" % src_ctrl)
+                    print("Control text: %s" % src_ctrl.GetValue())
+                self.grid.EnableCellEditControl(enable=True)
+                try:
+                    src_ctrl.SetInsertionPointEnd()
+                except Exception:
+                    pass
     
     def _getMoveDets(self, src_row, src_col, dest_row, dest_col, direction):
         """
@@ -725,6 +743,16 @@ class TblEditor(wx.Dialog):
 
     # MISC //////////////////////////////////////////////////////////////////
     
+    def OnGridEditorCreated(self, event):
+        """
+        Need to identify control just opened.  Might need to return to it and
+            set insertion point.
+        """
+        debug = False
+        self.control = event.GetControl()
+        if debug: print("Created editor: %s" % self.control)
+        event.Skip()    
+    
     def OnLabelRightClick(self, event):
         debug = False
         col = event.GetCol()
@@ -763,12 +791,24 @@ class TblEditor(wx.Dialog):
             tip = raw_val
         if debug: print(tip)
         return tip
-    
+
+    def EditorShown(self, event):
+        self.editor_shown = True
+        event.Skip()
+        
+    def EditorHidden(self, event):
+        self.editor_shown = False
+        event.Skip()
+        
     def OnMouseMove(self, event):
         """
+        Only respond if no cell editor is currently open.
         Only respond if a change in row or col.
         See http://wiki.wxpython.org/wxGrid%20ToolTips
         """
+        if self.editor_shown:
+            event.Skip()
+            return
         x, y = self.grid.CalcUnscrolledPosition(event.GetPosition())
         row = self.grid.YToRow(y)
         col = self.grid.XToCol(x)

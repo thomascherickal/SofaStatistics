@@ -367,7 +367,7 @@ class SettingsEntry(object):
         Need to bind KeyDown to the control itself e.g. a choice control.
         wx.WANTS_CHARS makes it work.
         """
-        debug = True
+        debug = False
         self.control = event.GetControl()
         if debug: 
             print("Created editor: %s" % self.control)
