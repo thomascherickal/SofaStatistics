@@ -53,21 +53,23 @@ class DimTree(object):
     
     def OnRowAdd(self, event):
         "Add row var under root"
-        self.TryAdding(tree=self.rowtree, root=self.rowRoot, 
-                       dim=my_globals.ROWDIM, oth_dim=my_globals.COLDIM, 
-                       oth_dim_tree=self.coltree, 
-                       oth_dim_root=self.colRoot)
+        self.try_adding(tree=self.rowtree, root=self.rowRoot, 
+                        dim=my_globals.ROWDIM, oth_dim=my_globals.COLDIM, 
+                        oth_dim_tree=self.coltree, 
+                        oth_dim_root=self.colRoot)
      
     def OnColAdd(self, event):
         "Add column var under root"
-        self.TryAdding(tree=self.coltree, root=self.colRoot, 
-                       dim=my_globals.COLDIM, oth_dim=my_globals.ROWDIM, 
-                       oth_dim_tree=self.rowtree, 
-                       oth_dim_root=self.rowRoot)
+        self.try_adding(tree=self.coltree, root=self.colRoot, 
+                        dim=my_globals.COLDIM, oth_dim=my_globals.ROWDIM, 
+                        oth_dim_tree=self.rowtree, 
+                        oth_dim_root=self.rowRoot)
     
-    def TryAdding(self, tree, root, dim, oth_dim, oth_dim_tree, 
-                  oth_dim_root):
-        "Try adding a variable"
+    def try_adding(self, tree, root, dim, oth_dim, oth_dim_tree, 
+                   oth_dim_root):
+        """
+        Try adding a variable.
+        """
         if self.tab_type == my_globals.ROW_SUMM and tree == self.rowtree:
             min_data_type = my_globals.VAR_TYPE_ORD
         else:
@@ -91,7 +93,7 @@ class DimTree(object):
                     return
                 # in raw tables, can only use once
                 if self.tab_type == my_globals.RAW_DISPLAY:
-                    used_in_this_dim = self.UsedInThisDim(text, tree, root)
+                    used_in_this_dim = self.used_in_this_dim(text, tree, root)
                     if used_in_this_dim:
                         msg = _("Variable '%(text)s' cannot be used "
                                 "more than once")
@@ -149,8 +151,8 @@ class DimTree(object):
             wx.MessageBox(msg)
             return
         if len(selected_ids) == 1:
-            self.TryAddingUnder(tree, root, dim, oth_dim, selected_ids[0], 
-                                oth_dim_tree, oth_dim_root)
+            self.try_adding_under(tree, root, dim, oth_dim, selected_ids[0], 
+                                  oth_dim_tree, oth_dim_root)
         elif len(selected_ids) == 0:
             wx.MessageBox(_("Select a %s variable first") % dim)
             return
@@ -171,8 +173,8 @@ class DimTree(object):
         oth_dim_root = self.rowRoot
         selected_ids = tree.GetSelections()
         if len(selected_ids) == 1:
-            self.TryAddingUnder(tree, root, dim, oth_dim, selected_ids[0], 
-                                oth_dim_tree, oth_dim_root)
+            self.try_adding_under(tree, root, dim, oth_dim, selected_ids[0], 
+                                  oth_dim_tree, oth_dim_root)
         elif len(selected_ids) == 0:
             wx.MessageBox(_("Select a %s variable first") % dim)
             return
@@ -180,8 +182,8 @@ class DimTree(object):
             wx.MessageBox(_("Can only add under a single selected item."))
             return
         
-    def TryAddingUnder(self, tree, root, dim, oth_dim, selected_id, 
-                       oth_dim_tree, oth_dim_root):
+    def try_adding_under(self, tree, root, dim, oth_dim, selected_id, 
+                         oth_dim_tree, oth_dim_root):
         """
         Try to add var under selected var.
         Only do so if OK e.g. no duplicate text in either dim.
@@ -247,7 +249,7 @@ class DimTree(object):
                                   x in oth_dim_items]
         return text in oth_dim_labels
     
-    def UsedInThisDim(self, text, dim_tree, dim_root):
+    def used_in_this_dim(self, text, dim_tree, dim_root):
         "Is this variable already used in this dimension?"
         dim_items = lib.get_tree_ctrl_descendants(dim_tree, dim_root)
         dim_labels = [dim_tree.GetItemText(x) for x in dim_items]

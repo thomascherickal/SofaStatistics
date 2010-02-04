@@ -252,6 +252,7 @@ class SettingsEntry(object):
             self.current_row_idx = self.rows_n - 1
             self.grid.SetGridCursor(self.rows_n - 1, 0) # triggers OnSelect
             self.grid.MakeCellVisible(self.rows_n - 1, 0)
+        self.control = None
         self.szr.Add(self.grid, vert_share, wx.GROW|wx.ALL, 5)
     
     def get_new_renderer_editor(self, col_idx):
@@ -307,7 +308,7 @@ class SettingsEntry(object):
 
     # processing MOVEMENTS AWAY FROM CELLS e.g. saving values //////////////////
     
-    def AddCellMoveEvt(self, direction, dest_row=None, dest_col=None):
+    def add_cell_move_evt(self, direction, dest_row=None, dest_col=None):
         """
         Add special cell move event.
         src_row and src_col - wherever we were last (only updated if a move is 
@@ -359,28 +360,29 @@ class SettingsEntry(object):
         if self.debug or debug: 
             print(u"OnSelectCell - selected row: %s, col: %s, direction: %s" %
             (dest_row, dest_col, direction) + u"******************************") 
-        self.AddCellMoveEvt(direction, dest_row, dest_col)
+        self.add_cell_move_evt(direction, dest_row, dest_col)
 
     def OnGridEditorCreated(self, event):
         """
         Need to bind KeyDown to the control itself e.g. a choice control.
         wx.WANTS_CHARS makes it work.
         """
-        debug = False
-        control = event.GetControl()
+        debug = True
+        self.control = event.GetControl()
         if debug: 
-            if isinstance(control, wx.ComboBox):
+            print("Created editor: %s" % self.control)
+            if isinstance(self.control, wx.ComboBox):
                 self.update_new_is_dirty()
                 print("Selected combobox")
-        control.WindowStyle |= wx.WANTS_CHARS
-        control.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
+        self.control.WindowStyle |= wx.WANTS_CHARS
+        self.control.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
         event.Skip()
 
     def OnGridKeyDown(self, event):
         """
         Potentially capture use of keypress to move away from a cell.
         The only case where we can't rely on OnSelectCell to take care of
-            AddCellMoveEvt for us is if we are moving right or down from the 
+            add_cell_move_evt for us is if we are moving right or down from the 
             last col after a keypress.
         Must process here.  NB dest row and col yet to be determined.
         """
@@ -403,7 +405,7 @@ class SettingsEntry(object):
             final_col = (src_col == len(self.col_dets) - 1)
             if final_col and direction in [my_globals.MOVE_RIGHT, 
                                            my_globals.MOVE_DOWN]:
-                self.AddCellMoveEvt(direction)
+                self.add_cell_move_evt(direction)
                 # Do not Skip and send event on its way.
                 # Smother the event here so our code can determine where the 
                 # selection goes next.  Otherwise, Return will appear in cell 
@@ -432,7 +434,7 @@ class SettingsEntry(object):
         """
         if event.GetKeyCode() in [wx.WXK_RETURN]:
             self.grid.DisableCellEditControl()
-            self.AddCellMoveEvt(my_globals.MOVE_RIGHT)
+            self.add_cell_move_evt(my_globals.MOVE_RIGHT)
             
     def OnCellMove(self, event):
         """
@@ -447,9 +449,9 @@ class SettingsEntry(object):
         NB must get the table to refresh itself and thus call SetValue(). Other-
             wise we can't get the value just entered so we can evaluate it for
             validation.
-        Returns src_row, left_row.  Useful for table config grid.
         """
         debug = False
+        src_ctrl = self.control
         src_row=self.current_row_idx # row being moved from
         src_col=self.current_col_idx # col being moved from
         dest_row = event.dest_row # row being moved towards
@@ -459,8 +461,9 @@ class SettingsEntry(object):
             print(u"settings_grid.OnCellMove src_row: %s src_col %s " %
                 (src_row, src_col) + u"dest_row: %s dest_col: %s " %
                 (dest_row, dest_col) + u"direction %s" % direction)
-        # ProcessCellMove called from text editor as well so keep separate
-        self.ProcessCellMove(src_row, src_col, dest_row, dest_col, direction)
+        # process_cell_move called from text editor as well so keep separate
+        self.process_cell_move(src_ctrl, src_row, src_col, dest_row, dest_col, 
+                               direction)
         # only SetFocus if moving.  Otherwise if this is embedded, we can't set
         # the focus anywhere else (because it triggers EVT_CELL_MOVE and then
         # we grab the focus again below!).
@@ -472,9 +475,9 @@ class SettingsEntry(object):
             for window in self.grid.GetChildren():
                 window.SetFocus()
         event.Skip()
-        return src_row, left_row
     
-    def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, direction):
+    def process_cell_move(self, src_ctrl, src_row, src_col, dest_row, dest_col, 
+                          direction):
         """
         dest row and col still unknown if from a return or TAB keystroke.
         So is the direction (could be down or down_left if end of line).
@@ -483,7 +486,7 @@ class SettingsEntry(object):
         debug = False
         saved_new_row = False
         if self.debug or debug:
-            print(u"ProcessCellMove - " +
+            print(u"process_cell_move - " +
                 u"source row %s source col %s " % (src_row, src_col) +
                 u"dest row %s dest col %s " % (dest_row, dest_col) +
                 u"direction: %s" % direction)
@@ -498,7 +501,7 @@ class SettingsEntry(object):
             move_to_dest, saved_new_row = self.leaving_new_row(dest_row, 
                                                             dest_col, direction)
         else:
-            raise Exception, u"ProcessCellMove - Unknown move_type"
+            raise Exception, u"process_cell_move - Unknown move_type"
         if self.debug or debug:
             print(u"move_type: %s move_to_dest: %s " % (move_type, 
                                                         move_to_dest) +
@@ -510,8 +513,17 @@ class SettingsEntry(object):
             self.current_row_idx = dest_row
             self.current_col_idx = dest_col
         else:
-            pass
-            #wx.MessageBox("Stay here at %s %s" % (src_row, src_col))
+            if debug: print("Stay here at %s %s" % (src_row, src_col))
+            #self.respond_to_select_cell = False # to prevent infinite loop!
+            if src_ctrl:
+                if debug: 
+                    print("Last control was: %s" % src_ctrl)
+                    print("Control text: %s" % src_ctrl.GetValue())
+                self.grid.EnableCellEditControl(enable=True)
+                try:
+                    src_ctrl.SetInsertionPointEnd()
+                except Exception:
+                    pass
         return saved_new_row
     
     def _getMoveDets(self, src_row, src_col, dest_row, dest_col, direction):

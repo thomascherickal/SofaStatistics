@@ -305,14 +305,16 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
         attr.SetReadOnly(True)
         self.grid.SetRowAttr(0, attr)
     
-    def ProcessCellMove(self, src_row, src_col, dest_row, dest_col, direction):
+    def process_cell_move(self, src_ctrl, src_row, src_col, dest_row, dest_col, 
+                          direction):
         """
         dest row and col still unknown if from a return or TAB keystroke.
         So is the direction (could be down or down_left if end of line).
         """
         debug = False
-        saved_new_row = settings_grid.SettingsEntry.ProcessCellMove(self, 
-                                src_row, src_col, dest_row, dest_col, direction)
+        saved_new_row = settings_grid.SettingsEntry.process_cell_move(self, 
+                                            src_ctrl, src_row, src_col, 
+                                            dest_row, dest_col, direction)
         if saved_new_row:
             if self.debug or debug: print("Row moved from was %s" % src_row)
             # For row we're leaving, fill in new details.
