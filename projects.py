@@ -664,5 +664,5 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                 self.parent.parent.SetProj(proj_name)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # only for dialogs
-        # (MUST come after Destroy)
-            
+        # (MUST come after Destroy)        
+        

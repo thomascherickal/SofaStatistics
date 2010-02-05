@@ -104,6 +104,8 @@ class ProjSelectDlg(wx.Dialog):
     def OnProjSelect(self, event):
         proj_sel_id = self.dropProjs.GetSelection()
         self.SetNotes(proj_sel_id)
+        my_globals.DBE_DEFAULT = None # otherwise there can be a problem if the
+            # new project doesn't have the dbe that the old one had.
         event.Skip()
     
     def SetNotes(self, proj_sel_id):
