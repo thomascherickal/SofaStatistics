@@ -568,8 +568,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             script_lst.append(u"tab_test = dimtables.GenTable(" + \
                 u"titles=%s," % unicode(titles) + \
                 u"\n    subtitles=%s," % unicode(subtitles) + \
-                u"\n    dbe=\"%s\", " % self.dbe + \
-                u"tbl=\"%s\", " % self.tbl + \
+                u"\n    dbe=u\"%s\", " % self.dbe + \
+                u"tbl=u\"%s\", " % self.tbl + \
                 u"tbl_filt=tbl_filt," + \
                 u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " + \
                 u"tree_cols=tree_cols)")
@@ -577,8 +577,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             script_lst.append(u"tab_test = dimtables.SummTable(" + \
                 u"titles=%s," % unicode(titles) + \
                 u"\n    subtitles=%s," % unicode(subtitles) + \
-                u"\n    dbe=\"%s\", " % self.dbe + \
-                u"tbl=\"%s\", " % self.tbl + \
+                u"\n    dbe=u\"%s\", " % self.dbe + \
+                u"tbl=u\"%s\", " % self.tbl + \
                 u"tbl_filt=tbl_filt," + \
                 u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " + \
                 u"tree_cols=tree_cols)")
@@ -589,10 +589,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             script_lst.append(u"tab_test = rawtables.RawTable(" + \
                 u"titles=%s, " % unicode(titles) + \
                 u"\n    subtitles=%s, " % unicode(subtitles) + \
-                u"\n    dbe=\"%s\", " % self.dbe + \
+                u"\n    dbe=u\"%s\", " % self.dbe + \
                 u"col_names=col_names, col_labels=col_labels, flds=flds," + \
                 u"\n    var_labels=var_labels, val_dics=val_dics, " + \
-                u"tbl=\"%s\"," % self.tbl + \
+                u"tbl=u\"%s\"," % self.tbl + \
                 u"\n    tbl_filt=tbl_filt, cur=cur, add_total_row=%s, " % \
                     tot_rows + \
                 u"\n    first_col_as_label=%s)" % first_label)
@@ -626,7 +626,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         if child == self.col_no_vars_item:
             fld_arg = u""
         else:
-            fld_arg = u"fld=\"%s\", " % child_fld_name
+            fld_arg = u"fld=u\"%s\", " % child_fld_name
         #print(self.var_labels) #debug
         #print(self.val_dics) #debug
         var_label = self.var_labels.get(child_fld_name, 
@@ -646,13 +646,13 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             tot_arg = u", \n    has_tot=True"
         else:
             tot_arg = u""
-        sort_order_arg = u", \n    sort_order=\"%s\"" % \
+        sort_order_arg = u", \n    sort_order=u\"%s\"" % \
             item_conf.sort_order
         numeric_arg = u", \n    bolnumeric=%s" % item_conf.bolnumeric
         script_lst.append(child_node_label + \
                           u" = dimtables.DimNode(" + fld_arg + \
-                          u"\n    label=\"" + unicode(var_label) + \
-                          u"\", \n    labels=" + unicode(labels_dic) + \
+                          u"\n    label=u\"%s\"," % unicode(var_label) + \
+                          u"\n    labels=" + unicode(labels_dic) + \
                           measures_arg + tot_arg + sort_order_arg + \
                           numeric_arg + ")")
         script_lst.append(u"%s.addChild(%s)" % (parent_node_label, 

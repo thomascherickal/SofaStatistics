@@ -1,4 +1,6 @@
 
+import my_exceptions
+
 class Nodes(object):
     """
     Nodes functionality used by Nodes and Trees
@@ -34,8 +36,7 @@ class Nodes(object):
         "Gets list of terminal nodes"
         if isinstance(self, NodeTree):
             if not self.root_node.children:
-                raise Exception, "Cannot get terminal nodes until " + \
-                    "there is at least one node added to tree"                
+                raise my_exceptions.NoNodesException
             start_node = self.root_node
         else:
             start_node = self            

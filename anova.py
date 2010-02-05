@@ -52,16 +52,16 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         idx_val_a, idx_val_b = indep2var.get_range_idxs(self.vals, val_a, val_b)
         vals_in_range = self.vals[idx_val_a: idx_val_b + 1]
         strGet_Sample = u"%s = core_stats.get_list(" + \
-            u"dbe=\"%s\", " % self.dbe + \
-            u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
+            u"dbe=u\"%s\", " % self.dbe + \
+            u"cur=cur, tbl=u\"%s\",\n    " % self.tbl + \
             u"tbl_filt=tbl_filt, " + \
             u"flds=flds, " + \
-            u"fld_measure=\"%s\", " % var_avg + \
-            u"fld_filter=\"%s\", " % var_gp + \
+            u"fld_measure=u\"%s\", " % var_avg + \
+            u"fld_filter=u\"%s\", " % var_gp + \
             u"filter_val=%s)"        
         for i, val in enumerate(vals_in_range):
             sample_name = u"sample_%s" % i
-            val_str_quoted = val if var_gp_numeric else "\"%s\"" % val
+            val_str_quoted = val if var_gp_numeric else u"u\"%s\"" % val
             script_lst.append(strGet_Sample % (sample_name, val_str_quoted))
             lst_samples.append(sample_name)
             try:
@@ -72,12 +72,12 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         samples = u"[%s]" % u", ".join(lst_samples)
         script_lst.append(u"samples = %s" % samples)
         script_lst.append(u"labels = %s" % lst_labels)
-        script_lst.append(u"label_a = \"%s\"" % label_a)
-        script_lst.append(u"label_b = \"%s\"" % label_b)
-        script_lst.append(u"label_avg = \"%s\"" % label_avg)
+        script_lst.append(u"label_a = u\"%s\"" % label_a)
+        script_lst.append(u"label_b = u\"%s\"" % label_b)
+        script_lst.append(u"label_avg = u\"%s\"" % label_avg)
         script_lst.append(u"add_to_report = %s" % ("True" if add_to_report \
                           else "False"))
-        script_lst.append(u"report_name = \"%s\"" % 
+        script_lst.append(u"report_name = u\"%s\"" % 
                           lib.escape_win_path(report_name))
         high = not self.radHigh.GetSelection()
         script_lst.append(u"p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, "

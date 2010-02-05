@@ -96,7 +96,7 @@ def get_tbl_filt(dbe, db, tbl):
 
 def get_tbl_filt_clause(dbe, db, tbl):
     tbl_filt_label, tbl_filt = get_tbl_filt(dbe, db, tbl)
-    return 'tbl_filt = """ %s """' % tbl_filt
+    return u'tbl_filt = u""" %s """' % tbl_filt
 
 def get_tbl_filts(tbl_filt):
     """

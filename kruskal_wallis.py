@@ -42,24 +42,24 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         idx_val_a, idx_val_b = indep2var.get_range_idxs(self.vals, val_a, val_b)
         vals_in_range = self.vals[idx_val_a: idx_val_b + 1]
         strGet_Sample = u"%s = core_stats.get_list(" + \
-            u"dbe=\"%s\", " % self.dbe + \
-            u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
+            u"dbe=u\"%s\", " % self.dbe + \
+            u"cur=cur, tbl=u\"%s\",\n    " % self.tbl + \
             u"tbl_filt=tbl_filt, " + \
             u"flds=flds, " + \
-            u"fld_measure=\"%s\", " % var_avg + \
-            u"fld_filter=\"%s\", " % var_gp + \
+            u"fld_measure=u\"%s\", " % var_avg + \
+            u"fld_filter=u\"%s\", " % var_gp + \
             u"filter_val=%s)"
         for i, val in enumerate(vals_in_range):
             sample_name = u"sample_%s" % i
-            val_str_quoted = val if var_gp_numeric else "\"%s\"" % val
+            val_str_quoted = val if var_gp_numeric else u"u\"%s\"" % val
             script_lst.append(strGet_Sample % (sample_name, val_str_quoted))
             lst_samples.append(sample_name)
         # only need labels for start and end of range
         samples = u"(" + u", ".join(lst_samples) + u")"
         script_lst.append(u"samples = %s" % samples)        
-        script_lst.append(u"label_a = \"%s\"" % label_a)
-        script_lst.append(u"label_b = \"%s\"" % label_b)
-        script_lst.append(u"label_avg = \"%s\"" % label_avg)
+        script_lst.append(u"label_a = u\"%s\"" % label_a)
+        script_lst.append(u"label_b = u\"%s\"" % label_b)
+        script_lst.append(u"label_avg = u\"%s\"" % label_avg)
         script_lst.append(u"indep = True")
         script_lst.append(u"h, p = " + \
             u"core_stats.kruskalwallish(*samples)")
@@ -71,4 +71,3 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             u"css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append(u"fil.write(kruskal_wallis_output)")
         return u"\n".join(script_lst)
-    

@@ -115,10 +115,16 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     for dic, sample in dic_sample_tups:
         results = (dic["label"], dic["n"], round(dic["mean"], dp), 
                    round(dic["sd"], dp), dic["min"], dic["max"])
-        unused, p_arr, cskew, unused, ckurtosis, unused = \
-                core_stats.normaltest(sample)
-        results += (round(ckurtosis, dp), round(cskew, dp), 
-                    round(p_arr[0], dp))
+        try:
+            unused, p_arr, cskew, unused, ckurtosis, unused = \
+                                                core_stats.normaltest(sample)
+            results += (round(ckurtosis, dp), round(cskew, dp), 
+                        round(p_arr[0], dp))
+        except Exception:
+            results += (_("Unable to calculate kurtosis"), 
+                        _("Unable to calculate skew"),
+                        _("Unable to calculate overall p for normality test"),
+                        )
         html.append(row_tpl % results)
     html.append(u"\n</tbody>\n</table>\n")
     for i, footnote in enumerate(footnotes):
@@ -234,10 +240,17 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp,
         results = (dic["label"], dic["n"], round(dic["mean"], dp), 
                   round(dic["sd"], dp), dic["min"], dic["max"])
         if indep:
-            unused, p_arr, cskew, unused, ckurtosis, unused = \
-                    core_stats.normaltest(sample)
-            results += (round(ckurtosis, dp), round(cskew, dp), 
-                        round(p_arr[0], dp))
+            try:
+                unused, p_arr, cskew, unused, ckurtosis, unused = \
+                        core_stats.normaltest(sample)
+                results += (round(ckurtosis, dp), round(cskew, dp), 
+                            round(p_arr[0], dp))
+            except Exception:
+                results += (_("Unable to calculate kurtosis"), 
+                            _("Unable to calculate skew"),
+                            _("Unable to calculate overall p for "
+                                "normality test"),
+                            )
         html.append(row_tpl % results)
     html.append(u"\n</tbody>\n</table>\n")
     html.append("\n<hr class='ftnote-line'>")
@@ -488,7 +501,9 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
         val_labels_a_html = map(cgi.escape, val_labels_a)
         val_labels_b_html = map(cgi.escape, val_labels_b)
     except AttributeError:
-        pass # e.g. an int
+        # e.g. an int
+        val_labels_a_html = val_labels_a
+        val_labels_b_html = val_labels_b
     cells_per_col = 2
     val_labels_a_n = len(val_labels_a)
     val_labels_b_n = len(val_labels_b)

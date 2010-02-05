@@ -40,20 +40,20 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst = [u"dp = 3"]
         script_lst.append(lib.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
         strGet_Sample = u"sample_%s = core_stats.get_list(" + \
-            u"dbe=\"%s\", " % self.dbe + \
-            u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
+            u"dbe=u\"%s\", " % self.dbe + \
+            u"cur=cur, tbl=u\"%s\",\n    " % self.tbl + \
             u"tbl_filt=tbl_filt, " + \
             u"flds=flds, " + \
-            u"fld_measure=\"%s\", " % var_ranked + \
-            u"fld_filter=\"%s\", " % var_gp + \
+            u"fld_measure=u\"%s\", " % var_ranked + \
+            u"fld_filter=u\"%s\", " % var_gp + \
             u"filter_val=%s)"
-        val_str_quoted_a = val_a if var_gp_numeric else "\"%s\"" % val_a
-        val_str_quoted_b = val_b if var_gp_numeric else "\"%s\"" % val_b
+        val_str_quoted_a = val_a if var_gp_numeric else u"u\"%s\"" % val_a
+        val_str_quoted_b = val_b if var_gp_numeric else u"u\"%s\"" % val_b
         script_lst.append(strGet_Sample % (u"a", val_str_quoted_a))
         script_lst.append(strGet_Sample % (u"b", val_str_quoted_b))
-        script_lst.append(u"label_a = \"%s\"" % label_a)
-        script_lst.append(u"label_b = \"%s\"" % label_b)
-        script_lst.append(u"label_ranked = \"%s\"" % label_ranked)
+        script_lst.append(u"label_a = u\"%s\"" % label_a)
+        script_lst.append(u"label_b = u\"%s\"" % label_b)
+        script_lst.append(u"label_ranked = u\"%s\"" % label_ranked)
         script_lst.append(u"u, p, dic_a, dic_b = " + \
             u"core_stats.mannwhitneyu(sample_a, sample_b, label_a, label_b)")
         script_lst.append(u"mann_whitney_output = " + \

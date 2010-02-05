@@ -5,6 +5,7 @@ import pprint
 
 import my_globals
 import lib
+import my_exceptions
 import getdata
 import tree
 
@@ -195,7 +196,10 @@ class DimTable(object):
         "Turn row label tree into labels"
         #print(tree_row_labels) #debug
         row_label_cols_n = tree_row_labels.getDepth() - 1 #exclude root node
-        row_label_rows_n = len(tree_row_labels.getTerminalNodes())
+        try:
+            row_label_rows_n = len(tree_row_labels.getTerminalNodes())
+        except my_exceptions.NoNodesException:
+            raise my_exceptions.TooFewValsForDisplay
         row_label_rows_lst = [[u"<tr>"] for x in range(row_label_rows_n)]
         row_offset_dic = {}
         for i in range(row_label_cols_n):
@@ -405,7 +409,7 @@ class LiveTable(DimTable):
     def prepTable(self, css_idx):
         "Prepare table setup information towards generation of final html."
         (self.row_label_rows_lst, self.tree_row_labels, row_label_cols_n) = \
-            self.getRowDets(css_idx)
+                                    self.getRowDets(css_idx)
         self.tree_col_labels, self.hdr_html = \
                                     self.get_hdr_dets(row_label_cols_n, css_idx)
     
@@ -448,6 +452,7 @@ class LiveTable(DimTable):
         row_label_cols_n - needed to set up header (need to span the 
             row labels).
         """
+        debug = True
         tree_row_labels = LabelNodeTree()
         for child in self.tree_rows.root_node.children:
             self.addSubtreeToLabelTree(tree_dims_node=child, 

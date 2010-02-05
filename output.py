@@ -262,10 +262,10 @@ def add_divider_code(f, db, tbl, tbl_filt_label, tbl_filt):
     """
     Adds divider code to a script file.
     """
-    f.write(u"\nsource = output.get_source(\"%s\", \"%s\")" % (db, tbl))
+    f.write(u"\nsource = output.get_source(u\"%s\", u\"%s\")" % (db, tbl))
     f.write(u"\ndivider = output.get_divider(source, "
-            u" \"\"\" %s \"\"\", \"\"\" %s \"\"\")" % (tbl_filt_label, 
-                                                       tbl_filt))
+            u" u\"\"\" %s \"\"\", u\"\"\" %s \"\"\")" % (tbl_filt_label, 
+                                                         tbl_filt))
     f.write(u"\nfil.write(divider)\n")
 
 def get_divider(source, tbl_filt_label, tbl_filt):
@@ -335,7 +335,11 @@ def run_report(modules, add_to_report, fil_report, css_fils, inner_script,
         return False, u""
     except my_exceptions.TooManyCellsInChiSquareException:
         wx.MessageBox(_("Please select variables which have fewer different "
-                        "values.  Too many values in contingency table."))
+                        "values. Too many values in contingency table."))
+        return False, u""
+    except my_exceptions.TooFewValsForDisplay:
+        wx.MessageBox(_("Not enough data to display.  Please check variables "
+                        "and any filtering."))
         return False, u""
     except Exception, e:
         err_content = _(u"<h1>Ooops!</h1>\n<p>Unable to run script " + \
@@ -412,12 +416,11 @@ def append_exported_script(f, inner_script, con_dets, dbe, db, tbl_name,
     f.write(u"\n" + u"default_dbs = %s" % default_dbs_str)
     default_tbls_str = pprint.pformat(default_tbls)
     f.write(u"\n" + u"default_tbls = %s" % default_tbls_str)
-    f.write(u"\n" + \
-        u"con, cur, dbs, tbls, flds, has_unique, idxs = \\" + \
-        u"\n" + "    getdata.get_db_dets_obj(\"%s\", " % dbe + \
-        u"default_dbs, default_tbls, con_dets=con_dets," + \
-        u"\n" + "    db=\"%s\", tbl=\"%s\")" % (db, tbl_name) + \
-        u".getDbDets()")
+    f.write(u"\n" + u"con, cur, dbs, tbls, flds, has_unique, idxs = \\" +
+                    u"\n" + "    getdata.get_db_dets_obj(u\"%s\", " % dbe +
+                    u"default_dbs, default_tbls, con_dets=con_dets," +
+                    u"\n" + "    db=u\"%s\", tbl=u\"%s\")" % (db, tbl_name) +
+                    u".getDbDets()")
     f.write(u"\n" + u"%s" % inner_script)
     f.write(u"\n" + u"con.close()")
 

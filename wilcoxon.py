@@ -24,14 +24,14 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append(lib.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
         script_lst.append(u"sample_a, sample_b = " + \
             u"core_stats.get_paired_lists(" + \
-            u"dbe=\"%s\", " % self.dbe + \
-            u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
+            u"dbe=u\"%s\", " % self.dbe + \
+            u"cur=cur, tbl=u\"%s\",\n    " % self.tbl + \
             u"tbl_filt=tbl_filt, " + \
-            u"fld_a=\"%s\", " % var_a + \
-            u"fld_b=\"%s\")" % var_b)
+            u"fld_a=u\"%s\", " % var_a + \
+            u"fld_b=u\"%s\")" % var_b)
         script_lst.append(u"dp = 3")
-        script_lst.append(u"label_a = \"%s\"" % label_a)
-        script_lst.append(u"label_b = \"%s\"" % label_b)
+        script_lst.append(u"label_a = u\"%s\"" % label_a)
+        script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"t, p = core_stats.wilcoxont(sample_a, sample_b)")
         script_lst.append(u"wilcoxon_output = stats_output.wilcoxon_output(" + \
             u"t, p, label_a, label_b, dp=dp,\n    " + \

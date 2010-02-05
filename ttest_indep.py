@@ -36,24 +36,24 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             var_avg, label_avg = self.get_drop_vals()
         script_lst.append(u"dp = 3")
         script_lst.append(lib.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
-        val_str_quoted_a = val_a if var_gp_numeric else "\"%s\"" % val_a
-        val_str_quoted_b = val_b if var_gp_numeric else "\"%s\"" % val_b
+        val_str_quoted_a = val_a if var_gp_numeric else u"u\"%s\"" % val_a
+        val_str_quoted_b = val_b if var_gp_numeric else u"u\"%s\"" % val_b
         strGet_Sample = u"sample_%s = core_stats.get_list(" + \
-            u"dbe=\"%s\", " % self.dbe + \
-            u"cur=cur, tbl=\"%s\",\n    " % self.tbl + \
+            u"dbe=u\"%s\", " % self.dbe + \
+            u"cur=cur, tbl=u\"%s\",\n    " % self.tbl + \
             u"tbl_filt=tbl_filt, " + \
             u"flds=flds, " + \
-            u"fld_measure=\"%s\", " % var_avg + \
-            u"fld_filter=\"%s\", " % var_gp + \
+            u"fld_measure=u\"%s\", " % var_avg + \
+            u"fld_filter=u\"%s\", " % var_gp + \
             u"filter_val=%s)"
         script_lst.append(strGet_Sample % (u"a", val_str_quoted_a))
         script_lst.append(strGet_Sample % (u"b", val_str_quoted_b))
-        script_lst.append(u"label_a = \"%s\"" % label_a)
-        script_lst.append(u"label_b = \"%s\"" % label_b)
-        script_lst.append(u"label_avg = \"%s\"" % label_avg)
+        script_lst.append(u"label_a = u\"%s\"" % label_a)
+        script_lst.append(u"label_b = u\"%s\"" % label_b)
+        script_lst.append(u"label_avg = u\"%s\"" % label_avg)
         script_lst.append(u"add_to_report = %s" % ("True" if add_to_report \
                           else "False"))
-        script_lst.append(u"report_name = \"%s\"" % 
+        script_lst.append(u"report_name = u\"%s\"" % 
                           lib.escape_win_path(report_name))
         script_lst.append(u"t, p, dic_a, dic_b = " + \
             u"core_stats.ttest_ind(sample_a, sample_b, label_a, label_b)")
@@ -64,4 +64,4 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, "
             u"css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append(u"fil.write(ttest_indep_output)")
-        return u"\n".join(script_lst)    
+        return u"\n".join(script_lst)

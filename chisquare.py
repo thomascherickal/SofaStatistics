@@ -33,17 +33,17 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         var_a, label_a, var_b, label_b = self.get_drop_vals()
         script_lst.append(u"add_to_report = %s" % ("True" if add_to_report
                           else "False"))
-        script_lst.append(u"report_name = \"%s\"" % 
+        script_lst.append(u"report_name = u\"%s\"" % 
                           lib.escape_win_path(report_name))
         script_lst.append(u"dp = 3")
-        script_lst.append(u"var_label_a = \"%s\"" % label_a)
-        script_lst.append(u"var_label_b = \"%s\"" % label_b)
+        script_lst.append(u"var_label_a = u\"%s\"" % label_a)
+        script_lst.append(u"var_label_b = u\"%s\"" % label_b)
         script_lst.append(u"chisq, p, vals_a, vals_b, lst_obs, lst_exp, " +
             u"min_count, perc_cells_lt_5, df = \\\n" +
-            u"    core_stats.pearsons_chisquare(dbe=\"%s\", " % self.dbe +
-            u"db=\"%s\", " % self.db +
-            u"cur=cur, tbl=\"%s\"," % self.tbl +
-            u"\n    flds=flds, fld_a=\"%s\", fld_b=\"%s\")" % (var_a, var_b))
+            u"    core_stats.pearsons_chisquare(dbe=u\"%s\", " % self.dbe +
+            u"db=u\"%s\", " % self.db +
+            u"cur=cur, tbl=u\"%s\"," % self.tbl +
+            u"\n    flds=flds, fld_a=u\"%s\", fld_b=u\"%s\")" % (var_a, var_b))
         val_dic_a = self.val_dics.get(var_a, {})
         val_dic_b = self.val_dics.get(var_b, {})
         script_lst.append(u"val_dic_a = %s" % pprint.pformat(val_dic_a))

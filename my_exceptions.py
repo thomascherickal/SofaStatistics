@@ -30,3 +30,8 @@ class ExcessReportTableCellsException(Exception):
 class TooFewValsForDisplay(Exception):
     def __init__(self):
         Exception.__init__(self, "Too few values for display")
+
+class NoNodesException(Exception):
+    def __init__(self):
+        Exception.__init__(self, "Cannot get terminal nodes until " +
+                    "there is at least one node added to tree")

@@ -284,45 +284,49 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             msg = _("Need at least 20 values to test normality.  Rely entirely "
                 "on visual inspection of graph above.")
         else:
-            unused, p_arr, cskew, unused, ckurtosis, unused = \
-                    core_stats.normaltest(self.vals)
-            p = p_arr[0]
-            if abs(cskew) <= 1:
-                sindic = "a great sign"
-            elif abs(cskew) <= 2:
-                sindic = "a good sign"
-            else:
-                sindic = "not a good sign"
-            skew_msg = _("Skew (lopsidedness) is %(skew)s which is probably "
-                         "%(indic)s.") % {"skew": round(cskew, 3), 
-                                          "indic": sindic}   
-            if abs(ckurtosis) <= 1:
-                kindic = "a great sign"
-            elif abs(ckurtosis) <= 2:
-                kindic = "a good sign"
-            else:
-                kindic = "not a good sign"
-            kurtosis_msg = _("Kurtosis (peakedness or flatness) is %(kurt)s "
-                             "which is probably %(indic)s.") % \
-                             {"kurt": round(ckurtosis, 3), "indic": kindic}               
-            if n_vals > USUAL_FAIL_N:
-                msg = _("Rely on visual inspection of graph above.  Although "
-                    "the data failed the ideal normality test, most real-world "
-                    "data-sets with as many results (%s) would fail for even "
-                    "slight differences from the perfect "
-                    "normal curve") % n_vals + u" " + skew_msg + u" " + \
-                    kurtosis_msg
-            else:
-                if p < 0.05:
-                    msg = _("The distribution of %s passed one test for "
-                        "normality.  Confirm or reject based on visual "
-                        "inspection of graph above.") % self.data_label + u" " \
-                        + skew_msg + u" " + kurtosis_msg
+            try:
+                unused, p_arr, cskew, unused, ckurtosis, unused = \
+                        core_stats.normaltest(self.vals)
+                p = p_arr[0]
+                if abs(cskew) <= 1:
+                    sindic = "a great sign"
+                elif abs(cskew) <= 2:
+                    sindic = "a good sign"
                 else:
-                    msg = _("Although the distribution of %s is not perfectly "
-                        "'normal', it may still be 'normal' enough for use.  "
-                        "View graph above to decide.") % self.data_label + u" " \
-                        + skew_msg + u" " + kurtosis_msg
+                    sindic = "not a good sign"
+                skew_msg = _("Skew (lopsidedness) is %(skew)s which is probably"
+                             " %(indic)s.") % {"skew": round(cskew, 3), 
+                                               "indic": sindic}   
+                if abs(ckurtosis) <= 1:
+                    kindic = "a great sign"
+                elif abs(ckurtosis) <= 2:
+                    kindic = "a good sign"
+                else:
+                    kindic = "not a good sign"
+                kurtosis_msg = _("Kurtosis (peakedness or flatness) is %(kurt)s"
+                                 " which is probably %(indic)s.") % \
+                                 {"kurt": round(ckurtosis, 3), "indic": kindic}               
+                if n_vals > USUAL_FAIL_N:
+                    msg = _("Rely on visual inspection of graph above. "
+                        "Although the data failed the ideal normality test, "
+                        "most real-world data-sets with as many results (%s) "
+                        "would fail for even slight differences from the "
+                        "perfect normal curve") % n_vals + u" " + skew_msg + \
+                            u" " + kurtosis_msg
+                else:
+                    if p < 0.05:
+                        msg = _("The distribution of %s passed one test for "
+                            "normality.  Confirm or reject based on visual "
+                            "inspection of graph above.") % self.data_label + \
+                                u" " + skew_msg + u" " + kurtosis_msg
+                    else:
+                        msg = _("Although the distribution of %s is not "
+                            "perfectly 'normal', it may still be 'normal' "
+                            "enough for use. View graph above to decide.") % \
+                                self.data_label + u" " + skew_msg + u" " + \
+                                kurtosis_msg
+            except Exception:
+                msg = _("Unable to calculate normality tests")
         self.html.show_html(u"<p>%s</p>" % msg)
     
     def OnButtonCheck(self, event):
