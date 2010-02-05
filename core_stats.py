@@ -89,7 +89,8 @@ def get_val_quoter(dbe, flds, fld, val):
         val_quoter = getdata.get_val_quoter_func(dbe)
     return val_quoter
 
-def get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b):
+def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds, 
+                fld_a, fld_b):
     """
     Get list of observed and expected values ready for inclusion in Pearson's
         Chi Square test.
@@ -102,7 +103,6 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b):
     qtbl = obj_quoter(tbl)
     qfld_a = obj_quoter(fld_a)
     qfld_b = obj_quoter(fld_b)
-    where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     # get row vals used
     SQL_row_vals_used = u"""SELECT %(qfld_a)s
         FROM %(qtbl)s
@@ -116,6 +116,8 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b):
     vals_a = [x[0] for x in cur.fetchall()]
     if len(vals_a) > 6:
         raise my_exceptions.TooManyRowsInChiSquareException
+    if len(vals_a) < 2:
+        raise my_exceptions.TooFewRowsInChiSquareException
     # get col vals used
     SQL_col_vals_used = u"""SELECT %(qfld_b)s
         FROM %(qtbl)s
@@ -129,6 +131,8 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b):
     vals_b = [x[0] for x in cur.fetchall()]
     if len(vals_b) > 6:
         raise my_exceptions.TooManyColsInChiSquareException
+    if len(vals_b) < 2:
+        raise my_exceptions.TooFewColsInChiSquareException
     if len(vals_a)*len(vals_b) > 25:
         raise my_exceptions.TooManyCellsInChiSquareException
     # build SQL to get all observed values (for each a, through b's)
@@ -197,14 +201,15 @@ def get_fracs(cur, tbl_filt, qtbl, qfld):
     lst_fracs = [x/float(total) for x in lst_counts]
     return lst_fracs
 
-def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b):
+def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b, tbl_filt, 
+                       where_tbl_filt, and_tbl_filt):
     """
     Returns chisq, p, min_count, perc_cells_lt_5
     """
     debug = False
-    unused, tbl_filt = lib.get_tbl_filt(dbe, db, tbl)
     vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df = \
-                    get_obs_exp(dbe, cur, tbl, tbl_filt, flds, fld_a, fld_b)
+                    get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, 
+                                and_tbl_filt, flds, fld_a, fld_b)
     if debug: print(lst_obs, lst_exp)
     chisq, p = chisquare(lst_obs, lst_exp, df)
     return (chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, 

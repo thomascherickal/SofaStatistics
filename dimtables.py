@@ -452,7 +452,7 @@ class LiveTable(DimTable):
         row_label_cols_n - needed to set up header (need to span the 
             row labels).
         """
-        debug = True
+        debug = False
         tree_row_labels = LabelNodeTree()
         for child in self.tree_rows.root_node.children:
             self.addSubtreeToLabelTree(tree_dims_node=child, 

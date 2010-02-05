@@ -38,12 +38,17 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append(u"dp = 3")
         script_lst.append(u"var_label_a = u\"%s\"" % label_a)
         script_lst.append(u"var_label_b = u\"%s\"" % label_b)
+        unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
+        where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
         script_lst.append(u"chisq, p, vals_a, vals_b, lst_obs, lst_exp, " +
-            u"min_count, perc_cells_lt_5, df = \\\n" +
-            u"    core_stats.pearsons_chisquare(dbe=u\"%s\", " % self.dbe +
+            u"min_count, perc_cells_lt_5, df = \\" +
+            u"\n    core_stats.pearsons_chisquare(dbe=u\"%s\", " % self.dbe +
             u"db=u\"%s\", " % self.db +
             u"cur=cur, tbl=u\"%s\"," % self.tbl +
-            u"\n    flds=flds, fld_a=u\"%s\", fld_b=u\"%s\")" % (var_a, var_b))
+            u"\n    flds=flds, fld_a=u\"%s\", fld_b=u\"%s\"," % (var_a, var_b) +
+            u"\n    tbl_filt=u\"%s\", where_tbl_filt=\"%s\"," % (tbl_filt, 
+                                                            where_tbl_filt) +
+            u"\n    and_tbl_filt=\"%s\")" % and_tbl_filt)
         val_dic_a = self.val_dics.get(var_a, {})
         val_dic_b = self.val_dics.get(var_b, {})
         script_lst.append(u"val_dic_a = %s" % pprint.pformat(val_dic_a))

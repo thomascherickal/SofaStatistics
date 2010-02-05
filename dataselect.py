@@ -283,7 +283,7 @@ class DataSelectDlg(wx.Dialog):
         config_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
             TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
         """
-        debug = True
+        debug = False
         tmp_name = sqlite_quoter(my_globals.TMP_TBL_NAME)
         final_name = sqlite_quoter(self.tbl)
         create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 

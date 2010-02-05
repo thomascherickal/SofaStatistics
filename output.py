@@ -333,6 +333,14 @@ def run_report(modules, add_to_report, fil_report, css_fils, inner_script,
         wx.MessageBox(_("Please select a variable with fewer values for Group "
                         "B."))
         return False, u""
+    except my_exceptions.TooFewRowsInChiSquareException:
+        wx.MessageBox(_("Please select a variable with at least two values for "
+                        "Group A."))
+        return False, u""
+    except my_exceptions.TooFewColsInChiSquareException:
+        wx.MessageBox(_("Please select a variable with at least two values for "
+                        "Group B."))
+        return False, u""
     except my_exceptions.TooManyCellsInChiSquareException:
         wx.MessageBox(_("Please select variables which have fewer different "
                         "values. Too many values in contingency table."))

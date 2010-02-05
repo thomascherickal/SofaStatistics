@@ -18,6 +18,14 @@ class TooManyColsInChiSquareException(Exception):
     def __init__(self):
         Exception.__init__(self, "Too many columns in contingency table")
 
+class TooFewRowsInChiSquareException(Exception):
+    def __init__(self):
+        Exception.__init__(self, "Not enough rows in contingency table")
+
+class TooFewColsInChiSquareException(Exception):
+    def __init__(self):
+        Exception.__init__(self, "Not enough columns in contingency table")
+
 class TooManyCellsInChiSquareException(Exception):
     def __init__(self):
         Exception.__init__(self, "Too many cells in contingency table")
