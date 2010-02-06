@@ -333,30 +333,37 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
         (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
     CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
         (my_globals.CSS_LBL, css_idx)
-    html = _("<h2>Results of Mann Whitney U Test of \"%(ranked)s\" for "
+    html = []
+    html.append(_("<h2>Results of Mann Whitney U Test of \"%(ranked)s\" for "
              "\"%(a)s\" vs \"%(b)s\"</h2>") % {"ranked": label_ranked, 
                                                "a": dic_a["label"], 
-                                               "b": dic_b["label"]}
+                                               "b": dic_b["label"]})
     p_format = u"\n<p>" + _("p value") + u": %%.%sf</p>" % dp
-    html += p_format % round(p, dp)
-    html += u"\n<p>" + _("U statistic") + u": %s</p>" % round(u, dp)
-    html += u"\n\n<table>\n<thead>"
-    html += u"\n<tr>" + \
-        u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Avg Rank") + u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" + \
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th></tr>"
-    html += u"\n</thead>\n<tbody>"
+    html.append(p_format % round(p, dp))
+    html.append(u"\n<p>" + _("U statistic") + u": %s</p>" % round(u, dp))
+    html.append(u"\n\n<table>\n<thead>")
+    html.append(u"\n<tr>" +
+        u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Median") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Avg Rank") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th></tr>")
+    html.append(u"\n</thead>\n<tbody>")
     row_tpl = u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" + \
-        u"<td>%s</td><td>%s</td><td>%s</td></tr>"
+        u"<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
     for dic in [dic_a, dic_b]:
-        html += row_tpl % (dic["label"], dic["n"], round(dic["avg rank"], dp),
-                           dic["min"], dic["max"])
-    html += u"\n</tbody>\n</table>\n"
+        html.append(row_tpl % (dic[my_globals.STATS_DIC_LABEL], 
+                               dic[my_globals.STATS_DIC_N], 
+                               round(dic[my_globals.STATS_DIC_MEDIAN], dp), 
+                               round(dic["avg rank"], dp),
+                               dic[my_globals.STATS_DIC_MIN], 
+                               dic[my_globals.STATS_DIC_MAX]))
+    html.append(u"\n</tbody>\n</table>\n")
     if page_break_after:
-        html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
-    return html
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
+    return "".join(html)
 
 def wilcoxon_output(t, p, label_a, label_b, dp=3,
                  level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
@@ -645,18 +652,40 @@ def add_clustered_barcharts(lst_obs, var_label_a, var_label_b,
                               dpi=None)
     html.append(u"\n<img src='%s'>" % img_src)
 
-def kruskal_wallis_output(h, p, label_a, label_b, label_avg, dp=3,
+def kruskal_wallis_output(h, p, label_a, label_b, dics, label_avg, dp=3,
                  level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
                  page_break_after=False):
+    CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
+        (my_globals.CSS_FIRST_COL_VAR, css_idx)
+    CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
+        (my_globals.CSS_LBL, css_idx)
     CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx) 
-    html = _("<h2>Results of Kruskal-Wallis H test of average %(avg)s for "
-             "groups from \"%(a)s\" to \"%(b)s\"</h2>") % {"avg": label_avg, 
-                                                "a": label_a, "b": label_b}
+        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+    html = []
+    html.append(_("<h2>Results of Kruskal-Wallis H test of average %(avg)s for "
+                 "groups from \"%(a)s\" to \"%(b)s\"</h2>") % {"avg": label_avg, 
+                                                "a": label_a, "b": label_b})
     p_format = "\n<p>" + _("p value") + ": %%.%sf</p>" % dp
-    html += p_format % round(p, dp)
-    html += "\n<p>" + _("Kruskal-Wallis H statistic") + ": %s</p>" % \
-        round(h, dp)
+    html.append(p_format % round(p, dp))
+    html.append("\n<p>" + _("Kruskal-Wallis H statistic") + ": %s</p>" % \
+                                                                round(h, dp))
+    html.append(u"\n\n<table>\n<thead>")
+    html.append(u"\n<tr>" +
+        u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Median") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th></tr>")
+    html.append(u"\n</thead>\n<tbody>")
+    row_tpl = u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" + \
+        u"<td>%s</td><td>%s</td><td>%s</td></tr>"
+    for dic in dics:
+        html.append(row_tpl % (dic[my_globals.STATS_DIC_LABEL], 
+                               dic[my_globals.STATS_DIC_N], 
+                               round(dic[my_globals.STATS_DIC_MEDIAN], dp),
+                               dic[my_globals.STATS_DIC_MIN], 
+                               dic[my_globals.STATS_DIC_MAX]))
     if page_break_after:
-        html += "<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
-    return html
+        html.append("<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
+    return "".join(html)

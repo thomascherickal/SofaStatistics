@@ -292,9 +292,12 @@ def anova_orig(lst_samples, lst_labels, high=False):
     for i in range(a):
         sample = lst_samples[i]
         label = lst_labels[i]
-        dics.append({"label": label, "n": n, "mean": mean(sample), 
-                     "sd": stdev(sample), "min": min(sample), 
-                     "max": max(sample)})
+        dics.append({my_globals.STATS_DIC_LABEL: label, 
+                     my_globals.STATS_DIC_N: n, 
+                     my_globals.STATS_DIC_MEAN: mean(sample), 
+                     my_globals.STATS_DIC_SD: stdev(sample), 
+                     my_globals.STATS_DIC_MIN: min(sample),
+                     my_globals.STATS_DIC_MAX: max(sample)})
     ns = map(len, lst_samples)
     for i in range(len(lst_samples)):
         alldata = alldata + lst_samples[i]
@@ -329,9 +332,12 @@ def anova(samples, labels, high=True):
     for i in range(n_samples):
         sample = samples[i]
         label = labels[i]
-        dics.append({"label": label, "n": sample_ns[i], 
-                     "mean": mean(sample, high), "sd": stdev(sample, high), 
-                     "min": min(sample), "max": max(sample)})
+        dics.append({my_globals.STATS_DIC_LABEL: label, 
+                     my_globals.STATS_DIC_N: sample_ns[i], 
+                     my_globals.STATS_DIC_MEAN: mean(sample, high), 
+                     my_globals.STATS_DIC_SD: stdev(sample, high), 
+                     my_globals.STATS_DIC_MIN: min(sample), 
+                     my_globals.STATS_DIC_MAX: max(sample)})
     if high: # inflate
         # if to 1 decimal point will push from float to integer (reduce errors)
         inflated_samples = []
@@ -406,41 +412,63 @@ def get_ssbn(samples, sample_means, n_samples, sample_ns, high=False):
         ssbn = sum_n_x_squ_diffs/(10**2) # deflated
     return ssbn
 
-def kruskalwallish(*args):
+def get_summary_dics(samples, labels, quant=False):
     """
-    From stats.py.  No changes.  
+    Get a list of dictionaries - one for each sample. Each contains label, n,
+        median, min, and max.
+    labels -- must be in same order as samples with one label for each sample.
+    quant -- if True, dics also include mean and standard deviation.
+    """
+    dics = []
+    for i, sample in enumerate(samples):
+        dic = {my_globals.STATS_DIC_LABEL: labels[i],
+               my_globals.STATS_DIC_N: len(sample),
+               my_globals.STATS_DIC_MEDIAN: np.median(sample),
+               my_globals.STATS_DIC_MIN: min(sample),
+               my_globals.STATS_DIC_MAX: max(sample),
+               }
+        if quant:
+            dic[my_globals.STATS_DIC_MEAN] = mean(sample)
+            dic[my_globals.STATS_DIC_SD] = stdev(sample)
+        dics.append(dic)
+    return dics
+
+def kruskalwallish(samples, labels):
+    """
+    From stats.py.  No changes except also return a dic for each sample with 
+        median etc and args -> samples.  
     -------------------------------------
     The Kruskal-Wallis H-test is a non-parametric ANOVA for 3 or more
     groups, requiring at least 5 subjects in each group.  This function
     calculates the Kruskal-Wallis H-test for 3 or more independent samples
     and returns the result.  
 
-    Usage:   kruskalwallish(*args)
+    Usage:   kruskalwallish(samples)
     Returns: H-statistic (corrected for ties), associated p-value
     """
-    args = list(args)
-    n = [0]*len(args)
+    dics = get_summary_dics(samples, labels)
+    n = [0]*len(samples)
     all = []
-    n = map(len,args)
-    for i in range(len(args)):
-        all = all + args[i]
+    n = map(len,samples)
+    for i in range(len(samples)):
+        all = all + samples[i]
     ranked = rankdata(all)
     T = tiecorrect(ranked)
-    for i in range(len(args)):
-        args[i] = ranked[0:n[i]]
+    for i in range(len(samples)):
+        samples[i] = ranked[0:n[i]]
         del ranked[0:n[i]]
     rsums = []
-    for i in range(len(args)):
-        rsums.append(sum(args[i])**2)
+    for i in range(len(samples)):
+        rsums.append(sum(samples[i])**2)
         rsums[i] = rsums[i] / float(n[i])
     ssbn = sum(rsums)
     totaln = sum(n)
     h = 12.0 / (totaln*(totaln+1)) * ssbn - 3*(totaln+1)
-    df = len(args) - 1
+    df = len(samples) - 1
     if T == 0:
         raise ValueError, 'All numbers are identical in kruskalwallish'
     h = h / float(T)
-    return h, chisqprob(h,df)
+    return h, chisqprob(h,df), dics
 
 def ttest_ind(sample_a, sample_b, label_a, label_b, use_orig_var=False):
     """
@@ -479,10 +507,12 @@ def ttest_ind(sample_a, sample_b, label_a, label_b, use_orig_var=False):
     min_b = min(sample_b)
     max_a = max(sample_a)
     max_b = max(sample_b)
-    dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
-             "min": min_a, "max": max_a}
-    dic_b = {"label": label_b, "n": n_b, "mean": mean_b, "sd": sd_b, 
-             "min": min_b, "max": max_b}
+    dic_a = {my_globals.STATS_DIC_LABEL: label_a, my_globals.STATS_DIC_N: n_a, 
+             my_globals.STATS_DIC_MEAN: mean_a, my_globals.STATS_DIC_SD: sd_a, 
+             my_globals.STATS_DIC_MIN: min_a, my_globals.STATS_DIC_MAX: max_a}
+    dic_b = {my_globals.STATS_DIC_LABEL: label_b, my_globals.STATS_DIC_N: n_b, 
+             my_globals.STATS_DIC_MEAN: mean_b, my_globals.STATS_DIC_SD: sd_b, 
+             my_globals.STATS_DIC_MIN: min_b, my_globals.STATS_DIC_MAX: max_b}
     return t, p, dic_a, dic_b
 
 def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
@@ -522,10 +552,12 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     max_b = max(sample_b)
     sd_a = math.sqrt(var_a)
     sd_b = math.sqrt(var_b)
-    dic_a = {"label": label_a, "n": n, "mean": mean_a, "sd": sd_a, 
-             "min": min_a, "max": max_a}
-    dic_b = {"label": label_b, "n": n, "mean": mean_b, "sd": sd_b, 
-             "min": min_b, "max": max_b}
+    dic_a = {my_globals.STATS_DIC_LABEL: label_a, my_globals.STATS_DIC_N: n, 
+             my_globals.STATS_DIC_MEAN: mean_a, my_globals.STATS_DIC_SD: sd_a, 
+             my_globals.STATS_DIC_MIN: min_a, my_globals.STATS_DIC_MAX: max_a}
+    dic_b = {my_globals.STATS_DIC_LABEL: label_b, my_globals.STATS_DIC_N: n, 
+             my_globals.STATS_DIC_MEAN: mean_b, my_globals.STATS_DIC_SD: sd_b, 
+             my_globals.STATS_DIC_MIN: min_b, my_globals.STATS_DIC_MAX: max_b}
     return t, p, dic_a, dic_b, diffs
 
 def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
@@ -566,10 +598,15 @@ def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     min_b = min(sample_b)
     max_a = max(sample_a)
     max_b = max(sample_b)
-    dic_a = {"label": label_a, "n": n_a, "avg rank": avg_rank_a, 
-             "min": min_a, "max": max_a}
-    dic_b = {"label": label_b, "n": n_b, "avg rank": avg_rank_b, 
-             "min": min_b, "max": max_b}
+    dic_a = {my_globals.STATS_DIC_LABEL: label_a, my_globals.STATS_DIC_N: n_a, 
+             "avg rank": avg_rank_a, 
+             my_globals.STATS_DIC_MEDIAN: np.median(sample_a), 
+             my_globals.STATS_DIC_MIN: min_a, my_globals.STATS_DIC_MAX: max_a}
+    dic_b = {my_globals.STATS_DIC_LABEL: label_b, my_globals.STATS_DIC_N: n_b, 
+             "avg rank": avg_rank_b,
+             my_globals.STATS_DIC_MEDIAN: np.median(sample_b),  
+             my_globals.STATS_DIC_MIN: min_b, 
+             my_globals.STATS_DIC_MAX: max_b}
     return smallu, p, dic_a, dic_b
 
 def wilcoxont(x, y):

@@ -31,15 +31,19 @@ def config_clustered_barchart(plot, var_label_a, y_label, val_labels_a_n,
     clustered_bars = boomslang.ClusteredBars()
     for i, val_label_b in enumerate(val_labels_b):
         cluster = boomslang.Bar()
-        cluster.xValues = range(val_labels_a_n)
+        x_vals = range(val_labels_a_n)
+        cluster.xValues = x_vals
         y_vals = as_in_bs_lst[i]
-        if debug: print(y_vals)
+        if debug:
+            print("x_vals: %s" % x_vals)
+            print("y_vals: %s" % y_vals)
         cluster.yValues = y_vals
         cluster.color = colours[i]
         cluster.label = val_label_b
         clustered_bars.add(cluster)
     clustered_bars.spacing = 0.5
     clustered_bars.xTickLabels = val_labels_a
+    if debug: print("xTickLabels: %s" % clustered_bars.xTickLabels)
     plot.add(clustered_bars)
     plot.setXLabel(var_label_a)
     plot.setYLabel(y_label)

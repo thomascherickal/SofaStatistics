@@ -391,6 +391,7 @@ def insert_prelim_code(modules, f, fil_report, css_fils):
     f.write(u"\n" + u"import codecs")
     f.write(u"\n" + u"import sys")
     f.write(u"\n" + u"import gettext")
+    f.write(u"\n" + u"import numpy as np")
     f.write(u"\n" + u"gettext.install('sofa', './locale', unicode=False)")
     f.write(u"\n" + u"sys.path.append(u'%s')" % \
             lib.escape_win_path(my_globals.SCRIPT_PATH))

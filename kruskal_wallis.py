@@ -38,6 +38,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst = [u"dp = 3"]        
         script_lst.append(lib.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
         lst_samples = []
+        lst_labels = []
         # need sample for each of the values in range
         idx_val_a, idx_val_b = indep2var.get_range_idxs(self.vals, val_a, val_b)
         vals_in_range = self.vals[idx_val_a: idx_val_b + 1]
@@ -54,19 +55,24 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             val_str_quoted = val if var_gp_numeric else u"u\"%s\"" % val
             script_lst.append(strGet_Sample % (sample_name, val_str_quoted))
             lst_samples.append(sample_name)
-        # only need labels for start and end of range
-        samples = u"(" + u", ".join(lst_samples) + u")"
-        script_lst.append(u"samples = %s" % samples)        
+            try:
+                val_label = self.val_dics[var_gp][val]
+            except KeyError:
+                val_label = unicode(val).upper()
+            lst_labels.append(val_label)
+        samples = u"[%s]" % u", ".join(lst_samples)
+        script_lst.append(u"samples = %s" % samples)
+        script_lst.append(u"labels = %s" % lst_labels)
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"label_avg = u\"%s\"" % label_avg)
         script_lst.append(u"indep = True")
-        script_lst.append(u"h, p = " + \
-            u"core_stats.kruskalwallish(*samples)")
+        script_lst.append(u"h, p, dics = " + \
+            u"core_stats.kruskalwallish(samples, labels)")
         script_lst.append(u"kruskal_wallis_output = " + \
             u"stats_output.kruskal_wallis_output(" + \
             u"h, p, label_a," + \
-            u"\n    label_b, label_avg, dp," + \
+            u"\n    label_b, dics, label_avg, dp," + \
             u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, " + \
             u"css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append(u"fil.write(kruskal_wallis_output)")

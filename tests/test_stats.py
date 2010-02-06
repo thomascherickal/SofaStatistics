@@ -242,7 +242,7 @@ test_ind_nway_tests.include = True
 
 def _test_kruskal_wallis_h(sample_lst, verbose=False):
     h1, p1 = stats.kruskalwallish(sample_lst)
-    h2, p2 = kruskalwallish(sample_lst)
+    h2, p2, dics = kruskalwallish(sample_lst)
     if verbose:
         print("h1: %s h2: %s" % (h1, h2))
         print("p1: %s p2: %s" % (p1, p2))

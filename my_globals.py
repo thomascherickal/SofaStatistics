@@ -15,10 +15,16 @@ MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
 PYTHON_ENCODING_DECLARATION = u"#! /usr/bin/env python" + os.linesep + \
     u"# -*- coding: utf-8 -*-" + os.linesep
-
-# stats output ******************************************************
+# core stats *********************************************************
+STATS_DIC_LABEL = u"label"
+STATS_DIC_N = u"n"
+STATS_DIC_MEDIAN = u"median"
+STATS_DIC_MEAN = u"mean"
+STATS_DIC_SD = u"sd"
+STATS_DIC_MIN = u"min"
+STATS_DIC_MAX = u"max"
+# stats output *******************************************************
 OUTPUT_RESULTS_ONLY = u"Output results only"
-
 # Making tables ******************************************************
 HAS_TOTAL = _("Total") # doubles as display label
 COL_MEASURES = 0 # indexes in tab type
