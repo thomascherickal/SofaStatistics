@@ -3,6 +3,7 @@
 
 import codecs
 import os
+import wx
 
 # This module mustn't import anything local.
 # It is used immediately after my_globals is loaded and needs to complete any 

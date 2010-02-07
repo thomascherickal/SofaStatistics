@@ -642,8 +642,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             f.write(os.linesep + u"""# u"C:\\\\Users\\\\demo.txt" is GOOD""")
             f.write(os.linesep + u"""# u"C:\\Users\\demo.txt" is BAD""")
             f.write(os.linesep + u"""# "C:\\\\Users\\\\demo.txt" is also BAD""")
-            f.write(os.linesep + os.linesep + u"proj_notes = u\"%s\"" % \
-                    proj_notes)
+            f.write(os.linesep + os.linesep + u"proj_notes = u\"\"\"%s\"\"\"" \
+                    % proj_notes)
             f.write(os.linesep + os.linesep + u"fil_var_dets = u\"%s\"" % 
                     lib.escape_win_path(fil_var_dets))
             f.write(os.linesep + u"fil_css = u\"%s\"" % \
