@@ -9,7 +9,7 @@ import sys
 
 debug = False
 
-VERSION = u"0.9.4"
+VERSION = u"0.9.5"
 
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
@@ -351,6 +351,9 @@ VAL_B_DEFAULT = None
 DBE_DEFAULT = None
 DB_DEFAULTS = {}
 TBL_DEFAULTS = {}
+JS_WRAPPER_L = u"\n\n<script type=\"text/javascript\">"
+JS_WRAPPER_R = u"\n</script>"
+
 # ////////////////////////////////////////////////////////////
 import config_globals
 config_globals.set_DEFAULT_LEVEL()

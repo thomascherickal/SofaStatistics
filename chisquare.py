@@ -46,9 +46,9 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             u"db=u\"%s\", " % self.db +
             u"cur=cur, tbl=u\"%s\"," % self.tbl +
             u"\n    flds=flds, fld_a=u\"%s\", fld_b=u\"%s\"," % (var_a, var_b) +
-            u"\n    tbl_filt=u\"%s\", where_tbl_filt=\"%s\"," % (tbl_filt, 
-                                                            where_tbl_filt) +
-            u"\n    and_tbl_filt=\"%s\")" % and_tbl_filt)
+            u"\n    tbl_filt=u\"\"\" %s \"\"\", " % tbl_filt +
+            u"where_tbl_filt=\"\"\" %s \"\"\"," % where_tbl_filt +
+            u"\n    and_tbl_filt=\"\"\" %s \"\"\")" % and_tbl_filt)
         val_dic_a = self.val_dics.get(var_a, {})
         val_dic_b = self.val_dics.get(var_b, {})
         script_lst.append(u"val_dic_a = %s" % pprint.pformat(val_dic_a))

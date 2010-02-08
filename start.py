@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-dev_debug = False
+dev_debug = True
 test_lang = False
 
 import warnings
@@ -509,8 +509,69 @@ class StartFrame(wx.Frame):
         event.Skip()
     
     def OnChartsClick(self, event):
-        wx.MessageBox(_("Not available yet in version ") + 
-                      unicode(my_globals.VERSION))
+        test = True
+        if not test:
+            wx.MessageBox(_("Not available yet in version ") + 
+                          unicode(my_globals.VERSION))
+        else:
+            import output
+            import charting_raphael as chart
+            cont = []
+            cont.append(u"<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\"")
+            cont.append(u"\n\"http://www.w3.org/TR/html4/strict.dtd\">")
+            cont.append(u"\n<html lang=\"en\">")
+            cont.append(u"\n<head>")
+            cont.append(u"\n<title>gRaphaël Interactive Pie Chart</title>")
+            cont.append(u"\n<meta http-equiv=\"Content-Type\" "
+                        u"content=\"text/html; charset=utf-8\">")
+            cont.append(my_globals.JS_WRAPPER_L)
+            cont.append(chart.get_main())
+            cont.append(my_globals.JS_WRAPPER_R)
+            cont.append(my_globals.JS_WRAPPER_L)
+            cont.append(chart.get_graph_main())
+            cont.append(my_globals.JS_WRAPPER_R)
+            cont.append(my_globals.JS_WRAPPER_L)
+            cont.append(chart.get_pie())
+            cont.append(my_globals.JS_WRAPPER_R)
+            cont.append(my_globals.JS_WRAPPER_L)
+            cont.append(u"""
+                window.onload = function () {
+                    var r = Raphael("holder");
+                    r.g.txtattr.font = "12px 'Fontin Sans', Fontin-Sans, sans-serif";
+                    
+                    r.g.text(320, 100, "Interactive Pie Chart").attr({"font-size": 20});
+                    
+                    var pie = r.g.piechart(320, 240, 100, [55, 20, 13, 32, 5, 1, 2, 10], {legend: ["%%.%% – Enterprise Users", "IE Users"], legendpos: "west", href: ["http://raphaeljs.com", "http://g.raphaeljs.com"]});
+                    pie.hover(function () {
+                        this.sector.stop();
+                        this.sector.scale(1.1, 1.1, this.cx, this.cy);
+                        if (this.label) {
+                            this.label[0].stop();
+                            this.label[0].scale(1.5);
+                            this.label[1].attr({"font-weight": 800});
+                        }
+                    }, function () {
+                        this.sector.animate({scale: [1, 1, this.cx, this.cy]}, 500, "bounce");
+                        if (this.label) {
+                            this.label[0].animate({scale: 1}, 500, "bounce");
+                            this.label[1].attr({"font-weight": 400});
+                        }
+                    });
+                    
+                };""")
+            cont.append(my_globals.JS_WRAPPER_R)
+            cont.append(u"""</head>
+                <body class="raphael" id="g.raphael.dmitry.baranovskiy.com">
+                <h1>Demo Pie Chart</h1>
+                <div id="holder"></div>
+                <p>Anything above in wxWebKit?</p>
+                </body>
+                </html>""")
+            strContent = u"".join(cont)
+            #f = codecs.open("/home/g/Desktop/test.htm", "w", "utf-8")
+            #f.write(strContent)
+            #f.close()
+            output.display_report(self, strContent, url_load=True)
         event.Skip()
         
     def OnChartsEnter(self, event):

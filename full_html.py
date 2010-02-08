@@ -44,7 +44,7 @@ else:
                     f = codecs.open(url_fil, "w", encoding="utf-8")
                     f.write(strHTML)
                     f.close()
-                    self.LoadUrl("file:///%s" % url_fil)
+                    self.LoadUrl(u"file:///%s" % url_fil)
                 else:
                     self.LoadString(strHTML)
                     
