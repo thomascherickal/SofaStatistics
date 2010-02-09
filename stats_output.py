@@ -626,7 +626,8 @@ def add_clustered_barcharts(lst_obs, var_label_a, var_label_b,
     plot = boomslang.Plot()
     y_label = _("Proportion")
     plot.setTitle(title_tmp % {"laba": var_label_a, "labb": var_label_b, 
-                               "y": y_label}, title_overrides)
+                               "y": y_label})
+    plot.setTitleProperties(title_overrides)
     plot.setDimensions(7) # allow height to be set by golden ratio
     plot.hasLegend(columns=val_labels_b_n, location="lower left")
     plot.setAxesLabelSize(11)
@@ -641,7 +642,8 @@ def add_clustered_barcharts(lst_obs, var_label_a, var_label_b,
     plot = boomslang.Plot()
     y_label = _("Frequency")
     plot.setTitle(title_tmp % {"laba": var_label_a, "labb": var_label_b, 
-                               "y": y_label}, title_overrides)
+                               "y": y_label})
+    plot.setTitleProperties(title_overrides)
     plot.setDimensions(7) # allow height to be set by golden ratio
     plot.hasLegend(columns=val_labels_b_n, location="lower left")
     plot.setAxesLabelSize(11)
