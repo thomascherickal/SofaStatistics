@@ -37,7 +37,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                          choices=(_("Precision (best choice unless too slow)"),
                                   _("Speed")),
                          style=wx.RA_SPECIFY_COLS)
-        self.szrVarsRight.Add(self.radHigh, 0)
+        self.szrVarsTopLeft.Add(self.radHigh, 0)
     
     def get_script(self, css_idx, add_to_report, report_name):
         "Build script from inputs"

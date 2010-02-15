@@ -106,7 +106,7 @@ class FiltSelectDlg(wx.Dialog):
         szrQuick.Add(self.dropGTE, 0)
         szrQuick.Add(self.txtVal, 0)
         # split
-        lnSplit = wx.StaticLine(self.panel) 
+        lnSplit = wx.StaticLine(self.panel)
         # flexible content
         self.txtFlexFilter = wx.TextCtrl(self.panel, -1, "",
                                          style=wx.TE_MULTILINE, size=(-1, 75))
