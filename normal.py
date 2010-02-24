@@ -83,12 +83,12 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             lblVars = wx.StaticText(self.panel, -1, _("Variables:"))
         lblVars.SetFont(self.LABEL_FONT)
         self.dropVarA = wx.Choice(self.panel, -1, size=(300, -1))
-        self.dropVarA.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickVarA)
+        self.dropVarA.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickVarA)
         self.dropVarA.SetToolTipString(_("Right click variable to view/edit "
                                          "details"))
         if self.paired:
             self.dropVarB = wx.Choice(self.panel, -1, size=(300, -1))
-            self.dropVarB.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickVarB)
+            self.dropVarB.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickVarB)
             self.dropVarB.SetToolTipString(_("Right click variable to "
                                               "view/edit details"))
         self.setup_vars(var_a=True, var_b=self.paired)

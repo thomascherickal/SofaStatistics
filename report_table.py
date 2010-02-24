@@ -477,6 +477,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                     self.con_dets, self.dbe, self.db, self.tbl, 
                     self.default_dbs, self.default_tbls)
             wx.EndBusyCursor()
+            # test JS charting
+            """f = open("/home/g/Desktop/testrob1.htm", "r")
+            str_content = f.read()
+            f.close()"""
             self.update_local_display(str_content)
             self.str_content = str_content
             self.btnExpand.Enable(bolran_report)

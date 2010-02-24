@@ -90,7 +90,7 @@ class FiltSelectDlg(wx.Dialog):
         szrLabel.Add(self.txtLabel, 1)
         # quick content
         self.dropVars = wx.Choice(self.panel, -1, size=(300, -1))
-        self.dropVars.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickVars)
+        self.dropVars.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickVars)
         self.dropVars.SetToolTipString(_("Right click variable to view/edit "
                                          "details"))
         self.setup_vars()

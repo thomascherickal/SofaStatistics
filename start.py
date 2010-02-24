@@ -17,6 +17,10 @@ import shutil
 from pysqlite2 import dbapi2 as sqlite
 import sys
 import wx
+try:
+    from agw import hyperlink as hl
+except ImportError: # if it's not there locally, try the wxPython lib.
+    import wx.lib.agw.hyperlink as hl
 
 # All i18n except for wx-based (which MUST happen after wx.App init)
 # http://wiki.wxpython.org/RecipesI18n
@@ -52,7 +56,7 @@ MAX_HELP_TEXT_WIDTH = 330 # pixels
 HELP_TEXT_WIDTH = 330
 HELP_IMG_LEFT = 575
 HELP_IMG_TOP = 315
-MAIN_RIGHT = 600
+MAIN_RIGHT = 650
 SCRIPT_PATH = my_globals.SCRIPT_PATH
 LOCAL_PATH = my_globals.LOCAL_PATH
 
@@ -186,9 +190,10 @@ class StartFrame(wx.Frame):
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize())
-        self.panel = wx.Panel(self)
-        self.InitComTypes(self.panel)
+        self.panel = wx.Panel(self, size=(SCREEN_WIDTH, 600)) # win
+        self.panel.SetBackgroundColour(wx.Colour(0, 0, 0))
         self.panel.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.InitComTypes(self.panel)
         config_dlg.add_icon(frame=self)
         # background image
         sofa = os.path.join(SCRIPT_PATH, u"images", u"sofa2.xpm")
@@ -264,8 +269,8 @@ class StartFrame(wx.Frame):
         # NB cannot have transparent background properly in Windows if using
         # a static ctrl 
         # http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3045245
-        self.txtWelcome = _("Welcome to SOFA.  Hover the mouse over the "
-                            "buttons on the left to see what you can do.")
+        self.txtWelcome = _("Welcome to SOFA Statistics.  Hovering the mouse "
+                            "over the buttons lets you see what you can do.")
         # help images
         proj = os.path.join(SCRIPT_PATH, u"images", u"briefcase.xpm")
         self.bmp_proj = wx.Image(proj, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
@@ -287,6 +292,19 @@ class StartFrame(wx.Frame):
         self.bmp_psal = wx.Image(psal, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.HELP_TEXT_FONT = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
         self.active_proj = my_globals.SOFA_DEFAULT_PROJ
+        link = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com", 
+                                pos=(MAIN_LEFT, TOP_TOP), 
+                                URL="http://www.sofastatistics.com")
+        link.SetColours(link=wx.Colour(255,255,255), 
+                        visited=wx.Colour(255,255,255), 
+                        rollover=wx.Colour(255,255,255))
+        link.SetOwnBackgroundColour(wx.Colour(0, 0, 0))
+        link.SetOwnFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL))
+        link.SetUnderlines(link=False, visited=False, rollover=True)
+        link.SetLinkCursor(wx.CURSOR_HAND)
+        link.EnableRollover(True)
+        link.SetVisited(True)
+        link.UpdateLink(True)
     
     def InitComTypes(self, panel):
         """
@@ -338,13 +356,14 @@ class StartFrame(wx.Frame):
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
+        panel_dc.DrawLabel(u"Released under open source AGPL3 licence\n%s "
+                           "2009-2010 Paton-Simpson & Associates Ltd" % \
+                           COPYRIGHT, 
+                           wx.Rect(MAIN_LEFT, 547, 100, 50))
         panel_dc.DrawLabel(u"SOFA\nPaton-Simpson & Associates Ltd\n" + \
                            _("Analysis & reporting specialists"), 
-                           wx.Rect(MAIN_LEFT, 547, 100, 50))
-        panel_dc.DrawLabel(u"%s 2009-2010 Paton-Simpson & Associates Ltd" % \
-                           COPYRIGHT, 
-                           wx.Rect(MAIN_RIGHT, 560, 100, 50))
-        panel_dc.DrawBitmap(self.bmp_psal, 155, 542, True)
+                           wx.Rect(MAIN_RIGHT, 547, 100, 50))
+        panel_dc.DrawBitmap(self.bmp_psal, MAIN_RIGHT-45, 542, True)
         # make default db if not already there
         def_db = os.path.join(LOCAL_PATH, my_globals.INTERNAL_FOLDER, 
                               my_globals.SOFA_DEFAULT_DB)
@@ -508,69 +527,98 @@ class StartFrame(wx.Frame):
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP+30, HELP_TEXT_WIDTH, 260))
         event.Skip()
     
+    def get_script(self, cont, script):
+        cont.append(my_globals.JS_WRAPPER_L)
+        cont.append(script)
+        cont.append(my_globals.JS_WRAPPER_R)
+    
     def OnChartsClick(self, event):
-        test = True
+        test = False
         if not test:
             wx.MessageBox(_("Not available yet in version ") + 
                           unicode(my_globals.VERSION))
         else:
             import output
-            import charting_raphael as chart
+            import charting_js as chart
             cont = []
-            cont.append(u"<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\"")
-            cont.append(u"\n\"http://www.w3.org/TR/html4/strict.dtd\">")
-            cont.append(u"\n<html lang=\"en\">")
-            cont.append(u"\n<head>")
-            cont.append(u"\n<title>gRaphaël Interactive Pie Chart</title>")
-            cont.append(u"\n<meta http-equiv=\"Content-Type\" "
-                        u"content=\"text/html; charset=utf-8\">")
-            cont.append(my_globals.JS_WRAPPER_L)
-            cont.append(chart.get_main())
-            cont.append(my_globals.JS_WRAPPER_R)
-            cont.append(my_globals.JS_WRAPPER_L)
-            cont.append(chart.get_graph_main())
-            cont.append(my_globals.JS_WRAPPER_R)
-            cont.append(my_globals.JS_WRAPPER_L)
-            cont.append(chart.get_pie())
-            cont.append(my_globals.JS_WRAPPER_R)
-            cont.append(my_globals.JS_WRAPPER_L)
-            cont.append(u"""
-                window.onload = function () {
-                    var r = Raphael("holder");
-                    r.g.txtattr.font = "12px 'Fontin Sans', Fontin-Sans, sans-serif";
-                    
-                    r.g.text(320, 100, "Interactive Pie Chart").attr({"font-size": 20});
-                    
-                    var pie = r.g.piechart(320, 240, 100, [55, 20, 13, 32, 5, 1, 2, 10], {legend: ["%%.%% – Enterprise Users", "IE Users"], legendpos: "west", href: ["http://raphaeljs.com", "http://g.raphaeljs.com"]});
-                    pie.hover(function () {
-                        this.sector.stop();
-                        this.sector.scale(1.1, 1.1, this.cx, this.cy);
-                        if (this.label) {
-                            this.label[0].stop();
-                            this.label[0].scale(1.5);
-                            this.label[1].attr({"font-weight": 800});
-                        }
-                    }, function () {
-                        this.sector.animate({scale: [1, 1, this.cx, this.cy]}, 500, "bounce");
-                        if (this.label) {
-                            this.label[0].animate({scale: 1}, 500, "bounce");
-                            this.label[1].attr({"font-weight": 400});
-                        }
+            cont.append(u"""<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+                "http://www.w3.org/TR/html4/strict.dtd">
+                <html lang="en">
+                <head>
+                <title>Dojo Test Chart</title>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+                <style type="text/css">
+                    @import "http://archive.dojotoolkit.org/nightly/dojotoolkit/dojo/resources/dojo.css";
+                </style>
+                <!-- required for Tooltip: a default dijit theme: -->
+                <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.4.1/dijit/themes/tundra/tundra.css">
+                <style>
+                .dojoxLegendNode {border: 1px solid #ccc; margin: 5px 10px 5px 10px; padding: 3px}
+                .dojoxLegendText {vertical-align: text-top; padding-right: 10px}
+                </style>
+                
+                <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.4.1/dojo/dojo.xd.js"></script>
+                
+                <script type="text/javascript">
+                dojo.require("dojox.charting.Chart2D");
+                dojo.require("dojox.charting.themes.PlotKit.blue");
+                
+                dojo.require("dojox.charting.action2d.Highlight");
+                dojo.require("dojox.charting.action2d.Magnify");
+                dojo.require("dojox.charting.action2d.MoveSlice");
+                dojo.require("dojox.charting.action2d.Shake");
+                dojo.require("dojox.charting.action2d.Tooltip");
+                
+                dojo.require("dojox.charting.widget.Legend");
+                
+                dojo.require("dojo.colors");
+                dojo.require("dojo.fx.easing");
+                                
+                makeObjects = function(){
+                    var dc = dojox.charting;
+                    var mychart = new dc.Chart2D("mychart");
+                    mychart.setTheme(dc.themes.PlotKit.blue);
+                    mychart.addAxis("x", {labels: [{value: 1, text: "Under 20"},
+                        {value: 2, text: "20-29"},
+                        {value: 3, text: "30-39"},
+                        {value: 4, text: "40-64"},
+                        {value: 5, text: "65+"}]});
+                    mychart.addAxis("y", {vertical: true});
+                    mychart.addPlot("default", {type: "ClusteredColumns", gap: 10});
+                    mychart.addPlot("grid", {type: "Grid"});
+                    mychart.addSeries("Germany", [12, 30, 100.5, -1, 40], {stroke: {color: "black"}, fill: "#7193b8"});
+                    mychart.addSeries("Italy", [20, 45, 57, 1, 37.5], {stroke: {color: "black"}, fill: "#b1b2b2"});
+                    mychart.addSeries("Japan", [40, 37, 124, -2, 50], {stroke: {color: "black"}, fill: "#0a175e"});
+                    var anim_a = new dc.action2d.Highlight(mychart, "default", {
+                        duration: 450,
+                        easing:   dojo.fx.easing.sineOut
                     });
-                    
-                };""")
-            cont.append(my_globals.JS_WRAPPER_R)
-            cont.append(u"""</head>
-                <body class="raphael" id="g.raphael.dmitry.baranovskiy.com">
-                <h1>Demo Pie Chart</h1>
-                <div id="holder"></div>
-                <p>Anything above in wxWebKit?</p>
+                    var anim_b = new dc.action2d.Shake(mychart, "default");
+                    var anim_c = new dc.action2d.Tooltip(mychart, "default");
+                    mychart.render();
+                    var legend = new dojox.charting.widget.Legend({chart: mychart}, "legend");
+                };
+                
+                dojo.addOnLoad(makeObjects);
+                                
+                </script>
+                </head>
+                
+                <body class="tundra">
+                <h1>Clustered Bar Chart</h1>
+                <!--<p><button onclick="makeObjects();">Go</button></p>-->
+                <p>Hover over markers, bars, columns, slices, and so on.</p>
+                
+                <div id="mychart" style="width: 600px; height: 400px;"></div>
+                
+                <div id="legend"></div>
+                
                 </body>
                 </html>""")
             strContent = u"".join(cont)
-            #f = codecs.open("/home/g/Desktop/test.htm", "w", "utf-8")
-            #f.write(strContent)
-            #f.close()
+            f = codecs.open("/home/g/Desktop/test.htm", "w", "utf-8")
+            f.write(strContent)
+            f.close()
             output.display_report(self, strContent, url_load=True)
         event.Skip()
         

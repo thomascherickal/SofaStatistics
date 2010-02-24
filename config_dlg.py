@@ -74,7 +74,7 @@ class ConfigDlg(object):
                                        self.default_tbls, self.con_dets,
                                        self.dbs, self.db, self.tbls, self.tbl)
         # not wanted in all cases when dropdowns used e.g. data select
-        self.dropTables.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickTables)
+        self.dropTables.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickTables)
         self.dropTables.SetToolTipString(_("Right click to add/remove filter"))
         # 2) Tables
         self.lblTables = wx.StaticText(panel, -1, _("Table:"))

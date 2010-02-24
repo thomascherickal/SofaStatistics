@@ -73,7 +73,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         config_dlg.add_icon(frame=self)
         self.szrData, self.szrConfigBottom, self.szrConfigTop = \
-            self.get_gen_config_szrs(self.panel) # mixin
+                                    self.get_gen_config_szrs(self.panel) # mixin
         self.szrOutputButtons = self.get_szrOutputBtns(self.panel, 
                                                        inc_clear=False) # mixin
         szrMain = wx.BoxSizer(wx.VERTICAL)
@@ -104,7 +104,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.dropAveraged = wx.Choice(self.panel, -1, choices=[], 
                                       size=(300, -1))
         self.dropAveraged.Bind(wx.EVT_CHOICE, self.OnAveragedSel)
-        self.dropAveraged.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickAvg)
+        self.dropAveraged.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickAvg)
         self.dropAveraged.SetToolTipString(variables_rc_msg)
         self.setup_avg()
         szrVarsTopLeftTop.Add(self.lblAveraged, 0, wx.TOP, 5)
@@ -115,7 +115,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.lblGroupBy.SetFont(self.LABEL_FONT)
         self.dropGroupBy = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupBy.Bind(wx.EVT_CHOICE, self.OnGroupBySel)
-        self.dropGroupBy.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClickGroupBy)
+        self.dropGroupBy.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickGroupBy)
         self.dropGroupBy.SetToolTipString(variables_rc_msg)
         self.setup_group_by()
         self.lblchop_warning = wx.StaticText(self.panel, -1, "")
@@ -148,9 +148,6 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         
         szrVars.Add(szrVarsTop, 0)      
         szrVars.Add(szrVarsBottom, 0, wx.GROW)
-        
-        
-        
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
         self.html = full_html.FullHTML(self.panel, size=(200, 250))
