@@ -191,7 +191,7 @@ class StartFrame(wx.Frame):
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize())
         self.panel = wx.Panel(self, size=(SCREEN_WIDTH, 600)) # win
-        self.panel.SetBackgroundColour(wx.Colour(0, 0, 0))
+        self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.OnPaint)
         self.InitComTypes(self.panel)
         config_dlg.add_icon(frame=self)
@@ -265,6 +265,16 @@ class StartFrame(wx.Frame):
                                        pos=(BTN_RIGHT, g.next()))
         self.btnExit.Bind(wx.EVT_BUTTON, self.OnExitClick)
         self.btnExit.Bind(wx.EVT_ENTER_WINDOW, self.OnExitEnter)
+        if not my_globals.IN_WINDOWS:
+            hand = wx.StockCursor(wx.CURSOR_HAND)
+            self.btnProj.SetCursor(hand)
+            self.btnPrefs.SetCursor(hand)
+            self.btnEnter.SetCursor(hand)
+            self.btnImport.SetCursor(hand)
+            self.btnTables.SetCursor(hand)
+            self.btnCharts.SetCursor(hand)
+            self.btnStatistics.SetCursor(hand)
+            self.btnExit.SetCursor(hand)
         # text
         # NB cannot have transparent background properly in Windows if using
         # a static ctrl 
@@ -300,6 +310,7 @@ class StartFrame(wx.Frame):
                         rollover=wx.Colour(255,255,255))
         link.SetOwnBackgroundColour(wx.Colour(0, 0, 0))
         link.SetOwnFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL))
+        link.SetSize(wx.Size(200, 17))
         link.SetUnderlines(link=False, visited=False, rollover=True)
         link.SetLinkCursor(wx.CURSOR_HAND)
         link.EnableRollover(True)
@@ -337,8 +348,6 @@ class StartFrame(wx.Frame):
                             True)
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel(u"www.sofastatistics.com", 
-                           wx.Rect(MAIN_LEFT, TOP_TOP, 100, 50))
         panel_dc.DrawLabel(_("Version %s") % my_globals.VERSION, 
                            wx.Rect(MAIN_RIGHT, TOP_TOP, 100, 20))
         panel_dc.SetFont(wx.Font(self.main_font_size, wx.SWISS, wx.NORMAL, 
