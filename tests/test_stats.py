@@ -16,7 +16,41 @@ import tests.pstat as pstat
 from core_stats import ttest_ind, ttest_rel, mannwhitneyu, wilcoxont, \
     pearsonr, spearmanr, kruskalwallish, anova, fprob, betai, gammln, betacf, \
     chisquare, kurtosis, skew, moment, kurtosistest, skewtest, normaltest, \
-    obrientransform, sim_variance
+    obrientransform, sim_variance, get_summary_dics
+
+import my_globals
+
+def test_get_summary_dics():
+    tests = [([[1,2,3,4,5,6,7,8,9,10], [-10.5, 0, 100]], 
+          ["A", "B"], 
+          True, 
+          [{my_globals.STATS_DIC_LABEL: "A", my_globals.STATS_DIC_N: 10,
+            my_globals.STATS_DIC_MEDIAN: 5.5, 
+            my_globals.STATS_DIC_MIN: 1, my_globals.STATS_DIC_MAX: 10, 
+            my_globals.STATS_DIC_MEAN: 5.5, 
+            my_globals.STATS_DIC_SD: 3.0276503541},
+            {my_globals.STATS_DIC_LABEL: "B", my_globals.STATS_DIC_N: 3,
+            my_globals.STATS_DIC_MEDIAN: 0, 
+            my_globals.STATS_DIC_MIN: -10.5, my_globals.STATS_DIC_MAX: 100, 
+            my_globals.STATS_DIC_MEAN: 29.833333333, 
+            my_globals.STATS_DIC_SD: 60.992485876}
+           ]),
+             ]
+    for test in tests:
+        samples, labels, quant, sum_dics1 = test
+        sum_dics2 = get_summary_dics(samples, labels, quant)
+        for i, sum_dic1 in enumerate(sum_dics1):
+            sum_dic2 = sum_dics2[i]
+            if quant:
+                assert_almost_equal(sum_dic1[my_globals.STATS_DIC_MEAN], 
+                                    sum_dic2[my_globals.STATS_DIC_MEAN])
+                sum_dic1.pop(my_globals.STATS_DIC_MEAN)
+                sum_dic2.pop(my_globals.STATS_DIC_MEAN)
+                assert_almost_equal(sum_dic1[my_globals.STATS_DIC_SD], 
+                                    sum_dic2[my_globals.STATS_DIC_SD])
+                sum_dic1.pop(my_globals.STATS_DIC_SD)
+                sum_dic2.pop(my_globals.STATS_DIC_SD)
+            assert_equal(sum_dic1, sum_dic2)
     
 def test_obrien():
     """

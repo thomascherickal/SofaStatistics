@@ -377,7 +377,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                                     style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
         self.scroll_con_dets.SetScrollbars(-1, 10, -1, -1) # else no scrollbars
         self.scroll_con_dets.SetVirtualSize((1000, 620))
-        self.panel_bottom = wx.Panel(self, pos=(0, top_height + 360 + y_start))
+        self.panel_bottom = wx.Panel(self, pos=(0, top_height + 360 + y_start))        
         self.parent = parent
         self.szrCon_Dets = wx.BoxSizer(wx.VERTICAL)
         self.szrBottom = wx.BoxSizer(wx.VERTICAL)
@@ -494,15 +494,19 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         # NEVER SetSizeHints or else grows beyond size!!!!
         self.szrCon_Dets.SetVirtualSizeHints(self.scroll_con_dets)
         self.scroll_con_dets.FitInside() # no effect
-        # BOTTOM        
-        self.szrBottom.Add(self.szrBtns, 0, wx.ALL, 10)
+        # BOTTOM
+        # need _something_ to force the whole sizer to a certain width
+        self.szrBottom.Add(wx.StaticLine(self.panel_bottom, size=(1000,0)), 0, 
+                           wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
+        self.szrBottom.Add(self.szrBtns, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 
+                           10)
         self.panel_bottom.SetSizer(self.szrBottom)
         self.szrBottom.SetSizeHints(self.panel_bottom)
         # FINAL
         self.Layout()
         self.sqlite_grid.grid.SetFocus()
         self.txtName.SetFocus()
-
+        
     def GetProjSettings(self, fil_proj):
         """
         NB get any paths in form ready to display
@@ -550,22 +554,22 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         See http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605904
         and http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605432
         """
-        btnDelete = wx.Button(self.panel_bottom, wx.ID_DELETE)
-        btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
-        btnCancel = wx.Button(self.panel_bottom, wx.ID_CANCEL) # 
-        btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
         if self.readonly:
-            btnDelete.Disable()
-            btnCancel.Disable()
             btnOK = wx.Button(self.panel_bottom, wx.ID_OK)
         else:
+            btnDelete = wx.Button(self.panel_bottom, wx.ID_DELETE)
+            btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
+            btnCancel = wx.Button(self.panel_bottom, wx.ID_CANCEL) # 
+            btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
             btnOK = wx.Button(self.panel_bottom, wx.ID_OK, _("Update"))
         btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
         self.szrBtns = wx.StdDialogButtonSizer()
-        self.szrBtns.AddButton(btnCancel)
+        if not self.readonly:
+            self.szrBtns.AddButton(btnCancel)
         self.szrBtns.AddButton(btnOK)
         self.szrBtns.Realize()
-        self.szrBtns.Insert(0, btnDelete, 0)
+        if not self.readonly:
+            self.szrBtns.Insert(0, btnDelete, 0)
 
     def OnDelete(self, event):
         proj_name = self.txtName.GetValue()
