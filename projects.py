@@ -496,8 +496,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.scroll_con_dets.FitInside() # no effect
         # BOTTOM
         # need _something_ to force the whole sizer to a certain width
-        self.szrBottom.Add(wx.StaticLine(self.panel_bottom, size=(1000,0)), 0, 
-                           wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
+        ln = wx.StaticLine(self.panel_bottom, size=(1000,0))
+        self.szrBottom.Add(ln, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
         self.szrBottom.Add(self.szrBtns, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 
                            10)
         self.panel_bottom.SetSizer(self.szrBottom)

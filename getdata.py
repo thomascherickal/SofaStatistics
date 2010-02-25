@@ -7,7 +7,6 @@ import wx
 import my_globals
 import config_globals
 import lib
-import projects
 
 debug = False
 

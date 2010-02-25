@@ -302,20 +302,34 @@ class StartFrame(wx.Frame):
         self.bmp_psal = wx.Image(psal, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.HELP_TEXT_FONT = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
         self.active_proj = my_globals.SOFA_DEFAULT_PROJ
-        link = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com", 
-                                pos=(MAIN_LEFT, TOP_TOP), 
-                                URL="http://www.sofastatistics.com")
-        link.SetColours(link=wx.Colour(255,255,255), 
-                        visited=wx.Colour(255,255,255), 
-                        rollover=wx.Colour(255,255,255))
-        link.SetOwnBackgroundColour(wx.Colour(0, 0, 0))
-        link.SetOwnFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        link.SetSize(wx.Size(200, 17))
-        link.SetUnderlines(link=False, visited=False, rollover=True)
-        link.SetLinkCursor(wx.CURSOR_HAND)
-        link.EnableRollover(True)
-        link.SetVisited(True)
-        link.UpdateLink(True)
+        link_home = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com", 
+                                     pos=(MAIN_LEFT, TOP_TOP), 
+                                     URL="http://www.sofastatistics.com")
+        link_home.SetColours(link=wx.Colour(255,255,255), 
+                             visited=wx.Colour(255,255,255), 
+                             rollover=wx.Colour(255,255,255))
+        link_home.SetOwnBackgroundColour(wx.Colour(0, 0, 0))
+        link_home.SetOwnFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL))
+        link_home.SetSize(wx.Size(200, 17))
+        link_home.SetUnderlines(link=True, visited=True, rollover=False)
+        link_home.SetLinkCursor(wx.CURSOR_HAND)
+        link_home.EnableRollover(True)
+        link_home.SetVisited(True)
+        link_home.UpdateLink(True)
+        link_help = hl.HyperLinkCtrl(self.panel, -1, _("Ask here for help"), 
+                         pos=(MAIN_LEFT, TOP_TOP + 200), 
+                         URL="http://groups.google.com/group/sofastatistics")
+        link_help.SetColours(link=TEXT_BROWN, 
+                             visited=TEXT_BROWN, 
+                             rollover=TEXT_BROWN)
+        link_help.SetOwnBackgroundColour(wx.Colour(205, 217, 215))
+        link_help.SetOwnFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL))
+        link_help.SetSize(wx.Size(200, 17))
+        link_help.SetUnderlines(link=True, visited=True, rollover=False)
+        link_help.SetLinkCursor(wx.CURSOR_HAND)
+        link_help.EnableRollover(True)
+        link_help.SetVisited(True)
+        link_help.UpdateLink(True)
     
     def InitComTypes(self, panel):
         """
