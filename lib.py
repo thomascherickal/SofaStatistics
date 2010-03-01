@@ -561,11 +561,12 @@ def get_choice_item(item_labels, item_val):
     return u"%s (%s)" % (item_labels.get(item_val, val_label.title()), 
                          val_label)
 
-def get_sorted_choice_items(dic_labels, vals):
+def get_sorted_choice_items(dic_labels, vals, inc_drop_select=False):
     """
     Sorted by label, not name.
     dic_labels - could be for either variables of values.
     vals - either variables or values.
+    If DROP_SELECT in list, always appears first.
     Returns choice_items_sorted, orig_items_sorted.
     http://www.python.org/doc/faq/programming/#i-want-to-do-a-complicated- ...
         ... sort-can-you-do-a-schwartzian-transform-in-python
@@ -573,6 +574,9 @@ def get_sorted_choice_items(dic_labels, vals):
     sorted_vals = vals
     sorted_vals.sort(key=lambda s: get_choice_item(dic_labels, s).upper())
     choice_items = [get_choice_item(dic_labels, x) for x in sorted_vals]
+    if inc_drop_select:
+        choice_items.insert(0, my_globals.DROP_SELECT)
+        sorted_vals.insert(0, my_globals.DROP_SELECT)
     return choice_items, sorted_vals
 
 def extract_var_choice_dets(choice_text):

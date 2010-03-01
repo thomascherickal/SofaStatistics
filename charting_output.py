@@ -13,6 +13,7 @@ import projects
 class DlgCharting(indep2var.DlgIndep2VarConfig):
     
     min_data_type = my_globals.VAR_TYPE_ORD # TODO - wire up for each chart type
+    inc_gp_by_select = True
     
     def __init__(self, title, dbe, con_dets, default_dbs=None,
                  default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
@@ -57,6 +58,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrVarsTopLeftMid = wx.BoxSizer(wx.HORIZONTAL)
         szrVarsTopRightTop = wx.BoxSizer(wx.HORIZONTAL)
         szrVarsTopRightBottom = wx.BoxSizer(wx.HORIZONTAL)
+        szrTitles = wx.BoxSizer(wx.HORIZONTAL)
+        szrBottom = wx.BoxSizer(wx.HORIZONTAL)
+        szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
         # var 1
         lbl_var1 = wx.StaticText(self.panel, -1, u"Var 1:")
         lbl_var1.SetFont(self.LABEL_FONT)
@@ -73,6 +77,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # var 2
         lbl_var2 = wx.StaticText(self.panel, -1, u"Var 2:")
         lbl_var2.SetFont(self.LABEL_FONT)
+        lbl_var2.Enable(False)
         
         # only want the fields which are numeric? Depends
         
@@ -81,8 +86,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.drop_var2.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickVar2)
         self.drop_var2.SetToolTipString(variables_rc_msg)
         self.sorted_var_names2 = []
-        self.setup_var(self.drop_var2, my_globals.VAR_2_DEFAULT, 
-                       self.sorted_var_names2)
+        self.drop_var2.SetItems([])
         self.drop_var2.Enable(False)
         # layout
         szrVarsTopLeftTop.Add(lbl_var1, 0, wx.TOP|wx.RIGHT, 5)
@@ -92,29 +96,29 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szrVarsTopLeft.Add(szrVarsTopLeftTop, 0)
         self.szrVarsTopLeft.Add(szrVarsTopLeftMid, 0)
         # group by
-        lblGroupBy = wx.StaticText(self.panel, -1, _("Group By:"))
-        lblGroupBy.SetFont(self.LABEL_FONT)
+        self.lblGroupBy = wx.StaticText(self.panel, -1, _("Group By:"))
+        self.lblGroupBy.SetFont(self.LABEL_FONT)
         self.dropGroupBy = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupBy.Bind(wx.EVT_CHOICE, self.OnGroupBySel)
         self.dropGroupBy.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickGroupBy)
         self.dropGroupBy.SetToolTipString(variables_rc_msg)
         self.setup_group_by()
         self.lblchop_warning = wx.StaticText(self.panel, -1, "")
-        szrVarsTopRightTop.Add(lblGroupBy, 0, wx.RIGHT|wx.TOP, 5)
+        szrVarsTopRightTop.Add(self.lblGroupBy, 0, wx.RIGHT|wx.TOP, 5)
         szrVarsTopRightTop.Add(self.dropGroupBy, 0, wx.GROW)
         szrVarsTopRightTop.Add(self.lblchop_warning, 1, wx.TOP|wx.RIGHT, 5)
         # group by A
-        lblGroupA = wx.StaticText(self.panel, -1, _("Group A:"))
+        self.lblGroupA = wx.StaticText(self.panel, -1, _("Group A:"))
         self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
         self.dropGroupA.Bind(wx.EVT_CHOICE, self.OnGroupByASel)
         # group by B
-        lblGroupB = wx.StaticText(self.panel, -1, _("Group B:"))
+        self.lblGroupB = wx.StaticText(self.panel, -1, _("Group B:"))
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupByBSel)
         self.setup_group_dropdowns()
-        szrVarsTopRightBottom.Add(lblGroupA, 0, wx.RIGHT|wx.TOP, 5)
+        szrVarsTopRightBottom.Add(self.lblGroupA, 0, wx.RIGHT|wx.TOP, 5)
         szrVarsTopRightBottom.Add(self.dropGroupA, 0, wx.RIGHT, 5)
-        szrVarsTopRightBottom.Add(lblGroupB, 0, wx.RIGHT|wx.TOP, 5)
+        szrVarsTopRightBottom.Add(self.lblGroupB, 0, wx.RIGHT|wx.TOP, 5)
         szrVarsTopRightBottom.Add(self.dropGroupB, 0)
         szrVarsTopRight.Add(szrVarsTopRightTop, 1, wx.GROW)
         szrVarsTopRight.Add(szrVarsTopRightBottom, 0, wx.GROW|wx.TOP, 5)
@@ -124,8 +128,21 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrVarsTop.Add(szrVarsTopRight, 0)
         szrVars.Add(szrVarsTop, 0)      
         szrVars.Add(szrVarsBottom, 0, wx.GROW)
-        szrBottom = wx.BoxSizer(wx.HORIZONTAL)
-        szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
+        # titles, subtitles
+        lblTitles = wx.StaticText(self.panel, -1, _("Title:"))
+        lblTitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        self.txtTitles = wx.TextCtrl(self.panel, -1, size=(250,40), 
+                                     style=wx.TE_MULTILINE)
+        lblSubtitles = wx.StaticText(self.panel, -1, _("Subtitle:"))
+        lblSubtitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, 
+                                          wx.BOLD))
+        self.txtSubtitles = wx.TextCtrl(self.panel, -1, size=(250,40), 
+                                        style=wx.TE_MULTILINE)
+        szrTitles.Add(lblTitles, 0, wx.RIGHT, 5)
+        szrTitles.Add(self.txtTitles, 0, wx.RIGHT, 10)
+        szrTitles.Add(lblSubtitles, 0, wx.RIGHT, 5)
+        szrTitles.Add(self.txtSubtitles, 0)
+        # bottom
         self.html = full_html.FullHTML(self.panel, size=(200, 250))
         html2show = _("<p>Waiting for a report to be run.</p>")
         self.html.show_html(html2show)
@@ -136,6 +153,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrBottom.Add(self.szrOutputButtons, 0, wx.GROW|wx.LEFT, 10)
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szrMain.Add(szrTitles, 0, wx.ALL, 10)
         szrMain.Add(szrBottom, 2, wx.GROW|wx.ALL, 10)
         self.add_other_var_opts()
         self.panel.SetSizer(szrMain)
@@ -173,7 +191,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_var(self.drop_var2, my_globals.VAR_2_DEFAULT, 
                self.sorted_var_names2, var_name2)
         self.update_defaults()
-        self.update_phrase()
 
     def OnDatabaseSel(self, event):
         """
@@ -217,7 +234,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                        self.sorted_var_names2, var_name2)
         self.setup_group_dropdowns(val_a, val_b)
         self.update_defaults()
-        self.update_phrase()
         
     def OnButtonVarDetsPath(self, event):
         """
@@ -234,18 +250,17 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                        self.sorted_var_names2, var_name2)
         self.setup_group_dropdowns(val_a, val_b)
         self.update_defaults()
-        self.update_phrase()
     
     def get_vars(self):
         """
         self.sorted_var_names_by and self.sorted_var_names1 and 2 are set when 
             dropdowns are set (and only changed when reset).
         """
-        var_gp, unused = self.get_group_by()
         var_name1, unused = self.get_var_dets(self.drop_var1, 
                                               self.sorted_var_names1)
         var_name2, unused = self.get_var_dets(self.drop_var2, 
                                               self.sorted_var_names2)
+        var_gp, unused = self.get_group_by()
         return var_gp, var_name1, var_name2
     
     def update_defaults(self):
@@ -258,8 +273,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def get_drop_vals(self):
         """
         Get values from main drop downs.
-        Returns var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, 
-            label_avg.
+        Returns var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, 
+            label_b, var_1, label_1, var_1, label_1.
         """
         choice_gp_text = self.dropGroupBy.GetStringSelection()
         var_gp, label_gp = lib.extract_var_choice_dets(choice_gp_text)

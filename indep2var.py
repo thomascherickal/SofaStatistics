@@ -44,6 +44,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         exporting scripts buttons etc.  Sets values for db, default_tbl etc and 
         responds to selections etc.
     """
+    inc_gp_by_select = False
     
     def __init__(self, title, dbe, con_dets, default_dbs=None,
                  default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
@@ -113,29 +114,29 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szrVarsTopLeftTop.Add(self.dropAveraged, 0, wx.RIGHT|wx.TOP, 5)
         self.szrVarsTopLeft.Add(szrVarsTopLeftTop, 0)
         # group by
-        lblGroupBy = wx.StaticText(self.panel, -1, _("Group By:"))
-        lblGroupBy.SetFont(self.LABEL_FONT)
+        self.lblGroupBy = wx.StaticText(self.panel, -1, _("Group By:"))
+        self.lblGroupBy.SetFont(self.LABEL_FONT)
         self.dropGroupBy = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupBy.Bind(wx.EVT_CHOICE, self.OnGroupBySel)
         self.dropGroupBy.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickGroupBy)
         self.dropGroupBy.SetToolTipString(variables_rc_msg)
         self.setup_group_by()
         self.lblchop_warning = wx.StaticText(self.panel, -1, "")
-        szrVarsTopRightTop.Add(lblGroupBy, 0, wx.RIGHT|wx.TOP, 5)
+        szrVarsTopRightTop.Add(self.lblGroupBy, 0, wx.RIGHT|wx.TOP, 5)
         szrVarsTopRightTop.Add(self.dropGroupBy, 0, wx.GROW)
         szrVarsTopRightTop.Add(self.lblchop_warning, 1, wx.TOP|wx.RIGHT, 5)
         # group by A
-        lblGroupA = wx.StaticText(self.panel, -1, _("Group A:"))
+        self.lblGroupA = wx.StaticText(self.panel, -1, _("Group A:"))
         self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
         self.dropGroupA.Bind(wx.EVT_CHOICE, self.OnGroupByASel)
         # group by B
-        lblGroupB = wx.StaticText(self.panel, -1, _("Group B:"))
+        self.lblGroupB = wx.StaticText(self.panel, -1, _("Group B:"))
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupByBSel)
         self.setup_group_dropdowns()
-        szrVarsTopRightBottom.Add(lblGroupA, 0, wx.RIGHT|wx.TOP, 5)
+        szrVarsTopRightBottom.Add(self.lblGroupA, 0, wx.RIGHT|wx.TOP, 5)
         szrVarsTopRightBottom.Add(self.dropGroupA, 0, wx.RIGHT, 5)
-        szrVarsTopRightBottom.Add(lblGroupB, 0, wx.RIGHT|wx.TOP, 5)
+        szrVarsTopRightBottom.Add(self.lblGroupB, 0, wx.RIGHT|wx.TOP, 5)
         szrVarsTopRightBottom.Add(self.dropGroupB, 0)
         szrVarsTopRight.Add(szrVarsTopRightTop, 1, wx.GROW)
         szrVarsTopRight.Add(szrVarsTopRightBottom, 0, wx.GROW|wx.TOP, 5)
@@ -324,9 +325,12 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     
     def setup_group_by(self, var_gp=None):
         var_names = projects.get_approp_var_names(self.flds)
+        if self.inc_gp_by_select:
+            var_names.insert(0, my_globals.DROP_SELECT)
         var_gp_by_choice_items, self.sorted_var_names_by = \
-            lib.get_sorted_choice_items(dic_labels=self.var_labels, 
-                                        vals=var_names)
+                        lib.get_sorted_choice_items(dic_labels=self.var_labels, 
+                                        vals=var_names, 
+                                        inc_drop_select=self.inc_gp_by_select)
         self.dropGroupBy.SetItems(var_gp_by_choice_items)
         # set selection
         idx_gp = projects.get_idx_to_select(var_gp_by_choice_items, var_gp, 
@@ -358,8 +362,18 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         """
         debug = False
         choice_text = self.dropGroupBy.GetStringSelection()
-        if not choice_text:
+        if not choice_text or choice_text == my_globals.DROP_SELECT:
+            self.lblGroupA.Enable(False)
+            self.dropGroupA.SetItems([])
+            self.dropGroupA.Enable(False)
+            self.lblGroupB.Enable(False)
+            self.dropGroupB.SetItems([])
+            self.dropGroupB.Enable(False)
             return
+        self.lblGroupA.Enable(True)
+        self.dropGroupA.Enable(True)
+        self.lblGroupB.Enable(True)
+        self.dropGroupB.Enable(True)
         var_name, var_label = lib.extract_var_choice_dets(choice_text)
         quoter = getdata.get_obj_quoter_func(self.dbe)
         unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
@@ -412,8 +426,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def get_drop_vals(self):
         """
         Get values from main drop downs.
-        Returns var_gp, label_gp, val_a, label_a, val_b, label_b, var_avg, 
-            label_avg.
+        Returns var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, 
+            label_b, var_avg, label_avg.
         """
         choice_gp_text = self.dropGroupBy.GetStringSelection()
         var_gp, label_gp = lib.extract_var_choice_dets(choice_gp_text)

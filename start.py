@@ -454,6 +454,7 @@ class StartFrame(wx.Frame):
         txt_pref = _("Set preferences e.g. format for entering dates")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_pref, MAX_HELP_TEXT_WIDTH), 
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
+        
     def OnEnterClick(self, event):
         # open proj selection form
         import dataselect
@@ -524,11 +525,11 @@ class StartFrame(wx.Frame):
                                 proj_dic["fil_report"], proj_dic["fil_script"])
             wx.EndBusyCursor()
             dlg.ShowModal()
-        except Exception:
+        except Exception, e:
             msg = _("Unable to connect to data as defined in project %s.  "
                     "Please check your settings." % proj_name)
             wx.MessageBox(msg)
-            raise Exception, msg
+            raise Exception, u"%s.  Orig error: %s" % (msg, e) 
         finally:
             wx.EndBusyCursor()
             event.Skip()
@@ -579,11 +580,11 @@ class StartFrame(wx.Frame):
                                 proj_dic["fil_report"], proj_dic["fil_script"])
                 wx.EndBusyCursor()
                 dlg.ShowModal()
-            except Exception:
+            except Exception, e:
                 msg = _("Unable to connect to data as defined in project %s.  "
                         "Please check your settings." % proj_name)
                 wx.MessageBox(msg)
-                raise Exception, msg
+                raise Exception, u"%s.  Orig error: %s" % (msg, e) 
             finally:
                 wx.EndBusyCursor()
                 event.Skip()
@@ -700,11 +701,11 @@ class StartFrame(wx.Frame):
                         proj_dic["fil_report"], proj_dic["fil_script"])
             wx.EndBusyCursor()
             dlg.ShowModal()
-        except Exception:
+        except Exception, e:
             msg = _("Unable to connect to data as defined in project %s.  "
                     "Please check your settings." % proj_name)
             wx.MessageBox(msg)
-            raise Exception, msg
+            raise Exception, u"%s.  Orig error: %s" % (msg, e)
         finally:
             wx.EndBusyCursor()
             event.Skip()

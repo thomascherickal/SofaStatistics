@@ -15,6 +15,7 @@ MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
 PYTHON_ENCODING_DECLARATION = u"#! /usr/bin/env python" + os.linesep + \
     u"# -*- coding: utf-8 -*-" + os.linesep
+DROP_SELECT = _("Select")
 # core stats *********************************************************
 STATS_DIC_LABEL = u"label"
 STATS_DIC_N = u"n"
@@ -104,7 +105,6 @@ CSS_ELEMENTS = [CSS_ALIGN_RIGHT, CSS_LBL, CSS_TBL_TITLE,
     CSS_ROW_VAR, CSS_COL_VAR, CSS_MEASURE, CSS_TOTAL_ROW, CSS_PAGE_BREAK_BEFORE,
     CSS_TBL_HDR_FTNOTE]
 CSS_SUFFIX_TEMPLATE = u"%s%s"
-
 # projects ******************************************************
 EMPTY_PROJ_NAME = _("GIVE ME A NAME ...")
 SOFA_DEFAULT_DB = u"SOFA_Default_db"
