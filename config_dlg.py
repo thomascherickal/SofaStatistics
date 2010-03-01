@@ -27,6 +27,9 @@ class ConfigDlg(object):
     The standard interface for choosing data, styles etc.
     Can get sizers ready to use complete with widgets, event methods, and even
         properties e.g. self.con, self.cur etc.
+    Used mixin because of large number of properties set and needing to be 
+        shared.  The downside is that not always clear where something got set
+        when looking from the class that inherits from this mixin.
     """
 
     def get_gen_config_szrs(self, panel, readonly=False):
@@ -59,8 +62,8 @@ class ConfigDlg(object):
         """
         self.LABEL_FONT = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         # 1) Databases
-        self.lblDatabases = wx.StaticText(panel, -1, _("Database:"))
-        self.lblDatabases.SetFont(self.LABEL_FONT)
+        lblDatabases = wx.StaticText(panel, -1, _("Database:"))
+        lblDatabases.SetFont(self.LABEL_FONT)
         # get various db settings
         dbdetsobj = getdata.get_db_dets_obj(self.dbe, self.default_dbs, 
                                             self.default_tbls, self.con_dets)
@@ -77,13 +80,13 @@ class ConfigDlg(object):
         self.dropTables.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickTables)
         self.dropTables.SetToolTipString(_("Right click to add/remove filter"))
         # 2) Tables
-        self.lblTables = wx.StaticText(panel, -1, _("Table:"))
-        self.lblTables.SetFont(self.LABEL_FONT)
+        lblTables = wx.StaticText(panel, -1, _("Table:"))
+        lblTables.SetFont(self.LABEL_FONT)
         bxData = wx.StaticBox(panel, -1, _("Data Source"))
         self.szrData = wx.StaticBoxSizer(bxData, wx.HORIZONTAL)
-        self.szrData.Add(self.lblDatabases, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szrData.Add(lblDatabases, 0, wx.LEFT|wx.RIGHT, 5)
         self.szrData.Add(self.dropDatabases, 0, wx.RIGHT, 10)
-        self.szrData.Add(self.lblTables, 0, wx.RIGHT, 5)
+        self.szrData.Add(lblTables, 0, wx.RIGHT, 5)
         self.szrData.Add(self.dropTables, 0)
         return self.szrData
               

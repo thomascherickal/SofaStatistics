@@ -31,7 +31,7 @@ QUOTES = [
      u"citizenship as the ability to read and write", u"H.G. Wells"),
     (u"Absolutely nothing should be concluded from these figures "
      u"except that no conclusion can be drawn from them.", 
-     u"Joseph L. Brothers"),
+     u"Joseph L. Brothers, Linux/PowerPC Project"),
     ]
 
 def get_quote():

@@ -556,11 +556,38 @@ class StartFrame(wx.Frame):
         cont.append(my_globals.JS_WRAPPER_R)
     
     def OnChartsClick(self, event):
-        test = False
-        if not test:
+        CHARTS_NO = 0
+        CHARTS_PRELIM = 1
+        CHARTS_JS = 2
+        charts = CHARTS_PRELIM
+        if charts == CHARTS_NO:
             wx.MessageBox(_("Not available yet in version ") + 
                           unicode(my_globals.VERSION))
-        else:
+        elif charts == CHARTS_PRELIM:
+            wx.BeginBusyCursor()
+            import charting_output
+            proj_name = self.active_proj
+            proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
+                                                       fil_name=proj_name)
+            try:
+                dbe, default_dbs, default_tbls = \
+                                    self.get_dbe_and_default_dbs_tbls(proj_dic)
+                getdata.refresh_default_dbs_tbls(dbe, default_dbs, default_tbls)
+                dlg = charting_output.DlgCharting(_("Make Chart"), dbe, 
+                                proj_dic["con_dets"], default_dbs, default_tbls, 
+                                proj_dic["fil_var_dets"], proj_dic["fil_css"], 
+                                proj_dic["fil_report"], proj_dic["fil_script"])
+                wx.EndBusyCursor()
+                dlg.ShowModal()
+            except Exception:
+                msg = _("Unable to connect to data as defined in project %s.  "
+                        "Please check your settings." % proj_name)
+                wx.MessageBox(msg)
+                raise Exception, msg
+            finally:
+                wx.EndBusyCursor()
+                event.Skip()
+        elif charts == CHARTS_JS:
             import output
             import charting_js as chart
             cont = []
