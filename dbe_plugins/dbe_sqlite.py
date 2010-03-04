@@ -349,7 +349,7 @@ def processConDets(parent, default_dbs, default_tbls, con_dets):
 # imported data)
 def valid_name(name):
     """
-    Bad name for SQLite?  Also return bad_parts (empty unless a problem).
+    Bad name for SQLite?
     """
     # only allow alphanumeric and underscores
     for char in name:

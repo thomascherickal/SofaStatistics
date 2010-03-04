@@ -436,8 +436,8 @@ def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):
         statement. The table will be created inside the default SOFA SQLite 
         database.  If the sofa_id is included, the text must define the sofa_id 
         as UNIQUE.
-    oth_name_types -- fld_name, fld_type.  Does not include sofa_id. The sofa_id 
-        can be added below if required.
+    oth_name_types -- ok_fld_name, fld_type.  Does not include sofa_id. The 
+        sofa_id can be added below if required.
     strict_typing -- add check constraints to fields.
     """
     debug = False
@@ -476,8 +476,8 @@ def make_sofa_tbl(con, cur, tbl_name, oth_name_types, strict_typing=False):
     Optionally may apply type checking constraint on fields (NB no longer able
         to open database outside of this application which using user-defined
         functions in table definitions).
-    name_types -- [(fld_name, fld_type), ...].  No need to reference old names 
-        or types.
+    oth_name_types -- [(ok_fld_name, fld_type), ...].  No need to reference 
+        old names or types.
     strict_typing -- uses user-defined functions to apply strict typing via
         check clauses as part of create table statements.
     """

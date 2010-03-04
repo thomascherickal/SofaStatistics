@@ -78,8 +78,9 @@ class FileImporter(object):
         """
         Assess data sample to identify field types based on values in fields.
         If a field has mixed data types will define as string.
-        Returns fld_types, sample_data.
-        fld_types - dict with field names as keys and field types as values.
+        Returns orig_fld_names, fld_types, sample_data.
+        fld_types - dict with original (uncorrected) field names as keys and 
+            field types as values.
         sample_data - list of dicts containing the first rows of data 
             (no point reading them all again during subsequent steps).   
         Sample first N rows (at most) to establish field types.   
@@ -105,14 +106,16 @@ class FileImporter(object):
             progBackup.SetValue(gauge_val)
             if i == (ROWS_TO_SAMPLE - 1):
                 break
+        orig_fld_names = []
         fld_types = []
-        for fld_name in reader.fieldnames:
-            fld_type = importer.assess_sample_fld(sample_data, fld_name)
+        for orig_fld_name in reader.fieldnames:
+            orig_fld_names.append(orig_fld_name)
+            fld_type = importer.assess_sample_fld(sample_data, orig_fld_name)
             fld_types.append(fld_type)
         fld_types = dict(zip(reader.fieldnames, fld_types))
         if not bolhas_rows:
             raise Exception, "No data to import"
-        return fld_types, sample_data
+        return orig_fld_names, fld_types, sample_data
     
     def getAvgRowSize(self, tmp_reader):
         # loop through at most 5 times
@@ -179,14 +182,14 @@ class FileImporter(object):
             # get field names
             if self.has_header:
                 tmp_reader = csv.DictReader(csvfile, dialect=dialect)
-                raw_names = tmp_reader.fieldnames
-                fld_names = importer.process_fld_names(raw_names)
+                orig_names = tmp_reader.fieldnames
+                ok_fld_names = importer.process_fld_names(orig_names)
             else:
                 # get number of fields
                 tmp_reader = csv.reader(csvfile, dialect=dialect)
                 for row in tmp_reader:
                     if debug: print(row)
-                    fld_names = ["Fld_%s" % (x+1,) for x in range(len(row))]
+                    ok_fld_names = ["Fld_%s" % (x+1,) for x in range(len(row))]
                     break
                 csvfile.seek(0)
             # estimate number of rows (only has to be good enough for progress)
@@ -198,7 +201,7 @@ class FileImporter(object):
             csvfile.seek(0)
             n_rows = float(tot_size)/row_size            
             reader = csv.DictReader(csvfile, dialect=dialect, 
-                                    fieldnames=fld_names)
+                                    fieldnames=ok_fld_names)
         except csv.Error, e:
             if unicode(e).startswith("new-line character seen in unquoted"
                                      " field"):
@@ -212,16 +215,16 @@ class FileImporter(object):
         con, cur, unused, unused, unused, unused, unused = \
             getdata.GetDefaultDbDets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_rows else n_rows
-        gauge_chunk = importer.getGaugeChunkSize(n_rows, sample_n)
-        fld_types, sample_data = self.assess_sample(reader, progBackup,
-                                                    gauge_chunk, keep_importing)
+        gauge_chunk = importer.get_gauge_chunk_size(n_rows, sample_n)
+        orig_fld_names, fld_types, sample_data = self.assess_sample(reader, 
+                                        progBackup, gauge_chunk, keep_importing)
         # NB reader will be at position ready to access records after sample
         remaining_data = list(reader) # must be a list not a reader or can't 
         # start again from beginning of data (e.g. if correction made)
         importer.add_to_tmp_tbl(con, cur, self.file_path, self.tbl_name, 
-                               fld_names, fld_types, sample_data, sample_n,
-                               remaining_data, progBackup, gauge_chunk, 
-                               keep_importing)
+                               ok_fld_names, orig_fld_names, fld_types, 
+                               sample_data, sample_n, remaining_data, 
+                               progBackup, gauge_chunk, keep_importing)
         importer.TmpToNamedTbl(con, cur, self.tbl_name, self.file_path, 
                                progBackup)
         cur.close()

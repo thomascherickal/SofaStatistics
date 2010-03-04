@@ -48,9 +48,15 @@ def process_fld_names(raw_names):
     if len(names) != len(set(names)):
         raise Exception, ("Duplicate field name (once spaces turned to "
                           "underscores)")
+    for i, name in enumerate(names):
+        if not dbe_sqlite.valid_name(name):
+            raise Exception, _("Unable to use field name \"%s\". "
+                              "Only letters, numbers and underscores are "
+                              "allowed. No spaces, full stops etc." %
+                              raw_names[i])
     return names
 
-def assess_sample_fld(sample_data, fld_name):
+def assess_sample_fld(sample_data, orig_fld_name):
     """
     sample_data -- dict
     For individual values, if numeric, assume numeric, 
@@ -68,7 +74,7 @@ def assess_sample_fld(sample_data, fld_name):
     datetime_only_set = set([VAL_DATETIME])
     datetime_or_empt_str_set = set([VAL_DATETIME, VAL_EMPTY_STRING])
     for row in sample_data:
-        val = lib.if_none(row[fld_name], u"")
+        val = lib.if_none(row[orig_fld_name], u"")
         if lib.is_numeric(val): # anything that SQLite can add _as a number_ 
                 # into a numeric field
             type_set.add(VAL_NUMERIC)
@@ -92,7 +98,7 @@ def assess_sample_fld(sample_data, fld_name):
         fld_type = my_globals.FLD_TYPE_STRING
     return fld_type
 
-def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
+def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
     """
     If checking, will validate and turn empty strings into nulls
         as required.
@@ -103,9 +109,9 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
     If not, will raise an exception.
     """
     debug = False
-    val = row[fld_name]
+    val = row[orig_fld_name]
     is_pytime = lib.isPyTime(val)
-    fld_type = fld_types[fld_name]
+    fld_type = fld_types[orig_fld_name]
     if not check:
         # still need to handle pytime and turn empty strings into NULLs 
         # for non string fields.
@@ -144,9 +150,9 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
         elif fld_type == my_globals.FLD_TYPE_STRING:
             bolOK_data = True
         if not bolOK_data:
-            raise MismatchException(fld_name,
-                u"Column: %s" % fld_name + \
-                u"\nRow: %s" % row_num + \
+            raise MismatchException(orig_fld_name,
+                u"Column: %s" % orig_fld_name + \
+                u"\nRow: %s" % row_idx + 1 + \
                 u"\nValue: \"%s\"" % val + \
                 u"\nExpected column type: %s" % fld_type)
     if val != u"NULL":
@@ -154,8 +160,9 @@ def ProcessVal(vals, row_num, row, fld_name, fld_types, check):
     vals.append(val)
     if debug: print(val)
     
-def AddRows(con, cur, rows, fld_names, fld_types, progBackup, gauge_chunk,
-            start_i=0, check=False, keep_importing=None):
+def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types, 
+             progBackup, gauge_chunk, gauge_start=0, check=False, 
+             keep_importing=None):
     """
     Add the rows of data, processing each cell as you go.
     If checking, will validate and turn empty strings into nulls
@@ -165,18 +172,19 @@ def AddRows(con, cur, rows, fld_names, fld_types, progBackup, gauge_chunk,
     TODO - insert multiple lines at once for performance
     """
     debug = False
-    fld_names_clause = u", ".join([dbe_sqlite.quote_obj(x) for x in fld_names])
-    i = start_i
-    for row in rows:
-        if i % 50 == 0:
+    fld_names_clause = u", ".join([dbe_sqlite.quote_obj(x) for x \
+                                                            in ok_fld_names])
+    for row_idx, row in enumerate(rows):
+        if row_idx % 50 == 0:
             wx.Yield()
             if keep_importing == set([False]):
                 progBackup.SetValue(0)
                 raise ImportCancelException
-        i += 1
+        gauge_start += 1
+        row_idx += 1
         vals = []
-        for fld_name in fld_names:
-            ProcessVal(vals, i, row, fld_name, fld_types, check)
+        for orig_fld_name in orig_fld_names:
+            process_val(vals, row_idx, row, orig_fld_name, fld_types, check)
         # quoting must happen earlier so we can pass in NULL  
         fld_vals_clause = u", ".join([u"%s" % x for x in vals])
         SQL_insert_row = u"INSERT INTO %s " % TMP_SQLITE_TBL + \
@@ -184,15 +192,16 @@ def AddRows(con, cur, rows, fld_names, fld_types, progBackup, gauge_chunk,
         if debug: print(SQL_insert_row)
         try:
             cur.execute(SQL_insert_row)
-            gauge_val = i*gauge_chunk
+            gauge_val = gauge_start*gauge_chunk
             progBackup.SetValue(gauge_val)
         except MismatchException, e:
             raise # keep this particular type of exception bubbling out
         except Exception, e:
-            raise Exception, u"Unable to add row %s. Orig error: %s" % (i, e)
+            raise Exception, u"Unable to add row %s. Orig error: %s" % \
+                (row_idx+1, e)
     con.commit()
 
-def getGaugeChunkSize(n_rows, sample_n):
+def get_gauge_chunk_size(n_rows, sample_n):
     """
     Needed for progress bar - how many rows before displaying another of the 
         chunks as set by GAUGE_RANGE.
@@ -203,19 +212,22 @@ def getGaugeChunkSize(n_rows, sample_n):
         gauge_chunk = None
     return gauge_chunk
 
-def add_to_tmp_tbl(con, cur, file_path, tbl_name, fld_names, fld_types, 
-                   sample_data, sample_n, remaining_data, progBackup, 
+def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names, 
+                   fld_types, sample_data, sample_n, remaining_data, progBackup, 
                    gauge_chunk, keep_importing):
     """
     Create fresh disposable table in SQLite and insert data into it.
-    fld_names -- field names (shouldn't have a sofa_id field)
-    fld_types -- field types for names
+    ok_fld_names -- cleaned field names (shouldn't have a sofa_id field)
+    orig_fld_names -- original names - useful for taking data from row dicts but 
+        not the names to use for the new table.
+    fld_types -- dict with field types for original field names
     Give it a unique identifier field as well.
     Set up the data type constraints needed.
     """
     debug = False
     if debug:
-        print(u"Field names are: %s" % fld_names)
+        print(u"Original field names are: %s" % orig_fld_names)
+        print(u"Cleaned (ok) field names are: %s" % ok_fld_names)
         print(u"Field types are: %s" % fld_types)
         print(u"Sample data is: %s" % sample_data)
     try:
@@ -226,41 +238,46 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, fld_names, fld_types,
         cur.execute(SQL_get_tbl_names) # otherwise it doesn't always seem to have the 
             # latest data on which tables exist
         SQL_drop_disp_tbl = u"DROP TABLE IF EXISTS %s" % TMP_SQLITE_TBL
-        cur.execute(SQL_drop_disp_tbl)        
+        cur.execute(SQL_drop_disp_tbl)
         con.commit()
         if debug: print(u"Successfully dropped %s" % TMP_SQLITE_TBL)
     except Exception, e:
         raise
     try:
         tbl_name = TMP_SQLITE_TBL
-        oth_name_types = [(fld_name, fld_types[fld_name]) for fld_name \
-                          in fld_names]
+        # oth_name_types -- ok_fld_name, fld_type (taken from original source 
+        # and the key will be orig_fld_name)
+        oth_name_types = []
+        fld_names = zip(ok_fld_names, orig_fld_names)
+        for ok_fld_name, orig_fld_name in fld_names:
+            oth_name_types.append((ok_fld_name, fld_types[orig_fld_name]))
         getdata.make_sofa_tbl(con, cur, tbl_name, oth_name_types)
     except Exception, e:
         raise   
     try:
         # add sample and then remaining data to disposable table
-        AddRows(con, cur, sample_data, fld_names, fld_types, progBackup,
-                gauge_chunk, start_i=sample_n, check=False, 
-                keep_importing=keep_importing) # already been through sample 
-            # once when assessing it so part way through already
-        remainder_start_i = 2*sample_n # been through sample twice already
-        AddRows(con, cur, remaining_data, fld_names, fld_types, progBackup,
-                gauge_chunk, start_i=remainder_start_i, check=True, 
-                keep_importing=keep_importing)
+        add_rows(con, cur, sample_data, ok_fld_names, orig_fld_names, fld_types, 
+                 progBackup, gauge_chunk, gauge_start=sample_n, check=False, 
+                 keep_importing=keep_importing) # already been through sample 
+            # once when assessing it so part way through process already
+        remainder_gauge_start = 2*sample_n # been through sample twice already
+        add_rows(con, cur, remaining_data, ok_fld_names, orig_fld_names, 
+                 fld_types, progBackup, gauge_chunk, 
+                 gauge_start=remainder_gauge_start, check=True, 
+                 keep_importing=keep_importing)
     except MismatchException, e:
         con.commit()
         progBackup.SetValue(0)
         # go through again or raise an exception
         retCode = wx.MessageBox(u"%s\n\n" % e + _("Fix and keep going?"), 
-                                _("KEEP GOING?"), 
-                                wx.YES_NO | wx.ICON_QUESTION)
+                                _("KEEP GOING?"), wx.YES_NO|wx.ICON_QUESTION)
         if retCode == wx.YES:
             # change fld_type to string and start again
             fld_types[e.fld_name] = my_globals.FLD_TYPE_STRING
-            add_to_tmp_tbl(con, cur, file_path, tbl_name, fld_names, fld_types, 
-                           sample_data, sample_n, remaining_data, progBackup, 
-                           gauge_chunk, keep_importing)
+            add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, 
+                           orig_fld_names, fld_types, sample_data, sample_n, 
+                           remaining_data, progBackup, gauge_chunk, 
+                           keep_importing)
         else:
             raise Exception, u"Mismatch between data in column and " + \
                 "expected column type"
@@ -288,8 +305,9 @@ def TmpToNamedTbl(con, cur, tbl_name, file_path, progBackup):
         raise Exception, u"Unable to rename temporary table.  Orig error: %s" \
             % e
     progBackup.SetValue(GAUGE_RANGE)
-    msg = _("Successfully imported data from '%(fil)s' "
-            "to '%(tbl)s' in the default SOFA database")
+    msg = _("Successfully imported data from '%(fil)s' to '%(tbl)s' in the "
+            "default SOFA database.\n\nClick on 'Enter/Edit Data' on the main "
+            "form to view.")
     wx.MessageBox(msg % {"fil": file_path, "tbl": tbl_name})
         
     
