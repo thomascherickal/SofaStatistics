@@ -51,9 +51,9 @@ def process_fld_names(raw_names):
     for i, name in enumerate(names):
         if not dbe_sqlite.valid_name(name):
             raise Exception, _("Unable to use field name \"%s\". "
-                              "Only letters, numbers and underscores are "
-                              "allowed. No spaces, full stops etc." %
-                              raw_names[i])
+                              "It is recommended that you only use letters, "
+                              "numbers and underscores. No spaces, full stops"
+                              " etc." % raw_names[i])
     return names
 
 def assess_sample_fld(sample_data, orig_fld_name):

@@ -10,6 +10,13 @@ import full_html
 import indep2var
 import projects
 
+
+class PageBarChart(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
+        self.SetBackgroundColour("red")
+        t = wx.StaticText(self, -1, "This is a PageOne object", (20,20))
+
 class DlgCharting(indep2var.DlgIndep2VarConfig):
     
     min_data_type = my_globals.VAR_TYPE_ORD # TODO - wire up for each chart type
@@ -61,6 +68,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrTitles = wx.BoxSizer(wx.HORIZONTAL)
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
+        szrCharts = wx.BoxSizer(wx.VERTICAL)
         # var 1
         lbl_var1 = wx.StaticText(self.panel, -1, u"Var 1:")
         lbl_var1.SetFont(self.LABEL_FONT)
@@ -128,6 +136,18 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrVarsTop.Add(szrVarsTopRight, 0)
         szrVars.Add(szrVarsTop, 0)      
         szrVars.Add(szrVarsBottom, 0, wx.GROW)
+        
+        # charts
+        
+        
+        
+
+        
+        
+        
+        
+        
+        
         # titles, subtitles
         lblTitles = wx.StaticText(self.panel, -1, _("Title:"))
         lblTitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -143,7 +163,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrTitles.Add(lblSubtitles, 0, wx.RIGHT, 5)
         szrTitles.Add(self.txtSubtitles, 0)
         # bottom
-        self.html = full_html.FullHTML(self.panel, size=(200, 250))
+        self.html = full_html.FullHTML(self.panel, size=(200, 150))
         html2show = _("<p>Waiting for a report to be run.</p>")
         self.html.show_html(html2show)
         szrBottomLeft.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
@@ -153,6 +173,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrBottom.Add(self.szrOutputButtons, 0, wx.GROW|wx.LEFT, 10)
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szrMain.Add(szrCharts, 0, wx.GROW)
         szrMain.Add(szrTitles, 0, wx.ALL, 10)
         szrMain.Add(szrBottom, 2, wx.GROW|wx.ALL, 10)
         self.add_other_var_opts()

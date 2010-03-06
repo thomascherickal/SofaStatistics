@@ -430,10 +430,10 @@ def setDataConGui(parent, readonly, scroll, szr, lblfont):
     szrMysqlInnerTop = wx.BoxSizer(wx.HORIZONTAL)
     # default database
     szrMysqlInnerTop.Add(parent.lblMysqlDefaultDb, 0, wx.LEFT|wx.RIGHT, 5)
-    szrMysqlInnerTop.Add(parent.txtMysqlDefaultDb, 1, wx.GROW|wx.RIGHT, 10)
+    szrMysqlInnerTop.Add(parent.txtMysqlDefaultDb, 0, wx.GROW|wx.RIGHT, 10)
     # default table
     szrMysqlInnerTop.Add(parent.lblMysqlDefaultTbl, 0, wx.LEFT|wx.RIGHT, 5)
-    szrMysqlInnerTop.Add(parent.txtMysqlDefaultTbl, 1, wx.GROW|wx.RIGHT, 10)
+    szrMysqlInnerTop.Add(parent.txtMysqlDefaultTbl, 0, wx.GROW|wx.RIGHT, 10)
     #4 MYSQL INNER BOTTOM
     szrMysqlInnerBtm = wx.BoxSizer(wx.HORIZONTAL)
     # host 

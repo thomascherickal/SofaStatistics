@@ -192,11 +192,13 @@ def test_get_range_idxs():
         assert_equal(indep2var.get_range_idxs(vals, val_a, val_b), idx_tup)
 
 def test_process_fld_names():
-    equal_tests = [([u"spam", u"eggs", u"knights who say ni", u"Παντελής 2"], 
-                    [u"spam", u"eggs", u"knights_who_say_ni", u"Παντελής_2"]),
+    "Spaces to underscores, only valid SQLite table and field names"
+    equal_tests = [([u"spam", u"eggs.", u"knights who say ni", u"Παντελής 2"], 
+                    [u"spam", u"eggs.", u"knights_who_say_ni", u"Παντελής_2"]),
                     ]
     for test in equal_tests:
         assert_equal(importer.process_fld_names(test[0]), test[1])
+    # the two unladen swallows will become the same as space -> underscore
     raises_tests = [[u"unladen swallow", u"unladen_swallow", u"spam", u"eggs"],
                     [5, u"6"],
                     ]

@@ -411,7 +411,7 @@ class StartFrame(wx.Frame):
         self.Refresh()
         
     def OnProjClick(self, event):
-        proj_fils = projects.GetProjs() # should always be the default present
+        proj_fils = projects.get_projs() # should always be the default present
         # open proj selection form
         dlgProj = projselect.ProjSelectDlg(self, proj_fils, self.active_proj)
         dlgProj.ShowModal()

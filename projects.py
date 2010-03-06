@@ -15,7 +15,7 @@ import settings_grid
 
 LOCAL_PATH = my_globals.LOCAL_PATH
 
-def GetProjs():
+def get_projs():
     """
     NB includes .proj at end.
     os.listdir()
@@ -29,7 +29,7 @@ def GetProjs():
     proj_fils.sort()
     return proj_fils
 
-def GetProjNotes(fil_proj, proj_dic):
+def get_proj_notes(fil_proj, proj_dic):
     """
     If the default project, return the translated notes rather than what is 
         actually stored in the file (notes in English).
@@ -365,30 +365,107 @@ class GetSettings(settings_grid.SettingsEntryDlg):
 class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
     def __init__(self, parent, readonly=False, fil_proj=None):
         wx.Dialog.__init__(self, parent=parent, title=_("Project Settings"),
-                           size=(1024, 600),
-                           style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
-                           wx.TAB_TRAVERSAL, pos=(0, 0))
-        y_start = -15 if my_globals.IN_WINDOWS else 0
-        self.panel_top = wx.Panel(self, pos=(0,0))
-        top_height = 185
+               size=(1024, 600), 
+               style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
+               wx.SYSTEM_MENU|wx.CAPTION|wx.CLOSE_BOX|wx.TAB_TRAVERSAL) 
+               # wx.CLIP_CHILDREN causes problems in Windows
+        self.szr = wx.BoxSizer(wx.VERTICAL)
+        self.panel_top = wx.Panel(self)
         self.scroll_con_dets = wx.PyScrolledWindow(self, 
-                                    pos=(10, top_height + y_start), 
-                                    size=(1000, 355),
-                                    style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
-        self.scroll_con_dets.SetScrollbars(-1, 10, -1, -1) # else no scrollbars
-        self.scroll_con_dets.SetVirtualSize((1000, 620))
-        self.panel_bottom = wx.Panel(self, pos=(0, top_height + 360 + y_start))        
+                size=(900, 350), # need for Windows
+                style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
+        self.scroll_con_dets.SetScrollRate(10,10) # gives it the scroll bars
+        self.panel_bottom = wx.Panel(self)
         self.parent = parent
         self.szrCon_Dets = wx.BoxSizer(wx.VERTICAL)
         self.szrBottom = wx.BoxSizer(wx.VERTICAL)
         # get available settings
         self.readonly = readonly
+        self.set_defaults(fil_proj)
+        getdata.setConDetDefaults(self)
+        # misc
+        lblfont = wx.Font(9, wx.SWISS, wx.NORMAL, wx.BOLD)
+        # Project Name and notes
+        lblName = wx.StaticText(self.panel_top, -1, _("Project Name:"))
+        lblName.SetFont(lblfont)
+        self.txtName = wx.TextCtrl(self.panel_top, -1, self.proj_name, 
+                                   size=(200, -1))
+        self.txtName.Enable(not self.readonly)
+        lblProjNotes = wx.StaticText(self.panel_top, -1, _("Notes:"))
+        lblProjNotes.SetFont(lblfont)
+        self.txtProjNotes = wx.TextCtrl(self.panel_top, -1, self.proj_notes,
+                                        size=(200, 40), style=wx.TE_MULTILINE)
+        self.txtProjNotes.Enable(not self.readonly)
+        szrDesc = wx.BoxSizer(wx.HORIZONTAL)
+        szrDesc.Add(lblName, 0, wx.RIGHT, 5)
+        szrDesc.Add(self.txtName, 0, wx.RIGHT, 10)
+        szrDesc.Add(lblProjNotes, 0, wx.RIGHT, 5)
+        szrDesc.Add(self.txtProjNotes, 1, wx.GROW)
+        # DATA CONNECTIONS
+        lblDataConDets = wx.StaticText(self.panel_top, -1, 
+                                        _("Data Connection Details:"))
+        # default dbe
+        lblDefault_Dbe = wx.StaticText(self.scroll_con_dets, -1, 
+                                       _("Default Database Engine:"))
+        lblDefault_Dbe.SetFont(lblfont)
+        self.dropDefault_Dbe = wx.Choice(self.scroll_con_dets, -1, 
+                                         choices=my_globals.DBES)
+        sel_dbe_id = my_globals.DBES.index(self.default_dbe)
+        self.dropDefault_Dbe.SetSelection(sel_dbe_id)
+        self.dropDefault_Dbe.Bind(wx.EVT_CHOICE, self.OnDbeChoice)
+        self.dropDefault_Dbe.Enable(not self.readonly)
+        lblScrollDown = wx.StaticText(self.scroll_con_dets, -1, 
+                    _("(scroll down for details of all your database engines)"))
+        # default dbe
+        szrDefault_Dbe = wx.BoxSizer(wx.HORIZONTAL)
+        szrDefault_Dbe.Add(lblDefault_Dbe, 0, wx.LEFT|wx.RIGHT, 5)
+        szrDefault_Dbe.Add(self.dropDefault_Dbe, 0)
+        szrDefault_Dbe.Add(lblScrollDown, 0, wx.LEFT, 10)
+        # Close
+        self.setup_btns()
+        # sizers
+        # TOP
+        self.szrTop = wx.BoxSizer(wx.VERTICAL)
+        self.szrTop.Add(szrDesc, 1, wx.GROW|wx.ALL, 10)
+        # mixin supplying self.szrConfigTop and self.szrConfigBottom
+        self.szrConfigBottom, self.szrConfigTop = \
+            self.get_misc_config_szrs(self.panel_top, readonly=self.readonly)
+        self.szrTop.Add(self.szrConfigTop, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        self.szrTop.Add(self.szrConfigBottom, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        #self.szrTop.Add(szrOutput, 0, wx.GROW|wx.ALL, 10)
+        self.szrTop.Add(lblDataConDets, 0, wx.GROW|wx.LEFT, 10)
+        self.panel_top.SetSizer(self.szrTop)
+        self.szrTop.SetSizeHints(self.panel_top)
+        # CON DETS
+        self.szrCon_Dets.Add(szrDefault_Dbe, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        getdata.setDataConGui(parent=self, readonly=self.readonly, 
+                               scroll=self.scroll_con_dets, 
+                               szr=self.szrCon_Dets, lblfont=lblfont)
+        self.scroll_con_dets.SetSizer(self.szrCon_Dets)
+        # NEVER SetSizeHints or else grows beyond size!!!!
+        self.szrCon_Dets.SetVirtualSizeHints(self.scroll_con_dets)
+        # BOTTOM
+        self.szrBottom.Add(self.szrBtns, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT|\
+                           wx.ALIGN_RIGHT, 10)
+        self.panel_bottom.SetSizer(self.szrBottom)
+        self.szrBottom.SetSizeHints(self.panel_bottom)
+        # FINAL # NB any ratio changes must work in multiple OSs
+        self.szr.Add(self.panel_top, 1, wx.GROW)
+        self.szr.Add(self.scroll_con_dets, 2, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
+        self.szr.Add(self.panel_bottom, 0, wx.GROW)
+        self.SetAutoLayout(True)
+        self.SetSizer(self.szr)
+        self.Layout()
+        self.sqlite_grid.grid.SetFocus()
+        self.txtName.SetFocus()
+        
+    def set_defaults(self, fil_proj):
         if fil_proj:
             self.new_proj = False
-            self.GetProjSettings(fil_proj)
+            self.get_proj_settings(fil_proj)
         else:
             # prepopulate with default settings
-            self.GetProjSettings(fil_proj=my_globals.SOFA_DEFAULT_PROJ)
+            self.get_proj_settings(fil_proj=my_globals.SOFA_DEFAULT_PROJ)
             self.proj_name = my_globals.EMPTY_PROJ_NAME
             self.proj_notes = _("The SOFA Default Database is needed to allow "
                                 "you to add new tables to SOFA Statistics")
@@ -431,83 +508,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             self.default_dbe
         except AttributeError:
             self.default_dbe = os.path.join(my_globals.DBE_SQLITE)
-        getdata.setConDetDefaults(self)
-        # misc
-        lblfont = wx.Font(9, wx.SWISS, wx.NORMAL, wx.BOLD)
-        # Project Name and notes
-        lblName = wx.StaticText(self.panel_top, -1, _("Project Name:"))
-        lblName.SetFont(lblfont)
-        self.txtName = wx.TextCtrl(self.panel_top, -1, self.proj_name, 
-                                   size=(200, -1))
-        self.txtName.Enable(not self.readonly)
-        lblProjNotes = wx.StaticText(self.panel_top, -1, _("Notes:"))
-        lblProjNotes.SetFont(lblfont)
-        self.txtProjNotes = wx.TextCtrl(self.panel_top, -1, self.proj_notes,
-                                        size=(600, 40), style=wx.TE_MULTILINE)
-        self.txtProjNotes.Enable(not self.readonly)
-        szrDesc = wx.BoxSizer(wx.HORIZONTAL)
-        szrDesc.Add(lblName, 0, wx.RIGHT, 5)
-        szrDesc.Add(self.txtName, 0, wx.RIGHT, 10)
-        szrDesc.Add(lblProjNotes, 0, wx.RIGHT, 5)
-        szrDesc.Add(self.txtProjNotes, 1, wx.GROW)
-        # DATA CONNECTIONS
-        lblDataConDets = wx.StaticText(self.panel_top, -1, 
-                                        _("Data Connection Details:"))
-        # default dbe
-        lblDefault_Dbe = wx.StaticText(self.scroll_con_dets, -1, 
-                                       _("Default Database Engine:"))
-        lblDefault_Dbe.SetFont(lblfont)
-        self.dropDefault_Dbe = wx.Choice(self.scroll_con_dets, -1, 
-                                         choices=my_globals.DBES)
-        sel_dbe_id = my_globals.DBES.index(self.default_dbe)
-        self.dropDefault_Dbe.SetSelection(sel_dbe_id)
-        self.dropDefault_Dbe.Bind(wx.EVT_CHOICE, self.OnDbeChoice)
-        self.dropDefault_Dbe.Enable(not self.readonly)
-        lblScrollDown = wx.StaticText(self.scroll_con_dets, -1, 
-                    _("(scroll down for details of all your database engines)"))
-        # default dbe
-        szrDefault_Dbe = wx.BoxSizer(wx.HORIZONTAL)
-        szrDefault_Dbe.Add(lblDefault_Dbe, 0, wx.LEFT|wx.RIGHT, 5)
-        szrDefault_Dbe.Add(self.dropDefault_Dbe, 0)
-        szrDefault_Dbe.Add(lblScrollDown, 0, wx.LEFT, 10)
-        # Close
-        self.setup_btns()
-        # sizers
-        # TOP
-        self.szrTop = wx.BoxSizer(wx.VERTICAL)
-        self.szrTop.Add(szrDesc, 1, wx.GROW|wx.ALL, 10)
-        # mixin supplying self.szrConfigTop and self.szrConfigBottom
-        self.szrConfigBottom, self.szrConfigTop = \
-            self.get_misc_config_szrs(self.panel_top, readonly=self.readonly)
-        self.szrTop.Add(self.szrConfigTop, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        self.szrTop.Add(self.szrConfigBottom, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        #self.szrTop.Add(szrOutput, 0, wx.GROW|wx.ALL, 10)
-        self.szrTop.Add(lblDataConDets, 0, wx.LEFT, 10)
-        self.panel_top.SetSizer(self.szrTop)
-        self.szrTop.SetSizeHints(self.panel_top)
-        # CON DETS
-        self.szrCon_Dets.Add(szrDefault_Dbe, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        getdata.setDataConGui(parent=self, readonly=self.readonly, 
-                               scroll=self.scroll_con_dets, 
-                               szr=self.szrCon_Dets, lblfont=lblfont)
-        self.scroll_con_dets.SetSizer(self.szrCon_Dets)
-        # NEVER SetSizeHints or else grows beyond size!!!!
-        self.szrCon_Dets.SetVirtualSizeHints(self.scroll_con_dets)
-        self.scroll_con_dets.FitInside() # no effect
-        # BOTTOM
-        # need _something_ to force the whole sizer to a certain width
-        ln = wx.StaticLine(self.panel_bottom, size=(1000,0))
-        self.szrBottom.Add(ln, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
-        self.szrBottom.Add(self.szrBtns, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 
-                           10)
-        self.panel_bottom.SetSizer(self.szrBottom)
-        self.szrBottom.SetSizeHints(self.panel_bottom)
-        # FINAL
-        self.Layout()
-        self.sqlite_grid.grid.SetFocus()
-        self.txtName.SetFocus()
         
-    def GetProjSettings(self, fil_proj):
+    def get_proj_settings(self, fil_proj):
         """
         NB get any paths in form ready to display
         """
@@ -532,7 +534,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         # Taking settings from proj file (via exec and proj_dic)
         #   and adding them to this frame ready for use.
         # Must always be stored, even if only ""
-        self.proj_notes = GetProjNotes(fil_proj, proj_dic)
+        self.proj_notes = get_proj_notes(fil_proj, proj_dic)
         self.fil_var_dets = proj_dic["fil_var_dets"]
         self.fil_css = proj_dic["fil_css"]
         self.fil_report = proj_dic["fil_report"]

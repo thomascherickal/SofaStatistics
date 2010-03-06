@@ -442,10 +442,10 @@ def setDataConGui(parent, readonly, scroll, szr, lblfont):
     szrpgsqlInnerTop = wx.BoxSizer(wx.HORIZONTAL)
     # default database
     szrpgsqlInnerTop.Add(parent.lblPgsqlDefaultDb, 0, wx.LEFT|wx.RIGHT, 5)
-    szrpgsqlInnerTop.Add(parent.txtPgsqlDefaultDb, 1, wx.GROW|wx.RIGHT, 10)
+    szrpgsqlInnerTop.Add(parent.txtPgsqlDefaultDb, 0, wx.GROW|wx.RIGHT, 10)
     # default table
     szrpgsqlInnerTop.Add(parent.lblPgsqlDefaultTbl, 0, wx.LEFT|wx.RIGHT, 5)
-    szrpgsqlInnerTop.Add(parent.txtPgsqlDefaultTbl, 1, wx.GROW|wx.RIGHT, 10)
+    szrpgsqlInnerTop.Add(parent.txtPgsqlDefaultTbl, 0, wx.GROW|wx.RIGHT, 10)
     #4 pgsql INNER BOTTOM
     szrpgsqlInnerBtm = wx.BoxSizer(wx.HORIZONTAL)
     # host 

@@ -374,10 +374,10 @@ def setDataConGui(parent, readonly, scroll, szr, lblfont):
     szrMssqlInnerTop = wx.BoxSizer(wx.HORIZONTAL)
     # default database
     szrMssqlInnerTop.Add(parent.lblMssqlDefaultDb, 0, wx.LEFT|wx.RIGHT, 5)
-    szrMssqlInnerTop.Add(parent.txtMssqlDefaultDb, 1, wx.GROW|wx.RIGHT, 10)
+    szrMssqlInnerTop.Add(parent.txtMssqlDefaultDb, 0, wx.GROW|wx.RIGHT, 10)
     # default table
     szrMssqlInnerTop.Add(parent.lblMssqlDefaultTbl, 0, wx.LEFT|wx.RIGHT, 5)
-    szrMssqlInnerTop.Add(parent.txtMssqlDefaultTbl, 1, wx.GROW|wx.RIGHT, 10)
+    szrMssqlInnerTop.Add(parent.txtMssqlDefaultTbl, 0, wx.GROW|wx.RIGHT, 10)
     #4 MSSQL INNER BOTTOM
     szrMssqlInnerBtm = wx.BoxSizer(wx.HORIZONTAL)
     # host 

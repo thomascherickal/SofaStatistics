@@ -99,7 +99,7 @@ class ProjSelectDlg(wx.Dialog):
                           os.linesep + os.linesep + "Details: %s" % unicode(e)))
             raise Exception, unicode(e)
         # must always be stored, even if only ""
-        self.proj_notes = projects.GetProjNotes(fil_proj, proj_dic)
+        self.proj_notes = projects.get_proj_notes(fil_proj, proj_dic)
     
     def OnProjSelect(self, event):
         proj_sel_id = self.dropProjs.GetSelection()
@@ -122,7 +122,7 @@ class ProjSelectDlg(wx.Dialog):
         ret_val = dlgProj.ShowModal()
         if ret_val == wx.ID_DELETE:
             # redo and pick 1st
-            self.projs = projects.GetProjs()
+            self.projs = projects.get_projs()
             self.dropProjs.SetItems(self.projs)
             self.dropProjs.SetSelection(0)
             self.SetNotes(0)
@@ -137,7 +137,7 @@ class ProjSelectDlg(wx.Dialog):
 
     def SetToNameFromOK(self):
         # redo choices and display record with new name
-        self.projs = projects.GetProjs()
+        self.projs = projects.get_projs()
         self.dropProjs.SetItems(self.projs)
         # get index of new name
         # NB proj name should have been set by projects

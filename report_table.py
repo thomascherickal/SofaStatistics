@@ -89,12 +89,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                  val_dics=None):
         debug = False
         wx.Dialog.__init__(self, parent=None, id=-1, 
-                           title=_("Make Report Table"), 
-                           pos=(200, 0),
-                           style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
-                           wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
-                           wx.CAPTION | wx.CLOSE_BOX | \
-                           wx.CLIP_CHILDREN)
+               title=_("Make Report Table"), pos=(200, 0),
+               style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
+               wx.SYSTEM_MENU|wx.CAPTION|wx.CLOSE_BOX|wx.CLIP_CHILDREN)
         self.dbe = dbe
         self.con_dets = con_dets
         self.default_dbs = default_dbs

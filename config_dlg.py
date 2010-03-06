@@ -175,7 +175,7 @@ class ConfigDlg(object):
         self.btnExport = wx.Button(panel, -1, _("Export"))
         self.btnExport.Bind(wx.EVT_BUTTON, self.OnButtonExport)
         self.btnExport.SetToolTipString(_("Export to script for reuse"))
-        self.btnExpand = wx.Button(self.panel, -1, _("Expand"))
+        self.btnExpand = wx.Button(panel, -1, _("Expand"))
         self.btnExpand.Bind(wx.EVT_BUTTON, self.OnButtonExpand)
         self.btnExpand.SetToolTipString(_("Open report in own window"))
         self.btnExpand.Enable(False)

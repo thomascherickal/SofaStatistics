@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 from pysqlite2 import dbapi2 as sqlite
+import os
 import pprint
 import re
 import string
@@ -277,10 +278,10 @@ def setDataConGui(parent, readonly, scroll, szr, lblfont):
     #3 SQLITE INNER
     szrSqliteInner = wx.BoxSizer(wx.HORIZONTAL)
     szrSqliteInner.Add(parent.lblSqliteDefaultDb, 0, wx.LEFT|wx.RIGHT, 5)
-    szrSqliteInner.Add(parent.txtSqliteDefaultDb, 1, wx.GROW|wx.RIGHT, 10)
+    szrSqliteInner.Add(parent.txtSqliteDefaultDb, 0, wx.RIGHT, 10)
     szrSqliteInner.Add(parent.lblSqliteDefaultTbl, 0, wx.LEFT|wx.RIGHT, 5)
-    szrSqliteInner.Add(parent.txtSqliteDefaultTbl, 1, wx.GROW|wx.RIGHT, 10)
-    parent.szrSqlite.Add(szrSqliteInner, 0)
+    szrSqliteInner.Add(parent.txtSqliteDefaultTbl, 0, wx.RIGHT, 10)
+    parent.szrSqlite.Add(szrSqliteInner, 0, wx.GROW)
     sqlite_col_dets = [{"col_label": _("Database(s)"), 
                         "col_type": settings_grid.COL_TEXT_BROWSE, 
                         "col_width": 400, 
@@ -349,11 +350,22 @@ def processConDets(parent, default_dbs, default_tbls, con_dets):
 # imported data)
 def valid_name(name):
     """
-    Bad name for SQLite?
+    Bad name for SQLite?  The best way is to find out for real (not too 
+        expensive and 100% valid by definition).
     """
-    # only allow alphanumeric and underscores
-    for char in name:
-        if char not in string.letters and char not in string.digits \
-                and char != u"_":
-            return False
-    return True
+    debug = False
+    default_db = os.path.join(my_globals.LOCAL_PATH, my_globals.INTERNAL_FOLDER, 
+                              u"sofa_tmp")
+    con = sqlite.connect(default_db)
+    cur = con.cursor()
+    valid = False
+    try:
+        cur.execute("""CREATE TABLE "%s" (`%s` TEXT)""" % (name, name))
+        cur.execute("""DROP TABLE "%s" """ % name)
+        valid = True
+    except Exception, e:
+        if debug: print(unicode(e))
+    finally:
+        cur.close()
+        con.close()
+        return valid
