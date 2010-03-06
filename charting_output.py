@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import wx
 
 import my_globals
@@ -69,6 +70,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
         szrCharts = wx.BoxSizer(wx.VERTICAL)
+        szrchart_btns = wx.BoxSizer(wx.HORIZONTAL)
         # var 1
         lbl_var1 = wx.StaticText(self.panel, -1, u"Var 1:")
         lbl_var1.SetFont(self.LABEL_FONT)
@@ -138,16 +140,69 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrVars.Add(szrVarsBottom, 0, wx.GROW)
         
         # charts
-        
-        
-        
-
-        
-        
-        
-        
-        
-        
+        # bar charts
+        bmp_btn_bar_chart = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
+                                                  u"images", u"bar_chart.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.btn_bar_chart = wx.BitmapButton(self.panel, -1, bmp_btn_bar_chart)
+        self.btn_bar_chart.Bind(wx.EVT_BUTTON, self.OnBtnChart)
+        szrchart_btns.Add(self.btn_bar_chart)
+        # clustered bar charts
+        bmp_btn_clustered_bar_chart = \
+                            wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
+                                      u"images", u"clustered_bar_chart.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.btn_clustered_bar_chart = wx.BitmapButton(self.panel, -1, 
+                                             bmp_btn_clustered_bar_chart)
+        self.btn_clustered_bar_chart.Bind(wx.EVT_BUTTON, self.OnBtnChart)
+        szrchart_btns.Add(self.btn_clustered_bar_chart)
+        # pie charts
+        bmp_btn_pie_chart = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
+                                                  u"images", u"pie_chart.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.btn_pie_chart = wx.BitmapButton(self.panel, -1, bmp_btn_pie_chart)
+        self.btn_pie_chart.Bind(wx.EVT_BUTTON, self.OnBtnChart)
+        szrchart_btns.Add(self.btn_pie_chart)
+        # line charts
+        bmp_btn_line_chart = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
+                                                  u"images", u"line_chart.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.btn_line_chart = wx.BitmapButton(self.panel, -1, 
+                                              bmp_btn_line_chart)
+        self.btn_line_chart.Bind(wx.EVT_BUTTON, self.OnBtnChart)
+        szrchart_btns.Add(self.btn_line_chart)
+        # area charts
+        bmp_btn_area_chart = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
+                                                  u"images", u"area_chart.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.btn_area_chart = wx.BitmapButton(self.panel, -1, 
+                                              bmp_btn_area_chart)
+        self.btn_area_chart.Bind(wx.EVT_BUTTON, self.OnBtnChart)
+        szrchart_btns.Add(self.btn_area_chart)
+        # scatterplots
+        bmp_btn_scatterplot = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
+                                              u"images", u"scatterplot.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.btn_scatterplot = wx.BitmapButton(self.panel, -1, 
+                                               bmp_btn_scatterplot)
+        self.btn_scatterplot.Bind(wx.EVT_BUTTON, self.OnBtnChart)
+        szrchart_btns.Add(self.btn_scatterplot)
+        # histpgrams
+        bmp_btn_histogram = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
+                                                  u"images", u"histogram.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.btn_histogram = wx.BitmapButton(self.panel, -1, bmp_btn_histogram)
+        self.btn_histogram.Bind(wx.EVT_BUTTON, self.OnBtnChart)
+        szrchart_btns.Add(self.btn_histogram)
+        if not my_globals.IN_WINDOWS:
+            hand = wx.StockCursor(wx.CURSOR_HAND)
+            self.btn_bar_chart.SetCursor(hand)
+            self.btn_clustered_bar_chart.SetCursor(hand)
+            self.btn_pie_chart.SetCursor(hand)
+            self.btn_line_chart.SetCursor(hand)
+            self.btn_area_chart.SetCursor(hand)
+            self.btn_scatterplot.SetCursor(hand)
+            self.btn_histogram.SetCursor(hand)
         # titles, subtitles
         lblTitles = wx.StaticText(self.panel, -1, _("Title:"))
         lblTitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -174,12 +229,16 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrMain.Add(szrCharts, 0, wx.GROW)
+        szrMain.Add(szrchart_btns, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szrMain.Add(szrTitles, 0, wx.ALL, 10)
         szrMain.Add(szrBottom, 2, wx.GROW|wx.ALL, 10)
         self.add_other_var_opts()
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
-        
+    
+    def OnBtnChart(self, event):
+        wx.MessageBox(u"Charting is under construction")
+    
     def OnVar1Sel(self, event):
         pass
         
