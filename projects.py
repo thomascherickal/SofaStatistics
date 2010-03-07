@@ -455,6 +455,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.szr.Add(self.panel_bottom, 0, wx.GROW)
         self.SetAutoLayout(True)
         self.SetSizer(self.szr)
+        self.SetMinSize((930,550))
         self.Layout()
         self.sqlite_grid.grid.SetFocus()
         self.txtName.SetFocus()
