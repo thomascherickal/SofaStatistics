@@ -60,9 +60,17 @@ class TblEditor(wx.Dialog):
                  var_notes, var_types, val_dics, fil_var_dets, idxs, 
                  readonly=True):
         self.debug = False
+        mywidth = 900
+        if my_globals.MAX_HEIGHT <= 620:
+            myheight = 600
+        elif my_globals.MAX_HEIGHT <= 820:
+            myheight = my_globals.MAX_HEIGHT - 20
+        else:
+            mywidth = 1000
+            myheight = 800
         wx.Dialog.__init__(self, None, 
                            title=_("Data from ") + "%s.%s" % (db, tbl_name),
-                           size=(500, 500), pos=(300, 0),
+                           size=(mywidth, myheight), pos=(300, 0),
                            style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
                            wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
                            wx.CAPTION | wx.CLOSE_BOX | \
@@ -80,7 +88,7 @@ class TblEditor(wx.Dialog):
         self.fil_var_dets = fil_var_dets
         self.panel = wx.Panel(self, -1)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
-        self.grid = wx.grid.Grid(self.panel, size=(500, 600))
+        self.grid = wx.grid.Grid(self.panel, size=(mywidth, myheight))
         self.grid.EnableEditing(not readonly)
         self.dbtbl = db_tbl.DbTbl(self.grid, self.dbe, self.con, self.cur, 
                                   tbl_name, self.flds, var_labels, idxs, 

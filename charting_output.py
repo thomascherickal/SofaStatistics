@@ -26,7 +26,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def __init__(self, title, dbe, con_dets, default_dbs=None,
                  default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
                  fil_script="", takes_range=False):
-        myheight = my_globals.MAX_HEIGHT if my_globals.MAX_HEIGHT < 800 else 800
+        if my_globals.MAX_HEIGHT <= 620:
+            myheight = 600
+        elif my_globals.MAX_HEIGHT <= 820:
+            myheight = my_globals.MAX_HEIGHT - 20
+        else:
+            myheight = 800
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
                            pos=(200, 0), size=(1000,myheight),
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX| \

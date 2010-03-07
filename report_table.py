@@ -189,7 +189,12 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics,
                                  fil_css=self.fil_css)
-        myheight = 130 if my_globals.MAX_HEIGHT < 800 else 350
+        if my_globals.MAX_HEIGHT <= 620:
+            myheight = 130
+        elif my_globals.MAX_HEIGHT <= 820:
+            myheight = ((my_globals.MAX_HEIGHT/1024.0)*350) - 20
+        else:
+            myheight = 350
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))
         self.html.show_html(WAITING_MSG)
         lbldemo_tbls = wx.StaticText(self.panel, -1, _("Output Table:"))

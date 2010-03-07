@@ -364,7 +364,12 @@ class GetSettings(settings_grid.SettingsEntryDlg):
 
 class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
     def __init__(self, parent, readonly=False, fil_proj=None):
-        myheight = my_globals.MAX_HEIGHT if my_globals.MAX_HEIGHT < 800 else 800
+        if my_globals.MAX_HEIGHT <= 620:
+            myheight = 600
+        elif my_globals.MAX_HEIGHT <= 820:
+            myheight = my_globals.MAX_HEIGHT - 20
+        else:
+            myheight = 800
         wx.Dialog.__init__(self, parent=parent, title=_("Project Settings"),
                size=(1024, myheight), 
                style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\

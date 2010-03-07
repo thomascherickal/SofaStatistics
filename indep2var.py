@@ -153,7 +153,12 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szrVars.Add(szrVarsBottom, 0, wx.GROW)
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
-        myheight = 130 if my_globals.MAX_HEIGHT < 800 else 350
+        if my_globals.MAX_HEIGHT <= 620:
+            myheight = 130
+        elif my_globals.MAX_HEIGHT <= 820:
+            myheight = ((my_globals.MAX_HEIGHT/1024.0)*350) - 20
+        else:
+            myheight = 350
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))
         html2show = _("<p>Waiting for a report to be run.</p>")
         self.html.show_html(html2show)
