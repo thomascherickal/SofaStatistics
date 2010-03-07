@@ -23,7 +23,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                  var_labels, var_notes, var_types, val_dics, fil_var_dets, 
                  paired=False):
         wx.Dialog.__init__(self, parent=parent, title=_("Normal Data?"),
-                           size=(1024, 600),
+                           size=(1024,600),
                            style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
                            wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
                            wx.CAPTION | wx.CLOSE_BOX | \
@@ -120,7 +120,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrShape.Add(self.imgHist, 0)
         szrShape.Add(self.btnDetails, 0, wx.LEFT, 10)
         self.szrExamine.Add(szrShape, 0, wx.ALL, 10)
-        self.html = full_html.FullHTML(self.panel, size=(200, 150))
+        myheight = 130 if my_globals.MAX_HEIGHT < 800 else 200
+        self.html = full_html.FullHTML(self.panel, size=(200, myheight))
         self.set_output_to_blank()
         szrNormalityTest.Add(self.html, 1, wx.GROW)
         self.szrExamine.Add(szrNormalityTest, 1, wx.GROW|wx.ALL, 10)

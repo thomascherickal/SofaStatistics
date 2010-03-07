@@ -176,6 +176,7 @@ class SofaApp(wx.App):
             # wx.BOTH puts in screen 2 (in Ubuntu at least)!
         frame.Show()
         self.SetTopWindow(frame)
+        my_globals.MAX_HEIGHT = wx.Display().GetGeometry()[3]
         return True
 
 

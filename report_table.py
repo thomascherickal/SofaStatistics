@@ -189,7 +189,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics,
                                  fil_css=self.fil_css)
-        self.html = full_html.FullHTML(self.panel, size=(200, 150))
+        myheight = 130 if my_globals.MAX_HEIGHT < 800 else 350
+        self.html = full_html.FullHTML(self.panel, size=(200, myheight))
         self.html.show_html(WAITING_MSG)
         lbldemo_tbls = wx.StaticText(self.panel, -1, _("Output Table:"))
         lbldemo_tbls.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -276,6 +277,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         # attach main sizer to panel
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
+        self.Layout()
 
     def update_css(self):
         "Update css, including for demo table"
