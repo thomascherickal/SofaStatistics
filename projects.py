@@ -387,6 +387,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.szrBottom = wx.BoxSizer(wx.VERTICAL)
         # get available settings
         self.readonly = readonly
+        self.new = (fil_proj is None)
         self.set_defaults(fil_proj)
         getdata.setConDetDefaults(self)
         # misc
@@ -541,13 +542,19 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         # Taking settings from proj file (via exec and proj_dic)
         #   and adding them to this frame ready for use.
         # Must always be stored, even if only ""
-        self.proj_notes = get_proj_notes(fil_proj, proj_dic)
-        self.fil_var_dets = proj_dic["fil_var_dets"]
-        self.fil_css = proj_dic["fil_css"]
-        self.fil_report = proj_dic["fil_report"]
-        self.fil_script = proj_dic["fil_script"]
-        self.default_dbe = proj_dic["default_dbe"]
-        getdata.getProjConSettings(self, proj_dic)
+        try:
+            self.proj_notes = get_proj_notes(fil_proj, proj_dic)
+            self.fil_var_dets = proj_dic["fil_var_dets"]
+            self.fil_css = proj_dic["fil_css"]
+            self.fil_report = proj_dic["fil_report"]
+            self.fil_script = proj_dic["fil_script"]
+            self.default_dbe = proj_dic["default_dbe"]
+            getdata.getProjConSettings(self, proj_dic)
+        except Exception, e:
+            wx.MessageBox(_("Please check %s for errors e.g. conn_dets instead "
+                            "of con_dets.  Use the default project file for "
+                            "reference.") % fil_proj)
+            raise Exception, e
     
     def OnDbeChoice(self, event):
         sel_dbe_id = self.dropDefault_Dbe.GetSelection()
@@ -566,8 +573,9 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         if self.readonly:
             btnOK = wx.Button(self.panel_bottom, wx.ID_OK)
         else:
-            btnDelete = wx.Button(self.panel_bottom, wx.ID_DELETE)
-            btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
+            if not self.new:
+                btnDelete = wx.Button(self.panel_bottom, wx.ID_DELETE)
+                btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
             btnCancel = wx.Button(self.panel_bottom, wx.ID_CANCEL) # 
             btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
             btnOK = wx.Button(self.panel_bottom, wx.ID_OK, _("Update"))
@@ -577,7 +585,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             self.szrBtns.AddButton(btnCancel)
         self.szrBtns.AddButton(btnOK)
         self.szrBtns.Realize()
-        if not self.readonly:
+        if not self.readonly and not self.new:
             self.szrBtns.Insert(0, btnDelete, 0)
 
     def OnDelete(self, event):
