@@ -138,8 +138,9 @@ def get_gte(dbe, gte):
 
 def get_dbe_syntax_elements(dbe):
     """
-    Returns if_clause (a string), and 4 functions - quote_obj(), quote_val(), 
-        get_placeholder(), and get_summable().
+    Returns if_clause (string), left_obj_quote(string), right_obj_quote 
+        (string), quote_obj(), quote_val(), placeholder (string), 
+        get_summable(), gte_not_equals (string).
     if_clause receives 3 inputs - the test, result if true, result if false
     e.g. MySQL "IF(%s, %s, %s)"
     Sum and if statements are used to get frequencies in SOFA Statistics.
@@ -209,7 +210,7 @@ def extractDbDets(choice_text):
     db_name = choice_text[:start_idx - 2]
     return db_name, dbe
 
-def PrepValue(dbe, val, fld_dic):
+def prep_val(dbe, val, fld_dic):
     """
     Prepare raw value for insertion/update via SQL.
     Missing (.) and None -> None.
@@ -217,7 +218,7 @@ def PrepValue(dbe, val, fld_dic):
     Values in datetime fields are returned as datetime strings (if valid) ready 
         to include in SQL.  If not valid, the faulty value is returned as is in 
         the knowledge that it will fail validation later (CellInvalid) and not
-        actually be saved to a database (in db_grid.UpdateCell()).
+        actually be saved to a database (in db_grid.update_cell()).
     Why is a faulty datetime allowed through?  Because we don't want to have to 
         handle exceptions at this point (things can happen in a different order 
         depending on whether a mouse click or tabbing occurred).
@@ -228,7 +229,7 @@ def PrepValue(dbe, val, fld_dic):
     debug = False
     try:
         # most modules won't need to have a special function
-        prep_val = my_globals.DBE_MODULES[dbe].PrepValue(val, fld_dic)
+        prep_val = my_globals.DBE_MODULES[dbe].prep_val(val, fld_dic)
     except AttributeError:
         # the most common path
         if val in [None, my_globals.MISSING_VAL_INDICATOR]:
@@ -250,12 +251,73 @@ def PrepValue(dbe, val, fld_dic):
         prep_val = val2use
     return prep_val
 
-def InsertRow(dbe, con, cur, tbl_name, data):
+def insert_row(dbe, con, cur, tbl_name, data):
     """
     Returns success (boolean) and message (None or error).
     data = [(value as string (or None), fld_dets), ...]
     """
-    return my_globals.DBE_MODULES[dbe].InsertRow(con, cur, tbl_name, data)
+    (unused, left_obj_quote, right_obj_quote, quote_obj, quote_val, placeholder, 
+        unused, unused) = get_dbe_syntax_elements(dbe) 
+    """
+    data = [(value as string (or None), fld_name, fld_dets), ...]
+    Modify any values (according to field details) to be ready for insertion.
+    Use placeholders in execute statement.
+    Commit insert statement.
+    TODO - test this in Windows.
+    """
+    debug = False
+    if debug: pprint.pprint(data)
+    fld_dics = [x[2] for x in data]
+    fld_names = [x[1] for x in data]
+    joiner = u"%s, %s" % (right_obj_quote, left_obj_quote)
+    fld_names_clause = u" (%s" % left_obj_quote + \
+        joiner.join(fld_names) + u"%s) " % right_obj_quote
+    # e.g. (`fname`, `lname`, `dob` ...)
+    fld_placeholders_clause = " (" + \
+        u", ".join([placeholder for x in range(len(data))]) + u") "
+    # e.g. " (%s, %s, %s, ...) or (?, ?, ?, ...)"
+    SQL_insert = u"INSERT INTO %s " % quote_obj(tbl_name) + fld_names_clause + \
+        u"VALUES %s" % fld_placeholders_clause
+    if debug: print(SQL_insert)
+    data_lst = []
+    for i, data_dets in enumerate(data):
+        if debug: pprint.pprint(data_dets)
+        val, fld_name, fld_dic = data_dets
+        val2use = prep_val(dbe, val, fld_dic)
+        data_lst.append(val2use)
+    data_tup = tuple(data_lst)
+    msg = None
+    try:
+        cur.execute(SQL_insert, data_tup)
+        con.commit()
+        return True, None
+    except Exception, e:
+        if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
+            (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
+        return False, u"%s" % e
+
+def delete_row(dbe, con, cur, tbl_name, id_fld, row_id):
+    """
+    Use placeholders in execute statement.
+    Commit delete statement.
+    NB row_id could be text or a number.
+    TODO - test this in Windows.
+    """
+    debug = False
+    quote_obj = get_obj_quoter_func(dbe)
+    placeholder = get_placeholder(dbe)
+    SQL_delete = u"DELETE FROM %s " % quote_obj(tbl_name) + \
+        u"WHERE %s = %s" % (quote_obj(id_fld), placeholder)
+    if debug: print(SQL_delete)
+    data_tup = (row_id,)
+    try:
+        cur.execute(SQL_delete, data_tup)
+        con.commit()
+        return True, None
+    except Exception, e:
+        if debug: print(u"Failed to delete row.  SQL: %s, row id: %s" %
+            (SQL_delete, row_id) + u"\n\nOriginal error: %s" % e)
+        return False, u"%s" % e
 
 def get_data_dropdowns(parent, panel, dbe, default_dbs, default_tbls, con_dets, 
                        dbs_of_default_dbe, db, tbls, tbl):
@@ -363,7 +425,7 @@ def refresh_tbl_dets(parent):
     wx.EndBusyCursor()
     return tbl, flds, has_unique, idxs
 
-def GetDefaultDbDets():
+def get_default_db_dets():
     """
     Returns con, cur, dbs, tbls, flds, has_unique, idxs from default
         SOFA SQLite database.
@@ -381,7 +443,7 @@ def dup_tbl_name(tbl_name):
     """
     Duplicate name in default SQLite SOFA database?
     """
-    con, unused, unused, tbls, unused, unused, unused = GetDefaultDbDets()
+    con, unused, unused, tbls, unused, unused, unused = get_default_db_dets()
     con.close()
     return tbl_name in tbls
 

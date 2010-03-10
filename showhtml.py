@@ -67,11 +67,10 @@ class ShowHTML(wx.Dialog):
             szrBtns = wx.FlexGridSizer(rows=1, cols=1, hgap=5, vgap=5)
             szrBtns.AddGrowableCol(0,2)
             szrBtns.Add(btnClose, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
-        
         szrMain.Add(szrBtns, 0, wx.GROW)
-        
         self.SetSizer(szrMain)
         self.Layout()
+        wx.EndBusyCursor()
         
     def OnPrint(self, event):
         "Print page"

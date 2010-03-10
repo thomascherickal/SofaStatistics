@@ -189,10 +189,16 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics,
                                  fil_css=self.fil_css)
+        if my_globals.IN_WINDOWS:
+            mid_height = 820
+            height_drop = 20
+        else:
+            mid_height = 850
+            height_drop = 50
         if my_globals.MAX_HEIGHT <= 620:
             myheight = 130
-        elif my_globals.MAX_HEIGHT <= 820:
-            myheight = ((my_globals.MAX_HEIGHT/1024.0)*350) - 20
+        elif my_globals.MAX_HEIGHT <= mid_height:
+            myheight = ((my_globals.MAX_HEIGHT/1024.0)*350) - height_drop
         else:
             myheight = 350
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))

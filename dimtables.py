@@ -169,7 +169,7 @@ class DimTable(object):
         col_label_rows_lst = [[u"<tr>"] for x in range(col_label_rows_n)]
         title_dets_html = lib.get_title_dets_html(self.titles, self.subtitles, 
                                                 CSS_TBL_TITLE, CSS_TBL_SUBTITLE)
-        title_span = len(tree_col_labels.getTerminalNodes())
+        title_span = len(tree_col_labels.get_terminal_nodes())
         extra_title_row_html = u"<th class='%s' " % CSS_TBL_TITLE_CELL + \
             u"colspan='%s'>%s</th>" % (title_span + row_label_cols_n, 
                                        title_dets_html)
@@ -197,7 +197,7 @@ class DimTable(object):
         #print(tree_row_labels) #debug
         row_label_cols_n = tree_row_labels.getDepth() - 1 #exclude root node
         try:
-            row_label_rows_n = len(tree_row_labels.getTerminalNodes())
+            row_label_rows_n = len(tree_row_labels.get_terminal_nodes())
         except my_exceptions.NoNodesException:
             raise my_exceptions.TooFewValsForDisplay
         row_label_rows_lst = [[u"<tr>"] for x in range(row_label_rows_n)]
@@ -255,7 +255,7 @@ class DimTable(object):
         if level > 0: # skip adding cells for root node itself
             row_offset = level - 1 # e.g. first row level is 0
             row_idx = row_offset_dic[row_offset]
-            rowspan_n = len(node.getTerminalNodes())
+            rowspan_n = len(node.get_terminal_nodes())
             row_offset_dic[row_offset] = row_idx + rowspan_n # leave for next sibling
             # cell dimensions
             if rowspan_n > 1:
@@ -355,7 +355,7 @@ class DimTable(object):
             rowspan = u" rowspan='%s' " % (1 + gap,)
         else:
             rowspan = u""
-        colspan_n = len(node.getTerminalNodes())
+        colspan_n = len(node.get_terminal_nodes())
         if colspan_n > 1:
             colspan = u" colspan='%s' " % colspan_n
         else:
@@ -393,16 +393,16 @@ class LiveTable(DimTable):
         self.where_tbl_filt, self.and_tbl_filt = lib.get_tbl_filts(tbl_filt)
         self.cur = cur
         self.flds = flds
-        (self.if_clause, self.quote_obj, self.quote_val, self.placeholder,
-            self.get_summable, self.gte_not_equals) = \
-                getdata.get_dbe_syntax_elements(self.dbe)
+        (self.if_clause, unused, unused, self.quote_obj, self.quote_val, 
+            self.placeholder, self.get_summable, self.gte_not_equals) = \
+                                    getdata.get_dbe_syntax_elements(self.dbe)
         self.tree_rows = tree_rows
         self.tree_cols = tree_cols
     
     def getDataCellN(self, tree_col_labels, tree_row_labels):
         ""
-        col_term_nodes = tree_col_labels.getTerminalNodes()
-        row_term_nodes = tree_row_labels.getTerminalNodes()
+        col_term_nodes = tree_col_labels.get_terminal_nodes()
+        row_term_nodes = tree_row_labels.get_terminal_nodes()
         data_cell_n = len(row_term_nodes) * len(col_term_nodes)
         return data_cell_n
     
@@ -564,7 +564,7 @@ class LiveTable(DimTable):
         # becomes [[eth],[agegp,nation,region],[agegp,religion]]
         subtree_term_nodes = []
         for child in tree_dims_node.children:            
-            subtree_term_nodes += child.getTerminalNodes()
+            subtree_term_nodes += child.get_terminal_nodes()
         if subtree_term_nodes:
             subtree_filt_fld_lsts = [x.filt_flds[flds_done:] for x \
                                      in subtree_term_nodes]
@@ -576,7 +576,7 @@ class LiveTable(DimTable):
         #  e.g. year>month, year becomes [[year,month],[year]]
         oth_subtree_term_nodes = []
         for child in oth_dim_root.children:
-            oth_subtree_term_nodes += child.getTerminalNodes()
+            oth_subtree_term_nodes += child.get_terminal_nodes()
         if oth_subtree_term_nodes:
             # NB the other dimension could be fieldless e.g. we are a row dim 
             # and the oth dim has col measures and no field set
@@ -806,8 +806,8 @@ class GenTable(LiveTable):
         concatenating and appending "</tr>".
         """
         debug = False
-        col_term_nodes = tree_col_labels.getTerminalNodes()
-        row_term_nodes = tree_row_labels.getTerminalNodes()
+        col_term_nodes = tree_col_labels.get_terminal_nodes()
+        row_term_nodes = tree_row_labels.get_terminal_nodes()
         col_filters_lst = [x.filts for x in col_term_nodes]
         col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
         col_tots_lst = [x.is_coltot for x in col_term_nodes]
@@ -1058,8 +1058,8 @@ class SummTable(LiveTable):
         into the appropriate row list within row_label_rows_lst before
         concatenating and appending "</tr>".
         """
-        col_term_nodes = tree_col_labels.getTerminalNodes()
-        row_term_nodes = tree_row_labels.getTerminalNodes()
+        col_term_nodes = tree_col_labels.get_terminal_nodes()
+        row_term_nodes = tree_row_labels.get_terminal_nodes()
         row_measures_lst = [x.measure for x in row_term_nodes]
         col_filters_lst = [x.filts for x in col_term_nodes] #can be [[],[],[], ...]
         row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]

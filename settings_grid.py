@@ -41,10 +41,9 @@ class SettingsEntryDlg(wx.Dialog):
         insert_data_func -- what data do you want to see in a new inserted row 
             (if any).  Must take row index as argument.
         """
-        wx.Dialog.__init__(self, None, title=title,
-                          size=(400,400), 
+        wx.Dialog.__init__(self, None, title=title, size=(400,400), 
                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
-                              wx.SYSTEM_MENU, pos=(300, 0))
+                                wx.SYSTEM_MENU, pos=(300,0))
         self.panel = wx.Panel(self)
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         force_focus = False
@@ -174,6 +173,7 @@ class SettingsEntry(object):
         self.data = data
         self.config_data = config_data
         self.prev_vals = []
+        self.any_editor_shown = False
         self.new_editor_shown = False
         # grid control
         self.grid = wx.grid.Grid(self.panel, size=grid_size)        
@@ -385,12 +385,19 @@ class SettingsEntry(object):
             add_cell_move_evt for us is if we are moving right or down from the 
             last col after a keypress.
         Must process here.  NB dest row and col yet to be determined.
+        If a single row is selected, the key is a delete, and we are not inside 
+            and editor, delete selected row if possible.
         """
         debug = False
         keycode = event.GetKeyCode()
         if self.debug or debug: 
-            print(u"OnGridKeyDown - keycode %s pressed" % keycode) 
-        if keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
+            print(u"OnGridKeyDown - keycode %s pressed" % keycode)
+        if keycode in [wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE]:
+            # None if no deletion occurs
+            if self.try_to_delete_row(assume_row_deletion_attempt=False):
+                # don't skip.  Smother event so delete not entered anywhere
+                return
+        elif keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
             if keycode == wx.WXK_TAB:
                 if event.ShiftDown():
                     direction = my_globals.MOVE_LEFT
@@ -412,9 +419,11 @@ class SettingsEntry(object):
                 # below and trigger other responses.
             else:
                 event.Skip()
+                return
         else:
             self.update_new_is_dirty()
             event.Skip()
+            return
     
     def update_new_is_dirty(self):
         debug = False
@@ -432,7 +441,9 @@ class SettingsEntry(object):
             otherwise, enter will move you down, which is consistent with all 
             other controls.
         """
-        if event.GetKeyCode() in [wx.WXK_RETURN]:
+        debug = False
+        keycode = event.GetKeyCode()
+        if keycode in [wx.WXK_RETURN]:
             self.grid.DisableCellEditControl()
             self.add_cell_move_evt(my_globals.MOVE_RIGHT)
             
@@ -770,6 +781,7 @@ class SettingsEntry(object):
     def ok_to_delete_row(self, row):
         """
         Can delete any row except the new row.
+        Cannot delete if in middle of editing a cell.
         Returns boolean and msg.
         """
         if self.is_new_row(row):
@@ -777,14 +789,20 @@ class SettingsEntry(object):
         elif self.new_is_dirty:
             return False, _("Cannot delete a row while in the middle of making "
                             "a new one")
+        elif self.any_editor_shown:
+            return False, _("Cannot delete a row while in the middle of editing"
+                            " a cell")  
         else:
             return True, None
     
-    def try_to_delete_row(self):
+    def try_to_delete_row(self, assume_row_deletion_attempt=True):
         """
         Delete row if a row selected and not the data entry row
             and put focus on new line.
-        Return row deleted (or None if deletion did not occur).
+        Return row idx deleted (or None if deletion did not occur).
+        If it is assumed there was a row deletion attempt (e.g. clicked a delete 
+            button), then warn if no selection.  If no such assumption, silently
+            cope with situation where no selection.
         """
         selected_rows = self.grid.GetSelectedRows()
         sel_rows_n = len(selected_rows)
@@ -797,7 +815,10 @@ class SettingsEntry(object):
             else:
                 wx.MessageBox(msg)
         elif sel_rows_n == 0:
-            wx.MessageBox(_("Please select a row first"))
+            if assume_row_deletion_attempt:
+                wx.MessageBox(_("Please select a row first"))
+            else:
+                pass
         else:
             wx.MessageBox(_("Can only delete one row at a time"))
         return None
@@ -805,6 +826,7 @@ class SettingsEntry(object):
     def delete_row(self, row):
         """
         Delete a row.
+        row -- row index (not necessarily same as id value).
         If the currently selected cell is in a row below that being deleted,
             move up one.
         Move to the correct cell and set self.respond_to_select_cell to False.
@@ -816,7 +838,7 @@ class SettingsEntry(object):
         self.grid.SetRowLabelValue(self.rows_n - 1, "*")
         self.grid.HideCellEditControl()
         self.grid.ForceRefresh()
-        self.SafeLayoutAdjustment()        
+        self.safe_layout_adjustment()
         self.respond_to_select_cell = False
         if row < self.current_row_idx:
             self.current_row_idx -= 1
@@ -827,6 +849,7 @@ class SettingsEntry(object):
         # disable resizing until finished
         self.grid.DisableDragColSize()
         self.grid.DisableDragRowSize()
+        self.any_editor_shown = True
         if event.GetRow() == self.rows_n - 1:
             self.new_editor_shown = True
         event.Skip()
@@ -835,6 +858,7 @@ class SettingsEntry(object):
         # re-enable resizing
         self.grid.EnableDragColSize()
         self.grid.EnableDragRowSize()
+        self.any_editor_shown = False
         self.new_editor_shown = False
         event.Skip()
 
@@ -844,7 +868,7 @@ class SettingsEntry(object):
         self.update_new_is_dirty()
         if self.debug or debug: print(u"Cell changed")
         self.grid.ForceRefresh()
-        self.SafeLayoutAdjustment()
+        self.safe_layout_adjustment()
         event.Skip()
 
     def insert_row_above(self, pos):
@@ -911,16 +935,16 @@ class SettingsEntry(object):
         self.reset_row_n(change=1)
         self.grid.SetRowLabelValue(self.rows_n - 2, unicode(self.rows_n - 1))
         self.grid.SetRowLabelValue(self.rows_n - 1, u"*")
-        self.SafeLayoutAdjustment()
+        self.safe_layout_adjustment()
         
-    def SafeLayoutAdjustment(self):
+    def safe_layout_adjustment(self):
         """
         Uses CallAfter to avoid infinite recursion.
         http://lists.wxwidgets.org/pipermail/wxpython-users/2007-April/063536.html
         """
-        wx.CallAfter(self.RunSafeLayoutAdjustment)
+        wx.CallAfter(self.run_safe_layout_adjustment)
     
-    def RunSafeLayoutAdjustment(self):
+    def run_safe_layout_adjustment(self):
         for col_idx in range(len(self.col_dets)):
             current_width = self.grid.GetColSize(col_idx)
             # identify optimal width according to content

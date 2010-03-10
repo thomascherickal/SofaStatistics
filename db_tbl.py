@@ -26,21 +26,21 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.con = con
         self.cur = cur
         self.readonly = readonly        
-        self.SetNumberRows()
+        self.set_num_rows()
         # dict with key = fld name and vals = dict of characteristics
-        self.flds = flds 
+        self.flds = flds
         self.fld_names = getdata.FldsDic2FldNamesLst(flds_dic=self.flds)
         self.fld_labels = [var_labels.get(x, x.title()) for x in self.fld_names]
         self.idxs = idxs
         self.idx_id, self.must_quote = self.GetIndexCol()
         self.id_col_name = self.fld_names[self.idx_id]
-        self.SetRowIdDic()
+        self.set_row_ids_lst()
         self.row_vals_dic = {} # key = row, val = list of values
         if self.debug:
             pprint.pprint(self.fld_names)
             pprint.pprint(self.fld_labels)
             pprint.pprint(self.flds)
-            pprint.pprint(self.row_id_dic)
+            pprint.pprint(self.row_ids_lst)
         self.bol_attempt_cell_update = False
         self.SQL_cell_to_update = None
         self.val_of_cell_to_update = None
@@ -49,11 +49,13 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.new_is_dirty = False # db_grid can set to True.  Is reset to 
             # False when adding a new record
     
-    def SetRowIdDic(self):
+    def set_row_ids_lst(self):
         """
         Row number and the value of the primary key will not always be 
             the same.  Need quick way of translating from row e.g. 0
             to value of the id field e.g. "ABC123" or 128797 or even 0 ;-).
+        Using a list makes it easy to delete items and insert them.
+        Zero-based.
         """
         SQL_get_id_vals = u"SELECT %s FROM %s ORDER BY %s" % \
             (self.quote_obj(self.id_col_name), self.quote_obj(self.tbl), 
@@ -61,9 +63,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         if debug: print(SQL_get_id_vals)
         self.cur.execute(SQL_get_id_vals)
         # NB could easily be 10s or 100s of thousands of records
-        ids_lst = [x[0] for x in self.cur.fetchall()]
-        n_lst = range(len(ids_lst)) # 0-based to match row_n
-        self.row_id_dic = dict(zip(n_lst, ids_lst))        
+        self.row_ids_lst = [x[0] for x in self.cur.fetchall()]
     
     def GetFldName(self, col):
         return self.fld_names[col]
@@ -98,12 +98,18 @@ class DbTbl(wx.grid.PyGridTableBase):
                 return col_idx, must_quote
     
     def GetNumberCols(self):
+        # wxPython
         num_cols = len(self.flds)
         if self.debug:
             print(u"N cols: %s" % num_cols)
         return num_cols
 
-    def SetNumberRows(self):
+    def DeleteRows(self, pos=0, numRows=1):
+        # wxPython
+        # always allow
+        return True
+
+    def set_num_rows(self):
         debug = False
         SQL_rows_n = u"SELECT COUNT(*) FROM %s" % self.quote_obj(self.tbl)
         self.cur.execute(SQL_rows_n)
@@ -115,9 +121,10 @@ class DbTbl(wx.grid.PyGridTableBase):
                 else self.rows_n - 2
     
     def GetNumberRows(self):
+        # wxPython
         return self.rows_n
     
-    def NewRow(self, row):
+    def is_new_row(self, row):
         new_row = row > self.rows_to_fill
         return new_row
     
@@ -138,7 +145,7 @@ class DbTbl(wx.grid.PyGridTableBase):
     def GetColLabelValue(self, col):
         return self.fld_labels[col]
     
-    def NoneToMissingVal(self, val):
+    def none_to_missing_val(self, val):
         if val is None:
             val = my_globals.MISSING_VAL_INDICATOR
         return val
@@ -180,7 +187,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             Set cell editor while at it.  Very expensive for large table 
                 so do it as needed.
             """
-            if self.NewRow(row):
+            if self.is_new_row(row):
                 return self.new_buffer.get((row, col), 
                                            my_globals.MISSING_VAL_INDICATOR)
             # identify row range            
@@ -189,11 +196,16 @@ class DbTbl(wx.grid.PyGridTableBase):
                 else self.rows_to_fill
             # create IN clause listing id values
             IN_clause_lst = []
-            for row_n in range(row_min, row_max + 1):
+            for row_idx in range(row_min, row_max + 1):
+                try:
+                    raw_val = self.row_ids_lst[row_idx]
+                except IndexError:
+                    if debug:
+                        print("row_idx: %s\n\n%s" % (row_idx, self.row_ids_lst))
                 if self.must_quote:
-                    value = self.quote_val(self.row_id_dic[row_n])
+                    value = self.quote_val(raw_val)
                 else:
-                    value = u"%s" % self.row_id_dic[row_n]
+                    value = u"%s" % raw_val
                 IN_clause_lst.append(value)
             IN_clause = u", ".join(IN_clause_lst)
             SQL_get_values = u"SELECT * " + \
@@ -214,19 +226,20 @@ class DbTbl(wx.grid.PyGridTableBase):
                 # handle microsoft characters
                 data_tup = tuple([lib.ms2utf8(x) for x in data_tup])
                 if debug or self.debug: print(data_tup)
-                self.AddDataToRowValsDic(self.row_vals_dic, row_idx, data_tup)
+                self.add_data_to_row_vals_dic(self.row_vals_dic, row_idx, 
+                                              data_tup)
                 row_idx += 1
             val = self.row_vals_dic[row][col] # the bit we're interested in now
         display_val = lib.any2unicode(val)
         return display_val
     
-    def AddDataToRowValsDic(self, row_vals_dic, row_idx, data_tup):
+    def add_data_to_row_vals_dic(self, row_vals_dic, row_idx, data_tup):
         """
         row_vals_dic - key = row, val = tuple of values
         Add new row to row_vals_dic.
         """
         debug = False # only do this for a small table!
-        proc_data_lst = [self.NoneToMissingVal(x) for x in data_tup]
+        proc_data_lst = [self.none_to_missing_val(x) for x in data_tup]
         row_vals_dic[row_idx] = proc_data_lst
         if self.debug or debug: print(row_vals_dic)
     
@@ -249,19 +262,19 @@ class DbTbl(wx.grid.PyGridTableBase):
         if self.debug or debug: 
             print(u"SetValue - row %s, " % row +
             u"col %s with value \"%s\" ************************" % (col, value))
-        if self.NewRow(row):
+        if self.is_new_row(row):
             self.new_buffer[(row, col)] = value
         else:
             self.bol_attempt_cell_update = True
             row_id = self.GetValue(row, self.idx_id)
             col_name = self.fld_names[col]
-            raw_val_to_use = getdata.PrepValue(dbe=self.dbe, val=value, 
-                                               fld_dic=self.flds[col_name])
+            raw_val_to_use = getdata.prep_val(dbe=self.dbe, val=value, 
+                                              fld_dic=self.flds[col_name])
             self.val_of_cell_to_update = raw_val_to_use            
             if self.must_quote: # only refers to index column
-                id_value = self.quote_val(self.row_id_dic[row])
+                id_value = self.quote_val(self.row_ids_lst[row])
             else:
-                id_value = self.row_id_dic[row]
+                id_value = self.row_ids_lst[row]
             val2use = u"NULL" if raw_val_to_use is None \
                 else self.quote_val(raw_val_to_use)
             # TODO - think about possibilities of SQL injection by hostile party
@@ -274,7 +287,7 @@ class DbTbl(wx.grid.PyGridTableBase):
                     self.val_of_cell_to_update)
             self.SQL_cell_to_update = SQL_update_value
 
-    def DisplayNewRow(self):
+    def display_new_row(self):
         """
         http://wiki.wxpython.org/wxGrid
         The example uses getGrid() instead of wxPyGridTableBase::GetGrid()

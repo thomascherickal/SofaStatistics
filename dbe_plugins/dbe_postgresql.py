@@ -50,10 +50,12 @@ XML = u"xml" # "XML data"
 
 if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
 placeholder = u"?"
+left_obj_quote = u"\""
+right_obj_quote = u"\""
 gte_not_equals = u"!="
 
 def quote_obj(raw_val):
-    return u'"%s"' % raw_val
+    return u'%s%s%s' % (left_obj_quote, raw_val, right_obj_quote)
 
 def quote_val(raw_val):
     try:
@@ -67,8 +69,8 @@ def get_summable(clause):
     return u"CASE WHEN %s THEN 1 ELSE 0 END" % clause
 
 def get_syntax_elements():
-    return (if_clause, quote_obj, quote_val, placeholder, get_summable,
-            gte_not_equals)
+    return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
+            placeholder, get_summable, gte_not_equals)
 
 
 class DbDets(getdata.DbDets):
@@ -354,44 +356,7 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
             print(has_unique)
         return has_unique, idxs
-
-def InsertRow(con, cur, tbl_name, data):
-    """
-    data = [(value as string (or None), fld_name, fld_dets), ...]
-    Modify any values (according to field details) to be ready for insertion.
-    Use placeholders in execute statement.
-    Commit insert statement.
-    """
-    debug = False
-    if debug: pprint.pprint(data)
-    fld_dics = [x[2] for x in data]
-    fld_names = [x[1] for x in data]
-    fld_names_clause = u' ("' + u'", "'.join(fld_names) + u'") '
-    # e.g. ("fname", "lname", "dob" ...)
-    fld_placeholders_clause = u" (" + \
-        u", ".join([u"%s" for x in range(len(data))]) + u") "
-    # e.g. " (%s, %s, %s ...) "
-    SQL_insert = u"INSERT INTO \"%s\" " % tbl_name + fld_names_clause + \
-        u"VALUES %s" % fld_placeholders_clause
-    if debug: print(SQL_insert)
-    data_lst = []
-    for i, data_dets in enumerate(data):
-        if debug: pprint.pprint(data_dets)
-        val, fld_name, fld_dic = data_dets
-        val2use = getdata.PrepValue(my_globals.DBE_PGSQL, val, fld_dic)
-        if debug: print(unicode(val2use)) 
-        data_lst.append(val2use)
-    data_tup = tuple(data_lst)
-    if debug: pprint.pprint(data_tup)
-    try:
-        cur.execute(SQL_insert, data_tup)
-        con.commit()
-        return True, None
-    except Exception, e:
-        if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
-            (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
-        return False, u"%s" % e
-
+    
 def setDataConGui(parent, readonly, scroll, szr, lblfont):
     ""
     # default database
@@ -400,8 +365,7 @@ def setDataConGui(parent, readonly, scroll, szr, lblfont):
     parent.lblPgsqlDefaultDb.SetFont(lblfont)
     pgsql_default_db = parent.pgsql_default_db if parent.pgsql_default_db \
         else ""
-    parent.txtPgsqlDefaultDb = wx.TextCtrl(scroll, -1, 
-                                           pgsql_default_db, 
+    parent.txtPgsqlDefaultDb = wx.TextCtrl(scroll, -1, pgsql_default_db, 
                                            size=(250,-1))
     parent.txtPgsqlDefaultDb.Enable(not readonly)
     # default table
@@ -409,30 +373,26 @@ def setDataConGui(parent, readonly, scroll, szr, lblfont):
     parent.lblPgsqlDefaultTbl.SetFont(lblfont)
     pgsql_default_tbl = parent.pgsql_default_tbl if parent.pgsql_default_tbl \
         else ""
-    parent.txtPgsqlDefaultTbl = wx.TextCtrl(scroll, -1, 
-                                            pgsql_default_tbl, 
+    parent.txtPgsqlDefaultTbl = wx.TextCtrl(scroll, -1, pgsql_default_tbl, 
                                             size=(250,-1))
     parent.txtPgsqlDefaultTbl.Enable(not readonly)
     # host
     parent.lblPgsqlHost = wx.StaticText(scroll, -1, _("Host:"))
     parent.lblPgsqlHost.SetFont(lblfont)
     pgsql_host = parent.pgsql_host if parent.pgsql_host else ""
-    parent.txtPgsqlHost = wx.TextCtrl(scroll, -1, pgsql_host, 
-                                      size=(100,-1))
+    parent.txtPgsqlHost = wx.TextCtrl(scroll, -1, pgsql_host, size=(100,-1))
     parent.txtPgsqlHost.Enable(not readonly)
     # user
     parent.lblPgsqlUser = wx.StaticText(scroll, -1, _("User:"))
     parent.lblPgsqlUser.SetFont(lblfont)
     pgsql_user = parent.pgsql_user if parent.pgsql_user else ""
-    parent.txtPgsqlUser = wx.TextCtrl(scroll, -1, pgsql_user, 
-                                      size=(100,-1))
+    parent.txtPgsqlUser = wx.TextCtrl(scroll, -1, pgsql_user, size=(100,-1))
     parent.txtPgsqlUser.Enable(not readonly)
     # password
     parent.lblPgsqlPwd = wx.StaticText(scroll, -1, _("Password:"))
     parent.lblPgsqlPwd.SetFont(lblfont)
     pgsql_pwd = parent.pgsql_pwd if parent.pgsql_pwd else ""
-    parent.txtPgsqlPwd = wx.TextCtrl(scroll, -1, pgsql_pwd, 
-                                     size=(300,-1))
+    parent.txtPgsqlPwd = wx.TextCtrl(scroll, -1, pgsql_pwd, size=(300,-1))
     parent.txtPgsqlPwd.Enable(not readonly)
     #2 pgsql
     bxpgsql= wx.StaticBox(scroll, -1, "pgsql")

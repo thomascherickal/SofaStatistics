@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-dev_debug = True
+dev_debug = False
 test_lang = False
 
 import warnings
@@ -566,6 +566,8 @@ class StartFrame(wx.Frame):
             wx.MessageBox(_("Not available yet in version ") + 
                           unicode(my_globals.VERSION))
         elif charts == CHARTS_PRELIM:
+            wx.MessageBox("Demonstration only at this stage - still under "
+                          "construction")
             wx.BeginBusyCursor()
             import charting_output
             proj_name = self.active_proj

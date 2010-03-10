@@ -28,8 +28,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                  fil_script="", takes_range=False):
         if my_globals.MAX_HEIGHT <= 620:
             myheight = 600
-        elif my_globals.MAX_HEIGHT <= 820:
-            myheight = my_globals.MAX_HEIGHT - 20
+        elif my_globals.MAX_HEIGHT <= 870:
+            myheight = my_globals.MAX_HEIGHT - 70
         else:
             myheight = 800
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 

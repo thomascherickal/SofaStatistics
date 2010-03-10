@@ -257,6 +257,7 @@ class ConfigDlg(object):
     def OnReportFileLostFocus(self, event):
         "Reset report output file"
         self.fil_report = self.txtReportFile.GetValue()
+        event.Skip()
     
     # script output
     def OnButtonScriptPath(self, event):
@@ -274,12 +275,14 @@ class ConfigDlg(object):
     def OnScriptFileLostFocus(self, event):
         "Reset script file"
         self.fil_script = self.txtScriptFile.GetValue()
+        event.Skip()
     
     # label config
     def OnVarDetsFileLostFocus(self, event):
         ""
         self.reread_fil_var_dets()
         self.update_var_dets()
+        event.Skip()
 
     def OnButtonVarDetsPath(self, event):
         "Open dialog and takes the variable details file selected (if any)"
@@ -315,6 +318,7 @@ class ConfigDlg(object):
     def OnCssFileLostFocus(self, event):
         "Reset css file"
         self.update_css()
+        event.Skip()
         
     # explanation level
     def get_szrLevel(self, panel):

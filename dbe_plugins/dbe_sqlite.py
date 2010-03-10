@@ -20,12 +20,14 @@ DATE_TYPES = [u"date", u"datetime", u"time", u"timestamp"]
 
 if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
 placeholder = u"?"
+left_obj_quote = u"`"
+right_obj_quote = u"`"
 gte_not_equals = u"!="
 
 # http://www.sqlite.org/lang_keywords.html
 # The following is non-standard but will work
 def quote_obj(raw_val):
-    return u"`%s`" % raw_val
+    return u"%s%s%s" % (left_obj_quote, raw_val, right_obj_quote)
 
 def quote_val(raw_val):
     return u"\"%s\"" % raw_val
@@ -34,8 +36,8 @@ def get_summable(clause):
     return clause
 
 def get_syntax_elements():
-    return (if_clause, quote_obj, quote_val, placeholder, get_summable, 
-            gte_not_equals)
+    return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
+            placeholder, get_summable, gte_not_equals)
 
 def get_con(con_dets, db):
     con_dets_sqlite = con_dets.get(my_globals.DBE_SQLITE)
@@ -216,44 +218,6 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
             print(has_unique)
         return has_unique, idxs
-
-def InsertRow(con, cur, tbl_name, data):
-    """
-    data = [(value as string (or None), fld_name, fld_dets), ...]
-    Modify any values (according to field details) to be ready for insertion.
-    Use placeholders in execute statement.
-    Commit insert statement.
-    """
-    debug = False
-    if debug: pprint.pprint(data)
-    fld_dics = [x[2] for x in data]
-    fld_names = [x[1] for x in data]
-    # http://www.sqlite.org/lang_keywords.html
-    # The following is non-standard but will work
-    fld_names_clause = " (`" + "`, `".join(fld_names) + "`) "
-    # e.g. (`fname`, `lname`, `dob` ...)
-    # http://docs.python.org/library/sqlite3.html re placeholders
-    fld_placeholders_clause = " (" + \
-        ", ".join(["?" for x in range(len(data))]) + ") "
-    # e.g. " (?, ?, ? ...) "
-    SQL_insert = u"INSERT INTO `%s` " % tbl_name + fld_names_clause + \
-        u"VALUES %s" % fld_placeholders_clause
-    if debug: print(SQL_insert)
-    data_lst = []
-    for i, data_dets in enumerate(data):
-        if debug: pprint.pprint(data_dets)
-        val, fld_name, fld_dic = data_dets
-        val2use = getdata.PrepValue(my_globals.DBE_SQLITE, val, fld_dic)
-        data_lst.append(val2use)
-    data_tup = tuple(data_lst)
-    try:
-        cur.execute(SQL_insert, data_tup)
-        con.commit()
-        return True, None
-    except Exception, e:
-        if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
-            (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
-        return False, u"%s" % e
 
 def setDataConGui(parent, readonly, scroll, szr, lblfont):
     ""

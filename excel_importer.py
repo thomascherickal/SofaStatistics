@@ -93,7 +93,7 @@ class FileImporter(object):
             raise Exception, (u"Unable to read spreadsheet. "
                 u"Orig error: %s" % e)
         con, cur, unused, unused, unused, unused, unused = \
-            getdata.GetDefaultDbDets()
+            getdata.get_default_db_dets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_rows else n_rows
         gauge_chunk = importer.get_gauge_chunk_size(n_rows, sample_n)
         if debug: 

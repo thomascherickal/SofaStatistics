@@ -19,10 +19,12 @@ TINYINT = "tinyint"
 
 if_clause = u"IF(%s, %s, %s)"
 placeholder = u"?"
+left_obj_quote = u"`"
+right_obj_quote = u"`"
 gte_not_equals = u"!="
 
 def quote_obj(raw_val):
-    return u"`%s`" % raw_val
+    return u"%s%s%s" % (left_obj_quote, raw_val, right_obj_quote)
 
 def quote_val(raw_val):
     return u"\"%s\"" % raw_val
@@ -31,8 +33,8 @@ def get_summable(clause):
     return clause
 
 def get_syntax_elements():
-    return (if_clause, quote_obj, quote_val, placeholder, get_summable,
-            gte_not_equals)
+    return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
+            placeholder, get_summable, gte_not_equals)
 
 
 class DbDets(getdata.DbDets):
@@ -342,43 +344,6 @@ class DbDets(getdata.DbDets):
             print(has_unique)
         return has_unique, idxs
 
-def InsertRow(con, cur, tbl_name, data):
-    """
-    data = [(value as string (or None), fld_name, fld_dets), ...]
-    Modify any values (according to field details) to be ready for insertion.
-    Use placeholders in execute statement.
-    Commit insert statement.
-    """
-    debug = False
-    # pprint.pprint(data)
-    fld_dics = [x[2] for x in data]
-    fld_names = [x[1] for x in data]
-    fld_names_clause = u" (`" + u"`, `".join(fld_names) + u"`) "
-    # e.g. (`fname`, `lname`, `dob` ...)
-    fld_placeholders_clause = " (" + \
-        u", ".join([u"%s" for x in range(len(data))]) + u") "
-    # e.g. " (%s, %s, %s ...) "
-    SQL_insert = u"INSERT INTO `%s` " % tbl_name + fld_names_clause + \
-        u"VALUES %s" % fld_placeholders_clause
-    if debug: print(SQL_insert)
-    data_lst = []
-    for i, data_dets in enumerate(data):
-        if debug: pprint.pprint(data_dets)
-        val, fld_name, fld_dic = data_dets
-        val2use = getdata.PrepValue(my_globals.DBE_MYSQL, val, fld_dic)
-        if debug: print(unicode(val2use)) 
-        data_lst.append(val2use)
-    data_tup = tuple(data_lst)
-    if debug: pprint.pprint(data_tup)
-    try:
-        cur.execute(SQL_insert, data_tup)
-        con.commit()
-        return True, None
-    except Exception, e:
-        if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
-            (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
-        return False, u"%s" % e
-
 def setDataConGui(parent, readonly, scroll, szr, lblfont):
     ""
     # default database
@@ -387,8 +352,7 @@ def setDataConGui(parent, readonly, scroll, szr, lblfont):
     parent.lblMysqlDefaultDb.SetFont(lblfont)
     mysql_default_db = parent.mysql_default_db if parent.mysql_default_db \
         else ""
-    parent.txtMysqlDefaultDb = wx.TextCtrl(scroll, -1, 
-                                           mysql_default_db, 
+    parent.txtMysqlDefaultDb = wx.TextCtrl(scroll, -1, mysql_default_db, 
                                            size=(200,-1))
     parent.txtMysqlDefaultDb.Enable(not readonly)
     # default table
@@ -397,30 +361,26 @@ def setDataConGui(parent, readonly, scroll, szr, lblfont):
     parent.lblMysqlDefaultTbl.SetFont(lblfont)
     mysql_default_tbl = parent.mysql_default_tbl if parent.mysql_default_tbl \
         else ""
-    parent.txtMysqlDefaultTbl = wx.TextCtrl(scroll, -1, 
-                                            mysql_default_tbl, 
+    parent.txtMysqlDefaultTbl = wx.TextCtrl(scroll, -1, mysql_default_tbl, 
                                             size=(200,-1))
     parent.txtMysqlDefaultTbl.Enable(not readonly)
     # host
     parent.lblMysqlHost = wx.StaticText(scroll, -1, _("Host:"))
     parent.lblMysqlHost.SetFont(lblfont)
     mysql_host = parent.mysql_host if parent.mysql_host else ""
-    parent.txtMysqlHost = wx.TextCtrl(scroll, -1, mysql_host, 
-                                      size=(100,-1))
+    parent.txtMysqlHost = wx.TextCtrl(scroll, -1, mysql_host, size=(100,-1))
     parent.txtMysqlHost.Enable(not readonly)
     # user
     parent.lblMysqlUser = wx.StaticText(scroll, -1, _("User:"))
     parent.lblMysqlUser.SetFont(lblfont)
     mysql_user = parent.mysql_user if parent.mysql_user else ""
-    parent.txtMysqlUser = wx.TextCtrl(scroll, -1, mysql_user, 
-                                      size=(100,-1))
+    parent.txtMysqlUser = wx.TextCtrl(scroll, -1, mysql_user, size=(100,-1))
     parent.txtMysqlUser.Enable(not readonly)
     # password
     parent.lblMysqlPwd = wx.StaticText(scroll, -1, _("Password:"))
     parent.lblMysqlPwd.SetFont(lblfont)
     mysql_pwd = parent.mysql_pwd if parent.mysql_pwd else ""
-    parent.txtMysqlPwd = wx.TextCtrl(scroll, -1, mysql_pwd, 
-                                     size=(300,-1))
+    parent.txtMysqlPwd = wx.TextCtrl(scroll, -1, mysql_pwd, size=(300,-1))
     parent.txtMysqlPwd.Enable(not readonly)
     #2 MYSQL
     bxMysql= wx.StaticBox(scroll, -1, "MySQL")

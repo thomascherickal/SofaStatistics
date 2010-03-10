@@ -499,4 +499,4 @@ def display_report(parent, strContent, url_load=False):
                             url_load=url_load)
     dlg.ShowModal()
     dlg.Destroy()
-    wx.EndBusyCursor()
+    wx.EndBusyCursor() # again to be sure

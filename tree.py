@@ -32,7 +32,7 @@ class Nodes(object):
                 max_depth = child_depth + 1
         return max_depth
 
-    def getTerminalNodes(self):
+    def get_terminal_nodes(self):
         "Gets list of terminal nodes"
         if isinstance(self, NodeTree):
             if not self.root_node.children:
@@ -45,7 +45,8 @@ class Nodes(object):
         else:
             term_nodes_lst = []
             children_term_nodes = \
-                [child_node.getTerminalNodes() for child_node in start_node.children]
+                [child_node.get_terminal_nodes() for child_node in \
+                    start_node.children]
             for child_term_nodes in children_term_nodes:
                 term_nodes_lst += child_term_nodes
             return term_nodes_lst

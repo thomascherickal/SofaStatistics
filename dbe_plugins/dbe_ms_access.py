@@ -29,12 +29,15 @@ MSACCESS_DEFAULT_TBL = "msaccess_default_tbl"
 
 if_clause = u"IIF(%s, %s, %s)"
 placeholder = u"?"
+left_obj_quote = u"["
+right_obj_quote = u"]"
+
 # http://ask.metafilter.com/38350/ ...
 # ... How-does-not-equal-translate-into-Access-Language
 gte_not_equals = u"<>" # all the others accept both
 
 def quote_obj(raw_val):
-    return u"[%s]" % raw_val
+    return u"%s%s%s" % (left_obj_quote, raw_val, right_obj_quote)
 
 def quote_val(raw_val):
     try:
@@ -48,8 +51,8 @@ def get_summable(clause):
     return u"ABS(%s)" % clause # true is -1 so we need to get sum of +1s
 
 def get_syntax_elements():
-    return (if_clause, quote_obj, quote_val, placeholder, get_summable, 
-            gte_not_equals)
+    return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
+            placeholder, get_summable, gte_not_equals)
 
     
 class DbDets(getdata.DbDets):
@@ -159,6 +162,13 @@ class DbDets(getdata.DbDets):
         cat = None
         return tbls
 
+    def fld_unique(self, fld_name, idxs):
+        for idx in idxs:
+            if idx[my_globals.IDX_IS_UNIQUE]:
+                if fld_name in idx[my_globals.IDX_FLDS]:
+                    return True
+        return False
+
     def getTblFlds(self, cur, db, tbl):
         """
         Returns details for set of fields given database, table, and cursor.
@@ -183,6 +193,7 @@ class DbDets(getdata.DbDets):
             extras[fld_name] = (ord_pos, char_set)
             rs.MoveNext()
         flds = {}
+        has_unique, idxs = self.getIndexDets(cur, db, tbl)
         for col in cat.Tables(tbl).Columns:
             # build dic of fields, each with dic of characteristics
             fld_name = col.Name            
@@ -192,6 +203,12 @@ class DbDets(getdata.DbDets):
                     u"Not an MS Access ADO field type %d" % col.Type
             bolautonum = col.Properties(u"AutoIncrement").Value
             boldata_entry_ok = False if bolautonum else True
+            # nullable if it says so (unless it is uniquely indexed yet lacks an
+            # autonumber)
+            bolnullable = col.Properties(u"Nullable").Value
+            if has_unique:
+                if self.fld_unique(fld_name, idxs) and not bolautonum:
+                    bolnullable = False
             bolnumeric = fld_type in dbe_globals.NUMERIC_TYPES
             dec_pts = col.NumericScale if col.NumericScale < 18 else 0
             boldatetime = fld_type in dbe_globals.DATETIME_TYPES
@@ -201,7 +218,7 @@ class DbDets(getdata.DbDets):
                                                      dec_pts)
             dets_dic = {
                 my_globals.FLD_SEQ: extras[fld_name][0],
-                my_globals.FLD_BOLNULLABLE: col.Properties(u"Nullable").Value,
+                my_globals.FLD_BOLNULLABLE: bolnullable,
                 my_globals.FLD_DATA_ENTRY_OK: boldata_entry_ok,
                 my_globals.FLD_COLUMN_DEFAULT: col.Properties(u"Default").Value,
                 my_globals.FLD_BOLTEXT: fld_txt,
@@ -249,43 +266,6 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
             print(has_unique)
         return has_unique, idxs
-
-def InsertRow(con, cur, tbl_name, data):
-    """
-    data = [(value as string (or None), fld_name, fld_dets), ...]
-    Modify any values (according to field details) to be ready for insertion.
-    Use placeholders in execute statement.
-    Commit insert statement.
-    TODO - test this in Windows.
-    """
-    debug = False
-    if debug: pprint.pprint(data)
-    fld_dics = [x[2] for x in data]
-    fld_names = [x[1] for x in data]
-    fld_names_clause = u" ([" + u"], [".join(fld_names) + u"]) "
-    # e.g. (`fname`, `lname`, `dob` ...)
-    fld_placeholders_clause = " (" + \
-        u", ".join([u"%s" for x in range(len(data))]) + u") "
-    # e.g. " (%s, %s, %s ...) "
-    SQL_insert = u"INSERT INTO `%s` " % tbl_name + fld_names_clause + \
-        u"VALUES %s" % fld_placeholders_clause
-    if debug: print(SQL_insert)
-    data_lst = []
-    for i, data_dets in enumerate(data):
-        if debug: pprint.pprint(data_dets)
-        val, fld_name, fld_dic = data_dets
-        val2use = getdata.PrepValue(my_globals.DBE_MS_ACCESS, val, fld_dic)
-        data_lst.append(val2use)
-    data_tup = tuple(data_lst)
-    msg = None
-    try:
-        cur.execute(SQL_insert, data_tup)
-        con.commit()
-        return True, None
-    except Exception, e:
-        if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
-            (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
-        return False, u"%s" % e
 
 def setDataConGui(parent, readonly, scroll, szr, lblfont):
     ""

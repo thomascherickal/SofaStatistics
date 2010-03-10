@@ -389,8 +389,8 @@ class GenDemoTable(DemoDimTable):
         concatenating and appending "</tr>".
         """
         #print(row_label_rows_lst) #debug
-        col_term_nodes = tree_col_labels.getTerminalNodes()
-        row_term_nodes = tree_row_labels.getTerminalNodes()
+        col_term_nodes = tree_col_labels.get_terminal_nodes()
+        row_term_nodes = tree_row_labels.get_terminal_nodes()
         col_filters_lst = [x.filts for x in col_term_nodes]
         col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
         col_tots_lst = [x.is_coltot for x in col_term_nodes]
@@ -491,8 +491,8 @@ class SummDemoTable(DemoDimTable):
         into the appropriate row list within row_label_rows_lst before
         concatenating and appending "</tr>".
         """
-        col_term_nodes = tree_col_labels.getTerminalNodes()
-        row_term_nodes = tree_row_labels.getTerminalNodes()
+        col_term_nodes = tree_col_labels.get_terminal_nodes()
+        row_term_nodes = tree_row_labels.get_terminal_nodes()
         row_measures_lst = [x.measure for x in row_term_nodes]
         col_filters_lst = [x.filts for x in col_term_nodes] #can be [[],[],[], ...]
         row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
