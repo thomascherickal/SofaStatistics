@@ -69,8 +69,7 @@ class FileImporter(object):
             data.  Easier just to ask the user as with Excel.
         """
         retCode = wx.MessageBox(_("Does the file have a header row?"), 
-                                _("HEADER ROW?"), 
-                                wx.YES_NO | wx.ICON_INFORMATION)
+                                _("HEADER ROW?"), wx.YES_NO|wx.ICON_INFORMATION)
         self.has_header = (retCode == wx.YES)
         return True
     

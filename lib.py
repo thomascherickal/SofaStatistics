@@ -582,13 +582,14 @@ def get_sorted_choice_items(dic_labels, vals, inc_drop_select=False):
 def extract_var_choice_dets(choice_text):
     """
     Extract name, label from item
-    e.g. return "gender" and "Gender" from "Gender (gender)".
+    e.g. return "gender" and "Gender" from "Gender (gender)" or 
+        "height(cm) and Height(cm) from Height(cm) (height(cm)).
     Returns as string (even if original was a number etc).
     If not in this format, e.g. special col measures label, handle differently.
     """
     try:
         start_idx = choice_text.index("(") + 1
-        end_idx = choice_text.index(")")
+        end_idx = choice_text.rindex(")")
         item_val = choice_text[start_idx:end_idx]
         item_label = choice_text[:start_idx - 2]
     except Exception:

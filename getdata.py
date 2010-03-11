@@ -97,8 +97,8 @@ def make_fld_val_clause(dbe, flds, fld_name, val, gte=my_globals.GTE_EQUALS):
         elif gte == my_globals.GTE_NOT_EQUALS:
             clause = u"%s IS NOT NULL" % quote_obj(fld_name)
         else:
-            raise Exception, "Can only use = or " + \
-                "%s with missing or Null values." % my_globals.GTE_NOT_EQUALS
+            raise Exception, ("Can only use = or "
+                "%s with missing or Null values.") % my_globals.GTE_NOT_EQUALS
     else:
         num = True
         if not bolnumeric:

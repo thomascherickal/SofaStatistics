@@ -415,7 +415,7 @@ def append_exported_script(f, inner_script, con_dets, dbe, db, tbl_name,
     """
     datestamp = datetime.now().strftime("Script exported %d/%m/%Y at %I:%M %p")
     # Fresh connection for each in case it changes in between tables
-    f.write(u"#%s" % (u"-"*50))
+    f.write(u"#%s" % (u"-"*65))
     f.write(u"\n" + u"# %s" % datestamp)
     if inc_divider:
         add_divider_code(f, db, tbl_name, tbl_filt_label, tbl_filt)
@@ -485,7 +485,7 @@ def save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt,
 def add_end_script_code(f):
     "Add ending code to script.  NB leaves open file."
     f.write(u"\n" + u"\n" + my_globals.SCRIPT_END + \
-            u"-"*(50 - len(my_globals.SCRIPT_END)) + u"\n")
+            u"-"*(65 - len(my_globals.SCRIPT_END)) + u"\n")
     f.write(u"\n" + u"fil.write(output.get_html_ftr())")
     f.write(u"\n" + u"fil.close()")
 

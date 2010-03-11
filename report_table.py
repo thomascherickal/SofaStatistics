@@ -545,18 +545,21 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             to know what this report will be called (so we can know where any
             images are to link to).
         """
+        self.g = self.get_next_node_name()
         script_lst = []
         # set up variables required for passing into main table instantiation
         if self.tab_type in [my_globals.COL_MEASURES, my_globals.ROW_SUMM]:
+            script_lst.append(u"# Rows" + 60*u"*")
             script_lst.append(u"tree_rows = dimtables.DimNodeTree()")
             for child in lib.get_tree_ctrl_children(tree=self.rowtree, 
                                                     parent=self.rowRoot):
                 child_fld_name, unused = lib.extract_var_choice_dets(
                                             self.rowtree.GetItemText(child))
                 self.add_to_parent(script_lst=script_lst, tree=self.rowtree, 
-                                     parent=self.rowtree, 
-                                     parent_node_label=u"tree_rows",
-                                     child=child, child_fld_name=child_fld_name)
+                            parent=self.rowtree, parent_node_label=u"tree_rows",
+                            parent_name=u"row",
+                            child=child, child_fld_name=child_fld_name)
+            script_lst.append(u"# Columns" + 57*u"*")
             script_lst.append(u"tree_cols = dimtables.DimNodeTree()")
             if has_cols:
                 for child in lib.get_tree_ctrl_children(tree=self.coltree, 
@@ -564,9 +567,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                     child_fld_name, unused = lib.extract_var_choice_dets(
                                             self.coltree.GetItemText(child))
                     self.add_to_parent(script_lst=script_lst, tree=self.coltree, 
-                                     parent=self.coltree, 
-                                     parent_node_label=u"tree_cols",
-                                     child=child, child_fld_name=child_fld_name)
+                            parent=self.coltree, parent_node_label=u"tree_cols",
+                            parent_name=u"column",
+                            child=child, child_fld_name=child_fld_name)
+            script_lst.append(u"# Misc" + 60*u"*")
         elif self.tab_type == my_globals.RAW_DISPLAY:
             col_names, col_labels = lib.get_col_dets(self.coltree, self.colRoot, 
                                                      self.var_labels)
@@ -617,11 +621,11 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             script_lst.append(u"max_cells = 5000")
             script_lst.append(u"if tab_test.get_cell_n_ok("
                               u"max_cells=max_cells):")
-            script_lst.append(u"    " + \
+            script_lst.append(u"    "
                         u"fil.write(tab_test.get_html(%s, " % css_idx + \
                         u"page_break_after=False))")
             script_lst.append(u"else:")
-            script_lst.append(u"    " + \
+            script_lst.append(u"    "
                   u"raise my_exceptions.ExcessReportTableCellsException("
                   u"max_cells)")
         else:
@@ -629,27 +633,35 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                               u"page_break_after=False))")
         return u"\n".join(script_lst)
 
+    def get_next_node_name(self):
+        i = 0
+        while True:
+            yield u"node_%s" % i # guaranteed collision free
+            i += 1
+ 
     def add_to_parent(self, script_lst, tree, parent, parent_node_label, 
-                      child, child_fld_name):
+                      parent_name, child, child_fld_name):
         """
         Add script code for adding child nodes to parent nodes.
-        tree - TreeListCtrl tree
-        parent, child - TreeListCtrl items
-        parent_node_label - for parent_node_label.add_child(...)
-        child_fld_name - used to get variable label, and value labels
-            from relevant dics; plus as the field name
+        tree -- TreeListCtrl tree
+        parent, child -- TreeListCtrl items
+        parent_node_label -- for parent_node_label.add_child(...)
+        child_fld_name -- used to get variable label, and value labels
+            from relevant dicts; plus as the field name
         """
+        debug = False
         # add child to parent
         if child == self.col_no_vars_item:
             fld_arg = u""
         else:
             fld_arg = u"fld=u\"%s\", " % child_fld_name
-        #print(self.var_labels) #debug
-        #print(self.val_dics) #debug
+        if debug: 
+            print(self.var_labels)
+            print(self.val_dics)
         var_label = self.var_labels.get(child_fld_name, 
                                         child_fld_name.title())
         labels_dic = self.val_dics.get(child_fld_name, {})
-        child_node_label = u"node_" + u"_".join(child_fld_name.split(u" "))
+        child_node_label = self.g.next()
         item_conf = tree.GetItemPyData(child)
         measures_lst = item_conf.measures_lst
         measures = u", ".join([(u"my_globals." + \
@@ -666,12 +678,22 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         sort_order_arg = u", \n    sort_order=u\"%s\"" % \
             item_conf.sort_order
         numeric_arg = u", \n    bolnumeric=%s" % item_conf.bolnumeric
+        script_lst.append(u"# Defining %s (\"%s\")" % (child_node_label, 
+                                                       child_fld_name))
         script_lst.append(child_node_label + \
                           u" = dimtables.DimNode(" + fld_arg + \
                           u"\n    label=u\"%s\"," % unicode(var_label) + \
                           u"\n    labels=" + unicode(labels_dic) + \
                           measures_arg + tot_arg + sort_order_arg + \
-                          numeric_arg + ")")
+                          numeric_arg + u")")
+        if parent_node_label in (u"tree_rows", u"tree_cols"):
+            parent_name = u"rows" if parent_node_label == u"tree_rows" \
+                else u"columns"          
+            script_lst.append(u"# Adding \"%s\" to %s" % (child_fld_name, 
+                                                          parent_name))
+        else:
+            script_lst.append(u"# Adding \"%s\" under \"%s\"" % (child_fld_name, 
+                                                                 parent_name))
         script_lst.append(u"%s.add_child(%s)" % (parent_node_label, 
                                                  child_node_label))
         # send child through for each grandchild
@@ -679,8 +701,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             grandchild_fld_name, unused = lib.extract_var_choice_dets(
                                                 tree.GetItemText(grandchild))
             self.add_to_parent(script_lst=script_lst, tree=tree, parent=child,
-                           parent_node_label=child_node_label, 
-                           child=grandchild, child_fld_name=grandchild_fld_name)
+                        parent_node_label=child_node_label, 
+                        parent_name=child_fld_name, child=grandchild, 
+                        child_fld_name=grandchild_fld_name)
     
     def on_btn_help(self, event):
         """

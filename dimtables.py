@@ -122,10 +122,11 @@ class LabelNode(tree.Node):
     
     def __init__(self, label=u"", filts=None, measure=None, 
                  is_coltot=False):
-        ""
-        """filt_flds is only filled if this is a terminal node.  
-        It is filled when the label nodes tree is being built 
-        from the dim node tree node (which is where we get it from)"""
+        """
+        filt_flds is only filled if this is a terminal node.  
+        It is filled when the label nodes tree is being built from the dim node 
+            tree node (which is where we get it from).
+        """
         self.filt_flds = [] 
         if not filts:
             self.filts = []
@@ -469,15 +470,15 @@ class LiveTable(DimTable):
         if self.tree_cols.root_node.children:
             for child in self.tree_cols.root_node.children:
                 self.add_subtree_to_label_tree(tree_dims_node=child, 
-                            tree_labels_node=tree_col_labels.root_node,
-                            dim=my_globals.COLDIM, 
-                            oth_dim_root=self.tree_rows.root_node)
+                                    tree_labels_node=tree_col_labels.root_node,
+                                    dim=my_globals.COLDIM, 
+                                    oth_dim_root=self.tree_rows.root_node)
         else:
             self.add_subtree_to_label_tree(tree_dims_node=\
-                               self.tree_cols.root_node, 
-                               tree_labels_node=tree_col_labels.root_node,
-                               dim=my_globals.COLDIM, 
-                               oth_dim_root=self.tree_rows.root_node)
+                                   self.tree_cols.root_node, 
+                                   tree_labels_node=tree_col_labels.root_node,
+                                   dim=my_globals.COLDIM, 
+                                   oth_dim_root=self.tree_rows.root_node)
         return tree_col_labels
           
     def add_subtree_to_label_tree(self, tree_dims_node, tree_labels_node, 
@@ -554,7 +555,7 @@ class LiveTable(DimTable):
         else:
             parent_filts = u""
         # 2) e.g. " NOT ISNULL(gender) "
-        self_filt = NOTNULL % tree_dims_node.fld
+        self_filt = NOTNULL % self.quote_obj(tree_dims_node.fld)
         # 3) Identify fields already filtered in 1) or 2) already
         #we will remove them from field lists of subtree term nodes
         flds_done = len(tree_dims_node.filt_flds)
@@ -602,10 +603,13 @@ class LiveTable(DimTable):
         debug = False
         final_filt_clause = self.get_vals_filt_clause(tree_dims_node, 
                                                 tree_labels_node, oth_dim_root)
-        SQL_get_vals = u"SELECT " + fld + u", COUNT(*)" + \
-            u" FROM " + self.tbl + \
-            u" WHERE " + final_filt_clause + self.and_tbl_filt + \
-            u" GROUP BY " + fld
+        SQL_get_vals = (u"SELECT %(fld)s, COUNT(*) "
+                        u"FROM %(tbl)s "
+                        u"WHERE %(filt_clause)s %(and_tbl_flt)s "
+                        u"GROUP BY %(fld)s") % {"fld": self.quote_obj(fld), 
+                                               "tbl": self.quote_obj(self.tbl), 
+                                               "filt_clause": final_filt_clause,
+                                               "and_tbl_flt": self.and_tbl_filt}
         if debug: print(SQL_get_vals)
         return SQL_get_vals
 
@@ -683,7 +687,7 @@ class LiveTable(DimTable):
             val_node_filts = tree_labels_node.filts[:]
             is_tot = (val == u"_tot_")
             if is_tot:
-                val_node_filts.append(NOTNULL % fld)
+                val_node_filts.append(NOTNULL % self.quote_obj(fld))
             else:
                 clause = getdata.make_fld_val_clause(self.dbe, self.flds, fld, 
                                                      val, my_globals.GTE_EQUALS)
@@ -763,7 +767,7 @@ class LiveTable(DimTable):
             subtree_clauses_lst = [] #each subtree needs a parenthesised clause
             #e.g. "( NOT ISNULL(agegp) AND NOT ISNULL(religion) )"
             for subtree_lst in tree_fld_lsts:
-                subtree_clauses = [NOTNULL % fld for fld \
+                subtree_clauses = [NOTNULL % self.quote_obj(fld) for fld \
                                             in subtree_lst]
                 #e.g. " NOT ISNULL(agegp) ", " NOT ISNULL(religion) "
                 #use AND within subtrees because every field must be filled
@@ -826,10 +830,10 @@ class GenTable(LiveTable):
         Get SQL for data values e.g. percentages, frequencies etc.
         """
         debug = False
-        SQL_select_results = u"SELECT " + \
+        SQL_select_results = (u"SELECT " + \
                  u", ".join(SQL_table_select_clauses_lst) + \
-                 u" FROM " + self.tbl + \
-                 self.where_tbl_filt
+                 u" FROM %s" % self.quote_obj(self.tbl) + \
+                 self.where_tbl_filt)
         if debug: print(SQL_select_results)
         return SQL_select_results
             
@@ -841,9 +845,7 @@ class GenTable(LiveTable):
         """
         Get list of row data.  Each row in the list is represented
             by a row of strings to concatenate, one per data point.
-        """
-        
-        """Build lists of data item HTML (data_item_presn_lst)
+        Build lists of data item HTML (data_item_presn_lst)
             and data item values (results) ready to combine.
         data_item_presn_lst is a list of tuples with left and right HTML 
             wrappers for data ("<td class='%s'>" % cellclass, "</td>").  
@@ -869,23 +871,25 @@ class GenTable(LiveTable):
                 all_but_last_row_filters_lst = []
             elif len(row_filter) > 1:
                 all_but_last_row_filters_lst = row_filter[:]
-                del all_but_last_row_filters_lst[-1] #all but the last row 
-            last_row_filter = NOTNULL % row_filt_flds[-1] #for colpct
+                del all_but_last_row_filters_lst[-1] # all but the last row 
+            last_row_filter = NOTNULL % \
+                self.quote_obj(row_filt_flds[-1]) # for colpct
             #for styling
             first = True
             for (colmeasure, col_filter, coltot, col_filt_flds) in \
                         zip(col_measures_lst, col_filters_lst, 
                             col_tots_lst, col_filt_flds_lst):
                 #get column-derived clause function inputs
-                cols_not_null_lst = [NOTNULL % x for x in \
+                cols_not_null_lst = [NOTNULL % self.quote_obj(x) for x in \
                                      col_filt_flds]
                 if len(col_filter) <= 1:
                     all_but_last_col_filters_lst = []
                 elif len(col_filter) > 1:
                     all_but_last_col_filters_lst = col_filter[:]
-                    del all_but_last_col_filters_lst[-1] #all but the last col
+                    del all_but_last_col_filters_lst[-1] # all but the last col
                 if col_filt_flds:
-                    last_col_filter = NOTNULL % col_filt_flds[-1] #for rowpct
+                    last_col_filter = NOTNULL % \
+                        self.quote_obj(col_filt_flds[-1]) # for rowpct
                 else:
                     last_col_filter = ""
                 #styling
@@ -915,6 +919,7 @@ class GenTable(LiveTable):
                         or i == data_cells_n - 1:
                     SQL_select_results = \
                         self.get_data_sql(SQL_table_select_clauses_lst)
+                    if debug: print(SQL_select_results)
                     self.cur.execute(SQL_select_results)
                     #print(results) # ()
                     #print(self.cur.fetchone()) # [1,0,1,0,0,1 etc]
@@ -1134,24 +1139,24 @@ class SummTable(LiveTable):
             filter = self.where_tbl_filt
         # if using raw data (or finding bad data) must handle non-numeric values 
         # myself
-        SQL_get_vals = u"SELECT %s " % row_fld + \
-            u"FROM %s %s" % (self.tbl, filter)
+        SQL_get_vals = u"SELECT %s " % self.quote_obj(row_fld) + \
+            u"FROM %s %s" % (self.quote_obj(self.tbl), filter)
         sql_for_raw_only = [my_globals.MEDIAN, my_globals.STD_DEV]
         if measure in sql_for_raw_only:
             self.cur.execute(SQL_get_vals)
             data = [x[0] for x in self.cur.fetchall() if x[0]]
             if debug: print(data)
         if measure == my_globals.SUM:
-            SQL_get_sum = u"SELECT SUM(%s) " % row_fld + \
-                u"FROM " + self.tbl + filter
+            SQL_get_sum = u"SELECT SUM(%s) " % self.quote_obj(row_fld) + \
+                u"FROM " + self.quote_obj(self.tbl) + filter
             try:
                 self.cur.execute(SQL_get_sum)
                 data_val = self.cur.fetchone()[0]
             except Exception, e:
                 raise Exception, u"Unable to calculate sum of %s." % row_fld
         elif measure == my_globals.MEAN:
-            SQL_get_mean = u"SELECT AVG(%s) " % row_fld + \
-                u"FROM %s %s" % (self.tbl, filter)
+            SQL_get_mean = u"SELECT AVG(%s) " % self.quote_obj(row_fld) + \
+                u"FROM %s %s" % (self.quote_obj(self.tbl), filter)
             try:
                 self.cur.execute(SQL_get_mean)
                 data_val =  round(self.cur.fetchone()[0],2)
@@ -1171,8 +1176,8 @@ class SummTable(LiveTable):
                     raise Exception, u"Unable to calculate median for %s." % \
                         row_fld
         elif measure == my_globals.SUMM_N:
-            SQL_get_n = u"SELECT COUNT(%s) " % row_fld + \
-                u"FROM %s %s" % (self.tbl, filter)
+            SQL_get_n = u"SELECT COUNT(%s) " % self.quote_obj(row_fld) + \
+                u"FROM %s %s" % (self.quote_obj(self.tbl), filter)
             try:
                 self.cur.execute(SQL_get_n)
                 data_val = u"N=%s" % self.cur.fetchone()[0]
