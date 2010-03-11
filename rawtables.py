@@ -36,7 +36,7 @@ class RawTable(object):
         self.add_total_row = add_total_row
         self.first_col_as_label = first_col_as_label
 
-    def hasColMeasures(self):
+    def has_col_measures(self):
         return False
 
     def get_hdr_dets(self, col_labels, css_idx):
@@ -65,7 +65,7 @@ class RawTable(object):
         hdr_html += u"</tr>\n</thead>"
         return hdr_html
 
-    def getHTML(self, css_idx, page_break_after=False):
+    def get_html(self, css_idx, page_break_after=False):
         """
         Get HTML for table.
         SELECT statement lists values in same order

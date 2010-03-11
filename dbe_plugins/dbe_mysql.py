@@ -90,7 +90,7 @@ class DbDets(getdata.DbDets):
         if self.debug: pprint.pprint(self.con_dets) 
         return con, cur
             
-    def getDbDets(self):
+    def get_db_dets(self):
         """
         Return connection, cursor, and get lists of 
             databases, tables, fields, and index info,
@@ -107,7 +107,7 @@ class DbDets(getdata.DbDets):
         con, cur = self.get_con_cur()
 
         # get table names
-        tbls = self.getDbTbls(cur, self.db)
+        tbls = self.get_db_tbls(cur, self.db)
         tbls_lc = [x.lower() for x in tbls]        
         # get table (default if possible otherwise first)
         # NB table must be in the database
@@ -127,8 +127,8 @@ class DbDets(getdata.DbDets):
                 raise Exception, u"Table \"%s\" not found " % self.tbl + \
                     u"in database \"%s\"" % self.db
         # get field names (from first table if none provided)
-        flds = self.getTblFlds(cur, self.db, self.tbl)
-        has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
+        flds = self.get_tbl_flds(cur, self.db, self.tbl)
+        has_unique, idxs = self.get_index_dets(cur, self.db, self.tbl)
         if self.debug:
             print(u"Db is: %s" % self.db)
             print(u"Tbl is: %s" % self.tbl)
@@ -137,7 +137,7 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
         return con, cur, self.dbs, tbls, flds, has_unique, idxs
     
-    def getDbTbls(self, cur, db):
+    def get_db_tbls(self, cur, db):
         "Get table names given database and cursor"
         SQL_get_tbl_names = u"""SELECT TABLE_NAME 
             FROM information_schema.TABLES
@@ -150,7 +150,7 @@ class DbDets(getdata.DbDets):
         tbls.sort(key=lambda s: s.upper())
         return tbls
     
-    def _GetMinMax(self, col_type, num_prec, dec_pts):
+    def get_min_max(self, col_type, num_prec, dec_pts):
         """
         Use col_type not fld_type.  The former is inconsistent - float 
             and double have unsigned at end but not rest!
@@ -231,7 +231,7 @@ class DbDets(getdata.DbDets):
             max = None
         return min, max
     
-    def getTblFlds(self, cur, db, tbl):
+    def get_tbl_flds(self, cur, db, tbl):
         """
         Returns details for set of fields given database, table, and cursor.
         NUMERIC_SCALE - number of significant digits to right of decimal point.
@@ -286,7 +286,7 @@ class DbDets(getdata.DbDets):
             bolnumeric = True if numeric else False
             fld_txt = not bolnumeric and not boldatetime
             bolsigned = (col_type.find("unsigned") == -1)
-            min_val, max_val = self._GetMinMax(col_type, num_prec, dec_pts)
+            min_val, max_val = self.get_min_max(col_type, num_prec, dec_pts)
             dets_dic = {
                         my_globals.FLD_SEQ: ord_pos,
                         my_globals.FLD_BOLNULLABLE: bolnullable,
@@ -308,7 +308,7 @@ class DbDets(getdata.DbDets):
         if debug: print("flds: %s" % flds)
         return flds
 
-    def getIndexDets(self, cur, db, tbl):
+    def get_index_dets(self, cur, db, tbl):
         """
         has_unique - boolean
         idxs = [idx0, idx1, ...]
@@ -344,8 +344,7 @@ class DbDets(getdata.DbDets):
             print(has_unique)
         return has_unique, idxs
 
-def setDataConGui(parent, readonly, scroll, szr, lblfont):
-    ""
+def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     # default database
     parent.lblMysqlDefaultDb = wx.StaticText(scroll, -1, 
                                              _("Default Database (name only):"))
@@ -410,8 +409,7 @@ def setDataConGui(parent, readonly, scroll, szr, lblfont):
     parent.szrMysql.Add(szrMysqlInnerBtm, 0, wx.ALL, 5)
     szr.Add(parent.szrMysql, 0, wx.GROW|wx.ALL, 10)
     
-def getProjSettings(parent, proj_dic):
-    ""
+def get_proj_settings(parent, proj_dic):
     parent.mysql_default_db = proj_dic["default_dbs"].get(my_globals.DBE_MYSQL)
     parent.mysql_default_tbl = \
         proj_dic["default_tbls"].get(my_globals.DBE_MYSQL)
@@ -423,7 +421,7 @@ def getProjSettings(parent, proj_dic):
     else:
         parent.mysql_host, parent.mysql_user, parent.mysql_pwd = "", "", ""
 
-def setConDetDefaults(parent):
+def set_con_det_defaults(parent):
     try:
         parent.mysql_default_db
     except AttributeError:
@@ -445,7 +443,7 @@ def setConDetDefaults(parent):
     except AttributeError: 
         parent.mysql_pwd = u""
     
-def processConDets(parent, default_dbs, default_tbls, con_dets):
+def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     mysql_default_db = parent.txtMysqlDefaultDb.GetValue()
     mysql_default_tbl = parent.txtMysqlDefaultTbl.GetValue()
     mysql_host = parent.txtMysqlHost.GetValue()

@@ -193,8 +193,8 @@ class StartFrame(wx.Frame):
         self.SetClientSize(self.GetSize())
         self.panel = wx.Panel(self, size=(SCREEN_WIDTH, 600)) # win
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
-        self.panel.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.InitComTypes(self.panel)
+        self.panel.Bind(wx.EVT_PAINT, self.on_paint)
+        self.init_com_types(self.panel)
         config_dlg.add_icon(frame=self)
         # background image
         sofa = os.path.join(SCRIPT_PATH, u"images", u"sofa2.xpm")
@@ -212,30 +212,30 @@ class StartFrame(wx.Frame):
                         _("Select Project"), font_buttons, "white")
         self.btnProj = wx.BitmapButton(self.panel, -1, bmp_btn_proj, 
                                        pos=(BTN_LEFT, g.next()))
-        self.btnProj.Bind(wx.EVT_BUTTON, self.OnProjClick)
-        self.btnProj.Bind(wx.EVT_ENTER_WINDOW, self.OnProjEnter)
+        self.btnProj.Bind(wx.EVT_BUTTON, self.on_proj_click)
+        self.btnProj.Bind(wx.EVT_ENTER_WINDOW, self.on_proj_enter)
         self.btnProj.SetDefault()
         # Prefs
         bmp_btn_pref = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                        _("Preferences"), font_buttons, "white")
         self.btnPrefs = wx.BitmapButton(self.panel, -1, bmp_btn_pref, 
                                        pos=(BTN_LEFT, g.next()))
-        self.btnPrefs.Bind(wx.EVT_BUTTON, self.OnPrefsClick)
-        self.btnPrefs.Bind(wx.EVT_ENTER_WINDOW, self.OnPrefsEnter)
+        self.btnPrefs.Bind(wx.EVT_BUTTON, self.on_prefs_click)
+        self.btnPrefs.Bind(wx.EVT_ENTER_WINDOW, self.on_prefs_enter)
         # Data entry
         bmp_btn_enter = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                         _("Enter/Edit Data"), font_buttons, "white")
         self.btnEnter = wx.BitmapButton(self.panel, -1, bmp_btn_enter, 
                                         pos=(BTN_LEFT, g.next()))
-        self.btnEnter.Bind(wx.EVT_BUTTON, self.OnEnterClick)
-        self.btnEnter.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterEnter)
+        self.btnEnter.Bind(wx.EVT_BUTTON, self.on_enter_click)
+        self.btnEnter.Bind(wx.EVT_ENTER_WINDOW, self.on_enter_enter)
         # Import
         bmp_btn_import = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                          _("Import Data"), font_buttons, "white")
         self.btnImport = wx.BitmapButton(self.panel, -1, bmp_btn_import, 
                                          pos=(BTN_LEFT, g.next()))
-        self.btnImport.Bind(wx.EVT_BUTTON, self.OnImportClick)
-        self.btnImport.Bind(wx.EVT_ENTER_WINDOW, self.OnImportEnter)
+        self.btnImport.Bind(wx.EVT_BUTTON, self.on_import_click)
+        self.btnImport.Bind(wx.EVT_ENTER_WINDOW, self.on_import_enter)
         # Right
         g = get_next_y_pos(284, BTN_DROP)
         # Report tables
@@ -243,29 +243,29 @@ class StartFrame(wx.Frame):
                          _("Report Tables"), font_buttons, "white")
         self.btnTables = wx.BitmapButton(self.panel, -1, bmp_btn_tables, 
                                          pos=(BTN_RIGHT, g.next()))
-        self.btnTables.Bind(wx.EVT_BUTTON, self.OnTablesClick)
-        self.btnTables.Bind(wx.EVT_ENTER_WINDOW, self.OnTablesEnter)
+        self.btnTables.Bind(wx.EVT_BUTTON, self.on_tables_click)
+        self.btnTables.Bind(wx.EVT_ENTER_WINDOW, self.on_tables_enter)
         # Charts
         bmp_btn_charts = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                          _("Charts"), font_buttons, "white")
         self.btnCharts = wx.BitmapButton(self.panel, -1, bmp_btn_charts, 
                                          pos=(BTN_RIGHT, g.next()))
-        self.btnCharts.Bind(wx.EVT_BUTTON, self.OnChartsClick)
-        self.btnCharts.Bind(wx.EVT_ENTER_WINDOW, self.OnChartsEnter)
+        self.btnCharts.Bind(wx.EVT_BUTTON, self.on_charts_click)
+        self.btnCharts.Bind(wx.EVT_ENTER_WINDOW, self.on_charts_enter)
         # Stats
         bmp_btn_stats = lib.add_text_to_bitmap(get_blank_btn_bmp(),
                         _("Statistics"), font_buttons, "white")
         self.btnStatistics = wx.BitmapButton(self.panel, -1, bmp_btn_stats, 
                                              pos=(BTN_RIGHT, g.next()))
-        self.btnStatistics.Bind(wx.EVT_BUTTON, self.OnStatsClick)
-        self.btnStatistics.Bind(wx.EVT_ENTER_WINDOW, self.OnStatsEnter)
+        self.btnStatistics.Bind(wx.EVT_BUTTON, self.on_stats_click)
+        self.btnStatistics.Bind(wx.EVT_ENTER_WINDOW, self.on_stats_enter)
         # Exit  
         bmp_btn_exit = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                        _("Exit"), font_buttons, "white")
         self.btnExit = wx.BitmapButton(self.panel, -1, bmp_btn_exit, 
                                        pos=(BTN_RIGHT, g.next()))
-        self.btnExit.Bind(wx.EVT_BUTTON, self.OnExitClick)
-        self.btnExit.Bind(wx.EVT_ENTER_WINDOW, self.OnExitEnter)
+        self.btnExit.Bind(wx.EVT_BUTTON, self.on_exit_click)
+        self.btnExit.Bind(wx.EVT_ENTER_WINDOW, self.on_exit_enter)
         if not my_globals.IN_WINDOWS:
             hand = wx.StockCursor(wx.CURSOR_HAND)
             self.btnProj.SetCursor(hand)
@@ -332,7 +332,7 @@ class StartFrame(wx.Frame):
         link_help.SetVisited(True)
         link_help.UpdateLink(True)
     
-    def InitComTypes(self, panel):
+    def init_com_types(self, panel):
         """
         If first time opened, and in Windows, warn user about delay setting 
             up (comtypes).
@@ -351,7 +351,7 @@ class StartFrame(wx.Frame):
             f.write(u"Comtypes handled successfully :-)")
             f.close()
     
-    def OnPaint(self, event):
+    def on_paint(self, event):
         """
         Cannot use static bitmaps and static text to replace.  In windows
             doesn't show background wallpaper.
@@ -402,16 +402,16 @@ class StartFrame(wx.Frame):
                            wx.Rect(MAIN_LEFT, 247, 400, 30))
         event.Skip()
 
-    def DrawBlankWallpaper(self, panel_dc):
+    def draw_blank_wallpaper(self, panel_dc):
         panel_dc.DrawBitmap(self.blank_wallpaper, MAIN_LEFT, HELP_TEXT_TOP, 
                             False)
         
-    def SetProj(self, proj_text=""):
+    def set_proj(self, proj_text=""):
         "proj_text must NOT have .proj on the end"
         self.active_proj = u"%s.proj" % proj_text
         self.Refresh()
         
-    def OnProjClick(self, event):
+    def on_proj_click(self, event):
         proj_fils = projects.get_projs() # should always be the default present
         # open proj selection form
         dlgProj = projselect.ProjSelectDlg(self, proj_fils, self.active_proj)
@@ -419,9 +419,9 @@ class StartFrame(wx.Frame):
         dlgProj.Destroy()
         event.Skip()
 
-    def OnProjEnter(self, event):
+    def on_proj_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
-        self.DrawBlankWallpaper(panel_dc)
+        self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_proj, HELP_IMG_LEFT, HELP_IMG_TOP, True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_projs = _("Projects are a way of storing all related reports, "
@@ -431,7 +431,7 @@ class StartFrame(wx.Frame):
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
     
-    def OnPrefsClick(self, event):
+    def on_prefs_click(self, event):
         import prefs
         debug = False
         try:
@@ -446,9 +446,9 @@ class StartFrame(wx.Frame):
         dlg.ShowModal()
         event.Skip()
     
-    def OnPrefsEnter(self, event):
+    def on_prefs_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
-        self.DrawBlankWallpaper(panel_dc)
+        self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_prefs, HELP_IMG_LEFT+50, HELP_IMG_TOP-10, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
@@ -456,7 +456,7 @@ class StartFrame(wx.Frame):
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_pref, MAX_HELP_TEXT_WIDTH), 
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         
-    def OnEnterClick(self, event):
+    def on_enter_click(self, event):
         # open proj selection form
         import dataselect
         proj_name = self.active_proj
@@ -465,9 +465,9 @@ class StartFrame(wx.Frame):
         dlgData.Destroy()
         event.Skip()
         
-    def OnEnterEnter(self, event):
+    def on_enter_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
-        self.DrawBlankWallpaper(panel_dc)
+        self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_data, HELP_IMG_LEFT-30, HELP_IMG_TOP-20, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
@@ -477,16 +477,16 @@ class StartFrame(wx.Frame):
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
 
-    def OnImportClick(self, event):
+    def on_import_click(self, event):
         # open import data dialog
         import importer
         dlg = importer.ImportFileSelectDlg(self)
         dlg.ShowModal()
         event.Skip()
         
-    def OnImportEnter(self, event):
+    def on_import_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
-        self.DrawBlankWallpaper(panel_dc)
+        self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_import, HELP_IMG_LEFT-40, HELP_IMG_TOP, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
@@ -509,7 +509,7 @@ class StartFrame(wx.Frame):
         default_tbls = proj_dic["default_tbls"]
         return dbe, default_dbs, default_tbls
     
-    def OnTablesClick(self, event):
+    def on_tables_click(self, event):
         "Open make table gui with settings as per active_proj"
         wx.BeginBusyCursor()
         import report_table
@@ -535,9 +535,9 @@ class StartFrame(wx.Frame):
             wx.EndBusyCursor()
             event.Skip()
         
-    def OnTablesEnter(self, event):
+    def on_tables_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
-        self.DrawBlankWallpaper(panel_dc)
+        self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_tabs, HELP_IMG_LEFT-40, HELP_IMG_TOP-25, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
@@ -557,7 +557,7 @@ class StartFrame(wx.Frame):
         cont.append(script)
         cont.append(my_globals.JS_WRAPPER_R)
     
-    def OnChartsClick(self, event):
+    def on_charts_click(self, event):
         CHARTS_NO = 0
         CHARTS_PRELIM = 1
         CHARTS_JS = 2
@@ -676,9 +676,9 @@ class StartFrame(wx.Frame):
             output.display_report(self, strContent, url_load=True)
         event.Skip()
         
-    def OnChartsEnter(self, event):
+    def on_charts_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
-        self.DrawBlankWallpaper(panel_dc)
+        self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_chart, HELP_IMG_LEFT-30, HELP_IMG_TOP-20, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
@@ -687,7 +687,7 @@ class StartFrame(wx.Frame):
                         wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
     
-    def OnStatsClick(self, event):
+    def on_stats_click(self, event):
         # open statistics selection dialog
         wx.BeginBusyCursor()
         import stats_select
@@ -713,9 +713,9 @@ class StartFrame(wx.Frame):
             wx.EndBusyCursor()
             event.Skip()
         
-    def OnStatsEnter(self, event):
+    def on_stats_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
-        self.DrawBlankWallpaper(panel_dc)
+        self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_stats, HELP_IMG_LEFT-30, HELP_IMG_TOP-20, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
@@ -743,7 +743,7 @@ class StartFrame(wx.Frame):
                                    HELP_TEXT_WIDTH-10, 320))
         event.Skip()
     
-    def OnExitClick(self, event):
+    def on_exit_click(self, event):
         debug = False
         wx.BeginBusyCursor()
         # wipe any internal images
@@ -756,9 +756,9 @@ class StartFrame(wx.Frame):
         self.Destroy()
         sys.exit()
         
-    def OnExitEnter(self, event):
+    def on_exit_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
-        self.DrawBlankWallpaper(panel_dc)
+        self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_exit, HELP_IMG_LEFT-30, HELP_IMG_TOP-50, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)

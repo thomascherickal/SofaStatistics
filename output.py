@@ -429,7 +429,7 @@ def append_exported_script(f, inner_script, con_dets, dbe, db, tbl_name,
                     u"\n" + "    getdata.get_db_dets_obj(u\"%s\", " % dbe +
                     u"default_dbs, default_tbls, con_dets=con_dets," +
                     u"\n" + "    db=u\"%s\", tbl=u\"%s\")" % (db, tbl_name) +
-                    u".getDbDets()")
+                    u".get_db_dets()")
     f.write(u"\n" + u"%s" % inner_script)
     f.write(u"\n" + u"con.close()")
 

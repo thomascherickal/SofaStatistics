@@ -46,10 +46,10 @@ class DimNodeTree(tree.NodeTree):
         self.root_node = DimNode(label=u"Root", measures=measures)
         self.root_node.level = 0
 
-    def addChild(self, child_node):
+    def add_child(self, child_node):
         "Update filt_flds to cover all fields in ancestral line"
-        #super(tree.NodeTree, self).addChild(child_node)
-        tree.NodeTree.addChild(self, child_node)
+        #super(tree.NodeTree, self).add_child(child_node)
+        tree.NodeTree.add_child(self, child_node)
         child_node.filt_flds = [child_node.fld] #may be None
 
 class LabelNodeTree(tree.NodeTree):
@@ -102,10 +102,10 @@ class DimNode(tree.Node):
         self.bolnumeric = bolnumeric
         tree.Node.__init__(self, dets_dic=None, label=self.label)
 
-    def addChild(self, child_node):
+    def add_child(self, child_node):
         "Update filt_flds to cover all fields in ancestral line"
-        #super(tree.Node, self).addChild(child_node)
-        tree.Node.addChild(self, child_node)
+        #super(tree.Node, self).add_child(child_node)
+        tree.Node.add_child(self, child_node)
         child_node.filt_flds = self.filt_flds + [child_node.fld]
 
 class LabelNode(tree.Node):
@@ -165,7 +165,7 @@ class DimTable(object):
             (my_globals.CSS_SPACEHOLDER, css_idx)        
         if debug: print(tree_col_labels)
         # includes root so -1, includes title/subtitle row so +1 (share row)
-        col_label_rows_n = tree_col_labels.getDepth()
+        col_label_rows_n = tree_col_labels.get_depth()
         col_label_rows_lst = [[u"<tr>"] for x in range(col_label_rows_n)]
         title_dets_html = lib.get_title_dets_html(self.titles, self.subtitles, 
                                                 CSS_TBL_TITLE, CSS_TBL_SUBTITLE)
@@ -176,10 +176,10 @@ class DimTable(object):
         col_label_rows_lst[0].append(extra_title_row_html)
         # start off with spaceholder heading cell
         col_label_rows_lst[1].append(u"<th class='%s' rowspan='%s' " % \
-            (CSS_SPACEHOLDER, tree_col_labels.getDepth() - 1) + \
+            (CSS_SPACEHOLDER, tree_col_labels.get_depth() - 1) + \
             u"colspan='%s'>&nbsp;&nbsp;</th>" % \
             row_label_cols_n)
-        col_label_rows_lst = self.colLabelRowBuilder(\
+        col_label_rows_lst = self.col_label_row_bldr(\
                         node=tree_col_labels.root_node,
                         col_label_rows_lst=col_label_rows_lst, 
                         col_label_rows_n=col_label_rows_n, row_offset=0, 
@@ -192,10 +192,10 @@ class DimTable(object):
         if debug: print(tree_col_labels)
         return (tree_col_labels, hdr_html)
       
-    def processRowTree(self, tree_row_labels, css_idx):
+    def process_row_tree(self, tree_row_labels, css_idx):
         "Turn row label tree into labels"
         #print(tree_row_labels) #debug
-        row_label_cols_n = tree_row_labels.getDepth() - 1 #exclude root node
+        row_label_cols_n = tree_row_labels.get_depth() - 1 #exclude root node
         try:
             row_label_rows_n = len(tree_row_labels.get_terminal_nodes())
         except my_exceptions.NoNodesException:
@@ -204,7 +204,7 @@ class DimTable(object):
         row_offset_dic = {}
         for i in range(row_label_cols_n):
             row_offset_dic[i]=0
-        row_label_rows_lst = self.rowLabelRowBuilder(\
+        row_label_rows_lst = self.row_label_row_bldr(\
                         node=tree_row_labels.root_node,
                         row_label_rows_lst=row_label_rows_lst, 
                         row_label_cols_n=row_label_cols_n, 
@@ -212,7 +212,7 @@ class DimTable(object):
                         css_idx=css_idx)
         return (row_label_rows_lst, tree_row_labels, row_label_cols_n)       
 
-    def rowLabelRowBuilder(self, node, row_label_rows_lst, row_label_cols_n, 
+    def row_label_row_bldr(self, node, row_label_rows_lst, row_label_cols_n, 
                            row_offset_dic, col_offset, css_idx):
         """
         Adds cells to the row label rows list as it goes through all nodes.
@@ -264,7 +264,7 @@ class DimTable(object):
                 rowspan = u"" 
             cols_filled = level + col_offset
             cols_to_fill = row_label_cols_n - cols_filled
-            cols_to_right = node.getDepth() - 1 # exclude self
+            cols_to_right = node.get_depth() - 1 # exclude self
             gap = cols_to_fill - cols_to_right            
             col_offset += gap
             if gap > 0:
@@ -283,9 +283,9 @@ class DimTable(object):
                                 (cellclass, rowspan, colspan, node.label))
             if debug: print(node.label)
         for child in node.children:
-            row_label_rows_lst = self.rowLabelRowBuilder(child, 
-                                    row_label_rows_lst, row_label_cols_n, 
-                                    row_offset_dic, col_offset, css_idx)
+            row_label_rows_lst = self.row_label_row_bldr(child, 
+                                        row_label_rows_lst, row_label_cols_n, 
+                                        row_offset_dic, col_offset, css_idx)
         # finish level, set all child levels to start with this one's final offset
         # Otherwise Gender, Gender->Asst problem (whereas Gender->Asst, Gender is fine)
         if level > 0: # don't do this on the root
@@ -293,7 +293,7 @@ class DimTable(object):
                 row_offset_dic[i] = row_offset_dic[row_offset]
         return row_label_rows_lst
     
-    def colLabelRowBuilder(self, node, col_label_rows_lst, col_label_rows_n, 
+    def col_label_row_bldr(self, node, col_label_rows_lst, col_label_rows_n, 
                            row_offset, css_idx):
         """
         Adds cells to the column label rows list as it goes through all nodes.
@@ -329,7 +329,7 @@ class DimTable(object):
             (my_globals.CSS_MEASURE, css_idx)
         rows_filled = node.level + 1 + row_offset
         rows_to_fill = col_label_rows_n - rows_filled
-        rows_below = node.getDepth() - 1 # exclude self
+        rows_below = node.get_depth() - 1 # exclude self
         gap = rows_to_fill - rows_below
         # styling
         if self.has_col_measures:
@@ -366,7 +366,7 @@ class DimTable(object):
                                            node.label))
         row_offset += gap
         for child in node.children:
-            col_label_rows_lst = self.colLabelRowBuilder(child, 
+            col_label_rows_lst = self.col_label_row_bldr(child, 
                                 col_label_rows_lst, col_label_rows_n, 
                                 row_offset, css_idx)
         return col_label_rows_lst
@@ -399,41 +399,41 @@ class LiveTable(DimTable):
         self.tree_rows = tree_rows
         self.tree_cols = tree_cols
     
-    def getDataCellN(self, tree_col_labels, tree_row_labels):
+    def get_data_cell_n(self, tree_col_labels, tree_row_labels):
         ""
         col_term_nodes = tree_col_labels.get_terminal_nodes()
         row_term_nodes = tree_row_labels.get_terminal_nodes()
         data_cell_n = len(row_term_nodes) * len(col_term_nodes)
         return data_cell_n
     
-    def prepTable(self, css_idx):
+    def prep_table(self, css_idx):
         "Prepare table setup information towards generation of final html."
         (self.row_label_rows_lst, self.tree_row_labels, row_label_cols_n) = \
-                                    self.getRowDets(css_idx)
+                                    self.get_row_dets(css_idx)
         self.tree_col_labels, self.hdr_html = \
                                     self.get_hdr_dets(row_label_cols_n, css_idx)
     
-    def getCellNOk(self, max_cells=5000):
+    def get_cell_n_ok(self, max_cells=5000):
         """
         Returns False if too many cells to proceed (according to max_cells).
         Used to determine whether to proceed with table or not.
         """
-        data_cell_n = self.getDataCellN(self.tree_col_labels, 
-                                        self.tree_row_labels)
+        data_cell_n = self.get_data_cell_n(self.tree_col_labels, 
+                                           self.tree_row_labels)
         return max_cells >= data_cell_n
     
-    def getHTML(self, css_idx, page_break_after=False):
+    def get_html(self, css_idx, page_break_after=False):
         """
         Get HTML for table.
         """
         html = u""
         html += u"<table cellspacing='0'>\n" # IE6 doesn't support CSS borderspacing
         (row_label_rows_lst, tree_row_labels, row_label_cols_n) = \
-            self.getRowDets(css_idx)
+            self.get_row_dets(css_idx)
         (tree_col_dets, hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)
-        row_label_rows_lst = self.getBodyHtmlRows(row_label_rows_lst,
-                                                  tree_row_labels, 
-                                                  tree_col_dets, css_idx)
+        row_label_rows_lst = self.get_body_html_rows(row_label_rows_lst,
+                                                     tree_row_labels, 
+                                                     tree_col_dets, css_idx)
         body_html = u"\n\n<tbody>"
         for row in row_label_rows_lst:
             #flatten row list
@@ -444,7 +444,7 @@ class LiveTable(DimTable):
         html += u"\n</table>"
         return html
     
-    def getRowDets(self, css_idx):
+    def get_row_dets(self, css_idx):
         """
         Return row_label_rows_lst - need combination of row and col filters
             to add the data cells to the table body rows.
@@ -455,33 +455,33 @@ class LiveTable(DimTable):
         debug = False
         tree_row_labels = LabelNodeTree()
         for child in self.tree_rows.root_node.children:
-            self.addSubtreeToLabelTree(tree_dims_node=child, 
-                                tree_labels_node=tree_row_labels.root_node,
-                                dim=my_globals.ROWDIM, 
-                                oth_dim_root=self.tree_cols.root_node)
-        return self.processRowTree(tree_row_labels, css_idx)        
+            self.add_subtree_to_label_tree(tree_dims_node=child, 
+                                    tree_labels_node=tree_row_labels.root_node,
+                                    dim=my_globals.ROWDIM, 
+                                    oth_dim_root=self.tree_cols.root_node)
+        return self.process_row_tree(tree_row_labels, css_idx)        
     
-    def addSubtreesToColLabelTree(self, tree_col_labels):
+    def add_subtrees_to_col_label_tree(self, tree_col_labels):
         """
         Add subtrees to column label tree.
         If coltree has no children, must add a subtree underneath.
         """
         if self.tree_cols.root_node.children:
             for child in self.tree_cols.root_node.children:
-                self.addSubtreeToLabelTree(tree_dims_node=child, 
+                self.add_subtree_to_label_tree(tree_dims_node=child, 
                             tree_labels_node=tree_col_labels.root_node,
                             dim=my_globals.COLDIM, 
                             oth_dim_root=self.tree_rows.root_node)
         else:
-            self.addSubtreeToLabelTree(tree_dims_node=\
+            self.add_subtree_to_label_tree(tree_dims_node=\
                                self.tree_cols.root_node, 
                                tree_labels_node=tree_col_labels.root_node,
                                dim=my_globals.COLDIM, 
                                oth_dim_root=self.tree_rows.root_node)
         return tree_col_labels
           
-    def addSubtreeToLabelTree(self, tree_dims_node, tree_labels_node, 
-                              dim, oth_dim_root):
+    def add_subtree_to_label_tree(self, tree_dims_node, tree_labels_node, 
+                                  dim, oth_dim_root):
         """
         Based on information from the variable node, add a subtree
         to the node supplied from the labels tree (if appropriate).
@@ -496,17 +496,16 @@ class LiveTable(DimTable):
                 self.add_subtree_if_vals(tree_dims_node, tree_labels_node, 
                                          oth_dim_root, dim, filt_flds)
             else:
-                self.addSubtreeMeasuresOnly(tree_dims_node, 
-                                            tree_labels_node, 
-                                            filt_flds)            
+                self.add_subtree_measures_only(tree_dims_node, tree_labels_node, 
+                                               filt_flds)
         elif dim == my_globals.COLDIM:
             if has_fld:
                 self.add_subtree_if_vals(tree_dims_node, tree_labels_node, 
                                          oth_dim_root, dim, filt_flds)            
             else:
                 if self.has_col_measures:
-                    self.addColMeasuresSubtreeIfNoFld(tree_dims_node, 
-                                                  tree_labels_node)                
+                    self.add_col_measures_subtree_if_no_fld(tree_dims_node, 
+                                                            tree_labels_node)                
     
     def get_vals_filt_clause(self, tree_dims_node, tree_labels_node, 
                              oth_dim_root):
@@ -667,7 +666,7 @@ class LiveTable(DimTable):
         if not all_vals:
             return # do not add subtree - no values
         # add level 1 to data tree - the var
-        node_lev1 = tree_labels_node.addChild(LabelNode(label=\
+        node_lev1 = tree_labels_node.add_child(LabelNode(label=\
                                                         tree_dims_node.label))
         val_freq_label_lst = self.get_sorted_val_freq_label_lst(all_vals,
                                                                 tree_dims_node)
@@ -691,26 +690,26 @@ class LiveTable(DimTable):
                 if debug: print(clause)
                 val_node_filts.append(clause)
             is_coltot=(is_tot and dim == my_globals.COLDIM)
-            val_node = node_lev1.addChild(LabelNode(label = val_label,
+            val_node = node_lev1.add_child(LabelNode(label = val_label,
                                                     filts=val_node_filts))
             # if node has children, send through again to add further subtree
             if terminal_var: # a terminal node - add measures
                 # only gen table cols and summ table rows can have measures
                 if (dim == my_globals.COLDIM and self.has_col_measures) or \
                         (dim == my_globals.ROWDIM and self.has_row_measures):
-                    self.addMeasures(label_node=val_node, measures=var_measures, 
-                                     is_coltot=is_coltot, filt_flds=filt_flds,
-                                     filts=val_node_filts) 
+                    self.add_measures(label_node=val_node, 
+                                    measures=var_measures, is_coltot=is_coltot, 
+                                    filt_flds=filt_flds, filts=val_node_filts) 
                 else:
                     val_node.filt_flds = filt_flds
             else:
                 for child in tree_dims_node.children:
-                    self.addSubtreeToLabelTree(tree_dims_node=child, 
+                    self.add_subtree_to_label_tree(tree_dims_node=child, 
                                            tree_labels_node=val_node,
                                            dim=dim, oth_dim_root=oth_dim_root)
     
-    def addSubtreeMeasuresOnly(self, tree_dims_node, tree_labels_node, 
-                               filt_flds):
+    def add_subtree_measures_only(self, tree_dims_node, tree_labels_node, 
+                                  filt_flds):
         """
         For summary table row trees (NB no nesting) we always 
         display data cells so there is no need to evaluate
@@ -719,15 +718,14 @@ class LiveTable(DimTable):
         Instead of value nodes there is a node per measure.
         """
         #add level 1 to data tree - the var
-        node_lev1 = tree_labels_node.addChild(LabelNode(label=\
-                                            tree_dims_node.label))
-        self.addMeasures(label_node=node_lev1, 
-                         measures=tree_dims_node.measures, 
-                         is_coltot=False, filt_flds=filt_flds,
-                         filts=[])
+        node_lev1 = tree_labels_node.add_child(LabelNode(label=\
+                                               tree_dims_node.label))
+        self.add_measures(label_node=node_lev1, 
+                          measures=tree_dims_node.measures, 
+                          is_coltot=False, filt_flds=filt_flds, filts=[])
     
-    def addColMeasuresSubtreeIfNoFld(self, tree_dims_node, 
-                                     tree_labels_node):
+    def add_col_measures_subtree_if_no_fld(self, tree_dims_node, 
+                                           tree_labels_node):
         """
         Add subtree in case where no field.
         First check that it is OK to add.
@@ -736,11 +734,11 @@ class LiveTable(DimTable):
             raise Exception, u"If the col field has not " + \
                 u"been set, a node without a field specified " + \
                 u"must be immediately under the root node"
-        self.addMeasures(label_node=tree_labels_node, 
-                     measures=tree_dims_node.measures, 
-                     is_coltot=False, filt_flds=[], filts=[])
+        self.add_measures(label_node=tree_labels_node, 
+                          measures=tree_dims_node.measures, 
+                          is_coltot=False, filt_flds=[], filts=[])
 
-    def addMeasures(self, label_node, measures, is_coltot, filt_flds, 
+    def add_measures(self, label_node, measures, is_coltot, filt_flds, 
                     filts):
         "Add measure label nodes under label node"
         for measure in measures:
@@ -749,7 +747,7 @@ class LiveTable(DimTable):
                                   measure=measure,
                                   is_coltot=is_coltot)
             measure_node.filt_flds = filt_flds
-            label_node.addChild(measure_node)
+            label_node.add_child(measure_node)
     
     def tree_fld_lsts_to_clause(self, tree_fld_lsts):
         """
@@ -792,11 +790,11 @@ class GenTable(LiveTable):
         For HTML provide everything from <thead> to </thead>.
         """
         tree_col_labels = LabelNodeTree()
-        tree_col_labels = self.addSubtreesToColLabelTree(tree_col_labels)
+        tree_col_labels = self.add_subtrees_to_col_label_tree(tree_col_labels)
         return self.process_hdr_tree(tree_col_labels, row_label_cols_n, css_idx)
         
-    def getBodyHtmlRows(self, row_label_rows_lst, tree_row_labels,
-                        tree_col_labels, css_idx):
+    def get_body_html_rows(self, row_label_rows_lst, tree_row_labels,
+                           tree_col_labels, css_idx):
         """
         Make table body rows based on contents of row_label_rows_lst:
         e.g. [["<tr>", "<td class='firstrowvar' rowspan='8'>Gender</td>" ...],
@@ -1043,13 +1041,13 @@ class SummTable(LiveTable):
         If no column variables, make a special column node.
         """
         tree_col_labels = LabelNodeTree()
-        tree_col_labels = self.addSubtreesToColLabelTree(tree_col_labels)
-        if tree_col_labels.getDepth() == 1:
-            tree_col_labels.addChild(LabelNode(label=_("Measures")))
+        tree_col_labels = self.add_subtrees_to_col_label_tree(tree_col_labels)
+        if tree_col_labels.get_depth() == 1:
+            tree_col_labels.add_child(LabelNode(label=_("Measures")))
         return self.process_hdr_tree(tree_col_labels, row_label_cols_n, css_idx)
         
-    def getBodyHtmlRows(self, row_label_rows_lst, tree_row_labels,
-                        tree_col_labels, css_idx):
+    def get_body_html_rows(self, row_label_rows_lst, tree_row_labels,
+                           tree_col_labels, css_idx):
         """
         Make table body rows based on contents of row_label_rows_lst:
         e.g. [["<tr>", "<td class='firstrowvar' rowspan='8'>Gender</td>" ...],

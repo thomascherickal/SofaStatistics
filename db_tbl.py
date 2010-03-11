@@ -29,10 +29,10 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.set_num_rows()
         # dict with key = fld name and vals = dict of characteristics
         self.flds = flds
-        self.fld_names = getdata.FldsDic2FldNamesLst(flds_dic=self.flds)
+        self.fld_names = getdata.flds_dic_to_fld_names_lst(flds_dic=self.flds)
         self.fld_labels = [var_labels.get(x, x.title()) for x in self.fld_names]
         self.idxs = idxs
-        self.idx_id, self.must_quote = self.GetIndexCol()
+        self.idx_id, self.must_quote = self.get_index_col()
         self.id_col_name = self.fld_names[self.idx_id]
         self.set_row_ids_lst()
         self.row_vals_dic = {} # key = row, val = list of values
@@ -65,14 +65,14 @@ class DbTbl(wx.grid.PyGridTableBase):
         # NB could easily be 10s or 100s of thousands of records
         self.row_ids_lst = [x[0] for x in self.cur.fetchall()]
     
-    def GetFldName(self, col):
+    def get_fld_name(self, col):
         return self.fld_names[col]
     
-    def GetFldDic(self, col):
-        fld_name = self.GetFldName(col)
+    def get_fld_dic(self, col):
+        fld_name = self.get_fld_name(col)
         return self.flds[fld_name]
     
-    def GetIndexCol(self):
+    def get_index_col(self):
         """
         Pick first unique indexed column and return 
             col position, and must_quote (e.g. for string or date fields).
@@ -128,11 +128,12 @@ class DbTbl(wx.grid.PyGridTableBase):
         new_row = row > self.rows_to_fill
         return new_row
     
-    def FinalRow(self, row):
+    def is_final_row(self, row):
         final_row = (row == self.rows_to_fill)
         return final_row 
     
     def GetRowLabelValue(self, row):
+        # wxPython
         new_row = row > self.rows_to_fill
         if new_row:
             if self.new_is_dirty:
@@ -143,6 +144,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             return row + 1
     
     def GetColLabelValue(self, col):
+        # wxPython
         return self.fld_labels[col]
     
     def none_to_missing_val(self, val):
@@ -151,6 +153,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         return val
     
     def GetValue(self, row, col):
+        # wxPython
         """
         NB row and col are 0-based.
         The performance of this method is critical to the performance
@@ -244,10 +247,12 @@ class DbTbl(wx.grid.PyGridTableBase):
         if self.debug or debug: print(row_vals_dic)
     
     def IsEmptyCell(self, row, col):
+        # wxPython
         value = self.GetValue(row, col)
         return value == my_globals.MISSING_VAL_INDICATOR
     
     def SetValue(self, row, col, value):
+        # wxPython
         """
         Only called if data entered.        
         Fires first if use mouse to move from a cell you have edited.
@@ -304,7 +309,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.grid.EndBatch()
         self.grid.ForceRefresh()
         
-    def ForceRefresh(self):
+    def force_refresh(self):
         msg = wx.grid.GridTableMessage(self, 
                 wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
         self.grid.ProcessTableMessage(msg)

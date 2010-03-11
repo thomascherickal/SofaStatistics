@@ -71,7 +71,7 @@ def _invalid_fld_type(row, grid):
         return True, msg
     return False, u""
 
-def ValidateTblName(tbl_name, name_ok_to_reuse):
+def validate_tbl_name(tbl_name, name_ok_to_reuse):
     "Returns boolean plus string message"
     valid_name = dbe_sqlite.valid_name(tbl_name)
     if not valid_name:
@@ -96,12 +96,14 @@ class SafeTblNameValidator(wx.PyValidator):
         self.Bind(wx.EVT_CHAR, self.OnChar)
     
     def Clone(self):
+        # wxPython
         return SafeTblNameValidator(self.name_ok_to_reuse)
         
     def Validate(self, win):
+        # wxPython
         textCtrl = self.GetWindow()
         text = textCtrl.GetValue()
-        valid, msg = ValidateTblName(text, self.name_ok_to_reuse)
+        valid, msg = validate_tbl_name(text, self.name_ok_to_reuse)
         if not valid:
             wx.MessageBox(msg)
             textCtrl.SetFocus()
@@ -112,6 +114,7 @@ class SafeTblNameValidator(wx.PyValidator):
             return True
     
     def OnChar(self, event):
+        # wxPython
         # allow backspace and delete (both) etc
         if event.GetKeyCode() in [wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE, 
                                   wx.WXK_BACK, wx.WXK_LEFT, wx.WXK_RIGHT]:
@@ -128,9 +131,11 @@ class SafeTblNameValidator(wx.PyValidator):
         event.Skip()
     
     def TransferToWindow(self):
+        # wxPython
         return True
     
     def TransferFromWindow(self):
+        # wxPython
         return True
 
     
@@ -234,7 +239,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         bolinserted, row_data = self.tabentry.insert_row_above(pos)
         return bolinserted, pos, row_data
 
-    def OnInsert(self, event):
+    def on_insert(self, event):
         """
         Insert before.
         Overridden so we can update config_data with details of new row.
@@ -256,7 +261,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.config_data.insert(row_before, new_row)
         if self.debug: pprint.pprint(self.config_data)
             
-    def OnDelete(self, event):
+    def on_delete(self, event):
         "Overridden so we can update config_data."
         row_del = self.tabentry.try_to_delete_row()
         if row_del is not None:
@@ -267,7 +272,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.tabentry.grid.SetFocus()
         event.Skip()
 
-    def OnOK(self, event):
+    def on_ok(self, event):
         """
         Override so we can extend to include table name.
         """

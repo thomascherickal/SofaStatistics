@@ -280,16 +280,16 @@ def escape_win_path(path):
     "Useful when writing a path to a text file"
     return path.replace("\\", "\\\\")
 
-def getFileName(path):
+def get_file_name(path):
     "Works on Windows paths as well"
     path = path.replace("\\\\", "\\").replace("\\", "/")
     return os.path.split(path)[1]
     
-def isInteger(val):
+def is_integer(val):
     #http://mail.python.org/pipermail/python-list/2006-February/368113.html
     return isinstance(val, (int, long))
 
-def isString(val):
+def is_string(val):
     # http://mail.python.org/pipermail/winnipeg/2007-August/000237.html
     return isinstance(val, basestring)
 
@@ -435,7 +435,7 @@ def get_dets_of_usable_datetime_str(raw_datetime_str):
         into a standard string for data entry.
     """
     debug = False
-    if not isString(raw_datetime_str):
+    if not is_string(raw_datetime_str):
         if debug: print("%s is not a valid datetime string" % raw_datetime_str)
         return None
     # evaluate date and/or time components against allowable formats
@@ -446,7 +446,7 @@ def get_dets_of_usable_datetime_str(raw_datetime_str):
     # gather information on the parts we have (we have at least one)
     date_format = None
     if date_part:
-        # see CellInvalid for message about correct datetime entry formats
+        # see cell_invalid for message about correct datetime entry formats
         bad_date = True
         for ok_date_format in my_globals.OK_DATE_FORMATS:
             try:
@@ -733,16 +733,16 @@ class StaticWrapText(wx.StaticText):
     def __init__(self, *args, **kwargs):
         wx.StaticText.__init__(self, *args, **kwargs)
         # store the initial label
-        self.__label = super(StaticWrapText, self).GetLabel()
+        self.__label = super(StaticWrapText, self).get_label()
         # listen for sizing events
-        self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_SIZE, self.on_size)
 
-    def SetLabel(self, newLabel):
+    def set_label(self, newLabel):
         """Store the new label and recalculate the wrapped version."""
         self.__label = newLabel
         self.__wrap()
 
-    def GetLabel(self):
+    def get_label(self):
         """Returns the label (unwrapped)."""
         return self.__label
     
@@ -763,11 +763,11 @@ class StaticWrapText(wx.StaticText):
         # pick up the last line of text
         lines.append(" ".join(current))
         # set the actual label property to the wrapped version
-        super(StaticWrapText, self).SetLabel("\n".join(lines))
+        super(StaticWrapText, self).set_label("\n".join(lines))
         # refresh the widget
         self.Refresh()
         
-    def OnSize(self, event):
+    def on_size(self, event):
         # dispatch to the wrap method which will 
         # determine if any changes are needed
         self.__wrap()

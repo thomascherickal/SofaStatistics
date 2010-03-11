@@ -64,7 +64,7 @@ class DataSelectDlg(wx.Dialog):
                         self.default_tbls, self.con_dets)
         try:
             (self.con, self.cur, self.dbs, self.tbls, self.flds, 
-                self.has_unique, self.idxs) = dbdetsobj.getDbDets()
+                self.has_unique, self.idxs) = dbdetsobj.get_db_dets()
         except Exception, e:
             wx.EndBusyCursor()
             wx.MessageBox(_("Unable to connect to data as defined in " 
@@ -82,11 +82,11 @@ class DataSelectDlg(wx.Dialog):
         self.chkReadOnly = wx.CheckBox(self.panel, -1, _("Read Only"))
         self.chkReadOnly.SetValue(True)
         self.btnDelete = wx.Button(self.panel, -1, _("Delete"))
-        self.btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
+        self.btnDelete.Bind(wx.EVT_BUTTON, self.on_delete)
         self.btnDesign = wx.Button(self.panel, -1, _("Design"))
-        self.btnDesign.Bind(wx.EVT_BUTTON, self.OnDesign)
+        self.btnDesign.Bind(wx.EVT_BUTTON, self.on_design)
         btnOpen = wx.Button(self.panel, wx.ID_OPEN)
-        btnOpen.Bind(wx.EVT_BUTTON, self.OnOpen)
+        btnOpen.Bind(wx.EVT_BUTTON, self.on_open)
         szrData = wx.FlexGridSizer(rows=2, cols=2, hgap=5, vgap=5)  
         szrData.AddGrowableCol(1, 1)      
         lblDbs = wx.StaticText(self.panel, -1, _("Databases:"))
@@ -111,12 +111,12 @@ class DataSelectDlg(wx.Dialog):
         lblMakeNew = wx.StaticText(self.panel, -1, 
                                    _("... or make a new data table"))
         btnMakeNew = wx.Button(self.panel, wx.ID_NEW)
-        btnMakeNew.Bind(wx.EVT_BUTTON, self.OnNewClick)
+        btnMakeNew.Bind(wx.EVT_BUTTON, self.on_new_click)
         szrNew.Add(lblMakeNew, 1, wx.GROW|wx.ALL, 10)
         szrNew.Add(btnMakeNew, 0, wx.ALL, 10)
         self.lblFeedback = wx.StaticText(self.panel, -1, "")
         btnClose = wx.Button(self.panel, wx.ID_CLOSE)
-        btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
+        btnClose.Bind(wx.EVT_BUTTON, self.on_close)
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         self.szrBtns = wx.BoxSizer(wx.HORIZONTAL)
         self.szrBtns.Add(self.lblFeedback, 1, wx.GROW|wx.ALL, 10)
@@ -129,14 +129,14 @@ class DataSelectDlg(wx.Dialog):
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
         self.Layout()
-        self.button_enablement()
+        self.btn_enablement()
         wx.EndBusyCursor()
 
-    def AddFeedback(self, feedback):
+    def add_feedback(self, feedback):
         self.lblFeedback.SetLabel(feedback)
         wx.Yield()
     
-    def button_enablement(self):
+    def btn_enablement(self):
         """
         Can only open dialog for design details for tables in the default SOFA 
             database (except for the default one).
@@ -147,24 +147,24 @@ class DataSelectDlg(wx.Dialog):
         self.btnDelete.Enable(extra_enable)
         self.btnDesign.Enable(extra_enable)
         
-    def OnDatabaseSel(self, event):
+    def on_database_sel(self, event):
         (self.dbe, self.db, self.con, self.cur, self.tbls, self.tbl, self.flds, 
                 self.has_unique, self.idxs) = getdata.refresh_db_dets(self)
         self.reset_tbl_dropdown()
-        self.button_enablement()
+        self.btn_enablement()
         
     def reset_tbl_dropdown(self):
         "Set tables dropdown items and select item according to self.tbl"
         getdata.setup_drop_tbls(self.dropTables, self.dbe, self.db, self.tbls, 
                                 self.tbl)
     
-    def OnTableSel(self, event):
+    def on_table_sel(self, event):
         "Reset key data details after table selection."       
         self.tbl, self.flds, self.has_unique, self.idxs = \
             getdata.refresh_tbl_dets(self)
-        self.button_enablement()
+        self.btn_enablement()
 
-    def OnOpen(self, event):
+    def on_open(self, event):
         ""
         if not self.has_unique:
             msg = _("Table \"%s\" cannot be opened because it " \
@@ -220,7 +220,7 @@ class DataSelectDlg(wx.Dialog):
                          config]
         return table_config
     
-    def OnDelete(self, event):
+    def on_delete(self, event):
         """
         Delete selected table (giving user choice to back out).
         """
@@ -235,11 +235,11 @@ class DataSelectDlg(wx.Dialog):
                                             self.default_tbls, self.con_dets, 
                                             my_globals.SOFA_DEFAULT_DB)
         (self.con, self.cur, self.dbs, self.tbls, self.flds, self.has_unique, 
-         self.idxs) = dbdetsobj.getDbDets()
+         self.idxs) = dbdetsobj.get_db_dets()
         # update tbl dropdown
         self.tbl = self.tbls[0]
         self.reset_tbl_dropdown()
-        self.button_enablement()
+        self.btn_enablement()
         event.Skip()
     
     def make_strict_typing_tbl(self, oth_name_types, config_data):
@@ -306,7 +306,7 @@ class DataSelectDlg(wx.Dialog):
         self.cur.execute(SQL_drop_tmp)
         self.con.commit()
 
-    def OnDesign(self, event):
+    def on_design(self, event):
         """
         Open table config which reads values for the table.
         NB only enabled (for either viewing or editing) for the default SQLite 
@@ -363,7 +363,7 @@ class DataSelectDlg(wx.Dialog):
             self.tbl, self.flds, self.has_unique, self.idxs = \
                 getdata.refresh_tbl_dets(self)
     
-    def OnNewClick(self, event):
+    def on_new_click(self, event):
         """
         Get table name (must be unique etc), create empty table in SOFA Default 
             database with that name, and start off with 5 fields ready to 
@@ -405,7 +405,7 @@ class DataSelectDlg(wx.Dialog):
                                         self.default_tbls, self.con_dets, 
                                         my_globals.SOFA_DEFAULT_DB, self.tbl)
         (self.con, self.cur, self.dbs, self.tbls, self.flds, self.has_unique, 
-            self.idxs) = dbdetsobj.getDbDets()
+            self.idxs) = dbdetsobj.get_db_dets()
         # update tbl dropdown
         self.reset_tbl_dropdown()
         # explain to user
@@ -421,10 +421,10 @@ class DataSelectDlg(wx.Dialog):
                                 readonly)
         wx.EndBusyCursor()
         dlg.ShowModal()
-        self.button_enablement()
+        self.btn_enablement()
         event.Skip()
     
-    def OnClose(self, event):
+    def on_close(self, event):
         debug = False
         my_globals.DBE_DEFAULT = self.dbe
         my_globals.DB_DEFAULTS[self.dbe] = self.db

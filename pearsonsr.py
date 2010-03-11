@@ -23,7 +23,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         """
         unused, label_a, unused, label_b = self.get_drop_vals()
         self.lblPhrase.SetLabel(_("Are \"%(a)s\" and \"%(b)s\" correlated - "
-                               "do they change together in a linear fashion?") \
+                                "do they change together in a linear fashion?")
                                 % {"a": label_a, "b": label_b})
     
     def get_script(self, css_idx, add_to_report, report_name):

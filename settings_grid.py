@@ -18,7 +18,7 @@ class CellMoveEvent(wx.PyCommandEvent):
     def __init__(self, evtType, id):
         wx.PyCommandEvent.__init__(self, evtType, id)
     
-    def AddDets(self, dest_row=None, dest_col=None, direction=None):
+    def add_dets(self, dest_row=None, dest_col=None, direction=None):
         self.dest_row = dest_row
         self.dest_col = dest_col
         self.direction = direction
@@ -66,20 +66,20 @@ class SettingsEntryDlg(wx.Dialog):
         """
         if not readonly:
             btnCancel = wx.Button(self.panel, wx.ID_CANCEL)
-            btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
+            btnCancel.Bind(wx.EVT_BUTTON, self.on_cancel)
         if readonly:
             btnOK = wx.Button(self.panel, wx.ID_OK)
         else:
             btnOK = wx.Button(self.panel, wx.ID_OK, _("Update")) # must have ID 
             # of wx.ID_OK to trigger validators (no event binding needed) and 
             # for std dialog button layout
-        btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
+        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
         btnOK.SetDefault()
         if not readonly:
             btnDelete = wx.Button(self.panel, wx.ID_DELETE)
-            btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
+            btnDelete.Bind(wx.EVT_BUTTON, self.on_delete)
             btnInsert = wx.Button(self.panel, -1, _("Insert Before"))
-            btnInsert.Bind(wx.EVT_BUTTON, self.OnInsert)
+            btnInsert.Bind(wx.EVT_BUTTON, self.on_insert)
         # using the approach which will follow the platform convention 
         # for standard buttons
         self.szrBtns = wx.StdDialogButtonSizer()
@@ -91,19 +91,19 @@ class SettingsEntryDlg(wx.Dialog):
             self.szrBtns.Insert(0, btnDelete, 0)
             self.szrBtns.Insert(0, btnInsert, 0, wx.RIGHT, 10)
 
-    def OnCancel(self, event):
+    def on_cancel(self, event):
         # no validation - just get out
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL)
 
-    def OnOK(self, event):
+    def on_ok(self, event):
         if not self.panel.Validate(): # runs validators on all assoc controls
             return True
         self.tabentry.update_config_data()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
         
-    def OnDelete(self, event):
+    def on_delete(self, event):
         row_del = self.tabentry.try_to_delete_row()
         self.tabentry.grid.SetFocus()
         event.Skip()
@@ -120,7 +120,7 @@ class SettingsEntryDlg(wx.Dialog):
         bolinserted, row_data = self.tabentry.insert_row_above(pos)
         return bolinserted, pos, row_data
     
-    def OnInsert(self, event):
+    def on_insert(self, event):
         """
         Insert before.
         """
@@ -208,7 +208,7 @@ class SettingsEntry(object):
             if col_type == COL_INT:
                 self.grid.SetColFormatNumber(col_idx)
             elif col_type == COL_FLOAT:
-                width, precision = self.GetWidthPrecision(col_idx)
+                width, precision = self.get_width_precision(col_idx)
                 self.grid.SetColFormatFloat(col_idx, width, precision)
             # must set editor cell by cell amazingly
             for row_idx in range(self.rows_n):
@@ -224,17 +224,17 @@ class SettingsEntry(object):
         # unlike normal grids, we can assume limited number of rows
         self.grid.SetRowLabelSize(40)
         # grid event handling
-        self.grid.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
-        self.grid.Bind(EVT_CELL_MOVE, self.OnCellMove)
-        self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnCellChange)
-        self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnSelectCell)
+        self.grid.Bind(wx.EVT_KEY_DOWN, self.on_grid_key_down)
+        self.grid.Bind(EVT_CELL_MOVE, self.on_cell_move)
+        self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.on_cell_change)
+        self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.on_select_cell)
         self.grid.Bind(text_browser.EVT_TEXT_BROWSE_KEY_DOWN, 
-                       self.OnTextBrowseKeyDown)
+                       self.on_text_browse_key_down)
         self.frame.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, 
-                        self.OnGridEditorCreated)
-        self.frame.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.EditorShown)
-        self.frame.Bind(wx.grid.EVT_GRID_EDITOR_HIDDEN, self.EditorHidden)
-        self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelClick)
+                        self.on_grid_editor_created)
+        self.frame.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_editor_shown)
+        self.frame.Bind(wx.grid.EVT_GRID_EDITOR_HIDDEN, self.on_editor_hidden)
+        self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.on_label_click)
         # misc
         for col_idx, col_det in enumerate(self.col_dets):
             self.grid.SetColLabelValue(col_idx, col_det["col_label"])
@@ -269,7 +269,7 @@ class SettingsEntry(object):
             renderer = wx.grid.GridCellNumberRenderer()
             editor = wx.grid.GridCellNumberEditor(min, max)
         elif col_type == COL_FLOAT:
-            width, precision = self.GetWidthPrecision(col_idx)
+            width, precision = self.get_width_precision(col_idx)
             renderer = wx.grid.GridCellFloatRenderer(width, precision)
             editor = wx.grid.GridCellFloatEditor(width, precision)
         elif col_type == COL_TEXT_BROWSE:
@@ -293,7 +293,7 @@ class SettingsEntry(object):
             editor = wx.grid.GridCellTextEditor()
         return renderer, editor
 
-    def GetWidthPrecision(self, col_idx):
+    def get_width_precision(self, col_idx):
         """
         Returns width, precision.
         """
@@ -301,7 +301,7 @@ class SettingsEntry(object):
         precision = self.col_dets[col_idx].get("col_precision", 1)
         return width, precision
 
-    def OnLabelClick(self, event):
+    def on_label_click(self, event):
         "Need to give grid the focus so can process keystrokes e.g. delete"
         self.grid.SetFocus()
         event.Skip()
@@ -319,11 +319,11 @@ class SettingsEntry(object):
         direction - MOVE_LEFT, MOVE_RIGHT, MOVE_UP, etc
         """
         evt_cell_move = CellMoveEvent(myEVT_CELL_MOVE, self.grid.GetId())
-        evt_cell_move.AddDets(dest_row, dest_col, direction)
+        evt_cell_move.add_dets(dest_row, dest_col, direction)
         evt_cell_move.SetEventObject(self.grid)
         self.grid.GetEventHandler().AddPendingEvent(evt_cell_move)
     
-    def OnSelectCell(self, event):
+    def on_select_cell(self, event):
         """
         Capture use of move away from a cell.  May be result of mouse click 
             or a keypress.
@@ -356,13 +356,14 @@ class SettingsEntry(object):
         elif dest_col < src_col and dest_row < src_row:
                 direction = my_globals.MOVE_UP_LEFT
         else:
-            raise Exception, u"settings_grid.OnSelectCell - where is direction?"
+            raise Exception, (u"settings_grid.on_select_cell - where is "
+                              u"direction?")
         if self.debug or debug: 
-            print(u"OnSelectCell - selected row: %s, col: %s, direction: %s" %
+            print(u"on_select_cell - selected row: %s, col: %s, direction: %s" %
             (dest_row, dest_col, direction) + u"******************************") 
         self.add_cell_move_evt(direction, dest_row, dest_col)
 
-    def OnGridEditorCreated(self, event):
+    def on_grid_editor_created(self, event):
         """
         Need to bind KeyDown to the control itself e.g. a choice control.
         wx.WANTS_CHARS makes it work.
@@ -375,13 +376,13 @@ class SettingsEntry(object):
                 self.update_new_is_dirty()
                 print("Selected combobox")
         self.control.WindowStyle |= wx.WANTS_CHARS
-        self.control.Bind(wx.EVT_KEY_DOWN, self.OnGridKeyDown)
+        self.control.Bind(wx.EVT_KEY_DOWN, self.on_grid_key_down)
         event.Skip()
 
-    def OnGridKeyDown(self, event):
+    def on_grid_key_down(self, event):
         """
         Potentially capture use of keypress to move away from a cell.
-        The only case where we can't rely on OnSelectCell to take care of
+        The only case where we can't rely on on_select_cell to take care of
             add_cell_move_evt for us is if we are moving right or down from the 
             last col after a keypress.
         Must process here.  NB dest row and col yet to be determined.
@@ -391,7 +392,7 @@ class SettingsEntry(object):
         debug = False
         keycode = event.GetKeyCode()
         if self.debug or debug: 
-            print(u"OnGridKeyDown - keycode %s pressed" % keycode)
+            print(u"on_grid_key_down - keycode %s pressed" % keycode)
         if keycode in [wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE]:
             # None if no deletion occurs
             if self.try_to_delete_row(assume_row_deletion_attempt=False):
@@ -407,7 +408,7 @@ class SettingsEntry(object):
                 direction = my_globals.MOVE_DOWN
             src_row=self.current_row_idx
             src_col=self.current_col_idx
-            if self.debug or debug: print(u"OnGridKeyDown - keypress in row " +
+            if self.debug or debug: print(u"on_grid_key_down - keypress in row "
                 u"%s col %s *****************************" % (src_row, src_col))
             final_col = (src_col == len(self.col_dets) - 1)
             if final_col and direction in [my_globals.MOVE_RIGHT, 
@@ -432,7 +433,7 @@ class SettingsEntry(object):
             self.new_is_dirty = True
             self.grid.SetRowLabelValue(self.current_row_idx, u"...")
     
-    def OnTextBrowseKeyDown(self, event):
+    def on_text_browse_key_down(self, event):
         """
         Text browser - hit enter from text box part of composite control.  
             If the final col, will go to left of new line.  Otherwise, will just
@@ -447,7 +448,7 @@ class SettingsEntry(object):
             self.grid.DisableCellEditControl()
             self.add_cell_move_evt(my_globals.MOVE_RIGHT)
             
-    def OnCellMove(self, event):
+    def on_cell_move(self, event):
         """
         Response to custom event - used to start process of validating move and
             allowing or disallowing.
@@ -469,7 +470,7 @@ class SettingsEntry(object):
         dest_col = event.dest_col # col being moved towards
         direction = event.direction
         if self.debug or debug: 
-            print(u"settings_grid.OnCellMove src_row: %s src_col %s " %
+            print(u"settings_grid.on_cell_move src_row: %s src_col %s " %
                 (src_row, src_col) + u"dest_row: %s dest_col: %s " %
                 (dest_row, dest_col) + u"direction %s" % direction)
         # process_cell_move called from text editor as well so keep separate
@@ -501,13 +502,13 @@ class SettingsEntry(object):
                 u"source row %s source col %s " % (src_row, src_col) +
                 u"dest row %s dest col %s " % (dest_row, dest_col) +
                 u"direction: %s" % direction)
-        move_type, dest_row, dest_col = self._getMoveDets(src_row, src_col, 
+        move_type, dest_row, dest_col = self.get_move_dets(src_row, src_col, 
                                                 dest_row, dest_col, direction)
         if move_type in [my_globals.MOVING_IN_EXISTING, 
                          my_globals.LEAVING_EXISTING]:
             move_to_dest = self.leaving_existing_cell()
         elif move_type == my_globals.MOVING_IN_NEW:
-            move_to_dest = self._movingInNewRow()
+            move_to_dest = self.moving_in_new_row()
         elif move_type == my_globals.LEAVING_NEW:
             move_to_dest, saved_new_row = self.leaving_new_row(dest_row, 
                                                             dest_col, direction)
@@ -537,7 +538,7 @@ class SettingsEntry(object):
                     pass
         return saved_new_row
     
-    def _getMoveDets(self, src_row, src_col, dest_row, dest_col, direction):
+    def get_move_dets(self, src_row, src_col, dest_row, dest_col, direction):
         """
         Gets move details.
         Returns move_type, dest_row, dest_col.
@@ -566,8 +567,8 @@ class SettingsEntry(object):
         # 1) move type
         final_col = (src_col == len(self.col_dets) - 1)
         was_new_row = self.is_new_row(self.current_row_idx)
-        dest_row_is_new = self._destRowIsCurrentNew(src_row, dest_row, 
-                                                    direction, final_col)
+        dest_row_is_new = self.dest_row_is_current_new(src_row, dest_row, 
+                                                       direction, final_col)
         if debug or self.debug:
             print(u"Current row idx: %s, src_row: %s, was_new_row: %s, "
                   u"dest_row_is_new: %s" % (self.current_row_idx, src_row, 
@@ -581,9 +582,9 @@ class SettingsEntry(object):
         elif not was_new_row and dest_row_is_new:
             move_type = my_globals.LEAVING_EXISTING
         else:
-            raise Exception, u"settings_grid._getMoveDets().  Unknown move."
+            raise Exception, u"settings_grid.get_move_dets().  Unknown move."
         # 2) dest row and dest col
-        if dest_row is None and dest_col is None: # known if from OnSelectCell
+        if dest_row is None and dest_col is None: # known if from on_select_cell
             if final_col and direction in [my_globals.MOVE_RIGHT, 
                                            my_globals.MOVE_DOWN]:
                 dest_row = src_row + 1
@@ -599,12 +600,12 @@ class SettingsEntry(object):
                     dest_row = src_row + 1
                     dest_col = src_col
                 else:
-                    raise Exception, u"settings_grid._getMoveDets no " + \
-                        u"destination (so from a TAB or Return) yet not a " + \
-                        u"left, right, or down."
+                    raise Exception, (u"settings_grid.get_move_dets no "
+                            u"destination (so from a TAB or Return) yet not a "
+                            u"left, right, or down.")
         return move_type, dest_row, dest_col
     
-    def _destRowIsCurrentNew(self, src_row, dest_row, direction, final_col):
+    def dest_row_is_current_new(self, src_row, dest_row, direction, final_col):
         """
         Is the destination row (assuming no validation problems) the current 
             new row?
@@ -658,7 +659,7 @@ class SettingsEntry(object):
         if msg: wx.MessageBox(msg)
         return move_to_dest
     
-    def _movingInNewRow(self):
+    def moving_in_new_row(self):
         """
         Process the attempt to move away from a cell in the new row to another 
             cell in the same row.  Will not move if cell is invalid.
@@ -666,8 +667,8 @@ class SettingsEntry(object):
         """
         debug = False
         if self.debug or debug: print(u"Moving within new row")
-        invalid, msg = self.CellInvalid(self.current_row_idx, 
-                                        self.current_col_idx)
+        invalid, msg = self.cell_invalid(self.current_row_idx, 
+                                         self.current_col_idx)
         if msg: wx.MessageBox(msg)
         move_to_dest = not invalid 
         return move_to_dest
@@ -718,7 +719,7 @@ class SettingsEntry(object):
                 return True
         return False
       
-    def CellInvalid(self, row, col):
+    def cell_invalid(self, row, col):
         """
         Return boolean and string message.
         NB must flush values in any open editors onto grid.
@@ -726,7 +727,7 @@ class SettingsEntry(object):
         self.grid.DisableCellEditControl()
         return self.cell_invalidation_func(row, col, self.grid, self.col_dets)
     
-    def GetVal(self, row, col):
+    def get_val(self, row, col):
         """
         What was the value of a cell?
         If it has just been edited, GetCellValue(), will not have caught up yet.  
@@ -746,12 +747,12 @@ class SettingsEntry(object):
         """
         debug = False
         empty_ok = self.col_dets[col].get(u"empty_ok", False)
-        cell_val = self.GetVal(row, col)
+        cell_val = self.get_val(row, col)
         if self.debug or debug:
             print(u"cell_ok_to_save - row: %s, col: %s, " % (row, col) +
                 u"empty_ok: %s, cell_val: %s" % (empty_ok, cell_val))
         empty_not_ok_prob = (cell_val == "" and not empty_ok)
-        valid, msg = self.CellInvalid(row, col)
+        valid, msg = self.cell_invalid(row, col)
         if not msg and empty_not_ok_prob:
             msg = _("Data cell cannot be empty.")
         ok_to_save = not valid and not empty_not_ok_prob
@@ -775,7 +776,7 @@ class SettingsEntry(object):
     
     # MISC /////////////////////////////////////////////////////////////////////
 
-    def GetColsN(self):
+    def get_cols_n(self):
         return len(self.col_dets)
     
     def ok_to_delete_row(self, row):
@@ -845,7 +846,7 @@ class SettingsEntry(object):
             self.grid.SetGridCursor(self.current_row_idx, self.current_col_idx)
         self.grid.SetFocus()
     
-    def EditorShown(self, event):
+    def on_editor_shown(self, event):
         # disable resizing until finished
         self.grid.DisableDragColSize()
         self.grid.DisableDragRowSize()
@@ -854,7 +855,7 @@ class SettingsEntry(object):
             self.new_editor_shown = True
         event.Skip()
         
-    def EditorHidden(self, event):
+    def on_editor_hidden(self, event):
         # re-enable resizing
         self.grid.EnableDragColSize()
         self.grid.EnableDragRowSize()
@@ -862,7 +863,7 @@ class SettingsEntry(object):
         self.new_editor_shown = False
         event.Skip()
 
-    def OnCellChange(self, event):
+    def on_cell_change(self, event):
         debug = False
         if debug: print("Current row idx is: %s" % self.current_row_idx)
         self.update_new_is_dirty()

@@ -38,11 +38,11 @@ class DbDets(object):
         self.db = db
         self.tbl = tbl
     
-    def getDbTbls(self, cur, db):
+    def get_db_tbls(self, cur, db):
         "Must return tbls"
-        assert 0, "Must define getDbTbls in subclass"
+        assert 0, "Must define get_db_tbls in subclass"
         
-    def getTblFlds(self, cur, db, tbl):
+    def get_tbl_flds(self, cur, db, tbl):
         """
         Must return dic of dics called flds.
         Gets dic of dics for each field with field name as key. Each field dic
@@ -51,13 +51,13 @@ class DbDets(object):
         Need enough to present fields in order, validate data entry, 
             and guide labelling and reporting (e.g. numeric or categorical).
         """
-        assert 0, "Must define getTblFlds in subclass"
+        assert 0, "Must define get_tbl_flds in subclass"
     
-    def getIndexDets(self, cur, db, tbl):
+    def get_index_dets(self, cur, db, tbl):
         "Must return has_unique, idxs"
-        assert 0, "Must define getIndexDets in subclass"
+        assert 0, "Must define get_index_dets in subclass"
        
-    def getDbDets(self):
+    def get_db_dets(self):
         """
         Return connection, cursor, and get lists of databases, tables, fields, 
             and index info, based on the database connection details provided.
@@ -65,7 +65,7 @@ class DbDets(object):
         Must return con, cur, dbs, tbls, flds, has_unique, idxs.
         dbs used to make dropdown of all dbe dbs (called more than once).
         """
-        assert 0, "Must define getDbDets in subclass"
+        assert 0, "Must define get_db_dets in subclass"
 
 def make_fld_val_clause_non_numeric(fld_name, val, dbe_gte, quote_obj, 
                                     quote_val):
@@ -147,31 +147,31 @@ def get_dbe_syntax_elements(dbe):
     """
     return my_globals.DBE_MODULES[dbe].get_syntax_elements()
 
-def setDataConGui(parent, readonly, scroll, szr, lblfont):
+def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     ""
     for dbe in my_globals.DBES:
-        my_globals.DBE_MODULES[dbe].setDataConGui(parent, readonly, scroll, 
-                                                   szr, lblfont)
+        my_globals.DBE_MODULES[dbe].set_data_con_gui(parent, readonly, scroll, 
+                                                     szr, lblfont)
 
-def getProjConSettings(parent, proj_dic):
+def get_proj_con_settings(parent, proj_dic):
     "Get project connection settings"
     for dbe in my_globals.DBES:
-        my_globals.DBE_MODULES[dbe].getProjSettings(parent, proj_dic)
+        my_globals.DBE_MODULES[dbe].get_proj_settings(parent, proj_dic)
 
-def FldsDic2FldNamesLst(flds_dic):
+def flds_dic_to_fld_names_lst(flds_dic):
     # pprint.pprint(flds_dic) # debug
     flds_lst = sorted(flds_dic, key=lambda s: flds_dic[s][my_globals.FLD_SEQ])
     return flds_lst
 
-def setConDetDefaults(parent):
+def set_con_det_defaults(parent):
     """
     Check project connection settings to handle missing values and set 
         sensible defaults.
     """
     for dbe in my_globals.DBES:
-        my_globals.DBE_MODULES[dbe].setConDetDefaults(parent)
+        my_globals.DBE_MODULES[dbe].set_con_det_defaults(parent)
 
-def processConDets(parent, default_dbs, default_tbls, con_dets):
+def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     """
     Populate default_dbs, default_tbls, and con_dets.
     con_dets must contain paths ready to record i.e. double backslashes where
@@ -191,8 +191,8 @@ def processConDets(parent, default_dbs, default_tbls, con_dets):
         # has_incomplete means started but some key detail(s) missing
         # has_con means all required details are completed
         has_incomplete, has_con = \
-            my_globals.DBE_MODULES[dbe].processConDets(parent, default_dbs, 
-                                                       default_tbls, con_dets)
+            my_globals.DBE_MODULES[dbe].process_con_dets(parent, default_dbs, 
+                                                         default_tbls, con_dets)
         if has_incomplete:
             return True, None, completed_dbes
         if has_con:
@@ -200,7 +200,7 @@ def processConDets(parent, default_dbs, default_tbls, con_dets):
             any_cons = True
     return any_incomplete, any_cons, completed_dbes
 
-def getDbItem(db_name, dbe):
+def get_db_item(db_name, dbe):
     return u"%s (%s)" % (db_name, dbe)
 
 def extractDbDets(choice_text):
@@ -217,7 +217,7 @@ def prep_val(dbe, val, fld_dic):
     Any non-missing/null values in numeric fields are simply passed through.
     Values in datetime fields are returned as datetime strings (if valid) ready 
         to include in SQL.  If not valid, the faulty value is returned as is in 
-        the knowledge that it will fail validation later (CellInvalid) and not
+        the knowledge that it will fail validation later (cell_invalid) and not
         actually be saved to a database (in db_grid.update_cell()).
     Why is a faulty datetime allowed through?  Because we don't want to have to 
         handle exceptions at this point (things can happen in a different order 
@@ -338,21 +338,21 @@ def get_data_dropdowns(parent, panel, dbe, default_dbs, default_tbls, con_dets,
                                     con_dets, oth_default_db, None)
         try:
             unused, unused, oth_dbs, unused, unused, unused, unused = \
-                dbdetsobj.getDbDets()
+                dbdetsobj.get_db_dets()
             oth_db_choices = [(x, oth_dbe) for x in oth_dbs]
             db_choices.extend(oth_db_choices)
         except Exception, e:
             if debug: print(unicode(e))
             pass # no connection possible
-    parent.db_choice_items = [getDbItem(x[0], x[1]) for x in db_choices]
+    parent.db_choice_items = [get_db_item(x[0], x[1]) for x in db_choices]
     parent.dropDatabases = wx.Choice(panel, -1, choices=parent.db_choice_items,
                                      size=(300, -1))
-    parent.dropDatabases.Bind(wx.EVT_CHOICE, parent.OnDatabaseSel)
+    parent.dropDatabases.Bind(wx.EVT_CHOICE, parent.on_database_sel)
     dbs_lc = [x.lower() for x in dbs_of_default_dbe]
     parent.dropDatabases.SetSelection(dbs_lc.index(db.lower()))
-    parent.dropTables = wx.Choice(panel, -1, choices=[], size=(300, -1))
+    parent.dropTables = wx.Choice(panel, -1, choices=[], size=(300,-1))
     setup_drop_tbls(parent.dropTables, dbe, db, tbls, tbl)
-    parent.dropTables.Bind(wx.EVT_CHOICE, parent.OnTableSel)
+    parent.dropTables.Bind(wx.EVT_CHOICE, parent.on_table_sel)
     return parent.dropDatabases, parent.dropTables
 
 def setup_drop_tbls(dropTables, dbe, db, tbls, tbl):
@@ -405,7 +405,7 @@ def refresh_db_dets(parent):
     refresh_default_dbs_tbls(dbe, parent.default_dbs, parent.default_tbls)
     dbdetsobj = get_db_dets_obj(dbe, parent.default_dbs, parent.default_tbls, 
                                 parent.con_dets, db)
-    con, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
+    con, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.get_db_dets()
     db = dbdetsobj.db
     tbl = dbdetsobj.tbl
     if debug:
@@ -420,8 +420,8 @@ def refresh_tbl_dets(parent):
     tbl = parent.tbls[parent.dropTables.GetSelection()]
     dbdetsobj = get_db_dets_obj(parent.dbe, parent.default_dbs, 
                          parent.default_tbls, parent.con_dets, parent.db, tbl)
-    flds = dbdetsobj.getTblFlds(parent.cur, parent.db, tbl)
-    has_unique, idxs = dbdetsobj.getIndexDets(parent.cur, parent.db, tbl)
+    flds = dbdetsobj.get_tbl_flds(parent.cur, parent.db, tbl)
+    has_unique, idxs = dbdetsobj.get_index_dets(parent.cur, parent.db, tbl)
     wx.EndBusyCursor()
     return tbl, flds, has_unique, idxs
 
@@ -436,7 +436,7 @@ def get_default_db_dets():
                                 default_dbs=proj_dic["default_dbs"],
                                 default_tbls=proj_dic["default_tbls"],
                                 con_dets=proj_dic["con_dets"])
-    con, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.getDbDets()
+    con, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.get_db_dets()
     return con, cur, dbs, tbls, flds, has_unique, idxs
 
 def dup_tbl_name(tbl_name):

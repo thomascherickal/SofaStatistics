@@ -75,8 +75,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # TODO only want the fields which are numeric? Depends
         self.drop_var1 = wx.Choice(self.panel_top, -1, choices=[], 
                                    size=(300,-1))
-        self.drop_var1.Bind(wx.EVT_CHOICE, self.OnVar1Sel)
-        self.drop_var1.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickVar1)
+        self.drop_var1.Bind(wx.EVT_CHOICE, self.on_var1_sel)
+        self.drop_var1.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_var1)
         self.drop_var1.SetToolTipString(variables_rc_msg)
         self.sorted_var_names1 = []
         self.setup_var(self.drop_var1, my_globals.VAR_1_DEFAULT, 
@@ -86,9 +86,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         lbl_var2.SetFont(self.LABEL_FONT)
         lbl_var2.Enable(False)
         # TODO - only want the fields which are numeric? Depends
-        self.drop_var2 = wx.Choice(self.panel_top, -1, choices=[], size=(300, -1))
-        self.drop_var2.Bind(wx.EVT_CHOICE, self.OnVar2Sel)
-        self.drop_var2.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickVar2)
+        self.drop_var2 = wx.Choice(self.panel_top, -1, choices=[], 
+                                   size=(300,-1))
+        self.drop_var2.Bind(wx.EVT_CHOICE, self.on_var2_sel)
+        self.drop_var2.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_var2)
         self.drop_var2.SetToolTipString(variables_rc_msg)
         self.sorted_var_names2 = []
         self.drop_var2.SetItems([])
@@ -103,9 +104,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # group by
         self.lblGroupBy = wx.StaticText(self.panel_top, -1, _("Group By:"))
         self.lblGroupBy.SetFont(self.LABEL_FONT)
-        self.dropGroupBy = wx.Choice(self.panel_top, -1, choices=[], size=(300, -1))
-        self.dropGroupBy.Bind(wx.EVT_CHOICE, self.OnGroupBySel)
-        self.dropGroupBy.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickGroupBy)
+        self.dropGroupBy = wx.Choice(self.panel_top, -1, choices=[], 
+                                     size=(300,-1))
+        self.dropGroupBy.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
+        self.dropGroupBy.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_group_by)
         self.dropGroupBy.SetToolTipString(variables_rc_msg)
         self.setup_group_by()
         self.lblchop_warning = wx.StaticText(self.panel_top, -1, "")
@@ -114,12 +116,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrVarsTopRightTop.Add(self.lblchop_warning, 1, wx.TOP|wx.RIGHT, 5)
         # group by A
         self.lblGroupA = wx.StaticText(self.panel_top, -1, _("Group A:"))
-        self.dropGroupA = wx.Choice(self.panel_top, -1, choices=[], size=(200, -1))
-        self.dropGroupA.Bind(wx.EVT_CHOICE, self.OnGroupByASel)
+        self.dropGroupA = wx.Choice(self.panel_top, -1, choices=[], 
+                                    size=(200,-1))
+        self.dropGroupA.Bind(wx.EVT_CHOICE, self.on_group_by_a_sel)
         # group by B
         self.lblGroupB = wx.StaticText(self.panel_top, -1, _("Group B:"))
-        self.dropGroupB = wx.Choice(self.panel_top, -1, choices=[], size=(200, -1))
-        self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupByBSel)
+        self.dropGroupB = wx.Choice(self.panel_top, -1, choices=[], 
+                                    size=(200,-1))
+        self.dropGroupB.Bind(wx.EVT_CHOICE, self.on_group_by_b_sel)
         self.setup_group_dropdowns()
         szrVarsTopRightBottom.Add(self.lblGroupA, 0, wx.RIGHT|wx.TOP, 5)
         szrVarsTopRightBottom.Add(self.dropGroupA, 0, wx.RIGHT, 5)
@@ -230,7 +234,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_bar_chart = wx.BitmapButton(self.panel_mid, -1, 
                                              bmp_btn_bar_chart)
-        self.btn_bar_chart.Bind(wx.EVT_BUTTON, self.OnBtnBarChart)
+        self.btn_bar_chart.Bind(wx.EVT_BUTTON, self.on_btn_bar_chart)
         self.btn_bar_chart.SetToolTipString(_("Make Bar Chart"))
         szrchart_btns.Add(self.btn_bar_chart)
         # clustered bar charts
@@ -241,7 +245,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_clustered_bar_chart = wx.BitmapButton(self.panel_mid, -1, 
                                              bmp_btn_clustered_bar_chart)
         self.btn_clustered_bar_chart.Bind(wx.EVT_BUTTON, 
-                                          self.OnBtnClusteredBarChart)
+                                          self.on_btn_clustered_bar_chart)
         self.btn_clustered_bar_chart.SetToolTipString(_("Make Clustered Bar "
                                                         "Chart"))
         szrchart_btns.Add(self.btn_clustered_bar_chart)
@@ -251,7 +255,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_pie_chart = wx.BitmapButton(self.panel_mid, -1, 
                                              bmp_btn_pie_chart)
-        self.btn_pie_chart.Bind(wx.EVT_BUTTON, self.OnBtnChart)
+        self.btn_pie_chart.Bind(wx.EVT_BUTTON, self.on_btn_chart)
         self.btn_pie_chart.SetToolTipString(_("Make Pie Chart"))
         szrchart_btns.Add(self.btn_pie_chart)
         # line charts
@@ -260,7 +264,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_line_chart = wx.BitmapButton(self.panel_mid, -1, 
                                               bmp_btn_line_chart)
-        self.btn_line_chart.Bind(wx.EVT_BUTTON, self.OnBtnChart)
+        self.btn_line_chart.Bind(wx.EVT_BUTTON, self.on_btn_chart)
         self.btn_line_chart.SetToolTipString(_("Make Line Chart"))
         szrchart_btns.Add(self.btn_line_chart)
         # area charts
@@ -269,7 +273,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_area_chart = wx.BitmapButton(self.panel_mid, -1, 
                                               bmp_btn_area_chart)
-        self.btn_area_chart.Bind(wx.EVT_BUTTON, self.OnBtnChart)
+        self.btn_area_chart.Bind(wx.EVT_BUTTON, self.on_btn_chart)
         self.btn_area_chart.SetToolTipString(_("Make Area Chart"))
         szrchart_btns.Add(self.btn_area_chart)
         # scatterplots
@@ -278,7 +282,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_scatterplot = wx.BitmapButton(self.panel_mid, -1, 
                                                bmp_btn_scatterplot)
-        self.btn_scatterplot.Bind(wx.EVT_BUTTON, self.OnBtnChart)
+        self.btn_scatterplot.Bind(wx.EVT_BUTTON, self.on_btn_chart)
         self.btn_scatterplot.SetToolTipString(_("Make Scatterplot"))
         szrchart_btns.Add(self.btn_scatterplot)
         # histograms
@@ -287,7 +291,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_histogram = wx.BitmapButton(self.panel_mid, -1, 
                                              bmp_btn_histogram)
-        self.btn_histogram.Bind(wx.EVT_BUTTON, self.OnBtnChart)
+        self.btn_histogram.Bind(wx.EVT_BUTTON, self.on_btn_chart)
         self.btn_histogram.SetToolTipString(_("Make Histogram"))
         szrchart_btns.Add(self.btn_histogram)
         if not my_globals.IN_WINDOWS:
@@ -300,7 +304,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.btn_scatterplot.SetCursor(hand)
             self.btn_histogram.SetCursor(hand)
     
-    def OnBtnBarChart(self, event):
+    def on_btn_bar_chart(self, event):
         if self.panel_displayed == self.panel_bar_chart:
             return
         else:
@@ -311,7 +315,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_bar_chart.Show(True)
         self.panel_mid.Layout() # self.Layout() doesn't work in Windows
 
-    def OnBtnClusteredBarChart(self, event):
+    def on_btn_clustered_bar_chart(self, event):
         if self.panel_displayed == self.panel_clustered_bar_chart:
             return
         else:
@@ -322,25 +326,25 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_clustered_bar_chart.Show(True)
         self.panel_mid.Layout()
 
-    def OnBtnChart(self, event):
+    def on_btn_chart(self, event):
         wx.MessageBox(u"Charting is under construction")
     
-    def OnVar1Sel(self, event):
+    def on_var1_sel(self, event):
         pass
         
-    def OnVar2Sel(self, event):
+    def on_var2_sel(self, event):
         pass
     
     def add_other_var_opts(self):
         pass
 
-    def OnRightClickVar1(self, event):
-        self.OnRightClickVar(self.drop_var1, self.sorted_var_names1)
+    def on_right_click_var1(self, event):
+        self.on_right_click_var(self.drop_var1, self.sorted_var_names1)
         
-    def OnRightClickVar2(self, event):
-        self.OnRightClickVar(self.drop_var2, self.sorted_var_names2)
+    def on_right_click_var2(self, event):
+        self.on_right_click_var(self.drop_var2, self.sorted_var_names2)
         
-    def OnRightClickVar(self, drop_var, sorted_var_names):
+    def on_right_click_var(self, drop_var, sorted_var_names):
         var_name, choice_item = self.get_var_dets(drop_var, sorted_var_names)
         var_name, var_label = lib.extract_var_choice_dets(choice_item)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
@@ -358,12 +362,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                self.sorted_var_names2, var_name2)
         self.update_defaults()
 
-    def OnDatabaseSel(self, event):
+    def on_database_sel(self, event):
         """
         Reset dbe, database, cursor, tables, table, tables dropdown, 
             fields, has_unique, and idxs after a database selection.
         """
-        config_dlg.ConfigDlg.OnDatabaseSel(self, event)
+        config_dlg.ConfigDlg.on_database_sel(self, event)
         # now update var dropdowns
         self.update_var_dets()
         self.setup_group_by()
@@ -373,9 +377,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                        self.sorted_var_names2)
         self.setup_group_dropdowns()
                 
-    def OnTableSel(self, event):
+    def on_table_sel(self, event):
         "Reset key data details after table selection."       
-        config_dlg.ConfigDlg.OnTableSel(self, event)
+        config_dlg.ConfigDlg.on_table_sel(self, event)
         # now update var dropdowns
         self.update_var_dets()
         self.setup_group_by()
@@ -385,14 +389,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                        self.sorted_var_names2)
         self.setup_group_dropdowns()
     
-    def OnVarDetsFileLostFocus(self, event):
+    def on_var_dets_file_lost_focus(self, event):
         """
         Want to retain already selected item - even though label and even 
             position may have changed.
         """
-        val_a, val_b = self.GetVals()
+        val_a, val_b = self.get_vals()
         var_gp, var_name1, var_name2 = self.get_vars()
-        config_dlg.ConfigDlg.OnVarDetsFileLostFocus(self, event)
+        config_dlg.ConfigDlg.on_var_dets_file_lost_focus(self, event)
         self.setup_group_by(var_gp)
         self.setup_var(self.drop_var1, my_globals.VAR_1_DEFAULT, 
                        self.sorted_var_names1, var_name1)
@@ -401,14 +405,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_group_dropdowns(val_a, val_b)
         self.update_defaults()
         
-    def OnButtonVarDetsPath(self, event):
+    def on_btn_var_dets_path(self, event):
         """
         Want to retain already selected item - even though label and even 
             position may have changed.
         """
-        val_a, val_b = self.GetVals()
+        val_a, val_b = self.get_vals()
         var_gp, var_nam1, var_name2 = self.get_vars()
-        config_dlg.ConfigDlg.OnButtonVarDetsPath(self, event)
+        config_dlg.ConfigDlg.on_btn_var_dets_path(self, event)
         self.setup_group_by(var_gp)
         self.setup_var(self.drop_var1, my_globals.VAR_1_DEFAULT, 
                        self.sorted_var_names1, var_name1)

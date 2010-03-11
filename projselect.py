@@ -16,7 +16,7 @@ class ProjSelectDlg(wx.Dialog):
         wx.Dialog.__init__(self, parent=parent, title=_("Projects"),
                            size=wx.DefaultSize, 
                            style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
-                           wx.SYSTEM_MENU, pos=(400, 100))
+                           wx.SYSTEM_MENU, pos=(400,100))
         self.parent = parent
         self.panel = wx.Panel(self)
         self.projs = projs
@@ -27,10 +27,10 @@ class ProjSelectDlg(wx.Dialog):
         self.dropProjs = wx.Choice(self.panel, -1, choices=self.projs)
         idx_proj = self.projs.index(proj)
         self.dropProjs.SetSelection(idx_proj)
-        self.StoreProjName(self.projs[idx_proj])
-        self.dropProjs.Bind(wx.EVT_CHOICE, self.OnProjSelect)
+        self.store_proj_name(self.projs[idx_proj])
+        self.dropProjs.Bind(wx.EVT_CHOICE, self.on_proj_select)
         self.btnEdit = wx.Button(self.panel, wx.ID_EDIT)
-        self.btnEdit.Bind(wx.EVT_BUTTON, self.OnEdit)
+        self.btnEdit.Bind(wx.EVT_BUTTON, self.on_edit)
         szrExistingTop = wx.BoxSizer(wx.HORIZONTAL)
         szrExistingTop.Add(self.dropProjs, 1, wx.GROW|wx.RIGHT, 10)
         szrExistingTop.Add(self.btnEdit, 0)
@@ -48,7 +48,7 @@ class ProjSelectDlg(wx.Dialog):
         lblMakeNew = wx.StaticText(self.panel, -1, 
                                    _("... or make a new project"))
         btnMakeNew = wx.Button(self.panel, wx.ID_NEW)
-        btnMakeNew.Bind(wx.EVT_BUTTON, self.OnNewClick)
+        btnMakeNew.Bind(wx.EVT_BUTTON, self.on_new_click)
         szrNew.Add(lblMakeNew, 1, wx.GROW|wx.ALL, 10)
         szrNew.Add(btnMakeNew, 0, wx.ALL, 10)
         self.setup_btns()
@@ -60,7 +60,7 @@ class ProjSelectDlg(wx.Dialog):
         self.szrMain.SetSizeHints(self)
         self.Layout()
     
-    def StoreProjName(self, proj_name):
+    def store_proj_name(self, proj_name):
         "NB must have .proj on end"
         #print(proj_name) # debug
         self.proj_name = proj_name
@@ -71,9 +71,9 @@ class ProjSelectDlg(wx.Dialog):
             needed) and for std dialog button layout.
         """
         btnCancel = wx.Button(self.panel, wx.ID_CANCEL) # 
-        btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
+        btnCancel.Bind(wx.EVT_BUTTON, self.on_cancel)
         btnOK = wx.Button(self.panel, wx.ID_OK)
-        btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
+        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
         btnOK.SetDefault()
         self.szrBtns = wx.StdDialogButtonSizer()
         self.szrBtns.AddButton(btnCancel)
@@ -101,19 +101,19 @@ class ProjSelectDlg(wx.Dialog):
         # must always be stored, even if only ""
         self.proj_notes = projects.get_proj_notes(fil_proj, proj_dic)
     
-    def OnProjSelect(self, event):
+    def on_proj_select(self, event):
         proj_sel_id = self.dropProjs.GetSelection()
-        self.SetNotes(proj_sel_id)
+        self.set_notes(proj_sel_id)
         my_globals.DBE_DEFAULT = None # otherwise there can be a problem if the
             # new project doesn't have the dbe that the old one had.
         event.Skip()
     
-    def SetNotes(self, proj_sel_id):
+    def set_notes(self, proj_sel_id):
         proj_sel_id = self.dropProjs.GetSelection()
         self.get_notes(self.projs[proj_sel_id])
         self.txtProjNotes.SetValue(self.proj_notes)
         
-    def OnEdit(self,event):
+    def on_edit(self,event):
         proj_sel_id = self.dropProjs.GetSelection()
         readonly = (self.projs[proj_sel_id] == my_globals.SOFA_DEFAULT_PROJ)
         dlgProj = projects.ProjectDlg(parent=self, readonly=readonly,
@@ -125,17 +125,17 @@ class ProjSelectDlg(wx.Dialog):
             self.projs = projects.get_projs()
             self.dropProjs.SetItems(self.projs)
             self.dropProjs.SetSelection(0)
-            self.SetNotes(0)
+            self.set_notes(0)
         elif ret_val == wx.ID_OK:
-            self.SetToNameFromOK()
+            self.set_to_name_from_ok()
           
-    def OnNewClick(self, event):
+    def on_new_click(self, event):
         dlgProj = projects.ProjectDlg(parent=self, readonly=False)
         ret_val = dlgProj.ShowModal()
         if ret_val == wx.ID_OK:
-            self.SetToNameFromOK()
+            self.set_to_name_from_ok()
 
-    def SetToNameFromOK(self):
+    def set_to_name_from_ok(self):
         # redo choices and display record with new name
         self.projs = projects.get_projs()
         self.dropProjs.SetItems(self.projs)
@@ -143,17 +143,17 @@ class ProjSelectDlg(wx.Dialog):
         # NB proj name should have been set by projects
         proj_sel_id = self.projs.index(self.proj_name)
         self.dropProjs.SetSelection(proj_sel_id) # may have changed name
-        self.SetNotes(proj_sel_id)
+        self.set_notes(proj_sel_id)
 
-    def OnCancel(self, event):
+    def on_cancel(self, event):
         self.Destroy()
     
-    def OnOK(self, event):
+    def on_ok(self, event):
         proj_sel_id = self.dropProjs.GetSelection()
         fil_proj = self.projs[proj_sel_id]
         try:
             proj_name = fil_proj[:-5]
-            self.parent.SetProj(proj_name)
+            self.parent.set_proj(proj_name)
         except Exception:
             pass
         self.Destroy()

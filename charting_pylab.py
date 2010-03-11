@@ -97,7 +97,7 @@ class HistDlg(wxmpl.PlotDlg):
             title=_("Similar to normal distribution curve?"), size=(10.0, 6.0), 
             dpi=96)
         btnOK = wx.Button(self, wx.ID_OK)
-        btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
+        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
         self.sizer.Add(btnOK, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
         fig = self.get_figure()
         config_hist(fig, vals, var_label, hist_label)
@@ -105,5 +105,5 @@ class HistDlg(wxmpl.PlotDlg):
         self.SetSizer(self.sizer)
         self.Fit()
 
-    def OnOK(self, event):
+    def on_ok(self, event):
         self.Destroy()

@@ -104,8 +104,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         # only want the fields which are numeric
         self.dropAveraged = wx.Choice(self.panel, -1, choices=[], 
                                       size=(300, -1))
-        self.dropAveraged.Bind(wx.EVT_CHOICE, self.OnAveragedSel)
-        self.dropAveraged.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickAvg)
+        self.dropAveraged.Bind(wx.EVT_CHOICE, self.on_averaged_sel)
+        self.dropAveraged.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_vars)
         self.dropAveraged.SetToolTipString(variables_rc_msg)
         self.sorted_var_names_avg = []
         self.setup_var(self.dropAveraged, my_globals.VAR_AVG_DEFAULT,
@@ -117,8 +117,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.lblGroupBy = wx.StaticText(self.panel, -1, _("Group By:"))
         self.lblGroupBy.SetFont(self.LABEL_FONT)
         self.dropGroupBy = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
-        self.dropGroupBy.Bind(wx.EVT_CHOICE, self.OnGroupBySel)
-        self.dropGroupBy.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickGroupBy)
+        self.dropGroupBy.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
+        self.dropGroupBy.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_group_by)
         self.dropGroupBy.SetToolTipString(variables_rc_msg)
         self.setup_group_by()
         self.lblchop_warning = wx.StaticText(self.panel, -1, "")
@@ -128,11 +128,11 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         # group by A
         self.lblGroupA = wx.StaticText(self.panel, -1, _("Group A:"))
         self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
-        self.dropGroupA.Bind(wx.EVT_CHOICE, self.OnGroupByASel)
+        self.dropGroupA.Bind(wx.EVT_CHOICE, self.on_group_by_a_sel)
         # group by B
         self.lblGroupB = wx.StaticText(self.panel, -1, _("Group B:"))
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
-        self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupByBSel)
+        self.dropGroupB.Bind(wx.EVT_CHOICE, self.on_group_by_b_sel)
         self.setup_group_dropdowns()
         szrVarsTopRightBottom.Add(self.lblGroupA, 0, wx.RIGHT|wx.TOP, 5)
         szrVarsTopRightBottom.Add(self.dropGroupA, 0, wx.RIGHT, 5)
@@ -180,15 +180,15 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def add_other_var_opts(self):
         pass
 
-    def OnRightClickTables(self, event):
+    def on_right_click_tables(self, event):
         """
         Extend to pass on filter changes to group by val options a and b.
         """
-        config_dlg.ConfigDlg.OnRightClickTables(self, event)
+        config_dlg.ConfigDlg.on_right_click_tables(self, event)
         self.refresh_vals()
         event.Skip()
 
-    def OnRightClickGroupBy(self, event):
+    def on_right_click_group_by(self, event):
         var_gp, choice_item = self.get_group_by()
         var_name, var_label = lib.extract_var_choice_dets(choice_item)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
@@ -197,7 +197,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         if updated:
             self.refresh_vars()
 
-    def OnRightClickAvg(self, event):
+    def on_right_click_vars(self, event):
         var_avg, choice_item = self.get_var_dets(self.dropAveraged, 
                                                  self.sorted_var_names_avg)
         var_name, var_label = lib.extract_var_choice_dets(choice_item)
@@ -215,17 +215,17 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.update_defaults()
         self.update_phrase()
         
-    def OnPaint(self, event):
+    def on_paint(self, event):
         if self.show_chop_warning:
-            wx.CallAfter(self.ShowChopWarning)
+            wx.CallAfter(self.show_chop_warning)
         event.Skip()
 
-    def OnDatabaseSel(self, event):
+    def on_database_sel(self, event):
         """
         Reset dbe, database, cursor, tables, table, tables dropdown, 
             fields, has_unique, and idxs after a database selection.
         """
-        config_dlg.ConfigDlg.OnDatabaseSel(self, event)
+        config_dlg.ConfigDlg.on_database_sel(self, event)
         # now update var dropdowns
         self.update_var_dets()
         self.setup_group_by()
@@ -233,9 +233,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                        self.sorted_var_names_avg)
         self.setup_group_dropdowns()
                 
-    def OnTableSel(self, event):
+    def on_table_sel(self, event):
         "Reset key data details after table selection."       
-        config_dlg.ConfigDlg.OnTableSel(self, event)
+        config_dlg.ConfigDlg.on_table_sel(self, event)
         # now update var dropdowns
         self.update_var_dets()
         self.setup_group_by()
@@ -243,28 +243,28 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                        self.sorted_var_names_avg)
         self.setup_group_dropdowns()
     
-    def OnVarDetsFileLostFocus(self, event):
+    def on_var_dets_file_lost_focus(self, event):
         """
         Want to retain already selected item - even though label and even 
             position may have changed.
         """
-        val_a, val_b = self.GetVals()
+        val_a, val_b = self.get_vals()
         var_gp, var_avg = self.get_vars()
-        config_dlg.ConfigDlg.OnVarDetsFileLostFocus(self, event)
+        config_dlg.ConfigDlg.on_var_dets_file_lost_focus(self, event)
         self.setup_group_by(var_gp)
         self.setup_var(self.dropAveraged, my_globals.VAR_AVG_DEFAULT, var_avg)
         self.setup_group_dropdowns(val_a, val_b)
         self.update_defaults()
         self.update_phrase()
         
-    def OnButtonVarDetsPath(self, event):
+    def on_btn_var_dets_path(self, event):
         """
         Want to retain already selected item - even though label and even 
             position may have changed.
         """
-        val_a, val_b = self.GetVals()
+        val_a, val_b = self.get_vals()
         var_gp, var_avg = self.get_vars()
-        config_dlg.ConfigDlg.OnButtonVarDetsPath(self, event)
+        config_dlg.ConfigDlg.on_btn_var_dets_path(self, event)
         self.setup_group_by(var_gp)
         self.setup_var(self.dropAveraged, my_globals.VAR_AVG_DEFAULT, 
                        self.sorted_var_names_avg, var_avg)
@@ -294,7 +294,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                                             self.sorted_var_names_avg)
         return var_gp, var_avg
     
-    def GetVals(self):
+    def get_vals(self):
         """
         self.vals is set when dropdowns are set (and only changed when reset).
         """
@@ -304,7 +304,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         val_b = self.vals[idx_b]
         return val_a, val_b
     
-    def OnGroupBySel(self, event):
+    def on_group_by_sel(self, event):
         self.refresh_vals()
         event.Skip()
         
@@ -319,12 +319,12 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         my_globals.VAL_A_DEFAULT = self.dropGroupA.GetStringSelection()
         my_globals.VAL_B_DEFAULT = self.dropGroupB.GetStringSelection()
     
-    def OnGroupByASel(self, event):        
+    def on_group_by_a_sel(self, event):        
         self.update_phrase()
         self.update_defaults()
         event.Skip()
         
-    def OnGroupByBSel(self, event):        
+    def on_group_by_b_sel(self, event):        
         self.update_phrase()
         self.update_defaults()
         event.Skip()
@@ -447,7 +447,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         return var_gp_numeric, var_gp, label_gp, val_a, label_a, \
             val_b, label_b, var_avg, label_avg
         
-    def OnAveragedSel(self, event):        
+    def on_averaged_sel(self, event):        
         self.update_phrase()
         self.update_defaults()
         event.Skip()
@@ -455,7 +455,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def update_local_display(self, strContent):
         self.html.show_html(strContent, url_load=True) # allow footnotes
     
-    def OnButtonRun(self, event):
+    def on_btn_run(self, event):
         """
         Generate script to special location (INT_SCRIPT_PATH), 
             run script putting output in special location 
@@ -519,7 +519,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         return True
     
    # export script
-    def OnButtonExport(self, event):
+    def on_btn_export(self, event):
         """
         Export script for table to file currently displayed (if enough data).
         If the file doesn't exist, make one and add the preliminary code.
@@ -539,15 +539,15 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                                  self.default_tbls)
         event.Skip()
 
-    def OnButtonHelp(self, event):
+    def on_btn_help(self, event):
         wx.MessageBox(u"Under construction")
         event.Skip()
     
-    def OnButtonClear(self, event):
+    def on_btn_clear(self, event):
         wx.MessageBox(u"Under construction")
         event.Skip()
     
-    def OnClose(self, event):
+    def on_close(self, event):
         "Close app"
         try:
             self.con.close()

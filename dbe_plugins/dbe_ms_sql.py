@@ -65,7 +65,7 @@ class DbDets(getdata.DbDets):
         user = con_dets_mssql["user"]
         pwd = con_dets_mssql["passwd"]
         self.dbs, self.db = self._getDbs(host, user, pwd)
-        setDbInConDets(con_dets_mssql, self.db)
+        set_db_in_con_dets(con_dets_mssql, self.db)
         DSN = u"""PROVIDER=SQLOLEDB;
             Data Source='%s';
             User ID='%s';
@@ -83,7 +83,7 @@ class DbDets(getdata.DbDets):
         cur.adoconn = con.adoConn # (need to access from just the cursor)        
         return con, cur
     
-    def getDbDets(self):
+    def get_db_dets(self):
         """
         Return connection, cursor, and get lists of 
             databases, tables, fields, and index info,
@@ -96,7 +96,7 @@ class DbDets(getdata.DbDets):
         """
         debug = False
         con, cur = self.get_con_cur()
-        tbls = self.getDbTbls(cur, self.db)
+        tbls = self.get_db_tbls(cur, self.db)
         if debug: print(tbls)
         tbls_lc = [x.lower() for x in tbls]        
         # get table (default if possible otherwise first)
@@ -117,8 +117,8 @@ class DbDets(getdata.DbDets):
                 raise Exception, u"Table \"%s\" not found " % self.tbl + \
                     "in database \"%s\"" % self.db
         # get field names (from first table if none provided)
-        flds = self.getTblFlds(cur, self.db, self.tbl)
-        has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
+        flds = self.get_tbl_flds(cur, self.db, self.tbl)
+        has_unique, idxs = self.get_index_dets(cur, self.db, self.tbl)
         if debug:
             print(self.db)
             print(self.tbl)
@@ -167,7 +167,7 @@ class DbDets(getdata.DbDets):
         con.close()
         return dbs, db
 
-    def getDbTbls(self, cur, db):
+    def get_db_tbls(self, cur, db):
         "Get table names given database and cursor. NB not system tables"
         tbls = []
         cat = win32com.client.Dispatch(r'ADOX.Catalog')
@@ -180,7 +180,7 @@ class DbDets(getdata.DbDets):
         cat = None
         return tbls
 
-    def getTblFlds(self, cur, db, tbl):
+    def get_tbl_flds(self, cur, db, tbl):
         """
         Returns details for set of fields given database, table, and cursor.
         NUMERIC_SCALE - number of significant digits to right of decimal point.
@@ -231,8 +231,8 @@ class DbDets(getdata.DbDets):
             boldatetime = fld_type in dbe_globals.DATETIME_TYPES
             fld_txt = not bolnumeric and not boldatetime
             num_prec = col.Precision
-            min_val, max_val = dbe_globals.GetMinMax(fld_type, num_prec, 
-                                                     dec_pts)
+            min_val, max_val = dbe_globals.get_min_max(fld_type, num_prec, 
+                                                       dec_pts)
             dets_dic = {
                 my_globals.FLD_SEQ: extras[fld_name][0],
                 my_globals.FLD_BOLNULLABLE: bolnullable,
@@ -257,7 +257,7 @@ class DbDets(getdata.DbDets):
         cat = None
         return flds  
 
-    def getIndexDets(self, cur, db, tbl):
+    def get_index_dets(self, cur, db, tbl):
         """
         has_unique - boolean
         idxs = [idx0, idx1, ...]
@@ -284,12 +284,11 @@ class DbDets(getdata.DbDets):
             print(has_unique)
         return has_unique, idxs
 
-def setDbInConDets(con_dets, db):
+def set_db_in_con_dets(con_dets, db):
     "Set database in connection details (if appropriate)"
     con_dets[u"db"] = db
 
-def setDataConGui(parent, readonly, scroll, szr, lblfont):
-    ""
+def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     # default database
     parent.lblMssqlDefaultDb = wx.StaticText(scroll, -1, 
                                              _("Default Database (name only):"))
@@ -356,8 +355,7 @@ def setDataConGui(parent, readonly, scroll, szr, lblfont):
     parent.szrMssql.Add(szrMssqlInnerBtm, 0, wx.ALL, 5)
     szr.Add(parent.szrMssql, 0, wx.GROW|wx.ALL, 10)
 
-def getProjSettings(parent, proj_dic):
-    ""
+def get_proj_settings(parent, proj_dic):
     parent.mssql_default_db = \
         proj_dic[u"default_dbs"].get(my_globals.DBE_MS_SQL)
     parent.mssql_default_tbl = \
@@ -370,7 +368,7 @@ def getProjSettings(parent, proj_dic):
     else:
         parent.mssql_host, parent.mssql_user, parent.mssql_pwd = "", "", ""
 
-def setConDetDefaults(parent):
+def set_con_det_defaults(parent):
     try:
         parent.mssql_default_db
     except AttributeError:
@@ -392,7 +390,7 @@ def setConDetDefaults(parent):
     except AttributeError: 
         parent.mssql_pwd = u""
 
-def processConDets(parent, default_dbs, default_tbls, con_dets):
+def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     mssql_default_db = parent.txtMssqlDefaultDb.GetValue()
     mssql_default_tbl = parent.txtMssqlDefaultTbl.GetValue()
     mssql_host = parent.txtMssqlHost.GetValue()

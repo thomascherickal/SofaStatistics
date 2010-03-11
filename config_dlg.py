@@ -68,7 +68,7 @@ class ConfigDlg(object):
         dbdetsobj = getdata.get_db_dets_obj(self.dbe, self.default_dbs, 
                                             self.default_tbls, self.con_dets)
         (self.con, self.cur, self.dbs, self.tbls, self.flds, self.has_unique,  
-                self.idxs) = dbdetsobj.getDbDets()
+                self.idxs) = dbdetsobj.get_db_dets()
         # set up self.dropDatabases and self.dropTables
         self.db = dbdetsobj.db
         self.tbl = dbdetsobj.tbl
@@ -77,7 +77,7 @@ class ConfigDlg(object):
                                        self.default_tbls, self.con_dets,
                                        self.dbs, self.db, self.tbls, self.tbl)
         # not wanted in all cases when dropdowns used e.g. data select
-        self.dropTables.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickTables)
+        self.dropTables.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_tables)
         self.dropTables.SetToolTipString(_("Right click to add/remove filter"))
         # 2) Tables
         lblTables = wx.StaticText(panel, -1, _("Table:"))
@@ -102,35 +102,38 @@ class ConfigDlg(object):
         # Data config details
         self.txtVarDetsFile = wx.TextCtrl(panel, -1, self.fil_var_dets, 
                                          size=(250,-1))
-        self.txtVarDetsFile.Bind(wx.EVT_KILL_FOCUS, self.OnVarDetsFileLostFocus)
+        self.txtVarDetsFile.Bind(wx.EVT_KILL_FOCUS, 
+                                 self.on_var_dets_file_lost_focus)
         self.txtVarDetsFile.Enable(not readonly)
         self.btnVarDetsPath = wx.Button(panel, -1, _("Browse"))
-        self.btnVarDetsPath.Bind(wx.EVT_BUTTON, self.OnButtonVarDetsPath)
+        self.btnVarDetsPath.Bind(wx.EVT_BUTTON, self.on_btn_var_dets_path)
         self.btnVarDetsPath.Enable(not readonly)
         # CSS style config details
         self.txtCssFile = wx.TextCtrl(panel, -1, self.fil_css, 
                                       size=(250,-1))
-        self.txtCssFile.Bind(wx.EVT_KILL_FOCUS, self.OnCssFileLostFocus)
+        self.txtCssFile.Bind(wx.EVT_KILL_FOCUS, self.on_css_file_lost_focus)
         self.txtCssFile.Enable(not readonly)
         self.btnCssPath = wx.Button(panel, -1, _("Browse"))
-        self.btnCssPath.Bind(wx.EVT_BUTTON, self.OnButtonCssPath)
+        self.btnCssPath.Bind(wx.EVT_BUTTON, self.on_btn_css_path)
         self.btnCssPath.Enable(not readonly)
         # Output details
         # report
         self.txtReportFile = wx.TextCtrl(panel, -1, self.fil_report, 
                                          size=(250,-1))
-        self.txtReportFile.Bind(wx.EVT_KILL_FOCUS, self.OnReportFileLostFocus)
+        self.txtReportFile.Bind(wx.EVT_KILL_FOCUS, 
+                                self.on_report_file_lost_focus)
         self.txtReportFile.Enable(not readonly)
         self.btnReportPath = wx.Button(panel, -1, _("Browse"))
-        self.btnReportPath.Bind(wx.EVT_BUTTON, self.OnButtonReportPath)
+        self.btnReportPath.Bind(wx.EVT_BUTTON, self.on_btn_report_path)
         self.btnReportPath.Enable(not readonly)
         # script
         self.txtScriptFile = wx.TextCtrl(panel, -1, self.fil_script, 
                                    size=(250,-1))
-        self.txtScriptFile.Bind(wx.EVT_KILL_FOCUS, self.OnScriptFileLostFocus)
+        self.txtScriptFile.Bind(wx.EVT_KILL_FOCUS, 
+                                self.on_script_file_lost_focus)
         self.txtScriptFile.Enable(not readonly)
         self.btnScriptPath = wx.Button(panel, -1, _("Browse"))
-        self.btnScriptPath.Bind(wx.EVT_BUTTON, self.OnButtonScriptPath)
+        self.btnScriptPath.Bind(wx.EVT_BUTTON, self.on_btn_script_path)
         self.btnScriptPath.Enable(not readonly)        
           
         self.szrConfigTop = wx.BoxSizer(wx.HORIZONTAL)
@@ -166,27 +169,27 @@ class ConfigDlg(object):
     def get_szrOutputBtns(self, panel, inc_clear=True):
         #main
         self.btnRun = wx.Button(panel, -1, _("Run"))
-        self.btnRun.Bind(wx.EVT_BUTTON, self.OnButtonRun)
+        self.btnRun.Bind(wx.EVT_BUTTON, self.on_btn_run)
         self.btnRun.SetToolTipString(_("Run report and display results"))
         label_divider = " " if my_globals.IN_WINDOWS else "\n"
         self.chkAddToReport = wx.CheckBox(panel, -1, 
                                           _("Add to%sreport" % label_divider))
         self.chkAddToReport.SetValue(True)
         self.btnExport = wx.Button(panel, -1, _("Export"))
-        self.btnExport.Bind(wx.EVT_BUTTON, self.OnButtonExport)
+        self.btnExport.Bind(wx.EVT_BUTTON, self.on_btn_export)
         self.btnExport.SetToolTipString(_("Export to script for reuse"))
         self.btnExpand = wx.Button(panel, -1, _("Expand"))
-        self.btnExpand.Bind(wx.EVT_BUTTON, self.OnButtonExpand)
+        self.btnExpand.Bind(wx.EVT_BUTTON, self.on_btn_expand)
         self.btnExpand.SetToolTipString(_("Open report in own window"))
         self.btnExpand.Enable(False)
         self.btnHelp = wx.Button(panel, wx.ID_HELP)
-        self.btnHelp.Bind(wx.EVT_BUTTON, self.OnButtonHelp)
+        self.btnHelp.Bind(wx.EVT_BUTTON, self.on_btn_help)
         if inc_clear:
             self.btnClear = wx.Button(panel, -1, _("Clear"))
             self.btnClear.SetToolTipString(_("Clear settings"))
-            self.btnClear.Bind(wx.EVT_BUTTON, self.OnButtonClear)
+            self.btnClear.Bind(wx.EVT_BUTTON, self.on_btn_clear)
         self.btnClose = wx.Button(panel, wx.ID_CLOSE)
-        self.btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
+        self.btnClose.Bind(wx.EVT_BUTTON, self.on_close)
         # add to sizer
         self.szrOutputButtons = wx.FlexGridSizer(rows=7, cols=1, hgap=5, vgap=5)
         self.szrOutputButtons.AddGrowableRow(5,2) # idx, propn
@@ -211,7 +214,7 @@ class ConfigDlg(object):
             projects.get_var_dets(self.fil_var_dets)
 
     # database/ tables (and views)
-    def OnDatabaseSel(self, event):
+    def on_database_sel(self, event):
         """
         Reset dbe, database, cursor, tables, table, tables dropdown, 
             fields, has_unique, and idxs after a database selection.
@@ -222,7 +225,7 @@ class ConfigDlg(object):
         tbls_lc = [x.lower() for x in self.tbls]
         self.dropTables.SetSelection(tbls_lc.index(self.tbl.lower()))
         
-    def OnTableSel(self, event):
+    def on_table_sel(self, event):
         "Reset key data details after table selection."       
         self.tbl, self.flds, self.has_unique, self.idxs = \
             getdata.refresh_tbl_dets(self)
@@ -234,7 +237,7 @@ class ConfigDlg(object):
         dlg.ShowModal()
         self.refresh_vars()
 
-    def OnRightClickTables(self, event):
+    def on_right_click_tables(self, event):
         "Allow addition or removal of data filter"
         self.filt_select()
         getdata.setup_drop_tbls(self.dropTables, self.dbe, self.db, self.tbls, 
@@ -242,7 +245,7 @@ class ConfigDlg(object):
         event.Skip()
 
     # report output
-    def OnButtonReportPath(self, event):
+    def on_btn_report_path(self, event):
         "Open dialog and takes the report file selected (if any)"
         dlgGetFile = wx.FileDialog(self, _("Choose a report output file:"), 
             defaultDir=os.path.join(my_globals.LOCAL_PATH, u"reports"), 
@@ -254,13 +257,13 @@ class ConfigDlg(object):
             self.txtReportFile.SetValue(self.fil_report)
         dlgGetFile.Destroy()
 
-    def OnReportFileLostFocus(self, event):
+    def on_report_file_lost_focus(self, event):
         "Reset report output file"
         self.fil_report = self.txtReportFile.GetValue()
         event.Skip()
     
     # script output
-    def OnButtonScriptPath(self, event):
+    def on_btn_script_path(self, event):
         "Open dialog and takes the script file selected (if any)"
         dlgGetFile = wx.FileDialog(self, 
             _("Choose a file to export scripts to:"), 
@@ -272,19 +275,19 @@ class ConfigDlg(object):
             self.txtScriptFile.SetValue(self.fil_script)
         dlgGetFile.Destroy()
 
-    def OnScriptFileLostFocus(self, event):
+    def on_script_file_lost_focus(self, event):
         "Reset script file"
         self.fil_script = self.txtScriptFile.GetValue()
         event.Skip()
     
     # label config
-    def OnVarDetsFileLostFocus(self, event):
+    def on_var_dets_file_lost_focus(self, event):
         ""
         self.reread_fil_var_dets()
         self.update_var_dets()
         event.Skip()
 
-    def OnButtonVarDetsPath(self, event):
+    def on_btn_var_dets_path(self, event):
         "Open dialog and takes the variable details file selected (if any)"
         dlgGetFile = wx.FileDialog(self, _("Choose a variable config file:"), 
             defaultDir=os.path.join(my_globals.LOCAL_PATH, u"vdts"), 
@@ -298,7 +301,7 @@ class ConfigDlg(object):
         dlgGetFile.Destroy()        
 
     # css table style
-    def OnButtonCssPath(self, event):
+    def on_btn_css_path(self, event):
         "Open dialog and takes the css file selected (if any)"
         dlgGetFile = wx.FileDialog(self, _("Choose a css table style file:"), 
             defaultDir=os.path.join(my_globals.LOCAL_PATH, "css"), 
@@ -315,7 +318,7 @@ class ConfigDlg(object):
         "Update css, including for demo table"
         self.fil_css = self.txtCssFile.GetValue()
     
-    def OnCssFileLostFocus(self, event):
+    def on_css_file_lost_focus(self, event):
         "Reset css file"
         self.update_css()
         event.Skip()
@@ -329,7 +332,7 @@ class ConfigDlg(object):
         self.radLevel.Enable(False)
         return szrLevel
     
-    def OnButtonExpand(self, event):
+    def on_btn_expand(self, event):
         output.display_report(self, self.str_content, self.url_load)
         event.Skip()
 

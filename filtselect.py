@@ -81,8 +81,8 @@ class FiltSelectDlg(wx.Dialog):
         self.radQuick = wx.RadioButton(self.panel, -1, _("Quick"), 
                                        style=wx.RB_GROUP)
         radFlex = wx.RadioButton(self.panel, -1, _("Flexible"))
-        self.radQuick.Bind(wx.EVT_RADIOBUTTON, self.OnRadQuickSel)
-        radFlex.Bind(wx.EVT_RADIOBUTTON, self.OnRadFlexSel)
+        self.radQuick.Bind(wx.EVT_RADIOBUTTON, self.on_rad_quick_sel)
+        radFlex.Bind(wx.EVT_RADIOBUTTON, self.on_rad_flex_sel)
         # label content
         lblLabel = wx.StaticText(self.panel, -1, _("Label (optional):"))
         self.txtLabel = wx.TextCtrl(self.panel, -1, tbl_filt_label)
@@ -90,7 +90,7 @@ class FiltSelectDlg(wx.Dialog):
         szrLabel.Add(self.txtLabel, 1)
         # quick content
         self.dropVars = wx.Choice(self.panel, -1, size=(300, -1))
-        self.dropVars.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickVars)
+        self.dropVars.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_vars)
         self.dropVars.SetToolTipString(_("Right click variable to view/edit "
                                          "details"))
         self.setup_vars()
@@ -155,15 +155,15 @@ class FiltSelectDlg(wx.Dialog):
         and http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605432
         """
         btnVarDets = wx.Button(self.panel, -1, _("Variable Details"))
-        btnVarDets.Bind(wx.EVT_BUTTON, self.OnVarDets)
+        btnVarDets.Bind(wx.EVT_BUTTON, self.on_var_dets)
         btnDelete = wx.Button(self.panel, wx.ID_DELETE, _("Remove"))
-        btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
+        btnDelete.Bind(wx.EVT_BUTTON, self.on_delete)
         btnCancel = wx.Button(self.panel, wx.ID_CANCEL) # 
-        btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
+        btnCancel.Bind(wx.EVT_BUTTON, self.on_cancel)
         if not self.tbl_filt:
             btnDelete.Disable()
         btnOK = wx.Button(self.panel, wx.ID_OK, _("Apply"))
-        btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
+        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
         # szrs
         self.szrBtns = wx.BoxSizer(wx.HORIZONTAL)
         szrExtraBtns = wx.BoxSizer(wx.HORIZONTAL)
@@ -178,7 +178,7 @@ class FiltSelectDlg(wx.Dialog):
         self.szrBtns.Add(szrStdBtns, 0)
         btnOK.SetDefault()
 
-    def OnVarDets(self, event):
+    def on_var_dets(self, event):
         """
         Open dialog with list of variables. On selection, opens standard get 
             settings dialog.
@@ -194,7 +194,7 @@ class FiltSelectDlg(wx.Dialog):
             self.setup_vars(var=fld_name)
         event.Skip()
         
-    def OnDelete(self, event):
+    def on_delete(self, event):
         try:
             del my_globals.DBE_TBL_FILTS[self.dbe][self.db][self.tbl]
         except KeyError:
@@ -204,7 +204,7 @@ class FiltSelectDlg(wx.Dialog):
         self.SetReturnCode(wx.ID_DELETE) # only for dialogs 
         # (MUST come after Destroy)
     
-    def OnCancel(self, event):
+    def on_cancel(self, event):
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
         # (MUST come after Destroy)
@@ -221,7 +221,7 @@ class FiltSelectDlg(wx.Dialog):
         if debug: print(filt)
         return filt
 
-    def OnOK(self, event):
+    def on_ok(self, event):
         debug = False
         tbl_filt_label = self.txtLabel.GetValue() 
         if self.radQuick.GetValue():
@@ -268,12 +268,12 @@ class FiltSelectDlg(wx.Dialog):
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
         # Prebuilt dialogs must do this internally.
 
-    def OnRadQuickSel(self, event):
+    def on_rad_quick_sel(self, event):
         ""
         self.enable_quick_dets(True)
         self.enable_flex_dets(False)
         
-    def OnRadFlexSel(self, event):
+    def on_rad_flex_sel(self, event):
         ""
         self.enable_quick_dets(False)
         self.enable_flex_dets(True)
@@ -295,7 +295,7 @@ class FiltSelectDlg(wx.Dialog):
         var_item = self.dropVars.GetStringSelection()
         return var, var_item
     
-    def OnRightClickVars(self, event):
+    def on_right_click_vars(self, event):
         var, choice_item = self.get_var()
         var_name, var_label = lib.extract_var_choice_dets(choice_item)
         updated = projects.set_var_props(choice_item, var_name, var_label, 

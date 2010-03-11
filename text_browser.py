@@ -7,10 +7,10 @@ class KeyDownEvent(wx.PyCommandEvent):
     def __init__(self, evtType, id):
         wx.PyCommandEvent.__init__(self, evtType, id)
     
-    def SetKeyCode(self, keycode):
+    def set_key_code(self, keycode):
         self.keycode = keycode
     
-    def GetKeyCode(self):
+    def get_key_code(self):
         return self.keycode
 
 # new event type to pass around
@@ -36,11 +36,11 @@ class TextBrowse(wx.PyControl):
         self.file_phrase = file_phrase
         self.wildcard = wildcard
         self.txt = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER)
-        self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.txt.Bind(wx.EVT_KEY_DOWN, self.OnTxtKeyDown)
+        self.Bind(wx.EVT_SIZE, self.on_size)
+        self.txt.Bind(wx.EVT_KEY_DOWN, self.on_txt_key_down)
         self.btnBrowse = wx.Button(self, -1, _("Browse ..."))
-        self.btnBrowse.Bind(wx.EVT_BUTTON, self.OnBtnBrowseClick)
-        self.btnBrowse.Bind(wx.EVT_KEY_DOWN, self.OnBtnBrowseKeyDown)
+        self.btnBrowse.Bind(wx.EVT_BUTTON, self.on_btn_browse_click)
+        self.btnBrowse.Bind(wx.EVT_KEY_DOWN, self.on_btn_browse_key_down)
         szr = wx.BoxSizer(wx.HORIZONTAL)
         self.txt_margins = 3
         self.btn_margin = 3
@@ -50,7 +50,7 @@ class TextBrowse(wx.PyControl):
         self.SetSizer(szr)
         self.Layout()
         
-    def OnSize(self, event):
+    def on_size(self, event):
         overall_width = self.GetSize()[0]
         btn_width, btn_height = self.btnBrowse.GetSize()
         inner_padding = (2*self.txt_margins) + self.btn_margin
@@ -61,21 +61,21 @@ class TextBrowse(wx.PyControl):
         self.btnBrowse.SetDimensions(btn_x_pos, 2, btn_width, btn_height)
         #event.Skip() # otherwise, resizing sets infinite number of EndEdits!    
     
-    def OnTxtKeyDown(self, event):
+    def on_txt_key_down(self, event):
         """
         http://wiki.wxpython.org/AnotherTutorial#head-999ff1e3fbf5694a51a91cf4ed2140f692da013c
         """
         if event.GetKeyCode() in [wx.WXK_RETURN]:
             key_event = KeyDownEvent(myEVT_TEXT_BROWSE_KEY_DOWN, self.GetId())
             key_event.SetEventObject(self)
-            key_event.SetKeyCode(wx.WXK_RETURN)
+            key_event.set_key_code(wx.WXK_RETURN)
             self.GetEventHandler().ProcessEvent(key_event)
-        elif event.GetKeyCode() in [wx.WXK_TAB]:
+        elif event.get_key_code() in [wx.WXK_TAB]:
             self.btnBrowse.SetFocus()
         else:
             event.Skip()
     
-    def OnBtnBrowseKeyDown(self, event):
+    def on_btn_browse_key_down(self, event):
         """
         Respond to keypresses on the browse button.
         """
@@ -85,7 +85,7 @@ class TextBrowse(wx.PyControl):
         else: # e.g. let it be processed
             event.Skip()
     
-    def OnBtnBrowseClick(self, event):
+    def on_btn_browse_click(self, event):
         "Open dialog and takes the file selected (if any)"
         dlgGetFile = wx.FileDialog(self, message=self.file_phrase, 
                                    wildcard=self.wildcard)
@@ -97,16 +97,16 @@ class TextBrowse(wx.PyControl):
         dlgGetFile.Destroy()
         self.txt.SetFocus()
     
-    def SetText(self, text):
+    def set_text(self, text):
         self.txt.SetValue(text)
     
-    def SetInsertionPoint(self, i):
+    def set_insertion_point(self, i):
         self.txt.SetInsertionPoint(i)
     
-    def GetText(self):
+    def get_text(self):
         return self.txt.GetValue()
     
-    def SetFocus(self):
+    def set_focus(self):
         "Must implement this if I want to call for the custom control"
         self.txt.SetFocus()
 
@@ -125,6 +125,7 @@ class GridCellTextBrowseEditor(wx.grid.PyGridCellEditor):
         self.wildcard = wildcard
     
     def Create(self, parent, id, evt_handler):
+        # wxPython
         self.text_browse = TextBrowse(parent, -1, self.grid, self.file_phrase, 
                                       self.wildcard)
         self.SetControl(self.text_browse)
@@ -132,29 +133,35 @@ class GridCellTextBrowseEditor(wx.grid.PyGridCellEditor):
             self.text_browse.PushEventHandler(evt_handler)
     
     def BeginEdit(self, row, col, grid):
+        # wxPython
         if self.debug: print("Beginning edit")
-        self.text_browse.SetText(grid.GetCellValue(row, col))
-        self.text_browse.SetFocus()
+        self.text_browse.set_text(grid.GetCellValue(row, col))
+        self.text_browse.set_focus()
     
     def StartingKey(self, event):
+        # wxPython
         if event.GetKeyCode() <= 255:
-            self.text_browse.SetText(chr(event.GetKeyCode()))
-            self.text_browse.SetInsertionPoint(1)
+            self.text_browse.set_text(chr(event.GetKeyCode()))
+            self.text_browse.set_insertion_point(1)
         else:
             event.Skip()
     
     def SetSize(self, rect):
-        self.text_browse.SetDimensions(rect.x, rect.y-2, rect.width, rect.height+5,
-                                       wx.SIZE_ALLOW_MINUS_ONE)
+        # wxPython
+        self.text_browse.SetDimensions(rect.x, rect.y-2, rect.width, 
+                                       rect.height+5, wx.SIZE_ALLOW_MINUS_ONE)
        
     def EndEdit(self, row, col, grid):
+        # wxPython
         "TODO - if resized while editing, infinite cycling of this!"
-        grid.SetCellValue(row, col, self.text_browse.GetText())
+        grid.SetCellValue(row, col, self.text_browse.get_text())
         return True
     
     def Reset(self):
+        # wxPython
         pass # N/A
     
     def Clone(self):
+        # wxPython
         return GridCellTextBrowseEditor(self.file_phrase, self.wildcard)
     

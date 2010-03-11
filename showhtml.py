@@ -44,23 +44,21 @@ class ShowHTML(wx.Dialog):
         print_folder - needs to be a subfolder of the current folder.
         """
         wx.Dialog.__init__(self, parent=parent, id=-1, title=title, 
-            pos=(0,0),
-            size=(900,700),
-            style=wx.RESIZE_BORDER|wx.DEFAULT_DIALOG_STYLE|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
-        
+                        pos=(0,0), size=(900,700), style=wx.RESIZE_BORDER|\
+                        wx.DEFAULT_DIALOG_STYLE|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.file_name = file_name
         self.print_folder = print_folder
         html = full_html.FullHTML(self, size=wx.DefaultSize)
         html.show_html(content, url_load)
         btnClose = wx.Button(self, wx.ID_CLOSE, _("Close"))
-        btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
+        btnClose.Bind(wx.EVT_BUTTON, self.on_close)
         szrMain = wx.BoxSizer(wx.VERTICAL)
         szrMain.Add(html,1,wx.GROW|wx.ALL, 5)
         if my_globals.IN_WINDOWS:
             szrBtns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
             szrBtns.AddGrowableCol(1,2)
             btnPrint = wx.Button(self, -1, _("Print"))
-            btnPrint.Bind(wx.EVT_BUTTON, self.OnPrint)        
+            btnPrint.Bind(wx.EVT_BUTTON, self.on_print)        
             szrBtns.Add(btnPrint, 0, wx.ALL, 5)
             szrBtns.Add(btnClose, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
         else:
@@ -72,7 +70,7 @@ class ShowHTML(wx.Dialog):
         self.Layout()
         wx.EndBusyCursor()
         
-    def OnPrint(self, event):
+    def on_print(self, event):
         "Print page"
         #printer = wx.html.HtmlEasyPrinting("Printing output", None)
         #printer.PrintFile(self.file_name) #horrible printing - large H1s, no CSS etc
@@ -80,6 +78,6 @@ class ShowHTML(wx.Dialog):
         full_file = os.path.join(os.getcwd(), self.print_folder, self.file_name)
         os.system("rundll32.exe MSHTML.DLL,PrintHTML \"%s\"" % full_file)
     
-    def OnClose(self, event):
+    def on_close(self, event):
         "Close Viewer"        
         self.Destroy()    

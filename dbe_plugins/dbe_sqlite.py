@@ -78,7 +78,7 @@ class DbDets(getdata.DbDets):
         cur = con.cursor() # must return tuples not dics
         return con, cur
       
-    def getDbDets(self):
+    def get_db_dets(self):
         """
         Return connection, cursor, and get lists of 
             databases (only 1 for SQLite), tables, fields, and index info, 
@@ -92,7 +92,7 @@ class DbDets(getdata.DbDets):
         debug = False
         con, cur = self.get_con_cur()
         dbs = [self.db]
-        tbls = self.getDbTbls(cur, self.db)
+        tbls = self.get_db_tbls(cur, self.db)
         tbls_lc = [x.lower() for x in tbls]
         # get table (default if possible otherwise first)
         # NB table must be in the database
@@ -112,8 +112,8 @@ class DbDets(getdata.DbDets):
                 raise Exception, u"Table \"%s\" not found " % self.tbl + \
                     u"in database \"%s\"" % self.db
         # get field names (from first table if none provided)
-        flds = self.getTblFlds(cur, self.db, self.tbl)
-        has_unique, idxs = self.getIndexDets(cur, self.db, self.tbl)
+        flds = self.get_tbl_flds(cur, self.db, self.tbl)
+        has_unique, idxs = self.get_index_dets(cur, self.db, self.tbl)
         if debug:
             print(self.db)
             print(self.tbl)
@@ -122,7 +122,7 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
         return con, cur, dbs, tbls, flds, has_unique, idxs
     
-    def getDbTbls(self, cur, db):
+    def get_db_tbls(self, cur, db):
         "Get table names given database and cursor"
         SQL_get_tbl_names = u"""SELECT name 
             FROM sqlite_master 
@@ -147,7 +147,7 @@ class DbDets(getdata.DbDets):
         except ValueError:
             return None
     
-    def getTblFlds(self, cur, db, tbl):
+    def get_tbl_flds(self, cur, db, tbl):
         "http://www.sqlite.org/pragma.html"
         # get encoding
         cur.execute(u"PRAGMA encoding")
@@ -183,7 +183,7 @@ class DbDets(getdata.DbDets):
             flds[fld_name] = dets_dic
         return flds
     
-    def getIndexDets(self, cur, db, tbl):
+    def get_index_dets(self, cur, db, tbl):
         """
         has_unique - booleanself.dropDefault_Dbe
         idxs = [idx0, idx1, ...]
@@ -219,8 +219,7 @@ class DbDets(getdata.DbDets):
             print(has_unique)
         return has_unique, idxs
 
-def setDataConGui(parent, readonly, scroll, szr, lblfont):
-    ""
+def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     # default database
     parent.lblSqliteDefaultDb = wx.StaticText(scroll, -1, 
                                       _("Default Database (name only):"))
@@ -260,7 +259,7 @@ def setDataConGui(parent, readonly, scroll, szr, lblfont):
         force_focus=True)
     szr.Add(parent.szrSqlite, 0, wx.GROW|wx.ALL, 10)
 
-def getProjSettings(parent, proj_dic):
+def get_proj_settings(parent, proj_dic):
     parent.sqlite_default_db = \
         proj_dic["default_dbs"].get(my_globals.DBE_SQLITE)
     parent.sqlite_default_tbl = \
@@ -271,7 +270,7 @@ def getProjSettings(parent, proj_dic):
     else:
         parent.sqlite_data = []
 
-def setConDetDefaults(parent):
+def set_con_det_defaults(parent):
     try:            
         parent.sqlite_default_db
     except AttributeError: 
@@ -285,7 +284,7 @@ def setConDetDefaults(parent):
     except AttributeError: 
         parent.sqlite_data = []
 
-def processConDets(parent, default_dbs, default_tbls, con_dets):
+def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     parent.sqlite_grid.update_config_data()
     DEFAULT_DB = parent.txtSqliteDefaultDb.GetValue()
     DEFAULT_TBL = parent.txtSqliteDefaultTbl.GetValue()
@@ -303,7 +302,7 @@ def processConDets(parent, default_dbs, default_tbls, con_dets):
         for sqlite_setting in sqlite_settings:
             # e.g. ("C:\.....\my_sqlite_db",)
             db_path = sqlite_setting[0]
-            db_name = lib.getFileName(db_path)
+            db_name = lib.get_file_name(db_path)
             new_sqlite_dic = {}
             new_sqlite_dic["database"] = db_path
             con_dets_sqlite[db_name] = new_sqlite_dic

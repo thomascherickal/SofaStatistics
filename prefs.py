@@ -15,7 +15,7 @@ class PrefsDlg(wx.Dialog):
     def __init__(self, parent, prefs_dic):
         wx.Dialog.__init__(self, parent=parent, title=_("Preferences"), 
                            style=wx.CAPTION|wx.CLOSE_BOX|
-                           wx.SYSTEM_MENU, pos=(300, 100))
+                           wx.SYSTEM_MENU, pos=(300,100))
         if not prefs_dic:
             prefs_dic[my_globals.PREFS_KEY] = {my_globals.DEFAULT_LEVEL_KEY: \
                                                my_globals.LEVEL_BRIEF}
@@ -37,21 +37,21 @@ class PrefsDlg(wx.Dialog):
         Set up standard buttons.
         """
         btnCancel = wx.Button(self.panel, wx.ID_CANCEL)
-        btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
+        btnCancel.Bind(wx.EVT_BUTTON, self.on_cancel)
         btnOK = wx.Button(self.panel, wx.ID_OK, _("Apply"))
-        btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
+        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
         btnOK.SetDefault()
         self.szrStdBtns = wx.StdDialogButtonSizer()
         self.szrStdBtns.AddButton(btnCancel)
         self.szrStdBtns.AddButton(btnOK)
         self.szrStdBtns.Realize()
 
-    def OnCancel(self, event):
+    def on_cancel(self, event):
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
         # (MUST come after Destroy)
     
-    def OnOK(self, event):
+    def on_ok(self, event):
         self.prefs_dic[my_globals.PREFS_KEY][my_globals.DEFAULT_LEVEL_KEY] = \
             self.radLevel.GetStringSelection()
         prefs_path = os.path.join(my_globals.INT_PATH, 

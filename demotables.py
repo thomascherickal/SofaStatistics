@@ -196,12 +196,12 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
     def get_html_parts(self, css_idx):
         "Returns (hdr_html, body_html)"
         (row_label_rows_lst, tree_row_labels, row_label_cols_n) = \
-                                                        self.getRowDets(css_idx)
+                                                    self.get_row_dets(css_idx)
         (tree_col_dets, hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)
         #print(row_label_rows_lst) #debug
-        row_label_rows_lst = self.getBodyHtmlRows(row_label_rows_lst,
-                                                  tree_row_labels, 
-                                                  tree_col_dets, css_idx)        
+        row_label_rows_lst = self.get_body_html_rows(row_label_rows_lst,
+                                                     tree_row_labels, 
+                                                     tree_col_dets, css_idx)        
         body_html = u"\n\n<tbody>"
         for row in row_label_rows_lst:
             # flatten row list
@@ -209,7 +209,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         body_html += u"\n</tbody>"
         return (hdr_html, body_html)
     
-    def getRowDets(self, css_idx):
+    def get_row_dets(self, css_idx):
         """
         Return row_label_rows_lst - need combination of row and col filters
             to add the data cells to the table body rows.
@@ -221,12 +221,12 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         tree_row_labels = dimtables.LabelNodeTree()
         for row_child_item in lib.get_tree_ctrl_children(tree=self.rowtree, 
                                                          parent=self.rowRoot):
-            self.addSubtreeToLabelTree(tree_dims_item=row_child_item, 
+            self.add_subtree_to_label_tree(tree_dims_item=row_child_item, 
                               tree_labels_node=tree_row_labels.root_node, 
                               dim=my_globals.ROWDIM)
-        return self.processRowTree(tree_row_labels, css_idx)
+        return self.process_row_tree(tree_row_labels, css_idx)
 
-    def addSubtreeToLabelTree(self, tree_dims_item, tree_labels_node, dim):
+    def add_subtree_to_label_tree(self, tree_dims_item, tree_labels_node, dim):
         """
         NB tree_dims_item is a wxPython TreeCtrl item.
         If the tree_dims_item is the special col_no_vars_item
@@ -254,16 +254,16 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
             else:
                 measures = [self.default_measure]
             for measure in measures:
-                tree_labels_node.addChild(dimtables.LabelNode(label=measure, 
-                                                        measure=measure))
+                tree_labels_node.add_child(dimtables.LabelNode(label=measure, 
+                                                               measure=measure))
         else:
             # add var e.g. gender then values below e.g. Male, Female
             var_name, var_label = lib.extract_var_choice_dets(\
                 self.coltree.GetItemText(tree_dims_item))
             #print(var_name) #debug
             var_label = self.var_labels.get(var_name, var_name.title())
-            new_var_node = tree_labels_node.addChild(\
-                                            dimtables.LabelNode(label=var_label))
+            new_var_node = tree_labels_node.add_child(\
+                                        dimtables.LabelNode(label=var_label))
             # terminal tree_dim_item (got any children)?
             item, cookie = self.coltree.GetFirstChild(tree_dims_item)
             is_terminal = not item #i.e. if there is only the root there
@@ -274,9 +274,9 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                 else:
                     measures = [self.default_measure]
                 for measure in measures:
-                    new_var_node.addChild(dimtables.LabelNode(\
-                                        label=measure,
-                                        measure=measure))
+                    new_var_node.add_child(dimtables.LabelNode(\
+                                           label=measure,
+                                           measure=measure))
             else: # no row_measures 
                 # add values (as labels if available, as placeholders 
                 # otherwise) and possibly a total
@@ -298,7 +298,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                 for subitem in subitems_lst:
                     # make val node e.g. Male
                     subitem_node = dimtables.LabelNode(label=subitem)
-                    new_var_node.addChild(subitem_node)                
+                    new_var_node.add_child(subitem_node)                
                     if is_terminal and dim==my_globals.COLDIM and \
                         self.has_col_measures:
                         # add measure label nodes
@@ -306,9 +306,9 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                         if not measures:
                             measures = [self.default_measure]
                         for measure in measures:
-                            subitem_node.addChild(dimtables.LabelNode(\
-                                                label=measure,
-                                                measure=measure))
+                            subitem_node.add_child(dimtables.LabelNode(\
+                                                   label=measure,
+                                                   measure=measure))
                     else:
                         # for each child of tree_dims_item e.g. Eth and Age Gp
                         if dim == my_globals.COLDIM:
@@ -320,11 +320,11 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                         #print(lib.get_sub_tree_items(tree=tree, 
                         #        parent=tree_dims_item)) #debug
                         for child_item in child_items:
-                            self.addSubtreeToLabelTree(tree_dims_item=\
+                            self.add_subtree_to_label_tree(tree_dims_item=\
                                    child_item, tree_labels_node=subitem_node, 
                                    dim=dim)
     
-    def addSubtreesToColLabelTree(self, tree_col_labels):
+    def add_subtrees_to_col_label_tree(self, tree_col_labels):
         """
         Add subtrees to column label tree.
         If coltree has no children, (not even the col no vars item)
@@ -335,9 +335,9 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         col_children = lib.get_tree_ctrl_children(tree=self.coltree, 
                                                   parent=self.colRoot)
         for col_child_item in col_children:
-            self.addSubtreeToLabelTree(tree_dims_item=col_child_item, 
-                          tree_labels_node=tree_col_labels.root_node, 
-                          dim=my_globals.COLDIM)
+            self.add_subtree_to_label_tree(tree_dims_item=col_child_item, 
+                                  tree_labels_node=tree_col_labels.root_node, 
+                                  dim=my_globals.COLDIM)
         return tree_col_labels
     
 
@@ -372,14 +372,14 @@ class GenDemoTable(DemoDimTable):
         For HTML provide everything from <thead> to </thead>.
         """
         tree_col_labels = dimtables.LabelNodeTree()
-        tree_col_labels = self.addSubtreesToColLabelTree(tree_col_labels)
-        if tree_col_labels.getDepth() == 1:
+        tree_col_labels = self.add_subtrees_to_col_label_tree(tree_col_labels)
+        if tree_col_labels.get_depth() == 1:
             raise Exception, u"There must always be a column item " + \
                 u"even if only the col no vars item"
         return self.process_hdr_tree(tree_col_labels, row_label_cols_n, css_idx)    
 
-    def getBodyHtmlRows(self, row_label_rows_lst, tree_row_labels,
-                        tree_col_labels, css_idx):
+    def get_body_html_rows(self, row_label_rows_lst, tree_row_labels,
+                           tree_col_labels, css_idx):
         """
         Make table body rows based on contents of row_label_rows_lst:
         e.g. [["<tr>", "<td class='firstrowvar' rowspan='8'>Gender</td>" ...],
@@ -476,13 +476,13 @@ class SummDemoTable(DemoDimTable):
         If no column variables, make a special column node.
         """
         tree_col_labels = dimtables.LabelNodeTree()
-        tree_col_labels = self.addSubtreesToColLabelTree(tree_col_labels)
-        if tree_col_labels.getDepth() == 1:
-            tree_col_labels.addChild(dimtables.LabelNode(label=u"Measures"))
+        tree_col_labels = self.add_subtrees_to_col_label_tree(tree_col_labels)
+        if tree_col_labels.get_depth() == 1:
+            tree_col_labels.add_child(dimtables.LabelNode(label=u"Measures"))
         return self.process_hdr_tree(tree_col_labels, row_label_cols_n, css_idx)
 
-    def getBodyHtmlRows(self, row_label_rows_lst, tree_row_labels,
-                        tree_col_labels, css_idx):
+    def get_body_html_rows(self, row_label_rows_lst, tree_row_labels,
+                           tree_col_labels, css_idx):
         """
         Make table body rows based on contents of row_label_rows_lst:
         e.g. [["<tr>", "<td class='firstrowvar' rowspan='8'>Gender</td>" ...],

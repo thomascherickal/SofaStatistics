@@ -62,7 +62,7 @@ class FileImporter(object):
         self.tbl_name = tbl_name
         self.has_header = True
         
-    def GetParams(self):
+    def get_params(self):
         """
         Get any user choices required.
         Letting the csv module test for a header is too unreliable if mixed 
@@ -117,7 +117,7 @@ class FileImporter(object):
             raise Exception, "No data to import"
         return orig_fld_names, fld_types, sample_data
     
-    def getAvgRowSize(self, tmp_reader):
+    def get_avg_row_size(self, tmp_reader):
         # loop through at most 5 times
         i = 0
         size = 0
@@ -163,7 +163,7 @@ class FileImporter(object):
         else:
             wx.MessageBox(_("Unable to import file in current form"))        
 
-    def ImportContent(self, progBackup, keep_importing):
+    def import_content(self, progBackup, keep_importing):
         """
         Get field types dict.  Use it to test each and every item before they 
             are added to database (after adding the records already tested).
@@ -194,7 +194,7 @@ class FileImporter(object):
                 csvfile.seek(0)
             # estimate number of rows (only has to be good enough for progress)
             tot_size = os.path.getsize(self.file_path)
-            row_size = self.getAvgRowSize(tmp_reader)
+            row_size = self.get_avg_row_size(tmp_reader)
             if debug:
                 print("tot_size: %s" % tot_size)
                 print("row_size: %s" % row_size)
@@ -225,8 +225,8 @@ class FileImporter(object):
                                ok_fld_names, orig_fld_names, fld_types, 
                                sample_data, sample_n, remaining_data, 
                                progBackup, gauge_chunk, keep_importing)
-        importer.TmpToNamedTbl(con, cur, self.tbl_name, self.file_path, 
-                               progBackup)
+        importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path, 
+                                  progBackup)
         cur.close()
         con.commit()
         con.close()

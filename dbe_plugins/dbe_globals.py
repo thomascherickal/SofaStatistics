@@ -127,7 +127,7 @@ def getADODic():
             adGUID: ADO_GUID,
             }
     
-def GetMinMax(fld_type, num_prec, dec_pts):
+def get_min_max(fld_type, num_prec, dec_pts):
     """
     Returns minimum and maximum allowable numeric values.  
     Nones if not numeric (or if an unknown numeric e.g. ADO_VARNUMERIC).

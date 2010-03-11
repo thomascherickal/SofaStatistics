@@ -5,7 +5,7 @@ class Nodes(object):
     """
     Nodes functionality used by Nodes and Trees
     """
-    def addChild(self, child_node):
+    def add_child(self, child_node):
         """
         Add child node.  Set level, and parent of node.
         Returns child node
@@ -19,7 +19,7 @@ class Nodes(object):
         start_node.children.append(child_node)
         return child_node
         
-    def getDepth(self):
+    def get_depth(self):
         "Get tree depth (including root node)"
         if isinstance(self, NodeTree):
             start_node = self.root_node
@@ -27,7 +27,7 @@ class Nodes(object):
             start_node = self
         max_depth = 1 # initialise
         for child_node in start_node.children:
-            child_depth = child_node.getDepth()
+            child_depth = child_node.get_depth()
             if (child_depth + 1) > max_depth:
                 max_depth = child_depth + 1
         return max_depth
@@ -51,10 +51,10 @@ class Nodes(object):
                 term_nodes_lst += child_term_nodes
             return term_nodes_lst
         
-    def generNode(self):
+    def gener_node(self):
         yield self
         for child_node in self.children:
-            for node in child_node.generNode():
+            for node in child_node.gener_node():
                 yield node
     
 class NodeTree(Nodes):
@@ -69,19 +69,19 @@ class NodeTree(Nodes):
         self.root_node = Node(label="Root")
         self.root_node.level = 0
 
-    def printChildren(self, node):
+    def print_children(self, node):
         l = []
         for child_node in node.children:
             l.append(unicode(child_node))
-            children_str = unicode(self.printChildren(child_node))
+            children_str = unicode(self.print_children(child_node))
             if children_str: #otherwise an empty string will get own line
-                l.append(unicode(self.printChildren(child_node)))
+                l.append(unicode(self.print_children(child_node)))
         return "\n".join(l)
     
     def __str__(self):
         l = []
         l.append(unicode(self.root_node))
-        l.append(self.printChildren(self.root_node))
+        l.append(self.print_children(self.root_node))
         return "\n".join(l)
         
 class Node(Nodes):

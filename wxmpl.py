@@ -2105,4 +2105,3 @@ class PlotDlg(wx.Dialog):
         Draw the associated C{Figure} onto the screen.
         """
         self.panel.draw()
-

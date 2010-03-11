@@ -83,17 +83,17 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             lblVars = wx.StaticText(self.panel, -1, _("Variables:"))
         lblVars.SetFont(self.LABEL_FONT)
         self.dropVarA = wx.Choice(self.panel, -1, size=(300, -1))
-        self.dropVarA.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickVarA)
+        self.dropVarA.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_var_a)
         self.dropVarA.SetToolTipString(_("Right click variable to view/edit "
                                          "details"))
         if self.paired:
             self.dropVarB = wx.Choice(self.panel, -1, size=(300, -1))
-            self.dropVarB.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickVarB)
+            self.dropVarB.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_var_b)
             self.dropVarB.SetToolTipString(_("Right click variable to "
                                               "view/edit details"))
         self.setup_vars(var_a=True, var_b=self.paired)
         btnCheck = wx.Button(self.panel, -1, _("Check"))
-        btnCheck.Bind(wx.EVT_BUTTON, self.OnButtonCheck)
+        btnCheck.Bind(wx.EVT_BUTTON, self.on_btn_check)
         szrVars.Add(lblVars, 0, wx.LEFT|wx.RIGHT, 5)
         szrVars.Add(self.dropVarA, 0)
         if self.paired:
@@ -115,7 +115,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                                left=20, top=30)
         self.set_shape_to_blank()
         self.btnDetails = wx.Button(self.panel, -1, _("Details"))
-        self.btnDetails.Bind(wx.EVT_BUTTON, self.OnDetailsClick)
+        self.btnDetails.Bind(wx.EVT_BUTTON, self.on_details_click)
         self.btnDetails.Enable(False)
         szrShape.Add(self.imgHist, 0)
         szrShape.Add(self.btnDetails, 0, wx.LEFT, 10)
@@ -126,7 +126,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrNormalityTest.Add(self.html, 1, wx.GROW)
         self.szrExamine.Add(szrNormalityTest, 1, wx.GROW|wx.ALL, 10)
         btnOK = wx.Button(self.panel, wx.ID_OK)
-        btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
+        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
         szrStdBtns = wx.StdDialogButtonSizer()
         szrStdBtns.AddButton(btnOK)
         szrStdBtns.Realize()
@@ -152,27 +152,27 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                     "test")
         self.html.show_html("<p>%s</p>" % msg)
 
-    def OnOK(self, event):
+    def on_ok(self, event):
         my_globals.DBE_DEFAULT = self.dbe
         my_globals.DB_DEFAULTS[self.dbe] = self.db
         my_globals.TBL_DEFAULTS[self.dbe] = self.tbl
         self.Destroy()
         event.Skip()
 
-    def OnDatabaseSel(self, event):
-        config_dlg.ConfigDlg.OnDatabaseSel(self, event)
+    def on_database_sel(self, event):
+        config_dlg.ConfigDlg.on_database_sel(self, event)
         self.setup_vars()
         self.set_shape_to_blank()
         self.set_output_to_blank()
         
-    def OnTableSel(self, event):
-        config_dlg.ConfigDlg.OnTableSel(self, event)
+    def on_table_sel(self, event):
+        config_dlg.ConfigDlg.on_table_sel(self, event)
         self.setup_vars()
         self.set_shape_to_blank()
         self.set_output_to_blank()
         
-    def OnRightClickTables(self, event):
-        config_dlg.ConfigDlg.OnRightClickTables(self, event)
+    def on_right_click_tables(self, event):
+        config_dlg.ConfigDlg.on_right_click_tables(self, event)
         self.update_examination()
     
     def setup_var_a(self, var=None):
@@ -330,7 +330,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                 msg = _("Unable to calculate normality tests")
         self.html.show_html(u"<p>%s</p>" % msg)
     
-    def OnButtonCheck(self, event):
+    def on_btn_check(self, event):
         if self.paired:
             if self.dropVarA.GetStringSelection() == \
                     self.dropVarB.GetStringSelection():
@@ -340,7 +340,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.update_examination()
         event.Skip()
           
-    def OnDetailsClick(self, event):
+    def on_details_click(self, event):
         tbl_filt_label, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
         filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
         hist_label = u"Histogram of %s\n%s" % (self.data_label, filt_msg)
@@ -349,7 +349,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         dlg.ShowModal()
         event.Skip()
     
-    def OnRightClickVarA(self, event):
+    def on_right_click_var_b(self, event):
         var, choice_item = self.get_var_a()
         var_name, var_label = lib.extract_var_choice_dets(choice_item)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
@@ -358,7 +358,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         if updated:
             self.setup_var_a(var)
     
-    def OnRightClickVarB(self, event):
+    def on_right_click_var_b(self, event):
         var, choice_item = self.get_var_b()
         var_name, var_label = lib.extract_var_choice_dets(choice_item)
         updated = projects.set_var_props(choice_item, var_name, var_label, 

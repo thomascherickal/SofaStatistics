@@ -21,7 +21,7 @@ class FileImporter(object):
         self.tbl_name = tbl_name
         self.has_header = True
         
-    def GetParams(self):
+    def get_params(self):
         """
         Get any user choices required.
         """
@@ -70,7 +70,7 @@ class FileImporter(object):
             raise Exception, "No data to import"
         return fld_types, sample_data
     
-    def ImportContent(self, progBackup, keep_importing):
+    def import_content(self, progBackup, keep_importing):
         """
         Get field types dict.  Use it to test each and every item before they 
             are added to database (after adding the records already tested).
@@ -112,8 +112,8 @@ class FileImporter(object):
                                 ok_fld_names, orig_fld_names, fld_types, 
                                 sample_data, sample_n, remaining_data, 
                                 progBackup, gauge_chunk, keep_importing)
-        importer.TmpToNamedTbl(con, cur, self.tbl_name, self.file_path,
-                               progBackup)
+        importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path,
+                                  progBackup)
         cur.close()
         con.commit()
         con.close()

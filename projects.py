@@ -222,10 +222,10 @@ class ListVarsDlg(wx.Dialog):
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         szrStdBtns = wx.StdDialogButtonSizer()
         self.lstVars = wx.ListBox(self.panel, -1, choices=[])
-        self.lstVars.Bind(wx.EVT_LISTBOX, self.OnLstClick)
+        self.lstVars.Bind(wx.EVT_LISTBOX, self.on_lst_click)
         self.setup_vars()
         btnOK = wx.Button(self.panel, wx.ID_OK)
-        btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
+        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.Add(self.lstVars, 0, wx.ALL, 10)
         szrStdBtns.AddButton(btnOK)
@@ -234,7 +234,7 @@ class ListVarsDlg(wx.Dialog):
         self.szrMain.SetSizeHints(self)
         self.Layout()
     
-    def OnLstClick(self, event):
+    def on_lst_click(self, event):
         debug = False
         try:
             var, choice_item = self.get_var()
@@ -251,7 +251,7 @@ class ListVarsDlg(wx.Dialog):
             self.setup_vars(var)
             self.updated.add(True)
     
-    def OnOK(self, event):
+    def on_ok(self, event):
         self.Destroy()
     
     def setup_vars(self, var=None):
@@ -314,7 +314,7 @@ class GetSettings(settings_grid.SettingsEntryDlg):
             self.radDataType.EnableItem(my_globals.VAR_IDX_ORD, False)
             self.radDataType.EnableItem(my_globals.VAR_IDX_QUANT, False)
         btnTypeHelp = wx.Button(self.panel, wx.ID_HELP)
-        btnTypeHelp.Bind(wx.EVT_BUTTON, self.OnTypeHelpButton)
+        btnTypeHelp.Bind(wx.EVT_BUTTON, self.on_type_help_btn)
         # sizers
         self.szrMain = wx.BoxSizer(wx.VERTICAL)
         self.szrVarLabel = wx.BoxSizer(wx.HORIZONTAL)
@@ -340,7 +340,7 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         self.Layout()
         self.tabentry.grid.SetFocus()
 
-    def OnTypeHelpButton(self, event):
+    def on_type_help_btn(self, event):
         wx.MessageBox(_("Nominal data (names only) is just labels or names. "
           "Ordinal data has a sense of order but no amount, "
           "and Quantity data has actual amount e.g. 2 is twice 1."
@@ -350,7 +350,7 @@ class GetSettings(settings_grid.SettingsEntryDlg):
           "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc)."
           "\n\n* Example of Quantity (amount) data: height in cm."))
 
-    def OnOK(self, event):
+    def on_ok(self, event):
         """
         Override so we can extend to include variable label, type, and notes.
         """
@@ -389,7 +389,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.readonly = readonly
         self.new = (fil_proj is None)
         self.set_defaults(fil_proj)
-        getdata.setConDetDefaults(self)
+        getdata.set_con_det_defaults(self)
         # misc
         lblfont = wx.Font(9, wx.SWISS, wx.NORMAL, wx.BOLD)
         # Project Name and notes
@@ -419,7 +419,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                                          choices=my_globals.DBES)
         sel_dbe_id = my_globals.DBES.index(self.default_dbe)
         self.dropDefault_Dbe.SetSelection(sel_dbe_id)
-        self.dropDefault_Dbe.Bind(wx.EVT_CHOICE, self.OnDbeChoice)
+        self.dropDefault_Dbe.Bind(wx.EVT_CHOICE, self.on_dbe_choice)
         self.dropDefault_Dbe.Enable(not self.readonly)
         lblScrollDown = wx.StaticText(self.scroll_con_dets, -1, 
                     _("(scroll down for details of all your database engines)"))
@@ -445,9 +445,9 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.szrTop.SetSizeHints(self.panel_top)
         # CON DETS
         self.szrCon_Dets.Add(szrDefault_Dbe, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        getdata.setDataConGui(parent=self, readonly=self.readonly, 
-                               scroll=self.scroll_con_dets, 
-                               szr=self.szrCon_Dets, lblfont=lblfont)
+        getdata.set_data_con_gui(parent=self, readonly=self.readonly, 
+                                 scroll=self.scroll_con_dets, 
+                                 szr=self.szrCon_Dets, lblfont=lblfont)
         self.scroll_con_dets.SetSizer(self.szrCon_Dets)
         # NEVER SetSizeHints or else grows beyond size!!!!
         self.szrCon_Dets.SetVirtualSizeHints(self.scroll_con_dets)
@@ -549,14 +549,14 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             self.fil_report = proj_dic["fil_report"]
             self.fil_script = proj_dic["fil_script"]
             self.default_dbe = proj_dic["default_dbe"]
-            getdata.getProjConSettings(self, proj_dic)
+            getdata.get_proj_con_settings(self, proj_dic)
         except Exception, e:
             wx.MessageBox(_("Please check %s for errors e.g. conn_dets instead "
                             "of con_dets.  Use the default project file for "
                             "reference.") % fil_proj)
             raise Exception, e
     
-    def OnDbeChoice(self, event):
+    def on_dbe_choice(self, event):
         sel_dbe_id = self.dropDefault_Dbe.GetSelection()
         self.default_dbe = my_globals.DBES[sel_dbe_id]
         event.Skip()
@@ -575,11 +575,11 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         else:
             if not self.new:
                 btnDelete = wx.Button(self.panel_bottom, wx.ID_DELETE)
-                btnDelete.Bind(wx.EVT_BUTTON, self.OnDelete)
+                btnDelete.Bind(wx.EVT_BUTTON, self.on_delete)
             btnCancel = wx.Button(self.panel_bottom, wx.ID_CANCEL) # 
-            btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
+            btnCancel.Bind(wx.EVT_BUTTON, self.on_cancel)
             btnOK = wx.Button(self.panel_bottom, wx.ID_OK, _("Update"))
-        btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
+        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
         self.szrBtns = wx.StdDialogButtonSizer()
         if not self.readonly:
             self.szrBtns.AddButton(btnCancel)
@@ -588,7 +588,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         if not self.readonly and not self.new:
             self.szrBtns.Insert(0, btnDelete, 0)
 
-    def OnDelete(self, event):
+    def on_delete(self, event):
         proj_name = self.txtName.GetValue()
         if wx.MessageBox(_("Deleting a project cannot be undone.  "
                            "Do you want to delete the \"%s\" project?") % \
@@ -606,13 +606,13 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.SetReturnCode(wx.ID_DELETE) # only for dialogs 
         # (MUST come after Destroy)
 
-    def OnCancel(self, event):
+    def on_cancel(self, event):
         "Close returning us to wherever we came from"
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
         # (MUST come after Destroy)
        
-    def OnOK(self, event):
+    def on_ok(self, event):
         # get the data (separated for easier debugging)
         if not self.readonly:
             proj_name = self.txtName.GetValue()
@@ -623,7 +623,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             try:
                 # only needed if returning to projselect form
                 # so OK to fail otherwise
-               self.parent.StoreProjName(u"%s.proj" % proj_name)
+               self.parent.store_proj_name(u"%s.proj" % proj_name)
             except Exception:
                 print(u"Failed to change to %s.proj" % proj_name)
                 pass
@@ -637,8 +637,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             default_tbls = {}
             con_dets = {}
             any_incomplete, any_cons, completed_dbes = \
-                getdata.processConDets(self, default_dbs, default_tbls, 
-                                        con_dets)
+                                getdata.process_con_dets(self, default_dbs, 
+                                                         default_tbls, con_dets)
             if any_incomplete:
                 return
             enough_completed = proj_name and any_cons
@@ -682,7 +682,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                     pprint.pformat(con_dets))
             f.close()
             if self.new_proj:
-                self.parent.parent.SetProj(proj_name)
+                self.parent.parent.set_proj(proj_name)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # only for dialogs
         # (MUST come after Destroy)        

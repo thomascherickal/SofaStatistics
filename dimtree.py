@@ -20,26 +20,26 @@ class DimTree(object):
     """
     All methods which add items to the tree must at the same
     time attach an ItemConfig object as its PyData (using
-    setInitialConfig().  This includes OnColConfig when 
+    set_initial_config().  This includes on_col_config when 
     col_no_vars_item is added.
     """
-    def OnRowItemActivated(self, event):
+    def on_row_item_activated(self, event):
         "Activated row item in tree.  Show config dialog."
-        self.ConfigRow()
+        self.config_row()
     
-    def OnColItemActivated(self, event):
+    def on_col_item_activated(self, event):
         "Activated col item in tree.  Show config dialog."
-        self.ConfigCol()
+        self.config_col()
     
-    def OnRowItemRightClick(self, event):
+    def on_row_item_right_click(self, event):
         ""
-        self.ShowVarProperties(self.rowtree, event)
+        self.show_var_properties(self.rowtree, event)
 
-    def OnColItemRightClick(self, event):
+    def on_col_item_right_click(self, event):
         ""
-        self.ShowVarProperties(self.coltree, event)
+        self.show_var_properties(self.coltree, event)
         
-    def ShowVarProperties(self, tree, event):
+    def show_var_properties(self, tree, event):
         choice_item = tree.GetItemText(event.GetItem())
         var_name, var_label = lib.extract_var_choice_dets(choice_item)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
@@ -51,14 +51,14 @@ class DimTree(object):
                     lib.get_choice_item(self.var_labels, var_name))
             self.update_demo_display()
     
-    def OnRowAdd(self, event):
+    def on_row_add(self, event):
         "Add row var under root"
         self.try_adding(tree=self.rowtree, root=self.rowRoot, 
                         dim=my_globals.ROWDIM, oth_dim=my_globals.COLDIM, 
                         oth_dim_tree=self.coltree, 
                         oth_dim_root=self.colRoot)
      
-    def OnColAdd(self, event):
+    def on_col_add(self, event):
         "Add column var under root"
         self.try_adding(tree=self.coltree, root=self.colRoot, 
                         dim=my_globals.COLDIM, oth_dim=my_globals.ROWDIM, 
@@ -84,8 +84,8 @@ class DimTree(object):
             # only use in one dimension
             text_selected = [choices[x] for x in dlg.GetSelections()]
             for text in text_selected:
-                used_in_oth_dim = self.UsedInOthDim(text, oth_dim_tree, 
-                                                    oth_dim_root)
+                used_in_oth_dim = self.used_in_oth_dim(text, oth_dim_tree, 
+                                                       oth_dim_root)
                 if used_in_oth_dim:
                     msg = _("Variable '%(text)s' has already been "
                             "used in %(oth_dim)s dimension")
@@ -103,13 +103,13 @@ class DimTree(object):
             for text in text_selected:
                 new_id = tree.AppendItem(root, text)
                 var_name, unused = lib.extract_var_choice_dets(text)
-                self.setInitialConfig(tree, dim, new_id, var_name)
+                self.set_initial_config(tree, dim, new_id, var_name)
             if text_selected:
                 tree.UnselectAll() # multiple
                 tree.SelectItem(new_id)
                 self.update_demo_display()
     
-    def setInitialConfig(self, tree, dim, new_id, var_name=None):
+    def set_initial_config(self, tree, dim, new_id, var_name=None):
         """
         Set initial config for new item.
         Variable name not applicable when a column config item rather than
@@ -132,7 +132,7 @@ class DimTree(object):
         tree.SetItemPyData(new_id, item_conf)
         tree.SetItemText(new_id, item_conf.getSummary(), 1)
     
-    def OnRowAddUnder(self, event):
+    def on_row_add_under(self, event):
         """
         Add row var under another row var (i.e. nest it).
         Remove measures from ancestors.
@@ -160,7 +160,7 @@ class DimTree(object):
             wx.MessageBox(_("Can only add under a single selected item."))
             return
     
-    def OnColAddUnder(self, event):
+    def on_col_add_under(self, event):
         """
         Add column var under another column var (i.e. nest it).
         Remove measures from ancestors.
@@ -206,8 +206,8 @@ class DimTree(object):
                                           x in ancestors]
                 ancestor_labels += parent_ancestor_labels
                 # text cannot be anywhere in other dim tree
-                used_in_oth_dim = self.UsedInOthDim(text, oth_dim_tree, 
-                                                    oth_dim_root)                
+                used_in_oth_dim = self.used_in_oth_dim(text, oth_dim_tree, 
+                                                       oth_dim_root)                
                 if text in ancestor_labels:
                     msg = _("Variable %s cannot be an "
                             "ancestor of itself")
@@ -222,7 +222,7 @@ class DimTree(object):
             for text in text_selected:
                 new_id = tree.AppendItem(selected_id, text)
                 var_name, unused = lib.extract_var_choice_dets(text)
-                self.setInitialConfig(tree, dim, new_id, var_name)
+                self.set_initial_config(tree, dim, new_id, var_name)
                 # empty all measures from ancestors and ensure sorting 
                 # is appropriate
                 for ancestor in lib.get_tree_ancestors(tree, new_id):
@@ -241,7 +241,7 @@ class DimTree(object):
                 tree.SelectItem(new_id)
                 self.update_demo_display()
     
-    def UsedInOthDim(self, text, oth_dim_tree, oth_dim_root):
+    def used_in_oth_dim(self, text, oth_dim_tree, oth_dim_root):
         "Is this variable used in the other dimension at all?"
         oth_dim_items = lib.get_tree_ctrl_descendants(oth_dim_tree, 
                                                       oth_dim_root)
@@ -255,7 +255,7 @@ class DimTree(object):
         dim_labels = [dim_tree.GetItemText(x) for x in dim_items]
         return text in dim_labels
                 
-    def OnRowDelete(self, event):
+    def on_row_delete(self, event):
         """
         Delete row var and all its children.
         If it has a parent, set its measures to the default list.
@@ -288,7 +288,7 @@ class DimTree(object):
             self.col_no_vars_item = None #it will be reallocated
         self.update_demo_display()
             
-    def OnColDelete(self, event):
+    def on_col_delete(self, event):
         "Delete col var and all its children"
         selected_ids = self.coltree.GetSelections()
         if len(selected_ids) == 0:
@@ -310,11 +310,11 @@ class DimTree(object):
             self.btnColAddUnder.Enable()
             self.col_no_vars_item = None #it will be reallocated
             
-    def OnRowConfig(self, event):
+    def on_row_config(self, event):
         "Configure row button clicked."
-        self.ConfigRow()
+        self.config_row()
     
-    def ConfigRow(self):
+    def config_row(self):
         """
         Configure row item e.g. measures, total.
         If a Summary Table, rows are never nested i.e. always terminal.
@@ -342,11 +342,11 @@ class DimTree(object):
         dlg.ShowModal()
         self.update_demo_display()
     
-    def OnColConfig(self, event):
+    def on_col_config(self, event):
         "Configure column button clicked."
-        self.ConfigCol()
+        self.config_col()
 
-    def ConfigCol(self):
+    def config_col(self):
         """
         Configure column item e.g. measures, total.
         Either with columns vars or without.  If without, only filtering 
@@ -367,15 +367,15 @@ class DimTree(object):
             self.col_no_vars_item = \
                 self.coltree.AppendItem(self.colRoot, 
                                         my_globals.COL_MEASURES_TREE_LBL)
-            self.setInitialConfig(self.coltree, my_globals.COLDIM, 
-                                  self.col_no_vars_item)
+            self.set_initial_config(self.coltree, my_globals.COLDIM, 
+                                    self.col_no_vars_item)
             self.demo_tab.col_no_vars_item = self.col_no_vars_item
             self.coltree.ExpandAll(self.colRoot)
             self.coltree.SelectItem(self.col_no_vars_item)
             self.btnColAdd.Disable()
             self.btnColAddUnder.Disable()
-            self.getColConfig(node_ids=[self.col_no_vars_item], 
-                                  has_col_vars=False)
+            self.get_col_config(node_ids=[self.col_no_vars_item], 
+                                has_col_vars=False)
             self.update_demo_display()
         elif empty_coltree and self.tab_type == my_globals.ROW_SUMM:
             return
@@ -395,17 +395,17 @@ class DimTree(object):
                         break
             if config_ok:
                 if self.col_no_vars_item in selected_ids:
-                    self.getColConfig(node_ids=[self.col_no_vars_item], 
-                                      has_col_vars=False)
+                    self.get_col_config(node_ids=[self.col_no_vars_item], 
+                                        has_col_vars=False)
                 elif self.colRoot not in selected_ids:
-                    self.getColConfig(node_ids=selected_ids, has_col_vars=True)
+                    self.get_col_config(node_ids=selected_ids, has_col_vars=True)
                 self.update_demo_display()
             else:
                 msg = _("If configuring multiple items at once, they "
                      "must all have children or none can have children")
                 wx.MessageBox(msg)
             
-    def getColConfig(self, node_ids, has_col_vars):
+    def get_col_config(self, node_ids, has_col_vars):
         """
         Get results from appropriate dialog and store as data.
         Only ask for measures if a table with colmeasures and
@@ -439,7 +439,7 @@ class DimTree(object):
                            has_col_vars=has_col_vars)
         dlg.ShowModal()
        
-    def setupDimTree(self, tree):
+    def setup_dim_tree(self, tree):
         "Setup Dim Tree and return root"
         tree.AddColumn(_("Variable"))
         tree.AddColumn(_("Config"))
@@ -450,7 +450,7 @@ class DimTree(object):
         tree.SetMinSize((70, 110))
         return tree.AddRoot("root")
     
-    def EnableRowSel(self, enable=True):
+    def enable_row_sel(self, enable=True):
         "Enable (or disable) all row selection objects"
         self.btnRowAdd.Enable(enable)
         self.btnRowAddUnder.Enable(enable)
@@ -532,11 +532,11 @@ class DlgConfig(wx.Dialog):
                 szrMeasures.Add(chk, 1, wx.ALL, 5)
             szrMain.Add(szrMeasures, 1, wx.GROW|wx.ALL, 10)
         btnCancel = wx.Button(self, wx.ID_CANCEL)
-        btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)            
+        btnCancel.Bind(wx.EVT_BUTTON, self.on_cancel)            
         btnOK = wx.Button(self, wx.ID_OK) # must have ID of wx.ID_OK 
         # to trigger validators (no event binding needed) and 
         # for std dialog button layout
-        btnOK.Bind(wx.EVT_BUTTON, self.OnOK)
+        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
         btnOK.SetDefault()
         # using the approach which will follow the platform convention 
         # for standard buttons
@@ -549,7 +549,7 @@ class DlgConfig(wx.Dialog):
         self.SetSizer(szrMain)
         self.Fit()
              
-    def OnOK(self, event):
+    def on_ok(self, event):
         "Store selection details into item conf object"
         # measures
         measures_lst = []
@@ -586,7 +586,7 @@ class DlgConfig(wx.Dialog):
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
         # Prebuilt dialogs must do this internally.
     
-    def OnCancel(self, event):
+    def on_cancel(self, event):
         "Cancel adding new package"
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL)

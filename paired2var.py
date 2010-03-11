@@ -76,8 +76,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.lblGroupA = wx.StaticText(self.panel, -1, _("Group A:"))
         self.lblGroupA.SetFont(self.LABEL_FONT)
         self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
-        self.dropGroupA.Bind(wx.EVT_CHOICE, self.OnGroupSel)
-        self.dropGroupA.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickGroupA)
+        self.dropGroupA.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
+        self.dropGroupA.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_group_a)
         self.dropGroupA.SetToolTipString(variables_rc_msg)
         szrVarsTop.Add(self.lblGroupA, 0, wx.RIGHT, 5)
         szrVarsTop.Add(self.dropGroupA, 0, wx.GROW)
@@ -85,8 +85,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.lblGroupB = wx.StaticText(self.panel, -1, _("Group B:"))
         self.lblGroupB.SetFont(self.LABEL_FONT)
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
-        self.dropGroupB.Bind(wx.EVT_CHOICE, self.OnGroupSel)
-        self.dropGroupB.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickGroupB)
+        self.dropGroupB.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
+        self.dropGroupB.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_group_b)
         self.dropGroupB.SetToolTipString(variables_rc_msg)
         self.setup_groups()
         szrVarsTop.Add(self.lblGroupB, 0, wx.LEFT|wx.RIGHT, 5)
@@ -120,7 +120,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
 
-    def OnRightClickGroupA(self, event):
+    def on_right_click_group_a(self, event):
         var_a, choice_item = self.get_var_a()
         var_name, var_label = lib.extract_var_choice_dets(choice_item)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
@@ -129,7 +129,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         if updated:
             self.refresh_vars()
 
-    def OnRightClickGroupB(self, event):
+    def on_right_click_group_b(self, event):
         var_b, choice_item = self.get_var_b()
         var_name, var_label = lib.extract_var_choice_dets(choice_item)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
@@ -177,18 +177,18 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.setup_group_a(fld_choice_items, var_a)
         self.setup_group_b(fld_choice_items, var_b)
     
-    def OnDatabaseSel(self, event):
+    def on_database_sel(self, event):
         """
         Reset dbe, database, cursor, tables, table, tables dropdown, 
             fields, has_unique, and idxs after a database selection.
         """
-        config_dlg.ConfigDlg.OnDatabaseSel(self, event)
+        config_dlg.ConfigDlg.on_database_sel(self, event)
         self.update_var_dets()
         self.setup_groups()
                 
-    def OnTableSel(self, event):
+    def on_table_sel(self, event):
         "Reset key data details after table selection."       
-        config_dlg.ConfigDlg.OnTableSel(self, event)
+        config_dlg.ConfigDlg.on_table_sel(self, event)
         self.update_var_dets()
         self.setup_groups()
 
@@ -213,19 +213,19 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_b, unused = self.get_var_b()
         return var_a, var_b
 
-    def OnVarDetsFileLostFocus(self, event):
+    def on_var_dets_file_lost_focus(self, event):
         var_a, var_b = self.get_vars()
-        config_dlg.ConfigDlg.OnVarDetsFileLostFocus(self, event)
+        config_dlg.ConfigDlg.on_var_dets_file_lost_focus(self, event)
         self.setup_groups(var_a, var_b)
         self.update_phrase()
         
-    def OnButtonVarDetsPath(self, event):
+    def on_btn_var_dets_path(self, event):
         var_a, var_b = self.get_vars()
-        config_dlg.ConfigDlg.OnButtonVarDetsPath(self, event)
+        config_dlg.ConfigDlg.on_btn_var_dets_path(self, event)
         self.setup_groups(var_a, var_b)
         self.update_phrase()
         
-    def OnGroupSel(self, event):
+    def on_group_by_sel(self, event):
         self.update_phrase()
         self.update_defaults()
         event.Skip()
@@ -246,7 +246,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         Update phrase based on Group A and Group B.
         """
         var_a, label_a, var_b, label_b = self.get_drop_vals()
-        self.lblPhrase.SetLabel(_("Is \"%(a)s\" different from \"%(b)s\"?") % \
+        self.lblPhrase.SetLabel(_("Is \"%(a)s\" different from \"%(b)s\"?") %
                                 {"a": label_a, "b": label_b})
     
     def update_defaults(self):
@@ -256,7 +256,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def update_local_display(self, strContent):
         self.html.show_html(strContent, url_load=True) # allow footnotes
 
-    def OnButtonRun(self, event):
+    def on_btn_run(self, event):
         """
         Generate script to special location (INT_SCRIPT_PATH), 
             run script putting output in special location 
@@ -292,7 +292,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         return True
     
    # export script
-    def OnButtonExport(self, event):
+    def on_btn_export(self, event):
         """
         Export script for table to file currently displayed (if enough data).
         If the file doesn't exist, make one and add the preliminary code.
@@ -312,15 +312,15 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                                  self.default_tbls)
         event.Skip()
 
-    def OnButtonHelp(self, event):
+    def on_btn_help(self, event):
         wx.MessageBox("Under construction")
         event.Skip()
     
-    def OnButtonClear(self, event):
+    def on_btn_clear(self, event):
         wx.MessageBox("Under construction")
         event.Skip()
     
-    def OnClose(self, event):
+    def on_close(self, event):
         "Close app"
         try:
             self.con.close()

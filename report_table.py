@@ -113,27 +113,27 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         lblTitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         self.txtTitles = wx.TextCtrl(self.panel, -1, size=(50,40), 
                                      style=wx.TE_MULTILINE)
-        self.txtTitles.Bind(wx.EVT_TEXT, self.OnTitleChange)
+        self.txtTitles.Bind(wx.EVT_TEXT, self.on_title_change)
         lblSubtitles = wx.StaticText(self.panel, -1, _("Subtitle:"))
         lblSubtitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, 
                                           wx.BOLD))
         self.txtSubtitles = wx.TextCtrl(self.panel, -1, size=(50,40), 
                                         style=wx.TE_MULTILINE)
-        self.txtSubtitles.Bind(wx.EVT_TEXT, self.OnSubtitleChange)
+        self.txtSubtitles.Bind(wx.EVT_TEXT, self.on_subtitle_change)
         #radio
         self.radTabType = wx.RadioBox(self.panel, -1, _("Table Type"), 
                          choices=(_("Column measures e.g. FREQ, row % etc"),
                                   _("Summarise rows e.g. MEAN, MEDIAN etc"),
                                   _("Display table data as is")),
                          style=wx.RA_SPECIFY_ROWS)
-        self.radTabType.Bind(wx.EVT_RADIOBOX, self.OnTabTypeChange)
+        self.radTabType.Bind(wx.EVT_RADIOBOX, self.on_tab_type_change)
         self.tab_type = self.radTabType.GetSelection()
         # option checkboxs
         self.chkTotalsRow = wx.CheckBox(self.panel, -1, _("Totals Row?"))
-        self.chkTotalsRow.Bind(wx.EVT_CHECKBOX, self.OnChkTotalsRow)
+        self.chkTotalsRow.Bind(wx.EVT_CHECKBOX, self.on_chk_totals_row)
         self.chkFirstAsLabel = wx.CheckBox(self.panel, -1, 
                                            _("First col as label?"))
-        self.chkFirstAsLabel.Bind(wx.EVT_CHECKBOX, self.OnChkFirstAsLabel)
+        self.chkFirstAsLabel.Bind(wx.EVT_CHECKBOX, self.on_chk_first_as_label)
         self.enable_opts(enable=False)
         #text labels
         lblRows = wx.StaticText(self.panel, -1, _("Rows:"))
@@ -143,39 +143,41 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         #buttons
         #rows
         self.btnRowAdd = wx.Button(self.panel, -1, _("Add"))
-        self.btnRowAdd.Bind(wx.EVT_BUTTON, self.OnRowAdd)
+        self.btnRowAdd.Bind(wx.EVT_BUTTON, self.on_row_add)
         self.btnRowAddUnder = wx.Button(self.panel, -1, _("Add Under"))
-        self.btnRowAddUnder.Bind(wx.EVT_BUTTON, self.OnRowAddUnder)
+        self.btnRowAddUnder.Bind(wx.EVT_BUTTON, self.on_row_add_under)
         self.btnRowDel = wx.Button(self.panel, -1, _("Delete"))
-        self.btnRowDel.Bind(wx.EVT_BUTTON, self.OnRowDelete)
+        self.btnRowDel.Bind(wx.EVT_BUTTON, self.on_row_delete)
         self.btnRowConf = wx.Button(self.panel, -1, _("Config"))
-        self.btnRowConf.Bind(wx.EVT_BUTTON, self.OnRowConfig)
+        self.btnRowConf.Bind(wx.EVT_BUTTON, self.on_row_config)
         #cols
         self.btnColAdd = wx.Button(self.panel, -1, _("Add"))
-        self.btnColAdd.Bind(wx.EVT_BUTTON, self.OnColAdd)
+        self.btnColAdd.Bind(wx.EVT_BUTTON, self.on_col_add)
         self.btnColAddUnder = wx.Button(self.panel, -1, _("Add Under"))
-        self.btnColAddUnder.Bind(wx.EVT_BUTTON, self.OnColAddUnder)
+        self.btnColAddUnder.Bind(wx.EVT_BUTTON, self.on_col_add_under)
         self.btnColDel = wx.Button(self.panel, -1, _("Delete"))
-        self.btnColDel.Bind(wx.EVT_BUTTON, self.OnColDelete)
+        self.btnColDel.Bind(wx.EVT_BUTTON, self.on_col_delete)
         self.btnColConf = wx.Button(self.panel, -1, _("Config"))
-        self.btnColConf.Bind(wx.EVT_BUTTON, self.OnColConfig)
+        self.btnColConf.Bind(wx.EVT_BUTTON, self.on_col_config)
         #trees
         self.rowtree = wx.gizmos.TreeListCtrl(self.panel, -1, 
               style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
-        self.rowtree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnRowItemActivated)
+        self.rowtree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, 
+                          self.on_row_item_activated)
         self.rowtree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, 
-                          self.OnRowItemRightClick)
+                          self.on_row_item_right_click)
         self.rowtree.SetToolTipString(_("Right click variables to view/edit "
                                         "details"))
-        self.rowRoot = self.setupDimTree(self.rowtree)
+        self.rowRoot = self.setup_dim_tree(self.rowtree)
         self.coltree = wx.gizmos.TreeListCtrl(self.panel, -1, 
               style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
-        self.coltree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnColItemActivated)
+        self.coltree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, 
+                          self.on_col_item_activated)
         self.coltree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, 
-                          self.OnColItemRightClick)
+                          self.on_col_item_right_click)
         self.coltree.SetToolTipString(_("Right click variables to view/edit "
                                         "details"))
-        self.colRoot = self.setupDimTree(self.coltree)
+        self.colRoot = self.setup_dim_tree(self.coltree)
         #setup demo table type
         if debug: print(self.fil_css)
         self.prev_demo = None
@@ -297,21 +299,21 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.update_demo_display()
     
     # database/ tables (and views)
-    def OnDatabaseSel(self, event):
+    def on_database_sel(self, event):
         """
         Reset dbe, database, cursor, tables, table, tables dropdown, 
             fields, has_unique, and idxs after a database selection.
         Clear dim areas.
         """
-        config_dlg.ConfigDlg.OnDatabaseSel(self, event)
+        config_dlg.ConfigDlg.on_database_sel(self, event)
         self.data_changed()
         
-    def OnTableSel(self, event):
+    def on_table_sel(self, event):
         """
         Reset table, fields, has_unique, and idxs.
         Clear dim areas.
         """       
-        config_dlg.ConfigDlg.OnTableSel(self, event)
+        config_dlg.ConfigDlg.on_table_sel(self, event)
         self.data_changed()
     
     def data_changed(self):
@@ -350,7 +352,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             tree.SetItemText(descendant, fresh_label)
 
     # table type
-    def OnTabTypeChange(self, event):
+    def on_tab_type_change(self, event):
         "Respond to change of table type"
         self.update_by_tab_type()
     
@@ -364,7 +366,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             self.chkTotalsRow.SetValue(False)
             self.chkFirstAsLabel.SetValue(False)
             self.enable_opts(enable=False)
-            self.EnableRowSel(enable=True)
+            self.enable_row_sel(enable=True)
             self.enable_col_btns()
             self.demo_tab = demotables.GenDemoTable(txtTitles=self.txtTitles, 
                              txtSubtitles=self.txtSubtitles,
@@ -380,7 +382,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             self.chkTotalsRow.SetValue(False)
             self.chkFirstAsLabel.SetValue(False)
             self.enable_opts(enable=False)
-            self.EnableRowSel(enable=True)
+            self.enable_row_sel(enable=True)
             self.enable_col_btns()
             self.demo_tab = demotables.SummDemoTable(txtTitles=self.txtTitles, 
                              txtSubtitles=self.txtSubtitles,
@@ -394,7 +396,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                              fil_css=self.fil_css)
         elif self.tab_type == my_globals.RAW_DISPLAY:
             self.enable_opts(enable=True)
-            self.EnableRowSel(enable=False)
+            self.enable_row_sel(enable=False)
             self.btnColConf.Disable()
             self.btnColAddUnder.Disable()
             self.demo_tab = demotables.DemoRawTable(txtTitles=self.txtTitles, 
@@ -415,16 +417,16 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.chkTotalsRow.Enable(enable)
         self.chkFirstAsLabel.Enable(enable)
         
-    def OnChkTotalsRow(self, event):
+    def on_chk_totals_row(self, event):
         "Update display as total rows checkbox changes"
         self.update_demo_display()
 
-    def OnChkFirstAsLabel(self, event):
+    def on_chk_first_as_label(self, event):
         "Update display as first column as label checkbox changes"
         self.update_demo_display()
                 
     # titles/subtitles
-    def OnTitleChange(self, event):
+    def on_title_change(self, event):
         """
         Update display as titles change
         Need to SetFocus back to titles because in Windows, IEHTMLWindow steals
@@ -433,9 +435,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.update_demo_display(titles_only=True)
         self.txtTitles.SetFocus()
 
-    def OnSubtitleChange(self, event):
+    def on_subtitle_change(self, event):
         """
-        Update display as subtitles change.  See OnTitleChange comment.
+        Update display as subtitles change.  See on_title_change comment.
         """
         self.update_demo_display(titles_only=True)
         self.txtSubtitles.SetFocus()
@@ -464,7 +466,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     def update_local_display(self, strContent):
         self.html.show_html(strContent)
     
-    def OnButtonRun(self, event):
+    def on_btn_run(self, event):
         """
         Generate script to special location (INT_SCRIPT_PATH), 
             run script putting output in special location 
@@ -498,7 +500,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             wx.MessageBox(_("Missing %s data") % missing_dim)
     
     # export script
-    def OnButtonExport(self, event):
+    def on_btn_export(self, event):
         """
         Export script for table to file currently displayed (if enough data).
         If the file doesn't exist, make one and add the preliminary code.
@@ -551,20 +553,20 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                                     parent=self.rowRoot):
                 child_fld_name, unused = lib.extract_var_choice_dets(
                                             self.rowtree.GetItemText(child))
-                self.addToParent(script_lst=script_lst, tree=self.rowtree, 
-                             parent=self.rowtree, 
-                             parent_node_label=u"tree_rows",
-                             child=child, child_fld_name=child_fld_name)
+                self.add_to_parent(script_lst=script_lst, tree=self.rowtree, 
+                                     parent=self.rowtree, 
+                                     parent_node_label=u"tree_rows",
+                                     child=child, child_fld_name=child_fld_name)
             script_lst.append(u"tree_cols = dimtables.DimNodeTree()")
             if has_cols:
                 for child in lib.get_tree_ctrl_children(tree=self.coltree, 
                                                         parent=self.colRoot):
                     child_fld_name, unused = lib.extract_var_choice_dets(
                                             self.coltree.GetItemText(child))
-                    self.addToParent(script_lst=script_lst, tree=self.coltree, 
-                                 parent=self.coltree, 
-                                 parent_node_label=u"tree_cols",
-                                 child=child, child_fld_name=child_fld_name)
+                    self.add_to_parent(script_lst=script_lst, tree=self.coltree, 
+                                     parent=self.coltree, 
+                                     parent_node_label=u"tree_cols",
+                                     child=child, child_fld_name=child_fld_name)
         elif self.tab_type == my_globals.RAW_DISPLAY:
             col_names, col_labels = lib.get_col_dets(self.coltree, self.colRoot, 
                                                      self.var_labels)
@@ -611,28 +613,29 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                     tot_rows + \
                 u"\n    first_col_as_label=%s)" % first_label)
         if self.tab_type in [my_globals.COL_MEASURES, my_globals.ROW_SUMM]:
-            script_lst.append(u"tab_test.prepTable(%s)" % css_idx)
+            script_lst.append(u"tab_test.prep_table(%s)" % css_idx)
             script_lst.append(u"max_cells = 5000")
-            script_lst.append(u"if tab_test.getCellNOk(max_cells=max_cells):")
+            script_lst.append(u"if tab_test.get_cell_n_ok("
+                              u"max_cells=max_cells):")
             script_lst.append(u"    " + \
-                        u"fil.write(tab_test.getHTML(%s, " % css_idx + \
+                        u"fil.write(tab_test.get_html(%s, " % css_idx + \
                         u"page_break_after=False))")
             script_lst.append(u"else:")
             script_lst.append(u"    " + \
                   u"raise my_exceptions.ExcessReportTableCellsException("
                   u"max_cells)")
         else:
-            script_lst.append(u"fil.write(tab_test.getHTML(%s, " % css_idx + \
+            script_lst.append(u"fil.write(tab_test.get_html(%s, " % css_idx + \
                               u"page_break_after=False))")
         return u"\n".join(script_lst)
 
-    def addToParent(self, script_lst, tree, parent, parent_node_label, 
-                    child, child_fld_name):
+    def add_to_parent(self, script_lst, tree, parent, parent_node_label, 
+                      child, child_fld_name):
         """
         Add script code for adding child nodes to parent nodes.
         tree - TreeListCtrl tree
         parent, child - TreeListCtrl items
-        parent_node_label - for parent_node_label.addChild(...)
+        parent_node_label - for parent_node_label.add_child(...)
         child_fld_name - used to get variable label, and value labels
             from relevant dics; plus as the field name
         """
@@ -669,19 +672,17 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                           u"\n    labels=" + unicode(labels_dic) + \
                           measures_arg + tot_arg + sort_order_arg + \
                           numeric_arg + ")")
-        script_lst.append(u"%s.addChild(%s)" % (parent_node_label, 
-                                                child_node_label))
+        script_lst.append(u"%s.add_child(%s)" % (parent_node_label, 
+                                                 child_node_label))
         # send child through for each grandchild
         for grandchild in lib.get_tree_ctrl_children(tree=tree, parent=child):
             grandchild_fld_name, unused = lib.extract_var_choice_dets(
                                                 tree.GetItemText(grandchild))
-            self.addToParent(script_lst=script_lst, tree=tree, 
-                             parent=child, 
-                             parent_node_label=child_node_label,
-                             child=grandchild, 
-                             child_fld_name=grandchild_fld_name)
+            self.add_to_parent(script_lst=script_lst, tree=tree, parent=child,
+                           parent_node_label=child_node_label, 
+                           child=grandchild, child_fld_name=grandchild_fld_name)
     
-    def OnButtonHelp(self, event):
+    def on_btn_help(self, event):
         """
         Export script if enough data to create table.
         """
@@ -694,11 +695,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.coltree.DeleteChildren(self.colRoot)
         self.update_demo_display()
 
-    #def OnClearEnterWindow(self, event):
-    #    "Hover over CLEAR button"
-    #    self.statusbar.SetStatusText("Clear settings")
-
-    def OnButtonClear(self, event):
+    def on_btn_clear(self, event):
         "Clear all settings"
         self.txtTitles.SetValue("")        
         self.txtSubtitles.SetValue("")
@@ -709,7 +706,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.update_by_tab_type()
         self.update_demo_display()
 
-    def OnClose(self, event):
+    def on_close(self, event):
         "Close app"
         try:
             self.con.close()
