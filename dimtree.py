@@ -339,8 +339,8 @@ class DimTree(object):
                            node_ids=selected_ids, tree=self.rowtree, 
                            inc_measures=inc_measures,
                            sort_opt_allowed=sort_opt_allowed)
-        dlg.ShowModal()
-        self.update_demo_display()
+        if dlg.ShowModal() == wx.ID_OK:
+            self.update_demo_display()
     
     def on_col_config(self, event):
         "Configure column button clicked."
@@ -374,9 +374,9 @@ class DimTree(object):
             self.coltree.SelectItem(self.col_no_vars_item)
             self.btnColAdd.Disable()
             self.btnColAddUnder.Disable()
-            self.get_col_config(node_ids=[self.col_no_vars_item], 
-                                has_col_vars=False)
-            self.update_demo_display()
+            if self.get_col_config(node_ids=[self.col_no_vars_item], 
+                                   has_col_vars=False) == wx.ID_OK:
+                self.update_demo_display()
         elif empty_coltree and self.tab_type == my_globals.ROW_SUMM:
             return
         else: # not an empty col_measures or row summ table
@@ -398,8 +398,9 @@ class DimTree(object):
                     self.get_col_config(node_ids=[self.col_no_vars_item], 
                                         has_col_vars=False)
                 elif self.colRoot not in selected_ids:
-                    self.get_col_config(node_ids=selected_ids, has_col_vars=True)
-                self.update_demo_display()
+                    if self.get_col_config(node_ids=selected_ids, 
+                                           has_col_vars=True) == wx.ID_OK:
+                        self.update_demo_display()
             else:
                 msg = _("If configuring multiple items at once, they "
                      "must all have children or none can have children")
@@ -414,6 +415,7 @@ class DimTree(object):
         If a row summary table, no sorting options.
         Terminal nodes can have either label or freq sorting and
             other nodes can only have label sorting.
+        Returns the show modal return value.
         """
         # include measures if the selected items have no children
         # only need to test one because they are all requried to be the same
@@ -437,7 +439,8 @@ class DimTree(object):
                            inc_measures=inc_measures, 
                            sort_opt_allowed=sort_opt_allowed, 
                            has_col_vars=has_col_vars)
-        dlg.ShowModal()
+        retval = dlg.ShowModal()
+        return retval
        
     def setup_dim_tree(self, tree):
         "Setup Dim Tree and return root"
