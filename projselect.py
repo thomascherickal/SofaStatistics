@@ -34,7 +34,7 @@ class ProjSelectDlg(wx.Dialog):
         szrExistingTop = wx.BoxSizer(wx.HORIZONTAL)
         szrExistingTop.Add(self.dropProjs, 1, wx.GROW|wx.RIGHT, 10)
         szrExistingTop.Add(self.btnEdit, 0)
-        self.get_notes(fil_proj=self.projs[0])
+        self.get_notes(fil_proj=self.projs[idx_proj])
         self.txtProjNotes = wx.TextCtrl(self.panel, -1, self.proj_notes,
                                         style=wx.TE_MULTILINE|wx.TE_READONLY, 
                                         size=(400, 90))
