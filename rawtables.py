@@ -17,11 +17,13 @@ class RawTable(object):
                  add_total_row=False, first_col_as_label=False):
         """
         Set up table details required to make my_globals.
-        dbe - only here so can use the same interface for all table types
+        dbe - needed for quoting entities and values
         """
         debug = False
         self.titles = titles
         self.subtitles = subtitles
+        self.dbe = dbe
+        self.quoter = getdata.get_obj_quoter_func(self.dbe)
         self.col_names = col_names
         self.col_labels = col_labels
         self.flds = flds
@@ -68,8 +70,7 @@ class RawTable(object):
     def get_html(self, css_idx, page_break_after=False):
         """
         Get HTML for table.
-        SELECT statement lists values in same order
-            as col names.
+        SELECT statement lists values in same order as col names.
         When adding totals, will only do it if all values are numeric (Or None).
         """
         debug = False
@@ -90,8 +91,10 @@ class RawTable(object):
         row_tots = [0 for x in self.col_names]
         if self.first_col_as_label:
             del row_tots[0] # ignore label col
-        SQL_get_data = u"SELECT %s FROM %s %s" % (u", ".join(self.col_names), 
-                                                  self.tbl, self.where_tbl_filt)
+        quoted_col_names = [self.quoter(x) for x in self.col_names]
+        SQL_get_data = u"SELECT %s FROM %s %s" % (u", ".join(quoted_col_names), 
+                                                  self.quoter(self.tbl), 
+                                                  self.where_tbl_filt)
         if debug: print(SQL_get_data)
         self.cur.execute(SQL_get_data)
         rows = self.cur.fetchall()
