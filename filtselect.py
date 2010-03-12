@@ -93,6 +93,8 @@ class FiltSelectDlg(wx.Dialog):
         self.dropVars.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_vars)
         self.dropVars.SetToolTipString(_("Right click variable to view/edit "
                                          "details"))
+        self.sorted_var_names = [] # refreshed as required and in 
+            # order of labels, not raw values
         self.setup_vars()
         gte_choices = my_globals.GTES
         self.dropGTE = wx.Choice(self.panel, -1, choices=gte_choices)
@@ -189,8 +191,8 @@ class FiltSelectDlg(wx.Dialog):
                                    self.fil_var_dets, updated)
         dlg.ShowModal()
         if updated:
-            choice_text = self.dropVars.GetStringSelection()
-            fld_name, unused = lib.extract_var_choice_dets(choice_text)
+            idx_var = self.dropVars.GetSelection()
+            fld_name = self.sorted_var_names[idx_var]
             self.setup_vars(var=fld_name)
         event.Skip()
         
@@ -212,8 +214,8 @@ class FiltSelectDlg(wx.Dialog):
     def get_quick_filter(self):
         "Get filter from quick setting"
         debug = False
-        choice_text = self.dropVars.GetStringSelection()
-        fld_name, unused = lib.extract_var_choice_dets(choice_text)
+        idx_var = self.dropVars.GetSelection()
+        fld_name = self.sorted_var_names[idx_var]      
         val = get_val(self.txtVal.GetValue(), self.flds, fld_name)
         gte = self.dropGTE.GetStringSelection()
         filt = getdata.make_fld_val_clause(self.dbe, self.flds, fld_name, val, 
@@ -296,10 +298,11 @@ class FiltSelectDlg(wx.Dialog):
         return var, var_item
     
     def on_right_click_vars(self, event):
-        var, choice_item = self.get_var()
-        var_name, var_label = lib.extract_var_choice_dets(choice_item)
+        var_name, choice_item = self.get_var()
+        var_label = lib.get_item_label(item_labels=self.var_labels, 
+                                       item_val=var_name)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
-            self.setup_vars(var)        
+            self.setup_vars(var_name)        

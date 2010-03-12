@@ -136,7 +136,7 @@ def is_numeric(val):
     The type may not be numeric but the "content" must be.
     http://www.rosettacode.org/wiki/IsNumeric#Python
     """
-    if isPyTime(val):
+    if is_pytime(val):
         return False
     elif val is None:
         return False
@@ -293,7 +293,7 @@ def is_string(val):
     # http://mail.python.org/pipermail/winnipeg/2007-August/000237.html
     return isinstance(val, basestring)
 
-def isPyTime(val): 
+def is_pytime(val): 
     #http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/511451
     return type(val).__name__ == 'time'
     
@@ -303,7 +303,7 @@ def if_none(val, default):
     While there is a regression in pywin32 cannot compare pytime with anything
         see http://mail.python.org/pipermail/python-win32/2009-March/008920.html
     """
-    if isPyTime(val):
+    if is_pytime(val):
         return val
     elif val is None:
         return default
@@ -381,14 +381,14 @@ def is_time_part(datetime_str):
     return ":" in datetime_str or "am" in datetime_str.lower() \
         or "pm" in datetime_str.lower()
 
-def IsYear(datetime_str):
-    is_year = False
+def is_year(datetime_str):
+    dt_is_year = False
     try:
         year = int(datetime_str)
-        is_year = (1 <= year < 10000) 
+        dt_is_year = (1 <= year < 10000) 
     except Exception:
         pass
-    return is_year
+    return dt_is_year
 
 def datetime_split(datetime_str):
     """
@@ -414,7 +414,7 @@ def datetime_split(datetime_str):
             return (datetime_split[1], datetime_split[0], boldate_then_time)
         else:
             return (None, None, boldate_then_time)
-    elif IsYear(datetime_str):
+    elif is_year(datetime_str):
         return (datetime_str, None, True)
     else: # only one part
         boldate_then_time = True
@@ -556,10 +556,21 @@ def time_obj_to_datetime_str(time_obj):
     return datetime_str
 
 # data
+
+def get_item_label(item_labels, item_val):
+    """
+    e.g. if lacking a label, turn agegrp into Agegrp
+    e.g. if has a label, turn agegrp into Age Group
+    """
+    item_val_u = any2unicode(item_val)
+    return item_labels.get(item_val, item_val_u.title())
+
 def get_choice_item(item_labels, item_val):
-    val_label = any2unicode(item_val)
-    return u"%s (%s)" % (item_labels.get(item_val, val_label.title()), 
-                         val_label)
+    """
+    e.g. "Age Group (agegrp)"
+    """
+    item_label = get_item_label(item_labels, item_val)
+    return u"%s (%s)" % (item_label, any2unicode(item_val))
 
 def get_sorted_choice_items(dic_labels, vals, inc_drop_select=False):
     """
@@ -579,23 +590,17 @@ def get_sorted_choice_items(dic_labels, vals, inc_drop_select=False):
         sorted_vals.insert(0, my_globals.DROP_SELECT)
     return choice_items, sorted_vals
 
-def extract_var_choice_dets(choice_text):
-    """
-    Extract name, label from item
-    e.g. return "gender" and "Gender" from "Gender (gender)" or 
-        "height(cm) and Height(cm) from Height(cm) (height(cm)).
-    Returns as string (even if original was a number etc).
-    If not in this format, e.g. special col measures label, handle differently.
-    """
-    try:
-        start_idx = choice_text.index("(") + 1
-        end_idx = choice_text.rindex(")")
-        item_val = choice_text[start_idx:end_idx]
-        item_label = choice_text[:start_idx - 2]
-    except Exception:
-        item_val = choice_text
-        item_label = choice_text        
-    return item_val, item_label
+def get_selected_choice_item(vars_lst, var_labels, idx):
+    
+    return choice_item
+
+def get_selected_var_name(vars_lst, idx):
+    
+    return var_name
+
+def get_selected_var_label(vars_lst, var_labels, idx):
+    
+    return var_label
 
 # report tables
 def get_default_measure(tab_type):
@@ -615,9 +620,11 @@ def get_col_dets(coltree, colRoot, var_labels):
     Get names and labels of columns actually selected in GUI column tree.
     Returns col_names, col_labels.
     """
-    full_col_labels = get_sub_tree_items(coltree, colRoot)
-    split_col_tree_labels = full_col_labels.split(", ")        
-    col_names = [extract_var_choice_dets(x)[0] for x in split_col_tree_labels]
+    descendants = get_tree_ctrl_descendants(tree=coltree, parent=colRoot)
+    col_names = []
+    for descendant in descendants: # NB GUI tree items, not my Dim Node obj
+        item_conf = coltree.GetItemPyData(descendant)
+        col_names.append(item_conf.var_name)
     col_labels = [var_labels.get(x, x.title()) for x in col_names]
     return col_names, col_labels
 
@@ -625,11 +632,13 @@ def get_col_dets(coltree, colRoot, var_labels):
 class ItemConfig(object):
     """
     Item config storage and retrieval.
-    Has: measures, has_tot, sort order, bolnumeric
+    Has: var_name, measures, has_tot, sort order, bolnumeric
+    NB: won't have a var name if it is the column config item.
     """
     
-    def __init__(self, measures_lst=None, has_tot=False, 
+    def __init__(self, var_name=None, measures_lst=None, has_tot=False, 
                  sort_order=my_globals.SORT_NONE, bolnumeric=False):
+        self.var_name = var_name
         if measures_lst:
             self.measures_lst = measures_lst
         else:
@@ -638,13 +647,18 @@ class ItemConfig(object):
         self.sort_order = sort_order
         self.bolnumeric = bolnumeric
     
-    def hasData(self):
-        "Has the item got any extra config e.g. measures, a total?"
+    def has_data(self):
+        """
+        Has the item got any extra config e.g. measures, a total?
+        Variable name doesn't count.
+        """
         return self.measures_lst or self.has_tot or \
             self.sort_order != my_globals.SORT_NONE
     
-    def getSummary(self, verbose=False):
-        "String summary of data"
+    def get_summary(self, verbose=False):
+        """
+        String summary of data (apart from variable name).
+        """
         str_parts = []
         total_part = _("Has TOTAL") if self.has_tot else None
         if total_part:
@@ -671,9 +685,11 @@ class ItemConfig(object):
         return u"; ".join(str_parts)
 
 def get_tree_ctrl_children(tree, parent):
-    "Get children of TreeCtrl item"
+    """
+    Get children of TreeCtrl item
+    """
     children = []
-    item, cookie = tree.GetFirstChild(parent) #p.471 wxPython
+    item, cookie = tree.GetFirstChild(parent) # p.471 wxPython
     while item:
         children.append(item)
         item, cookie = tree.GetNextChild(parent, cookie)
@@ -695,7 +711,7 @@ def item_has_children(tree, parent):
 def get_tree_ctrl_descendants(tree, parent, descendants=None):
     """
     Get all descendants (descendent is an alternative spelling 
-    in English grrr).
+        in English grrr).
     """
     if descendants is None:
         descendants = []

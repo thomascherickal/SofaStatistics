@@ -49,8 +49,9 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         lst_samples = []
         lst_labels = []
         # need sample for each of the values in range
-        idx_val_a, idx_val_b = indep2var.get_range_idxs(self.vals, val_a, val_b)
-        vals_in_range = self.vals[idx_val_a: idx_val_b + 1]
+        idx_val_a, idx_val_b = indep2var.get_range_idxs(self.gp_vals_sorted, 
+                                                        val_a, val_b)
+        vals_in_range = self.gp_vals_sorted[idx_val_a: idx_val_b + 1]
         strGet_Sample = u"%s = core_stats.get_list(" + \
             u"dbe=u\"%s\", " % self.dbe + \
             u"cur=cur, tbl=u\"%s\",\n    " % self.tbl + \

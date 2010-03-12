@@ -344,10 +344,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.update_var_dets()
            
     def refresh_descendants(self, tree, descendants):
-        ""
         for descendant in descendants:
-            var_name, unused = \
-                lib.extract_var_choice_dets(tree.GetItemText(descendant))
+            # descendant -- NB GUI tree items, not my Dim Node obj
+            item_conf = tree.GetItemPyData(descendant)
+            var_name = item_conf.var_name
             fresh_label = lib.get_choice_item(self.var_labels, var_name)
             tree.SetItemText(descendant, fresh_label)
 
@@ -553,8 +553,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             script_lst.append(u"tree_rows = dimtables.DimNodeTree()")
             for child in lib.get_tree_ctrl_children(tree=self.rowtree, 
                                                     parent=self.rowRoot):
-                child_fld_name, unused = lib.extract_var_choice_dets(
-                                            self.rowtree.GetItemText(child))
+                # child -- NB GUI tree items, not my Dim Node obj
+                item_conf = self.rowtree.GetItemPyData(child)
+                child_fld_name = item_conf.var_name
                 self.add_to_parent(script_lst=script_lst, tree=self.rowtree, 
                             parent=self.rowtree, parent_node_label=u"tree_rows",
                             parent_name=u"row",
@@ -564,8 +565,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             if has_cols:
                 for child in lib.get_tree_ctrl_children(tree=self.coltree, 
                                                         parent=self.colRoot):
-                    child_fld_name, unused = lib.extract_var_choice_dets(
-                                            self.coltree.GetItemText(child))
+                    item_conf = self.coltree.GetItemPyData(child)
+                    child_fld_name = item_conf.var_name
                     self.add_to_parent(script_lst=script_lst, tree=self.coltree, 
                             parent=self.coltree, parent_node_label=u"tree_cols",
                             parent_name=u"column",
@@ -698,12 +699,13 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                                  child_node_label))
         # send child through for each grandchild
         for grandchild in lib.get_tree_ctrl_children(tree=tree, parent=child):
-            grandchild_fld_name, unused = lib.extract_var_choice_dets(
-                                                tree.GetItemText(grandchild))
+            # grandchild -- NB GUI tree items, not my Dim Node obj
+            item_conf = tree.GetItemPyData(grandchild)
+            grandchild_fld_name = item_conf.var_name
             self.add_to_parent(script_lst=script_lst, tree=tree, parent=child,
-                        parent_node_label=child_node_label, 
-                        parent_name=child_fld_name, child=grandchild, 
-                        child_fld_name=grandchild_fld_name)
+                               parent_node_label=child_node_label, 
+                               parent_name=child_fld_name, child=grandchild, 
+                               child_fld_name=grandchild_fld_name)
     
     def on_btn_help(self, event):
         """

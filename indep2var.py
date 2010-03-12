@@ -18,7 +18,7 @@ OUTPUT_MODULES = ["my_globals", "core_stats", "getdata", "output",
 
 def get_range_idxs(vals, val_a, val_b):
     """
-    Get range indexes for two values from list of strings.
+    Get range indexes for two values from list of values.
     NB the two values are strings as displayed in dropdowns even if the 
         underlying data is not.
     E.g. u'1' and u'5' in [1, 2, 3, 4, 5]
@@ -120,6 +120,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.dropGroupBy.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
         self.dropGroupBy.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_group_by)
         self.dropGroupBy.SetToolTipString(variables_rc_msg)
+        self.sorted_var_names_by = [] # var names sorted by labels i.e. same as 
+            # dropdown.  Refreshed as needed so always usable.
         self.setup_group_by()
         self.lblchop_warning = wx.StaticText(self.panel, -1, "")
         szrVarsTopRightTop.Add(self.lblGroupBy, 0, wx.RIGHT|wx.TOP, 5)
@@ -133,6 +135,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.lblGroupB = wx.StaticText(self.panel, -1, _("Group B:"))
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.on_group_by_b_sel)
+        self.gp_vals_sorted = [] # same order in dropdowns
+        self.gp_choice_items_sorted = [] # refreshed as required and in 
+            # order of labels, not raw values
         self.setup_group_dropdowns()
         szrVarsTopRightBottom.Add(self.lblGroupA, 0, wx.RIGHT|wx.TOP, 5)
         szrVarsTopRightBottom.Add(self.dropGroupA, 0, wx.RIGHT, 5)
@@ -190,17 +195,19 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
 
     def on_right_click_group_by(self, event):
         var_gp, choice_item = self.get_group_by()
-        var_name, var_label = lib.extract_var_choice_dets(choice_item)
-        updated = projects.set_var_props(choice_item, var_name, var_label, 
+        label_gp = lib.get_item_label(item_labels=self.var_labels, 
+                                      item_val=var_gp)
+        updated = projects.set_var_props(choice_item, var_gp, label_gp, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
             self.refresh_vars()
 
     def on_right_click_vars(self, event):
-        var_avg, choice_item = self.get_var_dets(self.dropAveraged, 
-                                                 self.sorted_var_names_avg)
-        var_name, var_label = lib.extract_var_choice_dets(choice_item)
+        var_name, choice_item = self.get_var_dets(self.dropAveraged, 
+                                                  self.sorted_var_names_avg)
+        var_label = lib.get_item_label(item_labels=self.var_labels, 
+                                       item_val=var_name)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
@@ -252,7 +259,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_gp, var_avg = self.get_vars()
         config_dlg.ConfigDlg.on_var_dets_file_lost_focus(self, event)
         self.setup_group_by(var_gp)
-        self.setup_var(self.dropAveraged, my_globals.VAR_AVG_DEFAULT, var_avg)
+        self.setup_var(self.dropAveraged, my_globals.VAR_AVG_DEFAULT, 
+                       self.sorted_var_names_avg, var_avg)
         self.setup_group_dropdowns(val_a, val_b)
         self.update_defaults()
         self.update_phrase()
@@ -296,12 +304,13 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     
     def get_vals(self):
         """
-        self.vals is set when dropdowns are set (and only changed when reset).
+        self.gp_vals_sorted is set when dropdowns are set (and only changed when 
+            reset).
         """
         idx_a = self.dropGroupA.GetSelection()
-        val_a = self.vals[idx_a]
+        val_a = self.gp_vals_sorted[idx_a]
         idx_b = self.dropGroupB.GetSelection()
-        val_b = self.vals[idx_b]
+        val_b = self.gp_vals_sorted[idx_b]
         return val_a, val_b
     
     def on_group_by_sel(self, event):
@@ -346,7 +355,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def setup_var(self, drop_var, default, sorted_var_names, var_name=None):
         var_names = projects.get_approp_var_names(self.flds, self.var_types,
                                                   self.min_data_type)
-        var_choice_items, sorted_vals = lib.get_sorted_choice_items(\
+        var_choice_items, sorted_vals = lib.get_sorted_choice_items(
                                                     dic_labels=self.var_labels,
                                                     vals=var_names)
         while True:
@@ -367,8 +376,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         Sets choices for dropGroupA and B accordingly.
         """
         debug = False
-        choice_text = self.dropGroupBy.GetStringSelection()
-        if not choice_text or choice_text == my_globals.DROP_SELECT:
+        var_gp, choice_item = self.get_group_by()
+        if not choice_item or choice_item == my_globals.DROP_SELECT:
             self.lblGroupA.Enable(False)
             self.dropGroupA.SetItems([])
             self.dropGroupA.Enable(False)
@@ -380,20 +389,19 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.dropGroupA.Enable(True)
         self.lblGroupB.Enable(True)
         self.dropGroupB.Enable(True)
-        var_name, var_label = lib.extract_var_choice_dets(choice_text)
         quoter = getdata.get_obj_quoter_func(self.dbe)
         unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
         where_filt, unused = lib.get_tbl_filts(tbl_filt)
-        SQL_get_sorted_vals = u"""SELECT %(var_name)s 
+        SQL_get_sorted_vals = u"""SELECT %(var_gp)s 
             FROM %(tbl)s 
             %(where_filt)s
-            GROUP BY %(var_name)s 
-            ORDER BY %(var_name)s""" % {"var_name": quoter(var_name), 
-                                        "tbl": quoter(self.tbl),
-                                        "where_filt": where_filt}
+            GROUP BY %(var_gp)s 
+            ORDER BY %(var_gp)s""" % {"var_gp": quoter(var_gp), 
+                                      "tbl": quoter(self.tbl),
+                                      "where_filt": where_filt}
         if debug: print(SQL_get_sorted_vals)
         self.cur.execute(SQL_get_sorted_vals)
-        val_dic = self.val_dics.get(var_name, {})
+        val_dic = self.val_dics.get(var_gp, {})
         # cope if variable has massive spread of values
         all_vals = self.cur.fetchall()
         if len(all_vals) > 20:
@@ -401,49 +409,65 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             all_vals = all_vals[:20]
         else:
             self.lblchop_warning.SetLabel(u"")
-        self.vals = [x[0] for x in all_vals]
-        vals_with_labels = [lib.get_choice_item(val_dic, x) for x in self.vals]
-        self.dropGroupA.SetItems(vals_with_labels)
-        self.dropGroupB.SetItems(vals_with_labels)
+        self.gp_vals_sorted = [x[0] for x in all_vals]
+        self.gp_choice_items_sorted = [lib.get_choice_item(val_dic, x) 
+                                 for x in self.gp_vals_sorted]
+        self.dropGroupA.SetItems(self.gp_choice_items_sorted)
+        self.dropGroupB.SetItems(self.gp_choice_items_sorted)
         # set selections
         if val_a:
             item_new_version_a = lib.get_choice_item(val_dic, val_a)
-            idx_a = vals_with_labels.index(item_new_version_a)
+            idx_a = self.gp_choice_items_sorted.index(item_new_version_a)
         else: # use defaults if possible
             idx_a = 0
             if my_globals.VAL_A_DEFAULT:
                 try:
-                    idx_a = vals_with_labels.index(my_globals.VAL_A_DEFAULT)
+                    idx_a = self.gp_choice_items_sorted.index(
+                                                    my_globals.VAL_A_DEFAULT)
                 except ValueError:
                     pass
         self.dropGroupA.SetSelection(idx_a)
         if val_b:
             item_new_version_b = lib.get_choice_item(val_dic, val_b)
-            idx_b = vals_with_labels.index(item_new_version_b)
+            idx_b = self.gp_choice_items_sorted.index(item_new_version_b)
         else: # use defaults if possible
             idx_b = 0
             if my_globals.VAL_B_DEFAULT:
                 try:
-                    idx_b = vals_with_labels.index(my_globals.VAL_B_DEFAULT)
+                    idx_b = self.gp_choice_items_sorted.index(
+                                                    my_globals.VAL_B_DEFAULT)
                 except ValueError:
                     pass
         self.dropGroupB.SetSelection(idx_b)
     
     def get_drop_vals(self):
         """
-        Get values from main drop downs.
+        Get values (in unicode form) from main drop downs.
         Returns var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, 
             label_b, var_avg, label_avg.
         """
-        choice_gp_text = self.dropGroupBy.GetStringSelection()
-        var_gp, label_gp = lib.extract_var_choice_dets(choice_gp_text)
-        choice_a_text = self.dropGroupA.GetStringSelection()
-        val_a, label_a = lib.extract_var_choice_dets(choice_a_text)
-        choice_b_text = self.dropGroupB.GetStringSelection()
-        val_b, label_b = lib.extract_var_choice_dets(choice_b_text)
-        choice_avg_text = self.dropAveraged.GetStringSelection()
-        var_avg, label_avg = lib.extract_var_choice_dets(choice_avg_text)
+        selection_idx_gp = self.dropGroupBy.GetSelection()
+        var_gp = self.sorted_var_names_by[selection_idx_gp]
+        label_gp = lib.get_item_label(item_labels=self.var_labels, 
+                                      item_val=var_gp)
         var_gp_numeric = self.flds[var_gp][my_globals.FLD_BOLNUMERIC]
+        # Now the a and b choices under the group
+        val_dic = self.val_dics.get(var_gp, {})
+        selection_idx_a = self.dropGroupA.GetSelection()
+        val_a_raw = self.gp_vals_sorted[selection_idx_a]
+        val_a = lib.any2unicode(val_a_raw)
+        label_a = lib.get_item_label(item_labels=val_dic, 
+                                     item_val=val_a_raw)
+        selection_idx_b = self.dropGroupB.GetSelection()
+        val_b_raw = self.gp_vals_sorted[selection_idx_b]
+        val_b = lib.any2unicode(val_b_raw)
+        label_b = lib.get_item_label(item_labels=val_dic, 
+                                     item_val=val_b_raw)
+        # the avg variable(s)
+        selection_idx_avg = self.dropAveraged.GetSelection()
+        var_avg = self.sorted_var_names_avg[selection_idx_avg]
+        label_avg = lib.get_item_label(item_labels=self.var_labels, 
+                                       item_val=var_avg)
         return var_gp_numeric, var_gp, label_gp, val_a, label_a, \
             val_b, label_b, var_avg, label_avg
         
@@ -498,10 +522,11 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             var_gp_numeric, var_gp, unused, unused, unused, unused, unused, \
                 unused, unused = self.get_drop_vals()
             # group a must be lower than group b
-            val_a, unused = lib.extract_var_choice_dets(
-                                        self.dropGroupA.GetStringSelection())
-            val_b, unused = lib.extract_var_choice_dets(
-                                        self.dropGroupB.GetStringSelection())
+            val_dic = self.val_dics.get(var_gp, {})
+            selection_idx_a = self.dropGroupA.GetSelection()
+            val_a = self.gp_vals_sorted[selection_idx_a]
+            selection_idx_b = self.dropGroupB.GetSelection()
+            val_b = self.gp_vals_sorted[selection_idx_b]
             if var_gp_numeric:
                 # NB SQLite could have a string in a numeric field
                 # could cause problems even if the string value is not one of 

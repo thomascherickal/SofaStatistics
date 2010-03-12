@@ -209,8 +209,7 @@ class ListVarsDlg(wx.Dialog):
                  fil_var_dets, updated):
         "updated -- empty set - add True to 'return' updated True"
         wx.Dialog.__init__(self, None, title=_("Variable Details"),
-                  size=(500,600), 
-                  style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU)
+                  size=(500,600), style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU)
         self.flds = flds
         self.var_labels = var_labels
         self.var_notes = var_notes
@@ -237,18 +236,19 @@ class ListVarsDlg(wx.Dialog):
     def on_lst_click(self, event):
         debug = False
         try:
-            var, choice_item = self.get_var()
+            var_name, choice_item = self.get_var()
         except Exception: # seems to be triggered
             return
-        var_name, var_label = lib.extract_var_choice_dets(choice_item)
-        if debug: 
+        var_label = lib.get_item_label(item_labels=self.var_labels, 
+                                       item_val=var_name)
+        if debug:
             print(var_name)
             pprint.pprint(self.flds)
         updated = set_var_props(choice_item, var_name, var_label, self.flds, 
                                 self.var_labels, self.var_notes, self.var_types, 
                                 self.val_dics, self.fil_var_dets)
         if updated:
-            self.setup_vars(var)
+            self.setup_vars(var_name)
             self.updated.add(True)
     
     def on_ok(self, event):

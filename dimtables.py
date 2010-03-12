@@ -50,7 +50,7 @@ class DimNodeTree(tree.NodeTree):
         "Update filt_flds to cover all fields in ancestral line"
         #super(tree.NodeTree, self).add_child(child_node)
         tree.NodeTree.add_child(self, child_node)
-        child_node.filt_flds = [child_node.fld] #may be None
+        child_node.filt_flds = [child_node.fld] # may be None
 
 class LabelNodeTree(tree.NodeTree):
     """
@@ -66,9 +66,8 @@ class DimNode(tree.Node):
     """
     A specialist node for recording table dimension (row or column)
     data.
-    fld is optional for use in columns because sometimes we just want 
-        measures there e.g. freq, or summary measures such as mean, 
-        median etc.
+    fld is optional for use in columns because sometimes we just want measures
+        there e.g. freq, or summary measures such as mean, median etc.
     label - will use fld if no label supplied (and fld available) - e.g.
         fld=gender, fld.title() = Gender.
     labels - a dictionary of labels e.g. {"1": "Male", "2": "Female"}
@@ -120,8 +119,7 @@ class LabelNode(tree.Node):
     is_coltot - used for calculations of data values
     """
     
-    def __init__(self, label=u"", filts=None, measure=None, 
-                 is_coltot=False):
+    def __init__(self, label=u"", filts=None, measure=None, is_coltot=False):
         """
         filt_flds is only filled if this is a terminal node.  
         It is filled when the label nodes tree is being built from the dim node 
@@ -487,7 +485,7 @@ class LiveTable(DimTable):
         Based on information from the variable node, add a subtree
         to the node supplied from the labels tree (if appropriate).
         """
-        has_fld = tree_dims_node.fld #None or a string        
+        has_fld = tree_dims_node.fld # None or a string        
         filt_flds = tree_dims_node.filt_flds
         if dim == my_globals.ROWDIM:
             if not has_fld:
@@ -659,7 +657,9 @@ class LiveTable(DimTable):
             filters.  If any records remain, we can show the cell.
         """
         debug = False
-        if debug: print(tree_dims_node)
+        if debug:
+            print("running add_subtree_if_vals") 
+            print(tree_dims_node)
         fld = tree_dims_node.fld
         SQL_get_vals = self.get_vals_sql(fld, tree_dims_node, tree_labels_node, 
                                          oth_dim_root)
@@ -670,8 +670,8 @@ class LiveTable(DimTable):
         if not all_vals:
             return # do not add subtree - no values
         # add level 1 to data tree - the var
-        node_lev1 = tree_labels_node.add_child(LabelNode(label=\
-                                                        tree_dims_node.label))
+        node_lev1 = tree_labels_node.add_child(LabelNode(
+                                                    label=tree_dims_node.label))
         val_freq_label_lst = self.get_sorted_val_freq_label_lst(all_vals,
                                                                 tree_dims_node)
         if tree_dims_node.has_tot:
@@ -709,8 +709,8 @@ class LiveTable(DimTable):
             else:
                 for child in tree_dims_node.children:
                     self.add_subtree_to_label_tree(tree_dims_node=child, 
-                                           tree_labels_node=val_node,
-                                           dim=dim, oth_dim_root=oth_dim_root)
+                                           tree_labels_node=val_node, dim=dim, 
+                                           oth_dim_root=oth_dim_root)
     
     def add_subtree_measures_only(self, tree_dims_node, tree_labels_node, 
                                   filt_flds):

@@ -122,8 +122,9 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
 
     def on_right_click_group_a(self, event):
         var_a, choice_item = self.get_var_a()
-        var_name, var_label = lib.extract_var_choice_dets(choice_item)
-        updated = projects.set_var_props(choice_item, var_name, var_label, 
+        var_label_a = lib.get_item_label(item_labels=self.var_labels, 
+                                         item_val=var_a)
+        updated = projects.set_var_props(choice_item, var_a, var_label_a, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
@@ -131,8 +132,9 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
 
     def on_right_click_group_b(self, event):
         var_b, choice_item = self.get_var_b()
-        var_name, var_label = lib.extract_var_choice_dets(choice_item)
-        updated = projects.set_var_props(choice_item, var_name, var_label, 
+        var_label_b = lib.get_item_label(item_labels=self.var_labels, 
+                                         item_val=var_b)
+        updated = projects.set_var_props(choice_item, var_b, var_label_b, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
@@ -235,10 +237,11 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         Get values from main drop downs.
         Returns var_a, label_a, var_b, label_b.
         """
-        choice_a_text = self.dropGroupA.GetStringSelection()
-        var_a, label_a = lib.extract_var_choice_dets(choice_a_text)
-        choice_b_text = self.dropGroupB.GetStringSelection()
-        var_b, label_b = lib.extract_var_choice_dets(choice_b_text)
+        var_a, var_b = self.get_vars()
+        label_a = lib.get_item_label(item_labels=self.var_labels, 
+                                     item_val=var_a)
+        label_b = lib.get_item_label(item_labels=self.var_labels, 
+                                     item_val=var_b)
         return var_a, label_a, var_b, label_b
     
     def update_phrase(self):

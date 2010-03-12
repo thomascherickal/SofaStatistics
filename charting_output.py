@@ -78,7 +78,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.drop_var1.Bind(wx.EVT_CHOICE, self.on_var1_sel)
         self.drop_var1.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_var1)
         self.drop_var1.SetToolTipString(variables_rc_msg)
+        
+        
+        
+        
         self.sorted_var_names1 = []
+        
+        self.sorted_var_names2 = []
+        
         self.setup_var(self.drop_var1, my_globals.VAR_1_DEFAULT, 
                        self.sorted_var_names1)
         # var 2
@@ -329,6 +336,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def on_btn_chart(self, event):
         wx.MessageBox(u"Charting is under construction")
     
+    def on_btn_run(self, event):
+        wx.MessageBox(u"Charting is under construction")
+        
+    def on_btn_export(self, event):
+        wx.MessageBox(u"Charting is under construction")
+    
     def on_var1_sel(self, event):
         pass
         
@@ -346,7 +359,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         
     def on_right_click_var(self, drop_var, sorted_var_names):
         var_name, choice_item = self.get_var_dets(drop_var, sorted_var_names)
-        var_name, var_label = lib.extract_var_choice_dets(choice_item)
+        var_label = lib.get_item_label(self.var_labels, var_name)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
@@ -354,12 +367,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.refresh_vars()
     
     def refresh_vars(self):
-        var_gp, var_name1, var_name2 = self.get_vars()
+        var_gp, var_name1 = self.get_vars() # , var_name2
         self.setup_group_by(var_gp)
         self.setup_var(self.drop_var1, my_globals.VAR_1_DEFAULT, 
                        self.sorted_var_names1, var_name1)
-        self.setup_var(self.drop_var2, my_globals.VAR_2_DEFAULT, 
-               self.sorted_var_names2, var_name2)
+        #self.setup_var(self.drop_var2, my_globals.VAR_2_DEFAULT, 
+        #       self.sorted_var_names2, var_name2)
         self.update_defaults()
 
     def on_database_sel(self, event):
@@ -428,10 +441,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         """
         var_name1, unused = self.get_var_dets(self.drop_var1, 
                                               self.sorted_var_names1)
-        var_name2, unused = self.get_var_dets(self.drop_var2, 
-                                              self.sorted_var_names2)
+        #var_name2, unused = self.get_var_dets(self.drop_var2, 
+        #                                      self.sorted_var_names2)
         var_gp, unused = self.get_group_by()
-        return var_gp, var_name1, var_name2
+        return var_gp, var_name1 #, var_name2
     
     def update_defaults(self):
         my_globals.GROUP_BY_DEFAULT = self.dropGroupBy.GetStringSelection()
@@ -446,17 +459,32 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         Returns var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, 
             label_b, var_1, label_1, var_1, label_1.
         """
-        choice_gp_text = self.dropGroupBy.GetStringSelection()
-        var_gp, label_gp = lib.extract_var_choice_dets(choice_gp_text)
-        choice_a_text = self.dropGroupA.GetStringSelection()
-        val_a, label_a = lib.extract_var_choice_dets(choice_a_text)
-        choice_b_text = self.dropGroupB.GetStringSelection()
-        val_b, label_b = lib.extract_var_choice_dets(choice_b_text)
-        choice_1_text = self.drop_var1.GetStringSelection()
-        var_1, label_1 = lib.extract_var_choice_dets(choice_1_text)
-        choice_2_text = self.drop_var2.GetStringSelection()
-        var_2, label_2 = lib.extract_var_choice_dets(choice_2_text)
+        selection_idx_gp = self.dropGroupBy.GetSelection()
+        var_gp = self.sorted_var_names_by[selection_idx_gp]
+        label_gp = lib.get_item_label(item_labels=self.var_labels, 
+                                      item_val=var_gp)
         var_gp_numeric = self.flds[var_gp][my_globals.FLD_BOLNUMERIC]
+        # Now the a and b choices under the group
+        val_dic = self.val_dics.get(var_gp, {})
+        selection_idx_a = self.dropGroupA.GetSelection()
+        val_a_raw = self.gp_vals_sorted[selection_idx_a]
+        val_a = lib.any2unicode(val_a_raw)
+        label_a = lib.get_item_label(item_labels=val_dic, 
+                                     item_val=val_a_raw)
+        selection_idx_b = self.dropGroupB.GetSelection()
+        val_b_raw = self.gp_vals_sorted[selection_idx_b]
+        val_b = lib.any2unicode(val_b_raw)
+        label_b = lib.get_item_label(item_labels=val_dic, 
+                                     item_val=val_b_raw)
+        # the other variable(s)
+        selection_idx_1 = self.drop_var1.GetSelection()
+        var_1 = self.sorted_var_names1[selection_idx_1]
+        label_1 = lib.get_item_label(item_labels=self.var_labels, 
+                                     item_val=var_1)
+        selection_idx_2 = self.drop_var2.GetSelection()
+        var_2 = self.sorted_var_names2[selection_idx_2]
+        label_2 = lib.get_item_label(item_labels=self.var_labels, 
+                                     item_val=var_2)
         return var_gp_numeric, var_gp, label_gp, val_a, label_a, \
             val_b, label_b, var_1, label_1, var_2, label_2
 
@@ -491,10 +519,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             var_gp_numeric, var_gp, unused, unused, unused, unused, unused, \
                 unused, unused, unused, unused = self.get_drop_vals()
             # group a must be lower than group b
-            val_a, unused = lib.extract_var_choice_dets(
-                                        self.dropGroupA.GetStringSelection())
-            val_b, unused = lib.extract_var_choice_dets(
-                                        self.dropGroupB.GetStringSelection())
+            val_dic = self.val_dics.get(var_gp, {})
+            selection_idx_a = self.dropGroupA.GetSelection()
+            val_a = self.vals_with_labels[selection_idx_a]
+            selection_idx_b = self.dropGroupB.GetSelection()
+            val_b = self.vals_with_labels[selection_idx_b]
             if var_gp_numeric:
                 # NB SQLite could have a string in a numeric field
                 # could cause problems even if the string value is not one of 

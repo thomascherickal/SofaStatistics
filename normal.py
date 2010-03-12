@@ -221,10 +221,12 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             selected variables.
         """
         var_a, choice_item_a = self.get_var_a()
-        unused, var_label_a = lib.extract_var_choice_dets(choice_item_a)
+        var_label_a = lib.get_item_label(item_labels=self.var_labels, 
+                                         item_val=var_a)
         if self.paired:
             var_b, choice_item_b = self.get_var_b()
-            unused, var_label_b = lib.extract_var_choice_dets(choice_item_b)
+            var_label_b = lib.get_item_label(item_labels=self.var_labels, 
+                                             item_val=var_b)
         unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
         unused, and_filt = lib.get_tbl_filts(tbl_filt)
         obj_quoter = getdata.get_obj_quoter_func(self.dbe)
@@ -349,20 +351,22 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         dlg.ShowModal()
         event.Skip()
     
-    def on_right_click_var_b(self, event):
-        var, choice_item = self.get_var_a()
-        var_name, var_label = lib.extract_var_choice_dets(choice_item)
-        updated = projects.set_var_props(choice_item, var_name, var_label, 
+    def on_right_click_var_a(self, event):
+        var_a, choice_item = self.get_var_a()
+        var_label_a = lib.get_item_label(item_labels=self.var_labels, 
+                                         item_val=var_a)
+        updated = projects.set_var_props(choice_item, var_a, var_label_a, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
-            self.setup_var_a(var)
+            self.setup_var_a(var_a)
     
     def on_right_click_var_b(self, event):
-        var, choice_item = self.get_var_b()
-        var_name, var_label = lib.extract_var_choice_dets(choice_item)
-        updated = projects.set_var_props(choice_item, var_name, var_label, 
+        var_b, choice_item = self.get_var_b()
+        var_label_b = lib.get_item_label(item_labels=self.var_labels, 
+                                         item_val=var_b)
+        updated = projects.set_var_props(choice_item, var_b, var_label_b, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
-            self.setup_var_b(var)
+            self.setup_var_b(var_b)

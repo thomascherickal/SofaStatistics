@@ -78,7 +78,7 @@ def assess_sample_fld(sample_data, orig_fld_name):
         if lib.is_numeric(val): # anything that SQLite can add _as a number_ 
                 # into a numeric field
             type_set.add(VAL_NUMERIC)
-        elif lib.isPyTime(val): # COM on Windows
+        elif lib.is_pytime(val): # COM on Windows
             type_set.add(VAL_DATETIME)
         else:
             usable_datetime = lib.is_usable_datetime_str(val)
@@ -110,7 +110,7 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
     """
     debug = False
     val = row[orig_fld_name]
-    is_pytime = lib.isPyTime(val)
+    is_pytime = lib.is_pytime(val)
     fld_type = fld_types[orig_fld_name]
     if not check:
         # still need to handle pytime and turn empty strings into NULLs 

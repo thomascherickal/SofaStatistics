@@ -9,9 +9,9 @@ import lib
 import dimtables
 import projects
 
-SORT_OPT_NONE = 0 #No sorting options
-SORT_OPT_BY_LABEL = 1 #Only provide option of sorting by label
-SORT_OPT_ALL = 2 #Option of sorting by labels and freqs
+SORT_OPT_NONE = 0 # No sorting options
+SORT_OPT_BY_LABEL = 1 # Only provide option of sorting by label
+SORT_OPT_ALL = 2 # Option of sorting by labels and freqs
 
 
 class DimTree(object):
@@ -32,16 +32,17 @@ class DimTree(object):
         self.config_col()
     
     def on_row_item_right_click(self, event):
-        ""
         self.show_var_properties(self.rowtree, event)
 
     def on_col_item_right_click(self, event):
-        ""
         self.show_var_properties(self.coltree, event)
         
     def show_var_properties(self, tree, event):
-        choice_item = tree.GetItemText(event.GetItem())
-        var_name, var_label = lib.extract_var_choice_dets(choice_item)
+        item = event.GetItem() # NB GUI tree item, not our own Dim Node obj
+        item_conf = tree.GetItemPyData(item)
+        var_name = item_conf.var_name
+        var_label = lib.get_item_label(self.var_labels, var_name)
+        choice_item = lib.get_choice_item(self.var_labels, var_name)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
                             self.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
@@ -55,20 +56,21 @@ class DimTree(object):
         "Add row var under root"
         self.try_adding(tree=self.rowtree, root=self.rowRoot, 
                         dim=my_globals.ROWDIM, oth_dim=my_globals.COLDIM, 
-                        oth_dim_tree=self.coltree, 
-                        oth_dim_root=self.colRoot)
+                        oth_dim_tree=self.coltree, oth_dim_root=self.colRoot)
      
     def on_col_add(self, event):
         "Add column var under root"
         self.try_adding(tree=self.coltree, root=self.colRoot, 
                         dim=my_globals.COLDIM, oth_dim=my_globals.ROWDIM, 
-                        oth_dim_tree=self.rowtree, 
-                        oth_dim_root=self.rowRoot)
+                        oth_dim_tree=self.rowtree, oth_dim_root=self.rowRoot)
     
-    def try_adding(self, tree, root, dim, oth_dim, oth_dim_tree, 
-                   oth_dim_root):
+    def try_adding(self, tree, root, dim, oth_dim, oth_dim_tree, oth_dim_root):
         """
         Try adding a variable.
+        NB while in the GUI, all we are doing is building a tree control.
+        It is when we build a script that we build a dim node tree (a tree of 
+            what our config tree looks like in the GUI) from it and then build a 
+            label node tree (a tree of what we see in output) from that.
         """
         if self.tab_type == my_globals.ROW_SUMM and tree == self.rowtree:
             min_data_type = my_globals.VAR_TYPE_ORD
@@ -76,14 +78,16 @@ class DimTree(object):
             min_data_type = my_globals.VAR_TYPE_CAT
         var_names = projects.get_approp_var_names(self.flds, self.var_types,
                                                   min_data_type)
-        choices, unused = lib.get_sorted_choice_items(
-                                dic_labels=self.var_labels, vals=var_names)
+        sorted_choices, sorted_vars = lib.get_sorted_choice_items(
+                                    dic_labels=self.var_labels, vals=var_names)
         dlg = wx.MultiChoiceDialog(self, _("Select a variable"), _("Variables"), 
-                                   choices=choices)
+                                   choices=sorted_choices)
         if dlg.ShowModal() == wx.ID_OK:
             # only use in one dimension
-            text_selected = [choices[x] for x in dlg.GetSelections()]
-            for text in text_selected:
+            selected_idxs = dlg.GetSelections()
+            for idx in selected_idxs:
+                text = sorted_choices[idx]
+                var_name = sorted_vars[idx]
                 used_in_oth_dim = self.used_in_oth_dim(text, oth_dim_tree, 
                                                        oth_dim_root)
                 if used_in_oth_dim:
@@ -100,11 +104,12 @@ class DimTree(object):
                         wx.MessageBox(msg % {"text": text})
                         return
             # they all passed the tests so proceed
-            for text in text_selected:
+            for idx in selected_idxs:
+                text = sorted_choices[idx]
                 new_id = tree.AppendItem(root, text)
-                var_name, unused = lib.extract_var_choice_dets(text)
+                var_name = sorted_vars[idx]            
                 self.set_initial_config(tree, dim, new_id, var_name)
-            if text_selected:
+            if selected_idxs:
                 tree.UnselectAll() # multiple
                 tree.SelectItem(new_id)
                 self.update_demo_display()
@@ -112,25 +117,26 @@ class DimTree(object):
     def set_initial_config(self, tree, dim, new_id, var_name=None):
         """
         Set initial config for new item.
-        Variable name not applicable when a column config item rather than
-            a normal column variable.
+        Variable name not applicable when a column config item 
+            (col_no_vars_item)rather than a normal column variable.
         """
         item_conf = lib.ItemConfig()
-        if (self.tab_type == my_globals.COL_MEASURES \
+        if (self.tab_type == my_globals.COL_MEASURES
                     and dim == my_globals.COLDIM):
             item_conf.measures_lst = \
                 [lib.get_default_measure(my_globals.COL_MEASURES)]
-        elif (self.tab_type == my_globals.ROW_SUMM \
+        elif (self.tab_type == my_globals.ROW_SUMM
                     and dim == my_globals.ROWDIM):
             item_conf.measures_lst = \
                 [lib.get_default_measure(my_globals.ROW_SUMM)]
         if var_name:
+            item_conf.var_name = var_name
             item_conf.bolnumeric = \
                 self.flds[var_name][my_globals.FLD_BOLNUMERIC]
         else:
             item_conf.bolnumeric = False
         tree.SetItemPyData(new_id, item_conf)
-        tree.SetItemText(new_id, item_conf.getSummary(), 1)
+        tree.SetItemText(new_id, item_conf.get_summary(), 1)
     
     def on_row_add_under(self, event):
         """
@@ -188,29 +194,29 @@ class DimTree(object):
         Try to add var under selected var.
         Only do so if OK e.g. no duplicate text in either dim.
         """
-        choice_var_names = self.flds.keys()
-        choices = [lib.get_choice_item(self.var_labels, x) \
-                   for x in choice_var_names]
-        choices.sort(key=lambda s: s.upper())
+        var_names = self.flds.keys()
+        sorted_choices, sorted_vars = \
+                        lib.get_sorted_choice_items(self.var_labels, var_names)
         dlg = wx.MultiChoiceDialog(self, _("Select a variable"), 
-                                   _("Variables"), choices=choices)
+                                   _("Variables"), choices=sorted_choices)
         if dlg.ShowModal() == wx.ID_OK:
-            text_selected = [choices[x] for x in dlg.GetSelections()]
-            for text in text_selected:
+            selected_idxs = dlg.GetSelections()
+            for idx in selected_idxs:
+                text = sorted_choices[idx]
+                var_name = sorted_vars[idx]
                 # a text label supplied cannot be in any ancestors
                 ancestor_labels = []
                 parent_text = tree.GetItemText(selected_id)
                 ancestor_labels.append(parent_text)
                 ancestors = lib.get_tree_ancestors(tree, selected_id)
-                parent_ancestor_labels = [tree.GetItemText(x) for \
+                parent_ancestor_labels = [tree.GetItemText(x) for
                                           x in ancestors]
                 ancestor_labels += parent_ancestor_labels
                 # text cannot be anywhere in other dim tree
                 used_in_oth_dim = self.used_in_oth_dim(text, oth_dim_tree, 
                                                        oth_dim_root)                
                 if text in ancestor_labels:
-                    msg = _("Variable %s cannot be an "
-                            "ancestor of itself")
+                    msg = _("Variable %s cannot be an ancestor of itself")
                     wx.MessageBox(msg % text)
                     return
                 elif used_in_oth_dim:
@@ -218,10 +224,11 @@ class DimTree(object):
                             "%(oth_dim)s dimension")
                     wx.MessageBox(msg % {"text": text, "oth_dim": oth_dim})
                     return
-            # they all passed the test so proceed        
-            for text in text_selected:
+            # they all passed the test so proceed
+            for idx in selected_idxs:
+                text = sorted_choices[idx]
                 new_id = tree.AppendItem(selected_id, text)
-                var_name, unused = lib.extract_var_choice_dets(text)
+                var_name = sorted_vars[idx] 
                 self.set_initial_config(tree, dim, new_id, var_name)
                 # empty all measures from ancestors and ensure sorting 
                 # is appropriate
@@ -234,8 +241,8 @@ class DimTree(object):
                              my_globals.SORT_FREQ_DESC]:
                             item_conf.sort_order = my_globals.SORT_NONE
                         tree.SetItemText(ancestor, 
-                                         item_conf.getSummary(), 1)                        
-            if text_selected:
+                                         item_conf.get_summary(), 1)                        
+            if selected_idxs:
                 tree.ExpandAll(root)
                 tree.UnselectAll() # multiple
                 tree.SelectItem(new_id)
@@ -553,7 +560,9 @@ class DlgConfig(wx.Dialog):
         self.Fit()
              
     def on_ok(self, event):
-        "Store selection details into item conf object"
+        """
+        Store selection details into item conf object
+        """
         # measures
         measures_lst = []
         any_measures = False
@@ -580,11 +589,13 @@ class DlgConfig(wx.Dialog):
             if sort_opt_selection == 3:
                 sort_order = my_globals.SORT_FREQ_DESC
         for node_id in self.node_ids:
-            bolnumeric = self.tree.GetItemPyData(node_id).bolnumeric
-            item_conf = lib.ItemConfig(measures_lst, has_tot, sort_order, 
-                                       bolnumeric)
+            existing_data = self.tree.GetItemPyData(node_id)
+            var_name = existing_data.var_name
+            bolnumeric = existing_data.bolnumeric
+            item_conf = lib.ItemConfig(var_name, measures_lst, has_tot, 
+                                       sort_order, bolnumeric)
             self.tree.SetItemPyData(node_id, item_conf)        
-            self.tree.SetItemText(node_id, item_conf.getSummary(), 1)
+            self.tree.SetItemText(node_id, item_conf.get_summary(), 1)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
         # Prebuilt dialogs must do this internally.

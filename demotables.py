@@ -229,10 +229,11 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
     def add_subtree_to_label_tree(self, tree_dims_item, tree_labels_node, dim):
         """
         NB tree_dims_item is a wxPython TreeCtrl item.
-        If the tree_dims_item is the special col_no_vars_item
-          just add the measures underneath the label node.
-        Otherwise, for each dim item, e.g. gender, add node to the 
-          labels tree,
+        If the tree_dims_item is the special col_no_vars_item, just add the 
+            measures underneath the label node.  NB this is the GUI tree item,
+            not the Dim Nodes item that gets built off it when the script is
+            actually run.
+        Otherwise, for each dim item, e.g. gender, add node to the labels tree,
           then the first two values underneath (and total if relevant).
         If the variable node is terminal, then add the measures underneath 
         the new value label nodes.
@@ -241,10 +242,13 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
           send through again.
         dim - my_globals.ROWDIM or my_globals.COLDIM
         """
+        debug = False
         if dim == my_globals.COLDIM:
-            item_conf = self.coltree.GetItemPyData(tree_dims_item)
+            tree = self.coltree
+            item_conf = tree.GetItemPyData(tree_dims_item)
         elif dim == my_globals.ROWDIM:
-            item_conf = self.rowtree.GetItemPyData(tree_dims_item)        
+            tree = self.rowtree
+            item_conf = tree.GetItemPyData(tree_dims_item)        
         if item_conf is None:
             item_conf = lib.ItemConfig()
         if tree_dims_item == self.col_no_vars_item:
@@ -258,11 +262,10 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                                                                measure=measure))
         else:
             # add var e.g. gender then values below e.g. Male, Female
-            var_name, var_label = lib.extract_var_choice_dets(\
-                self.coltree.GetItemText(tree_dims_item))
-            #print(var_name) #debug
+            var_name = item_conf.var_name
+            if debug: print(var_name)
             var_label = self.var_labels.get(var_name, var_name.title())
-            new_var_node = tree_labels_node.add_child(\
+            new_var_node = tree_labels_node.add_child(
                                         dimtables.LabelNode(label=var_label))
             # terminal tree_dim_item (got any children)?
             item, cookie = self.coltree.GetFirstChild(tree_dims_item)
@@ -317,8 +320,9 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                             tree = self.rowtree
                         child_items = lib.get_tree_ctrl_children(tree=tree, 
                                                         parent=tree_dims_item)
-                        #print(lib.get_sub_tree_items(tree=tree, 
-                        #        parent=tree_dims_item)) #debug
+                        if debug:
+                            print(lib.get_sub_tree_items(tree=tree,
+                                                         parent=tree_dims_item))
                         for child_item in child_items:
                             self.add_subtree_to_label_tree(tree_dims_item=\
                                    child_item, tree_labels_node=subitem_node, 
