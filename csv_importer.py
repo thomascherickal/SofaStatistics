@@ -15,26 +15,7 @@ import importer
 from my_exceptions import ImportCancelException
 from my_exceptions import NewLineInUnquotedException
 
-
-
-
-
-
-
-
-
-
-debug = True
-ROWS_TO_SAMPLE = 1 # fast enough to sample quite a few
-
-
-
-
-
-
-
-
-
+ROWS_TO_SAMPLE = 500 # fast enough to sample quite a few
 
 """
 Support for unicode is lacking from the Python 2 series csv module and quite a
@@ -244,12 +225,12 @@ class FileImporter(object):
         # NB reader will be at position ready to access records after sample
         remaining_data = list(reader) # must be a list not a reader or can't 
         # start again from beginning of data (e.g. if correction made)
-        importer.add_to_tmp_tbl(con, cur, self.file_path, self.tbl_name, 
-                               ok_fld_names, orig_fld_names, fld_types, 
-                               sample_data, sample_n, remaining_data, 
-                               progBackup, gauge_chunk, keep_importing)
+        nulled_dots = importer.add_to_tmp_tbl(con, cur, self.file_path, 
+                            self.tbl_name, ok_fld_names, orig_fld_names, 
+                            fld_types, sample_data, sample_n, remaining_data, 
+                            progBackup, gauge_chunk, keep_importing)
         importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path, 
-                                  progBackup)
+                                  progBackup, nulled_dots)
         cur.close()
         con.commit()
         con.close()

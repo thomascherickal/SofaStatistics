@@ -26,7 +26,7 @@ GAUGE_RANGE = 50
 
 class MismatchException(Exception):
     def __init__(self, fld_name, details):
-        debug = True
+        debug = False
         if debug: print("Yep - a mismatch exception")
         self.fld_name = fld_name
         Exception.__init__(self, u"Found data not matching expected " + \
@@ -105,14 +105,16 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
     NB field types are only a guess based on a sample of the first rows in the 
         file being imported.  Could be wrong.
     If checking, will validate and turn empty strings into nulls
-        as required.
+        as required.  Also turn '.' into null as required (and leave msg).
     If not checking (e.g. because a pre-tested sample) only do the
         pytime (Excel) and empty string to null conversions.
     If all is OK, will add val to vals.  NB val will need to be internally 
         quoted unless it is a NULL. 
     If not, will raise an exception.
+    Returns nulled_dots (boolean).
     """
     debug = False
+    nulled_dots = False
     val = row[orig_fld_name]
     is_pytime = lib.is_pytime(val)
     fld_type = fld_types[orig_fld_name]
@@ -125,24 +127,33 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
             if val is None or (fld_type in [my_globals.FLD_TYPE_NUMERIC, 
                                     my_globals.FLD_TYPE_DATE] and val == u""):
                 val = u"NULL"
+            elif val == u".":
+                nulled_dots = True
+                val = u"NULL"
     else: # checking
         bolOK_data = False        
         if fld_type == my_globals.FLD_TYPE_NUMERIC:
-            # must be numeric or empty string (which we'll turn to NULL)
+            # must be numeric or empty string or dot (which we'll turn to NULL)
             if lib.is_numeric(val):
                 bolOK_data = True
             elif val == u"" or val is None:
                 bolOK_data = True
                 val = u"NULL"
+            elif val == u".":
+                nulled_dots = True
+                val = u"NULL"
         elif fld_type == my_globals.FLD_TYPE_DATE:
             # must be pytime or datetime 
-            # or empty string (which we'll turn to NULL).
+            # or empty string or dot (which we'll turn to NULL).
             if is_pytime:
                 bolOK_data = True
                 val = lib.pytime_to_datetime_str(val)
             else:
                 if val == u"" or val is None:
                     bolOK_data = True
+                    val = u"NULL"
+                elif val == u".":
+                    nulled_dots = True
                     val = u"NULL"
                 else:
                     try:
@@ -151,7 +162,11 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
                     except Exception:
                         pass # leave val as is for error reporting
         elif fld_type == my_globals.FLD_TYPE_STRING:
+            # None or dot we'll turn to NULL
             if val is None:
+                val = u"NULL"
+            elif val == u".":
+                nulled_dots = True
                 val = u"NULL"
             bolOK_data = True
         if not bolOK_data:
@@ -164,6 +179,7 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
         val = u"\"%s\"" % val
     vals.append(val)
     if debug: print(val)
+    return nulled_dots
     
 def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types, 
              progBackup, gauge_chunk, gauge_start=0, check=False, 
@@ -174,9 +190,11 @@ def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types,
         as required.
     If not checking (e.g. because a pre-tested sample) only do the
         empty string to null conversions.
-    TODO - insert multiple lines at once for performance
+    Returns nulled_dots (boolean).
+    TODO - insert multiple lines at once for performance.
     """
     debug = False
+    nulled_dots = False
     fld_names_clause = u", ".join([dbe_sqlite.quote_obj(x) for x \
                                                             in ok_fld_names])
     for row_idx, row in enumerate(rows):
@@ -189,7 +207,8 @@ def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types,
         row_idx += 1
         vals = []
         for orig_fld_name in orig_fld_names:
-            process_val(vals, row_idx, row, orig_fld_name, fld_types, check)
+            if process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
+                nulled_dots = True
         # quoting must happen earlier so we can pass in NULL  
         fld_vals_clause = u", ".join([u"%s" % x for x in vals])
         SQL_insert_row = u"INSERT INTO %s " % TMP_SQLITE_TBL + \
@@ -205,6 +224,7 @@ def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types,
             raise Exception, u"Unable to add row %s. Orig error: %s" % \
                 (row_idx+1, e)
     con.commit()
+    return nulled_dots
 
 def get_gauge_chunk_size(n_rows, sample_n):
     """
@@ -228,8 +248,10 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names,
     fld_types -- dict with field types for original field names
     Give it a unique identifier field as well.
     Set up the data type constraints needed.
+    Returns nulled_dots (boolean).
     """
     debug = False
+    nulled_dots = False
     if debug:
         print(u"Original field names are: %s" % orig_fld_names)
         print(u"Cleaned (ok) field names are: %s" % ok_fld_names)
@@ -260,17 +282,21 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names,
     except Exception, e:
         raise   
     try:
-        # add sample and then remaining data to disposable table
-        add_rows(con, cur, sample_data, ok_fld_names, orig_fld_names, fld_types, 
-                 progBackup, gauge_chunk, gauge_start=sample_n, check=False, 
-                 keep_importing=keep_importing) # already been through sample 
-            # once when assessing it so part way through process already
+        # Add sample and then remaining data to disposable table.
+        # Already been through sample once when assessing it so part way through 
+        # process already.
+        if add_rows(con, cur, sample_data, ok_fld_names, orig_fld_names, 
+                    fld_types, progBackup, gauge_chunk, gauge_start=sample_n, 
+                    check=False, keep_importing=keep_importing):
+            nulled_dots = True
         remainder_gauge_start = 2*sample_n # been through sample twice already
-        add_rows(con, cur, remaining_data, ok_fld_names, orig_fld_names, 
+        if add_rows(con, cur, remaining_data, ok_fld_names, orig_fld_names, 
                  fld_types, progBackup, gauge_chunk, 
                  gauge_start=remainder_gauge_start, check=True, 
-                 keep_importing=keep_importing)
+                 keep_importing=keep_importing):
+            nulled_dots = True
     except MismatchException, e:
+        nulled_dots = False
         con.commit()
         progBackup.SetValue(0)
         # go through again or raise an exception
@@ -279,15 +305,17 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names,
         if retCode == wx.YES:
             # change fld_type to string and start again
             fld_types[e.fld_name] = my_globals.FLD_TYPE_STRING
-            add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, 
-                           orig_fld_names, fld_types, sample_data, sample_n, 
-                           remaining_data, progBackup, gauge_chunk, 
-                           keep_importing)
+            if add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, 
+                              orig_fld_names, fld_types, sample_data, sample_n, 
+                              remaining_data, progBackup, gauge_chunk, 
+                              keep_importing):
+                nulled_dots = True
         else:
             raise Exception, u"Mismatch between data in column and " + \
                 "expected column type"
+    return nulled_dots
     
-def tmp_to_named_tbl(con, cur, tbl_name, file_path, progBackup):
+def tmp_to_named_tbl(con, cur, tbl_name, file_path, progBackup, nulled_dots):
     """
     Rename table to final name.
     Separated from add_to_tmp_tbl to allow the latter to recurse.
@@ -311,8 +339,12 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progBackup):
             % e
     progBackup.SetValue(GAUGE_RANGE)
     msg = _("Successfully imported data from '%(fil)s' to '%(tbl)s' in the "
-            "default SOFA database.\n\nClick on 'Enter/Edit Data' on the main "
-            "form to view.")
+            "default SOFA database.")
+    if nulled_dots:
+        msg += _("\n\nAt least one field contained a single dot '.'.  This was "
+                 "converted into a missing value.")
+    msg += _("\n\nClick on 'Enter/Edit Data' on the main form to view your "
+             "imported data.")
     wx.MessageBox(msg % {"fil": file_path, "tbl": tbl_name})
         
     

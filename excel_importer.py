@@ -108,12 +108,12 @@ class FileImporter(object):
         # NB wksheet will NOT be at position ready to access records after 
         # sample.  Can't just pass in spreadsheet.
         remaining_data = [x for x in wksheet][sample_n:]
-        importer.add_to_tmp_tbl(con, cur, self.file_path, self.tbl_name, 
-                                ok_fld_names, orig_fld_names, fld_types, 
-                                sample_data, sample_n, remaining_data, 
-                                progBackup, gauge_chunk, keep_importing)
+        nulled_dots = importer.add_to_tmp_tbl(con, cur, self.file_path, 
+                            self.tbl_name, ok_fld_names, orig_fld_names, 
+                            fld_types, sample_data, sample_n, remaining_data, 
+                            progBackup, gauge_chunk, keep_importing)
         importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path,
-                                  progBackup)
+                                  progBackup, nulled_dots)
         cur.close()
         con.commit()
         con.close()
