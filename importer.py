@@ -26,6 +26,8 @@ GAUGE_RANGE = 50
 
 class MismatchException(Exception):
     def __init__(self, fld_name, details):
+        debug = True
+        if debug: print("Yep - a mismatch exception")
         self.fld_name = fld_name
         Exception.__init__(self, u"Found data not matching expected " + \
                            u"column type.\n\n%s" % details)
@@ -100,6 +102,8 @@ def assess_sample_fld(sample_data, orig_fld_name):
 
 def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
     """
+    NB field types are only a guess based on a sample of the first rows in the 
+        file being imported.  Could be wrong.
     If checking, will validate and turn empty strings into nulls
         as required.
     If not checking (e.g. because a pre-tested sample) only do the
@@ -118,9 +122,8 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
         if is_pytime:
             val = lib.pytime_to_datetime_str(val)
         if not is_pytime:
-            if fld_type in [my_globals.FLD_TYPE_NUMERIC, 
-                            my_globals.FLD_TYPE_DATE] and \
-                           (val == "" or val is None):
+            if val is None or (fld_type in [my_globals.FLD_TYPE_NUMERIC, 
+                                    my_globals.FLD_TYPE_DATE] and val == u""):
                 val = u"NULL"
     else: # checking
         bolOK_data = False        
@@ -148,13 +151,15 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
                     except Exception:
                         pass # leave val as is for error reporting
         elif fld_type == my_globals.FLD_TYPE_STRING:
+            if val is None:
+                val = u"NULL"
             bolOK_data = True
         if not bolOK_data:
-            raise MismatchException(orig_fld_name,
-                u"Column: %s" % orig_fld_name + \
-                u"\nRow: %s" % row_idx + 1 + \
-                u"\nValue: \"%s\"" % val + \
-                u"\nExpected column type: %s" % fld_type)
+            raise MismatchException(fld_name=orig_fld_name,
+                                    details=(u"Column: %s" % orig_fld_name +
+                                    u"\nRow: %s" % (row_idx + 1) +
+                                    u"\nValue: \"%s\"" % val +
+                                    u"\nExpected column type: %s" % fld_type))
     if val != u"NULL":
         val = u"\"%s\"" % val
     vals.append(val)

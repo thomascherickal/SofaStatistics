@@ -2,18 +2,39 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+import codecs
 import csv
 import os
 import wx
 
-import codecs
+import my_globals
+import lib
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
 import importer
 from my_exceptions import ImportCancelException
 from my_exceptions import NewLineInUnquotedException
 
-ROWS_TO_SAMPLE = 500 # fast enough to sample quite a few
+
+
+
+
+
+
+
+
+
+debug = True
+ROWS_TO_SAMPLE = 1 # fast enough to sample quite a few
+
+
+
+
+
+
+
+
+
 
 """
 Support for unicode is lacking from the Python 2 series csv module and quite a
@@ -82,7 +103,7 @@ class FileImporter(object):
             field types as values.
         sample_data - list of dicts containing the first rows of data 
             (no point reading them all again during subsequent steps).   
-        Sample first N rows (at most) to establish field types.   
+        Sample first N data rows (at most) to establish field types.   
         """
         debug = False
         bolhas_rows = False
@@ -100,10 +121,12 @@ class FileImporter(object):
                 continue # skip first line
             bolhas_rows = True
             # process row
-            sample_data.append(row)
+            sample_data.append(row) # include Nones even if going to change to 
+                # empty strings or whatever later.
             gauge_val = i*gauge_chunk
             progBackup.SetValue(gauge_val)
-            if i == (ROWS_TO_SAMPLE - 1):
+            i2break = ROWS_TO_SAMPLE if self.has_header else ROWS_TO_SAMPLE - 1
+            if i == i2break:
                 break
         orig_fld_names = []
         fld_types = []
@@ -125,7 +148,8 @@ class FileImporter(object):
                 values = row.values()
             except AttributeError:
                 values = row
-            size += len(", ".join(values))
+            vals = [lib.none2empty(x) for x in values]
+            size += len(", ".join(vals))
             i += 1
             if i == 5:
                 break

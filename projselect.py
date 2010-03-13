@@ -40,7 +40,6 @@ class ProjSelectDlg(wx.Dialog):
                                         size=(400, 90))
         bxExisting = wx.StaticBox(self.panel, -1, _("Existing Projects"))
         szrExisting = wx.StaticBoxSizer(bxExisting, wx.VERTICAL)
-        
         szrExisting.Add(szrExistingTop, 0, wx.GROW|wx.ALL, 10)
         szrExisting.Add(self.txtProjNotes, 1, wx.GROW|wx.ALL, 10)
         bxNew = wx.StaticBox(self.panel, -1, "")

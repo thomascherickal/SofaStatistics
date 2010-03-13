@@ -193,6 +193,12 @@ def str2unicode(raw):
         safe = ms2utf8(raw)
     return safe
 
+def none2empty(val):
+    if val is None:
+        return u""
+    else:
+        return val
+
 def n2d(f):
     """
     Convert a floating point number to a Decimal with no loss of information
