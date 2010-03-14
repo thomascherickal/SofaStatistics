@@ -4,7 +4,7 @@ import pprint
 import wx
 import wx.grid
 
-import my_globals
+import my_globals as mg
 import lib
 import dbe_plugins.dbe_sqlite as dbe_sqlite 
 import db_tbl
@@ -61,16 +61,16 @@ class TblEditor(wx.Dialog):
                  readonly=True):
         self.debug = False
         mywidth = 900
-        if my_globals.IN_WINDOWS:
+        if mg.IN_WINDOWS:
             mid_height = 820
             height_drop = 20
         else:
             mid_height = 910
             height_drop = 110
-        if my_globals.MAX_HEIGHT <= 620:
+        if mg.MAX_HEIGHT <= 620:
             myheight = 600
-        elif my_globals.MAX_HEIGHT <= mid_height:
-            myheight = my_globals.MAX_HEIGHT - height_drop
+        elif mg.MAX_HEIGHT <= mid_height:
+            myheight = mg.MAX_HEIGHT - height_drop
         else:
             mywidth = 1000
             myheight = 800
@@ -108,7 +108,7 @@ class TblEditor(wx.Dialog):
             # disable any columns which do not allow data entry
             for idx_col in range(len(self.flds)):
                 fld_dic = self.dbtbl.get_fld_dic(idx_col)
-                if not fld_dic[my_globals.FLD_DATA_ENTRY_OK]:
+                if not fld_dic[mg.FLD_DATA_ENTRY_OK]:
                     attr = wx.grid.GridCellAttr()
                     attr.SetReadOnly(True)
                     self.grid.SetColAttr(idx_col, attr)
@@ -134,7 +134,7 @@ class TblEditor(wx.Dialog):
         self.prev_row_col = (None, None)
         self.grid.GetGridWindow().Bind(wx.EVT_MOTION, self.on_mouse_move)
         self.grid.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, 
-                       self.on_label_right_click)
+                       self.on_label_rclick)
         szrBottom = wx.FlexGridSizer(rows=1, cols=1, hgap=5, vgap=5)
         szrBottom.AddGrowableCol(0,2) # idx, propn
         btnClose = wx.Button(self.panel, wx.ID_CLOSE)
@@ -179,22 +179,22 @@ class TblEditor(wx.Dialog):
         dest_col=event.GetCol()
         if dest_row == src_row:
             if dest_col > src_col:
-                direction = my_globals.MOVE_RIGHT
+                direction = mg.MOVE_RIGHT
             else:
-                direction = my_globals.MOVE_LEFT
+                direction = mg.MOVE_LEFT
         elif dest_col == src_col:
             if dest_row > src_row:
-                direction = my_globals.MOVE_DOWN
+                direction = mg.MOVE_DOWN
             else:
-                direction = my_globals.MOVE_UP
+                direction = mg.MOVE_UP
         elif dest_col > src_col and dest_row > src_row:
-                direction = my_globals.MOVE_DOWN_RIGHT
+                direction = mg.MOVE_DOWN_RIGHT
         elif dest_col > src_col and dest_row < src_row:
-                direction = my_globals.MOVE_UP_RIGHT
+                direction = mg.MOVE_UP_RIGHT
         elif dest_col < src_col and dest_row > src_row:
-                direction = my_globals.MOVE_DOWN_LEFT
+                direction = mg.MOVE_DOWN_LEFT
         elif dest_col < src_col and dest_row < src_row:
-                direction = my_globals.MOVE_UP_LEFT
+                direction = mg.MOVE_UP_LEFT
         else:
             raise Exception, "db_grid.on_select_cell - where is direction?"
         if self.debug: 
@@ -223,19 +223,18 @@ class TblEditor(wx.Dialog):
         elif keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
             if keycode == wx.WXK_TAB:
                 if event.ShiftDown():
-                    direction = my_globals.MOVE_LEFT
+                    direction = mg.MOVE_LEFT
                 else:
-                    direction = my_globals.MOVE_RIGHT
+                    direction = mg.MOVE_RIGHT
             elif keycode == wx.WXK_RETURN:
-                direction = my_globals.MOVE_DOWN
+                direction = mg.MOVE_DOWN
             src_row=self.current_row_idx
             src_col=self.current_col_idx
             if self.debug or debug: 
                 print("on_grid_key_down - keypress in row " +
                 "%s col %s ******************************" % (src_row, src_col))
             final_col = (src_col == len(self.flds) - 1)
-            if final_col and direction in [my_globals.MOVE_RIGHT, 
-                                           my_globals.MOVE_DOWN]:
+            if final_col and direction in [mg.MOVE_RIGHT, mg.MOVE_DOWN]:
                 self.add_cell_move_evt(direction)
                 # Do not Skip and send event on its way.
                 # Smother the event here so our code can determine where the 
@@ -382,13 +381,12 @@ class TblEditor(wx.Dialog):
         (was_final_col, was_new_row, was_final_row, move_type, dest_row, 
                 dest_col) = self.get_move_dets(src_row, src_col, dest_row, 
                                                dest_col, direction)
-        if move_type in [my_globals.MOVING_IN_EXISTING, 
-                         my_globals.LEAVING_EXISTING]:
+        if move_type in [mg.MOVING_IN_EXISTING, mg.LEAVING_EXISTING]:
             move_to_dest = self.leaving_existing_cell(was_final_col, 
                                                       was_final_row, direction)
-        elif move_type == my_globals.MOVING_IN_NEW:
+        elif move_type == mg.MOVING_IN_NEW:
             move_to_dest = self.moving_in_new_row()
-        elif move_type == my_globals.LEAVING_NEW:
+        elif move_type == mg.LEAVING_NEW:
             move_to_dest = self.leaving_new_row(dest_row, dest_col, direction)
         else:
             raise Exception, "process_cell_move - Unknown move_type"
@@ -450,29 +448,28 @@ class TblEditor(wx.Dialog):
         dest_row_is_new = self.dest_row_is_current_new(src_row, dest_row, 
                                                        direction, was_final_col)
         if was_new_row and dest_row_is_new:
-            move_type = my_globals.MOVING_IN_NEW
+            move_type = mg.MOVING_IN_NEW
         elif was_new_row and not dest_row_is_new:
-            move_type = my_globals.LEAVING_NEW
+            move_type = mg.LEAVING_NEW
         elif not was_new_row and not dest_row_is_new:
-            move_type = my_globals.MOVING_IN_EXISTING
+            move_type = mg.MOVING_IN_EXISTING
         elif not was_new_row and dest_row_is_new:
-            move_type = my_globals.LEAVING_EXISTING
+            move_type = mg.LEAVING_EXISTING
         else:
             raise Exception, "db_grid.GetMoveDets().  Unknown move."
         # 2) dest row and dest col
         if dest_row is None and dest_col is None: # known if from on_select_cell
-            if was_final_col and direction in [my_globals.MOVE_RIGHT, 
-                                               my_globals.MOVE_DOWN]:
+            if was_final_col and direction in [mg.MOVE_RIGHT, mg.MOVE_DOWN]:
                 dest_row = src_row + 1
                 dest_col = 0
             else:
-                if direction == my_globals.MOVE_RIGHT:
+                if direction == mg.MOVE_RIGHT:
                     dest_row = src_row
                     dest_col = src_col + 1
-                elif direction == my_globals.MOVE_LEFT:                    
+                elif direction == mg.MOVE_LEFT:                    
                     dest_row = src_row
                     dest_col = src_col - 1 if src_col > 0 else 0
-                elif direction == my_globals.MOVE_DOWN:
+                elif direction == mg.MOVE_DOWN:
                     dest_row = src_row + 1
                     dest_col = src_col
                 else:
@@ -493,21 +490,21 @@ class TblEditor(wx.Dialog):
         if self.is_new_row(src_row): # new row
             if final_col:
                 # only LEFT stays in _current_ new row
-                if direction == my_globals.MOVE_LEFT:
+                if direction == mg.MOVE_LEFT:
                     dest_row_is_new = True
                 else:
                     dest_row_is_new = False
             else: # only left and right stay in _current_ new row
-                if direction in [my_globals.MOVE_LEFT, my_globals.MOVE_RIGHT]:
+                if direction in [mg.MOVE_LEFT, mg.MOVE_RIGHT]:
                     dest_row_is_new = True # moving sideways within new
                 else:
                     dest_row_is_new = False
         elif self.is_new_row(src_row + 1): # row just above the new row
             # only down (inc down left and right), or right in final col, 
             # take to new
-            if direction in [my_globals.MOVE_DOWN, my_globals.MOVE_DOWN_LEFT, 
-                             my_globals.MOVE_DOWN_RIGHT] or \
-                    (direction == my_globals.MOVE_RIGHT and final_col):
+            if direction in [mg.MOVE_DOWN, mg.MOVE_DOWN_LEFT, 
+                             mg.MOVE_DOWN_RIGHT] or \
+                    (direction == mg.MOVE_RIGHT and final_col):
                 dest_row_is_new = True
             else:
                 dest_row_is_new = False
@@ -529,8 +526,7 @@ class TblEditor(wx.Dialog):
         if self.debug or debug: print("Was in existing, ordinary row")
         if self.dbtbl.readonly:
             move_to_dest = not (was_final_row and was_final_col 
-                                and direction in(my_globals.MOVE_RIGHT,
-                                                 my_globals.MOVE_DOWN))
+                                and direction in(mg.MOVE_RIGHT, mg.MOVE_DOWN))
         else:
             if not self.cell_ok_to_save(self.current_row_idx, 
                                         self.current_col_idx):
@@ -574,8 +570,7 @@ class TblEditor(wx.Dialog):
         if self.debug or debug: 
             print("leaving_new_row - dest row %s dest col %s orig directn %s" %
                 (dest_row, dest_col, direction))
-        if direction in [my_globals.MOVE_UP, my_globals.MOVE_UP_RIGHT, 
-                         my_globals.MOVE_UP_LEFT] and \
+        if direction in [mg.MOVE_UP, mg.MOVE_UP_RIGHT, mg.MOVE_UP_LEFT] and \
                 not self.dbtbl.new_is_dirty:
             move_to_dest = True # always OK
         else: # must check OK to move
@@ -592,8 +587,8 @@ class TblEditor(wx.Dialog):
 
     def value_in_range(self, raw_val, fld_dic):
         "NB may be None if N/A e.g. SQLite"
-        min = fld_dic[my_globals.FLD_NUM_MIN_VAL]
-        max = fld_dic[my_globals.FLD_NUM_MAX_VAL]        
+        min = fld_dic[mg.FLD_NUM_MIN_VAL]
+        max = fld_dic[mg.FLD_NUM_MAX_VAL]        
         if min is not None:
             if Decimal(raw_val) < Decimal(unicode(min)):
                 if self.debug: print("%s is < the min of %s" % (raw_val, min))
@@ -626,7 +621,7 @@ class TblEditor(wx.Dialog):
             if self.debug or debug:
                 print("New buffer is %s" % self.dbtbl.new_buffer)
             raw_val = self.dbtbl.new_buffer.get((row, col), 
-                                            my_globals.MISSING_VAL_INDICATOR)
+                                            mg.MISSING_VAL_INDICATOR)
         else:
             raw_val = self.get_raw_val(row, col)
             existing_row_data_lst = self.dbtbl.row_vals_dic.get(row)
@@ -643,13 +638,13 @@ class TblEditor(wx.Dialog):
             print("\"%s\"" % raw_val)
             print("Field dic is:")
             pprint.pprint(fld_dic)
-        if raw_val == my_globals.MISSING_VAL_INDICATOR or raw_val is None:
+        if raw_val == mg.MISSING_VAL_INDICATOR or raw_val is None:
             return False
-        elif not fld_dic[my_globals.FLD_DATA_ENTRY_OK]: 
+        elif not fld_dic[mg.FLD_DATA_ENTRY_OK]: 
              # i.e. not autonumber, timestamp etc
-             # and raw_val != my_globals.MISSING_VAL_INDICATOR unnecessary
+             # and raw_val != mg.MISSING_VAL_INDICATOR unnecessary
             raise Exception, "This field should have been read only"
-        elif fld_dic[my_globals.FLD_BOLNUMERIC]:
+        elif fld_dic[mg.FLD_BOLNUMERIC]:
             if not lib.is_numeric(raw_val):
                 wx.MessageBox(_("\"%s\" is not a valid number.\n\n"
                               "Either enter a valid number or "
@@ -661,11 +656,11 @@ class TblEditor(wx.Dialog):
                               "%s" % self.dbtbl.get_fld_name(col))
                 return True
             return False
-        elif fld_dic[my_globals.FLD_BOLDATETIME]:
+        elif fld_dic[mg.FLD_BOLDATETIME]:
             usable_datetime = lib.is_usable_datetime_str(raw_val)
             if not usable_datetime:
-                eg1 = my_globals.OK_DATE_FORMAT_EXAMPLES[0]
-                eg2 = my_globals.OK_DATE_FORMAT_EXAMPLES[1]
+                eg1 = mg.OK_DATE_FORMAT_EXAMPLES[0]
+                eg2 = mg.OK_DATE_FORMAT_EXAMPLES[1]
                 wx.MessageBox("\"%s\" " % raw_val + \
                       _(" is not a valid datetime.\n\n"
                         "Either enter a valid date/ datetime\n") + \
@@ -673,8 +668,8 @@ class TblEditor(wx.Dialog):
                       _("\nor the missing value character (.)"))
                 return True
             return False
-        elif fld_dic[my_globals.FLD_BOLTEXT]:
-            max_len = fld_dic[my_globals.FLD_TEXT_LENGTH]
+        elif fld_dic[mg.FLD_BOLTEXT]:
+            max_len = fld_dic[mg.FLD_TEXT_LENGTH]
             if max_len is None: # SQLite returns None if TEXT
                 return False
             if len(raw_val) > max_len:
@@ -724,9 +719,9 @@ class TblEditor(wx.Dialog):
         raw_val = self.get_raw_val(row, col)
         fld_dic = self.dbtbl.get_fld_dic(col)
         missing_not_nullable_prob = \
-            (raw_val == my_globals.MISSING_VAL_INDICATOR and \
-             not fld_dic[my_globals.FLD_BOLNULLABLE] and \
-             fld_dic[my_globals.FLD_DATA_ENTRY_OK])
+            (raw_val == mg.MISSING_VAL_INDICATOR and \
+                not fld_dic[mg.FLD_BOLNULLABLE] and \
+             fld_dic[mg.FLD_DATA_ENTRY_OK])
         if missing_not_nullable_prob:
             fld_name = self.dbtbl.get_fld_name(col)
             wx.MessageBox(_("%s will not allow missing values to "
@@ -788,10 +783,10 @@ class TblEditor(wx.Dialog):
         for col in range(len(self.flds)):
             fld_name = self.dbtbl.fld_names[col]
             fld_dic = self.flds[fld_name]
-            if not fld_dic[my_globals.FLD_DATA_ENTRY_OK]:
+            if not fld_dic[mg.FLD_DATA_ENTRY_OK]:
                 continue
             raw_val = self.dbtbl.new_buffer.get((row, col), None)
-            if raw_val == my_globals.MISSING_VAL_INDICATOR:
+            if raw_val == mg.MISSING_VAL_INDICATOR:
                 raw_val = None
             data.append((raw_val, fld_name, fld_dic))
         row_inserted, msg = getdata.insert_row(self.dbe, self.con, self.cur, 
@@ -863,7 +858,7 @@ class TblEditor(wx.Dialog):
         if debug: print("Created editor: %s" % self.control)
         event.Skip()    
     
-    def on_label_right_click(self, event):
+    def on_label_rclick(self, event):
         debug = False
         col = event.GetCol()
         if col >= 0:
@@ -941,15 +936,15 @@ class TblEditor(wx.Dialog):
         for col_idx, fld_name in enumerate(sorted_fld_names):
             fld_dic = self.flds[fld_name]
             col_width = None
-            if fld_dic[my_globals.FLD_BOLTEXT]:
-                txt_len = fld_dic[my_globals.FLD_TEXT_LENGTH]
+            if fld_dic[mg.FLD_BOLTEXT]:
+                txt_len = fld_dic[mg.FLD_TEXT_LENGTH]
                 col_width = txt_len*pix_per_char if txt_len is not None \
                     and txt_len < 25 else None # leave for auto
-            elif fld_dic[my_globals.FLD_BOLNUMERIC]:
-                num_len = fld_dic[my_globals.FLD_NUM_WIDTH]
+            elif fld_dic[mg.FLD_BOLNUMERIC]:
+                num_len = fld_dic[mg.FLD_NUM_WIDTH]
                 col_width = num_len*pix_per_char if num_len is not None \
                     else None
-            elif fld_dic[my_globals.FLD_BOLDATETIME]:
+            elif fld_dic[mg.FLD_BOLDATETIME]:
                 col_width = 170
             if col_width:
                 if self.debug: print("Width of %s set to %s" % (fld_name, 

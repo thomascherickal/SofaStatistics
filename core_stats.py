@@ -7,7 +7,7 @@ import math
 from types import IntType, FloatType, ListType, TupleType, StringType
 import numpy as np
 
-import my_globals
+import my_globals as mg
 import lib
 import my_exceptions
 import getdata
@@ -78,9 +78,9 @@ def get_val_quoter(dbe, flds, fld, val):
         instead.
     """
     num = True
-    if not flds[fld][my_globals.FLD_BOLNUMERIC]:
+    if not flds[fld][mg.FLD_BOLNUMERIC]:
         num = False
-    elif dbe == my_globals.DBE_SQLITE:
+    elif dbe == mg.DBE_SQLITE:
         if not lib.is_basic_num(val):
             num = False
     if num:
@@ -292,12 +292,12 @@ def anova_orig(lst_samples, lst_labels, high=False):
     for i in range(a):
         sample = lst_samples[i]
         label = lst_labels[i]
-        dics.append({my_globals.STATS_DIC_LABEL: label, 
-                     my_globals.STATS_DIC_N: n, 
-                     my_globals.STATS_DIC_MEAN: mean(sample), 
-                     my_globals.STATS_DIC_SD: stdev(sample), 
-                     my_globals.STATS_DIC_MIN: min(sample),
-                     my_globals.STATS_DIC_MAX: max(sample)})
+        dics.append({mg.STATS_DIC_LABEL: label, 
+                     mg.STATS_DIC_N: n, 
+                     mg.STATS_DIC_MEAN: mean(sample), 
+                     mg.STATS_DIC_SD: stdev(sample), 
+                     mg.STATS_DIC_MIN: min(sample),
+                     mg.STATS_DIC_MAX: max(sample)})
     ns = map(len, lst_samples)
     for i in range(len(lst_samples)):
         alldata = alldata + lst_samples[i]
@@ -332,12 +332,12 @@ def anova(samples, labels, high=True):
     for i in range(n_samples):
         sample = samples[i]
         label = labels[i]
-        dics.append({my_globals.STATS_DIC_LABEL: label, 
-                     my_globals.STATS_DIC_N: sample_ns[i], 
-                     my_globals.STATS_DIC_MEAN: mean(sample, high), 
-                     my_globals.STATS_DIC_SD: stdev(sample, high), 
-                     my_globals.STATS_DIC_MIN: min(sample), 
-                     my_globals.STATS_DIC_MAX: max(sample)})
+        dics.append({mg.STATS_DIC_LABEL: label, 
+                     mg.STATS_DIC_N: sample_ns[i], 
+                     mg.STATS_DIC_MEAN: mean(sample, high), 
+                     mg.STATS_DIC_SD: stdev(sample, high), 
+                     mg.STATS_DIC_MIN: min(sample), 
+                     mg.STATS_DIC_MAX: max(sample)})
     if high: # inflate
         # if to 1 decimal point will push from float to integer (reduce errors)
         inflated_samples = []
@@ -421,15 +421,15 @@ def get_summary_dics(samples, labels, quant=False):
     """
     dics = []
     for i, sample in enumerate(samples):
-        dic = {my_globals.STATS_DIC_LABEL: labels[i],
-               my_globals.STATS_DIC_N: len(sample),
-               my_globals.STATS_DIC_MEDIAN: np.median(sample),
-               my_globals.STATS_DIC_MIN: min(sample),
-               my_globals.STATS_DIC_MAX: max(sample),
+        dic = {mg.STATS_DIC_LABEL: labels[i],
+               mg.STATS_DIC_N: len(sample),
+               mg.STATS_DIC_MEDIAN: np.median(sample),
+               mg.STATS_DIC_MIN: min(sample),
+               mg.STATS_DIC_MAX: max(sample),
                }
         if quant:
-            dic[my_globals.STATS_DIC_MEAN] = mean(sample)
-            dic[my_globals.STATS_DIC_SD] = stdev(sample)
+            dic[mg.STATS_DIC_MEAN] = mean(sample)
+            dic[mg.STATS_DIC_SD] = stdev(sample)
         dics.append(dic)
     return dics
 
@@ -507,12 +507,12 @@ def ttest_ind(sample_a, sample_b, label_a, label_b, use_orig_var=False):
     min_b = min(sample_b)
     max_a = max(sample_a)
     max_b = max(sample_b)
-    dic_a = {my_globals.STATS_DIC_LABEL: label_a, my_globals.STATS_DIC_N: n_a, 
-             my_globals.STATS_DIC_MEAN: mean_a, my_globals.STATS_DIC_SD: sd_a, 
-             my_globals.STATS_DIC_MIN: min_a, my_globals.STATS_DIC_MAX: max_a}
-    dic_b = {my_globals.STATS_DIC_LABEL: label_b, my_globals.STATS_DIC_N: n_b, 
-             my_globals.STATS_DIC_MEAN: mean_b, my_globals.STATS_DIC_SD: sd_b, 
-             my_globals.STATS_DIC_MIN: min_b, my_globals.STATS_DIC_MAX: max_b}
+    dic_a = {mg.STATS_DIC_LABEL: label_a, mg.STATS_DIC_N: n_a, 
+             mg.STATS_DIC_MEAN: mean_a, mg.STATS_DIC_SD: sd_a, 
+             mg.STATS_DIC_MIN: min_a, mg.STATS_DIC_MAX: max_a}
+    dic_b = {mg.STATS_DIC_LABEL: label_b, mg.STATS_DIC_N: n_b, 
+             mg.STATS_DIC_MEAN: mean_b, mg.STATS_DIC_SD: sd_b, 
+             mg.STATS_DIC_MIN: min_b, mg.STATS_DIC_MAX: max_b}
     return t, p, dic_a, dic_b
 
 def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
@@ -552,12 +552,12 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     max_b = max(sample_b)
     sd_a = math.sqrt(var_a)
     sd_b = math.sqrt(var_b)
-    dic_a = {my_globals.STATS_DIC_LABEL: label_a, my_globals.STATS_DIC_N: n, 
-             my_globals.STATS_DIC_MEAN: mean_a, my_globals.STATS_DIC_SD: sd_a, 
-             my_globals.STATS_DIC_MIN: min_a, my_globals.STATS_DIC_MAX: max_a}
-    dic_b = {my_globals.STATS_DIC_LABEL: label_b, my_globals.STATS_DIC_N: n, 
-             my_globals.STATS_DIC_MEAN: mean_b, my_globals.STATS_DIC_SD: sd_b, 
-             my_globals.STATS_DIC_MIN: min_b, my_globals.STATS_DIC_MAX: max_b}
+    dic_a = {mg.STATS_DIC_LABEL: label_a, mg.STATS_DIC_N: n, 
+             mg.STATS_DIC_MEAN: mean_a, mg.STATS_DIC_SD: sd_a, 
+             mg.STATS_DIC_MIN: min_a, mg.STATS_DIC_MAX: max_a}
+    dic_b = {mg.STATS_DIC_LABEL: label_b, mg.STATS_DIC_N: n, 
+             mg.STATS_DIC_MEAN: mean_b, mg.STATS_DIC_SD: sd_b, 
+             mg.STATS_DIC_MIN: min_b, mg.STATS_DIC_MAX: max_b}
     return t, p, dic_a, dic_b, diffs
 
 def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
@@ -598,15 +598,15 @@ def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     min_b = min(sample_b)
     max_a = max(sample_a)
     max_b = max(sample_b)
-    dic_a = {my_globals.STATS_DIC_LABEL: label_a, my_globals.STATS_DIC_N: n_a, 
+    dic_a = {mg.STATS_DIC_LABEL: label_a, mg.STATS_DIC_N: n_a, 
              "avg rank": avg_rank_a, 
-             my_globals.STATS_DIC_MEDIAN: np.median(sample_a), 
-             my_globals.STATS_DIC_MIN: min_a, my_globals.STATS_DIC_MAX: max_a}
-    dic_b = {my_globals.STATS_DIC_LABEL: label_b, my_globals.STATS_DIC_N: n_b, 
+             mg.STATS_DIC_MEDIAN: np.median(sample_a), 
+             mg.STATS_DIC_MIN: min_a, mg.STATS_DIC_MAX: max_a}
+    dic_b = {mg.STATS_DIC_LABEL: label_b, mg.STATS_DIC_N: n_b, 
              "avg rank": avg_rank_b,
-             my_globals.STATS_DIC_MEDIAN: np.median(sample_b),  
-             my_globals.STATS_DIC_MIN: min_b, 
-             my_globals.STATS_DIC_MAX: max_b}
+             mg.STATS_DIC_MEDIAN: np.median(sample_b),  
+             mg.STATS_DIC_MIN: min_b, 
+             mg.STATS_DIC_MAX: max_b}
     return smallu, p, dic_a, dic_b
 
 def wilcoxont(x, y):

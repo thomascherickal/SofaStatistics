@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 import pprint
 
-import my_globals
+import my_globals as mg
 import lib
 import paired2var
 
 
 class DlgConfig(paired2var.DlgPaired2VarConfig):
     
-    min_data_type = my_globals.VAR_TYPE_CAT
+    min_data_type = mg.VAR_TYPE_CAT
     
     def get_examples(self):
         eg1 = _("Answers the question, is there a relationship "
@@ -62,7 +62,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             u"var_label_a, var_label_b, add_to_report, report_name, " +
             u"\n    val_labels_a, val_labels_b," +
             u"\n    lst_obs, lst_exp, min_count, perc_cells_lt_5, df, dp=dp," +
-            u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, " +
+            u"\n    level=mg.OUTPUT_RESULTS_ONLY, " +
             u"css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append(u"fil.write(chisquare_output)")
         return u"\n".join(script_lst)

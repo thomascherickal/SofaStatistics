@@ -4,7 +4,7 @@ import pysqlite2
 import sys
 import wx
 
-import my_globals
+import my_globals as mg
 import config_globals
 import db_grid
 import dbe_plugins.dbe_sqlite as dbe_sqlite
@@ -12,7 +12,7 @@ import getdata
 import projects
 import table_config
 
-sqlite_quoter = getdata.get_obj_quoter_func(my_globals.DBE_SQLITE)
+sqlite_quoter = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
 
 
 class DataSelectDlg(wx.Dialog):
@@ -35,8 +35,8 @@ class DataSelectDlg(wx.Dialog):
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.get_var_dets(self.fil_var_dets)
         # which dbe? If a default, use that.  If not, use project default.
-        if my_globals.DBE_DEFAULT:
-            self.dbe = my_globals.DBE_DEFAULT
+        if mg.DBE_DEFAULT:
+            self.dbe = mg.DBE_DEFAULT
         else:
             self.dbe = proj_dic["default_dbe"]
         try:
@@ -141,9 +141,9 @@ class DataSelectDlg(wx.Dialog):
         Can only open dialog for design details for tables in the default SOFA 
             database (except for the default one).
         """
-        extra_enable = (self.dbe == my_globals.DBE_SQLITE
-                        and self.db == my_globals.SOFA_DEFAULT_DB
-                        and self.tbl != my_globals.SOFA_DEFAULT_TBL)
+        extra_enable = (self.dbe == mg.DBE_SQLITE 
+                        and self.db == mg.SOFA_DEFAULT_DB
+                        and self.tbl != mg.SOFA_DEFAULT_TBL)
         self.btnDelete.Enable(extra_enable)
         self.btnDesign.Enable(extra_enable)
         
@@ -197,11 +197,11 @@ class DataSelectDlg(wx.Dialog):
         Get general field type from specific.
         """
         if fld_type.lower() in dbe_sqlite.NUMERIC_TYPES:
-            gen_fld_type = my_globals.FLD_TYPE_NUMERIC
+            gen_fld_type = mg.FLD_TYPE_NUMERIC
         elif fld_type.lower() in dbe_sqlite.DATE_TYPES:
-            gen_fld_type = my_globals.FLD_TYPE_DATE
+            gen_fld_type = mg.FLD_TYPE_DATE
         else:
-            gen_fld_type = my_globals.FLD_TYPE_STRING
+            gen_fld_type = mg.FLD_TYPE_STRING
         return gen_fld_type
     
     def _get_tbl_config(self, tbl_name):
@@ -230,10 +230,10 @@ class DataSelectDlg(wx.Dialog):
             obj_quoter = getdata.get_obj_quoter_func(self.dbe)
             self.cur.execute("DROP TABLE IF EXISTS %s" % obj_quoter(self.tbl))
             self.con.commit()
-        dbe = my_globals.DBE_SQLITE
+        dbe = mg.DBE_SQLITE
         dbdetsobj = getdata.get_db_dets_obj(dbe, self.default_dbs, 
                                             self.default_tbls, self.con_dets, 
-                                            my_globals.SOFA_DEFAULT_DB)
+                                            mg.SOFA_DEFAULT_DB)
         (self.con, self.cur, self.dbs, self.tbls, self.flds, self.has_unique, 
          self.idxs) = dbdetsobj.get_db_dets()
         # update tbl dropdown
@@ -257,7 +257,7 @@ class DataSelectDlg(wx.Dialog):
             TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
         """
         debug = False
-        tmp_name = sqlite_quoter(my_globals.TMP_TBL_NAME)
+        tmp_name = sqlite_quoter(mg.TMP_TBL_NAME)
         SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % tmp_name
         self.cur.execute(SQL_drop_tmp_tbl)
         # create table with strictly-typed fields
@@ -284,7 +284,7 @@ class DataSelectDlg(wx.Dialog):
             TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
         """
         debug = False
-        tmp_name = sqlite_quoter(my_globals.TMP_TBL_NAME)
+        tmp_name = sqlite_quoter(mg.TMP_TBL_NAME)
         final_name = sqlite_quoter(self.tbl)
         create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
                                                         strict_typing=False,
@@ -354,7 +354,7 @@ class DataSelectDlg(wx.Dialog):
                                 "match the column type.  Please edit and try "
                                 "again.\n\nOriginal error: %s" % e))
                 SQL_drop_tmp_tbl = "DROP TABLE IF EXISTS %s" % \
-                                sqlite_quoter(my_globals.TMP_TBL_NAME)
+                                sqlite_quoter(mg.TMP_TBL_NAME)
                 self.cur.execute(SQL_drop_tmp_tbl)
                 self.con.commit()
                 return
@@ -371,8 +371,7 @@ class DataSelectDlg(wx.Dialog):
         """
         debug = False
         try:
-            self.con = dbe_sqlite.get_con(self.con_dets, 
-                                          my_globals.SOFA_DEFAULT_DB)
+            self.con = dbe_sqlite.get_con(self.con_dets, mg.SOFA_DEFAULT_DB)
         except Exception:
             wx.MessageBox(_("The current project does not include a link to "
                             "the default SOFA database so a new table cannot "
@@ -400,10 +399,10 @@ class DataSelectDlg(wx.Dialog):
         getdata.make_sofa_tbl(self.con, self.cur, tbl_name, oth_name_types)
         # prepare to connect to the newly created table
         self.tbl = tbl_name
-        dbe = my_globals.DBE_SQLITE
+        dbe = mg.DBE_SQLITE
         dbdetsobj = getdata.get_db_dets_obj(dbe, self.default_dbs, 
                                         self.default_tbls, self.con_dets, 
-                                        my_globals.SOFA_DEFAULT_DB, self.tbl)
+                                        mg.SOFA_DEFAULT_DB, self.tbl)
         (self.con, self.cur, self.dbs, self.tbls, self.flds, self.has_unique, 
             self.idxs) = dbdetsobj.get_db_dets()
         # update tbl dropdown
@@ -415,7 +414,7 @@ class DataSelectDlg(wx.Dialog):
         wx.BeginBusyCursor()
         readonly = False
         dlg = db_grid.TblEditor(self, dbe, self.con, self.cur, 
-                                my_globals.SOFA_DEFAULT_DB, self.tbl, self.flds, 
+                                mg.SOFA_DEFAULT_DB, self.tbl, self.flds, 
                                 self.var_labels, self.var_notes, self.var_types,
                                 self.val_dics, self.fil_var_dets, self.idxs, 
                                 readonly)
@@ -426,9 +425,9 @@ class DataSelectDlg(wx.Dialog):
     
     def on_close(self, event):
         debug = False
-        my_globals.DBE_DEFAULT = self.dbe
-        my_globals.DB_DEFAULTS[self.dbe] = self.db
-        my_globals.TBL_DEFAULTS[self.dbe] = self.tbl
+        mg.DBE_DEFAULT = self.dbe
+        mg.DB_DEFAULTS[self.dbe] = self.db
+        mg.TBL_DEFAULTS[self.dbe] = self.tbl
         if debug:
             print("For %s, default DB saved as: %s and default table saved as: "
                   "%s" % (self.dbe, self.db, self.tbl))

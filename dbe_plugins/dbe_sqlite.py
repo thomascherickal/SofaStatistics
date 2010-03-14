@@ -7,7 +7,7 @@ import re
 import string
 import wx
 
-import my_globals
+import my_globals as mg
 import lib
 import getdata
 import projects
@@ -40,7 +40,7 @@ def get_syntax_elements():
             placeholder, get_summable, gte_not_equals)
 
 def get_con(con_dets, db):
-    con_dets_sqlite = con_dets.get(my_globals.DBE_SQLITE)
+    con_dets_sqlite = con_dets.get(mg.DBE_SQLITE)
     if not con_dets_sqlite:
         raise Exception, u"No connection details available for SQLite"
     if not con_dets_sqlite.get(db):
@@ -69,11 +69,11 @@ class DbDets(getdata.DbDets):
     def get_con_cur(self):        
         if not self.db:
             # use default, or failing that, try the file_name
-            default_db_sqlite = self.default_dbs.get(my_globals.DBE_SQLITE)
+            default_db_sqlite = self.default_dbs.get(mg.DBE_SQLITE)
             if default_db_sqlite:
                 self.db = default_db_sqlite
             else:
-                self.db = self.con_dets[my_globals.DBE_SQLITE].keys()[0]
+                self.db = self.con_dets[mg.DBE_SQLITE].keys()[0]
         con = get_con(self.con_dets, self.db)
         cur = con.cursor() # must return tuples not dics
         return con, cur
@@ -98,7 +98,7 @@ class DbDets(getdata.DbDets):
         # NB table must be in the database
         if not self.tbl:
             # use default if possible
-            default_tbl_sqlite = self.default_tbls.get(my_globals.DBE_SQLITE)
+            default_tbl_sqlite = self.default_tbls.get(mg.DBE_SQLITE)
             if default_tbl_sqlite and default_tbl_sqlite.lower() in tbls_lc:
                 self.tbl = default_tbl_sqlite
             else:
@@ -164,21 +164,21 @@ class DbDets(getdata.DbDets):
             boldatetime = fld_type.lower() in DATE_TYPES
             fld_txt = not bolnumeric and not boldatetime
             dets_dic = {
-                my_globals.FLD_SEQ: cid,
-                my_globals.FLD_BOLNULLABLE: bolnullable,
-                my_globals.FLD_DATA_ENTRY_OK: boldata_entry_ok,
-                my_globals.FLD_COLUMN_DEFAULT: dflt_value,
-                my_globals.FLD_BOLTEXT: fld_txt,
-                my_globals.FLD_TEXT_LENGTH: self._getCharLen(fld_type),
-                my_globals.FLD_CHARSET: encoding,
-                my_globals.FLD_BOLNUMERIC: bolnumeric,
-                my_globals.FLD_BOLAUTONUMBER: bolautonum,
-                my_globals.FLD_DECPTS: None, # not really applicable - no limit
-                my_globals.FLD_NUM_WIDTH: None, # no limit (TODO unless check constraint)
-                my_globals.FLD_BOL_NUM_SIGNED: True,
-                my_globals.FLD_NUM_MIN_VAL: None, # not really applicable - no limit
-                my_globals.FLD_NUM_MAX_VAL: None, # not really applicable - no limit
-                my_globals.FLD_BOLDATETIME: boldatetime, 
+                mg.FLD_SEQ: cid,
+                mg.FLD_BOLNULLABLE: bolnullable,
+                mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
+                mg.FLD_COLUMN_DEFAULT: dflt_value,
+                mg.FLD_BOLTEXT: fld_txt,
+                mg.FLD_TEXT_LENGTH: self._getCharLen(fld_type),
+                mg.FLD_CHARSET: encoding,
+                mg.FLD_BOLNUMERIC: bolnumeric,
+                mg.FLD_BOLAUTONUMBER: bolautonum,
+                mg.FLD_DECPTS: None, # not really applicable - no limit
+                mg.FLD_NUM_WIDTH: None, #no limit (TODO unless check constraint)
+                mg.FLD_BOL_NUM_SIGNED: True,
+                mg.FLD_NUM_MIN_VAL: None, # not really applicable - no limit
+                mg.FLD_NUM_MAX_VAL: None, # not really applicable - no limit
+                mg.FLD_BOLDATETIME: boldatetime, 
                 }
             flds[fld_name] = dets_dic
         return flds
@@ -210,9 +210,8 @@ class DbDets(getdata.DbDets):
                 unique = (idx_lst[i][names_idx_unique] == 1)
                 if unique:
                     has_unique = True
-                idx_dic = {my_globals.IDX_NAME: idx_name, 
-                           my_globals.IDX_IS_UNIQUE: unique, 
-                           my_globals.IDX_FLDS: fld_names}
+                idx_dic = {mg.IDX_NAME: idx_name, mg.IDX_IS_UNIQUE: unique, 
+                           mg.IDX_FLDS: fld_names}
                 idxs.append(idx_dic)
         if debug:
             pprint.pprint(idxs)
@@ -261,12 +260,12 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
 
 def get_proj_settings(parent, proj_dic):
     parent.sqlite_default_db = \
-        proj_dic["default_dbs"].get(my_globals.DBE_SQLITE)
+        proj_dic["default_dbs"].get(mg.DBE_SQLITE)
     parent.sqlite_default_tbl = \
-        proj_dic["default_tbls"].get(my_globals.DBE_SQLITE)
-    if proj_dic["con_dets"].get(my_globals.DBE_SQLITE):
+        proj_dic["default_tbls"].get(mg.DBE_SQLITE)
+    if proj_dic["con_dets"].get(mg.DBE_SQLITE):
         parent.sqlite_data = [(x["database"],) \
-             for x in proj_dic["con_dets"][my_globals.DBE_SQLITE].values()]
+             for x in proj_dic["con_dets"][mg.DBE_SQLITE].values()]
     else:
         parent.sqlite_data = []
 
@@ -293,8 +292,8 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     if incomplete_sqlite:
         wx.MessageBox(_("The SQLite details are incomplete"))
         parent.txtSqliteDefaultDb.SetFocus()
-    default_dbs[my_globals.DBE_SQLITE] = DEFAULT_DB if DEFAULT_DB else None
-    default_tbls[my_globals.DBE_SQLITE] = DEFAULT_TBL if DEFAULT_TBL else None
+    default_dbs[mg.DBE_SQLITE] = DEFAULT_DB if DEFAULT_DB else None
+    default_tbls[mg.DBE_SQLITE] = DEFAULT_TBL if DEFAULT_TBL else None
     #pprint.pprint(parent.sqlite_config_data) # debug
     sqlite_settings = parent.sqlite_config_data
     if sqlite_settings:
@@ -306,7 +305,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
             new_sqlite_dic = {}
             new_sqlite_dic["database"] = db_path
             con_dets_sqlite[db_name] = new_sqlite_dic
-        con_dets[my_globals.DBE_SQLITE] = con_dets_sqlite        
+        con_dets[mg.DBE_SQLITE] = con_dets_sqlite        
     return incomplete_sqlite, has_sqlite_con
 
 # unique to SQLite (because used to store tables for user-entered data plus 
@@ -317,8 +316,7 @@ def valid_name(name):
         expensive and 100% valid by definition).
     """
     debug = False
-    default_db = os.path.join(my_globals.LOCAL_PATH, my_globals.INTERNAL_FOLDER, 
-                              u"sofa_tmp")
+    default_db = os.path.join(mg.LOCAL_PATH, mg.INTERNAL_FOLDER, u"sofa_tmp")
     con = sqlite.connect(default_db)
     cur = con.cursor()
     valid = False

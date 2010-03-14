@@ -1,7 +1,7 @@
 import os
 import wx
 
-import my_globals
+import my_globals as mg
 import filtselect
 import getdata
 import output
@@ -14,9 +14,8 @@ def get_szrLevel(parent, panel):
     Get self.szrLevel with radio widgets. 
     """
     parent.radLevel = wx.RadioBox(panel, -1, _("Output Level"), 
-                                choices=my_globals.LEVELS, 
-                                style=wx.RA_SPECIFY_COLS)
-    parent.radLevel.SetStringSelection(my_globals.DEFAULT_LEVEL)
+                                  choices=mg.LEVELS, style=wx.RA_SPECIFY_COLS)
+    parent.radLevel.SetStringSelection(mg.DEFAULT_LEVEL)
     parent.szrLevel = wx.BoxSizer(wx.HORIZONTAL)
     parent.szrLevel.Add(parent.radLevel, 0, wx.RIGHT, 10)
     return parent.szrLevel
@@ -77,7 +76,7 @@ class ConfigDlg(object):
                                        self.default_tbls, self.con_dets,
                                        self.dbs, self.db, self.tbls, self.tbl)
         # not wanted in all cases when dropdowns used e.g. data select
-        self.dropTables.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_tables)
+        self.dropTables.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_tables)
         self.dropTables.SetToolTipString(_("Right click to add/remove filter"))
         # 2) Tables
         lblTables = wx.StaticText(panel, -1, _("Table:"))
@@ -171,7 +170,7 @@ class ConfigDlg(object):
         self.btnRun = wx.Button(panel, -1, _("Run"))
         self.btnRun.Bind(wx.EVT_BUTTON, self.on_btn_run)
         self.btnRun.SetToolTipString(_("Run report and display results"))
-        label_divider = " " if my_globals.IN_WINDOWS else "\n"
+        label_divider = " " if mg.IN_WINDOWS else "\n"
         self.chkAddToReport = wx.CheckBox(panel, -1, 
                                           _("Add to%sreport" % label_divider))
         self.chkAddToReport.SetValue(True)
@@ -237,7 +236,7 @@ class ConfigDlg(object):
         dlg.ShowModal()
         self.refresh_vars()
 
-    def on_right_click_tables(self, event):
+    def on_rclick_tables(self, event):
         "Allow addition or removal of data filter"
         self.filt_select()
         getdata.setup_drop_tbls(self.dropTables, self.dbe, self.db, self.tbls, 
@@ -248,7 +247,7 @@ class ConfigDlg(object):
     def on_btn_report_path(self, event):
         "Open dialog and takes the report file selected (if any)"
         dlgGetFile = wx.FileDialog(self, _("Choose a report output file:"), 
-            defaultDir=os.path.join(my_globals.LOCAL_PATH, u"reports"), 
+            defaultDir=os.path.join(mg.LOCAL_PATH, u"reports"), 
             defaultFile=u"", 
             wildcard=_("HTML files (*.htm)|*.htm|HTML files (*.html)|*.html"))
             #MUST have a parent to enforce modal in Windows
@@ -267,7 +266,7 @@ class ConfigDlg(object):
         "Open dialog and takes the script file selected (if any)"
         dlgGetFile = wx.FileDialog(self, 
             _("Choose a file to export scripts to:"), 
-            defaultDir=os.path.join(my_globals.LOCAL_PATH, "scripts"), 
+            defaultDir=os.path.join(mg.LOCAL_PATH, "scripts"), 
             defaultFile="", wildcard=_("Scripts (*.py)|*.py"))
             #MUST have a parent to enforce modal in Windows
         if dlgGetFile.ShowModal() == wx.ID_OK:
@@ -290,7 +289,7 @@ class ConfigDlg(object):
     def on_btn_var_dets_path(self, event):
         "Open dialog and takes the variable details file selected (if any)"
         dlgGetFile = wx.FileDialog(self, _("Choose a variable config file:"), 
-            defaultDir=os.path.join(my_globals.LOCAL_PATH, u"vdts"), 
+            defaultDir=os.path.join(mg.LOCAL_PATH, u"vdts"), 
             defaultFile=u"", wildcard=_("Config files (*.vdts)|*.vdts"))
             #MUST have a parent to enforce modal in Windows
         if dlgGetFile.ShowModal() == wx.ID_OK:
@@ -304,7 +303,7 @@ class ConfigDlg(object):
     def on_btn_css_path(self, event):
         "Open dialog and takes the css file selected (if any)"
         dlgGetFile = wx.FileDialog(self, _("Choose a css table style file:"), 
-            defaultDir=os.path.join(my_globals.LOCAL_PATH, "css"), 
+            defaultDir=os.path.join(mg.LOCAL_PATH, "css"), 
             defaultFile=u"", 
             wildcard=_("CSS files (*.css)|*.css"))
             #MUST have a parent to enforce modal in Windows
@@ -338,6 +337,6 @@ class ConfigDlg(object):
 
 def add_icon(frame):
     ib = wx.IconBundle()
-    icon_path = os.path.join(my_globals.SCRIPT_PATH, u"images", u"tinysofa.xpm")
+    icon_path = os.path.join(mg.SCRIPT_PATH, u"images", u"tinysofa.xpm")
     ib.AddIconFromFile(icon_path, wx.BITMAP_TYPE_XPM)
     frame.SetIcons(ib)

@@ -13,7 +13,7 @@ import win32com.client
 import wx
 import pprint
 
-import my_globals
+import my_globals as mg
 import dbe_plugins.dbe_globals as dbe_globals
 import getdata
 
@@ -57,7 +57,7 @@ class DbDets(getdata.DbDets):
     debug = False
     
     def get_con_cur(self):
-        con_dets_mssql = self.con_dets.get(my_globals.DBE_MS_SQL)
+        con_dets_mssql = self.con_dets.get(mg.DBE_MS_SQL)
         if not con_dets_mssql:
             raise Exception, (u"No connection details available for "
                               "MS SQL Server")
@@ -103,7 +103,7 @@ class DbDets(getdata.DbDets):
         # NB table must be in the database
         if not self.tbl:
             # use default if possible
-            default_tbl_mssql = self.default_tbls.get(my_globals.DBE_MS_SQL)
+            default_tbl_mssql = self.default_tbls.get(mg.DBE_MS_SQL)
             if default_tbl_mssql and default_tbl_mssql.lower() in tbls_lc:
                 self.tbl = default_tbl_mssql
             else:
@@ -152,7 +152,7 @@ class DbDets(getdata.DbDets):
         # NB db must be accessible from connection
         if not self.db:
             # use default if possible, or fall back to first
-            default_db_mssql = self.default_dbs.get(my_globals.DBE_MS_SQL)
+            default_db_mssql = self.default_dbs.get(mg.DBE_MS_SQL)
             if default_db_mssql.lower() in dbs_lc:
                 db = default_db_mssql
             else:
@@ -234,22 +234,22 @@ class DbDets(getdata.DbDets):
             min_val, max_val = dbe_globals.get_min_max(fld_type, num_prec, 
                                                        dec_pts)
             dets_dic = {
-                my_globals.FLD_SEQ: extras[fld_name][0],
-                my_globals.FLD_BOLNULLABLE: bolnullable,
-                my_globals.FLD_DATA_ENTRY_OK: boldata_entry_ok,
-                my_globals.FLD_COLUMN_DEFAULT: default,
-                my_globals.FLD_BOLTEXT: fld_txt,
-                my_globals.FLD_TEXT_LENGTH: col.DefinedSize,
-                my_globals.FLD_CHARSET: extras[fld_name][1],
-                my_globals.FLD_BOLNUMERIC: bolnumeric,
-                my_globals.FLD_BOLAUTONUMBER: bolautonum,
-                my_globals.FLD_DECPTS: dec_pts,
-                my_globals.FLD_NUM_WIDTH: num_prec,
-                my_globals.FLD_BOL_NUM_SIGNED: True,
-                my_globals.FLD_NUM_MIN_VAL: min_val,
-                my_globals.FLD_NUM_MAX_VAL: max_val,
-                my_globals.FLD_BOLDATETIME: boldatetime, 
-            }
+                        mg.FLD_SEQ: extras[fld_name][0],
+                        mg.FLD_BOLNULLABLE: bolnullable,
+                        mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
+                        mg.FLD_COLUMN_DEFAULT: default,
+                        mg.FLD_BOLTEXT: fld_txt,
+                        mg.FLD_TEXT_LENGTH: col.DefinedSize,
+                        mg.FLD_CHARSET: extras[fld_name][1],
+                        mg.FLD_BOLNUMERIC: bolnumeric,
+                        mg.FLD_BOLAUTONUMBER: bolautonum,
+                        mg.FLD_DECPTS: dec_pts,
+                        mg.FLD_NUM_WIDTH: num_prec,
+                        mg.FLD_BOL_NUM_SIGNED: True,
+                        mg.FLD_NUM_MIN_VAL: min_val,
+                        mg.FLD_NUM_MAX_VAL: max_val,
+                        mg.FLD_BOLDATETIME: boldatetime, 
+                        }
             flds[fld_name] = dets_dic
         debug = False 
         if debug:
@@ -273,9 +273,8 @@ class DbDets(getdata.DbDets):
             if index.Unique:
                 has_unique = True
             fld_names = [x.Name for x in index.Columns]
-            idx_dic = {my_globals.IDX_NAME: index.Name, 
-                       my_globals.IDX_IS_UNIQUE: index.Unique, 
-                       my_globals.IDX_FLDS: fld_names}
+            idx_dic = {mg.IDX_NAME: index.Name, mg.IDX_IS_UNIQUE: index.Unique, 
+                       mg.IDX_FLDS: fld_names}
             idxs.append(idx_dic)
         cat = None
         debug = False
@@ -357,14 +356,14 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
 
 def get_proj_settings(parent, proj_dic):
     parent.mssql_default_db = \
-        proj_dic[u"default_dbs"].get(my_globals.DBE_MS_SQL)
+        proj_dic[u"default_dbs"].get(mg.DBE_MS_SQL)
     parent.mssql_default_tbl = \
-        proj_dic[u"default_tbls"].get(my_globals.DBE_MS_SQL)
+        proj_dic[u"default_tbls"].get(mg.DBE_MS_SQL)
     # optional (although if any mssql, for eg, must have all)
-    if proj_dic[u"con_dets"].get(my_globals.DBE_MS_SQL):
-        parent.mssql_host = proj_dic["con_dets"][my_globals.DBE_MS_SQL]["host"]
-        parent.mssql_user = proj_dic["con_dets"][my_globals.DBE_MS_SQL]["user"]
-        parent.mssql_pwd = proj_dic["con_dets"][my_globals.DBE_MS_SQL]["passwd"]
+    if proj_dic[u"con_dets"].get(mg.DBE_MS_SQL):
+        parent.mssql_host = proj_dic["con_dets"][mg.DBE_MS_SQL]["host"]
+        parent.mssql_user = proj_dic["con_dets"][mg.DBE_MS_SQL]["user"]
+        parent.mssql_pwd = proj_dic["con_dets"][mg.DBE_MS_SQL]["passwd"]
     else:
         parent.mssql_host, parent.mssql_user, parent.mssql_pwd = "", "", ""
 
@@ -403,12 +402,12 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     if incomplete_mssql:
         wx.MessageBox(_("The SQL Server details are incomplete"))
         parent.txtMssqlDefaultDb.SetFocus()
-    default_dbs[my_globals.DBE_MS_SQL] = mssql_default_db \
+    default_dbs[mg.DBE_MS_SQL] = mssql_default_db \
         if mssql_default_db else None    
-    default_tbls[my_globals.DBE_MS_SQL] = mssql_default_tbl \
+    default_tbls[mg.DBE_MS_SQL] = mssql_default_tbl \
         if mssql_default_tbl else None
     if mssql_host and mssql_user and mssql_pwd:
         con_dets_mssql = {"host": mssql_host, "user": mssql_user, 
                            "passwd": mssql_pwd}
-        con_dets[my_globals.DBE_MS_SQL] = con_dets_mssql
+        con_dets[mg.DBE_MS_SQL] = con_dets_mssql
     return incomplete_mssql, has_mssql_con

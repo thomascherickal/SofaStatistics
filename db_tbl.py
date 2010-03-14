@@ -6,7 +6,7 @@ import pprint
 import wx
 import wx.grid
 
-import my_globals
+import my_globals as mg
 import lib
 import getdata
 
@@ -83,14 +83,14 @@ class DbTbl(wx.grid.PyGridTableBase):
         idx_is_unique = 1
         idx_flds = 2
         for idx in self.idxs:
-            name = idx[my_globals.IDX_NAME] 
-            is_unique = idx[my_globals.IDX_IS_UNIQUE]
-            fld_names = idx[my_globals.IDX_FLDS]
+            name = idx[mg.IDX_NAME] 
+            is_unique = idx[mg.IDX_IS_UNIQUE]
+            fld_names = idx[mg.IDX_FLDS]
             if is_unique:
                 # pretend only ever one field (TODO see above)
                 fld_to_use = fld_names[0]
                 must_quote = not \
-                    self.flds[fld_to_use][my_globals.FLD_BOLNUMERIC]
+                    self.flds[fld_to_use][mg.FLD_BOLNUMERIC]
                 col_idx = self.fld_names.index(fld_to_use)
                 if self.debug:
                     print(u"Col idx: %s" % col_idx)
@@ -149,7 +149,7 @@ class DbTbl(wx.grid.PyGridTableBase):
     
     def none_to_missing_val(self, val):
         if val is None:
-            val = my_globals.MISSING_VAL_INDICATOR
+            val = mg.MISSING_VAL_INDICATOR
         return val
     
     def GetValue(self, row, col):
@@ -191,8 +191,7 @@ class DbTbl(wx.grid.PyGridTableBase):
                 so do it as needed.
             """
             if self.is_new_row(row):
-                return self.new_buffer.get((row, col), 
-                                           my_globals.MISSING_VAL_INDICATOR)
+                return self.new_buffer.get((row, col), mg.MISSING_VAL_INDICATOR)
             # identify row range            
             row_min = row - extra if row - extra > 0 else 0
             row_max = row + extra if row + extra < self.rows_to_fill \
@@ -249,7 +248,7 @@ class DbTbl(wx.grid.PyGridTableBase):
     def IsEmptyCell(self, row, col):
         # wxPython
         value = self.GetValue(row, col)
-        return value == my_globals.MISSING_VAL_INDICATOR
+        return value == mg.MISSING_VAL_INDICATOR
     
     def SetValue(self, row, col, value):
         # wxPython

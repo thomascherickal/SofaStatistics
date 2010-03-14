@@ -13,7 +13,7 @@ import pprint
 import win32com.client
 import wx
 
-import my_globals
+import my_globals as mg
 import lib
 import dbe_plugins.dbe_globals as dbe_globals
 import getdata
@@ -70,13 +70,13 @@ class DbDets(getdata.DbDets):
             set self.db here
         """
         # get connection details for appropriate database
-        con_dets_access = self.con_dets.get(my_globals.DBE_MS_ACCESS)
+        con_dets_access = self.con_dets.get(mg.DBE_MS_ACCESS)
         if not con_dets_access:
             raise Exception, u"No connection details available for MS Access"
         # get the (only) database and use it to get the connection details
         if not self.db:
             # use default if possible, or fall back to random
-            default_db_access = self.default_dbs.get(my_globals.DBE_MS_ACCESS)
+            default_db_access = self.default_dbs.get(mg.DBE_MS_ACCESS)
             if default_db_access:
                 self.db = default_db_access
             else:
@@ -128,7 +128,7 @@ class DbDets(getdata.DbDets):
         # NB table must be in the database
         if not self.tbl:
             # use default if possible
-            default_tbl_access = self.default_tbls.get(my_globals.DBE_MS_ACCESS)
+            default_tbl_access = self.default_tbls.get(mg.DBE_MS_ACCESS)
             if default_tbl_access and default_tbl_access.lower() in tbls_lc:
                 self.tbl = default_tbl_access
             else:
@@ -164,8 +164,8 @@ class DbDets(getdata.DbDets):
 
     def fld_unique(self, fld_name, idxs):
         for idx in idxs:
-            if idx[my_globals.IDX_IS_UNIQUE]:
-                if fld_name in idx[my_globals.IDX_FLDS]:
+            if idx[mg.IDX_IS_UNIQUE]:
+                if fld_name in idx[mg.IDX_FLDS]:
                     return True
         return False
 
@@ -217,22 +217,22 @@ class DbDets(getdata.DbDets):
             min_val, max_val = dbe_globals.get_min_max(fld_type, num_prec, 
                                                        dec_pts)
             dets_dic = {
-                my_globals.FLD_SEQ: extras[fld_name][0],
-                my_globals.FLD_BOLNULLABLE: bolnullable,
-                my_globals.FLD_DATA_ENTRY_OK: boldata_entry_ok,
-                my_globals.FLD_COLUMN_DEFAULT: col.Properties(u"Default").Value,
-                my_globals.FLD_BOLTEXT: fld_txt,
-                my_globals.FLD_TEXT_LENGTH: col.DefinedSize,
-                my_globals.FLD_CHARSET: extras[fld_name][1],
-                my_globals.FLD_BOLNUMERIC: bolnumeric,
-                my_globals.FLD_BOLAUTONUMBER: bolautonum,
-                my_globals.FLD_DECPTS: dec_pts,
-                my_globals.FLD_NUM_WIDTH: num_prec,
-                my_globals.FLD_BOL_NUM_SIGNED: True,
-                my_globals.FLD_NUM_MIN_VAL: min_val,
-                my_globals.FLD_NUM_MAX_VAL: max_val,
-                my_globals.FLD_BOLDATETIME: boldatetime, 
-            }
+                        mg.FLD_SEQ: extras[fld_name][0],
+                        mg.FLD_BOLNULLABLE: bolnullable,
+                        mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
+                        mg.FLD_COLUMN_DEFAULT: col.Properties(u"Default").Value,
+                        mg.FLD_BOLTEXT: fld_txt,
+                        mg.FLD_TEXT_LENGTH: col.DefinedSize,
+                        mg.FLD_CHARSET: extras[fld_name][1],
+                        mg.FLD_BOLNUMERIC: bolnumeric,
+                        mg.FLD_BOLAUTONUMBER: bolautonum,
+                        mg.FLD_DECPTS: dec_pts,
+                        mg.FLD_NUM_WIDTH: num_prec,
+                        mg.FLD_BOL_NUM_SIGNED: True,
+                        mg.FLD_NUM_MIN_VAL: min_val,
+                        mg.FLD_NUM_MAX_VAL: max_val,
+                        mg.FLD_BOLDATETIME: boldatetime, 
+                        }
             flds[fld_name] = dets_dic
         debug = False 
         if debug:
@@ -256,9 +256,8 @@ class DbDets(getdata.DbDets):
             if index.Unique:
                 has_unique = True
             fld_names = [x.Name for x in index.Columns]
-            idx_dic = {my_globals.IDX_NAME: index.Name, 
-                       my_globals.IDX_IS_UNIQUE: index.Unique, 
-                       my_globals.IDX_FLDS: fld_names}
+            idx_dic = {mg.IDX_NAME: index.Name, mg.IDX_IS_UNIQUE: index.Unique, 
+                       mg.IDX_FLDS: fld_names}
             idxs.append(idx_dic)
         cat = None
         debug = False
@@ -337,13 +336,13 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
 
 def get_proj_settings(parent, proj_dic):
     parent.msaccess_default_db = \
-        proj_dic["default_dbs"].get(my_globals.DBE_MS_ACCESS)
+        proj_dic["default_dbs"].get(mg.DBE_MS_ACCESS)
     parent.msaccess_default_tbl = \
-        proj_dic["default_tbls"].get(my_globals.DBE_MS_ACCESS)
-    if proj_dic["con_dets"].get(my_globals.DBE_MS_ACCESS):
+        proj_dic["default_tbls"].get(mg.DBE_MS_ACCESS)
+    if proj_dic["con_dets"].get(mg.DBE_MS_ACCESS):
         parent.msaccess_data = [(x["database"], x["mdw"], x["user"], 
                                  x["pwd"]) \
-            for x in proj_dic["con_dets"][my_globals.DBE_MS_ACCESS].values()]
+            for x in proj_dic["con_dets"][mg.DBE_MS_ACCESS].values()]
     else:
         parent.msaccess_data = []
 
@@ -371,9 +370,9 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     if incomplete_msaccess:
         wx.MessageBox(_("The MS Access details are incomplete"))
         parent.txtMsaccessDefaultDb.SetFocus()
-    default_dbs[my_globals.DBE_MS_ACCESS] = MSACCESS_DEFAULT_DB \
+    default_dbs[mg.DBE_MS_ACCESS] = MSACCESS_DEFAULT_DB \
         if MSACCESS_DEFAULT_DB else None            
-    default_tbls[my_globals.DBE_MS_ACCESS] = MSACCESS_DEFAULT_TBL \
+    default_tbls[mg.DBE_MS_ACCESS] = MSACCESS_DEFAULT_TBL \
         if MSACCESS_DEFAULT_TBL else None
     #pprint.pprint(parent.msaccess_config_data) # debug
     msaccess_settings = parent.msaccess_config_data
@@ -388,5 +387,5 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
             new_msaccess_dic[u"user"] = msaccess_setting[2]
             new_msaccess_dic[u"pwd"] = msaccess_setting[3]
             con_dets_msaccess[db_name] = new_msaccess_dic
-        con_dets[my_globals.DBE_MS_ACCESS] = con_dets_msaccess
+        con_dets[mg.DBE_MS_ACCESS] = con_dets_msaccess
     return incomplete_msaccess, has_msaccess_con

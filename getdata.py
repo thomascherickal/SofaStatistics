@@ -4,7 +4,7 @@ import pprint
 import sys
 import wx
 
-import my_globals
+import my_globals as mg
 import config_globals
 import lib
 
@@ -15,8 +15,8 @@ def get_db_dets_obj(dbe, default_dbs, default_tbls, con_dets, db=None,
     """
     Pass in all con_dets (the dbe will be used to select specific con_dets).
     """
-    return my_globals.DBE_MODULES[dbe].DbDets(default_dbs, default_tbls, 
-                                              con_dets, db, tbl)
+    return mg.DBE_MODULES[dbe].DbDets(default_dbs, default_tbls, con_dets, db, 
+                                      tbl)
 
 
 # must be before dbe import statements (they have classes based on DbDets)
@@ -74,7 +74,7 @@ def make_fld_val_clause_non_numeric(fld_name, val, dbe_gte, quote_obj,
     if debug: print(clause)
     return clause
     
-def make_fld_val_clause(dbe, flds, fld_name, val, gte=my_globals.GTE_EQUALS):
+def make_fld_val_clause(dbe, flds, fld_name, val, gte=mg.GTE_EQUALS):
     """
     Make a filter clause with a field name = a value (numeric or non-numeric).
     quote_obj -- function specific to database engine for quoting objects
@@ -85,20 +85,20 @@ def make_fld_val_clause(dbe, flds, fld_name, val, gte=my_globals.GTE_EQUALS):
         filtering.
     """
     debug = False
-    bolsqlite = (dbe == my_globals.DBE_SQLITE)
+    bolsqlite = (dbe == mg.DBE_SQLITE)
     quote_obj = get_obj_quoter_func(dbe)
     quote_val = get_val_quoter_func(dbe)
     dbe_gte = get_gte(dbe, gte)
-    bolnumeric = flds[fld_name][my_globals.FLD_BOLNUMERIC]
-    boldatetime = flds[fld_name][my_globals.FLD_BOLDATETIME]
+    bolnumeric = flds[fld_name][mg.FLD_BOLNUMERIC]
+    boldatetime = flds[fld_name][mg.FLD_BOLDATETIME]
     if val is None:
-        if gte == my_globals.GTE_EQUALS:
+        if gte == mg.GTE_EQUALS:
             clause = u"%s IS NULL" % quote_obj(fld_name)
-        elif gte == my_globals.GTE_NOT_EQUALS:
+        elif gte == mg.GTE_NOT_EQUALS:
             clause = u"%s IS NOT NULL" % quote_obj(fld_name)
         else:
             raise Exception, ("Can only use = or "
-                "%s with missing or Null values.") % my_globals.GTE_NOT_EQUALS
+                "%s with missing or Null values.") % mg.GTE_NOT_EQUALS
     else:
         num = True
         if not bolnumeric:
@@ -119,21 +119,21 @@ def get_obj_quoter_func(dbe):
     Get appropriate function to wrap content e.g. table or field name, 
         in dbe-friendly way.
     """
-    return my_globals.DBE_MODULES[dbe].quote_obj
+    return mg.DBE_MODULES[dbe].quote_obj
 
 def get_val_quoter_func(dbe):
     """
     Get appropriate function to wrap values e.g. the contents of a string field,
         in dbe-friendly way.
     """
-    return my_globals.DBE_MODULES[dbe].quote_val
+    return mg.DBE_MODULES[dbe].quote_val
 
 def get_placeholder(dbe):
-    return my_globals.DBE_MODULES[dbe].placeholder
+    return mg.DBE_MODULES[dbe].placeholder
 
 def get_gte(dbe, gte):
-    if gte == my_globals.GTE_NOT_EQUALS:
-        return my_globals.DBE_MODULES[dbe].gte_not_equals
+    if gte == mg.GTE_NOT_EQUALS:
+        return mg.DBE_MODULES[dbe].gte_not_equals
     return gte
 
 def get_dbe_syntax_elements(dbe):
@@ -145,22 +145,22 @@ def get_dbe_syntax_elements(dbe):
     e.g. MySQL "IF(%s, %s, %s)"
     Sum and if statements are used to get frequencies in SOFA Statistics.
     """
-    return my_globals.DBE_MODULES[dbe].get_syntax_elements()
+    return mg.DBE_MODULES[dbe].get_syntax_elements()
 
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     ""
-    for dbe in my_globals.DBES:
-        my_globals.DBE_MODULES[dbe].set_data_con_gui(parent, readonly, scroll, 
+    for dbe in mg.DBES:
+        mg.DBE_MODULES[dbe].set_data_con_gui(parent, readonly, scroll, 
                                                      szr, lblfont)
 
 def get_proj_con_settings(parent, proj_dic):
     "Get project connection settings"
-    for dbe in my_globals.DBES:
-        my_globals.DBE_MODULES[dbe].get_proj_settings(parent, proj_dic)
+    for dbe in mg.DBES:
+        mg.DBE_MODULES[dbe].get_proj_settings(parent, proj_dic)
 
 def flds_dic_to_fld_names_lst(flds_dic):
     # pprint.pprint(flds_dic) # debug
-    flds_lst = sorted(flds_dic, key=lambda s: flds_dic[s][my_globals.FLD_SEQ])
+    flds_lst = sorted(flds_dic, key=lambda s: flds_dic[s][mg.FLD_SEQ])
     return flds_lst
 
 def set_con_det_defaults(parent):
@@ -168,8 +168,8 @@ def set_con_det_defaults(parent):
     Check project connection settings to handle missing values and set 
         sensible defaults.
     """
-    for dbe in my_globals.DBES:
-        my_globals.DBE_MODULES[dbe].set_con_det_defaults(parent)
+    for dbe in mg.DBES:
+        mg.DBE_MODULES[dbe].set_con_det_defaults(parent)
 
 def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     """
@@ -187,12 +187,11 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     any_incomplete = False
     any_cons = False
     completed_dbes = [] # so can check the default dbe has details set
-    for dbe in my_globals.DBES:
+    for dbe in mg.DBES:
         # has_incomplete means started but some key detail(s) missing
         # has_con means all required details are completed
-        has_incomplete, has_con = \
-            my_globals.DBE_MODULES[dbe].process_con_dets(parent, default_dbs, 
-                                                         default_tbls, con_dets)
+        has_incomplete, has_con = mg.DBE_MODULES[dbe].process_con_dets(parent, 
+                                            default_dbs, default_tbls, con_dets)
         if has_incomplete:
             return True, None, completed_dbes
         if has_con:
@@ -229,12 +228,12 @@ def prep_val(dbe, val, fld_dic):
     debug = False
     try:
         # most modules won't need to have a special function
-        prep_val = my_globals.DBE_MODULES[dbe].prep_val(val, fld_dic)
+        prep_val = mg.DBE_MODULES[dbe].prep_val(val, fld_dic)
     except AttributeError:
         # the most common path
-        if val in [None, my_globals.MISSING_VAL_INDICATOR]:
+        if val in [None, mg.MISSING_VAL_INDICATOR]:
             val2use = None
-        elif fld_dic[my_globals.FLD_BOLDATETIME]:
+        elif fld_dic[mg.FLD_BOLDATETIME]:
             if val == u"":
                 val2use = None
             else:
@@ -330,7 +329,7 @@ def get_data_dropdowns(parent, panel, dbe, default_dbs, default_tbls, con_dets,
     # databases list needs to be tuple including dbe so can get both from 
     # sequence alone e.g. when identifying selection
     db_choices = [(x, dbe) for x in dbs_of_default_dbe]      
-    dbes = my_globals.DBES[:]
+    dbes = mg.DBES[:]
     dbes.pop(dbes.index(dbe))
     for oth_dbe in dbes: # may not have any connection details
         oth_default_db = default_dbs.get(oth_dbe)
@@ -383,10 +382,10 @@ def refresh_default_dbs_tbls(dbe, default_dbs, default_tbls):
         engine.  If available, override the defaults taken from the project file
         for this point on (until session closed).
     """
-    recent_db = my_globals.DB_DEFAULTS.get(dbe)
+    recent_db = mg.DB_DEFAULTS.get(dbe)
     if recent_db:
         default_dbs[dbe] = recent_db
-    recent_tbl = my_globals.TBL_DEFAULTS.get(dbe)
+    recent_tbl = mg.TBL_DEFAULTS.get(dbe)
     if recent_tbl:
         default_tbls[dbe] = recent_tbl
 
@@ -400,8 +399,8 @@ def refresh_db_dets(parent):
     db_choice_item = parent.db_choice_items[parent.dropDatabases.GetSelection()]
     db, dbe = extractDbDets(db_choice_item)
     # update globals - will be used in refresh ...
-    my_globals.DBE_DEFAULT = dbe
-    my_globals.DB_DEFAULTS[dbe] = db
+    mg.DBE_DEFAULT = dbe
+    mg.DB_DEFAULTS[dbe] = db
     refresh_default_dbs_tbls(dbe, parent.default_dbs, parent.default_tbls)
     dbdetsobj = get_db_dets_obj(dbe, parent.default_dbs, parent.default_tbls, 
                                 parent.con_dets, db)
@@ -431,8 +430,8 @@ def get_default_db_dets():
         SOFA SQLite database.
     """
     proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
-                                        fil_name=my_globals.SOFA_DEFAULT_PROJ)
-    dbdetsobj = get_db_dets_obj(dbe=my_globals.DBE_SQLITE, 
+                                        fil_name=mg.SOFA_DEFAULT_PROJ)
+    dbdetsobj = get_db_dets_obj(dbe=mg.DBE_SQLITE, 
                                 default_dbs=proj_dic["default_dbs"],
                                 default_tbls=proj_dic["default_tbls"],
                                 con_dets=proj_dic["con_dets"])
@@ -457,13 +456,12 @@ def make_flds_clause(config_data):
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
     debug = False
-    sqlite_quoter = get_obj_quoter_func(my_globals.DBE_SQLITE)
+    sqlite_quoter = get_obj_quoter_func(mg.DBE_SQLITE)
     # get orig_name, new_name tuples for all fields in final table apart 
     # from the sofa_id.
-    orig_new_names = [(x[my_globals.TBL_FLD_NAME_ORIG], 
-                       x[my_globals.TBL_FLD_NAME]) \
-                       for x in config_data \
-                       if x[my_globals.TBL_FLD_NAME_ORIG] != my_globals.SOFA_ID]
+    orig_new_names = [(x[mg.TBL_FLD_NAME_ORIG], x[mg.TBL_FLD_NAME])
+                       for x in config_data 
+                       if x[mg.TBL_FLD_NAME_ORIG] != mg.SOFA_ID]
     if debug:
         print("config_data: %s" % config_data)
         print("orig_new_names: %s" % orig_new_names)
@@ -487,9 +485,9 @@ def get_oth_name_types(config_data):
     config_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
-    oth_name_types = [(x[my_globals.TBL_FLD_NAME], x[my_globals.TBL_FLD_TYPE]) \
-                            for x in config_data \
-                            if x[my_globals.TBL_FLD_NAME] != my_globals.SOFA_ID]
+    oth_name_types = [(x[mg.TBL_FLD_NAME], x[mg.TBL_FLD_TYPE])
+                            for x in config_data
+                            if x[mg.TBL_FLD_NAME] != mg.SOFA_ID]
     return oth_name_types
 
 def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):
@@ -503,20 +501,20 @@ def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):
     strict_typing -- add check constraints to fields.
     """
     debug = False
-    quoter = get_obj_quoter_func(my_globals.DBE_SQLITE)
-    sofa_id = quoter(my_globals.SOFA_ID)
+    quoter = get_obj_quoter_func(mg.DBE_SQLITE)
+    sofa_id = quoter(mg.SOFA_ID)
     if inc_sofa_id:
         fld_clause_items = [u"%s INTEGER PRIMARY KEY" % sofa_id]
     else:
         fld_clause_items = []
     for fld_name, fld_type in oth_name_types:
-        if fld_name == my_globals.SOFA_ID:
+        if fld_name == mg.SOFA_ID:
             raise Exception, "Do not pass sofa_id into %s" % \
                 sys._getframe().f_code.co_name
         if fld_name == "":
             raise Exception, ("Do not pass fields with empty string names into "
                               "%s" % sys._getframe().f_code.co_name)
-        tosqlite = my_globals.GEN2SQLITE_DIC[fld_type]
+        tosqlite = mg.GEN2SQLITE_DIC[fld_type]
         if strict_typing:
             check = tosqlite["check_clause"] % {"fld_name": quoter(fld_name)}
         else:
@@ -551,4 +549,5 @@ def make_sofa_tbl(con, cur, tbl_name, oth_name_types, strict_typing=False):
     if debug: print(SQL_make_tbl)
     cur.execute(SQL_make_tbl)
     con.commit()
-    if debug: print(u"Successfully created %s" % tbl_name)  
+    if debug: print(u"Successfully created %s" % tbl_name)
+     

@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-import my_globals
+import my_globals as mg
 import lib
 import indep2var
 
@@ -8,7 +8,7 @@ import indep2var
 class DlgConfig(indep2var.DlgIndep2VarConfig):
 
     averaged = _("Averaged")
-    min_data_type = my_globals.VAR_TYPE_QUANT
+    min_data_type = mg.VAR_TYPE_QUANT
 
     def get_examples(self):
         eg1 = _("Answers the question, do 2 groups have a different average?")
@@ -61,7 +61,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             u"stats_output.ttest_indep_output("
             u"sample_a, sample_b, t, p, "
             u"\n    dic_a, dic_b, label_avg, add_to_report, report_name, dp, "
-            u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, "
+            u"\n    level=mg.OUTPUT_RESULTS_ONLY, "
             u"css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append(u"fil.write(ttest_indep_output)")
         return u"\n".join(script_lst)

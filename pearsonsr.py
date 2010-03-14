@@ -1,13 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-import my_globals
+import my_globals as mg
 import lib
 import paired2var
 
 
 class DlgConfig(paired2var.DlgPaired2VarConfig):
     
-    min_data_type = my_globals.VAR_TYPE_QUANT
+    min_data_type = mg.VAR_TYPE_QUANT
     
     def get_examples(self):
         eg1 = _("Answers the question, is there a linear relationship "
@@ -51,7 +51,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             u"stats_output.pearsonsr_output(sample_a, sample_b, r, p,")
         script_lst.append(u"    label_a, label_b, add_to_report, report_name, "
                           u"dp, ")
-        script_lst.append(u"    level=my_globals.OUTPUT_RESULTS_ONLY, "
+        script_lst.append(u"    level=mg.OUTPUT_RESULTS_ONLY, "
                           u"css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append(u"fil.write(pearsonsr_output)")
         return u"\n".join(script_lst)

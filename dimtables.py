@@ -3,7 +3,7 @@ import numpy
 from operator import itemgetter
 import pprint
 
-import my_globals
+import my_globals as mg
 import lib
 import my_exceptions
 import getdata
@@ -73,14 +73,13 @@ class DimNode(tree.Node):
     labels - a dictionary of labels e.g. {"1": "Male", "2": "Female"}
     measures - e.g. FREQ
     has_tot - boolean
-    sort_order - my_globals.SORT_NONE, my_globals.SORT_LABEL, 
-        my_globals.SORT_FREQ_ASC, my_globals.SORT_FREQ_DESC
+    sort_order - mg.SORT_NONE, mg.SORT_LABEL, mg.SORT_FREQ_ASC, 
+        mg.SORT_FREQ_DESC
     bolnumeric - so can set up filters correctly e.g. gender = "1" or 
         gender = 1 as appropriate
     """
     def __init__(self, fld=None, label="", labels=None, measures=None, 
-                 has_tot=False, sort_order=my_globals.SORT_NONE, 
-                 bolnumeric=False):
+                 has_tot=False, sort_order=mg.SORT_NONE, bolnumeric=False):
         ""
         self.fld = fld
         self.filt_flds = [] #only built up when added as a child to another DimNode
@@ -154,14 +153,12 @@ class DimTable(object):
             placeholders needed by demo table if not titles or subtitles.
         """
         debug = False
-        CSS_TBL_TITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_TBL_TITLE, css_idx)
-        CSS_TBL_SUBTITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_TBL_SUBTITLE, css_idx)
-        CSS_TBL_TITLE_CELL = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_TBL_TITLE_CELL, css_idx)
-        CSS_SPACEHOLDER = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_SPACEHOLDER, css_idx)        
+        CSS_TBL_TITLE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_TITLE, css_idx)
+        CSS_TBL_SUBTITLE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_SUBTITLE, 
+                                                     css_idx)
+        CSS_TBL_TITLE_CELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_TITLE_CELL, 
+                                                       css_idx)
+        CSS_SPACEHOLDER = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_SPACEHOLDER, css_idx)        
         if debug: print(tree_col_labels)
         # includes root so -1, includes title/subtitle row so +1 (share row)
         col_label_rows_n = tree_col_labels.get_depth()
@@ -243,13 +240,11 @@ class DimTable(object):
             = value, odd level = variable.
         """
         debug = False
-        CSS_FIRST_ROW_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_FIRST_ROW_VAR, css_idx)
-        CSS_ROW_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_ROW_VAR, css_idx)
-        CSS_ROW_VAL = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_ROW_VAL, css_idx)
-        #print(node) #debug
+        CSS_FIRST_ROW_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_ROW_VAR, 
+                                                      css_idx)
+        CSS_ROW_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ROW_VAR, css_idx)
+        CSS_ROW_VAL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ROW_VAL, css_idx)
+        if debug: print(node)
         level = node.level
         if level > 0: # skip adding cells for root node itself
             row_offset = level - 1 # e.g. first row level is 0
@@ -318,14 +313,11 @@ class DimTable(object):
         For General Tables, odd number of levels below = value, 
         even = variable.  For Summary Tables, vv.
         """
-        CSS_COL_VAL = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_COL_VAL, css_idx)
-        CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_FIRST_COL_VAR, css_idx)
-        CSS_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_COL_VAR, css_idx)
-        CSS_MEASURE = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_MEASURE, css_idx)
+        CSS_COL_VAL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_COL_VAL, css_idx)
+        CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, 
+                                                      css_idx)
+        CSS_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_COL_VAR, css_idx)
+        CSS_MEASURE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_MEASURE, css_idx)
         rows_filled = node.level + 1 + row_offset
         rows_to_fill = col_label_rows_n - rows_filled
         rows_below = node.get_depth() - 1 # exclude self
@@ -456,7 +448,7 @@ class LiveTable(DimTable):
         for child in self.tree_rows.root_node.children:
             self.add_subtree_to_label_tree(tree_dims_node=child, 
                                     tree_labels_node=tree_row_labels.root_node,
-                                    dim=my_globals.ROWDIM, 
+                                    dim=mg.ROWDIM, 
                                     oth_dim_root=self.tree_cols.root_node)
         return self.process_row_tree(tree_row_labels, css_idx)        
     
@@ -469,13 +461,13 @@ class LiveTable(DimTable):
             for child in self.tree_cols.root_node.children:
                 self.add_subtree_to_label_tree(tree_dims_node=child, 
                                     tree_labels_node=tree_col_labels.root_node,
-                                    dim=my_globals.COLDIM, 
+                                    dim=mg.COLDIM, 
                                     oth_dim_root=self.tree_rows.root_node)
         else:
             self.add_subtree_to_label_tree(tree_dims_node=\
                                    self.tree_cols.root_node, 
                                    tree_labels_node=tree_col_labels.root_node,
-                                   dim=my_globals.COLDIM, 
+                                   dim=mg.COLDIM, 
                                    oth_dim_root=self.tree_rows.root_node)
         return tree_col_labels
           
@@ -487,7 +479,7 @@ class LiveTable(DimTable):
         """
         has_fld = tree_dims_node.fld # None or a string        
         filt_flds = tree_dims_node.filt_flds
-        if dim == my_globals.ROWDIM:
+        if dim == mg.ROWDIM:
             if not has_fld:
                 raise Exception, u"All row nodes must have a variable " + \
                     u"field specified"
@@ -497,7 +489,7 @@ class LiveTable(DimTable):
             else:
                 self.add_subtree_measures_only(tree_dims_node, tree_labels_node, 
                                                filt_flds)
-        elif dim == my_globals.COLDIM:
+        elif dim == mg.COLDIM:
             if has_fld:
                 self.add_subtree_if_vals(tree_dims_node, tree_labels_node, 
                                          oth_dim_root, dim, filt_flds)            
@@ -617,11 +609,11 @@ class LiveTable(DimTable):
         A total cell should be added, or not, after this stage.
         http://www.python.org/dev/peps/pep-0265/
         """
-        if sort_order == my_globals.SORT_FREQ_ASC:
+        if sort_order == mg.SORT_FREQ_ASC:
             val_freq_label_lst.sort(key=itemgetter(1)) #sort asc by freq
-        elif sort_order == my_globals.SORT_FREQ_DESC:
+        elif sort_order == mg.SORT_FREQ_DESC:
             val_freq_label_lst.sort(key=itemgetter(1), reverse=True) #desc
-        elif sort_order == my_globals.SORT_LABEL:
+        elif sort_order == mg.SORT_LABEL:
             val_freq_label_lst.sort(key=itemgetter(2)) #sort by label
             
     def get_sorted_val_freq_label_lst(self, all_vals, tree_dims_node):
@@ -680,7 +672,7 @@ class LiveTable(DimTable):
         if terminal_var:
             var_measures = tree_dims_node.measures
             if not var_measures:
-                var_measures = [my_globals.FREQ]
+                var_measures = [mg.FREQ]
         for val, val_freq, val_label in val_freq_label_lst:
             # add level 2 to the data tree - the value nodes (plus total?); 
             # pass on and extend filtering from higher level in data tree
@@ -690,17 +682,17 @@ class LiveTable(DimTable):
                 val_node_filts.append(NOTNULL % self.quote_obj(fld))
             else:
                 clause = getdata.make_fld_val_clause(self.dbe, self.flds, fld, 
-                                                     val, my_globals.GTE_EQUALS)
+                                                     val, mg.GTE_EQUALS)
                 if debug: print(clause)
                 val_node_filts.append(clause)
-            is_coltot=(is_tot and dim == my_globals.COLDIM)
+            is_coltot=(is_tot and dim == mg.COLDIM)
             val_node = node_lev1.add_child(LabelNode(label = val_label,
                                                     filts=val_node_filts))
             # if node has children, send through again to add further subtree
             if terminal_var: # a terminal node - add measures
                 # only gen table cols and summ table rows can have measures
-                if (dim == my_globals.COLDIM and self.has_col_measures) or \
-                        (dim == my_globals.ROWDIM and self.has_row_measures):
+                if (dim == mg.COLDIM and self.has_col_measures) or \
+                        (dim == mg.ROWDIM and self.has_row_measures):
                     self.add_measures(label_node=val_node, 
                                     measures=var_measures, is_coltot=is_coltot, 
                                     filt_flds=filt_flds, filts=val_node_filts) 
@@ -854,10 +846,9 @@ class GenTable(LiveTable):
             efficiency reasons.  Each call returns multiple values.
         """
         debug = False
-        CSS_FIRST_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_FIRST_DATACELL, css_idx)
-        CSS_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_DATACELL, css_idx)
+        CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL, 
+                                                       css_idx)
+        CSS_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_DATACELL, css_idx)
         i=0
         data_item_presn_lst = []
         results = []
@@ -931,8 +922,7 @@ class GenTable(LiveTable):
         # build the body row html
         for row in row_label_rows_lst:
             for j in range(len(col_term_nodes)):
-                data_format = \
-                    my_globals.data_format_dic[data_item_presn_lst[i][1]]
+                data_format = mg.data_format_dic[data_item_presn_lst[i][1]]
                 data_val = data_format(results[i])
                 row.append(data_item_presn_lst[i][0] + \
                            data_val + data_item_presn_lst[i][2])
@@ -971,12 +961,12 @@ class GenTable(LiveTable):
             self.get_summable(u" AND ".join( row_filters_lst + \
                                          all_but_last_col_filters_lst))
         if debug: pprint.pprint(freq)
-        if measure == my_globals.FREQ:
+        if measure == mg.FREQ:
             if not is_coltot:
                 func_clause = freq
             else:
                 func_clause = col_freq
-        elif measure == my_globals.COLPCT:
+        elif measure == mg.COLPCT:
             if not is_coltot:
                 numerator = freq
                 # must divide by all values where all but the last row match.
@@ -1004,7 +994,7 @@ class GenTable(LiveTable):
             template = self.if_clause % (NOTNULL % perc, perc, 0)
             #print(template) #debug
             func_clause = template
-        elif measure == my_globals.ROWPCT:
+        elif measure == mg.ROWPCT:
             if not is_coltot:
                 numerator = freq
                 #we want to divide by all values where all the rows match
@@ -1083,13 +1073,11 @@ class SummTable(LiveTable):
         by a row of strings to concatenate, one per data point.
         Get data values one at a time (no batches unlike Gen Tables).
         """
-        CSS_FIRST_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_FIRST_DATACELL, css_idx)
-        CSS_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_DATACELL, css_idx)
+        CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL,
+                                                       css_idx)
+        CSS_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_DATACELL, css_idx)
         data_item_lst = []
-        for (rowmeasure, row_fld_lst) in zip(row_measures_lst, 
-                                             row_flds_lst):
+        for (rowmeasure, row_fld_lst) in zip(row_measures_lst, row_flds_lst):
             first = True
             for col_filter_lst in col_filters_lst:
                 #styling
@@ -1141,12 +1129,12 @@ class SummTable(LiveTable):
         # myself
         SQL_get_vals = u"SELECT %s " % self.quote_obj(row_fld) + \
             u"FROM %s %s" % (self.quote_obj(self.tbl), filter)
-        sql_for_raw_only = [my_globals.MEDIAN, my_globals.STD_DEV]
+        sql_for_raw_only = [mg.MEDIAN, mg.STD_DEV]
         if measure in sql_for_raw_only:
             self.cur.execute(SQL_get_vals)
             data = [x[0] for x in self.cur.fetchall() if x[0]]
             if debug: print(data)
-        if measure == my_globals.SUM:
+        if measure == mg.SUM:
             SQL_get_sum = u"SELECT SUM(%s) " % self.quote_obj(row_fld) + \
                 u"FROM " + self.quote_obj(self.tbl) + filter
             try:
@@ -1154,7 +1142,7 @@ class SummTable(LiveTable):
                 data_val = self.cur.fetchone()[0]
             except Exception, e:
                 raise Exception, u"Unable to calculate sum of %s." % row_fld
-        elif measure == my_globals.MEAN:
+        elif measure == mg.MEAN:
             SQL_get_mean = u"SELECT AVG(%s) " % self.quote_obj(row_fld) + \
                 u"FROM %s %s" % (self.quote_obj(self.tbl), filter)
             try:
@@ -1162,7 +1150,7 @@ class SummTable(LiveTable):
                 data_val =  round(self.cur.fetchone()[0],2)
             except Exception, e:
                 raise Exception, u"Unable to calculate mean of %s." % row_fld
-        elif measure == my_globals.MEDIAN:
+        elif measure == mg.MEDIAN:
             try:
                 data_val =  round(numpy.median(data),2)
             except Exception, e:
@@ -1175,7 +1163,7 @@ class SummTable(LiveTable):
                 else:
                     raise Exception, u"Unable to calculate median for %s." % \
                         row_fld
-        elif measure == my_globals.SUMM_N:
+        elif measure == mg.SUMM_N:
             SQL_get_n = u"SELECT COUNT(%s) " % self.quote_obj(row_fld) + \
                 u"FROM %s %s" % (self.quote_obj(self.tbl), filter)
             try:
@@ -1183,7 +1171,7 @@ class SummTable(LiveTable):
                 data_val = u"N=%s" % self.cur.fetchone()[0]
             except Exception, e:
                 raise Exception, u"Unable to calculate N for %s." % row_fld
-        elif measure == my_globals.STD_DEV:
+        elif measure == mg.STD_DEV:
             try:
                 data_val =  round(numpy.std(data),2)
             except Exception, e:

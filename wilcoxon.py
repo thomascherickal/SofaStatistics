@@ -1,13 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-import my_globals
+import my_globals as mg
 import lib
 import paired2var
 
 
 class DlgConfig(paired2var.DlgPaired2VarConfig):
     
-    min_data_type = my_globals.VAR_TYPE_ORD
+    min_data_type = mg.VAR_TYPE_ORD
     
     def get_examples(self):
         eg1 = _("Answers the question, are the elements of paired sets of "
@@ -35,7 +35,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append(u"t, p = core_stats.wilcoxont(sample_a, sample_b)")
         script_lst.append(u"wilcoxon_output = stats_output.wilcoxon_output(" + \
             u"t, p, label_a, label_b, dp=dp,\n    " + \
-            u"level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=%s, " % css_idx + \
+            u"level=mg.OUTPUT_RESULTS_ONLY, css_idx=%s, " % css_idx + \
             u"page_break_after=False)")
         script_lst.append(u"fil.write(wilcoxon_output)")
         return u"\n".join(script_lst)

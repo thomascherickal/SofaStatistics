@@ -5,7 +5,7 @@ import wx
 import wxmpl
 import pylab # must import after wxmpl so matplotlib.use() is always first
 
-import my_globals
+import my_globals as mg
 import lib
 import my_exceptions
 import full_html
@@ -83,12 +83,12 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             lblVars = wx.StaticText(self.panel, -1, _("Variables:"))
         lblVars.SetFont(self.LABEL_FONT)
         self.dropVarA = wx.Choice(self.panel, -1, size=(300, -1))
-        self.dropVarA.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_var_a)
+        self.dropVarA.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var_a)
         self.dropVarA.SetToolTipString(_("Right click variable to view/edit "
                                          "details"))
         if self.paired:
             self.dropVarB = wx.Choice(self.panel, -1, size=(300, -1))
-            self.dropVarB.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_var_b)
+            self.dropVarB.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var_b)
             self.dropVarB.SetToolTipString(_("Right click variable to "
                                               "view/edit details"))
         self.setup_vars(var_a=True, var_b=self.paired)
@@ -102,9 +102,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.imgHist = wx.StaticBitmap(self.panel, -1, size=(200, 100), 
                                         pos=(0,0))
         msg_font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
-        img_blank_hist = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
-                                               u"images", u"blankhisto.xpm"), 
-                                               wx.BITMAP_TYPE_XPM)
+        img_blank_hist = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                         u"blankhisto.xpm"), wx.BITMAP_TYPE_XPM)
         self.bmp_blank_hist = wx.BitmapFromImage(img_blank_hist)
         if not self.paired:
             raw_msg = _("Select variable to see graph")
@@ -120,7 +119,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         szrShape.Add(self.imgHist, 0)
         szrShape.Add(self.btnDetails, 0, wx.LEFT, 10)
         self.szrExamine.Add(szrShape, 0, wx.ALL, 10)
-        myheight = 130 if my_globals.MAX_HEIGHT < 800 else 200
+        myheight = 130 if mg.MAX_HEIGHT < 800 else 200
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))
         self.set_output_to_blank()
         szrNormalityTest.Add(self.html, 1, wx.GROW)
@@ -153,9 +152,9 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.html.show_html("<p>%s</p>" % msg)
 
     def on_ok(self, event):
-        my_globals.DBE_DEFAULT = self.dbe
-        my_globals.DB_DEFAULTS[self.dbe] = self.db
-        my_globals.TBL_DEFAULTS[self.dbe] = self.tbl
+        mg.DBE_DEFAULT = self.dbe
+        mg.DB_DEFAULTS[self.dbe] = self.db
+        mg.TBL_DEFAULTS[self.dbe] = self.tbl
         self.Destroy()
         event.Skip()
 
@@ -171,8 +170,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.set_shape_to_blank()
         self.set_output_to_blank()
         
-    def on_right_click_tables(self, event):
-        config_dlg.ConfigDlg.on_right_click_tables(self, event)
+    def on_rclick_tables(self, event):
+        config_dlg.ConfigDlg.on_rclick_tables(self, event)
         self.update_examination()
     
     def setup_var_a(self, var=None):
@@ -186,7 +185,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         
         """
         var_names = projects.get_approp_var_names(self.flds, self.var_types,
-                                        min_data_type=my_globals.VAR_TYPE_QUANT)
+                                        min_data_type=mg.VAR_TYPE_QUANT)
         var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
                                     dic_labels=self.var_labels, vals=var_names)
         if var_a:
@@ -274,8 +273,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         fig = pylab.figure()
         fig.set_size_inches((2.3, 1.0)) # see dpi to get image size in pixels
         charts.config_hist(fig, self.vals, self.data_label, thumbnail=True)
-        pylab.savefig(my_globals.INT_IMG_ROOT + u".png", dpi=100)
-        thumbnail_uncropped = wx.Image(my_globals.INT_IMG_ROOT + u".png", 
+        pylab.savefig(mg.INT_IMG_ROOT + u".png", dpi=100)
+        thumbnail_uncropped = wx.Image(mg.INT_IMG_ROOT + u".png", 
                                        wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         rem_blank_axes_rect = wx.Rect(15, 0, 200, 100)
         thumbnail = thumbnail_uncropped.GetSubBitmap(rem_blank_axes_rect)
@@ -351,7 +350,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         dlg.ShowModal()
         event.Skip()
     
-    def on_right_click_var_a(self, event):
+    def on_rclick_var_a(self, event):
         var_a, choice_item = self.get_var_a()
         var_label_a = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_a)
@@ -361,7 +360,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         if updated:
             self.setup_var_a(var_a)
     
-    def on_right_click_var_b(self, event):
+    def on_rclick_var_b(self, event):
         var_b, choice_item = self.get_var_b()
         var_label_b = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_b)

@@ -3,7 +3,7 @@ import wx
 import wx.grid
 import pprint
 
-import my_globals
+import my_globals as mg
 import text_browser
 
 COL_STR = "col_string"
@@ -339,22 +339,22 @@ class SettingsEntry(object):
         dest_col=event.GetCol()
         if dest_row == src_row:
             if dest_col > src_col:
-                direction = my_globals.MOVE_RIGHT
+                direction = mg.MOVE_RIGHT
             else:
-                direction = my_globals.MOVE_LEFT
+                direction = mg.MOVE_LEFT
         elif dest_col == src_col:
             if dest_row > src_row:
-                direction = my_globals.MOVE_DOWN
+                direction = mg.MOVE_DOWN
             else:
-                direction = my_globals.MOVE_UP
+                direction = mg.MOVE_UP
         elif dest_col > src_col and dest_row > src_row:
-                direction = my_globals.MOVE_DOWN_RIGHT
+                direction = mg.MOVE_DOWN_RIGHT
         elif dest_col > src_col and dest_row < src_row:
-                direction = my_globals.MOVE_UP_RIGHT
+                direction = mg.MOVE_UP_RIGHT
         elif dest_col < src_col and dest_row > src_row:
-                direction = my_globals.MOVE_DOWN_LEFT
+                direction = mg.MOVE_DOWN_LEFT
         elif dest_col < src_col and dest_row < src_row:
-                direction = my_globals.MOVE_UP_LEFT
+                direction = mg.MOVE_UP_LEFT
         else:
             raise Exception, (u"settings_grid.on_select_cell - where is "
                               u"direction?")
@@ -401,18 +401,17 @@ class SettingsEntry(object):
         elif keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
             if keycode == wx.WXK_TAB:
                 if event.ShiftDown():
-                    direction = my_globals.MOVE_LEFT
+                    direction = mg.MOVE_LEFT
                 else:
-                    direction = my_globals.MOVE_RIGHT
+                    direction = mg.MOVE_RIGHT
             elif keycode == wx.WXK_RETURN:
-                direction = my_globals.MOVE_DOWN
+                direction = mg.MOVE_DOWN
             src_row=self.current_row_idx
             src_col=self.current_col_idx
             if self.debug or debug: print(u"on_grid_key_down - keypress in row "
                 u"%s col %s *****************************" % (src_row, src_col))
             final_col = (src_col == len(self.col_dets) - 1)
-            if final_col and direction in [my_globals.MOVE_RIGHT, 
-                                           my_globals.MOVE_DOWN]:
+            if final_col and direction in [mg.MOVE_RIGHT, mg.MOVE_DOWN]:
                 self.add_cell_move_evt(direction)
                 # Do not Skip and send event on its way.
                 # Smother the event here so our code can determine where the 
@@ -446,7 +445,7 @@ class SettingsEntry(object):
         keycode = event.GetKeyCode()
         if keycode in [wx.WXK_RETURN]:
             self.grid.DisableCellEditControl()
-            self.add_cell_move_evt(my_globals.MOVE_RIGHT)
+            self.add_cell_move_evt(mg.MOVE_RIGHT)
             
     def on_cell_move(self, event):
         """
@@ -504,12 +503,11 @@ class SettingsEntry(object):
                 u"direction: %s" % direction)
         move_type, dest_row, dest_col = self.get_move_dets(src_row, src_col, 
                                                 dest_row, dest_col, direction)
-        if move_type in [my_globals.MOVING_IN_EXISTING, 
-                         my_globals.LEAVING_EXISTING]:
+        if move_type in [mg.MOVING_IN_EXISTING, mg.LEAVING_EXISTING]:
             move_to_dest = self.leaving_existing_cell()
-        elif move_type == my_globals.MOVING_IN_NEW:
+        elif move_type == mg.MOVING_IN_NEW:
             move_to_dest = self.moving_in_new_row()
-        elif move_type == my_globals.LEAVING_NEW:
+        elif move_type == mg.LEAVING_NEW:
             move_to_dest, saved_new_row = self.leaving_new_row(dest_row, 
                                                             dest_col, direction)
         else:
@@ -574,29 +572,28 @@ class SettingsEntry(object):
                   u"dest_row_is_new: %s" % (self.current_row_idx, src_row, 
                                             was_new_row, dest_row_is_new))
         if was_new_row and dest_row_is_new:
-            move_type = my_globals.MOVING_IN_NEW
+            move_type = mg.MOVING_IN_NEW
         elif was_new_row and not dest_row_is_new:
-            move_type = my_globals.LEAVING_NEW
+            move_type = mg.LEAVING_NEW
         elif not was_new_row and not dest_row_is_new:
-            move_type = my_globals.MOVING_IN_EXISTING
+            move_type = mg.MOVING_IN_EXISTING
         elif not was_new_row and dest_row_is_new:
-            move_type = my_globals.LEAVING_EXISTING
+            move_type = mg.LEAVING_EXISTING
         else:
             raise Exception, u"settings_grid.get_move_dets().  Unknown move."
         # 2) dest row and dest col
         if dest_row is None and dest_col is None: # known if from on_select_cell
-            if final_col and direction in [my_globals.MOVE_RIGHT, 
-                                           my_globals.MOVE_DOWN]:
+            if final_col and direction in [mg.MOVE_RIGHT, mg.MOVE_DOWN]:
                 dest_row = src_row + 1
                 dest_col = 0
             else:
-                if direction == my_globals.MOVE_RIGHT:
+                if direction == mg.MOVE_RIGHT:
                     dest_row = src_row
                     dest_col = src_col + 1
-                elif direction == my_globals.MOVE_LEFT:                    
+                elif direction == mg.MOVE_LEFT:                    
                     dest_row = src_row
                     dest_col = src_col - 1 if src_col > 0 else 0
-                elif direction == my_globals.MOVE_DOWN:
+                elif direction == mg.MOVE_DOWN:
                     dest_row = src_row + 1
                     dest_col = src_col
                 else:
@@ -616,21 +613,21 @@ class SettingsEntry(object):
         if self.is_new_row(src_row): # new row
             if final_col:
                 # only LEFT stays in _current_ new row
-                if direction == my_globals.MOVE_LEFT:
+                if direction == mg.MOVE_LEFT:
                     dest_row_is_new = True
                 else:
                     dest_row_is_new = False
             else: # only left and right stay in _current_ new row
-                if direction in [my_globals.MOVE_LEFT, my_globals.MOVE_RIGHT]:
+                if direction in [mg.MOVE_LEFT, mg.MOVE_RIGHT]:
                     dest_row_is_new = True # moving sideways within new
                 else:
                     dest_row_is_new = False
         elif self.is_new_row(src_row + 1): # row just above the new row
             # only down (inc down left and right), or right in final col, 
             # take to new
-            if direction in [my_globals.MOVE_DOWN, my_globals.MOVE_DOWN_LEFT, 
-                             my_globals.MOVE_DOWN_RIGHT] or \
-                    (direction == my_globals.MOVE_RIGHT and final_col):
+            if direction in [mg.MOVE_DOWN, mg.MOVE_DOWN_LEFT, 
+                             mg.MOVE_DOWN_RIGHT] or \
+                    (direction == mg.MOVE_RIGHT and final_col):
                 dest_row_is_new = True
             else:
                 dest_row_is_new = False
@@ -691,8 +688,8 @@ class SettingsEntry(object):
             print(u"leaving_new_row - dest row %s dest col %s " %
                 (dest_row, dest_col) +
                 u"original direction %s dirty %s" % (direction, is_dirty))
-        if direction in [my_globals.MOVE_UP, my_globals.MOVE_UP_RIGHT, 
-                         my_globals.MOVE_UP_LEFT] and not is_dirty:
+        if direction in [mg.MOVE_UP, mg.MOVE_UP_RIGHT, mg.MOVE_UP_LEFT] \
+                and not is_dirty:
             move_to_dest = True # always OK
         else: # must check OK to move
             ok_to_save, msg = self.cell_ok_to_save(self.current_row_idx, 

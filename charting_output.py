@@ -4,7 +4,7 @@
 import os
 import wx
 
-import my_globals
+import my_globals as mg
 import lib
 import config_dlg
 import full_html
@@ -20,16 +20,16 @@ class PageBarChart(wx.Panel):
 
 class DlgCharting(indep2var.DlgIndep2VarConfig):
     
-    min_data_type = my_globals.VAR_TYPE_ORD # TODO - wire up for each chart type
+    min_data_type = mg.VAR_TYPE_ORD # TODO - wire up for each chart type
     inc_gp_by_select = True
     
     def __init__(self, title, dbe, con_dets, default_dbs=None,
                  default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
                  fil_script="", takes_range=False):
-        if my_globals.MAX_HEIGHT <= 620:
+        if mg.MAX_HEIGHT <= 620:
             myheight = 600
-        elif my_globals.MAX_HEIGHT <= 870:
-            myheight = my_globals.MAX_HEIGHT - 70
+        elif mg.MAX_HEIGHT <= 870:
+            myheight = mg.MAX_HEIGHT - 70
         else:
             myheight = 800
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
@@ -57,7 +57,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrtop = wx.BoxSizer(wx.VERTICAL)
         self.szrData = self.get_szrData(self.panel_top) # mixin
         bxVars = wx.StaticBox(self.panel_top, -1, _("Variables"))
-        if not my_globals.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
+        if not mg.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
             bxVars.SetToolTipString(variables_rc_msg)
         szrVars = wx.StaticBoxSizer(bxVars, wx.VERTICAL)
         szrVarsTop = wx.BoxSizer(wx.HORIZONTAL)
@@ -76,7 +76,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.drop_var1 = wx.Choice(self.panel_top, -1, choices=[], 
                                    size=(300,-1))
         self.drop_var1.Bind(wx.EVT_CHOICE, self.on_var1_sel)
-        self.drop_var1.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_var1)
+        self.drop_var1.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var1)
         self.drop_var1.SetToolTipString(variables_rc_msg)
         
         
@@ -86,8 +86,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         
         self.sorted_var_names2 = []
         
-        self.setup_var(self.drop_var1, my_globals.VAR_1_DEFAULT, 
-                       self.sorted_var_names1)
+        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
         # var 2
         lbl_var2 = wx.StaticText(self.panel_top, -1, u"Var 2:")
         lbl_var2.SetFont(self.LABEL_FONT)
@@ -96,7 +95,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.drop_var2 = wx.Choice(self.panel_top, -1, choices=[], 
                                    size=(300,-1))
         self.drop_var2.Bind(wx.EVT_CHOICE, self.on_var2_sel)
-        self.drop_var2.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_var2)
+        self.drop_var2.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var2)
         self.drop_var2.SetToolTipString(variables_rc_msg)
         self.sorted_var_names2 = []
         self.drop_var2.SetItems([])
@@ -114,7 +113,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.dropGroupBy = wx.Choice(self.panel_top, -1, choices=[], 
                                      size=(300,-1))
         self.dropGroupBy.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
-        self.dropGroupBy.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_group_by)
+        self.dropGroupBy.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_by)
         self.dropGroupBy.SetToolTipString(variables_rc_msg)
         self.setup_group_by()
         self.lblchop_warning = wx.StaticText(self.panel_top, -1, "")
@@ -159,7 +158,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szrmid = wx.StaticBoxSizer(bxcharts, wx.VERTICAL)
         self.setup_chart_btns(szrchart_btns)
         self.szrmid.Add(szrchart_btns, 0, wx.GROW)
-        if not my_globals.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
+        if not mg.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
             bxcharts.SetToolTipString(_("Make chart"))
         # Chart Settings
         # bar chart
@@ -236,8 +235,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     
     def setup_chart_btns(self, szrchart_btns):
         # bar charts
-        bmp_btn_bar_chart = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
-                                                  u"images", u"bar_chart.xpm"), 
+        bmp_btn_bar_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                                  u"bar_chart.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_bar_chart = wx.BitmapButton(self.panel_mid, -1, 
                                              bmp_btn_bar_chart)
@@ -246,8 +245,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrchart_btns.Add(self.btn_bar_chart)
         # clustered bar charts
         bmp_btn_clustered_bar_chart = \
-                            wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
-                                      u"images", u"clustered_bar_chart.xpm"), 
+                            wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                                  u"clustered_bar_chart.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_clustered_bar_chart = wx.BitmapButton(self.panel_mid, -1, 
                                              bmp_btn_clustered_bar_chart)
@@ -257,8 +256,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                                         "Chart"))
         szrchart_btns.Add(self.btn_clustered_bar_chart)
         # pie charts
-        bmp_btn_pie_chart = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
-                                                  u"images", u"pie_chart.xpm"), 
+        bmp_btn_pie_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                                  u"pie_chart.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_pie_chart = wx.BitmapButton(self.panel_mid, -1, 
                                              bmp_btn_pie_chart)
@@ -266,8 +265,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_pie_chart.SetToolTipString(_("Make Pie Chart"))
         szrchart_btns.Add(self.btn_pie_chart)
         # line charts
-        bmp_btn_line_chart = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
-                                                  u"images", u"line_chart.xpm"), 
+        bmp_btn_line_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                                   u"line_chart.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_line_chart = wx.BitmapButton(self.panel_mid, -1, 
                                               bmp_btn_line_chart)
@@ -275,8 +274,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_line_chart.SetToolTipString(_("Make Line Chart"))
         szrchart_btns.Add(self.btn_line_chart)
         # area charts
-        bmp_btn_area_chart = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
-                                                  u"images", u"area_chart.xpm"), 
+        bmp_btn_area_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                                   u"area_chart.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_area_chart = wx.BitmapButton(self.panel_mid, -1, 
                                               bmp_btn_area_chart)
@@ -284,8 +283,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_area_chart.SetToolTipString(_("Make Area Chart"))
         szrchart_btns.Add(self.btn_area_chart)
         # scatterplots
-        bmp_btn_scatterplot = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
-                                              u"images", u"scatterplot.xpm"), 
+        bmp_btn_scatterplot = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                                    u"scatterplot.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_scatterplot = wx.BitmapButton(self.panel_mid, -1, 
                                                bmp_btn_scatterplot)
@@ -293,15 +292,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_scatterplot.SetToolTipString(_("Make Scatterplot"))
         szrchart_btns.Add(self.btn_scatterplot)
         # histograms
-        bmp_btn_histogram = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
-                                                  u"images", u"histogram.xpm"), 
+        bmp_btn_histogram = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                                  u"histogram.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_histogram = wx.BitmapButton(self.panel_mid, -1, 
                                              bmp_btn_histogram)
         self.btn_histogram.Bind(wx.EVT_BUTTON, self.on_btn_chart)
         self.btn_histogram.SetToolTipString(_("Make Histogram"))
         szrchart_btns.Add(self.btn_histogram)
-        if not my_globals.IN_WINDOWS:
+        if not mg.IN_WINDOWS:
             hand = wx.StockCursor(wx.CURSOR_HAND)
             self.btn_bar_chart.SetCursor(hand)
             self.btn_clustered_bar_chart.SetCursor(hand)
@@ -351,13 +350,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def add_other_var_opts(self):
         pass
 
-    def on_right_click_var1(self, event):
-        self.on_right_click_var(self.drop_var1, self.sorted_var_names1)
+    def on_rclick_var1(self, event):
+        self.on_rclick_var(self.drop_var1, self.sorted_var_names1)
         
-    def on_right_click_var2(self, event):
-        self.on_right_click_var(self.drop_var2, self.sorted_var_names2)
+    def on_rclick_var2(self, event):
+        self.on_rclick_var(self.drop_var2, self.sorted_var_names2)
         
-    def on_right_click_var(self, drop_var, sorted_var_names):
+    def on_rclick_var(self, drop_var, sorted_var_names):
         var_name, choice_item = self.get_var_dets(drop_var, sorted_var_names)
         var_label = lib.get_item_label(self.var_labels, var_name)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
@@ -369,10 +368,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def refresh_vars(self):
         var_gp, var_name1 = self.get_vars() # , var_name2
         self.setup_group_by(var_gp)
-        self.setup_var(self.drop_var1, my_globals.VAR_1_DEFAULT, 
-                       self.sorted_var_names1, var_name1)
-        #self.setup_var(self.drop_var2, my_globals.VAR_2_DEFAULT, 
-        #       self.sorted_var_names2, var_name2)
+        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
+                       var_name1)
+        #self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2,
+        #       var_name2)
         self.update_defaults()
 
     def on_database_sel(self, event):
@@ -384,10 +383,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # now update var dropdowns
         self.update_var_dets()
         self.setup_group_by()
-        self.setup_var(self.drop_var1, my_globals.VAR_1_DEFAULT, 
-                       self.sorted_var_names1)
-        self.setup_var(self.drop_var2, my_globals.VAR_2_DEFAULT, 
-                       self.sorted_var_names2)
+        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
+        #self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2)
         self.setup_group_dropdowns()
                 
     def on_table_sel(self, event):
@@ -396,10 +393,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # now update var dropdowns
         self.update_var_dets()
         self.setup_group_by()
-        self.setup_var(self.drop_var1, my_globals.VAR_1_DEFAULT, 
-                       self.sorted_var_names1)
-        self.setup_var(self.drop_var2, my_globals.VAR_2_DEFAULT, 
-                       self.sorted_var_names2)
+        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
+        #self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2)
         self.setup_group_dropdowns()
     
     def on_var_dets_file_lost_focus(self, event):
@@ -411,10 +406,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         var_gp, var_name1, var_name2 = self.get_vars()
         config_dlg.ConfigDlg.on_var_dets_file_lost_focus(self, event)
         self.setup_group_by(var_gp)
-        self.setup_var(self.drop_var1, my_globals.VAR_1_DEFAULT, 
-                       self.sorted_var_names1, var_name1)
-        self.setup_var(self.drop_var2, my_globals.VAR_2_DEFAULT, 
-                       self.sorted_var_names2, var_name2)
+        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
+                       var_name1)
+        #self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
+        #               var_name2)
         self.setup_group_dropdowns(val_a, val_b)
         self.update_defaults()
         
@@ -427,10 +422,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         var_gp, var_nam1, var_name2 = self.get_vars()
         config_dlg.ConfigDlg.on_btn_var_dets_path(self, event)
         self.setup_group_by(var_gp)
-        self.setup_var(self.drop_var1, my_globals.VAR_1_DEFAULT, 
-                       self.sorted_var_names1, var_name1)
-        self.setup_var(self.drop_var2, my_globals.VAR_2_DEFAULT, 
-                       self.sorted_var_names2, var_name2)
+        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
+                       var_name1)
+        #self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
+        #               var_name2)
         self.setup_group_dropdowns(val_a, val_b)
         self.update_defaults()
     
@@ -447,11 +442,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         return var_gp, var_name1 #, var_name2
     
     def update_defaults(self):
-        my_globals.GROUP_BY_DEFAULT = self.dropGroupBy.GetStringSelection()
-        my_globals.VAR_1_DEFAULT = self.drop_var1.GetStringSelection()
-        my_globals.VAR_2_DEFAULT = self.drop_var2.GetStringSelection()
-        my_globals.VAL_A_DEFAULT = self.dropGroupA.GetStringSelection()
-        my_globals.VAL_B_DEFAULT = self.dropGroupB.GetStringSelection()
+        mg.GROUP_BY_DEFAULT = self.dropGroupBy.GetStringSelection()
+        mg.VAR_1_DEFAULT = self.drop_var1.GetStringSelection()
+        mg.VAR_2_DEFAULT = self.drop_var2.GetStringSelection()
+        mg.VAL_A_DEFAULT = self.dropGroupA.GetStringSelection()
+        mg.VAL_B_DEFAULT = self.dropGroupB.GetStringSelection()
    
     def get_drop_vals(self):
         """
@@ -463,7 +458,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         var_gp = self.sorted_var_names_by[selection_idx_gp]
         label_gp = lib.get_item_label(item_labels=self.var_labels, 
                                       item_val=var_gp)
-        var_gp_numeric = self.flds[var_gp][my_globals.FLD_BOLNUMERIC]
+        var_gp_numeric = self.flds[var_gp][mg.FLD_BOLNUMERIC]
         # Now the a and b choices under the group
         val_dic = self.val_dics.get(var_gp, {})
         selection_idx_a = self.dropGroupA.GetSelection()

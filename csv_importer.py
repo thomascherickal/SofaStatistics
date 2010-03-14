@@ -7,7 +7,7 @@ import csv
 import os
 import wx
 
-import my_globals
+import my_globals as mg
 import lib
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata

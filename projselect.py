@@ -4,7 +4,7 @@ import os
 import sys
 import wx
 
-import my_globals
+import my_globals as mg
 import lib
 import config_dlg
 import getdata
@@ -80,7 +80,7 @@ class ProjSelectDlg(wx.Dialog):
         self.szrBtns.Realize()
     
     def get_notes(self, fil_proj):
-        proj_path = os.path.join(my_globals.LOCAL_PATH, "projs", fil_proj)
+        proj_path = os.path.join(mg.LOCAL_PATH, "projs", fil_proj)
         f = codecs.open(proj_path, "U", encoding="utf-8")
         proj_cont = lib.clean_bom_utf8(f.read())
         f.close()
@@ -103,7 +103,7 @@ class ProjSelectDlg(wx.Dialog):
     def on_proj_select(self, event):
         proj_sel_id = self.dropProjs.GetSelection()
         self.set_notes(proj_sel_id)
-        my_globals.DBE_DEFAULT = None # otherwise there can be a problem if the
+        mg.DBE_DEFAULT = None # otherwise there can be a problem if the
             # new project doesn't have the dbe that the old one had.
         event.Skip()
     
@@ -114,7 +114,7 @@ class ProjSelectDlg(wx.Dialog):
         
     def on_edit(self,event):
         proj_sel_id = self.dropProjs.GetSelection()
-        readonly = (self.projs[proj_sel_id] == my_globals.SOFA_DEFAULT_PROJ)
+        readonly = (self.projs[proj_sel_id] == mg.SOFA_DEFAULT_PROJ)
         dlgProj = projects.ProjectDlg(parent=self, readonly=readonly,
                           fil_proj=self.projs[self.dropProjs.GetSelection()])
         # refresh projects list and display accordingly

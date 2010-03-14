@@ -15,7 +15,7 @@ import decimal
 import time
 
 #from .output import _strip_html
-import my_globals
+import my_globals as mg
 import config_globals
 import lib
 import filtselect
@@ -68,8 +68,8 @@ def test_rel2abs():
         
 test_us_style = False
 if test_us_style:
-    my_globals.OK_DATE_FORMATS, my_globals.OK_DATE_FORMAT_EXAMPLES = \
-        my_globals.get_date_fmt_lists(d_fmt=my_globals.MDY)
+    mg.OK_DATE_FORMATS, mg.OK_DATE_FORMAT_EXAMPLES = \
+        mg.get_date_fmt_lists(d_fmt=mg.MDY)
 
 def test_is_usable_datetime_str():
     tests = [("June 2009", False),
@@ -154,12 +154,12 @@ def test_get_dets_of_usable_datetime_str():
 
 def test_get_val():
     "Must be useful for making WHERE clauses"
-    flds = {"numvar": {my_globals.FLD_BOLNUMERIC: True, 
-                       my_globals.FLD_BOLDATETIME: False},
-            "strvar": {my_globals.FLD_BOLNUMERIC: False, 
-                       my_globals.FLD_BOLDATETIME: False},
-            "datevar": {my_globals.FLD_BOLNUMERIC: False, 
-                        my_globals.FLD_BOLDATETIME: True},
+    flds = {"numvar": {mg.FLD_BOLNUMERIC: True, 
+                       mg.FLD_BOLDATETIME: False},
+            "strvar": {mg.FLD_BOLNUMERIC: False, 
+                       mg.FLD_BOLDATETIME: False},
+            "datevar": {mg.FLD_BOLNUMERIC: False, 
+                        mg.FLD_BOLDATETIME: True},
             }
     tests = [(("12", flds, "numvar"), 12),
              (("", flds, "numvar"), None),
@@ -231,17 +231,17 @@ def test_assess_sample_fld():
                    11: "2009-01"}
                    ]
     # fld name, expected type
-    tests = [(1, my_globals.FLD_TYPE_NUMERIC),
-             (2, my_globals.FLD_TYPE_NUMERIC),
-             (3, my_globals.FLD_TYPE_NUMERIC),
-             (4, my_globals.FLD_TYPE_NUMERIC),
-             (5, my_globals.FLD_TYPE_NUMERIC),
-             (6, my_globals.FLD_TYPE_STRING),
-             (7, my_globals.FLD_TYPE_DATE),
-             (8, my_globals.FLD_TYPE_NUMERIC), # 2009 on own is a number
-             (9, my_globals.FLD_TYPE_NUMERIC), # empty + numeric = numeric
-             (10, my_globals.FLD_TYPE_STRING),
-             (11, my_globals.FLD_TYPE_STRING), # empty + string (2009-01 is not 
+    tests = [(1, mg.FLD_TYPE_NUMERIC),
+             (2, mg.FLD_TYPE_NUMERIC),
+             (3, mg.FLD_TYPE_NUMERIC),
+             (4, mg.FLD_TYPE_NUMERIC),
+             (5, mg.FLD_TYPE_NUMERIC),
+             (6, mg.FLD_TYPE_STRING),
+             (7, mg.FLD_TYPE_DATE),
+             (8, mg.FLD_TYPE_NUMERIC), # 2009 on own is a number
+             (9, mg.FLD_TYPE_NUMERIC), # empty + numeric = numeric
+             (10, mg.FLD_TYPE_STRING),
+             (11, mg.FLD_TYPE_STRING), # empty + string (2009-01 is not 
                 # number or datetime) = string
              ]
     for test in tests:
@@ -295,55 +295,55 @@ def test_is_numeric(): # about content
         assert_equal(lib.is_numeric(test[0]), test[1])
 
 def test_make_fld_val_clause():
-    flds = {"numvar": {my_globals.FLD_BOLNUMERIC: True, 
-                       my_globals.FLD_BOLDATETIME: False},
-            "strvar": {my_globals.FLD_BOLNUMERIC: False, 
-                       my_globals.FLD_BOLDATETIME: False}}
+    flds = {"numvar": {mg.FLD_BOLNUMERIC: True, 
+                       mg.FLD_BOLDATETIME: False},
+            "strvar": {mg.FLD_BOLNUMERIC: False, 
+                       mg.FLD_BOLDATETIME: False}}
     # make_fld_val_clause(dbe, flds, fld_name, val, gte)
-    tests = [((my_globals.DBE_SQLITE, flds, "strvar", "fred"), 
+    tests = [((mg.DBE_SQLITE, flds, "strvar", "fred"), 
             u"`strvar` = \"fred\""),
-       ((my_globals.DBE_SQLITE, flds, "numvar", 5), 
+       ((mg.DBE_SQLITE, flds, "numvar", 5), 
             u"`numvar` = 5"),# num type but string
-       ((my_globals.DBE_SQLITE, flds, "numvar", "spam"), 
+       ((mg.DBE_SQLITE, flds, "numvar", "spam"), 
             u"`numvar` = \"spam\""),
-       ((my_globals.DBE_SQLITE, flds, "numvar", None), 
+       ((mg.DBE_SQLITE, flds, "numvar", None), 
             u"`numvar` IS NULL"),
-       ((my_globals.DBE_MYSQL, flds, "strvar", "fred"), 
+       ((mg.DBE_MYSQL, flds, "strvar", "fred"), 
             u"`strvar` = \"fred\""),
-       ((my_globals.DBE_MYSQL, flds, "numvar", 5), 
+       ((mg.DBE_MYSQL, flds, "numvar", 5), 
             u"`numvar` = 5"),
-       ((my_globals.DBE_MYSQL, flds, "numvar", None), 
+       ((mg.DBE_MYSQL, flds, "numvar", None), 
             u"`numvar` IS NULL"),
-       ((my_globals.DBE_PGSQL, flds, "strvar", "fred"), 
+       ((mg.DBE_PGSQL, flds, "strvar", "fred"), 
             u"\"strvar\" = 'fred'"),
-       ((my_globals.DBE_PGSQL, flds, "numvar", 5), 
+       ((mg.DBE_PGSQL, flds, "numvar", 5), 
             u"\"numvar\" = 5"),
-       ((my_globals.DBE_SQLITE, flds, "strvar", "fred", 
-            my_globals.GTE_NOT_EQUALS), 
+       ((mg.DBE_SQLITE, flds, "strvar", "fred", 
+            mg.GTE_NOT_EQUALS), 
             u"`strvar` != \"fred\""),
-       ((my_globals.DBE_SQLITE, flds, "numvar", 5, 
-            my_globals.GTE_NOT_EQUALS), 
+       ((mg.DBE_SQLITE, flds, "numvar", 5, 
+            mg.GTE_NOT_EQUALS), 
             u"`numvar` != 5"),# num type but string
-       ((my_globals.DBE_SQLITE, flds, "numvar", "spam", 
-            my_globals.GTE_NOT_EQUALS), 
+       ((mg.DBE_SQLITE, flds, "numvar", "spam", 
+            mg.GTE_NOT_EQUALS), 
             u"`numvar` != \"spam\""),
-       ((my_globals.DBE_SQLITE, flds, "numvar", None, 
-            my_globals.GTE_NOT_EQUALS), 
+       ((mg.DBE_SQLITE, flds, "numvar", None, 
+            mg.GTE_NOT_EQUALS), 
             u"`numvar` IS NOT NULL"),
-       ((my_globals.DBE_MYSQL, flds, "strvar", "fred", 
-            my_globals.GTE_NOT_EQUALS), 
+       ((mg.DBE_MYSQL, flds, "strvar", "fred", 
+            mg.GTE_NOT_EQUALS), 
             u"`strvar` != \"fred\""),
-       ((my_globals.DBE_MYSQL, flds, "numvar", 5, 
-            my_globals.GTE_NOT_EQUALS), 
+       ((mg.DBE_MYSQL, flds, "numvar", 5, 
+            mg.GTE_NOT_EQUALS), 
             u"`numvar` != 5"),
-       ((my_globals.DBE_MYSQL, flds, "numvar", None, 
-            my_globals.GTE_NOT_EQUALS), 
+       ((mg.DBE_MYSQL, flds, "numvar", None, 
+            mg.GTE_NOT_EQUALS), 
             u"`numvar` IS NOT NULL"),
-       ((my_globals.DBE_PGSQL, flds, "strvar", "fred", 
-            my_globals.GTE_NOT_EQUALS), 
+       ((mg.DBE_PGSQL, flds, "strvar", "fred", 
+            mg.GTE_NOT_EQUALS), 
             u"\"strvar\" != 'fred'"),
-       ((my_globals.DBE_PGSQL, flds, "numvar", 5, 
-            my_globals.GTE_NOT_EQUALS), 
+       ((mg.DBE_PGSQL, flds, "numvar", 5, 
+            mg.GTE_NOT_EQUALS), 
             u"\"numvar\" != 5"),
         ]
     for test in tests:
@@ -402,7 +402,7 @@ def test_strip_html():
         assert_equal(output._strip_html(test[0]), test[1])
 
 def test_strip_script():
-    tests = [("\nchunky chicken%s\nxzmxnzmxnz" % my_globals.SCRIPT_END, 
+    tests = [("\nchunky chicken%s\nxzmxnzmxnz" % mg.SCRIPT_END, 
               "\nchunky chicken")]
     for test in tests:
         assert_equal(output._strip_script(test[0]), test[1])
@@ -414,7 +414,7 @@ def test_sofa_default_proj_settings():
     this test too ;-)
     """
     proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
-                                       fil_name=my_globals.SOFA_DEFAULT_PROJ)
+                                       fil_name=mg.SOFA_DEFAULT_PROJ)
     var_labels, var_notes, var_types, val_dics = \
         projects.get_var_dets(proj_dic["fil_var_dets"])
     fil_var_dets = proj_dic["fil_var_dets"]
@@ -424,12 +424,12 @@ def test_sofa_default_proj_settings():
         if proj_dic["default_dbs"] else {}
     default_tbls = proj_dic["default_tbls"] \
         if proj_dic["default_tbls"] else {}
-    assert_equal(dbe, my_globals.DBE_SQLITE)
-    assert_equal(default_dbs[my_globals.DBE_SQLITE], my_globals.SOFA_DEFAULT_DB)
-    assert_equal(default_tbls[my_globals.DBE_SQLITE], 
-                 my_globals.SOFA_DEFAULT_TBL)
-    assert_equal(con_dets[my_globals.DBE_SQLITE][my_globals.SOFA_DEFAULT_DB]\
-                 ['database'].split("/")[-1], my_globals.SOFA_DEFAULT_DB)    
+    assert_equal(dbe, mg.DBE_SQLITE)
+    assert_equal(default_dbs[mg.DBE_SQLITE], mg.SOFA_DEFAULT_DB)
+    assert_equal(default_tbls[mg.DBE_SQLITE], 
+                 mg.SOFA_DEFAULT_TBL)
+    assert_equal(con_dets[mg.DBE_SQLITE][mg.SOFA_DEFAULT_DB]\
+                 ['database'].split("/")[-1], mg.SOFA_DEFAULT_DB)    
     
 def test_get_var_dets():
     """
@@ -438,11 +438,11 @@ def test_get_var_dets():
     this test too ;-)
     """
     proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
-                                       fil_name=my_globals.SOFA_DEFAULT_PROJ)
+                                       fil_name=mg.SOFA_DEFAULT_PROJ)
     var_labels, var_notes, var_types, val_dics = \
         projects.get_var_dets(proj_dic["fil_var_dets"])
     assert_not_equal(var_labels.get('Name'), None)
     assert_not_equal(var_notes.get('age'), None)
-    assert_equal(var_types['browser'], my_globals.VAR_TYPE_CAT)
+    assert_equal(var_types['browser'], mg.VAR_TYPE_CAT)
     assert_equal(val_dics['country'][1], "Japan")
     

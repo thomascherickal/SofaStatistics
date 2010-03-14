@@ -9,7 +9,7 @@ import sys
 import wx
 import wx.gizmos
 
-import my_globals
+import my_globals as mg
 import lib
 import config_dlg
 import demotables
@@ -21,7 +21,7 @@ import output
 import projects
 import rawtables
 
-OUTPUT_MODULES = ["my_globals", "dimtables", "rawtables", "output", "getdata"]
+OUTPUT_MODULES = ["my_globals as mg", "dimtables", "rawtables", "output", "getdata"]
 WAITING_MSG = _("<p>Waiting for enough settings.</p>")
 
 def replace_titles_subtitles(orig, titles, subtitles):
@@ -55,16 +55,15 @@ def replace_titles_subtitles(orig, titles, subtitles):
     # need break between titles and subtitles if both present
     if titles_inner_html and subtitles_inner_html:
         subtitles_inner_html = u"<br>" + subtitles_inner_html
-    title_start_idx = orig.index(my_globals.TBL_TITLE_START) + \
-        len(my_globals.TBL_TITLE_START)
+    title_start_idx = orig.index(mg.TBL_TITLE_START) + len(mg.TBL_TITLE_START)
     pre_title = orig[ : title_start_idx]
-    title_end_idx = orig.index(my_globals.TBL_TITLE_END)
+    title_end_idx = orig.index(mg.TBL_TITLE_END)
     post_title = orig[title_end_idx :] # everything after title inc subtitles
     # use shorter post_title instead or orig from here on
-    subtitle_start_idx = post_title.index(my_globals.TBL_SUBTITLE_START) + \
-        len(my_globals.TBL_SUBTITLE_START)
+    subtitle_start_idx = post_title.index(mg.TBL_SUBTITLE_START) + \
+        len(mg.TBL_SUBTITLE_START)
     between_title_and_sub = post_title[ : subtitle_start_idx]
-    post_subtitle = post_title[post_title.index(my_globals.TBL_SUBTITLE_END):]
+    post_subtitle = post_title[post_title.index(mg.TBL_SUBTITLE_END):]
     # put it all back together
     demo_tbl_html = pre_title + titles_inner_html + between_title_and_sub \
         + subtitles_inner_html + post_subtitle
@@ -182,8 +181,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
               style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
         self.rowtree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, 
                           self.on_row_item_activated)
-        self.rowtree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, 
-                          self.on_row_item_right_click)
+        self.rowtree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_row_item_rclick)
         self.rowtree.SetToolTipString(_("Right click variables to view/edit "
                                         "details"))
         self.rowRoot = self.setup_dim_tree(self.rowtree)
@@ -191,8 +189,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
               style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
         self.coltree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, 
                           self.on_col_item_activated)
-        self.coltree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, 
-                          self.on_col_item_right_click)
+        self.coltree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_col_item_rclick)
         self.coltree.SetToolTipString(_("Right click variables to view/edit "
                                         "details"))
         self.colRoot = self.setup_dim_tree(self.coltree)
@@ -210,16 +207,16 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.setup_col_btns()
         self.add_default_column_config() # must set up after coltree and demo 
         # tabs defined
-        if my_globals.IN_WINDOWS:
+        if mg.IN_WINDOWS:
             mid_height = 820
             height_drop = 20
         else:
             mid_height = 850
             height_drop = 50
-        if my_globals.MAX_HEIGHT <= 620:
+        if mg.MAX_HEIGHT <= 620:
             myheight = 130
-        elif my_globals.MAX_HEIGHT <= mid_height:
-            myheight = ((my_globals.MAX_HEIGHT/1024.0)*350) - height_drop
+        elif mg.MAX_HEIGHT <= mid_height:
+            myheight = ((mg.MAX_HEIGHT/1024.0)*350) - height_drop
         else:
             myheight = 350
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))
@@ -298,7 +295,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         Things to do after the data source has changed.
         """
         self.setup_col_btns()
-        if self.tab_type == my_globals.RAW_DISPLAY:
+        if self.tab_type == mg.RAW_DISPLAY:
             self.demo_tab.update_flds(self.flds)
         self.clear_dims()
         
@@ -335,11 +332,12 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     
     def update_by_tab_type(self):
         self.tab_type = self.radTabType.GetSelection() #for convenience
-        # delete all row and col vars
-        self.rowtree.DeleteChildren(self.rowRoot)
+        # delete all col vars and, if row aumm or raw display, all row vars
         self.coltree.DeleteChildren(self.colRoot)
+        if self.tab_type in (mg.ROW_SUMM, mg.RAW_DISPLAY):
+            self.rowtree.DeleteChildren(self.rowRoot)
         # link to appropriate demo table type
-        if self.tab_type == my_globals.FREQS_TBL:
+        if self.tab_type == mg.FREQS_TBL:
             self.chkTotalsRow.SetValue(False)
             self.chkFirstAsLabel.SetValue(False)
             self.enable_opts(enable=False)
@@ -352,7 +350,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics, fil_css=self.fil_css)
             self.add_default_column_config()
-        if self.tab_type == my_globals.CROSSTAB:
+        if self.tab_type == mg.CROSSTAB:
             self.chkTotalsRow.SetValue(False)
             self.chkFirstAsLabel.SetValue(False)
             self.enable_opts(enable=False)
@@ -364,7 +362,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  col_no_vars_item=self.col_no_vars_item, 
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics, fil_css=self.fil_css)
-        elif self.tab_type == my_globals.ROW_SUMM:
+        elif self.tab_type == mg.ROW_SUMM:
             self.chkTotalsRow.SetValue(False)
             self.chkFirstAsLabel.SetValue(False)
             self.enable_opts(enable=False)
@@ -376,7 +374,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  col_no_vars_item=self.col_no_vars_item, 
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics, fil_css=self.fil_css)
-        elif self.tab_type == my_globals.RAW_DISPLAY:
+        elif self.tab_type == mg.RAW_DISPLAY:
             self.enable_opts(enable=True)
             self.enable_row_sel(enable=False)
             self.btnColConf.Disable()
@@ -427,7 +425,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     def too_long(self):
         # check not a massive report table
         too_long = False
-        if self.tab_type == my_globals.RAW_DISPLAY:
+        if self.tab_type == mg.RAW_DISPLAY:
             # count records in table
             quoter = getdata.get_obj_quoter_func(self.dbe)
             unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
@@ -523,8 +521,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.g = self.get_next_node_name()
         script_lst = []
         # set up variables required for passing into main table instantiation
-        if self.tab_type in [my_globals.FREQS_TBL, my_globals.CROSSTAB, 
-                             my_globals.ROW_SUMM]:
+        if self.tab_type in [mg.FREQS_TBL, mg.CROSSTAB, mg.ROW_SUMM]:
             script_lst.append(u"# Rows" + 60*u"*")
             script_lst.append(u"tree_rows = dimtables.DimNodeTree()")
             for child in lib.get_tree_ctrl_children(tree=self.rowtree, 
@@ -548,7 +545,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                             parent_name=u"column",
                             child=child, child_fld_name=child_fld_name)
             script_lst.append(u"# Misc" + 60*u"*")
-        elif self.tab_type == my_globals.RAW_DISPLAY:
+        elif self.tab_type == mg.RAW_DISPLAY:
             col_names, col_labels = lib.get_col_dets(self.coltree, self.colRoot, 
                                                      self.var_labels)
             script_lst.append(u"col_names = " + pprint.pformat(col_names))
@@ -561,7 +558,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         titles, subtitles = self.get_titles()
         script_lst.append(lib.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
         # NB the following text is all going to be run
-        if self.tab_type in (my_globals.FREQS_TBL, my_globals.CROSSTAB):
+        if self.tab_type in (mg.FREQS_TBL, mg.CROSSTAB):
             script_lst.append(u"tab_test = dimtables.GenTable(" + \
                 u"titles=%s," % unicode(titles) + \
                 u"\n    subtitles=%s," % unicode(subtitles) + \
@@ -570,7 +567,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 u"tbl_filt=tbl_filt," + \
                 u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " + \
                 u"tree_cols=tree_cols)")
-        elif self.tab_type == my_globals.ROW_SUMM:
+        elif self.tab_type == mg.ROW_SUMM:
             script_lst.append(u"tab_test = dimtables.SummTable(" + \
                 u"titles=%s," % unicode(titles) + \
                 u"\n    subtitles=%s," % unicode(subtitles) + \
@@ -579,7 +576,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 u"tbl_filt=tbl_filt," + \
                 u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " + \
                 u"tree_cols=tree_cols)")
-        elif self.tab_type == my_globals.RAW_DISPLAY:
+        elif self.tab_type == mg.RAW_DISPLAY:
             tot_rows = u"True" if self.chkTotalsRow.IsChecked() else u"False"
             first_label = u"True" if self.chkFirstAsLabel.IsChecked() \
                 else u"False"
@@ -593,8 +590,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 u"\n    tbl_filt=tbl_filt, cur=cur, add_total_row=%s, " % \
                     tot_rows + \
                 u"\n    first_col_as_label=%s)" % first_label)
-        if self.tab_type in [my_globals.FREQS_TBL, my_globals.CROSSTAB, 
-                             my_globals.ROW_SUMM]:
+        if self.tab_type in [mg.FREQS_TBL, mg.CROSSTAB, mg.ROW_SUMM]:
             script_lst.append(u"tab_test.prep_table(%s)" % css_idx)
             script_lst.append(u"max_cells = 5000")
             script_lst.append(u"if tab_test.get_cell_n_ok("
@@ -643,8 +639,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         child_node_label = self.g.next()
         item_conf = tree.GetItemPyData(child)
         measures_lst = item_conf.measures_lst
-        measures = u", ".join([(u"my_globals." + \
-                               my_globals.script_export_measures_dic[x]) for \
+        measures = u", ".join([(u"mg." + \
+                               mg.script_export_measures_dic[x]) for \
                                x in measures_lst])
         if measures:
             measures_arg = u", \n    measures=[%s]" % measures
@@ -657,8 +653,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         sort_order_arg = u", \n    sort_order=u\"%s\"" % \
             item_conf.sort_order
         numeric_arg = u", \n    bolnumeric=%s" % item_conf.bolnumeric
+        fld_name = _("Column configuration") if child_fld_name is None \
+            else child_fld_name
         script_lst.append(u"# Defining %s (\"%s\")" % (child_node_label, 
-                                                       child_fld_name))
+                                                       fld_name))
         script_lst.append(child_node_label + \
                           u" = dimtables.DimNode(" + fld_arg + \
                           u"\n    label=u\"%s\"," % unicode(var_label) + \
@@ -668,10 +666,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         if parent_node_label in (u"tree_rows", u"tree_cols"):
             parent_name = u"rows" if parent_node_label == u"tree_rows" \
                 else u"columns"          
-            script_lst.append(u"# Adding \"%s\" to %s" % (child_fld_name, 
+            script_lst.append(u"# Adding \"%s\" to %s" % (fld_name, 
                                                           parent_name))
         else:
-            script_lst.append(u"# Adding \"%s\" under \"%s\"" % (child_fld_name, 
+            script_lst.append(u"# Adding \"%s\" under \"%s\"" % (fld_name, 
                                                                  parent_name))
         script_lst.append(u"%s.add_child(%s)" % (parent_node_label, 
                                                  child_node_label))
@@ -702,8 +700,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         "Clear all settings"
         self.txtTitles.SetValue("")        
         self.txtSubtitles.SetValue("")
-        self.radTabType.SetSelection(my_globals.FREQS_TBL)
-        self.tab_type = my_globals.FREQS_TBL
+        self.radTabType.SetSelection(mg.FREQS_TBL)
+        self.tab_type = mg.FREQS_TBL
         self.rowtree.DeleteChildren(self.rowRoot)
         self.coltree.DeleteChildren(self.colRoot)
         self.update_by_tab_type()
@@ -722,9 +720,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         except Exception:
             pass
         finally:
-            my_globals.DBE_DEFAULT = self.dbe
-            my_globals.DB_DEFAULTS[self.dbe] = self.db
-            my_globals.TBL_DEFAULTS[self.dbe] = self.tbl
+            mg.DBE_DEFAULT = self.dbe
+            mg.DB_DEFAULTS[self.dbe] = self.db
+            mg.TBL_DEFAULTS[self.dbe] = self.tbl
             self.Destroy()
             event.Skip()
     
@@ -770,24 +768,24 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
                                               parent=self.colRoot)
         export_ok = False
-        if self.tab_type == my_globals.FREQS_TBL:
+        if self.tab_type == mg.FREQS_TBL:
             if has_rows:
                 export_ok = True
             elif not has_rows:
                 wx.MessageBox(_("Missing row(s)"))
-        elif self.tab_type == my_globals.CROSSTAB:
+        elif self.tab_type == mg.CROSSTAB:
             if has_rows and has_cols:
                 export_ok = True
             elif not has_rows:
                 wx.MessageBox(_("Missing row(s)"))
             elif not has_cols:
                 wx.MessageBox(_("Missing column(s)"))
-        elif self.tab_type == my_globals.ROW_SUMM:
+        elif self.tab_type == mg.ROW_SUMM:
             if has_rows:
                 export_ok = True
             else:
                 wx.MessageBox(_("Missing row(s)"))
-        elif self.tab_type == my_globals.RAW_DISPLAY:
+        elif self.tab_type == mg.RAW_DISPLAY:
             if has_cols:
                 export_ok = True
             else:

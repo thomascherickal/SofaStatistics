@@ -4,7 +4,7 @@ import os
 import pylab
 import boomslang
 
-import my_globals
+import my_globals as mg
 import charting_pylab as charts
 import core_stats
 
@@ -17,16 +17,14 @@ int_imgs_n = 0 # for internal images so always unique
 
 def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, 
                  mean_squ_bn, label_a, label_b, label_avg, add_to_report,
-                 report_name, dp=3, level=my_globals.OUTPUT_RESULTS_ONLY, 
+                 report_name, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
                  css_idx=0, page_break_after=False):
-    CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_FIRST_COL_VAR, css_idx)
-    CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
-    CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_LBL, css_idx)
-    CSS_TBL_HDR_FTNOTE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_TBL_HDR_FTNOTE, css_idx)
+    CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
+    CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
+    CSS_TBL_HDR_FTNOTE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_HDR_FTNOTE, 
+                                                   css_idx)
     footnotes = []
     html = []
     html.append(_("<h2>Results of ANOVA test of average %(avg)s for groups from"
@@ -155,12 +153,10 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp,
     Footnotes are autonumbered at end.  The links to them will need numbering 
         though.
     """
-    CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_FIRST_COL_VAR, css_idx)
-    CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_LBL, css_idx)
-    CSS_TBL_HDR_FTNOTE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_TBL_HDR_FTNOTE, css_idx)
+    CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
+    CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
+    CSS_TBL_HDR_FTNOTE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_HDR_FTNOTE, 
+                                                   css_idx)
     footnotes = []
     if indep:
         html.append(_("<h2>Results of Independent Samples t-test "
@@ -260,7 +256,7 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp,
 
 def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, 
                        add_to_report, report_name, dp=3, 
-                       level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                       level=mg.OUTPUT_RESULTS_ONLY, css_idx=0, 
                        page_break_after=False):
     """
     Returns HTML table ready to display.
@@ -285,8 +281,8 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg,
                                   save_func=pylab.savefig, dpi=100)
         html.append(u"\n<img src='%s'>" % img_src)
     if page_break_after:
-        CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+        CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
+            (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
         html.append(u"<br><hr><br><div class='%s'></div>" % \
                     CSS_PAGE_BREAK_BEFORE)
     html_str = "\n".join(html)
@@ -294,7 +290,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg,
 
 def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, diffs, 
                                 add_to_report, report_name, label_avg="", dp=3, 
-                                level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                                level=mg.OUTPUT_RESULTS_ONLY, css_idx=0, 
                                 page_break_after=False):
     """
     Returns HTML table ready to display.
@@ -317,22 +313,20 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, diffs,
                               save_func=pylab.savefig, dpi=100)
     html.append(u"\n<img src='%s'>" % img_src)
     if page_break_after:
-        CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+        CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
+            (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
         html.append(u"<br><hr><br><div class='%s'></div>" % \
                     CSS_PAGE_BREAK_BEFORE)
     html_str = "\n".join(html)
     return html_str
 
 def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
-                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                 level=mg.OUTPUT_RESULTS_ONLY, css_idx=0, 
                  page_break_after=False):
-    CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_FIRST_COL_VAR, css_idx)
-    CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
-    CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_LBL, css_idx)
+    CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
+    CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     html = []
     html.append(_("<h2>Results of Mann Whitney U Test of \"%(ranked)s\" for "
              "\"%(a)s\" vs \"%(b)s\"</h2>") % {"ranked": label_ranked, 
@@ -353,23 +347,22 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
     row_tpl = u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" + \
         u"<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
     for dic in [dic_a, dic_b]:
-        html.append(row_tpl % (dic[my_globals.STATS_DIC_LABEL], 
-                               dic[my_globals.STATS_DIC_N], 
-                               round(dic[my_globals.STATS_DIC_MEDIAN], dp), 
+        html.append(row_tpl % (dic[mg.STATS_DIC_LABEL], 
+                               dic[mg.STATS_DIC_N], 
+                               round(dic[mg.STATS_DIC_MEDIAN], dp), 
                                round(dic["avg rank"], dp),
-                               dic[my_globals.STATS_DIC_MIN], 
-                               dic[my_globals.STATS_DIC_MAX]))
+                               dic[mg.STATS_DIC_MIN], 
+                               dic[mg.STATS_DIC_MAX]))
     html.append(u"\n</tbody>\n</table>\n")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
     return "".join(html)
 
-def wilcoxon_output(t, p, label_a, label_b, dp=3,
-                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
-                 page_break_after=False):
-    CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+def wilcoxon_output(t, p, label_a, label_b, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
+                    css_idx=0, page_break_after=False):
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
     html = _("<h2>Results of Wilcoxon Signed Ranks Test of \"%(a)s\" vs "
              "\"%(b)s\"</h2>") % {"a": label_a, "b": label_b}
     p_format = u"\n<p>p value: %%.%sf</p>" % dp
@@ -417,7 +410,7 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         # image file!
         global int_imgs_n
         int_imgs_n += 1
-        img_src = my_globals.INT_IMG_ROOT + u"_%03d.png" % int_imgs_n
+        img_src = mg.INT_IMG_ROOT + u"_%03d.png" % int_imgs_n
         if debug: print(img_src)
         args = [img_src]
         kwargs = {"dpi": dpi} if dpi else {}
@@ -443,10 +436,10 @@ def add_scatterplot(sample_a, sample_b, label_a, label_b, a_vs_b, title,
     if debug: print("Just linked to %s" % img_src)
 
 def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
-                     report_name, dp=3, level=my_globals.OUTPUT_RESULTS_ONLY, 
+                     report_name, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
                      css_idx=0, page_break_after=False):
-    CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
     html = []
     a_vs_b = '"%s"' % label_a + _(" vs ") + '"%s"' % label_b
     title = (_("Results of Pearson's Test of Linear Correlation "
@@ -464,10 +457,10 @@ def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
     return "".join(html)
 
 def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
-                      report_name, dp=3, level=my_globals.OUTPUT_RESULTS_ONLY, 
+                      report_name, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
                       css_idx=0, page_break_after=False):
-    CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
     html = []
     a_vs_b = '"%s"' % label_a + _(" vs ") + '"%s"' % label_b
     title = (_("Results of Spearman's Test of Linear Correlation "
@@ -487,21 +480,16 @@ def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
 def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report, 
                      report_name, val_labels_a, val_labels_b, lst_obs, lst_exp, 
                      min_count, perc_cells_lt_5, df, dp=3, 
-                     level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                     level=mg.OUTPUT_RESULTS_ONLY, css_idx=0, 
                      page_break_after=False):
     debug = False
-    CSS_SPACEHOLDER = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_SPACEHOLDER, css_idx)
-    CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_FIRST_COL_VAR, css_idx)
-    CSS_FIRST_ROW_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_FIRST_ROW_VAR, css_idx)
-    CSS_ROW_VAL = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_ROW_VAL, css_idx)
-    CSS_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_DATACELL, css_idx)
-    CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+    CSS_SPACEHOLDER = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_SPACEHOLDER, css_idx)
+    CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
+    CSS_FIRST_ROW_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_ROW_VAR, css_idx)
+    CSS_ROW_VAL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ROW_VAL, css_idx)
+    CSS_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_DATACELL, css_idx)
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
     var_label_a = cgi.escape(var_label_a)
     var_label_b = cgi.escape(var_label_b)
     try:
@@ -655,14 +643,12 @@ def add_clustered_barcharts(lst_obs, var_label_a, var_label_b,
     html.append(u"\n<img src='%s'>" % img_src)
 
 def kruskal_wallis_output(h, p, label_a, label_b, dics, label_avg, dp=3,
-                 level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=0, 
+                 level=mg.OUTPUT_RESULTS_ONLY, css_idx=0, 
                  page_break_after=False):
-    CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_FIRST_COL_VAR, css_idx)
-    CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_LBL, css_idx)
-    CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-        (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+    CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
+    CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
     html = []
     html.append(_("<h2>Results of Kruskal-Wallis H test of average %(avg)s for "
                  "groups from \"%(a)s\" to \"%(b)s\"</h2>") % {"avg": label_avg, 
@@ -682,11 +668,11 @@ def kruskal_wallis_output(h, p, label_a, label_b, dics, label_avg, dp=3,
     row_tpl = u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" + \
         u"<td>%s</td><td>%s</td><td>%s</td></tr>"
     for dic in dics:
-        html.append(row_tpl % (dic[my_globals.STATS_DIC_LABEL], 
-                               dic[my_globals.STATS_DIC_N], 
-                               round(dic[my_globals.STATS_DIC_MEDIAN], dp),
-                               dic[my_globals.STATS_DIC_MIN], 
-                               dic[my_globals.STATS_DIC_MAX]))
+        html.append(row_tpl % (dic[mg.STATS_DIC_LABEL], 
+                               dic[mg.STATS_DIC_N], 
+                               round(dic[mg.STATS_DIC_MEDIAN], dp),
+                               dic[mg.STATS_DIC_MIN], 
+                               dic[mg.STATS_DIC_MAX]))
     if page_break_after:
         html.append("<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

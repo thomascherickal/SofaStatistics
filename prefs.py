@@ -6,7 +6,7 @@ import os
 import pprint
 import wx
 
-import my_globals
+import my_globals as mg
 import config_dlg
 import config_globals
 
@@ -17,8 +17,7 @@ class PrefsDlg(wx.Dialog):
                            style=wx.CAPTION|wx.CLOSE_BOX|
                            wx.SYSTEM_MENU, pos=(300,100))
         if not prefs_dic:
-            prefs_dic[my_globals.PREFS_KEY] = {my_globals.DEFAULT_LEVEL_KEY: \
-                                               my_globals.LEVEL_BRIEF}
+            prefs_dic[mg.PREFS_KEY] = {mg.DEFAULT_LEVEL_KEY: mg.LEVEL_BRIEF}
         self.prefs_dic = prefs_dic
         self.parent = parent
         self.panel = wx.Panel(self)
@@ -52,13 +51,12 @@ class PrefsDlg(wx.Dialog):
         # (MUST come after Destroy)
     
     def on_ok(self, event):
-        self.prefs_dic[my_globals.PREFS_KEY][my_globals.DEFAULT_LEVEL_KEY] = \
+        self.prefs_dic[mg.PREFS_KEY][mg.DEFAULT_LEVEL_KEY] = \
             self.radLevel.GetStringSelection()
-        prefs_path = os.path.join(my_globals.INT_PATH, 
-                                  my_globals.INT_PREFS_FILE)
+        prefs_path = os.path.join(mg.INT_PATH, mg.INT_PREFS_FILE)
         f = codecs.open(prefs_path, "w", "utf-8")
-        f.write(u"%s = " % my_globals.PREFS_KEY + \
-                pprint.pformat(self.prefs_dic[my_globals.PREFS_KEY]))
+        f.write(u"%s = " % mg.PREFS_KEY +
+                pprint.pformat(self.prefs_dic[mg.PREFS_KEY]))
         f.close()
         config_globals.set_DEFAULT_LEVEL() # run after prefs file updated.
         self.Destroy()

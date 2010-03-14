@@ -4,7 +4,7 @@
 import pprint
 import wx
 
-import my_globals
+import my_globals as mg
 import lib
 import dimtables
 import projects
@@ -31,10 +31,10 @@ class DimTree(object):
         "Activated col item in tree.  Show config dialog."
         self.config_col()
     
-    def on_row_item_right_click(self, event):
+    def on_row_item_rclick(self, event):
         self.show_var_properties(self.rowtree, event)
 
-    def on_col_item_right_click(self, event):
+    def on_col_item_rclick(self, event):
         """
         If a normal variable column variable, open config dialog.
         """
@@ -59,16 +59,16 @@ class DimTree(object):
     
     def on_row_add(self, event):
         "Add row var under root"
-        self.try_adding(tree=self.rowtree, root=self.rowRoot, 
-                        dim=my_globals.ROWDIM, oth_dim=my_globals.COLDIM, 
-                        oth_dim_tree=self.coltree, oth_dim_root=self.colRoot)
+        self.try_adding(tree=self.rowtree, root=self.rowRoot, dim=mg.ROWDIM, 
+                        oth_dim=mg.COLDIM, oth_dim_tree=self.coltree, 
+                        oth_dim_root=self.colRoot)
         self.setup_col_btns()
      
     def on_col_add(self, event):
         "Add column var under root"
-        self.try_adding(tree=self.coltree, root=self.colRoot, 
-                        dim=my_globals.COLDIM, oth_dim=my_globals.ROWDIM, 
-                        oth_dim_tree=self.rowtree, oth_dim_root=self.rowRoot)
+        self.try_adding(tree=self.coltree, root=self.colRoot, dim=mg.COLDIM, 
+                        oth_dim=mg.ROWDIM, oth_dim_tree=self.rowtree, 
+                        oth_dim_root=self.rowRoot)
     
     def try_adding(self, tree, root, dim, oth_dim, oth_dim_tree, oth_dim_root):
         """
@@ -78,10 +78,10 @@ class DimTree(object):
             what our config tree looks like in the GUI) from it and then build a 
             label node tree (a tree of what we see in output) from that.
         """
-        if self.tab_type == my_globals.ROW_SUMM and tree == self.rowtree:
-            min_data_type = my_globals.VAR_TYPE_ORD
+        if self.tab_type == mg.ROW_SUMM and tree == self.rowtree:
+            min_data_type = mg.VAR_TYPE_ORD
         else:
-            min_data_type = my_globals.VAR_TYPE_CAT
+            min_data_type = mg.VAR_TYPE_CAT
         var_names = projects.get_approp_var_names(self.flds, self.var_types,
                                                   min_data_type)
         sorted_choices, sorted_vars = lib.get_sorted_choice_items(
@@ -102,7 +102,7 @@ class DimTree(object):
                     wx.MessageBox(msg % {"text": text, "oth_dim": oth_dim})
                     return
                 # in raw tables, can only use once
-                if self.tab_type == my_globals.RAW_DISPLAY:
+                if self.tab_type == mg.RAW_DISPLAY:
                     used_in_this_dim = self.used_in_this_dim(text, tree, root)
                     if used_in_this_dim:
                         msg = _("Variable '%(text)s' cannot be used "
@@ -128,19 +128,15 @@ class DimTree(object):
             (col_no_vars_item)rather than a normal column variable.
         """
         item_conf = lib.ItemConfig()
-        if self.tab_type == my_globals.FREQS_TBL and dim == my_globals.COLDIM:
-            item_conf.measures_lst = \
-                [lib.get_default_measure(my_globals.FREQS_TBL)]
-        elif self.tab_type == my_globals.CROSSTAB and dim == my_globals.COLDIM:
-            item_conf.measures_lst = \
-                [lib.get_default_measure(my_globals.CROSSTAB)]
-        elif self.tab_type == my_globals.ROW_SUMM and dim == my_globals.ROWDIM:
-            item_conf.measures_lst = \
-                [lib.get_default_measure(my_globals.ROW_SUMM)]
+        if self.tab_type == mg.FREQS_TBL and dim == mg.COLDIM:
+            item_conf.measures_lst = [lib.get_default_measure(mg.FREQS_TBL)]
+        elif self.tab_type == mg.CROSSTAB and dim == mg.COLDIM:
+            item_conf.measures_lst = [lib.get_default_measure(mg.CROSSTAB)]
+        elif self.tab_type == mg.ROW_SUMM and dim == mg.ROWDIM:
+            item_conf.measures_lst = [lib.get_default_measure(mg.ROW_SUMM)]
         if var_name:
             item_conf.var_name = var_name
-            item_conf.bolnumeric = \
-                self.flds[var_name][my_globals.FLD_BOLNUMERIC]
+            item_conf.bolnumeric = self.flds[var_name][mg.FLD_BOLNUMERIC]
         else:
             item_conf.bolnumeric = False
         tree.SetItemPyData(new_id, item_conf)
@@ -153,14 +149,13 @@ class DimTree(object):
         """
         tree = self.rowtree
         root = self.rowRoot
-        dim = my_globals.ROWDIM
-        oth_dim = my_globals.COLDIM
+        dim = mg.ROWDIM
+        oth_dim = mg.COLDIM
         oth_dim_tree = self.coltree
         oth_dim_root = self.colRoot
         selected_ids = tree.GetSelections()
         if (root not in selected_ids 
-                and self.tab_type not in (my_globals.FREQS_TBL, 
-                                          my_globals.CROSSTAB)):
+                and self.tab_type not in (mg.FREQS_TBL, mg.CROSSTAB)):
             msg = _("Rows can only be nested in frequency or crosstab tables")
             wx.MessageBox(msg)
             return
@@ -181,8 +176,8 @@ class DimTree(object):
         """
         tree = self.coltree
         root = self.colRoot
-        dim = my_globals.COLDIM
-        oth_dim = my_globals.ROWDIM
+        dim = mg.COLDIM
+        oth_dim = mg.ROWDIM
         oth_dim_tree = self.rowtree
         oth_dim_root = self.rowRoot
         selected_ids = tree.GetSelections()
@@ -244,10 +239,9 @@ class DimTree(object):
                     item_conf = tree.GetItemPyData(ancestor)
                     if item_conf: #ignore root node
                         item_conf.measures_lst = []
-                        if item_conf.sort_order in \
-                            [my_globals.SORT_FREQ_ASC, 
-                             my_globals.SORT_FREQ_DESC]:
-                            item_conf.sort_order = my_globals.SORT_NONE
+                        if item_conf.sort_order in [mg.SORT_FREQ_ASC, 
+                                                    mg.SORT_FREQ_DESC]:
+                            item_conf.sort_order = mg.SORT_NONE
                         tree.SetItemText(ancestor, 
                                          item_conf.get_summary(), 1)                        
             if selected_idxs:
@@ -332,8 +326,8 @@ class DimTree(object):
         selected_ids = self.rowtree.GetSelections()
         first_selected_id = selected_ids[0] 
         # get results from appropriate dialog and store as data
-        inc_measures = (self.tab_type == my_globals.ROW_SUMM)
-        if self.tab_type == my_globals.ROW_SUMM:
+        inc_measures = (self.tab_type == mg.ROW_SUMM)
+        if self.tab_type == mg.ROW_SUMM:
             sort_opt_allowed = SORT_OPT_NONE
         elif not lib.item_has_children(tree=self.rowtree, 
                                        parent=first_selected_id):
@@ -353,9 +347,8 @@ class DimTree(object):
 
     def add_default_column_config(self):
         self.col_no_vars_item = self.coltree.AppendItem(self.colRoot, 
-                                                 my_globals.COL_CONFIG_ITEM_LBL)
-        self.set_initial_config(self.coltree, my_globals.COLDIM, 
-                                self.col_no_vars_item)
+                                                        mg.COL_CONFIG_ITEM_LBL)
+        self.set_initial_config(self.coltree, mg.COLDIM, self.col_no_vars_item)
         self.demo_tab.col_no_vars_item = self.col_no_vars_item
         self.coltree.ExpandAll(self.colRoot)
         self.coltree.SelectItem(self.col_no_vars_item)
@@ -422,11 +415,10 @@ class DimTree(object):
         else:
             item, cookie = self.coltree.GetFirstChild(node_ids[0])
             has_children = True if item else False
-        inc_measures = self.tab_type == my_globals.FREQS_TBL or \
-                       ((self.tab_type == my_globals.CROSSTAB)
-                        and not has_children)
+        inc_measures = self.tab_type == mg.FREQS_TBL or \
+                       ((self.tab_type == mg.CROSSTAB) and not has_children)
         if self.col_no_vars_item in node_ids or self.tab_type not in \
-                (my_globals.FREQS_TBL, my_globals.CROSSTAB):
+                (mg.FREQS_TBL, mg.CROSSTAB):
             sort_opt_allowed = SORT_OPT_NONE
         elif not lib.item_has_children(tree=self.coltree, parent=node_ids[0]):
             sort_opt_allowed = SORT_OPT_ALL
@@ -467,22 +459,22 @@ class DimTree(object):
         has_cols = True if lib.get_tree_ctrl_children(tree=self.coltree, 
                                                       parent=self.colRoot) \
                                                       else False
-        if self.tab_type == my_globals.FREQS_TBL:
+        if self.tab_type == mg.FREQS_TBL:
             self.btnColAdd.Enable(False)
             self.btnColAddUnder.Enable(False)
             self.btnColDel.Enable(False)
             self.btnColConf.Enable(True)
-        elif self.tab_type == my_globals.CROSSTAB:
+        elif self.tab_type == mg.CROSSTAB:
             self.btnColAdd.Enable(True)
             self.btnColAddUnder.Enable(True)
             self.btnColDel.Enable(enable=has_cols)
             self.btnColConf.Enable(enable=has_cols)
-        elif self.tab_type == my_globals.ROW_SUMM:
+        elif self.tab_type == mg.ROW_SUMM:
             self.btnColAdd.Enable(True)
             self.btnColAddUnder.Enable(True)
             self.btnColDel.Enable(enable=has_cols)
             self.btnColConf.Enable(enable=has_cols)
-        elif self.tab_type == my_globals.RAW_DISPLAY:
+        elif self.tab_type == mg.RAW_DISPLAY:
             self.btnColAdd.Enable(True)
             self.btnColAddUnder.Enable(False)
             self.btnColDel.Enable(True)
@@ -513,7 +505,7 @@ class DlgConfig(wx.Dialog):
         if self.allow_tot:
             boxMisc = wx.StaticBox(self, -1, _("Misc"))
             szrMisc = wx.StaticBoxSizer(boxMisc, wx.VERTICAL)
-            self.chkTotal = wx.CheckBox(self, -1, my_globals.HAS_TOTAL, 
+            self.chkTotal = wx.CheckBox(self, -1, mg.HAS_TOTAL, 
                                         size=chkSize)
             if item_conf.has_tot:
                 self.chkTotal.SetValue(True)
@@ -521,19 +513,17 @@ class DlgConfig(wx.Dialog):
             szrMain.Add(szrMisc, 0, wx.GROW|wx.ALL, 10)
         if self.sort_opt_allowed != SORT_OPT_NONE:
             self.radSortOpts = wx.RadioBox(self, -1, _("Sort order"),
-                                       choices=[my_globals.SORT_NONE, 
-                                                my_globals.SORT_LABEL,
-                                                my_globals.SORT_FREQ_ASC,
-                                                my_globals.SORT_FREQ_DESC],
-                                       size=(400,50))
+                               choices=[mg.SORT_NONE, mg.SORT_LABEL,
+                                        mg.SORT_FREQ_ASC, mg.SORT_FREQ_DESC],
+                               size=(400,50))
             # set selection according to existing item_conf
-            if item_conf.sort_order == my_globals.SORT_NONE:
+            if item_conf.sort_order == mg.SORT_NONE:
                 self.radSortOpts.SetSelection(0)
-            elif item_conf.sort_order == my_globals.SORT_LABEL:
+            elif item_conf.sort_order == mg.SORT_LABEL:
                 self.radSortOpts.SetSelection(1)
-            elif item_conf.sort_order == my_globals.SORT_FREQ_ASC:
+            elif item_conf.sort_order == mg.SORT_FREQ_ASC:
                 self.radSortOpts.SetSelection(2)
-            elif item_conf.sort_order == my_globals.SORT_FREQ_DESC:
+            elif item_conf.sort_order == mg.SORT_FREQ_DESC:
                 self.radSortOpts.SetSelection(3)
             if self.sort_opt_allowed == SORT_OPT_BY_LABEL:
                 # disable freq options
@@ -591,17 +581,17 @@ class DlgConfig(wx.Dialog):
         has_tot = self.allow_tot and self.chkTotal.GetValue()
         # sort order
         if self.sort_opt_allowed == SORT_OPT_NONE:
-            sort_order = my_globals.SORT_NONE
+            sort_order = mg.SORT_NONE
         else:
             sort_opt_selection = self.radSortOpts.GetSelection()
             if sort_opt_selection == 0:
-                sort_order = my_globals.SORT_NONE
+                sort_order = mg.SORT_NONE
             if sort_opt_selection == 1:
-                sort_order = my_globals.SORT_LABEL
+                sort_order = mg.SORT_LABEL
             if sort_opt_selection == 2:
-                sort_order = my_globals.SORT_FREQ_ASC
+                sort_order = mg.SORT_FREQ_ASC
             if sort_opt_selection == 3:
-                sort_order = my_globals.SORT_FREQ_DESC
+                sort_order = mg.SORT_FREQ_DESC
         for node_id in self.node_ids:
             existing_data = self.tree.GetItemPyData(node_id)
             var_name = existing_data.var_name
@@ -627,17 +617,12 @@ class DlgRowConfig(DlgConfig):
         title = _("Configure Row Item")
         if inc_measures:
             self.measures = [
-                (my_globals.MEAN, 
-                    my_globals.measures_long_label_dic[my_globals.MEAN]), 
-                (my_globals.MEDIAN, 
-                    my_globals.measures_long_label_dic[my_globals.MEDIAN]), 
-                (my_globals.SUMM_N, 
-                    my_globals.measures_long_label_dic[my_globals.SUMM_N]), 
-                (my_globals.STD_DEV, 
-                    my_globals.measures_long_label_dic[my_globals.STD_DEV]),
-                (my_globals.SUM, 
-                    my_globals.measures_long_label_dic[my_globals.SUM]),
-                ]
+                        (mg.MEAN, mg.measures_long_label_dic[mg.MEAN]), 
+                        (mg.MEDIAN, mg.measures_long_label_dic[mg.MEDIAN]), 
+                        (mg.SUMM_N, mg.measures_long_label_dic[mg.SUMM_N]), 
+                        (mg.STD_DEV, mg.measures_long_label_dic[mg.STD_DEV]),
+                        (mg.SUM, mg.measures_long_label_dic[mg.SUM]),
+                        ]
         else:
             self.measures = []
         size = wx.DefaultSize
@@ -653,17 +638,16 @@ class DlgColConfig(DlgConfig):
         title = _("Configure Column Item")
         if inc_measures:
             self.measures = [
-                (my_globals.FREQ, 
-                    my_globals.measures_long_label_dic[my_globals.FREQ]), 
-                (my_globals.COLPCT, 
-                    my_globals.measures_long_label_dic[my_globals.COLPCT])
+                (mg.FREQ, mg.measures_long_label_dic[mg.FREQ]), 
+                (mg.COLPCT, mg.measures_long_label_dic[mg.COLPCT])
                 ]
             if has_col_vars:
-                self.measures.append((my_globals.ROWPCT, 
-                    my_globals.measures_long_label_dic[my_globals.ROWPCT]))
+                self.measures.append((mg.ROWPCT, 
+                                      mg.measures_long_label_dic[mg.ROWPCT]))
         else:
             self.measures = []
         size = wx.DefaultSize
         DlgConfig.__init__(self, parent, var_labels, node_ids, tree, 
                            title, size, allow_tot=has_col_vars, 
                            sort_opt_allowed=sort_opt_allowed, row=False)
+        

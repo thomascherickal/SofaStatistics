@@ -2,7 +2,7 @@ import codecs
 import os
 import wx
 
-import my_globals
+import my_globals as mg
 
 use_renderer = True # False if renderer not available and other testing required
 debug = False
@@ -21,7 +21,7 @@ if not use_renderer:
         def load_url(self, url):
             pass
 else:
-    if my_globals.IN_WINDOWS:
+    if mg.IN_WINDOWS:
         
         import wx.lib.iewin as ie
         
@@ -38,8 +38,7 @@ else:
                 """
                 debug = False
                 if url_load:
-                    url_fil = os.path.join(my_globals.INT_PATH, 
-                                           u"ready2load.htm")
+                    url_fil = os.path.join(mg.INT_PATH, u"ready2load.htm")
                     if debug: print(url_fil)
                     f = codecs.open(url_fil, "w", encoding="utf-8")
                     f.write(strHTML)
@@ -62,7 +61,7 @@ else:
                 debug = False
                 if debug: print("strHTML is: %s" % strHTML)
                 # NB no issue with backslashes because not used in Windows ;-)
-                self.SetPageSource(strHTML, "file://%s/" % my_globals.INT_PATH)
+                self.SetPageSource(strHTML, "file://%s/" % mg.INT_PATH)
             
             def load_url(self, url):
                 self.LoadURL(url)

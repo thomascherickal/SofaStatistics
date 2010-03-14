@@ -2,14 +2,14 @@ from __future__ import print_function
 import os
 import wx
 
-import my_globals
+import my_globals as mg
 import lib
 from my_exceptions import ImportCancelException
 import config_dlg
 import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import csv_importer
-if my_globals.IN_WINDOWS:
+if mg.IN_WINDOWS:
     import excel_importer
 import projects
 
@@ -92,12 +92,12 @@ def assess_sample_fld(sample_data, orig_fld_name):
                 type_set.add(VAL_STRING)
     if type_set == numeric_only_set or \
             type_set == numeric_or_empt_str_set:
-        fld_type = my_globals.FLD_TYPE_NUMERIC
+        fld_type = mg.FLD_TYPE_NUMERIC
     elif type_set == datetime_only_set or \
             type_set == datetime_or_empt_str_set:
-        fld_type = my_globals.FLD_TYPE_DATE
+        fld_type = mg.FLD_TYPE_DATE
     else:
-        fld_type = my_globals.FLD_TYPE_STRING
+        fld_type = mg.FLD_TYPE_STRING
     return fld_type
 
 def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
@@ -124,15 +124,15 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
         if is_pytime:
             val = lib.pytime_to_datetime_str(val)
         if not is_pytime:
-            if val is None or (fld_type in [my_globals.FLD_TYPE_NUMERIC, 
-                                    my_globals.FLD_TYPE_DATE] and val == u""):
+            if val is None or (fld_type in [mg.FLD_TYPE_NUMERIC, 
+                                            mg.FLD_TYPE_DATE] and val == u""):
                 val = u"NULL"
             elif val == u".":
                 nulled_dots = True
                 val = u"NULL"
     else: # checking
         bolOK_data = False        
-        if fld_type == my_globals.FLD_TYPE_NUMERIC:
+        if fld_type == mg.FLD_TYPE_NUMERIC:
             # must be numeric or empty string or dot (which we'll turn to NULL)
             if lib.is_numeric(val):
                 bolOK_data = True
@@ -142,7 +142,7 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
             elif val == u".":
                 nulled_dots = True
                 val = u"NULL"
-        elif fld_type == my_globals.FLD_TYPE_DATE:
+        elif fld_type == mg.FLD_TYPE_DATE:
             # must be pytime or datetime 
             # or empty string or dot (which we'll turn to NULL).
             if is_pytime:
@@ -161,7 +161,7 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
                         bolOK_data = True
                     except Exception:
                         pass # leave val as is for error reporting
-        elif fld_type == my_globals.FLD_TYPE_STRING:
+        elif fld_type == mg.FLD_TYPE_STRING:
             # None or dot we'll turn to NULL
             if val is None:
                 val = u"NULL"
@@ -304,7 +304,7 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names,
                                 _("KEEP GOING?"), wx.YES_NO|wx.ICON_QUESTION)
         if retCode == wx.YES:
             # change fld_type to string and start again
-            fld_types[e.fld_name] = my_globals.FLD_TYPE_STRING
+            fld_types[e.fld_name] = mg.FLD_TYPE_STRING
             if add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, 
                               orig_fld_names, fld_types, sample_data, sample_n, 
                               remaining_data, progBackup, gauge_chunk, 
@@ -525,7 +525,7 @@ class ImportFileSelectDlg(wx.Dialog):
         if extension.lower() == u".csv":
             self.file_type = FILE_CSV
         if extension.lower() == u".xls":
-            if not my_globals.IN_WINDOWS:
+            if not mg.IN_WINDOWS:
                 wx.MessageBox(_("Excel spreadsheets are only supported on "
                               "Windows.  Try exporting to CSV first from "
                               "Excel (within Windows)"))

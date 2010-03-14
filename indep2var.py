@@ -5,7 +5,7 @@ import os
 import wx
 import wx.html
 
-import my_globals
+import my_globals as mg
 import lib
 import config_dlg
 import full_html
@@ -13,7 +13,7 @@ import getdata
 import output
 import projects
 
-OUTPUT_MODULES = ["my_globals", "core_stats", "getdata", "output", 
+OUTPUT_MODULES = ["my_globals as mg", "core_stats", "getdata", "output", 
                   "stats_output"]
 
 def get_range_idxs(vals, val_a, val_b):
@@ -88,7 +88,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szrDesc.Add(lblDesc2, 1, wx.GROW|wx.LEFT, 5)
         szrDesc.Add(lblDesc3, 1, wx.GROW|wx.LEFT, 5)
         bxVars = wx.StaticBox(self.panel, -1, _("Variables"))
-        if not my_globals.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
+        if not mg.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
             bxVars.SetToolTipString(variables_rc_msg)
         szrVars = wx.StaticBoxSizer(bxVars, wx.VERTICAL)
         szrVarsTop = wx.BoxSizer(wx.HORIZONTAL)
@@ -105,10 +105,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.dropAveraged = wx.Choice(self.panel, -1, choices=[], 
                                       size=(300, -1))
         self.dropAveraged.Bind(wx.EVT_CHOICE, self.on_averaged_sel)
-        self.dropAveraged.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_vars)
+        self.dropAveraged.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_vars)
         self.dropAveraged.SetToolTipString(variables_rc_msg)
         self.sorted_var_names_avg = []
-        self.setup_var(self.dropAveraged, my_globals.VAR_AVG_DEFAULT,
+        self.setup_var(self.dropAveraged, mg.VAR_AVG_DEFAULT,
                        self.sorted_var_names_avg)
         szrVarsTopLeftTop.Add(self.lblAveraged, 0, wx.TOP|wx.RIGHT, 5)
         szrVarsTopLeftTop.Add(self.dropAveraged, 0, wx.RIGHT|wx.TOP, 5)
@@ -118,7 +118,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.lblGroupBy.SetFont(self.LABEL_FONT)
         self.dropGroupBy = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupBy.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
-        self.dropGroupBy.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_group_by)
+        self.dropGroupBy.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_by)
         self.dropGroupBy.SetToolTipString(variables_rc_msg)
         self.sorted_var_names_by = [] # var names sorted by labels i.e. same as 
             # dropdown.  Refreshed as needed so always usable.
@@ -158,10 +158,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szrVars.Add(szrVarsBottom, 0, wx.GROW)
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
-        if my_globals.MAX_HEIGHT <= 620:
+        if mg.MAX_HEIGHT <= 620:
             myheight = 130
-        elif my_globals.MAX_HEIGHT <= 820:
-            myheight = ((my_globals.MAX_HEIGHT/1024.0)*350) - 20
+        elif mg.MAX_HEIGHT <= 820:
+            myheight = ((mg.MAX_HEIGHT/1024.0)*350) - 20
         else:
             myheight = 350
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))
@@ -185,15 +185,15 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def add_other_var_opts(self):
         pass
 
-    def on_right_click_tables(self, event):
+    def on_rclick_tables(self, event):
         """
         Extend to pass on filter changes to group by val options a and b.
         """
-        config_dlg.ConfigDlg.on_right_click_tables(self, event)
+        config_dlg.ConfigDlg.on_rclick_tables(self, event)
         self.refresh_vals()
         event.Skip()
 
-    def on_right_click_group_by(self, event):
+    def on_rclick_group_by(self, event):
         var_gp, choice_item = self.get_group_by()
         label_gp = lib.get_item_label(item_labels=self.var_labels, 
                                       item_val=var_gp)
@@ -203,7 +203,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         if updated:
             self.refresh_vars()
 
-    def on_right_click_vars(self, event):
+    def on_rclick_vars(self, event):
         var_name, choice_item = self.get_var_dets(self.dropAveraged, 
                                                   self.sorted_var_names_avg)
         var_label = lib.get_item_label(item_labels=self.var_labels, 
@@ -217,7 +217,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def refresh_vars(self):
         var_gp, var_avg = self.get_vars()
         self.setup_group_by(var_gp)
-        self.setup_var(self.dropAveraged, my_globals.VAR_AVG_DEFAULT, 
+        self.setup_var(self.dropAveraged, mg.VAR_AVG_DEFAULT, 
                        self.sorted_var_names_avg, var_avg)
         self.update_defaults()
         self.update_phrase()
@@ -236,7 +236,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         # now update var dropdowns
         self.update_var_dets()
         self.setup_group_by()
-        self.setup_var(self.dropAveraged, my_globals.VAR_AVG_DEFAULT,
+        self.setup_var(self.dropAveraged, mg.VAR_AVG_DEFAULT,
                        self.sorted_var_names_avg)
         self.setup_group_dropdowns()
                 
@@ -246,7 +246,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         # now update var dropdowns
         self.update_var_dets()
         self.setup_group_by()
-        self.setup_var(self.dropAveraged, my_globals.VAR_AVG_DEFAULT,
+        self.setup_var(self.dropAveraged, mg.VAR_AVG_DEFAULT,
                        self.sorted_var_names_avg)
         self.setup_group_dropdowns()
     
@@ -259,7 +259,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_gp, var_avg = self.get_vars()
         config_dlg.ConfigDlg.on_var_dets_file_lost_focus(self, event)
         self.setup_group_by(var_gp)
-        self.setup_var(self.dropAveraged, my_globals.VAR_AVG_DEFAULT, 
+        self.setup_var(self.dropAveraged, mg.VAR_AVG_DEFAULT, 
                        self.sorted_var_names_avg, var_avg)
         self.setup_group_dropdowns(val_a, val_b)
         self.update_defaults()
@@ -274,7 +274,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_gp, var_avg = self.get_vars()
         config_dlg.ConfigDlg.on_btn_var_dets_path(self, event)
         self.setup_group_by(var_gp)
-        self.setup_var(self.dropAveraged, my_globals.VAR_AVG_DEFAULT, 
+        self.setup_var(self.dropAveraged, mg.VAR_AVG_DEFAULT, 
                        self.sorted_var_names_avg, var_avg)
         self.setup_group_dropdowns(val_a, val_b)
         self.update_defaults()
@@ -323,10 +323,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.update_defaults()
     
     def update_defaults(self):
-        my_globals.GROUP_BY_DEFAULT = self.dropGroupBy.GetStringSelection()
-        my_globals.VAR_AVG_DEFAULT = self.dropAveraged.GetStringSelection()
-        my_globals.VAL_A_DEFAULT = self.dropGroupA.GetStringSelection()
-        my_globals.VAL_B_DEFAULT = self.dropGroupB.GetStringSelection()
+        mg.GROUP_BY_DEFAULT = self.dropGroupBy.GetStringSelection()
+        mg.VAR_AVG_DEFAULT = self.dropAveraged.GetStringSelection()
+        mg.VAL_A_DEFAULT = self.dropGroupA.GetStringSelection()
+        mg.VAL_B_DEFAULT = self.dropGroupB.GetStringSelection()
     
     def on_group_by_a_sel(self, event):        
         self.update_phrase()
@@ -341,7 +341,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def setup_group_by(self, var_gp=None):
         var_names = projects.get_approp_var_names(self.flds)
         if self.inc_gp_by_select:
-            var_names.insert(0, my_globals.DROP_SELECT)
+            var_names.insert(0, mg.DROP_SELECT)
         var_gp_by_choice_items, self.sorted_var_names_by = \
                         lib.get_sorted_choice_items(dic_labels=self.var_labels, 
                                         vals=var_names, 
@@ -349,7 +349,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.dropGroupBy.SetItems(var_gp_by_choice_items)
         # set selection
         idx_gp = projects.get_idx_to_select(var_gp_by_choice_items, var_gp, 
-                                self.var_labels, my_globals.GROUP_BY_DEFAULT)
+                                           self.var_labels, mg.GROUP_BY_DEFAULT)
         self.dropGroupBy.SetSelection(idx_gp)
 
     def setup_var(self, drop_var, default, sorted_var_names, var_name=None):
@@ -377,7 +377,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         """
         debug = False
         var_gp, choice_item = self.get_group_by()
-        if not choice_item or choice_item == my_globals.DROP_SELECT:
+        if not choice_item or choice_item == mg.DROP_SELECT:
             self.lblGroupA.Enable(False)
             self.dropGroupA.SetItems([])
             self.dropGroupA.Enable(False)
@@ -420,10 +420,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             idx_a = self.gp_choice_items_sorted.index(item_new_version_a)
         else: # use defaults if possible
             idx_a = 0
-            if my_globals.VAL_A_DEFAULT:
+            if mg.VAL_A_DEFAULT:
                 try:
-                    idx_a = self.gp_choice_items_sorted.index(
-                                                    my_globals.VAL_A_DEFAULT)
+                    idx_a = self.gp_choice_items_sorted.index(mg.VAL_A_DEFAULT)
                 except ValueError:
                     pass
         self.dropGroupA.SetSelection(idx_a)
@@ -432,10 +431,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             idx_b = self.gp_choice_items_sorted.index(item_new_version_b)
         else: # use defaults if possible
             idx_b = 0
-            if my_globals.VAL_B_DEFAULT:
+            if mg.VAL_B_DEFAULT:
                 try:
-                    idx_b = self.gp_choice_items_sorted.index(
-                                                    my_globals.VAL_B_DEFAULT)
+                    idx_b = self.gp_choice_items_sorted.index(mg.VAL_B_DEFAULT)
                 except ValueError:
                     pass
         self.dropGroupB.SetSelection(idx_b)
@@ -450,7 +448,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_gp = self.sorted_var_names_by[selection_idx_gp]
         label_gp = lib.get_item_label(item_labels=self.var_labels, 
                                       item_val=var_gp)
-        var_gp_numeric = self.flds[var_gp][my_globals.FLD_BOLNUMERIC]
+        var_gp_numeric = self.flds[var_gp][mg.FLD_BOLNUMERIC]
         # Now the a and b choices under the group
         val_dic = self.val_dics.get(var_gp, {})
         selection_idx_a = self.dropGroupA.GetSelection()
@@ -585,8 +583,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         except Exception:
             pass
         finally:
-            my_globals.DBE_DEFAULT = self.dbe
-            my_globals.DB_DEFAULTS[self.dbe] = self.db
-            my_globals.TBL_DEFAULTS[self.dbe] = self.tbl
+            mg.DBE_DEFAULT = self.dbe
+            mg.DB_DEFAULTS[self.dbe] = self.db
+            mg.TBL_DEFAULTS[self.dbe] = self.tbl
             self.Destroy()
             event.Skip()

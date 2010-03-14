@@ -2,7 +2,7 @@ import os
 
 import wx
 
-import my_globals
+import my_globals as mg
 import my_exceptions
 #import anova # import as needed for performance
 #import chisquare
@@ -35,8 +35,8 @@ HELP_LEFT = MAIN_LEFT + 235
 REL_TOP = 330
 BUTTON1_LEFT = MAIN_LEFT + 20
 BUTTON2_LEFT = MAIN_LEFT + 130
-CONFIG_LEFT = 620 if not my_globals.IN_WINDOWS else 630
-BUTTON_LIFT = 0 if my_globals.IN_WINDOWS else 4
+CONFIG_LEFT = 620 if not mg.IN_WINDOWS else 630
+BUTTON_LIFT = 0 if mg.IN_WINDOWS else 4
 DIV_LINE_WIDTH = 203
 
 
@@ -67,8 +67,8 @@ class StatsSelectDlg(wx.Dialog):
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)        
         config_dlg.add_icon(frame=self)
         # background image
-        img_stats_select = wx.Image(os.path.join(my_globals.SCRIPT_PATH, 
-                                            u"images", u"stats_select.xpm"), 
+        img_stats_select = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                                 u"stats_select.xpm"), 
                            wx.BITMAP_TYPE_XPM)
         self.bmp_stats_select = wx.BitmapFromImage(img_stats_select)
         # direct or assisted
@@ -188,11 +188,10 @@ class StatsSelectDlg(wx.Dialog):
         il = wx.ImageList(16, 16)
         self.idx_tick = 0
         self.idx_blank = 1
-        tick = u"tickwin" if my_globals.IN_WINDOWS else u"tick"
+        tick = u"tickwin" if mg.IN_WINDOWS else u"tick"
         for img in [tick, u"blank"]:
-            bmp = wx.Bitmap(os.path.join(my_globals.SCRIPT_PATH, u"images", 
-                                         u"%s.png" % img), 
-                                         wx.BITMAP_TYPE_PNG)
+            bmp = wx.Bitmap(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                         u"%s.png" % img), wx.BITMAP_TYPE_PNG)
             il.Add(bmp)
         self.lstTests.AssignImageList(il, wx.IMAGE_LIST_SMALL)
         self.lstTests.InsertColumn(0, _("Statistical Test"))

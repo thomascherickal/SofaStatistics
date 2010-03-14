@@ -10,13 +10,13 @@ import wx
 # config (of my_globals) before other local modules are loaded so they can be
 # assumed to be safe to start.  Other modules need to be able to rely on the 
 # correctness of what is in my_globals. 
-import my_globals
+import my_globals as mg
 
 def get_settings_dic(subfolder, fil_name):
     """
     Returns settings_dic with keys for each setting.
     """
-    settings_path = os.path.join(my_globals.LOCAL_PATH, subfolder, fil_name)
+    settings_path = os.path.join(mg.LOCAL_PATH, subfolder, fil_name)
     try:
         f = codecs.open(settings_path, "U", encoding="utf-8")
     except IOError:
@@ -44,18 +44,19 @@ def get_settings_dic(subfolder, fil_name):
 
 def set_DEFAULT_LEVEL(ignore_prefs=False):
     """
-    Update my_globals.DEFAULT_LEVEL (if any prefs set).
+    Update mg.DEFAULT_LEVEL (if any prefs set).
     ignore_prefs -- used if wanting to test different levels than in prefs doc
         from unit test.
     """
     if not ignore_prefs:
         try:
-            prefs_dic = get_settings_dic(subfolder=my_globals.INTERNAL_FOLDER, 
-                                         fil_name=my_globals.INT_PREFS_FILE)
+            prefs_dic = get_settings_dic(subfolder=mg.INTERNAL_FOLDER, 
+                                         fil_name=mg.INT_PREFS_FILE)
             stored_lev = \
-                prefs_dic[my_globals.PREFS_KEY][my_globals.DEFAULT_LEVEL_KEY]
-            if stored_lev not in my_globals.LEVELS:
+                prefs_dic[mg.PREFS_KEY][mg.DEFAULT_LEVEL_KEY]
+            if stored_lev not in mg.LEVELS:
                 raise Exception, "Invalid stored level: %s" % stored_lev
-            my_globals.DEFAULT_LEVEL = stored_lev
+            mg.DEFAULT_LEVEL = stored_lev
         except Exception:
-            my_globals.DEFAULT_LEVEL = my_globals.LEVEL_BRIEF
+            mg.DEFAULT_LEVEL = mg.LEVEL_BRIEF
+            

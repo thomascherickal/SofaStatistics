@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import random
 
-import my_globals
+import my_globals as mg
 import lib
 import dimtables
 import output
@@ -96,12 +96,9 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         If value labels available, use these rather than random numbers.
         """
         debug = False
-        CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_LBL, css_idx)
-        CSS_ALIGN_RIGHT = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_ALIGN_RIGHT, css_idx)
-        CSS_TOTAL_ROW = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_TOTAL_ROW, css_idx)   
+        CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
+        CSS_ALIGN_RIGHT = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ALIGN_RIGHT, css_idx)
+        CSS_TOTAL_ROW = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TOTAL_ROW, css_idx)   
         col_names, col_labels = lib.get_col_dets(self.coltree, self.colRoot, 
                                                  self.var_labels)
         cols_n = len(col_names)        
@@ -125,7 +122,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
             if debug: 
                 print("%s" % self.flds[col_name])
                 print("%s" % col_val_dics)
-            bolnumeric = self.flds[col_name][my_globals.FLD_BOLNUMERIC]
+            bolnumeric = self.flds[col_name][mg.FLD_BOLNUMERIC]
             if bolnumeric and not col_val_dics[i]:
                 col_class_lsts[i].append(CSS_ALIGN_RIGHT)
         for i in range(4): # four rows enough for demo purposes
@@ -136,9 +133,9 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                 if col_val_dics[j]: # choose a random value label
                     random_key = random.choice(col_val_dics[j].keys())
                     row_val = col_val_dics[j][random_key]
-                elif self.flds[col_names[j]][my_globals.FLD_BOLNUMERIC]: # choose a random number
+                elif self.flds[col_names[j]][mg.FLD_BOLNUMERIC]: # choose a random number
                     row_val = unicode(random.choice(num_data_seq))
-                elif self.flds[col_names[j]][my_globals.FLD_BOLDATETIME]: # choose a random date
+                elif self.flds[col_names[j]][mg.FLD_BOLDATETIME]: # choose a random date
                     row_val = unicode(random.choice(dtm_data_seq))
                 else:
                     row_val = unicode(random.choice(str_data_seq))
@@ -161,7 +158,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                 # if has value dic OR not numeric (e.g. date or string), 
                 # show empty cell as total
                 if col_val_dics[i] or \
-                    not self.flds[col_names[i]][my_globals.FLD_BOLNUMERIC]: 
+                    not self.flds[col_names[i]][mg.FLD_BOLNUMERIC]: 
                     demo_row_data_lst.append(u"&nbsp;&nbsp;")
                 else:
                     data = unicode(random.choice(num_data_seq))
@@ -223,7 +220,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                                                          parent=self.rowRoot):
             self.add_subtree_to_label_tree(tree_dims_item=row_child_item, 
                               tree_labels_node=tree_row_labels.root_node, 
-                              dim=my_globals.ROWDIM)
+                              dim=mg.ROWDIM)
         return self.process_row_tree(tree_row_labels, css_idx)
 
     def add_subtree_to_label_tree(self, tree_dims_item, tree_labels_node, dim):
@@ -240,13 +237,13 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         If not terminal, add a node for each var underneath 
           (e.g. Ethnicity and Age Gp) under each value node and 
           send through again.
-        dim - my_globals.ROWDIM or my_globals.COLDIM
+        dim - mg.ROWDIM or mg.COLDIM
         """
         debug = False
-        if dim == my_globals.COLDIM:
+        if dim == mg.COLDIM:
             tree = self.coltree
             item_conf = tree.GetItemPyData(tree_dims_item)
-        elif dim == my_globals.ROWDIM:
+        elif dim == mg.ROWDIM:
             tree = self.rowtree
             item_conf = tree.GetItemPyData(tree_dims_item)        
         if item_conf is None:
@@ -270,7 +267,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
             # terminal tree_dim_item (got any children)?
             item, cookie = self.coltree.GetFirstChild(tree_dims_item)
             is_terminal = not item #i.e. if there is only the root there
-            if dim==my_globals.ROWDIM and self.has_row_measures:
+            if dim==mg.ROWDIM and self.has_row_measures:
                 # add measure label nodes
                 if item_conf:
                     measures = item_conf.measures_lst
@@ -289,7 +286,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                     if i > 1:
                         break
                     subitems_lst.append(val_label)
-                if item_conf.sort_order == my_globals.SORT_LABEL:
+                if item_conf.sort_order == mg.SORT_LABEL:
                     subitems_lst.sort()
                 i=len(subitems_lst) + 1 # so first filler is Val 2 if first 
                 # value already filled
@@ -297,12 +294,12 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                     subitems_lst.append(u"Value %s" % i)
                     i=i+1
                 if item_conf.has_tot:
-                    subitems_lst.append(my_globals.HAS_TOTAL)
+                    subitems_lst.append(mg.HAS_TOTAL)
                 for subitem in subitems_lst:
                     # make val node e.g. Male
                     subitem_node = dimtables.LabelNode(label=subitem)
                     new_var_node.add_child(subitem_node)                
-                    if is_terminal and dim==my_globals.COLDIM and \
+                    if is_terminal and dim==mg.COLDIM and \
                         self.has_col_measures:
                         # add measure label nodes
                         measures = item_conf.measures_lst
@@ -314,9 +311,9 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                                                    measure=measure))
                     else:
                         # for each child of tree_dims_item e.g. Eth and Age Gp
-                        if dim == my_globals.COLDIM:
+                        if dim == mg.COLDIM:
                             tree = self.coltree
-                        elif dim == my_globals.ROWDIM:
+                        elif dim == mg.ROWDIM:
                             tree = self.rowtree
                         child_items = lib.get_tree_ctrl_children(tree=tree, 
                                                         parent=tree_dims_item)
@@ -341,7 +338,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         for col_child_item in col_children:
             self.add_subtree_to_label_tree(tree_dims_item=col_child_item, 
                                   tree_labels_node=tree_col_labels.root_node, 
-                                  dim=my_globals.COLDIM)
+                                  dim=mg.COLDIM)
         return tree_col_labels
     
 
@@ -351,7 +348,7 @@ class GenDemoTable(DemoDimTable):
     has_row_measures = False
     has_row_vals = True
     has_col_measures = True
-    default_measure = lib.get_default_measure(my_globals.FREQS_TBL)
+    default_measure = lib.get_default_measure(mg.FREQS_TBL)
     
     def __init__(self, txtTitles, txtSubtitles, colRoot, rowRoot, rowtree, 
                  coltree, col_no_vars_item, var_labels, val_dics, fil_css):
@@ -418,10 +415,9 @@ class GenDemoTable(DemoDimTable):
         Get list of row data.  Each row in the list is represented
         by a row of strings to concatenate, one per data point.
         """
-        CSS_FIRST_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_FIRST_DATACELL, css_idx)
-        CSS_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_DATACELL, css_idx)
+        CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL, 
+                                                       css_idx)
+        CSS_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_DATACELL, css_idx)
         i=0
         data_item_presn_lst = []
         for (row_filter, row_filt_flds) in zip(row_filters_lst,
@@ -437,7 +433,7 @@ class GenDemoTable(DemoDimTable):
                     cellclass = CSS_DATACELL
                 #build data row list
                 data_val = random.choice(num_data_seq)
-                if colmeasure in [my_globals.ROWPCT, my_globals.COLPCT]:
+                if colmeasure in [mg.ROWPCT, mg.COLPCT]:
                     val = u"%s%%" % data_val
                 else:
                     val = data_val
@@ -459,7 +455,7 @@ class SummDemoTable(DemoDimTable):
     has_row_measures = True
     has_row_vals = False
     has_col_measures = False
-    default_measure = lib.get_default_measure(my_globals.ROW_SUMM)
+    default_measure = lib.get_default_measure(mg.ROW_SUMM)
     
     def __init__(self, txtTitles, txtSubtitles, colRoot, rowRoot, rowtree, 
                  coltree, col_no_vars_item, var_labels, val_dics, fil_css):
@@ -517,10 +513,9 @@ class SummDemoTable(DemoDimTable):
         by a row of strings to concatenate, one per data point.
         Get data values one at a time (no batches unlike Gen Tables).
         """
-        CSS_FIRST_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_FIRST_DATACELL, css_idx)
-        CSS_DATACELL = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_DATACELL, css_idx)
+        CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL, 
+                                                       css_idx)
+        CSS_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_DATACELL, css_idx)
         data_item_lst = []
         for (rowmeasure, row_fld_lst) in zip(row_measures_lst, 
                                              row_flds_lst):
@@ -533,7 +528,7 @@ class SummDemoTable(DemoDimTable):
                 else:
                     cellclass = CSS_DATACELL
                 data_val = random.choice(num_data_seq)
-                if rowmeasure == my_globals.SUMM_N:
+                if rowmeasure == mg.SUMM_N:
                     val = u"N=%s" % data_val
                 else:
                     val = data_val

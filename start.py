@@ -27,7 +27,7 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 # Install gettext.  Now all strings enclosed in "_()" will automatically be
 # translated.
 gettext.install('sofa', './locale', unicode=True)
-import my_globals # has translated text
+import my_globals as mg # has translated text
 import lib
 import config_globals
 import config_dlg
@@ -57,8 +57,8 @@ HELP_TEXT_WIDTH = 330
 HELP_IMG_LEFT = 575
 HELP_IMG_TOP = 315
 MAIN_RIGHT = 650
-SCRIPT_PATH = my_globals.SCRIPT_PATH
-LOCAL_PATH = my_globals.LOCAL_PATH
+SCRIPT_PATH = mg.SCRIPT_PATH
+LOCAL_PATH = mg.LOCAL_PATH
 
 def get_blank_btn_bmp():
     return wx.Image(os.path.join(SCRIPT_PATH, u"images", u"blankbutton.xpm"), 
@@ -78,8 +78,8 @@ def install_local():
     """
     prog_path = os.path.dirname(__file__)
     default_proj = os.path.join(LOCAL_PATH, u"projs", 
-                                my_globals.SOFA_DEFAULT_PROJ)
-    paths = [u"css", my_globals.INTERNAL_FOLDER, u"vdts", u"projs", u"reports", 
+                                mg.SOFA_DEFAULT_PROJ)
+    paths = [u"css", mg.INTERNAL_FOLDER, u"vdts", u"projs", u"reports", 
              u"scripts"]
     if not os.path.exists(LOCAL_PATH):
             # In Windows these steps are completed by the installer - but only
@@ -90,20 +90,15 @@ def install_local():
             # copy across default proj, vdts, css
             shutil.copy(os.path.join(prog_path, u"css", u"alt_style.css"), 
                         os.path.join(LOCAL_PATH, u"css", u"alt_style.css"))
-            shutil.copy(os.path.join(prog_path, u"css", 
-                                     my_globals.SOFA_DEFAULT_STYLE), 
-                        os.path.join(LOCAL_PATH, u"css", 
-                                     my_globals.SOFA_DEFAULT_STYLE))
-            shutil.copy(os.path.join(prog_path, my_globals.INTERNAL_FOLDER, 
-                                     my_globals.SOFA_DEFAULT_DB), 
-                        os.path.join(LOCAL_PATH, my_globals.INTERNAL_FOLDER, 
-                                     my_globals.SOFA_DEFAULT_DB))
-            shutil.copy(os.path.join(prog_path, u"vdts", 
-                                     my_globals.SOFA_DEFAULT_VDTS), 
-                        os.path.join(LOCAL_PATH, u"vdts", 
-                                     my_globals.SOFA_DEFAULT_VDTS))
-            shutil.copy(os.path.join(prog_path, u"projs", 
-                                     my_globals.SOFA_DEFAULT_PROJ), 
+            shutil.copy(os.path.join(prog_path, u"css", mg.SOFA_DEFAULT_STYLE), 
+                        os.path.join(LOCAL_PATH, u"css", mg.SOFA_DEFAULT_STYLE))
+            shutil.copy(os.path.join(prog_path, mg.INTERNAL_FOLDER, 
+                                     mg.SOFA_DEFAULT_DB), 
+                        os.path.join(LOCAL_PATH, mg.INTERNAL_FOLDER, 
+                                     mg.SOFA_DEFAULT_DB))
+            shutil.copy(os.path.join(prog_path, u"vdts", mg.SOFA_DEFAULT_VDTS), 
+                        os.path.join(LOCAL_PATH, u"vdts", mg.SOFA_DEFAULT_VDTS))
+            shutil.copy(os.path.join(prog_path, u"projs", mg.SOFA_DEFAULT_PROJ), 
                         default_proj)
     PROJ_CUSTOMISED_FILE = u"proj_file_customised.txt"
     if not os.path.exists(os.path.join(LOCAL_PATH, PROJ_CUSTOMISED_FILE)):
@@ -115,19 +110,19 @@ def install_local():
             new_str = lib.escape_win_path(os.path.join(LOCAL_PATH, path, u""))
             proj_str = proj_str.replace(u"/home/g/sofa/%s/" % path, new_str)
         # add MS Access and SQL Server into mix if Windows
-        if my_globals.IN_WINDOWS:
+        if mg.IN_WINDOWS:
             proj_str = proj_str.replace(u"default_dbs = {",
                                         u"default_dbs = {'%s': None, " % \
-                                            my_globals.DBE_MS_ACCESS)
+                                            mg.DBE_MS_ACCESS)
             proj_str = proj_str.replace(u"default_tbls = {",
                                         u"default_tbls = {'%s': None, " % \
-                                            my_globals.DBE_MS_ACCESS)
+                                            mg.DBE_MS_ACCESS)
             proj_str = proj_str.replace(u"default_dbs = {",
                                         u"default_dbs = {'%s': None, " % \
-                                            my_globals.DBE_MS_SQL)
+                                            mg.DBE_MS_SQL)
             proj_str = proj_str.replace(u"default_tbls = {",
                                         u"default_tbls = {'%s': None, " % \
-                                            my_globals.DBE_MS_SQL)
+                                            mg.DBE_MS_SQL)
         f = codecs.open(default_proj, "w", "utf-8")
         f.write(proj_str)
         f.close()
@@ -147,8 +142,7 @@ class SofaApp(wx.App):
             filename = None
         else:
             redirect = True
-            filename = os.path.join(my_globals.LOCAL_PATH, 
-                                    my_globals.INTERNAL_FOLDER, 
+            filename = os.path.join(mg.LOCAL_PATH, mg.INTERNAL_FOLDER, 
                                     u'output.txt')
         wx.App.__init__(self, redirect=redirect, filename=filename)
 
@@ -176,7 +170,7 @@ class SofaApp(wx.App):
             # wx.BOTH puts in screen 2 (in Ubuntu at least)!
         frame.Show()
         self.SetTopWindow(frame)
-        my_globals.MAX_HEIGHT = wx.Display().GetGeometry()[3]
+        mg.MAX_HEIGHT = wx.Display().GetGeometry()[3]
         return True
 
 
@@ -266,7 +260,7 @@ class StartFrame(wx.Frame):
                                        pos=(BTN_RIGHT, g.next()))
         self.btnExit.Bind(wx.EVT_BUTTON, self.on_exit_click)
         self.btnExit.Bind(wx.EVT_ENTER_WINDOW, self.on_exit_enter)
-        if not my_globals.IN_WINDOWS:
+        if not mg.IN_WINDOWS:
             hand = wx.StockCursor(wx.CURSOR_HAND)
             self.btnProj.SetCursor(hand)
             self.btnPrefs.SetCursor(hand)
@@ -302,7 +296,7 @@ class StartFrame(wx.Frame):
         psal = os.path.join(SCRIPT_PATH, u"images", u"psal_logo.xpm")
         self.bmp_psal = wx.Image(psal, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.HELP_TEXT_FONT = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
-        self.active_proj = my_globals.SOFA_DEFAULT_PROJ
+        self.active_proj = mg.SOFA_DEFAULT_PROJ
         link_home = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com", 
                                      pos=(MAIN_LEFT, TOP_TOP), 
                                      URL="http://www.sofastatistics.com")
@@ -338,10 +332,10 @@ class StartFrame(wx.Frame):
             up (comtypes).
         """
         COMTYPES_HANDLED = u"comtypes_handled.txt"
-        if my_globals.IN_WINDOWS and not os.path.exists(os.path.join(LOCAL_PATH, 
-                                                            COMTYPES_HANDLED)):
+        if mg.IN_WINDOWS and not os.path.exists(os.path.join(LOCAL_PATH, 
+                                                             COMTYPES_HANDLED)):
             wx.MessageBox(_("Click OK to prepare for first use of SOFA "
-                          "Statistics.\n\nPreparation may take a moment ..."))
+                            "Statistics.\n\nPreparation may take a moment ..."))
             h = full_html.FullHTML(panel, (10, 10))
             h.show_html(u"")
             h = None
@@ -363,7 +357,7 @@ class StartFrame(wx.Frame):
                             True)
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel(_("Version %s") % my_globals.VERSION, 
+        panel_dc.DrawLabel(_("Version %s") % mg.VERSION, 
                            wx.Rect(MAIN_RIGHT, TOP_TOP, 100, 20))
         panel_dc.SetFont(wx.Font(self.main_font_size, wx.SWISS, wx.NORMAL, 
                                  wx.NORMAL))
@@ -372,8 +366,8 @@ class StartFrame(wx.Frame):
         panel_dc.SetFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL))
         panel_dc.SetTextForeground(TEXT_BROWN)
         panel_dc.DrawLabel(_("SOFA - Statistics Open For All"
-           "\nthe user-friendly, open-source statistics,\nanalysis & "
-           "reporting package"), 
+                             "\nthe user-friendly, open-source statistics,"
+                             "\nanalysis & reporting package"), 
            wx.Rect(MAIN_LEFT, 115, 100, 100))
         panel_dc.DrawLabel(lib.get_text_to_draw(self.txtWelcome, 
                                                 MAX_HELP_TEXT_WIDTH), 
@@ -389,8 +383,8 @@ class StartFrame(wx.Frame):
                            wx.Rect(MAIN_RIGHT, 547, 100, 50))
         panel_dc.DrawBitmap(self.bmp_psal, MAIN_RIGHT-45, 542, True)
         # make default db if not already there
-        def_db = os.path.join(LOCAL_PATH, my_globals.INTERNAL_FOLDER, 
-                              my_globals.SOFA_DEFAULT_DB)
+        def_db = os.path.join(LOCAL_PATH, mg.INTERNAL_FOLDER, 
+                              mg.SOFA_DEFAULT_DB)
         con = sqlite.connect(def_db)
         con.close()
         panel_dc.DrawBitmap(self.blank_proj_strip, MAIN_LEFT, 218, False)
@@ -425,8 +419,8 @@ class StartFrame(wx.Frame):
         panel_dc.DrawBitmap(self.bmp_proj, HELP_IMG_LEFT, HELP_IMG_TOP, True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_projs = _("Projects are a way of storing all related reports, "
-            "data files, and configuration info in one place.  The "
-            "default project will be OK to get you started.")
+                      "data files, and configuration info in one place. The "
+                      "default project will be OK to get you started.")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_projs, MAX_HELP_TEXT_WIDTH), 
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
@@ -436,9 +430,8 @@ class StartFrame(wx.Frame):
         debug = False
         try:
             prefs_dic = \
-                config_globals.get_settings_dic(\
-                        subfolder=my_globals.INTERNAL_FOLDER, 
-                        fil_name=my_globals.INT_PREFS_FILE)
+                config_globals.get_settings_dic(subfolder=mg.INTERNAL_FOLDER, 
+                                                fil_name=mg.INT_PREFS_FILE)
         except Exception:
             prefs_dic = {}
         if debug: print(prefs_dic)
@@ -472,7 +465,7 @@ class StartFrame(wx.Frame):
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_entry = _("Enter data into a fresh dataset or select an existing "
-            "one to edit or add data to.")
+                      "one to edit or add data to.")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_entry, MAX_HELP_TEXT_WIDTH), 
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
@@ -501,8 +494,8 @@ class StartFrame(wx.Frame):
         Also grab the default_dbs and default_tbls as lists that can be 
             manipulated later.
         """
-        if my_globals.DBE_DEFAULT:
-            dbe = my_globals.DBE_DEFAULT
+        if mg.DBE_DEFAULT:
+            dbe = mg.DBE_DEFAULT
         else:
             dbe = proj_dic["default_dbe"]
         default_dbs = proj_dic["default_dbs"]
@@ -527,10 +520,10 @@ class StartFrame(wx.Frame):
             wx.EndBusyCursor()
             dlg.ShowModal()
         except Exception, e:
-            msg = _("Unable to connect to data as defined in project %s.  "
+            msg = _("Unable to connect to data as defined in project %s. "
                     "Please check your settings." % proj_name)
             wx.MessageBox(msg)
-            raise Exception, u"%s.  Orig error: %s" % (msg, e) 
+            raise Exception, u"%s. Orig error: %s" % (msg, e) 
         finally:
             wx.EndBusyCursor()
             event.Skip()
@@ -545,17 +538,17 @@ class StartFrame(wx.Frame):
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_tabs1, MAX_HELP_TEXT_WIDTH), 
                         wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))       
         txt_tabs2 = _("Can make simple Frequency Tables, "
-            "Summary Tables (mean, median, N, standard deviation, sum), "
-            "and simple tabular reports of data as found in data source "
-            "(with labels and optional totals).")
+                "Summary Tables (mean, median, N, standard deviation, sum), "
+                "and simple tabular reports of data as found in data source "
+                "(with labels and optional totals).")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_tabs2, MAX_HELP_TEXT_WIDTH), 
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP+30, HELP_TEXT_WIDTH, 260))
         event.Skip()
     
     def get_script(self, cont, script):
-        cont.append(my_globals.JS_WRAPPER_L)
+        cont.append(mg.JS_WRAPPER_L)
         cont.append(script)
-        cont.append(my_globals.JS_WRAPPER_R)
+        cont.append(mg.JS_WRAPPER_R)
     
     def on_charts_click(self, event):
         CHARTS_NO = 0
@@ -564,7 +557,7 @@ class StartFrame(wx.Frame):
         charts = CHARTS_PRELIM
         if charts == CHARTS_NO:
             wx.MessageBox(_("Not available yet in version ") + 
-                          unicode(my_globals.VERSION))
+                          unicode(mg.VERSION))
         elif charts == CHARTS_PRELIM:
             wx.MessageBox("Demonstration only at this stage - still under "
                           "construction")
@@ -720,14 +713,14 @@ class StartFrame(wx.Frame):
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_stats1 = _("Run statistical tests on your data - e.g. a "
-            "Chi Square to see if there is a relationship between "
-            "age group and gender.")
+                       "Chi Square to see if there is a relationship between "
+                       "age group and gender.")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_stats1, 
                                                 MAX_HELP_TEXT_WIDTH), 
                            wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 
                                    260))
         txt_stats2 = _("SOFA focuses on the statistical tests most users "
-            "need most of the time.")
+                       "need most of the time.")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_stats2, 
                                                 MAX_HELP_TEXT_WIDTH), 
                 wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 61, HELP_TEXT_WIDTH, 320))
@@ -747,7 +740,7 @@ class StartFrame(wx.Frame):
         debug = False
         wx.BeginBusyCursor()
         # wipe any internal images
-        int_img_pattern = os.path.join(my_globals.INT_PATH, "*.png")
+        int_img_pattern = os.path.join(mg.INT_PATH, "*.png")
         if debug: print(int_img_pattern)
         for delme in glob.glob(int_img_pattern):
             if debug: print(delme)

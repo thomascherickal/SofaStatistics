@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import my_globals
+import my_globals as mg
 import lib
 import indep2var
 
@@ -9,7 +9,7 @@ import indep2var
 class DlgConfig(indep2var.DlgIndep2VarConfig):
 
     averaged = _("Averaged")
-    min_data_type = my_globals.VAR_TYPE_ORD
+    min_data_type = mg.VAR_TYPE_ORD
 
     def get_examples(self):
         eg1 = _("Answers the question, do 3 or more groups have a "
@@ -27,7 +27,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         unused, unused, unused, unused, label_a, unused, label_b, unused, \
             label_avg = self.get_drop_vals()
         self.lblPhrase.SetLabel(_("Does average %(avg)s vary in the groups "
-                                 "between \"%(a)s\" and \"%(b)s\"?") % \
+                                 "between \"%(a)s\" and \"%(b)s\"?") %
                                  {"avg": label_avg, "a": label_a, "b": label_b})
 
     def get_script(self, css_idx, add_to_report, report_name):
@@ -74,7 +74,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             u"stats_output.kruskal_wallis_output(" + \
             u"h, p, label_a," + \
             u"\n    label_b, dics, label_avg, dp," + \
-            u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, " + \
+            u"\n    level=mg.OUTPUT_RESULTS_ONLY, " + \
             u"css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append(u"fil.write(kruskal_wallis_output)")
         return u"\n".join(script_lst)

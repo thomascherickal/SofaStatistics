@@ -9,7 +9,7 @@ import pprint
 import time
 import wx
 
-import my_globals
+import my_globals as mg
 import lib
 import my_exceptions
 import getdata
@@ -41,28 +41,27 @@ def get_default_css():
         tr, td, th{
             margin: 0;
         }
-        .%s{""" % my_globals.CSS_TBL_TITLE_CELL + u"""
+        .%s{""" % mg.CSS_TBL_TITLE_CELL + u"""
             border: none;
             padding: 18px 0px 12px 0px;
             margin: 0;
         }
-        .%s{""" % my_globals.CSS_TBL_TITLE + u"""
+        .%s{""" % mg.CSS_TBL_TITLE + u"""
             padding: 0;
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
             font-weight: bold;
             font-size: 18px;
         }
-        .%s{ """ % my_globals.CSS_TBL_SUBTITLE + u"""
+        .%s{ """ % mg.CSS_TBL_SUBTITLE + u"""
             padding: 12px 0px 0px 0px;
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
             font-weight: bold;
             font-size: 14px;
         }
-        th, .%s, .%s, .%s, .%s {""" % (my_globals.CSS_ROW_VAR, 
-                                my_globals.CSS_ROW_VAL, my_globals.CSS_DATACELL, 
-                                my_globals.CSS_FIRST_DATACELL) + u"""
+        th, .%s, .%s, .%s, .%s {""" % (mg.CSS_ROW_VAR, mg.CSS_ROW_VAL, 
+                                mg.CSS_DATACELL, mg.CSS_FIRST_DATACELL) + u"""
             border: solid 1px #A1A1A1;
         }
         th{
@@ -72,65 +71,62 @@ def get_default_css():
         td{
             padding: 2px 6px;
         }
-        .%s{""" % my_globals.CSS_ROW_VAL + u"""
+        .%s{""" % mg.CSS_ROW_VAL + u"""
             margin: 0;
         }
-        .%s, .%s{ """ % (my_globals.CSS_DATACELL, 
-                         my_globals.CSS_FIRST_DATACELL) + u"""
+        .%s, .%s{ """ % (mg.CSS_DATACELL, mg.CSS_FIRST_DATACELL) + u"""
             text-align: right;
             margin: 0;
         }
-        .%s, .%s, .%s {""" % (my_globals.CSS_FIRST_COL_VAR, 
-                              my_globals.CSS_FIRST_ROW_VAR, 
-                              my_globals.CSS_SPACEHOLDER) + u"""
+        .%s, .%s, .%s {""" % (mg.CSS_FIRST_COL_VAR, mg.CSS_FIRST_ROW_VAR, 
+                              mg.CSS_SPACEHOLDER) + u"""
             font-family: Arial, Helvetica, sans-serif;
             font-weight: bold;
             font-size: 15px;
             color: white;
         }
-        .%s, .%s { """ % (my_globals.CSS_FIRST_COL_VAR, 
-                          my_globals.CSS_FIRST_ROW_VAR) + u"""
+        .%s, .%s { """ % (mg.CSS_FIRST_COL_VAR, mg.CSS_FIRST_ROW_VAR) + u"""
             background-color: #333435;
         }
-        .%s {""" % my_globals.CSS_SPACEHOLDER + u"""
+        .%s {""" % mg.CSS_SPACEHOLDER + u"""
             background-color: #CCD9D7;
         }
-        .%s{ """ % my_globals.CSS_FIRST_COL_VAR + u"""
+        .%s{ """ % mg.CSS_FIRST_COL_VAR + u"""
             padding: 9px 6px;
             vertical-align: top;
         }
-        .%s, .%s{""" % (my_globals.CSS_ROW_VAR, my_globals.CSS_COL_VAR) + u"""
+        .%s, .%s{""" % (mg.CSS_ROW_VAR, mg.CSS_COL_VAR) + u"""
             font-family: Arial, Helvetica, sans-serif;
             font-weight: bold;
             font-size: 15px;
             color: #000146;
             background-color: white;
         }
-        .%s{""" % my_globals.CSS_COL_VAR + u"""
+        .%s{""" % mg.CSS_COL_VAR + u"""
             padding: 6px 0px;            
         }            
-        .%s{""" % my_globals.CSS_COL_VAL + u"""
+        .%s{""" % mg.CSS_COL_VAL + u"""
             vertical-align: top;
         }
-        tr.%s td{""" % my_globals.CSS_TOTAL_ROW + u"""
+        tr.%s td{""" % mg.CSS_TOTAL_ROW + u"""
             font-weight: bold;
             border-top: solid 2px black;
             border-bottom: double 3px black;
         }
-        .%s{""" % my_globals.CSS_PAGE_BREAK_BEFORE + u"""
+        .%s{""" % mg.CSS_PAGE_BREAK_BEFORE + u"""
             page-break-before: always;
             border-bottom: none; /*3px dotted #AFAFAF;*/
             width: auto;
             height: 18px;
         }
-        th.%s{""" % my_globals.CSS_MEASURE + u"""
+        th.%s{""" % mg.CSS_MEASURE + u"""
             background-color: white;
         }"""
     default_css += u"\n    td.%s{\n        text-align: left;\n        "  % \
-        my_globals.CSS_LBL + \
+        mg.CSS_LBL + \
         u"background-color: #F5F5F5;\n    }"
     default_css += u"\n    td.%s{\n        text-align: right;\n    }" % \
-        my_globals.CSS_ALIGN_RIGHT
+        mg.CSS_ALIGN_RIGHT
     return default_css
 
 default_hdr = u"""
@@ -166,11 +162,11 @@ def get_html_hdr(hdr_title, css_fils):
             except IOError, e:
                 raise Exception, _("The css file %s doesn't exist" % css_fil)
             css_txt = f.read()
-            for css_class in my_globals.CSS_ELEMENTS:
+            for css_class in mg.CSS_ELEMENTS:
                 # suffix all report-relevant css entities so distinct
                 old_class = u"." + css_class
                 new_class = u"." + \
-                    my_globals.CSS_SUFFIX_TEMPLATE % (css_class, i)
+                    mg.CSS_SUFFIX_TEMPLATE % (css_class, i)
                 if debug: print(old_class, new_class)
                 css_txt = css_txt.replace(old_class, new_class)
             css_lst.append(css_txt)
@@ -219,7 +215,7 @@ def get_css_dets(fil_report, fil_css):
     else:
         if fil_css not in css_fils:
             css_fils.append(fil_css)
-    #my_globals.OUTPUT_CSS_DIC[fil_report] = css_fils
+    #mg.OUTPUT_CSS_DIC[fil_report] = css_fils
     css_idx = css_fils.index(fil_css)
     return css_fils, css_idx
 
@@ -228,7 +224,7 @@ def _strip_script(script):
     Get script up till #sofa_script_end ...
     """
     try:
-        end_idx = script.index(my_globals.SCRIPT_END)
+        end_idx = script.index(mg.SCRIPT_END)
         stripped = script[:end_idx]
     except ValueError:
         stripped = script
@@ -306,18 +302,18 @@ def run_report(modules, add_to_report, fil_report, css_fils, inner_script,
     """
     debug = False
     # generate script
-    f = codecs.open(my_globals.INT_SCRIPT_PATH, "w", "utf-8")
+    f = codecs.open(mg.INT_SCRIPT_PATH, "w", "utf-8")
     if debug: print(css_fils)
-    insert_prelim_code(modules, f, my_globals.INT_REPORT_PATH, css_fils)
+    insert_prelim_code(modules, f, mg.INT_REPORT_PATH, css_fils)
     tbl_filt_label, tbl_filt = lib.get_tbl_filt(dbe, db, tbl_name)
     append_exported_script(f, inner_script, con_dets, dbe, db, tbl_name,
         tbl_filt_label, tbl_filt, default_dbs, default_tbls, inc_divider=False)
     add_end_script_code(f)
     f.close()
     # run script
-    f = codecs.open(my_globals.INT_SCRIPT_PATH, "r", "utf-8")
+    f = codecs.open(mg.INT_SCRIPT_PATH, "r", "utf-8")
     script = lib.clean_bom_utf8(f.read())    
-    script = script[script.index(my_globals.MAIN_SCRIPT_START):]
+    script = script[script.index(mg.MAIN_SCRIPT_START):]
     f.close()
     try:
         dummy_dic = {}
@@ -355,7 +351,7 @@ def run_report(modules, add_to_report, fil_report, css_fils, inner_script,
         if debug:
             raise Exception, unicode(e)
         return False, err_content
-    f = codecs.open(my_globals.INT_REPORT_PATH, "U", "utf-8")
+    f = codecs.open(mg.INT_REPORT_PATH, "U", "utf-8")
     raw_results = lib.clean_bom_utf8(f.read())
     f.close()
     source = get_source(db, tbl_name)
@@ -386,15 +382,15 @@ def insert_prelim_code(modules, f, fil_report, css_fils):
     # NB the coding declaration we are just adding must be removed before we
     # try to run the script as a unicode string
     # else "encoding declaration in Unicode string".
-    f.write(my_globals.PYTHON_ENCODING_DECLARATION)
-    f.write(u"\n" + my_globals.MAIN_SCRIPT_START)
+    f.write(mg.PYTHON_ENCODING_DECLARATION)
+    f.write(u"\n" + mg.MAIN_SCRIPT_START)
     f.write(u"\n" + u"import codecs")
     f.write(u"\n" + u"import sys")
     f.write(u"\n" + u"import gettext")
     f.write(u"\n" + u"import numpy as np")
     f.write(u"\n" + u"gettext.install('sofa', './locale', unicode=False)")
     f.write(u"\n" + u"sys.path.append(u'%s')" % \
-            lib.escape_win_path(my_globals.SCRIPT_PATH))
+            lib.escape_win_path(mg.SCRIPT_PATH))
     for module in modules:
         f.write(u"\n" + u"import %s" % module)
     f.write(u"\n" + u"import my_exceptions")
@@ -484,8 +480,8 @@ def save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt,
 
 def add_end_script_code(f):
     "Add ending code to script.  NB leaves open file."
-    f.write(u"\n" + u"\n" + my_globals.SCRIPT_END + \
-            u"-"*(65 - len(my_globals.SCRIPT_END)) + u"\n")
+    f.write(u"\n" + u"\n" + mg.SCRIPT_END + \
+            u"-"*(65 - len(mg.SCRIPT_END)) + u"\n")
     f.write(u"\n" + u"fil.write(output.get_html_ftr())")
     f.write(u"\n" + u"fil.close()")
 
@@ -493,10 +489,9 @@ def display_report(parent, strContent, url_load=False):
     # display results
     wx.BeginBusyCursor()
     dlg = showhtml.ShowHTML(parent=parent, content=strContent, 
-                            file_name=my_globals.INT_REPORT_FILE, 
-                            title=_("Report"), 
-                            print_folder=my_globals.INTERNAL_FOLDER,
-                            url_load=url_load)
+                            file_name=mg.INT_REPORT_FILE, title=_("Report"), 
+                            print_folder=mg.INTERNAL_FOLDER, url_load=url_load)
     dlg.ShowModal()
     dlg.Destroy()
     wx.EndBusyCursor() # again to be sure
+    

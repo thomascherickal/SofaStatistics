@@ -6,14 +6,14 @@ import pprint
 import sys
 import wx
 
-import my_globals
+import my_globals as mg
 import lib
 import config_dlg
 import getdata
 import projselect
 import settings_grid
 
-LOCAL_PATH = my_globals.LOCAL_PATH
+LOCAL_PATH = mg.LOCAL_PATH
 
 def get_projs():
     """
@@ -34,7 +34,7 @@ def get_proj_notes(fil_proj, proj_dic):
     If the default project, return the translated notes rather than what is 
         actually stored in the file (notes in English).
     """
-    if fil_proj == my_globals.SOFA_DEFAULT_PROJ:
+    if fil_proj == mg.SOFA_DEFAULT_PROJ:
         proj_notes = _("Default project so users can get started without "
                        "having to understand projects.  NB read only.")
     else:
@@ -97,10 +97,10 @@ def set_var_props(choice_item, var_name, var_label, flds, var_labels, var_notes,
     data.sort(key=lambda s: s[0])
     config_data = []
     # get config_data back updated
-    bolnumeric = flds[var_name][my_globals.FLD_BOLNUMERIC]
-    boldecimal = flds[var_name][my_globals.FLD_DECPTS]
-    boldatetime = flds[var_name][my_globals.FLD_BOLDATETIME]
-    boltext = flds[var_name][my_globals.FLD_BOLTEXT]
+    bolnumeric = flds[var_name][mg.FLD_BOLNUMERIC]
+    boldecimal = flds[var_name][mg.FLD_DECPTS]
+    boldatetime = flds[var_name][mg.FLD_BOLDATETIME]
+    boltext = flds[var_name][mg.FLD_BOLTEXT]
     if bolnumeric:
         if boldecimal:
             val_type = settings_grid.COL_FLOAT
@@ -112,12 +112,12 @@ def set_var_props(choice_item, var_name, var_label, flds, var_labels, var_notes,
     notes = var_notes.get(var_name, "")
     # if nothing recorded, choose useful default variable type
     if bolnumeric:
-        def_type = my_globals.VAR_TYPE_QUANT # have to trust the user somewhat!
+        def_type = mg.VAR_TYPE_QUANT # have to trust the user somewhat!
     elif boldatetime:
-        def_type = my_globals.VAR_TYPE_CAT # see notes when enabling under 
+        def_type = mg.VAR_TYPE_CAT # see notes when enabling under 
             # GetSettings
     else:
-        def_type = my_globals.VAR_TYPE_CAT
+        def_type = mg.VAR_TYPE_CAT
     type = var_types.get(var_name, def_type)
     var_desc = {"label": var_label, "notes": notes, "type": type}
     getsettings = GetSettings(title, boltext, boldatetime, var_desc, data, 
@@ -157,23 +157,23 @@ def set_var_props(choice_item, var_name, var_label, flds, var_labels, var_notes,
         return False
     
 def get_approp_var_names(flds, var_types=None,
-                         min_data_type=my_globals.VAR_TYPE_CAT):
+                         min_data_type=mg.VAR_TYPE_CAT):
     """
     Get filtered list of variable names according to minimum data type.
     """
-    if min_data_type == my_globals.VAR_TYPE_CAT:
+    if min_data_type == mg.VAR_TYPE_CAT:
         var_names = [x for x in flds]
-    elif min_data_type == my_globals.VAR_TYPE_ORD:
+    elif min_data_type == mg.VAR_TYPE_ORD:
         # check for numeric as well in case user has manually 
         # misconfigured var_type in vdts file.
-        var_names = [x for x in flds if flds[x][my_globals.FLD_BOLNUMERIC] and \
-                     var_types.get(x) in (None, my_globals.VAR_TYPE_ORD, 
-                                          my_globals.VAR_TYPE_QUANT)]
-    elif min_data_type == my_globals.VAR_TYPE_QUANT:
+        var_names = [x for x in flds if flds[x][mg.FLD_BOLNUMERIC] and \
+                     var_types.get(x) in (None, mg.VAR_TYPE_ORD, 
+                                          mg.VAR_TYPE_QUANT)]
+    elif min_data_type == mg.VAR_TYPE_QUANT:
         # check for numeric as well in case user has manually 
         # misconfigured var_type in vdts file.
-        var_names = [x for x in flds if flds[x][my_globals.FLD_BOLNUMERIC] and \
-                     var_types.get(x) in (None, my_globals.VAR_TYPE_QUANT)]
+        var_names = [x for x in flds if flds[x][mg.FLD_BOLNUMERIC] and \
+                     var_types.get(x) in (None, mg.VAR_TYPE_QUANT)]
     return var_names
 
 def get_idx_to_select(choice_items, drop_var, var_labels, default):
@@ -304,15 +304,15 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         self.txtVarNotes = wx.TextCtrl(self.panel, -1, self.var_desc["notes"],
                                        style=wx.TE_MULTILINE)
         self.radDataType = wx.RadioBox(self.panel, -1, _("Data Type"),
-                                       choices=my_globals.VAR_TYPES)
+                                       choices=mg.VAR_TYPES)
         self.radDataType.SetStringSelection(self.var_desc["type"])
         # if text or datetime, only enable categorical.
         # datetime cannot be quant (if a measurement of seconds etc would be 
         # numeric instead) and although ordinal, not used like that in any of 
         # these tests.
         if boltext or boldatetime:
-            self.radDataType.EnableItem(my_globals.VAR_IDX_ORD, False)
-            self.radDataType.EnableItem(my_globals.VAR_IDX_QUANT, False)
+            self.radDataType.EnableItem(mg.VAR_IDX_ORD, False)
+            self.radDataType.EnableItem(mg.VAR_IDX_QUANT, False)
         btnTypeHelp = wx.Button(self.panel, wx.ID_HELP)
         btnTypeHelp.Bind(wx.EVT_BUTTON, self.on_type_help_btn)
         # sizers
@@ -364,10 +364,10 @@ class GetSettings(settings_grid.SettingsEntryDlg):
 
 class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
     def __init__(self, parent, readonly=False, fil_proj=None):
-        if my_globals.MAX_HEIGHT <= 620:
+        if mg.MAX_HEIGHT <= 620:
             myheight = 600
-        elif my_globals.MAX_HEIGHT <= 870:
-            myheight = my_globals.MAX_HEIGHT - 70
+        elif mg.MAX_HEIGHT <= 870:
+            myheight = mg.MAX_HEIGHT - 70
         else:
             myheight = 800
         wx.Dialog.__init__(self, parent=parent, title=_("Project Settings"),
@@ -416,8 +416,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                                        _("Default Database Engine:"))
         lblDefault_Dbe.SetFont(lblfont)
         self.dropDefault_Dbe = wx.Choice(self.scroll_con_dets, -1, 
-                                         choices=my_globals.DBES)
-        sel_dbe_id = my_globals.DBES.index(self.default_dbe)
+                                         choices=mg.DBES)
+        sel_dbe_id = mg.DBES.index(self.default_dbe)
         self.dropDefault_Dbe.SetSelection(sel_dbe_id)
         self.dropDefault_Dbe.Bind(wx.EVT_CHOICE, self.on_dbe_choice)
         self.dropDefault_Dbe.Enable(not self.readonly)
@@ -473,15 +473,15 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             self.get_proj_settings(fil_proj)
         else:
             # prepopulate with default settings
-            self.get_proj_settings(fil_proj=my_globals.SOFA_DEFAULT_PROJ)
-            self.proj_name = my_globals.EMPTY_PROJ_NAME
+            self.get_proj_settings(fil_proj=mg.SOFA_DEFAULT_PROJ)
+            self.proj_name = mg.EMPTY_PROJ_NAME
             self.proj_notes = _("The SOFA Default Database is needed to allow "
                                 "you to add new tables to SOFA Statistics")
             self.new_proj = True
         try:
             self.proj_name
         except AttributeError:
-            self.proj_name = my_globals.EMPTY_PROJ_NAME
+            self.proj_name = mg.EMPTY_PROJ_NAME
         try:
             self.proj_notes
         except AttributeError:
@@ -491,7 +491,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         except AttributeError:
             # make empty labels file if necessary
             fil_default_var_dets = os.path.join(LOCAL_PATH, u"vdts", 
-                                            my_globals.SOFA_DEFAULT_VDTS)
+                                            mg.SOFA_DEFAULT_VDTS)
             if not os.path.exists(fil_default_var_dets):
                 f = open(fil_default_var_dets, "w")
                 f.write(u"# add variable details here")
@@ -501,21 +501,21 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             self.fil_css
         except AttributeError:
             self.fil_css = os.path.join(LOCAL_PATH, u"css", 
-                                        my_globals.SOFA_DEFAULT_STYLE)
+                                        mg.SOFA_DEFAULT_STYLE)
         try:            
             self.fil_report
         except AttributeError:       
             self.fil_report = os.path.join(LOCAL_PATH, u"reports", 
-                                           my_globals.SOFA_DEFAULT_REPORT)
+                                           mg.SOFA_DEFAULT_REPORT)
         try:            
             self.fil_script
         except AttributeError: 
             self.fil_script = os.path.join(LOCAL_PATH, u"scripts", 
-                                           my_globals.SOFA_DEFAULT_SCRIPT)
+                                           mg.SOFA_DEFAULT_SCRIPT)
         try:
             self.default_dbe
         except AttributeError:
-            self.default_dbe = os.path.join(my_globals.DBE_SQLITE)
+            self.default_dbe = os.path.join(mg.DBE_SQLITE)
         
     def get_proj_settings(self, fil_proj):
         """
@@ -558,7 +558,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
     
     def on_dbe_choice(self, event):
         sel_dbe_id = self.dropDefault_Dbe.GetSelection()
-        self.default_dbe = my_globals.DBES[sel_dbe_id]
+        self.default_dbe = mg.DBES[sel_dbe_id]
         event.Skip()
     
     def setup_btns(self):
@@ -616,7 +616,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         # get the data (separated for easier debugging)
         if not self.readonly:
             proj_name = self.txtName.GetValue()
-            if proj_name == my_globals.EMPTY_PROJ_NAME:
+            if proj_name == mg.EMPTY_PROJ_NAME:
                 wx.MessageBox(_("Please provide a project name"))
                 self.txtName.SetFocus()
                 return
@@ -632,7 +632,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             fil_css = self.txtCssFile.GetValue()
             fil_report = self.txtReportFile.GetValue()
             fil_script = self.txtScriptFile.GetValue()
-            default_dbe = my_globals.DBES[self.dropDefault_Dbe.GetSelection()]
+            default_dbe = mg.DBES[self.dropDefault_Dbe.GetSelection()]
             default_dbs = {}
             default_tbls = {}
             con_dets = {}

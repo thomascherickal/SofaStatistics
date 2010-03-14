@@ -3,7 +3,7 @@
 import os
 import wx
 
-import my_globals
+import my_globals as mg
 import lib
 import indep2var
 
@@ -11,7 +11,7 @@ import indep2var
 class DlgConfig(indep2var.DlgIndep2VarConfig):
 
     averaged = _("Ranked")
-    min_data_type = my_globals.VAR_TYPE_ORD
+    min_data_type = mg.VAR_TYPE_ORD
 
     def get_examples(self):
         eg1 = _("Answers the question, do 2 groups have different results "
@@ -59,7 +59,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"mann_whitney_output = " + \
             u"stats_output.mann_whitney_output(" + \
             u"u, p, dic_a, dic_b, label_ranked, dp,\n     " + \
-            u"level=my_globals.OUTPUT_RESULTS_ONLY, css_idx=%s, " % css_idx + \
+            u"level=mg.OUTPUT_RESULTS_ONLY, css_idx=%s, " % css_idx + \
             u"page_break_after=False)")
         script_lst.append(u"fil.write(mann_whitney_output)")
         return u"\n".join(script_lst)

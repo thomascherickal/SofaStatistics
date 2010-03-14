@@ -1,13 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-import my_globals
+import my_globals as mg
 import lib
 import paired2var
 
 
 class DlgConfig(paired2var.DlgPaired2VarConfig):
     
-    min_data_type = my_globals.VAR_TYPE_QUANT
+    min_data_type = mg.VAR_TYPE_QUANT
     
     def get_examples(self):
         eg1 = _("Answers the question, are the elements of paired sets of "
@@ -44,7 +44,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             u"sample_a, sample_b, t, p, "
             u"\n    dic_a, dic_b, diffs, add_to_report, report_name, "
                 u"label_avg=\"\", dp=dp, "
-            u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, "
+            u"\n    level=mg.OUTPUT_RESULTS_ONLY, "
             u"css_idx=%s, page_break_after=False)" % css_idx)        
         script_lst.append(u"fil.write(ttest_paired_output)")
         return u"\n".join(script_lst)

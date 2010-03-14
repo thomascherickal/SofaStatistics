@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import wx
 
-import my_globals
+import my_globals as mg
 import lib
 import getdata
 import projects
@@ -20,8 +20,8 @@ def get_val(raw_val, flds, fld_name):
         processed correctly as a Null when clauses are made.
     """
     debug = False
-    bolnumeric = flds[fld_name][my_globals.FLD_BOLNUMERIC]
-    boldatetime = flds[fld_name][my_globals.FLD_BOLDATETIME]
+    bolnumeric = flds[fld_name][mg.FLD_BOLNUMERIC]
+    boldatetime = flds[fld_name][mg.FLD_BOLDATETIME]
     if bolnumeric:
         if lib.is_numeric(raw_val):
             return float(raw_val)
@@ -90,13 +90,13 @@ class FiltSelectDlg(wx.Dialog):
         szrLabel.Add(self.txtLabel, 1)
         # quick content
         self.dropVars = wx.Choice(self.panel, -1, size=(300, -1))
-        self.dropVars.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_vars)
+        self.dropVars.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_vars)
         self.dropVars.SetToolTipString(_("Right click variable to view/edit "
                                          "details"))
         self.sorted_var_names = [] # refreshed as required and in 
             # order of labels, not raw values
         self.setup_vars()
-        gte_choices = my_globals.GTES
+        gte_choices = mg.GTES
         self.dropGTE = wx.Choice(self.panel, -1, choices=gte_choices)
         self.dropGTE.SetSelection(0)
         self.txtVal = wx.TextCtrl(self.panel, -1, "")
@@ -198,7 +198,7 @@ class FiltSelectDlg(wx.Dialog):
         
     def on_delete(self, event):
         try:
-            del my_globals.DBE_TBL_FILTS[self.dbe][self.db][self.tbl]
+            del mg.DBE_TBL_FILTS[self.dbe][self.db][self.tbl]
         except KeyError:
             raise Exception, ("Tried to delete filter but not in global "
                               "dictionary")
@@ -260,12 +260,12 @@ class FiltSelectDlg(wx.Dialog):
                             " \"%(tbl)s\"") % {"filt": tbl_filt, 
                                                "tbl": self.tbl} + demo)
             return
-        if self.dbe not in my_globals.DBE_TBL_FILTS:
-            my_globals.DBE_TBL_FILTS[self.dbe] = {}
-        if self.db not in my_globals.DBE_TBL_FILTS[self.dbe]:
-            my_globals.DBE_TBL_FILTS[self.dbe][self.db] = {}
-        my_globals.DBE_TBL_FILTS[self.dbe][self.db][self.tbl] = \
-            (tbl_filt_label, tbl_filt)
+        if self.dbe not in mg.DBE_TBL_FILTS:
+            mg.DBE_TBL_FILTS[self.dbe] = {}
+        if self.db not in mg.DBE_TBL_FILTS[self.dbe]:
+            mg.DBE_TBL_FILTS[self.dbe][self.db] = {}
+        mg.DBE_TBL_FILTS[self.dbe][self.db][self.tbl] = (tbl_filt_label, 
+                                                         tbl_filt)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
         # Prebuilt dialogs must do this internally.
@@ -297,7 +297,7 @@ class FiltSelectDlg(wx.Dialog):
         var_item = self.dropVars.GetStringSelection()
         return var, var_item
     
-    def on_right_click_vars(self, event):
+    def on_rclick_vars(self, event):
         var_name, choice_item = self.get_var()
         var_label = lib.get_item_label(item_labels=self.var_labels, 
                                        item_val=var_name)

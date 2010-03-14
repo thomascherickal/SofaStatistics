@@ -2,7 +2,7 @@ import pprint
 import string
 import wx
 
-import my_globals
+import my_globals as mg
 import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import settings_grid
@@ -24,14 +24,14 @@ def insert_data(row_idx, grid_data):
             continue
         nums_used.append(num_used)
     free_num = max(nums_used) + 1 if nums_used else 1
-    row_data = [u"var%03i" % free_num, my_globals.FLD_TYPE_NUMERIC]
+    row_data = [u"var%03i" % free_num, mg.FLD_TYPE_NUMERIC]
     return row_data
 
 def cell_invalidation(row, col, grid, col_dets):
     """
     The first column text must be either empty, or 
         alphanumeric (and underscores), and unique (field name) 
-        and the second must be empty or from my_globals.CONF_... e.g. "numeric"
+        and the second must be empty or from mg.CONF_... e.g. "numeric"
     """
     if col == 0:
         return _invalid_fld_name(row, grid)
@@ -64,9 +64,9 @@ def _invalid_fld_type(row, grid):
     field_type = grid.GetCellValue(row=row, col=1)
     if field_type.strip() == u"":
         return False, ""
-    if field_type not in [my_globals.FLD_TYPE_NUMERIC, 
-                          my_globals.FLD_TYPE_STRING, 
-                          my_globals.FLD_TYPE_DATE]:
+    if field_type not in [mg.FLD_TYPE_NUMERIC, 
+                          mg.FLD_TYPE_STRING, 
+                          mg.FLD_TYPE_DATE]:
         msg = _("%s is not a valid field type") % field_type
         return True, msg
     return False, u""
@@ -172,9 +172,9 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                     {"col_label": _("Data Type"), 
                      "col_type": settings_grid.COL_DROPDOWN, 
                      "col_width": 100,
-                     "dropdown_vals": [my_globals.FLD_TYPE_NUMERIC, 
-                                       my_globals.FLD_TYPE_STRING, 
-                                       my_globals.FLD_TYPE_DATE]},
+                     "dropdown_vals": [mg.FLD_TYPE_NUMERIC, 
+                                       mg.FLD_TYPE_STRING, 
+                                       mg.FLD_TYPE_DATE]},
                      ]
         grid_size = (250, 250)
         wx.Dialog.__init__(self, None, title=_("Configure Data Table"),
@@ -214,10 +214,10 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         debug = False
         extra = []
         for row in data:
-            new_row = {my_globals.TBL_FLD_NAME: row[0], 
-                       my_globals.TBL_FLD_NAME_ORIG: row[0], 
-                       my_globals.TBL_FLD_TYPE: row[1], 
-                       my_globals.TBL_FLD_TYPE_ORIG: row[1]}
+            new_row = {mg.TBL_FLD_NAME: row[0], 
+                       mg.TBL_FLD_NAME_ORIG: row[0], 
+                       mg.TBL_FLD_TYPE: row[1], 
+                       mg.TBL_FLD_TYPE_ORIG: row[1]}
             extra.append(new_row)
         self.config_data += extra
         if debug: print("Initialised extra config data: %s" % self.config_data)
@@ -233,8 +233,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             return False, None, None
         pos = selected_rows[0]
         if pos == 0: # for table config only
-            wx.MessageBox(_("The %s must always come first") % \
-                          my_globals.SOFA_ID)
+            wx.MessageBox(_("The %s must always come first") % mg.SOFA_ID)
             return False, None, None
         bolinserted, row_data = self.tabentry.insert_row_above(pos)
         return bolinserted, pos, row_data
@@ -254,10 +253,10 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
     def add_new_to_config(self, row_before, row_data):
         if self.debug: print("Row we inserted before was %s" % row_before)
         # insert new row into config_data - Nones for original values
-        new_row = {my_globals.TBL_FLD_NAME: row_data[0], 
-                   my_globals.TBL_FLD_NAME_ORIG: None, 
-                   my_globals.TBL_FLD_TYPE: row_data[1], 
-                   my_globals.TBL_FLD_TYPE_ORIG: None}
+        new_row = {mg.TBL_FLD_NAME: row_data[0], 
+                   mg.TBL_FLD_NAME_ORIG: None, 
+                   mg.TBL_FLD_TYPE: row_data[1], 
+                   mg.TBL_FLD_TYPE_ORIG: None}
         self.config_data.insert(row_before, new_row)
         if self.debug: pprint.pprint(self.config_data)
             
@@ -293,7 +292,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
 class ConfigTableEntry(settings_grid.SettingsEntry):
     """
     config_data should be returned as a list of dicts with the keys:
-    my_globals.TBL_FLD_NAME, etc
+    mg.TBL_FLD_NAME, etc
     """
     
     def __init__(self, frame, panel, szr, vert_share, readonly, grid_size, 
@@ -327,13 +326,13 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
             fld_name = self.grid.GetCellValue(src_row, 0)
             fld_type = self.grid.GetCellValue(src_row, 1)
             try:
-                self.config_data[src_row][my_globals.TBL_FLD_NAME] = fld_name
-                self.config_data[src_row][my_globals.TBL_FLD_TYPE] = fld_type
+                self.config_data[src_row][mg.TBL_FLD_NAME] = fld_name
+                self.config_data[src_row][mg.TBL_FLD_TYPE] = fld_type
             except IndexError: # leaving what was the new row
-                new_row = {my_globals.TBL_FLD_NAME: fld_name, 
-                           my_globals.TBL_FLD_NAME_ORIG: None, 
-                           my_globals.TBL_FLD_TYPE: fld_type, 
-                           my_globals.TBL_FLD_TYPE_ORIG: None}
+                new_row = {mg.TBL_FLD_NAME: fld_name, 
+                           mg.TBL_FLD_NAME_ORIG: None, 
+                           mg.TBL_FLD_TYPE: fld_type, 
+                           mg.TBL_FLD_TYPE_ORIG: None}
                 self.config_data.append(new_row)
             if self.debug or debug: pprint.pprint(self.config_data)
             
@@ -352,8 +351,8 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
             pprint.pprint(self.config_data)
         for i, row in enumerate(grid_data):
             if debug: print(row)
-            self.config_data[i][my_globals.TBL_FLD_NAME] = row[0]
-            self.config_data[i][my_globals.TBL_FLD_TYPE] = row[1]
+            self.config_data[i][mg.TBL_FLD_NAME] = row[0]
+            self.config_data[i][mg.TBL_FLD_TYPE] = row[1]
         if self.debug or debug:
             print("Final config data:")
             pprint.pprint(self.config_data)

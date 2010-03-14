@@ -6,7 +6,7 @@ import wx
 import wxmpl
 import pylab # must import after wxmpl so matplotlib.use() is always first
 
-import my_globals
+import my_globals as mg
 import core_stats
 import wxmpl
 
@@ -66,12 +66,12 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False):
             hist_label = _("Histogram for %s") % var_label
         axes.set_title(hist_label)
         normal_line_width = 4
-    n, bins, patches = axes.hist(vals, nbins, normed=1, 
-        facecolor=my_globals.FACECOLOR, edgecolor=my_globals.EDGECOLOR)
+    n, bins, patches = axes.hist(vals, nbins, normed=1, facecolor=mg.FACECOLOR, 
+                                 edgecolor=mg.EDGECOLOR)
     mu = core_stats.mean(vals)
     sigma = core_stats.stdev(vals)
     y = pylab.normpdf(bins, mu, sigma)
-    l = axes.plot(bins, y,  color=my_globals.NORM_LINE_COLOR, 
+    l = axes.plot(bins, y,  color=mg.NORM_LINE_COLOR, 
                   linewidth=normal_line_width)
 
 def config_scatterplot(fig, sample_a, sample_b, label_a, label_b, a_vs_b):
@@ -79,12 +79,10 @@ def config_scatterplot(fig, sample_a, sample_b, label_a, label_b, a_vs_b):
     Configure scatterplot with line of best fit.
     Size is set externally. 
     """
-    pylab.plot(sample_a, sample_b, 'o', color=my_globals.FACECOLOR, 
-               label=a_vs_b)
+    pylab.plot(sample_a, sample_b, 'o', color=mg.FACECOLOR, label=a_vs_b)
     p = pylab.polyfit(sample_a, sample_b, 1)
     pylab.plot(sample_a, pylab.polyval(p, sample_a), "-", 
-               color=my_globals.NORM_LINE_COLOR, linewidth=4,
-               label="Line of best fit")
+               color=mg.NORM_LINE_COLOR, linewidth=4, label="Line of best fit")
     axes = fig.gca()
     axes.set_xlabel(label_a)
     axes.set_ylabel(label_b)

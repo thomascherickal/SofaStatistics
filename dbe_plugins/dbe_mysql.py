@@ -5,7 +5,7 @@ import MySQLdb
 import wx
 import pprint
 
-import my_globals
+import my_globals as mg
 import getdata
 
 BIGINT = "bigint"
@@ -49,7 +49,7 @@ class DbDets(getdata.DbDets):
     
     def get_con_cur(self):
         "Connection keywords must be plain strings not unicode strings"
-        con_dets_mysql = self.con_dets.get(my_globals.DBE_MYSQL)
+        con_dets_mysql = self.con_dets.get(mg.DBE_MYSQL)
         if not con_dets_mysql:
             raise Exception, u"No connection details available for MySQL"
         try:
@@ -72,7 +72,7 @@ class DbDets(getdata.DbDets):
         # NB db must be accessible from connection
         if not self.db:
             # use default if possible, or fall back to first
-            default_db_mysql = self.default_dbs.get(my_globals.DBE_MYSQL)
+            default_db_mysql = self.default_dbs.get(mg.DBE_MYSQL)
             if default_db_mysql.lower() in dbs_lc:
                 self.db = default_db_mysql
             else:
@@ -113,7 +113,7 @@ class DbDets(getdata.DbDets):
         # NB table must be in the database
         if not self.tbl:
             # use default if possible
-            default_tbl_mysql = self.default_tbls.get(my_globals.DBE_MYSQL)
+            default_tbl_mysql = self.default_tbls.get(mg.DBE_MYSQL)
             if default_tbl_mysql and default_tbl_mysql.lower() in tbls_lc:
                 self.tbl = default_tbl_mysql
             else:
@@ -288,21 +288,21 @@ class DbDets(getdata.DbDets):
             bolsigned = (col_type.find("unsigned") == -1)
             min_val, max_val = self.get_min_max(col_type, num_prec, dec_pts)
             dets_dic = {
-                        my_globals.FLD_SEQ: ord_pos,
-                        my_globals.FLD_BOLNULLABLE: bolnullable,
-                        my_globals.FLD_DATA_ENTRY_OK: boldata_entry_ok,
-                        my_globals.FLD_COLUMN_DEFAULT: fld_default,
-                        my_globals.FLD_BOLTEXT: fld_txt,
-                        my_globals.FLD_TEXT_LENGTH: max_len,
-                        my_globals.FLD_CHARSET: charset,
-                        my_globals.FLD_BOLNUMERIC: bolnumeric,
-                        my_globals.FLD_BOLAUTONUMBER: autonum,
-                        my_globals.FLD_DECPTS: dec_pts,
-                        my_globals.FLD_NUM_WIDTH: num_prec,
-                        my_globals.FLD_BOL_NUM_SIGNED: bolsigned,
-                        my_globals.FLD_NUM_MIN_VAL: min_val,
-                        my_globals.FLD_NUM_MAX_VAL: max_val,
-                        my_globals.FLD_BOLDATETIME: boldatetime,
+                        mg.FLD_SEQ: ord_pos,
+                        mg.FLD_BOLNULLABLE: bolnullable,
+                        mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
+                        mg.FLD_COLUMN_DEFAULT: fld_default,
+                        mg.FLD_BOLTEXT: fld_txt,
+                        mg.FLD_TEXT_LENGTH: max_len,
+                        mg.FLD_CHARSET: charset,
+                        mg.FLD_BOLNUMERIC: bolnumeric,
+                        mg.FLD_BOLAUTONUMBER: autonum,
+                        mg.FLD_DECPTS: dec_pts,
+                        mg.FLD_NUM_WIDTH: num_prec,
+                        mg.FLD_BOL_NUM_SIGNED: bolsigned,
+                        mg.FLD_NUM_MIN_VAL: min_val,
+                        mg.FLD_NUM_MAX_VAL: max_val,
+                        mg.FLD_BOLDATETIME: boldatetime,
                         }
             flds[fld_name] = dets_dic
         if debug: print("flds: %s" % flds)
@@ -334,9 +334,8 @@ class DbDets(getdata.DbDets):
             fld_names = [x.strip() for x in raw_fld_names.split(",")]
             if unique_index:
                 has_unique = True
-            idx_dic = {my_globals.IDX_NAME: idx_name, 
-                       my_globals.IDX_IS_UNIQUE: unique_index, 
-                       my_globals.IDX_FLDS: fld_names}
+            idx_dic = {mg.IDX_NAME: idx_name, mg.IDX_IS_UNIQUE: unique_index, 
+                       mg.IDX_FLDS: fld_names}
             idxs.append(idx_dic)
         debug = False
         if debug:
@@ -410,14 +409,14 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     szr.Add(parent.szrMysql, 0, wx.GROW|wx.ALL, 10)
     
 def get_proj_settings(parent, proj_dic):
-    parent.mysql_default_db = proj_dic["default_dbs"].get(my_globals.DBE_MYSQL)
+    parent.mysql_default_db = proj_dic["default_dbs"].get(mg.DBE_MYSQL)
     parent.mysql_default_tbl = \
-        proj_dic["default_tbls"].get(my_globals.DBE_MYSQL)
+        proj_dic["default_tbls"].get(mg.DBE_MYSQL)
     # optional (although if any mysql, for eg, must have all)
-    if proj_dic["con_dets"].get(my_globals.DBE_MYSQL):
-        parent.mysql_host = proj_dic["con_dets"][my_globals.DBE_MYSQL]["host"]
-        parent.mysql_user = proj_dic["con_dets"][my_globals.DBE_MYSQL]["user"]
-        parent.mysql_pwd = proj_dic["con_dets"][my_globals.DBE_MYSQL]["passwd"]
+    if proj_dic["con_dets"].get(mg.DBE_MYSQL):
+        parent.mysql_host = proj_dic["con_dets"][mg.DBE_MYSQL]["host"]
+        parent.mysql_user = proj_dic["con_dets"][mg.DBE_MYSQL]["user"]
+        parent.mysql_pwd = proj_dic["con_dets"][mg.DBE_MYSQL]["passwd"]
     else:
         parent.mysql_host, parent.mysql_user, parent.mysql_pwd = "", "", ""
 
@@ -456,13 +455,13 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     if incomplete_mysql:
         wx.MessageBox(_("The MySQL details are incomplete"))
         parent.txtMysqlDefaultDb.SetFocus()
-    default_dbs[my_globals.DBE_MYSQL] = mysql_default_db \
+    default_dbs[mg.DBE_MYSQL] = mysql_default_db \
         if mysql_default_db else None    
-    default_tbls[my_globals.DBE_MYSQL] = mysql_default_tbl \
+    default_tbls[mg.DBE_MYSQL] = mysql_default_tbl \
         if mysql_default_tbl else None
     if mysql_host and mysql_user and mysql_pwd:
         con_dets_mysql = {"host": mysql_host, "user": mysql_user, 
                            "passwd": mysql_pwd}
-        con_dets[my_globals.DBE_MYSQL] = con_dets_mysql
+        con_dets[mg.DBE_MYSQL] = con_dets_mysql
     return incomplete_mysql, has_mysql_con
     

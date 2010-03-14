@@ -5,7 +5,7 @@ import os
 import wx
 import wx.html
 
-import my_globals
+import my_globals as mg
 import lib
 import config_dlg
 import full_html
@@ -64,7 +64,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szrDesc.Add(lblDesc2, 1, wx.GROW|wx.LEFT, 5)
         szrDesc.Add(lblDesc3, 1, wx.GROW|wx.LEFT, 5)
         bxVars = wx.StaticBox(self.panel, -1, _("Variables"))
-        if not my_globals.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
+        if not mg.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
             bxVars.SetToolTipString(variables_rc_msg)
         szrVars = wx.StaticBoxSizer(bxVars, wx.VERTICAL)
         #szrVars = wx.BoxSizer(wx.HORIZONTAL) # removes tooltip bug in gtk
@@ -77,7 +77,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.lblGroupA.SetFont(self.LABEL_FONT)
         self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupA.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
-        self.dropGroupA.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_group_a)
+        self.dropGroupA.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_a)
         self.dropGroupA.SetToolTipString(variables_rc_msg)
         szrVarsTop.Add(self.lblGroupA, 0, wx.RIGHT, 5)
         szrVarsTop.Add(self.dropGroupA, 0, wx.GROW)
@@ -86,7 +86,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.lblGroupB.SetFont(self.LABEL_FONT)
         self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
         self.dropGroupB.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
-        self.dropGroupB.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click_group_b)
+        self.dropGroupB.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_b)
         self.dropGroupB.SetToolTipString(variables_rc_msg)
         self.setup_groups()
         szrVarsTop.Add(self.lblGroupB, 0, wx.LEFT|wx.RIGHT, 5)
@@ -97,10 +97,10 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szrVarsBottom.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
         szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
-        if my_globals.MAX_HEIGHT <= 620:
+        if mg.MAX_HEIGHT <= 620:
             myheight = 130
-        elif my_globals.MAX_HEIGHT <= 820:
-            myheight = ((my_globals.MAX_HEIGHT/1024.0)*350) - 20
+        elif mg.MAX_HEIGHT <= 820:
+            myheight = ((mg.MAX_HEIGHT/1024.0)*350) - 20
         else:
             myheight = 350
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))
@@ -120,7 +120,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
 
-    def on_right_click_group_a(self, event):
+    def on_rclick_group_a(self, event):
         var_a, choice_item = self.get_var_a()
         var_label_a = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_a)
@@ -130,7 +130,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         if updated:
             self.refresh_vars()
 
-    def on_right_click_group_b(self, event):
+    def on_rclick_group_b(self, event):
         var_b, choice_item = self.get_var_b()
         var_label_b = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_b)
@@ -163,15 +163,13 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def setup_group_a(self, fld_choice_items, var_a=None):        
         self.dropGroupA.SetItems(fld_choice_items)
         idx_a = projects.get_idx_to_select(fld_choice_items, var_a, 
-                                           self.var_labels, 
-                                           my_globals.GROUP_A_DEFAULT)
+                                           self.var_labels, mg.GROUP_A_DEFAULT)
         self.dropGroupA.SetSelection(idx_a)            
 
     def setup_group_b(self, fld_choice_items, var_b=None):        
         self.dropGroupB.SetItems(fld_choice_items)
         idx_b = projects.get_idx_to_select(fld_choice_items, var_b, 
-                                           self.var_labels, 
-                                           my_globals.GROUP_B_DEFAULT)
+                                           self.var_labels, mg.GROUP_B_DEFAULT)
         self.dropGroupB.SetSelection(idx_b)
         
     def setup_groups(self, var_a=None, var_b=None):
@@ -253,8 +251,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                                 {"a": label_a, "b": label_b})
     
     def update_defaults(self):
-        my_globals.GROUP_A_DEFAULT = self.dropGroupA.GetStringSelection()
-        my_globals.GROUP_B_DEFAULT = self.dropGroupB.GetStringSelection()
+        mg.GROUP_A_DEFAULT = self.dropGroupA.GetStringSelection()
+        mg.GROUP_B_DEFAULT = self.dropGroupB.GetStringSelection()
         
     def update_local_display(self, strContent):
         self.html.show_html(strContent, url_load=True) # allow footnotes
@@ -336,8 +334,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         except Exception:
             pass
         finally:
-            my_globals.DBE_DEFAULT = self.dbe
-            my_globals.DB_DEFAULTS[self.dbe] = self.db
-            my_globals.TBL_DEFAULTS[self.dbe] = self.tbl
+            mg.DBE_DEFAULT = self.dbe
+            mg.DB_DEFAULTS[self.dbe] = self.db
+            mg.TBL_DEFAULTS[self.dbe] = self.tbl
             self.Destroy()
             event.Skip()

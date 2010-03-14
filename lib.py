@@ -15,7 +15,7 @@ import time
 import wx
 
 # only import my_globals from local modules
-import my_globals
+import my_globals as mg
 
 def get_title_dets_html(titles, subtitles, CSS_TBL_TITLE, CSS_TBL_SUBTITLE):
     """
@@ -24,17 +24,15 @@ def get_title_dets_html(titles, subtitles, CSS_TBL_TITLE, CSS_TBL_SUBTITLE):
     Do not want block display - if title and/or subtitle are empty, want minimal
         display height.
     """
-    titles_html = u"\n<span class='%s'>%s" % (CSS_TBL_TITLE, 
-                                           my_globals.TBL_TITLE_START)
+    titles_html = u"\n<span class='%s'>%s" % (CSS_TBL_TITLE, mg.TBL_TITLE_START)
     titles_inner_html = get_titles_inner_html(titles_html, titles)
     titles_html += titles_inner_html
-    titles_html += u"%s</span>" % my_globals.TBL_TITLE_END
+    titles_html += u"%s</span>" % mg.TBL_TITLE_END
     subtitles_html = u"\n<span class='%s'>%s" % (CSS_TBL_SUBTITLE, 
-                                        my_globals.TBL_SUBTITLE_START)
-    subtitles_inner_html = get_subtitles_inner_html(subtitles_html, 
-                                                        subtitles)
+                                                 mg.TBL_SUBTITLE_START)
+    subtitles_inner_html = get_subtitles_inner_html(subtitles_html, subtitles)
     subtitles_html += subtitles_inner_html 
-    subtitles_html += u"%s</span>" % my_globals.TBL_SUBTITLE_END
+    subtitles_html += u"%s</span>" % mg.TBL_SUBTITLE_END
     joiner = u"<br>" if titles_inner_html and subtitles_inner_html else u""
     title_dets_html = titles_html + joiner + subtitles_html
     return title_dets_html
@@ -89,7 +87,7 @@ def get_tbl_filt(dbe, db, tbl):
     Returns tbl_filt_label, tbl_filt
     """
     try:
-        tbl_filt_label, tbl_filt = my_globals.DBE_TBL_FILTS[dbe][db][tbl]
+        tbl_filt_label, tbl_filt = mg.DBE_TBL_FILTS[dbe][db][tbl]
     except KeyError:
         tbl_filt_label, tbl_filt = u"", u""
     return tbl_filt_label, tbl_filt
@@ -279,7 +277,7 @@ def clean_bom_utf8(raw):
         raw = raw[len(unicode(codecs.BOM_UTF8, "utf-8")):]
     return raw
 
-if my_globals.IN_WINDOWS:
+if mg.IN_WINDOWS:
     import pywintypes
 
 def escape_win_path(path):
@@ -454,7 +452,7 @@ def get_dets_of_usable_datetime_str(raw_datetime_str):
     if date_part:
         # see cell_invalid for message about correct datetime entry formats
         bad_date = True
-        for ok_date_format in my_globals.OK_DATE_FORMATS:
+        for ok_date_format in mg.OK_DATE_FORMATS:
             try:
                 t = time.strptime(date_part, ok_date_format)
                 date_format = ok_date_format
@@ -468,7 +466,7 @@ def get_dets_of_usable_datetime_str(raw_datetime_str):
     if time_part:
         bad_time = True
         ok_time_formats = ["%I%p", "%I:%M%p", "%H:%M", "%H:%M:%S"]
-        for ok_time_format in my_globals.OK_TIME_FORMATS:
+        for ok_time_format in mg.OK_TIME_FORMATS:
             try:
                 t = time.strptime(time_part, ok_time_format)
                 time_format = ok_time_format
@@ -592,8 +590,8 @@ def get_sorted_choice_items(dic_labels, vals, inc_drop_select=False):
     sorted_vals.sort(key=lambda s: get_choice_item(dic_labels, s).upper())
     choice_items = [get_choice_item(dic_labels, x) for x in sorted_vals]
     if inc_drop_select:
-        choice_items.insert(0, my_globals.DROP_SELECT)
-        sorted_vals.insert(0, my_globals.DROP_SELECT)
+        choice_items.insert(0, mg.DROP_SELECT)
+        sorted_vals.insert(0, mg.DROP_SELECT)
     return choice_items, sorted_vals
 
 def get_selected_choice_item(vars_lst, var_labels, idx):
@@ -614,10 +612,10 @@ def get_default_measure(tab_type):
     Get default measure appropriate for table type
     NB raw tables don't have measures
     """
-    if tab_type in (my_globals.FREQS_TBL, my_globals.CROSSTAB): 
-        return my_globals.FREQ
-    elif tab_type == my_globals.ROW_SUMM:
-        return my_globals.MEAN
+    if tab_type in (mg.FREQS_TBL, mg.CROSSTAB): 
+        return mg.FREQ
+    elif tab_type == mg.ROW_SUMM:
+        return mg.MEAN
     else:
         raise Exception, u"Only frequency or row vs column tables have measures"
 
@@ -643,7 +641,7 @@ class ItemConfig(object):
     """
     
     def __init__(self, var_name=None, measures_lst=None, has_tot=False, 
-                 sort_order=my_globals.SORT_NONE, bolnumeric=False):
+                 sort_order=mg.SORT_NONE, bolnumeric=False):
         self.var_name = var_name
         if measures_lst:
             self.measures_lst = measures_lst
@@ -659,7 +657,7 @@ class ItemConfig(object):
         Variable name doesn't count.
         """
         return self.measures_lst or self.has_tot or \
-            self.sort_order != my_globals.SORT_NONE
+            self.sort_order != mg.SORT_NONE
     
     def get_summary(self, verbose=False):
         """
@@ -669,13 +667,13 @@ class ItemConfig(object):
         total_part = _("Has TOTAL") if self.has_tot else None
         if total_part:
             str_parts.append(total_part)
-        if self.sort_order == my_globals.SORT_NONE:
+        if self.sort_order == mg.SORT_NONE:
             sort_order_part = None
-        elif self.sort_order == my_globals.SORT_LABEL:
+        elif self.sort_order == mg.SORT_LABEL:
             sort_order_part = _("Sort by Label")
-        elif self.sort_order == my_globals.SORT_FREQ_ASC:
+        elif self.sort_order == mg.SORT_FREQ_ASC:
             sort_order_part = _("Sort by Freq (Asc)")
-        elif self.sort_order == my_globals.SORT_FREQ_DESC:
+        elif self.sort_order == mg.SORT_FREQ_DESC:
             sort_order_part = _("Sort by Freq (Desc)")            
         if sort_order_part:
             str_parts.append(sort_order_part)

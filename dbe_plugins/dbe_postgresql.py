@@ -4,7 +4,7 @@ import pgdb
 import wx
 import pprint
 
-import my_globals
+import my_globals as mg
 import getdata
 
 # http://www.postgresql.org/docs/8.4/static/datatype.html
@@ -88,7 +88,7 @@ class DbDets(getdata.DbDets):
             use connection to identify databases and select one.  Then remake
             connection with selected database and remake cursor.
         """
-        con_dets_pgsql = self.con_dets.get(my_globals.DBE_PGSQL)
+        con_dets_pgsql = self.con_dets.get(mg.DBE_PGSQL)
         if not con_dets_pgsql:
             raise Exception, u"No connection details available for PostgreSQL"
         try:
@@ -108,7 +108,7 @@ class DbDets(getdata.DbDets):
         # NB db must be accessible from connection
         if not self.db:
             # use default if possible, or fall back to first
-            default_db_pgsql = self.default_dbs.get(my_globals.DBE_PGSQL)
+            default_db_pgsql = self.default_dbs.get(mg.DBE_PGSQL)
             if default_db_pgsql.lower() in dbs_lc:
                 self.db = default_db_pgsql
             else:
@@ -148,7 +148,7 @@ class DbDets(getdata.DbDets):
         # NB table must be in the database
         if not self.tbl:
             # use default if possible
-            default_tbl_pgsql = self.default_tbls.get(my_globals.DBE_PGSQL)
+            default_tbl_pgsql = self.default_tbls.get(mg.DBE_PGSQL)
             if default_tbl_pgsql and default_tbl_pgsql.lower() in tbls_lc:
                 self.tbl = default_tbl_pgsql
             else:
@@ -292,21 +292,21 @@ class DbDets(getdata.DbDets):
                                                 autonum)
             bolsigned = bolnumeric and autonum
             dets_dic = {
-                        my_globals.FLD_SEQ: ord_pos,
-                        my_globals.FLD_BOLNULLABLE: bolnullable,
-                        my_globals.FLD_DATA_ENTRY_OK: boldata_entry_ok,
-                        my_globals.FLD_COLUMN_DEFAULT: fld_default,
-                        my_globals.FLD_BOLTEXT: fld_txt,
-                        my_globals.FLD_TEXT_LENGTH: max_len,
-                        my_globals.FLD_CHARSET: charset,
-                        my_globals.FLD_BOLNUMERIC: bolnumeric,
-                        my_globals.FLD_BOLAUTONUMBER: autonum,
-                        my_globals.FLD_DECPTS: dec_pts,
-                        my_globals.FLD_NUM_WIDTH: num_prec,
-                        my_globals.FLD_BOL_NUM_SIGNED: bolsigned,
-                        my_globals.FLD_NUM_MIN_VAL: min_val,
-                        my_globals.FLD_NUM_MAX_VAL: max_val,
-                        my_globals.FLD_BOLDATETIME: boldatetime,
+                        mg.FLD_SEQ: ord_pos,
+                        mg.FLD_BOLNULLABLE: bolnullable,
+                        mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
+                        mg.FLD_COLUMN_DEFAULT: fld_default,
+                        mg.FLD_BOLTEXT: fld_txt,
+                        mg.FLD_TEXT_LENGTH: max_len,
+                        mg.FLD_CHARSET: charset,
+                        mg.FLD_BOLNUMERIC: bolnumeric,
+                        mg.FLD_BOLAUTONUMBER: autonum,
+                        mg.FLD_DECPTS: dec_pts,
+                        mg.FLD_NUM_WIDTH: num_prec,
+                        mg.FLD_BOL_NUM_SIGNED: bolsigned,
+                        mg.FLD_NUM_MIN_VAL: min_val,
+                        mg.FLD_NUM_MAX_VAL: max_val,
+                        mg.FLD_BOLDATETIME: boldatetime,
                         }
             flds[fld_name] = dets_dic
         return flds
@@ -347,9 +347,8 @@ class DbDets(getdata.DbDets):
                AND a.attnum IN(%s)""" % (tbl, fld_oids)
             cur.execute(SQL_get_idx_flds)
             fld_names = [x[1] for x in cur.fetchall()]
-            idx_dic = {my_globals.IDX_NAME: idx_name, 
-                       my_globals.IDX_IS_UNIQUE: unique_index, 
-                       my_globals.IDX_FLDS: fld_names}
+            idx_dic = {mg.IDX_NAME: idx_name, mg.IDX_IS_UNIQUE: unique_index, 
+                       mg.IDX_FLDS: fld_names}
             idxs.append(idx_dic)
         debug = False
         if debug:
@@ -422,15 +421,15 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     szr.Add(parent.szrpgsql, 0, wx.GROW|wx.ALL, 10)
     
 def get_proj_settings(parent, proj_dic):
-    parent.pgsql_default_db = proj_dic["default_dbs"].get(my_globals.DBE_PGSQL)
+    parent.pgsql_default_db = proj_dic["default_dbs"].get(mg.DBE_PGSQL)
     parent.pgsql_default_tbl = \
-        proj_dic["default_tbls"].get(my_globals.DBE_PGSQL)
+        proj_dic["default_tbls"].get(mg.DBE_PGSQL)
     # optional (although if any pgsql, for eg, must have all)
-    if proj_dic["con_dets"].get(my_globals.DBE_PGSQL):
-        parent.pgsql_host = proj_dic["con_dets"][my_globals.DBE_PGSQL]["host"]
-        parent.pgsql_user = proj_dic["con_dets"][my_globals.DBE_PGSQL]["user"]
+    if proj_dic["con_dets"].get(mg.DBE_PGSQL):
+        parent.pgsql_host = proj_dic["con_dets"][mg.DBE_PGSQL]["host"]
+        parent.pgsql_user = proj_dic["con_dets"][mg.DBE_PGSQL]["user"]
         parent.pgsql_pwd = \
-            proj_dic["con_dets"][my_globals.DBE_PGSQL]["password"]
+            proj_dic["con_dets"][mg.DBE_PGSQL]["password"]
     else:
         parent.pgsql_host, parent.pgsql_user, parent.pgsql_pwd = "", "", ""
 
@@ -469,12 +468,12 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     if incomplete_pgsql:
         wx.MessageBox(_("The PostgreSQL details are incomplete"))
         parent.txtPgsqlDefaultDb.SetFocus()
-    default_dbs[my_globals.DBE_PGSQL] = pgsql_default_db \
+    default_dbs[mg.DBE_PGSQL] = pgsql_default_db \
         if pgsql_default_db else None    
-    default_tbls[my_globals.DBE_PGSQL] = pgsql_default_tbl \
+    default_tbls[mg.DBE_PGSQL] = pgsql_default_tbl \
         if pgsql_default_tbl else None
     if pgsql_host and pgsql_user and pgsql_pwd:
         con_dets_pgsql = {"host": pgsql_host, "user": pgsql_user, 
                            "password": pgsql_pwd}
-        con_dets[my_globals.DBE_PGSQL] = con_dets_pgsql
+        con_dets[mg.DBE_PGSQL] = con_dets_pgsql
     return incomplete_pgsql, has_pgsql_con

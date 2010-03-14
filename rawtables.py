@@ -1,7 +1,7 @@
 import os
 import datetime
 
-import my_globals
+import my_globals as mg
 import lib
 import getdata
 
@@ -16,7 +16,7 @@ class RawTable(object):
                  var_labels, val_dics, tbl, tbl_filt, cur, 
                  add_total_row=False, first_col_as_label=False):
         """
-        Set up table details required to make my_globals.
+        Set up table details required to make mg.
         dbe - needed for quoting entities and values
         """
         debug = False
@@ -45,20 +45,19 @@ class RawTable(object):
         """
         Set up titles, subtitles, and col labels into table header.
         """
-        CSS_TBL_TITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_TBL_TITLE, css_idx)
-        CSS_TBL_SUBTITLE = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_TBL_SUBTITLE, css_idx)
-        CSS_TBL_TITLE_CELL = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_TBL_TITLE_CELL, css_idx)
-        CSS_FIRST_COL_VAR = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_FIRST_COL_VAR, css_idx)
+        CSS_TBL_TITLE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_TITLE, css_idx)
+        CSS_TBL_SUBTITLE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_SUBTITLE, 
+                                                     css_idx)
+        CSS_TBL_TITLE_CELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_TITLE_CELL, 
+                                                       css_idx)
+        CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, 
+                                                      css_idx)
         title_dets_html = lib.get_title_dets_html(self.titles, self.subtitles,
                                                 CSS_TBL_TITLE, CSS_TBL_SUBTITLE)
         hdr_html = u"\n<thead>\n<tr><th " + \
-            u"class='%s'" % CSS_TBL_TITLE_CELL + \
-            u" colspan='%s'>" % len(col_labels) + \
-            u"%s</th></tr>" % title_dets_html
+                   u"class='%s'" % CSS_TBL_TITLE_CELL + \
+                   u" colspan='%s'>" % len(col_labels) + \
+                   u"%s</th></tr>" % title_dets_html
         # col labels
         hdr_html += u"\n<tr>"
         for col_label in col_labels:
@@ -74,14 +73,11 @@ class RawTable(object):
         When adding totals, will only do it if all values are numeric (Or None).
         """
         debug = False
-        CSS_LBL = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_LBL, css_idx)
-        CSS_ALIGN_RIGHT = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_ALIGN_RIGHT, css_idx)
-        CSS_TOTAL_ROW = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_TOTAL_ROW, css_idx)
-        CSS_PAGE_BREAK_BEFORE = my_globals.CSS_SUFFIX_TEMPLATE % \
-            (my_globals.CSS_PAGE_BREAK_BEFORE, css_idx)
+        CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
+        CSS_ALIGN_RIGHT = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ALIGN_RIGHT, css_idx)
+        CSS_TOTAL_ROW = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TOTAL_ROW, css_idx)
+        CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
+            (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
         html = u""
         html += u"\n\n<table cellspacing='0'>\n" # IE6 - no support CSS borderspacing
         hdr_html = self.get_hdr_dets(self.col_labels, css_idx)
@@ -112,8 +108,7 @@ class RawTable(object):
         if self.first_col_as_label:
             col_class_lsts[0] = [CSS_LBL]
         for i, col_name in enumerate(self.col_names):
-            if self.flds[col_name][my_globals.FLD_BOLNUMERIC] \
-                    and not col_val_dics[i]:
+            if self.flds[col_name][mg.FLD_BOLNUMERIC] and not col_val_dics[i]:
                 col_class_lsts[i].append(CSS_ALIGN_RIGHT)
         if self.add_total_row:
             row_tots = [0 for x in self.col_names] # initialise
