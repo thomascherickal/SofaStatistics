@@ -62,7 +62,6 @@ class DimTree(object):
         self.try_adding(tree=self.rowtree, root=self.rowRoot, dim=mg.ROWDIM, 
                         oth_dim=mg.COLDIM, oth_dim_tree=self.coltree, 
                         oth_dim_root=self.colRoot)
-        self.setup_col_btns()
      
     def on_col_add(self, event):
         "Add column var under root"
@@ -119,6 +118,7 @@ class DimTree(object):
                 tree.UnselectAll() # multiple
                 tree.SelectItem(new_id)
                 self.setup_col_btns()
+                self.setup_action_btns()
                 self.update_demo_display()
     
     def set_initial_config(self, tree, dim, new_id, var_name=None):
@@ -284,6 +284,7 @@ class DimTree(object):
             for selected_id in selected_ids:
                 self.rowtree.Delete(selected_id)
         self.setup_col_btns()
+        self.setup_action_btns()
         self.update_demo_display()
             
     def on_col_delete(self, event):
@@ -308,6 +309,7 @@ class DimTree(object):
             self.btnColAddUnder.Enable()
             self.col_no_vars_item = None # will be reallocated
         self.setup_col_btns()
+        self.setup_action_btns()
             
     def on_row_config(self, event):
         "Configure row button clicked."

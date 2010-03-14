@@ -206,7 +206,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         # freqs tbl is default
         self.setup_col_btns()
         self.add_default_column_config() # must set up after coltree and demo 
-        # tabs defined
         if mg.IN_WINDOWS:
             mid_height = 820
             height_drop = 20
@@ -221,6 +220,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             myheight = 350
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))
         self.html.show_html(WAITING_MSG)
+        self.btn_run.Enable(False)
+        self.chk_add_to_report.Enable(False)
+        self.btn_export.Enable(False)
         lbldemo_tbls = wx.StaticText(self.panel, -1, _("Output Table:"))
         lbldemo_tbls.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         szrTabType.Add(self.radTabType, 0, wx.RIGHT, 10)
@@ -294,10 +296,13 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         """
         Things to do after the data source has changed.
         """
-        self.setup_col_btns()
         if self.tab_type == mg.RAW_DISPLAY:
             self.demo_tab.update_flds(self.flds)
-        self.clear_dims()
+        self.rowtree.DeleteChildren(self.rowRoot)
+        self.coltree.DeleteChildren(self.colRoot)
+        self.setup_col_btns()
+        self.setup_action_btns()
+        self.update_demo_display()
         
     def update_var_dets(self):
         "Update all labels, including those already displayed"
@@ -388,6 +393,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                          chkFirstAsLabel=self.chkFirstAsLabel)
         #in case they were disabled and then we changed tab type
         self.setup_col_btns()
+        self.setup_action_btns()
         self.update_demo_display()
         self.txtTitles.SetFocus()
         
@@ -457,7 +463,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             if self.too_long():
                 return
             wx.BeginBusyCursor()
-            add_to_report = self.chkAddToReport.IsChecked()
+            add_to_report = self.chk_add_to_report.IsChecked()
             if debug: print(self.fil_css)
             css_fils, css_idx = output.get_css_dets(self.fil_report, 
                                                     self.fil_css)
@@ -689,13 +695,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         """
         wx.MessageBox("Not available yet in this version")
         
-    # clear button
-    def clear_dims(self):
-        "Clear dim trees"
-        self.rowtree.DeleteChildren(self.rowRoot)
-        self.coltree.DeleteChildren(self.colRoot)
-        self.update_demo_display()
-
     def on_btn_clear(self, event):
         "Clear all settings"
         self.txtTitles.SetValue("")        
@@ -705,7 +704,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.rowtree.DeleteChildren(self.rowRoot)
         self.coltree.DeleteChildren(self.colRoot)
         self.update_by_tab_type()
-        self.update_demo_display()
 
     def on_close(self, event):
         "Close app"
@@ -759,7 +757,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         if debug: print(u"\n" + demo_tbl_html + "\n")
         self.html.show_html(demo_tbl_html)
 
-    def table_config_ok(self):
+    def table_config_ok(self, silent=False):
         """
         Is the table configuration sufficient to export as script or HTML?
         """
@@ -771,26 +769,36 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         if self.tab_type == mg.FREQS_TBL:
             if has_rows:
                 export_ok = True
-            elif not has_rows:
+            elif not has_rows and not silent:
                 wx.MessageBox(_("Missing row(s)"))
         elif self.tab_type == mg.CROSSTAB:
             if has_rows and has_cols:
                 export_ok = True
-            elif not has_rows:
+            elif not has_rows and not silent:
                 wx.MessageBox(_("Missing row(s)"))
-            elif not has_cols:
+            elif not has_cols and not silent:
                 wx.MessageBox(_("Missing column(s)"))
         elif self.tab_type == mg.ROW_SUMM:
             if has_rows:
                 export_ok = True
-            else:
+            elif not silent:
                 wx.MessageBox(_("Missing row(s)"))
         elif self.tab_type == mg.RAW_DISPLAY:
             if has_cols:
                 export_ok = True
-            else:
+            elif not silent:
                 wx.MessageBox(_("Missing column(s)"))
         else:
             raise Exception, "Not an expected table type"
         return (export_ok, has_cols)
-    
+
+    def setup_action_btns(self):
+        """
+        Enable or disable the action buttons (Run and Export) according to 
+            completeness of configuration data.
+        """
+        ready2run, has_cols = self.table_config_ok(silent=True)
+        self.btn_run.Enable(ready2run)
+        self.chk_add_to_report.Enable(ready2run)
+        self.btn_export.Enable(ready2run)
+           

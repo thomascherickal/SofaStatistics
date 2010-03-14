@@ -267,7 +267,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         run_ok = self.test_config_ok()
         if run_ok:
             wx.BeginBusyCursor()
-            add_to_report = self.chkAddToReport.IsChecked()
+            add_to_report = self.chk_add_to_report.IsChecked()
             css_fils, css_idx = output.get_css_dets(self.fil_report, 
                                                     self.fil_css)
             script = self.get_script(css_idx, add_to_report, self.fil_report)
@@ -303,7 +303,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         """
         export_ok = self.test_config_ok()
         if export_ok:
-            add_to_report = self.chkAddToReport.IsChecked()
+            add_to_report = self.chk_add_to_report.IsChecked()
             css_fils, css_idx = output.get_css_dets(self.fil_report, 
                                                     self.fil_css)
             script = self.get_script(css_idx, add_to_report, self.fil_report)

@@ -167,16 +167,16 @@ class ConfigDlg(object):
 
     def get_szrOutputBtns(self, panel, inc_clear=True):
         #main
-        self.btnRun = wx.Button(panel, -1, _("Run"))
-        self.btnRun.Bind(wx.EVT_BUTTON, self.on_btn_run)
-        self.btnRun.SetToolTipString(_("Run report and display results"))
+        self.btn_run = wx.Button(panel, -1, _("Run"))
+        self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
+        self.btn_run.SetToolTipString(_("Run report and display results"))
         label_divider = " " if mg.IN_WINDOWS else "\n"
-        self.chkAddToReport = wx.CheckBox(panel, -1, 
+        self.chk_add_to_report = wx.CheckBox(panel, -1, 
                                           _("Add to%sreport" % label_divider))
-        self.chkAddToReport.SetValue(True)
-        self.btnExport = wx.Button(panel, -1, _("Export"))
-        self.btnExport.Bind(wx.EVT_BUTTON, self.on_btn_export)
-        self.btnExport.SetToolTipString(_("Export to script for reuse"))
+        self.chk_add_to_report.SetValue(True)
+        self.btn_export = wx.Button(panel, -1, _("Export"))
+        self.btn_export.Bind(wx.EVT_BUTTON, self.on_btn_export)
+        self.btn_export.SetToolTipString(_("Export to script for reuse"))
         self.btnExpand = wx.Button(panel, -1, _("Expand"))
         self.btnExpand.Bind(wx.EVT_BUTTON, self.on_btn_expand)
         self.btnExpand.SetToolTipString(_("Open report in own window"))
@@ -194,10 +194,10 @@ class ConfigDlg(object):
         self.szrOutputButtons.AddGrowableRow(5,2) # idx, propn
         # only relevant if surrounding sizer stretched vertically enough by its 
         # content.
-        self.szrOutputButtons.Add(self.btnRun, 0)
-        self.szrOutputButtons.Add(self.chkAddToReport)
+        self.szrOutputButtons.Add(self.btn_run, 0)
+        self.szrOutputButtons.Add(self.chk_add_to_report)
         self.szrOutputButtons.Add(self.btnExpand, wx.ALIGN_TOP)
-        self.szrOutputButtons.Add(self.btnExport, 0, wx.TOP, 8)
+        self.szrOutputButtons.Add(self.btn_export, 0, wx.TOP, 8)
         self.szrOutputButtons.Add(self.btnHelp, 0)
         if inc_clear:
             self.szrOutputButtons.Add(self.btnClear, 0)
