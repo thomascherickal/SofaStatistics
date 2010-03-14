@@ -101,7 +101,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.fil_css = fil_css
         self.fil_report = fil_report
         self.fil_script = fil_script
-        self.url_load = True # btnExpand    
+        self.url_load = True # btn_expand    
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.get_var_dets(fil_var_dets)
         self.col_no_vars_item = None # needed if no variable in columns
@@ -109,20 +109,20 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.panel = wx.Panel(self)
         config_dlg.add_icon(frame=self)
         # sizers
-        szrMain = wx.BoxSizer(wx.VERTICAL)
-        self.szrData, self.szrConfigBottom, self.szrConfigTop = \
+        szr_main = wx.BoxSizer(wx.VERTICAL)
+        self.szr_data, self.szr_config_bottom, self.szr_config_top = \
             self.get_gen_config_szrs(self.panel) # mixin
         szrMid = wx.BoxSizer(wx.VERTICAL)
         szrTabType = wx.BoxSizer(wx.HORIZONTAL)
         szrOpts = wx.BoxSizer(wx.VERTICAL)
         szrTitles = wx.BoxSizer(wx.HORIZONTAL)
-        szrBottom = wx.BoxSizer(wx.HORIZONTAL)
+        szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
         szrTrees = wx.BoxSizer(wx.HORIZONTAL)
         szrRows = wx.BoxSizer(wx.VERTICAL)
-        szrCols = wx.BoxSizer(wx.VERTICAL)
-        szrColButtons = wx.BoxSizer(wx.HORIZONTAL)
+        szr_cols = wx.BoxSizer(wx.VERTICAL)
+        szr_col_btns = wx.BoxSizer(wx.HORIZONTAL)
         szrHtml = wx.BoxSizer(wx.VERTICAL)
-        szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
+        szr_bottom_left = wx.BoxSizer(wx.VERTICAL)
         self.szrOutputButtons = self.get_szrOutputBtns(self.panel) # mixin
         # title details
         lblTitles = wx.StaticText(self.panel, -1, _("Title:"))
@@ -159,23 +159,23 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         lblCols.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         #buttons
         #rows
-        self.btnRowAdd = wx.Button(self.panel, -1, _("Add"))
-        self.btnRowAdd.Bind(wx.EVT_BUTTON, self.on_row_add)
-        self.btnRowAddUnder = wx.Button(self.panel, -1, _("Add Under"))
-        self.btnRowAddUnder.Bind(wx.EVT_BUTTON, self.on_row_add_under)
-        self.btnRowDel = wx.Button(self.panel, -1, _("Delete"))
-        self.btnRowDel.Bind(wx.EVT_BUTTON, self.on_row_delete)
-        self.btnRowConf = wx.Button(self.panel, -1, _("Config"))
-        self.btnRowConf.Bind(wx.EVT_BUTTON, self.on_row_config)
+        self.btn_row_add = wx.Button(self.panel, -1, _("Add"))
+        self.btn_row_add.Bind(wx.EVT_BUTTON, self.on_row_add)
+        self.btn_row_add_under = wx.Button(self.panel, -1, _("Add Under"))
+        self.btn_row_add_under.Bind(wx.EVT_BUTTON, self.on_row_add_under)
+        self.btn_row_del = wx.Button(self.panel, -1, _("Delete"))
+        self.btn_row_del.Bind(wx.EVT_BUTTON, self.on_row_delete)
+        self.btn_row_conf = wx.Button(self.panel, -1, _("Config"))
+        self.btn_row_conf.Bind(wx.EVT_BUTTON, self.on_row_config)
         #cols
-        self.btnColAdd = wx.Button(self.panel, -1, _("Add"))
-        self.btnColAdd.Bind(wx.EVT_BUTTON, self.on_col_add)
-        self.btnColAddUnder = wx.Button(self.panel, -1, _("Add Under"))
-        self.btnColAddUnder.Bind(wx.EVT_BUTTON, self.on_col_add_under)
-        self.btnColDel = wx.Button(self.panel, -1, _("Delete"))
-        self.btnColDel.Bind(wx.EVT_BUTTON, self.on_col_delete)
-        self.btnColConf = wx.Button(self.panel, -1, _("Config"))
-        self.btnColConf.Bind(wx.EVT_BUTTON, self.on_col_config)
+        self.btn_col_add = wx.Button(self.panel, -1, _("Add"))
+        self.btn_col_add.Bind(wx.EVT_BUTTON, self.on_col_add)
+        self.btn_col_add_under = wx.Button(self.panel, -1, _("Add Under"))
+        self.btn_col_add_under.Bind(wx.EVT_BUTTON, self.on_col_add_under)
+        self.btn_col_del = wx.Button(self.panel, -1, _("Delete"))
+        self.btn_col_del.Bind(wx.EVT_BUTTON, self.on_col_delete)
+        self.btn_col_conf = wx.Button(self.panel, -1, _("Config"))
+        self.btn_col_conf.Bind(wx.EVT_BUTTON, self.on_col_config)
         #trees
         self.rowtree = wx.gizmos.TreeListCtrl(self.panel, -1, 
               style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
@@ -204,6 +204,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics, fil_css=self.fil_css)
         # freqs tbl is default
+        self.setup_row_btns()
         self.setup_col_btns()
         self.add_default_column_config() # must set up after coltree and demo 
         if mg.IN_WINDOWS:
@@ -237,35 +238,36 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         szrMid.Add(szrTitles, 1, wx.GROW|wx.TOP, 5)
         szrRows.Add(lblRows, 0)
         szrRowButtons = wx.BoxSizer(wx.HORIZONTAL)
-        szrRowButtons.Add(self.btnRowAdd, 0, wx.RIGHT, 2)
-        szrRowButtons.Add(self.btnRowAddUnder, 0, wx.RIGHT, 2)
-        szrRowButtons.Add(self.btnRowDel, 0, wx.RIGHT, 2)
-        szrRowButtons.Add(self.btnRowConf)
+        szrRowButtons.Add(self.btn_row_add, 0, wx.RIGHT, 2)
+        szrRowButtons.Add(self.btn_row_add_under, 0, wx.RIGHT, 2)
+        szrRowButtons.Add(self.btn_row_del, 0, wx.RIGHT, 2)
+        szrRowButtons.Add(self.btn_row_conf)
         szrRows.Add(szrRowButtons, 0)
         szrRows.Add(self.rowtree, 1, wx.GROW)
-        szrCols.Add(lblCols, 0)
-        szrColButtons.Add(self.btnColAdd, 0, wx.RIGHT, 2)
-        szrColButtons.Add(self.btnColAddUnder, 0, wx.RIGHT, 2)
-        szrColButtons.Add(self.btnColDel, 0, wx.RIGHT, 2)
-        szrColButtons.Add(self.btnColConf)
-        szrCols.Add(szrColButtons)
-        szrCols.Add(self.coltree, 1, wx.GROW)
+        szr_cols.Add(lblCols, 0)
+        szr_col_btns.Add(self.btn_col_add, 0, wx.RIGHT, 2)
+        szr_col_btns.Add(self.btn_col_add_under, 0, wx.RIGHT, 2)
+        szr_col_btns.Add(self.btn_col_del, 0, wx.RIGHT, 2)
+        szr_col_btns.Add(self.btn_col_conf)
+        szr_cols.Add(szr_col_btns)
+        szr_cols.Add(self.coltree, 1, wx.GROW)
         szrTrees.Add(szrRows, 1, wx.GROW|wx.RIGHT, 2)
-        szrTrees.Add(szrCols, 1, wx.GROW|wx.LEFT, 2)
+        szrTrees.Add(szr_cols, 1, wx.GROW|wx.LEFT, 2)
         szrHtml.Add(lbldemo_tbls, 0)
         szrHtml.Add(self.html, 1, wx.GROW)
-        szrBottomLeft.Add(szrHtml, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szrBottomLeft.Add(self.szrConfigTop, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szrBottomLeft.Add(self.szrConfigBottom, 0, wx.GROW|wx.LEFT|wx.RIGHT|\
-                          wx.BOTTOM, 10)
-        szrBottom.Add(szrBottomLeft, 1, wx.GROW)
-        szrBottom.Add(self.szrOutputButtons, 0, wx.GROW|wx.BOTTOM|wx.RIGHT, 10)
-        szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szrMain.Add(szrMid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szrMain.Add(szrTrees, 1, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-        szrMain.Add(szrBottom, 2, wx.GROW)
-        self.panel.SetSizer(szrMain)
-        szrMain.SetSizeHints(self)
+        szr_bottom_left.Add(szrHtml, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 
+                            10)
+        szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW|wx.LEFT|\
+                            wx.RIGHT|wx.BOTTOM, 10)
+        szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
+        szr_bottom.Add(self.szrOutputButtons, 0, wx.GROW|wx.BOTTOM|wx.RIGHT, 10)
+        szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szr_main.Add(szrMid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(szrTrees, 1, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        szr_main.Add(szr_bottom, 2, wx.GROW)
+        self.panel.SetSizer(szr_main)
+        szr_main.SetSizeHints(self)
         self.Layout()
 
     def update_css(self):
@@ -300,6 +302,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             self.demo_tab.update_flds(self.flds)
         self.rowtree.DeleteChildren(self.rowRoot)
         self.coltree.DeleteChildren(self.colRoot)
+        self.setup_row_btns()
         self.setup_col_btns()
         self.setup_action_btns()
         self.update_demo_display()
@@ -346,7 +349,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             self.chkTotalsRow.SetValue(False)
             self.chkFirstAsLabel.SetValue(False)
             self.enable_opts(enable=False)
-            self.enable_row_sel(enable=True)
             self.demo_tab = demotables.GenDemoTable(txtTitles=self.txtTitles, 
                                  txtSubtitles=self.txtSubtitles,
                                  colRoot=self.colRoot, rowRoot=self.rowRoot, 
@@ -359,7 +361,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             self.chkTotalsRow.SetValue(False)
             self.chkFirstAsLabel.SetValue(False)
             self.enable_opts(enable=False)
-            self.enable_row_sel(enable=True)
             self.demo_tab = demotables.GenDemoTable(txtTitles=self.txtTitles, 
                                  txtSubtitles=self.txtSubtitles,
                                  colRoot=self.colRoot,  rowRoot=self.rowRoot, 
@@ -371,7 +372,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             self.chkTotalsRow.SetValue(False)
             self.chkFirstAsLabel.SetValue(False)
             self.enable_opts(enable=False)
-            self.enable_row_sel(enable=True)
             self.demo_tab = demotables.SummDemoTable(txtTitles=self.txtTitles, 
                                  txtSubtitles=self.txtSubtitles,
                                  colRoot=self.colRoot, rowRoot=self.rowRoot, 
@@ -381,9 +381,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  val_dics=self.val_dics, fil_css=self.fil_css)
         elif self.tab_type == mg.RAW_DISPLAY:
             self.enable_opts(enable=True)
-            self.enable_row_sel(enable=False)
-            self.btnColConf.Disable()
-            self.btnColAddUnder.Disable()
             self.demo_tab = demotables.DemoRawTable(txtTitles=self.txtTitles, 
                          txtSubtitles=self.txtSubtitles,                                 
                          colRoot=self.colRoot, coltree=self.coltree, 
@@ -392,6 +389,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                          fil_css=self.fil_css, chkTotalsRow=self.chkTotalsRow,
                          chkFirstAsLabel=self.chkFirstAsLabel)
         #in case they were disabled and then we changed tab type
+        self.setup_row_btns()
         self.setup_col_btns()
         self.setup_action_btns()
         self.update_demo_display()
@@ -479,7 +477,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             f.close()"""
             self.update_local_display(str_content)
             self.str_content = str_content
-            self.btnExpand.Enable(bolran_report)
+            self.btn_expand.Enable(bolran_report)
     
     # export script
     def on_btn_export(self, event):
@@ -736,7 +734,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         If only changing titles or subtitles, keep the rest constant.
         """
         debug = False
-        self.btnExpand.Enable(False)
+        self.btn_expand.Enable(False)
         if titles_only:
             if self.prev_demo:
                 # replace titles and subtitles

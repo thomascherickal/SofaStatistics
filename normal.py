@@ -28,7 +28,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                            wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
                            wx.CAPTION | wx.CLOSE_BOX | \
                            wx.CLIP_CHILDREN)
-        # the following properties all required to utilise get_szrData
+        # the following properties all required to utilise get_szr_data
         self.dbe = dbe
         self.con_dets = con_dets
         self.default_dbs = default_dbs
@@ -41,10 +41,10 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.paired = paired
         self.panel = wx.Panel(self)
         # szrs
-        szrMain = wx.BoxSizer(wx.VERTICAL)
+        szr_main = wx.BoxSizer(wx.VERTICAL)
         bxDesc = wx.StaticBox(self.panel, -1, _("Purpose"))
-        szrDesc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
-        self.szrData = self.get_szrData(self.panel) # mixin
+        szr_desc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
+        self.szr_data = self.get_szr_data(self.panel) # mixin
         if not self.paired:
             varbox_label = _("Variable to Check")
         else:
@@ -70,14 +70,14 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         lblDesc2 = wx.StaticText(self.panel, -1, 
             _("Look for gross outliers, extreme skewing, and clustering into "
               "groups."))
-        szrDesc.Add(lblDesc1, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szrDesc.Add(lblDesc2, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        szr_desc.Add(lblDesc1, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szr_desc.Add(lblDesc2, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         if not self.paired:
             lblDesc3 = wx.StaticText(self.panel, -1, 
                 _("Note: if comparing samples, each sample must be normal "
                   "enough. Filter for each sample by right clicking on the "
                   "table selector."))
-            szrDesc.Add(lblDesc3, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+            szr_desc.Add(lblDesc3, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
             lblVars = wx.StaticText(self.panel, -1, _("Variable:"))
         else:
             lblVars = wx.StaticText(self.panel, -1, _("Variables:"))
@@ -92,13 +92,13 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             self.dropVarB.SetToolTipString(_("Right click variable to "
                                               "view/edit details"))
         self.setup_vars(var_a=True, var_b=self.paired)
-        btnCheck = wx.Button(self.panel, -1, _("Check"))
-        btnCheck.Bind(wx.EVT_BUTTON, self.on_btn_check)
+        btn_check = wx.Button(self.panel, -1, _("Check"))
+        btn_check.Bind(wx.EVT_BUTTON, self.on_btn_check)
         szrVars.Add(lblVars, 0, wx.LEFT|wx.RIGHT, 5)
         szrVars.Add(self.dropVarA, 0)
         if self.paired:
             szrVars.Add(self.dropVarB, 0, wx.LEFT, 10)
-        szrVars.Add(btnCheck, 0, wx.LEFT, 10)
+        szrVars.Add(btn_check, 0, wx.LEFT, 10)
         self.imgHist = wx.StaticBitmap(self.panel, -1, size=(200, 100), 
                                         pos=(0,0))
         msg_font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -113,30 +113,30 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         lib.add_text_to_bitmap(self.bmp_blank_hist, msg, msg_font, "white", 
                                left=20, top=30)
         self.set_shape_to_blank()
-        self.btnDetails = wx.Button(self.panel, -1, _("Details"))
-        self.btnDetails.Bind(wx.EVT_BUTTON, self.on_details_click)
-        self.btnDetails.Enable(False)
+        self.btn_details = wx.Button(self.panel, -1, _("Details"))
+        self.btn_details.Bind(wx.EVT_BUTTON, self.on_details_click)
+        self.btn_details.Enable(False)
         szrShape.Add(self.imgHist, 0)
-        szrShape.Add(self.btnDetails, 0, wx.LEFT, 10)
+        szrShape.Add(self.btn_details, 0, wx.LEFT, 10)
         self.szrExamine.Add(szrShape, 0, wx.ALL, 10)
         myheight = 130 if mg.MAX_HEIGHT < 800 else 200
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))
         self.set_output_to_blank()
         szrNormalityTest.Add(self.html, 1, wx.GROW)
         self.szrExamine.Add(szrNormalityTest, 1, wx.GROW|wx.ALL, 10)
-        btnOK = wx.Button(self.panel, wx.ID_OK)
-        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
+        btn_ok = wx.Button(self.panel, wx.ID_OK)
+        btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
         szrStdBtns = wx.StdDialogButtonSizer()
-        szrStdBtns.AddButton(btnOK)
+        szrStdBtns.AddButton(btn_ok)
         szrStdBtns.Realize()
-        szrMain.Add(szrDesc, 0, wx.ALL, 10)
-        szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szrMain.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szrMain.Add(self.szrExamine, 1, wx.GROW)
+        szr_main.Add(szr_desc, 0, wx.ALL, 10)
+        szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szr_main.Add(self.szrExamine, 1, wx.GROW)
         szrStdBtns.Insert(0, self.szrLevel, wx.ALIGN_LEFT|wx.ALL, 10)
-        szrMain.Add(szrStdBtns, 0, wx.GROW|wx.ALL, 10)
-        self.panel.SetSizer(szrMain)
-        szrMain.SetSizeHints(self)
+        szr_main.Add(szrStdBtns, 0, wx.GROW|wx.ALL, 10)
+        self.panel.SetSizer(szr_main)
+        szr_main.SetSizeHints(self)
         self.Layout()
 
     def set_shape_to_blank(self):
@@ -267,7 +267,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             wx.MessageBox(_("Not enough variability in data to allow a "
                             "histogram to be displayed"))
             return
-        self.btnDetails.Enable(True)
+        self.btn_details.Enable(True)
         # histogram
         charts.gen_config()
         fig = pylab.figure()

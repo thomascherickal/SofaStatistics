@@ -94,9 +94,9 @@ class HistDlg(wxmpl.PlotDlg):
         wxmpl.PlotDlg.__init__(self, parent, 
             title=_("Similar to normal distribution curve?"), size=(10.0, 6.0), 
             dpi=96)
-        btnOK = wx.Button(self, wx.ID_OK)
-        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
-        self.sizer.Add(btnOK, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
+        btn_ok = wx.Button(self, wx.ID_OK)
+        btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
+        self.sizer.Add(btn_ok, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
         fig = self.get_figure()
         config_hist(fig, vals, var_label, hist_label)
         self.draw()

@@ -218,19 +218,19 @@ class ListVarsDlg(wx.Dialog):
         self.fil_var_dets = fil_var_dets
         self.updated = updated
         self.panel = wx.Panel(self)
-        self.szrMain = wx.BoxSizer(wx.VERTICAL)
+        self.szr_main = wx.BoxSizer(wx.VERTICAL)
         szrStdBtns = wx.StdDialogButtonSizer()
         self.lstVars = wx.ListBox(self.panel, -1, choices=[])
         self.lstVars.Bind(wx.EVT_LISTBOX, self.on_lst_click)
         self.setup_vars()
-        btnOK = wx.Button(self.panel, wx.ID_OK)
-        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
-        self.panel.SetSizer(self.szrMain)
-        self.szrMain.Add(self.lstVars, 0, wx.ALL, 10)
-        szrStdBtns.AddButton(btnOK)
+        btn_ok = wx.Button(self.panel, wx.ID_OK)
+        btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
+        self.panel.SetSizer(self.szr_main)
+        self.szr_main.Add(self.lstVars, 0, wx.ALL, 10)
+        szrStdBtns.AddButton(btn_ok)
         szrStdBtns.Realize()
-        self.szrMain.Add(szrStdBtns, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
-        self.szrMain.SetSizeHints(self)
+        self.szr_main.Add(szrStdBtns, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
+        self.szr_main.SetSizeHints(self)
         self.Layout()
     
     def on_lst_click(self, event):
@@ -313,30 +313,30 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         if boltext or boldatetime:
             self.radDataType.EnableItem(mg.VAR_IDX_ORD, False)
             self.radDataType.EnableItem(mg.VAR_IDX_QUANT, False)
-        btnTypeHelp = wx.Button(self.panel, wx.ID_HELP)
-        btnTypeHelp.Bind(wx.EVT_BUTTON, self.on_type_help_btn)
+        btn_type_help = wx.Button(self.panel, wx.ID_HELP)
+        btn_type_help.Bind(wx.EVT_BUTTON, self.on_type_help_btn)
         # sizers
-        self.szrMain = wx.BoxSizer(wx.VERTICAL)
+        self.szr_main = wx.BoxSizer(wx.VERTICAL)
         self.szrVarLabel = wx.BoxSizer(wx.HORIZONTAL)
         self.szrVarLabel.Add(lblVarLabel, 0, wx.RIGHT, 5)
         self.szrVarLabel.Add(self.txtVarLabel, 1)
         self.szrVarNotes = wx.BoxSizer(wx.HORIZONTAL)
         self.szrVarNotes.Add(lblVarNotes, 0, wx.RIGHT, 5)
         self.szrVarNotes.Add(self.txtVarNotes, 1, wx.GROW)
-        self.szrMain.Add(self.szrVarLabel, 0, wx.GROW|wx.ALL, 10)
-        self.szrMain.Add(self.szrVarNotes, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        self.szrMain.Add(self.radDataType, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-        szrDataType = wx.BoxSizer(wx.HORIZONTAL)
-        szrDataType.Add(self.radDataType, 0)  
-        szrDataType.Add(btnTypeHelp, 0, wx.LEFT|wx.TOP, 10)        
-        self.szrMain.Add(szrDataType, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        self.szr_main.Add(self.szrVarLabel, 0, wx.GROW|wx.ALL, 10)
+        self.szr_main.Add(self.szrVarNotes, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        self.szr_main.Add(self.radDataType, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        szr_data_type = wx.BoxSizer(wx.HORIZONTAL)
+        szr_data_type.Add(self.radDataType, 0)  
+        szr_data_type.Add(btn_type_help, 0, wx.LEFT|wx.TOP, 10)        
+        self.szr_main.Add(szr_data_type, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         self.tabentry = settings_grid.SettingsEntry(self, self.panel, 
-                                            self.szrMain, 2, False, grid_size, 
+                                            self.szr_main, 2, False, grid_size, 
                                             col_dets, data, config_data)
         self.setup_btns(readonly=False)
-        self.szrMain.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
-        self.panel.SetSizer(self.szrMain)
-        self.szrMain.SetSizeHints(self)
+        self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
+        self.panel.SetSizer(self.szr_main)
+        self.szr_main.SetSizeHints(self)
         self.Layout()
         self.tabentry.grid.SetFocus()
 
@@ -383,8 +383,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.scroll_con_dets.SetScrollRate(10,10) # gives it the scroll bars
         self.panel_bottom = wx.Panel(self)
         self.parent = parent
-        self.szrCon_Dets = wx.BoxSizer(wx.VERTICAL)
-        self.szrBottom = wx.BoxSizer(wx.VERTICAL)
+        self.szr_con_dets = wx.BoxSizer(wx.VERTICAL)
+        self.szr_bottom = wx.BoxSizer(wx.VERTICAL)
         # get available settings
         self.readonly = readonly
         self.new = (fil_proj is None)
@@ -403,11 +403,11 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.txtProjNotes = wx.TextCtrl(self.panel_top, -1, self.proj_notes,
                                         size=(200, 40), style=wx.TE_MULTILINE)
         self.txtProjNotes.Enable(not self.readonly)
-        szrDesc = wx.BoxSizer(wx.HORIZONTAL)
-        szrDesc.Add(lblName, 0, wx.RIGHT, 5)
-        szrDesc.Add(self.txtName, 0, wx.RIGHT, 10)
-        szrDesc.Add(lblProjNotes, 0, wx.RIGHT, 5)
-        szrDesc.Add(self.txtProjNotes, 1, wx.GROW)
+        szr_desc = wx.BoxSizer(wx.HORIZONTAL)
+        szr_desc.Add(lblName, 0, wx.RIGHT, 5)
+        szr_desc.Add(self.txtName, 0, wx.RIGHT, 10)
+        szr_desc.Add(lblProjNotes, 0, wx.RIGHT, 5)
+        szr_desc.Add(self.txtProjNotes, 1, wx.GROW)
         # DATA CONNECTIONS
         lblDataConDets = wx.StaticText(self.panel_top, -1, 
                                         _("Data Connection Details:"))
@@ -424,38 +424,38 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         lblScrollDown = wx.StaticText(self.scroll_con_dets, -1, 
                     _("(scroll down for details of all your database engines)"))
         # default dbe
-        szrDefault_Dbe = wx.BoxSizer(wx.HORIZONTAL)
-        szrDefault_Dbe.Add(lblDefault_Dbe, 0, wx.LEFT|wx.RIGHT, 5)
-        szrDefault_Dbe.Add(self.dropDefault_Dbe, 0)
-        szrDefault_Dbe.Add(lblScrollDown, 0, wx.LEFT, 10)
+        szr_default_dbe = wx.BoxSizer(wx.HORIZONTAL)
+        szr_default_dbe.Add(lblDefault_Dbe, 0, wx.LEFT|wx.RIGHT, 5)
+        szr_default_dbe.Add(self.dropDefault_Dbe, 0)
+        szr_default_dbe.Add(lblScrollDown, 0, wx.LEFT, 10)
         # Close
         self.setup_btns()
         # sizers
         # TOP
         self.szrTop = wx.BoxSizer(wx.VERTICAL)
-        self.szrTop.Add(szrDesc, 1, wx.GROW|wx.ALL, 10)
-        # mixin supplying self.szrConfigTop and self.szrConfigBottom
-        self.szrConfigBottom, self.szrConfigTop = \
+        self.szrTop.Add(szr_desc, 1, wx.GROW|wx.ALL, 10)
+        # mixin supplying self.szr_config_top and self.szr_config_bottom
+        self.szr_config_bottom, self.szr_config_top = \
             self.get_misc_config_szrs(self.panel_top, readonly=self.readonly)
-        self.szrTop.Add(self.szrConfigTop, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        self.szrTop.Add(self.szrConfigBottom, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        self.szrTop.Add(self.szr_config_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        self.szrTop.Add(self.szr_config_bottom, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         #self.szrTop.Add(szrOutput, 0, wx.GROW|wx.ALL, 10)
         self.szrTop.Add(lblDataConDets, 0, wx.GROW|wx.LEFT, 10)
         self.panel_top.SetSizer(self.szrTop)
         self.szrTop.SetSizeHints(self.panel_top)
         # CON DETS
-        self.szrCon_Dets.Add(szrDefault_Dbe, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        self.szr_con_dets.Add(szr_default_dbe, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
         getdata.set_data_con_gui(parent=self, readonly=self.readonly, 
                                  scroll=self.scroll_con_dets, 
-                                 szr=self.szrCon_Dets, lblfont=lblfont)
-        self.scroll_con_dets.SetSizer(self.szrCon_Dets)
+                                 szr=self.szr_con_dets, lblfont=lblfont)
+        self.scroll_con_dets.SetSizer(self.szr_con_dets)
         # NEVER SetSizeHints or else grows beyond size!!!!
-        self.szrCon_Dets.SetVirtualSizeHints(self.scroll_con_dets)
+        self.szr_con_dets.SetVirtualSizeHints(self.scroll_con_dets)
         # BOTTOM
-        self.szrBottom.Add(self.szr_btns, 0, wx.GROW|wx.LEFT|wx.BOTTOM|\
-                           wx.RIGHT|wx.ALIGN_RIGHT, 10)
-        self.panel_bottom.SetSizer(self.szrBottom)
-        self.szrBottom.SetSizeHints(self.panel_bottom)
+        self.szr_bottom.Add(self.szr_btns, 0, wx.GROW|wx.LEFT|wx.BOTTOM|\
+                            wx.RIGHT|wx.ALIGN_RIGHT, 10)
+        self.panel_bottom.SetSizer(self.szr_bottom)
+        self.szr_bottom.SetSizeHints(self.panel_bottom)
         # FINAL # NB any ratio changes must work in multiple OSs
         self.szr.Add(self.panel_top, 1, wx.GROW)
         self.szr.Add(self.scroll_con_dets, 2, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
@@ -571,22 +571,22 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         and http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605432
         """
         if self.readonly:
-            btnOK = wx.Button(self.panel_bottom, wx.ID_OK)
+            btn_ok = wx.Button(self.panel_bottom, wx.ID_OK)
         else:
             if not self.new:
-                btnDelete = wx.Button(self.panel_bottom, wx.ID_DELETE)
-                btnDelete.Bind(wx.EVT_BUTTON, self.on_delete)
-            btnCancel = wx.Button(self.panel_bottom, wx.ID_CANCEL) # 
-            btnCancel.Bind(wx.EVT_BUTTON, self.on_cancel)
-            btnOK = wx.Button(self.panel_bottom, wx.ID_OK, _("Update"))
-        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
+                btn_delete = wx.Button(self.panel_bottom, wx.ID_DELETE)
+                btn_delete.Bind(wx.EVT_BUTTON, self.on_delete)
+            btn_cancel = wx.Button(self.panel_bottom, wx.ID_CANCEL) # 
+            btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
+            btn_ok = wx.Button(self.panel_bottom, wx.ID_OK, _("Update"))
+        btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
         self.szr_btns = wx.StdDialogButtonSizer()
         if not self.readonly:
-            self.szr_btns.AddButton(btnCancel)
-        self.szr_btns.AddButton(btnOK)
+            self.szr_btns.AddButton(btn_cancel)
+        self.szr_btns.AddButton(btn_ok)
         self.szr_btns.Realize()
         if not self.readonly and not self.new:
-            self.szr_btns.Insert(0, btnDelete, 0)
+            self.szr_btns.Insert(0, btn_delete, 0)
 
     def on_delete(self, event):
         proj_name = self.txtName.GetValue()

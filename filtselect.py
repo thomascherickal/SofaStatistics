@@ -73,7 +73,7 @@ class FiltSelectDlg(wx.Dialog):
         self.parent = parent
         self.panel = wx.Panel(self)
         # szrs
-        szrMain = wx.BoxSizer(wx.VERTICAL)
+        szr_main = wx.BoxSizer(wx.VERTICAL)
         szrLabel = wx.BoxSizer(wx.HORIZONTAL)
         szrQuick = wx.BoxSizer(wx.HORIZONTAL)
         szrFlex = wx.BoxSizer(wx.VERTICAL)
@@ -127,15 +127,15 @@ class FiltSelectDlg(wx.Dialog):
             self.enable_quick_dets(True)
             self.enable_flex_dets(False)
         self.setup_btns()
-        szrMain.Add(szrLabel, 0, wx.GROW|wx.ALL, 10)
-        szrMain.Add(szrQuick, 0, wx.ALL, 10)
-        szrMain.Add(self.lblQuickInstructions, 0, 
-                    wx.ALIGN_RIGHT|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-        szrMain.Add(lnSplit, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szrMain.Add(szrFlex, 0, wx.GROW|wx.ALL, 10)
-        szrMain.Add(self.szr_btns, 0, wx.ALL|wx.GROW, 10)
-        self.panel.SetSizer(szrMain)
-        szrMain.SetSizeHints(self)
+        szr_main.Add(szrLabel, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(szrQuick, 0, wx.ALL, 10)
+        szr_main.Add(self.lblQuickInstructions, 0, 
+                     wx.ALIGN_RIGHT|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        szr_main.Add(lnSplit, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(szrFlex, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(self.szr_btns, 0, wx.ALL|wx.GROW, 10)
+        self.panel.SetSizer(szr_main)
+        szr_main.SetSizeHints(self)
         self.Layout()
         self.txtLabel.SetFocus()
 
@@ -156,29 +156,29 @@ class FiltSelectDlg(wx.Dialog):
         See http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605904
         and http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605432
         """
-        btnVarDets = wx.Button(self.panel, -1, _("Variable Details"))
-        btnVarDets.Bind(wx.EVT_BUTTON, self.on_var_dets)
-        btnDelete = wx.Button(self.panel, wx.ID_DELETE, _("Remove"))
-        btnDelete.Bind(wx.EVT_BUTTON, self.on_delete)
-        btnCancel = wx.Button(self.panel, wx.ID_CANCEL) # 
-        btnCancel.Bind(wx.EVT_BUTTON, self.on_cancel)
+        btn_var_dets = wx.Button(self.panel, -1, _("Variable Details"))
+        btn_var_dets.Bind(wx.EVT_BUTTON, self.on_var_dets)
+        btn_delete = wx.Button(self.panel, wx.ID_DELETE, _("Remove"))
+        btn_delete.Bind(wx.EVT_BUTTON, self.on_delete)
+        btn_cancel = wx.Button(self.panel, wx.ID_CANCEL) # 
+        btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
         if not self.tbl_filt:
-            btnDelete.Disable()
-        btnOK = wx.Button(self.panel, wx.ID_OK, _("Apply"))
-        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
+            btn_delete.Disable()
+        btn_ok = wx.Button(self.panel, wx.ID_OK, _("Apply"))
+        btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
         # szrs
         self.szr_btns = wx.BoxSizer(wx.HORIZONTAL)
         szrExtraBtns = wx.BoxSizer(wx.HORIZONTAL)
         szrStdBtns = wx.StdDialogButtonSizer()
         # assemble
         szrExtraBtns.Add(btnVarDets, 0, wx.ALIGN_LEFT)
-        szrStdBtns.AddButton(btnCancel)
-        szrStdBtns.AddButton(btnOK)
+        szrStdBtns.AddButton(btn_cancel)
+        szrStdBtns.AddButton(btn_ok)
         szrStdBtns.Realize()
-        szrStdBtns.Insert(0, btnDelete, 0)
+        szrStdBtns.Insert(0, btn_delete, 0)
         self.szr_btns.Add(szrExtraBtns, 1)
         self.szr_btns.Add(szrStdBtns, 0)
-        btnOK.SetDefault()
+        btn_ok.SetDefault()
 
     def on_var_dets(self, event):
         """

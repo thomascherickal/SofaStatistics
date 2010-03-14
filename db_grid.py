@@ -93,7 +93,7 @@ class TblEditor(wx.Dialog):
         self.val_dics = val_dics
         self.fil_var_dets = fil_var_dets
         self.panel = wx.Panel(self, -1)
-        self.szrMain = wx.BoxSizer(wx.VERTICAL)
+        self.szr_main = wx.BoxSizer(wx.VERTICAL)
         self.grid = wx.grid.Grid(self.panel, size=(mywidth, myheight))
         self.grid.EnableEditing(not readonly)
         self.dbtbl = db_tbl.DbTbl(self.grid, self.dbe, self.con, self.cur, 
@@ -135,15 +135,15 @@ class TblEditor(wx.Dialog):
         self.grid.GetGridWindow().Bind(wx.EVT_MOTION, self.on_mouse_move)
         self.grid.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, 
                        self.on_label_rclick)
-        szrBottom = wx.FlexGridSizer(rows=1, cols=1, hgap=5, vgap=5)
-        szrBottom.AddGrowableCol(0,2) # idx, propn
-        btnClose = wx.Button(self.panel, wx.ID_CLOSE)
-        btnClose.Bind(wx.EVT_BUTTON, self.on_close)
-        szrBottom.Add(btnClose, 0, wx.ALIGN_RIGHT)
-        self.szrMain.Add(self.grid, 1, wx.GROW)
-        self.szrMain.Add(szrBottom, 0, wx.GROW|wx.ALL, 5)
-        self.panel.SetSizer(self.szrMain)
-        self.szrMain.SetSizeHints(self)
+        szr_bottom = wx.FlexGridSizer(rows=1, cols=1, hgap=5, vgap=5)
+        szr_bottom.AddGrowableCol(0,2) # idx, propn
+        btn_close = wx.Button(self.panel, wx.ID_CLOSE)
+        btn_close.Bind(wx.EVT_BUTTON, self.on_close)
+        szr_bottom.Add(btn_close, 0, wx.ALIGN_RIGHT)
+        self.szr_main.Add(self.grid, 1, wx.GROW)
+        self.szr_main.Add(szr_bottom, 0, wx.GROW|wx.ALL, 5)
+        self.panel.SetSizer(self.szr_main)
+        self.szr_main.SetSizeHints(self)
         self.panel.Layout()
         self.grid.SetFocus()
     

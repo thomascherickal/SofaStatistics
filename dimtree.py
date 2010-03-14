@@ -110,16 +110,16 @@ class DimTree(object):
                 used_in_oth_dim = self.used_in_oth_dim(text, oth_dim_tree, 
                                                        oth_dim_root)
                 if used_in_oth_dim:
-                    msg = _("Variable '%(text)s' has already been "
-                            "used in %(oth_dim)s dimension")
+                    msg = _("Variable '%(text)s' has already been used in "
+                            "%(oth_dim)s dimension")
                     wx.MessageBox(msg % {"text": text, "oth_dim": oth_dim})
                     return
                 # in raw tables, can only use once
                 if self.tab_type == mg.RAW_DISPLAY:
                     used_in_this_dim = self.used_in_this_dim(text, tree, root)
                     if used_in_this_dim:
-                        msg = _("Variable '%(text)s' cannot be used "
-                                "more than once")
+                        msg = _("Variable '%(text)s' cannot be used more than "
+                                "once")
                         wx.MessageBox(msg % {"text": text})
                         return
             # they all passed the tests so proceed
@@ -131,7 +131,10 @@ class DimTree(object):
             if selected_idxs:
                 tree.UnselectAll() # multiple
                 tree.SelectItem(new_id)
-                self.setup_col_btns()
+                if tree == tree == self.rowtree:
+                    self.setup_row_btns()
+                else:
+                    self.setup_col_btns()
                 self.setup_action_btns()
                 self.update_demo_display()
     
@@ -176,11 +179,12 @@ class DimTree(object):
         if len(selected_ids) == 1:
             self.try_adding_under(tree, root, dim, oth_dim, selected_ids[0], 
                                   oth_dim_tree, oth_dim_root)
-        elif len(selected_ids) == 0:
-            wx.MessageBox(_("Select a %s variable first") % dim)
+        elif not selected_ids:
+            wx.MessageBox(_("Select a row variable first"))
             return
         else:
-            wx.MessageBox(_("Can only add under a single selected item."))
+            wx.MessageBox(_("Can only add under a single selected row "
+                            "variable."))
             return
     
     def on_col_add_under(self, event):
@@ -198,11 +202,12 @@ class DimTree(object):
         if len(selected_ids) == 1:
             self.try_adding_under(tree, root, dim, oth_dim, selected_ids[0], 
                                   oth_dim_tree, oth_dim_root)
-        elif len(selected_ids) == 0:
-            wx.MessageBox(_("Select a %s variable first") % dim)
+        elif not selected_ids:
+            wx.MessageBox(_("Select a column variable first"))
             return
         else:
-            wx.MessageBox(_("Can only add under a single selected item."))
+            wx.MessageBox(_("Can only add under a single selected column "
+                            "variable."))
             return
         
     def try_adding_under(self, tree, root, dim, oth_dim, selected_id, 
@@ -284,7 +289,8 @@ class DimTree(object):
         If it has a parent, set its measures to the default list.
         """
         selected_ids = self.rowtree.GetSelections()
-        if len(selected_ids) == 0:
+        if not selected_ids:
+            wx.MessageBox(_("No row variable selected to delete"))
             return
         first_selected_id = selected_ids[0]
         parent = self.rowtree.GetItemParent(first_selected_id)
@@ -297,14 +303,15 @@ class DimTree(object):
         if self.rowRoot not in selected_ids:
             for selected_id in selected_ids:
                 self.rowtree.Delete(selected_id)
-        self.setup_col_btns()
+        self.setup_row_btns()
         self.setup_action_btns()
         self.update_demo_display()
             
     def on_col_delete(self, event):
         "Delete col var and all its children"
         selected_ids = self.coltree.GetSelections()
-        if len(selected_ids) == 0:
+        if not selected_ids:
+            wx.MessageBox(_("No column variable selected to delete"))
             return
         first_selected_id = selected_ids[0]
         parent = self.coltree.GetItemParent(first_selected_id)
@@ -319,9 +326,9 @@ class DimTree(object):
                 self.coltree.Delete(selected_id)
             self.update_demo_display()
         if self.col_no_vars_item in selected_ids:
-            self.btnColAdd.Enable()
-            self.btnColAddUnder.Enable()
-            self.col_no_vars_item = None # will be reallocated
+            self.btn_col_add.Enable()
+            self.btn_col_add_under.Enable()
+            self.col_no_vars_item = None # will be reallocated)
         self.setup_col_btns()
         self.setup_action_btns()
             
@@ -340,6 +347,9 @@ class DimTree(object):
         if not lib.item_has_children(self.rowtree, self.rowRoot):
             return
         selected_ids = self.rowtree.GetSelections()
+        if not selected_ids:
+            wx.MessageBox(_("Please select a row variable and try again"))
+            return
         first_selected_id = selected_ids[0] 
         # get results from appropriate dialog and store as data
         inc_measures = (self.tab_type == mg.ROW_SUMM)
@@ -368,8 +378,8 @@ class DimTree(object):
         self.demo_tab.col_no_vars_item = self.col_no_vars_item
         self.coltree.ExpandAll(self.colRoot)
         self.coltree.SelectItem(self.col_no_vars_item)
-        self.btnColAdd.Disable()
-        self.btnColAddUnder.Disable()
+        self.btn_col_add.Disable()
+        self.btn_col_add_under.Disable()
 
     def config_col(self):
         """
@@ -385,6 +395,9 @@ class DimTree(object):
             raise Exception, "Cannot configure a missing column item"
         # error 2
         selected_ids = self.coltree.GetSelections()
+        if not selected_ids:
+            wx.MessageBox(_("Please select a column variable and try again"))
+            return
         # the ids must all have the same parental status.
         # if one has children, they all must.
         # if one has no children, none can.
@@ -458,14 +471,25 @@ class DimTree(object):
         #MinSize lets SetSizeHints make a more sensible guess for starting point
         tree.SetMinSize((70, 110))
         return tree.AddRoot("root")
-    
-    def enable_row_sel(self, enable=True):
-        "Enable (or disable) all row selection objects"
-        self.btnRowAdd.Enable(enable)
-        self.btnRowAddUnder.Enable(enable)
-        self.btnRowDel.Enable(enable)
-        self.btnRowConf.Enable(enable)
-        self.rowtree.Enable(enable)
+
+    def setup_row_btns(self):
+        """
+        Enable or disable row buttons according to table type and presence or
+            absence of row items.
+        """
+        has_rows = True if lib.get_tree_ctrl_children(tree=self.rowtree, 
+                                                      parent=self.rowRoot) \
+                                                      else False
+        if self.tab_type in (mg.FREQS_TBL, mg.CROSSTAB, mg.ROW_SUMM):
+            self.btn_row_add.Enable(True)
+            self.btn_row_add_under.Enable(has_rows)
+            self.btn_row_del.Enable(has_rows)
+            self.btn_row_conf.Enable(has_rows)
+        elif self.tab_type == mg.RAW_DISPLAY:
+            self.btn_row_add.Enable(False)
+            self.btn_row_add_under.Enable(False)
+            self.btn_row_del.Enable(False)
+            self.btn_row_conf.Enable(False)
         
     def setup_col_btns(self):
         """
@@ -476,25 +500,25 @@ class DimTree(object):
                                                       parent=self.colRoot) \
                                                       else False
         if self.tab_type == mg.FREQS_TBL:
-            self.btnColAdd.Enable(False)
-            self.btnColAddUnder.Enable(False)
-            self.btnColDel.Enable(False)
-            self.btnColConf.Enable(True)
+            self.btn_col_add.Enable(False)
+            self.btn_col_add_under.Enable(False)
+            self.btn_col_del.Enable(False)
+            self.btn_col_conf.Enable(True)
         elif self.tab_type == mg.CROSSTAB:
-            self.btnColAdd.Enable(True)
-            self.btnColAddUnder.Enable(True)
-            self.btnColDel.Enable(enable=has_cols)
-            self.btnColConf.Enable(enable=has_cols)
+            self.btn_col_add.Enable(True)
+            self.btn_col_add_under.Enable(True)
+            self.btn_col_del.Enable(enable=has_cols)
+            self.btn_col_conf.Enable(enable=has_cols)
         elif self.tab_type == mg.ROW_SUMM:
-            self.btnColAdd.Enable(True)
-            self.btnColAddUnder.Enable(True)
-            self.btnColDel.Enable(enable=has_cols)
-            self.btnColConf.Enable(enable=has_cols)
+            self.btn_col_add.Enable(True)
+            self.btn_col_add_under.Enable(True)
+            self.btn_col_del.Enable(enable=has_cols)
+            self.btn_col_conf.Enable(enable=has_cols)
         elif self.tab_type == mg.RAW_DISPLAY:
-            self.btnColAdd.Enable(True)
-            self.btnColAddUnder.Enable(False)
-            self.btnColDel.Enable(True)
-            self.btnColConf.Enable(False)
+            self.btn_col_add.Enable(True)
+            self.btn_col_add_under.Enable(False)
+            self.btn_col_del.Enable(True)
+            self.btn_col_conf.Enable(False)
 
     
 class DlgConfig(wx.Dialog):
@@ -515,9 +539,9 @@ class DlgConfig(wx.Dialog):
         # base item configuration on first one selected
         item_conf = self.tree.GetItemPyData(first_node_id)
         chkSize = (150, 20)
-        szrMain = wx.BoxSizer(wx.VERTICAL)
+        szr_main = wx.BoxSizer(wx.VERTICAL)
         lblVar = wx.StaticText(self, -1, tree.GetItemText(first_node_id))
-        szrMain.Add(lblVar, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(lblVar, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
         if self.allow_tot:
             boxMisc = wx.StaticBox(self, -1, _("Misc"))
             szrMisc = wx.StaticBoxSizer(boxMisc, wx.VERTICAL)
@@ -526,7 +550,7 @@ class DlgConfig(wx.Dialog):
             if item_conf.has_tot:
                 self.chkTotal.SetValue(True)
             szrMisc.Add(self.chkTotal, 0, wx.LEFT, 5)
-            szrMain.Add(szrMisc, 0, wx.GROW|wx.ALL, 10)
+            szr_main.Add(szrMisc, 0, wx.GROW|wx.ALL, 10)
         if self.sort_opt_allowed != SORT_OPT_NONE:
             self.radSortOpts = wx.RadioBox(self, -1, _("Sort order"),
                                choices=[mg.SORT_NONE, mg.SORT_LABEL,
@@ -546,7 +570,7 @@ class DlgConfig(wx.Dialog):
                 self.radSortOpts.EnableItem(2, False)
                 self.radSortOpts.EnableItem(3, False)
 
-            szrMain.Add(self.radSortOpts, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+            szr_main.Add(self.radSortOpts, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.measure_chks_dic = {}
         if self.measures:
             boxMeasures = wx.StaticBox(self, -1, _("Measures"))
@@ -559,23 +583,23 @@ class DlgConfig(wx.Dialog):
                     chk.SetValue(True)
                 self.measure_chks_dic[measure] = chk
                 szrMeasures.Add(chk, 1, wx.ALL, 5)
-            szrMain.Add(szrMeasures, 1, wx.GROW|wx.ALL, 10)
-        btnCancel = wx.Button(self, wx.ID_CANCEL)
-        btnCancel.Bind(wx.EVT_BUTTON, self.on_cancel)            
-        btnOK = wx.Button(self, wx.ID_OK) # must have ID of wx.ID_OK 
+            szr_main.Add(szrMeasures, 1, wx.GROW|wx.ALL, 10)
+        btn_cancel = wx.Button(self, wx.ID_CANCEL)
+        btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)            
+        btn_ok = wx.Button(self, wx.ID_OK) # must have ID of wx.ID_OK 
         # to trigger validators (no event binding needed) and 
         # for std dialog button layout
-        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
-        btnOK.SetDefault()
+        btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
+        btn_ok.SetDefault()
         # using the approach which will follow the platform convention 
         # for standard buttons
         szr_btns = wx.StdDialogButtonSizer()
-        szr_btns.AddButton(btnCancel)
-        szr_btns.AddButton(btnOK)
+        szr_btns.AddButton(btn_cancel)
+        szr_btns.AddButton(btn_ok)
         szr_btns.Realize()
-        szrMain.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
-        szrMain.SetSizeHints(self)
-        self.SetSizer(szrMain)
+        szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
+        szr_main.SetSizeHints(self)
+        self.SetSizer(szr_main)
         self.Fit()
              
     def on_ok(self, event):

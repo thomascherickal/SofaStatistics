@@ -41,7 +41,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.fil_css = fil_css
         self.fil_report = fil_report
         self.fil_script = fil_script
-        self.url_load = True # btnExpand
+        self.url_load = True # btn_expand
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.get_var_dets(fil_var_dets)
         variables_rc_msg = _("Right click variables to view/edit details")
@@ -49,20 +49,20 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.panel = wx.Panel(self)
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         config_dlg.add_icon(frame=self)
-        self.szrData, self.szrConfigBottom, self.szrConfigTop = \
+        self.szr_data, self.szr_config_bottom, self.szr_config_top = \
             self.get_gen_config_szrs(self.panel) # mixin
         self.szrOutputButtons = self.get_szrOutputBtns(self.panel,
                                                        inc_clear=False) # mixin
-        szrMain = wx.BoxSizer(wx.VERTICAL)
+        szr_main = wx.BoxSizer(wx.VERTICAL)
         bxDesc = wx.StaticBox(self.panel, -1, _("Purpose"))
-        szrDesc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
+        szr_desc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
         eg1, eg2, eg3 = self.get_examples()
         lblDesc1 = wx.StaticText(self.panel, -1, eg1)
         lblDesc2 = wx.StaticText(self.panel, -1, eg2)
         lblDesc3 = wx.StaticText(self.panel, -1, eg3)
-        szrDesc.Add(lblDesc1, 1, wx.GROW|wx.LEFT, 5)
-        szrDesc.Add(lblDesc2, 1, wx.GROW|wx.LEFT, 5)
-        szrDesc.Add(lblDesc3, 1, wx.GROW|wx.LEFT, 5)
+        szr_desc.Add(lblDesc1, 1, wx.GROW|wx.LEFT, 5)
+        szr_desc.Add(lblDesc2, 1, wx.GROW|wx.LEFT, 5)
+        szr_desc.Add(lblDesc3, 1, wx.GROW|wx.LEFT, 5)
         bxVars = wx.StaticBox(self.panel, -1, _("Variables"))
         if not mg.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
             bxVars.SetToolTipString(variables_rc_msg)
@@ -95,8 +95,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.lblPhrase = wx.StaticText(self.panel, -1, 
                                        _("Start making your selections"))
         szrVarsBottom.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
-        szrBottom = wx.BoxSizer(wx.HORIZONTAL)
-        szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
+        szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
+        szr_bottom_left = wx.BoxSizer(wx.VERTICAL)
         if mg.MAX_HEIGHT <= 620:
             myheight = 130
         elif mg.MAX_HEIGHT <= 820:
@@ -106,19 +106,19 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))
         html2show = _("<p>Waiting for a report to be run.</p>")
         self.html.show_html(html2show)
-        szrBottomLeft.Add(self.html, 1, wx.GROW|wx.LEFT|wx.BOTTOM, 5)
-        szrBottomLeft.Add(self.szrConfigTop, 0, wx.GROW)
-        szrBottomLeft.Add(self.szrConfigBottom, 0, wx.GROW)
+        szr_bottom_left.Add(self.html, 1, wx.GROW|wx.LEFT|wx.BOTTOM, 5)
+        szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW)
+        szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW)
         self.szrLevel = self.get_szrLevel(self.panel) # mixin
-        szrBottomLeft.Add(self.szrLevel, 0)
-        szrBottom.Add(szrBottomLeft, 1, wx.GROW)
-        szrBottom.Add(self.szrOutputButtons, 0, wx.GROW|wx.LEFT, 10)
-        szrMain.Add(szrDesc, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szrMain.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szrMain.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szrMain.Add(szrBottom, 2, wx.GROW|wx.ALL, 10)
-        self.panel.SetSizer(szrMain)
-        szrMain.SetSizeHints(self)
+        szr_bottom_left.Add(self.szrLevel, 0)
+        szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
+        szr_bottom.Add(self.szrOutputButtons, 0, wx.GROW|wx.LEFT, 10)
+        szr_main.Add(szr_desc, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szr_main.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szr_main.Add(szr_bottom, 2, wx.GROW|wx.ALL, 10)
+        self.panel.SetSizer(szr_main)
+        szr_main.SetSizeHints(self)
 
     def on_rclick_group_a(self, event):
         var_a, choice_item = self.get_var_a()
@@ -278,7 +278,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             wx.EndBusyCursor()
             self.update_local_display(str_content)
             self.str_content = str_content
-            self.btnExpand.Enable(bolran_report)
+            self.btn_expand.Enable(bolran_report)
         event.Skip()
     
     def test_config_ok(self):

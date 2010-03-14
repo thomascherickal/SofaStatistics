@@ -21,7 +21,7 @@ class ProjSelectDlg(wx.Dialog):
         self.panel = wx.Panel(self)
         self.projs = projs
         config_dlg.add_icon(frame=self)
-        self.szrMain = wx.BoxSizer(wx.VERTICAL)
+        self.szr_main = wx.BoxSizer(wx.VERTICAL)
         lblChoose = wx.StaticText(self.panel, -1, 
                                   _("Choose an existing project ..."))
         self.dropProjs = wx.Choice(self.panel, -1, choices=self.projs)
@@ -29,11 +29,11 @@ class ProjSelectDlg(wx.Dialog):
         self.dropProjs.SetSelection(idx_proj)
         self.store_proj_name(self.projs[idx_proj])
         self.dropProjs.Bind(wx.EVT_CHOICE, self.on_proj_select)
-        self.btnEdit = wx.Button(self.panel, wx.ID_EDIT)
-        self.btnEdit.Bind(wx.EVT_BUTTON, self.on_edit)
+        self.btn_edit = wx.Button(self.panel, wx.ID_EDIT)
+        self.btn_edit.Bind(wx.EVT_BUTTON, self.on_edit)
         szrExistingTop = wx.BoxSizer(wx.HORIZONTAL)
         szrExistingTop.Add(self.dropProjs, 1, wx.GROW|wx.RIGHT, 10)
-        szrExistingTop.Add(self.btnEdit, 0)
+        szrExistingTop.Add(self.btn_edit, 0)
         self.get_notes(fil_proj=self.projs[idx_proj])
         self.txtProjNotes = wx.TextCtrl(self.panel, -1, self.proj_notes,
                                         style=wx.TE_MULTILINE|wx.TE_READONLY, 
@@ -46,17 +46,17 @@ class ProjSelectDlg(wx.Dialog):
         szrNew = wx.StaticBoxSizer(bxNew, wx.HORIZONTAL)
         lblMakeNew = wx.StaticText(self.panel, -1, 
                                    _("... or make a new project"))
-        btnMakeNew = wx.Button(self.panel, wx.ID_NEW)
-        btnMakeNew.Bind(wx.EVT_BUTTON, self.on_new_click)
+        btn_make_new = wx.Button(self.panel, wx.ID_NEW)
+        btn_make_new.Bind(wx.EVT_BUTTON, self.on_new_click)
         szrNew.Add(lblMakeNew, 1, wx.GROW|wx.ALL, 10)
-        szrNew.Add(btnMakeNew, 0, wx.ALL, 10)
+        szrNew.Add(btn_make_new, 0, wx.ALL, 10)
         self.setup_btns()
-        self.szrMain.Add(lblChoose, 0, wx.ALL, 10)
-        self.szrMain.Add(szrExisting, 1, wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.GROW, 10)
-        self.szrMain.Add(szrNew, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
-        self.szrMain.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 25)
-        self.panel.SetSizer(self.szrMain)
-        self.szrMain.SetSizeHints(self)
+        self.szr_main.Add(lblChoose, 0, wx.ALL, 10)
+        self.szr_main.Add(szrExisting, 1, wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.GROW, 10)
+        self.szr_main.Add(szrNew, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
+        self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 25)
+        self.panel.SetSizer(self.szr_main)
+        self.szr_main.SetSizeHints(self)
         self.Layout()
     
     def store_proj_name(self, proj_name):
@@ -69,14 +69,14 @@ class ProjSelectDlg(wx.Dialog):
         Must have ID of wx.ID_... to trigger validators (no event binding 
             needed) and for std dialog button layout.
         """
-        btnCancel = wx.Button(self.panel, wx.ID_CANCEL) # 
-        btnCancel.Bind(wx.EVT_BUTTON, self.on_cancel)
-        btnOK = wx.Button(self.panel, wx.ID_OK)
-        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
-        btnOK.SetDefault()
+        btn_cancel = wx.Button(self.panel, wx.ID_CANCEL) # 
+        btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
+        btn_ok = wx.Button(self.panel, wx.ID_OK)
+        btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
+        btn_ok.SetDefault()
         self.szr_btns = wx.StdDialogButtonSizer()
-        self.szr_btns.AddButton(btnCancel)
-        self.szr_btns.AddButton(btnOK)
+        self.szr_btns.AddButton(btn_cancel)
+        self.szr_btns.AddButton(btn_ok)
         self.szr_btns.Realize()
     
     def get_notes(self, fil_proj):

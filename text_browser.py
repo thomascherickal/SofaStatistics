@@ -38,27 +38,27 @@ class TextBrowse(wx.PyControl):
         self.txt = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER)
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.txt.Bind(wx.EVT_KEY_DOWN, self.on_txt_key_down)
-        self.btnBrowse = wx.Button(self, -1, _("Browse ..."))
-        self.btnBrowse.Bind(wx.EVT_BUTTON, self.on_btn_browse_click)
-        self.btnBrowse.Bind(wx.EVT_KEY_DOWN, self.on_btn_browse_key_down)
+        self.btn_browse = wx.Button(self, -1, _("Browse ..."))
+        self.btn_browse.Bind(wx.EVT_BUTTON, self.on_btn_browse_click)
+        self.btn_browse.Bind(wx.EVT_KEY_DOWN, self.on_btn_browse_key_down)
         szr = wx.BoxSizer(wx.HORIZONTAL)
         self.txt_margins = 3
         self.btn_margin = 3
         szr.Add(self.txt, 1, wx.RIGHT|wx.LEFT, self.txt_margins)
-        szr.Add(self.btnBrowse, 0, wx.RIGHT, self.btn_margin)
+        szr.Add(self.btn_browse, 0, wx.RIGHT, self.btn_margin)
         szr.SetSizeHints(self)
         self.SetSizer(szr)
         self.Layout()
         
     def on_size(self, event):
         overall_width = self.GetSize()[0]
-        btn_width, btn_height = self.btnBrowse.GetSize()
+        btn_width, btn_height = self.btn_browse.GetSize()
         inner_padding = (2*self.txt_margins) + self.btn_margin
         txt_width = overall_width - (btn_width + inner_padding)
         self.txt.SetSize(wx.Size(txt_width, btn_height-2))
         self.txt.SetDimensions(-1, 3, txt_width, -1)
         btn_x_pos = overall_width - (btn_width + self.btn_margin)        
-        self.btnBrowse.SetDimensions(btn_x_pos, 2, btn_width, btn_height)
+        self.btn_browse.SetDimensions(btn_x_pos, 2, btn_width, btn_height)
         #event.Skip() # otherwise, resizing sets infinite number of EndEdits!    
     
     def on_txt_key_down(self, event):
@@ -71,7 +71,7 @@ class TextBrowse(wx.PyControl):
             key_event.set_key_code(wx.WXK_RETURN)
             self.GetEventHandler().ProcessEvent(key_event)
         elif event.get_key_code() in [wx.WXK_TAB]:
-            self.btnBrowse.SetFocus()
+            self.btn_browse.SetFocus()
         else:
             event.Skip()
     

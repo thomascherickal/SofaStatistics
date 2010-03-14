@@ -190,23 +190,23 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.txtTblName.Enable(not self.readonly)
         self.txtTblName.SetValidator(SafeTblNameValidator(name_ok_to_reuse))
         # sizers
-        self.szrMain = wx.BoxSizer(wx.VERTICAL)
+        self.szr_main = wx.BoxSizer(wx.VERTICAL)
         self.szrTblLabel = wx.BoxSizer(wx.HORIZONTAL)
         self.szrTblLabel.Add(lblTblLabel, 0, wx.RIGHT, 5)
         self.szrTblLabel.Add(self.txtTblName, 1)
-        self.szrMain.Add(self.szrTblLabel, 0, wx.GROW|wx.ALL, 10)
+        self.szr_main.Add(self.szrTblLabel, 0, wx.GROW|wx.ALL, 10)
         lblsofa_id = wx.StaticText(self.panel, -1, _("The sofa_id is required "
                                                      "and cannot be edited"))
-        self.szrMain.Add(lblsofa_id, 0, wx.ALL, 10)
+        self.szr_main.Add(lblsofa_id, 0, wx.ALL, 10)
         self.tabentry = ConfigTableEntry(self, self.panel, 
-                                         self.szrMain, 2, self.readonly, 
+                                         self.szr_main, 2, self.readonly, 
                                          grid_size, col_dets, data,  
                                          config_data, insert_data_func,
                                          cell_invalidation_func)
         self.setup_btns(self.readonly)
-        self.szrMain.Add(self.szr_btns, 0, wx.ALL, 10)
-        self.panel.SetSizer(self.szrMain)
-        self.szrMain.SetSizeHints(self)
+        self.szr_main.Add(self.szr_btns, 0, wx.ALL, 10)
+        self.panel.SetSizer(self.szr_main)
+        self.szr_main.SetSizeHints(self)
         self.Layout()
         self.txtTblName.SetFocus()
 

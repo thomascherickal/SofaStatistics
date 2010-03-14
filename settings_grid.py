@@ -45,18 +45,18 @@ class SettingsEntryDlg(wx.Dialog):
                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
                                 wx.SYSTEM_MENU, pos=(300,0))
         self.panel = wx.Panel(self)
-        self.szrMain = wx.BoxSizer(wx.VERTICAL)
+        self.szr_main = wx.BoxSizer(wx.VERTICAL)
         force_focus = False
-        self.tabentry = SettingsEntry(self, self.panel, self.szrMain, 1, 
+        self.tabentry = SettingsEntry(self, self.panel, self.szr_main, 1, 
                                 grid_size, col_dets, data, config_data, 
                                 force_focus, insert_data_func, 
                                 row_validation_func)
         # Close only
         self.setup_btns()
         # sizers
-        self.szrMain.Add(self.szr_btns, 0, wx.ALL, 10)
-        self.panel.SetSizer(self.szrMain)
-        self.szrMain.SetSizeHints(self)
+        self.szr_main.Add(self.szr_btns, 0, wx.ALL, 10)
+        self.panel.SetSizer(self.szr_main)
+        self.szr_main.SetSizeHints(self)
         self.Layout()
         self.tabentry.grid.SetFocus()
         
@@ -65,31 +65,31 @@ class SettingsEntryDlg(wx.Dialog):
         Separated for text_browser reuse
         """
         if not readonly:
-            btnCancel = wx.Button(self.panel, wx.ID_CANCEL)
-            btnCancel.Bind(wx.EVT_BUTTON, self.on_cancel)
+            btn_cancel = wx.Button(self.panel, wx.ID_CANCEL)
+            btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
         if readonly:
-            btnOK = wx.Button(self.panel, wx.ID_OK)
+            btn_ok = wx.Button(self.panel, wx.ID_OK)
         else:
-            btnOK = wx.Button(self.panel, wx.ID_OK, _("Update")) # must have ID 
+            btn_ok = wx.Button(self.panel, wx.ID_OK, _("Update")) # must have ID 
             # of wx.ID_OK to trigger validators (no event binding needed) and 
             # for std dialog button layout
-        btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
-        btnOK.SetDefault()
+        btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
+        btn_ok.SetDefault()
         if not readonly:
-            btnDelete = wx.Button(self.panel, wx.ID_DELETE)
-            btnDelete.Bind(wx.EVT_BUTTON, self.on_delete)
-            btnInsert = wx.Button(self.panel, -1, _("Insert Before"))
-            btnInsert.Bind(wx.EVT_BUTTON, self.on_insert)
+            btn_delete = wx.Button(self.panel, wx.ID_DELETE)
+            btn_delete.Bind(wx.EVT_BUTTON, self.on_delete)
+            btn_insert = wx.Button(self.panel, -1, _("Insert Before"))
+            btn_insert.Bind(wx.EVT_BUTTON, self.on_insert)
         # using the approach which will follow the platform convention 
         # for standard buttons
         self.szr_btns = wx.StdDialogButtonSizer()
         if not readonly:
-            self.szr_btns.AddButton(btnCancel)
-        self.szr_btns.AddButton(btnOK)
+            self.szr_btns.AddButton(btn_cancel)
+        self.szr_btns.AddButton(btn_ok)
         self.szr_btns.Realize()
         if not readonly:
-            self.szr_btns.Insert(0, btnDelete, 0)
-            self.szr_btns.Insert(0, btnInsert, 0, wx.RIGHT, 10)
+            self.szr_btns.Insert(0, btn_delete, 0)
+            self.szr_btns.Insert(0, btn_insert, 0, wx.RIGHT, 10)
 
     def on_cancel(self, event):
         # no validation - just get out

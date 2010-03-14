@@ -33,8 +33,8 @@ class ConfigDlg(object):
 
     def get_gen_config_szrs(self, panel, readonly=False):
         """
-        Returns self.szrData, self.szrConfigBottom (vars and css), 
-            self.szrConfigTop (reports and scripts) complete
+        Returns self.szr_data, self.szr_config_bottom (vars and css), 
+            self.szr_config_top (reports and scripts) complete
             with widgets and the following setup ready to use: self.con, 
             self.cur, self.dbs, self.tbls, self.flds, self.has_unique, 
             self.idxs, self.db, and self.tbl.
@@ -44,14 +44,14 @@ class ConfigDlg(object):
         Assumes self has quite a few properties already set e.g. dbe, 
             default_dbs, fil_script etc.
         """
-        self.szrData = self.get_szrData(panel)
-        self.szrConfigBottom, self.szrConfigTop = \
+        self.szr_data = self.get_szr_data(panel)
+        self.szr_config_bottom, self.szr_config_top = \
             self.get_misc_config_szrs(panel, readonly)
-        return self.szrData, self.szrConfigBottom, self.szrConfigTop
+        return self.szr_data, self.szr_config_bottom, self.szr_config_top
         
-    def get_szrData(self, panel):
+    def get_szr_data(self, panel):
         """
-        Returns self.szrData complete with widgets and the following setup ready 
+        Returns self.szr_data complete with widgets and the following setup ready 
             to use: self.con, self.cur, self.dbs, self.tbls, self.flds, 
             self.has_unique, self.idxs, self.db, and self.tbl.
         Widgets include dropdowns for database and tables.
@@ -82,17 +82,17 @@ class ConfigDlg(object):
         lblTables = wx.StaticText(panel, -1, _("Table:"))
         lblTables.SetFont(self.LABEL_FONT)
         bxData = wx.StaticBox(panel, -1, _("Data Source"))
-        self.szrData = wx.StaticBoxSizer(bxData, wx.HORIZONTAL)
-        self.szrData.Add(lblDatabases, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szrData.Add(self.dropDatabases, 0, wx.RIGHT, 10)
-        self.szrData.Add(lblTables, 0, wx.RIGHT, 5)
-        self.szrData.Add(self.dropTables, 0)
-        return self.szrData
+        self.szr_data = wx.StaticBoxSizer(bxData, wx.HORIZONTAL)
+        self.szr_data.Add(lblDatabases, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szr_data.Add(self.dropDatabases, 0, wx.RIGHT, 10)
+        self.szr_data.Add(lblTables, 0, wx.RIGHT, 5)
+        self.szr_data.Add(self.dropTables, 0)
+        return self.szr_data
               
     def get_misc_config_szrs(self, panel, readonly=False):
         """
-        Returns self.szrConfigBottom (vars and css), self.szrConfigTop (reports 
-            and scripts) complete with widgets.
+        Returns self.szr_config_bottom (vars and css), self.szr_config_top 
+            (reports and scripts) complete with widgets.
         Widgets include textboxes plus Browse buttons for labels, style, output, 
             and script.
         Each widget has a set of events ready to go as well.
@@ -104,17 +104,17 @@ class ConfigDlg(object):
         self.txtVarDetsFile.Bind(wx.EVT_KILL_FOCUS, 
                                  self.on_var_dets_file_lost_focus)
         self.txtVarDetsFile.Enable(not readonly)
-        self.btnVarDetsPath = wx.Button(panel, -1, _("Browse"))
-        self.btnVarDetsPath.Bind(wx.EVT_BUTTON, self.on_btn_var_dets_path)
-        self.btnVarDetsPath.Enable(not readonly)
+        self.btn_var_dets_path = wx.Button(panel, -1, _("Browse"))
+        self.btn_var_dets_path.Bind(wx.EVT_BUTTON, self.on_btn_var_dets_path)
+        self.btn_var_dets_path.Enable(not readonly)
         # CSS style config details
         self.txtCssFile = wx.TextCtrl(panel, -1, self.fil_css, 
                                       size=(250,-1))
         self.txtCssFile.Bind(wx.EVT_KILL_FOCUS, self.on_css_file_lost_focus)
         self.txtCssFile.Enable(not readonly)
-        self.btnCssPath = wx.Button(panel, -1, _("Browse"))
-        self.btnCssPath.Bind(wx.EVT_BUTTON, self.on_btn_css_path)
-        self.btnCssPath.Enable(not readonly)
+        self.btn_css_path = wx.Button(panel, -1, _("Browse"))
+        self.btn_css_path.Bind(wx.EVT_BUTTON, self.on_btn_css_path)
+        self.btn_css_path.Enable(not readonly)
         # Output details
         # report
         self.txtReportFile = wx.TextCtrl(panel, -1, self.fil_report, 
@@ -122,48 +122,48 @@ class ConfigDlg(object):
         self.txtReportFile.Bind(wx.EVT_KILL_FOCUS, 
                                 self.on_report_file_lost_focus)
         self.txtReportFile.Enable(not readonly)
-        self.btnReportPath = wx.Button(panel, -1, _("Browse"))
-        self.btnReportPath.Bind(wx.EVT_BUTTON, self.on_btn_report_path)
-        self.btnReportPath.Enable(not readonly)
+        self.btn_report_path = wx.Button(panel, -1, _("Browse"))
+        self.btn_report_path.Bind(wx.EVT_BUTTON, self.on_btn_report_path)
+        self.btn_report_path.Enable(not readonly)
         # script
         self.txtScriptFile = wx.TextCtrl(panel, -1, self.fil_script, 
-                                   size=(250,-1))
+                                         size=(250,-1))
         self.txtScriptFile.Bind(wx.EVT_KILL_FOCUS, 
                                 self.on_script_file_lost_focus)
         self.txtScriptFile.Enable(not readonly)
-        self.btnScriptPath = wx.Button(panel, -1, _("Browse"))
-        self.btnScriptPath.Bind(wx.EVT_BUTTON, self.on_btn_script_path)
-        self.btnScriptPath.Enable(not readonly)        
+        self.btn_script_path = wx.Button(panel, -1, _("Browse"))
+        self.btn_script_path.Bind(wx.EVT_BUTTON, self.on_btn_script_path)
+        self.btn_script_path.Enable(not readonly)        
           
-        self.szrConfigTop = wx.BoxSizer(wx.HORIZONTAL)
-        self.szrConfigBottom = wx.BoxSizer(wx.HORIZONTAL)
+        self.szr_config_top = wx.BoxSizer(wx.HORIZONTAL)
+        self.szr_config_bottom = wx.BoxSizer(wx.HORIZONTAL)
         # CONFIG TOP
         # Variables
         bxVarConfig = wx.StaticBox(panel, -1, _("Variable config from ..."))
         szrVarConfig = wx.StaticBoxSizer(bxVarConfig, wx.HORIZONTAL)
         szrVarConfig.Add(self.txtVarDetsFile, 1, wx.GROW)
-        szrVarConfig.Add(self.btnVarDetsPath, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szrConfigTop.Add(szrVarConfig, 1, wx.RIGHT, 10)
+        szrVarConfig.Add(self.btn_var_dets_path, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szr_config_top.Add(szrVarConfig, 1, wx.RIGHT, 10)
         # Css
         bxCssConfig = wx.StaticBox(panel, -1, _("Style output using ..."))
-        szrCssConfig = wx.StaticBoxSizer(bxCssConfig, wx.HORIZONTAL)
-        szrCssConfig.Add(self.txtCssFile, 1, wx.GROW)
-        szrCssConfig.Add(self.btnCssPath, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szrConfigTop.Add(szrCssConfig, 1)
+        szr_css_config = wx.StaticBoxSizer(bxCssConfig, wx.HORIZONTAL)
+        szr_css_config.Add(self.txtCssFile, 1, wx.GROW)
+        szr_css_config.Add(self.btn_css_path, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szr_config_top.Add(szr_css_config, 1)
         # CONFIG BOTTOM
         # Report
         bxReportConfig = wx.StaticBox(panel, -1, _("Send output to ..."))
         szrReportConfig = wx.StaticBoxSizer(bxReportConfig, wx.HORIZONTAL)
         szrReportConfig.Add(self.txtReportFile, 1, wx.GROW)
-        szrReportConfig.Add(self.btnReportPath, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szrConfigBottom.Add(szrReportConfig, 1, wx.RIGHT, 10)
+        szrReportConfig.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szr_config_bottom.Add(szrReportConfig, 1, wx.RIGHT, 10)
         # Script
         bxScriptConfig = wx.StaticBox(panel, -1, _("Export here to reuse"))
         szrScriptConfig = wx.StaticBoxSizer(bxScriptConfig, wx.HORIZONTAL)
         szrScriptConfig.Add(self.txtScriptFile, 1, wx.GROW)
-        szrScriptConfig.Add(self.btnScriptPath, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szrConfigBottom.Add(szrScriptConfig, 1)
-        return self.szrConfigBottom, self.szrConfigTop
+        szrScriptConfig.Add(self.btn_script_path, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szr_config_bottom.Add(szrScriptConfig, 1)
+        return self.szr_config_bottom, self.szr_config_top
 
     def get_szrOutputBtns(self, panel, inc_clear=True):
         #main
@@ -177,18 +177,18 @@ class ConfigDlg(object):
         self.btn_export = wx.Button(panel, -1, _("Export"))
         self.btn_export.Bind(wx.EVT_BUTTON, self.on_btn_export)
         self.btn_export.SetToolTipString(_("Export to script for reuse"))
-        self.btnExpand = wx.Button(panel, -1, _("Expand"))
-        self.btnExpand.Bind(wx.EVT_BUTTON, self.on_btn_expand)
-        self.btnExpand.SetToolTipString(_("Open report in own window"))
-        self.btnExpand.Enable(False)
-        self.btnHelp = wx.Button(panel, wx.ID_HELP)
-        self.btnHelp.Bind(wx.EVT_BUTTON, self.on_btn_help)
+        self.btn_expand = wx.Button(panel, -1, _("Expand"))
+        self.btn_expand.Bind(wx.EVT_BUTTON, self.on_btn_expand)
+        self.btn_expand.SetToolTipString(_("Open report in own window"))
+        self.btn_expand.Enable(False)
+        self.btn_help = wx.Button(panel, wx.ID_HELP)
+        self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         if inc_clear:
-            self.btnClear = wx.Button(panel, -1, _("Clear"))
-            self.btnClear.SetToolTipString(_("Clear settings"))
-            self.btnClear.Bind(wx.EVT_BUTTON, self.on_btn_clear)
-        self.btnClose = wx.Button(panel, wx.ID_CLOSE)
-        self.btnClose.Bind(wx.EVT_BUTTON, self.on_close)
+            self.btn_clear = wx.Button(panel, -1, _("Clear"))
+            self.btn_clear.SetToolTipString(_("Clear settings"))
+            self.btn_clear.Bind(wx.EVT_BUTTON, self.on_btn_clear)
+        self.btn_close = wx.Button(panel, wx.ID_CLOSE)
+        self.btn_close.Bind(wx.EVT_BUTTON, self.on_close)
         # add to sizer
         self.szrOutputButtons = wx.FlexGridSizer(rows=7, cols=1, hgap=5, vgap=5)
         self.szrOutputButtons.AddGrowableRow(5,2) # idx, propn
@@ -196,12 +196,12 @@ class ConfigDlg(object):
         # content.
         self.szrOutputButtons.Add(self.btn_run, 0)
         self.szrOutputButtons.Add(self.chk_add_to_report)
-        self.szrOutputButtons.Add(self.btnExpand, wx.ALIGN_TOP)
+        self.szrOutputButtons.Add(self.btn_expand, wx.ALIGN_TOP)
         self.szrOutputButtons.Add(self.btn_export, 0, wx.TOP, 8)
-        self.szrOutputButtons.Add(self.btnHelp, 0)
+        self.szrOutputButtons.Add(self.btn_help, 0)
         if inc_clear:
-            self.szrOutputButtons.Add(self.btnClear, 0)
-        self.szrOutputButtons.Add(self.btnClose, 1, wx.ALIGN_BOTTOM)
+            self.szrOutputButtons.Add(self.btn_clear, 0)
+        self.szrOutputButtons.Add(self.btn_close, 1, wx.ALIGN_BOTTOM)
         return self.szrOutputButtons
 
     def reread_fil_var_dets(self):

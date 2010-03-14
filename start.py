@@ -204,72 +204,72 @@ class StartFrame(wx.Frame):
         # Proj
         bmp_btn_proj = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                         _("Select Project"), font_buttons, "white")
-        self.btnProj = wx.BitmapButton(self.panel, -1, bmp_btn_proj, 
-                                       pos=(BTN_LEFT, g.next()))
-        self.btnProj.Bind(wx.EVT_BUTTON, self.on_proj_click)
-        self.btnProj.Bind(wx.EVT_ENTER_WINDOW, self.on_proj_enter)
-        self.btnProj.SetDefault()
+        self.btn_proj = wx.BitmapButton(self.panel, -1, bmp_btn_proj, 
+                                        pos=(BTN_LEFT, g.next()))
+        self.btn_proj.Bind(wx.EVT_BUTTON, self.on_proj_click)
+        self.btn_proj.Bind(wx.EVT_ENTER_WINDOW, self.on_proj_enter)
+        self.btn_proj.SetDefault()
         # Prefs
         bmp_btn_pref = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                        _("Preferences"), font_buttons, "white")
-        self.btnPrefs = wx.BitmapButton(self.panel, -1, bmp_btn_pref, 
-                                       pos=(BTN_LEFT, g.next()))
-        self.btnPrefs.Bind(wx.EVT_BUTTON, self.on_prefs_click)
-        self.btnPrefs.Bind(wx.EVT_ENTER_WINDOW, self.on_prefs_enter)
+        self.btn_prefs = wx.BitmapButton(self.panel, -1, bmp_btn_pref, 
+                                         pos=(BTN_LEFT, g.next()))
+        self.btn_prefs.Bind(wx.EVT_BUTTON, self.on_prefs_click)
+        self.btn_prefs.Bind(wx.EVT_ENTER_WINDOW, self.on_prefs_enter)
         # Data entry
         bmp_btn_enter = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                         _("Enter/Edit Data"), font_buttons, "white")
-        self.btnEnter = wx.BitmapButton(self.panel, -1, bmp_btn_enter, 
-                                        pos=(BTN_LEFT, g.next()))
-        self.btnEnter.Bind(wx.EVT_BUTTON, self.on_enter_click)
-        self.btnEnter.Bind(wx.EVT_ENTER_WINDOW, self.on_enter_enter)
+        self.btn_enter = wx.BitmapButton(self.panel, -1, bmp_btn_enter, 
+                                         pos=(BTN_LEFT, g.next()))
+        self.btn_enter.Bind(wx.EVT_BUTTON, self.on_enter_click)
+        self.btn_enter.Bind(wx.EVT_ENTER_WINDOW, self.on_enter_enter)
         # Import
         bmp_btn_import = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                          _("Import Data"), font_buttons, "white")
-        self.btnImport = wx.BitmapButton(self.panel, -1, bmp_btn_import, 
-                                         pos=(BTN_LEFT, g.next()))
-        self.btnImport.Bind(wx.EVT_BUTTON, self.on_import_click)
-        self.btnImport.Bind(wx.EVT_ENTER_WINDOW, self.on_import_enter)
+        self.btn_import = wx.BitmapButton(self.panel, -1, bmp_btn_import, 
+                                          pos=(BTN_LEFT, g.next()))
+        self.btn_import.Bind(wx.EVT_BUTTON, self.on_import_click)
+        self.btn_import.Bind(wx.EVT_ENTER_WINDOW, self.on_import_enter)
         # Right
         g = get_next_y_pos(284, BTN_DROP)
         # Report tables
         bmp_btn_tables = lib.add_text_to_bitmap(get_blank_btn_bmp(),
                          _("Report Tables"), font_buttons, "white")
-        self.btnTables = wx.BitmapButton(self.panel, -1, bmp_btn_tables, 
-                                         pos=(BTN_RIGHT, g.next()))
-        self.btnTables.Bind(wx.EVT_BUTTON, self.on_tables_click)
-        self.btnTables.Bind(wx.EVT_ENTER_WINDOW, self.on_tables_enter)
+        self.btn_tables = wx.BitmapButton(self.panel, -1, bmp_btn_tables, 
+                                          pos=(BTN_RIGHT, g.next()))
+        self.btn_tables.Bind(wx.EVT_BUTTON, self.on_tables_click)
+        self.btn_tables.Bind(wx.EVT_ENTER_WINDOW, self.on_tables_enter)
         # Charts
         bmp_btn_charts = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                          _("Charts"), font_buttons, "white")
-        self.btnCharts = wx.BitmapButton(self.panel, -1, bmp_btn_charts, 
-                                         pos=(BTN_RIGHT, g.next()))
-        self.btnCharts.Bind(wx.EVT_BUTTON, self.on_charts_click)
-        self.btnCharts.Bind(wx.EVT_ENTER_WINDOW, self.on_charts_enter)
+        self.btn_charts = wx.BitmapButton(self.panel, -1, bmp_btn_charts, 
+                                          pos=(BTN_RIGHT, g.next()))
+        self.btn_charts.Bind(wx.EVT_BUTTON, self.on_charts_click)
+        self.btn_charts.Bind(wx.EVT_ENTER_WINDOW, self.on_charts_enter)
         # Stats
         bmp_btn_stats = lib.add_text_to_bitmap(get_blank_btn_bmp(),
                         _("Statistics"), font_buttons, "white")
-        self.btnStatistics = wx.BitmapButton(self.panel, -1, bmp_btn_stats, 
-                                             pos=(BTN_RIGHT, g.next()))
-        self.btnStatistics.Bind(wx.EVT_BUTTON, self.on_stats_click)
-        self.btnStatistics.Bind(wx.EVT_ENTER_WINDOW, self.on_stats_enter)
+        self.btn_statistics = wx.BitmapButton(self.panel, -1, bmp_btn_stats, 
+                                              pos=(BTN_RIGHT, g.next()))
+        self.btn_statistics.Bind(wx.EVT_BUTTON, self.on_stats_click)
+        self.btn_statistics.Bind(wx.EVT_ENTER_WINDOW, self.on_stats_enter)
         # Exit  
         bmp_btn_exit = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                        _("Exit"), font_buttons, "white")
-        self.btnExit = wx.BitmapButton(self.panel, -1, bmp_btn_exit, 
-                                       pos=(BTN_RIGHT, g.next()))
-        self.btnExit.Bind(wx.EVT_BUTTON, self.on_exit_click)
-        self.btnExit.Bind(wx.EVT_ENTER_WINDOW, self.on_exit_enter)
+        self.btn_exit = wx.BitmapButton(self.panel, -1, bmp_btn_exit, 
+                                        pos=(BTN_RIGHT, g.next()))
+        self.btn_exit.Bind(wx.EVT_BUTTON, self.on_exit_click)
+        self.btn_exit.Bind(wx.EVT_ENTER_WINDOW, self.on_exit_enter)
         if not mg.IN_WINDOWS:
             hand = wx.StockCursor(wx.CURSOR_HAND)
-            self.btnProj.SetCursor(hand)
-            self.btnPrefs.SetCursor(hand)
-            self.btnEnter.SetCursor(hand)
-            self.btnImport.SetCursor(hand)
-            self.btnTables.SetCursor(hand)
-            self.btnCharts.SetCursor(hand)
-            self.btnStatistics.SetCursor(hand)
-            self.btnExit.SetCursor(hand)
+            self.btn_proj.SetCursor(hand)
+            self.btn_prefs.SetCursor(hand)
+            self.btn_enter.SetCursor(hand)
+            self.btn_import.SetCursor(hand)
+            self.btn_tables.SetCursor(hand)
+            self.btn_charts.SetCursor(hand)
+            self.btn_statistics.SetCursor(hand)
+            self.btn_exit.SetCursor(hand)
         # text
         # NB cannot have transparent background properly in Windows if using
         # a static ctrl 

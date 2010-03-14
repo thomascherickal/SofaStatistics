@@ -366,14 +366,14 @@ class ImportFileSelectDlg(wx.Dialog):
         self.file_type = FILE_UNKNOWN
         config_dlg.add_icon(frame=self)
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
-        szrMain = wx.BoxSizer(wx.VERTICAL)
+        szr_main = wx.BoxSizer(wx.VERTICAL)
         # file path
         lblFilePath = wx.StaticText(self.panel, -1, _("File:"))
         lblFilePath.SetFont(lblfont)
         self.txtFile = wx.TextCtrl(self.panel, -1, u"", size=(320,-1))
         self.txtFile.SetFocus()        
-        btnFilePath = wx.Button(self.panel, -1, _("Browse ..."))
-        btnFilePath.Bind(wx.EVT_BUTTON, self.on_btn_file_path)
+        btn_file_path = wx.Button(self.panel, -1, _("Browse ..."))
+        btn_file_path.Bind(wx.EVT_BUTTON, self.on_btn_file_path)
         # comment
         lblComment = wx.StaticText(self.panel, -1, 
             _("The file will be imported into the SOFA_Default_db database "
@@ -383,14 +383,14 @@ class ImportFileSelectDlg(wx.Dialog):
         lblIntName.SetFont(lblfont)
         self.txtIntName = wx.TextCtrl(self.panel, -1, "")
         # buttons
-        self.btnCancel = wx.Button(self.panel, wx.ID_CANCEL)
-        self.btnCancel.Bind(wx.EVT_BUTTON, self.on_cancel)
-        self.btnCancel.Enable(False)
-        self.btnClose = wx.Button(self.panel, wx.ID_CLOSE)
-        self.btnClose.Bind(wx.EVT_BUTTON, self.on_close)
-        self.btnImport = wx.Button(self.panel, -1, _("IMPORT"))
-        self.btnImport.Bind(wx.EVT_BUTTON, self.on_import)
-        self.btnImport.SetDefault()
+        self.btn_cancel = wx.Button(self.panel, wx.ID_CANCEL)
+        self.btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
+        self.btn_cancel.Enable(False)
+        self.btn_close = wx.Button(self.panel, wx.ID_CLOSE)
+        self.btn_close.Bind(wx.EVT_BUTTON, self.on_close)
+        self.btn_import = wx.Button(self.panel, -1, _("IMPORT"))
+        self.btn_import.Bind(wx.EVT_BUTTON, self.on_import)
+        self.btn_import.SetDefault()
         # progress
         self.progBackup = wx.Gauge(self.panel, -1, GAUGE_RANGE, size=(-1, 20),
                                    style=wx.GA_PROGRESSBAR)
@@ -398,25 +398,25 @@ class ImportFileSelectDlg(wx.Dialog):
         szrFilePath = wx.BoxSizer(wx.HORIZONTAL)
         szrFilePath.Add(lblFilePath, 0, wx.LEFT, 10)
         szrFilePath.Add(self.txtFile, 1, wx.GROW|wx.LEFT|wx.RIGHT, 5)
-        szrFilePath.Add(btnFilePath, 0, wx.RIGHT, 10)
+        szrFilePath.Add(btn_file_path, 0, wx.RIGHT, 10)
         szrIntName = wx.BoxSizer(wx.HORIZONTAL)
         szrIntName.Add(lblIntName, 0, wx.RIGHT, 5)
         szrIntName.Add(self.txtIntName, 1)
         szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
         szr_btns.AddGrowableCol(1,2) # idx, propn
-        szr_btns.Add(self.btnCancel, 0)
-        szr_btns.Add(self.btnImport, 0, wx.ALIGN_RIGHT)
-        szrClose = wx.FlexGridSizer(rows=1, cols=1, hgap=5, vgap=5)
-        szrClose.AddGrowableCol(0,2) # idx, propn        
-        szrClose.Add(self.btnClose, 0, wx.ALIGN_RIGHT)
-        szrMain.Add(szrFilePath, 0, wx.GROW|wx.TOP, 20)
-        szrMain.Add(lblComment, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
-        szrMain.Add(szrIntName, 0, wx.GROW|wx.ALL, 10)
-        szrMain.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
-        szrMain.Add(self.progBackup, 0, wx.GROW|wx.ALL, 10)
-        szrMain.Add(szrClose, 0, wx.GROW|wx.ALL, 10)
-        self.panel.SetSizer(szrMain)
-        szrMain.SetSizeHints(self)
+        szr_btns.Add(self.btn_cancel, 0)
+        szr_btns.Add(self.btn_import, 0, wx.ALIGN_RIGHT)
+        szr_close = wx.FlexGridSizer(rows=1, cols=1, hgap=5, vgap=5)
+        szr_close.AddGrowableCol(0,2) # idx, propn        
+        szr_close.Add(self.btn_close, 0, wx.ALIGN_RIGHT)
+        szr_main.Add(szrFilePath, 0, wx.GROW|wx.TOP, 20)
+        szr_main.Add(lblComment, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(szrIntName, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(self.progBackup, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(szr_close, 0, wx.GROW|wx.ALL, 10)
+        self.panel.SetSizer(szr_main)
+        szr_main.SetSizeHints(self)
         self.Layout()
 
     def on_btn_file_path(self, event):
@@ -503,9 +503,9 @@ class ImportFileSelectDlg(wx.Dialog):
         return final_tbl_name
 
     def set_import_btns(self, importing):
-        self.btnClose.Enable(not importing)
-        self.btnCancel.Enable(importing)
-        self.btnImport.Enable(not importing)
+        self.btn_close.Enable(not importing)
+        self.btn_cancel.Enable(importing)
+        self.btn_import.Enable(not importing)
 
     def on_import(self, event):
         """

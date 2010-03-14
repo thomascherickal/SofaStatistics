@@ -101,10 +101,10 @@ class StatsSelectDlg(wx.Dialog):
         self.rad3Groups.Bind(wx.EVT_RADIOBUTTON, self.on_radio3_groups_btn)
         self.rad2Groups.Enable(False)
         self.rad3Groups.Enable(False)
-        self.btnGroupsHelp = wx.Button(self.panel, wx.ID_HELP, 
-                                       pos=(HELP_LEFT, DIFF_LN_1 - BUTTON_LIFT))
-        self.btnGroupsHelp.Enable(False)
-        self.btnGroupsHelp.Bind(wx.EVT_BUTTON, self.on_groups_help_btn)
+        self.btn_groups_help = wx.Button(self.panel, wx.ID_HELP, 
+                                         pos=(HELP_LEFT, DIFF_LN_1 - BUTTON_LIFT))
+        self.btn_groups_help.Enable(False)
+        self.btn_groups_help.Bind(wx.EVT_BUTTON, self.on_groups_help_btn)
         # divider
         wx.StaticLine(self.panel, pos=(BUTTON1_LEFT, DIFF_LN_1 + 30),
                       size=(DIV_LINE_WIDTH, 1))   
@@ -121,10 +121,10 @@ class StatsSelectDlg(wx.Dialog):
         self.radNotNormal1.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
         self.radNormal1.Enable(False)
         self.radNotNormal1.Enable(False)
-        self.btnNormalHelp1 = wx.Button(self.panel, wx.ID_HELP,
-                                    pos=(HELP_LEFT, DIFF_LN_2 - BUTTON_LIFT))
-        self.btnNormalHelp1.Bind(wx.EVT_BUTTON, self.on_normal_help1_btn)
-        self.btnNormalHelp1.Enable(False)
+        self.btn_normal_help1 = wx.Button(self.panel, wx.ID_HELP,
+                                       pos=(HELP_LEFT, DIFF_LN_2 - BUTTON_LIFT))
+        self.btn_normal_help1.Bind(wx.EVT_BUTTON, self.on_normal_help1_btn)
+        self.btn_normal_help1.Enable(False)
         # divider
         wx.StaticLine(self.panel, pos=(BUTTON1_LEFT, DIFF_LN_2 + 30),
                       size=(DIV_LINE_WIDTH, 1))
@@ -139,10 +139,10 @@ class StatsSelectDlg(wx.Dialog):
         self.radPaired.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
         self.radIndep.Enable(False)
         self.radPaired.Enable(False)
-        self.btnIndepHelp = wx.Button(self.panel, wx.ID_HELP,
-                                       pos=(HELP_LEFT, DIFF_LN_3 - BUTTON_LIFT))
-        self.btnIndepHelp.Bind(wx.EVT_BUTTON, self.on_indep_help_btn)
-        self.btnIndepHelp.Enable(False)
+        self.btn_indep_help = wx.Button(self.panel, wx.ID_HELP,
+                                        pos=(HELP_LEFT, DIFF_LN_3 - BUTTON_LIFT))
+        self.btn_indep_help.Bind(wx.EVT_BUTTON, self.on_indep_help_btn)
+        self.btn_indep_help.Enable(False)
         # choices line 4
         DIFF_LN_4 = REL_TOP + 60
         self.radNominal = wx.RadioButton(self.panel, -1, _("Names Only"), 
@@ -154,10 +154,10 @@ class StatsSelectDlg(wx.Dialog):
         self.radOrdered.Bind(wx.EVT_RADIOBUTTON, self.on_radio_ordered_btn)
         self.radNominal.Enable(False)
         self.radOrdered.Enable(False)
-        self.btnTypeHelp = wx.Button(self.panel, wx.ID_HELP, 
-                                     pos=(HELP_LEFT, DIFF_LN_4 - BUTTON_LIFT))
-        self.btnTypeHelp.Bind(wx.EVT_BUTTON, self.on_type_help_btn)
-        self.btnTypeHelp.Enable(False)
+        self.btn_type_help = wx.Button(self.panel, wx.ID_HELP, 
+                                       pos=(HELP_LEFT, DIFF_LN_4 - BUTTON_LIFT))
+        self.btn_type_help.Bind(wx.EVT_BUTTON, self.on_type_help_btn)
+        self.btn_type_help.Enable(False)
         # divider
         wx.StaticLine(self.panel, pos=(BUTTON1_LEFT, DIFF_LN_4 + 30),
                       size=(DIV_LINE_WIDTH, 1))   
@@ -172,10 +172,10 @@ class StatsSelectDlg(wx.Dialog):
         self.radNotNormal2.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
         self.radNormal2.Enable(False)
         self.radNotNormal2.Enable(False)
-        self.btnNormalHelp2 = wx.Button(self.panel, wx.ID_HELP,
-                                        pos=(HELP_LEFT, DIFF_LN_5))
-        self.btnNormalHelp2.Bind(wx.EVT_BUTTON, self.on_normal_help2_btn)
-        self.btnNormalHelp2.Enable(False)
+        self.btn_normal_help2 = wx.Button(self.panel, wx.ID_HELP,
+                                          pos=(HELP_LEFT, DIFF_LN_5))
+        self.btn_normal_help2.Bind(wx.EVT_BUTTON, self.on_normal_help2_btn)
+        self.btn_normal_help2.Enable(False)
         # listbox of tests
         LST_LEFT = 555
         LST_WIDTH = 200
@@ -206,12 +206,13 @@ class StatsSelectDlg(wx.Dialog):
         self.lstTests.Bind(wx.EVT_LIST_ITEM_ACTIVATED, 
                            self.on_list_item_selected)
         # run test button
-        self.btnConfig = wx.Button(self.panel, -1, _("CONFIGURE TEST") + " >>>",
-                                pos=(CONFIG_LEFT, LST_TOP + LST_HEIGHT + 20))
-        self.btnConfig.Bind(wx.EVT_BUTTON, self.on_config_clicked)
+        self.btn_config = wx.Button(self.panel, -1, 
+                                    _("CONFIGURE TEST") + " >>>",
+                                   pos=(CONFIG_LEFT, LST_TOP + LST_HEIGHT + 20))
+        self.btn_config.Bind(wx.EVT_BUTTON, self.on_config_clicked)
         # close button
-        self.btnClose = wx.Button(self.panel, wx.ID_CLOSE, pos=(675, 500))
-        self.btnClose.Bind(wx.EVT_BUTTON, self.on_close_click)
+        self.btn_close = wx.Button(self.panel, wx.ID_CLOSE, pos=(675,500))
+        self.btn_close.Bind(wx.EVT_BUTTON, self.on_close_click)
         
     def on_paint(self, event):
         """
@@ -284,10 +285,10 @@ class StatsSelectDlg(wx.Dialog):
                 pass
         self.rad2Groups.Enable(enable)
         self.rad3Groups.Enable(enable)
-        self.btnGroupsHelp.Enable(enable)
+        self.btn_groups_help.Enable(enable)
         self.radNormal1.Enable(enable)
         self.radNotNormal1.Enable(enable)
-        self.btnNormalHelp1.Enable(enable)
+        self.btn_normal_help1.Enable(enable)
         self.indep_setup(enable=enable)
     
     def on_radio2_groups_btn(self, event):
@@ -328,7 +329,7 @@ class StatsSelectDlg(wx.Dialog):
             pass
         self.radIndep.Enable(enable)
         self.radPaired.Enable(enable)
-        self.btnIndepHelp.Enable(enable)
+        self.btn_indep_help.Enable(enable)
         
     def on_indep_help_btn(self, event):
         wx.MessageBox(_("Is your data for each group recorded in different "
@@ -351,7 +352,7 @@ class StatsSelectDlg(wx.Dialog):
                 pass
         self.radNominal.Enable(enable)
         self.radOrdered.Enable(enable)
-        self.btnTypeHelp.Enable(enable)
+        self.btn_type_help.Enable(enable)
         self.normal_rel_setup(enable=False) # only set to True when cat selected
     
     def on_radio_nominal_btn(self, event):
@@ -383,7 +384,7 @@ class StatsSelectDlg(wx.Dialog):
             pass
         self.radNormal2.Enable(enable)
         self.radNotNormal2.Enable(enable)
-        self.btnNormalHelp2.Enable(enable)
+        self.btn_normal_help2.Enable(enable)
     
     def remove_test_indicators(self):
         for i, test in enumerate(STATS_TESTS):

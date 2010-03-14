@@ -46,7 +46,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.fil_report = fil_report
         self.fil_script = fil_script
         self.takes_range = takes_range
-        self.url_load = True # btnExpand
+        self.url_load = True # btn_expand
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.get_var_dets(fil_var_dets)
         variables_rc_msg = _("Right click variables to view/edit details")
@@ -55,7 +55,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # top panel
         self.panel_top = wx.Panel(self)
         szrtop = wx.BoxSizer(wx.VERTICAL)
-        self.szrData = self.get_szrData(self.panel_top) # mixin
+        self.szr_data = self.get_szr_data(self.panel_top) # mixin
         bxVars = wx.StaticBox(self.panel_top, -1, _("Variables"))
         if not mg.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
             bxVars.SetToolTipString(variables_rc_msg)
@@ -68,7 +68,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrVarsTopLeftMid = wx.BoxSizer(wx.HORIZONTAL)
         szrVarsTopRightTop = wx.BoxSizer(wx.HORIZONTAL)
         szrVarsTopRightBottom = wx.BoxSizer(wx.HORIZONTAL)
-        szrchart_btns = wx.BoxSizer(wx.HORIZONTAL)
+        szr_chart_btns = wx.BoxSizer(wx.HORIZONTAL)
         # var 1
         lbl_var1 = wx.StaticText(self.panel_top, -1, u"Var 1:")
         lbl_var1.SetFont(self.LABEL_FONT)
@@ -144,7 +144,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrVars.Add(szrVarsTop, 0)      
         szrVars.Add(szrVarsBottom, 0, wx.GROW)
         # assemble sizer for top panel
-        szrtop.Add(self.szrData, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szrtop.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szrtop.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         self.panel_top.SetSizer(szrtop)
         szrtop.SetSizeHints(self.panel_top)
@@ -156,8 +156,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_mid = wx.Panel(self)
         bxcharts = wx.StaticBox(self.panel_mid, -1, _("Chart Types"))
         self.szrmid = wx.StaticBoxSizer(bxcharts, wx.VERTICAL)
-        self.setup_chart_btns(szrchart_btns)
-        self.szrmid.Add(szrchart_btns, 0, wx.GROW)
+        self.setup_chart_btns(szr_chart_btns)
+        self.szrmid.Add(szr_chart_btns, 0, wx.GROW)
         if not mg.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
             bxcharts.SetToolTipString(_("Make chart"))
         # Chart Settings
@@ -190,10 +190,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # Bottom panel
         self.panel_bottom = wx.Panel(self)
         szrTitles = wx.BoxSizer(wx.HORIZONTAL)
-        szrBottom = wx.BoxSizer(wx.HORIZONTAL)
-        szrBottomLeft = wx.BoxSizer(wx.VERTICAL)
+        szr_lower = wx.BoxSizer(wx.HORIZONTAL)
+        szr_bottom_left = wx.BoxSizer(wx.VERTICAL)
         # titles, subtitles
-        szrbottom = wx.BoxSizer(wx.VERTICAL)
+        szr_bottom = wx.BoxSizer(wx.VERTICAL)
         lblTitles = wx.StaticText(self.panel_bottom, -1, _("Title:"))
         lblTitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         self.txtTitles = wx.TextCtrl(self.panel_bottom, -1, size=(350,40), 
@@ -207,23 +207,23 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szrTitles.Add(self.txtTitles, 1, wx.RIGHT, 10)
         szrTitles.Add(lblSubtitles, 0, wx.RIGHT, 5)
         szrTitles.Add(self.txtSubtitles, 1)
-        self.szrConfigBottom, self.szrConfigTop = \
+        self.szr_config_bottom, self.szr_config_top = \
             self.get_misc_config_szrs(self.panel_bottom) # mixin                         
         self.szrOutputButtons = self.get_szrOutputBtns(self.panel_bottom, 
                                                        inc_clear=False) # mixin
         self.html = full_html.FullHTML(self.panel_bottom, size=(200, 150))
         html2show = _("<p>Waiting for a report to be run.</p>")
         self.html.show_html(html2show)
-        szrBottomLeft.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
-        szrBottomLeft.Add(self.szrConfigTop, 0, wx.GROW)
-        szrBottomLeft.Add(self.szrConfigBottom, 0, wx.GROW)
-        szrBottom.Add(szrBottomLeft, 1, wx.GROW)
-        szrBottom.Add(self.szrOutputButtons, 0, wx.GROW|wx.LEFT, 10)
-        szrbottom.Add(szrTitles, 0, wx.GROW|wx.ALL, 10)
-        szrbottom.Add(szrBottom, 2, wx.GROW|wx.ALL, 10)
+        szr_bottom_left.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
+        szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW)
+        szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW)
+        szr_lower.Add(szr_bottom_left, 1, wx.GROW)
+        szr_lower.Add(self.szrOutputButtons, 0, wx.GROW|wx.LEFT, 10)
+        szr_bottom.Add(szrTitles, 0, wx.GROW|wx.ALL, 10)
+        szr_bottom.Add(szr_lower, 2, wx.GROW|wx.ALL, 10)
         self.add_other_var_opts()
-        self.panel_bottom.SetSizer(szrbottom)
-        szrbottom.SetSizeHints(self.panel_bottom)
+        self.panel_bottom.SetSizer(szr_bottom)
+        szr_bottom.SetSizeHints(self.panel_bottom)
         # assemble entire frame
         szrmain.Add(self.panel_top, 0, wx.GROW)
         szrmain.Add(self.panel_mid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
@@ -233,7 +233,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.SetMinSize((930,600))
         self.Layout()
     
-    def setup_chart_btns(self, szrchart_btns):
+    def setup_chart_btns(self, szr_chart_btns):
         # bar charts
         bmp_btn_bar_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
                                                   u"bar_chart.xpm"), 
@@ -242,7 +242,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                              bmp_btn_bar_chart)
         self.btn_bar_chart.Bind(wx.EVT_BUTTON, self.on_btn_bar_chart)
         self.btn_bar_chart.SetToolTipString(_("Make Bar Chart"))
-        szrchart_btns.Add(self.btn_bar_chart)
+        szr_chart_btns.Add(self.btn_bar_chart)
         # clustered bar charts
         bmp_btn_clustered_bar_chart = \
                             wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
@@ -254,7 +254,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                           self.on_btn_clustered_bar_chart)
         self.btn_clustered_bar_chart.SetToolTipString(_("Make Clustered Bar "
                                                         "Chart"))
-        szrchart_btns.Add(self.btn_clustered_bar_chart)
+        szr_chart_btns.Add(self.btn_clustered_bar_chart)
         # pie charts
         bmp_btn_pie_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
                                                   u"pie_chart.xpm"), 
@@ -263,7 +263,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                              bmp_btn_pie_chart)
         self.btn_pie_chart.Bind(wx.EVT_BUTTON, self.on_btn_chart)
         self.btn_pie_chart.SetToolTipString(_("Make Pie Chart"))
-        szrchart_btns.Add(self.btn_pie_chart)
+        szr_chart_btns.Add(self.btn_pie_chart)
         # line charts
         bmp_btn_line_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
                                                    u"line_chart.xpm"), 
@@ -272,7 +272,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                               bmp_btn_line_chart)
         self.btn_line_chart.Bind(wx.EVT_BUTTON, self.on_btn_chart)
         self.btn_line_chart.SetToolTipString(_("Make Line Chart"))
-        szrchart_btns.Add(self.btn_line_chart)
+        szr_chart_btns.Add(self.btn_line_chart)
         # area charts
         bmp_btn_area_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
                                                    u"area_chart.xpm"), 
@@ -281,7 +281,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                               bmp_btn_area_chart)
         self.btn_area_chart.Bind(wx.EVT_BUTTON, self.on_btn_chart)
         self.btn_area_chart.SetToolTipString(_("Make Area Chart"))
-        szrchart_btns.Add(self.btn_area_chart)
+        szr_chart_btns.Add(self.btn_area_chart)
         # scatterplots
         bmp_btn_scatterplot = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
                                                     u"scatterplot.xpm"), 
@@ -290,7 +290,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                                bmp_btn_scatterplot)
         self.btn_scatterplot.Bind(wx.EVT_BUTTON, self.on_btn_chart)
         self.btn_scatterplot.SetToolTipString(_("Make Scatterplot"))
-        szrchart_btns.Add(self.btn_scatterplot)
+        szr_chart_btns.Add(self.btn_scatterplot)
         # histograms
         bmp_btn_histogram = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
                                                   u"histogram.xpm"), 
@@ -299,7 +299,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                              bmp_btn_histogram)
         self.btn_histogram.Bind(wx.EVT_BUTTON, self.on_btn_chart)
         self.btn_histogram.SetToolTipString(_("Make Histogram"))
-        szrchart_btns.Add(self.btn_histogram)
+        szr_chart_btns.Add(self.btn_histogram)
         if not mg.IN_WINDOWS:
             hand = wx.StockCursor(wx.CURSOR_HAND)
             self.btn_bar_chart.SetCursor(hand)
