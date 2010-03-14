@@ -402,17 +402,17 @@ class ImportFileSelectDlg(wx.Dialog):
         szrIntName = wx.BoxSizer(wx.HORIZONTAL)
         szrIntName.Add(lblIntName, 0, wx.RIGHT, 5)
         szrIntName.Add(self.txtIntName, 1)
-        szrBtns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
-        szrBtns.AddGrowableCol(1,2) # idx, propn
-        szrBtns.Add(self.btnCancel, 0)
-        szrBtns.Add(self.btnImport, 0, wx.ALIGN_RIGHT)
+        szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
+        szr_btns.AddGrowableCol(1,2) # idx, propn
+        szr_btns.Add(self.btnCancel, 0)
+        szr_btns.Add(self.btnImport, 0, wx.ALIGN_RIGHT)
         szrClose = wx.FlexGridSizer(rows=1, cols=1, hgap=5, vgap=5)
         szrClose.AddGrowableCol(0,2) # idx, propn        
         szrClose.Add(self.btnClose, 0, wx.ALIGN_RIGHT)
         szrMain.Add(szrFilePath, 0, wx.GROW|wx.TOP, 20)
         szrMain.Add(lblComment, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
         szrMain.Add(szrIntName, 0, wx.GROW|wx.ALL, 10)
-        szrMain.Add(szrBtns, 0, wx.GROW|wx.ALL, 10)
+        szrMain.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
         szrMain.Add(self.progBackup, 0, wx.GROW|wx.ALL, 10)
         szrMain.Add(szrClose, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(szrMain)

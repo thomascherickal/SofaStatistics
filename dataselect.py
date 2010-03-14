@@ -118,10 +118,10 @@ class DataSelectDlg(wx.Dialog):
         btnClose = wx.Button(self.panel, wx.ID_CLOSE)
         btnClose.Bind(wx.EVT_BUTTON, self.on_close)
         szrBottom = wx.BoxSizer(wx.HORIZONTAL)
-        self.szrBtns = wx.BoxSizer(wx.HORIZONTAL)
-        self.szrBtns.Add(self.lblFeedback, 1, wx.GROW|wx.ALL, 10)
-        self.szrBtns.Add(btnClose, 0, wx.RIGHT)
-        szrBottom.Add(self.szrBtns, 1, wx.GROW|wx.RIGHT, 15) # align with New        
+        self.szr_btns = wx.BoxSizer(wx.HORIZONTAL)
+        self.szr_btns.Add(self.lblFeedback, 1, wx.GROW|wx.ALL, 10)
+        self.szr_btns.Add(btnClose, 0, wx.RIGHT)
+        szrBottom.Add(self.szr_btns, 1, wx.GROW|wx.RIGHT, 15) # align with New        
         self.szrMain.Add(lblChoose, 0, wx.ALL, 10)
         self.szrMain.Add(szrExisting, 1, wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.GROW, 10)
         self.szrMain.Add(szrNew, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)

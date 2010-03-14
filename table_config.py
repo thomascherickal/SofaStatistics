@@ -204,7 +204,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                                          config_data, insert_data_func,
                                          cell_invalidation_func)
         self.setup_btns(self.readonly)
-        self.szrMain.Add(self.szrBtns, 0, wx.ALL, 10)
+        self.szrMain.Add(self.szr_btns, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
         self.Layout()

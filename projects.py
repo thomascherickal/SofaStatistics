@@ -334,7 +334,7 @@ class GetSettings(settings_grid.SettingsEntryDlg):
                                             self.szrMain, 2, False, grid_size, 
                                             col_dets, data, config_data)
         self.setup_btns(readonly=False)
-        self.szrMain.Add(self.szrBtns, 0, wx.ALL, 10)
+        self.szrMain.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
         self.Layout()
@@ -452,8 +452,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         # NEVER SetSizeHints or else grows beyond size!!!!
         self.szrCon_Dets.SetVirtualSizeHints(self.scroll_con_dets)
         # BOTTOM
-        self.szrBottom.Add(self.szrBtns, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT|\
-                           wx.ALIGN_RIGHT, 10)
+        self.szrBottom.Add(self.szr_btns, 0, wx.GROW|wx.LEFT|wx.BOTTOM|\
+                           wx.RIGHT|wx.ALIGN_RIGHT, 10)
         self.panel_bottom.SetSizer(self.szrBottom)
         self.szrBottom.SetSizeHints(self.panel_bottom)
         # FINAL # NB any ratio changes must work in multiple OSs
@@ -580,13 +580,13 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             btnCancel.Bind(wx.EVT_BUTTON, self.on_cancel)
             btnOK = wx.Button(self.panel_bottom, wx.ID_OK, _("Update"))
         btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
-        self.szrBtns = wx.StdDialogButtonSizer()
+        self.szr_btns = wx.StdDialogButtonSizer()
         if not self.readonly:
-            self.szrBtns.AddButton(btnCancel)
-        self.szrBtns.AddButton(btnOK)
-        self.szrBtns.Realize()
+            self.szr_btns.AddButton(btnCancel)
+        self.szr_btns.AddButton(btnOK)
+        self.szr_btns.Realize()
         if not self.readonly and not self.new:
-            self.szrBtns.Insert(0, btnDelete, 0)
+            self.szr_btns.Insert(0, btnDelete, 0)
 
     def on_delete(self, event):
         proj_name = self.txtName.GetValue()

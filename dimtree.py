@@ -13,6 +13,20 @@ SORT_OPT_NONE = 0 # No sorting options
 SORT_OPT_BY_LABEL = 1 # Only provide option of sorting by label
 SORT_OPT_ALL = 2 # Option of sorting by labels and freqs
 
+"""
+Dimtree (tree of dimensions i.e. rows and columns) handles the GUI configuration 
+    of the report table.  All it does is collect the right information to pass 
+    onto the script.  The same configuration could be hand typed into the script 
+    by the user with the same effect.
+The script utilises dimtables to actually generate the HTML. Firstly, the node
+    information is turned into a label tree which is used to create the data 
+    cells.
+A label tree has nodes for each value under a variable e.g. the dimension might 
+    be country vs agegroup but we still need to know if there is a label node 
+    for a particular value e.g. '30-39' for the given (filtered) data.  Plus we 
+    need to add label nodes for totals, row %s etc.   
+"""
+
 
 class DimTree(object):
     
@@ -555,11 +569,11 @@ class DlgConfig(wx.Dialog):
         btnOK.SetDefault()
         # using the approach which will follow the platform convention 
         # for standard buttons
-        szrBtns = wx.StdDialogButtonSizer()
-        szrBtns.AddButton(btnCancel)
-        szrBtns.AddButton(btnOK)
-        szrBtns.Realize()
-        szrMain.Add(szrBtns, 0, wx.ALL, 10)
+        szr_btns = wx.StdDialogButtonSizer()
+        szr_btns.AddButton(btnCancel)
+        szr_btns.AddButton(btnOK)
+        szr_btns.Realize()
+        szrMain.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
         szrMain.SetSizeHints(self)
         self.SetSizer(szrMain)
         self.Fit()

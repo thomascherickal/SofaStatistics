@@ -54,7 +54,7 @@ class SettingsEntryDlg(wx.Dialog):
         # Close only
         self.setup_btns()
         # sizers
-        self.szrMain.Add(self.szrBtns, 0, wx.ALL, 10)
+        self.szrMain.Add(self.szr_btns, 0, wx.ALL, 10)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
         self.Layout()
@@ -82,14 +82,14 @@ class SettingsEntryDlg(wx.Dialog):
             btnInsert.Bind(wx.EVT_BUTTON, self.on_insert)
         # using the approach which will follow the platform convention 
         # for standard buttons
-        self.szrBtns = wx.StdDialogButtonSizer()
+        self.szr_btns = wx.StdDialogButtonSizer()
         if not readonly:
-            self.szrBtns.AddButton(btnCancel)
-        self.szrBtns.AddButton(btnOK)
-        self.szrBtns.Realize()
+            self.szr_btns.AddButton(btnCancel)
+        self.szr_btns.AddButton(btnOK)
+        self.szr_btns.Realize()
         if not readonly:
-            self.szrBtns.Insert(0, btnDelete, 0)
-            self.szrBtns.Insert(0, btnInsert, 0, wx.RIGHT, 10)
+            self.szr_btns.Insert(0, btnDelete, 0)
+            self.szr_btns.Insert(0, btnInsert, 0, wx.RIGHT, 10)
 
     def on_cancel(self, event):
         # no validation - just get out

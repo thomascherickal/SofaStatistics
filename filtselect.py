@@ -133,7 +133,7 @@ class FiltSelectDlg(wx.Dialog):
                     wx.ALIGN_RIGHT|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         szrMain.Add(lnSplit, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szrMain.Add(szrFlex, 0, wx.GROW|wx.ALL, 10)
-        szrMain.Add(self.szrBtns, 0, wx.ALL|wx.GROW, 10)
+        szrMain.Add(self.szr_btns, 0, wx.ALL|wx.GROW, 10)
         self.panel.SetSizer(szrMain)
         szrMain.SetSizeHints(self)
         self.Layout()
@@ -167,7 +167,7 @@ class FiltSelectDlg(wx.Dialog):
         btnOK = wx.Button(self.panel, wx.ID_OK, _("Apply"))
         btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
         # szrs
-        self.szrBtns = wx.BoxSizer(wx.HORIZONTAL)
+        self.szr_btns = wx.BoxSizer(wx.HORIZONTAL)
         szrExtraBtns = wx.BoxSizer(wx.HORIZONTAL)
         szrStdBtns = wx.StdDialogButtonSizer()
         # assemble
@@ -176,8 +176,8 @@ class FiltSelectDlg(wx.Dialog):
         szrStdBtns.AddButton(btnOK)
         szrStdBtns.Realize()
         szrStdBtns.Insert(0, btnDelete, 0)
-        self.szrBtns.Add(szrExtraBtns, 1)
-        self.szrBtns.Add(szrStdBtns, 0)
+        self.szr_btns.Add(szrExtraBtns, 1)
+        self.szr_btns.Add(szrStdBtns, 0)
         btnOK.SetDefault()
 
     def on_var_dets(self, event):

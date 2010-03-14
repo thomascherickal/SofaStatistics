@@ -54,7 +54,7 @@ class ProjSelectDlg(wx.Dialog):
         self.szrMain.Add(lblChoose, 0, wx.ALL, 10)
         self.szrMain.Add(szrExisting, 1, wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.GROW, 10)
         self.szrMain.Add(szrNew, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
-        self.szrMain.Add(self.szrBtns, 0, wx.GROW|wx.ALL, 25)
+        self.szrMain.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 25)
         self.panel.SetSizer(self.szrMain)
         self.szrMain.SetSizeHints(self)
         self.Layout()
@@ -74,10 +74,10 @@ class ProjSelectDlg(wx.Dialog):
         btnOK = wx.Button(self.panel, wx.ID_OK)
         btnOK.Bind(wx.EVT_BUTTON, self.on_ok)
         btnOK.SetDefault()
-        self.szrBtns = wx.StdDialogButtonSizer()
-        self.szrBtns.AddButton(btnCancel)
-        self.szrBtns.AddButton(btnOK)
-        self.szrBtns.Realize()
+        self.szr_btns = wx.StdDialogButtonSizer()
+        self.szr_btns.AddButton(btnCancel)
+        self.szr_btns.AddButton(btnOK)
+        self.szr_btns.Realize()
     
     def get_notes(self, fil_proj):
         proj_path = os.path.join(mg.LOCAL_PATH, "projs", fil_proj)
