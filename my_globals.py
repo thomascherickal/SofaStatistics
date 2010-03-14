@@ -28,10 +28,11 @@ STATS_DIC_MAX = u"max"
 OUTPUT_RESULTS_ONLY = u"Output results only"
 # Making tables ******************************************************
 HAS_TOTAL = _("Total") # doubles as display label
-COL_MEASURES = 0 # indexes in tab type
-ROW_SUMM = 1
-RAW_DISPLAY = 2
-COL_MEASURES_TREE_LBL = _("Column measures")
+FREQS_TBL = 0 # indexes in tab type
+CROSSTAB = 1
+ROW_SUMM = 2
+RAW_DISPLAY = 3
+COL_CONFIG_ITEM_LBL = _("Column configuration")
 # dimension trees
 ROWDIM = _("row") #double as labels
 COLDIM = _("column")

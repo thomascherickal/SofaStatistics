@@ -351,7 +351,7 @@ class GenDemoTable(DemoDimTable):
     has_row_measures = False
     has_row_vals = True
     has_col_measures = True
-    default_measure = lib.get_default_measure(my_globals.COL_MEASURES)
+    default_measure = lib.get_default_measure(my_globals.FREQS_TBL)
     
     def __init__(self, txtTitles, txtSubtitles, colRoot, rowRoot, rowtree, 
                  coltree, col_no_vars_item, var_labels, val_dics, fil_css):

@@ -614,12 +614,12 @@ def get_default_measure(tab_type):
     Get default measure appropriate for table type
     NB raw tables don't have measures
     """
-    if tab_type == my_globals.COL_MEASURES: 
+    if tab_type in (my_globals.FREQS_TBL, my_globals.CROSSTAB): 
         return my_globals.FREQ
     elif tab_type == my_globals.ROW_SUMM:
         return my_globals.MEAN
     else:
-        raise Exception, u"Only dimension tables have measures"
+        raise Exception, u"Only frequency or row vs column tables have measures"
 
 def get_col_dets(coltree, colRoot, var_labels):
     """
