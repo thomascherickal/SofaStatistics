@@ -63,7 +63,8 @@ class TextBrowse(wx.PyControl):
     
     def on_txt_key_down(self, event):
         """
-        http://wiki.wxpython.org/AnotherTutorial#head-999ff1e3fbf5694a51a91cf4ed2140f692da013c
+        http://wiki.wxpython.org/AnotherTutorial ...
+        ... #head-999ff1e3fbf5694a51a91cf4ed2140f692da013c
         """
         if event.GetKeyCode() in [wx.WXK_RETURN]:
             key_event = KeyDownEvent(myEVT_TEXT_BROWSE_KEY_DOWN, self.GetId())
@@ -87,14 +88,14 @@ class TextBrowse(wx.PyControl):
     
     def on_btn_browse_click(self, event):
         "Open dialog and takes the file selected (if any)"
-        dlgGetFile = wx.FileDialog(self, message=self.file_phrase, 
+        dlg_get_file = wx.FileDialog(self, message=self.file_phrase, 
                                    wildcard=self.wildcard)
             #defaultDir="spreadsheets", 
             #defaultFile="", )
         #MUST have a parent to enforce modal in Windows
-        if dlgGetFile.ShowModal() == wx.ID_OK:
-            self.txt.SetValue("%s" % dlgGetFile.GetPath())
-        dlgGetFile.Destroy()
+        if dlg_get_file.ShowModal() == wx.ID_OK:
+            self.txt.SetValue("%s" % dlg_get_file.GetPath())
+        dlg_get_file.Destroy()
         self.txt.SetFocus()
     
     def set_text(self, text):

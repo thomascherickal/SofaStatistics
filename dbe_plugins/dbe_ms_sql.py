@@ -64,7 +64,7 @@ class DbDets(getdata.DbDets):
         host = con_dets_mssql["host"]
         user = con_dets_mssql["user"]
         pwd = con_dets_mssql["passwd"]
-        self.dbs, self.db = self._getDbs(host, user, pwd)
+        self.dbs, self.db = self.get_dbs(host, user, pwd)
         set_db_in_con_dets(con_dets_mssql, self.db)
         DSN = u"""PROVIDER=SQLOLEDB;
             Data Source='%s';
@@ -127,7 +127,7 @@ class DbDets(getdata.DbDets):
             pprint.pprint(idxs)
         return con, cur, self.dbs, tbls, flds, has_unique, idxs
 
-    def _getDbs(self, host, user, pwd):
+    def get_dbs(self, host, user, pwd):
         """
         Get dbs and the db to use.
         NB need to use a separate connection here with db Initial Catalog) 
@@ -209,7 +209,7 @@ class DbDets(getdata.DbDets):
             # build dic of fields, each with dic of characteristics
             fld_name = col.Name
             if debug: print(col.Type)
-            fld_type = dbe_globals.getADODic().get(col.Type)
+            fld_type = dbe_globals.get_ado_dict().get(col.Type)
             if not fld_type:
                 raise Exception, u"Not an MS SQL Server ADO field type %d" % \
                     col.Type

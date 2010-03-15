@@ -51,23 +51,23 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             projects.get_var_dets(fil_var_dets)
         variables_rc_msg = _("Right click variables to view/edit details")
         config_dlg.add_icon(frame=self)
-        szrmain = wx.BoxSizer(wx.VERTICAL)
+        szr_main = wx.BoxSizer(wx.VERTICAL)
         # top panel
         self.panel_top = wx.Panel(self)
-        szrtop = wx.BoxSizer(wx.VERTICAL)
+        szr_top = wx.BoxSizer(wx.VERTICAL)
         self.szr_data = self.get_szr_data(self.panel_top) # mixin
-        bxVars = wx.StaticBox(self.panel_top, -1, _("Variables"))
+        bx_vars = wx.StaticBox(self.panel_top, -1, _("Variables"))
         if not mg.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
-            bxVars.SetToolTipString(variables_rc_msg)
-        szrVars = wx.StaticBoxSizer(bxVars, wx.VERTICAL)
-        szrVarsTop = wx.BoxSizer(wx.HORIZONTAL)
-        szrVarsBottom = wx.BoxSizer(wx.HORIZONTAL)
-        self.szrVarsTopLeft = wx.BoxSizer(wx.VERTICAL)
-        szrVarsTopRight = wx.BoxSizer(wx.VERTICAL)
-        szrVarsTopLeftTop = wx.BoxSizer(wx.HORIZONTAL)
-        szrVarsTopLeftMid = wx.BoxSizer(wx.HORIZONTAL)
-        szrVarsTopRightTop = wx.BoxSizer(wx.HORIZONTAL)
-        szrVarsTopRightBottom = wx.BoxSizer(wx.HORIZONTAL)
+            bx_vars.SetToolTipString(variables_rc_msg)
+        szr_vars = wx.StaticBoxSizer(bx_vars, wx.VERTICAL)
+        szr_vars_top = wx.BoxSizer(wx.HORIZONTAL)
+        szr_vars_bottom = wx.BoxSizer(wx.HORIZONTAL)
+        self.szr_vars_top_left = wx.BoxSizer(wx.VERTICAL)
+        szr_vars_top_right = wx.BoxSizer(wx.VERTICAL)
+        szr_vars_top_left_top = wx.BoxSizer(wx.HORIZONTAL)
+        szr_vars_top_left_mid = wx.BoxSizer(wx.HORIZONTAL)
+        szr_vars_top_right_top = wx.BoxSizer(wx.HORIZONTAL)
+        szr_vars_top_right_bottom = wx.BoxSizer(wx.HORIZONTAL)
         szr_chart_btns = wx.BoxSizer(wx.HORIZONTAL)
         # var 1
         lbl_var1 = wx.StaticText(self.panel_top, -1, u"Var 1:")
@@ -101,65 +101,71 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.drop_var2.SetItems([])
         self.drop_var2.Enable(False)
         # layout
-        szrVarsTopLeftTop.Add(lbl_var1, 0, wx.TOP|wx.RIGHT, 5)
-        szrVarsTopLeftTop.Add(self.drop_var1, 0, wx.RIGHT|wx.TOP, 5)
-        szrVarsTopLeftMid.Add(lbl_var2, 0, wx.TOP|wx.RIGHT, 5)
-        szrVarsTopLeftMid.Add(self.drop_var2, 0, wx.RIGHT|wx.TOP, 5)
-        self.szrVarsTopLeft.Add(szrVarsTopLeftTop, 0)
-        self.szrVarsTopLeft.Add(szrVarsTopLeftMid, 0)
+        szr_vars_top_left_top.Add(lbl_var1, 0, wx.TOP|wx.RIGHT, 5)
+        szr_vars_top_left_top.Add(self.drop_var1, 0, wx.RIGHT|wx.TOP, 5)
+        szr_vars_top_left_mid.Add(lbl_var2, 0, wx.TOP|wx.RIGHT, 5)
+        szr_vars_top_left_mid.Add(self.drop_var2, 0, wx.RIGHT|wx.TOP, 5)
+        self.szr_vars_top_left.Add(szr_vars_top_left_top, 0)
+        self.szr_vars_top_left.Add(szr_vars_top_left_mid, 0)
         # group by
-        self.lblGroupBy = wx.StaticText(self.panel_top, -1, _("Group By:"))
-        self.lblGroupBy.SetFont(self.LABEL_FONT)
-        self.dropGroupBy = wx.Choice(self.panel_top, -1, choices=[], 
+        self.lbl_group_by = wx.StaticText(self.panel_top, -1, _("Group By:"))
+        self.lbl_group_by.SetFont(self.LABEL_FONT)
+        self.drop_group_by = wx.Choice(self.panel_top, -1, choices=[], 
                                      size=(300,-1))
-        self.dropGroupBy.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
-        self.dropGroupBy.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_by)
-        self.dropGroupBy.SetToolTipString(variables_rc_msg)
-        self.setup_group_by()
-        self.lblchop_warning = wx.StaticText(self.panel_top, -1, "")
-        szrVarsTopRightTop.Add(self.lblGroupBy, 0, wx.RIGHT|wx.TOP, 5)
-        szrVarsTopRightTop.Add(self.dropGroupBy, 0, wx.GROW)
-        szrVarsTopRightTop.Add(self.lblchop_warning, 1, wx.TOP|wx.RIGHT, 5)
+        self.drop_group_by.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
+        self.drop_group_by.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_by)
+        self.drop_group_by.SetToolTipString(variables_rc_msg)
+        self.gp_vals_sorted = [] # same order in dropdowns
+        self.gp_choice_items_sorted = [] # refreshed as required and in 
+            # order of labels, not raw values
+        self.sorted_var_names_by = [] # var names sorted by labels i.e. same as 
+            # dropdown.  Refreshed as needed so always usable.
+        self.setup_group_by()     
+        
+        self.lbl_chop_warning = wx.StaticText(self.panel_top, -1, "")
+        szr_vars_top_right_top.Add(self.lbl_group_by, 0, wx.RIGHT|wx.TOP, 5)
+        szr_vars_top_right_top.Add(self.drop_group_by, 0, wx.GROW)
+        szr_vars_top_right_top.Add(self.lbl_chop_warning, 1, wx.TOP|wx.RIGHT, 5)
         # group by A
-        self.lblGroupA = wx.StaticText(self.panel_top, -1, _("Group A:"))
-        self.dropGroupA = wx.Choice(self.panel_top, -1, choices=[], 
+        self.lbl_group_a = wx.StaticText(self.panel_top, -1, _("Group A:"))
+        self.drop_group_a = wx.Choice(self.panel_top, -1, choices=[], 
                                     size=(200,-1))
-        self.dropGroupA.Bind(wx.EVT_CHOICE, self.on_group_by_a_sel)
+        self.drop_group_a.Bind(wx.EVT_CHOICE, self.on_group_by_a_sel)
         # group by B
-        self.lblGroupB = wx.StaticText(self.panel_top, -1, _("Group B:"))
-        self.dropGroupB = wx.Choice(self.panel_top, -1, choices=[], 
+        self.lbl_group_b = wx.StaticText(self.panel_top, -1, _("Group B:"))
+        self.drop_group_b = wx.Choice(self.panel_top, -1, choices=[], 
                                     size=(200,-1))
-        self.dropGroupB.Bind(wx.EVT_CHOICE, self.on_group_by_b_sel)
+        self.drop_group_b.Bind(wx.EVT_CHOICE, self.on_group_by_b_sel)
         self.setup_group_dropdowns()
-        szrVarsTopRightBottom.Add(self.lblGroupA, 0, wx.RIGHT|wx.TOP, 5)
-        szrVarsTopRightBottom.Add(self.dropGroupA, 0, wx.RIGHT, 5)
-        szrVarsTopRightBottom.Add(self.lblGroupB, 0, wx.RIGHT|wx.TOP, 5)
-        szrVarsTopRightBottom.Add(self.dropGroupB, 0)
-        szrVarsTopRight.Add(szrVarsTopRightTop, 1, wx.GROW)
-        szrVarsTopRight.Add(szrVarsTopRightBottom, 0, wx.GROW|wx.TOP, 5)
-        szrVarsTop.Add(self.szrVarsTopLeft, 0)
-        lnVert = wx.StaticLine(self.panel_top, style=wx.LI_VERTICAL) 
-        szrVarsTop.Add(lnVert, 0, wx.GROW|wx.LEFT|wx.RIGHT, 5)
-        szrVarsTop.Add(szrVarsTopRight, 0)
-        szrVars.Add(szrVarsTop, 0)      
-        szrVars.Add(szrVarsBottom, 0, wx.GROW)
+        szr_vars_top_right_bottom.Add(self.lbl_group_a, 0, wx.RIGHT|wx.TOP, 5)
+        szr_vars_top_right_bottom.Add(self.drop_group_a, 0, wx.RIGHT, 5)
+        szr_vars_top_right_bottom.Add(self.lbl_group_b, 0, wx.RIGHT|wx.TOP, 5)
+        szr_vars_top_right_bottom.Add(self.drop_group_b, 0)
+        szr_vars_top_right.Add(szr_vars_top_right_top, 1, wx.GROW)
+        szr_vars_top_right.Add(szr_vars_top_right_bottom, 0, wx.GROW|wx.TOP, 5)
+        szr_vars_top.Add(self.szr_vars_top_left, 0)
+        ln_vert = wx.StaticLine(self.panel_top, style=wx.LI_VERTICAL) 
+        szr_vars_top.Add(ln_vert, 0, wx.GROW|wx.LEFT|wx.RIGHT, 5)
+        szr_vars_top.Add(szr_vars_top_right, 0)
+        szr_vars.Add(szr_vars_top, 0)      
+        szr_vars.Add(szr_vars_bottom, 0, wx.GROW)
         # assemble sizer for top panel
-        szrtop.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szrtop.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        self.panel_top.SetSizer(szrtop)
-        szrtop.SetSizeHints(self.panel_top)
+        szr_top.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szr_top.Add(szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        self.panel_top.SetSizer(szr_top)
+        szr_top.SetSizeHints(self.panel_top)
         
         
         
         # Charts
         # chart buttons
         self.panel_mid = wx.Panel(self)
-        bxcharts = wx.StaticBox(self.panel_mid, -1, _("Chart Types"))
-        self.szrmid = wx.StaticBoxSizer(bxcharts, wx.VERTICAL)
+        bx_charts = wx.StaticBox(self.panel_mid, -1, _("Chart Types"))
+        self.szr_mid = wx.StaticBoxSizer(bx_charts, wx.VERTICAL)
         self.setup_chart_btns(szr_chart_btns)
-        self.szrmid.Add(szr_chart_btns, 0, wx.GROW)
+        self.szr_mid.Add(szr_chart_btns, 0, wx.GROW)
         if not mg.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
-            bxcharts.SetToolTipString(_("Make chart"))
+            bx_charts.SetToolTipString(_("Make chart"))
         # Chart Settings
         # bar chart
         self.szr_bar_chart = wx.BoxSizer(wx.VERTICAL)
@@ -183,34 +189,34 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_clustered_bar_chart.Show(False)
         # default chart type (bar chart)
         self.panel_displayed = self.panel_bar_chart
-        self.szrmid.Add(self.panel_bar_chart, 0, wx.GROW)
+        self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
         
-        self.panel_mid.SetSizer(self.szrmid)
-        self.szrmid.SetSizeHints(self.panel_mid)
+        self.panel_mid.SetSizer(self.szr_mid)
+        self.szr_mid.SetSizeHints(self.panel_mid)
         # Bottom panel
         self.panel_bottom = wx.Panel(self)
-        szrTitles = wx.BoxSizer(wx.HORIZONTAL)
+        szr_titles = wx.BoxSizer(wx.HORIZONTAL)
         szr_lower = wx.BoxSizer(wx.HORIZONTAL)
         szr_bottom_left = wx.BoxSizer(wx.VERTICAL)
         # titles, subtitles
         szr_bottom = wx.BoxSizer(wx.VERTICAL)
-        lblTitles = wx.StaticText(self.panel_bottom, -1, _("Title:"))
-        lblTitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.txtTitles = wx.TextCtrl(self.panel_bottom, -1, size=(350,40), 
-                                     style=wx.TE_MULTILINE)
-        lblSubtitles = wx.StaticText(self.panel_bottom, -1, _("Subtitle:"))
-        lblSubtitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, 
+        lbl_titles = wx.StaticText(self.panel_bottom, -1, _("Title:"))
+        lbl_titles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        self.txt_titles = wx.TextCtrl(self.panel_bottom, -1, size=(350,40), 
+                                      style=wx.TE_MULTILINE)
+        lbl_subtitles = wx.StaticText(self.panel_bottom, -1, _("Subtitle:"))
+        lbl_subtitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, 
                                           wx.BOLD))
-        self.txtSubtitles = wx.TextCtrl(self.panel_bottom, -1, size=(350,40), 
-                                        style=wx.TE_MULTILINE)
-        szrTitles.Add(lblTitles, 0, wx.RIGHT, 5)
-        szrTitles.Add(self.txtTitles, 1, wx.RIGHT, 10)
-        szrTitles.Add(lblSubtitles, 0, wx.RIGHT, 5)
-        szrTitles.Add(self.txtSubtitles, 1)
+        self.txt_subtitles = wx.TextCtrl(self.panel_bottom, -1, size=(350,40), 
+                                         style=wx.TE_MULTILINE)
+        szr_titles.Add(lbl_titles, 0, wx.RIGHT, 5)
+        szr_titles.Add(self.txt_titles, 1, wx.RIGHT, 10)
+        szr_titles.Add(lbl_subtitles, 0, wx.RIGHT, 5)
+        szr_titles.Add(self.txt_subtitles, 1)
         self.szr_config_bottom, self.szr_config_top = \
             self.get_misc_config_szrs(self.panel_bottom) # mixin                         
-        self.szrOutputButtons = self.get_szrOutputBtns(self.panel_bottom, 
-                                                       inc_clear=False) # mixin
+        self.szr_output_btns = self.get_szr_output_btns(self.panel_bottom, 
+                                                        inc_clear=False) # mixin
         self.html = full_html.FullHTML(self.panel_bottom, size=(200, 150))
         html2show = _("<p>Waiting for a report to be run.</p>")
         self.html.show_html(html2show)
@@ -218,18 +224,18 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW)
         szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW)
         szr_lower.Add(szr_bottom_left, 1, wx.GROW)
-        szr_lower.Add(self.szrOutputButtons, 0, wx.GROW|wx.LEFT, 10)
-        szr_bottom.Add(szrTitles, 0, wx.GROW|wx.ALL, 10)
+        szr_lower.Add(self.szr_output_btns, 0, wx.GROW|wx.LEFT, 10)
+        szr_bottom.Add(szr_titles, 0, wx.GROW|wx.ALL, 10)
         szr_bottom.Add(szr_lower, 2, wx.GROW|wx.ALL, 10)
         self.add_other_var_opts()
         self.panel_bottom.SetSizer(szr_bottom)
         szr_bottom.SetSizeHints(self.panel_bottom)
         # assemble entire frame
-        szrmain.Add(self.panel_top, 0, wx.GROW)
-        szrmain.Add(self.panel_mid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szrmain.Add(self.panel_bottom, 1, wx.GROW)
+        szr_main.Add(self.panel_top, 0, wx.GROW)
+        szr_main.Add(self.panel_mid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(self.panel_bottom, 1, wx.GROW)
         self.SetAutoLayout(True)
-        self.SetSizer(szrmain)
+        self.SetSizer(szr_main)
         self.SetMinSize((930,600))
         self.Layout()
     
@@ -315,8 +321,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             return
         else:
             self.panel_displayed.Show(False)
-        self.szrmid.Remove(self.panel_displayed)
-        self.szrmid.Add(self.panel_bar_chart, 0, wx.GROW)
+        self.szr_mid.Remove(self.panel_displayed)
+        self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
         self.panel_displayed = self.panel_bar_chart
         self.panel_bar_chart.Show(True)
         self.panel_mid.Layout() # self.Layout() doesn't work in Windows
@@ -326,8 +332,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             return
         else:
             self.panel_displayed.Show(False)
-        self.szrmid.Remove(self.panel_displayed)
-        self.szrmid.Add(self.panel_clustered_bar_chart, 0, wx.GROW)
+        self.szr_mid.Remove(self.panel_displayed)
+        self.szr_mid.Add(self.panel_clustered_bar_chart, 0, wx.GROW)
         self.panel_displayed = self.panel_clustered_bar_chart
         self.panel_clustered_bar_chart.Show(True)
         self.panel_mid.Layout()
@@ -419,8 +425,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             position may have changed.
         """
         val_a, val_b = self.get_vals()
-        var_gp, var_nam1, var_name2 = self.get_vars()
+        var_gp, var_name1 = self.get_vars() # , var_name2
         config_dlg.ConfigDlg.on_btn_var_dets_path(self, event)
+        
+        
+        return # will sort out when wiring up for real
+        
+        
         self.setup_group_by(var_gp)
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
                        var_name1)
@@ -428,7 +439,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         #               var_name2)
         self.setup_group_dropdowns(val_a, val_b)
         self.update_defaults()
-    
+
     def get_vars(self):
         """
         self.sorted_var_names_by and self.sorted_var_names1 and 2 are set when 
@@ -442,11 +453,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         return var_gp, var_name1 #, var_name2
     
     def update_defaults(self):
-        mg.GROUP_BY_DEFAULT = self.dropGroupBy.GetStringSelection()
+        mg.GROUP_BY_DEFAULT = self.drop_group_by.GetStringSelection()
         mg.VAR_1_DEFAULT = self.drop_var1.GetStringSelection()
         mg.VAR_2_DEFAULT = self.drop_var2.GetStringSelection()
-        mg.VAL_A_DEFAULT = self.dropGroupA.GetStringSelection()
-        mg.VAL_B_DEFAULT = self.dropGroupB.GetStringSelection()
+        mg.VAL_A_DEFAULT = self.drop_group_a.GetStringSelection()
+        mg.VAL_B_DEFAULT = self.drop_group_b.GetStringSelection()
    
     def get_drop_vals(self):
         """
@@ -454,19 +465,19 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         Returns var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, 
             label_b, var_1, label_1, var_1, label_1.
         """
-        selection_idx_gp = self.dropGroupBy.GetSelection()
+        selection_idx_gp = self.drop_group_by.GetSelection()
         var_gp = self.sorted_var_names_by[selection_idx_gp]
         label_gp = lib.get_item_label(item_labels=self.var_labels, 
                                       item_val=var_gp)
         var_gp_numeric = self.flds[var_gp][mg.FLD_BOLNUMERIC]
         # Now the a and b choices under the group
         val_dic = self.val_dics.get(var_gp, {})
-        selection_idx_a = self.dropGroupA.GetSelection()
+        selection_idx_a = self.drop_group_a.GetSelection()
         val_a_raw = self.gp_vals_sorted[selection_idx_a]
         val_a = lib.any2unicode(val_a_raw)
         label_a = lib.get_item_label(item_labels=val_dic, 
                                      item_val=val_a_raw)
-        selection_idx_b = self.dropGroupB.GetSelection()
+        selection_idx_b = self.drop_group_b.GetSelection()
         val_b_raw = self.gp_vals_sorted[selection_idx_b]
         val_b = lib.any2unicode(val_b_raw)
         label_b = lib.get_item_label(item_labels=val_dic, 
@@ -491,12 +502,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         Are the appropriate selections made to enable an analysis to be run?
         """
         # main and group by averaged variables cannot be the same
-        if self.dropGroupBy.GetStringSelection() == \
+        if self.drop_group_by.GetStringSelection() == \
                 self.drop_var1.GetStringSelection():
             wx.MessageBox(_("Variable 1 and the Grouped By Variable cannot be "
                             "the same"))
             return False
-        if self.dropGroupBy.GetStringSelection() == \
+        if self.drop_group_by.GetStringSelection() == \
                 self.drop_var2.GetStringSelection():
             wx.MessageBox(_("Variable 2 and the Grouped By Variable cannot be "
                             "the same"))
@@ -506,8 +517,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             wx.MessageBox(_("Variable 1 and 2 cannot be the same"))
             return False
         # group A and B cannot be the same
-        if self.dropGroupA.GetStringSelection() == \
-                self.dropGroupB.GetStringSelection():
+        if self.drop_group_a.GetStringSelection() == \
+                self.drop_group_b.GetStringSelection():
             wx.MessageBox(_("Group A and Group B must be different"))
             return False
         if self.takes_range:
@@ -515,9 +526,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 unused, unused, unused, unused = self.get_drop_vals()
             # group a must be lower than group b
             val_dic = self.val_dics.get(var_gp, {})
-            selection_idx_a = self.dropGroupA.GetSelection()
+            selection_idx_a = self.drop_group_a.GetSelection()
             val_a = self.vals_with_labels[selection_idx_a]
-            selection_idx_b = self.dropGroupB.GetSelection()
+            selection_idx_b = self.drop_group_b.GetSelection()
             val_b = self.vals_with_labels[selection_idx_b]
             if var_gp_numeric:
                 # NB SQLite could have a string in a numeric field

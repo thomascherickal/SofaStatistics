@@ -321,7 +321,7 @@ def delete_row(dbe, con, cur, tbl_name, id_fld, row_id):
 def get_data_dropdowns(parent, panel, dbe, default_dbs, default_tbls, con_dets, 
                        dbs_of_default_dbe, db, tbls, tbl):
     """
-    Adds dropDatabases and dropTables to frame with correct values 
+    Adds drop_dbs and drop_tbls to frame with correct values 
         and default selection.  NB must have exact same names.
     Adds db_choice_items to parent.
     """
@@ -344,17 +344,17 @@ def get_data_dropdowns(parent, panel, dbe, default_dbs, default_tbls, con_dets,
             if debug: print(unicode(e))
             pass # no connection possible
     parent.db_choice_items = [get_db_item(x[0], x[1]) for x in db_choices]
-    parent.dropDatabases = wx.Choice(panel, -1, choices=parent.db_choice_items,
-                                     size=(300, -1))
-    parent.dropDatabases.Bind(wx.EVT_CHOICE, parent.on_database_sel)
+    parent.drop_dbs = wx.Choice(panel, -1, choices=parent.db_choice_items,
+                                size=(300,-1))
+    parent.drop_dbs.Bind(wx.EVT_CHOICE, parent.on_database_sel)
     dbs_lc = [x.lower() for x in dbs_of_default_dbe]
-    parent.dropDatabases.SetSelection(dbs_lc.index(db.lower()))
-    parent.dropTables = wx.Choice(panel, -1, choices=[], size=(300,-1))
-    setup_drop_tbls(parent.dropTables, dbe, db, tbls, tbl)
-    parent.dropTables.Bind(wx.EVT_CHOICE, parent.on_table_sel)
-    return parent.dropDatabases, parent.dropTables
+    parent.drop_dbs.SetSelection(dbs_lc.index(db.lower()))
+    parent.drop_tbls = wx.Choice(panel, -1, choices=[], size=(300,-1))
+    setup_drop_tbls(parent.drop_tbls, dbe, db, tbls, tbl)
+    parent.drop_tbls.Bind(wx.EVT_CHOICE, parent.on_table_sel)
+    return parent.drop_dbs, parent.drop_tbls
 
-def setup_drop_tbls(dropTables, dbe, db, tbls, tbl):
+def setup_drop_tbls(drop_tbls, dbe, db, tbls, tbl):
     """
     Set-up tables dropdown.  Any tables with filtering should have (filtered)
         appended to end of name.
@@ -370,9 +370,9 @@ def setup_drop_tbls(dropTables, dbe, db, tbls, tbl):
         else:
             tbl_with_filt = tbl_name
         tbls_with_filts.append(tbl_with_filt)
-    dropTables.SetItems(tbls_with_filts)
+    drop_tbls.SetItems(tbls_with_filts)
     try:
-        dropTables.SetSelection(idx_tbl)
+        drop_tbls.SetSelection(idx_tbl)
     except NameError:
         raise Exception, "Table \"%s\" not found in tables list" % self.tbl
 
@@ -396,7 +396,7 @@ def refresh_db_dets(parent):
     """
     debug = False
     wx.BeginBusyCursor()
-    db_choice_item = parent.db_choice_items[parent.dropDatabases.GetSelection()]
+    db_choice_item = parent.db_choice_items[parent.drop_dbs.GetSelection()]
     db, dbe = extractDbDets(db_choice_item)
     # update globals - will be used in refresh ...
     mg.DBE_DEFAULT = dbe
@@ -416,7 +416,7 @@ def refresh_db_dets(parent):
 def refresh_tbl_dets(parent):
     "Reset table, fields, has_unique, and idxs after a table selection."
     wx.BeginBusyCursor()
-    tbl = parent.tbls[parent.dropTables.GetSelection()]
+    tbl = parent.tbls[parent.drop_tbls.GetSelection()]
     dbdetsobj = get_db_dets_obj(parent.dbe, parent.default_dbs, 
                          parent.default_tbls, parent.con_dets, parent.db, tbl)
     flds = dbdetsobj.get_tbl_flds(parent.cur, parent.db, tbl)

@@ -72,37 +72,37 @@ class StatsSelectDlg(wx.Dialog):
                            wx.BITMAP_TYPE_XPM)
         self.bmp_stats_select = wx.BitmapFromImage(img_stats_select)
         # direct or assisted
-        self.radDirect = wx.RadioButton(self.panel, -1, 
+        self.rad_direct = wx.RadioButton(self.panel, -1, 
                             pos=(MAIN_LEFT-25, 55), 
                             style=wx.RB_GROUP) # groups all till next RB_GROUP
-        self.radDirect.Bind(wx.EVT_RADIOBUTTON, self.on_radio_direct_btn)
-        self.radAssisted = wx.RadioButton(self.panel, -1, 
+        self.rad_direct.Bind(wx.EVT_RADIOBUTTON, self.on_radio_direct_btn)
+        self.rad_assisted = wx.RadioButton(self.panel, -1, 
                                           pos=(MAIN_LEFT - 25, 95))
-        self.radAssisted.Bind(wx.EVT_RADIOBUTTON, self.on_radio_assisted_btn)
+        self.rad_assisted.Bind(wx.EVT_RADIOBUTTON, self.on_radio_assisted_btn)
         # main assisted options
-        self.radDifferences = wx.RadioButton(self.panel, -1, 
+        self.rad_differences = wx.RadioButton(self.panel, -1, 
                                              pos=(MAIN_LEFT, 135), 
                                              style=wx.RB_GROUP)
-        self.radDifferences.Bind(wx.EVT_RADIOBUTTON, self.on_radio_diff_btn)
-        self.radDifferences.Enable(False)
-        self.radRelationships = wx.RadioButton(self.panel, -1,
-                                               pos=(MAIN_LEFT, REL_TOP))
-        self.radRelationships.Bind(wx.EVT_RADIOBUTTON, self.on_radio_rel_btn)
-        self.radRelationships.Enable(False)
+        self.rad_differences.Bind(wx.EVT_RADIOBUTTON, self.on_radio_diff_btn)
+        self.rad_differences.Enable(False)
+        self.rad_relationships = wx.RadioButton(self.panel, -1,
+                                                pos=(MAIN_LEFT, REL_TOP))
+        self.rad_relationships.Bind(wx.EVT_RADIOBUTTON, self.on_radio_rel_btn)
+        self.rad_relationships.Enable(False)
         # choices (NB can't use RadioBoxes and wallpaper in Windows)
         # choices line 1
         DIFF_LN_1 = 190
-        self.rad2Groups = wx.RadioButton(self.panel, -1, _("2 groups"), 
-                                         style=wx.RB_GROUP,
-                                         pos=(BUTTON1_LEFT, DIFF_LN_1))
-        self.rad2Groups.Bind(wx.EVT_RADIOBUTTON, self.on_radio2_groups_btn)
-        self.rad3Groups = wx.RadioButton(self.panel, -1, _("3 or more"),
+        self.rad_2groups = wx.RadioButton(self.panel, -1, _("2 groups"), 
+                                          style=wx.RB_GROUP,
+                                          pos=(BUTTON1_LEFT, DIFF_LN_1))
+        self.rad_2groups.Bind(wx.EVT_RADIOBUTTON, self.on_radio2_groups_btn)
+        self.rad_3groups = wx.RadioButton(self.panel, -1, _("3 or more"),
                                          pos=(BUTTON2_LEFT, DIFF_LN_1))
-        self.rad3Groups.Bind(wx.EVT_RADIOBUTTON, self.on_radio3_groups_btn)
-        self.rad2Groups.Enable(False)
-        self.rad3Groups.Enable(False)
+        self.rad_3groups.Bind(wx.EVT_RADIOBUTTON, self.on_radio3_groups_btn)
+        self.rad_2groups.Enable(False)
+        self.rad_3groups.Enable(False)
         self.btn_groups_help = wx.Button(self.panel, wx.ID_HELP, 
-                                         pos=(HELP_LEFT, DIFF_LN_1 - BUTTON_LIFT))
+                                         pos=(HELP_LEFT, DIFF_LN_1-BUTTON_LIFT))
         self.btn_groups_help.Enable(False)
         self.btn_groups_help.Bind(wx.EVT_BUTTON, self.on_groups_help_btn)
         # divider
@@ -112,15 +112,15 @@ class StatsSelectDlg(wx.Dialog):
         DIFF_LN_2 = 235
         lbl_normal = _("Normal")
         lbl_not_normal = _("Not normal")
-        self.radNormal1 = wx.RadioButton(self.panel, -1, lbl_normal, 
+        self.rad_normal1 = wx.RadioButton(self.panel, -1, lbl_normal, 
                                          style=wx.RB_GROUP,
                                          pos=(BUTTON1_LEFT, DIFF_LN_2))
-        self.radNormal1.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
-        self.radNotNormal1 = wx.RadioButton(self.panel, -1, lbl_not_normal,
+        self.rad_normal1.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
+        self.rad_not_normal1 = wx.RadioButton(self.panel, -1, lbl_not_normal,
                                             pos=(BUTTON2_LEFT, DIFF_LN_2))
-        self.radNotNormal1.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
-        self.radNormal1.Enable(False)
-        self.radNotNormal1.Enable(False)
+        self.rad_not_normal1.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
+        self.rad_normal1.Enable(False)
+        self.rad_not_normal1.Enable(False)
         self.btn_normal_help1 = wx.Button(self.panel, wx.ID_HELP,
                                        pos=(HELP_LEFT, DIFF_LN_2 - BUTTON_LIFT))
         self.btn_normal_help1.Bind(wx.EVT_BUTTON, self.on_normal_help1_btn)
@@ -130,30 +130,30 @@ class StatsSelectDlg(wx.Dialog):
                       size=(DIV_LINE_WIDTH, 1))
         # choices line 3
         DIFF_LN_3 = 280
-        self.radIndep = wx.RadioButton(self.panel, -1, _("Independent"), 
+        self.rad_indep = wx.RadioButton(self.panel, -1, _("Independent"), 
                                        style=wx.RB_GROUP,
                                        pos=(BUTTON1_LEFT, DIFF_LN_3))
-        self.radIndep.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
-        self.radPaired = wx.RadioButton(self.panel, -1, _("Paired"),
-                                        pos=(BUTTON2_LEFT, DIFF_LN_3))
-        self.radPaired.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
-        self.radIndep.Enable(False)
-        self.radPaired.Enable(False)
+        self.rad_indep.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
+        self.rad_paired = wx.RadioButton(self.panel, -1, _("Paired"),
+                                         pos=(BUTTON2_LEFT, DIFF_LN_3))
+        self.rad_paired.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
+        self.rad_indep.Enable(False)
+        self.rad_paired.Enable(False)
         self.btn_indep_help = wx.Button(self.panel, wx.ID_HELP,
                                         pos=(HELP_LEFT, DIFF_LN_3 - BUTTON_LIFT))
         self.btn_indep_help.Bind(wx.EVT_BUTTON, self.on_indep_help_btn)
         self.btn_indep_help.Enable(False)
         # choices line 4
         DIFF_LN_4 = REL_TOP + 60
-        self.radNominal = wx.RadioButton(self.panel, -1, _("Names Only"), 
-                                      style=wx.RB_GROUP,
-                                      pos=(BUTTON1_LEFT, DIFF_LN_4))
-        self.radNominal.Bind(wx.EVT_RADIOBUTTON, self.on_radio_nominal_btn)
-        self.radOrdered = wx.RadioButton(self.panel, -1, _("Ordered"),
+        self.rad_nominal = wx.RadioButton(self.panel, -1, _("Names Only"), 
+                                          style=wx.RB_GROUP,
+                                          pos=(BUTTON1_LEFT, DIFF_LN_4))
+        self.rad_nominal.Bind(wx.EVT_RADIOBUTTON, self.on_radio_nominal_btn)
+        self.rad_ordered = wx.RadioButton(self.panel, -1, _("Ordered"),
                                       pos=(BUTTON2_LEFT, DIFF_LN_4))
-        self.radOrdered.Bind(wx.EVT_RADIOBUTTON, self.on_radio_ordered_btn)
-        self.radNominal.Enable(False)
-        self.radOrdered.Enable(False)
+        self.rad_ordered.Bind(wx.EVT_RADIOBUTTON, self.on_radio_ordered_btn)
+        self.rad_nominal.Enable(False)
+        self.rad_ordered.Enable(False)
         self.btn_type_help = wx.Button(self.panel, wx.ID_HELP, 
                                        pos=(HELP_LEFT, DIFF_LN_4 - BUTTON_LIFT))
         self.btn_type_help.Bind(wx.EVT_BUTTON, self.on_type_help_btn)
@@ -163,15 +163,15 @@ class StatsSelectDlg(wx.Dialog):
                       size=(DIV_LINE_WIDTH, 1))   
         # choices line 4
         DIFF_LN_5 = REL_TOP + 105
-        self.radNormal2 = wx.RadioButton(self.panel, -1, lbl_normal, 
+        self.rad_normal2 = wx.RadioButton(self.panel, -1, lbl_normal, 
                                          style=wx.RB_GROUP,
                                          pos=(BUTTON1_LEFT, DIFF_LN_5))
-        self.radNormal2.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
-        self.radNotNormal2 = wx.RadioButton(self.panel, -1, lbl_not_normal,
+        self.rad_normal2.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
+        self.rad_not_normal2 = wx.RadioButton(self.panel, -1, lbl_not_normal,
                                             pos=(BUTTON2_LEFT, DIFF_LN_5))
-        self.radNotNormal2.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
-        self.radNormal2.Enable(False)
-        self.radNotNormal2.Enable(False)
+        self.rad_not_normal2.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
+        self.rad_normal2.Enable(False)
+        self.rad_not_normal2.Enable(False)
         self.btn_normal_help2 = wx.Button(self.panel, wx.ID_HELP,
                                           pos=(HELP_LEFT, DIFF_LN_5))
         self.btn_normal_help2.Bind(wx.EVT_BUTTON, self.on_normal_help2_btn)
@@ -182,7 +182,7 @@ class StatsSelectDlg(wx.Dialog):
         LST_TOP = 55
         LST_HEIGHT = 220
         SCROLL_ALLOWANCE = 20
-        self.lstTests = wx.ListCtrl(self.panel, -1, pos=(LST_LEFT, LST_TOP), 
+        self.lst_tests = wx.ListCtrl(self.panel, -1, pos=(LST_LEFT, LST_TOP), 
                                 size=(LST_WIDTH + SCROLL_ALLOWANCE, LST_HEIGHT),
                                 style=wx.LC_REPORT)
         il = wx.ImageList(16, 16)
@@ -193,17 +193,17 @@ class StatsSelectDlg(wx.Dialog):
             bmp = wx.Bitmap(os.path.join(mg.SCRIPT_PATH, u"images", 
                                          u"%s.png" % img), wx.BITMAP_TYPE_PNG)
             il.Add(bmp)
-        self.lstTests.AssignImageList(il, wx.IMAGE_LIST_SMALL)
-        self.lstTests.InsertColumn(0, _("Statistical Test"))
-        self.lstTests.SetColumnWidth(0, LST_WIDTH - 25)
-        self.lstTests.InsertColumn(1, u"")
-        self.lstTests.SetColumnWidth(1, 25)
+        self.lst_tests.AssignImageList(il, wx.IMAGE_LIST_SMALL)
+        self.lst_tests.InsertColumn(0, _("Statistical Test"))
+        self.lst_tests.SetColumnWidth(0, LST_WIDTH - 25)
+        self.lst_tests.InsertColumn(1, u"")
+        self.lst_tests.SetColumnWidth(1, 25)
         for i, test in enumerate(STATS_TESTS):
-            idx = self.lstTests.InsertStringItem(i, test)
-            self.lstTests.SetStringItem(i, 1, u"", self.idx_blank)
-        idx = self.lstTests.InsertStringItem(i+1, u"")
-        self.lstTests.Select(0)
-        self.lstTests.Bind(wx.EVT_LIST_ITEM_ACTIVATED, 
+            idx = self.lst_tests.InsertStringItem(i, test)
+            self.lst_tests.SetStringItem(i, 1, u"", self.idx_blank)
+        idx = self.lst_tests.InsertStringItem(i+1, u"")
+        self.lst_tests.Select(0)
+        self.lst_tests.Bind(wx.EVT_LIST_ITEM_ACTIVATED, 
                            self.on_list_item_selected)
         # run test button
         self.btn_config = wx.Button(self.panel, -1, 
@@ -244,21 +244,21 @@ class StatsSelectDlg(wx.Dialog):
         event.Skip()
     
     def on_radio_direct_btn(self, event):        
-        self.radDifferences.SetValue(True)
-        self.radDifferences.Enable(False)
+        self.rad_differences.SetValue(True)
+        self.rad_differences.Enable(False)
         self.diff_setup(enable=False)
-        self.radRelationships.Enable(False)
+        self.rad_relationships.Enable(False)
         self.rel_setup(enable=False)
         self.remove_test_indicators()
         
     def on_radio_assisted_btn(self, event):
-        self.radDifferences.Enable(True)
+        self.rad_differences.Enable(True)
         self.diff_setup(enable=True)
-        self.radRelationships.Enable(True)
+        self.rad_relationships.Enable(True)
         self.rel_setup(enable=False)
         # tick first test
-        self.lstTests.SetStringItem(0, 1, "", self.idx_tick)
-        self.lstTests.Select(0)
+        self.lst_tests.SetStringItem(0, 1, "", self.idx_tick)
+        self.lst_tests.Select(0)
         self.respond_to_assisted_choices()
     
     def on_radio_diff_btn(self, event):
@@ -276,18 +276,18 @@ class StatsSelectDlg(wx.Dialog):
         if not enable:
             # set left first
             try:
-                self.rad2Groups.SetValue(True)
+                self.rad_2groups.SetValue(True)
             except:
                 pass
             try:
-                self.radNormal1.SetValue(True)
+                self.rad_normal1.SetValue(True)
             except:
                 pass
-        self.rad2Groups.Enable(enable)
-        self.rad3Groups.Enable(enable)
+        self.rad_2groups.Enable(enable)
+        self.rad_3groups.Enable(enable)
         self.btn_groups_help.Enable(enable)
-        self.radNormal1.Enable(enable)
-        self.radNotNormal1.Enable(enable)
+        self.rad_normal1.Enable(enable)
+        self.rad_not_normal1.Enable(enable)
         self.btn_normal_help1.Enable(enable)
         self.indep_setup(enable=enable)
     
@@ -317,18 +317,18 @@ class StatsSelectDlg(wx.Dialog):
         dlg.ShowModal()
     
     def on_normal_help1_btn(self, event):
-        paired = self.radPaired.GetValue()
+        paired = self.rad_paired.GetValue()
         self.examine_normality(paired)
         event.Skip()
     
     def indep_setup(self, enable=True):
         # set left first
         try:
-            self.radIndep.SetValue(True)
+            self.rad_indep.SetValue(True)
         except:
             pass
-        self.radIndep.Enable(enable)
-        self.radPaired.Enable(enable)
+        self.rad_indep.Enable(enable)
+        self.rad_paired.Enable(enable)
         self.btn_indep_help.Enable(enable)
         
     def on_indep_help_btn(self, event):
@@ -347,11 +347,11 @@ class StatsSelectDlg(wx.Dialog):
         if not enable:
             # set left first
             try:
-                self.radNominal.SetValue(True)
+                self.rad_nominal.SetValue(True)
             except:
                 pass
-        self.radNominal.Enable(enable)
-        self.radOrdered.Enable(enable)
+        self.rad_nominal.Enable(enable)
+        self.rad_ordered.Enable(enable)
         self.btn_type_help.Enable(enable)
         self.normal_rel_setup(enable=False) # only set to True when cat selected
     
@@ -379,17 +379,17 @@ class StatsSelectDlg(wx.Dialog):
     def normal_rel_setup(self, enable=True):
         # set left first
         try:
-            self.radNormal2.SetValue(True)
+            self.rad_normal2.SetValue(True)
         except:
             pass
-        self.radNormal2.Enable(enable)
-        self.radNotNormal2.Enable(enable)
+        self.rad_normal2.Enable(enable)
+        self.rad_not_normal2.Enable(enable)
         self.btn_normal_help2.Enable(enable)
     
     def remove_test_indicators(self):
         for i, test in enumerate(STATS_TESTS):
-            self.lstTests.SetStringItem(i, 1, "", self.idx_blank)
-            self.lstTests.Select(i, on=0)
+            self.lst_tests.SetStringItem(i, 1, "", self.idx_blank)
+            self.lst_tests.Select(i, on=0)
     
     def on_radio_btn(self, event):
         self.respond_to_assisted_choices()
@@ -408,38 +408,38 @@ class StatsSelectDlg(wx.Dialog):
             TEST_WILCOXON, TEST_MANN_WHITNEY, TEST_KRUSKAL_WALLIS, 
             TEST_CHI_SQUARE, TEST_SPEARMANS_R, TEST_PEARSONS_R
         """
-        if self.radDifferences.GetValue():
-            if self.rad2Groups.GetValue():
-                if self.radNormal1.GetValue():
-                    if self.radIndep.GetValue():
+        if self.rad_differences.GetValue():
+            if self.rad_2groups.GetValue():
+                if self.rad_normal1.GetValue():
+                    if self.rad_indep.GetValue():
                         test_type = TEST_TTEST_INDEP
-                    elif self.radPaired.GetValue():
+                    elif self.rad_paired.GetValue():
                         test_type = TEST_TTEST_PAIRED
                     else:
                         raise my_exceptions.InvalidTestSelectionException
-                elif self.radNotNormal1.GetValue():
-                    if self.radIndep.GetValue():
+                elif self.rad_not_normal1.GetValue():
+                    if self.rad_indep.GetValue():
                         test_type = TEST_MANN_WHITNEY
-                    elif self.radPaired.GetValue():
+                    elif self.rad_paired.GetValue():
                         test_type = TEST_WILCOXON
                     else:
                         raise my_exceptions.InvalidTestSelectionException
                 else:
                     raise my_exceptions.InvalidTestSelectionException
-            elif self.rad3Groups.GetValue():
-                if self.radNormal1.GetValue():
+            elif self.rad_3groups.GetValue():
+                if self.rad_normal1.GetValue():
                     test_type = TEST_ANOVA
                 else:
                     test_type = TEST_KRUSKAL_WALLIS
             else:
                 raise my_exceptions.InvalidTestSelectionException
-        elif self.radRelationships.GetValue():
-            if self.radNominal.GetValue():
+        elif self.rad_relationships.GetValue():
+            if self.rad_nominal.GetValue():
                 test_type = TEST_CHI_SQUARE
-            elif self.radOrdered.GetValue():
-                if self.radNormal2.GetValue():
+            elif self.rad_ordered.GetValue():
+                if self.rad_normal2.GetValue():
                     test_type = TEST_PEARSONS_R
-                elif self.radNotNormal2.GetValue():
+                elif self.rad_not_normal2.GetValue():
                     test_type = TEST_SPEARMANS_R
                 else:
                     raise my_exceptions.InvalidTestSelectionException 
@@ -455,8 +455,8 @@ class StatsSelectDlg(wx.Dialog):
             raise Exception, (u"indicate_test was passed a test not from the "
                               u"standard list")
         idx=STATS_TESTS.index(test_const)
-        self.lstTests.SetStringItem(idx, 1, "", self.idx_tick)
-        self.lstTests.Select(idx)
+        self.lst_tests.SetStringItem(idx, 1, "", self.idx_tick)
+        self.lst_tests.Select(idx)
     
     def on_list_item_selected(self, event):
         self.respond_to_selection(event)
@@ -465,7 +465,7 @@ class StatsSelectDlg(wx.Dialog):
         self.respond_to_selection(event)
     
     def respond_to_selection(self, event):
-        idx = self.lstTests.GetFirstSelected()
+        idx = self.lst_tests.GetFirstSelected()
         try:
             sel_test = STATS_TESTS[idx]
         except Exception:
@@ -476,68 +476,68 @@ class StatsSelectDlg(wx.Dialog):
             if sel_test == TEST_TTEST_INDEP:
                 import ttest_indep
                 dlg = ttest_indep.DlgConfig(_("Configure Independent t-test"), 
-                    self.dbe, self.con_dets, self.default_dbs, 
-                    self.default_tbls, self.fil_var_dets, self.fil_css, 
-                    self.fil_report, self.fil_script)
+                            self.dbe, self.con_dets, self.default_dbs, 
+                            self.default_tbls, self.fil_var_dets, self.fil_css, 
+                            self.fil_report, self.fil_script)
                 dlg.ShowModal()        
             elif sel_test == TEST_TTEST_PAIRED:
                 import ttest_paired
                 dlg = ttest_paired.DlgConfig(
-                    _("Configure Paired Samples t-test"), 
-                    self.dbe, self.con_dets, self.default_dbs, 
-                    self.default_tbls, self.fil_var_dets, self.fil_css, 
-                    self.fil_report, self.fil_script)
+                            _("Configure Paired Samples t-test"), 
+                            self.dbe, self.con_dets, self.default_dbs, 
+                            self.default_tbls, self.fil_var_dets, self.fil_css, 
+                            self.fil_report, self.fil_script)
                 dlg.ShowModal()
             elif sel_test == TEST_ANOVA:
                 import anova
                 dlg = anova.DlgConfig(_("Configure ANOVA test"), 
-                    self.dbe, self.con_dets, self.default_dbs, 
-                    self.default_tbls, self.fil_var_dets, self.fil_css, 
-                    self.fil_report, self.fil_script, takes_range=True)
+                            self.dbe, self.con_dets, self.default_dbs, 
+                            self.default_tbls, self.fil_var_dets, self.fil_css, 
+                            self.fil_report, self.fil_script, takes_range=True)
                 dlg.ShowModal()
             elif sel_test == TEST_WILCOXON:
                 import wilcoxon
                 dlg = wilcoxon.DlgConfig(
-                    _("Configure Wilcoxon Signed Ranks test"), 
-                    self.dbe, self.con_dets, self.default_dbs, 
-                    self.default_tbls, self.fil_var_dets, self.fil_css, 
-                    self.fil_report, self.fil_script)
+                            _("Configure Wilcoxon Signed Ranks test"), 
+                            self.dbe, self.con_dets, self.default_dbs, 
+                            self.default_tbls, self.fil_var_dets, self.fil_css, 
+                            self.fil_report, self.fil_script)
                 dlg.ShowModal()
             elif sel_test == TEST_MANN_WHITNEY:
                 import mann_whitney
                 dlg = mann_whitney.DlgConfig(_("Configure Mann Whitney U test"), 
-                    self.dbe, self.con_dets, self.default_dbs, 
-                    self.default_tbls, self.fil_var_dets, self.fil_css, 
-                    self.fil_report, self.fil_script)
+                            self.dbe, self.con_dets, self.default_dbs, 
+                            self.default_tbls, self.fil_var_dets, self.fil_css, 
+                            self.fil_report, self.fil_script)
                 dlg.ShowModal()
             elif sel_test == TEST_KRUSKAL_WALLIS:
                 import kruskal_wallis
                 dlg = kruskal_wallis.DlgConfig(
-                    _("Configure Kruskal Wallis H test"), 
-                    self.dbe, self.con_dets, self.default_dbs, 
-                    self.default_tbls, self.fil_var_dets, self.fil_css, 
-                    self.fil_report, self.fil_script, takes_range=True)
+                            _("Configure Kruskal Wallis H test"), 
+                            self.dbe, self.con_dets, self.default_dbs, 
+                            self.default_tbls, self.fil_var_dets, self.fil_css, 
+                            self.fil_report, self.fil_script, takes_range=True)
                 dlg.ShowModal()
             elif sel_test == TEST_CHI_SQUARE:
                 import chisquare
                 dlg = chisquare.DlgConfig(_("Configure Chi Square test"), 
-                    self.dbe, self.con_dets, self.default_dbs, 
-                    self.default_tbls, self.fil_var_dets, self.fil_css, 
-                    self.fil_report, self.fil_script)
+                            self.dbe, self.con_dets, self.default_dbs, 
+                            self.default_tbls, self.fil_var_dets, self.fil_css, 
+                            self.fil_report, self.fil_script)
                 dlg.ShowModal()
             elif sel_test == TEST_PEARSONS_R:
                 import pearsonsr
                 dlg = pearsonsr.DlgConfig(_("Configure Pearson's R test"), 
-                    self.dbe, self.con_dets, self.default_dbs, 
-                    self.default_tbls, self.fil_var_dets, self.fil_css, 
-                    self.fil_report, self.fil_script)
+                            self.dbe, self.con_dets, self.default_dbs, 
+                            self.default_tbls, self.fil_var_dets, self.fil_css, 
+                            self.fil_report, self.fil_script)
                 dlg.ShowModal()
             elif sel_test == TEST_SPEARMANS_R:
                 import spearmansr
                 dlg = spearmansr.DlgConfig(_("Configure Spearman's R test"), 
-                    self.dbe, self.con_dets, self.default_dbs, 
-                    self.default_tbls, self.fil_var_dets, self.fil_css, 
-                    self.fil_report, self.fil_script)
+                            self.dbe, self.con_dets, self.default_dbs, 
+                            self.default_tbls, self.fil_var_dets, self.fil_css, 
+                            self.fil_report, self.fil_script)
                 dlg.ShowModal()
             else:
                 raise Exception, "Unknown test"

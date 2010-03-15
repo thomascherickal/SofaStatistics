@@ -12,7 +12,7 @@ import full_html
 import output
 import projects
 
-OUTPUT_MODULES = ["my_globals", "core_stats", "getdata", "output", 
+OUTPUT_MODULES = ["my_globals as mg", "core_stats", "getdata", "output", 
                   "stats_output"]
 
 
@@ -51,50 +51,50 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         config_dlg.add_icon(frame=self)
         self.szr_data, self.szr_config_bottom, self.szr_config_top = \
             self.get_gen_config_szrs(self.panel) # mixin
-        self.szrOutputButtons = self.get_szrOutputBtns(self.panel,
-                                                       inc_clear=False) # mixin
+        self.szr_output_btns = self.get_szr_output_btns(self.panel,
+                                                        inc_clear=False) # mixin
         szr_main = wx.BoxSizer(wx.VERTICAL)
-        bxDesc = wx.StaticBox(self.panel, -1, _("Purpose"))
-        szr_desc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
+        bx_desc = wx.StaticBox(self.panel, -1, _("Purpose"))
+        szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
         eg1, eg2, eg3 = self.get_examples()
-        lblDesc1 = wx.StaticText(self.panel, -1, eg1)
-        lblDesc2 = wx.StaticText(self.panel, -1, eg2)
-        lblDesc3 = wx.StaticText(self.panel, -1, eg3)
-        szr_desc.Add(lblDesc1, 1, wx.GROW|wx.LEFT, 5)
-        szr_desc.Add(lblDesc2, 1, wx.GROW|wx.LEFT, 5)
-        szr_desc.Add(lblDesc3, 1, wx.GROW|wx.LEFT, 5)
-        bxVars = wx.StaticBox(self.panel, -1, _("Variables"))
+        lbl_desc1 = wx.StaticText(self.panel, -1, eg1)
+        lbl_desc2 = wx.StaticText(self.panel, -1, eg2)
+        lbl_desc3 = wx.StaticText(self.panel, -1, eg3)
+        szr_desc.Add(lbl_desc1, 1, wx.GROW|wx.LEFT, 5)
+        szr_desc.Add(lbl_desc2, 1, wx.GROW|wx.LEFT, 5)
+        szr_desc.Add(lbl_desc3, 1, wx.GROW|wx.LEFT, 5)
+        bx_vars = wx.StaticBox(self.panel, -1, _("Variables"))
         if not mg.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
-            bxVars.SetToolTipString(variables_rc_msg)
-        szrVars = wx.StaticBoxSizer(bxVars, wx.VERTICAL)
-        #szrVars = wx.BoxSizer(wx.HORIZONTAL) # removes tooltip bug in gtk
-        szrVarsTop = wx.BoxSizer(wx.HORIZONTAL)
-        szrVarsBottom = wx.BoxSizer(wx.HORIZONTAL)
-        szrVars.Add(szrVarsTop, 1, wx.LEFT, 5)
-        szrVars.Add(szrVarsBottom, 0, wx.LEFT, 5)
+            bx_vars.SetToolTipString(variables_rc_msg)
+        szr_vars = wx.StaticBoxSizer(bx_vars, wx.VERTICAL)
+        #szr_vars = wx.BoxSizer(wx.HORIZONTAL) # removes tooltip bug in gtk
+        szr_vars_top = wx.BoxSizer(wx.HORIZONTAL)
+        szr_vars_bottom = wx.BoxSizer(wx.HORIZONTAL)
+        szr_vars.Add(szr_vars_top, 1, wx.LEFT, 5)
+        szr_vars.Add(szr_vars_bottom, 0, wx.LEFT, 5)
         # group A
-        self.lblGroupA = wx.StaticText(self.panel, -1, _("Group A:"))
-        self.lblGroupA.SetFont(self.LABEL_FONT)
-        self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
-        self.dropGroupA.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
-        self.dropGroupA.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_a)
-        self.dropGroupA.SetToolTipString(variables_rc_msg)
-        szrVarsTop.Add(self.lblGroupA, 0, wx.RIGHT, 5)
-        szrVarsTop.Add(self.dropGroupA, 0, wx.GROW)
+        self.lbl_group_a = wx.StaticText(self.panel, -1, _("Group A:"))
+        self.lbl_group_a.SetFont(self.LABEL_FONT)
+        self.drop_group_a = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
+        self.drop_group_a.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
+        self.drop_group_a.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_a)
+        self.drop_group_a.SetToolTipString(variables_rc_msg)
+        szr_vars_top.Add(self.lbl_group_a, 0, wx.RIGHT, 5)
+        szr_vars_top.Add(self.drop_group_a, 0, wx.GROW)
         # group B
-        self.lblGroupB = wx.StaticText(self.panel, -1, _("Group B:"))
-        self.lblGroupB.SetFont(self.LABEL_FONT)
-        self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
-        self.dropGroupB.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
-        self.dropGroupB.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_b)
-        self.dropGroupB.SetToolTipString(variables_rc_msg)
+        self.lbl_group_b = wx.StaticText(self.panel, -1, _("Group B:"))
+        self.lbl_group_b.SetFont(self.LABEL_FONT)
+        self.drop_group_b = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
+        self.drop_group_b.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
+        self.drop_group_b.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_b)
+        self.drop_group_b.SetToolTipString(variables_rc_msg)
         self.setup_groups()
-        szrVarsTop.Add(self.lblGroupB, 0, wx.LEFT|wx.RIGHT, 5)
-        szrVarsTop.Add(self.dropGroupB, 0, wx.GROW)
+        szr_vars_top.Add(self.lbl_group_b, 0, wx.LEFT|wx.RIGHT, 5)
+        szr_vars_top.Add(self.drop_group_b, 0, wx.GROW)
         # phrase
-        self.lblPhrase = wx.StaticText(self.panel, -1, 
+        self.lbl_phrase = wx.StaticText(self.panel, -1, 
                                        _("Start making your selections"))
-        szrVarsBottom.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
+        szr_vars_bottom.Add(self.lbl_phrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
         szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
         szr_bottom_left = wx.BoxSizer(wx.VERTICAL)
         if mg.MAX_HEIGHT <= 620:
@@ -109,13 +109,13 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szr_bottom_left.Add(self.html, 1, wx.GROW|wx.LEFT|wx.BOTTOM, 5)
         szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW)
         szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW)
-        self.szrLevel = self.get_szrLevel(self.panel) # mixin
-        szr_bottom_left.Add(self.szrLevel, 0)
+        self.szr_level = self.get_szr_level(self.panel) # mixin
+        szr_bottom_left.Add(self.szr_level, 0)
         szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
-        szr_bottom.Add(self.szrOutputButtons, 0, wx.GROW|wx.LEFT, 10)
+        szr_bottom.Add(self.szr_output_btns, 0, wx.GROW|wx.LEFT, 10)
         szr_main.Add(szr_desc, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szr_main.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szr_main.Add(szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szr_main.Add(szr_bottom, 2, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(szr_main)
         szr_main.SetSizeHints(self)
@@ -161,16 +161,16 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         return fld_choice_items
        
     def setup_group_a(self, fld_choice_items, var_a=None):        
-        self.dropGroupA.SetItems(fld_choice_items)
+        self.drop_group_a.SetItems(fld_choice_items)
         idx_a = projects.get_idx_to_select(fld_choice_items, var_a, 
                                            self.var_labels, mg.GROUP_A_DEFAULT)
-        self.dropGroupA.SetSelection(idx_a)            
+        self.drop_group_a.SetSelection(idx_a)            
 
     def setup_group_b(self, fld_choice_items, var_b=None):        
-        self.dropGroupB.SetItems(fld_choice_items)
+        self.drop_group_b.SetItems(fld_choice_items)
         idx_b = projects.get_idx_to_select(fld_choice_items, var_b, 
                                            self.var_labels, mg.GROUP_B_DEFAULT)
-        self.dropGroupB.SetSelection(idx_b)
+        self.drop_group_b.SetSelection(idx_b)
         
     def setup_groups(self, var_a=None, var_b=None):
         fld_choice_items = self.get_group_choices()
@@ -193,15 +193,15 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.setup_groups()
 
     def get_var_a(self):
-        idx_a = self.dropGroupA.GetSelection()
+        idx_a = self.drop_group_a.GetSelection()
         var_a = self.sorted_var_names[idx_a]
-        var_a_item = self.dropGroupA.GetStringSelection()
+        var_a_item = self.drop_group_a.GetStringSelection()
         return var_a, var_a_item
 
     def get_var_b(self):
-        idx_b = self.dropGroupB.GetSelection()
+        idx_b = self.drop_group_b.GetSelection()
         var_b = self.sorted_var_names[idx_b]
-        var_b_item = self.dropGroupB.GetStringSelection()
+        var_b_item = self.drop_group_b.GetStringSelection()
         return var_b, var_b_item
     
     def get_vars(self):
@@ -247,12 +247,12 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         Update phrase based on Group A and Group B.
         """
         var_a, label_a, var_b, label_b = self.get_drop_vals()
-        self.lblPhrase.SetLabel(_("Is \"%(a)s\" different from \"%(b)s\"?") %
+        self.lbl_phrase.SetLabel(_("Is \"%(a)s\" different from \"%(b)s\"?") %
                                 {"a": label_a, "b": label_b})
     
     def update_defaults(self):
-        mg.GROUP_A_DEFAULT = self.dropGroupA.GetStringSelection()
-        mg.GROUP_B_DEFAULT = self.dropGroupB.GetStringSelection()
+        mg.GROUP_A_DEFAULT = self.drop_group_a.GetStringSelection()
+        mg.GROUP_B_DEFAULT = self.drop_group_b.GetStringSelection()
         
     def update_local_display(self, strContent):
         self.html.show_html(strContent, url_load=True) # allow footnotes
@@ -286,8 +286,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         Are the appropriate selections made to enable an analysis to be run?
         """
         # group A and B cannot be the same
-        if self.dropGroupA.GetStringSelection() == \
-                self.dropGroupB.GetStringSelection():
+        if self.drop_group_a.GetStringSelection() == \
+                self.drop_group_b.GetStringSelection():
             wx.MessageBox(_("Group A and Group B must be different"))
             return False
         return True

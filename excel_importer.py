@@ -31,7 +31,7 @@ class FileImporter(object):
         self.has_header = (retCode == wx.YES)
         return True
     
-    def assess_sample(self, wksheet, orig_fld_names, progBackup, gauge_chunk, 
+    def assess_sample(self, wksheet, orig_fld_names, progbar, gauge_chunk, 
                       keep_importing):
         """
         Assess data sample to identify field types based on values in fields.
@@ -44,21 +44,21 @@ class FileImporter(object):
         Sample first N rows (at most) to establish field types.   
         """
         debug = False
-        bolhas_rows = False
+        has_rows = False
         sample_data = []
         for i, row in enumerate(wksheet): # iterates through data rows only
             if i % 50 == 0:
                 wx.Yield()
                 if keep_importing == set([False]):
-                    progBackup.SetValue(0)
+                    progbar.SetValue(0)
                     raise ImportCancelException
             if debug: print(row)
             # if has_header, starts at 1st data row
-            bolhas_rows = True
+            has_rows = True
             # process row
             sample_data.append(row)
             gauge_val = i*gauge_chunk
-            progBackup.SetValue(gauge_val)
+            progbar.SetValue(gauge_val)
             if i == (ROWS_TO_SAMPLE - 1):
                 break
         fld_types = []
@@ -66,11 +66,11 @@ class FileImporter(object):
             fld_type = importer.assess_sample_fld(sample_data, orig_fld_name)
             fld_types.append(fld_type)
         fld_types = dict(zip(orig_fld_names, fld_types))
-        if not bolhas_rows:
+        if not has_rows:
             raise Exception, "No data to import"
         return fld_types, sample_data
     
-    def import_content(self, progBackup, keep_importing):
+    def import_content(self, progbar, keep_importing):
         """
         Get field types dict.  Use it to test each and every item before they 
             are added to database (after adding the records already tested).
@@ -100,7 +100,7 @@ class FileImporter(object):
             print("gauge_chunk: %s" % gauge_chunk)
             print("About to assess data sample")
         fld_types, sample_data = self.assess_sample(wksheet, orig_fld_names, 
-                                        progBackup, gauge_chunk, keep_importing)
+                                        progbar, gauge_chunk, keep_importing)
         if debug:
             print("Just finished assessing data sample")
             print(fld_types)
@@ -111,10 +111,10 @@ class FileImporter(object):
         nulled_dots = importer.add_to_tmp_tbl(con, cur, self.file_path, 
                             self.tbl_name, ok_fld_names, orig_fld_names, 
                             fld_types, sample_data, sample_n, remaining_data, 
-                            progBackup, gauge_chunk, keep_importing)
+                            progbar, gauge_chunk, keep_importing)
         importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path,
-                                  progBackup, nulled_dots)
+                                  progbar, nulled_dots)
         cur.close()
         con.commit()
         con.close()
-        progBackup.SetValue(0)
+        progbar.SetValue(0)

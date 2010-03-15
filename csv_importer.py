@@ -75,7 +75,7 @@ class FileImporter(object):
         self.has_header = (retCode == wx.YES)
         return True
     
-    def assess_sample(self, reader, progBackup, gauge_chunk, keep_importing):
+    def assess_sample(self, reader, progbar, gauge_chunk, keep_importing):
         """
         Assess data sample to identify field types based on values in fields.
         If a field has mixed data types will define as string.
@@ -96,7 +96,7 @@ class FileImporter(object):
             if i % 50 == 0:
                 wx.Yield()
                 if keep_importing == set([False]):
-                    progBackup.SetValue(0)
+                    progbar.SetValue(0)
                     raise ImportCancelException
             if self.has_header and i == 0:
                 continue # skip first line
@@ -105,7 +105,7 @@ class FileImporter(object):
             sample_data.append(row) # include Nones even if going to change to 
                 # empty strings or whatever later.
             gauge_val = i*gauge_chunk
-            progBackup.SetValue(gauge_val)
+            progbar.SetValue(gauge_val)
             i2break = ROWS_TO_SAMPLE if self.has_header else ROWS_TO_SAMPLE - 1
             if i == i2break:
                 break
@@ -167,7 +167,7 @@ class FileImporter(object):
         else:
             wx.MessageBox(_("Unable to import file in current form"))        
 
-    def import_content(self, progBackup, keep_importing):
+    def import_content(self, progbar, keep_importing):
         """
         Get field types dict.  Use it to test each and every item before they 
             are added to database (after adding the records already tested).
@@ -221,18 +221,18 @@ class FileImporter(object):
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_rows else n_rows
         gauge_chunk = importer.get_gauge_chunk_size(n_rows, sample_n)
         orig_fld_names, fld_types, sample_data = self.assess_sample(reader, 
-                                        progBackup, gauge_chunk, keep_importing)
+                                        progbar, gauge_chunk, keep_importing)
         # NB reader will be at position ready to access records after sample
         remaining_data = list(reader) # must be a list not a reader or can't 
         # start again from beginning of data (e.g. if correction made)
         nulled_dots = importer.add_to_tmp_tbl(con, cur, self.file_path, 
                             self.tbl_name, ok_fld_names, orig_fld_names, 
                             fld_types, sample_data, sample_n, remaining_data, 
-                            progBackup, gauge_chunk, keep_importing)
+                            progbar, gauge_chunk, keep_importing)
         importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path, 
-                                  progBackup, nulled_dots)
+                                  progbar, nulled_dots)
         cur.close()
         con.commit()
         con.close()
-        progBackup.SetValue(0)
+        progbar.SetValue(0)
         

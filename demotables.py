@@ -32,14 +32,14 @@ class DemoTable(object):
         "Get demo HTML for table"
         debug = False
         # sort titles out first
-        if self.txtTitles.GetValue():
+        if self.txt_titles.GetValue():
             self.titles = [u"%s" % x for x \
-                      in self.txtTitles.GetValue().split(u"\n")]
+                      in self.txt_titles.GetValue().split(u"\n")]
         else:
             self.titles = []
-        if self.txtSubtitles.GetValue():
+        if self.txt_subtitles.GetValue():
             self.subtitles = [u"%s" % x for x \
-                         in self.txtSubtitles.GetValue().split(u"\n")]
+                         in self.txt_subtitles.GetValue().split(u"\n")]
         else:
             self.subtitles = []
         if debug: print(self.fil_css)
@@ -63,12 +63,12 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
     Demo display raw table (uses demo data only for illustrative purposes)
     """
     
-    def __init__(self, txtTitles, txtSubtitles, colRoot, coltree, 
+    def __init__(self, txtTitles, txtSubtitles, colroot, coltree, 
                  flds, var_labels, val_dics, fil_css, chkTotalsRow, 
                  chkFirstAsLabel):
-        self.txtTitles = txtTitles
-        self.txtSubtitles = txtSubtitles
-        self.colRoot = colRoot
+        self.txt_titles = txtTitles
+        self.txt_subtitles = txtSubtitles
+        self.colroot = colroot
         self.coltree = coltree
         self.flds = flds
         self.var_labels = var_labels
@@ -87,7 +87,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
     def get_demo_html_if_ok(self, css_idx):
         "Show demo table if sufficient data to do so"
         has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
-                                              parent=self.colRoot)
+                                              parent=self.colroot)
         return self.get_demo_html(css_idx) if has_cols else ""
       
     def get_html_parts(self, css_idx):
@@ -99,7 +99,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
         CSS_ALIGN_RIGHT = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ALIGN_RIGHT, css_idx)
         CSS_TOTAL_ROW = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TOTAL_ROW, css_idx)   
-        col_names, col_labels = lib.get_col_dets(self.coltree, self.colRoot, 
+        col_names, col_labels = lib.get_col_dets(self.coltree, self.colroot, 
                                                  self.var_labels)
         cols_n = len(col_names)        
         bolhas_totals_row = self.chkTotalsRow.IsChecked()
@@ -175,13 +175,13 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
 class DemoDimTable(dimtables.DimTable, DemoTable):
     "A demo table only - no real data inside"
     
-    def __init__(self, txtTitles, txtSubtitles, colRoot, rowRoot, rowtree, 
+    def __init__(self, txtTitles, txtSubtitles, colroot, rowroot, rowtree, 
                  coltree, col_no_vars_item, var_labels, val_dics, fil_css):
         self.debug = False
-        self.txtTitles = txtTitles
-        self.txtSubtitles = txtSubtitles
-        self.colRoot = colRoot
-        self.rowRoot = rowRoot
+        self.txt_titles = txtTitles
+        self.txt_subtitles = txtSubtitles
+        self.colroot = colroot
+        self.rowroot = rowroot
         self.rowtree = rowtree
         self.coltree = coltree
         self.col_no_vars_item = col_no_vars_item
@@ -217,7 +217,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         """
         tree_row_labels = dimtables.LabelNodeTree()
         for row_child_item in lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                                         parent=self.rowRoot):
+                                                         parent=self.rowroot):
             self.add_subtree_to_label_tree(tree_dims_item=row_child_item, 
                               tree_labels_node=tree_row_labels.root_node, 
                               dim=mg.ROWDIM)
@@ -334,7 +334,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         exception.
         """
         col_children = lib.get_tree_ctrl_children(tree=self.coltree, 
-                                                  parent=self.colRoot)
+                                                  parent=self.colroot)
         for col_child_item in col_children:
             self.add_subtree_to_label_tree(tree_dims_item=col_child_item, 
                                   tree_labels_node=tree_col_labels.root_node, 
@@ -350,18 +350,18 @@ class GenDemoTable(DemoDimTable):
     has_col_measures = True
     default_measure = lib.get_default_measure(mg.FREQS_TBL)
     
-    def __init__(self, txtTitles, txtSubtitles, colRoot, rowRoot, rowtree, 
+    def __init__(self, txtTitles, txtSubtitles, colroot, rowroot, rowtree, 
                  coltree, col_no_vars_item, var_labels, val_dics, fil_css):
-        DemoDimTable.__init__(self, txtTitles, txtSubtitles, colRoot, rowRoot, 
+        DemoDimTable.__init__(self, txtTitles, txtSubtitles, colroot, rowroot, 
                            rowtree, coltree, col_no_vars_item, var_labels, 
                            val_dics, fil_css)
         
     def get_demo_html_if_ok(self, css_idx):
         "Show demo table if sufficient data to do so"
         has_rows = lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                              parent=self.rowRoot)
+                                              parent=self.rowroot)
         has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
-                                              parent=self.colRoot)
+                                              parent=self.colroot)
         if has_rows and has_cols:
             return self.get_demo_html(css_idx)
         else:
@@ -457,16 +457,16 @@ class SummDemoTable(DemoDimTable):
     has_col_measures = False
     default_measure = lib.get_default_measure(mg.ROW_SUMM)
     
-    def __init__(self, txtTitles, txtSubtitles, colRoot, rowRoot, rowtree, 
+    def __init__(self, txtTitles, txtSubtitles, colroot, rowroot, rowtree, 
                  coltree, col_no_vars_item, var_labels, val_dics, fil_css):
-        DemoDimTable.__init__(self, txtTitles, txtSubtitles, colRoot, rowRoot, 
+        DemoDimTable.__init__(self, txtTitles, txtSubtitles, colroot, rowroot, 
                            rowtree, coltree, col_no_vars_item, var_labels, 
                            val_dics, fil_css)
 
     def get_demo_html_if_ok(self, css_idx):
         "Show demo table if sufficient data to do so"
         has_rows = lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                              parent=self.rowRoot)
+                                              parent=self.rowroot)
         return self.get_demo_html(css_idx) if has_rows else ""
             
     def get_hdr_dets(self, row_label_cols_n, css_idx):

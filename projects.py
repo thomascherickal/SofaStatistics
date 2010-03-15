@@ -295,39 +295,39 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         self.panel = wx.Panel(self)
         self.var_desc = var_desc
         # New controls
-        lblVarLabel = wx.StaticText(self.panel, -1, _("Variable Label:"))
-        lblVarLabel.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        lblVarNotes = wx.StaticText(self.panel, -1, "Notes:")
-        lblVarNotes.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.txtVarLabel = wx.TextCtrl(self.panel, -1, self.var_desc["label"], 
-                                       size=(250,-1))
-        self.txtVarNotes = wx.TextCtrl(self.panel, -1, self.var_desc["notes"],
-                                       style=wx.TE_MULTILINE)
-        self.radDataType = wx.RadioBox(self.panel, -1, _("Data Type"),
+        lbl_var_label = wx.StaticText(self.panel, -1, _("Variable Label:"))
+        lbl_var_label.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        lbl_var_notes = wx.StaticText(self.panel, -1, "Notes:")
+        lbl_var_notes.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        self.txt_var_label = wx.TextCtrl(self.panel, -1, self.var_desc["label"], 
+                                         size=(250,-1))
+        self.txt_var_notes = wx.TextCtrl(self.panel, -1, self.var_desc["notes"],
+                                         style=wx.TE_MULTILINE)
+        self.rad_data_type = wx.RadioBox(self.panel, -1, _("Data Type"),
                                        choices=mg.VAR_TYPES)
-        self.radDataType.SetStringSelection(self.var_desc["type"])
+        self.rad_data_type.SetStringSelection(self.var_desc["type"])
         # if text or datetime, only enable categorical.
         # datetime cannot be quant (if a measurement of seconds etc would be 
         # numeric instead) and although ordinal, not used like that in any of 
         # these tests.
         if boltext or boldatetime:
-            self.radDataType.EnableItem(mg.VAR_IDX_ORD, False)
-            self.radDataType.EnableItem(mg.VAR_IDX_QUANT, False)
+            self.rad_data_type.EnableItem(mg.VAR_IDX_ORD, False)
+            self.rad_data_type.EnableItem(mg.VAR_IDX_QUANT, False)
         btn_type_help = wx.Button(self.panel, wx.ID_HELP)
         btn_type_help.Bind(wx.EVT_BUTTON, self.on_type_help_btn)
         # sizers
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
-        self.szrVarLabel = wx.BoxSizer(wx.HORIZONTAL)
-        self.szrVarLabel.Add(lblVarLabel, 0, wx.RIGHT, 5)
-        self.szrVarLabel.Add(self.txtVarLabel, 1)
-        self.szrVarNotes = wx.BoxSizer(wx.HORIZONTAL)
-        self.szrVarNotes.Add(lblVarNotes, 0, wx.RIGHT, 5)
-        self.szrVarNotes.Add(self.txtVarNotes, 1, wx.GROW)
-        self.szr_main.Add(self.szrVarLabel, 0, wx.GROW|wx.ALL, 10)
-        self.szr_main.Add(self.szrVarNotes, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        self.szr_main.Add(self.radDataType, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        self.szr_var_label = wx.BoxSizer(wx.HORIZONTAL)
+        self.szr_var_label.Add(lbl_var_label, 0, wx.RIGHT, 5)
+        self.szr_var_label.Add(self.txt_var_label, 1)
+        self.szr_var_notes = wx.BoxSizer(wx.HORIZONTAL)
+        self.szr_var_notes.Add(lbl_var_notes, 0, wx.RIGHT, 5)
+        self.szr_var_notes.Add(self.txt_var_notes, 1, wx.GROW)
+        self.szr_main.Add(self.szr_var_label, 0, wx.GROW|wx.ALL, 10)
+        self.szr_main.Add(self.szr_var_notes, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        self.szr_main.Add(self.rad_data_type, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         szr_data_type = wx.BoxSizer(wx.HORIZONTAL)
-        szr_data_type.Add(self.radDataType, 0)  
+        szr_data_type.Add(self.rad_data_type, 0)  
         szr_data_type.Add(btn_type_help, 0, wx.LEFT|wx.TOP, 10)        
         self.szr_main.Add(szr_data_type, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         self.tabentry = settings_grid.SettingsEntry(self, self.panel, 
@@ -354,9 +354,9 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         """
         Override so we can extend to include variable label, type, and notes.
         """
-        self.var_desc["label"] = self.txtVarLabel.GetValue()
-        self.var_desc["notes"] = self.txtVarNotes.GetValue()
-        self.var_desc["type"] = self.radDataType.GetStringSelection()
+        self.var_desc["label"] = self.txt_var_label.GetValue()
+        self.var_desc["notes"] = self.txt_var_notes.GetValue()
+        self.var_desc["type"] = self.rad_data_type.GetStringSelection()
         self.tabentry.update_config_data()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
@@ -393,56 +393,56 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         # misc
         lblfont = wx.Font(9, wx.SWISS, wx.NORMAL, wx.BOLD)
         # Project Name and notes
-        lblName = wx.StaticText(self.panel_top, -1, _("Project Name:"))
-        lblName.SetFont(lblfont)
-        self.txtName = wx.TextCtrl(self.panel_top, -1, self.proj_name, 
+        lbl_name = wx.StaticText(self.panel_top, -1, _("Project Name:"))
+        lbl_name.SetFont(lblfont)
+        self.txt_name = wx.TextCtrl(self.panel_top, -1, self.proj_name, 
                                    size=(200, -1))
-        self.txtName.Enable(not self.readonly)
-        lblProjNotes = wx.StaticText(self.panel_top, -1, _("Notes:"))
-        lblProjNotes.SetFont(lblfont)
-        self.txtProjNotes = wx.TextCtrl(self.panel_top, -1, self.proj_notes,
+        self.txt_name.Enable(not self.readonly)
+        lbl_proj_notes = wx.StaticText(self.panel_top, -1, _("Notes:"))
+        lbl_proj_notes.SetFont(lblfont)
+        self.txt_proj_notes = wx.TextCtrl(self.panel_top, -1, self.proj_notes,
                                         size=(200, 40), style=wx.TE_MULTILINE)
-        self.txtProjNotes.Enable(not self.readonly)
+        self.txt_proj_notes.Enable(not self.readonly)
         szr_desc = wx.BoxSizer(wx.HORIZONTAL)
-        szr_desc.Add(lblName, 0, wx.RIGHT, 5)
-        szr_desc.Add(self.txtName, 0, wx.RIGHT, 10)
-        szr_desc.Add(lblProjNotes, 0, wx.RIGHT, 5)
-        szr_desc.Add(self.txtProjNotes, 1, wx.GROW)
+        szr_desc.Add(lbl_name, 0, wx.RIGHT, 5)
+        szr_desc.Add(self.txt_name, 0, wx.RIGHT, 10)
+        szr_desc.Add(lbl_proj_notes, 0, wx.RIGHT, 5)
+        szr_desc.Add(self.txt_proj_notes, 1, wx.GROW)
         # DATA CONNECTIONS
-        lblDataConDets = wx.StaticText(self.panel_top, -1, 
+        lbl_data_con_dets = wx.StaticText(self.panel_top, -1, 
                                         _("Data Connection Details:"))
         # default dbe
-        lblDefault_Dbe = wx.StaticText(self.scroll_con_dets, -1, 
+        lbl_default_dbe = wx.StaticText(self.scroll_con_dets, -1, 
                                        _("Default Database Engine:"))
-        lblDefault_Dbe.SetFont(lblfont)
-        self.dropDefault_Dbe = wx.Choice(self.scroll_con_dets, -1, 
+        lbl_default_dbe.SetFont(lblfont)
+        self.drop_default_dbe = wx.Choice(self.scroll_con_dets, -1, 
                                          choices=mg.DBES)
         sel_dbe_id = mg.DBES.index(self.default_dbe)
-        self.dropDefault_Dbe.SetSelection(sel_dbe_id)
-        self.dropDefault_Dbe.Bind(wx.EVT_CHOICE, self.on_dbe_choice)
-        self.dropDefault_Dbe.Enable(not self.readonly)
-        lblScrollDown = wx.StaticText(self.scroll_con_dets, -1, 
+        self.drop_default_dbe.SetSelection(sel_dbe_id)
+        self.drop_default_dbe.Bind(wx.EVT_CHOICE, self.on_dbe_choice)
+        self.drop_default_dbe.Enable(not self.readonly)
+        lbl_scroll_down = wx.StaticText(self.scroll_con_dets, -1, 
                     _("(scroll down for details of all your database engines)"))
         # default dbe
         szr_default_dbe = wx.BoxSizer(wx.HORIZONTAL)
-        szr_default_dbe.Add(lblDefault_Dbe, 0, wx.LEFT|wx.RIGHT, 5)
-        szr_default_dbe.Add(self.dropDefault_Dbe, 0)
-        szr_default_dbe.Add(lblScrollDown, 0, wx.LEFT, 10)
+        szr_default_dbe.Add(lbl_default_dbe, 0, wx.LEFT|wx.RIGHT, 5)
+        szr_default_dbe.Add(self.drop_default_dbe, 0)
+        szr_default_dbe.Add(lbl_scroll_down, 0, wx.LEFT, 10)
         # Close
         self.setup_btns()
         # sizers
         # TOP
-        self.szrTop = wx.BoxSizer(wx.VERTICAL)
-        self.szrTop.Add(szr_desc, 1, wx.GROW|wx.ALL, 10)
+        self.szr_top = wx.BoxSizer(wx.VERTICAL)
+        self.szr_top.Add(szr_desc, 1, wx.GROW|wx.ALL, 10)
         # mixin supplying self.szr_config_top and self.szr_config_bottom
         self.szr_config_bottom, self.szr_config_top = \
             self.get_misc_config_szrs(self.panel_top, readonly=self.readonly)
-        self.szrTop.Add(self.szr_config_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        self.szrTop.Add(self.szr_config_bottom, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        #self.szrTop.Add(szrOutput, 0, wx.GROW|wx.ALL, 10)
-        self.szrTop.Add(lblDataConDets, 0, wx.GROW|wx.LEFT, 10)
-        self.panel_top.SetSizer(self.szrTop)
-        self.szrTop.SetSizeHints(self.panel_top)
+        self.szr_top.Add(self.szr_config_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        self.szr_top.Add(self.szr_config_bottom, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        #self.szr_top.Add(szrOutput, 0, wx.GROW|wx.ALL, 10)
+        self.szr_top.Add(lbl_data_con_dets, 0, wx.GROW|wx.LEFT, 10)
+        self.panel_top.SetSizer(self.szr_top)
+        self.szr_top.SetSizeHints(self.panel_top)
         # CON DETS
         self.szr_con_dets.Add(szr_default_dbe, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
         getdata.set_data_con_gui(parent=self, readonly=self.readonly, 
@@ -465,7 +465,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.SetMinSize((930,550))
         self.Layout()
         self.sqlite_grid.grid.SetFocus()
-        self.txtName.SetFocus()
+        self.txt_name.SetFocus()
         
     def set_defaults(self, fil_proj):
         if fil_proj:
@@ -557,7 +557,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             raise Exception, e
     
     def on_dbe_choice(self, event):
-        sel_dbe_id = self.dropDefault_Dbe.GetSelection()
+        sel_dbe_id = self.drop_default_dbe.GetSelection()
         self.default_dbe = mg.DBES[sel_dbe_id]
         event.Skip()
     
@@ -589,7 +589,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             self.szr_btns.Insert(0, btn_delete, 0)
 
     def on_delete(self, event):
-        proj_name = self.txtName.GetValue()
+        proj_name = self.txt_name.GetValue()
         if wx.MessageBox(_("Deleting a project cannot be undone.  "
                            "Do you want to delete the \"%s\" project?") % \
                            proj_name, 
@@ -597,7 +597,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             return
         try:
             fil_to_delete = os.path.join(LOCAL_PATH, "projs", 
-                                   "%s.proj" % self.txtName.GetValue())
+                                   "%s.proj" % self.txt_name.GetValue())
             #print(fil_to_delete) # debug
             os.remove(fil_to_delete)
         except Exception:
@@ -615,10 +615,10 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
     def on_ok(self, event):
         # get the data (separated for easier debugging)
         if not self.readonly:
-            proj_name = self.txtName.GetValue()
+            proj_name = self.txt_name.GetValue()
             if proj_name == mg.EMPTY_PROJ_NAME:
                 wx.MessageBox(_("Please provide a project name"))
-                self.txtName.SetFocus()
+                self.txt_name.SetFocus()
                 return
             try:
                 # only needed if returning to projselect form
@@ -627,12 +627,12 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             except Exception:
                 print(u"Failed to change to %s.proj" % proj_name)
                 pass
-            proj_notes = self.txtProjNotes.GetValue()
+            proj_notes = self.txt_proj_notes.GetValue()
             fil_var_dets = self.txtVarDetsFile.GetValue()
             fil_css = self.txtCssFile.GetValue()
             fil_report = self.txtReportFile.GetValue()
             fil_script = self.txtScriptFile.GetValue()
-            default_dbe = mg.DBES[self.dropDefault_Dbe.GetSelection()]
+            default_dbe = mg.DBES[self.drop_default_dbe.GetSelection()]
             default_dbs = {}
             default_tbls = {}
             con_dets = {}

@@ -186,15 +186,15 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         lblTblLabel = wx.StaticText(self.panel, -1, _("Table Name:"))
         lblTblLabel.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         tbl_name = tbl_name_lst[0] if tbl_name_lst else _("table") + u"001"
-        self.txtTblName = wx.TextCtrl(self.panel, -1, tbl_name, size=(250,-1))
-        self.txtTblName.Enable(not self.readonly)
-        self.txtTblName.SetValidator(SafeTblNameValidator(name_ok_to_reuse))
+        self.txt_tbl_name = wx.TextCtrl(self.panel, -1, tbl_name, size=(250,-1))
+        self.txt_tbl_name.Enable(not self.readonly)
+        self.txt_tbl_name.SetValidator(SafeTblNameValidator(name_ok_to_reuse))
         # sizers
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
-        self.szrTblLabel = wx.BoxSizer(wx.HORIZONTAL)
-        self.szrTblLabel.Add(lblTblLabel, 0, wx.RIGHT, 5)
-        self.szrTblLabel.Add(self.txtTblName, 1)
-        self.szr_main.Add(self.szrTblLabel, 0, wx.GROW|wx.ALL, 10)
+        self.szr_tbl_label = wx.BoxSizer(wx.HORIZONTAL)
+        self.szr_tbl_label.Add(lblTblLabel, 0, wx.RIGHT, 5)
+        self.szr_tbl_label.Add(self.txt_tbl_name, 1)
+        self.szr_main.Add(self.szr_tbl_label, 0, wx.GROW|wx.ALL, 10)
         lblsofa_id = wx.StaticText(self.panel, -1, _("The sofa_id is required "
                                                      "and cannot be edited"))
         self.szr_main.Add(lblsofa_id, 0, wx.ALL, 10)
@@ -208,7 +208,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.panel.SetSizer(self.szr_main)
         self.szr_main.SetSizeHints(self)
         self.Layout()
-        self.txtTblName.SetFocus()
+        self.txt_tbl_name.SetFocus()
 
     def init_config_data(self, data):
         debug = False
@@ -283,7 +283,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                 return True
         if self.tbl_name_lst: # empty ready to repopulate
             del self.tbl_name_lst[0]
-        self.tbl_name_lst.append(self.txtTblName.GetValue())
+        self.tbl_name_lst.append(self.txt_tbl_name.GetValue())
         self.tabentry.update_config_data()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)

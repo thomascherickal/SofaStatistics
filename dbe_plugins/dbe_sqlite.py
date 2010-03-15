@@ -133,7 +133,7 @@ class DbDets(getdata.DbDets):
         tbls.sort(key=lambda s: s.upper())
         return tbls
 
-    def _getCharLen(self, type_text):
+    def get_char_len(self, type_text):
         """
         NB SQLite never truncates whatever you specify.
         http://www.sqlite.org/faq.html#q9
@@ -169,7 +169,7 @@ class DbDets(getdata.DbDets):
                 mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
                 mg.FLD_COLUMN_DEFAULT: dflt_value,
                 mg.FLD_BOLTEXT: fld_txt,
-                mg.FLD_TEXT_LENGTH: self._getCharLen(fld_type),
+                mg.FLD_TEXT_LENGTH: self.get_char_len(fld_type),
                 mg.FLD_CHARSET: encoding,
                 mg.FLD_BOLNUMERIC: bolnumeric,
                 mg.FLD_BOLAUTONUMBER: bolautonum,

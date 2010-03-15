@@ -3,7 +3,7 @@
 
 import wx
 
-import my_globals
+import my_globals as mg
 import lib
 import indep2var
 
@@ -11,7 +11,7 @@ import indep2var
 class DlgConfig(indep2var.DlgIndep2VarConfig):
 
     averaged = _("Averaged")    
-    min_data_type = my_globals.VAR_TYPE_QUANT
+    min_data_type = mg.VAR_TYPE_QUANT
 
     def get_examples(self):
         eg1 = _("Answers the question, do 3 or more groups have a "
@@ -28,16 +28,16 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         """
         unused, unused, unused, unused, label_a, unused, label_b, unused, \
             label_avg = self.get_drop_vals()
-        self.lblPhrase.SetLabel(_("Does average %(avg)s vary in the groups "
+        self.lbl_phrase.SetLabel(_("Does average %(avg)s vary in the groups "
             "between \"%(a)s\" and \"%(b)s\"?") % {"avg": label_avg, 
                                                    "a": label_a, "b": label_b})
 
     def add_other_var_opts(self):
-        self.radHigh = wx.RadioBox(self.panel, -1, _("Algorithm"), 
-                         choices=(_("Precision (best choice unless too slow)"),
-                                  _("Speed")),
-                         style=wx.RA_SPECIFY_COLS)
-        self.szrVarsTopLeft.Add(self.radHigh, 0)
+        self.rad_high = wx.RadioBox(self.panel, -1, _("Algorithm"), 
+                        choices=(_("Precision (best choice unless too slow)"),
+                                 _("Speed")),
+                        style=wx.RA_SPECIFY_COLS)
+        self.szr_vars_top_left.Add(self.rad_high, 0)
     
     def get_script(self, css_idx, add_to_report, report_name):
         "Build script from inputs"
@@ -80,7 +80,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
                           lib.escape_win_path(report_name))
-        high = not self.radHigh.GetSelection()
+        high = not self.rad_high.GetSelection()
         script_lst.append(u"p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, "
             u"mean_squ_bn = \\\n    core_stats.anova(samples, labels, "
             u"high=%s)" % high)
@@ -88,7 +88,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                 u"samples, F, p, dics, sswn, dfwn, mean_squ_wn, "
             u"\n    ssbn, dfbn, mean_squ_bn, label_a, label_b, label_avg, "
                 u"add_to_report, report_name, dp,"
-            u"\n    level=my_globals.OUTPUT_RESULTS_ONLY, "
+            u"\n    level=mg.OUTPUT_RESULTS_ONLY, "
                 u"css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append(u"fil.write(anova_output)")
         return u"\n".join(script_lst)

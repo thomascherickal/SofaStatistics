@@ -76,6 +76,7 @@ TBL_TITLE_END = u"<!--_title_end-->"
 TBL_SUBTITLE_START = u"<!--_subtitle_start-->"
 TBL_SUBTITLE_END = u"<!--_subtitle_end-->"
 def pct_1_dec(num):
+    if debug: print(num)
     return "%s%%" % round(num,1)
 def pct_2_dec(num):
     return "%s%%" % round(num,2)

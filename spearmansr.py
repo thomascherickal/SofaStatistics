@@ -22,7 +22,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         Update phrase based on Group A and Group B.
         """
         var_a, label_a, var_b, label_b = self.get_drop_vals()
-        self.lblPhrase.SetLabel(_("Are \"%(a)s\" and \"%(b)s\" correlated - "
+        self.lbl_phrase.SetLabel(_("Are \"%(a)s\" and \"%(b)s\" correlated - "
                                "do they change together in a linear fashion?") %
                                {"a": label_a, "b": label_b})
     

@@ -24,36 +24,37 @@ class ProjSelectDlg(wx.Dialog):
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         lblChoose = wx.StaticText(self.panel, -1, 
                                   _("Choose an existing project ..."))
-        self.dropProjs = wx.Choice(self.panel, -1, choices=self.projs)
+        self.drop_projs = wx.Choice(self.panel, -1, choices=self.projs)
         idx_proj = self.projs.index(proj)
-        self.dropProjs.SetSelection(idx_proj)
+        self.drop_projs.SetSelection(idx_proj)
         self.store_proj_name(self.projs[idx_proj])
-        self.dropProjs.Bind(wx.EVT_CHOICE, self.on_proj_select)
+        self.drop_projs.Bind(wx.EVT_CHOICE, self.on_proj_select)
         self.btn_edit = wx.Button(self.panel, wx.ID_EDIT)
         self.btn_edit.Bind(wx.EVT_BUTTON, self.on_edit)
-        szrExistingTop = wx.BoxSizer(wx.HORIZONTAL)
-        szrExistingTop.Add(self.dropProjs, 1, wx.GROW|wx.RIGHT, 10)
-        szrExistingTop.Add(self.btn_edit, 0)
+        szr_existing_top = wx.BoxSizer(wx.HORIZONTAL)
+        szr_existing_top.Add(self.drop_projs, 1, wx.GROW|wx.RIGHT, 10)
+        szr_existing_top.Add(self.btn_edit, 0)
         self.get_notes(fil_proj=self.projs[idx_proj])
-        self.txtProjNotes = wx.TextCtrl(self.panel, -1, self.proj_notes,
-                                        style=wx.TE_MULTILINE|wx.TE_READONLY, 
-                                        size=(400, 90))
-        bxExisting = wx.StaticBox(self.panel, -1, _("Existing Projects"))
-        szrExisting = wx.StaticBoxSizer(bxExisting, wx.VERTICAL)
-        szrExisting.Add(szrExistingTop, 0, wx.GROW|wx.ALL, 10)
-        szrExisting.Add(self.txtProjNotes, 1, wx.GROW|wx.ALL, 10)
-        bxNew = wx.StaticBox(self.panel, -1, "")
-        szrNew = wx.StaticBoxSizer(bxNew, wx.HORIZONTAL)
-        lblMakeNew = wx.StaticText(self.panel, -1, 
+        self.txt_proj_notes = wx.TextCtrl(self.panel, -1, self.proj_notes,
+                                          style=wx.TE_MULTILINE|wx.TE_READONLY, 
+                                          size=(400,90))
+        bx_existing = wx.StaticBox(self.panel, -1, _("Existing Projects"))
+        szr_existing = wx.StaticBoxSizer(bx_existing, wx.VERTICAL)
+        szr_existing.Add(szr_existing_top, 0, wx.GROW|wx.ALL, 10)
+        szr_existing.Add(self.txt_proj_notes, 1, wx.GROW|wx.ALL, 10)
+        bx_new = wx.StaticBox(self.panel, -1, "")
+        szr_new = wx.StaticBoxSizer(bx_new, wx.HORIZONTAL)
+        lbl_make_new = wx.StaticText(self.panel, -1, 
                                    _("... or make a new project"))
         btn_make_new = wx.Button(self.panel, wx.ID_NEW)
         btn_make_new.Bind(wx.EVT_BUTTON, self.on_new_click)
-        szrNew.Add(lblMakeNew, 1, wx.GROW|wx.ALL, 10)
-        szrNew.Add(btn_make_new, 0, wx.ALL, 10)
+        szr_new.Add(lbl_make_new, 1, wx.GROW|wx.ALL, 10)
+        szr_new.Add(btn_make_new, 0, wx.ALL, 10)
         self.setup_btns()
         self.szr_main.Add(lblChoose, 0, wx.ALL, 10)
-        self.szr_main.Add(szrExisting, 1, wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.GROW, 10)
-        self.szr_main.Add(szrNew, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
+        self.szr_main.Add(szr_existing, 1, wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.GROW, 
+                          10)
+        self.szr_main.Add(szr_new, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
         self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 25)
         self.panel.SetSizer(self.szr_main)
         self.szr_main.SetSizeHints(self)
@@ -101,54 +102,54 @@ class ProjSelectDlg(wx.Dialog):
         self.proj_notes = projects.get_proj_notes(fil_proj, proj_dic)
     
     def on_proj_select(self, event):
-        proj_sel_id = self.dropProjs.GetSelection()
+        proj_sel_id = self.drop_projs.GetSelection()
         self.set_notes(proj_sel_id)
         mg.DBE_DEFAULT = None # otherwise there can be a problem if the
             # new project doesn't have the dbe that the old one had.
         event.Skip()
     
     def set_notes(self, proj_sel_id):
-        proj_sel_id = self.dropProjs.GetSelection()
+        proj_sel_id = self.drop_projs.GetSelection()
         self.get_notes(self.projs[proj_sel_id])
-        self.txtProjNotes.SetValue(self.proj_notes)
+        self.txt_proj_notes.SetValue(self.proj_notes)
         
     def on_edit(self,event):
-        proj_sel_id = self.dropProjs.GetSelection()
+        proj_sel_id = self.drop_projs.GetSelection()
         readonly = (self.projs[proj_sel_id] == mg.SOFA_DEFAULT_PROJ)
         dlgProj = projects.ProjectDlg(parent=self, readonly=readonly,
-                          fil_proj=self.projs[self.dropProjs.GetSelection()])
+                          fil_proj=self.projs[self.drop_projs.GetSelection()])
         # refresh projects list and display accordingly
-        ret_val = dlgProj.ShowModal()
-        if ret_val == wx.ID_DELETE:
+        retval = dlgProj.ShowModal()
+        if retval == wx.ID_DELETE:
             # redo and pick 1st
             self.projs = projects.get_projs()
-            self.dropProjs.SetItems(self.projs)
-            self.dropProjs.SetSelection(0)
+            self.drop_projs.SetItems(self.projs)
+            self.drop_projs.SetSelection(0)
             self.set_notes(0)
-        elif ret_val == wx.ID_OK:
+        elif retval == wx.ID_OK:
             self.set_to_name_from_ok()
           
     def on_new_click(self, event):
-        dlgProj = projects.ProjectDlg(parent=self, readonly=False)
-        ret_val = dlgProj.ShowModal()
-        if ret_val == wx.ID_OK:
+        dlg_proj = projects.ProjectDlg(parent=self, readonly=False)
+        retval = dlg_proj.ShowModal()
+        if retval == wx.ID_OK:
             self.set_to_name_from_ok()
 
     def set_to_name_from_ok(self):
         # redo choices and display record with new name
         self.projs = projects.get_projs()
-        self.dropProjs.SetItems(self.projs)
+        self.drop_projs.SetItems(self.projs)
         # get index of new name
         # NB proj name should have been set by projects
         proj_sel_id = self.projs.index(self.proj_name)
-        self.dropProjs.SetSelection(proj_sel_id) # may have changed name
+        self.drop_projs.SetSelection(proj_sel_id) # may have changed name
         self.set_notes(proj_sel_id)
 
     def on_cancel(self, event):
         self.Destroy()
     
     def on_ok(self, event):
-        proj_sel_id = self.dropProjs.GetSelection()
+        proj_sel_id = self.drop_projs.GetSelection()
         fil_proj = self.projs[proj_sel_id]
         try:
             proj_name = fil_proj[:-5]

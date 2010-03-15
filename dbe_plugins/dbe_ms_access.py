@@ -19,7 +19,6 @@ import dbe_plugins.dbe_globals as dbe_globals
 import getdata
 import settings_grid
 
-
 AD_OPEN_KEYSET = 1
 AD_LOCK_OPTIMISTIC = 3
 AD_SCHEMA_COLUMNS = 4
@@ -197,7 +196,7 @@ class DbDets(getdata.DbDets):
         for col in cat.Tables(tbl).Columns:
             # build dic of fields, each with dic of characteristics
             fld_name = col.Name            
-            fld_type = dbe_globals.getADODic().get(col.Type)
+            fld_type = dbe_globals.get_ado_dict().get(col.Type)
             if not fld_type:
                 raise Exception, \
                     u"Not an MS Access ADO field type %d" % col.Type

@@ -42,7 +42,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             pprint.pprint(self.flds)
             pprint.pprint(self.row_ids_lst)
         self.bol_attempt_cell_update = False
-        self.SQL_cell_to_update = None
+        self.sql_cell_to_update = None
         self.val_of_cell_to_update = None
         self.new_buffer = {} # where new values are stored until 
             #ready to be saved
@@ -258,7 +258,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         Fires after keypress and SelectCell if you use TAB to move.
         If a new row, stores value in new row buffer ready to be saved if 
             OK to save row.
-        If an existing, ordinary row, stores SQL_cell_to_update if OK to update
+        If an existing, ordinary row, stores sql_cell_to_update if OK to update
             cell.  Cache will be updated if, and only if, the cell is actually
             updated.
         """
@@ -283,13 +283,13 @@ class DbTbl(wx.grid.PyGridTableBase):
                 else self.quote_val(raw_val_to_use)
             # TODO - think about possibilities of SQL injection by hostile party
             SQL_update_value = u"UPDATE %s " % self.tbl + \
-                u" SET %s = %s " % (self.quote_obj(col_name), val2use) + \
-                u" WHERE %s = " % self.id_col_name + unicode(id_value)
+                    u" SET %s = %s " % (self.quote_obj(col_name), val2use) + \
+                    u" WHERE %s = " % self.id_col_name + unicode(id_value)
             if self.debug or debug: 
                 print(u"SetValue - SQL update value: %s" % SQL_update_value)
                 print(u"SetValue - Value of cell to update: %s" %
                     self.val_of_cell_to_update)
-            self.SQL_cell_to_update = SQL_update_value
+            self.sql_cell_to_update = SQL_update_value
 
     def display_new_row(self):
         """

@@ -759,12 +759,12 @@ class TblEditor(wx.Dialog):
         bolUpdatedCell = True
         try:
             self.dbtbl.con.commit()
-            self.dbtbl.cur.execute(self.dbtbl.SQL_cell_to_update)
+            self.dbtbl.cur.execute(self.dbtbl.sql_cell_to_update)
             self.dbtbl.con.commit()
         except Exception, e:
             if self.debug or debug: 
                 print("update_cell failed to save %s. " %
-                    self.dbtbl.SQL_cell_to_update +
+                    self.dbtbl.sql_cell_to_update +
                     "Orig error: %s" % e)
             bolUpdatedCell = False
             wx.MessageBox(_("Unable to save change to database.  %s") % e)

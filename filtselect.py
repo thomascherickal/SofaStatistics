@@ -74,78 +74,78 @@ class FiltSelectDlg(wx.Dialog):
         self.panel = wx.Panel(self)
         # szrs
         szr_main = wx.BoxSizer(wx.VERTICAL)
-        szrLabel = wx.BoxSizer(wx.HORIZONTAL)
-        szrQuick = wx.BoxSizer(wx.HORIZONTAL)
-        szrFlex = wx.BoxSizer(wx.VERTICAL)
+        szr_label = wx.BoxSizer(wx.HORIZONTAL)
+        szr_quick = wx.BoxSizer(wx.HORIZONTAL)
+        szr_flex = wx.BoxSizer(wx.VERTICAL)
         # assemble
-        self.radQuick = wx.RadioButton(self.panel, -1, _("Quick"), 
+        self.rad_quick = wx.RadioButton(self.panel, -1, _("Quick"), 
                                        style=wx.RB_GROUP)
-        radFlex = wx.RadioButton(self.panel, -1, _("Flexible"))
-        self.radQuick.Bind(wx.EVT_RADIOBUTTON, self.on_rad_quick_sel)
-        radFlex.Bind(wx.EVT_RADIOBUTTON, self.on_rad_flex_sel)
+        rad_flex = wx.RadioButton(self.panel, -1, _("Flexible"))
+        self.rad_quick.Bind(wx.EVT_RADIOBUTTON, self.on_rad_quick_sel)
+        rad_flex.Bind(wx.EVT_RADIOBUTTON, self.on_rad_flex_sel)
         # label content
-        lblLabel = wx.StaticText(self.panel, -1, _("Label (optional):"))
-        self.txtLabel = wx.TextCtrl(self.panel, -1, tbl_filt_label)
-        szrLabel.Add(lblLabel, 0, wx.RIGHT, 10)
-        szrLabel.Add(self.txtLabel, 1)
+        lbl_label = wx.StaticText(self.panel, -1, _("Label (optional):"))
+        self.txt_label = wx.TextCtrl(self.panel, -1, tbl_filt_label)
+        szr_label.Add(lbl_label, 0, wx.RIGHT, 10)
+        szr_label.Add(self.txt_label, 1)
         # quick content
-        self.dropVars = wx.Choice(self.panel, -1, size=(300, -1))
-        self.dropVars.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_vars)
-        self.dropVars.SetToolTipString(_("Right click variable to view/edit "
+        self.drop_vars = wx.Choice(self.panel, -1, size=(300, -1))
+        self.drop_vars.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_vars)
+        self.drop_vars.SetToolTipString(_("Right click variable to view/edit "
                                          "details"))
         self.sorted_var_names = [] # refreshed as required and in 
             # order of labels, not raw values
         self.setup_vars()
         gte_choices = mg.GTES
-        self.dropGTE = wx.Choice(self.panel, -1, choices=gte_choices)
-        self.dropGTE.SetSelection(0)
-        self.txtVal = wx.TextCtrl(self.panel, -1, "")
-        self.lblQuickInstructions = wx.StaticText(self.panel, -1, 
-                              _("(don't quote strings e.g. John not \"John\". "
-                                "Null for missing)"))
-        szrQuick.Add(self.radQuick, 0)
-        szrQuick.Add(self.dropVars, 1, wx.LEFT|wx.RIGHT, 5)
-        szrQuick.Add(self.dropGTE, 0)
-        szrQuick.Add(self.txtVal, 0)
+        self.drop_gte = wx.Choice(self.panel, -1, choices=gte_choices)
+        self.drop_gte.SetSelection(0)
+        self.txt_val = wx.TextCtrl(self.panel, -1, "")
+        self.lbl_quick_instructions = wx.StaticText(self.panel, -1, 
+                               _("(don't quote strings e.g. John not \"John\". "
+                                 "Null for missing)"))
+        szr_quick.Add(self.rad_quick, 0)
+        szr_quick.Add(self.drop_vars, 1, wx.LEFT|wx.RIGHT, 5)
+        szr_quick.Add(self.drop_gte, 0)
+        szr_quick.Add(self.txt_val, 0)
         # split
-        lnSplit = wx.StaticLine(self.panel)
+        ln_split = wx.StaticLine(self.panel)
         # flexible content
-        self.txtFlexFilter = wx.TextCtrl(self.panel, -1, "",
-                                         style=wx.TE_MULTILINE, size=(-1, 75))
-        self.lblFlexExample = wx.StaticText(self.panel, -1, 
-                                        _("(enter a filter e.g. agegp > 5)"))
-        szrFlex.Add(radFlex, 0)
-        szrFlex.Add(self.lblFlexExample, 0)
-        szrFlex.Add(self.txtFlexFilter, 1, wx.GROW)
+        self.txt_flex_filter = wx.TextCtrl(self.panel, -1, "",
+                                           style=wx.TE_MULTILINE, size=(-1,75))
+        self.lbl_flex_example = wx.StaticText(self.panel, -1, 
+                                           _("(enter a filter e.g. agegp > 5)"))
+        szr_flex.Add(rad_flex, 0)
+        szr_flex.Add(self.lbl_flex_example, 0)
+        szr_flex.Add(self.txt_flex_filter, 1, wx.GROW)
         if self.tbl_filt:
-            radFlex.SetValue(True)
+            rad_flex.SetValue(True)
             self.enable_quick_dets(False)
             self.enable_flex_dets(True)
-            self.txtFlexFilter.SetValue(self.tbl_filt)
+            self.txt_flex_filter.SetValue(self.tbl_filt)
         else:
-            self.radQuick.SetValue(True)
+            self.rad_quick.SetValue(True)
             self.enable_quick_dets(True)
             self.enable_flex_dets(False)
         self.setup_btns()
-        szr_main.Add(szrLabel, 0, wx.GROW|wx.ALL, 10)
-        szr_main.Add(szrQuick, 0, wx.ALL, 10)
-        szr_main.Add(self.lblQuickInstructions, 0, 
+        szr_main.Add(szr_label, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(szr_quick, 0, wx.ALL, 10)
+        szr_main.Add(self.lbl_quick_instructions, 0, 
                      wx.ALIGN_RIGHT|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-        szr_main.Add(lnSplit, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szr_main.Add(szrFlex, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(ln_split, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(szr_flex, 0, wx.GROW|wx.ALL, 10)
         szr_main.Add(self.szr_btns, 0, wx.ALL|wx.GROW, 10)
         self.panel.SetSizer(szr_main)
         szr_main.SetSizeHints(self)
         self.Layout()
-        self.txtLabel.SetFocus()
+        self.txt_label.SetFocus()
 
     def setup_vars(self, var=None):
         var_names = projects.get_approp_var_names(self.flds)
         var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
                                     dic_labels=self.var_labels, vals=var_names)
-        self.dropVars.SetItems(var_choices)
+        self.drop_vars.SetItems(var_choices)
         idx = self.sorted_var_names.index(var) if var else 0
-        self.dropVars.SetSelection(idx)
+        self.drop_vars.SetSelection(idx)
 
     def setup_btns(self):
         """
@@ -168,16 +168,16 @@ class FiltSelectDlg(wx.Dialog):
         btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
         # szrs
         self.szr_btns = wx.BoxSizer(wx.HORIZONTAL)
-        szrExtraBtns = wx.BoxSizer(wx.HORIZONTAL)
-        szrStdBtns = wx.StdDialogButtonSizer()
+        szr_extra_btns = wx.BoxSizer(wx.HORIZONTAL)
+        szr_std_btns = wx.StdDialogButtonSizer()
         # assemble
-        szrExtraBtns.Add(btnVarDets, 0, wx.ALIGN_LEFT)
-        szrStdBtns.AddButton(btn_cancel)
-        szrStdBtns.AddButton(btn_ok)
-        szrStdBtns.Realize()
-        szrStdBtns.Insert(0, btn_delete, 0)
-        self.szr_btns.Add(szrExtraBtns, 1)
-        self.szr_btns.Add(szrStdBtns, 0)
+        szr_extra_btns.Add(btnVarDets, 0, wx.ALIGN_LEFT)
+        szr_std_btns.AddButton(btn_cancel)
+        szr_std_btns.AddButton(btn_ok)
+        szr_std_btns.Realize()
+        szr_std_btns.Insert(0, btn_delete, 0)
+        self.szr_btns.Add(szr_extra_btns, 1)
+        self.szr_btns.Add(szr_std_btns, 0)
         btn_ok.SetDefault()
 
     def on_var_dets(self, event):
@@ -191,7 +191,7 @@ class FiltSelectDlg(wx.Dialog):
                                    self.fil_var_dets, updated)
         dlg.ShowModal()
         if updated:
-            idx_var = self.dropVars.GetSelection()
+            idx_var = self.drop_vars.GetSelection()
             fld_name = self.sorted_var_names[idx_var]
             self.setup_vars(var=fld_name)
         event.Skip()
@@ -214,10 +214,10 @@ class FiltSelectDlg(wx.Dialog):
     def get_quick_filter(self):
         "Get filter from quick setting"
         debug = False
-        idx_var = self.dropVars.GetSelection()
+        idx_var = self.drop_vars.GetSelection()
         fld_name = self.sorted_var_names[idx_var]      
-        val = get_val(self.txtVal.GetValue(), self.flds, fld_name)
-        gte = self.dropGTE.GetStringSelection()
+        val = get_val(self.txt_val.GetValue(), self.flds, fld_name)
+        gte = self.drop_gte.GetStringSelection()
         filt = getdata.make_fld_val_clause(self.dbe, self.flds, fld_name, val, 
                                            gte)
         if debug: print(filt)
@@ -225,15 +225,15 @@ class FiltSelectDlg(wx.Dialog):
 
     def on_ok(self, event):
         debug = False
-        tbl_filt_label = self.txtLabel.GetValue() 
-        if self.radQuick.GetValue():
+        tbl_filt_label = self.txt_label.GetValue() 
+        if self.rad_quick.GetValue():
             try:
                 tbl_filt = self.get_quick_filter()
             except Exception, e:
                 wx.MessageBox(_("Problem with design of filter: %s") % e)
                 return
         else:
-            tbl_filt = self.txtFlexFilter.GetValue()
+            tbl_filt = self.txt_flex_filter.GetValue()
             if not tbl_filt:
                 wx.MessageBox(_("Please enter a filter"))
                 return
@@ -279,22 +279,22 @@ class FiltSelectDlg(wx.Dialog):
         ""
         self.enable_quick_dets(False)
         self.enable_flex_dets(True)
-        self.txtFlexFilter.SetFocus()
+        self.txt_flex_filter.SetFocus()
         
     def enable_quick_dets(self, enable):
-        self.dropVars.Enable(enable)
-        self.dropGTE.Enable(enable)
-        self.txtVal.Enable(enable)
-        self.lblQuickInstructions.Enable(enable)
+        self.drop_vars.Enable(enable)
+        self.drop_gte.Enable(enable)
+        self.txt_val.Enable(enable)
+        self.lbl_quick_instructions.Enable(enable)
         
     def enable_flex_dets(self, enable):
-        self.lblFlexExample.Enable(enable)
-        self.txtFlexFilter.Enable(enable)
+        self.lbl_flex_example.Enable(enable)
+        self.txt_flex_filter.Enable(enable)
 
     def get_var(self):
-        idx = self.dropVars.GetSelection()
+        idx = self.drop_vars.GetSelection()
         var = self.sorted_var_names[idx]
-        var_item = self.dropVars.GetStringSelection()
+        var_item = self.drop_vars.GetStringSelection()
         return var, var_item
     
     def on_rclick_vars(self, event):

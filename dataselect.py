@@ -72,15 +72,15 @@ class DataSelectDlg(wx.Dialog):
             raise Exception, unicode(e) # for debugging
             self.Destroy()
             return
-        # set up self.dropDatabases and self.dropTables
+        # set up self.drop_dbs and self.drop_tbls
         self.db = dbdetsobj.db
         self.tbl = dbdetsobj.tbl
-        self.dropDatabases, self.dropTables = \
+        self.drop_dbs, self.drop_tbls = \
             getdata.get_data_dropdowns(self, self.panel, self.dbe, 
                             self.default_dbs, self.default_tbls, self.con_dets, 
                             self.dbs, self.db, self.tbls, self.tbl)
-        self.chkReadOnly = wx.CheckBox(self.panel, -1, _("Read Only"))
-        self.chkReadOnly.SetValue(True)
+        self.chk_readonly = wx.CheckBox(self.panel, -1, _("Read Only"))
+        self.chk_readonly.SetValue(True)
         self.btn_delete = wx.Button(self.panel, -1, _("Delete"))
         self.btn_delete.Bind(wx.EVT_BUTTON, self.on_delete)
         self.btn_design = wx.Button(self.panel, -1, _("Design"))
@@ -89,31 +89,31 @@ class DataSelectDlg(wx.Dialog):
         btn_open.Bind(wx.EVT_BUTTON, self.on_open)
         szr_data = wx.FlexGridSizer(rows=2, cols=2, hgap=5, vgap=5)  
         szr_data.AddGrowableCol(1, 1)      
-        lblDbs = wx.StaticText(self.panel, -1, _("Databases:"))
-        lblDbs.SetFont(lblfont)        
-        szr_data.Add(lblDbs, 0, wx.RIGHT, 5)
-        szr_data.Add(self.dropDatabases, 0)     
-        lblTbls = wx.StaticText(self.panel, -1, _("Data tables:"))
-        lblTbls.SetFont(lblfont)
-        szr_data.Add(lblTbls, 0, wx.RIGHT, 5)
-        szr_data.Add(self.dropTables, 1)        
-        szrExistingBottom = wx.BoxSizer(wx.HORIZONTAL)
-        szrExistingBottom.Add(self.chkReadOnly, 1, wx.TOP|wx.LEFT, 5)
-        szrExistingBottom.Add(self.btn_delete, 0, wx.RIGHT, 10)
-        szrExistingBottom.Add(self.btn_design, 0, wx.RIGHT, 10)
-        szrExistingBottom.Add(btn_open, 0)
-        bxExisting = wx.StaticBox(self.panel, -1, _("Existing data tables"))
-        szrExisting = wx.StaticBoxSizer(bxExisting, wx.VERTICAL)
-        szrExisting.Add(szr_data, 0, wx.GROW|wx.ALL, 10)
-        szrExisting.Add(szrExistingBottom, 0, wx.GROW|wx.ALL, 10)        
-        bxNew = wx.StaticBox(self.panel, -1, "")
-        szrNew = wx.StaticBoxSizer(bxNew, wx.HORIZONTAL)
-        lblMakeNew = wx.StaticText(self.panel, -1, 
+        lbl_dbs = wx.StaticText(self.panel, -1, _("Databases:"))
+        lbl_dbs.SetFont(lblfont)        
+        szr_data.Add(lbl_dbs, 0, wx.RIGHT, 5)
+        szr_data.Add(self.drop_dbs, 0)     
+        lbl_tbls = wx.StaticText(self.panel, -1, _("Data tables:"))
+        lbl_tbls.SetFont(lblfont)
+        szr_data.Add(lbl_tbls, 0, wx.RIGHT, 5)
+        szr_data.Add(self.drop_tbls, 1)        
+        szr_existing_bottom = wx.BoxSizer(wx.HORIZONTAL)
+        szr_existing_bottom.Add(self.chk_readonly, 1, wx.TOP|wx.LEFT, 5)
+        szr_existing_bottom.Add(self.btn_delete, 0, wx.RIGHT, 10)
+        szr_existing_bottom.Add(self.btn_design, 0, wx.RIGHT, 10)
+        szr_existing_bottom.Add(btn_open, 0)
+        bx_existing = wx.StaticBox(self.panel, -1, _("Existing data tables"))
+        szr_existing = wx.StaticBoxSizer(bx_existing, wx.VERTICAL)
+        szr_existing.Add(szr_data, 0, wx.GROW|wx.ALL, 10)
+        szr_existing.Add(szr_existing_bottom, 0, wx.GROW|wx.ALL, 10)        
+        bx_new = wx.StaticBox(self.panel, -1, "")
+        szr_new = wx.StaticBoxSizer(bx_new, wx.HORIZONTAL)
+        lbl_make_new = wx.StaticText(self.panel, -1, 
                                    _("... or make a new data table"))
-        btnMakeNew = wx.Button(self.panel, wx.ID_NEW)
-        btnMakeNew.Bind(wx.EVT_BUTTON, self.on_new_click)
-        szrNew.Add(lblMakeNew, 1, wx.GROW|wx.ALL, 10)
-        szrNew.Add(btnMakeNew, 0, wx.ALL, 10)
+        btn_make_new = wx.Button(self.panel, wx.ID_NEW)
+        btn_make_new.Bind(wx.EVT_BUTTON, self.on_new_click)
+        szr_new.Add(lbl_make_new, 1, wx.GROW|wx.ALL, 10)
+        szr_new.Add(btn_make_new, 0, wx.ALL, 10)
         self.lblFeedback = wx.StaticText(self.panel, -1, "")
         btn_close = wx.Button(self.panel, wx.ID_CLOSE)
         btn_close.Bind(wx.EVT_BUTTON, self.on_close)
@@ -123,9 +123,9 @@ class DataSelectDlg(wx.Dialog):
         self.szr_btns.Add(btn_close, 0, wx.RIGHT)
         szr_bottom.Add(self.szr_btns, 1, wx.GROW|wx.RIGHT, 15) # align with New        
         self.szr_main.Add(lblChoose, 0, wx.ALL, 10)
-        self.szr_main.Add(szrExisting, 1, wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.GROW, 
+        self.szr_main.Add(szr_existing, 1, wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.GROW, 
                           10)
-        self.szr_main.Add(szrNew, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
+        self.szr_main.Add(szr_new, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
         self.szr_main.Add(szr_bottom, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(self.szr_main)
         self.szr_main.SetSizeHints(self)
@@ -156,7 +156,7 @@ class DataSelectDlg(wx.Dialog):
         
     def reset_tbl_dropdown(self):
         "Set tables dropdown items and select item according to self.tbl"
-        getdata.setup_drop_tbls(self.dropTables, self.dbe, self.db, self.tbls, 
+        getdata.setup_drop_tbls(self.drop_tbls, self.dbe, self.db, self.tbls, 
                                 self.tbl)
     
     def on_table_sel(self, event):
@@ -183,7 +183,7 @@ class DataSelectDlg(wx.Dialog):
                                    style=wx.YES_NO) == wx.NO:
                     return
             wx.BeginBusyCursor()
-            readonly = self.chkReadOnly.IsChecked()
+            readonly = self.chk_readonly.IsChecked()
             dlg = db_grid.TblEditor(self, self.dbe, self.con, self.cur, self.db, 
                                     self.tbl, self.flds, self.var_labels, 
                                     self.var_notes, self.var_types,
@@ -318,7 +318,7 @@ class DataSelectDlg(wx.Dialog):
         data = self._get_tbl_config(self.tbl)
         if debug: print("Initial table config data: %s" % data)
         config_data = []
-        readonly = self.chkReadOnly.IsChecked()
+        readonly = self.chk_readonly.IsChecked()
         dlgConfig = table_config.ConfigTableDlg(tbl_name_lst, data, config_data, 
                                                 readonly)
         ret = dlgConfig.ShowModal()
@@ -432,4 +432,5 @@ class DataSelectDlg(wx.Dialog):
         if debug:
             print("For %s, default DB saved as: %s and default table saved as: "
                   "%s" % (self.dbe, self.db, self.tbl))
-        self.Destroy()    
+        self.Destroy()
+         

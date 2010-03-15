@@ -49,57 +49,57 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             varbox_label = _("Variable to Check")
         else:
             varbox_label = _("Paired Variables to Check")
-        bxVars = wx.StaticBox(self.panel, -1, varbox_label)
-        szrVars = wx.StaticBoxSizer(bxVars, wx.HORIZONTAL)
-        szrVarsRight = wx.BoxSizer(wx.VERTICAL)
-        self.szrLevel = self.get_szrLevel(self.panel) # mixin
-        self.szrExamine = wx.BoxSizer(wx.VERTICAL)
-        szrShape = wx.BoxSizer(wx.HORIZONTAL)
-        szrNormalityTest = wx.BoxSizer(wx.HORIZONTAL)
+        bx_vars = wx.StaticBox(self.panel, -1, varbox_label)
+        szr_vars = wx.StaticBoxSizer(bx_vars, wx.HORIZONTAL)
+        szr_vars_right = wx.BoxSizer(wx.VERTICAL)
+        self.szr_level = self.get_szr_level(self.panel) # mixin
+        self.szr_examine = wx.BoxSizer(wx.VERTICAL)
+        szr_shape = wx.BoxSizer(wx.HORIZONTAL)
+        szr_normality_test = wx.BoxSizer(wx.HORIZONTAL)
         # assembly
         if not self.paired:
-            lblDesc1 = wx.StaticText(self.panel, -1, 
+            lbl_desc1 = wx.StaticText(self.panel, -1, 
                 _("Select the variable you are interested in. Is its "
                   "distribution close enough to the normal curve for use with "
                   "tests requiring that?"))
         else:
-            lblDesc1 = wx.StaticText(self.panel, -1, 
+            lbl_desc1 = wx.StaticText(self.panel, -1, 
                 _("Select the paired variables you are interested in. Looking "
                   "at the differences, is the distribution close enough to the "
                   "normal curve for use with tests requiring that?"))
-        lblDesc2 = wx.StaticText(self.panel, -1, 
+        lbl_desc2 = wx.StaticText(self.panel, -1, 
             _("Look for gross outliers, extreme skewing, and clustering into "
               "groups."))
-        szr_desc.Add(lblDesc1, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szr_desc.Add(lblDesc2, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        szr_desc.Add(lbl_desc1, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szr_desc.Add(lbl_desc2, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         if not self.paired:
-            lblDesc3 = wx.StaticText(self.panel, -1, 
+            lbl_desc3 = wx.StaticText(self.panel, -1, 
                 _("Note: if comparing samples, each sample must be normal "
                   "enough. Filter for each sample by right clicking on the "
                   "table selector."))
-            szr_desc.Add(lblDesc3, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-            lblVars = wx.StaticText(self.panel, -1, _("Variable:"))
+            szr_desc.Add(lbl_desc3, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+            lbl_vars = wx.StaticText(self.panel, -1, _("Variable:"))
         else:
-            lblVars = wx.StaticText(self.panel, -1, _("Variables:"))
-        lblVars.SetFont(self.LABEL_FONT)
-        self.dropVarA = wx.Choice(self.panel, -1, size=(300, -1))
-        self.dropVarA.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var_a)
-        self.dropVarA.SetToolTipString(_("Right click variable to view/edit "
+            lbl_vars = wx.StaticText(self.panel, -1, _("Variables:"))
+        lbl_vars.SetFont(self.LABEL_FONT)
+        self.drop_var_a = wx.Choice(self.panel, -1, size=(300, -1))
+        self.drop_var_a.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var_a)
+        self.drop_var_a.SetToolTipString(_("Right click variable to view/edit "
                                          "details"))
         if self.paired:
-            self.dropVarB = wx.Choice(self.panel, -1, size=(300, -1))
-            self.dropVarB.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var_b)
-            self.dropVarB.SetToolTipString(_("Right click variable to "
+            self.drop_var_b = wx.Choice(self.panel, -1, size=(300, -1))
+            self.drop_var_b.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var_b)
+            self.drop_var_b.SetToolTipString(_("Right click variable to "
                                               "view/edit details"))
         self.setup_vars(var_a=True, var_b=self.paired)
         btn_check = wx.Button(self.panel, -1, _("Check"))
         btn_check.Bind(wx.EVT_BUTTON, self.on_btn_check)
-        szrVars.Add(lblVars, 0, wx.LEFT|wx.RIGHT, 5)
-        szrVars.Add(self.dropVarA, 0)
+        szr_vars.Add(lbl_vars, 0, wx.LEFT|wx.RIGHT, 5)
+        szr_vars.Add(self.drop_var_a, 0)
         if self.paired:
-            szrVars.Add(self.dropVarB, 0, wx.LEFT, 10)
-        szrVars.Add(btn_check, 0, wx.LEFT, 10)
-        self.imgHist = wx.StaticBitmap(self.panel, -1, size=(200, 100), 
+            szr_vars.Add(self.drop_var_b, 0, wx.LEFT, 10)
+        szr_vars.Add(btn_check, 0, wx.LEFT, 10)
+        self.img_hist = wx.StaticBitmap(self.panel, -1, size=(200, 100), 
                                         pos=(0,0))
         msg_font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
         img_blank_hist = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
@@ -116,31 +116,31 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.btn_details = wx.Button(self.panel, -1, _("Details"))
         self.btn_details.Bind(wx.EVT_BUTTON, self.on_details_click)
         self.btn_details.Enable(False)
-        szrShape.Add(self.imgHist, 0)
-        szrShape.Add(self.btn_details, 0, wx.LEFT, 10)
-        self.szrExamine.Add(szrShape, 0, wx.ALL, 10)
+        szr_shape.Add(self.img_hist, 0)
+        szr_shape.Add(self.btn_details, 0, wx.LEFT, 10)
+        self.szr_examine.Add(szr_shape, 0, wx.ALL, 10)
         myheight = 130 if mg.MAX_HEIGHT < 800 else 200
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))
         self.set_output_to_blank()
-        szrNormalityTest.Add(self.html, 1, wx.GROW)
-        self.szrExamine.Add(szrNormalityTest, 1, wx.GROW|wx.ALL, 10)
+        szr_normality_test.Add(self.html, 1, wx.GROW)
+        self.szr_examine.Add(szr_normality_test, 1, wx.GROW|wx.ALL, 10)
         btn_ok = wx.Button(self.panel, wx.ID_OK)
         btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
-        szrStdBtns = wx.StdDialogButtonSizer()
-        szrStdBtns.AddButton(btn_ok)
-        szrStdBtns.Realize()
+        szr_std_btns = wx.StdDialogButtonSizer()
+        szr_std_btns.AddButton(btn_ok)
+        szr_std_btns.Realize()
         szr_main.Add(szr_desc, 0, wx.ALL, 10)
         szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szr_main.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szr_main.Add(self.szrExamine, 1, wx.GROW)
-        szrStdBtns.Insert(0, self.szrLevel, wx.ALIGN_LEFT|wx.ALL, 10)
-        szr_main.Add(szrStdBtns, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szr_main.Add(self.szr_examine, 1, wx.GROW)
+        szr_std_btns.Insert(0, self.szr_level, wx.ALIGN_LEFT|wx.ALL, 10)
+        szr_main.Add(szr_std_btns, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(szr_main)
         szr_main.SetSizeHints(self)
         self.Layout()
 
     def set_shape_to_blank(self):
-        self.imgHist.SetBitmap(self.bmp_blank_hist)
+        self.img_hist.SetBitmap(self.bmp_blank_hist)
 
     def set_output_to_blank(self):
         if self.paired:
@@ -189,27 +189,27 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
                                     dic_labels=self.var_labels, vals=var_names)
         if var_a:
-            self.dropVarA.SetItems(var_choices)
+            self.drop_var_a.SetItems(var_choices)
             idx_a = self.sorted_var_names.index(var) if var else 0
-            self.dropVarA.SetSelection(idx_a)
+            self.drop_var_a.SetSelection(idx_a)
         if var_b:
-            self.dropVarB.SetItems(var_choices)
+            self.drop_var_b.SetItems(var_choices)
             idx_b = self.sorted_var_names.index(var) if var else 0
-            self.dropVarB.SetSelection(idx_a)
+            self.drop_var_b.SetSelection(idx_a)
 
     def refresh_vars(self):
         config_dlg.ConfigDlg.update_var_dets(self)
         
     def get_var_a(self):
-        idx = self.dropVarA.GetSelection()
+        idx = self.drop_var_a.GetSelection()
         var = self.sorted_var_names[idx]
-        var_item = self.dropVarA.GetStringSelection()
+        var_item = self.drop_var_a.GetStringSelection()
         return var, var_item
 
     def get_var_b(self):
-        idx = self.dropVarB.GetSelection()
+        idx = self.drop_var_b.GetSelection()
         var = self.sorted_var_names[idx]
-        var_item = self.dropVarB.GetStringSelection()
+        var_item = self.drop_var_b.GetStringSelection()
         return var, var_item
 
     def get_exam_inputs(self):
@@ -278,7 +278,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                                        wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         rem_blank_axes_rect = wx.Rect(15, 0, 200, 100)
         thumbnail = thumbnail_uncropped.GetSubBitmap(rem_blank_axes_rect)
-        self.imgHist.SetBitmap(thumbnail)
+        self.img_hist.SetBitmap(thumbnail)
         # normality test (includes both kurtosis and skew)
         n_vals = len(self.vals)
         USUAL_FAIL_N = 100
@@ -333,8 +333,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
     
     def on_btn_check(self, event):
         if self.paired:
-            if self.dropVarA.GetStringSelection() == \
-                    self.dropVarB.GetStringSelection():
+            if self.drop_var_a.GetStringSelection() == \
+                    self.drop_var_b.GetStringSelection():
                 wx.MessageBox(_("The two variables must be different"))
                 event.Skip()
                 return

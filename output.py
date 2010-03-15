@@ -232,8 +232,8 @@ def _strip_script(script):
 
 def export_script(script, fil_script, fil_report, css_fils, con_dets, dbe, db, 
                   tbl, default_dbs, default_tbls):
-    modules = ["my_globals", "core_stats", "dimtables", "getdata", "output", 
-               "rawtables", "stats_output"]
+    modules = ["my_globals as mg", "core_stats", "dimtables", "getdata", 
+               "output", "rawtables", "stats_output"]
     if os.path.exists(fil_script):
         f = codecs.open(fil_script, "U", "utf-8")
         existing_script = lib.clean_bom_utf8(f.read())             

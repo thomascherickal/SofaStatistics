@@ -24,7 +24,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         """
         unused, unused, label_gp, unused, label_a, unused, label_b, unused, \
             label_avg = self.get_drop_vals()
-        self.lblPhrase.SetLabel(_("Does %(gp)s \"%(a)s\" have a different "
+        self.lbl_phrase.SetLabel(_("Does %(gp)s \"%(a)s\" have a different "
                                   "average %(avg)s from \"%(b)s\"?") % \
                                   {"gp": label_gp, "a": label_a, 
                                    "avg": label_avg, "b": label_b})

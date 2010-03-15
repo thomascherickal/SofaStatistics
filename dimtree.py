@@ -73,15 +73,15 @@ class DimTree(object):
     
     def on_row_add(self, event):
         "Add row var under root"
-        self.try_adding(tree=self.rowtree, root=self.rowRoot, dim=mg.ROWDIM, 
+        self.try_adding(tree=self.rowtree, root=self.rowroot, dim=mg.ROWDIM, 
                         oth_dim=mg.COLDIM, oth_dim_tree=self.coltree, 
-                        oth_dim_root=self.colRoot)
+                        oth_dim_root=self.colroot)
      
     def on_col_add(self, event):
         "Add column var under root"
-        self.try_adding(tree=self.coltree, root=self.colRoot, dim=mg.COLDIM, 
+        self.try_adding(tree=self.coltree, root=self.colroot, dim=mg.COLDIM, 
                         oth_dim=mg.ROWDIM, oth_dim_tree=self.rowtree, 
-                        oth_dim_root=self.rowRoot)
+                        oth_dim_root=self.rowroot)
     
     def try_adding(self, tree, root, dim, oth_dim, oth_dim_tree, oth_dim_root):
         """
@@ -165,11 +165,11 @@ class DimTree(object):
         Remove measures from ancestors.
         """
         tree = self.rowtree
-        root = self.rowRoot
+        root = self.rowroot
         dim = mg.ROWDIM
         oth_dim = mg.COLDIM
         oth_dim_tree = self.coltree
-        oth_dim_root = self.colRoot
+        oth_dim_root = self.colroot
         selected_ids = tree.GetSelections()
         if (root not in selected_ids 
                 and self.tab_type not in (mg.FREQS_TBL, mg.CROSSTAB)):
@@ -193,11 +193,11 @@ class DimTree(object):
         Remove measures from ancestors.
         """
         tree = self.coltree
-        root = self.colRoot
+        root = self.colroot
         dim = mg.COLDIM
         oth_dim = mg.ROWDIM
         oth_dim_tree = self.rowtree
-        oth_dim_root = self.rowRoot
+        oth_dim_root = self.rowroot
         selected_ids = tree.GetSelections()
         if len(selected_ids) == 1:
             self.try_adding_under(tree, root, dim, oth_dim, selected_ids[0], 
@@ -300,7 +300,7 @@ class DimTree(object):
                 item_conf.measures_lst = [self.demo_tab.default_measure]
         for selected_id in selected_ids:
             self.rowtree.DeleteChildren(selected_id)
-        if self.rowRoot not in selected_ids:
+        if self.rowroot not in selected_ids:
             for selected_id in selected_ids:
                 self.rowtree.Delete(selected_id)
         self.setup_row_btns()
@@ -321,7 +321,7 @@ class DimTree(object):
                 item_conf.measures_lst = [self.demo_tab.default_measure]
         for selected_id in selected_ids:
             self.coltree.DeleteChildren(selected_id)
-        if self.colRoot not in selected_ids:
+        if self.colroot not in selected_ids:
             for selected_id in selected_ids:
                 self.coltree.Delete(selected_id)
             self.update_demo_display()
@@ -344,7 +344,7 @@ class DimTree(object):
         Terminal nodes can have either label or freq sorting and
             other nodes can only have label sorting.
         """
-        if not lib.item_has_children(self.rowtree, self.rowRoot):
+        if not lib.item_has_children(self.rowtree, self.rowroot):
             return
         selected_ids = self.rowtree.GetSelections()
         if not selected_ids:
@@ -372,11 +372,11 @@ class DimTree(object):
         self.config_col()
 
     def add_default_column_config(self):
-        self.col_no_vars_item = self.coltree.AppendItem(self.colRoot, 
+        self.col_no_vars_item = self.coltree.AppendItem(self.colroot, 
                                                         mg.COL_CONFIG_ITEM_LBL)
         self.set_initial_config(self.coltree, mg.COLDIM, self.col_no_vars_item)
         self.demo_tab.col_no_vars_item = self.col_no_vars_item
-        self.coltree.ExpandAll(self.colRoot)
+        self.coltree.ExpandAll(self.colroot)
         self.coltree.SelectItem(self.col_no_vars_item)
         self.btn_col_add.Disable()
         self.btn_col_add_under.Disable()
@@ -390,7 +390,7 @@ class DimTree(object):
         # error 1
         # ItemHasChildren is buggy if root hidden i.e. if only the root there.
         empty_coltree = not lib.item_has_children(tree=self.coltree, 
-                                                  parent=self.colRoot)
+                                                  parent=self.colroot)
         if empty_coltree:
             raise Exception, "Cannot configure a missing column item"
         # error 2
@@ -417,7 +417,7 @@ class DimTree(object):
         # ok to open config dlg
         if self.col_no_vars_item in selected_ids:
             has_col_vars = False
-        elif self.colRoot not in selected_ids:
+        elif self.colroot not in selected_ids:
             has_col_vars = True
         else:
             raise Exception, ("Configuring a column but no col vars OR a col "
@@ -478,7 +478,7 @@ class DimTree(object):
             absence of row items.
         """
         has_rows = True if lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                                      parent=self.rowRoot) \
+                                                      parent=self.rowroot) \
                                                       else False
         if self.tab_type in (mg.FREQS_TBL, mg.CROSSTAB, mg.ROW_SUMM):
             self.btn_row_add.Enable(True)
@@ -497,7 +497,7 @@ class DimTree(object):
             absence of column items.
         """
         has_cols = True if lib.get_tree_ctrl_children(tree=self.coltree, 
-                                                      parent=self.colRoot) \
+                                                      parent=self.colroot) \
                                                       else False
         if self.tab_type == mg.FREQS_TBL:
             self.btn_col_add.Enable(False)
@@ -538,52 +538,52 @@ class DlgConfig(wx.Dialog):
         first_node_id = node_ids[0]
         # base item configuration on first one selected
         item_conf = self.tree.GetItemPyData(first_node_id)
-        chkSize = (150, 20)
+        chk_size = (150, 20)
         szr_main = wx.BoxSizer(wx.VERTICAL)
-        lblVar = wx.StaticText(self, -1, tree.GetItemText(first_node_id))
-        szr_main.Add(lblVar, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
+        lbl_var = wx.StaticText(self, -1, tree.GetItemText(first_node_id))
+        szr_main.Add(lbl_var, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
         if self.allow_tot:
-            boxMisc = wx.StaticBox(self, -1, _("Misc"))
-            szrMisc = wx.StaticBoxSizer(boxMisc, wx.VERTICAL)
-            self.chkTotal = wx.CheckBox(self, -1, mg.HAS_TOTAL, 
-                                        size=chkSize)
+            box_misc = wx.StaticBox(self, -1, _("Misc"))
+            szr_misc = wx.StaticBoxSizer(box_misc, wx.VERTICAL)
+            self.chk_total = wx.CheckBox(self, -1, mg.HAS_TOTAL, 
+                                         size=chk_size)
             if item_conf.has_tot:
-                self.chkTotal.SetValue(True)
-            szrMisc.Add(self.chkTotal, 0, wx.LEFT, 5)
-            szr_main.Add(szrMisc, 0, wx.GROW|wx.ALL, 10)
+                self.chk_total.SetValue(True)
+            szr_misc.Add(self.chk_total, 0, wx.LEFT, 5)
+            szr_main.Add(szr_misc, 0, wx.GROW|wx.ALL, 10)
         if self.sort_opt_allowed != SORT_OPT_NONE:
-            self.radSortOpts = wx.RadioBox(self, -1, _("Sort order"),
+            self.rad_sort_opts = wx.RadioBox(self, -1, _("Sort order"),
                                choices=[mg.SORT_NONE, mg.SORT_LABEL,
                                         mg.SORT_FREQ_ASC, mg.SORT_FREQ_DESC],
                                size=(400,50))
             # set selection according to existing item_conf
             if item_conf.sort_order == mg.SORT_NONE:
-                self.radSortOpts.SetSelection(0)
+                self.rad_sort_opts.SetSelection(0)
             elif item_conf.sort_order == mg.SORT_LABEL:
-                self.radSortOpts.SetSelection(1)
+                self.rad_sort_opts.SetSelection(1)
             elif item_conf.sort_order == mg.SORT_FREQ_ASC:
-                self.radSortOpts.SetSelection(2)
+                self.rad_sort_opts.SetSelection(2)
             elif item_conf.sort_order == mg.SORT_FREQ_DESC:
-                self.radSortOpts.SetSelection(3)
+                self.rad_sort_opts.SetSelection(3)
             if self.sort_opt_allowed == SORT_OPT_BY_LABEL:
                 # disable freq options
-                self.radSortOpts.EnableItem(2, False)
-                self.radSortOpts.EnableItem(3, False)
+                self.rad_sort_opts.EnableItem(2, False)
+                self.rad_sort_opts.EnableItem(3, False)
 
-            szr_main.Add(self.radSortOpts, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+            szr_main.Add(self.rad_sort_opts, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.measure_chks_dic = {}
         if self.measures:
-            boxMeasures = wx.StaticBox(self, -1, _("Measures"))
+            box_measures = wx.StaticBox(self, -1, _("Measures"))
             direction = wx.VERTICAL if row else wx.HORIZONTAL
-            szrMeasures = wx.StaticBoxSizer(boxMeasures, direction)
+            szr_measures = wx.StaticBoxSizer(box_measures, direction)
             for measure, label in self.measures:
                 chk = wx.CheckBox(self, -1, label, 
-                            size=chkSize)
+                            size=chk_size)
                 if measure in item_conf.measures_lst:
                     chk.SetValue(True)
                 self.measure_chks_dic[measure] = chk
-                szrMeasures.Add(chk, 1, wx.ALL, 5)
-            szr_main.Add(szrMeasures, 1, wx.GROW|wx.ALL, 10)
+                szr_measures.Add(chk, 1, wx.ALL, 5)
+            szr_main.Add(szr_measures, 1, wx.GROW|wx.ALL, 10)
         btn_cancel = wx.Button(self, wx.ID_CANCEL)
         btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)            
         btn_ok = wx.Button(self, wx.ID_OK) # must have ID of wx.ID_OK 
@@ -618,12 +618,12 @@ class DlgConfig(wx.Dialog):
             wx.MessageBox(_("Please select at least one measure"))
             return
         # tot
-        has_tot = self.allow_tot and self.chkTotal.GetValue()
+        has_tot = self.allow_tot and self.chk_total.GetValue()
         # sort order
         if self.sort_opt_allowed == SORT_OPT_NONE:
             sort_order = mg.SORT_NONE
         else:
-            sort_opt_selection = self.radSortOpts.GetSelection()
+            sort_opt_selection = self.rad_sort_opts.GetSelection()
             if sort_opt_selection == 0:
                 sort_order = mg.SORT_NONE
             if sort_opt_selection == 1:

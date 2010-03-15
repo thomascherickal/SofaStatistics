@@ -182,7 +182,7 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
     return nulled_dots
     
 def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types, 
-             progBackup, gauge_chunk, gauge_start=0, check=False, 
+             progbar, gauge_chunk, gauge_start=0, check=False, 
              keep_importing=None):
     """
     Add the rows of data, processing each cell as you go.
@@ -201,7 +201,7 @@ def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types,
         if row_idx % 50 == 0:
             wx.Yield()
             if keep_importing == set([False]):
-                progBackup.SetValue(0)
+                progbar.SetValue(0)
                 raise ImportCancelException
         gauge_start += 1
         row_idx += 1
@@ -217,7 +217,7 @@ def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types,
         try:
             cur.execute(SQL_insert_row)
             gauge_val = gauge_start*gauge_chunk
-            progBackup.SetValue(gauge_val)
+            progbar.SetValue(gauge_val)
         except MismatchException, e:
             raise # keep this particular type of exception bubbling out
         except Exception, e:
@@ -238,7 +238,7 @@ def get_gauge_chunk_size(n_rows, sample_n):
     return gauge_chunk
 
 def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names, 
-                   fld_types, sample_data, sample_n, remaining_data, progBackup, 
+                   fld_types, sample_data, sample_n, remaining_data, progbar, 
                    gauge_chunk, keep_importing):
     """
     Create fresh disposable table in SQLite and insert data into it.
@@ -286,19 +286,19 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names,
         # Already been through sample once when assessing it so part way through 
         # process already.
         if add_rows(con, cur, sample_data, ok_fld_names, orig_fld_names, 
-                    fld_types, progBackup, gauge_chunk, gauge_start=sample_n, 
+                    fld_types, progbar, gauge_chunk, gauge_start=sample_n, 
                     check=False, keep_importing=keep_importing):
             nulled_dots = True
         remainder_gauge_start = 2*sample_n # been through sample twice already
         if add_rows(con, cur, remaining_data, ok_fld_names, orig_fld_names, 
-                 fld_types, progBackup, gauge_chunk, 
+                 fld_types, progbar, gauge_chunk, 
                  gauge_start=remainder_gauge_start, check=True, 
                  keep_importing=keep_importing):
             nulled_dots = True
     except MismatchException, e:
         nulled_dots = False
         con.commit()
-        progBackup.SetValue(0)
+        progbar.SetValue(0)
         # go through again or raise an exception
         retCode = wx.MessageBox(u"%s\n\n" % e + _("Fix and keep going?"), 
                                 _("KEEP GOING?"), wx.YES_NO|wx.ICON_QUESTION)
@@ -307,7 +307,7 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names,
             fld_types[e.fld_name] = mg.FLD_TYPE_STRING
             if add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, 
                               orig_fld_names, fld_types, sample_data, sample_n, 
-                              remaining_data, progBackup, gauge_chunk, 
+                              remaining_data, progbar, gauge_chunk, 
                               keep_importing):
                 nulled_dots = True
         else:
@@ -315,7 +315,7 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names,
                 "expected column type"
     return nulled_dots
     
-def tmp_to_named_tbl(con, cur, tbl_name, file_path, progBackup, nulled_dots):
+def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
     """
     Rename table to final name.
     Separated from add_to_tmp_tbl to allow the latter to recurse.
@@ -337,7 +337,7 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progBackup, nulled_dots):
     except Exception, e:
         raise Exception, u"Unable to rename temporary table.  Orig error: %s" \
             % e
-    progBackup.SetValue(GAUGE_RANGE)
+    progbar.SetValue(GAUGE_RANGE)
     msg = _("Successfully imported data from '%(fil)s' to '%(tbl)s' in the "
             "default SOFA database.")
     if nulled_dots:
@@ -368,20 +368,20 @@ class ImportFileSelectDlg(wx.Dialog):
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         # file path
-        lblFilePath = wx.StaticText(self.panel, -1, _("File:"))
-        lblFilePath.SetFont(lblfont)
-        self.txtFile = wx.TextCtrl(self.panel, -1, u"", size=(320,-1))
-        self.txtFile.SetFocus()        
+        lbl_file_path = wx.StaticText(self.panel, -1, _("File:"))
+        lbl_file_path.SetFont(lblfont)
+        self.txt_file = wx.TextCtrl(self.panel, -1, u"", size=(320,-1))
+        self.txt_file.SetFocus()        
         btn_file_path = wx.Button(self.panel, -1, _("Browse ..."))
         btn_file_path.Bind(wx.EVT_BUTTON, self.on_btn_file_path)
         # comment
-        lblComment = wx.StaticText(self.panel, -1, 
+        lbl_comment = wx.StaticText(self.panel, -1, 
             _("The file will be imported into the SOFA_Default_db database "
               "with the table name recorded below"))
         # internal SOFA name
-        lblIntName = wx.StaticText(self.panel, -1, _("SOFA Name:"))
-        lblIntName.SetFont(lblfont)
-        self.txtIntName = wx.TextCtrl(self.panel, -1, "")
+        lbl_int_name = wx.StaticText(self.panel, -1, _("SOFA Name:"))
+        lbl_int_name.SetFont(lblfont)
+        self.txt_int_name = wx.TextCtrl(self.panel, -1, "")
         # buttons
         self.btn_cancel = wx.Button(self.panel, wx.ID_CANCEL)
         self.btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
@@ -392,16 +392,16 @@ class ImportFileSelectDlg(wx.Dialog):
         self.btn_import.Bind(wx.EVT_BUTTON, self.on_import)
         self.btn_import.SetDefault()
         # progress
-        self.progBackup = wx.Gauge(self.panel, -1, GAUGE_RANGE, size=(-1, 20),
-                                   style=wx.GA_PROGRESSBAR)
+        self.progbar = wx.Gauge(self.panel, -1, GAUGE_RANGE, size=(-1, 20),
+                                style=wx.GA_PROGRESSBAR)
         # sizers
-        szrFilePath = wx.BoxSizer(wx.HORIZONTAL)
-        szrFilePath.Add(lblFilePath, 0, wx.LEFT, 10)
-        szrFilePath.Add(self.txtFile, 1, wx.GROW|wx.LEFT|wx.RIGHT, 5)
-        szrFilePath.Add(btn_file_path, 0, wx.RIGHT, 10)
-        szrIntName = wx.BoxSizer(wx.HORIZONTAL)
-        szrIntName.Add(lblIntName, 0, wx.RIGHT, 5)
-        szrIntName.Add(self.txtIntName, 1)
+        szr_file_path = wx.BoxSizer(wx.HORIZONTAL)
+        szr_file_path.Add(lbl_file_path, 0, wx.LEFT, 10)
+        szr_file_path.Add(self.txt_file, 1, wx.GROW|wx.LEFT|wx.RIGHT, 5)
+        szr_file_path.Add(btn_file_path, 0, wx.RIGHT, 10)
+        szr_int_name = wx.BoxSizer(wx.HORIZONTAL)
+        szr_int_name.Add(lbl_int_name, 0, wx.RIGHT, 5)
+        szr_int_name.Add(self.txt_int_name, 1)
         szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
         szr_btns.AddGrowableCol(1,2) # idx, propn
         szr_btns.Add(self.btn_cancel, 0)
@@ -409,11 +409,11 @@ class ImportFileSelectDlg(wx.Dialog):
         szr_close = wx.FlexGridSizer(rows=1, cols=1, hgap=5, vgap=5)
         szr_close.AddGrowableCol(0,2) # idx, propn        
         szr_close.Add(self.btn_close, 0, wx.ALIGN_RIGHT)
-        szr_main.Add(szrFilePath, 0, wx.GROW|wx.TOP, 20)
-        szr_main.Add(lblComment, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
-        szr_main.Add(szrIntName, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(szr_file_path, 0, wx.GROW|wx.TOP, 20)
+        szr_main.Add(lbl_comment, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(szr_int_name, 0, wx.GROW|wx.ALL, 10)
         szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
-        szr_main.Add(self.progBackup, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(self.progbar, 0, wx.GROW|wx.ALL, 10)
         szr_main.Add(szr_close, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(szr_main)
         szr_main.SetSizeHints(self)
@@ -421,16 +421,16 @@ class ImportFileSelectDlg(wx.Dialog):
 
     def on_btn_file_path(self, event):
         "Open dialog and takes the file selected (if any)"
-        dlgGetFile = wx.FileDialog(self) #, message=..., wildcard=...
+        dlg_get_file = wx.FileDialog(self) #, message=..., wildcard=...
         #defaultDir="spreadsheets", defaultFile="", )
         #MUST have a parent to enforce modal in Windows
-        if dlgGetFile.ShowModal() == wx.ID_OK:
-            path = dlgGetFile.GetPath()
-            self.txtFile.SetValue(path)
+        if dlg_get_file.ShowModal() == wx.ID_OK:
+            path = dlg_get_file.GetPath()
+            self.txt_file.SetValue(path)
             filestart, unused = self.get_file_start_ext(path)
-            self.txtIntName.SetValue(filestart)
-        dlgGetFile.Destroy()
-        self.txtIntName.SetFocus()
+            self.txt_int_name.SetValue(filestart)
+        dlg_get_file.Destroy()
+        self.txt_int_name.SetFocus()
         event.Skip()
     
     def get_file_start_ext(self, path):
@@ -513,12 +513,12 @@ class ImportFileSelectDlg(wx.Dialog):
             to get any additional choices e.g. separator used in 'csv'.
         """
         self.set_import_btns(importing=True)
-        self.progBackup.SetValue(0)
-        file_path = self.txtFile.GetValue()
+        self.progbar.SetValue(0)
+        file_path = self.txt_file.GetValue()
         if not file_path:
             wx.MessageBox(_("Please select a file"))
             self.set_import_btns(importing=False)
-            self.txtFile.SetFocus()
+            self.txt_file.SetFocus()
             return
         # identify file type
         unused, extension = self.get_file_start_ext(file_path)
@@ -538,7 +538,7 @@ class ImportFileSelectDlg(wx.Dialog):
                             "'%s' are not supported") % extension)
             self.set_import_btns(importing=False)
             return
-        tbl_name = self.txtIntName.GetValue()
+        tbl_name = self.txt_int_name.GetValue()
         if not tbl_name:
             wx.MessageBox(_("Please select a name for the file"))
             self.set_import_btns(importing=False)
@@ -569,7 +569,7 @@ class ImportFileSelectDlg(wx.Dialog):
                                                         final_tbl_name)
         if file_importer.get_params():
             try:
-                file_importer.import_content(self.progBackup,
+                file_importer.import_content(self.progbar,
                                              self.keep_importing)
             except ImportCancelException, e:
                 self.keep_importing.discard(False)

@@ -24,7 +24,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         Update phrase based on Group A and Group B.
         """
         unused, label_a, unused, label_b = self.get_drop_vals()
-        self.lblPhrase.SetLabel(_("Is there a relationship between "
+        self.lbl_phrase.SetLabel(_("Is there a relationship between "
             "\"%(a)s\" and \"%(b)s\"") % {"a": label_a, "b": label_b})
     
     def get_script(self, css_idx, add_to_report, report_name):

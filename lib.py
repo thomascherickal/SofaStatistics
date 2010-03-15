@@ -619,12 +619,12 @@ def get_default_measure(tab_type):
     else:
         raise Exception, u"Only frequency or row vs column tables have measures"
 
-def get_col_dets(coltree, colRoot, var_labels):
+def get_col_dets(coltree, colroot, var_labels):
     """
     Get names and labels of columns actually selected in GUI column tree.
     Returns col_names, col_labels.
     """
-    descendants = get_tree_ctrl_descendants(tree=coltree, parent=colRoot)
+    descendants = get_tree_ctrl_descendants(tree=coltree, parent=colroot)
     col_names = []
     for descendant in descendants: # NB GUI tree items, not my Dim Node obj
         item_conf = coltree.GetItemPyData(descendant)

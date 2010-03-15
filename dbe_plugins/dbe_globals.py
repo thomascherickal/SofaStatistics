@@ -45,7 +45,7 @@ NUMERIC_TYPES = [ADO_TINYINT, ADO_UNSIGNEDTINYINT, ADO_SMALLINT,
 
 DATETIME_TYPES = [ADO_DATE, ADO_DBDATE, ADO_DBTIME, ADO_DBTIMESTAMP]
 
-def getADODic():
+def get_ado_dict():
     """
     Generate this using makepy via cli.
     makepy.py -o grab_consts.py

@@ -75,89 +75,89 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         config_dlg.add_icon(frame=self)
         self.szr_data, self.szr_config_bottom, self.szr_config_top = \
                                     self.get_gen_config_szrs(self.panel) # mixin
-        self.szrOutputButtons = self.get_szrOutputBtns(self.panel, 
-                                                       inc_clear=False) # mixin
+        self.szr_output_btns = self.get_szr_output_btns(self.panel, 
+                                                        inc_clear=False) # mixin
         szr_main = wx.BoxSizer(wx.VERTICAL)
-        bxDesc = wx.StaticBox(self.panel, -1, _("Purpose"))
-        szr_desc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
+        bx_desc = wx.StaticBox(self.panel, -1, _("Purpose"))
+        szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
         eg1, eg2, eg3 = self.get_examples()
-        lblDesc1 = wx.StaticText(self.panel, -1, eg1)
-        lblDesc2 = wx.StaticText(self.panel, -1, eg2)
-        lblDesc3 = wx.StaticText(self.panel, -1, eg3)
-        szr_desc.Add(lblDesc1, 1, wx.GROW|wx.LEFT, 5)
-        szr_desc.Add(lblDesc2, 1, wx.GROW|wx.LEFT, 5)
-        szr_desc.Add(lblDesc3, 1, wx.GROW|wx.LEFT, 5)
-        bxVars = wx.StaticBox(self.panel, -1, _("Variables"))
+        lbl_desc1 = wx.StaticText(self.panel, -1, eg1)
+        lbl_desc2 = wx.StaticText(self.panel, -1, eg2)
+        lbl_desc3 = wx.StaticText(self.panel, -1, eg3)
+        szr_desc.Add(lbl_desc1, 1, wx.GROW|wx.LEFT, 5)
+        szr_desc.Add(lbl_desc2, 1, wx.GROW|wx.LEFT, 5)
+        szr_desc.Add(lbl_desc3, 1, wx.GROW|wx.LEFT, 5)
+        bx_vars = wx.StaticBox(self.panel, -1, _("Variables"))
         if not mg.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
-            bxVars.SetToolTipString(variables_rc_msg)
-        szrVars = wx.StaticBoxSizer(bxVars, wx.VERTICAL)
-        szrVarsTop = wx.BoxSizer(wx.HORIZONTAL)
-        szrVarsBottom = wx.BoxSizer(wx.HORIZONTAL)
-        self.szrVarsTopLeft = wx.BoxSizer(wx.VERTICAL)
-        szrVarsTopRight = wx.BoxSizer(wx.VERTICAL)
-        szrVarsTopLeftTop = wx.BoxSizer(wx.HORIZONTAL)
-        szrVarsTopRightTop = wx.BoxSizer(wx.HORIZONTAL)
-        szrVarsTopRightBottom = wx.BoxSizer(wx.HORIZONTAL)
+            bx_vars.SetToolTipString(variables_rc_msg)
+        szr_vars = wx.StaticBoxSizer(bx_vars, wx.VERTICAL)
+        szr_vars_top = wx.BoxSizer(wx.HORIZONTAL)
+        szr_vars_bottom = wx.BoxSizer(wx.HORIZONTAL)
+        self.szr_vars_top_left = wx.BoxSizer(wx.VERTICAL)
+        szr_vars_top_right = wx.BoxSizer(wx.VERTICAL)
+        szr_vars_top_left_top = wx.BoxSizer(wx.HORIZONTAL)
+        szr_vars_top_right_top = wx.BoxSizer(wx.HORIZONTAL)
+        szr_vars_top_right_bottom = wx.BoxSizer(wx.HORIZONTAL)
         # var averaged
-        self.lblAveraged = wx.StaticText(self.panel, -1, u"%s:" % self.averaged)
-        self.lblAveraged.SetFont(self.LABEL_FONT)
+        self.lbl_avg = wx.StaticText(self.panel, -1, u"%s:" % self.averaged)
+        self.lbl_avg.SetFont(self.LABEL_FONT)
         # only want the fields which are numeric
-        self.dropAveraged = wx.Choice(self.panel, -1, choices=[], 
-                                      size=(300, -1))
-        self.dropAveraged.Bind(wx.EVT_CHOICE, self.on_averaged_sel)
-        self.dropAveraged.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_vars)
-        self.dropAveraged.SetToolTipString(variables_rc_msg)
+        self.drop_avg = wx.Choice(self.panel, -1, choices=[], size=(300,-1))
+        self.drop_avg.Bind(wx.EVT_CHOICE, self.on_averaged_sel)
+        self.drop_avg.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_vars)
+        self.drop_avg.SetToolTipString(variables_rc_msg)
         self.sorted_var_names_avg = []
-        self.setup_var(self.dropAveraged, mg.VAR_AVG_DEFAULT,
+        self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT, 
                        self.sorted_var_names_avg)
-        szrVarsTopLeftTop.Add(self.lblAveraged, 0, wx.TOP|wx.RIGHT, 5)
-        szrVarsTopLeftTop.Add(self.dropAveraged, 0, wx.RIGHT|wx.TOP, 5)
-        self.szrVarsTopLeft.Add(szrVarsTopLeftTop, 0)
+        szr_vars_top_left_top.Add(self.lbl_avg, 0, wx.TOP|wx.RIGHT, 5)
+        szr_vars_top_left_top.Add(self.drop_avg, 0, wx.RIGHT|wx.TOP, 5)
+        self.szr_vars_top_left.Add(szr_vars_top_left_top, 0)
         # group by
-        self.lblGroupBy = wx.StaticText(self.panel, -1, _("Group By:"))
-        self.lblGroupBy.SetFont(self.LABEL_FONT)
-        self.dropGroupBy = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
-        self.dropGroupBy.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
-        self.dropGroupBy.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_by)
-        self.dropGroupBy.SetToolTipString(variables_rc_msg)
-        self.sorted_var_names_by = [] # var names sorted by labels i.e. same as 
-            # dropdown.  Refreshed as needed so always usable.
-        self.setup_group_by()
-        self.lblchop_warning = wx.StaticText(self.panel, -1, "")
-        szrVarsTopRightTop.Add(self.lblGroupBy, 0, wx.RIGHT|wx.TOP, 5)
-        szrVarsTopRightTop.Add(self.dropGroupBy, 0, wx.GROW)
-        szrVarsTopRightTop.Add(self.lblchop_warning, 1, wx.TOP|wx.RIGHT, 5)
-        # group by A
-        self.lblGroupA = wx.StaticText(self.panel, -1, _("Group A:"))
-        self.dropGroupA = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
-        self.dropGroupA.Bind(wx.EVT_CHOICE, self.on_group_by_a_sel)
-        # group by B
-        self.lblGroupB = wx.StaticText(self.panel, -1, _("Group B:"))
-        self.dropGroupB = wx.Choice(self.panel, -1, choices=[], size=(200, -1))
-        self.dropGroupB.Bind(wx.EVT_CHOICE, self.on_group_by_b_sel)
+        self.lbl_group_by = wx.StaticText(self.panel, -1, _("Group By:"))
+        self.lbl_group_by.SetFont(self.LABEL_FONT)
+        self.drop_group_by = wx.Choice(self.panel, -1, choices=[], 
+                                       size=(300,-1))
+        self.drop_group_by.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
+        self.drop_group_by.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_by)
+        self.drop_group_by.SetToolTipString(variables_rc_msg)
         self.gp_vals_sorted = [] # same order in dropdowns
         self.gp_choice_items_sorted = [] # refreshed as required and in 
             # order of labels, not raw values
+        self.sorted_var_names_by = [] # var names sorted by labels i.e. same as 
+            # dropdown.  Refreshed as needed so always usable.
+        self.setup_group_by()
+        self.lbl_chop_warning = wx.StaticText(self.panel, -1, "")
+        szr_vars_top_right_top.Add(self.lbl_group_by, 0, wx.RIGHT|wx.TOP, 5)
+        szr_vars_top_right_top.Add(self.drop_group_by, 0, wx.GROW)
+        szr_vars_top_right_top.Add(self.lbl_chop_warning, 1, wx.TOP|wx.RIGHT, 5)
+        # group by A
+        self.lbl_group_a = wx.StaticText(self.panel, -1, _("Group A:"))
+        self.drop_group_a = wx.Choice(self.panel, -1, choices=[], size=(200,-1))
+        self.drop_group_a.Bind(wx.EVT_CHOICE, self.on_group_by_a_sel)
+        # group by B
+        self.lbl_group_b = wx.StaticText(self.panel, -1, _("Group B:"))
+        self.drop_group_b = wx.Choice(self.panel, -1, choices=[], size=(200,-1))
+        self.drop_group_b.Bind(wx.EVT_CHOICE, self.on_group_by_b_sel)
         self.setup_group_dropdowns()
-        szrVarsTopRightBottom.Add(self.lblGroupA, 0, wx.RIGHT|wx.TOP, 5)
-        szrVarsTopRightBottom.Add(self.dropGroupA, 0, wx.RIGHT, 5)
-        szrVarsTopRightBottom.Add(self.lblGroupB, 0, wx.RIGHT|wx.TOP, 5)
-        szrVarsTopRightBottom.Add(self.dropGroupB, 0)
-        szrVarsTopRight.Add(szrVarsTopRightTop, 1, wx.GROW)
-        szrVarsTopRight.Add(szrVarsTopRightBottom, 0, wx.GROW|wx.TOP, 5)
-        szrVarsTop.Add(self.szrVarsTopLeft, 0)
-        lnVert = wx.StaticLine(self.panel, style=wx.LI_VERTICAL) 
-        szrVarsTop.Add(lnVert, 0, wx.GROW|wx.LEFT|wx.RIGHT, 5)
-        szrVarsTop.Add(szrVarsTopRight, 0)
+        szr_vars_top_right_bottom.Add(self.lbl_group_a, 0, wx.RIGHT|wx.TOP, 5)
+        szr_vars_top_right_bottom.Add(self.drop_group_a, 0, wx.RIGHT, 5)
+        szr_vars_top_right_bottom.Add(self.lbl_group_b, 0, wx.RIGHT|wx.TOP, 5)
+        szr_vars_top_right_bottom.Add(self.drop_group_b, 0)
+        szr_vars_top_right.Add(szr_vars_top_right_top, 1, wx.GROW)
+        szr_vars_top_right.Add(szr_vars_top_right_bottom, 0, wx.GROW|wx.TOP, 5)
+        szr_vars_top.Add(self.szr_vars_top_left, 0)
+        ln_vert = wx.StaticLine(self.panel, style=wx.LI_VERTICAL) 
+        szr_vars_top.Add(ln_vert, 0, wx.GROW|wx.LEFT|wx.RIGHT, 5)
+        szr_vars_top.Add(szr_vars_top_right, 0)
         # comment
-        self.lblPhrase = wx.StaticText(self.panel, -1, 
-                                       _("Start making your selections"))
-        szrVarsBottom.Add(self.lblPhrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 5)
+        self.lbl_phrase = wx.StaticText(self.panel, -1, 
+                                        _("Start making your selections"))
+        szr_vars_bottom.Add(self.lbl_phrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 5)
         
-        szrVars.Add(szrVarsTop, 0)      
-        szrVars.Add(szrVarsBottom, 0, wx.GROW)
+        szr_vars.Add(szr_vars_top, 0)      
+        szr_vars.Add(szr_vars_bottom, 0, wx.GROW)
         szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
-        szr_bottomLeft = wx.BoxSizer(wx.VERTICAL)
+        szr_bottom_left = wx.BoxSizer(wx.VERTICAL)
         if mg.MAX_HEIGHT <= 620:
             myheight = 130
         elif mg.MAX_HEIGHT <= 820:
@@ -170,13 +170,13 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szr_bottom_left.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
         szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW)
         szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW)
-        self.szrLevel = self.get_szrLevel(self.panel) # mixin
-        szr_bottom_left.Add(self.szrLevel, 0)
+        self.szr_level = self.get_szr_level(self.panel) # mixin
+        szr_bottom_left.Add(self.szr_level, 0)
         szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
-        szr_bottom.Add(self.szrOutputButtons, 0, wx.GROW|wx.LEFT, 10)    
+        szr_bottom.Add(self.szr_output_btns, 0, wx.GROW|wx.LEFT, 10)    
         szr_main.Add(szr_desc, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szr_main.Add(szrVars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        szr_main.Add(szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szr_main.Add(szr_bottom, 2, wx.GROW|wx.ALL, 10)
         self.add_other_var_opts()
         self.panel.SetSizer(szr_main)
@@ -204,7 +204,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             self.refresh_vars()
 
     def on_rclick_vars(self, event):
-        var_name, choice_item = self.get_var_dets(self.dropAveraged, 
+        var_name, choice_item = self.get_var_dets(self.drop_avg, 
                                                   self.sorted_var_names_avg)
         var_label = lib.get_item_label(item_labels=self.var_labels, 
                                        item_val=var_name)
@@ -217,7 +217,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def refresh_vars(self):
         var_gp, var_avg = self.get_vars()
         self.setup_group_by(var_gp)
-        self.setup_var(self.dropAveraged, mg.VAR_AVG_DEFAULT, 
+        self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT, 
                        self.sorted_var_names_avg, var_avg)
         self.update_defaults()
         self.update_phrase()
@@ -236,7 +236,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         # now update var dropdowns
         self.update_var_dets()
         self.setup_group_by()
-        self.setup_var(self.dropAveraged, mg.VAR_AVG_DEFAULT,
+        self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT,
                        self.sorted_var_names_avg)
         self.setup_group_dropdowns()
                 
@@ -246,7 +246,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         # now update var dropdowns
         self.update_var_dets()
         self.setup_group_by()
-        self.setup_var(self.dropAveraged, mg.VAR_AVG_DEFAULT,
+        self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT,
                        self.sorted_var_names_avg)
         self.setup_group_dropdowns()
     
@@ -259,7 +259,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_gp, var_avg = self.get_vars()
         config_dlg.ConfigDlg.on_var_dets_file_lost_focus(self, event)
         self.setup_group_by(var_gp)
-        self.setup_var(self.dropAveraged, mg.VAR_AVG_DEFAULT, 
+        self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT, 
                        self.sorted_var_names_avg, var_avg)
         self.setup_group_dropdowns(val_a, val_b)
         self.update_defaults()
@@ -274,16 +274,16 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_gp, var_avg = self.get_vars()
         config_dlg.ConfigDlg.on_btn_var_dets_path(self, event)
         self.setup_group_by(var_gp)
-        self.setup_var(self.dropAveraged, mg.VAR_AVG_DEFAULT, 
+        self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT, 
                        self.sorted_var_names_avg, var_avg)
         self.setup_group_dropdowns(val_a, val_b)
         self.update_defaults()
         self.update_phrase()
     
     def get_group_by(self):
-        idx_by = self.dropGroupBy.GetSelection()
+        idx_by = self.drop_group_by.GetSelection()
         var_gp = self.sorted_var_names_by[idx_by]
-        var_gp_item = self.dropGroupBy.GetStringSelection()
+        var_gp_item = self.drop_group_by.GetStringSelection()
         return var_gp, var_gp_item
     
     def get_var_dets(self, drop_var, sorted_var_names):
@@ -298,7 +298,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             dropdowns are set (and only changed when reset).
         """
         var_gp, unused = self.get_group_by()
-        var_avg, unused = self.get_var_dets(self.dropAveraged, 
+        var_avg, unused = self.get_var_dets(self.drop_avg, 
                                             self.sorted_var_names_avg)
         return var_gp, var_avg
     
@@ -307,10 +307,16 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.gp_vals_sorted is set when dropdowns are set (and only changed when 
             reset).
         """
-        idx_a = self.dropGroupA.GetSelection()
-        val_a = self.gp_vals_sorted[idx_a]
-        idx_b = self.dropGroupB.GetSelection()
-        val_b = self.gp_vals_sorted[idx_b]
+        idx_a = self.drop_group_a.GetSelection()
+        if idx_a == -1:
+            val_a = None
+        else:
+            val_a = self.gp_vals_sorted[idx_a]
+        idx_b = self.drop_group_b.GetSelection()
+        if idx_b == -1:
+            val_b = None
+        else:
+            val_b = self.gp_vals_sorted[idx_b]
         return val_a, val_b
     
     def on_group_by_sel(self, event):
@@ -323,10 +329,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.update_defaults()
     
     def update_defaults(self):
-        mg.GROUP_BY_DEFAULT = self.dropGroupBy.GetStringSelection()
-        mg.VAR_AVG_DEFAULT = self.dropAveraged.GetStringSelection()
-        mg.VAL_A_DEFAULT = self.dropGroupA.GetStringSelection()
-        mg.VAL_B_DEFAULT = self.dropGroupB.GetStringSelection()
+        mg.GROUP_BY_DEFAULT = self.drop_group_by.GetStringSelection()
+        mg.VAR_AVG_DEFAULT = self.drop_avg.GetStringSelection()
+        mg.VAL_A_DEFAULT = self.drop_group_a.GetStringSelection()
+        mg.VAL_B_DEFAULT = self.drop_group_b.GetStringSelection()
     
     def on_group_by_a_sel(self, event):        
         self.update_phrase()
@@ -346,11 +352,11 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                         lib.get_sorted_choice_items(dic_labels=self.var_labels, 
                                         vals=var_names, 
                                         inc_drop_select=self.inc_gp_by_select)
-        self.dropGroupBy.SetItems(var_gp_by_choice_items)
+        self.drop_group_by.SetItems(var_gp_by_choice_items)
         # set selection
         idx_gp = projects.get_idx_to_select(var_gp_by_choice_items, var_gp, 
                                            self.var_labels, mg.GROUP_BY_DEFAULT)
-        self.dropGroupBy.SetSelection(idx_gp)
+        self.drop_group_by.SetSelection(idx_gp)
 
     def setup_var(self, drop_var, default, sorted_var_names, var_name=None):
         var_names = projects.get_approp_var_names(self.flds, self.var_types,
@@ -373,22 +379,22 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def setup_group_dropdowns(self, val_a=None, val_b=None):
         """
         Gets unique values for selected variable.
-        Sets choices for dropGroupA and B accordingly.
+        Sets choices for drop_group_a and B accordingly.
         """
         debug = False
         var_gp, choice_item = self.get_group_by()
         if not choice_item or choice_item == mg.DROP_SELECT:
-            self.lblGroupA.Enable(False)
-            self.dropGroupA.SetItems([])
-            self.dropGroupA.Enable(False)
-            self.lblGroupB.Enable(False)
-            self.dropGroupB.SetItems([])
-            self.dropGroupB.Enable(False)
+            self.lbl_group_a.Enable(False)
+            self.drop_group_a.SetItems([])
+            self.drop_group_a.Enable(False)
+            self.lbl_group_b.Enable(False)
+            self.drop_group_b.SetItems([])
+            self.drop_group_b.Enable(False)
             return
-        self.lblGroupA.Enable(True)
-        self.dropGroupA.Enable(True)
-        self.lblGroupB.Enable(True)
-        self.dropGroupB.Enable(True)
+        self.lbl_group_a.Enable(True)
+        self.drop_group_a.Enable(True)
+        self.lbl_group_b.Enable(True)
+        self.drop_group_b.Enable(True)
         quoter = getdata.get_obj_quoter_func(self.dbe)
         unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
         where_filt, unused = lib.get_tbl_filts(tbl_filt)
@@ -405,15 +411,15 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         # cope if variable has massive spread of values
         all_vals = self.cur.fetchall()
         if len(all_vals) > 20:
-            self.lblchop_warning.SetLabel(_("(1st 20 unique values)"))
+            self.lbl_chop_warning.SetLabel(_("(1st 20 unique values)"))
             all_vals = all_vals[:20]
         else:
-            self.lblchop_warning.SetLabel(u"")
+            self.lbl_chop_warning.SetLabel(u"")
         self.gp_vals_sorted = [x[0] for x in all_vals]
         self.gp_choice_items_sorted = [lib.get_choice_item(val_dic, x) 
                                  for x in self.gp_vals_sorted]
-        self.dropGroupA.SetItems(self.gp_choice_items_sorted)
-        self.dropGroupB.SetItems(self.gp_choice_items_sorted)
+        self.drop_group_a.SetItems(self.gp_choice_items_sorted)
+        self.drop_group_b.SetItems(self.gp_choice_items_sorted)
         # set selections
         if val_a:
             item_new_version_a = lib.get_choice_item(val_dic, val_a)
@@ -425,7 +431,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                     idx_a = self.gp_choice_items_sorted.index(mg.VAL_A_DEFAULT)
                 except ValueError:
                     pass
-        self.dropGroupA.SetSelection(idx_a)
+        self.drop_group_a.SetSelection(idx_a)
         if val_b:
             item_new_version_b = lib.get_choice_item(val_dic, val_b)
             idx_b = self.gp_choice_items_sorted.index(item_new_version_b)
@@ -436,7 +442,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                     idx_b = self.gp_choice_items_sorted.index(mg.VAL_B_DEFAULT)
                 except ValueError:
                     pass
-        self.dropGroupB.SetSelection(idx_b)
+        self.drop_group_b.SetSelection(idx_b)
     
     def get_drop_vals(self):
         """
@@ -444,25 +450,25 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         Returns var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, 
             label_b, var_avg, label_avg.
         """
-        selection_idx_gp = self.dropGroupBy.GetSelection()
+        selection_idx_gp = self.drop_group_by.GetSelection()
         var_gp = self.sorted_var_names_by[selection_idx_gp]
         label_gp = lib.get_item_label(item_labels=self.var_labels, 
                                       item_val=var_gp)
         var_gp_numeric = self.flds[var_gp][mg.FLD_BOLNUMERIC]
         # Now the a and b choices under the group
         val_dic = self.val_dics.get(var_gp, {})
-        selection_idx_a = self.dropGroupA.GetSelection()
+        selection_idx_a = self.drop_group_a.GetSelection()
         val_a_raw = self.gp_vals_sorted[selection_idx_a]
         val_a = lib.any2unicode(val_a_raw)
         label_a = lib.get_item_label(item_labels=val_dic, 
                                      item_val=val_a_raw)
-        selection_idx_b = self.dropGroupB.GetSelection()
+        selection_idx_b = self.drop_group_b.GetSelection()
         val_b_raw = self.gp_vals_sorted[selection_idx_b]
         val_b = lib.any2unicode(val_b_raw)
         label_b = lib.get_item_label(item_labels=val_dic, 
                                      item_val=val_b_raw)
         # the avg variable(s)
-        selection_idx_avg = self.dropAveraged.GetSelection()
+        selection_idx_avg = self.drop_avg.GetSelection()
         var_avg = self.sorted_var_names_avg[selection_idx_avg]
         label_avg = lib.get_item_label(item_labels=self.var_labels, 
                                        item_val=var_avg)
@@ -506,14 +512,14 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         Are the appropriate selections made to enable an analysis to be run?
         """
         # group by and averaged variables cannot be the same
-        if self.dropGroupBy.GetStringSelection() == \
-                self.dropAveraged.GetStringSelection():
+        if self.drop_group_by.GetStringSelection() == \
+                self.drop_avg.GetStringSelection():
             wx.MessageBox(_("The Grouped By Variable and the %s variable "
                             "cannot be the same") % self.averaged)
             return False
         # group A and B cannot be the same
-        if self.dropGroupA.GetStringSelection() == \
-                self.dropGroupB.GetStringSelection():
+        if self.drop_group_a.GetStringSelection() == \
+                self.drop_group_b.GetStringSelection():
             wx.MessageBox(_("Group A and Group B must be different"))
             return False
         if self.takes_range:
@@ -521,9 +527,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                 unused, unused = self.get_drop_vals()
             # group a must be lower than group b
             val_dic = self.val_dics.get(var_gp, {})
-            selection_idx_a = self.dropGroupA.GetSelection()
+            selection_idx_a = self.drop_group_a.GetSelection()
             val_a = self.gp_vals_sorted[selection_idx_a]
-            selection_idx_b = self.dropGroupB.GetSelection()
+            selection_idx_b = self.drop_group_b.GetSelection()
             val_b = self.gp_vals_sorted[selection_idx_b]
             if var_gp_numeric:
                 # NB SQLite could have a string in a numeric field

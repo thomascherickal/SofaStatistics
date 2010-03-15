@@ -112,51 +112,51 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         szr_main = wx.BoxSizer(wx.VERTICAL)
         self.szr_data, self.szr_config_bottom, self.szr_config_top = \
             self.get_gen_config_szrs(self.panel) # mixin
-        szrMid = wx.BoxSizer(wx.VERTICAL)
-        szrTabType = wx.BoxSizer(wx.HORIZONTAL)
-        szrOpts = wx.BoxSizer(wx.VERTICAL)
-        szrTitles = wx.BoxSizer(wx.HORIZONTAL)
+        szr_mid = wx.BoxSizer(wx.VERTICAL)
+        szr_tab_type = wx.BoxSizer(wx.HORIZONTAL)
+        szr_opts = wx.BoxSizer(wx.VERTICAL)
+        szr_titles = wx.BoxSizer(wx.HORIZONTAL)
         szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
-        szrTrees = wx.BoxSizer(wx.HORIZONTAL)
-        szrRows = wx.BoxSizer(wx.VERTICAL)
+        szr_trees = wx.BoxSizer(wx.HORIZONTAL)
+        szr_rows = wx.BoxSizer(wx.VERTICAL)
         szr_cols = wx.BoxSizer(wx.VERTICAL)
         szr_col_btns = wx.BoxSizer(wx.HORIZONTAL)
-        szrHtml = wx.BoxSizer(wx.VERTICAL)
+        szr_html = wx.BoxSizer(wx.VERTICAL)
         szr_bottom_left = wx.BoxSizer(wx.VERTICAL)
-        self.szrOutputButtons = self.get_szrOutputBtns(self.panel) # mixin
+        self.szr_output_btns = self.get_szr_output_btns(self.panel) # mixin
         # title details
-        lblTitles = wx.StaticText(self.panel, -1, _("Title:"))
-        lblTitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.txtTitles = wx.TextCtrl(self.panel, -1, size=(50,40), 
+        lbl_titles = wx.StaticText(self.panel, -1, _("Title:"))
+        lbl_titles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        self.txt_titles = wx.TextCtrl(self.panel, -1, size=(50,40), 
                                      style=wx.TE_MULTILINE)
-        self.txtTitles.Bind(wx.EVT_TEXT, self.on_title_change)
-        lblSubtitles = wx.StaticText(self.panel, -1, _("Subtitle:"))
-        lblSubtitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, 
-                                          wx.BOLD))
-        self.txtSubtitles = wx.TextCtrl(self.panel, -1, size=(50,40), 
+        self.txt_titles.Bind(wx.EVT_TEXT, self.on_title_change)
+        lbl_subtitles = wx.StaticText(self.panel, -1, _("Subtitle:"))
+        lbl_subtitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, 
+                                           wx.BOLD))
+        self.txt_subtitles = wx.TextCtrl(self.panel, -1, size=(50,40), 
                                         style=wx.TE_MULTILINE)
-        self.txtSubtitles.Bind(wx.EVT_TEXT, self.on_subtitle_change)
+        self.txt_subtitles.Bind(wx.EVT_TEXT, self.on_subtitle_change)
         # table type
-        self.radTabType = wx.RadioBox(self.panel, -1, _("Table Type"), 
-                         choices=(_("Frequencies"),
-                                  _("Crosstabs"),
-                                  _("Row summaries (mean etc)"),
-                                  _("Data List")),
-                         style=wx.RA_SPECIFY_COLS)
-        self.radTabType.Bind(wx.EVT_RADIOBOX, self.on_tab_type_change)
-        self.tab_type = self.radTabType.GetSelection()
+        self.rad_tab_type = wx.RadioBox(self.panel, -1, _("Table Type"), 
+                                        choices=(_("Frequencies"),
+                                                 _("Crosstabs"),
+                                                 _("Row summaries (mean etc)"),
+                                                 _("Data List")),
+                                        style=wx.RA_SPECIFY_COLS)
+        self.rad_tab_type.Bind(wx.EVT_RADIOBOX, self.on_tab_type_change)
+        self.tab_type = self.rad_tab_type.GetSelection()
         # option checkboxs
-        self.chkTotalsRow = wx.CheckBox(self.panel, -1, _("Totals Row?"))
-        self.chkTotalsRow.Bind(wx.EVT_CHECKBOX, self.on_chk_totals_row)
-        self.chkFirstAsLabel = wx.CheckBox(self.panel, -1, 
+        self.chk_totals_row = wx.CheckBox(self.panel, -1, _("Totals Row?"))
+        self.chk_totals_row.Bind(wx.EVT_CHECKBOX, self.on_chk_totals_row)
+        self.chk_first_as_label = wx.CheckBox(self.panel, -1, 
                                            _("First col as label?"))
-        self.chkFirstAsLabel.Bind(wx.EVT_CHECKBOX, self.on_chk_first_as_label)
+        self.chk_first_as_label.Bind(wx.EVT_CHECKBOX, self.on_chk_first_as_label)
         self.enable_opts(enable=False)
         #text labels
-        lblRows = wx.StaticText(self.panel, -1, _("Rows:"))
-        lblRows.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        lblCols = wx.StaticText(self.panel, -1, _("Columns:"))
-        lblCols.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        lbl_rows = wx.StaticText(self.panel, -1, _("Rows:"))
+        lbl_rows.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        lbl_cols = wx.StaticText(self.panel, -1, _("Columns:"))
+        lbl_cols.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         #buttons
         #rows
         self.btn_row_add = wx.Button(self.panel, -1, _("Add"))
@@ -184,7 +184,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.rowtree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_row_item_rclick)
         self.rowtree.SetToolTipString(_("Right click variables to view/edit "
                                         "details"))
-        self.rowRoot = self.setup_dim_tree(self.rowtree)
+        self.rowroot = self.setup_dim_tree(self.rowtree)
         self.coltree = wx.gizmos.TreeListCtrl(self.panel, -1, 
               style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
         self.coltree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, 
@@ -192,13 +192,13 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.coltree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_col_item_rclick)
         self.coltree.SetToolTipString(_("Right click variables to view/edit "
                                         "details"))
-        self.colRoot = self.setup_dim_tree(self.coltree)
+        self.colroot = self.setup_dim_tree(self.coltree)
         # setup demo table type
         if debug: print(self.fil_css)
         self.prev_demo = None
-        self.demo_tab = demotables.GenDemoTable(txtTitles=self.txtTitles, 
-                                 txtSubtitles=self.txtSubtitles,
-                                 colRoot=self.colRoot, rowRoot=self.rowRoot, 
+        self.demo_tab = demotables.GenDemoTable(txtTitles=self.txt_titles, 
+                                 txtSubtitles=self.txt_subtitles,
+                                 colroot=self.colroot, rowroot=self.rowroot, 
                                  rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
                                  var_labels=self.var_labels, 
@@ -224,47 +224,47 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.btn_run.Enable(False)
         self.chk_add_to_report.Enable(False)
         self.btn_export.Enable(False)
-        lbldemo_tbls = wx.StaticText(self.panel, -1, _("Output Table:"))
-        lbldemo_tbls.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        szrTabType.Add(self.radTabType, 0, wx.RIGHT, 10)
-        szrTitles.Add(lblTitles, 0, wx.RIGHT, 5)
-        szrTitles.Add(self.txtTitles, 1, wx.GROW|wx.RIGHT, 10)
-        szrTitles.Add(lblSubtitles, 0, wx.RIGHT, 5)
-        szrTitles.Add(self.txtSubtitles, 1, wx.GROW)
-        szrOpts.Add(self.chkTotalsRow, 0)        
-        szrOpts.Add(self.chkFirstAsLabel)
-        szrTabType.Add(szrOpts, 0)
-        szrMid.Add(szrTabType, 0, wx.BOTTOM|wx.TOP, 5)
-        szrMid.Add(szrTitles, 1, wx.GROW|wx.TOP, 5)
-        szrRows.Add(lblRows, 0)
-        szrRowButtons = wx.BoxSizer(wx.HORIZONTAL)
-        szrRowButtons.Add(self.btn_row_add, 0, wx.RIGHT, 2)
-        szrRowButtons.Add(self.btn_row_add_under, 0, wx.RIGHT, 2)
-        szrRowButtons.Add(self.btn_row_del, 0, wx.RIGHT, 2)
-        szrRowButtons.Add(self.btn_row_conf)
-        szrRows.Add(szrRowButtons, 0)
-        szrRows.Add(self.rowtree, 1, wx.GROW)
-        szr_cols.Add(lblCols, 0)
+        lbl_demo_tbls = wx.StaticText(self.panel, -1, _("Output Table:"))
+        lbl_demo_tbls.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        szr_tab_type.Add(self.rad_tab_type, 0, wx.RIGHT, 10)
+        szr_titles.Add(lbl_titles, 0, wx.RIGHT, 5)
+        szr_titles.Add(self.txt_titles, 1, wx.GROW|wx.RIGHT, 10)
+        szr_titles.Add(lbl_subtitles, 0, wx.RIGHT, 5)
+        szr_titles.Add(self.txt_subtitles, 1, wx.GROW)
+        szr_opts.Add(self.chk_totals_row, 0)        
+        szr_opts.Add(self.chk_first_as_label)
+        szr_tab_type.Add(szr_opts, 0)
+        szr_mid.Add(szr_tab_type, 0, wx.BOTTOM|wx.TOP, 5)
+        szr_mid.Add(szr_titles, 1, wx.GROW|wx.TOP, 5)
+        szr_rows.Add(lbl_rows, 0)
+        szr_row_btns = wx.BoxSizer(wx.HORIZONTAL)
+        szr_row_btns.Add(self.btn_row_add, 0, wx.RIGHT, 2)
+        szr_row_btns.Add(self.btn_row_add_under, 0, wx.RIGHT, 2)
+        szr_row_btns.Add(self.btn_row_del, 0, wx.RIGHT, 2)
+        szr_row_btns.Add(self.btn_row_conf)
+        szr_rows.Add(szr_row_btns, 0)
+        szr_rows.Add(self.rowtree, 1, wx.GROW)
+        szr_cols.Add(lbl_cols, 0)
         szr_col_btns.Add(self.btn_col_add, 0, wx.RIGHT, 2)
         szr_col_btns.Add(self.btn_col_add_under, 0, wx.RIGHT, 2)
         szr_col_btns.Add(self.btn_col_del, 0, wx.RIGHT, 2)
         szr_col_btns.Add(self.btn_col_conf)
         szr_cols.Add(szr_col_btns)
         szr_cols.Add(self.coltree, 1, wx.GROW)
-        szrTrees.Add(szrRows, 1, wx.GROW|wx.RIGHT, 2)
-        szrTrees.Add(szr_cols, 1, wx.GROW|wx.LEFT, 2)
-        szrHtml.Add(lbldemo_tbls, 0)
-        szrHtml.Add(self.html, 1, wx.GROW)
-        szr_bottom_left.Add(szrHtml, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_trees.Add(szr_rows, 1, wx.GROW|wx.RIGHT, 2)
+        szr_trees.Add(szr_cols, 1, wx.GROW|wx.LEFT, 2)
+        szr_html.Add(lbl_demo_tbls, 0)
+        szr_html.Add(self.html, 1, wx.GROW)
+        szr_bottom_left.Add(szr_html, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 
                             10)
         szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW|wx.LEFT|\
                             wx.RIGHT|wx.BOTTOM, 10)
         szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
-        szr_bottom.Add(self.szrOutputButtons, 0, wx.GROW|wx.BOTTOM|wx.RIGHT, 10)
+        szr_bottom.Add(self.szr_output_btns, 0, wx.GROW|wx.BOTTOM|wx.RIGHT, 10)
         szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szr_main.Add(szrMid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szr_main.Add(szrTrees, 1, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        szr_main.Add(szr_mid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(szr_trees, 1, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         szr_main.Add(szr_bottom, 2, wx.GROW)
         self.panel.SetSizer(szr_main)
         szr_main.SetSizeHints(self)
@@ -300,8 +300,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         """
         if self.tab_type == mg.RAW_DISPLAY:
             self.demo_tab.update_flds(self.flds)
-        self.rowtree.DeleteChildren(self.rowRoot)
-        self.coltree.DeleteChildren(self.colRoot)
+        self.rowtree.DeleteChildren(self.rowroot)
+        self.coltree.DeleteChildren(self.colroot)
         self.setup_row_btns()
         self.setup_col_btns()
         self.setup_action_btns()
@@ -312,10 +312,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         config_dlg.ConfigDlg.update_var_dets(self)
         # update dim trees
         rowdescendants = lib.get_tree_ctrl_descendants(self.rowtree, 
-                                                       self.rowRoot)
+                                                       self.rowroot)
         self.refresh_descendants(self.rowtree, rowdescendants)
         coldescendants = lib.get_tree_ctrl_descendants(self.coltree, 
-                                                       self.colRoot)
+                                                       self.colroot)
         self.refresh_descendants(self.coltree, coldescendants)
         # update demo area
         self.demo_tab.var_labels = self.var_labels
@@ -339,66 +339,66 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.update_by_tab_type()
     
     def update_by_tab_type(self):
-        self.tab_type = self.radTabType.GetSelection() #for convenience
+        self.tab_type = self.rad_tab_type.GetSelection() #for convenience
         # delete all col vars and, if row aumm or raw display, all row vars
-        self.coltree.DeleteChildren(self.colRoot)
+        self.coltree.DeleteChildren(self.colroot)
         if self.tab_type in (mg.ROW_SUMM, mg.RAW_DISPLAY):
-            self.rowtree.DeleteChildren(self.rowRoot)
+            self.rowtree.DeleteChildren(self.rowroot)
         # link to appropriate demo table type
         if self.tab_type == mg.FREQS_TBL:
-            self.chkTotalsRow.SetValue(False)
-            self.chkFirstAsLabel.SetValue(False)
+            self.chk_totals_row.SetValue(False)
+            self.chk_first_as_label.SetValue(False)
             self.enable_opts(enable=False)
-            self.demo_tab = demotables.GenDemoTable(txtTitles=self.txtTitles, 
-                                 txtSubtitles=self.txtSubtitles,
-                                 colRoot=self.colRoot, rowRoot=self.rowRoot, 
+            self.demo_tab = demotables.GenDemoTable(txtTitles=self.txt_titles, 
+                                 txtSubtitles=self.txt_subtitles,
+                                 colroot=self.colroot, rowroot=self.rowroot, 
                                  rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics, fil_css=self.fil_css)
             self.add_default_column_config()
         if self.tab_type == mg.CROSSTAB:
-            self.chkTotalsRow.SetValue(False)
-            self.chkFirstAsLabel.SetValue(False)
+            self.chk_totals_row.SetValue(False)
+            self.chk_first_as_label.SetValue(False)
             self.enable_opts(enable=False)
-            self.demo_tab = demotables.GenDemoTable(txtTitles=self.txtTitles, 
-                                 txtSubtitles=self.txtSubtitles,
-                                 colRoot=self.colRoot,  rowRoot=self.rowRoot, 
+            self.demo_tab = demotables.GenDemoTable(txtTitles=self.txt_titles, 
+                                 txtSubtitles=self.txt_subtitles,
+                                 colroot=self.colroot,  rowroot=self.rowroot, 
                                  rowtree=self.rowtree,  coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics, fil_css=self.fil_css)
         elif self.tab_type == mg.ROW_SUMM:
-            self.chkTotalsRow.SetValue(False)
-            self.chkFirstAsLabel.SetValue(False)
+            self.chk_totals_row.SetValue(False)
+            self.chk_first_as_label.SetValue(False)
             self.enable_opts(enable=False)
-            self.demo_tab = demotables.SummDemoTable(txtTitles=self.txtTitles, 
-                                 txtSubtitles=self.txtSubtitles,
-                                 colRoot=self.colRoot, rowRoot=self.rowRoot, 
+            self.demo_tab = demotables.SummDemoTable(txtTitles=self.txt_titles, 
+                                 txtSubtitles=self.txt_subtitles,
+                                 colroot=self.colroot, rowroot=self.rowroot, 
                                  rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics, fil_css=self.fil_css)
         elif self.tab_type == mg.RAW_DISPLAY:
             self.enable_opts(enable=True)
-            self.demo_tab = demotables.DemoRawTable(txtTitles=self.txtTitles, 
-                         txtSubtitles=self.txtSubtitles,                                 
-                         colRoot=self.colRoot, coltree=self.coltree, 
+            self.demo_tab = demotables.DemoRawTable(txtTitles=self.txt_titles, 
+                         txtSubtitles=self.txt_subtitles,                                 
+                         colroot=self.colroot, coltree=self.coltree, 
                          flds=self.flds, # needs to be reset if table changes
                          var_labels=self.var_labels, val_dics=self.val_dics,
-                         fil_css=self.fil_css, chkTotalsRow=self.chkTotalsRow,
-                         chkFirstAsLabel=self.chkFirstAsLabel)
+                         fil_css=self.fil_css, chkTotalsRow=self.chk_totals_row,
+                         chkFirstAsLabel=self.chk_first_as_label)
         #in case they were disabled and then we changed tab type
         self.setup_row_btns()
         self.setup_col_btns()
         self.setup_action_btns()
         self.update_demo_display()
-        self.txtTitles.SetFocus()
+        self.txt_titles.SetFocus()
         
     def enable_opts(self, enable=True):
         "Enable (or disable) options"
-        self.chkTotalsRow.Enable(enable)
-        self.chkFirstAsLabel.Enable(enable)
+        self.chk_totals_row.Enable(enable)
+        self.chk_first_as_label.Enable(enable)
         
     def on_chk_totals_row(self, event):
         "Update display as total rows checkbox changes"
@@ -416,14 +416,14 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             the focus if you have previously clicked it at some point.
         """
         self.update_demo_display(titles_only=True)
-        self.txtTitles.SetFocus()
+        self.txt_titles.SetFocus()
 
     def on_subtitle_change(self, event):
         """
         Update display as subtitles change.  See on_title_change comment.
         """
         self.update_demo_display(titles_only=True)
-        self.txtSubtitles.SetFocus()
+        self.txt_subtitles.SetFocus()
         
     # run 
     def too_long(self):
@@ -502,12 +502,12 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         Get titles list and subtitles list from GUI.
         """
         debug = False
-        raw_titles = self.txtTitles.GetValue()
+        raw_titles = self.txt_titles.GetValue()
         if raw_titles:
             titles = [u"%s" % x for x in raw_titles.split(u"\n")]
         else:
             titles = []
-        raw_subtitles = self.txtSubtitles.GetValue()
+        raw_subtitles = self.txt_subtitles.GetValue()
         if raw_subtitles:
             subtitles = [u"%s" % x for x in raw_subtitles.split(u"\n")]
         else:
@@ -529,7 +529,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             script_lst.append(u"# Rows" + 60*u"*")
             script_lst.append(u"tree_rows = dimtables.DimNodeTree()")
             for child in lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                                    parent=self.rowRoot):
+                                                    parent=self.rowroot):
                 # child -- NB GUI tree items, not my Dim Node obj
                 item_conf = self.rowtree.GetItemPyData(child)
                 child_fld_name = item_conf.var_name
@@ -541,7 +541,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             script_lst.append(u"tree_cols = dimtables.DimNodeTree()")
             if has_cols:
                 for child in lib.get_tree_ctrl_children(tree=self.coltree, 
-                                                        parent=self.colRoot):
+                                                        parent=self.colroot):
                     item_conf = self.coltree.GetItemPyData(child)
                     child_fld_name = item_conf.var_name
                     self.add_to_parent(script_lst=script_lst, tree=self.coltree, 
@@ -550,7 +550,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                             child=child, child_fld_name=child_fld_name)
             script_lst.append(u"# Misc" + 60*u"*")
         elif self.tab_type == mg.RAW_DISPLAY:
-            col_names, col_labels = lib.get_col_dets(self.coltree, self.colRoot, 
+            col_names, col_labels = lib.get_col_dets(self.coltree, self.colroot, 
                                                      self.var_labels)
             script_lst.append(u"col_names = " + pprint.pformat(col_names))
             script_lst.append(u"col_labels = " + pprint.pformat(col_labels))
@@ -581,8 +581,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " + \
                 u"tree_cols=tree_cols)")
         elif self.tab_type == mg.RAW_DISPLAY:
-            tot_rows = u"True" if self.chkTotalsRow.IsChecked() else u"False"
-            first_label = u"True" if self.chkFirstAsLabel.IsChecked() \
+            tot_rows = u"True" if self.chk_totals_row.IsChecked() else u"False"
+            first_label = u"True" if self.chk_first_as_label.IsChecked() \
                 else u"False"
             script_lst.append(u"tab_test = rawtables.RawTable(" + \
                 u"titles=%s, " % unicode(titles) + \
@@ -695,12 +695,12 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         
     def on_btn_clear(self, event):
         "Clear all settings"
-        self.txtTitles.SetValue("")        
-        self.txtSubtitles.SetValue("")
-        self.radTabType.SetSelection(mg.FREQS_TBL)
+        self.txt_titles.SetValue("")        
+        self.txt_subtitles.SetValue("")
+        self.rad_tab_type.SetSelection(mg.FREQS_TBL)
         self.tab_type = mg.FREQS_TBL
-        self.rowtree.DeleteChildren(self.rowRoot)
-        self.coltree.DeleteChildren(self.colRoot)
+        self.rowtree.DeleteChildren(self.rowroot)
+        self.coltree.DeleteChildren(self.colroot)
         self.update_by_tab_type()
 
     def on_close(self, event):
@@ -760,9 +760,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         Is the table configuration sufficient to export as script or HTML?
         """
         has_rows = lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                              parent=self.rowRoot)
+                                              parent=self.rowroot)
         has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
-                                              parent=self.colRoot)
+                                              parent=self.colroot)
         export_ok = False
         if self.tab_type == mg.FREQS_TBL:
             if has_rows:

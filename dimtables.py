@@ -853,11 +853,11 @@ class GenTable(LiveTable):
         data_item_presn_lst = []
         results = []
         SQL_table_select_clauses_lst = []
-        max_select_vars = 1 if debug else 50 #same speed between about 30 and 100 but
-        #twice as slow if much smaller or larger
-        for (row_filter, row_filt_flds) in zip(row_filters_lst,
+        max_select_vars = 1 if debug else 50 # same speed from 30-100 but
+            # twice as slow if much smaller or larger.
+        for (row_filter, row_filt_flds) in zip(row_filters_lst, 
                                                row_filt_flds_lst):
-            #row-derived inputs for clause function
+            # row-derived inputs for clause function
             if len(row_filter) == 1:
                 all_but_last_row_filters_lst = []
             elif len(row_filter) > 1:
@@ -912,13 +912,13 @@ class GenTable(LiveTable):
                         self.get_data_sql(SQL_table_select_clauses_lst)
                     if debug: print(SQL_select_results)
                     self.cur.execute(SQL_select_results)
-                    #print(results) # ()
-                    #print(self.cur.fetchone()) # [1,0,1,0,0,1 etc]
                     results += self.cur.fetchone()
                     SQL_table_select_clauses_lst = []
                 i=i+1
+                if debug:
+                    print(results)
         i=0
-        #using the data item HTML tuples and the results data, 
+        # using the data item HTML tuples and the results data, 
         # build the body row html
         for row in row_label_rows_lst:
             for j in range(len(col_term_nodes)):
@@ -951,6 +951,7 @@ class GenTable(LiveTable):
             to get denominator
         cols_not_null_lst - used for rowpct filtering
         is_coltot - boolean
+        NB avoid perils of integer division (SQLite, MS SQL Server etc) 5/2 = 2!
         """
         debug = False
         # To get freq, evaluate matching values to 1 (otherwise 0) then sum
@@ -990,9 +991,9 @@ class GenTable(LiveTable):
                     denom_filters_lst.append(filter)
             denominator = u"SUM(%s)" % \
                             self.get_summable(u" AND ".join(denom_filters_lst))
-            perc = u"100*(%s)/%s" % (numerator, denominator)
+            perc = u"100.0*(%s)/%s" % (numerator, denominator) # not integer div
             template = self.if_clause % (NOTNULL % perc, perc, 0)
-            #print(template) #debug
+            if debug: print(template)
             func_clause = template
         elif measure == mg.ROWPCT:
             if not is_coltot:
@@ -1010,9 +1011,11 @@ class GenTable(LiveTable):
                         denom_filters_lst.append(filter)
                 denominator = u"SUM(%s)" % \
                             self.get_summable(u" AND ".join(denom_filters_lst))
-                perc = u"100*(%s)/%s" % (numerator, denominator)
+                perc = u"100.0*(%s)/%s" % (numerator, denominator) # not int div
                 template = self.if_clause % (NOTNULL % perc, perc, 0)
-                #print(numerator, denominator)
+                if debug: 
+                    print(numerator, denominator)
+                    print(perc)
                 func_clause = template
             else:
                 func_clause = u"100"
@@ -1177,14 +1180,14 @@ class SummTable(LiveTable):
             except Exception, e:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
-                    raise Exception, \
-                        u"Unable to calculate standard deviation for " + \
-                        u" %s. " % row_fld + \
-                        u"The field contains at least one non-numeric " + \
-                        u"value: \"%s\"" % bad_val
+                    raise Exception, (
+                            u"Unable to calculate standard deviation for " +
+                            u" %s. " % row_fld +
+                            u"The field contains at least one non-numeric " +
+                            u"value: \"%s\"" % bad_val)
                 else:
-                    raise Exception, u"Unable to calculate standard " + \
-                        u"deviation for %s." % row_fld
+                    raise Exception, (u"Unable to calculate standard "
+                                      u"deviation for %s." % row_fld)
         else:
             raise Exception, u"Measure not available"
         return data_val

@@ -9,16 +9,16 @@ import projects
 
 
 # explanation level
-def get_szrLevel(parent, panel):
+def get_szr_level(parent, panel):
     """
-    Get self.szrLevel with radio widgets. 
+    Get self.szr_level with radio widgets. 
     """
-    parent.radLevel = wx.RadioBox(panel, -1, _("Output Level"), 
-                                  choices=mg.LEVELS, style=wx.RA_SPECIFY_COLS)
-    parent.radLevel.SetStringSelection(mg.DEFAULT_LEVEL)
-    parent.szrLevel = wx.BoxSizer(wx.HORIZONTAL)
-    parent.szrLevel.Add(parent.radLevel, 0, wx.RIGHT, 10)
-    return parent.szrLevel
+    parent.rad_level = wx.RadioBox(panel, -1, _("Output Level"), 
+                                   choices=mg.LEVELS, style=wx.RA_SPECIFY_COLS)
+    parent.rad_level.SetStringSelection(mg.DEFAULT_LEVEL)
+    parent.szr_level = wx.BoxSizer(wx.HORIZONTAL)
+    parent.szr_level.Add(parent.rad_level, 0, wx.RIGHT, 10)
+    return parent.szr_level
     
 
 class ConfigDlg(object):
@@ -51,8 +51,8 @@ class ConfigDlg(object):
         
     def get_szr_data(self, panel):
         """
-        Returns self.szr_data complete with widgets and the following setup ready 
-            to use: self.con, self.cur, self.dbs, self.tbls, self.flds, 
+        Returns self.szr_data complete with widgets and the following setup 
+            ready to use: self.con, self.cur, self.dbs, self.tbls, self.flds, 
             self.has_unique, self.idxs, self.db, and self.tbl.
         Widgets include dropdowns for database and tables.
         Each widget has a set of events ready to go as well.
@@ -61,32 +61,32 @@ class ConfigDlg(object):
         """
         self.LABEL_FONT = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         # 1) Databases
-        lblDatabases = wx.StaticText(panel, -1, _("Database:"))
-        lblDatabases.SetFont(self.LABEL_FONT)
+        lbl_databases = wx.StaticText(panel, -1, _("Database:"))
+        lbl_databases.SetFont(self.LABEL_FONT)
         # get various db settings
         dbdetsobj = getdata.get_db_dets_obj(self.dbe, self.default_dbs, 
                                             self.default_tbls, self.con_dets)
         (self.con, self.cur, self.dbs, self.tbls, self.flds, self.has_unique,  
                 self.idxs) = dbdetsobj.get_db_dets()
-        # set up self.dropDatabases and self.dropTables
+        # set up self.drop_dbs and self.drop_tbls
         self.db = dbdetsobj.db
         self.tbl = dbdetsobj.tbl
-        self.dropDatabases, self.dropTables = \
+        self.drop_dbs, self.drop_tbls = \
             getdata.get_data_dropdowns(self, panel, self.dbe, self.default_dbs, 
                                        self.default_tbls, self.con_dets,
                                        self.dbs, self.db, self.tbls, self.tbl)
         # not wanted in all cases when dropdowns used e.g. data select
-        self.dropTables.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_tables)
-        self.dropTables.SetToolTipString(_("Right click to add/remove filter"))
+        self.drop_tbls.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_tables)
+        self.drop_tbls.SetToolTipString(_("Right click to add/remove filter"))
         # 2) Tables
-        lblTables = wx.StaticText(panel, -1, _("Table:"))
-        lblTables.SetFont(self.LABEL_FONT)
-        bxData = wx.StaticBox(panel, -1, _("Data Source"))
-        self.szr_data = wx.StaticBoxSizer(bxData, wx.HORIZONTAL)
-        self.szr_data.Add(lblDatabases, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szr_data.Add(self.dropDatabases, 0, wx.RIGHT, 10)
-        self.szr_data.Add(lblTables, 0, wx.RIGHT, 5)
-        self.szr_data.Add(self.dropTables, 0)
+        lbl_tables = wx.StaticText(panel, -1, _("Table:"))
+        lbl_tables.SetFont(self.LABEL_FONT)
+        bx_data = wx.StaticBox(panel, -1, _("Data Source"))
+        self.szr_data = wx.StaticBoxSizer(bx_data, wx.HORIZONTAL)
+        self.szr_data.Add(lbl_databases, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szr_data.Add(self.drop_dbs, 0, wx.RIGHT, 10)
+        self.szr_data.Add(lbl_tables, 0, wx.RIGHT, 5)
+        self.szr_data.Add(self.drop_tbls, 0)
         return self.szr_data
               
     def get_misc_config_szrs(self, panel, readonly=False):
@@ -99,38 +99,38 @@ class ConfigDlg(object):
         Assumes self has quite a few properties already set e.g. fil_script etc.
         """
         # Data config details
-        self.txtVarDetsFile = wx.TextCtrl(panel, -1, self.fil_var_dets, 
-                                         size=(250,-1))
-        self.txtVarDetsFile.Bind(wx.EVT_KILL_FOCUS, 
-                                 self.on_var_dets_file_lost_focus)
-        self.txtVarDetsFile.Enable(not readonly)
+        self.txt_var_dets_file = wx.TextCtrl(panel, -1, self.fil_var_dets, 
+                                             size=(250,-1))
+        self.txt_var_dets_file.Bind(wx.EVT_KILL_FOCUS, 
+                                    self.on_var_dets_file_lost_focus)
+        self.txt_var_dets_file.Enable(not readonly)
         self.btn_var_dets_path = wx.Button(panel, -1, _("Browse"))
         self.btn_var_dets_path.Bind(wx.EVT_BUTTON, self.on_btn_var_dets_path)
         self.btn_var_dets_path.Enable(not readonly)
         # CSS style config details
-        self.txtCssFile = wx.TextCtrl(panel, -1, self.fil_css, 
-                                      size=(250,-1))
-        self.txtCssFile.Bind(wx.EVT_KILL_FOCUS, self.on_css_file_lost_focus)
-        self.txtCssFile.Enable(not readonly)
+        self.txt_css_file = wx.TextCtrl(panel, -1, self.fil_css, 
+                                        size=(250,-1))
+        self.txt_css_file.Bind(wx.EVT_KILL_FOCUS, self.on_css_file_lost_focus)
+        self.txt_css_file.Enable(not readonly)
         self.btn_css_path = wx.Button(panel, -1, _("Browse"))
         self.btn_css_path.Bind(wx.EVT_BUTTON, self.on_btn_css_path)
         self.btn_css_path.Enable(not readonly)
         # Output details
         # report
-        self.txtReportFile = wx.TextCtrl(panel, -1, self.fil_report, 
+        self.txt_report_file = wx.TextCtrl(panel, -1, self.fil_report, 
                                          size=(250,-1))
-        self.txtReportFile.Bind(wx.EVT_KILL_FOCUS, 
+        self.txt_report_file.Bind(wx.EVT_KILL_FOCUS, 
                                 self.on_report_file_lost_focus)
-        self.txtReportFile.Enable(not readonly)
+        self.txt_report_file.Enable(not readonly)
         self.btn_report_path = wx.Button(panel, -1, _("Browse"))
         self.btn_report_path.Bind(wx.EVT_BUTTON, self.on_btn_report_path)
         self.btn_report_path.Enable(not readonly)
         # script
-        self.txtScriptFile = wx.TextCtrl(panel, -1, self.fil_script, 
-                                         size=(250,-1))
-        self.txtScriptFile.Bind(wx.EVT_KILL_FOCUS, 
-                                self.on_script_file_lost_focus)
-        self.txtScriptFile.Enable(not readonly)
+        self.txt_script_file = wx.TextCtrl(panel, -1, self.fil_script, 
+                                           size=(250,-1))
+        self.txt_script_file.Bind(wx.EVT_KILL_FOCUS, 
+                                  self.on_script_file_lost_focus)
+        self.txt_script_file.Enable(not readonly)
         self.btn_script_path = wx.Button(panel, -1, _("Browse"))
         self.btn_script_path.Bind(wx.EVT_BUTTON, self.on_btn_script_path)
         self.btn_script_path.Enable(not readonly)        
@@ -139,33 +139,33 @@ class ConfigDlg(object):
         self.szr_config_bottom = wx.BoxSizer(wx.HORIZONTAL)
         # CONFIG TOP
         # Variables
-        bxVarConfig = wx.StaticBox(panel, -1, _("Variable config from ..."))
-        szrVarConfig = wx.StaticBoxSizer(bxVarConfig, wx.HORIZONTAL)
-        szrVarConfig.Add(self.txtVarDetsFile, 1, wx.GROW)
-        szrVarConfig.Add(self.btn_var_dets_path, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szr_config_top.Add(szrVarConfig, 1, wx.RIGHT, 10)
+        bx_var_config = wx.StaticBox(panel, -1, _("Variable config from ..."))
+        szr_var_config = wx.StaticBoxSizer(bx_var_config, wx.HORIZONTAL)
+        szr_var_config.Add(self.txt_var_dets_file, 1, wx.GROW)
+        szr_var_config.Add(self.btn_var_dets_path, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szr_config_top.Add(szr_var_config, 1, wx.RIGHT, 10)
         # Css
-        bxCssConfig = wx.StaticBox(panel, -1, _("Style output using ..."))
-        szr_css_config = wx.StaticBoxSizer(bxCssConfig, wx.HORIZONTAL)
-        szr_css_config.Add(self.txtCssFile, 1, wx.GROW)
+        bx_css_config = wx.StaticBox(panel, -1, _("Style output using ..."))
+        szr_css_config = wx.StaticBoxSizer(bx_css_config, wx.HORIZONTAL)
+        szr_css_config.Add(self.txt_css_file, 1, wx.GROW)
         szr_css_config.Add(self.btn_css_path, 0, wx.LEFT|wx.RIGHT, 5)
         self.szr_config_top.Add(szr_css_config, 1)
         # CONFIG BOTTOM
         # Report
-        bxReportConfig = wx.StaticBox(panel, -1, _("Send output to ..."))
-        szrReportConfig = wx.StaticBoxSizer(bxReportConfig, wx.HORIZONTAL)
-        szrReportConfig.Add(self.txtReportFile, 1, wx.GROW)
-        szrReportConfig.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szr_config_bottom.Add(szrReportConfig, 1, wx.RIGHT, 10)
+        bx_report_config = wx.StaticBox(panel, -1, _("Send output to ..."))
+        szr_report_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
+        szr_report_config.Add(self.txt_report_file, 1, wx.GROW)
+        szr_report_config.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szr_config_bottom.Add(szr_report_config, 1, wx.RIGHT, 10)
         # Script
-        bxScriptConfig = wx.StaticBox(panel, -1, _("Export here to reuse"))
-        szrScriptConfig = wx.StaticBoxSizer(bxScriptConfig, wx.HORIZONTAL)
-        szrScriptConfig.Add(self.txtScriptFile, 1, wx.GROW)
-        szrScriptConfig.Add(self.btn_script_path, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szr_config_bottom.Add(szrScriptConfig, 1)
+        bx_script_config = wx.StaticBox(panel, -1, _("Export here to reuse"))
+        szr_script_config = wx.StaticBoxSizer(bx_script_config, wx.HORIZONTAL)
+        szr_script_config.Add(self.txt_script_file, 1, wx.GROW)
+        szr_script_config.Add(self.btn_script_path, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szr_config_bottom.Add(szr_script_config, 1)
         return self.szr_config_bottom, self.szr_config_top
 
-    def get_szrOutputBtns(self, panel, inc_clear=True):
+    def get_szr_output_btns(self, panel, inc_clear=True):
         #main
         self.btn_run = wx.Button(panel, -1, _("Run"))
         self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
@@ -190,22 +190,22 @@ class ConfigDlg(object):
         self.btn_close = wx.Button(panel, wx.ID_CLOSE)
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_close)
         # add to sizer
-        self.szrOutputButtons = wx.FlexGridSizer(rows=7, cols=1, hgap=5, vgap=5)
-        self.szrOutputButtons.AddGrowableRow(5,2) # idx, propn
+        self.szr_output_btns = wx.FlexGridSizer(rows=7, cols=1, hgap=5, vgap=5)
+        self.szr_output_btns.AddGrowableRow(5,2) # idx, propn
         # only relevant if surrounding sizer stretched vertically enough by its 
         # content.
-        self.szrOutputButtons.Add(self.btn_run, 0)
-        self.szrOutputButtons.Add(self.chk_add_to_report)
-        self.szrOutputButtons.Add(self.btn_expand, wx.ALIGN_TOP)
-        self.szrOutputButtons.Add(self.btn_export, 0, wx.TOP, 8)
-        self.szrOutputButtons.Add(self.btn_help, 0)
+        self.szr_output_btns.Add(self.btn_run, 0)
+        self.szr_output_btns.Add(self.chk_add_to_report)
+        self.szr_output_btns.Add(self.btn_expand, wx.ALIGN_TOP)
+        self.szr_output_btns.Add(self.btn_export, 0, wx.TOP, 8)
+        self.szr_output_btns.Add(self.btn_help, 0)
         if inc_clear:
-            self.szrOutputButtons.Add(self.btn_clear, 0)
-        self.szrOutputButtons.Add(self.btn_close, 1, wx.ALIGN_BOTTOM)
-        return self.szrOutputButtons
+            self.szr_output_btns.Add(self.btn_clear, 0)
+        self.szr_output_btns.Add(self.btn_close, 1, wx.ALIGN_BOTTOM)
+        return self.szr_output_btns
 
     def reread_fil_var_dets(self):
-        self.fil_var_dets = self.txtVarDetsFile.GetValue()
+        self.fil_var_dets = self.txt_var_dets_file.GetValue()
         
     def update_var_dets(self):
         "Update all variable details, including those already displayed"
@@ -220,9 +220,9 @@ class ConfigDlg(object):
         """
         (self.dbe, self.db, self.con, self.cur, self.tbls, self.tbl, self.flds, 
                 self.has_unique, self.idxs) = getdata.refresh_db_dets(self)
-        self.dropTables.SetItems(self.tbls)
+        self.drop_tbls.SetItems(self.tbls)
         tbls_lc = [x.lower() for x in self.tbls]
-        self.dropTables.SetSelection(tbls_lc.index(self.tbl.lower()))
+        self.drop_tbls.SetSelection(tbls_lc.index(self.tbl.lower()))
         
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
@@ -239,44 +239,44 @@ class ConfigDlg(object):
     def on_rclick_tables(self, event):
         "Allow addition or removal of data filter"
         self.filt_select()
-        getdata.setup_drop_tbls(self.dropTables, self.dbe, self.db, self.tbls, 
+        getdata.setup_drop_tbls(self.drop_tbls, self.dbe, self.db, self.tbls, 
                                 self.tbl)
         event.Skip()
 
     # report output
     def on_btn_report_path(self, event):
         "Open dialog and takes the report file selected (if any)"
-        dlgGetFile = wx.FileDialog(self, _("Choose a report output file:"), 
+        dlg_get_file = wx.FileDialog(self, _("Choose a report output file:"), 
             defaultDir=os.path.join(mg.LOCAL_PATH, u"reports"), 
             defaultFile=u"", 
             wildcard=_("HTML files (*.htm)|*.htm|HTML files (*.html)|*.html"))
             #MUST have a parent to enforce modal in Windows
-        if dlgGetFile.ShowModal() == wx.ID_OK:
-            self.fil_report = u"%s" % dlgGetFile.GetPath()
-            self.txtReportFile.SetValue(self.fil_report)
-        dlgGetFile.Destroy()
+        if dlg_get_file.ShowModal() == wx.ID_OK:
+            self.fil_report = u"%s" % dlg_get_file.GetPath()
+            self.txt_report_file.SetValue(self.fil_report)
+        dlg_get_file.Destroy()
 
     def on_report_file_lost_focus(self, event):
         "Reset report output file"
-        self.fil_report = self.txtReportFile.GetValue()
+        self.fil_report = self.txt_report_file.GetValue()
         event.Skip()
     
     # script output
     def on_btn_script_path(self, event):
         "Open dialog and takes the script file selected (if any)"
-        dlgGetFile = wx.FileDialog(self, 
+        dlg_get_file = wx.FileDialog(self, 
             _("Choose a file to export scripts to:"), 
             defaultDir=os.path.join(mg.LOCAL_PATH, "scripts"), 
             defaultFile="", wildcard=_("Scripts (*.py)|*.py"))
             #MUST have a parent to enforce modal in Windows
-        if dlgGetFile.ShowModal() == wx.ID_OK:
-            self.fil_script = u"%s" % dlgGetFile.GetPath()
-            self.txtScriptFile.SetValue(self.fil_script)
-        dlgGetFile.Destroy()
+        if dlg_get_file.ShowModal() == wx.ID_OK:
+            self.fil_script = u"%s" % dlg_get_file.GetPath()
+            self.txt_script_file.SetValue(self.fil_script)
+        dlg_get_file.Destroy()
 
     def on_script_file_lost_focus(self, event):
         "Reset script file"
-        self.fil_script = self.txtScriptFile.GetValue()
+        self.fil_script = self.txt_script_file.GetValue()
         event.Skip()
     
     # label config
@@ -288,34 +288,34 @@ class ConfigDlg(object):
 
     def on_btn_var_dets_path(self, event):
         "Open dialog and takes the variable details file selected (if any)"
-        dlgGetFile = wx.FileDialog(self, _("Choose a variable config file:"), 
+        dlg_get_file = wx.FileDialog(self, _("Choose a variable config file:"), 
             defaultDir=os.path.join(mg.LOCAL_PATH, u"vdts"), 
             defaultFile=u"", wildcard=_("Config files (*.vdts)|*.vdts"))
             #MUST have a parent to enforce modal in Windows
-        if dlgGetFile.ShowModal() == wx.ID_OK:
-            fil_var_dets = u"%s" % dlgGetFile.GetPath()
-            self.txtVarDetsFile.SetValue(fil_var_dets)
+        if dlg_get_file.ShowModal() == wx.ID_OK:
+            fil_var_dets = u"%s" % dlg_get_file.GetPath()
+            self.txt_var_dets_file.SetValue(fil_var_dets)
             self.reread_fil_var_dets()
             self.update_var_dets()
-        dlgGetFile.Destroy()        
+        dlg_get_file.Destroy()        
 
     # css table style
     def on_btn_css_path(self, event):
         "Open dialog and takes the css file selected (if any)"
-        dlgGetFile = wx.FileDialog(self, _("Choose a css table style file:"), 
+        dlg_get_file = wx.FileDialog(self, _("Choose a css table style file:"), 
             defaultDir=os.path.join(mg.LOCAL_PATH, "css"), 
             defaultFile=u"", 
             wildcard=_("CSS files (*.css)|*.css"))
             #MUST have a parent to enforce modal in Windows
-        if dlgGetFile.ShowModal() == wx.ID_OK:
-            fil_css = u"%s" % dlgGetFile.GetPath()
-            self.txtCssFile.SetValue(fil_css)
+        if dlg_get_file.ShowModal() == wx.ID_OK:
+            fil_css = u"%s" % dlg_get_file.GetPath()
+            self.txt_css_file.SetValue(fil_css)
             self.update_css()
-        dlgGetFile.Destroy()
+        dlg_get_file.Destroy()
     
     def update_css(self):
         "Update css, including for demo table"
-        self.fil_css = self.txtCssFile.GetValue()
+        self.fil_css = self.txt_css_file.GetValue()
     
     def on_css_file_lost_focus(self, event):
         "Reset css file"
@@ -323,13 +323,13 @@ class ConfigDlg(object):
         event.Skip()
         
     # explanation level
-    def get_szrLevel(self, panel):
+    def get_szr_level(self, panel):
         """
-        Get self.szrLevel with radio widgets. 
+        Get self.szr_level with radio widgets. 
         """
-        szrLevel = get_szrLevel(self, panel)
-        self.radLevel.Enable(False)
-        return szrLevel
+        szr_level = get_szr_level(self, panel)
+        self.rad_level.Enable(False)
+        return szr_level
     
     def on_btn_expand(self, event):
         output.display_report(self, self.str_content, self.url_load)
