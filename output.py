@@ -146,7 +146,7 @@ default_hdr = u"""
             </head>
             <body>\n"""
     
-def get_html_hdr(hdr_title, css_fils):
+def get_html_hdr(hdr_title, css_fils, default_if_prob=False):
     """
     Get HTML header.
     Add suffixes to each of the main classes so can have multiple styles in a
@@ -160,7 +160,10 @@ def get_html_hdr(hdr_title, css_fils):
             try:
                 f = open(css_fil, "r")
             except IOError, e:
-                raise my_exceptions.MissingCssException
+                if default_if_prob:
+                    f = open(mg.DEFAULT_CSS_PATH, "r")
+                else:
+                    raise my_exceptions.MissingCssException
             css_txt = f.read()
             for css_class in mg.CSS_ELEMENTS:
                 # suffix all report-relevant css entities so distinct
@@ -408,9 +411,9 @@ def insert_prelim_code(modules, f, fil_report, css_fils):
               lib.escape_win_path(fil_report) + u""" "w", "utf-8")""")
     css_fils_str = pprint.pformat(css_fils)
     f.write(u"\n" + u"css_fils=%s" % css_fils_str)
-    f.write(u"\n" + u"fil.write(output.get_html_hdr(\"Report(s)\", "
-              u"css_fils))" + u"\n" + u"\n")
-    f.write(u"# end of script 'header'" + u"\n" + u"\n")
+    f.write(u"\nfil.write(output.get_html_hdr(\"Report(s)\", css_fils, "
+            u"default_if_prob=True))")
+    f.write(u"\n\n# end of script 'header'" + u"\n" + u"\n")
     
 def append_exported_script(f, inner_script, con_dets, dbe, db, tbl_name, 
                            tbl_filt_label, tbl_filt, default_dbs, default_tbls, 

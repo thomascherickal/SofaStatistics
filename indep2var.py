@@ -573,7 +573,6 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "
                                             "or set another"))
-                wx.EndBusyCursor()
                 event.Skip()
                 return
             script = self.get_script(css_idx, add_to_report, self.fil_report)

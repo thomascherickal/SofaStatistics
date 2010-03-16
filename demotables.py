@@ -46,9 +46,9 @@ class DemoTable(object):
         if debug: print(self.fil_css)
         try:
             html = output.get_html_hdr(hdr_title=_(u"Report(s)"), 
-                                       css_fils=[self.fil_css])
+                                       css_fils=[self.fil_css], 
+                                       default_if_prob=True)
         except my_exceptions.MissingCssException:
-            wx.EndBusyCursor()
             raise my_exceptions.MissingCssException # pass it on
         except Exception, e:
             wx.MessageBox(_("Unable to make report.  Error details: %s" % e))

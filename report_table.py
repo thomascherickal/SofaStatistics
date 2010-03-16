@@ -758,19 +758,15 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             else:
                 demo_tbl_html = WAITING_MSG
         else:
-            try:
-                demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
-                if demo_html == "":
-                    demo_tbl_html = WAITING_MSG
-                    self.prev_demo = None
-                else:
-                    demo_tbl_html = ("<h1>%s</h1>\n" % 
-                         _("Example data - click 'Run' for actual results") +
-                         demo_html)
-                    self.prev_demo = demo_tbl_html
-            except my_exceptions.MissingCssException:
-                demo_tbl_html = _("<p>Please check the CSS file exists or "
-                                  "set another</p>")
+            demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
+            if demo_html == "":
+                demo_tbl_html = WAITING_MSG
+                self.prev_demo = None
+            else:
+                demo_tbl_html = ("<h1>%s</h1>\n" % 
+                     _("Example data - click 'Run' for actual results") +
+                     demo_html)
+                self.prev_demo = demo_tbl_html
         if debug: print(u"\n" + demo_tbl_html + "\n")
         self.html.show_html(demo_tbl_html)
 
