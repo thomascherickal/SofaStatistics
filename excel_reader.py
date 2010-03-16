@@ -1,3 +1,4 @@
+import os
 import win32com.client
 
 # Copyright (c) Grant Paton-Simpson 2009. All rights reserved. 
@@ -61,6 +62,8 @@ class Workbook(object):
         Have to treat all sheets in a workbook the same.  NB dummy headers can 
             be used if necessary.
         """
+        if not os.path.exists(filename):
+            raise IOError
         self.sheets_have_hdrs = sheets_have_hdrs
         self.con = win32com.client.Dispatch('ADODB.Connection')
         dns = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=%s;" % filename

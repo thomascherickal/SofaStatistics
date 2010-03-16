@@ -300,9 +300,12 @@ def get_date_fmt():
             locale_dets = child.stdout.read().strip().split()
             d_fmt_str = [x for x in locale_dets if x.startswith("d_fmt")][0]
             raw_d_fmt = d_fmt_str.split("=")[1].strip().strip('"')
-            raw2const = {"%m/%d/%y": MDY, "%m/%d/%Y": MDY,
-                         "%d/%m/%y": DMY, "%d/%m/%Y": DMY,
-                         "%y/%m/%d": YMD, "%Y/%m/%d": YMD}
+            raw2const = {"%m/%d/%y": MDY, "%m/%d/%Y": MDY, 
+                         "%m-%d-%y": MDY, "%m-%d-%Y": MDY,
+                         "%d/%m/%y": DMY, "%d/%m/%Y": DMY, 
+                         "%d-%m-%y": DMY, "%d-%m-%Y": DMY,
+                         "%y/%m/%d": YMD, "%Y/%m/%d": YMD, 
+                         "%y-%m-%d": YMD, "%Y-%m-%d": YMD}
     except Exception, e:
         raise Exception, "Unable to get date format. %s" % e
     try:

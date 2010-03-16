@@ -41,6 +41,9 @@ def get_dialect(file_path):
         dialect = sniffer.sniff(sniff_sample)
         #has_header = sniffer.has_header(sniff_sample)
         if debug: print(dialect)
+    except IOError:
+            raise Exception, (u"Unable to find file \"%s\" for importing. "
+                              u"Please check that file exists." % file_path)
     except csv.Error, e:
         if unicode(e).startswith("new-line character seen in unquoted field"):
             raise NewLineInUnquotedException
@@ -181,8 +184,8 @@ class FileImporter(object):
             self.fix_text()
             return
         try:
-            csvfile = open(self.file_path) # not "U" - 
-                # insist on _one_ type of line break
+            csvfile = open(self.file_path) # not "U" - insist on _one_ type of 
+                # line break
             # get field names
             if self.has_header:
                 tmp_reader = csv.DictReader(csvfile, dialect=dialect)

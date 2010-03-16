@@ -4,6 +4,7 @@ import random
 
 import my_globals as mg
 import lib
+import my_exceptions
 import dimtables
 import output
 import rawtables
@@ -46,16 +47,19 @@ class DemoTable(object):
         try:
             html = output.get_html_hdr(hdr_title=_(u"Report(s)"), 
                                        css_fils=[self.fil_css])
+        except my_exceptions.MissingCssException:
+            wx.EndBusyCursor()
+            raise my_exceptions.MissingCssException # pass it on
         except Exception, e:
-            wx.MessageBox(_("Unable to make report.  Error details: %s" % unicode(e)))
+            wx.MessageBox(_("Unable to make report.  Error details: %s" % e))
             raise Exception, unicode(e)
-        html += u"<table cellspacing='0'>\n" # IE6 - no support CSS borderspacing
+        html += u"<table cellspacing='0'>\n" # IE6 - no CSS borderspacing
         (hdr_html, body_html) = self.get_html_parts(css_idx)
         html += hdr_html
         html += body_html
         html += u"\n</table>"
         html += u"\n</body>\n</html>"
-        #print(html)
+        if debug: print(html)
         return html
 
 class DemoRawTable(rawtables.RawTable, DemoTable):

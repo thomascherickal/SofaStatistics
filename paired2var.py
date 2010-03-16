@@ -7,6 +7,7 @@ import wx.html
 
 import my_globals as mg
 import lib
+import my_exceptions
 import config_dlg
 import full_html
 import output
@@ -268,8 +269,15 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         if run_ok:
             wx.BeginBusyCursor()
             add_to_report = self.chk_add_to_report.IsChecked()
-            css_fils, css_idx = output.get_css_dets(self.fil_report, 
-                                                    self.fil_css)
+            try:
+                css_fils, css_idx = output.get_css_dets(self, self.fil_report, 
+                                                        self.fil_css)
+            except my_exceptions.MissingCssException:
+                self.update_local_display(_("Please check the CSS file exists "
+                                            "or set another"))
+                wx.EndBusyCursor()
+                event.Skip()
+                return
             script = self.get_script(css_idx, add_to_report, self.fil_report)
             bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
                     add_to_report, self.fil_report, css_fils, script, 
@@ -304,8 +312,15 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         export_ok = self.test_config_ok()
         if export_ok:
             add_to_report = self.chk_add_to_report.IsChecked()
-            css_fils, css_idx = output.get_css_dets(self.fil_report, 
-                                                    self.fil_css)
+            try:
+                css_fils, css_idx = output.get_css_dets(self, self.fil_report, 
+                                                        self.fil_css)
+            except my_exceptions.MissingCssException:
+                self.update_local_display(_("Please check the CSS file exists "
+                                            "or set another"))
+                wx.EndBusyCursor()
+                event.Skip()
+                return
             script = self.get_script(css_idx, add_to_report, self.fil_report)
             output.export_script(script, self.fil_script, 
                                  self.fil_report, css_fils, self.con_dets, 

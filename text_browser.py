@@ -71,7 +71,7 @@ class TextBrowse(wx.PyControl):
             key_event.SetEventObject(self)
             key_event.set_key_code(wx.WXK_RETURN)
             self.GetEventHandler().ProcessEvent(key_event)
-        elif event.get_key_code() in [wx.WXK_TAB]:
+        elif event.GetKeyCode() in [wx.WXK_TAB]:
             self.btn_browse.SetFocus()
         else:
             event.Skip()

@@ -89,6 +89,9 @@ class FileImporter(object):
             orig_fld_names = wksheet.get_fld_names()
             ok_fld_names = importer.process_fld_names(orig_fld_names)
             if debug: print(ok_fld_names)
+        except IOError, e:
+            raise Exception, (u"Unable to find file \"%s\" for importing." % 
+                              self.file_path)
         except Exception, e:
             raise Exception, (u"Unable to read spreadsheet. "
                 u"Orig error: %s" % e)

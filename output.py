@@ -160,7 +160,7 @@ def get_html_hdr(hdr_title, css_fils):
             try:
                 f = open(css_fil, "r")
             except IOError, e:
-                raise Exception, _("The css file %s doesn't exist" % css_fil)
+                raise my_exceptions.MissingCssException
             css_txt = f.read()
             for css_class in mg.CSS_ELEMENTS:
                 # suffix all report-relevant css entities so distinct
@@ -183,7 +183,7 @@ def get_html_ftr():
 
 # The rest is GUI -> script oriented code
 
-def get_css_dets(fil_report, fil_css):
+def get_css_dets(parent, fil_report, fil_css):
     """
     Returns css_fils, css_idx.
     css_fils - list of full paths to css files.
@@ -194,6 +194,16 @@ def get_css_dets(fil_report, fil_css):
     If not there (empty report or manually broken by user?) make and use a new
         one using fil_css.
     """
+    if not os.path.exists(fil_css):
+        dlg = wx.MessageDialog(parent, _("The CSS style file '%s' doesn't "
+                            "exist.  Continue using the default style instead?"
+                            % fil_css), _("Needs CSS Style"), 
+                            style=wx.YES_NO|wx.ICON_QUESTION)
+        retval = dlg.ShowModal()
+        if retval == wx.ID_YES:
+            fil_css = mg.DEFAULT_CSS_PATH
+        else:
+            raise my_exceptions.MissingCssException
     css_fils = None
     # read from report
     if os.path.exists(fil_report):

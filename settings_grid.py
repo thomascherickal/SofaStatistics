@@ -393,7 +393,8 @@ class SettingsEntry(object):
         keycode = event.GetKeyCode()
         if self.debug or debug: 
             print(u"on_grid_key_down - keycode %s pressed" % keycode)
-        if keycode in [wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE]:
+        if keycode in [wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE] and not \
+                self.readonly:
             # None if no deletion occurs
             if self.try_to_delete_row(assume_row_deletion_attempt=False):
                 # don't skip.  Smother event so delete not entered anywhere

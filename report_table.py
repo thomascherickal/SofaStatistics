@@ -11,6 +11,7 @@ import wx.gizmos
 
 import my_globals as mg
 import lib
+import my_exceptions
 import config_dlg
 import demotables
 import dimtables
@@ -463,8 +464,15 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             wx.BeginBusyCursor()
             add_to_report = self.chk_add_to_report.IsChecked()
             if debug: print(self.fil_css)
-            css_fils, css_idx = output.get_css_dets(self.fil_report, 
-                                                    self.fil_css)
+            try:
+                css_fils, css_idx = output.get_css_dets(self, self.fil_report, 
+                                                        self.fil_css)
+            except my_exceptions.MissingCssException:
+                self.update_local_display(_("Please check the CSS file exists "
+                                            "or set another"))
+                wx.EndBusyCursor()
+                event.Skip()
+                return
             script = self.get_script(has_cols, css_idx)
             bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
                     add_to_report, self.fil_report, css_fils, script, 
@@ -490,8 +498,15 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         """
         export_ok, has_cols = self.table_config_ok()
         if export_ok:
-            css_fils, css_idx = output.get_css_dets(self.fil_report, 
-                                                    self.fil_css)
+            try:
+                css_fils, css_idx = output.get_css_dets(self, self.fil_report, 
+                                                        self.fil_css)
+            except my_exceptions.MissingCssException:
+                self.update_local_display(_("Please check the CSS file exists "
+                                            "or set another"))
+                wx.EndBusyCursor()
+                event.Skip()
+                return
             script = self.get_script(has_cols, css_idx)
             output.export_script(script, self.fil_script, self.fil_report, 
                                  css_fils, self.con_dets, self.dbe, self.db, 
@@ -743,15 +758,19 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             else:
                 demo_tbl_html = WAITING_MSG
         else:
-            demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
-            if demo_html == "":
-                demo_tbl_html = WAITING_MSG
-                self.prev_demo = None
-            else:
-                demo_tbl_html = ("<h1>%s</h1>\n" % 
-                     _("Example data - click 'Run' for actual results") +
-                     demo_html)
-                self.prev_demo = demo_tbl_html
+            try:
+                demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
+                if demo_html == "":
+                    demo_tbl_html = WAITING_MSG
+                    self.prev_demo = None
+                else:
+                    demo_tbl_html = ("<h1>%s</h1>\n" % 
+                         _("Example data - click 'Run' for actual results") +
+                         demo_html)
+                    self.prev_demo = demo_tbl_html
+            except my_exceptions.MissingCssException:
+                demo_tbl_html = _("<p>Please check the CSS file exists or "
+                                  "set another</p>")
         if debug: print(u"\n" + demo_tbl_html + "\n")
         self.html.show_html(demo_tbl_html)
 

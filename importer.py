@@ -542,6 +542,7 @@ class ImportFileSelectDlg(wx.Dialog):
         if not tbl_name:
             wx.MessageBox(_("Please select a name for the file"))
             self.set_import_btns(importing=False)
+            self.txt_int_name.SetFocus()
             return
         bad_chars = [u"-", u" "]
         for bad_char in bad_chars:

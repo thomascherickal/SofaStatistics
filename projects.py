@@ -628,10 +628,10 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                 print(u"Failed to change to %s.proj" % proj_name)
                 pass
             proj_notes = self.txt_proj_notes.GetValue()
-            fil_var_dets = self.txtVarDetsFile.GetValue()
-            fil_css = self.txtCssFile.GetValue()
-            fil_report = self.txtReportFile.GetValue()
-            fil_script = self.txtScriptFile.GetValue()
+            fil_var_dets = self.txt_var_dets_file.GetValue()
+            fil_css = self.txt_css_file.GetValue()
+            fil_report = self.txt_report_file.GetValue()
+            fil_script = self.txt_script_file.GetValue()
             default_dbe = mg.DBES[self.drop_default_dbe.GetSelection()]
             default_dbs = {}
             default_tbls = {}
