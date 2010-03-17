@@ -303,6 +303,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             self.demo_tab.update_flds(self.flds)
         self.rowtree.DeleteChildren(self.rowroot)
         self.coltree.DeleteChildren(self.colroot)
+        self.add_default_column_config()
         self.setup_row_btns()
         self.setup_col_btns()
         self.setup_action_btns()
