@@ -27,6 +27,10 @@ def add_type_to_coltypes(coltypes, col_idx, type):
         coltypes.append(set([type]))    
 
 def dets_from_row(coltypes, row, first=False):
+    """
+    Slightly strange approach to dict is because I only want to work with the
+        end of the key, not the whole thing including the namespaces.
+    """
     debug = False
     vals = []
     for i, el in enumerate(row):
@@ -38,6 +42,7 @@ def dets_from_row(coltypes, row, first=False):
                     if key.endswith("date-value"):
                         val2use = value # take proper date val e.g. 2010-02-01
                             # rather than actual text of 01/02/10
+                        break
                     elif key.endswith("value-type"): # must always be one per el
                         val2use = el[0].text # take val from inner text element
             else:
@@ -54,7 +59,7 @@ def dets_from_row(coltypes, row, first=False):
                         type = value
                         val2use = el[0].text
                         # don't break - give chance to go through date-value
-            else:
+            else: # el has no attribs - empty cell
                 type = u"string"
                 val2use = u""
             add_type_to_coltypes(coltypes, col_idx=i, type=type)
@@ -62,15 +67,24 @@ def dets_from_row(coltypes, row, first=False):
     return coltypes, vals
 
 def get_ods_dets(filename):
-    debug = False
+    """
+    Not worth optimising my code.  The xml parsing stage takes up most of the 
+        time.  Using the SAX approach would significantly reduce memory usage 
+        but would it save any time overall?  Harder code and may even be slower.
+    XML is a terrible way to store lots of data ;-).
+    """
+    debug = True
+    large = True
     coltypes = [] # one set per column containing all types
     myzip = zipfile.ZipFile
     myzip = zipfile.ZipFile(filename)
     cont = myzip.open("content.xml")
-    tree = etree.parse(cont)
+    if debug: print("Starting parse process ...")
+    tree = etree.parse(cont) # the most time-intensive bit
+    if debug: print("Finishing parse process.")
     myzip.close()
     root = tree.getroot()
-    if debug: print(etree.tostring(root))
+    if debug and not large: print(etree.tostring(root))
     body = None
     for el in root:
         if el.tag.endswith("body"):
@@ -98,6 +112,7 @@ def get_ods_dets(filename):
             print "The sheet is named \"%s\"" % value
     rows = []
     first = True
+    if debug: print(len(tbl))
     for el in tbl:
         if el.tag.endswith("table-row"): # should always be one per el
             coltypes, vals = dets_from_row(coltypes, el, first=first)
@@ -105,7 +120,25 @@ def get_ods_dets(filename):
             first = False
     return coltypes, rows
 
+debug = False
+import time
+import os
+t1 = time.time() # clock is CPU time which might be zero while this process waits!
 coltypes, rows = get_ods_dets(filename = u"/home/g/test_ods.ods")
-print coltypes
-print rows
-
+f = open(u"/home/g/test_ods_results.txt", "w")
+import pprint
+f.write(pprint.pformat(coltypes))
+f.write(pprint.pformat(rows))
+f.close()
+if debug:
+    print(coltypes)
+    print(rows)
+print("FINISHED ODS EXTRACT")
+t2 = time.time()
+diff = t2 - t1
+mins, secs = divmod(diff, 60)
+hours, mins = divmod(mins, 60)
+dur = "%d hour(s) %d minute(s) %d seconds" % (hours, mins, secs)
+print os.linesep + "*"*30 + os.linesep
+print "Finished backup.  Time taken: %s" % dur
+print os.linesep + "*"*30 + os.linesep

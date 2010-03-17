@@ -21,14 +21,15 @@ class DataSelectDlg(wx.Dialog):
         title = _("Data in \"%s\" Project") % proj_name
         wx.Dialog.__init__(self, parent=parent, title=title, 
                            style=wx.CAPTION|wx.CLOSE_BOX|
-                           wx.SYSTEM_MENU, pos=(300, 100))
+                           wx.SYSTEM_MENU, pos=(300,100))
         self.parent = parent
         self.panel = wx.Panel(self)
         wx.BeginBusyCursor()
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         lblChoose = wx.StaticText(self.panel, -1, 
-                                  _("Choose an existing data table ..."))
+                                  _("Choose an existing data table ..."), 
+                                  size=(480,20))
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=proj_name)
         self.fil_var_dets = proj_dic["fil_var_dets"]
@@ -168,15 +169,15 @@ class DataSelectDlg(wx.Dialog):
     def on_open(self, event):
         ""
         if not self.has_unique:
-            msg = _("Table \"%s\" cannot be opened because it " \
-                   "lacks a unique index")
+            msg = _("Table \"%s\" cannot be opened because it lacks a unique "
+                    "index")
             wx.MessageBox(msg % self.tbl) # needed for caching even if read only
         else:
             obj_quoter = getdata.get_obj_quoter_func(self.dbe)
             s = "SELECT COUNT(*) FROM %s" % obj_quoter(self.tbl)
             self.cur.execute(s)
             n_rows = self.cur.fetchone()[0]
-            if n_rows > 20000:
+            if n_rows > 200000: # fast enough as long as column resizing is off
                 if wx.MessageBox(_("This table has %s rows. "
                                    "Do you wish to open it?") % n_rows, 
                                    caption=_("LONG REPORT"), 
@@ -184,11 +185,12 @@ class DataSelectDlg(wx.Dialog):
                     return
             wx.BeginBusyCursor()
             readonly = self.chk_readonly.IsChecked()
+            set_col_widths = True if n_rows < 1000 else False
             dlg = db_grid.TblEditor(self, self.dbe, self.con, self.cur, self.db, 
                                     self.tbl, self.flds, self.var_labels, 
                                     self.var_notes, self.var_types,
                                     self.val_dics, self.fil_var_dets, self.idxs, 
-                                    readonly)
+                                    readonly, set_col_widths=set_col_widths)
             wx.EndBusyCursor()
             dlg.ShowModal()
         event.Skip()

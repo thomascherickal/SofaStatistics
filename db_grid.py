@@ -58,7 +58,7 @@ EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 class TblEditor(wx.Dialog):
     def __init__(self, parent, dbe, con, cur, db, tbl_name, flds, var_labels,
                  var_notes, var_types, val_dics, fil_var_dets, idxs, 
-                 readonly=True):
+                 readonly=True, set_col_widths=True):
         self.debug = False
         mywidth = 900
         if mg.IN_WINDOWS:
@@ -119,7 +119,8 @@ class TblEditor(wx.Dialog):
             self.current_col_idx = 0
             self.set_new_row_ed(new_row_idx)
         self.any_editor_shown = False
-        self.set_col_widths()
+        if set_col_widths:
+            self.set_col_widths()
         self.grid.GetGridColLabelWindow().SetToolTipString(_("Right click "
                                             "variable to view/edit details"))
         self.respond_to_select_cell = True
@@ -135,10 +136,13 @@ class TblEditor(wx.Dialog):
         self.grid.GetGridWindow().Bind(wx.EVT_MOTION, self.on_mouse_move)
         self.grid.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, 
                        self.on_label_rclick)
-        szr_bottom = wx.FlexGridSizer(rows=1, cols=1, hgap=5, vgap=5)
+        szr_bottom = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
         szr_bottom.AddGrowableCol(0,2) # idx, propn
+        btn_size_cols = wx.Button(self.panel, -1, _("Resize column widths"))
+        btn_size_cols.Bind(wx.EVT_BUTTON, self.on_size_cols)
         btn_close = wx.Button(self.panel, wx.ID_CLOSE)
         btn_close.Bind(wx.EVT_BUTTON, self.on_close)
+        szr_bottom.Add(btn_size_cols, 0)
         szr_bottom.Add(btn_close, 0, wx.ALIGN_RIGHT)
         self.szr_main.Add(self.grid, 1, wx.GROW)
         self.szr_main.Add(szr_bottom, 0, wx.GROW|wx.ALL, 5)
@@ -926,8 +930,25 @@ class TblEditor(wx.Dialog):
     def get_cols_n(self):
         return len(self.flds)
     
+    def on_size_cols(self, event):
+        if self.dbtbl.rows_n < 2000:
+            self.set_col_widths()
+        else:
+            dlg = wx.MessageDialog(self, _("This table has %s rows and %s "
+                                           "columns.  Do you wish to resize?"
+                                           % (self.dbtbl.rows_n, 
+                                              self.get_cols_n())),
+                                            _("Proceed with resizing columns"), 
+                                            style=wx.YES_NO|wx.ICON_QUESTION)
+            retval = dlg.ShowModal()
+            if retval == wx.ID_YES:
+                self.set_col_widths()
+        self.grid.SetFocus()
+        event.Skip()
+    
     def set_col_widths(self):
         "Set column widths based on display widths of fields"
+        wx.BeginBusyCursor()
         self.parent.add_feedback("Setting column widths " + \
                     "(%s columns for %s rows)..." % (self.dbtbl.GetNumberCols(), 
                                                      self.dbtbl.rows_n))
@@ -964,6 +985,7 @@ class TblEditor(wx.Dialog):
             if self.debug: print("%s %s" % (fld_name, 
                                             self.grid.GetColSize(col_idx)))
         self.parent.add_feedback("")
+        wx.EndBusyCursor()
     
     def is_new_row(self, row):
         new_row = self.dbtbl.is_new_row(row)
