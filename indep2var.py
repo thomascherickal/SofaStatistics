@@ -496,7 +496,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             wx.BeginBusyCursor()
             add_to_report = self.chk_add_to_report.IsChecked()
             try:
-                css_fils, css_idx = output.get_css_dets(self, self.fil_report, 
+                css_fils, css_idx = output.get_css_dets(self.fil_report, 
                                                         self.fil_css)
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "
@@ -568,7 +568,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         if export_ok:
             add_to_report = self.chk_add_to_report.IsChecked()
             try:
-                css_fils, css_idx = output.get_css_dets(self, self.fil_report, 
+                css_fils, css_idx = output.get_css_dets(self.fil_report, 
                                                         self.fil_css)
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "

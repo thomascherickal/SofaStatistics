@@ -78,7 +78,7 @@ class FileImporter(object):
         self.has_header = (retCode == wx.YES)
         return True
     
-    def assess_sample(self, reader, progbar, gauge_chunk, keep_importing):
+    def assess_sample(self, reader, progbar, steps_per_item, keep_importing):
         """
         Assess data sample to identify field types based on values in fields.
         If a field has mixed data types will define as string.
@@ -107,7 +107,7 @@ class FileImporter(object):
             # process row
             sample_data.append(row) # include Nones even if going to change to 
                 # empty strings or whatever later.
-            gauge_val = i*gauge_chunk
+            gauge_val = i*steps_per_item
             progbar.SetValue(gauge_val)
             i2break = ROWS_TO_SAMPLE if self.has_header else ROWS_TO_SAMPLE - 1
             if i == i2break:
@@ -170,7 +170,7 @@ class FileImporter(object):
         else:
             wx.MessageBox(_("Unable to import file in current form"))        
 
-    def import_content(self, progbar, keep_importing):
+    def import_content(self, progbar, keep_importing, lbl_feedback):
         """
         Get field types dict.  Use it to test each and every item before they 
             are added to database (after adding the records already tested).
@@ -206,7 +206,7 @@ class FileImporter(object):
                 print("tot_size: %s" % tot_size)
                 print("row_size: %s" % row_size)
             csvfile.seek(0)
-            n_rows = float(tot_size)/row_size            
+            rows_n = float(tot_size)/row_size            
             reader = csv.DictReader(csvfile, dialect=dialect, 
                                     fieldnames=ok_fld_names)
         except csv.Error, e:
@@ -221,17 +221,20 @@ class FileImporter(object):
                 "Orig error: %s" % e
         con, cur, unused, unused, unused, unused, unused = \
             getdata.get_default_db_dets()
-        sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_rows else n_rows
-        gauge_chunk = importer.get_gauge_chunk_size(n_rows, sample_n)
+        sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= rows_n else rows_n
+        items_n = rows_n + sample_n + 1 # 1 is for the final tmp to named step
+        steps_per_item = importer.get_steps_per_item(items_n)
         orig_fld_names, fld_types, sample_data = self.assess_sample(reader, 
-                                        progbar, gauge_chunk, keep_importing)
+                                    progbar, steps_per_item, keep_importing)
         # NB reader will be at position ready to access records after sample
         remaining_data = list(reader) # must be a list not a reader or can't 
-        # start again from beginning of data (e.g. if correction made)
+            # start again from beginning of data (e.g. if correction made)
+        gauge_start = steps_per_item*sample_n
         nulled_dots = importer.add_to_tmp_tbl(con, cur, self.file_path, 
-                            self.tbl_name, ok_fld_names, orig_fld_names, 
-                            fld_types, sample_data, sample_n, remaining_data, 
-                            progbar, gauge_chunk, keep_importing)
+                        self.tbl_name, ok_fld_names, orig_fld_names, 
+                        fld_types, sample_data, sample_n, remaining_data, 
+                        progbar, steps_per_item, gauge_start, keep_importing)
+        # so fast only shows last step in progress bar
         importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path, 
                                   progbar, nulled_dots)
         cur.close()

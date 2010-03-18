@@ -186,7 +186,7 @@ def get_html_ftr():
 
 # The rest is GUI -> script oriented code
 
-def get_css_dets(parent, fil_report, fil_css):
+def get_css_dets(fil_report, fil_css):
     """
     Returns css_fils, css_idx.
     css_fils - list of full paths to css files.
@@ -198,11 +198,10 @@ def get_css_dets(parent, fil_report, fil_css):
         one using fil_css.
     """
     if not os.path.exists(fil_css):
-        dlg = wx.MessageDialog(parent, _("The CSS style file '%s' doesn't "
+        retval = wx.MessageBox(_("The CSS style file '%s' doesn't "
                             "exist.  Continue using the default style instead?"
                             % fil_css), _("Needs CSS Style"), 
                             style=wx.YES_NO|wx.ICON_QUESTION)
-        retval = dlg.ShowModal()
         if retval == wx.ID_YES:
             fil_css = mg.DEFAULT_CSS_PATH
         else:

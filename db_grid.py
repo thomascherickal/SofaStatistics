@@ -934,13 +934,11 @@ class TblEditor(wx.Dialog):
         if self.dbtbl.rows_n < 2000:
             self.set_col_widths()
         else:
-            dlg = wx.MessageDialog(self, _("This table has %s rows and %s "
-                                           "columns.  Do you wish to resize?"
-                                           % (self.dbtbl.rows_n, 
-                                              self.get_cols_n())),
-                                            _("Proceed with resizing columns"), 
-                                            style=wx.YES_NO|wx.ICON_QUESTION)
-            retval = dlg.ShowModal()
+            retval = wx.MessageBox(_("This table has %s rows and %s "
+                            "columns.  Do you wish to resize?" % \
+                            (self.dbtbl.rows_n, self.get_cols_n())),
+                            _("Proceed with resizing columns"), 
+                            style=wx.YES_NO|wx.ICON_QUESTION)
             if retval == wx.ID_YES:
                 self.set_col_widths()
         self.grid.SetFocus()

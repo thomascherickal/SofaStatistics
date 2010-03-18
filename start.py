@@ -77,8 +77,7 @@ def install_local():
     Modify default project settings to point to local (user) SOFA  directory.
     """
     prog_path = os.path.dirname(__file__)
-    default_proj = os.path.join(LOCAL_PATH, u"projs", 
-                                mg.SOFA_DEFAULT_PROJ)
+    default_proj = os.path.join(LOCAL_PATH, u"projs", mg.SOFA_DEFAULT_PROJ)
     paths = [u"css", mg.INTERNAL_FOLDER, u"vdts", u"projs", u"reports", 
              u"scripts"]
     if not os.path.exists(LOCAL_PATH):

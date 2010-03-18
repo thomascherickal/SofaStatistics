@@ -176,16 +176,16 @@ class DataSelectDlg(wx.Dialog):
             obj_quoter = getdata.get_obj_quoter_func(self.dbe)
             s = "SELECT COUNT(*) FROM %s" % obj_quoter(self.tbl)
             self.cur.execute(s)
-            n_rows = self.cur.fetchone()[0]
-            if n_rows > 200000: # fast enough as long as column resizing is off
+            rows_n = self.cur.fetchone()[0]
+            if rows_n > 200000: # fast enough as long as column resizing is off
                 if wx.MessageBox(_("This table has %s rows. "
-                                   "Do you wish to open it?") % n_rows, 
+                                   "Do you wish to open it?") % rows_n, 
                                    caption=_("LONG REPORT"), 
                                    style=wx.YES_NO) == wx.NO:
                     return
             wx.BeginBusyCursor()
             readonly = self.chk_readonly.IsChecked()
-            set_col_widths = True if n_rows < 1000 else False
+            set_col_widths = True if rows_n < 1000 else False
             dlg = db_grid.TblEditor(self, self.dbe, self.con, self.cur, self.db, 
                                     self.tbl, self.flds, self.var_labels, 
                                     self.var_notes, self.var_types,

@@ -31,7 +31,7 @@ class FileImporter(object):
         self.has_header = (retCode == wx.YES)
         return True
     
-    def assess_sample(self, wksheet, orig_fld_names, progbar, gauge_chunk, 
+    def assess_sample(self, wksheet, orig_fld_names, progbar, steps_per_item, 
                       keep_importing):
         """
         Assess data sample to identify field types based on values in fields.
@@ -57,7 +57,7 @@ class FileImporter(object):
             has_rows = True
             # process row
             sample_data.append(row)
-            gauge_val = i*gauge_chunk
+            gauge_val = i*steps_per_item
             progbar.SetValue(gauge_val)
             if i == (ROWS_TO_SAMPLE - 1):
                 break
@@ -70,7 +70,7 @@ class FileImporter(object):
             raise Exception, "No data to import"
         return fld_types, sample_data
     
-    def import_content(self, progbar, keep_importing):
+    def import_content(self, progbar, keep_importing, lbl_feedback):
         """
         Get field types dict.  Use it to test each and every item before they 
             are added to database (after adding the records already tested).
@@ -84,7 +84,7 @@ class FileImporter(object):
             sheets = wkbook.get_sheet_names()
             if debug: print(sheets)
             wksheet = wkbook.get_sheet(name=sheets[0])
-            n_rows = wksheet.get_data_rows_n()
+            rows_n = wksheet.get_data_rows_n()
             # get field names
             orig_fld_names = wksheet.get_fld_names()
             ok_fld_names = importer.process_fld_names(orig_fld_names)
@@ -97,13 +97,14 @@ class FileImporter(object):
                 u"Orig error: %s" % e)
         con, cur, unused, unused, unused, unused, unused = \
             getdata.get_default_db_dets()
-        sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_rows else n_rows
-        gauge_chunk = importer.get_gauge_chunk_size(n_rows, sample_n)
+        sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= rows_n else rows_n
+        items_n = rows_n + sample_n
+        steps_per_item = importer.get_steps_per_item(items_n)
         if debug: 
-            print("gauge_chunk: %s" % gauge_chunk)
+            print("steps_per_item: %s" % steps_per_item)
             print("About to assess data sample")
         fld_types, sample_data = self.assess_sample(wksheet, orig_fld_names, 
-                                        progbar, gauge_chunk, keep_importing)
+                                    progbar, steps_per_item, keep_importing)
         if debug:
             print("Just finished assessing data sample")
             print(fld_types)
@@ -111,10 +112,11 @@ class FileImporter(object):
         # NB wksheet will NOT be at position ready to access records after 
         # sample.  Can't just pass in spreadsheet.
         remaining_data = [x for x in wksheet][sample_n:]
+        gauge_start = steps_per_item*sample_n
         nulled_dots = importer.add_to_tmp_tbl(con, cur, self.file_path, 
-                            self.tbl_name, ok_fld_names, orig_fld_names, 
-                            fld_types, sample_data, sample_n, remaining_data, 
-                            progbar, gauge_chunk, keep_importing)
+                        self.tbl_name, ok_fld_names, orig_fld_names, 
+                        fld_types, sample_data, sample_n, remaining_data, 
+                        progbar, steps_per_item, gauge_start, keep_importing)
         importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path,
                                   progbar, nulled_dots)
         cur.close()

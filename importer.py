@@ -11,17 +11,15 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import csv_importer
 if mg.IN_WINDOWS:
     import excel_importer
+import ods_importer
 import projects
 
-FILE_CSV = "csv"
-FILE_EXCEL = "excel"
-FILE_UNKNOWN = "unknown"
-VAL_NUMERIC = "numeric value"
-VAL_DATETIME = "datetime value"
-VAL_STRING = "string value"
-VAL_EMPTY_STRING = "empty string value"
-TMP_SQLITE_TBL = "tmptbl"
-GAUGE_RANGE = 50
+FILE_CSV = u"csv"
+FILE_EXCEL = u"excel"
+FILE_ODS = u"ods"
+FILE_UNKNOWN = u"unknown"
+TMP_SQLITE_TBL = u"tmptbl"
+GAUGE_STEPS = 50
 
 
 class MismatchException(Exception):
@@ -71,33 +69,35 @@ def assess_sample_fld(sample_data, orig_fld_name):
     Return field type.
     """
     type_set = set()
-    numeric_only_set = set([VAL_NUMERIC])
-    numeric_or_empt_str_set = set([VAL_NUMERIC, VAL_EMPTY_STRING])
-    datetime_only_set = set([VAL_DATETIME])
-    datetime_or_empt_str_set = set([VAL_DATETIME, VAL_EMPTY_STRING])
     for row in sample_data:
         val = lib.if_none(row[orig_fld_name], u"")
         if lib.is_numeric(val): # anything that SQLite can add _as a number_ 
                 # into a numeric field
-            type_set.add(VAL_NUMERIC)
+            type_set.add(mg.VAL_NUMERIC)
         elif lib.is_pytime(val): # COM on Windows
-            type_set.add(VAL_DATETIME)
+            type_set.add(mg.VAL_DATETIME)
         else:
             usable_datetime = lib.is_usable_datetime_str(val)
             if usable_datetime:
-                type_set.add(VAL_DATETIME)
+                type_set.add(mg.VAL_DATETIME)
             elif val == u"":
-                type_set.add(VAL_EMPTY_STRING)
+                type_set.add(mg.VAL_EMPTY_STRING)
             else:
-                type_set.add(VAL_STRING)
-    if type_set == numeric_only_set or \
-            type_set == numeric_or_empt_str_set:
+                type_set.add(mg.VAL_STRING)
+    fld_type = get_overall_fld_type(type_set)
+    return fld_type
+
+def get_overall_fld_type(type_set):
+    numeric_only_set = set([mg.VAL_NUMERIC])
+    numeric_or_empt_str_set = set([mg.VAL_NUMERIC, mg.VAL_EMPTY_STRING])
+    datetime_only_set = set([mg.VAL_DATETIME])
+    datetime_or_empt_str_set = set([mg.VAL_DATETIME, mg.VAL_EMPTY_STRING])
+    if type_set == numeric_only_set or type_set == numeric_or_empt_str_set:
         fld_type = mg.FLD_TYPE_NUMERIC
-    elif type_set == datetime_only_set or \
-            type_set == datetime_or_empt_str_set:
+    elif type_set == datetime_only_set or type_set == datetime_or_empt_str_set:
         fld_type = mg.FLD_TYPE_DATE
     else:
-        fld_type = mg.FLD_TYPE_STRING
+        fld_type = mg.FLD_TYPE_STRING    
     return fld_type
 
 def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
@@ -182,10 +182,10 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
     return nulled_dots
     
 def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types, 
-             progbar, gauge_chunk, gauge_start=0, check=False, 
+             progbar, steps_per_item, gauge_start=0, check=False, 
              keep_importing=None):
     """
-    Add the rows of data, processing each cell as you go.
+    Add the rows of data (dicts), processing each cell as you go.
     If checking, will validate and turn empty strings into nulls
         as required.
     If not checking (e.g. because a pre-tested sample) only do the
@@ -216,7 +216,7 @@ def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types,
         if debug: print(SQL_insert_row)
         try:
             cur.execute(SQL_insert_row)
-            gauge_val = gauge_start*gauge_chunk
+            gauge_val = gauge_start + (row_idx*steps_per_item)
             progbar.SetValue(gauge_val)
         except MismatchException, e:
             raise # keep this particular type of exception bubbling out
@@ -226,26 +226,31 @@ def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types,
     con.commit()
     return nulled_dots
 
-def get_gauge_chunk_size(n_rows, sample_n):
+def get_steps_per_item(items_n):
     """
-    Needed for progress bar - how many rows before displaying another of the 
-        chunks as set by GAUGE_RANGE.
+    Needed for progress bar - how many items before displaying another of the 
+        steps as set by GAUGE_STEPS.
+    Chunks per item e.g. 0.01.
     """
-    if n_rows != 0:
-        gauge_chunk = float(GAUGE_RANGE)/(n_rows + sample_n)
+    if items_n != 0:
+        # we go through the sample once at start for sampling and then again
+        # for adding to table
+        steps_per_item = float(GAUGE_STEPS)/items_n
     else:
-        gauge_chunk = None
-    return gauge_chunk
+        steps_per_item = None
+    return steps_per_item
 
 def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names, 
                    fld_types, sample_data, sample_n, remaining_data, progbar, 
-                   gauge_chunk, keep_importing):
+                   steps_per_item, gauge_start, keep_importing):
     """
     Create fresh disposable table in SQLite and insert data into it.
     ok_fld_names -- cleaned field names (shouldn't have a sofa_id field)
     orig_fld_names -- original names - useful for taking data from row dicts but 
         not the names to use for the new table.
     fld_types -- dict with field types for original field names
+    sample_data -- list of dicts using orig fld names
+    remaining_data -- as for sample data
     Give it a unique identifier field as well.
     Set up the data type constraints needed.
     Returns nulled_dots (boolean).
@@ -286,14 +291,15 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names,
         # Already been through sample once when assessing it so part way through 
         # process already.
         if add_rows(con, cur, sample_data, ok_fld_names, orig_fld_names, 
-                    fld_types, progbar, gauge_chunk, gauge_start=sample_n, 
+                    fld_types, progbar, steps_per_item, gauge_start=gauge_start, 
                     check=False, keep_importing=keep_importing):
             nulled_dots = True
-        remainder_gauge_start = 2*sample_n # been through sample twice already
+        # been through sample since gauge_start
+        remainder_gauge_start = gauge_start + (sample_n*steps_per_item)
         if add_rows(con, cur, remaining_data, ok_fld_names, orig_fld_names, 
-                 fld_types, progbar, gauge_chunk, 
-                 gauge_start=remainder_gauge_start, check=True, 
-                 keep_importing=keep_importing):
+                                 fld_types, progbar, steps_per_item, 
+                                 gauge_start=remainder_gauge_start, check=True, 
+                                 keep_importing=keep_importing):
             nulled_dots = True
     except MismatchException, e:
         nulled_dots = False
@@ -307,7 +313,7 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names,
             fld_types[e.fld_name] = mg.FLD_TYPE_STRING
             if add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, 
                               orig_fld_names, fld_types, sample_data, sample_n, 
-                              remaining_data, progbar, gauge_chunk, 
+                              remaining_data, progbar, steps_per_item, 
                               keep_importing):
                 nulled_dots = True
         else:
@@ -319,7 +325,8 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
     """
     Rename table to final name.
     Separated from add_to_tmp_tbl to allow the latter to recurse.
-    This part is only called once at the end.
+    This part is only called once at the end and is so fast there is no need to
+        report progress till completion.
     """
     debug = False
     try:
@@ -337,7 +344,7 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
     except Exception, e:
         raise Exception, u"Unable to rename temporary table.  Orig error: %s" \
             % e
-    progbar.SetValue(GAUGE_RANGE)
+    progbar.SetValue(GAUGE_STEPS)
     msg = _("Successfully imported data from '%(fil)s' to '%(tbl)s' in the "
             "default SOFA database.")
     if nulled_dots:
@@ -354,7 +361,7 @@ class ImportFileSelectDlg(wx.Dialog):
         Make selection based on file extension 
             and possibly inspection of sample of rows (e.g. csv dialect).
         """
-        title = _("Select file to import") + u" (csv/xls)"
+        title = _("Select file to import") + u" (csv/xls/ods)"
         wx.Dialog.__init__(self, parent=parent, title=title,
                            size=(500, 300), 
                            style=wx.CAPTION|wx.CLOSE_BOX|
@@ -382,6 +389,8 @@ class ImportFileSelectDlg(wx.Dialog):
         lbl_int_name = wx.StaticText(self.panel, -1, _("SOFA Name:"))
         lbl_int_name.SetFont(lblfont)
         self.txt_int_name = wx.TextCtrl(self.panel, -1, "")
+        # feedback
+        self.lbl_feedback = wx.StaticText(self.panel)
         # buttons
         self.btn_cancel = wx.Button(self.panel, wx.ID_CANCEL)
         self.btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
@@ -392,7 +401,7 @@ class ImportFileSelectDlg(wx.Dialog):
         self.btn_import.Bind(wx.EVT_BUTTON, self.on_import)
         self.btn_import.SetDefault()
         # progress
-        self.progbar = wx.Gauge(self.panel, -1, GAUGE_RANGE, size=(-1, 20),
+        self.progbar = wx.Gauge(self.panel, -1, GAUGE_STEPS, size=(-1, 20),
                                 style=wx.GA_PROGRESSBAR)
         # sizers
         szr_file_path = wx.BoxSizer(wx.HORIZONTAL)
@@ -406,8 +415,9 @@ class ImportFileSelectDlg(wx.Dialog):
         szr_btns.AddGrowableCol(1,2) # idx, propn
         szr_btns.Add(self.btn_cancel, 0)
         szr_btns.Add(self.btn_import, 0, wx.ALIGN_RIGHT)
-        szr_close = wx.FlexGridSizer(rows=1, cols=1, hgap=5, vgap=5)
-        szr_close.AddGrowableCol(0,2) # idx, propn        
+        szr_close = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
+        szr_close.AddGrowableCol(0,2) # idx, propn
+        szr_close.Add(self.lbl_feedback)        
         szr_close.Add(self.btn_close, 0, wx.ALIGN_RIGHT)
         szr_main.Add(szr_file_path, 0, wx.GROW|wx.TOP, 20)
         szr_main.Add(lbl_comment, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
@@ -457,8 +467,7 @@ class ImportFileSelectDlg(wx.Dialog):
                 final_tbl_name = self.check_tbl_name(file_path, val_entered)
                 tbl_name = val_entered
             else:
-                raise Exception, u"No table name entered " + \
-                    u"when given chance"
+                raise Exception, u"No table name entered when given chance"
         else:
             raise Exception, u"Had a problem with the SOFA table " + \
                 u"name but user cancelled final steps to resolve it"
@@ -524,7 +533,7 @@ class ImportFileSelectDlg(wx.Dialog):
         unused, extension = self.get_file_start_ext(file_path)
         if extension.lower() == u".csv":
             self.file_type = FILE_CSV
-        if extension.lower() == u".xls":
+        elif extension.lower() == u".xls":
             if not mg.IN_WINDOWS:
                 wx.MessageBox(_("Excel spreadsheets are only supported on "
                               "Windows.  Try exporting to CSV first from "
@@ -533,7 +542,10 @@ class ImportFileSelectDlg(wx.Dialog):
                 return
             else:
                 self.file_type = FILE_EXCEL
-        if self.file_type == FILE_UNKNOWN:
+        elif extension.lower() == u".ods":
+            self.file_type = FILE_ODS
+        else:
+            self.file_type == FILE_UNKNOWN
             wx.MessageBox(_("Files with the file name extension "
                             "'%s' are not supported") % extension)
             self.set_import_btns(importing=False)
@@ -568,10 +580,13 @@ class ImportFileSelectDlg(wx.Dialog):
         elif self.file_type == FILE_EXCEL:
             file_importer = excel_importer.FileImporter(file_path,
                                                         final_tbl_name)
+        elif self.file_type == FILE_ODS:
+            file_importer = ods_importer.FileImporter(file_path,
+                                                      final_tbl_name)
         if file_importer.get_params():
             try:
-                file_importer.import_content(self.progbar,
-                                             self.keep_importing)
+                file_importer.import_content(self.progbar, self.keep_importing,
+                                             self.lbl_feedback)
             except ImportCancelException, e:
                 self.keep_importing.discard(False)
                 self.keep_importing.add(True)

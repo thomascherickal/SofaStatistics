@@ -32,6 +32,9 @@ QUOTES = [
     (u"Absolutely nothing should be concluded from these figures "
      u"except that no conclusion can be drawn from them.", 
      u"Joseph L. Brothers, Linux/PowerPC Project"),
+    (u"Statistical significance is a phrase that every science graduate "
+     u"student learns, but few comprehend.",
+     u"Tom_Siegfried"),
     ]
 
 def get_quote():

@@ -17,6 +17,19 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
+def get_next_fld_name(existing_var_names):
+    nums_used = []
+    for var_name in existing_var_names:
+        if not var_name.startswith(u"var"):
+            continue
+        try:
+            num_used = int(var_name[-3:])
+        except ValueError:
+            continue
+        nums_used.append(num_used)
+    free_num = max(nums_used) + 1 if nums_used else 1
+    next_fld_name = mg.NEXT_FLD_NAME_TEMPLATE % free_num
+
 def get_title_dets_html(titles, subtitles, CSS_TBL_TITLE, CSS_TBL_SUBTITLE):
     """
     Table title and subtitle html ready to put in a cell.

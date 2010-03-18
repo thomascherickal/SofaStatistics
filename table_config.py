@@ -7,24 +7,16 @@ import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import settings_grid
 
+
 def insert_data(row_idx, grid_data):
     """
     Return list of values to display in inserted row.
     Needs to know row index plus already used variable labels (to prevent 
         collisions).
     """
-    nums_used = []
     existing_var_names = [x[0] for x in grid_data]
-    for var_name in existing_var_names:
-        if not var_name.startswith(u"var"):
-            continue
-        try:
-            num_used = int(var_name[-3:])
-        except ValueError:
-            continue
-        nums_used.append(num_used)
-    free_num = max(nums_used) + 1 if nums_used else 1
-    row_data = [u"var%03i" % free_num, mg.FLD_TYPE_NUMERIC]
+    next_fld_name = lib.get_next_fld_name(existing_var_names)
+    row_data = [next_fld_name, mg.FLD_TYPE_NUMERIC]
     return row_data
 
 def cell_invalidation(row, col, grid, col_dets):

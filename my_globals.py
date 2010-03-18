@@ -223,7 +223,12 @@ for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
                 continue # skip bad module
             DBES.append(dbe_plugin)
             DBE_MODULES[dbe_plugin] = dbe_mod
-            
+NEXT_FLD_NAME_TEMPLATE = u"var%03i"
+# importer
+VAL_NUMERIC = u"numeric value"
+VAL_DATETIME = u"datetime value"
+VAL_STRING = u"string value"
+VAL_EMPTY_STRING = u"empty string value"
 # field type labels - must work as labels as well as consts
 FLD_TYPE_NUMERIC = _("Numeric")
 FLD_TYPE_STRING = _("String")

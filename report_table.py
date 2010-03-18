@@ -439,10 +439,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             s = u"SELECT COUNT(*) FROM %s %s" % (quoter(self.tbl), 
                                                  where_tbl_filt)
             self.cur.execute(s)
-            n_rows = self.cur.fetchone()[0]
-            if n_rows > 500:
+            rows_n = self.cur.fetchone()[0]
+            if rows_n > 500:
                 if wx.MessageBox(_("This report has %s rows. "
-                                   "Do you wish to run it?") % n_rows, 
+                                   "Do you wish to run it?") % rows_n, 
                                    caption=_("LONG REPORT"), 
                                    style=wx.YES_NO) == wx.NO:
                     too_long = True
@@ -466,7 +466,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             add_to_report = self.chk_add_to_report.IsChecked()
             if debug: print(self.fil_css)
             try:
-                css_fils, css_idx = output.get_css_dets(self, self.fil_report, 
+                css_fils, css_idx = output.get_css_dets(self.fil_report, 
                                                         self.fil_css)
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "
@@ -500,7 +500,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         export_ok, has_cols = self.table_config_ok()
         if export_ok:
             try:
-                css_fils, css_idx = output.get_css_dets(self, self.fil_report, 
+                css_fils, css_idx = output.get_css_dets(self.fil_report, 
                                                         self.fil_css)
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "
