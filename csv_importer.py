@@ -178,6 +178,7 @@ class FileImporter(object):
             table to final name.
         """
         debug = False
+        wx.BeginBusyCursor()
         try:
             dialect = get_dialect(self.file_path)
         except NewLineInUnquotedException:
@@ -210,6 +211,7 @@ class FileImporter(object):
             reader = csv.DictReader(csvfile, dialect=dialect, 
                                     fieldnames=ok_fld_names)
         except csv.Error, e:
+            wx.EndBusyCursor()
             if unicode(e).startswith("new-line character seen in unquoted"
                                      " field"):
                 self.fix_text()
@@ -217,6 +219,7 @@ class FileImporter(object):
             else:
                 raise Exception, unicode(e)
         except Exception, e:
+            wx.EndBusyCursor()
             raise Exception, "Unable to create reader for file. " + \
                 "Orig error: %s" % e
         con, cur, unused, unused, unused, unused, unused = \
@@ -230,13 +233,16 @@ class FileImporter(object):
         remaining_data = list(reader) # must be a list not a reader or can't 
             # start again from beginning of data (e.g. if correction made)
         gauge_start = steps_per_item*sample_n
-        nulled_dots = importer.add_to_tmp_tbl(con, cur, self.file_path, 
+        try:
+            nulled_dots = importer.add_to_tmp_tbl(con, cur, self.file_path, 
                         self.tbl_name, ok_fld_names, orig_fld_names, 
                         fld_types, sample_data, sample_n, remaining_data, 
                         progbar, steps_per_item, gauge_start, keep_importing)
-        # so fast only shows last step in progress bar
-        importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path, 
-                                  progbar, nulled_dots)
+            # so fast only shows last step in progress bar
+            importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path, 
+                                      progbar, nulled_dots)
+        except Exception:
+            wx.EndBusyCursor()
         cur.close()
         con.commit()
         con.close()

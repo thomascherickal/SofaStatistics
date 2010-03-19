@@ -85,7 +85,7 @@ class SafeTblNameValidator(wx.PyValidator):
     def __init__(self, name_ok_to_reuse):
         wx.PyValidator.__init__(self)
         self.name_ok_to_reuse = name_ok_to_reuse
-        self.Bind(wx.EVT_CHAR, self.OnChar)
+        self.Bind(wx.EVT_CHAR, self.on_char)
     
     def Clone(self):
         # wxPython
@@ -105,8 +105,7 @@ class SafeTblNameValidator(wx.PyValidator):
             textCtrl.Refresh()
             return True
     
-    def OnChar(self, event):
-        # wxPython
+    def on_char(self, event):
         # allow backspace and delete (both) etc
         if event.GetKeyCode() in [wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE, 
                                   wx.WXK_BACK, wx.WXK_LEFT, wx.WXK_RIGHT]:

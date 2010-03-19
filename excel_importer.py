@@ -78,6 +78,7 @@ class FileImporter(object):
             table to final name.
         """
         debug = False
+        wx.BeginBusyCursor()
         try:
             wkbook = excel_reader.Workbook(self.file_path, 
                                            sheets_have_hdrs=self.has_header)
@@ -90,9 +91,11 @@ class FileImporter(object):
             ok_fld_names = importer.process_fld_names(orig_fld_names)
             if debug: print(ok_fld_names)
         except IOError, e:
+            wx.EndBusyCursor()
             raise Exception, (u"Unable to find file \"%s\" for importing." % 
                               self.file_path)
         except Exception, e:
+            wx.EndBusyCursor()
             raise Exception, (u"Unable to read spreadsheet. "
                 u"Orig error: %s" % e)
         con, cur, unused, unused, unused, unused, unused = \
@@ -113,12 +116,15 @@ class FileImporter(object):
         # sample.  Can't just pass in spreadsheet.
         remaining_data = [x for x in wksheet][sample_n:]
         gauge_start = steps_per_item*sample_n
-        nulled_dots = importer.add_to_tmp_tbl(con, cur, self.file_path, 
+        try:
+            nulled_dots = importer.add_to_tmp_tbl(con, cur, self.file_path, 
                         self.tbl_name, ok_fld_names, orig_fld_names, 
                         fld_types, sample_data, sample_n, remaining_data, 
                         progbar, steps_per_item, gauge_start, keep_importing)
-        importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path,
-                                  progbar, nulled_dots)
+            importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path,
+                                      progbar, nulled_dots)
+        except Exception:
+            wx.EndBusyCursor()
         cur.close()
         con.commit()
         con.close()

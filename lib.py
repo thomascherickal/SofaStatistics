@@ -17,6 +17,13 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
+def get_fld_names(n):
+    fldnames = []
+    for i in range(n):
+        fldname = mg.NEXT_FLD_NAME_TEMPLATE % (i+1,)
+        fldnames.append(fldname)
+    return fldnames
+
 def get_next_fld_name(existing_var_names):
     nums_used = []
     for var_name in existing_var_names:
