@@ -252,7 +252,12 @@ def export_script(script, fil_script, fil_report, css_fils, con_dets, dbe, db,
         f.close()
     else:
         existing_script = None
-    f = codecs.open(fil_script, "w", "utf-8")
+    try:
+        f = codecs.open(fil_script, "w", "utf-8")
+    except IOError:
+        wx.MessageBox(_("Problem making script file named \"%s\". "
+                        "Please try another name.") % fil_script)
+        return
     if existing_script:
         f.write(_strip_script(existing_script))
     else:
@@ -263,7 +268,7 @@ def export_script(script, fil_script, fil_report, css_fils, con_dets, dbe, db,
                            inc_divider=True)
     add_end_script_code(f)
     f.close()
-    wx.MessageBox(_("Script added to end of %s " % fil_script +
+    wx.MessageBox(_("Script added to end of \"%s\" " % fil_script +
                     "ready for reuse and automation"))
 
 def add_divider_code(f, db, tbl, tbl_filt_label, tbl_filt):

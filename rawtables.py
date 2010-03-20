@@ -119,7 +119,7 @@ class RawTable(object):
                 # process row data to display
                 # cell contents
                 if col_val_dics[i]: # has a label dict
-                    row_val = col_val_dics[i].get(row[i], u"-") # label from dic
+                    row_val = col_val_dics[i].get(row[i], row[i]) # use if poss
                 else:
                     if row[i] or row[i] in (u"", 0):
                         row_val = row[i]
