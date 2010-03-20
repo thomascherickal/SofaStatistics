@@ -17,6 +17,11 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
+def safe_end_cursor():
+    "Problems in Windows if no matching beginning cursor."
+    if wx.IsBusy():
+        wx.EndBusyCursor()
+
 def get_fld_names(n):
     fldnames = []
     for i in range(n):

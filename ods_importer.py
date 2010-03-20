@@ -1,6 +1,7 @@
 from __future__ import print_function
 import wx
 
+import lib
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import ods_reader
 import getdata
@@ -95,9 +96,9 @@ class FileImporter(object):
             importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path,
                                       progbar, nulled_dots)
         except Exception:
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
         cur.close()
         con.commit()
         con.close()
         progbar.SetValue(0)
-        wx.EndBusyCursor()
+        lib.safe_end_cursor()

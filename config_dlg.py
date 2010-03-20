@@ -241,7 +241,7 @@ class ConfigDlg(object):
         self.filt_select()
         getdata.setup_drop_tbls(self.drop_tbls, self.dbe, self.db, self.tbls, 
                                 self.tbl)
-        event.Skip()
+        #event.Skip() - don't use or will appear twice in Windows!
 
     # report output
     def on_btn_report_path(self, event):

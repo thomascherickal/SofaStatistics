@@ -173,6 +173,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
     def on_rclick_tables(self, event):
         config_dlg.ConfigDlg.on_rclick_tables(self, event)
         self.update_examination()
+        #event.Skip() - don't use or will appear twice in Windows!
     
     def setup_var_a(self, var=None):
         self.setup_vars(var_a=True, var_b=False, var=var)

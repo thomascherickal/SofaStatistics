@@ -983,7 +983,7 @@ class TblEditor(wx.Dialog):
             if self.debug: print("%s %s" % (fld_name, 
                                             self.grid.GetColSize(col_idx)))
         self.parent.add_feedback("")
-        wx.EndBusyCursor()
+        lib.safe_end_cursor()
     
     def is_new_row(self, row):
         new_row = self.dbtbl.is_new_row(row)

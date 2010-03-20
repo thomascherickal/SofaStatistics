@@ -505,5 +505,5 @@ def display_report(parent, strContent, url_load=False):
                             print_folder=mg.INTERNAL_FOLDER, url_load=url_load)
     dlg.ShowModal()
     dlg.Destroy()
-    wx.EndBusyCursor() # again to be sure
+    lib.safe_end_cursor() # again to be sure
     

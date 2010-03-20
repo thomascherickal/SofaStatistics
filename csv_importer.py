@@ -211,7 +211,7 @@ class FileImporter(object):
             reader = csv.DictReader(csvfile, dialect=dialect, 
                                     fieldnames=ok_fld_names)
         except csv.Error, e:
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
             if unicode(e).startswith("new-line character seen in unquoted"
                                      " field"):
                 self.fix_text()
@@ -219,7 +219,7 @@ class FileImporter(object):
             else:
                 raise Exception, unicode(e)
         except Exception, e:
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
             raise Exception, "Unable to create reader for file. " + \
                 "Orig error: %s" % e
         con, cur, unused, unused, unused, unused, unused = \
@@ -242,7 +242,7 @@ class FileImporter(object):
             importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path, 
                                       progbar, nulled_dots)
         except Exception:
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
         cur.close()
         con.commit()
         con.close()

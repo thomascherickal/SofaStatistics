@@ -82,7 +82,7 @@ class DimNode(tree.Node):
                  has_tot=False, sort_order=mg.SORT_NONE, bolnumeric=False):
         ""
         self.fld = fld
-        self.filt_flds = [] #only built up when added as a child to another DimNode
+        self.filt_flds = [] # only built when added as child to another DimNode
         if not label and fld is not None:
             self.label = fld.title()
         else:
@@ -190,8 +190,9 @@ class DimTable(object):
       
     def process_row_tree(self, tree_row_labels, css_idx):
         "Turn row label tree into labels"
-        #print(tree_row_labels) #debug
-        row_label_cols_n = tree_row_labels.get_depth() - 1 #exclude root node
+        debug = False
+        if debug: print(tree_row_labels)
+        row_label_cols_n = tree_row_labels.get_depth() - 1 # exclude root node
         try:
             row_label_rows_n = len(tree_row_labels.get_terminal_nodes())
         except my_exceptions.NoNodesException:

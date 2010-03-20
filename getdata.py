@@ -410,7 +410,7 @@ def refresh_db_dets(parent):
     if debug:
         print(u"Db is: %s" % db)
         print(u"Tbl is: %s" % tbl)
-    wx.EndBusyCursor()
+    lib.safe_end_cursor()
     return dbe, db, con, cur, tbls, tbl, flds, has_unique, idxs
 
 def refresh_tbl_dets(parent):
@@ -421,7 +421,7 @@ def refresh_tbl_dets(parent):
                          parent.default_tbls, parent.con_dets, parent.db, tbl)
     flds = dbdetsobj.get_tbl_flds(parent.cur, parent.db, tbl)
     has_unique, idxs = dbdetsobj.get_index_dets(parent.cur, parent.db, tbl)
-    wx.EndBusyCursor()
+    lib.safe_end_cursor()
     return tbl, flds, has_unique, idxs
 
 def get_default_db_dets():

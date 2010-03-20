@@ -131,7 +131,7 @@ class DimTree(object):
             if selected_idxs:
                 tree.UnselectAll() # multiple
                 tree.SelectItem(new_id)
-                if tree == tree == self.rowtree:
+                if tree == self.rowtree:
                     self.setup_row_btns()
                 else:
                     self.setup_col_btns()

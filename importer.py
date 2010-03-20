@@ -593,19 +593,15 @@ class ImportFileSelectDlg(wx.Dialog):
             try:
                 file_importer.import_content(self.progbar, self.keep_importing,
                                              self.lbl_feedback)
+                lib.safe_end_cursor()
             except ImportCancelException, e:
-                try:
-                    wx.EndBusyCursor()
-                except Exception:
-                    pass
+                lib.safe_end_cursor()
                 self.keep_importing.discard(False)
                 self.keep_importing.add(True)
                 wx.MessageBox(unicode(e))
             except Exception, e:
-                try:
-                    wx.EndBusyCursor()
-                except Exception:
-                    pass
+                lib.safe_end_cursor()
                 wx.MessageBox(_("Unable to import data\n\nError") + u": %s" % e)
+            
         self.align_btns_to_importing(importing=False)
         event.Skip()

@@ -48,13 +48,15 @@ class DemoTable(object):
             html = output.get_html_hdr(hdr_title=_(u"Report(s)"), 
                                        css_fils=[self.fil_css], 
                                        default_if_prob=True)
+            html += u"<table cellspacing='0'>\n" # IE6 - no CSS borderspacing
+            (hdr_html, body_html) = self.get_html_parts(css_idx)
         except my_exceptions.MissingCssException:
             raise my_exceptions.MissingCssException # pass it on
+        except my_exceptions.TooFewValsForDisplay:
+            raise my_exceptions.TooFewValsForDisplay # pass it on
         except Exception, e:
             wx.MessageBox(_("Unable to make report.  Error details: %s" % e))
             raise Exception, unicode(e)
-        html += u"<table cellspacing='0'>\n" # IE6 - no CSS borderspacing
-        (hdr_html, body_html) = self.get_html_parts(css_idx)
         html += hdr_html
         html += body_html
         html += u"\n</table>"

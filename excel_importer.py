@@ -1,6 +1,7 @@
 from __future__ import print_function
 import wx
 
+import lib
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import excel_reader
 import getdata
@@ -91,11 +92,11 @@ class FileImporter(object):
             ok_fld_names = importer.process_fld_names(orig_fld_names)
             if debug: print(ok_fld_names)
         except IOError, e:
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
             raise Exception, (u"Unable to find file \"%s\" for importing." % 
                               self.file_path)
         except Exception, e:
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
             raise Exception, (u"Unable to read spreadsheet. "
                 u"Orig error: %s" % e)
         con, cur, unused, unused, unused, unused, unused = \
@@ -124,7 +125,7 @@ class FileImporter(object):
             importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path,
                                       progbar, nulled_dots)
         except Exception:
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
         cur.close()
         con.commit()
         con.close()

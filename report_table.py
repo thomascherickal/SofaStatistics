@@ -105,7 +105,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.url_load = True # btn_expand    
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.get_var_dets(fil_var_dets)
-        self.col_no_vars_item = None # needed if no variable in columns
+        self.col_no_vars_item = None # needed if no variable in columns.  Must
+            # reset to None if deleted all col vars
         # set up panel for frame
         self.panel = wx.Panel(self)
         config_dlg.add_icon(frame=self)
@@ -301,9 +302,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         """
         if self.tab_type == mg.RAW_DISPLAY:
             self.demo_tab.update_flds(self.flds)
-        self.rowtree.DeleteChildren(self.rowroot)
-        self.coltree.DeleteChildren(self.colroot)
-        self.add_default_column_config()
+        self.delete_all_dim_children()
+        self.col_no_vars_item = None
+        if self.tab_type == mg.FREQS_TBL:
+            self.add_default_column_config()
         self.setup_row_btns()
         self.setup_col_btns()
         self.setup_action_btns()
@@ -344,6 +346,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.tab_type = self.rad_tab_type.GetSelection() #for convenience
         # delete all col vars and, if row aumm or raw display, all row vars
         self.coltree.DeleteChildren(self.colroot)
+        self.col_no_vars_item = None
         if self.tab_type in (mg.ROW_SUMM, mg.RAW_DISPLAY):
             self.rowtree.DeleteChildren(self.rowroot)
         # link to appropriate demo table type
@@ -471,7 +474,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "
                                             "or set another"))
-                wx.EndBusyCursor()
+                lib.safe_end_cursor()
                 event.Skip()
                 return
             script = self.get_script(has_cols, css_idx)
@@ -479,7 +482,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                     add_to_report, self.fil_report, css_fils, script, 
                     self.con_dets, self.dbe, self.db, self.tbl, 
                     self.default_dbs, self.default_tbls)
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
             # test JS charting
             """f = open("/home/g/Desktop/testrob1.htm", "r")
             str_content = f.read()
@@ -505,7 +508,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "
                                             "or set another"))
-                wx.EndBusyCursor()
+                lib.safe_end_cursor()
                 event.Skip()
                 return
             script = self.get_script(has_cols, css_idx)
@@ -708,15 +711,22 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         Export script if enough data to create table.
         """
         wx.MessageBox("Not available yet in this version")
-        
+    
+    def delete_all_dim_children(self):
+        """
+        If wiping columns, must always reset col_no_vars_item to None.
+        """
+        self.rowtree.DeleteChildren(self.rowroot)
+        self.coltree.DeleteChildren(self.colroot)
+        self.col_no_vars_item = None
+          
     def on_btn_clear(self, event):
         "Clear all settings"
         self.txt_titles.SetValue("")        
         self.txt_subtitles.SetValue("")
         self.rad_tab_type.SetSelection(mg.FREQS_TBL)
         self.tab_type = mg.FREQS_TBL
-        self.rowtree.DeleteChildren(self.rowroot)
-        self.coltree.DeleteChildren(self.colroot)
+        self.delete_all_dim_children()
         self.update_by_tab_type()
 
     def on_close(self, event):
@@ -750,6 +760,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         If only changing titles or subtitles, keep the rest constant.
         """
         debug = False
+        demo_html = u""
         self.btn_expand.Enable(False)
         if titles_only:
             if self.prev_demo:
@@ -759,12 +770,23 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             else:
                 demo_tbl_html = WAITING_MSG
         else:
-            demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
-            if demo_html == "":
+            try:
+                demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
+            except my_exceptions.MissingCssException:
+                self.update_local_display(_("Please check the CSS file exists "
+                                            "or set another"))
+                lib.safe_end_cursor()
+                return
+            except my_exceptions.TooFewValsForDisplay:
+                self.update_local_display(_("Not enough data to display.  "
+                                "Please check variables and any filtering."))
+                lib.safe_end_cursor()
+                return
+            if demo_html == u"":
                 demo_tbl_html = WAITING_MSG
                 self.prev_demo = None
             else:
-                demo_tbl_html = ("<h1>%s</h1>\n" % 
+                demo_tbl_html = (u"<h1>%s</h1>\n" % 
                      _("Example data - click 'Run' for actual results") +
                      demo_html)
                 self.prev_demo = demo_tbl_html

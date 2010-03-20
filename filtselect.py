@@ -171,7 +171,7 @@ class FiltSelectDlg(wx.Dialog):
         szr_extra_btns = wx.BoxSizer(wx.HORIZONTAL)
         szr_std_btns = wx.StdDialogButtonSizer()
         # assemble
-        szr_extra_btns.Add(btnVarDets, 0, wx.ALIGN_LEFT)
+        szr_extra_btns.Add(btn_var_dets, 0, wx.ALIGN_LEFT)
         szr_std_btns.AddButton(btn_cancel)
         szr_std_btns.AddButton(btn_ok)
         szr_std_btns.Realize()

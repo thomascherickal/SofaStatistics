@@ -192,7 +192,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         """
         config_dlg.ConfigDlg.on_rclick_tables(self, event)
         self.refresh_vals()
-        event.Skip()
+        # event.Skip() - don't use or will appear twice in Windows!
 
     def on_rclick_group_by(self, event):
         var_gp, choice_item = self.get_group_by()
@@ -501,7 +501,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "
                                             "or set another"))
-                wx.EndBusyCursor()
+                lib.safe_end_cursor()
                 event.Skip()
                 return
             script = self.get_script(css_idx, add_to_report, self.fil_report)
@@ -509,7 +509,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                     add_to_report, self.fil_report, css_fils, script, 
                     self.con_dets, self.dbe, self.db, self.tbl, 
                     self.default_dbs, self.default_tbls)
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
             self.update_local_display(str_content)
             self.str_content = str_content
             self.btn_expand.Enable(bolran_report)

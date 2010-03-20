@@ -516,7 +516,7 @@ class StartFrame(wx.Frame):
                                 default_dbs, default_tbls, 
                                 proj_dic["fil_var_dets"], proj_dic["fil_css"], 
                                 proj_dic["fil_report"], proj_dic["fil_script"])
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
             dlg.ShowModal()
         except Exception, e:
             msg = _("Unable to connect to data as defined in project %s. "
@@ -524,7 +524,7 @@ class StartFrame(wx.Frame):
             wx.MessageBox(msg)
             raise Exception, u"%s. Orig error: %s" % (msg, e) 
         finally:
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
             event.Skip()
         
     def on_tables_enter(self, event):
@@ -573,7 +573,7 @@ class StartFrame(wx.Frame):
                                 proj_dic["con_dets"], default_dbs, default_tbls, 
                                 proj_dic["fil_var_dets"], proj_dic["fil_css"], 
                                 proj_dic["fil_report"], proj_dic["fil_script"])
-                wx.EndBusyCursor()
+                lib.safe_end_cursor()
                 dlg.ShowModal()
             except Exception, e:
                 msg = _("Unable to connect to data as defined in project %s.  "
@@ -581,7 +581,7 @@ class StartFrame(wx.Frame):
                 wx.MessageBox(msg)
                 raise Exception, u"%s.  Orig error: %s" % (msg, e) 
             finally:
-                wx.EndBusyCursor()
+                lib.safe_end_cursor()
                 event.Skip()
         elif charts == CHARTS_JS:
             import output
@@ -694,7 +694,7 @@ class StartFrame(wx.Frame):
                         dbe, proj_dic["con_dets"], default_dbs, default_tbls, 
                         proj_dic["fil_var_dets"], proj_dic["fil_css"], 
                         proj_dic["fil_report"], proj_dic["fil_script"])
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
             dlg.ShowModal()
         except Exception, e:
             msg = _("Unable to connect to data as defined in project %s.  "
@@ -702,7 +702,7 @@ class StartFrame(wx.Frame):
             wx.MessageBox(msg)
             raise Exception, u"%s.  Orig error: %s" % (msg, e)
         finally:
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
             event.Skip()
         
     def on_stats_enter(self, event):
@@ -744,7 +744,7 @@ class StartFrame(wx.Frame):
         for delme in glob.glob(int_img_pattern):
             if debug: print(delme)
             os.remove(delme)
-        wx.EndBusyCursor()
+        lib.safe_end_cursor()
         self.Destroy()
         sys.exit()
         

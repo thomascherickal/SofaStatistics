@@ -6,6 +6,7 @@ import wx
 
 import my_globals as mg
 import config_globals
+import lib
 import db_grid
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
@@ -43,7 +44,7 @@ class DataSelectDlg(wx.Dialog):
         try:
             self.con_dets = proj_dic["con_dets"]
         except KeyError, e:
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
             msg = (u"The \"%s\" project uses the old " % proj_name +
                    u"conn_dets label rather than the new con_dets label. "
                    u" Please fix and try again.")
@@ -67,7 +68,7 @@ class DataSelectDlg(wx.Dialog):
             (self.con, self.cur, self.dbs, self.tbls, self.flds, 
                 self.has_unique, self.idxs) = dbdetsobj.get_db_dets()
         except Exception, e:
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
             wx.MessageBox(_("Unable to connect to data as defined in " 
                 "project %s.  Please check your settings." % proj_name))
             raise Exception, unicode(e) # for debugging
@@ -132,7 +133,7 @@ class DataSelectDlg(wx.Dialog):
         self.szr_main.SetSizeHints(self)
         self.Layout()
         self.btn_enablement()
-        wx.EndBusyCursor()
+        lib.safe_end_cursor()
 
     def add_feedback(self, feedback):
         self.lblFeedback.SetLabel(feedback)
@@ -191,7 +192,7 @@ class DataSelectDlg(wx.Dialog):
                                     self.var_notes, self.var_types,
                                     self.val_dics, self.fil_var_dets, self.idxs, 
                                     readonly, set_col_widths=set_col_widths)
-            wx.EndBusyCursor()
+            lib.safe_end_cursor()
             dlg.ShowModal()
         event.Skip()
     
@@ -421,7 +422,7 @@ class DataSelectDlg(wx.Dialog):
                                 self.var_labels, self.var_notes, self.var_types,
                                 self.val_dics, self.fil_var_dets, self.idxs, 
                                 readonly)
-        wx.EndBusyCursor()
+        lib.safe_end_cursor()
         dlg.ShowModal()
         self.btn_enablement()
         event.Skip()

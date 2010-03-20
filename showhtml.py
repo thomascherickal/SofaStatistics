@@ -2,6 +2,7 @@ import wx
 import os
 
 import my_globals as mg
+import lib
 import full_html
 
 def get_html(title, content, template, root="", file_name="", print_folder=""):
@@ -68,7 +69,7 @@ class ShowHTML(wx.Dialog):
         szr_main.Add(szr_btns, 0, wx.GROW)
         self.SetSizer(szr_main)
         self.Layout()
-        wx.EndBusyCursor()
+        lib.safe_end_cursor()
         
     def on_print(self, event):
         "Print page"
