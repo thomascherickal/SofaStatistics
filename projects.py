@@ -289,7 +289,7 @@ class GetSettings(settings_grid.SettingsEntryDlg):
                      ]
         grid_size = (250, 250)
         wx.Dialog.__init__(self, None, title=title,
-                          size=(500,400), 
+                          size=(500,400), pos=(350,100),
                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
                               wx.SYSTEM_MENU)
         self.panel = wx.Panel(self)
