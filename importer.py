@@ -350,14 +350,14 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
         raise Exception, u"Unable to rename temporary table.  Orig error: %s" \
             % e
     progbar.SetValue(GAUGE_STEPS)
-    msg = _("Successfully imported data from '%(fil)s' to '%(tbl)s' in the "
-            "default SOFA database.")
+    msg = _("Successfully imported data as\n\"%(tbl)s\".")
     if nulled_dots:
         msg += _("\n\nAt least one field contained a single dot '.'.  This was "
                  "converted into a missing value.")
-    msg += _("\n\nClick on 'Enter/Edit Data' on the main form to view your "
-             "imported data.")
-    wx.MessageBox(msg % {"fil": file_path, "tbl": tbl_name})
+    msg += _("\n\nYou can view your imported data by clicking on "
+             "'Enter/Edit Data' on the main form. You'll find it in the "
+             "'SOFA_Default_db' database.")
+    wx.MessageBox(msg % {"tbl": tbl_name})
         
     
 class ImportFileSelectDlg(wx.Dialog):
@@ -368,7 +368,7 @@ class ImportFileSelectDlg(wx.Dialog):
         """
         title = _("Select file to import") + u" (csv/xls/ods)"
         wx.Dialog.__init__(self, parent=parent, title=title,
-                           size=(500, 300), 
+                           size=(550, 300), 
                            style=wx.CAPTION|wx.CLOSE_BOX|
                            wx.SYSTEM_MENU, pos=(300, 100))
         self.parent = parent
@@ -380,7 +380,7 @@ class ImportFileSelectDlg(wx.Dialog):
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         # file path
-        lbl_file_path = wx.StaticText(self.panel, -1, _("File:"))
+        lbl_file_path = wx.StaticText(self.panel, -1, _("Source File:"))
         lbl_file_path.SetFont(lblfont)
         self.txt_file = wx.TextCtrl(self.panel, -1, u"", size=(320,-1))
         self.txt_file.Bind(wx.EVT_CHAR, self.on_file_char)
@@ -390,12 +390,12 @@ class ImportFileSelectDlg(wx.Dialog):
         btn_file_path.SetDefault()
         # comment
         lbl_comment = wx.StaticText(self.panel, -1, 
-            _("The file will be imported into the SOFA_Default_db database "
-              "with the table name recorded below"))
+            _("The Source File will be imported into SOFA with the SOFA Table "
+              "Name recorded below:"))
         # internal SOFA name
-        lbl_int_name = wx.StaticText(self.panel, -1, _("SOFA Name:"))
+        lbl_int_name = wx.StaticText(self.panel, -1, _("SOFA Table Name:"))
         lbl_int_name.SetFont(lblfont)
-        self.txt_int_name = wx.TextCtrl(self.panel, -1, "")
+        self.txt_int_name = wx.TextCtrl(self.panel, -1, "", size=(280,-1))
         self.txt_int_name.Bind(wx.EVT_CHAR, self.on_int_name_char)
         # feedback
         self.lbl_feedback = wx.StaticText(self.panel)
@@ -429,7 +429,7 @@ class ImportFileSelectDlg(wx.Dialog):
         szr_close.Add(self.btn_close, 0, wx.ALIGN_RIGHT)
         szr_main.Add(szr_file_path, 0, wx.GROW|wx.TOP, 20)
         szr_main.Add(lbl_comment, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
-        szr_main.Add(szr_int_name, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(szr_int_name, 0, wx.ALL, 10)
         szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
         szr_main.Add(self.progbar, 0, wx.GROW|wx.ALL, 10)
         szr_main.Add(szr_close, 0, wx.GROW|wx.ALL, 10)
@@ -483,11 +483,11 @@ class ImportFileSelectDlg(wx.Dialog):
         if not valid_name:
             title = _("FAULTY SOFA NAME")
             msg = _("You can only use letters, numbers and underscores in a "
-                "SOFA name.  Use another name?")
+                "SOFA Table Name.  Use another name?")
             retval = wx.MessageBox(msg, title, wx.YES_NO|wx.ICON_QUESTION)
             if retval == wx.NO:
-                raise Exception, u"Had a problem with faulty SOFA table " + \
-                    u"name but user cancelled initial process of resolving it"
+                raise Exception, u"Had a problem with faulty SOFA Table " + \
+                    u"Name but user cancelled initial process of resolving it"
             elif retval == wx.YES:
                 self.txt_int_name.SetFocus()
                 return None
@@ -501,7 +501,8 @@ class ImportFileSelectDlg(wx.Dialog):
             retval = wx.MessageBox(msg % {"tbl": tbl_name, "fil": file_path}, 
                                    title, wx.YES_NO|wx.ICON_QUESTION)
             if retval == wx.NO: # no overwrite so get new one (or else!)
-                wx.MessageBox(_("Please change the SOFA name and try again"))
+                wx.MessageBox(_("Please change the SOFA Table Name and try "
+                                "again"))
                 self.txt_int_name.SetFocus()
                 return None
             elif retval == wx.YES:
@@ -554,18 +555,19 @@ class ImportFileSelectDlg(wx.Dialog):
             return
         tbl_name = self.txt_int_name.GetValue()
         if not tbl_name:
-            wx.MessageBox(_("Please select a name for the file"))
+            wx.MessageBox(_("Please select a SOFA Table Name for the file"))
             self.align_btns_to_importing(importing=False)
             self.txt_int_name.SetFocus()
             return
         bad_chars = [u"-", u" "]
         for bad_char in bad_chars:
             if bad_char in tbl_name:
-                wx.MessageBox(_("Do not include '%s' in name") % bad_char)
+                wx.MessageBox(_("Do not include '%s' in SOFA Table Name") % 
+                              bad_char)
                 self.align_btns_to_importing(importing=False)
                 return
         if tbl_name[0] in [unicode(x) for x in range(10)]:
-            wx.MessageBox(_("Table names cannot start with a digit"))
+            wx.MessageBox(_("SOFA Table Names cannot start with a digit"))
             self.align_btns_to_importing(importing=False)
             return
         try:
@@ -575,8 +577,8 @@ class ImportFileSelectDlg(wx.Dialog):
                 self.progbar.SetValue(0)
                 return
         except Exception:
-            wx.MessageBox(_("Please select a suitable table name and "
-                            "try again"))
+            wx.MessageBox(_("Please select a suitable SOFA Table Name "
+                            "and try again"))
             self.align_btns_to_importing(importing=False)
             return
         # import file
