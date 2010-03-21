@@ -124,8 +124,9 @@ class FileImporter(object):
                         progbar, steps_per_item, gauge_start, keep_importing)
             importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path,
                                       progbar, nulled_dots)
-        except Exception:
-            lib.safe_end_cursor()
+        except Exception, e:
+            importer.post_fail_tidy(progbar, con, cur, e)
+            return
         cur.close()
         con.commit()
         con.close()

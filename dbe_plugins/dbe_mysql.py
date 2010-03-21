@@ -272,8 +272,9 @@ class DbDets(getdata.DbDets):
                 ('timestamp')
             AS timestamp
             FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE TABLE_NAME=\"%s\"
-            AND TABLE_SCHEMA = \"%s\" """ % (tbl, db) 
+            WHERE TABLE_NAME = %s
+            AND TABLE_SCHEMA = %s """ % (quote_val(tbl), quote_val(db))
+        if debug: print(SQL_get_fld_dets) 
         cur.execute(SQL_get_fld_dets)
         fld_dets = cur.fetchall()
         # build dic of fields, each with dic of characteristics

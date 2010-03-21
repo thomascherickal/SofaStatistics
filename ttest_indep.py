@@ -54,7 +54,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"add_to_report = %s" % ("True" if add_to_report \
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
-                          lib.escape_win_backslashes(report_name))
+                          lib.escape_pre_write(report_name))
         script_lst.append(u"t, p, dic_a, dic_b = " + \
             u"core_stats.ttest_ind(sample_a, sample_b, label_a, label_b)")
         script_lst.append(u"ttest_indep_output = "

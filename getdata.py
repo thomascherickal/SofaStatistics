@@ -416,12 +416,18 @@ def refresh_db_dets(parent):
 def refresh_tbl_dets(parent):
     "Reset table, fields, has_unique, and idxs after a table selection."
     wx.BeginBusyCursor()
-    tbl = parent.tbls[parent.drop_tbls.GetSelection()]
-    dbdetsobj = get_db_dets_obj(parent.dbe, parent.default_dbs, 
-                         parent.default_tbls, parent.con_dets, parent.db, tbl)
-    flds = dbdetsobj.get_tbl_flds(parent.cur, parent.db, tbl)
-    has_unique, idxs = dbdetsobj.get_index_dets(parent.cur, parent.db, tbl)
-    lib.safe_end_cursor()
+    try:
+        tbl = parent.tbls[parent.drop_tbls.GetSelection()]
+        dbdetsobj = get_db_dets_obj(parent.dbe, parent.default_dbs, 
+                                    parent.default_tbls, parent.con_dets, 
+                                    parent.db, tbl)
+        flds = dbdetsobj.get_tbl_flds(parent.cur, parent.db, tbl)
+        has_unique, idxs = dbdetsobj.get_index_dets(parent.cur, parent.db, tbl)
+    except Exception, e:
+        wx.MessageBox(_("Experienced problem refreshing table details"))
+        raise
+    finally:
+        lib.safe_end_cursor()
     return tbl, flds, has_unique, idxs
 
 def get_default_db_dets():

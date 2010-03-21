@@ -79,7 +79,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"add_to_report = %s" % ("True" if add_to_report \
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
-                          lib.escape_win_backslashes(report_name))
+                          lib.escape_pre_write(report_name))
         high = not self.rad_high.GetSelection()
         script_lst.append(u"p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, "
             u"mean_squ_bn = \\\n    core_stats.anova(samples, labels, "

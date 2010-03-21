@@ -305,9 +305,9 @@ def clean_bom_utf8(raw):
 if mg.IN_WINDOWS:
     import pywintypes
 
-def escape_win_backslashes(path):
-    "Useful when writing a path to a text file"
-    return path.replace("\\", "\\\\")
+def escape_pre_write(txt):
+    "Useful when writing a path to a text file etc"
+    return txt.replace("\\", "\\\\")
 
 def get_file_name(path):
     "Works on Windows paths as well"

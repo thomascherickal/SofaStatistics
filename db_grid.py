@@ -939,13 +939,14 @@ class TblEditor(wx.Dialog):
                             (self.dbtbl.rows_n, self.get_cols_n())),
                             _("Proceed with resizing columns"), 
                             style=wx.YES_NO|wx.ICON_QUESTION)
-            if retval == wx.ID_YES:
+            if retval == wx.YES:
                 self.set_col_widths()
         self.grid.SetFocus()
         event.Skip()
     
     def set_col_widths(self):
         "Set column widths based on display widths of fields"
+        debug = False
         wx.BeginBusyCursor()
         self.parent.add_feedback("Setting column widths " + \
                     "(%s columns for %s rows)..." % (self.dbtbl.GetNumberCols(), 
@@ -966,11 +967,11 @@ class TblEditor(wx.Dialog):
             elif fld_dic[mg.FLD_BOLDATETIME]:
                 col_width = 170
             if col_width:
-                if self.debug: print("Width of %s set to %s" % (fld_name, 
-                                                                col_width))
+                if debug or self.debug: 
+                    print("Width of %s set to %s" % (fld_name, col_width))
                 self.grid.SetColSize(col_idx, col_width)
             else:
-                if self.debug: print("Autosizing %s" % fld_name)
+                if debug or self.debug: print("Autosizing %s" % fld_name)
                 self.grid.AutoSizeColumn(col_idx, setAsMin=False)            
             fld_name_width = len(fld_name)*pix_per_char
             # if actual column width is small and the label width is larger,
@@ -980,8 +981,8 @@ class TblEditor(wx.Dialog):
             if actual_width < 15*pix_per_char \
                     and actual_width < fld_name_width:
                 self.grid.SetColSize(col_idx, fld_name_width)
-            if self.debug: print("%s %s" % (fld_name, 
-                                            self.grid.GetColSize(col_idx)))
+            if debug or self.debug: 
+                print("%s %s" % (fld_name, self.grid.GetColSize(col_idx)))
         self.parent.add_feedback("")
         lib.safe_end_cursor()
     

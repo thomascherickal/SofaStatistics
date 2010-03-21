@@ -664,15 +664,15 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             f.write(os.linesep + u"""# u"C:\\Users\\demo.txt" is BAD""")
             f.write(os.linesep + u"""# "C:\\\\Users\\\\demo.txt" is also BAD""")
             f.write(os.linesep + os.linesep + u"proj_notes = u\"\"\"%s\"\"\"" \
-                    % lib.escape_win_backslashes(proj_notes))
+                    % lib.escape_pre_write(proj_notes))
             f.write(os.linesep + os.linesep + u"fil_var_dets = u\"%s\"" % 
-                    lib.escape_win_backslashes(fil_var_dets))
+                    lib.escape_pre_write(fil_var_dets))
             f.write(os.linesep + u"fil_css = u\"%s\"" % \
-                    lib.escape_win_backslashes(fil_css))
+                    lib.escape_pre_write(fil_css))
             f.write(os.linesep + u"fil_report = u\"%s\"" % 
-                    lib.escape_win_backslashes(fil_report))
+                    lib.escape_pre_write(fil_report))
             f.write(os.linesep + u"fil_script = u\"%s\"" % 
-                    lib.escape_win_backslashes(fil_script))
+                    lib.escape_pre_write(fil_script))
             f.write(os.linesep + u"default_dbe = u\"%s\"" % default_dbe)
             f.write(os.linesep + os.linesep + u"default_dbs = " + \
                     pprint.pformat(default_dbs))

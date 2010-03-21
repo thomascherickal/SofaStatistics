@@ -18,7 +18,7 @@ FILE_CSV = u"csv"
 FILE_EXCEL = u"excel"
 FILE_ODS = u"ods"
 FILE_UNKNOWN = u"unknown"
-TMP_SQLITE_TBL = u"tmptbl"
+TMP_SQLITE_TBL = u"_SOFA_tmp_tbl"
 GAUGE_STEPS = 50
 
 
@@ -166,8 +166,8 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
                     except Exception:
                         pass # leave val as is for error reporting
         elif fld_type == mg.FLD_TYPE_STRING:
-            # None or dot we'll turn to NULL
-            if val is None:
+            # None or dot or empty string we'll turn to NULL
+            if val is None or val == u"":
                 val = u"NULL"
             elif val == u".":
                 nulled_dots = True
@@ -244,6 +244,21 @@ def get_steps_per_item(items_n):
         steps_per_item = None
     return steps_per_item
 
+def drop_tmp_tbl(con, cur):
+    con.commit()
+    SQL_drop_disp_tbl = u"DROP TABLE IF EXISTS %s" % TMP_SQLITE_TBL
+    cur.execute(SQL_drop_disp_tbl)
+    con.commit()
+
+def post_fail_tidy(progbar, con, cur, e):
+    drop_tmp_tbl(con, cur)
+    lib.safe_end_cursor()
+    cur.close()
+    con.commit()
+    con.close()
+    progbar.SetValue(0)
+    wx.MessageBox(_("Unable to import table.\n\nOrig err: %s") % e)
+
 def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names, 
                    fld_types, sample_data, sample_n, remaining_data, progbar, 
                    steps_per_item, gauge_start, keep_importing):
@@ -273,9 +288,7 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names,
             WHERE type = 'table'"""
         cur.execute(SQL_get_tbl_names) # otherwise it doesn't always seem to have the 
             # latest data on which tables exist
-        SQL_drop_disp_tbl = u"DROP TABLE IF EXISTS %s" % TMP_SQLITE_TBL
-        cur.execute(SQL_drop_disp_tbl)
-        con.commit()
+        drop_tmp_tbl(con, cur)
         if debug: print(u"Successfully dropped %s" % TMP_SQLITE_TBL)
     except Exception, e:
         raise

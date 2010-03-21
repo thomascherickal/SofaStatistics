@@ -274,8 +274,8 @@ class DbDets(getdata.DbDets):
             AS timestamp
             FROM information_schema.columns
             WHERE columns.table_schema::text = 'public'::text
-            AND columns.table_name = '%s'
-            ORDER BY columns.ordinal_position """ % tbl 
+            AND columns.table_name = %s
+            ORDER BY columns.ordinal_position """ % quote_val(tbl) 
         cur.execute(SQL_get_fld_dets)
         fld_dets = cur.fetchall()
         if debug: pprint.pprint(fld_dets)

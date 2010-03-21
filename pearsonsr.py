@@ -40,8 +40,8 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             u"fld_b=u\"%s\")" % var_b)
         script_lst.append(u"add_to_report = %s" % ("True" if add_to_report \
                           else "False"))
-        script_lst.append(u"report_name = u\"%s\"" % 
-                          lib.escape_win_backslashes(report_name))
+        script_lst.append(u"report_name = u\"%s\"" % \
+                          lib.escape_pre_write(report_name))
         script_lst.append(u"dp = 3")
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)

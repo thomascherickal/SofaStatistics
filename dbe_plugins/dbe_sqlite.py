@@ -153,7 +153,7 @@ class DbDets(getdata.DbDets):
         cur.execute(u"PRAGMA encoding")
         encoding = cur.fetchone()[0]
         # get field details
-        cur.execute(u"PRAGMA table_info(%s)" % tbl)
+        cur.execute(u"PRAGMA table_info(%s)" % quote_obj(tbl))
         fld_dets = cur.fetchall() 
         flds = {}
         for cid, fld_name, fld_type, notnull, dflt_value, pk in fld_dets:
