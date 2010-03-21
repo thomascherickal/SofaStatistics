@@ -99,7 +99,12 @@ class ProjSelectDlg(wx.Dialog):
                           os.linesep + os.linesep + "Details: %s" % unicode(e)))
             raise Exception, unicode(e)
         # must always be stored, even if only ""
-        self.proj_notes = projects.get_proj_notes(fil_proj, proj_dic)
+        try:
+            self.proj_notes = projects.get_proj_notes(fil_proj, proj_dic)
+        except Exception, e:
+            wx.MessageBox(_("Please check %s for errors. Use the default "
+                            "project file for reference.") % fil_proj)
+            raise Exception, e
     
     def on_proj_select(self, event):
         proj_sel_id = self.drop_projs.GetSelection()

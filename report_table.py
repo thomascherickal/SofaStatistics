@@ -332,6 +332,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     def refresh_descendants(self, tree, descendants):
         for descendant in descendants:
             # descendant -- NB GUI tree items, not my Dim Node obj
+            if descendant == self.col_no_vars_item:
+                continue
             item_conf = tree.GetItemPyData(descendant)
             var_name = item_conf.var_name
             fresh_label = lib.get_choice_item(self.var_labels, var_name)

@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-dev_debug = True
+dev_debug = False
 test_lang = False
 
 import warnings
@@ -106,7 +106,8 @@ def install_local():
         proj_str = f.read() # provided by me - no BOM or non-ascii 
         f.close()
         for path in paths:
-            new_str = lib.escape_win_path(os.path.join(LOCAL_PATH, path, u""))
+            new_str = lib.escape_win_backslashes(os.path.join(LOCAL_PATH, 
+                                                              path, u""))
             proj_str = proj_str.replace(u"/home/g/sofa/%s/" % path, new_str)
         # add MS Access and SQL Server into mix if Windows
         if mg.IN_WINDOWS:

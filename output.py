@@ -380,7 +380,7 @@ def run_report(modules, add_to_report, fil_report, css_fils, inner_script,
                        raw_results) # handles source and filter desc internally
                        # when making divider between output
         rel_display_content = u"\n<p>Output also saved to '%s'</p>" % \
-                        lib.escape_win_path(fil_report) + results_with_source
+                    lib.escape_win_backslashes(fil_report) + results_with_source
         # make relative links absolute so GUI viewers can display images
         gui_display_content = rel2abs(rel_display_content, fil_report)
     else:
@@ -407,12 +407,12 @@ def insert_prelim_code(modules, f, fil_report, css_fils):
     f.write(u"\n" + u"import numpy as np")
     f.write(u"\n" + u"gettext.install('sofa', './locale', unicode=False)")
     f.write(u"\n" + u"sys.path.append(u'%s')" % \
-            lib.escape_win_path(mg.SCRIPT_PATH))
+            lib.escape_win_backslashes(mg.SCRIPT_PATH))
     for module in modules:
         f.write(u"\n" + u"import %s" % module)
     f.write(u"\n" + u"import my_exceptions")
     f.write(u"\n" + u"\n" + u"""fil = codecs.open(u"%s",""" % \
-              lib.escape_win_path(fil_report) + u""" "w", "utf-8")""")
+              lib.escape_win_backslashes(fil_report) + u""" "w", "utf-8")""")
     css_fils_str = pprint.pformat(css_fils)
     f.write(u"\n" + u"css_fils=%s" % css_fils_str)
     f.write(u"\nfil.write(output.get_html_hdr(\"Report(s)\", css_fils, "

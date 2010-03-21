@@ -112,12 +112,12 @@ class SafeTblNameValidator(wx.PyValidator):
             event.Skip()
             return
         try:
-            key = chr(event.GetKeyCode())
+            keycode = chr(event.GetKeyCode())
         except Exception:
             return
         # allow alphanumeric and underscore
-        if key not in string.letters and key not in string.digits \
-                and key != "_":
+        if keycode not in string.letters and keycode not in string.digits \
+                and keycode != "_":
             return
         event.Skip()
     

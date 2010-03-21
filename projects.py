@@ -31,6 +31,7 @@ def get_projs():
 
 def get_proj_notes(fil_proj, proj_dic):
     """
+    Read the proj file and extract the notes part.
     If the default project, return the translated notes rather than what is 
         actually stored in the file (notes in English).
     """
@@ -39,7 +40,7 @@ def get_proj_notes(fil_proj, proj_dic):
                        "having to understand projects.  NB read only.")
     else:
         proj_notes = proj_dic["proj_notes"]
-    return proj_notes 
+    return proj_notes
     
 def get_var_dets(fil_var_dets):
     """
@@ -551,9 +552,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             self.default_dbe = proj_dic["default_dbe"]
             getdata.get_proj_con_settings(self, proj_dic)
         except Exception, e:
-            wx.MessageBox(_("Please check %s for errors e.g. conn_dets instead "
-                            "of con_dets.  Use the default project file for "
-                            "reference.") % fil_proj)
+            wx.MessageBox(_("Please check %s for errors. Use the default "
+                            "project file for reference.") % fil_proj)
             raise Exception, e
     
     def on_dbe_choice(self, event):
@@ -637,7 +637,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             default_tbls = {}
             con_dets = {}
             any_incomplete, any_cons, completed_dbes = \
-                                getdata.process_con_dets(self, default_dbs, 
+                                    getdata.process_con_dets(self, default_dbs, 
                                                          default_tbls, con_dets)
             if any_incomplete:
                 return
@@ -664,15 +664,15 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             f.write(os.linesep + u"""# u"C:\\Users\\demo.txt" is BAD""")
             f.write(os.linesep + u"""# "C:\\\\Users\\\\demo.txt" is also BAD""")
             f.write(os.linesep + os.linesep + u"proj_notes = u\"\"\"%s\"\"\"" \
-                    % proj_notes)
+                    % lib.escape_win_backslashes(proj_notes))
             f.write(os.linesep + os.linesep + u"fil_var_dets = u\"%s\"" % 
-                    lib.escape_win_path(fil_var_dets))
+                    lib.escape_win_backslashes(fil_var_dets))
             f.write(os.linesep + u"fil_css = u\"%s\"" % \
-                    lib.escape_win_path(fil_css))
+                    lib.escape_win_backslashes(fil_css))
             f.write(os.linesep + u"fil_report = u\"%s\"" % 
-                    lib.escape_win_path(fil_report))
+                    lib.escape_win_backslashes(fil_report))
             f.write(os.linesep + u"fil_script = u\"%s\"" % 
-                    lib.escape_win_path(fil_script))
+                    lib.escape_win_backslashes(fil_script))
             f.write(os.linesep + u"default_dbe = u\"%s\"" % default_dbe)
             f.write(os.linesep + os.linesep + u"default_dbs = " + \
                     pprint.pformat(default_dbs))

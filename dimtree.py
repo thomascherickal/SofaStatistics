@@ -540,7 +540,8 @@ class DlgConfig(wx.Dialog):
         item_conf = self.tree.GetItemPyData(first_node_id)
         chk_size = (150, 20)
         szr_main = wx.BoxSizer(wx.VERTICAL)
-        lbl_var = wx.StaticText(self, -1, tree.GetItemText(first_node_id))
+        var_lbl = tree.GetItemText(first_node_id)
+        lbl_var = wx.StaticText(self, -1, var_lbl)
         szr_main.Add(lbl_var, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
         if self.allow_tot:
             box_misc = wx.StaticBox(self, -1, _("Misc"))
