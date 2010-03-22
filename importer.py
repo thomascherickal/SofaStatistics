@@ -50,11 +50,17 @@ def process_fld_names(raw_names):
                           "underscores)")
     for i, name in enumerate(names):
         if not dbe_sqlite.valid_name(name):
-            raise Exception, _("Unable to use field name \"%s\". "
-                              "It is recommended that you only use letters, "
-                              "numbers and underscores. No spaces, full stops"
-                              " etc." % raw_names[i])
+            raise Exception, _("Unable to use field name \"%s\". Please only "
+                              "use letters, numbers and underscores. No spaces,"
+                              " full stops etc." % raw_names[i])
     return names
+
+def process_tbl_name(rawname):
+    """
+    Turn spaces into underscores.  NB doesn't check if a duplicate etc at this 
+        stage.
+    """
+    return rawname.replace(u" ", u"_")
 
 def assess_sample_fld(sample_data, orig_fld_name):
     """
@@ -360,8 +366,8 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
         cur.execute(SQL_rename_tbl)
         con.commit()
     except Exception, e:
-        raise Exception, u"Unable to rename temporary table.  Orig error: %s" \
-            % e
+        raise Exception, (u"Unable to rename temporary table.  Orig error: %s"
+                          % e)
     progbar.SetValue(GAUGE_STEPS)
     msg = _("Successfully imported data as\n\"%(tbl)s\".")
     if nulled_dots:
@@ -467,7 +473,8 @@ class ImportFileSelectDlg(wx.Dialog):
             path = dlg_get_file.GetPath()
             self.txt_file.SetValue(path)
             filestart, unused = self.get_file_start_ext(path)
-            self.txt_int_name.SetValue(filestart)
+            newname = process_tbl_name(filestart)
+            self.txt_int_name.SetValue(newname)
         dlg_get_file.Destroy()
         self.txt_int_name.SetFocus()
         self.align_btns_to_completeness()
@@ -494,7 +501,7 @@ class ImportFileSelectDlg(wx.Dialog):
         # check existing names
         valid_name = dbe_sqlite.valid_name(tbl_name)
         if not valid_name:
-            title = _("FAULTY SOFA NAME")
+            title = _("FAULTY SOFA TABLE NAME")
             msg = _("You can only use letters, numbers and underscores in a "
                 "SOFA Table Name.  Use another name?")
             retval = wx.MessageBox(msg, title, wx.YES_NO|wx.ICON_QUESTION)
@@ -572,7 +579,11 @@ class ImportFileSelectDlg(wx.Dialog):
             self.align_btns_to_importing(importing=False)
             self.txt_int_name.SetFocus()
             return
-        bad_chars = [u"-", u" "]
+        if u" " in tbl_name:
+            wx.MessageBox(_("SOFA Table Name can't have empty spaces"))
+            self.align_btns_to_importing(importing=False)
+            return
+        bad_chars = [u"-", ]
         for bad_char in bad_chars:
             if bad_char in tbl_name:
                 wx.MessageBox(_("Do not include '%s' in SOFA Table Name") % 

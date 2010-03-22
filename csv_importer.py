@@ -197,7 +197,8 @@ class FileImporter(object):
                 tmp_reader = csv.reader(csvfile, dialect=dialect)
                 for row in tmp_reader:
                     if debug: print(row)
-                    ok_fld_names = ["Fld_%s" % (x+1,) for x in range(len(row))]
+                    ok_fld_names = [mg.NEXT_FLD_NAME_TEMPLATE % (x+1,) 
+                                    for x in range(len(row))]
                     break
                 csvfile.seek(0)
             # estimate number of rows (only has to be good enough for progress)

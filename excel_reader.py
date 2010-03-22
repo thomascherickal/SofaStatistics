@@ -1,6 +1,8 @@
 import os
 import win32com.client
 
+import my_globals as mg
+
 # Copyright (c) Grant Paton-Simpson 2009. All rights reserved. 
 # Based on excel.py with major modifications
 # Copyright notice for excel.py: Copyright (c) Nicolas Lehuen 2005 
@@ -26,7 +28,7 @@ Handled OK in OLEDB by HDR=No. HDR=0 didn't work even though it was supposed to!
 """
 
 def get_numbered_flds(n_flds):
-    return [u"Fld_%s" % (x+1,) for x in range(n_flds)]
+    return [mg.NEXT_FLD_NAME_TEMPLATE % (x+1,) for x in range(n_flds)]
 
 def plain_process(val):
     """
