@@ -56,8 +56,8 @@ class FileImporter(object):
         Add to disposable table first and if completely successful, rename
             table to final name.
         """
-        debug = False
-        large = False
+        debug = True
+        large = True
         wx.BeginBusyCursor()
         # Use up 2/3rds of the progress bar in initial step (parsing html and  
         # then extracting data from it) and 1/3rd adding to the SQLite database.
@@ -78,8 +78,11 @@ class FileImporter(object):
                                             fldnames, prog_steps_for_xml_steps, 
                                             next_prog_val=prog_step2, 
                                             has_header=self.has_header)
-        if debug and not large:
-            print("%s" % rows)
+        if debug:
+            if large:
+                print("%s" % rows[:20])
+            else:
+                print("%s" % rows)
         con, cur, unused, unused, unused, unused, unused = \
                                                 getdata.get_default_db_dets()
         rows_n = len(rows)
@@ -95,7 +98,7 @@ class FileImporter(object):
                                 steps_per_item, gauge_start, keep_importing)
             importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path,
                                       progbar, nulled_dots)
-        except Exception:
+        except Exception, e:
             importer.post_fail_tidy(progbar, con, cur, e)
             return
         cur.close()

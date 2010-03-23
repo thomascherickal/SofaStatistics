@@ -108,6 +108,7 @@ def get_overall_fld_type(type_set):
 
 def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
     """
+    Add val to vals.
     NB field types are only a guess based on a sample of the first rows in the 
         file being imported.  Could be wrong.
     If checking, will validate and turn empty strings into nulls
@@ -478,6 +479,7 @@ class ImportFileSelectDlg(wx.Dialog):
         dlg_get_file.Destroy()
         self.txt_int_name.SetFocus()
         self.align_btns_to_completeness()
+        self.btn_import.SetDefault()
         event.Skip()
     
     def get_file_start_ext(self, path):

@@ -36,6 +36,10 @@ Example of float cell:
 xml_type_to_val_type = {"string": mg.VAL_STRING, "float": mg.VAL_NUMERIC}
 RAW_EL = u"raw element"
 ATTRIBS = u"attribs"
+COLS_REP = u"number-columns-repeated"
+ROWS_REP = u"number-rows-repeated"
+VAL_TYPE = u"value-type"
+DATE_VAL = u"date-value"
 
 def get_ods_xml_size(filename):
     myzip = zipfile.ZipFile(filename)
@@ -50,8 +54,8 @@ def get_contents_xml_tree(lbl_feedback, progbar, prog_step1, prog_step2,
     myzip.close()
     if debug: print("Starting parse process ...")
     progbar.SetValue(prog_step1)
-    lbl_feedback.SetLabel(_("Please be patient. The next step may take a "
-                            "couple of minutes ..."))
+    lbl_feedback.SetLabel(_("Please be patient. The next step may take a few "
+                            "minutes ..."))
     wx.Yield()
     tree = etree.parse(cont) # the most time-intensive bit
     lbl_feedback.SetLabel(u"")
@@ -123,7 +127,7 @@ def get_has_data_cells(el):
         if not sub_el.tag.endswith("table-cell"):
             continue
         sub_el_attribs = get_streamlined_attrib_dict(sub_el.attrib.items())
-        if u"value-type" in sub_el_attribs:
+        if VAL_TYPE in sub_el_attribs:
             return True
     return False
 
@@ -139,7 +143,7 @@ def get_data_rows(tbl, inc_empty=True, n=None):
         if not el.tag.endswith("table-row"):
             continue
         el_attribs = get_streamlined_attrib_dict(el.attrib.items())
-        if u"number-rows-repeated" in el_attribs.keys():
+        if ROWS_REP in el_attribs:
             break
         elif get_has_data_cells(el):
             datarows.extend(prev_empty_rows_to_add)
@@ -153,11 +157,33 @@ def get_data_rows(tbl, inc_empty=True, n=None):
                 break
     return datarows
 
+def get_col_rep(el_attribs):
+    """
+    Returns number of times to display column. number-columns-repeated="2" means 
+        display twice (not really repeating twice but repeating once).
+    Cells with or without value content can repeat.
+    With data: 
+        <table:table-cell table:number-columns-repeated="2" 
+                office:value-type="float" office:value="1">
+            <text:p>1</text:p>
+        </table:table-cell>
+    will be 1, 1
+    Without data:
+        <table:table-cell table:number-columns-repeated="4"/>
+    will be ,,,
+    """
+    if COLS_REP in el_attribs:
+        colrep = int(el_attribs[COLS_REP])
+    else:
+        colrep = 1
+    return colrep
+
 def get_fld_names(tbl, has_header, rows_to_sample):
     """
     Get cleaned field names.  Will be used to create row dicts as required by
         importer.add_to_tmp_tbl().
     """
+    debug = False
     if has_header:
         datarows = get_data_rows(tbl, inc_empty=False, n=1)
         try:
@@ -173,7 +199,7 @@ def get_fld_names(tbl, has_header, rows_to_sample):
         # e.g. 1,2,colspan=3,4 is 6 wide
         # e.g. 1,2,colspan=3,4, colspan=12 is still 6 wide
         # If all the rows in the sample have an empty final col (NB we have no 
-        #     header row) then we will mistakenly leave that column out. They
+        #     header row) then we will mistakenly leave that column out. Users
         #     have the option of adding a header and trying again.
         datarows = get_data_rows(tbl, inc_empty=False)
         for i, datarow in enumerate(datarows):
@@ -183,40 +209,34 @@ def get_fld_names(tbl, has_header, rows_to_sample):
             cells_n = 0
             prev_empty_cells_to_add = 0
             for el in datarow:
-                # Count every cell - look for value-type, empty table cells, 
-                #    and number-columns-repeated.  Only count the latter if 
-                #    followed by a value-type cell.
+                # Count every cell - only count empty cells (inc repeated empty
+                #     cells if followed by a value-type cell.
                 # Only interested in table cells.
                 if not el.tag.endswith("table-cell"):
                     continue
                 el_attribs = get_streamlined_attrib_dict(el.attrib.items())
-                if u"value-type" in el_attribs.keys(): # real data value
-                    el_attribs[u"value-type"]
-                    cells_n += 1
+                if VAL_TYPE in el_attribs: # real data value(s)
+                    # prev ns are counted iff followed by data cell(s) 
                     if prev_empty_cells_to_add:
                         cells_n += prev_empty_cells_to_add
                     prev_empty_cells_to_add = 0
-                elif len(el) == 0: # an empty cell
-                    if prev_empty_cells_to_add:
-                        break # if prev not followed by non-empty cell - stop
-                    prev_empty_cells_to_add = 1
-                elif u"number-columns-repeated" in el_attribs.keys(): # colspans
-                    if prev_empty_cells_to_add:
-                        break # if prev not followed by non-empty cell - stop
-                    prev_empty_cells_to_add = \
-                        el_attribs[u"number-columns-repeated"]
+                    cells_n += get_col_rep(el_attribs)
+                elif len(el) == 0: # just an an empty cell (possibly repeated)
+                    prev_empty_cells_to_add += get_col_rep(el_attribs)
                 # other
                 else:
                     pass
             if cells_n > max_row_cells:
                 max_row_cells = cells_n
         fldnames = lib.get_fld_names(max_row_cells)
+        if debug: print(fldnames)
     return fldnames
 
 def get_fld_names_from_header_row(row):
     """
     As soon as hits an empty cell, stops collecting field names.  This is the
         intended behaviour.
+    If a header cell is repeated, raise an exception.
     """
     debug = False
     orig_fld_names = []
@@ -229,22 +249,25 @@ def get_fld_names_from_header_row(row):
         fldname = None
         type = None
         if attrib_dict:
-            if u"date-value" in attrib_dict.keys():
-                fldname = attrib_dict[u"date-value"] # take proper date 
+            if COLS_REP in attrib_dict and VAL_TYPE in attrib_dict:
+                raise Exception, (_("Field name \"%s\" cannot be repeated") %
+                                  el[0].text)
+            elif DATE_VAL in attrib_dict:
+                fldname = attrib_dict[DATE_VAL] # take proper date 
                     # val e.g. 2010-02-01 rather than orig text of 01/02/10
-            elif u"value-type" in attrib_dict.keys():
+            elif VAL_TYPE in attrib_dict:
                 fldname = el[0].text # take val from inner text element
             else: # not a data cell
-                pass
+                pass # fail to set fldname
                 # e.g. <table:table-cell table:number-columns-repeated="254" 
                 # table:style-name="ACELL-0x88a3bc8"/>
-        if fldname is not None:
+        if fldname is None:
+            break # just hit an empty cell - we're done.
+        else:
             if fldname in orig_fld_names:
                 raise Exception, _("Field name \"%s\" has been repeated") % \
                                  fldname
             orig_fld_names.append(fldname)
-        else:
-            break # just hit an empty cell - we're done.
     return importer.process_fld_names(orig_fld_names)
 
 def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, prog_steps_for_xml_steps, 
@@ -323,6 +346,22 @@ def update_types_and_val_dict(coltypes, col_idx, fldnames, valdict, type,
     fldname = fldnames[col_idx]
     valdict[fldname] = val2use
 
+def process_cells(attrib_dict, coltypes, col_idx, fldnames, valdict, type, 
+                  val2use):
+    """
+    Process cell (or cells if col repeating).  Update types and valdict.
+    Return bolcontinue, col_idx to use next.
+    """
+    bolcontinue = True
+    for i in range(get_col_rep(attrib_dict)):
+        update_types_and_val_dict(coltypes, col_idx, fldnames, valdict, type, 
+                                  val2use)
+        if col_idx == len(fldnames) - 1:
+            bolcontinue = False
+            break
+        col_idx += 1
+    return bolcontinue, col_idx
+
 def dets_from_row(fldnames, coltypes, row):
     """
     Update coltypes and return dict of values in row (using fldnames as keys).
@@ -336,46 +375,38 @@ def dets_from_row(fldnames, coltypes, row):
     tbl_cell_el_dets = get_tbl_cell_el_dets(row)
     col_idx = 0
     for el_det in tbl_cell_el_dets:
-        attrib_dict = el_det[ATTRIBS]
+        attrib_dict = el_det[ATTRIBS] # already streamlined
         # the defaults unless overridden by actual data
         val2use = u""
         type = mg.VAL_EMPTY_STRING
-        if u"date-value" in attrib_dict.keys():
+        if DATE_VAL in attrib_dict:
             type = mg.VAL_DATETIME
-            val2use = attrib_dict[u"date-value"] # take proper date 
-                # val e.g. 2010-02-01 rather than orig text of 01/02/10
-            update_types_and_val_dict(coltypes, col_idx, fldnames, valdict, 
-                                      type, val2use)
-            if col_idx == len(fldnames) - 1:
+            val2use = attrib_dict[DATE_VAL] # take proper date value
+                            # e.g. 2010-02-01 rather than orig text of 01/02/10
+            bolcontinue, col_idx = process_cells(attrib_dict, coltypes, col_idx, 
+                                            fldnames, valdict, type, val2use)
+            if not bolcontinue:
                 break
-            col_idx += 1
-        elif u"value-type" in attrib_dict.keys():
-            xml_type = attrib_dict[u"value-type"]
+        elif VAL_TYPE in attrib_dict:
+            xml_type = attrib_dict[VAL_TYPE]
             try:
                 type = xml_type_to_val_type[xml_type]
             except KeyError:
                 raise Exception, (u"Unknown value-type. Update "
                                   u"ods_reader.xml_type_to_val_type")
             val2use = el_det[RAW_EL][0].text # take val from inner text element
-            update_types_and_val_dict(coltypes, col_idx, fldnames, valdict, 
-                                      type, val2use)
-            if col_idx == len(fldnames) - 1:
+            bolcontinue, col_idx = process_cells(attrib_dict, coltypes, col_idx, 
+                                            fldnames, valdict, type, val2use)
+            if not bolcontinue:
                 break
-            col_idx += 1
-        elif u"number-columns-repeated" in attrib_dict.keys():
-            colspan = int(attrib_dict[u"number-columns-repeated"])
-            # need an empty cell for each column spanned (until hit max cols)
-            for i in range(colspan):
-                update_types_and_val_dict(coltypes, col_idx, fldnames, valdict, 
-                                          type=mg.VAL_EMPTY_STRING, val2use=u"")
-                if col_idx == len(fldnames) - 1:
-                    break
-                col_idx += 1
-        elif len(el_det[RAW_EL]) == 0: # single empty cell
-            update_types_and_val_dict(coltypes, col_idx, fldnames, valdict, 
-                                      type=mg.VAL_EMPTY_STRING, val2use=u"")
-            if col_idx == len(fldnames) - 1:
+        elif len(el_det[RAW_EL]) == 0: # empty cell(s)
+            # need empty cell for each column spanned (until hit max cols)
+            bolcontinue, col_idx = process_cells(attrib_dict, coltypes, col_idx, 
+                                         fldnames, valdict, 
+                                         type=mg.VAL_EMPTY_STRING, val2use=u"")
+            if not bolcontinue:
                 break
-            col_idx += 1
+        else:
+            pass
     if debug: print(unicode(valdict))
     return coltypes, valdict
