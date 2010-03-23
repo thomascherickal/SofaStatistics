@@ -55,29 +55,17 @@ def get_dialect(file_path):
     return dialect
     
     
-class FileImporter(object):
+class CsvImporter(importer.FileImporter):
     """
     Import csv file into default SOFA SQLite database.
     Needs to identify data types to ensure only consistent data in a field.
     Adds unique index id so can identify unique records with certainty.
     """
     
-    def __init__(self, file_path, tbl_name):                    
-        self.file_path = file_path
-        self.tbl_name = tbl_name
-        self.has_header = True
+    def __init__(self, parent, file_path, tbl_name):
+        importer.FileImporter.__init__(self, parent, file_path, tbl_name)
+        self.ext = u"CSV"
         
-    def get_params(self):
-        """
-        Get any user choices required.
-        Letting the csv module test for a header is too unreliable if mixed 
-            data.  Easier just to ask the user as with Excel.
-        """
-        retCode = wx.MessageBox(_("Does the file have a header row?"), 
-                                _("HEADER ROW?"), wx.YES_NO|wx.ICON_INFORMATION)
-        self.has_header = (retCode == wx.YES)
-        return True
-    
     def assess_sample(self, reader, progbar, steps_per_item, keep_importing):
         """
         Assess data sample to identify field types based on values in fields.

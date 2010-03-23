@@ -1,6 +1,7 @@
 from __future__ import print_function
 import wx
 
+import my_globals as mg
 import lib
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import ods_reader
@@ -15,7 +16,7 @@ else:
     ROWS_TO_SAMPLE = 500 # fast enough to sample quite a few
 
 
-class FileImporter(object):
+class OdsImporter(importer.FileImporter):
     """
     Import ODS file (OpenOffice Calc, Gnumeric etc) into default SOFA SQLite 
         database.
@@ -23,31 +24,25 @@ class FileImporter(object):
     Adds unique index id so can identify unique records with certainty.
     """
     
-    def __init__(self, file_path, tbl_name):                    
-        self.file_path = file_path
-        self.tbl_name = tbl_name
-        self.has_header = True
+    def __init__(self, parent, file_path, tbl_name):
+        importer.FileImporter.__init__(self, parent, file_path, tbl_name)
+        self.ext = u"ODS"
         
     def get_params(self):
         """
         Get any user choices required.
         """
+        debug = False
         size = ods_reader.get_ods_xml_size(self.file_path)
         if size > 1000000:
-            size_lbl = "%s MB" % (round(size/(1024*1024.0),2),)
-            retval = wx.MessageBox(_("This spreadsheet is large (%s).  "
-                            "Instead of importing, it would be faster to save "
-                            "as csv and import the csv version.\n\nImport now "
-                            "anyway?" % size_lbl), 
-                            _("SLOW IMPORT"), 
-                            wx.YES_NO | wx.ICON_INFORMATION)
+            retval = wx.MessageBox(_("This spreadsheet may take a while to "
+                            "import.\n\nInstead of importing, it could be "
+                            "faster to save as csv and import the csv " 
+                            "version.\n\nImport now anyway?"), 
+                            _("SLOW IMPORT"), wx.YES_NO | wx.ICON_INFORMATION)
             if retval == wx.NO:
                 return False
-        retval = wx.MessageBox(_("Does the spreadsheet have a header row?"), 
-                               _("HEADER ROW?"), 
-                               wx.YES_NO | wx.ICON_INFORMATION)
-        self.has_header = (retval == wx.YES)
-        return True
+        return importer.FileImporter.get_params(self) # checking for header
     
     def import_content(self, progbar, keep_importing, lbl_feedback):
         """
@@ -56,7 +51,7 @@ class FileImporter(object):
         Add to disposable table first and if completely successful, rename
             table to final name.
         """
-        debug = True
+        debug = False
         large = True
         wx.BeginBusyCursor()
         # Use up 2/3rds of the progress bar in initial step (parsing html and  

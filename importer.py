@@ -8,10 +8,7 @@ from my_exceptions import ImportCancelException
 import config_dlg
 import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
-import csv_importer
-if mg.IN_WINDOWS:
-    import excel_importer
-import ods_importer
+# import csv_importer etc below to avoid circular import
 import projects
 
 FILE_CSV = u"csv"
@@ -378,7 +375,95 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
              "'Enter/Edit Data' on the main form. You'll find it in the "
              "'SOFA_Default_db' database.")
     wx.MessageBox(msg % {"tbl": tbl_name})
+
+class HasHeaderDlg(wx.Dialog):
+    def __init__(self, parent, ext):
+        wx.Dialog.__init__(self, parent=parent, title=_("Header row?"),
+                           size=(550, 300), 
+                           style=wx.CAPTION|wx.CLOSE_BOX|
+                           wx.SYSTEM_MENU, pos=(400, 120))
+        self.parent = parent
+        self.panel = wx.Panel(self)
+        szr_main = wx.BoxSizer(wx.VERTICAL)
+        szr_btns = wx.BoxSizer(wx.HORIZONTAL)
+        lbl_explan = wx.StaticText(self.panel, -1, _("Does your %s file have a "
+                                                     "header row?") % ext)
+        bold = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
+        lbl_with_header = wx.StaticText(self.panel, -1, 
+                                        _("Example with header"))
+        lbl_with_header.SetFont(font=bold)
+        img_ctrl_with_header = wx.StaticBitmap(self.panel)
+        img_with_header = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                                u"%s_with_header.xpm" % ext), 
+                                                wx.BITMAP_TYPE_XPM)
+        bmp_with_header = wx.BitmapFromImage(img_with_header)
+        img_ctrl_with_header.SetBitmap(bmp_with_header)
+        lbl_without_header = wx.StaticText(self.panel, -1, _("Example without"))
+        lbl_without_header.SetFont(font=bold)
+        img_ctrl_without_header = wx.StaticBitmap(self.panel)
+        img_without_header = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                               u"%s_without_header.xpm" % ext), 
+                                               wx.BITMAP_TYPE_XPM)
+        bmp_without_header = wx.BitmapFromImage(img_without_header)
+        img_ctrl_without_header.SetBitmap(bmp_without_header)
+        btn_has_header = wx.Button(self.panel, mg.HAS_HEADER, 
+                                   _("Has Header Row"))
+        btn_has_header.Bind(wx.EVT_BUTTON, self.on_btn_has_header)
+        btn_has_header.SetDefault()
+        btn_no_header = wx.Button(self.panel, -1, _("No Header"))
+        btn_no_header.Bind(wx.EVT_BUTTON, self.on_btn_no_header)
+        btn_cancel = wx.Button(self.panel, wx.ID_CANCEL)
+        btn_cancel.Bind(wx.EVT_BUTTON, self.on_btn_cancel)
+        szr_btns.Add(btn_has_header, 0)
+        szr_btns.Add(btn_no_header, 0, wx.LEFT, 5)
+        szr_btns.Add(btn_cancel, 0, wx.LEFT, 20)
+        szr_main.Add(lbl_explan, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(lbl_with_header, 0, wx.TOP|wx.LEFT, 10)
+        szr_main.Add(img_ctrl_with_header, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
+        szr_main.Add(lbl_without_header, 0, wx.TOP|wx.LEFT, 10)
+        szr_main.Add(img_ctrl_without_header, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
+        szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
+        self.panel.SetSizer(szr_main)
+        szr_main.SetSizeHints(self)
+        self.Layout()
         
+    def on_btn_has_header(self, event):
+        self.Destroy()
+        self.SetReturnCode(mg.HAS_HEADER) # or nothing happens!  
+        # Prebuilt dialogs presumably do this internally.
+        
+    def on_btn_no_header(self, event):
+        self.Destroy()
+        self.SetReturnCode(mg.NO_HEADER) # or nothing happens!  
+        # Prebuilt dialogs presumably do this internally.
+        
+    def on_btn_cancel(self, event):
+        self.Destroy()
+        self.SetReturnCode(wx.ID_CANCEL) # or nothing happens!  
+        # Prebuilt dialogs presumably do this internally.
+        
+        
+class FileImporter(object):
+    def __init__(self, parent, file_path, tbl_name):
+        self.parent = parent
+        self.file_path = file_path
+        self.tbl_name = tbl_name
+        self.has_header = True
+    
+    def get_params(self):
+        """
+        Get any user choices required.
+        """
+        debug = False
+        dlg = HasHeaderDlg(self.parent, self.ext)
+        retval = dlg.ShowModal()
+        if debug: print(unicode(retval))
+        if retval == wx.ID_CANCEL:
+            return False
+        else:
+            self.has_header = (retval == mg.HAS_HEADER)
+        return True
+    
     
 class ImportFileSelectDlg(wx.Dialog):
     def __init__(self, parent):
@@ -609,14 +694,17 @@ class ImportFileSelectDlg(wx.Dialog):
             return
         # import file
         if self.file_type == FILE_CSV:
-            file_importer = csv_importer.FileImporter(file_path, 
-                                                      final_tbl_name)
+            import csv_importer
+            file_importer = csv_importer.CsvImporter(self, file_path, 
+                                                     final_tbl_name)
         elif self.file_type == FILE_EXCEL:
-            file_importer = excel_importer.FileImporter(file_path,
-                                                        final_tbl_name)
+            import excel_importer
+            file_importer = excel_importer.ExcelImporter(self, file_path,
+                                                         final_tbl_name)
         elif self.file_type == FILE_ODS:
-            file_importer = ods_importer.FileImporter(file_path,
-                                                      final_tbl_name)
+            import ods_importer
+            file_importer = ods_importer.OdsImporter(self, file_path,
+                                                     final_tbl_name)
         if file_importer.get_params():
             try:
                 file_importer.import_content(self.progbar, self.keep_importing,

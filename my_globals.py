@@ -229,6 +229,8 @@ VAL_NUMERIC = u"numeric value"
 VAL_DATETIME = u"datetime value"
 VAL_STRING = u"string value"
 VAL_EMPTY_STRING = u"empty string value"
+HAS_HEADER = 1966 # anything OK as long as no collision with wx.ID_CANCEL
+NO_HEADER = 1967
 # field type labels - must work as labels as well as consts
 FLD_TYPE_NUMERIC = _("Numeric")
 FLD_TYPE_STRING = _("String")

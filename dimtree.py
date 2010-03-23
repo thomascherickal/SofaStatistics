@@ -643,7 +643,7 @@ class DlgConfig(wx.Dialog):
             self.tree.SetItemText(node_id, item_conf.get_summary(), 1)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
-        # Prebuilt dialogs must do this internally.
+        # Prebuilt dialogs presumably do this internally.
     
     def on_cancel(self, event):
         "Cancel adding new package"

@@ -10,27 +10,16 @@ from my_exceptions import ImportCancelException
 
 ROWS_TO_SAMPLE = 500 # fast enough to sample quite a few
 
-class FileImporter(object):
+class ExcelImporter(importer.FileImporter):
     """
     Import excel file into default SOFA SQLite database.
     Needs to identify data types to ensure only consistent data in a field.
     Adds unique index id so can identify unique records with certainty.
     """
     
-    def __init__(self, file_path, tbl_name):                    
-        self.file_path = file_path
-        self.tbl_name = tbl_name
-        self.has_header = True
-        
-    def get_params(self):
-        """
-        Get any user choices required.
-        """
-        retCode = wx.MessageBox(_("Does the spreadsheet have a header row?"), 
-                                _("HEADER ROW?"), 
-                                wx.YES_NO | wx.ICON_INFORMATION)
-        self.has_header = (retCode == wx.YES)
-        return True
+    def __init__(self, parent, file_path, tbl_name):
+        importer.FileImporter.__init__(self, parent, file_path, tbl_name)
+        self.ext = u"XLS"
     
     def assess_sample(self, wksheet, orig_fld_names, progbar, steps_per_item, 
                       keep_importing):
