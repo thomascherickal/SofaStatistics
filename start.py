@@ -16,11 +16,17 @@ import platform
 import shutil
 from pysqlite2 import dbapi2 as sqlite
 import sys
+import wxversion
+wxversion.select("2.8")
 import wx
 try:
     from agw import hyperlink as hl
 except ImportError: # if it's not there locally, try the wxPython lib.
-    import wx.lib.agw.hyperlink as hl
+    try:
+        import wx.lib.agw.hyperlink as hl
+    except ImportError:
+        raise Exception, ("There seems to be a problem related to your "
+                          "wxpython package.")
 
 # All i18n except for wx-based (which MUST happen after wx.App init)
 # http://wiki.wxpython.org/RecipesI18n

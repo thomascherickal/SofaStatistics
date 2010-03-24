@@ -121,7 +121,7 @@ INTERNAL_FOLDER = u"_internal"
 local_encoding = sys.getfilesystemencoding()
 USER_PATH = unicode(os.path.expanduser("~"), local_encoding)
 LOCAL_PATH = os.path.join(USER_PATH, u"sofa")
-SCRIPT_PATH = sys.path[0] # NB won't work within an interpreter
+SCRIPT_PATH = sys.path[1] # NB won't work within an interpreter
 # http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
 INT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER)
 INT_SCRIPT_PATH = os.path.join(INT_PATH, u"script.py")
