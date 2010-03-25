@@ -200,6 +200,7 @@ try:
     IN_WINDOWS = os.environ['OS'].lower().startswith("windows")
 except Exception:
     IN_WINDOWS = False
+DBE_PROBLEM = []
 DBES = []
 DBE_MODULES = {}
 DBE_PLUGINS = [(DBE_SQLITE, u"dbe_sqlite"), 
@@ -218,8 +219,10 @@ for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
             try:
                 dbe_mod = import_dbe_plugin(dbe_plugin)
             except Exception, e:
-                if debug: print(u"Problem adding dbe plugin %s" % dbe_plugin +
-                    u". Orig err: %s" % e)
+                msg = (u"Problem adding dbe plugin %s" % dbe_plugin +
+                       u". Orig err: %s" % e)
+                print(msg)
+                DBE_PROBLEM.append(msg)
                 continue # skip bad module
             DBES.append(dbe_plugin)
             DBE_MODULES[dbe_plugin] = dbe_mod

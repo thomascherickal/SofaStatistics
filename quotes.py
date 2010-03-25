@@ -35,8 +35,13 @@ QUOTES = [
     (u"Statistical significance is a phrase that every science graduate "
      u"student learns, but few comprehend.",
      u"Tom_Siegfried"),
+    (u"We believe that statistics can be used to support radical campaigns "
+     u"for progressive social change. ... Social problems should not be "
+     u"disguised by technical language.",
+     u"Radical Statistics"),
     ]
 
 def get_quote():
     "Get statistics quote"
+    #return QUOTES[-1] # check layout
     return random.choice(QUOTES)

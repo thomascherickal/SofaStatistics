@@ -330,6 +330,8 @@ class StartFrame(wx.Frame):
         link_help.EnableRollover(True)
         link_help.SetVisited(True)
         link_help.UpdateLink(True)
+        if mg.DBE_PROBLEM:
+            wx.MessageBox(u"\n\n".join(mg.DBE_PROBLEM))
     
     def init_com_types(self, panel):
         """
