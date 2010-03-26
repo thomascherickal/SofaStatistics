@@ -331,7 +331,10 @@ class StartFrame(wx.Frame):
         link_help.SetVisited(True)
         link_help.UpdateLink(True)
         if mg.DBE_PROBLEM:
-            wx.MessageBox(u"\n\n".join(mg.DBE_PROBLEM))
+            f = open(os.path.join(mg.INT_PATH, 
+                                  u"database connection problem.txt"), "w")
+            f.write(u"\n\n".join(mg.DBE_PROBLEM))
+            f.close()
     
     def init_com_types(self, panel):
         """

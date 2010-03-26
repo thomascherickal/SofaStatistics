@@ -137,8 +137,13 @@ INTERNAL_FOLDER = u"_internal"
 local_encoding = sys.getfilesystemencoding()
 USER_PATH = unicode(os.path.expanduser("~"), local_encoding)
 LOCAL_PATH = os.path.join(USER_PATH, u"sofa")
-SCRIPT_PATH = sys.path[1] # NB won't work within an interpreter
+# print(sys.path)
+ # NB won't work within an interpreter
 # http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
+for path in sys.path:
+    if path.endswith(u"sofa") or path.endswith(u"sofa.main"):
+        break
+SCRIPT_PATH = path
 INT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER)
 INT_SCRIPT_PATH = os.path.join(INT_PATH, u"script.py")
 INT_REPORT_FILE = u"report.htm"
