@@ -128,23 +128,6 @@ def get_default_css():
     default_css += u"\n    td.%s{\n        text-align: right;\n    }" % \
         mg.CSS_ALIGN_RIGHT
     return default_css
-
-default_hdr = u"""
-            <!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
-            'http://www.w3.org/TR/html4/loose.dtd'>
-            <html>
-            <head>
-            <meta http-equiv="P3P" content='CP="IDC DSP COR CURa ADMa OUR 
-            IND PHY ONL COM STA"'>
-            <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-            <title>%s</title>
-            <style type="text/css">
-            <!--
-            %s
-            -->
-            </style>
-            </head>
-            <body>\n"""
     
 def get_html_hdr(hdr_title, css_fils, default_if_prob=False):
     """
@@ -177,7 +160,7 @@ def get_html_hdr(hdr_title, css_fils, default_if_prob=False):
         css = (os.linesep + os.linesep).join(css_lst)
     else:
         css = get_default_css()
-    hdr = default_hdr % (hdr_title, css)
+    hdr = mg.DEFAULT_HDR % (hdr_title, css)
     return hdr
 
 def get_html_ftr():

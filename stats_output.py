@@ -31,7 +31,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
              " \"%(a)s\" to \"%(b)s\"</h2>") % {"avg": label_avg, "a": label_a, 
                                                 "b": label_b})
     html.append(u"\n\n<h3>" + _("Analysis of variance table") + u"</h3>")
-    html.append(u"\n<table>\n<thead>")
+    html.append(u"\n<table cellspacing='0'>\n<thead>")
     html.append(u"\n<tr>" + \
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Source") + u"</th>" + \
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Sum of Squares") + \
@@ -68,7 +68,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         " small, e.g. less than 0.01, or 0.001, you can assume there is a "
         "difference in variance.</p>")
     html.append(u"\n\n<h3>" + _("Group summary details") + u"</h3>")
-    html.append(u"\n<table>\n<thead>")
+    html.append(u"\n<table cellspacing='0'>\n<thead>")
     html.append(u"\n<tr><th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") +
             u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
@@ -186,7 +186,7 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp,
         footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> If the value is"
             " small, e.g. less than 0.01, or 0.001, you can assume there is a "
             "difference in variance.</p>")
-    html.append(u"\n\n<table>\n<thead>")
+    html.append(u"\n\n<table cellspacing='0'>\n<thead>")
     next_ft = len(footnotes) + 1
     html.append(u"\n<tr>" + \
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + u"</th>" +
@@ -335,7 +335,7 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
     p_format = u"\n<p>" + _("p value") + u": %%.%sf</p>" % dp
     html.append(p_format % round(p, dp))
     html.append(u"\n<p>" + _("U statistic") + u": %s</p>" % round(u, dp))
-    html.append(u"\n\n<table>\n<thead>")
+    html.append(u"\n\n<table cellspacing='0'>\n<thead>")
     html.append(u"\n<tr>" +
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
@@ -512,7 +512,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
                 round(chi, dp))
     html.append(u"\n<p>" + _("Degrees of Freedom (df)") + u": %s</p>" % df)
     # headings
-    html.append(u"\n\n<table>\n<thead>")
+    html.append(u"\n\n<table cellspacing='0'>\n<thead>")
     html.append(u"\n<tr><th class='%s' colspan=2 rowspan=3></th>" % 
                 CSS_SPACEHOLDER)
     html.append(u"<th class='%s' " % CSS_FIRST_COL_VAR +
@@ -657,7 +657,7 @@ def kruskal_wallis_output(h, p, label_a, label_b, dics, label_avg, dp=3,
     html.append(p_format % round(p, dp))
     html.append("\n<p>" + _("Kruskal-Wallis H statistic") + ": %s</p>" % \
                                                                 round(h, dp))
-    html.append(u"\n\n<table>\n<thead>")
+    html.append(u"\n\n<table cellspacing='0'>\n<thead>")
     html.append(u"\n<tr>" +
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +

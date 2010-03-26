@@ -3,10 +3,13 @@ import string
 import wx
 
 import my_globals as mg
+import lib
 import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
+import full_html
 import settings_grid
 
+WAITING_MSG = _("<p>Waiting for at least one field to be configured.</p>")
 
 def insert_data(row_idx, grid_data):
     """
@@ -167,40 +170,109 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                                        mg.FLD_TYPE_STRING, 
                                        mg.FLD_TYPE_DATE]},
                      ]
-        grid_size = (250, 250)
+        grid_size = (300,250)
         wx.Dialog.__init__(self, None, title=_("Configure Data Table"),
                           size=(500,400), 
                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
                               wx.SYSTEM_MENU)
         self.panel = wx.Panel(self)
         # New controls
-        lblTblLabel = wx.StaticText(self.panel, -1, _("Table Name:"))
-        lblTblLabel.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        lbl_tbl_label = wx.StaticText(self.panel, -1, _("Table Name:"))
+        lbl_tbl_label.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         tbl_name = tbl_name_lst[0] if tbl_name_lst else _("table") + u"001"
-        self.txt_tbl_name = wx.TextCtrl(self.panel, -1, tbl_name, size=(250,-1))
+        self.txt_tbl_name = wx.TextCtrl(self.panel, -1, tbl_name, size=(450,-1))
         self.txt_tbl_name.Enable(not self.readonly)
         self.txt_tbl_name.SetValidator(SafeTblNameValidator(name_ok_to_reuse))
         # sizers
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         self.szr_tbl_label = wx.BoxSizer(wx.HORIZONTAL)
-        self.szr_tbl_label.Add(lblTblLabel, 0, wx.RIGHT, 5)
-        self.szr_tbl_label.Add(self.txt_tbl_name, 1)
-        self.szr_main.Add(self.szr_tbl_label, 0, wx.GROW|wx.ALL, 10)
-        lblsofa_id = wx.StaticText(self.panel, -1, _("The sofa_id is required "
-                                                     "and cannot be edited"))
-        self.szr_main.Add(lblsofa_id, 0, wx.ALL, 10)
-        self.tabentry = ConfigTableEntry(self, self.panel, 
-                                         self.szr_main, 2, self.readonly, 
-                                         grid_size, col_dets, data,  
-                                         config_data, insert_data_func,
+        szr_design = wx.BoxSizer(wx.HORIZONTAL)
+        szr_design_left = wx.BoxSizer(wx.VERTICAL)
+        szr_design_right = wx.BoxSizer(wx.VERTICAL)
+        self.szr_tbl_label.Add(lbl_tbl_label, 0, wx.RIGHT, 5)
+        self.szr_tbl_label.Add(self.txt_tbl_name, 0)
+        bold = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
+        design_here_lbl = _("Design Here:") if not self.readonly \
+            else _("Design:")
+        lbl_design_here = wx.StaticText(self.panel, -1, design_here_lbl)
+        lbl_design_here.SetFont(font=bold)
+        see_result_lbl = _("See Demonstration Result Here:") \
+            if not self.readonly else _("Demonstration Result:")
+        lbl_see_result = wx.StaticText(self.panel, -1, see_result_lbl)
+        lbl_see_result.SetFont(font=bold)
+        self.html = full_html.FullHTML(self.panel, size=(500,200))
+        szr_design_left.Add(lbl_design_here, 0)
+        if not self.readonly:
+            lbl_sofa_id = wx.StaticText(self.panel, -1, 
+                            _("The sofa_id is required and cannot be edited"))
+            szr_design_left.Add(lbl_sofa_id, 0)
+        self.tabentry = ConfigTableEntry(self, self.panel, szr_design_left, 1, 
+                                         self.readonly, grid_size, col_dets, 
+                                         data, config_data, insert_data_func,
                                          cell_invalidation_func)
+        szr_design_right.Add(lbl_see_result, 0)
+        szr_design_right.Add(self.html, 1, wx.GROW|wx.ALL, 10)
+        szr_design.Add(szr_design_left, 0, wx.GROW)
+        szr_design.Add(szr_design_right, 1, wx.GROW)
         self.setup_btns(self.readonly)
-        self.szr_main.Add(self.szr_btns, 0, wx.ALL, 10)
+        self.szr_main.Add(self.szr_tbl_label, 0, wx.GROW|wx.ALL, 10)
+        self.szr_main.Add(szr_design, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
+        self.update_demo()
         self.panel.SetSizer(self.szr_main)
         self.szr_main.SetSizeHints(self)
         self.Layout()
         self.txt_tbl_name.SetFocus()
-
+    
+    def update_demo(self):
+        has_data = self.config_data
+        styles = u"""
+            table {
+                border-collapse: collapse;
+            }
+            th {
+                margin: 0;
+                padding: 9px 6px;
+                border-left: solid 1px #c0c0c0;
+                border-right: solid 1px #c0c0c0;
+                vertical-align: top;
+                font-family: Arial, Helvetica, sans-serif;
+                font-weight: bold;
+                font-size: 14px;
+                color: white;
+                background-color: #333435;
+            }
+            td{
+                margin: 0;
+                padding: 2px 6px;
+                border: solid 1px #c0c0c0;
+                font-size: 11px;
+            }"""
+        html = [mg.DEFAULT_HDR % (u"Demonstration table",styles)]
+        html.append(u"<table cellspacing='0'>\n<thead>\n<tr>")
+        names = []
+        types = []
+        if has_data:
+            for row_dict in self.config_data:
+                 names.append(row_dict[mg.TBL_FLD_NAME])
+                 types.append(row_dict[mg.TBL_FLD_TYPE])
+            for name in names:
+                html.append(u"<th>%s</th>" % name)
+            for i in range(4):
+                html.append(u"</tr>\n</thead>\n<tbody><tr>")
+                for name, type in zip(names, types):
+                    if name == mg.SOFA_ID:
+                        raw_val = i+1
+                    else:
+                        raw_val = lib.get_rand_val_of_type(type)
+                    html.append(u"<td>%s</td>" % raw_val)
+                html.append(u"</tr>")
+            html.append(u"\n</tbody>\n</table></body></html>")
+            html2show = u"".join(html)
+        else:
+            html2show = WAITING_MSG
+        self.html.show_html(html2show)
+    
     def init_config_data(self, data):
         debug = False
         extra = []
@@ -238,6 +310,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         bolinserted, row_before, row_data = self.insert_before()
         if bolinserted:
             self.add_new_to_config(row_before, row_data) # should be only change
+            self.update_demo()
         self.tabentry.grid.SetFocus()
         event.Skip()
     
@@ -258,6 +331,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             if self.debug: print("Row deleted was %s" % row_del)
             # remove row from config_data.
             del self.config_data[row_del]
+            self.update_demo()
             if self.debug: pprint.pprint(self.config_data)
         self.tabentry.grid.SetFocus()
         event.Skip()
@@ -286,13 +360,13 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
     mg.TBL_FLD_NAME, etc
     """
     
-    def __init__(self, frame, panel, szr, vert_share, readonly, grid_size, 
+    def __init__(self, frame, panel, szr, dim_share, readonly, grid_size, 
                 col_dets, data, config_data, insert_data_func=None, 
                 cell_invalidation_func=None):
         self.readonly = readonly
         force_focus = False
         settings_grid.SettingsEntry.__init__(self, frame, panel, szr, 
-            vert_share, readonly, grid_size, col_dets, data, config_data, 
+            dim_share, readonly, grid_size, col_dets, data, config_data, 
             force_focus, insert_data_func, cell_invalidation_func)
         self.debug = False # otherwise set in the parent class ;-)
         # disable first row (SOFA_ID)

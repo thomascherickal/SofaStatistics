@@ -267,36 +267,37 @@ class DbDets(getdata.DbDets):
 
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     # default database
-    parent.lblMsaccessDefaultDb = wx.StaticText(scroll, -1, 
+    parent.lbl_msaccess_default_db = wx.StaticText(scroll, -1, 
             _("Default Database (name only):"))
-    parent.lblMsaccessDefaultDb.SetFont(lblfont)
+    parent.lbl_msaccess_default_db.SetFont(lblfont)
     MSACCESS_DEFAULT_DB = parent.msaccess_default_db \
         if parent.msaccess_default_db else ""
-    parent.txtMsaccessDefaultDb = wx.TextCtrl(scroll, -1, MSACCESS_DEFAULT_DB, 
+    parent.txt_msaccess_default_db = wx.TextCtrl(scroll, -1, MSACCESS_DEFAULT_DB, 
                                               size=(250,-1))
-    parent.txtMsaccessDefaultDb.Enable(not readonly)
+    parent.txt_msaccess_default_db.Enable(not readonly)
     # default table
-    parent.lblMsaccessDefaultTbl = wx.StaticText(scroll, -1, 
+    parent.lbl_msaccess_default_tbl = wx.StaticText(scroll, -1, 
                                                  _("Default Table:"))
-    parent.lblMsaccessDefaultTbl.SetFont(lblfont)
+    parent.lbl_msaccess_default_tbl.SetFont(lblfont)
     MSACCESS_DEFAULT_TBL = parent.msaccess_default_tbl \
         if parent.msaccess_default_tbl else ""
-    parent.txtMsaccessDefaultTbl = wx.TextCtrl(scroll, -1, MSACCESS_DEFAULT_TBL, 
-                                               size=(250,-1))
-    parent.txtMsaccessDefaultTbl.Enable(not readonly)
-    bxMsaccess= wx.StaticBox(scroll, -1, "MS Access")
-    parent.szrMsaccess = wx.StaticBoxSizer(bxMsaccess, wx.VERTICAL)
+    parent.txt_msaccess_default_tbl = wx.TextCtrl(scroll, -1, 
+                                                  MSACCESS_DEFAULT_TBL, 
+                                                  size=(250,-1))
+    parent.txt_msaccess_default_tbl.Enable(not readonly)
+    bx_msaccess= wx.StaticBox(scroll, -1, "MS Access")
+    parent.szr_msaccess = wx.StaticBoxSizer(bx_msaccess, wx.VERTICAL)
     #3 MS ACCESS INNER
-    szrMsaccessInner = wx.BoxSizer(wx.HORIZONTAL)
-    szrMsaccessInner.Add(parent.lblMsaccessDefaultDb, 0, 
-                         wx.LEFT|wx.RIGHT, 5)
-    szrMsaccessInner.Add(parent.txtMsaccessDefaultDb, 1, 
-                         wx.GROW|wx.RIGHT, 10)
-    szrMsaccessInner.Add(parent.lblMsaccessDefaultTbl, 0, 
-                         wx.LEFT|wx.RIGHT, 5)
-    szrMsaccessInner.Add(parent.txtMsaccessDefaultTbl, 1, 
-                         wx.GROW|wx.RIGHT, 10)
-    parent.szrMsaccess.Add(szrMsaccessInner, 0)
+    szr_msaccess_inner = wx.BoxSizer(wx.HORIZONTAL)
+    szr_msaccess_inner.Add(parent.lbl_msaccess_default_db, 0, 
+                           wx.LEFT|wx.RIGHT, 5)
+    szr_msaccess_inner.Add(parent.txt_msaccess_default_db, 1, 
+                           wx.GROW|wx.RIGHT, 10)
+    szr_msaccess_inner.Add(parent.lbl_msaccess_default_tbl, 0, 
+                           wx.LEFT|wx.RIGHT, 5)
+    szr_msaccess_inner.Add(parent.txt_msaccess_default_tbl, 1, 
+                           wx.GROW|wx.RIGHT, 10)
+    parent.szr_msaccess.Add(szr_msaccess_inner, 0)
     col_det_db = {"col_label": _("Database(s)"), 
                   "col_type": settings_grid.COL_TEXT_BROWSE, 
                   "col_width": 250, 
@@ -327,20 +328,17 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     data = parent.msaccess_data[:]
     data.sort(key=lambda s: s[0])
     parent.msaccess_grid = settings_grid.SettingsEntry(frame=parent, 
-        panel=scroll, szr=parent.szrMsaccess, vert_share=1, readonly=readonly, 
-        grid_size=(900, 100), col_dets=msaccess_col_dets, 
-        data=data, config_data=parent.msaccess_config_data, 
-        force_focus=True)
-    szr.Add(parent.szrMsaccess, 0, wx.GROW|wx.ALL, 10)
+        panel=scroll, szr=parent.szr_msaccess, dim_share=1, readonly=readonly, 
+        grid_size=(900, 100), col_dets=msaccess_col_dets, data=data, 
+        config_data=parent.msaccess_config_data, force_focus=True)
+    szr.Add(parent.szr_msaccess, 0, wx.GROW|wx.ALL, 10)
 
 def get_proj_settings(parent, proj_dic):
     parent.msaccess_default_db = \
         proj_dic["default_dbs"].get(mg.DBE_MS_ACCESS)
-    parent.msaccess_default_tbl = \
-        proj_dic["default_tbls"].get(mg.DBE_MS_ACCESS)
+    parent.msaccess_default_tbl = proj_dic["default_tbls"].get(mg.DBE_MS_ACCESS)
     if proj_dic["con_dets"].get(mg.DBE_MS_ACCESS):
-        parent.msaccess_data = [(x["database"], x["mdw"], x["user"], 
-                                 x["pwd"]) \
+        parent.msaccess_data = [(x["database"], x["mdw"], x["user"], x["pwd"]) \
             for x in proj_dic["con_dets"][mg.DBE_MS_ACCESS].values()]
     else:
         parent.msaccess_data = []
@@ -361,14 +359,14 @@ def set_con_det_defaults(parent):
 
 def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     parent.msaccess_grid.update_config_data()
-    MSACCESS_DEFAULT_DB = parent.txtMsaccessDefaultDb.GetValue()
-    MSACCESS_DEFAULT_TBL = parent.txtMsaccessDefaultTbl.GetValue()
+    MSACCESS_DEFAULT_DB = parent.txt_msaccess_default_db.GetValue()
+    MSACCESS_DEFAULT_TBL = parent.txt_msaccess_default_tbl.GetValue()
     has_msaccess_con = MSACCESS_DEFAULT_DB and MSACCESS_DEFAULT_TBL
     incomplete_msaccess = (MSACCESS_DEFAULT_DB or MSACCESS_DEFAULT_TBL) \
         and not has_msaccess_con
     if incomplete_msaccess:
         wx.MessageBox(_("The MS Access details are incomplete"))
-        parent.txtMsaccessDefaultDb.SetFocus()
+        parent.txt_msaccess_default_db.SetFocus()
     default_dbs[mg.DBE_MS_ACCESS] = MSACCESS_DEFAULT_DB \
         if MSACCESS_DEFAULT_DB else None            
     default_tbls[mg.DBE_MS_ACCESS] = MSACCESS_DEFAULT_TBL \

@@ -81,6 +81,22 @@ def pct_1_dec(num):
 def pct_2_dec(num):
     return "%s%%" % round(num,2)
 data_format_dic = {FREQ: str, ROWPCT: pct_1_dec, COLPCT: pct_1_dec}
+DEFAULT_HDR = u"""
+            <!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
+            'http://www.w3.org/TR/html4/loose.dtd'>
+            <html>
+            <head>
+            <meta http-equiv="P3P" content='CP="IDC DSP COR CURa ADMa OUR 
+            IND PHY ONL COM STA"'>
+            <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+            <title>%s</title>
+            <style type="text/css">
+            <!--
+            %s
+            -->
+            </style>
+            </head>
+            <body>\n"""
 # output - NB never have a class which is the same as the start of another
 # simple search and replace is worth keeping
 CSS_ALIGN_RIGHT = u"right"
@@ -271,6 +287,19 @@ TBL_FLD_TYPE = "fld_type"
 TBL_FLD_TYPE_ORIG = "fld_type_orig"
 TMP_TBL_NAME = "sofa_tmp_tbl"
 SOFA_ID = "sofa_id"
+# demo data
+NUM_DATA_SEQ = (u"1.0", u"1.5", u"2.0", u"2.5", u"3.0", u"3.5", u"12.0", 
+                u"35.0")
+# http://statistics.gmu.edu/pages/famous.html and 
+# http://www.bobabernethy.com/bios_stats.htm
+STR_DATA_SEQ = (u"William&nbsp;Sealey&nbsp;Gosset", u"Karl&nbsp;Pearson", 
+                u"Gertrude&nbsp;Mary&nbsp;Cox", u"Ronald&nbsp;A.&nbsp;Fisher", 
+                u"Frank&nbsp;Yates", u"Kirstine&nbsp;Smith", u"John&nbsp;Tukey", 
+                u"George&nbsp;E.P.&nbsp;Box", u"David&nbsp;R.&nbsp;Cox", 
+                u"Jerome&nbsp;H.&nbsp;Friedman", u"Bradley&nbsp;Efron", 
+                u"Florence&nbsp;Nightingale&nbsp;David", u"Dorian&nbsp;Shainin",
+                u"E.J.&nbsp;Gumbel", u"Jerzy&nbsp;Neyman")
+DTM_DATA_SEQ = (u"1 Feb 2009", u"23 Aug 1994", u"16 Sep 2001", u"7 Nov 1986")
 # filters
 DBE_TBL_FILTS = {}
 # Matplotlib

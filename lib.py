@@ -8,6 +8,7 @@ import datetime
 import decimal
 import os
 import pprint
+import random
 import re
 import subprocess
 import sys
@@ -16,6 +17,15 @@ import wx
 
 # only import my_globals from local modules
 import my_globals as mg
+
+def get_rand_val_of_type(type):
+    if type == mg.FLD_TYPE_NUMERIC:
+        vals_of_type = mg.NUM_DATA_SEQ
+    elif type == mg.FLD_TYPE_STRING:
+        vals_of_type = mg.STR_DATA_SEQ
+    elif type == mg.FLD_TYPE_DATE:
+        vals_of_type = mg.DTM_DATA_SEQ
+    return random.choice(vals_of_type)
 
 def safe_end_cursor():
     "Problems in Windows if no matching beginning cursor."
@@ -41,6 +51,7 @@ def get_next_fld_name(existing_var_names):
         nums_used.append(num_used)
     free_num = max(nums_used) + 1 if nums_used else 1
     next_fld_name = mg.NEXT_FLD_NAME_TEMPLATE % free_num
+    return next_fld_name
 
 def get_title_dets_html(titles, subtitles, CSS_TBL_TITLE, CSS_TBL_SUBTITLE):
     """

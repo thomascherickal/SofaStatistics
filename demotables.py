@@ -10,11 +10,6 @@ import output
 import rawtables
 import wx
 
-num_data_seq = (u"1.0", u"1.5", u"2.0", u"2.5", u"3.0", u"3.5", u"12.0", 
-                u"35.0")
-str_data_seq = (u"Lorem", u"ipsum", u"dolor", u"sit", u"amet")
-dtm_data_seq = (u"1 Feb 2009", u"23 Aug 1994", u"16 Sep 2001", u"7 Nov 1986")
-
 
 class DemoTable(object):
     """
@@ -139,12 +134,15 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                 if col_val_dics[j]: # choose a random value label
                     random_key = random.choice(col_val_dics[j].keys())
                     row_val = col_val_dics[j][random_key]
-                elif self.flds[col_names[j]][mg.FLD_BOLNUMERIC]: # choose a random number
-                    row_val = unicode(random.choice(num_data_seq))
-                elif self.flds[col_names[j]][mg.FLD_BOLDATETIME]: # choose a random date
-                    row_val = unicode(random.choice(dtm_data_seq))
+                elif self.flds[col_names[j]][mg.FLD_BOLNUMERIC]:
+                    raw_val = lib.get_rand_val_of_type(mg.FLD_TYPE_NUMERIC)
+                    row_val = unicode(raw_val)
+                elif self.flds[col_names[j]][mg.FLD_BOLDATETIME]:
+                    raw_val = lib.get_rand_val_of_type(mg.FLD_TYPE_DATE)
+                    row_val = unicode(raw_val)
                 else:
-                    row_val = unicode(random.choice(str_data_seq))
+                    raw_val = lib.get_rand_val_of_type(mg.FLD_TYPE_STRING)
+                    row_val = unicode(raw_val)
                 # cell format
                 col_class_names = u"\"" + u" ".join(col_class_lsts[j]) + u"\""
                 col_classes = u"class = %s" % col_class_names \
@@ -167,7 +165,8 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                     not self.flds[col_names[i]][mg.FLD_BOLNUMERIC]: 
                     demo_row_data_lst.append(u"&nbsp;&nbsp;")
                 else:
-                    data = unicode(random.choice(num_data_seq))
+                    raw_val = lib.get_rand_val_of_type(mg.FLD_TYPE_NUMERIC)
+                    data = unicode(raw_val)     
                     demo_row_data_lst.append(data)
             # never a displayed total for strings (whether orig data or labels)
             joiner = u"</td><td class=\"%s\">" % CSS_ALIGN_RIGHT
@@ -437,8 +436,9 @@ class GenDemoTable(DemoDimTable):
                     first = False
                 else:
                     cellclass = CSS_DATACELL
-                #build data row list
-                data_val = random.choice(num_data_seq)
+                # build data row list
+                raw_val = lib.get_rand_val_of_type(mg.FLD_TYPE_NUMERIC)
+                data_val = unicode(raw_val)  
                 if colmeasure in [mg.ROWPCT, mg.COLPCT]:
                     val = u"%s%%" % data_val
                 else:
@@ -533,7 +533,8 @@ class SummDemoTable(DemoDimTable):
                     first = False
                 else:
                     cellclass = CSS_DATACELL
-                data_val = random.choice(num_data_seq)
+                raw_val = lib.get_rand_val_of_type(mg.FLD_TYPE_NUMERIC)
+                data_val = unicode(raw_val)  
                 if rowmeasure == mg.SUMM_N:
                     val = u"N=%s" % data_val
                 else:

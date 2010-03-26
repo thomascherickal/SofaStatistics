@@ -136,11 +136,11 @@ def cell_invalidation(row, col, grid, col_dets):
 
 class SettingsEntry(object):
     
-    def __init__(self, frame, panel, szr, vert_share, readonly, grid_size, 
+    def __init__(self, frame, panel, szr, dim_share, readonly, grid_size, 
                  col_dets, data, config_data, force_focus=False,
                  insert_data_func=None, cell_invalidation_func=None):
         """
-        vert_share - vertical share of sizer supplied.
+        dim_share - share of sizer supplied in appropriate dimension.
         col_dets - list of dic.  Keys = "col_label", "col_type", 
             and, optionally, "col_width", "file_phrase", "file_wildcard", 
             "empty_ok", "col_min_val", "col_max_val", "col_precision".
@@ -253,7 +253,7 @@ class SettingsEntry(object):
             self.grid.SetGridCursor(self.rows_n - 1, 0) # triggers OnSelect
             self.grid.MakeCellVisible(self.rows_n - 1, 0)
         self.control = None
-        self.szr.Add(self.grid, vert_share, wx.GROW|wx.ALL, 5)
+        self.szr.Add(self.grid, dim_share, wx.GROW|wx.ALL, 5)
     
     def get_new_renderer_editor(self, col_idx):
         """
