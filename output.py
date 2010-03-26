@@ -129,11 +129,16 @@ def get_default_css():
         mg.CSS_ALIGN_RIGHT
     return default_css
     
-def get_html_hdr(hdr_title, css_fils, default_if_prob=False):
+def get_html_hdr(hdr_title, css_fils, default_if_prob=False, grey=False):
     """
     Get HTML header.
     Add suffixes to each of the main classes so can have multiple styles in a
         single HTML file.
+    default_if_prob -- if True, will use the default css if the specified css 
+        fails.  Otherwise will raise a css-specific exception (which will 
+        probably be handled to give the user some feedback).
+    grey -- make the text in the cells grey instead of black so it is more
+        clearly an example rather than real data.
     """
     debug = False
     if debug: print(css_fils[0])
@@ -158,6 +163,8 @@ def get_html_hdr(hdr_title, css_fils, default_if_prob=False):
             css_lst.append(css_txt)
             f.close()
         css = (os.linesep + os.linesep).join(css_lst)
+        if grey: # appending it will override whatever else it is set to
+            css += u"\ntd, th {\n    color: #5f5f5f;\n}"
     else:
         css = get_default_css()
     hdr = mg.DEFAULT_HDR % (hdr_title, css)

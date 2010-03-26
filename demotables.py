@@ -6,6 +6,7 @@ import my_globals as mg
 import lib
 import my_exceptions
 import dimtables
+import getdata
 import output
 import rawtables
 import wx
@@ -20,9 +21,9 @@ class DemoTable(object):
         "Get HTML to display if enough data to display"
         assert 0, "get_demo_html_if_ok must be defined by subclass"
 
-    def get_html_parts(self, css_idx):
-        "Returns (hdr_html, body_html)"
-        assert 0, "get_html_parts must be defined by subclass"
+    def get_html(self, css_idx):
+        "Returns html"
+        assert 0, "get_html must be defined by subclass"
 
     def get_demo_html(self, css_idx):
         "Get demo HTML for table"
@@ -39,12 +40,13 @@ class DemoTable(object):
         else:
             self.subtitles = []
         if debug: print(self.fil_css)
+        html = []
         try:
-            html = output.get_html_hdr(hdr_title=_(u"Report(s)"), 
-                                       css_fils=[self.fil_css], 
-                                       default_if_prob=True)
-            html += u"<table cellspacing='0'>\n" # IE6 - no CSS borderspacing
-            (hdr_html, body_html) = self.get_html_parts(css_idx)
+            html.append(output.get_html_hdr(hdr_title=_(u"Report(s)"), 
+                                            css_fils=[self.fil_css], 
+                                            default_if_prob=True, grey=True))
+            html.append(u"<table cellspacing='0'>\n") # IE6 no CSS borderspacing
+            main_html = self.get_html(css_idx)
         except my_exceptions.MissingCssException:
             raise my_exceptions.MissingCssException # pass it on
         except my_exceptions.TooFewValsForDisplay:
@@ -52,12 +54,12 @@ class DemoTable(object):
         except Exception, e:
             wx.MessageBox(_("Unable to make report.  Error details: %s" % e))
             raise Exception, unicode(e)
-        html += hdr_html
-        html += body_html
-        html += u"\n</table>"
-        html += u"\n</body>\n</html>"
-        if debug: print(html)
-        return html
+        html.append(main_html)
+        html.append(u"\n</table>")
+        html.append(u"\n</body>\n</html>")
+        demo_html = u"".join(html)
+        if debug: print(demo_html)
+        return demo_html
 
 class DemoRawTable(rawtables.RawTable, DemoTable):
     """
@@ -65,24 +67,39 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
     """
     
     def __init__(self, txtTitles, txtSubtitles, colroot, coltree, 
-                 flds, var_labels, val_dics, fil_css, chkTotalsRow, 
-                 chkFirstAsLabel):
+                 dbe, default_dbs, default_tbls, con_dets, cur, db, tbl,
+                 flds, var_labels, val_dics, fil_css, chk_totals_row, 
+                 chk_first_as_label):
         self.txt_titles = txtTitles
         self.txt_subtitles = txtSubtitles
         self.colroot = colroot
         self.coltree = coltree
+        self.dbe = dbe
+        self.default_dbs = default_dbs
+        self.default_tbls = default_tbls
+        self.con_dets = con_dets
+        self.cur = cur
+        self.db = db
+        self.tbl = tbl
         self.flds = flds
         self.var_labels = var_labels
         self.val_dics = val_dics
         self.fil_css=fil_css
-        self.chkTotalsRow = chkTotalsRow
-        self.chkFirstAsLabel = chkFirstAsLabel
+        self.chk_totals_row = chk_totals_row
+        self.chk_first_as_label = chk_first_as_label
     
-    def update_flds(self, flds):
+    def update_db_dets(self, dbe, default_dbs, default_tbls, con_dets, cur, db, 
+                       tbl,flds): 
         """
         Needed if table selected changes after the table type has been set to 
             raw.
         """
+        self.dbe = dbe
+        self.default_dbs = default_dbs
+        self.default_tbls = default_tbls
+        self.con_dets = con_dets
+        self.db = db
+        self.tbl = tbl
         self.flds = flds
     
     def get_demo_html_if_ok(self, css_idx):
@@ -91,90 +108,23 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
                                               parent=self.colroot)
         return self.get_demo_html(css_idx) if has_cols else ""
       
-    def get_html_parts(self, css_idx):
+    def get_html(self, css_idx):
         """
-        Returns (hdr_html, body_html).
-        If value labels available, use these rather than random numbers.
+        Returns demo_html.
+        Update anything which might have changed first.
+        Db details are updated anytime db or tbl changes.
         """
-        debug = False
-        CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
-        CSS_ALIGN_RIGHT = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ALIGN_RIGHT, css_idx)
-        CSS_TOTAL_ROW = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TOTAL_ROW, css_idx)   
-        col_names, col_labels = lib.get_col_dets(self.coltree, self.colroot, 
-                                                 self.var_labels)
-        cols_n = len(col_names)        
-        bolhas_totals_row = self.chkTotalsRow.IsChecked()
-        bolfirst_col_as_label = self.chkFirstAsLabel.IsChecked()
-        hdr_html = self.get_hdr_dets(col_labels, css_idx)
-        body_html = u"\n<tbody>"        
-        # pre-store val dics for each column where possible
-        col_val_dics = []
-        for col_name in col_names:
-            if self.val_dics.get(col_name):
-                col_val_dic = self.val_dics[col_name]
-                col_val_dics.append(col_val_dic)
-            else:
-                col_val_dics.append(None)
-        # pre-store css class(es) for each column
-        col_class_lsts = [[] for x in col_names]
-        if bolfirst_col_as_label:
-            col_class_lsts[0] = [CSS_LBL]
-        for i, col_name in enumerate(col_names):
-            if debug: 
-                print("%s" % self.flds[col_name])
-                print("%s" % col_val_dics)
-            bolnumeric = self.flds[col_name][mg.FLD_BOLNUMERIC]
-            if bolnumeric and not col_val_dics[i]:
-                col_class_lsts[i].append(CSS_ALIGN_RIGHT)
-        for i in range(4): # four rows enough for demo purposes
-            row_tds = []
-            # process cells within row
-            for j in range(cols_n):
-                # cell contents
-                if col_val_dics[j]: # choose a random value label
-                    random_key = random.choice(col_val_dics[j].keys())
-                    row_val = col_val_dics[j][random_key]
-                elif self.flds[col_names[j]][mg.FLD_BOLNUMERIC]:
-                    raw_val = lib.get_rand_val_of_type(mg.FLD_TYPE_NUMERIC)
-                    row_val = unicode(raw_val)
-                elif self.flds[col_names[j]][mg.FLD_BOLDATETIME]:
-                    raw_val = lib.get_rand_val_of_type(mg.FLD_TYPE_DATE)
-                    row_val = unicode(raw_val)
-                else:
-                    raw_val = lib.get_rand_val_of_type(mg.FLD_TYPE_STRING)
-                    row_val = unicode(raw_val)
-                # cell format
-                col_class_names = u"\"" + u" ".join(col_class_lsts[j]) + u"\""
-                col_classes = u"class = %s" % col_class_names \
-                    if col_class_names else ""
-                row_tds.append(u"<td %s>%s</td>" % (col_classes, row_val))
-            body_html += u"\n<tr>" + u"".join(row_tds) + u"</td></tr>"
-        if bolhas_totals_row:
-            if bolfirst_col_as_label:
-                tot_cell = u"<td class='%s'>" % CSS_LBL + _("TOTAL") + u"</td>"
-                start_idx = 1
-            else:
-                tot_cell = u""
-                start_idx = 0
-            # get demo data
-            demo_row_data_lst = []
-            for i in range(start_idx, cols_n):
-                # if has value dic OR not numeric (e.g. date or string), 
-                # show empty cell as total
-                if col_val_dics[i] or \
-                    not self.flds[col_names[i]][mg.FLD_BOLNUMERIC]: 
-                    demo_row_data_lst.append(u"&nbsp;&nbsp;")
-                else:
-                    raw_val = lib.get_rand_val_of_type(mg.FLD_TYPE_NUMERIC)
-                    data = unicode(raw_val)     
-                    demo_row_data_lst.append(data)
-            # never a displayed total for strings (whether orig data or labels)
-            joiner = u"</td><td class=\"%s\">" % CSS_ALIGN_RIGHT
-            body_html += u"\n<tr class='%s'>" % CSS_TOTAL_ROW + \
-                tot_cell + u"<td class=\"%s\">"  % CSS_ALIGN_RIGHT + \
-                joiner.join(demo_row_data_lst) + u"</td></tr>"
-        body_html += u"\n</tbody>"
-        return (hdr_html, body_html)
+        self.add_total_row = self.chk_totals_row.IsChecked()
+        self.first_col_as_label = self.chk_first_as_label.IsChecked()
+        unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
+        self.where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
+        self.col_names, self.col_labels = lib.get_col_dets(self.coltree, 
+                                                           self.colroot, 
+                                                           self.var_labels)
+        demo_html = rawtables.RawTable.get_html(self, css_idx, 
+                                                page_break_after=False, 
+                                                display_n=4)
+        return demo_html
 
     
 class DemoDimTable(dimtables.DimTable, DemoTable):
@@ -195,21 +145,24 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         self.fil_css=fil_css
         if self.debug: print(self.fil_css)
     
-    def get_html_parts(self, css_idx):
-        "Returns (hdr_html, body_html)"
+    def get_html(self, css_idx):
+        "Returns demo_html"
+        html = []
         (row_label_rows_lst, tree_row_labels, row_label_cols_n) = \
                                                     self.get_row_dets(css_idx)
         (tree_col_dets, hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)
+        html.append(hdr_html)
         #print(row_label_rows_lst) #debug
         row_label_rows_lst = self.get_body_html_rows(row_label_rows_lst,
                                                      tree_row_labels, 
                                                      tree_col_dets, css_idx)        
-        body_html = u"\n\n<tbody>"
+        html.append(u"\n\n<tbody>")
         for row in row_label_rows_lst:
             # flatten row list
-            body_html += u"\n" + u"".join(row) + u"</tr>"
-        body_html += u"\n</tbody>"
-        return (hdr_html, body_html)
+            html.append(u"\n" + u"".join(row) + u"</tr>")
+        html.append(u"\n</tbody>")
+        demo_html = u"".join(html)
+        return demo_html
     
     def get_row_dets(self, css_idx):
         """

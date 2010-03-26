@@ -247,6 +247,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                 padding: 2px 6px;
                 border: solid 1px #c0c0c0;
                 font-size: 11px;
+                color: #5f5f5f; # more clearly just demo data
             }"""
         html = [mg.DEFAULT_HDR % (u"Demonstration table",styles)]
         html.append(u"<table cellspacing='0'>\n<thead>\n<tr>")

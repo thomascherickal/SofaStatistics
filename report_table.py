@@ -299,9 +299,12 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     def data_changed(self):
         """
         Things to do after the data source has changed.
+        Db-related details are set at point of instantiation - need updating.
         """
         if self.tab_type == mg.RAW_DISPLAY:
-            self.demo_tab.update_flds(self.flds)
+            self.demo_tab.update_db_dets(self.dbe, self.default_dbs, 
+                                         self.default_tbls,self.con_dets, 
+                                         self.cur, self.db, self.tbl, self.flds)
         self.delete_all_dim_children()
         self.col_no_vars_item = None
         if self.tab_type == mg.FREQS_TBL:
@@ -389,12 +392,14 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         elif self.tab_type == mg.RAW_DISPLAY:
             self.enable_opts(enable=True)
             self.demo_tab = demotables.DemoRawTable(txtTitles=self.txt_titles, 
-                         txtSubtitles=self.txt_subtitles,                                 
-                         colroot=self.colroot, coltree=self.coltree, 
-                         flds=self.flds, # needs to be reset if table changes
-                         var_labels=self.var_labels, val_dics=self.val_dics,
-                         fil_css=self.fil_css, chkTotalsRow=self.chk_totals_row,
-                         chkFirstAsLabel=self.chk_first_as_label)
+                 txtSubtitles=self.txt_subtitles, colroot=self.colroot, 
+                 coltree=self.coltree, dbe=self.dbe, 
+                 default_dbs=self.default_dbs, default_tbls=self.default_tbls, 
+                 con_dets=self.con_dets, cur=self.cur, db=self.db, tbl=self.tbl, 
+                 flds=self.flds, # needs to be reset if table changes
+                 var_labels=self.var_labels, val_dics=self.val_dics,
+                 fil_css=self.fil_css, chk_totals_row=self.chk_totals_row,
+                 chk_first_as_label=self.chk_first_as_label)
         #in case they were disabled and then we changed tab type
         self.setup_row_btns()
         self.setup_col_btns()

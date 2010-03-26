@@ -65,8 +65,8 @@ class RawTable(object):
                                                      col_label)
         hdr_html += u"</tr>\n</thead>"
         return hdr_html
-
-    def get_html(self, css_idx, page_break_after=False):
+    
+    def get_html(self, css_idx, page_break_after=False, display_n=None):
         """
         Get HTML for table.
         SELECT statement lists values in same order as col names.
@@ -87,13 +87,13 @@ class RawTable(object):
         row_tots = [0 for x in self.col_names]
         if self.first_col_as_label:
             del row_tots[0] # ignore label col
-        quoted_col_names = [self.quoter(x) for x in self.col_names]
+        obj_quoter = getdata.get_obj_quoter_func(self.dbe)
+        quoted_col_names = [obj_quoter(x) for x in self.col_names]
         SQL_get_data = u"SELECT %s FROM %s %s" % (u", ".join(quoted_col_names), 
-                                                  self.quoter(self.tbl), 
+                                                  obj_quoter(self.tbl), 
                                                   self.where_tbl_filt)
         if debug: print(SQL_get_data)
         self.cur.execute(SQL_get_data)
-        rows = self.cur.fetchall()
         cols_n = len(self.col_names)
         # pre-store val dics for each column where possible
         col_val_dics = []
@@ -113,7 +113,15 @@ class RawTable(object):
         if self.add_total_row:
             row_tots = [0 for x in self.col_names] # initialise
             row_tots_used = set() # some will never have anything added to them
-        for row in rows:
+        row_idx = 0
+        while True:
+            if display_n:
+                if row_idx >= display_n:
+                    break # got all we need
+            row = self.cur.fetchone()
+            if row is None:
+                break # run out of rows
+            row_idx+=1
             row_tds = []
             for i in range(cols_n):
                 # process row data to display
