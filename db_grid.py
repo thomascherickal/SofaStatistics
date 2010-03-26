@@ -328,7 +328,8 @@ class TblEditor(wx.Dialog):
                 wx.MessageBox(msg)
         elif sel_rows_n == 0:
             if assume_row_deletion_attempt:
-                wx.MessageBox(_("Please select a row first"))
+                wx.MessageBox(_("Please select a row first (click to the left "
+                                "of the row)"))
             else:
                 pass
         else:

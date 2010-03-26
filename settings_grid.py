@@ -493,10 +493,11 @@ class SettingsEntry(object):
         """
         dest row and col still unknown if from a return or TAB keystroke.
         So is the direction (could be down or down_left if end of line).
-        Returns saved_new_row (needed for table config).
+        Returns stayed_still, saved_new_row (needed for table config).
         """
         debug = False
         saved_new_row = False
+        stayed_still = True
         if self.debug or debug:
             print(u"process_cell_move - " +
                 u"source row %s source col %s " % (src_row, src_col) +
@@ -517,7 +518,9 @@ class SettingsEntry(object):
             print(u"move_type: %s move_to_dest: %s " % (move_type, 
                                                         move_to_dest) +
                   u"dest_row: %s dest_col: %s" % (dest_row, dest_col))
+            
         if move_to_dest:
+            stayed_still = False
             self.respond_to_select_cell = False # to prevent infinite loop!
             self.grid.SetGridCursor(dest_row, dest_col)
             self.grid.MakeCellVisible(dest_row, dest_col)
@@ -535,7 +538,7 @@ class SettingsEntry(object):
                     src_ctrl.SetInsertionPointEnd()
                 except Exception:
                     pass
-        return saved_new_row
+        return stayed_still, saved_new_row
     
     def get_move_dets(self, src_row, src_col, dest_row, dest_col, direction):
         """
@@ -815,7 +818,8 @@ class SettingsEntry(object):
                 wx.MessageBox(msg)
         elif sel_rows_n == 0:
             if assume_row_deletion_attempt:
-                wx.MessageBox(_("Please select a row first"))
+                wx.MessageBox(_("Please select a row first (click to the left "
+                                "of the row)"))
             else:
                 pass
         else:

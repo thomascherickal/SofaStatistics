@@ -304,7 +304,8 @@ STR_DATA_SEQ = (u"William&nbsp;Sealey&nbsp;Gosset", u"Karl&nbsp;Pearson",
                 u"Jerome&nbsp;H.&nbsp;Friedman", u"Bradley&nbsp;Efron", 
                 u"Florence&nbsp;Nightingale&nbsp;David", u"Dorian&nbsp;Shainin",
                 u"E.J.&nbsp;Gumbel", u"Jerzy&nbsp;Neyman")
-DTM_DATA_SEQ = (u"1 Feb 2009", u"23 Aug 1994", u"16 Sep 2001", u"7 Nov 1986")
+DTM_DATA_SEQ = (u"1&nbsp;Feb&nbsp;2009", u"23&nbsp;Aug&nbsp;1994", 
+                u"16&nbsp;Sep&nbsp;2001", u"7&nbsp;Nov&nbsp;1986")
 # filters
 DBE_TBL_FILTS = {}
 # Matplotlib

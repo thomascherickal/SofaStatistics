@@ -292,7 +292,9 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             and row data (or None if no content added). 
         """
         selected_rows = self.tabentry.grid.GetSelectedRows()
-        if not selected_rows: 
+        if not selected_rows:
+            wx.MessageBox(_("Please select a row first (click to the left of "
+                            "the row)"))
             return False, None, None
         pos = selected_rows[0]
         if pos == 0: # for table config only
@@ -363,6 +365,7 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
     def __init__(self, frame, panel, szr, dim_share, readonly, grid_size, 
                 col_dets, data, config_data, insert_data_func=None, 
                 cell_invalidation_func=None):
+        self.frame = frame
         self.readonly = readonly
         force_focus = False
         settings_grid.SettingsEntry.__init__(self, frame, panel, szr, 
@@ -381,15 +384,17 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
         So is the direction (could be down or down_left if end of line).
         """
         debug = False
-        saved_new_row = settings_grid.SettingsEntry.process_cell_move(self, 
-                                            src_ctrl, src_row, src_col, 
-                                            dest_row, dest_col, direction)
+        stayed_still, saved_new_row = \
+            settings_grid.SettingsEntry.process_cell_move(self, src_ctrl, 
+                                src_row, src_col, dest_row, dest_col, direction)
+        if self.readonly or stayed_still:
+            return
+        fld_name = self.grid.GetCellValue(src_row, 0)
+        fld_type = self.grid.GetCellValue(src_row, 1)
         if saved_new_row:
             if self.debug or debug: print("Row moved from was %s" % src_row)
             # For row we're leaving, fill in new details.
             # If an existing row, leave original values alone.
-            fld_name = self.grid.GetCellValue(src_row, 0)
-            fld_type = self.grid.GetCellValue(src_row, 1)
             try:
                 self.config_data[src_row][mg.TBL_FLD_NAME] = fld_name
                 self.config_data[src_row][mg.TBL_FLD_TYPE] = fld_type
@@ -400,6 +405,21 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
                            mg.TBL_FLD_TYPE_ORIG: None}
                 self.config_data.append(new_row)
             if self.debug or debug: pprint.pprint(self.config_data)
+            self.frame.update_demo()
+        else:
+            if src_row == len(self.config_data):
+                # arriving at final row on init
+                changed = False
+            else:
+                try:
+                    changed = \
+                        ((fld_name != self.config_data[src_row][mg.TBL_FLD_NAME]) \
+                        or (fld_type != self.config_data[src_row][mg.TBL_FLD_TYPE]))
+                except IndexError:
+                    changed = True
+            if changed:
+                self.update_config_data()
+                self.frame.update_demo()
             
     def update_config_data(self):
         """
