@@ -1,4 +1,5 @@
 import pprint
+import random
 import string
 import wx
 
@@ -136,8 +137,32 @@ class SafeTblNameValidator(wx.PyValidator):
 class ConfigTableDlg(settings_grid.SettingsEntryDlg):
     
     debug = False
+    styles = u"""
+        table {
+            border-collapse: collapse;
+        }
+        th {
+            margin: 0;
+            padding: 9px 6px;
+            border-left: solid 1px #c0c0c0;
+            border-right: solid 1px #c0c0c0;
+            vertical-align: top;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            background-color: #333435;
+        }
+        td{
+            margin: 0;
+            padding: 2px 6px;
+            border: solid 1px #c0c0c0;
+            font-size: 11px;
+            color: #5f5f5f; # more clearly just demo data
+        }"""
     
-    def __init__(self, tbl_name_lst, data, config_data, readonly=False,
+    def __init__(self, cur_dict, var_labels, val_dics,
+                 tbl_name_lst, data, config_data, readonly=False, new=False,
                  insert_data_func=None, cell_invalidation_func=None):
         """
         tbl_name_lst -- passed in as a list so changes can be made without 
@@ -146,6 +171,9 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             if only a "rename me".
         config_data -- add details to it in form of a list of tuples.
         """
+        self.cur_dict = cur_dict
+        self.var_labels = var_labels
+        self.val_dics = val_dics
         if tbl_name_lst:
             name_ok_to_reuse = tbl_name_lst[0]
         else:
@@ -155,6 +183,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.config_data = config_data
         self.init_config_data(data)
         self.readonly = readonly
+        self.new = new
         if not insert_data_func:
             insert_data_func = insert_data
         if not cell_invalidation_func:
@@ -224,54 +253,109 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.Layout()
         self.txt_tbl_name.SetFocus()
     
-    def update_demo(self):
-        has_data = self.config_data
-        styles = u"""
-            table {
-                border-collapse: collapse;
-            }
-            th {
-                margin: 0;
-                padding: 9px 6px;
-                border-left: solid 1px #c0c0c0;
-                border-right: solid 1px #c0c0c0;
-                vertical-align: top;
-                font-family: Arial, Helvetica, sans-serif;
-                font-weight: bold;
-                font-size: 14px;
-                color: white;
-                background-color: #333435;
-            }
-            td{
-                margin: 0;
-                padding: 2px 6px;
-                border: solid 1px #c0c0c0;
-                font-size: 11px;
-                color: #5f5f5f; # more clearly just demo data
-            }"""
-        html = [mg.DEFAULT_HDR % (u"Demonstration table",styles)]
-        html.append(u"<table cellspacing='0'>\n<thead>\n<tr>")
-        names = []
-        types = []
-        if has_data:
-            for row_dict in self.config_data:
-                 names.append(row_dict[mg.TBL_FLD_NAME])
-                 types.append(row_dict[mg.TBL_FLD_TYPE])
-            for name in names:
-                html.append(u"<th>%s</th>" % name)
-            for i in range(4):
-                html.append(u"</tr>\n</thead>\n<tbody><tr>")
-                for name, type in zip(names, types):
-                    if name == mg.SOFA_ID:
-                        raw_val = i+1
-                    else:
-                        raw_val = lib.get_rand_val_of_type(type)
-                    html.append(u"<td>%s</td>" % raw_val)
-                html.append(u"</tr>")
-            html.append(u"\n</tbody>\n</table></body></html>")
-            html2show = u"".join(html)
+    def get_demo_val(self, row_idx, col_label, type):
+        """
+        Get best possible demo value for display in absence of source data.
+        """
+        if col_label == mg.SOFA_ID:
+            val = row_idx+1
         else:
-            html2show = WAITING_MSG
+            if self.val_dics.get(col_label):
+                val = random.choice(self.val_dics[col_label])
+            else:
+                val = lib.get_rand_val_of_type(type)
+        return val
+    
+    def get_demo_row_lst(self, row_idx, col_labels, types):
+        row_lst = []
+        for col_label, type in zip(col_labels, types):
+            val2use = self.get_demo_val(row_idx, col_label, type)
+            row_lst.append(val2use)
+        return row_lst
+    
+    def update_demo(self):
+        """
+        Get data (if any) as a dict using orig fld names.
+        Use this data (or labelled version) if possible, else random according 
+            to type.        
+        """
+        debug = False
+        if not self.config_data:
+            self.html.show_html(WAITING_MSG)
+            return
+        # 1) part before the table-specific items e.g. column names and data
+        html = [mg.DEFAULT_HDR % (u"Demonstration table", self.styles)]
+        html.append(u"<table cellspacing='0'>\n<thead>\n<tr>")
+        # 2) the table-specific items (inc column labels)
+        tblname = self.tbl_name_lst[0]
+        col_labels = [] # using the new ones
+        types = [] # ditto
+        orig_fldnames = [] # These will be the key for any dicts taken from db
+            # NB will be None for new or inserted flds.
+        for data_dict in self.config_data:
+            # all must have same num of elements (even if a None) in same order
+            fldname = data_dict[mg.TBL_FLD_NAME]
+            col_labels.append(self.var_labels.get(fldname, fldname.title()))
+            orig_fldnames.append(data_dict.get(mg.TBL_FLD_NAME_ORIG))
+            types.append(data_dict[mg.TBL_FLD_TYPE])
+        # column names
+        for col_label in col_labels:
+            html.append(u"<th>%s</th>" % col_label)
+        # get data rows (list of lists)
+        rows = []
+        display_n = 4 # demo rows to display
+        if self.new:
+            for i in range(display_n):
+                row_lst = self.get_demo_row_lst(i, col_labels, types)
+                rows.append(row_lst)
+        else:
+            # add as many rows from orig data as possible up to the 4 row limit
+            obj_quoter = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
+            flds_clause = u", ".join([obj_quoter(x) for x in orig_fldnames
+                                      if x is not None])
+            SQL_get_data = u"""SELECT %s FROM %s """ % (flds_clause,
+                                                        obj_quoter(tblname))
+            self.cur_dict.execute(SQL_get_data)
+            # returns dict with orig fld names as keys
+            # NB will not contain any new or inserted flds
+            row_idx = 0
+            while True:
+                if display_n:
+                    if row_idx >= display_n:
+                        break # got all we need
+                row_dict = dict(self.cur_dict.fetchone())
+                if debug: print(row_dict)
+                if row_dict is None:
+                    break # run out of rows
+                row_lst = []
+                for orig_fldname, col_label, type in zip(orig_fldnames, types, 
+                                                         col_labels):
+                    if orig_fldname is None:
+                        val2use = self.get_demo_val(row_idx, col_label, type)
+                    else:
+                        try:
+                            rawval = row_dict[orig_fldname]
+                        except KeyError:
+                            raise Exception, (u"orig_fldname %s not in "
+                                    "row_dict %s" % (orig_fldname, row_dict))
+                        if rawval is None:
+                            rawval = mg.MISSING_VAL_INDICATOR
+                        valdic = self.val_dics.get(orig_fldname)
+                        val2use = self.val_dics if valdic else rawval
+                    row_lst.append(val2use)
+                rows.append(row_lst)
+                row_idx+=1
+            while row_idx < display_n:
+                row_lst = self.get_demo_row_lst(i, col_labels, types)
+                rows.append(row_lst)
+        # data rows into html
+        for row in rows:
+            html.append(u"</tr>\n</thead>\n<tbody><tr>")
+            for raw_val in row:
+                html.append(u"<td>%s</td>" % raw_val)
+            html.append(u"</tr>")
+        html.append(u"\n</tbody>\n</table></body></html>")
+        html2show = u"".join(html)
         self.html.show_html(html2show)
     
     def init_config_data(self, data):

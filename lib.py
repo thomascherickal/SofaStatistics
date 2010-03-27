@@ -25,6 +25,8 @@ def get_rand_val_of_type(type):
         vals_of_type = mg.STR_DATA_SEQ
     elif type == mg.FLD_TYPE_DATE:
         vals_of_type = mg.DTM_DATA_SEQ
+    else:
+        raise Exception, u"Unknown type in get_rand_val_of_type"
     return random.choice(vals_of_type)
 
 def safe_end_cursor():

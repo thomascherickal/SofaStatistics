@@ -231,21 +231,21 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         unused, and_filt = lib.get_tbl_filts(tbl_filt)
         obj_quoter = getdata.get_obj_quoter_func(self.dbe)
         if not self.paired:
-            s = """SELECT %(var)s
+            s = u"""SELECT %(var)s
                 FROM %(tbl)s
                 WHERE %(var)s IS NOT NULL 
                 %(and_filt)s
-                ORDER BY %(var)s""" % {"var": obj_quoter(var_a), 
-                                       "tbl": obj_quoter(self.tbl),
-                                       "and_filt": and_filt}
+                ORDER BY %(var)s """ % {"var": obj_quoter(var_a), 
+                                        "tbl": obj_quoter(self.tbl),
+                                        "and_filt": and_filt}
         else:
-            s = """SELECT %(var_b)s - %(var_a)s
+            s = u"""SELECT %(var_b)s - %(var_a)s
                 FROM %(tbl)s
                 WHERE %(var_a)s IS NOT NULL AND %(var_b)s IS NOT NULL 
-                %(and_filt)s""" % {"var_a": obj_quoter(var_a), 
-                                   "var_b": obj_quoter(var_b), 
-                                   "tbl": obj_quoter(self.tbl),
-                                   "and_filt": and_filt}
+                %(and_filt)s """ % {"var_a": obj_quoter(var_a), 
+                                    "var_b": obj_quoter(var_b), 
+                                    "tbl": obj_quoter(self.tbl),
+                                    "and_filt": and_filt}
         self.cur.execute(s)
         vals = [x[0] for x in self.cur.fetchall()]
         if len(set(vals)) == 1:

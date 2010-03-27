@@ -175,8 +175,9 @@ class DataSelectDlg(wx.Dialog):
             wx.MessageBox(msg % self.tbl) # needed for caching even if read only
         else:
             obj_quoter = getdata.get_obj_quoter_func(self.dbe)
-            s = "SELECT COUNT(*) FROM %s" % obj_quoter(self.tbl)
-            self.cur.execute(s)
+            SQL_get_count = u"""SELECT COUNT(*) FROM %s """ % \
+                obj_quoter(self.tbl)
+            self.cur.execute(SQL_get_count)
             rows_n = self.cur.fetchone()[0]
             if rows_n > 200000: # fast enough as long as column resizing is off
                 if wx.MessageBox(_("This table has %s rows. "
@@ -322,9 +323,16 @@ class DataSelectDlg(wx.Dialog):
         if debug: print("Initial table config data: %s" % data)
         config_data = []
         readonly = self.chk_readonly.IsChecked()
-        dlgConfig = table_config.ConfigTableDlg(tbl_name_lst, data, config_data, 
-                                                readonly)
+        con = dbe_sqlite.get_con(self.con_dets, self.db)
+        con.row_factory = dbe_sqlite.Row # see pysqlite usage-guide.txt
+        cur_dict = con.cursor()
+        dlgConfig = table_config.ConfigTableDlg(cur_dict, self.var_labels, 
+                                                self.val_dics, tbl_name_lst, 
+                                                data, config_data, readonly, 
+                                                new=False)
         ret = dlgConfig.ShowModal()
+        cur_dict.close()
+        con.close()
         if debug:
             print("Config data coming back:") 
             pprint.pprint(config_data)
@@ -345,7 +353,7 @@ class DataSelectDlg(wx.Dialog):
                 final table as SQLite Database Browser can't open the database
                 anymore.
             """
-            self.tbl = tbl_name_lst[0]
+            self.tbl = tbl_name_lst[0] # may have been renamed
             # other (i.e. not the sofa_id) field details
             oth_name_types = getdata.get_oth_name_types(config_data)
             if debug: print("oth_name_types to feed into " 
@@ -375,7 +383,9 @@ class DataSelectDlg(wx.Dialog):
         """
         debug = False
         try:
-            self.con = dbe_sqlite.get_con(self.con_dets, mg.SOFA_DEFAULT_DB)
+            con = dbe_sqlite.get_con(self.con_dets, mg.SOFA_DEFAULT_DB)
+            # not self.con because we may fail making a new one and need to 
+            # stick with the original
         except Exception:
             wx.MessageBox(_("The current project does not include a link to "
                             "the default SOFA database so a new table cannot "
@@ -386,8 +396,14 @@ class DataSelectDlg(wx.Dialog):
                 ("var001", "Numeric"),
                 ]
         config_data = []
-        dlgConfig = table_config.ConfigTableDlg(tbl_name_lst, data, config_data)
+        con.row_factory = dbe_sqlite.Row #see pysqlite usage-guide.txt
+        cur_dict = con.cursor()
+        dlgConfig = table_config.ConfigTableDlg(cur_dict, self.var_labels, 
+                                                self.val_dics, tbl_name_lst, 
+                                                data, config_data, new=True)
         ret = dlgConfig.ShowModal()
+        cur_dict.close()
+        con.close()
         if ret != wx.ID_OK:
             event.Skip()
             return
@@ -396,12 +412,15 @@ class DataSelectDlg(wx.Dialog):
         # Only interested in SQLite when making a fresh SOFA table
         # Use check constraints to enforce data type (based on user-defined 
         # functions)
-        self.cur = self.con.cursor()
         tbl_name = tbl_name_lst[0]        
         oth_name_types = getdata.get_oth_name_types(config_data)
         if debug: print(config_data)
-        getdata.make_sofa_tbl(self.con, self.cur, tbl_name, oth_name_types)
-        # prepare to connect to the newly created table
+        con = dbe_sqlite.get_con(self.con_dets, mg.SOFA_DEFAULT_DB)
+        cur = con.cursor() # the cursor for the default db
+        getdata.make_sofa_tbl(con, cur, tbl_name, oth_name_types)
+        # Prepare to connect to the newly created table.
+        # self.con and self.cur can now be updated now we are committed to new 
+        #     table.
         self.tbl = tbl_name
         dbe = mg.DBE_SQLITE
         dbdetsobj = getdata.get_db_dets_obj(dbe, self.default_dbs, 

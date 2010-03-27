@@ -135,7 +135,7 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
             if val is None or (fld_type in [mg.FLD_TYPE_NUMERIC, 
                                             mg.FLD_TYPE_DATE] and val == u""):
                 val = u"NULL"
-            elif val == u".":
+            elif val == mg.MISSING_VAL_INDICATOR:
                 nulled_dots = True
                 val = u"NULL"
     else: # checking
@@ -147,7 +147,7 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
             elif val == u"" or val is None:
                 bolOK_data = True
                 val = u"NULL"
-            elif val == u".":
+            elif val == mg.MISSING_VAL_INDICATOR:
                 nulled_dots = True
                 val = u"NULL"
         elif fld_type == mg.FLD_TYPE_DATE:
@@ -160,7 +160,7 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
                 if val == u"" or val is None:
                     bolOK_data = True
                     val = u"NULL"
-                elif val == u".":
+                elif val == mg.MISSING_VAL_INDICATOR:
                     nulled_dots = True
                     val = u"NULL"
                 else:
@@ -173,7 +173,7 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
             # None or dot or empty string we'll turn to NULL
             if val is None or val == u"":
                 val = u"NULL"
-            elif val == u".":
+            elif val == mg.MISSING_VAL_INDICATOR:
                 nulled_dots = True
                 val = u"NULL"
             bolOK_data = True

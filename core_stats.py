@@ -109,9 +109,9 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
         WHERE %(qfld_b)s IS NOT NULL AND %(qfld_a)s IS NOT NULL
         %(and_tbl_filt)s
         GROUP BY %(qfld_a)s
-        ORDER BY %(qfld_a)s""" % {"qtbl": qtbl, "qfld_a": qfld_a, 
-                                  "qfld_b": qfld_b, 
-                                  "and_tbl_filt": and_tbl_filt}
+        ORDER BY %(qfld_a)s """ % {"qtbl": qtbl, "qfld_a": qfld_a, 
+                                   "qfld_b": qfld_b, 
+                                   "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_row_vals_used)
     vals_a = [x[0] for x in cur.fetchall()]
     if len(vals_a) > 6:
@@ -124,9 +124,9 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
         WHERE %(qfld_a)s IS NOT NULL AND %(qfld_b)s IS NOT NULL
         %(and_tbl_filt)s
         GROUP BY %(qfld_b)s
-        ORDER BY %(qfld_b)s""" % {"qtbl": qtbl, "qfld_a": qfld_a, 
-                                  "qfld_b": qfld_b, 
-                                  "and_tbl_filt": and_tbl_filt}
+        ORDER BY %(qfld_b)s """ % {"qtbl": qtbl, "qfld_a": qfld_a, 
+                                   "qfld_b": qfld_b, 
+                                   "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_col_vals_used)
     vals_b = [x[0] for x in cur.fetchall()]
     if len(vals_b) > 6:
@@ -188,8 +188,8 @@ def get_fracs(cur, tbl_filt, qtbl, qfld):
         WHERE %(qfld)s IS NOT NULL
         %(and_tbl_filt)s
         GROUP BY %(qfld)s
-        ORDER BY %(qfld)s""" % {"qfld": qfld, "qtbl": qtbl, 
-                                "and_tbl_filt": and_tbl_filt}
+        ORDER BY %(qfld)s """ % {"qfld": qfld, "qtbl": qtbl, 
+                                 "and_tbl_filt": and_tbl_filt}
     if debug: print(SQL_get_fracs)
     cur.execute(SQL_get_fracs)
     lst_counts = []

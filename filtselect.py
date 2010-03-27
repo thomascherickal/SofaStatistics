@@ -239,8 +239,8 @@ class FiltSelectDlg(wx.Dialog):
                 return
         # Must work with a simple query to that database
         obj_quoter = getdata.get_obj_quoter_func(self.dbe)
-        filt_test_SQL = "SELECT * FROM %s " % obj_quoter(self.tbl) + \
-            "WHERE (%s)" % tbl_filt
+        filt_test_SQL = u"""SELECT * FROM %s """ % obj_quoter(self.tbl) + \
+            u"""WHERE (%s)""" % tbl_filt
         if debug: print("Filter: %s" % filt_test_SQL)
         try:
             self.cur.execute(filt_test_SQL)

@@ -141,10 +141,10 @@ class DbDets(getdata.DbDets):
         "Get table names given database and cursor"
         SQL_get_tbl_names = u"""SELECT TABLE_NAME 
             FROM information_schema.TABLES
-            WHERE TABLE_SCHEMA = '%s'
+            WHERE TABLE_SCHEMA = %s
             UNION SELECT TABLE_NAME
             FROM information_schema.VIEWS
-            WHERE TABLE_SCHEMA = '%s'""" % (db, db)
+            WHERE TABLE_SCHEMA = %s """ % (quote_val(db), quote_val(db))
         cur.execute(SQL_get_tbl_names)
         tbls = [x[0] for x in cur.fetchall()] 
         tbls.sort(key=lambda s: s.upper())
@@ -322,9 +322,9 @@ class DbDets(getdata.DbDets):
                 NOT NON_UNIQUE 
             AS unique_index
             FROM INFORMATION_SCHEMA.STATISTICS
-            WHERE table_name = "%s"
-            AND table_schema = "%s"
-            GROUP BY INDEX_NAME""" % (tbl, db)
+            WHERE table_name = %s
+            AND table_schema = %s
+            GROUP BY INDEX_NAME """ % (quote_val(tbl), quote_val(db))
         cur.execute(SQL_get_index_dets)
         index_dets = cur.fetchall()
         # [(INDEX_NAME, fld_names, unique_index), ...]

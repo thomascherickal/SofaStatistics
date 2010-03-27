@@ -403,9 +403,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             FROM %(tbl)s 
             %(where_filt)s
             GROUP BY %(var_gp)s 
-            ORDER BY %(var_gp)s""" % {"var_gp": quoter(var_gp), 
-                                      "tbl": quoter(self.tbl),
-                                      "where_filt": where_filt}
+            ORDER BY %(var_gp)s """ % {"var_gp": quoter(var_gp), 
+                                       "tbl": quoter(self.tbl),
+                                       "where_filt": where_filt}
         if debug: print(SQL_get_sorted_vals)
         self.cur.execute(SQL_get_sorted_vals)
         val_dic = self.val_dics.get(var_gp, {})

@@ -257,9 +257,11 @@ class DbDets(getdata.DbDets):
             AS char_max_len, 
                 columns.character_set_name 
             AS char_set_name,
-                lower(columns.data_type) IN ('%s', '%s', '%s', '%s', '%s', '%s', 
-                    '%s', '%s') """ % (SMALLINT, INTEGER, BIGINT, DECIMAL, 
-                                       NUMERIC, REAL, DOUBLE, MONEY) + u"""
+                lower(columns.data_type) 
+                IN (%s, %s, %s, %s, %s, %s, %s, %s) """ % (quote_val(SMALLINT), 
+                    quote_val(INTEGER), quote_val(BIGINT), quote_val(DECIMAL), 
+                    quote_val(NUMERIC), quote_val(REAL), quote_val(DOUBLE), 
+                    quote_val(MONEY)) + u"""
             AS bolnumeric,
                 position('nextval' in columns.column_default) IS NOT NULL 
             AS autonumber,
@@ -267,11 +269,12 @@ class DbDets(getdata.DbDets):
             AS dec_pts,
                 columns.numeric_precision 
             AS num_precision,
-                lower(columns.data_type) IN ('%s', '%s', '%s', '%s') """ % \
-                    (TIMESTAMP, DATE, TIME, INTERVAL) + u"""
+                lower(columns.data_type) IN (%s, %s, %s, %s) """ % \
+                    (quote_val(TIMESTAMP), quote_val(DATE), quote_val(TIME), 
+                     quote_val(INTERVAL)) + u"""
             AS boldatetime,
-                lower(columns.data_type) IN ('%s') """ % TIMESTAMP + u""" 
-            AS timestamp
+                lower(columns.data_type) IN (%s) """ % quote_val(TIMESTAMP) + \
+            u""" AS timestamp
             FROM information_schema.columns
             WHERE columns.table_schema::text = 'public'::text
             AND columns.table_name = %s
@@ -325,7 +328,7 @@ class DbDets(getdata.DbDets):
             SELECT indexrelid
             FROM pg_index INNER JOIN pg_class
             ON pg_class.oid=pg_index.indrelid
-            WHERE pg_class.relname='%s')""" % tbl
+            WHERE pg_class.relname=%s)""" % quote_val(tbl)
         cur.execute(SQL_get_main_index_dets)
         main_index_dets = cur.fetchall()
         idxs = []
@@ -343,8 +346,8 @@ class DbDets(getdata.DbDets):
                LEFT JOIN pg_attribute a
                ON a.attrelid = t.oid
                AND a.attnum = ANY(indkey)
-               WHERE t.relname = '%s'
-               AND a.attnum IN(%s)""" % (tbl, fld_oids)
+               WHERE t.relname = %s
+               AND a.attnum IN(%s) """ % (quote_val(tbl), fld_oids)
             cur.execute(SQL_get_idx_flds)
             fld_names = [x[1] for x in cur.fetchall()]
             idx_dic = {mg.IDX_NAME: idx_name, mg.IDX_IS_UNIQUE: unique_index, 

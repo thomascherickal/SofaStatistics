@@ -13,6 +13,8 @@ import getdata
 import projects
 import settings_grid
 
+Row = sqlite.Row # needed for making cursor return dicts
+
 DEFAULT_DB = u"sqlite_default_db"
 DEFAULT_TBL = u"sqlite_default_tbl"
 NUMERIC_TYPES = [u"integer", u"float", u"numeric", u"real"]
@@ -40,6 +42,11 @@ def get_syntax_elements():
             placeholder, get_summable, gte_not_equals)
 
 def get_con(con_dets, db):
+    """
+    Use this connection rather than hand-making one.  Risk of malformed database
+        schema.  E.g. DatabaseError: malformed database schema (sofa_tmp_tbl) - 
+        no such function: is_numeric
+    """
     con_dets_sqlite = con_dets.get(mg.DBE_SQLITE)
     if not con_dets_sqlite:
         raise Exception, u"No connection details available for SQLite"
@@ -52,10 +59,12 @@ def get_con(con_dets, db):
             u"using supplied database: %s. " % db + \
             u"Orig error: %s" % e
     # some user-defined functions needed for strict type checking constraints
-    con.create_function("is_numeric", 1, lib.is_numeric)
-    con.create_function("is_std_datetime_str", 1, lib.is_std_datetime_str)
+    add_funcs_to_con(con)
     return con
 
+def add_funcs_to_con(con):
+    con.create_function("is_numeric", 1, lib.is_numeric)
+    con.create_function("is_std_datetime_str", 1, lib.is_std_datetime_str)
 
 class DbDets(getdata.DbDets):
     
@@ -312,12 +321,13 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
 # imported data)
 def valid_name(name):
     """
-    Bad name for SQLite?  The best way is to find out for real (not too 
-        expensive and 100% valid by definition).
+    Bad name for SQLite?  The best way is to find out for real (not too costly
+        and 100% valid by definition).
     """
     debug = False
     default_db = os.path.join(mg.LOCAL_PATH, mg.INTERNAL_FOLDER, u"sofa_tmp")
     con = sqlite.connect(default_db)
+    add_funcs_to_con(con)
     cur = con.cursor()
     valid = False
     try:

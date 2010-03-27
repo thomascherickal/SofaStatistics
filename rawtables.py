@@ -88,10 +88,10 @@ class RawTable(object):
         if self.first_col_as_label:
             del row_tots[0] # ignore label col
         obj_quoter = getdata.get_obj_quoter_func(self.dbe)
-        quoted_col_names = [obj_quoter(x) for x in self.col_names]
-        SQL_get_data = u"SELECT %s FROM %s %s" % (u", ".join(quoted_col_names), 
-                                                  obj_quoter(self.tbl), 
-                                                  self.where_tbl_filt)
+        colnames_clause = u", ".join([obj_quoter(x) for x in self.col_names])
+        SQL_get_data = u"""SELECT %s FROM %s %s """ % (colnames_clause, 
+                                                       obj_quoter(self.tbl), 
+                                                       self.where_tbl_filt)
         if debug: print(SQL_get_data)
         self.cur.execute(SQL_get_data)
         cols_n = len(self.col_names)
