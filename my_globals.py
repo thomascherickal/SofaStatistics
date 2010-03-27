@@ -293,8 +293,7 @@ TBL_FLD_TYPE_ORIG = "fld_type_orig"
 TMP_TBL_NAME = "sofa_tmp_tbl"
 SOFA_ID = "sofa_id"
 # demo data
-NUM_DATA_SEQ = (u"1.0", u"1.5", u"2.0", u"2.5", u"3.0", u"3.5", u"12.0", 
-                u"35.0")
+NUM_DATA_SEQ = (1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 12.0, 35.0)
 # http://statistics.gmu.edu/pages/famous.html and 
 # http://www.bobabernethy.com/bios_stats.htm
 STR_DATA_SEQ = (u"William&nbsp;Sealey&nbsp;Gosset", u"Karl&nbsp;Pearson", 

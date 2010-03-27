@@ -257,7 +257,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         """
         Get best possible demo value for display in absence of source data.
         """
-        if col_label == mg.SOFA_ID:
+        if col_label.lower() == mg.SOFA_ID:
             val = row_idx+1
         else:
             if self.val_dics.get(col_label):
@@ -267,8 +267,11 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         return val
     
     def get_demo_row_lst(self, row_idx, col_labels, types):
+        debug = False
         row_lst = []
-        for col_label, type in zip(col_labels, types):
+        label_types = zip(col_labels, types)
+        if debug: print("Label types:\n%s" % label_types)
+        for col_label, type in label_types:
             val2use = self.get_demo_val(row_idx, col_label, type)
             row_lst.append(val2use)
         return row_lst
@@ -283,6 +286,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         if not self.config_data:
             self.html.show_html(WAITING_MSG)
             return
+        if debug: print(self.config_data)
         # 1) part before the table-specific items e.g. column names and data
         html = [mg.DEFAULT_HDR % (u"Demonstration table", self.styles)]
         html.append(u"<table cellspacing='0'>\n<thead>\n<tr>")
@@ -290,14 +294,20 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         tblname = self.tbl_name_lst[0]
         col_labels = [] # using the new ones
         types = [] # ditto
+        new_fldnames = []
         orig_fldnames = [] # These will be the key for any dicts taken from db
             # NB will be None for new or inserted flds.
         for data_dict in self.config_data:
             # all must have same num of elements (even if a None) in same order
             fldname = data_dict[mg.TBL_FLD_NAME]
+            new_fldnames.append(fldname)
             col_labels.append(self.var_labels.get(fldname, fldname.title()))
             orig_fldnames.append(data_dict.get(mg.TBL_FLD_NAME_ORIG))
             types.append(data_dict[mg.TBL_FLD_TYPE])
+        if debug:
+            print(col_labels)
+            print(orig_fldnames)
+            print(types)
         # column names
         for col_label in col_labels:
             html.append(u"<th>%s</th>" % col_label)
@@ -323,31 +333,36 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                 if display_n:
                     if row_idx >= display_n:
                         break # got all we need
-                row_dict = dict(self.cur_dict.fetchone())
-                if debug: print(row_dict)
-                if row_dict is None:
+                row_obj = self.cur_dict.fetchone()
+                if row_obj is None:
                     break # run out of rows
+                row_dict = dict(row_obj)
+                if debug: print(row_dict)
                 row_lst = []
-                for orig_fldname, col_label, type in zip(orig_fldnames, types, 
-                                                         col_labels):
+                for orig_fldname, new_fldname, col_label, type in \
+                            zip(orig_fldnames, new_fldnames, col_labels, types):
                     if orig_fldname is None:
-                        val2use = self.get_demo_val(row_idx, col_label, type)
+                        rawval = self.get_demo_val(row_idx, col_label, type)
                     else:
                         try:
                             rawval = row_dict[orig_fldname]
                         except KeyError:
                             raise Exception, (u"orig_fldname %s not in "
                                     "row_dict %s" % (orig_fldname, row_dict))
-                        if rawval is None:
-                            rawval = mg.MISSING_VAL_INDICATOR
-                        valdic = self.val_dics.get(orig_fldname)
-                        val2use = self.val_dics if valdic else rawval
+                    if rawval is None:
+                        rawval = mg.MISSING_VAL_INDICATOR
+                    valdic = self.val_dics.get(new_fldname)
+                    if valdic:
+                        val2use = valdic.get(rawval, rawval)
+                    else:
+                        val2use = rawval
                     row_lst.append(val2use)
                 rows.append(row_lst)
                 row_idx+=1
             while row_idx < display_n:
-                row_lst = self.get_demo_row_lst(i, col_labels, types)
+                row_lst = self.get_demo_row_lst(row_idx, col_labels, types)
                 rows.append(row_lst)
+                row_idx+=1
         # data rows into html
         for row in rows:
             html.append(u"</tr>\n</thead>\n<tbody><tr>")
