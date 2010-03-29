@@ -49,7 +49,7 @@ UUID = u"uuid" # "universally unique identifier"
 XML = u"xml" # "XML data"
 
 if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
-placeholder = u"?"
+placeholder = u"%s"
 left_obj_quote = u"\""
 right_obj_quote = u"\""
 gte_not_equals = u"!="
