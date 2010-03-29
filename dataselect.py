@@ -142,13 +142,15 @@ class DataSelectDlg(wx.Dialog):
     def btn_enablement(self):
         """
         Can only open dialog for design details for tables in the default SOFA 
-            database (except for the default one).
+            database.
         """
-        extra_enable = (self.dbe == mg.DBE_SQLITE 
-                        and self.db == mg.SOFA_DEFAULT_DB
-                        and self.tbl != mg.SOFA_DEFAULT_TBL)
-        self.btn_delete.Enable(extra_enable)
-        self.btn_design.Enable(extra_enable)
+        design_enable = (self.dbe == mg.DBE_SQLITE 
+                         and self.db == mg.SOFA_DEFAULT_DB)
+        self.btn_design.Enable(design_enable)
+        delete_enable = (self.dbe == mg.DBE_SQLITE 
+                         and self.db == mg.SOFA_DEFAULT_DB 
+                         and self.tbl != mg.SOFA_DEFAULT_TBL)
+        self.btn_delete.Enable(delete_enable)
         
     def on_database_sel(self, event):
         (self.dbe, self.db, self.con, self.cur, self.tbls, self.tbl, self.flds, 
@@ -247,7 +249,14 @@ class DataSelectDlg(wx.Dialog):
         self.btn_enablement()
         event.Skip()
     
-    def make_strict_typing_tbl(self, oth_name_types, config_data):
+    def wipe_orig_tbl(self, orig_tbl_name):
+        SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
+            sqlite_quoter(orig_tbl_name)
+        self.cur.execute(SQL_drop_orig)
+        self.con.commit()
+    
+    def make_strict_typing_tbl(self, orig_tbl_name, oth_name_types, 
+                               config_data):
         """
         Make table for purpose of forcing all data into strict type fields.  Not
             necessary to check sofa_id field (autoincremented integer) so not 
@@ -277,9 +286,11 @@ class DataSelectDlg(wx.Dialog):
         # attempt to insert data into strictly-typed fields.
         select_fld_clause = getdata.make_flds_clause(config_data)
         SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (tmp_name, 
-                                    select_fld_clause, sqlite_quoter(self.tbl))
+                                                select_fld_clause, 
+                                                sqlite_quoter(orig_tbl_name))
         if debug: print(SQL_insert_all)
         self.cur.execute(SQL_insert_all)
+        self.con.commit()
     
     def make_redesigned_tbl(self, oth_name_types, config_data):
         """
@@ -294,7 +305,7 @@ class DataSelectDlg(wx.Dialog):
         create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
                                                         strict_typing=False,
                                                         inc_sofa_id=True)
-        SQL_drop_orig = u"DROP TABLE %s" % final_name
+        SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % final_name
         self.cur.execute(SQL_drop_orig)
         if debug: print(create_fld_clause)
         SQL_make_redesigned_tbl = u"CREATE TABLE %s (%s)" % (final_name, 
@@ -303,8 +314,7 @@ class DataSelectDlg(wx.Dialog):
         oth_names = [sqlite_quoter(x[0]) for x in oth_name_types]
         null_plus_oth_flds = u" NULL, " + u", ".join(oth_names)
         SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (final_name, 
-                                                            null_plus_oth_flds, 
-                                                            tmp_name)
+                                                null_plus_oth_flds, tmp_name)
         if debug: print(SQL_insert_all)
         self.cur.execute(SQL_insert_all)
         SQL_drop_tmp = u"DROP TABLE %s" % tmp_name
@@ -318,18 +328,22 @@ class DataSelectDlg(wx.Dialog):
             database.
         """
         debug = False
+        readonly = self.chk_readonly.IsChecked()
+        if self.tbl == mg.SOFA_DEFAULT_TBL and not readonly:
+            wx.MessageBox(_("The design of the default SOFA table can only "
+                            "be opened as read only"))
+            self.chk_readonly.SetValue(True)
+            readonly = True
         tbl_name_lst = [self.tbl,]
         data = self._get_tbl_config(self.tbl)
         if debug: print("Initial table config data: %s" % data)
-        config_data = []
-        readonly = self.chk_readonly.IsChecked()
+        config_data = []     
         con = dbe_sqlite.get_con(self.con_dets, self.db)
         con.row_factory = dbe_sqlite.Row # see pysqlite usage-guide.txt
         cur_dict = con.cursor()
         dlgConfig = table_config.ConfigTableDlg(cur_dict, self.var_labels, 
-                                                self.val_dics, tbl_name_lst, 
-                                                data, config_data, readonly, 
-                                                new=False)
+                                self.val_dics, tbl_name_lst, data, config_data, 
+                                readonly, new=False)
         ret = dlgConfig.ShowModal()
         cur_dict.close()
         con.close()
@@ -353,13 +367,15 @@ class DataSelectDlg(wx.Dialog):
                 final table as SQLite Database Browser can't open the database
                 anymore.
             """
+            orig_tbl_name = self.tbl
             self.tbl = tbl_name_lst[0] # may have been renamed
             # other (i.e. not the sofa_id) field details
             oth_name_types = getdata.get_oth_name_types(config_data)
             if debug: print("oth_name_types to feed into " 
                             "make_strict_typing_tbl %s" % oth_name_types)
             try:
-                self.make_strict_typing_tbl(oth_name_types, config_data)
+                self.make_strict_typing_tbl(orig_tbl_name, oth_name_types, 
+                                            config_data)
             except pysqlite2.dbapi2.IntegrityError, e:
                 if debug: print(unicode(e))
                 wx.MessageBox(_("Unable to modify table.  Some data does not "
@@ -370,10 +386,16 @@ class DataSelectDlg(wx.Dialog):
                 self.cur.execute(SQL_drop_tmp_tbl)
                 self.con.commit()
                 return
+            self.wipe_orig_tbl(orig_tbl_name)
             self.make_redesigned_tbl(oth_name_types, config_data)
-            # refresh fld details etc
-            self.tbl, self.flds, self.has_unique, self.idxs = \
-                getdata.refresh_tbl_dets(self)
+            # must refresh now we have potentially renamed the table
+            dbdetsobj = getdata.get_db_dets_obj(self.dbe, self.default_dbs, 
+                                            self.default_tbls, self.con_dets, 
+                                            mg.SOFA_DEFAULT_DB, self.tbl)
+            (self.con, self.cur, self.dbs, self.tbls, self.flds, 
+                self.has_unique, self.idxs) = dbdetsobj.get_db_dets()
+            # update tbl dropdown
+            self.reset_tbl_dropdown()
     
     def on_new_click(self, event):
         """

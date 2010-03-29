@@ -322,9 +322,12 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
 def valid_name(name):
     """
     Bad name for SQLite?  The best way is to find out for real (not too costly
-        and 100% valid by definition).
+        and 100% valid by definition).  Strangely, SQLite accepts u"" as a table
+        name but we won't ;-).
     """
     debug = False
+    if name == u"":
+        return False
     default_db = os.path.join(mg.LOCAL_PATH, mg.INTERNAL_FOLDER, u"sofa_tmp")
     con = sqlite.connect(default_db)
     add_funcs_to_con(con)

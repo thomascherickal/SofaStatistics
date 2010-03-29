@@ -358,6 +358,8 @@ def setup_drop_tbls(drop_tbls, dbe, db, tbls, tbl):
     """
     Set-up tables dropdown.  Any tables with filtering should have (filtered)
         appended to end of name.
+    Sets selection to the tbl supplied.
+    May need to run dbdetsobj.get_db_dets() first if table names have changed.
     """
     debug = False
     tbls_with_filts = []
@@ -374,7 +376,7 @@ def setup_drop_tbls(drop_tbls, dbe, db, tbls, tbl):
     try:
         drop_tbls.SetSelection(idx_tbl)
     except NameError:
-        raise Exception, "Table \"%s\" not found in tables list" % self.tbl
+        raise Exception, "Table \"%s\" not found in tables list" % tbl
 
 def refresh_default_dbs_tbls(dbe, default_dbs, default_tbls):
     """
@@ -414,7 +416,10 @@ def refresh_db_dets(parent):
     return dbe, db, con, cur, tbls, tbl, flds, has_unique, idxs
 
 def refresh_tbl_dets(parent):
-    "Reset table, fields, has_unique, and idxs after a table selection."
+    """
+    Reset table, fields, has_unique, and idxs after a table selection.
+    Run anything like reset_tbl_dropdown first.
+    """
     wx.BeginBusyCursor()
     try:
         tbl = parent.tbls[parent.drop_tbls.GetSelection()]

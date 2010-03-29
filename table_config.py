@@ -87,6 +87,10 @@ def validate_tbl_name(tbl_name, name_ok_to_reuse):
 
 class SafeTblNameValidator(wx.PyValidator):
     def __init__(self, name_ok_to_reuse):
+        """
+        Not ok to duplicate an existing name unless it is the same table i.e.
+            a name ok to reuse.  None if a new table.
+        """
         wx.PyValidator.__init__(self)
         self.name_ok_to_reuse = name_ok_to_reuse
         self.Bind(wx.EVT_CHAR, self.on_char)
@@ -97,16 +101,16 @@ class SafeTblNameValidator(wx.PyValidator):
         
     def Validate(self, win):
         # wxPython
-        textCtrl = self.GetWindow()
-        text = textCtrl.GetValue()
+        text_ctrl = self.GetWindow()
+        text = text_ctrl.GetValue()
         valid, msg = validate_tbl_name(text, self.name_ok_to_reuse)
         if not valid:
             wx.MessageBox(msg)
-            textCtrl.SetFocus()
-            textCtrl.Refresh()
+            text_ctrl.SetFocus()
+            text_ctrl.Refresh()
             return False
         else:
-            textCtrl.Refresh()
+            text_ctrl.Refresh()
             return True
     
     def on_char(self, event):
@@ -291,7 +295,6 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         html = [mg.DEFAULT_HDR % (u"Demonstration table", self.styles)]
         html.append(u"<table cellspacing='0'>\n<thead>\n<tr>")
         # 2) the table-specific items (inc column labels)
-        tblname = self.tbl_name_lst[0]
         col_labels = [] # using the new ones
         types = [] # ditto
         new_fldnames = []
@@ -324,7 +327,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             flds_clause = u", ".join([obj_quoter(x) for x in orig_fldnames
                                       if x is not None])
             SQL_get_data = u"""SELECT %s FROM %s """ % (flds_clause,
-                                                        obj_quoter(tblname))
+                                            obj_quoter(self.tbl_name_lst[0]))
             self.cur_dict.execute(SQL_get_data)
             # returns dict with orig fld names as keys
             # NB will not contain any new or inserted flds

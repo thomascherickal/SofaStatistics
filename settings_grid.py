@@ -399,6 +399,8 @@ class SettingsEntry(object):
             if self.try_to_delete_row(assume_row_deletion_attempt=False):
                 # don't skip.  Smother event so delete not entered anywhere
                 return
+            else:
+                event.Skip() # wan't a row delete attempt so allow to proceed 
         elif keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
             if keycode == wx.WXK_TAB:
                 if event.ShiftDown():
