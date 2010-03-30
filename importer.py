@@ -489,7 +489,7 @@ class ImportFileSelectDlg(wx.Dialog):
         lbl_file_path.SetFont(lblfont)
         self.txt_file = wx.TextCtrl(self.panel, -1, u"", size=(320,-1))
         self.txt_file.Bind(wx.EVT_CHAR, self.on_file_char)
-        self.txt_file.SetFocus()      
+        self.txt_file.SetFocus()
         btn_file_path = wx.Button(self.panel, -1, _("Browse ..."))
         btn_file_path.Bind(wx.EVT_BUTTON, self.on_btn_file_path)
         btn_file_path.SetDefault()
@@ -543,11 +543,12 @@ class ImportFileSelectDlg(wx.Dialog):
         self.Layout()
 
     def on_file_char(self, event):
-        self.align_btns_to_completeness()
+        # NB callafter to allow data to updated in text ctrl
+        wx.CallAfter(self.align_btns_to_completeness)
         event.Skip()
         
     def on_int_name_char(self, event):
-        self.align_btns_to_completeness()
+        wx.CallAfter(self.align_btns_to_completeness)
         event.Skip()
 
     def on_btn_file_path(self, event):
@@ -617,8 +618,12 @@ class ImportFileSelectDlg(wx.Dialog):
         return tbl_name
 
     def align_btns_to_completeness(self):
-        complete = (self.txt_int_name.GetValue() != u"" 
-                    and self.txt_file.GetValue() != u"")
+        debug = True
+        filename = self.txt_file.GetValue()
+        int_name = self.txt_int_name.GetValue()
+        complete = (filename != u"" and int_name != u"")
+        if debug: print("filename: \"%s\" int_name: \"%s\" complete: %s" % \
+                        (filename, int_name, complete))
         self.btn_import.Enable(complete)
 
     def align_btns_to_importing(self, importing):
