@@ -705,7 +705,13 @@ class ImportFileSelectDlg(wx.Dialog):
             import ods_importer
             file_importer = ods_importer.OdsImporter(self, file_path,
                                                      final_tbl_name)
-        if file_importer.get_params():
+        proceed = False
+        try:
+            proceed = file_importer.get_params()
+        except Exception, e:
+            wx.MessageBox(_("Unable to import data\n\nError") + u": %s" % e)
+            lib.safe_end_cursor()
+        if proceed:
             try:
                 file_importer.import_content(self.progbar, self.keep_importing,
                                              self.lbl_feedback)
@@ -718,6 +724,5 @@ class ImportFileSelectDlg(wx.Dialog):
             except Exception, e:
                 lib.safe_end_cursor()
                 wx.MessageBox(_("Unable to import data\n\nError") + u": %s" % e)
-            
         self.align_btns_to_importing(importing=False)
         event.Skip()

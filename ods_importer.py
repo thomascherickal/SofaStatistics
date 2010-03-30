@@ -1,4 +1,5 @@
 from __future__ import print_function
+import os
 import wx
 
 import my_globals as mg
@@ -33,6 +34,9 @@ class OdsImporter(importer.FileImporter):
         Get any user choices required.
         """
         debug = False
+        if not os.path.exists(self.file_path):
+            raise Exception, (u"Unable to find file \"%s\" for importing. "
+                            u"Please check that file exists." % self.file_path)
         size = ods_reader.get_ods_xml_size(self.file_path)
         if size > 1000000:
             retval = wx.MessageBox(_("This spreadsheet may take a while to "
