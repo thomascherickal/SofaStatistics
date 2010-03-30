@@ -378,13 +378,18 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                # wx.CLIP_CHILDREN causes problems in Windows
         self.szr = wx.BoxSizer(wx.VERTICAL)
         self.panel_top = wx.Panel(self)
+        self.panel_top.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.scroll_con_dets = wx.PyScrolledWindow(self, 
                 size=(900, 350), # need for Windows
                 style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
         self.scroll_con_dets.SetScrollRate(10,10) # gives it the scroll bars
+        self.panel_config = wx.Panel(self)
+        self.panel_config.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel_bottom = wx.Panel(self)
+        self.panel_bottom.SetBackgroundColour(wx.Colour(115, 99, 84))
         self.parent = parent
         self.szr_con_dets = wx.BoxSizer(wx.VERTICAL)
+        self.szr_config = wx.BoxSizer(wx.VERTICAL)
         self.szr_bottom = wx.BoxSizer(wx.VERTICAL)
         # get available settings
         self.readonly = readonly
@@ -402,16 +407,29 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         lbl_proj_notes = wx.StaticText(self.panel_top, -1, _("Notes:"))
         lbl_proj_notes.SetFont(lblfont)
         self.txt_proj_notes = wx.TextCtrl(self.panel_top, -1, self.proj_notes,
-                                        size=(200, 40), style=wx.TE_MULTILINE)
+                                        size=(100,40), style=wx.TE_MULTILINE)
         self.txt_proj_notes.Enable(not self.readonly)
         szr_desc = wx.BoxSizer(wx.HORIZONTAL)
-        szr_desc.Add(lbl_name, 0, wx.RIGHT, 5)
-        szr_desc.Add(self.txt_name, 0, wx.RIGHT, 10)
-        szr_desc.Add(lbl_proj_notes, 0, wx.RIGHT, 5)
-        szr_desc.Add(self.txt_proj_notes, 1, wx.GROW)
+        szr_desc_left = wx.BoxSizer(wx.VERTICAL)
+        szr_desc_mid = wx.BoxSizer(wx.VERTICAL)
+        szr_desc_right = wx.BoxSizer(wx.VERTICAL)
+        img_ctrl_sofa = wx.StaticBitmap(self.panel_top)
+        img_sofa = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                        u"sofa_left.xpm"), wx.BITMAP_TYPE_XPM)
+        bmp_sofa = wx.BitmapFromImage(img_sofa)
+        img_ctrl_sofa.SetBitmap(bmp_sofa)
+        szr_desc_left.Add(img_ctrl_sofa, 0, wx.TOP|wx.RIGHT, 10)
+        szr_desc_mid.Add(lbl_name, 0)
+        szr_desc_mid.Add(self.txt_name, 0)
+        szr_desc_right.Add(lbl_proj_notes, 0)
+        szr_desc_right.Add(self.txt_proj_notes, 1, wx.GROW)
+        szr_desc.Add(szr_desc_left, 0)
+        szr_desc.Add(szr_desc_mid, 0, wx.LEFT|wx.RIGHT, 10)
+        szr_desc.Add(szr_desc_right, 1, wx.GROW)
         # DATA CONNECTIONS
         lbl_data_con_dets = wx.StaticText(self.panel_top, -1, 
-                                        _("Data Connection Details:"))
+                                        _("How to connect to my data:"))
+        lbl_data_con_dets.SetFont(lblfont)
         # default dbe
         lbl_default_dbe = wx.StaticText(self.scroll_con_dets, -1, 
                                        _("Default Database Engine:"))
@@ -434,14 +452,9 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         # sizers
         # TOP
         self.szr_top = wx.BoxSizer(wx.VERTICAL)
-        self.szr_top.Add(szr_desc, 1, wx.GROW|wx.ALL, 10)
-        # mixin supplying self.szr_config_top and self.szr_config_bottom
-        self.szr_config_bottom, self.szr_config_top = \
-            self.get_misc_config_szrs(self.panel_top, readonly=self.readonly)
-        self.szr_top.Add(self.szr_config_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        self.szr_top.Add(self.szr_config_bottom, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        self.szr_top.Add(szr_desc, 1, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         #self.szr_top.Add(szrOutput, 0, wx.GROW|wx.ALL, 10)
-        self.szr_top.Add(lbl_data_con_dets, 0, wx.GROW|wx.LEFT, 10)
+        self.szr_top.Add(lbl_data_con_dets, 0, wx.GROW|wx.LEFT|wx.BOTTOM, 10)
         self.panel_top.SetSizer(self.szr_top)
         self.szr_top.SetSizeHints(self.panel_top)
         # CON DETS
@@ -452,14 +465,25 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.scroll_con_dets.SetSizer(self.szr_con_dets)
         # NEVER SetSizeHints or else grows beyond size!!!!
         self.szr_con_dets.SetVirtualSizeHints(self.scroll_con_dets)
+        # CONFIG
+        # mixin supplying self.szr_config_top and self.szr_config_bottom
+        self.szr_config_bottom, self.szr_config_top = \
+            self.get_misc_config_szrs(self.panel_config, readonly=self.readonly)
+        self.szr_config.Add(self.szr_config_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 
+                            10)
+        self.szr_config.Add(self.szr_config_bottom, 0, wx.GROW|wx.LEFT|wx.RIGHT, 
+                            10)
+        self.panel_config.SetSizer(self.szr_config)
+        self.szr_config.SetSizeHints(self.panel_config)
         # BOTTOM
-        self.szr_bottom.Add(self.szr_btns, 0, wx.GROW|wx.LEFT|wx.BOTTOM|\
-                            wx.RIGHT|wx.ALIGN_RIGHT, 10)
+        self.szr_bottom.Add(self.szr_btns, 0, wx.GROW|wx.ALL|wx.ALIGN_RIGHT, 10)
         self.panel_bottom.SetSizer(self.szr_bottom)
         self.szr_bottom.SetSizeHints(self.panel_bottom)
         # FINAL # NB any ratio changes must work in multiple OSs
         self.szr.Add(self.panel_top, 1, wx.GROW)
-        self.szr.Add(self.scroll_con_dets, 2, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
+        self.szr.Add(self.scroll_con_dets, 3, wx.GROW|wx.LEFT|wx.BOTTOM|\
+                     wx.RIGHT, 10)
+        self.szr.Add(self.panel_config, 0, wx.GROW)
         self.szr.Add(self.panel_bottom, 0, wx.GROW)
         self.SetAutoLayout(True)
         self.SetSizer(self.szr)

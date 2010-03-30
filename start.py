@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-dev_debug = True
+dev_debug = False
 test_lang = False
 
 import warnings
@@ -428,9 +428,9 @@ class StartFrame(wx.Frame):
         self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_proj, HELP_IMG_LEFT, HELP_IMG_TOP, True)
         panel_dc.SetTextForeground(TEXT_BROWN)
-        txt_projs = _("Projects are a way of storing all related reports, "
-                      "data files, and configuration info in one place. The "
-                      "default project will be OK to get you started.")
+        txt_projs = _("Projects let SOFA know how to connect to your data, "
+                      "what labels to use, your favourite styles etc. The "
+                      "default project is OK to get you started.")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_projs, MAX_HELP_TEXT_WIDTH), 
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
@@ -493,7 +493,8 @@ class StartFrame(wx.Frame):
         panel_dc.DrawBitmap(self.bmp_import, HELP_IMG_LEFT-40, HELP_IMG_TOP, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
-        txt_entry = _("Import data e.g. an Excel spreadsheet or a csv file.")
+        txt_entry = _("Import data e.g. an Excel or Open Document Format "
+                      "spreadsheet or a csv file.")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_entry, MAX_HELP_TEXT_WIDTH), 
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH-10, 260))
         event.Skip()
@@ -547,10 +548,8 @@ class StartFrame(wx.Frame):
         txt_tabs1 = _("Make report tables e.g. Age vs Gender")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_tabs1, MAX_HELP_TEXT_WIDTH), 
                         wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))       
-        txt_tabs2 = _("Can make simple Frequency Tables, "
-                "Summary Tables (mean, median, N, standard deviation, sum), "
-                "and simple tabular reports of data as found in data source "
-                "(with labels and optional totals).")
+        txt_tabs2 = _("Can make simple Frequency Tables, Crosstabs, "
+                "Summary Tables (mean, median, etc), and simple lists of data.")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_tabs2, MAX_HELP_TEXT_WIDTH), 
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP+30, HELP_TEXT_WIDTH, 260))
         event.Skip()
