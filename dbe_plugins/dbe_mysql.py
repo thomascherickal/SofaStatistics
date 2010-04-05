@@ -36,313 +36,259 @@ def get_syntax_elements():
     return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
             placeholder, get_summable, gte_not_equals)
 
-
-class DbDets(getdata.DbDets):
-    
+def get_con_resources(con_dets, default_dbs, db=None):
     """
-    __init__ supplies default_dbs, default_tbls, con_dets and 
-        db and tbl (may be None).  Db needs to be set in con_dets once 
-        identified.
+    When opening from scratch, e.g. clicking on Report Tables from Start,
+        no db, so must identify one, but when selecting dbe-db in dropdowns, 
+        there will be a db.
+    Returns dict with con, cur, dbs, db.
+    Connection keywords must be plain strings not unicode strings
     """
-    
-    debug = False
-    
-    def get_con_cur(self):
-        "Connection keywords must be plain strings not unicode strings"
-        con_dets_mysql = self.con_dets.get(mg.DBE_MYSQL)
-        if not con_dets_mysql:
-            raise Exception, u"No connection details available for MySQL"
-        try:
-            con_dets_mysql["use_unicode"] = True
-            if self.db:
-                con_dets_mysql["db"] = self.db
-            con = MySQLdb.connect(**con_dets_mysql)
-        except Exception, e:
-            raise Exception, u"Unable to connect to MySQL db.  " + \
-                u"Orig error: %s" % e
-        cur = con.cursor() # must return tuples not dics
-        # get database name
-        SQL_get_db_names = u"""SELECT SCHEMA_NAME 
+    con_dets_mysql = con_dets.get(mg.DBE_MYSQL)
+    if not con_dets_mysql:
+        raise Exception, u"No connection details available for MySQL"
+    try:
+        con_dets_mysql["use_unicode"] = True
+        if db:
+            con_dets_mysql["db"] = db
+        con = MySQLdb.connect(**con_dets_mysql)
+    except Exception, e:
+        raise Exception, u"Unable to connect to MySQL db.  " + \
+            u"Orig error: %s" % e
+    cur = con.cursor() # must return tuples not dics    
+    SQL_get_db_names = u"""SELECT SCHEMA_NAME 
             FROM information_schema.SCHEMATA
             WHERE SCHEMA_NAME <> 'information_schema'"""
-        cur.execute(SQL_get_db_names)
-        self.dbs = [x[0] for x in cur.fetchall()]
-        dbs_lc = [x.lower() for x in self.dbs]
-        # get db (default if possible otherwise first)
-        # NB db must be accessible from connection
-        if not self.db:
-            # use default if possible, or fall back to first
-            default_db_mysql = self.default_dbs.get(mg.DBE_MYSQL)
-            if default_db_mysql.lower() in dbs_lc:
-                self.db = default_db_mysql
-            else:
-                self.db = self.dbs[0]
-            # need to reset con and cur
-            cur.close()
-            con.close()
-            con_dets_mysql["db"] = self.db
-            con = MySQLdb.connect(**con_dets_mysql)
-            cur = con.cursor()
+    cur.execute(SQL_get_db_names)
+    dbs = [x[0] for x in cur.fetchall()]
+    dbs_lc = [x.lower() for x in dbs]
+    if not db:
+        # use default if possible, or fall back to first
+        default_db_mysql = default_dbs.get(mg.DBE_MYSQL)
+        if default_db_mysql.lower() in dbs_lc:
+            db = default_db_mysql
         else:
-            if self.db.lower() not in dbs_lc:
-                raise Exception, u"Database \"%s\" not available " % self.db + \
-                    u"from supplied connection"
-        if self.debug: pprint.pprint(self.con_dets) 
-        return con, cur
-            
-    def get_db_dets(self):
-        """
-        Return connection, cursor, and get lists of 
-            databases, tables, fields, and index info,
-            based on the MySQL database connection details provided.
-        Sets db and tbl if not supplied.
-        The database used will be the default or the first if none provided.
-        The table used will be the default or the first if none provided.
-        The field dets will be taken from the table used.
-        Returns con, cur, dbs, tbls, flds, has_unique, idxs.
-        """
-        if self.debug:
-            print(u"Received db is: %s" % self.db)
-            print(u"Received tbl is: %s" % self.tbl)
-        con, cur = self.get_con_cur()
+            db = dbs[0]
+        # need to reset con and cur
+        cur.close()
+        con.close()
+        con_dets_mysql["db"] = db
+        con = MySQLdb.connect(**con_dets_mysql)
+        cur = con.cursor()
+    else:
+        if db.lower() not in dbs_lc:
+            raise Exception, u"Database \"%s\" not available " % db + \
+                u"from supplied connection"
+    con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: [db,],
+                     mg.DBE_DB: db}
+    return con_resources
 
-        # get table names
-        tbls = self.get_db_tbls(cur, self.db)
-        tbls_lc = [x.lower() for x in tbls]        
-        # get table (default if possible otherwise first)
-        # NB table must be in the database
-        if not self.tbl:
-            # use default if possible
-            default_tbl_mysql = self.default_tbls.get(mg.DBE_MYSQL)
-            if default_tbl_mysql and default_tbl_mysql.lower() in tbls_lc:
-                self.tbl = default_tbl_mysql
-            else:
-                try:
-                    self.tbl = tbls[0]
-                except IndexError:
-                    raise Exception, u"No tables found in database \"%s\"" % \
-                        self.db
-        else:
-            if self.tbl.lower() not in tbls_lc:
-                raise Exception, u"Table \"%s\" not found " % self.tbl + \
-                    u"in database \"%s\"" % self.db
-        # get field names (from first table if none provided)
-        flds = self.get_tbl_flds(cur, self.db, self.tbl)
-        has_unique, idxs = self.get_index_dets(cur, self.db, self.tbl)
-        if self.debug:
-            print(u"Db is: %s" % self.db)
-            print(u"Tbl is: %s" % self.tbl)
-            pprint.pprint(tbls)
-            pprint.pprint(flds)
-            pprint.pprint(idxs)
-        return con, cur, self.dbs, tbls, flds, has_unique, idxs
-    
-    def get_db_tbls(self, cur, db):
-        "Get table names given database and cursor"
-        SQL_get_tbl_names = u"""SELECT TABLE_NAME 
-            FROM information_schema.TABLES
-            WHERE TABLE_SCHEMA = %s
-            UNION SELECT TABLE_NAME
-            FROM information_schema.VIEWS
-            WHERE TABLE_SCHEMA = %s """ % (quote_val(db), quote_val(db))
-        cur.execute(SQL_get_tbl_names)
-        tbls = [x[0] for x in cur.fetchall()] 
-        tbls.sort(key=lambda s: s.upper())
-        return tbls
-    
-    def get_min_max(self, col_type, num_prec, dec_pts):
-        """
-        Use col_type not fld_type.  The former is inconsistent - float 
-            and double have unsigned at end but not rest!
-        Returns minimum and maximum allowable numeric values.
-        NB even though a floating point type will not store values closer 
-            to zero than a certain level, such values will be accepted here.
-            The database will store these as zero.
-        """
-        if col_type.lower().startswith(TINYINT) \
-                and not col_type.lower().endswith("unsigned"):
-            min = -(2**7)
-            max = (2**7)-1
-        elif col_type.lower().startswith(TINYINT) \
-                and col_type.lower().endswith("unsigned"):
-            min = 0
-            max = (2**8)-1
-        elif col_type.lower().startswith(SMALLINT) \
-                and not col_type.lower().endswith("unsigned"):
-            min = -(2**15)
-            max = (2**15)-1
-        elif col_type.lower().startswith(SMALLINT) \
-                and col_type.lower().endswith("unsigned"):
-            min = 0
-            max = (2**16)-1
-        elif col_type.lower().startswith(MEDIUMINT) \
-                and not col_type.lower().endswith("unsigned"):
-            min = -(2**23)
-            max = (2**23)-1
-        elif col_type.lower().startswith(MEDIUMINT) \
-                and col_type.lower().endswith("unsigned"):
-            min = 0
-            max = (2**24)-1
-        elif col_type.lower().startswith(INT) \
-                and not col_type.lower().endswith("unsigned"):
-            min = -(2**31)
-            max = (2**31)-1
-        elif col_type.lower().startswith(INT) \
-                and col_type.lower().endswith("unsigned"):
-            min = 0
-            max = (2**32)-1
-        elif col_type.lower().startswith(BIGINT) \
-                and not col_type.lower().endswith("unsigned"):
-            min = -(2**63)
-            max = (2**63)-1
-        elif col_type.lower().startswith(BIGINT) \
-                and col_type.lower().endswith("unsigned"):
-            min = 0
-            max = (2**64)-1
-        elif col_type.lower().startswith(FLOAT) \
-                and not col_type.lower().endswith("unsigned"):
-            min = -3.402823466E+38
-            max = 3.402823466E+38
-        elif col_type.lower().startswith(FLOAT) \
-                and col_type.lower().endswith("unsigned"):
-            min = 0
-            max = 3.402823466E+38
-        elif col_type.lower().startswith(DOUBLE) \
-                and not col_type.lower().endswith("unsigned"):
-            min = -1.7976931348623157E+308
-            max = 1.7976931348623157E+308
-        elif col_type.lower().startswith(DOUBLE) \
-                and col_type.lower().endswith("unsigned"):
-            min = 0
-            max = 1.7976931348623157E+308
-        elif col_type.lower().startswith(DECIMAL) \
-                and not col_type.lower().endswith("unsigned"):
-            # e.g. 6,2 -> 9999.99
-            abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
-            min = -abs_max
-            max = abs_max
-        elif col_type.lower().startswith(DECIMAL) \
-                and col_type.lower().endswith("unsigned"):
-            abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
-            min = 0
-            max = abs_max
-        else:
-            min = None
-            max = None
-        return min, max
-    
-    def get_tbl_flds(self, cur, db, tbl):
-        """
-        Returns details for set of fields given database, table, and cursor.
-        NUMERIC_SCALE - number of significant digits to right of decimal point.
-            Null if not numeric.
-        NUMERIC_SCALE will be Null if not numeric.
-        """
-        debug = False
-        numeric_lst = [BIGINT, DECIMAL, DOUBLE, FLOAT, INT, MEDIUMINT, 
-                       SMALLINT, TINYINT]
-        numeric_full_lst = []
-        for num_type in numeric_lst:
-            numeric_full_lst.append(num_type)
-            numeric_full_lst.append(u"%s unsigned" % num_type)
-        numeric_IN_clause = u"('" + u"', '".join(numeric_full_lst) + u"')"
-        """SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME="" 
-            AND TABLE_SCHEMA = "" """
-        SQL_get_fld_dets = u"""SELECT 
-            COLUMN_NAME,
-                ORDINAL_POSITION - 1
-            AS ord_pos,
-            IS_NULLABLE,
-            COLUMN_DEFAULT,
-            DATA_TYPE,
-            CHARACTER_MAXIMUM_LENGTH,
-            CHARACTER_SET_NAME,
-                LOWER(DATA_TYPE) IN %s """ % numeric_IN_clause + """
-            AS bolnumeric,
-                EXTRA = 'auto_increment'
-            AS autonumber,
-                NUMERIC_SCALE
-            AS dec_pts,
-            NUMERIC_PRECISION,
-            COLUMN_TYPE,
-                LOWER(DATA_TYPE) IN 
-                ('date', 'time', 'datetime', 'timestamp', 'year')
-            AS boldatetime,
-                LOWER(DATA_TYPE) IN 
-                ('timestamp')
-            AS timestamp
-            FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE TABLE_NAME = %s
-            AND TABLE_SCHEMA = %s """ % (quote_val(tbl), quote_val(db))
-        if debug: print(SQL_get_fld_dets) 
-        cur.execute(SQL_get_fld_dets)
-        fld_dets = cur.fetchall()
-        # build dic of fields, each with dic of characteristics
-        flds = {}
-        for (fld_name, ord_pos, nullable, fld_default, fld_type, max_len, 
-                 charset, numeric, autonum, dec_pts, num_prec, col_type, 
-                 boldatetime, timestamp) in fld_dets:
-            bolnullable = True if nullable == u"YES" else False
-            boldata_entry_ok = False if (autonum or timestamp) else True
-            bolnumeric = True if numeric else False
-            fld_txt = not bolnumeric and not boldatetime
-            bolsigned = (col_type.find("unsigned") == -1)
-            min_val, max_val = self.get_min_max(col_type, num_prec, dec_pts)
-            dets_dic = {
-                        mg.FLD_SEQ: ord_pos,
-                        mg.FLD_BOLNULLABLE: bolnullable,
-                        mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
-                        mg.FLD_COLUMN_DEFAULT: fld_default,
-                        mg.FLD_BOLTEXT: fld_txt,
-                        mg.FLD_TEXT_LENGTH: max_len,
-                        mg.FLD_CHARSET: charset,
-                        mg.FLD_BOLNUMERIC: bolnumeric,
-                        mg.FLD_BOLAUTONUMBER: autonum,
-                        mg.FLD_DECPTS: dec_pts,
-                        mg.FLD_NUM_WIDTH: num_prec,
-                        mg.FLD_BOL_NUM_SIGNED: bolsigned,
-                        mg.FLD_NUM_MIN_VAL: min_val,
-                        mg.FLD_NUM_MAX_VAL: max_val,
-                        mg.FLD_BOLDATETIME: boldatetime,
-                        }
-            flds[fld_name] = dets_dic
-        if debug: print("flds: %s" % flds)
-        return flds
+def get_tbls(cur, db):
+    "Get table names given database and cursor"
+    SQL_get_tbl_names = u"""SELECT TABLE_NAME 
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = %s
+        UNION SELECT TABLE_NAME
+        FROM information_schema.VIEWS
+        WHERE TABLE_SCHEMA = %s """ % (quote_val(db), quote_val(db))
+    cur.execute(SQL_get_tbl_names)
+    tbls = [x[0] for x in cur.fetchall()] 
+    tbls.sort(key=lambda s: s.upper())
+    return tbls
 
-    def get_index_dets(self, cur, db, tbl):
-        """
-        has_unique - boolean
-        idxs = [idx0, idx1, ...]
-        each idx is a dict name, is_unique, flds
-        """
-        SQL_get_index_dets = u"""SELECT 
-            INDEX_NAME, 
-                GROUP_CONCAT(COLUMN_NAME) 
-            AS fld_names,
-                NOT NON_UNIQUE 
-            AS unique_index
-            FROM INFORMATION_SCHEMA.STATISTICS
-            WHERE table_name = %s
-            AND table_schema = %s
-            GROUP BY INDEX_NAME """ % (quote_val(tbl), quote_val(db))
-        cur.execute(SQL_get_index_dets)
-        index_dets = cur.fetchall()
-        # [(INDEX_NAME, fld_names, unique_index), ...]
-        # initialise
-        has_unique = False
-        idxs = []
-        for idx_name, raw_fld_names, unique_index in index_dets:
-            fld_names = [x.strip() for x in raw_fld_names.split(",")]
-            if unique_index:
-                has_unique = True
-            idx_dic = {mg.IDX_NAME: idx_name, mg.IDX_IS_UNIQUE: unique_index, 
-                       mg.IDX_FLDS: fld_names}
-            idxs.append(idx_dic)
-        debug = False
-        if debug:
-            pprint.pprint(idxs)
-            print(has_unique)
-        return has_unique, idxs
+def get_min_max(col_type, num_prec, dec_pts):
+    """
+    Use col_type not fld_type.  The former is inconsistent - float 
+        and double have unsigned at end but not rest!
+    Returns minimum and maximum allowable numeric values.
+    NB even though a floating point type will not store values closer 
+        to zero than a certain level, such values will be accepted here.
+        The database will store these as zero.
+    """
+    if col_type.lower().startswith(TINYINT) \
+            and not col_type.lower().endswith("unsigned"):
+        min = -(2**7)
+        max = (2**7)-1
+    elif col_type.lower().startswith(TINYINT) \
+            and col_type.lower().endswith("unsigned"):
+        min = 0
+        max = (2**8)-1
+    elif col_type.lower().startswith(SMALLINT) \
+            and not col_type.lower().endswith("unsigned"):
+        min = -(2**15)
+        max = (2**15)-1
+    elif col_type.lower().startswith(SMALLINT) \
+            and col_type.lower().endswith("unsigned"):
+        min = 0
+        max = (2**16)-1
+    elif col_type.lower().startswith(MEDIUMINT) \
+            and not col_type.lower().endswith("unsigned"):
+        min = -(2**23)
+        max = (2**23)-1
+    elif col_type.lower().startswith(MEDIUMINT) \
+            and col_type.lower().endswith("unsigned"):
+        min = 0
+        max = (2**24)-1
+    elif col_type.lower().startswith(INT) \
+            and not col_type.lower().endswith("unsigned"):
+        min = -(2**31)
+        max = (2**31)-1
+    elif col_type.lower().startswith(INT) \
+            and col_type.lower().endswith("unsigned"):
+        min = 0
+        max = (2**32)-1
+    elif col_type.lower().startswith(BIGINT) \
+            and not col_type.lower().endswith("unsigned"):
+        min = -(2**63)
+        max = (2**63)-1
+    elif col_type.lower().startswith(BIGINT) \
+            and col_type.lower().endswith("unsigned"):
+        min = 0
+        max = (2**64)-1
+    elif col_type.lower().startswith(FLOAT) \
+            and not col_type.lower().endswith("unsigned"):
+        min = -3.402823466E+38
+        max = 3.402823466E+38
+    elif col_type.lower().startswith(FLOAT) \
+            and col_type.lower().endswith("unsigned"):
+        min = 0
+        max = 3.402823466E+38
+    elif col_type.lower().startswith(DOUBLE) \
+            and not col_type.lower().endswith("unsigned"):
+        min = -1.7976931348623157E+308
+        max = 1.7976931348623157E+308
+    elif col_type.lower().startswith(DOUBLE) \
+            and col_type.lower().endswith("unsigned"):
+        min = 0
+        max = 1.7976931348623157E+308
+    elif col_type.lower().startswith(DECIMAL) \
+            and not col_type.lower().endswith("unsigned"):
+        # e.g. 6,2 -> 9999.99
+        abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
+        min = -abs_max
+        max = abs_max
+    elif col_type.lower().startswith(DECIMAL) \
+            and col_type.lower().endswith("unsigned"):
+        abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
+        min = 0
+        max = abs_max
+    else:
+        min = None
+        max = None
+    return min, max
+
+def get_flds(cur, db, tbl):
+    """
+    Returns details for set of fields given database, table, and cursor.
+    NUMERIC_SCALE - number of significant digits to right of decimal point.
+        Null if not numeric.
+    NUMERIC_SCALE will be Null if not numeric.
+    """
+    debug = False
+    numeric_lst = [BIGINT, DECIMAL, DOUBLE, FLOAT, INT, MEDIUMINT, 
+                   SMALLINT, TINYINT]
+    numeric_full_lst = []
+    for num_type in numeric_lst:
+        numeric_full_lst.append(num_type)
+        numeric_full_lst.append(u"%s unsigned" % num_type)
+    numeric_IN_clause = u"('" + u"', '".join(numeric_full_lst) + u"')"
+    """SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME="" 
+        AND TABLE_SCHEMA = "" """
+    SQL_get_fld_dets = u"""SELECT 
+        COLUMN_NAME,
+            ORDINAL_POSITION - 1
+        AS ord_pos,
+        IS_NULLABLE,
+        COLUMN_DEFAULT,
+        DATA_TYPE,
+        CHARACTER_MAXIMUM_LENGTH,
+        CHARACTER_SET_NAME,
+            LOWER(DATA_TYPE) IN %s """ % numeric_IN_clause + """
+        AS bolnumeric,
+            EXTRA = 'auto_increment'
+        AS autonumber,
+            NUMERIC_SCALE
+        AS dec_pts,
+        NUMERIC_PRECISION,
+        COLUMN_TYPE,
+            LOWER(DATA_TYPE) IN 
+            ('date', 'time', 'datetime', 'timestamp', 'year')
+        AS boldatetime,
+            LOWER(DATA_TYPE) IN 
+            ('timestamp')
+        AS timestamp
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_NAME = %s
+        AND TABLE_SCHEMA = %s """ % (quote_val(tbl), quote_val(db))
+    if debug: print(SQL_get_fld_dets) 
+    cur.execute(SQL_get_fld_dets)
+    fld_dets = cur.fetchall()
+    # build dic of fields, each with dic of characteristics
+    flds = {}
+    for (fld_name, ord_pos, nullable, fld_default, fld_type, max_len, 
+             charset, numeric, autonum, dec_pts, num_prec, col_type, 
+             boldatetime, timestamp) in fld_dets:
+        bolnullable = True if nullable == u"YES" else False
+        boldata_entry_ok = False if (autonum or timestamp) else True
+        bolnumeric = True if numeric else False
+        fld_txt = not bolnumeric and not boldatetime
+        bolsigned = (col_type.find("unsigned") == -1)
+        min_val, max_val = get_min_max(col_type, num_prec, dec_pts)
+        dets_dic = {
+                    mg.FLD_SEQ: ord_pos,
+                    mg.FLD_BOLNULLABLE: bolnullable,
+                    mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
+                    mg.FLD_COLUMN_DEFAULT: fld_default,
+                    mg.FLD_BOLTEXT: fld_txt,
+                    mg.FLD_TEXT_LENGTH: max_len,
+                    mg.FLD_CHARSET: charset,
+                    mg.FLD_BOLNUMERIC: bolnumeric,
+                    mg.FLD_BOLAUTONUMBER: autonum,
+                    mg.FLD_DECPTS: dec_pts,
+                    mg.FLD_NUM_WIDTH: num_prec,
+                    mg.FLD_BOL_NUM_SIGNED: bolsigned,
+                    mg.FLD_NUM_MIN_VAL: min_val,
+                    mg.FLD_NUM_MAX_VAL: max_val,
+                    mg.FLD_BOLDATETIME: boldatetime,
+                    }
+        flds[fld_name] = dets_dic
+    if debug: print("flds: %s" % flds)
+    return flds
+
+def get_index_dets(cur, tbl):
+    """
+    has_unique - boolean
+    idxs = [idx0, idx1, ...]
+    each idx is a dict name, is_unique, flds
+    """
+    SQL_get_index_dets = u"""SELECT 
+        INDEX_NAME, 
+            GROUP_CONCAT(COLUMN_NAME) 
+        AS fld_names,
+            NOT NON_UNIQUE 
+        AS unique_index
+        FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE table_name = %s
+        AND table_schema = %s
+        GROUP BY INDEX_NAME """ % (quote_val(tbl), quote_val(db))
+    cur.execute(SQL_get_index_dets)
+    index_dets = cur.fetchall()
+    # [(INDEX_NAME, fld_names, unique_index), ...]
+    # initialise
+    has_unique = False
+    idxs = []
+    for idx_name, raw_fld_names, unique_index in index_dets:
+        fld_names = [x.strip() for x in raw_fld_names.split(",")]
+        if unique_index:
+            has_unique = True
+        idx_dic = {mg.IDX_NAME: idx_name, mg.IDX_IS_UNIQUE: unique_index, 
+                   mg.IDX_FLDS: fld_names}
+        idxs.append(idx_dic)
+    debug = False
+    if debug:
+        pprint.pprint(idxs)
+        print(has_unique)
+    return idxs, has_unique
 
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     # default database

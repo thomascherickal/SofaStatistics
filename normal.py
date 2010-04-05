@@ -152,9 +152,6 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.html.show_html("<p>%s</p>" % msg)
 
     def on_ok(self, event):
-        mg.DBE_DEFAULT = self.dbe
-        mg.DB_DEFAULTS[self.dbe] = self.db
-        mg.TBL_DEFAULTS[self.dbe] = self.tbl
         self.Destroy()
         event.Skip()
 

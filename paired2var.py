@@ -349,8 +349,5 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         except Exception:
             pass
         finally:
-            mg.DBE_DEFAULT = self.dbe
-            mg.DB_DEFAULTS[self.dbe] = self.db
-            mg.TBL_DEFAULTS[self.dbe] = self.tbl
             self.Destroy()
             event.Skip()

@@ -41,6 +41,10 @@ def get_syntax_elements():
     return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
             placeholder, get_summable, gte_not_equals)
 
+def add_funcs_to_con(con):
+    con.create_function("is_numeric", 1, lib.is_numeric)
+    con.create_function("is_std_datetime_str", 1, lib.is_std_datetime_str)
+
 def get_con(con_dets, db):
     """
     Use this connection rather than hand-making one.  Risk of malformed database
@@ -62,170 +66,121 @@ def get_con(con_dets, db):
     add_funcs_to_con(con)
     return con
 
-def add_funcs_to_con(con):
-    con.create_function("is_numeric", 1, lib.is_numeric)
-    con.create_function("is_std_datetime_str", 1, lib.is_std_datetime_str)
-
-class DbDets(getdata.DbDets):
-    
+def get_con_resources(con_dets, default_dbs, db=None):
     """
-    __init__ supplies default_dbs, default_tbls, con_dets and 
-        db and tbl (may be None).
+    When opening from scratch, e.g. clicking on Report Tables from Start,
+        no db, so must identify one, but when selecting dbe-db in dropdowns, 
+        there will be a db.
+    Returns dict with con, cur, dbs, db.
     """
-    
-    debug = False
-    
-    def get_con_cur(self):        
-        if not self.db:
-            # use default, or failing that, try the file_name
-            default_db_sqlite = self.default_dbs.get(mg.DBE_SQLITE)
-            if default_db_sqlite:
-                self.db = default_db_sqlite
-            else:
-                self.db = self.con_dets[mg.DBE_SQLITE].keys()[0]
-        con = get_con(self.con_dets, self.db)
-        cur = con.cursor() # must return tuples not dics
-        return con, cur
-      
-    def get_db_dets(self):
-        """
-        Return connection, cursor, and get lists of 
-            databases (only 1 for SQLite), tables, fields, and index info, 
-            based on the SQLite database connection details provided.
-        Sets db and tbl if not supplied.
-        The database used will be the default SOFA db if nothing provided.
-        The table used will be the default or the first if none provided.
-        The field dets will be taken from the table used.
-        Returns con, cur, dbs, tbls, flds, has_unique, idxs.
-        """
-        debug = False
-        con, cur = self.get_con_cur()
-        dbs = [self.db]
-        tbls = self.get_db_tbls(cur, self.db)
-        tbls_lc = [x.lower() for x in tbls]
-        # get table (default if possible otherwise first)
-        # NB table must be in the database
-        if not self.tbl:
-            # use default if possible
-            default_tbl_sqlite = self.default_tbls.get(mg.DBE_SQLITE)
-            if default_tbl_sqlite and default_tbl_sqlite.lower() in tbls_lc:
-                self.tbl = default_tbl_sqlite
-            else:
-                try:
-                    self.tbl = tbls[0]
-                except IndexError:
-                    raise Exception, u"No tables found in database \"%s\"" % \
-                        self.db
+    if not db:
+        # use default, or failing that, try the file_name
+        default_db = default_dbs.get(mg.DBE_SQLITE)
+        if default_db:
+            db = default_db
         else:
-            if self.tbl.lower() not in tbls_lc:
-                raise Exception, u"Table \"%s\" not found " % self.tbl + \
-                    u"in database \"%s\"" % self.db
-        # get field names (from first table if none provided)
-        flds = self.get_tbl_flds(cur, self.db, self.tbl)
-        has_unique, idxs = self.get_index_dets(cur, self.db, self.tbl)
-        if debug:
-            print(self.db)
-            print(self.tbl)
-            pprint.pprint(tbls)
-            pprint.pprint(flds)
-            pprint.pprint(idxs)
-        return con, cur, dbs, tbls, flds, has_unique, idxs
-    
-    def get_db_tbls(self, cur, db):
-        "Get table names given database and cursor"
-        SQL_get_tbl_names = u"""SELECT name 
-            FROM sqlite_master 
-            WHERE type = 'table'
-            ORDER BY name"""
-        cur.execute(SQL_get_tbl_names)
-        tbls = [x[0] for x in cur.fetchall()]
-        tbls.sort(key=lambda s: s.upper())
-        return tbls
+            db = con_dets[mg.DBE_SQLITE].keys()[0]
+    con = get_con(con_dets, db)
+    cur = con.cursor() # must return tuples not dics
+    con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: [db,],
+                     mg.DBE_DB: db}
+    return con_resources
 
-    def get_char_len(self, type_text):
-        """
-        NB SQLite never truncates whatever you specify.
-        http://www.sqlite.org/faq.html#q9
-        Look for numbers in brackets (if any) to work out length.
-        If just, for example, TEXT, will return None.
-        """
-        reobj = re.compile(r"\w*()")
-        match = reobj.search(type_text)    
-        try:
-            return int(match.group(1))
-        except ValueError:
-            return None
-    
-    def get_tbl_flds(self, cur, db, tbl):
-        "http://www.sqlite.org/pragma.html"
-        # get encoding
-        cur.execute(u"PRAGMA encoding")
-        encoding = cur.fetchone()[0]
-        # get field details
-        cur.execute(u"PRAGMA table_info(%s)" % quote_obj(tbl))
-        fld_dets = cur.fetchall() 
-        flds = {}
-        for cid, fld_name, fld_type, notnull, dflt_value, pk in fld_dets:
-            bolnullable = True if notnull == 0 else False
-            bolnumeric = fld_type.lower() in NUMERIC_TYPES
-            bolautonum = (pk == 1 and fld_type.lower() == "integer")            
-            boldata_entry_ok = False if bolautonum else True
-            boldatetime = fld_type.lower() in DATE_TYPES
-            fld_txt = not bolnumeric and not boldatetime
-            dets_dic = {
-                mg.FLD_SEQ: cid,
-                mg.FLD_BOLNULLABLE: bolnullable,
-                mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
-                mg.FLD_COLUMN_DEFAULT: dflt_value,
-                mg.FLD_BOLTEXT: fld_txt,
-                mg.FLD_TEXT_LENGTH: self.get_char_len(fld_type),
-                mg.FLD_CHARSET: encoding,
-                mg.FLD_BOLNUMERIC: bolnumeric,
-                mg.FLD_BOLAUTONUMBER: bolautonum,
-                mg.FLD_DECPTS: None, # not really applicable - no limit
-                mg.FLD_NUM_WIDTH: None, #no limit (TODO unless check constraint)
-                mg.FLD_BOL_NUM_SIGNED: True,
-                mg.FLD_NUM_MIN_VAL: None, # not really applicable - no limit
-                mg.FLD_NUM_MAX_VAL: None, # not really applicable - no limit
-                mg.FLD_BOLDATETIME: boldatetime, 
-                }
-            flds[fld_name] = dets_dic
-        return flds
-    
-    def get_index_dets(self, cur, db, tbl):
-        """
-        has_unique - booleanself.dropDefault_Dbe
-        idxs = [idx0, idx1, ...]
-        each idx is a dict name, is_unique, flds
-        """
-        debug = False
-        cur.execute(u"PRAGMA index_list(\"%s\")" % tbl)
-        idx_lst = cur.fetchall() # [(seq, name, unique), ...]
-        if debug: pprint.pprint(idx_lst)
-        names_idx_name = 1
-        names_idx_unique = 2
-        # initialise
-        has_unique = False
-        idxs = []
-        if idx_lst:
-            idx_names = [x[names_idx_name] for x in idx_lst]
-            for i, idx_name in enumerate(idx_names):
-                cur.execute(u"PRAGMA index_info(\"%s\")" % idx_name)
-                # [(seqno, cid, name), ...]
-                flds_idx_names = 2
-                index_info = cur.fetchall()
-                if debug: pprint.pprint(index_info)
-                fld_names = [x[flds_idx_names] for x in index_info]
-                unique = (idx_lst[i][names_idx_unique] == 1)
-                if unique:
-                    has_unique = True
-                idx_dic = {mg.IDX_NAME: idx_name, mg.IDX_IS_UNIQUE: unique, 
-                           mg.IDX_FLDS: fld_names}
-                idxs.append(idx_dic)
-        if debug:
-            pprint.pprint(idxs)
-            print(has_unique)
-        return has_unique, idxs
+def get_tbls(cur, db):
+    "Get table names given database and cursor"
+    SQL_get_tbls = u"""SELECT name 
+        FROM sqlite_master 
+        WHERE type = 'table'
+        ORDER BY name"""
+    cur.execute(SQL_get_tbls)
+    tbls = [x[0] for x in cur.fetchall()]
+    tbls.sort(key=lambda s: s.upper())
+    return tbls
+
+def get_char_len(type_text):
+    """
+    NB SQLite never truncates whatever you specify.
+    http://www.sqlite.org/faq.html#q9
+    Look for numbers in brackets (if any) to work out length.
+    If just, for example, TEXT, will return None.
+    """
+    reobj = re.compile(r"\w*()")
+    match = reobj.search(type_text)    
+    try:
+        return int(match.group(1))
+    except ValueError:
+        return None
+
+def get_flds(cur, db, tbl):
+    "http://www.sqlite.org/pragma.html"
+    # get encoding
+    cur.execute(u"PRAGMA encoding")
+    encoding = cur.fetchone()[0]
+    # get field details
+    cur.execute(u"PRAGMA table_info(%s)" % quote_obj(tbl))
+    fld_dets = cur.fetchall() 
+    flds = {}
+    for cid, fld_name, fld_type, notnull, dflt_value, pk in fld_dets:
+        bolnullable = True if notnull == 0 else False
+        bolnumeric = fld_type.lower() in NUMERIC_TYPES
+        bolautonum = (pk == 1 and fld_type.lower() == "integer")            
+        boldata_entry_ok = False if bolautonum else True
+        boldatetime = fld_type.lower() in DATE_TYPES
+        fld_txt = not bolnumeric and not boldatetime
+        dets_dic = {
+            mg.FLD_SEQ: cid,
+            mg.FLD_BOLNULLABLE: bolnullable,
+            mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
+            mg.FLD_COLUMN_DEFAULT: dflt_value,
+            mg.FLD_BOLTEXT: fld_txt,
+            mg.FLD_TEXT_LENGTH: get_char_len(fld_type),
+            mg.FLD_CHARSET: encoding,
+            mg.FLD_BOLNUMERIC: bolnumeric,
+            mg.FLD_BOLAUTONUMBER: bolautonum,
+            mg.FLD_DECPTS: None, # not really applicable - no limit
+            mg.FLD_NUM_WIDTH: None, # no limit (TODO unless check constraint)
+            mg.FLD_BOL_NUM_SIGNED: True,
+            mg.FLD_NUM_MIN_VAL: None, # not really applicable - no limit
+            mg.FLD_NUM_MAX_VAL: None, # not really applicable - no limit
+            mg.FLD_BOLDATETIME: boldatetime, 
+            }
+        flds[fld_name] = dets_dic
+    return flds
+
+def get_index_dets(cur, tbl):
+    """
+    idxs = [idx0, idx1, ...]
+    each idx is a dict name, is_unique, flds
+    has_unique - boolean
+    """
+    debug = False
+    cur.execute(u"PRAGMA index_list(\"%s\")" % tbl)
+    idx_lst = cur.fetchall() # [(seq, name, unique), ...]
+    if debug: pprint.pprint(idx_lst)
+    names_idx_name = 1
+    names_idx_unique = 2
+    # initialise
+    has_unique = False
+    idxs = []
+    if idx_lst:
+        idx_names = [x[names_idx_name] for x in idx_lst]
+        for i, idx_name in enumerate(idx_names):
+            cur.execute(u"PRAGMA index_info(\"%s\")" % idx_name)
+            # [(seqno, cid, name), ...]
+            flds_idx_names = 2
+            index_info = cur.fetchall()
+            if debug: pprint.pprint(index_info)
+            fld_names = [x[flds_idx_names] for x in index_info]
+            unique = (idx_lst[i][names_idx_unique] == 1)
+            if unique:
+                has_unique = True
+            idx_dic = {mg.IDX_NAME: idx_name, mg.IDX_IS_UNIQUE: unique, 
+                       mg.IDX_FLDS: fld_names}
+            idxs.append(idx_dic)
+    if debug:
+        pprint.pprint(idxs)
+        print(has_unique)
+    return idxs, has_unique
 
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     # default database

@@ -501,14 +501,10 @@ class StartFrame(wx.Frame):
 
     def get_dbe_and_default_dbs_tbls(self, proj_dic):
         """
-        Which dbe? If a default, use that.  If not, use project default.
-        Also grab the default_dbs and default_tbls as lists that can be 
-            manipulated later.
+        Which dbe? Use default. Also grab the default_dbs and default_tbls as 
+            lists that can be manipulated later.
         """
-        if mg.DBE_DEFAULT:
-            dbe = mg.DBE_DEFAULT
-        else:
-            dbe = proj_dic["default_dbe"]
+        dbe = proj_dic["default_dbe"]
         default_dbs = proj_dic["default_dbs"]
         default_tbls = proj_dic["default_tbls"]
         return dbe, default_dbs, default_tbls

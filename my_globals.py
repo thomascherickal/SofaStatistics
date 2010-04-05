@@ -191,6 +191,21 @@ GTE_LT = "<"
 GTE_GTE = ">="
 GTE_LTE = "<="
 GTES = [GTE_EQUALS, GTE_NOT_EQUALS, GTE_GT, GTE_LT, GTE_GTE, GTE_LTE]
+DATA_DETS = None
+DBE_CON = u"dbe_con" # connection resource
+DBE_CUR = u"dbe_cur" # cursor resource (tuple-based)
+DBE_DBS = u"dbe dbs" # names
+DBE_DB = u"dbe_db"# name
+DBE_TBLS = u"dbe_tbls" # names
+DBE_TBL = u"dbe_tbl" # name
+DBE_FLDS = u"dbe_flds" """ Must return dict of dicts called flds.
+    The outer dict has fld names as keys and details for that field as the 
+    inner dict. Each field dict has as keys the FLD_ variables listed in 
+    my_globals e.g. FLD_BOLNUMERIC. Need enough to present fields in order, 
+    validate data entry, and guide labelling and reporting (e.g. numeric 
+    or categorical)."""
+DBE_IDXS = u"dbe_idxs" # dicts - name, is_unique, flds
+DBE_HAS_UNIQUE = u"dbe_has_unique" # boolean
 # also used as labels in dropdowns
 DBE_SQLITE = u"SQLite"
 DBE_MYSQL = u"MySQL"
@@ -398,10 +413,6 @@ GROUP_A_DEFAULT = None
 GROUP_B_DEFAULT = None
 VAL_A_DEFAULT = None
 VAL_B_DEFAULT = None
-# data last selected
-DBE_DEFAULT = None
-DB_DEFAULTS = {}
-TBL_DEFAULTS = {}
 JS_WRAPPER_L = u"\n\n<script type=\"text/javascript\">"
 JS_WRAPPER_R = u"\n</script>"
 

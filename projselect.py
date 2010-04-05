@@ -7,7 +7,6 @@ import wx
 import my_globals as mg
 import lib
 import config_dlg
-import getdata
 import projects
 
 
@@ -109,8 +108,6 @@ class ProjSelectDlg(wx.Dialog):
     def on_proj_select(self, event):
         proj_sel_id = self.drop_projs.GetSelection()
         self.set_notes(proj_sel_id)
-        mg.DBE_DEFAULT = None # otherwise there can be a problem if the
-            # new project doesn't have the dbe that the old one had.
         event.Skip()
     
     def set_notes(self, proj_sel_id):

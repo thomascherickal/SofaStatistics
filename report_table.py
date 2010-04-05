@@ -749,9 +749,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         except Exception:
             pass
         finally:
-            mg.DBE_DEFAULT = self.dbe
-            mg.DB_DEFAULTS[self.dbe] = self.db
-            mg.TBL_DEFAULTS[self.dbe] = self.tbl
             self.Destroy()
             event.Skip()
     

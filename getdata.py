@@ -10,62 +10,161 @@ import lib
 
 debug = False
 
-def get_db_dets_obj(dbe, default_dbs, default_tbls, con_dets, db=None, 
-                    tbl=None):
+# data resources
+
+def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls):
+    debug = False
+    dbe_resources = {}
+    if debug: print("About to update dbe resources with con resources")
+    dbe_resources.update(mg.DBE_MODULES[dbe].get_con_resources(con_dets, 
+                                                               default_dbs))
+    cur = dbe_resources[mg.DBE_CUR]
+    db = dbe_resources[mg.DBE_DB]
+    if debug: print("About to update dbe resources with db resources")
+    dbe_resources.update(get_db_resources(dbe, cur, db, default_tbls))
+    if debug: print("Finished updating dbe resources with db resources")
+    return dbe_resources
+
+def get_db_resources(dbe, cur, db, default_tbls):
+    debug = False
+    tbls = mg.DBE_MODULES[dbe].get_tbls(cur, db)
+    if debug: print("About to get tbl")
+    tbl = get_tbl(dbe, db, tbls, default_tbls)
+    db_resources = {mg.DBE_TBLS: tbls, mg.DBE_TBL: tbl}
+    if debug: print("About to update db_resources with tbl dets")
+    db_resources.update(get_tbl_dets(dbe, cur, db, tbl))
+    if debug: print("Finished updating db_resources with tbl dets")
+    return db_resources
+
+def get_tbl_dets(dbe, cur, db, tbl):
+    flds = mg.DBE_MODULES[dbe].get_flds(cur, db, tbl)
+    idxs, has_unique = mg.DBE_MODULES[dbe].get_index_dets(cur, tbl)
+    tbl_dets = {mg.DBE_FLDS: flds, mg.DBE_IDXS: idxs, 
+                mg.DBE_HAS_UNIQUE: has_unique}
+    return tbl_dets
+
+def get_tbl(dbe, db, tbls, default_tbls):
     """
-    Pass in all con_dets (the dbe will be used to select specific con_dets).
+    Get table name (default if possible otherwise first).
     """
-    return mg.DBE_MODULES[dbe].DbDets(default_dbs, default_tbls, con_dets, db, 
-                                      tbl)
+    tbls_lc = [x.lower() for x in tbls]
+    default_tbl = default_tbls.get(dbe)
+    if default_tbl and default_tbl.lower() in tbls_lc:
+        tbl = default_tbl
+    else:
+        try:
+            tbl = tbls[0]
+        except IndexError:
+            raise Exception, u"No tables found in database \"%s\"" % db
+    return tbl
 
 
-# must be before dbe import statements (they have classes based on DbDets)
-class DbDets(object):
+class DataDets(object):
+    """
+    A single place to get the current data state and to alter it in a safe way.
+    Includes connection and cursor objects ready to use and based on the
+        current database.
+    Safe means that no steps will be missed and nothing will be left in an
+        inconsistent state.
+    proj_dic -- dict including proj notes etc plus default dbe, default dbs,
+        default tbls, and con_dets.
+    """
     
-    def __init__ (self, default_dbs, default_tbls, con_dets, db=None, 
-                  tbl=None):
+    def __init__(self, proj_dic):
+        debug = False
+        self.set_proj_dic(proj_dic)
+        if debug: print("Finished setting proj dic")
+
+    def set_proj_dic(self, proj_dic):
         """
-        If db or tbl are not supplied subclass must choose 
-            e.g. default or first.  And once db identified, must update 
-            con_dets.
+        Setting project can have implications for default dbe, default dbs, 
+            default tbls, dbs, db etc.
         """
-        # default dbs e.g. {'MySQL': u'demo_db', 'SQLite': u'SOFA_Default_db'}
-        self.default_dbs = default_dbs
-        # default tbls e.g. {'MySQL': u'demo_tbl', 'SQLite': u'SOFA_Default_tbl'}
-        self.default_tbls = default_tbls
-        # con_dets e.g. {'MySQL': {'host': u'localhost', 'passwd': ...}
-        self.con_dets = con_dets
+        self.proj_dic = proj_dic
+        # next 3 are dicts with dbes as key (if present)
+        self.default_dbs = proj_dic["default_dbs"]
+        self.default_tbls = proj_dic["default_tbls"]
+        self.con_dets = proj_dic["con_dets"]
+        self.set_dbe(proj_dic["default_dbe"])
+
+    def set_dbe(self, dbe):
+        """
+        Changing dbe has implications for everything connected.
+        """
+        debug = False
+        self.dbe = dbe
+        if debug: print("About to get dbe resources")
+        dbe_resources = get_dbe_resources(self.dbe, self.con_dets, 
+                                          self.default_dbs, self.default_tbls)
+        if debug: print(u"Finished getting dbe resources")
+        self.dbs = dbe_resources[mg.DBE_DBS]
+        self.db = dbe_resources[mg.DBE_DB]
+        self.tbls = dbe_resources[mg.DBE_TBLS]
+        self.tbl = dbe_resources[mg.DBE_TBL]
+        self.flds = dbe_resources[mg.DBE_FLDS]
+        self.idxs = dbe_resources[mg.DBE_IDXS]
+        self.has_unique = dbe_resources[mg.DBE_HAS_UNIQUE]
+
+    def set_db(self, db):
+        """
+        Changing the db has implications for tbls, tbl etc.
+        """
         self.db = db
+        db_resources = get_db_resources(self.dbe, self.cur, self.db, 
+                                        self.default_tbls)
+        self.tbls = db_resources[mg.DBE_TBLS]
+        self.tbl = db_resources[mg.DBE_TBL]
+        self.flds = db_resources[mg.DBE_FLDS]
+        self.idxs = db_resources[mg.DBE_IDXS]
+        self.has_unique = db_resources[mg.DBE_HAS_UNIQUE]
+
+    def set_tbl(self, tbl):
         self.tbl = tbl
-    
-    def get_db_tbls(self, cur, db):
-        "Must return tbls"
-        assert 0, "Must define get_db_tbls in subclass"
-        
-    def get_tbl_flds(self, cur, db, tbl):
-        """
-        Must return dic of dics called flds.
-        Gets dic of dics for each field with field name as key. Each field dic
-            has as keys the FLD_ variables listed in my_globals e.g. 
-            FLD_BOLNUMERIC.
-        Need enough to present fields in order, validate data entry, 
-            and guide labelling and reporting (e.g. numeric or categorical).
-        """
-        assert 0, "Must define get_tbl_flds in subclass"
-    
-    def get_index_dets(self, cur, db, tbl):
-        "Must return has_unique, idxs"
-        assert 0, "Must define get_index_dets in subclass"
-       
-    def get_db_dets(self):
-        """
-        Return connection, cursor, and get lists of databases, tables, fields, 
-            and index info, based on the database connection details provided.
-        Sets db and tbl if not supplied.
-        Must return con, cur, dbs, tbls, flds, has_unique, idxs.
-        dbs used to make dropdown of all dbe dbs (called more than once).
-        """
-        assert 0, "Must define get_db_dets in subclass"
+        tbl_dets = get_tbl_dets(self.dbe, self.cur, self.db, self.tbl)
+
+    def __str__(self):
+        return (u"dbe: %(dbe)s; dbs: %(dbs)s; db: %(db)s; tbls: %(tbls)s; "
+                u"tbl: %(tbl)s; flds: %(flds)s; idxs: %(idxs)s; "
+                u"has_unique: %(has_unique)s" % {"dbe": self.dbe, 
+                "dbs": self.dbs, "db": self.db, "tbls": self.tbls,
+                "tbl": self.tbl, "flds": self.flds, "idxs": self.idxs,
+                "has_unique": self.has_unique})
+
+# syntax
+
+def get_obj_quoter_func(dbe):
+    """
+    Get appropriate function to wrap content e.g. table or field name, 
+        in dbe-friendly way.
+    """
+    return mg.DBE_MODULES[dbe].quote_obj
+
+def get_val_quoter_func(dbe):
+    """
+    Get appropriate function to wrap values e.g. the contents of a string field,
+        in dbe-friendly way.
+    """
+    return mg.DBE_MODULES[dbe].quote_val
+
+def get_placeholder(dbe):
+    return mg.DBE_MODULES[dbe].placeholder
+
+def get_gte(dbe, gte):
+    if gte == mg.GTE_NOT_EQUALS:
+        return mg.DBE_MODULES[dbe].gte_not_equals
+    return gte
+
+def get_dbe_syntax_elements(dbe):
+    """
+    Returns if_clause (string), left_obj_quote(string), right_obj_quote 
+        (string), quote_obj(), quote_val(), placeholder (string), 
+        get_summable(), gte_not_equals (string).
+    if_clause receives 3 inputs - the test, result if true, result if false
+    e.g. MySQL "IF(%s, %s, %s)"
+    Sum and if statements are used to get frequencies in SOFA Statistics.
+    """
+    return mg.DBE_MODULES[dbe].get_syntax_elements()
+##########################################################################################
 
 def make_fld_val_clause_non_numeric(fld_name, val, dbe_gte, quote_obj, 
                                     quote_val):
@@ -113,39 +212,6 @@ def make_fld_val_clause(dbe, flds, fld_name, val, gte=mg.GTE_EQUALS):
                                                      quote_obj, quote_val)
     if debug: print(clause)
     return clause
-
-def get_obj_quoter_func(dbe):
-    """
-    Get appropriate function to wrap content e.g. table or field name, 
-        in dbe-friendly way.
-    """
-    return mg.DBE_MODULES[dbe].quote_obj
-
-def get_val_quoter_func(dbe):
-    """
-    Get appropriate function to wrap values e.g. the contents of a string field,
-        in dbe-friendly way.
-    """
-    return mg.DBE_MODULES[dbe].quote_val
-
-def get_placeholder(dbe):
-    return mg.DBE_MODULES[dbe].placeholder
-
-def get_gte(dbe, gte):
-    if gte == mg.GTE_NOT_EQUALS:
-        return mg.DBE_MODULES[dbe].gte_not_equals
-    return gte
-
-def get_dbe_syntax_elements(dbe):
-    """
-    Returns if_clause (string), left_obj_quote(string), right_obj_quote 
-        (string), quote_obj(), quote_val(), placeholder (string), 
-        get_summable(), gte_not_equals (string).
-    if_clause receives 3 inputs - the test, result if true, result if false
-    e.g. MySQL "IF(%s, %s, %s)"
-    Sum and if statements are used to get frequencies in SOFA Statistics.
-    """
-    return mg.DBE_MODULES[dbe].get_syntax_elements()
 
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     ""
@@ -318,8 +384,7 @@ def delete_row(dbe, con, cur, tbl_name, id_fld, row_id):
             (SQL_delete, row_id) + u"\n\nOriginal error: %s" % e)
         return False, u"%s" % e
 
-def get_data_dropdowns(parent, panel, dbe, default_dbs, default_tbls, con_dets, 
-                       dbs_of_default_dbe, db, tbls, tbl):
+def get_data_dropdowns(parent, panel, default_dbs):
     """
     Adds drop_dbs and drop_tbls to frame with correct values 
         and default selection.  NB must have exact same names.
@@ -328,16 +393,19 @@ def get_data_dropdowns(parent, panel, dbe, default_dbs, default_tbls, con_dets,
     debug = False
     # databases list needs to be tuple including dbe so can get both from 
     # sequence alone e.g. when identifying selection
-    db_choices = [(x, dbe) for x in dbs_of_default_dbe]      
+    dd = mg.DATA_DETS
+    if not dd:
+        raise Exception, (u"Unable to reference Data Details object until "
+                          u"initialised")
+    db_choices = [(x, dd.dbe) for x in dd.dbs]      
     dbes = mg.DBES[:]
-    dbes.pop(dbes.index(dbe))
+    dbes.pop(dbes.index(dd.dbe))
     for oth_dbe in dbes: # may not have any connection details
         oth_default_db = default_dbs.get(oth_dbe)
-        dbdetsobj = get_db_dets_obj(oth_dbe, default_dbs, default_tbls, 
-                                    con_dets, oth_default_db, None)
         try:
-            unused, unused, oth_dbs, unused, unused, unused, unused = \
-                dbdetsobj.get_db_dets()
+            con_resources = mg.DBE_MODULES[oth_dbe].get_con_resources(
+                               dd.con_dets, dd.default_dbs, db=oth_default_db)
+            oth_dbs = con_resources[mg.DBE_DBS]
             oth_db_choices = [(x, oth_dbe) for x in oth_dbs]
             db_choices.extend(oth_db_choices)
         except Exception, e:
@@ -347,10 +415,10 @@ def get_data_dropdowns(parent, panel, dbe, default_dbs, default_tbls, con_dets,
     parent.drop_dbs = wx.Choice(panel, -1, choices=parent.db_choice_items,
                                 size=(300,-1))
     parent.drop_dbs.Bind(wx.EVT_CHOICE, parent.on_database_sel)
-    dbs_lc = [x.lower() for x in dbs_of_default_dbe]
-    parent.drop_dbs.SetSelection(dbs_lc.index(db.lower()))
+    dbs_lc = [x.lower() for x in dd.dbs]
+    parent.drop_dbs.SetSelection(dbs_lc.index(dd.db.lower()))
     parent.drop_tbls = wx.Choice(panel, -1, choices=[], size=(300,-1))
-    setup_drop_tbls(parent.drop_tbls, dbe, db, tbls, tbl)
+    setup_drop_tbls(parent.drop_tbls, dd.dbe, dd.db, dd.tbls, dd.tbl)
     parent.drop_tbls.Bind(wx.EVT_CHOICE, parent.on_table_sel)
     return parent.drop_dbs, parent.drop_tbls
 
@@ -378,19 +446,6 @@ def setup_drop_tbls(drop_tbls, dbe, db, tbls, tbl):
     except NameError:
         raise Exception, "Table \"%s\" not found in tables list" % tbl
 
-def refresh_default_dbs_tbls(dbe, default_dbs, default_tbls):
-    """
-    Check to see what the default database and table has been for this database
-        engine.  If available, override the defaults taken from the project file
-        for this point on (until session closed).
-    """
-    recent_db = mg.DB_DEFAULTS.get(dbe)
-    if recent_db:
-        default_dbs[dbe] = recent_db
-    recent_tbl = mg.TBL_DEFAULTS.get(dbe)
-    if recent_tbl:
-        default_tbls[dbe] = recent_tbl
-
 def refresh_db_dets(parent):
     """
     Returns dbe, db, con, cur, tbls, tbl, flds, has_unique, idxs.
@@ -401,8 +456,6 @@ def refresh_db_dets(parent):
     db_choice_item = parent.db_choice_items[parent.drop_dbs.GetSelection()]
     db, dbe = extractDbDets(db_choice_item)
     # update globals - will be used in refresh ...
-    mg.DBE_DEFAULT = dbe
-    mg.DB_DEFAULTS[dbe] = db
     refresh_default_dbs_tbls(dbe, parent.default_dbs, parent.default_tbls)
     dbdetsobj = get_db_dets_obj(dbe, parent.default_dbs, parent.default_tbls, 
                                 parent.con_dets, db)

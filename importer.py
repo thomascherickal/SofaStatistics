@@ -618,7 +618,7 @@ class ImportFileSelectDlg(wx.Dialog):
         return tbl_name
 
     def align_btns_to_completeness(self):
-        debug = True
+        debug = False
         filename = self.txt_file.GetValue()
         int_name = self.txt_int_name.GetValue()
         complete = (filename != u"" and int_name != u"")

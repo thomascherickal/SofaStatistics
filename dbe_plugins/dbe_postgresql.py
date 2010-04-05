@@ -72,292 +72,238 @@ def get_syntax_elements():
     return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
             placeholder, get_summable, gte_not_equals)
 
-
-class DbDets(getdata.DbDets):
-    
+def get_con_resources(con_dets, default_dbs, db=None):
     """
-    __init__ supplies default_dbs, default_tbls, con_dets and 
-        db and tbl (may be None).  Db needs to be set in con_dets once 
-        identified.
+    Get connection - with a database if possible, else without.  If without,
+        use connection to identify databases and select one.  Then remake
+        connection with selected database and remake cursor.
     """
     debug = False
-    
-    def get_con_cur(self):
-        """
-        Get connection - with a database if possible, else without.  If without,
-            use connection to identify databases and select one.  Then remake
-            connection with selected database and remake cursor.
-        """
-        con_dets_pgsql = self.con_dets.get(mg.DBE_PGSQL)
-        if not con_dets_pgsql:
-            raise Exception, u"No connection details available for PostgreSQL"
-        try:
-            if self.db:
-                con_dets_pgsql["database"] = self.db
-            con = pgdb.connect(**con_dets_pgsql)
-        except Exception, e:
-            raise Exception, u"Unable to connect to PostgreSQL db.  " + \
-                u"Orig error: %s" % e
-        cur = con.cursor() # must return tuples not dics
-        # get database name
-        SQL_get_db_names = u"""SELECT datname FROM pg_database"""
-        cur.execute(SQL_get_db_names)
-        self.dbs = [x[0] for x in cur.fetchall()]
-        dbs_lc = [x.lower() for x in self.dbs]
-        # get db (default if possible otherwise first)
-        # NB db must be accessible from connection
-        if not self.db:
-            # use default if possible, or fall back to first
-            default_db_pgsql = self.default_dbs.get(mg.DBE_PGSQL)
-            if default_db_pgsql.lower() in dbs_lc:
-                self.db = default_db_pgsql
-            else:
-                self.db = self.dbs[0]
-            # need to reset con and cur
-            cur.close()
-            con.close()
-            con_dets_pgsql["database"] = self.db
-            con = pgdb.connect(**con_dets_pgsql)
-            cur = con.cursor()
+    con_dets_pgsql = con_dets.get(mg.DBE_PGSQL)
+    if not con_dets_pgsql:
+        raise Exception, u"No connection details available for PostgreSQL"
+    try:
+        if db:
+            con_dets_pgsql["database"] = db
+        con = pgdb.connect(**con_dets_pgsql)
+    except Exception, e:
+        raise Exception, u"Unable to connect to PostgreSQL db. " + \
+            u"Orig error: %s" % e
+    cur = con.cursor() # must return tuples not dics
+    # get database name
+    SQL_get_db_names = u"""SELECT datname FROM pg_database"""
+    cur.execute(SQL_get_db_names)
+    dbs = [x[0] for x in cur.fetchall()]
+    dbs_lc = [x.lower() for x in dbs]
+    # get db (default if possible otherwise first)
+    # NB db must be accessible from connection
+    if not db:
+        # use default if possible, or fall back to first
+        default_db_pgsql = default_dbs.get(mg.DBE_PGSQL)
+        if default_db_pgsql.lower() in dbs_lc:
+            db = default_db_pgsql
         else:
-            if self.db.lower() not in dbs_lc:
-                raise Exception, u"Database \"%s\" not available " % self.db + \
-                    u"from supplied connection"
-        if self.debug: pprint.pprint(self.con_dets)        
-        return con, cur
-       
-    def get_db_dets(self):
-        """
-        Return connection, cursor, and get lists of 
-            databases, tables, fields, and index info,
-            based on the MySQL database connection details provided.
-        Sets db and tbl if not supplied.
-        The database used will be the default or the first if none provided.
-        The table used will be the default or the first if none provided.
-        The field dets will be taken from the table used.
-        Returns con, cur, dbs, tbls, flds, has_unique, idxs.
-        """
-        if self.debug:
-            print(u"Received db is: %s" % self.db)
-            print(u"Received tbl is: %s" % self.tbl)
-        con, cur = self.get_con_cur()
-        # get table names
-        tbls = self.get_db_tbls(cur, self.db)
-        tbls_lc = [x.lower() for x in tbls]        
-        # get table (default if possible otherwise first)
-        # NB table must be in the database
-        if not self.tbl:
-            # use default if possible
-            default_tbl_pgsql = self.default_tbls.get(mg.DBE_PGSQL)
-            if default_tbl_pgsql and default_tbl_pgsql.lower() in tbls_lc:
-                self.tbl = default_tbl_pgsql
-            else:
-                try:
-                    self.tbl = tbls[0]
-                except IndexError:
-                    raise Exception, u"No tables found in database \"%s\"" % \
-                        self.db
-        else:
-            if self.tbl.lower() not in tbls_lc:
-                raise Exception, u"Table \"%s\" not found " % self.tbl + \
-                    u"in database \"%s\"" % self.db
-        # get field names (from first table if none provided)
-        flds = self.get_tbl_flds(cur, self.db, self.tbl)
-        has_unique, idxs = self.get_index_dets(cur, self.db, self.tbl)
-        if self.debug:
-            print(u"Db is: %s" % self.db)
-            print(u"Tbl is: %s" % self.tbl)
-            pprint.pprint(tbls)
-            pprint.pprint(flds)
-            pprint.pprint(idxs)
-        return con, cur, self.dbs, tbls, flds, has_unique, idxs
-    
-    def get_db_tbls(self, cur, db):
-        """
-        Get table names given database and cursor.
-        http://www.alberton.info/postgresql_meta_info.html
-        """
-        SQL_get_tbl_names = u"""SELECT table_name
-            FROM information_schema.tables
-            WHERE table_type = 'BASE TABLE'
-                AND table_schema NOT IN ('pg_catalog', 'information_schema')"""
-        cur.execute(SQL_get_tbl_names)
-        tbls = [x[0] for x in cur.fetchall()] 
-        tbls.sort(key=lambda s: s.upper())
-        return tbls
-    
-    def get_min_max(self, fld_type, num_prec, dec_pts, autonum):
-        """
-        Returns minimum and maximum allowable numeric values.
-        num_prec - precision e.g. 6 for 23.5141
-        dec_pts - scale e.g. 4 for 23.5141
-        autonum - i.e. serial or bigserial
-        http://www.postgresql.org/docs/8.4/static/datatype-numeric.html
-        We use the following terms below: The scale of a numeric is the count of 
-            decimal digits in the fractional part, to the right of the decimal 
-            point. The precision of a numeric is the total count of significant 
-            digits in the whole number, that is, the number of digits to both 
-            sides of the decimal point. So the number 23.5141 has a precision of 
-            6 and a scale of 4. Integers can be considered to have a scale of 
-            zero.
-        http://www.postgresql.org/docs/8.4/static/datatype-numeric.html
-        NB even though a floating point type will not store values closer 
-            to zero than a certain level, such values will be accepted here.
-            The database will store these as zero. TODO - confirm with 
-            PostgreSQL.
-        """
-        if fld_type == SMALLINT:
-            min = -(2**15)
-            max = (2**15)-1
-        elif fld_type == INTEGER:
-            min = 1 if autonum else -(2**31)
-            max = (2**31)-1
-        elif fld_type == BIGINT:
-            min = 1 if autonum else -(2**63)
-            max = (2**63)-1
-        # http://www.postgresql.org/docs/8.4/static/datatype-money.html
-        elif fld_type == MONEY:
-            min = -92233720368547758.08
-            max = 92233720368547758.07
-        elif fld_type == REAL:
-            # variable-precision, inexact. 6 decimal digits precision.
-            min = -(2**128)
-            max = (2**128)-1 # actually, rather a bit less, but this will do
-        elif fld_type == DOUBLE:
-            # variable-precision, inexact. 15 decimal digits precision.
-            min = -(2**1024)
-            max = (2**1024)-1
-        elif fld_type == NUMERIC: #alias of decimal
-            # variable-precision, inexact. 15 decimal digits precision.
-            abs_max = 10**(num_prec - dec_pts)
-            min = -abs_max
-            max = abs_max
-        else:
-            min = None
-            max = None
-        return min, max    
-    
-    def get_tbl_flds(self, cur, db, tbl):
-        """
-        Returns details for set of fields given database, table, and cursor.
-        http://archives.postgresql.org/pgsql-sql/2007-01/msg00082.php
-        """
-        debug = False
-        SQL_get_fld_dets = u"""SELECT columns.column_name 
-            AS col_name, 
-                columns.ordinal_position 
-            AS ord_pos,  
-                columns.is_nullable 
-            AS is_nullable, 
-                columns.column_default 
-            AS col_default,
-                columns.data_type
-            AS data_type, 
-                columns.character_maximum_length 
-            AS char_max_len, 
-                columns.character_set_name 
-            AS char_set_name,
-                lower(columns.data_type) 
-                IN (%s, %s, %s, %s, %s, %s, %s, %s) """ % (quote_val(SMALLINT), 
-                    quote_val(INTEGER), quote_val(BIGINT), quote_val(DECIMAL), 
-                    quote_val(NUMERIC), quote_val(REAL), quote_val(DOUBLE), 
-                    quote_val(MONEY)) + u"""
-            AS bolnumeric,
-                position('nextval' in columns.column_default) IS NOT NULL 
-            AS autonumber,
-                columns.numeric_scale 
-            AS dec_pts,
-                columns.numeric_precision 
-            AS num_precision,
-                lower(columns.data_type) IN (%s, %s, %s, %s) """ % \
-                    (quote_val(TIMESTAMP), quote_val(DATE), quote_val(TIME), 
-                     quote_val(INTERVAL)) + u"""
-            AS boldatetime,
-                lower(columns.data_type) IN (%s) """ % quote_val(TIMESTAMP) + \
-            u""" AS timestamp
-            FROM information_schema.columns
-            WHERE columns.table_schema::text = 'public'::text
-            AND columns.table_name = %s
-            ORDER BY columns.ordinal_position """ % quote_val(tbl) 
-        cur.execute(SQL_get_fld_dets)
-        fld_dets = cur.fetchall()
-        if debug: pprint.pprint(fld_dets)
-        # build dic of fields, each with dic of characteristics
-        flds = {}
-        for (fld_name, ord_pos, nullable, fld_default, fld_type, max_len, 
-                 charset, numeric, autonum, dec_pts, num_prec, boldatetime, 
-                 timestamp) in fld_dets:
-            bolnullable = True if nullable == u"YES" else False
-            boldata_entry_ok = False if (autonum or timestamp) else True
-            bolnumeric = True if numeric else False
-            fld_txt = not bolnumeric and not boldatetime
-            min_val, max_val = self.get_min_max(fld_type, num_prec, dec_pts, 
-                                                autonum)
-            bolsigned = bolnumeric and autonum
-            dets_dic = {
-                        mg.FLD_SEQ: ord_pos,
-                        mg.FLD_BOLNULLABLE: bolnullable,
-                        mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
-                        mg.FLD_COLUMN_DEFAULT: fld_default,
-                        mg.FLD_BOLTEXT: fld_txt,
-                        mg.FLD_TEXT_LENGTH: max_len,
-                        mg.FLD_CHARSET: charset,
-                        mg.FLD_BOLNUMERIC: bolnumeric,
-                        mg.FLD_BOLAUTONUMBER: autonum,
-                        mg.FLD_DECPTS: dec_pts,
-                        mg.FLD_NUM_WIDTH: num_prec,
-                        mg.FLD_BOL_NUM_SIGNED: bolsigned,
-                        mg.FLD_NUM_MIN_VAL: min_val,
-                        mg.FLD_NUM_MAX_VAL: max_val,
-                        mg.FLD_BOLDATETIME: boldatetime,
-                        }
-            flds[fld_name] = dets_dic
-        return flds
+            db = dbs[0]
+        # need to reset con and cur
+        cur.close()
+        con.close()
+        con_dets_pgsql["database"] = db
+        con = pgdb.connect(**con_dets_pgsql)
+        cur = con.cursor()
+    else:
+        if db.lower() not in dbs_lc:
+            raise Exception, u"Database \"%s\" not available " % db + \
+                u"from supplied connection"
+    if debug: pprint.pprint(con_dets)  
+    con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: [db,],
+                     mg.DBE_DB: db}
+    return con_resources
 
-    def get_index_dets(self, cur, db, tbl):
-        """
-        has_unique - boolean
-        idxs = [idx0, idx1, ...]
-        each idx is a dict name, is_unique, flds
-        http://www.alberton.info/postgresql_meta_info.html
-        """
-        SQL_get_main_index_dets = u"""SELECT relname, indkey, indisunique
-            FROM pg_class, pg_index
-            WHERE pg_class.oid = pg_index.indexrelid
-            AND pg_class.oid IN (
-            SELECT indexrelid
-            FROM pg_index INNER JOIN pg_class
-            ON pg_class.oid=pg_index.indrelid
-            WHERE pg_class.relname=%s)""" % quote_val(tbl)
-        cur.execute(SQL_get_main_index_dets)
-        main_index_dets = cur.fetchall()
-        idxs = []
-        has_unique = False
-        for idx_name, indkey, unique_index in main_index_dets:
-            fld_names = []
-            if unique_index:
-                has_unique = True
-            # get field names
-            fld_oids = indkey.replace(u" ", u", ")
-            SQL_get_idx_flds = u"""SELECT t.relname, a.attname
-               FROM pg_index c
-               LEFT JOIN pg_class t
-               ON c.indrelid  = t.oid
-               LEFT JOIN pg_attribute a
-               ON a.attrelid = t.oid
-               AND a.attnum = ANY(indkey)
-               WHERE t.relname = %s
-               AND a.attnum IN(%s) """ % (quote_val(tbl), fld_oids)
-            cur.execute(SQL_get_idx_flds)
-            fld_names = [x[1] for x in cur.fetchall()]
-            idx_dic = {mg.IDX_NAME: idx_name, mg.IDX_IS_UNIQUE: unique_index, 
-                       mg.IDX_FLDS: fld_names}
-            idxs.append(idx_dic)
-        debug = False
-        if debug:
-            pprint.pprint(idxs)
-            print(has_unique)
-        return has_unique, idxs
+def get_tbls(cur, db):
+    """
+    Get table names given database and cursor.
+    http://www.alberton.info/postgresql_meta_info.html
+    """
+    SQL_get_tbl_names = u"""SELECT table_name
+        FROM information_schema.tables
+        WHERE table_type = 'BASE TABLE'
+            AND table_schema NOT IN ('pg_catalog', 'information_schema')"""
+    cur.execute(SQL_get_tbl_names)
+    tbls = [x[0] for x in cur.fetchall()] 
+    tbls.sort(key=lambda s: s.upper())
+    return tbls
+
+def get_min_max(fld_type, num_prec, dec_pts, autonum):
+    """
+    Returns minimum and maximum allowable numeric values.
+    num_prec - precision e.g. 6 for 23.5141
+    dec_pts - scale e.g. 4 for 23.5141
+    autonum - i.e. serial or bigserial
+    http://www.postgresql.org/docs/8.4/static/datatype-numeric.html
+    We use the following terms below: The scale of a numeric is the count of 
+        decimal digits in the fractional part, to the right of the decimal 
+        point. The precision of a numeric is the total count of significant 
+        digits in the whole number, that is, the number of digits to both 
+        sides of the decimal point. So the number 23.5141 has a precision of 
+        6 and a scale of 4. Integers can be considered to have a scale of 
+        zero.
+    http://www.postgresql.org/docs/8.4/static/datatype-numeric.html
+    NB even though a floating point type will not store values closer 
+        to zero than a certain level, such values will be accepted here.
+        The database will store these as zero. TODO - confirm with 
+        PostgreSQL.
+    """
+    if fld_type == SMALLINT:
+        min = -(2**15)
+        max = (2**15)-1
+    elif fld_type == INTEGER:
+        min = 1 if autonum else -(2**31)
+        max = (2**31)-1
+    elif fld_type == BIGINT:
+        min = 1 if autonum else -(2**63)
+        max = (2**63)-1
+    # http://www.postgresql.org/docs/8.4/static/datatype-money.html
+    elif fld_type == MONEY:
+        min = -92233720368547758.08
+        max = 92233720368547758.07
+    elif fld_type == REAL:
+        # variable-precision, inexact. 6 decimal digits precision.
+        min = -(2**128)
+        max = (2**128)-1 # actually, rather a bit less, but this will do
+    elif fld_type == DOUBLE:
+        # variable-precision, inexact. 15 decimal digits precision.
+        min = -(2**1024)
+        max = (2**1024)-1
+    elif fld_type == NUMERIC: #alias of decimal
+        # variable-precision, inexact. 15 decimal digits precision.
+        abs_max = 10**(num_prec - dec_pts)
+        min = -abs_max
+        max = abs_max
+    else:
+        min = None
+        max = None
+    return min, max
+    
+def get_flds(cur, db, tbl):
+    """
+    Returns details for set of fields given database, table, and cursor.
+    http://archives.postgresql.org/pgsql-sql/2007-01/msg00082.php
+    """
+    debug = False
+    SQL_get_fld_dets = u"""SELECT columns.column_name 
+        AS col_name, 
+            columns.ordinal_position 
+        AS ord_pos,  
+            columns.is_nullable 
+        AS is_nullable, 
+            columns.column_default 
+        AS col_default,
+            columns.data_type
+        AS data_type, 
+            columns.character_maximum_length 
+        AS char_max_len, 
+            columns.character_set_name 
+        AS char_set_name,
+            lower(columns.data_type) 
+            IN (%s, %s, %s, %s, %s, %s, %s, %s) """ % (quote_val(SMALLINT), 
+                quote_val(INTEGER), quote_val(BIGINT), quote_val(DECIMAL), 
+                quote_val(NUMERIC), quote_val(REAL), quote_val(DOUBLE), 
+                quote_val(MONEY)) + u"""
+        AS bolnumeric,
+            position('nextval' in columns.column_default) IS NOT NULL 
+        AS autonumber,
+            columns.numeric_scale 
+        AS dec_pts,
+            columns.numeric_precision 
+        AS num_precision,
+            lower(columns.data_type) IN (%s, %s, %s, %s) """ % \
+                (quote_val(TIMESTAMP), quote_val(DATE), quote_val(TIME), 
+                 quote_val(INTERVAL)) + u"""
+        AS boldatetime,
+            lower(columns.data_type) IN (%s) """ % quote_val(TIMESTAMP) + \
+        u""" AS timestamp
+        FROM information_schema.columns
+        WHERE columns.table_schema::text = 'public'::text
+        AND columns.table_name = %s
+        ORDER BY columns.ordinal_position """ % quote_val(tbl) 
+    cur.execute(SQL_get_fld_dets)
+    fld_dets = cur.fetchall()
+    if debug: pprint.pprint(fld_dets)
+    # build dic of fields, each with dic of characteristics
+    flds = {}
+    for (fld_name, ord_pos, nullable, fld_default, fld_type, max_len, 
+             charset, numeric, autonum, dec_pts, num_prec, boldatetime, 
+             timestamp) in fld_dets:
+        bolnullable = True if nullable == u"YES" else False
+        boldata_entry_ok = False if (autonum or timestamp) else True
+        bolnumeric = True if numeric else False
+        fld_txt = not bolnumeric and not boldatetime
+        min_val, max_val = get_min_max(fld_type, num_prec, dec_pts, autonum)
+        bolsigned = bolnumeric and autonum
+        dets_dic = {
+                    mg.FLD_SEQ: ord_pos,
+                    mg.FLD_BOLNULLABLE: bolnullable,
+                    mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
+                    mg.FLD_COLUMN_DEFAULT: fld_default,
+                    mg.FLD_BOLTEXT: fld_txt,
+                    mg.FLD_TEXT_LENGTH: max_len,
+                    mg.FLD_CHARSET: charset,
+                    mg.FLD_BOLNUMERIC: bolnumeric,
+                    mg.FLD_BOLAUTONUMBER: autonum,
+                    mg.FLD_DECPTS: dec_pts,
+                    mg.FLD_NUM_WIDTH: num_prec,
+                    mg.FLD_BOL_NUM_SIGNED: bolsigned,
+                    mg.FLD_NUM_MIN_VAL: min_val,
+                    mg.FLD_NUM_MAX_VAL: max_val,
+                    mg.FLD_BOLDATETIME: boldatetime,
+                    }
+        flds[fld_name] = dets_dic
+    return flds
+
+def get_index_dets(cur, tbl):
+    """
+    has_unique - boolean
+    idxs = [idx0, idx1, ...]
+    each idx is a dict name, is_unique, flds
+    http://www.alberton.info/postgresql_meta_info.html
+    """
+    SQL_get_main_index_dets = u"""SELECT relname, indkey, indisunique
+        FROM pg_class, pg_index
+        WHERE pg_class.oid = pg_index.indexrelid
+        AND pg_class.oid IN (
+        SELECT indexrelid
+        FROM pg_index INNER JOIN pg_class
+        ON pg_class.oid=pg_index.indrelid
+        WHERE pg_class.relname=%s)""" % quote_val(tbl)
+    cur.execute(SQL_get_main_index_dets)
+    main_index_dets = cur.fetchall()
+    idxs = []
+    has_unique = False
+    for idx_name, indkey, unique_index in main_index_dets:
+        fld_names = []
+        if unique_index:
+            has_unique = True
+        # get field names
+        fld_oids = indkey.replace(u" ", u", ")
+        SQL_get_idx_flds = u"""SELECT t.relname, a.attname
+           FROM pg_index c
+           LEFT JOIN pg_class t
+           ON c.indrelid  = t.oid
+           LEFT JOIN pg_attribute a
+           ON a.attrelid = t.oid
+           AND a.attnum = ANY(indkey)
+           WHERE t.relname = %s
+           AND a.attnum IN(%s) """ % (quote_val(tbl), fld_oids)
+        cur.execute(SQL_get_idx_flds)
+        fld_names = [x[1] for x in cur.fetchall()]
+        idx_dic = {mg.IDX_NAME: idx_name, mg.IDX_IS_UNIQUE: unique_index, 
+                   mg.IDX_FLDS: fld_names}
+        idxs.append(idx_dic)
+    debug = False
+    if debug:
+        pprint.pprint(idxs)
+        print(has_unique)
+    return idxs, has_unique
     
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     # default database

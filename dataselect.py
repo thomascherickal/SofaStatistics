@@ -36,51 +36,21 @@ class DataSelectDlg(wx.Dialog):
         self.fil_var_dets = proj_dic["fil_var_dets"]
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
             projects.get_var_dets(self.fil_var_dets)
-        # which dbe? If a default, use that.  If not, use project default.
-        if mg.DBE_DEFAULT:
-            self.dbe = mg.DBE_DEFAULT
-        else:
-            self.dbe = proj_dic["default_dbe"]
-        try:
-            self.con_dets = proj_dic["con_dets"]
-        except KeyError, e:
-            lib.safe_end_cursor()
-            msg = (u"The \"%s\" project uses the old " % proj_name +
-                   u"conn_dets label rather than the new con_dets label. "
-                   u" Please fix and try again.")
-            wx.MessageBox(msg)
-            raise Exception, msg # for debugging
-            self.Destroy()
-            return
-        if debug: print(self.con_dets)
-        self.default_dbs = proj_dic["default_dbs"] \
-            if proj_dic["default_dbs"] else {}
-        self.default_tbls = proj_dic["default_tbls"] \
-            if proj_dic["default_tbls"] else {}
-        # Try to use database and tables most recently used in session for this 
-        # database engine.
-        getdata.refresh_default_dbs_tbls(self.dbe, self.default_dbs, 
-                                         self.default_tbls)
-        # get various db settings
-        dbdetsobj = getdata.get_db_dets_obj(self.dbe, self.default_dbs, 
-                        self.default_tbls, self.con_dets)
-        try:
-            (self.con, self.cur, self.dbs, self.tbls, self.flds, 
-                self.has_unique, self.idxs) = dbdetsobj.get_db_dets()
-        except Exception, e:
-            lib.safe_end_cursor()
-            wx.MessageBox(_("Unable to connect to data as defined in " 
-                "project %s.  Please check your settings." % proj_name))
-            raise Exception, unicode(e) # for debugging
-            self.Destroy()
-            return
+        if not mg.DATA_DETS:
+            try:
+                mg.DATA_DETS = getdata.DataDets(proj_dic)
+                if debug: print("Updated mg.DATA_DETS")
+            except Exception, e:
+                lib.safe_end_cursor()
+                wx.MessageBox(_("Unable to connect to data as defined in " 
+                    "project %s.  Please check your settings." % proj_name))
+                raise Exception, unicode(e) # for debugging
+                self.Destroy()
+                return
         # set up self.drop_dbs and self.drop_tbls
-        self.db = dbdetsobj.db
-        self.tbl = dbdetsobj.tbl
         self.drop_dbs, self.drop_tbls = \
-            getdata.get_data_dropdowns(self, self.panel, self.dbe, 
-                            self.default_dbs, self.default_tbls, self.con_dets, 
-                            self.dbs, self.db, self.tbls, self.tbl)
+                            getdata.get_data_dropdowns(self, self.panel, 
+                                                       proj_dic["default_dbs"])
         self.chk_readonly = wx.CheckBox(self.panel, -1, _("Read Only"))
         self.chk_readonly.SetValue(True)
         self.btn_delete = wx.Button(self.panel, -1, _("Delete"))
@@ -116,12 +86,12 @@ class DataSelectDlg(wx.Dialog):
         btn_make_new.Bind(wx.EVT_BUTTON, self.on_new_click)
         szr_new.Add(lbl_make_new, 1, wx.GROW|wx.ALL, 10)
         szr_new.Add(btn_make_new, 0, wx.ALL, 10)
-        self.lblFeedback = wx.StaticText(self.panel, -1, "")
+        self.lbl_feedback = wx.StaticText(self.panel, -1, "")
         btn_close = wx.Button(self.panel, wx.ID_CLOSE)
         btn_close.Bind(wx.EVT_BUTTON, self.on_close)
         szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_btns = wx.BoxSizer(wx.HORIZONTAL)
-        self.szr_btns.Add(self.lblFeedback, 1, wx.GROW|wx.ALL, 10)
+        self.szr_btns.Add(self.lbl_feedback, 1, wx.GROW|wx.ALL, 10)
         self.szr_btns.Add(btn_close, 0, wx.RIGHT)
         szr_bottom.Add(self.szr_btns, 1, wx.GROW|wx.RIGHT, 15) # align with New        
         self.szr_main.Add(lblChoose, 0, wx.ALL, 10)
@@ -136,7 +106,7 @@ class DataSelectDlg(wx.Dialog):
         lib.safe_end_cursor()
 
     def add_feedback(self, feedback):
-        self.lblFeedback.SetLabel(feedback)
+        self.lbl_feedback.SetLabel(feedback)
         wx.Yield()
     
     def btn_enablement(self):
@@ -144,12 +114,13 @@ class DataSelectDlg(wx.Dialog):
         Can only open dialog for design details for tables in the default SOFA 
             database.
         """
-        design_enable = (self.dbe == mg.DBE_SQLITE 
-                         and self.db == mg.SOFA_DEFAULT_DB)
+        dd = mg.DATA_DETS
+        design_enable = (dd.dbe == mg.DBE_SQLITE 
+                         and dd.db == mg.SOFA_DEFAULT_DB)
         self.btn_design.Enable(design_enable)
-        delete_enable = (self.dbe == mg.DBE_SQLITE 
-                         and self.db == mg.SOFA_DEFAULT_DB 
-                         and self.tbl != mg.SOFA_DEFAULT_TBL)
+        delete_enable = (dd.dbe == mg.DBE_SQLITE 
+                         and dd.db == mg.SOFA_DEFAULT_DB 
+                         and dd.tbl != mg.SOFA_DEFAULT_TBL)
         self.btn_delete.Enable(delete_enable)
         
     def on_database_sel(self, event):
@@ -469,12 +440,4 @@ class DataSelectDlg(wx.Dialog):
         event.Skip()
     
     def on_close(self, event):
-        debug = False
-        mg.DBE_DEFAULT = self.dbe
-        mg.DB_DEFAULTS[self.dbe] = self.db
-        mg.TBL_DEFAULTS[self.dbe] = self.tbl
-        if debug:
-            print("For %s, default DB saved as: %s and default table saved as: "
-                  "%s" % (self.dbe, self.db, self.tbl))
-        self.Destroy()
-         
+        self.Destroy()         

@@ -39,6 +39,9 @@ QUOTES = [
      u"for progressive social change. ... Social problems should not be "
      u"disguised by technical language.",
      u"Radical Statistics"),
+    (u"Small wonder that students have trouble [learning significance testing]."
+     u" They may be trying to think",
+     u"W. Edwards Deming"),
     ]
 
 def get_quote():
