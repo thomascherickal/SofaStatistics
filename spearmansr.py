@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 import my_globals as mg
 import lib
+import getdata
 import paired2var
+
+dd = getdata.get_dd()
 
 
 class DlgConfig(paired2var.DlgPaired2VarConfig):
@@ -30,11 +33,11 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         "Build script from inputs"
         script_lst = []
         var_a, label_a, var_b, label_b = self.get_drop_vals()
-        script_lst.append(lib.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
+        script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         script_lst.append(u"sample_a, sample_b = " + \
             u"core_stats.get_paired_lists(" + \
-            u"dbe=u\"%s\", " % self.dbe + \
-            u"cur=cur, tbl=u\"%s\",\n    " % self.tbl + \
+            u"dbe=u\"%s\", " % dd.dbe + \
+            u"cur=cur, tbl=u\"%s\",\n    " % dd.tbl + \
             u"tbl_filt=tbl_filt, " + \
             u"fld_a=u\"%s\", " % var_a + \
             u"fld_b=u\"%s\")" % var_b)

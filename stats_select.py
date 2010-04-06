@@ -42,19 +42,13 @@ DIV_LINE_WIDTH = 203
 
 class StatsSelectDlg(wx.Dialog):
     
-    def __init__(self, proj_name, dbe, con_dets, default_dbs=None, 
-                 default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
-                 fil_script="", var_labels=None, var_notes=None, 
-                 val_dics=None):
+    def __init__(self, proj_name, fil_var_dets="", fil_css="", fil_report="", 
+                 fil_script="", var_labels=None, var_notes=None, val_dics=None):
         wx.Dialog.__init__(self, None, title=_("Select Statistical Test"), 
               size=(800,542),
               style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU,
               pos=(100,100))
         self.proj_name = proj_name
-        self.dbe = dbe
-        self.con_dets = con_dets
-        self.default_dbs = default_dbs
-        self.default_tbls = default_tbls
         self.fil_var_dets = fil_var_dets
         self.fil_css = fil_css
         self.fil_report = fil_report
@@ -310,10 +304,9 @@ class StatsSelectDlg(wx.Dialog):
     def examine_normality(self, paired=False):
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                             lib.get_var_dets(self.fil_var_dets)
-        dlg = normal.NormalityDlg(self, self.dbe, self.con_dets, 
-                        self.default_dbs, self.default_tbls, self.var_labels, 
-                        self.var_notes, self.var_types, self.val_dics, 
-                        self.fil_var_dets, paired)
+        dlg = normal.NormalityDlg(self, self.var_labels, self.var_notes, 
+                                  self.var_types, self.val_dics, 
+                                  self.fil_var_dets, paired)
         dlg.ShowModal()
     
     def on_normal_help1_btn(self, event):
@@ -476,68 +469,61 @@ class StatsSelectDlg(wx.Dialog):
             if sel_test == TEST_TTEST_INDEP:
                 import ttest_indep
                 dlg = ttest_indep.DlgConfig(_("Configure Independent t-test"), 
-                            self.dbe, self.con_dets, self.default_dbs, 
-                            self.default_tbls, self.fil_var_dets, self.fil_css, 
-                            self.fil_report, self.fil_script)
+                                            self.fil_var_dets, self.fil_css, 
+                                            self.fil_report, self.fil_script)
                 dlg.ShowModal()        
             elif sel_test == TEST_TTEST_PAIRED:
                 import ttest_paired
                 dlg = ttest_paired.DlgConfig(
-                            _("Configure Paired Samples t-test"), 
-                            self.dbe, self.con_dets, self.default_dbs, 
-                            self.default_tbls, self.fil_var_dets, self.fil_css, 
-                            self.fil_report, self.fil_script)
+                                        _("Configure Paired Samples t-test"), 
+                                        self.fil_var_dets, self.fil_css, 
+                                        self.fil_report, self.fil_script)
                 dlg.ShowModal()
             elif sel_test == TEST_ANOVA:
                 import anova
                 dlg = anova.DlgConfig(_("Configure ANOVA test"), 
-                            self.dbe, self.con_dets, self.default_dbs, 
-                            self.default_tbls, self.fil_var_dets, self.fil_css, 
-                            self.fil_report, self.fil_script, takes_range=True)
+                                      self.fil_var_dets, self.fil_css, 
+                                      self.fil_report, self.fil_script, 
+                                      takes_range=True)
                 dlg.ShowModal()
             elif sel_test == TEST_WILCOXON:
                 import wilcoxon
                 dlg = wilcoxon.DlgConfig(
-                            _("Configure Wilcoxon Signed Ranks test"), 
-                            self.dbe, self.con_dets, self.default_dbs, 
-                            self.default_tbls, self.fil_var_dets, self.fil_css, 
-                            self.fil_report, self.fil_script)
+                                    _("Configure Wilcoxon Signed Ranks test"), 
+                                    self.fil_var_dets, self.fil_css, 
+                                    self.fil_report, self.fil_script)
                 dlg.ShowModal()
             elif sel_test == TEST_MANN_WHITNEY:
                 import mann_whitney
                 dlg = mann_whitney.DlgConfig(_("Configure Mann Whitney U test"), 
-                            self.dbe, self.con_dets, self.default_dbs, 
-                            self.default_tbls, self.fil_var_dets, self.fil_css, 
-                            self.fil_report, self.fil_script)
+                                             self.fil_var_dets, self.fil_css, 
+                                             self.fil_report, self.fil_script)
                 dlg.ShowModal()
             elif sel_test == TEST_KRUSKAL_WALLIS:
                 import kruskal_wallis
                 dlg = kruskal_wallis.DlgConfig(
-                            _("Configure Kruskal Wallis H test"), 
-                            self.dbe, self.con_dets, self.default_dbs, 
-                            self.default_tbls, self.fil_var_dets, self.fil_css, 
-                            self.fil_report, self.fil_script, takes_range=True)
+                                        _("Configure Kruskal Wallis H test"), 
+                                        self.fil_var_dets, self.fil_css, 
+                                        self.fil_report, self.fil_script, 
+                                        takes_range=True)
                 dlg.ShowModal()
             elif sel_test == TEST_CHI_SQUARE:
                 import chisquare
                 dlg = chisquare.DlgConfig(_("Configure Chi Square test"), 
-                            self.dbe, self.con_dets, self.default_dbs, 
-                            self.default_tbls, self.fil_var_dets, self.fil_css, 
-                            self.fil_report, self.fil_script)
+                                          self.fil_var_dets, self.fil_css, 
+                                          self.fil_report, self.fil_script)
                 dlg.ShowModal()
             elif sel_test == TEST_PEARSONS_R:
                 import pearsonsr
                 dlg = pearsonsr.DlgConfig(_("Configure Pearson's R test"), 
-                            self.dbe, self.con_dets, self.default_dbs, 
-                            self.default_tbls, self.fil_var_dets, self.fil_css, 
-                            self.fil_report, self.fil_script)
+                                          self.fil_var_dets, self.fil_css, 
+                                          self.fil_report, self.fil_script)
                 dlg.ShowModal()
             elif sel_test == TEST_SPEARMANS_R:
                 import spearmansr
                 dlg = spearmansr.DlgConfig(_("Configure Spearman's R test"), 
-                            self.dbe, self.con_dets, self.default_dbs, 
-                            self.default_tbls, self.fil_var_dets, self.fil_css, 
-                            self.fil_report, self.fil_script)
+                                           self.fil_var_dets, self.fil_css, 
+                                           self.fil_report, self.fil_script)
                 dlg.ShowModal()
             else:
                 raise Exception, "Unknown test"

@@ -49,9 +49,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     """
     inc_gp_by_select = False
     
-    def __init__(self, title, dbe, con_dets, default_dbs=None,
-                 default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
-                 fil_script="", takes_range=False):
+    def __init__(self, title, fil_var_dets=u"", fil_css=u"", fil_report=u"", 
+                 fil_script=u"", takes_range=False):
          
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
                            pos=(200, 0), 
@@ -59,10 +58,6 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                            wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
                            wx.CAPTION | wx.CLOSE_BOX | \
                            wx.CLIP_CHILDREN)
-        self.dbe = dbe
-        self.con_dets = con_dets
-        self.default_dbs = default_dbs
-        self.default_tbls = default_tbls
         self.fil_var_dets = fil_var_dets
         self.fil_css = fil_css
         self.fil_report = fil_report
@@ -201,8 +196,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         label_gp = lib.get_item_label(item_labels=self.var_labels, 
                                       item_val=var_gp)
         updated = projects.set_var_props(choice_item, var_gp, label_gp, 
-                            self.flds, self.var_labels, self.var_notes, 
-                            self.var_types, self.val_dics, self.fil_var_dets)
+                                self.var_labels, self.var_notes, self.var_types, 
+                                self.val_dics, self.fil_var_dets)
         if updated:
             self.refresh_vars()
 
@@ -212,8 +207,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_label = lib.get_item_label(item_labels=self.var_labels, 
                                        item_val=var_name)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
-                            self.flds, self.var_labels, self.var_notes, 
-                            self.var_types, self.val_dics, self.fil_var_dets)
+                                self.var_labels, self.var_notes, self.var_types, 
+                                self.val_dics, self.fil_var_dets)
         if updated:
             self.refresh_vars()
     
@@ -348,7 +343,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         event.Skip()
     
     def setup_group_by(self, var_gp=None):
-        var_names = projects.get_approp_var_names(self.flds)
+        var_names = projects.get_approp_var_names()
         if self.inc_gp_by_select:
             var_names.insert(0, mg.DROP_SELECT)
         var_gp_by_choice_items, self.sorted_var_names_by = \
@@ -362,7 +357,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.drop_group_by.SetSelection(idx_gp)
 
     def setup_var(self, drop_var, default, sorted_var_names, var_name=None):
-        var_names = projects.get_approp_var_names(self.flds, self.var_types,
+        var_names = projects.get_approp_var_names(self.var_types,
                                                   self.min_data_type)
         var_choice_items, sorted_vals = lib.get_sorted_choice_items(
                                                     dic_labels=self.var_labels,
@@ -398,21 +393,21 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.drop_group_a.Enable(True)
         self.lbl_group_b.Enable(True)
         self.drop_group_b.Enable(True)
-        quoter = getdata.get_obj_quoter_func(self.dbe)
-        unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
+        quoter = getdata.get_obj_quoter_func(dd.dbe)
+        unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         where_filt, unused = lib.get_tbl_filts(tbl_filt)
         SQL_get_sorted_vals = u"""SELECT %(var_gp)s 
             FROM %(tbl)s 
             %(where_filt)s
             GROUP BY %(var_gp)s 
             ORDER BY %(var_gp)s """ % {"var_gp": quoter(var_gp), 
-                                       "tbl": quoter(self.tbl),
+                                       "tbl": quoter(dd.tbl),
                                        "where_filt": where_filt}
         if debug: print(SQL_get_sorted_vals)
-        self.cur.execute(SQL_get_sorted_vals)
+        dd.cur.execute(SQL_get_sorted_vals)
         val_dic = self.val_dics.get(var_gp, {})
         # cope if variable has massive spread of values
-        all_vals = self.cur.fetchall()
+        all_vals = dd.cur.fetchall()
         if len(all_vals) > 20:
             self.lbl_chop_warning.SetLabel(_("(1st 20 unique values)"))
             all_vals = all_vals[:20]
@@ -457,7 +452,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_gp = self.sorted_var_names_by[selection_idx_gp]
         label_gp = lib.get_item_label(item_labels=self.var_labels, 
                                       item_val=var_gp)
-        var_gp_numeric = self.flds[var_gp][mg.FLD_BOLNUMERIC]
+        var_gp_numeric = dd.flds[var_gp][mg.FLD_BOLNUMERIC]
         # Now the a and b choices under the group
         val_dic = self.val_dics.get(var_gp, {})
         selection_idx_a = self.drop_group_a.GetSelection()
@@ -577,10 +572,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                 event.Skip()
                 return
             script = self.get_script(css_idx, add_to_report, self.fil_report)
-            output.export_script(script, self.fil_script, 
-                                 self.fil_report, css_fils, self.con_dets, 
-                                 self.dbe, self.db, self.tbl, self.default_dbs, 
-                                 self.default_tbls)
+            output.export_script(script, self.fil_script, self.fil_report, 
+                                 css_fils)
         event.Skip()
 
     def on_btn_help(self, event):
@@ -592,9 +585,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         event.Skip()
     
     def on_close(self, event):
-        "Close app"
+        "Close dialog"
         try:
-            self.con.close()
             # add end to each open script file and close.
             for fil_script in self.open_scripts:
                 # add ending code to script

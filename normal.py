@@ -8,20 +8,21 @@ import pylab # must import after wxmpl so matplotlib.use() is always first
 import my_globals as mg
 import lib
 import my_exceptions
-import full_html
 import getdata
+import full_html
 import charting_pylab as charts
 import config_dlg
 import core_stats
 import os
 import projects
 
+dd = getdata.get_dd()
+
 
 class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
     
-    def __init__(self, parent, dbe, con_dets, default_dbs, default_tbls,
-                 var_labels, var_notes, var_types, val_dics, fil_var_dets, 
-                 paired=False):
+    def __init__(self, parent, var_labels, var_notes, var_types, val_dics, 
+                 fil_var_dets, paired=False):
         wx.Dialog.__init__(self, parent=parent, title=_("Normal Data?"),
                            size=(1024,600),
                            style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
@@ -29,10 +30,6 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                            wx.CAPTION | wx.CLOSE_BOX | \
                            wx.CLIP_CHILDREN)
         # the following properties all required to utilise get_szr_data
-        self.dbe = dbe
-        self.con_dets = con_dets
-        self.default_dbs = default_dbs
-        self.default_tbls = default_tbls
         self.var_labels = var_labels
         self.var_notes = var_notes
         self.var_types = var_types
@@ -179,11 +176,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.setup_vars(var_a=False, var_b=True, var=var)
         
     def setup_vars(self, var_a=True, var_b=True, var=None):
-        """
-        
-        """
-        var_names = projects.get_approp_var_names(self.flds, self.var_types,
-                                        min_data_type=mg.VAR_TYPE_QUANT)
+        var_names = projects.get_approp_var_names(self.var_types,
+                                                min_data_type=mg.VAR_TYPE_QUANT)
         var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
                                     dic_labels=self.var_labels, vals=var_names)
         if var_a:
@@ -224,16 +218,16 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             var_b, choice_item_b = self.get_var_b()
             var_label_b = lib.get_item_label(item_labels=self.var_labels, 
                                              item_val=var_b)
-        unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
+        unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         unused, and_filt = lib.get_tbl_filts(tbl_filt)
-        obj_quoter = getdata.get_obj_quoter_func(self.dbe)
+        obj_quoter = getdata.get_obj_quoter_func(dd.dbe)
         if not self.paired:
             s = u"""SELECT %(var)s
                 FROM %(tbl)s
                 WHERE %(var)s IS NOT NULL 
                 %(and_filt)s
                 ORDER BY %(var)s """ % {"var": obj_quoter(var_a), 
-                                        "tbl": obj_quoter(self.tbl),
+                                        "tbl": obj_quoter(dd.tbl),
                                         "and_filt": and_filt}
         else:
             s = u"""SELECT %(var_b)s - %(var_a)s
@@ -241,10 +235,10 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                 WHERE %(var_a)s IS NOT NULL AND %(var_b)s IS NOT NULL 
                 %(and_filt)s """ % {"var_a": obj_quoter(var_a), 
                                     "var_b": obj_quoter(var_b), 
-                                    "tbl": obj_quoter(self.tbl),
+                                    "tbl": obj_quoter(dd.tbl),
                                     "and_filt": and_filt}
-        self.cur.execute(s)
-        vals = [x[0] for x in self.cur.fetchall()]
+        dd.cur.execute(s)
+        vals = [x[0] for x in dd.cur.fetchall()]
         if len(set(vals)) == 1:
             raise my_exceptions.TooFewValsForDisplay
         if not self.paired:
@@ -340,7 +334,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         event.Skip()
           
     def on_details_click(self, event):
-        tbl_filt_label, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
+        tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
         hist_label = u"Histogram of %s\n%s" % (self.data_label, filt_msg)
         dlg = charts.HistDlg(parent=self, vals=self.vals, 
@@ -353,8 +347,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         var_label_a = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_a)
         updated = projects.set_var_props(choice_item, var_a, var_label_a, 
-                            self.flds, self.var_labels, self.var_notes, 
-                            self.var_types, self.val_dics, self.fil_var_dets)
+                                self.var_labels, self.var_notes, self.var_types, 
+                                self.val_dics, self.fil_var_dets)
         if updated:
             self.setup_var_a(var_a)
     
@@ -363,7 +357,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         var_label_b = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_b)
         updated = projects.set_var_props(choice_item, var_b, var_label_b, 
-                            self.flds, self.var_labels, self.var_notes, 
-                            self.var_types, self.val_dics, self.fil_var_dets)
+                                self.var_labels, self.var_notes, self.var_types, 
+                                self.val_dics, self.fil_var_dets)
         if updated:
             self.setup_var_b(var_b)

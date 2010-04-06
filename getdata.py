@@ -342,13 +342,15 @@ def prep_val(dbe, val, fld_dic):
         prep_val = val2use
     return prep_val
 
-def insert_row(dbe, con, cur, tbl_name, data):
+def insert_row(data):
     """
     Returns success (boolean) and message (None or error).
     data = [(value as string (or None), fld_dets), ...]
     """
+    debug = False
+    dd = get_dd()
     (unused, left_obj_quote, right_obj_quote, quote_obj, quote_val, placeholder, 
-        unused, unused) = get_dbe_syntax_elements(dbe) 
+        unused, unused) = get_dbe_syntax_elements(dd.dbe) 
     """
     data = [(value as string (or None), fld_name, fld_dets), ...]
     Modify any values (according to field details) to be ready for insertion.
@@ -356,7 +358,6 @@ def insert_row(dbe, con, cur, tbl_name, data):
     Commit insert statement.
     TODO - test this in Windows.
     """
-    debug = False
     if debug: pprint.pprint(data)
     fld_dics = [x[2] for x in data]
     fld_names = [x[1] for x in data]
@@ -367,27 +368,27 @@ def insert_row(dbe, con, cur, tbl_name, data):
     fld_placeholders_clause = " (" + \
         u", ".join([placeholder for x in range(len(data))]) + u") "
     # e.g. " (%s, %s, %s, ...) or (?, ?, ?, ...)"
-    SQL_insert = u"INSERT INTO %s " % quote_obj(tbl_name) + fld_names_clause + \
+    SQL_insert = u"INSERT INTO %s " % quote_obj(dd.tbl) + fld_names_clause + \
         u"VALUES %s" % fld_placeholders_clause
     if debug: print(SQL_insert)
     data_lst = []
     for i, data_dets in enumerate(data):
         if debug: pprint.pprint(data_dets)
         val, fld_name, fld_dic = data_dets
-        val2use = prep_val(dbe, val, fld_dic)
+        val2use = prep_val(dd.dbe, val, fld_dic)
         data_lst.append(val2use)
     data_tup = tuple(data_lst)
     msg = None
     try:
-        cur.execute(SQL_insert, data_tup)
-        con.commit()
+        dd.cur.execute(SQL_insert, data_tup)
+        dd.con.commit()
         return True, None
     except Exception, e:
         if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
             (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
         return False, u"%s" % e
 
-def delete_row(dbe, con, cur, tbl_name, id_fld, row_id):
+def delete_row(id_fld, row_id):
     """
     Use placeholders in execute statement.
     Commit delete statement.
@@ -395,15 +396,16 @@ def delete_row(dbe, con, cur, tbl_name, id_fld, row_id):
     TODO - test this in Windows.
     """
     debug = False
-    quote_obj = get_obj_quoter_func(dbe)
-    placeholder = get_placeholder(dbe)
-    SQL_delete = u"DELETE FROM %s " % quote_obj(tbl_name) + \
+    dd = get_dd()
+    quote_obj = get_obj_quoter_func(dd.dbe)
+    placeholder = get_placeholder(dd.dbe)
+    SQL_delete = u"DELETE FROM %s " % quote_obj(dd.tbl) + \
         u"WHERE %s = %s" % (quote_obj(id_fld), placeholder)
     if debug: print(SQL_delete)
     data_tup = (row_id,)
     try:
-        cur.execute(SQL_delete, data_tup)
-        con.commit()
+        dd.cur.execute(SQL_delete, data_tup)
+        dd.con.commit()
         return True, None
     except Exception, e:
         if debug: print(u"Failed to delete row.  SQL: %s, row id: %s" %
@@ -419,10 +421,7 @@ def get_data_dropdowns(parent, panel, default_dbs):
     debug = False
     # databases list needs to be tuple including dbe so can get both from 
     # sequence alone e.g. when identifying selection
-    dd = mg.DATA_DETS
-    if not dd:
-        raise Exception, (u"Unable to reference Data Details object until "
-                          u"initialised")
+    dd = get_dd()
     db_choices = [(x, dd.dbe) for x in dd.dbs]      
     dbes = mg.DBES[:]
     dbes.pop(dbes.index(dd.dbe))
@@ -444,11 +443,11 @@ def get_data_dropdowns(parent, panel, default_dbs):
     dbs_lc = [x.lower() for x in dd.dbs]
     parent.drop_dbs.SetSelection(dbs_lc.index(dd.db.lower()))
     parent.drop_tbls = wx.Choice(panel, -1, choices=[], size=(300,-1))
-    setup_drop_tbls(parent.drop_tbls, dd.dbe, dd.db, dd.tbls, dd.tbl)
+    setup_drop_tbls(parent.drop_tbls)
     parent.drop_tbls.Bind(wx.EVT_CHOICE, parent.on_table_sel)
     return parent.drop_dbs, parent.drop_tbls
 
-def setup_drop_tbls(drop_tbls, dbe, db, tbls, tbl):
+def setup_drop_tbls(drop_tbls):
     """
     Set-up tables dropdown.  Any tables with filtering should have (filtered)
         appended to end of name.
@@ -456,11 +455,12 @@ def setup_drop_tbls(drop_tbls, dbe, db, tbls, tbl):
     May need to run dbdetsobj.get_db_dets() first if table names have changed.
     """
     debug = False
+    dd = get_dd()
     tbls_with_filts = []
-    for i, tbl_name in enumerate(tbls):
-        if tbl_name == tbl:
+    for i, tbl_name in enumerate(dd.tbls):
+        if tbl_name == dd.tbl:
             idx_tbl = i
-        tbl_filt_label, tbl_filt = lib.get_tbl_filt(dbe, db, tbl_name)
+        tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, tbl_name)
         if tbl_filt:
             tbl_with_filt = "%s %s" % (tbl_name, _("(filtered)"))
         else:
@@ -470,7 +470,7 @@ def setup_drop_tbls(drop_tbls, dbe, db, tbls, tbl):
     try:
         drop_tbls.SetSelection(idx_tbl)
     except NameError:
-        raise Exception, "Table \"%s\" not found in tables list" % tbl
+        raise Exception, "Table \"%s\" not found in tables list" % dd.tbl
 
 def refresh_db_dets(parent):
     """

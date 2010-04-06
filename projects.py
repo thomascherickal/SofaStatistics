@@ -13,6 +13,7 @@ import config_dlg
 import settings_grid
 
 LOCAL_PATH = mg.LOCAL_PATH
+dd = getdata.get_dd()
 
 def get_projs():
     """
@@ -41,7 +42,7 @@ def get_proj_notes(fil_proj, proj_dic):
         proj_notes = proj_dic["proj_notes"]
     return proj_notes
     
-def set_var_props(choice_item, var_name, var_label, flds, var_labels, var_notes, 
+def set_var_props(choice_item, var_name, var_label, var_labels, var_notes, 
                   var_types, val_dics, fil_var_dets):
     """
     For selected variable (name) gives user ability to set properties e.g.
@@ -58,10 +59,10 @@ def set_var_props(choice_item, var_name, var_label, flds, var_labels, var_notes,
     data.sort(key=lambda s: s[0])
     config_data = []
     # get config_data back updated
-    bolnumeric = flds[var_name][mg.FLD_BOLNUMERIC]
-    boldecimal = flds[var_name][mg.FLD_DECPTS]
-    boldatetime = flds[var_name][mg.FLD_BOLDATETIME]
-    boltext = flds[var_name][mg.FLD_BOLTEXT]
+    bolnumeric = dd.flds[var_name][mg.FLD_BOLNUMERIC]
+    boldecimal = dd.flds[var_name][mg.FLD_DECPTS]
+    boldatetime = dd.flds[var_name][mg.FLD_BOLDATETIME]
+    boltext = dd.flds[var_name][mg.FLD_BOLTEXT]
     if bolnumeric:
         if boldecimal:
             val_type = settings_grid.COL_FLOAT
@@ -117,23 +118,22 @@ def set_var_props(choice_item, var_name, var_label, flds, var_labels, var_notes,
     else:
         return False
     
-def get_approp_var_names(flds, var_types=None,
-                         min_data_type=mg.VAR_TYPE_CAT):
+def get_approp_var_names(var_types=None, min_data_type=mg.VAR_TYPE_CAT):
     """
     Get filtered list of variable names according to minimum data type.
     """
     if min_data_type == mg.VAR_TYPE_CAT:
-        var_names = [x for x in flds]
+        var_names = [x for x in dd.flds]
     elif min_data_type == mg.VAR_TYPE_ORD:
         # check for numeric as well in case user has manually 
         # misconfigured var_type in vdts file.
-        var_names = [x for x in flds if flds[x][mg.FLD_BOLNUMERIC] and \
+        var_names = [x for x in dd.flds if dd.flds[x][mg.FLD_BOLNUMERIC] and \
                      var_types.get(x) in (None, mg.VAR_TYPE_ORD, 
                                           mg.VAR_TYPE_QUANT)]
     elif min_data_type == mg.VAR_TYPE_QUANT:
         # check for numeric as well in case user has manually 
         # misconfigured var_type in vdts file.
-        var_names = [x for x in flds if flds[x][mg.FLD_BOLNUMERIC] and \
+        var_names = [x for x in dd.flds if dd.flds[x][mg.FLD_BOLNUMERIC] and \
                      var_types.get(x) in (None, mg.VAR_TYPE_QUANT)]
     return var_names
 
@@ -166,12 +166,11 @@ def get_idx_to_select(choice_items, drop_var, var_labels, default):
     
     
 class ListVarsDlg(wx.Dialog):
-    def __init__(self, flds, var_labels, var_notes, var_types, val_dics, 
-                 fil_var_dets, updated):
+    def __init__(self, var_labels, var_notes, var_types, val_dics, fil_var_dets, 
+                 updated):
         "updated -- empty set - add True to 'return' updated True"
         wx.Dialog.__init__(self, None, title=_("Variable Details"),
                   size=(500,600), style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU)
-        self.flds = flds
         self.var_labels = var_labels
         self.var_notes = var_notes
         self.var_types = var_types
@@ -204,8 +203,8 @@ class ListVarsDlg(wx.Dialog):
                                        item_val=var_name)
         if debug:
             print(var_name)
-            pprint.pprint(self.flds)
-        updated = set_var_props(choice_item, var_name, var_label, self.flds, 
+            pprint.pprint(dd.flds)
+        updated = set_var_props(choice_item, var_name, var_label,
                                 self.var_labels, self.var_notes, self.var_types, 
                                 self.val_dics, self.fil_var_dets)
         if updated:
@@ -216,7 +215,7 @@ class ListVarsDlg(wx.Dialog):
         self.Destroy()
     
     def setup_vars(self, var=None):
-        var_names = get_approp_var_names(self.flds)
+        var_names = get_approp_var_names()
         var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
                                     dic_labels=self.var_labels, vals=var_names)
         self.lstVars.SetItems(var_choices)

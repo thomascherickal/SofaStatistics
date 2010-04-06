@@ -361,8 +361,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         var_name, choice_item = self.get_var_dets(drop_var, sorted_var_names)
         var_label = lib.get_item_label(self.var_labels, var_name)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
-                            dd.flds, self.var_labels, self.var_notes, 
-                            self.var_types, self.val_dics, self.fil_var_dets)
+                                self.var_labels, self.var_notes, self.var_types, 
+                                self.val_dics, self.fil_var_dets)
         if updated:
             self.refresh_vars()
     

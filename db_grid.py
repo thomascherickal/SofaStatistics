@@ -6,10 +6,12 @@ import wx.grid
 
 import my_globals as mg
 import lib
+import getdata
 import dbe_plugins.dbe_sqlite as dbe_sqlite 
 import db_tbl
-import getdata
 import projects
+
+dd = getdata.get_dd()
 
 """
 DbTbl is the link between the grid and the underlying data.
@@ -56,9 +58,8 @@ EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 
 
 class TblEditor(wx.Dialog):
-    def __init__(self, parent, dbe, con, cur, db, tbl_name, flds, var_labels,
-                 var_notes, var_types, val_dics, fil_var_dets, idxs, 
-                 readonly=True, set_col_widths=True):
+    def __init__(self, parent, var_labels, var_notes, var_types, val_dics, 
+                 fil_var_dets, readonly=True, set_col_widths=True):
         self.debug = False
         mywidth = 900
         if mg.IN_WINDOWS:
@@ -75,18 +76,13 @@ class TblEditor(wx.Dialog):
             mywidth = 1000
             myheight = 800
         wx.Dialog.__init__(self, None, 
-                           title=_("Data from ") + "%s.%s" % (db, tbl_name),
+                           title=_("Data from ") + "%s.%s" % (dd.db, dd.tbl),
                            size=(mywidth, myheight), pos=(300, 0),
                            style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
                            wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
                            wx.CAPTION | wx.CLOSE_BOX | \
                            wx.CLIP_CHILDREN)
         self.parent = parent
-        self.dbe = dbe
-        self.con = con
-        self.cur = cur
-        self.tbl_name = tbl_name
-        self.flds = flds
         self.var_labels = var_labels
         self.var_notes = var_notes
         self.var_types = var_types
@@ -96,9 +92,7 @@ class TblEditor(wx.Dialog):
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         self.grid = wx.grid.Grid(self.panel, size=(mywidth, myheight))
         self.grid.EnableEditing(not readonly)
-        self.dbtbl = db_tbl.DbTbl(self.grid, self.dbe, self.con, self.cur, 
-                                  tbl_name, self.flds, var_labels, idxs, 
-                                  readonly)
+        self.dbtbl = db_tbl.DbTbl(self.grid, var_labels, readonly)
         self.grid.SetTable(self.dbtbl, takeOwnership=True)
         if readonly:
             self.grid.SetGridCursor(0, 0)
@@ -106,7 +100,7 @@ class TblEditor(wx.Dialog):
             self.current_col_idx = 0
         else:
             # disable any columns which do not allow data entry
-            for idx_col in range(len(self.flds)):
+            for idx_col in range(len(dd.flds)):
                 fld_dic = self.dbtbl.get_fld_dic(idx_col)
                 if not fld_dic[mg.FLD_DATA_ENTRY_OK]:
                     attr = wx.grid.GridCellAttr()
@@ -237,7 +231,7 @@ class TblEditor(wx.Dialog):
             if self.debug or debug: 
                 print("on_grid_key_down - keypress in row " +
                 "%s col %s ******************************" % (src_row, src_col))
-            final_col = (src_col == len(self.flds) - 1)
+            final_col = (src_col == len(dd.flds) - 1)
             if final_col and direction in [mg.MOVE_RIGHT, mg.MOVE_DOWN]:
                 self.add_cell_move_evt(direction)
                 # Do not Skip and send event on its way.
@@ -293,8 +287,7 @@ class TblEditor(wx.Dialog):
                     wx.MessageBox(_("Unable to delete row - id not found in "
                                     "list"))
                     return None
-                deleted, msg = getdata.delete_row(self.dbe, self.con, self.cur, 
-                                                  self.tbl_name, id_fld, row_id)
+                deleted, msg = getdata.delete_row(id_fld, row_id)
                 if deleted:
                     self.grid.DeleteRows(row_idx, numRows=1)
                     self.reset_row_n(change=-1)
@@ -445,7 +438,7 @@ class TblEditor(wx.Dialog):
         """
         debug = False
         # 1) move type
-        was_final_col = (src_col == len(self.flds) - 1)
+        was_final_col = (src_col == len(dd.flds) - 1)
         was_new_row = self.is_new_row(self.current_row_idx)
         was_final_row = self.is_final_row(self.current_row_idx)
         if debug: print("Current row idx: %s, src_row: %s, was_new_row: %s" %
@@ -742,7 +735,7 @@ class TblEditor(wx.Dialog):
             strings ("Numeric", "String", or "Date").
         """
         if self.debug: print("row_ok_to_save - row %s" % row)
-        for col_idx in range(len(self.flds)):
+        for col_idx in range(len(dd.flds)):
             if not self.cell_ok_to_save(row=row, col=col_idx):
                 wx.MessageBox(_("Unable to save new row.  Invalid value "
                               "in column") + "%s" % (col_idx + 1))
@@ -763,9 +756,9 @@ class TblEditor(wx.Dialog):
         if self.debug or debug: print("update_cell - row %s col %s" % (row, col))
         bolUpdatedCell = True
         try:
-            self.dbtbl.con.commit()
-            self.dbtbl.cur.execute(self.dbtbl.sql_cell_to_update)
-            self.dbtbl.con.commit()
+            dd.con.commit()
+            dd.cur.execute(self.dbtbl.sql_cell_to_update)
+            dd.con.commit()
         except Exception, e:
             if self.debug or debug: 
                 print("update_cell failed to save %s. " %
@@ -785,17 +778,16 @@ class TblEditor(wx.Dialog):
         Updates rows_n and rows_to_fill as part of process
         """
         data = []
-        for col in range(len(self.flds)):
+        for col in range(len(dd.flds)):
             fld_name = self.dbtbl.fld_names[col]
-            fld_dic = self.flds[fld_name]
+            fld_dic = dd.flds[fld_name]
             if not fld_dic[mg.FLD_DATA_ENTRY_OK]:
                 continue
             raw_val = self.dbtbl.new_buffer.get((row, col), None)
             if raw_val == mg.MISSING_VAL_INDICATOR:
                 raw_val = None
             data.append((raw_val, fld_name, fld_dic))
-        row_inserted, msg = getdata.insert_row(self.dbe, self.con, self.cur, 
-                                               self.tbl_name, data)
+        row_inserted, msg = getdata.insert_row(data)
         if row_inserted:
             if self.debug: print("save_row - Just inserted row")
         else:
@@ -847,7 +839,7 @@ class TblEditor(wx.Dialog):
 
     def set_new_row_ed(self, row_idx):
         "Set cell editor for cells in new row"
-        for col_idx in range(len(self.flds)):
+        for col_idx in range(len(dd.flds)):
             self.grid.SetCellEditor(row_idx, col_idx, 
                                     wx.grid.GridCellTextEditor())
 
@@ -871,8 +863,8 @@ class TblEditor(wx.Dialog):
             var_name = self.dbtbl.fld_names[col]
             var_label = self.var_labels.get(var_name, "")
             choice_item = lib.get_choice_item(self.var_labels, var_name)
-            projects.set_var_props(choice_item, var_name, var_label, 
-                                   self.flds, self.var_labels, self.var_notes, 
+            projects.set_var_props(choice_item, var_name, var_label,
+                                   self.var_labels, self.var_notes,
                                    self.var_types, self.val_dics, 
                                    self.fil_var_dets)
     
@@ -929,7 +921,7 @@ class TblEditor(wx.Dialog):
         event.Skip()
         
     def get_cols_n(self):
-        return len(self.flds)
+        return len(dd.flds)
     
     def on_size_cols(self, event):
         if self.dbtbl.rows_n < 2000:
@@ -953,9 +945,9 @@ class TblEditor(wx.Dialog):
                     "(%s columns for %s rows)..." % (self.dbtbl.GetNumberCols(), 
                                                      self.dbtbl.rows_n))
         pix_per_char = 8
-        sorted_fld_names = getdata.flds_dic_to_fld_names_lst(self.flds)
+        sorted_fld_names = getdata.flds_dic_to_fld_names_lst(dd.flds)
         for col_idx, fld_name in enumerate(sorted_fld_names):
-            fld_dic = self.flds[fld_name]
+            fld_dic = dd.flds[fld_name]
             col_width = None
             if fld_dic[mg.FLD_BOLTEXT]:
                 txt_len = fld_dic[mg.FLD_TEXT_LENGTH]

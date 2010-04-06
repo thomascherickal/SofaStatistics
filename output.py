@@ -234,8 +234,7 @@ def _strip_script(script):
         stripped = script
     return stripped
 
-def export_script(script, fil_script, fil_report, css_fils, con_dets, dbe, db, 
-                  tbl, default_dbs, default_tbls):
+def export_script(script, fil_script, fil_report, css_fils):
     modules = ["my_globals as mg", "core_stats", "dimtables", "getdata", 
                "output", "rawtables", "stats_output"]
     if os.path.exists(fil_script):
@@ -254,7 +253,7 @@ def export_script(script, fil_script, fil_report, css_fils, con_dets, dbe, db,
         f.write(_strip_script(existing_script))
     else:
         insert_prelim_code(modules, f, fil_report, css_fils)
-    tbl_filt_label, tbl_filt = lib.get_tbl_filt(dbe, db, tbl)
+    tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
     append_exported_script(f, script, tbl_filt_label, tbl_filt, 
                            inc_divider=True)
     add_end_script_code(f)
@@ -262,11 +261,11 @@ def export_script(script, fil_script, fil_report, css_fils, con_dets, dbe, db,
     wx.MessageBox(_("Script added to end of \"%s\" " % fil_script +
                     "ready for reuse and automation"))
 
-def add_divider_code(f, db, tbl, tbl_filt_label, tbl_filt):
+def add_divider_code(f, tbl_filt_label, tbl_filt):
     """
     Adds divider code to a script file.
     """
-    f.write(u"\nsource = output.get_source(u\"%s\", u\"%s\")" % (db, tbl))
+    f.write(u"\nsource = output.get_source(u\"%s\", u\"%s\")" % (dd.db, dd.tbl))
     f.write(u"\ndivider = output.get_divider(source, "
             u" u\"\"\" %s \"\"\", u\"\"\" %s \"\"\")" % (tbl_filt_label, 
                                                          tbl_filt))
@@ -420,23 +419,26 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     f.write(u"#%s" % (u"-"*65))
     f.write(u"\n" + u"# %s" % datestamp)
     if inc_divider:
-        add_divider_code(f, dd.db, dd.tbl, tbl_filt_label, tbl_filt)
+        add_divider_code(f, tbl_filt_label, tbl_filt)
     con_dets_str = pprint.pformat(dd.con_dets)
     f.write(u"\n" + u"con_dets = %s" % con_dets_str)
     default_dbs_str = pprint.pformat(dd.default_dbs)
     f.write(u"\n" + u"default_dbs = %s" % default_dbs_str)
     default_tbls_str = pprint.pformat(dd.default_tbls)
     f.write(u"\ndefault_tbls = %s" % default_tbls_str)
-    f.write(u"\ndd = getdata.get_dd()")
-    f.write(u"\ncon = dd.con")
-    f.write(u"\ncur = dd.cur")
-    f.write(u"\ndbs = dd.dbs")
-    f.write(u"\ndb = dd.db")
-    f.write(u"\ntbls = dd.tbls")
-    f.write(u"\ntbl = dd.tbl")
-    f.write(u"\nflds = dd.flds")
-    f.write(u"\nidxs = dd.idxs")
-    f.write(u"\nhas_unique = dd.has_unique")
+    f.write(u"\ndb_resources = getdata.get_dbe_resources(dbe=\"%s\", " % dd.dbe)
+    f.write(u"\n    con_dets=con_dets, default_dbs=default_dbs, "
+            u"default_tbls=default_tbls, ")
+    f.write(u"\n    db=\"%s\", tbl=\"%s\")" % (dd.db, dd.tbl))
+    f.write(u"\ncon = db_resources[mg.DBE_CON]")
+    f.write(u"\ncur = db_resources[mg.DBE_CUR]")
+    f.write(u"\ndbs = db_resources[mg.DBE_DBS]")
+    f.write(u"\ndb = db_resources[mg.DBE_DB]")
+    f.write(u"\ntbls = db_resources[mg.DBE_TBLS]")
+    f.write(u"\ntbl = db_resources[mg.DBE_TBL]")
+    f.write(u"\nflds = db_resources[mg.DBE_FLDS]")
+    f.write(u"\nidxs = db_resources[mg.DBE_IDXS]")
+    f.write(u"\nhas_unique = db_resources[mg.DBE_HAS_UNIQUE]")
     f.write(u"\n%s" % inner_script)
     # f.write(u"\ncon.close()") # closes the whole thing and not just for this 
     # script ;-)

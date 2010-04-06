@@ -12,26 +12,20 @@ import getdata
 
 debug = False
 
+dd = getdata.get_dd()
+
 
 class DbTbl(wx.grid.PyGridTableBase):
-    def __init__(self, grid, dbe, con, cur, tbl, flds, var_labels, idxs, 
-                 readonly):
+    def __init__(self, grid, var_labels, readonly):
         wx.grid.PyGridTableBase.__init__(self)
         self.debug = False
-        self.tbl = tbl
         self.grid = grid
-        self.dbe = dbe
-        self.quote_obj = getdata.get_obj_quoter_func(self.dbe)
-        self.quote_val = getdata.get_val_quoter_func(self.dbe)
-        self.con = con
-        self.cur = cur
+        self.quote_obj = getdata.get_obj_quoter_func(dd.dbe)
+        self.quote_val = getdata.get_val_quoter_func(dd.dbe)
         self.readonly = readonly        
         self.set_num_rows()
-        # dict with key = fld name and vals = dict of characteristics
-        self.flds = flds
-        self.fld_names = getdata.flds_dic_to_fld_names_lst(flds_dic=self.flds)
+        self.fld_names = getdata.flds_dic_to_fld_names_lst(flds_dic=dd.flds)
         self.fld_labels = [var_labels.get(x, x.title()) for x in self.fld_names]
-        self.idxs = idxs
         self.idx_id, self.must_quote = self.get_index_col()
         self.id_col_name = self.fld_names[self.idx_id]
         self.set_row_ids_lst()
@@ -39,7 +33,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         if self.debug:
             pprint.pprint(self.fld_names)
             pprint.pprint(self.fld_labels)
-            pprint.pprint(self.flds)
+            pprint.pprint(dd.flds)
             pprint.pprint(self.row_ids_lst)
         self.bol_attempt_cell_update = False
         self.sql_cell_to_update = None
@@ -58,19 +52,19 @@ class DbTbl(wx.grid.PyGridTableBase):
         Zero-based.
         """
         SQL_get_id_vals = u"SELECT %s FROM %s ORDER BY %s" % \
-            (self.quote_obj(self.id_col_name), self.quote_obj(self.tbl), 
-             self.quote_obj(self.id_col_name))
+                    (self.quote_obj(self.id_col_name), self.quote_obj(dd.tbl), 
+                     self.quote_obj(self.id_col_name))
         if debug: print(SQL_get_id_vals)
-        self.cur.execute(SQL_get_id_vals)
+        dd.cur.execute(SQL_get_id_vals)
         # NB could easily be 10s or 100s of thousands of records
-        self.row_ids_lst = [x[0] for x in self.cur.fetchall()]
+        self.row_ids_lst = [x[0] for x in dd.cur.fetchall()]
     
     def get_fld_name(self, col):
         return self.fld_names[col]
     
     def get_fld_dic(self, col):
         fld_name = self.get_fld_name(col)
-        return self.flds[fld_name]
+        return dd.flds[fld_name]
     
     def get_index_col(self):
         """
@@ -82,7 +76,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         """
         idx_is_unique = 1
         idx_flds = 2
-        for idx in self.idxs:
+        for idx in dd.idxs:
             name = idx[mg.IDX_NAME] 
             is_unique = idx[mg.IDX_IS_UNIQUE]
             fld_names = idx[mg.IDX_FLDS]
@@ -90,7 +84,7 @@ class DbTbl(wx.grid.PyGridTableBase):
                 # pretend only ever one field (TODO see above)
                 fld_to_use = fld_names[0]
                 must_quote = not \
-                    self.flds[fld_to_use][mg.FLD_BOLNUMERIC]
+                    dd.flds[fld_to_use][mg.FLD_BOLNUMERIC]
                 col_idx = self.fld_names.index(fld_to_use)
                 if self.debug:
                     print(u"Col idx: %s" % col_idx)
@@ -99,7 +93,7 @@ class DbTbl(wx.grid.PyGridTableBase):
     
     def GetNumberCols(self):
         # wxPython
-        num_cols = len(self.flds)
+        num_cols = len(dd.flds)
         if self.debug:
             print(u"N cols: %s" % num_cols)
         return num_cols
@@ -111,9 +105,9 @@ class DbTbl(wx.grid.PyGridTableBase):
 
     def set_num_rows(self):
         debug = False
-        SQL_rows_n = u"SELECT COUNT(*) FROM %s" % self.quote_obj(self.tbl)
-        self.cur.execute(SQL_rows_n)
-        self.rows_n = self.cur.fetchone()[0]
+        SQL_rows_n = u"SELECT COUNT(*) FROM %s" % self.quote_obj(dd.tbl)
+        dd.cur.execute(SQL_rows_n)
+        self.rows_n = dd.cur.fetchone()[0]
         if not self.readonly:
             self.rows_n += 1
         if self.debug or debug: print(u"N rows: %s" % self.rows_n)
@@ -169,7 +163,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             index, use the method below (while telling the user the lack of 
             an index significantly harms performance esp while scrolling). 
         SQL_get_value = "SELECT %s " % col_name + \
-            " FROM %s " % self.tbl + \
+            " FROM %s " % dd.tbl + \
             " ORDER BY %s " % id_col_name + \
             " LIMIT %s, 1" % row
         NB if not read only will be an empty row at the end.
@@ -211,20 +205,20 @@ class DbTbl(wx.grid.PyGridTableBase):
                 IN_clause_lst.append(value)
             IN_clause = u", ".join(IN_clause_lst)
             SQL_get_values = u"SELECT * " + \
-                u" FROM %s " % self.quote_obj(self.tbl) + \
+                u" FROM %s " % self.quote_obj(dd.tbl) + \
                 u" WHERE %s IN(%s)" % (self.quote_obj(self.id_col_name), 
                                       IN_clause) + \
                 u" ORDER BY %s" % self.quote_obj(self.id_col_name)
             if debug or self.debug: print(SQL_get_values)
-            #self.con.commit() # extra commits keep postgresql problems away
+            #dd.con.commit() # extra commits keep postgresql problems away
                 # when a cell change is rejected by SOFA Stats validation
                 # [update - unable to confirm]
             # problem accessing cursor if committed in MS SQL
             # see http://support.microsoft.com/kb/321714
-            self.cur.execute(SQL_get_values)
-            #self.con.commit()
+            dd.cur.execute(SQL_get_values)
+            #dd.con.commit()
             row_idx = row_min
-            for data_tup in self.cur.fetchall(): # tuple of values
+            for data_tup in dd.cur.fetchall(): # tuple of values
                 # handle microsoft characters
                 data_tup = tuple([lib.ms2utf8(x) for x in data_tup])
                 if debug or self.debug: print(data_tup)
@@ -272,7 +266,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             self.bol_attempt_cell_update = True
             row_id = self.GetValue(row, self.idx_id)
             col_name = self.fld_names[col]
-            raw_val_to_use = getdata.prep_val(dbe=self.dbe, val=value, 
+            raw_val_to_use = getdata.prep_val(dbe=dd.dbe, val=value, 
                                               fld_dic=self.flds[col_name])
             self.val_of_cell_to_update = raw_val_to_use            
             if self.must_quote: # only refers to index column
@@ -282,7 +276,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             val2use = u"NULL" if raw_val_to_use is None \
                 else self.quote_val(raw_val_to_use)
             # TODO - think about possibilities of SQL injection by hostile party
-            SQL_update_value = u"UPDATE %s " % self.tbl + \
+            SQL_update_value = u"UPDATE %s " % dd.tbl + \
                     u" SET %s = %s " % (self.quote_obj(col_name), val2use) + \
                     u" WHERE %s = " % self.id_col_name + unicode(id_value)
             if self.debug or debug: 

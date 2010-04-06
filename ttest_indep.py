@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 import my_globals as mg
 import lib
+import getdata
 import indep2var
+
+dd = getdata.get_dd()
 
 
 class DlgConfig(indep2var.DlgIndep2VarConfig):
@@ -35,12 +38,12 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \
             var_avg, label_avg = self.get_drop_vals()
         script_lst.append(u"dp = 3")
-        script_lst.append(lib.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
+        script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         val_str_quoted_a = val_a if var_gp_numeric else u"u\"%s\"" % val_a
         val_str_quoted_b = val_b if var_gp_numeric else u"u\"%s\"" % val_b
         strGet_Sample = u"sample_%s = core_stats.get_list(" + \
-            u"dbe=u\"%s\", " % self.dbe + \
-            u"cur=cur, tbl=u\"%s\",\n    " % self.tbl + \
+            u"dbe=u\"%s\", " % dd.dbe + \
+            u"cur=cur, tbl=u\"%s\",\n    " % dd.tbl + \
             u"tbl_filt=tbl_filt, " + \
             u"flds=flds, " + \
             u"fld_measure=u\"%s\", " % var_avg + \

@@ -4,7 +4,10 @@ import pprint
 
 import my_globals as mg
 import lib
+import getdata
 import paired2var
+
+dd = getdata.get_dd()
 
 
 class DlgConfig(paired2var.DlgPaired2VarConfig):
@@ -38,13 +41,13 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append(u"dp = 3")
         script_lst.append(u"var_label_a = u\"%s\"" % label_a)
         script_lst.append(u"var_label_b = u\"%s\"" % label_b)
-        unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
+        unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
         script_lst.append(u"chisq, p, vals_a, vals_b, lst_obs, lst_exp, " +
             u"min_count, perc_cells_lt_5, df = \\" +
-            u"\n    core_stats.pearsons_chisquare(dbe=u\"%s\", " % self.dbe +
-            u"db=u\"%s\", " % self.db +
-            u"cur=cur, tbl=u\"%s\"," % self.tbl +
+            u"\n    core_stats.pearsons_chisquare(dbe=u\"%s\", " % dd.dbe +
+            u"db=u\"%s\", " % dd.db +
+            u"cur=cur, tbl=u\"%s\"," % dd.tbl +
             u"\n    flds=flds, fld_a=u\"%s\", fld_b=u\"%s\"," % (var_a, var_b) +
             u"\n    tbl_filt=u\"\"\" %s \"\"\", " % tbl_filt +
             u"where_tbl_filt=\"\"\" %s \"\"\"," % where_tbl_filt +

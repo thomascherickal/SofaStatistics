@@ -513,16 +513,6 @@ class StartFrame(wx.Frame):
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH-10, 260))
         event.Skip()
 
-    def get_dbe_and_default_dbs_tbls(self, proj_dic):
-        """
-        Which dbe? Use default. Also grab the default_dbs and default_tbls as 
-            lists that can be manipulated later.
-        """
-        dbe = proj_dic["default_dbe"]
-        default_dbs = proj_dic["default_dbs"]
-        default_tbls = proj_dic["default_tbls"]
-        return dbe, default_dbs, default_tbls
-    
     def on_tables_click(self, event):
         "Open make table gui with settings as per active_proj"
         wx.BeginBusyCursor()
@@ -531,7 +521,6 @@ class StartFrame(wx.Frame):
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=proj_name)
         try:
-            dd = getdata.get_dd()
             dlg = report_table.DlgMakeTable(proj_dic["fil_var_dets"], 
                                     proj_dic["fil_css"], proj_dic["fil_report"], 
                                     proj_dic["fil_script"])
@@ -583,7 +572,6 @@ class StartFrame(wx.Frame):
             proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                        fil_name=proj_name)
             try:
-                dd = getdata.get_dd()
                 dlg = charting_output.DlgCharting(_("Make Chart"), 
                                 proj_dic["fil_var_dets"], proj_dic["fil_css"], 
                                 proj_dic["fil_report"], proj_dic["fil_script"])
@@ -701,13 +689,9 @@ class StartFrame(wx.Frame):
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=proj_name)
         try:
-            dbe, default_dbs, default_tbls = \
-                                    self.get_dbe_and_default_dbs_tbls(proj_dic)
-            getdata.refresh_default_dbs_tbls(dbe, default_dbs, default_tbls)
             dlg = stats_select.StatsSelectDlg(proj_name, 
-                        dbe, proj_dic["con_dets"], default_dbs, default_tbls, 
-                        proj_dic["fil_var_dets"], proj_dic["fil_css"], 
-                        proj_dic["fil_report"], proj_dic["fil_script"])
+                                proj_dic["fil_var_dets"], proj_dic["fil_css"], 
+                                proj_dic["fil_report"], proj_dic["fil_script"])
             lib.safe_end_cursor()
             dlg.ShowModal()
         except Exception, e:

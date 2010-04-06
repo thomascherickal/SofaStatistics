@@ -297,6 +297,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         Db-related details are set at point of instantiation - need updating.
         """
         if self.tab_type == mg.RAW_DISPLAY:
+            # Raw Tables cannot draw on dd and demo raw tables is a child of 
+            # that therefore must store in self
             self.demo_tab.update_db_dets(dd.dbe, dd.default_dbs, 
                                          dd.default_tbls, dd.con_dets, 
                                          dd.cur, dd.db, dd.tbl, dd.flds)
@@ -387,14 +389,12 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         elif self.tab_type == mg.RAW_DISPLAY:
             self.enable_opts(enable=True)
             self.demo_tab = demotables.DemoRawTable(txtTitles=self.txt_titles, 
-                 txtSubtitles=self.txt_subtitles, colroot=self.colroot, 
-                 coltree=self.coltree, dbe=dd.dbe, 
-                 default_dbs=dd.default_dbs, default_tbls=dd.default_tbls, 
-                 con_dets=dd.con_dets, cur=dd.cur, db=dd.db, tbl=dd.tbl, 
-                 flds=dd.flds, # needs to be reset if table changes
-                 var_labels=self.var_labels, val_dics=self.val_dics,
-                 fil_css=self.fil_css, chk_totals_row=self.chk_totals_row,
-                 chk_first_as_label=self.chk_first_as_label)
+                             txtSubtitles=self.txt_subtitles, 
+                             colroot=self.colroot, coltree=self.coltree, 
+                             var_labels=self.var_labels, val_dics=self.val_dics, 
+                             fil_css=self.fil_css, 
+                             chk_totals_row=self.chk_totals_row,
+                             chk_first_as_label=self.chk_first_as_label)
         #in case they were disabled and then we changed tab type
         self.setup_row_btns()
         self.setup_col_btns()
@@ -513,8 +513,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 return
             script = self.get_script(has_cols, css_idx)
             output.export_script(script, self.fil_script, self.fil_report, 
-                                 css_fils, dd.con_dets, dd.dbe, dd.db, dd.tbl, 
-                                 dd.default_dbs, dd.default_tbls)
+                                 css_fils)
     
     def get_titles(self):
         """

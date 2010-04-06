@@ -5,11 +5,13 @@ import random
 import my_globals as mg
 import lib
 import my_exceptions
-import dimtables
 import getdata
+import dimtables
 import output
 import rawtables
 import wx
+
+dd = getdata.get_dd()
 
 
 class DemoTable(object):
@@ -66,28 +68,22 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
     Demo display raw table (uses demo data only for illustrative purposes)
     """
     
-    def __init__(self, txtTitles, txtSubtitles, colroot, coltree, 
-                 dbe, default_dbs, default_tbls, con_dets, cur, db, tbl,
-                 flds, var_labels, val_dics, fil_css, chk_totals_row, 
-                 chk_first_as_label):
+    def __init__(self, txtTitles, txtSubtitles, colroot, coltree, var_labels, 
+                 val_dics, fil_css, chk_totals_row, chk_first_as_label):
         self.txt_titles = txtTitles
         self.txt_subtitles = txtSubtitles
         self.colroot = colroot
         self.coltree = coltree
-        self.dbe = dbe
-        self.default_dbs = default_dbs
-        self.default_tbls = default_tbls
-        self.con_dets = con_dets
-        self.cur = cur
-        self.db = db
-        self.tbl = tbl
-        self.flds = flds
         self.var_labels = var_labels
         self.val_dics = val_dics
         self.fil_css=fil_css
         self.chk_totals_row = chk_totals_row
         self.chk_first_as_label = chk_first_as_label
-    
+        self.dbe = dd.dbe
+        self.cur = dd.cur
+        self.tbl = dd.tbl
+        self.flds = dd.flds
+
     def update_db_dets(self, dbe, default_dbs, default_tbls, con_dets, cur, db, 
                        tbl,flds): 
         """
@@ -116,7 +112,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         """
         self.add_total_row = self.chk_totals_row.IsChecked()
         self.first_col_as_label = self.chk_first_as_label.IsChecked()
-        unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
+        unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         self.where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
         self.col_names, self.col_labels = lib.get_col_dets(self.coltree, 
                                                            self.colroot, 

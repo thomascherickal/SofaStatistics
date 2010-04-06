@@ -128,7 +128,7 @@ class DataSelectDlg(wx.Dialog):
         
     def reset_tbl_dropdown(self):
         "Set tables dropdown items and select item according to dd.tbl"
-        getdata.setup_drop_tbls(self.drop_tbls, dd.dbe, dd.db, dd.tbls, dd.tbl)
+        getdata.setup_drop_tbls(self.drop_tbls)
     
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
@@ -155,11 +155,10 @@ class DataSelectDlg(wx.Dialog):
             wx.BeginBusyCursor()
             readonly = self.chk_readonly.IsChecked()
             set_col_widths = True if rows_n < 1000 else False
-            dlg = db_grid.TblEditor(self, dd.dbe, dd.con, dd.cur, dd.db, dd.tbl, 
-                                    dd.flds, self.var_labels, 
-                                    self.var_notes, self.var_types,
-                                    self.val_dics, self.fil_var_dets, dd.idxs, 
-                                    readonly, set_col_widths=set_col_widths)
+            dlg = db_grid.TblEditor(self, self.var_labels, self.var_notes, 
+                                    self.var_types, self.val_dics, 
+                                    self.fil_var_dets, readonly, 
+                                    set_col_widths=set_col_widths)
             lib.safe_end_cursor()
             dlg.ShowModal()
         event.Skip()
@@ -408,10 +407,9 @@ class DataSelectDlg(wx.Dialog):
         # open data          
         wx.BeginBusyCursor()
         readonly = False
-        dlg = db_grid.TblEditor(self, dd.dbe, dd.con, dd.cur, dd.db, dd.tbl, 
-                                dd.flds, self.var_labels, self.var_notes, 
+        dlg = db_grid.TblEditor(self, self.var_labels, self.var_notes, 
                                 self.var_types, self.val_dics, 
-                                self.fil_var_dets, dd.idxs, readonly)
+                                self.fil_var_dets, readonly)
         lib.safe_end_cursor()
         dlg.ShowModal()
         self.btn_enablement()

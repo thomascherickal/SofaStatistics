@@ -5,6 +5,9 @@ import my_globals as mg
 import lib
 import getdata
 
+# don't use dd - this needs to be runnable as a standalone script - everything 
+# has to be explicit
+
 
 class RawTable(object):
     """
@@ -13,8 +16,8 @@ class RawTable(object):
     Can have the first column formatted as labels
     """
     def __init__(self, titles, subtitles, dbe, col_names, col_labels, flds, 
-                 var_labels, val_dics, tbl, tbl_filt, cur, 
-                 add_total_row=False, first_col_as_label=False):
+                 var_labels, val_dics, tbl, tbl_filt, cur, add_total_row=False, 
+                 first_col_as_label=False):
         """
         Set up table details required to make mg.
         dbe - needed for quoting entities and values
@@ -111,7 +114,7 @@ class RawTable(object):
             if self.flds[col_name][mg.FLD_BOLNUMERIC] and not col_val_dics[i]:
                 col_class_lsts[i].append(CSS_ALIGN_RIGHT)
         if self.add_total_row:
-            row_tots = [0 for x in self.col_names] # initialise
+            row_tots = [0 for x in self.col_names] # init
             row_tots_used = set() # some will never have anything added to them
         row_idx = 0
         while True:

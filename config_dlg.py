@@ -49,9 +49,7 @@ class ConfigDlg(object):
         
     def get_szr_data(self, panel):
         """
-        Returns self.szr_data complete with widgets and the following setup 
-            ready to use: self.con, self.cur, self.dbs, self.tbls, self.flds, 
-            self.has_unique, self.idxs, self.db, and self.tbl.
+        Returns self.szr_data complete with widgets. dd is updated.
         Widgets include dropdowns for database and tables.
         Each widget has a set of events ready to go as well.
         Assumes self has quite a few properties already set.
@@ -211,8 +209,7 @@ class ConfigDlg(object):
 
     def filt_select(self):
         import filtselect
-        dlg = filtselect.FiltSelectDlg(self, dd.dbe, dd.con, dd.cur, dd.db, 
-                            dd.tbl, dd.flds, self.var_labels, self.var_notes, 
+        dlg = filtselect.FiltSelectDlg(self, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         dlg.ShowModal()
         self.refresh_vars()
@@ -220,7 +217,7 @@ class ConfigDlg(object):
     def on_rclick_tables(self, event):
         "Allow addition or removal of data filter"
         self.filt_select()
-        getdata.setup_drop_tbls(self.drop_tbls, dd.dbe, dd.db, dd.tbls, dd.tbl)
+        getdata.setup_drop_tbls(self.drop_tbls)
         #event.Skip() - don't use or will appear twice in Windows!
 
     # report output

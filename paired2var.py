@@ -24,8 +24,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         responds to selections etc.
     """
     
-    def __init__(self, title, dbe, con_dets, default_dbs=None, 
-                 default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
+    def __init__(self, title, fil_var_dets="", fil_css="", fil_report="", 
                  fil_script=""):
          
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
@@ -34,10 +33,6 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                            wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
                            wx.CAPTION | wx.CLOSE_BOX | \
                            wx.CLIP_CHILDREN)
-        self.dbe = dbe
-        self.con_dets = con_dets
-        self.default_dbs = default_dbs
-        self.default_tbls = default_tbls
         self.fil_var_dets = fil_var_dets
         self.fil_css = fil_css
         self.fil_report = fil_report
@@ -51,7 +46,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         config_dlg.add_icon(frame=self)
         self.szr_data, self.szr_config_bottom, self.szr_config_top = \
-            self.get_gen_config_szrs(self.panel) # mixin
+                                    self.get_gen_config_szrs(self.panel) # mixin
         self.szr_output_btns = self.get_szr_output_btns(self.panel,
                                                         inc_clear=False) # mixin
         szr_main = wx.BoxSizer(wx.VERTICAL)
@@ -126,8 +121,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_label_a = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_a)
         updated = projects.set_var_props(choice_item, var_a, var_label_a, 
-                            self.flds, self.var_labels, self.var_notes, 
-                            self.var_types, self.val_dics, self.fil_var_dets)
+                                self.var_labels, self.var_notes, self.var_types, 
+                                self.val_dics, self.fil_var_dets)
         if updated:
             self.refresh_vars()
 
@@ -136,8 +131,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_label_b = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_b)
         updated = projects.set_var_props(choice_item, var_b, var_label_b, 
-                            self.flds, self.var_labels, self.var_notes, 
-                            self.var_types, self.val_dics, self.fil_var_dets)
+                                self.var_labels, self.var_notes, self.var_types, 
+                                self.val_dics, self.fil_var_dets)
         if updated:
             self.refresh_vars()
 
@@ -155,7 +150,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         Also stores var names, and var names sorted by their labels (for later 
             reference).
         """
-        var_names = projects.get_approp_var_names(self.flds, self.var_types,
+        var_names = projects.get_approp_var_names(self.var_types,
                                                   self.min_data_type)
         fld_choice_items, self.sorted_var_names = lib.get_sorted_choice_items(
                                 dic_labels=self.var_labels, vals=var_names)
@@ -321,10 +316,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                 event.Skip()
                 return
             script = self.get_script(css_idx, add_to_report, self.fil_report)
-            output.export_script(script, self.fil_script, 
-                                 self.fil_report, css_fils, self.con_dets, 
-                                 self.dbe, self.db, self.tbl, self.default_dbs, 
-                                 self.default_tbls)
+            output.export_script(script, self.fil_script, self.fil_report, 
+                                 css_fils)
         event.Skip()
 
     def on_btn_help(self, event):
@@ -336,9 +329,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         event.Skip()
     
     def on_close(self, event):
-        "Close app"
+        "Close dialog"
         try:
-            self.con.close()
             # add end to each open script file and close.
             for fil_script in self.open_scripts:
                 # add ending code to script

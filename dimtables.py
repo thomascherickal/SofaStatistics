@@ -34,7 +34,8 @@ If we have reached the end of the line, we then need to have a cell for each
 """
 
 NOTNULL = u" %s IS NOT NULL " # NOT ISNULL() is not universally supported
-
+# don't use dd - this needs to be runnable as a standalone script - everything 
+# has to be explicit
 
 class DimNodeTree(tree.NodeTree):
     """
@@ -383,16 +384,15 @@ class LiveTable(DimTable):
         self.tbl = tbl
         self.tbl_filt = tbl_filt
         self.where_tbl_filt, self.and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-        self.cur = cur
-        self.flds = flds
         (self.if_clause, unused, unused, self.quote_obj, self.quote_val, 
             self.placeholder, self.get_summable, self.gte_not_equals) = \
                                     getdata.get_dbe_syntax_elements(self.dbe)
+        self.cur = cur
+        self.flds = flds
         self.tree_rows = tree_rows
         self.tree_cols = tree_cols
     
     def get_data_cell_n(self, tree_col_labels, tree_row_labels):
-        ""
         col_term_nodes = tree_col_labels.get_terminal_nodes()
         row_term_nodes = tree_row_labels.get_terminal_nodes()
         data_cell_n = len(row_term_nodes) * len(col_term_nodes)
@@ -823,9 +823,9 @@ class GenTable(LiveTable):
         Get SQL for data values e.g. percentages, frequencies etc.
         """
         debug = False
-        SQL_select_results = (u"SELECT " + \
-                 u", ".join(SQL_table_select_clauses_lst) + \
-                 u" FROM %s" % self.quote_obj(self.tbl) + \
+        SQL_select_results = (u"SELECT " +
+                 u", ".join(SQL_table_select_clauses_lst) +
+                 u" FROM %s" % self.quote_obj(self.tbl) +
                  self.where_tbl_filt)
         if debug: print(SQL_select_results)
         return SQL_select_results
