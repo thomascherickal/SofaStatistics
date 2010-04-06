@@ -6,7 +6,6 @@ import wx
 import pprint
 
 import my_globals as mg
-import getdata
 
 BIGINT = "bigint"
 DECIMAL = "decimal"
@@ -255,8 +254,9 @@ def get_flds(cur, db, tbl):
     if debug: print("flds: %s" % flds)
     return flds
 
-def get_index_dets(cur, tbl):
+def get_index_dets(cur, db, tbl):
     """
+    db -- needed by some dbes sharing interface.
     has_unique - boolean
     idxs = [idx0, idx1, ...]
     each idx is a dict name, is_unique, flds

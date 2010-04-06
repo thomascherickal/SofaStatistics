@@ -14,7 +14,6 @@ import pprint
 
 import my_globals as mg
 import dbe_plugins.dbe_globals as dbe_globals
-import getdata
 
 AD_OPEN_KEYSET = 1
 AD_LOCK_OPTIMISTIC = 3
@@ -210,8 +209,9 @@ def get_flds(cur, db, tbl):
     cat = None
     return flds
 
-def get_index_dets(cur, tbl):
+def get_index_dets(cur, db, tbl):
     """
+    db -- needed by some dbes sharing interface.
     has_unique - boolean
     idxs = [idx0, idx1, ...]
     each idx is a dict name, is_unique, flds

@@ -15,7 +15,6 @@ import wx
 import my_globals as mg
 import lib
 import dbe_plugins.dbe_globals as dbe_globals
-import getdata
 import settings_grid
 
 AD_OPEN_KEYSET = 1
@@ -193,8 +192,9 @@ def get_flds(cur, db, tbl):
     cat = None
     return flds
 
-def get_index_dets(cur, tbl):
+def get_index_dets(cur, db, tbl):
     """
+    db -- needed by some dbes sharing interface.
     has_unique - boolean
     idxs = [idx0, idx1, ...]
     each idx is a dict name, is_unique, flds

@@ -2,11 +2,12 @@ import os
 import wx
 
 import my_globals as mg
-import filtselect
+import lib
 import getdata
+# import filtselect # prevent circular import
 import output
-import projects
 
+dd = getdata.get_dd()
 
 # explanation level
 def get_szr_level(parent, panel):
@@ -210,26 +211,18 @@ class ConfigDlg(object):
     def update_var_dets(self):
         "Update all variable details, including those already displayed"
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-            projects.get_var_dets(self.fil_var_dets)
+                                            lib.get_var_dets(self.fil_var_dets)
 
     # database/ tables (and views)
     def on_database_sel(self, event):
-        """
-        Reset dbe, database, cursor, tables, table, tables dropdown, 
-            fields, has_unique, and idxs after a database selection.
-        """
-        (self.dbe, self.db, self.con, self.cur, self.tbls, self.tbl, self.flds, 
-                self.has_unique, self.idxs) = getdata.refresh_db_dets(self)
-        self.drop_tbls.SetItems(self.tbls)
-        tbls_lc = [x.lower() for x in self.tbls]
-        self.drop_tbls.SetSelection(tbls_lc.index(self.tbl.lower()))
+        getdata.refresh_db_dets(self)
         
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
-        self.tbl, self.flds, self.has_unique, self.idxs = \
-            getdata.refresh_tbl_dets(self)
+        getdata.refresh_tbl_dets(self)
 
     def filt_select(self):
+        import filtselect
         dlg = filtselect.FiltSelectDlg(self, self.dbe, self.con, self.cur, 
                 self.db, self.tbl, self.flds, self.var_labels, self.var_notes, 
                 self.var_types, self.val_dics, self.fil_var_dets)

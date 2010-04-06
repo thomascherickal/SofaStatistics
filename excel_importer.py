@@ -88,8 +88,7 @@ class ExcelImporter(importer.FileImporter):
             lib.safe_end_cursor()
             raise Exception, (u"Unable to read spreadsheet. "
                 u"Orig error: %s" % e)
-        con, cur, unused, unused, unused, unused, unused = \
-            getdata.get_default_db_dets()
+        default_dd = getdata.get_default_db_dets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= rows_n else rows_n
         items_n = rows_n + sample_n
         steps_per_item = importer.get_steps_per_item(items_n)
@@ -107,16 +106,18 @@ class ExcelImporter(importer.FileImporter):
         remaining_data = [x for x in wksheet][sample_n:]
         gauge_start = steps_per_item*sample_n
         try:
-            nulled_dots = importer.add_to_tmp_tbl(con, cur, self.file_path, 
-                        self.tbl_name, ok_fld_names, orig_fld_names, 
-                        fld_types, sample_data, sample_n, remaining_data, 
-                        progbar, steps_per_item, gauge_start, keep_importing)
-            importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path,
+            nulled_dots = importer.add_to_tmp_tbl(default_dd.con,
+                            default_dd.cur, self.file_path, self.tbl_name, 
+                            ok_fld_names, orig_fld_names, fld_types, 
+                            sample_data, sample_n, remaining_data, progbar, 
+                            steps_per_item, gauge_start, keep_importing)
+            importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
+                                      self.tbl_name, self.file_path,
                                       progbar, nulled_dots)
         except Exception, e:
-            importer.post_fail_tidy(progbar, con, cur, e)
+            importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur, e)
             return
-        cur.close()
-        con.commit()
-        con.close()
+        default_dd.cur.close()
+        default_dd.con.commit()
+        default_dd.con.close()
         progbar.SetValue(0)

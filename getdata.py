@@ -1,3 +1,5 @@
+# should be imported before any modules which rely on mg.DATA_DETS as dd object
+
 from __future__ import print_function
 import os
 import pprint
@@ -12,24 +14,32 @@ debug = False
 
 # data resources
 
-def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls):
+def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None, 
+                      tbl=None):
+    """
+    db -- may be changing dbe and db together (e.g. dbe-db dropdown).
+    """
     debug = False
     dbe_resources = {}
     if debug: print("About to update dbe resources with con resources")
     dbe_resources.update(mg.DBE_MODULES[dbe].get_con_resources(con_dets, 
-                                                               default_dbs))
+                                                               default_dbs, db))
     cur = dbe_resources[mg.DBE_CUR]
     db = dbe_resources[mg.DBE_DB]
     if debug: print("About to update dbe resources with db resources")
-    dbe_resources.update(get_db_resources(dbe, cur, db, default_tbls))
+    dbe_resources.update(get_db_resources(dbe, cur, db, default_tbls, tbl))
     if debug: print("Finished updating dbe resources with db resources")
     return dbe_resources
 
-def get_db_resources(dbe, cur, db, default_tbls):
+def get_db_resources(dbe, cur, db, default_tbls, tbl):
     debug = False
     tbls = mg.DBE_MODULES[dbe].get_tbls(cur, db)
     if debug: print("About to get tbl")
-    tbl = get_tbl(dbe, db, tbls, default_tbls)
+    if tbl:
+        if tbl not in tbls:
+            raise Exception, "Table \"%s\" not found in tables list" % tbl
+    else:
+        tbl = get_tbl(dbe, db, tbls, default_tbls)
     db_resources = {mg.DBE_TBLS: tbls, mg.DBE_TBL: tbl}
     if debug: print("About to update db_resources with tbl dets")
     db_resources.update(get_tbl_dets(dbe, cur, db, tbl))
@@ -38,7 +48,7 @@ def get_db_resources(dbe, cur, db, default_tbls):
 
 def get_tbl_dets(dbe, cur, db, tbl):
     flds = mg.DBE_MODULES[dbe].get_flds(cur, db, tbl)
-    idxs, has_unique = mg.DBE_MODULES[dbe].get_index_dets(cur, tbl)
+    idxs, has_unique = mg.DBE_MODULES[dbe].get_index_dets(cur, db, tbl)
     tbl_dets = {mg.DBE_FLDS: flds, mg.DBE_IDXS: idxs, 
                 mg.DBE_HAS_UNIQUE: has_unique}
     return tbl_dets
@@ -87,16 +97,20 @@ class DataDets(object):
         self.con_dets = proj_dic["con_dets"]
         self.set_dbe(proj_dic["default_dbe"])
 
-    def set_dbe(self, dbe):
+    def set_dbe(self, dbe, db=None, tbl=None):
         """
         Changing dbe has implications for everything connected.
+        May want to refresh dbe and db together (e.g. dbe-db dropwdown).
         """
         debug = False
         self.dbe = dbe
         if debug: print("About to get dbe resources")
         dbe_resources = get_dbe_resources(self.dbe, self.con_dets, 
-                                          self.default_dbs, self.default_tbls)
+                                          self.default_dbs, self.default_tbls, 
+                                          db, tbl)
         if debug: print(u"Finished getting dbe resources")
+        self.con = dbe_resources[mg.DBE_CON]
+        self.cur = dbe_resources[mg.DBE_CUR]
         self.dbs = dbe_resources[mg.DBE_DBS]
         self.db = dbe_resources[mg.DBE_DB]
         self.tbls = dbe_resources[mg.DBE_TBLS]
@@ -105,13 +119,13 @@ class DataDets(object):
         self.idxs = dbe_resources[mg.DBE_IDXS]
         self.has_unique = dbe_resources[mg.DBE_HAS_UNIQUE]
 
-    def set_db(self, db):
+    def set_db(self, db, tbl=None):
         """
         Changing the db has implications for tbls, tbl etc.
         """
         self.db = db
         db_resources = get_db_resources(self.dbe, self.cur, self.db, 
-                                        self.default_tbls)
+                                        self.default_tbls, tbl)
         self.tbls = db_resources[mg.DBE_TBLS]
         self.tbl = db_resources[mg.DBE_TBL]
         self.flds = db_resources[mg.DBE_FLDS]
@@ -121,6 +135,9 @@ class DataDets(object):
     def set_tbl(self, tbl):
         self.tbl = tbl
         tbl_dets = get_tbl_dets(self.dbe, self.cur, self.db, self.tbl)
+        self.flds = tbl_dets[mg.DBE_FLDS]
+        self.idxs = tbl_dets[mg.DBE_IDXS]
+        self.has_unique = tbl_dets[mg.DBE_HAS_UNIQUE]
 
     def __str__(self):
         return (u"dbe: %(dbe)s; dbs: %(dbs)s; db: %(db)s; tbls: %(tbls)s; "
@@ -129,6 +146,15 @@ class DataDets(object):
                 "dbs": self.dbs, "db": self.db, "tbls": self.tbls,
                 "tbl": self.tbl, "flds": self.flds, "idxs": self.idxs,
                 "has_unique": self.has_unique})
+
+def get_dd():
+    debug = False
+    if not mg.DATA_DETS:
+        proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
+                                               fil_name=mg.SOFA_DEFAULT_PROJ)
+        mg.DATA_DETS = DataDets(proj_dic)
+        if debug: print("Updated mg.DATA_DETS")
+    return mg.DATA_DETS
 
 # syntax
 
@@ -268,7 +294,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
 def get_db_item(db_name, dbe):
     return u"%s (%s)" % (db_name, dbe)
 
-def extractDbDets(choice_text):
+def extract_db_dets(choice_text):
     start_idx = choice_text.index(u"(") + 1
     end_idx = choice_text.index(u")")
     dbe = choice_text[start_idx:end_idx]
@@ -448,25 +474,31 @@ def setup_drop_tbls(drop_tbls, dbe, db, tbls, tbl):
 
 def refresh_db_dets(parent):
     """
-    Returns dbe, db, con, cur, tbls, tbl, flds, has_unique, idxs.
     Responds to a database selection.
     """
-    debug = False
     wx.BeginBusyCursor()
+    dd = mg.DATA_DETS
     db_choice_item = parent.db_choice_items[parent.drop_dbs.GetSelection()]
-    db, dbe = extractDbDets(db_choice_item)
-    # update globals - will be used in refresh ...
-    refresh_default_dbs_tbls(dbe, parent.default_dbs, parent.default_tbls)
-    dbdetsobj = get_db_dets_obj(dbe, parent.default_dbs, parent.default_tbls, 
-                                parent.con_dets, db)
-    con, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.get_db_dets()
-    db = dbdetsobj.db
-    tbl = dbdetsobj.tbl
-    if debug:
-        print(u"Db is: %s" % db)
-        print(u"Tbl is: %s" % tbl)
-    lib.safe_end_cursor()
-    return dbe, db, con, cur, tbls, tbl, flds, has_unique, idxs
+    db, dbe = extract_db_dets(db_choice_item)
+    try:
+        dd.set_dbe(dbe, db)
+        parent.dbe = dd.dbe
+        parent.db = dd.db
+        parent.con = dd.con
+        parent.cur = dd.cur
+        parent.tbls = dd.tbls
+        parent.tbl = dd.tbl
+        parent.flds = dd.flds
+        parent.idxs = dd.idxs
+        parent.has_unique = dd.has_unique
+        parent.drop_tbls.SetItems(dd.tbls)
+        tbls_lc = [x.lower() for x in dd.tbls]
+        parent.drop_tbls.SetSelection(tbls_lc.index(dd.tbl.lower()))
+    except Exception:
+        wx.MessageBox(_("Experienced problem refreshing database details"))
+        raise
+    finally:
+        lib.safe_end_cursor()
 
 def refresh_tbl_dets(parent):
     """
@@ -474,19 +506,19 @@ def refresh_tbl_dets(parent):
     Run anything like reset_tbl_dropdown first.
     """
     wx.BeginBusyCursor()
+    dd = mg.DATA_DETS
     try:
-        tbl = parent.tbls[parent.drop_tbls.GetSelection()]
-        dbdetsobj = get_db_dets_obj(parent.dbe, parent.default_dbs, 
-                                    parent.default_tbls, parent.con_dets, 
-                                    parent.db, tbl)
-        flds = dbdetsobj.get_tbl_flds(parent.cur, parent.db, tbl)
-        has_unique, idxs = dbdetsobj.get_index_dets(parent.cur, parent.db, tbl)
+        tbl = dd.tbls[parent.drop_tbls.GetSelection()]
+        dd.set_tbl(tbl)
+        parent.tbl = dd.tbl
+        parent.flds = dd.flds
+        parent.idxs = dd.idxs
+        parent.has_unique = dd.has_unique
     except Exception, e:
         wx.MessageBox(_("Experienced problem refreshing table details"))
         raise
     finally:
         lib.safe_end_cursor()
-    return tbl, flds, has_unique, idxs
 
 def get_default_db_dets():
     """
@@ -495,20 +527,16 @@ def get_default_db_dets():
     """
     proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                         fil_name=mg.SOFA_DEFAULT_PROJ)
-    dbdetsobj = get_db_dets_obj(dbe=mg.DBE_SQLITE, 
-                                default_dbs=proj_dic["default_dbs"],
-                                default_tbls=proj_dic["default_tbls"],
-                                con_dets=proj_dic["con_dets"])
-    con, cur, dbs, tbls, flds, has_unique, idxs = dbdetsobj.get_db_dets()
-    return con, cur, dbs, tbls, flds, has_unique, idxs
+    default_dd = DataDets(proj_dic)
+    return default_dd
 
 def dup_tbl_name(tbl_name):
     """
     Duplicate name in default SQLite SOFA database?
     """
-    con, unused, unused, tbls, unused, unused, unused = get_default_db_dets()
-    con.close()
-    return tbl_name in tbls
+    default_dd = get_default_db_dets()
+    default_dd.con.close()
+    return tbl_name in default_dd.tbls
 
 def make_flds_clause(config_data):
     """
@@ -614,4 +642,3 @@ def make_sofa_tbl(con, cur, tbl_name, oth_name_types, strict_typing=False):
     cur.execute(SQL_make_tbl)
     con.commit()
     if debug: print(u"Successfully created %s" % tbl_name)
-     

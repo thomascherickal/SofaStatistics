@@ -5,9 +5,13 @@ import sys
 import wx
 
 import my_globals as mg
+import config_globals
 import lib
+import getdata
 import config_dlg
 import projects
+
+dd = getdata.get_dd()
 
 
 class ProjSelectDlg(wx.Dialog):
@@ -61,7 +65,8 @@ class ProjSelectDlg(wx.Dialog):
     
     def store_proj_name(self, proj_name):
         "NB must have .proj on end"
-        #print(proj_name) # debug
+        debug = False
+        if debug: print(proj_name)
         self.proj_name = proj_name
     
     def setup_btns(self):
@@ -153,8 +158,11 @@ class ProjSelectDlg(wx.Dialog):
     def on_ok(self, event):
         proj_sel_id = self.drop_projs.GetSelection()
         fil_proj = self.projs[proj_sel_id]
+        proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
+                                                   fil_name=fil_proj)
+        dd.set_proj_dic(proj_dic)
         try:
-            proj_name = fil_proj[:-5]
+            proj_name = fil_proj[:-5] # might not be a sensible ...proj file
             self.parent.set_proj(proj_name)
         except Exception:
             pass

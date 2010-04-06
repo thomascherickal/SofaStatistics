@@ -9,8 +9,6 @@ import wx
 
 import my_globals as mg
 import lib
-import getdata
-import projects
 import settings_grid
 
 Row = sqlite.Row # needed for making cursor return dicts
@@ -147,8 +145,9 @@ def get_flds(cur, db, tbl):
         flds[fld_name] = dets_dic
     return flds
 
-def get_index_dets(cur, tbl):
+def get_index_dets(cur, db, tbl):
     """
+    db -- needed by some dbes sharing interface.
     idxs = [idx0, idx1, ...]
     each idx is a dict name, is_unique, flds
     has_unique - boolean

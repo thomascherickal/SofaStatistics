@@ -211,8 +211,7 @@ class CsvImporter(importer.FileImporter):
             lib.safe_end_cursor()
             raise Exception, "Unable to create reader for file. " + \
                 "Orig error: %s" % e
-        con, cur, unused, unused, unused, unused, unused = \
-            getdata.get_default_db_dets()
+        default_dd = getdata.get_default_db_dets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= rows_n else rows_n
         items_n = rows_n + sample_n + 1 # 1 is for the final tmp to named step
         steps_per_item = importer.get_steps_per_item(items_n)
@@ -223,18 +222,20 @@ class CsvImporter(importer.FileImporter):
             # start again from beginning of data (e.g. if correction made)
         gauge_start = steps_per_item*sample_n
         try:
-            nulled_dots = importer.add_to_tmp_tbl(con, cur, self.file_path, 
-                        self.tbl_name, ok_fld_names, orig_fld_names, 
-                        fld_types, sample_data, sample_n, remaining_data, 
-                        progbar, steps_per_item, gauge_start, keep_importing)
+            nulled_dots = importer.add_to_tmp_tbl(default_dd.con, 
+                                default_dd.cur, self.file_path, self.tbl_name, 
+                                ok_fld_names, orig_fld_names, fld_types, 
+                                sample_data, sample_n, remaining_data, progbar, 
+                                steps_per_item, gauge_start, keep_importing)
             # so fast only shows last step in progress bar
-            importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path, 
+            importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
+                                      self.tbl_name, self.file_path, 
                                       progbar, nulled_dots)
         except Exception:
-            importer.post_fail_tidy(progbar, con, cur, e)
+            importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur, e)
             return
-        cur.close()
-        con.commit()
-        con.close()
+        default_dd.cur.close()
+        default_dd.con.commit()
+        default_dd.con.close()
         progbar.SetValue(0)
         

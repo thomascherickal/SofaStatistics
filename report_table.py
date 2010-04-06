@@ -19,7 +19,6 @@ import dimtree
 import getdata
 import full_html
 import output
-import projects
 import rawtables
 
 OUTPUT_MODULES = ["my_globals as mg", "dimtables", "rawtables", "output", "getdata"]
@@ -104,7 +103,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.fil_script = fil_script
         self.url_load = True # btn_expand    
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-            projects.get_var_dets(fil_var_dets)
+                                                lib.get_var_dets(fil_var_dets)
         self.col_no_vars_item = None # needed if no variable in columns.  Must
             # reset to None if deleted all col vars
         # set up panel for frame

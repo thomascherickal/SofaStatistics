@@ -10,10 +10,10 @@ import lib
 import db_grid
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
-import projects
 import table_config
 
 sqlite_quoter = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
+dd = getdata.get_dd()
 
 
 class DataSelectDlg(wx.Dialog):
@@ -35,7 +35,7 @@ class DataSelectDlg(wx.Dialog):
                                                    fil_name=proj_name)
         self.fil_var_dets = proj_dic["fil_var_dets"]
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-            projects.get_var_dets(self.fil_var_dets)
+                                            lib.get_var_dets(self.fil_var_dets)
         if not mg.DATA_DETS:
             try:
                 mg.DATA_DETS = getdata.DataDets(proj_dic)
@@ -114,7 +114,6 @@ class DataSelectDlg(wx.Dialog):
         Can only open dialog for design details for tables in the default SOFA 
             database.
         """
-        dd = mg.DATA_DETS
         design_enable = (dd.dbe == mg.DBE_SQLITE 
                          and dd.db == mg.SOFA_DEFAULT_DB)
         self.btn_design.Enable(design_enable)
@@ -124,34 +123,30 @@ class DataSelectDlg(wx.Dialog):
         self.btn_delete.Enable(delete_enable)
         
     def on_database_sel(self, event):
-        (self.dbe, self.db, self.con, self.cur, self.tbls, self.tbl, self.flds, 
-                self.has_unique, self.idxs) = getdata.refresh_db_dets(self)
+        getdata.refresh_db_dets(self)
         self.reset_tbl_dropdown()
         self.btn_enablement()
         
     def reset_tbl_dropdown(self):
-        "Set tables dropdown items and select item according to self.tbl"
-        getdata.setup_drop_tbls(self.drop_tbls, self.dbe, self.db, self.tbls, 
-                                self.tbl)
+        "Set tables dropdown items and select item according to dd.tbl"
+        getdata.setup_drop_tbls(self.drop_tbls, dd.dbe, dd.db, dd.tbls, dd.tbl)
     
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
-        self.tbl, self.flds, self.has_unique, self.idxs = \
-            getdata.refresh_tbl_dets(self)
+        getdata.refresh_tbl_dets(self)
         self.btn_enablement()
 
     def on_open(self, event):
         ""
-        if not self.has_unique:
+        if not dd.has_unique:
             msg = _("Table \"%s\" cannot be opened because it lacks a unique "
                     "index")
-            wx.MessageBox(msg % self.tbl) # needed for caching even if read only
+            wx.MessageBox(msg % dd.tbl) # needed for caching even if read only
         else:
-            obj_quoter = getdata.get_obj_quoter_func(self.dbe)
-            SQL_get_count = u"""SELECT COUNT(*) FROM %s """ % \
-                obj_quoter(self.tbl)
-            self.cur.execute(SQL_get_count)
-            rows_n = self.cur.fetchone()[0]
+            obj_quoter = getdata.get_obj_quoter_func(dd.dbe)
+            SQL_get_count = u"""SELECT COUNT(*) FROM %s """ % obj_quoter(dd.tbl)
+            dd.cur.execute(SQL_get_count)
+            rows_n = dd.cur.fetchone()[0]
             if rows_n > 200000: # fast enough as long as column resizing is off
                 if wx.MessageBox(_("This table has %s rows. "
                                    "Do you wish to open it?") % rows_n, 
@@ -161,10 +156,10 @@ class DataSelectDlg(wx.Dialog):
             wx.BeginBusyCursor()
             readonly = self.chk_readonly.IsChecked()
             set_col_widths = True if rows_n < 1000 else False
-            dlg = db_grid.TblEditor(self, self.dbe, self.con, self.cur, self.db, 
-                                    self.tbl, self.flds, self.var_labels, 
+            dlg = db_grid.TblEditor(self, dd.dbe, dd.con, dd.cur, dd.db, dd.tbl, 
+                                    dd.flds, self.var_labels, 
                                     self.var_notes, self.var_types,
-                                    self.val_dics, self.fil_var_dets, self.idxs, 
+                                    self.val_dics, self.fil_var_dets, dd.idxs, 
                                     readonly, set_col_widths=set_col_widths)
             lib.safe_end_cursor()
             dlg.ShowModal()
@@ -189,10 +184,10 @@ class DataSelectDlg(wx.Dialog):
         Only works for an SQLite database (should be the default one).
         """
         debug = False
-        obj_quoter = getdata.get_obj_quoter_func(self.dbe)
-        self.con.commit()
-        self.cur.execute(u"PRAGMA table_info(%s)" % obj_quoter(tbl_name))
-        config = self.cur.fetchall()
+        obj_quoter = getdata.get_obj_quoter_func(dd.dbe)
+        dd.con.commit()
+        dd.cur.execute(u"PRAGMA table_info(%s)" % obj_quoter(tbl_name))
+        config = dd.cur.fetchall()
         if debug: print(config)
         table_config = [(x[1], self._get_gen_fld_type(fld_type=x[2])) for x in
                          config]
@@ -202,20 +197,13 @@ class DataSelectDlg(wx.Dialog):
         """
         Delete selected table (giving user choice to back out).
         """
-        if wx.MessageBox(_("Do you wish to delete \"%s\"?") % self.tbl, 
+        if wx.MessageBox(_("Do you wish to delete \"%s\"?") % dd.tbl, 
                            caption=_("DELETE"), 
                            style=wx.YES_NO|wx.NO_DEFAULT) == wx.YES:
-            obj_quoter = getdata.get_obj_quoter_func(self.dbe)
-            self.cur.execute("DROP TABLE IF EXISTS %s" % obj_quoter(self.tbl))
-            self.con.commit()
-        dbe = mg.DBE_SQLITE
-        dbdetsobj = getdata.get_db_dets_obj(dbe, self.default_dbs, 
-                                            self.default_tbls, self.con_dets, 
-                                            mg.SOFA_DEFAULT_DB)
-        (self.con, self.cur, self.dbs, self.tbls, self.flds, self.has_unique, 
-         self.idxs) = dbdetsobj.get_db_dets()
-        # update tbl dropdown
-        self.tbl = self.tbls[0]
+            obj_quoter = getdata.get_obj_quoter_func(dd.dbe)
+            dd.cur.execute("DROP TABLE IF EXISTS %s" % obj_quoter(dd.tbl))
+            dd.con.commit()
+        dd.set_db(dd.db) # refresh tbls downwards
         self.reset_tbl_dropdown()
         self.btn_enablement()
         event.Skip()
@@ -223,8 +211,9 @@ class DataSelectDlg(wx.Dialog):
     def wipe_orig_tbl(self, orig_tbl_name):
         SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
             sqlite_quoter(orig_tbl_name)
-        self.cur.execute(SQL_drop_orig)
-        self.con.commit()
+        dd.con.commit()
+        dd.cur.execute(SQL_drop_orig)
+        dd.con.commit()
     
     def make_strict_typing_tbl(self, orig_tbl_name, oth_name_types, 
                                config_data):
@@ -244,7 +233,7 @@ class DataSelectDlg(wx.Dialog):
         debug = False
         tmp_name = sqlite_quoter(mg.TMP_TBL_NAME)
         SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % tmp_name
-        self.cur.execute(SQL_drop_tmp_tbl)
+        dd.cur.execute(SQL_drop_tmp_tbl)
         # create table with strictly-typed fields
         create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
                                                         strict_typing=True,
@@ -252,7 +241,7 @@ class DataSelectDlg(wx.Dialog):
         SQL_make_tmp_tbl = u"CREATE TABLE %s (%s) " % (tmp_name, 
                                                        create_fld_clause)
         if debug: print(SQL_make_tmp_tbl)
-        self.cur.execute(SQL_make_tmp_tbl)
+        dd.cur.execute(SQL_make_tmp_tbl)
         # unable to use CREATE ... AS SELECT at same time as defining table.
         # attempt to insert data into strictly-typed fields.
         select_fld_clause = getdata.make_flds_clause(config_data)
@@ -260,10 +249,10 @@ class DataSelectDlg(wx.Dialog):
                                                 select_fld_clause, 
                                                 sqlite_quoter(orig_tbl_name))
         if debug: print(SQL_insert_all)
-        self.cur.execute(SQL_insert_all)
-        self.con.commit()
+        dd.cur.execute(SQL_insert_all)
+        dd.con.commit()
     
-    def make_redesigned_tbl(self, oth_name_types, config_data):
+    def make_redesigned_tbl(self, final_name, oth_name_types, config_data):
         """
         Make new table with all the fields from the tmp table (which doesn't 
             have the sofa_id field) plus the sofa_id field.
@@ -272,25 +261,27 @@ class DataSelectDlg(wx.Dialog):
         """
         debug = False
         tmp_name = sqlite_quoter(mg.TMP_TBL_NAME)
-        final_name = sqlite_quoter(self.tbl)
+        final_name = sqlite_quoter(final_name)
         create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
                                                         strict_typing=False,
                                                         inc_sofa_id=True)
         SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % final_name
-        self.cur.execute(SQL_drop_orig)
+        dd.con.commit()
+        dd.cur.execute(SQL_drop_orig)
+        dd.con.commit()
         if debug: print(create_fld_clause)
         SQL_make_redesigned_tbl = u"CREATE TABLE %s (%s)" % (final_name, 
                                                              create_fld_clause)
-        self.cur.execute(SQL_make_redesigned_tbl)
+        dd.cur.execute(SQL_make_redesigned_tbl)
         oth_names = [sqlite_quoter(x[0]) for x in oth_name_types]
         null_plus_oth_flds = u" NULL, " + u", ".join(oth_names)
         SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (final_name, 
                                                 null_plus_oth_flds, tmp_name)
         if debug: print(SQL_insert_all)
-        self.cur.execute(SQL_insert_all)
+        dd.cur.execute(SQL_insert_all)
         SQL_drop_tmp = u"DROP TABLE %s" % tmp_name
-        self.cur.execute(SQL_drop_tmp)
-        self.con.commit()
+        dd.cur.execute(SQL_drop_tmp)
+        dd.con.commit()
 
     def on_design(self, event):
         """
@@ -300,16 +291,16 @@ class DataSelectDlg(wx.Dialog):
         """
         debug = False
         readonly = self.chk_readonly.IsChecked()
-        if self.tbl == mg.SOFA_DEFAULT_TBL and not readonly:
+        if dd.tbl == mg.SOFA_DEFAULT_TBL and not readonly:
             wx.MessageBox(_("The design of the default SOFA table can only "
                             "be opened as read only"))
             self.chk_readonly.SetValue(True)
             readonly = True
-        tbl_name_lst = [self.tbl,]
-        data = self._get_tbl_config(self.tbl)
+        tbl_name_lst = [dd.tbl,]
+        data = self._get_tbl_config(dd.tbl)
         if debug: print("Initial table config data: %s" % data)
         config_data = []     
-        con = dbe_sqlite.get_con(self.con_dets, self.db)
+        con = dbe_sqlite.get_con(dd.con_dets, dd.db)
         con.row_factory = dbe_sqlite.Row # see pysqlite usage-guide.txt
         cur_dict = con.cursor()
         dlgConfig = table_config.ConfigTableDlg(cur_dict, self.var_labels, 
@@ -338,8 +329,7 @@ class DataSelectDlg(wx.Dialog):
                 final table as SQLite Database Browser can't open the database
                 anymore.
             """
-            orig_tbl_name = self.tbl
-            self.tbl = tbl_name_lst[0] # may have been renamed
+            orig_tbl_name = dd.tbl
             # other (i.e. not the sofa_id) field details
             oth_name_types = getdata.get_oth_name_types(config_data)
             if debug: print("oth_name_types to feed into " 
@@ -353,18 +343,14 @@ class DataSelectDlg(wx.Dialog):
                                 "match the column type.  Please edit and try "
                                 "again.\n\nOriginal error: %s" % e))
                 SQL_drop_tmp_tbl = "DROP TABLE IF EXISTS %s" % \
-                                sqlite_quoter(mg.TMP_TBL_NAME)
-                self.cur.execute(SQL_drop_tmp_tbl)
-                self.con.commit()
+                                                sqlite_quoter(mg.TMP_TBL_NAME)
+                dd.cur.execute(SQL_drop_tmp_tbl)
+                dd.con.commit()
                 return
             self.wipe_orig_tbl(orig_tbl_name)
-            self.make_redesigned_tbl(oth_name_types, config_data)
-            # must refresh now we have potentially renamed the table
-            dbdetsobj = getdata.get_db_dets_obj(self.dbe, self.default_dbs, 
-                                            self.default_tbls, self.con_dets, 
-                                            mg.SOFA_DEFAULT_DB, self.tbl)
-            (self.con, self.cur, self.dbs, self.tbls, self.flds, 
-                self.has_unique, self.idxs) = dbdetsobj.get_db_dets()
+            final_name = tbl_name_lst[0] # may have been renamed
+            self.make_redesigned_tbl(final_name, oth_name_types, config_data)
+            dd.set_db(dd.db, tbl=final_name) # refresh tbls downwards
             # update tbl dropdown
             self.reset_tbl_dropdown()
     
@@ -376,8 +362,8 @@ class DataSelectDlg(wx.Dialog):
         """
         debug = False
         try:
-            con = dbe_sqlite.get_con(self.con_dets, mg.SOFA_DEFAULT_DB)
-            # not self.con because we may fail making a new one and need to 
+            con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DEFAULT_DB)
+            # not dd.con because we may fail making a new one and need to 
             # stick with the original
         except Exception:
             wx.MessageBox(_("The current project does not include a link to "
@@ -408,19 +394,13 @@ class DataSelectDlg(wx.Dialog):
         tbl_name = tbl_name_lst[0]        
         oth_name_types = getdata.get_oth_name_types(config_data)
         if debug: print(config_data)
-        con = dbe_sqlite.get_con(self.con_dets, mg.SOFA_DEFAULT_DB)
+        con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DEFAULT_DB)
         cur = con.cursor() # the cursor for the default db
         getdata.make_sofa_tbl(con, cur, tbl_name, oth_name_types)
         # Prepare to connect to the newly created table.
-        # self.con and self.cur can now be updated now we are committed to new 
-        #     table.
-        self.tbl = tbl_name
-        dbe = mg.DBE_SQLITE
-        dbdetsobj = getdata.get_db_dets_obj(dbe, self.default_dbs, 
-                                        self.default_tbls, self.con_dets, 
-                                        mg.SOFA_DEFAULT_DB, self.tbl)
-        (self.con, self.cur, self.dbs, self.tbls, self.flds, self.has_unique, 
-            self.idxs) = dbdetsobj.get_db_dets()
+        # dd.con and dd.cur can now be updated now we are committed to new table
+        tbl = tbl_name
+        dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DEFAULT_DB, tbl=tbl)
         # update tbl dropdown
         self.reset_tbl_dropdown()
         # explain to user
@@ -429,11 +409,10 @@ class DataSelectDlg(wx.Dialog):
         # open data          
         wx.BeginBusyCursor()
         readonly = False
-        dlg = db_grid.TblEditor(self, dbe, self.con, self.cur, 
-                                mg.SOFA_DEFAULT_DB, self.tbl, self.flds, 
-                                self.var_labels, self.var_notes, self.var_types,
-                                self.val_dics, self.fil_var_dets, self.idxs, 
-                                readonly)
+        dlg = db_grid.TblEditor(self, dd.dbe, dd.con, dd.cur, dd.db, dd.tbl, 
+                                dd.flds, self.var_labels, self.var_notes, 
+                                self.var_types, self.val_dics, 
+                                self.fil_var_dets, dd.idxs, readonly)
         lib.safe_end_cursor()
         dlg.ShowModal()
         self.btn_enablement()

@@ -82,8 +82,7 @@ class OdsImporter(importer.FileImporter):
                 print("%s" % rows[:20])
             else:
                 print("%s" % rows)
-        con, cur, unused, unused, unused, unused, unused = \
-                                                getdata.get_default_db_dets()
+        default_dd = getdata.get_default_db_dets()
         rows_n = len(rows)
         items_n = rows_n*3 # pass through it all 3 times (parse, process, save)
         steps_per_item = importer.get_steps_per_item(items_n)
@@ -91,17 +90,19 @@ class OdsImporter(importer.FileImporter):
         sample_n = 0
         gauge_start = prog_steps_for_xml_steps
         try:
-            nulled_dots = importer.add_to_tmp_tbl(con, cur, self.file_path, 
-                                self.tbl_name, fldnames, fldnames, fld_types, 
-                                sample_data, sample_n, rows, progbar, 
-                                steps_per_item, gauge_start, keep_importing)
-            importer.tmp_to_named_tbl(con, cur, self.tbl_name, self.file_path,
+            nulled_dots = importer.add_to_tmp_tbl(default_dd.con, 
+                                default_dd.cur, self.file_path, self.tbl_name, 
+                                fldnames, fldnames, fld_types, sample_data, 
+                                sample_n, rows, progbar, steps_per_item, 
+                                gauge_start, keep_importing)
+            importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
+                                      self.tbl_name, self.file_path,
                                       progbar, nulled_dots)
         except Exception, e:
-            importer.post_fail_tidy(progbar, con, cur, e)
+            importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur, e)
             return
-        cur.close()
-        con.commit()
-        con.close()
+        default_dd.cur.close()
+        default_dd.con.commit()
+        default_dd.con.close()
         progbar.SetValue(0)
         lib.safe_end_cursor()

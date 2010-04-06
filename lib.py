@@ -18,6 +18,45 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
+def get_var_dets(fil_var_dets):
+    """
+    Get variable details from fil_var_dets file.
+    Returns var_labels, var_notes, var_types, val_dics.
+    """
+    try:
+        f = codecs.open(fil_var_dets, "U", encoding="utf-8")
+    except IOError:
+        var_labels = {}
+        var_notes = {}
+        var_types = {}
+        val_dics = {}
+        return var_labels, var_notes, var_types, val_dics
+    var_dets = clean_bom_utf8(f.read())
+    f.close()
+    var_dets_dic = {}
+    try:
+        # http://docs.python.org/reference/simple_stmts.html
+        exec var_dets in var_dets_dic
+    except SyntaxError, e:
+        wx.MessageBox(\
+            _("Syntax error in variable details file \"%s\"." % fil_var_dets + \
+                      os.linesep + os.linesep + "Details: %s" % unicode(e)))
+        raise Exception, unicode(e)
+    except Exception, e:
+        wx.MessageBox(\
+            _("Error processing variable"
+              " details file \"%s\"." % fil_var_dets + \
+              os.linesep + os.linesep + "Details: %s" % unicode(e)))
+        raise Exception, unicode(e)
+    try:
+        results = var_dets_dic["var_labels"], var_dets_dic["var_notes"], \
+                      var_dets_dic["var_types"], var_dets_dic["val_dics"]
+    except Exception, e:
+        raise Exception, u"Three variables needed in " + \
+            u"'%s': var_labels, var_notes, var_types, and val_dics.  " + \
+            u"Please check file." % fil_var_dets
+    return results
+
 def get_rand_val_of_type(type):
     if type == mg.FLD_TYPE_NUMERIC:
         vals_of_type = mg.NUM_DATA_SEQ

@@ -36,11 +36,11 @@ gettext.install('sofa', './locale', unicode=True)
 import my_globals as mg # has translated text
 import lib
 import config_globals
+import getdata # call before all modules relying on mg.DATA_DETS as dd
 import config_dlg
 # importing delayed until needed where possible for startup performance
 # import dataselect
 import full_html
-import getdata
 # import importer
 # import report_table
 import projects
@@ -182,6 +182,7 @@ class SofaApp(wx.App):
 class StartFrame(wx.Frame):
     
     def __init__(self, main_font_size):
+        debug = False
         self.main_font_size = main_font_size
         # Gen set up
         wx.Frame.__init__(self, None, title=_("SOFA Start"), 
@@ -194,6 +195,20 @@ class StartFrame(wx.Frame):
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)
         self.init_com_types(self.panel)
+        self.active_proj = mg.SOFA_DEFAULT_PROJ
+        proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
+                                                   fil_name=self.active_proj)
+        if not mg.DATA_DETS:
+            try:
+                mg.DATA_DETS = getdata.DataDets(proj_dic)
+                if debug: print("Updated mg.DATA_DETS")
+            except Exception, e:
+                lib.safe_end_cursor()
+                wx.MessageBox(_("Unable to connect to data as defined in " 
+                                "project %s.  Please check your settings." % 
+                                self.active_proj))
+                raise Exception, unicode(e) # for debugging
+                return
         config_dlg.add_icon(frame=self)
         # background image
         sofa = os.path.join(SCRIPT_PATH, u"images", u"sofa2.xpm")
@@ -301,7 +316,6 @@ class StartFrame(wx.Frame):
         psal = os.path.join(SCRIPT_PATH, u"images", u"psal_logo.xpm")
         self.bmp_psal = wx.Image(psal, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.HELP_TEXT_FONT = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
-        self.active_proj = mg.SOFA_DEFAULT_PROJ
         link_home = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com", 
                                      pos=(MAIN_LEFT, TOP_TOP), 
                                      URL="http://www.sofastatistics.com")

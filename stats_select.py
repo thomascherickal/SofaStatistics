@@ -3,6 +3,7 @@ import os
 import wx
 
 import my_globals as mg
+import lib
 import my_exceptions
 #import anova # import as needed for performance
 #import chisquare
@@ -11,7 +12,6 @@ import config_dlg
 #import mann_whitney
 import normal
 #import pearsonsr
-import projects
 #import spearmansr
 #import ttest_indep
 #import ttest_paired
@@ -309,7 +309,7 @@ class StatsSelectDlg(wx.Dialog):
     
     def examine_normality(self, paired=False):
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-            projects.get_var_dets(self.fil_var_dets)
+                                            lib.get_var_dets(self.fil_var_dets)
         dlg = normal.NormalityDlg(self, self.dbe, self.con_dets, 
                         self.default_dbs, self.default_tbls, self.var_labels, 
                         self.var_notes, self.var_types, self.val_dics, 

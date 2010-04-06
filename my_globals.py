@@ -9,7 +9,7 @@ import sys
 
 debug = False
 
-VERSION = u"0.9.7"
+VERSION = u"0.9.8"
 
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
@@ -216,21 +216,25 @@ DBE_PGSQL = u"PostgreSQL"
 Include database engine in system if in dbe_plugins folder and os-appropriate.
 """
 def import_dbe_plugin(dbe_plugin):
-    if dbe_plugin == DBE_SQLITE:
-        import dbe_plugins.dbe_sqlite as dbe_sqlite
-        mod = dbe_sqlite
-    elif dbe_plugin == DBE_MYSQL:
-        import dbe_plugins.dbe_mysql as dbe_mysql
-        mod = dbe_mysql
-    elif dbe_plugin == DBE_MS_ACCESS:
-        import dbe_plugins.dbe_ms_access as dbe_ms_access
-        mod = dbe_ms_access
-    elif dbe_plugin == DBE_MS_SQL:
-        import dbe_plugins.dbe_ms_sql as dbe_ms_sql
-        mod = dbe_ms_sql
-    elif dbe_plugin == DBE_PGSQL:
-        import dbe_plugins.dbe_postgresql as dbe_postgresql
-        mod = dbe_postgresql
+    try:
+        if dbe_plugin == DBE_SQLITE:
+            import dbe_plugins.dbe_sqlite as dbe_sqlite
+            mod = dbe_sqlite
+        elif dbe_plugin == DBE_MYSQL:
+            import dbe_plugins.dbe_mysql as dbe_mysql
+            mod = dbe_mysql
+        elif dbe_plugin == DBE_MS_ACCESS:
+            import dbe_plugins.dbe_ms_access as dbe_ms_access
+            mod = dbe_ms_access
+        elif dbe_plugin == DBE_MS_SQL:
+            import dbe_plugins.dbe_ms_sql as dbe_ms_sql
+            mod = dbe_ms_sql
+        elif dbe_plugin == DBE_PGSQL:
+            import dbe_plugins.dbe_postgresql as dbe_postgresql
+            mod = dbe_postgresql
+    except ImportError, e:
+        raise Exception, ("Import error with \"%s\". Orig err: %s" % 
+                          (dbe_plugin, e))
     return mod
 try:
     IN_WINDOWS = os.environ['OS'].lower().startswith("windows")
@@ -246,12 +250,11 @@ DBE_PLUGINS = [(DBE_SQLITE, u"dbe_sqlite"),
                (DBE_PGSQL, u"dbe_postgresql"),
                ]
 for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
-    for_win_yet_not_win = not IN_WINDOWS and \
-        dbe_plugin in [DBE_MS_ACCESS, DBE_MS_SQL]
+    wrong_os = dbe_plugin in [DBE_MS_ACCESS, DBE_MS_SQL] and not IN_WINDOWS
     dbe_plugin_mod = os.path.join(os.path.dirname(__file__), u"dbe_plugins", 
                                    u"%s.py" % dbe_mod_name)
     if os.path.exists(dbe_plugin_mod):
-        if not for_win_yet_not_win: # i.e. OK to add module
+        if not wrong_os:
             try:
                 dbe_mod = import_dbe_plugin(dbe_plugin)
             except Exception, e:

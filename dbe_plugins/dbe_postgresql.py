@@ -5,7 +5,6 @@ import wx
 import pprint
 
 import my_globals as mg
-import getdata
 
 # http://www.postgresql.org/docs/8.4/static/datatype.html
 BIGINT = u"bigint" # "signed eight-byte integer"
@@ -260,8 +259,9 @@ def get_flds(cur, db, tbl):
         flds[fld_name] = dets_dic
     return flds
 
-def get_index_dets(cur, tbl):
+def get_index_dets(cur, db, tbl):
     """
+    db -- needed by some dbes sharing interface.
     has_unique - boolean
     idxs = [idx0, idx1, ...]
     each idx is a dict name, is_unique, flds
