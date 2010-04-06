@@ -531,18 +531,15 @@ class StartFrame(wx.Frame):
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=proj_name)
         try:
-            dbe, default_dbs, default_tbls = \
-                                    self.get_dbe_and_default_dbs_tbls(proj_dic)
-            getdata.refresh_default_dbs_tbls(dbe, default_dbs, default_tbls)
-            dlg = report_table.DlgMakeTable(dbe, proj_dic["con_dets"], 
-                                default_dbs, default_tbls, 
-                                proj_dic["fil_var_dets"], proj_dic["fil_css"], 
-                                proj_dic["fil_report"], proj_dic["fil_script"])
+            dd = getdata.get_dd()
+            dlg = report_table.DlgMakeTable(proj_dic["fil_var_dets"], 
+                                    proj_dic["fil_css"], proj_dic["fil_report"], 
+                                    proj_dic["fil_script"])
             lib.safe_end_cursor()
             dlg.ShowModal()
         except Exception, e:
             msg = _("Unable to connect to data as defined in project %s. "
-                    "Please check your settings." % proj_name)
+                    "Please check your settings" % self.active_proj)
             wx.MessageBox(msg)
             raise Exception, u"%s. Orig error: %s" % (msg, e) 
         finally:
@@ -586,20 +583,17 @@ class StartFrame(wx.Frame):
             proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                        fil_name=proj_name)
             try:
-                dbe, default_dbs, default_tbls = \
-                                    self.get_dbe_and_default_dbs_tbls(proj_dic)
-                getdata.refresh_default_dbs_tbls(dbe, default_dbs, default_tbls)
-                dlg = charting_output.DlgCharting(_("Make Chart"), dbe, 
-                                proj_dic["con_dets"], default_dbs, default_tbls, 
+                dd = getdata.get_dd()
+                dlg = charting_output.DlgCharting(_("Make Chart"), 
                                 proj_dic["fil_var_dets"], proj_dic["fil_css"], 
                                 proj_dic["fil_report"], proj_dic["fil_script"])
                 lib.safe_end_cursor()
                 dlg.ShowModal()
             except Exception, e:
                 msg = _("Unable to connect to data as defined in project %s.  "
-                        "Please check your settings." % proj_name)
+                        "Please check your settings" % proj_name)
                 wx.MessageBox(msg)
-                raise Exception, u"%s.  Orig error: %s" % (msg, e) 
+                raise Exception, u"%s. Orig error: %s" % (msg, e) 
             finally:
                 lib.safe_end_cursor()
                 event.Skip()

@@ -48,9 +48,8 @@ class DataSelectDlg(wx.Dialog):
                 self.Destroy()
                 return
         # set up self.drop_dbs and self.drop_tbls
-        self.drop_dbs, self.drop_tbls = \
-                            getdata.get_data_dropdowns(self, self.panel, 
-                                                       proj_dic["default_dbs"])
+        self.drop_dbs, self.drop_tbls = getdata.get_data_dropdowns(self, 
+                                            self.panel, proj_dic["default_dbs"])
         self.chk_readonly = wx.CheckBox(self.panel, -1, _("Read Only"))
         self.chk_readonly.SetValue(True)
         self.btn_delete = wx.Button(self.panel, -1, _("Delete"))

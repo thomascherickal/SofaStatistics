@@ -18,6 +18,8 @@ import showhtml
 # do not use os.linesep for anything going to be read and exec'd
 # in Windows the \r\n makes it fail.
 
+dd = getdata.get_dd()
+
 def get_default_css():
     """
     Get default CSS.  The "constants" are used so that we can 
@@ -253,8 +255,7 @@ def export_script(script, fil_script, fil_report, css_fils, con_dets, dbe, db,
     else:
         insert_prelim_code(modules, f, fil_report, css_fils)
     tbl_filt_label, tbl_filt = lib.get_tbl_filt(dbe, db, tbl)
-    append_exported_script(f, script, con_dets, dbe, db, tbl, tbl_filt_label,
-                           tbl_filt, default_dbs, default_tbls, 
+    append_exported_script(f, script, tbl_filt_label, tbl_filt, 
                            inc_divider=True)
     add_end_script_code(f)
     f.close()
@@ -300,8 +301,7 @@ def rel2abs(strhtml, fil_report):
     if debug: print("From \n\n%s\n\nto\n\n%s" % (strhtml, abs_display_content))
     return abs_display_content
 
-def run_report(modules, add_to_report, fil_report, css_fils, inner_script, 
-               con_dets, dbe, db, tbl_name, default_dbs, default_tbls):
+def run_report(modules, add_to_report, fil_report, css_fils, inner_script):
     """
     Runs report and returns bolran_report, and HTML representation of report 
         (or of the error) for GUI display.
@@ -312,9 +312,9 @@ def run_report(modules, add_to_report, fil_report, css_fils, inner_script,
     f = codecs.open(mg.INT_SCRIPT_PATH, "w", "utf-8")
     if debug: print(css_fils)
     insert_prelim_code(modules, f, mg.INT_REPORT_PATH, css_fils)
-    tbl_filt_label, tbl_filt = lib.get_tbl_filt(dbe, db, tbl_name)
-    append_exported_script(f, inner_script, con_dets, dbe, db, tbl_name,
-        tbl_filt_label, tbl_filt, default_dbs, default_tbls, inc_divider=False)
+    tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+    append_exported_script(f, inner_script, tbl_filt_label, tbl_filt, 
+                           inc_divider=False)
     add_end_script_code(f)
     f.close()
     # run script
@@ -361,7 +361,7 @@ def run_report(modules, add_to_report, fil_report, css_fils, inner_script,
     f = codecs.open(mg.INT_REPORT_PATH, "U", "utf-8")
     raw_results = lib.clean_bom_utf8(f.read())
     f.close()
-    source = get_source(db, tbl_name)
+    source = get_source(dd.db, dd.tbl)
     filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
     results_with_source = source + u"<p>%s</p>" % filt_msg + raw_results
     if add_to_report:
@@ -391,26 +391,25 @@ def insert_prelim_code(modules, f, fil_report, css_fils):
     # else "encoding declaration in Unicode string".
     f.write(mg.PYTHON_ENCODING_DECLARATION)
     f.write(u"\n" + mg.MAIN_SCRIPT_START)
-    f.write(u"\n" + u"import codecs")
-    f.write(u"\n" + u"import sys")
-    f.write(u"\n" + u"import gettext")
-    f.write(u"\n" + u"import numpy as np")
-    f.write(u"\n" + u"gettext.install('sofa', './locale', unicode=False)")
-    f.write(u"\n" + u"sys.path.append(u'%s')" % \
+    f.write(u"\nimport codecs")
+    f.write(u"\nimport sys")
+    f.write(u"\nimport gettext")
+    f.write(u"\nimport numpy as np")
+    f.write(u"\ngettext.install('sofa', './locale', unicode=False)")
+    f.write(u"\nsys.path.append(u'%s')" % \
             lib.escape_pre_write(mg.SCRIPT_PATH))
     for module in modules:
-        f.write(u"\n" + u"import %s" % module)
-    f.write(u"\n" + u"import my_exceptions")
-    f.write(u"\n" + u"\n" + u"""fil = codecs.open(u"%s",""" % \
+        f.write(u"\nimport %s" % module)
+    f.write(u"\nimport my_exceptions")
+    f.write(u"""\n\nfil = codecs.open(u"%s",""" % \
                       lib.escape_pre_write(fil_report) + u""" "w", "utf-8")""")
     css_fils_str = pprint.pformat(css_fils)
-    f.write(u"\n" + u"css_fils=%s" % css_fils_str)
+    f.write(u"\ncss_fils=%s" % css_fils_str)
     f.write(u"\nfil.write(output.get_html_hdr(\"Report(s)\", css_fils, "
             u"default_if_prob=True))")
     f.write(u"\n\n# end of script 'header'" + u"\n" + u"\n")
     
-def append_exported_script(f, inner_script, con_dets, dbe, db, tbl_name, 
-                           tbl_filt_label, tbl_filt, default_dbs, default_tbls, 
+def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt, 
                            inc_divider=False):
     """
     Append exported script onto existing script file.
@@ -421,20 +420,26 @@ def append_exported_script(f, inner_script, con_dets, dbe, db, tbl_name,
     f.write(u"#%s" % (u"-"*65))
     f.write(u"\n" + u"# %s" % datestamp)
     if inc_divider:
-        add_divider_code(f, db, tbl_name, tbl_filt_label, tbl_filt)
-    con_dets_str = pprint.pformat(con_dets)
+        add_divider_code(f, dd.db, dd.tbl, tbl_filt_label, tbl_filt)
+    con_dets_str = pprint.pformat(dd.con_dets)
     f.write(u"\n" + u"con_dets = %s" % con_dets_str)
-    default_dbs_str = pprint.pformat(default_dbs)
+    default_dbs_str = pprint.pformat(dd.default_dbs)
     f.write(u"\n" + u"default_dbs = %s" % default_dbs_str)
-    default_tbls_str = pprint.pformat(default_tbls)
-    f.write(u"\n" + u"default_tbls = %s" % default_tbls_str)
-    f.write(u"\n" + u"con, cur, dbs, tbls, flds, has_unique, idxs = \\" +
-                    u"\n" + "    getdata.get_db_dets_obj(u\"%s\", " % dbe +
-                    u"default_dbs, default_tbls, con_dets=con_dets," +
-                    u"\n" + "    db=u\"%s\", tbl=u\"%s\")" % (db, tbl_name) +
-                    u".get_db_dets()")
-    f.write(u"\n" + u"%s" % inner_script)
-    f.write(u"\n" + u"con.close()")
+    default_tbls_str = pprint.pformat(dd.default_tbls)
+    f.write(u"\ndefault_tbls = %s" % default_tbls_str)
+    f.write(u"\ndd = getdata.get_dd()")
+    f.write(u"\ncon = dd.con")
+    f.write(u"\ncur = dd.cur")
+    f.write(u"\ndbs = dd.dbs")
+    f.write(u"\ndb = dd.db")
+    f.write(u"\ntbls = dd.tbls")
+    f.write(u"\ntbl = dd.tbl")
+    f.write(u"\nflds = dd.flds")
+    f.write(u"\nidxs = dd.idxs")
+    f.write(u"\nhas_unique = dd.has_unique")
+    f.write(u"\n%s" % inner_script)
+    # f.write(u"\ncon.close()") # closes the whole thing and not just for this 
+    # script ;-)
 
 def _strip_html(html):
     """

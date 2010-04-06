@@ -23,8 +23,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     min_data_type = mg.VAR_TYPE_ORD # TODO - wire up for each chart type
     inc_gp_by_select = True
     
-    def __init__(self, title, dbe, con_dets, default_dbs=None,
-                 default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
+    def __init__(self, title, fil_var_dets="", fil_css="", fil_report="", 
                  fil_script="", takes_range=False):
         if mg.MAX_HEIGHT <= 620:
             myheight = 600
@@ -37,10 +36,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX| \
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU| \
                            wx.CAPTION|wx.CLOSE_BOX|wx.CLIP_CHILDREN)
-        self.dbe = dbe
-        self.con_dets = con_dets
-        self.default_dbs = default_dbs
-        self.default_tbls = default_tbls
         self.fil_var_dets = fil_var_dets
         self.fil_css = fil_css
         self.fil_report = fil_report
@@ -366,7 +361,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         var_name, choice_item = self.get_var_dets(drop_var, sorted_var_names)
         var_label = lib.get_item_label(self.var_labels, var_name)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
-                            self.flds, self.var_labels, self.var_notes, 
+                            dd.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
             self.refresh_vars()
@@ -469,7 +464,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         var_gp = self.sorted_var_names_by[selection_idx_gp]
         label_gp = lib.get_item_label(item_labels=self.var_labels, 
                                       item_val=var_gp)
-        var_gp_numeric = self.flds[var_gp][mg.FLD_BOLNUMERIC]
+        var_gp_numeric = dd.flds[var_gp][mg.FLD_BOLNUMERIC]
         # Now the a and b choices under the group
         val_dic = self.val_dics.get(var_gp, {})
         selection_idx_a = self.drop_group_a.GetSelection()

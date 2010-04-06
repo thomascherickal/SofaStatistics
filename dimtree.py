@@ -6,12 +6,15 @@ import wx
 
 import my_globals as mg
 import lib
+import getdata
 import dimtables
 import projects
 
 SORT_OPT_NONE = 0 # No sorting options
 SORT_OPT_BY_LABEL = 1 # Only provide option of sorting by label
 SORT_OPT_ALL = 2 # Option of sorting by labels and freqs
+
+dd = getdata.get_dd()
 
 """
 Dimtree (tree of dimensions i.e. rows and columns) handles the GUI configuration 
@@ -63,7 +66,7 @@ class DimTree(object):
         var_label = lib.get_item_label(self.var_labels, var_name)
         choice_item = lib.get_choice_item(self.var_labels, var_name)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
-                            self.flds, self.var_labels, self.var_notes, 
+                            dd.flds, self.var_labels, self.var_notes, 
                             self.var_types, self.val_dics, self.fil_var_dets)
         if updated:
             # update var label in tree and update demo html
@@ -95,7 +98,7 @@ class DimTree(object):
             min_data_type = mg.VAR_TYPE_ORD
         else:
             min_data_type = mg.VAR_TYPE_CAT
-        var_names = projects.get_approp_var_names(self.flds, self.var_types,
+        var_names = projects.get_approp_var_names(dd.flds, self.var_types,
                                                   min_data_type)
         sorted_choices, sorted_vars = lib.get_sorted_choice_items(
                                     dic_labels=self.var_labels, vals=var_names)
@@ -153,7 +156,7 @@ class DimTree(object):
             item_conf.measures_lst = [lib.get_default_measure(mg.ROW_SUMM)]
         if var_name:
             item_conf.var_name = var_name
-            item_conf.bolnumeric = self.flds[var_name][mg.FLD_BOLNUMERIC]
+            item_conf.bolnumeric = dd.flds[var_name][mg.FLD_BOLNUMERIC]
         else:
             item_conf.bolnumeric = False
         tree.SetItemPyData(new_id, item_conf)
@@ -216,7 +219,7 @@ class DimTree(object):
         Try to add var under selected var.
         Only do so if OK e.g. no duplicate text in either dim.
         """
-        var_names = self.flds.keys()
+        var_names = dd.flds.keys()
         sorted_choices, sorted_vars = \
                         lib.get_sorted_choice_items(self.var_labels, var_names)
         dlg = wx.MultiChoiceDialog(self, _("Select a variable"), 

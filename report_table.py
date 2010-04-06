@@ -12,17 +12,18 @@ import wx.gizmos
 import my_globals as mg
 import lib
 import my_exceptions
+import getdata
 import config_dlg
 import demotables
 import dimtables
 import dimtree
-import getdata
 import full_html
 import output
 import rawtables
 
 OUTPUT_MODULES = ["my_globals as mg", "dimtables", "rawtables", "output", "getdata"]
 WAITING_MSG = _("<p>Waiting for enough settings.</p>")
+dd = getdata.get_dd()
 
 def replace_titles_subtitles(orig, titles, subtitles):
     """
@@ -84,19 +85,14 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         only columns related to the row variables e.g. total, row and col %s.
     """
     
-    def __init__(self, dbe, con_dets, default_dbs=None, 
-                 default_tbls=None, fil_var_dets="", fil_css="", fil_report="", 
-                 fil_script="", var_labels=None, var_notes=None, 
+    def __init__(self, fil_var_dets=u"", fil_css=u"", fil_report=u"", 
+                 fil_script=u"", var_labels=None, var_notes=None, 
                  val_dics=None):
         debug = False
         wx.Dialog.__init__(self, parent=None, id=-1, 
                title=_("Make Report Table"), pos=(200, 0),
                style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
                wx.SYSTEM_MENU|wx.CAPTION|wx.CLOSE_BOX|wx.CLIP_CHILDREN)
-        self.dbe = dbe
-        self.con_dets = con_dets
-        self.default_dbs = default_dbs
-        self.default_tbls = default_tbls
         self.fil_var_dets = fil_var_dets
         self.fil_css = fil_css
         self.fil_report = fil_report
@@ -301,9 +297,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         Db-related details are set at point of instantiation - need updating.
         """
         if self.tab_type == mg.RAW_DISPLAY:
-            self.demo_tab.update_db_dets(self.dbe, self.default_dbs, 
-                                         self.default_tbls,self.con_dets, 
-                                         self.cur, self.db, self.tbl, self.flds)
+            self.demo_tab.update_db_dets(dd.dbe, dd.default_dbs, 
+                                         dd.default_tbls, dd.con_dets, 
+                                         dd.cur, dd.db, dd.tbl, dd.flds)
         self.delete_all_dim_children()
         self.col_no_vars_item = None
         if self.tab_type == mg.FREQS_TBL:
@@ -372,8 +368,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             self.enable_opts(enable=False)
             self.demo_tab = demotables.GenDemoTable(txtTitles=self.txt_titles, 
                                  txtSubtitles=self.txt_subtitles,
-                                 colroot=self.colroot,  rowroot=self.rowroot, 
-                                 rowtree=self.rowtree,  coltree=self.coltree, 
+                                 colroot=self.colroot, rowroot=self.rowroot, 
+                                 rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics, fil_css=self.fil_css)
@@ -392,10 +388,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             self.enable_opts(enable=True)
             self.demo_tab = demotables.DemoRawTable(txtTitles=self.txt_titles, 
                  txtSubtitles=self.txt_subtitles, colroot=self.colroot, 
-                 coltree=self.coltree, dbe=self.dbe, 
-                 default_dbs=self.default_dbs, default_tbls=self.default_tbls, 
-                 con_dets=self.con_dets, cur=self.cur, db=self.db, tbl=self.tbl, 
-                 flds=self.flds, # needs to be reset if table changes
+                 coltree=self.coltree, dbe=dd.dbe, 
+                 default_dbs=dd.default_dbs, default_tbls=dd.default_tbls, 
+                 con_dets=dd.con_dets, cur=dd.cur, db=dd.db, tbl=dd.tbl, 
+                 flds=dd.flds, # needs to be reset if table changes
                  var_labels=self.var_labels, val_dics=self.val_dics,
                  fil_css=self.fil_css, chk_totals_row=self.chk_totals_row,
                  chk_first_as_label=self.chk_first_as_label)
@@ -442,13 +438,12 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         too_long = False
         if self.tab_type == mg.RAW_DISPLAY:
             # count records in table
-            quoter = getdata.get_obj_quoter_func(self.dbe)
-            unused, tbl_filt = lib.get_tbl_filt(self.dbe, self.db, self.tbl)
+            quoter = getdata.get_obj_quoter_func(dd.dbe)
+            unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
             where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
-            s = u"SELECT COUNT(*) FROM %s %s" % (quoter(self.tbl), 
-                                                 where_tbl_filt)
-            self.cur.execute(s)
-            rows_n = self.cur.fetchone()[0]
+            s = u"SELECT COUNT(*) FROM %s %s" % (quoter(dd.tbl), where_tbl_filt)
+            dd.cur.execute(s)
+            rows_n = dd.cur.fetchone()[0]
             if rows_n > 500:
                 if wx.MessageBox(_("This report has %s rows. "
                                    "Do you wish to run it?") % rows_n, 
@@ -485,9 +480,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 return
             script = self.get_script(has_cols, css_idx)
             bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
-                    add_to_report, self.fil_report, css_fils, script, 
-                    self.con_dets, self.dbe, self.db, self.tbl, 
-                    self.default_dbs, self.default_tbls)
+                                                add_to_report, self.fil_report, 
+                                                css_fils, script)
             lib.safe_end_cursor()
             # test JS charting
             """f = open("/home/g/Desktop/testrob1.htm", "r")
@@ -519,8 +513,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 return
             script = self.get_script(has_cols, css_idx)
             output.export_script(script, self.fil_script, self.fil_report, 
-                                 css_fils, self.con_dets, self.dbe, self.db, 
-                                 self.tbl, self.default_dbs, self.default_tbls)
+                                 css_fils, dd.con_dets, dd.dbe, dd.db, dd.tbl, 
+                                 dd.default_dbs, dd.default_tbls)
     
     def get_titles(self):
         """
@@ -579,54 +573,54 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                                      self.var_labels)
             script_lst.append(u"col_names = " + pprint.pformat(col_names))
             script_lst.append(u"col_labels = " + pprint.pformat(col_labels))
-            script_lst.append(u"flds = " + pprint.pformat(self.flds))
+            script_lst.append(u"flds = " + pprint.pformat(dd.flds))
             script_lst.append(u"var_labels = " + \
                               pprint.pformat(self.var_labels))
             script_lst.append(u"val_dics = " + pprint.pformat(self.val_dics))
         # process title dets
         titles, subtitles = self.get_titles()
-        script_lst.append(lib.get_tbl_filt_clause(self.dbe, self.db, self.tbl))
+        script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         # NB the following text is all going to be run
         if self.tab_type in (mg.FREQS_TBL, mg.CROSSTAB):
-            script_lst.append(u"tab_test = dimtables.GenTable(" + \
-                u"titles=%s," % unicode(titles) + \
-                u"\n    subtitles=%s," % unicode(subtitles) + \
-                u"\n    dbe=u\"%s\", " % self.dbe + \
-                u"tbl=u\"%s\", " % self.tbl + \
-                u"tbl_filt=tbl_filt," + \
-                u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " + \
-                u"tree_cols=tree_cols)")
+            script_lst.append(u"tab_test = dimtables.GenTable(" +
+                            u"titles=%s," % unicode(titles) +
+                            u"\n    subtitles=%s," % unicode(subtitles) +
+                            u"\n    dbe=u\"%s\", " % dd.dbe +
+                            u"tbl=u\"%s\", " % dd.tbl +
+                            u"tbl_filt=tbl_filt," +
+                            u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " +
+                            u"tree_cols=tree_cols)")
         elif self.tab_type == mg.ROW_SUMM:
-            script_lst.append(u"tab_test = dimtables.SummTable(" + \
-                u"titles=%s," % unicode(titles) + \
-                u"\n    subtitles=%s," % unicode(subtitles) + \
-                u"\n    dbe=u\"%s\", " % self.dbe + \
-                u"tbl=u\"%s\", " % self.tbl + \
-                u"tbl_filt=tbl_filt," + \
-                u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " + \
-                u"tree_cols=tree_cols)")
+            script_lst.append(u"tab_test = dimtables.SummTable(" +
+                            u"titles=%s," % unicode(titles) +
+                            u"\n    subtitles=%s," % unicode(subtitles) +
+                            u"\n    dbe=u\"%s\", " % dd.dbe +
+                            u"tbl=u\"%s\", " % dd.tbl +
+                            u"tbl_filt=tbl_filt," +
+                            u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " +
+                            u"tree_cols=tree_cols)")
         elif self.tab_type == mg.RAW_DISPLAY:
             tot_rows = u"True" if self.chk_totals_row.IsChecked() else u"False"
             first_label = u"True" if self.chk_first_as_label.IsChecked() \
                 else u"False"
-            script_lst.append(u"tab_test = rawtables.RawTable(" + \
-                u"titles=%s, " % unicode(titles) + \
-                u"\n    subtitles=%s, " % unicode(subtitles) + \
-                u"\n    dbe=u\"%s\", " % self.dbe + \
-                u"col_names=col_names, col_labels=col_labels, flds=flds," + \
-                u"\n    var_labels=var_labels, val_dics=val_dics, " + \
-                u"tbl=u\"%s\"," % self.tbl + \
-                u"\n    tbl_filt=tbl_filt, cur=cur, add_total_row=%s, " % \
-                    tot_rows + \
-                u"\n    first_col_as_label=%s)" % first_label)
+            script_lst.append(u"tab_test = rawtables.RawTable(" +
+                    u"titles=%s, " % unicode(titles) +
+                    u"\n    subtitles=%s, " % unicode(subtitles) +
+                    u"\n    dbe=u\"%s\", " % dd.dbe +
+                    u"col_names=col_names, col_labels=col_labels, flds=flds," +
+                    u"\n    var_labels=var_labels, val_dics=val_dics, " +
+                    u"tbl=u\"%s\"," % dd.tbl +
+                    u"\n    tbl_filt=tbl_filt, cur=cur, add_total_row=%s, " %
+                        tot_rows +
+                    u"\n    first_col_as_label=%s)" % first_label)
         if self.tab_type in [mg.FREQS_TBL, mg.CROSSTAB, mg.ROW_SUMM]:
             script_lst.append(u"tab_test.prep_table(%s)" % css_idx)
             script_lst.append(u"max_cells = 5000")
             script_lst.append(u"if tab_test.get_cell_n_ok("
                               u"max_cells=max_cells):")
             script_lst.append(u"    "
-                        u"fil.write(tab_test.get_html(%s, " % css_idx + \
-                        u"page_break_after=False))")
+                              u"fil.write(tab_test.get_html(%s, " % css_idx +
+                              u"page_break_after=False))")
             script_lst.append(u"else:")
             script_lst.append(u"    "
                   u"raise my_exceptions.ExcessReportTableCellsException("
@@ -736,9 +730,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.update_by_tab_type()
 
     def on_close(self, event):
-        "Close app"
+        "Close report tables dialog"
         try:
-            self.con.close()
             # add end to each open script file and close.
             for fil_script in self.open_scripts:
                 # add ending code to script

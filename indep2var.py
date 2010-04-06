@@ -8,14 +8,16 @@ import wx.html
 import my_globals as mg
 import lib
 import my_exceptions
+import getdata
 import config_dlg
 import full_html
-import getdata
 import output
 import projects
 
 OUTPUT_MODULES = ["my_globals as mg", "core_stats", "getdata", "output", 
                   "stats_output"]
+
+dd = getdata.get_dd()
 
 def get_range_idxs(vals, val_a, val_b):
     """
@@ -506,9 +508,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                 return
             script = self.get_script(css_idx, add_to_report, self.fil_report)
             bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
-                    add_to_report, self.fil_report, css_fils, script, 
-                    self.con_dets, self.dbe, self.db, self.tbl, 
-                    self.default_dbs, self.default_tbls)
+                                                add_to_report, self.fil_report, 
+                                                css_fils, script)
             lib.safe_end_cursor()
             self.update_local_display(str_content)
             self.str_content = str_content

@@ -26,7 +26,7 @@ class ConfigDlg(object):
     """
     The standard interface for choosing data, styles etc.
     Can get sizers ready to use complete with widgets, event methods, and even
-        properties e.g. self.con, self.cur etc.
+        properties e.g. dd.con, dd.cur etc.
     Used mixin because of large number of properties set and needing to be 
         shared.  The downside is that not always clear where something got set
         when looking from the class that inherits from this mixin.
@@ -36,14 +36,11 @@ class ConfigDlg(object):
         """
         Returns self.szr_data, self.szr_config_bottom (vars and css), 
             self.szr_config_top (reports and scripts) complete
-            with widgets and the following setup ready to use: self.con, 
-            self.cur, self.dbs, self.tbls, self.flds, self.has_unique, 
-            self.idxs, self.db, and self.tbl.
+            with widgets.  mg.DATA_DETS as dd is set up ready to use.
         Widgets include dropdowns for database and tables, and textboxes plus 
             Browse buttons for labels, style, output, and script.
         Each widget has a set of events ready to go as well.
-        Assumes self has quite a few properties already set e.g. dbe, 
-            default_dbs, fil_script etc.
+        Assumes self has quite a few properties already set e.g. fil_script etc.
         """
         self.szr_data = self.get_szr_data(panel)
         self.szr_config_bottom, self.szr_config_top = \
@@ -57,25 +54,16 @@ class ConfigDlg(object):
             self.has_unique, self.idxs, self.db, and self.tbl.
         Widgets include dropdowns for database and tables.
         Each widget has a set of events ready to go as well.
-        Assumes self has quite a few properties already set e.g. dbe, 
-            default_dbs etc.
+        Assumes self has quite a few properties already set.
         """
         self.LABEL_FONT = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         # 1) Databases
         lbl_databases = wx.StaticText(panel, -1, _("Database:"))
         lbl_databases.SetFont(self.LABEL_FONT)
         # get various db settings
-        dbdetsobj = getdata.get_db_dets_obj(self.dbe, self.default_dbs, 
-                                            self.default_tbls, self.con_dets)
-        (self.con, self.cur, self.dbs, self.tbls, self.flds, self.has_unique,  
-                self.idxs) = dbdetsobj.get_db_dets()
         # set up self.drop_dbs and self.drop_tbls
-        self.db = dbdetsobj.db
-        self.tbl = dbdetsobj.tbl
-        self.drop_dbs, self.drop_tbls = \
-            getdata.get_data_dropdowns(self, panel, self.dbe, self.default_dbs, 
-                                       self.default_tbls, self.con_dets,
-                                       self.dbs, self.db, self.tbls, self.tbl)
+        self.drop_dbs, self.drop_tbls = getdata.get_data_dropdowns(self, panel, 
+                                                                dd.default_dbs)
         # not wanted in all cases when dropdowns used e.g. data select
         self.drop_tbls.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_tables)
         self.drop_tbls.SetToolTipString(_("Right click to add/remove filter"))
@@ -223,17 +211,16 @@ class ConfigDlg(object):
 
     def filt_select(self):
         import filtselect
-        dlg = filtselect.FiltSelectDlg(self, self.dbe, self.con, self.cur, 
-                self.db, self.tbl, self.flds, self.var_labels, self.var_notes, 
-                self.var_types, self.val_dics, self.fil_var_dets)
+        dlg = filtselect.FiltSelectDlg(self, dd.dbe, dd.con, dd.cur, dd.db, 
+                            dd.tbl, dd.flds, self.var_labels, self.var_notes, 
+                            self.var_types, self.val_dics, self.fil_var_dets)
         dlg.ShowModal()
         self.refresh_vars()
 
     def on_rclick_tables(self, event):
         "Allow addition or removal of data filter"
         self.filt_select()
-        getdata.setup_drop_tbls(self.drop_tbls, self.dbe, self.db, self.tbls, 
-                                self.tbl)
+        getdata.setup_drop_tbls(self.drop_tbls, dd.dbe, dd.db, dd.tbls, dd.tbl)
         #event.Skip() - don't use or will appear twice in Windows!
 
     # report output
@@ -274,7 +261,6 @@ class ConfigDlg(object):
     
     # label config
     def on_var_dets_file_lost_focus(self, event):
-        ""
         self.reread_fil_var_dets()
         self.update_var_dets()
         event.Skip()
