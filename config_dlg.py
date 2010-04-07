@@ -91,17 +91,22 @@ class ConfigDlg(object):
         self.txt_var_dets_file.Bind(wx.EVT_KILL_FOCUS, 
                                     self.on_var_dets_file_lost_focus)
         self.txt_var_dets_file.Enable(not readonly)
-        self.btn_var_dets_path = wx.Button(panel, -1, _("Browse"))
+        browse = _("Browse")
+        self.btn_var_dets_path = wx.Button(panel, -1, browse)
         self.btn_var_dets_path.Bind(wx.EVT_BUTTON, self.on_btn_var_dets_path)
         self.btn_var_dets_path.Enable(not readonly)
+        self.btn_var_dets_path.SetToolTipString(_("%s lets you select an "
+                                    "existing variable config file" % browse))
         # CSS style config details
         self.txt_css_file = wx.TextCtrl(panel, -1, self.fil_css, 
                                         size=(250,-1))
         self.txt_css_file.Bind(wx.EVT_KILL_FOCUS, self.on_css_file_lost_focus)
         self.txt_css_file.Enable(not readonly)
-        self.btn_css_path = wx.Button(panel, -1, _("Browse"))
+        self.btn_css_path = wx.Button(panel, -1, browse)
         self.btn_css_path.Bind(wx.EVT_BUTTON, self.on_btn_css_path)
         self.btn_css_path.Enable(not readonly)
+        self.btn_css_path.SetToolTipString(_("%s lets you select an "
+                                        "existing css style file" % browse))
         # Output details
         # report
         self.txt_report_file = wx.TextCtrl(panel, -1, self.fil_report, 
@@ -109,18 +114,24 @@ class ConfigDlg(object):
         self.txt_report_file.Bind(wx.EVT_KILL_FOCUS, 
                                 self.on_report_file_lost_focus)
         self.txt_report_file.Enable(not readonly)
-        self.btn_report_path = wx.Button(panel, -1, _("Browse"))
+        self.btn_report_path = wx.Button(panel, -1, browse)
         self.btn_report_path.Bind(wx.EVT_BUTTON, self.on_btn_report_path)
         self.btn_report_path.Enable(not readonly)
+        self.btn_report_path.SetToolTipString(_("%s lets you select an "
+            "existing HTML output file. To start a new file, type a new "
+            "name into the text box to the left." % browse))
         # script
         self.txt_script_file = wx.TextCtrl(panel, -1, self.fil_script, 
                                            size=(250,-1))
         self.txt_script_file.Bind(wx.EVT_KILL_FOCUS, 
                                   self.on_script_file_lost_focus)
         self.txt_script_file.Enable(not readonly)
-        self.btn_script_path = wx.Button(panel, -1, _("Browse"))
+        self.btn_script_path = wx.Button(panel, -1, browse)
         self.btn_script_path.Bind(wx.EVT_BUTTON, self.on_btn_script_path)
-        self.btn_script_path.Enable(not readonly)        
+        self.btn_script_path.Enable(not readonly)   
+        self.btn_script_path.SetToolTipString(_("%s lets you select an "
+            "existing Python script file. To start a new file, type a new "
+            "name in to the left." % browse))
           
         self.szr_config_top = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_config_bottom = wx.BoxSizer(wx.HORIZONTAL)
