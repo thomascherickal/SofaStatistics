@@ -6,7 +6,7 @@ import my_globals as mg
 import lib
 from my_exceptions import ImportCancelException
 import config_dlg
-import getdata # must be anything referring to plugin modules
+import getdata # must be before anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 # import csv_importer etc below to avoid circular import
 import projects
@@ -17,6 +17,8 @@ FILE_ODS = u"ods"
 FILE_UNKNOWN = u"unknown"
 TMP_SQLITE_TBL = u"_SOFA_tmp_tbl"
 GAUGE_STEPS = 50
+
+dd = getdata.get_dd()
 
 
 class MismatchException(Exception):
@@ -720,6 +722,7 @@ class ImportFileSelectDlg(wx.Dialog):
             try:
                 file_importer.import_content(self.progbar, self.keep_importing,
                                              self.lbl_feedback)
+                dd.set_db(dd.db, tbl=tbl_name)
                 lib.safe_end_cursor()
             except ImportCancelException, e:
                 lib.safe_end_cursor()

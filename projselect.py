@@ -123,8 +123,12 @@ class ProjSelectDlg(wx.Dialog):
     def on_edit(self,event):
         proj_sel_id = self.drop_projs.GetSelection()
         readonly = (self.projs[proj_sel_id] == mg.SOFA_DEFAULT_PROJ)
-        dlgProj = projects.ProjectDlg(parent=self, readonly=readonly,
+        try:
+            dlgProj = projects.ProjectDlg(parent=self, readonly=readonly,
                           fil_proj=self.projs[self.drop_projs.GetSelection()])
+        except Exception, e:
+            raise
+            return
         # refresh projects list and display accordingly
         retval = dlgProj.ShowModal()
         if retval == wx.ID_DELETE:
@@ -160,10 +164,14 @@ class ProjSelectDlg(wx.Dialog):
         fil_proj = self.projs[proj_sel_id]
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=fil_proj)
-        dd.set_proj_dic(proj_dic)
         try:
+            dd.set_proj_dic(proj_dic)
             proj_name = fil_proj[:-5] # might not be a sensible ...proj file
             self.parent.set_proj(proj_name)
-        except Exception:
-            pass
+        except Exception, e:
+            wx.MessageBox(_("Unable to use the selected project file. Please "
+                            "check name of file and its contents using "
+                            "%s as example" % mg.SOFA_DEFAULT_PROJ))
+            return
         self.Destroy()
+        

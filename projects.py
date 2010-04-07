@@ -469,7 +469,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         try:
             self.proj_notes
         except AttributeError:
-            self.proj_notes = ""
+            self.proj_notes = u""
         try:
             self.fil_var_dets
         except AttributeError:
@@ -522,7 +522,12 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                 _("Error processing project file \"%s\"." % fil_proj + \
                           os.linesep + os.linesep + "Details: %s" % unicode(e)))
             raise Exception, unicode(e)
-        self.proj_name = fil_proj[:-5]
+        try:
+            self.proj_name = fil_proj[:-5]
+        except Exception, e:
+            wx.MessageBox(_("Please check %s for errors. Use %s for "
+                            "reference.") % (fil_proj, mg.SOFA_DEFAULT_PROJ))
+            raise Exception, e
         # Taking settings from proj file (via exec and proj_dic)
         #   and adding them to this frame ready for use.
         # Must always be stored, even if only ""
@@ -534,9 +539,13 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             self.fil_script = proj_dic["fil_script"]
             self.default_dbe = proj_dic["default_dbe"]
             getdata.get_proj_con_settings(self, proj_dic)
+        except KeyError, e:
+            wx.MessageBox(_("Please check %s for errors. Use %s for "
+                            "reference.") % (fil_proj, mg.SOFA_DEFAULT_PROJ))
+            raise Exception, "Key error reading from proj_dic. Orig err: %s" % e
         except Exception, e:
-            wx.MessageBox(_("Please check %s for errors. Use the default "
-                            "project file for reference.") % fil_proj)
+            wx.MessageBox(_("Please check %s for errors. Use %s for "
+                            "reference.") % (fil_proj, mg.SOFA_DEFAULT_PROJ))
             raise Exception, e
     
     def on_dbe_choice(self, event):

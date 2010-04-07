@@ -7,6 +7,7 @@ import lib
 import getdata
 import projects
 
+dd = getdata.get_dd()
 
 def get_val(raw_val, flds, fld_name):
     """

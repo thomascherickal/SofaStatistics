@@ -92,10 +92,14 @@ class DataDets(object):
         """
         self.proj_dic = proj_dic
         # next 3 are dicts with dbes as key (if present)
-        self.default_dbs = proj_dic["default_dbs"]
-        self.default_tbls = proj_dic["default_tbls"]
-        self.con_dets = proj_dic["con_dets"]
-        self.set_dbe(proj_dic["default_dbe"])
+        try:
+            self.default_dbs = proj_dic["default_dbs"]
+            self.default_tbls = proj_dic["default_tbls"]
+            self.con_dets = proj_dic["con_dets"]
+            self.set_dbe(proj_dic["default_dbe"])
+        except KeyError, e:
+            raise Exception, (u"Unable to read project dictionary for required "
+                              u"keys.  Orig err: %s" % e)
 
     def set_dbe(self, dbe, db=None, tbl=None):
         """
@@ -451,8 +455,6 @@ def setup_drop_tbls(drop_tbls):
     """
     Set-up tables dropdown.  Any tables with filtering should have (filtered)
         appended to end of name.
-    Sets selection to the tbl supplied.
-    May need to run dbdetsobj.get_db_dets() first if table names have changed.
     """
     debug = False
     dd = get_dd()
