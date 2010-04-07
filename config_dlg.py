@@ -95,8 +95,8 @@ class ConfigDlg(object):
         self.btn_var_dets_path = wx.Button(panel, -1, browse)
         self.btn_var_dets_path.Bind(wx.EVT_BUTTON, self.on_btn_var_dets_path)
         self.btn_var_dets_path.Enable(not readonly)
-        self.btn_var_dets_path.SetToolTipString(_("%s lets you select an "
-                                    "existing variable config file" % browse))
+        self.btn_var_dets_path.SetToolTipString(_("Select an existing variable "
+                                                  "config file"))
         # CSS style config details
         self.txt_css_file = wx.TextCtrl(panel, -1, self.fil_css, 
                                         size=(250,-1))
@@ -105,8 +105,8 @@ class ConfigDlg(object):
         self.btn_css_path = wx.Button(panel, -1, browse)
         self.btn_css_path.Bind(wx.EVT_BUTTON, self.on_btn_css_path)
         self.btn_css_path.Enable(not readonly)
-        self.btn_css_path.SetToolTipString(_("%s lets you select an "
-                                        "existing css style file" % browse))
+        self.btn_css_path.SetToolTipString(_("Select an existing css style "
+                                             "file"))
         # Output details
         # report
         self.txt_report_file = wx.TextCtrl(panel, -1, self.fil_report, 
@@ -117,9 +117,8 @@ class ConfigDlg(object):
         self.btn_report_path = wx.Button(panel, -1, browse)
         self.btn_report_path.Bind(wx.EVT_BUTTON, self.on_btn_report_path)
         self.btn_report_path.Enable(not readonly)
-        self.btn_report_path.SetToolTipString(_("%s lets you select an "
-            "existing HTML output file. To start a new file, type a new "
-            "name into the text box to the left." % browse))
+        self.btn_report_path.SetToolTipString(_("Select or create an HTML "
+                                                "output file"))
         # script
         self.txt_script_file = wx.TextCtrl(panel, -1, self.fil_script, 
                                            size=(250,-1))
@@ -129,9 +128,8 @@ class ConfigDlg(object):
         self.btn_script_path = wx.Button(panel, -1, browse)
         self.btn_script_path.Bind(wx.EVT_BUTTON, self.on_btn_script_path)
         self.btn_script_path.Enable(not readonly)   
-        self.btn_script_path.SetToolTipString(_("%s lets you select an "
-            "existing Python script file. To start a new file, type a new "
-            "name in to the left." % browse))
+        self.btn_script_path.SetToolTipString(_("Select or create a Python "
+                                                "script file"))
           
         self.szr_config_top = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_config_bottom = wx.BoxSizer(wx.HORIZONTAL)
@@ -234,10 +232,12 @@ class ConfigDlg(object):
     # report output
     def on_btn_report_path(self, event):
         "Open dialog and takes the report file selected (if any)"
-        dlg_get_file = wx.FileDialog(self, _("Choose a report output file:"), 
+        dlg_get_file = wx.FileDialog(self, 
+            _("Choose or create a report output file:"), 
             defaultDir=os.path.join(mg.LOCAL_PATH, u"reports"), 
             defaultFile=u"", 
-            wildcard=_("HTML files (*.htm)|*.htm|HTML files (*.html)|*.html"))
+            wildcard=_("HTML files (*.htm)|*.htm|HTML files (*.html)|*.html"),
+            style=wx.SAVE)
             #MUST have a parent to enforce modal in Windows
         if dlg_get_file.ShowModal() == wx.ID_OK:
             self.fil_report = u"%s" % dlg_get_file.GetPath()
@@ -253,9 +253,10 @@ class ConfigDlg(object):
     def on_btn_script_path(self, event):
         "Open dialog and takes the script file selected (if any)"
         dlg_get_file = wx.FileDialog(self, 
-            _("Choose a file to export scripts to:"), 
+            _("Choose or create a file to export scripts to:"), 
             defaultDir=os.path.join(mg.LOCAL_PATH, "scripts"), 
-            defaultFile="", wildcard=_("Scripts (*.py)|*.py"))
+            defaultFile="", wildcard=_("Scripts (*.py)|*.py"),
+            style=wx.SAVE)
             #MUST have a parent to enforce modal in Windows
         if dlg_get_file.ShowModal() == wx.ID_OK:
             self.fil_script = u"%s" % dlg_get_file.GetPath()
@@ -275,7 +276,8 @@ class ConfigDlg(object):
 
     def on_btn_var_dets_path(self, event):
         "Open dialog and takes the variable details file selected (if any)"
-        dlg_get_file = wx.FileDialog(self, _("Choose a variable config file:"), 
+        dlg_get_file = wx.FileDialog(self, 
+            _("Choose an existing variable config file:"), 
             defaultDir=os.path.join(mg.LOCAL_PATH, u"vdts"), 
             defaultFile=u"", wildcard=_("Config files (*.vdts)|*.vdts"))
             #MUST have a parent to enforce modal in Windows
@@ -289,7 +291,8 @@ class ConfigDlg(object):
     # css table style
     def on_btn_css_path(self, event):
         "Open dialog and takes the css file selected (if any)"
-        dlg_get_file = wx.FileDialog(self, _("Choose a css table style file:"), 
+        dlg_get_file = wx.FileDialog(self, 
+            _("Choose an existing css table style file:"), 
             defaultDir=os.path.join(mg.LOCAL_PATH, "css"), 
             defaultFile=u"", 
             wildcard=_("CSS files (*.css)|*.css"))
