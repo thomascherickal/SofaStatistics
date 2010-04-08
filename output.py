@@ -502,9 +502,8 @@ def add_end_script_code(f):
 def display_report(parent, strContent, url_load=False):
     # display results
     wx.BeginBusyCursor()
-    dlg = showhtml.ShowHTML(parent=parent, content=strContent, 
-                            file_name=mg.INT_REPORT_FILE, title=_("Report"), 
-                            print_folder=mg.INTERNAL_FOLDER, url_load=url_load)
+    dlg = showhtml.DlgHTML(parent=parent, title=_("Report"), url=None, 
+                           content=strContent, url_load=url_load)
     dlg.ShowModal()
     dlg.Destroy()
     lib.safe_end_cursor() # again to be sure

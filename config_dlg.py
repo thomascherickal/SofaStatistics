@@ -6,6 +6,8 @@ import lib
 import getdata
 # import filtselect # prevent circular import
 import output
+import showhtml
+import webbrowser
 
 dd = getdata.get_dd()
 
@@ -20,7 +22,10 @@ def get_szr_level(parent, panel):
     parent.szr_level = wx.BoxSizer(wx.HORIZONTAL)
     parent.szr_level.Add(parent.rad_level, 0, wx.RIGHT, 10)
     return parent.szr_level
-    
+
+label_divider = " " if mg.IN_WINDOWS else "\n"
+add_to_report = _("Add to%sreport" % label_divider)
+
 
 class ConfigDlg(object):
     """
@@ -44,7 +49,7 @@ class ConfigDlg(object):
         """
         self.szr_data = self.get_szr_data(panel)
         self.szr_config_bottom, self.szr_config_top = \
-            self.get_misc_config_szrs(panel, readonly)
+                                    self.get_misc_config_szrs(panel, readonly)
         return self.szr_data, self.szr_config_bottom, self.szr_config_top
         
     def get_szr_data(self, panel):
@@ -87,7 +92,7 @@ class ConfigDlg(object):
         """
         # Data config details
         self.txt_var_dets_file = wx.TextCtrl(panel, -1, self.fil_var_dets, 
-                                             size=(250,-1))
+                                             size=(200,-1))
         self.txt_var_dets_file.Bind(wx.EVT_KILL_FOCUS, 
                                     self.on_var_dets_file_lost_focus)
         self.txt_var_dets_file.Enable(not readonly)
@@ -99,7 +104,7 @@ class ConfigDlg(object):
                                                   "config file"))
         # CSS style config details
         self.txt_css_file = wx.TextCtrl(panel, -1, self.fil_css, 
-                                        size=(250,-1))
+                                        size=(200,-1))
         self.txt_css_file.Bind(wx.EVT_KILL_FOCUS, self.on_css_file_lost_focus)
         self.txt_css_file.Enable(not readonly)
         self.btn_css_path = wx.Button(panel, -1, browse)
@@ -110,7 +115,7 @@ class ConfigDlg(object):
         # Output details
         # report
         self.txt_report_file = wx.TextCtrl(panel, -1, self.fil_report, 
-                                         size=(250,-1))
+                                           size=(300,-1))
         self.txt_report_file.Bind(wx.EVT_KILL_FOCUS, 
                                 self.on_report_file_lost_focus)
         self.txt_report_file.Enable(not readonly)
@@ -119,9 +124,14 @@ class ConfigDlg(object):
         self.btn_report_path.Enable(not readonly)
         self.btn_report_path.SetToolTipString(_("Select or create an HTML "
                                                 "output file"))
+        self.btn_view = wx.Button(panel, -1, _("View"))
+        self.btn_view.Bind(wx.EVT_BUTTON, self.on_btn_view)
+        self.btn_view.Enable(not readonly)
+        self.btn_view.SetToolTipString(_("View selected HTML output file in "
+                                         "your default browser"))
         # script
         self.txt_script_file = wx.TextCtrl(panel, -1, self.fil_script, 
-                                           size=(250,-1))
+                                           size=(200,-1))
         self.txt_script_file.Bind(wx.EVT_KILL_FOCUS, 
                                   self.on_script_file_lost_focus)
         self.txt_script_file.Enable(not readonly)
@@ -130,29 +140,27 @@ class ConfigDlg(object):
         self.btn_script_path.Enable(not readonly)   
         self.btn_script_path.SetToolTipString(_("Select or create a Python "
                                                 "script file"))
-          
         self.szr_config_top = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_config_bottom = wx.BoxSizer(wx.HORIZONTAL)
-        # CONFIG TOP
-        # Variables
-        bx_var_config = wx.StaticBox(panel, -1, _("Variable config from ..."))
-        szr_var_config = wx.StaticBoxSizer(bx_var_config, wx.HORIZONTAL)
-        szr_var_config.Add(self.txt_var_dets_file, 1, wx.GROW)
-        szr_var_config.Add(self.btn_var_dets_path, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szr_config_top.Add(szr_var_config, 1, wx.RIGHT, 10)
+        # Report
+        bx_report_config = wx.StaticBox(panel, -1, _("Send output to ..."))
+        szr_report_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
+        szr_report_config.Add(self.txt_report_file, 1, wx.GROW)
+        szr_report_config.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
+        szr_report_config.Add(self.btn_view, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szr_config_top.Add(szr_report_config, 2, wx.RIGHT, 10)
         # Css
         bx_css_config = wx.StaticBox(panel, -1, _("Style output using ..."))
         szr_css_config = wx.StaticBoxSizer(bx_css_config, wx.HORIZONTAL)
         szr_css_config.Add(self.txt_css_file, 1, wx.GROW)
         szr_css_config.Add(self.btn_css_path, 0, wx.LEFT|wx.RIGHT, 5)
         self.szr_config_top.Add(szr_css_config, 1)
-        # CONFIG BOTTOM
-        # Report
-        bx_report_config = wx.StaticBox(panel, -1, _("Send output to ..."))
-        szr_report_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
-        szr_report_config.Add(self.txt_report_file, 1, wx.GROW)
-        szr_report_config.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szr_config_bottom.Add(szr_report_config, 1, wx.RIGHT, 10)
+        # Variables
+        bx_var_config = wx.StaticBox(panel, -1, _("Variable config from ..."))
+        szr_var_config = wx.StaticBoxSizer(bx_var_config, wx.HORIZONTAL)
+        szr_var_config.Add(self.txt_var_dets_file, 1, wx.GROW)
+        szr_var_config.Add(self.btn_var_dets_path, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szr_config_bottom.Add(szr_var_config, 1, wx.RIGHT, 10)
         # Script
         bx_script_config = wx.StaticBox(panel, -1, _("Export here to reuse"))
         szr_script_config = wx.StaticBoxSizer(bx_script_config, wx.HORIZONTAL)
@@ -166,9 +174,7 @@ class ConfigDlg(object):
         self.btn_run = wx.Button(panel, -1, _("Run"))
         self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
         self.btn_run.SetToolTipString(_("Run report and display results"))
-        label_divider = " " if mg.IN_WINDOWS else "\n"
-        self.chk_add_to_report = wx.CheckBox(panel, -1, 
-                                          _("Add to%sreport" % label_divider))
+        self.chk_add_to_report = wx.CheckBox(panel, -1, add_to_report)
         self.chk_add_to_report.SetValue(True)
         self.btn_export = wx.Button(panel, -1, _("Export"))
         self.btn_export.Bind(wx.EVT_BUTTON, self.on_btn_export)
@@ -228,7 +234,6 @@ class ConfigDlg(object):
         self.filt_select()
         getdata.setup_drop_tbls(self.drop_tbls)
         #event.Skip() - don't use or will appear twice in Windows!
-
     # report output
     def on_btn_report_path(self, event):
         "Open dialog and takes the report file selected (if any)"
@@ -243,6 +248,23 @@ class ConfigDlg(object):
             self.fil_report = u"%s" % dlg_get_file.GetPath()
             self.txt_report_file.SetValue(self.fil_report)
         dlg_get_file.Destroy()
+
+    def on_btn_view(self, event):
+        """
+        Open report in user's default web browser.
+        """
+        debug = False
+        if not os.path.exists(path=self.fil_report):
+            wx.MessageBox(_("No output yet.  Use \"%s\" to add "
+                            "output to this report.") % add_to_report)
+        else:
+            if mg.IN_WINDOWS:
+                url = u"file:///%s" % self.fil_report
+            else:
+                url = u"file://%s" % self.fil_report
+            if debug: print(url)            
+            webbrowser.open_new_tab(url)
+        event.Skip()
 
     def on_report_file_lost_focus(self, event):
         "Reset report output file"

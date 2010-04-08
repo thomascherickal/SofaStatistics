@@ -179,6 +179,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.add_other_var_opts()
         self.panel.SetSizer(szr_main)
         szr_main.SetSizeHints(self)
+        self.Layout()
 
     def add_other_var_opts(self):
         pass

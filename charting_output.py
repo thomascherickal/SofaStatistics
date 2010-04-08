@@ -32,7 +32,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         else:
             myheight = 800
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
-                           pos=(200, 0), size=(1000,myheight),
+                           pos=(200, 0), size=(1024, myheight),
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX| \
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU| \
                            wx.CAPTION|wx.CLOSE_BOX|wx.CLIP_CHILDREN)
@@ -197,12 +197,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_bottom = wx.BoxSizer(wx.VERTICAL)
         lbl_titles = wx.StaticText(self.panel_bottom, -1, _("Title:"))
         lbl_titles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.txt_titles = wx.TextCtrl(self.panel_bottom, -1, size=(350,40), 
+        self.txt_titles = wx.TextCtrl(self.panel_bottom, -1, size=(250,40), 
                                       style=wx.TE_MULTILINE)
         lbl_subtitles = wx.StaticText(self.panel_bottom, -1, _("Subtitle:"))
         lbl_subtitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, 
                                           wx.BOLD))
-        self.txt_subtitles = wx.TextCtrl(self.panel_bottom, -1, size=(350,40), 
+        self.txt_subtitles = wx.TextCtrl(self.panel_bottom, -1, size=(250,40), 
                                          style=wx.TE_MULTILINE)
         szr_titles.Add(lbl_titles, 0, wx.RIGHT, 5)
         szr_titles.Add(self.txt_titles, 1, wx.RIGHT, 10)
@@ -231,7 +231,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_main.Add(self.panel_bottom, 1, wx.GROW)
         self.SetAutoLayout(True)
         self.SetSizer(szr_main)
-        self.SetMinSize((930,600))
+        self.SetMinSize((1024,600))
         self.Layout()
     
     def setup_chart_btns(self, szr_chart_btns):

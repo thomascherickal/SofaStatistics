@@ -33,28 +33,30 @@ def get_html_header(title, header_template):
     fil.close()
     return hdr
 
-class ShowHTML(wx.Dialog):
+class DlgHTML(wx.Dialog):
     "Show HTML window with content displayed"    
     
-    def __init__(self, parent, content, file_name, title, print_folder, 
-                 url_load=False):
+    def __init__(self, parent, title, url=None, content=None, url_load=False,
+                 file_name=mg.INT_REPORT_FILE, print_folder=mg.INTERNAL_FOLDER):
         """
-        content - html ready to display.
-        file_name - excludes any path information. Needed for printing.
-        title - dialog title.
-        print_folder - needs to be a subfolder of the current folder.
+        url -- url to display (either this or content).
+        content -- html ready to display.
+        url_load -- if need to save content to file and then load as url
+        file_name -- excludes any path information. Needed for printing.
+        title -- dialog title.
+        print_folder -- needs to be a subfolder of the current folder.
         """
         wx.Dialog.__init__(self, parent=parent, id=-1, title=title, 
                         pos=(0,0), size=(900,700), style=wx.RESIZE_BORDER|\
                         wx.DEFAULT_DIALOG_STYLE|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.file_name = file_name
         self.print_folder = print_folder
-        html = full_html.FullHTML(self, size=wx.DefaultSize)
-        html.show_html(content, url_load)
+        self.html = full_html.FullHTML(self, size=wx.DefaultSize)
+        self.show_content(url, content, url_load)
         btn_close = wx.Button(self, wx.ID_CLOSE, _("Close"))
         btn_close.Bind(wx.EVT_BUTTON, self.on_close)
         szr_main = wx.BoxSizer(wx.VERTICAL)
-        szr_main.Add(html,1,wx.GROW|wx.ALL, 5)
+        szr_main.Add(self.html,1,wx.GROW|wx.ALL, 5)
         if mg.IN_WINDOWS:
             szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
             szr_btns.AddGrowableCol(1,2)
@@ -70,7 +72,15 @@ class ShowHTML(wx.Dialog):
         self.SetSizer(szr_main)
         self.Layout()
         lib.safe_end_cursor()
-        
+    
+    def show_content(self, url=None, content=None, url_load=None):
+        if content is None and url is None:
+            raise Exception, "Need whether string content or a url"
+        if content:
+            self.html.show_html(content, url_load)
+        else:
+            self.html.load_url(url)
+    
     def on_print(self, event):
         "Print page"
         #printer = wx.html.HtmlEasyPrinting("Printing output", None)

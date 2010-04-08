@@ -213,7 +213,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         if mg.MAX_HEIGHT <= 620:
             myheight = 130
         elif mg.MAX_HEIGHT <= mid_height:
-            myheight = ((mg.MAX_HEIGHT/1024.0)*350) - height_drop
+            myheight = ((mg.MAX_HEIGHT/mid_height)*350.0) - height_drop
         else:
             myheight = 350
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))
