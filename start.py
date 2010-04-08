@@ -33,20 +33,10 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 # Install gettext.  Now all strings enclosed in "_()" will automatically be
 # translated.
 gettext.install('sofa', './locale', unicode=True)
+
 import my_globals as mg # has translated text
 import lib
 import config_globals
-import getdata # call before all modules relying on mg.DATA_DETS as dd
-import config_dlg
-# importing delayed until needed where possible for startup performance
-# import dataselect
-import full_html
-# import importer
-# import report_table
-import projects
-import projselect
-import quotes
-# import stats_select
 
 COPYRIGHT = u"\u00a9"
 SCREEN_WIDTH = 1000
@@ -65,17 +55,6 @@ HELP_IMG_TOP = 315
 MAIN_RIGHT = 650
 SCRIPT_PATH = mg.SCRIPT_PATH
 LOCAL_PATH = mg.LOCAL_PATH
-
-def get_blank_btn_bmp():
-    return wx.Image(os.path.join(SCRIPT_PATH, u"images", u"blankbutton.xpm"), 
-                    wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-
-def get_next_y_pos(start, height):
-    "Facilitate regular y position of buttons"
-    i = 0
-    while True:
-        yield start + (i*height)
-        i += 1
 
 def install_local():
     """
@@ -135,6 +114,30 @@ def install_local():
         f = file(os.path.join(LOCAL_PATH, PROJ_CUSTOMISED_FILE), "w")
         f.write(u"Local project file customised successfully :-)")
         f.close()
+install_local() # needs mg, but must run before anything calling dd
+
+import getdata # call before all modules relying on mg.DATA_DETS as dd
+import config_dlg
+# importing delayed until needed where possible for startup performance
+# import dataselect
+import full_html
+# import importer
+# import report_table
+import projects
+import projselect
+import quotes
+# import stats_select
+
+def get_blank_btn_bmp():
+    return wx.Image(os.path.join(SCRIPT_PATH, u"images", u"blankbutton.xpm"), 
+                    wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+
+def get_next_y_pos(start, height):
+    "Facilitate regular y position of buttons"
+    i = 0
+    while True:
+        yield start + (i*height)
+        i += 1
 
 
 class SofaApp(wx.App):
@@ -758,7 +761,6 @@ class StartFrame(wx.Frame):
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
 
-install_local()
 app = SofaApp()
 try:
     app.MainLoop()
