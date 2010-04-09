@@ -90,7 +90,6 @@ class DataDets(object):
         Setting project can have implications for default dbe, default dbs, 
             default tbls, dbs, db etc.
         """
-        self.proj_dic = proj_dic
         # next 3 are dicts with dbes as key (if present)
         try:
             self.default_dbs = proj_dic["default_dbs"]
@@ -100,6 +99,7 @@ class DataDets(object):
         except KeyError, e:
             raise Exception, (u"Unable to read project dictionary for required "
                               u"keys.  Orig err: %s" % e)
+        self.proj_dic = proj_dic # only change if successful
 
     def set_dbe(self, dbe, db=None, tbl=None):
         """
@@ -107,11 +107,11 @@ class DataDets(object):
         May want to refresh dbe and db together (e.g. dbe-db dropwdown).
         """
         debug = False
-        self.dbe = dbe
         if debug: print("About to get dbe resources")
-        dbe_resources = get_dbe_resources(self.dbe, self.con_dets, 
+        dbe_resources = get_dbe_resources(dbe, self.con_dets, 
                                           self.default_dbs, self.default_tbls, 
                                           db, tbl)
+        self.dbe = dbe # only change if getting dbe resources worked
         if debug: print(u"Finished getting dbe resources")
         self.con = dbe_resources[mg.DBE_CON]
         self.cur = dbe_resources[mg.DBE_CUR]
@@ -127,9 +127,9 @@ class DataDets(object):
         """
         Changing the db has implications for tbls, tbl etc.
         """
-        self.db = db
-        db_resources = get_db_resources(self.dbe, self.cur, self.db, 
+        db_resources = get_db_resources(self.dbe, self.cur, db, 
                                         self.default_tbls, tbl)
+        self.db = db # only change if getting db resources worked
         self.tbls = db_resources[mg.DBE_TBLS]
         self.tbl = db_resources[mg.DBE_TBL]
         self.flds = db_resources[mg.DBE_FLDS]
@@ -137,8 +137,8 @@ class DataDets(object):
         self.has_unique = db_resources[mg.DBE_HAS_UNIQUE]
 
     def set_tbl(self, tbl):
-        self.tbl = tbl
-        tbl_dets = get_tbl_dets(self.dbe, self.cur, self.db, self.tbl)
+        tbl_dets = get_tbl_dets(self.dbe, self.cur, self.db, tbl)
+        self.tbl = tbl # only change if getting tbl dets worked
         self.flds = tbl_dets[mg.DBE_FLDS]
         self.idxs = tbl_dets[mg.DBE_IDXS]
         self.has_unique = tbl_dets[mg.DBE_HAS_UNIQUE]
