@@ -145,7 +145,7 @@ def get_flds(cur, db, tbl):
         extras[fld_name] = (ord_pos, char_set)
         rs.MoveNext()
     flds = {}
-    has_unique, idxs = get_index_dets(cur, db, tbl)
+    idxs, has_unique = get_index_dets(cur, db, tbl)
     for col in cat.Tables(tbl).Columns:
         # build dic of fields, each with dic of characteristics
         fld_name = col.Name            
@@ -222,7 +222,7 @@ def get_index_dets(cur, db, tbl):
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     # default database
     parent.lbl_msaccess_default_db = wx.StaticText(scroll, -1, 
-            _("Default Database (name only):"))
+            _("Default Database - name only e.g. demo.mdb:"))
     parent.lbl_msaccess_default_db.SetFont(lblfont)
     MSACCESS_DEFAULT_DB = parent.msaccess_default_db \
         if parent.msaccess_default_db else ""

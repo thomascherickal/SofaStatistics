@@ -524,7 +524,7 @@ def refresh_tbl_dets(parent):
 
 def get_default_db_dets():
     """
-    Returns con, cur, dbs, tbls, flds, has_unique, idxs from default
+    Returns con, cur, dbs, tbls, flds, idxs, has_unique from default
         SOFA SQLite database.
     """
     proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 

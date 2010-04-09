@@ -25,6 +25,7 @@ def get_szr_level(parent, panel):
 
 label_divider = " " if mg.IN_WINDOWS else "\n"
 add_to_report = _("Add to%sreport" % label_divider)
+run = _("Run")
 
 
 class ConfigDlg(object):
@@ -171,7 +172,7 @@ class ConfigDlg(object):
 
     def get_szr_output_btns(self, panel, inc_clear=True):
         #main
-        self.btn_run = wx.Button(panel, -1, _("Run"))
+        self.btn_run = wx.Button(panel, -1, run)
         self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
         self.btn_run.SetToolTipString(_("Run report and display results"))
         self.chk_add_to_report = wx.CheckBox(panel, -1, add_to_report)
@@ -255,8 +256,8 @@ class ConfigDlg(object):
         """
         debug = False
         if not os.path.exists(path=self.fil_report):
-            wx.MessageBox(_("No output yet.  Use \"%s\" to add "
-                            "output to this report.") % add_to_report)
+            wx.MessageBox(_("No output yet. Click \"%s\" (with \"%s\" ticked) "
+                    "to add output to this report.") % (run, add_to_report))
         else:
             if mg.IN_WINDOWS:
                 url = u"file:///%s" % self.fil_report

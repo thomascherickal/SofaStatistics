@@ -239,7 +239,7 @@ def get_index_dets(cur, db, tbl):
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     # default database
     parent.lblMssqlDefaultDb = wx.StaticText(scroll, -1, 
-                                             _("Default Database (name only):"))
+                                             _("Default Database:"))
     parent.lblMssqlDefaultDb.SetFont(lblfont)
     mssql_default_db = parent.mssql_default_db if parent.mssql_default_db \
         else ""
@@ -257,13 +257,13 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txtMssqlDefaultTbl.Enable(not readonly)
     # host
     parent.lblMssqlHost = wx.StaticText(scroll, -1, 
-                                        _("Host - (local) if own machine:"))
+                                        _("Host - (local) if your machine:"))
     parent.lblMssqlHost.SetFont(lblfont)
     mssql_host = parent.mssql_host
     parent.txtMssqlHost = wx.TextCtrl(scroll, -1, mssql_host, size=(100,-1))
     parent.txtMssqlHost.Enable(not readonly)
     # user
-    parent.lblMssqlUser = wx.StaticText(scroll, -1, _("User:"))
+    parent.lblMssqlUser = wx.StaticText(scroll, -1, _("User - e.g. root:"))
     parent.lblMssqlUser.SetFont(lblfont)
     mssql_user = parent.mssql_user if parent.mssql_user else ""
     parent.txtMssqlUser = wx.TextCtrl(scroll, -1, mssql_user, size=(100,-1))
@@ -273,7 +273,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                                        _("Password - space if none:"))
     parent.lblMssqlPwd.SetFont(lblfont)
     mssql_pwd = parent.mssql_pwd if parent.mssql_pwd else ""
-    parent.txtMssqlPwd = wx.TextCtrl(scroll, -1, mssql_pwd, size=(300,-1))
+    parent.txtMssqlPwd = wx.TextCtrl(scroll, -1, mssql_pwd, size=(100,-1))
     parent.txtMssqlPwd.Enable(not readonly)
     #2 MS SQL SERVER
     bxMssql= wx.StaticBox(scroll, -1, u"Microsoft SQL Server")

@@ -79,8 +79,8 @@ class DataSelectDlg(wx.Dialog):
         szr_existing.Add(szr_existing_bottom, 0, wx.GROW|wx.ALL, 10)        
         bx_new = wx.StaticBox(self.panel, -1, "")
         szr_new = wx.StaticBoxSizer(bx_new, wx.HORIZONTAL)
-        lbl_make_new = wx.StaticText(self.panel, -1, 
-                                   _("... or make a new data table"))
+        lbl_make_new = wx.StaticText(self.panel, -1, _("... or add a new data "
+                                        "table to the default SOFA database"))
         btn_make_new = wx.Button(self.panel, wx.ID_NEW)
         btn_make_new.Bind(wx.EVT_BUTTON, self.on_new_click)
         szr_new.Add(lbl_make_new, 1, wx.GROW|wx.ALL, 10)
