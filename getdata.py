@@ -445,7 +445,9 @@ def get_data_dropdowns(parent, panel, default_dbs):
                                 size=(300,-1))
     parent.drop_dbs.Bind(wx.EVT_CHOICE, parent.on_database_sel)
     dbs_lc = [x.lower() for x in dd.dbs]
-    parent.drop_dbs.SetSelection(dbs_lc.index(dd.db.lower()))
+    selected_dbe_db_idx = dbs_lc.index(dd.db.lower())
+    parent.drop_dbs.SetSelection(selected_dbe_db_idx)
+    parent.selected_dbe_db_idx = selected_dbe_db_idx
     parent.drop_tbls = wx.Choice(panel, -1, choices=[], size=(300,-1))
     setup_drop_tbls(parent.drop_tbls)
     parent.drop_tbls.Bind(wx.EVT_CHOICE, parent.on_table_sel)
@@ -477,6 +479,9 @@ def setup_drop_tbls(drop_tbls):
 def refresh_db_dets(parent):
     """
     Responds to a database selection.
+    When the database dropdowns are created, the selected idx is stored. If
+        need to undo, we set selection to that.  If ok to accept change, reset 
+        the selected idx to what has just been selected.
     """
     wx.BeginBusyCursor()
     dd = mg.DATA_DETS
@@ -496,8 +501,10 @@ def refresh_db_dets(parent):
         parent.drop_tbls.SetItems(dd.tbls)
         tbls_lc = [x.lower() for x in dd.tbls]
         parent.drop_tbls.SetSelection(tbls_lc.index(dd.tbl.lower()))
+        parent.selected_dbe_db_idx = parent.drop_dbs.GetSelection()
     except Exception:
         wx.MessageBox(_("Experienced problem refreshing database details"))
+        parent.drop_dbs.SetSelection(parent.selected_dbe_db_idx)
         raise
     finally:
         lib.safe_end_cursor()

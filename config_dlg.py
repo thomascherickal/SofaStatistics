@@ -217,6 +217,10 @@ class ConfigDlg(object):
 
     # database/ tables (and views)
     def on_database_sel(self, event):
+        """
+        Copes if have to back out of selection because cannot access required
+            details e.g. MS SQL Server model database.
+        """
         getdata.refresh_db_dets(self)
         
     def on_table_sel(self, event):
