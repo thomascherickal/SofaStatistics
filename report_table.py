@@ -395,7 +395,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                              fil_css=self.fil_css, 
                              chk_totals_row=self.chk_totals_row,
                              chk_first_as_label=self.chk_first_as_label)
-        #in case they were disabled and then we changed tab type
+        # in case they were disabled and then we changed tab type
         self.setup_row_btns()
         self.setup_col_btns()
         self.setup_action_btns()

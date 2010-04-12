@@ -484,7 +484,8 @@ class DimTree(object):
                                                       else False
         if self.tab_type in (mg.FREQS_TBL, mg.CROSSTAB, mg.ROW_SUMM):
             self.btn_row_add.Enable(True)
-            self.btn_row_add_under.Enable(has_rows)
+            self.btn_row_add_under.Enable(has_rows 
+                                          and self.tab_type != mg.ROW_SUMM)
             self.btn_row_del.Enable(has_rows)
             self.btn_row_conf.Enable(has_rows)
         elif self.tab_type == mg.RAW_DISPLAY:
