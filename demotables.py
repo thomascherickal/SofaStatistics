@@ -319,7 +319,7 @@ class GenDemoTable(DemoDimTable):
         if has_rows and has_cols:
             return self.get_demo_html(css_idx)
         else:
-            return ""
+            return u""
     
     def get_hdr_dets(self, row_label_cols_n, css_idx):
         """
@@ -331,7 +331,9 @@ class GenDemoTable(DemoDimTable):
         if tree_col_labels.get_depth() == 1:
             raise Exception, u"There must always be a column item " + \
                 u"even if only the col no vars item"
-        return self.process_hdr_tree(tree_col_labels, row_label_cols_n, css_idx)    
+        hdr_dets = self.process_hdr_tree(tree_col_labels, row_label_cols_n, 
+                                         css_idx)
+        return hdr_dets
 
     def get_body_html_rows(self, row_label_rows_lst, tree_row_labels,
                            tree_col_labels, css_idx):
@@ -434,7 +436,9 @@ class SummDemoTable(DemoDimTable):
         tree_col_labels = self.add_subtrees_to_col_label_tree(tree_col_labels)
         if tree_col_labels.get_depth() == 1:
             tree_col_labels.add_child(dimtables.LabelNode(label=u"Measures"))
-        return self.process_hdr_tree(tree_col_labels, row_label_cols_n, css_idx)
+        hdr_dets = self.process_hdr_tree(tree_col_labels, row_label_cols_n, 
+                                         css_idx)
+        return hdr_dets
 
     def get_body_html_rows(self, row_label_rows_lst, tree_row_labels,
                            tree_col_labels, css_idx):

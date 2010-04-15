@@ -125,18 +125,20 @@ CSS_ELEMENTS = [CSS_ALIGN_RIGHT, CSS_LBL, CSS_TBL_TITLE,
 CSS_SUFFIX_TEMPLATE = u"%s%s"
 # projects ******************************************************
 EMPTY_PROJ_NAME = _("GIVE ME A NAME ...")
-SOFA_DEFAULT_DB = u"SOFA_Default_db"
-SOFA_DEFAULT_TBL = u"SOFA_Default_tbl"
-SOFA_DEFAULT_PROJ = u"SOFA_Default_Project.proj"
-SOFA_DEFAULT_VDTS = u"SOFA_Default_Var_Dets.vdts"
-SOFA_DEFAULT_STYLE = u"SOFA_Default_Style.css"
-SOFA_DEFAULT_SCRIPT = u"SOFA_Default_Exported_Table_Scripts.py"
-SOFA_DEFAULT_REPORT = u"SOFA_Default_New_Tables.htm"
+SOFA_DEFAULT_DB = u"sofa_db"
+SOFA_DEFAULT_TBL = u"demo_tbl"
+SOFA_DEFAULT_PROJ = u"default.proj"
+SOFA_DEFAULT_VDTS = u"general_var_dets.vdts"
+SOFA_DEFAULT_STYLE = u"default.css"
+SOFA_DEFAULT_SCRIPT = u"general_scripts.py"
+SOFA_DEFAULT_REPORT = u"default_report.htm"
 SOFA_DEFAULT_PATHS = u"SOFA_Default_Paths.txt"
 INTERNAL_FOLDER = u"_internal"
 local_encoding = sys.getfilesystemencoding()
 USER_PATH = unicode(os.path.expanduser("~"), local_encoding)
 LOCAL_PATH = os.path.join(USER_PATH, u"sofa")
+REPORTS_PATH = os.path.join(LOCAL_PATH, u"reports")
+IMAGES_PATH = os.path.join(LOCAL_PATH, u"images")
 # print(sys.path)
  # NB won't work within an interpreter
 # http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html

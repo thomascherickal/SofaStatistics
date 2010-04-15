@@ -72,8 +72,8 @@ def install_local():
             for path in paths:
                 os.makedirs(os.path.join(LOCAL_PATH, path))
             # copy across default proj, vdts, css
-            shutil.copy(os.path.join(prog_path, u"css", u"alt_style.css"), 
-                        os.path.join(LOCAL_PATH, u"css", u"alt_style.css"))
+            shutil.copy(os.path.join(prog_path, u"css", u"grey_spirals.css"), 
+                        os.path.join(LOCAL_PATH, u"css", u"grey_spirals.css"))
             shutil.copy(os.path.join(prog_path, u"css", mg.SOFA_DEFAULT_STYLE), 
                         os.path.join(LOCAL_PATH, u"css", mg.SOFA_DEFAULT_STYLE))
             shutil.copy(os.path.join(prog_path, mg.INTERNAL_FOLDER, 
@@ -418,9 +418,8 @@ class StartFrame(wx.Frame):
         panel_dc.DrawBitmap(self.blank_proj_strip, MAIN_LEFT, 218, False)
         panel_dc.SetTextForeground(wx.WHITE)
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel(_("Currently using ") +
-                           "\"%s\"" % self.active_proj[:-5] + 
-                           _(" Project settings"),
+        panel_dc.DrawLabel(_("Currently using \"%s\" project settings") % 
+                                self.active_proj[:-5],
                            wx.Rect(MAIN_LEFT, 247, 400, 30))
         event.Skip()
 

@@ -375,7 +375,7 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
                  "converted into a missing value.")
     msg += _("\n\nYou can view your imported data by clicking on "
              "'Enter/Edit Data' on the main form. You'll find it in the "
-             "'SOFA_Default_db' database.")
+             "'%s' database." % mg.SOFA_DEFAULT_DB)
     wx.MessageBox(msg % {"tbl": tbl_name})
 
 class HasHeaderDlg(wx.Dialog):

@@ -168,8 +168,11 @@ def get_html_hdr(hdr_title, css_fils, default_if_prob=False, grey=False):
         if grey: # appending it will override whatever else it is set to
             css += u"\ntd, th {\n    color: #5f5f5f;\n}"
     else:
+        if debug: print("\n\nUsing default css")
         css = get_default_css()
     hdr = mg.DEFAULT_HDR % (hdr_title, css)
+    hdr = lib.rel2abs(hdr)
+    if debug: print(hdr)
     return hdr
 
 def get_html_ftr():
@@ -284,22 +287,6 @@ def get_source(db, tbl_name):
     source = u"\n<p>From %s.%s %s</p>" % (db, tbl_name, datestamp)
     return source
 
-def rel2abs(strhtml, fil_report):
-    """
-    fil_report -- e.g. /home/g/sofa/reports/my_report_name.htm
-    Turn my_report_name/001.png to e.g. 
-        /home/g/sofa/reports/my_report_name/001.png so that the html can be 
-        written to, and read from, anywhere (and still show the images!) in the
-        temporary GUI displays.
-    """
-    debug = False
-    to_insert = os.path.join(os.path.split(fil_report)[0], u"")
-    abs_display_content = strhtml.replace(u"src='", u"src='%s" % to_insert)
-    abs_display_content = abs_display_content.replace(u"src=\"", 
-                                                      u"src=\"%s" % to_insert)
-    if debug: print("From \n\n%s\n\nto\n\n%s" % (strhtml, abs_display_content))
-    return abs_display_content
-
 def run_report(modules, add_to_report, fil_report, css_fils, inner_script):
     """
     Runs report and returns bolran_report, and HTML representation of report 
@@ -371,9 +358,10 @@ def run_report(modules, add_to_report, fil_report, css_fils, inner_script):
         rel_display_content = u"\n<p>Output also saved to '%s'</p>" % \
                         lib.escape_pre_write(fil_report) + results_with_source
         # make relative links absolute so GUI viewers can display images
-        gui_display_content = rel2abs(rel_display_content, fil_report)
+        gui_display_content = lib.rel2abs(rel_display_content)
     else:
         gui_display_content = results_with_source
+    if debug: print(gui_display_content)
     return True, gui_display_content
 
 def insert_prelim_code(modules, f, fil_report, css_fils):

@@ -244,8 +244,7 @@ class ConfigDlg(object):
         "Open dialog and takes the report file selected (if any)"
         dlg_get_file = wx.FileDialog(self, 
             _("Choose or create a report output file:"), 
-            defaultDir=os.path.join(mg.LOCAL_PATH, u"reports"), 
-            defaultFile=u"", 
+            defaultDir=mg.REPORTS_PATH, defaultFile=u"", 
             wildcard=_("HTML files (*.htm)|*.htm|HTML files (*.html)|*.html"),
             style=wx.SAVE)
             #MUST have a parent to enforce modal in Windows

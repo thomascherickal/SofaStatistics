@@ -47,23 +47,25 @@ def test_replace_titles_subtitles():
 
 def test_rel2abs():
     """
-    rel2abs(strhtml, fil_report):
-    fil_report -- e.g. /home/g/sofa/reports/my_report_name.htm
-    Turn my_report_name/001.png to e.g. 
-        /home/g/sofa/reports/my_report_name/001.png
+    Make all images work of absolute rather than relative paths.  Will run OK
+        when displayed internally in GUI.
+    Make normal images absolute: turn my_report_name/001.png to e.g. 
+        /home/g/sofa/reports/my_report_name/001.png so that the html can be 
+        written to, and read from, anywhere (and still show the images!) in the
+        temporary GUI displays.
+    Make background images absolute: turn ../images/tile.gif to 
+        /home/g/sofa/images/tile.gif.
     """
     tests = [
-        (("<h1>Hi there!</h1><img src='my report name/my_img.png'", 
-              "/home/g/sofa/reports/my_report_name.htm"), 
-             ("<h1>Hi there!</h1><img "
-              "src='/home/g/sofa/reports/my report name/my_img.png'")),
-        ((u"<h1>Hi there!</h1><img src=\"Identität/my_img.png\"", 
-              u"/home/g/sofa/reports/Identität.html"), 
-             (u"<h1>Hi there!</h1><img "
-              u"src=\"/home/g/sofa/reports/Identität/my_img.png\"")),
+        "<h1>Hi there!</h1><img src='my report name/my_img.png'", 
+        "<h1>Hi there!</h1><img src='/home/g/sofa/reports/my report name/" + \
+            "my_img.png'",
+        u"<h1>Hi there!</h1><img src=\"Identität/my_img.png\"", 
+        u"<h1>Hi there!</h1><img src=\"/home/g/sofa/reports/Identität/" + \
+            u"my_img.png\"",
              ]
     for test in tests:
-        assert_equal(output.rel2abs(*test[0]), test[1])
+        assert_equal(lib.rel2abs(*test))
         
 test_us_style = False
 if test_us_style:

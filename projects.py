@@ -488,12 +488,12 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                                         mg.SOFA_DEFAULT_STYLE)
         try:            
             self.fil_report
-        except AttributeError:       
-            self.fil_report = os.path.join(LOCAL_PATH, u"reports", 
+        except AttributeError:
+            self.fil_report = os.path.join(mg.REPORTS_PATH, 
                                            mg.SOFA_DEFAULT_REPORT)
         try:            
             self.fil_script
-        except AttributeError: 
+        except AttributeError:
             self.fil_script = os.path.join(LOCAL_PATH, u"scripts", 
                                            mg.SOFA_DEFAULT_SCRIPT)
         try:

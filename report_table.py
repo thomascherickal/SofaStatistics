@@ -22,7 +22,7 @@ import output
 import rawtables
 
 OUTPUT_MODULES = ["my_globals as mg", "dimtables", "rawtables", "output", "getdata"]
-WAITING_MSG = _("<p>Waiting for enough settings.</p>")
+WAITING_MSG = _("<p>Waiting for enough settings ...</p>")
 dd = getdata.get_dd()
 
 def replace_titles_subtitles(orig, titles, subtitles):
@@ -453,7 +453,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         return too_long
     
     def update_local_display(self, strContent):
-        self.html.show_html(strContent)
+        self.html.show_html(strContent, url_load=True)
     
     def on_btn_run(self, event):
         """

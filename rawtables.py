@@ -81,12 +81,12 @@ class RawTable(object):
         CSS_TOTAL_ROW = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TOTAL_ROW, css_idx)
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
-        html = u""
-        html += u"\n\n<table cellspacing='0'>\n" # IE6 - no support CSS borderspacing
+        html = []
+        html.append(u"\n\n<table cellspacing='0'>\n") # IE6 - no support CSS borderspacing
         hdr_html = self.get_hdr_dets(self.col_labels, css_idx)
-        html += hdr_html
+        html.append(hdr_html)
         # build body
-        body_html = u"\n\n<tbody>"
+        body_html = [u"\n\n<tbody>",]
         row_tots = [0 for x in self.col_names]
         if self.first_col_as_label:
             del row_tots[0] # ignore label col
@@ -153,7 +153,7 @@ class RawTable(object):
                             lib.is_basic_num(row_tots[i]):
                         row_tots[i] += row_val
                         row_tots_used.add(i)
-            body_html += u"\n<tr>" + u"".join(row_tds) + u"</td></tr>"
+            body_html.append(u"\n<tr>" + u"".join(row_tds) + u"</td></tr>")
         if self.add_total_row:
             row_tot_vals = []
             for i in range(cols_n):
@@ -167,13 +167,13 @@ class RawTable(object):
                 tot_cell = u""
             # never a displayed total for strings (whether orig data or labels)
             joiner = u"</td><td class=\"%s\">" % CSS_ALIGN_RIGHT
-            body_html += u"\n<tr class='%s'>" % CSS_TOTAL_ROW + \
-                tot_cell + u"<td class=\"%s\">"  % CSS_ALIGN_RIGHT + \
-                joiner.join(row_tot_vals) + u"</td></tr>"
-        body_html += u"\n</tbody>"
-        html += body_html
-        html += u"\n</table>"
+            body_html.append(u"\n<tr class='%s'>" % CSS_TOTAL_ROW +
+                            tot_cell + u"<td class=\"%s\">"  % CSS_ALIGN_RIGHT +
+                            joiner.join(row_tot_vals) + u"</td></tr>")
+        body_html.append(u"\n</tbody>")
+        html.append(body_html)
+        html.append(u"\n</table>")
         if page_break_after:
-            html += u"<br><hr><br><div class='%s'></div>" % \
-                CSS_PAGE_BREAK_BEFORE
-        return html   
+            html.append(u"<br><hr><br><div class='%s'></div>" % \
+                CSS_PAGE_BREAK_BEFORE)
+        return u"\n".join(html)
