@@ -45,8 +45,8 @@ class DemoTable(object):
         html = []
         try:
             html.append(output.get_html_hdr(hdr_title=_(u"Report(s)"), 
-                                            css_fils=[self.fil_css], 
-                                            default_if_prob=True, grey=True))
+                                css_fils=[self.fil_css], default_if_prob=True, 
+                                grey=True, abs=True))
             html.append(u"<table cellspacing='0'>\n") # IE6 no CSS borderspacing
             main_html = self.get_html(css_idx)
         except my_exceptions.MissingCssException:

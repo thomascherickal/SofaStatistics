@@ -415,7 +415,7 @@ def test_sofa_default_proj_settings():
     this test too ;-)
     """
     proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
-                                       fil_name=mg.SOFA_DEFAULT_PROJ)
+                                       fil_name=mg.DEFAULT_PROJ)
     var_labels, var_notes, var_types, val_dics = \
                                     lib.get_var_dets(proj_dic["fil_var_dets"])
     fil_var_dets = proj_dic["fil_var_dets"]
@@ -426,11 +426,10 @@ def test_sofa_default_proj_settings():
     default_tbls = proj_dic["default_tbls"] \
         if proj_dic["default_tbls"] else {}
     assert_equal(dbe, mg.DBE_SQLITE)
-    assert_equal(default_dbs[mg.DBE_SQLITE], mg.SOFA_DEFAULT_DB)
-    assert_equal(default_tbls[mg.DBE_SQLITE], 
-                 mg.SOFA_DEFAULT_TBL)
-    assert_equal(con_dets[mg.DBE_SQLITE][mg.SOFA_DEFAULT_DB]\
-                 ['database'].split("/")[-1], mg.SOFA_DEFAULT_DB)    
+    assert_equal(default_dbs[mg.DBE_SQLITE], mg.SOFA_DB)
+    assert_equal(default_tbls[mg.DBE_SQLITE], mg.DEMO_TBL)
+    assert_equal(con_dets[mg.DBE_SQLITE][mg.SOFA_DB]['database'].split("/")[-1], 
+                 mg.SOFA_DB)    
     
 def test_get_var_dets():
     """
@@ -439,7 +438,7 @@ def test_get_var_dets():
     this test too ;-)
     """
     proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
-                                       fil_name=mg.SOFA_DEFAULT_PROJ)
+                                               fil_name=mg.DEFAULT_PROJ)
     var_labels, var_notes, var_types, val_dics = \
                                     lib.get_var_dets(proj_dic["fil_var_dets"])
     assert_not_equal(var_labels.get('Name'), None)

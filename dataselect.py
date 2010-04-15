@@ -113,12 +113,10 @@ class DataSelectDlg(wx.Dialog):
         Can only open dialog for design details for tables in the default SOFA 
             database.
         """
-        design_enable = (dd.dbe == mg.DBE_SQLITE 
-                         and dd.db == mg.SOFA_DEFAULT_DB)
+        design_enable = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)
         self.btn_design.Enable(design_enable)
-        delete_enable = (dd.dbe == mg.DBE_SQLITE 
-                         and dd.db == mg.SOFA_DEFAULT_DB 
-                         and dd.tbl != mg.SOFA_DEFAULT_TBL)
+        delete_enable = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB 
+                         and dd.tbl != mg.DEMO_TBL)
         self.btn_delete.Enable(delete_enable)
         
     def on_database_sel(self, event):
@@ -289,7 +287,7 @@ class DataSelectDlg(wx.Dialog):
         """
         debug = False
         readonly = self.chk_readonly.IsChecked()
-        if dd.tbl == mg.SOFA_DEFAULT_TBL and not readonly:
+        if dd.tbl == mg.DEMO_TBL and not readonly:
             wx.MessageBox(_("The design of the default SOFA table can only "
                             "be opened as read only"))
             self.chk_readonly.SetValue(True)
@@ -360,7 +358,7 @@ class DataSelectDlg(wx.Dialog):
         """
         debug = False
         try:
-            con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DEFAULT_DB)
+            con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)
             # not dd.con because we may fail making a new one and need to 
             # stick with the original
         except Exception:
@@ -392,13 +390,13 @@ class DataSelectDlg(wx.Dialog):
         tbl_name = tbl_name_lst[0]        
         oth_name_types = getdata.get_oth_name_types(config_data)
         if debug: print(config_data)
-        con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DEFAULT_DB)
+        con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)
         cur = con.cursor() # the cursor for the default db
         getdata.make_sofa_tbl(con, cur, tbl_name, oth_name_types)
         # Prepare to connect to the newly created table.
         # dd.con and dd.cur can now be updated now we are committed to new table
         tbl = tbl_name
-        dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DEFAULT_DB, tbl=tbl)
+        dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl)
         # update tbl dropdown
         self.reset_tbl_dropdown()
         # explain to user

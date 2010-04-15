@@ -35,7 +35,7 @@ def get_proj_notes(fil_proj, proj_dic):
     If the default project, return the translated notes rather than what is 
         actually stored in the file (notes in English).
     """
-    if fil_proj == mg.SOFA_DEFAULT_PROJ:
+    if fil_proj == mg.DEFAULT_PROJ:
         proj_notes = _("Default project so users can get started without "
                        "having to understand projects.  NB read only.")
     else:
@@ -457,7 +457,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             self.get_proj_settings(fil_proj)
         else:
             # prepopulate with default settings
-            self.get_proj_settings(fil_proj=mg.SOFA_DEFAULT_PROJ)
+            self.get_proj_settings(fil_proj=mg.DEFAULT_PROJ)
             self.proj_name = mg.EMPTY_PROJ_NAME
             self.proj_notes = _("The SOFA Default Database is needed to allow "
                                 "you to add new tables to SOFA Statistics")
@@ -475,7 +475,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         except AttributeError:
             # make empty labels file if necessary
             fil_default_var_dets = os.path.join(LOCAL_PATH, u"vdts", 
-                                            mg.SOFA_DEFAULT_VDTS)
+                                                mg.DEFAULT_VDTS)
             if not os.path.exists(fil_default_var_dets):
                 f = open(fil_default_var_dets, "w")
                 f.write(u"# add variable details here")
@@ -484,18 +484,16 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         try:            
             self.fil_css
         except AttributeError:
-            self.fil_css = os.path.join(LOCAL_PATH, u"css", 
-                                        mg.SOFA_DEFAULT_STYLE)
+            self.fil_css = os.path.join(LOCAL_PATH, u"css", mg.DEFAULT_STYLE)
         try:            
             self.fil_report
         except AttributeError:
-            self.fil_report = os.path.join(mg.REPORTS_PATH, 
-                                           mg.SOFA_DEFAULT_REPORT)
+            self.fil_report = os.path.join(mg.REPORTS_PATH, mg.DEFAULT_REPORT)
         try:            
             self.fil_script
         except AttributeError:
             self.fil_script = os.path.join(LOCAL_PATH, u"scripts", 
-                                           mg.SOFA_DEFAULT_SCRIPT)
+                                           mg.DEFAULT_SCRIPT)
         try:
             self.default_dbe
         except AttributeError:
@@ -526,7 +524,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             self.proj_name = fil_proj[:-5]
         except Exception, e:
             wx.MessageBox(_("Please check %s for errors. Use %s for "
-                            "reference.") % (fil_proj, mg.SOFA_DEFAULT_PROJ))
+                            "reference.") % (fil_proj, mg.DEFAULT_PROJ))
             raise Exception, e
         # Taking settings from proj file (via exec and proj_dic)
         #   and adding them to this frame ready for use.
@@ -541,11 +539,11 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             getdata.get_proj_con_settings(self, proj_dic)
         except KeyError, e:
             wx.MessageBox(_("Please check %s for errors. Use %s for "
-                            "reference.") % (fil_proj, mg.SOFA_DEFAULT_PROJ))
+                            "reference.") % (fil_proj, mg.DEFAULT_PROJ))
             raise Exception, "Key error reading from proj_dic. Orig err: %s" % e
         except Exception, e:
             wx.MessageBox(_("Please check %s for errors. Use %s for "
-                            "reference.") % (fil_proj, mg.SOFA_DEFAULT_PROJ))
+                            "reference.") % (fil_proj, mg.DEFAULT_PROJ))
             raise Exception, e
     
     def on_dbe_choice(self, event):

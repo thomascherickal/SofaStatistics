@@ -37,7 +37,7 @@ class DlgHTML(wx.Dialog):
     "Show HTML window with content displayed"    
     
     def __init__(self, parent, title, url=None, content=None, url_load=False,
-                 file_name=mg.INT_REPORT_FILE, print_folder=mg.INTERNAL_FOLDER):
+                 file_name=mg.INT_REPORT_FILE, print_folder=mg.INT_FOLDER):
         """
         url -- url to display (either this or content).
         content -- html ready to display.

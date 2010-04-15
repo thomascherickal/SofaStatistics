@@ -86,7 +86,7 @@ class RawTable(object):
         hdr_html = self.get_hdr_dets(self.col_labels, css_idx)
         html.append(hdr_html)
         # build body
-        body_html = [u"\n\n<tbody>",]
+        body_html = [u"\n<tbody>",]
         row_tots = [0 for x in self.col_names]
         if self.first_col_as_label:
             del row_tots[0] # ignore label col
@@ -153,7 +153,7 @@ class RawTable(object):
                             lib.is_basic_num(row_tots[i]):
                         row_tots[i] += row_val
                         row_tots_used.add(i)
-            body_html.append(u"\n<tr>" + u"".join(row_tds) + u"</td></tr>")
+            body_html.append(u"<tr>" + u"".join(row_tds) + u"</td></tr>")
         if self.add_total_row:
             row_tot_vals = []
             for i in range(cols_n):
@@ -167,11 +167,11 @@ class RawTable(object):
                 tot_cell = u""
             # never a displayed total for strings (whether orig data or labels)
             joiner = u"</td><td class=\"%s\">" % CSS_ALIGN_RIGHT
-            body_html.append(u"\n<tr class='%s'>" % CSS_TOTAL_ROW +
+            body_html.append(u"<tr class='%s'>" % CSS_TOTAL_ROW +
                             tot_cell + u"<td class=\"%s\">"  % CSS_ALIGN_RIGHT +
                             joiner.join(row_tot_vals) + u"</td></tr>")
-        body_html.append(u"\n</tbody>")
-        html.append(body_html)
+        body_html.append(u"</tbody>")
+        html.append(u"\n".join(body_html))
         html.append(u"\n</table>")
         if page_break_after:
             html.append(u"<br><hr><br><div class='%s'></div>" % \

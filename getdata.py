@@ -155,7 +155,7 @@ def get_dd():
     debug = False
     if not mg.DATA_DETS:
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
-                                               fil_name=mg.SOFA_DEFAULT_PROJ)
+                                               fil_name=mg.DEFAULT_PROJ)
         mg.DATA_DETS = DataDets(proj_dic)
         if debug: print("Updated mg.DATA_DETS")
     return mg.DATA_DETS
@@ -535,7 +535,7 @@ def get_default_db_dets():
         SOFA SQLite database.
     """
     proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
-                                        fil_name=mg.SOFA_DEFAULT_PROJ)
+                                        fil_name=mg.DEFAULT_PROJ)
     default_dd = DataDets(proj_dic)
     return default_dd
 

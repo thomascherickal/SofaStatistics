@@ -125,20 +125,19 @@ CSS_ELEMENTS = [CSS_ALIGN_RIGHT, CSS_LBL, CSS_TBL_TITLE,
 CSS_SUFFIX_TEMPLATE = u"%s%s"
 # projects ******************************************************
 EMPTY_PROJ_NAME = _("GIVE ME A NAME ...")
-SOFA_DEFAULT_DB = u"sofa_db"
-SOFA_DEFAULT_TBL = u"demo_tbl"
-SOFA_DEFAULT_PROJ = u"default.proj"
-SOFA_DEFAULT_VDTS = u"general_var_dets.vdts"
-SOFA_DEFAULT_STYLE = u"default.css"
-SOFA_DEFAULT_SCRIPT = u"general_scripts.py"
-SOFA_DEFAULT_REPORT = u"default_report.htm"
-SOFA_DEFAULT_PATHS = u"SOFA_Default_Paths.txt"
-INTERNAL_FOLDER = u"_internal"
+SOFA_DB = u"sofa_db"
+DEMO_TBL = u"demo_tbl"
+DEFAULT_PROJ = u"default.proj"
+DEFAULT_VDTS = u"general_var_dets.vdts"
+DEFAULT_STYLE = u"default.css"
+DEFAULT_SCRIPT = u"general_scripts.py"
+DEFAULT_REPORT = u"default_report.htm"
+INT_FOLDER = u"_internal"
 local_encoding = sys.getfilesystemencoding()
 USER_PATH = unicode(os.path.expanduser("~"), local_encoding)
 LOCAL_PATH = os.path.join(USER_PATH, u"sofa")
 REPORTS_PATH = os.path.join(LOCAL_PATH, u"reports")
-IMAGES_PATH = os.path.join(LOCAL_PATH, u"images")
+IMAGES_PATH = os.path.join(REPORTS_PATH, u"images")
 # print(sys.path)
  # NB won't work within an interpreter
 # http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
@@ -146,12 +145,12 @@ for path in sys.path:
     if path.endswith(u"sofa") or path.endswith(u"sofa.main"):
         break
 SCRIPT_PATH = path
-INT_PATH = os.path.join(LOCAL_PATH, INTERNAL_FOLDER)
+INT_PATH = os.path.join(LOCAL_PATH, INT_FOLDER)
 INT_SCRIPT_PATH = os.path.join(INT_PATH, u"script.py")
 INT_REPORT_FILE = u"report.htm"
 INT_PREFS_FILE = u"prefs.txt"
 INT_REPORT_PATH = os.path.join(INT_PATH, INT_REPORT_FILE)
-DEFAULT_CSS_PATH = os.path.join(LOCAL_PATH, u"css", SOFA_DEFAULT_STYLE)
+DEFAULT_CSS_PATH = os.path.join(LOCAL_PATH, u"css", DEFAULT_STYLE)
 VAR_TYPE_CAT = _("Nominal (names only)")
 VAR_TYPE_ORD = _("Ordinal (rank only)")
 VAR_TYPE_QUANT = _("Quantity (is an amount)")

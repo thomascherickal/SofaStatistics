@@ -62,27 +62,24 @@ def install_local():
     Modify default project settings to point to local (user) SOFA  directory.
     """
     prog_path = os.path.dirname(__file__)
-    default_proj = os.path.join(LOCAL_PATH, u"projs", mg.SOFA_DEFAULT_PROJ)
-    paths = [u"css", mg.INTERNAL_FOLDER, u"vdts", u"projs", u"reports", 
-             u"scripts"]
+    default_proj = os.path.join(LOCAL_PATH, u"projs", mg.DEFAULT_PROJ)
+    paths = [u"css", mg.INT_FOLDER, u"vdts", u"projs", u"reports", u"scripts"]
     if not os.path.exists(LOCAL_PATH):
-            # In Windows these steps are completed by the installer - but only
-            # for the first user.
-            # create required folders
-            for path in paths:
+            # In Windows this is completed by installer but only for first user
+            for path in paths: # create required folders
                 os.makedirs(os.path.join(LOCAL_PATH, path))
             # copy across default proj, vdts, css
-            shutil.copy(os.path.join(prog_path, u"css", u"grey_spirals.css"), 
-                        os.path.join(LOCAL_PATH, u"css", u"grey_spirals.css"))
-            shutil.copy(os.path.join(prog_path, u"css", mg.SOFA_DEFAULT_STYLE), 
-                        os.path.join(LOCAL_PATH, u"css", mg.SOFA_DEFAULT_STYLE))
-            shutil.copy(os.path.join(prog_path, mg.INTERNAL_FOLDER, 
-                                     mg.SOFA_DEFAULT_DB), 
-                        os.path.join(LOCAL_PATH, mg.INTERNAL_FOLDER, 
-                                     mg.SOFA_DEFAULT_DB))
-            shutil.copy(os.path.join(prog_path, u"vdts", mg.SOFA_DEFAULT_VDTS), 
-                        os.path.join(LOCAL_PATH, u"vdts", mg.SOFA_DEFAULT_VDTS))
-            shutil.copy(os.path.join(prog_path, u"projs", mg.SOFA_DEFAULT_PROJ), 
+            styles = [u"grey_spirals.css", u"lucid_spirals.css", u"pebbles.css"]
+            for style in styles:
+                shutil.copy(os.path.join(prog_path, u"css", style), 
+                            os.path.join(LOCAL_PATH, u"css", style))
+            shutil.copy(os.path.join(prog_path, u"css", mg.DEFAULT_STYLE), 
+                        os.path.join(LOCAL_PATH, u"css", mg.DEFAULT_STYLE))
+            shutil.copy(os.path.join(prog_path, mg.INT_FOLDER, mg.SOFA_DB), 
+                        os.path.join(LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB))
+            shutil.copy(os.path.join(prog_path, u"vdts", mg.DEFAULT_VDTS), 
+                        os.path.join(LOCAL_PATH, u"vdts", mg.DEFAULT_VDTS))
+            shutil.copy(os.path.join(prog_path, u"projs", mg.DEFAULT_PROJ), 
                         default_proj)
     PROJ_CUSTOMISED_FILE = u"proj_file_customised.txt"
     if not os.path.exists(os.path.join(LOCAL_PATH, PROJ_CUSTOMISED_FILE)):
@@ -96,17 +93,13 @@ def install_local():
         # add MS Access and SQL Server into mix if Windows
         if mg.IN_WINDOWS:
             proj_str = proj_str.replace(u"default_dbs = {",
-                                        u"default_dbs = {'%s': None, " % \
-                                            mg.DBE_MS_ACCESS)
+                            u"default_dbs = {'%s': None, " % mg.DBE_MS_ACCESS)
             proj_str = proj_str.replace(u"default_tbls = {",
-                                        u"default_tbls = {'%s': None, " % \
-                                            mg.DBE_MS_ACCESS)
+                            u"default_tbls = {'%s': None, " % mg.DBE_MS_ACCESS)
             proj_str = proj_str.replace(u"default_dbs = {",
-                                        u"default_dbs = {'%s': None, " % \
-                                            mg.DBE_MS_SQL)
+                                u"default_dbs = {'%s': None, " % mg.DBE_MS_SQL)
             proj_str = proj_str.replace(u"default_tbls = {",
-                                        u"default_tbls = {'%s': None, " % \
-                                            mg.DBE_MS_SQL)
+                                u"default_tbls = {'%s': None, " % mg.DBE_MS_SQL)
         f = codecs.open(default_proj, "w", "utf-8")
         f.write(proj_str)
         f.close()
@@ -199,7 +192,7 @@ class StartFrame(wx.Frame):
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)
         self.init_com_types(self.panel)
-        self.active_proj = mg.SOFA_DEFAULT_PROJ
+        self.active_proj = mg.DEFAULT_PROJ
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=self.active_proj)
         if not mg.DATA_DETS:
@@ -411,8 +404,7 @@ class StartFrame(wx.Frame):
                            wx.Rect(MAIN_RIGHT, 547, 100, 50))
         panel_dc.DrawBitmap(self.bmp_psal, MAIN_RIGHT-45, 542, True)
         # make default db if not already there
-        def_db = os.path.join(LOCAL_PATH, mg.INTERNAL_FOLDER, 
-                              mg.SOFA_DEFAULT_DB)
+        def_db = os.path.join(LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB)
         con = sqlite.connect(def_db)
         con.close()
         panel_dc.DrawBitmap(self.blank_proj_strip, MAIN_LEFT, 218, False)
@@ -457,7 +449,7 @@ class StartFrame(wx.Frame):
         debug = False
         try:
             prefs_dic = \
-                config_globals.get_settings_dic(subfolder=mg.INTERNAL_FOLDER, 
+                config_globals.get_settings_dic(subfolder=mg.INT_FOLDER, 
                                                 fil_name=mg.INT_PREFS_FILE)
         except Exception:
             prefs_dic = {}

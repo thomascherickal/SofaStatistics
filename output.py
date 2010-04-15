@@ -131,7 +131,8 @@ def get_default_css():
         mg.CSS_ALIGN_RIGHT
     return default_css
     
-def get_html_hdr(hdr_title, css_fils, default_if_prob=False, grey=False):
+def get_html_hdr(hdr_title, css_fils, default_if_prob=False, grey=False, 
+                 abs=False):
     """
     Get HTML header.
     Add suffixes to each of the main classes so can have multiple styles in a
@@ -141,6 +142,7 @@ def get_html_hdr(hdr_title, css_fils, default_if_prob=False, grey=False):
         probably be handled to give the user some feedback).
     grey -- make the text in the cells grey instead of black so it is more
         clearly an example rather than real data.
+    abs -- absolute paths to background images in css.
     """
     debug = False
     if debug: print(css_fils[0])
@@ -171,7 +173,8 @@ def get_html_hdr(hdr_title, css_fils, default_if_prob=False, grey=False):
         if debug: print("\n\nUsing default css")
         css = get_default_css()
     hdr = mg.DEFAULT_HDR % (hdr_title, css)
-    hdr = lib.rel2abs(hdr)
+    if abs:
+        hdr = lib.rel2abs(hdr)
     if debug: print(hdr)
     return hdr
 

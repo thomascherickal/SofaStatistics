@@ -50,7 +50,7 @@ def set_DEFAULT_LEVEL(ignore_prefs=False):
     """
     if not ignore_prefs:
         try:
-            prefs_dic = get_settings_dic(subfolder=mg.INTERNAL_FOLDER, 
+            prefs_dic = get_settings_dic(subfolder=mg.INT_FOLDER, 
                                          fil_name=mg.INT_PREFS_FILE)
             stored_lev = \
                 prefs_dic[mg.PREFS_KEY][mg.DEFAULT_LEVEL_KEY]

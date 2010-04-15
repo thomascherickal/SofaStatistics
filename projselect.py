@@ -122,7 +122,7 @@ class ProjSelectDlg(wx.Dialog):
         
     def on_edit(self,event):
         proj_sel_id = self.drop_projs.GetSelection()
-        readonly = (self.projs[proj_sel_id] == mg.SOFA_DEFAULT_PROJ)
+        readonly = (self.projs[proj_sel_id] == mg.DEFAULT_PROJ)
         try:
             dlgProj = projects.ProjectDlg(parent=self, readonly=readonly,
                           fil_proj=self.projs[self.drop_projs.GetSelection()])
@@ -171,7 +171,7 @@ class ProjSelectDlg(wx.Dialog):
         except Exception, e:
             wx.MessageBox(_("Unable to use the selected project file. Please "
                             "check name of file and its contents using "
-                            "%s as example" % mg.SOFA_DEFAULT_PROJ))
+                            "%s as example" % mg.DEFAULT_PROJ))
             return
         self.Destroy()
         
