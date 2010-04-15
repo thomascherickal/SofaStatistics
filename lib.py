@@ -18,6 +18,18 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
+def esc_str_input(raw):
+    """
+    Escapes input ready to go into a string using %.
+    So "variable %Y has fields %s" % fields will fail because variables with 
+        name %Y will confuse the string formatting operation.  %%Y will be fine.
+    """
+    try:
+        new_str = raw.replace("%", "%%")
+    except Exception, e:
+        raise Exception, "Unable to escape str input. Orig err: %s" % e
+    return new_str
+
 def rel2abs(strhtml):
     """
     Make all images work of absolute rather than relative paths.  Will run OK

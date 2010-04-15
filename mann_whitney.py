@@ -42,14 +42,14 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             var_ranked, label_ranked = self.get_drop_vals()
         script_lst = [u"dp = 3"]
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
-        strGet_Sample = u"sample_%s = core_stats.get_list(" + \
-            u"dbe=u\"%s\", " % dd.dbe + \
-            u"cur=cur, tbl=u\"%s\",\n    " % dd.tbl + \
-            u"tbl_filt=tbl_filt, " + \
-            u"flds=flds, " + \
-            u"fld_measure=u\"%s\", " % var_ranked + \
-            u"fld_filter=u\"%s\", " % var_gp + \
-            u"filter_val=%s)"
+        strGet_Sample = (u"sample_%s = core_stats.get_list(" +
+                    u"dbe=u\"%s\", " % dd.dbe +
+                    u"cur=cur, tbl=u\"%s\",\n    " % dd.tbl +
+                    u"tbl_filt=tbl_filt, " +
+                    u"flds=flds, " +
+                    u"fld_measure=u\"%s\", " % lib.esc_str_input(var_ranked) +
+                    u"fld_filter=u\"%s\", " % lib.esc_str_input(var_gp) +
+                    u"filter_val=%s)")
         val_str_quoted_a = val_a if var_gp_numeric else u"u\"%s\"" % val_a
         val_str_quoted_b = val_b if var_gp_numeric else u"u\"%s\"" % val_b
         script_lst.append(strGet_Sample % (u"a", val_str_quoted_a))

@@ -41,16 +41,16 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         val_str_quoted_a = val_a if var_gp_numeric else u"u\"%s\"" % val_a
         val_str_quoted_b = val_b if var_gp_numeric else u"u\"%s\"" % val_b
-        strGet_Sample = u"sample_%s = core_stats.get_list(" + \
-            u"dbe=u\"%s\", " % dd.dbe + \
-            u"cur=cur, tbl=u\"%s\",\n    " % dd.tbl + \
-            u"tbl_filt=tbl_filt, " + \
-            u"flds=flds, " + \
-            u"fld_measure=u\"%s\", " % var_avg + \
-            u"fld_filter=u\"%s\", " % var_gp + \
-            u"filter_val=%s)"
-        script_lst.append(strGet_Sample % (u"a", val_str_quoted_a))
-        script_lst.append(strGet_Sample % (u"b", val_str_quoted_b))
+        str_get_sample = (u"sample_%s = core_stats.get_list(" +
+                        u"dbe=u\"%s\", " % dd.dbe +
+                        u"cur=cur, tbl=u\"%s\"," % dd.tbl +
+                        u"\n    tbl_filt=tbl_filt, " +
+                        u"flds=flds, " +
+                        u"fld_measure=u\"%s\", " % lib.esc_str_input(var_avg) +
+                        u"fld_filter=u\"%s\", " % lib.esc_str_input(var_gp) +
+                        u"filter_val=%s)")
+        script_lst.append(str_get_sample % (u"a", val_str_quoted_a))
+        script_lst.append(str_get_sample % (u"b", val_str_quoted_b))
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"label_avg = u\"%s\"" % label_avg)

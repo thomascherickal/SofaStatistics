@@ -55,14 +55,14 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         idx_val_a, idx_val_b = indep2var.get_range_idxs(self.gp_vals_sorted, 
                                                         val_a, val_b)
         vals_in_range = self.gp_vals_sorted[idx_val_a: idx_val_b + 1]
-        str_get_sample = u"%s = core_stats.get_list(" + \
-            u"dbe=u\"%s\", " % dd.dbe + \
-            u"cur=cur, tbl=u\"%s\",\n    " % dd.tbl + \
-            u"tbl_filt=tbl_filt, " + \
-            u"flds=flds, " + \
-            u"fld_measure=u\"%s\", " % var_avg + \
-            u"fld_filter=u\"%s\", " % var_gp + \
-            u"filter_val=%s)"        
+        str_get_sample = (u"%s = core_stats.get_list(" +
+                        u"dbe=u\"%s\", " % dd.dbe +
+                        u"cur=cur, tbl=u\"%s\",\n    " % dd.tbl +
+                        u"tbl_filt=tbl_filt, " +
+                        u"flds=flds, " +
+                        u"fld_measure=u\"%s\", " % lib.esc_str_input(var_avg) +
+                        u"fld_filter=u\"%s\", " % lib.esc_str_input(var_gp) +
+                        u"filter_val=%s)")        
         for i, val in enumerate(vals_in_range):
             sample_name = u"sample_%s" % i
             val_str_quoted = val if var_gp_numeric else u"u\"%s\"" % val

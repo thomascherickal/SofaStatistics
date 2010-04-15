@@ -48,7 +48,8 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             u"\n    core_stats.pearsons_chisquare(dbe=u\"%s\", " % dd.dbe +
             u"db=u\"%s\", " % dd.db +
             u"cur=cur, tbl=u\"%s\"," % dd.tbl +
-            u"\n    flds=flds, fld_a=u\"%s\", fld_b=u\"%s\"," % (var_a, var_b) +
+            u"\n    flds=flds, fld_a=u\"%s\", fld_b=u\"%s\"," % 
+                (lib.esc_str_input(var_a), lib.esc_str_input(var_b)) +
             u"\n    tbl_filt=u\"\"\" %s \"\"\", " % tbl_filt +
             u"where_tbl_filt=\"\"\" %s \"\"\"," % where_tbl_filt +
             u"\n    and_tbl_filt=\"\"\" %s \"\"\")" % and_tbl_filt)

@@ -28,8 +28,8 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append(u"sample_a, sample_b = " +
             u"core_stats.get_paired_lists(" +
             u"dbe=u\"%s\", " % dd.dbe +
-            u"cur=cur, tbl=u\"%s\",\n    " % dd.tbl +
-            u"tbl_filt=tbl_filt, " +
+            u"cur=cur, tbl=u\"%s\"," % dd.tbl +
+            u"\n    tbl_filt=tbl_filt, " +
             u"fld_a=u\"%s\", " % var_a +
             u"fld_b=u\"%s\")" % var_b)
         script_lst.append(u"dp = 3")
