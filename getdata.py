@@ -14,6 +14,10 @@ debug = False
 
 # data resources
 
+"""
+Assumed that table names will be case insensitive e.g. tblitems == tblItems.
+"""
+
 def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None, 
                       tbl=None):
     """
@@ -27,7 +31,8 @@ def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None,
     cur = dbe_resources[mg.DBE_CUR]
     db = dbe_resources[mg.DBE_DB]
     if debug: print("About to update dbe resources with db resources")
-    dbe_resources.update(get_db_resources(dbe, cur, db, default_tbls, tbl))
+    db_resources = get_db_resources(dbe, cur, db, default_tbls, tbl)
+    dbe_resources.update(db_resources)
     if debug: print("Finished updating dbe resources with db resources")
     return dbe_resources
 
@@ -108,6 +113,14 @@ class DataDets(object):
         """
         debug = False
         if debug: print("About to get dbe resources")
+        # free up if in use.  MS Access will crash otherwise.
+        try:
+            self.cur.close()
+            self.cur = None
+            self.con.close()
+            self.con = None
+        except Exception:
+            pass
         dbe_resources = get_dbe_resources(dbe, self.con_dets, 
                                           self.default_dbs, self.default_tbls, 
                                           db, tbl)
@@ -462,7 +475,7 @@ def setup_drop_tbls(drop_tbls):
     dd = get_dd()
     tbls_with_filts = []
     for i, tbl_name in enumerate(dd.tbls):
-        if tbl_name == dd.tbl:
+        if tbl_name.lower() == dd.tbl.lower():
             idx_tbl = i
         tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, tbl_name)
         if tbl_filt:

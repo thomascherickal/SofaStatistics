@@ -648,28 +648,25 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             f = codecs.open(fil_name, "w", encoding="utf-8")
             f.write(u"# Windows file paths _must_ have double not single "
                     u"backslashes")
-            f.write(os.linesep + u"# All file paths _must_ have a u before the"
+            f.write(u"\n# All file paths _must_ have a u before the"
                     u" quote-enclosed string")
-            f.write(os.linesep + u"""# u"C:\\\\Users\\\\demo.txt" is GOOD""")
-            f.write(os.linesep + u"""# u"C:\\Users\\demo.txt" is BAD""")
-            f.write(os.linesep + u"""# "C:\\\\Users\\\\demo.txt" is also BAD""")
-            f.write(os.linesep + os.linesep + u"proj_notes = u\"\"\"%s\"\"\"" \
-                    % lib.escape_pre_write(proj_notes))
-            f.write(os.linesep + os.linesep + u"fil_var_dets = u\"%s\"" % 
+            f.write(u"""\n# u"C:\\\\Users\\\\demo.txt" is GOOD""")
+            f.write(u"""\n# u"C:\\Users\\demo.txt" is BAD""")
+            f.write(u"""\n# "C:\\\\Users\\\\demo.txt" is also BAD""")
+            f.write(u"\n\nproj_notes = u\"\"\"%s\"\"\"" %
+                    lib.escape_pre_write(proj_notes))
+            f.write(u"\n\nfil_var_dets = u\"%s\"" % 
                     lib.escape_pre_write(fil_var_dets))
-            f.write(os.linesep + u"fil_css = u\"%s\"" % \
+            f.write(u"\nfil_css = u\"%s\"" % \
                     lib.escape_pre_write(fil_css))
-            f.write(os.linesep + u"fil_report = u\"%s\"" % 
+            f.write(u"\nfil_report = u\"%s\"" % 
                     lib.escape_pre_write(fil_report))
-            f.write(os.linesep + u"fil_script = u\"%s\"" % 
+            f.write(u"\nfil_script = u\"%s\"" % 
                     lib.escape_pre_write(fil_script))
-            f.write(os.linesep + u"default_dbe = u\"%s\"" % default_dbe)
-            f.write(os.linesep + os.linesep + u"default_dbs = " + \
-                    pprint.pformat(default_dbs))
-            f.write(os.linesep + os.linesep + u"default_tbls = " + \
-                    pprint.pformat(default_tbls))
-            f.write(os.linesep + os.linesep + u"con_dets = " + \
-                    pprint.pformat(con_dets))
+            f.write(u"\ndefault_dbe = u\"%s\"" % default_dbe)
+            f.write(u"\n\ndefault_dbs = " + pprint.pformat(default_dbs))
+            f.write(u"\n\ndefault_tbls = " + pprint.pformat(default_tbls))
+            f.write(u"\n\ncon_dets = " + pprint.pformat(con_dets))
             f.close()
             if self.new_proj:
                 self.parent.parent.set_proj(proj_name)
