@@ -24,6 +24,7 @@ import rawtables
 OUTPUT_MODULES = ["my_globals as mg", "dimtables", "rawtables", "output", "getdata"]
 WAITING_MSG = _("<p>Waiting for enough settings ...</p>")
 dd = getdata.get_dd()
+cc = config_dlg.get_cc()
 
 def replace_titles_subtitles(orig, titles, subtitles):
     """
@@ -85,21 +86,15 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         only columns related to the row variables e.g. total, row and col %s.
     """
     
-    def __init__(self, fil_var_dets=u"", fil_css=u"", fil_report=u"", 
-                 fil_script=u"", var_labels=None, var_notes=None, 
-                 val_dics=None):
+    def __init__(self, var_labels=None, var_notes=None, val_dics=None):
         debug = False
         wx.Dialog.__init__(self, parent=None, id=-1, 
                title=_("Make Report Table"), pos=(200, 0),
                style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
                wx.SYSTEM_MENU|wx.CAPTION|wx.CLOSE_BOX|wx.CLIP_CHILDREN)
-        self.fil_var_dets = fil_var_dets
-        self.fil_css = fil_css
-        self.fil_report = fil_report
-        self.fil_script = fil_script
         self.url_load = True # btn_expand    
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-                                                lib.get_var_dets(fil_var_dets)
+                                    lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         self.col_no_vars_item = None # needed if no variable in columns.  Must
             # reset to None if deleted all col vars
         # set up panel for frame
@@ -191,7 +186,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                         "details"))
         self.colroot = self.setup_dim_tree(self.coltree)
         # setup demo table type
-        if debug: print(self.fil_css)
+        if debug: print(cc[mg.CURRENT_CSS_PATH])
         self.prev_demo = None
         self.demo_tab = demotables.GenDemoTable(txtTitles=self.txt_titles, 
                                  txtSubtitles=self.txt_subtitles,
@@ -199,7 +194,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
                                  var_labels=self.var_labels, 
-                                 val_dics=self.val_dics, fil_css=self.fil_css)
+                                 val_dics=self.val_dics, 
+                                 fil_css=cc[mg.CURRENT_CSS_PATH])
         # freqs tbl is default
         self.setup_row_btns()
         self.setup_col_btns()
@@ -265,12 +261,13 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         szr_main.Add(szr_bottom, 2, wx.GROW)
         self.panel.SetSizer(szr_main)
         szr_main.SetSizeHints(self)
+        self.SetMinSize((1024,600))
         self.Layout()
 
     def update_css(self):
         "Update css, including for demo table"
         config_dlg.ConfigDlg.update_css(self)
-        self.demo_tab.fil_css = self.fil_css
+        self.demo_tab.fil_css = cc[mg.CURRENT_CSS_PATH]
         self.update_demo_display()
     
     # database/ tables (and views)
@@ -362,7 +359,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
                                  var_labels=self.var_labels, 
-                                 val_dics=self.val_dics, fil_css=self.fil_css)
+                                 val_dics=self.val_dics, 
+                                 fil_css=cc[mg.CURRENT_CSS_PATH])
             self.add_default_column_config()
         if self.tab_type == mg.CROSSTAB:
             self.chk_totals_row.SetValue(False)
@@ -374,7 +372,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
                                  var_labels=self.var_labels, 
-                                 val_dics=self.val_dics, fil_css=self.fil_css)
+                                 val_dics=self.val_dics, 
+                                 fil_css=cc[mg.CURRENT_CSS_PATH])
         elif self.tab_type == mg.ROW_SUMM:
             self.chk_totals_row.SetValue(False)
             self.chk_first_as_label.SetValue(False)
@@ -385,14 +384,15 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
                                  var_labels=self.var_labels, 
-                                 val_dics=self.val_dics, fil_css=self.fil_css)
+                                 val_dics=self.val_dics, 
+                                 fil_css=cc[mg.CURRENT_CSS_PATH])
         elif self.tab_type == mg.RAW_DISPLAY:
             self.enable_opts(enable=True)
             self.demo_tab = demotables.DemoRawTable(txtTitles=self.txt_titles, 
                              txtSubtitles=self.txt_subtitles, 
                              colroot=self.colroot, coltree=self.coltree, 
                              var_labels=self.var_labels, val_dics=self.val_dics, 
-                             fil_css=self.fil_css, 
+                             fil_css=cc[mg.CURRENT_CSS_PATH], 
                              chk_totals_row=self.chk_totals_row,
                              chk_first_as_label=self.chk_first_as_label)
         # in case they were disabled and then we changed tab type
@@ -468,10 +468,11 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 return
             wx.BeginBusyCursor()
             add_to_report = self.chk_add_to_report.IsChecked()
-            if debug: print(self.fil_css)
+            if debug: print(cc[mg.CURRENT_CSS_PATH])
             try:
-                css_fils, css_idx = output.get_css_dets(self.fil_report, 
-                                                        self.fil_css)
+                css_fils, css_idx = output.get_css_dets(
+                                                    cc[mg.CURRENT_REPORT_PATH], 
+                                                    cc[mg.CURRENT_CSS_PATH])
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "
                                             "or set another"))
@@ -480,7 +481,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 return
             script = self.get_script(has_cols, css_idx)
             bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
-                                                add_to_report, self.fil_report, 
+                                                add_to_report, 
+                                                cc[mg.CURRENT_REPORT_PATH], 
                                                 css_fils, script)
             lib.safe_end_cursor()
             # test JS charting
@@ -503,8 +505,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         export_ok, has_cols = self.table_config_ok()
         if export_ok:
             try:
-                css_fils, css_idx = output.get_css_dets(self.fil_report, 
-                                                        self.fil_css)
+                css_fils, css_idx = output.get_css_dets(
+                                                    cc[mg.CURRENT_REPORT_PATH], 
+                                                    cc[mg.CURRENT_CSS_PATH])
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "
                                             "or set another"))
@@ -512,8 +515,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 event.Skip()
                 return
             script = self.get_script(has_cols, css_idx)
-            output.export_script(script, self.fil_script, self.fil_report, 
-                                 css_fils)
+            output.export_script(script, cc[mg.CURRENT_SCRIPT_PATH], 
+                                 cc[mg.CURRENT_REPORT_PATH], css_fils)
     
     def get_titles(self):
         """

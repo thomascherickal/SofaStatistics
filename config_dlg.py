@@ -2,6 +2,7 @@ import os
 import wx
 
 import my_globals as mg
+import config_globals
 import lib
 import getdata
 # import filtselect # prevent circular import
@@ -10,6 +11,19 @@ import showhtml
 import webbrowser
 
 dd = getdata.get_dd()
+
+def get_cc():
+    debug = False
+    if not mg.CURRENT_CONFIG:
+        proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
+                                               fil_name=mg.DEFAULT_PROJ)
+        mg.CURRENT_CONFIG = {mg.CURRENT_REPORT_PATH: proj_dic["fil_report"],
+                             mg.CURRENT_CSS_PATH: proj_dic["fil_css"],
+                             mg.CURRENT_VDTS_PATH: proj_dic["fil_var_dets"],
+                             mg.CURRENT_SCRIPT_PATH: proj_dic["fil_script"]}
+        if debug: print("Updated mg.CURRENT_CONFIG")
+    return mg.CURRENT_CONFIG
+cc = get_cc()
 
 # explanation level
 def get_szr_level(parent, panel):
@@ -26,6 +40,19 @@ def get_szr_level(parent, panel):
 label_divider = " " if mg.IN_WINDOWS else "\n"
 add_to_report = _("Add to%sreport" % label_divider)
 run = _("Run")
+
+
+def style2path(style):
+    "Get full path of css file from style name alone"
+    return os.path.join(mg.CSS_PATH, u"%s.css" % style)
+
+def path2style(path):
+    "Strip style out of full css path"
+    style = path[len(mg.CSS_PATH)+1:-len(u".css")] # +1 to miss trailing slash
+    if style == u"":
+        raise Exception, "Problem stripping style out of path (%s)" % path
+    return style
+
 
 
 class ConfigDlg(object):
@@ -46,7 +73,6 @@ class ConfigDlg(object):
         Widgets include dropdowns for database and tables, and textboxes plus 
             Browse buttons for labels, style, output, and script.
         Each widget has a set of events ready to go as well.
-        Assumes self has quite a few properties already set e.g. fil_script etc.
         """
         self.szr_data = self.get_szr_data(panel)
         self.szr_config_bottom, self.szr_config_top = \
@@ -92,8 +118,8 @@ class ConfigDlg(object):
         Assumes self has quite a few properties already set e.g. fil_script etc.
         """
         # Data config details
-        self.txt_var_dets_file = wx.TextCtrl(panel, -1, self.fil_var_dets, 
-                                             size=(200,-1))
+        self.txt_var_dets_file = wx.TextCtrl(panel, -1, 
+                                        cc[mg.CURRENT_VDTS_PATH], size=(200,-1))
         self.txt_var_dets_file.Bind(wx.EVT_KILL_FOCUS, 
                                     self.on_var_dets_file_lost_focus)
         self.txt_var_dets_file.Enable(not readonly)
@@ -103,20 +129,19 @@ class ConfigDlg(object):
         self.btn_var_dets_path.Enable(not readonly)
         self.btn_var_dets_path.SetToolTipString(_("Select an existing variable "
                                                   "config file"))
-        # CSS style config details
-        self.txt_css_file = wx.TextCtrl(panel, -1, self.fil_css, 
-                                        size=(200,-1))
-        self.txt_css_file.Bind(wx.EVT_KILL_FOCUS, self.on_css_file_lost_focus)
-        self.txt_css_file.Enable(not readonly)
-        self.btn_css_path = wx.Button(panel, -1, browse)
-        self.btn_css_path.Bind(wx.EVT_BUTTON, self.on_btn_css_path)
-        self.btn_css_path.Enable(not readonly)
-        self.btn_css_path.SetToolTipString(_("Select an existing css style "
-                                             "file"))
+        # Style config details
+        style_choices = [x[:-len(".css")] for x in os.listdir(mg.CSS_PATH) 
+                         if x.endswith(u".css")]
+        self.drop_style = wx.Choice(panel, -1, choices=style_choices)
+        idx_fil_css = style_choices.index(path2style(cc[mg.CURRENT_CSS_PATH]))
+        self.drop_style.SetSelection(idx_fil_css)
+        self.drop_style.Bind(wx.EVT_CHOICE, self.on_drop_style)
+        self.drop_style.Enable(not readonly)
+        self.drop_style.SetToolTipString(_("Select an existing css style file"))
         # Output details
         # report
-        self.txt_report_file = wx.TextCtrl(panel, -1, self.fil_report, 
-                                           size=(300,-1))
+        self.txt_report_file = wx.TextCtrl(panel, -1, 
+                                    cc[mg.CURRENT_REPORT_PATH], size=(300,-1))
         self.txt_report_file.Bind(wx.EVT_KILL_FOCUS, 
                                 self.on_report_file_lost_focus)
         self.txt_report_file.Enable(not readonly)
@@ -131,8 +156,8 @@ class ConfigDlg(object):
         self.btn_view.SetToolTipString(_("View selected HTML output file in "
                                          "your default browser"))
         # script
-        self.txt_script_file = wx.TextCtrl(panel, -1, self.fil_script, 
-                                           size=(200,-1))
+        self.txt_script_file = wx.TextCtrl(panel, -1, 
+                                   cc[mg.CURRENT_SCRIPT_PATH], size=(200,-1))
         self.txt_script_file.Bind(wx.EVT_KILL_FOCUS, 
                                   self.on_script_file_lost_focus)
         self.txt_script_file.Enable(not readonly)
@@ -149,13 +174,12 @@ class ConfigDlg(object):
         szr_report_config.Add(self.txt_report_file, 1, wx.GROW)
         szr_report_config.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
         szr_report_config.Add(self.btn_view, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szr_config_top.Add(szr_report_config, 2, wx.RIGHT, 10)
-        # Css
+        self.szr_config_top.Add(szr_report_config, 3, wx.RIGHT, 10)
+        # Style
         bx_css_config = wx.StaticBox(panel, -1, _("Style output using ..."))
-        szr_css_config = wx.StaticBoxSizer(bx_css_config, wx.HORIZONTAL)
-        szr_css_config.Add(self.txt_css_file, 1, wx.GROW)
-        szr_css_config.Add(self.btn_css_path, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szr_config_top.Add(szr_css_config, 1)
+        szr_style_config = wx.StaticBoxSizer(bx_css_config, wx.HORIZONTAL)
+        szr_style_config.Add(self.drop_style, 1, wx.GROW)
+        self.szr_config_top.Add(szr_style_config, 1)
         # Variables
         bx_var_config = wx.StaticBox(panel, -1, _("Variable config from ..."))
         szr_var_config = wx.StaticBoxSizer(bx_var_config, wx.HORIZONTAL)
@@ -208,12 +232,12 @@ class ConfigDlg(object):
         return self.szr_output_btns
 
     def reread_fil_var_dets(self):
-        self.fil_var_dets = self.txt_var_dets_file.GetValue()
+        cc[mg.CURRENT_VDTS_PATH] = self.txt_var_dets_file.GetValue()
         
     def update_var_dets(self):
         "Update all variable details, including those already displayed"
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-                                            lib.get_var_dets(self.fil_var_dets)
+                                    lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
 
     # database/ tables (and views)
     def on_database_sel(self, event):
@@ -230,7 +254,8 @@ class ConfigDlg(object):
     def filt_select(self):
         import filtselect
         dlg = filtselect.FiltSelectDlg(self, self.var_labels, self.var_notes, 
-                            self.var_types, self.val_dics, self.fil_var_dets)
+                                       self.var_types, self.val_dics, 
+                                       cc[mg.CURRENT_VDTS_PATH])
         dlg.ShowModal()
         self.refresh_vars()
 
@@ -239,6 +264,7 @@ class ConfigDlg(object):
         self.filt_select()
         getdata.setup_drop_tbls(self.drop_tbls)
         #event.Skip() - don't use or will appear twice in Windows!
+        
     # report output
     def on_btn_report_path(self, event):
         "Open dialog and takes the report file selected (if any)"
@@ -249,8 +275,8 @@ class ConfigDlg(object):
             style=wx.SAVE)
             #MUST have a parent to enforce modal in Windows
         if dlg_get_file.ShowModal() == wx.ID_OK:
-            self.fil_report = u"%s" % dlg_get_file.GetPath()
-            self.txt_report_file.SetValue(self.fil_report)
+            cc[mg.CURRENT_REPORT_PATH] = u"%s" % dlg_get_file.GetPath()
+            self.txt_report_file.SetValue(cc[mg.CURRENT_REPORT_PATH])
         dlg_get_file.Destroy()
 
     def on_btn_view(self, event):
@@ -258,21 +284,21 @@ class ConfigDlg(object):
         Open report in user's default web browser.
         """
         debug = False
-        if not os.path.exists(path=self.fil_report):
+        if not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH]):
             wx.MessageBox(_("No output yet. Click \"%s\" (with \"%s\" ticked) "
                     "to add output to this report.") % (run, add_to_report))
         else:
             if mg.IN_WINDOWS:
-                url = u"file:///%s" % self.fil_report
+                url = u"file:///%s" % cc[mg.CURRENT_REPORT_PATH]
             else:
-                url = u"file://%s" % self.fil_report
+                url = u"file://%s" % cc[mg.CURRENT_REPORT_PATH]
             if debug: print(url)            
             webbrowser.open_new_tab(url)
         event.Skip()
 
     def on_report_file_lost_focus(self, event):
         "Reset report output file"
-        self.fil_report = self.txt_report_file.GetValue()
+        cc[mg.CURRENT_REPORT_PATH] = self.txt_report_file.GetValue()
         event.Skip()
     
     # script output
@@ -291,7 +317,7 @@ class ConfigDlg(object):
 
     def on_script_file_lost_focus(self, event):
         "Reset script file"
-        self.fil_script = self.txt_script_file.GetValue()
+        cc[mg.CURRENT_SCRIPT_PATH] = self.txt_script_file.GetValue()
         event.Skip()
     
     # label config
@@ -314,29 +340,15 @@ class ConfigDlg(object):
             self.update_var_dets()
         dlg_get_file.Destroy()        
 
-    # css table style
-    def on_btn_css_path(self, event):
-        "Open dialog and takes the css file selected (if any)"
-        dlg_get_file = wx.FileDialog(self, 
-            _("Choose an existing css table style file:"), 
-            defaultDir=os.path.join(mg.LOCAL_PATH, "css"), 
-            defaultFile=u"", 
-            wildcard=_("CSS files (*.css)|*.css"))
-            #MUST have a parent to enforce modal in Windows
-        if dlg_get_file.ShowModal() == wx.ID_OK:
-            fil_css = u"%s" % dlg_get_file.GetPath()
-            self.txt_css_file.SetValue(fil_css)
-            self.update_css()
-        dlg_get_file.Destroy()
+    # table style
+    def on_drop_style(self, event):
+        "Change style"
+        self.update_css()
     
     def update_css(self):
         "Update css, including for demo table"
-        self.fil_css = self.txt_css_file.GetValue()
-    
-    def on_css_file_lost_focus(self, event):
-        "Reset css file"
-        self.update_css()
-        event.Skip()
+        cc[mg.CURRENT_CSS_PATH] = \
+            style2path(self.drop_style.GetStringSelection())
         
     # explanation level
     def get_szr_level(self, panel):

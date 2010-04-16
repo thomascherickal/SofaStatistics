@@ -512,13 +512,8 @@ class StartFrame(wx.Frame):
         "Open make table gui with settings as per active_proj"
         wx.BeginBusyCursor()
         import report_table
-        proj_name = self.active_proj
-        proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
-                                                   fil_name=proj_name)
         try:
-            dlg = report_table.DlgMakeTable(proj_dic["fil_var_dets"], 
-                                    proj_dic["fil_css"], proj_dic["fil_report"], 
-                                    proj_dic["fil_script"])
+            dlg = report_table.DlgMakeTable()
             lib.safe_end_cursor()
             dlg.ShowModal()
         except Exception, e:
