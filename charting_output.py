@@ -11,6 +11,8 @@ import full_html
 import indep2var
 import projects
 
+cc = config_dlg.get_cc()
+
 
 class PageBarChart(wx.Panel):
     def __init__(self, parent):
@@ -23,8 +25,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     min_data_type = mg.VAR_TYPE_ORD # TODO - wire up for each chart type
     inc_gp_by_select = True
     
-    def __init__(self, title, fil_var_dets="", fil_css="", fil_report="", 
-                 fil_script="", takes_range=False):
+    def __init__(self, title, takes_range=False):
         if mg.MAX_HEIGHT <= 620:
             myheight = 600
         elif mg.MAX_HEIGHT <= 870:
@@ -36,14 +37,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX| \
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU| \
                            wx.CAPTION|wx.CLOSE_BOX|wx.CLIP_CHILDREN)
-        self.fil_var_dets = fil_var_dets
-        self.fil_css = fil_css
-        self.fil_report = fil_report
-        self.fil_script = fil_script
         self.takes_range = takes_range
         self.url_load = True # btn_expand
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-                                                lib.get_var_dets(fil_var_dets)
+                                    lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         variables_rc_msg = _("Right click variables to view/edit details")
         config_dlg.add_icon(frame=self)
         szr_main = wx.BoxSizer(wx.VERTICAL)
@@ -362,7 +359,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         var_label = lib.get_item_label(self.var_labels, var_name)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
                                 self.var_labels, self.var_notes, self.var_types, 
-                                self.val_dics, self.fil_var_dets)
+                                self.val_dics, cc[mg.CURRENT_VDTS_PATH])
         if updated:
             self.refresh_vars()
     

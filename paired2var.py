@@ -16,6 +16,8 @@ import projects
 OUTPUT_MODULES = ["my_globals as mg", "core_stats", "getdata", "output", 
                   "stats_output"]
 
+cc = config_dlg.get_cc()
+
 
 class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     """
@@ -24,22 +26,16 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         responds to selections etc.
     """
     
-    def __init__(self, title, fil_var_dets="", fil_css="", fil_report="", 
-                 fil_script=""):
-         
+    def __init__(self, title):
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
                            pos=(200, 0), 
                            style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
                            wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
                            wx.CAPTION | wx.CLOSE_BOX | \
                            wx.CLIP_CHILDREN)
-        self.fil_var_dets = fil_var_dets
-        self.fil_css = fil_css
-        self.fil_report = fil_report
-        self.fil_script = fil_script
         self.url_load = True # btn_expand
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-                                                lib.get_var_dets(fil_var_dets)
+                                    lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         variables_rc_msg = _("Right click variables to view/edit details")
         # set up panel for frame
         self.panel = wx.Panel(self)
@@ -122,7 +118,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                                          item_val=var_a)
         updated = projects.set_var_props(choice_item, var_a, var_label_a, 
                                 self.var_labels, self.var_notes, self.var_types, 
-                                self.val_dics, self.fil_var_dets)
+                                self.val_dics, cc[mg.CURRENT_VDTS_PATH])
         if updated:
             self.refresh_vars()
 
@@ -132,7 +128,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                                          item_val=var_b)
         updated = projects.set_var_props(choice_item, var_b, var_label_b, 
                                 self.var_labels, self.var_notes, self.var_types, 
-                                self.val_dics, self.fil_var_dets)
+                                self.val_dics, cc[mg.CURRENT_VDTS_PATH])
         if updated:
             self.refresh_vars()
 
@@ -265,17 +261,20 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             wx.BeginBusyCursor()
             add_to_report = self.chk_add_to_report.IsChecked()
             try:
-                css_fils, css_idx = output.get_css_dets(self.fil_report, 
-                                                        self.fil_css)
+                css_fils, css_idx = output.get_css_dets(
+                                                    cc[mg.CURRENT_REPORT_PATH], 
+                                                    cc[mg.CURRENT_CSS_PATH])
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "
                                             "or set another"))
                 lib.safe_end_cursor()
                 event.Skip()
                 return
-            script = self.get_script(css_idx, add_to_report, self.fil_report)
+            script = self.get_script(css_idx, add_to_report,
+                                     cc[mg.CURRENT_REPORT_PATH])
             bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
-                                                add_to_report, self.fil_report, 
+                                                add_to_report, 
+                                                cc[mg.CURRENT_REPORT_PATH], 
                                                 css_fils, script)
             lib.safe_end_cursor()
             self.update_local_display(str_content)
@@ -307,17 +306,19 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         if export_ok:
             add_to_report = self.chk_add_to_report.IsChecked()
             try:
-                css_fils, css_idx = output.get_css_dets(self.fil_report, 
-                                                        self.fil_css)
+                css_fils, css_idx = output.get_css_dets(
+                                                    cc[mg.CURRENT_REPORT_PATH], 
+                                                    cc[mg.CURRENT_CSS_PATH])
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "
                                             "or set another"))
                 lib.safe_end_cursor()
                 event.Skip()
                 return
-            script = self.get_script(css_idx, add_to_report, self.fil_report)
-            output.export_script(script, self.fil_script, self.fil_report, 
-                                 css_fils)
+            script = self.get_script(css_idx, add_to_report,
+                                     cc[mg.CURRENT_REPORT_PATH])
+            output.export_script(script, cc[mg.CURRENT_SCRIPT_PATH], 
+                                 cc[mg.CURRENT_REPORT_PATH], css_fils)
         event.Skip()
 
     def on_btn_help(self, event):

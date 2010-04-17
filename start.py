@@ -558,18 +558,13 @@ class StartFrame(wx.Frame):
                           "construction")
             wx.BeginBusyCursor()
             import charting_output
-            proj_name = self.active_proj
-            proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
-                                                       fil_name=proj_name)
             try:
-                dlg = charting_output.DlgCharting(_("Make Chart"), 
-                                proj_dic["fil_var_dets"], proj_dic["fil_css"], 
-                                proj_dic["fil_report"], proj_dic["fil_script"])
+                dlg = charting_output.DlgCharting(_("Make Chart"))
                 lib.safe_end_cursor()
                 dlg.ShowModal()
             except Exception, e:
                 msg = _("Unable to connect to data as defined in project %s.  "
-                        "Please check your settings" % proj_name)
+                        "Please check your settings" % self.active_proj)
                 wx.MessageBox(msg)
                 raise Exception, u"%s. Orig error: %s" % (msg, e) 
             finally:
@@ -675,18 +670,13 @@ class StartFrame(wx.Frame):
         # open statistics selection dialog
         wx.BeginBusyCursor()
         import stats_select
-        proj_name = self.active_proj
-        proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
-                                                   fil_name=proj_name)
         try:
-            dlg = stats_select.StatsSelectDlg(proj_name, 
-                                proj_dic["fil_var_dets"], proj_dic["fil_css"], 
-                                proj_dic["fil_report"], proj_dic["fil_script"])
+            dlg = stats_select.StatsSelectDlg(self.active_proj)
             lib.safe_end_cursor()
             dlg.ShowModal()
         except Exception, e:
             msg = _("Unable to connect to data as defined in project %s.  "
-                    "Please check your settings." % proj_name)
+                    "Please check your settings." % self.active_proj)
             wx.MessageBox(msg)
             raise Exception, u"%s.  Orig error: %s" % (msg, e)
         finally:
