@@ -13,12 +13,14 @@ import my_globals as mg
 import lib
 import my_exceptions
 import getdata
+import config_dlg
 import showhtml
 
 # do not use os.linesep for anything going to be read and exec'd
 # in Windows the \r\n makes it fail.
 
 dd = getdata.get_dd()
+cc = config_dlg.get_cc()
 
 def get_default_css():
     """
@@ -184,7 +186,7 @@ def get_html_ftr():
 
 # The rest is GUI -> script oriented code
 
-def get_css_dets(fil_report, fil_css):
+def get_css_dets():
     """
     Returns css_fils, css_idx.
     css_fils - list of full paths to css files.
@@ -193,21 +195,25 @@ def get_css_dets(fil_report, fil_css):
         that list?
     Try reading from report file first.
     If not there (empty report or manually broken by user?) make and use a new
-        one using fil_css.
+        one using cc[mg.CURRENT_CSS_PATH].
     """
-    if not os.path.exists(fil_css):
+    
+    cc[mg.CURRENT_CSS_PATH]
+    
+    
+    if not os.path.exists(cc[mg.CURRENT_CSS_PATH]):
         retval = wx.MessageBox(_("The CSS style file '%s' doesn't "
                             "exist.  Continue using the default style instead?"
-                            % fil_css), _("Needs CSS Style"), 
+                            % cc[mg.CURRENT_CSS_PATH]), _("Needs CSS Style"), 
                             style=wx.YES_NO|wx.ICON_QUESTION)
         if retval == wx.YES:
-            fil_css = mg.DEFAULT_CSS_PATH
+            cc[mg.CURRENT_CSS_PATH] = mg.DEFAULT_CSS_PATH
         else:
             raise my_exceptions.MissingCssException
     css_fils = None
     # read from report
-    if os.path.exists(fil_report):
-        f = codecs.open(fil_report, "U", "utf-8")
+    if os.path.exists(cc[mg.CURRENT_REPORT_PATH]):
+        f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "U", "utf-8")
         content = lib.clean_bom_utf8(f.read())
         f.close()
         if content:
@@ -221,12 +227,12 @@ def get_css_dets(fil_report, fil_css):
             except Exception:
                 pass
     if not css_fils:
-        css_fils = [fil_css]
+        css_fils = [cc[mg.CURRENT_CSS_PATH]]
     else:
-        if fil_css not in css_fils:
-            css_fils.append(fil_css)
-    #mg.OUTPUT_CSS_DIC[fil_report] = css_fils
-    css_idx = css_fils.index(fil_css)
+        if cc[mg.CURRENT_CSS_PATH] not in css_fils:
+            css_fils.append(cc[mg.CURRENT_CSS_PATH])
+    #mg.OUTPUT_CSS_DIC[cc[mg.CURRENT_REPORT_PATH]] = css_fils
+    css_idx = css_fils.index(cc[mg.CURRENT_CSS_PATH])
     return css_fils, css_idx
 
 def _strip_script(script):
@@ -240,32 +246,32 @@ def _strip_script(script):
         stripped = script
     return stripped
 
-def export_script(script, fil_script, fil_report, css_fils):
+def export_script(script, css_fils):
     modules = ["my_globals as mg", "core_stats", "dimtables", "getdata", 
                "output", "rawtables", "stats_output"]
-    if os.path.exists(fil_script):
-        f = codecs.open(fil_script, "U", "utf-8")
+    if os.path.exists(cc[mg.CURRENT_SCRIPT_PATH]):
+        f = codecs.open(cc[mg.CURRENT_SCRIPT_PATH], "U", "utf-8")
         existing_script = lib.clean_bom_utf8(f.read())             
         f.close()
     else:
         existing_script = None
     try:
-        f = codecs.open(fil_script, "w", "utf-8")
+        f = codecs.open(cc[mg.CURRENT_SCRIPT_PATH], "w", "utf-8")
     except IOError:
-        wx.MessageBox(_("Problem making script file named \"%s\". "
-                        "Please try another name.") % fil_script)
+        wx.MessageBox(_("Problem making script file named \"%s\". Please try "
+                        "another name.") % cc[mg.CURRENT_SCRIPT_PATH])
         return
     if existing_script:
         f.write(_strip_script(existing_script))
     else:
-        insert_prelim_code(modules, f, fil_report, css_fils)
+        insert_prelim_code(modules, f, cc[mg.CURRENT_REPORT_PATH], css_fils)
     tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
     append_exported_script(f, script, tbl_filt_label, tbl_filt, 
                            inc_divider=True)
     add_end_script_code(f)
     f.close()
-    wx.MessageBox(_("Script added to end of \"%s\" " % fil_script +
-                    "ready for reuse and automation"))
+    wx.MessageBox(_("Script added to end of \"%s\" ready for reuse and "
+                    "automation" % cc[mg.CURRENT_SCRIPT_PATH]))
 
 def add_divider_code(f, tbl_filt_label, tbl_filt):
     """
@@ -290,7 +296,7 @@ def get_source(db, tbl_name):
     source = u"\n<p>From %s.%s %s</p>" % (db, tbl_name, datestamp)
     return source
 
-def run_report(modules, add_to_report, fil_report, css_fils, inner_script):
+def run_report(modules, add_to_report, css_fils, inner_script):
     """
     Runs report and returns bolran_report, and HTML representation of report 
         (or of the error) for GUI display.
@@ -354,16 +360,17 @@ def run_report(modules, add_to_report, fil_report, css_fils, inner_script):
     filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
     results_with_source = source + u"<p>%s</p>" % filt_msg + raw_results
     if add_to_report:
-        # append into html file
-        save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt, 
-                       raw_results) # handles source and filter desc internally
-                       # when making divider between output
-        rel_display_content = u"\n<p>Output also saved to '%s'</p>" % \
-                        lib.escape_pre_write(fil_report) + results_with_source
-        # make relative links absolute so GUI viewers can display images
-        gui_display_content = lib.rel2abs(rel_display_content)
+        # Append into html file.
+        # Handles source and filter desc internally when making divider between 
+        # output.
+        save_to_report(css_fils, source, tbl_filt_label, tbl_filt, raw_results) 
+        rel_display_content = (u"\n<p>Output also saved to '%s'</p>" %
+                            lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH]) + 
+                            results_with_source)
     else:
-        gui_display_content = results_with_source
+        rel_display_content = results_with_source
+    # make relative links absolute so GUI viewers can display images
+    gui_display_content = lib.rel2abs(rel_display_content)
     if debug: print(gui_display_content)
     return True, gui_display_content
 
@@ -452,8 +459,7 @@ def _strip_html(html):
         stripped = html[start_idx:]
     return stripped
 
-def save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt, 
-                   new_html):
+def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_html):
     """
     If report doesn't exist, make it.
     If it does exist, extract existing content and then create empty version.
@@ -462,8 +468,8 @@ def save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt,
     New content is everything from "content" after the body tag.
     """
     new_no_hdr = _strip_html(new_html)
-    if os.path.exists(fil_report):
-        f = codecs.open(fil_report, "U", "utf-8")
+    if os.path.exists(cc[mg.CURRENT_REPORT_PATH]):
+        f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "U", "utf-8")
         existing_html = lib.clean_bom_utf8(f.read())
         existing_no_ends = _strip_html(existing_html)
         f.close()        
@@ -472,7 +478,7 @@ def save_to_report(fil_report, css_fils, source, tbl_filt_label, tbl_filt,
     hdr_title = time.strftime(_("SOFA Statistics Report") + \
                               " %Y-%m-%d_%H:%M:%S")
     hdr = get_html_hdr(hdr_title, css_fils)
-    f = codecs.open(fil_report, "w", "utf-8")
+    f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "w", "utf-8")
     css_fils_str = pprint.pformat(css_fils)
     f.write(u"<!--css_fils = %s-->\n\n" % css_fils_str)
     f.write(hdr)

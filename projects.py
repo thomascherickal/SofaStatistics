@@ -14,6 +14,7 @@ import settings_grid
 
 LOCAL_PATH = mg.LOCAL_PATH
 dd = getdata.get_dd()
+cc = config_dlg.get_cc()
 
 def get_projs():
     """
@@ -43,7 +44,7 @@ def get_proj_notes(fil_proj, proj_dic):
     return proj_notes
     
 def set_var_props(choice_item, var_name, var_label, var_labels, var_notes, 
-                  var_types, val_dics, fil_var_dets):
+                  var_types, val_dics):
     """
     For selected variable (name) gives user ability to set properties e.g.
         value labels.  Then stores in appropriate labels file.
@@ -106,14 +107,13 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
             new_val_dic[key] = value
         val_dics[var_name] = new_val_dic
         # update lbl file
-        f = codecs.open(fil_var_dets, "w", encoding="utf-8")
-        f.write(os.linesep + u"var_labels=" + pprint.pformat(var_labels))
-        f.write(os.linesep + u"var_notes=" + pprint.pformat(var_notes))
-        f.write(os.linesep + u"var_types=" + pprint.pformat(var_types))
-        f.write(os.linesep + os.linesep + u"val_dics=" + \
-                pprint.pformat(val_dics))
+        f = codecs.open(cc[mg.CURRENT_VDTS_PATH], "w", encoding="utf-8")
+        f.write(u"\nvar_labels=" + pprint.pformat(var_labels))
+        f.write(u"\nvar_notes=" + pprint.pformat(var_notes))
+        f.write(u"\nvar_types=" + pprint.pformat(var_types))
+        f.write(u"\n\nval_dics=" + pprint.pformat(val_dics))
         f.close()
-        wx.MessageBox(_("Settings saved to \"%s\"" % fil_var_dets))
+        wx.MessageBox(_("Settings saved to \"%s\"" % cc[mg.CURRENT_VDTS_PATH]))
         return True
     else:
         return False
@@ -166,8 +166,7 @@ def get_idx_to_select(choice_items, drop_var, var_labels, default):
     
     
 class ListVarsDlg(wx.Dialog):
-    def __init__(self, var_labels, var_notes, var_types, val_dics, fil_var_dets, 
-                 updated):
+    def __init__(self, var_labels, var_notes, var_types, val_dics, updated):
         "updated -- empty set - add True to 'return' updated True"
         wx.Dialog.__init__(self, None, title=_("Variable Details"),
                   size=(500,600), style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU)
@@ -175,21 +174,20 @@ class ListVarsDlg(wx.Dialog):
         self.var_notes = var_notes
         self.var_types = var_types
         self.val_dics = val_dics
-        self.fil_var_dets = fil_var_dets
         self.updated = updated
         self.panel = wx.Panel(self)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
-        szrStdBtns = wx.StdDialogButtonSizer()
-        self.lstVars = wx.ListBox(self.panel, -1, choices=[])
-        self.lstVars.Bind(wx.EVT_LISTBOX, self.on_lst_click)
+        szr_std_btns = wx.StdDialogButtonSizer()
+        self.lst_vars = wx.ListBox(self.panel, -1, choices=[])
+        self.lst_vars.Bind(wx.EVT_LISTBOX, self.on_lst_click)
         self.setup_vars()
         btn_ok = wx.Button(self.panel, wx.ID_OK)
         btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
         self.panel.SetSizer(self.szr_main)
-        self.szr_main.Add(self.lstVars, 0, wx.ALL, 10)
-        szrStdBtns.AddButton(btn_ok)
-        szrStdBtns.Realize()
-        self.szr_main.Add(szrStdBtns, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
+        self.szr_main.Add(self.lst_vars, 0, wx.ALL, 10)
+        szr_std_btns.AddButton(btn_ok)
+        szr_std_btns.Realize()
+        self.szr_main.Add(szr_std_btns, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
         self.szr_main.SetSizeHints(self)
         self.Layout()
     
@@ -206,7 +204,7 @@ class ListVarsDlg(wx.Dialog):
             pprint.pprint(dd.flds)
         updated = set_var_props(choice_item, var_name, var_label,
                                 self.var_labels, self.var_notes, self.var_types, 
-                                self.val_dics, self.fil_var_dets)
+                                self.val_dics)
         if updated:
             self.setup_vars(var_name)
             self.updated.add(True)
@@ -218,16 +216,16 @@ class ListVarsDlg(wx.Dialog):
         var_names = get_approp_var_names()
         var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
                                     dic_labels=self.var_labels, vals=var_names)
-        self.lstVars.SetItems(var_choices)
+        self.lst_vars.SetItems(var_choices)
         idx = self.sorted_var_names.index(var) if var else -1
-        self.lstVars.SetSelection(idx)
+        self.lst_vars.SetSelection(idx)
 
     def get_var(self):
-        idx = self.lstVars.GetSelection()
+        idx = self.lst_vars.GetSelection()
         if idx == -1:
             raise Exception, "Nothing selected"
         var = self.sorted_var_names[idx]
-        var_item = self.lstVars.GetStringSelection()
+        var_item = self.lst_vars.GetStringSelection()
         return var, var_item
     
     

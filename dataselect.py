@@ -7,6 +7,7 @@ import wx
 import my_globals as mg
 import config_globals
 import lib
+import config_dlg
 import db_grid
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
@@ -14,6 +15,7 @@ import table_config
 
 sqlite_quoter = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
 dd = getdata.get_dd()
+cc = config_dlg.get_cc()
 
 
 class DataSelectDlg(wx.Dialog):
@@ -33,20 +35,8 @@ class DataSelectDlg(wx.Dialog):
                                   size=(480,20))
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=proj_name)
-        self.fil_var_dets = proj_dic["fil_var_dets"]
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-                                            lib.get_var_dets(self.fil_var_dets)
-        if not mg.DATA_DETS:
-            try:
-                mg.DATA_DETS = getdata.DataDets(proj_dic)
-                if debug: print("Updated mg.DATA_DETS")
-            except Exception, e:
-                lib.safe_end_cursor()
-                wx.MessageBox(_("Unable to connect to data as defined in " 
-                    "project %s.  Please check your settings." % proj_name))
-                raise Exception, unicode(e) # for debugging
-                self.Destroy()
-                return
+                                    lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         # set up self.drop_dbs and self.drop_tbls
         self.drop_dbs, self.drop_tbls = getdata.get_data_dropdowns(self, 
                                             self.panel, proj_dic["default_dbs"])
@@ -154,8 +144,7 @@ class DataSelectDlg(wx.Dialog):
             readonly = self.chk_readonly.IsChecked()
             set_col_widths = True if rows_n < 1000 else False
             dlg = db_grid.TblEditor(self, self.var_labels, self.var_notes, 
-                                    self.var_types, self.val_dics, 
-                                    self.fil_var_dets, readonly, 
+                                    self.var_types, self.val_dics, readonly, 
                                     set_col_widths=set_col_widths)
             lib.safe_end_cursor()
             dlg.ShowModal()
@@ -406,8 +395,7 @@ class DataSelectDlg(wx.Dialog):
         wx.BeginBusyCursor()
         readonly = False
         dlg = db_grid.TblEditor(self, self.var_labels, self.var_notes, 
-                                self.var_types, self.val_dics, 
-                                self.fil_var_dets, readonly)
+                                self.var_types, self.val_dics, readonly)
         lib.safe_end_cursor()
         dlg.ShowModal()
         self.btn_enablement()

@@ -5,6 +5,7 @@ import random
 import my_globals as mg
 import lib
 import my_exceptions
+import config_dlg
 import getdata
 import dimtables
 import output
@@ -12,6 +13,7 @@ import rawtables
 import wx
 
 dd = getdata.get_dd()
+cc = config_dlg.get_cc()
 
 
 class DemoTable(object):
@@ -41,12 +43,12 @@ class DemoTable(object):
                          in self.txt_subtitles.GetValue().split(u"\n")]
         else:
             self.subtitles = []
-        if debug: print(self.fil_css)
+        if debug: print(cc[mg.CURRENT_CSS_PATH])
         html = []
         try:
             html.append(output.get_html_hdr(hdr_title=_(u"Report(s)"), 
-                                css_fils=[self.fil_css], default_if_prob=True, 
-                                grey=True, abs=True))
+                                    css_fils=[cc[mg.CURRENT_CSS_PATH],], 
+                                    default_if_prob=True, grey=True, abs=True))
             html.append(u"<table cellspacing='0'>\n") # IE6 no CSS borderspacing
             main_html = self.get_html(css_idx)
         except my_exceptions.MissingCssException:
@@ -69,14 +71,13 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
     """
     
     def __init__(self, txtTitles, txtSubtitles, colroot, coltree, var_labels, 
-                 val_dics, fil_css, chk_totals_row, chk_first_as_label):
+                 val_dics, chk_totals_row, chk_first_as_label):
         self.txt_titles = txtTitles
         self.txt_subtitles = txtSubtitles
         self.colroot = colroot
         self.coltree = coltree
         self.var_labels = var_labels
         self.val_dics = val_dics
-        self.fil_css=fil_css
         self.chk_totals_row = chk_totals_row
         self.chk_first_as_label = chk_first_as_label
         self.dbe = dd.dbe
@@ -127,7 +128,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
     "A demo table only - no real data inside"
     
     def __init__(self, txtTitles, txtSubtitles, colroot, rowroot, rowtree, 
-                 coltree, col_no_vars_item, var_labels, val_dics, fil_css):
+                 coltree, col_no_vars_item, var_labels, val_dics):
         self.debug = False
         self.txt_titles = txtTitles
         self.txt_subtitles = txtSubtitles
@@ -138,8 +139,6 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         self.col_no_vars_item = col_no_vars_item
         self.var_labels = var_labels
         self.val_dics = val_dics
-        self.fil_css=fil_css
-        if self.debug: print(self.fil_css)
     
     def get_html(self, css_idx):
         "Returns demo_html"
@@ -305,10 +304,10 @@ class GenDemoTable(DemoDimTable):
     default_measure = lib.get_default_measure(mg.FREQS_TBL)
     
     def __init__(self, txtTitles, txtSubtitles, colroot, rowroot, rowtree, 
-                 coltree, col_no_vars_item, var_labels, val_dics, fil_css):
+                 coltree, col_no_vars_item, var_labels, val_dics):
         DemoDimTable.__init__(self, txtTitles, txtSubtitles, colroot, rowroot, 
-                           rowtree, coltree, col_no_vars_item, var_labels, 
-                           val_dics, fil_css)
+                              rowtree, coltree, col_no_vars_item, var_labels, 
+                              val_dics)
         
     def get_demo_html_if_ok(self, css_idx):
         "Show demo table if sufficient data to do so"
@@ -415,10 +414,10 @@ class SummDemoTable(DemoDimTable):
     default_measure = lib.get_default_measure(mg.ROW_SUMM)
     
     def __init__(self, txtTitles, txtSubtitles, colroot, rowroot, rowtree, 
-                 coltree, col_no_vars_item, var_labels, val_dics, fil_css):
+                 coltree, col_no_vars_item, var_labels, val_dics):
         DemoDimTable.__init__(self, txtTitles, txtSubtitles, colroot, rowroot, 
-                           rowtree, coltree, col_no_vars_item, var_labels, 
-                           val_dics, fil_css)
+                              rowtree, coltree, col_no_vars_item, var_labels, 
+                              val_dics)
 
     def get_demo_html_if_ok(self, css_idx):
         "Show demo table if sufficient data to do so"

@@ -8,11 +8,11 @@ import pylab # must import after wxmpl so matplotlib.use() is always first
 import my_globals as mg
 import lib
 import my_exceptions
-import getdata
-import full_html
 import charting_pylab as charts
 import config_dlg
 import core_stats
+import getdata
+import full_html
 import os
 import projects
 
@@ -22,7 +22,7 @@ dd = getdata.get_dd()
 class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
     
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics, 
-                 fil_var_dets, paired=False):
+                 paired=False):
         wx.Dialog.__init__(self, parent=parent, title=_("Normal Data?"),
                            size=(1024,600),
                            style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
@@ -34,7 +34,6 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.var_notes = var_notes
         self.var_types = var_types
         self.val_dics = val_dics
-        self.fil_var_dets = fil_var_dets
         self.paired = paired
         self.panel = wx.Panel(self)
         # szrs
@@ -347,8 +346,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         var_label_a = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_a)
         updated = projects.set_var_props(choice_item, var_a, var_label_a, 
-                                self.var_labels, self.var_notes, self.var_types, 
-                                self.val_dics, self.fil_var_dets)
+                                         self.var_labels, self.var_notes, 
+                                         self.var_types, self.val_dics)
         if updated:
             self.setup_var_a(var_a)
     
@@ -357,7 +356,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         var_label_b = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_b)
         updated = projects.set_var_props(choice_item, var_b, var_label_b, 
-                                self.var_labels, self.var_notes, self.var_types, 
-                                self.val_dics, self.fil_var_dets)
+                                         self.var_labels, self.var_notes, 
+                                         self.var_types, self.val_dics)
         if updated:
             self.setup_var_b(var_b)

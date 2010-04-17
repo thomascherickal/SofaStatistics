@@ -303,8 +303,7 @@ class StatsSelectDlg(wx.Dialog):
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         dlg = normal.NormalityDlg(self, self.var_labels, self.var_notes, 
-                                  self.var_types, self.val_dics, 
-                                  cc[mg.CURRENT_VDTS_PATH], paired)
+                                  self.var_types, self.val_dics, paired)
         dlg.ShowModal()
     
     def on_normal_help1_btn(self, event):

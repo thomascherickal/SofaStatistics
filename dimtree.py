@@ -66,8 +66,8 @@ class DimTree(object):
         var_label = lib.get_item_label(self.var_labels, var_name)
         choice_item = lib.get_choice_item(self.var_labels, var_name)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
-                                self.var_labels, self.var_notes, self.var_types, 
-                                self.val_dics, self.fil_var_dets)
+                                         self.var_labels, self.var_notes, 
+                                         self.var_types, self.val_dics)
         if updated:
             # update var label in tree and update demo html
             tree.SetItemText(event.GetItem(), 

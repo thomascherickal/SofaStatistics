@@ -117,8 +117,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_label_a = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_a)
         updated = projects.set_var_props(choice_item, var_a, var_label_a, 
-                                self.var_labels, self.var_notes, self.var_types, 
-                                self.val_dics, cc[mg.CURRENT_VDTS_PATH])
+                                         self.var_labels, self.var_notes, 
+                                         self.var_types, self.val_dics)
         if updated:
             self.refresh_vars()
 
@@ -127,8 +127,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_label_b = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_b)
         updated = projects.set_var_props(choice_item, var_b, var_label_b, 
-                                self.var_labels, self.var_notes, self.var_types, 
-                                self.val_dics, cc[mg.CURRENT_VDTS_PATH])
+                                         self.var_labels, self.var_notes, 
+                                         self.var_types, self.val_dics)
         if updated:
             self.refresh_vars()
 
@@ -261,9 +261,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             wx.BeginBusyCursor()
             add_to_report = self.chk_add_to_report.IsChecked()
             try:
-                css_fils, css_idx = output.get_css_dets(
-                                                    cc[mg.CURRENT_REPORT_PATH], 
-                                                    cc[mg.CURRENT_CSS_PATH])
+                css_fils, css_idx = output.get_css_dets()
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "
                                             "or set another"))
@@ -273,9 +271,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             script = self.get_script(css_idx, add_to_report,
                                      cc[mg.CURRENT_REPORT_PATH])
             bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
-                                                add_to_report, 
-                                                cc[mg.CURRENT_REPORT_PATH], 
-                                                css_fils, script)
+                                                           add_to_report, 
+                                                           css_fils, script)
             lib.safe_end_cursor()
             self.update_local_display(str_content)
             self.str_content = str_content
@@ -306,9 +303,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         if export_ok:
             add_to_report = self.chk_add_to_report.IsChecked()
             try:
-                css_fils, css_idx = output.get_css_dets(
-                                                    cc[mg.CURRENT_REPORT_PATH], 
-                                                    cc[mg.CURRENT_CSS_PATH])
+                css_fils, css_idx = output.get_css_dets()
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "
                                             "or set another"))
@@ -317,8 +312,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                 return
             script = self.get_script(css_idx, add_to_report,
                                      cc[mg.CURRENT_REPORT_PATH])
-            output.export_script(script, cc[mg.CURRENT_SCRIPT_PATH], 
-                                 cc[mg.CURRENT_REPORT_PATH], css_fils)
+            output.export_script(script, css_fils)
         event.Skip()
 
     def on_btn_help(self, event):

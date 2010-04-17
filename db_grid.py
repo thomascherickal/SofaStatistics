@@ -59,7 +59,7 @@ EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 
 class TblEditor(wx.Dialog):
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics, 
-                 fil_var_dets, readonly=True, set_col_widths=True):
+                 readonly=True, set_col_widths=True):
         self.debug = False
         mywidth = 900
         if mg.IN_WINDOWS:
@@ -87,7 +87,6 @@ class TblEditor(wx.Dialog):
         self.var_notes = var_notes
         self.var_types = var_types
         self.val_dics = val_dics
-        self.fil_var_dets = fil_var_dets
         self.panel = wx.Panel(self, -1)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         self.grid = wx.grid.Grid(self.panel, size=(mywidth, myheight))
@@ -865,8 +864,7 @@ class TblEditor(wx.Dialog):
             choice_item = lib.get_choice_item(self.var_labels, var_name)
             projects.set_var_props(choice_item, var_name, var_label,
                                    self.var_labels, self.var_notes,
-                                   self.var_types, self.val_dics, 
-                                   self.fil_var_dets)
+                                   self.var_types, self.val_dics)
     
     def get_cell_tooltip(self, row, col):
         """

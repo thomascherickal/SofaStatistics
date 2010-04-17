@@ -6,7 +6,6 @@ import config_globals
 import lib
 import getdata
 # import filtselect # prevent circular import
-import output
 import showhtml
 import webbrowser
 
@@ -23,6 +22,7 @@ def get_cc():
                              mg.CURRENT_SCRIPT_PATH: proj_dic["fil_script"]}
         if debug: print("Updated mg.CURRENT_CONFIG")
     return mg.CURRENT_CONFIG
+import output # uses get_cc
 cc = get_cc()
 
 # explanation level
@@ -115,7 +115,6 @@ class ConfigDlg(object):
         Widgets include textboxes plus Browse buttons for labels, style, output, 
             and script.
         Each widget has a set of events ready to go as well.
-        Assumes self has quite a few properties already set e.g. fil_script etc.
         """
         # Data config details
         self.txt_var_dets_file = wx.TextCtrl(panel, -1, 
@@ -254,8 +253,7 @@ class ConfigDlg(object):
     def filt_select(self):
         import filtselect
         dlg = filtselect.FiltSelectDlg(self, self.var_labels, self.var_notes, 
-                                       self.var_types, self.val_dics, 
-                                       cc[mg.CURRENT_VDTS_PATH])
+                                       self.var_types, self.val_dics)
         dlg.ShowModal()
         self.refresh_vars()
 
@@ -311,8 +309,8 @@ class ConfigDlg(object):
             style=wx.SAVE)
             #MUST have a parent to enforce modal in Windows
         if dlg_get_file.ShowModal() == wx.ID_OK:
-            self.fil_script = u"%s" % dlg_get_file.GetPath()
-            self.txt_script_file.SetValue(self.fil_script)
+            cc[mg.CURRENT_SCRIPT_PATH] = u"%s" % dlg_get_file.GetPath()
+            self.txt_script_file.SetValue(cc[mg.CURRENT_SCRIPT_PATH])
         dlg_get_file.Destroy()
 
     def on_script_file_lost_focus(self, event):
@@ -334,8 +332,8 @@ class ConfigDlg(object):
             defaultFile=u"", wildcard=_("Config files (*.vdts)|*.vdts"))
             #MUST have a parent to enforce modal in Windows
         if dlg_get_file.ShowModal() == wx.ID_OK:
-            fil_var_dets = u"%s" % dlg_get_file.GetPath()
-            self.txt_var_dets_file.SetValue(fil_var_dets)
+            cc[mg.CURRENT_VDTS_PATH] = u"%s" % dlg_get_file.GetPath()
+            self.txt_var_dets_file.SetValue(cc[mg.CURRENT_VDTS_PATH])
             self.reread_fil_var_dets()
             self.update_var_dets()
         dlg_get_file.Destroy()        

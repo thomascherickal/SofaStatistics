@@ -194,8 +194,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
                                  var_labels=self.var_labels, 
-                                 val_dics=self.val_dics, 
-                                 fil_css=cc[mg.CURRENT_CSS_PATH])
+                                 val_dics=self.val_dics)
         # freqs tbl is default
         self.setup_row_btns()
         self.setup_col_btns()
@@ -359,8 +358,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
                                  var_labels=self.var_labels, 
-                                 val_dics=self.val_dics, 
-                                 fil_css=cc[mg.CURRENT_CSS_PATH])
+                                 val_dics=self.val_dics)
             self.add_default_column_config()
         if self.tab_type == mg.CROSSTAB:
             self.chk_totals_row.SetValue(False)
@@ -372,8 +370,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
                                  var_labels=self.var_labels, 
-                                 val_dics=self.val_dics, 
-                                 fil_css=cc[mg.CURRENT_CSS_PATH])
+                                 val_dics=self.val_dics)
         elif self.tab_type == mg.ROW_SUMM:
             self.chk_totals_row.SetValue(False)
             self.chk_first_as_label.SetValue(False)
@@ -384,15 +381,13 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
                                  var_labels=self.var_labels, 
-                                 val_dics=self.val_dics, 
-                                 fil_css=cc[mg.CURRENT_CSS_PATH])
+                                 val_dics=self.val_dics)
         elif self.tab_type == mg.RAW_DISPLAY:
             self.enable_opts(enable=True)
             self.demo_tab = demotables.DemoRawTable(txtTitles=self.txt_titles, 
                              txtSubtitles=self.txt_subtitles, 
                              colroot=self.colroot, coltree=self.coltree, 
-                             var_labels=self.var_labels, val_dics=self.val_dics, 
-                             fil_css=cc[mg.CURRENT_CSS_PATH], 
+                             var_labels=self.var_labels, val_dics=self.val_dics,
                              chk_totals_row=self.chk_totals_row,
                              chk_first_as_label=self.chk_first_as_label)
         # in case they were disabled and then we changed tab type
@@ -470,9 +465,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             add_to_report = self.chk_add_to_report.IsChecked()
             if debug: print(cc[mg.CURRENT_CSS_PATH])
             try:
-                css_fils, css_idx = output.get_css_dets(
-                                                    cc[mg.CURRENT_REPORT_PATH], 
-                                                    cc[mg.CURRENT_CSS_PATH])
+                css_fils, css_idx = output.get_css_dets()
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "
                                             "or set another"))
@@ -481,9 +474,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 return
             script = self.get_script(has_cols, css_idx)
             bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
-                                                add_to_report, 
-                                                cc[mg.CURRENT_REPORT_PATH], 
-                                                css_fils, script)
+                                                           add_to_report, 
+                                                           css_fils, script)
             lib.safe_end_cursor()
             # test JS charting
             """f = open("/home/g/Desktop/testrob1.htm", "r")
@@ -505,9 +497,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         export_ok, has_cols = self.table_config_ok()
         if export_ok:
             try:
-                css_fils, css_idx = output.get_css_dets(
-                                                    cc[mg.CURRENT_REPORT_PATH], 
-                                                    cc[mg.CURRENT_CSS_PATH])
+                css_fils, css_idx = output.get_css_dets()
             except my_exceptions.MissingCssException:
                 self.update_local_display(_("Please check the CSS file exists "
                                             "or set another"))
@@ -515,8 +505,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 event.Skip()
                 return
             script = self.get_script(has_cols, css_idx)
-            output.export_script(script, cc[mg.CURRENT_SCRIPT_PATH], 
-                                 cc[mg.CURRENT_REPORT_PATH], css_fils)
+            output.export_script(script, css_fils)
     
     def get_titles(self):
         """

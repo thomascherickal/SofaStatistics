@@ -22,7 +22,6 @@ if not use_renderer:
             pass
 else:
     if mg.IN_WINDOWS:
-        
         import wx.lib.iewin as ie
         
         class FullHTML(ie.IEHtmlWindow):

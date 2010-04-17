@@ -51,14 +51,12 @@ def get_val(raw_val, flds, fld_name):
         
 
 class FiltSelectDlg(wx.Dialog):
-    def __init__(self, parent, var_labels, var_notes, var_types, val_dics, 
-                 fil_var_dets):
+    def __init__(self, parent, var_labels, var_notes, var_types, val_dics):
         debug = False
         self.var_labels = var_labels
         self.var_notes = var_notes
         self.var_types = var_types
         self.val_dics = val_dics
-        self.fil_var_dets = fil_var_dets
         tbl_filt_label, self.tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         title = _("Current filter") if self.tbl_filt else _("Apply filter")
         wx.Dialog.__init__(self, parent=parent, title=title, 
@@ -181,8 +179,7 @@ class FiltSelectDlg(wx.Dialog):
         """
         updated = set() # will get populated with a True to indicate update
         dlg = projects.ListVarsDlg(self.var_labels, self.var_notes, 
-                                   self.var_types, self.val_dics, 
-                                   self.fil_var_dets, updated)
+                                   self.var_types, self.val_dics, updated)
         dlg.ShowModal()
         if updated:
             idx_var = self.drop_vars.GetSelection()
@@ -263,12 +260,10 @@ class FiltSelectDlg(wx.Dialog):
         # Prebuilt dialogs must do this internally.
 
     def on_rad_quick_sel(self, event):
-        ""
         self.enable_quick_dets(True)
         self.enable_flex_dets(False)
         
     def on_rad_flex_sel(self, event):
-        ""
         self.enable_quick_dets(False)
         self.enable_flex_dets(True)
         self.txt_flex_filter.SetFocus()
@@ -294,7 +289,7 @@ class FiltSelectDlg(wx.Dialog):
         var_label = lib.get_item_label(item_labels=self.var_labels, 
                                        item_val=var_name)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
-                                self.var_labels, self.var_notes, self.var_types, 
-                                self.val_dics, self.fil_var_dets)
+                                         self.var_labels, self.var_notes, 
+                                         self.var_types, self.val_dics)
         if updated:
             self.setup_vars(var_name)        

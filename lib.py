@@ -39,7 +39,7 @@ def rel2abs(strhtml):
         written to, and read from, anywhere (and still show the images!) in the
         temporary GUI displays.
     Make background images absolute: turn ../images/tile.gif to 
-        /home/g/sofa/images/tile.gif.
+        /home/g/sofa/reports/images/tile.gif.
     """
     debug = False
     report_path = os.path.join(mg.REPORTS_PATH, u"")
