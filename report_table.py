@@ -22,7 +22,6 @@ import output
 import rawtables
 
 OUTPUT_MODULES = ["my_globals as mg", "dimtables", "rawtables", "output", "getdata"]
-WAITING_MSG = _("<p>Waiting for enough settings ...</p>")
 dd = getdata.get_dd()
 cc = config_dlg.get_cc()
 
@@ -76,7 +75,27 @@ def replace_titles_subtitles(orig, titles, subtitles):
                between_title_and_sub, subtitles_inner_html, post_subtitle))
         print("\n\n" + "*"*50 + "\n\n")
     return demo_tbl_html  
-    
+
+def get_missing_dets_msg(tab_type, has_rows, has_cols):
+    if tab_type == mg.FREQS_TBL:
+        return _("<p>Add and configure rows</p>")
+    elif tab_type == mg.CROSSTAB:
+        if not has_rows and not has_cols:
+            return _("<p>Add and configure rows and columns</p>")
+        elif not has_rows:
+            return _("<p>Add and configure rows</p>")
+        elif not has_cols:
+            return _("<p>Add and configure columns</p>")
+        else:
+            return _("<p>Waiting for enough settings ...</p>")
+    elif tab_type == mg.ROW_SUMM:
+        return _("<p>Add and configure rows</p>")
+    elif tab_type == mg.RAW_DISPLAY:
+        return _("<p>Add and configure columns</p>")
+    else:
+        raise Exception, "Unknown table type"
+
+
 class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     """
     ConfigDlg - provides reusable interface for data selection, setting labels 
@@ -212,7 +231,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         else:
             myheight = 350
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))
-        self.html.show_html(WAITING_MSG)
+        has_rows, has_cols = self.get_row_col_status()
+        waiting_msg = get_missing_dets_msg(self.tab_type, has_rows, has_cols)
+        self.html.show_html(waiting_msg)
         self.btn_run.Enable(False)
         self.chk_add_to_report.Enable(False)
         self.btn_export.Enable(False)
@@ -755,7 +776,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 demo_tbl_html = self.update_titles_subtitles(self.prev_demo)
                 self.prev_demo = demo_tbl_html
             else:
-                demo_tbl_html = WAITING_MSG
+                has_rows, has_cols = self.get_row_col_status()
+                waiting_msg = get_missing_dets_msg(self.tab_type, has_rows, 
+                                                   has_cols)
+                demo_tbl_html = waiting_msg
         else:
             try:
                 demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
@@ -770,24 +794,31 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 lib.safe_end_cursor()
                 return
             if demo_html == u"":
-                demo_tbl_html = WAITING_MSG
+                has_rows, has_cols = self.get_row_col_status()
+                waiting_msg = get_missing_dets_msg(self.tab_type, has_rows, 
+                                                   has_cols)
+                demo_tbl_html = waiting_msg
                 self.prev_demo = None
             else:
                 demo_tbl_html = (u"<h1>%s</h1>\n" % 
-                     _("Example data - click 'Run' for actual results") +
-                     demo_html)
+                     _("<p>Example data - click 'Run' for actual results<br>"
+                       "&nbsp;&nbsp;or keep configuring") + demo_html)
                 self.prev_demo = demo_tbl_html
         if debug: print(u"\n" + demo_tbl_html + "\n")
         self.html.show_html(demo_tbl_html)
+
+    def get_row_col_status(self):
+        has_rows = lib.get_tree_ctrl_children(tree=self.rowtree, 
+                                              parent=self.rowroot)
+        has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
+                                              parent=self.colroot)
+        return has_rows, has_cols
 
     def table_config_ok(self, silent=False):
         """
         Is the table configuration sufficient to export as script or HTML?
         """
-        has_rows = lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                              parent=self.rowroot)
-        has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
-                                              parent=self.colroot)
+        has_rows, has_cols = self.get_row_col_status()
         export_ok = False
         if self.tab_type == mg.FREQS_TBL:
             if has_rows:

@@ -116,6 +116,7 @@ class ConfigDlg(object):
             and script.
         Each widget has a set of events ready to go as well.
         """
+        debug = False
         # Data config details
         self.txt_var_dets_file = wx.TextCtrl(panel, -1, 
                                         cc[mg.CURRENT_VDTS_PATH], size=(200,-1))
@@ -129,8 +130,10 @@ class ConfigDlg(object):
         self.btn_var_dets_path.SetToolTipString(_("Select an existing variable "
                                                   "config file"))
         # Style config details
+        if debug: print(os.listdir(mg.CSS_PATH))
         style_choices = [x[:-len(".css")] for x in os.listdir(mg.CSS_PATH) 
                          if x.endswith(u".css")]
+        style_choices.sort()
         self.drop_style = wx.Choice(panel, -1, choices=style_choices)
         idx_fil_css = style_choices.index(path2style(cc[mg.CURRENT_CSS_PATH]))
         self.drop_style.SetSelection(idx_fil_css)
@@ -227,7 +230,8 @@ class ConfigDlg(object):
         self.szr_output_btns.Add(self.btn_help, 0)
         if inc_clear:
             self.szr_output_btns.Add(self.btn_clear, 0)
-        self.szr_output_btns.Add(self.btn_close, 1, wx.ALIGN_BOTTOM)
+        self.szr_output_btns.Add(self.btn_close, 1, 
+                                 wx.ALIGN_BOTTOM|wx.BOTTOM, 5)
         return self.szr_output_btns
 
     def reread_fil_var_dets(self):
