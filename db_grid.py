@@ -77,11 +77,10 @@ class TblEditor(wx.Dialog):
             myheight = 800
         wx.Dialog.__init__(self, None, 
                            title=_("Data from ") + "%s.%s" % (dd.db, dd.tbl),
-                           size=(mywidth, myheight), pos=(300, 0),
-                           style=wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | \
-                           wx.RESIZE_BORDER | wx.SYSTEM_MENU | \
-                           wx.CAPTION | wx.CLOSE_BOX | \
-                           wx.CLIP_CHILDREN)
+                           pos=(300, 0), size=(mywidth, myheight),
+                           style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
+                           wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
+                           wx.CLOSE_BOX|wx.CLIP_CHILDREN)
         self.parent = parent
         self.var_labels = var_labels
         self.var_notes = var_notes
@@ -89,7 +88,7 @@ class TblEditor(wx.Dialog):
         self.val_dics = val_dics
         self.panel = wx.Panel(self, -1)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
-        self.grid = wx.grid.Grid(self.panel, size=(mywidth, myheight))
+        self.grid = wx.grid.Grid(self.panel, size=(500,500)) #size=(mywidth, myheight))
         self.grid.EnableEditing(not readonly)
         self.dbtbl = db_tbl.DbTbl(self.grid, var_labels, readonly)
         self.grid.SetTable(self.dbtbl, takeOwnership=True)
@@ -140,8 +139,10 @@ class TblEditor(wx.Dialog):
         self.szr_main.Add(self.grid, 1, wx.GROW)
         self.szr_main.Add(szr_bottom, 0, wx.GROW|wx.ALL, 5)
         self.panel.SetSizer(self.szr_main)
-        self.szr_main.SetSizeHints(self)
-        self.panel.Layout()
+        #self.szr_main.SetSizeHints(self)
+        #self.panel.Layout() # otherwise will shrink to min
+        x,y = szr_bottom.GetMinSize()
+        self.SetMinSize((500+x+5,500+y+5))
         self.grid.SetFocus()
     
     # processing MOVEMENTS AWAY FROM CELLS e.g. saving values //////////////////
