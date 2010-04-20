@@ -142,12 +142,13 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
     
     def get_html(self, css_idx):
         "Returns demo_html"
+        debug = False
         html = []
         (row_label_rows_lst, tree_row_labels, row_label_cols_n) = \
                                                     self.get_row_dets(css_idx)
         (tree_col_dets, hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)
         html.append(hdr_html)
-        #print(row_label_rows_lst) #debug
+        if debug: print(row_label_rows_lst)
         row_label_rows_lst = self.get_body_html_rows(row_label_rows_lst,
                                                      tree_row_labels, 
                                                      tree_col_dets, css_idx)        
@@ -220,19 +221,16 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
             # terminal tree_dim_item (got any children)?
             item, cookie = self.coltree.GetFirstChild(tree_dims_item)
             is_terminal = not item #i.e. if there is only the root there
-            if dim==mg.ROWDIM and self.has_row_measures:
+            if dim == mg.ROWDIM and self.has_row_measures:
                 # add measure label nodes
                 if item_conf:
                     measures = item_conf.measures_lst
                 else:
                     measures = [self.default_measure]
-                for measure in measures:
-                    new_var_node.add_child(dimtables.LabelNode(\
-                                           label=measure,
-                                           measure=measure))
-            else: # no row_measures 
-                # add values (as labels if available, as placeholders 
-                # otherwise) and possibly a total
+                self.add_measures(new_var_node, measures)
+            else: # not a row dim with measures ... so can add values
+                # (as labels if available, as placeholders otherwise) and 
+                # possibly a total
                 labels_dic = self.val_dics.get(var_name, {})
                 subitems_lst = [] # build subitems list
                 for (i, (key, val_label)) in enumerate(labels_dic.items()):
@@ -241,27 +239,32 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                     subitems_lst.append(val_label)
                 if item_conf.sort_order == mg.SORT_LABEL:
                     subitems_lst.sort()
-                i=len(subitems_lst) + 1 # so first filler is Val 2 if first 
+                i = len(subitems_lst) + 1 # so first filler is Val 2 if first 
                 # value already filled
                 while len(subitems_lst) < 2:
                     subitems_lst.append(u"Value %s" % i)
-                    i=i+1
+                    i = i+1
                 if item_conf.has_tot:
                     subitems_lst.append(mg.HAS_TOTAL)
-                for subitem in subitems_lst:
+                
+                    
+                force_freq = True # TODO - get from GUI
+                
+                    
+                for j, subitem in enumerate(subitems_lst):
+                    is_coltot = (item_conf.has_tot and dim == mg.COLDIM
+                                 and j == len(subitems_lst)-1)
                     # make val node e.g. Male
                     subitem_node = dimtables.LabelNode(label=subitem)
                     new_var_node.add_child(subitem_node)                
-                    if is_terminal and dim==mg.COLDIM and \
-                        self.has_col_measures:
+                    if is_terminal and dim == mg.COLDIM and \
+                            self.has_col_measures:
                         # add measure label nodes
                         measures = item_conf.measures_lst
                         if not measures:
                             measures = [self.default_measure]
-                        for measure in measures:
-                            subitem_node.add_child(dimtables.LabelNode(\
-                                                   label=measure,
-                                                   measure=measure))
+                        self.add_measures(subitem_node, measures, is_coltot, 
+                                          force_freq)
                     else:
                         # for each child of tree_dims_item e.g. Eth and Age Gp
                         if dim == mg.COLDIM:
@@ -277,6 +280,14 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                             self.add_subtree_to_label_tree(tree_dims_item=\
                                    child_item, tree_labels_node=subitem_node, 
                                    dim=dim)
+    
+    def add_measures(self, node, measures, is_coltot=False, force_freq=False):
+        sep_measures = measures[:]
+        if force_freq and is_coltot and mg.ROWPCT in measures \
+                and mg.FREQ not in measures:
+            sep_measures.append(mg.FREQ)
+        for measure in sep_measures:
+            node.add_child(dimtables.LabelNode(label=measure, measure=measure))
     
     def add_subtrees_to_col_label_tree(self, tree_col_labels):
         """

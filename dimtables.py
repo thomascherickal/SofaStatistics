@@ -10,6 +10,8 @@ import getdata
 import tree
 
 """
+Not to be confused with the dimtree which controls what is shown in the GUI tree 
+    control.
 Dimension node trees are things like:
     row node = gender
     col nodes = age group > ethnicity
@@ -43,7 +45,6 @@ class DimNodeTree(tree.NodeTree):
     Sets the root node up as a DimNode.
     """    
     def __init__(self, measures=None):
-        ""
         self.root_node = DimNode(label=u"Root", measures=measures)
         self.root_node.level = 0
 
@@ -59,7 +60,6 @@ class LabelNodeTree(tree.NodeTree):
     Sets the root node up as a LabelNode.
     """    
     def __init__(self):
-        ""
         self.root_node = LabelNode(label=u"Root")
         self.root_node.level = 0
         
@@ -141,6 +141,7 @@ class LabelNode(tree.Node):
             u"; Measure: " + (self.measure if self.measure else u"None") + \
             u"; Col Total?: " + (u"Yes" if self.is_coltot else u"No") + \
             u"; Child labels: " + u", ".join([x.label for x in self.children])
+
 
 class DimTable(object):
     """
@@ -294,26 +295,23 @@ class DimTable(object):
         """
         Adds cells to the column label rows list as it goes through all nodes.
         Add cells to the correct row which means that the first cell
-        in a subtree which is shorter than the maximum for the table
-        must have an increased rowspan + pass on a row offset to all its
-        children.
-        
-        node - the node we are adding a cell to the table based upon.
-        col_label_rows_lst - one row per row in column label header        
-        col_label_rows_n - number of rows in column label header        
-        row_offset - number of rows downwards to be put so terminal nodes
+            in a subtree which is shorter than the maximum for the table
+            must have an increased rowspan + pass on a row offset to all its
+            children.
+        node -- the node we are adding a cell to the table based upon.
+        col_label_rows_lst -- one row per row in column label header        
+        col_label_rows_n -- number of rows in column label header        
+        row_offset -- number of rows downwards to be put so terminal nodes
             all appear at same level regardless of subtree depth.
-
         Add cell for node.
         Any gap between rows in table header below (which we are filling)
-        and depth of nodes below (with which we fill the table header)?
+            and depth of nodes below (with which we fill the table header)?
         If so, increase rowspan of this cell + increase row offset by 
-        appropriate amount so that the subsequent cells are added
-        to the correct col label row.
-        
+            appropriate amount so that the subsequent cells are added
+            to the correct col label row.
         Format cells according to whether variable or value.  
-        For General Tables, odd number of levels below = value, 
-        even = variable.  For Summary Tables, vv.
+        For General Tables, odd number of levels below = value, even = variable.
+        For Summary Tables, vv.
         """
         CSS_COL_VAL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_COL_VAL, css_idx)
         CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, 
@@ -378,6 +376,8 @@ class LiveTable(DimTable):
         cur - must return tuples, not dictionaries
         """
         self.debug = False
+        self.prepared = False
+        self.prep_css_idx = None
         self.titles = titles
         self.subtitles = subtitles
         self.dbe = dbe
@@ -399,19 +399,29 @@ class LiveTable(DimTable):
         return data_cell_n
     
     def prep_table(self, css_idx):
-        "Prepare table setup information towards generation of final html."
+        """
+        Prepare table setup information in advance of generation of final html.
+        Useful if need to know total rows and cols to work out cells so can see 
+            if too many (and abort).
+        Required if using get_cell_n_ok().
+        """
         (self.row_label_rows_lst, self.tree_row_labels, row_label_cols_n) = \
-                                    self.get_row_dets(css_idx)
-        self.tree_col_labels, self.hdr_html = \
-                                    self.get_hdr_dets(row_label_cols_n, css_idx)
+                                                    self.get_row_dets(css_idx)
+        self.tree_col_labels, self.hdr_html = self.get_hdr_dets(
+                                                    row_label_cols_n, css_idx)
+        self.prep_css_idx = css_idx
+        self.prepared = True
     
     def get_cell_n_ok(self, max_cells=5000):
         """
         Returns False if too many cells to proceed (according to max_cells).
         Used to determine whether to proceed with table or not.
         """
-        data_cell_n = self.get_data_cell_n(self.tree_col_labels, 
-                                           self.tree_row_labels)
+        try:
+            data_cell_n = self.get_data_cell_n(self.tree_col_labels, 
+                                               self.tree_row_labels)
+        except AttributeError:
+            raise Exception, "Must run prep_table() before get_cell_n_ok()."
         return max_cells >= data_cell_n
     
     def get_html(self, css_idx, page_break_after=False):
@@ -419,19 +429,24 @@ class LiveTable(DimTable):
         Get HTML for table.
         """
         html = u""
-        html += u"<table cellspacing='0'>\n" # IE6 doesn't support CSS borderspacing
-        (row_label_rows_lst, tree_row_labels, row_label_cols_n) = \
-            self.get_row_dets(css_idx)
-        (tree_col_dets, hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)
-        row_label_rows_lst = self.get_body_html_rows(row_label_rows_lst,
-                                                     tree_row_labels, 
-                                                     tree_col_dets, css_idx)
+        html += u"<table cellspacing='0'>\n" # IE6 no support CSS borderspacing
+        if not (self.prepared and self.prep_css_idx == css_idx):
+            # need to get fresh - otherwise, can skip this step. Did it in prep.
+            (self.row_label_rows_lst, self.tree_row_labels, 
+                                row_label_cols_n) = self.get_row_dets(css_idx)
+            (self.tree_col_labels, self.hdr_html) = self.get_hdr_dets(
+                                                            row_label_cols_n, 
+                                                            css_idx)
+        row_label_rows_lst = self.get_body_html_rows(self.row_label_rows_lst,
+                                                     self.tree_row_labels, 
+                                                     self.tree_col_labels, 
+                                                     css_idx)
         body_html = u"\n\n<tbody>"
         for row in row_label_rows_lst:
-            #flatten row list
+            # flatten row list
             body_html += u"\n" + u"".join(row) + u"</tr>"
         body_html += u"\n</tbody>"
-        html += hdr_html
+        html += self.hdr_html
         html += body_html
         html += u"\n</table>"
         return html
@@ -458,6 +473,8 @@ class LiveTable(DimTable):
         Add subtrees to column label tree.
         If coltree has no children, must add a subtree underneath.
         """
+        debug = False
+        if debug: print(self.tree_cols)
         if self.tree_cols.root_node.children:
             for child in self.tree_cols.root_node.children:
                 self.add_subtree_to_label_tree(tree_dims_node=child, 
@@ -649,6 +666,7 @@ class LiveTable(DimTable):
         We do this by filtering the raw data by the appropriate row and column 
             filters.  If any records remain, we can show the cell.
         """
+        TOT = u"_tot_"
         debug = False
         if debug:
             print("running add_subtree_if_vals") 
@@ -667,18 +685,24 @@ class LiveTable(DimTable):
                                                     label=tree_dims_node.label))
         val_freq_label_lst = self.get_sorted_val_freq_label_lst(all_vals,
                                                                 tree_dims_node)
+        
+        
+        force_freq = True # TODO - get from GUI (must be exposed to scripting)
+        
+        
         if tree_dims_node.has_tot:
-            val_freq_label_lst.append((u"_tot_", 0, u"TOTAL"))
+            val_freq_label_lst.append((TOT, 0, u"TOTAL"))
         terminal_var = not tree_dims_node.children
         if terminal_var:
             var_measures = tree_dims_node.measures
-            if not var_measures:
+            if not var_measures: # they unticked everything!
                 var_measures = [mg.FREQ]
         for val, val_freq, val_label in val_freq_label_lst:
+            # e.g. male, female
             # add level 2 to the data tree - the value nodes (plus total?); 
             # pass on and extend filtering from higher level in data tree
             val_node_filts = tree_labels_node.filts[:]
-            is_tot = (val == u"_tot_")
+            is_tot = (val == TOT)
             if is_tot:
                 val_node_filts.append(NOTNULL % self.quote_obj(fld))
             else:
@@ -687,8 +711,8 @@ class LiveTable(DimTable):
                 if debug: print(clause)
                 val_node_filts.append(clause)
             is_coltot=(is_tot and dim == mg.COLDIM)
-            val_node = node_lev1.add_child(LabelNode(label = val_label,
-                                                    filts=val_node_filts))
+            val_node = node_lev1.add_child(LabelNode(label=val_label,
+                                                     filts=val_node_filts))
             # if node has children, send through again to add further subtree
             if terminal_var: # a terminal node - add measures
                 # only gen table cols and summ table rows can have measures
@@ -696,7 +720,8 @@ class LiveTable(DimTable):
                         (dim == mg.ROWDIM and self.has_row_measures):
                     self.add_measures(label_node=val_node, 
                                     measures=var_measures, is_coltot=is_coltot, 
-                                    filt_flds=filt_flds, filts=val_node_filts) 
+                                    filt_flds=filt_flds, filts=val_node_filts,
+                                    force_freq=force_freq) 
                 else:
                     val_node.filt_flds = filt_flds
             else:
@@ -728,21 +753,31 @@ class LiveTable(DimTable):
         First check that it is OK to add.
         """
         if tree_dims_node.level > 1:
-            raise Exception, u"If the col field has not " + \
-                u"been set, a node without a field specified " + \
-                u"must be immediately under the root node"
+            raise Exception, (u"If the col field has not "
+                              u"been set, a node without a field specified "
+                              u"must be immediately under the root node")
         self.add_measures(label_node=tree_labels_node, 
                           measures=tree_dims_node.measures, 
                           is_coltot=False, filt_flds=[], filts=[])
 
     def add_measures(self, label_node, measures, is_coltot, filt_flds, 
-                    filts):
-        "Add measure label nodes under label node"
-        for measure in measures:
+                    filts, force_freq=False):
+        """
+        Add measure label nodes under label node.
+        If a column total with rowpct, and frequencies not selected, force it in 
+            anyway. Shouldn't have pcts without a sense of total N.
+        """
+        debug = False
+        if debug: print("is_coltot: %s; measures: %s" % (is_coltot, measures))
+        sep_measures = measures[:]
+        if force_freq and is_coltot and mg.ROWPCT in measures \
+                and mg.FREQ not in measures:
+            sep_measures.append(mg.FREQ)
+        for measure in sep_measures:
             measure_node = LabelNode(label=measure, 
-                                  filts=filts,
-                                  measure=measure,
-                                  is_coltot=is_coltot)
+                                     filts=filts,
+                                     measure=measure,
+                                     is_coltot=is_coltot)
             measure_node.filt_flds = filt_flds
             label_node.add_child(measure_node)
     
@@ -871,7 +906,7 @@ class GenTable(LiveTable):
             for (colmeasure, col_filter, coltot, col_filt_flds) in \
                         zip(col_measures_lst, col_filters_lst, 
                             col_tots_lst, col_filt_flds_lst):
-                #get column-derived clause function inputs
+                # get column-derived clause function inputs
                 cols_not_null_lst = [NOTNULL % self.quote_obj(x) for x in \
                                      col_filt_flds]
                 if len(col_filter) <= 1:
@@ -884,7 +919,7 @@ class GenTable(LiveTable):
                         self.quote_obj(col_filt_flds[-1]) # for rowpct
                 else:
                     last_col_filter = ""
-                #styling
+                # styling
                 if first:
                     cellclass = CSS_FIRST_DATACELL
                     first = False

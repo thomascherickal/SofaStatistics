@@ -86,6 +86,21 @@ class DimTree(object):
                         oth_dim=mg.ROWDIM, oth_dim_tree=self.rowtree, 
                         oth_dim_root=self.rowroot)
     
+    def get_selected_idxs(self, sorted_choices):
+        selected_idxs = None # init
+        if self.tab_type == mg.RAW_DISPLAY:
+            dlg = wx.MultiChoiceDialog(self, _("Select a variable"), 
+                                       _("Variables"), choices=sorted_choices)
+            retval = dlg.ShowModal()
+            if retval == wx.ID_OK:
+                selected_idxs = dlg.GetSelections()
+        else:
+            retval = wx.GetSingleChoiceIndex(_("Select a variable"), 
+                            _("Variables"), choices=sorted_choices, parent=self)
+            if retval != -1:
+                selected_idxs = [retval,]
+        return selected_idxs
+    
     def try_adding(self, tree, root, dim, oth_dim, oth_dim_tree, oth_dim_root):
         """
         Try adding a variable.
@@ -101,11 +116,9 @@ class DimTree(object):
         var_names = projects.get_approp_var_names(self.var_types, min_data_type)
         sorted_choices, sorted_vars = lib.get_sorted_choice_items(
                                     dic_labels=self.var_labels, vals=var_names)
-        dlg = wx.MultiChoiceDialog(self, _("Select a variable"), _("Variables"), 
-                                   choices=sorted_choices)
-        if dlg.ShowModal() == wx.ID_OK:
+        selected_idxs = self.get_selected_idxs(sorted_choices)
+        if selected_idxs:
             # only use in one dimension
-            selected_idxs = dlg.GetSelections()
             for idx in selected_idxs:
                 text = sorted_choices[idx]
                 var_name = sorted_vars[idx]
@@ -130,15 +143,14 @@ class DimTree(object):
                 new_id = tree.AppendItem(root, text)
                 var_name = sorted_vars[idx]            
                 self.set_initial_config(tree, dim, new_id, var_name)
-            if selected_idxs:
-                tree.UnselectAll() # multiple
-                tree.SelectItem(new_id)
-                if tree == self.rowtree:
-                    self.setup_row_btns()
-                else:
-                    self.setup_col_btns()
-                self.setup_action_btns()
-                self.update_demo_display()
+            tree.UnselectAll() # multiple
+            tree.SelectItem(new_id)
+            if tree == self.rowtree:
+                self.setup_row_btns()
+            else:
+                self.setup_col_btns()
+            self.setup_action_btns()
+            self.update_demo_display()
     
     def set_initial_config(self, tree, dim, new_id, var_name=None):
         """
@@ -219,12 +231,10 @@ class DimTree(object):
         Only do so if OK e.g. no duplicate text in either dim.
         """
         var_names = dd.flds.keys()
-        sorted_choices, sorted_vars = \
-                        lib.get_sorted_choice_items(self.var_labels, var_names)
-        dlg = wx.MultiChoiceDialog(self, _("Select a variable"), 
-                                   _("Variables"), choices=sorted_choices)
-        if dlg.ShowModal() == wx.ID_OK:
-            selected_idxs = dlg.GetSelections()
+        sorted_choices, sorted_vars = lib.get_sorted_choice_items(
+                                                    self.var_labels, var_names)
+        selected_idxs = self.get_selected_idxs(sorted_choices)
+        if selected_idxs:
             for idx in selected_idxs:
                 text = sorted_choices[idx]
                 var_name = sorted_vars[idx]
@@ -265,11 +275,10 @@ class DimTree(object):
                             item_conf.sort_order = mg.SORT_NONE
                         tree.SetItemText(ancestor, 
                                          item_conf.get_summary(), 1)                        
-            if selected_idxs:
-                tree.ExpandAll(root)
-                tree.UnselectAll() # multiple
-                tree.SelectItem(new_id)
-                self.update_demo_display()
+            tree.ExpandAll(root)
+            tree.UnselectAll() # multiple
+            tree.SelectItem(new_id)
+            self.update_demo_display()
     
     def used_in_oth_dim(self, text, oth_dim_tree, oth_dim_root):
         "Is this variable used in the other dimension at all?"
