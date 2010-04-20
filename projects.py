@@ -617,7 +617,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                 pass
             proj_notes = self.txt_proj_notes.GetValue()
             fil_var_dets = self.txt_var_dets_file.GetValue()
-            fil_css = self.txt_css_file.GetValue()
+            style = self.drop_style.GetStringSelection()
+            fil_css = config_dlg.style2path(style)
             fil_report = self.txt_report_file.GetValue()
             fil_script = self.txt_script_file.GetValue()
             default_dbe = mg.DBES[self.drop_default_dbe.GetSelection()]
