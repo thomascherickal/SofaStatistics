@@ -800,15 +800,17 @@ class ItemConfig(object):
             str_parts.append(measures_part)
         return u"; ".join(str_parts)
 
-def get_tree_ctrl_children(tree, parent):
+# All items are ids with methods e.g. IsOk().  The tree uses the ids to do 
+# things.  Items don't get their siblings; the tree does knowing the item id.
+def get_tree_ctrl_children(tree, item):
     """
     Get children of TreeCtrl item
     """
     children = []
-    item, cookie = tree.GetFirstChild(parent) # p.471 wxPython
-    while item:
-        children.append(item)
-        item, cookie = tree.GetNextChild(parent, cookie)
+    child, cookie = tree.GetFirstChild(item) # p.471 wxPython
+    while child: # an id
+        children.append(child)
+        child, cookie = tree.GetNextChild(item, cookie)
     return children
 
 def item_has_children(tree, parent):
@@ -821,13 +823,12 @@ def item_has_children(tree, parent):
     bool ItemHasChildren(const wxTreeItemId& item) const
     Returns TRUE if the item has children.
     """
-    item, cookie = tree.GetFirstChild(parent)
+    item, cookie = tree.GetFirstChild(parent) # item is an id
     return True if item else False
 
 def get_tree_ctrl_descendants(tree, parent, descendants=None):
     """
-    Get all descendants (descendent is an alternative spelling 
-        in English grrr).
+    Get all descendants (descendent is an alternative spelling in English grrr).
     """
     if descendants is None:
         descendants = []
@@ -847,7 +848,7 @@ def get_tree_ancestors(tree, child):
     "Get ancestors of TreeCtrl item"
     ancestors = []
     item = tree.GetItemParent(child)
-    while item:
+    while item: # an id
         ancestors.append(item)
         item = tree.GetItemParent(item)
     return ancestors

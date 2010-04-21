@@ -102,7 +102,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
     def get_demo_html_if_ok(self, css_idx):
         "Show demo table if sufficient data to do so"
         has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
-                                              parent=self.colroot)
+                                              item=self.colroot)
         return self.get_demo_html(css_idx) if has_cols else ""
       
     def get_html(self, css_idx):
@@ -171,7 +171,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         """
         tree_row_labels = dimtables.LabelNodeTree()
         for row_child_item in lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                                         parent=self.rowroot):
+                                                         item=self.rowroot):
             self.add_subtree_to_label_tree(tree_dims_item=row_child_item, 
                               tree_labels_node=tree_row_labels.root_node, 
                               dim=mg.ROWDIM)
@@ -246,11 +246,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                     i = i+1
                 if item_conf.has_tot:
                     subitems_lst.append(mg.HAS_TOTAL)
-                
-                    
-                force_freq = True # TODO - get from GUI
-                
-                    
+                force_freq = True # TODO - get from GUI but better to KISS
                 for j, subitem in enumerate(subitems_lst):
                     is_coltot = (item_conf.has_tot and dim == mg.COLDIM
                                  and j == len(subitems_lst)-1)
@@ -272,7 +268,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                         elif dim == mg.ROWDIM:
                             tree = self.rowtree
                         child_items = lib.get_tree_ctrl_children(tree=tree, 
-                                                        parent=tree_dims_item)
+                                                            item=tree_dims_item)
                         if debug:
                             print(lib.get_sub_tree_items(tree=tree,
                                                          parent=tree_dims_item))
@@ -298,7 +294,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         exception.
         """
         col_children = lib.get_tree_ctrl_children(tree=self.coltree, 
-                                                  parent=self.colroot)
+                                                  item=self.colroot)
         for col_child_item in col_children:
             self.add_subtree_to_label_tree(tree_dims_item=col_child_item, 
                                   tree_labels_node=tree_col_labels.root_node, 
@@ -323,9 +319,9 @@ class GenDemoTable(DemoDimTable):
     def get_demo_html_if_ok(self, css_idx):
         "Show demo table if sufficient data to do so"
         has_rows = lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                              parent=self.rowroot)
+                                              item=self.rowroot)
         has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
-                                              parent=self.colroot)
+                                              item=self.colroot)
         if has_rows and has_cols:
             return self.get_demo_html(css_idx)
         else:
@@ -432,8 +428,8 @@ class SummDemoTable(DemoDimTable):
 
     def get_demo_html_if_ok(self, css_idx):
         "Show demo table if sufficient data to do so"
-        has_rows = lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                              parent=self.rowroot)
+        has_rows = lib.get_tree_ctrl_children(tree=self.rowtree,
+                                              item=self.rowroot)
         return self.get_demo_html(css_idx) if has_rows else ""
             
     def get_hdr_dets(self, row_label_cols_n, css_idx):

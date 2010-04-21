@@ -685,11 +685,8 @@ class LiveTable(DimTable):
                                                     label=tree_dims_node.label))
         val_freq_label_lst = self.get_sorted_val_freq_label_lst(all_vals,
                                                                 tree_dims_node)
-        
-        
-        force_freq = True # TODO - get from GUI (must be exposed to scripting)
-        
-        
+        force_freq = True # could get from GUI (must be exposed to scripting)
+            # but better to KISS
         if tree_dims_node.has_tot:
             val_freq_label_lst.append((TOT, 0, u"TOTAL"))
         terminal_var = not tree_dims_node.children

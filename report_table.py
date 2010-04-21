@@ -114,6 +114,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.url_load = True # btn_expand    
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
+        self.last_row_summ_measures = [] # what you choose becomes default
         self.col_no_vars_item = None # needed if no variable in columns.  Must
             # reset to None if deleted all col vars
         # set up panel for frame
@@ -560,7 +561,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             script_lst.append(u"# Rows" + 60*u"*")
             script_lst.append(u"tree_rows = dimtables.DimNodeTree()")
             for child in lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                                    parent=self.rowroot):
+                                                    item=self.rowroot):
                 # child -- NB GUI tree items, not my Dim Node obj
                 item_conf = self.rowtree.GetItemPyData(child)
                 child_fld_name = item_conf.var_name
@@ -572,7 +573,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             script_lst.append(u"tree_cols = dimtables.DimNodeTree()")
             if has_cols:
                 for child in lib.get_tree_ctrl_children(tree=self.coltree, 
-                                                        parent=self.colroot):
+                                                        item=self.colroot):
                     item_conf = self.coltree.GetItemPyData(child)
                     child_fld_name = item_conf.var_name
                     self.add_to_parent(script_lst=script_lst, tree=self.coltree, 
@@ -709,7 +710,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         script_lst.append(u"%s.add_child(%s)" % (parent_node_label, 
                                                  child_node_label))
         # send child through for each grandchild
-        for grandchild in lib.get_tree_ctrl_children(tree=tree, parent=child):
+        for grandchild in lib.get_tree_ctrl_children(tree=tree, item=child):
             # grandchild -- NB GUI tree items, not my Dim Node obj
             item_conf = tree.GetItemPyData(grandchild)
             grandchild_fld_name = item_conf.var_name
@@ -809,9 +810,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
 
     def get_row_col_status(self):
         has_rows = lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                              parent=self.rowroot)
+                                              item=self.rowroot)
         has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
-                                              parent=self.colroot)
+                                              item=self.colroot)
         return has_rows, has_cols
 
     def table_config_ok(self, silent=False):

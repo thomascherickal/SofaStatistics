@@ -88,7 +88,7 @@ class DimTree(object):
     
     def get_selected_idxs(self, sorted_choices):
         selected_idxs = None # init
-        if self.tab_type == mg.RAW_DISPLAY:
+        if self.tab_type in (mg.ROW_SUMM, mg.RAW_DISPLAY):
             dlg = wx.MultiChoiceDialog(self, _("Select a variable"), 
                                        _("Variables"), choices=sorted_choices)
             retval = dlg.ShowModal()
@@ -142,7 +142,8 @@ class DimTree(object):
                 text = sorted_choices[idx]
                 new_id = tree.AppendItem(root, text)
                 var_name = sorted_vars[idx]            
-                self.set_initial_config(tree, dim, new_id, var_name)
+                self.set_initial_config(tree, dim, new_id, var_name,
+                                        self.last_row_summ_measures)
             tree.UnselectAll() # multiple
             tree.SelectItem(new_id)
             if tree == self.rowtree:
@@ -152,7 +153,8 @@ class DimTree(object):
             self.setup_action_btns()
             self.update_demo_display()
     
-    def set_initial_config(self, tree, dim, new_id, var_name=None):
+    def set_initial_config(self, tree, dim, new_id, var_name=None, 
+                           last_row_summ_measures=None):
         """
         Set initial config for new item.
         Variable name not applicable when a column config item 
@@ -164,7 +166,10 @@ class DimTree(object):
         elif self.tab_type == mg.CROSSTAB and dim == mg.COLDIM:
             item_conf.measures_lst = [lib.get_default_measure(mg.CROSSTAB)]
         elif self.tab_type == mg.ROW_SUMM and dim == mg.ROWDIM:
-            item_conf.measures_lst = [lib.get_default_measure(mg.ROW_SUMM)]
+            if last_row_summ_measures:
+                item_conf.measures_lst = self.last_row_summ_measures[:]
+            else:
+                item_conf.measures_lst = [lib.get_default_measure(mg.ROW_SUMM)]
         if var_name:
             item_conf.var_name = var_name
             item_conf.bolnumeric = dd.flds[var_name][mg.FLD_BOLNUMERIC]
@@ -263,7 +268,8 @@ class DimTree(object):
                 text = sorted_choices[idx]
                 new_id = tree.AppendItem(selected_id, text)
                 var_name = sorted_vars[idx] 
-                self.set_initial_config(tree, dim, new_id, var_name)
+                self.set_initial_config(tree, dim, new_id, var_name, 
+                                        self.last_row_summ_measures)
                 # empty all measures from ancestors and ensure sorting 
                 # is appropriate
                 for ancestor in lib.get_tree_ancestors(tree, new_id):
@@ -304,11 +310,16 @@ class DimTree(object):
             wx.MessageBox(_("No row variable selected to delete"))
             return
         first_selected_id = selected_ids[0]
-        parent = self.rowtree.GetItemParent(first_selected_id)
-        if parent:
-            item_conf = self.rowtree.GetItemPyData(parent)
+        parent_id = self.rowtree.GetItemParent(first_selected_id)
+        if parent_id:
+            item_conf = self.rowtree.GetItemPyData(parent_id)
             if item_conf:
                 item_conf.measures_lst = [self.demo_tab.default_measure]
+            prev_sibling_id = self.coltree.GetPrevSibling(first_selected_id)
+            if prev_sibling_id.IsOk():
+                self.rowtree.SelectItem(prev_sibling_id)
+            else:
+                self.rowtree.SelectItem(parent_id)
         for selected_id in selected_ids:
             self.rowtree.DeleteChildren(selected_id)
         if self.rowroot not in selected_ids:
@@ -319,17 +330,25 @@ class DimTree(object):
         self.update_demo_display()
             
     def on_col_delete(self, event):
-        "Delete col var and all its children"
+        """
+        Delete col var and all its children.  Set selection to previous sibling
+            (if any) or parent (if no siblings) or nowhere if not even a parent.
+        """
         selected_ids = self.coltree.GetSelections()
         if not selected_ids:
             wx.MessageBox(_("No column variable selected to delete"))
             return
         first_selected_id = selected_ids[0]
-        parent = self.coltree.GetItemParent(first_selected_id)
-        if parent:
-            item_conf = self.coltree.GetItemPyData(parent)
+        parent_id = self.coltree.GetItemParent(first_selected_id)
+        if parent_id:
+            item_conf = self.coltree.GetItemPyData(parent_id)
             if item_conf:
                 item_conf.measures_lst = [self.demo_tab.default_measure]
+            prev_sibling_id = self.coltree.GetPrevSibling(first_selected_id)
+            if prev_sibling_id.IsOk():
+                self.coltree.SelectItem(prev_sibling_id)
+            else:
+                self.coltree.SelectItem(parent_id)
         for selected_id in selected_ids:
             self.coltree.DeleteChildren(selected_id)
         if self.colroot not in selected_ids:
@@ -371,11 +390,13 @@ class DimTree(object):
             sort_opt_allowed = SORT_OPT_ALL
         else:
             sort_opt_allowed = SORT_OPT_BY_LABEL
+        ret_measures = [] # will be updated internally
         dlg = DlgRowConfig(parent=self, var_labels=self.var_labels,
-                           node_ids=selected_ids, tree=self.rowtree, 
-                           inc_measures=inc_measures,
-                           sort_opt_allowed=sort_opt_allowed)
+                           node_ids=selected_ids, tree=self.rowtree,
+                           sort_opt_allowed=sort_opt_allowed,
+                           inc_measures=inc_measures, ret_measures=ret_measures)
         if dlg.ShowModal() == wx.ID_OK:
+            self.last_row_summ_measures = ret_measures
             self.update_demo_display()
     
     def on_col_config(self, event):
@@ -489,7 +510,7 @@ class DimTree(object):
             absence of row items.
         """
         has_rows = True if lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                                      parent=self.rowroot) \
+                                                      item=self.rowroot) \
                                                       else False
         if self.tab_type in (mg.FREQS_TBL, mg.CROSSTAB, mg.ROW_SUMM):
             self.btn_row_add.Enable(True)
@@ -509,7 +530,7 @@ class DimTree(object):
             absence of column items.
         """
         has_cols = True if lib.get_tree_ctrl_children(tree=self.coltree, 
-                                                      parent=self.colroot) \
+                                                      item=self.colroot) \
                                                       else False
         if self.tab_type == mg.FREQS_TBL:
             self.btn_col_add.Enable(False)
@@ -582,7 +603,6 @@ class DlgConfig(wx.Dialog):
                 # disable freq options
                 self.rad_sort_opts.EnableItem(2, False)
                 self.rad_sort_opts.EnableItem(3, False)
-
             szr_main.Add(self.rad_sort_opts, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.measure_chks_dic = {}
         if self.measures:
@@ -630,6 +650,18 @@ class DlgConfig(wx.Dialog):
         if self.measures and not any_measures:
             wx.MessageBox(_("Please select at least one measure"))
             return
+        # Store measures ready to be used as default when adding next row summ 
+        #     var.
+        try:
+            self.ret_measures
+            while True: # empty list but keep var pointing to it
+                try:
+                    del self.ret_measures[0]
+                except IndexError:
+                    break
+            self.ret_measures.extend(measures_lst)
+        except AttributeError:
+            pass
         # tot
         has_tot = self.allow_tot and self.chk_total.GetValue()
         # sort order
@@ -665,8 +697,10 @@ class DlgConfig(wx.Dialog):
     
 class DlgRowConfig(DlgConfig):
     
-    def __init__(self, parent, var_labels, node_ids, tree, inc_measures, 
-                 sort_opt_allowed):
+    def __init__(self, parent, var_labels, node_ids, tree, sort_opt_allowed,
+                 inc_measures, ret_measures):
+        "ret_measures -- pass back list of measures ticked"
+        self.ret_measures = ret_measures
         title = _("Configure Row Item")
         if inc_measures:
             self.measures = [
