@@ -141,8 +141,11 @@ class TblEditor(wx.Dialog):
         self.panel.SetSizer(self.szr_main)
         #self.szr_main.SetSizeHints(self)
         #self.panel.Layout() # otherwise will shrink to min
+        if mg.IN_WINDOWS: # jitter to display inner grid
+            self.SetSize((mywidth+1, myheight+1))
+            self.SetSize((mywidth, myheight))
         x,y = szr_bottom.GetMinSize()
-        self.SetMinSize((500+x+5,500+y+5))
+        self.SetMinSize((500+x,500+y+8))
         self.grid.SetFocus()
     
     # processing MOVEMENTS AWAY FROM CELLS e.g. saving values //////////////////
