@@ -385,7 +385,7 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         image source.  Remember to alternate sets of names so always the 
         freshest image showing in html (without having to reload etc).
     """
-    debug = False
+    debug = True
     if add_to_report:
         # look in report folder for subfolder
         imgs_path = os.path.join(report_name[:-len(".htm")], u"")

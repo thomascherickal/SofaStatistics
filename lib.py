@@ -30,20 +30,28 @@ def esc_str_input(raw):
         raise Exception, "Unable to escape str input. Orig err: %s" % e
     return new_str
 
-def rel2abs(strhtml):
+def rel2abs_links(strhtml):
     """
-    Make all images work of absolute rather than relative paths.  Will run OK
+    Make linked images work off absolute rather than relative paths. Will run OK
         when displayed internally in GUI.
-    Make normal images absolute: turn my_report_name/001.png to e.g. 
+    Turn my_report_name/001.png to e.g. 
         /home/g/sofa/reports/my_report_name/001.png so that the html can be 
         written to, and read from, anywhere (and still show the images!) in the
         temporary GUI displays.
-    Make background images absolute: turn ../images/tile.gif to 
-        /home/g/sofa/reports/images/tile.gif.
     """
     debug = False
     report_path = os.path.join(mg.REPORTS_PATH, u"")
     abs_display_content = strhtml.replace(u"src='", u"src='%s" % report_path)
+    if debug: print("From \n\n%s\n\nto\n\n%s" % (strhtml, abs_display_content))
+    return abs_display_content
+
+def rel2abs_background(strhtml):
+    """
+    Make all background images work off absolute rather than relative paths.  
+    Will run OK when displayed internally in GUI.
+    Turn ../images/tile.gif to /home/g/sofa/reports/images/tile.gif.
+    """
+    debug = False
     if mg.IN_WINDOWS:
         url = u"file:///%s" % mg.IMAGES_PATH
     else:

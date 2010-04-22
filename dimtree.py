@@ -316,8 +316,11 @@ class DimTree(object):
             if item_conf:
                 item_conf.measures_lst = [self.demo_tab.default_measure]
             prev_sibling_id = self.coltree.GetPrevSibling(first_selected_id)
+            next_sibling_id = self.coltree.GetNextSibling(first_selected_id)
             if prev_sibling_id.IsOk():
                 self.rowtree.SelectItem(prev_sibling_id)
+            elif next_sibling_id.IsOk():
+                self.rowtree.SelectItem(next_sibling_id)
             else:
                 self.rowtree.SelectItem(parent_id)
         for selected_id in selected_ids:

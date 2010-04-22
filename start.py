@@ -143,8 +143,7 @@ class SofaApp(wx.App):
             filename = None
         else:
             redirect = True
-            filename = os.path.join(mg.LOCAL_PATH, mg.INTERNAL_FOLDER, 
-                                    u'output.txt')
+            filename = os.path.join(mg.INT_PATH, u'output.txt')
         wx.App.__init__(self, redirect=redirect, filename=filename)
 
     def OnInit(self):

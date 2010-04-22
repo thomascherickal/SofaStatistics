@@ -801,9 +801,18 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 demo_tbl_html = waiting_msg
                 self.prev_demo = None
             else:
-                demo_tbl_html = (u"<h1>%s</h1>\n" % 
-                     _("<p>Example data - click 'Run' for actual results<br>"
-                       "&nbsp;&nbsp;or keep configuring") + demo_html)
+                demo_tbl_html = (_("<h2>Example data - click 'Run' for actual "
+                        "results<br>&nbsp;&nbsp;or keep configuring</h2>"))
+                current_style = config_dlg.path2style(cc[mg.CURRENT_CSS_PATH])
+                if (not mg.IN_WINDOWS and current_style in [u"lucid_spirals", 
+                                                u"grey_spirals", u"pebbles"]):
+                    demo_tbl_html += (u"<p>NOTE - Even though it doesn't show "
+                        "here, the background image used in the \"%s\" style "
+                        "displays properly in any output added to your report. "
+                        "This issue has a known cause which should be resolved "
+                        "by the next version of SOFA Statistics.</p>" % 
+                        current_style)
+                demo_tbl_html += u"\n\n" + demo_html
                 self.prev_demo = demo_tbl_html
         if debug: print(u"\n" + demo_tbl_html + "\n")
         self.html.show_html(demo_tbl_html)

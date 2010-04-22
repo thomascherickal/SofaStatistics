@@ -45,7 +45,7 @@ def test_replace_titles_subtitles():
     for test in tests:
         assert_equal(report_table.replace_titles_subtitles(*test[0]), test[1])
 
-def test_rel2abs():
+def test_rel2abs_links():
     """
     Make all images work of absolute rather than relative paths.  Will run OK
         when displayed internally in GUI.
@@ -65,7 +65,7 @@ def test_rel2abs():
             u"my_img.png\"",
              ]
     for test in tests:
-        assert_equal(lib.rel2abs(*test))
+        assert_equal(lib.rel2abs_links(*test))
         
 test_us_style = False
 if test_us_style:

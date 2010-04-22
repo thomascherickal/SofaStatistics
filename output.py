@@ -176,7 +176,7 @@ def get_html_hdr(hdr_title, css_fils, default_if_prob=False, grey=False,
         css = get_default_css()
     hdr = mg.DEFAULT_HDR % (hdr_title, css)
     if abs:
-        hdr = lib.rel2abs(hdr)
+        hdr = lib.rel2abs_background(hdr)
     if debug: print(hdr)
     return hdr
 
@@ -302,7 +302,7 @@ def run_report(modules, add_to_report, css_fils, inner_script):
         (or of the error) for GUI display.
     add_to_report -- also append result to current report.
     """
-    debug = False
+    debug = True
     # generate script
     f = codecs.open(mg.INT_SCRIPT_PATH, "w", "utf-8")
     if debug: print(css_fils)
@@ -367,10 +367,10 @@ def run_report(modules, add_to_report, css_fils, inner_script):
         rel_display_content = (u"\n<p>Output also saved to '%s'</p>" %
                             lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH]) + 
                             results_with_source)
+        # make relative links absolute so GUI viewers can display images
+        gui_display_content = lib.rel2abs_links(rel_display_content)
     else:
-        rel_display_content = results_with_source
-    # make relative links absolute so GUI viewers can display images
-    gui_display_content = lib.rel2abs(rel_display_content)
+        gui_display_content = results_with_source
     if debug: print(gui_display_content)
     return True, gui_display_content
 
