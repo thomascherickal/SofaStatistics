@@ -18,6 +18,41 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
+def get_min_content_size(szr_lst, vertical=True):
+    """
+    For a list of sizers return min content size overall.  NB excludes padding 
+        (border).
+    Returns x, y.
+    vertical -- whether parent sizer of szr_lst is vertical.
+    """
+    debug = True
+    x = 0
+    y = 0
+    for szr in szr_lst:
+        szr_x, szr_y = szr.GetMinSize()
+        if debug: print("szr_x: %s; szr_y: %s" % (szr_x, szr_y))
+        if vertical:
+            x = max([szr_x, x])
+            y += szr_y
+        else:
+            x += szr_x
+            y = max([szr_y, y])
+    return x, y
+
+def set_size(window, width_init, height_init, width_min, height_min):
+    """
+    Provide ability to display a larger initial size yet set an explicit minimum
+        size.  Also handles need to "jitter" in Windows.
+    Doesn't use the standard approach of szr.SetSizeHints(self) and 
+        panel.Layout().  Setting size hints will shrink it using Fit().
+    window -- e.g. the dialog itself or a frame.
+    NB no need to set size=() in __init__ of window. 
+    """
+    if mg.IN_WINDOWS: # jitter to display inner controls
+        window.SetSize((width_init+1, height_init+1))
+    window.SetSize((width_init, height_init))
+    window.SetMinSize((width_min,height_min))
+
 def esc_str_input(raw):
     """
     Escapes input ready to go into a string using %.

@@ -77,7 +77,7 @@ class TblEditor(wx.Dialog):
             myheight = 800
         wx.Dialog.__init__(self, None, 
                            title=_("Data from ") + "%s.%s" % (dd.db, dd.tbl),
-                           pos=(300, 0), size=(mywidth, myheight),
+                           pos=(300, 0), 
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
                            wx.CLIP_CHILDREN)
@@ -88,7 +88,9 @@ class TblEditor(wx.Dialog):
         self.val_dics = val_dics
         self.panel = wx.Panel(self, -1)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
-        self.grid = wx.grid.Grid(self.panel, size=(500,500)) #size=(mywidth, myheight))
+        width_grid = 500
+        height_grid = 500
+        self.grid = wx.grid.Grid(self.panel, size=(width_grid, height_grid))
         self.grid.EnableEditing(not readonly)
         self.dbtbl = db_tbl.DbTbl(self.grid, var_labels, readonly)
         self.grid.SetTable(self.dbtbl, takeOwnership=True)
@@ -139,13 +141,10 @@ class TblEditor(wx.Dialog):
         self.szr_main.Add(self.grid, 1, wx.GROW)
         self.szr_main.Add(szr_bottom, 0, wx.GROW|wx.ALL, 5)
         self.panel.SetSizer(self.szr_main)
-        #self.szr_main.SetSizeHints(self)
-        #self.panel.Layout() # otherwise will shrink to min
-        if mg.IN_WINDOWS: # jitter to display inner grid
-            self.SetSize((mywidth+1, myheight+1))
-            self.SetSize((mywidth, myheight))
-        x,y = szr_bottom.GetMinSize()
-        self.SetMinSize((500+x,500+y+8))
+        x,y = szr_bottom.GetMinSize() # overall window must be large enough to
+        # include grid + bottom controls e.g. Close.
+        lib.set_size(window=self, width_init=mywidth, height_init=myheight, 
+                     width_min=width_grid+x, height_min=height_grid+y+8)
         self.grid.SetFocus()
     
     # processing MOVEMENTS AWAY FROM CELLS e.g. saving values //////////////////

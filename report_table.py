@@ -231,7 +231,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             myheight = ((mg.MAX_HEIGHT/mid_height)*350.0) - height_drop
         else:
             myheight = 350
-        self.html = full_html.FullHTML(self.panel, size=(200, myheight))
+        self.html = full_html.FullHTML(self.panel, size=(200, myheight))        
         has_rows, has_cols = self.get_row_col_status()
         waiting_msg = get_missing_dets_msg(self.tab_type, has_rows, has_cols)
         self.html.show_html(waiting_msg)
@@ -281,9 +281,12 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         szr_main.Add(szr_trees, 1, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         szr_main.Add(szr_bottom, 2, wx.GROW)
         self.panel.SetSizer(szr_main)
-        szr_main.SetSizeHints(self)
-        self.SetMinSize((1024,600))
-        self.Layout()
+        szr_lst = [self.szr_data, szr_mid, szr_trees, szr_bottom]
+        width_cont_min, height_cont_min = lib.get_min_content_size(szr_lst)
+        width_min = width_cont_min + 2*10 # left and right padding
+        height_min = height_cont_min + 100 # seems to be what it needs
+        lib.set_size(window=self, width_init=1024, height_init=height_min, 
+                     width_min=width_min, height_min=height_min)
 
     def update_css(self):
         "Update css, including for demo table"

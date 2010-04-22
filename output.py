@@ -302,7 +302,7 @@ def run_report(modules, add_to_report, css_fils, inner_script):
         (or of the error) for GUI display.
     add_to_report -- also append result to current report.
     """
-    debug = True
+    debug = False
     # generate script
     f = codecs.open(mg.INT_SCRIPT_PATH, "w", "utf-8")
     if debug: print(css_fils)
