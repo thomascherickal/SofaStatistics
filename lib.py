@@ -56,8 +56,7 @@ def rel2abs_background(strhtml):
         url = u"file:///%s" % mg.IMAGES_PATH
     else:
         url = u"file://%s" % mg.IMAGES_PATH
-    abs_display_content = abs_display_content.replace(u"url(images", 
-                                                      u"url(%s" % url) 
+    abs_display_content = strhtml.replace(u"url(images", u"url(%s" % url) 
     if debug: print("From \n\n%s\n\nto\n\n%s" % (strhtml, abs_display_content))
     return abs_display_content
 

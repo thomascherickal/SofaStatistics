@@ -61,6 +61,7 @@ class DimTree(object):
         
     def show_var_properties(self, tree, event):
         item = event.GetItem() # NB GUI tree item, not our own Dim Node obj
+        tree.SelectItem(item)
         item_conf = tree.GetItemPyData(item)
         var_name = item_conf.var_name
         var_label = lib.get_item_label(self.var_labels, var_name)
