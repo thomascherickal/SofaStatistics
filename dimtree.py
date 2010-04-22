@@ -543,12 +543,12 @@ class DimTree(object):
             self.btn_col_conf.Enable(True)
         elif self.tab_type == mg.CROSSTAB:
             self.btn_col_add.Enable(True)
-            self.btn_col_add_under.Enable(True)
+            self.btn_col_add_under.Enable(enable=has_cols)
             self.btn_col_del.Enable(enable=has_cols)
             self.btn_col_conf.Enable(enable=has_cols)
         elif self.tab_type == mg.ROW_SUMM:
             self.btn_col_add.Enable(True)
-            self.btn_col_add_under.Enable(True)
+            self.btn_col_add_under.Enable(enable=has_cols)
             self.btn_col_del.Enable(enable=has_cols)
             self.btn_col_conf.Enable(enable=has_cols)
         elif self.tab_type == mg.RAW_DISPLAY:
