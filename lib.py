@@ -25,7 +25,7 @@ def get_min_content_size(szr_lst, vertical=True):
     Returns x, y.
     vertical -- whether parent sizer of szr_lst is vertical.
     """
-    debug = True
+    debug = False
     x = 0
     y = 0
     for szr in szr_lst:

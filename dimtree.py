@@ -87,9 +87,10 @@ class DimTree(object):
                         oth_dim=mg.ROWDIM, oth_dim_tree=self.rowtree, 
                         oth_dim_root=self.rowroot)
     
-    def get_selected_idxs(self, sorted_choices):
+    def get_selected_idxs(self, dim, sorted_choices):
         selected_idxs = None # init
-        if self.tab_type in (mg.ROW_SUMM, mg.RAW_DISPLAY):
+        if ((self.tab_type == mg.ROW_SUMM and dim == mg.ROWDIM) 
+                or self.tab_type == mg.RAW_DISPLAY):
             dlg = wx.MultiChoiceDialog(self, _("Select a variable"), 
                                        _("Variables"), choices=sorted_choices)
             retval = dlg.ShowModal()
@@ -117,7 +118,7 @@ class DimTree(object):
         var_names = projects.get_approp_var_names(self.var_types, min_data_type)
         sorted_choices, sorted_vars = lib.get_sorted_choice_items(
                                     dic_labels=self.var_labels, vals=var_names)
-        selected_idxs = self.get_selected_idxs(sorted_choices)
+        selected_idxs = self.get_selected_idxs(dim, sorted_choices)
         if selected_idxs:
             # only use in one dimension
             for idx in selected_idxs:
@@ -239,7 +240,7 @@ class DimTree(object):
         var_names = dd.flds.keys()
         sorted_choices, sorted_vars = lib.get_sorted_choice_items(
                                                     self.var_labels, var_names)
-        selected_idxs = self.get_selected_idxs(sorted_choices)
+        selected_idxs = self.get_selected_idxs(dim, sorted_choices)
         if selected_idxs:
             for idx in selected_idxs:
                 text = sorted_choices[idx]
