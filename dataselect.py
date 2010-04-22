@@ -23,8 +23,7 @@ class DataSelectDlg(wx.Dialog):
         debug = False
         title = _("Data in \"%s\" Project") % proj_name
         wx.Dialog.__init__(self, parent=parent, title=title, 
-                           style=wx.CAPTION|wx.CLOSE_BOX|
-                           wx.SYSTEM_MENU, pos=(300,100))
+                           style=wx.CAPTION|wx.SYSTEM_MENU, pos=(300,100))
         self.parent = parent
         self.panel = wx.Panel(self)
         wx.BeginBusyCursor()

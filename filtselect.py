@@ -60,8 +60,7 @@ class FiltSelectDlg(wx.Dialog):
         tbl_filt_label, self.tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         title = _("Current filter") if self.tbl_filt else _("Apply filter")
         wx.Dialog.__init__(self, parent=parent, title=title, 
-                           style=wx.CAPTION|wx.CLOSE_BOX|
-                           wx.SYSTEM_MENU, pos=(300, 100))
+                           style=wx.CAPTION|wx.SYSTEM_MENU, pos=(300,100))
         self.parent = parent
         self.panel = wx.Panel(self)
         # szrs
@@ -81,7 +80,7 @@ class FiltSelectDlg(wx.Dialog):
         szr_label.Add(lbl_label, 0, wx.RIGHT, 10)
         szr_label.Add(self.txt_label, 1)
         # quick content
-        self.drop_vars = wx.Choice(self.panel, -1, size=(300, -1))
+        self.drop_vars = wx.Choice(self.panel, -1, size=(300,-1))
         self.drop_vars.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_vars)
         self.drop_vars.SetToolTipString(_("Right click variable to view/edit "
                                          "details"))

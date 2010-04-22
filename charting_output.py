@@ -34,9 +34,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             myheight = 800
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
                            pos=(200, 0), size=(1024, myheight),
-                           style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX| \
-                           wx.RESIZE_BORDER|wx.SYSTEM_MENU| \
-                           wx.CAPTION|wx.CLOSE_BOX|wx.CLIP_CHILDREN)
+                           style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
+                           wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
+                           wx.CLIP_CHILDREN)
         self.takes_range = takes_range
         self.url_load = True # btn_expand
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \

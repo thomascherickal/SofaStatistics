@@ -108,9 +108,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     def __init__(self, var_labels=None, var_notes=None, val_dics=None):
         debug = False
         wx.Dialog.__init__(self, parent=None, id=-1, 
-               title=_("Make Report Table"), pos=(200, 0),
-               style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
-               wx.SYSTEM_MENU|wx.CAPTION|wx.CLOSE_BOX|wx.CLIP_CHILDREN)
+                       title=_("Make Report Table"), pos=(200, 0),
+                       style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
+                       wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         self.url_load = True # btn_expand    
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])

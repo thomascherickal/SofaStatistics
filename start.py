@@ -182,8 +182,8 @@ class StartFrame(wx.Frame):
         self.main_font_size = main_font_size
         # Gen set up
         wx.Frame.__init__(self, None, title=_("SOFA Start"), 
-              size=(SCREEN_WIDTH, 600),
-              style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
+                          size=(SCREEN_WIDTH, 600),
+                          style=wx.CAPTION|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize())

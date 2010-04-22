@@ -80,7 +80,7 @@ class TblEditor(wx.Dialog):
                            pos=(300, 0), size=(mywidth, myheight),
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
-                           wx.CLOSE_BOX|wx.CLIP_CHILDREN)
+                           wx.CLIP_CHILDREN)
         self.parent = parent
         self.var_labels = var_labels
         self.var_notes = var_notes

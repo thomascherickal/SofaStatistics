@@ -48,7 +48,7 @@ class StatsSelectDlg(wx.Dialog):
                  val_dics=None):
         wx.Dialog.__init__(self, None, title=_("Select Statistical Test"), 
               size=(800,542),
-              style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU,
+              style=wx.CAPTION|wx.MINIMIZE_BOX|wx.SYSTEM_MENU,
               pos=(100,100))
         self.proj_name = proj_name
         # Windows doesn't include window decorations

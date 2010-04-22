@@ -42,8 +42,8 @@ class SettingsEntryDlg(wx.Dialog):
             (if any).  Must take row index as argument.
         """
         wx.Dialog.__init__(self, None, title=title, size=(400,400), 
-                          style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
-                                wx.SYSTEM_MENU, pos=(300,0))
+                          style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU, 
+                          pos=(300,0))
         self.panel = wx.Panel(self)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         force_focus = False

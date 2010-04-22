@@ -169,7 +169,7 @@ class ListVarsDlg(wx.Dialog):
     def __init__(self, var_labels, var_notes, var_types, val_dics, updated):
         "updated -- empty set - add True to 'return' updated True"
         wx.Dialog.__init__(self, None, title=_("Variable Details"),
-                  size=(500,600), style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU)
+                           size=(500,600), style=wx.CAPTION|wx.SYSTEM_MENU)
         self.var_labels = var_labels
         self.var_notes = var_notes
         self.var_types = var_types
@@ -248,8 +248,7 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         grid_size = (250, 250)
         wx.Dialog.__init__(self, None, title=title,
                           size=(500,400), pos=(350,100),
-                          style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
-                              wx.SYSTEM_MENU)
+                          style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU)
         self.panel = wx.Panel(self)
         self.var_desc = var_desc
         # New controls
@@ -331,7 +330,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         wx.Dialog.__init__(self, parent=parent, title=_("Project Settings"),
                size=(1024, myheight), 
                style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
-               wx.SYSTEM_MENU|wx.CAPTION|wx.CLOSE_BOX|wx.TAB_TRAVERSAL) 
+               wx.SYSTEM_MENU|wx.CAPTION|wx.TAB_TRAVERSAL) 
                # wx.CLIP_CHILDREN causes problems in Windows
         self.szr = wx.BoxSizer(wx.VERTICAL)
         self.panel_top = wx.Panel(self)

@@ -205,9 +205,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                      ]
         grid_size = (300,250)
         wx.Dialog.__init__(self, None, title=_("Configure Data Table"),
-                          size=(500,400), 
-                          style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
-                              wx.SYSTEM_MENU)
+                           size=(500,400), 
+                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU)
         self.panel = wx.Panel(self)
         # New controls
         lbl_tbl_label = wx.StaticText(self.panel, -1, _("Table Name:"))

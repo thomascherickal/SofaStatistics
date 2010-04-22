@@ -382,8 +382,7 @@ class HasHeaderDlg(wx.Dialog):
     def __init__(self, parent, ext):
         wx.Dialog.__init__(self, parent=parent, title=_("Header row?"),
                            size=(550, 300), 
-                           style=wx.CAPTION|wx.CLOSE_BOX|
-                           wx.SYSTEM_MENU, pos=(400, 120))
+                           style=wx.CAPTION|wx.SYSTEM_MENU, pos=(400,120))
         self.parent = parent
         self.panel = wx.Panel(self)
         szr_main = wx.BoxSizer(wx.VERTICAL)
@@ -475,9 +474,8 @@ class ImportFileSelectDlg(wx.Dialog):
         """
         title = _("Select file to import") + u" (csv/xls/ods)"
         wx.Dialog.__init__(self, parent=parent, title=title,
-                           size=(550, 300), 
-                           style=wx.CAPTION|wx.CLOSE_BOX|
-                           wx.SYSTEM_MENU, pos=(300, 100))
+                           size=(550,300), 
+                           style=wx.CAPTION|wx.SYSTEM_MENU, pos=(300,100))
         self.parent = parent
         self.panel = wx.Panel(self)
         self.keep_importing = set([True]) # can change and running script can 
