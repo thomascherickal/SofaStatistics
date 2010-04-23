@@ -607,6 +607,10 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                 wx.MessageBox(_("Please provide a project name"))
                 self.txt_name.SetFocus()
                 return
+            elif proj_name == mg.DEFAULT_PROJ[:-5]:
+                wx.MessageBox(_("You cannot use the default project name"))
+                self.txt_name.SetFocus()
+                return
             try:
                 # only needed if returning to projselect form
                 # so OK to fail otherwise
