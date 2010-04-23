@@ -147,33 +147,40 @@ class SofaApp(wx.App):
         wx.App.__init__(self, redirect=redirect, filename=filename)
 
     def OnInit(self):
-        # http://wiki.wxpython.org/RecipesI18n
-        path = sys.path[0].decode(sys.getfilesystemencoding())
-        langdir = os.path.join(path,u'locale')
-        langid = wx.LANGUAGE_GALICIAN if test_lang else wx.LANGUAGE_DEFAULT
-        # the next line will only work if the locale is installed on the computer
-        mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
-        canon_name = mylocale.GetCanonicalName() # e.g. en_NZ, gl_ES etc
-        # want main title to be right size but some languages too long for that
-        self.main_font_size = 20 if canon_name.startswith('en_') else 16
-        mytrans = gettext.translation('sofa', langdir, languages=[canon_name], 
-                                      fallback = True)
-        mytrans.install()
-        if platform.system() == 'Linux':
+        try:
+            # http://wiki.wxpython.org/RecipesI18n
+            path = sys.path[0].decode(sys.getfilesystemencoding())
+            langdir = os.path.join(path,u'locale')
+            langid = wx.LANGUAGE_GALICIAN if test_lang else wx.LANGUAGE_DEFAULT
+            # next line will only work if locale is installed on the computer
+            mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
+            canon_name = mylocale.GetCanonicalName() # e.g. en_NZ, gl_ES etc
+            # want main title to be right size but some langs too long for that
+            self.main_font_size = 20 if canon_name.startswith('en_') else 16
+            mytrans = gettext.translation('sofa', langdir, 
+                                          languages=[canon_name],
+                                          fallback = True)
+            mytrans.install()
+            if platform.system() == 'Linux':
+                try:
+                    # to get some language settings to display properly:
+                    os.environ['LANG'] = u"%s.UTF-8" % canon_name
+                except (ValueError, KeyError):
+                    pass
+            frame = StartFrame(self.main_font_size)
+            frame.CentreOnScreen(wx.VERTICAL) # on dual monitor, 
+                # wx.BOTH puts in screen 2 (in Ubuntu at least)!
+            frame.Show()
+            self.SetTopWindow(frame)
+            mg.MAX_WIDTH = wx.Display().GetGeometry()[2]
+            mg.MAX_HEIGHT = wx.Display().GetGeometry()[3]
+            return True
+        except Exception, e:
             try:
-                # to get some language settings to display properly:
-                os.environ['LANG'] = u"%s.UTF-8" % canon_name
-            except (ValueError, KeyError):
+                frame.Close()
+            except Exception:
                 pass
-        frame = StartFrame(self.main_font_size)
-        frame.CentreOnScreen(wx.VERTICAL) # on dual monitor, 
-            # wx.BOTH puts in screen 2 (in Ubuntu at least)!
-        frame.Show()
-        self.SetTopWindow(frame)
-        mg.MAX_WIDTH = wx.Display().GetGeometry()[2]
-        mg.MAX_HEIGHT = wx.Display().GetGeometry()[3]
-        return True
-
+            raise e
 
 class StartFrame(wx.Frame):
     
@@ -365,54 +372,65 @@ class StartFrame(wx.Frame):
             f.write(u"Comtypes handled successfully :-)")
             f.close()
     
+    def on_paint_err_msg(self, e):
+        wx.MessageBox("Problem displaying start form. "
+                      "Please email the lead developer for help - "
+                      "grant@sofastatistics.com\n\nOrig error: %s" % e)
+    
     def on_paint(self, event):
         """
         Cannot use static bitmaps and static text to replace.  In windows
             doesn't show background wallpaper.
         NB painting like this sets things behind the controls.
         """
-        panel_dc = wx.PaintDC(self.panel)
-        panel_dc.DrawBitmap(self.bmp_sofa, 0, 0, True)
-        panel_dc.DrawBitmap(self.bmp_import, HELP_IMG_LEFT-30, HELP_IMG_TOP-20, 
-                            True)
-        panel_dc.SetTextForeground(wx.WHITE)
-        panel_dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel(_("Version %s") % mg.VERSION, 
-                           wx.Rect(MAIN_RIGHT, TOP_TOP, 100, 20))
-        panel_dc.SetFont(wx.Font(self.main_font_size, wx.SWISS, wx.NORMAL, 
-                                 wx.NORMAL))
-        panel_dc.DrawLabel(_("Statistics Open For All"), 
-                           wx.Rect(MAIN_LEFT, 80, 100, 100))
-        panel_dc.SetFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.SetTextForeground(TEXT_BROWN)
-        panel_dc.DrawLabel(_("SOFA - Statistics Open For All"
-                             "\nthe user-friendly, open-source statistics,"
-                             "\nanalysis & reporting package"), 
-           wx.Rect(MAIN_LEFT, 115, 100, 100))
-        panel_dc.DrawLabel(lib.get_text_to_draw(self.txtWelcome, 
-                                                MAX_HELP_TEXT_WIDTH), 
-                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
-        panel_dc.SetTextForeground(wx.WHITE)
-        panel_dc.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel(u"Released under open source AGPL3 licence\n%s "
-                           "2009-2010 Paton-Simpson & Associates Ltd" % \
-                           COPYRIGHT, 
-                           wx.Rect(MAIN_LEFT, 547, 100, 50))
-        panel_dc.DrawLabel(u"SOFA\nPaton-Simpson & Associates Ltd\n" + \
-                           _("Analysis & reporting specialists"), 
-                           wx.Rect(MAIN_RIGHT, 547, 100, 50))
-        panel_dc.DrawBitmap(self.bmp_psal, MAIN_RIGHT-45, 542, True)
-        # make default db if not already there
-        def_db = os.path.join(LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB)
-        con = sqlite.connect(def_db)
-        con.close()
-        panel_dc.DrawBitmap(self.blank_proj_strip, MAIN_LEFT, 218, False)
-        panel_dc.SetTextForeground(wx.WHITE)
-        panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel(_("Currently using \"%s\" project settings") % 
-                                self.active_proj[:-5],
-                           wx.Rect(MAIN_LEFT, 247, 400, 30))
-        event.Skip()
+        try:
+            panel_dc = wx.PaintDC(self.panel)
+            panel_dc.DrawBitmap(self.bmp_sofa, 0, 0, True)
+            panel_dc.DrawBitmap(self.bmp_import, HELP_IMG_LEFT-30, 
+                                HELP_IMG_TOP-20, True)
+            panel_dc.SetTextForeground(wx.WHITE)
+            panel_dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL))
+            panel_dc.DrawLabel(_("Version %s") % mg.VERSION, 
+                               wx.Rect(MAIN_RIGHT, TOP_TOP, 100, 20))
+            panel_dc.SetFont(wx.Font(self.main_font_size, wx.SWISS, wx.NORMAL, 
+                                     wx.NORMAL))
+            panel_dc.DrawLabel(_("Statistics Open For All"), 
+                               wx.Rect(MAIN_LEFT, 80, 100, 100))
+            panel_dc.SetFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL))
+            panel_dc.SetTextForeground(TEXT_BROWN)
+            panel_dc.DrawLabel(_("SOFA - Statistics Open For All"
+                                 "\nthe user-friendly, open-source statistics,"
+                                 "\nanalysis & reporting package"), 
+               wx.Rect(MAIN_LEFT, 115, 100, 100))
+            panel_dc.DrawLabel(lib.get_text_to_draw(self.txtWelcome, 
+                                                    MAX_HELP_TEXT_WIDTH), 
+                        wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
+            panel_dc.SetTextForeground(wx.WHITE)
+            panel_dc.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
+            panel_dc.DrawLabel(u"Released under open source AGPL3 licence\n%s "
+                               "2009-2010 Paton-Simpson & Associates Ltd" %
+                               COPYRIGHT, 
+                               wx.Rect(MAIN_LEFT, 547, 100, 50))
+            panel_dc.DrawLabel(u"SOFA\nPaton-Simpson & Associates Ltd\n" +
+                               _("Analysis & reporting specialists"), 
+                               wx.Rect(MAIN_RIGHT, 547, 100, 50))
+            panel_dc.DrawBitmap(self.bmp_psal, MAIN_RIGHT-45, 542, True)
+            # make default db if not already there
+            def_db = os.path.join(LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB)
+            con = sqlite.connect(def_db)
+            con.close()
+            panel_dc.DrawBitmap(self.blank_proj_strip, MAIN_LEFT, 218, False)
+            panel_dc.SetTextForeground(wx.WHITE)
+            panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
+            panel_dc.DrawLabel(_("Currently using \"%s\" project settings") % 
+                                    self.active_proj[:-5],
+                               wx.Rect(MAIN_LEFT, 247, 400, 30))
+            event.Skip()
+        except Exception, e:
+            event.Skip()
+            self.panel.Unbind(wx.EVT_PAINT)
+            wx.CallAfter(self.on_paint_err_msg, e)
+            self.Destroy()
 
     def draw_blank_wallpaper(self, panel_dc):
         panel_dc.DrawBitmap(self.blank_wallpaper, MAIN_LEFT, HELP_TEXT_TOP, 
@@ -736,8 +754,34 @@ class StartFrame(wx.Frame):
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
 
-app = SofaApp()
+# Give the user something if the program fails at an early stage before anything
+# appears on the screen.
+
+class MsgFrame(wx.Frame):
+    def __init__(self, e):
+        wx.Frame.__init__(self, None, title=_("SOFA Error"))
+        wx.MessageBox("Something went wrong with running SOFA Statistics. "
+                      "Please email the lead developer for help - "
+                      "grant@sofastatistics.com\n\nOrig error: %s" % e)
+        self.Destroy()
+        
+
+class MsgApp(wx.App):
+
+    def __init__(self, e):
+        self.e = e
+        wx.App.__init__(self, redirect=False, filename=None)
+
+    def OnInit(self):
+        msgframe = MsgFrame(self.e)
+        msgframe.Show()
+        self.SetTopWindow(msgframe)
+        return True
+
 try:
+    app = SofaApp()
     app.MainLoop()
-finally:
+except Exception, e:
+    app = MsgApp(e)
+    app.MainLoop()
     del app

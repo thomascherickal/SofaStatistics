@@ -81,7 +81,8 @@ def get_missing_dets_msg(tab_type, has_rows, has_cols):
     No css - just directly fed into web renderer as is.
     29221c -- dark brown
     """
-    style_template = u"<p style=\"color: 29221c; font-size: 20px\">%s</p>"
+    style_template = (u"<p style=\"color: 29221c; font-size: 20px;"
+        "font-family: Arial; font-weight: bold\">%s</p>")
     if tab_type == mg.FREQS_TBL:
         return style_template % _("Add and configure rows")
     elif tab_type == mg.CROSSTAB:
