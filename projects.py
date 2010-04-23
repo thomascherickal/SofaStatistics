@@ -601,8 +601,10 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
        
     def on_ok(self, event):
         # get the data (separated for easier debugging)
-        if not self.readonly:
-            proj_name = self.txt_name.GetValue()
+        proj_name = self.txt_name.GetValue()
+        if self.readonly:
+            self.parent.store_proj_name(u"%s.proj" % proj_name)
+        else:
             if proj_name == mg.EMPTY_PROJ_NAME:
                 wx.MessageBox(_("Please provide a project name"))
                 self.txt_name.SetFocus()
@@ -670,8 +672,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             f.write(u"\n\ndefault_tbls = " + pprint.pformat(default_tbls))
             f.write(u"\n\ncon_dets = " + pprint.pformat(con_dets))
             f.close()
-            if self.new_proj:
-                self.parent.parent.set_proj(proj_name)
+            self.parent.parent.set_proj(proj_name)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # only for dialogs
         # (MUST come after Destroy)        
