@@ -77,21 +77,26 @@ def replace_titles_subtitles(orig, titles, subtitles):
     return demo_tbl_html  
 
 def get_missing_dets_msg(tab_type, has_rows, has_cols):
+    """
+    No css - just directly fed into web renderer as is.
+    29221c -- dark brown
+    """
+    style_template = u"<p style=\"color: 29221c; font-size: 20px\">%s</p>"
     if tab_type == mg.FREQS_TBL:
-        return _("<p>Add and configure rows</p>")
+        return style_template % _("Add and configure rows")
     elif tab_type == mg.CROSSTAB:
         if not has_rows and not has_cols:
-            return _("<p>Add and configure rows and columns</p>")
+            return style_template % _("Add and configure rows and columns")
         elif not has_rows:
-            return _("<p>Add and configure rows</p>")
+            return style_template %_("Add and configure rows")
         elif not has_cols:
-            return _("<p>Add and configure columns</p>")
+            return style_template % _("Add and configure columns")
         else:
-            return _("<p>Waiting for enough settings ...</p>")
+            return style_template % _("Waiting for enough settings ...")
     elif tab_type == mg.ROW_SUMM:
-        return _("<p>Add and configure rows</p>")
+        return style_template % _("Add and configure rows")
     elif tab_type == mg.RAW_DISPLAY:
-        return _("<p>Add and configure columns</p>")
+        return style_template % _("Add and configure columns")
     else:
         raise Exception, "Unknown table type"
 
@@ -804,17 +809,19 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 demo_tbl_html = waiting_msg
                 self.prev_demo = None
             else:
-                demo_tbl_html = (_("<h2>Example data - click 'Run' for actual "
-                        "results<br>&nbsp;&nbsp;or keep configuring</h2>"))
+                demo_tbl_html = (_("<p class='gui-msg-medium'>Example data - "
+                       "click 'Run' for actual results<br>&nbsp;&nbsp;or "
+                       "keep configuring</p>"))
                 current_style = config_dlg.path2style(cc[mg.CURRENT_CSS_PATH])
                 if (not mg.IN_WINDOWS and current_style in [u"lucid_spirals", 
                                                 u"grey_spirals", u"pebbles"]):
-                    demo_tbl_html += (u"<p>NOTE - Even though it doesn't show "
-                        "here, the background image used in the \"%s\" style "
-                        "displays properly in any output added to your report. "
-                        "This issue has a known cause which should be resolved "
-                        "by the next version of SOFA Statistics.</p>" % 
-                        current_style)
+                    demo_tbl_html += (u"<p class='gui-msg-small'>"
+                        "<span class='gui-note'>NOTE</span> - Even though it "
+                        "doesn't show here, the background image used in the"
+                        " \"%s\" style displays properly in any output added to"
+                        " your report. This issue has a known cause which "
+                        "should be resolved by the next version of SOFA "
+                        "Statistics.</p>" % current_style)
                 demo_tbl_html += u"\n\n" + demo_html
                 self.prev_demo = demo_tbl_html
         if debug: print(u"\n" + demo_tbl_html + "\n")
