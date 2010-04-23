@@ -368,9 +368,10 @@ def run_report(modules, add_to_report, css_fils, inner_script):
                             lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH]) + 
                             results_with_source)
         # make relative links absolute so GUI viewers can display images
-        gui_display_content = lib.rel2abs_links(rel_display_content)
+        gui_display_content = lib.rel2abs_background(
+                                        lib.rel2abs_links(rel_display_content))
     else:
-        gui_display_content = results_with_source
+        gui_display_content = lib.rel2abs_background(results_with_source)
     if debug: print(gui_display_content)
     return True, gui_display_content
 

@@ -46,9 +46,8 @@ class DlgHTML(wx.Dialog):
         title -- dialog title.
         print_folder -- needs to be a subfolder of the current folder.
         """
-        wx.Dialog.__init__(self, parent=parent, id=-1, title=title, 
-                        pos=(0,0), style=wx.RESIZE_BORDER|\
-                        wx.DEFAULT_DIALOG_STYLE|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
+        wx.Dialog.__init__(self, parent=parent, id=-1, title=title,
+                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU)
         self.file_name = file_name
         self.print_folder = print_folder
         self.html = full_html.FullHTML(self, size=wx.DefaultSize)
@@ -71,7 +70,11 @@ class DlgHTML(wx.Dialog):
         szr_main.Add(szr_btns, 0, wx.GROW)
         self.SetSizer(szr_main)
         self.Layout()
-        self.Maximize()
+        height_adj = 60 if not mg.IN_WINDOWS else 0
+        pos_y = 40 if not mg.IN_WINDOWS else 5
+        self.SetSize((mg.MAX_WIDTH-20, mg.MAX_HEIGHT-(40+height_adj)))
+        self.SetPosition((10, pos_y))
+        self.Restore()
         lib.safe_end_cursor()
     
     def show_content(self, url=None, content=None, url_load=None):
