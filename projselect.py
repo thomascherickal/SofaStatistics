@@ -165,13 +165,17 @@ class ProjSelectDlg(wx.Dialog):
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=fil_proj)
         try:
+            wx.BeginBusyCursor()
             dd.set_proj_dic(proj_dic)
             proj_name = fil_proj[:-5] # might not be a sensible ...proj file
             self.parent.set_proj(proj_name)
         except Exception, e:
+            lib.safe_end_cursor()
             wx.MessageBox(_("Unable to use the selected project file. Please "
                             "check name of file and its contents using "
-                            "%s as example" % mg.DEFAULT_PROJ))
+                            "%s as example. Orig err: %s" % 
+                            (mg.DEFAULT_PROJ, e)))
             return
+        lib.safe_end_cursor()
         self.Destroy()
         

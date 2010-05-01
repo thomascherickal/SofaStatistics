@@ -292,74 +292,87 @@ def get_index_dets(cur, db, tbl):
 
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     # default database
-    parent.lblMysqlDefaultDb = wx.StaticText(scroll, -1, 
+    parent.lbl_mysql_default_db = wx.StaticText(scroll, -1, 
                                              _("Default Database (name only):"))
-    parent.lblMysqlDefaultDb.SetFont(lblfont)
+    parent.lbl_mysql_default_db.SetFont(lblfont)
     mysql_default_db = parent.mysql_default_db if parent.mysql_default_db \
         else ""
-    parent.txtMysqlDefaultDb = wx.TextCtrl(scroll, -1, mysql_default_db, 
+    parent.txt_mysql_default_db = wx.TextCtrl(scroll, -1, mysql_default_db, 
                                            size=(200,-1))
-    parent.txtMysqlDefaultDb.Enable(not readonly)
+    parent.txt_mysql_default_db.Enable(not readonly)
     # default table
-    parent.lblMysqlDefaultTbl = wx.StaticText(scroll, -1, 
+    parent.lbl_mysql_default_tbl = wx.StaticText(scroll, -1, 
                                        _("Default Table:"))
-    parent.lblMysqlDefaultTbl.SetFont(lblfont)
+    parent.lbl_mysql_default_tbl.SetFont(lblfont)
     mysql_default_tbl = parent.mysql_default_tbl if parent.mysql_default_tbl \
         else ""
-    parent.txtMysqlDefaultTbl = wx.TextCtrl(scroll, -1, mysql_default_tbl, 
+    parent.txt_mysql_default_tbl = wx.TextCtrl(scroll, -1, mysql_default_tbl, 
                                             size=(200,-1))
-    parent.txtMysqlDefaultTbl.Enable(not readonly)
+    parent.txt_mysql_default_tbl.Enable(not readonly)
     # host
-    parent.lblMysqlHost = wx.StaticText(scroll, -1, _("Host:"))
-    parent.lblMysqlHost.SetFont(lblfont)
+    parent.lbl_mysql_host = wx.StaticText(scroll, -1, _("Host:"))
+    parent.lbl_mysql_host.SetFont(lblfont)
     mysql_host = parent.mysql_host if parent.mysql_host else ""
-    parent.txtMysqlHost = wx.TextCtrl(scroll, -1, mysql_host, size=(100,-1))
-    parent.txtMysqlHost.Enable(not readonly)
+    parent.txt_mysql_host = wx.TextCtrl(scroll, -1, mysql_host, size=(100,-1))
+    parent.txt_mysql_host.Enable(not readonly)
+    # port
+    parent.lbl_mysql_port = wx.StaticText(scroll, -1, _("Port:"))
+    parent.lbl_mysql_port.SetFont(lblfont)
+    mysql_port = parent.mysql_port if parent.mysql_port else "3306"
+    parent.txt_mysql_port = wx.TextCtrl(scroll, -1, mysql_port, size=(100,-1))
+    parent.txt_mysql_port.Enable(not readonly)
     # user
-    parent.lblMysqlUser = wx.StaticText(scroll, -1, _("User:"))
-    parent.lblMysqlUser.SetFont(lblfont)
+    parent.lbl_mysql_user = wx.StaticText(scroll, -1, _("User:"))
+    parent.lbl_mysql_user.SetFont(lblfont)
     mysql_user = parent.mysql_user if parent.mysql_user else ""
-    parent.txtMysqlUser = wx.TextCtrl(scroll, -1, mysql_user, size=(100,-1))
-    parent.txtMysqlUser.Enable(not readonly)
+    parent.txt_mysql_user = wx.TextCtrl(scroll, -1, mysql_user, size=(100,-1))
+    parent.txt_mysql_user.Enable(not readonly)
     # password
-    parent.lblMysqlPwd = wx.StaticText(scroll, -1, _("Password:"))
-    parent.lblMysqlPwd.SetFont(lblfont)
+    parent.lbl_mysql_pwd = wx.StaticText(scroll, -1, _("Password:"))
+    parent.lbl_mysql_pwd.SetFont(lblfont)
     mysql_pwd = parent.mysql_pwd if parent.mysql_pwd else ""
-    parent.txtMysqlPwd = wx.TextCtrl(scroll, -1, mysql_pwd, size=(300,-1))
-    parent.txtMysqlPwd.Enable(not readonly)
+    parent.txt_mysql_pwd = wx.TextCtrl(scroll, -1, mysql_pwd, size=(300,-1))
+    parent.txt_mysql_pwd.Enable(not readonly)
     #2 MYSQL
     bxMysql= wx.StaticBox(scroll, -1, "MySQL")
-    parent.szrMysql = wx.StaticBoxSizer(bxMysql, wx.VERTICAL)
+    parent.szr_mysql = wx.StaticBoxSizer(bxMysql, wx.VERTICAL)
     #3 MYSQL INNER
     #4 MYSQL INNER TOP
-    szrMysqlInnerTop = wx.BoxSizer(wx.HORIZONTAL)
+    szr_mysql_inner_top = wx.BoxSizer(wx.HORIZONTAL)
     # default database
-    szrMysqlInnerTop.Add(parent.lblMysqlDefaultDb, 0, wx.LEFT|wx.RIGHT, 5)
-    szrMysqlInnerTop.Add(parent.txtMysqlDefaultDb, 0, wx.GROW|wx.RIGHT, 10)
+    szr_mysql_inner_top.Add(parent.lbl_mysql_default_db, 0, 
+                            wx.LEFT|wx.RIGHT, 5)
+    szr_mysql_inner_top.Add(parent.txt_mysql_default_db, 0, 
+                            wx.GROW|wx.RIGHT, 10)
     # default table
-    szrMysqlInnerTop.Add(parent.lblMysqlDefaultTbl, 0, wx.LEFT|wx.RIGHT, 5)
-    szrMysqlInnerTop.Add(parent.txtMysqlDefaultTbl, 0, wx.GROW|wx.RIGHT, 10)
+    szr_mysql_inner_top.Add(parent.lbl_mysql_default_tbl, 0, 
+                            wx.LEFT|wx.RIGHT, 5)
+    szr_mysql_inner_top.Add(parent.txt_mysql_default_tbl, 0, 
+                            wx.GROW|wx.RIGHT, 10)
     #4 MYSQL INNER BOTTOM
-    szrMysqlInnerBtm = wx.BoxSizer(wx.HORIZONTAL)
+    szr_mysql_inner_btm = wx.BoxSizer(wx.HORIZONTAL)
     # host 
-    szrMysqlInnerBtm.Add(parent.lblMysqlHost, 0, wx.LEFT|wx.RIGHT, 5)
-    szrMysqlInnerBtm.Add(parent.txtMysqlHost, 0, wx.RIGHT, 10)
+    szr_mysql_inner_btm.Add(parent.lbl_mysql_host, 0, wx.LEFT|wx.RIGHT, 5)
+    szr_mysql_inner_btm.Add(parent.txt_mysql_host, 0, wx.RIGHT, 10)
+    # port 
+    szr_mysql_inner_btm.Add(parent.lbl_mysql_port, 0, wx.LEFT|wx.RIGHT, 5)
+    szr_mysql_inner_btm.Add(parent.txt_mysql_port, 0, wx.RIGHT, 10)
     # user
-    szrMysqlInnerBtm.Add(parent.lblMysqlUser, 0, wx.LEFT|wx.RIGHT, 5)
-    szrMysqlInnerBtm.Add(parent.txtMysqlUser, 0, wx.RIGHT, 10)
+    szr_mysql_inner_btm.Add(parent.lbl_mysql_user, 0, wx.LEFT|wx.RIGHT, 5)
+    szr_mysql_inner_btm.Add(parent.txt_mysql_user, 0, wx.RIGHT, 10)
     # password
-    szrMysqlInnerBtm.Add(parent.lblMysqlPwd, 0, wx.LEFT|wx.RIGHT, 5)
-    szrMysqlInnerBtm.Add(parent.txtMysqlPwd, 1, wx.GROW|wx.RIGHT, 10)
+    szr_mysql_inner_btm.Add(parent.lbl_mysql_pwd, 0, wx.LEFT|wx.RIGHT, 5)
+    szr_mysql_inner_btm.Add(parent.txt_mysql_pwd, 1, wx.GROW|wx.RIGHT, 10)
     #2 combine
-    parent.szrMysql.Add(szrMysqlInnerTop, 0, wx.GROW|wx.ALL, 5)
-    parent.szrMysql.Add(szrMysqlInnerBtm, 0, wx.ALL, 5)
-    szr.Add(parent.szrMysql, 0, wx.GROW|wx.ALL, 10)
+    parent.szr_mysql.Add(szr_mysql_inner_top, 0, wx.GROW|wx.ALL, 5)
+    parent.szr_mysql.Add(szr_mysql_inner_btm, 0, wx.ALL, 5)
+    szr.Add(parent.szr_mysql, 0, wx.GROW|wx.ALL, 10)
     
 def get_proj_settings(parent, proj_dic):
     parent.mysql_default_db = proj_dic["default_dbs"].get(mg.DBE_MYSQL)
     parent.mysql_default_tbl = \
         proj_dic["default_tbls"].get(mg.DBE_MYSQL)
-    # optional (although if any mysql, for eg, must have all)
+    # optional (although if any mysql, for eg, must have host, user, and passwd)
     if proj_dic["con_dets"].get(mg.DBE_MYSQL):
         parent.mysql_host = proj_dic["con_dets"][mg.DBE_MYSQL]["host"]
         parent.mysql_user = proj_dic["con_dets"][mg.DBE_MYSQL]["user"]
@@ -390,18 +403,18 @@ def set_con_det_defaults(parent):
         parent.mysql_pwd = u""
     
 def process_con_dets(parent, default_dbs, default_tbls, con_dets):
-    mysql_default_db = parent.txtMysqlDefaultDb.GetValue()
-    mysql_default_tbl = parent.txtMysqlDefaultTbl.GetValue()
-    mysql_host = parent.txtMysqlHost.GetValue()
-    mysql_user = parent.txtMysqlUser.GetValue()
-    mysql_pwd = parent.txtMysqlPwd.GetValue()
+    mysql_default_db = parent.txt_mysql_default_db.GetValue()
+    mysql_default_tbl = parent.txt_mysql_default_tbl.GetValue()
+    mysql_host = parent.txt_mysql_host.GetValue()
+    mysql_user = parent.txt_mysql_user.GetValue()
+    mysql_pwd = parent.txt_mysql_pwd.GetValue()
     has_mysql_con = mysql_host and mysql_user and mysql_pwd \
         and mysql_default_db and mysql_default_tbl
     incomplete_mysql = (mysql_host or mysql_user or mysql_pwd \
         or mysql_default_db or mysql_default_tbl) and not has_mysql_con
     if incomplete_mysql:
         wx.MessageBox(_("The MySQL details are incomplete"))
-        parent.txtMysqlDefaultDb.SetFocus()
+        parent.txt_mysql_default_db.SetFocus()
     default_dbs[mg.DBE_MYSQL] = mysql_default_db \
         if mysql_default_db else None    
     default_tbls[mg.DBE_MYSQL] = mysql_default_tbl \
