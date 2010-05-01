@@ -305,7 +305,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                                        _("Default Table:"))
     parent.lbl_mysql_default_tbl.SetFont(lblfont)
     mysql_default_tbl = parent.mysql_default_tbl if parent.mysql_default_tbl \
-        else ""
+        else u""
     parent.txt_mysql_default_tbl = wx.TextCtrl(scroll, -1, mysql_default_tbl, 
                                             size=(200,-1))
     parent.txt_mysql_default_tbl.Enable(not readonly)
@@ -318,7 +318,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     # port
     parent.lbl_mysql_port = wx.StaticText(scroll, -1, _("Port:"))
     parent.lbl_mysql_port.SetFont(lblfont)
-    mysql_port = parent.mysql_port if parent.mysql_port else "3306"
+    mysql_port = parent.mysql_port if parent.mysql_port else u""
     parent.txt_mysql_port = wx.TextCtrl(scroll, -1, mysql_port, size=(100,-1))
     parent.txt_mysql_port.Enable(not readonly)
     # user
@@ -377,8 +377,10 @@ def get_proj_settings(parent, proj_dic):
         parent.mysql_host = proj_dic["con_dets"][mg.DBE_MYSQL]["host"]
         parent.mysql_user = proj_dic["con_dets"][mg.DBE_MYSQL]["user"]
         parent.mysql_pwd = proj_dic["con_dets"][mg.DBE_MYSQL]["passwd"]
+        parent.mysql_pwd = proj_dic["con_dets"][mg.DBE_MYSQL].get("port","3306")
     else:
-        parent.mysql_host, parent.mysql_user, parent.mysql_pwd = "", "", ""
+        (parent.mysql_host, parent.mysql_port, parent.mysql_user, 
+         parent.mysql_pwd) = u"", u"", u"", u""
 
 def set_con_det_defaults(parent):
     try:
@@ -394,6 +396,10 @@ def set_con_det_defaults(parent):
     except AttributeError: 
         parent.mysql_host = u""
     try:
+        parent.mysql_port
+    except AttributeError: 
+        parent.mysql_port = u""
+    try:
         parent.mysql_user
     except AttributeError: 
         parent.mysql_user = u""
@@ -406,11 +412,12 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     mysql_default_db = parent.txt_mysql_default_db.GetValue()
     mysql_default_tbl = parent.txt_mysql_default_tbl.GetValue()
     mysql_host = parent.txt_mysql_host.GetValue()
+    mysql_port = parent.txt_mysql_port.GetValue()
     mysql_user = parent.txt_mysql_user.GetValue()
     mysql_pwd = parent.txt_mysql_pwd.GetValue()
-    has_mysql_con = mysql_host and mysql_user and mysql_pwd \
+    has_mysql_con = mysql_host and mysql_port and mysql_user and mysql_pwd \
         and mysql_default_db and mysql_default_tbl
-    incomplete_mysql = (mysql_host or mysql_user or mysql_pwd \
+    incomplete_mysql = (mysql_host or mysql_port and mysql_user or mysql_pwd \
         or mysql_default_db or mysql_default_tbl) and not has_mysql_con
     if incomplete_mysql:
         wx.MessageBox(_("The MySQL details are incomplete"))
@@ -419,9 +426,9 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
         if mysql_default_db else None    
     default_tbls[mg.DBE_MYSQL] = mysql_default_tbl \
         if mysql_default_tbl else None
-    if mysql_host and mysql_user and mysql_pwd:
-        con_dets_mysql = {"host": mysql_host, "user": mysql_user, 
-                           "passwd": mysql_pwd}
+    if mysql_host and mysql_port and mysql_user and mysql_pwd:
+        con_dets_mysql = {"host": mysql_host, "port": mysql_port, 
+                          "user": mysql_user, "passwd": mysql_pwd}
         con_dets[mg.DBE_MYSQL] = con_dets_mysql
     return incomplete_mysql, has_mysql_con
     
