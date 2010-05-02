@@ -14,6 +14,7 @@ import pprint
 
 import my_globals as mg
 import dbe_plugins.dbe_globals as dbe_globals
+import my_exceptions
 
 AD_OPEN_KEYSET = 1
 AD_LOCK_OPTIMISTIC = 3
@@ -94,7 +95,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
     """
     con_dets_mssql = con_dets.get(mg.DBE_MS_SQL)
     if not con_dets_mssql:
-        raise Exception, u"No connection details available for MS SQL Server"
+        raise my_exceptions.MissingConDets(mg.DBE_MS_SQL)
     host = con_dets_mssql["host"] # plain string keywords only
     user = con_dets_mssql["user"]
     pwd = con_dets_mssql["passwd"]

@@ -9,6 +9,7 @@ import wx
 
 import my_globals as mg
 import lib
+import my_exceptions
 import settings_grid
 
 Row = sqlite.Row # needed for making cursor return dicts
@@ -51,7 +52,7 @@ def get_con(con_dets, db):
     """
     con_dets_sqlite = con_dets.get(mg.DBE_SQLITE)
     if not con_dets_sqlite:
-        raise Exception, u"No connection details available for SQLite"
+        raise my_exceptions.MissingConDets(mg.DBE_SQLITE)
     if not con_dets_sqlite.get(db):
         raise Exception, u"No connections for SQLite database %s" % db
     try:

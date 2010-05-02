@@ -5,6 +5,7 @@ import wx
 import pprint
 
 import my_globals as mg
+import my_exceptions
 
 # http://www.postgresql.org/docs/8.4/static/datatype.html
 BIGINT = u"bigint" # "signed eight-byte integer"
@@ -80,7 +81,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
     debug = False
     con_dets_pgsql = con_dets.get(mg.DBE_PGSQL)
     if not con_dets_pgsql:
-        raise Exception, u"No connection details available for PostgreSQL"
+        raise my_exceptions.MissingConDets(mg.DBE_PGSQL)
     try:
         if db:
             con_dets_pgsql["database"] = db

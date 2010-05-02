@@ -1,3 +1,7 @@
+class MissingConDets(Exception):
+    def __init__(self, dbe):
+        Exception.__init__(self, u"Missing connection details for %s." % dbe)
+
 class MissingCssException(Exception):
     def __init__(self):
         Exception.__init__(self, "Missing css file.")

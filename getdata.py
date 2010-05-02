@@ -7,6 +7,7 @@ import sys
 import wx
 
 import my_globals as mg
+import my_exceptions
 import config_globals
 import lib
 
@@ -450,9 +451,13 @@ def get_data_dropdowns(parent, panel, default_dbs):
             oth_dbs = con_resources[mg.DBE_DBS]
             oth_db_choices = [(x, oth_dbe) for x in oth_dbs]
             db_choices.extend(oth_db_choices)
-        except Exception, e:
+        except my_exceptions.MissingConDets, e:
             if debug: print(unicode(e))
             pass # no connection possible
+        except Exception, e:
+            wx.MessageBox(_("Unable to connect to %(oth_dbe)s using the details"
+                            " provided. Orig err: %(e)s" % {"oth_dbe": oth_dbe, 
+                                                            "e": e}))
     parent.db_choice_items = [get_db_item(x[0], x[1]) for x in db_choices]
     parent.drop_dbs = wx.Choice(panel, -1, choices=parent.db_choice_items,
                                 size=(300,-1))

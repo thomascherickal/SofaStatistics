@@ -14,6 +14,7 @@ import wx
 
 import my_globals as mg
 import lib
+import my_exceptions
 import dbe_plugins.dbe_globals as dbe_globals
 import settings_grid
 
@@ -60,7 +61,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
     """
     con_dets_access = con_dets.get(mg.DBE_MS_ACCESS)
     if not con_dets_access:
-        raise Exception, u"No connection details available for MS Access"
+        raise my_exceptions.MissingConDets(mg.DBE_MS_ACCESS)
     # get the (only) database and use it to get the connection details
     if not db:
         # use default if possible, or fall back to first
