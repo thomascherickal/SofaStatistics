@@ -247,6 +247,8 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_mssql_default_db = wx.TextCtrl(scroll, -1, mssql_default_db, 
                                            size=(250,-1))
     parent.txt_mssql_default_db.Enable(not readonly)
+    parent.txt_mssql_default_db.SetToolTipString(_("Default database"
+                                                   " (optional)"))
     # default table
     parent.lbl_mssql_default_tbl = wx.StaticText(scroll, -1, 
                                                  _("Default Table:"))
@@ -256,6 +258,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_mssql_default_tbl = wx.TextCtrl(scroll, -1, mssql_default_tbl, 
                                                size=(250,-1))
     parent.txt_mssql_default_tbl.Enable(not readonly)
+    parent.txt_mssql_default_tbl.SetToolTipString(_("Default table (optional)"))
     # host
     parent.lbl_mssql_host = wx.StaticText(scroll, -1, 
                                           _("Host - (local) if your machine:"))
@@ -264,14 +267,15 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_mssql_host = wx.TextCtrl(scroll, -1, mssql_host, size=(100,-1))
     parent.txt_mssql_host.Enable(not readonly)
     # 1433 is the default port for MS SQL Server
-    parent.txt_mssql_host.SetToolTipString(_("Host e.g. localhost, or "
-                                           "remote:3307"))
+    parent.txt_mssql_host.SetToolTipString(_("Host e.g. (local), or "
+                                             "190.190.200.100,1433"))
     # user
     parent.lbl_mssql_user = wx.StaticText(scroll, -1, _("User - e.g. root:"))
     parent.lbl_mssql_user.SetFont(lblfont)
     mssql_user = parent.mssql_user if parent.mssql_user else ""
     parent.txt_mssql_user = wx.TextCtrl(scroll, -1, mssql_user, size=(100,-1))
     parent.txt_mssql_user.Enable(not readonly)
+    parent.txt_mssql_user.SetToolTipString(_("User e.g. root"))
     # password
     parent.lbl_mssql_pwd = wx.StaticText(scroll, -1, 
                                          _("Password - space if none:"))
@@ -279,6 +283,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     mssql_pwd = parent.mssql_pwd if parent.mssql_pwd else ""
     parent.txt_mssql_pwd = wx.TextCtrl(scroll, -1, mssql_pwd, size=(100,-1))
     parent.txt_mssql_pwd.Enable(not readonly)
+    parent.txt_mssql_pwd.SetToolTipString(_("Password"))
     #2 MS SQL SERVER
     bx_mssql= wx.StaticBox(scroll, -1, u"Microsoft SQL Server")
     parent.szr_mssql = wx.StaticBoxSizer(bx_mssql, wx.VERTICAL)

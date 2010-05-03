@@ -227,9 +227,12 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.lbl_msaccess_default_db.SetFont(lblfont)
     MSACCESS_DEFAULT_DB = parent.msaccess_default_db \
         if parent.msaccess_default_db else ""
-    parent.txt_msaccess_default_db = wx.TextCtrl(scroll, -1, MSACCESS_DEFAULT_DB, 
-                                              size=(250,-1))
+    parent.txt_msaccess_default_db = wx.TextCtrl(scroll, -1, 
+                                                 MSACCESS_DEFAULT_DB, 
+                                                 size=(250,-1))
     parent.txt_msaccess_default_db.Enable(not readonly)
+    parent.txt_msaccess_default_db.SetToolTipString(_("Default database"
+                                                      " (optional)"))
     # default table
     parent.lbl_msaccess_default_tbl = wx.StaticText(scroll, -1, 
                                                  _("Default Table:"))
@@ -240,6 +243,8 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                                                   MSACCESS_DEFAULT_TBL, 
                                                   size=(250,-1))
     parent.txt_msaccess_default_tbl.Enable(not readonly)
+    parent.txt_msaccess_default_tbl.SetToolTipString(_("Default table"
+                                                       " (optional)"))
     bx_msaccess= wx.StaticBox(scroll, -1, "MS Access")
     parent.szr_msaccess = wx.StaticBoxSizer(bx_msaccess, wx.VERTICAL)
     #3 MS ACCESS INNER

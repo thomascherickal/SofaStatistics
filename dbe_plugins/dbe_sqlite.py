@@ -184,30 +184,35 @@ def get_index_dets(cur, db, tbl):
 
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     # default database
-    parent.lblSqliteDefaultDb = wx.StaticText(scroll, -1, 
-                                      _("Default Database (name only):"))
-    parent.lblSqliteDefaultDb.SetFont(lblfont)
+    parent.lbl_sqlite_default_db = wx.StaticText(scroll, -1, 
+                                            _("Default Database (name only):"))
+    parent.lbl_sqlite_default_db.SetFont(lblfont)
     DEFAULT_DB = parent.sqlite_default_db if parent.sqlite_default_db else ""
-    parent.txtSqliteDefaultDb = wx.TextCtrl(scroll, -1, DEFAULT_DB, 
-                                            size=(250,-1))
-    parent.txtSqliteDefaultDb.Enable(not readonly)
+    parent.txt_sqlite_default_db = wx.TextCtrl(scroll, -1, DEFAULT_DB, 
+                                               size=(250,-1))
+    parent.txt_sqlite_default_db.Enable(not readonly)
+    parent.txt_sqlite_default_db.SetToolTipString(_("Default database"
+                                                 " (optional)"))
     # default table
-    parent.lblSqliteDefaultTbl = wx.StaticText(scroll, -1, _("Default Table:"))
-    parent.lblSqliteDefaultTbl.SetFont(lblfont)
+    parent.lbl_sqlite_default_tbl = wx.StaticText(scroll, -1, 
+                                                  _("Default Table:"))
+    parent.lbl_sqlite_default_tbl.SetFont(lblfont)
     DEFAULT_TBL = parent.sqlite_default_tbl if parent.sqlite_default_tbl \
-        else ""
-    parent.txtSqliteDefaultTbl = wx.TextCtrl(scroll, -1, DEFAULT_TBL, 
+        else u""
+    parent.txt_sqlite_default_tbl = wx.TextCtrl(scroll, -1, DEFAULT_TBL, 
                                              size=(250,-1))
-    parent.txtSqliteDefaultTbl.Enable(not readonly)
-    bxSqlite = wx.StaticBox(scroll, -1, "SQLite")
-    parent.szrSqlite = wx.StaticBoxSizer(bxSqlite, wx.VERTICAL)
+    parent.txt_sqlite_default_tbl.Enable(not readonly)
+    parent.txt_sqlite_default_tbl.SetToolTipString(_("Default table"
+                                                     " (optional)"))
+    bx_sqlite = wx.StaticBox(scroll, -1, "SQLite")
+    parent.szr_sqlite = wx.StaticBoxSizer(bx_sqlite, wx.VERTICAL)
     #3 SQLITE INNER
-    szrSqliteInner = wx.BoxSizer(wx.HORIZONTAL)
-    szrSqliteInner.Add(parent.lblSqliteDefaultDb, 0, wx.LEFT|wx.RIGHT, 5)
-    szrSqliteInner.Add(parent.txtSqliteDefaultDb, 0, wx.RIGHT, 10)
-    szrSqliteInner.Add(parent.lblSqliteDefaultTbl, 0, wx.LEFT|wx.RIGHT, 5)
-    szrSqliteInner.Add(parent.txtSqliteDefaultTbl, 0, wx.RIGHT, 10)
-    parent.szrSqlite.Add(szrSqliteInner, 0, wx.GROW)
+    szr_sqlite_inner = wx.BoxSizer(wx.HORIZONTAL)
+    szr_sqlite_inner.Add(parent.lbl_sqlite_default_db, 0, wx.LEFT|wx.RIGHT, 5)
+    szr_sqlite_inner.Add(parent.txt_sqlite_default_db, 0, wx.RIGHT, 10)
+    szr_sqlite_inner.Add(parent.lbl_sqlite_default_tbl, 0, wx.LEFT|wx.RIGHT, 5)
+    szr_sqlite_inner.Add(parent.txt_sqlite_default_tbl, 0, wx.RIGHT, 10)
+    parent.szr_sqlite.Add(szr_sqlite_inner, 0, wx.GROW)
     sqlite_col_dets = [{"col_label": _("Database(s)"), 
                         "col_type": settings_grid.COL_TEXT_BROWSE, 
                         "col_width": 400, 
@@ -216,11 +221,11 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     data = parent.sqlite_data[:]
     data.sort(key=lambda s: s[0])
     parent.sqlite_grid = settings_grid.SettingsEntry(frame=parent, 
-        panel=scroll, szr=parent.szrSqlite, dim_share=1, readonly=readonly, 
+        panel=scroll, szr=parent.szr_sqlite, dim_share=1, readonly=readonly, 
         grid_size=(550, 100), col_dets=sqlite_col_dets, 
         data=parent.sqlite_data, config_data=parent.sqlite_config_data, 
         force_focus=True)
-    szr.Add(parent.szrSqlite, 0, wx.GROW|wx.ALL, 10)
+    szr.Add(parent.szr_sqlite, 0, wx.GROW|wx.ALL, 10)
 
 def get_proj_settings(parent, proj_dic):
     parent.sqlite_default_db = \
@@ -264,13 +269,13 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
             new_sqlite_dic["database"] = db_path
             con_dets_sqlite[db_name] = new_sqlite_dic
         con_dets[mg.DBE_SQLITE] = con_dets_sqlite
-    DEFAULT_DB = parent.txtSqliteDefaultDb.GetValue()
-    DEFAULT_TBL = parent.txtSqliteDefaultTbl.GetValue()
+    DEFAULT_DB = parent.txt_sqlite_default_db.GetValue()
+    DEFAULT_TBL = parent.txt_sqlite_default_tbl.GetValue()
     has_sqlite_con = con_dets[mg.DBE_SQLITE]
     incomplete_sqlite = (DEFAULT_DB or DEFAULT_TBL) and not has_sqlite_con
     if incomplete_sqlite:
         wx.MessageBox(_("The SQLite details are incomplete"))
-        parent.txtSqliteDefaultDb.SetFocus()
+        parent.txt_sqlite_default_db.SetFocus()
     default_dbs[mg.DBE_SQLITE] = DEFAULT_DB if DEFAULT_DB else None
     default_tbls[mg.DBE_SQLITE] = DEFAULT_TBL if DEFAULT_TBL else None
     return incomplete_sqlite, has_sqlite_con
