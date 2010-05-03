@@ -42,7 +42,8 @@ def get_con_resources(con_dets, default_dbs, db=None):
         no db, so must identify one, but when selecting dbe-db in dropdowns, 
         there will be a db.
     Returns dict with con, cur, dbs, db.
-    Connection keywords must be plain strings not unicode strings
+    Connection keywords must be plain strings not unicode strings.
+    Using SHOW DATABASES works on old as well as new versions of MySQL.
     """
     con_dets_mysql = con_dets.get(mg.DBE_MYSQL)
     if not con_dets_mysql:
@@ -56,11 +57,12 @@ def get_con_resources(con_dets, default_dbs, db=None):
         raise Exception, u"Unable to connect to MySQL db.  " + \
             u"Orig error: %s" % e
     cur = con.cursor() # must return tuples not dics    
-    SQL_get_db_names = u"""SELECT SCHEMA_NAME 
-            FROM information_schema.SCHEMATA
-            WHERE SCHEMA_NAME <> 'information_schema'"""
+    #SQL_get_db_names = u"""SELECT SCHEMA_NAME 
+    #        FROM information_schema.SCHEMATA
+    #        WHERE SCHEMA_NAME <> 'information_schema'"""
+    SQL_get_db_names = "SHOW DATABASES"
     cur.execute(SQL_get_db_names)
-    dbs = [x[0] for x in cur.fetchall()]
+    dbs = [x[0] for x in cur.fetchall() if x[0] != u"information_schema"]
     dbs_lc = [x.lower() for x in dbs]
     if not db:
         # use default if possible, or fall back to first
@@ -84,13 +86,17 @@ def get_con_resources(con_dets, default_dbs, db=None):
     return con_resources
 
 def get_tbls(cur, db):
-    "Get table names given database and cursor"
-    SQL_get_tbl_names = u"""SELECT TABLE_NAME 
-        FROM information_schema.TABLES
-        WHERE TABLE_SCHEMA = %s
-        UNION SELECT TABLE_NAME
-        FROM information_schema.VIEWS
-        WHERE TABLE_SCHEMA = %s """ % (quote_val(db), quote_val(db))
+    """
+    Get table names given database and cursor.
+    SHOW TABLES works with older versions of MySQL than information_schema
+    """
+    #SQL_get_tbl_names = u"""SELECT TABLE_NAME 
+    #    FROM information_schema.TABLES
+    #    WHERE TABLE_SCHEMA = %s
+    #    UNION SELECT TABLE_NAME
+    #    FROM information_schema.VIEWS
+    #    WHERE TABLE_SCHEMA = %s """ % (quote_val(db), quote_val(db))
+    SQL_get_tbl_names = u"""SHOW TABLES FROM %s """ % quote_obj(db)
     cur.execute(SQL_get_tbl_names)
     tbls = [x[0] for x in cur.fetchall()] 
     tbls.sort(key=lambda s: s.upper())

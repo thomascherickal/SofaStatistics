@@ -145,7 +145,6 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.lbl_phrase = wx.StaticText(self.panel, -1, 
                                         _("Start making your selections"))
         szr_vars_bottom.Add(self.lbl_phrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 5)
-        
         szr_vars.Add(szr_vars_top, 0)      
         szr_vars.Add(szr_vars_bottom, 0, wx.GROW)
         szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
