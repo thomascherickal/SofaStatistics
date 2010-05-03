@@ -99,11 +99,11 @@ def get_con_resources(con_dets, default_dbs, db=None):
     # NB db must be accessible from connection
     if not db:
         # use default if possible, or fall back to first
-        default_db_pgsql = default_dbs.get(mg.DBE_PGSQL)
-        if default_db_pgsql.lower() in dbs_lc:
-            db = default_db_pgsql
-        else:
-            db = dbs[0]
+        default_db_pgsql = default_dbs.get(mg.DBE_PGSQL) # might be None
+        db = dbs[0] # init
+        if default_db_pgsql:
+            if default_db_pgsql.lower() in dbs_lc:
+                db = default_db_pgsql
         # need to reset con and cur
         cur.close()
         con.close()
@@ -308,67 +308,79 @@ def get_index_dets(cur, db, tbl):
     
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     # default database
-    parent.lblPgsqlDefaultDb = wx.StaticText(scroll, -1, 
+    parent.lbl_pgsql_default_db = wx.StaticText(scroll, -1, 
                                              _("Default Database (name only):"))
-    parent.lblPgsqlDefaultDb.SetFont(lblfont)
+    parent.lbl_pgsql_default_db.SetFont(lblfont)
     pgsql_default_db = parent.pgsql_default_db if parent.pgsql_default_db \
         else ""
-    parent.txtPgsqlDefaultDb = wx.TextCtrl(scroll, -1, pgsql_default_db, 
-                                           size=(250,-1))
-    parent.txtPgsqlDefaultDb.Enable(not readonly)
+    parent.txt_pgsql_default_db = wx.TextCtrl(scroll, -1, pgsql_default_db, 
+                                              size=(250,-1))
+    parent.txt_pgsql_default_db.Enable(not readonly)
+    parent.txt_pgsql_default_db.SetToolTipString(_("Default database"
+                                                   " (optional)"))
     # default table
-    parent.lblPgsqlDefaultTbl = wx.StaticText(scroll, -1, _("Default Table:"))
-    parent.lblPgsqlDefaultTbl.SetFont(lblfont)
+    parent.lbl_pgsql_default_tbl = wx.StaticText(scroll, -1, 
+                                                 _("Default Table:"))
+    parent.lbl_pgsql_default_tbl.SetFont(lblfont)
     pgsql_default_tbl = parent.pgsql_default_tbl if parent.pgsql_default_tbl \
         else ""
-    parent.txtPgsqlDefaultTbl = wx.TextCtrl(scroll, -1, pgsql_default_tbl, 
-                                            size=(250,-1))
-    parent.txtPgsqlDefaultTbl.Enable(not readonly)
+    parent.txt_pgsql_default_tbl = wx.TextCtrl(scroll, -1, pgsql_default_tbl, 
+                                               size=(250,-1))
+    parent.txt_pgsql_default_tbl.Enable(not readonly)
+    parent.txt_pgsql_default_tbl.SetToolTipString(_("Default table (optional)"))
     # host
-    parent.lblPgsqlHost = wx.StaticText(scroll, -1, _("Host:"))
-    parent.lblPgsqlHost.SetFont(lblfont)
+    parent.lbl_pgsql_host = wx.StaticText(scroll, -1, _("Host:"))
+    parent.lbl_pgsql_host.SetFont(lblfont)
     pgsql_host = parent.pgsql_host if parent.pgsql_host else ""
-    parent.txtPgsqlHost = wx.TextCtrl(scroll, -1, pgsql_host, size=(100,-1))
-    parent.txtPgsqlHost.Enable(not readonly)
+    parent.txt_pgsql_host = wx.TextCtrl(scroll, -1, pgsql_host, size=(100,-1))
+    parent.txt_pgsql_host.Enable(not readonly)
+    parent.txt_pgsql_host.SetToolTipString(_("Host e.g. localhost, or "
+                                             "remote:3307"))
     # user
-    parent.lblPgsqlUser = wx.StaticText(scroll, -1, _("User:"))
-    parent.lblPgsqlUser.SetFont(lblfont)
+    parent.lbl_pgsql_user = wx.StaticText(scroll, -1, _("User:"))
+    parent.lbl_pgsql_user.SetFont(lblfont)
     pgsql_user = parent.pgsql_user if parent.pgsql_user else ""
-    parent.txtPgsqlUser = wx.TextCtrl(scroll, -1, pgsql_user, size=(100,-1))
-    parent.txtPgsqlUser.Enable(not readonly)
+    parent.txt_pgsql_user = wx.TextCtrl(scroll, -1, pgsql_user, size=(100,-1))
+    parent.txt_pgsql_user.Enable(not readonly)
+    parent.txt_pgsql_user.SetToolTipString(_("User e.g. postgres"))
     # password
-    parent.lblPgsqlPwd = wx.StaticText(scroll, -1, _("Password:"))
-    parent.lblPgsqlPwd.SetFont(lblfont)
-    pgsql_pwd = parent.pgsql_pwd if parent.pgsql_pwd else ""
-    parent.txtPgsqlPwd = wx.TextCtrl(scroll, -1, pgsql_pwd, size=(300,-1))
-    parent.txtPgsqlPwd.Enable(not readonly)
+    parent.lbl_pgsql_pwd = wx.StaticText(scroll, -1, _("Password:"))
+    parent.lbl_pgsql_pwd.SetFont(lblfont)
+    pgsql_pwd = parent.pgsql_pwd if parent.pgsql_pwd else u""
+    parent.txt_pgsql_pwd = wx.TextCtrl(scroll, -1, pgsql_pwd, size=(300,-1))
+    parent.txt_pgsql_pwd.Enable(not readonly)
+    parent.txt_pgsql_pwd.SetToolTipString(_("Password"))
     #2 pgsql
-    bxpgsql= wx.StaticBox(scroll, -1, "pgsql")
-    parent.szrpgsql = wx.StaticBoxSizer(bxpgsql, wx.VERTICAL)
+    bx_pgsql= wx.StaticBox(scroll, -1, "PostgreSQL")
+    parent.szr_pgsql = wx.StaticBoxSizer(bx_pgsql, wx.VERTICAL)
     #3 pgsql INNER
     #4 pgsql INNER TOP
-    szrpgsqlInnerTop = wx.BoxSizer(wx.HORIZONTAL)
+    szr_pgsql_inner_top = wx.BoxSizer(wx.HORIZONTAL)
     # default database
-    szrpgsqlInnerTop.Add(parent.lblPgsqlDefaultDb, 0, wx.LEFT|wx.RIGHT, 5)
-    szrpgsqlInnerTop.Add(parent.txtPgsqlDefaultDb, 0, wx.GROW|wx.RIGHT, 10)
+    szr_pgsql_inner_top.Add(parent.lbl_pgsql_default_db, 0, 
+                            wx.LEFT|wx.RIGHT, 5)
+    szr_pgsql_inner_top.Add(parent.txt_pgsql_default_db, 0, 
+                            wx.GROW|wx.RIGHT, 10)
     # default table
-    szrpgsqlInnerTop.Add(parent.lblPgsqlDefaultTbl, 0, wx.LEFT|wx.RIGHT, 5)
-    szrpgsqlInnerTop.Add(parent.txtPgsqlDefaultTbl, 0, wx.GROW|wx.RIGHT, 10)
+    szr_pgsql_inner_top.Add(parent.lbl_pgsql_default_tbl, 0, 
+                            wx.LEFT|wx.RIGHT, 5)
+    szr_pgsql_inner_top.Add(parent.txt_pgsql_default_tbl, 0, 
+                            wx.GROW|wx.RIGHT, 10)
     #4 pgsql INNER BOTTOM
-    szrpgsqlInnerBtm = wx.BoxSizer(wx.HORIZONTAL)
+    szr_pgsql_inner_btm = wx.BoxSizer(wx.HORIZONTAL)
     # host 
-    szrpgsqlInnerBtm.Add(parent.lblPgsqlHost, 0, wx.LEFT|wx.RIGHT, 5)
-    szrpgsqlInnerBtm.Add(parent.txtPgsqlHost, 0, wx.RIGHT, 10)
+    szr_pgsql_inner_btm.Add(parent.lbl_pgsql_host, 0, wx.LEFT|wx.RIGHT, 5)
+    szr_pgsql_inner_btm.Add(parent.txt_pgsql_host, 0, wx.RIGHT, 10)
     # user
-    szrpgsqlInnerBtm.Add(parent.lblPgsqlUser, 0, wx.LEFT|wx.RIGHT, 5)
-    szrpgsqlInnerBtm.Add(parent.txtPgsqlUser, 0, wx.RIGHT, 10)
+    szr_pgsql_inner_btm.Add(parent.lbl_pgsql_user, 0, wx.LEFT|wx.RIGHT, 5)
+    szr_pgsql_inner_btm.Add(parent.txt_pgsql_user, 0, wx.RIGHT, 10)
     # password
-    szrpgsqlInnerBtm.Add(parent.lblPgsqlPwd, 0, wx.LEFT|wx.RIGHT, 5)
-    szrpgsqlInnerBtm.Add(parent.txtPgsqlPwd, 1, wx.GROW|wx.RIGHT, 10)
+    szr_pgsql_inner_btm.Add(parent.lbl_pgsql_pwd, 0, wx.LEFT|wx.RIGHT, 5)
+    szr_pgsql_inner_btm.Add(parent.txt_pgsql_pwd, 1, wx.GROW|wx.RIGHT, 10)
     #2 combine
-    parent.szrpgsql.Add(szrpgsqlInnerTop, 0, wx.GROW|wx.ALL, 5)
-    parent.szrpgsql.Add(szrpgsqlInnerBtm, 0, wx.ALL, 5)
-    szr.Add(parent.szrpgsql, 0, wx.GROW|wx.ALL, 10)
+    parent.szr_pgsql.Add(szr_pgsql_inner_top, 0, wx.GROW|wx.ALL, 5)
+    parent.szr_pgsql.Add(szr_pgsql_inner_btm, 0, wx.ALL, 5)
+    szr.Add(parent.szr_pgsql, 0, wx.GROW|wx.ALL, 10)
     
 def get_proj_settings(parent, proj_dic):
     parent.pgsql_default_db = proj_dic["default_dbs"].get(mg.DBE_PGSQL)
@@ -406,18 +418,22 @@ def set_con_det_defaults(parent):
         parent.pgsql_pwd = u""
     
 def process_con_dets(parent, default_dbs, default_tbls, con_dets):
-    pgsql_default_db = parent.txtPgsqlDefaultDb.GetValue()
-    pgsql_default_tbl = parent.txtPgsqlDefaultTbl.GetValue()
-    pgsql_host = parent.txtPgsqlHost.GetValue()
-    pgsql_user = parent.txtPgsqlUser.GetValue()
-    pgsql_pwd = parent.txtPgsqlPwd.GetValue()
-    has_pgsql_con = pgsql_host and pgsql_user and pgsql_pwd \
-        and pgsql_default_db and pgsql_default_tbl
+    """
+    Copes with missing default database and table. Will get the first available.
+    """
+    default_db = parent.txt_pgsql_default_db.GetValue()
+    pgsql_default_db = default_db if default_db else None
+    default_tbl = parent.txt_pgsql_default_tbl.GetValue()
+    pgsql_default_tbl = default_tbl if default_tbl else None    
+    pgsql_host = parent.txt_pgsql_host.GetValue()
+    pgsql_user = parent.txt_pgsql_user.GetValue()
+    pgsql_pwd = parent.txt_pgsql_pwd.GetValue()
+    has_pgsql_con = pgsql_host and pgsql_user and pgsql_pwd
     incomplete_pgsql = (pgsql_host or pgsql_user or pgsql_pwd \
         or pgsql_default_db or pgsql_default_tbl) and not has_pgsql_con
     if incomplete_pgsql:
         wx.MessageBox(_("The PostgreSQL details are incomplete"))
-        parent.txtPgsqlDefaultDb.SetFocus()
+        parent.txt_pgsql_default_db.SetFocus()
     default_dbs[mg.DBE_PGSQL] = pgsql_default_db \
         if pgsql_default_db else None    
     default_tbls[mg.DBE_PGSQL] = pgsql_default_tbl \
