@@ -537,7 +537,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         except KeyError, e:
             wx.MessageBox(_("Please check %s for errors. Use %s for "
                             "reference.") % (fil_proj, mg.DEFAULT_PROJ))
-            raise Exception, "Key error reading from proj_dic. Orig err: %s" % e
+            raise Exception, ("Key error reading from proj_dic. "
+                              "Orig error: %s") % e
         except Exception, e:
             wx.MessageBox(_("Please check %s for errors. Use %s for "
                             "reference.") % (fil_proj, mg.DEFAULT_PROJ))

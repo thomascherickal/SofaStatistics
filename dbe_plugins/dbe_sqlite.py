@@ -74,7 +74,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
     """
     if not db:
         # use default, or failing that, try the file_name
-        default_db = default_dbs.get(mg.DBE_SQLITE)
+        default_db = default_dbs.get(mg.DBE_SQLITE) # might be None
         if default_db:
             db = default_db
         else:
@@ -248,16 +248,10 @@ def set_con_det_defaults(parent):
         parent.sqlite_data = []
 
 def process_con_dets(parent, default_dbs, default_tbls, con_dets):
+    """
+    Copes with missing default database and table. Will get the first available.
+    """
     parent.sqlite_grid.update_config_data()
-    DEFAULT_DB = parent.txtSqliteDefaultDb.GetValue()
-    DEFAULT_TBL = parent.txtSqliteDefaultTbl.GetValue()
-    has_sqlite_con = DEFAULT_DB and DEFAULT_TBL
-    incomplete_sqlite = (DEFAULT_DB or DEFAULT_TBL) and not has_sqlite_con
-    if incomplete_sqlite:
-        wx.MessageBox(_("The SQLite details are incomplete"))
-        parent.txtSqliteDefaultDb.SetFocus()
-    default_dbs[mg.DBE_SQLITE] = DEFAULT_DB if DEFAULT_DB else None
-    default_tbls[mg.DBE_SQLITE] = DEFAULT_TBL if DEFAULT_TBL else None
     #pprint.pprint(parent.sqlite_config_data) # debug
     sqlite_settings = parent.sqlite_config_data
     if sqlite_settings:
@@ -269,7 +263,16 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
             new_sqlite_dic = {}
             new_sqlite_dic["database"] = db_path
             con_dets_sqlite[db_name] = new_sqlite_dic
-        con_dets[mg.DBE_SQLITE] = con_dets_sqlite        
+        con_dets[mg.DBE_SQLITE] = con_dets_sqlite
+    DEFAULT_DB = parent.txtSqliteDefaultDb.GetValue()
+    DEFAULT_TBL = parent.txtSqliteDefaultTbl.GetValue()
+    has_sqlite_con = con_dets[mg.DBE_SQLITE]
+    incomplete_sqlite = (DEFAULT_DB or DEFAULT_TBL) and not has_sqlite_con
+    if incomplete_sqlite:
+        wx.MessageBox(_("The SQLite details are incomplete"))
+        parent.txtSqliteDefaultDb.SetFocus()
+    default_dbs[mg.DBE_SQLITE] = DEFAULT_DB if DEFAULT_DB else None
+    default_tbls[mg.DBE_SQLITE] = DEFAULT_TBL if DEFAULT_TBL else None
     return incomplete_sqlite, has_sqlite_con
 
 # unique to SQLite (because used to store tables for user-entered data plus 

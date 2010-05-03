@@ -297,7 +297,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                                              _("Default Database (name only):"))
     parent.lbl_mysql_default_db.SetFont(lblfont)
     mysql_default_db = parent.mysql_default_db if parent.mysql_default_db \
-        else ""
+        else u""
     parent.txt_mysql_default_db = wx.TextCtrl(scroll, -1, mysql_default_db, 
                                               size=(200,-1))
     parent.txt_mysql_default_db.Enable(not readonly)

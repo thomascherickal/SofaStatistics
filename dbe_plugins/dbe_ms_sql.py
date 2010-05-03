@@ -69,11 +69,11 @@ def get_dbs(host, user, pwd, default_dbs, db=None):
     # NB db must be accessible from connection
     if not db:
         # use default if possible, or fall back to first
-        default_db_mssql = default_dbs.get(mg.DBE_MS_SQL)
-        if default_db_mssql.lower() in dbs_lc:
-            db = default_db_mssql
-        else:
-            db = dbs[0]
+        default_db_mssql = default_dbs.get(mg.DBE_MS_SQL) # might be None
+        db = dbs[0] # init
+        if default_db_mssql:
+            if default_db_mssql.lower() in dbs_lc:
+                db = default_db_mssql
     else:
         if db.lower() not in dbs_lc:
             raise Exception, u"Database \"%s\" not available " % db + \
@@ -239,70 +239,77 @@ def get_index_dets(cur, db, tbl):
 
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     # default database
-    parent.lblMssqlDefaultDb = wx.StaticText(scroll, -1, 
-                                             _("Default Database:"))
-    parent.lblMssqlDefaultDb.SetFont(lblfont)
+    parent.lbl_mssql_default_db = wx.StaticText(scroll, -1, 
+                                                _("Default Database:"))
+    parent.lbl_mssql_default_db.SetFont(lblfont)
     mssql_default_db = parent.mssql_default_db if parent.mssql_default_db \
-        else ""
-    parent.txtMssqlDefaultDb = wx.TextCtrl(scroll, -1, mssql_default_db, 
+        else u""
+    parent.txt_mssql_default_db = wx.TextCtrl(scroll, -1, mssql_default_db, 
                                            size=(250,-1))
-    parent.txtMssqlDefaultDb.Enable(not readonly)
+    parent.txt_mssql_default_db.Enable(not readonly)
     # default table
-    parent.lblMssqlDefaultTbl = wx.StaticText(scroll, -1, 
-                                       _("Default Table:"))
-    parent.lblMssqlDefaultTbl.SetFont(lblfont)
+    parent.lbl_mssql_default_tbl = wx.StaticText(scroll, -1, 
+                                                 _("Default Table:"))
+    parent.lbl_mssql_default_tbl.SetFont(lblfont)
     mssql_default_tbl = parent.mssql_default_tbl if parent.mssql_default_tbl \
-        else ""
-    parent.txtMssqlDefaultTbl = wx.TextCtrl(scroll, -1, mssql_default_tbl, 
-                                            size=(250,-1))
-    parent.txtMssqlDefaultTbl.Enable(not readonly)
+        else u""
+    parent.txt_mssql_default_tbl = wx.TextCtrl(scroll, -1, mssql_default_tbl, 
+                                               size=(250,-1))
+    parent.txt_mssql_default_tbl.Enable(not readonly)
     # host
-    parent.lblMssqlHost = wx.StaticText(scroll, -1, 
-                                        _("Host - (local) if your machine:"))
-    parent.lblMssqlHost.SetFont(lblfont)
+    parent.lbl_mssql_host = wx.StaticText(scroll, -1, 
+                                          _("Host - (local) if your machine:"))
+    parent.lbl_mssql_host.SetFont(lblfont)
     mssql_host = parent.mssql_host
-    parent.txtMssqlHost = wx.TextCtrl(scroll, -1, mssql_host, size=(100,-1))
-    parent.txtMssqlHost.Enable(not readonly)
+    parent.txt_mssql_host = wx.TextCtrl(scroll, -1, mssql_host, size=(100,-1))
+    parent.txt_mssql_host.Enable(not readonly)
+    # 1433 is the default port for MS SQL Server
+    parent.txt_mssql_host.SetToolTipString(_("Host e.g. localhost, or "
+                                           "remote:3307"))
     # user
-    parent.lblMssqlUser = wx.StaticText(scroll, -1, _("User - e.g. root:"))
-    parent.lblMssqlUser.SetFont(lblfont)
+    parent.lbl_mssql_user = wx.StaticText(scroll, -1, _("User - e.g. root:"))
+    parent.lbl_mssql_user.SetFont(lblfont)
     mssql_user = parent.mssql_user if parent.mssql_user else ""
-    parent.txtMssqlUser = wx.TextCtrl(scroll, -1, mssql_user, size=(100,-1))
-    parent.txtMssqlUser.Enable(not readonly)
+    parent.txt_mssql_user = wx.TextCtrl(scroll, -1, mssql_user, size=(100,-1))
+    parent.txt_mssql_user.Enable(not readonly)
     # password
-    parent.lblMssqlPwd = wx.StaticText(scroll, -1, 
-                                       _("Password - space if none:"))
-    parent.lblMssqlPwd.SetFont(lblfont)
+    parent.lbl_mssql_pwd = wx.StaticText(scroll, -1, 
+                                         _("Password - space if none:"))
+    parent.lbl_mssql_pwd.SetFont(lblfont)
     mssql_pwd = parent.mssql_pwd if parent.mssql_pwd else ""
-    parent.txtMssqlPwd = wx.TextCtrl(scroll, -1, mssql_pwd, size=(100,-1))
-    parent.txtMssqlPwd.Enable(not readonly)
+    parent.txt_mssql_pwd = wx.TextCtrl(scroll, -1, mssql_pwd, size=(100,-1))
+    parent.txt_mssql_pwd.Enable(not readonly)
     #2 MS SQL SERVER
-    bxMssql= wx.StaticBox(scroll, -1, u"Microsoft SQL Server")
-    parent.szrMssql = wx.StaticBoxSizer(bxMssql, wx.VERTICAL)
+    bx_mssql= wx.StaticBox(scroll, -1, u"Microsoft SQL Server")
+    parent.szr_mssql = wx.StaticBoxSizer(bx_mssql, wx.VERTICAL)
     #3 MSSQL INNER
     #4 MSSQL INNER TOP
-    szrMssqlInnerTop = wx.BoxSizer(wx.HORIZONTAL)
+    szr_mssql_inner_top = wx.BoxSizer(wx.HORIZONTAL)
     # default database
-    szrMssqlInnerTop.Add(parent.lblMssqlDefaultDb, 0, wx.LEFT|wx.RIGHT, 5)
-    szrMssqlInnerTop.Add(parent.txtMssqlDefaultDb, 0, wx.GROW|wx.RIGHT, 10)
+    szr_mssql_inner_top.Add(parent.lbl_mssql_default_db, 0, 
+                            wx.LEFT|wx.RIGHT, 5)
+    szr_mssql_inner_top.Add(parent.txt_mssql_default_db, 0, 
+                            wx.GROW|wx.RIGHT, 10)
     # default table
-    szrMssqlInnerTop.Add(parent.lblMssqlDefaultTbl, 0, wx.LEFT|wx.RIGHT, 5)
-    szrMssqlInnerTop.Add(parent.txtMssqlDefaultTbl, 0, wx.GROW|wx.RIGHT, 10)
+    szr_mssql_inner_top.Add(parent.lbl_mssql_default_tbl, 0, 
+                            wx.LEFT|wx.RIGHT, 5)
+    szr_mssql_inner_top.Add(parent.txt_mssql_default_tbl, 0, 
+                            wx.GROW|wx.RIGHT, 10)
     #4 MSSQL INNER BOTTOM
-    szrMssqlInnerBtm = wx.BoxSizer(wx.HORIZONTAL)
+    szr_mssql_inner_btm = wx.BoxSizer(wx.HORIZONTAL)
     # host 
-    szrMssqlInnerBtm.Add(parent.lblMssqlHost, 0, wx.LEFT|wx.RIGHT, 5)
-    szrMssqlInnerBtm.Add(parent.txtMssqlHost, 0, wx.RIGHT, 10)
+    szr_mssql_inner_btm.Add(parent.lbl_mssql_host, 0, wx.LEFT|wx.RIGHT, 5)
+    szr_mssql_inner_btm.Add(parent.txt_mssql_host, 0, wx.RIGHT, 10)
     # user
-    szrMssqlInnerBtm.Add(parent.lblMssqlUser, 0, wx.LEFT|wx.RIGHT, 5)
-    szrMssqlInnerBtm.Add(parent.txtMssqlUser, 0, wx.RIGHT, 10)
+    szr_mssql_inner_btm.Add(parent.lbl_mssql_user, 0, wx.LEFT|wx.RIGHT, 5)
+    szr_mssql_inner_btm.Add(parent.txt_mssql_user, 0, wx.RIGHT, 10)
     # password
-    szrMssqlInnerBtm.Add(parent.lblMssqlPwd, 0, wx.LEFT|wx.RIGHT, 5)
-    szrMssqlInnerBtm.Add(parent.txtMssqlPwd, 1, wx.GROW|wx.RIGHT, 10)
+    szr_mssql_inner_btm.Add(parent.lbl_mssql_pwd, 0, wx.LEFT|wx.RIGHT, 5)
+    szr_mssql_inner_btm.Add(parent.txt_mssql_pwd, 1, wx.GROW|wx.RIGHT, 10)
     #2 combine
-    parent.szrMssql.Add(szrMssqlInnerTop, 0, wx.GROW|wx.ALL, 5)
-    parent.szrMssql.Add(szrMssqlInnerBtm, 0, wx.ALL, 5)
-    szr.Add(parent.szrMssql, 0, wx.GROW|wx.ALL, 10)
+    parent.szr_mssql.Add(szr_mssql_inner_top, 0, wx.GROW|wx.ALL, 5)
+    parent.szr_mssql.Add(szr_mssql_inner_btm, 0, wx.ALL, 5)
+    szr.Add(parent.szr_mssql, 0, wx.GROW|wx.ALL, 10)
 
 def get_proj_settings(parent, proj_dic):
     parent.mssql_default_db = \
@@ -340,18 +347,20 @@ def set_con_det_defaults(parent):
         parent.mssql_pwd = u""
 
 def process_con_dets(parent, default_dbs, default_tbls, con_dets):
-    mssql_default_db = parent.txtMssqlDefaultDb.GetValue()
-    mssql_default_tbl = parent.txtMssqlDefaultTbl.GetValue()
-    mssql_host = parent.txtMssqlHost.GetValue()
-    mssql_user = parent.txtMssqlUser.GetValue()
-    mssql_pwd = parent.txtMssqlPwd.GetValue()
-    has_mssql_con = mssql_host and mssql_user and mssql_pwd \
-        and mssql_default_db and mssql_default_tbl
+    """
+    Copes with missing default database and table. Will get the first available.
+    """
+    mssql_default_db = parent.txt_mssql_default_db.GetValue()
+    mssql_default_tbl = parent.txt_mssql_default_tbl.GetValue()
+    mssql_host = parent.txt_mssql_host.GetValue()
+    mssql_user = parent.txt_mssql_user.GetValue()
+    mssql_pwd = parent.txt_mssql_pwd.GetValue()
+    has_mssql_con = mssql_host and mssql_user and mssql_pwd
     incomplete_mssql = (mssql_host or mssql_user or mssql_pwd \
         or mssql_default_db or mssql_default_tbl) and not has_mssql_con
     if incomplete_mssql:
         wx.MessageBox(_("The SQL Server details are incomplete"))
-        parent.txtMssqlDefaultDb.SetFocus()
+        parent.txt_mssql_default_db.SetFocus()
     default_dbs[mg.DBE_MS_SQL] = mssql_default_db \
         if mssql_default_db else None    
     default_tbls[mg.DBE_MS_SQL] = mssql_default_tbl \

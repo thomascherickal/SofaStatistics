@@ -173,7 +173,7 @@ class ProjSelectDlg(wx.Dialog):
             lib.safe_end_cursor()
             wx.MessageBox(_("Unable to use the selected project file. Please "
                             "check name of file and its contents using "
-                            "%s as example. Orig err: %s" % 
+                            "%s as example. Orig error: %s" % 
                             (mg.DEFAULT_PROJ, e)))
             return
         lib.safe_end_cursor()

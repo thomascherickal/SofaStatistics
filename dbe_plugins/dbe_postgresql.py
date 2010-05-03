@@ -336,6 +336,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_pgsql_host.Enable(not readonly)
     parent.txt_pgsql_host.SetToolTipString(_("Host e.g. localhost, or "
                                              "remote:3307"))
+    # 5432 is the default port for PostgreSQL
     # user
     parent.lbl_pgsql_user = wx.StaticText(scroll, -1, _("User:"))
     parent.lbl_pgsql_user.SetFont(lblfont)

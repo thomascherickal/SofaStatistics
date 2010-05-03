@@ -263,7 +263,7 @@ def post_fail_tidy(progbar, con, cur, e):
     con.commit()
     con.close()
     progbar.SetValue(0)
-    wx.MessageBox(_("Unable to import table.\n\nOrig err: %s") % e)
+    wx.MessageBox(_("Unable to import table.\n\nOrig error: %s") % e)
 
 def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names, 
                    fld_types, sample_data, sample_n, remaining_data, progbar, 

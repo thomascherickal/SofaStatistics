@@ -65,7 +65,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
     # get the (only) database and use it to get the connection details
     if not db:
         # use default if possible, or fall back to first
-        default_db_access = default_dbs.get(mg.DBE_MS_ACCESS)
+        default_db_access = default_dbs.get(mg.DBE_MS_ACCESS) # might be None
         if default_db_access:
             db = default_db_access
         else:
@@ -313,19 +313,10 @@ def set_con_det_defaults(parent):
         parent.msaccess_data = []
 
 def process_con_dets(parent, default_dbs, default_tbls, con_dets):
+    """
+    Copes with missing default database and table. Will get the first available.
+    """
     parent.msaccess_grid.update_config_data()
-    MSACCESS_DEFAULT_DB = parent.txt_msaccess_default_db.GetValue()
-    MSACCESS_DEFAULT_TBL = parent.txt_msaccess_default_tbl.GetValue()
-    has_msaccess_con = MSACCESS_DEFAULT_DB and MSACCESS_DEFAULT_TBL
-    incomplete_msaccess = (MSACCESS_DEFAULT_DB or MSACCESS_DEFAULT_TBL) \
-        and not has_msaccess_con
-    if incomplete_msaccess:
-        wx.MessageBox(_("The MS Access details are incomplete"))
-        parent.txt_msaccess_default_db.SetFocus()
-    default_dbs[mg.DBE_MS_ACCESS] = MSACCESS_DEFAULT_DB \
-        if MSACCESS_DEFAULT_DB else None            
-    default_tbls[mg.DBE_MS_ACCESS] = MSACCESS_DEFAULT_TBL \
-        if MSACCESS_DEFAULT_TBL else None
     #pprint.pprint(parent.msaccess_config_data) # debug
     msaccess_settings = parent.msaccess_config_data
     if msaccess_settings:
@@ -340,4 +331,16 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
             new_msaccess_dic[u"pwd"] = msaccess_setting[3]
             con_dets_msaccess[db_name] = new_msaccess_dic
         con_dets[mg.DBE_MS_ACCESS] = con_dets_msaccess
+    MSACCESS_DEFAULT_DB = parent.txt_msaccess_default_db.GetValue()
+    MSACCESS_DEFAULT_TBL = parent.txt_msaccess_default_tbl.GetValue()
+    has_msaccess_con = con_dets[mg.DBE_MS_ACCESS]
+    incomplete_msaccess = (MSACCESS_DEFAULT_DB or MSACCESS_DEFAULT_TBL) \
+        and not has_msaccess_con
+    if incomplete_msaccess:
+        wx.MessageBox(_("The MS Access details are incomplete"))
+        parent.txt_msaccess_default_db.SetFocus()
+    default_dbs[mg.DBE_MS_ACCESS] = MSACCESS_DEFAULT_DB \
+        if MSACCESS_DEFAULT_DB else None            
+    default_tbls[mg.DBE_MS_ACCESS] = MSACCESS_DEFAULT_TBL \
+        if MSACCESS_DEFAULT_TBL else None
     return incomplete_msaccess, has_msaccess_con

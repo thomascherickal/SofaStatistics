@@ -240,7 +240,7 @@ def import_dbe_plugin(dbe_plugin):
             import dbe_plugins.dbe_postgresql as dbe_postgresql
             mod = dbe_postgresql
     except ImportError, e:
-        raise Exception, ("Import error with \"%s\". Orig err: %s" % 
+        raise Exception, ("Import error with \"%s\". Orig error: %s" % 
                           (dbe_plugin, e))
     return mod
 try:
@@ -266,7 +266,7 @@ for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
                 dbe_mod = import_dbe_plugin(dbe_plugin)
             except Exception, e:
                 msg = (u"Problem adding dbe plugin %s" % dbe_plugin +
-                       u". Orig err: %s" % e)
+                       u". Orig error: %s" % e)
                 print(msg)
                 DBE_PROBLEM.append(msg)
                 continue # skip bad module
