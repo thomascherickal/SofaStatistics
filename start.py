@@ -122,8 +122,17 @@ import quotes
 # import stats_select
 
 def get_blank_btn_bmp():
-    return wx.Image(os.path.join(SCRIPT_PATH, u"images", u"blankbutton.xpm"), 
-                    wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+    blank_btn_path = os.path.join(SCRIPT_PATH, u"images", u"blankbutton.xpm")
+    if not os.path.exists(blank_btn_path):
+        raise Exception, (u"Problem finding background button image.  "
+                          u"Missing path: %s" % blank_btn_path)
+    try:
+        blank_btn_bmp = wx.Image(blank_btn_path, 
+                                 wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+    except Exception:
+        raise Exception, (u"Problem creating background button image from %s" %
+                          blank_btn_path)
+    return blank_btn_bmp
 
 def get_next_y_pos(start, height):
     "Facilitate regular y position of buttons"
@@ -215,7 +224,14 @@ class StartFrame(wx.Frame):
         config_dlg.add_icon(frame=self)
         # background image
         sofa = os.path.join(SCRIPT_PATH, u"images", u"sofa2.xpm")
-        self.bmp_sofa = wx.Image(sofa, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        if not os.path.exists(sofa):
+            raise Exception, (u"Problem finding background button image.  "
+                              "Missing path: %s" % sofa)
+        try:
+            self.bmp_sofa = wx.Image(sofa, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        except Exception:
+            raise Exception, (u"Problem creating background button image from "
+                              "%s" % sofa)
         # slice of image to be refreshed (where text and image will be)
         blankwp_rect = wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_IMG_LEFT+35, 250)
         self.blank_wallpaper = self.bmp_sofa.GetSubBitmap(blankwp_rect)
