@@ -57,8 +57,8 @@ def get_con_resources(con_dets, default_dbs, db=None):
             con_dets_mysql["db"] = db
         con = MySQLdb.connect(**con_dets_mysql)
     except Exception, e:
-        raise Exception, u"Unable to connect to MySQL db.  " + \
-            u"Orig error: %s" % e
+        raise Exception, (u"Unable to connect to MySQL db.  "
+            u"Orig error: %s") % e
     cur = con.cursor() # must return tuples not dics    
     #SQL_get_db_names = u"""SELECT SCHEMA_NAME 
     #        FROM information_schema.SCHEMATA
@@ -82,8 +82,8 @@ def get_con_resources(con_dets, default_dbs, db=None):
         cur = con.cursor()
     else:
         if db.lower() not in dbs_lc:
-            raise Exception, u"Database \"%s\" not available " % db + \
-                u"from supplied connection"
+            raise Exception, (u"Database \"%s\" not available " % db +
+                u"from supplied connection")
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: [db,],
                      mg.DBE_DB: db}
     return con_resources
@@ -192,74 +192,91 @@ def get_flds(cur, db, tbl):
     NUMERIC_SCALE - number of significant digits to right of decimal point.
         Null if not numeric.
     NUMERIC_SCALE will be Null if not numeric.
+    SHOW COLUMNS FROM tbl FROM db
+    returns content like the following:
+    Field      Type              Null    Key    Default    Extra
+    id         int(11)           NO      PRI               auto_increment
+    fname      varchar(20)       YES     MUL
+    lname      varchar(20)       YES
+    age        int(11)           YES     MUL
+    isdec      decimal(10,0)     YES
+    unsigned   int(10) unsigned  YES 
     """
     debug = False
-    numeric_lst = [BIGINT, DECIMAL, DOUBLE, FLOAT, INT, MEDIUMINT, 
-                   SMALLINT, TINYINT]
-    numeric_full_lst = []
-    for num_type in numeric_lst:
-        numeric_full_lst.append(num_type)
-        numeric_full_lst.append(u"%s unsigned" % num_type)
-    numeric_IN_clause = u"('" + u"', '".join(numeric_full_lst) + u"')"
-    # get field names available by running the next SQL statement 
-    """SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME="" 
-        AND TABLE_SCHEMA = "" """
-    SQL_get_fld_dets = u"""SELECT 
-        COLUMN_NAME,
-            ORDINAL_POSITION - 1
-        AS ord_pos,
-        IS_NULLABLE,
-        COLUMN_DEFAULT,
-        DATA_TYPE,
-        CHARACTER_MAXIMUM_LENGTH,
-        CHARACTER_SET_NAME,
-            LOWER(DATA_TYPE) IN %s """ % numeric_IN_clause + """
-        AS bolnumeric,
-            EXTRA = 'auto_increment'
-        AS autonumber,
-            NUMERIC_SCALE
-        AS dec_pts,
-        NUMERIC_PRECISION,
-        COLUMN_TYPE,
-            LOWER(DATA_TYPE) IN 
-            ('date', 'time', 'datetime', 'timestamp', 'year')
-        AS boldatetime,
-            LOWER(DATA_TYPE) IN 
-            ('timestamp')
-        AS timestamp
-        FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE TABLE_NAME = %s
-        AND TABLE_SCHEMA = %s """ % (quote_val(tbl), quote_val(db))
-    if debug: print(SQL_get_fld_dets) 
+    numeric_lst = [BIGINT, DECIMAL, DOUBLE, FLOAT, INT, MEDIUMINT, SMALLINT, 
+                   TINYINT]
+    datetime_lst = ('date', 'time', 'datetime', 'timestamp', 'year')
+    
+    SQL_get_create_tbl_dets = "SHOW CREATE TABLE %s" % quote_obj(tbl)
+    cur.execute(SQL_get_create_tbl_dets)
+    create_tbl_dets = cur.fetchone()[1]
+    if debug: print(create_tbl_dets)
+    tbl_charset = create_tbl_dets[create_tbl_dets.index(u"DEFAULT CHARSET=") +
+        len(u"DEFAULT CHARSET="):].strip()
+    SQL_get_fld_dets = "SHOW COLUMNS FROM %s FROM %s" % (quote_obj(tbl), 
+                                                         quote_obj(db))
     cur.execute(SQL_get_fld_dets)
-    fld_dets = cur.fetchall()
-    # build dic of fields, each with dic of characteristics
     flds = {}
-    for (fld_name, ord_pos, nullable, fld_default, fld_type, max_len, 
-             charset, numeric, autonum, dec_pts, num_prec, col_type, 
-             boldatetime, timestamp) in fld_dets:
+    for i, row in enumerate(cur.fetchall()):
+        fld_name, col_type, nullable, unused, fld_default, extra = row
         bolnullable = True if nullable == u"YES" else False
-        boldata_entry_ok = False if (autonum or timestamp) else True
-        bolnumeric = True if numeric else False
+        autonum = u"auto_increment" in extra
+        timestamp = col_type.lower().startswith("timestamp")
+        boldata_entry_ok = not (autonum or timestamp)
+        bolnumeric = False
+        for num_type in numeric_lst:
+            if col_type.lower().startswith(num_type):
+                bolnumeric = True
+                break
+        if fld_default and bolnumeric:
+            fld_default = float(fld_default) # so 0.0 not '0.0'
+        boldatetime = False
+        for dt_type in datetime_lst:
+            if col_type.lower().startswith(dt_type):
+                boldatetime = True
+                break
         fld_txt = not bolnumeric and not boldatetime
         bolsigned = (col_type.find("unsigned") == -1)
+        # init
+        num_prec = None
+        dec_pts = None
+        if col_type.lower().startswith(DECIMAL) or \
+                col_type.lower().startswith(FLOAT):
+            # e.g. get 10 and 0 from "(10,0)"
+            try:
+                num_prec, dec_pts = [int(x) for x in 
+                    col_type[col_type.index(u"("):].strip()[1:-1].split(u",")]
+            except Exception:
+                if col_type.lower().startswith(FLOAT):
+                    num_prec = 12
+        elif col_type.lower().startswith(INT):
+            num_prec = 10
+            dec_pts = 0
         min_val, max_val = get_min_max(col_type, num_prec, dec_pts)
+        max_len = None
+        if fld_txt:
+            try:
+                txt_len = col_type[col_type.index(u"("):].strip()[1:-1]
+                max_len = int(txt_len)
+            except Exception:
+                pass
+        charset = tbl_charset if fld_txt else None
         dets_dic = {
-                    mg.FLD_SEQ: ord_pos,
-                    mg.FLD_BOLNULLABLE: bolnullable,
-                    mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
-                    mg.FLD_COLUMN_DEFAULT: fld_default,
-                    mg.FLD_BOLTEXT: fld_txt,
-                    mg.FLD_TEXT_LENGTH: max_len,
-                    mg.FLD_CHARSET: charset,
-                    mg.FLD_BOLNUMERIC: bolnumeric,
-                    mg.FLD_BOLAUTONUMBER: autonum,
-                    mg.FLD_DECPTS: dec_pts,
-                    mg.FLD_NUM_WIDTH: num_prec,
-                    mg.FLD_BOL_NUM_SIGNED: bolsigned,
-                    mg.FLD_NUM_MIN_VAL: min_val,
-                    mg.FLD_NUM_MAX_VAL: max_val,
-                    mg.FLD_BOLDATETIME: boldatetime,
+                    FLD_SEQ: i,
+                    FLD_BOLNULLABLE: bolnullable,
+                    FLD_DATA_ENTRY_OK: boldata_entry_ok,
+                    FLD_COLUMN_DEFAULT: fld_default,
+                    FLD_BOLTEXT: fld_txt,
+                    FLD_TEXT_LENGTH: max_len,
+                    FLD_CHARSET: charset,
+                    FLD_BOLNUMERIC: bolnumeric,
+                    FLD_BOLAUTONUMBER: autonum,
+                    FLD_DECPTS: dec_pts,
+                    FLD_NUM_WIDTH: num_prec,
+                    FLD_BOL_NUM_SIGNED: bolsigned,
+                    FLD_NUM_MIN_VAL: min_val,
+                    FLD_NUM_MAX_VAL: max_val,
+                    FLD_BOLDATETIME: boldatetime,
                     }
         flds[fld_name] = dets_dic
     if debug: print("flds: %s" % flds)
