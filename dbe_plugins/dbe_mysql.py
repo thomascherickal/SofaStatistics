@@ -211,13 +211,20 @@ def get_flds(cur, db, tbl):
     cur.execute(SQL_get_create_tbl_dets)
     create_tbl_dets = cur.fetchone()[1]
     if debug: print(create_tbl_dets)
-    tbl_charset = create_tbl_dets[create_tbl_dets.index(u"DEFAULT CHARSET=") +
-        len(u"DEFAULT CHARSET="):].strip()
+    try:
+        start_idx = create_tbl_dets.index(u"DEFAULT CHARSET=") + \
+            len(u"DEFAULT CHARSET=")
+        tbl_charset = create_tbl_dets[start_idx:].strip()
+    except ValueError: # e.g. if a view
+        tbl_charset = u"latin1" # but could be anything - need to use 
+            # information_schema approach to determine but that doesn't work in
+            # older versions of MySQL
     SQL_get_fld_dets = "SHOW COLUMNS FROM %s FROM %s" % (quote_obj(tbl), 
                                                          quote_obj(db))
     cur.execute(SQL_get_fld_dets)
     flds = {}
     for i, row in enumerate(cur.fetchall()):
+        if debug: print(row)
         fld_name, col_type, nullable, unused, fld_default, extra = row
         bolnullable = True if nullable == u"YES" else False
         autonum = u"auto_increment" in extra
@@ -262,21 +269,21 @@ def get_flds(cur, db, tbl):
                 pass
         charset = tbl_charset if fld_txt else None
         dets_dic = {
-                    FLD_SEQ: i,
-                    FLD_BOLNULLABLE: bolnullable,
-                    FLD_DATA_ENTRY_OK: boldata_entry_ok,
-                    FLD_COLUMN_DEFAULT: fld_default,
-                    FLD_BOLTEXT: fld_txt,
-                    FLD_TEXT_LENGTH: max_len,
-                    FLD_CHARSET: charset,
-                    FLD_BOLNUMERIC: bolnumeric,
-                    FLD_BOLAUTONUMBER: autonum,
-                    FLD_DECPTS: dec_pts,
-                    FLD_NUM_WIDTH: num_prec,
-                    FLD_BOL_NUM_SIGNED: bolsigned,
-                    FLD_NUM_MIN_VAL: min_val,
-                    FLD_NUM_MAX_VAL: max_val,
-                    FLD_BOLDATETIME: boldatetime,
+                    mg.FLD_SEQ: i,
+                    mg.FLD_BOLNULLABLE: bolnullable,
+                    mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
+                    mg.FLD_COLUMN_DEFAULT: fld_default,
+                    mg.FLD_BOLTEXT: fld_txt,
+                    mg.FLD_TEXT_LENGTH: max_len,
+                    mg.FLD_CHARSET: charset,
+                    mg.FLD_BOLNUMERIC: bolnumeric,
+                    mg.FLD_BOLAUTONUMBER: autonum,
+                    mg.FLD_DECPTS: dec_pts,
+                    mg.FLD_NUM_WIDTH: num_prec,
+                    mg.FLD_BOL_NUM_SIGNED: bolsigned,
+                    mg.FLD_NUM_MIN_VAL: min_val,
+                    mg.FLD_NUM_MAX_VAL: max_val,
+                    mg.FLD_BOLDATETIME: boldatetime,
                     }
         flds[fld_name] = dets_dic
     if debug: print("flds: %s" % flds)
