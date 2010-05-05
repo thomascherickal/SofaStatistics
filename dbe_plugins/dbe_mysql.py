@@ -1,6 +1,9 @@
 from __future__ import print_function
 from __future__ import division # so 5/2 = 2.5 not 2 !
 
+# 0.9.9 released 24/4/2010 was the last version with the code for using 
+# information_schema instead of the cross-version SHOW statements.
+
 import MySQLdb
 import wx
 import pprint
@@ -198,6 +201,7 @@ def get_flds(cur, db, tbl):
         numeric_full_lst.append(num_type)
         numeric_full_lst.append(u"%s unsigned" % num_type)
     numeric_IN_clause = u"('" + u"', '".join(numeric_full_lst) + u"')"
+    # get field names available by running the next SQL statement 
     """SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME="" 
         AND TABLE_SCHEMA = "" """
     SQL_get_fld_dets = u"""SELECT 
@@ -264,34 +268,52 @@ def get_flds(cur, db, tbl):
 def get_index_dets(cur, db, tbl):
     """
     db -- needed by some dbes sharing interface.
-    has_unique - boolean
+    has_unique -- boolean
     idxs = [idx0, idx1, ...]
-    each idx is a dict name, is_unique, flds
+    Each idx is a dict with name, is_unique, flds
+    SHOW INDEX FROM tbl FROM db
+    returns content like the following:
+    Table  Non_unique  Key_name    Seq_in_index  Column_name ...
+    tbltest    0       PRIMARY     1             id
+    tbltest    1       names_idx   1             fname
+    tbltest    1       names_idx   2             lname
+    tbltest    1       age_idx     1             age 
     """
-    SQL_get_index_dets = u"""SELECT 
-        INDEX_NAME, 
-            GROUP_CONCAT(COLUMN_NAME) 
-        AS fld_names,
-            NOT NON_UNIQUE 
-        AS unique_index
-        FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = %s
-        AND table_schema = %s
-        GROUP BY INDEX_NAME """ % (quote_val(tbl), quote_val(db))
-    cur.execute(SQL_get_index_dets)
-    index_dets = cur.fetchall()
-    # [(INDEX_NAME, fld_names, unique_index), ...]
-    # initialise
-    has_unique = False
-    idxs = []
-    for idx_name, raw_fld_names, unique_index in index_dets:
-        fld_names = [x.strip() for x in raw_fld_names.split(",")]
-        if unique_index:
-            has_unique = True
-        idx_dic = {mg.IDX_NAME: idx_name, mg.IDX_IS_UNIQUE: unique_index, 
-                   mg.IDX_FLDS: fld_names}
-        idxs.append(idx_dic)
     debug = False
+    SQL_get_idx_dets = "SHOW INDEX FROM %s FROM %s" % (quote_obj(tbl), 
+                                                       quote_obj(db))
+    cur.execute(SQL_get_idx_dets)
+    idx_dets = {} # key_name is the key
+    idx_seq = {} # e.g. {0: "fname", 1: "lname"}
+    next_seq = 0
+    has_unique = False
+    for row in cur.fetchall():
+        # each key needs name, fld names, has_unique
+        non_unique = row[1]
+        if not non_unique:
+            has_unique = True
+        key_name = row[2]
+        seq_in_idx = row[3]
+        col_name = row[4]   
+        if key_name not in idx_dets:
+            # set up dict and seed with initial values
+            # only change possible is adding additional flds if in idx
+            idx_dets[key_name] = {mg.IDX_NAME: key_name, 
+                                  mg.IDX_IS_UNIQUE: not non_unique,
+                                  mg.IDX_FLDS: [col_name,]}
+            # need to keep sort order of idx_dets 
+            idx_seq[next_seq] = key_name
+            next_seq += 1
+        else:
+            # only need to add any additional flds
+            idx_dets[key_name][mg.IDX_FLDS].append(col_name)
+    # get list of key_names sorted by idx sequence
+    # idx_seq e.g. {0: "fname", 1: "lname"}
+    lst_key_names = [idx_seq[x] for x in sorted(idx_seq)]
+    # use sorted key_names to get sorted list of idx dicts
+    idxs = []
+    for key_name in lst_key_names:
+        idxs.append(idx_dets[key_name])
     if debug:
         pprint.pprint(idxs)
         print(has_unique)
