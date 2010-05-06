@@ -141,9 +141,16 @@ IMAGES_PATH = os.path.join(REPORTS_PATH, u"images")
 # print(sys.path)
  # NB won't work within an interpreter
 # http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
+path_found = False
 for path in sys.path:
     if path.endswith(u"sofa") or path.endswith(u"sofa.main"):
+        path_found = True
         break
+if not path_found:
+    PATH_ERROR = _("Unable to locate folder this program is running in.\n\n"
+                   "NB the final subfolder must be \"sofa\".\n"
+                   "So \"C:\\Program Files\\sofa\" is ok\nbut "
+                   "\"C:\\Program Files\\sofa stats\" is not.")
 SCRIPT_PATH = path
 INT_PATH = os.path.join(LOCAL_PATH, INT_FOLDER)
 INT_SCRIPT_PATH = os.path.join(INT_PATH, u"script.py")

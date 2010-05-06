@@ -195,6 +195,12 @@ class StartFrame(wx.Frame):
     
     def __init__(self, main_font_size):
         debug = False
+        try:
+            error_msg = mg.PATH_ERROR
+        except Exception:
+            error_msg = None
+        if error_msg:
+            raise Exception, error_msg
         self.main_font_size = main_font_size
         # Gen set up
         wx.Frame.__init__(self, None, title=_("SOFA Start"), 
