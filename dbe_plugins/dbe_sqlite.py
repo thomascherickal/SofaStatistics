@@ -126,6 +126,7 @@ def get_flds(cur, db, tbl):
         boldata_entry_ok = False if bolautonum else True
         boldatetime = fld_type.lower() in DATE_TYPES
         fld_txt = not bolnumeric and not boldatetime
+        bolsigned = True if bolnumeric else None
         dets_dic = {
             mg.FLD_SEQ: cid,
             mg.FLD_BOLNULLABLE: bolnullable,
@@ -138,7 +139,7 @@ def get_flds(cur, db, tbl):
             mg.FLD_BOLAUTONUMBER: bolautonum,
             mg.FLD_DECPTS: None, # not really applicable - no limit
             mg.FLD_NUM_WIDTH: None, # no limit (TODO unless check constraint)
-            mg.FLD_BOL_NUM_SIGNED: True,
+            mg.FLD_BOL_NUM_SIGNED: bolsigned,
             mg.FLD_NUM_MIN_VAL: None, # not really applicable - no limit
             mg.FLD_NUM_MAX_VAL: None, # not really applicable - no limit
             mg.FLD_BOLDATETIME: boldatetime, 

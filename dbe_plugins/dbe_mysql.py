@@ -243,7 +243,7 @@ def get_flds(cur, db, tbl):
                 boldatetime = True
                 break
         fld_txt = not bolnumeric and not boldatetime
-        bolsigned = (col_type.find("unsigned") == -1)
+        bolsigned = (col_type.find("unsigned") == -1) if bolnumeric else None
         # init
         num_prec = None
         dec_pts = None

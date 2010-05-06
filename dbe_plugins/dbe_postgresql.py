@@ -239,7 +239,9 @@ def get_flds(cur, db, tbl):
         bolnumeric = True if numeric else False
         fld_txt = not bolnumeric and not boldatetime
         min_val, max_val = get_min_max(fld_type, num_prec, dec_pts, autonum)
-        bolsigned = bolnumeric and autonum
+        # http://www.postgresql.org/docs/current/static/datatype-numeric.html
+        # even autonum could start from a negative i.e. signed value
+        bolsigned = True if bolnumeric else None
         dets_dic = {
                     mg.FLD_SEQ: ord_pos,
                     mg.FLD_BOLNULLABLE: bolnullable,

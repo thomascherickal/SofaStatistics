@@ -167,6 +167,7 @@ def get_flds(cur, db, tbl):
         boldatetime = fld_type in dbe_globals.DATETIME_TYPES
         fld_txt = not bolnumeric and not boldatetime
         num_prec = col.Precision
+        bolsigned = True if bolnumeric else None
         min_val, max_val = dbe_globals.get_min_max(fld_type, num_prec, 
                                                    dec_pts)
         dets_dic = {
@@ -181,7 +182,7 @@ def get_flds(cur, db, tbl):
                     mg.FLD_BOLAUTONUMBER: bolautonum,
                     mg.FLD_DECPTS: dec_pts,
                     mg.FLD_NUM_WIDTH: num_prec,
-                    mg.FLD_BOL_NUM_SIGNED: True,
+                    mg.FLD_BOL_NUM_SIGNED: bolsigned,
                     mg.FLD_NUM_MIN_VAL: min_val,
                     mg.FLD_NUM_MAX_VAL: max_val,
                     mg.FLD_BOLDATETIME: boldatetime, 
