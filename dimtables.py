@@ -861,22 +861,40 @@ class GenTable(LiveTable):
                  self.where_tbl_filt)
         if debug: print(SQL_select_results)
         return SQL_select_results
-            
-    def get_row_labels_row_lst(self, row_filters_lst, row_filt_flds_lst, 
-                               col_measures_lst, col_filters_lst, 
-                               col_tots_lst, col_filt_flds_lst, 
-                               row_label_rows_lst, data_cells_n,
-                               col_term_nodes, css_idx):
+    
+    def get_dim_filts_4_oth_dim_tot_lst(self, dim_filter, dim_filt_flds):
         """
-        Get list of row data.  Each row in the list is represented
-            by a row of strings to concatenate, one per data point.
-        Build lists of data item HTML (data_item_presn_lst)
-            and data item values (results) ready to combine.
+        The value of a cell depends on two things: 1) the type of measure e.g. 
+            freq, and 2) the filters which apply to it.
+        If a cell is in the col branch Gender=1 and AgeGp=3 then, except for a 
+            TOTAL col, the values we use will come from all records in the 
+            dataset which have Gender=1 and AgeGp=3. For the TOTAL, however, we
+            will use all values where Gender=1 and AgeGp is not missing.  This
+            method supplies the filter we use for totals.
+        """
+        if not dim_filt_flds:
+            return []
+        last_dim_filter = NOTNULL % self.quote_obj(dim_filt_flds[-1])
+        # Replace final dim filter with a simple requirement that it is 
+        # non-missing.
+        tot4dim_filt_lst = dim_filter[:]
+        tot4dim_filt_lst[-1] = last_dim_filter
+        return tot4dim_filt_lst
+    
+    def get_row_labels_row_lst(self, row_filters_lst, row_filt_flds_lst, 
+                               col_measures_lst, col_filters_lst, col_tots_lst, 
+                               col_filt_flds_lst, row_label_rows_lst, 
+                               data_cells_n, col_term_nodes, css_idx):
+        """
+        Get list of row data.  Each row in the list is represented by a row of 
+            strings to concatenate, one per data point.
+        Build lists of data item HTML (data_item_presn_lst) and data item values 
+            (results) ready to combine.
         data_item_presn_lst is a list of tuples with left and right HTML 
             wrappers for data ("<td class='%s'>" % cellclass, "</td>").  
             As each data point is processed, a tuple is added to the list.
-        results is built once per batch of data points for database 
-            efficiency reasons.  Each call returns multiple values.
+        results is built once per batch of data points for database efficiency 
+            reasons.  Each call returns multiple values.
         """
         debug = False
         CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL, 
@@ -890,32 +908,14 @@ class GenTable(LiveTable):
             # twice as slow if much smaller or larger.
         for (row_filter, row_filt_flds) in zip(row_filters_lst, 
                                                row_filt_flds_lst):
-            # row-derived inputs for clause function
-            if len(row_filter) == 1:
-                all_but_last_row_filters_lst = []
-            elif len(row_filter) > 1:
-                all_but_last_row_filters_lst = row_filter[:]
-                del all_but_last_row_filters_lst[-1] # all but the last row 
-            last_row_filter = NOTNULL % \
-                self.quote_obj(row_filt_flds[-1]) # for colpct
-            #for styling
-            first = True
-            for (colmeasure, col_filter, coltot, col_filt_flds) in \
-                        zip(col_measures_lst, col_filters_lst, 
-                            col_tots_lst, col_filt_flds_lst):
-                # get column-derived clause function inputs
-                cols_not_null_lst = [NOTNULL % self.quote_obj(x) for x in \
-                                     col_filt_flds]
-                if len(col_filter) <= 1:
-                    all_but_last_col_filters_lst = []
-                elif len(col_filter) > 1:
-                    all_but_last_col_filters_lst = col_filter[:]
-                    del all_but_last_col_filters_lst[-1] # all but the last col
-                if col_filt_flds:
-                    last_col_filter = NOTNULL % \
-                        self.quote_obj(col_filt_flds[-1]) # for rowpct
-                else:
-                    last_col_filter = ""
+            row_filts_tot4col_lst = self.get_dim_filts_4_oth_dim_tot_lst(
+                                                      row_filter, row_filt_flds)
+            first = True # styling
+            col_zipped = zip(col_measures_lst, col_filters_lst, col_tots_lst, 
+                             col_filt_flds_lst)
+            for (colmeasure, col_filter, coltot, col_filt_flds) in col_zipped:
+                col_filts_tot4row_lst = self.get_dim_filts_4_oth_dim_tot_lst(
+                                                      col_filter, col_filt_flds)    
                 # styling
                 if first:
                     cellclass = CSS_FIRST_DATACELL
@@ -927,16 +927,11 @@ class GenTable(LiveTable):
                                            colmeasure, u"</td>"))
                 # build SQL clauses for next SQL query
                 clause = self.get_func_clause(measure=colmeasure,
-                          row_filters_lst=row_filter, 
-                          col_filters_lst=col_filter, 
-                          all_but_last_row_filters_lst=\
-                              all_but_last_row_filters_lst, #needed for colpct
-                          last_row_filter=last_row_filter, #needed for colpct
-                          all_but_last_col_filters_lst=\
-                              all_but_last_col_filters_lst, #needed for rowpct
-                          last_col_filter=last_col_filter, #needed for colpct
-                          cols_not_null_lst=cols_not_null_lst, #needed for rowpct
-                          is_coltot=coltot)
+                                  row_filters_lst=row_filter, 
+                                  col_filts_tot4row_lst=col_filts_tot4row_lst,
+                                  col_filters_lst=col_filter, 
+                                  row_filts_tot4col_lst=row_filts_tot4col_lst,
+                                  is_coltot=coltot)
                 SQL_table_select_clauses_lst.append(clause)
                 # process SQL queries when number of clauses reaches threshold
                 if len(SQL_table_select_clauses_lst) == max_select_vars \
@@ -962,92 +957,70 @@ class GenTable(LiveTable):
                 i=i+1
         return row_label_rows_lst
     
-    def get_func_clause(self, measure, row_filters_lst, col_filters_lst, 
-                        all_but_last_row_filters_lst, last_row_filter,
-                        all_but_last_col_filters_lst, last_col_filter,
-                        cols_not_null_lst, is_coltot):
+    def get_func_clause(self, measure, row_filters_lst, col_filts_tot4row_lst,
+                        col_filters_lst, row_filts_tot4col_lst, is_coltot):
         """
-        measure - e.g. FREQ
-        row_filters_lst - effectively applies filtering to
-            the total source data by setting some values to 0 or NULL
-            if not a datapoint defined by the row.
-        col_filters_lst - effectively applies filtering to
-            the total source data by setting some values to 0 or NULL
-            if not a datapoint defined by the column(s).
-        all_but_last_row_filters_lst - used for colpct filtering to get 
-            denominator
-        last_row_filter - last row filter used for colpct filtering
-            to get denominator
-        all_but_last_col_filters_lst - used for rowpct filtering to get 
-            denominator
-        last_col_filter - last col filter used for rowpct filtering
-            to get denominator
-        cols_not_null_lst - used for rowpct filtering
-        is_coltot - boolean
+        Each terminal branch of a row or column tree has the filtering from all 
+            ancestors e.g. If Gender > AgeGp in row, the filtering to apply 
+            might be Gender=1 and AgeGp=3.  For the total for AgeGp we would 
+            have Gender=1 and AgeGp not missing.
+        measure -- e.g. FREQ
+        row_filters_lst -- data in the original dataset will be counted if it 
+            meets the filter criteria.  ) if not meeting criteria, 1 if it does.
+        col_filts_tot4row_lst -- as above but the final col is only required to
+            be non-missing.  Used to calculate total for row i.e. across the 
+            cols e.g. for gender=1 and AgeGp=3 but all non-missing Nations.
+        col_filters_lst -- as for rows.
+        row_filts_tot4col_lst -- as for rows.
+        is_coltot -- boolean
         NB avoid perils of integer division (SQLite, MS SQL Server etc) 5/2 = 2!
         """
         debug = False
         # To get freq, evaluate matching values to 1 (otherwise 0) then sum
         # With most dbs, boolean returns 1 for True and 0 for False
-        freq = u"SUM(%s)" % \
-            self.get_summable(u" AND ".join(row_filters_lst + col_filters_lst))
-        col_freq = u"SUM(%s)" % \
-            self.get_summable(u" AND ".join( row_filters_lst + \
-                                         all_but_last_col_filters_lst))
-        if debug: pprint.pprint(freq)
+        # FREQ - all row and col filters apply
+        sum4freq = self.get_summable(u" AND ".join(row_filters_lst +
+                                                   col_filters_lst))
+        freq = u"SUM(%s)" % sum4freq
+        # TOTAL FOR ROW - i.e. total across final cols
+        # all row filts and col filts for row tot apply
+        tot4row_summable = self.get_summable(u" AND ".join(row_filters_lst +
+                                                         col_filts_tot4row_lst))
+        tot4row = u"SUM(%s)" % tot4row_summable
+        # TOTAL FOR COL - i.e. total across final rows
+        # all col filts and row tot filts apply
+        tot4col_summable = self.get_summable(u" AND ".join(row_filts_tot4col_lst
+                                                           + col_filters_lst))
+        tot4col = u"SUM(%s)" % tot4col_summable
+        # TOTAL FOR ALL - i.e. total across final rows and cols
+        sum4allsummable = self.get_summable(u" AND ".join(row_filts_tot4col_lst
+                                                       + col_filts_tot4row_lst))
+        tot4all = u"SUM(%s)" % sum4allsummable
+        if debug:
+            print("Freq: %s" % freq)
+            print("Total for row: %s" % tot4row)
+            print("Total for col: %s" % tot4col)
+            print("Total for all: %s" % tot4all)
+        # NB measures are off the terminal columns
         if measure == mg.FREQ:
-            if not is_coltot:
-                func_clause = freq
-            else:
-                func_clause = col_freq
+            func_clause = freq if not is_coltot else tot4row
         elif measure == mg.COLPCT:
             if not is_coltot:
-                numerator = freq
-                # must divide by all values where all but the last row match.
-                # the last row cannot be null and all column values must match.
-                denom_filters_lst = []
-                colpct_filter_lst = []
-                colpct_filter_lst.append(u" AND ".join(all_but_last_row_filters_lst))
-                colpct_filter_lst.append(last_row_filter)
-                colpct_filter_lst.append(u" AND ".join(col_filters_lst))
+                num = freq
+                den = tot4col
             else:
-                numerator = col_freq
-                # must divide by all values where all but the last row match.
-                # the last row cannot be null and the col values cannot be null.
-                denom_filters_lst = []
-                colpct_filter_lst = []
-                colpct_filter_lst.append(u" AND ".join(all_but_last_row_filters_lst))
-                colpct_filter_lst.append(last_row_filter)
-                colpct_filter_lst.append(u" AND ".join(all_but_last_col_filters_lst))                
-            for filter in colpct_filter_lst:
-                if filter != u"":
-                    denom_filters_lst.append(filter)
-            denominator = u"SUM(%s)" % \
-                            self.get_summable(u" AND ".join(denom_filters_lst))
-            perc = u"100.0*(%s)/%s" % (numerator, denominator) # not integer div
+                num = tot4row
+                den = tot4all
+            perc = u"100.0*(%s)/(%s)" % (num, den) # not integer div
             template = self.if_clause % (NOTNULL % perc, perc, 0)
             if debug: print(template)
             func_clause = template
         elif measure == mg.ROWPCT:
             if not is_coltot:
-                numerator = freq
-                #we want to divide by all values where all the rows match
-                # and all the cols but the last one match.  The last column 
-                # cannot be null.
-                denom_filters_lst = []
-                rowpct_filter_lst = []
-                rowpct_filter_lst.append(u" AND ".join(row_filters_lst))
-                rowpct_filter_lst.append(u" AND ".join(all_but_last_col_filters_lst))
-                rowpct_filter_lst.append(last_col_filter) 
-                for filter in rowpct_filter_lst:
-                    if filter != u"":
-                        denom_filters_lst.append(filter)
-                denominator = u"SUM(%s)" % \
-                            self.get_summable(u" AND ".join(denom_filters_lst))
-                perc = u"100.0*(%s)/%s" % (numerator, denominator) # not int div
+                perc = u"100.0*(%s)/(%s)" % (freq, tot4row) # not integer div
                 template = self.if_clause % (NOTNULL % perc, perc, 0)
                 if debug: 
-                    print(numerator, denominator)
+                    print(freq, tot4row)
                     print(perc)
                 func_clause = template
             else:
