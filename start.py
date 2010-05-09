@@ -63,24 +63,34 @@ def install_local():
     """
     prog_path = os.path.dirname(__file__)
     default_proj = os.path.join(LOCAL_PATH, u"projs", mg.DEFAULT_PROJ)
-    paths = [u"css", mg.INT_FOLDER, u"vdts", u"projs", u"reports", u"scripts"]
+    REPORTS = u"reports"
+    IMAGES = u"images"
+    paths = [u"css", mg.INT_FOLDER, u"vdts", u"projs", REPORTS, u"scripts"]
     if not os.path.exists(LOCAL_PATH):
-            # In Windows this is completed by installer but only for first user
-            for path in paths: # create required folders
+        # In Windows this is completed by installer but only for first user
+        for path in paths: # create required folders
+            try:
                 os.makedirs(os.path.join(LOCAL_PATH, path))
-            # copy across default proj, vdts, css
-            styles = [u"grey_spirals.css", u"lucid_spirals.css", u"pebbles.css"]
-            for style in styles:
-                shutil.copy(os.path.join(prog_path, u"css", style), 
-                            os.path.join(LOCAL_PATH, u"css", style))
-            shutil.copy(os.path.join(prog_path, u"css", mg.DEFAULT_STYLE), 
-                        os.path.join(LOCAL_PATH, u"css", mg.DEFAULT_STYLE))
-            shutil.copy(os.path.join(prog_path, mg.INT_FOLDER, mg.SOFA_DB), 
-                        os.path.join(LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB))
-            shutil.copy(os.path.join(prog_path, u"vdts", mg.DEFAULT_VDTS), 
-                        os.path.join(LOCAL_PATH, u"vdts", mg.DEFAULT_VDTS))
-            shutil.copy(os.path.join(prog_path, u"projs", mg.DEFAULT_PROJ), 
-                        default_proj)
+            except Exception, e:
+                print("Unable to make path %s" % path)
+        os.mkdir(mg.IMAGES_PATH)
+        # copy across default proj, vdts, css
+        styles = [u"grey_spirals.css", u"lucid_spirals.css", u"pebbles.css"]
+        for style in styles:
+            shutil.copy(os.path.join(prog_path, u"css", style), 
+                        os.path.join(LOCAL_PATH, u"css", style))
+        shutil.copy(os.path.join(prog_path, u"css", mg.DEFAULT_STYLE), 
+                    os.path.join(LOCAL_PATH, u"css", mg.DEFAULT_STYLE))
+        shutil.copy(os.path.join(prog_path, mg.INT_FOLDER, mg.SOFA_DB), 
+                    os.path.join(LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB))
+        shutil.copy(os.path.join(prog_path, u"vdts", mg.DEFAULT_VDTS), 
+                    os.path.join(LOCAL_PATH, u"vdts", mg.DEFAULT_VDTS))
+        shutil.copy(os.path.join(prog_path, u"projs", mg.DEFAULT_PROJ), 
+                    default_proj)
+        bg_images = [u"grey_spirals.gif", u"lucid_spirals.gif", u"pebbles.gif"]
+        for bg_image in bg_images:
+            shutil.copy(os.path.join(prog_path, REPORTS, IMAGES, bg_image), 
+                        os.path.join(LOCAL_PATH, REPORTS, IMAGES, bg_image))
     PROJ_CUSTOMISED_FILE = u"proj_file_customised.txt"
     if not os.path.exists(os.path.join(LOCAL_PATH, PROJ_CUSTOMISED_FILE)):
         # change home username
@@ -370,8 +380,8 @@ class StartFrame(wx.Frame):
         link_help.SetVisited(True)
         link_help.UpdateLink(True)
         if mg.DBE_PROBLEM:
-            f = open(os.path.join(mg.INT_PATH, 
-                                  u"database connection problem.txt"), "w")
+            prob = os.path.join(mg.INT_PATH, u"database connection problem.txt")
+            f = open(prob, "w")
             f.write(u"\n\n".join(mg.DBE_PROBLEM))
             f.close()
     
