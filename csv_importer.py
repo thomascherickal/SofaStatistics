@@ -108,7 +108,7 @@ class CsvImporter(importer.FileImporter):
             fld_types.append(fld_type)
         fld_types = dict(zip(reader.fieldnames, fld_types))
         if not bolhas_rows:
-            raise Exception, "No data to import"
+            raise Exception, u"No data to import"
         return orig_fld_names, fld_types, sample_data
     
     def get_avg_row_size(self, tmp_reader):
@@ -231,7 +231,7 @@ class CsvImporter(importer.FileImporter):
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                                       self.tbl_name, self.file_path, 
                                       progbar, nulled_dots)
-        except Exception:
+        except Exception, e:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur, e)
             return
         default_dd.cur.close()
