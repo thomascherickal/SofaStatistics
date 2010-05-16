@@ -69,9 +69,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
         if default_db_access:
             db = default_db_access
         else:
-            # con_dets_access[0]["database"] e.g. u'C:\\mydata\\data.mdb'
-            full_db_path = con_dets_access[0][u"database"]
-            db = os.path.split(full_db_path)[1]
+            db = con_dets_access.keys()[0]
     if not con_dets_access.get(db):
         raise Exception, u"No connections for MS Access database %s" % db
     con_dets_access_db = con_dets_access[db]
