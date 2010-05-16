@@ -272,7 +272,10 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
         con_dets[mg.DBE_SQLITE] = con_dets_sqlite
     DEFAULT_DB = parent.txt_sqlite_default_db.GetValue()
     DEFAULT_TBL = parent.txt_sqlite_default_tbl.GetValue()
-    has_sqlite_con = con_dets[mg.DBE_SQLITE]
+    try:
+        has_sqlite_con = con_dets[mg.DBE_SQLITE]
+    except KeyError:
+        has_sqlite_con = False
     incomplete_sqlite = (DEFAULT_DB or DEFAULT_TBL) and not has_sqlite_con
     if incomplete_sqlite:
         wx.MessageBox(_("The SQLite details are incomplete"))

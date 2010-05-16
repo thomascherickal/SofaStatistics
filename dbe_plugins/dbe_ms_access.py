@@ -339,7 +339,10 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
         con_dets[mg.DBE_MS_ACCESS] = con_dets_msaccess
     MSACCESS_DEFAULT_DB = parent.txt_msaccess_default_db.GetValue()
     MSACCESS_DEFAULT_TBL = parent.txt_msaccess_default_tbl.GetValue()
-    has_msaccess_con = con_dets[mg.DBE_MS_ACCESS]
+    try:
+        has_msaccess_con = con_dets[mg.DBE_MS_ACCESS]
+    except KeyError:
+        has_msaccess_con = False
     incomplete_msaccess = (MSACCESS_DEFAULT_DB or MSACCESS_DEFAULT_TBL) \
         and not has_msaccess_con
     if incomplete_msaccess:

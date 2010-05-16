@@ -366,7 +366,7 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
         cur.execute(SQL_rename_tbl)
         con.commit()
     except Exception, e:
-        raise Exception, (u"Unable to rename temporary table.  Orig error: %s"
+        raise Exception, (u"Unable to rename temporary table. Orig error: %s"
                           % e)
     progbar.SetValue(GAUGE_STEPS)
     msg = _("Successfully imported data as\n\"%(tbl)s\".")
