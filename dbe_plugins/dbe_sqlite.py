@@ -59,9 +59,9 @@ def get_con(con_dets, db):
     try:
         con = sqlite.connect(**con_dets_sqlite[db])
     except Exception, e:
-        raise Exception, u"Unable to connect to SQLite database " + \
-            u"using supplied database: %s. " % db + \
-            u"Orig error: %s" % e
+        raise Exception, (u"Unable to connect to SQLite database "
+                          u"using supplied database: \"%s\". " % db +
+                          u"Orig error: %s" % e)
     # some user-defined functions needed for strict type checking constraints
     add_funcs_to_con(con)
     return con

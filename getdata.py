@@ -105,6 +105,8 @@ class DataDets(object):
         except KeyError, e:
             raise Exception, (u"Unable to read project dictionary for required "
                               u"keys.  Orig error: %s" % e)
+        except Exception, e:
+            raise Exception, "Unable to set proj dic. Orig error: %s" % e
         self.proj_dic = proj_dic # only change if successful
 
     def set_dbe(self, dbe, db=None, tbl=None):
@@ -122,9 +124,12 @@ class DataDets(object):
             self.con = None
         except Exception:
             pass
-        dbe_resources = get_dbe_resources(dbe, self.con_dets, 
-                                          self.default_dbs, self.default_tbls, 
-                                          db, tbl)
+        try:
+            dbe_resources = get_dbe_resources(dbe, self.con_dets, 
+                                              self.default_dbs, 
+                                              self.default_tbls, db, tbl)
+        except Exception, e:
+            raise Exception, ("Unable to get dbe resources. Orig error: %s" % e)
         self.dbe = dbe # only change if getting dbe resources worked
         if debug: print(u"Finished getting dbe resources")
         self.con = dbe_resources[mg.DBE_CON]
@@ -169,7 +174,7 @@ def get_dd():
     debug = False
     if not mg.DATA_DETS:
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
-                                               fil_name=mg.DEFAULT_PROJ)
+                                                   fil_name=mg.DEFAULT_PROJ)
         mg.DATA_DETS = DataDets(proj_dic)
         if debug: print("Updated mg.DATA_DETS")
     return mg.DATA_DETS

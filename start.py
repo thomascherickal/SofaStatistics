@@ -120,17 +120,20 @@ def install_local():
         f.close()
 install_local() # needs mg, but must run before anything calling dd
 
-import getdata # call before all modules relying on mg.DATA_DETS as dd
-import config_dlg
-# importing delayed until needed where possible for startup performance
-# import dataselect
-import full_html
-# import importer
-# import report_table
-import projects
-import projselect
-import quotes
-# import stats_select
+try:
+    import getdata # call before all modules relying on mg.DATA_DETS as dd
+    import config_dlg
+    # importing delayed until needed where possible for startup performance
+    # import dataselect
+    import full_html
+    # import importer
+    # import report_table
+    import projects
+    import projselect
+    import quotes
+    # import stats_select
+except Exception, e:
+    print("Problem with second round of local importing. Orig error: %s" % e)
 
 def get_blank_btn_bmp():
     blank_btn_path = os.path.join(SCRIPT_PATH, u"images", u"blankbutton.xpm")
