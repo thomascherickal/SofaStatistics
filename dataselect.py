@@ -1,6 +1,6 @@
 from __future__ import print_function
 import pprint
-import pysqlite2
+import sqlite3 as sqlite
 import sys
 import wx
 
@@ -321,7 +321,8 @@ class DataSelectDlg(wx.Dialog):
             try:
                 self.make_strict_typing_tbl(orig_tbl_name, oth_name_types, 
                                             config_data)
-            except pysqlite2.dbapi2.IntegrityError, e:
+            except sqlite.IntegrityError, e:
+                #except pysqlite2.dbapi2.IntegrityError, e:
                 if debug: print(unicode(e))
                 wx.MessageBox(_("Unable to modify table.  Some data does not "
                                 "match the column type.  Please edit and try "
