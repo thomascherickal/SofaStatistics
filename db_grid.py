@@ -62,7 +62,7 @@ class TblEditor(wx.Dialog):
                  readonly=True, set_col_widths=True):
         self.debug = False
         mywidth = 900
-        if mg.IN_WINDOWS:
+        if mg.PLATFORM == mg.WINDOWS:
             mid_height = 820
             height_drop = 20
         else:

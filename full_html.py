@@ -21,7 +21,7 @@ if not use_renderer:
         def load_url(self, url):
             pass
 else:
-    if mg.IN_WINDOWS:
+    if mg.PLATFORM == mg.WINDOWS:
         import wx.lib.iewin as ie
         
         class FullHTML(ie.IEHtmlWindow):
@@ -47,7 +47,8 @@ else:
                     
             def load_url(self, url):
                 self.LoadUrl(url)
-    else:
+                
+    elif mg.PLATFORM == mg.LINUX:
         import wx.webview
         
         class FullHTML(wx.webview.WebView):
@@ -62,3 +63,20 @@ else:
             
             def load_url(self, url):
                 self.LoadURL(url)
+                
+    elif mg.PLATFORM == mg.MAC:
+        import wx.webkit
+        
+        class FullHTML(wx.webkit.WebKitCtrl):
+        
+            def __init__(self, panel, size):
+                wx.webkit.WebKitCtrl.__init__(self, panel, -1, size=size)
+            
+            def show_html(self, strHTML, url_load=False):
+                if debug: print("strHTML is: %s" % strHTML)
+                # NB no issue with backslashes because not used in Windows ;-)
+                self.SetPageSource(strHTML, "file://%s/" % mg.INT_PATH)
+            
+            def load_url(self, url):
+                self.LoadURL(url)
+                

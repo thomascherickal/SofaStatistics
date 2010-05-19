@@ -37,7 +37,7 @@ def get_szr_level(parent, panel):
     parent.szr_level.Add(parent.rad_level, 0, wx.RIGHT, 10)
     return parent.szr_level
 
-label_divider = " " if mg.IN_WINDOWS else "\n"
+label_divider = " " if mg.PLATFORM == mg.WINDOWS else "\n"
 add_to_report = _("Add to%sreport" % label_divider)
 run = _("Run")
 
@@ -290,7 +290,7 @@ class ConfigDlg(object):
             wx.MessageBox(_("No output yet. Click \"%s\" (with \"%s\" ticked) "
                     "to add output to this report.") % (run, add_to_report))
         else:
-            if mg.IN_WINDOWS:
+            if mg.PLATFORM == mg.WINDOWS:
                 url = u"file:///%s" % cc[mg.CURRENT_REPORT_PATH]
             else:
                 url = u"file://%s" % cc[mg.CURRENT_REPORT_PATH]

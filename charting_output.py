@@ -49,7 +49,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_top = wx.BoxSizer(wx.VERTICAL)
         self.szr_data = self.get_szr_data(self.panel_top) # mixin
         bx_vars = wx.StaticBox(self.panel_top, -1, _("Variables"))
-        if not mg.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
+        if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
             bx_vars.SetToolTipString(variables_rc_msg)
         szr_vars = wx.StaticBoxSizer(bx_vars, wx.VERTICAL)
         szr_vars_top = wx.BoxSizer(wx.HORIZONTAL)
@@ -156,7 +156,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_mid = wx.StaticBoxSizer(bx_charts, wx.VERTICAL)
         self.setup_chart_btns(szr_chart_btns)
         self.szr_mid.Add(szr_chart_btns, 0, wx.GROW)
-        if not mg.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
+        if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
             bx_charts.SetToolTipString(_("Make chart"))
         # Chart Settings
         # bar chart
@@ -298,7 +298,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_histogram.Bind(wx.EVT_BUTTON, self.on_btn_chart)
         self.btn_histogram.SetToolTipString(_("Make Histogram"))
         szr_chart_btns.Add(self.btn_histogram)
-        if not mg.IN_WINDOWS:
+        if mg.PLATFORM == mg.LINUX:
             hand = wx.StockCursor(wx.CURSOR_HAND)
             self.btn_bar_chart.SetCursor(hand)
             self.btn_clustered_bar_chart.SetCursor(hand)

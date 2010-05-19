@@ -101,7 +101,7 @@ def install_local():
             new_str = lib.escape_pre_write(os.path.join(LOCAL_PATH, path, u""))
             proj_str = proj_str.replace(u"/home/g/sofa/%s/" % path, new_str)
         # add MS Access and SQL Server into mix if Windows
-        if mg.IN_WINDOWS:
+        if mg.PLATFORM == mg.WINDOWS:
             proj_str = proj_str.replace(u"default_dbs = {",
                             u"default_dbs = {'%s': None, " % mg.DBE_MS_ACCESS)
             proj_str = proj_str.replace(u"default_tbls = {",
@@ -315,7 +315,7 @@ class StartFrame(wx.Frame):
                                         pos=(BTN_RIGHT, g.next()))
         self.btn_exit.Bind(wx.EVT_BUTTON, self.on_exit_click)
         self.btn_exit.Bind(wx.EVT_ENTER_WINDOW, self.on_exit_enter)
-        if not mg.IN_WINDOWS:
+        if mg.PLATFORM == mg.LINUX:
             hand = wx.StockCursor(wx.CURSOR_HAND)
             self.btn_proj.SetCursor(hand)
             self.btn_prefs.SetCursor(hand)
@@ -391,8 +391,8 @@ class StartFrame(wx.Frame):
             up (comtypes).
         """
         COMTYPES_HANDLED = u"comtypes_handled.txt"
-        if mg.IN_WINDOWS and not os.path.exists(os.path.join(LOCAL_PATH, 
-                                                             COMTYPES_HANDLED)):
+        if (mg.PLATFORM == mg.WINDOWS 
+            and not os.path.exists(os.path.join(LOCAL_PATH, COMTYPES_HANDLED))):
             wx.MessageBox(_("Click OK to prepare for first use of SOFA "
                             "Statistics.\n\nPreparation may take a moment ..."))
             h = full_html.FullHTML(panel, (10, 10))

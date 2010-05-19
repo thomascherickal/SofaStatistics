@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os
+import platform
 import subprocess
 import sys
 
@@ -250,10 +251,11 @@ def import_dbe_plugin(dbe_plugin):
         raise Exception, ("Import error with \"%s\". Orig error: %s" % 
                           (dbe_plugin, e))
     return mod
-try:
-    IN_WINDOWS = os.environ['OS'].lower().startswith("windows")
-except Exception:
-    IN_WINDOWS = False
+LINUX = "linux"
+WINDOWS = "windows"
+MAC = "mac"
+platforms = {"Linux": LINUX, "Windows": WINDOWS, "Darwin": MAC}
+PLATFORM = platforms.get(platform.system())
 DBE_PROBLEM = []
 DBES = []
 DBE_MODULES = {}
@@ -264,7 +266,8 @@ DBE_PLUGINS = [(DBE_SQLITE, u"dbe_sqlite"),
                (DBE_PGSQL, u"dbe_postgresql"),
                ]
 for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
-    wrong_os = dbe_plugin in [DBE_MS_ACCESS, DBE_MS_SQL] and not IN_WINDOWS
+    wrong_os = (dbe_plugin in [DBE_MS_ACCESS, DBE_MS_SQL] 
+                and PLATFORM != WINDOWS)
     dbe_plugin_mod = os.path.join(os.path.dirname(__file__), u"dbe_plugins", 
                                    u"%s.py" % dbe_mod_name)
     if os.path.exists(dbe_plugin_mod):
@@ -360,7 +363,7 @@ def get_date_fmt():
     """
     debug = False
     try:
-        if IN_WINDOWS:
+        if PLATFORM == WINDOWS:
             # the following must have been specially installed
             import win32api
             import win32con

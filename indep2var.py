@@ -80,7 +80,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szr_desc.Add(lbl_desc2, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc3, 1, wx.GROW|wx.LEFT, 5)
         bx_vars = wx.StaticBox(self.panel, -1, _("Variables"))
-        if not mg.IN_WINDOWS: # http://trac.wxwidgets.org/ticket/9859
+        if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
             bx_vars.SetToolTipString(variables_rc_msg)
         szr_vars = wx.StaticBoxSizer(bx_vars, wx.VERTICAL)
         szr_vars_top = wx.BoxSizer(wx.HORIZONTAL)

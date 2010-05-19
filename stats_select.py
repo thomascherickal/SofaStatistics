@@ -35,8 +35,8 @@ HELP_LEFT = MAIN_LEFT + 235
 REL_TOP = 330
 BUTTON1_LEFT = MAIN_LEFT + 20
 BUTTON2_LEFT = MAIN_LEFT + 130
-CONFIG_LEFT = 620 if not mg.IN_WINDOWS else 630
-BUTTON_LIFT = 0 if mg.IN_WINDOWS else 4
+CONFIG_LEFT = 620 if mg.PLATFORM != mg.WINDOWS else 630
+BUTTON_LIFT = 0 if mg.PLATFORM == mg.WINDOWS else 4
 DIV_LINE_WIDTH = 203
 
 cc = config_dlg.get_cc()
@@ -180,7 +180,7 @@ class StatsSelectDlg(wx.Dialog):
         il = wx.ImageList(16, 16)
         self.idx_tick = 0
         self.idx_blank = 1
-        tick = u"tickwin" if mg.IN_WINDOWS else u"tick"
+        tick = u"tickwin" if mg.PLATFORM == mg.WINDOWS else u"tick"
         for img in [tick, u"blank"]:
             bmp = wx.Bitmap(os.path.join(mg.SCRIPT_PATH, u"images", 
                                          u"%s.png" % img), wx.BITMAP_TYPE_PNG)

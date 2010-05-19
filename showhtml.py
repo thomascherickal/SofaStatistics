@@ -56,7 +56,7 @@ class DlgHTML(wx.Dialog):
         btn_close.Bind(wx.EVT_BUTTON, self.on_close)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_main.Add(self.html,1,wx.GROW|wx.ALL, 5)
-        if mg.IN_WINDOWS:
+        if mg.PLATFORM == mg.WINDOWS:
             szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
             szr_btns.AddGrowableCol(1,2)
             btn_print = wx.Button(self, -1, _("Print"))
@@ -70,8 +70,8 @@ class DlgHTML(wx.Dialog):
         szr_main.Add(szr_btns, 0, wx.GROW)
         self.SetSizer(szr_main)
         self.Layout()
-        height_adj = 60 if not mg.IN_WINDOWS else 0
-        pos_y = 40 if not mg.IN_WINDOWS else 5
+        height_adj = 60 if mg.PLATFORM != mg.WINDOWS else 0
+        pos_y = 40 if mg.PLATFORM != mg.WINDOWS else 5
         self.SetSize((mg.MAX_WIDTH-20, mg.MAX_HEIGHT-(40+height_adj)))
         self.SetPosition((10, pos_y))
         self.Restore()

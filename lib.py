@@ -48,7 +48,7 @@ def set_size(window, width_init, height_init, width_min, height_min):
     window -- e.g. the dialog itself or a frame.
     NB no need to set size=() in __init__ of window. 
     """
-    if mg.IN_WINDOWS: # jitter to display inner controls
+    if mg.PLATFORM == mg.WINDOWS: # jitter to display inner controls
         window.SetSize((width_init+1, height_init+1))
     window.SetSize((width_init, height_init))
     window.SetMinSize((width_min,height_min))
@@ -87,7 +87,7 @@ def rel2abs_background(strhtml):
     Turn ../images/tile.gif to /home/g/sofa/reports/images/tile.gif.
     """
     debug = False
-    if mg.IN_WINDOWS:
+    if mg.PLATFORM == mg.WINDOWS:
         url = u"file:///%s" % mg.IMAGES_PATH
     else:
         url = u"file://%s" % mg.IMAGES_PATH
@@ -431,7 +431,7 @@ def clean_bom_utf8(raw):
         raw = raw[len(unicode(codecs.BOM_UTF8, "utf-8")):]
     return raw
 
-if mg.IN_WINDOWS:
+if mg.PLATFORM == mg.WINDOWS:
     import pywintypes
 
 def escape_pre_write(txt):

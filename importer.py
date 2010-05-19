@@ -649,7 +649,7 @@ class ImportFileSelectDlg(wx.Dialog):
         if extension.lower() == u".csv":
             self.file_type = FILE_CSV
         elif extension.lower() == u".xls":
-            if not mg.IN_WINDOWS:
+            if mg.PLATFORM != mg.WINDOWS:
                 wx.MessageBox(_("Excel spreadsheets are only supported on "
                               "Windows.  Try exporting to CSV first from "
                               "Excel (within Windows)"))

@@ -95,7 +95,8 @@ def get_missing_dets_msg(tab_type, has_rows, has_cols):
         else:
             return style_template % _("Waiting for enough settings ...")
     elif tab_type == mg.ROW_SUMM:
-        return style_template % _("Add and configure rows")
+        return style_template % _("Add and configure rows "
+                                  "(and optionally columns)")
     elif tab_type == mg.RAW_DISPLAY:
         return style_template % _("Add and configure columns")
     else:
@@ -225,7 +226,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.setup_row_btns()
         self.setup_col_btns()
         self.add_default_column_config() # must set up after coltree and demo 
-        if mg.IN_WINDOWS:
+        if mg.PLATFORM == mg.WINDOWS:
             mid_height = 820
             height_drop = 20
         else:
@@ -814,8 +815,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                        "click 'Run' for actual results<br>&nbsp;&nbsp;or "
                        "keep configuring</p>"))
                 current_style = config_dlg.path2style(cc[mg.CURRENT_CSS_PATH])
-                if (not mg.IN_WINDOWS and current_style in [u"lucid_spirals", 
-                                                u"grey_spirals", u"pebbles"]):
+                if (mg.PLATFORM == mg.LINUX 
+                    and current_style in [u"lucid_spirals", u"grey_spirals", 
+                                          u"pebbles"]):
                     demo_tbl_html += (u"<p class='gui-msg-small'>"
                         "<span class='gui-note'>NOTE</span> - Even though it "
                         "doesn't show here, the background image used in the"
