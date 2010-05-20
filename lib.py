@@ -206,7 +206,8 @@ def get_subtitles_inner_html(subtitles_html, subtitles):
 def get_text_to_draw(orig_txt, max_width):
     "Return text broken into new lines so wraps within pixel width"
     mem = wx.MemoryDC()
-    # add words to it until its width is too long then put int split
+    mem.SelectObject(wx.EmptyBitmap(100,100)) # mac fails without this
+    # add words to it until its width is too long then put into split
     lines = []
     words = orig_txt.split()
     line_words = []
@@ -219,6 +220,7 @@ def get_text_to_draw(orig_txt, max_width):
             line_words = [word]
     lines.append(u" ".join(line_words))
     wrapped_txt = u"\n".join(lines)
+    mem.SelectObject(wx.NullBitmap)
     return wrapped_txt
 
 def add_text_to_bitmap(bitmap, text, font, colour, left=9, top=3):
