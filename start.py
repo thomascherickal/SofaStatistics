@@ -483,7 +483,6 @@ class StartFrame(wx.Frame):
         # open proj selection form
         dlgProj = projselect.ProjSelectDlg(self, proj_fils, self.active_proj)
         dlgProj.ShowModal()
-        dlgProj.Destroy()
         event.Skip()
 
     def on_proj_enter(self, event):
@@ -528,7 +527,6 @@ class StartFrame(wx.Frame):
         proj_name = self.active_proj
         dlgData = dataselect.DataSelectDlg(self, proj_name)
         dlgData.ShowModal()
-        dlgData.Destroy()
         event.Skip()
         
     def on_enter_enter(self, event):
