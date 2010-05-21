@@ -611,12 +611,11 @@ class DlgConfig(wx.Dialog):
             szr_main.Add(self.rad_sort_opts, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.measure_chks_dic = {}
         if self.measures:
-            box_measures = wx.StaticBox(self, -1, _("Measures"))
+            bx_measures = wx.StaticBox(self, -1, _("Measures"))
             direction = wx.VERTICAL if row else wx.HORIZONTAL
-            szr_measures = wx.StaticBoxSizer(box_measures, direction)
+            szr_measures = wx.StaticBoxSizer(bx_measures, direction)
             for measure, label in self.measures:
-                chk = wx.CheckBox(self, -1, label, 
-                            size=chk_size)
+                chk = wx.CheckBox(self, -1, label, size=chk_size)
                 if measure in item_conf.measures_lst:
                     chk.SetValue(True)
                 self.measure_chks_dic[measure] = chk

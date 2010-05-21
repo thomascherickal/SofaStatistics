@@ -239,6 +239,7 @@ def get_index_dets(cur, db, tbl):
     return idxs, has_unique
 
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
+    bx_mssql= wx.StaticBox(scroll, -1, u"Microsoft SQL Server")
     # default database
     parent.lbl_mssql_default_db = wx.StaticText(scroll, -1, 
                                                 _("Default Database:"))
@@ -286,7 +287,6 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_mssql_pwd.Enable(not readonly)
     parent.txt_mssql_pwd.SetToolTipString(_("Password"))
     #2 MS SQL SERVER
-    bx_mssql= wx.StaticBox(scroll, -1, u"Microsoft SQL Server")
     parent.szr_mssql = wx.StaticBoxSizer(bx_mssql, wx.VERTICAL)
     #3 MSSQL INNER
     #4 MSSQL INNER TOP

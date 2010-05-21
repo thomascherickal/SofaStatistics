@@ -24,7 +24,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics, 
                  paired=False):
         wx.Dialog.__init__(self, parent=parent, title=_("Normal Data?"),
-                           size=(1024,600),
+                           size=(1024,600), 
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
                            wx.CLIP_CHILDREN)
@@ -152,13 +152,13 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
 
     def on_database_sel(self, event):
         config_dlg.ConfigDlg.on_database_sel(self, event)
-        self.setup_vars()
+        self.setup_vars(var_a=True, var_b=self.paired)
         self.set_shape_to_blank()
         self.set_output_to_blank()
         
     def on_table_sel(self, event):
         config_dlg.ConfigDlg.on_table_sel(self, event)
-        self.setup_vars()
+        self.setup_vars(var_a=True, var_b=self.paired)
         self.set_shape_to_blank()
         self.set_output_to_blank()
         

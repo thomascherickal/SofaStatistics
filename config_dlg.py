@@ -86,6 +86,7 @@ class ConfigDlg(object):
         Each widget has a set of events ready to go as well.
         Assumes self has quite a few properties already set.
         """
+        bx_data = wx.StaticBox(panel, -1, _("Data Source"))
         self.LABEL_FONT = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         # 1) Databases
         lbl_databases = wx.StaticText(panel, -1, _("Database:"))
@@ -100,7 +101,6 @@ class ConfigDlg(object):
         # 2) Tables
         lbl_tables = wx.StaticText(panel, -1, _("Table:"))
         lbl_tables.SetFont(self.LABEL_FONT)
-        bx_data = wx.StaticBox(panel, -1, _("Data Source"))
         self.szr_data = wx.StaticBoxSizer(bx_data, wx.HORIZONTAL)
         self.szr_data.Add(lbl_databases, 0, wx.LEFT|wx.RIGHT, 5)
         self.szr_data.Add(self.drop_dbs, 0, wx.RIGHT, 10)
@@ -117,6 +117,10 @@ class ConfigDlg(object):
         Each widget has a set of events ready to go as well.
         """
         debug = False
+        bx_report_config = wx.StaticBox(panel, -1, _("Send output to ..."))
+        bx_css_config = wx.StaticBox(panel, -1, _("Style output using ..."))
+        bx_var_config = wx.StaticBox(panel, -1, _("Variable config from ..."))
+        bx_script_config = wx.StaticBox(panel, -1, _("Export here to reuse"))
         # Data config details
         self.txt_var_dets_file = wx.TextCtrl(panel, -1, 
                                         cc[mg.CURRENT_VDTS_PATH], size=(200,-1))
@@ -171,25 +175,21 @@ class ConfigDlg(object):
         self.szr_config_top = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_config_bottom = wx.BoxSizer(wx.HORIZONTAL)
         # Report
-        bx_report_config = wx.StaticBox(panel, -1, _("Send output to ..."))
         szr_report_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
         szr_report_config.Add(self.txt_report_file, 1, wx.GROW)
         szr_report_config.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
         szr_report_config.Add(self.btn_view, 0, wx.LEFT|wx.RIGHT, 5)
         self.szr_config_top.Add(szr_report_config, 3, wx.RIGHT, 10)
         # Style
-        bx_css_config = wx.StaticBox(panel, -1, _("Style output using ..."))
         szr_style_config = wx.StaticBoxSizer(bx_css_config, wx.HORIZONTAL)
         szr_style_config.Add(self.drop_style, 1, wx.GROW)
         self.szr_config_top.Add(szr_style_config, 1)
         # Variables
-        bx_var_config = wx.StaticBox(panel, -1, _("Variable config from ..."))
         szr_var_config = wx.StaticBoxSizer(bx_var_config, wx.HORIZONTAL)
         szr_var_config.Add(self.txt_var_dets_file, 1, wx.GROW)
         szr_var_config.Add(self.btn_var_dets_path, 0, wx.LEFT|wx.RIGHT, 5)
         self.szr_config_bottom.Add(szr_var_config, 1, wx.RIGHT, 10)
         # Script
-        bx_script_config = wx.StaticBox(panel, -1, _("Export here to reuse"))
         szr_script_config = wx.StaticBoxSizer(bx_script_config, wx.HORIZONTAL)
         szr_script_config.Add(self.txt_script_file, 1, wx.GROW)
         szr_script_config.Add(self.btn_script_path, 0, wx.LEFT|wx.RIGHT, 5)

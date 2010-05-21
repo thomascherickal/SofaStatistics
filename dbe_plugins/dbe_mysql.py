@@ -344,6 +344,7 @@ def get_index_dets(cur, db, tbl):
     return idxs, has_unique
 
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
+    bx_mysql= wx.StaticBox(scroll, -1, "MySQL")
     # default database
     parent.lbl_mysql_default_db = wx.StaticText(scroll, -1, 
                                              _("Default Database (name only):"))
@@ -388,7 +389,6 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_mysql_pwd.Enable(not readonly)
     parent.txt_mysql_pwd.SetToolTipString(_("Password"))
     #2 MYSQL
-    bx_mysql= wx.StaticBox(scroll, -1, "MySQL")
     parent.szr_mysql = wx.StaticBoxSizer(bx_mysql, wx.VERTICAL)
     #3 MYSQL INNER
     #4 MYSQL INNER TOP

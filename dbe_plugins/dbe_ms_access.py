@@ -220,6 +220,7 @@ def get_index_dets(cur, db, tbl):
     return idxs, has_unique
 
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
+    bx_msaccess= wx.StaticBox(scroll, -1, "MS Access")
     # default database
     parent.lbl_msaccess_default_db = wx.StaticText(scroll, -1, 
             _("Default Database - name only e.g. demo.mdb:"))
@@ -244,7 +245,6 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_msaccess_default_tbl.Enable(not readonly)
     parent.txt_msaccess_default_tbl.SetToolTipString(_("Default table"
                                                        " (optional)"))
-    bx_msaccess= wx.StaticBox(scroll, -1, "MS Access")
     parent.szr_msaccess = wx.StaticBoxSizer(bx_msaccess, wx.VERTICAL)
     #3 MS ACCESS INNER
     szr_msaccess_inner = wx.BoxSizer(wx.HORIZONTAL)

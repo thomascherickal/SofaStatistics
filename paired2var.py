@@ -38,6 +38,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         variables_rc_msg = _("Right click variables to view/edit details")
         # set up panel for frame
         self.panel = wx.Panel(self)
+        bx_desc = wx.StaticBox(self.panel, -1, _("Purpose"))
+        bx_vars = wx.StaticBox(self.panel, -1, _("Variables"))
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         config_dlg.add_icon(frame=self)
         self.szr_data, self.szr_config_bottom, self.szr_config_top = \
@@ -45,7 +47,6 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.szr_output_btns = self.get_szr_output_btns(self.panel,
                                                         inc_clear=False) # mixin
         szr_main = wx.BoxSizer(wx.VERTICAL)
-        bx_desc = wx.StaticBox(self.panel, -1, _("Purpose"))
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
         eg1, eg2, eg3 = self.get_examples()
         lbl_desc1 = wx.StaticText(self.panel, -1, eg1)
@@ -54,7 +55,6 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szr_desc.Add(lbl_desc1, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc2, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc3, 1, wx.GROW|wx.LEFT, 5)
-        bx_vars = wx.StaticBox(self.panel, -1, _("Variables"))
         if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
             bx_vars.SetToolTipString(variables_rc_msg)
         szr_vars = wx.StaticBoxSizer(bx_vars, wx.VERTICAL)

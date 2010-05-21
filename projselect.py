@@ -22,6 +22,9 @@ class ProjSelectDlg(wx.Dialog):
                            pos=(mg.HORIZ_OFFSET+200,100))
         self.parent = parent
         self.panel = wx.Panel(self)
+        bx_existing = wx.StaticBox(self.panel, -1, _("Existing Projects"))
+        lbl_make_new = wx.StaticText(self.panel, -1, 
+                                   _("... or make a new project"))
         self.projs = projs
         config_dlg.add_icon(frame=self)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
@@ -41,14 +44,11 @@ class ProjSelectDlg(wx.Dialog):
         self.txt_proj_notes = wx.TextCtrl(self.panel, -1, self.proj_notes,
                                           style=wx.TE_MULTILINE|wx.TE_READONLY, 
                                           size=(400,90))
-        bx_existing = wx.StaticBox(self.panel, -1, _("Existing Projects"))
         szr_existing = wx.StaticBoxSizer(bx_existing, wx.VERTICAL)
         szr_existing.Add(szr_existing_top, 0, wx.GROW|wx.ALL, 10)
         szr_existing.Add(self.txt_proj_notes, 1, wx.GROW|wx.ALL, 10)
         bx_new = wx.StaticBox(self.panel, -1, "")
         szr_new = wx.StaticBoxSizer(bx_new, wx.HORIZONTAL)
-        lbl_make_new = wx.StaticText(self.panel, -1, 
-                                   _("... or make a new project"))
         btn_make_new = wx.Button(self.panel, wx.ID_NEW)
         btn_make_new.Bind(wx.EVT_BUTTON, self.on_new_click)
         szr_new.Add(lbl_make_new, 1, wx.GROW|wx.ALL, 10)

@@ -309,6 +309,7 @@ def get_index_dets(cur, db, tbl):
     return idxs, has_unique
     
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
+    bx_pgsql= wx.StaticBox(scroll, -1, "PostgreSQL")
     # default database
     parent.lbl_pgsql_default_db = wx.StaticText(scroll, -1, 
                                              _("Default Database (name only):"))
@@ -354,7 +355,6 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_pgsql_pwd.Enable(not readonly)
     parent.txt_pgsql_pwd.SetToolTipString(_("Password"))
     #2 pgsql
-    bx_pgsql= wx.StaticBox(scroll, -1, "PostgreSQL")
     parent.szr_pgsql = wx.StaticBoxSizer(bx_pgsql, wx.VERTICAL)
     #3 pgsql INNER
     #4 pgsql INNER TOP

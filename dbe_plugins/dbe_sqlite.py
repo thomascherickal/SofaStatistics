@@ -185,6 +185,7 @@ def get_index_dets(cur, db, tbl):
     return idxs, has_unique
 
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
+    bx_sqlite = wx.StaticBox(scroll, -1, "SQLite")
     # default database
     parent.lbl_sqlite_default_db = wx.StaticText(scroll, -1, 
                                             _("Default Database (name only):"))
@@ -206,7 +207,6 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_sqlite_default_tbl.Enable(not readonly)
     parent.txt_sqlite_default_tbl.SetToolTipString(_("Default table"
                                                      " (optional)"))
-    bx_sqlite = wx.StaticBox(scroll, -1, "SQLite")
     parent.szr_sqlite = wx.StaticBoxSizer(bx_sqlite, wx.VERTICAL)
     #3 SQLITE INNER
     szr_sqlite_inner = wx.BoxSizer(wx.HORIZONTAL)

@@ -27,6 +27,8 @@ class DataSelectDlg(wx.Dialog):
                            pos=(mg.HORIZ_OFFSET+100,100))
         self.parent = parent
         self.panel = wx.Panel(self)
+        bx_existing = wx.StaticBox(self.panel, -1, _("Existing data tables"))
+        bx_new = wx.StaticBox(self.panel, -1, "")
         wx.BeginBusyCursor()
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
@@ -63,11 +65,9 @@ class DataSelectDlg(wx.Dialog):
         szr_existing_bottom.Add(self.btn_delete, 0, wx.RIGHT, 10)
         szr_existing_bottom.Add(self.btn_design, 0, wx.RIGHT, 10)
         szr_existing_bottom.Add(btn_open, 0)
-        bx_existing = wx.StaticBox(self.panel, -1, _("Existing data tables"))
         szr_existing = wx.StaticBoxSizer(bx_existing, wx.VERTICAL)
         szr_existing.Add(szr_data, 0, wx.GROW|wx.ALL, 10)
-        szr_existing.Add(szr_existing_bottom, 0, wx.GROW|wx.ALL, 10)        
-        bx_new = wx.StaticBox(self.panel, -1, "")
+        szr_existing.Add(szr_existing_bottom, 0, wx.GROW|wx.ALL, 10)
         szr_new = wx.StaticBoxSizer(bx_new, wx.HORIZONTAL)
         lbl_make_new = wx.StaticText(self.panel, -1, _("... or add a new data "
                                         "table to the default SOFA database"))
