@@ -197,6 +197,7 @@ class SofaApp(wx.App):
             self.SetTopWindow(frame)
             mg.MAX_WIDTH = wx.Display().GetGeometry()[2]
             mg.MAX_HEIGHT = wx.Display().GetGeometry()[3]
+            mg.HORIZ_OFFSET = 0 if mg.MAX_WIDTH < 1224 else 200
             return True
         except Exception, e:
             try:

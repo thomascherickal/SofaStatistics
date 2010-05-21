@@ -14,7 +14,8 @@ import config_globals
 class PrefsDlg(wx.Dialog):
     def __init__(self, parent, prefs_dic):
         wx.Dialog.__init__(self, parent=parent, title=_("Preferences"), 
-                           style=wx.CAPTION|wx.SYSTEM_MENU, pos=(300,300))
+                           style=wx.CAPTION|wx.SYSTEM_MENU, 
+                           pos=(mg.HORIZ_OFFSET+100,300))
         if not prefs_dic:
             prefs_dic[mg.PREFS_KEY] = {mg.DEFAULT_LEVEL_KEY: mg.LEVEL_BRIEF}
         self.prefs_dic = prefs_dic

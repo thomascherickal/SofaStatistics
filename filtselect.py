@@ -60,7 +60,8 @@ class FiltSelectDlg(wx.Dialog):
         tbl_filt_label, self.tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         title = _("Current filter") if self.tbl_filt else _("Apply filter")
         wx.Dialog.__init__(self, parent=parent, title=title, 
-                           style=wx.CAPTION|wx.SYSTEM_MENU, pos=(300,100))
+                           style=wx.CAPTION|wx.SYSTEM_MENU, 
+                           pos=(mg.HORIZ_OFFSET+100,100))
         self.parent = parent
         self.panel = wx.Panel(self)
         # szrs

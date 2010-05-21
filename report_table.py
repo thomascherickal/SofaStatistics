@@ -115,7 +115,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     def __init__(self, var_labels=None, var_notes=None, val_dics=None):
         debug = False
         wx.Dialog.__init__(self, parent=None, id=-1, 
-                       title=_("Make Report Table"), pos=(200, 0),
+                       title=_("Make Report Table"), pos=(mg.HORIZ_OFFSET, 0),
                        style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
                        wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         self.url_load = True # btn_expand    
@@ -155,12 +155,11 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.txt_subtitles = wx.TextCtrl(self.panel, -1, size=(50,40), 
                                         style=wx.TE_MULTILINE)
         self.txt_subtitles.Bind(wx.EVT_TEXT, self.on_subtitle_change)
-        # table type
+        # table type. NB max indiv width sets width for all items in Win or OSX
+        tab_type_choices = (_("Frequencies"), _("Crosstabs"), _("Row Stats"),
+                            _("Data List"))
         self.rad_tab_type = wx.RadioBox(self.panel, -1, _("Table Type"), 
-                                        choices=(_("Frequencies"),
-                                                 _("Crosstabs"),
-                                                 _("Row summaries (mean etc)"),
-                                                 _("Data List")),
+                                        choices=tab_type_choices,
                                         style=wx.RA_SPECIFY_COLS)
         self.rad_tab_type.Bind(wx.EVT_RADIOBOX, self.on_tab_type_change)
         self.tab_type = self.rad_tab_type.GetSelection()

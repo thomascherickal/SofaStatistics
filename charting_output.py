@@ -33,7 +33,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         else:
             myheight = 800
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
-                           pos=(200, 0), size=(1024, myheight),
+                           pos=(mg.HORIZ_OFFSET, 0), size=(1024, myheight),
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
                            wx.CLIP_CHILDREN)

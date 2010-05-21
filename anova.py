@@ -36,10 +36,11 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                                                    "a": label_a, "b": label_b})
 
     def add_other_var_opts(self):
+        anova_choices = (_("Precision"), _("Speed"))
         self.rad_high = wx.RadioBox(self.panel, -1, _("Algorithm"), 
-                        choices=(_("Precision (best choice unless too slow)"),
-                                 _("Speed")),
-                        style=wx.RA_SPECIFY_COLS)
+                        choices=anova_choices, style=wx.RA_SPECIFY_COLS)
+        self.rad_high.SetToolTipString(_("Precision is the best choice unless "
+                                         "too slow"))
         self.szr_vars_top_left.Add(self.rad_high, 0)
     
     def get_script(self, css_idx, add_to_report, report_name):

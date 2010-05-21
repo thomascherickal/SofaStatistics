@@ -28,7 +28,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     
     def __init__(self, title):
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
-                           pos=(200,0), 
+                           pos=(mg.HORIZ_OFFSET,0), 
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
                            wx.CLIP_CHILDREN)

@@ -77,7 +77,7 @@ class TblEditor(wx.Dialog):
             myheight = 800
         wx.Dialog.__init__(self, None, 
                            title=_("Data from ") + "%s.%s" % (dd.db, dd.tbl),
-                           pos=(300, 0), 
+                           pos=(mg.HORIZ_OFFSET+100, 0), 
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
                            wx.CLIP_CHILDREN)
