@@ -143,8 +143,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_vars.Add(szr_vars_top, 0)      
         szr_vars.Add(szr_vars_bottom, 0, wx.GROW)
         # assemble sizer for top panel
-        szr_top.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szr_top.Add(szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        static_box_gap = 0 if mg.PLATFORM == mg.MAC else 10
+        if static_box_gap:
+            szr_top.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
+        szr_top.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        if static_box_gap:
+            szr_top.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
+        szr_top.Add(szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.panel_top.SetSizer(szr_top)
         szr_top.SetSizeHints(self.panel_top)
 
@@ -223,11 +228,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_bottom.SetSizeHints(self.panel_bottom)
         # assemble entire frame
         szr_main.Add(self.panel_top, 0, wx.GROW)
+        static_box_gap = 0 if mg.PLATFORM == mg.MAC else 10
+        if static_box_gap:
+            szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
         szr_main.Add(self.panel_mid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_main.Add(self.panel_bottom, 1, wx.GROW)
         self.SetAutoLayout(True)
         self.SetSizer(szr_main)
-        self.SetMinSize((1024,600))
         szr_lst = [self.panel_top, self.panel_mid, self.panel_bottom]
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024, 
                      height_init=myheight)

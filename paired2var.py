@@ -104,10 +104,19 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szr_bottom_left.Add(self.szr_level, 0)
         szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
         szr_bottom.Add(self.szr_output_btns, 0, wx.GROW|wx.LEFT, 10)
-        szr_main.Add(szr_desc, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szr_main.Add(szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szr_main.Add(szr_bottom, 2, wx.GROW|wx.ALL, 10)
+        static_box_gap = 0 if mg.PLATFORM == mg.MAC else 10
+        if static_box_gap:
+            szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
+        szr_main.Add(szr_desc, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        if static_box_gap:
+            szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
+        szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        if static_box_gap:
+            szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
+        szr_main.Add(szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        if static_box_gap:
+            szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
+        szr_main.Add(szr_bottom, 2, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
         self.panel.SetSizer(szr_main)
         szr_lst = [szr_desc, self.szr_data, szr_vars, szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst)
