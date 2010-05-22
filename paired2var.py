@@ -94,6 +94,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             myheight = ((mg.MAX_HEIGHT/1024.0)*350) - 20
         else:
             myheight = 350
+        if mg.PLATFORM == mg.MAC:
+            myheight = myheight*0.3
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))
         html2show = _("<p>Waiting for a report to be run.</p>")
         self.html.show_html(html2show)

@@ -353,7 +353,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def on_var2_sel(self, event):
         pass
     
-    def add_other_var_opts(self):
+    def add_other_var_opts(self, szr=None):
         pass
 
     def on_rclick_var1(self, event):

@@ -35,13 +35,18 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             "between \"%(a)s\" and \"%(b)s\"?") % {"avg": label_avg, 
                                                    "a": label_a, "b": label_b})
 
-    def add_other_var_opts(self):
-        anova_choices = (_("Precision"), _("Speed"))
-        self.rad_high = wx.RadioBox(self.panel, -1, _("Algorithm"), 
-                        choices=anova_choices, style=wx.RA_SPECIFY_COLS)
-        self.rad_high.SetToolTipString(_("Precision is the best choice unless "
+    def add_other_var_opts(self, szr):
+        self.lbl_algorithm = wx.StaticText(self.panel, -1, "Algorithm: ")
+        self.rad_precision = wx.RadioButton(self.panel, -1, _("Precision"), 
+                                            style=wx.RB_GROUP)
+        self.rad_speed = wx.RadioButton(self.panel, -1, _("Speed"))
+        self.rad_speed.SetToolTipString(_("Precision is the best choice unless "
                                          "too slow"))
-        self.szr_vars_top_left.Add(self.rad_high, 0)
+        szr_algorithm = wx.BoxSizer(wx.HORIZONTAL)
+        szr_algorithm.Add(self.lbl_algorithm, 0)
+        szr_algorithm.Add(self.rad_precision, 0)
+        szr_algorithm.Add(self.rad_speed, 0, wx.LEFT, 10)
+        szr.Add(szr_algorithm, 0, wx.TOP, 5)
     
     def get_script(self, css_idx, add_to_report, report_name):
         "Build script from inputs"
@@ -80,11 +85,11 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"label_avg = u\"%s\"" % label_avg)
-        script_lst.append(u"add_to_report = %s" % ("True" if add_to_report \
+        script_lst.append(u"add_to_report = %s" % ("True" if add_to_report
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
                           lib.escape_pre_write(report_name))
-        high = not self.rad_high.GetSelection()
+        high = self.rad_precision.GetValue()
         script_lst.append(u"p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, "
             u"mean_squ_bn = \\\n    core_stats.anova(samples, labels, "
             u"high=%s)" % high)

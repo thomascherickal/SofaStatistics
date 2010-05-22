@@ -144,7 +144,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         # comment
         self.lbl_phrase = wx.StaticText(self.panel, -1, 
                                         _("Start making your selections"))
-        szr_vars_bottom.Add(self.lbl_phrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 5)
+        style = wx.GROW|wx.BOTTOM
+        if mg.PLATFORM != mg.MAC:
+            style |= wx.TOP
+        szr_vars_bottom.Add(self.lbl_phrase, 0, style, 5)
         szr_vars.Add(szr_vars_top, 0)      
         szr_vars.Add(szr_vars_bottom, 0, wx.GROW)
         szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
@@ -155,6 +158,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             myheight = ((mg.MAX_HEIGHT/1024.0)*350) - 20
         else:
             myheight = 350
+        if mg.PLATFORM == mg.MAC:
+            myheight = myheight*0.3
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))
         html2show = _("<p>Waiting for a report to be run.</p>")
         self.html.show_html(html2show)
@@ -178,12 +183,12 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
         szr_main.Add(szr_bottom, 1, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
-        self.add_other_var_opts()
+        self.add_other_var_opts(szr=self.szr_vars_top_left)
         self.panel.SetSizer(szr_main)
         szr_lst = [szr_desc, self.szr_data, szr_vars, szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst)
 
-    def add_other_var_opts(self):
+    def add_other_var_opts(self, szr=None):
         pass
 
     def on_rclick_tables(self, event):
