@@ -131,8 +131,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         szr_std_btns.Insert(0, self.szr_level, wx.ALIGN_LEFT|wx.ALL, 10)
         szr_main.Add(szr_std_btns, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(szr_main)
-        szr_main.SetSizeHints(self)
-        self.Layout()
+        szr_lst = [szr_desc, self.szr_data, szr_vars, self.szr_examine]
+        lib.set_size(window=self, szr_lst=szr_lst)
 
     def set_shape_to_blank(self):
         self.img_hist.SetBitmap(self.bmp_blank_hist)

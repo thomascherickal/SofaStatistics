@@ -141,10 +141,9 @@ class TblEditor(wx.Dialog):
         self.szr_main.Add(self.grid, 1, wx.GROW)
         self.szr_main.Add(szr_bottom, 0, wx.GROW|wx.ALL, 5)
         self.panel.SetSizer(self.szr_main)
-        x,y = szr_bottom.GetMinSize() # overall window must be large enough to
-        # include grid + bottom controls e.g. Close.
-        lib.set_size(window=self, width_init=mywidth, height_init=myheight, 
-                     width_min=width_grid+x, height_min=height_grid+y+8)
+        szr_lst = [self.grid, szr_bottom]
+        lib.set_size(window=self, szr_lst=szr_lst, width_init=mywidth, 
+                     height_init=myheight)
         self.grid.SetFocus()
     
     # processing MOVEMENTS AWAY FROM CELLS e.g. saving values //////////////////

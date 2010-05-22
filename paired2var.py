@@ -109,7 +109,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szr_main.Add(szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szr_main.Add(szr_bottom, 2, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(szr_main)
-        szr_main.SetSizeHints(self)
+        szr_lst = [szr_desc, self.szr_data, szr_vars, szr_bottom]
+        lib.set_size(window=self, szr_lst=szr_lst)
 
     def on_rclick_group_a(self, event):
         var_a, choice_item = self.get_var_a()

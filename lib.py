@@ -39,15 +39,25 @@ def get_min_content_size(szr_lst, vertical=True):
             y = max([szr_y, y])
     return x, y
 
-def set_size(window, width_init, height_init, width_min, height_min):
+def set_size(window, szr_lst, width_init=None, height_init=None, 
+             horiz_padding=10):
     """
     Provide ability to display a larger initial size yet set an explicit minimum
         size.  Also handles need to "jitter" in Windows.
     Doesn't use the standard approach of szr.SetSizeHints(self) and 
         panel.Layout().  Setting size hints will shrink it using Fit().
     window -- e.g. the dialog itself or a frame.
+    szr_lst -- all the szrs in the main szr (can be a grid instead of a szr)
+    width_init -- starting width.  If None use the minimum worked out.
+    height_init -- starting height.  If None use the minimum worked out.
     NB no need to set size=() in __init__ of window. 
     """
+    width_cont_min, height_cont_min = get_min_content_size(szr_lst)
+    width_min = width_cont_min + 2*horiz_padding # left and right
+    height_correction = 200 if mg.PLATFORM == mg.MAC else 100
+    height_min = height_cont_min + height_correction
+    width_init = width_init if width_init else width_min
+    height_init = height_init if height_init else height_min
     if mg.PLATFORM == mg.WINDOWS: # jitter to display inner controls
         window.SetSize((width_init+1, height_init+1))
     window.SetSize((width_init, height_init))

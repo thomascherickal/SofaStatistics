@@ -225,6 +225,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.setup_row_btns()
         self.setup_col_btns()
         self.add_default_column_config() # must set up after coltree and demo 
+        # html (esp height)
+        # 
         if mg.PLATFORM == mg.WINDOWS:
             mid_height = 820
             height_drop = 20
@@ -288,11 +290,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         szr_main.Add(szr_bottom, 2, wx.GROW)
         self.panel.SetSizer(szr_main)
         szr_lst = [self.szr_data, szr_mid, szr_trees, szr_bottom]
-        width_cont_min, height_cont_min = lib.get_min_content_size(szr_lst)
-        width_min = width_cont_min + 2*10 # left and right padding
-        height_min = height_cont_min + 100 # seems to be what it needs
-        lib.set_size(window=self, width_init=1024, height_init=height_min, 
-                     width_min=width_min, height_min=height_min)
+        lib.set_size(window=self, szr_lst=szr_lst, width_init=1024)
 
     def update_css(self):
         "Update css, including for demo table"

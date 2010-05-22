@@ -53,9 +53,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def __init__(self, title, takes_range=False):
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
                            pos=(mg.HORIZ_OFFSET, 0), 
-                           style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
-                           wx.RESIZE_BORDER|wx.SYSTEM_MENU|\
-                           wx.CAPTION|wx.CLIP_CHILDREN)
+                           style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|
+                           wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
+                           wx.CLIP_CHILDREN)
         self.takes_range = takes_range
         self.url_load = True # btn_expand
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
@@ -171,8 +171,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szr_main.Add(szr_bottom, 2, wx.GROW|wx.ALL, 10)
         self.add_other_var_opts()
         self.panel.SetSizer(szr_main)
-        szr_main.SetSizeHints(self)
-        self.Layout()
+        szr_lst = [szr_desc, self.szr_data, szr_vars, szr_bottom]
+        lib.set_size(window=self, szr_lst=szr_lst)
 
     def add_other_var_opts(self):
         pass

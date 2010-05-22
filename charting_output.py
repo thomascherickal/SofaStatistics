@@ -27,8 +27,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     
     def __init__(self, title, takes_range=False):
         # see http://old.nabble.com/wx.StaticBoxSizer-td21662703.html
-        bx_vars = wx.StaticBox(self.panel_top, -1, _("Variables"))
-        bx_charts = wx.StaticBox(self.panel_mid, -1, _("Chart Types"))
         if mg.MAX_HEIGHT <= 620:
             myheight = 600
         elif mg.MAX_HEIGHT <= 870:
@@ -49,6 +47,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_main = wx.BoxSizer(wx.VERTICAL)
         # top panel
         self.panel_top = wx.Panel(self)
+        bx_vars = wx.StaticBox(self.panel_top, -1, _("Variables"))
         szr_top = wx.BoxSizer(wx.VERTICAL)
         self.szr_data = self.get_szr_data(self.panel_top) # mixin
         if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
@@ -148,12 +147,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_top.Add(szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         self.panel_top.SetSizer(szr_top)
         szr_top.SetSizeHints(self.panel_top)
-        
-        
-        
+
         # Charts
         # chart buttons
         self.panel_mid = wx.Panel(self)
+        bx_charts = wx.StaticBox(self.panel_mid, -1, _("Chart Types"))
         self.szr_mid = wx.StaticBoxSizer(bx_charts, wx.VERTICAL)
         self.setup_chart_btns(szr_chart_btns)
         self.szr_mid.Add(szr_chart_btns, 0, wx.GROW)
@@ -230,7 +228,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.SetAutoLayout(True)
         self.SetSizer(szr_main)
         self.SetMinSize((1024,600))
-        self.Layout()
+        szr_lst = [self.panel_top, self.panel_mid, self.panel_bottom]
+        lib.set_size(window=self, szr_lst=szr_lst, width_init=1024, 
+                     height_init=myheight)
     
     def setup_chart_btns(self, szr_chart_btns):
         # bar charts
