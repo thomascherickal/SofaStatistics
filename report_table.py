@@ -239,6 +239,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             myheight = ((mg.MAX_HEIGHT/mid_height)*350.0) - height_drop
         else:
             myheight = 350
+        if mg.PLATFORM == mg.MAC:
+            myheight = myheight*0.3
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))        
         has_rows, has_cols = self.get_row_col_status()
         waiting_msg = get_missing_dets_msg(self.tab_type, has_rows, has_cols)
@@ -256,7 +258,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         szr_opts.Add(self.chk_totals_row, 0)        
         szr_opts.Add(self.chk_first_as_label)
         szr_tab_type.Add(szr_opts, 0)
-        szr_mid.Add(szr_tab_type, 0, wx.BOTTOM|wx.TOP, 5)
+        static_box_gap = 0 if mg.PLATFORM == mg.MAC else 5
+        if static_box_gap:
+            szr_mid.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
+        szr_mid.Add(szr_tab_type, 0, wx.BOTTOM, 5)
         szr_mid.Add(szr_titles, 1, wx.GROW|wx.TOP, 5)
         szr_rows.Add(lbl_rows, 0)
         szr_row_btns = wx.BoxSizer(wx.HORIZONTAL)
@@ -284,9 +289,13 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                             wx.RIGHT|wx.BOTTOM, 10)
         szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
         szr_bottom.Add(self.szr_output_btns, 0, wx.GROW|wx.BOTTOM|wx.RIGHT, 10)
-        szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+        if static_box_gap:
+            szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
+        szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_main.Add(szr_mid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szr_main.Add(szr_trees, 1, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        szr_main.Add(szr_trees, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        if static_box_gap:
+            szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
         szr_main.Add(szr_bottom, 2, wx.GROW)
         self.panel.SetSizer(szr_main)
         szr_lst = [self.szr_data, szr_mid, szr_trees, szr_bottom]

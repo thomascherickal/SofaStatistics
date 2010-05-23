@@ -39,6 +39,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         self.lbl_algorithm = wx.StaticText(self.panel, -1, "Algorithm: ")
         self.rad_precision = wx.RadioButton(self.panel, -1, _("Precision"), 
                                             style=wx.RB_GROUP)
+        self.rad_precision.SetValue(True)
         self.rad_speed = wx.RadioButton(self.panel, -1, _("Speed"))
         self.rad_speed.SetToolTipString(_("Precision is the best choice unless "
                                          "too slow"))
