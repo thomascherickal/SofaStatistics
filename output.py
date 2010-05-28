@@ -504,6 +504,5 @@ def display_report(parent, strContent, url_load=False):
     dlg = showhtml.DlgHTML(parent=parent, title=_("Report"), url=None, 
                            content=strContent, url_load=url_load)
     dlg.ShowModal()
-    dlg.Destroy()
     lib.safe_end_cursor() # again to be sure
     
