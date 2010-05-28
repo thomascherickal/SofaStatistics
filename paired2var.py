@@ -256,9 +256,6 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def update_defaults(self):
         mg.GROUP_A_DEFAULT = self.drop_group_a.GetStringSelection()
         mg.GROUP_B_DEFAULT = self.drop_group_b.GetStringSelection()
-        
-    def update_local_display(self, strContent):
-        self.html.show_html(strContent, url_load=True) # allow footnotes
 
     def on_btn_run(self, event):
         """
@@ -274,8 +271,9 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             try:
                 css_fils, css_idx = output.get_css_dets()
             except my_exceptions.MissingCssException:
-                self.update_local_display(_("Please check the CSS file exists "
-                                            "or set another"))
+                lib.update_local_display(self.html, 
+                                         _("Please check the CSS file exists "
+                                            "or set another"), wrap_text=True)
                 lib.safe_end_cursor()
                 event.Skip()
                 return
@@ -285,7 +283,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                                                            add_to_report, 
                                                            css_fils, script)
             lib.safe_end_cursor()
-            self.update_local_display(str_content)
+            lib.update_local_display(self.html, str_content)
             self.str_content = str_content
             self.btn_expand.Enable(bolran_report)
         event.Skip()
@@ -316,8 +314,9 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             try:
                 css_fils, css_idx = output.get_css_dets()
             except my_exceptions.MissingCssException:
-                self.update_local_display(_("Please check the CSS file exists "
-                                            "or set another"))
+                lib.update_local_display(self.html,
+                                         _("Please check the CSS file exists "
+                                            "or set another"), wrap_text=True)
                 lib.safe_end_cursor()
                 event.Skip()
                 return

@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-dev_debug = True
+dev_debug = False
 test_lang = False
 
 import warnings
@@ -700,11 +700,11 @@ class StartFrame(wx.Frame):
                 
                 </body>
                 </html>""")
-            strContent = u"".join(cont)
+            str_content = u"".join(cont)
             f = codecs.open("/home/g/Desktop/test.htm", "w", "utf-8")
-            f.write(strContent)
+            f.write(str_content)
             f.close()
-            output.display_report(self, strContent, url_load=True)
+            output.display_report(self, str_content, url_load=True)
         event.Skip()
         
     def on_charts_enter(self, event):

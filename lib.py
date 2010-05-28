@@ -18,6 +18,10 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
+def update_local_display(html_ctrl, str_content, wrap_text=False):
+    str_content = u"<p>%s</p>" % str_content if wrap_text else str_content 
+    html_ctrl.show_html(str_content, url_load=True) # allow footnotes
+
 def get_min_content_size(szr_lst, vertical=True):
     """
     For a list of sizers return min content size overall.  NB excludes padding 

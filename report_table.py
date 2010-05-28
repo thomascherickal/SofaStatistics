@@ -485,9 +485,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                     too_long = True
         return too_long
     
-    def update_local_display(self, strContent):
-        self.html.show_html(strContent, url_load=True)
-    
     def on_btn_run(self, event):
         """
         Generate script to special location (INT_SCRIPT_PATH), 
@@ -505,8 +502,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             try:
                 css_fils, css_idx = output.get_css_dets()
             except my_exceptions.MissingCssException:
-                self.update_local_display(_("Please check the CSS file exists "
-                                            "or set another"))
+                lib.update_local_display(self.html, 
+                                         _("Please check the CSS file exists "
+                                            "or set another"), wrap_text=True)
                 lib.safe_end_cursor()
                 event.Skip()
                 return
@@ -519,7 +517,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             """f = open("/home/g/Desktop/testrob1.htm", "r")
             str_content = f.read()
             f.close()"""
-            self.update_local_display(str_content)
+            lib.update_local_display(self.html, str_content)
             self.str_content = str_content
             self.btn_expand.Enable(bolran_report)
     
@@ -537,8 +535,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             try:
                 css_fils, css_idx = output.get_css_dets()
             except my_exceptions.MissingCssException:
-                self.update_local_display(_("Please check the CSS file exists "
-                                            "or set another"))
+                lib.update_local_display(self.html,
+                                         _("Please check the CSS file exists "
+                                            "or set another"), wrap_text=True)
                 lib.safe_end_cursor()
                 event.Skip()
                 return
@@ -801,13 +800,16 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             try:
                 demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
             except my_exceptions.MissingCssException:
-                self.update_local_display(_("Please check the CSS file exists "
-                                            "or set another"))
+                lib.update_local_display(self.html, 
+                                         _("Please check the CSS file exists "
+                                            "or set another"), wrap_text=True)
                 lib.safe_end_cursor()
                 return
             except my_exceptions.TooFewValsForDisplay:
-                self.update_local_display(_("Not enough data to display.  "
-                                "Please check variables and any filtering."))
+                lib.update_local_display(self.html,
+                                _("Not enough data to display.  "
+                                "Please check variables and any filtering."),
+                                wrap_text=True)
                 lib.safe_end_cursor()
                 return
             if demo_html == u"":

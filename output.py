@@ -498,11 +498,11 @@ def add_end_script_code(f):
     f.write(u"\n" + u"fil.write(output.get_html_ftr())")
     f.write(u"\n" + u"fil.close()")
 
-def display_report(parent, strContent, url_load=False):
+def display_report(parent, str_content, url_load=False):
     # display results
     wx.BeginBusyCursor()
     dlg = showhtml.DlgHTML(parent=parent, title=_("Report"), url=None, 
-                           content=strContent, url_load=url_load)
+                           content=str_content, url_load=url_load)
     dlg.ShowModal()
     lib.safe_end_cursor() # again to be sure
     
