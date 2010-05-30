@@ -226,21 +226,17 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.setup_col_btns()
         self.add_default_column_config() # must set up after coltree and demo 
         # html (esp height)
-        # 
-        if mg.PLATFORM == mg.WINDOWS:
-            mid_height = 820
-            height_drop = 20
-        else:
-            mid_height = 850
-            height_drop = 50
-        if mg.MAX_HEIGHT <= 620:
-            myheight = 130
-        elif mg.MAX_HEIGHT <= mid_height:
-            myheight = ((mg.MAX_HEIGHT/mid_height)*350.0) - height_drop
-        else:
-            myheight = 350
         if mg.PLATFORM == mg.MAC:
-            myheight = myheight*0.3
+            min_height = 70
+            grow_from = 768
+        else:
+            min_height = 130
+            grow_from = 600
+        if mg.MAX_HEIGHT <= grow_from:
+            myheight = min_height
+        else:
+            myheight = min_height + ((mg.MAX_HEIGHT-grow_from)*0.2)
+        myheight = 350 if myheight > 350 else myheight
         self.html = full_html.FullHTML(self.panel, size=(200, myheight))        
         has_rows, has_cols = self.get_row_col_status()
         waiting_msg = get_missing_dets_msg(self.tab_type, has_rows, has_cols)
