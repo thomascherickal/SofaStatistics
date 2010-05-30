@@ -17,6 +17,9 @@ import shutil
 #from pysqlite2 import dbapi2 as sqlite
 import sqlite3 as sqlite
 import sys
+MAC_PATH = u"/Library/sofa"
+if platform.system() == "Darwin":
+    sys.path.insert(0, MAC_PATH) # start is running from Apps folder
 import wxversion
 wxversion.select("2.8")
 import wx
@@ -62,7 +65,10 @@ def install_local():
     Install local set of files in user home dir if necessary.
     Modify default project settings to point to local (user) SOFA  directory.
     """
-    prog_path = os.path.dirname(__file__)
+    if mg.PLATFORM == mg.MAC:
+        prog_path = MAC_PATH
+    else:
+        prog_path = os.path.dirname(__file__)
     default_proj = os.path.join(LOCAL_PATH, u"projs", mg.DEFAULT_PROJ)
     REPORTS = u"reports"
     IMAGES = u"images"
