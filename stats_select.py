@@ -68,6 +68,7 @@ class StatsSelectDlg(wx.Dialog):
                             pos=(MAIN_LEFT-25, 55), 
                             style=wx.RB_GROUP) # groups all till next RB_GROUP
         self.rad_direct.Bind(wx.EVT_RADIOBUTTON, self.on_radio_direct_btn)
+        self.rad_direct.SetValue(True)
         self.rad_assisted = wx.RadioButton(self.panel, -1, 
                                           pos=(MAIN_LEFT - 25, 95))
         self.rad_assisted.Bind(wx.EVT_RADIOBUTTON, self.on_radio_assisted_btn)
@@ -244,6 +245,7 @@ class StatsSelectDlg(wx.Dialog):
         self.remove_test_indicators()
         
     def on_radio_assisted_btn(self, event):
+        self.rad_differences.SetValue(True)
         self.rad_differences.Enable(True)
         self.diff_setup(enable=True)
         self.rad_relationships.Enable(True)
