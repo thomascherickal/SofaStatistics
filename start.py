@@ -265,7 +265,8 @@ class StartFrame(wx.Frame):
         blankps_rect = wx.Rect(MAIN_LEFT, 218, 610, 30)
         self.blank_proj_strip = self.bmp_sofa.GetSubBitmap(blankps_rect)
         # buttons
-        font_buttons = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
+        font_buttons = wx.Font(14 if mg.PLATFORM == mg.MAC else 10, 
+                               wx.SWISS, wx.NORMAL, wx.BOLD)
         g = get_next_y_pos(284, BTN_DROP)
         # Proj
         bmp_btn_proj = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
@@ -369,7 +370,8 @@ class StartFrame(wx.Frame):
                              visited=wx.Colour(255,255,255), 
                              rollover=wx.Colour(255,255,255))
         link_home.SetOwnBackgroundColour(wx.Colour(0, 0, 0))
-        link_home.SetOwnFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL))
+        link_home.SetOwnFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9, 
+                                     wx.SWISS, wx.NORMAL, wx.NORMAL))
         link_home.SetSize(wx.Size(200, 17))
         link_home.SetUnderlines(link=True, visited=True, rollover=False)
         link_home.SetLinkCursor(wx.CURSOR_HAND)
@@ -383,7 +385,8 @@ class StartFrame(wx.Frame):
                              visited=TEXT_BROWN, 
                              rollover=TEXT_BROWN)
         link_help.SetOwnBackgroundColour(wx.Colour(205, 217, 215))
-        link_help.SetOwnFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL))
+        link_help.SetOwnFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9, 
+                                     wx.SWISS, wx.NORMAL, wx.NORMAL))
         link_help.SetSize(wx.Size(200, 17))
         link_help.SetUnderlines(link=True, visited=True, rollover=False)
         link_help.SetLinkCursor(wx.CURSOR_HAND)
@@ -432,14 +435,18 @@ class StartFrame(wx.Frame):
             panel_dc.DrawBitmap(self.bmp_import, HELP_IMG_LEFT-30, 
                                 HELP_IMG_TOP-20, True)
             panel_dc.SetTextForeground(wx.WHITE)
-            panel_dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL))
+            panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 8, 
+                                     wx.SWISS, wx.NORMAL, wx.NORMAL))
             panel_dc.DrawLabel(_("Version %s") % mg.VERSION, 
                                wx.Rect(MAIN_RIGHT, TOP_TOP, 100, 20))
-            panel_dc.SetFont(wx.Font(self.main_font_size, wx.SWISS, wx.NORMAL, 
-                                     wx.NORMAL))
+            panel_dc.SetFont(wx.Font(self.main_font_size+5 if 
+                                     mg.PLATFORM == mg.MAC 
+                                     else self.main_font_size, 
+                                     wx.SWISS, wx.NORMAL, wx.NORMAL))
             panel_dc.DrawLabel(_("Statistics Open For All"), 
                                wx.Rect(MAIN_LEFT, 80, 100, 100))
-            panel_dc.SetFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL))
+            panel_dc.SetFont(wx.Font(14 if mg.PLATFORM == mg.MAC else 9, 
+                                     wx.SWISS, wx.NORMAL, wx.NORMAL))
             panel_dc.SetTextForeground(TEXT_BROWN)
             panel_dc.DrawLabel(_("SOFA - Statistics Open For All"
                                  "\nthe user-friendly, open-source statistics,"
@@ -449,7 +456,8 @@ class StartFrame(wx.Frame):
                                                     MAX_HELP_TEXT_WIDTH), 
                         wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
             panel_dc.SetTextForeground(wx.WHITE)
-            panel_dc.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
+            panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 7, 
+                                     wx.SWISS, wx.NORMAL, wx.NORMAL))
             panel_dc.DrawLabel(u"Released under open source AGPL3 licence\n%s "
                                "2009-2010 Paton-Simpson & Associates Ltd" %
                                COPYRIGHT, 
@@ -464,7 +472,8 @@ class StartFrame(wx.Frame):
             con.close()
             panel_dc.DrawBitmap(self.blank_proj_strip, MAIN_LEFT, 218, False)
             panel_dc.SetTextForeground(wx.WHITE)
-            panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
+            panel_dc.SetFont(wx.Font(14 if mg.PLATFORM == mg.MAC else 11, 
+                                     wx.SWISS, wx.NORMAL, wx.NORMAL))
             panel_dc.DrawLabel(_("Currently using \"%s\" project settings") % 
                                     self.active_proj[:-5],
                                wx.Rect(MAIN_LEFT, 247, 400, 30))
