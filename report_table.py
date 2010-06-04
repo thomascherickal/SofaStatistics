@@ -118,6 +118,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                        title=_("Make Report Table"), pos=(mg.HORIZ_OFFSET, 0),
                        style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
                        wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
+        dimtree.DimTree.__init__(self)
         self.url_load = True # btn_expand    
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])

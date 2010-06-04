@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-dev_debug = False
+dev_debug = True
 test_lang = False
 
 import warnings
@@ -587,7 +587,7 @@ class StartFrame(wx.Frame):
             msg = _("Unable to connect to data as defined in project %s. "
                     "Please check your settings" % self.active_proj)
             wx.MessageBox(msg)
-            raise Exception, u"%s. Orig error: %s" % (msg, e) 
+            raise Exception, u"%s. Orig error: %s" % (msg, e)
         finally:
             lib.safe_end_cursor()
             event.Skip()

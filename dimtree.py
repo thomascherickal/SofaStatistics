@@ -10,6 +10,9 @@ import getdata
 import dimtables
 import projects
 
+MEASURES = u"measures"
+HAS_TOT = u"has_tot"
+SORT_ORDER = u"sort_order"
 SORT_OPT_NONE = 0 # No sorting options
 SORT_OPT_BY_LABEL = 1 # Only provide option of sorting by label
 SORT_OPT_ALL = 2 # Option of sorting by labels and freqs
@@ -30,10 +33,6 @@ A label tree has nodes for each value under a variable e.g. the dimension might
     need to add label nodes for totals, row %s etc.   
 """
 
-# store last used measures config ready for reuse
-# gets set whenever a col or row is configured. Used if setting up a fresh item.
-measures_config = {mg.FREQS_TBL: None, mg.CROSSTAB: None, mg.ROW_SUMM: None}
-    
 
 class DimTree(object):
     
@@ -44,6 +43,23 @@ class DimTree(object):
     set_initial_config().  This includes on_col_config when 
     col_no_vars_item is added.
     """
+    
+    def __init__(self):
+        """
+        Store last used item config ready for reuse.
+        Gets set whenever a col or row is configured (using 
+            update_default_item_conf()). 
+        Used in set_initial_config() when setting up a fresh item.
+        """
+        self.default_item_confs = \
+            {mg.FREQS_TBL: {mg.COLDIM: {MEASURES: None}, 
+                            mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: None}},
+             mg.CROSSTAB: {mg.COLDIM: {HAS_TOT: None, SORT_ORDER: None, 
+                                       MEASURES: None}, 
+                           mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: None}},
+             mg.ROW_SUMM: {mg.COLDIM: {HAS_TOT: None}, 
+                           mg.ROWDIM: {MEASURES: None}}}
+
     def on_row_item_activated(self, event):
         "Activated row item in tree.  Show config dialog."
         self.config_row()
@@ -165,15 +181,25 @@ class DimTree(object):
             (col_no_vars_item) rather than a normal column variable.
         """
         item_conf = lib.ItemConfig()
-        # see if possibility of reusing measures
-        if ((self.tab_type == mg.FREQS_TBL and dim == mg.COLDIM)
-            or (self.tab_type == mg.CROSSTAB and dim == mg.COLDIM)
-            or (self.tab_type == mg.ROW_SUMM and dim == mg.ROWDIM)):
-            # always get a fresh list so won't change when another is configured
-            if measures_config.get(self.tab_type):
-                item_conf.measures_lst = measures_config.get(self.tab_type)[:]
-            else:
-                item_conf.measures_lst = [lib.get_default_measure(self.tab_type)]
+        # reuse stored item config from same sort if set previously
+        if self.tab_type != mg.RAW_DISPLAY: # Data list has nothing to reuse
+            default_item_conf = self.default_item_confs[self.tab_type]
+            # availability of config options vary by table type and dimension
+            # If a table type/dim doesn't have a key, the config isn't used by 
+            # it.
+            dim_item_conf = default_item_conf.get(dim) # they all have both
+            if HAS_TOT in dim_item_conf:
+                if dim_item_conf[HAS_TOT] is not None:
+                    item_conf.has_tot = dim_item_conf[HAS_TOT]
+            if SORT_ORDER in dim_item_conf:
+                if dim_item_conf[SORT_ORDER] is not None:
+                    item_conf.sort_order = dim_item_conf[SORT_ORDER]
+            if MEASURES in dim_item_conf:
+                if dim_item_conf[MEASURES] is not None:
+                    item_conf.measures_lst = dim_item_conf[MEASURES]
+                else:
+                    item_conf.measures_lst = \
+                                        [lib.get_default_measure(self.tab_type)]
         if var_name:
             item_conf.var_name = var_name
             item_conf.bolnumeric = dd.flds[var_name][mg.FLD_BOLNUMERIC]
@@ -396,15 +422,30 @@ class DimTree(object):
             sort_opt_allowed = SORT_OPT_ALL
         else:
             sort_opt_allowed = SORT_OPT_BY_LABEL
-        ret_measures = [] # will be updated internally
+        item_config_dets = ItemConfigDets()
         dlg = DlgRowConfig(parent=self, var_labels=self.var_labels,
                            node_ids=selected_ids, tree=self.rowtree,
                            sort_opt_allowed=sort_opt_allowed,
-                           inc_measures=inc_measures, ret_measures=ret_measures)
+                           inc_measures=inc_measures, 
+                           item_config_dets=item_config_dets)
         if dlg.ShowModal() == wx.ID_OK:
-            if self.tab_type == mg.ROW_SUMM:
-                measures_config[mg.ROW_SUMM] = ret_measures
+            self.update_default_item_conf(mg.ROWDIM, item_config_dets)
             self.update_demo_display()
+    
+    def update_default_item_conf(self, dim, item_config_dets):
+        """
+        Store settings for possible reuse.
+        Only store what there is a slot for.
+        """
+        if self.tab_type == mg.RAW_DISPLAY:
+            return
+        dim_item_conf = self.default_item_confs[self.tab_type][dim]
+        if HAS_TOT in dim_item_conf:
+            dim_item_conf[HAS_TOT] = item_config_dets.has_tot
+        if SORT_ORDER in dim_item_conf:
+            dim_item_conf[SORT_ORDER] = item_config_dets.sort_order
+        if MEASURES in dim_item_conf:
+            dim_item_conf[MEASURES] = item_config_dets.measures        
     
     def on_col_config(self, event):
         "Configure column button clicked."
@@ -490,15 +531,15 @@ class DimTree(object):
             sort_opt_allowed = SORT_OPT_ALL
         else:
             sort_opt_allowed = SORT_OPT_BY_LABEL
-        ret_measures = [] # will be updated internally
+        item_config_dets = ItemConfigDets()
         dlg = DlgColConfig(parent=self, var_labels=self.var_labels,
                            node_ids=node_ids, tree=self.coltree, 
-                           inc_measures=inc_measures, ret_measures=ret_measures,
+                           inc_measures=inc_measures, 
                            sort_opt_allowed=sort_opt_allowed, 
+                           item_config_dets=item_config_dets,
                            has_col_vars=has_col_vars)
         if dlg.ShowModal() == wx.ID_OK:
-            if self.tab_type in (mg.FREQS_TBL, mg.CROSSTAB):
-                measures_config[self.tab_type] = ret_measures
+            self.update_default_item_conf(mg.COLDIM, item_config_dets)
             self.update_demo_display()
        
     def setup_dim_tree(self, tree):
@@ -561,11 +602,36 @@ class DimTree(object):
             self.btn_col_del.Enable(True)
             self.btn_col_conf.Enable(False)
 
+
+class ItemConfigDets(object):
+    """
+    Stores data collected from the item config dialog ready to be added as 
+        pydata to the tree dim item. Dialog -> object in other words.
+    """
     
+    def __init__(self):
+        self.measures = None
+        self.has_tot = None
+        self.sort_order = None
+    
+    def set_measures(self, measures):
+        self.measures = measures
+        
+    def set_has_tot(self, has_tot):
+        self.has_tot = has_tot
+        
+    def set_sort_order(self, sort_order):
+        self.sort_order = sort_order
+        
+    def __str__(self):
+        return "Measures: %s; Has total: %s; Sort Order: %s" % (self.measures,
+                                                                self.has_tot,
+                                                                self.sort_order)
+
 class DlgConfig(wx.Dialog):
     
     def __init__(self, parent, var_labels, node_ids, tree, title, size, 
-                 allow_tot, sort_opt_allowed, row=True):
+                 allow_tot, sort_opt_allowed, row=True, item_config_dets=None):
         """
         Parent class for all dialogs collecting configuration details 
             for rows and cols.
@@ -575,6 +641,7 @@ class DlgConfig(wx.Dialog):
         self.tree = tree
         self.allow_tot = allow_tot
         self.sort_opt_allowed = sort_opt_allowed
+        self.item_config_dets = item_config_dets
         self.node_ids = node_ids
         first_node_id = node_ids[0]
         # base item configuration on first one selected
@@ -658,18 +725,10 @@ class DlgConfig(wx.Dialog):
             wx.MessageBox(_("Please select at least one measure"))
             return
         # Store measures ready to be used as default when adding next item.
-        try:
-            self.ret_measures
-            while True: # empty list but keep var pointing to it
-                try:
-                    del self.ret_measures[0]
-                except IndexError:
-                    break
-            self.ret_measures.extend(measures_lst)
-        except AttributeError:
-            pass
+        self.item_config_dets.set_measures(measures_lst)
         # tot
         has_tot = self.allow_tot and self.chk_total.GetValue()
+        self.item_config_dets.set_has_tot(has_tot)
         # sort order
         if self.sort_opt_allowed == SORT_OPT_NONE:
             sort_order = mg.SORT_NONE
@@ -677,12 +736,15 @@ class DlgConfig(wx.Dialog):
             sort_opt_selection = self.rad_sort_opts.GetSelection()
             if sort_opt_selection == 0:
                 sort_order = mg.SORT_NONE
-            if sort_opt_selection == 1:
+            elif sort_opt_selection == 1:
                 sort_order = mg.SORT_LABEL
-            if sort_opt_selection == 2:
+            elif sort_opt_selection == 2:
                 sort_order = mg.SORT_FREQ_ASC
-            if sort_opt_selection == 3:
+            elif sort_opt_selection == 3:
                 sort_order = mg.SORT_FREQ_DESC
+            else:
+                raise Exception, u"Unexpected sort type"
+        self.item_config_dets.set_sort_order(sort_order)
         for node_id in self.node_ids:
             existing_data = self.tree.GetItemPyData(node_id)
             var_name = existing_data.var_name
@@ -692,7 +754,7 @@ class DlgConfig(wx.Dialog):
             self.tree.SetItemPyData(node_id, item_conf)        
             self.tree.SetItemText(node_id, item_conf.get_summary(), 1)
         self.Destroy()
-        self.SetReturnCode(wx.ID_OK) # or nothing happens!  
+        self.SetReturnCode(wx.ID_OK) # or nothing happens!
         # Prebuilt dialogs presumably do this internally.
     
     def on_cancel(self, event):
@@ -704,9 +766,7 @@ class DlgConfig(wx.Dialog):
 class DlgRowConfig(DlgConfig):
     
     def __init__(self, parent, var_labels, node_ids, tree, sort_opt_allowed,
-                 inc_measures, ret_measures):
-        "ret_measures -- pass back list of measures ticked"
-        self.ret_measures = ret_measures
+                 inc_measures, item_config_dets):
         title = _("Configure Row Item")
         if inc_measures:
             self.measures = [
@@ -721,15 +781,14 @@ class DlgRowConfig(DlgConfig):
         size = wx.DefaultSize
         DlgConfig.__init__(self, parent, var_labels, node_ids, tree, 
                            title, size, allow_tot=not inc_measures,
-                           sort_opt_allowed=sort_opt_allowed, row=True)
+                           sort_opt_allowed=sort_opt_allowed, row=True, 
+                           item_config_dets=item_config_dets)
         
 
 class DlgColConfig(DlgConfig):
     
     def __init__(self, parent, var_labels, node_ids, tree, inc_measures, 
-                 ret_measures, sort_opt_allowed, has_col_vars=True):
-        "ret_measures -- pass back list of measures ticked"
-        self.ret_measures = ret_measures
+                 sort_opt_allowed, item_config_dets, has_col_vars=True):
         title = _("Configure Column Item")
         if inc_measures:
             self.measures = [
@@ -744,5 +803,6 @@ class DlgColConfig(DlgConfig):
         size = wx.DefaultSize
         DlgConfig.__init__(self, parent, var_labels, node_ids, tree, 
                            title, size, allow_tot=has_col_vars, 
-                           sort_opt_allowed=sort_opt_allowed, row=False)
+                           sort_opt_allowed=sort_opt_allowed, row=False, 
+                           item_config_dets=item_config_dets)
         

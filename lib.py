@@ -786,9 +786,11 @@ def get_default_measure(tab_type):
         return mg.FREQ
     elif tab_type == mg.ROW_SUMM:
         return mg.MEAN
+    elif tab_type == mg.RAW_DISPLAY:
+        raise Exception, u"Data Lists do not have measures"
     else:
-        raise Exception, u"Only frequency or row vs column tables have measures"
-
+        raise Exception, u"Unexpected table type in get_default_measure()"
+        
 def get_col_dets(coltree, colroot, var_labels):
     """
     Get names and labels of columns actually selected in GUI column tree.
