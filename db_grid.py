@@ -95,22 +95,28 @@ class TblEditor(wx.Dialog):
         self.dbtbl = db_tbl.DbTbl(self.grid, var_labels, readonly)
         self.grid.SetTable(self.dbtbl, takeOwnership=True)
         if readonly:
-            self.grid.SetGridCursor(0, 0)
+            col2select = 0
+            self.grid.SetGridCursor(0, col2select)
             self.current_row_idx = 0
-            self.current_col_idx = 0
+            self.current_col_idx = col2select
         else:
             # disable any columns which do not allow data entry
+            col2select = None
             for idx_col in range(len(dd.flds)):
                 fld_dic = self.dbtbl.get_fld_dic(idx_col)
                 if not fld_dic[mg.FLD_DATA_ENTRY_OK]:
                     attr = wx.grid.GridCellAttr()
                     attr.SetReadOnly(True)
+                    attr.SetBackgroundColour(wx.Colour(249,249,249))
                     self.grid.SetColAttr(idx_col, attr)
+                elif col2select is None: # set once
+                    col2select = idx_col
+            col2select = 0 if col2select is None else col2select
             # start at new line
             new_row_idx = self.dbtbl.GetNumberRows() - 1
-            self.focus_on_new_row(new_row_idx)
+            self.focus_on_new_row(new_row_idx, col2select)
             self.current_row_idx = new_row_idx
-            self.current_col_idx = 0
+            self.current_col_idx = col2select
             self.set_new_row_ed(new_row_idx)
         self.any_editor_shown = False
         if set_col_widths:
@@ -833,10 +839,10 @@ class TblEditor(wx.Dialog):
         self.dbtbl.new_is_dirty = False
         self.dbtbl.new_buffer = {}
     
-    def focus_on_new_row(self, new_row_idx):
+    def focus_on_new_row(self, new_row_idx, col2select):
         "Focus on cell in new row"
-        self.grid.SetGridCursor(new_row_idx, 0)
-        self.grid.MakeCellVisible(new_row_idx, 0)
+        self.grid.SetGridCursor(new_row_idx, col2select)
+        self.grid.MakeCellVisible(new_row_idx, col2select)
 
     def set_new_row_ed(self, row_idx):
         "Set cell editor for cells in new row"
