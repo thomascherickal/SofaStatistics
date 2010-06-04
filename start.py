@@ -196,14 +196,14 @@ class SofaApp(wx.App):
                     os.environ['LANG'] = u"%s.UTF-8" % canon_name
                 except (ValueError, KeyError):
                     pass
+            mg.MAX_WIDTH = wx.Display().GetGeometry()[2]
+            mg.MAX_HEIGHT = wx.Display().GetGeometry()[3]
+            mg.HORIZ_OFFSET = 0 if mg.MAX_WIDTH < 1224 else 200
             frame = StartFrame(self.main_font_size)
             frame.CentreOnScreen(wx.VERTICAL) # on dual monitor, 
                 # wx.BOTH puts in screen 2 (in Ubuntu at least)!
             frame.Show()
             self.SetTopWindow(frame)
-            mg.MAX_WIDTH = wx.Display().GetGeometry()[2]
-            mg.MAX_HEIGHT = wx.Display().GetGeometry()[3]
-            mg.HORIZ_OFFSET = 0 if mg.MAX_WIDTH < 1224 else 200
             return True
         except Exception, e:
             try:
@@ -225,7 +225,7 @@ class StartFrame(wx.Frame):
         self.main_font_size = main_font_size
         # Gen set up
         wx.Frame.__init__(self, None, title=_("SOFA Start"), 
-                          size=(SCREEN_WIDTH, 600),
+                          size=(SCREEN_WIDTH, 600), pos=(mg.HORIZ_OFFSET,-1),
                           style=wx.CAPTION|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]

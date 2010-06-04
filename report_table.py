@@ -374,12 +374,25 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.update_by_tab_type()
     
     def update_by_tab_type(self):
-        self.tab_type = self.rad_tab_type.GetSelection() #for convenience
-        # delete all col vars and, if row aumm or raw display, all row vars
+        """
+        Delete all col vars.  May add back the default col config if a FREQS TBL
+        If changed to row summ or raw display, delete all row vars.
+        If changing to freq or crosstab, leave row vars alone but wipe their 
+            measures.
+        """
+        self.tab_type = self.rad_tab_type.GetSelection() # for convenience
         self.coltree.DeleteChildren(self.colroot)
         self.col_no_vars_item = None
         if self.tab_type in (mg.ROW_SUMM, mg.RAW_DISPLAY):
             self.rowtree.DeleteChildren(self.rowroot)
+        if self.tab_type in (mg.FREQS_TBL, mg.CROSSTAB):
+            rowdescendants = lib.get_tree_ctrl_descendants(tree=self.rowtree, 
+                                                           parent=self.rowroot)
+            for tree_dims_item in rowdescendants:
+                item_conf = self.rowtree.GetItemPyData(tree_dims_item)
+                item_conf.measures_lst = []
+                self.rowtree.SetItemText(tree_dims_item, 
+                                         item_conf.get_summary(), 1)
         # link to appropriate demo table type
         if self.tab_type == mg.FREQS_TBL:
             self.chk_totals_row.SetValue(False)
