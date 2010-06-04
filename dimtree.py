@@ -30,6 +30,10 @@ A label tree has nodes for each value under a variable e.g. the dimension might
     need to add label nodes for totals, row %s etc.   
 """
 
+# store last used measures config ready for reuse
+# gets set whenever a col or row is configured. Used if setting up a fresh item.
+measures_config = {mg.FREQS_TBL: None, mg.CROSSTAB: None, mg.ROW_SUMM: None}
+    
 
 class DimTree(object):
     
@@ -144,8 +148,7 @@ class DimTree(object):
                 text = sorted_choices[idx]
                 new_id = tree.AppendItem(root, text)
                 var_name = sorted_vars[idx]            
-                self.set_initial_config(tree, dim, new_id, var_name,
-                                        self.last_row_summ_measures)
+                self.set_initial_config(tree, dim, new_id, var_name)
             tree.UnselectAll() # multiple
             tree.SelectItem(new_id)
             if tree == self.rowtree:
@@ -155,23 +158,22 @@ class DimTree(object):
             self.setup_action_btns()
             self.update_demo_display()
     
-    def set_initial_config(self, tree, dim, new_id, var_name=None, 
-                           last_row_summ_measures=None):
+    def set_initial_config(self, tree, dim, new_id, var_name=None):
         """
         Set initial config for new item.
         Variable name not applicable when a column config item 
-            (col_no_vars_item)rather than a normal column variable.
+            (col_no_vars_item) rather than a normal column variable.
         """
         item_conf = lib.ItemConfig()
-        if self.tab_type == mg.FREQS_TBL and dim == mg.COLDIM:
-            item_conf.measures_lst = [lib.get_default_measure(mg.FREQS_TBL)]
-        elif self.tab_type == mg.CROSSTAB and dim == mg.COLDIM:
-            item_conf.measures_lst = [lib.get_default_measure(mg.CROSSTAB)]
-        elif self.tab_type == mg.ROW_SUMM and dim == mg.ROWDIM:
-            if last_row_summ_measures:
-                item_conf.measures_lst = self.last_row_summ_measures[:]
+        # see if possibility of reusing measures
+        if ((self.tab_type == mg.FREQS_TBL and dim == mg.COLDIM)
+            or (self.tab_type == mg.CROSSTAB and dim == mg.COLDIM)
+            or (self.tab_type == mg.ROW_SUMM and dim == mg.ROWDIM)):
+            # always get a fresh list so won't change when another is configured
+            if measures_config.get(self.tab_type):
+                item_conf.measures_lst = measures_config.get(self.tab_type)[:]
             else:
-                item_conf.measures_lst = [lib.get_default_measure(mg.ROW_SUMM)]
+                item_conf.measures_lst = [lib.get_default_measure(self.tab_type)]
         if var_name:
             item_conf.var_name = var_name
             item_conf.bolnumeric = dd.flds[var_name][mg.FLD_BOLNUMERIC]
@@ -270,8 +272,7 @@ class DimTree(object):
                 text = sorted_choices[idx]
                 new_id = tree.AppendItem(selected_id, text)
                 var_name = sorted_vars[idx] 
-                self.set_initial_config(tree, dim, new_id, var_name, 
-                                        self.last_row_summ_measures)
+                self.set_initial_config(tree, dim, new_id, var_name)
                 # empty all measures from ancestors and ensure sorting 
                 # is appropriate
                 for ancestor in lib.get_tree_ancestors(tree, new_id):
@@ -401,7 +402,8 @@ class DimTree(object):
                            sort_opt_allowed=sort_opt_allowed,
                            inc_measures=inc_measures, ret_measures=ret_measures)
         if dlg.ShowModal() == wx.ID_OK:
-            self.last_row_summ_measures = ret_measures
+            if self.tab_type == mg.ROW_SUMM:
+                measures_config[mg.ROW_SUMM] = ret_measures
             self.update_demo_display()
     
     def on_col_config(self, event):
@@ -459,9 +461,7 @@ class DimTree(object):
         else:
             raise Exception, ("Configuring a column but no col vars OR a col "
                               "config item")
-        if self.get_col_config(node_ids=selected_ids, 
-                               has_col_vars=has_col_vars) == wx.ID_OK:
-            self.update_demo_display()
+        self.get_col_config(node_ids=selected_ids, has_col_vars=has_col_vars)
             
     def get_col_config(self, node_ids, has_col_vars):
         """
@@ -490,13 +490,16 @@ class DimTree(object):
             sort_opt_allowed = SORT_OPT_ALL
         else:
             sort_opt_allowed = SORT_OPT_BY_LABEL
+        ret_measures = [] # will be updated internally
         dlg = DlgColConfig(parent=self, var_labels=self.var_labels,
                            node_ids=node_ids, tree=self.coltree, 
-                           inc_measures=inc_measures, 
+                           inc_measures=inc_measures, ret_measures=ret_measures,
                            sort_opt_allowed=sort_opt_allowed, 
                            has_col_vars=has_col_vars)
-        retval = dlg.ShowModal()
-        return retval
+        if dlg.ShowModal() == wx.ID_OK:
+            if self.tab_type in (mg.FREQS_TBL, mg.CROSSTAB):
+                measures_config[self.tab_type] = ret_measures
+            self.update_demo_display()
        
     def setup_dim_tree(self, tree):
         "Setup Dim Tree and return root"
@@ -654,8 +657,7 @@ class DlgConfig(wx.Dialog):
         if self.measures and not any_measures:
             wx.MessageBox(_("Please select at least one measure"))
             return
-        # Store measures ready to be used as default when adding next row summ 
-        #     var.
+        # Store measures ready to be used as default when adding next item.
         try:
             self.ret_measures
             while True: # empty list but keep var pointing to it
@@ -725,7 +727,9 @@ class DlgRowConfig(DlgConfig):
 class DlgColConfig(DlgConfig):
     
     def __init__(self, parent, var_labels, node_ids, tree, inc_measures, 
-                 sort_opt_allowed, has_col_vars=True):
+                 ret_measures, sort_opt_allowed, has_col_vars=True):
+        "ret_measures -- pass back list of measures ticked"
+        self.ret_measures = ret_measures
         title = _("Configure Column Item")
         if inc_measures:
             self.measures = [

@@ -121,7 +121,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.url_load = True # btn_expand    
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-        self.last_row_summ_measures = [] # what you choose becomes default
         self.col_no_vars_item = None # needed if no variable in columns.  Must
             # reset to None if deleted all col vars
         # set up panel for frame

@@ -245,8 +245,8 @@ class StatsSelectDlg(wx.Dialog):
         self.remove_test_indicators()
         
     def on_radio_assisted_btn(self, event):
-        self.rad_differences.SetValue(True)
         self.rad_differences.Enable(True)
+        self.rad_differences.SetValue(True)
         self.diff_setup(enable=True)
         self.rad_relationships.Enable(True)
         self.rel_setup(enable=False)
@@ -267,16 +267,15 @@ class StatsSelectDlg(wx.Dialog):
     
     def diff_setup(self, enable=True):
         "Enable options under Differences section"
-        if not enable:
-            # set left first
-            try:
-                self.rad_2groups.SetValue(True)
-            except:
-                pass
-            try:
-                self.rad_normal1.SetValue(True)
-            except:
-                pass
+        # set left first
+        try:
+            self.rad_2groups.SetValue(True)
+        except:
+            pass
+        try:
+            self.rad_normal1.SetValue(True)
+        except:
+            pass
         self.rad_2groups.Enable(enable)
         self.rad_3groups.Enable(enable)
         self.btn_groups_help.Enable(enable)
