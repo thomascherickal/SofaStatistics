@@ -59,7 +59,7 @@ def quote_obj(raw_val):
 
 def quote_val(raw_val):
     try:
-        val = raw_val.replace("'", "''")
+        val = raw_val.replace("'", "''") # escape internal single quotes
     except AttributeError, e:
         raise Exception, ("Inappropriate attempt to quote non-string value. "
                           "Orig error: %s" % e)

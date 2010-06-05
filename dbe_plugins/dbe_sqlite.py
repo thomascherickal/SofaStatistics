@@ -32,7 +32,12 @@ def quote_obj(raw_val):
     return u"%s%s%s" % (left_obj_quote, raw_val, right_obj_quote)
 
 def quote_val(raw_val):
-    return u"\"%s\"" % raw_val
+    try:
+        val = raw_val.replace('"', '""') # escape internal double quotes
+    except AttributeError, e:
+        raise Exception, ("Inappropriate attempt to quote non-string value. "
+                          "Orig error: %s" % e)
+    return u"\"%s\"" % val
 
 def get_summable(clause):
     return clause

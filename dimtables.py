@@ -896,7 +896,7 @@ class GenTable(LiveTable):
         results is built once per batch of data points for database efficiency 
             reasons.  Each call returns multiple values.
         """
-        debug = False
+        debug = True
         CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL, 
                                                        css_idx)
         CSS_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_DATACELL, css_idx)
