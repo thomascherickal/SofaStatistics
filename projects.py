@@ -650,7 +650,13 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             # write the data
             fil_name = os.path.join(LOCAL_PATH, u"projs", u"%s.proj" % \
                                     proj_name)
-            f = codecs.open(fil_name, "w", encoding="utf-8")
+            try:
+                f = codecs.open(fil_name, "w", encoding="utf-8")
+            except IOError, e:
+                wx.MessageBox(_(u"Unable to save project file. Please check "
+                            u"\"%s\" is a valid file name.\n\nOrig error: %s") %
+                            (fil_name, e))
+                return
             f.write(u"# Windows file paths _must_ have double not single "
                     u"backslashes")
             f.write(u"\n# All file paths _must_ have a u before the"

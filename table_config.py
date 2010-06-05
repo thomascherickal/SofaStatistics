@@ -204,8 +204,10 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                                        mg.FLD_TYPE_DATE]},
                      ]
         grid_size = (300,250)
-        wx.Dialog.__init__(self, None, title=_("Configure Data Table"),
-                           size=(500,400), 
+        title = _("Configure Data Table")
+        if readonly:
+            title += _(" (Read Only)")
+        wx.Dialog.__init__(self, None, title=title, size=(500,400), 
                            style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU)
         self.panel = wx.Panel(self)
         # New controls
@@ -474,9 +476,10 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
             dim_share, readonly, grid_size, col_dets, data, config_data, 
             force_focus, insert_data_func, cell_invalidation_func)
         self.debug = False # otherwise set in the parent class ;-)
-        # disable first row (SOFA_ID)
+        # disable first row (id in demo tbl; SOFA_ID otherwise)
         attr = wx.grid.GridCellAttr()
         attr.SetReadOnly(True)
+        attr.SetBackgroundColour(mg.READONLY_COLOUR)
         self.grid.SetRowAttr(0, attr)
     
     def process_cell_move(self, src_ctrl, src_row, src_col, dest_row, dest_col, 

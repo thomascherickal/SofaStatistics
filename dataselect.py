@@ -55,16 +55,17 @@ class DataSelectDlg(wx.Dialog):
         lbl_dbs = wx.StaticText(self.panel, -1, _("Databases:"))
         lbl_dbs.SetFont(lblfont)        
         szr_data.Add(lbl_dbs, 0, wx.RIGHT, 5)
-        szr_data.Add(self.drop_dbs, 0)     
+        szr_data.Add(self.drop_dbs, 1, wx.GROW)     
         lbl_tbls = wx.StaticText(self.panel, -1, _("Data tables:"))
         lbl_tbls.SetFont(lblfont)
         szr_data.Add(lbl_tbls, 0, wx.RIGHT, 5)
-        szr_data.Add(self.drop_tbls, 1)        
-        szr_existing_bottom = wx.BoxSizer(wx.HORIZONTAL)
-        szr_existing_bottom.Add(self.chk_readonly, 1, wx.TOP|wx.LEFT, 5)
+        szr_data.Add(self.drop_tbls, 1, wx.GROW)        
+        szr_existing_bottom = wx.FlexGridSizer(rows=1, cols=4, hgap=5, vgap=50)
+        szr_existing_bottom.AddGrowableCol(2,2) # idx, propn
         szr_existing_bottom.Add(self.btn_delete, 0, wx.RIGHT, 10)
-        szr_existing_bottom.Add(self.btn_design, 0, wx.RIGHT, 10)
-        szr_existing_bottom.Add(btn_open, 0)
+        szr_existing_bottom.Add(self.btn_design, 0)
+        szr_existing_bottom.Add(self.chk_readonly, 0, wx.ALIGN_RIGHT)
+        szr_existing_bottom.Add(btn_open, 0, wx.ALIGN_RIGHT)
         szr_existing = wx.StaticBoxSizer(bx_existing, wx.VERTICAL)
         szr_existing.Add(szr_data, 0, wx.GROW|wx.ALL, 10)
         szr_existing.Add(szr_existing_bottom, 0, wx.GROW|wx.ALL, 10)
@@ -81,7 +82,7 @@ class DataSelectDlg(wx.Dialog):
         szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_btns = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_btns.Add(self.lbl_feedback, 1, wx.GROW|wx.ALL, 10)
-        self.szr_btns.Add(btn_close, 0, wx.RIGHT)
+        self.szr_btns.Add(btn_close, 0)
         szr_bottom.Add(self.szr_btns, 1, wx.GROW|wx.RIGHT, 15) # align with New        
         self.szr_main.Add(lblChoose, 0, wx.ALL, 10)
         self.szr_main.Add(szr_existing, 1, wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.GROW, 
@@ -91,28 +92,28 @@ class DataSelectDlg(wx.Dialog):
         self.panel.SetSizer(self.szr_main)
         self.szr_main.SetSizeHints(self)
         self.Layout()
-        self.btn_enablement()
+        self.ctrl_enablement()
         lib.safe_end_cursor()
 
     def add_feedback(self, feedback):
         self.lbl_feedback.SetLabel(feedback)
         wx.Yield()
     
-    def btn_enablement(self):
+    def ctrl_enablement(self):
         """
-        Can only open dialog for design details for tables in the default SOFA 
-            database.
+        Can only design tables in the default SOFA database.
+        Only need read only option if outside the default sofa database.
         """
-        design_enable = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)
-        self.btn_design.Enable(design_enable)
-        delete_enable = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB 
-                         and dd.tbl != mg.DEMO_TBL)
+        sofa_db = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)
+        self.btn_design.Enable(sofa_db)
+        delete_enable = (sofa_db and dd.tbl != mg.DEMO_TBL)
         self.btn_delete.Enable(delete_enable)
+        self.chk_readonly.Enable(not sofa_db)
         
     def on_database_sel(self, event):
         getdata.refresh_db_dets(self)
         self.reset_tbl_dropdown()
-        self.btn_enablement()
+        self.ctrl_enablement()
         
     def reset_tbl_dropdown(self):
         "Set tables dropdown items and select item according to dd.tbl"
@@ -121,7 +122,7 @@ class DataSelectDlg(wx.Dialog):
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
         getdata.refresh_tbl_dets(self)
-        self.btn_enablement()
+        self.ctrl_enablement()
 
     def on_open(self, event):
         ""
@@ -141,7 +142,9 @@ class DataSelectDlg(wx.Dialog):
                                    style=wx.YES_NO) == wx.NO:
                     return
             wx.BeginBusyCursor()
-            readonly = self.chk_readonly.IsChecked()
+            readonly = False
+            if self.chk_readonly.IsEnabled():
+                readonly = self.chk_readonly.IsChecked()
             set_col_widths = True if rows_n < 1000 else False
             dlg = db_grid.TblEditor(self, self.var_labels, self.var_notes, 
                                     self.var_types, self.val_dics, readonly, 
@@ -190,7 +193,7 @@ class DataSelectDlg(wx.Dialog):
             dd.con.commit()
         dd.set_db(dd.db) # refresh tbls downwards
         self.reset_tbl_dropdown()
-        self.btn_enablement()
+        self.ctrl_enablement()
         event.Skip()
     
     def wipe_orig_tbl(self, orig_tbl_name):
@@ -275,10 +278,10 @@ class DataSelectDlg(wx.Dialog):
             database.
         """
         debug = False
-        readonly = self.chk_readonly.IsChecked()
+        readonly = False # only read only if the demo table
         if dd.tbl == mg.DEMO_TBL and not readonly:
-            wx.MessageBox(_("The design of the default SOFA table can only "
-                            "be opened as read only"))
+            wx.MessageBox(_("The design of the default SOFA table cannot be "
+                            "changed"))
             self.chk_readonly.SetValue(True)
             readonly = True
         tbl_name_lst = [dd.tbl,]
@@ -399,7 +402,7 @@ class DataSelectDlg(wx.Dialog):
                                 self.var_types, self.val_dics, readonly)
         lib.safe_end_cursor()
         dlg.ShowModal()
-        self.btn_enablement()
+        self.ctrl_enablement()
         event.Skip()
     
     def on_close(self, event):

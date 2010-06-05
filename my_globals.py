@@ -3,9 +3,10 @@ import os
 import platform
 import subprocess
 import sys
+import wx
 
 # my_globals exists to reduce likelihood of circular imports.
-# It does't do any local importing at all until the last line, where it imports
+# It doesn't do any local importing at all until the last line, where it imports
 # config (used for initial config plus re-config).
 
 debug = False
@@ -197,6 +198,7 @@ IDX_NAME = u"index name"
 IDX_IS_UNIQUE = u"index is unique"
 IDX_FLDS = u"index fields"
 # misc data
+READONLY_COLOUR = wx.Colour(221,231,229)
 MISSING_VAL_INDICATOR = u"."
 # must be defined before dbe modules called - used in them
 GTE_EQUALS = "="

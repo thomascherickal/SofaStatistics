@@ -75,8 +75,10 @@ class TblEditor(wx.Dialog):
         else:
             mywidth = 1000
             myheight = 800
-        wx.Dialog.__init__(self, None, 
-                           title=_("Data from ") + "%s.%s" % (dd.db, dd.tbl),
+        title = _("Data from ") + "%s.%s" % (dd.db, dd.tbl)
+        if readonly:
+            title += _(" (Read Only)")
+        wx.Dialog.__init__(self, None, title=title, 
                            pos=(mg.HORIZ_OFFSET+100, 0), 
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
@@ -99,15 +101,21 @@ class TblEditor(wx.Dialog):
             self.grid.SetGridCursor(0, col2select)
             self.current_row_idx = 0
             self.current_col_idx = col2select
+            for idx_col in range(len(dd.flds)):
+                attr = wx.grid.GridCellAttr()
+                attr.SetBackgroundColour(mg.READONLY_COLOUR)
+                self.grid.SetColAttr(idx_col, attr)
         else:
             # disable any columns which do not allow data entry
             col2select = None
+            self.readonly_cols = []
             for idx_col in range(len(dd.flds)):
                 fld_dic = self.dbtbl.get_fld_dic(idx_col)
                 if not fld_dic[mg.FLD_DATA_ENTRY_OK]:
+                    self.readonly_cols.append(idx_col)
                     attr = wx.grid.GridCellAttr()
                     attr.SetReadOnly(True)
-                    attr.SetBackgroundColour(wx.Colour(249,249,249))
+                    attr.SetBackgroundColour(mg.READONLY_COLOUR)
                     self.grid.SetColAttr(idx_col, attr)
                 elif col2select is None: # set once
                     col2select = idx_col
@@ -874,16 +882,15 @@ class TblEditor(wx.Dialog):
                                    self.var_labels, self.var_notes,
                                    self.var_types, self.val_dics)
     
-    def get_cell_tooltip(self, row, col):
+    def get_cell_tooltip(self, col, raw_val):
         """
         Get tooltip for cell based on value dict if possible.
+        raw_val is always a string - won't necessarily match vals dic e.g. "5"
+            won't match {5: "5's label"}.
         """
         debug = False
         fld_name = self.dbtbl.fld_names[col]
         fld_val_dic = self.val_dics.get(fld_name, {})
-        raw_val = self.get_raw_val(row, col)
-        # raw_val is always a string - won't necessarily match vals dic e.g. "5"
-        # won't match {5: "5's label"}
         tip = fld_val_dic.get(raw_val)
         if tip is None:
             try:
@@ -922,7 +929,13 @@ class TblEditor(wx.Dialog):
         col = self.grid.XToCol(x)
         if (row, col) != self.prev_row_col and row >= 0 and col >= 0:
             self.prev_row_col = (row, col)
-            tip = self.get_cell_tooltip(row, col)
+            raw_val = self.get_raw_val(row, col)
+            if col in self.readonly_cols:
+                tip = _("Read only column")
+            elif raw_val == mg.MISSING_VAL_INDICATOR:
+                tip = _("Missing value")
+            else:
+                tip = self.get_cell_tooltip(col, raw_val)
             self.grid.GetGridWindow().SetToolTipString(tip)
         event.Skip()
         
