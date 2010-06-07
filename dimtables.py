@@ -628,11 +628,11 @@ class LiveTable(DimTable):
         http://www.python.org/dev/peps/pep-0265/
         """
         if sort_order == mg.SORT_FREQ_ASC:
-            val_freq_label_lst.sort(key=itemgetter(1)) #sort asc by freq
+            val_freq_label_lst.sort(key=itemgetter(1))
         elif sort_order == mg.SORT_FREQ_DESC:
-            val_freq_label_lst.sort(key=itemgetter(1), reverse=True) #desc
+            val_freq_label_lst.sort(key=itemgetter(1), reverse=True)
         elif sort_order == mg.SORT_LABEL:
-            val_freq_label_lst.sort(key=itemgetter(2)) #sort by label
+            val_freq_label_lst.sort(key=itemgetter(2))
             
     def get_sorted_val_freq_label_lst(self, all_vals, tree_dims_node):
         """

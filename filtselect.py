@@ -236,16 +236,26 @@ class FiltSelectDlg(wx.Dialog):
             dd.cur.execute(filt_test_SQL)
         except Exception:
             val_quoter = getdata.get_val_quoter_func(dd.dbe)
-            demo = ((_("\n\nFilters for %(dbe)s data should look like this:") + \
-                u"\n\ne.g. %(city)s = %(vancouver)s" + \
-                u"\ne.g. %(age)s >= 20" + \
-                u"\ne.g. (%(city)s = %(vancouver)s AND %(age)s >= 20) " + \
-                "OR %(gender)s = 2") %
+            if dd.dbe == mg.DBE_SQLITE:
+                sqlite_extra_comment = u" (such as the default SOFA database)"
+            else:
+                sqlite_extra_comment = u""
+            demo = ((_("\n\nFilters for %(dbe)s data%(sqlite_extra_comment)s "
+                       "should look like this:") +
+                u"\n\ne.g. %(city)s = %(vancouver)s"
+                u"\ne.g. %(city)s != %(unknown_city)s"
+                u"\ne.g. %(age)s >= 20"
+                u"\ne.g. (%(city)s = %(vancouver)s AND %(age)s >= 20) "
+                "OR %(gender)s = 2"
+                u"\ne.g. %(satisfaction)s not in (9, 99, 999)") %
                       {"dbe": dd.dbe,
                        "city": obj_quoter("city"), 
                        "vancouver": val_quoter("Vancouver"),
+                       "unknown_city": val_quoter("Unknown City"),
                        "age": obj_quoter("age"),
-                       "gender": obj_quoter("gender")})
+                       "gender": obj_quoter("gender"),
+                       "satisfaction": obj_quoter("satisfaction"),
+                       "sqlite_extra_comment": sqlite_extra_comment})
             wx.MessageBox(_("Problem applying filter \"%(filt)s\" to"
                             " \"%(tbl)s\"") % {"filt": tbl_filt, 
                                                "tbl": dd.tbl} + demo)
