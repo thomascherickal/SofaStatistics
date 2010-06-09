@@ -493,6 +493,7 @@ class ImportFileSelectDlg(wx.Dialog):
         btn_file_path = wx.Button(self.panel, -1, _("Browse ..."))
         btn_file_path.Bind(wx.EVT_BUTTON, self.on_btn_file_path)
         btn_file_path.SetDefault()
+        btn_google = wx.Button(self.panel, -1, _("Google Spreadsheet ..."))
         # comment
         lbl_comment = wx.StaticText(self.panel, -1, 
             _("The Source File will be imported into SOFA with the SOFA Table "
@@ -521,6 +522,7 @@ class ImportFileSelectDlg(wx.Dialog):
         szr_file_path.Add(lbl_file_path, 0, wx.LEFT, 10)
         szr_file_path.Add(self.txt_file, 1, wx.GROW|wx.LEFT|wx.RIGHT, 5)
         szr_file_path.Add(btn_file_path, 0, wx.RIGHT, 10)
+        szr_file_path.Add(btn_google, 0, wx.RIGHT, 10)
         szr_int_name = wx.BoxSizer(wx.HORIZONTAL)
         szr_int_name.Add(lbl_int_name, 0, wx.RIGHT, 5)
         szr_int_name.Add(self.txt_int_name, 1)
