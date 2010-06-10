@@ -37,7 +37,6 @@ class GdataDownloadDlg(wx.Dialog):
         szr_main = wx.BoxSizer(wx.VERTICAL)
         self.btn_sign_in = wx.Button(self.panel, -1, _("Sign In"))
         self.btn_select_spreadsheet = wx.Button(self.panel, 1, _("Select"))
-        self.btn_select_worksheet = wx.Button(self.panel, 1, _("Select"))
         bx_sign_in = wx.StaticBox(self.panel, -1, 
                                   _("Sign into your Google Account"))
         szr_sign_in = wx.StaticBoxSizer(bx_sign_in, wx.VERTICAL)
@@ -58,6 +57,13 @@ class GdataDownloadDlg(wx.Dialog):
         self.lbl_email.SetFont(lblfont)
         self.txt_email = wx.TextCtrl(self.panel, -1, u"", size=(320,-1))
         self.txt_email.SetFocus()
+        
+        img_ctrl_gdata = wx.StaticBitmap(self.panel)
+        img_gdata = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                u"google_spreadsheet.xpm"), wx.BITMAP_TYPE_XPM)
+        bmp_gdata = wx.BitmapFromImage(img_gdata)
+        img_ctrl_gdata.SetBitmap(bmp_gdata)
+        
         self.lbl_pwd = wx.StaticText(self.panel, -1, _("Password:"))
         self.lbl_pwd.SetFont(lblfont)
         self.txt_pwd = wx.TextCtrl(self.panel, -1, u"", size=(320,-1))
@@ -78,10 +84,6 @@ class GdataDownloadDlg(wx.Dialog):
                                                  " be selected")])
         self.lst_worksheets.SetSelection(0)
         self.lst_worksheets.Enable(False)
-        self.btn_select_worksheet.Bind(wx.EVT_BUTTON, 
-                                       self.on_btn_select_worksheet)
-        self.btn_select_worksheet.SetToolTipString(_("Select worksheet"))
-        self.btn_select_worksheet.Enable(False)
         # download
         self.btn_download = wx.Button(self.panel, -1, _("DOWNLOAD"))
         self.btn_download.Bind(wx.EVT_BUTTON, self.on_btn_download)
@@ -98,7 +100,8 @@ class GdataDownloadDlg(wx.Dialog):
         # assembly
         szr_sign_in_inner.Add(self.lbl_email, 0)
         szr_sign_in_inner.Add(self.txt_email, 0, wx.LEFT|wx.ALIGN_RIGHT, 10)
-        szr_sign_in_inner.Add((0,0))
+        szr_sign_in_inner.Add(img_ctrl_gdata, 0, 
+                              wx.ALIGN_RIGHT|wx.BOTTOM|wx.RIGHT, 5)
         szr_sign_in_inner.Add(self.lbl_pwd, 0)
         szr_sign_in_inner.Add(self.txt_pwd, 0, wx.LEFT|wx.ALIGN_RIGHT, 10)
         szr_sign_in_inner.Add(self.btn_sign_in)
@@ -106,7 +109,6 @@ class GdataDownloadDlg(wx.Dialog):
         szr_spreadsheets.Add(self.lst_spreadsheets, 1, wx.GROW|wx.ALL, 10)
         szr_spreadsheets.Add(self.btn_select_spreadsheet, 0, wx.ALIGN_RIGHT)
         szr_worksheets.Add(self.lst_worksheets, 1, wx.GROW|wx.ALL, 10)
-        szr_worksheets.Add(self.btn_select_worksheet, 0, wx.ALIGN_RIGHT)
         
         szr_close.Add(self.lbl_feedback)
         szr_close.Add(self.btn_close, 0, wx.ALIGN_RIGHT)
