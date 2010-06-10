@@ -9,6 +9,7 @@ import config_dlg
 import getdata # must be before anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 # import csv_importer etc below to avoid circular import
+import gdata_downloader
 import projects
 
 FILE_CSV = u"csv"
@@ -472,7 +473,8 @@ class ImportFileSelectDlg(wx.Dialog):
         Make selection based on file extension 
             and possibly inspection of sample of rows (e.g. csv dialect).
         """
-        title = _("Select file to import") + u" (csv/xls/ods)"
+        title = _("Select file to import") + \
+            u" (csv/xls/ods/Google spreadsheet)"
         wx.Dialog.__init__(self, parent=parent, title=title,
                            size=(550,300), style=wx.CAPTION|wx.SYSTEM_MENU, 
                            pos=(mg.HORIZ_OFFSET+100,100))
@@ -493,7 +495,11 @@ class ImportFileSelectDlg(wx.Dialog):
         btn_file_path = wx.Button(self.panel, -1, _("Browse ..."))
         btn_file_path.Bind(wx.EVT_BUTTON, self.on_btn_file_path)
         btn_file_path.SetDefault()
+        btn_file_path.SetToolTipString(_("Browse for file locally"))
         btn_google = wx.Button(self.panel, -1, _("Google Spreadsheet ..."))
+        btn_google.SetToolTipString(_("Browse for file in Google Doc "
+                                      "Spreadsheet"))
+        btn_google.Bind(wx.EVT_BUTTON, self.on_btn_google)
         # comment
         lbl_comment = wx.StaticText(self.panel, -1, 
             _("The Source File will be imported into SOFA with the SOFA Table "
@@ -554,7 +560,7 @@ class ImportFileSelectDlg(wx.Dialog):
         event.Skip()
 
     def on_btn_file_path(self, event):
-        "Open dialog and takes the file selected (if any)"
+        "Open dialog and take the file selected (if any)"
         dlg_get_file = wx.FileDialog(self) #, message=..., wildcard=...
         # defaultDir="spreadsheets", defaultFile="", )
         # MUST have a parent to enforce modal in Windows
@@ -565,6 +571,22 @@ class ImportFileSelectDlg(wx.Dialog):
             newname = process_tbl_name(filestart)
             self.txt_int_name.SetValue(newname)
         dlg_get_file.Destroy()
+        self.txt_int_name.SetFocus()
+        self.align_btns_to_completeness()
+        self.btn_import.SetDefault()
+        event.Skip()
+    
+    def on_btn_google(self, event):
+        "Open dialog and take the file selected (if any)"
+        dlg_gdata = gdata_downloader.GdataDownloadDlg(self)
+        # MUST have a parent to enforce modal in Windows
+        if dlg_gdata.ShowModal() == wx.ID_OK:
+            #path = dlg_get_file.GetPath()
+            #self.txt_file.SetValue(path)
+            #filestart, unused = self.get_file_start_ext(path)
+            #newname = process_tbl_name(filestart)
+            newname = u"Downloaded google spreadsheet"
+            self.txt_int_name.SetValue(newname)
         self.txt_int_name.SetFocus()
         self.align_btns_to_completeness()
         self.btn_import.SetDefault()
