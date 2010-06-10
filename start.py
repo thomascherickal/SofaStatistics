@@ -571,8 +571,8 @@ class StartFrame(wx.Frame):
         panel_dc.DrawBitmap(self.bmp_import, HELP_IMG_LEFT-40, HELP_IMG_TOP, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
-        txt_entry = _("Import data e.g. an Excel or Open Document Format "
-                      "spreadsheet or a csv file.")
+        txt_entry = _("Import data e.g. a csv file, or a spreadsheet (Excel, "
+                      "Open Document, or Google Docs).")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_entry, MAX_HELP_TEXT_WIDTH), 
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH-10, 260))
         event.Skip()
