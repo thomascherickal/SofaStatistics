@@ -581,12 +581,11 @@ class ImportFileSelectDlg(wx.Dialog):
         "Open dialog and take the file selected (if any)"
         dlg_gdata = gdata_downloader.GdataDownloadDlg(self)
         # MUST have a parent to enforce modal in Windows
-        if dlg_gdata.ShowModal() == wx.ID_OK:
-            #path = dlg_get_file.GetPath()
-            #self.txt_file.SetValue(path)
-            #filestart, unused = self.get_file_start_ext(path)
-            #newname = process_tbl_name(filestart)
-            newname = u"Downloaded google spreadsheet"
+        if dlg_gdata.ShowModal() != wx.ID_CLOSE:
+            path = os.path.join(mg.INT_PATH, mg.GOOGLE_DOWNLOAD)
+            self.txt_file.SetValue(path)
+            filestart, unused = self.get_file_start_ext(path)
+            newname = process_tbl_name(filestart)
             self.txt_int_name.SetValue(newname)
         self.txt_int_name.SetFocus()
         self.align_btns_to_completeness()

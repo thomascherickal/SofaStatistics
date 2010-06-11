@@ -76,7 +76,7 @@ class DataSelectDlg(wx.Dialog):
         btn_make_new.Bind(wx.EVT_BUTTON, self.on_new_click)
         szr_new.Add(lbl_make_new, 1, wx.GROW|wx.ALL, 10)
         szr_new.Add(btn_make_new, 0, wx.ALL, 10)
-        self.lbl_feedback = wx.StaticText(self.panel, -1, "")
+        self.lbl_feedback = wx.StaticText(self.panel, -1, u"")
         btn_close = wx.Button(self.panel, wx.ID_CLOSE)
         btn_close.Bind(wx.EVT_BUTTON, self.on_close)
         szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
