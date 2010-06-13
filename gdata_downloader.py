@@ -18,7 +18,7 @@ import googleapi.gdata.docs.service as gdata_docs_service
 import googleapi.gdata.service as gdata_service
 import lib
 
-debug = True
+debug = False
 
 GAUGE_STEPS = 50
 SPREADSHEET_NAME = u"spreadsheet name"
@@ -37,19 +37,17 @@ class GdataDownloadDlg(wx.Dialog):
         self.parent = parent
         self.panel = wx.Panel(self)
         szr_main = wx.BoxSizer(wx.VERTICAL)
-        self.btn_sign_in = wx.Button(self.panel, -1, _("Sign In"))
-        self.btn_select_spreadsheet = wx.Button(self.panel, 1, _("Select"))
-        bx_sign_in = wx.StaticBox(self.panel, -1, 
+        bx_sign_in = wx.StaticBox(self.panel, -1, # must come before any content
                                   _("Sign into your Google Account"))
+        bx_spreadsheets = wx.StaticBox(self.panel, -1, 
+                                       _("Select a spreadsheet"))
+        bx_worksheets = wx.StaticBox(self.panel, -1, 
+                                       _("Select a worksheet"))
         szr_sign_in = wx.StaticBoxSizer(bx_sign_in, wx.VERTICAL)
         szr_sign_in_inner = wx.FlexGridSizer(rows=2, cols=3, hgap=5, vgap=5)
         szr_sign_in.Add(szr_sign_in_inner, 0, wx.GROW|wx.TOP, 10)
         self.spreadsheet_dets_lst = [] # populated whenever signing in
-        bx_spreadsheets = wx.StaticBox(self.panel, -1, 
-                                       _("Select a spreadsheet"))
         szr_spreadsheets = wx.StaticBoxSizer(bx_spreadsheets, wx.VERTICAL)
-        bx_worksheets = wx.StaticBox(self.panel, -1, 
-                                       _("Select a worksheet"))
         szr_worksheets = wx.StaticBoxSizer(bx_worksheets, wx.VERTICAL)
         szr_download = wx.BoxSizer(wx.HORIZONTAL)
         szr_bottom_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
@@ -73,19 +71,20 @@ class GdataDownloadDlg(wx.Dialog):
         self.txt_pwd = wx.TextCtrl(self.panel, -1, u"", style=wx.TE_PASSWORD, 
                                    size=(320,-1))
         self.txt_pwd.Bind(wx.EVT_CHAR, self.on_sign_in_char)
+        self.btn_sign_in = wx.Button(self.panel, -1, _("Sign In"))
         self.btn_sign_in.Bind(wx.EVT_BUTTON, self.on_btn_sign_in)
         self.btn_sign_in.SetToolTipString(_("Sign into Google Account"))
         # spreadsheets
         self.lst_spreadsheets = wx.ListBox(self.panel, -1)
         self.lst_spreadsheets.Bind(wx.EVT_LIST_ITEM_ACTIVATED, 
                                    self.on_select_spreadsheet)
+        self.btn_select_spreadsheet = wx.Button(self.panel, 1, _("Select"))
         self.btn_select_spreadsheet.Bind(wx.EVT_BUTTON, 
                                          self.on_select_spreadsheet)
         self.btn_select_spreadsheet.SetToolTipString(_("Select spreadsheet"))
         self.btn_select_spreadsheet.Enable(False)
         # worksheets
         self.lst_worksheets = wx.ListBox(self.panel, -1)
-        self.lst_worksheets.SetSelection(0)
         # download
         self.lbl_download = wx.StaticText(self.panel, -1)
         self.btn_download = wx.Button(self.panel, -1, _("DOWNLOAD"))
@@ -119,7 +118,7 @@ class GdataDownloadDlg(wx.Dialog):
                      wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         szr_main.Add(szr_worksheets, 1, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         szr_main.Add(szr_download, 0, wx.GROW|wx.LEFT|wx.RIGHT, 15)
-        szr_main.Add(szr_bottom_btns, 0, wx.GROW|wx.TOP|wx.RIGHT|wx.LEFT, 15)
+        szr_main.Add(szr_bottom_btns, 0, wx.GROW|wx.ALL, 15)
         self.panel.SetSizer(szr_main)
         szr_main.SetSizeHints(self)
         self.init_enablement()
@@ -144,6 +143,7 @@ class GdataDownloadDlg(wx.Dialog):
         self.btn_select_spreadsheet.Enable(False)
         self.lst_worksheets.SetItems([_("Waiting for a spreadsheet to be "
                                                  "selected")])
+        #self.lst_worksheets.SetSelection(0)
         self.lst_worksheets.Enable(False)
         self.lbl_download.SetLabel(u"")
         self.btn_download.Enable(False)

@@ -321,6 +321,7 @@ class GetSettings(settings_grid.SettingsEntryDlg):
 
 class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
     def __init__(self, parent, readonly=False, fil_proj=None):
+        self.can_run_report = False
         if mg.MAX_HEIGHT <= 620:
             myheight = 600
         elif mg.MAX_HEIGHT <= 870:

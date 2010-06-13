@@ -498,8 +498,7 @@ class ImportFileSelectDlg(wx.Dialog):
         btn_file_path.SetDefault()
         btn_file_path.SetToolTipString(_("Browse for file locally"))
         btn_google = wx.Button(self.panel, -1, _("Google Spreadsheet ..."))
-        btn_google.SetToolTipString(_("Browse for file in Google Doc "
-                                      "Spreadsheet"))
+        btn_google.SetToolTipString(_("Browse for Google Spreadsheet"))
         btn_google.Bind(wx.EVT_BUTTON, self.on_btn_google)
         # comment
         lbl_comment = wx.StaticText(self.panel, -1, 

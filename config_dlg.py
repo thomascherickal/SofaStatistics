@@ -287,8 +287,17 @@ class ConfigDlg(object):
         """
         debug = False
         if not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH]):
-            wx.MessageBox(_("No output yet. Click \"%s\" (with \"%s\" ticked) "
-                    "to add output to this report.") % (run, add_to_report))
+            try:
+                self.can_run_report
+            except AttributeError:
+                self.can_run_report = True
+            if self.can_run_report:
+                msg = _("No output yet. Click \"%s\" (with \"%s\" ticked) "
+                    "to add output to this report.") % (run, add_to_report)
+            else:
+                msg = _("The output file has not been created yet.  Nothing to "
+                        "view")
+            wx.MessageBox(msg)
         else:
             if mg.PLATFORM == mg.WINDOWS:
                 url = u"file:///%s" % cc[mg.CURRENT_REPORT_PATH]
