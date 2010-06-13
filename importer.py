@@ -580,7 +580,8 @@ class ImportFileSelectDlg(wx.Dialog):
         "Open dialog and take the file selected (if any)"
         dlg_gdata = gdata_downloader.GdataDownloadDlg(self)
         # MUST have a parent to enforce modal in Windows
-        if dlg_gdata.ShowModal() != wx.ID_CLOSE:
+        retval = dlg_gdata.ShowModal()
+        if retval != wx.ID_CLOSE:
             path = os.path.join(mg.INT_PATH, mg.GOOGLE_DOWNLOAD)
             self.txt_file.SetValue(path)
             filestart, unused = self.get_file_start_ext(path)

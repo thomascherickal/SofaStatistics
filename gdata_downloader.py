@@ -17,6 +17,7 @@ import googleapi.gdata.spreadsheet as gdata_spreadsheet
 import googleapi.gdata.docs.service as gdata_docs_service
 import googleapi.gdata.service as gdata_service
 import lib
+import socket
 
 debug = False
 
@@ -178,6 +179,11 @@ class GdataDownloadDlg(wx.Dialog):
         try:
             self.gd_client = self.get_gd_client(email, pwd)
             self.gs_client = self.get_gs_client(email, pwd)
+        except socket.gaierror, e:
+            lib.safe_end_cursor()
+            wx.MessageBox(_("Problem signing in. Are you connected to the "
+                            "Internet? Orig error: %s") % e)
+            return
         except Exception, e:
             lib.safe_end_cursor()
             wx.MessageBox(_("Problem signing in. Orig error: %s") % e)
@@ -309,3 +315,6 @@ class GdataDownloadDlg(wx.Dialog):
         
     def on_close(self, event):
         self.Destroy()
+        self.SetReturnCode(wx.ID_CLOSE) # only for dialogs
+        # (MUST come after Destroy)
+        
