@@ -143,8 +143,8 @@ try:
 except Exception, e:
     print("Problem with second round of local importing. Orig error: %s" % e)
 
-def get_blank_btn_bmp():
-    blank_btn_path = os.path.join(SCRIPT_PATH, u"images", u"blankbutton.xpm")
+def get_blank_btn_bmp(xpm=u"blankbutton.xpm"):
+    blank_btn_path = os.path.join(SCRIPT_PATH, u"images", xpm)
     if not os.path.exists(blank_btn_path):
         raise Exception, (u"Problem finding background button image.  "
                           u"Missing path: %s" % blank_btn_path)
@@ -270,6 +270,15 @@ class StartFrame(wx.Frame):
         font_buttons = wx.Font(14 if mg.PLATFORM == mg.MAC else 10, 
                                wx.SWISS, wx.NORMAL, wx.BOLD)
         g = get_next_y_pos(284, BTN_DROP)
+        # on-line help
+        bmp_btn_help = \
+           lib.add_text_to_bitmap(get_blank_btn_bmp(xpm=u"blankhelpbutton.xpm"), 
+                _("Online Help"), font_buttons, "white")
+        self.btn_help = wx.BitmapButton(self.panel, -1, bmp_btn_help, 
+                                        pos=(BTN_LEFT, g.next()))
+        self.btn_help.Bind(wx.EVT_BUTTON, self.on_help_click)
+        self.btn_help.Bind(wx.EVT_ENTER_WINDOW, self.on_help_enter)
+        self.btn_help.SetDefault()
         # Proj
         bmp_btn_proj = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                         _("Select Project"), font_buttons, "white")
@@ -277,7 +286,6 @@ class StartFrame(wx.Frame):
                                         pos=(BTN_LEFT, g.next()))
         self.btn_proj.Bind(wx.EVT_BUTTON, self.on_proj_click)
         self.btn_proj.Bind(wx.EVT_ENTER_WINDOW, self.on_proj_enter)
-        self.btn_proj.SetDefault()
         # Prefs
         bmp_btn_pref = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                        _("Preferences"), font_buttons, "white")
@@ -331,6 +339,7 @@ class StartFrame(wx.Frame):
         self.btn_exit.Bind(wx.EVT_ENTER_WINDOW, self.on_exit_enter)
         if mg.PLATFORM == mg.LINUX:
             hand = wx.StockCursor(wx.CURSOR_HAND)
+            self.btn_help.SetCursor(hand)
             self.btn_proj.SetCursor(hand)
             self.btn_prefs.SetCursor(hand)
             self.btn_enter.SetCursor(hand)
@@ -346,6 +355,8 @@ class StartFrame(wx.Frame):
         self.txtWelcome = _("Welcome to SOFA Statistics.  Hovering the mouse "
                             "over the buttons lets you see what you can do.")
         # help images
+        help = os.path.join(SCRIPT_PATH, u"images", u"help.xpm")
+        self.bmp_help = wx.Image(help, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         proj = os.path.join(SCRIPT_PATH, u"images", u"briefcase.xpm")
         self.bmp_proj = wx.Image(proj, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         prefs = os.path.join(SCRIPT_PATH, u"images", u"prefs.xpm")
@@ -362,8 +373,8 @@ class StartFrame(wx.Frame):
         self.bmp_stats = wx.Image(stats, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         exit = os.path.join(SCRIPT_PATH, u"images", u"exit.xpm")
         self.bmp_exit = wx.Image(exit, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        psal = os.path.join(SCRIPT_PATH, u"images", u"psal_logo.xpm")
-        self.bmp_psal = wx.Image(psal, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        agpl3 = os.path.join(SCRIPT_PATH, u"images", u"agpl3.xpm")
+        self.bmp_agpl3 = wx.Image(agpl3, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.HELP_TEXT_FONT = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
         link_home = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com", 
                                      pos=(MAIN_LEFT, TOP_TOP), 
@@ -464,10 +475,7 @@ class StartFrame(wx.Frame):
                                "2009-2010 Paton-Simpson & Associates Ltd" %
                                COPYRIGHT, 
                                wx.Rect(MAIN_LEFT, 547, 100, 50))
-            panel_dc.DrawLabel(u"SOFA\nPaton-Simpson & Associates Ltd\n" +
-                               _("Analysis & reporting specialists"), 
-                               wx.Rect(MAIN_RIGHT, 547, 100, 50))
-            panel_dc.DrawBitmap(self.bmp_psal, MAIN_RIGHT-45, 542, True)
+            panel_dc.DrawBitmap(self.bmp_agpl3, MAIN_LEFT-115, 542, True)
             # make default db if not already there
             def_db = os.path.join(LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB)
             con = sqlite.connect(def_db)
@@ -494,7 +502,25 @@ class StartFrame(wx.Frame):
         "proj_text must NOT have .proj on the end"
         self.active_proj = u"%s.proj" % proj_text
         self.Refresh()
-        
+
+    def on_help_click(self, event):
+        import webbrowser
+        url = u"http://www.sofastatistics.com/help.php"
+        webbrowser.open_new_tab(url)
+        event.Skip()
+
+    def on_help_enter(self, event):
+        panel_dc = wx.ClientDC(self.panel)
+        self.draw_blank_wallpaper(panel_dc)
+        panel_dc.DrawBitmap(self.bmp_help, HELP_IMG_LEFT+50, HELP_IMG_TOP-25, 
+                            True)
+        panel_dc.SetTextForeground(TEXT_BROWN)
+        txt_help = _("Get help on-line, including screen shots and step-by-step" 
+                     " instructions. Regularly updated.")
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_help, MAX_HELP_TEXT_WIDTH), 
+                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
+        event.Skip()
+           
     def on_proj_click(self, event):
         proj_fils = projects.get_projs() # should always be the default present
         # open proj selection form
