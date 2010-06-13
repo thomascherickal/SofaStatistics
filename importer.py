@@ -551,9 +551,13 @@ class ImportFileSelectDlg(wx.Dialog):
         self.Layout()
 
     def on_file_char(self, event):
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_RETURN:
+            self.txt_int_name.SetFocus()
+            return
         # NB callafter to allow data to updated in text ctrl
         wx.CallAfter(self.align_btns_to_completeness)
-        event.Skip()
+        event.Skip()        
         
     def on_int_name_char(self, event):
         wx.CallAfter(self.align_btns_to_completeness)

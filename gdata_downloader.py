@@ -59,8 +59,7 @@ class GdataDownloadDlg(wx.Dialog):
         self.lbl_email = wx.StaticText(self.panel, -1, _("Email login:"))
         self.lbl_email.SetFont(lblfont)
         self.txt_email = wx.TextCtrl(self.panel, -1, u"", size=(320,-1))
-        self.txt_email.Bind(wx.EVT_CHAR, self.on_sign_in_char)
-        
+        self.txt_email.Bind(wx.EVT_CHAR, self.on_email_char)
         img_ctrl_gdata = wx.StaticBitmap(self.panel)
         img_gdata = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
                                 u"google_spreadsheet.xpm"), wx.BITMAP_TYPE_XPM)
@@ -71,7 +70,7 @@ class GdataDownloadDlg(wx.Dialog):
         self.lbl_pwd.SetFont(lblfont)
         self.txt_pwd = wx.TextCtrl(self.panel, -1, u"", style=wx.TE_PASSWORD, 
                                    size=(320,-1))
-        self.txt_pwd.Bind(wx.EVT_CHAR, self.on_sign_in_char)
+        self.txt_pwd.Bind(wx.EVT_CHAR, self.on_pwd_char)
         self.btn_sign_in = wx.Button(self.panel, -1, _("Sign In"))
         self.btn_sign_in.Bind(wx.EVT_BUTTON, self.on_btn_sign_in)
         self.btn_sign_in.SetToolTipString(_("Sign into Google Account"))
@@ -150,8 +149,18 @@ class GdataDownloadDlg(wx.Dialog):
         self.btn_download.Enable(False)
         self.btn_restart.Enable(False)
         
-    def on_sign_in_char(self, event):
+    def on_email_char(self, event):
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_RETURN:
+            self.txt_pwd.SetFocus()
+            return
         # NB callafter to allow data to updated in text ctrl
+        wx.CallAfter(self.align_btn_to_completeness)
+        event.Skip()
+        
+    def on_pwd_char(self, event):
+        # NB callafter to allow data to updated in text ctrl
+        
         wx.CallAfter(self.align_btn_to_completeness)
         event.Skip()
         
