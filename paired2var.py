@@ -102,8 +102,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szr_bottom_left.Add(self.html, 1, wx.GROW|wx.LEFT|wx.BOTTOM, 5)
         szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW)
         szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW)
-        self.szr_level = self.get_szr_level(self.panel) # mixin
-        szr_bottom_left.Add(self.szr_level, 0)
+        #self.szr_level = self.get_szr_level(self.panel) # mixin
+        #szr_bottom_left.Add(self.szr_level, 0)
         szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
         szr_bottom.Add(self.szr_output_btns, 0, wx.GROW|wx.LEFT, 10)
         static_box_gap = 0 if mg.PLATFORM == mg.MAC else 10

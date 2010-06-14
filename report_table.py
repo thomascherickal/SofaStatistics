@@ -747,7 +747,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         """
         Export script if enough data to create table.
         """
-        wx.MessageBox("Not available yet in this version")
+        import webbrowser
+        url = u"http://www.sofastatistics.com/wiki/doku.php?id=help:report_tables"
+        webbrowser.open_new_tab(url)
+        event.Skip()
     
     def delete_all_dim_children(self):
         """

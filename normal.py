@@ -47,7 +47,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         bx_vars = wx.StaticBox(self.panel, -1, varbox_label)
         szr_vars = wx.StaticBoxSizer(bx_vars, wx.HORIZONTAL)
         szr_vars_right = wx.BoxSizer(wx.VERTICAL)
-        self.szr_level = self.get_szr_level(self.panel) # mixin
+        #self.szr_level = self.get_szr_level(self.panel) # mixin
         self.szr_examine = wx.BoxSizer(wx.VERTICAL)
         szr_shape = wx.BoxSizer(wx.HORIZONTAL)
         szr_normality_test = wx.BoxSizer(wx.HORIZONTAL)
@@ -128,7 +128,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_main.Add(szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szr_main.Add(self.szr_examine, 1, wx.GROW)
-        szr_std_btns.Insert(0, self.szr_level, wx.ALIGN_LEFT|wx.ALL, 10)
+        #szr_std_btns.Insert(0, self.szr_level, wx.ALIGN_LEFT|wx.ALL, 10)
         szr_main.Add(szr_std_btns, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(szr_main)
         szr_lst = [szr_desc, self.szr_data, szr_vars, self.szr_examine]

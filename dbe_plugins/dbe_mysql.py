@@ -390,7 +390,8 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.lbl_mysql_pwd = wx.StaticText(scroll, -1, _("Password:"))
     parent.lbl_mysql_pwd.SetFont(lblfont)
     mysql_pwd = parent.mysql_pwd if parent.mysql_pwd else u""
-    parent.txt_mysql_pwd = wx.TextCtrl(scroll, -1, mysql_pwd, size=(300,-1))
+    parent.txt_mysql_pwd = wx.TextCtrl(scroll, -1, mysql_pwd, size=(300,-1),
+                                       style=wx.TE_PASSWORD)
     parent.txt_mysql_pwd.Enable(not readonly)
     parent.txt_mysql_pwd.SetToolTipString(_("Password"))
     #2 MYSQL

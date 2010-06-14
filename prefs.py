@@ -22,7 +22,7 @@ class PrefsDlg(wx.Dialog):
         self.parent = parent
         self.panel = wx.Panel(self)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
-        szr_level = config_dlg.get_szr_level(self, self.panel)
+        self.szr_level = config_dlg.get_szr_level(self, self.panel)
         self.szr_main.Add(self.szr_level, 0, wx.ALL, 10)
         self.setup_btns()
         self.szr_main.Add(self.szr_std_btns, 0, wx.GROW|wx.ALL, 10)

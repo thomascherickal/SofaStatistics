@@ -35,6 +35,7 @@ def get_szr_level(parent, panel):
     parent.rad_level.SetStringSelection(mg.DEFAULT_LEVEL)
     parent.szr_level = wx.BoxSizer(wx.HORIZONTAL)
     parent.szr_level.Add(parent.rad_level, 0, wx.RIGHT, 10)
+    parent.rad_level.Enable(False)
     return parent.szr_level
 
 label_divider = " " if mg.PLATFORM == mg.WINDOWS else "\n"
