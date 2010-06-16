@@ -62,9 +62,11 @@ def process_tbl_name(rawname):
     """
     return rawname.replace(u" ", u"_")
 
-def assess_sample_fld(sample_data, orig_fld_name):
+def assess_sample_fld(sample_data, orig_fld_name, n_flds, allow_none=True):
     """
     sample_data -- dict
+    allow_none -- if Excel returns None for an empty cell that is correct bvr.
+        If a csv files does, however, it is not. Should be empty str.
     For individual values, if numeric, assume numeric, 
         if date, assume date, 
         if string, either an empty string or an ordinary string.
@@ -74,9 +76,16 @@ def assess_sample_fld(sample_data, orig_fld_name):
     String otherwise.   
     Return field type.
     """
+    debug = False
     type_set = set()
-    for row in sample_data:
-        val = lib.if_none(row[orig_fld_name], u"")
+    for row_num, row in enumerate(sample_data, 1):
+        if debug: print(row) # look esp for Nones
+        if allow_none:
+            val = lib.if_none(row[orig_fld_name], u"")
+        else:
+            val = row[orig_fld_name]
+            if val is None:
+                report_fld_n_mismatch(row, row_num, n_flds, allow_none)
         if lib.is_numeric(val): # anything that SQLite can add _as a number_ 
                 # into a numeric field
             type_set.add(mg.VAL_NUMERIC)
@@ -106,7 +115,83 @@ def get_overall_fld_type(type_set):
         fld_type = mg.FLD_TYPE_STRING    
     return fld_type
 
-def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
+def get_val(raw_val, check, is_pytime, fld_type):
+    """
+    Missing values are OK in numeric and date fields in the source field being 
+        imported, but a missing value indicator (e.g. ".") is not.  A missing
+        value indicator is fine in the data _once it has been imported_ but
+        not beforehand.
+    check -- not necessary if part of a sample (will already have been tested)
+    """
+    if not check:
+        # still need to handle pytime and turn empty strings into NULLs 
+        # for non string fields.
+        if is_pytime:
+            val = lib.pytime_to_datetime_str(raw_val)
+        if not is_pytime:
+            if raw_val is None or (fld_type in [mg.FLD_TYPE_NUMERIC, 
+                                        mg.FLD_TYPE_DATE] and raw_val == u""):
+                val = u"NULL"
+            elif raw_val == mg.MISSING_VAL_INDICATOR:
+                nulled_dots = True
+                val = u"NULL"
+            else:
+                val = raw_val
+    else: # checking
+        ok_data = False        
+        if fld_type == mg.FLD_TYPE_NUMERIC:
+            # must be numeric or empty string or dot (which we'll turn to NULL)
+            if lib.is_numeric(raw_val):
+                ok_data = True
+                val = raw_val
+            elif raw_val == u"" or raw_val is None:
+                ok_data = True
+                val = u"NULL"
+            elif raw_val == mg.MISSING_VAL_INDICATOR: # not ok in numeric field
+                nulled_dots = True
+                val = u"NULL"
+            else:
+                pass # no need to set val - not ok_data so exception later
+        elif fld_type == mg.FLD_TYPE_DATE:
+            # must be pytime or datetime 
+            # or empty string or dot (which we'll turn to NULL).
+            if is_pytime:
+                ok_data = True
+                val = lib.pytime_to_datetime_str(raw_val)
+            else:
+                if raw_val == u"" or raw_val is None:
+                    ok_data = True
+                    val = u"NULL"
+                elif raw_val == mg.MISSING_VAL_INDICATOR: # not ok in numeric fld
+                    nulled_dots = True
+                    val = u"NULL"
+                else:
+                    try:
+                        ok_data = True
+                        val = lib.get_std_datetime_str(raw_val)
+                    except Exception:
+                        pass # no need to set val - not ok_data so excepn later
+        elif fld_type == mg.FLD_TYPE_STRING:
+            # None or dot or empty string we'll turn to NULL
+            ok_data = True
+            if raw_val is None or raw_val == u"":
+                val = u"NULL"
+            elif raw_val == mg.MISSING_VAL_INDICATOR:
+                nulled_dots = True
+                val = u"NULL"
+            else:
+                pass # no need to set val - not ok_data so exception later
+        else:
+            raise Exception, "Unexpected field type in importer.get_val()"
+        if not ok_data:
+            raise MismatchException(fld_name=orig_fld_name,
+                                    details=(u"Column: %s" % orig_fld_name +
+                                    u"\nRow: %s" % (row_idx + 1) +
+                                    u"\nValue: \"%s\"" % raw_val +
+                                    u"\nExpected column type: %s" % fld_type))    
+    return val
+
+def process_val(vals, row_num, row, orig_fld_name, fld_types, check):
     """
     Add val to vals.
     NB field types are only a guess based on a sample of the first rows in the 
@@ -123,78 +208,33 @@ def process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
     debug = False
     nulled_dots = False
     try:
-        val = row[orig_fld_name]
+       rawval = row[orig_fld_name]
     except KeyError:
-        raise Exception, _("Row %s doesn't have a value for the \"%s\" field") \
-            % (row_idx, orig_fld_name)
-    is_pytime = lib.is_pytime(val)
+        raise Exception, (_("Row %s doesn't have a value for the \"%s\" field")
+                          % (row_num, orig_fld_name))
+    is_pytime = lib.is_pytime(rawval)
     fld_type = fld_types[orig_fld_name]
-    if not check:
-        # still need to handle pytime and turn empty strings into NULLs 
-        # for non string fields.
-        if is_pytime:
-            val = lib.pytime_to_datetime_str(val)
-        if not is_pytime:
-            if val is None or (fld_type in [mg.FLD_TYPE_NUMERIC, 
-                                            mg.FLD_TYPE_DATE] and val == u""):
-                val = u"NULL"
-            elif val == mg.MISSING_VAL_INDICATOR:
-                nulled_dots = True
-                val = u"NULL"
-    else: # checking
-        bolOK_data = False        
-        if fld_type == mg.FLD_TYPE_NUMERIC:
-            # must be numeric or empty string or dot (which we'll turn to NULL)
-            if lib.is_numeric(val):
-                bolOK_data = True
-            elif val == u"" or val is None:
-                bolOK_data = True
-                val = u"NULL"
-            elif val == mg.MISSING_VAL_INDICATOR:
-                nulled_dots = True
-                val = u"NULL"
-        elif fld_type == mg.FLD_TYPE_DATE:
-            # must be pytime or datetime 
-            # or empty string or dot (which we'll turn to NULL).
-            if is_pytime:
-                bolOK_data = True
-                val = lib.pytime_to_datetime_str(val)
-            else:
-                if val == u"" or val is None:
-                    bolOK_data = True
-                    val = u"NULL"
-                elif val == mg.MISSING_VAL_INDICATOR:
-                    nulled_dots = True
-                    val = u"NULL"
-                else:
-                    try:
-                        val = lib.get_std_datetime_str(val)
-                        bolOK_data = True
-                    except Exception:
-                        pass # leave val as is for error reporting
-        elif fld_type == mg.FLD_TYPE_STRING:
-            # None or dot or empty string we'll turn to NULL
-            if val is None or val == u"":
-                val = u"NULL"
-            elif val == mg.MISSING_VAL_INDICATOR:
-                nulled_dots = True
-                val = u"NULL"
-            bolOK_data = True
-        if not bolOK_data:
-            raise MismatchException(fld_name=orig_fld_name,
-                                    details=(u"Column: %s" % orig_fld_name +
-                                    u"\nRow: %s" % (row_idx + 1) +
-                                    u"\nValue: \"%s\"" % val +
-                                    u"\nExpected column type: %s" % fld_type))
+    val = get_val(rawval, check, is_pytime, fld_type)
     if val != u"NULL":
         val = u"\"%s\"" % val
     vals.append(val)
     if debug: print(val)
     return nulled_dots
-    
+
+def report_fld_n_mismatch(row, row_num, n_flds, allow_none):
+    if not allow_none:
+        n_row_items = len([x for x in row.values() if x is not None])
+    else:
+        n_row_items = len(row)
+    if n_row_items != n_flds:
+        raise Exception, (_("Incorrect number of fields in row %(row_num)s. "
+                           "Expected %(n_flds)s but found %(n_row_items)s." 
+                           % {"row_num": row_num, "n_flds": n_flds, 
+                              "n_row_items": n_row_items}))
+
 def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types, 
-             progbar, steps_per_item, gauge_start=0, check=False, 
-             keep_importing=None):
+             progbar, steps_per_item, gauge_start=0, row_num_start=0, 
+             check=False, keep_importing=None, allow_none=True):
     """
     Add the rows of data (dicts), processing each cell as you go.
     If checking, will validate and turn empty strings into nulls
@@ -202,6 +242,9 @@ def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types,
     If not checking (e.g. because a pre-tested sample) only do the
         empty string to null conversions.
     Returns nulled_dots (boolean).
+    row_num_start -- row number (not idx) starting on
+    allow_none -- if Excel returns None for an empty cell that is correct bvr.
+        If a csv files does, however, it is not. Should be empty str.
     TODO - insert multiple lines at once for performance.
     """
     debug = False
@@ -215,10 +258,12 @@ def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types,
                 progbar.SetValue(0)
                 raise ImportCancelException
         gauge_start += 1
-        row_idx += 1
+        row_num = row_num_start + row_idx
         vals = []
+        n_flds = len(orig_fld_names)
+        report_fld_n_mismatch(row, row_num, n_flds, allow_none)
         for orig_fld_name in orig_fld_names:
-            if process_val(vals, row_idx, row, orig_fld_name, fld_types, check):
+            if process_val(vals, row_num, row, orig_fld_name, fld_types, check):
                 nulled_dots = True
         # quoting must happen earlier so we can pass in NULL  
         fld_vals_clause = u", ".join([u"%s" % x for x in vals])
@@ -227,13 +272,13 @@ def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types,
         if debug: print(SQL_insert_row)
         try:
             cur.execute(SQL_insert_row)
-            gauge_val = gauge_start + (row_idx*steps_per_item)
+            gauge_val = gauge_start + (row_num*steps_per_item)
             progbar.SetValue(gauge_val)
         except MismatchException, e:
             raise # keep this particular type of exception bubbling out
         except Exception, e:
-            raise Exception, u"Unable to add row %s. Orig error: %s" % \
-                (row_idx+1, e)
+            raise Exception, (u"Unable to add row %s. Orig error: %s" %
+                             (row_num, e))
     con.commit()
     return nulled_dots
 
@@ -268,7 +313,8 @@ def post_fail_tidy(progbar, con, cur, e):
 
 def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names, 
                    fld_types, sample_data, sample_n, remaining_data, progbar, 
-                   steps_per_item, gauge_start, keep_importing):
+                   steps_per_item, gauge_start, keep_importing, 
+                   allow_none=True):
     """
     Create fresh disposable table in SQLite and insert data into it.
     ok_fld_names -- cleaned field names (shouldn't have a sofa_id field)
@@ -277,6 +323,8 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names,
     fld_types -- dict with field types for original field names
     sample_data -- list of dicts using orig fld names
     remaining_data -- as for sample data
+    allow_none -- if Excel returns None for an empty cell that is correct bvr.
+        If a csv files does, however, it is not. Should be empty str.
     Give it a unique identifier field as well.
     Set up the data type constraints needed.
     Returns nulled_dots (boolean).
@@ -316,14 +364,17 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names,
         # process already.
         if add_rows(con, cur, sample_data, ok_fld_names, orig_fld_names, 
                     fld_types, progbar, steps_per_item, gauge_start=gauge_start, 
-                    check=False, keep_importing=keep_importing):
+                    row_num_start=0, check=False, keep_importing=keep_importing, 
+                    allow_none=allow_none):
             nulled_dots = True
         # been through sample since gauge_start
         remainder_gauge_start = gauge_start + (sample_n*steps_per_item)
+        row_num_start = sample_n + 1
         if add_rows(con, cur, remaining_data, ok_fld_names, orig_fld_names, 
-                                 fld_types, progbar, steps_per_item, 
-                                 gauge_start=remainder_gauge_start, check=True, 
-                                 keep_importing=keep_importing):
+                    fld_types, progbar, steps_per_item, 
+                    gauge_start=remainder_gauge_start, 
+                    row_num_start=row_num_start, check=True, 
+                    keep_importing=keep_importing, allow_none=allow_none):
             nulled_dots = True
     except MismatchException, e:
         nulled_dots = False

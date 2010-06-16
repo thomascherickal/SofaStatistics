@@ -13,9 +13,8 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
 import importer
 from my_exceptions import ImportCancelException
-from my_exceptions import NewLineInUnquotedException
 
-ROWS_TO_SAMPLE = 500 # fast enough to sample quite a few
+ROWS_TO_SAMPLE = 20
 
 """
 Support for unicode is lacking from the Python 2 series csv module and quite a
@@ -33,25 +32,18 @@ def consolidate_line_seps(str):
 def get_dialect(file_path):
     debug = False
     try:
-        csvfile = open(file_path) # don't use "U" - let it 
-            # fail if necessary and suggest an automatic cleanup
-        sniff_sample = csvfile.read(3072) # 1024 not enough if many fields
-        # if too small, will return error about newline inside string
+        csvfile = open(file_path) # don't use "U" - let it fail if necessary
+            # and suggest an automatic cleanup.
+        sniff_sample = csvfile.readline()
         sniffer = csv.Sniffer()
         dialect = sniffer.sniff(sniff_sample)
-        #has_header = sniffer.has_header(sniff_sample)
         if debug: print(dialect)
     except IOError:
             raise Exception, (u"Unable to find file \"%s\" for importing. "
                               u"Please check that file exists." % file_path)
-    except csv.Error, e:
-        if unicode(e).startswith("new-line character seen in unquoted field"):
-            raise NewLineInUnquotedException
-        else:
-            raise Exception, unicode(e)
     except Exception, e:
-        raise Exception, "Unable to open and sample csv file. " + \
-            "Orig error: %s" % e
+        raise Exception, ("Unable to open and sample csv file. "
+                          "Orig error: %s" % e)
     return dialect
     
     
@@ -102,11 +94,13 @@ class CsvImporter(importer.FileImporter):
                 break
         orig_fld_names = []
         fld_types = []
-        for orig_fld_name in reader.fieldnames:
+        fld_names = reader.fieldnames
+        for orig_fld_name in fld_names:
             orig_fld_names.append(orig_fld_name)
-            fld_type = importer.assess_sample_fld(sample_data, orig_fld_name)
+            fld_type = importer.assess_sample_fld(sample_data, orig_fld_name, 
+                                        n_flds=len(fld_names), allow_none=False)
             fld_types.append(fld_type)
-        fld_types = dict(zip(reader.fieldnames, fld_types))
+        fld_types = dict(zip(fld_names, fld_types))
         if not bolhas_rows:
             raise Exception, u"No data to import"
         return orig_fld_names, fld_types, sample_data
@@ -167,11 +161,7 @@ class CsvImporter(importer.FileImporter):
         """
         debug = False
         wx.BeginBusyCursor()
-        try:
-            dialect = get_dialect(self.file_path)
-        except NewLineInUnquotedException:
-            self.fix_text()
-            return
+        dialect = get_dialect(self.file_path)
         try:
             csvfile = open(self.file_path) # not "U" - insist on _one_ type of 
                 # line break
@@ -215,8 +205,13 @@ class CsvImporter(importer.FileImporter):
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= rows_n else rows_n
         items_n = rows_n + sample_n + 1 # 1 is for the final tmp to named step
         steps_per_item = importer.get_steps_per_item(items_n)
-        orig_fld_names, fld_types, sample_data = self.assess_sample(reader, 
-                                    progbar, steps_per_item, keep_importing)
+        try:
+            orig_fld_names, fld_types, sample_data = \
+                self.assess_sample(reader, progbar, steps_per_item, 
+                                   keep_importing)
+        except Exception, e:
+            importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur, e)
+            return
         # NB reader will be at position ready to access records after sample
         remaining_data = list(reader) # must be a list not a reader or can't 
             # start again from beginning of data (e.g. if correction made)
@@ -226,7 +221,8 @@ class CsvImporter(importer.FileImporter):
                                 default_dd.cur, self.file_path, self.tbl_name, 
                                 ok_fld_names, orig_fld_names, fld_types, 
                                 sample_data, sample_n, remaining_data, progbar, 
-                                steps_per_item, gauge_start, keep_importing)
+                                steps_per_item, gauge_start, keep_importing, 
+                                allow_none=False)
             # so fast only shows last step in progress bar
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                                       self.tbl_name, self.file_path, 

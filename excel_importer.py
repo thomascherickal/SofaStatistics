@@ -53,7 +53,8 @@ class ExcelImporter(importer.FileImporter):
                 break
         fld_types = []
         for orig_fld_name in orig_fld_names:
-            fld_type = importer.assess_sample_fld(sample_data, orig_fld_name)
+            fld_type = importer.assess_sample_fld(sample_data, orig_fld_name, 
+                                                  n_flds=len(orig_fld_names))
             fld_types.append(fld_type)
         fld_types = dict(zip(orig_fld_names, fld_types))
         if not has_rows:

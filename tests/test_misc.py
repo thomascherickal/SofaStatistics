@@ -246,7 +246,8 @@ def test_assess_sample_fld():
                 # number or datetime) = string
              ]
     for test in tests:
-        assert_equal(importer.assess_sample_fld(sample_data, test[0]), test[1])
+        assert_equal(importer.assess_sample_fld(sample_data, test[0], 1, True), 
+                     test[1])
 
 def test_n2d():
     """
