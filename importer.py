@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os
+import pprint
 import wx
 
 import my_globals as mg
@@ -62,7 +63,8 @@ def process_tbl_name(rawname):
     """
     return rawname.replace(u" ", u"_")
 
-def assess_sample_fld(sample_data, orig_fld_name, n_flds, allow_none=True):
+def assess_sample_fld(sample_data, orig_fld_name, orig_fld_names, 
+                      allow_none=True):
     """
     sample_data -- dict
     allow_none -- if Excel returns None for an empty cell that is correct bvr.
@@ -85,7 +87,7 @@ def assess_sample_fld(sample_data, orig_fld_name, n_flds, allow_none=True):
         else:
             val = row[orig_fld_name]
             if val is None:
-                report_fld_n_mismatch(row, row_num, n_flds, allow_none)
+                report_fld_n_mismatch(row, row_num, orig_fld_names, allow_none)
         if lib.is_numeric(val): # anything that SQLite can add _as a number_ 
                 # into a numeric field
             type_set.add(mg.VAL_NUMERIC)
@@ -221,16 +223,23 @@ def process_val(vals, row_num, row, orig_fld_name, fld_types, check):
     if debug: print(val)
     return nulled_dots
 
-def report_fld_n_mismatch(row, row_num, n_flds, allow_none):
+def report_fld_n_mismatch(row, row_num, orig_fld_names, allow_none):
     if not allow_none:
         n_row_items = len([x for x in row.values() if x is not None])
     else:
         n_row_items = len(row)
+    n_flds = len(orig_fld_names)
     if n_row_items != n_flds:
-        raise Exception, (_("Incorrect number of fields in row %(row_num)s. "
-                           "Expected %(n_flds)s but found %(n_row_items)s." 
+        vals = []
+        for orig_fld_name in orig_fld_names:
+            vals.append(row[orig_fld_name])
+        vals_str = unicode(vals)[1:-1]
+        raise Exception, (_("Incorrect number of fields in Row %(row_num)s.\n"
+                           "Expected %(n_flds)s but found %(n_row_items)s.\n\n"
+                           "Faulty Row: %(vals_str)s" 
                            % {"row_num": row_num, "n_flds": n_flds, 
-                              "n_row_items": n_row_items}))
+                              "n_row_items": n_row_items, 
+                              "vals_str": vals_str}))
 
 def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types, 
              progbar, steps_per_item, gauge_start=0, row_num_start=0, 
@@ -260,8 +269,7 @@ def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types,
         gauge_start += 1
         row_num = row_num_start + row_idx
         vals = []
-        n_flds = len(orig_fld_names)
-        report_fld_n_mismatch(row, row_num, n_flds, allow_none)
+        report_fld_n_mismatch(row, row_num, orig_fld_names, allow_none)
         for orig_fld_name in orig_fld_names:
             if process_val(vals, row_num, row, orig_fld_name, fld_types, check):
                 nulled_dots = True

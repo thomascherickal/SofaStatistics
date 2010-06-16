@@ -92,15 +92,13 @@ class CsvImporter(importer.FileImporter):
             i2break = ROWS_TO_SAMPLE if self.has_header else ROWS_TO_SAMPLE - 1
             if i == i2break:
                 break
-        orig_fld_names = []
         fld_types = []
-        fld_names = reader.fieldnames
-        for orig_fld_name in fld_names:
-            orig_fld_names.append(orig_fld_name)
+        orig_fld_names = reader.fieldnames
+        for orig_fld_name in orig_fld_names:
             fld_type = importer.assess_sample_fld(sample_data, orig_fld_name, 
-                                        n_flds=len(fld_names), allow_none=False)
+                                               orig_fld_names, allow_none=False)
             fld_types.append(fld_type)
-        fld_types = dict(zip(fld_names, fld_types))
+        fld_types = dict(zip(orig_fld_names, fld_types))
         if not bolhas_rows:
             raise Exception, u"No data to import"
         return orig_fld_names, fld_types, sample_data
