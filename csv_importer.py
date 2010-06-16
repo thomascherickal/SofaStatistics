@@ -209,7 +209,7 @@ class CsvImporter(importer.FileImporter):
                                    keep_importing)
         except Exception, e:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur, e)
-            return
+            raise
         # NB reader will be at position ready to access records after sample
         remaining_data = list(reader) # must be a list not a reader or can't 
             # start again from beginning of data (e.g. if correction made)
@@ -227,7 +227,7 @@ class CsvImporter(importer.FileImporter):
                                       progbar, nulled_dots)
         except Exception, e:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur, e)
-            return
+            raise
         default_dd.cur.close()
         default_dd.con.commit()
         default_dd.con.close()

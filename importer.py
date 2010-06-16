@@ -81,7 +81,7 @@ def assess_sample_fld(sample_data, orig_fld_name, orig_fld_names,
     debug = False
     type_set = set()
     for row_num, row in enumerate(sample_data, 1):
-        if debug: print(row) # look esp for Nones
+        if debug: print(row_num, row) # look esp for Nones
         if allow_none:
             val = lib.if_none(row[orig_fld_name], u"")
         else:
@@ -224,16 +224,28 @@ def process_val(vals, row_num, row, orig_fld_name, fld_types, check):
     return nulled_dots
 
 def report_fld_n_mismatch(row, row_num, orig_fld_names, allow_none):
+    debug = False
+    if debug: print(row_num, row)
     if not allow_none:
         n_row_items = len([x for x in row.values() if x is not None])
     else:
         n_row_items = len(row)
     n_flds = len(orig_fld_names)
     if n_row_items != n_flds:
+        # if csv has 2 flds and receives 3 vals will be var1:1,var2:2,None:[3]!
+        vals_under_none = row.get(None) if n_row_items == n_flds+1 else None
         vals = []
         for orig_fld_name in orig_fld_names:
             vals.append(row[orig_fld_name])
-        vals_str = unicode(vals)[1:-1]
+        if vals_under_none:
+            vals.extend(vals_under_none)
+            # subtract the None list item but add all its contents
+            n_row_items = n_row_items - 1 + len(vals_under_none)
+        # remove quoting
+        # e.g. ['1', '2'] or ['1', '2', None]
+        vals_str = unicode(vals).replace(u"', '", u",").replace(u"['", u"")\
+            .replace(u"']", u"").replace(u"',", u",").replace(u", None", u"")\
+            .replace(u"]", u"")
         raise Exception, (_("Incorrect number of fields in Row %(row_num)s.\n"
                            "Expected %(n_flds)s but found %(n_row_items)s.\n\n"
                            "Faulty Row: %(vals_str)s" 
@@ -317,8 +329,7 @@ def post_fail_tidy(progbar, con, cur, e):
     con.commit()
     con.close()
     progbar.SetValue(0)
-    wx.MessageBox(_("Unable to import table.\n\nOrig error: %s") % e)
-
+    
 def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names, 
                    fld_types, sample_data, sample_n, remaining_data, progbar, 
                    steps_per_item, gauge_start, keep_importing, 
@@ -372,7 +383,7 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names,
         # process already.
         if add_rows(con, cur, sample_data, ok_fld_names, orig_fld_names, 
                     fld_types, progbar, steps_per_item, gauge_start=gauge_start, 
-                    row_num_start=0, check=False, keep_importing=keep_importing, 
+                    row_num_start=1, check=False, keep_importing=keep_importing, 
                     allow_none=allow_none):
             nulled_dots = True
         # been through sample since gauge_start

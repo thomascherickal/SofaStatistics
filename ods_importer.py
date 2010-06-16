@@ -100,7 +100,7 @@ class OdsImporter(importer.FileImporter):
                                       progbar, nulled_dots)
         except Exception, e:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur, e)
-            return
+            raise
         default_dd.cur.close()
         default_dd.con.commit()
         default_dd.con.close()
