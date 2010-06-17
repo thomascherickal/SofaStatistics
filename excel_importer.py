@@ -53,8 +53,8 @@ class ExcelImporter(importer.FileImporter):
                 break
         fld_types = []
         for orig_fld_name in orig_fld_names:
-            fld_type = importer.assess_sample_fld(sample_data, orig_fld_name, 
-                                                  orig_fld_names)
+            fld_type = importer.assess_sample_fld(sample_data, self.has_header, 
+                                                  orig_fld_name, orig_fld_names)
             fld_types.append(fld_type)
         fld_types = dict(zip(orig_fld_names, fld_types))
         if not has_rows:
@@ -109,9 +109,10 @@ class ExcelImporter(importer.FileImporter):
         try:
             nulled_dots = importer.add_to_tmp_tbl(default_dd.con,
                             default_dd.cur, self.file_path, self.tbl_name, 
-                            ok_fld_names, orig_fld_names, fld_types, 
-                            sample_data, sample_n, remaining_data, progbar, 
-                            steps_per_item, gauge_start, keep_importing)
+                            self.has_header, ok_fld_names, orig_fld_names, 
+                            fld_types, sample_data, sample_n, remaining_data, 
+                            progbar, steps_per_item, gauge_start, 
+                            keep_importing)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                                       self.tbl_name, self.file_path,
                                       progbar, nulled_dots)

@@ -95,8 +95,8 @@ class CsvImporter(importer.FileImporter):
         fld_types = []
         orig_fld_names = reader.fieldnames
         for orig_fld_name in orig_fld_names:
-            fld_type = importer.assess_sample_fld(sample_data, orig_fld_name, 
-                                               orig_fld_names, allow_none=False)
+            fld_type = importer.assess_sample_fld(sample_data, self.has_header,
+                                orig_fld_name, orig_fld_names, allow_none=False)
             fld_types.append(fld_type)
         fld_types = dict(zip(orig_fld_names, fld_types))
         if not bolhas_rows:
@@ -104,6 +104,11 @@ class CsvImporter(importer.FileImporter):
         return orig_fld_names, fld_types, sample_data
     
     def get_avg_row_size(self, tmp_reader):
+        """
+        Expects to get a list of strings or a dict of strings.
+        If a dict, the final item could be a list if there are more items in the
+            original row than the dict reader expected.
+        """
         # loop through at most 5 times
         i = 0
         size = 0
@@ -112,8 +117,10 @@ class CsvImporter(importer.FileImporter):
                 values = row.values()
             except AttributeError:
                 values = row
-            vals = [lib.none2empty(x) for x in values]
-            size += len(", ".join(vals))
+            vals = []
+            for value in values:
+                vals.extend(lib.none2empty(value)) # handles lists too
+            size += len(u", ".join(vals))
             i += 1
             if i == 5:
                 break
@@ -169,7 +176,7 @@ class CsvImporter(importer.FileImporter):
                 orig_names = tmp_reader.fieldnames
                 ok_fld_names = importer.process_fld_names(orig_names)
             else:
-                # get number of fields
+                # get number of fields from first row
                 tmp_reader = csv.reader(csvfile, dialect=dialect)
                 for row in tmp_reader:
                     if debug: print(row)
@@ -184,7 +191,9 @@ class CsvImporter(importer.FileImporter):
                 print("tot_size: %s" % tot_size)
                 print("row_size: %s" % row_size)
             csvfile.seek(0)
-            rows_n = float(tot_size)/row_size            
+            rows_n = float(tot_size)/row_size
+            # If not enough field_names, will use None as key for a list of any 
+            # extra values.
             reader = csv.DictReader(csvfile, dialect=dialect, 
                                     fieldnames=ok_fld_names)
         except csv.Error, e:
@@ -217,10 +226,10 @@ class CsvImporter(importer.FileImporter):
         try:
             nulled_dots = importer.add_to_tmp_tbl(default_dd.con, 
                                 default_dd.cur, self.file_path, self.tbl_name, 
-                                ok_fld_names, orig_fld_names, fld_types, 
-                                sample_data, sample_n, remaining_data, progbar, 
-                                steps_per_item, gauge_start, keep_importing, 
-                                allow_none=False)
+                                self.has_header, ok_fld_names, orig_fld_names, 
+                                fld_types, sample_data, sample_n, 
+                                remaining_data, progbar, steps_per_item, 
+                                gauge_start, keep_importing, allow_none=False)
             # so fast only shows last step in progress bar
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                                       self.tbl_name, self.file_path, 

@@ -92,9 +92,9 @@ class OdsImporter(importer.FileImporter):
         try:
             nulled_dots = importer.add_to_tmp_tbl(default_dd.con, 
                                 default_dd.cur, self.file_path, self.tbl_name, 
-                                fldnames, fldnames, fld_types, sample_data, 
-                                sample_n, rows, progbar, steps_per_item, 
-                                gauge_start, keep_importing)
+                                self.has_header, fldnames, fldnames, fld_types, 
+                                sample_data, sample_n, rows, progbar, 
+                                steps_per_item, gauge_start, keep_importing)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                                       self.tbl_name, self.file_path,
                                       progbar, nulled_dots)

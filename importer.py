@@ -63,9 +63,15 @@ def process_tbl_name(rawname):
     """
     return rawname.replace(u" ", u"_")
 
-def assess_sample_fld(sample_data, orig_fld_name, orig_fld_names, 
+def assess_sample_fld(sample_data, has_header, orig_fld_name, orig_fld_names, 
                       allow_none=True):
     """
+    NB client code gets number of fields in row 1.  Then for each field, it 
+        traverses rows (i.e. travels down a col, then down the next etc).  If a
+        row has more flds than are in the first row, no problems will be picked
+        up here because we never go into the problematic column.  But we will
+        strike None values in csv files, for eg, when a row is shorter than it
+        should be.
     sample_data -- dict
     allow_none -- if Excel returns None for an empty cell that is correct bvr.
         If a csv files does, however, it is not. Should be empty str.
@@ -84,10 +90,11 @@ def assess_sample_fld(sample_data, orig_fld_name, orig_fld_names,
         if debug: print(row_num, row) # look esp for Nones
         if allow_none:
             val = lib.if_none(row[orig_fld_name], u"")
-        else:
+        else: # csvs don't allow none for example
             val = row[orig_fld_name]
             if val is None:
-                report_fld_n_mismatch(row, row_num, orig_fld_names, allow_none)
+                report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, 
+                                      allow_none)
         if lib.is_numeric(val): # anything that SQLite can add _as a number_ 
                 # into a numeric field
             type_set.add(mg.VAL_NUMERIC)
@@ -223,7 +230,7 @@ def process_val(vals, row_num, row, orig_fld_name, fld_types, check):
     if debug: print(val)
     return nulled_dots
 
-def report_fld_n_mismatch(row, row_num, orig_fld_names, allow_none):
+def report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, allow_none):
     debug = False
     if debug: print(row_num, row)
     if not allow_none:
@@ -232,29 +239,33 @@ def report_fld_n_mismatch(row, row_num, orig_fld_names, allow_none):
         n_row_items = len(row)
     n_flds = len(orig_fld_names)
     if n_row_items != n_flds:
+        if has_header:
+            row_msg = _("Row %s (including header row)") % (row_num+1,)
+        else:
+            row_msg = _("Row %s") % row_num  
         # if csv has 2 flds and receives 3 vals will be var1:1,var2:2,None:[3]!
-        vals_under_none = row.get(None) if n_row_items == n_flds+1 else None
         vals = []
         for orig_fld_name in orig_fld_names:
             vals.append(row[orig_fld_name])
+        vals_under_none = row.get(None)
         if vals_under_none:
             vals.extend(vals_under_none)
             # subtract the None list item but add all its contents
-            n_row_items = n_row_items - 1 + len(vals_under_none)
+            n_row_items = len(vals)
         # remove quoting
         # e.g. ['1', '2'] or ['1', '2', None]
         vals_str = unicode(vals).replace(u"', '", u",").replace(u"['", u"")\
             .replace(u"']", u"").replace(u"',", u",").replace(u", None", u"")\
             .replace(u"]", u"")
-        raise Exception, (_("Incorrect number of fields in Row %(row_num)s.\n"
+        raise Exception, (_("Incorrect number of fields in %(row_msg)s.\n\n"
                            "Expected %(n_flds)s but found %(n_row_items)s.\n\n"
                            "Faulty Row: %(vals_str)s" 
-                           % {"row_num": row_num, "n_flds": n_flds, 
+                           % {"row_msg": row_msg, "n_flds": n_flds, 
                               "n_row_items": n_row_items, 
                               "vals_str": vals_str}))
 
-def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types, 
-             progbar, steps_per_item, gauge_start=0, row_num_start=0, 
+def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names, 
+             fld_types, progbar, steps_per_item, gauge_start=0, row_num_start=0, 
              check=False, keep_importing=None, allow_none=True):
     """
     Add the rows of data (dicts), processing each cell as you go.
@@ -281,7 +292,8 @@ def add_rows(con, cur, rows, ok_fld_names, orig_fld_names, fld_types,
         gauge_start += 1
         row_num = row_num_start + row_idx
         vals = []
-        report_fld_n_mismatch(row, row_num, orig_fld_names, allow_none)
+        report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, 
+                              allow_none)
         for orig_fld_name in orig_fld_names:
             if process_val(vals, row_num, row, orig_fld_name, fld_types, check):
                 nulled_dots = True
@@ -330,10 +342,10 @@ def post_fail_tidy(progbar, con, cur, e):
     con.close()
     progbar.SetValue(0)
     
-def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names, 
-                   fld_types, sample_data, sample_n, remaining_data, progbar, 
-                   steps_per_item, gauge_start, keep_importing, 
-                   allow_none=True):
+def add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header, ok_fld_names, 
+                   orig_fld_names, fld_types, sample_data, sample_n, 
+                   remaining_data, progbar, steps_per_item, gauge_start, 
+                   keep_importing, allow_none=True):
     """
     Create fresh disposable table in SQLite and insert data into it.
     ok_fld_names -- cleaned field names (shouldn't have a sofa_id field)
@@ -381,16 +393,16 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names,
         # Add sample and then remaining data to disposable table.
         # Already been through sample once when assessing it so part way through 
         # process already.
-        if add_rows(con, cur, sample_data, ok_fld_names, orig_fld_names, 
-                    fld_types, progbar, steps_per_item, gauge_start=gauge_start, 
-                    row_num_start=1, check=False, keep_importing=keep_importing, 
-                    allow_none=allow_none):
+        if add_rows(con, cur, sample_data, has_header, ok_fld_names, 
+                    orig_fld_names, fld_types, progbar, steps_per_item, 
+                    gauge_start=gauge_start, row_num_start=1, check=False, 
+                    keep_importing=keep_importing, allow_none=allow_none):
             nulled_dots = True
         # been through sample since gauge_start
         remainder_gauge_start = gauge_start + (sample_n*steps_per_item)
         row_num_start = sample_n + 1
-        if add_rows(con, cur, remaining_data, ok_fld_names, orig_fld_names, 
-                    fld_types, progbar, steps_per_item, 
+        if add_rows(con, cur, remaining_data, has_header, ok_fld_names, 
+                    orig_fld_names, fld_types, progbar, steps_per_item, 
                     gauge_start=remainder_gauge_start, 
                     row_num_start=row_num_start, check=True, 
                     keep_importing=keep_importing, allow_none=allow_none):
@@ -405,10 +417,10 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, orig_fld_names,
         if retCode == wx.YES:
             # change fld_type to string and start again
             fld_types[e.fld_name] = mg.FLD_TYPE_STRING
-            if add_to_tmp_tbl(con, cur, file_path, tbl_name, ok_fld_names, 
-                              orig_fld_names, fld_types, sample_data, sample_n, 
-                              remaining_data, progbar, steps_per_item, 
-                              keep_importing):
+            if add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header, 
+                              ok_fld_names, orig_fld_names, fld_types, 
+                              sample_data, sample_n, remaining_data, progbar, 
+                              steps_per_item, keep_importing):
                 nulled_dots = True
         else:
             

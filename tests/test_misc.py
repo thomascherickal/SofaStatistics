@@ -245,9 +245,10 @@ def test_assess_sample_fld():
              (11, mg.FLD_TYPE_STRING), # empty + string (2009-01 is not 
                 # number or datetime) = string
              ]
+    has_header = False
     for test in tests:
-        assert_equal(importer.assess_sample_fld(sample_data, test[0], 
-                                                range(1,12), True), 
+        assert_equal(importer.assess_sample_fld(sample_data, has_header, 
+                                                test[0], range(1,12), True), 
                      test[1])
 
 def test_n2d():
