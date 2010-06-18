@@ -18,29 +18,243 @@ import time
 import my_globals as mg
 import config_globals
 import lib
+import config_dlg
+import csv_importer
 import filtselect
 import getdata
 import importer
 import indep2var
 import output
+import report_table
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
 
+def test_get_avg_row_size():
+    """
+    Measures length of string of comma separated values.
+    Only needs to be approximate as is used for progress bar.
+    Expects to get a list of strings or a dict of strings.
+    If a dict, the final item could be a list if there are more items in the
+        original row than the dict reader expected.
+    """
+    # 26 = 12chars + 3 extra chars for 2 digit ones + 11 commas
+    """
+    ä is E4 in latin1, 00 E4 in unicode, C3 A4 in utf-8, and Ã¤ if mistakenly 
+        decoded as latin1 from utf-8. http://www.jeppesn.dk/utf-8.html
+    """
+    tests = [([
+               ['1','2','3','4','5','6','7','8','9','10','11','12',],
+               ], 
+              26),
+             ([
+               ['1','2','3','4','5','6','7','8','9','10','11','12',], 
+               ['a',],
+               ],
+              13.5),
+             ([
+               [None,],
+               ], 
+              0),
+             ([
+               [None, None, None, None,],
+               ], 
+              3),
+             ([
+               [None, None, None, None,], # -> ",,," i.e. 3 long
+               [u"\u0195\u0164",], # -> ä i.e. 2 bytes long in utf-8 but 1 in latin1
+               ], 
+              2.5),
+             ([
+               [None, None, None, None,], # -> ",,," i.e. 3 long
+               [u"ä",], # -> 1 byte long in unicode and in latin1
+               ], 
+              2.0),
+             ]
+    for test in tests:
+        assert_equal(csv_importer.get_avg_row_size(test[0]), test[1])
+
+def test_get_next_fld_name():
+    """
+    Get next available variable name where names follow a template e.g. var001,
+        var002 etc.If a gap, starts after last one.  Gaps are not filled.
+    """
+    tests = [([u"var001",], u"var002"),
+             ([u"var001", u"var003"], u"var004"),
+             ([u"var001", u"Var003"], u"var002"),
+             ([u"fld001", u"Identität", u"Identität002"], u"var001"),
+             ]
+    for test in tests:
+        assert_equal(lib.get_next_fld_name(test[0]), test[1])    
+
+css_path_tests = [(u"default", u"/home/g/sofa/css/default.css"),
+                  (u"Identität", u"/home/g/sofa/css/Identität.css"),
+                  ]
+
+def test_path2style():
+    "Strip style out of full css path"
+    for test in css_path_tests:
+        assert_equal(config_dlg.path2style(test[1]), test[0])
+
+def test_style2path():
+    "Get full path of css file from style name alone"
+    for test in css_path_tests:
+        assert_equal(config_dlg.style2path(test[0]), test[1])
 
 def test_replace_titles_subtitles():
     """
-    
-    
-    
-    TODO
-    
-    
-    
-    
-    
+    For testing, use minimal css to keep it compact enough to understand easily.
     """
-    tests = [((orig, titles, subtitles), output),
+    orig1 = u"""<p class='gui-msg-medium'>Example data - click 'Run' for actual 
+        results<br>&nbsp;&nbsp;or keep configuring</p>
+
+        <!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
+        'http://www.w3.org/TR/html4/loose.dtd'>
+        <html>
+        <head>
+        <meta http-equiv="P3P" content='CP="IDC DSP COR CURa ADMa OUR 
+        IND PHY ONL COM STA"'>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+        <title>Report(s)</title>
+        <style type="text/css">
+        <!--
+        body{
+            font-size: 12px;
+        }
+        -->
+        </style>
+        </head>
+        <body>
+        <table cellspacing='0'>
+        
+        <thead>
+        <tr><th class='tblcelltitle0' colspan='3'>
+        <span class='tbltitle0'><!--_title_start--><!--_title_end--></span>
+        <span class='tblsubtitle0'><!--_subtitle_start--><!--_subtitle_end--></span></th></tr>
+        <tr><th class='spaceholder0' rowspan='1' colspan='2'>&nbsp;&nbsp;</th><th class='measure0'  >Freq</th></tr>
+        </thead>
+        
+        <tbody>
+        <tr><td class='firstrowvar0'  rowspan='2'  >Car</td><td class='rowval0'  >BMW</td><td class='firstdatacell0'>2.5</td></tr>
+        <tr><td class='rowval0'  >PORSCHE</td><td class='firstdatacell0'>1.5</td></tr>
+        </tbody>
+        </table>
+        </body>
+        </html>"""
+    titles1 = [u'T']
+    subtitles1 = []
+    output1 = u"""<p class='gui-msg-medium'>Example data - click 'Run' for actual 
+        results<br>&nbsp;&nbsp;or keep configuring</p>
+
+        <!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
+        'http://www.w3.org/TR/html4/loose.dtd'>
+        <html>
+        <head>
+        <meta http-equiv="P3P" content='CP="IDC DSP COR CURa ADMa OUR 
+        IND PHY ONL COM STA"'>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+        <title>Report(s)</title>
+        <style type="text/css">
+        <!--
+        body{
+            font-size: 12px;
+        }
+        -->
+        </style>
+        </head>
+        <body>
+        <table cellspacing='0'>
+        
+        <thead>
+        <tr><th class='tblcelltitle0' colspan='3'>
+        <span class='tbltitle0'><!--_title_start-->T<!--_title_end--></span>
+        <span class='tblsubtitle0'><!--_subtitle_start--><!--_subtitle_end--></span></th></tr>
+        <tr><th class='spaceholder0' rowspan='1' colspan='2'>&nbsp;&nbsp;</th><th class='measure0'  >Freq</th></tr>
+        </thead>
+        
+        <tbody>
+        <tr><td class='firstrowvar0'  rowspan='2'  >Car</td><td class='rowval0'  >BMW</td><td class='firstdatacell0'>2.5</td></tr>
+        <tr><td class='rowval0'  >PORSCHE</td><td class='firstdatacell0'>1.5</td></tr>
+        </tbody>
+        </table>
+        </body>
+        </html>"""
+    orig2 = u"""<p class='gui-msg-medium'>Example data - click 'Run' for 
+        actual results<br>&nbsp;&nbsp;or keep configuring</p>
+
+        <!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
+        'http://www.w3.org/TR/html4/loose.dtd'>
+        <html>
+        <head>
+        <meta http-equiv="P3P" content='CP="IDC DSP COR CURa ADMa OUR 
+        IND PHY ONL COM STA"'>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+        <title>Report(s)</title>
+        <style type="text/css">
+        <!--
+        body{
+            font-size: 12px;
+        }
+        -->
+        </style>
+        </head>
+        <body>
+        <table cellspacing='0'>
+        
+        <thead>
+        <tr><th class='tblcelltitle0' colspan='3'>
+        <span class='tbltitle0'><!--_title_start-->1<br>2<!--_title_end--></span>
+        <span class='tblsubtitle0'><!--_subtitle_start--><br>3<br>4<br><!--_subtitle_end--></span></th></tr>
+        <tr><th class='spaceholder0' rowspan='1' colspan='2'>&nbsp;&nbsp;</th><th class='measure0'  >Freq</th></tr>
+        </thead>
+        
+        <tbody>
+        <tr><td class='firstrowvar0'  rowspan='2'  >Car</td><td class='rowval0'  >BMW</td><td class='firstdatacell0'>2.5</td></tr>
+        <tr><td class='rowval0'  >PORSCHE</td><td class='firstdatacell0'>1.5</td></tr>
+        </tbody>
+        </table>
+        </body>
+        </html>"""
+    titles2 = [u'1', u'2']
+    subtitles2 = [u'3', u'4', u'5']
+    output2 = u"""<p class='gui-msg-medium'>Example data - click 'Run' for 
+        actual results<br>&nbsp;&nbsp;or keep configuring</p>
+
+        <!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
+        'http://www.w3.org/TR/html4/loose.dtd'>
+        <html>
+        <head>
+        <meta http-equiv="P3P" content='CP="IDC DSP COR CURa ADMa OUR 
+        IND PHY ONL COM STA"'>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+        <title>Report(s)</title>
+        <style type="text/css">
+        <!--
+        body{
+            font-size: 12px;
+        }
+        -->
+        </style>
+        </head>
+        <body>
+        <table cellspacing='0'>
+        
+        <thead>
+        <tr><th class='tblcelltitle0' colspan='3'>
+        <span class='tbltitle0'><!--_title_start-->1<br>2<!--_title_end--></span>
+        <span class='tblsubtitle0'><!--_subtitle_start--><br>3<br>4<br>5<!--_subtitle_end--></span></th></tr>
+        <tr><th class='spaceholder0' rowspan='1' colspan='2'>&nbsp;&nbsp;</th><th class='measure0'  >Freq</th></tr>
+        </thead>
+        
+        <tbody>
+        <tr><td class='firstrowvar0'  rowspan='2'  >Car</td><td class='rowval0'  >BMW</td><td class='firstdatacell0'>2.5</td></tr>
+        <tr><td class='rowval0'  >PORSCHE</td><td class='firstdatacell0'>1.5</td></tr>
+        </tbody>
+        </table>
+        </body>
+        </html>"""
+    tests = [((orig1, titles1, subtitles1), output1),
+             ((orig2, titles2, subtitles2), output2),
              ]
     for test in tests:
         assert_equal(report_table.replace_titles_subtitles(*test[0]), test[1])
@@ -57,15 +271,15 @@ def test_rel2abs_links():
         /home/g/sofa/images/tile.gif.
     """
     tests = [
-        "<h1>Hi there!</h1><img src='my report name/my_img.png'", 
+        ("<h1>Hi there!</h1><img src='my report name/my_img.png'", 
         "<h1>Hi there!</h1><img src='/home/g/sofa/reports/my report name/" + \
-            "my_img.png'",
-        u"<h1>Hi there!</h1><img src=\"Identität/my_img.png\"", 
+            "my_img.png'"),
+        (u"<h1>Hi there!</h1><img src=\"Identität/my_img.png\"", 
         u"<h1>Hi there!</h1><img src=\"/home/g/sofa/reports/Identität/" + \
-            u"my_img.png\"",
-             ]
+            u"my_img.png\""),
+        ]
     for test in tests:
-        assert_equal(lib.rel2abs_links(*test))
+        assert_equal(lib.rel2abs_links(test[0]), test[1])
         
 test_us_style = False
 if test_us_style:

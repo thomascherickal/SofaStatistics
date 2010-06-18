@@ -286,7 +286,8 @@ for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
                 continue # skip bad module
             DBES.append(dbe_plugin)
             DBE_MODULES[dbe_plugin] = dbe_mod
-NEXT_FLD_NAME_TEMPLATE = u"var%03i"
+FLD_NAME_START = u"var"
+NEXT_FLD_NAME_TEMPLATE = FLD_NAME_START + u"%03i"
 # importer
 VAL_NUMERIC = u"numeric value"
 VAL_DATETIME = u"datetime value"

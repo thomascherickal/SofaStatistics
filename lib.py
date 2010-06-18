@@ -79,7 +79,7 @@ def esc_str_input(raw):
         raise Exception, "Unable to escape str input. Orig error: %s" % e
     return new_str
 
-def rel2abs_links(strhtml):
+def rel2abs_links(str_html):
     """
     Make linked images work off absolute rather than relative paths. Will run OK
         when displayed internally in GUI.
@@ -90,8 +90,11 @@ def rel2abs_links(strhtml):
     """
     debug = False
     report_path = os.path.join(mg.REPORTS_PATH, u"")
-    abs_display_content = strhtml.replace(u"src='", u"src='%s" % report_path)
-    if debug: print("From \n\n%s\n\nto\n\n%s" % (strhtml, abs_display_content))
+    if debug: print(u"report_path: %s" % report_path)
+    abs_display_content = str_html.replace(u"src='", u"src='%s" % report_path)\
+        .replace(u"src=\"", u"src=\"%s" % report_path)
+    if debug: print(u"From \n\n%s\n\nto\n\n%s" % (str_html, 
+                                                  abs_display_content))
     return abs_display_content
 
 def rel2abs_background(strhtml):
@@ -172,12 +175,16 @@ def get_fld_names(n):
     return fldnames
 
 def get_next_fld_name(existing_var_names):
+    """
+    Get next available variable name where names follow a template e.g. var001,
+        var002 etc.If a gap, starts after last one.  Gaps are not filled.
+    """
     nums_used = []
     for var_name in existing_var_names:
-        if not var_name.startswith(u"var"):
+        if not var_name.startswith(mg.FLD_NAME_START):
             continue
         try:
-            num_used = int(var_name[-3:])
+            num_used = int(var_name[-len(mg.FLD_NAME_START):])
         except ValueError:
             continue
         nums_used.append(num_used)

@@ -391,9 +391,10 @@ class StartFrame(wx.Frame):
         link_home.EnableRollover(True)
         link_home.SetVisited(True)
         link_home.UpdateLink(True)
-        link_help = hl.HyperLinkCtrl(self.panel, -1, _("Ask here for help"), 
-                         pos=(MAIN_LEFT, TOP_TOP + 200), 
-                         URL="http://groups.google.com/group/sofastatistics")
+        link_help = hl.HyperLinkCtrl(self.panel, -1, 
+                            _("Get help from community"), 
+                            pos=(MAIN_LEFT, TOP_TOP + 200), 
+                            URL="http://groups.google.com/group/sofastatistics")
         link_help.SetColours(link=TEXT_BROWN, 
                              visited=TEXT_BROWN, 
                              rollover=TEXT_BROWN)

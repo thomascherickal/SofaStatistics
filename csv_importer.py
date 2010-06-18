@@ -46,6 +46,37 @@ def get_dialect(file_path):
                           "Orig error: %s" % e)
     return dialect
     
+def get_avg_row_size(rows):
+    """
+    Measures length of string of comma separated values in bytes.
+    Used for progress bar by measuring how many bytes we are through the file.
+    Expects to get a list of strings or a dict of strings.
+    If a dict, the final item could be a list if there are more items in the
+        original row than the dict reader expected.
+    """
+    debug = True
+    size = 0
+    for i, row in enumerate(rows, 1):
+        try:
+            values = row.values()
+        except AttributeError:
+            values = row
+        vals = []
+        for value in values:
+            if isinstance(value, list):
+                vals.extend([lib.none2empty(x) for x in value])
+            else:
+                vals.append(lib.none2empty(value))
+        row_str = u",".join(vals)
+        row_size = len(row_str)
+        if debug: print(row, row_str, row_size)
+        #if debug: print(row_size)
+        size += row_size
+        if i == 10: # enough of a sample for measuring progress (roughly)
+            break
+    avg_row_size = float(size)/i
+    return avg_row_size
+
     
 class CsvImporter(importer.FileImporter):
     """
@@ -109,23 +140,7 @@ class CsvImporter(importer.FileImporter):
         If a dict, the final item could be a list if there are more items in the
             original row than the dict reader expected.
         """
-        # loop through at most 5 times
-        i = 0
-        size = 0
-        for row in tmp_reader:
-            try:
-                values = row.values()
-            except AttributeError:
-                values = row
-            vals = []
-            for value in values:
-                vals.extend(lib.none2empty(value)) # handles lists too
-            size += len(u", ".join(vals))
-            i += 1
-            if i == 5:
-                break
-        avg_row_size = float(size)/i
-        return avg_row_size
+        return get_avg_row_size(rows=tmp_reader)
 
     def make_tidied_copy(self, path):        
         """
@@ -168,7 +183,7 @@ class CsvImporter(importer.FileImporter):
         wx.BeginBusyCursor()
         dialect = get_dialect(self.file_path)
         try:
-            csvfile = open(self.file_path) # not "U" - insist on _one_ type of 
+            csvfile = codecs.open(self.file_path, encoding='utf-8') # not "U" - insist on _one_ type of 
                 # line break
             # get field names
             if self.has_header:
@@ -185,7 +200,7 @@ class CsvImporter(importer.FileImporter):
                     break
                 csvfile.seek(0)
             # estimate number of rows (only has to be good enough for progress)
-            tot_size = os.path.getsize(self.file_path)
+            tot_size = os.path.getsize(self.file_path) # in bytes
             row_size = self.get_avg_row_size(tmp_reader)
             if debug:
                 print("tot_size: %s" % tot_size)

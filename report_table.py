@@ -45,8 +45,8 @@ def replace_titles_subtitles(orig, titles, subtitles):
         subtitle content.
     post_subtitle = everything after the subtitle content e.g. 2010 data
     """
-    debug = False
-    if debug: print("orig: %s\n\ntitles: %s\n\nsubtitles: %s\n\n" % (orig, 
+    debug = True
+    if debug: print(u"orig: %s\n\ntitles: %s\n\nsubtitles: %s\n\n" % (orig, 
                                                             titles, subtitles))
     titles_inner_html = u""
     titles_inner_html = lib.get_titles_inner_html(titles_inner_html, titles)
@@ -69,11 +69,11 @@ def replace_titles_subtitles(orig, titles, subtitles):
     demo_tbl_html = pre_title + titles_inner_html + between_title_and_sub \
         + subtitles_inner_html + post_subtitle
     if debug: 
-        print(("pre_title: %s\n\ntitles_inner_html: %s\n\n"
-               "between_title_and_sub: %s\n\nsubtitles_inner_html: %s\n\n"
-               "post_subtitle: %s") % (pre_title, titles_inner_html,
+        print((u"pre_title: %s\n\ntitles_inner_html: %s\n\n"
+               u"between_title_and_sub: %s\n\nsubtitles_inner_html: %s\n\n"
+               u"post_subtitle: %s") % (pre_title, titles_inner_html,
                between_title_and_sub, subtitles_inner_html, post_subtitle))
-        print("\n\n" + "*"*50 + "\n\n")
+        print(u"\n\n" + u"*"*50 + u"\n\n")
     return demo_tbl_html  
 
 def get_missing_dets_msg(tab_type, has_rows, has_cols):
