@@ -76,7 +76,7 @@ class GdataDownloadDlg(wx.Dialog):
         self.btn_sign_in.SetToolTipString(_("Sign into Google Account"))
         # spreadsheets
         self.lst_spreadsheets = wx.ListBox(self.panel, -1)
-        self.lst_spreadsheets.Bind(wx.EVT_LIST_ITEM_ACTIVATED, 
+        self.lst_spreadsheets.Bind(wx.wx.EVT_LISTBOX, 
                                    self.on_select_spreadsheet)
         self.btn_select_spreadsheet = wx.Button(self.panel, 1, _("Select"))
         self.btn_select_spreadsheet.Bind(wx.EVT_BUTTON, 
@@ -219,13 +219,13 @@ class GdataDownloadDlg(wx.Dialog):
         self.lst_spreadsheets.Enable(True)
         self.btn_select_spreadsheet.Enable(True)
         self.btn_restart.Enable(True)
-        if len(self.spreadsheet_dets_lst) == 1:
-            spreadsheet_name = self.spreadsheet_dets_lst[0][SPREADSHEET_NAME]
-            self.spreadsheet_key = self.spreadsheet_dets_lst[0][SPREADSHEET_KEY]
+        spreadsheet_name = self.spreadsheet_dets_lst[0][SPREADSHEET_NAME]
+        self.spreadsheet_key = self.spreadsheet_dets_lst[0][SPREADSHEET_KEY]
+        if len(self.spreadsheet_dets_lst) == 1:    
             self.lst_spreadsheets.Enable(False)
             self.btn_select_spreadsheet.Enable(False)
-            self.process_worksheets()
-            self.btn_download.Enable(True)
+        self.process_worksheets()
+        self.btn_download.Enable(True)
         lib.safe_end_cursor()
 
     def get_gd_client(self, email, pwd):
@@ -294,15 +294,20 @@ class GdataDownloadDlg(wx.Dialog):
         return worksheet_names
     
     def on_select_spreadsheet(self, event):
-        idx = self.lst_spreadsheets.GetFirstSelected()
+        wx.BeginBusyCursor()
+        idx = self.lst_spreadsheets.GetSelection()
         try:
             sel_spreadsheet_dets = self.spreadsheet_dets_lst[idx]
+            self.spreadsheet_key = sel_spreadsheet_dets[SPREADSHEET_KEY]
         except Exception:
             wx.MessageBox(_("Please select a spreadsheet"))
+            lib.safe_end_cursor()
             event.Skip()
             return
         self.spreadsheet_key = sel_spreadsheet_dets[SPREADSHEET_KEY]
         self.process_worksheets()
+        lib.safe_end_cursor()
+        event.Skip()
     
     def on_btn_download(self, event):
         wx.BeginBusyCursor()
@@ -321,6 +326,7 @@ class GdataDownloadDlg(wx.Dialog):
     
     def on_btn_restart(self, event):
         self.init_enablement()
+        event.Skip()
         
     def on_close(self, event):
         self.Destroy()

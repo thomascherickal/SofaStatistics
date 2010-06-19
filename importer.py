@@ -124,7 +124,7 @@ def get_overall_fld_type(type_set):
         fld_type = mg.FLD_TYPE_STRING    
     return fld_type
 
-def get_val(raw_val, check, is_pytime, fld_type):
+def get_val(raw_val, check, is_pytime, fld_type, orig_fld_name, row_num):
     """
     Missing values are OK in numeric and date fields in the source field being 
         imported, but a missing value indicator (e.g. ".") is not.  A missing
@@ -176,8 +176,8 @@ def get_val(raw_val, check, is_pytime, fld_type):
                     val = u"NULL"
                 else:
                     try:
-                        ok_data = True
                         val = lib.get_std_datetime_str(raw_val)
+                        ok_data = True
                     except Exception:
                         pass # no need to set val - not ok_data so excepn later
         elif fld_type == mg.FLD_TYPE_STRING:
@@ -189,13 +189,13 @@ def get_val(raw_val, check, is_pytime, fld_type):
                 nulled_dots = True
                 val = u"NULL"
             else:
-                pass # no need to set val - not ok_data so exception later
+                val = raw_val
         else:
             raise Exception, "Unexpected field type in importer.get_val()"
         if not ok_data:
             raise MismatchException(fld_name=orig_fld_name,
                                     details=(u"Column: %s" % orig_fld_name +
-                                    u"\nRow: %s" % (row_idx + 1) +
+                                    u"\nRow: %s" % (row_num) +
                                     u"\nValue: \"%s\"" % raw_val +
                                     u"\nExpected column type: %s" % fld_type))    
     return val
@@ -223,7 +223,7 @@ def process_val(vals, row_num, row, orig_fld_name, fld_types, check):
                           % (row_num, orig_fld_name))
     is_pytime = lib.is_pytime(rawval)
     fld_type = fld_types[orig_fld_name]
-    val = get_val(rawval, check, is_pytime, fld_type)
+    val = get_val(rawval, check, is_pytime, fld_type, orig_fld_name, row_num)
     if val != u"NULL":
         val = u"\"%s\"" % val
     vals.append(val)
@@ -342,9 +342,10 @@ def post_fail_tidy(progbar, con, cur, e):
     con.close()
     progbar.SetValue(0)
     
-def add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header, ok_fld_names, 
-                   orig_fld_names, fld_types, sample_data, sample_n, 
-                   remaining_data, progbar, steps_per_item, gauge_start, 
+def add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header, 
+                   ok_fld_names, orig_fld_names, fld_types, 
+                   sample_data, sample_n, remaining_data, 
+                   progbar, steps_per_item, gauge_start, 
                    keep_importing, allow_none=True):
     """
     Create fresh disposable table in SQLite and insert data into it.
@@ -419,11 +420,11 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header, ok_fld_names,
             fld_types[e.fld_name] = mg.FLD_TYPE_STRING
             if add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header, 
                               ok_fld_names, orig_fld_names, fld_types, 
-                              sample_data, sample_n, remaining_data, progbar, 
-                              steps_per_item, keep_importing):
+                              sample_data, sample_n, remaining_data, 
+                              progbar, steps_per_item, gauge_start,
+                              keep_importing):
                 nulled_dots = True
         else:
-            
             raise Exception, u"Mismatch between data in column and " + \
                 "expected column type"
     return nulled_dots

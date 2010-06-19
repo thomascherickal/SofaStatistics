@@ -239,12 +239,13 @@ class CsvImporter(importer.FileImporter):
             # start again from beginning of data (e.g. if correction made)
         gauge_start = steps_per_item*sample_n
         try:
-            nulled_dots = importer.add_to_tmp_tbl(default_dd.con, 
-                                default_dd.cur, self.file_path, self.tbl_name, 
-                                self.has_header, ok_fld_names, orig_fld_names, 
-                                fld_types, sample_data, sample_n, 
-                                remaining_data, progbar, steps_per_item, 
-                                gauge_start, keep_importing, allow_none=False)
+            nulled_dots = importer.add_to_tmp_tbl(
+                                default_dd.con, default_dd.cur, self.file_path, 
+                                self.tbl_name, self.has_header, 
+                                ok_fld_names, orig_fld_names, fld_types, 
+                                sample_data, sample_n, remaining_data, 
+                                progbar, steps_per_item, gauge_start, 
+                                keep_importing, allow_none=False)
             # so fast only shows last step in progress bar
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                                       self.tbl_name, self.file_path, 

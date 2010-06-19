@@ -107,10 +107,11 @@ class ExcelImporter(importer.FileImporter):
         remaining_data = [x for x in wksheet][sample_n:]
         gauge_start = steps_per_item*sample_n
         try:
-            nulled_dots = importer.add_to_tmp_tbl(default_dd.con,
-                            default_dd.cur, self.file_path, self.tbl_name, 
-                            self.has_header, ok_fld_names, orig_fld_names, 
-                            fld_types, sample_data, sample_n, remaining_data, 
+            nulled_dots = importer.add_to_tmp_tbl(
+                            default_dd.con, default_dd.cur, self.file_path, 
+                            self.tbl_name, self.has_header, 
+                            ok_fld_names, orig_fld_names, fld_types, 
+                            sample_data, sample_n, remaining_data, 
                             progbar, steps_per_item, gauge_start, 
                             keep_importing)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
