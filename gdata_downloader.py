@@ -85,6 +85,7 @@ class GdataDownloadDlg(wx.Dialog):
         self.btn_select_spreadsheet.Enable(False)
         # worksheets
         self.lst_worksheets = wx.ListBox(self.panel, -1)
+        self.lst_worksheets.Bind(wx.wx.EVT_LISTBOX, self.on_select_worksheet)
         # download
         self.lbl_download = wx.StaticText(self.panel, -1)
         self.btn_download = wx.Button(self.panel, -1, _("DOWNLOAD"))
@@ -126,6 +127,10 @@ class GdataDownloadDlg(wx.Dialog):
         lib.safe_end_cursor()
     
     def init_enablement(self):
+        """
+        skip_lists -- so we don't trigger on_select_spreadsheets etc
+        """
+        self.skip_lists = True
         self.gd_client = None
         self.gs_client = None
         self.spreadsheet_key = None
@@ -148,6 +153,7 @@ class GdataDownloadDlg(wx.Dialog):
         self.lbl_download.SetLabel(u"")
         self.btn_download.Enable(False)
         self.btn_restart.Enable(False)
+        self.skip_lists = False
         
     def on_email_char(self, event):
         keycode = event.GetKeyCode()
@@ -282,9 +288,12 @@ class GdataDownloadDlg(wx.Dialog):
                                          worksheet_name))
         elif n_worksheets > 0:
             self.wksheet_idx = 0
+            worksheet_name = worksheet_names[self.wksheet_idx]
             self.lst_worksheets.Enable(True)
             self.lst_worksheets.SetItems(worksheet_names)
             self.lst_worksheets.SetSelection(self.wksheet_idx)
+            self.lbl_download.SetLabel(_("Ready to download %s" % 
+                                         worksheet_name))
     
     def get_worksheet_names(self, spreadsheet_key):
         feed = self.gs_client.GetWorksheetsFeed(spreadsheet_key)
@@ -294,6 +303,8 @@ class GdataDownloadDlg(wx.Dialog):
         return worksheet_names
     
     def on_select_spreadsheet(self, event):
+        if self.skip_lists:
+            return
         wx.BeginBusyCursor()
         idx = self.lst_spreadsheets.GetSelection()
         try:
@@ -306,6 +317,17 @@ class GdataDownloadDlg(wx.Dialog):
             return
         self.spreadsheet_key = sel_spreadsheet_dets[SPREADSHEET_KEY]
         self.process_worksheets()
+        lib.safe_end_cursor()
+        event.Skip()
+        
+    def on_select_worksheet(self, event):
+        if self.skip_lists:
+            return
+        wx.BeginBusyCursor()
+        self.wksheet_idx = self.lst_worksheets.GetSelection()
+        worksheet_names = self.get_worksheet_names(self.spreadsheet_key)
+        worksheet_name = worksheet_names[self.wksheet_idx]
+        self.lbl_download.SetLabel(_("Ready to download %s" % worksheet_name))
         lib.safe_end_cursor()
         event.Skip()
     
