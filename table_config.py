@@ -8,6 +8,7 @@ import lib
 import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import full_html
+import recode
 import settings_grid
 
 WAITING_MSG = _("<p>Waiting for at least one field to be configured.</p>")
@@ -217,6 +218,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.txt_tbl_name = wx.TextCtrl(self.panel, -1, tbl_name, size=(450,-1))
         self.txt_tbl_name.Enable(not self.readonly)
         self.txt_tbl_name.SetValidator(SafeTblNameValidator(name_ok_to_reuse))
+        btn_recode = wx.Button(self.panel, -1, _("Recode"))
+        btn_recode.Bind(wx.EVT_BUTTON, self.on_recode)
         # sizers
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         self.szr_tbl_label = wx.BoxSizer(wx.HORIZONTAL)
@@ -231,7 +234,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         lbl_design_here = wx.StaticText(self.panel, -1, design_here_lbl)
         lbl_design_here.SetFont(font=bold)
         see_result_lbl = _("See Demonstration Result Here:") \
-            if not self.readonly else _("Demonstration Result:")
+                            if not self.readonly else _("Demonstration Result:")
         lbl_see_result = wx.StaticText(self.panel, -1, see_result_lbl)
         lbl_see_result.SetFont(font=bold)
         self.html = full_html.FullHTML(self.panel, size=(500,200))
@@ -252,6 +255,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.szr_main.Add(self.szr_tbl_label, 0, wx.GROW|wx.ALL, 10)
         self.szr_main.Add(szr_design, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
+        self.szr_btns.Insert(2, btn_recode, 0, wx.LEFT, 10)
         self.update_demo()
         self.panel.SetSizer(self.szr_main)
         self.szr_main.SetSizeHints(self)
@@ -441,6 +445,12 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             if self.debug: pprint.pprint(self.config_data)
         self.tabentry.grid.SetFocus()
         event.Skip()
+
+    def on_recode(self, event):
+        config_data = []
+        dlg = recode.RecodeDlg(tbl_name=u"", config_data=config_data)
+        dlg.ShowModal()
+        # wx.MessageBox(_("Not yet available in this version"))
 
     def on_ok(self, event):
         """

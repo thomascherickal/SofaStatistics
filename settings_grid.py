@@ -6,11 +6,11 @@ import pprint
 import my_globals as mg
 import text_browser
 
-COL_STR = "col_string"
-COL_INT = "col_integer"
-COL_FLOAT = "col_float"
-COL_TEXT_BROWSE = "col_button"
-COL_DROPDOWN = "col_dropdown"
+COL_STR = u"col_string"
+COL_INT = u"col_integer"
+COL_FLOAT = u"col_float"
+COL_TEXT_BROWSE = u"col_button"
+COL_DROPDOWN = u"col_dropdown"
 
 
 class CellMoveEvent(wx.PyCommandEvent):
@@ -961,7 +961,7 @@ class SettingsEntry(object):
         # otherwise will only see effect after resizing
         self.grid.ForceRefresh()
 
-    def RowHasData(self, row):
+    def row_has_data(self, row):
         """
         Has the row got any data stored yet?
         NB data won't be picked up if you are in the middle of entering it.
@@ -997,3 +997,4 @@ class SettingsEntry(object):
         """
         grid_data = self.get_grid_data()
         self.config_data += grid_data
+        
