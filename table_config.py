@@ -16,10 +16,24 @@ dd = getdata.get_dd()
 sqlite_quoter = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
 
 WAITING_MSG = _("<p>Waiting for at least one field to be configured.</p>")
+
+def force_tbls_refresh():
+    """
+    Sometimes you drop a table, make it, drop it, go to make it and it still 
+        seems to be there.  This seems to force a refresh.
+    commit() doesn't seem to solve the problem and it occurs even though only 
+        one connection in play. 
+    """
+    SQL_get_tbls = u"""SELECT name 
+        FROM sqlite_master 
+        WHERE type = 'table'
+        ORDER BY name"""
+    dd.cur.execute(SQL_get_tbls)
     
 def wipe_orig_tbl(orig_tbl_name):
-    SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % sqlite_quoter(orig_tbl_name)
     dd.con.commit()
+    force_tbls_refresh()
+    SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % sqlite_quoter(orig_tbl_name)
     dd.cur.execute(SQL_drop_orig)
     dd.con.commit()
         
@@ -39,6 +53,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, config_data):
     """
     debug = False
     tmp_name = sqlite_quoter(mg.TMP_TBL_NAME)
+    force_tbls_refresh()
     SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % tmp_name
     dd.con.commit()
     dd.cur.execute(SQL_drop_tmp_tbl)
@@ -60,7 +75,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, config_data):
     if debug: print(SQL_insert_all)
     dd.cur.execute(SQL_insert_all)
     dd.con.commit()
-    
+
 def make_redesigned_tbl(final_name, oth_name_types, config_data):
     """
     Make new table with all the fields from the tmp table (which doesn't 
@@ -74,14 +89,36 @@ def make_redesigned_tbl(final_name, oth_name_types, config_data):
     create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
                                                     strict_typing=False,
                                                     inc_sofa_id=True)
-    SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % final_name
-    dd.con.commit()
-    dd.cur.execute(SQL_drop_orig)
     if debug: print(create_fld_clause)
+    dd.con.commit()
+    if debug:
+        print(u"About to drop %s" % final_name)
+        SQL_get_tbls = u"""SELECT name 
+            FROM sqlite_master 
+            WHERE type = 'table'
+            ORDER BY name"""
+        dd.cur.execute(SQL_get_tbls)
+        tbls = [x[0] for x in dd.cur.fetchall()]
+        tbls.sort(key=lambda s: s.upper())
+        print(tbls)
+    force_tbls_refresh()
+    SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % final_name
+    dd.cur.execute(SQL_drop_orig)
+    dd.con.commit()
+    if debug:
+        print(u"Supposedly just dropped %s" % final_name)
+        SQL_get_tbls = u"""SELECT name 
+            FROM sqlite_master 
+            WHERE type = 'table'
+            ORDER BY name"""
+        dd.cur.execute(SQL_get_tbls)
+        tbls = [x[0] for x in dd.cur.fetchall()]
+        tbls.sort(key=lambda s: s.upper())
+        print(tbls)
     SQL_make_redesigned_tbl = u"CREATE TABLE %s (%s)" % (final_name, 
                                                          create_fld_clause)
-    dd.con.commit()
     dd.cur.execute(SQL_make_redesigned_tbl)
+    dd.con.commit()
     oth_names = [sqlite_quoter(x[0]) for x in oth_name_types]
     null_plus_oth_flds = u" NULL, " + u", ".join(oth_names)
     SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (final_name, 
@@ -90,6 +127,7 @@ def make_redesigned_tbl(final_name, oth_name_types, config_data):
     dd.con.commit()
     dd.cur.execute(SQL_insert_all)
     dd.con.commit()
+    force_tbls_refresh()
     SQL_drop_tmp = u"DROP TABLE %s" % tmp_name
     dd.cur.execute(SQL_drop_tmp)
     dd.con.commit()
@@ -260,7 +298,6 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.new = new
         if self.new and readonly:
             raise Exception, "If new, should never be read only"
-        self.setup_con_cur_dict()
         self.var_labels = var_labels
         self.val_dics = val_dics
         if tbl_name_lst:
@@ -347,28 +384,6 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.Layout()
         self.txt_tbl_name.SetFocus()
     
-    def setup_con_cur_dict(self):
-        """
-        con_dict -- extra connection to allow a dict cursor.  NB potential for
-            locking conflict with dd.con :-).
-        cur_dict -- dict cursor
-        """
-        if self.new:
-            try:
-                self.con_dict = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)
-                # not dd.con because we may fail making a new one and need to 
-                # stick with the original
-            except Exception:
-                wx.MessageBox(_("The current project does not include a link to "
-                                "the default SOFA database so a new table cannot "
-                                "be made there."))
-                self.Destroy()
-        else:
-            self.con_dict = dbe_sqlite.get_con(dd.con_dets, dd.db)
-        self.con_dict.row_factory = dbe_sqlite.Row # see pysqlite usage-guide.txt
-        self.cur_dict = self.con_dict.cursor()
-        # MUST close this con before using dd.con        
-    
     def get_demo_val(self, row_idx, col_label, type):
         """
         Get best possible demo value for display in absence of source data.
@@ -440,18 +455,17 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                                       if x is not None])
             SQL_get_data = u"""SELECT %s FROM %s """ % (flds_clause,
                                             obj_quoter(self.tbl_name_lst[0]))
-            self.cur_dict.execute(SQL_get_data)
-            # returns dict with orig fld names as keys
+            dd.cur.execute(SQL_get_data)
             # NB will not contain any new or inserted flds
             row_idx = 0
             while True:
                 if display_n:
                     if row_idx >= display_n:
                         break # got all we need
-                row_obj = self.cur_dict.fetchone()
+                row_obj = dd.cur.fetchone()
                 if row_obj is None:
                     break # run out of rows
-                row_dict = dict(row_obj)
+                row_dict = dict(zip(orig_fldnames, row_obj))
                 if debug: print(row_dict)
                 row_lst = []
                 for orig_fldname, new_fldname, col_label, type in \
@@ -569,8 +583,10 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         # functions)
         tbl_name = self.tbl_name_lst[0]        
         oth_name_types = getdata.get_oth_name_types(self.config_data)
+        
         con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)
         cur = con.cursor() # the cursor for the default db
+        
         getdata.make_sofa_tbl(con, cur, tbl_name, oth_name_types)
         # Prepare to connect to the newly created table.
         # dd.con and dd.cur can now be updated now we are committed to new table
@@ -611,6 +627,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                             "the column type. Please edit and try again.\n\n"
                             "Original error: %s" % e))
             dd.con.commit()
+            force_tbls_refresh()
             SQL_drop_tmp_tbl = "DROP TABLE IF EXISTS %s" % \
                                                 sqlite_quoter(mg.TMP_TBL_NAME)
             dd.cur.execute(SQL_drop_tmp_tbl)
@@ -620,22 +637,6 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         final_name = self.tbl_name_lst[0] # may have been renamed
         make_redesigned_tbl(final_name, oth_name_types, self.config_data)
         dd.set_db(dd.db, tbl=final_name) # refresh tbls downwards        
-    
-    def on_cancel(self, event):
-        """
-        Must close connection to prevent default db being locked and unusable.
-        """
-        try:
-            self.cur_dict.close()
-            self.cur_dict = None
-        except Exception:
-            pass
-        try:
-            self.con_dict.close()
-            self.con_dict = None
-        except Exception:
-            pass
-        settings_grid.SettingsEntryDlg.on_cancel(self, event)
     
     def make_changes(self):
         debug = False
@@ -652,10 +653,6 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         if debug:
             print("Config data coming back:") 
             pprint.pprint(self.config_data)
-        # Must close connection to prevent default db being locked & unusable
-        # e.g. when making or modifying tables.
-        self.cur_dict.close()
-        self.con_dict.close()
         if self.new:
             self.make_new_tbl()
         else:
@@ -774,3 +771,4 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
                             "a new one")
         else:
             return True, None
+        
