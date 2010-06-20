@@ -1,5 +1,6 @@
 import pprint
 import random
+import sqlite3 as sqlite
 import string
 import wx
 
@@ -11,7 +12,85 @@ import full_html
 import recode
 import settings_grid
 
+dd = getdata.get_dd()
+sqlite_quoter = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
+
 WAITING_MSG = _("<p>Waiting for at least one field to be configured.</p>")
+    
+def wipe_orig_tbl(orig_tbl_name):
+    SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % sqlite_quoter(orig_tbl_name)
+    dd.con.commit()
+    dd.cur.execute(SQL_drop_orig)
+    dd.con.commit()
+        
+def make_strict_typing_tbl(orig_tbl_name, oth_name_types, config_data):
+    """
+    Make table for purpose of forcing all data into strict type fields.  Not
+        necessary to check sofa_id field (autoincremented integer) so not 
+        included.
+    Make table with all the fields apart from the sofa_id.  The fields
+        should be set with strict check constraints so that, even though the
+        table is SQLite, it cannot accept inappropriate data.
+    Try to insert into strict table all fields in original table (apart from 
+        the sofa_id which will be autoincremented from scratch).
+    oth_name_types - name, type tuples excluding sofa_id.
+    config_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
+        TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
+    """
+    debug = False
+    tmp_name = sqlite_quoter(mg.TMP_TBL_NAME)
+    SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % tmp_name
+    dd.con.commit()
+    dd.cur.execute(SQL_drop_tmp_tbl)
+    dd.con.commit()
+    # create table with strictly-typed fields
+    create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
+                                                    strict_typing=True,
+                                                    inc_sofa_id=False)
+    SQL_make_tmp_tbl = u"CREATE TABLE %s (%s) " % (tmp_name, 
+                                                   create_fld_clause)
+    if debug: print(SQL_make_tmp_tbl)
+    dd.cur.execute(SQL_make_tmp_tbl)
+    # unable to use CREATE ... AS SELECT at same time as defining table.
+    # attempt to insert data into strictly-typed fields.
+    select_fld_clause = getdata.make_flds_clause(config_data)
+    SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (tmp_name, 
+                                                select_fld_clause, 
+                                                sqlite_quoter(orig_tbl_name))
+    if debug: print(SQL_insert_all)
+    dd.cur.execute(SQL_insert_all)
+    dd.con.commit()
+    
+def make_redesigned_tbl(final_name, oth_name_types, config_data):
+    """
+    Make new table with all the fields from the tmp table (which doesn't 
+        have the sofa_id field) plus the sofa_id field.
+    config_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
+        TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
+    """
+    debug = False
+    tmp_name = sqlite_quoter(mg.TMP_TBL_NAME)
+    final_name = sqlite_quoter(final_name)
+    create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
+                                                    strict_typing=False,
+                                                    inc_sofa_id=True)
+    SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % final_name
+    dd.con.commit()
+    dd.cur.execute(SQL_drop_orig)
+    dd.con.commit()
+    if debug: print(create_fld_clause)
+    SQL_make_redesigned_tbl = u"CREATE TABLE %s (%s)" % (final_name, 
+                                                         create_fld_clause)
+    dd.cur.execute(SQL_make_redesigned_tbl)
+    oth_names = [sqlite_quoter(x[0]) for x in oth_name_types]
+    null_plus_oth_flds = u" NULL, " + u", ".join(oth_names)
+    SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (final_name, 
+                                                null_plus_oth_flds, tmp_name)
+    if debug: print(SQL_insert_all)
+    dd.cur.execute(SQL_insert_all)
+    SQL_drop_tmp = u"DROP TABLE %s" % tmp_name
+    dd.cur.execute(SQL_drop_tmp)
+    dd.con.commit()
 
 def insert_data(row_idx, grid_data):
     """
@@ -166,16 +245,23 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             color: #5f5f5f; # more clearly just demo data
         }"""
     
-    def __init__(self, cur_dict, var_labels, val_dics,
+    def __init__(self, con_dict, cur_dict, var_labels, val_dics,
                  tbl_name_lst, data, config_data, readonly=False, new=False,
                  insert_data_func=None, cell_invalidation_func=None):
         """
+        con_dict -- extra connection to allow a dict cursor.  NB potential for
+            locking conflict with dd.con :-).
+        cur_dict -- dict cursor
         tbl_name_lst -- passed in as a list so changes can be made without 
             having to return anything. 
-        data -- list of tuples (must have at least one tuple in the list, even
-            if only a "rename me".
+        data -- list of tuples (tuples must have at least one item, even if only 
+            a "rename me").  Empty list ok.
         config_data -- add details to it in form of a list of tuples.
         """
+        if new and readonly:
+            raise Exception, "If new, should never be read only"
+        # MUST close this con before using dd.con
+        self.con_dict = con_dict
         self.cur_dict = cur_dict
         self.var_labels = var_labels
         self.val_dics = val_dics
@@ -203,7 +289,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                      "dropdown_vals": [mg.FLD_TYPE_NUMERIC, 
                                        mg.FLD_TYPE_STRING, 
                                        mg.FLD_TYPE_DATE]},
-                     ]
+                   ]
         grid_size = (300,250)
         title = _("Configure Data Table")
         if readonly:
@@ -218,8 +304,9 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.txt_tbl_name = wx.TextCtrl(self.panel, -1, tbl_name, size=(450,-1))
         self.txt_tbl_name.Enable(not self.readonly)
         self.txt_tbl_name.SetValidator(SafeTblNameValidator(name_ok_to_reuse))
-        btn_recode = wx.Button(self.panel, -1, _("Recode"))
-        btn_recode.Bind(wx.EVT_BUTTON, self.on_recode)
+        if not readonly:
+            btn_recode = wx.Button(self.panel, -1, _("Recode"))
+            btn_recode.Bind(wx.EVT_BUTTON, self.on_recode)
         # sizers
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         self.szr_tbl_label = wx.BoxSizer(wx.HORIZONTAL)
@@ -255,7 +342,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.szr_main.Add(self.szr_tbl_label, 0, wx.GROW|wx.ALL, 10)
         self.szr_main.Add(szr_design, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
-        self.szr_btns.Insert(2, btn_recode, 0, wx.LEFT, 10)
+        if not readonly:
+            self.szr_btns.Insert(2, btn_recode, 0, wx.LEFT, 10)
         self.update_demo()
         self.panel.SetSizer(self.szr_main)
         self.szr_main.SetSizeHints(self)
@@ -451,11 +539,80 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         dlg = recode.RecodeDlg(tbl_name=u"", config_data=config_data)
         dlg.ShowModal()
         # wx.MessageBox(_("Not yet available in this version"))
-
+    
+    def make_new_tbl(self):
+        # Make new table.  Include unique index on special field prepended as
+        # with data imported.
+        # Only interested in SQLite when making a fresh SOFA table
+        # Use check constraints to enforce data type (based on user-defined 
+        # functions)
+        tbl_name = self.tbl_name_lst[0]        
+        oth_name_types = getdata.get_oth_name_types(self.config_data)
+        con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)
+        cur = con.cursor() # the cursor for the default db
+        getdata.make_sofa_tbl(con, cur, tbl_name, oth_name_types)
+        # Prepare to connect to the newly created table.
+        # dd.con and dd.cur can now be updated now we are committed to new table
+        dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl_name)
+        # explain to user
+        wx.MessageBox(_("Your new table has been added to the default SOFA "
+                        "database"))
+            
+    def modify_tbl(self):
+        """
+        Make temp table, with strict type enforcement for all fields.  
+        Copy across all fields which remain in the original table (possibly 
+            with new names and data types) plus add in all the new fields.
+        NB SOFA_ID must be autoincrement.
+        If any conversion errors (e.g. trying to change a field which 
+            currently contains "fred" to a numeric field) abort 
+            reconfiguration (with encouragement to fix source data or change
+            type to string).
+        Assuming reconfiguration is OK, create final table with original 
+            table's name, without strict typing, but with an auto-
+            incrementing and indexed SOFA_ID.
+        Don't apply check constraints based on user-defined functions to
+            final table as SQLite Database Browser can't open the database
+            anymore.
+        """
+        debug = False
+        orig_tbl_name = dd.tbl
+        # other (i.e. not the sofa_id) field details
+        oth_name_types = getdata.get_oth_name_types(self.config_data)
+        if debug: print("oth_name_types to feed into make_strict_typing_tbl %s" 
+                        % oth_name_types)
+        try:
+            make_strict_typing_tbl(orig_tbl_name, oth_name_types, 
+                                   self.config_data)
+        except sqlite.IntegrityError, e:
+            #except pysqlite2.dbapi2.IntegrityError, e:
+            if debug: print(unicode(e))
+            wx.MessageBox(_("Unable to modify table.  Some data does not match "
+                            "the column type. Please edit and try again.\n\n"
+                            "Original error: %s" % e))
+            SQL_drop_tmp_tbl = "DROP TABLE IF EXISTS %s" % \
+                                                sqlite_quoter(mg.TMP_TBL_NAME)
+            dd.cur.execute(SQL_drop_tmp_tbl)
+            dd.con.commit()
+            return
+        wipe_orig_tbl(orig_tbl_name)
+        final_name = self.tbl_name_lst[0] # may have been renamed
+        make_redesigned_tbl(final_name, oth_name_types, self.config_data)
+        dd.set_db(dd.db, tbl=final_name) # refresh tbls downwards        
+    
+    def on_cancel(self, event):
+        """
+        Must close connection to prevent default db being locked and unusable.
+        """
+        self.cur_dict.close()
+        self.con_dict.close()
+        settings_grid.SettingsEntryDlg.on_cancel(self, event)
+    
     def on_ok(self, event):
         """
         Override so we can extend to include table name.
         """
+        debug = False
         if not self.readonly:
             # NB must run Validate on the panel because the objects are 
             # contained by that and not the dialog itself. 
@@ -466,9 +623,21 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             del self.tbl_name_lst[0]
         self.tbl_name_lst.append(self.txt_tbl_name.GetValue())
         self.tabentry.update_config_data()
+        if debug:
+            print("Config data coming back:") 
+            pprint.pprint(self.config_data)
+        # Must close connection to prevent default db being locked & unusable
+        # e.g. when making or modifying tables.
+        self.cur_dict.close()
+        self.con_dict.close()
+        if self.new:
+            self.make_new_tbl()
+        else:
+            if not self.readonly:
+                self.modify_tbl()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
-        
+
     
 class ConfigTableEntry(settings_grid.SettingsEntry):
     """

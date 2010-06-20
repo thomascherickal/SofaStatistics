@@ -1,6 +1,5 @@
 from __future__ import print_function
 import pprint
-import sqlite3 as sqlite
 import sys
 import wx
 
@@ -153,7 +152,7 @@ class DataSelectDlg(wx.Dialog):
             dlg.ShowModal()
         event.Skip()
     
-    def _get_gen_fld_type(self, fld_type):
+    def get_gen_fld_type(self, fld_type):
         """
         Get general field type from specific.
         """
@@ -165,7 +164,7 @@ class DataSelectDlg(wx.Dialog):
             gen_fld_type = mg.FLD_TYPE_STRING
         return gen_fld_type
     
-    def _get_tbl_config(self, tbl_name):
+    def get_tbl_config(self, tbl_name):
         """
         Get ordered list of field names and field types for named table.
         "Numeric", "Date", "String".
@@ -177,7 +176,7 @@ class DataSelectDlg(wx.Dialog):
         dd.cur.execute(u"PRAGMA table_info(%s)" % obj_quoter(tbl_name))
         config = dd.cur.fetchall()
         if debug: print(config)
-        table_config = [(x[1], self._get_gen_fld_type(fld_type=x[2])) for x in
+        table_config = [(x[1], self.get_gen_fld_type(fld_type=x[2])) for x in
                          config]
         return table_config
     
@@ -195,81 +194,6 @@ class DataSelectDlg(wx.Dialog):
         self.reset_tbl_dropdown()
         self.ctrl_enablement()
         event.Skip()
-    
-    def wipe_orig_tbl(self, orig_tbl_name):
-        SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
-            sqlite_quoter(orig_tbl_name)
-        dd.con.commit()
-        dd.cur.execute(SQL_drop_orig)
-        dd.con.commit()
-    
-    def make_strict_typing_tbl(self, orig_tbl_name, oth_name_types, 
-                               config_data):
-        """
-        Make table for purpose of forcing all data into strict type fields.  Not
-            necessary to check sofa_id field (autoincremented integer) so not 
-            included.
-        Make table with all the fields apart from the sofa_id.  The fields
-            should be set with strict check constraints so that, even though the
-            table is SQLite, it cannot accept inappropriate data.
-        Try to insert into strict table all fields in original table (apart from 
-            the sofa_id which will be autoincremented from scratch).
-        oth_name_types - name, type tuples excluding sofa_id.
-        config_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
-            TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
-        """
-        debug = False
-        tmp_name = sqlite_quoter(mg.TMP_TBL_NAME)
-        SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % tmp_name
-        dd.cur.execute(SQL_drop_tmp_tbl)
-        # create table with strictly-typed fields
-        create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
-                                                        strict_typing=True,
-                                                        inc_sofa_id=False)
-        SQL_make_tmp_tbl = u"CREATE TABLE %s (%s) " % (tmp_name, 
-                                                       create_fld_clause)
-        if debug: print(SQL_make_tmp_tbl)
-        dd.cur.execute(SQL_make_tmp_tbl)
-        # unable to use CREATE ... AS SELECT at same time as defining table.
-        # attempt to insert data into strictly-typed fields.
-        select_fld_clause = getdata.make_flds_clause(config_data)
-        SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (tmp_name, 
-                                                select_fld_clause, 
-                                                sqlite_quoter(orig_tbl_name))
-        if debug: print(SQL_insert_all)
-        dd.cur.execute(SQL_insert_all)
-        dd.con.commit()
-    
-    def make_redesigned_tbl(self, final_name, oth_name_types, config_data):
-        """
-        Make new table with all the fields from the tmp table (which doesn't 
-            have the sofa_id field) plus the sofa_id field.
-        config_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
-            TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
-        """
-        debug = False
-        tmp_name = sqlite_quoter(mg.TMP_TBL_NAME)
-        final_name = sqlite_quoter(final_name)
-        create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
-                                                        strict_typing=False,
-                                                        inc_sofa_id=True)
-        SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % final_name
-        dd.con.commit()
-        dd.cur.execute(SQL_drop_orig)
-        dd.con.commit()
-        if debug: print(create_fld_clause)
-        SQL_make_redesigned_tbl = u"CREATE TABLE %s (%s)" % (final_name, 
-                                                             create_fld_clause)
-        dd.cur.execute(SQL_make_redesigned_tbl)
-        oth_names = [sqlite_quoter(x[0]) for x in oth_name_types]
-        null_plus_oth_flds = u" NULL, " + u", ".join(oth_names)
-        SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (final_name, 
-                                                null_plus_oth_flds, tmp_name)
-        if debug: print(SQL_insert_all)
-        dd.cur.execute(SQL_insert_all)
-        SQL_drop_tmp = u"DROP TABLE %s" % tmp_name
-        dd.cur.execute(SQL_drop_tmp)
-        dd.con.commit()
 
     def on_design(self, event):
         """
@@ -285,61 +209,17 @@ class DataSelectDlg(wx.Dialog):
             self.chk_readonly.SetValue(True)
             readonly = True
         tbl_name_lst = [dd.tbl,]
-        data = self._get_tbl_config(dd.tbl)
+        data = self.get_tbl_config(dd.tbl)
         if debug: print("Initial table config data: %s" % data)
         config_data = []     
-        con = dbe_sqlite.get_con(dd.con_dets, dd.db)
-        con.row_factory = dbe_sqlite.Row # see pysqlite usage-guide.txt
-        cur_dict = con.cursor()
-        dlgConfig = table_config.ConfigTableDlg(cur_dict, self.var_labels, 
-                                self.val_dics, tbl_name_lst, data, config_data, 
-                                readonly, new=False)
+        con_dict = dbe_sqlite.get_con(dd.con_dets, dd.db)
+        con_dict.row_factory = dbe_sqlite.Row # see pysqlite usage-guide.txt
+        cur_dict = con_dict.cursor()
+        dlgConfig = table_config.ConfigTableDlg(con_dict, cur_dict, 
+                                self.var_labels, self.val_dics, tbl_name_lst, 
+                                data, config_data, readonly, new=False)
         ret = dlgConfig.ShowModal()
-        cur_dict.close()
-        con.close()
-        if debug:
-            print("Config data coming back:") 
-            pprint.pprint(config_data)
         if ret == wx.ID_OK and not readonly:
-            """
-            Make temp table, with strict type enforcement for all fields.  
-            Copy across all fields which remain in the original table (possibly 
-                with new names and data types) plus add in all the new fields.
-            NB SOFA_ID must be autoincrement.
-            If any conversion errors (e.g. trying to change a field which 
-                currently contains "fred" to a numeric field) abort 
-                reconfiguration (with encouragement to fix source data or change
-                type to string).
-            Assuming reconfiguration is OK, create final table with original 
-                table's name, without strict typing, but with an auto-
-                incrementing and indexed SOFA_ID.
-            Don't apply check constraints based on user-defined functions to
-                final table as SQLite Database Browser can't open the database
-                anymore.
-            """
-            orig_tbl_name = dd.tbl
-            # other (i.e. not the sofa_id) field details
-            oth_name_types = getdata.get_oth_name_types(config_data)
-            if debug: print("oth_name_types to feed into " 
-                            "make_strict_typing_tbl %s" % oth_name_types)
-            try:
-                self.make_strict_typing_tbl(orig_tbl_name, oth_name_types, 
-                                            config_data)
-            except sqlite.IntegrityError, e:
-                #except pysqlite2.dbapi2.IntegrityError, e:
-                if debug: print(unicode(e))
-                wx.MessageBox(_("Unable to modify table.  Some data does not "
-                                "match the column type.  Please edit and try "
-                                "again.\n\nOriginal error: %s" % e))
-                SQL_drop_tmp_tbl = "DROP TABLE IF EXISTS %s" % \
-                                                sqlite_quoter(mg.TMP_TBL_NAME)
-                dd.cur.execute(SQL_drop_tmp_tbl)
-                dd.con.commit()
-                return
-            self.wipe_orig_tbl(orig_tbl_name)
-            final_name = tbl_name_lst[0] # may have been renamed
-            self.make_redesigned_tbl(final_name, oth_name_types, config_data)
-            dd.set_db(dd.db, tbl=final_name) # refresh tbls downwards
             # update tbl dropdown
             self.reset_tbl_dropdown()
     
@@ -351,7 +231,7 @@ class DataSelectDlg(wx.Dialog):
         """
         debug = False
         try:
-            con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)
+            con_dict = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)
             # not dd.con because we may fail making a new one and need to 
             # stick with the original
         except Exception:
@@ -364,37 +244,17 @@ class DataSelectDlg(wx.Dialog):
                 ("var001", "Numeric"),
                 ]
         config_data = []
-        con.row_factory = dbe_sqlite.Row #see pysqlite usage-guide.txt
-        cur_dict = con.cursor()
-        dlgConfig = table_config.ConfigTableDlg(cur_dict, self.var_labels, 
-                                                self.val_dics, tbl_name_lst, 
-                                                data, config_data, new=True)
+        con_dict.row_factory = dbe_sqlite.Row # see pysqlite usage-guide.txt
+        cur_dict = con_dict.cursor()
+        dlgConfig = table_config.ConfigTableDlg(con_dict, cur_dict, 
+                                self.var_labels, self.val_dics, tbl_name_lst, 
+                                data, config_data, readonly=False, new=True)
         ret = dlgConfig.ShowModal()
-        cur_dict.close()
-        con.close()
         if ret != wx.ID_OK:
             event.Skip()
             return
-        # Make new table.  Include unique index on special field prepended as
-        # with data imported.
-        # Only interested in SQLite when making a fresh SOFA table
-        # Use check constraints to enforce data type (based on user-defined 
-        # functions)
-        tbl_name = tbl_name_lst[0]        
-        oth_name_types = getdata.get_oth_name_types(config_data)
-        if debug: print(config_data)
-        con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)
-        cur = con.cursor() # the cursor for the default db
-        getdata.make_sofa_tbl(con, cur, tbl_name, oth_name_types)
-        # Prepare to connect to the newly created table.
-        # dd.con and dd.cur can now be updated now we are committed to new table
-        tbl = tbl_name
-        dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl)
         # update tbl dropdown
         self.reset_tbl_dropdown()
-        # explain to user
-        wx.MessageBox(_("Your new table has been added to the default SOFA "
-                        "database"))
         # open data          
         wx.BeginBusyCursor()
         readonly = False

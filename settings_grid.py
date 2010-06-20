@@ -34,8 +34,8 @@ class SettingsEntryDlg(wx.Dialog):
                  insert_data_func=None, row_validation_func=None):
         """
         col_dets -- see under SettingsEntry.
-        data -- list of tuples (must have at least one item, even if only a 
-            "rename me").
+        data -- list of tuples (tuples must have at least one item, even if only 
+            a "rename me").  Empty list ok.
         config_data -- is effectively "returned".  Add details to it in form 
             of a list of tuples.
         insert_data_func -- what data do you want to see in a new inserted row 
