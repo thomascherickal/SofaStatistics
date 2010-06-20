@@ -31,7 +31,7 @@ class DataSelectDlg(wx.Dialog):
         wx.BeginBusyCursor()
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
-        lblChoose = wx.StaticText(self.panel, -1, 
+        lbl_choose = wx.StaticText(self.panel, -1, 
                                   _("Choose an existing data table ..."), 
                                   size=(480,20))
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
@@ -69,12 +69,12 @@ class DataSelectDlg(wx.Dialog):
         szr_existing.Add(szr_data, 0, wx.GROW|wx.ALL, 10)
         szr_existing.Add(szr_existing_bottom, 0, wx.GROW|wx.ALL, 10)
         szr_new = wx.StaticBoxSizer(bx_new, wx.HORIZONTAL)
-        lbl_make_new = wx.StaticText(self.panel, -1, _("... or add a new data "
-                                        "table to the default SOFA database"))
-        btn_make_new = wx.Button(self.panel, wx.ID_NEW)
-        btn_make_new.Bind(wx.EVT_BUTTON, self.on_new_click)
-        szr_new.Add(lbl_make_new, 1, wx.GROW|wx.ALL, 10)
-        szr_new.Add(btn_make_new, 0, wx.ALL, 10)
+        lbl_new = wx.StaticText(self.panel, -1, _("... or add a new data table "
+                                                "to the default SOFA database"))
+        btn_new = wx.Button(self.panel, wx.ID_NEW)
+        btn_new.Bind(wx.EVT_BUTTON, self.on_new)
+        szr_new.Add(lbl_new, 1, wx.GROW|wx.ALL, 10)
+        szr_new.Add(btn_new, 0, wx.ALL, 10)
         self.lbl_feedback = wx.StaticText(self.panel, -1, u"")
         btn_close = wx.Button(self.panel, wx.ID_CLOSE)
         btn_close.Bind(wx.EVT_BUTTON, self.on_close)
@@ -83,7 +83,7 @@ class DataSelectDlg(wx.Dialog):
         self.szr_btns.Add(self.lbl_feedback, 1, wx.GROW|wx.ALL, 10)
         self.szr_btns.Add(btn_close, 0)
         szr_bottom.Add(self.szr_btns, 1, wx.GROW|wx.RIGHT, 15) # align with New        
-        self.szr_main.Add(lblChoose, 0, wx.ALL, 10)
+        self.szr_main.Add(lbl_choose, 0, wx.ALL, 10)
         self.szr_main.Add(szr_existing, 1, wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.GROW, 
                           10)
         self.szr_main.Add(szr_new, 0, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
@@ -212,18 +212,15 @@ class DataSelectDlg(wx.Dialog):
         data = self.get_tbl_config(dd.tbl)
         if debug: print("Initial table config data: %s" % data)
         config_data = []     
-        con_dict = dbe_sqlite.get_con(dd.con_dets, dd.db)
-        con_dict.row_factory = dbe_sqlite.Row # see pysqlite usage-guide.txt
-        cur_dict = con_dict.cursor()
-        dlgConfig = table_config.ConfigTableDlg(con_dict, cur_dict, 
-                                self.var_labels, self.val_dics, tbl_name_lst, 
-                                data, config_data, readonly, new=False)
+        dlgConfig = table_config.ConfigTableDlg(self.var_labels, self.val_dics, 
+                                                tbl_name_lst, data, config_data, 
+                                                readonly, new=False)
         ret = dlgConfig.ShowModal()
         if ret == wx.ID_OK and not readonly:
             # update tbl dropdown
             self.reset_tbl_dropdown()
     
-    def on_new_click(self, event):
+    def on_new(self, event):
         """
         Get table name (must be unique etc), create empty table in SOFA Default 
             database with that name, and start off with 5 fields ready to 
@@ -231,9 +228,10 @@ class DataSelectDlg(wx.Dialog):
         """
         debug = False
         try:
-            con_dict = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)
+            con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)
             # not dd.con because we may fail making a new one and need to 
             # stick with the original
+            con.close()
         except Exception:
             wx.MessageBox(_("The current project does not include a link to "
                             "the default SOFA database so a new table cannot "
@@ -244,11 +242,9 @@ class DataSelectDlg(wx.Dialog):
                 ("var001", "Numeric"),
                 ]
         config_data = []
-        con_dict.row_factory = dbe_sqlite.Row # see pysqlite usage-guide.txt
-        cur_dict = con_dict.cursor()
-        dlgConfig = table_config.ConfigTableDlg(con_dict, cur_dict, 
-                                self.var_labels, self.val_dics, tbl_name_lst, 
-                                data, config_data, readonly=False, new=True)
+        dlgConfig = table_config.ConfigTableDlg(self.var_labels, self.val_dics, 
+                                                tbl_name_lst, data, config_data, 
+                                                readonly=False, new=True)
         ret = dlgConfig.ShowModal()
         if ret != wx.ID_OK:
             event.Skip()

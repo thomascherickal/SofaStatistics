@@ -77,17 +77,19 @@ def make_redesigned_tbl(final_name, oth_name_types, config_data):
     SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % final_name
     dd.con.commit()
     dd.cur.execute(SQL_drop_orig)
-    dd.con.commit()
     if debug: print(create_fld_clause)
     SQL_make_redesigned_tbl = u"CREATE TABLE %s (%s)" % (final_name, 
                                                          create_fld_clause)
+    dd.con.commit()
     dd.cur.execute(SQL_make_redesigned_tbl)
     oth_names = [sqlite_quoter(x[0]) for x in oth_name_types]
     null_plus_oth_flds = u" NULL, " + u", ".join(oth_names)
     SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (final_name, 
                                                 null_plus_oth_flds, tmp_name)
     if debug: print(SQL_insert_all)
+    dd.con.commit()
     dd.cur.execute(SQL_insert_all)
+    dd.con.commit()
     SQL_drop_tmp = u"DROP TABLE %s" % tmp_name
     dd.cur.execute(SQL_drop_tmp)
     dd.con.commit()
@@ -245,24 +247,20 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             color: #5f5f5f; # more clearly just demo data
         }"""
     
-    def __init__(self, con_dict, cur_dict, var_labels, val_dics,
-                 tbl_name_lst, data, config_data, readonly=False, new=False,
-                 insert_data_func=None, cell_invalidation_func=None):
+    def __init__(self, var_labels, val_dics, tbl_name_lst, data, config_data, 
+                 readonly=False, new=False, insert_data_func=None, 
+                 cell_invalidation_func=None):
         """
-        con_dict -- extra connection to allow a dict cursor.  NB potential for
-            locking conflict with dd.con :-).
-        cur_dict -- dict cursor
         tbl_name_lst -- passed in as a list so changes can be made without 
             having to return anything. 
         data -- list of tuples (tuples must have at least one item, even if only 
             a "rename me").  Empty list ok.
         config_data -- add details to it in form of a list of tuples.
         """
-        if new and readonly:
+        self.new = new
+        if self.new and readonly:
             raise Exception, "If new, should never be read only"
-        # MUST close this con before using dd.con
-        self.con_dict = con_dict
-        self.cur_dict = cur_dict
+        self.setup_con_cur_dict()
         self.var_labels = var_labels
         self.val_dics = val_dics
         if tbl_name_lst:
@@ -274,7 +272,6 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.config_data = config_data
         self.init_config_data(data)
         self.readonly = readonly
-        self.new = new
         if not insert_data_func:
             insert_data_func = insert_data
         if not cell_invalidation_func:
@@ -349,6 +346,28 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.szr_main.SetSizeHints(self)
         self.Layout()
         self.txt_tbl_name.SetFocus()
+    
+    def setup_con_cur_dict(self):
+        """
+        con_dict -- extra connection to allow a dict cursor.  NB potential for
+            locking conflict with dd.con :-).
+        cur_dict -- dict cursor
+        """
+        if self.new:
+            try:
+                self.con_dict = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)
+                # not dd.con because we may fail making a new one and need to 
+                # stick with the original
+            except Exception:
+                wx.MessageBox(_("The current project does not include a link to "
+                                "the default SOFA database so a new table cannot "
+                                "be made there."))
+                self.Destroy()
+        else:
+            self.con_dict = dbe_sqlite.get_con(dd.con_dets, dd.db)
+        self.con_dict.row_factory = dbe_sqlite.Row # see pysqlite usage-guide.txt
+        self.cur_dict = self.con_dict.cursor()
+        # MUST close this con before using dd.con        
     
     def get_demo_val(self, row_idx, col_label, type):
         """
@@ -535,6 +554,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         event.Skip()
 
     def on_recode(self, event):
+        if self.readonly:
+            raise Exception, "Can't recode a read only table"
         config_data = []
         dlg = recode.RecodeDlg(tbl_name=u"", config_data=config_data)
         dlg.ShowModal()
@@ -585,11 +606,11 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             make_strict_typing_tbl(orig_tbl_name, oth_name_types, 
                                    self.config_data)
         except sqlite.IntegrityError, e:
-            #except pysqlite2.dbapi2.IntegrityError, e:
             if debug: print(unicode(e))
             wx.MessageBox(_("Unable to modify table.  Some data does not match "
                             "the column type. Please edit and try again.\n\n"
                             "Original error: %s" % e))
+            dd.con.commit()
             SQL_drop_tmp_tbl = "DROP TABLE IF EXISTS %s" % \
                                                 sqlite_quoter(mg.TMP_TBL_NAME)
             dd.cur.execute(SQL_drop_tmp_tbl)
@@ -604,14 +625,19 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         """
         Must close connection to prevent default db being locked and unusable.
         """
-        self.cur_dict.close()
-        self.con_dict.close()
+        try:
+            self.cur_dict.close()
+            self.cur_dict = None
+        except Exception:
+            pass
+        try:
+            self.con_dict.close()
+            self.con_dict = None
+        except Exception:
+            pass
         settings_grid.SettingsEntryDlg.on_cancel(self, event)
     
-    def on_ok(self, event):
-        """
-        Override so we can extend to include table name.
-        """
+    def make_changes(self):
         debug = False
         if not self.readonly:
             # NB must run Validate on the panel because the objects are 
@@ -634,7 +660,13 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             self.make_new_tbl()
         else:
             if not self.readonly:
-                self.modify_tbl()
+                self.modify_tbl()        
+    
+    def on_ok(self, event):
+        """
+        Override so we can extend to include table name.
+        """
+        self.make_changes()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
 
