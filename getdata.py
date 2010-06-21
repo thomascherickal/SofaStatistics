@@ -20,15 +20,18 @@ Assumed that table names will be case insensitive e.g. tblitems == tblItems.
 """
 
 def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None, 
-                      tbl=None):
+                      tbl=None, add_checks=False):
     """
     db -- may be changing dbe and db together (e.g. dbe-db dropdown).
+    add_checks -- only used by SQLite dbe.
     """
     debug = False
     dbe_resources = {}
     if debug: print("About to update dbe resources with con resources")
-    dbe_resources.update(mg.DBE_MODULES[dbe].get_con_resources(con_dets, 
-                                                               default_dbs, db))
+    kwargs = {"con_dets": con_dets, "default_dbs": default_dbs, "db": db}
+    if dbe == mg.DBE_SQLITE:
+        kwargs["add_checks"] = add_checks
+    dbe_resources.update(mg.DBE_MODULES[dbe].get_con_resources(**kwargs))
     cur = dbe_resources[mg.DBE_CUR]
     db = dbe_resources[mg.DBE_DB]
     if debug: print("About to update dbe resources with db resources")
@@ -109,10 +112,12 @@ class DataDets(object):
             raise Exception, "Unable to set proj dic. Orig error: %s" % e
         self.proj_dic = proj_dic # only change if successful
 
-    def set_dbe(self, dbe, db=None, tbl=None):
+    def set_dbe(self, dbe, db=None, tbl=None, add_checks=False):
         """
         Changing dbe has implications for everything connected.
-        May want to refresh dbe and db together (e.g. dbe-db dropwdown).
+        May want to refresh dbe and db together (e.g. dbe-db dropdown).
+        add_checks -- implemented in SQLite for making strictly typed tables as
+            required.
         """
         debug = False
         if debug: print("About to get dbe resources")
@@ -126,8 +131,8 @@ class DataDets(object):
             pass
         try:
             dbe_resources = get_dbe_resources(dbe, self.con_dets, 
-                                              self.default_dbs, 
-                                              self.default_tbls, db, tbl)
+                                          self.default_dbs, self.default_tbls, 
+                                          db, tbl, add_checks)
         except Exception, e:
             raise Exception, ("Unable to get dbe resources. Orig error: %s" % e)
         self.dbe = dbe # only change if getting dbe resources worked

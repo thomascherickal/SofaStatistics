@@ -17,6 +17,19 @@ sqlite_quoter = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
 
 WAITING_MSG = _("<p>Waiting for at least one field to be configured.</p>")
 
+"""
+New tables do not have user-defined functions added as part of data type 
+    constraints.  Data integrity is protected via the data entry grid and its 
+    validation.  Otherwise, only SOFA (or theoretically, any application 
+    providing the same user-defined function names) would be able to open it.
+Modifying an existing table involves making a tmp table with all the data type 
+    constraints added as per new design's field types.  Then data is inserted 
+    into table looking for errors.  If no errors, drop orig table, make new 
+    table without strict typing, and mass insert all the records from the temp
+    table into it.  Then drop the temp table to clean up.
+"""
+
+
 class FldMismatchException(Exception):
     def __init__(self):
         debug = False
@@ -64,7 +77,11 @@ def wipe_orig_tbl(orig_tbl_name):
     SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % sqlite_quoter(orig_tbl_name)
     dd.cur.execute(SQL_drop_orig)
     dd.con.commit()
-        
+
+def reset_con(tbl_name=None, add_checks=False):
+    dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl_name, 
+               add_checks=add_checks)
+ 
 def make_strict_typing_tbl(orig_tbl_name, oth_name_types, config_data):
     """
     Make table for purpose of forcing all data into strict type fields.  Not
@@ -103,6 +120,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, config_data):
     if debug: print(SQL_insert_all)
     dd.cur.execute(SQL_insert_all)
     dd.con.commit()
+    reset_con(add_checks=False)
 
 def make_redesigned_tbl(final_name, oth_name_types, config_data):
     """
@@ -623,21 +641,18 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         event.Skip()
     
     def make_new_tbl(self):
-        # Make new table.  Include unique index on special field prepended as
-        # with data imported.
-        # Only interested in SQLite when making a fresh SOFA table
-        # Use check constraints to enforce data type (based on user-defined 
-        # functions)
-        tbl_name = self.tbl_name_lst[0]        
+        """
+        Make new table.  Include unique index on special field prepended as
+            with data imported.
+        Only interested in SQLite when making a fresh SOFA table
+        Do not use check constraints (based on user-defined functions) or else 
+            only SOFA will be able to open the SQLite database.
+        """       
         oth_name_types = getdata.get_oth_name_types(self.config_data)
-        
-        con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)
-        cur = con.cursor() # the cursor for the default db
-        
-        getdata.make_sofa_tbl(con, cur, tbl_name, oth_name_types)
-        # Prepare to connect to the newly created table.
-        # dd.con and dd.cur can now be updated now we are committed to new table
-        dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl_name)
+        reset_con(tbl_name=None, add_checks=True) # table not made yet
+        tbl_name = self.tbl_name_lst[0] 
+        getdata.make_sofa_tbl(dd.con, dd.cur, tbl_name, oth_name_types)
+        reset_con(tbl_name=tbl_name, add_checks=False)
         # explain to user
         wx.MessageBox(_("Your new table has been added to the default SOFA "
                         "database"))

@@ -50,11 +50,13 @@ def add_funcs_to_con(con):
     con.create_function("is_numeric", 1, lib.is_numeric)
     con.create_function("is_std_datetime_str", 1, lib.is_std_datetime_str)
 
-def get_con(con_dets, db):
+def get_con(con_dets, db, add_checks=False):
     """
     Use this connection rather than hand-making one.  Risk of malformed database
         schema.  E.g. DatabaseError: malformed database schema (sofa_tmp_tbl) - 
         no such function: is_numeric
+    add_checks -- adds user-defined functions so can be used in check 
+        constraints to ensure data type integrity.
     """
     con_dets_sqlite = con_dets.get(mg.DBE_SQLITE)
     if not con_dets_sqlite:
@@ -67,11 +69,12 @@ def get_con(con_dets, db):
         raise Exception, (u"Unable to connect to SQLite database "
                           u"using supplied database: \"%s\". " % db +
                           u"Orig error: %s" % e)
-    # some user-defined functions needed for strict type checking constraints
-    add_funcs_to_con(con)
+    if add_checks:
+        # some user-defined functions needed for strict type checking constraints
+        add_funcs_to_con(con)
     return con
 
-def get_con_resources(con_dets, default_dbs, db=None):
+def get_con_resources(con_dets, default_dbs, db=None, add_checks=False):
     """
     When opening from scratch, e.g. clicking on Report Tables from Start,
         no db, so must identify one, but when selecting dbe-db in dropdowns, 
@@ -85,7 +88,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
             db = default_db
         else:
             db = con_dets[mg.DBE_SQLITE].keys()[0]
-    con = get_con(con_dets, db)
+    con = get_con(con_dets, db, add_checks=add_checks)
     cur = con.cursor() # must return tuples not dics
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: [db,],
                      mg.DBE_DB: db}
