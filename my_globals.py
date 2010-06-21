@@ -202,6 +202,7 @@ IDX_FLDS = u"index fields"
 # misc data
 READONLY_COLOUR = wx.Colour(221,231,229)
 MISSING_VAL_INDICATOR = u"."
+RET_CHANGED_DESIGN = 30101966 # must be integer and not 5101 etc
 # must be defined before dbe modules called - used in them
 GTE_EQUALS = "="
 GTE_NOT_EQUALS = "not =" # each dbe converts to appropriate SQL operators
@@ -297,7 +298,7 @@ HAS_HEADER = 1966 # anything OK as long as no collision with wx.ID_CANCEL
 NO_HEADER = 1967
 # field type labels - must work as labels as well as consts
 FLD_TYPE_NUMERIC = _("Numeric")
-FLD_TYPE_STRING = _("String")
+FLD_TYPE_STRING = _("Text")
 FLD_TYPE_DATE = _("Date")
 GEN2SQLITE_DIC = {
     FLD_TYPE_NUMERIC: {"sqlite_type": "REAL", 

@@ -167,7 +167,7 @@ class DataSelectDlg(wx.Dialog):
     def get_tbl_config(self, tbl_name):
         """
         Get ordered list of field names and field types for named table.
-        "Numeric", "Date", "String".
+        "Numeric", "Date", "Text".
         Only works for an SQLite database (should be the default one).
         """
         debug = False
@@ -216,7 +216,7 @@ class DataSelectDlg(wx.Dialog):
                                                 tbl_name_lst, data, config_data, 
                                                 readonly, new=False)
         ret = dlgConfig.ShowModal()
-        if ret == wx.ID_OK and not readonly:
+        if ret == mg.RET_CHANGED_DESIGN and not readonly:
             # update tbl dropdown
             self.reset_tbl_dropdown()
     
@@ -246,7 +246,7 @@ class DataSelectDlg(wx.Dialog):
                                                 tbl_name_lst, data, config_data, 
                                                 readonly=False, new=True)
         ret = dlgConfig.ShowModal()
-        if ret != wx.ID_OK:
+        if ret != mg.RET_CHANGED_DESIGN:
             event.Skip()
             return
         # update tbl dropdown

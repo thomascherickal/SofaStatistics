@@ -45,7 +45,7 @@ def replace_titles_subtitles(orig, titles, subtitles):
         subtitle content.
     post_subtitle = everything after the subtitle content e.g. 2010 data
     """
-    debug = True
+    debug = False
     if debug: print(u"orig: %s\n\ntitles: %s\n\nsubtitles: %s\n\n" % (orig, 
                                                             titles, subtitles))
     titles_inner_html = u""

@@ -46,61 +46,63 @@ def test_has_data_changed():
     NB Need first two checks in case names swapped.  Sets wouldn't change 
         but data would have changed.
     """
-    orig_data1 = [(u'sofa_id', u'Numeric'), (u'var001', u'String'), 
-                  (u'var002', u'String'), (u'var003', u'String')]
+    string = mg.FLD_TYPE_STRING
+    num = mg.FLD_TYPE_NUMERIC
+    orig_data1 = [(u'sofa_id', num), (u'var001', string), 
+                  (u'var002', string), (u'var003', string)]
     final_data1 = [ {'fld_name_orig': u'sofa_id', 'fld_name': u'sofa_id', 
-                        'fld_type': u'Numeric', 'fld_type_orig': u'Numeric'}, 
+                        'fld_type': num, 'fld_type_orig': num}, 
                     {'fld_name_orig': u'var001', 'fld_name': u'var001', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                        'fld_type': string, 'fld_type_orig': string}, 
                     {'fld_name_orig': u'var002', 'fld_name': u'var002', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                        'fld_type': string, 'fld_type_orig': string}, 
                     {'fld_name_orig': u'var003', 'fld_name': u'var003', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}]
+                        'fld_type': string, 'fld_type_orig': string}]
     # renamed a field
     final_data2 = [ {'fld_name_orig': u'sofa_id', 'fld_name': u'sofa_id2', 
-                        'fld_type': u'Numeric', 'fld_type_orig': u'Numeric'}, 
+                        'fld_type': num, 'fld_type_orig': num}, 
                     {'fld_name_orig': u'var001', 'fld_name': u'var001', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                        'fld_type': string, 'fld_type_orig': string}, 
                     {'fld_name_orig': u'var002', 'fld_name': u'var002', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                        'fld_type': string, 'fld_type_orig': string}, 
                     {'fld_name_orig': u'var003', 'fld_name': u'var003', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}]
+                        'fld_type': string, 'fld_type_orig': string}]
     # deleted a field
     final_data3 = [ {'fld_name_orig': u'sofa_id', 'fld_name': u'sofa_id', 
-                        'fld_type': u'Numeric', 'fld_type_orig': u'Numeric'}, 
+                        'fld_type': num, 'fld_type_orig': num}, 
                     {'fld_name_orig': u'var001', 'fld_name': u'var001', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                        'fld_type': string, 'fld_type_orig': string}, 
                     {'fld_name_orig': u'var003', 'fld_name': u'var003', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}]
+                        'fld_type': string, 'fld_type_orig': string}]
     # changed fld type to Numeric
     final_data4 = [ {'fld_name_orig': u'sofa_id', 'fld_name': u'sofa_id', 
-                        'fld_type': u'Numeric', 'fld_type_orig': u'Numeric'}, 
+                        'fld_type': num, 'fld_type_orig': num}, 
                     {'fld_name_orig': u'var001', 'fld_name': u'var001', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                        'fld_type': string, 'fld_type_orig': string}, 
                     {'fld_name_orig': u'var002', 'fld_name': u'var002', 
-                        'fld_type': u'String', 'fld_type_orig': u'Numeric'}, 
+                        'fld_type': string, 'fld_type_orig': num}, 
                     {'fld_name_orig': u'var003', 'fld_name': u'var003', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}]
+                        'fld_type': string, 'fld_type_orig': string}]
     # swapped but same final (still changed)
     final_data5 = [ {'fld_name_orig': u'sofa_id', 'fld_name': u'sofa_id', 
-                        'fld_type': u'Numeric', 'fld_type_orig': u'Numeric'}, 
+                        'fld_type': num, 'fld_type_orig': num}, 
                     {'fld_name_orig': u'var001', 'fld_name': u'var002', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                        'fld_type': string, 'fld_type_orig': string}, 
                     {'fld_name_orig': u'var002', 'fld_name': u'var001', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                        'fld_type': string, 'fld_type_orig': string}, 
                     {'fld_name_orig': u'var003', 'fld_name': u'var003', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}]
+                        'fld_type': string, 'fld_type_orig': string}]
     # added a field
     final_data6 = [ {'fld_name_orig': u'sofa_id', 'fld_name': u'sofa_id', 
-                        'fld_type': u'Numeric', 'fld_type_orig': u'Numeric'},  
+                        'fld_type': num, 'fld_type_orig': num},  
                     {'fld_name_orig': None, 'fld_name': u'spam', 
-                        'fld_type': None, 'fld_type_orig': u'String'},
+                        'fld_type': None, 'fld_type_orig': string},
                     {'fld_name_orig': u'var001', 'fld_name': u'var001', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                        'fld_type': string, 'fld_type_orig': string}, 
                     {'fld_name_orig': u'var002', 'fld_name': u'var002', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                        'fld_type': string, 'fld_type_orig': string}, 
                     {'fld_name_orig': u'var003', 'fld_name': u'var003', 
-                        'fld_type': u'String', 'fld_type_orig': u'String'}]
+                        'fld_type': string, 'fld_type_orig': string}]
     tests = [((orig_data1, final_data1), False),
              ((orig_data1, final_data2), True),
              ((orig_data1, final_data3), True),

@@ -38,7 +38,7 @@ def has_data_changed(orig_data, final_data):
     NB Need first two checks in case names swapped.  Sets wouldn't change 
         but data would have changed.
     """
-    debug = True
+    debug = False
     if debug:
         print("\n%s\n%s" % (pprint.pformat(orig_data), 
                             pprint.pformat(final_data)))
@@ -58,22 +58,9 @@ def has_data_changed(orig_data, final_data):
         data_changed = True
     return data_changed
     
-def force_tbls_refresh():
-    """
-    Sometimes you drop a table, make it, drop it, go to make it and it still 
-        seems to be there.  This seems to force a refresh.
-    commit() doesn't seem to solve the problem and it occurs even though only 
-        one connection in play. 
-    """
-    SQL_get_tbls = u"""SELECT name 
-        FROM sqlite_master 
-        WHERE type = 'table'
-        ORDER BY name"""
-    dd.cur.execute(SQL_get_tbls)
-    
 def wipe_orig_tbl(orig_tbl_name):
     dd.con.commit()
-    force_tbls_refresh()
+    getdata.force_tbls_refresh()
     SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % sqlite_quoter(orig_tbl_name)
     dd.cur.execute(SQL_drop_orig)
     dd.con.commit()
@@ -94,7 +81,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, config_data):
     """
     debug = False
     tmp_name = sqlite_quoter(mg.TMP_TBL_NAME)
-    force_tbls_refresh()
+    getdata.force_tbls_refresh()
     SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % tmp_name
     dd.con.commit()
     dd.cur.execute(SQL_drop_tmp_tbl)
@@ -142,7 +129,7 @@ def make_redesigned_tbl(final_name, oth_name_types, config_data):
         tbls = [x[0] for x in dd.cur.fetchall()]
         tbls.sort(key=lambda s: s.upper())
         print(tbls)
-    force_tbls_refresh()
+    getdata.force_tbls_refresh()
     SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % final_name
     dd.cur.execute(SQL_drop_orig)
     dd.con.commit()
@@ -168,7 +155,7 @@ def make_redesigned_tbl(final_name, oth_name_types, config_data):
     dd.con.commit()
     dd.cur.execute(SQL_insert_all)
     dd.con.commit()
-    force_tbls_refresh()
+    getdata.force_tbls_refresh()
     SQL_drop_tmp = u"DROP TABLE %s" % tmp_name
     dd.cur.execute(SQL_drop_tmp)
     dd.con.commit()
@@ -337,6 +324,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         config_data -- add details to it in form of a list of tuples.
         """
         self.new = new
+        self.changes_made = False
         if self.new and readonly:
             raise Exception, "If new, should never be read only"
         self.var_labels = var_labels
@@ -457,7 +445,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         Add as many rows from orig data as possible up to the row limit.
         Fill in rest with demo data.
         """
-        debug = True
+        debug = False
         obj_quoter = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
         flds_clause = u", ".join([obj_quoter(x) for x in db_flds_orig_names
                                   if x is not None])
@@ -511,7 +499,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         Use this data (or labelled version) if possible, else random according 
             to type.
         """
-        debug = True
+        debug = False
         if not self.config_data:
             self.html.show_html(WAITING_MSG)
             return
@@ -683,7 +671,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         except sqlite.IntegrityError, e:
             if debug: print(unicode(e))
             dd.con.commit()
-            force_tbls_refresh()
+            getdata.force_tbls_refresh()
             SQL_drop_tmp_tbl = "DROP TABLE IF EXISTS %s" % \
                                                 sqlite_quoter(mg.TMP_TBL_NAME)
             dd.cur.execute(SQL_drop_tmp_tbl)
@@ -714,27 +702,52 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         else:
             if not self.readonly:
                 self.modify_tbl()
+        self.changes_made = True
 
     def on_recode(self, event):
-        debug = True
+        # wx.MessageBox(_("Not yet available in this version"))
+        debug = False
         if self.readonly:
             raise Exception, "Can't recode a read only table"
         self.tabentry.update_config_data()
         if debug:
             print(self.init_data)
             print(self.config_data)
-        if has_data_changed(orig_data=self.init_data, 
-                            final_data=self.config_data):
+        title_changed = (self.tbl_name_lst[0] != self.txt_tbl_name.GetValue())
+        data_changed = has_data_changed(orig_data=self.init_data, 
+                            final_data=self.config_data)
+        if title_changed or data_changed:
             ret = wx.MessageBox(_("You will need to save the changes you made "
-                                  "first. Save changes and continue?"))
-        if ret == wx.YES:
-            print("Yes")
-        else:
-            print("No")
-        config_data = []
-        dlg = recode.RecodeDlg(tbl_name=u"", config_data=config_data)
+                                  "first. Save changes and continue?"),
+                                  caption=_("SAVE CHANGES?"), style=wx.YES_NO)
+            if ret == wx.YES:
+                try:
+                    self.make_changes()
+                except FldMismatchException:
+                     wx.MessageBox(_("Unable to modify table. Some data does "
+                                     "not match the column type. Please edit "
+                                     "and try again."))
+                     return
+            else:
+                return
+        # [('string', 'fname', 'fname (string)'), ...]
+        # field type is used for validation and constructing recode SQL string
+        fld_dets = [(x[mg.TBL_FLD_TYPE], x[mg.TBL_FLD_NAME],
+                     u"%s (%s)" % (x[mg.TBL_FLD_NAME], x[mg.TBL_FLD_TYPE])) 
+                    for x in self.config_data]
+        fld_dets.sort(key=lambda s: s[2].upper())
+        dlg = recode.RecodeDlg(tbl_name=u"", fld_dets=fld_dets)
         dlg.ShowModal()
-        # wx.MessageBox(_("Not yet available in this version"))
+    
+    def on_cancel(self, event):
+        """
+        Override so can change return value.
+        """
+        self.Destroy()
+        if self.changes_made:
+            self.SetReturnCode(mg.RET_CHANGED_DESIGN)
+        else:
+            self.SetReturnCode(wx.ID_CANCEL)
     
     def on_ok(self, event):
         """
@@ -747,7 +760,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                              "the column type. Please edit and try again."))
              return
         self.Destroy()
-        self.SetReturnCode(wx.ID_OK)
+        self.SetReturnCode(mg.RET_CHANGED_DESIGN)
 
     
 class ConfigTableEntry(settings_grid.SettingsEntry):

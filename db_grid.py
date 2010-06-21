@@ -747,7 +747,7 @@ class TblEditor(wx.Dialog):
         """
         Each cell must be OK to save.  NB validation may be stricter than what 
             the database will accept into its fields e.g. must be one of three 
-            strings ("Numeric", "String", or "Date").
+            strings ("Numeric", "Text", or "Date").
         """
         if self.debug: print("row_ok_to_save - row %s" % row)
         for col_idx in range(len(dd.flds)):
@@ -777,8 +777,7 @@ class TblEditor(wx.Dialog):
         except Exception, e:
             if self.debug or debug: 
                 print("update_cell failed to save %s. " %
-                    self.dbtbl.sql_cell_to_update +
-                    "Orig error: %s" % e)
+                      self.dbtbl.sql_cell_to_update + "Orig error: %s" % e)
             bolUpdatedCell = False
             wx.MessageBox(_("Unable to save change to database.  %s") % e)
         if self.dbtbl.row_vals_dic.get(row):

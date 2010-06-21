@@ -54,7 +54,7 @@ def get_avg_row_size(rows):
     If a dict, the final item could be a list if there are more items in the
         original row than the dict reader expected.
     """
-    debug = True
+    debug = False
     size = 0
     for i, row in enumerate(rows, 1):
         try:

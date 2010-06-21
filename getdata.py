@@ -179,6 +179,24 @@ def get_dd():
         if debug: print("Updated mg.DATA_DETS")
     return mg.DATA_DETS
 
+def force_tbls_refresh():
+    """
+    Sometimes you drop a table, make it, drop it, go to make it and it still 
+        seems to be there.  This seems to force a refresh.
+    commit() doesn't seem to solve the problem and it occurs even though only 
+        one connection in play. 
+    """
+    dd = get_dd()
+    SQL_get_tbls = u"""SELECT name 
+        FROM sqlite_master 
+        WHERE type = 'table'
+        ORDER BY name"""
+    try:
+        dd.cur.execute(SQL_get_tbls)
+    except Exception, e:
+        raise Exception, ("force_tbls_refresh() can only be used for the "
+                          "default db")
+
 # syntax
 
 def get_obj_quoter_func(dbe):

@@ -765,7 +765,7 @@ class SettingsEntry(object):
         """
         Each cell must be OK to save.  NB validation may be stricter than what 
             the database will accept into its fields e.g. must be one of three 
-            strings ("Numeric", "String", or "Date").
+            strings ("Numeric", "Text", or "Date").
         """
         if self.debug: print(u"row_ok_to_save - row %s" % row)
         for col_idx, col_det in enumerate(self.col_dets):
