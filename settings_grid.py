@@ -993,8 +993,15 @@ class SettingsEntry(object):
 
     def update_config_data(self):
         """
-        Update config_data.  Separated for reuse.
+        Update config_data.  Separated for reuse. NB clear it first so can 
+            refresh repeatedly.
         """
         grid_data = self.get_grid_data()
+        # need to stay pointed to same memory but empty it
+        while True:
+            try:
+                del self.config_data[0]
+            except IndexError:
+                break
         self.config_data += grid_data
         

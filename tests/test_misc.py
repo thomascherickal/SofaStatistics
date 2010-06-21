@@ -26,9 +26,90 @@ import importer
 import indep2var
 import output
 import report_table
+import table_config
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
+
+def test_has_data_changed():
+    """
+    The original data is in the form of a list of tuples - the tuples are 
+        field name and type.
+    The final data is a list of dicts, with keys for:
+        mg.TBL_FLD_NAME, 
+        mg.TBL_FLD_NAME_ORIG,
+        mg.TBL_FLD_TYPE,
+        mg.TBL_FLD_TYPE_ORIG.
+    Different if TBL_FLD_NAME != TBL_FLD_NAME_ORIG
+    Different if TBL_FLD_TYPE != TBL_FLD_TYPE_ORIG
+    Different if set of TBL_FLD_NAMEs not same as set of field names. 
+    NB Need first two checks in case names swapped.  Sets wouldn't change 
+        but data would have changed.
+    """
+    orig_data1 = [(u'sofa_id', u'Numeric'), (u'var001', u'String'), 
+                  (u'var002', u'String'), (u'var003', u'String')]
+    final_data1 = [ {'fld_name_orig': u'sofa_id', 'fld_name': u'sofa_id', 
+                        'fld_type': u'Numeric', 'fld_type_orig': u'Numeric'}, 
+                    {'fld_name_orig': u'var001', 'fld_name': u'var001', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                    {'fld_name_orig': u'var002', 'fld_name': u'var002', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                    {'fld_name_orig': u'var003', 'fld_name': u'var003', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}]
+    # renamed a field
+    final_data2 = [ {'fld_name_orig': u'sofa_id', 'fld_name': u'sofa_id2', 
+                        'fld_type': u'Numeric', 'fld_type_orig': u'Numeric'}, 
+                    {'fld_name_orig': u'var001', 'fld_name': u'var001', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                    {'fld_name_orig': u'var002', 'fld_name': u'var002', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                    {'fld_name_orig': u'var003', 'fld_name': u'var003', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}]
+    # deleted a field
+    final_data3 = [ {'fld_name_orig': u'sofa_id', 'fld_name': u'sofa_id', 
+                        'fld_type': u'Numeric', 'fld_type_orig': u'Numeric'}, 
+                    {'fld_name_orig': u'var001', 'fld_name': u'var001', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                    {'fld_name_orig': u'var003', 'fld_name': u'var003', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}]
+    # changed fld type to Numeric
+    final_data4 = [ {'fld_name_orig': u'sofa_id', 'fld_name': u'sofa_id', 
+                        'fld_type': u'Numeric', 'fld_type_orig': u'Numeric'}, 
+                    {'fld_name_orig': u'var001', 'fld_name': u'var001', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                    {'fld_name_orig': u'var002', 'fld_name': u'var002', 
+                        'fld_type': u'String', 'fld_type_orig': u'Numeric'}, 
+                    {'fld_name_orig': u'var003', 'fld_name': u'var003', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}]
+    # swapped but same final (still changed)
+    final_data5 = [ {'fld_name_orig': u'sofa_id', 'fld_name': u'sofa_id', 
+                        'fld_type': u'Numeric', 'fld_type_orig': u'Numeric'}, 
+                    {'fld_name_orig': u'var001', 'fld_name': u'var002', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                    {'fld_name_orig': u'var002', 'fld_name': u'var001', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                    {'fld_name_orig': u'var003', 'fld_name': u'var003', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}]
+    # added a field
+    final_data6 = [ {'fld_name_orig': u'sofa_id', 'fld_name': u'sofa_id', 
+                        'fld_type': u'Numeric', 'fld_type_orig': u'Numeric'},  
+                    {'fld_name_orig': None, 'fld_name': u'spam', 
+                        'fld_type': None, 'fld_type_orig': u'String'},
+                    {'fld_name_orig': u'var001', 'fld_name': u'var001', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                    {'fld_name_orig': u'var002', 'fld_name': u'var002', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}, 
+                    {'fld_name_orig': u'var003', 'fld_name': u'var003', 
+                        'fld_type': u'String', 'fld_type_orig': u'String'}]
+    tests = [((orig_data1, final_data1), False),
+             ((orig_data1, final_data2), True),
+             ((orig_data1, final_data3), True),
+             ((orig_data1, final_data4), True),
+             ((orig_data1, final_data5), True),
+             ((orig_data1, final_data6), True),
+            ]
+    for test in tests:
+        assert_equal(table_config.has_data_changed(*test[0]), test[1])
 
 def test_get_avg_row_size():
     """

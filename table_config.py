@@ -17,6 +17,47 @@ sqlite_quoter = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
 
 WAITING_MSG = _("<p>Waiting for at least one field to be configured.</p>")
 
+class FldMismatchException(Exception):
+    def __init__(self):
+        debug = False
+        if debug: print("A FldMismatchException")
+
+
+def has_data_changed(orig_data, final_data):
+    """
+    The original data is in the form of a list of tuples - the tuples are 
+        field name and type.
+    The final data is a list of dicts, with keys for:
+        mg.TBL_FLD_NAME, 
+        mg.TBL_FLD_NAME_ORIG,
+        mg.TBL_FLD_TYPE,
+        mg.TBL_FLD_TYPE_ORIG.
+    Different if TBL_FLD_NAME != TBL_FLD_NAME_ORIG
+    Different if TBL_FLD_TYPE != TBL_FLD_TYPE_ORIG
+    Different if set of TBL_FLD_NAMEs not same as set of field names. 
+    NB Need first two checks in case names swapped.  Sets wouldn't change 
+        but data would have changed.
+    """
+    debug = True
+    if debug:
+        print("\n%s\n%s" % (pprint.pformat(orig_data), 
+                            pprint.pformat(final_data)))
+    data_changed = False
+    final_fld_names = set()
+    for final_dict in final_data:
+        final_fld_names.add(final_dict[mg.TBL_FLD_NAME])
+        if (final_dict[mg.TBL_FLD_NAME] != final_dict[mg.TBL_FLD_NAME_ORIG] 
+            or final_dict[mg.TBL_FLD_TYPE] != final_dict[mg.TBL_FLD_TYPE_ORIG]):
+            if debug: print("name or type changed")
+            data_changed = True
+            break
+    # get fld names from orig_data for comparison
+    orig_fld_names = set([x[0] for x in orig_data])
+    if orig_fld_names != final_fld_names:
+        if debug: print("set of field names changed")
+        data_changed = True
+    return data_changed
+    
 def force_tbls_refresh():
     """
     Sometimes you drop a table, make it, drop it, go to make it and it still 
@@ -307,7 +348,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.tbl_name_lst = tbl_name_lst
         # set up new grid data based on data
         self.config_data = config_data
-        self.init_config_data(data)
+        self.init_data = data[:] # can check to see if end result changed
+        self.setup_config_data(data)
         self.readonly = readonly
         if not insert_data_func:
             insert_data_func = insert_data
@@ -397,23 +439,79 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                 val = lib.get_rand_val_of_type(type)
         return val
     
-    def get_demo_row_lst(self, row_idx, col_labels, types):
+    def get_demo_row_lst(self, row_idx, design_flds_col_labels, 
+                         design_flds_types):
         debug = False
         row_lst = []
-        label_types = zip(col_labels, types)
+        label_types = zip(design_flds_col_labels, design_flds_types)
         if debug: print("Label types:\n%s" % label_types)
         for col_label, type in label_types:
             val2use = self.get_demo_val(row_idx, col_label, type)
             row_lst.append(val2use)
         return row_lst
     
+    def get_real_demo_data(self, display_n, db_flds_orig_names, 
+                           design_flds_orig_names, design_flds_new_names, 
+                           design_flds_col_labels, design_flds_types):
+        """
+        Add as many rows from orig data as possible up to the row limit.
+        Fill in rest with demo data.
+        """
+        debug = True
+        obj_quoter = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
+        flds_clause = u", ".join([obj_quoter(x) for x in db_flds_orig_names
+                                  if x is not None])
+        SQL_get_data = u"""SELECT %s FROM %s """ % (flds_clause,
+                                            obj_quoter(self.tbl_name_lst[0]))
+        dd.cur.execute(SQL_get_data) # NB won't contain any new or inserted flds
+        rows = []
+        row_idx = 0
+        while True:
+            if row_idx >= display_n:
+                break # got all we need
+            row_obj = dd.cur.fetchone()
+            if row_obj is None:
+                break # run out of rows
+            row_dict = dict(zip(db_flds_orig_names, row_obj))
+            if debug:
+                print(u"\nRow dicts is \n%s" % pprint.pformat(row_dict)) 
+            row_lst = []
+            row_dets = zip(design_flds_orig_names, design_flds_new_names, 
+                           design_flds_col_labels, design_flds_types)
+            if debug: print("Row dets:\n%s" % pprint.pformat(row_dets))
+            for orig_fldname, new_fldname, col_label, type in row_dets:
+                if orig_fldname is None: # i.e. an inserted or added field
+                    rawval = self.get_demo_val(row_idx, col_label, type)
+                else:
+                    try:
+                        rawval = row_dict[orig_fldname]
+                    except KeyError:
+                        raise Exception, (u"orig_fldname %s not in row_dict %s"
+                                          % (orig_fldname, row_dict))
+                if rawval is None:
+                    rawval = mg.MISSING_VAL_INDICATOR
+                valdic = self.val_dics.get(new_fldname)
+                if valdic:
+                    val2use = valdic.get(rawval, rawval)
+                else:
+                    val2use = rawval
+                row_lst.append(val2use)
+            rows.append(row_lst)
+            row_idx+=1
+        while row_idx < display_n:
+            row_lst = self.get_demo_row_lst(row_idx, design_flds_col_labels, 
+                                            design_flds_types)
+            rows.append(row_lst)
+            row_idx+=1
+        return rows
+    
     def update_demo(self):
         """
-        Get data (if any) as a dict using orig fld names.
+        Get data from underlying table (if any) as a dict using orig fld names.
         Use this data (or labelled version) if possible, else random according 
-            to type.        
+            to type.
         """
-        debug = False
+        debug = True
         if not self.config_data:
             self.html.show_html(WAITING_MSG)
             return
@@ -422,76 +520,45 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         html = [mg.DEFAULT_HDR % (u"Demonstration table", self.styles)]
         html.append(u"<table cellspacing='0'>\n<thead>\n<tr>")
         # 2) the table-specific items (inc column labels)
-        col_labels = [] # using the new ones
-        types = [] # ditto
-        new_fldnames = []
-        orig_fldnames = [] # These will be the key for any dicts taken from db
-            # NB will be None for new or inserted flds.
+        # list based on sequence of fields in underlying table
+        db_flds_orig_names = [] # will be the key for any dicts taken from db
+        # lists based on sequence of fields in (re)design
+        design_flds_orig_names = [] # NB will be None for new or inserted flds.
+            # Ordered as per list of variables in design.
+        design_flds_new_names = []
+        design_flds_col_labels = []
+        design_flds_types = []
         for data_dict in self.config_data:
             # all must have same num of elements (even if a None) in same order
             fldname = data_dict[mg.TBL_FLD_NAME]
-            new_fldnames.append(fldname)
-            col_labels.append(self.var_labels.get(fldname, fldname.title()))
-            orig_fldnames.append(data_dict.get(mg.TBL_FLD_NAME_ORIG))
-            types.append(data_dict[mg.TBL_FLD_TYPE])
+            design_flds_new_names.append(fldname)
+            design_flds_col_labels.append(self.var_labels.get(fldname, 
+                                                              fldname.title()))
+            design_flds_orig_names.append(data_dict.get(mg.TBL_FLD_NAME_ORIG))
+            design_flds_types.append(data_dict[mg.TBL_FLD_TYPE]) 
+            if data_dict.get(mg.TBL_FLD_NAME_ORIG) is not None:
+                db_flds_orig_names.append(data_dict[mg.TBL_FLD_NAME_ORIG])         
         if debug:
-            print(col_labels)
-            print(orig_fldnames)
-            print(types)
+            print(db_flds_orig_names)
+            print(design_flds_orig_names)
+            print(design_flds_new_names)
+            print(design_flds_col_labels)
+            print(design_flds_types)
         # column names
-        for col_label in col_labels:
+        for col_label in design_flds_col_labels:
             html.append(u"<th>%s</th>" % col_label)
         # get data rows (list of lists)
-        rows = []
         display_n = 4 # demo rows to display
         if self.new:
+            rows = []
             for i in range(display_n):
-                row_lst = self.get_demo_row_lst(i, col_labels, types)
+                row_lst = self.get_demo_row_lst(i, design_flds_col_labels, 
+                                                design_flds_types)
                 rows.append(row_lst)
         else:
-            # add as many rows from orig data as possible up to the 4 row limit
-            obj_quoter = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
-            flds_clause = u", ".join([obj_quoter(x) for x in orig_fldnames
-                                      if x is not None])
-            SQL_get_data = u"""SELECT %s FROM %s """ % (flds_clause,
-                                            obj_quoter(self.tbl_name_lst[0]))
-            dd.cur.execute(SQL_get_data)
-            # NB will not contain any new or inserted flds
-            row_idx = 0
-            while True:
-                if display_n:
-                    if row_idx >= display_n:
-                        break # got all we need
-                row_obj = dd.cur.fetchone()
-                if row_obj is None:
-                    break # run out of rows
-                row_dict = dict(zip(orig_fldnames, row_obj))
-                if debug: print(row_dict)
-                row_lst = []
-                for orig_fldname, new_fldname, col_label, type in \
-                            zip(orig_fldnames, new_fldnames, col_labels, types):
-                    if orig_fldname is None:
-                        rawval = self.get_demo_val(row_idx, col_label, type)
-                    else:
-                        try:
-                            rawval = row_dict[orig_fldname]
-                        except KeyError:
-                            raise Exception, (u"orig_fldname %s not in "
-                                    "row_dict %s" % (orig_fldname, row_dict))
-                    if rawval is None:
-                        rawval = mg.MISSING_VAL_INDICATOR
-                    valdic = self.val_dics.get(new_fldname)
-                    if valdic:
-                        val2use = valdic.get(rawval, rawval)
-                    else:
-                        val2use = rawval
-                    row_lst.append(val2use)
-                rows.append(row_lst)
-                row_idx+=1
-            while row_idx < display_n:
-                row_lst = self.get_demo_row_lst(row_idx, col_labels, types)
-                rows.append(row_lst)
-                row_idx+=1
+            rows = self.get_real_demo_data(display_n, db_flds_orig_names, 
+                                  design_flds_orig_names, design_flds_new_names, 
+                                  design_flds_col_labels, design_flds_types)
         # data rows into html
         for row in rows:
             html.append(u"</tr>\n</thead>\n<tbody><tr>")
@@ -502,7 +569,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         html2show = u"".join(html)
         self.html.show_html(html2show)
     
-    def init_config_data(self, data):
+    def setup_config_data(self, data):
         debug = False
         extra = []
         for row in data:
@@ -566,14 +633,6 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             if self.debug: pprint.pprint(self.config_data)
         self.tabentry.grid.SetFocus()
         event.Skip()
-
-    def on_recode(self, event):
-        if self.readonly:
-            raise Exception, "Can't recode a read only table"
-        config_data = []
-        dlg = recode.RecodeDlg(tbl_name=u"", config_data=config_data)
-        dlg.ShowModal()
-        # wx.MessageBox(_("Not yet available in this version"))
     
     def make_new_tbl(self):
         # Make new table.  Include unique index on special field prepended as
@@ -623,16 +682,13 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                                    self.config_data)
         except sqlite.IntegrityError, e:
             if debug: print(unicode(e))
-            wx.MessageBox(_("Unable to modify table.  Some data does not match "
-                            "the column type. Please edit and try again.\n\n"
-                            "Original error: %s" % e))
             dd.con.commit()
             force_tbls_refresh()
             SQL_drop_tmp_tbl = "DROP TABLE IF EXISTS %s" % \
                                                 sqlite_quoter(mg.TMP_TBL_NAME)
             dd.cur.execute(SQL_drop_tmp_tbl)
             dd.con.commit()
-            return
+            raise FldMismatchException
         wipe_orig_tbl(orig_tbl_name)
         final_name = self.tbl_name_lst[0] # may have been renamed
         make_redesigned_tbl(final_name, oth_name_types, self.config_data)
@@ -657,13 +713,39 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             self.make_new_tbl()
         else:
             if not self.readonly:
-                self.modify_tbl()        
+                self.modify_tbl()
+
+    def on_recode(self, event):
+        debug = True
+        if self.readonly:
+            raise Exception, "Can't recode a read only table"
+        self.tabentry.update_config_data()
+        if debug:
+            print(self.init_data)
+            print(self.config_data)
+        if has_data_changed(orig_data=self.init_data, 
+                            final_data=self.config_data):
+            ret = wx.MessageBox(_("You will need to save the changes you made "
+                                  "first. Save changes and continue?"))
+        if ret == wx.YES:
+            print("Yes")
+        else:
+            print("No")
+        config_data = []
+        dlg = recode.RecodeDlg(tbl_name=u"", config_data=config_data)
+        dlg.ShowModal()
+        # wx.MessageBox(_("Not yet available in this version"))
     
     def on_ok(self, event):
         """
         Override so we can extend to include table name.
         """
-        self.make_changes()
+        try:
+            self.make_changes()
+        except FldMismatchException:
+             wx.MessageBox(_("Unable to modify table. Some data does not match "
+                             "the column type. Please edit and try again."))
+             return
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
 
@@ -739,7 +821,8 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
         Update config_data.  Overridden so we can include original field 
             details (needed when making new version of the original table).
         Fill in details of fld_names and fld_types (leaving original versions
-            untouched).
+            untouched). 
+        NB do not clear it - only modify.
         """
         debug = False
         grid_data = self.get_grid_data() # only saved data
