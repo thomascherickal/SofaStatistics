@@ -69,6 +69,12 @@ def get_con(con_dets, db, add_checks=False):
         raise Exception, (u"Unable to connect to SQLite database "
                           u"using supplied database: \"%s\". " % db +
                           u"Orig error: %s" % e)
+    if mg.USE_SQLITE_UDFS:
+        print("*"*60)
+        print("Overriding so can open sofa_db in SOFA")
+        print("*"*60)
+        add_checks = True # if having trouble opening e.g. if tmp_tbl left there
+            # will have contraints relying on absent user-defined functions.
     if add_checks:
         # some user-defined functions needed for strict type checking constraints
         add_funcs_to_con(con)

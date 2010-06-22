@@ -77,16 +77,13 @@ def wipe_orig_tbl(orig_tbl_name):
     SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % sqlite_quoter(orig_tbl_name)
     dd.cur.execute(SQL_drop_orig)
     dd.con.commit()
-
-def reset_con(tbl_name=None, add_checks=False):
-    dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl_name, 
-               add_checks=add_checks)
  
 def make_strict_typing_tbl(orig_tbl_name, oth_name_types, config_data):
     """
     Make table for purpose of forcing all data into strict type fields.  Not
         necessary to check sofa_id field (autoincremented integer) so not 
         included.
+    Will be dropped when making redesigned table.  If not, will
     Make table with all the fields apart from the sofa_id.  The fields
         should be set with strict check constraints so that, even though the
         table is SQLite, it cannot accept inappropriate data.
@@ -98,9 +95,10 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, config_data):
     """
     debug = False
     tmp_name = sqlite_quoter(mg.TMP_TBL_NAME)
+    getdata.reset_con(add_checks=True) # can't deactivate the user-defined 
+        # functions until the tmp table has been deleted.
     getdata.force_tbls_refresh()
     SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % tmp_name
-    dd.con.commit()
     dd.cur.execute(SQL_drop_tmp_tbl)
     dd.con.commit()
     # create table with strictly-typed fields
@@ -120,7 +118,6 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, config_data):
     if debug: print(SQL_insert_all)
     dd.cur.execute(SQL_insert_all)
     dd.con.commit()
-    reset_con(add_checks=False)
 
 def make_redesigned_tbl(final_name, oth_name_types, config_data):
     """
@@ -128,6 +125,8 @@ def make_redesigned_tbl(final_name, oth_name_types, config_data):
         have the sofa_id field) plus the sofa_id field.
     config_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
+    Don't want new table to have any contraints which rely on user-defined 
+        functions.
     """
     debug = False
     tmp_name = sqlite_quoter(mg.TMP_TBL_NAME)
@@ -173,10 +172,31 @@ def make_redesigned_tbl(final_name, oth_name_types, config_data):
     dd.con.commit()
     dd.cur.execute(SQL_insert_all)
     dd.con.commit()
+    if debug:
+        print(u"About to drop %s" % tmp_name)
+        SQL_get_tbls = u"""SELECT name 
+            FROM sqlite_master 
+            WHERE type = 'table'
+            ORDER BY name"""
+        dd.cur.execute(SQL_get_tbls)
+        tbls = [x[0] for x in dd.cur.fetchall()]
+        tbls.sort(key=lambda s: s.upper())
+        print(tbls)
     getdata.force_tbls_refresh()
-    SQL_drop_tmp = u"DROP TABLE %s" % tmp_name
+    SQL_drop_tmp = u"DROP TABLE %s" % tmp_name # crucial this happens
     dd.cur.execute(SQL_drop_tmp)
     dd.con.commit()
+    if debug:
+        print(u"Supposedly just dropped %s" % tmp_name)
+        SQL_get_tbls = u"""SELECT name 
+            FROM sqlite_master 
+            WHERE type = 'table'
+            ORDER BY name"""
+        dd.cur.execute(SQL_get_tbls)
+        tbls = [x[0] for x in dd.cur.fetchall()]
+        tbls.sort(key=lambda s: s.upper())
+        print(tbls)
+    getdata.reset_con(add_checks=False) # should be OK now tmp table gone
 
 def insert_data(row_idx, grid_data):
     """
@@ -649,10 +669,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             only SOFA will be able to open the SQLite database.
         """       
         oth_name_types = getdata.get_oth_name_types(self.config_data)
-        reset_con(tbl_name=None, add_checks=True) # table not made yet
         tbl_name = self.tbl_name_lst[0] 
         getdata.make_sofa_tbl(dd.con, dd.cur, tbl_name, oth_name_types)
-        reset_con(tbl_name=tbl_name, add_checks=False)
         wx.MessageBox(_("Your new table has been added to the default SOFA "
                         "database"))
             

@@ -202,6 +202,11 @@ def force_tbls_refresh():
         raise Exception, ("force_tbls_refresh() can only be used for the "
                           "default db")
 
+def reset_con(tbl_name=None, add_checks=False):
+    dd = get_dd()
+    dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl_name, 
+               add_checks=add_checks)
+    
 # syntax
 
 def get_obj_quoter_func(dbe):
@@ -561,7 +566,7 @@ def refresh_tbl_dets(parent):
     Run anything like reset_tbl_dropdown first.
     """
     wx.BeginBusyCursor()
-    dd = mg.DATA_DETS
+    dd = get_dd()
     try:
         tbl = dd.tbls[parent.drop_tbls.GetSelection()]
         dd.set_tbl(tbl)
@@ -697,3 +702,6 @@ def make_sofa_tbl(con, cur, tbl_name, oth_name_types, strict_typing=False):
     cur.execute(SQL_make_tbl)
     con.commit()
     if debug: print(u"Successfully created %s" % tbl_name)
+    force_tbls_refresh()
+    reset_con(tbl_name=tbl_name, add_checks=False)
+    
