@@ -25,11 +25,49 @@ import getdata
 import importer
 import indep2var
 import output
+import recode
 import report_table
 import table_config
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
+
+def test_process_orig():
+    tests = [((u"Spam TO Eggs", mg.FLD_TYPE_STRING), 
+              u"BETWEEN \"Spam\" AND \"Eggs\""),
+             ((u"1 TO 3", mg.FLD_TYPE_NUMERIC), 
+              u"BETWEEN 1 AND 3"),
+             ((u" ", mg.FLD_TYPE_STRING), 
+              u"= \" \""),
+             ((u"1 TO MAX", mg.FLD_TYPE_NUMERIC), 
+              u">= 1"),
+             ((u"1 TO MAX", mg.FLD_TYPE_STRING), 
+              u">= \"1\""),
+             ((u"MIN TO MAX", mg.FLD_TYPE_STRING), 
+              u"IS NOT NULL"),
+             ((u"MIN TO MAX", mg.FLD_TYPE_DATE), 
+              u"IS NOT NULL"),
+             ((u"MIN TO 2010-06-22", mg.FLD_TYPE_DATE), 
+              u"<= \"2010-06-22\""),
+             ((u"MINTO10776", mg.FLD_TYPE_NUMERIC), 
+              u"<= 10776"),
+             ((u"1 to 6", mg.FLD_TYPE_STRING), 
+              u"= \"1 to 6\""),
+             ((u"-1 TO 26", mg.FLD_TYPE_NUMERIC), 
+              u"BETWEEN -1 AND 26"),
+             ((u" MISSING ", mg.FLD_TYPE_NUMERIC), 
+              u"IS NULL"),
+            ]
+    for test in tests:
+        assert_equal(recode.process_orig(*test[0]), test[1])
+    raises_tests = [(1, mg.FLD_TYPE_STRING),
+                    (u"TO 21", mg.FLD_TYPE_STRING),
+                    (u"Spam TO MIN", mg.FLD_TYPE_STRING),
+                    (u"MAX TO Spam", mg.FLD_TYPE_STRING),
+                    ]
+    for test in raises_tests:
+        #http://www.ibm.com/developerworks/aix/library/au-python_test/index.html
+        assert_raises(Exception, recode.process_orig, test)
 
 def test_has_data_changed():
     """

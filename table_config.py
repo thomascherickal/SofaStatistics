@@ -653,7 +653,6 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         tbl_name = self.tbl_name_lst[0] 
         getdata.make_sofa_tbl(dd.con, dd.cur, tbl_name, oth_name_types)
         reset_con(tbl_name=tbl_name, add_checks=False)
-        # explain to user
         wx.MessageBox(_("Your new table has been added to the default SOFA "
                         "database"))
             
@@ -687,7 +686,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             if debug: print(unicode(e))
             dd.con.commit()
             getdata.force_tbls_refresh()
-            SQL_drop_tmp_tbl = "DROP TABLE IF EXISTS %s" % \
+            SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % \
                                                 sqlite_quoter(mg.TMP_TBL_NAME)
             dd.cur.execute(SQL_drop_tmp_tbl)
             dd.con.commit()
