@@ -309,7 +309,7 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, prog_steps_for_xml_steps,
             raise Exception, (u"Error getting details from row idx %s. "
                               u"Orig error: %s" % (i, e))
     for fldname, type_set in zip(fldnames, coltypes):
-        fld_type = importer.get_overall_fld_type(type_set)
+        fld_type = lib.get_overall_fld_type(type_set)
         fld_types[fldname] = fld_type
     return fld_types, rows
 

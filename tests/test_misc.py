@@ -47,8 +47,8 @@ def test_process_orig():
               u"IS NOT NULL"),
              ((u"MIN TO MAX", mg.FLD_TYPE_DATE), 
               u"IS NOT NULL"),
-             ((u"MIN TO 2010-06-22", mg.FLD_TYPE_DATE), 
-              u"<= \"2010-06-22\""),
+             ((u"MIN TO 2010-06-22 00:00:00", mg.FLD_TYPE_DATE), 
+              u"<= \"2010-06-22 00:00:00\""),
              ((u"MINTO10776", mg.FLD_TYPE_NUMERIC), 
               u"<= 10776"),
              ((u"1 to 6", mg.FLD_TYPE_STRING), 
@@ -64,6 +64,7 @@ def test_process_orig():
                     (u"TO 21", mg.FLD_TYPE_STRING),
                     (u"Spam TO MIN", mg.FLD_TYPE_STRING),
                     (u"MAX TO Spam", mg.FLD_TYPE_STRING),
+                    (u"spam", mg.FLD_TYPE_NUMERIC),
                     ]
     for test in raises_tests:
         #http://www.ibm.com/developerworks/aix/library/au-python_test/index.html

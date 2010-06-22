@@ -18,6 +18,34 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
+def update_type_set(type_set, val):
+    if is_numeric(val): # anything that SQLite can add _as a number_ 
+            # into a numeric field
+        type_set.add(mg.VAL_NUMERIC)
+    elif is_pytime(val): # COM on Windows
+        type_set.add(mg.VAL_DATETIME)
+    else:
+        usable_datetime = is_usable_datetime_str(val)
+        if usable_datetime:
+            type_set.add(mg.VAL_DATETIME)
+        elif val == u"":
+            type_set.add(mg.VAL_EMPTY_STRING)
+        else:
+            type_set.add(mg.VAL_STRING)
+
+def get_overall_fld_type(type_set):
+    numeric_only_set = set([mg.VAL_NUMERIC])
+    numeric_or_empt_str_set = set([mg.VAL_NUMERIC, mg.VAL_EMPTY_STRING])
+    datetime_only_set = set([mg.VAL_DATETIME])
+    datetime_or_empt_str_set = set([mg.VAL_DATETIME, mg.VAL_EMPTY_STRING])
+    if type_set == numeric_only_set or type_set == numeric_or_empt_str_set:
+        fld_type = mg.FLD_TYPE_NUMERIC
+    elif type_set == datetime_only_set or type_set == datetime_or_empt_str_set:
+        fld_type = mg.FLD_TYPE_DATE
+    else:
+        fld_type = mg.FLD_TYPE_STRING    
+    return fld_type
+
 def update_local_display(html_ctrl, str_content, wrap_text=False):
     str_content = u"<p>%s</p>" % str_content if wrap_text else str_content 
     html_ctrl.show_html(str_content, url_load=True) # allow footnotes

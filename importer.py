@@ -95,33 +95,8 @@ def assess_sample_fld(sample_data, has_header, orig_fld_name, orig_fld_names,
             if val is None:
                 report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, 
                                       allow_none)
-        if lib.is_numeric(val): # anything that SQLite can add _as a number_ 
-                # into a numeric field
-            type_set.add(mg.VAL_NUMERIC)
-        elif lib.is_pytime(val): # COM on Windows
-            type_set.add(mg.VAL_DATETIME)
-        else:
-            usable_datetime = lib.is_usable_datetime_str(val)
-            if usable_datetime:
-                type_set.add(mg.VAL_DATETIME)
-            elif val == u"":
-                type_set.add(mg.VAL_EMPTY_STRING)
-            else:
-                type_set.add(mg.VAL_STRING)
-    fld_type = get_overall_fld_type(type_set)
-    return fld_type
-
-def get_overall_fld_type(type_set):
-    numeric_only_set = set([mg.VAL_NUMERIC])
-    numeric_or_empt_str_set = set([mg.VAL_NUMERIC, mg.VAL_EMPTY_STRING])
-    datetime_only_set = set([mg.VAL_DATETIME])
-    datetime_or_empt_str_set = set([mg.VAL_DATETIME, mg.VAL_EMPTY_STRING])
-    if type_set == numeric_only_set or type_set == numeric_or_empt_str_set:
-        fld_type = mg.FLD_TYPE_NUMERIC
-    elif type_set == datetime_only_set or type_set == datetime_or_empt_str_set:
-        fld_type = mg.FLD_TYPE_DATE
-    else:
-        fld_type = mg.FLD_TYPE_STRING    
+        lib.update_type_set(type_set, val)
+    fld_type = lib.get_overall_fld_type(type_set)
     return fld_type
 
 def get_val(raw_val, check, is_pytime, fld_type, orig_fld_name, row_num):
