@@ -197,6 +197,11 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         lbl_to = wx.StaticText(self.panel, -1, u"To:")
         lbl_to.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         self.txt_to = wx.TextCtrl(self.panel, -1, size=(250, -1))
+        data = []
+        self.recode_config_data = []
+        self.tabentry = settings_grid.SettingsEntry(self, self.panel, False, 
+                                                    grid_size, col_dets, data, 
+                                                    self.recode_config_data)
         btn_cancel = wx.Button(self.panel, wx.ID_CANCEL)
         btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
         btn_help = wx.Button(self.panel, wx.ID_HELP)
@@ -218,13 +223,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         self.szr_btns.Add(btn_cancel)
         self.szr_btns.Add(btn_help)
         self.szr_btns.Add(btn_recode)
-        dim_share = 2
-        data = []
-        self.recode_config_data = []
-        self.tabentry = settings_grid.SettingsEntry(self, self.panel, 
-                                                self.szr_main, dim_share, False, 
-                                                grid_size, col_dets, data, 
-                                                self.recode_config_data)
+        self.szr_main.Add(self.tabentry.grid, 2, wx.GROW|wx.ALL, 5)
         self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(self.szr_main)
         self.szr_main.SetSizeHints(self)

@@ -287,9 +287,10 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         szr_data_type.Add(self.rad_data_type, 0)  
         szr_data_type.Add(btn_type_help, 0, wx.LEFT|wx.TOP, 10)        
         self.szr_main.Add(szr_data_type, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-        self.tabentry = settings_grid.SettingsEntry(self, self.panel, 
-                                            self.szr_main, 2, False, grid_size, 
-                                            col_dets, data, config_data)
+        self.tabentry = settings_grid.SettingsEntry(self, self.panel, False, 
+                                                    grid_size, col_dets, data, 
+                                                    config_data)
+        self.szr_main.Add(self.tabentry.grid, 2, wx.GROW|wx.ALL, 5)
         self.setup_btns(readonly=False)
         self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(self.szr_main)

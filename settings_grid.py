@@ -47,10 +47,10 @@ class SettingsEntryDlg(wx.Dialog):
         self.panel = wx.Panel(self)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         force_focus = False
-        self.tabentry = SettingsEntry(self, self.panel, self.szr_main, 1, 
-                                grid_size, col_dets, data, config_data, 
-                                force_focus, insert_data_func, 
-                                row_validation_func)
+        self.tabentry = SettingsEntry(self, self.panel, grid_size, col_dets, 
+                                      data, config_data, force_focus, 
+                                      insert_data_func, row_validation_func)
+        self.szr_main.Add(self.tabentry.grid, 1, wx.GROW|wx.ALL, 5)
         # Close only
         self.setup_btns()
         # sizers
@@ -136,11 +136,10 @@ def cell_invalidation(row, col, grid, col_dets):
 
 class SettingsEntry(object):
     
-    def __init__(self, frame, panel, szr, dim_share, readonly, grid_size, 
-                 col_dets, data, config_data, force_focus=False,
-                 insert_data_func=None, cell_invalidation_func=None):
+    def __init__(self, frame, panel, readonly, grid_size, col_dets, data, 
+                 config_data, force_focus=False, insert_data_func=None, 
+                 cell_invalidation_func=None):
         """
-        dim_share - share of sizer supplied in appropriate dimension.
         col_dets - list of dic.  Keys = "col_label", "col_type", 
             and, optionally, "col_width", "file_phrase", "file_wildcard", 
             "empty_ok", "col_min_val", "col_max_val", "col_precision".
@@ -158,7 +157,6 @@ class SettingsEntry(object):
         self.new_is_dirty = False
         self.frame = frame
         self.panel = panel
-        self.szr = szr
         self.readonly = readonly
         self.col_dets = col_dets
         self.force_focus = force_focus
@@ -253,7 +251,6 @@ class SettingsEntry(object):
             self.grid.SetGridCursor(self.rows_n - 1, 0) # triggers OnSelect
             self.grid.MakeCellVisible(self.rows_n - 1, 0)
         self.control = None
-        self.szr.Add(self.grid, dim_share, wx.GROW|wx.ALL, 5)
     
     def get_new_renderer_editor(self, col_idx):
         """

@@ -237,10 +237,10 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     data = parent.sqlite_data[:]
     data.sort(key=lambda s: s[0])
     parent.sqlite_grid = settings_grid.SettingsEntry(frame=parent, 
-        panel=scroll, szr=parent.szr_sqlite, dim_share=1, readonly=readonly, 
-        grid_size=(550, 100), col_dets=sqlite_col_dets, 
-        data=parent.sqlite_data, config_data=parent.sqlite_config_data, 
-        force_focus=True)
+                        panel=scroll, readonly=readonly, grid_size=(550, 100), 
+                        col_dets=sqlite_col_dets, data=parent.sqlite_data, 
+                        config_data=parent.sqlite_config_data, force_focus=True)
+    parent.szr_sqlite.Add(parent.sqlite_grid.grid, 1, wx.GROW|wx.ALL, 5)
     szr.Add(parent.szr_sqlite, 0, wx.GROW|wx.ALL, 10)
 
 def get_proj_settings(parent, proj_dic):

@@ -457,10 +457,10 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             lbl_sofa_id = wx.StaticText(self.panel, -1, 
                             _("The sofa_id is required and cannot be edited"))
             szr_design_left.Add(lbl_sofa_id, 0)
-        self.tabentry = ConfigTableEntry(self, self.panel, szr_design_left, 1, 
-                                         self.readonly, grid_size, col_dets, 
-                                         data, config_data, insert_data_func,
-                                         cell_invalidation_func)
+        self.tabentry = ConfigTableEntry(self, self.panel, self.readonly, 
+                                    grid_size, col_dets, data, config_data, 
+                                    insert_data_func, cell_invalidation_func)
+        szr_design_left.Add(self.tabentry.grid, 1, wx.GROW|wx.ALL, 5)
         szr_design_right.Add(lbl_see_result, 0)
         szr_design_right.Add(self.html, 1, wx.GROW|wx.ALL, 10)
         szr_design.Add(szr_design_left, 0, wx.GROW)
@@ -823,18 +823,17 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
 class ConfigTableEntry(settings_grid.SettingsEntry):
     """
     config_data should be returned as a list of dicts with the keys:
-    mg.TBL_FLD_NAME, etc
+        mg.TBL_FLD_NAME, etc
     """
     
-    def __init__(self, frame, panel, szr, dim_share, readonly, grid_size, 
-                col_dets, data, config_data, insert_data_func=None, 
-                cell_invalidation_func=None):
+    def __init__(self, frame, panel, readonly, grid_size, col_dets, data, 
+            config_data, insert_data_func=None, cell_invalidation_func=None):
         self.frame = frame
         self.readonly = readonly
         force_focus = False
-        settings_grid.SettingsEntry.__init__(self, frame, panel, szr, 
-            dim_share, readonly, grid_size, col_dets, data, config_data, 
-            force_focus, insert_data_func, cell_invalidation_func)
+        settings_grid.SettingsEntry.__init__(self, frame, panel, readonly, 
+                            grid_size, col_dets, data, config_data, force_focus, 
+                            insert_data_func, cell_invalidation_func)
         self.debug = False # otherwise set in the parent class ;-)
         # disable first row (id in demo tbl; SOFA_ID otherwise)
         attr = wx.grid.GridCellAttr()
