@@ -70,11 +70,36 @@ def has_data_changed(orig_data, final_data):
         if debug: print("set of field names changed")
         data_changed = True
     return data_changed
-    
-def wipe_orig_tbl(orig_tbl_name):
+
+def copy_orig_tbl(orig_tbl_name):
     dd.con.commit()
     getdata.force_tbls_refresh()
-    SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % obj_quoter(orig_tbl_name)
+    SQL_drop_tmp2 = u"DROP TABLE IF EXISTS %s" % obj_quoter(mg.TMP_TBL_NAME2)
+    dd.cur.execute(SQL_drop_tmp2)
+    dd.con.commit()
+    # In SQLite, CREATE TABLE AS drops all constraints, indexes etc.
+    SQL_make_copy = u"CREATE TABLE %s AS SELECT * FROM %s" % \
+                    (obj_quoter(mg.TMP_TBL_NAME2), obj_quoter(orig_tbl_name))
+    dd.cur.execute(SQL_make_copy)
+    SQL_restore_index = u"CREATE UNIQUE INDEX sofa_id_idx on %s (%s)" % \
+                        (obj_quoter(mg.TMP_TBL_NAME2), obj_quoter(mg.SOFA_ID))
+    dd.cur.execute(SQL_restore_index)
+    getdata.force_tbls_refresh()
+
+def restore_copy_tbl(orig_tbl_name):
+    """
+    Will only work if orig tbl already wiped
+    """
+    dd.con.commit()
+    getdata.force_tbls_refresh()
+    SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
+                      (obj_quoter(mg.TMP_TBL_NAME2), obj_quoter(orig_tbl_name)))
+    dd.cur.execute(SQL_rename_tbl)
+
+def wipe_tbl(tblname):
+    dd.con.commit()
+    getdata.force_tbls_refresh()
+    SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % obj_quoter(tblname)
     dd.cur.execute(SQL_drop_orig)
     dd.con.commit()
  
@@ -709,10 +734,15 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             dd.cur.execute(SQL_drop_tmp_tbl)
             dd.con.commit()
             raise FldMismatchException
-        wipe_orig_tbl(orig_tbl_name)
+        copy_orig_tbl(orig_tbl_name)
+        wipe_tbl(orig_tbl_name)
         final_name = self.tbl_name_lst[0] # may have been renamed
-        make_redesigned_tbl(final_name, oth_name_types, self.config_data)
-        dd.set_db(dd.db, tbl=final_name) # refresh tbls downwards        
+        try:
+            make_redesigned_tbl(final_name, oth_name_types, self.config_data)
+        except Exception:
+            restore_copy_tbl(orig_tbl_name)
+        wipe_tbl(mg.TMP_TBL_NAME2)
+        dd.set_db(dd.db, tbl=final_name) # refresh tbls downwards
     
     def make_changes(self):
         debug = False

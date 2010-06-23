@@ -31,10 +31,11 @@ def make_when_clause(orig_clause, new, new_fld_type):
     when_clause = u"            WHEN %s THEN %s" % (orig_clause, new)
     return when_clause
 
-def process_orig(orig, fld_type):
+def process_orig(orig, fldname, fld_type):
     """
     Turn an orig value into a clause ready for use in an SQL CASE WHEN snippet.
     orig -- a string
+    fldname -- field being used in the expression
     fld_type -- e.g. string
     Settings must be one per line.  In simplest case, just enter a single 
         value.
@@ -65,14 +66,15 @@ def process_orig(orig, fld_type):
     3) Assume we are dealing with a single value e.g. 1 or Did Not Reply
     """
     debug = False
+    fld = obj_quoter(fldname)
     if not isinstance(orig, basestring):
         raise Exception, u"process_orig() expects strings"
     orig_clause = None
     # 1 Special
     if orig.strip() == REMAINING:
-        orig_clause = u"= TRUE" # i.e. when TRUE
+        orig_clause = u"%s = TRUE" % fld # i.e. when TRUE
     elif orig.strip() == MISSING:
-        orig_clause = u"IS NULL"
+        orig_clause = u"%s IS NULL" % fld
     # 2 Range
     elif TO in orig:
         parts = orig.split(TO)
@@ -123,20 +125,20 @@ def process_orig(orig, fld_type):
             r_prep = r_part
         if has_min: # MIN TO MAX
             if has_max:
-                orig_clause = u"IS NOT NULL"
+                orig_clause = u"%s IS NOT NULL" % fld
             else: # MIN TO b
-                orig_clause = u"<= %s" % r_prep
+                orig_clause = u"%s <= %s" % (fld, r_prep) 
         else:
             if has_max: # a TO MAX
-                orig_clause = u">= %s" % l_prep
+                orig_clause = u"%s >= %s" % (fld, l_prep)
             else: # a TO b
-                orig_clause = u"BETWEEN %s AND %s" % (l_prep, r_prep)
+                orig_clause = u"%s BETWEEN %s AND %s" % (fld, l_prep, r_prep)
     # 3 Single value
     else:
         if fld_type in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
-            orig_clause = u"%s" % val_quoter(orig)
+            orig_clause = u"%s = %s" % (fld, val_quoter(orig))
         else:
-            orig_clause = u"%s" % orig
+            orig_clause = u"%s = %s" % (fld, orig)
     if orig_clause is None:
         raise Exception, "Unable to process original value in recode config"
     return orig_clause
@@ -244,11 +246,30 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
 
     def on_help(self, event):
         pass
-
+    
+    def recover_from_failed_recode(self):
+        """
+        If this goes wrong, delete freshly-created table with orig name, and 
+            rename tmp table back to orig name. That way, we haven't wiped the 
+            original table merely because of a recode problem
+        """
+        dd.con.commit()
+        getdata.force_tbls_refresh()
+        SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % obj_quoter(self.tblname)
+        dd.cur.execute(SQL_drop_orig)
+        dd.con.commit()
+        getdata.force_tbls_refresh()
+        SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
+                          (obj_quoter(mg.TMP_TBL_NAME),
+                           obj_quoter(self.tblname)))
+        dd.cur.execute(SQL_rename_tbl)
+        getdata.force_tbls_refresh()
+        dd.set_db(dd.db, tbl=self.tblname) # refresh tbls downwards
+    
     def recode_tbl(self, case_when, oth_name_types, idx_orig_fld):
         """
-        Build SQL, rename existing to tmp table, mass insert old and new rows 
-            into table with orig name, delete tmp table.
+        Build SQL, rename existing to tmp table, create empty table with orig 
+            name, and then mass into it. 
         """
         debug = False
         # rename table to tmp
@@ -280,20 +301,29 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         # want fields after new field (if any).  Skip 2 (orig fld, recoded fld)
         name_types_post_new = oth_name_types[idx_orig_fld+2:]
         for name, unused in name_types_post_new:
-            fld_clauses_lst.append(name)
+            fld_clauses_lst.append(obj_quoter(name))
         fld_clauses = u",\n    ".join(fld_clauses_lst)
         SQL_insert_content = ("INSERT INTO %(tblname)s "
             "\n    SELECT %(fld_clauses)s "
             "\n    FROM %(tmp_tbl)s" % {"tblname": obj_quoter(self.tblname), 
                                   "fld_clauses": fld_clauses,
                                   "tmp_tbl": obj_quoter(mg.TMP_TBL_NAME)})
-        if debug: print(SQL_insert_content)
-        dd.cur.execute(SQL_insert_content)
+        print("*"*60)
+        print(SQL_insert_content) # worth keeping and not likely to be overdone
+        print("*"*60)
+        try:
+            dd.cur.execute(SQL_insert_content)
+        except Exception, e:
+            print(SQL_insert_content)
+            print(unicode(e))
+            self.recover_from_failed_recode()
+            raise
         dd.con.commit()
         getdata.force_tbls_refresh()
         SQL_drop_tmp = u"DROP TABLE IF EXISTS %s" % obj_quoter(mg.TMP_TBL_NAME)
         dd.cur.execute(SQL_drop_tmp)
         dd.con.commit()
+        dd.set_db(dd.db, tbl=self.tblname) # refresh tbls downwards
 
     def update_labels(self):
         print("*"*60)
@@ -341,9 +371,9 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             lib.update_type_set(type_set, val=new_val)
         new_fld_type = lib.get_overall_fld_type(type_set)
         for orig, new, label in self.recode_config_data:
-            print(orig, new, label)
+            if debug: print(orig, new, label)
             try:
-                orig_clause = process_orig(orig, fld_type)
+                orig_clause = process_orig(orig, fldname, fld_type)
             except Exception, e:
                 wx.MessageBox(_("Problem with your recode configuration. Orig "
                                 "error: %s" % e))
@@ -352,7 +382,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             when_clauses.append(make_when_clause(orig_clause, new, 
                                                  new_fld_type))
         case_when_lst = []
-        case_when_lst.append(u"    CASE %s " % obj_quoter(fldname))
+        case_when_lst.append(u"    CASE")
         case_when_lst.extend(when_clauses)
         case_when_lst.append(u"        END\n    AS %s" % 
                              obj_quoter(new_fldname))

@@ -330,12 +330,13 @@ MOVING_IN_NEW = u"moving in new"
 LEAVING_EXISTING = u"leaving existing"
 LEAVING_NEW = u"leaving new"
 # table details
-TBL_FLD_NAME = "fld_name"
-TBL_FLD_NAME_ORIG = "fld_name_orig"
-TBL_FLD_TYPE = "fld_type"
-TBL_FLD_TYPE_ORIG = "fld_type_orig"
-TMP_TBL_NAME = "sofa_tmp_tbl"
-SOFA_ID = "sofa_id"
+TBL_FLD_NAME = u"fld_name"
+TBL_FLD_NAME_ORIG = u"fld_name_orig"
+TBL_FLD_TYPE = u"fld_type"
+TBL_FLD_TYPE_ORIG = u"fld_type_orig"
+TMP_TBL_NAME = u"sofa_tmp_tbl"
+TMP_TBL_NAME2 = u"sofa_tmp_tbl2"
+SOFA_ID = u"sofa_id"
 # demo data
 NUM_DATA_SEQ = (1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 12.0, 35.0)
 # http://statistics.gmu.edu/pages/famous.html and 
@@ -352,14 +353,14 @@ DTM_DATA_SEQ = (u"1&nbsp;Feb&nbsp;2009", u"23&nbsp;Aug&nbsp;1994",
 # filters
 DBE_TBL_FILTS = {}
 # Matplotlib
-FACECOLOR = "#f87526"
-EDGECOLOR = "#8f8f8f"
-NORM_LINE_COLOR = "#5a4a3d"
+FACECOLOR = u"#f87526"
+EDGECOLOR = u"#8f8f8f"
+NORM_LINE_COLOR = u"#5a4a3d"
 INT_IMG_ROOT = os.path.join(INT_PATH, u"_img")
 # date formats
-MDY = "month_day_year"
-DMY = "day_month_year"
-YMD = "year_month_day"
+MDY = u"month_day_year"
+DMY = u"day_month_year"
+YMD = u"year_month_day"
 def get_date_fmt():
     """
     On Windows, get local datetime_format.
