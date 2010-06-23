@@ -127,7 +127,6 @@ CSS_ELEMENTS = [CSS_ALIGN_RIGHT, CSS_LBL, CSS_TBL_TITLE,
 CSS_SUFFIX_TEMPLATE = u"%s%s"
 # projects ******************************************************
 EMPTY_PROJ_NAME = _("GIVE ME A NAME ...")
-
 USE_SQLITE_UDFS = False # set to true if unable to open default database -
 # probably because system failed to delete tmp table (which requires UDFs to 
 # even open).  Delete it and restore this to False. 

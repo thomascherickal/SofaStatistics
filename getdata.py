@@ -586,7 +586,7 @@ def get_default_db_dets():
         SOFA SQLite database.
     """
     proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
-                                        fil_name=mg.DEFAULT_PROJ)
+                                               fil_name=mg.DEFAULT_PROJ)
     default_dd = DataDets(proj_dic)
     return default_dd
 

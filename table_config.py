@@ -13,7 +13,7 @@ import recode
 import settings_grid
 
 dd = getdata.get_dd()
-sqlite_quoter = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
+obj_quoter = dbe_sqlite.quote_obj
 
 WAITING_MSG = _("<p>Waiting for at least one field to be configured.</p>")
 
@@ -74,7 +74,7 @@ def has_data_changed(orig_data, final_data):
 def wipe_orig_tbl(orig_tbl_name):
     dd.con.commit()
     getdata.force_tbls_refresh()
-    SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % sqlite_quoter(orig_tbl_name)
+    SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % obj_quoter(orig_tbl_name)
     dd.cur.execute(SQL_drop_orig)
     dd.con.commit()
  
@@ -94,7 +94,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, config_data):
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
     debug = False
-    tmp_name = sqlite_quoter(mg.TMP_TBL_NAME)
+    tmp_name = obj_quoter(mg.TMP_TBL_NAME)
     getdata.reset_con(add_checks=True) # can't deactivate the user-defined 
         # functions until the tmp table has been deleted.
     getdata.force_tbls_refresh()
@@ -114,7 +114,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, config_data):
     select_fld_clause = getdata.make_flds_clause(config_data)
     SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (tmp_name, 
                                                 select_fld_clause, 
-                                                sqlite_quoter(orig_tbl_name))
+                                                obj_quoter(orig_tbl_name))
     if debug: print(SQL_insert_all)
     dd.cur.execute(SQL_insert_all)
     dd.con.commit()
@@ -129,8 +129,8 @@ def make_redesigned_tbl(final_name, oth_name_types, config_data):
         functions.
     """
     debug = False
-    tmp_name = sqlite_quoter(mg.TMP_TBL_NAME)
-    final_name = sqlite_quoter(final_name)
+    tmp_name = obj_quoter(mg.TMP_TBL_NAME)
+    final_name = obj_quoter(final_name)
     create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
                                                     strict_typing=False,
                                                     inc_sofa_id=True)
@@ -164,7 +164,7 @@ def make_redesigned_tbl(final_name, oth_name_types, config_data):
                                                          create_fld_clause)
     dd.cur.execute(SQL_make_redesigned_tbl)
     dd.con.commit()
-    oth_names = [sqlite_quoter(x[0]) for x in oth_name_types]
+    oth_names = [obj_quoter(x[0]) for x in oth_name_types]
     null_plus_oth_flds = u" NULL, " + u", ".join(oth_names)
     SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (final_name, 
                                                 null_plus_oth_flds, tmp_name)
@@ -359,7 +359,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             having to return anything. 
         data -- list of tuples (tuples must have at least one item, even if only 
             a "rename me").  Empty list ok.
-        config_data -- add details to it in form of a list of tuples.
+        config_data -- add details to it in form of a list of dicts.
         """
         self.new = new
         self.changes_made = False
@@ -705,7 +705,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             dd.con.commit()
             getdata.force_tbls_refresh()
             SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % \
-                                                sqlite_quoter(mg.TMP_TBL_NAME)
+                                                obj_quoter(mg.TMP_TBL_NAME)
             dd.cur.execute(SQL_drop_tmp_tbl)
             dd.con.commit()
             raise FldMismatchException
@@ -745,10 +745,11 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         if debug:
             print(self.init_data)
             print(self.config_data)
-        title_changed = (self.tbl_name_lst[0] != self.txt_tbl_name.GetValue())
+        tblname = self.tbl_name_lst[0]
+        tblname_changed = (tblname != self.txt_tbl_name.GetValue())
         data_changed = has_data_changed(orig_data=self.init_data, 
                             final_data=self.config_data)
-        if title_changed or data_changed:
+        if tblname_changed or data_changed:
             ret = wx.MessageBox(_("You will need to save the changes you made "
                                   "first. Save changes and continue?"),
                                   caption=_("SAVE CHANGES?"), style=wx.YES_NO)
@@ -762,13 +763,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                      return
             else:
                 return
-        # [('string', 'fname', 'fname (string)'), ...]
-        # field type is used for validation and constructing recode SQL string
-        fld_dets = [(x[mg.TBL_FLD_TYPE], x[mg.TBL_FLD_NAME],
-                     u"%s (%s)" % (x[mg.TBL_FLD_NAME], x[mg.TBL_FLD_TYPE])) 
-                    for x in self.config_data]
-        fld_dets.sort(key=lambda s: s[2].upper())
-        dlg = recode.RecodeDlg(tbl_name=u"", fld_dets=fld_dets)
+        dlg = recode.RecodeDlg(tblname, self.config_data)
         dlg.ShowModal()
     
     def on_cancel(self, event):

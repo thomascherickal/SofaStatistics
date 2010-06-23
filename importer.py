@@ -17,19 +17,18 @@ FILE_CSV = u"csv"
 FILE_EXCEL = u"excel"
 FILE_ODS = u"ods"
 FILE_UNKNOWN = u"unknown"
-TMP_SQLITE_TBL = u"_SOFA_tmp_tbl"
 GAUGE_STEPS = 50
 
 dd = getdata.get_dd()
-
+obj_quoter = dbe_sqlite.quote_obj
 
 class MismatchException(Exception):
     def __init__(self, fld_name, details):
         debug = False
-        if debug: print("Yep - a mismatch exception")
+        if debug: print("A mismatch exception")
         self.fld_name = fld_name
-        Exception.__init__(self, u"Found data not matching expected " + \
-                           u"column type.\n\n%s" % details)
+        Exception.__init__(self, (u"Found data not matching expected "
+                                  u"column type.\n\n%s" % details))
 
 def process_fld_names(raw_names):
     """
@@ -256,8 +255,7 @@ def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names,
     """
     debug = False
     nulled_dots = False
-    fld_names_clause = u", ".join([dbe_sqlite.quote_obj(x) for x \
-                                                            in ok_fld_names])
+    fld_names_clause = u", ".join([obj_quoter(x) for x in ok_fld_names])
     for row_idx, row in enumerate(rows):
         if row_idx % 50 == 0:
             wx.Yield()
@@ -274,7 +272,7 @@ def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names,
                 nulled_dots = True
         # quoting must happen earlier so we can pass in NULL  
         fld_vals_clause = u", ".join([u"%s" % x for x in vals])
-        SQL_insert_row = u"INSERT INTO %s " % TMP_SQLITE_TBL + \
+        SQL_insert_row = u"INSERT INTO %s " % mg.TMP_TBL_NAME + \
             u"(%s) VALUES(%s)" % (fld_names_clause, fld_vals_clause)
         if debug: print(SQL_insert_row)
         try:
@@ -305,7 +303,7 @@ def get_steps_per_item(items_n):
 
 def drop_tmp_tbl(con, cur):
     con.commit()
-    SQL_drop_disp_tbl = u"DROP TABLE IF EXISTS %s" % TMP_SQLITE_TBL
+    SQL_drop_disp_tbl = u"DROP TABLE IF EXISTS %s" % mg.TMP_TBL_NAME
     cur.execute(SQL_drop_disp_tbl)
     con.commit()
 
@@ -351,11 +349,11 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header,
         cur.execute(SQL_get_tbl_names) # otherwise it doesn't always seem to have the 
             # latest data on which tables exist
         drop_tmp_tbl(con, cur)
-        if debug: print(u"Successfully dropped %s" % TMP_SQLITE_TBL)
+        if debug: print(u"Successfully dropped %s" % mg.TMP_TBL_NAME)
     except Exception, e:
         raise
     try:
-        tbl_name = TMP_SQLITE_TBL
+        tbl_name = mg.TMP_TBL_NAME
         # oth_name_types -- ok_fld_name, fld_type (taken from original source 
         # and the key will be orig_fld_name)
         oth_name_types = []
@@ -413,14 +411,12 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
     """
     debug = False
     try:
-        SQL_drop_tbl = u"DROP TABLE IF EXISTS %s" % \
-            dbe_sqlite.quote_obj(tbl_name)
+        SQL_drop_tbl = u"DROP TABLE IF EXISTS %s" % obj_quoter(tbl_name)
         if debug: print(SQL_drop_tbl)
         cur.execute(SQL_drop_tbl)
         con.commit()
-        SQL_rename_tbl = u"ALTER TABLE %s RENAME TO %s" % \
-            (dbe_sqlite.quote_obj(TMP_SQLITE_TBL), 
-             dbe_sqlite.quote_obj(tbl_name))
+        SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
+                          (obj_quoter(mg.TMP_TBL_NAME), obj_quoter(tbl_name)))
         if debug: print(SQL_rename_tbl)
         cur.execute(SQL_rename_tbl)
         con.commit()
