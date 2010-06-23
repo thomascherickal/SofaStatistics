@@ -106,8 +106,8 @@ class TblEditor(wx.Dialog):
                 attr.SetBackgroundColour(mg.READONLY_COLOUR)
                 self.grid.SetColAttr(idx_col, attr)
         else:
-            # disable any columns which do not allow data entry
-            col2select = None
+            # disable any columns which do not allow data entry and set colour
+            col2select = None # first editable col
             self.readonly_cols = []
             for idx_col in range(len(dd.flds)):
                 fld_dic = self.dbtbl.get_fld_dic(idx_col)
@@ -126,6 +126,8 @@ class TblEditor(wx.Dialog):
             self.current_row_idx = new_row_idx
             self.current_col_idx = col2select
             self.set_new_row_ed(new_row_idx)
+        self.col2select = col2select # used to determine where cursor should 
+            # land when moving from end of new row.
         self.any_editor_shown = False
         if set_col_widths:
             self.set_col_widths()
@@ -474,7 +476,7 @@ class TblEditor(wx.Dialog):
         if dest_row is None and dest_col is None: # known if from on_select_cell
             if was_final_col and direction in [mg.MOVE_RIGHT, mg.MOVE_DOWN]:
                 dest_row = src_row + 1
-                dest_col = 0
+                dest_col = self.col2select
             else:
                 if direction == mg.MOVE_RIGHT:
                     dest_row = src_row
