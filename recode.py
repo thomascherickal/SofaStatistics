@@ -145,8 +145,10 @@ def process_orig(orig, fldname, fld_type):
 
 def process_label(dict_labels, fld_type, new, label):
     """
-    Add label to dictionary of labels for variable
+    Add non-empty label to dictionary of labels for variable
     """
+    if label == u"":
+        return
     if fld_type in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
         new = val_quoter(new)
     dict_labels[new] = val_quoter(label)
@@ -324,10 +326,16 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         dd.con.commit()
         dd.set_db(dd.db, tbl=self.tblname) # refresh tbls downwards
 
-    def update_labels(self):
-        print("*"*60)
-        print("update_labels() not implemented yet")
-        print("*"*60)
+    def update_labels(self, fldname, dict_labels):
+        """
+        Look in vdt file in current project
+        """
+        try:
+            self.val_dics[fldname].update(dict_labels)
+        except KeyError:
+            self.val_dics[fldname] = dict_labels
+        projects.update_vdt(self.var_labels, self.var_notes, self.var_types, 
+                            self.val_dics)
 
     def on_recode(self, event):
         """
@@ -403,6 +411,6 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                             "are edited"))
         except Exception, e:
             raise Exception, _("Problem recoding table. Orig error: %s") % e
-        self.update_labels()
+        self.update_labels(fldname, dict_labels)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)

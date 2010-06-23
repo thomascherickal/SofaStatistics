@@ -32,7 +32,7 @@ except ImportError: # if it's not there locally, try the wxPython lib.
         import wx.lib.agw.hyperlink as hl
     except ImportError:
         raise Exception, ("There seems to be a problem related to your "
-                          "wxpython package.")
+                          "wxPython package.")
 
 # All i18n except for wx-based (which MUST happen after wx.App init)
 # http://wiki.wxpython.org/RecipesI18n

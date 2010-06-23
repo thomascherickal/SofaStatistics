@@ -42,7 +42,35 @@ def get_proj_notes(fil_proj, proj_dic):
     else:
         proj_notes = proj_dic["proj_notes"]
     return proj_notes
+
+def update_val_labels(val_dics, var_name, val_type, keyvals):
+    """
+    var_name -- name of variable we are updating values for
+    val_dics -- existing val-labels pairs for all variables
+    keyvals -- pairs of vals and their labels
+    """
+    new_val_dic = {}
+    for key, value in keyvals:
+        # key always returned as a string but may need to store as number
+        if key == u"":
+            continue
+        elif val_type == settings_grid.COL_FLOAT:
+            key = float(key)
+        elif val_type == settings_grid.COL_INT:
+            key = int(key)
+        new_val_dic[key] = value
+    val_dics[var_name] = new_val_dic
     
+def update_vdt(var_labels, var_notes, var_types, val_dics):
+    # update lbl file
+    f = codecs.open(cc[mg.CURRENT_VDTS_PATH], "w", encoding="utf-8")
+    f.write(u"\nvar_labels=" + pprint.pformat(var_labels))
+    f.write(u"\nvar_notes=" + pprint.pformat(var_notes))
+    f.write(u"\nvar_types=" + pprint.pformat(var_types))
+    f.write(u"\n\nval_dics=" + pprint.pformat(val_dics))
+    f.close()
+    wx.MessageBox(_("Settings saved to \"%s\"" % cc[mg.CURRENT_VDTS_PATH]))
+
 def set_var_props(choice_item, var_name, var_label, var_labels, var_notes, 
                   var_types, val_dics):
     """
@@ -58,8 +86,7 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
             for key, value in val_dic.items():
                 data.append((key, unicode(value)))
     data.sort(key=lambda s: s[0])
-    config_data = []
-    # get config_data back updated
+    config_data = [] # get config_data back updated
     bolnumeric = dd.flds[var_name][mg.FLD_BOLNUMERIC]
     boldecimal = dd.flds[var_name][mg.FLD_DECPTS]
     boldatetime = dd.flds[var_name][mg.FLD_BOLDATETIME]
@@ -77,8 +104,7 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
     if bolnumeric:
         def_type = mg.VAR_TYPE_QUANT # have to trust the user somewhat!
     elif boldatetime:
-        def_type = mg.VAR_TYPE_CAT # see notes when enabling under 
-            # GetSettings
+        def_type = mg.VAR_TYPE_CAT # see notes when enabling under GetSettings
     else:
         def_type = mg.VAR_TYPE_CAT
     type = var_types.get(var_name, def_type)
@@ -87,33 +113,11 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
                               config_data, val_type)
     ret = getsettings.ShowModal()
     if ret == wx.ID_OK:
-        # var label, notes, and types
         var_labels[var_name] = var_desc["label"]
         var_notes[var_name] = var_desc["notes"]
         var_types[var_name] = var_desc["type"]
-        # val dics
-        new_val_dic = {}
-        new_data_rows_n = len(config_data)
-        for i in range(new_data_rows_n):
-            # the key is always returned as a string 
-            # but we may need to store it as a number
-            key, value = config_data[i]
-            if key == "":
-                continue
-            elif val_type == settings_grid.COL_FLOAT:
-                key = float(key)
-            elif val_type == settings_grid.COL_INT:
-                key = int(key)
-            new_val_dic[key] = value
-        val_dics[var_name] = new_val_dic
-        # update lbl file
-        f = codecs.open(cc[mg.CURRENT_VDTS_PATH], "w", encoding="utf-8")
-        f.write(u"\nvar_labels=" + pprint.pformat(var_labels))
-        f.write(u"\nvar_notes=" + pprint.pformat(var_notes))
-        f.write(u"\nvar_types=" + pprint.pformat(var_types))
-        f.write(u"\n\nval_dics=" + pprint.pformat(val_dics))
-        f.close()
-        wx.MessageBox(_("Settings saved to \"%s\"" % cc[mg.CURRENT_VDTS_PATH]))
+        update_val_labels(val_dics, var_name, val_type, keyvals=config_data)
+        update_vdt(var_labels, var_notes, var_types, val_dics)
         return True
     else:
         return False
