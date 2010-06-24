@@ -202,7 +202,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                     {"col_label": _("Label"), "col_type": settings_grid.COL_STR, 
                      "col_width": 200, "empty_ok": True},
                      ]
-        grid_size = (650, 250)
+        grid_size = (640, 250)
         wx.Dialog.__init__(self, None, title=_("Recode Variable"),
                           size=(700,350), pos=(mg.HORIZ_OFFSET+150,100),
                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU)

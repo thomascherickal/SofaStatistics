@@ -6,13 +6,16 @@ import wx
 
 import my_globals as mg
 import lib
+import config_dlg
 import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import full_html
+import projects
 import recode
 import settings_grid
 
 dd = getdata.get_dd()
+cc = config_dlg.get_cc()
 obj_quoter = dbe_sqlite.quote_obj
 
 WAITING_MSG = _("<p>Waiting for at least one field to be configured.</p>")
@@ -845,11 +848,26 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
                                    force_focus, insert_data_func, 
                                    cell_invalidation_func, cell_response_func)
         self.debug = False # otherwise set in the parent class ;-)
+        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
+                                    lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         # disable first row (id in demo tbl; SOFA_ID otherwise)
         attr = wx.grid.GridCellAttr()
         attr.SetReadOnly(True)
         attr.SetBackgroundColour(mg.READONLY_COLOUR)
         self.grid.SetRowAttr(0, attr)
+        # allow right click on variable names
+        self.grid.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.on_rclick_cell)
+    
+    def on_rclick_cell(self, event):
+        col = event.GetCol()
+        if col == 0:
+            row = event.GetRow()
+            cell_val = self.get_val(row, col)
+            choice_item = lib.get_choice_item(self.var_labels, cell_val)
+            var_label = lib.get_item_label(self.var_labels, cell_val)
+            projects.set_var_props(choice_item, cell_val, var_label, 
+                                   self.var_labels, self.var_notes, 
+                                   self.var_types, self.val_dics)
     
     def process_cell_move(self, src_ctrl, src_row, src_col, dest_row, dest_col, 
                           direction):

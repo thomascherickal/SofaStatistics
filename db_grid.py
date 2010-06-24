@@ -188,10 +188,10 @@ class TblEditor(wx.Dialog):
             self.respond_to_select_cell = True
             event.Skip()
             return
-        src_row=self.current_row_idx # row being moved from
-        src_col=self.current_col_idx # col being moved from
-        dest_row=event.GetRow()
-        dest_col=event.GetCol()
+        src_row = self.current_row_idx # row being moved from
+        src_col = self.current_col_idx # col being moved from
+        dest_row = event.GetRow()
+        dest_col = event.GetCol()
         if dest_row == src_row:
             if dest_col > src_col:
                 direction = mg.MOVE_RIGHT
