@@ -220,11 +220,10 @@ class SofaApp(wx.App):
             canon_name = mylocale.GetCanonicalName() # e.g. en_NZ, gl_ES etc
             # want main title to be right size but some langs too long for that
             self.main_font_size = 20 if canon_name.startswith('en_') else 16
-            mytrans = gettext.translation('sofa', langdir, 
-                                          languages=[canon_name],
-                                          fallback = True)
+            mytrans = gettext.translation(u"sofa", langdir, 
+                                        languages=[canon_name], fallback = True)
             mytrans.install()
-            if platform.system() == 'Linux':
+            if platform.system() == u"Linux":
                 try:
                     # to get some language settings to display properly:
                     os.environ['LANG'] = u"%s.UTF-8" % canon_name

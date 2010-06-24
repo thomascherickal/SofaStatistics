@@ -390,7 +390,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             having to return anything. 
         data -- list of tuples (tuples must have at least one item, even if only 
             a "rename me").  Empty list ok.
-        config_data -- add details to it in form of a list of dicts.
+        config_data -- add details to it in form of a list of dicts. Available
+            in code which called this.
         """
         self.new = new
         self.changes_made = False
@@ -405,6 +406,9 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.tbl_name_lst = tbl_name_lst
         # set up new grid data based on data
         self.config_data = config_data
+        if config_data:
+            raise Exception, (u"config_data should always start off empty ready"
+                              u" to received values")
         self.init_data = data[:] # can check to see if end result changed
         self.setup_config_data(data)
         self.readonly = readonly
@@ -435,8 +439,9 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         # New controls
         lbl_tbl_label = wx.StaticText(self.panel, -1, _("Table Name:"))
         lbl_tbl_label.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        tbl_name = tbl_name_lst[0] if tbl_name_lst else _("table") + u"001"
-        self.txt_tbl_name = wx.TextCtrl(self.panel, -1, tbl_name, size=(450,-1))
+        self.tblname = tbl_name_lst[0] if tbl_name_lst else _("table") + u"001"
+        self.txt_tbl_name = wx.TextCtrl(self.panel, -1, self.tblname, 
+                                        size=(450,-1))
         self.txt_tbl_name.Enable(not self.readonly)
         self.txt_tbl_name.SetValidator(SafeTblNameValidator(name_ok_to_reuse))
         if not readonly:
@@ -632,6 +637,12 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
     def setup_config_data(self, data):
         debug = False
         extra = []
+        # need to stay pointed to same memory but empty it
+        while True:
+            try:
+                del self.config_data[0]
+            except IndexError:
+                break
         for row in data:
             new_row = {mg.TBL_FLD_NAME: row[0], 
                        mg.TBL_FLD_NAME_ORIG: row[0], 
@@ -639,7 +650,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                        mg.TBL_FLD_TYPE_ORIG: row[1]}
             extra.append(new_row)
         self.config_data += extra
-        if debug: print("Initialised extra config data: %s" % self.config_data)
+        if debug: print("Initialised config data: %s" % self.config_data)
     
     def insert_before(self):
         """
@@ -777,6 +788,50 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         dd.set_db(dd.db, tbl=tblname) # refresh tbls downwards
         self.changes_made = True
 
+    def refresh_dlg(self):
+        """
+        NB never doing this to a read-only table.  So always sofa_id, any other 
+            rows, then a new row.
+        Need to wipe all rows in the middle then insert fresh ones.
+        Also need to update any state information the grid relies on.
+        NB typically working on the tabentry object or its grid, not on self.
+        """
+        self.tabentry.any_editor_shown = False
+        self.tabentry.new_editor_shown = False
+        # Delete all rows after the first one (sofa_id) and before the new one
+        rows2del = self.tabentry.rows_n-2 # less 1st and last
+        self.tabentry.grid.DeleteRows(pos=1, numRows=rows2del)
+        self.tabentry.grid.HideCellEditControl()
+        self.tabentry.grid.ForceRefresh()
+        self.tabentry.safe_layout_adjustment()
+        # get list of name/type tuples (including sofa_id)
+        data = getdata.get_tbl_config(self.tblname)
+        self.setup_config_data(data)
+        self.tabentry.rows_n = len(data) + 1 # + new row
+        self.tabentry.rows_to_fill = self.tabentry.rows_n
+        # using default renderer and editor fine (text)
+        for row_idx, nametype in enumerate(data):
+            if row_idx == 0:
+                continue # sofa_id already there (and blue, read-only etc)
+            fldname, fldtype = nametype
+            self.tabentry.grid.InsertRows(row_idx, 1)
+            self.tabentry.grid.SetCellValue(row_idx, 0, fldname)
+            self.tabentry.grid.SetCellValue(row_idx, 1, fldtype)
+            self.tabentry.grid.SetRowLabelValue(row_idx, unicode(row_idx+1))
+            self.tabentry.grid.ForceRefresh() # deleteme
+        # extra config
+        self.tabentry.grid.SetRowLabelValue(self.tabentry.rows_n-1, u"*")
+        # set cell and record position
+        self.tabentry.respond_to_select_cell = False
+        row2sel = 0 if self.tabentry.rows_n == 1 else 1
+        self.tabentry.current_row_idx = row2sel
+        self.tabentry.current_col_idx = 0
+        self.tabentry.grid.SetGridCursor(self.tabentry.current_row_idx, 
+                                         self.tabentry.current_col_idx)
+        # misc
+        self.tabentry.grid.ForceRefresh()
+        self.update_demo()
+
     def on_recode(self, event):
         # wx.MessageBox(_("Not yet available in this version"))
         debug = False
@@ -789,7 +844,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         tblname = self.tbl_name_lst[0]
         tblname_changed = (tblname != self.txt_tbl_name.GetValue())
         data_changed = has_data_changed(orig_data=self.init_data, 
-                            final_data=self.config_data)
+                                        final_data=self.config_data)
         if tblname_changed or data_changed:
             ret = wx.MessageBox(_("You will need to save the changes you made "
                                   "first. Save changes and continue?"),
@@ -805,7 +860,9 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             else:
                 return
         dlg = recode.RecodeDlg(tblname, self.config_data)
-        dlg.ShowModal()
+        ret = dlg.ShowModal()
+        if ret == wx.ID_OK:
+            self.refresh_dlg()
     
     def on_cancel(self, event):
         """

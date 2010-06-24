@@ -10,6 +10,7 @@ import my_globals as mg
 import my_exceptions
 import config_globals
 import lib
+import dbe_plugins.dbe_sqlite as dbe_sqlite
 
 debug = False
 
@@ -215,7 +216,35 @@ def reset_con(tbl_name=None, add_checks=False):
     dd = get_dd()
     dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl_name, 
                add_checks=add_checks)
-    
+
+def get_gen_fld_type(fld_type):
+    """
+    Get general field type from specific.
+    """
+    if fld_type.lower() in dbe_sqlite.NUMERIC_TYPES:
+        gen_fld_type = mg.FLD_TYPE_NUMERIC
+    elif fld_type.lower() in dbe_sqlite.DATE_TYPES:
+        gen_fld_type = mg.FLD_TYPE_DATE
+    else:
+        gen_fld_type = mg.FLD_TYPE_STRING
+    return gen_fld_type
+
+def get_tbl_config(tblname):
+    """
+    Get ordered list of tuples of field names and field types for named table.
+    "Numeric", "Date", "Text".
+    Only works for an SQLite database (should be the default one).
+    """
+    debug = False
+    dd = get_dd()
+    obj_quoter = get_obj_quoter_func(dd.dbe)
+    dd.con.commit()
+    dd.cur.execute(u"PRAGMA table_info(%s)" % obj_quoter(tblname))
+    config = dd.cur.fetchall()
+    if debug: print(config)
+    table_config = [(x[1], get_gen_fld_type(fld_type=x[2])) for x in config]
+    return table_config
+
 # syntax
 
 def get_obj_quoter_func(dbe):

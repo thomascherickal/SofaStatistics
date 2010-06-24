@@ -177,7 +177,6 @@ class SettingsEntry(object):
                 self.col_widths[col_idx] = col_det["col_width"]
         self.data = data
         self.config_data = config_data
-        self.prev_vals = []
         self.any_editor_shown = False
         self.new_editor_shown = False
         # grid control
@@ -337,10 +336,10 @@ class SettingsEntry(object):
             self.respond_to_select_cell = True
             event.Skip()
             return
-        src_row=self.current_row_idx # row being moved from
-        src_col=self.current_col_idx # col being moved from
-        dest_row=event.GetRow()
-        dest_col=event.GetCol()
+        src_row = self.current_row_idx # row being moved from
+        src_col = self.current_col_idx # col being moved from
+        dest_row = event.GetRow()
+        dest_col = event.GetCol()
         if dest_row == src_row:
             if dest_col > src_col:
                 direction = mg.MOVE_RIGHT
@@ -907,8 +906,8 @@ class SettingsEntry(object):
             wx.MessageBox(_("Cannot insert a row while in the middle of making "
                             "a new one"))
             return False, None
-        grid_data = self.get_grid_data() # only needed to prevent
-            # field name collisions
+        grid_data = self.get_grid_data() # only needed to prevent field name
+                                         # collisions
         row_idx = pos
         self.grid.InsertRows(row_idx)
         row_data = None

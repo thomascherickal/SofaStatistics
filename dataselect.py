@@ -152,34 +152,6 @@ class DataSelectDlg(wx.Dialog):
             dlg.ShowModal()
         event.Skip()
     
-    def get_gen_fld_type(self, fld_type):
-        """
-        Get general field type from specific.
-        """
-        if fld_type.lower() in dbe_sqlite.NUMERIC_TYPES:
-            gen_fld_type = mg.FLD_TYPE_NUMERIC
-        elif fld_type.lower() in dbe_sqlite.DATE_TYPES:
-            gen_fld_type = mg.FLD_TYPE_DATE
-        else:
-            gen_fld_type = mg.FLD_TYPE_STRING
-        return gen_fld_type
-    
-    def get_tbl_config(self, tbl_name):
-        """
-        Get ordered list of field names and field types for named table.
-        "Numeric", "Date", "Text".
-        Only works for an SQLite database (should be the default one).
-        """
-        debug = False
-        obj_quoter = getdata.get_obj_quoter_func(dd.dbe)
-        dd.con.commit()
-        dd.cur.execute(u"PRAGMA table_info(%s)" % obj_quoter(tbl_name))
-        config = dd.cur.fetchall()
-        if debug: print(config)
-        table_config = [(x[1], self.get_gen_fld_type(fld_type=x[2])) for x in
-                         config]
-        return table_config
-    
     def on_delete(self, event):
         """
         Delete selected table (giving user choice to back out).
@@ -209,7 +181,7 @@ class DataSelectDlg(wx.Dialog):
             self.chk_readonly.SetValue(True)
             readonly = True
         tbl_name_lst = [dd.tbl,]
-        data = self.get_tbl_config(dd.tbl)
+        data = getdata.get_tbl_config(dd.tbl)
         if debug: print("Initial table config data: %s" % data)
         config_data = []     
         dlgConfig = table_config.ConfigTableDlg(self.var_labels, self.val_dics, 
