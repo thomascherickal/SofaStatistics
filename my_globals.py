@@ -264,6 +264,7 @@ WINDOWS = "windows"
 MAC = "mac"
 platforms = {"Linux": LINUX, "Windows": WINDOWS, "Darwin": MAC}
 PLATFORM = platforms.get(platform.system())
+MUST_DEL_TMP = False
 DBE_PROBLEM = []
 DBES = []
 DBE_MODULES = {}

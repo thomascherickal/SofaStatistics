@@ -40,9 +40,38 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 # translated.
 gettext.install('sofa', './locale', unicode=True)
 
+# Give the user something if the program fails at an early stage before anything
+# appears on the screen.  Only relies on wx
+
+
+class MsgFrame(wx.Frame):
+    def __init__(self, e):
+        wx.Frame.__init__(self, None, title=_("SOFA Error"))
+        wx.MessageBox("Something went wrong with running SOFA Statistics. "
+                      "Please email the lead developer for help - "
+                      "grant@sofastatistics.com\n\nOrig error: %s" % e)
+        self.Destroy()
+        import sys
+        sys.exit()
+        
+
+class MsgApp(wx.App):
+
+    def __init__(self, e):
+        self.e = e
+        wx.App.__init__(self, redirect=False, filename=None)
+
+    def OnInit(self):
+        msgframe = MsgFrame(self.e)
+        msgframe.Show()
+        self.SetTopWindow(msgframe)
+        return True
+    
+    
 import my_globals as mg # has translated text
 import lib
 import config_globals
+import my_exceptions
 
 COPYRIGHT = u"\u00a9"
 SCREEN_WIDTH = 1000
@@ -67,15 +96,15 @@ def install_local():
     Install local set of files in user home dir if necessary.
     Modify default project settings to point to local (user) SOFA  directory.
     """
-    if mg.PLATFORM == mg.MAC:
-        prog_path = MAC_PATH
-    else:
-        prog_path = os.path.dirname(__file__)
     default_proj = os.path.join(LOCAL_PATH, u"projs", mg.DEFAULT_PROJ)
     REPORTS = u"reports"
-    IMAGES = u"images"
     paths = [u"css", mg.INT_FOLDER, u"vdts", u"projs", REPORTS, u"scripts"]
     if not os.path.exists(LOCAL_PATH):
+        IMAGES = u"images"
+        if mg.PLATFORM == mg.MAC:
+            prog_path = MAC_PATH
+        else:
+            prog_path = os.path.dirname(__file__)
         # In Windows this is completed by installer but only for first user
         for path in paths: # create required folders
             try:
@@ -130,7 +159,7 @@ install_local() # needs mg, but must run before anything calling dd
 
 try:
     import getdata # call before all modules relying on mg.DATA_DETS as dd
-    import config_dlg
+    import config_dlg # actually uses proj dict and connects to sofa_db
     # importing delayed until needed where possible for startup performance
     # import dataselect
     import full_html
@@ -141,7 +170,10 @@ try:
     import quotes
     # import stats_select
 except Exception, e:
-    print("Problem with second round of local importing. Orig error: %s" % e)
+    msg = u"Problem with second round of local importing. Orig error: %s" % e
+    msgapp = MsgApp(msg)
+    msgapp.MainLoop()
+    del msgapp
 
 def get_blank_btn_bmp(xpm=u"blankbutton.xpm"):
     blank_btn_path = os.path.join(SCRIPT_PATH, u"images", xpm)
@@ -412,6 +444,9 @@ class StartFrame(wx.Frame):
             f = open(prob, "w")
             f.write(u"\n\n".join(mg.DBE_PROBLEM))
             f.close()
+        if mg.MUST_DEL_TMP:
+            wx.MessageBox(_("Please click on \"Enter/Edit Data\" and delete"
+                        " the table \"%s\"") % mg.TMP_TBL_NAME)
     
     def init_com_types(self, panel):
         """
@@ -832,30 +867,6 @@ class StartFrame(wx.Frame):
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_exit, MAX_HELP_TEXT_WIDTH), 
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
-
-# Give the user something if the program fails at an early stage before anything
-# appears on the screen.
-
-class MsgFrame(wx.Frame):
-    def __init__(self, e):
-        wx.Frame.__init__(self, None, title=_("SOFA Error"))
-        wx.MessageBox("Something went wrong with running SOFA Statistics. "
-                      "Please email the lead developer for help - "
-                      "grant@sofastatistics.com\n\nOrig error: %s" % e)
-        self.Destroy()
-        
-
-class MsgApp(wx.App):
-
-    def __init__(self, e):
-        self.e = e
-        wx.App.__init__(self, redirect=False, filename=None)
-
-    def OnInit(self):
-        msgframe = MsgFrame(self.e)
-        msgframe.Show()
-        self.SetTopWindow(msgframe)
-        return True
 
 try:
     app = SofaApp()

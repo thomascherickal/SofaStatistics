@@ -20,24 +20,33 @@ Assumed that table names will be case insensitive e.g. tblitems == tblItems.
 """
 
 def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None, 
-                      tbl=None, add_checks=False):
+                      tbl=None, add_checks=False, stop=False):
     """
     db -- may be changing dbe and db together (e.g. dbe-db dropdown).
     add_checks -- only used by SQLite dbe.
     """
     debug = False
-    dbe_resources = {}
-    if debug: print("About to update dbe resources with con resources")
-    kwargs = {"con_dets": con_dets, "default_dbs": default_dbs, "db": db}
-    if dbe == mg.DBE_SQLITE:
-        kwargs["add_checks"] = add_checks
-    dbe_resources.update(mg.DBE_MODULES[dbe].get_con_resources(**kwargs))
-    cur = dbe_resources[mg.DBE_CUR]
-    db = dbe_resources[mg.DBE_DB]
-    if debug: print("About to update dbe resources with db resources")
-    db_resources = get_db_resources(dbe, cur, db, default_tbls, tbl)
-    dbe_resources.update(db_resources)
-    if debug: print("Finished updating dbe resources with db resources")
+    try:
+        dbe_resources = {}
+        if debug: print("About to update dbe resources with con resources")
+        kwargs = {"con_dets": con_dets, "default_dbs": default_dbs, "db": db}
+        if dbe == mg.DBE_SQLITE:
+            kwargs["add_checks"] = add_checks
+        dbe_resources.update(mg.DBE_MODULES[dbe].get_con_resources(**kwargs))
+        cur = dbe_resources[mg.DBE_CUR]
+        db = dbe_resources[mg.DBE_DB]
+        if debug: print("About to update dbe resources with db resources")
+        db_resources = get_db_resources(dbe, cur, db, default_tbls, tbl)
+        dbe_resources.update(db_resources)
+        if debug: print("Finished updating dbe resources with db resources")
+    except my_exceptions.MalformedDbError:
+        if stop:
+            raise
+        else: # try once but with add_checks set to True.  Might work :-)
+            dbe_resources = get_dbe_resources(dbe, con_dets, default_dbs, 
+                                              default_tbls, db, tbl, 
+                                              add_checks=True, stop=True)
+            mg.MUST_DEL_TMP = True
     return dbe_resources
 
 def get_db_resources(dbe, cur, db, default_tbls, tbl):

@@ -94,7 +94,11 @@ def get_con_resources(con_dets, default_dbs, db=None, add_checks=False):
             db = default_db
         else:
             db = con_dets[mg.DBE_SQLITE].keys()[0]
-    con = get_con(con_dets, db, add_checks=add_checks)
+    try:
+        con = get_con(con_dets, db, add_checks=add_checks)
+    except Exception, e:
+            print(unicode(e))
+            raise
     cur = con.cursor() # must return tuples not dics
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: [db,],
                      mg.DBE_DB: db}
@@ -106,7 +110,14 @@ def get_tbls(cur, db):
         FROM sqlite_master 
         WHERE type = 'table'
         ORDER BY name"""
-    cur.execute(SQL_get_tbls)
+    try:
+        cur.execute(SQL_get_tbls)
+    except Exception, e:
+        if unicode(e).startswith(u"malformed database schema"):
+            raise my_exceptions.MalformedDbError()
+        else:
+            print(unicode(e))
+            raise
     tbls = [x[0] for x in cur.fetchall()]
     tbls.sort(key=lambda s: s.upper())
     return tbls

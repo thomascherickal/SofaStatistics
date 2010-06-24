@@ -234,7 +234,7 @@ def insert_data(row_idx, grid_data):
     row_data = [next_fld_name, mg.FLD_TYPE_NUMERIC]
     return row_data
 
-def cell_invalidation(row, col, grid, col_dets):
+def cell_invalidation(val, row, col, grid, col_dets):
     """
     The first column text must be either empty, or 
         alphanumeric (and underscores), and unique (field name) 
@@ -246,6 +246,9 @@ def cell_invalidation(row, col, grid, col_dets):
         return _invalid_fld_type(row, grid)
     else:
         raise Exception, u"Two many columns for default cell invalidation test"
+
+def cell_response(self, val, row, col, grid, col_dets):
+    pass
 
 def _invalid_fld_name(row, grid):
     "Return boolean and string message"
@@ -378,7 +381,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
     
     def __init__(self, var_labels, val_dics, tbl_name_lst, data, config_data, 
                  readonly=False, new=False, insert_data_func=None, 
-                 cell_invalidation_func=None):
+                 cell_invalidation_func=None, cell_response_func=None):
         """
         tbl_name_lst -- passed in as a list so changes can be made without 
             having to return anything. 
@@ -406,6 +409,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             insert_data_func = insert_data
         if not cell_invalidation_func:
             cell_invalidation_func = cell_invalidation
+        if not cell_response_func:
+            cell_response_func = cell_response
         # col_dets - See under settings_grid.SettingsEntry
         col_dets = [{"col_label": _("Field Name"), 
                      "col_type": settings_grid.COL_STR, 
@@ -459,7 +464,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             szr_design_left.Add(lbl_sofa_id, 0)
         self.tabentry = ConfigTableEntry(self, self.panel, self.readonly, 
                                     grid_size, col_dets, data, config_data, 
-                                    insert_data_func, cell_invalidation_func)
+                                    insert_data_func, cell_invalidation_func,
+                                    cell_response_func)
         szr_design_left.Add(self.tabentry.grid, 1, wx.GROW|wx.ALL, 5)
         szr_design_right.Add(lbl_see_result, 0)
         szr_design_right.Add(self.html, 1, wx.GROW|wx.ALL, 10)
@@ -754,7 +760,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                 return True
         if self.tbl_name_lst: # empty ready to repopulate
             del self.tbl_name_lst[0]
-        self.tbl_name_lst.append(self.txt_tbl_name.GetValue())
+        tblname = self.txt_tbl_name.GetValue()
+        self.tbl_name_lst.append(tblname)
         self.tabentry.update_config_data()
         if debug:
             print("Config data coming back:") 
@@ -764,6 +771,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         else:
             if not self.readonly:
                 self.modify_tbl()
+        dd.set_db(dd.db, tbl=tblname) # refresh tbls downwards
         self.changes_made = True
 
     def on_recode(self, event):
@@ -827,13 +835,15 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
     """
     
     def __init__(self, frame, panel, readonly, grid_size, col_dets, data, 
-            config_data, insert_data_func=None, cell_invalidation_func=None):
+            config_data, insert_data_func=None, cell_invalidation_func=None,
+            cell_response_func=None):
         self.frame = frame
         self.readonly = readonly
         force_focus = False
         settings_grid.SettingsEntry.__init__(self, frame, panel, readonly, 
-                            grid_size, col_dets, data, config_data, force_focus, 
-                            insert_data_func, cell_invalidation_func)
+                                   grid_size, col_dets, data, config_data, 
+                                   force_focus, insert_data_func, 
+                                   cell_invalidation_func, cell_response_func)
         self.debug = False # otherwise set in the parent class ;-)
         # disable first row (id in demo tbl; SOFA_ID otherwise)
         attr = wx.grid.GridCellAttr()

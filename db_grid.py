@@ -592,7 +592,8 @@ class TblEditor(wx.Dialog):
             if not self.cell_ok_to_save(self.current_row_idx, 
                                         self.current_col_idx):
                 move_to_dest = False
-            elif not self.row_ok_to_save(self.current_row_idx):
+            elif not self.row_ok_to_save(row=self.current_row_idx, 
+                                   col2skip=self.current_col_idx): # just passed
                 move_to_dest = False
             else:
                 move_to_dest = self.save_row(self.current_row_idx)
@@ -745,14 +746,18 @@ class TblEditor(wx.Dialog):
             not missing_not_nullable_prob
         return ok_to_save
 
-    def row_ok_to_save(self, row):
+    def row_ok_to_save(self, row, col2skip=None):
         """
         Each cell must be OK to save.  NB validation may be stricter than what 
             the database will accept into its fields e.g. must be one of three 
             strings ("Numeric", "Text", or "Date").
+        col2skip -- so we can skip validating a cell that has just passed e.g. 
+            in leaving_new_row 
         """
         if self.debug: print("row_ok_to_save - row %s" % row)
         for col_idx in range(len(dd.flds)):
+            if col_idx == col2skip:
+                continue
             if not self.cell_ok_to_save(row=row, col=col_idx):
                 wx.MessageBox(_("Unable to save new row.  Invalid value "
                               "in column") + "%s" % (col_idx + 1))

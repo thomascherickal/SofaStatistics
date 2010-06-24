@@ -129,16 +129,19 @@ class SettingsEntryDlg(wx.Dialog):
         event.Skip()
         
     
-def cell_invalidation(row, col, grid, col_dets):
+def cell_invalidation(val, row, col, grid, col_dets):
     "Return boolean and string message"
     return False, ""
+
+def cell_response(self, val, row, col, grid, col_dets):
+    pass
 
 
 class SettingsEntry(object):
     
     def __init__(self, frame, panel, readonly, grid_size, col_dets, data, 
                  config_data, force_focus=False, insert_data_func=None, 
-                 cell_invalidation_func=None):
+                 cell_invalidation_func=None, cell_response_func=None):
         """
         col_dets - list of dic.  Keys = "col_label", "col_type", 
             and, optionally, "col_width", "file_phrase", "file_wildcard", 
@@ -152,6 +155,8 @@ class SettingsEntry(object):
         insert_data_func - return row_data and receive row_idx, grid_data
         cell_invalidation_func - return boolean, and string message 
             and receives row, col, grid, col_dets
+        cell_response_func -- some code run when leaving a valid cell e.g. might
+            tell user something about the value they just entered
         """
         self.debug = False
         self.new_is_dirty = False
@@ -163,6 +168,8 @@ class SettingsEntry(object):
         self.insert_data_func = insert_data_func
         self.cell_invalidation_func = cell_invalidation_func \
             if cell_invalidation_func else cell_invalidation
+        self.cell_response_func = cell_response_func \
+            if cell_response_func else cell_response
         # store any fixed min col_widths
         self.col_widths = [None for x in range(len(self.col_dets))] # initialise
         for col_idx, col_det in enumerate(self.col_dets):
@@ -667,8 +674,9 @@ class SettingsEntry(object):
         """
         debug = False
         if self.debug or debug: print(u"Moving within new row")
-        invalid, msg = self.cell_invalid(self.current_row_idx, 
-                                         self.current_col_idx)
+        row = self.current_row_idx
+        col = self.current_col_idx
+        invalid, msg = self.cell_invalid(row, col)
         if msg: wx.MessageBox(msg)
         move_to_dest = not invalid 
         return move_to_dest
@@ -700,7 +708,8 @@ class SettingsEntry(object):
             if not ok_to_save:
                 wx.MessageBox(msg)
                 move_to_dest = False
-            elif not self.row_ok_to_save(self.current_row_idx):
+            elif not self.row_ok_to_save(row=self.current_row_idx,
+                                   col2skip=self.current_col_idx): # just passed
                 move_to_dest = False
             else:
                 move_to_dest = True
@@ -725,7 +734,9 @@ class SettingsEntry(object):
         NB must flush values in any open editors onto grid.
         """
         self.grid.DisableCellEditControl()
-        return self.cell_invalidation_func(row, col, self.grid, self.col_dets)
+        val = self.get_val(row, col)
+        return self.cell_invalidation_func(val, row, col, self.grid, 
+                                           self.col_dets)
     
     def get_val(self, row, col):
         """
@@ -752,20 +763,27 @@ class SettingsEntry(object):
             print(u"cell_ok_to_save - row: %s, col: %s, " % (row, col) +
                 u"empty_ok: %s, cell_val: %s" % (empty_ok, cell_val))
         empty_not_ok_prob = (cell_val == "" and not empty_ok)
-        valid, msg = self.cell_invalid(row, col)
+        invalid, msg = self.cell_invalid(row, col)
+        if not invalid:
+            self.cell_response_func(self.frame, cell_val, row, col, self.grid, 
+                                    self.col_dets)
         if not msg and empty_not_ok_prob:
             msg = _("Data cell cannot be empty.")
-        ok_to_save = not valid and not empty_not_ok_prob
+        ok_to_save = not invalid and not empty_not_ok_prob
         return ok_to_save, msg
 
-    def row_ok_to_save(self, row):
+    def row_ok_to_save(self, row, col2skip=None):
         """
         Each cell must be OK to save.  NB validation may be stricter than what 
             the database will accept into its fields e.g. must be one of three 
             strings ("Numeric", "Text", or "Date").
+        col2skip -- so we can skip validating a cell that has just passed e.g. 
+            in leaving_new_row 
         """
         if self.debug: print(u"row_ok_to_save - row %s" % row)
         for col_idx, col_det in enumerate(self.col_dets):
+            if col_idx == col2skip:
+                continue
             ok_to_save, msg = self.cell_ok_to_save(row=row, col=col_idx)
             if not ok_to_save:
                 wx.MessageBox(_("Unable to save new row.  Invalid value "

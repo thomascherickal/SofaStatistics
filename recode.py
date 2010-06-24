@@ -152,6 +152,36 @@ def process_label(dict_labels, fld_type, new, label):
     if fld_type in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
         new = val_quoter(new)
     dict_labels[new] = val_quoter(label)
+    
+def warn_about_existing_labels(recode_dlg, val, row, col, grid, col_dets):
+    """
+    If a non-empty value, check to see if this variable has value labels 
+        already.  If it does, let the user know.
+    """
+    debug = False
+    if recode_dlg.new_fldname in recode_dlg.warned: # once is enough
+        return
+    if col == 2 and val != u"" and recode_dlg.new_fldname != u"":
+        recode_dlg.warned.append(recode_dlg.new_fldname)
+        if debug: print(recode_dlg.new_fldname)
+        if recode_dlg.val_dics.get(recode_dlg.new_fldname):
+            if debug: print(recode_dlg.val_dics[recode_dlg.new_fldname])
+            max_width = 0
+            fld_val_dic = recode_dlg.val_dics[recode_dlg.new_fldname]
+            for key, label in fld_val_dic.items():
+                max_width = len(unicode(key)) if len(unicode(key)) > max_width \
+                    else max_width
+            existing_labels_lst = []
+            for key, label in fld_val_dic.items():
+                display = u"%s:   %s" % (unicode(key).ljust(max_width), label)
+                existing_labels_lst.append(display)
+            existing_labels = u"\n".join(existing_labels_lst)
+            wx.MessageBox(_("\"%(new_fldname)s\" already has value labels set. "
+                            "Only add labels here if you wish to add to or "
+                            "override existing value labels\n\n"
+                            "Existing labels:\n\n%(existing_labels)s") % 
+                            {"new_fldname": recode_dlg.new_fldname, 
+                             "existing_labels": existing_labels})
 
 
 class RecodeDlg(settings_grid.SettingsEntryDlg):
@@ -163,6 +193,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             mg.TBL_FLD_NAME_ORIG, mg.TBL_FLD_TYPE, mg.TBL_FLD_TYPE_ORIG.
         """
         self.tblname = tblname
+        self.warned = [] # For cell_response_func.  Lists vars warned about.
         col_dets = [
                     {"col_label": _("From"), "col_type": settings_grid.COL_STR, 
                      "col_width": 200},
@@ -191,19 +222,26 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         self.fld_types = [x[0] for x in fld_dets]
         self.fld_names = [x[1] for x in fld_dets]
         self.fld_choices = [x[2] for x in fld_dets]
+        self.fldname = self.fld_names[0]
+        self.new_fldname = u""
         self.drop_from = wx.Choice(self.panel, -1, choices=self.fld_choices, 
                                    size=(250,-1))
+        self.drop_from.Bind(wx.EVT_CHOICE, self.on_var_sel)
         self.drop_from.Bind(wx.EVT_CONTEXT_MENU, self.on_var_rclick)
         self.drop_from.SetToolTipString(_("Right click to view variable "
                                           "details"))
         lbl_to = wx.StaticText(self.panel, -1, u"To:")
         lbl_to.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         self.txt_to = wx.TextCtrl(self.panel, -1, size=(250, -1))
+        self.txt_to.Bind(wx.EVT_CHAR, self.on_txt_to_char)
         data = []
         self.recode_config_data = []
         self.tabentry = settings_grid.SettingsEntry(self, self.panel, False, 
-                                                    grid_size, col_dets, data, 
-                                                    self.recode_config_data)
+                            grid_size, col_dets, data, self.recode_config_data,
+                            cell_response_func=warn_about_existing_labels)
+        self.tabentry.grid.Enable(False)
+        self.tabentry.grid.SetToolTipString(_("Disabled until there is a "
+                                              "variable to recode to"))
         btn_cancel = wx.Button(self.panel, wx.ID_CANCEL)
         btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
         btn_help = wx.Button(self.panel, wx.ID_HELP)
@@ -232,14 +270,31 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         self.Layout()
         self.drop_from.SetFocus()
 
-    def on_var_rclick(self, event):
+    def on_var_sel(self, event):
         var_idx = self.drop_from.GetSelection()
-        var_name = self.fld_names[var_idx]
-        var_label = lib.get_item_label(self.var_labels, var_name)
-        choice_item = lib.get_choice_item(self.var_labels, var_name)
-        updated = projects.set_var_props(choice_item, var_name, var_label, 
+        self.fldname = self.fld_names[var_idx]
+
+    def on_var_rclick(self, event):
+        var_label = lib.get_item_label(self.var_labels, self.fldname)
+        choice_item = lib.get_choice_item(self.var_labels, self.fldname)
+        updated = projects.set_var_props(choice_item, self.fldname, var_label, 
                                          self.var_labels, self.var_notes, 
                                          self.var_types, self.val_dics)
+    def on_txt_to_char(self, event):
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_RETURN:
+            self.tabentry.grid.SetFocus()
+            return
+        # NB callafter to allow data to updated in text ctrl
+        wx.CallAfter(self.update_new_fldname)
+        event.Skip()
+    
+    def update_new_fldname(self):
+        debug = False
+        self.new_fldname = self.txt_to.GetValue()
+        if debug: print(self.new_fldname)
+        enable = (self.new_fldname.strip() != u"")
+        self.tabentry.grid.Enable(enable)
 
     def on_cancel(self, event):
         self.Destroy()
@@ -345,7 +400,6 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         """
         debug = False
         fld_idx = self.drop_from.GetSelection()
-        fldname = self.fld_names[fld_idx]
         new_fldname = self.txt_to.GetValue()
         if not new_fldname:
             wx.MessageBox(_("Please add a new field name"))
@@ -364,7 +418,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         self.tabentry.update_config_data()
         if debug: 
             print(pprint.pformat(self.recode_config_data))
-            print(fldname)
+            print(self.fldname)
             print(fld_type)
         # get settings (and build labels)
         if not self.recode_config_data:
@@ -380,7 +434,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         for orig, new, label in self.recode_config_data:
             if debug: print(orig, new, label)
             try:
-                orig_clause = process_orig(orig, fldname, fld_type)
+                orig_clause = process_orig(orig, self.fldname, fld_type)
             except Exception, e:
                 wx.MessageBox(_("Problem with your recode configuration. Orig "
                                 "error: %s" % e))
@@ -399,10 +453,10 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             pprint.pprint(case_when)
         oth_name_types = getdata.get_oth_name_types(self.config_data)
         # insert new field just after the source field
-        if fldname == mg.SOFA_ID:
+        if self.fldname == mg.SOFA_ID:
             idx_orig_fld = 0
         else:
-            idx_orig_fld = [x[0] for x in oth_name_types].index(fldname)
+            idx_orig_fld = [x[0] for x in oth_name_types].index(self.fldname)
         oth_name_types.insert(idx_orig_fld+1,(new_fldname, new_fld_type))
         try:
             self.recode_tbl(case_when, oth_name_types, idx_orig_fld)
@@ -411,6 +465,6 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                             "are edited"))
         except Exception, e:
             raise Exception, _("Problem recoding table. Orig error: %s") % e
-        self.update_labels(fldname, dict_labels)
+        self.update_labels(self.fldname, dict_labels)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
