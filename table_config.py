@@ -447,6 +447,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         if not readonly:
             btn_recode = wx.Button(self.panel, -1, _("Recode"))
             btn_recode.Bind(wx.EVT_BUTTON, self.on_recode)
+            btn_recode.SetToolTipString(_("Recode values from one field into a "
+                                          "new field"))
         # sizers
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         self.szr_tbl_label = wx.BoxSizer(wx.HORIZONTAL)

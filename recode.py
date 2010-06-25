@@ -184,6 +184,58 @@ def warn_about_existing_labels(recode_dlg, val, row, col, grid, col_dets):
                              "existing_labels": existing_labels})
 
 
+class RecodeHelpDlg(wx.Dialog):
+    def __init__(self, parent):
+        debug = False
+        wx.Dialog.__init__(self, parent=parent, title=_("Recoding Help"), 
+                           style=wx.CAPTION|wx.SYSTEM_MENU, 
+                           pos=(mg.HORIZ_OFFSET+100,100))
+        self.panel = wx.Panel(self)
+        bx_rules = wx.StaticBox(self.panel, -1, _("Recoding Rules"))
+        szr_rules = wx.StaticBoxSizer(bx_rules, wx.VERTICAL)
+        lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
+        szr_main = wx.BoxSizer(wx.VERTICAL)
+        rules = _("1. Ranges use the keyword TO e.g. \"150 TO 250\". "
+            "All keywords must be upper case, so \"TO\" will work but \"to\" "
+            "will not.\n\n2. \"MIN\" and \"MAX\" can be used in ranges e.g. "
+            "\"MIN TO 100\", or \"100 TO MAX\". You can even use \"MIN TO MAX\""
+            " if you\n    want to leave out missing values.\n\n3. \"REMAINING\""
+            " and \"MISSING\" are the two remaining keywords you can use\n"
+            "    e.g. if you want all missing values to become 99 you would "
+            "have a line with From as \"MISSING\", and To as 99\n\n4. Only one "
+            "condition is allowed per line. So if you want to recode <=5 and "
+            "10+ to 99 you would have one line with \n\n    \"MIN TO 5\" as "
+            "From and 99 as To \n\n        and another line with\n\n"
+            "    \"10 TO MAX\" as From and 99 as To.")
+        lbl_rules = wx.StaticText(self.panel, -1, rules)
+        szr_rules.Add(lbl_rules, 1, wx.GROW|wx.ALL, 10)
+        btn_online_help = wx.Button(self.panel, -1, _("Online Help"))
+        btn_online_help.Bind(wx.EVT_BUTTON, self.on_online_help)
+        btn_online_help.SetToolTipString(_("Get more help with recoding "
+                                           "online"))
+        btn_close = wx.Button(self.panel, wx.ID_CLOSE)
+        btn_close.Bind(wx.EVT_BUTTON, self.on_close)
+        szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
+        szr_btns.AddGrowableCol(1,2) # idx, propn
+        szr_btns.Add(btn_online_help, 0)
+        szr_btns.Add(btn_close, 0, wx.ALIGN_RIGHT)
+        szr_main.Add(szr_rules, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
+        self.panel.SetSizer(szr_main)
+        szr_main.SetSizeHints(self)
+        self.Layout()
+        
+    def on_online_help(self, event):
+        import webbrowser
+        url = (u"http://www.sofastatistics.com/wiki/doku.php"
+               u"?id=help:recoding_data")
+        webbrowser.open_new_tab(url)
+        event.Skip()
+        
+    def on_close(self, event):
+        self.Destroy()
+        
+
 class RecodeDlg(settings_grid.SettingsEntryDlg):
     
     def __init__(self, tblname, fld_settings):
@@ -303,7 +355,9 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         self.SetReturnCode(wx.ID_CANCEL)
 
     def on_help(self, event):
-        pass
+        dlg = RecodeHelpDlg(self)
+        dlg.ShowModal()
+        event.Skip()
     
     def recover_from_failed_recode(self):
         """
