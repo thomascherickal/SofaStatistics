@@ -169,7 +169,8 @@ class DataSelectDlg(wx.Dialog):
 
     def on_design(self, event):
         """
-        Open table config which reads values for the table.
+        Open table config dlg which starts with the design settings for the 
+            table (fld names and types).
         NB only enabled (for either viewing or editing) for the default SQLite 
             database.
         """
@@ -181,13 +182,14 @@ class DataSelectDlg(wx.Dialog):
             self.chk_readonly.SetValue(True)
             readonly = True
         tbl_name_lst = [dd.tbl,]
-        data = getdata.get_tbl_config(dd.tbl)
-        if debug: print("Initial table config data: %s" % data)
-        config_data = []     
-        dlgConfig = table_config.ConfigTableDlg(self.var_labels, self.val_dics, 
-                                                tbl_name_lst, data, config_data, 
-                                                readonly, new=False)
-        ret = dlgConfig.ShowModal()
+        init_settings_data = getdata.get_init_settings_data(dd.tbl)
+        if debug: print("Initial table_config data: %s" % init_settings_data)
+        settings_data = [] # can read final result at the end  
+        dlg_config = table_config.ConfigTableDlg(self.var_labels, self.val_dics, 
+                                            tbl_name_lst, init_settings_data, 
+                                            settings_data, readonly, new=False)
+        ret = dlg_config.ShowModal()
+        if debug: pprint.pprint(settings_data)
         if ret == mg.RET_CHANGED_DESIGN and not readonly:
             # update tbl dropdown
             self.reset_tbl_dropdown()
@@ -210,14 +212,13 @@ class DataSelectDlg(wx.Dialog):
                             "be made there."))
             return
         tbl_name_lst = [] # not quite worth using validator mechanism ;-)
-        data = [("sofa_id", "Numeric"),
-                ("var001", "Numeric"),
-                ]
-        config_data = []
-        dlgConfig = table_config.ConfigTableDlg(self.var_labels, self.val_dics, 
-                                                tbl_name_lst, data, config_data, 
-                                                readonly=False, new=True)
-        ret = dlgConfig.ShowModal()
+        init_settings_data = [("sofa_id", "Numeric"), ("var001", "Numeric"),]
+        settings_data = [] # can read final result at the end  
+        dlg_config = table_config.ConfigTableDlg(self.var_labels, self.val_dics, 
+                                tbl_name_lst, init_settings_data, settings_data, 
+                                readonly=False, new=True)
+        ret = dlg_config.ShowModal()
+        if debug: pprint.pprint(settings_data)
         if ret != mg.RET_CHANGED_DESIGN:
             event.Skip()
             return

@@ -106,7 +106,7 @@ def wipe_tbl(tblname):
     dd.cur.execute(SQL_drop_orig)
     dd.con.commit()
  
-def make_strict_typing_tbl(orig_tbl_name, oth_name_types, config_data):
+def make_strict_typing_tbl(orig_tbl_name, oth_name_types, settings_data):
     """
     Make table for purpose of forcing all data into strict type fields.  Not
         necessary to check sofa_id field (autoincremented integer) so not 
@@ -118,7 +118,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, config_data):
     Try to insert into strict table all fields in original table (apart from 
         the sofa_id which will be autoincremented from scratch).
     oth_name_types - name, type tuples excluding sofa_id.
-    config_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
+    settings_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
     debug = False
@@ -139,7 +139,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, config_data):
     dd.cur.execute(SQL_make_tmp_tbl)
     # unable to use CREATE ... AS SELECT at same time as defining table.
     # attempt to insert data into strictly-typed fields.
-    select_fld_clause = getdata.make_flds_clause(config_data)
+    select_fld_clause = getdata.make_flds_clause(settings_data)
     SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (tmp_name, 
                                                 select_fld_clause, 
                                                 obj_quoter(orig_tbl_name))
@@ -147,11 +147,11 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, config_data):
     dd.cur.execute(SQL_insert_all)
     dd.con.commit()
 
-def make_redesigned_tbl(final_name, oth_name_types, config_data):
+def make_redesigned_tbl(final_name, oth_name_types, settings_data):
     """
     Make new table with all the fields from the tmp table (which doesn't 
         have the sofa_id field) plus the sofa_id field.
-    config_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
+    settings_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     Don't want new table to have any contraints which rely on user-defined 
         functions.
@@ -382,15 +382,16 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             color: #5f5f5f; # more clearly just demo data
         }"""
     
-    def __init__(self, var_labels, val_dics, tbl_name_lst, data, config_data, 
-                 readonly=False, new=False, insert_data_func=None, 
-                 cell_invalidation_func=None, cell_response_func=None):
+    def __init__(self, var_labels, val_dics, tbl_name_lst, init_settings_data, 
+                 settings_data, readonly=False, new=False, 
+                 insert_data_func=None, cell_invalidation_func=None, 
+                 cell_response_func=None):
         """
         tbl_name_lst -- passed in as a list so changes can be made without 
             having to return anything. 
-        data -- list of tuples (tuples must have at least one item, even if only 
-            a "rename me").  Empty list ok.
-        config_data -- add details to it in form of a list of dicts. Available
+        init_settings_data -- list of tuples (tuples must have at least one 
+            item, even if only a "rename me").  Empty list ok.
+        settings_data -- add details to it in form of a list of dicts. Available
             in code which called this.
         """
         self.new = new
@@ -405,12 +406,13 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             name_ok_to_reuse = None
         self.tbl_name_lst = tbl_name_lst
         # set up new grid data based on data
-        self.config_data = config_data
-        if config_data:
-            raise Exception, (u"config_data should always start off empty ready"
-                              u" to received values")
-        self.init_data = data[:] # can check to see if end result changed
-        self.setup_config_data(data)
+        self.settings_data = settings_data
+        if settings_data:
+            raise Exception, (u"settings_data should always start off empty "
+                              u"ready to received values")
+        self.init_settings_data = init_settings_data[:] # can check if end 
+            # result changed
+        self.setup_settings_data(init_settings_data)
         self.readonly = readonly
         if not insert_data_func:
             insert_data_func = insert_data
@@ -440,10 +442,10 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         lbl_tbl_label = wx.StaticText(self.panel, -1, _("Table Name:"))
         lbl_tbl_label.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         self.tblname = tbl_name_lst[0] if tbl_name_lst else _("table") + u"001"
-        self.txt_tbl_name = wx.TextCtrl(self.panel, -1, self.tblname, 
+        self.txt_tblname = wx.TextCtrl(self.panel, -1, self.tblname, 
                                         size=(450,-1))
-        self.txt_tbl_name.Enable(not self.readonly)
-        self.txt_tbl_name.SetValidator(SafeTblNameValidator(name_ok_to_reuse))
+        self.txt_tblname.Enable(not self.readonly)
+        self.txt_tblname.SetValidator(SafeTblNameValidator(name_ok_to_reuse))
         if not readonly:
             btn_recode = wx.Button(self.panel, -1, _("Recode"))
             btn_recode.Bind(wx.EVT_BUTTON, self.on_recode)
@@ -454,7 +456,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         szr_design_left = wx.BoxSizer(wx.VERTICAL)
         szr_design_right = wx.BoxSizer(wx.VERTICAL)
         self.szr_tbl_label.Add(lbl_tbl_label, 0, wx.RIGHT, 5)
-        self.szr_tbl_label.Add(self.txt_tbl_name, 0)
+        self.szr_tbl_label.Add(self.txt_tblname, 0)
         bold = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         design_here_lbl = _("Design Here:") if not self.readonly \
             else _("Design:")
@@ -471,9 +473,9 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                             _("The sofa_id is required and cannot be edited"))
             szr_design_left.Add(lbl_sofa_id, 0)
         self.tabentry = ConfigTableEntry(self, self.panel, self.readonly, 
-                                    grid_size, col_dets, data, config_data, 
-                                    insert_data_func, cell_invalidation_func,
-                                    cell_response_func)
+                                    grid_size, col_dets, init_settings_data, 
+                                    settings_data, insert_data_func, 
+                                    cell_invalidation_func, cell_response_func)
         szr_design_left.Add(self.tabentry.grid, 1, wx.GROW|wx.ALL, 5)
         szr_design_right.Add(lbl_see_result, 0)
         szr_design_right.Add(self.html, 1, wx.GROW|wx.ALL, 10)
@@ -489,19 +491,22 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.panel.SetSizer(self.szr_main)
         self.szr_main.SetSizeHints(self)
         self.Layout()
-        self.txt_tbl_name.SetFocus()
+        self.txt_tblname.SetFocus()
     
     def get_demo_val(self, row_idx, col_label, type):
         """
         Get best possible demo value for display in absence of source data.
         """
+        val = None
         if col_label.lower() == mg.SOFA_ID:
-            val = row_idx+1
+            val = row_idx + 1
         else:
-            if self.val_dics.get(col_label):
+            try:
                 val = random.choice(self.val_dics[col_label])
-            else:
-                val = lib.get_rand_val_of_type(type)
+            except Exception:
+                pass
+        if val is None:
+            val = lib.get_rand_val_of_type(type)
         return val
     
     def get_demo_row_lst(self, row_idx, design_flds_col_labels, 
@@ -577,10 +582,10 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             to type.
         """
         debug = False
-        if not self.config_data:
+        if not self.settings_data:
             self.html.show_html(WAITING_MSG)
             return
-        if debug: print(self.config_data)
+        if debug: print(self.settings_data)
         # 1) part before the table-specific items e.g. column names and data
         html = [mg.DEFAULT_HDR % (u"Demonstration table", self.styles)]
         html.append(u"<table cellspacing='0'>\n<thead>\n<tr>")
@@ -593,7 +598,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         design_flds_new_names = []
         design_flds_col_labels = []
         design_flds_types = []
-        for data_dict in self.config_data:
+        for data_dict in self.settings_data:
             # all must have same num of elements (even if a None) in same order
             fldname = data_dict[mg.TBL_FLD_NAME]
             design_flds_new_names.append(fldname)
@@ -634,13 +639,13 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         html2show = u"".join(html)
         self.html.show_html(html2show)
     
-    def setup_config_data(self, data):
+    def setup_settings_data(self, data):
         debug = False
         extra = []
         # need to stay pointed to same memory but empty it
         while True:
             try:
-                del self.config_data[0]
+                del self.settings_data[0]
             except IndexError:
                 break
         for row in data:
@@ -649,8 +654,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                        mg.TBL_FLD_TYPE: row[1], 
                        mg.TBL_FLD_TYPE_ORIG: row[1]}
             extra.append(new_row)
-        self.config_data += extra
-        if debug: print("Initialised config data: %s" % self.config_data)
+        self.settings_data += extra
+        if debug: print("Initialised settings data: %s" % self.settings_data)
     
     def insert_before(self):
         """
@@ -673,35 +678,36 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
     def on_insert(self, event):
         """
         Insert before.
-        Overridden so we can update config_data with details of new row.
+        Overridden so we can update settings_data with details of new row.
         Also need overridden insert_before().
         """
         bolinserted, row_before, row_data = self.insert_before()
         if bolinserted:
-            self.add_new_to_config(row_before, row_data) # should be only change
+            # should be only change
+            self.add_new_to_settings(row_before, row_data)
             self.update_demo()
         self.tabentry.grid.SetFocus()
         event.Skip()
     
-    def add_new_to_config(self, row_before, row_data):
+    def add_new_to_settings(self, row_before, row_data):
         if self.debug: print("Row we inserted before was %s" % row_before)
-        # insert new row into config_data - Nones for original values
+        # insert new row into settings_data - Nones for original values
         new_row = {mg.TBL_FLD_NAME: row_data[0], 
                    mg.TBL_FLD_NAME_ORIG: None, 
                    mg.TBL_FLD_TYPE: row_data[1], 
                    mg.TBL_FLD_TYPE_ORIG: None}
-        self.config_data.insert(row_before, new_row)
-        if self.debug: pprint.pprint(self.config_data)
+        self.settings_data.insert(row_before, new_row)
+        if self.debug: pprint.pprint(self.settings_data)
             
     def on_delete(self, event):
-        "Overridden so we can update config_data."
+        "Overridden so we can update settings_data."
         row_del = self.tabentry.try_to_delete_row()
         if row_del is not None:
             if self.debug: print("Row deleted was %s" % row_del)
-            # remove row from config_data.
-            del self.config_data[row_del]
+            # remove row from settings_data.
+            del self.settings_data[row_del]
             self.update_demo()
-            if self.debug: pprint.pprint(self.config_data)
+            if self.debug: pprint.pprint(self.settings_data)
         self.tabentry.grid.SetFocus()
         event.Skip()
     
@@ -713,7 +719,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         Do not use check constraints (based on user-defined functions) or else 
             only SOFA will be able to open the SQLite database.
         """       
-        oth_name_types = getdata.get_oth_name_types(self.config_data)
+        oth_name_types = getdata.get_oth_name_types(self.settings_data)
         tbl_name = self.tbl_name_lst[0] 
         getdata.make_sofa_tbl(dd.con, dd.cur, tbl_name, oth_name_types)
         wx.MessageBox(_("Your new table has been added to the default SOFA "
@@ -739,12 +745,12 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         debug = False
         orig_tbl_name = dd.tbl
         # other (i.e. not the sofa_id) field details
-        oth_name_types = getdata.get_oth_name_types(self.config_data)
+        oth_name_types = getdata.get_oth_name_types(self.settings_data)
         if debug: print("oth_name_types to feed into make_strict_typing_tbl %s" 
                         % oth_name_types)
         try:
             make_strict_typing_tbl(orig_tbl_name, oth_name_types, 
-                                   self.config_data)
+                                   self.settings_data)
         except sqlite.IntegrityError, e:
             if debug: print(unicode(e))
             dd.con.commit()
@@ -758,7 +764,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         wipe_tbl(orig_tbl_name)
         final_name = self.tbl_name_lst[0] # may have been renamed
         try:
-            make_redesigned_tbl(final_name, oth_name_types, self.config_data)
+            make_redesigned_tbl(final_name, oth_name_types, self.settings_data)
         except Exception:
             restore_copy_tbl(orig_tbl_name)
         wipe_tbl(mg.TMP_TBL_NAME2)
@@ -774,12 +780,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                 return True
         if self.tbl_name_lst: # empty ready to repopulate
             del self.tbl_name_lst[0]
-        tblname = self.txt_tbl_name.GetValue()
+        tblname = self.txt_tblname.GetValue()
         self.tbl_name_lst.append(tblname)
-        self.tabentry.update_config_data()
-        if debug:
-            print("Config data coming back:") 
-            pprint.pprint(self.config_data)
         if self.new:
             self.make_new_tbl()
         else:
@@ -805,12 +807,12 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.tabentry.grid.ForceRefresh()
         self.tabentry.safe_layout_adjustment()
         # get list of name/type tuples (including sofa_id)
-        data = getdata.get_tbl_config(self.tblname)
-        self.setup_config_data(data)
-        self.tabentry.rows_n = len(data) + 1 # + new row
+        init_settings_data = getdata.get_init_settings_data(self.tblname)
+        self.setup_settings_data(init_settings_data)
+        self.tabentry.rows_n = len(init_settings_data) + 1 # + new row
         self.tabentry.rows_to_fill = self.tabentry.rows_n
         # using default renderer and editor fine (text)
-        for row_idx, nametype in enumerate(data):
+        for row_idx, nametype in enumerate(init_settings_data):
             if row_idx == 0:
                 continue # sofa_id already there (and blue, read-only etc)
             fldname, fldtype = nametype
@@ -833,25 +835,37 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.update_demo()
 
     def on_recode(self, event):
-        # wx.MessageBox(_("Not yet available in this version"))
+        wx.MessageBox(_("Recoding is only available in this version of SOFA on "
+                        "an experimental basis.  Your feedback is welcome at " 
+                        "grant@sofastatistics.com"))
         debug = False
         if self.readonly:
-            raise Exception, "Can't recode a read only table"
-        self.tabentry.update_config_data()
+            raise Exception, _("Can't recode a read only table")
+        self.tabentry.update_settings_data()
         if debug:
-            print(self.init_data)
-            print(self.config_data)
+            print(u"init_settings_data: %s" % self.init_settings_data)
+            print(self.settings_data)
+        # save any changes in table_config dlg first
         tblname = self.tbl_name_lst[0]
-        tblname_changed = (tblname != self.txt_tbl_name.GetValue())
-        data_changed = has_data_changed(orig_data=self.init_data, 
-                                        final_data=self.config_data)
+        tblname_changed = (tblname != self.txt_tblname.GetValue())
+        data_changed = has_data_changed(orig_data=self.init_settings_data, 
+                                        final_data=self.settings_data)
         if tblname_changed or data_changed:
             ret = wx.MessageBox(_("You will need to save the changes you made "
                                   "first. Save changes and continue?"),
                                   caption=_("SAVE CHANGES?"), style=wx.YES_NO)
             if ret == wx.YES:
                 try:
-                    self.make_changes()
+                    self.tabentry.update_settings_data()
+                    self.make_changes() # pre-recode
+                    self.init_settings_data = [(x[mg.TBL_FLD_NAME], 
+                                                x[mg.TBL_FLD_TYPE]) 
+                                                for x in self.settings_data]
+                    if debug:
+                        print("settings_data coming back after update:") 
+                        pprint.pprint(self.settings_data)
+                        pprint.pprint(u"init_settings_data after update: %s" % 
+                                                        self.init_settings_data)
                 except FldMismatchException:
                      wx.MessageBox(_("Unable to modify table. Some data does "
                                      "not match the column type. Please edit "
@@ -859,11 +873,22 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                      return
             else:
                 return
-        dlg = recode.RecodeDlg(tblname, self.config_data)
+        # open recode dialog
+        dlg = recode.RecodeDlg(tblname, self.settings_data)
         ret = dlg.ShowModal()
-        if ret == wx.ID_OK:
+        if ret == wx.ID_OK: # run recode
             self.refresh_dlg()
-    
+            # now that the grid has been updated, we can update settings data 
+            # (which does it from the grid)
+            self.tabentry.update_settings_data()
+            self.init_settings_data = [(x[mg.TBL_FLD_NAME], x[mg.TBL_FLD_TYPE]) 
+                                                    for x in self.settings_data]
+            if debug:
+                print(u"Returned settings_data after recode: %s" % 
+                                                            self.settings_data)
+                pprint.pprint(u"init_settings_data after recode: %s" % 
+                                                        self.init_settings_data)
+            
     def on_cancel(self, event):
         """
         Override so can change return value.
@@ -890,19 +915,19 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
     
 class ConfigTableEntry(settings_grid.SettingsEntry):
     """
-    config_data should be returned as a list of dicts with the keys:
+    settings_data should be returned as a list of dicts with the keys:
         mg.TBL_FLD_NAME, etc
     """
     
-    def __init__(self, frame, panel, readonly, grid_size, col_dets, data, 
-            config_data, insert_data_func=None, cell_invalidation_func=None,
-            cell_response_func=None):
+    def __init__(self, frame, panel, readonly, grid_size, col_dets, 
+                 init_settings_data, settings_data, insert_data_func=None, 
+                 cell_invalidation_func=None, cell_response_func=None):
         self.frame = frame
         self.readonly = readonly
         force_focus = False
         settings_grid.SettingsEntry.__init__(self, frame, panel, readonly, 
-                                   grid_size, col_dets, data, config_data, 
-                                   force_focus, insert_data_func, 
+                                   grid_size, col_dets, init_settings_data, 
+                                   settings_data, force_focus, insert_data_func, 
                                    cell_invalidation_func, cell_response_func)
         self.debug = False # otherwise set in the parent class ;-)
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
@@ -945,34 +970,37 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
             # For row we're leaving, fill in new details.
             # If an existing row, leave original values alone.
             try:
-                self.config_data[src_row][mg.TBL_FLD_NAME] = fld_name
-                self.config_data[src_row][mg.TBL_FLD_TYPE] = fld_type
+                self.settings_data[src_row][mg.TBL_FLD_NAME] = fld_name
+                self.settings_data[src_row][mg.TBL_FLD_TYPE] = fld_type
             except IndexError: # leaving what was the new row
                 new_row = {mg.TBL_FLD_NAME: fld_name, 
                            mg.TBL_FLD_NAME_ORIG: None, 
                            mg.TBL_FLD_TYPE: fld_type, 
                            mg.TBL_FLD_TYPE_ORIG: None}
-                self.config_data.append(new_row)
-            if self.debug or debug: pprint.pprint(self.config_data)
+                self.settings_data.append(new_row)
+            if self.debug or debug: pprint.pprint(self.settings_data)
             self.frame.update_demo()
         else:
-            if src_row == len(self.config_data):
+            if src_row == len(self.settings_data):
                 # arriving at final row on init
                 changed = False
             else:
                 try:
-                    changed = \
-                        ((fld_name != self.config_data[src_row][mg.TBL_FLD_NAME]) \
-                        or (fld_type != self.config_data[src_row][mg.TBL_FLD_TYPE]))
+                    settings_fldname = \
+                                    self.settings_data[src_row][mg.TBL_FLD_NAME]
+                    settings_fldtype = \
+                                    self.settings_data[src_row][mg.TBL_FLD_TYPE]
+                    changed = ((fld_name != settings_fldname) \
+                                    or (fld_type != settings_fldtype))
                 except IndexError:
                     changed = True
             if changed:
-                self.update_config_data()
+                self.update_settings_data()
                 self.frame.update_demo()
             
-    def update_config_data(self):
+    def update_settings_data(self):
         """
-        Update config_data.  Overridden so we can include original field 
+        Update settings_data.  Overridden so we can include original field 
             details (needed when making new version of the original table).
         Fill in details of fld_names and fld_types (leaving original versions
             untouched). 
@@ -982,15 +1010,15 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
         grid_data = self.get_grid_data() # only saved data
         if debug: 
             print("grid data: %s" % grid_data)
-            print("Original config data:")
-            pprint.pprint(self.config_data)
+            print("Original settings data:")
+            pprint.pprint(self.settings_data)
         for i, row in enumerate(grid_data):
             if debug: print(row)
-            self.config_data[i][mg.TBL_FLD_NAME] = row[0]
-            self.config_data[i][mg.TBL_FLD_TYPE] = row[1]
+            self.settings_data[i][mg.TBL_FLD_NAME] = row[0]
+            self.settings_data[i][mg.TBL_FLD_TYPE] = row[1]
         if self.debug or debug:
-            print("Final config data:")
-            pprint.pprint(self.config_data)
+            print("Final settings data:")
+            pprint.pprint(self.settings_data)
     
     def ok_to_delete_row(self, row):
         """

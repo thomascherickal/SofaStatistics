@@ -186,11 +186,12 @@ def warn_about_existing_labels(recode_dlg, val, row, col, grid, col_dets):
 
 class RecodeDlg(settings_grid.SettingsEntryDlg):
     
-    def __init__(self, tblname, config_data):
+    def __init__(self, tblname, settings_data):
         """
         tblname -- table containing the variable we are recoding
-        config_data -- a list of dicts with the following keys: mg.TBL_FLD_NAME,
-            mg.TBL_FLD_NAME_ORIG, mg.TBL_FLD_TYPE, mg.TBL_FLD_TYPE_ORIG.
+        settings_data -- a list of dicts with the following keys: 
+            mg.TBL_FLD_NAME, mg.TBL_FLD_NAME_ORIG, mg.TBL_FLD_TYPE, 
+            mg.TBL_FLD_TYPE_ORIG.
         """
         self.tblname = tblname
         self.warned = [] # For cell_response_func.  Lists vars warned about.
@@ -212,12 +213,12 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         # New controls
         lbl_from = wx.StaticText(self.panel, -1, _("Recode:"))
         lbl_from.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.config_data = config_data
+        self.settings_data = settings_data
         # [('string', 'fname', 'fname (string)'), ...]
         # field type is used for validation and constructing recode SQL string
         fld_dets = [(x[mg.TBL_FLD_TYPE], x[mg.TBL_FLD_NAME],
                      u"%s (%s)" % (x[mg.TBL_FLD_NAME], x[mg.TBL_FLD_TYPE])) 
-                    for x in self.config_data]
+                    for x in self.settings_data]
         fld_dets.sort(key=lambda s: s[2].upper()) # needed consistent sorting
         self.fld_types = [x[0] for x in fld_dets]
         self.fld_names = [x[1] for x in fld_dets]
@@ -234,11 +235,12 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         lbl_to.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         self.txt_to = wx.TextCtrl(self.panel, -1, size=(250, -1))
         self.txt_to.Bind(wx.EVT_CHAR, self.on_txt_to_char)
-        data = []
-        self.recode_config_data = []
+        init_recode_clauses_data = []
+        self.recode_clauses_data = []
         self.tabentry = settings_grid.SettingsEntry(self, self.panel, False, 
-                            grid_size, col_dets, data, self.recode_config_data,
-                            cell_response_func=warn_about_existing_labels)
+                                grid_size, col_dets, init_recode_clauses_data, 
+                                self.recode_clauses_data,
+                                cell_response_func=warn_about_existing_labels)
         self.tabentry.grid.Enable(False)
         self.tabentry.grid.SetToolTipString(_("Disabled until there is a "
                                               "variable to recode to"))
@@ -322,10 +324,15 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         getdata.force_tbls_refresh()
         dd.set_db(dd.db, tbl=self.tblname) # refresh tbls downwards
     
-    def recode_tbl(self, case_when, oth_name_types, idx_orig_fld):
+    def recode_tbl(self, case_when, oth_name_types, 
+                   idx_new_fld_in_oth_name_types):
         """
         Build SQL, rename existing to tmp table, create empty table with orig 
-            name, and then mass into it. 
+            name, and then mass into it.
+        oth_name_types -- includes the new field
+        idx_new_fld_in_oth_name_types -- needed an index which could be used in 
+            oth_name_types. An idx for the orig field wouldn't work if the field 
+            was the sofa_id.
         """
         debug = False
         # rename table to tmp
@@ -338,24 +345,30 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         dd.cur.execute(SQL_rename_tbl)
         # create new table with orig name and extra field
         create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
-                                                strict_typing=False,
-                                                inc_sofa_id=True)
+                                                        strict_typing=False,
+                                                        inc_sofa_id=True)
         getdata.force_tbls_refresh()
         SQL_make_recoded_tbl = u"CREATE TABLE %s (%s) " % \
                                    (obj_quoter(self.tblname), create_fld_clause)
-        if debug: print(SQL_make_recoded_tbl)
+        if debug: print(u"SQL_make_recoded_tbl: %s" % SQL_make_recoded_tbl)
         dd.cur.execute(SQL_make_recoded_tbl)
         # want fields before new field, then case when, then any remaining flds
         fld_clauses_lst = []
         fld_clauses_lst.append(u"NULL AS %s" % obj_quoter(mg.SOFA_ID))
         # fldnames from start of other (non sofa_id) fields to before new field 
         # (may be none)
-        name_types_pre_new = oth_name_types[: idx_orig_fld+1]
+        if debug: 
+            print(u"oth_name_types: %s" % oth_name_types)
+            print(u"idx_new_fld_in_oth_name_types: %s" % 
+                  idx_new_fld_in_oth_name_types)
+        name_types_pre_new = oth_name_types[: idx_new_fld_in_oth_name_types]
+        if debug: print(u"name_types_pre_new: %s" % name_types_pre_new)
         for name, unused in name_types_pre_new:
             fld_clauses_lst.append(obj_quoter(name))
         fld_clauses_lst.append(case_when)
-        # want fields after new field (if any).  Skip 2 (orig fld, recoded fld)
-        name_types_post_new = oth_name_types[idx_orig_fld+2:]
+        # want fields after new field (if any).  Skip new recoded fld.
+        name_types_post_new = oth_name_types[idx_new_fld_in_oth_name_types+1:]
+        if debug: print(u"name_types_post_new: %s" % name_types_post_new)
         for name, unused in name_types_post_new:
             fld_clauses_lst.append(obj_quoter(name))
         fld_clauses = u",\n    ".join(fld_clauses_lst)
@@ -392,6 +405,34 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         projects.update_vdt(self.var_labels, self.var_notes, self.var_types, 
                             self.val_dics)
 
+    def get_case_when_clause(self, new_fldname, new_fldtype, fldtype, 
+                             dict_labels):
+        """
+        Recoding into new variable with a CASE WHEN SQL syntax clause.
+        """
+        debug = False
+        when_clauses = []
+        for orig, new, label in self.recode_clauses_data:
+            if debug: print(orig, new, label)
+            try:
+                orig_clause = process_orig(orig, self.fldname, fldtype)
+            except Exception, e:
+                wx.MessageBox(_("Problem with your recode configuration. Orig "
+                                "error: %s" % e))
+                return
+            process_label(dict_labels, fldtype, new, label)
+            when_clauses.append(make_when_clause(orig_clause, new, new_fldtype))
+        case_when_lst = []
+        case_when_lst.append(u"    CASE")
+        case_when_lst.extend(when_clauses)
+        case_when_lst.append(u"        END\n    AS %s" % 
+                             obj_quoter(new_fldname))
+        case_when = u"\n".join(case_when_lst)
+        if debug: 
+            pprint.pprint(dict_labels)
+            pprint.pprint(case_when)
+        return case_when
+
     def on_recode(self, event):
         """
         Get settings, validate when Recode button clicked, make recoded table, 
@@ -414,55 +455,41 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             wx.MessageBox(_("Unable to use an existing field name (%s)" % 
                             new_fldname))
             return
-        fld_type = self.fld_types[fld_idx]
-        self.tabentry.update_config_data()
+        fldtype = self.fld_types[fld_idx]
+        self.tabentry.update_settings_data()
         if debug: 
-            print(pprint.pformat(self.recode_config_data))
+            print(pprint.pformat(self.recode_clauses_data))
             print(self.fldname)
-            print(fld_type)
+            print(fldtype)
         # get settings (and build labels)
-        if not self.recode_config_data:
+        if not self.recode_clauses_data:
             wx.MessageBox(_("Please add some recode details"))
             return
-        when_clauses = []
         dict_labels = {}
+        # get field type of recoded values (and thus, new field)
         type_set = set()
-        new_vals = [x[1] for x in self.recode_config_data]
+        new_vals = [x[1] for x in self.recode_clauses_data]
         for new_val in new_vals:
             lib.update_type_set(type_set, val=new_val)
-        new_fld_type = lib.get_overall_fld_type(type_set)
-        for orig, new, label in self.recode_config_data:
-            if debug: print(orig, new, label)
-            try:
-                orig_clause = process_orig(orig, self.fldname, fld_type)
-            except Exception, e:
-                wx.MessageBox(_("Problem with your recode configuration. Orig "
-                                "error: %s" % e))
-                return
-            process_label(dict_labels, fld_type, new, label)
-            when_clauses.append(make_when_clause(orig_clause, new, 
-                                                 new_fld_type))
-        case_when_lst = []
-        case_when_lst.append(u"    CASE")
-        case_when_lst.extend(when_clauses)
-        case_when_lst.append(u"        END\n    AS %s" % 
-                             obj_quoter(new_fldname))
-        case_when = u"\n".join(case_when_lst)
-        if debug: 
-            pprint.pprint(dict_labels)
-            pprint.pprint(case_when)
-        oth_name_types = getdata.get_oth_name_types(self.config_data)
+        new_fldtype = lib.get_overall_fld_type(type_set)
+        case_when = self.get_case_when_clause(new_fldname, new_fldtype, fldtype, 
+                                              dict_labels)
+        oth_name_types = getdata.get_oth_name_types(self.settings_data)
         # insert new field just after the source field
         if self.fldname == mg.SOFA_ID:
-            idx_orig_fld = 0
+            idx_new_fld_in_oth_name_types = 0 # idx in oth_name_types
         else:
-            idx_orig_fld = [x[0] for x in oth_name_types].index(self.fldname)
-        oth_name_types.insert(idx_orig_fld+1,(new_fldname, new_fld_type))
+            idx_new_fld_in_oth_name_types = \
+                        [x[0] for x in oth_name_types].index(self.fldname) + 1
+        oth_name_types.insert(idx_new_fld_in_oth_name_types,
+                              (new_fldname, new_fldtype))
+        if debug: print(oth_name_types)
         try:
-            self.recode_tbl(case_when, oth_name_types, idx_orig_fld)
+            self.recode_tbl(case_when, oth_name_types, 
+                            idx_new_fld_in_oth_name_types)
             wx.MessageBox(_("Please Note - this was a once-off recode - it "
-                            "won't be automatic if new rows are added or cells "
-                            "are edited"))
+                            "won't be applied automatically when new rows are "
+                            "added or cells are edited."))
         except Exception, e:
             raise Exception, _("Problem recoding table. Orig error: %s") % e
         self.update_labels(self.fldname, dict_labels)

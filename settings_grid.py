@@ -30,13 +30,14 @@ EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 
 
 class SettingsEntryDlg(wx.Dialog):
-    def __init__(self, title, grid_size, col_dets, data, config_data, 
-                 insert_data_func=None, row_validation_func=None):
+    def __init__(self, title, grid_size, col_dets, init_settings_data, 
+                 settings_data, insert_data_func=None, 
+                 row_validation_func=None):
         """
         col_dets -- see under SettingsEntry.
         data -- list of tuples (tuples must have at least one item, even if only 
             a "rename me").  Empty list ok.
-        config_data -- is effectively "returned".  Add details to it in form 
+        settings_data -- is effectively "returned".  Add details to it in form 
             of a list of tuples.
         insert_data_func -- what data do you want to see in a new inserted row 
             (if any).  Must take row index as argument.
@@ -48,8 +49,8 @@ class SettingsEntryDlg(wx.Dialog):
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         force_focus = False
         self.tabentry = SettingsEntry(self, self.panel, grid_size, col_dets, 
-                                      data, config_data, force_focus, 
-                                      insert_data_func, row_validation_func)
+                              init_settings_data, settings_data, force_focus, 
+                              insert_data_func, row_validation_func)
         self.szr_main.Add(self.tabentry.grid, 1, wx.GROW|wx.ALL, 5)
         # Close only
         self.setup_btns()
@@ -99,7 +100,7 @@ class SettingsEntryDlg(wx.Dialog):
     def on_ok(self, event):
         if not self.panel.Validate(): # runs validators on all assoc controls
             return True
-        self.tabentry.update_config_data()
+        self.tabentry.update_settings_data()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
         
@@ -139,17 +140,18 @@ def cell_response(self, val, row, col, grid, col_dets):
 
 class SettingsEntry(object):
     
-    def __init__(self, frame, panel, readonly, grid_size, col_dets, data, 
-                 config_data, force_focus=False, insert_data_func=None, 
-                 cell_invalidation_func=None, cell_response_func=None):
+    def __init__(self, frame, panel, readonly, grid_size, col_dets, 
+                 init_settings_data, settings_data, force_focus=False, 
+                 insert_data_func=None, cell_invalidation_func=None, 
+                 cell_response_func=None):
         """
         col_dets - list of dic.  Keys = "col_label", "col_type", 
             and, optionally, "col_width", "file_phrase", "file_wildcard", 
             "empty_ok", "col_min_val", "col_max_val", "col_precision".
             Also "dropdown_vals" which is a list of values for the dropdown.
-        data - list of tuples (must have at least one item, even if only a 
-            "rename me".
-        config_data - is effectively "returned" - add details to it in form 
+        init_settings_data - list of tuples (must have at least one item, even 
+            if only a "rename me").
+        settings_data - is effectively "returned" - add details to it in form 
             of a list of tuples.
         force_focus -- force focus - needed sometimes and better without others.
         insert_data_func - return row_data and receive row_idx, grid_data
@@ -175,26 +177,25 @@ class SettingsEntry(object):
         for col_idx, col_det in enumerate(self.col_dets):
             if col_det.get("col_width"):
                 self.col_widths[col_idx] = col_det["col_width"]
-        self.data = data
-        self.config_data = config_data
+        self.init_settings_data = init_settings_data
+        self.settings_data = settings_data
         self.any_editor_shown = False
         self.new_editor_shown = False
         # grid control
         self.grid = wx.grid.Grid(self.panel, size=grid_size)        
         self.respond_to_select_cell = True      
-        self.rows_n = len(self.data)
+        self.rows_n = len(self.init_settings_data)
         if not readonly:
             self.rows_n += 1
         self.cols_n = len(self.col_dets)
         if self.rows_n > 1:
-            data_cols_n = len(data[0])
-            #pprint.pprint(data) # debug
+            data_cols_n = len(init_settings_data[0])
+            #pprint.pprint(init_settings_data) # debug
             if data_cols_n != self.cols_n:
-                raise Exception, u"There must be one set of column details " + \
-                    u"per column of data (currently %s details for " + \
-                    u"%s columns)" % (self.cols_n, data_cols_n)
-        self.grid.CreateGrid(numRows=self.rows_n,
-                             numCols=self.cols_n)
+                raise Exception, (u"There must be one set of column details per"
+                                  u" column of data (currently %s details for "
+                                  u"%s columns)" % (self.cols_n, data_cols_n))
+        self.grid.CreateGrid(numRows=self.rows_n, numCols=self.cols_n)
         self.grid.EnableEditing(not self.readonly)
         # Set any col min widths specifically specified
         for col_idx in range(len(self.col_dets)):
@@ -245,7 +246,8 @@ class SettingsEntry(object):
         self.rows_to_fill = self.rows_n if self.readonly else self.rows_n - 1
         for i in range(self.rows_to_fill):
             for j in range(self.cols_n):
-                self.grid.SetCellValue(row=i, col=j, s=unicode(data[i][j]))
+                self.grid.SetCellValue(row=i, col=j, 
+                                       s=unicode(init_settings_data[i][j]))
         if not self.readonly:
                 self.grid.SetRowLabelValue(self.rows_n - 1, u"*")
         self.current_col_idx = 0
@@ -1005,17 +1007,17 @@ class SettingsEntry(object):
             grid_data.append(tuple(row_data))
         return grid_data
 
-    def update_config_data(self):
+    def update_settings_data(self):
         """
-        Update config_data.  Separated for reuse. NB clear it first so can 
+        Update settings_data.  Separated for reuse. NB clear it first so can 
             refresh repeatedly.
         """
         grid_data = self.get_grid_data()
         # need to stay pointed to same memory but empty it
         while True:
             try:
-                del self.config_data[0]
+                del self.settings_data[0]
             except IndexError:
                 break
-        self.config_data += grid_data
+        self.settings_data += grid_data
         

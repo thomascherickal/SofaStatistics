@@ -244,13 +244,14 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                         "col_type": settings_grid.COL_TEXT_BROWSE, 
                         "col_width": 400, 
                         "file_phrase": _("Choose an SQLite database file")}]
-    parent.sqlite_config_data = []
+    parent.sqlite_settings_data = []
     data = parent.sqlite_data[:]
     data.sort(key=lambda s: s[0])
     parent.sqlite_grid = settings_grid.SettingsEntry(frame=parent, 
-                        panel=scroll, readonly=readonly, grid_size=(550, 100), 
-                        col_dets=sqlite_col_dets, data=parent.sqlite_data, 
-                        config_data=parent.sqlite_config_data, force_focus=True)
+                           panel=scroll, readonly=readonly, grid_size=(550,100), 
+                           col_dets=sqlite_col_dets, data=parent.sqlite_data, 
+                           settings_data=parent.sqlite_settings_data, 
+                           force_focus=True)
     parent.szr_sqlite.Add(parent.sqlite_grid.grid, 1, wx.GROW|wx.ALL, 5)
     szr.Add(parent.szr_sqlite, 0, wx.GROW|wx.ALL, 10)
 
@@ -283,9 +284,9 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     """
     Copes with missing default database and table. Will get the first available.
     """
-    parent.sqlite_grid.update_config_data()
-    #pprint.pprint(parent.sqlite_config_data) # debug
-    sqlite_settings = parent.sqlite_config_data
+    parent.sqlite_grid.update_settings_data()
+    #pprint.pprint(parent.sqlite_settings_data) # debug
+    sqlite_settings = parent.sqlite_settings_data
     if sqlite_settings:
         con_dets_sqlite = {}
         for sqlite_setting in sqlite_settings:

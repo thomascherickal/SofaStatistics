@@ -229,7 +229,7 @@ def get_gen_fld_type(fld_type):
         gen_fld_type = mg.FLD_TYPE_STRING
     return gen_fld_type
 
-def get_tbl_config(tblname):
+def get_init_settings_data(tblname):
     """
     Get ordered list of tuples of field names and field types for named table.
     "Numeric", "Date", "Text".
@@ -636,13 +636,13 @@ def dup_tbl_name(tbl_name):
     default_dd.con.close()
     return tbl_name in default_dd.tbls
 
-def make_flds_clause(config_data):
+def make_flds_clause(settings_data):
     """
     Create a clause ready to put in a select statement which takes into account
         original and new names if an existing field which has changed name. 
         Does not include the sofa_id.  NB a new field will only have a new name 
         so the orig name will be None.
-    config_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
+    settings_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
     debug = False
@@ -650,10 +650,10 @@ def make_flds_clause(config_data):
     # get orig_name, new_name tuples for all fields in final table apart 
     # from the sofa_id.
     orig_new_names = [(x[mg.TBL_FLD_NAME_ORIG], x[mg.TBL_FLD_NAME])
-                       for x in config_data 
+                       for x in settings_data 
                        if x[mg.TBL_FLD_NAME_ORIG] != mg.SOFA_ID]
     if debug:
-        print("config_data: %s" % config_data)
+        print("settings_data: %s" % settings_data)
         print("orig_new_names: %s" % orig_new_names)
     fld_clause_items = []
     for orig_name, new_name in orig_new_names:
@@ -669,14 +669,14 @@ def make_flds_clause(config_data):
     fld_clause = u", ".join(fld_clause_items)
     return fld_clause
 
-def get_oth_name_types(config_data):
+def get_oth_name_types(settings_data):
     """
     Returns name, type tuples for all fields except for the sofa_id.
-    config_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
+    settings_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
     oth_name_types = [(x[mg.TBL_FLD_NAME], x[mg.TBL_FLD_TYPE])
-                            for x in config_data
+                            for x in settings_data
                             if x[mg.TBL_FLD_NAME] != mg.SOFA_ID]
     return oth_name_types
 

@@ -79,14 +79,14 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
     Returns True if user clicks OK to properties (presumably modified).
     """
     # get val_dic for variable (if any) and display in editable list
-    data = []
+    init_settings_data = []
     if val_dics.get(var_name):
         val_dic = val_dics.get(var_name)
         if val_dic:
             for key, value in val_dic.items():
-                data.append((key, unicode(value)))
-    data.sort(key=lambda s: s[0])
-    config_data = [] # get config_data back updated
+                init_settings_data.append((key, unicode(value)))
+    init_settings_data.sort(key=lambda s: s[0])
+    settings_data = [] # get settings_data back updated
     bolnumeric = dd.flds[var_name][mg.FLD_BOLNUMERIC]
     boldecimal = dd.flds[var_name][mg.FLD_DECPTS]
     boldatetime = dd.flds[var_name][mg.FLD_BOLDATETIME]
@@ -109,14 +109,14 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
         def_type = mg.VAR_TYPE_CAT
     type = var_types.get(var_name, def_type)
     var_desc = {"label": var_label, "notes": notes, "type": type}
-    getsettings = GetSettings(title, boltext, boldatetime, var_desc, data, 
-                              config_data, val_type)
+    getsettings = GetSettings(title, boltext, boldatetime, var_desc, 
+                              init_settings_data, settings_data, val_type)
     ret = getsettings.ShowModal()
     if ret == wx.ID_OK:
         var_labels[var_name] = var_desc["label"]
         var_notes[var_name] = var_desc["notes"]
         var_types[var_name] = var_desc["type"]
-        update_val_labels(val_dics, var_name, val_type, keyvals=config_data)
+        update_val_labels(val_dics, var_name, val_type, keyvals=settings_data)
         update_vdt(var_labels, var_notes, var_types, val_dics)
         return True
     else:
@@ -235,14 +235,14 @@ class ListVarsDlg(wx.Dialog):
     
 class GetSettings(settings_grid.SettingsEntryDlg):
     
-    def __init__(self, title, boltext, boldatetime, var_desc, data, 
-                 config_data, val_type):
+    def __init__(self, title, boltext, boldatetime, var_desc, 
+                 init_settings_data, settings_data, val_type):
         """
         var_desc - dic with keys "label", "notes", and "type".
-        data - list of tuples (must have at least one item, even if only a 
-            "rename me".
+        init_settings_data - list of tuples (must have at least one item, even 
+            if only a "rename me").
         col_dets - See under settings_grid.SettingsEntry
-        config_data - add details to it in form of a list of tuples.
+        settings_data - add details to it in form of a list of tuples.
         """
         col_dets = [{"col_label": _("Value"), "col_type": val_type, 
                      "col_width": 50}, 
@@ -292,8 +292,8 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         szr_data_type.Add(btn_type_help, 0, wx.LEFT|wx.TOP, 10)        
         self.szr_main.Add(szr_data_type, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         self.tabentry = settings_grid.SettingsEntry(self, self.panel, False, 
-                                                    grid_size, col_dets, data, 
-                                                    config_data)
+                                        grid_size, col_dets, init_settings_data, 
+                                        settings_data)
         self.szr_main.Add(self.tabentry.grid, 2, wx.GROW|wx.ALL, 5)
         self.setup_btns(readonly=False)
         self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
@@ -319,7 +319,7 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         self.var_desc["label"] = self.txt_var_label.GetValue()
         self.var_desc["notes"] = self.txt_var_notes.GetValue()
         self.var_desc["type"] = self.rad_data_type.GetStringSelection()
-        self.tabentry.update_config_data()
+        self.tabentry.update_settings_data()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
 
@@ -431,10 +431,10 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         # mixin supplying self.szr_config_top and self.szr_config_bottom
         self.szr_config_bottom, self.szr_config_top = \
             self.get_misc_config_szrs(self.panel_config, readonly=self.readonly)
-        self.szr_config.Add(self.szr_config_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 
-                            10)
-        self.szr_config.Add(self.szr_config_bottom, 0, wx.GROW|wx.LEFT|wx.RIGHT, 
-                            10)
+        self.szr_config.Add(self.szr_config_top, 0, 
+                            wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        self.szr_config.Add(self.szr_config_bottom, 0, 
+                            wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.panel_config.SetSizer(self.szr_config)
         self.szr_config.SetSizeHints(self.panel_config)
         # BOTTOM
@@ -443,8 +443,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.szr_bottom.SetSizeHints(self.panel_bottom)
         # FINAL # NB any ratio changes must work in multiple OSs
         self.szr.Add(self.panel_top, 1, wx.GROW)
-        self.szr.Add(self.scroll_con_dets, 3, wx.GROW|wx.LEFT|wx.BOTTOM|\
-                     wx.RIGHT, 10)
+        self.szr.Add(self.scroll_con_dets, 3, 
+                     wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
         self.szr.Add(self.panel_config, 0, wx.GROW)
         self.szr.Add(self.panel_bottom, 0, wx.GROW)
         self.SetAutoLayout(True)

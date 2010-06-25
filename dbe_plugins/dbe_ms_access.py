@@ -283,13 +283,14 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                   "file_wildcard": None,
                   "empty_ok": True}
     msaccess_col_dets = [col_det_db, col_det_sec, col_det_usr, col_det_pwd]
-    parent.msaccess_config_data = []
+    parent.msaccess_settings_data = []
     data = parent.msaccess_data[:]
     data.sort(key=lambda s: s[0])
     parent.msaccess_grid = settings_grid.SettingsEntry(frame=parent, 
-                    panel=scroll, readonly=readonly, grid_size=(900, 100), 
-                    col_dets=msaccess_col_dets, data=data, 
-                    config_data=parent.msaccess_config_data, force_focus=True)
+                          panel=scroll, readonly=readonly, grid_size=(900, 100), 
+                          col_dets=msaccess_col_dets, data=data, 
+                          settings_data=parent.msaccess_settings_data, 
+                          force_focus=True)
     parent.szr_msaccess.Add(parent.msaccess_grid.grid, 1, wx.GROW|wx.ALL, 5)
     szr.Add(parent.szr_msaccess, 0, wx.GROW|wx.ALL, 10)
 
@@ -321,9 +322,9 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     """
     Copes with missing default database and table. Will get the first available.
     """
-    parent.msaccess_grid.update_config_data()
-    #pprint.pprint(parent.msaccess_config_data) # debug
-    msaccess_settings = parent.msaccess_config_data
+    parent.msaccess_grid.update_settings_data()
+    #pprint.pprint(parent.msaccess_settings_data) # debug
+    msaccess_settings = parent.msaccess_settings_data
     if msaccess_settings:
         con_dets_msaccess = {}
         for msaccess_setting in msaccess_settings:
