@@ -186,10 +186,10 @@ def warn_about_existing_labels(recode_dlg, val, row, col, grid, col_dets):
 
 class RecodeDlg(settings_grid.SettingsEntryDlg):
     
-    def __init__(self, tblname, settings_data):
+    def __init__(self, tblname, fld_settings):
         """
         tblname -- table containing the variable we are recoding
-        settings_data -- a list of dicts with the following keys: 
+        fld_settings -- a list of dicts with the following keys: 
             mg.TBL_FLD_NAME, mg.TBL_FLD_NAME_ORIG, mg.TBL_FLD_TYPE, 
             mg.TBL_FLD_TYPE_ORIG.
         """
@@ -213,7 +213,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         # New controls
         lbl_from = wx.StaticText(self.panel, -1, _("Recode:"))
         lbl_from.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.settings_data = settings_data
+        self.settings_data = fld_settings
         # [('string', 'fname', 'fname (string)'), ...]
         # field type is used for validation and constructing recode SQL string
         fld_dets = [(x[mg.TBL_FLD_TYPE], x[mg.TBL_FLD_NAME],

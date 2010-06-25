@@ -181,15 +181,15 @@ class DataSelectDlg(wx.Dialog):
                             "changed"))
             self.chk_readonly.SetValue(True)
             readonly = True
-        tbl_name_lst = [dd.tbl,]
-        init_settings_data = getdata.get_init_settings_data(dd.tbl)
-        if debug: print("Initial table_config data: %s" % init_settings_data)
-        settings_data = [] # can read final result at the end  
+        tblname_lst = [dd.tbl,]
+        init_fld_settings = getdata.get_init_settings_data(dd.tbl)
+        if debug: print("Initial table_config data: %s" % init_fld_settings)
+        fld_settings = [] # can read final result at the end  
         dlg_config = table_config.ConfigTableDlg(self.var_labels, self.val_dics, 
-                                            tbl_name_lst, init_settings_data, 
-                                            settings_data, readonly, new=False)
+                                             tblname_lst, init_fld_settings, 
+                                             fld_settings, readonly, new=False)
         ret = dlg_config.ShowModal()
-        if debug: pprint.pprint(settings_data)
+        if debug: pprint.pprint(fld_settings)
         if ret == mg.RET_CHANGED_DESIGN and not readonly:
             # update tbl dropdown
             self.reset_tbl_dropdown()
@@ -211,14 +211,14 @@ class DataSelectDlg(wx.Dialog):
                             "the default SOFA database so a new table cannot "
                             "be made there."))
             return
-        tbl_name_lst = [] # not quite worth using validator mechanism ;-)
-        init_settings_data = [("sofa_id", "Numeric"), ("var001", "Numeric"),]
-        settings_data = [] # can read final result at the end  
+        tblname_lst = [] # not quite worth using validator mechanism ;-)
+        init_fld_settings = [("sofa_id", "Numeric"), ("var001", "Numeric"),]
+        fld_settings = [] # can read final result at the end  
         dlg_config = table_config.ConfigTableDlg(self.var_labels, self.val_dics, 
-                                tbl_name_lst, init_settings_data, settings_data, 
-                                readonly=False, new=True)
+                                 tblname_lst, init_fld_settings, fld_settings, 
+                                 readonly=False, new=True)
         ret = dlg_config.ShowModal()
-        if debug: pprint.pprint(settings_data)
+        if debug: pprint.pprint(fld_settings)
         if ret != mg.RET_CHANGED_DESIGN:
             event.Skip()
             return

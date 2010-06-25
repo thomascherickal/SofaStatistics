@@ -106,7 +106,7 @@ def wipe_tbl(tblname):
     dd.cur.execute(SQL_drop_orig)
     dd.con.commit()
  
-def make_strict_typing_tbl(orig_tbl_name, oth_name_types, settings_data):
+def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     """
     Make table for purpose of forcing all data into strict type fields.  Not
         necessary to check sofa_id field (autoincremented integer) so not 
@@ -118,7 +118,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, settings_data):
     Try to insert into strict table all fields in original table (apart from 
         the sofa_id which will be autoincremented from scratch).
     oth_name_types - name, type tuples excluding sofa_id.
-    settings_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
+    fld_settings -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
     debug = False
@@ -139,21 +139,19 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, settings_data):
     dd.cur.execute(SQL_make_tmp_tbl)
     # unable to use CREATE ... AS SELECT at same time as defining table.
     # attempt to insert data into strictly-typed fields.
-    select_fld_clause = getdata.make_flds_clause(settings_data)
+    select_fld_clause = getdata.make_flds_clause(fld_settings)
     SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (tmp_name, 
-                                                select_fld_clause, 
-                                                obj_quoter(orig_tbl_name))
+                                                      select_fld_clause, 
+                                                      obj_quoter(orig_tbl_name))
     if debug: print(SQL_insert_all)
     dd.cur.execute(SQL_insert_all)
     dd.con.commit()
 
-def make_redesigned_tbl(final_name, oth_name_types, settings_data):
+def make_redesigned_tbl(final_name, oth_name_types):
     """
     Make new table with all the fields from the tmp table (which doesn't 
         have the sofa_id field) plus the sofa_id field.
-    settings_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
-        TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
-    Don't want new table to have any contraints which rely on user-defined 
+    Don't want new table to have any constraints which rely on user-defined 
         functions.
     """
     debug = False
@@ -382,17 +380,16 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             color: #5f5f5f; # more clearly just demo data
         }"""
     
-    def __init__(self, var_labels, val_dics, tbl_name_lst, init_settings_data, 
-                 settings_data, readonly=False, new=False, 
+    def __init__(self, var_labels, val_dics, tblname_lst, init_fld_settings, 
+                 fld_settings, readonly=False, new=False, 
                  insert_data_func=None, cell_invalidation_func=None, 
                  cell_response_func=None):
         """
-        tbl_name_lst -- passed in as a list so changes can be made without 
+        tblname_lst -- passed in as a list so changes can be made without 
             having to return anything. 
-        init_settings_data -- list of tuples (tuples must have at least one 
+        init_fld_settings -- list of tuples (tuples must have at least one 
             item, even if only a "rename me").  Empty list ok.
-        settings_data -- add details to it in form of a list of dicts. Available
-            in code which called this.
+        fld_settings -- add details to it in form of a list of dicts.
         """
         self.new = new
         self.changes_made = False
@@ -400,19 +397,20 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             raise Exception, "If new, should never be read only"
         self.var_labels = var_labels
         self.val_dics = val_dics
-        if tbl_name_lst:
-            name_ok_to_reuse = tbl_name_lst[0]
+        if tblname_lst:
+            name_ok_to_reuse = tblname_lst[0]
         else:
             name_ok_to_reuse = None
-        self.tbl_name_lst = tbl_name_lst
+        self.tblname_lst = tblname_lst
         # set up new grid data based on data
-        self.settings_data = settings_data
-        if settings_data:
-            raise Exception, (u"settings_data should always start off empty "
+        self.settings_data = fld_settings # settings_data is more generic and is
+            # needed in code which called this.  Don't rename ;-)
+        if fld_settings:
+            raise Exception, (u"fld_settings should always start off empty "
                               u"ready to received values")
-        self.init_settings_data = init_settings_data[:] # can check if end 
+        self.init_settings_data = init_fld_settings[:] # can check if end 
             # result changed
-        self.setup_settings_data(init_settings_data)
+        self.setup_settings_data(init_fld_settings)
         self.readonly = readonly
         if not insert_data_func:
             insert_data_func = insert_data
@@ -441,7 +439,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         # New controls
         lbl_tbl_label = wx.StaticText(self.panel, -1, _("Table Name:"))
         lbl_tbl_label.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.tblname = tbl_name_lst[0] if tbl_name_lst else _("table") + u"001"
+        self.tblname = tblname_lst[0] if tblname_lst else _("table") + u"001"
         self.txt_tblname = wx.TextCtrl(self.panel, -1, self.tblname, 
                                         size=(450,-1))
         self.txt_tblname.Enable(not self.readonly)
@@ -473,8 +471,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                             _("The sofa_id is required and cannot be edited"))
             szr_design_left.Add(lbl_sofa_id, 0)
         self.tabentry = ConfigTableEntry(self, self.panel, self.readonly, 
-                                    grid_size, col_dets, init_settings_data, 
-                                    settings_data, insert_data_func, 
+                                    grid_size, col_dets, init_fld_settings, 
+                                    fld_settings, insert_data_func, 
                                     cell_invalidation_func, cell_response_func)
         szr_design_left.Add(self.tabentry.grid, 1, wx.GROW|wx.ALL, 5)
         szr_design_right.Add(lbl_see_result, 0)
@@ -532,7 +530,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         flds_clause = u", ".join([obj_quoter(x) for x in db_flds_orig_names
                                   if x is not None])
         SQL_get_data = u"""SELECT %s FROM %s """ % (flds_clause,
-                                            obj_quoter(self.tbl_name_lst[0]))
+                                            obj_quoter(self.tblname_lst[0]))
         dd.cur.execute(SQL_get_data) # NB won't contain any new or inserted flds
         rows = []
         row_idx = 0
@@ -720,7 +718,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             only SOFA will be able to open the SQLite database.
         """       
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
-        tbl_name = self.tbl_name_lst[0] 
+        tbl_name = self.tblname_lst[0] 
         getdata.make_sofa_tbl(dd.con, dd.cur, tbl_name, oth_name_types)
         wx.MessageBox(_("Your new table has been added to the default SOFA "
                         "database"))
@@ -762,9 +760,9 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             raise FldMismatchException
         copy_orig_tbl(orig_tbl_name)
         wipe_tbl(orig_tbl_name)
-        final_name = self.tbl_name_lst[0] # may have been renamed
+        final_name = self.tblname_lst[0] # may have been renamed
         try:
-            make_redesigned_tbl(final_name, oth_name_types, self.settings_data)
+            make_redesigned_tbl(final_name, oth_name_types)
         except Exception:
             restore_copy_tbl(orig_tbl_name)
         wipe_tbl(mg.TMP_TBL_NAME2)
@@ -778,10 +776,10 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             # http://www.nabble.com/validator-not-in-a-dialog-td23112169.html
             if not self.panel.Validate(): # runs validators on all assoc ctrls
                 return True
-        if self.tbl_name_lst: # empty ready to repopulate
-            del self.tbl_name_lst[0]
+        if self.tblname_lst: # empty ready to repopulate
+            del self.tblname_lst[0]
         tblname = self.txt_tblname.GetValue()
-        self.tbl_name_lst.append(tblname)
+        self.tblname_lst.append(tblname)
         if self.new:
             self.make_new_tbl()
         else:
@@ -846,7 +844,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             print(u"init_settings_data: %s" % self.init_settings_data)
             print(self.settings_data)
         # save any changes in table_config dlg first
-        tblname = self.tbl_name_lst[0]
+        tblname = self.tblname_lst[0]
         tblname_changed = (tblname != self.txt_tblname.GetValue())
         data_changed = has_data_changed(orig_data=self.init_settings_data, 
                                         final_data=self.settings_data)
