@@ -279,6 +279,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         self.new_fldname = u""
         self.drop_from = wx.Choice(self.panel, -1, choices=self.fld_choices, 
                                    size=(250,-1))
+        self.drop_from.SetSelection(0)
         self.drop_from.Bind(wx.EVT_CHOICE, self.on_var_sel)
         self.drop_from.Bind(wx.EVT_CONTEXT_MENU, self.on_var_rclick)
         self.drop_from.SetToolTipString(_("Right click to view variable "

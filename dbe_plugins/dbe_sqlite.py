@@ -245,11 +245,12 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                         "col_width": 400, 
                         "file_phrase": _("Choose an SQLite database file")}]
     parent.sqlite_settings_data = []
-    data = parent.sqlite_data[:]
-    data.sort(key=lambda s: s[0])
+    init_settings_data = parent.sqlite_data[:]
+    init_settings_data.sort(key=lambda s: s[0])
     parent.sqlite_grid = settings_grid.SettingsEntry(frame=parent, 
                            panel=scroll, readonly=readonly, grid_size=(550,100), 
-                           col_dets=sqlite_col_dets, data=parent.sqlite_data, 
+                           col_dets=sqlite_col_dets, 
+                           init_settings_data=init_settings_data, 
                            settings_data=parent.sqlite_settings_data, 
                            force_focus=True)
     parent.szr_sqlite.Add(parent.sqlite_grid.grid, 1, wx.GROW|wx.ALL, 5)

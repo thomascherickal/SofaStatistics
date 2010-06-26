@@ -846,11 +846,15 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             print(u"init_settings_data: %s" % self.init_settings_data)
             print(self.settings_data)
         # save any changes in table_config dlg first
-        tblname = self.tblname_lst[0]
-        tblname_changed = (tblname != self.txt_tblname.GetValue())
+        tblname_changed = False
+        new_tbl = True
+        if self.tblname_lst:
+            tblname_changed = (self.tblname_lst[0] !=
+                               self.txt_tblname.GetValue())
+            new_tbl = False
         data_changed = has_data_changed(orig_data=self.init_settings_data, 
                                         final_data=self.settings_data)
-        if tblname_changed or data_changed:
+        if new_tbl or tblname_changed or data_changed:
             ret = wx.MessageBox(_("You will need to save the changes you made "
                                   "first. Save changes and continue?"),
                                   caption=_("SAVE CHANGES?"), style=wx.YES_NO)
@@ -873,6 +877,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                      return
             else:
                 return
+        tblname = self.tblname_lst[0]
         # open recode dialog
         dlg = recode.RecodeDlg(tblname, self.settings_data)
         ret = dlg.ShowModal()
