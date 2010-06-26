@@ -31,12 +31,12 @@ def make_when_clause(orig_clause, new, new_fld_type):
     when_clause = u"            WHEN %s THEN %s" % (orig_clause, new)
     return when_clause
 
-def process_orig(orig, fldname, fld_type):
+def process_orig(orig, fldname, fldtype):
     """
     Turn an orig value into a clause ready for use in an SQL CASE WHEN snippet.
     orig -- a string
     fldname -- field being used in the expression
-    fld_type -- e.g. string
+    fldtype -- e.g. string
     Settings must be one per line.  In simplest case, just enter a single 
         value.
     Use "TO" for ranges rather than the ambiguous "-".
@@ -70,10 +70,8 @@ def process_orig(orig, fldname, fld_type):
     if not isinstance(orig, basestring):
         raise Exception, u"process_orig() expects strings"
     orig_clause = None
-    # 1 Special
-    if orig.strip() == REMAINING:
-        orig_clause = u"%s = TRUE" % fld # i.e. when TRUE
-    elif orig.strip() == MISSING:
+    # 1 Special (except REMAINING which always appears as part of END)
+    if orig.strip() == MISSING:
         orig_clause = u"%s IS NULL" % fld
     # 2 Range
     elif TO in orig:
@@ -96,17 +94,17 @@ def process_orig(orig, fldname, fld_type):
         if l_part == MIN:
             has_min = True
         else:
-            if (fld_type == mg.FLD_TYPE_NUMERIC and not lib.is_numeric(l_part)):
+            if (fldtype == mg.FLD_TYPE_NUMERIC and not lib.is_numeric(l_part)):
                 num_mismatch = True
-            elif (fld_type == mg.FLD_TYPE_DATE 
+            elif (fldtype == mg.FLD_TYPE_DATE 
                     and not lib.is_std_datetime_str(l_part)):
                 date_mismatch = True
         if r_part == MAX:
             has_max = True
         else:
-            if (fld_type == mg.FLD_TYPE_NUMERIC and not lib.is_numeric(r_part)):
+            if (fldtype == mg.FLD_TYPE_NUMERIC and not lib.is_numeric(r_part)):
                 num_mismatch = True
-            elif (fld_type == mg.FLD_TYPE_DATE
+            elif (fldtype == mg.FLD_TYPE_DATE
                     and not lib.is_std_datetime_str(r_part)):
                 date_mismatch = True
         if num_mismatch:
@@ -117,7 +115,7 @@ def process_orig(orig, fldname, fld_type):
             if debug: print(l_part, r_part)
             raise Exception, _("Only date values can be recoded for this "
                                "variable")
-        if fld_type in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
+        if fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
             l_prep = val_quoter(l_part)
             r_prep = val_quoter(r_part)
         else:
@@ -135,7 +133,7 @@ def process_orig(orig, fldname, fld_type):
                 orig_clause = u"%s BETWEEN %s AND %s" % (fld, l_prep, r_prep)
     # 3 Single value
     else:
-        if fld_type in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
+        if fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
             orig_clause = u"%s = %s" % (fld, val_quoter(orig))
         else:
             orig_clause = u"%s = %s" % (fld, orig)
@@ -464,19 +462,36 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                              dict_labels):
         """
         Recoding into new variable with a CASE WHEN SQL syntax clause.
+        Order doesn't matter except for REMAINING which is ELSE in CASE 
+            statement.  Must come last and only once.
         """
         debug = False
         when_clauses = []
+        remaining_clause = None
         for orig, new, label in self.recode_clauses_data:
             if debug: print(orig, new, label)
-            try:
-                orig_clause = process_orig(orig, self.fldname, fldtype)
-            except Exception, e:
-                wx.MessageBox(_("Problem with your recode configuration. Orig "
-                                "error: %s" % e))
-                return
-            process_label(dict_labels, fldtype, new, label)
-            when_clauses.append(make_when_clause(orig_clause, new, new_fldtype))
+            if orig.strip() != REMAINING: # i.e. ordinary
+                try:
+                    orig_clause = process_orig(orig, self.fldname, fldtype)
+                except Exception, e:
+                    wx.MessageBox(_("Problem with your recode configuration. "
+                                    "Orig error: %s" % e))
+                    return
+                process_label(dict_labels, fldtype, new, label)
+                when_clauses.append(make_when_clause(orig_clause, new, 
+                                                     new_fldtype))
+            else: # REMAINING
+                # if multiple REMAINING clauses the last "wins"
+                if fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
+                    val_prep = val_quoter(new)
+                else:
+                    val_prep = val
+                remaining_clause = u"    ELSE %s" % val_prep
+                remaining_new = new
+                remaining_label = label
+        if remaining_clause:
+            when_clauses.append(remaining_clause)
+            process_label(dict_labels, fldtype, remaining_new, remaining_label)
         case_when_lst = []
         case_when_lst.append(u"    CASE")
         case_when_lst.extend(when_clauses)

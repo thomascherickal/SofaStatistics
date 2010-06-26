@@ -66,6 +66,7 @@ def test_process_orig():
                     (u"Spam TO MIN", fld, mg.FLD_TYPE_STRING),
                     (u"MAX TO Spam", fld, mg.FLD_TYPE_STRING),
                     (u"spam", fld, mg.FLD_TYPE_NUMERIC),
+                    (u" REMAINING ", fld, mg.FLD_TYPE_NUMERIC), 
                     ]
     for test in raises_tests:
         #http://www.ibm.com/developerworks/aix/library/au-python_test/index.html
