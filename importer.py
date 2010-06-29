@@ -282,7 +282,7 @@ def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names,
         except MismatchException, e:
             raise # keep this particular type of exception bubbling out
         except Exception, e:
-            raise Exception, (u"Unable to add row %s. Orig error: %s" %
+            raise Exception, (u"Unable to add row %s. Caused by error: %s" %
                              (row_num, e))
     con.commit()
     return nulled_dots
@@ -421,8 +421,8 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
         cur.execute(SQL_rename_tbl)
         con.commit()
     except Exception, e:
-        raise Exception, (u"Unable to rename temporary table. Orig error: %s"
-                          % e)
+        raise Exception, (u"Unable to rename temporary table. "
+                          "Caused by error: %s" % e)
     progbar.SetValue(GAUGE_STEPS)
     msg = _("Successfully imported data as\n\"%(tbl)s\".")
     if nulled_dots:

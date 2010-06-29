@@ -197,11 +197,11 @@ class GdataDownloadDlg(wx.Dialog):
         except socket.gaierror, e:
             lib.safe_end_cursor()
             wx.MessageBox(_("Problem signing in. Are you connected to the "
-                            "Internet? Orig error: %s") % e)
+                            "Internet? Caused by error: %s") % e)
             return
         except Exception, e:
             lib.safe_end_cursor()
-            wx.MessageBox(_("Problem signing in. Orig error: %s") % e)
+            wx.MessageBox(_("Problem signing in. Caused by error: %s") % e)
             return
         try:    
             self.spreadsheet_dets_lst = \
@@ -209,7 +209,7 @@ class GdataDownloadDlg(wx.Dialog):
         except Exception, e:
             lib.safe_end_cursor()
             wx.MessageBox(_("Problem getting spreadsheet details. "
-                            "Orig error: %s") % e)
+                            "Caused by error: %s") % e)
             return
         spreadsheets = [x[SPREADSHEET_NAME] for x in self.spreadsheet_dets_lst]
         if not spreadsheets:
@@ -242,7 +242,7 @@ class GdataDownloadDlg(wx.Dialog):
             gd_client.ClientLogin(email, pwd)
         except gdata_service.Error, e:
             if debug:
-                print("Orig error: %s" % e)
+                print("Caused by error: %s" % e)
             raise Exception, (u"Problem signing into Google account with email "
                             "and password details supplied.")
         return gd_client
@@ -255,7 +255,7 @@ class GdataDownloadDlg(wx.Dialog):
             gs_client.ClientLogin(email, pwd)
         except gdata_service.BadAuthentication, e:
             if debug:
-                print("Orig error: %s" % e)
+                print("Caused by error: %s" % e)
             raise Exception, (u"Problem signing into Google account with email "
                             "and password details supplied.")
         return gs_client

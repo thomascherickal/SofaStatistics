@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function
 import os
 import platform
@@ -11,7 +14,7 @@ import wx
 
 debug = False
 
-VERSION = u"0.9.12"
+VERSION = u"0.9.13"
 
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
@@ -150,14 +153,14 @@ IMAGES_PATH = os.path.join(REPORTS_PATH, u"images")
 # http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
 path_found = False
 for path in sys.path:
-    if path.endswith(u"sofa") or path.endswith(u"sofa.main"):
+    if u"sofa" in path.lower():
         path_found = True
         break
 if not path_found:
     PATH_ERROR = _("Unable to locate folder this program is running in.\n\n"
-                   "NB the final subfolder must be \"sofa\".\n"
-                   "So \"C:\\Program Files\\sofa\" is ok\nbut "
-                   "\"C:\\Program Files\\sofa stats\" is not.")
+                   "NB the final subfolder must have the word \"sofa\" in it.\n"
+                   "So \"C:\\Program Files\\sofa\" is ok\n"
+                   "but \"C:\\Program Files\\my stats\" is not.")
 SCRIPT_PATH = path
 INT_PATH = os.path.join(LOCAL_PATH, INT_FOLDER)
 INT_SCRIPT_PATH = os.path.join(INT_PATH, u"script.py")
@@ -207,12 +210,12 @@ READONLY_COLOUR = wx.Colour(221,231,229)
 MISSING_VAL_INDICATOR = u"."
 RET_CHANGED_DESIGN = 30101966 # must be integer and not 5101 etc
 # must be defined before dbe modules called - used in them
-GTE_EQUALS = "="
-GTE_NOT_EQUALS = "not =" # each dbe converts to appropriate SQL operators
-GTE_GT = ">"
-GTE_LT = "<"
-GTE_GTE = ">="
-GTE_LTE = "<="
+GTE_EQUALS = u"="
+GTE_NOT_EQUALS = u"not =" # each dbe converts to appropriate SQL operators
+GTE_GT = u">"
+GTE_LT = u"<"
+GTE_GTE = u">="
+GTE_LTE = u"<="
 GTES = [GTE_EQUALS, GTE_NOT_EQUALS, GTE_GT, GTE_LT, GTE_GTE, GTE_LTE]
 DATA_DETS = None
 DBE_CON = u"dbe_con" # connection resource
@@ -222,11 +225,11 @@ DBE_DB = u"dbe_db"# name
 DBE_TBLS = u"dbe_tbls" # names
 DBE_TBL = u"dbe_tbl" # name
 DBE_FLDS = u"dbe_flds" """ Must return dict of dicts called flds.
-    The outer dict has fld names as keys and details for that field as the 
-    inner dict. Each field dict has as keys the FLD_ variables listed in 
-    my_globals e.g. FLD_BOLNUMERIC. Need enough to present fields in order, 
-    validate data entry, and guide labelling and reporting (e.g. numeric 
-    or categorical)."""
+        The outer dict has fld names as keys and details for that field as the 
+        inner dict. Each field dict has as keys the FLD_ variables listed in 
+        my_globals e.g. FLD_BOLNUMERIC. Need enough to present fields in order, 
+        validate data entry, and guide labelling and reporting (e.g. numeric 
+        or categorical)."""
 DBE_IDXS = u"dbe_idxs" # dicts - name, is_unique, flds
 DBE_HAS_UNIQUE = u"dbe_has_unique" # boolean
 # also used as labels in dropdowns
@@ -255,14 +258,16 @@ def import_dbe_plugin(dbe_plugin):
         elif dbe_plugin == DBE_PGSQL:
             import dbe_plugins.dbe_postgresql as dbe_postgresql
             mod = dbe_postgresql
+        else:
+            raise Exception, u"Unknown database engine plug-in type"
     except ImportError, e:
-        raise Exception, ("Import error with \"%s\". Orig error: %s" % 
+        raise Exception, (u"Import error with \"%s\". Caused by error: %s" % 
                           (dbe_plugin, e))
     return mod
-LINUX = "linux"
-WINDOWS = "windows"
-MAC = "mac"
-platforms = {"Linux": LINUX, "Windows": WINDOWS, "Darwin": MAC}
+LINUX = u"linux"
+WINDOWS = u"windows"
+MAC = u"mac"
+platforms = {u"Linux": LINUX, u"Windows": WINDOWS, u"Darwin": MAC}
 PLATFORM = platforms.get(platform.system())
 MUST_DEL_TMP = False
 DBE_PROBLEM = []
@@ -284,8 +289,8 @@ for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
             try:
                 dbe_mod = import_dbe_plugin(dbe_plugin)
             except Exception, e:
-                msg = (u"Problem adding dbe plugin %s" % dbe_plugin +
-                       u". Orig error: %s" % e)
+                msg = (u"Problem adding dbe plugin %s. " % dbe_plugin +
+                       u"Caused by error: %s" % e)
                 print(msg)
                 DBE_PROBLEM.append(msg)
                 continue # skip bad module

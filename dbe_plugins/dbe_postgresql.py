@@ -1,6 +1,12 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function
 
-import pgdb
+try:
+    import pgdb
+except ImportError, e:
+    raise Exception, u"Problem importing PostgreSQL. Caused by error: %s" % e
 import wx
 import pprint
 
@@ -59,10 +65,10 @@ def quote_obj(raw_val):
 
 def quote_val(raw_val):
     try:
-        val = raw_val.replace("'", "''") # escape internal single quotes
+        val = raw_val.replace(u"'", u"''") # escape internal single quotes
     except AttributeError, e:
-        raise Exception, ("Inappropriate attempt to quote non-string value. "
-                          "Orig error: %s" % e)
+        raise Exception, (u"Inappropriate attempt to quote non-string value. "
+                          u"Caused by error: %s" % e)
     return u"'%s'" % val
 
 def get_summable(clause):
@@ -87,8 +93,8 @@ def get_con_resources(con_dets, default_dbs, db=None):
             con_dets_pgsql["database"] = db
         con = pgdb.connect(**con_dets_pgsql)
     except Exception, e:
-        raise Exception, u"Unable to connect to PostgreSQL db. " + \
-            u"Orig error: %s" % e
+        raise Exception, (u"Unable to connect to PostgreSQL db. "
+                          u"Caused by error: %s" % e)
     cur = con.cursor() # must return tuples not dics
     # get database name
     SQL_get_db_names = u"""SELECT datname FROM pg_database"""
@@ -112,8 +118,8 @@ def get_con_resources(con_dets, default_dbs, db=None):
         cur = con.cursor()
     else:
         if db.lower() not in dbs_lc:
-            raise Exception, u"Database \"%s\" not available " % db + \
-                u"from supplied connection"
+            raise Exception, (u"Database \"%s\" not available "
+                              u"from supplied connection") % db
     if debug: pprint.pprint(con_dets)  
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: [db,],
                      mg.DBE_DB: db}
@@ -309,7 +315,7 @@ def get_index_dets(cur, db, tbl):
     return idxs, has_unique
     
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
-    bx_pgsql= wx.StaticBox(scroll, -1, "PostgreSQL")
+    bx_pgsql= wx.StaticBox(scroll, -1, u"PostgreSQL")
     # default database
     parent.lbl_pgsql_default_db = wx.StaticText(scroll, -1, 
                                              _("Default Database (name only):"))
@@ -397,7 +403,7 @@ def get_proj_settings(parent, proj_dic):
         parent.pgsql_pwd = \
             proj_dic["con_dets"][mg.DBE_PGSQL]["password"]
     else:
-        parent.pgsql_host, parent.pgsql_user, parent.pgsql_pwd = "", "", ""
+        parent.pgsql_host, parent.pgsql_user, parent.pgsql_pwd = u"", u"", u""
 
 def set_con_det_defaults(parent):
     try:

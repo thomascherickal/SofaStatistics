@@ -43,7 +43,7 @@ def get_dialect(file_path):
                               u"Please check that file exists." % file_path)
     except Exception, e:
         raise Exception, ("Unable to open and sample csv file. "
-                          "Orig error: %s" % e)
+                          "Caused by error: %s" % e)
     return dialect
     
 def get_avg_row_size(rows):
@@ -222,7 +222,7 @@ class CsvImporter(importer.FileImporter):
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception, "Unable to create reader for file. " + \
-                "Orig error: %s" % e
+                "Caused by error: %s" % e
         default_dd = getdata.get_default_db_dets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= rows_n else rows_n
         items_n = rows_n + sample_n + 1 # 1 is for the final tmp to named step

@@ -467,7 +467,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         """
         debug = False
         when_clauses = []
-        remaining_clause = None
+        remaining_to = None
         for orig, new, label in self.recode_clauses_data:
             if debug: print(orig, new, label)
             if orig.strip() != REMAINING: # i.e. ordinary
@@ -475,7 +475,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                     orig_clause = process_orig(orig, self.fldname, fldtype)
                 except Exception, e:
                     wx.MessageBox(_("Problem with your recode configuration. "
-                                    "Orig error: %s" % e))
+                                    "Caused by error: %s" % e))
                     return
                 process_label(dict_labels, fldtype, new, label)
                 when_clauses.append(make_when_clause(orig_clause, new, 
@@ -483,13 +483,16 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             else: # REMAINING
                 # if multiple REMAINING clauses the last "wins"
                 if fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
-                    val_prep = val_quoter(new)
+                    remaining_to = val_quoter(new)
                 else:
-                    val_prep = val
-                remaining_clause = u"    ELSE %s" % val_prep
+                    remaining_to = new
                 remaining_new = new
                 remaining_label = label
-        if remaining_clause:
+        if remaining_to:
+            if when_clauses: # pop it on the end
+                remaining_clause = u"            ELSE %s" % remaining_to
+            else: # the only clause
+                remaining_clause = u"            WHEN 1=1 %s" % remaining_to
             when_clauses.append(remaining_clause)
             process_label(dict_labels, fldtype, remaining_new, remaining_label)
         case_when_lst = []
@@ -561,7 +564,8 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                             "won't be applied automatically when new rows are "
                             "added or cells are edited."))
         except Exception, e:
-            raise Exception, _("Problem recoding table. Orig error: %s") % e
+            raise Exception, _("Problem recoding table. "
+                               "Caused by error: %s") % e
         self.update_labels(self.fldname, dict_labels)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)

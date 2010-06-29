@@ -544,7 +544,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             wx.MessageBox(_("Please check %s for errors. Use %s for "
                             "reference.") % (fil_proj, mg.DEFAULT_PROJ))
             raise Exception, ("Key error reading from proj_dic. "
-                              "Orig error: %s") % e
+                              "Caused by error: %s") % e
         except Exception, e:
             wx.MessageBox(_("Please check %s for errors. Use %s for "
                             "reference.") % (fil_proj, mg.DEFAULT_PROJ))
@@ -660,8 +660,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                 f = codecs.open(fil_name, "w", encoding="utf-8")
             except IOError, e:
                 wx.MessageBox(_(u"Unable to save project file. Please check "
-                            u"\"%s\" is a valid file name.\n\nOrig error: %s") %
-                            (fil_name, e))
+                                u"\"%s\" is a valid file name."
+                                u"\n\nCaused by error: %s") % (fil_name, e))
                 return
             f.write(u"# Windows file paths _must_ have double not single "
                     u"backslashes")

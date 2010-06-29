@@ -36,7 +36,7 @@ def quote_val(raw_val):
         val = raw_val.replace('"', '""') # escape internal double quotes
     except AttributeError, e:
         raise Exception, ("Inappropriate attempt to quote non-string value. "
-                          "Orig error: %s" % e)
+                          "Caused by error: %s" % e)
     return u"\"%s\"" % val
 
 def get_summable(clause):
@@ -68,7 +68,7 @@ def get_con(con_dets, db, add_checks=False):
     except Exception, e:
         raise Exception, (u"Unable to connect to SQLite database "
                           u"using supplied database: \"%s\". " % db +
-                          u"Orig error: %s" % e)
+                          u"Caused by error: %s" % e)
     if mg.USE_SQLITE_UDFS:
         print("*"*60)
         print("Overriding so can open sofa_db in SOFA")

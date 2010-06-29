@@ -117,9 +117,9 @@ class DataDets(object):
             self.set_dbe(proj_dic["default_dbe"])
         except KeyError, e:
             raise Exception, (u"Unable to read project dictionary for required "
-                              u"keys.  Orig error: %s" % e)
+                              u"keys.  Caused by error: %s" % e)
         except Exception, e:
-            raise Exception, "Unable to set proj dic. Orig error: %s" % e
+            raise Exception, "Unable to set proj dic. Caused by error: %s" % e
         self.proj_dic = proj_dic # only change if successful
 
     def set_dbe(self, dbe, db=None, tbl=None, add_checks=False):
@@ -144,7 +144,8 @@ class DataDets(object):
                                           self.default_dbs, self.default_tbls, 
                                           db, tbl, add_checks)
         except Exception, e:
-            raise Exception, ("Unable to get dbe resources. Orig error: %s" % e)
+            raise Exception, ("Unable to get dbe resources. Caused by error: %s"
+                              % e)
         self.dbe = dbe # only change if getting dbe resources worked
         if debug: print(u"Finished getting dbe resources")
         self.con = dbe_resources[mg.DBE_CON]
@@ -527,7 +528,7 @@ def get_data_dropdowns(parent, panel, default_dbs):
             pass # no connection possible
         except Exception, e:
             wx.MessageBox(_("Unable to connect to %(oth_dbe)s using the details"
-                            " provided. Orig error: %(e)s" % 
+                            " provided. Caused by error: %(e)s" % 
                                 {"oth_dbe": oth_dbe, "e": e}))
     parent.db_choice_items = [get_db_item(x[0], x[1]) for x in db_choices]
     parent.drop_dbs = wx.Choice(panel, -1, choices=parent.db_choice_items,

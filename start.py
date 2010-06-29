@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-dev_debug = True
+dev_debug = False
 test_lang = False
 
 import warnings
@@ -16,7 +16,6 @@ import glob
 import os
 import platform
 import shutil
-#from pysqlite2 import dbapi2 as sqlite
 import sqlite3 as sqlite
 import sys
 MAC_PATH = u"/Library/sofa"
@@ -49,7 +48,7 @@ class MsgFrame(wx.Frame):
         wx.Frame.__init__(self, None, title=_("SOFA Error"))
         wx.MessageBox("Something went wrong with running SOFA Statistics. "
                       "Please email the lead developer for help - "
-                      "grant@sofastatistics.com\n\nOrig error: %s" % e)
+                      "grant@sofastatistics.com\n\nCaused by error: %s" % e)
         self.Destroy()
         import sys
         sys.exit()
@@ -170,7 +169,8 @@ try:
     import quotes
     # import stats_select
 except Exception, e:
-    msg = u"Problem with second round of local importing. Orig error: %s" % e
+    msg = (u"Problem with second round of local importing. "
+           u"Caused by error: %s" % e)
     msgapp = MsgApp(msg)
     msgapp.MainLoop()
     del msgapp
@@ -469,7 +469,7 @@ class StartFrame(wx.Frame):
     def on_paint_err_msg(self, e):
         wx.MessageBox("Problem displaying start form. "
                       "Please email the lead developer for help - "
-                      "grant@sofastatistics.com\n\nOrig error: %s" % e)
+                      "grant@sofastatistics.com\n\nCaused by error: %s" % e)
     
     def on_paint(self, event):
         """
@@ -650,7 +650,7 @@ class StartFrame(wx.Frame):
             msg = _("Unable to connect to data as defined in project %s. "
                     "Please check your settings" % self.active_proj)
             wx.MessageBox(msg)
-            raise Exception, u"%s. Orig error: %s" % (msg, e)
+            raise Exception, u"%s. Caused by error: %s" % (msg, e)
         finally:
             lib.safe_end_cursor()
             event.Skip()
@@ -696,7 +696,7 @@ class StartFrame(wx.Frame):
                 msg = _("Unable to connect to data as defined in project %s.  "
                         "Please check your settings" % self.active_proj)
                 wx.MessageBox(msg)
-                raise Exception, u"%s. Orig error: %s" % (msg, e) 
+                raise Exception, u"%s. Caused by error: %s" % (msg, e) 
             finally:
                 lib.safe_end_cursor()
                 event.Skip()
@@ -808,7 +808,7 @@ class StartFrame(wx.Frame):
             msg = _("Unable to connect to data as defined in project %s.  "
                     "Please check your settings." % self.active_proj)
             wx.MessageBox(msg)
-            raise Exception, u"%s.  Orig error: %s" % (msg, e)
+            raise Exception, u"%s.  Caused by error: %s" % (msg, e)
         finally:
             lib.safe_end_cursor()
             event.Skip()
