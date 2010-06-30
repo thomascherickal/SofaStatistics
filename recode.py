@@ -475,7 +475,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                     orig_clause = process_orig(orig, self.fldname, fldtype)
                 except Exception, e:
                     wx.MessageBox(_("Problem with your recode configuration. "
-                                    "Caused by error: %s" % lib.safe_e(e)))
+                                    "Caused by error: %s" % lib.ue(e)))
                     return
                 process_label(dict_labels, fldtype, new, label)
                 when_clauses.append(make_when_clause(orig_clause, new, 
@@ -565,7 +565,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                             "added or cells are edited."))
         except Exception, e:
             raise Exception, _("Problem recoding table. "
-                               "Caused by error: %s") % lib.safe_e(e)
+                               "Caused by error: %s") % lib.ue(e)
         self.update_labels(self.fldname, dict_labels)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)

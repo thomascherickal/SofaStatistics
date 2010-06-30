@@ -386,7 +386,7 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header,
         con.commit()
         progbar.SetValue(0)
         # go through again or raise an exception
-        retCode = wx.MessageBox(u"%s\n\n" % lib.safe_e(e) + \
+        retCode = wx.MessageBox(u"%s\n\n" % lib.ue(e) + \
                                 _("Fix and keep going?"), 
                                 _("KEEP GOING?"), wx.YES_NO|wx.ICON_QUESTION)
         if retCode == wx.YES:
@@ -423,7 +423,7 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
         con.commit()
     except Exception, e:
         raise Exception, (u"Unable to rename temporary table. "
-                          "Caused by error: %s" % lib.safe_e(e))
+                          u"Caused by error: %s" % lib.ue(e))
     progbar.SetValue(GAUGE_STEPS)
     msg = _("Successfully imported data as\n\"%(tbl)s\".")
     if nulled_dots:
@@ -798,7 +798,7 @@ class ImportFileSelectDlg(wx.Dialog):
             proceed = file_importer.get_params()
         except Exception, e:
             wx.MessageBox(_("Unable to import data\n\nError") + u": %s" % 
-                          lib.safe_e(e))
+                          lib.ue(e))
             lib.safe_end_cursor()
         if proceed:
             try:
@@ -814,6 +814,6 @@ class ImportFileSelectDlg(wx.Dialog):
             except Exception, e:
                 lib.safe_end_cursor()
                 wx.MessageBox(_("Unable to import data\n\nError") + u": %s" % 
-                              lib.safe_e(e))
+                              lib.ue(e))
         self.align_btns_to_importing(importing=False)
         event.Skip()

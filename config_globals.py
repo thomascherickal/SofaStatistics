@@ -74,7 +74,7 @@ def import_dbe_plugins():
                 except Exception, e:
                     import lib
                     msg = (u"Problem adding dbe plugin %s. " % dbe_plugin +
-                           u"Caused by error: %s" % lib.safe_e(e))
+                           u"Caused by error: %s" % lib.ue(e))
                     print(msg)
                     mg.DBE_PROBLEM.append(msg)
                     continue # skip bad module
@@ -117,7 +117,7 @@ def get_date_fmt():
                          "%y-%m-%d": mg.YMD, "%Y-%m-%d": mg.YMD}
     except Exception, e:
         import lib
-        raise Exception, u"Unable to get date format. %s" % lib.safe_e(e)
+        raise Exception, u"Unable to get date format. %s" % lib.ue(e)
     try:
         if debug: print("%s %s" % (raw2const, raw_d_fmt))
         d_fmt = raw2const[raw_d_fmt]

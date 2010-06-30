@@ -221,7 +221,7 @@ class FiltSelectDlg(wx.Dialog):
                 tbl_filt = self.get_quick_filter()
             except Exception, e:
                 wx.MessageBox(_("Problem with design of filter: %s") % 
-                              lib.safe_e(e))
+                              lib.ue(e))
                 return
         else:
             tbl_filt = self.txt_flex_filter.GetValue()

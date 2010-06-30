@@ -350,7 +350,7 @@ def run_report(modules, add_to_report, css_fils, inner_script):
     except Exception, e:
         err_content = _(u"<h1>Ooops!</h1>\n<p>Unable to run script to "
                         u"generate report. Error encountered: %s</p>") % \
-                        lib.safe_e(e)
+                        lib.ue(e)
         if debug:
             raise Exception, unicode(e)
         return False, err_content

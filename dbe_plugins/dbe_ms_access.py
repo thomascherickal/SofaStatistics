@@ -42,7 +42,7 @@ def quote_val(raw_val):
         val = raw_val.replace("'", "''") # escape internal single quotes
     except AttributeError, e:
         raise Exception, ("Inappropriate attempt to quote non-string value. "
-                          "Caused by error: %s" % lib.safe_e(e))
+                          "Caused by error: %s" % lib.ue(e))
     return u"'%s'" % val
 
 def get_summable(clause):

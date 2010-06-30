@@ -32,13 +32,20 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
 
-def test_safe_e():
+def test_ue():
+    "Reasons on the left, unicode reasons on the right"
     tests = [("找不到指定的模块。", u"找不到指定的模块。"), # not the same
              (u"找不到指定的模块。", u"找不到指定的模块。"),
              (u"I \u2665 unicode", u"I ♥ unicode"),
+             ("Plain old text even though there is no such thing ;-)",
+              u"Plain old text even though there is no such thing ;-)"),
              ]
-    for test in tests:
-        assert_equal(lib.safe_e(test[0]), test[1])
+    for i, test in enumerate(tests):
+        print("Running test %s" % str(i))
+        try:
+            raise Exception, test[0]
+        except Exception, e:
+            assert_equal(lib.ue(e), test[1])
 
 def test_process_orig():
     fld = u"bar"

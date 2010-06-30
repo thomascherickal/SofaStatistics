@@ -18,11 +18,13 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
-def safe_e(e):
-    if not isinstance(e, unicode):
-        e = e.decode("utf8", "replace") # Better than implicit "strict" or 
-            # even "ignore"
-    return e
+def ue(e):
+    "Return unicode string version of error reason"
+    try:
+        ue = e.__unicode__() # handles u"找不到指定的模块。" & u"I \u2665 unicode"
+    except UnicodeDecodeError:
+        ue = unicode(e.__str__(), "utf8") # handles "找不到指定的模块。"
+    return ue
 
 def update_type_set(type_set, val):
     if is_numeric(val): # anything that SQLite can add _as a number_ 
@@ -111,7 +113,7 @@ def esc_str_input(raw):
         new_str = raw.replace("%", "%%")
     except Exception, e:
         raise Exception, (u"Unable to escape str input. "
-                          u"Caused by error: %s" % safe_e(e))
+                          u"Caused by error: %s" % ue(e))
     return new_str
 
 def rel2abs_links(str_html):

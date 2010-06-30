@@ -667,7 +667,7 @@ def pearsonr(x,y):
         x = map(float,x)
         y = map(float,y)
     except ValueError, e:
-        raise Exception, "Unable to calculate Pearson's R.  %s" % lib.safe_e(e)
+        raise Exception, "Unable to calculate Pearson's R.  %s" % lib.ue(e)
     xmean = mean(x)
     ymean = mean(y)
     r_num = n*(summult(x,y)) - sum(x)*sum(y)

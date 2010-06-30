@@ -54,7 +54,7 @@ class MsgFrame(wx.Frame):
         wx.MessageBox("Something went wrong with running SOFA Statistics. "
                       "Please email the lead developer for help - "
                       "grant@sofastatistics.com\n\nCaused by error: %s" % 
-                      lib.safe_e(e))
+                      lib.ue(e))
         self.Destroy()
         import sys
         sys.exit()
@@ -171,7 +171,7 @@ try:
     # import stats_select
 except Exception, e:
     msg = (u"Problem with second round of local importing. "
-           u"Caused by error: %s" % lib.safe_e(e))
+           u"Caused by error: %s" % lib.ue(e))
     msgapp = MsgApp(msg)
     msgapp.MainLoop()
     del msgapp
@@ -471,7 +471,7 @@ class StartFrame(wx.Frame):
         wx.MessageBox(u"Problem displaying start form. "
                       u"Please email the lead developer for help - "
                       u"grant@sofastatistics.com\n\nCaused by error: %s" % 
-                      lib.safe_e(e))
+                      lib.ue(e))
     
     def on_paint(self, event):
         """
