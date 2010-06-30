@@ -38,9 +38,14 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 # Install gettext.  Now all strings enclosed in "_()" will automatically be
 # translated.
 gettext.install('sofa', './locale', unicode=True)
+    
+import my_globals as mg # has translated text
+import lib
+import config_globals
+import my_exceptions
 
 # Give the user something if the program fails at an early stage before anything
-# appears on the screen.  Only relies on wx
+# appears on the screen.
 
 
 class MsgFrame(wx.Frame):
@@ -48,7 +53,8 @@ class MsgFrame(wx.Frame):
         wx.Frame.__init__(self, None, title=_("SOFA Error"))
         wx.MessageBox("Something went wrong with running SOFA Statistics. "
                       "Please email the lead developer for help - "
-                      "grant@sofastatistics.com\n\nCaused by error: %s" % e)
+                      "grant@sofastatistics.com\n\nCaused by error: %s" % 
+                      lib.safe_e(e))
         self.Destroy()
         import sys
         sys.exit()
@@ -66,11 +72,6 @@ class MsgApp(wx.App):
         self.SetTopWindow(msgframe)
         return True
     
-    
-import my_globals as mg # has translated text
-import lib
-import config_globals
-import my_exceptions
 
 COPYRIGHT = u"\u00a9"
 SCREEN_WIDTH = 1000
@@ -170,7 +171,7 @@ try:
     # import stats_select
 except Exception, e:
     msg = (u"Problem with second round of local importing. "
-           u"Caused by error: %s" % e)
+           u"Caused by error: %s" % lib.safe_e(e))
     msgapp = MsgApp(msg)
     msgapp.MainLoop()
     del msgapp
@@ -440,7 +441,7 @@ class StartFrame(wx.Frame):
         link_help.UpdateLink(True)
         if mg.DBE_PROBLEM:
             prob = os.path.join(mg.INT_PATH, u"database connection problem.txt")
-            f = open(prob, "w")
+            f = codecs.open(prob, "w", "utf8")
             f.write(u"\n\n".join(mg.DBE_PROBLEM))
             f.close()
         if mg.MUST_DEL_TMP:
@@ -467,9 +468,10 @@ class StartFrame(wx.Frame):
             f.close()
     
     def on_paint_err_msg(self, e):
-        wx.MessageBox("Problem displaying start form. "
-                      "Please email the lead developer for help - "
-                      "grant@sofastatistics.com\n\nCaused by error: %s" % e)
+        wx.MessageBox(u"Problem displaying start form. "
+                      u"Please email the lead developer for help - "
+                      u"grant@sofastatistics.com\n\nCaused by error: %s" % 
+                      lib.safe_e(e))
     
     def on_paint(self, event):
         """

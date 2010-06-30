@@ -4,7 +4,6 @@
 from __future__ import print_function
 import os
 import platform
-import subprocess
 import sys
 import wx
 
@@ -148,20 +147,8 @@ USER_PATH = unicode(os.path.expanduser("~"), local_encoding)
 LOCAL_PATH = os.path.join(USER_PATH, u"sofa")
 REPORTS_PATH = os.path.join(LOCAL_PATH, u"reports")
 IMAGES_PATH = os.path.join(REPORTS_PATH, u"images")
-# print(sys.path)
- # NB won't work within an interpreter
-# http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
-path_found = False
-for path in sys.path:
-    if u"sofa" in path.lower():
-        path_found = True
-        break
-if not path_found:
-    PATH_ERROR = _("Unable to locate folder this program is running in.\n\n"
-                   "NB the final subfolder must have the word \"sofa\" in it.\n"
-                   "So \"C:\\Program Files\\sofa\" is ok\n"
-                   "but \"C:\\Program Files\\my stats\" is not.")
-SCRIPT_PATH = path
+SCRIPT_PATH = None # set in config_globals
+PATH_ERROR = None
 INT_PATH = os.path.join(LOCAL_PATH, INT_FOLDER)
 INT_SCRIPT_PATH = os.path.join(INT_PATH, u"script.py")
 INT_REPORT_FILE = u"report.htm"
@@ -238,32 +225,6 @@ DBE_MYSQL = u"MySQL"
 DBE_MS_ACCESS = u"MS Access"
 DBE_MS_SQL = u"MS SQL Server"
 DBE_PGSQL = u"PostgreSQL"
-"""
-Include database engine in system if in dbe_plugins folder and os-appropriate.
-"""
-def import_dbe_plugin(dbe_plugin):
-    try:
-        if dbe_plugin == DBE_SQLITE:
-            import dbe_plugins.dbe_sqlite as dbe_sqlite
-            mod = dbe_sqlite
-        elif dbe_plugin == DBE_MYSQL:
-            import dbe_plugins.dbe_mysql as dbe_mysql
-            mod = dbe_mysql
-        elif dbe_plugin == DBE_MS_ACCESS:
-            import dbe_plugins.dbe_ms_access as dbe_ms_access
-            mod = dbe_ms_access
-        elif dbe_plugin == DBE_MS_SQL:
-            import dbe_plugins.dbe_ms_sql as dbe_ms_sql
-            mod = dbe_ms_sql
-        elif dbe_plugin == DBE_PGSQL:
-            import dbe_plugins.dbe_postgresql as dbe_postgresql
-            mod = dbe_postgresql
-        else:
-            raise Exception, u"Unknown database engine plug-in type"
-    except ImportError, e:
-        raise Exception, (u"Import error with \"%s\". Caused by error: %s" % 
-                          (dbe_plugin, e))
-    return mod
 LINUX = u"linux"
 WINDOWS = u"windows"
 MAC = u"mac"
@@ -279,23 +240,6 @@ DBE_PLUGINS = [(DBE_SQLITE, u"dbe_sqlite"),
                (DBE_MS_SQL, u"dbe_ms_sql"),
                (DBE_PGSQL, u"dbe_postgresql"),
                ]
-for dbe_plugin, dbe_mod_name in DBE_PLUGINS:
-    wrong_os = (dbe_plugin in [DBE_MS_ACCESS, DBE_MS_SQL] 
-                and PLATFORM != WINDOWS)
-    dbe_plugin_mod = os.path.join(os.path.dirname(__file__), u"dbe_plugins", 
-                                   u"%s.py" % dbe_mod_name)
-    if os.path.exists(dbe_plugin_mod):
-        if not wrong_os:
-            try:
-                dbe_mod = import_dbe_plugin(dbe_plugin)
-            except Exception, e:
-                msg = (u"Problem adding dbe plugin %s. " % dbe_plugin +
-                       u"Caused by error: %s" % e)
-                print(msg)
-                DBE_PROBLEM.append(msg)
-                continue # skip bad module
-            DBES.append(dbe_plugin)
-            DBE_MODULES[dbe_plugin] = dbe_mod
 FLD_NAME_START = u"var"
 NEXT_FLD_NAME_TEMPLATE = FLD_NAME_START + u"%03i"
 # importer
@@ -367,71 +311,9 @@ INT_IMG_ROOT = os.path.join(INT_PATH, u"_img")
 MDY = u"month_day_year"
 DMY = u"day_month_year"
 YMD = u"year_month_day"
-def get_date_fmt():
-    """
-    On Windows, get local datetime_format.
-    With insights from code by Denis Barmenkov <barmenkov at bpc.ru>
-        (see http://win32com.goermezer.de/content/view/210/291/) and registry
-        details from http://windowsitpro.com/article/articleid/71636/...
-        ...jsi-tip-0311---regional-settings-in-the-registry.html.
-    On Linux and possibly OS-X, locale command works.
-    Returns MDY, DMY, or YMD.
-    """
-    debug = False
-    try:
-        if PLATFORM == WINDOWS:
-            # the following must have been specially installed
-            import win32api
-            import win32con
-            rkey = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, 
-                                       'Control Panel\\International')
-            raw_d_fmt = win32api.RegQueryValueEx(rkey, "iDate")[0]
-            raw2const = {"0": MDY, "1": DMY, "2": YMD}
-            win32api.RegCloseKey(rkey)
-        else:
-            cmd = 'locale -k LC_TIME'
-            child = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, 
-                                     stdout=subprocess.PIPE)
-            locale_dets = child.stdout.read().strip().split()
-            d_fmt_str = [x for x in locale_dets if x.startswith("d_fmt")][0]
-            raw_d_fmt = d_fmt_str.split("=")[1].strip().strip('"')
-            raw2const = {"%m/%d/%y": MDY, "%m/%d/%Y": MDY, 
-                         "%m-%d-%y": MDY, "%m-%d-%Y": MDY,
-                         "%d/%m/%y": DMY, "%d/%m/%Y": DMY, 
-                         "%d-%m-%y": DMY, "%d-%m-%Y": DMY,
-                         "%y/%m/%d": YMD, "%Y/%m/%d": YMD, 
-                         "%y-%m-%d": YMD, "%Y-%m-%d": YMD}
-    except Exception, e:
-        raise Exception, "Unable to get date format. %s" % e
-    try:
-        if debug: print("%s %s" % (raw2const, raw_d_fmt))
-        d_fmt = raw2const[raw_d_fmt]
-    except KeyError:
-        print("Unexpected raw_d_fmt (%s) in get_date_fmt()" % raw_d_fmt)
-        d_fmt = DMY
-    return d_fmt
-d_fmt = get_date_fmt()
-def get_date_fmt_lists(d_fmt):
-    if d_fmt == DMY:
-        extra_ok_date_formats = ["%d-%m-%y", "%d-%m-%Y",
-                                 "%d/%m/%y", "%d/%m/%Y",
-                                 "%d.%m.%y", "%d.%m.%Y"] # European
-        ok_date_format_examples = ["31/3/09", "2:30pm 31/3/2009"]
-    elif d_fmt == MDY:
-        # needed for US, Canada, the Philippines etc
-        extra_ok_date_formats = ["%m-%d-%y", "%m/%d/%y", "%m-%d-%Y", "%m/%d/%Y"]
-        ok_date_format_examples = ["3/31/09", "2:30pm 3/31/2009"]
-    elif d_fmt == YMD:
-        extra_ok_date_formats = []
-        ok_date_format_examples = ["09/03/31", "2:30pm 09/03/31"]
-    else:
-        raise Exception, "Unexpected d_fmt value (%s) in get_date_fmt_lists()" \
-            % d_fmt
-    always_ok_date_formats = ["%Y-%m-%d", "%Y"]
-    ok_date_formats =  extra_ok_date_formats + always_ok_date_formats
-    return ok_date_formats, ok_date_format_examples
-OK_DATE_FORMATS, OK_DATE_FORMAT_EXAMPLES = get_date_fmt_lists(d_fmt)
 OK_TIME_FORMATS = ["%I%p", "%I:%M%p", "%H:%M", "%H:%M:%S"]
+OK_DATE_FORMATS = None
+OK_DATE_FORMAT_EXAMPLES = None
 # preferences
 PREFS_KEY = "Prefs"
 DEFAULT_LEVEL_KEY = "default level key"
@@ -453,5 +335,13 @@ JS_WRAPPER_L = u"\n\n<script type=\"text/javascript\">"
 JS_WRAPPER_R = u"\n</script>"
 
 # ////////////////////////////////////////////////////////////
-import config_globals
+# leaving all this to the end is mainly about avoiding circular import problems
+# also about keeping functions to the end so that my_globals is easier to grasp 
+# at a glance (basically it just defined things - nothing is run until below)
+import config_globals # can rely on everything at least having been defined in
+    # my_globals (even as None) before it configures globals
+config_globals.set_SCRIPT_PATH()
+config_globals.set_ok_date_formats()
 config_globals.set_DEFAULT_LEVEL()
+config_globals.import_dbe_plugins() # as late as possible because uses local 
+    # modules e.g. lib, my_exceptions

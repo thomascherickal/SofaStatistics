@@ -544,7 +544,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             wx.MessageBox(_("Please check %s for errors. Use %s for "
                             "reference.") % (fil_proj, mg.DEFAULT_PROJ))
             raise Exception, ("Key error reading from proj_dic. "
-                              "Caused by error: %s") % e
+                              "Caused by error: %s") % lib.safe_e(e)
         except Exception, e:
             wx.MessageBox(_("Please check %s for errors. Use %s for "
                             "reference.") % (fil_proj, mg.DEFAULT_PROJ))

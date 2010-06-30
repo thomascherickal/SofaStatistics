@@ -117,9 +117,10 @@ class DataDets(object):
             self.set_dbe(proj_dic["default_dbe"])
         except KeyError, e:
             raise Exception, (u"Unable to read project dictionary for required "
-                              u"keys.  Caused by error: %s" % e)
+                              u"keys.  Caused by error: %s" % lib.safe_e(e))
         except Exception, e:
-            raise Exception, "Unable to set proj dic. Caused by error: %s" % e
+            raise Exception, (u"Unable to set proj dic. "
+                              u"Caused by error: %s" % lib.safe_e(e))
         self.proj_dic = proj_dic # only change if successful
 
     def set_dbe(self, dbe, db=None, tbl=None, add_checks=False):
@@ -145,7 +146,7 @@ class DataDets(object):
                                           db, tbl, add_checks)
         except Exception, e:
             raise Exception, ("Unable to get dbe resources. Caused by error: %s"
-                              % e)
+                              % lib.safe_e(e))
         self.dbe = dbe # only change if getting dbe resources worked
         if debug: print(u"Finished getting dbe resources")
         self.con = dbe_resources[mg.DBE_CON]
@@ -475,8 +476,9 @@ def insert_row(data):
         return True, None
     except Exception, e:
         if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
-            (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % e)
-        return False, u"%s" % e
+                (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % 
+                lib.safe_e(e))
+        return False, u"%s" % lib.safe_e(e)
 
 def delete_row(id_fld, row_id):
     """
@@ -499,8 +501,8 @@ def delete_row(id_fld, row_id):
         return True, None
     except Exception, e:
         if debug: print(u"Failed to delete row.  SQL: %s, row id: %s" %
-            (SQL_delete, row_id) + u"\n\nOriginal error: %s" % e)
-        return False, u"%s" % e
+            (SQL_delete, row_id) + u"\n\nOriginal error: %s" % lib.safe_e(e))
+        return False, u"%s" % lib.safe_e(e)
 
 def get_data_dropdowns(parent, panel, default_dbs):
     """

@@ -32,6 +32,14 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
 
+def test_safe_e():
+    tests = [("找不到指定的模块。", u"找不到指定的模块。"), # not the same
+             (u"找不到指定的模块。", u"找不到指定的模块。"),
+             (u"I \u2665 unicode", u"I ♥ unicode"),
+             ]
+    for test in tests:
+        assert_equal(lib.safe_e(test[0]), test[1])
+
 def test_process_orig():
     fld = u"bar"
     tests = [((u"Spam TO Eggs", fld, mg.FLD_TYPE_STRING), 

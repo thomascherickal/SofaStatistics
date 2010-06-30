@@ -220,7 +220,8 @@ class FiltSelectDlg(wx.Dialog):
             try:
                 tbl_filt = self.get_quick_filter()
             except Exception, e:
-                wx.MessageBox(_("Problem with design of filter: %s") % e)
+                wx.MessageBox(_("Problem with design of filter: %s") % 
+                              lib.safe_e(e))
                 return
         else:
             tbl_filt = self.txt_flex_filter.GetValue()
@@ -230,7 +231,7 @@ class FiltSelectDlg(wx.Dialog):
         # Must work with a simple query to that database
         obj_quoter = getdata.get_obj_quoter_func(dd.dbe)
         filt_test_SQL = u"""SELECT * FROM %s """ % obj_quoter(dd.tbl) + \
-            u"""WHERE (%s)""" % tbl_filt
+                        u"""WHERE (%s)""" % tbl_filt
         if debug: print("Filter: %s" % filt_test_SQL)
         try:
             dd.cur.execute(filt_test_SQL)

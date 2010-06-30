@@ -784,9 +784,11 @@ class TblEditor(wx.Dialog):
         except Exception, e:
             if self.debug or debug: 
                 print("update_cell failed to save %s. " %
-                      self.dbtbl.sql_cell_to_update + "Caused by error: %s" % e)
+                      self.dbtbl.sql_cell_to_update + "Caused by error: %s"
+                      % lib.safe_e(e))
             bolUpdatedCell = False
-            wx.MessageBox(_("Unable to save change to database.  %s") % e)
+            wx.MessageBox(_("Unable to save change to database.  %s") % 
+                          lib.safe_e(e))
         if self.dbtbl.row_vals_dic.get(row):
             del self.dbtbl.row_vals_dic[row] # force a fresh read
         self.dbtbl.grid.ForceRefresh()

@@ -15,6 +15,7 @@ import pprint
 import my_globals as mg
 import dbe_plugins.dbe_globals as dbe_globals
 import my_exceptions
+import lib
 
 AD_OPEN_KEYSET = 1
 AD_LOCK_OPTIMISTIC = 3
@@ -33,8 +34,8 @@ def quote_val(raw_val):
     try:
         val = raw_val.replace("'", "''") # escape internal single quotes
     except AttributeError, e:
-        raise Exception, ("Inappropriate attempt to quote non-string value. "
-                          "Caused by error: %s" % e)
+        raise Exception, (u"Inappropriate attempt to quote non-string value. "
+                          u"Caused by error: %s" % lib.safe_e(e))
     return u"'%s'" % val
 
 def get_summable(clause):
@@ -113,7 +114,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
         raise Exception, (u"Unable to connect to MS SQL Server with "
                           u"database %s; and supplied connection: " % db +
                           u"host: %s; user: %s; pwd: %s. " % (host, user, pwd) +
-                          u"Caused by error: %s" % e)
+                          u"Caused by error: %s" % lib.safe_e(e))
     cur = con.cursor()
     cur.adoconn = con.adoConn # (need to access from just the cursor)      
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: dbs,

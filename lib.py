@@ -18,6 +18,12 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
+def safe_e(e):
+    if not isinstance(e, unicode):
+        e = e.decode("utf8", "replace") # Better than implicit "strict" or 
+            # even "ignore"
+    return e
+
 def update_type_set(type_set, val):
     if is_numeric(val): # anything that SQLite can add _as a number_ 
             # into a numeric field
@@ -104,7 +110,8 @@ def esc_str_input(raw):
     try:
         new_str = raw.replace("%", "%%")
     except Exception, e:
-        raise Exception, "Unable to escape str input. Caused by error: %s" % e
+        raise Exception, (u"Unable to escape str input. "
+                          u"Caused by error: %s" % safe_e(e))
     return new_str
 
 def rel2abs_links(str_html):
