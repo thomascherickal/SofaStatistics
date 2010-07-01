@@ -30,6 +30,11 @@ if mg.PLATFORM == mg.WINDOWS:
      CONFIG_LEFT += 10
 BUTTON_LIFT = 0 if mg.PLATFORM == mg.WINDOWS else 4
 DIV_LINE_WIDTH = 203
+LST_LEFT = 515
+LST_WIDTH = 200
+LST_TOP = 55
+LST_HEIGHT = 220
+SCROLL_ALLOWANCE = 20
 
 cc = config_dlg.get_cc()
 
@@ -164,11 +169,6 @@ class StatsSelectDlg(wx.Dialog):
         self.btn_normal_help2.Bind(wx.EVT_BUTTON, self.on_normal_help2_btn)
         self.btn_normal_help2.Enable(False)
         # listbox of tests
-        LST_LEFT = 515
-        LST_WIDTH = 200
-        LST_TOP = 55
-        LST_HEIGHT = 220
-        SCROLL_ALLOWANCE = 20
         self.lst_tests = wx.ListCtrl(self.panel, -1, pos=(LST_LEFT, LST_TOP), 
                                 size=(LST_WIDTH + SCROLL_ALLOWANCE, LST_HEIGHT),
                                 style=wx.LC_REPORT)
@@ -196,7 +196,7 @@ class StatsSelectDlg(wx.Dialog):
                            self.on_list_item_activated)
         # tips etc
         self.lbl_tips = wx.StaticText(self.panel, -1,
-                                      pos=(LST_LEFT, LST_TOP + LST_HEIGHT + 20))
+                                      pos=(LST_LEFT, LST_TOP + LST_HEIGHT + 40))
         self.lbl_tips.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
         self.lbl_tips.SetForegroundColour(TEXT_BROWN)
         # run test button
@@ -226,8 +226,9 @@ class StatsSelectDlg(wx.Dialog):
         panel_dc.DrawLabel(_("Tests that show if there is a difference"), 
            wx.Rect(BUTTON1_LEFT, 135, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel(_("E.g. Do females have a larger vocabulary "
-                           "\naverage than males?"), 
+        diff_txt = lib.get_text_to_draw(_("E.g. Do females have a larger "
+                           "vocabulary average than males?"), 300)
+        panel_dc.DrawLabel(diff_txt, 
            wx.Rect(BUTTON1_LEFT, 160, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         panel_dc.DrawLabel(_("Tests that show if there is a relationship"), 
@@ -235,6 +236,9 @@ class StatsSelectDlg(wx.Dialog):
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
         panel_dc.DrawLabel(_("E.g. Does wealth increase with age?"), 
            wx.Rect(BUTTON1_LEFT, REL_TOP + 27, 100, 100))
+        panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        panel_dc.DrawLabel(_("Tips"), 
+           wx.Rect(LST_LEFT, LST_TOP + LST_HEIGHT + 20, 100, 100))
         event.Skip()
     
     def on_radio_direct_btn(self, event):        
@@ -244,6 +248,7 @@ class StatsSelectDlg(wx.Dialog):
         self.rad_relationships.Enable(False)
         self.rel_setup(enable=False)
         self.remove_test_indicators()
+        self.update_test_tips(None)
         
     def on_radio_assisted_btn(self, event):
         self.rad_differences.Enable(True)
@@ -391,13 +396,77 @@ class StatsSelectDlg(wx.Dialog):
         if test_type:
             self.remove_test_indicators()
             self.indicate_test(test_type)
-            self.update_test_tips(test_type)
+            self.update_test_tips(test_type, assisted=True)
     
-    def update_test_tips(self, test_type):
+    def update_test_tips(self, test_type, assisted=True):
+        tips_width = 390
         if test_type == TEST_ANOVA:
-            self.lbl_tips.SetLabel(_("Anova"))
+            tips = _("")
+        elif test_type == TEST_CHI_SQUARE:
+            tips = _("")
+        elif test_type == TEST_PEARSONS_R:
+            tips = _("")
+        elif test_type == TEST_SPEARMANS_R:
+            tips = _("")
+        elif test_type == TEST_KRUSKAL_WALLIS:
+            tips = _("")
+        elif test_type == TEST_MANN_WHITNEY:
+            if assisted:
+                tips = lib.get_text_to_draw(_("The Mann-Whitney is probably a "
+                    "good choice.  The Independent t-test may still be "
+                    "preferable if your data is numerical and doesn't violate "
+                    "normality too much.  Generally the t-test is robust"
+                    " to non-normality."),
+                    tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_("You can evaluate normality by "
+                    "clicking on the \"Help\" button next to the \"Normal\" - "
+                    "\"Not normal\" choices."), tips_width)
+            else:
+                tips = lib.get_text_to_draw(_("The Mann-Whitney is good for "
+                    "seeing if there is a difference between two groups when "
+                    "the data is at least ordinal (ordered)."), tips_width)
+                tips += u"\n\n" 
+                tips += lib.get_text_to_draw(_("The Independent t-test may be "
+                    "preferable if your data is numerical and doesn't violate "
+                    "normality too much.  Generally the t-test is robust"
+                    " to non-normality."),
+                    tips_width)
+        elif test_type == TEST_TTEST_INDEP:
+            if assisted:
+                tips = lib.get_text_to_draw(_("The Independent t-test is "
+                    "probably a good choice.  The Mann-Whitney may still be "
+                    "preferable in some cases because of its resistance"
+                    " to extreme outliers (isolated high or low values)."), 
+                    tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_("The Mann-Whitney also copes "
+                    "better with small sample sizes e.g. < 20."), tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_("You can evaluate normality by "
+                    "clicking on the \"Help\" button next to the \"Normal\" - "
+                    "\"Not normal\" choices."), tips_width)
+            else:
+                tips = lib.get_text_to_draw(_("The Independent t-test is good "
+                    "for seeing if there is a difference between two groups "
+                    "when the data is numerical and adequately normal.  "
+                    "Generally the t-test is robust to non-normality."), 
+                    tips_width)
+                tips += u"\n\n" 
+                tips += lib.get_text_to_draw(_("The Mann-Whitney may be "
+                    "preferable in some cases because of its resistance"
+                    " to extreme outliers (isolated high or low values)."), 
+                    tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_("It also copes better with small "
+                    "sample sizes e.g. < 20."), tips_width)
+        elif test_type == TEST_TTEST_PAIRED:
+            tips = _("")
+        elif test_type == TEST_WILCOXON:
+            tips = _("")
         else:
-            self.lbl_tips.SetLabel(_("Huh?\nWhat is going on\nOh!"))
+            tips = _("")
+        self.lbl_tips.SetLabel(tips)
     
     def select_test(self):
         """
@@ -467,7 +536,7 @@ class StatsSelectDlg(wx.Dialog):
         except Exception:
             event.Skip()
             return
-        self.update_test_tips(test_type)
+        self.update_test_tips(test_type, assisted=False)
 
     def on_list_item_activated(self, event):
         self.respond_to_activation(event)

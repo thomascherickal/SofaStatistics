@@ -23,7 +23,7 @@ def ue(e):
     try:
         ue = e.__unicode__() # handles u"找不到指定的模块。" & u"I \u2665 unicode"
     except UnicodeDecodeError:
-        ue = unicode(e.__str__(), "utf8") # handles "找不到指定的模块。"
+        ue = e.__str__().decode("utf8", "replace") # handles "找不到指定的模块。"
     return ue
 
 def update_type_set(type_set, val):
