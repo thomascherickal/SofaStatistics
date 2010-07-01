@@ -35,7 +35,7 @@ class OdsImporter(importer.FileImporter):
         """
         debug = False
         if not os.path.exists(self.file_path):
-            raise Exception, (u"Unable to find file \"%s\" for importing. "
+            raise Exception(u"Unable to find file \"%s\" for importing. "
                             u"Please check that file exists." % self.file_path)
         size = ods_reader.get_ods_xml_size(self.file_path)
         if size > 1000000:
@@ -70,7 +70,7 @@ class OdsImporter(importer.FileImporter):
         fldnames = ods_reader.get_fld_names(tbl, self.has_header, 
                                             ROWS_TO_SAMPLE)
         if not fldnames:
-            raise Exception, _("Unable to extract or generate field names")
+            raise Exception(_("Unable to extract or generate field names"))
         # Will expect exactly the same number of fields as we have names for.
         # Have to process twice as much before it will add another step on bar.
         fld_types, rows = ods_reader.get_ods_dets(lbl_feedback, progbar, tbl,

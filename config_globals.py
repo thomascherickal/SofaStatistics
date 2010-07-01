@@ -55,10 +55,10 @@ def import_dbe_plugin(dbe_plugin):
             import dbe_plugins.dbe_postgresql as dbe_postgresql
             mod = dbe_postgresql
         else:
-            raise Exception, u"Unknown database engine plug-in type"
+            raise Exception(u"Unknown database engine plug-in type")
     except ImportError, e:
-        raise Exception, (u"Import error with \"%s\". Caused by error: %s" % 
-                          (dbe_plugin, e))
+        raise Exception(u"Import error with \"%s\". Caused by error: %s" % 
+                        (dbe_plugin, e))
     return mod
 
 def import_dbe_plugins():
@@ -117,7 +117,7 @@ def get_date_fmt():
                          "%y-%m-%d": mg.YMD, "%Y-%m-%d": mg.YMD}
     except Exception, e:
         import lib
-        raise Exception, u"Unable to get date format. %s" % lib.ue(e)
+        raise Exception(u"Unable to get date format. %s" % lib.ue(e))
     try:
         if debug: print("%s %s" % (raw2const, raw_d_fmt))
         d_fmt = raw2const[raw_d_fmt]
@@ -141,8 +141,8 @@ def set_ok_date_formats():
         extra_ok_date_formats = []
         ok_date_format_examples = ["09/03/31", "2:30pm 09/03/31"]
     else:
-        raise Exception, "Unexpected d_fmt value (%s) in get_date_fmt_lists()" \
-            % d_fmt
+        raise Exception("Unexpected d_fmt value (%s) in get_date_fmt_lists()"
+                        % d_fmt)
     always_ok_date_formats = ["%Y-%m-%d", "%Y"]
     ok_date_formats =  extra_ok_date_formats + always_ok_date_formats
     mg.OK_DATE_FORMATS = ok_date_formats
@@ -152,12 +152,14 @@ def get_settings_dic(subfolder, fil_name):
     """
     Returns settings_dic with keys for each setting.
     """
+    import lib
+    
     settings_path = os.path.join(mg.LOCAL_PATH, subfolder, fil_name)
     try:
         f = codecs.open(settings_path, "U", encoding="utf-8")
     except IOError:
-        raise Exception, "Unable to get settings from non-existent file %s" % \
-            settings_path
+        raise Exception("Unable to get settings from non-existent file %s"
+                        % settings_path)
     settings_cont = f.read()
     f.close()
     if settings_cont.startswith(unicode(codecs.BOM_UTF8, "utf-8")):
@@ -169,13 +171,13 @@ def get_settings_dic(subfolder, fil_name):
     except SyntaxError, e:
         wx.MessageBox(\
             _("Syntax error in settings file \"%s\"." % fil_name + \
-                      os.linesep + os.linesep + "Details: %s" % unicode(e)))
-        raise Exception, unicode(e)
+                      os.linesep + os.linesep + "Details: %s" % lib.ue(e)))
+        raise
     except Exception, e:
-        wx.MessageBox(\
-            _("Error processing settings file \"%s\"." % fil_name + \
-                      os.linesep + os.linesep + "Details: %s" % unicode(e)))
-        raise Exception, unicode(e)
+        wx.MessageBox(
+            _("Error processing settings file \"%s\"." % fil_name +
+                      os.linesep + os.linesep + "Details: %s" % lib.ue(e)))
+        raise
     return settings_dic
 
 def set_DEFAULT_LEVEL(ignore_prefs=False):
@@ -191,7 +193,8 @@ def set_DEFAULT_LEVEL(ignore_prefs=False):
             stored_lev = \
                 prefs_dic[mg.PREFS_KEY][mg.DEFAULT_LEVEL_KEY]
             if stored_lev not in mg.LEVELS:
-                raise Exception, "Invalid stored level: %s" % stored_lev
+                import lib
+                raise Exception("Invalid stored level: %s" % lib.ue(stored_lev))
             mg.DEFAULT_LEVEL = stored_lev
         except Exception:
             mg.DEFAULT_LEVEL = mg.LEVEL_BRIEF

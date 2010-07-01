@@ -35,8 +35,8 @@ def quote_val(raw_val):
     try:
         val = raw_val.replace('"', '""') # escape internal double quotes
     except AttributeError, e:
-        raise Exception, (u"Inappropriate attempt to quote non-string value. "
-                          u"Caused by error: %s" % lib.ue(e))
+        raise Exception(u"Inappropriate attempt to quote non-string value. "
+                        u"Caused by error: %s" % lib.ue(e))
     return u"\"%s\"" % val
 
 def get_summable(clause):
@@ -62,13 +62,13 @@ def get_con(con_dets, db, add_checks=False):
     if not con_dets_sqlite:
         raise my_exceptions.MissingConDets(mg.DBE_SQLITE)
     if not con_dets_sqlite.get(db):
-        raise Exception, u"No connections for SQLite database %s" % db
+        raise Exception(u"No connections for SQLite database %s" % db)
     try:
         con = sqlite.connect(**con_dets_sqlite[db])
     except Exception, e:
-        raise Exception, (u"Unable to connect to SQLite database "
-                          u"using supplied database: \"%s\". " % db +
-                          u"Caused by error: %s" % lib.ue(e))
+        raise Exception(u"Unable to connect to SQLite database "
+                        u"using supplied database: \"%s\". " % db +
+                        u"Caused by error: %s" % lib.ue(e))
     if mg.USE_SQLITE_UDFS:
         print("*"*60)
         print("Overriding so can open sofa_db in SOFA")

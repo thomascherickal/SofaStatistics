@@ -227,7 +227,7 @@ class ListVarsDlg(wx.Dialog):
     def get_var(self):
         idx = self.lst_vars.GetSelection()
         if idx == -1:
-            raise Exception, "Nothing selected"
+            raise Exception(u"Nothing selected")
         var = self.sorted_var_names[idx]
         var_item = self.lst_vars.GetStringSelection()
         return var, var_item
@@ -517,18 +517,18 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             wx.MessageBox(\
                 _("Syntax error in project file \"%s\"." % fil_proj + \
                           os.linesep + os.linesep + "Details: %s" % unicode(e)))
-            raise Exception, unicode(e)
+            raise
         except Exception, e:
             wx.MessageBox(\
                 _("Error processing project file \"%s\"." % fil_proj + \
                           os.linesep + os.linesep + "Details: %s" % unicode(e)))
-            raise Exception, unicode(e)
+            raise
         try:
             self.proj_name = fil_proj[:-5]
         except Exception, e:
             wx.MessageBox(_("Please check %s for errors. Use %s for "
                             "reference.") % (fil_proj, mg.DEFAULT_PROJ))
-            raise Exception, e
+            raise
         # Taking settings from proj file (via exec and proj_dic)
         #   and adding them to this frame ready for use.
         # Must always be stored, even if only ""
@@ -543,12 +543,12 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         except KeyError, e:
             wx.MessageBox(_("Please check %s for errors. Use %s for "
                             "reference.") % (fil_proj, mg.DEFAULT_PROJ))
-            raise Exception, (u"Key error reading from proj_dic. "
-                              u"Caused by error: %s") % lib.ue(e)
+            raise Exception(u"Key error reading from proj_dic. "
+                            u"Caused by error: %s" % lib.ue(e))
         except Exception, e:
             wx.MessageBox(_("Please check %s for errors. Use %s for "
                             "reference.") % (fil_proj, mg.DEFAULT_PROJ))
-            raise Exception, e
+            raise
     
     def on_dbe_choice(self, event):
         sel_dbe_id = self.drop_default_dbe.GetSelection()

@@ -96,19 +96,19 @@ class ProjSelectDlg(wx.Dialog):
             wx.MessageBox(\
                 _("Syntax error in project file \"%s\"." % fil_proj + \
                           os.linesep + os.linesep + "Details: %s" % unicode(e)))
-            raise Exception, unicode(e)
+            raise
         except Exception, e:
             wx.MessageBox(\
                 _("Error processing project file \"%s\"." % fil_proj + \
                           os.linesep + os.linesep + "Details: %s" % unicode(e)))
-            raise Exception, unicode(e)
+            raise
         # must always be stored, even if only ""
         try:
             self.proj_notes = projects.get_proj_notes(fil_proj, proj_dic)
         except Exception, e:
             wx.MessageBox(_("Please check %s for errors. Use the default "
                             "project file for reference.") % fil_proj)
-            raise Exception, e
+            raise
     
     def on_proj_select(self, event):
         proj_sel_id = self.drop_projs.GetSelection()

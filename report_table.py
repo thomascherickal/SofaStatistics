@@ -100,7 +100,7 @@ def get_missing_dets_msg(tab_type, has_rows, has_cols):
     elif tab_type == mg.RAW_DISPLAY:
         return style_template % _("Add and configure columns")
     else:
-        raise Exception, "Unknown table type"
+        raise Exception(u"Unknown table type")
 
 
 class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
@@ -660,8 +660,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                               u"page_break_after=False))")
             script_lst.append(u"else:")
             script_lst.append(u"    "
-                  u"raise my_exceptions.ExcessReportTableCellsException("
-                  u"max_cells)")
+                      u"raise my_exceptions.ExcessReportTableCellsException("
+                      u"max_cells)")
         else:
             script_lst.append(u"fil.write(tab_test.get_html(%s, " % css_idx + \
                               u"page_break_after=False))")
@@ -886,7 +886,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             elif not silent:
                 wx.MessageBox(_("Missing column(s)"))
         else:
-            raise Exception, "Not an expected table type"
+            raise Exception(u"Not an expected table type")
         return (export_ok, has_cols)
 
     def setup_action_btns(self):

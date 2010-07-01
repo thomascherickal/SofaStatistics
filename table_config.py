@@ -246,7 +246,7 @@ def cell_invalidation(val, row, col, grid, col_dets):
     elif col == 1:
         return _invalid_fld_type(row, grid)
     else:
-        raise Exception, u"Two many columns for default cell invalidation test"
+        raise Exception(u"Two many columns for default cell invalidation test")
 
 def cell_response(self, val, row, col, grid, col_dets):
     pass
@@ -394,7 +394,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.new = new
         self.changes_made = False
         if self.new and readonly:
-            raise Exception, "If new, should never be read only"
+            raise Exception(u"If new, should never be read only")
         self.var_labels = var_labels
         self.val_dics = val_dics
         if tblname_lst:
@@ -406,8 +406,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.settings_data = fld_settings # settings_data is more generic and is
             # needed in code which called this.  Don't rename ;-)
         if fld_settings:
-            raise Exception, (u"fld_settings should always start off empty "
-                              u"ready to received values")
+            raise Exception(u"fld_settings should always start off empty ready "
+                            u"to received values")
         self.init_settings_data = init_fld_settings[:] # can check if end 
             # result changed
         self.setup_settings_data(init_fld_settings)
@@ -556,8 +556,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                     try:
                         rawval = row_dict[orig_fldname]
                     except KeyError:
-                        raise Exception, (u"orig_fldname %s not in row_dict %s"
-                                          % (orig_fldname, row_dict))
+                        raise Exception(u"orig_fldname %s not in row_dict %s"
+                                        % (orig_fldname, row_dict))
                 if rawval is None:
                     rawval = mg.MISSING_VAL_INDICATOR
                 valdic = self.val_dics.get(new_fldname)
@@ -840,7 +840,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                         "grant@sofastatistics.com"))
         debug = False
         if self.readonly:
-            raise Exception, _("Can't recode a read only table")
+            raise Exception(_("Can't recode a read only table"))
         self.tabentry.update_settings_data()
         if debug:
             print(u"init_settings_data: %s" % self.init_settings_data)

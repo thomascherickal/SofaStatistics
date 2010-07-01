@@ -51,7 +51,7 @@ def path2style(path):
     "Strip style out of full css path"
     style = path[len(mg.CSS_PATH)+1:-len(u".css")] # +1 to miss trailing slash
     if style == u"":
-        raise Exception, "Problem stripping style out of path (%s)" % path
+        raise Exception("Problem stripping style out of path (%s)" % path)
     return style
 
 

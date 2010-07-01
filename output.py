@@ -352,7 +352,7 @@ def run_report(modules, add_to_report, css_fils, inner_script):
                         u"generate report. Error encountered: %s</p>") % \
                         lib.ue(e)
         if debug:
-            raise Exception, unicode(e)
+            raise
         return False, err_content
     f = codecs.open(mg.INT_REPORT_PATH, "U", "utf-8")
     raw_results = lib.clean_bom_utf8(f.read())
@@ -453,8 +453,8 @@ def _strip_html(html):
     try:
         start_idx = html.index(body_start) + len(body_start)
     except ValueError:
-        raise Exception, (u"Unable to process malformed HTML.  "
-                          u"Original HTML: %s" % html)
+        raise Exception(u"Unable to process malformed HTML.  "
+                        u"Original HTML: %s" % html)
     try:
         end_idx = html.index(body_end)
         stripped = html[start_idx:end_idx]

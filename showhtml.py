@@ -79,7 +79,7 @@ class DlgHTML(wx.Dialog):
     
     def show_content(self, url=None, content=None, url_load=None):
         if content is None and url is None:
-            raise Exception, "Need whether string content or a url"
+            raise Exception(u"Need whether string content or a url")
         if content:
             self.html.show_html(content, url_load)
         else:

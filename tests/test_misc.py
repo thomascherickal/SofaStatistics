@@ -43,7 +43,7 @@ def test_ue():
     for i, test in enumerate(tests):
         print("Running test %s" % str(i))
         try:
-            raise Exception, test[0]
+            raise Exception(test[0])
         except Exception, e:
             assert_equal(lib.ue(e), test[1])
 

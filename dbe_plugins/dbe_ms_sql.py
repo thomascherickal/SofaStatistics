@@ -34,8 +34,8 @@ def quote_val(raw_val):
     try:
         val = raw_val.replace("'", "''") # escape internal single quotes
     except AttributeError, e:
-        raise Exception, (u"Inappropriate attempt to quote non-string value. "
-                          u"Caused by error: %s" % lib.ue(e))
+        raise Exception(u"Inappropriate attempt to quote non-string value. "
+                        u"Caused by error: %s" % lib.ue(e))
     return u"'%s'" % val
 
 def get_summable(clause):
@@ -60,8 +60,8 @@ def get_dbs(host, user, pwd, default_dbs, db=None):
     try:
         con = adodbapi.connect(connstr=DSN)
     except Exception, e:
-        raise Exception, (u"Unable to connect to MS SQL Server with host: "
-                          u"%s; user: %s; and pwd: %s" % (host, user, pwd))
+        raise Exception(u"Unable to connect to MS SQL Server with host: "
+                        u"%s; user: %s; and pwd: %s" % (host, user, pwd))
     cur = con.cursor() # must return tuples not dics
     cur.execute(u"SELECT name FROM sysdatabases")
     dbs = [x[0] for x in cur.fetchall()]
@@ -77,8 +77,8 @@ def get_dbs(host, user, pwd, default_dbs, db=None):
                 db = default_db_mssql
     else:
         if db.lower() not in dbs_lc:
-            raise Exception, u"Database \"%s\" not available " % db + \
-                u"from supplied connection"
+            raise Exception(u"Database \"%s\" not available " % db +
+                            u"from supplied connection")
     cur.close()
     con.close()
     return dbs, db
@@ -111,10 +111,10 @@ def get_con_resources(con_dets, default_dbs, db=None):
     try:
         con = adodbapi.connect(connstr=DSN)
     except Exception, e:
-        raise Exception, (u"Unable to connect to MS SQL Server with "
-                          u"database %s; and supplied connection: " % db +
-                          u"host: %s; user: %s; pwd: %s. " % (host, user, pwd) +
-                          u"Caused by error: %s" % lib.ue(e))
+        raise Exception(u"Unable to connect to MS SQL Server with "
+                        u"database %s; and supplied connection: " % db +
+                        u"host: %s; user: %s; pwd: %s. " % (host, user, pwd) +
+                        u"Caused by error: %s" % lib.ue(e))
     cur = con.cursor()
     cur.adoconn = con.adoConn # (need to access from just the cursor)      
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: dbs,
@@ -165,8 +165,8 @@ def get_flds(cur, db, tbl):
         if debug: print(col.Type)
         fld_type = dbe_globals.get_ado_dict().get(col.Type)
         if not fld_type:
-            raise Exception, u"Not an MS SQL Server ADO field type %d" % \
-                col.Type
+            raise Exception(u"Not an MS SQL Server ADO field type %d"
+                            % col.Type)
         bolnumeric = fld_type in dbe_globals.NUMERIC_TYPES
         try:
             bolautonum = col.Properties(u"AutoIncrement").Value

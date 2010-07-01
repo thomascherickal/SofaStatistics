@@ -192,9 +192,9 @@ class SettingsEntry(object):
             data_cols_n = len(init_settings_data[0])
             #pprint.pprint(init_settings_data) # debug
             if data_cols_n != self.cols_n:
-                raise Exception, (u"There must be one set of column details per"
-                                  u" column of data (currently %s details for "
-                                  u"%s columns)" % (self.cols_n, data_cols_n))
+                raise Exception(u"There must be one set of column details per"
+                                u" column of data (currently %s details for "
+                                u"%s columns)" % (self.cols_n, data_cols_n))
         self.grid.CreateGrid(numRows=self.rows_n, numCols=self.cols_n)
         self.grid.EnableEditing(not self.readonly)
         # Set any col min widths specifically specified
@@ -291,8 +291,8 @@ class SettingsEntry(object):
                 renderer = wx.grid.GridCellStringRenderer()
                 editor = wx.grid.GridCellChoiceEditor(dropdown_vals)
             else:
-                raise Exception, u"settings_grid.get_new_renderer_editor: " + \
-                    u"needed to supply dropdown_vals"
+                raise Exception(u"settings_grid.get_new_renderer_editor: "
+                                u"needed to supply dropdown_vals")
         else:
             renderer = wx.grid.GridCellStringRenderer()
             editor = wx.grid.GridCellTextEditor()
@@ -361,8 +361,8 @@ class SettingsEntry(object):
         elif dest_col < src_col and dest_row < src_row:
                 direction = mg.MOVE_UP_LEFT
         else:
-            raise Exception, (u"settings_grid.on_select_cell - where is "
-                              u"direction?")
+            raise Exception(u"settings_grid.on_select_cell - where is "
+                            u"direction?")
         if self.debug or debug: 
             print(u"on_select_cell - selected row: %s, col: %s, direction: %s" %
             (dest_row, dest_col, direction) + u"******************************") 
@@ -520,7 +520,7 @@ class SettingsEntry(object):
             move_to_dest, saved_new_row = self.leaving_new_row(dest_row, 
                                                             dest_col, direction)
         else:
-            raise Exception, u"process_cell_move - Unknown move_type"
+            raise Exception(u"process_cell_move - Unknown move_type")
         if self.debug or debug:
             print(u"move_type: %s move_to_dest: %s " % (move_type, 
                                                         move_to_dest) +
@@ -591,7 +591,7 @@ class SettingsEntry(object):
         elif not was_new_row and dest_row_is_new:
             move_type = mg.LEAVING_EXISTING
         else:
-            raise Exception, u"settings_grid.get_move_dets().  Unknown move."
+            raise Exception(u"settings_grid.get_move_dets().  Unknown move.")
         # 2) dest row and dest col
         if dest_row is None and dest_col is None: # known if from on_select_cell
             if final_col and direction in [mg.MOVE_RIGHT, mg.MOVE_DOWN]:
@@ -608,9 +608,9 @@ class SettingsEntry(object):
                     dest_row = src_row + 1
                     dest_col = src_col
                 else:
-                    raise Exception, (u"settings_grid.get_move_dets no "
-                            u"destination (so from a TAB or Return) yet not a "
-                            u"left, right, or down.")
+                    raise Exception(u"settings_grid.get_move_dets no "
+                                u"destination (so from a TAB or Return) yet "
+                                u"not a left, right, or down.")
         return move_type, dest_row, dest_col
     
     def dest_row_is_current_new(self, src_row, dest_row, direction, final_col):

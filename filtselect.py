@@ -30,8 +30,8 @@ def get_val(raw_val, flds, fld_name):
             if isinstance(raw_val, basestring):
                 if raw_val == "" or raw_val.lower() == "null":
                     return None
-        raise Exception, ("Only a number, an empty string, or Null can "
-                          "be entered for filtering a numeric field")
+        raise Exception(u"Only a number, an empty string, or Null can be "
+                        u"entered for filtering a numeric field")
     elif boldatetime:
         usable_datetime = lib.is_usable_datetime_str(raw_val)
         if usable_datetime:
@@ -41,8 +41,8 @@ def get_val(raw_val, flds, fld_name):
             if isinstance(raw_val, basestring):
                 if raw_val == "" or raw_val.lower() == "null":
                     return None
-        raise Exception, ("Only a datetime, an empty string, or Null can "
-                          "be entered for filtering a datetime field")
+        raise Exception(u"Only a datetime, an empty string, or Null can be "
+                        u"entered for filtering a datetime field")
     else:
         if raw_val.lower() == "null":
             return None
@@ -191,8 +191,8 @@ class FiltSelectDlg(wx.Dialog):
         try:
             del mg.DBE_TBL_FILTS[dd.dbe][dd.db][dd.tbl]
         except KeyError:
-            raise Exception, ("Tried to delete filter but not in global "
-                              "dictionary")
+            raise Exception(u"Tried to delete filter but not in global "
+                            u"dictionary")
         self.Destroy()
         self.SetReturnCode(wx.ID_DELETE) # only for dialogs 
         # (MUST come after Destroy)

@@ -154,7 +154,7 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     cur.execute(SQL_get_obs)
     tup_obs = cur.fetchall()[0]
     if not tup_obs:
-        raise Exception, u"No observed values"
+        raise Exception(u"No observed values")
     lst_obs = list(tup_obs)
     if debug: print(u"lst_obs: %s" % lst_obs)
     obs_total = float(sum(lst_obs))
@@ -168,8 +168,8 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
             lst_exp.append(frac_a*frac_b*obs_total)
     if debug: print(u"lst_exp: %s" % lst_exp)
     if len(lst_obs) != len(lst_exp):
-        raise Exception, u"Different number of observed and expected " + \
-            u"values. %s vs %s" % (len(lst_obs), len(lst_exp))
+        raise Exception(u"Different number of observed and expected values. "
+                        u"%s vs %s" % (len(lst_obs), len(lst_exp)))
     min_count = min(lst_exp)
     lst_lt_5 = [x for x in lst_exp if x < 5]
     perc_cells_lt_5 = 100*(len(lst_lt_5))/float(len(lst_exp))
@@ -466,7 +466,7 @@ def kruskalwallish(samples, labels):
     h = 12.0 / (totaln*(totaln+1)) * ssbn - 3*(totaln+1)
     df = len(samples) - 1
     if T == 0:
-        raise ValueError, 'All numbers are identical in kruskalwallish'
+        raise ValueError(u"All numbers are identical in kruskalwallish")
     h = h / float(T)
     return h, chisqprob(h,df), dics
 
@@ -527,7 +527,7 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     a and b.  From Numerical Recipes, p.483.
     """
     if len(sample_a)<>len(sample_b):
-        raise ValueError, 'Unequal length lists in ttest_rel.'
+        raise ValueError(u"Unequal length lists in ttest_rel.")
     mean_a = mean(sample_a)
     mean_b = mean(sample_b)
     var_a = variance(sample_a)
@@ -590,7 +590,7 @@ def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     smallu = min(u_a, u_b)
     T = math.sqrt(tiecorrect(ranked))  # correction factor for tied scores
     if T == 0:
-        raise ValueError, 'All numbers are identical in lmannwhitneyu'
+        raise ValueError(u"All numbers are identical in lmannwhitneyu")
     sd = math.sqrt(T*n_a*n_b*(n_a + n_b + 1)/12.0)
     z = abs((bigu-n_a*n_b/2.0) / sd)  # normal approximation for prob calc
     p = 1.0 - zprob(z)
@@ -620,15 +620,15 @@ def wilcoxont(x, y):
     Returns: a t-statistic, two-tail probability estimate, z
     """
     if len(x) <> len(y):
-        raise ValueError, 'Unequal N in wilcoxont.  Aborting.'
+        raise ValueError(u"Unequal N in wilcoxont.  Aborting.")
     n = len(x)
     d=[]
     for i in range(len(x)):
         try:
             diff = x[i] - y[i]
         except TypeError, e:            
-            raise Exception, "Both values in pair must be numeric: %s and %s" \
-                % (x[i], y[i])
+            raise Exception(u"Both values in pair must be numeric: %s and %s"
+                            % (x[i], y[i]))
         if diff <> 0:
             d.append(diff)
     count = len(d)
@@ -661,13 +661,13 @@ def pearsonr(x,y):
     """
     TINY = 1.0e-30
     if len(x) <> len(y):
-        raise ValueError, 'Input values not paired in pearsonr.  Aborting.'
+        raise ValueError(u"Input values not paired in pearsonr.  Aborting.")
     n = len(x)
     try:
         x = map(float,x)
         y = map(float,y)
     except ValueError, e:
-        raise Exception, "Unable to calculate Pearson's R.  %s" % lib.ue(e)
+        raise Exception(u"Unable to calculate Pearson's R.  %s" % lib.ue(e))
     xmean = mean(x)
     ymean = mean(y)
     r_num = n*(summult(x,y)) - sum(x)*sum(y)
@@ -691,7 +691,7 @@ def spearmanr(x,y):
     """
     TINY = 1e-30
     if len(x) <> len(y):
-        raise ValueError, 'Input values not paired in spearmanr.  Aborting.'
+        raise ValueError(u"Input values not paired in spearmanr.  Aborting.")
     n = len(x)
     rankx = rankdata(x)
     ranky = rankdata(y)
@@ -882,7 +882,7 @@ def mean(vals, high=False):
             try:
                 sum += val
             except Exception:
-                raise Exception, u"Unable to add \"%s\" to running total." % val
+                raise Exception(u"Unable to add \"%s\" to running total." % val)
         mean = sum/float(len(vals))
     else:
         tot = D("0")
@@ -890,7 +890,7 @@ def mean(vals, high=False):
             try:
                 tot += lib.n2d(val)
             except Exception:
-                raise Exception, u"Unable to add \"%s\" to running total." % val
+                raise Exception(u"Unable to add \"%s\" to running total." % val)
         mean = tot/len(vals)
     return mean
 
@@ -950,8 +950,8 @@ def variance(vals, high=False):
     """
     n = len(vals)
     if n < 2:
-        raise Exception, ("Need more than 1 value to calculate variance.  "
-                          "Values supplied: %s" % vals)
+        raise Exception(u"Need more than 1 value to calculate variance.  "
+                        u"Values supplied: %s" % vals)
     mn = mean(vals, high)
     deviations = [0]*len(vals)
     for i in range(len(vals)):
@@ -981,8 +981,8 @@ def stdev(vals, high=False):
         else:
             stdev = math.sqrt(variance(vals))
     except ValueError:
-        raise Exception, (u"stdev - error getting square root.  Negative "
-                          u"variance value?")
+        raise Exception(u"stdev - error getting square root.  Negative "
+                        u"variance value?")
     return stdev
 
 def betai(a, b, x, high=False):
@@ -1011,7 +1011,7 @@ def betai(a, b, x, high=False):
         one = 1.0
         two = 2.0
     if (x < zero or x > one):
-        raise ValueError, u"Bad x %s in betai" % x
+        raise ValueError(u"Bad x %s in betai" % x)
     if (x==zero or x==one):
         bt = zero
     else:
@@ -1154,7 +1154,7 @@ def summult (list1, list2):
     Usage:   summult(list1,list2)
     """
     if len(list1) <> len(list2):
-        raise ValueError, u"Lists not equal length in summult."
+        raise ValueError(u"Lists not equal length in summult.")
     s = 0
     for item1,item2 in abut(list1,list2):
         s = s + item1*item2
@@ -1617,8 +1617,8 @@ def kurtosistest(a, dimension=None):
         sqrtbeta1 = 6.0*(n*n-5*n+2)/((n+7)*(n+9)) * np.sqrt((6.0*(n+3)*(n+5))/
                                                            (n*(n-2)*(n-3)))
     except ZeroDivisionError:
-        raise Exception, ("Unable to calculate kurtosis test.  Zero division "
-                          "error")
+        raise Exception(u"Unable to calculate kurtosis test.  Zero division "
+                        u"error")
     A = 6.0 + 8.0/sqrtbeta1 *(2.0/sqrtbeta1 + np.sqrt(1+4.0/(sqrtbeta1**2)))
     term1 = 1 -2/(9.0*A)
     denom = 1 +x*np.sqrt(2/(A-4.0))
@@ -1704,7 +1704,7 @@ def obrientransform(*args):
                 print("\nv[j]: %s" % repr(v[j]))
                 print("\nnargs[j]: %s" % nargs[j])
                 print("\nmean(nargs[j]): %s" % repr(mean(nargs[j])))
-            raise ValueError, "Lack of convergence in obrientransform."
+            raise ValueError(u"Lack of convergence in obrientransform.")
     return nargs
 
 def colex (listoflists, cnums):

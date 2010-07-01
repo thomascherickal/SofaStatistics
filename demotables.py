@@ -58,7 +58,7 @@ class DemoTable(object):
         except Exception, e:
             wx.MessageBox(_("Unable to make report.  Error details: %s" % 
                             lib.ue(e)))
-            raise Exception, unicode(e)
+            raise
         html.append(main_html)
         html.append(u"\n</table>")
         html.append(u"\n</body>\n</html>")
@@ -336,8 +336,8 @@ class GenDemoTable(DemoDimTable):
         tree_col_labels = dimtables.LabelNodeTree()
         tree_col_labels = self.add_subtrees_to_col_label_tree(tree_col_labels)
         if tree_col_labels.get_depth() == 1:
-            raise Exception, u"There must always be a column item " + \
-                u"even if only the col no vars item"
+            raise Exception(u"There must always be a column item even if only "
+                            u"the col no vars item")
         hdr_dets = self.process_hdr_tree(tree_col_labels, row_label_cols_n, 
                                          css_idx)
         return hdr_dets

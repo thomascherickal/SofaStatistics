@@ -1,21 +1,11 @@
 import os
-
 import wx
 
 import my_globals as mg
 import lib
 import my_exceptions
-#import anova # import as needed for performance
-#import chisquare
 import config_dlg
-#import kruskal_wallis
-#import mann_whitney
 import normal
-#import pearsonsr
-#import spearmansr
-#import ttest_indep
-#import ttest_paired
-#import wilcoxon
 
 TEXT_BROWN = (90, 74, 61)
 TEST_ANOVA = _("ANOVA")
@@ -32,10 +22,12 @@ STATS_TESTS = [TEST_ANOVA, TEST_CHI_SQUARE, TEST_PEARSONS_R, TEST_SPEARMANS_R,
                TEST_TTEST_PAIRED, TEST_WILCOXON]
 MAIN_LEFT = 45
 HELP_LEFT = MAIN_LEFT + 235
-REL_TOP = 330
+REL_TOP = 350
 BUTTON1_LEFT = MAIN_LEFT + 20
 BUTTON2_LEFT = MAIN_LEFT + 130
-CONFIG_LEFT = 620 if mg.PLATFORM != mg.WINDOWS else 630
+CONFIG_LEFT = 560
+if mg.PLATFORM == mg.WINDOWS:
+     CONFIG_LEFT += 10
 BUTTON_LIFT = 0 if mg.PLATFORM == mg.WINDOWS else 4
 DIV_LINE_WIDTH = 203
 
@@ -46,15 +38,17 @@ class StatsSelectDlg(wx.Dialog):
     
     def __init__(self, proj_name, var_labels=None, var_notes=None, 
                  val_dics=None):
+        width = 1000
+        height = 600
         wx.Dialog.__init__(self, None, title=_("Select Statistical Test"), 
-              size=(800,542),
+              size=(width,height),
               style=wx.CAPTION|wx.MINIMIZE_BOX|wx.SYSTEM_MENU,
-              pos=(100,100))
+              pos=(mg.HORIZ_OFFSET,-1))
         self.proj_name = proj_name
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize())
-        self.panel = wx.Panel(self, size=(800, 542)) # needed by Windows
+        self.panel = wx.Panel(self, size=(width,height)) # needed by Windows
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)        
         config_dlg.add_icon(frame=self)
@@ -84,7 +78,7 @@ class StatsSelectDlg(wx.Dialog):
         self.rad_relationships.Enable(False)
         # choices (NB can't use RadioBoxes and wallpaper in Windows)
         # choices line 1
-        DIFF_LN_1 = 190
+        DIFF_LN_1 = 200
         self.rad_2groups = wx.RadioButton(self.panel, -1, _("2 groups"), 
                                           style=wx.RB_GROUP,
                                           pos=(BUTTON1_LEFT, DIFF_LN_1))
@@ -102,7 +96,7 @@ class StatsSelectDlg(wx.Dialog):
         wx.StaticLine(self.panel, pos=(BUTTON1_LEFT, DIFF_LN_1 + 30),
                       size=(DIV_LINE_WIDTH, 1))   
         # choices line 2
-        DIFF_LN_2 = 235
+        DIFF_LN_2 = DIFF_LN_1 + 45
         lbl_normal = _("Normal")
         lbl_not_normal = _("Not normal")
         self.rad_normal1 = wx.RadioButton(self.panel, -1, lbl_normal, 
@@ -122,7 +116,7 @@ class StatsSelectDlg(wx.Dialog):
         wx.StaticLine(self.panel, pos=(BUTTON1_LEFT, DIFF_LN_2 + 30),
                       size=(DIV_LINE_WIDTH, 1))
         # choices line 3
-        DIFF_LN_3 = 280
+        DIFF_LN_3 = DIFF_LN_2 + 45
         self.rad_indep = wx.RadioButton(self.panel, -1, _("Independent"), 
                                        style=wx.RB_GROUP,
                                        pos=(BUTTON1_LEFT, DIFF_LN_3))
@@ -170,7 +164,7 @@ class StatsSelectDlg(wx.Dialog):
         self.btn_normal_help2.Bind(wx.EVT_BUTTON, self.on_normal_help2_btn)
         self.btn_normal_help2.Enable(False)
         # listbox of tests
-        LST_LEFT = 555
+        LST_LEFT = 515
         LST_WIDTH = 200
         LST_TOP = 55
         LST_HEIGHT = 220
@@ -196,15 +190,22 @@ class StatsSelectDlg(wx.Dialog):
             self.lst_tests.SetStringItem(i, 1, u"", self.idx_blank)
         idx = self.lst_tests.InsertStringItem(i+1, u"")
         self.lst_tests.Select(0)
-        self.lst_tests.Bind(wx.EVT_LIST_ITEM_ACTIVATED, 
+        self.lst_tests.Bind(wx.EVT_LIST_ITEM_SELECTED, 
                            self.on_list_item_selected)
+        self.lst_tests.Bind(wx.EVT_LIST_ITEM_ACTIVATED, 
+                           self.on_list_item_activated)
+        # tips etc
+        self.lbl_tips = wx.StaticText(self.panel, -1,
+                                      pos=(LST_LEFT, LST_TOP + LST_HEIGHT + 20))
+        self.lbl_tips.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
+        self.lbl_tips.SetForegroundColour(TEXT_BROWN)
         # run test button
         self.btn_config = wx.Button(self.panel, -1, 
-                                    _("CONFIGURE TEST") + " >>>",
-                                   pos=(CONFIG_LEFT, LST_TOP + LST_HEIGHT + 20))
+             _("CONFIGURE TEST") + " >>>",
+             pos=(CONFIG_LEFT + LST_WIDTH, LST_TOP))
         self.btn_config.Bind(wx.EVT_BUTTON, self.on_config_clicked)
         # close button
-        self.btn_close = wx.Button(self.panel, wx.ID_CLOSE, pos=(675,500))
+        self.btn_close = wx.Button(self.panel, wx.ID_CLOSE, pos=(900,558))
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_close_click)
         
     def on_paint(self, event):
@@ -226,7 +227,7 @@ class StatsSelectDlg(wx.Dialog):
            wx.Rect(BUTTON1_LEFT, 135, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
         panel_dc.DrawLabel(_("E.g. Do females have a larger vocabulary "
-                           "average than males?"), 
+                           "\naverage than males?"), 
            wx.Rect(BUTTON1_LEFT, 160, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         panel_dc.DrawLabel(_("Tests that show if there is a relationship"), 
@@ -390,6 +391,13 @@ class StatsSelectDlg(wx.Dialog):
         if test_type:
             self.remove_test_indicators()
             self.indicate_test(test_type)
+            self.update_test_tips(test_type)
+    
+    def update_test_tips(self, test_type):
+        if test_type == TEST_ANOVA:
+            self.lbl_tips.SetLabel(_("Anova"))
+        else:
+            self.lbl_tips.SetLabel(_("Huh?\nWhat is going on\nOh!"))
     
     def select_test(self):
         """
@@ -443,19 +451,31 @@ class StatsSelectDlg(wx.Dialog):
     def indicate_test(self, test_const):
         "Select a test in the listbox with a tick and a selection."
         if test_const not in STATS_TESTS:
-            raise Exception, (u"indicate_test was passed a test not from the "
-                              u"standard list")
-        idx=STATS_TESTS.index(test_const)
+            raise Exception(u"indicate_test was passed a test not from the "
+                            u"standard list")
+        idx = STATS_TESTS.index(test_const)
         self.lst_tests.SetStringItem(idx, 1, "", self.idx_tick)
         self.lst_tests.Select(idx)
     
     def on_list_item_selected(self, event):
         self.respond_to_selection(event)
-    
-    def on_config_clicked(self, event):
-        self.respond_to_selection(event)
-    
+
     def respond_to_selection(self, event):
+        idx = self.lst_tests.GetFirstSelected()
+        try:
+            test_type = STATS_TESTS[idx]
+        except Exception:
+            event.Skip()
+            return
+        self.update_test_tips(test_type)
+
+    def on_list_item_activated(self, event):
+        self.respond_to_activation(event)
+
+    def on_config_clicked(self, event):
+        self.respond_to_activation(event)
+    
+    def respond_to_activation(self, event):
         idx = self.lst_tests.GetFirstSelected()
         try:
             sel_test = STATS_TESTS[idx]
@@ -506,11 +526,11 @@ class StatsSelectDlg(wx.Dialog):
                 dlg = spearmansr.DlgConfig(_("Configure Spearman's R test"))
                 dlg.ShowModal()
             else:
-                raise Exception, "Unknown test"
+                raise Exception(u"Unknown test")
         except Exception, e:
             wx.MessageBox(_("Unable to connect to data as defined in " 
                 "project %s.  Please check your settings." % self.proj_name))
-            raise Exception, unicode(e)
+            raise
         event.Skip()
     
     def on_close_click(self, event):

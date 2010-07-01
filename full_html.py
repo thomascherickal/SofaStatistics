@@ -25,7 +25,7 @@ else:
         try:
             import wx.lib.iewin as ie
         except ImportError, e:
-            raise Exception, _("Problem importing wx.lib.iewin")
+            raise Exception(_("Problem importing wx.lib.iewin"))
         
         class FullHTML(ie.IEHtmlWindow):
         
@@ -55,10 +55,10 @@ else:
         try:
             import wx.webview
         except ImportError, e:
-            raise Exception, _("Did you follow the instructions at "
-                        "http://www.sofastatistics.com/predeb.php before "
-                        "installing the deb file (especially the step "
-                        "installing python-webkitwx)?")
+            raise Exception(_("Did you follow the instructions at "
+                              "http://www.sofastatistics.com/predeb.php before "
+                              "installing the deb file (especially the step "
+                              "installing python-webkitwx)?"))
         
         class FullHTML(wx.webview.WebView):
         

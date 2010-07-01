@@ -244,8 +244,8 @@ class GdataDownloadDlg(wx.Dialog):
         except gdata_service.Error, e:
             if debug:
                 print(u"Caused by error: %s" % lib.ue(e))
-            raise Exception, (u"Problem signing into Google account with email "
-                            "and password details supplied.")
+            raise Exception(u"Problem signing into Google account with email "
+                            u"and password details supplied.")
         return gd_client
     
     def get_gs_client(self, email, pwd):
@@ -257,8 +257,8 @@ class GdataDownloadDlg(wx.Dialog):
         except gdata_service.BadAuthentication, e:
             if debug:
                 print(u"Caused by error: %s" % lib.ue(e))
-            raise Exception, (u"Problem signing into Google account with email "
-                              u"and password details supplied.")
+            raise Exception(u"Problem signing into Google account with email "
+                            u"and password details supplied.")
         return gs_client
     
     def get_spreadsheet_dets_lst(self, gs_client):

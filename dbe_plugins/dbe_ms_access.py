@@ -41,8 +41,8 @@ def quote_val(raw_val):
     try:
         val = raw_val.replace("'", "''") # escape internal single quotes
     except AttributeError, e:
-        raise Exception, ("Inappropriate attempt to quote non-string value. "
-                          "Caused by error: %s" % lib.ue(e))
+        raise Exception(u"Inappropriate attempt to quote non-string value. "
+                        u"Caused by error: %s" % lib.ue(e))
     return u"'%s'" % val
 
 def get_summable(clause):
@@ -71,7 +71,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
         else:
             db = con_dets_access.keys()[0]
     if not con_dets_access.get(db):
-        raise Exception, u"No connections for MS Access database %s" % db
+        raise Exception(u"No connections for MS Access database %s" % db)
     con_dets_access_db = con_dets_access[db]
     """
     DSN syntax - http://support.microsoft.com/kb/193332 and 
@@ -89,11 +89,11 @@ def get_con_resources(con_dets, default_dbs, db=None):
     try:
         con = adodbapi.connect(connstr=DSN)
     except Exception, e:
-        raise Exception, (u"Unable to connect to MS Access database "
-                          u"using supplied database: %s, user: %s, " % 
-                          (database, user) + 
-                          u"pwd: %s, or mdw: %s.  Caused by error: %s" % 
-                          (pwd, mdw, e))
+        raise Exception(u"Unable to connect to MS Access database using "
+                        u"supplied database: %s, user: %s, "
+                        % (database, user) + 
+                        u"pwd: %s, or mdw: %s.  Caused by error: %s" % 
+                        (pwd, mdw, e))
     cur = con.cursor() # must return tuples not dics
     cur.adoconn = con.adoConn # (need to access from just the cursor)
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: [db,],
@@ -150,8 +150,7 @@ def get_flds(cur, db, tbl):
         fld_name = col.Name            
         fld_type = dbe_globals.get_ado_dict().get(col.Type)
         if not fld_type:
-            raise Exception, \
-                u"Not an MS Access ADO field type %d" % col.Type
+            raise Exception(u"Not an MS Access ADO field type %d" % col.Type)
         bolautonum = col.Properties(u"AutoIncrement").Value
         boldata_entry_ok = False if bolautonum else True
         # nullable if it says so (unless it is uniquely indexed yet lacks an

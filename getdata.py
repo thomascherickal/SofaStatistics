@@ -56,7 +56,7 @@ def get_db_resources(dbe, cur, db, default_tbls, tbl):
     if debug: print("About to get tbl")
     if tbl:
         if tbl not in tbls:
-            raise Exception, "Table \"%s\" not found in tables list" % tbl
+            raise Exception(u"Table \"%s\" not found in tables list" % tbl)
     else:
         tbl = get_tbl(dbe, db, tbls, default_tbls)
     db_resources = {mg.DBE_TBLS: tbls, mg.DBE_TBL: tbl}
@@ -84,7 +84,7 @@ def get_tbl(dbe, db, tbls, default_tbls):
         try:
             tbl = tbls[0]
         except IndexError:
-            raise Exception, u"No tables found in database \"%s\"" % db
+            raise Exception(u"No tables found in database \"%s\"" % db)
     return tbl
 
 
@@ -116,11 +116,11 @@ class DataDets(object):
             self.con_dets = proj_dic["con_dets"]
             self.set_dbe(proj_dic["default_dbe"])
         except KeyError, e:
-            raise Exception, (u"Unable to read project dictionary for required "
-                              u"keys.  Caused by error: %s" % lib.ue(e))
+            raise Exception(u"Unable to read project dictionary for required "
+                            u"keys.  Caused by error: %s" % lib.ue(e))
         except Exception, e:
-            raise Exception, (u"Unable to set proj dic. "
-                              u"Caused by error: %s" % lib.ue(e))
+            raise Exception(u"Unable to set proj dic. "
+                            u"Caused by error: %s" % lib.ue(e))
         self.proj_dic = proj_dic # only change if successful
 
     def set_dbe(self, dbe, db=None, tbl=None, add_checks=False):
@@ -145,8 +145,8 @@ class DataDets(object):
                                           self.default_dbs, self.default_tbls, 
                                           db, tbl, add_checks)
         except Exception, e:
-            raise Exception, ("Unable to get dbe resources. Caused by error: %s"
-                              % lib.ue(e))
+            raise Exception(u"Unable to get dbe resources. Caused by error: %s"
+                            % lib.ue(e))
         self.dbe = dbe # only change if getting dbe resources worked
         if debug: print(u"Finished getting dbe resources")
         self.con = dbe_resources[mg.DBE_CON]
@@ -211,8 +211,8 @@ def force_tbls_refresh():
     try:
         dd.cur.execute(SQL_get_tbls)
     except Exception, e:
-        raise Exception, ("force_tbls_refresh() can only be used for the "
-                          "default db")
+        raise Exception(u"force_tbls_refresh() can only be used for the "
+                        u"default db")
 
 def reset_con(tbl_name=None, add_checks=False):
     dd = get_dd()
@@ -313,8 +313,8 @@ def make_fld_val_clause(dbe, flds, fld_name, val, gte=mg.GTE_EQUALS):
         elif gte == mg.GTE_NOT_EQUALS:
             clause = u"%s IS NOT NULL" % quote_obj(fld_name)
         else:
-            raise Exception, ("Can only use = or "
-                "%s with missing or Null values.") % mg.GTE_NOT_EQUALS
+            raise Exception(u"Can only use = or %s " % mg.GTE_NOT_EQUALS +
+                            u"with missing or Null values.")
     else:
         num = True
         if not bolnumeric:
@@ -566,7 +566,7 @@ def setup_drop_tbls(drop_tbls):
     try:
         drop_tbls.SetSelection(idx_tbl)
     except NameError:
-        raise Exception, "Table \"%s\" not found in tables list" % dd.tbl
+        raise Exception(u"Table \"%s\" not found in tables list" % dd.tbl)
 
 def refresh_db_dets(parent):
     """
@@ -702,11 +702,11 @@ def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):
         fld_clause_items = []
     for fld_name, fld_type in oth_name_types:
         if fld_name == mg.SOFA_ID:
-            raise Exception, "Do not pass sofa_id into %s" % \
-                sys._getframe().f_code.co_name
+            raise Exception(u"Do not pass sofa_id into %s" %
+                            sys._getframe().f_code.co_name)
         if fld_name == "":
-            raise Exception, ("Do not pass fields with empty string names into "
-                              "%s" % sys._getframe().f_code.co_name)
+            raise Exception(u"Do not pass fields with empty string names into "
+                            u"%s" % sys._getframe().f_code.co_name)
         tosqlite = mg.GEN2SQLITE_DIC[fld_type]
         if strict_typing:
             check = tosqlite["check_clause"] % {"fld_name": quoter(fld_name)}

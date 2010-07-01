@@ -145,10 +145,10 @@ class Worksheet(object):
                 adOpenForwardOnly, adLockReadOnly)
         except Exception, e:
             if e[2][2] == 'Too many fields defined.':
-                raise Exception, \
-                    "Delete blank columns at end of worksheet to keep " + \
-                    "within JET 255 column limit.  " + \
-                    "See http://support.microsoft.com/kb/198504/EN-US/"
+                raise Exception(
+                        u"Delete blank columns at end of worksheet to keep " +
+                        u"within JET 255 column limit.  " +
+                        u"See http://support.microsoft.com/kb/198504/EN-US/")
             else:
                 raise
         try:

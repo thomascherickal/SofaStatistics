@@ -472,7 +472,7 @@ class DimTree(object):
         empty_coltree = not lib.item_has_children(tree=self.coltree, 
                                                   parent=self.colroot)
         if empty_coltree:
-            raise Exception, "Cannot configure a missing column item"
+            raise Exception(u"Cannot configure a missing column item")
         # error 2
         selected_ids = self.coltree.GetSelections()
         if not selected_ids:
@@ -500,8 +500,8 @@ class DimTree(object):
         elif self.colroot not in selected_ids:
             has_col_vars = True
         else:
-            raise Exception, ("Configuring a column but no col vars OR a col "
-                              "config item")
+            raise Exception(u"Configuring a column but no col vars OR a col "
+                            u"config item")
         self.get_col_config(node_ids=selected_ids, has_col_vars=has_col_vars)
             
     def get_col_config(self, node_ids, has_col_vars):
@@ -743,7 +743,7 @@ class DlgConfig(wx.Dialog):
             elif sort_opt_selection == 3:
                 sort_order = mg.SORT_FREQ_DESC
             else:
-                raise Exception, u"Unexpected sort type"
+                raise Exception(u"Unexpected sort type")
         self.item_config_dets.set_sort_order(sort_order)
         for node_id in self.node_ids:
             existing_data = self.tree.GetItemPyData(node_id)

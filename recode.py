@@ -68,7 +68,7 @@ def process_orig(orig, fldname, fldtype):
     debug = False
     fld = obj_quoter(fldname)
     if not isinstance(orig, basestring):
-        raise Exception, u"process_orig() expects strings"
+        raise Exception(u"process_orig() expects strings")
     orig_clause = None
     # 1 Special (except REMAINING which always appears as part of END)
     if orig.strip() == MISSING:
@@ -78,15 +78,15 @@ def process_orig(orig, fldname, fldtype):
         parts = orig.split(TO)
         if debug: print(parts)
         if len(parts) != 2:
-            raise Exception, _("Unable to process \"%s\"") % orig
+            raise Exception(_("Unable to process \"%s\"") % orig)
         l_part = parts[0].strip()
         r_part = parts[1].strip()
         if r_part == MIN:
-            raise Exception, (_("%(min)s can only be on the left side "
-                               "e.g.%(min)s TO 12")) % {"min": MIN}
+            raise Exception(_("%(min)s can only be on the left side "
+                              "e.g.%(min)s TO 12") % {"min": MIN})
         if l_part == MAX:
-            raise Exception, (_("%(max)s can only be on the right side "
-                               "e.g. %(max)s TO 12")) % {"max": MAX}
+            raise Exception(_("%(max)s can only be on the right side "
+                              "e.g. %(max)s TO 12") % {"max": MAX})
         has_min = False
         has_max = False
         num_mismatch = False
@@ -109,12 +109,12 @@ def process_orig(orig, fldname, fldtype):
                 date_mismatch = True
         if num_mismatch:
             if debug: print(l_part, r_part)
-            raise Exception, _("Only numeric values can be recoded for this "
-                               "variable")
+            raise Exception(_("Only numeric values can be recoded for this "
+                              "variable"))
         if date_mismatch:
             if debug: print(l_part, r_part)
-            raise Exception, _("Only date values can be recoded for this "
-                               "variable")
+            raise Exception(_("Only date values can be recoded for this "
+                              "variable"))
         if fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
             l_prep = val_quoter(l_part)
             r_prep = val_quoter(r_part)
@@ -138,7 +138,7 @@ def process_orig(orig, fldname, fldtype):
         else:
             orig_clause = u"%s = %s" % (fld, orig)
     if orig_clause is None:
-        raise Exception, "Unable to process original value in recode config"
+        raise Exception(u"Unable to process original value in recode config")
     return orig_clause
 
 def process_label(dict_labels, fld_type, new, label):
@@ -564,8 +564,8 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                             "won't be applied automatically when new rows are "
                             "added or cells are edited."))
         except Exception, e:
-            raise Exception, _("Problem recoding table. "
-                               "Caused by error: %s") % lib.ue(e)
+            raise Exception(_("Problem recoding table. "
+                              "Caused by error: %s") % lib.ue(e))
         self.update_labels(self.fldname, dict_labels)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)

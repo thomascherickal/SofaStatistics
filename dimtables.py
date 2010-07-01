@@ -421,7 +421,7 @@ class LiveTable(DimTable):
             data_cell_n = self.get_data_cell_n(self.tree_col_labels, 
                                                self.tree_row_labels)
         except AttributeError:
-            raise Exception, "Must run prep_table() before get_cell_n_ok()."
+            raise Exception(u"Must run prep_table() before get_cell_n_ok().")
         return max_cells >= data_cell_n
     
     def get_html(self, css_idx, page_break_after=False):
@@ -499,8 +499,8 @@ class LiveTable(DimTable):
         filt_flds = tree_dims_node.filt_flds
         if dim == mg.ROWDIM:
             if not has_fld:
-                raise Exception, u"All row nodes must have a variable " + \
-                    u"field specified"
+                raise Exception(u"All row nodes must have a variable field "
+                                u"specified")
             if self.has_row_vals:
                 self.add_subtree_if_vals(tree_dims_node, tree_labels_node, 
                                          oth_dim_root, dim, filt_flds)
@@ -750,9 +750,9 @@ class LiveTable(DimTable):
         First check that it is OK to add.
         """
         if tree_dims_node.level > 1:
-            raise Exception, (u"If the col field has not "
-                              u"been set, a node without a field specified "
-                              u"must be immediately under the root node")
+            raise Exception(u"If the col field has not been set, a node "
+                            u"without a field specified must be immediately "
+                            u"under the root node")
         self.add_measures(label_node=tree_labels_node, 
                           measures=tree_dims_node.measures, 
                           is_coltot=False, filt_flds=[], filts=[])
@@ -1026,7 +1026,7 @@ class GenTable(LiveTable):
             else:
                 func_clause = u"100"
         else:
-            raise Exception, u"Measure %s not available" % measure
+            raise Exception(u"Measure %s not available" % measure)
         if debug: print(func_clause)
         return func_clause
         
@@ -1150,7 +1150,7 @@ class SummTable(LiveTable):
                 self.cur.execute(SQL_get_sum)
                 data_val = self.cur.fetchone()[0]
             except Exception, e:
-                raise Exception, u"Unable to calculate sum of %s." % row_fld
+                raise Exception(u"Unable to calculate sum of %s." % row_fld)
         elif measure == mg.MEAN:
             SQL_get_mean = u"SELECT AVG(%s) " % self.quote_obj(row_fld) + \
                 u"FROM %s %s" % (self.quote_obj(self.tbl), filter)
@@ -1158,20 +1158,20 @@ class SummTable(LiveTable):
                 self.cur.execute(SQL_get_mean)
                 data_val =  round(self.cur.fetchone()[0],2)
             except Exception, e:
-                raise Exception, u"Unable to calculate mean of %s." % row_fld
+                raise Exception(u"Unable to calculate mean of %s." % row_fld)
         elif measure == mg.MEDIAN:
             try:
                 data_val =  round(numpy.median(data),2)
             except Exception, e:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
-                    raise Exception, \
-                        u"Unable to calculate median for %s. " % row_fld + \
-                        u"The field contains at least one non-numeric " + \
-                        u"value: \"%s\"" % bad_val
+                    raise Exception(
+                            u"Unable to calculate median for %s. " % row_fld +
+                            u"The field contains at least one non-numeric " +
+                            u"value: \"%s\"" % bad_val)
                 else:
-                    raise Exception, u"Unable to calculate median for %s." % \
-                        row_fld
+                    raise Exception(u"Unable to calculate median for %s."
+                                    % row_fld)
         elif measure == mg.SUMM_N:
             SQL_get_n = u"SELECT COUNT(%s) " % self.quote_obj(row_fld) + \
                 u"FROM %s %s" % (self.quote_obj(self.tbl), filter)
@@ -1179,21 +1179,21 @@ class SummTable(LiveTable):
                 self.cur.execute(SQL_get_n)
                 data_val = u"N=%s" % self.cur.fetchone()[0]
             except Exception, e:
-                raise Exception, u"Unable to calculate N for %s." % row_fld
+                raise Exception(u"Unable to calculate N for %s." % row_fld)
         elif measure == mg.STD_DEV:
             try:
                 data_val =  round(numpy.std(data),2)
             except Exception, e:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
-                    raise Exception, (
+                    raise Exception(
                             u"Unable to calculate standard deviation for " +
                             u" %s. " % row_fld +
                             u"The field contains at least one non-numeric " +
                             u"value: \"%s\"" % bad_val)
                 else:
-                    raise Exception, (u"Unable to calculate standard "
-                                      u"deviation for %s." % row_fld)
+                    raise Exception(u"Unable to calculate standard deviation "
+                                    u"for %s." % row_fld)
         else:
-            raise Exception, u"Measure not available"
+            raise Exception(u"Measure not available")
         return data_val

@@ -58,7 +58,7 @@ class ExcelImporter(importer.FileImporter):
             fld_types.append(fld_type)
         fld_types = dict(zip(orig_fld_names, fld_types))
         if not has_rows:
-            raise Exception, "No data to import"
+            raise Exception(u"No data to import")
         return fld_types, sample_data
     
     def import_content(self, progbar, keep_importing, lbl_feedback):
@@ -83,12 +83,12 @@ class ExcelImporter(importer.FileImporter):
             if debug: print(ok_fld_names)
         except IOError, e:
             lib.safe_end_cursor()
-            raise Exception, (u"Unable to find file \"%s\" for importing." % 
-                              self.file_path)
+            raise Exception(u"Unable to find file \"%s\" for importing."
+                            % self.file_path)
         except Exception, e:
             lib.safe_end_cursor()
-            raise Exception, (u"Unable to read spreadsheet. "
-                              u"Caused by error: %s" % lib.ue(e))
+            raise Exception(u"Unable to read spreadsheet. "
+                            u"Caused by error: %s" % lib.ue(e))
         default_dd = getdata.get_default_db_dets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= rows_n else rows_n
         items_n = rows_n + sample_n

@@ -211,7 +211,7 @@ class TblEditor(wx.Dialog):
         elif dest_col < src_col and dest_row < src_row:
                 direction = mg.MOVE_UP_LEFT
         else:
-            raise Exception, "db_grid.on_select_cell - where is direction?"
+            raise Exception(u"db_grid.on_select_cell - where is direction?")
         if self.debug: 
             print("on_select_cell - selected row: %s, col: %s, direction: %s" %
             (dest_row, dest_col, direction) + "*******************************") 
@@ -404,7 +404,7 @@ class TblEditor(wx.Dialog):
         elif move_type == mg.LEAVING_NEW:
             move_to_dest = self.leaving_new_row(dest_row, dest_col, direction)
         else:
-            raise Exception, "process_cell_move - Unknown move_type"
+            raise Exception(u"process_cell_move - Unknown move_type")
         if self.debug or debug:
             print("Move type: %s" % move_type)
             print("OK to move to dest?: %s" % move_to_dest)
@@ -471,7 +471,7 @@ class TblEditor(wx.Dialog):
         elif not was_new_row and dest_row_is_new:
             move_type = mg.LEAVING_EXISTING
         else:
-            raise Exception, "db_grid.GetMoveDets().  Unknown move."
+            raise Exception(u"db_grid.GetMoveDets().  Unknown move.")
         # 2) dest row and dest col
         if dest_row is None and dest_col is None: # known if from on_select_cell
             if was_final_col and direction in [mg.MOVE_RIGHT, mg.MOVE_DOWN]:
@@ -488,9 +488,9 @@ class TblEditor(wx.Dialog):
                     dest_row = src_row + 1
                     dest_col = src_col
                 else:
-                    raise Exception, "db_grid.GetMoveDets no " + \
-                        "destination (so from a TAB or Return) yet not a " + \
-                        "left, right, or down."
+                    raise Exception(u"db_grid.GetMoveDets no destination (so "
+                                    u"from a TAB or Return) yet not a left, "
+                                    u"right, or down.")
         return (was_final_col, was_new_row, was_final_row, move_type, dest_row, 
                 dest_col)
     
@@ -659,7 +659,7 @@ class TblEditor(wx.Dialog):
         elif not fld_dic[mg.FLD_DATA_ENTRY_OK]: 
              # i.e. not autonumber, timestamp etc
              # and raw_val != mg.MISSING_VAL_INDICATOR unnecessary
-            raise Exception, "This field should have been read only"
+            raise Exception(u"This field should have been read only")
         elif fld_dic[mg.FLD_BOLNUMERIC]:
             if not lib.is_numeric(raw_val):
                 wx.MessageBox(_("\"%s\" is not a valid number.\n\n"
@@ -689,14 +689,14 @@ class TblEditor(wx.Dialog):
             if max_len is None: # SQLite returns None if TEXT
                 return False
             if len(raw_val) > max_len:
-                wx.MessageBox("\"%s\" " % raw_val + \
+                wx.MessageBox("\"%s\" " % raw_val +
                       _("is longer than the maximum of %s. Either enter a "
-                        "shorter value or the missing value character (.)") % \
-                        max_len)
+                        "shorter value or the missing value character (.)")
+                      % max_len)
                 return True
             return False
         else:
-            raise Exception, "Field supposedly not numeric, datetime, or text"
+            raise Exception(u"Field supposedly not numeric, datetime, or text")
     
     def get_raw_val(self, row, col):
         """

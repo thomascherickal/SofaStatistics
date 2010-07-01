@@ -30,8 +30,8 @@ except ImportError: # if it's not there locally, try the wxPython lib.
     try:
         import wx.lib.agw.hyperlink as hl
     except ImportError:
-        raise Exception, ("There seems to be a problem related to your "
-                          "wxPython package.")
+        raise Exception(u"There seems to be a problem related to your "
+                        u"wxPython package.")
 
 # All i18n except for wx-based (which MUST happen after wx.App init)
 # http://wiki.wxpython.org/RecipesI18n
@@ -179,14 +179,14 @@ except Exception, e:
 def get_blank_btn_bmp(xpm=u"blankbutton.xpm"):
     blank_btn_path = os.path.join(SCRIPT_PATH, u"images", xpm)
     if not os.path.exists(blank_btn_path):
-        raise Exception, (u"Problem finding background button image.  "
-                          u"Missing path: %s" % blank_btn_path)
+        raise Exception(u"Problem finding background button image.  "
+                        u"Missing path: %s" % blank_btn_path)
     try:
         blank_btn_bmp = wx.Image(blank_btn_path, 
                                  wx.BITMAP_TYPE_XPM).ConvertToBitmap()
     except Exception:
-        raise Exception, (u"Problem creating background button image from %s" %
-                          blank_btn_path)
+        raise Exception(u"Problem creating background button image from %s"
+                        % blank_btn_path)
     return blank_btn_bmp
 
 def get_next_y_pos(start, height):
@@ -244,7 +244,7 @@ class SofaApp(wx.App):
                 frame.Close()
             except Exception:
                 pass
-            raise e
+            raise
 
 class StartFrame(wx.Frame):
     
@@ -255,7 +255,7 @@ class StartFrame(wx.Frame):
         except Exception:
             error_msg = None
         if error_msg:
-            raise Exception, error_msg
+            raise Exception(error_msg)
         self.main_font_size = main_font_size
         # Gen set up
         wx.Frame.__init__(self, None, title=_("SOFA Start"), 
@@ -280,19 +280,19 @@ class StartFrame(wx.Frame):
                 wx.MessageBox(_("Unable to connect to data as defined in " 
                                 "project %s.  Please check your settings." % 
                                 self.active_proj))
-                raise Exception, unicode(e) # for debugging
+                raise # for debugging
                 return
         config_dlg.add_icon(frame=self)
         # background image
         sofa = os.path.join(SCRIPT_PATH, u"images", u"sofa2.xpm")
         if not os.path.exists(sofa):
-            raise Exception, (u"Problem finding background button image.  "
-                              "Missing path: %s" % sofa)
+            raise Exception(u"Problem finding background button image.  "
+                            u"Missing path: %s" % sofa)
         try:
             self.bmp_sofa = wx.Image(sofa, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         except Exception:
-            raise Exception, (u"Problem creating background button image from "
-                              "%s" % sofa)
+            raise Exception(u"Problem creating background button image from %s"
+                            % sofa)
         # slice of image to be refreshed (where text and image will be)
         blankwp_rect = wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_IMG_LEFT+35, 250)
         self.blank_wallpaper = self.bmp_sofa.GetSubBitmap(blankwp_rect)
@@ -652,7 +652,7 @@ class StartFrame(wx.Frame):
             msg = _("Unable to connect to data as defined in project %s. "
                     "Please check your settings" % self.active_proj)
             wx.MessageBox(msg)
-            raise Exception, u"%s. Caused by error: %s" % (msg, e)
+            raise Exception(u"%s. Caused by error: %s" % (msg, e))
         finally:
             lib.safe_end_cursor()
             event.Skip()
@@ -698,7 +698,7 @@ class StartFrame(wx.Frame):
                 msg = _("Unable to connect to data as defined in project %s.  "
                         "Please check your settings" % self.active_proj)
                 wx.MessageBox(msg)
-                raise Exception, u"%s. Caused by error: %s" % (msg, e) 
+                raise Exception(u"%s. Caused by error: %s" % (msg, e)) 
             finally:
                 lib.safe_end_cursor()
                 event.Skip()
@@ -810,7 +810,7 @@ class StartFrame(wx.Frame):
             msg = _("Unable to connect to data as defined in project %s.  "
                     "Please check your settings." % self.active_proj)
             wx.MessageBox(msg)
-            raise Exception, u"%s.  Caused by error: %s" % (msg, e)
+            raise Exception(u"%s.  Caused by error: %s" % (msg, e))
         finally:
             lib.safe_end_cursor()
             event.Skip()

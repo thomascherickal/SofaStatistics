@@ -39,11 +39,11 @@ def get_dialect(file_path):
         dialect = sniffer.sniff(sniff_sample)
         if debug: print(dialect)
     except IOError:
-            raise Exception, (u"Unable to find file \"%s\" for importing. "
-                              u"Please check that file exists." % file_path)
+            raise Exception(u"Unable to find file \"%s\" for importing. "
+                            u"Please check that file exists." % file_path)
     except Exception, e:
-        raise Exception, (u"Unable to open and sample csv file. "
-                          u"Caused by error: %s" % lib.ue(e))
+        raise Exception(u"Unable to open and sample csv file. "
+                        u"Caused by error: %s" % lib.ue(e))
     return dialect
     
 def get_avg_row_size(rows):
@@ -131,7 +131,7 @@ class CsvImporter(importer.FileImporter):
             fld_types.append(fld_type)
         fld_types = dict(zip(orig_fld_names, fld_types))
         if not bolhas_rows:
-            raise Exception, u"No data to import"
+            raise Exception(u"No data to import")
         return orig_fld_names, fld_types, sample_data
     
     def get_avg_row_size(self, tmp_reader):
@@ -218,11 +218,11 @@ class CsvImporter(importer.FileImporter):
                 self.fix_text()
                 return
             else:
-                raise Exception, unicode(e)
+                raise
         except Exception, e:
             lib.safe_end_cursor()
-            raise Exception, (u"Unable to create reader for file. "
-                              u"Caused by error: %s" % lib.ue(e)) 
+            raise Exception(u"Unable to create reader for file. "
+                            u"Caused by error: %s" % lib.ue(e)) 
         default_dd = getdata.get_default_db_dets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= rows_n else rows_n
         items_n = rows_n + sample_n + 1 # 1 is for the final tmp to named step

@@ -112,8 +112,8 @@ def esc_str_input(raw):
     try:
         new_str = raw.replace("%", "%%")
     except Exception, e:
-        raise Exception, (u"Unable to escape str input. "
-                          u"Caused by error: %s" % ue(e))
+        raise Exception(u"Unable to escape str input. "
+                        u"Caused by error: %s" % ue(e))
     return new_str
 
 def rel2abs_links(str_html):
@@ -172,20 +172,20 @@ def get_var_dets(fil_var_dets):
         wx.MessageBox(\
             _("Syntax error in variable details file \"%s\"." % fil_var_dets + \
                       os.linesep + os.linesep + "Details: %s" % unicode(e)))
-        raise Exception, unicode(e)
+        raise
     except Exception, e:
         wx.MessageBox(\
             _("Error processing variable"
               " details file \"%s\"." % fil_var_dets + \
               os.linesep + os.linesep + "Details: %s" % unicode(e)))
-        raise Exception, unicode(e)
+        raise
     try:
         results = var_dets_dic["var_labels"], var_dets_dic["var_notes"], \
                       var_dets_dic["var_types"], var_dets_dic["val_dics"]
     except Exception, e:
-        raise Exception, u"Three variables needed in " + \
-            u"'%s': var_labels, var_notes, var_types, and val_dics.  " + \
-            u"Please check file." % fil_var_dets
+        raise Exception(u"Three variables needed in " +
+                    u"'%s': var_labels, var_notes, var_types, and val_dics.  " +
+                    u"Please check file." % fil_var_dets)
     return results
 
 def get_rand_val_of_type(type):
@@ -196,7 +196,7 @@ def get_rand_val_of_type(type):
     elif type == mg.FLD_TYPE_DATE:
         vals_of_type = mg.DTM_DATA_SEQ
     else:
-        raise Exception, u"Unknown type in get_rand_val_of_type"
+        raise Exception(u"Unknown type in get_rand_val_of_type")
     return random.choice(vals_of_type)
 
 def safe_end_cursor():
@@ -421,13 +421,13 @@ def n2d(f):
         try:
             f = float(f)
         except (ValueError, TypeError):
-            raise Exception, "Unable to convert value to Decimal.  " + \
-                "Value was \"%s\"" % f
+            raise Exception(u"Unable to convert value to Decimal.  " +
+                            u"Value was \"%s\"" % f)
     try:
         n, d = f.as_integer_ratio()
     except Exception:
-        raise Exception, "Unable to turn value \"%s\" into integer " % f + \
-            "ratio for unknown reason."
+        raise Exception(u"Unable to turn value \"%s\" into integer " % f +
+                        u"ratio for unknown reason.")
     numerator, denominator = decimal.Decimal(n), decimal.Decimal(d)
     ctx = decimal.Context(prec=60)
     result = ctx.divide(numerator, denominator)
@@ -570,8 +570,8 @@ def date_range2mysql(entered_start_date, entered_end_date):
         end_date = DDMMYYYY2MySQL(entered_end_date)# MySQL-friendly dates
         return start_date, end_date     
     except:
-        raise Exception, "Please pass valid start and " + \
-            "end dates as per the required format e.g. 25-01-2007"    
+        raise Exception(u"Please pass valid start and end dates as per the "
+                        u"required format e.g. 25-01-2007")    
 
 def mysql2textdate(mysql_date, output_format):
     """
@@ -736,8 +736,8 @@ def get_std_datetime_str(raw_datetime_str):
     debug = False
     datetime_dets = get_dets_of_usable_datetime_str(raw_datetime_str)
     if datetime_dets is None:
-        raise Exception, ("Need a usable datetime string to return a standard "
-                          "datetime string.")
+        raise Exception(u"Need a usable datetime string to return a standard "
+                        u"datetime string.")
     else: 
         # usable (possibly requiring a date to be added to a time)
         # has at least one part (date/time) and anything it has is ok
@@ -762,8 +762,8 @@ def get_std_datetime_str(raw_datetime_str):
                                                       today[2], time_part), 
                                      "%%Y-%%m-%%d %s" % time_format)
         else:
-            raise Exception, ("Supposedly a usable datetime str but no usable "
-                              "parts")
+            raise Exception(u"Supposedly a usable datetime str but no usable "
+                            u"parts")
         if debug: print(time_obj)
         std_datetime_str = time_obj_to_datetime_str(time_obj)
         return std_datetime_str
@@ -831,9 +831,9 @@ def get_default_measure(tab_type):
     elif tab_type == mg.ROW_SUMM:
         return mg.MEAN
     elif tab_type == mg.RAW_DISPLAY:
-        raise Exception, u"Data Lists do not have measures"
+        raise Exception(u"Data Lists do not have measures")
     else:
-        raise Exception, u"Unexpected table type in get_default_measure()"
+        raise Exception(u"Unexpected table type in get_default_measure()")
         
 def get_col_dets(coltree, colroot, var_labels):
     """

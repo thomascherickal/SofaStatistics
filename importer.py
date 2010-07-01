@@ -40,19 +40,19 @@ def process_fld_names(raw_names):
         if debug: print(raw_names)
         names = [x.replace(u" ", u"_") for x in raw_names]
     except AttributeError:
-        raise Exception, "Field names must all be text strings."
+        raise Exception(u"Field names must all be text strings.")
     except TypeError:
-        raise Exception, "Field names should be supplied in a list"
+        raise Exception(u"Field names should be supplied in a list")
     except Exception:
-        raise Exception, "Unknown problem processing field names list"
+        raise Exception(u"Unknown problem processing field names list")
     if len(names) != len(set(names)):
-        raise Exception, ("Duplicate field name (once spaces turned to "
-                          "underscores)")
+        raise Exception(u"Duplicate field name (once spaces turned to "
+                        u"underscores)")
     for i, name in enumerate(names):
         if not dbe_sqlite.valid_name(name):
-            raise Exception, _("Unable to use field name \"%s\". Please only "
+            raise Exception(_("Unable to use field name \"%s\". Please only "
                               "use letters, numbers and underscores. No spaces,"
-                              " full stops etc." % raw_names[i])
+                              " full stops etc." % raw_names[i]))
     return names
 
 def process_tbl_name(rawname):
@@ -165,7 +165,7 @@ def get_val(raw_val, check, is_pytime, fld_type, orig_fld_name, row_num):
             else:
                 val = raw_val
         else:
-            raise Exception, "Unexpected field type in importer.get_val()"
+            raise Exception(u"Unexpected field type in importer.get_val()")
         if not ok_data:
             raise MismatchException(fld_name=orig_fld_name,
                                     details=(u"Column: %s" % orig_fld_name +
@@ -193,8 +193,8 @@ def process_val(vals, row_num, row, orig_fld_name, fld_types, check):
     try:
        rawval = row[orig_fld_name]
     except KeyError:
-        raise Exception, (_("Row %s doesn't have a value for the \"%s\" field")
-                          % (row_num, orig_fld_name))
+        raise Exception(_("Row %s doesn't have a value for the \"%s\" field")
+                        % (row_num, orig_fld_name))
     is_pytime = lib.is_pytime(rawval)
     fld_type = fld_types[orig_fld_name]
     val = get_val(rawval, check, is_pytime, fld_type, orig_fld_name, row_num)
@@ -231,12 +231,12 @@ def report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, allow_none):
         vals_str = unicode(vals).replace(u"', '", u",").replace(u"['", u"")\
             .replace(u"']", u"").replace(u"',", u",").replace(u", None", u"")\
             .replace(u"]", u"")
-        raise Exception, (_("Incorrect number of fields in %(row_msg)s.\n\n"
-                           "Expected %(n_flds)s but found %(n_row_items)s.\n\n"
-                           "Faulty Row: %(vals_str)s" 
-                           % {"row_msg": row_msg, "n_flds": n_flds, 
-                              "n_row_items": n_row_items, 
-                              "vals_str": vals_str}))
+        raise Exception(_("Incorrect number of fields in %(row_msg)s.\n\n"
+                          "Expected %(n_flds)s but found %(n_row_items)s.\n\n"
+                          "Faulty Row: %(vals_str)s" 
+                          % {"row_msg": row_msg, "n_flds": n_flds, 
+                             "n_row_items": n_row_items, 
+                             "vals_str": vals_str}))
 
 def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names, 
              fld_types, progbar, steps_per_item, gauge_start=0, row_num_start=0, 
@@ -282,8 +282,8 @@ def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names,
         except MismatchException, e:
             raise # keep this particular type of exception bubbling out
         except Exception, e:
-            raise Exception, (u"Unable to add row %s. Caused by error: %s" %
-                             (row_num, e))
+            raise Exception(u"Unable to add row %s. Caused by error: %s"
+                            % (row_num, e))
     con.commit()
     return nulled_dots
 
@@ -399,8 +399,8 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header,
                               keep_importing):
                 nulled_dots = True
         else:
-            raise Exception, u"Mismatch between data in column and " + \
-                "expected column type"
+            raise Exception(u"Mismatch between data in column and expected "
+                            u"column type")
     return nulled_dots
     
 def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
@@ -422,8 +422,8 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
         cur.execute(SQL_rename_tbl)
         con.commit()
     except Exception, e:
-        raise Exception, (u"Unable to rename temporary table. "
-                          u"Caused by error: %s" % lib.ue(e))
+        raise Exception(u"Unable to rename temporary table. "
+                        u"Caused by error: %s" % lib.ue(e))
     progbar.SetValue(GAUGE_STEPS)
     msg = _("Successfully imported data as\n\"%(tbl)s\".")
     if nulled_dots:
@@ -677,8 +677,8 @@ class ImportFileSelectDlg(wx.Dialog):
                 "SOFA Table Name.  Use another name?")
             retval = wx.MessageBox(msg, title, wx.YES_NO|wx.ICON_QUESTION)
             if retval == wx.NO:
-                raise Exception, u"Had a problem with faulty SOFA Table " + \
-                    u"Name but user cancelled initial process of resolving it"
+                raise Exception(u"Had a problem with faulty SOFA Table Name but"
+                            u" user cancelled initial process of resolving it")
             elif retval == wx.YES:
                 self.txt_int_name.SetFocus()
                 return None

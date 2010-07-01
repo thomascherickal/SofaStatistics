@@ -112,7 +112,7 @@ def get_tbl(tree):
             tbl = el
             break
     if not tbl:
-        raise Exception, u"Unable to get tree from xml"
+        raise Exception(u"Unable to get tree from xml")
     return tbl
 
 def get_has_data_cells(el):
@@ -121,7 +121,7 @@ def get_has_data_cells(el):
     """
     has_data_cells = False
     if not el.tag.endswith("table-row"):
-        raise Exception, u"Trying to check for data cells but not a table-row"
+        raise Exception(u"Trying to check for data cells but not a table-row")
     for sub_el in el: # only interested in table cells.  Look in them for data
             # value.
         if not sub_el.tag.endswith("table-cell"):
@@ -190,7 +190,7 @@ def get_fld_names(tbl, has_header, rows_to_sample):
             row = datarows[0]
             fldnames = get_fld_names_from_header_row(row)
         except IndexError:
-            raise Exception, _("Need at least one row to import")
+            raise Exception(_("Need at least one row to import"))
     else:
         max_row_cells = 0
         # Must assess a sample, get max row cells, and auto-build fldnames
@@ -250,8 +250,8 @@ def get_fld_names_from_header_row(row):
         type = None
         if attrib_dict:
             if COLS_REP in attrib_dict and VAL_TYPE in attrib_dict:
-                raise Exception, (_("Field name \"%s\" cannot be repeated") %
-                                  el[0].text)
+                raise Exception(_("Field name \"%s\" cannot be repeated")
+                                % el[0].text)
             elif DATE_VAL in attrib_dict:
                 fldname = attrib_dict[DATE_VAL] # take proper date 
                     # val e.g. 2010-02-01 rather than orig text of 01/02/10
@@ -265,8 +265,8 @@ def get_fld_names_from_header_row(row):
             break # just hit an empty cell - we're done.
         else:
             if fldname in orig_fld_names:
-                raise Exception, _("Field name \"%s\" has been repeated") % \
-                                 fldname
+                raise Exception(_("Field name \"%s\" has been repeated")
+                                % fldname)
             orig_fld_names.append(fldname)
     return importer.process_fld_names(orig_fld_names)
 
@@ -306,8 +306,8 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, prog_steps_for_xml_steps,
                 progbar.SetValue(gauge_val)
                 wx.Yield()
         except Exception, e:
-            raise Exception, (u"Error getting details from row idx %s. "
-                              u"Caused by error: %s" % (i, e))
+            raise Exception(u"Error getting details from row idx %s. "
+                            u"Caused by error: %s" % (i, e))
     for fldname, type_set in zip(fldnames, coltypes):
         fld_type = lib.get_overall_fld_type(type_set)
         fld_types[fldname] = fld_type
@@ -392,8 +392,8 @@ def dets_from_row(fldnames, coltypes, row):
             try:
                 type = xml_type_to_val_type[xml_type]
             except KeyError:
-                raise Exception, (u"Unknown value-type. Update "
-                                  u"ods_reader.xml_type_to_val_type")
+                raise Exception(u"Unknown value-type. Update "
+                                u"ods_reader.xml_type_to_val_type")
             val2use = el_det[RAW_EL][0].text # take val from inner text element
             bolcontinue, col_idx = process_cells(attrib_dict, coltypes, col_idx, 
                                             fldnames, valdict, type, val2use)
