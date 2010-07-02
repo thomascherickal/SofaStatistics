@@ -171,10 +171,10 @@ class ProjSelectDlg(wx.Dialog):
             self.parent.set_proj(proj_name)
         except Exception, e:
             lib.safe_end_cursor()
-            wx.MessageBox(_("Unable to use the selected project file. Please "
-                            "check name of file and its contents using "
-                            "%s as example. Caused by error: %s" % 
-                            (mg.DEFAULT_PROJ, e)))
+            wx.MessageBox(_(u"Unable to use the selected project file. Please "
+                            u"check name of file and its contents using "
+                            u"%s as example. Caused by error: %s"
+                            % (mg.DEFAULT_PROJ, lib.ue(e))))
             return
         lib.safe_end_cursor()
         self.Destroy()

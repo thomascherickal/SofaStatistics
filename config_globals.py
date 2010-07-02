@@ -57,8 +57,9 @@ def import_dbe_plugin(dbe_plugin):
         else:
             raise Exception(u"Unknown database engine plug-in type")
     except ImportError, e:
+        import lib
         raise Exception(u"Import error with \"%s\". Caused by error: %s" % 
-                        (dbe_plugin, e))
+                        (dbe_plugin, lib.ue(e)))
     return mod
 
 def import_dbe_plugins():

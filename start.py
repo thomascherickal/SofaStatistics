@@ -51,9 +51,9 @@ import my_exceptions
 class MsgFrame(wx.Frame):
     def __init__(self, e):
         wx.Frame.__init__(self, None, title=_("SOFA Error"))
-        wx.MessageBox("Something went wrong with running SOFA Statistics. "
-                      "Please email the lead developer for help - "
-                      "grant@sofastatistics.com\n\nCaused by error: %s" % 
+        wx.MessageBox(u"Something went wrong with running SOFA Statistics. "
+                      u"Please email the lead developer for help - "
+                      u"grant@sofastatistics.com\n\nCaused by error: %s" % 
                       lib.ue(e))
         self.Destroy()
         import sys
@@ -652,7 +652,7 @@ class StartFrame(wx.Frame):
             msg = _("Unable to connect to data as defined in project %s. "
                     "Please check your settings" % self.active_proj)
             wx.MessageBox(msg)
-            raise Exception(u"%s. Caused by error: %s" % (msg, e))
+            raise Exception(u"%s. Caused by error: %s" % (msg, lib.ue(e)))
         finally:
             lib.safe_end_cursor()
             event.Skip()
@@ -698,7 +698,7 @@ class StartFrame(wx.Frame):
                 msg = _("Unable to connect to data as defined in project %s.  "
                         "Please check your settings" % self.active_proj)
                 wx.MessageBox(msg)
-                raise Exception(u"%s. Caused by error: %s" % (msg, e)) 
+                raise Exception(u"%s. Caused by error: %s" % (msg, lib.ue(e)))
             finally:
                 lib.safe_end_cursor()
                 event.Skip()
@@ -810,7 +810,7 @@ class StartFrame(wx.Frame):
             msg = _("Unable to connect to data as defined in project %s.  "
                     "Please check your settings." % self.active_proj)
             wx.MessageBox(msg)
-            raise Exception(u"%s.  Caused by error: %s" % (msg, e))
+            raise Exception(u"%s.  Caused by error: %s" % (msg, lib.ue(e)))
         finally:
             lib.safe_end_cursor()
             event.Skip()

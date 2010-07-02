@@ -19,12 +19,16 @@ import wx
 import my_globals as mg
 
 def ue(e):
-    "Return unicode string version of error reason"
+    """
+    Return unicode string version of error reason
+    unicode(e) handles u"找不到指定的模块。" & u"I \u2665 unicode"
+    str(e).decode("utf8", "replace") handles "找不到指定的模块。"
+    """
     try:
-        ue = e.__unicode__() # handles u"找不到指定的模块。" & u"I \u2665 unicode"
+        unicode_e = unicode(e)
     except UnicodeDecodeError:
-        ue = e.__str__().decode("utf8", "replace") # handles "找不到指定的模块。"
-    return ue
+        unicode_e = str(e).decode("utf8", "replace")
+    return unicode_e
 
 def update_type_set(type_set, val):
     if is_numeric(val): # anything that SQLite can add _as a number_ 

@@ -39,6 +39,8 @@ def test_ue():
              (u"I \u2665 unicode", u"I ♥ unicode"),
              ("Plain old text even though there is no such thing ;-)",
               u"Plain old text even though there is no such thing ;-)"),
+             ("spam\xd5eggs", u"spam�ggs"),
+             (u"spam\xd5eggs", u"spam\xd5eggs"),
              ]
     for i, test in enumerate(tests):
         print("Running test %s" % str(i))

@@ -22,7 +22,10 @@ STATS_TESTS = [TEST_ANOVA, TEST_CHI_SQUARE, TEST_PEARSONS_R, TEST_SPEARMANS_R,
                TEST_TTEST_PAIRED, TEST_WILCOXON]
 MAIN_LEFT = 45
 HELP_LEFT = MAIN_LEFT + 235
-REL_TOP = 350
+DIFF_TOP = 125
+REL_TOP = DIFF_TOP + 195
+QUESTIONS_TOP = REL_TOP + 150
+QUESTION_BTNS_TOP = QUESTIONS_TOP + 30
 BUTTON1_LEFT = MAIN_LEFT + 20
 BUTTON2_LEFT = MAIN_LEFT + 130
 CONFIG_LEFT = 560
@@ -35,6 +38,8 @@ LST_WIDTH = 200
 LST_TOP = 55
 LST_HEIGHT = 220
 SCROLL_ALLOWANCE = 20
+NORMALITY_MSG = _("Use the \"Normality\" button to assess the normality of your"
+                  " numerical data")
 
 cc = config_dlg.get_cc()
 
@@ -73,7 +78,7 @@ class StatsSelectDlg(wx.Dialog):
         self.rad_assisted.Bind(wx.EVT_RADIOBUTTON, self.on_radio_assisted_btn)
         # main assisted options
         self.rad_differences = wx.RadioButton(self.panel, -1, 
-                                             pos=(MAIN_LEFT, 135), 
+                                             pos=(MAIN_LEFT, DIFF_TOP), 
                                              style=wx.RB_GROUP)
         self.rad_differences.Bind(wx.EVT_RADIOBUTTON, self.on_radio_diff_btn)
         self.rad_differences.Enable(False)
@@ -83,7 +88,7 @@ class StatsSelectDlg(wx.Dialog):
         self.rad_relationships.Enable(False)
         # choices (NB can't use RadioBoxes and wallpaper in Windows)
         # choices line 1
-        DIFF_LN_1 = 200
+        DIFF_LN_1 = DIFF_TOP + 65
         self.rad_2groups = wx.RadioButton(self.panel, -1, _("2 groups"), 
                                           style=wx.RB_GROUP,
                                           pos=(BUTTON1_LEFT, DIFF_LN_1))
@@ -168,6 +173,22 @@ class StatsSelectDlg(wx.Dialog):
                                           pos=(HELP_LEFT, DIFF_LN_5))
         self.btn_normal_help2.Bind(wx.EVT_BUTTON, self.on_normal_help2_btn)
         self.btn_normal_help2.Enable(False)
+        # data exploration
+        btn_groups = wx.Button(self.panel, -1, _("Groups"),
+                                  pos=(BUTTON1_LEFT, QUESTION_BTNS_TOP))
+        btn_groups.SetToolTipString(_("Make report tables to see how many "
+                                      "groups in data"))
+        btn_groups.Bind(wx.EVT_BUTTON, self.on_groups_btn)
+        btn_normality = wx.Button(self.panel, -1, _("Normality"),
+                                  pos=(BUTTON2_LEFT, QUESTION_BTNS_TOP))
+        btn_normality.SetToolTipString(_("Assess the normality of your "
+                                         "numerical data"))
+        btn_normality.Bind(wx.EVT_BUTTON, self.on_normality_btn)
+        btn_type = wx.Button(self.panel, -1, _("Data Type"),
+                                  pos=(HELP_LEFT, QUESTION_BTNS_TOP))
+        btn_type.SetToolTipString(_("Assess data type e.g. categorical, "
+                                    "ordered etc"))
+        btn_type.Bind(wx.EVT_BUTTON, self.on_type_btn)
         # listbox of tests
         self.lst_tests = wx.ListCtrl(self.panel, -1, pos=(LST_LEFT, LST_TOP), 
                                 size=(LST_WIDTH + SCROLL_ALLOWANCE, LST_HEIGHT),
@@ -224,18 +245,21 @@ class StatsSelectDlg(wx.Dialog):
            wx.Rect(MAIN_LEFT, 95, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         panel_dc.DrawLabel(_("Tests that show if there is a difference"), 
-           wx.Rect(BUTTON1_LEFT, 135, 100, 100))
+           wx.Rect(BUTTON1_LEFT, DIFF_TOP, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
         diff_txt = lib.get_text_to_draw(_("E.g. Do females have a larger "
                            "vocabulary average than males?"), 300)
         panel_dc.DrawLabel(diff_txt, 
-           wx.Rect(BUTTON1_LEFT, 160, 100, 100))
+           wx.Rect(BUTTON1_LEFT, DIFF_TOP + 20, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         panel_dc.DrawLabel(_("Tests that show if there is a relationship"), 
            wx.Rect(BUTTON1_LEFT, REL_TOP, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
         panel_dc.DrawLabel(_("E.g. Does wealth increase with age?"), 
            wx.Rect(BUTTON1_LEFT, REL_TOP + 27, 100, 100))
+        panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        panel_dc.DrawLabel(_("Answering questions about your data"), 
+           wx.Rect(BUTTON1_LEFT, REL_TOP + 150, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         panel_dc.DrawLabel(_("Tips"), 
            wx.Rect(LST_LEFT, LST_TOP + LST_HEIGHT + 20, 100, 100))
@@ -314,8 +338,7 @@ class StatsSelectDlg(wx.Dialog):
         dlg.ShowModal()
     
     def on_normal_help1_btn(self, event):
-        paired = self.rad_paired.GetValue()
-        self.examine_normality(paired)
+        wx.MessageBox(NORMALITY_MSG)
         event.Skip()
     
     def indep_setup(self, enable=True):
@@ -370,8 +393,30 @@ class StatsSelectDlg(wx.Dialog):
           "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc)."))
     
     def on_normal_help2_btn(self, event):
+        wx.MessageBox(NORMALITY_MSG)
+        event.Skip()
+
+    def on_groups_btn(self, event):
+        wx.BeginBusyCursor()
+        import report_table
+        try:
+            dlg = report_table.DlgMakeTable()
+            lib.safe_end_cursor()
+            dlg.ShowModal()
+        except Exception, e:
+            msg = _("Unable to open report table")
+            wx.MessageBox(msg)
+            raise Exception(u"%s. Caused by error: %s" % (msg, lib.ue(e)))
+        finally:
+            lib.safe_end_cursor()
+            event.Skip()
+
+    def on_normality_btn(self, event):
         self.examine_normality()
         event.Skip()
+    
+    def on_type_btn(self, event):
+        pass
     
     def normal_rel_setup(self, enable=True):
         # set left first

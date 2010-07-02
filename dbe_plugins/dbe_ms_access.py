@@ -93,7 +93,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
                         u"supplied database: %s, user: %s, "
                         % (database, user) + 
                         u"pwd: %s, or mdw: %s.  Caused by error: %s" % 
-                        (pwd, mdw, e))
+                        (pwd, mdw, lib.ue(e)))
     cur = con.cursor() # must return tuples not dics
     cur.adoconn = con.adoConn # (need to access from just the cursor)
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: [db,],

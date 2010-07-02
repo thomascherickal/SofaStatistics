@@ -283,7 +283,7 @@ def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names,
             raise # keep this particular type of exception bubbling out
         except Exception, e:
             raise Exception(u"Unable to add row %s. Caused by error: %s"
-                            % (row_num, e))
+                            % (row_num, lib.ue(e)))
     con.commit()
     return nulled_dots
 

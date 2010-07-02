@@ -661,7 +661,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             except IOError, e:
                 wx.MessageBox(_(u"Unable to save project file. Please check "
                                 u"\"%s\" is a valid file name."
-                                u"\n\nCaused by error: %s") % (fil_name, e))
+                                u"\n\nCaused by error: %s")
+                                % (fil_name, lib.ue(e)))
                 return
             f.write(u"# Windows file paths _must_ have double not single "
                     u"backslashes")
