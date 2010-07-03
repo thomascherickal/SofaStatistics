@@ -19,6 +19,7 @@ DEFAULT_DB = u"sqlite_default_db"
 DEFAULT_TBL = u"sqlite_default_tbl"
 NUMERIC_TYPES = [u"integer", u"float", u"numeric", u"real"]
 DATE_TYPES = [u"date", u"datetime", u"time", u"timestamp"]
+DATABASE_KEY = u"database"
 
 if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
 placeholder = u"?"
@@ -65,10 +66,21 @@ def get_con(con_dets, db, add_checks=False):
         raise Exception(u"No connections for SQLite database %s" % db)
     try:
         con = sqlite.connect(**con_dets_sqlite[db])
+        try:
+            sofa_db_path = con_dets_sqlite[db][DATABASE_KEY]
+        except Exception:
+            sofa_db_path = u"Unable to get SQLite default database path"
     except Exception, e:
-        raise Exception(u"Unable to connect to SQLite database "
-                        u"using supplied database: \"%s\". " % db +
-                        u"Caused by error: %s" % lib.ue(e))
+        if sofa_db_path == os.path.join(u"/home/g/sofa/_internal", mg.SOFA_DB):
+            raise Exception(u"Problem with default project file. Delete "
+                            u"%s and restart SOFA.  Caused by error %s." %
+                            (os.path.join(mg.INT_PATH, mg.PROJ_CUSTOMISED_FILE), 
+                            lib.ue(e)))
+        else:
+            raise Exception(u"Unable to connect to SQLite database using "
+                            u"supplied database: \"%s\" and supplied " % db +
+                            u"connection details: %s. " % sofa_db_path +
+                            u"Caused by error: %s." % lib.ue(e))
     if mg.USE_SQLITE_UDFS:
         print("*"*60)
         print("Overriding so can open sofa_db in SOFA")
@@ -113,10 +125,10 @@ def get_tbls(cur, db):
     try:
         cur.execute(SQL_get_tbls)
     except Exception, e:
-        if unicode(e).startswith(u"malformed database schema"):
+        if lib.ue(e).startswith(u"malformed database schema"):
             raise my_exceptions.MalformedDbError()
         else:
-            print(unicode(e))
+            print(lib.ue(e))
             raise
     tbls = [x[0] for x in cur.fetchall()]
     tbls.sort(key=lambda s: s.upper())
@@ -262,7 +274,7 @@ def get_proj_settings(parent, proj_dic):
     parent.sqlite_default_tbl = \
         proj_dic["default_tbls"].get(mg.DBE_SQLITE)
     if proj_dic["con_dets"].get(mg.DBE_SQLITE):
-        parent.sqlite_data = [(x["database"],) \
+        parent.sqlite_data = [(x[DATABASE_KEY],) \
              for x in proj_dic["con_dets"][mg.DBE_SQLITE].values()]
     else:
         parent.sqlite_data = []
@@ -295,7 +307,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
             db_path = sqlite_setting[0]
             db_name = lib.get_file_name(db_path)
             new_sqlite_dic = {}
-            new_sqlite_dic["database"] = db_path
+            new_sqlite_dic[DATABASE_KEY] = db_path
             con_dets_sqlite[db_name] = new_sqlite_dic
         con_dets[mg.DBE_SQLITE] = con_dets_sqlite
     DEFAULT_DB = parent.txt_sqlite_default_db.GetValue()

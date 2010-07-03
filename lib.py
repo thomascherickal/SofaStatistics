@@ -30,6 +30,104 @@ def ue(e):
         unicode_e = str(e).decode("utf8", "replace")
     return unicode_e
 
+cp1252 = {
+    # from http://www.microsoft.com/typography/unicode/1252.htm
+    u"\x80": u"\u20AC", # EURO SIGN
+    u"\x82": u"\u201A", # SINGLE LOW-9 QUOTATION MARK
+    u"\x83": u"\u0192", # LATIN SMALL LETTER F WITH HOOK
+    u"\x84": u"\u201E", # DOUBLE LOW-9 QUOTATION MARK
+    u"\x85": u"\u2026", # HORIZONTAL ELLIPSIS
+    u"\x86": u"\u2020", # DAGGER
+    u"\x87": u"\u2021", # DOUBLE DAGGER
+    u"\x88": u"\u02C6", # MODIFIER LETTER CIRCUMFLEX ACCENT
+    u"\x89": u"\u2030", # PER MILLE SIGN
+    u"\x8A": u"\u0160", # LATIN CAPITAL LETTER S WITH CARON
+    u"\x8B": u"\u2039", # SINGLE LEFT-POINTING ANGLE QUOTATION MARK
+    u"\x8C": u"\u0152", # LATIN CAPITAL LIGATURE OE
+    u"\x8E": u"\u017D", # LATIN CAPITAL LETTER Z WITH CARON
+    u"\x91": u"\u2018", # LEFT SINGLE QUOTATION MARK
+    u"\x92": u"\u2019", # RIGHT SINGLE QUOTATION MARK
+    u"\x93": u"\u201C", # LEFT DOUBLE QUOTATION MARK
+    u"\x94": u"\u201D", # RIGHT DOUBLE QUOTATION MARK
+    u"\x95": u"\u2022", # BULLET
+    u"\x96": u"\u2013", # EN DASH
+    u"\x97": u"\u2014", # EM DASH
+    u"\x98": u"\u02DC", # SMALL TILDE
+    u"\x99": u"\u2122", # TRADE MARK SIGN
+    u"\x9A": u"\u0161", # LATIN SMALL LETTER S WITH CARON
+    u"\x9B": u"\u203A", # SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
+    u"\x9C": u"\u0153", # LATIN SMALL LIGATURE OE
+    u"\x9E": u"\u017E", # LATIN SMALL LETTER Z WITH CARON
+    u"\x9F": u"\u0178", # LATIN CAPITAL LETTER Y WITH DIAERESIS
+}
+
+def ms2utf8(text):
+    if not isinstance(text, basestring):
+        return text
+    # http://effbot.org/zone/unicode-gremlins.htm
+    # map cp1252 gremlins to real unicode characters
+    # NB the resulting unicode characters may still be outside of ascii 
+    if re.search(u"[\x80-\x9f]", text):
+        def fixup(m):
+            s = m.group(0)
+            return cp1252.get(s, s)
+        if isinstance(text, type("")):
+            # make sure we have a unicode string
+            text = unicode(text, "iso-8859-1")
+        text = re.sub(u"[\x80-\x9f]", fixup, text)
+    return text
+
+def str2unicode(raw):
+    """
+    If not a string, raise Exception.  Otherwise ...
+    Convert byte strings to unicode.
+    Convert any cp1252 text to unicode e.g. smart quotes.
+    Return safe unicode string (pure unicode and no unescaped backslashes).
+    """
+    if not isinstance(raw, basestring): # isinstance includes descendants
+        raise Exception(u"str2unicode() requires strings as inputs.")
+    safe = None
+    if type(raw) == str:
+        try:
+            safe = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            try:
+                safe = ms2utf8(raw)
+            except Exception:
+                pass
+    else:
+        try:
+            safe = ms2utf8(raw)
+        except Exception:
+            pass
+    if safe is None:
+        safe = raw.decode("utf8", "replace")
+    return safe
+
+def any2unicode(raw):
+    """
+    Get unicode string back from any input.
+    If a number, avoids scientific notation if up to 16 places.
+    """
+    if is_basic_num(raw):
+        # only work with repr if you have to
+        # 0.3 -> 0.3 if print() but 0.29999999999999999 if repr() 
+        strval = unicode(raw)
+        if re.search(r"\d+e[+-]\d+", strval): # num(s) e +or- num(s)
+            return unicode(repr(raw)) # 1000000000000.4 rather than 1e+12
+        else:
+            return unicode(raw)
+    elif isinstance(raw, basestring): # isinstance includes descendants
+        return str2unicode(raw)
+    else:
+        return unicode(raw)
+
+def none2empty(val):
+    if val is None:
+        return u""
+    else:
+        return val
+
 def update_type_set(type_set, val):
     if is_numeric(val): # anything that SQLite can add _as a number_ 
             # into a numeric field
@@ -373,48 +471,6 @@ def is_basic_num(val):
     """
     return type(val) in [int, long, float]
 
-def any2unicode(raw):
-    """
-    Get unicode string back from any input.
-    If a number, avoids scientific notation if up to 16 places.
-    """
-    if is_basic_num(raw):
-        # only work with repr if you have to
-        # 0.3 -> 0.3 if print() but 0.29999999999999999 if repr() 
-        strval = unicode(raw)
-        if re.search(r"\d+e[+-]\d+", strval): # num(s) e +or- num(s)
-            return unicode(repr(raw)) # 1000000000000.4 rather than 1e+12
-        else:
-            return unicode(raw)
-    elif isinstance(raw, basestring): # isinstance includes descendants
-        return str2unicode(raw)
-    else:
-        return unicode(raw)
-    
-def str2unicode(raw):
-    """
-    If not a string, just return value unchanged.  Otherwise ...
-    Convert byte strings to unicode.
-    Convert any cp1252 text to unicode e.g. smart quotes.
-    Return safe unicode string (pure unicode and no unescaped backslashes).
-    """
-    if not isinstance(raw, basestring): # isinstance includes descendants
-        return raw
-    if type(raw) == str:
-        try:
-            safe = raw.decode("utf-8")
-        except UnicodeDecodeError:
-            safe = ms2utf8(raw)
-    else:
-        safe = ms2utf8(raw)
-    return safe
-
-def none2empty(val):
-    if val is None:
-        return u""
-    else:
-        return val
-
 def n2d(f):
     """
     Convert a floating point number to a Decimal with no loss of information
@@ -442,53 +498,6 @@ def n2d(f):
     return result
 
 # uncovered
-
-cp1252 = {
-    # from http://www.microsoft.com/typography/unicode/1252.htm
-    u"\x80": u"\u20AC", # EURO SIGN
-    u"\x82": u"\u201A", # SINGLE LOW-9 QUOTATION MARK
-    u"\x83": u"\u0192", # LATIN SMALL LETTER F WITH HOOK
-    u"\x84": u"\u201E", # DOUBLE LOW-9 QUOTATION MARK
-    u"\x85": u"\u2026", # HORIZONTAL ELLIPSIS
-    u"\x86": u"\u2020", # DAGGER
-    u"\x87": u"\u2021", # DOUBLE DAGGER
-    u"\x88": u"\u02C6", # MODIFIER LETTER CIRCUMFLEX ACCENT
-    u"\x89": u"\u2030", # PER MILLE SIGN
-    u"\x8A": u"\u0160", # LATIN CAPITAL LETTER S WITH CARON
-    u"\x8B": u"\u2039", # SINGLE LEFT-POINTING ANGLE QUOTATION MARK
-    u"\x8C": u"\u0152", # LATIN CAPITAL LIGATURE OE
-    u"\x8E": u"\u017D", # LATIN CAPITAL LETTER Z WITH CARON
-    u"\x91": u"\u2018", # LEFT SINGLE QUOTATION MARK
-    u"\x92": u"\u2019", # RIGHT SINGLE QUOTATION MARK
-    u"\x93": u"\u201C", # LEFT DOUBLE QUOTATION MARK
-    u"\x94": u"\u201D", # RIGHT DOUBLE QUOTATION MARK
-    u"\x95": u"\u2022", # BULLET
-    u"\x96": u"\u2013", # EN DASH
-    u"\x97": u"\u2014", # EM DASH
-    u"\x98": u"\u02DC", # SMALL TILDE
-    u"\x99": u"\u2122", # TRADE MARK SIGN
-    u"\x9A": u"\u0161", # LATIN SMALL LETTER S WITH CARON
-    u"\x9B": u"\u203A", # SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
-    u"\x9C": u"\u0153", # LATIN SMALL LIGATURE OE
-    u"\x9E": u"\u017E", # LATIN SMALL LETTER Z WITH CARON
-    u"\x9F": u"\u0178", # LATIN CAPITAL LETTER Y WITH DIAERESIS
-}
-
-def ms2utf8(text):
-    if not isinstance(text, basestring):
-        return text
-    # http://effbot.org/zone/unicode-gremlins.htm
-    # map cp1252 gremlins to real unicode characters
-    # NB the resulting unicode characters may still be outside of ascii 
-    if re.search(u"[\x80-\x9f]", text):
-        def fixup(m):
-            s = m.group(0)
-            return cp1252.get(s, s)
-        if isinstance(text, type("")):
-            # make sure we have a unicode string
-            text = unicode(text, "iso-8859-1")
-        text = re.sub(u"[\x80-\x9f]", fixup, text)
-    return text
 
 def clean_bom_utf8(raw):
     if raw.startswith(unicode(codecs.BOM_UTF8, "utf-8")):

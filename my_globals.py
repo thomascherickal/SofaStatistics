@@ -139,6 +139,7 @@ DEFAULT_VDTS = u"general_var_dets.vdts"
 DEFAULT_STYLE = u"default.css"
 DEFAULT_SCRIPT = u"general_scripts.py"
 DEFAULT_REPORT = u"default_report.htm"
+PROJ_CUSTOMISED_FILE = u"proj_file_customised.txt"
 GOOGLE_DOWNLOAD_EXT = u"ods" # csv has trouble with empty cols e.g. 1,2\n3\n4,5
 GOOGLE_DOWNLOAD = u"temporary_google_spreadsheet.%s" % GOOGLE_DOWNLOAD_EXT
 INT_FOLDER = u"_internal"

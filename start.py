@@ -129,8 +129,7 @@ def install_local():
         for bg_image in bg_images:
             shutil.copy(os.path.join(prog_path, REPORTS, IMAGES, bg_image), 
                         os.path.join(LOCAL_PATH, REPORTS, IMAGES, bg_image))
-    PROJ_CUSTOMISED_FILE = u"proj_file_customised.txt"
-    if not os.path.exists(os.path.join(LOCAL_PATH, PROJ_CUSTOMISED_FILE)):
+    if not os.path.exists(os.path.join(LOCAL_PATH, mg.PROJ_CUSTOMISED_FILE)):
         # change home username
         f = codecs.open(default_proj, "r", "utf-8")
         proj_str = f.read() # provided by me - no BOM or non-ascii 
@@ -152,7 +151,7 @@ def install_local():
         f.write(proj_str)
         f.close()
         # create file as tag we have done the changes to the proj file
-        f = file(os.path.join(LOCAL_PATH, PROJ_CUSTOMISED_FILE), "w")
+        f = file(os.path.join(LOCAL_PATH, mg.PROJ_CUSTOMISED_FILE), "w")
         f.write(u"Local project file customised successfully :-)")
         f.close()
 install_local() # needs mg, but must run before anything calling dd

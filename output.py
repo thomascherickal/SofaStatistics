@@ -414,10 +414,11 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     Append exported script onto existing script file.
     f - open file handle ready for writing
     """
+    debug = False
     datestamp = datetime.now().strftime(u"Script exported %d/%m/%Y at %I:%M %p")
     # Fresh connection for each in case it changes in between tables
     f.write(u"#%s" % (u"-"*65))
-    f.write(u"\n# %s" % datestamp)
+    f.write(u"\n# %s" % lib.str2unicode(datestamp))
     if inc_divider:
         add_divider_code(f, tbl_filt_label, tbl_filt)
     con_dets_str = pprint.pformat(dd.con_dets)
