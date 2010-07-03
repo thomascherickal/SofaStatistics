@@ -33,13 +33,11 @@ if mg.PLATFORM == mg.WINDOWS:
      CONFIG_LEFT += 10
 BUTTON_LIFT = 0 if mg.PLATFORM == mg.WINDOWS else 4
 DIV_LINE_WIDTH = 203
-LST_LEFT = 515
+LST_LEFT = 485
 LST_WIDTH = 200
 LST_TOP = 55
 LST_HEIGHT = 220
 SCROLL_ALLOWANCE = 20
-NORMALITY_MSG = _("Use the \"Normality\" button to assess the normality of your"
-                  " numerical data")
 
 cc = config_dlg.get_cc()
 
@@ -174,17 +172,22 @@ class StatsSelectDlg(wx.Dialog):
         self.btn_normal_help2.Bind(wx.EVT_BUTTON, self.on_normal_help2_btn)
         self.btn_normal_help2.Enable(False)
         # data exploration
-        btn_groups = wx.Button(self.panel, -1, _("Groups"),
+        self.groups_label = _("Groups")
+        btn_groups = wx.Button(self.panel, -1, self.groups_label,
                                   pos=(BUTTON1_LEFT, QUESTION_BTNS_TOP))
         btn_groups.SetToolTipString(_("Make report tables to see how many "
                                       "groups in data"))
         btn_groups.Bind(wx.EVT_BUTTON, self.on_groups_btn)
-        btn_normality = wx.Button(self.panel, -1, _("Normality"),
+        self.normality_label = _("Normality")
+        self.normality_msg = _("Use the \"%s\" button at the bottom to assess "
+                "the normality of your numerical data") % self.normality_label
+        btn_normality = wx.Button(self.panel, -1, self.normality_label,
                                   pos=(BUTTON2_LEFT, QUESTION_BTNS_TOP))
         btn_normality.SetToolTipString(_("Assess the normality of your "
                                          "numerical data"))
         btn_normality.Bind(wx.EVT_BUTTON, self.on_normality_btn)
-        btn_type = wx.Button(self.panel, -1, _("Data Type"),
+        self.data_type_label = _("Data Type")
+        btn_type = wx.Button(self.panel, -1, self.data_type_label,
                                   pos=(HELP_LEFT, QUESTION_BTNS_TOP))
         btn_type.SetToolTipString(_("Assess data type e.g. categorical, "
                                     "ordered etc"))
@@ -221,9 +224,8 @@ class StatsSelectDlg(wx.Dialog):
         self.lbl_tips.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
         self.lbl_tips.SetForegroundColour(TEXT_BROWN)
         # run test button
-        self.btn_config = wx.Button(self.panel, -1, 
-             _("CONFIGURE TEST") + " >>>",
-             pos=(CONFIG_LEFT + LST_WIDTH, LST_TOP))
+        self.btn_config = wx.Button(self.panel, -1, _("CONFIGURE TEST"),
+             pos=(CONFIG_LEFT + LST_WIDTH + 55, LST_TOP))
         self.btn_config.Bind(wx.EVT_BUTTON, self.on_config_clicked)
         # close button
         self.btn_close = wx.Button(self.panel, wx.ID_CLOSE, pos=(900,558))
@@ -324,11 +326,14 @@ class StatsSelectDlg(wx.Dialog):
 
     def on_groups_help_btn(self, event):
         wx.MessageBox(_("Are you looking at the difference between two "
-          "groups or more?"
-          "\n\nExample with 2 groups: average vocabulary of Males vs "
-          "Females."
-          "\n\nExample with 3 or more groups: average sales figures for "
-          "the North, South, East, and West regions"))
+              "groups or more?"
+              "\n\nExample with 2 groups: average vocabulary of Males vs "
+              "Females."
+              "\n\nExample with 3 or more groups: average sales figures for "
+              "the North, South, East, and West regions"
+              "\n\nYou can look at how many groups your data has by clicking "
+              "on the \"%s\" button down the bottom and running a Frequency "
+              "Table") % self.groups_label)
     
     def examine_normality(self, paired=False):
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
@@ -338,7 +343,7 @@ class StatsSelectDlg(wx.Dialog):
         dlg.ShowModal()
     
     def on_normal_help1_btn(self, event):
-        wx.MessageBox(NORMALITY_MSG)
+        wx.MessageBox(self.normality_msg)
         event.Skip()
     
     def indep_setup(self, enable=True):
@@ -393,7 +398,7 @@ class StatsSelectDlg(wx.Dialog):
           "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc)."))
     
     def on_normal_help2_btn(self, event):
-        wx.MessageBox(NORMALITY_MSG)
+        wx.MessageBox(self.normality_msg)
         event.Skip()
 
     def on_groups_btn(self, event):
@@ -465,8 +470,8 @@ class StatsSelectDlg(wx.Dialog):
                     tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_("You can evaluate normality by "
-                    "clicking on the \"Help\" button next to the \"Normal\" - "
-                    "\"Not normal\" choices."), tips_width)
+                    "clicking on the \"%s\" button next to the left.") % 
+                    self.normality_label, tips_width)
             else:
                 tips = lib.get_text_to_draw(_("The Mann-Whitney is good for "
                     "seeing if there is a difference between two groups when "
@@ -489,8 +494,8 @@ class StatsSelectDlg(wx.Dialog):
                     "better with small sample sizes e.g. < 20."), tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_("You can evaluate normality by "
-                    "clicking on the \"Help\" button next to the \"Normal\" - "
-                    "\"Not normal\" choices."), tips_width)
+                    "clicking on the \"%s\" button next to the left.")
+                    % self.normality_label, tips_width)
             else:
                 tips = lib.get_text_to_draw(_("The Independent t-test is good "
                     "for seeing if there is a difference between two groups "
