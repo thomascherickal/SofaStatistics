@@ -174,6 +174,7 @@ class ListVarsDlg(wx.Dialog):
         "updated -- empty set - add True to 'return' updated True"
         wx.Dialog.__init__(self, None, title=_("Variable Details"),
                            size=(500,600), style=wx.CAPTION|wx.SYSTEM_MENU)
+        debug = False
         self.var_labels = var_labels
         self.var_notes = var_notes
         self.var_types = var_types
@@ -183,8 +184,8 @@ class ListVarsDlg(wx.Dialog):
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_std_btns = wx.StdDialogButtonSizer()
         self.lst_vars = wx.ListBox(self.panel, -1, choices=[])
-        self.lst_vars.Bind(wx.EVT_LISTBOX, self.on_lst_click)
         self.setup_vars()
+        self.lst_vars.Bind(wx.EVT_LISTBOX, self.on_lst_click)
         btn_ok = wx.Button(self.panel, wx.ID_OK)
         btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
         self.panel.SetSizer(self.szr_main)
@@ -199,7 +200,9 @@ class ListVarsDlg(wx.Dialog):
         debug = False
         try:
             var_name, choice_item = self.get_var()
-        except Exception: # seems to be triggered
+        except Exception: # seems to be triggered on exit
+            if debug: print(u"Clicked badly")
+            event.Skip()
             return
         var_label = lib.get_item_label(item_labels=self.var_labels, 
                                        item_val=var_name)
@@ -210,19 +213,25 @@ class ListVarsDlg(wx.Dialog):
                                 self.var_labels, self.var_notes, self.var_types, 
                                 self.val_dics)
         if updated:
-            self.setup_vars(var_name)
+            event.Skip()
+            self.setup_vars()
             self.updated.add(True)
+        event.Skip()
+        self.lst_vars.DeselectAll()
     
     def on_ok(self, event):
         self.Destroy()
     
-    def setup_vars(self, var=None):
+    def setup_vars(self):
+        """
+        Sets up list of variables ensuring using latest details.
+        Leaves list unselected.  That way we can select something more than 
+            once.
+        """
         var_names = get_approp_var_names()
         var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
                                     dic_labels=self.var_labels, vals=var_names)
         self.lst_vars.SetItems(var_choices)
-        idx = self.sorted_var_names.index(var) if var else -1
-        self.lst_vars.SetSelection(idx)
 
     def get_var(self):
         idx = self.lst_vars.GetSelection()

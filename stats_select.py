@@ -6,6 +6,7 @@ import lib
 import my_exceptions
 import config_dlg
 import normal
+import projects
 
 TEXT_BROWN = (90, 74, 61)
 TEST_ANOVA = _("ANOVA")
@@ -421,7 +422,12 @@ class StatsSelectDlg(wx.Dialog):
         event.Skip()
     
     def on_type_btn(self, event):
-        pass
+        updated = set() # will get populated with a True to indicate update
+        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
+                                    lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
+        dlg = projects.ListVarsDlg(self.var_labels, self.var_notes, 
+                                   self.var_types, self.val_dics, updated)
+        dlg.ShowModal()
     
     def normal_rel_setup(self, enable=True):
         # set left first
