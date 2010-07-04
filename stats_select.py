@@ -335,11 +335,11 @@ class StatsSelectDlg(wx.Dialog):
               "on the \"%s\" button down the bottom and running a Frequency "
               "Table") % self.groups_label)
     
-    def examine_normality(self, paired=False):
+    def examine_normality(self):
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         dlg = normal.NormalityDlg(self, self.var_labels, self.var_notes, 
-                                  self.var_types, self.val_dics, paired)
+                                  self.var_types, self.val_dics)
         dlg.ShowModal()
     
     def on_normal_help1_btn(self, event):
