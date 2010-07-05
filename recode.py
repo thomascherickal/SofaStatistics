@@ -135,6 +135,11 @@ def process_orig(orig, fldname, fldtype):
     else:
         if fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
             orig_clause = u"%s = %s" % (fld, val_quoter(orig))
+        elif fldtype == mg.FLD_TYPE_NUMERIC:
+            if not lib.is_numeric(orig):
+                raise Exception(_("The field being recoded is numeric but you "
+                                  "are trying to recode a non-numeric value"))
+            orig_clause = u"%s = %s" % (fld, orig)
         else:
             orig_clause = u"%s = %s" % (fld, orig)
     if orig_clause is None:

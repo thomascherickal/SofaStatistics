@@ -220,7 +220,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             row_idx = row_min
             for data_tup in dd.cur.fetchall(): # tuple of values
                 # handle microsoft characters
-                data_tup = tuple([lib.ms2utf8(x) for x in data_tup])
+                data_tup = tuple([lib.ms2unicode(x) for x in data_tup])
                 if debug or self.debug: print(data_tup)
                 self.add_data_to_row_vals_dic(self.row_vals_dic, row_idx, 
                                               data_tup)

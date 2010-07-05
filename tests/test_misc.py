@@ -32,6 +32,17 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
 
+def test_ms2unicode():
+    tests = [("byte string", u"byte string"),
+             ]
+    for i, test in enumerate(tests):
+        print("Running test %s" % str(i))
+        fixed = lib.ms2unicode(test[0])
+        expected = test[1]
+        print(fixed, expected)
+        assert_equal(fixed, expected)
+        assert_true(isinstance(fixed, unicode))
+
 def test_ue():
     "Reasons on the left, unicode reasons on the right"
     tests = [("找不到指定的模块。", u"找不到指定的模块。"), # not the same
@@ -47,7 +58,9 @@ def test_ue():
         try:
             raise Exception(test[0])
         except Exception, e:
-            assert_equal(lib.ue(e), test[1])
+            ue_e = lib.ue(e)
+            assert_equal(ue_e, test[1])
+            assert_true(isinstance(ue_e, unicode))
 
 def test_process_orig():
     fld = u"bar"

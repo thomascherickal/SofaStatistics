@@ -24,10 +24,14 @@ def ue(e):
     unicode(e) handles u"找不到指定的模块。" & u"I \u2665 unicode"
     str(e).decode("utf8", "replace") handles "找不到指定的模块。"
     """
+    debug = True
     try:
         unicode_e = unicode(e)
     except UnicodeDecodeError:
         unicode_e = str(e).decode("utf8", "replace")
+    if debug: 
+        print("unicode_e has type %s" % type(unicode_e))
+        print(repr(u"unicode_e is %s" % unicode_e))
     return unicode_e
 
 cp1252 = {
@@ -61,20 +65,28 @@ cp1252 = {
     u"\x9F": u"\u0178", # LATIN CAPITAL LETTER Y WITH DIAERESIS
 }
 
-def ms2utf8(text):
+def ms2unicode(text):
+    debug = False
     if not isinstance(text, basestring):
         return text
     # http://effbot.org/zone/unicode-gremlins.htm
     # map cp1252 gremlins to real unicode characters
     # NB the resulting unicode characters may still be outside of ascii 
     if re.search(u"[\x80-\x9f]", text):
+        if debug: print(u"Found something in search within ms2unicode")
         def fixup(m):
             s = m.group(0)
             return cp1252.get(s, s)
-        if isinstance(text, type("")):
-            # make sure we have a unicode string
-            text = unicode(text, "iso-8859-1")
+        if isinstance(text, str):
+            # make sure we have a unicode string for fixing up step
+            text = text.decode("iso-8859-1")
         text = re.sub(u"[\x80-\x9f]", fixup, text)
+    else:
+        if debug: print(u"Found nothing in search within ms2unicode")
+        if isinstance(text, str):
+            if debug: print(u"Is a string needing to be decoded into utf-8")
+            text = text.decode("utf8", "replace")
+            if debug: print(repr(text))
     return text
 
 def str2unicode(raw):
@@ -92,16 +104,16 @@ def str2unicode(raw):
             safe = raw.decode("utf-8")
         except UnicodeDecodeError:
             try:
-                safe = ms2utf8(raw)
+                safe = ms2unicode(raw)
             except Exception:
                 pass
     else:
         try:
-            safe = ms2utf8(raw)
+            safe = ms2unicode(raw)
         except Exception:
             pass
     if safe is None:
-        safe = raw.decode("utf8", "replace") #final fallback to return something
+        safe = raw.decode("utf8", "replace") # final fallback
     return safe
 
 def any2unicode(raw):
