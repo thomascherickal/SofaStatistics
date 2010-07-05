@@ -141,13 +141,13 @@ def process_orig(orig, fldname, fldtype):
         raise Exception(u"Unable to process original value in recode config")
     return orig_clause
 
-def process_label(dict_labels, fld_type, new, label):
+def process_label(dict_labels, new_fldtype, new, label):
     """
     Add non-empty label to dictionary of labels for variable
     """
     if label == u"":
         return
-    if fld_type in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
+    if new_fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
         new = val_quoter(new)
     dict_labels[new] = val_quoter(label)
     
@@ -465,7 +465,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         Order doesn't matter except for REMAINING which is ELSE in CASE 
             statement.  Must come last and only once.
         """
-        debug = False
+        debug = True
         when_clauses = []
         remaining_to = None
         for orig, new, label in self.recode_clauses_data:
@@ -477,12 +477,12 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                     wx.MessageBox(_("Problem with your recode configuration. "
                                     "Caused by error: %s" % lib.ue(e)))
                     return
-                process_label(dict_labels, fldtype, new, label)
+                process_label(dict_labels, new_fldtype, new, label)
                 when_clauses.append(make_when_clause(orig_clause, new, 
                                                      new_fldtype))
             else: # REMAINING
                 # if multiple REMAINING clauses the last "wins"
-                if fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
+                if new_fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
                     remaining_to = val_quoter(new)
                 else:
                     remaining_to = new
@@ -494,7 +494,8 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             else: # the only clause
                 remaining_clause = u"            WHEN 1=1 %s" % remaining_to
             when_clauses.append(remaining_clause)
-            process_label(dict_labels, fldtype, remaining_new, remaining_label)
+            process_label(dict_labels, new_fldtype, remaining_new, 
+                          remaining_label)
         case_when_lst = []
         case_when_lst.append(u"    CASE")
         case_when_lst.extend(when_clauses)

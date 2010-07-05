@@ -835,9 +835,6 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.update_demo()
 
     def on_recode(self, event):
-        wx.MessageBox(_("Recoding is only available in this version of SOFA on "
-                        "an experimental basis.  Your feedback is welcome at " 
-                        "grant@sofastatistics.com"))
         debug = False
         if self.readonly:
             raise Exception(_("Can't recode a read only table"))

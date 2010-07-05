@@ -101,7 +101,7 @@ def str2unicode(raw):
         except Exception:
             pass
     if safe is None:
-        safe = raw.decode("utf8", "replace")
+        safe = raw.decode("utf8", "replace") #final fallback to return something
     return safe
 
 def any2unicode(raw):

@@ -231,6 +231,7 @@ class StatsSelectDlg(wx.Dialog):
         # close button
         self.btn_close = wx.Button(self.panel, wx.ID_CLOSE, pos=(900,558))
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_close_click)
+        self.update_test_tips(STATS_TESTS[0], assisted=False)
         
     def on_paint(self, event):
         """
@@ -457,7 +458,19 @@ class StatsSelectDlg(wx.Dialog):
     def update_test_tips(self, test_type, assisted=True):
         tips_width = 390
         if test_type == TEST_ANOVA:
-            tips = _("")
+            if assisted:
+                tips = lib.get_text_to_draw(_("The ANOVA (Analysis Of Variance)"
+                    " is probably a good choice."), tips_width)
+            else:
+                tips = lib.get_text_to_draw(_("The ANOVA (Analysis Of Variance)"
+                    " is good for seeing if there is a difference in means "
+                    "between multiple groups when the data is numerical and "
+                    "adequately normal. Generally the ANOVA is robust to "
+                    "non-normality."), tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_("You can evaluate normality by "
+                    "clicking on the \"%s\" button down the bottom left.") % 
+                    self.normality_label, tips_width)
         elif test_type == TEST_CHI_SQUARE:
             tips = _("")
         elif test_type == TEST_PEARSONS_R:
@@ -476,7 +489,7 @@ class StatsSelectDlg(wx.Dialog):
                     tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_("You can evaluate normality by "
-                    "clicking on the \"%s\" button next to the left.") % 
+                    "clicking on the \"%s\" button down the bottom left.") % 
                     self.normality_label, tips_width)
             else:
                 tips = lib.get_text_to_draw(_("The Mann-Whitney is good for "
@@ -500,7 +513,7 @@ class StatsSelectDlg(wx.Dialog):
                     "better with small sample sizes e.g. < 20."), tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_("You can evaluate normality by "
-                    "clicking on the \"%s\" button next to the left.")
+                    "clicking on the \"%s\" button down the bottom left.")
                     % self.normality_label, tips_width)
             else:
                 tips = lib.get_text_to_draw(_("The Independent t-test is good "

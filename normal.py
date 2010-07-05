@@ -43,10 +43,10 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             "skewing, and clustering into groups.")
         self.desc_label_paired = _("Select the paired variables you are "
             "interested in. Looking at the differences, is the distribution "
-            "close enough to the\nnormal curve for use with tests requiring "
+            "close enough\nto the normal curve for use with tests requiring "
             "that?\n\nNote: if comparing samples, each sample must be normal "
             "enough. Filter for each sample by right clicking on the table "
-            "selector.")
+            "selector.") # OS X can display oddly dep on breaks
         paired_choices = [_("Single"), _("Paired")]
         self.img_blank_hist = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
                                          u"blankhisto.xpm"), wx.BITMAP_TYPE_XPM)
