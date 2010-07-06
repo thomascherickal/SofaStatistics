@@ -36,21 +36,32 @@ def get_unicode_datestamp():
             if debug: print(repr(datestamp))
             u_datestamp = u"%s" % datestamp
         except Exception:
-            u_datestamp = u"date-time unrecorded" # not worth any more trouble
-                # unless we pursue chardat package
+            try:
+                raw_datestamp = now.strftime(u"%d/%m/%Y at %H:%M")
+                datestamp = raw_datestamp.decode("utf8", "replace")
+                if debug: print(repr(datestamp))
+                u_datestamp = u"%s" % datestamp
+            except Exception:
+                u_datestamp = u"date-time unrecorded" # TODO -chardet?
     return u_datestamp
 
 def ue(e):
     """
     Return unicode string version of error reason
     unicode(e) handles u"找不到指定的模块。" & u"I \u2665 unicode"
-    str(e).decode("utf8", "replace") handles "找不到指定的模块。"
+    str(e).decode("utf8", ...) handles "找不到指定的模块。"
     """
     debug = False
     try:
         unicode_e = unicode(e)
     except UnicodeDecodeError:
-        unicode_e = str(e).decode("utf8", "replace")
+        try:
+            unicode_e = str(e).decode(locale.getpreferredencoding())
+        except UnicodeDecodeError:
+            try:
+                unicode_e = str(e).decode("utf8", "replace")
+            except UnicodeDecodeError:
+                unicode_e = u"Problem getting error reason"
     if debug: 
         print("unicode_e has type %s" % type(unicode_e))
         print(repr(u"unicode_e is %s" % unicode_e))
@@ -118,16 +129,18 @@ def ms2unicode(text):
             # cp1252 bytes.  E.g. so u"\xe2\x80\x93" doesn't become the
             # nonsense u"\xe2\u20AC\x93" as a result of our search and replace.
         if re.search(gremlin, text):
-            if isinstance(text, str):
-                # make sure we have a unicode string for fixing up step
-                # if has those ms characters probably safe to decode using iso
+            if isinstance(text, str): # Make sure we have a unicode string for 
+                # fixing up step.  If has those ms characters probably safe to 
+                # decode using "iso-8859-1"
                 text = text.decode("iso-8859-1")
             text = re.sub(gremlin, fix_gremlins, text)
     if re.search(u"[\x80-\x9f]", text):
         text = re.sub(u"[\x80-\x9f]", fix_cp1252, text)
-    if isinstance(text, str): # no gremlins or cp1252 so no guarantees turned 
-            # into unicode
-        text = text.decode("utf8", "replace")
+    if isinstance(text, str): # no gremlins or cp1252 so no guarantees unicoded
+        try:
+            text = text.decode(locale.getpreferredencoding())
+        except UnicodeDecodeError:
+            text = text.decode("utf8", "replace")
     if debug: print(repr(text))
     return text
 
@@ -140,22 +153,22 @@ def str2unicode(raw):
     """
     if not isinstance(raw, basestring): # isinstance includes descendants
         raise Exception(u"str2unicode() requires strings as inputs.")
-    safe = None
     if type(raw) == str:
         try:
-            safe = raw.decode("utf-8")
+            safe = raw.decode(locale.getpreferredencoding())
         except UnicodeDecodeError:
             try:
-                safe = ms2unicode(raw)
+                safe = raw.decode("utf-8")
             except Exception:
-                pass
+                try:
+                    safe = ms2unicode(raw)
+                except Exception:
+                    safe = raw.decode("utf8", "replace") # final fallback
     else:
         try:
             safe = ms2unicode(raw)
         except Exception:
-            pass
-    if safe is None:
-        safe = raw.decode("utf8", "replace") # final fallback
+            safe = raw.decode("utf8", "replace") # final fallback
     return safe
 
 def any2unicode(raw):

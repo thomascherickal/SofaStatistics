@@ -291,7 +291,7 @@ def get_divider(source, tbl_filt_label, tbl_filt):
     return u"\n<br><br>\n<hr>\n%s\n<p>%s</p>" % (source, filt_msg)
 
 def get_source(db, tblname):
-    full_datestamp = u"%\n# on %s" % lib.get_unicode_datestamp()
+    full_datestamp = u"\n# on %s" % lib.get_unicode_datestamp()
     source = u"\n<p>From %s.%s %s</p>" % (db, tblname, full_datestamp)
     return source
 
@@ -414,7 +414,7 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     f - open file handle ready for writing
     """
     debug = False
-    full_datestamp = u"%\n# Script exported %s" % lib.get_unicode_datestamp()
+    full_datestamp = u"\n# Script exported %s" % lib.get_unicode_datestamp()
     # Fresh connection for each in case it changes in between tables
     f.write(u"#%s" % (u"-"*65))
     f.write(full_datestamp)
