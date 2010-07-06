@@ -3,8 +3,6 @@
 
 from __future__ import print_function
 import codecs
-from datetime import datetime
-import locale
 import os
 import pprint
 import time
@@ -292,9 +290,9 @@ def get_divider(source, tbl_filt_label, tbl_filt):
     filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
     return u"\n<br><br>\n<hr>\n%s\n<p>%s</p>" % (source, filt_msg)
 
-def get_source(db, tbl_name):
-    datestamp = datetime.now().strftime("on %d/%m/%Y at %I:%M %p")
-    source = u"\n<p>From %s.%s %s</p>" % (db, tbl_name, datestamp)
+def get_source(db, tblname):
+    full_datestamp = u"%\n# on %s" % lib.get_unicode_datestamp()
+    source = u"\n<p>From %s.%s %s</p>" % (db, tblname, full_datestamp)
     return source
 
 def run_report(modules, add_to_report, css_fils, inner_script):
@@ -408,7 +406,7 @@ def insert_prelim_code(modules, f, fil_report, css_fils):
     f.write(u"\nfil.write(output.get_html_hdr(\"Report(s)\", css_fils, "
             u"default_if_prob=True))")
     f.write(u"\n\n# end of script 'header'" + u"\n" + u"\n")
-    
+
 def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt, 
                            inc_divider=False):
     """
@@ -416,19 +414,10 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     f - open file handle ready for writing
     """
     debug = False
-    now = datetime.now()
-    raw_datestamp = now.strftime(u"Script exported %d/%m/%Y at %I:%M %p")
-    try:
-        datestamp = raw_datestamp.decode(locale.getpreferredencoding())
-    except Exception:
-        raw_datestamp = now.strftime(u"Script exported %d/%m/%Y at %H:%M")
-        try:
-            datestamp = raw_datestamp.decode(locale.getpreferredencoding())
-        except Exception:
-            datestamp = u"" # not worth any more trouble at this stage
+    full_datestamp = u"%\n# Script exported %s" % lib.get_unicode_datestamp()
     # Fresh connection for each in case it changes in between tables
     f.write(u"#%s" % (u"-"*65))
-    f.write(u"\n# %s" % datestamp)
+    f.write(full_datestamp)
     if inc_divider:
         add_divider_code(f, tbl_filt_label, tbl_filt)
     con_dets_str = pprint.pformat(dd.con_dets)

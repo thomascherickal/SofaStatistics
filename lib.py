@@ -4,8 +4,9 @@
 from __future__ import print_function
 
 import codecs
-import datetime
+from datetime import datetime
 import decimal
+import locale
 import os
 import pprint
 import random
@@ -18,13 +19,34 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
+def get_unicode_datestamp():
+    debug = False
+    now = datetime.now()
+    try:
+        raw_datestamp = now.strftime(u"%d/%m/%Y at %I:%M %p")
+        # see http://groups.google.com/group/comp.lang.python/browse_thread/...
+        # ...thread/a18a590eb5d12e5b
+        datestamp = raw_datestamp.decode(locale.getpreferredencoding())
+        if debug: print(repr(datestamp))
+        u_datestamp = u"%s" % datestamp
+    except Exception:
+        try:
+            raw_datestamp = now.strftime(u"%d/%m/%Y at %H:%M")
+            datestamp = raw_datestamp.decode(locale.getpreferredencoding())
+            if debug: print(repr(datestamp))
+            u_datestamp = u"%s" % datestamp
+        except Exception:
+            u_datestamp = u"date-time unrecorded" # not worth any more trouble
+                # unless we pursue chardat package
+    return u_datestamp
+
 def ue(e):
     """
     Return unicode string version of error reason
     unicode(e) handles u"找不到指定的模块。" & u"I \u2665 unicode"
     str(e).decode("utf8", "replace") handles "找不到指定的模块。"
     """
-    debug = True
+    debug = False
     try:
         unicode_e = unicode(e)
     except UnicodeDecodeError:
@@ -622,6 +644,7 @@ def mysql2textdate(mysql_date, output_format):
     """
     Takes MySQL date e.g. 2008-01-25 and returns date string according to 
         format.  NB must be valid format for strftime.
+    TODO - make safe for weird encoding issues.  See get_unicode_datestamp().
     """
     year = int(mysql_date[:4])
     month = int(mysql_date[5:7])

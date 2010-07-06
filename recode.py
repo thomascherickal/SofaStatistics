@@ -470,7 +470,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         Order doesn't matter except for REMAINING which is ELSE in CASE 
             statement.  Must come last and only once.
         """
-        debug = True
+        debug = False
         when_clauses = []
         remaining_to = None
         for orig, new, label in self.recode_clauses_data:
