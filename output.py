@@ -4,6 +4,7 @@
 from __future__ import print_function
 import codecs
 from datetime import datetime
+import locale
 import os
 import pprint
 import time
@@ -415,10 +416,19 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     f - open file handle ready for writing
     """
     debug = False
-    datestamp = datetime.now().strftime(u"Script exported %d/%m/%Y at %I:%M %p")
+    now = datetime.now()
+    raw_datestamp = now.strftime(u"Script exported %d/%m/%Y at %I:%M %p")
+    try:
+        datestamp = raw_datestamp.decode(locale.getpreferredencoding())
+    except Exception:
+        raw_datestamp = now.strftime(u"Script exported %d/%m/%Y at %H:%M")
+        try:
+            datestamp = raw_datestamp.decode(locale.getpreferredencoding())
+        except Exception:
+            datestamp = u"" # not worth any more trouble at this stage
     # Fresh connection for each in case it changes in between tables
     f.write(u"#%s" % (u"-"*65))
-    f.write(u"\n# %s" % lib.str2unicode(datestamp))
+    f.write(u"\n# %s" % datestamp)
     if inc_divider:
         add_divider_code(f, tbl_filt_label, tbl_filt)
     con_dets_str = pprint.pformat(dd.con_dets)

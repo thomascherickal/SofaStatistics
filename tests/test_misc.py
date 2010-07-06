@@ -34,6 +34,10 @@ import dbe_plugins.dbe_postgresql as dbe_postgresql
 
 def test_ms2unicode():
     tests = [("byte string", u"byte string"),
+             ("“", u"\u201c"),
+             ("–", u"\u2014"),
+             ("“spam”", u"\u201cspam\u201d"),
+             (u"“spam”", u"\u201cspam\u201d"),
              ]
     for i, test in enumerate(tests):
         print("Running test %s" % str(i))
@@ -45,12 +49,12 @@ def test_ms2unicode():
 
 def test_ue():
     "Reasons on the left, unicode reasons on the right"
-    tests = [("找不到指定的模块。", u"找不到指定的模块。"), # not the same
+    tests = [("找不到指定的模块。", u"找不到指定的模块。"), # not the same type
              (u"找不到指定的模块。", u"找不到指定的模块。"),
              (u"I \u2665 unicode", u"I ♥ unicode"),
              ("Plain old text even though there is no such thing ;-)",
               u"Plain old text even though there is no such thing ;-)"),
-             ("spam\xd5eggs", u"spam�ggs"),
+             ("spam\xd5eggs", u"spam�ggs"), # e gets consumed ;-)
              (u"spam\xd5eggs", u"spam\xd5eggs"),
              ]
     for i, test in enumerate(tests):

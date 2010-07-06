@@ -63,30 +63,50 @@ cp1252 = {
     u"\x9C": u"\u0153", # LATIN SMALL LIGATURE OE
     u"\x9E": u"\u017E", # LATIN SMALL LETTER Z WITH CARON
     u"\x9F": u"\u0178", # LATIN CAPITAL LETTER Y WITH DIAERESIS
-}
+    }
+
+oth_ms_gremlins = {
+    u"\xe2\x80\x9c": u"\u201C", # LEFT DOUBLE QUOTATION MARK,
+    u"\xe2\x80\x9d": u"\u201D", # RIGHT DOUBLE QUOTATION MARK
+    u"\xe2\x80\x93": u"\u2014", # EM DASH
+    }
+
+def fix_cp1252(m):
+    s = m.group(0)
+    return cp1252.get(s, s)
+
+def fix_gremlins(m):
+    s = m.group(0)
+    return oth_ms_gremlins.get(s, s)
 
 def ms2unicode(text):
+    """
+    Inspiration from http://effbot.org/zone/unicode-gremlins.htm
+        which maps cp1252 gremlins to real unicode characters.
+    Main changes - now ensure the output is unicode even if cp1252 characters 
+        not found in it.
+    Also handles smart quotes etc (which are multibyte) and commonly used ;-).
+    """
+    import re # easier to transplant for testing if everything here
     debug = False
     if not isinstance(text, basestring):
-        return text
-    # http://effbot.org/zone/unicode-gremlins.htm
-    # map cp1252 gremlins to real unicode characters
-    # NB the resulting unicode characters may still be outside of ascii 
+        raise Exception(u"ms2unicode() requires strings as inputs.")
+    if debug: print(repr(text))
+    for gremlin in oth_ms_gremlins:  # turn to unicode any bytes which contain
+            # cp1252 bytes.  E.g. so u"\xe2\x80\x93" doesn't become the
+            # nonsense u"\xe2\u20AC\x93" as a result of our search and replace.
+        if re.search(gremlin, text):
+            if isinstance(text, str):
+                # make sure we have a unicode string for fixing up step
+                # if has those ms characters probably safe to decode using iso
+                text = text.decode("iso-8859-1")
+            text = re.sub(gremlin, fix_gremlins, text)
     if re.search(u"[\x80-\x9f]", text):
-        if debug: print(u"Found something in search within ms2unicode")
-        def fixup(m):
-            s = m.group(0)
-            return cp1252.get(s, s)
-        if isinstance(text, str):
-            # make sure we have a unicode string for fixing up step
-            text = text.decode("iso-8859-1")
-        text = re.sub(u"[\x80-\x9f]", fixup, text)
-    else:
-        if debug: print(u"Found nothing in search within ms2unicode")
-        if isinstance(text, str):
-            if debug: print(u"Is a string needing to be decoded into utf-8")
-            text = text.decode("utf8", "replace")
-            if debug: print(repr(text))
+        text = re.sub(u"[\x80-\x9f]", fix_cp1252, text)
+    if isinstance(text, str): # no gremlins or cp1252 so no guarantees turned 
+            # into unicode
+        text = text.decode("utf8", "replace")
+    if debug: print(repr(text))
     return text
 
 def str2unicode(raw):
