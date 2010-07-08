@@ -91,70 +91,85 @@ MAIN_RIGHT = 650
 SCRIPT_PATH = mg.SCRIPT_PATH
 LOCAL_PATH = mg.LOCAL_PATH
 
-def install_local():
+def install_local(default_proj, paths, reports):
     """
     Install local set of files in user home dir if necessary.
+    """
+    if os.path.exists(LOCAL_PATH):
+        return
+    IMAGES = u"images"
+    if mg.PLATFORM == mg.MAC:
+        prog_path = MAC_PATH
+    else:
+        prog_path = os.path.dirname(__file__)
+    for path in paths: # create required folders
+        try:
+            os.makedirs(os.path.join(LOCAL_PATH, path))
+        except Exception, e:
+            print(u"Unable to make path %s" % path)
+    os.mkdir(mg.IMAGES_PATH)
+    # copy across default proj, vdts, css
+    styles = [u"grey_spirals.css", u"lucid_spirals.css", u"pebbles.css"]
+    for style in styles:
+        shutil.copy(os.path.join(prog_path, u"css", style), 
+                    os.path.join(LOCAL_PATH, u"css", style))
+    shutil.copy(os.path.join(prog_path, u"css", mg.DEFAULT_STYLE), 
+                os.path.join(LOCAL_PATH, u"css", mg.DEFAULT_STYLE))
+    shutil.copy(os.path.join(prog_path, mg.INT_FOLDER, mg.SOFA_DB), 
+                os.path.join(LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB))
+    shutil.copy(os.path.join(prog_path, u"vdts", mg.DEFAULT_VDTS), 
+                os.path.join(LOCAL_PATH, u"vdts", mg.DEFAULT_VDTS))
+    shutil.copy(os.path.join(prog_path, u"projs", mg.DEFAULT_PROJ), 
+                default_proj)
+    bg_images = [u"grey_spirals.gif", u"lucid_spirals.gif", u"pebbles.gif"]
+    for bg_image in bg_images:
+        shutil.copy(os.path.join(prog_path, reports, IMAGES, bg_image), 
+                    os.path.join(LOCAL_PATH, reports, IMAGES, bg_image))
+    # store version so can identify if an upgrade
+    f = file(os.path.join(LOCAL_PATH, mg.VERSION_FILE), "w")
+    f.write(mg.VERSION)
+    f.close()
+
+def config_local_proj(default_proj, paths):
+    """
     Modify default project settings to point to local (user) SOFA  directory.
     """
-    default_proj = os.path.join(LOCAL_PATH, u"projs", mg.DEFAULT_PROJ)
-    REPORTS = u"reports"
-    paths = [u"css", mg.INT_FOLDER, u"vdts", u"projs", REPORTS, u"scripts"]
-    if not os.path.exists(LOCAL_PATH):
-        IMAGES = u"images"
-        if mg.PLATFORM == mg.MAC:
-            prog_path = MAC_PATH
-        else:
-            prog_path = os.path.dirname(__file__)
-        # In Windows this is completed by installer but only for first user
-        for path in paths: # create required folders
-            try:
-                os.makedirs(os.path.join(LOCAL_PATH, path))
-            except Exception, e:
-                print("Unable to make path %s" % path)
-        os.mkdir(mg.IMAGES_PATH)
-        # copy across default proj, vdts, css
-        styles = [u"grey_spirals.css", u"lucid_spirals.css", u"pebbles.css"]
-        for style in styles:
-            shutil.copy(os.path.join(prog_path, u"css", style), 
-                        os.path.join(LOCAL_PATH, u"css", style))
-        shutil.copy(os.path.join(prog_path, u"css", mg.DEFAULT_STYLE), 
-                    os.path.join(LOCAL_PATH, u"css", mg.DEFAULT_STYLE))
-        shutil.copy(os.path.join(prog_path, mg.INT_FOLDER, mg.SOFA_DB), 
-                    os.path.join(LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB))
-        shutil.copy(os.path.join(prog_path, u"vdts", mg.DEFAULT_VDTS), 
-                    os.path.join(LOCAL_PATH, u"vdts", mg.DEFAULT_VDTS))
-        shutil.copy(os.path.join(prog_path, u"projs", mg.DEFAULT_PROJ), 
-                    default_proj)
-        bg_images = [u"grey_spirals.gif", u"lucid_spirals.gif", u"pebbles.gif"]
-        for bg_image in bg_images:
-            shutil.copy(os.path.join(prog_path, REPORTS, IMAGES, bg_image), 
-                        os.path.join(LOCAL_PATH, REPORTS, IMAGES, bg_image))
-    if not os.path.exists(os.path.join(LOCAL_PATH, mg.PROJ_CUSTOMISED_FILE)):
-        # change home username
-        f = codecs.open(default_proj, "r", "utf-8")
-        proj_str = f.read() # provided by me - no BOM or non-ascii 
-        f.close()
-        for path in paths:
-            new_str = lib.escape_pre_write(os.path.join(LOCAL_PATH, path, u""))
-            proj_str = proj_str.replace(u"/home/g/sofa/%s/" % path, new_str)
-        # add MS Access and SQL Server into mix if Windows
-        if mg.PLATFORM == mg.WINDOWS:
-            proj_str = proj_str.replace(u"default_dbs = {",
+    if os.path.exists(os.path.join(LOCAL_PATH, mg.PROJ_CUSTOMISED_FILE)):
+        return
+    # change home username
+    f = codecs.open(default_proj, "r", "utf-8")
+    proj_str = f.read() # provided by me - no BOM or non-ascii 
+    f.close()
+    for path in paths:
+        new_str = lib.escape_pre_write(os.path.join(LOCAL_PATH, path, u""))
+        proj_str = proj_str.replace(u"/home/g/sofa/%s/" % path, new_str)
+    # add MS Access and SQL Server into mix if Windows
+    if mg.PLATFORM == mg.WINDOWS:
+        proj_str = proj_str.replace(u"default_dbs = {",
                             u"default_dbs = {'%s': None, " % mg.DBE_MS_ACCESS)
-            proj_str = proj_str.replace(u"default_tbls = {",
+        proj_str = proj_str.replace(u"default_tbls = {",
                             u"default_tbls = {'%s': None, " % mg.DBE_MS_ACCESS)
-            proj_str = proj_str.replace(u"default_dbs = {",
-                                u"default_dbs = {'%s': None, " % mg.DBE_MS_SQL)
-            proj_str = proj_str.replace(u"default_tbls = {",
-                                u"default_tbls = {'%s': None, " % mg.DBE_MS_SQL)
-        f = codecs.open(default_proj, "w", "utf-8")
-        f.write(proj_str)
-        f.close()
-        # create file as tag we have done the changes to the proj file
-        f = file(os.path.join(LOCAL_PATH, mg.PROJ_CUSTOMISED_FILE), "w")
-        f.write(u"Local project file customised successfully :-)")
-        f.close()
-install_local() # needs mg, but must run before anything calling dd
+        proj_str = proj_str.replace(u"default_dbs = {",
+                            u"default_dbs = {'%s': None, " % mg.DBE_MS_SQL)
+        proj_str = proj_str.replace(u"default_tbls = {",
+                            u"default_tbls = {'%s': None, " % mg.DBE_MS_SQL)
+    f = codecs.open(default_proj, "w", "utf-8")
+    f.write(proj_str)
+    f.close()
+    # create file as tag we have done the changes to the proj file
+    f = file(os.path.join(LOCAL_PATH, mg.PROJ_CUSTOMISED_FILE), "w")
+    f.write(u"Local project file customised successfully :-)")
+    f.close()
+
+default_proj = os.path.join(LOCAL_PATH, u"projs", mg.DEFAULT_PROJ)
+reports = u"reports"
+paths = [u"css", mg.INT_FOLDER, u"vdts", u"projs", reports, u"scripts"]
+# need mg but must run pre code calling dd
+
+# TODO - code here for renaming sofa to sofa_vn-n-n when upgrading
+
+install_local(default_proj, paths, reports)
+config_local_proj(default_proj, paths)
 
 try:
     import getdata # call before all modules relying on mg.DATA_DETS as dd
@@ -809,7 +824,7 @@ class StartFrame(wx.Frame):
             msg = _("Unable to connect to data as defined in project %s.  "
                     "Please check your settings." % self.active_proj)
             wx.MessageBox(msg)
-            raise Exception(u"%s.  Caused by error: %s" % (msg, lib.ue(e)))
+            raise Exception(u"%s. Caused by error: %s" % (msg, lib.ue(e)))
         finally:
             lib.safe_end_cursor()
             event.Skip()

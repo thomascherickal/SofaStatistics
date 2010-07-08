@@ -59,7 +59,7 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False):
         axes.axis("off")
         normal_line_width = 1
     else:
-        nbins = 100
+        nbins = 50
         axes.set_xlabel(var_label)
         axes.set_ylabel('P')
         if not hist_label:

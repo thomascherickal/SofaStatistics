@@ -112,6 +112,12 @@ def fix_gremlins(m):
     s = m.group(0)
     return oth_ms_gremlins.get(s, s)
 
+def handle_ms_data(data):
+    if not isinstance(data, basestring):
+        return data
+    else:
+        return ms2unicode(data)
+
 def ms2unicode(text):
     """
     Inspiration from http://effbot.org/zone/unicode-gremlins.htm
@@ -434,7 +440,7 @@ def get_text_to_draw(orig_txt, max_width):
     "Return text broken into new lines so wraps within pixel width"
     mem = wx.MemoryDC()
     mem.SelectObject(wx.EmptyBitmap(100,100)) # mac fails without this
-    # add words to it until its width is too long then put into split
+        # add words to it until its width is too long then put into split
     lines = []
     words = orig_txt.split()
     line_words = []

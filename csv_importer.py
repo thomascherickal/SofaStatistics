@@ -4,6 +4,7 @@
 from __future__ import print_function
 import codecs
 import csv
+import locale
 import os
 import wx
 
@@ -76,6 +77,60 @@ def get_avg_row_size(rows):
             break
     avg_row_size = float(size)/i
     return avg_row_size
+
+# http://docs.python.org/library/csv.html
+def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
+    # csv.py doesn't do Unicode; encode temporarily as UTF-8:
+    csv_reader = csv.reader(utf_8_encoder(unicode_csv_data),
+                            dialect=dialect, **kwargs)
+    for row in csv_reader:
+        # decode UTF-8 back to Unicode, cell by cell:
+        rowvals = []
+        for val in row:
+            try:
+                if val is None:
+                    raise Exception(u"Missing value in csv file")
+                uval = val.decode("utf8")
+                rowvals.append(uval)
+            except Exception, e:
+                raise Exception(u"Problem decoding values. Caused by error: %s"
+                                % lib.ue(e))
+        yield rowvals
+
+def utf_8_encoder(unicode_csv_data):
+    for line in unicode_csv_data:
+        yield line.encode('utf-8')
+
+
+class UnicodeCsvDictReader(object):
+    
+    def __init__(self, unicode_csv_data, dialect=csv.excel, **kwargs):
+        # csv.py doesn't do Unicode; encode temporarily as UTF-8:
+        self.csv_dictreader = csv.DictReader(utf_8_encoder(unicode_csv_data),
+                                             dialect=dialect, **kwargs)
+        self.fieldnames = self.csv_dictreader.fieldnames
+        
+    def __iter__(self):
+        """
+        If required, decode UTF8-encoded byte string back to Unicode, dict pair 
+            by pair.
+        """
+        encoding=locale.getpreferredencoding()
+        for row in self.csv_dictreader:
+            unicode_key_value_tups = []
+            for key_val in row.items():
+                uni_key_val = []
+                for item in key_val:
+                    if item is None:
+                        raise Exception(u"Missing value in csv file")
+                    if not isinstance(item, unicode):
+                        try:
+                            item = item.decode(encoding)
+                        except Exception:
+                            item = item.decode("utf8")
+                    uni_key_val.append(item)
+                unicode_key_value_tups.append(tuple(uni_key_val))
+            yield dict(unicode_key_value_tups)
 
     
 class CsvImporter(importer.FileImporter):
@@ -181,24 +236,44 @@ class CsvImporter(importer.FileImporter):
         """
         debug = False
         wx.BeginBusyCursor()
+        if debug: print(u"About to get dialect")
         dialect = get_dialect(self.file_path)
+        if debug: print(u"Got \"%s\" dialect successfully" % dialect)
         try:
-            csvfile = codecs.open(self.file_path, encoding='utf-8') # not "U" - insist on _one_ type of 
-                # line break
+            try:
+                encoding = locale.getpreferredencoding()
+                # not "U" - insist on _one_ type of line break
+                csvfile = codecs.open(self.file_path, encoding=encoding)
+                if debug: 
+                    print(u"Used locale encoding: %s" % encoding)
+            except Exception:
+                try:
+                    csvfile = codecs.open(self.file_path, encoding="utf8")
+                except Exception, e:     
+                    raise Exception(u"Couldn't even decode the csv using utf8. "
+                                    u"Caused by error: %s" % lib.ue(e))
             # get field names
             if self.has_header:
-                tmp_reader = csv.DictReader(csvfile, dialect=dialect)
+                if debug: print(u"About to get dictreader")
+                tmp_reader = UnicodeCsvDictReader(csvfile, dialect=dialect)
+                if debug: print(u"Got dictreader")
                 orig_names = tmp_reader.fieldnames
+                if debug: print(u"Got field names from dictreader")
                 ok_fld_names = importer.process_fld_names(orig_names)
             else:
                 # get number of fields from first row
-                tmp_reader = csv.reader(csvfile, dialect=dialect)
+                if debug: print(u"About to get plain reader")
+                tmp_reader = unicode_csv_reader(csvfile, dialect=dialect)
+                if debug: print(u"Got plain reader")
                 for row in tmp_reader:
-                    if debug: print(row)
+                    if debug:
+                        print(u"Looking at first row") 
+                        print(row)
                     ok_fld_names = [mg.NEXT_FLD_NAME_TEMPLATE % (x+1,) 
                                     for x in range(len(row))]
                     break
                 csvfile.seek(0)
+            if debug: print("Got field names")
             # estimate number of rows (only has to be good enough for progress)
             tot_size = os.path.getsize(self.file_path) # in bytes
             row_size = self.get_avg_row_size(tmp_reader)
@@ -209,12 +284,12 @@ class CsvImporter(importer.FileImporter):
             rows_n = float(tot_size)/row_size
             # If not enough field_names, will use None as key for a list of any 
             # extra values.
-            reader = csv.DictReader(csvfile, dialect=dialect, 
-                                    fieldnames=ok_fld_names)
+            reader = UnicodeCsvDictReader(csvfile, dialect=dialect, 
+                                          fieldnames=ok_fld_names)
         except csv.Error, e:
             lib.safe_end_cursor()
-            if unicode(e).startswith("new-line character seen in unquoted"
-                                     " field"):
+            if lib.ue(e).startswith("new-line character seen in unquoted"
+                                    " field"):
                 self.fix_text()
                 return
             else:

@@ -3,17 +3,17 @@
 
 from __future__ import print_function
 
-try:
-    import pgdb
-except ImportError, e:
-    raise Exception(u"Problem importing PostgreSQL. Caused by error: %s"
-                    % lib.ue(e))
 import wx
 import pprint
 
 import my_globals as mg
 import my_exceptions
 import lib
+try:
+    import pgdb
+except ImportError, e:
+    raise Exception(u"Problem importing PostgreSQL. Caused by error: %s"
+                    % lib.ue(e))
 
 # http://www.postgresql.org/docs/8.4/static/datatype.html
 BIGINT = u"bigint" # "signed eight-byte integer"

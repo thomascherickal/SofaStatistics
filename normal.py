@@ -33,6 +33,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.var_types = var_types
         self.val_dics = val_dics
         self.paired = False
+        CHECK_LABEL = _("Check")
         self.varbox_label_unpaired = _("Variable to Check")
         self.varbox_label_paired = _("Paired Variables to Check")
         self.var_label_unpaired = _("Variable:")
@@ -51,9 +52,11 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.img_blank_hist = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
                                          u"blankhisto.xpm"), wx.BITMAP_TYPE_XPM)
         self.blank_hist_txt_unpaired = \
-                lib.get_text_to_draw(_("Select variable to see graph"), 145)
+                lib.get_text_to_draw(_("Select variable and click %s to see "
+                                       "graph") % CHECK_LABEL, 145)
         self.blank_hist_txt_paired = \
-                lib.get_text_to_draw(_("Select variables to see graph"), 145)
+                lib.get_text_to_draw(_("Select variables and click %s to see "
+                                       "graph") % CHECK_LABEL, 145)
         self.panel = wx.Panel(self)
         # szrs
         szr_main = wx.BoxSizer(wx.VERTICAL)
@@ -90,7 +93,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                                               "view/edit details"))
         self.drop_var_b.Enable(False)
         self.setup_vars(var_a=True, var_b=False)
-        btn_check = wx.Button(self.panel, -1, _("Check"))
+        btn_check = wx.Button(self.panel, -1, CHECK_LABEL)
         btn_check.Bind(wx.EVT_BUTTON, self.on_btn_check)
         szr_vars.Add(self.lbl_vars, 0, wx.LEFT|wx.RIGHT, 5)
         szr_vars.Add(self.drop_var_a, 0)
@@ -153,7 +156,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         bmp_blank_hist = wx.BitmapFromImage(self.img_blank_hist)
         msg_font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
         lib.add_text_to_bitmap(bmp_blank_hist, msg, msg_font, "white", 
-                               left=20, top=30)
+                               left=20, top=20)
         return bmp_blank_hist
         
     def set_histo_to_blank(self):
@@ -162,11 +165,11 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
 
     def set_output_to_blank(self):
         if self.paired:
-            msg = _("Select two variables to check to see results of normality "
-                    "test")
+            msg = _("Select two variables and click Check button to see results"
+                    " of normality test")
         else:
-            msg = _("Select a variable to check to see results of normality "
-                    "test")
+            msg = _("Select a variable and click Check button to see results of"
+                    " normality test")
         self.html.show_html("<p>%s</p>" % msg)
 
     def on_ok(self, event):
