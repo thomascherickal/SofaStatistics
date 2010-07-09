@@ -160,24 +160,23 @@ def csv_to_utf8_byte_lines(file_path):
     debug = False
     encodings = [locale.getpreferredencoding(), "utf8", "iso-8859-1", "cp1257", 
                  "cp1252", "big5"]
+    uni_lines = None
     for encoding in encodings:
         try:
             f = codecs.open(file_path, encoding=encoding)
             try:
                 uni_lines = f.readlines() # this bit can fail even if the open 
                                           # succeeded so wrap in one error trap.
-                break
+                break # bingo - this encoding works
             except Exception, e:
-                raise Exception(u"Unable to read lines using encoding "
-                                u"%s. Caused by error: %s" % (encoding, 
-                                                              lib.ue(e)))
+                continue # try with another encoding
         except IOError, e:
             raise Exception(u"Unable to open file for re-encoding. "
                             u"Caused by error: %s" % lib.ue(e))
         except Exception, e:
-            raise Exception(u"Unable to open file with "
-                            u"encoding \"%s\". Caused by error: %s" % (encoding, 
-                                                                     lib.ue(e)))
+            continue # try with another encoding
+    if uni_lines is None:
+        raise Exception(u"")
     utf8_byte_lines = encode_lines_as_utf8(uni_lines)
     if debug:
         print(repr(utf8_byte_lines))
