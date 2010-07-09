@@ -198,6 +198,8 @@ IDX_FLDS = u"index fields"
 READONLY_COLOUR = wx.Colour(221,231,229)
 MISSING_VAL_INDICATOR = u"."
 RET_CHANGED_DESIGN = 30101966 # must be integer and not 5101 etc
+RET_ENCODING_OK = 30101967
+RET_ENCODING_NOT_OK = 30101968
 # must be defined before dbe modules called - used in them
 GTE_EQUALS = u"="
 GTE_NOT_EQUALS = u"not =" # each dbe converts to appropriate SQL operators

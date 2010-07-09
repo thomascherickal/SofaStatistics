@@ -8,35 +8,43 @@ class MalformedDbError(Exception):
 
 class MissingCssException(Exception):
     def __init__(self):
-        Exception.__init__(self, "Missing css file.")
+        Exception.__init__(self, u"Missing css file.")
 
 class ImportCancelException(Exception):
     def __init__(self):
-        Exception.__init__(self, "Importing has been cancelled.")
+        Exception.__init__(self, u"Importing has been cancelled.")
 
+class ImportNeededFixException(Exception):
+    def __init__(self):
+        Exception.__init__(self, u"Import needed fix")
+
+class ImportEncodingRejected(Exception):
+    def __init__(self):
+        Exception.__init__(self, u"Import encoding(s) rejected")
+        
 class InvalidTestSelectionException(Exception):
     def __init__(self):
-        Exception.__init__(self, "Invalid test selection.")
+        Exception.__init__(self, u"Invalid test selection.")
 
 class TooManyRowsInChiSquareException(Exception):
     def __init__(self):
-        Exception.__init__(self, "Too many rows in contingency table")
+        Exception.__init__(self, u"Too many rows in contingency table")
 
 class TooManyColsInChiSquareException(Exception):
     def __init__(self):
-        Exception.__init__(self, "Too many columns in contingency table")
+        Exception.__init__(self, u"Too many columns in contingency table")
 
 class TooFewRowsInChiSquareException(Exception):
     def __init__(self):
-        Exception.__init__(self, "Not enough rows in contingency table")
+        Exception.__init__(self, u"Not enough rows in contingency table")
 
 class TooFewColsInChiSquareException(Exception):
     def __init__(self):
-        Exception.__init__(self, "Not enough columns in contingency table")
+        Exception.__init__(self, u"Not enough columns in contingency table")
 
 class TooManyCellsInChiSquareException(Exception):
     def __init__(self):
-        Exception.__init__(self, "Too many cells in contingency table")
+        Exception.__init__(self, u"Too many cells in contingency table")
         
 class ExcessReportTableCellsException(Exception):
     def __init__(self, max):
