@@ -566,9 +566,12 @@ def test_get_range_idxs():
 
 def test_process_fld_names():
     "Spaces to underscores, only valid SQLite table and field names"
-    equal_tests = [([u"spam", u"eggs.", u"knights who say ni", u"Παντελής 2"], 
-                    [u"spam", u"eggs.", u"knights_who_say_ni", u"Παντελής_2"]),
-                    ]
+    equal_tests = [
+        ([u"spam", u"eggs.", u"knights who say ni", u"Παντελής 2"], 
+            [u"spam", u"eggs.", u"knights_who_say_ni", u"Παντελής_2"]),
+        (['\xe2\x98\x80', '\xe2\x98\x81', '\xe2\x98\x82'], 
+            [u"☀", u"☁", u"☂"]), # don't ask ;-)
+        ]
     for test in equal_tests:
         assert_equal(importer.process_fld_names(test[0]), test[1])
     # the two unladen swallows will become the same as space -> underscore

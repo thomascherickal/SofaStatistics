@@ -41,13 +41,23 @@ def process_fld_names(raw_names):
     debug = False
     try:
         if debug: print(raw_names)
-        names = [x.replace(u" ", u"_") for x in raw_names]
+        names = []
+        for raw_name in raw_names:
+            if not isinstance(raw_name, unicode):
+                try:
+                    raw_name = raw_name.decode("utf8")
+                except UnicodeDecodeError, e:
+                    raise Exception(u"Unable to process raw field name. "
+                                    u"Caused by error: %s" % lib.ue(e))
+            name = raw_name.replace(u" ", u"_")
+            names.append(name)
     except AttributeError:
         raise Exception(u"Field names must all be text strings.")
     except TypeError:
         raise Exception(u"Field names should be supplied in a list")
-    except Exception:
-        raise Exception(u"Unknown problem processing field names list")
+    except Exception, e:
+        raise Exception(u"Problem processing field names list. "
+                        u"Caused by error: %s" % lib.ue(e))
     if len(names) != len(set(names)):
         raise Exception(u"Duplicate field name (once spaces turned to "
                         u"underscores)")

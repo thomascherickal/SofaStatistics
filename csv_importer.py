@@ -78,36 +78,47 @@ def get_avg_row_size(rows):
     avg_row_size = float(size)/i
     return avg_row_size
 
-# http://docs.python.org/library/csv.html
-def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
-    # csv.py doesn't do Unicode; encode temporarily as UTF-8:
-    csv_reader = csv.reader(utf_8_encoder(unicode_csv_data),
-                            dialect=dialect, **kwargs)
-    for row in csv_reader:
-        # decode UTF-8 back to Unicode, cell by cell:
-        rowvals = []
-        for val in row:
-            try:
-                if val is None:
-                    raise Exception(u"Missing value in csv file")
-                uval = val.decode("utf8")
-                rowvals.append(uval)
-            except Exception, e:
-                raise Exception(u"Problem decoding values. Caused by error: %s"
-                                % lib.ue(e))
-        yield rowvals
 
-def utf_8_encoder(unicode_csv_data):
-    for line in unicode_csv_data:
-        yield line.encode('utf-8')
+# http://docs.python.org/library/csv.html
+class UnicodeCsvReader(object):
+    
+    def __init__(self, utf8_encoded_csv_data, dialect=csv.excel, **kwargs):
+        # csv.py doesn't do Unicode; encode temporarily as UTF-8:
+        try:
+            self.csv_reader = csv.reader(utf8_encoded_csv_data, dialect=dialect, 
+                                         **kwargs)
+        except Exception, e:
+            raise Exception(u"Unable to start internal csv reader. "
+                            u"Caused by error: %s" % lib.ue(e))
+    def __iter__(self):
+        debug = False
+        if debug: print(u"About to iterate through csv.reader")
+        for row in self.csv_reader:
+            if debug: print(u"Iterating through csv.reader")
+            # decode UTF-8 back to Unicode, cell by cell:
+            rowvals = []
+            for val in row:
+                try:
+                    if val is None:
+                        raise Exception(u"Missing value in csv file")
+                    uval = val.decode("utf8")
+                    rowvals.append(uval)
+                except Exception, e:
+                    raise Exception(u"Problem decoding values. "
+                                    u"Caused by error: %s" % lib.ue(e))
+            yield rowvals
 
 
 class UnicodeCsvDictReader(object):
     
-    def __init__(self, unicode_csv_data, dialect=csv.excel, **kwargs):
+    def __init__(self, utf8_encoded_csv_data, dialect=csv.excel, **kwargs):
         # csv.py doesn't do Unicode; encode temporarily as UTF-8:
-        self.csv_dictreader = csv.DictReader(utf_8_encoder(unicode_csv_data),
-                                             dialect=dialect, **kwargs)
+        try:
+            self.csv_dictreader = csv.DictReader(utf8_encoded_csv_data,
+                                                 dialect=dialect, **kwargs)
+        except Exception, e:
+            raise Exception(u"Unable to start internal csv reader. "
+                            u"Caused by error: %s" % lib.ue(e))
         self.fieldnames = self.csv_dictreader.fieldnames
         
     def __iter__(self):
@@ -115,7 +126,6 @@ class UnicodeCsvDictReader(object):
         If required, decode UTF8-encoded byte string back to Unicode, dict pair 
             by pair.
         """
-        encoding=locale.getpreferredencoding()
         for row in self.csv_dictreader:
             unicode_key_value_tups = []
             for key_val in row.items():
@@ -124,14 +134,58 @@ class UnicodeCsvDictReader(object):
                     if item is None:
                         raise Exception(u"Missing value in csv file")
                     if not isinstance(item, unicode):
-                        try:
-                            item = item.decode(encoding)
-                        except Exception:
-                            item = item.decode("utf8")
+                        item = item.decode("utf8")
                     uni_key_val.append(item)
                 unicode_key_value_tups.append(tuple(uni_key_val))
             yield dict(unicode_key_value_tups)
 
+def encode_lines_as_utf8(uni_lines):
+    utf8_encoded_lines = []
+    for uni_line in uni_lines:
+        try:
+            utf8_encoded_line = uni_line.encode("utf8")
+            utf8_encoded_lines.append(utf8_encoded_line)
+        except Exception, e:
+            raise Exception(u"Unable to encode decoded data as utf8. "
+                            u"Caused by error: %s" % lib.ue(e))
+    return utf8_encoded_lines
+
+def csv_to_utf8_byte_lines(file_path):
+    """
+    The csv module infamously only accepts lines of bytes encoded as utf-8.
+    NB we have no idea what the original encoding was or which computer or OS or 
+        locale it was done on.  Eventually we could use chardet module to 
+        sensibly guess but in meantime try up to two - local encoding then utf-8
+    """
+    debug = False
+    encoding = locale.getpreferredencoding()
+    try:
+        f = codecs.open(file_path, encoding=encoding)
+        try:
+            uni_lines = f.readlines() # this bit can fail even if the open 
+                # succeeded so wrap in one error trap.
+        except Exception, e:
+            raise Exception(u"Unable to read lines using encoding "
+                            u"%s.  Caused by error: %s" % (encoding, lib.ue(e)))
+    except IOError, e:
+        raise Exception(u"Unable to open file for re-encoding. "
+                        u"Caused by error: %s" % lib.ue(e))
+    except Exception, e:
+        try:
+            f = codecs.open(file_path, encoding="utf8")
+            try:
+                uni_lines = f.readlines()
+            except Exception, e:
+                raise Exception(u"Unable to read lines using UTF-8 encoding. "
+                                u"Caused by error: %s" % lib.ue(e))
+        except Exception, e:
+            raise Exception(u"Unable to open file with "
+                            u"encoding %s. Caused by error: %s" % (encoding, 
+                                                                   lib.ue(e)))
+    utf8_byte_lines = encode_lines_as_utf8(uni_lines)
+    if debug:
+        print(repr(utf8_byte_lines))
+    return utf8_byte_lines
     
 class CsvImporter(importer.FileImporter):
     """
@@ -197,7 +251,7 @@ class CsvImporter(importer.FileImporter):
         """
         return get_avg_row_size(rows=tmp_reader)
 
-    def make_tidied_copy(self, path):        
+    def make_tidied_copy(self, path):
         """
         Return renamed copy with line separators all turned to the one type
             appropriate to the OS.
@@ -240,22 +294,11 @@ class CsvImporter(importer.FileImporter):
         dialect = get_dialect(self.file_path)
         if debug: print(u"Got \"%s\" dialect successfully" % dialect)
         try:
-            try:
-                encoding = locale.getpreferredencoding()
-                # not "U" - insist on _one_ type of line break
-                csvfile = codecs.open(self.file_path, encoding=encoding)
-                if debug: 
-                    print(u"Used locale encoding: %s" % encoding)
-            except Exception:
-                try:
-                    csvfile = codecs.open(self.file_path, encoding="utf8")
-                except Exception, e:     
-                    raise Exception(u"Couldn't even decode the csv using utf8. "
-                                    u"Caused by error: %s" % lib.ue(e))
+            utf8_encoded_csv_data = csv_to_utf8_byte_lines(self.file_path)
             # get field names
             if self.has_header:
                 if debug: print(u"About to get dictreader")
-                tmp_reader = UnicodeCsvDictReader(csvfile, dialect=dialect)
+                tmp_reader = UnicodeCsvDictReader(utf8_encoded_csv_data, dialect=dialect)
                 if debug: print(u"Got dictreader")
                 orig_names = tmp_reader.fieldnames
                 if debug: print(u"Got field names from dictreader")
@@ -263,7 +306,7 @@ class CsvImporter(importer.FileImporter):
             else:
                 # get number of fields from first row
                 if debug: print(u"About to get plain reader")
-                tmp_reader = unicode_csv_reader(csvfile, dialect=dialect)
+                tmp_reader = UnicodeCsvReader(utf8_encoded_csv_data, dialect=dialect)
                 if debug: print(u"Got plain reader")
                 for row in tmp_reader:
                     if debug:
@@ -272,7 +315,6 @@ class CsvImporter(importer.FileImporter):
                     ok_fld_names = [mg.NEXT_FLD_NAME_TEMPLATE % (x+1,) 
                                     for x in range(len(row))]
                     break
-                csvfile.seek(0)
             if debug: print("Got field names")
             # estimate number of rows (only has to be good enough for progress)
             tot_size = os.path.getsize(self.file_path) # in bytes
@@ -280,11 +322,10 @@ class CsvImporter(importer.FileImporter):
             if debug:
                 print("tot_size: %s" % tot_size)
                 print("row_size: %s" % row_size)
-            csvfile.seek(0)
             rows_n = float(tot_size)/row_size
             # If not enough field_names, will use None as key for a list of any 
             # extra values.
-            reader = UnicodeCsvDictReader(csvfile, dialect=dialect, 
+            reader = UnicodeCsvDictReader(utf8_encoded_csv_data, dialect=dialect, 
                                           fieldnames=ok_fld_names)
         except csv.Error, e:
             lib.safe_end_cursor()
