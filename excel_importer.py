@@ -118,7 +118,7 @@ class ExcelImporter(importer.FileImporter):
                                       self.tbl_name, self.file_path,
                                       progbar, nulled_dots)
         except Exception, e:
-            importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur, e)
+            importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise
         default_dd.cur.close()
         default_dd.con.commit()

@@ -18,9 +18,15 @@ class ImportNeededFixException(Exception):
     def __init__(self):
         Exception.__init__(self, u"Import needed fix")
 
+class ImportDelimiterRejected(Exception):
+    def __init__(self):
+        Exception.__init__(self, _(u"Unable to process csv file unless a "
+                           u"delimiter is selected."))
+        
 class ImportEncodingRejected(Exception):
     def __init__(self):
-        Exception.__init__(self, u"Import encoding(s) rejected")
+        Exception.__init__(self, _(u"Unable to process csv file unless an "
+                                   u"encoding is selected."))
         
 class InvalidTestSelectionException(Exception):
     def __init__(self):

@@ -8,7 +8,7 @@ import wx
 
 import my_globals as mg
 import lib
-from my_exceptions import ImportCancelException
+import my_exceptions
 import config_dlg
 import getdata # must be before anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
@@ -274,7 +274,7 @@ def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names,
             wx.Yield()
             if keep_importing == set([False]):
                 progbar.SetValue(0)
-                raise ImportCancelException
+                raise my_exceptions.ImportCancelException
         gauge_start += 1
         row_num = row_num_start + row_idx
         vals = []
@@ -320,7 +320,7 @@ def drop_tmp_tbl(con, cur):
     cur.execute(SQL_drop_disp_tbl)
     con.commit()
 
-def post_fail_tidy(progbar, con, cur, e):
+def post_fail_tidy(progbar, con, cur):
     drop_tmp_tbl(con, cur)
     lib.safe_end_cursor()
     cur.close()
@@ -526,12 +526,12 @@ class FileImporter(object):
         """
         debug = False
         dlg = HasHeaderDlg(self.parent, self.ext)
-        retval = dlg.ShowModal()
-        if debug: print(unicode(retval))
-        if retval == wx.ID_CANCEL:
+        ret = dlg.ShowModal()
+        if debug: print(unicode(ret))
+        if ret == wx.ID_CANCEL:
             return False
         else:
-            self.has_header = (retval == mg.HAS_HEADER)
+            self.has_header = (ret == mg.HAS_HEADER)
         return True
     
     
@@ -819,11 +819,15 @@ class ImportFileSelectDlg(wx.Dialog):
                                              self.lbl_feedback)
                 dd.set_db(dd.db, tbl=tbl_name)
                 lib.safe_end_cursor()
-            except ImportCancelException, e:
+            except (my_exceptions.ImportDelimiterRejected, 
+                    my_exceptions.ImportEncodingRejected), e:
+                lib.safe_end_cursor()
+                wx.MessageBox(lib.ue(e))
+            except my_exceptions.ImportCancelException, e:
                 lib.safe_end_cursor()
                 self.keep_importing.discard(False)
                 self.keep_importing.add(True)
-                wx.MessageBox(unicode(e))
+                wx.MessageBox(lib.ue(e))
             except Exception, e:
                 lib.safe_end_cursor()
                 wx.MessageBox(_("Unable to import data\n\nError") + u": %s" % 
