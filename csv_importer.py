@@ -203,20 +203,19 @@ class DlgImportDisplay(wx.Dialog):
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_options = wx.BoxSizer(wx.HORIZONTAL)
         szr_btns = wx.StdDialogButtonSizer()
-        lbl_instructions = wx.StaticText(panel, -1, _("Does the text look "
-                                "correct? If not, please try another encoding."
-                                "\n\nIf the fields are not separated correctly,"
-                                " please enter a different delimiter "
-                                "e.g. \";\"."))
+        lbl_instructions = wx.StaticText(panel, -1, _("If the fields are not "
+                            "separated correctly, enter a different delimiter "
+                            "(\",\" and \";\" are common choices)."
+                            "\n\nDoes the text look "
+                            "correct? If not, try another encoding."))
         self.udelimiter = self.dialect.delimiter.decode("utf8")
         lbl_delim = wx.StaticText(panel, -1, _("Delimiter"))
         self.txt_delim = wx.TextCtrl(panel, -1, self.udelimiter)
         self.txt_delim.Bind(wx.EVT_CHAR, self.on_delim_change)
         lbl_encoding = wx.StaticText(panel, -1, _("Encoding"))
-        self.drop_encodings = wx.Choice(panel, -1, choice=encodings)
-        drop_encodings.Bind(wx.EVT_CHOICE, self.on_sel_encoding)
+        self.drop_encodings = wx.Choice(panel, -1, choices=encodings)
+        self.drop_encodings.Bind(wx.EVT_CHOICE, self.on_sel_encoding)
         self.chk_has_header = wx.CheckBox(panel, -1, _("Has header row"))
-        self.chk_has_header.Bind(wx.EVT_)
         szr_options.Add(lbl_delim, 0, wx.RIGHT, 5)
         szr_options.Add(self.txt_delim, 0, wx.GROW|wx.RIGHT, 10)
         szr_options.Add(lbl_encoding, 0, wx.RIGHT, 5)
@@ -228,7 +227,7 @@ class DlgImportDisplay(wx.Dialog):
         self.html_content.SetPage(content)
         btn_cancel = wx.Button(panel, wx.ID_CANCEL)
         btn_cancel.Bind(wx.EVT_BUTTON, self.on_btn_cancel)
-        btn_ok = wx.Button(panel, -1, wx.ID_OK)
+        btn_ok = wx.Button(panel, wx.ID_OK)
         btn_ok.Bind(wx.EVT_BUTTON, self.on_btn_ok)
         szr_btns.AddButton(btn_cancel)
         szr_btns.AddButton(btn_ok)
@@ -244,7 +243,7 @@ class DlgImportDisplay(wx.Dialog):
     def update_delim(self):
         self.udelimiter = self.txt_delim.GetValue()
         try:
-            self.dialect.delimiter = udelimiter.encode("utf8")
+            self.dialect.delimiter = self.udelimiter.encode("utf8")
             self.set_display()
         except UnicodeEncodeError:
             raise Exception(u"Delimiter was not encodable as utf-8 as expected")
@@ -429,8 +428,8 @@ class CsvImporter(importer.FileImporter):
                               "encodings"))
         # give user choice to change encoding, delimiter, and say if has header
         retvals = [] # populate inside dlg
-        dlg = DlgImportDisplay(parent=self.parent, self.file_path, dialect, 
-                               encodings=encodings, retvals=retvals)
+        dlg = DlgImportDisplay(self.parent, self.file_path, dialect, encodings, 
+                               retvals)
         ret = dlg.ShowModal()
         if ret != wx.ID_OK:
             raise my_exceptions.ImportConfirmationRejected
@@ -475,7 +474,9 @@ class CsvImporter(importer.FileImporter):
                 ok_fld_names = [mg.NEXT_FLD_NAME_TEMPLATE % (x+1,) 
                                for x in range(len(row))]
                 break
-            row_size = self.get_avg_row_size(tmp_reader)
+        if not ok_fld_names:
+            raise Exception(u"Unable to get ok field names")
+        row_size = self.get_avg_row_size(tmp_reader)
         return dialect, encoding, ok_fld_names, row_size
 
     def get_params(self):
