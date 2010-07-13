@@ -60,6 +60,8 @@ def get_avg_row_size(rows):
     Expects to get a list of strings or a dict of strings.
     If a dict, the final item could be a list if there are more items in the
         original row than the dict reader expected.
+    If not enough field_names, will use None as key for a list of any extra 
+        values.
     """
     debug = False
     size = 0
@@ -182,52 +184,114 @@ def csv_to_utf8_byte_lines(file_path, encoding, n_lines=None):
 
 class DlgImportDisplay(wx.Dialog):
     
-    def __init__(self, parent, content, encoding, n_lines):
+    """
+    Show user csv sample assuming first encoding and auto-detected delimiter.
+    Let user change encoding and delimiter until happy.
+    Also select whether data has a header or not. 
+    """
+    
+    def __init__(self, parent, file_path, dialect, encodings, retvals):
         wx.Dialog.__init__(self, parent=parent, 
                            title=_("Contents look correct?"), 
                            style=wx.CAPTION|wx.SYSTEM_MENU)
         self.parent = parent
+        self.file_path = file_path
+        self.dialect = dialect
+        self.encoding = encodings[0]
+        self.retvals = retvals
         panel = wx.Panel(self)
         szr_main = wx.BoxSizer(wx.VERTICAL)
-        szr_btns = wx.FlexGridSizer(rows=1, cols=3, hgap=5, vgap=0)
-        szr_btns.AddGrowableCol(1,2) # idx, propn
-        lbl_instructions = wx.StaticText(panel, -1, _("Do the text look "
-            "correct? If not, SOFA will try again with a different encoding."
-            "\n\nIf the field are not separated correctly, restart the Import "
-            "and select an appropriate delimiter."))
-        lbl_encoding = wx.StaticText(panel, -1, _("Encoding: %s" % encoding))
-        content_height = 35*n_lines
-        content_height = 300 if content_height > 300 else content_height
-        html_content = wx.html.HtmlWindow(panel, -1, size=(500,content_height))
-        html_content.SetPage(content)
-        btn_not_ok = wx.Button(panel, -1, _("Not OK"))
-        btn_not_ok.Bind(wx.EVT_BUTTON, self.on_btn_not_ok)
+        szr_options = wx.BoxSizer(wx.HORIZONTAL)
+        szr_btns = wx.StdDialogButtonSizer()
+        lbl_instructions = wx.StaticText(panel, -1, _("Does the text look "
+                                "correct? If not, please try another encoding."
+                                "\n\nIf the fields are not separated correctly,"
+                                " please enter a different delimiter "
+                                "e.g. \";\"."))
+        self.udelimiter = self.dialect.delimiter.decode("utf8")
+        lbl_delim = wx.StaticText(panel, -1, _("Delimiter"))
+        self.txt_delim = wx.TextCtrl(panel, -1, self.udelimiter)
+        self.txt_delim.Bind(wx.EVT_CHAR, self.on_delim_change)
+        lbl_encoding = wx.StaticText(panel, -1, _("Encoding"))
+        self.drop_encodings = wx.Choice(panel, -1, choice=encodings)
+        drop_encodings.Bind(wx.EVT_CHOICE, self.on_sel_encoding)
+        self.chk_has_header = wx.CheckBox(panel, -1, _("Has header row"))
+        self.chk_has_header.Bind(wx.EVT_)
+        szr_options.Add(lbl_delim, 0, wx.RIGHT, 5)
+        szr_options.Add(self.txt_delim, 0, wx.GROW|wx.RIGHT, 10)
+        szr_options.Add(lbl_encoding, 0, wx.RIGHT, 5)
+        szr_options.Add(self.drop_encodings, 0, wx.GROW|wx.RIGHT, 10)
+        szr_options.Add(self.chk_has_header, 0)
+        content, content_height = self.get_content()
+        self.html_content = wx.html.HtmlWindow(panel, -1, 
+                                               size=(500,content_height))
+        self.html_content.SetPage(content)
         btn_cancel = wx.Button(panel, wx.ID_CANCEL)
         btn_cancel.Bind(wx.EVT_BUTTON, self.on_btn_cancel)
-        btn_ok = wx.Button(panel, -1, _("Content OK"))
+        btn_ok = wx.Button(panel, -1, wx.ID_OK)
         btn_ok.Bind(wx.EVT_BUTTON, self.on_btn_ok)
-        szr_btns.Add(btn_not_ok, 0)
-        szr_btns.Add(btn_cancel, 0)
-        szr_btns.Add(btn_ok, 0)
+        szr_btns.AddButton(btn_cancel)
+        szr_btns.AddButton(btn_ok)
+        szr_btns.Realize()
         szr_main.Add(lbl_instructions, 0, wx.ALL, 10)
-        szr_main.Add(lbl_encoding, 0, wx.ALL, 10)
-        szr_main.Add(html_content, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(szr_options, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(self.html_content, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
         panel.SetSizer(szr_main)
         szr_main.SetSizeHints(self)
         self.Layout()
+    
+    def update_delim(self):
+        self.udelimiter = self.txt_delim.GetValue()
+        try:
+            self.dialect.delimiter = udelimiter.encode("utf8")
+            self.set_display()
+        except UnicodeEncodeError:
+            raise Exception(u"Delimiter was not encodable as utf-8 as expected")
         
-    def on_btn_not_ok(self, event):
-        self.Destroy()
-        self.SetReturnCode(mg.RET_ENCODING_NOT_OK)
-        
+    def on_delim_change(self, event):
+        """
+        The delimiter must be a utf-encoded byte string.
+        """
+        # NB callafter to allow data to updated in text ctrl
+        wx.CallAfter(self.update_delim)
+        event.Skip()
+
+    def on_sel_encoding(self, event):
+        self.encoding = self.drop_encodings.GetStringSelection()
+        self.set_display()
+        event.Skip()
+       
+    def get_content(self):
+        self.utf8_encoded_csv_sample = csv_to_utf8_byte_lines(self.file_path,
+                                          self.encoding, n_lines=ROWS_TO_SAMPLE)
+        decoded_lines = []
+        for line in self.utf8_encoded_csv_sample:
+            raw_utf8_line = line.decode("utf8")
+            split_line = raw_utf8_line.split(self.udelimiter)
+            line = u"<tr><td>" + u"</td><td>".join(split_line) + \
+                    u"</td></tr>"
+            decoded_lines.append(line)
+        trows = "\n".join(decoded_lines)
+        content = u"<table><tbody>\n" + trows + u"\n</tbody></table>"
+        n_lines_actual = len(decoded_lines)
+        content_height = 35*n_lines_actual
+        content_height = 300 if content_height > 300 else content_height
+        return content, content_height
+    
+    def set_display(self):
+        content, unused = self.get_content()
+        self.html_content.SetPage(content)
+    
     def on_btn_cancel(self, event):
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL)
         
     def on_btn_ok(self, event):
+        self.retvals.extend([self.encoding, self.chk_has_header.IsChecked(), 
+                             self.utf8_encoded_csv_sample])
         self.Destroy()
-        self.SetReturnCode(mg.RET_ENCODING_OK)
+        self.SetReturnCode(wx.ID_OK)
 
 
 class CsvImporter(importer.FileImporter):
@@ -325,21 +389,11 @@ class CsvImporter(importer.FileImporter):
         else:
             wx.MessageBox(_("Unable to import file in current form"))        
 
-    def get_utf8_encoded_csv_sample(self, delimiter):
+    def get_possible_encodings(self):
         """
-        delimiter -- utf-8 encoded byte string
-        Get correctly encoded data.  Try encoding until get first successful
-            sample. Give user choice to use it or keep going.
-        Windows is always trickier - less likely to be utf-8 from the start. 
-            Many of these encodings will "work" even though they are not the 
-            encoding used to create them in the first place. That's why the user 
-            is given a choice. Could use chardets somehow as well.
+        Get list of encodings which potentially work for a sample.  Fast enough 
+            not to have to sacrifice code readability etc for performance.
         """
-        debug = False
-        try:
-            udelimiter = delimiter.decode("utf8")
-        except UnicodeDecodeError:
-            raise Exception(u"Delimiter was not decodable as utf-8 as expected")
         local_encoding = locale.getpreferredencoding()
         if mg.PLATFORM == mg.WINDOWS:
             encodings = [local_encoding, "cp1252", "iso-8859-1", "cp1257", 
@@ -347,106 +401,59 @@ class CsvImporter(importer.FileImporter):
         else:
             encodings = [local_encoding, "utf8", "iso-8859-1", "cp1252", 
                          "cp1257", "big5"]
-        ok_encoding = False
-        rejected_encoding = False
+        possible_encodings = []
         for encoding in encodings:
             try:
-                if self.has_header:
-                    utf8_encoded_csv_sample = \
-                                csv_to_utf8_byte_lines(self.file_path, encoding, 
-                                                       n_lines=ROWS_TO_SAMPLE+1)
-                else:
-                    utf8_encoded_csv_sample = \
-                                csv_to_utf8_byte_lines(self.file_path, encoding, 
-                                                       n_lines=ROWS_TO_SAMPLE)
-                # give user choice to reject encoding
-                decoded_lines = []
-                for line in utf8_encoded_csv_sample:
-                    raw_utf8_line = line.decode("utf8")
-                    split_line = raw_utf8_line.split(udelimiter)
-                    line = u"<tr><td>" + u"</td><td>".join(split_line) + \
-                            u"</td></tr>"
-                    decoded_lines.append(line)
-                trows = "\n".join(decoded_lines)
-                content = u"<table><tbody>\n" + trows + u"\n</tbody></table>"
-                dlg = DlgImportDisplay(parent=self.parent, content=content,
-                                       encoding=encoding, 
-                                       n_lines=len(decoded_lines))
-                ret = dlg.ShowModal()
-                if ret == mg.RET_ENCODING_OK:
-                    ok_encoding = True
-                    break
-                elif ret == wx.ID_CANCEL:
-                    rejected_encoding = True
-                    break
-                else:
-                    rejected_encoding = True # but keep trying if possible
+                utf8_encoded_csv_sample = csv_to_utf8_byte_lines(self.file_path, 
+                                            encoding, n_lines=ROWS_TO_SAMPLE)
+                possible_encodings.append(encoding)
             except Exception, e:
                 continue
-        if not ok_encoding:
-            if rejected_encoding:
-                raise my_exceptions.ImportEncodingRejected
-            else:
-                raise Exception(u"No suitable encodings were found")
-        return encoding, utf8_encoded_csv_sample
-
-    def get_confirmed_delimiter(self, dialect):
+        return possible_encodings
+                      
+    def get_sample_with_dets(self):
         """
-        The delimiter must be a utf-encoded byte string.
+        Get correctly encoded data.  Try encoding until get first successful
+            sample. Give user choice to use it or keep going.
+        Also get details -- dialect, encoding, has_header.
+        Windows is always trickier - less likely to be utf-8 from the start. 
+            Many of these encodings will "work" even though they are not the 
+            encoding used to create them in the first place. That's why the user 
+            is given a choice. Could use chardets somehow as well.
         """
-        delimiter = dialect.delimiter
-        dlg = wx.TextEntryDialog(self.parent, _("The delimiter was "
-            "auto-detected to be \"%s\".\n\nClick OK if this is correct or "
-            "change it first") % delimiter, _("Correct delimiter"), delimiter, 
-            style=wx.OK|wx.CANCEL)
-        if dlg.ShowModal() == wx.ID_CANCEL:
-            raise my_exceptions.ImportDelimiterRejected
-        else:
-            return dlg.GetValue().encode("utf8")
+        debug = False
+        dialect = get_dialect(self.file_path)
+        encodings = self.get_possible_encodings()
+        if not encodings:
+            raise Exception(_("Data could not be processed using available "
+                              "encodings"))
+        # give user choice to change encoding, delimiter, and say if has header
+        retvals = [] # populate inside dlg
+        dlg = DlgImportDisplay(parent=self.parent, self.file_path, dialect, 
+                               encodings=encodings, retvals=retvals)
+        ret = dlg.ShowModal()
+        if ret != wx.ID_OK:
+            raise my_exceptions.ImportConfirmationRejected
+        (encoding, has_header, utf8_encoded_csv_sample) = retvals
+        return dialect, encoding, has_header, utf8_encoded_csv_sample
 
     def get_init_csv_details(self):
         """
         Get various details about csv from a sample.
         """
         debug = False
-        if debug: print(u"About to get dialect")
-        dialect = get_dialect(self.file_path)
-        if debug: print(u"Got \"%s\" dialect successfully" % dialect)
-        # Here is auto-detected delimiter.  Correct?  If not, enter delimiter.
-        # Common choices listed.
-        delimiter = self.get_confirmed_delimiter(dialect)
-        dialect.delimiter = delimiter
         try:
-            encoding, utf8_encoded_csv_sample = \
-                                    self.get_utf8_encoded_csv_sample(delimiter)
-            # get field names
-            if self.has_header:
-                if debug: print(u"About to get dictreader")
-                tmp_reader = UnicodeCsvDictReader(utf8_encoded_csv_sample, 
-                                                  dialect=dialect)
-                if debug: print(u"Got dictreader")
-                orig_names = tmp_reader.fieldnames
-                if debug: print(u"Got field names from dictreader")
-                ok_fld_names = importer.process_fld_names(orig_names)
-            else:
-                # get number of fields from first row
-                if debug: print(u"About to get plain reader")
-                tmp_reader = UnicodeCsvReader(utf8_encoded_csv_sample, 
-                                              dialect=dialect)
-                if debug: print(u"Got plain reader")
-                for row in tmp_reader:
-                    if debug:
-                        print(u"Looking at first row") 
-                        print(row)
-                    ok_fld_names = [mg.NEXT_FLD_NAME_TEMPLATE % (x+1,) 
-                                    for x in range(len(row))]
-                    break
-            if debug: print("Got field names")
-            row_size = self.get_avg_row_size(tmp_reader)
-            # If not enough field_names, will use None as key for a list of any 
-            # extra values.
-        except my_exceptions.ImportEncodingRejected, e:
+            dialect, encoding, self.has_header, utf8_encoded_csv_sample = \
+                                                    self.get_sample_with_dets()
+        except my_exceptions.ImportConfirmationRejected, e:
             raise
+        except Exception, e:
+            lib.safe_end_cursor()
+            raise Exception(u"Unable to get sample of csv with details. "
+                            u"Caused by error: %s" % lib.ue(e))
+        try:
+            tmp_reader = UnicodeCsvDictReader(utf8_encoded_csv_sample, 
+                                              dialect=dialect)
         except csv.Error, e:
             lib.safe_end_cursor()
             if lib.ue(e).startswith("new-line character seen in unquoted "
@@ -459,7 +466,21 @@ class CsvImporter(importer.FileImporter):
             lib.safe_end_cursor()
             raise Exception(u"Unable to create reader for file. "
                             u"Caused by error: %s" % lib.ue(e))
+        if self.has_header:
+            orig_names = tmp_reader.fieldnames
+            ok_fld_names = importer.process_fld_names(orig_names)
+        else: # get number of fields from first row
+            for row in tmp_reader:
+                if debug: print(row)
+                ok_fld_names = [mg.NEXT_FLD_NAME_TEMPLATE % (x+1,) 
+                               for x in range(len(row))]
+                break
+            row_size = self.get_avg_row_size(tmp_reader)
         return dialect, encoding, ok_fld_names, row_size
+
+    def get_params(self):
+        return True # cover all this in more complex fashion handling encoding 
+            #and delimiters
 
     def import_content(self, progbar, keep_importing, lbl_feedback):
         """
@@ -476,8 +497,7 @@ class CsvImporter(importer.FileImporter):
         except my_exceptions.ImportNeededFixException:
             lib.safe_end_cursor()
             return
-        except (my_exceptions.ImportDelimiterRejected, 
-                my_exceptions.ImportEncodingRejected):
+        except my_exceptions.ImportConfirmationRejected, e:
             lib.safe_end_cursor()
             raise
         except Exception, e:

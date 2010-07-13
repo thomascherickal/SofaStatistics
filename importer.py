@@ -625,7 +625,7 @@ class ImportFileSelectDlg(wx.Dialog):
             return
         # NB callafter to allow data to updated in text ctrl
         wx.CallAfter(self.align_btns_to_completeness)
-        event.Skip()        
+        event.Skip()
         
     def on_int_name_char(self, event):
         wx.CallAfter(self.align_btns_to_completeness)
@@ -819,8 +819,7 @@ class ImportFileSelectDlg(wx.Dialog):
                                              self.lbl_feedback)
                 dd.set_db(dd.db, tbl=tbl_name)
                 lib.safe_end_cursor()
-            except (my_exceptions.ImportDelimiterRejected, 
-                    my_exceptions.ImportEncodingRejected), e:
+            except my_exceptions.ImportConfirmationRejected, e:
                 lib.safe_end_cursor()
                 wx.MessageBox(lib.ue(e))
             except my_exceptions.ImportCancelException, e:
