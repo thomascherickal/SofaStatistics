@@ -39,10 +39,10 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         self.lbl_algorithm = wx.StaticText(self.panel, -1, "Algorithm: ")
         self.rad_precision = wx.RadioButton(self.panel, -1, _("Precision"), 
                                             style=wx.RB_GROUP)
-        self.rad_precision.SetValue(True)
         self.rad_speed = wx.RadioButton(self.panel, -1, _("Speed"))
         self.rad_speed.SetToolTipString(_("Precision is the best choice unless "
                                          "too slow"))
+        self.rad_speed.SetValue(True)
         szr_algorithm = wx.BoxSizer(wx.HORIZONTAL)
         szr_algorithm.Add(self.lbl_algorithm, 0)
         szr_algorithm.Add(self.rad_precision, 0)

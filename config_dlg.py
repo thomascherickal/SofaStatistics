@@ -99,17 +99,21 @@ class ConfigDlg(object):
         # set up self.drop_dbs and self.drop_tbls
         self.drop_dbs, self.drop_tbls = getdata.get_data_dropdowns(self, panel, 
                                                                 dd.default_dbs)
+        # 2) Tables
         # not wanted in all cases when dropdowns used e.g. data select
         self.drop_tbls.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_tables)
         self.drop_tbls.SetToolTipString(_("Right click to add/remove filter"))
-        # 2) Tables
         lbl_tables = wx.StaticText(panel, -1, _("Table:"))
         lbl_tables.SetFont(self.LABEL_FONT)
+        # 3) Filtering
+        btn_filter = wx.Button(panel, -1, _("Filter"))
+        btn_filter.Bind(wx.EVT_BUTTON, self.on_btn_filter)
         self.szr_data = wx.StaticBoxSizer(bx_data, wx.HORIZONTAL)
         self.szr_data.Add(lbl_databases, 0, wx.LEFT|wx.RIGHT, 5)
         self.szr_data.Add(self.drop_dbs, 0, wx.RIGHT, 10)
         self.szr_data.Add(lbl_tables, 0, wx.RIGHT, 5)
-        self.szr_data.Add(self.drop_tbls, 0)
+        self.szr_data.Add(self.drop_tbls, 0, wx.RIGHT, 10)
+        self.szr_data.Add(btn_filter, 0)
         return self.szr_data
               
     def get_misc_config_szrs(self, panel, readonly=False):
@@ -265,11 +269,17 @@ class ConfigDlg(object):
         dlg.ShowModal()
         self.refresh_vars()
 
-    def on_rclick_tables(self, event):
-        "Allow addition or removal of data filter"
+    def filters(self):
         self.filt_select()
         getdata.setup_drop_tbls(self.drop_tbls)
+
+    def on_rclick_tables(self, event):
+        "Allow addition or removal of data filter"
+        self.filters()
         #event.Skip() - don't use or will appear twice in Windows!
+
+    def on_btn_filter(self, event):
+        self.filters()
         
     # report output
     def on_btn_report_path(self, event):

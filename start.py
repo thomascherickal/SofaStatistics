@@ -695,7 +695,7 @@ class StartFrame(wx.Frame):
         CHARTS_NO = 0
         CHARTS_PRELIM = 1
         CHARTS_JS = 2
-        charts = CHARTS_PRELIM
+        charts = CHARTS_JS
         if charts == CHARTS_NO:
             wx.MessageBox(_("Not available yet in version ") + 
                           unicode(mg.VERSION))
