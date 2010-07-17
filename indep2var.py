@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+import locale
 import os
 
 import wx
@@ -11,7 +12,6 @@ import my_exceptions
 import getdata
 import config_dlg
 import full_html
-import locale
 import output
 import projects
 
@@ -119,10 +119,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.sorted_var_names_by = [] # var names sorted by labels i.e. same as 
             # dropdown.  Refreshed as needed so always usable.
         self.setup_group_by()
-        self.lbl_chop_warning = wx.StaticText(self.panel, -1, "")
+        self.lbl_chop_warning = wx.StaticText(self.panel, -1, u"")
         szr_vars_top_right_top.Add(self.lbl_group_by, 0, wx.RIGHT|wx.TOP, 5)
-        szr_vars_top_right_top.Add(self.drop_group_by, 0, wx.GROW|wx.RIGHT, 2)
-        szr_vars_top_right_top.Add(self.lbl_chop_warning, 1, wx.TOP|wx.RIGHT, 5)
+        szr_vars_top_right_top.Add(self.drop_group_by, 0, wx.GROW|wx.RIGHT, 5)
+        szr_vars_top_right_top.Add(self.lbl_chop_warning, 1, wx.RIGHT, 5)
         # group by A
         self.lbl_group_a = wx.StaticText(self.panel, -1, _("Group A:"))
         self.drop_group_a = wx.Choice(self.panel, -1, choices=[], size=(200,-1))
@@ -226,6 +226,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.setup_group_by(var_gp)
         self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT, 
                        self.sorted_var_names_avg, var_avg)
+        self.setup_group_by_dropdowns()
         self.update_defaults()
         self.update_phrase()
         
@@ -382,23 +383,24 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         idx_var = projects.get_idx_to_select(var_choice_items, var_name, 
                                              self.var_labels, default)
         drop_var.SetSelection(idx_var)
-    
-    def get_first_items(self, n_items):
-        pass
-    
+
     def setup_group_val_items(self, var_gp, val_a, val_b, where_filt):
         """
-        If under 250,000 records in source table, use entire table as source for
-            group by query to get unique values. If 250,000 upwards, use first
-            250,000 records as source. If more than 20 unique values, only show 
-            first 20 and inform user.
+        If under 250,000 records in source table (when filtered, if applicable), 
+            use entire table as source for group by query to get unique values. 
+            If 250,000 upwards, use first 250,000 records as source. If more 
+            than 20 unique values, only show first 20 and inform user.
         """
-        debug = True
-        quoter = getdata.get_obj_quoter_func(dd.dbe)
-        dd.cur.execute("SELECT COUNT(*) FROM %s" % quoter(dd.tbl))
-        n_records = dd.cur.fetchone()[0]
+        debug = False
         n_high = 250000
-        high_n_recs = (n_records >= n_high)
+        quoter = getdata.get_obj_quoter_func(dd.dbe)
+        SQL_get_count = "SELECT COUNT(*) FROM %s %s" % (quoter(dd.tbl), 
+                                                        where_filt)
+        if debug: print(SQL_get_count)
+        dd.cur.execute(SQL_get_count)
+        rows_n = dd.cur.fetchone()[0]
+        if debug: print(u"%s records" % unicode(rows_n))
+        high_n_recs = (rows_n >= n_high)
         if high_n_recs:
             source = u"(%s) AS qry" % getdata.get_first_sql(dd.dbe, dd.tbl, 
                                                             top_n=n_high)
@@ -422,8 +424,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         # http://docs.python.org/library/locale.html...
         # ...#background-details-hints-tips-and-caveats
         strn = locale.format('%d', n_high, True)
-        chop_warning = _("(Groups from 1st %s rows)") % strn if high_n_recs \
-                                                                    else u""
+        chop_warning = _("Showing groups from\n first %s rows") % strn \
+                            if high_n_recs else u""
         while True:
             try:
                 val2list = dd.cur.fetchone()[0]
@@ -432,9 +434,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             self.gp_vals_sorted.append(val2list)
             if len(self.gp_vals_sorted) == 20:
                 if high_n_recs:
-                    chop_warning = _("(1st 20 groups in 1st %s rows)") % strn
+                    chop_warning = _("Showing first 20 groups in\n"
+                                     " in first %s rows") % strn
                 else:
-                    chop_warning =_("(1st 20 unique groups)")
+                    chop_warning =_("Showing first 20\n unique groups")
                 break
         self.lbl_chop_warning.SetLabel(chop_warning)
         self.gp_choice_items_sorted = [lib.get_choice_item(val_dic, x) 
@@ -529,21 +532,21 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     
     def on_btn_run(self, event):
         """
-        Generate script to special location (INT_SCRIPT_PATH), 
-            run script putting output in special location 
-            (INT_REPORT_PATH) and into report file, and finally, 
-            display html output.
+        Generate script to special location (INT_SCRIPT_PATH), run script 
+            putting output in special location (INT_REPORT_PATH) and into report 
+            file, and finally, display html output.
         """
         run_ok = self.test_config_ok()
         if run_ok:
+            if self.too_long():
+                return
             wx.BeginBusyCursor()
             add_to_report = self.chk_add_to_report.IsChecked()
             try:
                 css_fils, css_idx = output.get_css_dets()
             except my_exceptions.MissingCssException:
-                lib.update_local_display(self.html, 
-                                         _("Please check the CSS file exists "
-                                            "or set another"), wrap_text=True)
+                lib.update_local_display(self.html, _("Please check the CSS "
+                                "file exists or set another"), wrap_text=True)
                 lib.safe_end_cursor()
                 event.Skip()
                 return

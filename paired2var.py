@@ -266,6 +266,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         """
         run_ok = self.test_config_ok()
         if run_ok:
+            if self.too_long():
+                return
             wx.BeginBusyCursor()
             add_to_report = self.chk_add_to_report.IsChecked()
             try:

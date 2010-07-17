@@ -101,7 +101,7 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     NB some dbes return integers and some return Decimals.
     The lists are b within a e.g. a1b1, a1b2, a1b3, a2b1, a2b2 ...    
     """
-    debug = True
+    debug = False
     obj_quoter = getdata.get_obj_quoter_func(dbe)
     qtbl = obj_quoter(tbl)
     qfld_a = obj_quoter(fld_a)

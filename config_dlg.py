@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import locale
 import os
 import wx
 
@@ -203,6 +204,26 @@ class ConfigDlg(object):
         szr_script_config.Add(self.btn_script_path, 0, wx.LEFT|wx.RIGHT, 5)
         self.szr_config_bottom.Add(szr_script_config, 1)
         return self.szr_config_bottom, self.szr_config_top
+    
+    def too_long(self):
+        # check not a massive table
+        too_long = False
+        # count records in table
+        quoter = getdata.get_obj_quoter_func(dd.dbe)
+        unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+        where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
+        SQL_get_count = u"SELECT COUNT(*) FROM %s %s" % (quoter(dd.tbl), 
+                                                         where_tbl_filt)
+        dd.cur.execute(SQL_get_count)
+        rows_n = dd.cur.fetchone()[0]
+        if rows_n > 250000:
+            strn = locale.format('%d', rows_n, True)
+            if wx.MessageBox(_("The underlying data table has %s rows. "
+                               "Do you wish to run this analysis?") % strn, 
+                               caption=_("LARGE DATA TABLE"), 
+                               style=wx.YES_NO) == wx.NO:
+                too_long = True
+        return too_long
 
     def get_szr_output_btns(self, panel, inc_clear=True):
         #main
@@ -267,7 +288,9 @@ class ConfigDlg(object):
         dlg = filtselect.FiltSelectDlg(self, self.var_labels, self.var_notes, 
                                        self.var_types, self.val_dics)
         dlg.ShowModal()
+        wx.BeginBusyCursor()
         self.refresh_vars()
+        lib.safe_end_cursor()
 
     def filters(self):
         self.filt_select()

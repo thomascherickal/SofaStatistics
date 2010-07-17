@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+import locale
 import pprint
 import os
 import random
@@ -476,7 +477,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         
     # run 
     def too_long(self):
-        # check not a massive report table
+        # check not a massive report table.  Overrides default
         too_long = False
         if self.tab_type == mg.RAW_DISPLAY:
             # count records in table
@@ -486,9 +487,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             s = u"SELECT COUNT(*) FROM %s %s" % (quoter(dd.tbl), where_tbl_filt)
             dd.cur.execute(s)
             rows_n = dd.cur.fetchone()[0]
+            strn = locale.format('%d', rows_n, True)
             if rows_n > 500:
                 if wx.MessageBox(_("This report has %s rows. "
-                                   "Do you wish to run it?") % rows_n, 
+                                   "Do you wish to run it?") % strn, 
                                    caption=_("LONG REPORT"), 
                                    style=wx.YES_NO) == wx.NO:
                     too_long = True
