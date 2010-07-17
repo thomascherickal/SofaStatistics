@@ -601,7 +601,7 @@ def add_clustered_barcharts(lst_obs, var_label_a, var_label_b,
     for bs in bs_in_as_lst:
         propns_lst = []
         for b in bs:
-            propns_lst.append(b/float(sum(bs)))
+            propns_lst.append(float(b)/float(sum(bs)))
         propns_bs_in_as.append(propns_lst)
     propns_as_in_bs_lst = np.array(propns_bs_in_as).transpose().tolist()
     if debug:

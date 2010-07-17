@@ -98,9 +98,10 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
         Chi Square test.
     NB must return 0 if nothing.  All cells must be filled.
     Returns lst_obs, lst_exp, min_count, perc_cells_lt_5, df.
+    NB some dbes return integers and some return Decimals.
     The lists are b within a e.g. a1b1, a1b2, a1b3, a2b1, a2b2 ...    
     """
-    debug = False
+    debug = True
     obj_quoter = getdata.get_obj_quoter_func(dbe)
     qtbl = obj_quoter(tbl)
     qfld_a = obj_quoter(fld_a)
@@ -157,6 +158,8 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     tup_obs = cur.fetchall()[0]
     if not tup_obs:
         raise Exception(u"No observed values")
+    else:
+        if debug: print(tup_obs)
     lst_obs = list(tup_obs)
     if debug: print(u"lst_obs: %s" % lst_obs)
     obs_total = float(sum(lst_obs))

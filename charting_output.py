@@ -129,7 +129,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.drop_group_b = wx.Choice(self.panel_top, -1, choices=[], 
                                     size=(200,-1))
         self.drop_group_b.Bind(wx.EVT_CHOICE, self.on_group_by_b_sel)
-        self.setup_group_dropdowns()
+        self.setup_group_by_dropdowns()
         szr_vars_top_right_bottom.Add(self.lbl_group_a, 0, wx.RIGHT|wx.TOP, 5)
         szr_vars_top_right_bottom.Add(self.drop_group_a, 0, wx.RIGHT, 5)
         szr_vars_top_right_bottom.Add(self.lbl_group_b, 0, wx.RIGHT|wx.TOP, 5)
@@ -391,7 +391,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_group_by()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
         #self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2)
-        self.setup_group_dropdowns()
+        self.setup_group_by_dropdowns()
                 
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
@@ -401,7 +401,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_group_by()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
         #self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2)
-        self.setup_group_dropdowns()
+        self.setup_group_by_dropdowns()
     
     def on_var_dets_file_lost_focus(self, event):
         """
@@ -416,7 +416,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                        var_name1)
         #self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
         #               var_name2)
-        self.setup_group_dropdowns(val_a, val_b)
+        self.setup_group_by_dropdowns(val_a, val_b)
         self.update_defaults()
         
     def on_btn_var_dets_path(self, event):
@@ -437,7 +437,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                        var_name1)
         #self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
         #               var_name2)
-        self.setup_group_dropdowns(val_a, val_b)
+        self.setup_group_by_dropdowns(val_a, val_b)
         self.update_defaults()
 
     def get_vars(self):

@@ -263,6 +263,9 @@ def get_val_quoter_func(dbe):
     """
     return mg.DBE_MODULES[dbe].quote_val
 
+def get_first_sql(dbe, tblname, top_n, order_val=None):
+    return mg.DBE_MODULES[dbe].get_first_sql(tblname, top_n, order_val)
+
 def get_placeholder(dbe):
     return mg.DBE_MODULES[dbe].placeholder
 
