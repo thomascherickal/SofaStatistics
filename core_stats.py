@@ -117,9 +117,9 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
                                    "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_row_vals_used)
     vals_a = [x[0] for x in cur.fetchall()]
-    if len(vals_a) > 6:
+    if len(vals_a) > mg.MAX_CHI_DIMS:
         raise my_exceptions.TooManyRowsInChiSquareException
-    if len(vals_a) < 2:
+    if len(vals_a) < mg.MIN_CHI_DIMS:
         raise my_exceptions.TooFewRowsInChiSquareException
     # get col vals used
     SQL_col_vals_used = u"""SELECT %(qfld_b)s
@@ -132,11 +132,11 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
                                    "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_col_vals_used)
     vals_b = [x[0] for x in cur.fetchall()]
-    if len(vals_b) > 6:
+    if len(vals_b) > mg.MAX_CHI_DIMS:
         raise my_exceptions.TooManyColsInChiSquareException
-    if len(vals_b) < 2:
+    if len(vals_b) < mg.MIN_CHI_DIMS:
         raise my_exceptions.TooFewColsInChiSquareException
-    if len(vals_a)*len(vals_b) > 25:
+    if len(vals_a)*len(vals_b) > mg.MAX_CHI_CELLS:
         raise my_exceptions.TooManyCellsInChiSquareException
     # build SQL to get all observed values (for each a, through b's)
     SQL_get_obs = u"SELECT "

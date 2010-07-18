@@ -215,6 +215,7 @@ class FiltSelectDlg(wx.Dialog):
 
     def on_ok(self, event):
         debug = False
+        wx.BeginBusyCursor()
         tbl_filt_label = self.txt_label.GetValue() 
         if self.rad_quick.GetValue():
             try:

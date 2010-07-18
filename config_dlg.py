@@ -283,18 +283,14 @@ class ConfigDlg(object):
         "Reset key data details after table selection."       
         getdata.refresh_tbl_dets(self)
 
-    def filt_select(self):
+    def filters(self):
         import filtselect
         dlg = filtselect.FiltSelectDlg(self, self.var_labels, self.var_notes, 
                                        self.var_types, self.val_dics)
         dlg.ShowModal()
-        wx.BeginBusyCursor()
         self.refresh_vars()
-        lib.safe_end_cursor()
-
-    def filters(self):
-        self.filt_select()
         getdata.setup_drop_tbls(self.drop_tbls)
+        lib.safe_end_cursor()
 
     def on_rclick_tables(self, event):
         "Allow addition or removal of data filter"

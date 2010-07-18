@@ -323,24 +323,25 @@ def run_report(modules, add_to_report, css_fils, inner_script):
         wx.MessageBox(unicode(e))
         return False, u""
     except my_exceptions.TooManyRowsInChiSquareException:
-        wx.MessageBox(_("Please select a variable with fewer values for Group "
-                        "A."))
+        wx.MessageBox(_("Please select a variable with no more than %s values "
+                        "for Group A.") % mg.MAX_CHI_DIMS)
         return False, u""
     except my_exceptions.TooManyColsInChiSquareException:
-        wx.MessageBox(_("Please select a variable with fewer values for Group "
-                        "B."))
+        wx.MessageBox(_("Please select a variable with no more than %s values "
+                        "for Group B.") % mg.MAX_CHI_DIMS)
         return False, u""
     except my_exceptions.TooFewRowsInChiSquareException:
-        wx.MessageBox(_("Please select a variable with at least two values for "
-                        "Group A."))
+        wx.MessageBox(_("Please select a variable with at least %s values for "
+                        "Group A.") % mg.MIN_CHI_DIMS)
         return False, u""
     except my_exceptions.TooFewColsInChiSquareException:
-        wx.MessageBox(_("Please select a variable with at least two values for "
-                        "Group B."))
+        wx.MessageBox(_("Please select a variable with at least %s values for "
+                        "Group B.") % mg.MIN_CHI_DIMS)
         return False, u""
     except my_exceptions.TooManyCellsInChiSquareException:
         wx.MessageBox(_("Please select variables which have fewer different "
-                        "values. Too many values in contingency table."))
+                        "values. More than %s cells in contingency table.") % \
+                        mg.MAX_CHI_CELLS)
         return False, u""
     except my_exceptions.TooFewValsForDisplay:
         wx.MessageBox(_("Not enough data to display.  Please check variables "
