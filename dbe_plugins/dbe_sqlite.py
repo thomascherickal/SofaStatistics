@@ -36,8 +36,8 @@ def quote_val(raw_val):
     try:
         val = raw_val.replace('"', '""') # escape internal double quotes
     except AttributeError, e:
-        raise Exception(u"Inappropriate attempt to quote non-string value. "
-                        u"Caused by error: %s" % lib.ue(e))
+        raise Exception(u"Inappropriate attempt to quote non-string value."
+                        u"\naused by error: %s" % lib.ue(e))
     return u"\"%s\"" % val
 
 def get_summable(clause):
@@ -79,14 +79,14 @@ def get_con(con_dets, db, add_checks=False):
     except Exception, e:
         if sofa_db_path == os.path.join(u"/home/g/sofa/_internal", mg.SOFA_DB):
             raise Exception(u"Problem with default project file. Delete "
-                            u"%s and restart SOFA.  Caused by error %s." %
+                            u"%s and restart SOFA.\nCaused by error %s." %
                             (os.path.join(mg.INT_PATH, mg.PROJ_CUSTOMISED_FILE), 
                             lib.ue(e)))
         else:
             raise Exception(u"Unable to connect to SQLite database using "
                             u"supplied database: \"%s\" and supplied " % db +
-                            u"connection details: %s. " % sofa_db_path +
-                            u"Caused by error: %s." % lib.ue(e))
+                            u"connection details: %s." % sofa_db_path +
+                            u"\nCaused by error: %s." % lib.ue(e))
     if mg.USE_SQLITE_UDFS:
         print("*"*60)
         print("Overriding so can open sofa_db in SOFA")

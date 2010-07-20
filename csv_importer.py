@@ -50,7 +50,7 @@ def get_dialect(file_path):
                             u"Please check that file exists." % file_path)
     except Exception, e:
         raise Exception(u"Unable to open and sample csv file. "
-                        u"Caused by error: %s" % lib.ue(e))
+                        u"\nCaused by error: %s" % lib.ue(e))
     return dialect
     
 def get_avg_row_size(rows):
@@ -95,7 +95,7 @@ class UnicodeCsvReader(object):
                                          **kwargs)
         except Exception, e:
             raise Exception(u"Unable to start internal csv reader. "
-                            u"Caused by error: %s" % lib.ue(e))
+                            u"\nCaused by error: %s" % lib.ue(e))
     def __iter__(self):
         debug = False
         if debug: print(u"About to iterate through csv.reader")
@@ -111,7 +111,7 @@ class UnicodeCsvReader(object):
                     rowvals.append(uval)
                 except Exception, e:
                     raise Exception(u"Problem decoding values. "
-                                    u"Caused by error: %s" % lib.ue(e))
+                                    u"\nCaused by error: %s" % lib.ue(e))
             yield rowvals
 
 
@@ -124,7 +124,7 @@ class UnicodeCsvDictReader(object):
                                                  dialect=dialect, **kwargs)
         except Exception, e:
             raise Exception(u"Unable to start internal csv reader. "
-                            u"Caused by error: %s" % lib.ue(e))
+                            u"\nCaused by error: %s" % lib.ue(e))
         self.fieldnames = self.csv_dictreader.fieldnames
         
     def __iter__(self):
@@ -153,7 +153,7 @@ def encode_lines_as_utf8(uni_lines):
             utf8_encoded_lines.append(utf8_encoded_line)
         except Exception, e:
             raise Exception(u"Unable to encode decoded data as utf8. "
-                            u"Caused by error: %s" % lib.ue(e))
+                            u"\nCaused by error: %s" % lib.ue(e))
     return utf8_encoded_lines
 
 def csv_to_utf8_byte_lines(file_path, encoding, n_lines=None):
@@ -168,7 +168,7 @@ def csv_to_utf8_byte_lines(file_path, encoding, n_lines=None):
         f = codecs.open(file_path, encoding=encoding)
     except IOError, e:
         raise Exception(u"Unable to open file for re-encoding. "
-                        u"Caused by error: %s" % lib.ue(e))
+                        u"\naused by error: %s" % lib.ue(e))
     # this bit can fail even if the open succeeded
     uni_lines = []
     for i, line in enumerate(f, 1):
@@ -449,7 +449,7 @@ class CsvImporter(importer.FileImporter):
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to get sample of csv with details. "
-                            u"Caused by error: %s" % lib.ue(e))
+                            u"\nCaused by error: %s" % lib.ue(e))
         try:
             tmp_reader = UnicodeCsvDictReader(utf8_encoded_csv_sample, 
                                               dialect=dialect)
@@ -464,7 +464,7 @@ class CsvImporter(importer.FileImporter):
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to create reader for file. "
-                            u"Caused by error: %s" % lib.ue(e))
+                            u"\nCaused by error: %s" % lib.ue(e))
         if self.has_header:
             orig_names = tmp_reader.fieldnames
             ok_fld_names = importer.process_fld_names(orig_names)
@@ -504,7 +504,7 @@ class CsvImporter(importer.FileImporter):
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to get initial csv details. "
-                            u"Caused by error: %s" % lib.ue(e))
+                            u"\nCaused by error: %s" % lib.ue(e))
         try:
             # estimate number of rows (only has to be good enough for progress)
             tot_size = os.path.getsize(self.file_path) # in bytes
@@ -517,7 +517,7 @@ class CsvImporter(importer.FileImporter):
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to get count of rows. "
-                            u"Caused by error: %s" % lib.ue(e))
+                            u"\nCaused by error: %s" % lib.ue(e))
         try:
             utf8_encoded_csv_data = csv_to_utf8_byte_lines(self.file_path, 
                                                            encoding)
@@ -527,7 +527,7 @@ class CsvImporter(importer.FileImporter):
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to create reader for file. "
-                            u"Caused by error: %s" % lib.ue(e)) 
+                            u"\nCaused by error: %s" % lib.ue(e)) 
         default_dd = getdata.get_default_db_dets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= rows_n else rows_n
         items_n = rows_n + sample_n + 1 # 1 is for the final tmp to named step

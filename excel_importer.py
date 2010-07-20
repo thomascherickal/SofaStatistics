@@ -87,8 +87,8 @@ class ExcelImporter(importer.FileImporter):
                             % self.file_path)
         except Exception, e:
             lib.safe_end_cursor()
-            raise Exception(u"Unable to read spreadsheet. "
-                            u"Caused by error: %s" % lib.ue(e))
+            raise Exception(u"Unable to read spreadsheet."
+                            u"\nCaused by error: %s" % lib.ue(e))
         default_dd = getdata.get_default_db_dets()
         sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= rows_n else rows_n
         items_n = rows_n + sample_n

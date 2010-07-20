@@ -306,8 +306,8 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, prog_steps_for_xml_steps,
                 progbar.SetValue(gauge_val)
                 wx.Yield()
         except Exception, e:
-            raise Exception(u"Error getting details from row idx %s. "
-                            u"Caused by error: %s" % (i, lib.ue(e)))
+            raise Exception(u"Error getting details from row idx %s."
+                            u"\nCaused by error: %s" % (i, lib.ue(e)))
     for fldname, type_set in zip(fldnames, coltypes):
         fld_type = lib.get_overall_fld_type(type_set)
         fld_types[fldname] = fld_type

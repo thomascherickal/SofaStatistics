@@ -18,6 +18,7 @@ import platform
 import shutil
 import sqlite3 as sqlite
 import sys
+import traceback
 MAC_PATH = u"/Library/sofa"
 if platform.system() == "Darwin":
     sys.path.insert(0, MAC_PATH) # start is running from Apps folder
@@ -101,12 +102,12 @@ def make_local_paths(paths):
             os.makedirs(os.path.join(LOCAL_PATH, path))
         except Exception, e:
             raise Exception(u"Unable to make path %s.  " % path +
-                            u"Caused by error: %s" % lib.ue(e))
+                            u"\nCaused by error: %s" % lib.ue(e))
     try:
         os.mkdir(mg.IMAGES_PATH) # under reports
     except Exception, e:
         raise Exception(u"Unable to make report images path %s.  " % 
-                        mg.IMAGES_PATH + u"Caused by error: %s" % lib.ue(e))
+                        mg.IMAGES_PATH + u"\nCaused by error: %s" % lib.ue(e))
 
 def run_test_code():
     """
@@ -125,10 +126,10 @@ def run_test_code():
         exec test_code in test_dic
     except SyntaxError, e:
         raise Exception(_("Syntax error in test script \"%s\".  " % test_path +
-                          "Caused by error: %s" % lib.ue(e)))
+                          "\nCaused by error: %s" % lib.ue(e)))
     except Exception, e:
-        raise Exception(_("Error running test script \"%s\".  " % test_path +
-                          "Caused by error: %s" % lib.ue(e)))
+        raise Exception(_("Error running test script \"%s\"." % test_path +
+                          "\nCaused by errors:\n\n%s" % traceback.format_exc()))
 
 def populate_local_paths(prog_path, default_proj, reports):
     """
@@ -207,7 +208,7 @@ try:
         populate_local_paths(prog_path, default_proj, reports)
     config_local_proj(default_proj, paths)
 except Exception, e:
-    msg = (u"Problem running initial setup. Caused by error: %s" % lib.ue(e))
+    msg = (u"Problem running initial setup.\nCaused by error: %s" % lib.ue(e))
     msgapp = MsgApp(msg)
     msgapp.MainLoop()
     del msgapp
@@ -219,8 +220,8 @@ try:
     import projselect
     import quotes
 except Exception, e:
-    msg = (u"Problem with second round of local importing. "
-           u"Caused by error: %s" % lib.ue(e))
+    msg = (u"Problem with second round of local importing."
+           u"\nCaused by error: %s" % lib.ue(e))
     msgapp = MsgApp(msg)
     msgapp.MainLoop()
     del msgapp
@@ -701,7 +702,7 @@ class StartFrame(wx.Frame):
             msg = _("Unable to connect to data as defined in project %s. "
                     "Please check your settings" % self.active_proj)
             wx.MessageBox(msg)
-            raise Exception(u"%s. Caused by error: %s" % (msg, lib.ue(e)))
+            raise Exception(u"%s.\nCaused by error: %s" % (msg, lib.ue(e)))
         finally:
             lib.safe_end_cursor()
             event.Skip()
@@ -747,7 +748,7 @@ class StartFrame(wx.Frame):
                 msg = _("Unable to connect to data as defined in project %s.  "
                         "Please check your settings" % self.active_proj)
                 wx.MessageBox(msg)
-                raise Exception(u"%s. Caused by error: %s" % (msg, lib.ue(e)))
+                raise Exception(u"%s.\nCaused by error: %s" % (msg, lib.ue(e)))
             finally:
                 lib.safe_end_cursor()
                 event.Skip()
@@ -859,7 +860,7 @@ class StartFrame(wx.Frame):
             msg = _("Unable to connect to data as defined in project %s.  "
                     "Please check your settings." % self.active_proj)
             wx.MessageBox(msg)
-            raise Exception(u"%s. Caused by error: %s" % (msg, lib.ue(e)))
+            raise Exception(u"%s.\nCaused by error: %s" % (msg, lib.ue(e)))
         finally:
             lib.safe_end_cursor()
             event.Skip()

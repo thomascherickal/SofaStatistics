@@ -34,8 +34,8 @@ def quote_val(raw_val):
     try:
         val = raw_val.replace("'", "''") # escape internal single quotes
     except AttributeError, e:
-        raise Exception(u"Inappropriate attempt to quote non-string value. "
-                        u"Caused by error: %s" % lib.ue(e))
+        raise Exception(u"Inappropriate attempt to quote non-string value."
+                        u"\nCaused by error: %s" % lib.ue(e))
     return u"'%s'" % val
 
 def get_summable(clause):
@@ -118,8 +118,8 @@ def get_con_resources(con_dets, default_dbs, db=None):
     except Exception, e:
         raise Exception(u"Unable to connect to MS SQL Server with "
                         u"database %s; and supplied connection: " % db +
-                        u"host: %s; user: %s; pwd: %s. " % (host, user, pwd) +
-                        u"Caused by error: %s" % lib.ue(e))
+                        u"host: %s; user: %s; pwd: %s." % (host, user, pwd) +
+                        u"\nCaused by error: %s" % lib.ue(e))
     cur = con.cursor()
     cur.adoconn = con.adoConn # (need to access from just the cursor)      
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: dbs,

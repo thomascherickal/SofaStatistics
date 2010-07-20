@@ -197,11 +197,11 @@ class GdataDownloadDlg(wx.Dialog):
         except socket.gaierror, e:
             lib.safe_end_cursor()
             wx.MessageBox(_("Problem signing in. Are you connected to the "
-                            "Internet? Caused by error: %s") % lib.ue(e))
+                            "Internet?\nCaused by error: %s") % lib.ue(e))
             return
         except Exception, e:
             lib.safe_end_cursor()
-            wx.MessageBox(_("Problem signing in. Caused by error: %s") % 
+            wx.MessageBox(_("Problem signing in.\nCaused by error: %s") % 
                           lib.ue(e))
             return
         try:    
@@ -209,8 +209,8 @@ class GdataDownloadDlg(wx.Dialog):
                                 self.get_spreadsheet_dets_lst(self.gs_client)
         except Exception, e:
             lib.safe_end_cursor()
-            wx.MessageBox(_("Problem getting spreadsheet details. "
-                            "Caused by error: %s") % lib.ue(e))
+            wx.MessageBox(_("Problem getting spreadsheet details."
+                            "\nCaused by error: %s") % lib.ue(e))
             return
         spreadsheets = [x[SPREADSHEET_NAME] for x in self.spreadsheet_dets_lst]
         if not spreadsheets:

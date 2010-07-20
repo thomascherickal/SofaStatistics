@@ -12,7 +12,7 @@ import lib
 try:
     import pgdb
 except ImportError, e:
-    raise Exception(u"Problem importing PostgreSQL. Caused by error: %s"
+    raise Exception(u"Problem importing PostgreSQL.\nCaused by error: %s"
                     % lib.ue(e))
 
 # http://www.postgresql.org/docs/8.4/static/datatype.html
@@ -69,8 +69,8 @@ def quote_val(raw_val):
     try:
         val = raw_val.replace(u"'", u"''") # escape internal single quotes
     except AttributeError, e:
-        raise Exception(u"Inappropriate attempt to quote non-string value. "
-                        u"Caused by error: %s" % lib.ue(e))
+        raise Exception(u"Inappropriate attempt to quote non-string value."
+                        u"\nCaused by error: %s" % lib.ue(e))
     return u"'%s'" % val
 
 def get_summable(clause):
@@ -100,8 +100,8 @@ def get_con_resources(con_dets, default_dbs, db=None):
             con_dets_pgsql["database"] = db
         con = pgdb.connect(**con_dets_pgsql)
     except Exception, e:
-        raise Exception(u"Unable to connect to PostgreSQL db. "
-                        u"Caused by error: %s" % lib.ue(e))
+        raise Exception(u"Unable to connect to PostgreSQL db."
+                        u"\nCaused by error: %s" % lib.ue(e))
     cur = con.cursor() # must return tuples not dics
     # get database name
     SQL_get_db_names = u"""SELECT datname FROM pg_database"""

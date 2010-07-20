@@ -287,8 +287,8 @@ def esc_str_input(raw):
     try:
         new_str = raw.replace("%", "%%")
     except Exception, e:
-        raise Exception(u"Unable to escape str input. "
-                        u"Caused by error: %s" % ue(e))
+        raise Exception(u"Unable to escape str input."
+                        u"\nCaused by error: %s" % ue(e))
     return new_str
 
 def rel2abs_links(str_html):

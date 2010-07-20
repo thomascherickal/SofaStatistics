@@ -47,8 +47,8 @@ def process_fld_names(raw_names):
                 try:
                     raw_name = raw_name.decode("utf8")
                 except UnicodeDecodeError, e:
-                    raise Exception(u"Unable to process raw field name. "
-                                    u"Caused by error: %s" % lib.ue(e))
+                    raise Exception(u"Unable to process raw field name."
+                                    u"\nCaused by error: %s" % lib.ue(e))
             name = raw_name.replace(u" ", u"_")
             names.append(name)
     except AttributeError:
@@ -56,8 +56,8 @@ def process_fld_names(raw_names):
     except TypeError:
         raise Exception(u"Field names should be supplied in a list")
     except Exception, e:
-        raise Exception(u"Problem processing field names list. "
-                        u"Caused by error: %s" % lib.ue(e))
+        raise Exception(u"Problem processing field names list."
+                        u"\nCaused by error: %s" % lib.ue(e))
     if len(names) != len(set(names)):
         raise Exception(u"Duplicate field name (once spaces turned to "
                         u"underscores)")
@@ -295,7 +295,7 @@ def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names,
         except MismatchException, e:
             raise # keep this particular type of exception bubbling out
         except Exception, e:
-            raise Exception(u"Unable to add row %s. Caused by error: %s"
+            raise Exception(u"Unable to add row %s.\nCaused by error: %s"
                             % (row_num, lib.ue(e)))
     con.commit()
     return nulled_dots
@@ -435,8 +435,8 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
         cur.execute(SQL_rename_tbl)
         con.commit()
     except Exception, e:
-        raise Exception(u"Unable to rename temporary table. "
-                        u"Caused by error: %s" % lib.ue(e))
+        raise Exception(u"Unable to rename temporary table."
+                        u"\nCaused by error: %s" % lib.ue(e))
     progbar.SetValue(GAUGE_STEPS)
     msg = _("Successfully imported data as\n\"%(tbl)s\".")
     if nulled_dots:

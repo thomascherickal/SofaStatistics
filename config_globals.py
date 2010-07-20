@@ -75,7 +75,7 @@ def import_dbe_plugins():
                 except Exception, e:
                     import lib
                     msg = (u"Problem adding dbe plugin %s. " % dbe_plugin +
-                           u"Caused by error: %s" % lib.ue(e))
+                           u"\nCaused by error: %s" % lib.ue(e))
                     print(msg)
                     mg.DBE_PROBLEM.append(msg)
                     continue # skip bad module

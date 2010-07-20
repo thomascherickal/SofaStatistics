@@ -1,5 +1,6 @@
 import codecs
 import os
+import traceback
 import wx
 
 import my_globals as mg
@@ -24,9 +25,10 @@ else:
     if mg.PLATFORM == mg.WINDOWS:
         try:
             import wx.lib.iewin as ie
-        except ImportError, e:
-            raise Exception(_("Problem importing wx.lib.iewin. "
-                              "Caused by error: %s") % lib.ue(e))
+        except ImportError, e: # using traceback because can be fiendish
+            raise Exception(_("Problem importing wx.lib.iewin."
+                              "\nCaused by errors:\n\n%s" % 
+                              traceback.format_exc()))
         
         class FullHTML(ie.IEHtmlWindow):
         
