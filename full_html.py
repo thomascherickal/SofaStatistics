@@ -25,7 +25,8 @@ else:
         try:
             import wx.lib.iewin as ie
         except ImportError, e:
-            raise Exception(_("Problem importing wx.lib.iewin"))
+            raise Exception(_("Problem importing wx.lib.iewin. "
+                              "Caused by error: %s") % lib.ue(e))
         
         class FullHTML(ie.IEHtmlWindow):
         

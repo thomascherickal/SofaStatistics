@@ -32,22 +32,22 @@ except ImportError: # if it's not there locally, try the wxPython lib.
     except ImportError:
         raise Exception(u"There seems to be a problem related to your "
                         u"wxPython package.")
-
 # All i18n except for wx-based (which MUST happen after wx.App init)
 # http://wiki.wxpython.org/RecipesI18n
 # Install gettext.  Now all strings enclosed in "_()" will automatically be
 # translated.
 gettext.install('sofa', './locale', unicode=True)
-    
-import my_globals as mg # has translated text
-import lib
-import config_globals
-import my_exceptions
+try:
+    import my_globals as mg # has translated text
+    import lib
+    import config_globals
+    import my_exceptions
+except Exception, e:
+    raise Exception(u"Problem with first round of local importing")
 
 # Give the user something if the program fails at an early stage before anything
-# appears on the screen.
-
-
+# appears on the screen.  Can only guarantee this from here onwards because I 
+# need lib etc.
 class MsgFrame(wx.Frame):
     def __init__(self, e):
         wx.Frame.__init__(self, None, title=_("SOFA Error"))
@@ -91,23 +91,49 @@ MAIN_RIGHT = 650
 SCRIPT_PATH = mg.SCRIPT_PATH
 LOCAL_PATH = mg.LOCAL_PATH
 
-def install_local(default_proj, paths, reports):
+def make_local_paths(paths):
     """
-    Install local set of files in user home dir if necessary.
+    Create required folders in user home dir if not already done.
     """
-    if os.path.exists(LOCAL_PATH):
-        return
     IMAGES = u"images"
-    if mg.PLATFORM == mg.MAC:
-        prog_path = MAC_PATH
-    else:
-        prog_path = os.path.dirname(__file__)
     for path in paths: # create required folders
         try:
             os.makedirs(os.path.join(LOCAL_PATH, path))
         except Exception, e:
-            print(u"Unable to make path %s" % path)
-    os.mkdir(mg.IMAGES_PATH)
+            raise Exception(u"Unable to make path %s.  " % path +
+                            u"Caused by error: %s" % lib.ue(e))
+    try:
+        os.mkdir(mg.IMAGES_PATH) # under reports
+    except Exception, e:
+        raise Exception(u"Unable to make report images path %s.  " % 
+                        mg.IMAGES_PATH + u"Caused by error: %s" % lib.ue(e))
+
+def run_test_code():
+    """
+    Look for file called sofa_test.py in internal folder.  If there, run it.
+    """
+    test_path = os.path.join(mg.INT_PATH, mg.TEST_SCRIPT)
+    if not os.path.exists(test_path):
+        return
+    f = codecs.open(test_path, "r", "utf8")
+    test_code = f.read()
+    f.close()
+    test_code = lib.clean_bom_utf8(test_code)
+    test_dic = {}
+    try:
+        # http://docs.python.org/reference/simple_stmts.html
+        exec test_code in test_dic
+    except SyntaxError, e:
+        raise Exception(_("Syntax error in test script \"%s\".  " % test_path +
+                          "Caused by error: %s" % lib.ue(e)))
+    except Exception, e:
+        raise Exception(_("Error running test script \"%s\".  " % test_path +
+                          "Caused by error: %s" % lib.ue(e)))
+
+def populate_local_paths(prog_path, default_proj, reports):
+    """
+    Install local set of files in user home dir if necessary.
+    """
     # copy across default proj, vdts, css
     styles = [u"grey_spirals.css", u"lucid_spirals.css", u"pebbles.css"]
     for style in styles:
@@ -164,25 +190,34 @@ def config_local_proj(default_proj, paths):
 default_proj = os.path.join(LOCAL_PATH, u"projs", mg.DEFAULT_PROJ)
 reports = u"reports"
 paths = [u"css", mg.INT_FOLDER, u"vdts", u"projs", reports, u"scripts"]
+if mg.PLATFORM == mg.MAC:
+    prog_path = MAC_PATH
+else:
+    prog_path = os.path.dirname(__file__)
 # need mg but must run pre code calling dd
 
 # TODO - code here for renaming sofa to sofa_vn-n-n when upgrading
 
-install_local(default_proj, paths, reports)
-config_local_proj(default_proj, paths)
-
+try:
+    local_path_setup_needed = not os.path.exists(LOCAL_PATH)
+    if local_path_setup_needed:
+        make_local_paths(paths)
+    run_test_code() # Earliest point can run test code. Must be self contained.
+    if local_path_setup_needed:
+        populate_local_paths(prog_path, default_proj, reports)
+    config_local_proj(default_proj, paths)
+except Exception, e:
+    msg = (u"Problem running initial setup. Caused by error: %s" % lib.ue(e))
+    msgapp = MsgApp(msg)
+    msgapp.MainLoop()
+    del msgapp
 try:
     import getdata # call before all modules relying on mg.DATA_DETS as dd
     import config_dlg # actually uses proj dict and connects to sofa_db
-    # importing delayed until needed where possible for startup performance
-    # import dataselect
     import full_html
-    # import importer
-    # import report_table
     import projects
     import projselect
     import quotes
-    # import stats_select
 except Exception, e:
     msg = (u"Problem with second round of local importing. "
            u"Caused by error: %s" % lib.ue(e))

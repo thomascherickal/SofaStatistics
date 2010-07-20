@@ -163,8 +163,7 @@ def get_settings_dic(subfolder, fil_name):
                         % settings_path)
     settings_cont = f.read()
     f.close()
-    if settings_cont.startswith(unicode(codecs.BOM_UTF8, "utf-8")):
-        settings_cont = settings_cont[len(unicode(codecs.BOM_UTF8, "utf-8")):]
+    settings_cont = lib.clean_bom_utf8(settings_cont)
     settings_dic = {}
     try:
         # http://docs.python.org/reference/simple_stmts.html
