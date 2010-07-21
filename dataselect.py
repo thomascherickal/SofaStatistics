@@ -23,7 +23,7 @@ class DataSelectDlg(wx.Dialog):
         title = _("Data in \"%s\" Project") % proj_name
         wx.Dialog.__init__(self, parent=parent, title=title, 
                            style=wx.CAPTION|wx.SYSTEM_MENU, 
-                           pos=(mg.HORIZ_OFFSET+100,100))
+                           pos=(mg.HORIZ_OFFSET+100,-1))
         self.parent = parent
         self.panel = wx.Panel(self)
         bx_existing = wx.StaticBox(self.panel, -1, _("Existing data tables"))

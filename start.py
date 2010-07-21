@@ -90,30 +90,56 @@ HELP_IMG_LEFT = 575
 HELP_IMG_TOP = 315
 MAIN_RIGHT = 650
 SCRIPT_PATH = mg.SCRIPT_PATH
-LOCAL_PATH = mg.LOCAL_PATH
 
-def make_local_paths(paths):
+
+"""
+Need a good upgrade process which leaves existing configuration intact if 
+    possible but creates recovery folder which is guaranteed to work with the 
+    version just installed.
+Always have two local folders - the main sofa folder and a sofa_recovery folder.
+If the version of SOFA running is newer than the version in __version__.txt, 
+    wipe the sofa_recovery folder, and make it afresh.  The home folder should 
+    always contain a sofa-type folder which would allow the latest installed 
+    version of SOFA to run.  If the ordinary sofa folder is faulty in some way, 
+    can always wipe it and rename sofa_recovery to sofa and open up 
+    successfully.
+The "sofa_recovery" folder should have a default project file which points to 
+    the ordinary home "sofa" folder.  This will only work, of course, if the 
+    folder is made operational by renaming it to "sofa".
+"""
+
+def get_stored_version():
+    version_path = os.path.join(mg.LOCAL_PATH, mg.VERSION_FILE)
+    if os.path.exists(version_path):
+        f = open(version_path, "r")
+        stored_version = f.read().strip()
+        f.close()
+    else:
+        stored_version = None
+    return stored_version
+
+def make_local_paths(local_path, paths):
     """
     Create required folders in user home dir if not already done.
     """
-    IMAGES = u"images"
     for path in paths: # create required folders
         try:
-            os.makedirs(os.path.join(LOCAL_PATH, path))
+            os.makedirs(os.path.join(local_path, path))
         except Exception, e:
             raise Exception(u"Unable to make path %s.  " % path +
                             u"\nCaused by error: %s" % lib.ue(e))
+    IMAGES_PATH = os.path.join(local_path, mg.REPORTS_FOLDER, mg.IMAGES_FOLDER)
     try:
-        os.mkdir(mg.IMAGES_PATH) # under reports
+        os.mkdir(IMAGES_PATH) # under reports
     except Exception, e:
-        raise Exception(u"Unable to make report images path %s.  " % 
-                        mg.IMAGES_PATH + u"\nCaused by error: %s" % lib.ue(e))
+        raise Exception(u"Unable to make report images path %s." % IMAGES_PATH +
+                        u"\nCaused by error: %s" % lib.ue(e))
 
-def run_test_code():
+def run_test_code(script):
     """
     Look for file called sofa_test.py in internal folder.  If there, run it.
     """
-    test_path = os.path.join(mg.INT_PATH, mg.TEST_SCRIPT)
+    test_path = os.path.join(mg.INT_PATH, script)
     if not os.path.exists(test_path):
         return
     f = codecs.open(test_path, "r", "utf8")
@@ -131,7 +157,7 @@ def run_test_code():
         raise Exception(_("Error running test script \"%s\"." % test_path +
                           "\nCaused by errors:\n\n%s" % traceback.format_exc()))
 
-def populate_local_paths(prog_path, default_proj, reports):
+def populate_local_paths(prog_path, local_path, default_proj, reports):
     """
     Install local set of files in user home dir if necessary.
     """
@@ -139,36 +165,32 @@ def populate_local_paths(prog_path, default_proj, reports):
     styles = [u"grey_spirals.css", u"lucid_spirals.css", u"pebbles.css"]
     for style in styles:
         shutil.copy(os.path.join(prog_path, u"css", style), 
-                    os.path.join(LOCAL_PATH, u"css", style))
+                    os.path.join(local_path, u"css", style))
     shutil.copy(os.path.join(prog_path, u"css", mg.DEFAULT_STYLE), 
-                os.path.join(LOCAL_PATH, u"css", mg.DEFAULT_STYLE))
+                os.path.join(local_path, u"css", mg.DEFAULT_STYLE))
     shutil.copy(os.path.join(prog_path, mg.INT_FOLDER, mg.SOFA_DB), 
-                os.path.join(LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB))
+                os.path.join(local_path, mg.INT_FOLDER, mg.SOFA_DB))
     shutil.copy(os.path.join(prog_path, u"vdts", mg.DEFAULT_VDTS), 
-                os.path.join(LOCAL_PATH, u"vdts", mg.DEFAULT_VDTS))
+                os.path.join(local_path, u"vdts", mg.DEFAULT_VDTS))
     shutil.copy(os.path.join(prog_path, u"projs", mg.DEFAULT_PROJ), 
                 default_proj)
     bg_images = [u"grey_spirals.gif", u"lucid_spirals.gif", u"pebbles.gif"]
     for bg_image in bg_images:
-        shutil.copy(os.path.join(prog_path, reports, IMAGES, bg_image), 
-                    os.path.join(LOCAL_PATH, reports, IMAGES, bg_image))
-    # store version so can identify if an upgrade
-    f = file(os.path.join(LOCAL_PATH, mg.VERSION_FILE), "w")
-    f.write(mg.VERSION)
-    f.close()
+        shutil.copy(os.path.join(prog_path, reports, mg.IMAGES_FOLDER, 
+                                 bg_image), 
+                    os.path.join(local_path, reports, mg.IMAGES_FOLDER, 
+                                 bg_image))
 
-def config_local_proj(default_proj, paths):
+def config_local_proj(local_path, default_proj, paths):
     """
-    Modify default project settings to point to local (user) SOFA  directory.
+    Modify default project settings to point to local (user) SOFA directory.
     """
-    if os.path.exists(os.path.join(LOCAL_PATH, mg.PROJ_CUSTOMISED_FILE)):
-        return
     # change home username
     f = codecs.open(default_proj, "r", "utf-8")
     proj_str = f.read() # provided by me - no BOM or non-ascii 
     f.close()
     for path in paths:
-        new_str = lib.escape_pre_write(os.path.join(LOCAL_PATH, path, u""))
+        new_str = lib.escape_pre_write(os.path.join(mg.LOCAL_PATH, path, u""))
         proj_str = proj_str.replace(u"/home/g/sofa/%s/" % path, new_str)
     # add MS Access and SQL Server into mix if Windows
     if mg.PLATFORM == mg.WINDOWS:
@@ -184,29 +206,49 @@ def config_local_proj(default_proj, paths):
     f.write(proj_str)
     f.close()
     # create file as tag we have done the changes to the proj file
-    f = file(os.path.join(LOCAL_PATH, mg.PROJ_CUSTOMISED_FILE), "w")
+    f = open(os.path.join(local_path, mg.PROJ_CUSTOMISED_FILE), "w")
     f.write(u"Local project file customised successfully :-)")
     f.close()
 
-default_proj = os.path.join(LOCAL_PATH, u"projs", mg.DEFAULT_PROJ)
 reports = u"reports"
 paths = [u"css", mg.INT_FOLDER, u"vdts", u"projs", reports, u"scripts"]
 if mg.PLATFORM == mg.MAC:
     prog_path = MAC_PATH
 else:
     prog_path = os.path.dirname(__file__)
-# need mg but must run pre code calling dd
-
-# TODO - code here for renaming sofa to sofa_vn-n-n when upgrading
-
 try:
-    local_path_setup_needed = not os.path.exists(LOCAL_PATH)
+    is_newer = lib.current_version_is_newer(current_version=mg.VERSION, 
+                                            stored_version=get_stored_version())
+    newer_status_known = True
+except Exception, e:
+    is_newer = None
+    newer_status_known = False
+try:
+    local_path_setup_needed = not os.path.exists(mg.LOCAL_PATH)
     if local_path_setup_needed:
-        make_local_paths(paths)
-    run_test_code() # Earliest point can run test code. Must be self contained.
+        make_local_paths(mg.LOCAL_PATH, paths)
+    run_test_code(mg.TEST_SCRIPT_EARLIEST)
     if local_path_setup_needed:
-        populate_local_paths(prog_path, default_proj, reports)
-    config_local_proj(default_proj, paths)
+        # need mg but must run pre code calling dd
+        default_proj = os.path.join(mg.LOCAL_PATH, u"projs", mg.DEFAULT_PROJ)
+        populate_local_paths(prog_path, mg.LOCAL_PATH, default_proj, reports)
+        config_local_proj(mg.LOCAL_PATH, default_proj, paths)
+    run_test_code(mg.TEST_SCRIPT_POST_CONFIG) # can now use dd and proj config
+    # store version so can identify if an upgrade
+    f = file(os.path.join(mg.LOCAL_PATH, mg.VERSION_FILE), "w")
+    f.write(mg.VERSION)
+    f.close()
+    if is_newer or not newer_status_known \
+            or not os.path.exists(mg.RECOVERY_PATH):
+        # make fresh recovery folder (over top of previous if necessary)
+        try:
+            shutil.rmtree(mg.RECOVERY_PATH)
+        except OSError:
+            pass
+        make_local_paths(mg.RECOVERY_PATH, paths)
+        default_proj = os.path.join(mg.RECOVERY_PATH, u"projs", mg.DEFAULT_PROJ)
+        populate_local_paths(prog_path, mg.RECOVERY_PATH, default_proj, reports)
+        config_local_proj(mg.RECOVERY_PATH, default_proj, paths)
 except Exception, e:
     msg = (u"Problem running initial setup.\nCaused by error: %s" % lib.ue(e))
     msgapp = MsgApp(msg)
@@ -505,15 +547,16 @@ class StartFrame(wx.Frame):
         """
         COMTYPES_HANDLED = u"comtypes_handled.txt"
         if (mg.PLATFORM == mg.WINDOWS 
-            and not os.path.exists(os.path.join(LOCAL_PATH, COMTYPES_HANDLED))):
+            and not os.path.exists(os.path.join(mg.LOCAL_PATH, 
+                                                COMTYPES_HANDLED))):
             wx.MessageBox(_("Click OK to prepare for first use of SOFA "
                             "Statistics.\n\nPreparation may take a moment ..."))
             h = full_html.FullHTML(panel, (10, 10))
             h.show_html(u"")
             h = None
-        if not os.path.exists(os.path.join(LOCAL_PATH, COMTYPES_HANDLED)):
+        if not os.path.exists(os.path.join(mg.LOCAL_PATH, COMTYPES_HANDLED)):
             # create file as tag we have done the changes to the proj file
-            f = file(os.path.join(LOCAL_PATH, COMTYPES_HANDLED), "w")
+            f = file(os.path.join(mg.LOCAL_PATH, COMTYPES_HANDLED), "w")
             f.write(u"Comtypes handled successfully :-)")
             f.close()
     
@@ -564,7 +607,7 @@ class StartFrame(wx.Frame):
                                wx.Rect(MAIN_LEFT, 547, 100, 50))
             panel_dc.DrawBitmap(self.bmp_agpl3, MAIN_LEFT-115, 542, True)
             # make default db if not already there
-            def_db = os.path.join(LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB)
+            def_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB)
             con = sqlite.connect(def_db)
             con.close()
             panel_dc.DrawBitmap(self.blank_proj_strip, MAIN_LEFT, 218, False)

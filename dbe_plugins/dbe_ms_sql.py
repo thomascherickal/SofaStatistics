@@ -286,7 +286,8 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_mssql_user.SetToolTipString(_("User e.g. root"))
     # password
     parent.lbl_mssql_pwd = wx.StaticText(scroll, -1, 
-                                         _("Password - space if none:"))
+                                         _("Password - space if none:"),
+                                         style=wx.TE_PASSWORD)
     parent.lbl_mssql_pwd.SetFont(lblfont)
     mssql_pwd = parent.mssql_pwd if parent.mssql_pwd else ""
     parent.txt_mssql_pwd = wx.TextCtrl(scroll, -1, mssql_pwd, size=(100,-1))

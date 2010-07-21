@@ -19,6 +19,37 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
+def current_version_is_newer(current_version, stored_version):
+    """
+    Must be able to process both version details or else an error raised.
+    """
+    try:
+        stored_version_parts = stored_version.split(u".")
+        if len(stored_version_parts) != 3: 
+            raise Exception(u"Faulty version details stored")
+        stored_version_parts = [int(x) for x in stored_version_parts]
+    except Exception, e:
+        raise Exception(u"Stored version parts faulty")
+    try:
+        current_version_parts = current_version.split(u".")
+        if len(current_version_parts) != 3:
+            raise Exception(u"Faulty version details in my_globals")
+        current_version_parts = [int(x) for x in current_version_parts]
+    except Exception, e:
+        raise Exception(u"Current version parts faulty")
+    if current_version_parts[0] > stored_version_parts[0]:
+        is_newer = True
+    elif current_version_parts[0] == stored_version_parts[0] \
+        and current_version_parts[1] > stored_version_parts[1]:
+        is_newer = True
+    elif current_version_parts[0] == stored_version_parts[0] \
+        and current_version_parts[1] == stored_version_parts[1]\
+        and current_version_parts[2] > stored_version_parts[2]:
+        is_newer = True
+    else:
+        is_newer = False
+    return is_newer
+
 def get_unicode_datestamp():
     debug = False
     now = datetime.now()
