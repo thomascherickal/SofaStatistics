@@ -50,12 +50,15 @@ except Exception, e:
 # appears on the screen.  Can only guarantee this from here onwards because I 
 # need lib etc.
 class MsgFrame(wx.Frame):
-    def __init__(self, e):
+    def __init__(self, e, raw_error_msg):
         wx.Frame.__init__(self, None, title=_("SOFA Error"))
-        wx.MessageBox(u"Something went wrong with running SOFA Statistics. "
-                      u"Please email the lead developer for help - "
-                      u"grant@sofastatistics.com\n\nCaused by error: %s" % 
-                      lib.ue(e))
+        error_msg = lib.ue(e)
+        if not raw_error_msg:
+            error_msg = (u"Something went wrong with running SOFA Statistics. "
+                         u"Please email the lead developer for help - "
+                         u"grant@sofastatistics.com\n\nCaused by error: " +
+                         error_msg)
+        wx.MessageBox(error_msg)
         self.Destroy()
         import sys
         sys.exit()
@@ -63,16 +66,16 @@ class MsgFrame(wx.Frame):
 
 class MsgApp(wx.App):
 
-    def __init__(self, e):
+    def __init__(self, e, raw_error_msg=False):
         self.e = e
+        self.raw_error_msg = raw_error_msg
         wx.App.__init__(self, redirect=False, filename=None)
 
     def OnInit(self):
-        msgframe = MsgFrame(self.e)
+        msgframe = MsgFrame(self.e, self.raw_error_msg)
         msgframe.Show()
         self.SetTopWindow(msgframe)
         return True
-    
 
 COPYRIGHT = u"\u00a9"
 SCREEN_WIDTH = 1000
@@ -91,7 +94,33 @@ HELP_IMG_TOP = 315
 MAIN_RIGHT = 650
 SCRIPT_PATH = mg.SCRIPT_PATH
 
-
+if not sys.version.startswith(u"2.6"):
+    fixit_file = os.path.join(mg.USER_PATH, u"Desktop", 
+                              u"how to get SOFA working.txt")
+    f = open(fixit_file, "w")
+    msg = (u"\n" + u"*"*80 + 
+           u"\nHOW TO GET SOFA STATISTICS WORKING AGAIN\n" 
+           + u"*"*80 +
+           u"\n\nIt looks like an incorrect version of Python is being used to "
+           u"run SOFA Statistics. "
+           u"Fortunately, this is easily fixed (assuming you installed Python "
+           u"2.6 as part of the SOFA installation)."
+           u"\n\nYou need to click the SOFA icon once with the right mouse "
+           u"button and select Properties.\n\nIn the Shortcut tab, there is a "
+           u"text box called Target.\n\nChange it from "
+           u"\"C:\\Program Files\\sofa\\start.pyw\"\nto\n"
+           u"C:\\Python26\\pythonw.exe \"C:\Program Files\\sofa\\start.pyw\" "
+           u"and click the OK button down the bottom.\n\nIf Python 2.6 is "
+           u"installed somewhere else, change the Target details accordingly -"
+           u" e.g. to D:\Python26 etc"
+           u"\n\nFor help, please contact grant@sofastatistics.com")
+    f.write(msg)
+    f.close()    
+    msgapp = MsgApp(msg + "\n\n" + u"*"*80 +u"\n\nThis message has been saved "
+                    u"to a file on your Desktop for future reference", True)
+    msgapp.MainLoop()
+    del msgapp
+    
 """
 Need a good upgrade process which leaves existing configuration intact if 
     possible but creates recovery folder which is guaranteed to work with the 
@@ -108,15 +137,20 @@ The "sofa_recovery" folder should have a default project file which points to
     folder is made operational by renaming it to "sofa".
 """
 
-def get_stored_version():
+def get_installed_version():
+    """
+    Useful for working out if current version newer than installed version.  Or
+        if installed version is too old to work with this (latest) version.
+        Perhaps we can migrate the old proj file if we know its version.
+    """
     version_path = os.path.join(mg.LOCAL_PATH, mg.VERSION_FILE)
     if os.path.exists(version_path):
         f = open(version_path, "r")
-        stored_version = f.read().strip()
+        installed_version = f.read().strip()
         f.close()
     else:
-        stored_version = None
-    return stored_version
+        installed_version = None
+    return installed_version
 
 def make_local_paths(local_path, paths):
     """
@@ -218,7 +252,7 @@ else:
     prog_path = os.path.dirname(__file__)
 try:
     is_newer = lib.current_version_is_newer(current_version=mg.VERSION, 
-                                            stored_version=get_stored_version())
+                                            stored_version=get_installed_version())
     newer_status_known = True
 except Exception, e:
     is_newer = None
@@ -478,27 +512,36 @@ class StartFrame(wx.Frame):
         # http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3045245
         self.txtWelcome = _("Welcome to SOFA Statistics.  Hovering the mouse "
                             "over the buttons lets you see what you can do.")
-        # help images
-        help = os.path.join(SCRIPT_PATH, u"images", u"help.xpm")
-        self.bmp_help = wx.Image(help, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        proj = os.path.join(SCRIPT_PATH, u"images", u"briefcase.xpm")
-        self.bmp_proj = wx.Image(proj, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        prefs = os.path.join(SCRIPT_PATH, u"images", u"prefs.xpm")
-        self.bmp_prefs = wx.Image(prefs, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        data = os.path.join(SCRIPT_PATH, u"images", u"data.xpm")
-        self.bmp_data = wx.Image(data, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        imprt = os.path.join(SCRIPT_PATH, u"images", u"import.xpm")
-        self.bmp_import = wx.Image(imprt, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        tabs = os.path.join(SCRIPT_PATH, u"images", u"table.xpm")
-        self.bmp_tabs = wx.Image(tabs, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        chart = os.path.join(SCRIPT_PATH, u"images", u"demo_chart.xpm")
-        self.bmp_chart = wx.Image(chart, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        stats = os.path.join(SCRIPT_PATH, u"images", u"stats.xpm")
-        self.bmp_stats = wx.Image(stats, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        exit = os.path.join(SCRIPT_PATH, u"images", u"exit.xpm")
-        self.bmp_exit = wx.Image(exit, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        agpl3 = os.path.join(SCRIPT_PATH, u"images", u"agpl3.xpm")
-        self.bmp_agpl3 = wx.Image(agpl3, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        try:
+            # help images
+            help = os.path.join(SCRIPT_PATH, u"images", u"help.xpm")
+            self.bmp_help = wx.Image(help, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+            proj = os.path.join(SCRIPT_PATH, u"images", u"briefcase.xpm")
+            self.bmp_proj = wx.Image(proj, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+            prefs = os.path.join(SCRIPT_PATH, u"images", u"prefs.xpm")
+            self.bmp_prefs = \
+                           wx.Image(prefs, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+            data = os.path.join(SCRIPT_PATH, u"images", u"data.xpm")
+            self.bmp_data = wx.Image(data, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+            imprt = os.path.join(SCRIPT_PATH, u"images", u"import.xpm")
+            self.bmp_import = \
+                           wx.Image(imprt, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+            tabs = os.path.join(SCRIPT_PATH, u"images", u"table.xpm")
+            self.bmp_tabs = wx.Image(tabs, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+            chart = os.path.join(SCRIPT_PATH, u"images", u"demo_chart.xpm")
+            self.bmp_chart = \
+                           wx.Image(chart, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+            stats = os.path.join(SCRIPT_PATH, u"images", u"stats.xpm")
+            self.bmp_stats = \
+                           wx.Image(stats, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+            exit = os.path.join(SCRIPT_PATH, u"images", u"exit.xpm")
+            self.bmp_exit = wx.Image(exit, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+            agpl3 = os.path.join(SCRIPT_PATH, u"images", u"agpl3.xpm")
+            self.bmp_agpl3 = \
+                           wx.Image(agpl3, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        except Exception, e:
+            raise Exception(u"Problem setting up help images."
+                            u"\nCaused by error: %s" % lib.ue(e))
         self.HELP_TEXT_FONT = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
         link_home = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com", 
                                      pos=(MAIN_LEFT, TOP_TOP), 
