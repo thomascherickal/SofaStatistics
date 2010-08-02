@@ -54,6 +54,9 @@ MEAN = _("Mean")
 MEDIAN = _("Median")
 SUMM_N = u"N" # N used in Summary tables
 STD_DEV = _("Std Dev")
+MIN = _("Min")
+MAX = _("Max")
+RANGE = _("Range")
 measures_long_label_dic = {FREQ: _("Frequency"), 
                            ROWPCT: _("Row %"),
                            COLPCT: _("Column %"),
@@ -61,7 +64,11 @@ measures_long_label_dic = {FREQ: _("Frequency"),
                            MEAN: _("Mean"),
                            MEDIAN: _("Median"), 
                            SUMM_N: "N",
-                           STD_DEV: _("Standard Deviation")}
+                           STD_DEV: _("Standard Deviation"),
+                           MIN: _("Minimum"),
+                           MAX: _("Maximum"),
+                           RANGE: _("Range"),
+                           }
 # content of constant and constant (ready to include in exported script)
 # e.g. "dimtables.%s" "ROWPCT"
 script_export_measures_dic = {FREQ: u"FREQ", 
@@ -71,7 +78,11 @@ script_export_measures_dic = {FREQ: u"FREQ",
                               MEAN: u"MEAN",
                               MEDIAN: u"MEDIAN", 
                               SUMM_N: u"SUMM_N",
-                              STD_DEV: u"STD_DEV"}
+                              STD_DEV: u"STD_DEV",
+                              MIN: u"MIN",
+                              MAX: u"MAX",
+                              RANGE: u"RANGE",
+                              }
 # Used to make it easy to slice into html and replace titles and subtitles only.
 # Changing the return values of get html functions to get html_pre_title, 
 # html_title, html_post_title etc was deemed an even worse approach ;-)

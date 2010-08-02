@@ -775,6 +775,9 @@ class DlgRowConfig(DlgConfig):
                         (mg.SUMM_N, mg.measures_long_label_dic[mg.SUMM_N]), 
                         (mg.STD_DEV, mg.measures_long_label_dic[mg.STD_DEV]),
                         (mg.SUM, mg.measures_long_label_dic[mg.SUM]),
+                        (mg.MIN, mg.measures_long_label_dic[mg.MIN]),
+                        (mg.MAX, mg.measures_long_label_dic[mg.MAX]),
+                        (mg.RANGE, mg.measures_long_label_dic[mg.RANGE]),
                         ]
         else:
             self.measures = []

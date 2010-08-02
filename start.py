@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-dev_debug = False
+dev_debug = True
 test_lang = False
 
 import warnings
@@ -817,7 +817,7 @@ class StartFrame(wx.Frame):
         CHARTS_NO = 0
         CHARTS_PRELIM = 1
         CHARTS_JS = 2
-        charts = CHARTS_JS
+        charts = CHARTS_PRELIM
         if charts == CHARTS_NO:
             wx.MessageBox(_("Not available yet in version ") + 
                           unicode(mg.VERSION))
@@ -841,6 +841,7 @@ class StartFrame(wx.Frame):
         elif charts == CHARTS_JS:
             import output
             import charting_js as chart
+            # watch to ensure 0 on y scale
             cont = []
             cont.append(u"""<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
                 "http://www.w3.org/TR/html4/strict.dtd">

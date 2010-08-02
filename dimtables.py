@@ -1143,7 +1143,32 @@ class SummTable(LiveTable):
             self.cur.execute(SQL_get_vals)
             data = [x[0] for x in self.cur.fetchall() if x[0]]
             if debug: print(data)
-        if measure == mg.SUM:
+        if measure == mg.MIN:
+            SQL_get_min = u"SELECT MIN(%s) " % self.quote_obj(row_fld) + \
+                u"FROM " + self.quote_obj(self.tbl) + filter
+            try:
+                self.cur.execute(SQL_get_min)
+                data_val = self.cur.fetchone()[0]
+            except Exception, e:
+                raise Exception(u"Unable to get minimum of %s." % row_fld)
+        elif measure == mg.MAX:
+            SQL_get_max = u"SELECT MAX(%s) " % self.quote_obj(row_fld) + \
+                u"FROM " + self.quote_obj(self.tbl) + filter
+            try:
+                self.cur.execute(SQL_get_max)
+                data_val = self.cur.fetchone()[0]
+            except Exception, e:
+                raise Exception(u"Unable to get maximum of %s." % row_fld)
+        elif measure == mg.RANGE:
+            SQL_get_range = u"SELECT (MAX(%(fld)s) - MIN(%(fld)s)) " % \
+                    {u"fld": self.quote_obj(row_fld)} + \
+                u"FROM " + self.quote_obj(self.tbl) + filter
+            try:
+                self.cur.execute(SQL_get_range)
+                data_val = self.cur.fetchone()[0]
+            except Exception, e:
+                raise Exception(u"Unable to get range of %s." % row_fld)
+        elif measure == mg.SUM:
             SQL_get_sum = u"SELECT SUM(%s) " % self.quote_obj(row_fld) + \
                 u"FROM " + self.quote_obj(self.tbl) + filter
             try:

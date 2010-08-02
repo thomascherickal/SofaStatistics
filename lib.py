@@ -11,7 +11,6 @@ import os
 import pprint
 import random
 import re
-import subprocess
 import sys
 import time
 import wx

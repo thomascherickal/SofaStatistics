@@ -329,7 +329,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                         "Although the data failed the ideal normality test, "
                         "most real-world data-sets with as many results (%s) "
                         "would fail for even slight differences from the "
-                        "perfect normal curve") % n_vals + u" " + skew_msg + \
+                        "perfect normal curve.") % n_vals + u" " + skew_msg + \
                             u" " + kurtosis_msg
                 else:
                     if p < 0.05:
