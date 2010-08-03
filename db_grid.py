@@ -61,6 +61,7 @@ class TblEditor(wx.Dialog):
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics, 
                  readonly=True, set_col_widths=True):
         self.debug = False
+        self.readonly = readonly
         mywidth = 900
         if mg.PLATFORM == mg.WINDOWS:
             mid_height = 820
@@ -76,7 +77,7 @@ class TblEditor(wx.Dialog):
             mywidth = 1000
             myheight = 800
         title = _("Data from ") + "%s.%s" % (dd.db, dd.tbl)
-        if readonly:
+        if self.readonly:
             title += _(" (Read Only)")
         wx.Dialog.__init__(self, None, title=title, 
                            pos=(mg.HORIZ_OFFSET+100, 0), 
@@ -93,10 +94,11 @@ class TblEditor(wx.Dialog):
         width_grid = 500
         height_grid = 500
         self.grid = wx.grid.Grid(self.panel, size=(width_grid, height_grid))
-        self.grid.EnableEditing(not readonly)
-        self.dbtbl = db_tbl.DbTbl(self.grid, var_labels, readonly)
+        self.grid.EnableEditing(not self.readonly)
+        self.dbtbl = db_tbl.DbTbl(self.grid, var_labels, self.readonly)
         self.grid.SetTable(self.dbtbl, takeOwnership=True)
-        if readonly:
+        self.readonly_cols = []
+        if self.readonly:
             col2select = 0
             self.grid.SetGridCursor(0, col2select)
             self.current_row_idx = 0
@@ -108,7 +110,6 @@ class TblEditor(wx.Dialog):
         else:
             # disable any columns which do not allow data entry and set colour
             col2select = None # first editable col
-            self.readonly_cols = []
             for idx_col in range(len(dd.flds)):
                 fld_dic = self.dbtbl.get_fld_dic(idx_col)
                 if not fld_dic[mg.FLD_DATA_ENTRY_OK]:
@@ -938,12 +939,12 @@ class TblEditor(wx.Dialog):
         if (row, col) != self.prev_row_col and row >= 0 and col >= 0:
             self.prev_row_col = (row, col)
             raw_val = self.get_raw_val(row, col)
-            if col in self.readonly_cols:
-                tip = _("Read only column")
-            elif raw_val == mg.MISSING_VAL_INDICATOR:
+            if raw_val == mg.MISSING_VAL_INDICATOR:
                 tip = _("Missing value")
             else:
                 tip = self.get_cell_tooltip(col, raw_val)
+                if self.readonly or col in self.readonly_cols:
+                    tip = _(u"%s (Read only column)" % tip)
             self.grid.GetGridWindow().SetToolTipString(tip)
         event.Skip()
         

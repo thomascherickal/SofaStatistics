@@ -68,7 +68,14 @@ def get_dbs(host, user, pwd, default_dbs, db=None):
         raise Exception(u"Unable to connect to MS SQL Server with host: "
                         u"%s; user: %s; and pwd: %s" % (host, user, pwd))
     cur = con.cursor() # must return tuples not dics
+    
+    
     cur.execute(u"SELECT name FROM sysdatabases")
+    """
+    cur.execute(u"SELECT name FROM master.dbo.sysdatabases")
+    cur.execute(u"SELECT name FROM sys.databases")
+    """
+    
     dbs = [x[0] for x in cur.fetchall()]
     dbs_lc = [x.lower() for x in dbs]
     # get db (default if possible otherwise first)
