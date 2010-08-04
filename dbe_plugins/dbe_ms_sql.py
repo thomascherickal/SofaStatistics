@@ -68,14 +68,10 @@ def get_dbs(host, user, pwd, default_dbs, db=None):
         raise Exception(u"Unable to connect to MS SQL Server with host: "
                         u"%s; user: %s; and pwd: %s" % (host, user, pwd))
     cur = con.cursor() # must return tuples not dics
-    
-    
-    cur.execute(u"SELECT name FROM sysdatabases")
-    """
-    cur.execute(u"SELECT name FROM master.dbo.sysdatabases")
-    cur.execute(u"SELECT name FROM sys.databases")
-    """
-    
+    try: # MS SQL Server 2000
+        cur.execute(u"SELECT name FROM master.dbo.sysdatabases")
+    except Exception, e: # SQL Server 2005
+        cur.execute(u"SELECT name FROM sys.databases")
     dbs = [x[0] for x in cur.fetchall()]
     dbs_lc = [x.lower() for x in dbs]
     # get db (default if possible otherwise first)
@@ -283,7 +279,8 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_mssql_host.Enable(not readonly)
     # 1433 is the default port for MS SQL Server
     parent.txt_mssql_host.SetToolTipString(_("Host e.g. (local), or "
-                                             "190.190.200.100,1433"))
+                                             "190.190.200.100,1433, or "
+                                             "my-svr-01,1433"))
     # user
     parent.lbl_mssql_user = wx.StaticText(scroll, -1, _("User - e.g. root:"))
     parent.lbl_mssql_user.SetFont(lblfont)
