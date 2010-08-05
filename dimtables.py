@@ -203,12 +203,12 @@ class DimTable(object):
         row_offset_dic = {}
         for i in range(row_label_cols_n):
             row_offset_dic[i]=0
-        row_label_rows_lst = self.row_label_row_bldr(\
-                        node=tree_row_labels.root_node,
-                        row_label_rows_lst=row_label_rows_lst, 
-                        row_label_cols_n=row_label_cols_n, 
-                        row_offset_dic=row_offset_dic, col_offset=0, 
-                        css_idx=css_idx)
+        row_label_rows_lst = self.row_label_row_bldr(
+                                    node=tree_row_labels.root_node,
+                                    row_label_rows_lst=row_label_rows_lst,
+                                    row_label_cols_n=row_label_cols_n, 
+                                    row_offset_dic=row_offset_dic, col_offset=0, 
+                                    css_idx=css_idx)
         return (row_label_rows_lst, tree_row_labels, row_label_cols_n)       
 
     def row_label_row_bldr(self, node, row_label_rows_lst, row_label_cols_n, 
@@ -230,7 +230,7 @@ class DimTable(object):
         If there is a gap, colspan the cell to cover it, and increase the
             col_offset being passed down the subtree.
         node - the node we are adding a cell to the table based upon.
-        row_label_rows_lst - one row per row in row label section        
+        row_label_rows_lst - one row per row in row label section 
         row_label_cols_n - number of cols in row label section        
         row_offset_dic - keeps track of row position for sibling cells
             according to how much its previous siblings have spanned.
@@ -245,6 +245,8 @@ class DimTable(object):
         debug = False
         CSS_FIRST_ROW_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_ROW_VAR, 
                                                       css_idx)
+        CSS_FIRST_ROW_VAR_TOPLINE = mg.CSS_SUFFIX_TEMPLATE % (
+                                        mg.CSS_FIRST_ROW_VAR_TOPLINE, css_idx)
         CSS_ROW_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ROW_VAR, css_idx)
         CSS_ROW_VAL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ROW_VAL, css_idx)
         if debug: print(node)
@@ -253,7 +255,7 @@ class DimTable(object):
             row_offset = level - 1 # e.g. first row level is 0
             row_idx = row_offset_dic[row_offset]
             rowspan_n = len(node.get_terminal_nodes())
-            row_offset_dic[row_offset] = row_idx + rowspan_n # leave for next sibling
+            row_offset_dic[row_offset] = row_idx + rowspan_n # for next sibling
             # cell dimensions
             if rowspan_n > 1:
                 rowspan = u" rowspan='%s' " % rowspan_n
@@ -269,13 +271,18 @@ class DimTable(object):
             else:
                 colspan = u""
             # styling
-            if cols_to_right % 2 > 0: #odd
-                if cols_filled == 1:
-                    cellclass=u"class='%s'" % CSS_FIRST_ROW_VAR
+            classes = []
+            if cols_to_right % 2 > 0: # odd
+                if cols_filled == 1: # first from left
+                    if row_idx > 0: # not first from top
+                        classes.append(CSS_FIRST_ROW_VAR_TOPLINE)
+                    else:
+                        classes.append(CSS_FIRST_ROW_VAR)
                 else:
-                    cellclass=u"class='%s'" % CSS_ROW_VAR
+                    classes.append(CSS_ROW_VAR)
             else:
-                cellclass=u"class='%s'" % CSS_ROW_VAL
+                classes.append(CSS_ROW_VAL)
+            cellclass=u"class='%s'" % u" ".join(classes)
             row_label_rows_lst[row_idx].append(u"<td %s %s %s>%s</td>" % \
                                 (cellclass, rowspan, colspan, node.label))
             if debug: print(node.label)
@@ -283,8 +290,9 @@ class DimTable(object):
             row_label_rows_lst = self.row_label_row_bldr(child, 
                                         row_label_rows_lst, row_label_cols_n, 
                                         row_offset_dic, col_offset, css_idx)
-        # finish level, set all child levels to start with this one's final offset
-        # Otherwise Gender, Gender->Asst problem (whereas Gender->Asst, Gender is fine)
+        # Finish level, set all child levels to start with this one's final 
+        #    offset.  Otherwise Gender, Gender->Asst a problem (whereas 
+        #    Gender->Asst, Gender is fine).
         if level > 0: # don't do this on the root
             for i in range(row_offset + 1, row_label_cols_n):
                 row_offset_dic[i] = row_offset_dic[row_offset]
@@ -1079,7 +1087,7 @@ class SummTable(LiveTable):
                                row_label_rows_lst, col_term_nodes, css_idx):
         """
         Get list of row data.  Each row in the list is represented
-        by a row of strings to concatenate, one per data point.
+            by a row of strings to concatenate, one per data point.
         Get data values one at a time (no batches unlike Gen Tables).
         """
         CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL,
