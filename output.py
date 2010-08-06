@@ -160,9 +160,8 @@ def get_html_hdr(hdr_title, css_fils, default_if_prob=False, grey=False,
             css_txt = f.read()
             for css_class in mg.CSS_ELEMENTS:
                 # suffix all report-relevant css entities so distinct
-                old_class = mg.MISSING_VAL_INDICATOR + css_class
-                new_class = mg.MISSING_VAL_INDICATOR + \
-                    mg.CSS_SUFFIX_TEMPLATE % (css_class, i)
+                old_class = u"." + css_class
+                new_class = u"." + mg.CSS_SUFFIX_TEMPLATE % (css_class, i)
                 if debug: print(old_class, new_class)
                 css_txt = css_txt.replace(old_class, new_class)
             css_lst.append(css_txt)

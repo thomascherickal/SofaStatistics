@@ -109,7 +109,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         szr_shape.Add(self.btn_details, 0, wx.TOP, 10)
         self.szr_examine.Add(szr_shape, 0, wx.TOP|wx.LEFT, 10)
         myheight = 100 if mg.MAX_HEIGHT < 800 else 200
-        self.html = full_html.FullHTML(self.panel, size=(200, myheight))
+        self.html = full_html.FullHTML(panel=self.panel, parent=self, 
+                                       size=(200,myheight))
         self.set_output_to_blank()
         szr_normality_test.Add(self.html, 1, wx.GROW)
         self.szr_examine.Add(szr_normality_test, 1, wx.GROW|wx.ALL, 10)

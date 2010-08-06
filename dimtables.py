@@ -245,8 +245,7 @@ class DimTable(object):
         debug = False
         CSS_FIRST_ROW_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_ROW_VAR, 
                                                       css_idx)
-        CSS_FIRST_ROW_VAR_TOPLINE = mg.CSS_SUFFIX_TEMPLATE % (
-                                        mg.CSS_FIRST_ROW_VAR_TOPLINE, css_idx)
+        CSS_TOPLINE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TOPLINE, css_idx)
         CSS_ROW_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ROW_VAR, css_idx)
         CSS_ROW_VAL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ROW_VAL, css_idx)
         if debug: print(node)
@@ -274,10 +273,9 @@ class DimTable(object):
             classes = []
             if cols_to_right % 2 > 0: # odd
                 if cols_filled == 1: # first from left
+                    classes.append(CSS_FIRST_ROW_VAR)
                     if row_idx > 0: # not first from top
-                        classes.append(CSS_FIRST_ROW_VAR_TOPLINE)
-                    else:
-                        classes.append(CSS_FIRST_ROW_VAR)
+                        classes.append(CSS_TOPLINE) # separate from row above
                 else:
                     classes.append(CSS_ROW_VAR)
             else:

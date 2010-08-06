@@ -10,7 +10,6 @@ import config_globals
 import lib
 import getdata
 # import filtselect # prevent circular import
-import showhtml
 import webbrowser
 
 dd = getdata.get_dd()

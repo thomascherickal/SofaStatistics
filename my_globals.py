@@ -112,8 +112,9 @@ DEFAULT_HDR = u"""
             </style>
             </head>
             <body>\n"""
-# output - NB never have a class which is the same as the start of another
-# simple search and replace is worth keeping
+# output
+# NB never have a class which is the same as the start of another.
+# Simple search and replace is worth keeping and requires uniqueness.
 CSS_ALIGN_RIGHT = u"right"
 CSS_LBL = u"lbl"
 CSS_TBL_TITLE = u"tbltitle"
@@ -121,7 +122,7 @@ CSS_TBL_TITLE_CELL = u"tblcelltitle"
 CSS_TBL_SUBTITLE = u"tblsubtitle"
 CSS_FIRST_COL_VAR = u"firstcolvar"
 CSS_FIRST_ROW_VAR = u"firstrowvar"
-CSS_FIRST_ROW_VAR_TOPLINE = u"firstrowvar-topline"
+CSS_TOPLINE = u"topline"
 CSS_DATACELL = u"datacell"
 CSS_FIRST_DATACELL = u"firstdatacell"
 CSS_SPACEHOLDER = u"spaceholder"
@@ -134,10 +135,10 @@ CSS_TOTAL_ROW = u"total-row"
 CSS_PAGE_BREAK_BEFORE = u"page-break-before"
 CSS_TBL_HDR_FTNOTE = u"tbl-header-ftnote"
 CSS_ELEMENTS = [CSS_ALIGN_RIGHT, CSS_LBL, CSS_TBL_TITLE, 
-    CSS_TBL_TITLE_CELL, CSS_TBL_SUBTITLE, CSS_FIRST_COL_VAR, CSS_FIRST_ROW_VAR, 
-    CSS_FIRST_ROW_VAR_TOPLINE, CSS_DATACELL, CSS_FIRST_DATACELL, 
-    CSS_SPACEHOLDER, CSS_ROW_VAL, CSS_COL_VAL, CSS_ROW_VAR, CSS_COL_VAR, 
-    CSS_MEASURE, CSS_TOTAL_ROW, CSS_PAGE_BREAK_BEFORE, CSS_TBL_HDR_FTNOTE]
+    CSS_TBL_TITLE_CELL, CSS_TBL_SUBTITLE, CSS_FIRST_COL_VAR, CSS_FIRST_ROW_VAR,
+    CSS_TOPLINE, CSS_DATACELL, CSS_FIRST_DATACELL, CSS_SPACEHOLDER, CSS_ROW_VAL, 
+    CSS_COL_VAL, CSS_ROW_VAR, CSS_COL_VAR, CSS_MEASURE, CSS_TOTAL_ROW, 
+    CSS_PAGE_BREAK_BEFORE, CSS_TBL_HDR_FTNOTE]
 CSS_SUFFIX_TEMPLATE = u"%s%s"
 # projects ******************************************************
 EMPTY_PROJ_NAME = _("GIVE ME A NAME ...")

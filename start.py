@@ -594,7 +594,7 @@ class StartFrame(wx.Frame):
                                                 COMTYPES_HANDLED))):
             wx.MessageBox(_("Click OK to prepare for first use of SOFA "
                             "Statistics.\n\nPreparation may take a moment ..."))
-            h = full_html.FullHTML(panel, (10, 10))
+            h = full_html.FullHTML(panel=panel, parent=self, size=(10,10))
             h.show_html(u"")
             h = None
         if not os.path.exists(os.path.join(mg.LOCAL_PATH, COMTYPES_HANDLED)):
@@ -785,10 +785,9 @@ class StartFrame(wx.Frame):
             lib.safe_end_cursor()
             dlg.ShowModal()
         except Exception, e:
-            msg = _("Unable to connect to data as defined in project %s. "
-                    "Please check your settings" % self.active_proj)
+            msg = _("Unable to open report table dialog. Caused by error: %s" % 
+                    lib.ue(e))
             wx.MessageBox(msg)
-            raise Exception(u"%s.\nCaused by error: %s" % (msg, lib.ue(e)))
         finally:
             lib.safe_end_cursor()
             event.Skip()

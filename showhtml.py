@@ -50,7 +50,8 @@ class DlgHTML(wx.Dialog):
                            style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU)
         self.file_name = file_name
         self.print_folder = print_folder
-        self.html = full_html.FullHTML(self, size=wx.DefaultSize)
+        self.html = full_html.FullHTML(panel=self, parent=self, 
+                                       size=wx.DefaultSize)
         self.show_content(url, content, url_load)
         btn_close = wx.Button(self, wx.ID_CLOSE, _("Close"))
         btn_close.Bind(wx.EVT_BUTTON, self.on_close)

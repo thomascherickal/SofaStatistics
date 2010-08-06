@@ -213,7 +213,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.get_misc_config_szrs(self.panel_bottom) # mixin                         
         self.szr_output_btns = self.get_szr_output_btns(self.panel_bottom, 
                                                         inc_clear=False) # mixin
-        self.html = full_html.FullHTML(self.panel_bottom, size=(200, 150))
+        self.html = full_html.FullHTML(panel=self.panel_bottom, parent=self, 
+                                       size=(200, 150))
         html2show = _("<p>Waiting for a report to be run.</p>")
         self.html.show_html(html2show)
         szr_bottom_left.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)

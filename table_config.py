@@ -466,7 +466,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                             if not self.readonly else _("Demonstration Result:")
         lbl_see_result = wx.StaticText(self.panel, -1, see_result_lbl)
         lbl_see_result.SetFont(font=bold)
-        self.html = full_html.FullHTML(self.panel, size=(500,200))
+        self.html = full_html.FullHTML(panel=self.panel, parent=self, 
+                                       size=(500,200))
         szr_design_left.Add(lbl_design_here, 0)
         if not self.readonly:
             lbl_sofa_id = wx.StaticText(self.panel, -1, 

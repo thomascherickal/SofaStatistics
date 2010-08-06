@@ -96,7 +96,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             myheight = 350
         if mg.PLATFORM == mg.MAC:
             myheight = myheight*0.3
-        self.html = full_html.FullHTML(self.panel, size=(200, myheight))
+        self.html = full_html.FullHTML(panel=self.panel, parent=self, 
+                                       size=(200,myheight))
         html2show = _("<p>Waiting for a report to be run.</p>")
         self.html.show_html(html2show)
         szr_bottom_left.Add(self.html, 1, wx.GROW|wx.LEFT|wx.BOTTOM, 5)

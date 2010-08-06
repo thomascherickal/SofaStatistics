@@ -22,7 +22,8 @@ import full_html
 import output
 import rawtables
 
-OUTPUT_MODULES = ["my_globals as mg", "dimtables", "rawtables", "output", "getdata"]
+OUTPUT_MODULES = ["my_globals as mg", "dimtables", "rawtables", "output", 
+                  "getdata"]
 dd = getdata.get_dd()
 cc = config_dlg.get_cc()
 
@@ -238,7 +239,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         else:
             myheight = min_height + ((mg.MAX_HEIGHT-grow_from)*0.2)
         myheight = 350 if myheight > 350 else myheight
-        self.html = full_html.FullHTML(self.panel, size=(200, myheight))        
+        self.html = full_html.FullHTML(panel=self.panel, parent=self, 
+                                       size=(200,myheight))
         has_rows, has_cols = self.get_row_col_status()
         waiting_msg = get_missing_dets_msg(self.tab_type, has_rows, has_cols)
         self.html.show_html(waiting_msg)
@@ -524,10 +526,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                                            add_to_report, 
                                                            css_fils, script)
             lib.safe_end_cursor()
-            # test JS charting
-            """f = open("/home/g/Desktop/testrob1.htm", "r")
-            str_content = f.read()
-            f.close()"""
             lib.update_local_display(self.html, str_content)
             self.str_content = str_content
             self.btn_expand.Enable(bolran_report)
@@ -750,7 +748,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         Export script if enough data to create table.
         """
         import webbrowser
-        url = u"http://www.sofastatistics.com/wiki/doku.php?id=help:report_tables"
+        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
+              u"?id=help:report_tables"
         webbrowser.open_new_tab(url)
         event.Skip()
     
@@ -837,16 +836,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                        "click 'Run' for actual results<br>&nbsp;&nbsp;or "
                        "keep configuring</p>"))
                 current_style = config_dlg.path2style(cc[mg.CURRENT_CSS_PATH])
-                if (mg.PLATFORM == mg.LINUX 
-                    and current_style in [u"lucid_spirals", u"grey_spirals", 
-                                          u"pebbles"]):
-                    demo_tbl_html += (u"<p class='gui-msg-small'>"
-                        "<span class='gui-note'>NOTE</span> - Even though it "
-                        "doesn't show here, the background image used in the"
-                        " \"%s\" style displays properly in any output added to"
-                        " your report. This issue has a known cause which "
-                        "should be resolved by the next version of SOFA "
-                        "Statistics.</p>" % current_style)
                 demo_tbl_html += u"\n\n" + demo_html
                 self.prev_demo = demo_tbl_html
         if debug: print(u"\n" + demo_tbl_html + "\n")
