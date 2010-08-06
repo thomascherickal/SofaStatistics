@@ -50,9 +50,12 @@ class DlgHTML(wx.Dialog):
                            style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU)
         self.file_name = file_name
         self.print_folder = print_folder
+        self.url = url
+        self.content = content
+        self.url_load = url_load
         self.html = full_html.FullHTML(panel=self, parent=self, 
                                        size=wx.DefaultSize)
-        self.show_content(url, content, url_load)
+        self.Bind(wx.EVT_SHOW, self.on_show)
         btn_close = wx.Button(self, wx.ID_CLOSE, _("Close"))
         btn_close.Bind(wx.EVT_BUTTON, self.on_close)
         szr_main = wx.BoxSizer(wx.VERTICAL)
@@ -77,7 +80,15 @@ class DlgHTML(wx.Dialog):
         self.SetPosition((10, pos_y))
         self.Restore()
         lib.safe_end_cursor()
-    
+
+    def on_show(self, event):
+        try:
+            self.html.pizza_magic() # must happen after Show
+        except Exception:
+            pass
+        finally: # any initial content
+            self.show_content(self.url, self.content, self.url_load)
+            
     def show_content(self, url=None, content=None, url_load=None):
         if content is None and url is None:
             raise Exception(u"Need whether string content or a url")

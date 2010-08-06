@@ -215,8 +215,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                                         inc_clear=False) # mixin
         self.html = full_html.FullHTML(panel=self.panel_bottom, parent=self, 
                                        size=(200, 150))
-        html2show = _("<p>Waiting for a report to be run.</p>")
-        self.html.show_html(html2show)
+        self.Bind(wx.EVT_SHOW, self.on_show)
         szr_bottom_left.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
         szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW)
         szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW)
@@ -239,7 +238,16 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_lst = [self.panel_top, self.panel_mid, self.panel_bottom]
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024, 
                      height_init=myheight)
-    
+
+    def on_show(self, event):
+        try:
+            self.html.pizza_magic() # must happen after Show
+        except Exception:
+            pass
+        finally: # any initial content
+            html2show = _("<p>Waiting for a report to be run.</p>")
+            self.html.show_html(html2show)
+            
     def setup_chart_btns(self, szr_chart_btns):
         # bar charts
         bmp_btn_bar_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 

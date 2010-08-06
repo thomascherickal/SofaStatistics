@@ -393,7 +393,7 @@ class StartFrame(wx.Frame):
         self.panel = wx.Panel(self, size=(SCREEN_WIDTH, 600)) # win
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)
-        self.init_com_types(self.panel)
+        self.Bind(wx.EVT_SHOW, self.on_show)
         self.active_proj = mg.DEFAULT_PROJ
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=self.active_proj)
@@ -583,6 +583,9 @@ class StartFrame(wx.Frame):
             wx.MessageBox(_("Please click on \"Enter/Edit Data\" and delete"
                         " the table \"%s\"") % mg.TMP_TBL_NAME)
     
+    def on_show(self, event):
+        self.init_com_types(self.panel)
+    
     def init_com_types(self, panel):
         """
         If first time opened, and in Windows, warn user about delay setting 
@@ -595,6 +598,10 @@ class StartFrame(wx.Frame):
             wx.MessageBox(_("Click OK to prepare for first use of SOFA "
                             "Statistics.\n\nPreparation may take a moment ..."))
             h = full_html.FullHTML(panel=panel, parent=self, size=(10,10))
+            try:
+                h.pizza_magic() # must happen after Show
+            except Exception:
+                pass
             h.show_html(u"")
             h = None
         if not os.path.exists(os.path.join(mg.LOCAL_PATH, COMTYPES_HANDLED)):

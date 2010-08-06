@@ -468,6 +468,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         lbl_see_result.SetFont(font=bold)
         self.html = full_html.FullHTML(panel=self.panel, parent=self, 
                                        size=(500,200))
+        self.Bind(wx.EVT_SHOW, self.on_show)
         szr_design_left.Add(lbl_design_here, 0)
         if not self.readonly:
             lbl_sofa_id = wx.StaticText(self.panel, -1, 
@@ -488,12 +489,19 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
         if not readonly:
             self.szr_btns.Insert(2, btn_recode, 0, wx.LEFT, 10)
-        self.update_demo()
         self.panel.SetSizer(self.szr_main)
         self.szr_main.SetSizeHints(self)
         self.Layout()
         self.txt_tblname.SetFocus()
-    
+        
+    def on_show(self, event):
+        try:
+            self.html.pizza_magic() # must happen after Show
+        except Exception:
+            pass
+        finally: # any initial content
+            self.update_demo()
+            
     def get_demo_val(self, row_idx, col_label, type):
         """
         Get best possible demo value for display in absence of source data.

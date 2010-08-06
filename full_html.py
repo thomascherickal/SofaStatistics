@@ -93,9 +93,14 @@ else:
             class FullHTML(wx.Panel):
         
                 def __init__(self, panel, parent, size):
-                    debug = False
                     wx.Panel.__init__(self, panel, size=size)
-                    parent.Show()
+                
+                def pizza_magic(self):
+                    """
+                    Do pizza_magic when parent is shown (EVT_SHOW).  If not 
+                        shown, can't get handle and can't make magic work. 
+                    """
+                    debug = False
                     whdl = self.GetHandle() # only works if parent is shown
                     if debug: print(whdl) # 0 if not shown so will fail
                     window = gtk.gdk.window_lookup(whdl)

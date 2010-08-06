@@ -241,9 +241,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         myheight = 350 if myheight > 350 else myheight
         self.html = full_html.FullHTML(panel=self.panel, parent=self, 
                                        size=(200,myheight))
+        self.Bind(wx.EVT_SHOW, self.on_show)
         has_rows, has_cols = self.get_row_col_status()
         waiting_msg = get_missing_dets_msg(self.tab_type, has_rows, has_cols)
-        self.html.show_html(waiting_msg)
         self.btn_run.Enable(False)
         self.chk_add_to_report.Enable(False)
         self.btn_export.Enable(False)
@@ -299,6 +299,15 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.panel.SetSizer(szr_main)
         szr_lst = [self.szr_data, szr_mid, szr_trees, szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024)
+
+    def on_show(self, event):
+        try:
+            self.html.pizza_magic() # must happen after Show
+        except Exception:
+            pass
+        finally: # any initial content
+            self.html.show_html(waiting_msg)
+            
 
     def update_css(self):
         "Update css, including for demo table"

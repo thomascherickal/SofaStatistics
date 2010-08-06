@@ -111,7 +111,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         myheight = 100 if mg.MAX_HEIGHT < 800 else 200
         self.html = full_html.FullHTML(panel=self.panel, parent=self, 
                                        size=(200,myheight))
-        self.set_output_to_blank()
+        self.Bind(wx.EVT_SHOW, self.on_show)
         szr_normality_test.Add(self.html, 1, wx.GROW)
         self.szr_examine.Add(szr_normality_test, 1, wx.GROW|wx.ALL, 10)
         btn_ok = wx.Button(self.panel, wx.ID_OK)
@@ -130,6 +130,14 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.szr_lst = [self.szr_desc, self.szr_data, szr_vars, szr_paired,
                    self.szr_examine]
         self.set_size()
+
+    def on_show(self, event):
+        try:
+            self.html.pizza_magic() # must happen after Show
+        except Exception:
+            pass
+        finally: # any initial content
+            self.set_output_to_blank()
 
     def set_size(self):
         lib.set_size(window=self, szr_lst=self.szr_lst, height_init=560)

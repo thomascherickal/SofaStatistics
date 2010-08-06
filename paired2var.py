@@ -98,8 +98,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             myheight = myheight*0.3
         self.html = full_html.FullHTML(panel=self.panel, parent=self, 
                                        size=(200,myheight))
-        html2show = _("<p>Waiting for a report to be run.</p>")
-        self.html.show_html(html2show)
+        self.Bind(wx.EVT_SHOW, self.on_show)
         szr_bottom_left.Add(self.html, 1, wx.GROW|wx.LEFT|wx.BOTTOM, 5)
         szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW)
         szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW)
@@ -123,6 +122,15 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.panel.SetSizer(szr_main)
         szr_lst = [szr_desc, self.szr_data, szr_vars, szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst)
+
+    def on_show(self, event):
+        try:
+            self.html.pizza_magic() # must happen after Show
+        except Exception:
+            pass
+        finally: # any initial content
+            html2show = _("<p>Waiting for a report to be run.</p>")
+            self.html.show_html(html2show)
 
     def on_rclick_group_a(self, event):
         var_a, choice_item = self.get_var_a()
