@@ -85,36 +85,6 @@ def get_avg_row_size(rows):
     return avg_row_size
 
 
-# http://docs.python.org/library/csv.html
-class UnicodeCsvReader(object):
-    
-    def __init__(self, utf8_encoded_csv_data, dialect=csv.excel, **kwargs):
-        # csv.py doesn't do Unicode; encode temporarily as UTF-8:
-        try:
-            self.csv_reader = csv.reader(utf8_encoded_csv_data, dialect=dialect, 
-                                         **kwargs)
-        except Exception, e:
-            raise Exception(u"Unable to start internal csv reader. "
-                            u"\nCaused by error: %s" % lib.ue(e))
-    def __iter__(self):
-        debug = False
-        if debug: print(u"About to iterate through csv.reader")
-        for row in self.csv_reader:
-            if debug: print(u"Iterating through csv.reader")
-            # decode UTF-8 back to Unicode, cell by cell:
-            rowvals = []
-            for val in row:
-                try:
-                    if val is None:
-                        raise Exception(u"Missing value in csv file")
-                    uval = val.decode("utf8")
-                    rowvals.append(uval)
-                except Exception, e:
-                    raise Exception(u"Problem decoding values. "
-                                    u"\nCaused by error: %s" % lib.ue(e))
-            yield rowvals
-
-
 class UnicodeCsvDictReader(object):
     
     def __init__(self, utf8_encoded_csv_data, dialect=csv.excel, **kwargs):
@@ -125,20 +95,30 @@ class UnicodeCsvDictReader(object):
         except Exception, e:
             raise Exception(u"Unable to start internal csv reader. "
                             u"\nCaused by error: %s" % lib.ue(e))
+        self.i = 0
         self.fieldnames = self.csv_dictreader.fieldnames
-        
+    
     def __iter__(self):
         """
         If required, decode UTF8-encoded byte string back to Unicode, dict pair 
             by pair.
         """
         for row in self.csv_dictreader:
+            self.i += 1
             unicode_key_value_tups = []
             for key_val in row.items():
                 uni_key_val = []
                 for item in key_val:
                     if item is None:
-                        raise Exception(u"Missing value in csv file")
+                        row_items = [row[x] for x in self.fieldnames]
+                        items_tidied = []
+                        for item in row_items:
+                            tidied_item = _("MISSING VALUE") if item is None \
+                                                        else item.decode("utf8")
+                            items_tidied.append(tidied_item)
+                        row_dets = u", ".join(items_tidied)
+                        raise Exception(u"Missing value in row %s of csv file."
+                                    u"\nRow details:\n%s" % (self.i, row_dets))
                     if not isinstance(item, unicode):
                         item = item.decode("utf8")
                     uni_key_val.append(item)
@@ -474,6 +454,8 @@ class CsvImporter(importer.FileImporter):
                 ok_fld_names = [mg.NEXT_FLD_NAME_TEMPLATE % (x+1,) 
                                for x in range(len(row))]
                 break
+            tmp_reader.i = 2 # set so any subsequent errors are reported for
+                # correct row number
         if not ok_fld_names:
             raise Exception(u"Unable to get ok field names")
         row_size = self.get_avg_row_size(tmp_reader)
