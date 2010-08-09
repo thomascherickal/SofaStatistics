@@ -23,8 +23,14 @@ Assumed that table names will be case insensitive e.g. tblitems == tblItems.
 def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None, 
                       tbl=None, add_checks=False, stop=False):
     """
+    default_dbs -- one per dbe (might be None for this dbe)
     db -- may be changing dbe and db together (e.g. dbe-db dropdown).
     add_checks -- only used by SQLite dbe.
+    If a db and tbl are provided, fail if not able to connect to that table in 
+        that database. If table missing, try to connect to default or first 
+        table in database as appropriate.  If database missing, try to connect 
+        to first database with tables. Try to connect if at all possible to meet 
+        specifications. 
     """
     debug = False
     try:
@@ -35,9 +41,33 @@ def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None,
             kwargs["add_checks"] = add_checks
         dbe_resources.update(mg.DBE_MODULES[dbe].get_con_resources(**kwargs))
         cur = dbe_resources[mg.DBE_CUR]
-        db = dbe_resources[mg.DBE_DB]
+        dbs = dbe_resources[mg.DBE_DBS]
+        db = dbe_resources[mg.DBE_DB] # Try this first. 
+            # If this database has no tables, try others and reset db.
         if debug: print("About to update dbe resources with db resources")
-        db_resources = get_db_resources(dbe, cur, db, default_tbls, tbl)
+        
+        
+        
+        db_resources = None
+        had_no_tbls_exception = False
+        dbs2try = [x for x in dbs if x != db]
+        dbs2try.insert(0, db) # ensure db first
+        for db in dbs2try:
+            try:
+                db_resources = get_db_resources(dbe, cur, db, default_tbls, tbl)
+                break
+            except my_exceptions.NoTablesException, e:
+                had_no_tbls_exception = True
+            except Exception:
+                pass
+        if db_resources is None:
+            err_msg = u"Unable to get dbe_resources."
+            if had_no_tbls_exception:
+                err_msg += u" Unable to find any databases with tables."
+            raise Exception(err_msg)
+        
+        
+        
         dbe_resources.update(db_resources)
         if debug: print("Finished updating dbe resources with db resources")
     except my_exceptions.MalformedDbError:
@@ -53,6 +83,8 @@ def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None,
 def get_db_resources(dbe, cur, db, default_tbls, tbl):
     debug = False
     tbls = mg.DBE_MODULES[dbe].get_tbls(cur, db)
+    if not tbls:
+        raise my_exceptions.NoTablesException()
     if debug: print("About to get tbl")
     if tbl:
         if tbl not in tbls:

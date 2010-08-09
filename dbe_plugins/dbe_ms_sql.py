@@ -52,8 +52,8 @@ def get_syntax_elements():
     
 def get_dbs(host, user, pwd, default_dbs, db=None):
     """
-    Get dbs and the db to use.
-    NB need to use a separate connection here with db Initial Catalog) 
+    Get dbs and the db to use.  Exclude master.
+    NB need to use a separate connection here with db Initial Catalog
         undefined.        
     """
     DSN = u"""PROVIDER=SQLOLEDB;
@@ -69,17 +69,25 @@ def get_dbs(host, user, pwd, default_dbs, db=None):
                         u"%s; user: %s; and pwd: %s" % (host, user, pwd))
     cur = con.cursor() # must return tuples not dics
     try: # MS SQL Server 2000
-        cur.execute(u"SELECT name FROM master.dbo.sysdatabases")
+        cur.execute(u"SELECT name FROM master.dbo.sysdatabases ORDER BY name")
     except Exception, e: # SQL Server 2005
-        cur.execute(u"SELECT name FROM sys.databases")
-    dbs = [x[0] for x in cur.fetchall()]
+        cur.execute(u"SELECT name FROM sys.databases ORDER BY name")
+    # only want dbs with at least one table.
+    all_dbs = [x[0] for x in cur.fetchall() if x[0] != u"master"]
+    dbs = []
+    for db4list in all_dbs:
+        if has_tbls(cur, db4list):
+            dbs.append(db4list)
     dbs_lc = [x.lower() for x in dbs]
     # get db (default if possible otherwise first)
     # NB db must be accessible from connection
     if not db:
-        # use default if possible, or fall back to first
+        # use default if possible, or fall back to first. NB may have no tables.
         default_db_mssql = default_dbs.get(mg.DBE_MS_SQL) # might be None
-        db = dbs[0] # init
+        try:
+            db = dbs[0] # init
+        except IndexError:
+            raise Exception(_("No databases to choose from"))
         if default_db_mssql:
             if default_db_mssql.lower() in dbs_lc:
                 db = default_db_mssql
@@ -100,6 +108,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
     When opening from scratch, e.g. clicking on Report Tables from Start,
         no db, so must identify one, but when selecting dbe-db in dropdowns, 
         there will be a db.
+    If no db defined, use default if possible, or first with tables.
     Returns dict with con, cur, dbs, db.
     """
     con_dets_mssql = con_dets.get(mg.DBE_MS_SQL)
@@ -142,6 +151,16 @@ def get_tbls(cur, db):
     cat = None
     return tbls
 
+def has_tbls(cur, db):
+    "Any non-system tables?"
+    cat = win32com.client.Dispatch(r'ADOX.Catalog')
+    cat.ActiveConnection = cur.adoconn
+    alltables = cat.Tables
+    for tab in alltables:
+        if tab.Type == "TABLE":
+            return True
+    return False
+            
 def get_flds(cur, db, tbl):
     """
     Returns details for set of fields given database, table, and cursor.

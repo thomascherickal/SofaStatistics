@@ -126,8 +126,6 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
-        except Exception:
-            pass
         finally: # any initial content
             html2show = _("<p>Waiting for a report to be run.</p>")
             self.html.show_html(html2show)

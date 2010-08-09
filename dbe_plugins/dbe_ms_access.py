@@ -101,6 +101,9 @@ def get_con_resources(con_dets, default_dbs, db=None):
                         (pwd, mdw, lib.ue(e)))
     cur = con.cursor() # must return tuples not dics
     cur.adoconn = con.adoConn # (need to access from just the cursor)
+    if not has_tbls(cur, db):
+        raise Exception(_("Selected database \"%s\" didn't have any tables.") %
+                        db)
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: [db,],
                      mg.DBE_DB: db}
     return con_resources
@@ -117,6 +120,16 @@ def get_tbls(cur, db):
             tbls.append(tab.Name)
     cat = None
     return tbls
+
+def has_tbls(cur, db):
+    "Any non-system tables?"
+    cat = win32com.client.Dispatch(r'ADOX.Catalog')
+    cat.ActiveConnection = cur.adoconn
+    alltables = cat.Tables
+    for tab in alltables:
+        if tab.Type == u"TABLE":
+            return True
+    return False
 
 def fld_unique(fld_name, idxs):
     for idx in idxs:

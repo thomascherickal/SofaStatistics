@@ -44,7 +44,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             "skewing, and clustering into groups.")
         self.desc_label_paired = _("Select the paired variables you are "
             "interested in. Looking at the differences, is the distribution "
-            "close enough\nto the normal curve for use with tests requiring "
+            "close enough to the normal curve for use with tests requiring "
             "that?\n\nNote: if comparing samples, each sample must be normal "
             "enough. Filter for each sample by right clicking on the table "
             "selector.") # OS X can display oddly dep on breaks
@@ -127,20 +127,20 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         #szr_std_btns.Insert(0, self.szr_level, wx.ALIGN_LEFT|wx.ALL, 10)
         szr_main.Add(szr_std_btns, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(szr_main)
-        self.szr_lst = [self.szr_desc, self.szr_data, szr_vars, szr_paired,
-                   self.szr_examine]
+        self.szr_lst = [self.szr_desc, self.szr_data, szr_paired, szr_vars,
+                        self.szr_examine]
         self.set_size()
 
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
-        except Exception:
-            pass
         finally: # any initial content
             self.set_output_to_blank()
 
     def set_size(self):
-        lib.set_size(window=self, szr_lst=self.szr_lst, height_init=560)
+        horiz_padding = 15 if mg.PLATFORM == mg.MAC else 10
+        lib.set_size(window=self, szr_lst=self.szr_lst, height_init=560, 
+                     horiz_padding=horiz_padding)
 
     def on_rad_paired(self, event):
         "Respond to selection of single/paired"

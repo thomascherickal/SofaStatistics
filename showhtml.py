@@ -84,8 +84,6 @@ class DlgHTML(wx.Dialog):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
-        except Exception:
-            pass
         finally: # any initial content
             self.show_content(self.url, self.content, self.url_load)
             

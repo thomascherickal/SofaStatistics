@@ -118,11 +118,14 @@ def get_con_resources(con_dets, default_dbs, db=None, add_checks=False):
             print(unicode(e))
             raise
     cur = con.cursor() # must return tuples not dics
+    if not has_tbls(cur, db):
+        raise Exception(_("Selected database \"%s\" didn't have any tables.") %
+                        db)
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: [db,],
                      mg.DBE_DB: db}
     return con_resources
 
-def get_tbls(cur, db):
+def get_unsorted_tbls_list(cur, db):
     "Get table names given database and cursor"
     SQL_get_tbls = u"""SELECT name 
         FROM sqlite_master 
@@ -137,9 +140,21 @@ def get_tbls(cur, db):
             print(lib.ue(e))
             raise
     tbls = [x[0] for x in cur.fetchall()]
+    return tbls
+
+def get_tbls(cur, db):
+    "Get table names given database and cursor"
+    tbls = get_unsorted_tbls_list(cur, db)
     tbls.sort(key=lambda s: s.upper())
     return tbls
 
+def has_tbls(cur, db):
+    "Any non-system tables?"
+    tbls = get_unsorted_tbls_list(cur, db)
+    if tbls:
+        return True
+    return False
+    
 def get_char_len(type_text):
     """
     NB SQLite never truncates whatever you specify.
@@ -351,7 +366,7 @@ def valid_name(name):
         cur.execute("""DROP TABLE "%s" """ % name)
         valid = True
     except Exception, e:
-        if debug: print(unicode(e))
+        if debug: print(lib.ue(e))
     finally:
         cur.close()
         con.close()

@@ -75,7 +75,12 @@ def get_con_resources(con_dets, default_dbs, db=None):
     #        WHERE SCHEMA_NAME <> 'information_schema'"""
     SQL_get_db_names = "SHOW DATABASES"
     cur.execute(SQL_get_db_names)
-    dbs = [x[0] for x in cur.fetchall() if x[0] != u"information_schema"]
+    # only want dbs with at least one table.
+    all_dbs = [x[0] for x in cur.fetchall() if x[0] != u"information_schema"]
+    dbs = []
+    for db4list in all_dbs:
+        if has_tbls(cur, db4list):
+            dbs.append(db4list)
     dbs_lc = [x.lower() for x in dbs]
     if not db:
         # use default if possible, or fall back to first
@@ -111,9 +116,18 @@ def get_tbls(cur, db):
     #    WHERE TABLE_SCHEMA = %s """ % (quote_val(db), quote_val(db))
     SQL_get_tbl_names = u"""SHOW TABLES FROM %s """ % quote_obj(db)
     cur.execute(SQL_get_tbl_names)
-    tbls = [x[0] for x in cur.fetchall()] 
+    tbls = [x[0] for x in cur.fetchall()]
     tbls.sort(key=lambda s: s.upper())
     return tbls
+
+def has_tbls(cur, db):
+    "Any non-system tables?"
+    SQL_get_tbl_names = u"""SHOW TABLES FROM %s """ % quote_obj(db)
+    cur.execute(SQL_get_tbl_names)
+    tbls = [x[0] for x in cur.fetchall()]
+    if tbls:
+        return True
+    return False 
 
 def get_min_max(col_type, num_prec, dec_pts):
     """

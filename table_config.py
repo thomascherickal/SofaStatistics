@@ -497,8 +497,6 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
-        except Exception:
-            pass
         finally: # any initial content
             self.update_demo()
             

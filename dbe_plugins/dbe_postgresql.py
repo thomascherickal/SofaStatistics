@@ -106,7 +106,12 @@ def get_con_resources(con_dets, default_dbs, db=None):
     # get database name
     SQL_get_db_names = u"""SELECT datname FROM pg_database"""
     cur.execute(SQL_get_db_names)
-    dbs = [x[0] for x in cur.fetchall()]
+    # only want dbs with at least one table.
+    all_dbs = [x[0] for x in cur.fetchall()]
+    dbs = []
+    for db4list in all_dbs:
+        if has_tbls(cur, db4list):
+            dbs.append(db4list)
     dbs_lc = [x.lower() for x in dbs]
     # get db (default if possible otherwise first)
     # NB db must be accessible from connection
@@ -146,6 +151,18 @@ def get_tbls(cur, db):
     tbls.sort(key=lambda s: s.upper())
     return tbls
 
+def has_tbls(cur, db):
+    "Any non-system tables?"
+    SQL_get_tbl_names = u"""SELECT table_name
+        FROM information_schema.tables
+        WHERE table_type = 'BASE TABLE'
+            AND table_schema NOT IN ('pg_catalog', 'information_schema')"""
+    cur.execute(SQL_get_tbl_names)
+    tbls = [x[0] for x in cur.fetchall()]
+    if tbls:
+        return True
+    return False
+    
 def get_min_max(fld_type, num_prec, dec_pts, autonum):
     """
     Returns minimum and maximum allowable numeric values.

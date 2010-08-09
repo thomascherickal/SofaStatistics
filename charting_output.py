@@ -242,9 +242,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
-        except Exception:
-            pass
-        finally: # any initial content
+        finally:
+            # any initial content
             html2show = _("<p>Waiting for a report to be run.</p>")
             self.html.show_html(html2show)
             
