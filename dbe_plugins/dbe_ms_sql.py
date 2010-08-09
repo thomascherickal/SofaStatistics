@@ -68,6 +68,7 @@ def get_dbs(host, user, pwd, default_dbs, db=None):
         raise Exception(u"Unable to connect to MS SQL Server with host: "
                         u"%s; user: %s; and pwd: %s" % (host, user, pwd))
     cur = con.cursor() # must return tuples not dics
+    cur.adoconn = con.adoConn # (need to access from just the cursor)
     try: # MS SQL Server 2000
         cur.execute(u"SELECT name FROM master.dbo.sysdatabases ORDER BY name")
     except Exception, e: # SQL Server 2005
@@ -76,8 +77,11 @@ def get_dbs(host, user, pwd, default_dbs, db=None):
     all_dbs = [x[0] for x in cur.fetchall() if x[0] != u"master"]
     dbs = []
     for db4list in all_dbs:
+        con, cur = get_con_cur_for_db(host, user, pwd, db4list)
         if has_tbls(cur, db4list):
             dbs.append(db4list)
+    if not dbs:
+        raise Exception(_("Unable to find any databases with tables."))
     dbs_lc = [x.lower() for x in dbs]
     # get db (default if possible otherwise first)
     # NB db must be accessible from connection
@@ -103,6 +107,24 @@ def set_db_in_con_dets(con_dets, db):
     "Set database in connection details (if appropriate)"
     con_dets[u"db"] = db
     
+def get_con_cur_for_db(host, user, pwd, db):
+    DSN = u"""PROVIDER=SQLOLEDB;
+        Data Source='%s';
+        User ID='%s';
+        Password='%s';
+        Initial Catalog='%s';
+        Integrated Security=SSPI""" % (host, user, pwd, db)
+    try:
+        con = adodbapi.connect(connstr=DSN)
+    except Exception, e:
+        raise Exception(u"Unable to connect to MS SQL Server with "
+                        u"database %s; and supplied connection: " % db +
+                        u"host: %s; user: %s; pwd: %s." % (host, user, pwd) +
+                        u"\nCaused by error: %s" % lib.ue(e))
+    cur = con.cursor()
+    cur.adoconn = con.adoConn # (need to access from just the cursor) 
+    return con, cur
+
 def get_con_resources(con_dets, default_dbs, db=None):
     """
     When opening from scratch, e.g. clicking on Report Tables from Start,
@@ -119,27 +141,16 @@ def get_con_resources(con_dets, default_dbs, db=None):
     pwd = con_dets_mssql["passwd"]
     dbs, db = get_dbs(host, user, pwd, default_dbs, db)
     set_db_in_con_dets(con_dets_mssql, db)
-    DSN = u"""PROVIDER=SQLOLEDB;
-        Data Source='%s';
-        User ID='%s';
-        Password='%s';
-        Initial Catalog='%s';
-        Integrated Security=SSPI""" % (host, user, pwd, db)
-    try:
-        con = adodbapi.connect(connstr=DSN)
-    except Exception, e:
-        raise Exception(u"Unable to connect to MS SQL Server with "
-                        u"database %s; and supplied connection: " % db +
-                        u"host: %s; user: %s; pwd: %s." % (host, user, pwd) +
-                        u"\nCaused by error: %s" % lib.ue(e))
-    cur = con.cursor()
-    cur.adoconn = con.adoConn # (need to access from just the cursor)      
+    con, cur = get_con_cur_for_db(host, user, pwd, db)     
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: dbs,
                      mg.DBE_DB: db}
     return con_resources
 
 def get_tbls(cur, db):
-    "Get table names given database and cursor. NB not system tables"
+    """
+    Get table names given database and cursor. NB not system tables.
+    Cursor must be suitable for db.
+    """
     tbls = []
     cat = win32com.client.Dispatch(r'ADOX.Catalog')
     cat.ActiveConnection = cur.adoconn

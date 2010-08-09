@@ -60,7 +60,3 @@ class NoNodesException(Exception):
     def __init__(self):
         Exception.__init__(self, u"Cannot get terminal nodes until " +
                     u"there is at least one node added to tree")
-
-class NoTablesException(Exception):
-    def __init__(self):
-        Exception.__init__(self, u"Not tables in database")

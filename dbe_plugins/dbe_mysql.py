@@ -49,6 +49,18 @@ def get_syntax_elements():
     return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
             placeholder, get_summable, gte_not_equals)
 
+def get_con_cur_for_db(con_dets_mysql, db):
+    try:
+        con_dets_mysql["use_unicode"] = True
+        if db:
+            con_dets_mysql["db"] = db
+        con = MySQLdb.connect(**con_dets_mysql)
+    except Exception, e:
+        raise Exception(u"Unable to connect to MySQL db. "
+                        u"\nCaused by error: %s" % lib.ue(e))
+    cur = con.cursor() # must return tuples not dics
+    return con, cur
+
 def get_con_resources(con_dets, default_dbs, db=None):
     """
     When opening from scratch, e.g. clicking on Report Tables from Start,
@@ -61,15 +73,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
     con_dets_mysql = con_dets.get(mg.DBE_MYSQL)
     if not con_dets_mysql:
         raise my_exceptions.MissingConDets(mg.DBE_MYSQL)
-    try:
-        con_dets_mysql["use_unicode"] = True
-        if db:
-            con_dets_mysql["db"] = db
-        con = MySQLdb.connect(**con_dets_mysql)
-    except Exception, e:
-        raise Exception(u"Unable to connect to MySQL db. "
-                        u"\nCaused by error: %s" % lib.ue(e))
-    cur = con.cursor() # must return tuples not dics    
+    con, cur = get_con_cur_for_db(con_dets_mysql, db)
     #SQL_get_db_names = u"""SELECT SCHEMA_NAME 
     #        FROM information_schema.SCHEMATA
     #        WHERE SCHEMA_NAME <> 'information_schema'"""
@@ -79,9 +83,15 @@ def get_con_resources(con_dets, default_dbs, db=None):
     all_dbs = [x[0] for x in cur.fetchall() if x[0] != u"information_schema"]
     dbs = []
     for db4list in all_dbs:
+        con, cur = get_con_cur_for_db(con_dets_mysql, db4list)
         if has_tbls(cur, db4list):
             dbs.append(db4list)
+        cur.close()
+        con.close()
+    if not dbs:
+        raise Exception(_("Unable to find any databases with tables."))
     dbs_lc = [x.lower() for x in dbs]
+    con, cur = get_con_cur_for_db(con_dets_mysql, db)
     if not db:
         # use default if possible, or fall back to first
         default_db_mysql = default_dbs.get(mg.DBE_MYSQL) # might be None
@@ -99,7 +109,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
         if db.lower() not in dbs_lc:
             raise Exception(u"Database \"%s\" not available " % db +
                             u"from supplied connection")
-    con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: [db,],
+    con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: dbs,
                      mg.DBE_DB: db}
     return con_resources
 
@@ -121,7 +131,7 @@ def get_tbls(cur, db):
     return tbls
 
 def has_tbls(cur, db):
-    "Any non-system tables?"
+    "Any non-system tables?  Cursor should match db"
     SQL_get_tbl_names = u"""SHOW TABLES FROM %s """ % quote_obj(db)
     cur.execute(SQL_get_tbl_names)
     tbls = [x[0] for x in cur.fetchall()]

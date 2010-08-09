@@ -110,11 +110,25 @@ def get_con_resources(con_dets, default_dbs, db=None):
     all_dbs = [x[0] for x in cur.fetchall()]
     dbs = []
     for db4list in all_dbs:
+        con_dets_pgsql["database"] = db4list
+        try:
+            con = pgdb.connect(**con_dets_pgsql)
+        except Exception:
+            continue
+        cur = con.cursor()
         if has_tbls(cur, db4list):
             dbs.append(db4list)
+        cur.close()
+        con.close()
+    if not dbs:
+        raise Exception(_("Unable to find any databases with tables."))
     dbs_lc = [x.lower() for x in dbs]
     # get db (default if possible otherwise first)
     # NB db must be accessible from connection
+    if db:
+        con_dets_pgsql["database"] = db
+    con = pgdb.connect(**con_dets_pgsql)
+    cur = con.cursor()
     if not db:
         # use default if possible, or fall back to first
         default_db_pgsql = default_dbs.get(mg.DBE_PGSQL) # might be None
@@ -133,7 +147,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
             raise Exception(u"Database \"%s\" not available "
                             u"from supplied connection" % db)
     if debug: pprint.pprint(con_dets)  
-    con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: [db,],
+    con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: dbs,
                      mg.DBE_DB: db}
     return con_resources
 
@@ -152,7 +166,7 @@ def get_tbls(cur, db):
     return tbls
 
 def has_tbls(cur, db):
-    "Any non-system tables?"
+    "Any non-system tables?  Need to use cursor that matches db"
     SQL_get_tbl_names = u"""SELECT table_name
         FROM information_schema.tables
         WHERE table_type = 'BASE TABLE'

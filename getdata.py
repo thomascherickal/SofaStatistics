@@ -45,29 +45,7 @@ def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None,
         db = dbe_resources[mg.DBE_DB] # Try this first. 
             # If this database has no tables, try others and reset db.
         if debug: print("About to update dbe resources with db resources")
-        
-        
-        
-        db_resources = None
-        had_no_tbls_exception = False
-        dbs2try = [x for x in dbs if x != db]
-        dbs2try.insert(0, db) # ensure db first
-        for db in dbs2try:
-            try:
-                db_resources = get_db_resources(dbe, cur, db, default_tbls, tbl)
-                break
-            except my_exceptions.NoTablesException, e:
-                had_no_tbls_exception = True
-            except Exception:
-                pass
-        if db_resources is None:
-            err_msg = u"Unable to get dbe_resources."
-            if had_no_tbls_exception:
-                err_msg += u" Unable to find any databases with tables."
-            raise Exception(err_msg)
-        
-        
-        
+        db_resources = get_db_resources(dbe, cur, db, default_tbls, tbl)
         dbe_resources.update(db_resources)
         if debug: print("Finished updating dbe resources with db resources")
     except my_exceptions.MalformedDbError:
