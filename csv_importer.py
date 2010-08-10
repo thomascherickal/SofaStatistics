@@ -173,7 +173,9 @@ class DlgImportDisplay(wx.Dialog):
     def __init__(self, parent, file_path, dialect, encodings, retvals):
         wx.Dialog.__init__(self, parent=parent, 
                            title=_("Contents look correct?"), 
-                           style=wx.CAPTION|wx.SYSTEM_MENU)
+                           style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
+                           wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
+                           wx.CLIP_CHILDREN)
         self.parent = parent
         self.file_path = file_path
         self.dialect = dialect
@@ -214,7 +216,7 @@ class DlgImportDisplay(wx.Dialog):
         szr_btns.Realize()
         szr_main.Add(lbl_instructions, 0, wx.ALL, 10)
         szr_main.Add(szr_options, 0, wx.GROW|wx.ALL, 10)
-        szr_main.Add(self.html_content, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(self.html_content, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
         panel.SetSizer(szr_main)
         szr_main.SetSizeHints(self)
@@ -252,7 +254,7 @@ class DlgImportDisplay(wx.Dialog):
                     u"</td></tr>"
             decoded_lines.append(line)
         trows = "\n".join(decoded_lines)
-        content = u"<table><tbody>\n" + trows + u"\n</tbody></table>"
+        content = u"<table border='1' style='border-collapse: collapse;'><tbody>\n" + trows + u"\n</tbody></table>"
         n_lines_actual = len(decoded_lines)
         content_height = 35*n_lines_actual
         content_height = 300 if content_height > 300 else content_height
@@ -448,6 +450,8 @@ class CsvImporter(importer.FileImporter):
         if self.has_header:
             orig_names = tmp_reader.fieldnames
             ok_fld_names = importer.process_fld_names(orig_names)
+            tmp_reader.i = 1 # set so any subsequent errors are reported for
+                # correct row number
         else: # get number of fields from first row
             for row in tmp_reader:
                 if debug: print(row)
