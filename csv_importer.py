@@ -85,45 +85,89 @@ def get_avg_row_size(rows):
     return avg_row_size
 
 
-class UnicodeCsvDictReader(object):
-    
+# http://docs.python.org/library/csv.html
+class UnicodeCsvReader(object):
+    """
+    Sometimes preferable to dict reader because doesn't consume first row.
+    Dict readers do when field names not supplied.
+    """
     def __init__(self, utf8_encoded_csv_data, dialect=csv.excel, **kwargs):
         # csv.py doesn't do Unicode; encode temporarily as UTF-8:
         try:
+            self.csv_reader = csv.reader(utf8_encoded_csv_data, dialect=dialect, 
+                                         **kwargs)
+        except Exception, e:
+            raise Exception(u"Unable to start internal csv reader. "
+                            u"\nCaused by error: %s" % lib.ue(e))
+        self.i = 0
+        
+    def __iter__(self):
+        debug = False
+        if debug: print(u"About to iterate through csv.reader")
+        for row in self.csv_reader:
+            self.i += 1
+            try:
+                if debug: print(u"Iterating through csv.reader")
+                # decode UTF-8 back to Unicode, cell by cell:
+                rowvals = []
+                for val in row: # empty strings etc but never None
+                    try:
+                        uval = val.decode("utf8")
+                        rowvals.append(uval)
+                    except Exception, e:
+                        raise Exception(u"Problem decoding values. "
+                                        u"\nCaused by error: %s" % lib.ue(e))
+            except Exception, e:
+                raise Exception(u"Problem with csv file on row %s. " % self.i +
+                                u"Caused by error: %s" % lib.ue(e))
+            yield rowvals
+            
+
+class UnicodeCsvDictReader(object):
+    """
+    If the fieldnames parameter is omitted, the values in the first row of the 
+        csv file will be used as the fieldnames. Allows duplicates.
+        http://docs.python.org/library/csv.html
+    The first row will be consumed and no longer available.
+    """
+    def __init__(self, utf8_encoded_csv_data, dialect, fieldnames=None):
+        # csv.py doesn't do Unicode; encode temporarily as UTF-8:
+        try:
+            kwargs = {"fieldnames": fieldnames} if fieldnames else {}
             self.csv_dictreader = csv.DictReader(utf8_encoded_csv_data,
                                                  dialect=dialect, **kwargs)
         except Exception, e:
             raise Exception(u"Unable to start internal csv reader. "
                             u"\nCaused by error: %s" % lib.ue(e))
-        self.i = 0
         self.fieldnames = self.csv_dictreader.fieldnames
+        self.i = 0 if fieldnames else 1 # if no fieldnames, row 1 was consumed
     
     def __iter__(self):
         """
+        Iterates through rows.  If no field names were fed in at the start, will
+            begin at the second row (the first having been consumed to get the 
+            field names).
         If required, decode UTF8-encoded byte string back to Unicode, dict pair 
             by pair.
         """
         for row in self.csv_dictreader:
             self.i += 1
-            unicode_key_value_tups = []
-            for key_val in row.items():
-                uni_key_val = []
-                for item in key_val:
-                    if item is None:
-                        row_items = [row[x] for x in self.fieldnames]
-                        items_tidied = []
-                        for item in row_items:
-                            tidied_item = _("MISSING VALUE") if item is None \
-                                                        else item.decode("utf8")
-                            items_tidied.append(tidied_item)
-                        row_dets = u", ".join(items_tidied)
-                        raise Exception(u"Missing value in row %s of csv file."
-                                    u"\nRow details:\n%s" % (self.i, row_dets))
-                    if not isinstance(item, unicode):
-                        item = item.decode("utf8")
-                    uni_key_val.append(item)
-                unicode_key_value_tups.append(tuple(uni_key_val))
+            try:
+                unicode_key_value_tups = []
+                for key_val in row.items():
+                    uni_key_val = []
+                    for item in key_val:
+                        if item is None:
+                            item = u"" # be forgiving and effectively right pad
+                        if not isinstance(item, unicode):
+                            item = item.decode("utf8")
+                        uni_key_val.append(item)
+                    unicode_key_value_tups.append(tuple(uni_key_val))
+            except Exception, e:
+                raise Exception(u"Problem with csv file on row %s. " % self.i +
+                                u"Caused by error: %s" % lib.ue(e))
             yield dict(unicode_key_value_tups)
+
 
 def encode_lines_as_utf8(uni_lines):
     utf8_encoded_lines = []
@@ -242,19 +286,36 @@ class DlgImportDisplay(wx.Dialog):
         self.encoding = self.drop_encodings.GetStringSelection()
         self.set_display()
         event.Skip()
-       
+    
     def get_content(self):
         self.utf8_encoded_csv_sample = csv_to_utf8_byte_lines(self.file_path,
                                           self.encoding, n_lines=ROWS_TO_SAMPLE)
-        decoded_lines = []
-        for line in self.utf8_encoded_csv_sample:
-            raw_utf8_line = line.decode("utf8")
-            split_line = raw_utf8_line.split(self.udelimiter)
-            line = u"<tr><td>" + u"</td><td>".join(split_line) + \
-                    u"</td></tr>"
+        try:
+            # don't use dict reader - consumes first row when we don't know
+            # field names.  And if not a header, we might expect some values to
+            # be repeated, which means the row dicts could have fewer fields
+            # than there are actual fields.
+            tmp_reader = UnicodeCsvReader(self.utf8_encoded_csv_sample, 
+                                          dialect=self.dialect)
+        except csv.Error, e:
+            lib.safe_end_cursor()
+            if lib.ue(e).startswith(u"new-line character seen in unquoted "
+                                    u"field"):
+                self.fix_text()
+                raise my_exceptions.ImportNeededFixException
+            else:
+                raise
+        except Exception, e:
+            lib.safe_end_cursor()
+            raise Exception(u"Unable to create reader for file. "
+                            u"\nCaused by error: %s" % lib.ue(e))
+        decoded_lines = [] # init
+        for row in tmp_reader:
+            line = u"<tr><td>" + u"</td><td>".join(row) + u"</td></tr>"
             decoded_lines.append(line)
-        trows = "\n".join(decoded_lines)
-        content = u"<table border='1' style='border-collapse: collapse;'><tbody>\n" + trows + u"\n</tbody></table>"
+        trows = u"\n".join(decoded_lines)
+        content = u"<table border='1' style='border-collapse: collapse;'>" + \
+                                    u"<tbody>\n" + trows + u"\n</tbody></table>"
         n_lines_actual = len(decoded_lines)
         content_height = 35*n_lines_actual
         content_height = 300 if content_height > 300 else content_height
@@ -432,34 +493,35 @@ class CsvImporter(importer.FileImporter):
             lib.safe_end_cursor()
             raise Exception(u"Unable to get sample of csv with details. "
                             u"\nCaused by error: %s" % lib.ue(e))
-        try:
-            tmp_reader = UnicodeCsvDictReader(utf8_encoded_csv_sample, 
-                                              dialect=dialect)
-        except csv.Error, e:
-            lib.safe_end_cursor()
-            if lib.ue(e).startswith("new-line character seen in unquoted "
-                                    "field"):
-                self.fix_text()
-                raise my_exceptions.ImportNeededFixException
-            else:
-                raise
-        except Exception, e:
-            lib.safe_end_cursor()
-            raise Exception(u"Unable to create reader for file. "
-                            u"\nCaused by error: %s" % lib.ue(e))
         if self.has_header:
+            try:
+                # 1st row will be consumed to get field names
+                tmp_reader = UnicodeCsvDictReader(utf8_encoded_csv_sample, 
+                                                  dialect=dialect)
+            except Exception, e:
+                # should have already been successfully through this in 
+                # get_sample_with_dets()
+                lib.safe_end_cursor()
+                raise Exception(u"Unable to get sample of csv with details. "
+                                u"\nCaused by error: %s" % lib.ue(e)) 
             orig_names = tmp_reader.fieldnames
             ok_fld_names = importer.process_fld_names(orig_names)
-            tmp_reader.i = 1 # set so any subsequent errors are reported for
-                # correct row number
-        else: # get number of fields from first row
+        else: # get number of fields from first row (not consumed because not 
+            # using dictreader.
+            try:
+                tmp_reader = UnicodeCsvReader(utf8_encoded_csv_sample, 
+                                              dialect=dialect)
+            except Exception, e:
+                # should have already been successfully through this in 
+                # get_sample_with_dets()
+                lib.safe_end_cursor()
+                raise Exception(u"Unable to get sample of csv with details. "
+                                u"\nCaused by error: %s" % lib.ue(e)) 
             for row in tmp_reader:
                 if debug: print(row)
                 ok_fld_names = [mg.NEXT_FLD_NAME_TEMPLATE % (x+1,) 
                                for x in range(len(row))]
                 break
-            tmp_reader.i = 2 # set so any subsequent errors are reported for
-                # correct row number
         if not ok_fld_names:
             raise Exception(u"Unable to get ok field names")
         row_size = self.get_avg_row_size(tmp_reader)
@@ -507,6 +569,7 @@ class CsvImporter(importer.FileImporter):
         try:
             utf8_encoded_csv_data = csv_to_utf8_byte_lines(self.file_path, 
                                                            encoding)
+            # we supply field names so will start with first row
             reader = UnicodeCsvDictReader(utf8_encoded_csv_data, 
                                           dialect=dialect, 
                                           fieldnames=ok_fld_names)
