@@ -98,7 +98,10 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             myheight = myheight*0.3
         self.html = full_html.FullHTML(panel=self.panel, parent=self, 
                                        size=(200,myheight))
-        self.Bind(wx.EVT_SHOW, self.on_show)
+        if mg.PLATFORM == mg.MAC:
+            self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
+        else:
+            self.Bind(wx.EVT_SHOW, self.on_show)
         szr_bottom_left.Add(self.html, 1, wx.GROW|wx.LEFT|wx.BOTTOM, 5)
         szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW)
         szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW)
@@ -126,6 +129,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
+        except Exception, e:
+            pass # needed on Mac else exception survives
         finally: # any initial content
             html2show = _("<p>Waiting for a report to be run.</p>")
             self.html.show_html(html2show)
@@ -279,10 +284,11 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             add_to_report = self.chk_add_to_report.IsChecked()
             try:
                 css_fils, css_idx = output.get_css_dets()
-            except my_exceptions.MissingCssException:
-                lib.update_local_display(self.html, 
-                                         _("Please check the CSS file exists "
-                                            "or set another"), wrap_text=True)
+            except my_exceptions.MissingCssException, e:
+                lib.update_local_display(self.html, _("Please check the CSS "
+                                        "file \"%s\" exists or set another. "
+                                        "Caused by error: %s") % lib.ue(e), 
+                                        wrap_text=True)
                 lib.safe_end_cursor()
                 event.Skip()
                 return
@@ -322,10 +328,11 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             add_to_report = self.chk_add_to_report.IsChecked()
             try:
                 css_fils, css_idx = output.get_css_dets()
-            except my_exceptions.MissingCssException:
-                lib.update_local_display(self.html,
-                                         _("Please check the CSS file exists "
-                                            "or set another"), wrap_text=True)
+            except my_exceptions.MissingCssException, e:
+                lib.update_local_display(self.html, _("Please check the CSS "
+                                        "file \"%s\" exists or set another. "
+                                        "Caused by error: %s") % lib.ue(e), 
+                                        wrap_text=True)
                 lib.safe_end_cursor()
                 event.Skip()
                 return

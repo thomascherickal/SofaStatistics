@@ -52,9 +52,9 @@ class DemoTable(object):
             html.append(u"<table cellspacing='0'>\n") # IE6 no CSS borderspacing
             main_html = self.get_html(css_idx)
         except my_exceptions.MissingCssException:
-            raise my_exceptions.MissingCssException # pass it on
+            raise
         except my_exceptions.TooFewValsForDisplay:
-            raise my_exceptions.TooFewValsForDisplay # pass it on
+            raise
         except Exception, e:
             wx.MessageBox(_("Unable to make report.  Error details: %s" % 
                             lib.ue(e)))

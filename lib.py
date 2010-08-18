@@ -321,27 +321,38 @@ def esc_str_input(raw):
                         u"\nCaused by error: %s" % ue(e))
     return new_str
 
-def rel2abs_links(str_html):
+def rel2abs_report_links(str_html):
     """
-    Make linked images work off absolute rather than relative paths. Will run OK
-        when displayed internally in GUI.
+    Linked images and javascript in external HTML reports are in different 
+        locations from those in internal-only output. 
+        The former are in subfolders of the reports
+        folder ready to be shared with other people alongside the report file 
+        which refers to them.  The latter are in the internal folder only.
+    The internal-only images/js can be referred to by the GUI with reference to 
+        their absolute path.
+    The report-associated images/js, can be referred to by their report in a 
+        relative sense, but not by the GUI which has a different relative 
+        location than the report.  That is why it must use an absolute path to 
+        the images/js (stored in a particular report's subfolder).
+    So this functionality is only needed for GUI display of report-associated 
+        images/js.
     Turn my_report_name/001.png to e.g. 
         /home/g/sofa/reports/my_report_name/001.png so that the html can be 
-        written to, and read from, anywhere (and still show the images!) in the
+        written to, and read from, anywhere (and still show the images!) in the 
         temporary GUI displays.
     """
-    debug = False
+    debug = True
     report_path = os.path.join(mg.REPORTS_PATH, u"")
     if debug: print(u"report_path: %s" % report_path)
     abs_display_content = str_html.replace(u"src='", u"src='%s" % report_path)\
-        .replace(u"src=\"", u"src=\"%s" % report_path)
+                                .replace(u"src=\"", u"src=\"%s" % report_path)
     if debug: print(u"From \n\n%s\n\nto\n\n%s" % (str_html, 
                                                   abs_display_content))
     return abs_display_content
 
-def rel2abs_background(strhtml):
+def rel2abs_css_bg_imgs(strhtml):
     """
-    Make all background images work off absolute rather than relative paths.  
+    Make all css background images work off absolute rather than relative paths.  
     Will run OK when displayed internally in GUI.
     Turn ../images/tile.gif to /home/g/sofa/reports/images/tile.gif.
     """

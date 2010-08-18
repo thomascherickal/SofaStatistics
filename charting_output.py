@@ -215,7 +215,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                                         inc_clear=False) # mixin
         self.html = full_html.FullHTML(panel=self.panel_bottom, parent=self, 
                                        size=(200, 150))
-        self.Bind(wx.EVT_SHOW, self.on_show)
+        if mg.PLATFORM == mg.MAC:
+            self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
+        else:
+            self.Bind(wx.EVT_SHOW, self.on_show)
         szr_bottom_left.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
         szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW)
         szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW)
@@ -242,6 +245,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
+        except Exception, e:
+            pass # needed on Mac else exception survives
         finally:
             # any initial content
             html2show = _("<p>Waiting for a report to be run.</p>")

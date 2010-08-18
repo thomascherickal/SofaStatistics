@@ -393,7 +393,7 @@ class StartFrame(wx.Frame):
         self.panel = wx.Panel(self, size=(SCREEN_WIDTH, 600)) # win
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)
-        self.Bind(wx.EVT_SHOW, self.on_show)
+        self.Bind(wx.EVT_SHOW, self.on_show) # no Mac version needed - win only
         self.active_proj = mg.DEFAULT_PROJ
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=self.active_proj)

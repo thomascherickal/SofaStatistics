@@ -7,8 +7,8 @@ class MalformedDbError(Exception):
         Exception.__init__(self, u"Malformed database error")
 
 class MissingCssException(Exception):
-    def __init__(self):
-        Exception.__init__(self, u"Missing css file.")
+    def __init__(self, missing_css_fil):
+        Exception.__init__(self, u"Missing css file \"%s\"." % missing_css_fil)
 
 class ImportCancelException(Exception):
     def __init__(self):

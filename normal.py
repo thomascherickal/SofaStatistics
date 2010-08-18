@@ -47,7 +47,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             "close enough to the normal curve for use with tests requiring "
             "that?\n\nNote: if comparing samples, each sample must be normal "
             "enough. Filter for each sample by right clicking on the table "
-            "selector.") # OS X can display oddly dep on breaks
+            "selector.")
         paired_choices = [_("Single"), _("Paired")]
         self.img_blank_hist = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
                                          u"blankhisto.xpm"), wx.BITMAP_TYPE_XPM)
@@ -111,7 +111,10 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         myheight = 100 if mg.MAX_HEIGHT < 800 else 200
         self.html = full_html.FullHTML(panel=self.panel, parent=self, 
                                        size=(200,myheight))
-        self.Bind(wx.EVT_SHOW, self.on_show)
+        if mg.PLATFORM == mg.MAC:
+            self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
+        else:
+            self.Bind(wx.EVT_SHOW, self.on_show)
         szr_normality_test.Add(self.html, 1, wx.GROW)
         self.szr_examine.Add(szr_normality_test, 1, wx.GROW|wx.ALL, 10)
         btn_ok = wx.Button(self.panel, wx.ID_OK)
@@ -134,6 +137,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
+        except Exception, e:
+            pass # needed on Mac else exception survives
         finally: # any initial content
             self.set_output_to_blank()
 

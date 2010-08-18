@@ -180,19 +180,21 @@ def encode_lines_as_utf8(uni_lines):
                             u"\nCaused by error: %s" % lib.ue(e))
     return utf8_encoded_lines
 
-def csv_to_utf8_byte_lines(file_path, encoding, n_lines=None):
+def csv_to_utf8_byte_lines(file_path, encoding, n_lines=None, strict=True):
     """
     The csv module infamously only accepts lines of bytes encoded as utf-8.
     NB we have no idea what the original encoding was or which computer or OS or 
         locale it was done on.  Eventually we could use chardet module to 
-        sensibly guess but in meantime try up to two - local encoding then utf-8
+        sensibly guess but in meantime try several - including the local 
+        encoding then utf-8 etc.
     """
     debug = False
     try:
-        f = codecs.open(file_path, encoding=encoding)
+        errors = "strict" if strict else "replace"
+        f = codecs.open(file_path, encoding=encoding, errors=errors)
     except IOError, e:
         raise Exception(u"Unable to open file for re-encoding. "
-                        u"\naused by error: %s" % lib.ue(e))
+                        u"\nCaused by error: %s" % lib.ue(e))
     # this bit can fail even if the open succeeded
     uni_lines = []
     for i, line in enumerate(f, 1):
@@ -220,6 +222,7 @@ class DlgImportDisplay(wx.Dialog):
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
                            wx.CLIP_CHILDREN)
+        lib.safe_end_cursor() # needed for Mac
         self.parent = parent
         self.file_path = file_path
         self.dialect = dialect
@@ -240,6 +243,7 @@ class DlgImportDisplay(wx.Dialog):
         self.txt_delim.Bind(wx.EVT_CHAR, self.on_delim_change)
         lbl_encoding = wx.StaticText(panel, -1, _("Encoding"))
         self.drop_encodings = wx.Choice(panel, -1, choices=encodings)
+        self.drop_encodings.SetSelection(0)
         self.drop_encodings.Bind(wx.EVT_CHOICE, self.on_sel_encoding)
         self.chk_has_header = wx.CheckBox(panel, -1, _("Has header row"))
         szr_options.Add(lbl_delim, 0, wx.RIGHT, 5)
@@ -568,7 +572,7 @@ class CsvImporter(importer.FileImporter):
                             u"\nCaused by error: %s" % lib.ue(e))
         try:
             utf8_encoded_csv_data = csv_to_utf8_byte_lines(self.file_path, 
-                                                           encoding)
+                                                        encoding, strict=False)
             # we supply field names so will start with first row
             reader = UnicodeCsvDictReader(utf8_encoded_csv_data, 
                                           dialect=dialect, 

@@ -145,7 +145,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
-    return "".join(html)
+    return u"".join(html)
 
 def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp, 
                         indep, css_idx, html):
@@ -285,7 +285,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg,
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
         html.append(u"<br><hr><br><div class='%s'></div>" % \
                     CSS_PAGE_BREAK_BEFORE)
-    html_str = "\n".join(html)
+    html_str = u"\n".join(html)
     return html_str
 
 def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, diffs, 
@@ -317,7 +317,7 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, diffs,
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
         html.append(u"<br><hr><br><div class='%s'></div>" % \
                     CSS_PAGE_BREAK_BEFORE)
-    html_str = "\n".join(html)
+    html_str = u"\n".join(html)
     return html_str
 
 def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
@@ -357,7 +357,7 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
-    return "".join(html)
+    return u"".join(html)
 
 def wilcoxon_output(t, p, label_a, label_b, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
                     css_idx=0, page_break_after=False):
@@ -454,7 +454,7 @@ def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
-    return "".join(html)
+    return u"".join(html)
 
 def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
                       report_name, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
@@ -475,7 +475,7 @@ def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
-    return "".join(html)
+    return u"".join(html)
 
 def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report, 
                      report_name, val_labels_a, val_labels_b, lst_obs, lst_exp, 
@@ -584,7 +584,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
     add_clustered_barcharts(lst_obs, var_label_a, var_label_b, 
                             val_labels_a, val_labels_b, val_labels_a_n, 
                             val_labels_b_n, add_to_report, report_name, html)
-    return "".join(html)
+    return u"".join(html)
 
 def add_clustered_barcharts(lst_obs, var_label_a, var_label_b, 
                             val_labels_a, val_labels_b, val_labels_a_n, 
@@ -676,4 +676,4 @@ def kruskal_wallis_output(h, p, label_a, label_b, dics, label_avg, dp=3,
     if page_break_after:
         html.append("<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
-    return "".join(html)
+    return u"".join(html)

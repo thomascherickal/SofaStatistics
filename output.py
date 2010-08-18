@@ -156,7 +156,7 @@ def get_html_hdr(hdr_title, css_fils, default_if_prob=False, grey=False,
                 if default_if_prob:
                     f = open(mg.DEFAULT_CSS_PATH, "r")
                 else:
-                    raise my_exceptions.MissingCssException
+                    raise my_exceptions.MissingCssException(css_fil)
             css_txt = f.read()
             for css_class in mg.CSS_ELEMENTS:
                 # suffix all report-relevant css entities so distinct
@@ -172,9 +172,9 @@ def get_html_hdr(hdr_title, css_fils, default_if_prob=False, grey=False,
     else:
         if debug: print("\n\nUsing default css")
         css = get_default_css()
-    hdr = mg.DEFAULT_HDR % (hdr_title, css)
+    hdr = mg.DEFAULT_HDR % {u"title": hdr_title, u"css": css, u"js": u""}
     if abs:
-        hdr = lib.rel2abs_background(hdr)
+        hdr = lib.rel2abs_css_bg_imgs(hdr)
     if debug: print(hdr)
     return hdr
 
@@ -195,10 +195,6 @@ def get_css_dets():
     If not there (empty report or manually broken by user?) make and use a new
         one using cc[mg.CURRENT_CSS_PATH].
     """
-    
-    cc[mg.CURRENT_CSS_PATH]
-    
-    
     if not os.path.exists(cc[mg.CURRENT_CSS_PATH]):
         retval = wx.MessageBox(_("The CSS style file '%s' doesn't "
                             "exist.  Continue using the default style instead?"
@@ -207,7 +203,7 @@ def get_css_dets():
         if retval == wx.YES:
             cc[mg.CURRENT_CSS_PATH] = mg.DEFAULT_CSS_PATH
         else:
-            raise my_exceptions.MissingCssException
+            raise my_exceptions.MissingCssException(cc[mg.CURRENT_CSS_PATH])
     css_fils = None
     # read from report
     if os.path.exists(cc[mg.CURRENT_REPORT_PATH]):
@@ -355,11 +351,12 @@ def run_report(modules, add_to_report, css_fils, inner_script):
         return False, err_content
     f = codecs.open(mg.INT_REPORT_PATH, "U", "utf-8")
     raw_results = lib.clean_bom_utf8(f.read())
+    if debug: print(raw_results)
     f.close()
     source = get_source(dd.db, dd.tbl)
     filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
     results_with_source = source + u"<p>%s</p>" % filt_msg + raw_results
-    if add_to_report:
+    if add_to_report: # has to deal with local GUI version to display as well
         # Append into html file.
         # Handles source and filter desc internally when making divider between 
         # output.
@@ -367,11 +364,13 @@ def run_report(modules, add_to_report, css_fils, inner_script):
         rel_display_content = (u"\n<p>Output also saved to '%s'</p>" %
                             lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH]) + 
                             results_with_source)
-        # make relative links absolute so GUI viewers can display images
-        gui_display_content = lib.rel2abs_background(
-                                        lib.rel2abs_links(rel_display_content))
+        # Make relative links absolute so GUI viewers can display images.
+        # If not add_to_report, already has absolute link to internal imgs.
+        # If in real report, will need a relative version for actual report.
+        gui_display_content = lib.rel2abs_css_bg_imgs(\
+                                lib.rel2abs_report_links(rel_display_content))
     else:
-        gui_display_content = lib.rel2abs_background(results_with_source)
+        gui_display_content = lib.rel2abs_css_bg_imgs(results_with_source)
     if debug: print(gui_display_content)
     return True, gui_display_content
 

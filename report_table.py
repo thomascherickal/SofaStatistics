@@ -241,7 +241,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         myheight = 350 if myheight > 350 else myheight
         self.html = full_html.FullHTML(panel=self.panel, parent=self, 
                                        size=(200,myheight))
-        self.Bind(wx.EVT_SHOW, self.on_show)
+        if mg.PLATFORM == mg.MAC:
+            self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
+        else:
+            self.Bind(wx.EVT_SHOW, self.on_show)
         self.btn_run.Enable(False)
         self.chk_add_to_report.Enable(False)
         self.btn_export.Enable(False)
@@ -301,6 +304,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
+        except Exception, e:
+            pass # needed on Mac else exception survives
         finally: # any initial content
             has_rows, has_cols = self.get_row_col_status()
             waiting_msg = get_missing_dets_msg(self.tab_type, has_rows, 
@@ -521,10 +526,11 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             if debug: print(cc[mg.CURRENT_CSS_PATH])
             try:
                 css_fils, css_idx = output.get_css_dets()
-            except my_exceptions.MissingCssException:
-                lib.update_local_display(self.html, 
-                                         _("Please check the CSS file exists "
-                                            "or set another"), wrap_text=True)
+            except my_exceptions.MissingCssException, e:
+                lib.update_local_display(self.html, _("Please check the CSS "
+                                        "file \"%s\" exists or set another. "
+                                        "Caused by error: %s") % lib.ue(e), 
+                                        wrap_text=True)
                 lib.safe_end_cursor()
                 event.Skip()
                 return
@@ -550,10 +556,11 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         if export_ok:
             try:
                 css_fils, css_idx = output.get_css_dets()
-            except my_exceptions.MissingCssException:
-                lib.update_local_display(self.html,
-                                         _("Please check the CSS file exists "
-                                            "or set another"), wrap_text=True)
+            except my_exceptions.MissingCssException, e:
+                lib.update_local_display(self.html, _("Please check the CSS "
+                                        "file \"%s\" exists or set another. "
+                                        "Caused by error: %s") % lib.ue(e), 
+                                        wrap_text=True)
                 lib.safe_end_cursor()
                 event.Skip()
                 return
@@ -819,10 +826,11 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         else:
             try:
                 demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
-            except my_exceptions.MissingCssException:
-                lib.update_local_display(self.html, 
-                                         _("Please check the CSS file exists "
-                                            "or set another"), wrap_text=True)
+            except my_exceptions.MissingCssException, e:
+                lib.update_local_display(self.html, _("Please check the CSS "
+                                        "file \"%s\" exists or set another. "
+                                        "Caused by error: %s") % lib.ue(e), 
+                                        wrap_text=True)
                 lib.safe_end_cursor()
                 return
             except my_exceptions.TooFewValsForDisplay:

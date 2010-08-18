@@ -55,7 +55,10 @@ class DlgHTML(wx.Dialog):
         self.url_load = url_load
         self.html = full_html.FullHTML(panel=self, parent=self, 
                                        size=wx.DefaultSize)
-        self.Bind(wx.EVT_SHOW, self.on_show)
+        if mg.PLATFORM == mg.MAC:
+            self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
+        else:
+            self.Bind(wx.EVT_SHOW, self.on_show)
         btn_close = wx.Button(self, wx.ID_CLOSE, _("Close"))
         btn_close.Bind(wx.EVT_BUTTON, self.on_close)
         szr_main = wx.BoxSizer(wx.VERTICAL)
@@ -84,6 +87,8 @@ class DlgHTML(wx.Dialog):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
+        except Exception, e:
+            pass # needed on Mac else exception survives
         finally: # any initial content
             self.show_content(self.url, self.content, self.url_load)
             

@@ -104,10 +104,11 @@ DEFAULT_HDR = u"""
             <meta http-equiv="P3P" content='CP="IDC DSP COR CURa ADMa OUR 
             IND PHY ONL COM STA"'>
             <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-            <title>%s</title>
+            <title>%(title)s</title>
+            %(js)s
             <style type="text/css">
             <!--
-            %s
+            %(css)s
             -->
             </style>
             </head>

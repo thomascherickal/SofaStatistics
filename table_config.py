@@ -468,7 +468,10 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         lbl_see_result.SetFont(font=bold)
         self.html = full_html.FullHTML(panel=self.panel, parent=self, 
                                        size=(500,200))
-        self.Bind(wx.EVT_SHOW, self.on_show)
+        if mg.PLATFORM == mg.MAC:
+            self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
+        else:
+            self.Bind(wx.EVT_SHOW, self.on_show)
         szr_design_left.Add(lbl_design_here, 0)
         if not self.readonly:
             lbl_sofa_id = wx.StaticText(self.panel, -1, 
@@ -497,6 +500,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
+        except Exception, e:
+            pass # needed on Mac else exception survives
         finally: # any initial content
             self.update_demo()
             
@@ -594,7 +599,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             return
         if debug: print(self.settings_data)
         # 1) part before the table-specific items e.g. column names and data
-        html = [mg.DEFAULT_HDR % (u"Demonstration table", self.styles)]
+        html = [mg.DEFAULT_HDR % {u"title": u"Demonstration table", 
+                                  u"css": self.styles, u"js": u""}]
         html.append(u"<table cellspacing='0'>\n<thead>\n<tr>")
         # 2) the table-specific items (inc column labels)
         # list based on sequence of fields in underlying table

@@ -97,8 +97,11 @@ else:
                 
                 def pizza_magic(self):
                     """
-                    Do pizza_magic when parent is shown (EVT_SHOW).  If not 
-                        shown, can't get handle and can't make magic work. 
+                    Do pizza_magic when parent is created (EVT_WINDOW_CREATE).
+                    EVT_SHOW worked on Windows and Linux but not on Macs. If not 
+                        shown/created, can't get handle and can't make magic 
+                        work. See http://groups.google.com/group/...
+                        ...wxpython-users/t/ac193c36b9fafe48 
                     """
                     debug = False
                     whdl = self.GetHandle() # only works if parent is shown
