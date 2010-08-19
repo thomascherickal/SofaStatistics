@@ -96,23 +96,27 @@ def pct_1_dec(num):
 def pct_2_dec(num):
     return "%s%%" % round(num,2)
 data_format_dic = {FREQ: str, ROWPCT: pct_1_dec, COLPCT: pct_1_dec}
-DEFAULT_HDR = u"""
-            <!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
-            'http://www.w3.org/TR/html4/loose.dtd'>
-            <html>
-            <head>
-            <meta http-equiv="P3P" content='CP="IDC DSP COR CURa ADMa OUR 
-            IND PHY ONL COM STA"'>
-            <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-            <title>%(title)s</title>
-            %(js)s
-            <style type="text/css">
-            <!--
-            %(css)s
-            -->
-            </style>
-            </head>
-            <body>\n"""
+DEFAULT_HDR = \
+u"""<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
+'http://www.w3.org/TR/html4/loose.dtd'>
+<html>
+<head>
+<meta http-equiv="P3P" content='CP="IDC DSP COR CURa ADMa OUR IND PHY ONL COM 
+STA"'>
+<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+<title>%(title)s</title>
+%(js)s
+<style type="text/css">
+<!--
+%(dojo_css)s
+%(css)s
+-->
+</style>
+</head>
+<body class="tundra">\n""" # tundra is for dojo
+CSS_FILS_START_TAG = u"<!--css_fils"
+N_CHARTS_TAG_START = u"//n_charts_start"
+N_CHARTS_TAG_END = u"//n_charts_end"
 # output
 # NB never have a class which is the same as the start of another.
 # Simple search and replace is worth keeping and requires uniqueness.
@@ -166,8 +170,8 @@ LOCAL_PATH = os.path.join(USER_PATH, u"sofa")
 RECOVERY_PATH = os.path.join(USER_PATH, u"sofa_recovery")
 REPORTS_FOLDER = u"reports"
 REPORTS_PATH = os.path.join(LOCAL_PATH, REPORTS_FOLDER)
-IMAGES_FOLDER = u"images"
-IMAGES_PATH = os.path.join(REPORTS_PATH, IMAGES_FOLDER)
+REPORT_EXTRAS_FOLDER = u"sofa_report_extras"
+REPORT_EXTRAS_PATH = os.path.join(REPORTS_PATH, REPORT_EXTRAS_FOLDER)
 SCRIPT_PATH = None # set in config_globals
 PATH_ERROR = None
 INT_PATH = os.path.join(LOCAL_PATH, INT_FOLDER)

@@ -1,6 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+Mostly concerned with the html displayed as output, and the scripts which are
+    written to produce it etc.
+"""
+
 from __future__ import print_function
 import codecs
 import os
@@ -172,7 +177,8 @@ def get_html_hdr(hdr_title, css_fils, default_if_prob=False, grey=False,
     else:
         if debug: print("\n\nUsing default css")
         css = get_default_css()
-    hdr = mg.DEFAULT_HDR % {u"title": hdr_title, u"css": css, u"js": u""}
+    hdr = mg.DEFAULT_HDR % {u"title": hdr_title, u"css": css, u"js": u"",
+                            u"dojo_css": u""}
     if abs:
         hdr = lib.rel2abs_css_bg_imgs(hdr)
     if debug: print(hdr)
@@ -182,7 +188,34 @@ def get_html_ftr():
     "Close HTML off cleanly"
     return u"</body></html>"
 
-# The rest is GUI -> script oriented code
+def get_js_n_charts():
+    """
+    //n_charts_start
+    var n_charts = 3;
+    //n_charts_end
+    Get the 3.
+    """
+    debug = True
+    # read from report
+    js_n_charts = 0
+    if not os.path.exists(cc[mg.CURRENT_REPORT_PATH]):
+        return js_n_charts
+    f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "U", "utf-8")
+    content = lib.clean_bom_utf8(f.read())
+    f.close()
+    if content:
+        try:
+            idx_start = content.index(mg.N_CHARTS_TAG_START) + \
+                                                    len(mg.N_CHARTS_TAG_START)
+            idx_end = content.index(mg.N_CHARTS_TAG_END)
+            raw_n_charts_str = content[idx_start: idx_end]
+            if debug: print(raw_n_charts_str)
+            js_n_charts = \
+                raw_n_charts_str.strip().ltrim(u"var n_charts = ").rtrim(u";")
+            if debug: print(js_n_charts)
+        except Exception:
+            pass
+    return js_n_charts
 
 def get_css_dets():
     """
@@ -212,7 +245,7 @@ def get_css_dets():
         f.close()
         if content:
             try:
-                idx_start = content.index("<!--css_fils") + len("<!--")
+                idx_start = content.index(mg.CSS_FILS_START_TAG) + len("<!--")
                 idx_end = content.index("-->")
                 css_fils_str = content[idx_start: idx_end]
                 css_dets_dic = {}
@@ -228,6 +261,38 @@ def get_css_dets():
     #mg.OUTPUT_CSS_DIC[cc[mg.CURRENT_REPORT_PATH]] = css_fils
     css_idx = css_fils.index(cc[mg.CURRENT_CSS_PATH])
     return css_fils, css_idx
+
+def get_title_dets_html(titles, subtitles, CSS_TBL_TITLE, CSS_TBL_SUBTITLE):
+    """
+    Table title and subtitle html ready to put in a cell.
+    Applies to dim tables and raw tables.
+    Do not want block display - if title and/or subtitle are empty, want minimal
+        display height.
+    """
+    titles_html = u"\n<span class='%s'>%s" % (CSS_TBL_TITLE, mg.TBL_TITLE_START)
+    titles_inner_html = get_titles_inner_html(titles_html, titles)
+    titles_html += titles_inner_html
+    titles_html += u"%s</span>" % mg.TBL_TITLE_END
+    subtitles_html = u"\n<span class='%s'>%s" % (CSS_TBL_SUBTITLE, 
+                                                 mg.TBL_SUBTITLE_START)
+    subtitles_inner_html = get_subtitles_inner_html(subtitles_html, subtitles)
+    subtitles_html += subtitles_inner_html 
+    subtitles_html += u"%s</span>" % mg.TBL_SUBTITLE_END
+    joiner = u"<br>" if titles_inner_html and subtitles_inner_html else u""
+    title_dets_html = titles_html + joiner + subtitles_html
+    return title_dets_html
+
+def get_titles_inner_html(titles_html, titles):
+    """
+    Just the bits within the tags, css etc.
+    """
+    return u"<br>".join(titles)
+
+def get_subtitles_inner_html(subtitles_html, subtitles):
+    """
+    Just the bits within the tags, css etc.
+    """
+    return u"<br>".join(subtitles)
 
 def _strip_script(script):
     """
@@ -290,10 +355,18 @@ def get_source(db, tblname):
     source = u"\n<p>From %s.%s %s</p>" % (db, tblname, full_datestamp)
     return source
 
+def get_title_css(css_idx):
+    CSS_TBL_TITLE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_TITLE, css_idx)
+    CSS_TBL_SUBTITLE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_SUBTITLE, 
+                                                 css_idx)
+    CSS_TBL_TITLE_CELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_TITLE_CELL, 
+                                                   css_idx)
+    return CSS_TBL_TITLE, CSS_TBL_SUBTITLE, CSS_TBL_TITLE_CELL
+
 def run_report(modules, add_to_report, css_fils, inner_script):
     """
     Runs report and returns bolran_report, and HTML representation of report 
-        (or of the error) for GUI display.
+        (or of the error) for GUI display.  Report includes HTML header.
     add_to_report -- also append result to current report.
     """
     debug = False
@@ -357,9 +430,8 @@ def run_report(modules, add_to_report, css_fils, inner_script):
     filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
     results_with_source = source + u"<p>%s</p>" % filt_msg + raw_results
     if add_to_report: # has to deal with local GUI version to display as well
-        # Append into html file.
-        # Handles source and filter desc internally when making divider between 
-        # output.
+        # Append into html file. Handles source and filter desc internally when 
+        # making divider between output.
         save_to_report(css_fils, source, tbl_filt_label, tbl_filt, raw_results) 
         rel_display_content = (u"\n<p>Output also saved to '%s'</p>" %
                             lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH]) + 
@@ -447,7 +519,7 @@ def _strip_html(html):
     """
     Get html between the <body></body> tags.  The start tag must be present.
     """
-    body_start = u"<body>"
+    body_start = u"<body class=\"tundra\">"
     body_end = u"</body>"
     try:
         start_idx = html.index(body_start) + len(body_start)
@@ -466,7 +538,8 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_html):
     If report doesn't exist, make it.
     If it does exist, extract existing content and then create empty version.
     Add to empty file, new header, existing content, and new content.
-    A new header is required each time because there may be new css included.
+    A new header is required each time because there may be new css included 
+        plus new js functions to make new charts.
     New content is everything from "content" after the body tag.
     """
     new_no_hdr = _strip_html(new_html)
@@ -482,7 +555,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_html):
     hdr = get_html_hdr(hdr_title, css_fils)
     f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "w", "utf-8")
     css_fils_str = pprint.pformat(css_fils)
-    f.write(u"<!--css_fils = %s-->\n\n" % css_fils_str)
+    f.write(u"%s = %s-->\n\n" % (mg.CSS_FILS_START_TAG, css_fils_str))
     f.write(hdr)
     if existing_no_ends:
         f.write(existing_no_ends)

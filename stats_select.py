@@ -232,6 +232,7 @@ class StatsSelectDlg(wx.Dialog):
         self.btn_close = wx.Button(self.panel, wx.ID_CLOSE, pos=(900,558))
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_close_click)
         self.update_test_tips(STATS_TESTS[0], assisted=False)
+        self.lst_tests.SetFocus()
         
     def on_paint(self, event):
         """
@@ -454,6 +455,7 @@ class StatsSelectDlg(wx.Dialog):
             self.remove_test_indicators()
             self.indicate_test(test_type)
             self.update_test_tips(test_type, assisted=True)
+        self.lst_tests.SetFocus()
     
     def update_test_tips(self, test_type, assisted=True):
         tips_width = 390

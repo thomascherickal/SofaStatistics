@@ -341,7 +341,7 @@ def rel2abs_report_links(str_html):
         written to, and read from, anywhere (and still show the images!) in the 
         temporary GUI displays.
     """
-    debug = True
+    debug = False
     report_path = os.path.join(mg.REPORTS_PATH, u"")
     if debug: print(u"report_path: %s" % report_path)
     abs_display_content = str_html.replace(u"src='", u"src='%s" % report_path)\
@@ -350,18 +350,38 @@ def rel2abs_report_links(str_html):
                                                   abs_display_content))
     return abs_display_content
 
+def rel2abs_js_links(strhtml):
+    """
+    Make all js links work off absolute rather than relative paths.  
+    Will run OK when displayed internally in GUI.
+    Turn <script src="sofa_report_extras/sofalayer.js"> to 
+    <script src="file:////home/g/sofa/reports/sofa_report_extras/sofalayer.js">.
+    """
+    debug = False
+    if mg.PLATFORM == mg.WINDOWS:
+        url = u"file:///%s" % mg.REPORT_EXTRAS_PATH
+    else:
+        url = u"file://%s" % mg.REPORT_EXTRAS_PATH
+    abs_display_content = \
+        strhtml.replace(u"<script src=\"%s" % mg.REPORT_EXTRAS_FOLDER, 
+                        u"<script src=\"%s" % url) 
+    if debug: print("From \n\n%s\n\nto\n\n%s" % (strhtml, abs_display_content))
+    return abs_display_content
+
 def rel2abs_css_bg_imgs(strhtml):
     """
     Make all css background images work off absolute rather than relative paths.  
     Will run OK when displayed internally in GUI.
-    Turn ../images/tile.gif to /home/g/sofa/reports/images/tile.gif.
+    Turn url(sofa_report_extras/tile.gif); to 
+         url(/home/g/sofa/reports/sofa_report_extras/tile.gif);.
     """
     debug = False
     if mg.PLATFORM == mg.WINDOWS:
-        url = u"file:///%s" % mg.IMAGES_PATH
+        url = u"file:///%s" % mg.REPORT_EXTRAS_PATH
     else:
-        url = u"file://%s" % mg.IMAGES_PATH
-    abs_display_content = strhtml.replace(u"url(images", u"url(%s" % url) 
+        url = u"file://%s" % mg.REPORT_EXTRAS_PATH
+    abs_display_content = strhtml.replace(u"url(%s" % mg.REPORT_EXTRAS_FOLDER, 
+                                          u"url(%s" % url) 
     if debug: print("From \n\n%s\n\nto\n\n%s" % (strhtml, abs_display_content))
     return abs_display_content
 
@@ -444,38 +464,6 @@ def get_next_fld_name(existing_var_names):
     free_num = max(nums_used) + 1 if nums_used else 1
     next_fld_name = mg.NEXT_FLD_NAME_TEMPLATE % free_num
     return next_fld_name
-
-def get_title_dets_html(titles, subtitles, CSS_TBL_TITLE, CSS_TBL_SUBTITLE):
-    """
-    Table title and subtitle html ready to put in a cell.
-    Applies to dim tables and raw tables.
-    Do not want block display - if title and/or subtitle are empty, want minimal
-        display height.
-    """
-    titles_html = u"\n<span class='%s'>%s" % (CSS_TBL_TITLE, mg.TBL_TITLE_START)
-    titles_inner_html = get_titles_inner_html(titles_html, titles)
-    titles_html += titles_inner_html
-    titles_html += u"%s</span>" % mg.TBL_TITLE_END
-    subtitles_html = u"\n<span class='%s'>%s" % (CSS_TBL_SUBTITLE, 
-                                                 mg.TBL_SUBTITLE_START)
-    subtitles_inner_html = get_subtitles_inner_html(subtitles_html, subtitles)
-    subtitles_html += subtitles_inner_html 
-    subtitles_html += u"%s</span>" % mg.TBL_SUBTITLE_END
-    joiner = u"<br>" if titles_inner_html and subtitles_inner_html else u""
-    title_dets_html = titles_html + joiner + subtitles_html
-    return title_dets_html
-
-def get_titles_inner_html(titles_html, titles):
-    """
-    Just the bits within the tags, css etc.
-    """
-    return u"<br>".join(titles)
-
-def get_subtitles_inner_html(subtitles_html, subtitles):
-    """
-    Just the bits within the tags, css etc.
-    """
-    return u"<br>".join(subtitles)
 
 def get_text_to_draw(orig_txt, max_width):
     "Return text broken into new lines so wraps within pixel width"

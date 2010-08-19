@@ -7,6 +7,7 @@ import my_globals as mg
 import lib
 import my_exceptions
 import getdata
+import output
 import tree
 
 """
@@ -165,8 +166,8 @@ class DimTable(object):
         # includes root so -1, includes title/subtitle row so +1 (share row)
         col_label_rows_n = tree_col_labels.get_depth()
         col_label_rows_lst = [[u"<tr>"] for x in range(col_label_rows_n)]
-        title_dets_html = lib.get_title_dets_html(self.titles, self.subtitles, 
-                                                CSS_TBL_TITLE, CSS_TBL_SUBTITLE)
+        title_dets_html = output.get_title_dets_html(self.titles, 
+                            self.subtitles, CSS_TBL_TITLE, CSS_TBL_SUBTITLE)
         title_span = len(tree_col_labels.get_terminal_nodes())
         extra_title_row_html = u"<th class='%s' " % CSS_TBL_TITLE_CELL + \
             u"colspan='%s'>%s</th>" % (title_span + row_label_cols_n, 

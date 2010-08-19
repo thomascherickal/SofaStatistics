@@ -51,10 +51,10 @@ def replace_titles_subtitles(orig, titles, subtitles):
     if debug: print(u"orig: %s\n\ntitles: %s\n\nsubtitles: %s\n\n" % (orig, 
                                                             titles, subtitles))
     titles_inner_html = u""
-    titles_inner_html = lib.get_titles_inner_html(titles_inner_html, titles)
+    titles_inner_html = output.get_titles_inner_html(titles_inner_html, titles)
     subtitles_inner_html = u""
     subtitles_inner_html = \
-            lib.get_subtitles_inner_html(subtitles_inner_html, subtitles)
+            output.get_subtitles_inner_html(subtitles_inner_html, subtitles)
     # need break between titles and subtitles if both present
     if titles_inner_html and subtitles_inner_html:
         subtitles_inner_html = u"<br>" + subtitles_inner_html

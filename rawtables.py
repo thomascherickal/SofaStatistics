@@ -4,6 +4,7 @@ import datetime
 import my_globals as mg
 import lib
 import getdata
+import output
 
 # don't use dd - this needs to be runnable as a standalone script - everything 
 # has to be explicit
@@ -55,8 +56,8 @@ class RawTable(object):
                                                        css_idx)
         CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, 
                                                       css_idx)
-        title_dets_html = lib.get_title_dets_html(self.titles, self.subtitles,
-                                                CSS_TBL_TITLE, CSS_TBL_SUBTITLE)
+        title_dets_html = output.get_title_dets_html(self.titles, 
+                                self.subtitles, CSS_TBL_TITLE, CSS_TBL_SUBTITLE)
         hdr_html = u"\n<thead>\n<tr><th " + \
                    u"class='%s'" % CSS_TBL_TITLE_CELL + \
                    u" colspan='%s'>" % len(col_labels) + \

@@ -162,11 +162,15 @@ def make_local_paths(local_path, paths):
         except Exception, e:
             raise Exception(u"Unable to make path %s.  " % path +
                             u"\nCaused by error: %s" % lib.ue(e))
-    IMAGES_PATH = os.path.join(local_path, mg.REPORTS_FOLDER, mg.IMAGES_FOLDER)
+    # Can't just use mg.REPORT_EXTRAS_PATH because we also make a sofa_recovery
+    # version in a different location.
+    REPORT_EXTRAS_PATH = os.path.join(local_path, mg.REPORTS_FOLDER, 
+                                      mg.REPORT_EXTRAS_FOLDER)
     try:
-        os.mkdir(IMAGES_PATH) # under reports
+        os.mkdir(REPORT_EXTRAS_PATH) # under reports
     except Exception, e:
-        raise Exception(u"Unable to make report images path %s." % IMAGES_PATH +
+        raise Exception(u"Unable to make report extras path %s." % 
+                        REPORT_EXTRAS_PATH +
                         u"\nCaused by error: %s" % lib.ue(e))
 
 def run_test_code(script):
@@ -210,9 +214,9 @@ def populate_local_paths(prog_path, local_path, default_proj, reports):
                 default_proj)
     bg_images = [u"grey_spirals.gif", u"lucid_spirals.gif", u"pebbles.gif"]
     for bg_image in bg_images:
-        shutil.copy(os.path.join(prog_path, reports, mg.IMAGES_FOLDER, 
+        shutil.copy(os.path.join(prog_path, reports, mg.REPORT_EXTRAS_FOLDER, 
                                  bg_image), 
-                    os.path.join(local_path, reports, mg.IMAGES_FOLDER, 
+                    os.path.join(local_path, reports, mg.REPORT_EXTRAS_FOLDER, 
                                  bg_image))
 
 def config_local_proj(local_path, default_proj, paths):
@@ -820,115 +824,20 @@ class StartFrame(wx.Frame):
         cont.append(mg.JS_WRAPPER_R)
     
     def on_charts_click(self, event):
-        CHARTS_NO = 0
-        CHARTS_PRELIM = 1
-        CHARTS_JS = 2
-        charts = CHARTS_PRELIM
-        if charts == CHARTS_NO:
-            wx.MessageBox(_("Not available yet in version ") + 
-                          unicode(mg.VERSION))
-        elif charts == CHARTS_PRELIM:
-            wx.MessageBox("Demonstration only at this stage - still under "
-                          "construction")
-            wx.BeginBusyCursor()
-            import charting_output
-            try:
-                dlg = charting_output.DlgCharting(_("Make Chart"))
-                lib.safe_end_cursor()
-                dlg.ShowModal()
-            except Exception, e:
-                msg = _("Unable to connect to data as defined in project %s.  "
-                        "Please check your settings" % self.active_proj)
-                wx.MessageBox(msg)
-                raise Exception(u"%s.\nCaused by error: %s" % (msg, lib.ue(e)))
-            finally:
-                lib.safe_end_cursor()
-                event.Skip()
-        elif charts == CHARTS_JS:
-            import output
-            import charting_js as chart
-            # watch to ensure 0 on y scale
-            cont = []
-            cont.append(u"""<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
-                "http://www.w3.org/TR/html4/strict.dtd">
-                <html lang="en">
-                <head>
-                <title>Dojo Test Chart</title>
-                <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-                <style type="text/css">
-                    @import "http://archive.dojotoolkit.org/nightly/dojotoolkit/dojo/resources/dojo.css";
-                </style>
-                <!-- required for Tooltip: a default dijit theme: -->
-                <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.4.1/dijit/themes/tundra/tundra.css">
-                <style>
-                .dojoxLegendNode {border: 1px solid #ccc; margin: 5px 10px 5px 10px; padding: 3px}
-                .dojoxLegendText {vertical-align: text-top; padding-right: 10px}
-                </style>
-                
-                <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.4.1/dojo/dojo.xd.js"></script>
-                
-                <script type="text/javascript">
-                dojo.require("dojox.charting.Chart2D");
-                dojo.require("dojox.charting.themes.PlotKit.blue");
-                
-                dojo.require("dojox.charting.action2d.Highlight");
-                dojo.require("dojox.charting.action2d.Magnify");
-                dojo.require("dojox.charting.action2d.MoveSlice");
-                dojo.require("dojox.charting.action2d.Shake");
-                dojo.require("dojox.charting.action2d.Tooltip");
-                
-                dojo.require("dojox.charting.widget.Legend");
-                
-                dojo.require("dojo.colors");
-                dojo.require("dojo.fx.easing");
-                                
-                makeObjects = function(){
-                    var dc = dojox.charting;
-                    var mychart = new dc.Chart2D("mychart");
-                    mychart.setTheme(dc.themes.PlotKit.blue);
-                    mychart.addAxis("x", {labels: [{value: 1, text: "Under 20"},
-                        {value: 2, text: "20-29"},
-                        {value: 3, text: "30-39"},
-                        {value: 4, text: "40-64"},
-                        {value: 5, text: "65+"}]});
-                    mychart.addAxis("y", {vertical: true});
-                    mychart.addPlot("default", {type: "ClusteredColumns", gap: 10});
-                    mychart.addPlot("grid", {type: "Grid"});
-                    mychart.addSeries("Germany", [12, 30, 100.5, -1, 40], {stroke: {color: "black"}, fill: "#7193b8"});
-                    mychart.addSeries("Italy", [20, 45, 57, 1, 37.5], {stroke: {color: "black"}, fill: "#b1b2b2"});
-                    mychart.addSeries("Japan", [40, 37, 124, -2, 50], {stroke: {color: "black"}, fill: "#0a175e"});
-                    var anim_a = new dc.action2d.Highlight(mychart, "default", {
-                        duration: 450,
-                        easing:   dojo.fx.easing.sineOut
-                    });
-                    var anim_b = new dc.action2d.Shake(mychart, "default");
-                    var anim_c = new dc.action2d.Tooltip(mychart, "default");
-                    mychart.render();
-                    var legend = new dojox.charting.widget.Legend({chart: mychart}, "legend");
-                };
-                
-                dojo.addOnLoad(makeObjects);
-                                
-                </script>
-                </head>
-                
-                <body class="tundra">
-                <h1>Clustered Bar Chart</h1>
-                <!--<p><button onclick="makeObjects();">Go</button></p>-->
-                <p>Hover over markers, bars, columns, slices, and so on.</p>
-                
-                <div id="mychart" style="width: 600px; height: 400px;"></div>
-                
-                <div id="legend"></div>
-                
-                </body>
-                </html>""")
-            str_content = u"".join(cont)
-            f = codecs.open("/home/g/Desktop/test.htm", "w", "utf-8")
-            f.write(str_content)
-            f.close()
-            output.display_report(self, str_content, url_load=True)
-        event.Skip()
+        import charting_dlg
+        wx.BeginBusyCursor()
+        try:
+            dlg = charting_dlg.DlgCharting(_("Make Chart"))
+            lib.safe_end_cursor()
+            dlg.ShowModal()
+        except Exception, e:
+            msg = _("Unable to connect to data as defined in project %s.  "
+                    "Please check your settings" % self.active_proj)
+            wx.MessageBox(msg)
+            raise Exception(u"%s.\nCaused by error: %s" % (msg, lib.ue(e)))
+        finally:
+            lib.safe_end_cursor()
+            event.Skip()
         
     def on_charts_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)

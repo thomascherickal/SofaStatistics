@@ -11,6 +11,7 @@ import core_stats
 """
 Output doesn't include the calculation of any values.  These are in discrete
     functions in core_stats, amenable to unit testing.
+No html header or footer added here.  Just some body content.    
 """
 
 int_imgs_n = 0 # for internal images so always unique
@@ -388,7 +389,7 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
     debug = False
     if add_to_report:
         # look in report folder for subfolder
-        imgs_path = os.path.join(report_name[:-len(".htm")], u"")
+        imgs_path = os.path.join(report_name[:-len(".htm")] + u"_images", u"")
         if debug: print("imgs_path: %s" % imgs_path)
         try:
             os.mkdir(imgs_path)
