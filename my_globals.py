@@ -105,10 +105,9 @@ u"""<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
 STA"'>
 <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 <title>%(title)s</title>
-%(js)s
+%(dojo_insert)s
 <style type="text/css">
 <!--
-%(dojo_css)s
 %(css)s
 -->
 </style>

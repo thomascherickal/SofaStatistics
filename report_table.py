@@ -516,32 +516,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             run script putting output in special location (INT_REPORT_PATH) 
             and into report file, and finally, display html output.
         """
-        debug = False
         run_ok, has_cols = self.table_config_ok()
         if run_ok:
-            if self.too_long():
-                return
-            wx.BeginBusyCursor()
-            add_to_report = self.chk_add_to_report.IsChecked()
-            if debug: print(cc[mg.CURRENT_CSS_PATH])
-            try:
-                css_fils, css_idx = output.get_css_dets()
-            except my_exceptions.MissingCssException, e:
-                lib.update_local_display(self.html, _("Please check the CSS "
-                                        "file \"%s\" exists or set another. "
-                                        "Caused by error: %s") % lib.ue(e), 
-                                        wrap_text=True)
-                lib.safe_end_cursor()
-                event.Skip()
-                return
-            script = self.get_script(has_cols, css_idx)
-            bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
-                                                           add_to_report, 
-                                                           css_fils, script)
-            lib.safe_end_cursor()
-            lib.update_local_display(self.html, str_content)
-            self.str_content = str_content
-            self.btn_expand.Enable(bolran_report)
+            config_dlg.ConfigDlg.on_btn_run(self, event, OUTPUT_MODULES, 
+                                            get_script_args=[has_cols,])
     
     # export script
     def on_btn_export(self, event):
@@ -558,34 +536,16 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 css_fils, css_idx = output.get_css_dets()
             except my_exceptions.MissingCssException, e:
                 lib.update_local_display(self.html, _("Please check the CSS "
-                                        "file \"%s\" exists or set another. "
-                                        "Caused by error: %s") % lib.ue(e), 
-                                        wrap_text=True)
+                                         "file \"%s\" exists or set another. "
+                                         "Caused by error: %s") % lib.ue(e), 
+                                         wrap_text=True)
                 lib.safe_end_cursor()
                 event.Skip()
                 return
-            script = self.get_script(has_cols, css_idx)
+            script = self.get_script(css_idx, has_cols)
             output.export_script(script, css_fils)
     
-    def get_titles(self):
-        """
-        Get titles list and subtitles list from GUI.
-        """
-        debug = False
-        raw_titles = self.txt_titles.GetValue()
-        if raw_titles:
-            titles = [u"%s" % x for x in raw_titles.split(u"\n")]
-        else:
-            titles = []
-        raw_subtitles = self.txt_subtitles.GetValue()
-        if raw_subtitles:
-            subtitles = [u"%s" % x for x in raw_subtitles.split(u"\n")]
-        else:
-            subtitles = []
-        if debug: print("%s %s" % (titles, subtitles))
-        return titles, subtitles
-    
-    def get_script(self, has_cols, css_idx):
+    def get_script(self, css_idx, has_cols):
         """
         Build script from inputs.
         Unlike the stats test output, no need to link to images etc, so no need

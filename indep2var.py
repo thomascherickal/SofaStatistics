@@ -549,31 +549,11 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             file, and finally, display html output.
         """
         run_ok = self.test_config_ok()
+        add_to_report = self.chk_add_to_report.IsChecked()
         if run_ok:
-            if self.too_long():
-                return
-            wx.BeginBusyCursor()
-            add_to_report = self.chk_add_to_report.IsChecked()
-            try:
-                css_fils, css_idx = output.get_css_dets()
-            except my_exceptions.MissingCssException, e:
-                lib.update_local_display(self.html, _("Please check the CSS "
-                                        "file \"%s\" exists or set another. "
-                                        "Caused by error: %s") % lib.ue(e), 
-                                        wrap_text=True)
-                lib.safe_end_cursor()
-                event.Skip()
-                return
-            script = self.get_script(css_idx, add_to_report, 
-                                     cc[mg.CURRENT_REPORT_PATH])
-            bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
-                                                           add_to_report, 
-                                                           css_fils, script)
-            lib.safe_end_cursor()
-            lib.update_local_display(self.html, str_content)
-            self.str_content = str_content
-            self.btn_expand.Enable(bolran_report)
-        event.Skip()
+            config_dlg.ConfigDlg.on_btn_run(self, event, OUTPUT_MODULES, 
+                                            get_script_args=[add_to_report,
+                                                  cc[mg.CURRENT_REPORT_PATH]])
     
     def test_config_ok(self):
         """

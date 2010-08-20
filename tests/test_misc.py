@@ -14,7 +14,6 @@ from nose.tools import assert_true
 import decimal
 import time
 
-#from .output import _strip_html
 import my_globals as mg
 import config_globals
 import lib
@@ -425,7 +424,7 @@ def test_replace_titles_subtitles():
     for test in tests:
         assert_equal(report_table.replace_titles_subtitles(*test[0]), test[1])
 
-def test_rel2abs_report_links():
+def test_rel2abs_rpt_img_links():
     """
     Make all images work of absolute rather than relative paths.  Will run OK
         when displayed internally in GUI.
@@ -445,7 +444,7 @@ def test_rel2abs_report_links():
             u"my_img.png\""),
         ]
     for test in tests:
-        assert_equal(lib.rel2abs_report_links(test[0]), test[1])
+        assert_equal(output.rel2abs_rpt_img_links(test[0]), test[1])
         
 test_us_style = False
 if test_us_style:
@@ -780,13 +779,13 @@ def test_str2unicode():
         assert_equal(lib.str2unicode(test[0]), test[1])
         assert_true(isinstance(lib.str2unicode(test[0]), unicode))
 
-def test_strip_html():
+def test_extract_html_body():
     tests = [("<body>Freddy</body>", "Freddy"), 
              ("<body>Freddy</body>Teddy</body>", "Freddy"),
              ("<body>Freddy", "Freddy"),
              ]
     for test in tests:
-        assert_equal(output._strip_html(test[0]), test[1])
+        assert_equal(output.extract_html_body(test[0]), test[1])
 
 def test_strip_script():
     tests = [("\nchunky chicken%s\nxzmxnzmxnz" % mg.SCRIPT_END, 

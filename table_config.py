@@ -600,8 +600,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         if debug: print(self.settings_data)
         # 1) part before the table-specific items e.g. column names and data
         html = [mg.DEFAULT_HDR % {u"title": u"Demonstration table", 
-                                  u"css": self.styles, u"js": u"",
-                                  u"dojo_css": u""}]
+                                  u"css": self.styles, u"dojo_insert": u""}]
         html.append(u"<table cellspacing='0'>\n<thead>\n<tr>")
         # 2) the table-specific items (inc column labels)
         # list based on sequence of fields in underlying table

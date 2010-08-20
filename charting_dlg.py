@@ -11,6 +11,8 @@ import full_html
 import indep2var
 import projects
 
+OUTPUT_MODULES = ["my_globals as mg", "charting_output", "output", 
+                  "getdata"]
 cc = config_dlg.get_cc()
 
 
@@ -354,23 +356,57 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def on_btn_chart(self, event):
         wx.MessageBox(u"Only simple bar charts available in this release. "
                       u"More coming soon!")
+
+    def get_script(self, css_idx):
+        "Build script from inputs"
+        debug = False
+        script_lst = []
+        
+        
+        # TODO wire up label, values, and x_axis_dets
+        
+        
+        
+        
+        """
+        label -- e.g. Germany
+        values -- list of values e.g. [12, 30, 100.5, -1, 40]
+        x_axis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), 
+                        (4, "40-64"), (5, "65+")]
+        
+        label, values, x_axis_dets
+        """
+        titles, subtitles = self.get_titles()
+        script_lst.append(u"titles=%s" % unicode(titles))
+        script_lst.append(u"subtitles=%s" % unicode(subtitles))
+        script_lst.append(u"label=\"Germany\"")
+        script_lst.append(u"values=[12, 30, 100.5, 76, 40]")
+        script_lst.append(u"x_axis_dets = [(1, \"Under 20\"), (2, \"20-29\"), "
+                          u"(3, \"30-39\"), (4, \"40-64\"), (5, \"65+\")]")
+        script_lst.append(u"barchart_output = charting_output.barchart_output("
+                          u"titles, subtitles,\n    label, values, x_axis_dets,"
+                          u" css_idx=%s, page_break_after=False)" % css_idx)
+        script_lst.append(u"fil.write(barchart_output)")
+        return u"\n".join(script_lst)
     
     def on_btn_run(self, event):
         # get settings
         if self.panel_displayed == self.panel_bar_chart:
-            # build script
-            
-            # run script
-            
-            # get html
-            
-            pass
-        
+            run_ok = self.test_config_ok()
+            add_to_report = self.chk_add_to_report.IsChecked()
+            if run_ok:
+                config_dlg.ConfigDlg.on_btn_run(self, event, OUTPUT_MODULES, 
+                                                get_script_args=[], 
+                                                has_dojo=True)
         else:
             wx.MessageBox(u"Only simple bar charts available in this release. "
                           u"More coming soon!")
         
     def on_btn_export(self, event):
+        
+        
+        # TODO NB will have has_dojo=True
+        
         wx.MessageBox(u"This version does not support exporting chart code yet")
     
     def on_var1_sel(self, event):
@@ -542,11 +578,23 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 self.drop_var2.GetStringSelection():
             wx.MessageBox(_("Variable 1 and 2 cannot be the same"))
             return False
+        
+        
+        
+        
+        
+        
         # group A and B cannot be the same
-        if self.drop_group_a.GetStringSelection() == \
-                self.drop_group_b.GetStringSelection():
-            wx.MessageBox(_("Group A and Group B must be different"))
-            return False
+        # TODO reactivate when group by re-enabled
+        #if self.drop_group_a.GetStringSelection() == \
+        #        self.drop_group_b.GetStringSelection():
+        #    wx.MessageBox(_("Group A and Group B must be different"))
+        #    return False
+        
+        
+        
+        
+        
         if self.takes_range:
             var_gp_numeric, var_gp, unused, unused, unused, unused, unused, \
                 unused, unused, unused, unused = self.get_drop_vals()

@@ -203,6 +203,24 @@ class ConfigDlg(object):
         szr_script_config.Add(self.btn_script_path, 0, wx.LEFT|wx.RIGHT, 5)
         self.szr_config_bottom.Add(szr_script_config, 1)
         return self.szr_config_bottom, self.szr_config_top
+
+    def get_titles(self):
+        """
+        Get titles list and subtitles list from GUI.
+        """
+        debug = False
+        raw_titles = self.txt_titles.GetValue()
+        if raw_titles:
+            titles = [u"%s" % x for x in raw_titles.split(u"\n")]
+        else:
+            titles = []
+        raw_subtitles = self.txt_subtitles.GetValue()
+        if raw_subtitles:
+            subtitles = [u"%s" % x for x in raw_subtitles.split(u"\n")]
+        else:
+            subtitles = []
+        if debug: print("%s %s" % (titles, subtitles))
+        return titles, subtitles
     
     def too_long(self):
         # check not a massive table
@@ -313,6 +331,35 @@ class ConfigDlg(object):
             self.txt_report_file.SetValue(cc[mg.CURRENT_REPORT_PATH])
         dlg_get_file.Destroy()
 
+    def on_btn_run(self, event, OUTPUT_MODULES, get_script_args, 
+                   has_dojo=False):
+        debug = False
+        if self.too_long():
+            return
+        wx.BeginBusyCursor()
+        add_to_report = self.chk_add_to_report.IsChecked()
+        if debug: print(cc[mg.CURRENT_CSS_PATH])
+        try:
+            css_fils, css_idx = output.get_css_dets()
+        except my_exceptions.MissingCssException, e:
+            lib.update_local_display(self.html, _("Please check the CSS "
+                                    "file \"%s\" exists or set another. "
+                                    "Caused by error: %s") % lib.ue(e), 
+                                    wrap_text=True)
+            lib.safe_end_cursor()
+            event.Skip()
+            return
+        script = self.get_script(css_idx, *get_script_args)
+        bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
+                                                       add_to_report, css_fils, 
+                                                       has_dojo, script)
+        lib.safe_end_cursor()
+        if debug: print(str_content)
+        lib.update_local_display(self.html, str_content)
+        self.str_content = str_content
+        self.btn_expand.Enable(bolran_report)
+        event.Skip()
+        
     def on_btn_view(self, event):
         """
         Open report in user's default web browser.
