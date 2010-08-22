@@ -47,9 +47,9 @@ def get_list(dbe, cur, tbl, tbl_filt, flds, fld_measure, fld_filter,
     obj_quoter = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     SQL_get_list = u"SELECT %s " % obj_quoter(fld_measure) + \
-        "FROM %s " % obj_quoter(tbl) + \
-        "WHERE %s IS NOT NULL " % obj_quoter(fld_measure) + \
-        "AND %s " % fld_val_clause + and_tbl_filt
+        u"FROM %s " % obj_quoter(tbl) + \
+        u"WHERE %s IS NOT NULL " % obj_quoter(fld_measure) + \
+        u"AND %s " % fld_val_clause + and_tbl_filt
     if debug: print(SQL_get_list)
     cur.execute(SQL_get_list)
     lst = [x[0] for x in cur.fetchall()]

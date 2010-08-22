@@ -8,17 +8,32 @@ import my_globals as mg
 import lib
 import config_dlg
 import full_html
+import getdata
 import indep2var
 import projects
 
 OUTPUT_MODULES = ["my_globals as mg", "charting_output", "output", 
                   "getdata"]
 cc = config_dlg.get_cc()
-
+dd = getdata.get_dd()
 
 class DlgCharting(indep2var.DlgIndep2VarConfig):
     
-    min_data_type = mg.VAR_TYPE_ORD # TODO - wire up for each chart type
+    
+    
+    
+    
+    
+    min_data_type = mg.VAR_TYPE_CAT # TODO - wire up for each chart type
+    
+    
+    
+    
+    
+    
+    
+    
+    
     inc_gp_by_select = True
     
     def __init__(self, title, takes_range=False):
@@ -238,6 +253,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024, 
                      height_init=myheight)
         
+        self.drop_style.Enable(False)
         self.drop_group_by.Enable(False)
 
     def on_show(self, event):
@@ -361,31 +377,24 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         "Build script from inputs"
         debug = False
         script_lst = []
-        
-        
-        # TODO wire up label, values, and x_axis_dets
-        
-        
-        
-        
-        """
-        label -- e.g. Germany
-        values -- list of values e.g. [12, 30, 100.5, -1, 40]
-        x_axis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), 
-                        (4, "40-64"), (5, "65+")]
-        
-        label, values, x_axis_dets
-        """
         titles, subtitles = self.get_titles()
         script_lst.append(u"titles=%s" % unicode(titles))
         script_lst.append(u"subtitles=%s" % unicode(subtitles))
-        script_lst.append(u"label=\"Germany\"")
-        script_lst.append(u"values=[12, 30, 100.5, 76, 40]")
-        script_lst.append(u"x_axis_dets = [(1, \"Under 20\"), (2, \"20-29\"), "
-                          u"(3, \"30-39\"), (4, \"40-64\"), (5, \"65+\")]")
+        unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+        var_gp, var_name1 = self.get_vars()
+        script_lst.append(u"tbl_filt = u\"%s\"" % tbl_filt)
+        script_lst.append(u"fld_measure = u\"%s\"" % var_name1)
+        script_lst.append(u"var_label=u\"%s\"" % \
+                          lib.get_item_label(self.var_labels, var_name1))
+        script_lst.append(u"val_labels = %s" % self.val_dics.get(var_name1, {}))
+        script_lst.append(u"xaxis_dets, y_values = "
+              u"charting_output.get_barchart_dets(dbe=\"%(dbe)s\", cur=cur,"
+              u"\n     tbl=tbl, tbl_filt=tbl_filt, fld_measure=fld_measure, "
+              u"val_labels=val_labels)" % {u"dbe": dd.dbe})
         script_lst.append(u"barchart_output = charting_output.barchart_output("
-                          u"titles, subtitles,\n    label, values, x_axis_dets,"
-                          u" css_idx=%s, page_break_after=False)" % css_idx)
+                      u"titles, subtitles,"
+                      u"\n    var_label, xaxis_dets, y_values, "
+                      u"css_idx=%s, page_break_after=False)" % css_idx)
         script_lst.append(u"fil.write(barchart_output)")
         return u"\n".join(script_lst)
     
