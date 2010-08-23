@@ -181,14 +181,16 @@ def get_fallback_css():
         mg.CSS_ALIGN_RIGHT
     return default_css
     
-def get_html_hdr(hdr_title, css_fils, has_dojo=False, default_if_prob=False, 
-                 grey=False, abs=False):
+def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
+                 default_if_prob=False, grey=False, abs=False):
     """
     Get HTML header.
     Add suffixes to each of the main classes so can have multiple styles in a
         single HTML file.
     has_dojo -- so can include all required css and javascript links plus direct
         css and js.
+    new_js_n_charts -- the number of dojo chart objects in the final version of 
+        this report including anything just being added.
     default_if_prob -- if True, will use the default css if the specified css 
         fails.  Otherwise will raise a css-specific exception (which will 
         probably be handled to give the user some feedback).
@@ -224,6 +226,15 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, default_if_prob=False,
         if debug: print("\n\nUsing default css")
         css = get_fallback_css()
     if has_dojo:
+        if new_js_n_charts is None:
+            make_objs_func_str = u"    makechart_renumber();"
+        else:
+            make_objs_func_str = u"    //n_charts_start" + \
+                u"\n    %s%s;" % (mg.JS_N_CHARTS_STR, new_js_n_charts) + \
+                u"\n    //n_charts_end" + \
+                u"\n    for(var i=0;i<n_charts;i++){" + \
+                u"\n        window[\"makechart\" + i]();" + \
+                u"\n    }"
         dojo_insert = u"""
 <link rel='stylesheet' type='text/css' href="sofa_report_extras/tundra.css" />
 <script src="sofa_report_extras/dojo.xd.js"></script>
@@ -231,7 +242,7 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, default_if_prob=False,
 <script src="sofa_report_extras/sofa_charts.js"></script>
 <script type="text/javascript">
 makeObjects = function(){
-    makechart_renumber();
+%(make_objs_func_str)s
 };
 dojo.addOnLoad(makeObjects);
 </script>
@@ -248,7 +259,7 @@ dojo.addOnLoad(makeObjects);
         padding-right: 10px
     }
 -->
-</style>"""
+</style>""" % {u"make_objs_func_str": make_objs_func_str}
     else:
         dojo_insert = u""
     hdr = mg.DEFAULT_HDR % {u"title": hdr_title, u"css": css, 
@@ -264,25 +275,24 @@ def get_html_ftr():
 
 def get_js_n_charts(existing_html):
     """
+    Read from report html. 3 in this example.  None if not there or an error.
     //n_charts_start
-    var n_charts = 3;
+    var n_charts = 3; # must be same as mg.JS_N_CHARTS_STR
     //n_charts_end
     Get the 3.
     """
     debug = False
-    # read from report
-    js_n_charts = 0
     try:
         idx_start = existing_html.index(mg.N_CHARTS_TAG_START) + \
-                                                len(mg.N_CHARTS_TAG_START)
+                                                    len(mg.N_CHARTS_TAG_START)
         idx_end = existing_html.index(mg.N_CHARTS_TAG_END)
         raw_n_charts_str = existing_html[idx_start: idx_end]
         if debug: print(raw_n_charts_str)
-        js_n_charts = \
-            raw_n_charts_str.strip().ltrim(u"var n_charts = ").rtrim(u";")
+        js_n_charts = int(raw_n_charts_str.strip().lstrip(mg.JS_N_CHARTS_STR).\
+                          rstrip(u";"))
         if debug: print(js_n_charts)
     except Exception:
-        pass
+        js_n_charts = None
     return js_n_charts
 
 def get_css_dets():
@@ -462,25 +472,49 @@ def get_title_css(css_idx):
                                                    css_idx)
     return CSS_TBL_TITLE, CSS_TBL_SUBTITLE, CSS_TBL_TITLE_CELL
 
+def extract_html_hdr(html):
+    """
+    Get html between the head tags. The start tag must be present.
+    """
+    html_hdr = extract_html_content(html, start_tag=u"<head>", 
+                                    end_tag=u"</head>")
+    return html_hdr
+
 def extract_html_body(html):
     """
-    Get html between the <body></body> tags.  The start tag must be present.
+    Get html between the body tags. The start tag must be present.
     """
-    body_start = u"<body class=\"tundra\">"
-    body_end = u"</body>"
+    html_body = extract_html_content(html, start_tag=u"<body class=\"tundra\">", 
+                                     end_tag=u"</body>")
+    return html_body
+
+def hdr_has_dojo(html):
+    html_hdr = extract_html_hdr(html)
     try:
-        start_idx = html.index(body_start) + len(body_start)
+        idx = html_hdr.index(u"dojo.addOnLoad")
+        hdr_has_dojo = True
     except ValueError:
-        raise Exception(u"Unable to process malformed HTML.  "
+        hdr_has_dojo = False
+    return hdr_has_dojo
+
+def extract_html_content(html, start_tag, end_tag):
+    """
+    Get html between the supplied tags.  The start tag must be present.
+    """
+    try:
+        start_idx = html.index(start_tag) + len(start_tag)
+    except ValueError:
+        raise Exception(u"Unable to extract content from malformed HTML.  "
                         u"Original HTML: %s" % html)
     try:
-        end_idx = html.index(body_end)
-        stripped = html[start_idx:end_idx]
+        end_idx = html.index(end_tag)
+        extracted = html[start_idx:end_idx]
     except ValueError:
-        stripped = html[start_idx:]
-    return stripped
+        extracted = html[start_idx:]
+    return extracted
 
-def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_html):
+def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo, 
+                   new_html):
     """
     If report doesn't exist, make it.
     If it does exist, extract existing content and then create empty version.
@@ -488,28 +522,42 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_html):
     A new header is required each time because there may be new css included 
         plus new js functions to make new charts.
     New content is everything between the body tags.
+    new_has_dojo -- does the new html being added have Dojo.  NB the report may 
+        have over results which have dojo, whether or not the latest output has.
+    If report has dojo, change from makechart_renumber, to next available 
+        integer.
     """
+    debug = False
     new_no_hdr = extract_html_body(new_html)
+    new_js_n_charts = None # init
     if os.path.exists(cc[mg.CURRENT_REPORT_PATH]):
         f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "U", "utf-8")
         existing_html = lib.clean_bom_utf8(f.read())
-        
-        
-        
-        
-        # TODO - replace makeObjects with looping version with correct n_charts
-        js_n_charts = get_js_n_charts(existing_html)
-        
-        
-        
-        
+        existing_has_dojo = hdr_has_dojo(existing_html)
+        has_dojo = (new_has_dojo or existing_has_dojo)
+        if has_dojo:
+            js_n_charts = get_js_n_charts(existing_html)
+            if js_n_charts is None:
+                new_js_n_charts = 1
+            else:
+                new_js_n_charts = js_n_charts
+                if new_has_dojo:
+                    new_js_n_charts += 1
+            if debug: print("n_charts: %s, new_n_charts: %s" % (js_n_charts, 
+                                                                new_js_n_charts))
         existing_no_ends = extract_html_body(existing_html)
         f.close()        
     else:
+        has_dojo = new_has_dojo
+        if has_dojo:
+            new_js_n_charts = 1
         existing_no_ends = None
+    if has_dojo:
+        new_no_hdr = new_no_hdr.replace(u"_renumber", 
+                                        unicode(new_js_n_charts-1))
     hdr_title = time.strftime(_("SOFA Statistics Report") + \
                               " %Y-%m-%d_%H:%M:%S")
-    hdr = get_html_hdr(hdr_title, css_fils)
+    hdr = get_html_hdr(hdr_title, css_fils, has_dojo, new_js_n_charts)
     f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "w", "utf-8")
     css_fils_str = pprint.pformat(css_fils)
     f.write(u"%s = %s-->\n\n" % (mg.CSS_FILS_START_TAG, css_fils_str))
@@ -532,7 +580,7 @@ def _strip_script(script):
         stripped = script
     return stripped
 
-def export_script(script, css_fils, has_dojo=False):
+def export_script(script, css_fils, new_has_dojo=False):
     modules = ["my_globals as mg", "core_stats", "dimtables", "getdata", 
                "output", "rawtables", "stats_output"]
     if os.path.exists(cc[mg.CURRENT_SCRIPT_PATH]):
@@ -551,7 +599,7 @@ def export_script(script, css_fils, has_dojo=False):
         f.write(_strip_script(existing_script))
     else:
         insert_prelim_code(modules, f, cc[mg.CURRENT_REPORT_PATH], css_fils, 
-                           has_dojo)
+                           new_has_dojo)
     tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
     append_exported_script(f, script, tbl_filt_label, tbl_filt, 
                            inc_divider=True)
@@ -570,18 +618,17 @@ def add_divider_code(f, tbl_filt_label, tbl_filt):
                                                          tbl_filt))
     f.write(u"\nfil.write(divider)\n")
 
-def insert_prelim_code(modules, f, fil_report, css_fils, has_dojo):
+def insert_prelim_code(modules, f, fil_report, css_fils, new_has_dojo):
     """
-    Insert preliminary code at top of file.
+    Insert preliminary code at top of file.  Needed for making output
     f - open file handle ready for writing.
     NB only one output file per script irrespective of selection as each script
         exported.
     """
     debug = False
     if debug: print(css_fils)
-    # NB the coding declaration we are just adding must be removed before we
-    # try to run the script as a unicode string
-    # else "encoding declaration in Unicode string".
+    # NB the encoding declaration added must be removed before we try to run the 
+    # script as a unicode string else "encoding declaration in Unicode string".
     f.write(mg.PYTHON_ENCODING_DECLARATION)
     f.write(u"\n" + mg.MAIN_SCRIPT_START)
     f.write(u"\nimport codecs")
@@ -598,9 +645,11 @@ def insert_prelim_code(modules, f, fil_report, css_fils, has_dojo):
                       lib.escape_pre_write(fil_report) + u""" "w", "utf-8")""")
     css_fils_str = pprint.pformat(css_fils)
     f.write(u"\ncss_fils=%s" % css_fils_str)
+    has_dojo = new_has_dojo # always for making single output item e.g. chart
     has_dojo_str = u"True" if has_dojo else u"False"
     f.write(u"\nfil.write(output.get_html_hdr(\"Report(s)\", css_fils, "
-            u"has_dojo=%s, default_if_prob=True))" % has_dojo_str)
+            u"has_dojo=%s, new_js_n_charts=None, default_if_prob=True))" % 
+            has_dojo_str)
     f.write(u"\n\n# end of script 'header'" + u"\n" + u"\n")
 
 def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt, 
@@ -647,7 +696,7 @@ def add_end_script_code(f):
     f.write(u"\n" + u"fil.write(output.get_html_ftr())")
     f.write(u"\n" + u"fil.close()")
 
-def run_report(modules, add_to_report, css_fils, has_dojo, inner_script):
+def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     """
     Runs report and returns bolran_report, and HTML representation of report 
         (or of the error) for GUI display.  Report includes HTML header.
@@ -657,7 +706,7 @@ def run_report(modules, add_to_report, css_fils, has_dojo, inner_script):
     # generate script
     f = codecs.open(mg.INT_SCRIPT_PATH, "w", "utf-8")
     if debug: print(css_fils)
-    insert_prelim_code(modules, f, mg.INT_REPORT_PATH, css_fils, has_dojo)
+    insert_prelim_code(modules, f, mg.INT_REPORT_PATH, css_fils, new_has_dojo)
     tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
     append_exported_script(f, inner_script, tbl_filt_label, tbl_filt, 
                            inc_divider=False)
@@ -721,29 +770,17 @@ def run_report(modules, add_to_report, css_fils, has_dojo, inner_script):
     filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
     results_with_source = source + u"<p>%s</p>" % filt_msg + raw_results
     if add_to_report:
-        # Append into html file. Handles source and filter desc internally when 
-        # making divider between output.  Ignores snippet html header and 
-        # modifies report header if required.
-        
-        
-        
-        # change from makechart_renumber,  to next available integer
-        
-        
-        
-        # needs to know if dojo being added so can make sure has dojo stuff in hdr
-        
-        
-        save_to_report(css_fils, source, tbl_filt_label, tbl_filt, raw_results)
+        # Append into html file. 
+        # Handles source and filter desc internally when making divider between 
+        # output.
+        # Ignores snippet html header and modifies report header if required.
+        save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
+                       raw_results)
         # has to deal with local GUI version to display as well
         # Make relative image links absolute so GUI viewers can display images.
         # If not add_to_report, already has absolute link to internal imgs.
         # If in real report, will need a relative version for actual report.
         # Make relative js absolute so dojo charts can display.
-        
-        
-        
-        
         rel_display_content = (u"\n<p>Output also saved to '%s'</p>" %
                             lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH]) + 
                             results_with_source)

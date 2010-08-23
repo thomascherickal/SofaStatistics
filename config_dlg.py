@@ -332,7 +332,7 @@ class ConfigDlg(object):
         dlg_get_file.Destroy()
 
     def on_btn_run(self, event, OUTPUT_MODULES, get_script_args, 
-                   has_dojo=False):
+                   new_has_dojo=False):
         debug = False
         if self.too_long():
             return
@@ -352,7 +352,7 @@ class ConfigDlg(object):
         script = self.get_script(css_idx, *get_script_args)
         bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
                                                        add_to_report, css_fils, 
-                                                       has_dojo, script)
+                                                       new_has_dojo, script)
         lib.safe_end_cursor()
         if debug: print(str_content)
         lib.update_local_display(self.html, str_content)

@@ -49,6 +49,7 @@ class DemoTable(object):
             html.append(output.get_html_hdr(hdr_title=_(u"Report(s)"), 
                                             css_fils=[cc[mg.CURRENT_CSS_PATH],], 
                                             has_dojo=False, 
+                                            new_js_n_charts = None,
                                             default_if_prob=True, 
                                             grey=True, abs=True))
             html.append(u"<table cellspacing='0'>\n") # IE6 no CSS borderspacing

@@ -195,15 +195,18 @@ def run_test_code(script):
         raise Exception(_("Error running test script \"%s\"." % test_path +
                           "\nCaused by errors:\n\n%s" % traceback.format_exc()))
 
+def populate_css_path(prog_path, local_path):
+    styles = [u"grey_spirals.css", u"lucid_spirals.css", u"pebbles.css"]
+    for style in styles:
+        shutil.copy(os.path.join(prog_path, u"css", style), 
+                    os.path.join(local_path, u"css", style))
+        
 def populate_local_paths(prog_path, local_path, default_proj, reports):
     """
     Install local set of files in user home dir if necessary.
     """
     # copy across default proj, vdts, css
-    styles = [u"grey_spirals.css", u"lucid_spirals.css", u"pebbles.css"]
-    for style in styles:
-        shutil.copy(os.path.join(prog_path, u"css", style), 
-                    os.path.join(local_path, u"css", style))
+    populate_css_path(prog_path, local_path)
     shutil.copy(os.path.join(prog_path, u"css", mg.DEFAULT_STYLE), 
                 os.path.join(local_path, u"css", mg.DEFAULT_STYLE))
     shutil.copy(os.path.join(prog_path, mg.INT_FOLDER, mg.SOFA_DB), 
@@ -255,8 +258,8 @@ if mg.PLATFORM == mg.MAC:
 else:
     prog_path = os.path.dirname(__file__)
 try:
-    is_newer = lib.current_version_is_newer(current_version=mg.VERSION, 
-                                            stored_version=get_installed_version())
+    is_newer = lib.version_a_is_newer(version_a=mg.VERSION, 
+                                      version_b=get_installed_version())
     newer_status_known = True
 except Exception, e:
     is_newer = None
@@ -276,6 +279,13 @@ try:
     f = file(os.path.join(mg.LOCAL_PATH, mg.VERSION_FILE), "w")
     f.write(mg.VERSION)
     f.close()
+    # update css files if necessary because url(images...) -> url("images...")
+    try:
+        if lib.version_a_is_newer(version_a=u"0.9.15", 
+                                  version_b=get_installed_version()):
+            populate_css_path(prog_path, mg.LOCAL_PATH)
+    except Exception, e:
+        pass
     if is_newer or not newer_status_known \
             or not os.path.exists(mg.RECOVERY_PATH):
         # make fresh recovery folder (over top of previous if necessary)

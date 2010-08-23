@@ -406,7 +406,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             if run_ok:
                 config_dlg.ConfigDlg.on_btn_run(self, event, OUTPUT_MODULES, 
                                                 get_script_args=[], 
-                                                has_dojo=True)
+                                                new_has_dojo=True)
         else:
             wx.MessageBox(u"Only simple bar charts available in this release. "
                           u"More coming soon!")
@@ -414,7 +414,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def on_btn_export(self, event):
         
         
-        # TODO NB will have has_dojo=True
+        # TODO NB will have new_has_dojo=True
         
         wx.MessageBox(u"This version does not support exporting chart code yet")
     

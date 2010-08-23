@@ -18,32 +18,32 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
-def current_version_is_newer(current_version, stored_version):
+def version_a_is_newer(version_a, version_b):
     """
-    Must be able to process both version details or else an error raised.
+    Must be able to process both version details or error raised.
     """
     try:
-        stored_version_parts = stored_version.split(u".")
-        if len(stored_version_parts) != 3: 
-            raise Exception(u"Faulty version details stored")
-        stored_version_parts = [int(x) for x in stored_version_parts]
+        version_b_parts = version_b.split(u".")
+        if len(version_b_parts) != 3: 
+            raise Exception(u"Faulty Version B details")
+        version_b_parts = [int(x) for x in version_b_parts]
     except Exception, e:
-        raise Exception(u"Stored version parts faulty")
+        raise Exception(u"Version B parts faulty")
     try:
-        current_version_parts = current_version.split(u".")
-        if len(current_version_parts) != 3:
-            raise Exception(u"Faulty version details in my_globals")
-        current_version_parts = [int(x) for x in current_version_parts]
+        version_a_parts = version_a.split(u".")
+        if len(version_a_parts) != 3:
+            raise Exception(u"Faulty Version A details")
+        version_a_parts = [int(x) for x in version_a_parts]
     except Exception, e:
-        raise Exception(u"Current version parts faulty")
-    if current_version_parts[0] > stored_version_parts[0]:
+        raise Exception(u"Version A parts faulty")
+    if version_a_parts[0] > version_b_parts[0]:
         is_newer = True
-    elif current_version_parts[0] == stored_version_parts[0] \
-        and current_version_parts[1] > stored_version_parts[1]:
+    elif version_a_parts[0] == version_b_parts[0] \
+        and version_a_parts[1] > version_b_parts[1]:
         is_newer = True
-    elif current_version_parts[0] == stored_version_parts[0] \
-        and current_version_parts[1] == stored_version_parts[1]\
-        and current_version_parts[2] > stored_version_parts[2]:
+    elif version_a_parts[0] == version_b_parts[0] \
+        and version_a_parts[1] == version_b_parts[1]\
+        and version_a_parts[2] > version_b_parts[2]:
         is_newer = True
     else:
         is_newer = False

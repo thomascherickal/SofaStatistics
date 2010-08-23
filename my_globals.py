@@ -13,7 +13,7 @@ import wx
 
 debug = False
 
-VERSION = u"0.9.14"
+VERSION = u"0.9.15"
 
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
@@ -113,6 +113,7 @@ STA"'>
 </style>
 </head>
 <body class="tundra">\n""" # tundra is for dojo
+JS_N_CHARTS_STR = u"var n_charts = "
 CSS_FILS_START_TAG = u"<!--css_fils"
 N_CHARTS_TAG_START = u"//n_charts_start"
 N_CHARTS_TAG_END = u"//n_charts_end"

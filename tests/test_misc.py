@@ -31,13 +31,13 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import dbe_plugins.dbe_mysql as dbe_mysql
 import dbe_plugins.dbe_postgresql as dbe_postgresql
 
-def test_current_version_is_newer():
+def test_version_a_is_newer():
     true_tests = [("9.8.2", "9.6.9"),
                   ("10.1.1", "9.1.1"),
                   ("00009.1.1", "9.0.1"),
                  ]
     for test in true_tests:
-        assert_true(lib.current_version_is_newer(test[0], test[1]))
+        assert_true(lib.version_a_is_newer(test[0], test[1]))
 
 def test_ms2unicode():
     tests = [("byte string", u"byte string"),
