@@ -99,6 +99,38 @@ class MsgApp(wx.App):
         self.SetTopWindow(msgframe)
         return True
 
+
+def check_python_version():
+    if not sys.version.startswith(u"2.6"):
+        fixit_file = os.path.join(mg.USER_PATH, u"Desktop", 
+                                  u"how to get SOFA working.txt")
+        f = open(fixit_file, "w")
+        msg = (u"\n" + u"*"*80 + 
+               u"\nHOW TO GET SOFA STATISTICS WORKING AGAIN\n" 
+               + u"*"*80 +
+               u"\n\nIt looks like an incorrect version of Python is being "
+               u"used to run SOFA Statistics. "
+               u"Fortunately, this is easily fixed (assuming you installed "
+               u"Python 2.6 as part of the SOFA installation)."
+               u"\n\nYou need to click the SOFA icon once with the right mouse "
+               u"button and select Properties.\n\nIn the Shortcut tab, there "
+               u"is a text box called Target.\n\nChange it from "
+               u"\"C:\\Program Files\\sofa\\start.pyw\"\nto\n"
+               u"C:\\Python26\\pythonw.exe "
+               u"\"C:\Program Files\\sofa\\start.pyw\" "
+               u"and click the OK button down the bottom.\n\nIf Python 2.6 is "
+               u"installed somewhere else, change the Target details "
+               u"accordingly - e.g. to D:\Python26 etc"
+               u"\n\nFor help, please contact grant@sofastatistics.com")
+        f.write(msg)
+        f.close()    
+        msgapp = MsgApp(msg + "\n\n" + u"*"*80 +u"\n\nThis message has been "
+                u"saved to a file on your Desktop for future reference", True)
+        msgapp.MainLoop()
+        del msgapp
+
+check_python_version() # do as early as possible.  Game over if Python faulty.
+
 COPYRIGHT = u"\u00a9"
 SCREEN_WIDTH = 1000
 TEXT_BROWN = (90, 74, 61)
@@ -116,52 +148,9 @@ HELP_IMG_TOP = 315
 MAIN_RIGHT = 650
 SCRIPT_PATH = mg.SCRIPT_PATH
 
-if not sys.version.startswith(u"2.6"):
-    fixit_file = os.path.join(mg.USER_PATH, u"Desktop", 
-                              u"how to get SOFA working.txt")
-    f = open(fixit_file, "w")
-    msg = (u"\n" + u"*"*80 + 
-           u"\nHOW TO GET SOFA STATISTICS WORKING AGAIN\n" 
-           + u"*"*80 +
-           u"\n\nIt looks like an incorrect version of Python is being used to "
-           u"run SOFA Statistics. "
-           u"Fortunately, this is easily fixed (assuming you installed Python "
-           u"2.6 as part of the SOFA installation)."
-           u"\n\nYou need to click the SOFA icon once with the right mouse "
-           u"button and select Properties.\n\nIn the Shortcut tab, there is a "
-           u"text box called Target.\n\nChange it from "
-           u"\"C:\\Program Files\\sofa\\start.pyw\"\nto\n"
-           u"C:\\Python26\\pythonw.exe \"C:\Program Files\\sofa\\start.pyw\" "
-           u"and click the OK button down the bottom.\n\nIf Python 2.6 is "
-           u"installed somewhere else, change the Target details accordingly -"
-           u" e.g. to D:\Python26 etc"
-           u"\n\nFor help, please contact grant@sofastatistics.com")
-    f.write(msg)
-    f.close()    
-    msgapp = MsgApp(msg + "\n\n" + u"*"*80 +u"\n\nThis message has been saved "
-                    u"to a file on your Desktop for future reference", True)
-    msgapp.MainLoop()
-    del msgapp
-    
-"""
-Need a good upgrade process which leaves existing configuration intact if 
-    possible but creates recovery folder which is guaranteed to work with the 
-    version just installed.
-Always have two local folders - the main sofa folder and a sofa_recovery folder.
-If the version of SOFA running is newer than the version in __version__.txt, 
-    wipe the sofa_recovery folder, and make it afresh.  The home folder should 
-    always contain a sofa-type folder which would allow the latest installed 
-    version of SOFA to run.  If the ordinary sofa folder is faulty in some way, 
-    can always wipe it and rename sofa_recovery to sofa and open up 
-    successfully.
-The "sofa_recovery" folder should have a default project file which points to 
-    the ordinary home "sofa" folder.  This will only work, of course, if the 
-    folder is made operational by renaming it to "sofa".
-"""
-
 def get_installed_version(local_path):
     """
-    Useful for working out if current version newer than installed version.  Or
+    Useful for working out if current version newer than installed version. Or
         if installed version is too old to work with this (latest) version.
         Perhaps we can migrate the old proj file if we know its version.
     """
@@ -174,26 +163,27 @@ def get_installed_version(local_path):
         installed_version = None
     return installed_version
 
-def make_local_paths(local_path, paths):
+def make_local_subfolders(local_path, local_subfolders):
     """
-    Create required folders in user home dir if not already done.
+    Create user home folder and required subfolders if not already done.
     """
-    for path in paths: # create required folders
-        try:
-            os.makedirs(os.path.join(local_path, path))
-        except Exception, e:
-            raise Exception(u"Unable to make path %s.  " % path +
-                            u"\nCaused by error: %s" % lib.ue(e))
-    # Can't just use mg.REPORT_EXTRAS_PATH because we also make a sofa_recovery
-    # version in a different location.
-    REPORT_EXTRAS_PATH = os.path.join(local_path, mg.REPORTS_FOLDER, 
-                                      mg.REPORT_EXTRAS_FOLDER)
     try:
-        os.mkdir(REPORT_EXTRAS_PATH) # under reports
+        os.mkdir(local_path)
+    except OSError, e:
+        pass
     except Exception, e:
-        raise Exception(u"Unable to make report extras path %s." % 
-                        REPORT_EXTRAS_PATH +
+        raise Exception(u"Unable to make local SOFA path %s." % local_path +
                         u"\nCaused by error: %s" % lib.ue(e))
+    for local_subfolder in local_subfolders: # create required subfolders
+        try:
+            os.mkdir(os.path.join(local_path, local_subfolder))
+        except OSError, e:
+            pass
+        except Exception, e:
+            raise Exception(u"Unable to make local subfolder %s." % 
+                            local_subfolder +
+                            u"\nCaused by error: %s" % lib.ue(e))
+    print(u"Made local subfolders under %s" % local_path)
 
 def run_test_code(script):
     """
@@ -216,25 +206,36 @@ def run_test_code(script):
     except Exception, e:
         raise Exception(_("Error running test script \"%s\"." % test_path +
                           "\nCaused by errors:\n\n%s" % traceback.format_exc()))
+    print(u"Ran test code %s" % script)
 
 def populate_css_path(prog_path, local_path):
     styles = [mg.DEFAULT_STYLE, u"grey_spirals.css", u"lucid_spirals.css", 
               u"pebbles.css"]
     for style in styles:
-        shutil.copy(os.path.join(prog_path, u"css", style), 
-                    os.path.join(local_path, u"css", style))
+        try:
+            shutil.copy(os.path.join(prog_path, u"css", style), 
+                        os.path.join(local_path, u"css", style))
+        except Exception, e:
+            raise Exception(u"Problem populating css path."
+                            u"\nCaused by error: %s" % lib.ue(e))
+    print(u"Populated css paths under %s" % local_path)
 
-def populate_extras_path(prog_path, local_path, reports):
+def populate_extras_path(prog_path, local_path):
     extras = [u"dojo.xd.js", u"grey_spirals.gif", u"lucid_spirals.gif", 
               u"pebbles.gif", u"sofa_charts.js", 
               u"sofalayer.js.uncompressed.js", u"tundra.css"]
     for extra in extras:
-        shutil.copy(os.path.join(prog_path, reports, mg.REPORT_EXTRAS_FOLDER, 
-                                 extra), 
-                    os.path.join(local_path, reports, mg.REPORT_EXTRAS_FOLDER, 
-                                 extra))
+        try:
+            shutil.copy(os.path.join(prog_path, mg.REPORTS_FOLDER, 
+                                     mg.REPORT_EXTRAS_FOLDER, extra), 
+                        os.path.join(local_path, mg.REPORTS_FOLDER, 
+                                     mg.REPORT_EXTRAS_FOLDER, extra))
+        except Exception, e:
+            raise Exception(u"Problem populating report extras path."
+                            u"\nCaused by error: %s" % lib.ue(e))
+    print(u"Populated report extras path under %s" % local_path)
 
-def populate_local_paths(prog_path, local_path, default_proj, reports):
+def populate_local_paths(prog_path, local_path, default_proj):
     """
     Install local set of files in user home dir if necessary.
     """
@@ -246,9 +247,10 @@ def populate_local_paths(prog_path, local_path, default_proj, reports):
                 default_proj)
     shutil.copy(os.path.join(prog_path, u"vdts", mg.DEFAULT_VDTS), 
                 os.path.join(local_path, u"vdts", mg.DEFAULT_VDTS))
-    populate_extras_path(prog_path, local_path, reports)
+    populate_extras_path(prog_path, local_path)
+    print(u"Populated local paths under %s" % local_path)
 
-def config_local_proj(local_path, default_proj, paths):
+def config_local_proj(local_path, default_proj, settings_subfolders):
     """
     Modify default project settings to point to local (user) SOFA directory.
     """
@@ -256,7 +258,7 @@ def config_local_proj(local_path, default_proj, paths):
     f = codecs.open(default_proj, "r", "utf-8")
     proj_str = f.read() # provided by me - no BOM or non-ascii 
     f.close()
-    for path in paths:
+    for path in settings_subfolders:
         new_str = lib.escape_pre_write(os.path.join(mg.LOCAL_PATH, path, u""))
         proj_str = proj_str.replace(u"/home/g/sofa/%s/" % path, new_str)
     # add MS Access and SQL Server into mix if Windows
@@ -276,11 +278,13 @@ def config_local_proj(local_path, default_proj, paths):
     f = open(os.path.join(local_path, mg.PROJ_CUSTOMISED_FILE), "w")
     f.write(u"Local project file customised successfully :-)")
     f.close()
+    print(u"Configured default project file for user")
 
 def store_version(local_path):
     f = file(os.path.join(local_path, mg.VERSION_FILE), "w")
     f.write(mg.VERSION)
     f.close()
+    print(u"Stored version as %s" % mg.VERSION)
 
 def get_installer_version_status(local_path):
     try:
@@ -292,8 +296,43 @@ def get_installer_version_status(local_path):
         installer_newer_status_known = False
     return installer_is_newer, installer_newer_status_known
 
-reports = u"reports"
-paths = [u"css", mg.INT_FOLDER, u"vdts", u"projs", reports, u"scripts"]
+def freshen_recovery(local_subfolders):
+    """
+    Need a good upgrade process which leaves existing configuration intact if 
+        possible but creates recovery folder which is guaranteed to work with 
+        the version just installed.
+    Always have two local folders - the main sofa folder and a sofa_recovery 
+        folder.
+    If the version of SOFA running is newer than the version in __version__.txt, 
+        wipe the sofa_recovery folder, and make it afresh.  The home folder 
+        should always contain a sofa-type folder which would allow the latest 
+        installed version of SOFA to run.  If the ordinary sofa folder is faulty 
+        in some way, can always wipe it and rename sofa_recovery to sofa and 
+        open up successfully.
+    The "sofa_recovery" folder should have a default project file which points 
+        to the ordinary home "sofa" folder.  This will only work, of course, if 
+        the folder is made operational by renaming it to "sofa".
+    """
+    installer_recovery_is_newer, installer_recovery_newer_status_known = \
+                                get_installer_version_status(mg.RECOVERY_PATH)
+    if (installer_recovery_is_newer or not installer_recovery_newer_status_known
+            or not os.path.exists(mg.RECOVERY_PATH)):
+        # make fresh recovery folder (over top of previous if necessary)
+        try:
+            shutil.rmtree(mg.RECOVERY_PATH)
+        except OSError:
+            pass
+        make_local_subfolders(mg.RECOVERY_PATH, local_subfolders)
+        default_proj = os.path.join(mg.RECOVERY_PATH, u"projs", mg.DEFAULT_PROJ)
+        populate_local_paths(prog_path, mg.RECOVERY_PATH, default_proj)
+        config_local_proj(mg.RECOVERY_PATH, default_proj, setting_subfolders)
+        store_version(mg.RECOVERY_PATH)
+    print(u"Freshened recovery")
+
+setting_subfolders = [u"css", u"vdts", u"projs", mg.REPORTS_FOLDER, u"scripts"]
+oth_subfolders = [mg.INT_FOLDER, os.path.join(mg.REPORTS_FOLDER, 
+                                              mg.REPORT_EXTRAS_FOLDER)]
+local_subfolders = setting_subfolders + oth_subfolders
 if mg.PLATFORM == mg.MAC:
     prog_path = MAC_PATH
 else:
@@ -304,41 +343,44 @@ try:
     # 1) create local SOFA folder if missing. Otherwise, leave intact for now
     local_path_setup_needed = not os.path.exists(mg.LOCAL_PATH)
     if local_path_setup_needed:
-        make_local_paths(mg.LOCAL_PATH, paths)
+        make_local_subfolders(mg.LOCAL_PATH, local_subfolders)
     run_test_code(mg.TEST_SCRIPT_EARLIEST)
     if local_path_setup_needed:
         # need mg but must run pre code calling dd
         default_proj = os.path.join(mg.LOCAL_PATH, u"projs", mg.DEFAULT_PROJ)
-        populate_local_paths(prog_path, mg.LOCAL_PATH, default_proj, reports)
-        config_local_proj(mg.LOCAL_PATH, default_proj, paths)
+        populate_local_paths(prog_path, mg.LOCAL_PATH, default_proj)
+        config_local_proj(mg.LOCAL_PATH, default_proj, setting_subfolders)
         store_version(mg.LOCAL_PATH)
     run_test_code(mg.TEST_SCRIPT_POST_CONFIG) # can now use dd and proj config
     # 2) Modify existing local SOFA folder if versions require it
     if not local_path_setup_needed: # any fresh one won't need modification
         try: # if already installed version is older than 0.9.15 ...
-            if lib.version_a_is_newer(version_a=u"0.9.15", 
-                                version_b=get_installed_version(mg.LOCAL_PATH)):
+            installed_version = get_installed_version(mg.LOCAL_PATH)
+            if installed_version is None or \
+                    lib.version_a_is_newer(version_a=u"0.9.15",
+                                           version_b=installed_version):
                 # update css files - url(images...) -> url("images...")
                 populate_css_path(prog_path, mg.LOCAL_PATH)
-                populate_extras_path(prog_path, mg.LOCAL_PATH, reports)
-                store_version(mg.LOCAL_PATH) # update it so only done once
+                # add new sofa_report_extras folder and populate it
+                REPORT_EXTRAS_PATH = os.path.join(mg.LOCAL_PATH, 
+                                                  mg.REPORTS_FOLDER, 
+                                                  mg.REPORT_EXTRAS_FOLDER)
+                try:
+                    os.mkdir(REPORT_EXTRAS_PATH) # under reports
+                except OSError, e:
+                    pass # already there
+                except Exception, e:
+                    raise Exception(u"Unable to make report extras path %s." % 
+                                    REPORT_EXTRAS_PATH +
+                                    u"\nCaused by error: %s" % lib.ue(e))
+                populate_extras_path(prog_path, mg.LOCAL_PATH)
+                store_version(mg.LOCAL_PATH) # update it so only done once    
         except Exception, e:
-            pass
+            raise Exception(u"Problem modifying your local sofa folder. One "
+                            u"option is to delete the %s folder and let SOFA "
+                            u"make a fresh one." % mg.LOCAL_PATH)
     # 3) Make a fresh recovery folder if needed
-    installer_recovery_is_newer, installer_recovery_newer_status_known = \
-                                get_installer_version_status(mg.RECOVERY_PATH)
-    if (installer_recovery_is_newer or not installer_recovery_newer_status_known
-            or not os.path.exists(mg.RECOVERY_PATH)):
-        # make fresh recovery folder (over top of previous if necessary)
-        try:
-            shutil.rmtree(mg.RECOVERY_PATH)
-        except OSError:
-            pass
-        make_local_paths(mg.RECOVERY_PATH, paths)
-        default_proj = os.path.join(mg.RECOVERY_PATH, u"projs", mg.DEFAULT_PROJ)
-        populate_local_paths(prog_path, mg.RECOVERY_PATH, default_proj, reports)
-        config_local_proj(mg.RECOVERY_PATH, default_proj, paths)
-        store_version(mg.RECOVERY_PATH)
+    freshen_recovery(local_subfolders)
 except Exception, e:
     msg = (u"Problem running initial setup.\nCaused by error: %s" % lib.ue(e))
     msgapp = MsgApp(msg)

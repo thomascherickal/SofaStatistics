@@ -393,8 +393,8 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         if debug: print("imgs_path: %s" % imgs_path)
         try:
             os.mkdir(imgs_path)
-        except OSError:
-            pass
+        except OSError, e:
+            pass # already there
         n_imgs = len(os.listdir(imgs_path))
         file_name = u"%03d.png" % n_imgs
         img_path = os.path.join(imgs_path, file_name) # absolute
