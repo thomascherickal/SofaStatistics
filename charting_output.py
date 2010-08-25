@@ -81,14 +81,14 @@ def barchart_output(titles, subtitles, var_label, xaxis_dets, y_values, css_idx,
         width = 1400
         xgap = 4
         xfontsize = 6
-    html = []
+    html = [] # std fill = #7193b8
     html.append(u"""
     <script type="text/javascript">
         makechart_renumber = function(){
             var var0 = new Array();
             var0["var_label"] = "%(var_label)s";
             var0["y_values"] = %(y_values)s;
-            var0["style"] = {stroke: {color: "black"}, fill: "#7193b8"};
+            var0["style"] = {stroke: {color: "white"}, fill: "#2996e9"};
             var data_arr0 = new Array(var0);
             var xaxis_labels = %(xaxis_labels)s;
             var xgap = %(xgap)s;

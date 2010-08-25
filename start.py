@@ -3,8 +3,30 @@
 
 from __future__ import absolute_import
 
-dev_debug = True
+dev_debug = False
 test_lang = False
+
+"""
+Start up launches the SOFA main form.  Along the way it tries to detect errors
+    and report on them to the user so that they can seek help.  E.g. faulty
+    version of Python being used to launch SOFA; or missing images needed by the 
+    form.
+Start up can also run test code to diagnose early problems.
+Start up also checks to see if the current user of SOFA has their local SOFA 
+    folder in place ready to use.  If not, SOFA constructs one. First, it 
+    creates the required folder and subfolders.  Then it populates them by 
+    copying across css, sofa_db, default proj, vdts, and report extras. 
+    In the local folder the default project file is modified to point to the 
+    user's file paths.  A version file is made for future reference.
+SOFA may also look to see if the local folder was created by an older version of 
+    SOFA.  There may be some special tasks to conduct e.g. updating css files.
+If missing, a SOFA recovery folder is also made.  If there is already a recovery 
+    folder, but the existing local copy of SOFA was older than the installing 
+    copy, the recovery folder will be wiped and overwritten with the latest 
+    files.
+When the form is shown for the first time on Windows versions, a warning is 
+    given and com types are initialised.
+"""
 
 import warnings
 warnings.simplefilter('ignore', DeprecationWarning)
@@ -137,13 +159,13 @@ The "sofa_recovery" folder should have a default project file which points to
     folder is made operational by renaming it to "sofa".
 """
 
-def get_installed_version():
+def get_installed_version(local_path):
     """
     Useful for working out if current version newer than installed version.  Or
         if installed version is too old to work with this (latest) version.
         Perhaps we can migrate the old proj file if we know its version.
     """
-    version_path = os.path.join(mg.LOCAL_PATH, mg.VERSION_FILE)
+    version_path = os.path.join(local_path, mg.VERSION_FILE)
     if os.path.exists(version_path):
         f = open(version_path, "r")
         installed_version = f.read().strip()
@@ -196,31 +218,35 @@ def run_test_code(script):
                           "\nCaused by errors:\n\n%s" % traceback.format_exc()))
 
 def populate_css_path(prog_path, local_path):
-    styles = [u"grey_spirals.css", u"lucid_spirals.css", u"pebbles.css"]
+    styles = [mg.DEFAULT_STYLE, u"grey_spirals.css", u"lucid_spirals.css", 
+              u"pebbles.css"]
     for style in styles:
         shutil.copy(os.path.join(prog_path, u"css", style), 
                     os.path.join(local_path, u"css", style))
-        
+
+def populate_extras_path(prog_path, local_path, reports):
+    extras = [u"dojo.xd.js", u"grey_spirals.gif", u"lucid_spirals.gif", 
+              u"pebbles.gif", u"sofa_charts.js", 
+              u"sofalayer.js.uncompressed.js", u"tundra.css"]
+    for extra in extras:
+        shutil.copy(os.path.join(prog_path, reports, mg.REPORT_EXTRAS_FOLDER, 
+                                 extra), 
+                    os.path.join(local_path, reports, mg.REPORT_EXTRAS_FOLDER, 
+                                 extra))
+
 def populate_local_paths(prog_path, local_path, default_proj, reports):
     """
     Install local set of files in user home dir if necessary.
     """
-    # copy across default proj, vdts, css
+    # copy across css, sofa_db, default proj, vdts, and report extras 
     populate_css_path(prog_path, local_path)
-    shutil.copy(os.path.join(prog_path, u"css", mg.DEFAULT_STYLE), 
-                os.path.join(local_path, u"css", mg.DEFAULT_STYLE))
     shutil.copy(os.path.join(prog_path, mg.INT_FOLDER, mg.SOFA_DB), 
                 os.path.join(local_path, mg.INT_FOLDER, mg.SOFA_DB))
-    shutil.copy(os.path.join(prog_path, u"vdts", mg.DEFAULT_VDTS), 
-                os.path.join(local_path, u"vdts", mg.DEFAULT_VDTS))
     shutil.copy(os.path.join(prog_path, u"projs", mg.DEFAULT_PROJ), 
                 default_proj)
-    bg_images = [u"grey_spirals.gif", u"lucid_spirals.gif", u"pebbles.gif"]
-    for bg_image in bg_images:
-        shutil.copy(os.path.join(prog_path, reports, mg.REPORT_EXTRAS_FOLDER, 
-                                 bg_image), 
-                    os.path.join(local_path, reports, mg.REPORT_EXTRAS_FOLDER, 
-                                 bg_image))
+    shutil.copy(os.path.join(prog_path, u"vdts", mg.DEFAULT_VDTS), 
+                os.path.join(local_path, u"vdts", mg.DEFAULT_VDTS))
+    populate_extras_path(prog_path, local_path, reports)
 
 def config_local_proj(local_path, default_proj, paths):
     """
@@ -251,20 +277,31 @@ def config_local_proj(local_path, default_proj, paths):
     f.write(u"Local project file customised successfully :-)")
     f.close()
 
+def store_version(local_path):
+    f = file(os.path.join(local_path, mg.VERSION_FILE), "w")
+    f.write(mg.VERSION)
+    f.close()
+
+def get_installer_version_status(local_path):
+    try:
+        installer_is_newer = lib.version_a_is_newer(version_a=mg.VERSION, 
+                                    version_b=get_installed_version(local_path))
+        installer_newer_status_known = True
+    except Exception, e:
+        installer_is_newer = None
+        installer_newer_status_known = False
+    return installer_is_newer, installer_newer_status_known
+
 reports = u"reports"
 paths = [u"css", mg.INT_FOLDER, u"vdts", u"projs", reports, u"scripts"]
 if mg.PLATFORM == mg.MAC:
     prog_path = MAC_PATH
 else:
     prog_path = os.path.dirname(__file__)
+installer_is_newer, installer_newer_status_known = \
+                                    get_installer_version_status(mg.LOCAL_PATH)
 try:
-    is_newer = lib.version_a_is_newer(version_a=mg.VERSION, 
-                                      version_b=get_installed_version())
-    newer_status_known = True
-except Exception, e:
-    is_newer = None
-    newer_status_known = False
-try:
+    # 1) create local SOFA folder if missing. Otherwise, leave intact for now
     local_path_setup_needed = not os.path.exists(mg.LOCAL_PATH)
     if local_path_setup_needed:
         make_local_paths(mg.LOCAL_PATH, paths)
@@ -274,20 +311,24 @@ try:
         default_proj = os.path.join(mg.LOCAL_PATH, u"projs", mg.DEFAULT_PROJ)
         populate_local_paths(prog_path, mg.LOCAL_PATH, default_proj, reports)
         config_local_proj(mg.LOCAL_PATH, default_proj, paths)
+        store_version(mg.LOCAL_PATH)
     run_test_code(mg.TEST_SCRIPT_POST_CONFIG) # can now use dd and proj config
-    # store version so can identify if an upgrade
-    f = file(os.path.join(mg.LOCAL_PATH, mg.VERSION_FILE), "w")
-    f.write(mg.VERSION)
-    f.close()
-    # update css files if necessary because url(images...) -> url("images...")
-    try:
-        if lib.version_a_is_newer(version_a=u"0.9.15", 
-                                  version_b=get_installed_version()):
-            populate_css_path(prog_path, mg.LOCAL_PATH)
-    except Exception, e:
-        pass
-    if is_newer or not newer_status_known \
-            or not os.path.exists(mg.RECOVERY_PATH):
+    # 2) Modify existing local SOFA folder if versions require it
+    if not local_path_setup_needed: # any fresh one won't need modification
+        try: # if already installed version is older than 0.9.15 ...
+            if lib.version_a_is_newer(version_a=u"0.9.15", 
+                                version_b=get_installed_version(mg.LOCAL_PATH)):
+                # update css files - url(images...) -> url("images...")
+                populate_css_path(prog_path, mg.LOCAL_PATH)
+                populate_extras_path(prog_path, mg.LOCAL_PATH, reports)
+                store_version(mg.LOCAL_PATH) # update it so only done once
+        except Exception, e:
+            pass
+    # 3) Make a fresh recovery folder if needed
+    installer_recovery_is_newer, installer_recovery_newer_status_known = \
+                                get_installer_version_status(mg.RECOVERY_PATH)
+    if (installer_recovery_is_newer or not installer_recovery_newer_status_known
+            or not os.path.exists(mg.RECOVERY_PATH)):
         # make fresh recovery folder (over top of previous if necessary)
         try:
             shutil.rmtree(mg.RECOVERY_PATH)
@@ -297,6 +338,7 @@ try:
         default_proj = os.path.join(mg.RECOVERY_PATH, u"projs", mg.DEFAULT_PROJ)
         populate_local_paths(prog_path, mg.RECOVERY_PATH, default_proj, reports)
         config_local_proj(mg.RECOVERY_PATH, default_proj, paths)
+        store_version(mg.RECOVERY_PATH)
 except Exception, e:
     msg = (u"Problem running initial setup.\nCaused by error: %s" % lib.ue(e))
     msgapp = MsgApp(msg)
@@ -606,9 +648,9 @@ class StartFrame(wx.Frame):
             up (comtypes).
         """
         COMTYPES_HANDLED = u"comtypes_handled.txt"
-        if (mg.PLATFORM == mg.WINDOWS 
-            and not os.path.exists(os.path.join(mg.LOCAL_PATH, 
-                                                COMTYPES_HANDLED))):
+        comtypes_tag = os.path.join(mg.LOCAL_PATH, COMTYPES_HANDLED)
+        if (mg.PLATFORM == mg.WINDOWS and not os.path.exists(comtypes_tag)):
+            # init com types
             wx.MessageBox(_("Click OK to prepare for first use of SOFA "
                             "Statistics.\n\nPreparation may take a moment ..."))
             h = full_html.FullHTML(panel=panel, parent=self, size=(10,10))
@@ -618,9 +660,8 @@ class StartFrame(wx.Frame):
                 pass
             h.show_html(u"")
             h = None
-        if not os.path.exists(os.path.join(mg.LOCAL_PATH, COMTYPES_HANDLED)):
-            # create file as tag we have done the changes to the proj file
-            f = file(os.path.join(mg.LOCAL_PATH, COMTYPES_HANDLED), "w")
+            # leave tag saying it is done
+            f = file(comtypes_tag, "w")
             f.write(u"Comtypes handled successfully :-)")
             f.close()
     

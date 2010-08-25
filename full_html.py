@@ -4,6 +4,7 @@ import traceback
 import wx
 
 import my_globals as mg
+import output
 
 use_renderer = True # False if renderer not available and other testing required
 debug = False
@@ -47,7 +48,7 @@ else:
                     url_fil = os.path.join(mg.INT_PATH, u"ready2load.htm")
                     if debug: print(url_fil)
                     f = codecs.open(url_fil, "w", encoding="utf-8")
-                    f.write(strHTML)
+                    f.write(output.rel2abs_css_links(strHTML))
                     f.close()
                     self.LoadUrl(u"file:///%s" % url_fil)
                 else:
