@@ -241,6 +241,17 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
 <script src="sofa_report_extras/sofalayer.js.uncompressed.js"></script>
 <script src="sofa_report_extras/sofa_charts.js"></script>
 <script type="text/javascript">
+get_ie_script = function(mysrc){
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = mysrc;
+    document.getElementsByTagName('head')[0].appendChild(script); 
+}
+if(dojo.isIE){
+    get_ie_script("sofa_report_extras/arc.xd.js");
+    get_ie_script("sofa_report_extras/gradient.xd.js");
+    get_ie_script("sofa_report_extras/vml.xd.js");
+}
 makeObjects = function(){
 %(make_objs_func_str)s
 };
@@ -409,8 +420,10 @@ def rel2abs_rpt_img_links(str_html):
     debug = False
     report_path = os.path.join(mg.REPORTS_PATH, u"")
     if debug: print(u"report_path: %s" % report_path)
-    abs_display_content = str_html.replace(u"src='", u"src='%s" % report_path)\
-                                .replace(u"src=\"", u"src=\"%s" % report_path)
+    abs_display_content = str_html.replace(u"<img src='", 
+                                           u"<img src='%s" % report_path)\
+                                  .replace(u"<img src=\"", 
+                                           u"<img src=\"%s" % report_path)
     if debug: print(u"From \n\n%s\n\nto\n\n%s" % (str_html, 
                                                   abs_display_content))
     return abs_display_content
@@ -426,6 +439,9 @@ def rel2abs_rpt_extras(strhtml, tpl):
                                           tpl % url) 
     if debug: print("From \n\n%s\n\nto\n\n%s" % (strhtml, abs_display_content))
     return abs_display_content
+
+def rel2abs_extra_js_links(strhtml):
+    return rel2abs_rpt_extras(strhtml, tpl=u"get_ie_script(\"%s")
 
 def rel2abs_css_bg_imgs(strhtml):
     """
@@ -784,14 +800,21 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
         rel_display_content = (u"\n<p>Output also saved to '%s'</p>" %
                             lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH]) + 
                             results_with_source)
-        gui_display_content = rel2abs_css_bg_imgs(\
-                                    rel2abs_rpt_img_links(rel_display_content))
+        if debug: print(u"\nrel\n" + 100*u"*" + u"\n\n" + rel_display_content)
+        imgs_fixed = rel2abs_rpt_img_links(rel_display_content)
+        if debug: print(u"\nimgs\n" + 100*u"*" + u"\n\n" + imgs_fixed)
+        js_fixed = rel2abs_js_links(imgs_fixed)
+        if debug: print(u"\njs\n" + 100*u"*" + u"\n\n" + js_fixed)
+        ie_js_fixed = rel2abs_extra_js_links(js_fixed)
+        if debug: print(u"\nie\n" + 100*u"*" + u"\n\n" + ie_js_fixed)
+        gui_display_content = rel2abs_css_bg_imgs(ie_js_fixed)
+        if debug: print(u"\ngui\n" + 100*u"*" + u"\n\n" + gui_display_content)
     else: # standalone internal GUI only - make everything absolute
         # need to make background css images absolute
         # need to make css and js links absolute
         gui_display_content = \
-                    rel2abs_js_links(rel2abs_css_links(\
-                                      rel2abs_css_bg_imgs(results_with_source)))
+                    rel2abs_extra_js_links(rel2abs_js_links(rel2abs_css_links(\
+                                     rel2abs_css_bg_imgs(results_with_source))))
     if debug: print(gui_display_content)
     return True, gui_display_content
 

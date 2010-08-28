@@ -221,9 +221,10 @@ def populate_css_path(prog_path, local_path):
     print(u"Populated css paths under %s" % local_path)
 
 def populate_extras_path(prog_path, local_path):
-    extras = [u"dojo.xd.js", u"grey_spirals.gif", u"lucid_spirals.gif", 
+    extras = [u"arc.xd.js", u"blank.gif", u"blank.htm", u"dojo.xd.js", 
+              u"gradient.xd.js", u"grey_spirals.gif", u"lucid_spirals.gif", 
               u"pebbles.gif", u"sofa_charts.js", 
-              u"sofalayer.js.uncompressed.js", u"tundra.css"]
+              u"sofalayer.js.uncompressed.js", u"tundra.css", u"vml.xd.js"]
     for extra in extras:
         try:
             shutil.copy(os.path.join(prog_path, mg.REPORTS_FOLDER, 
@@ -325,14 +326,14 @@ def freshen_recovery(local_subfolders):
         make_local_subfolders(mg.RECOVERY_PATH, local_subfolders)
         default_proj = os.path.join(mg.RECOVERY_PATH, u"projs", mg.DEFAULT_PROJ)
         populate_local_paths(prog_path, mg.RECOVERY_PATH, default_proj)
-        config_local_proj(mg.RECOVERY_PATH, default_proj, setting_subfolders)
+        config_local_proj(mg.RECOVERY_PATH, default_proj, subfolders_in_proj)
         store_version(mg.RECOVERY_PATH)
     print(u"Freshened recovery")
 
-setting_subfolders = [u"css", u"vdts", u"projs", mg.REPORTS_FOLDER, u"scripts"]
-oth_subfolders = [mg.INT_FOLDER, os.path.join(mg.REPORTS_FOLDER, 
-                                              mg.REPORT_EXTRAS_FOLDER)]
-local_subfolders = setting_subfolders + oth_subfolders
+subfolders_in_proj = [u"css", mg.INT_FOLDER, u"projs", mg.REPORTS_FOLDER, 
+                      u"scripts", u"vdts"]
+oth_subfolders = [os.path.join(mg.REPORTS_FOLDER, mg.REPORT_EXTRAS_FOLDER)]
+local_subfolders = subfolders_in_proj + oth_subfolders
 if mg.PLATFORM == mg.MAC:
     prog_path = MAC_PATH
 else:
@@ -349,7 +350,7 @@ try:
         # need mg but must run pre code calling dd
         default_proj = os.path.join(mg.LOCAL_PATH, u"projs", mg.DEFAULT_PROJ)
         populate_local_paths(prog_path, mg.LOCAL_PATH, default_proj)
-        config_local_proj(mg.LOCAL_PATH, default_proj, setting_subfolders)
+        config_local_proj(mg.LOCAL_PATH, default_proj, subfolders_in_proj)
         store_version(mg.LOCAL_PATH)
     run_test_code(mg.TEST_SCRIPT_POST_CONFIG) # can now use dd and proj config
     # 2) Modify existing local SOFA folder if versions require it

@@ -4,6 +4,7 @@ import traceback
 import wx
 
 import my_globals as mg
+import lib
 import output
 
 use_renderer = True # False if renderer not available and other testing required
@@ -18,7 +19,7 @@ if not use_renderer:
         def __init__(self, panel, parent, size):
             wx.Window.__init__(self, panel, -1, size=wx.Size(size[0], size[1]))
         
-        def show_html(self, strHTML, url_load=False):
+        def show_html(self, str_html, url_load=False):
             pass
         
         def load_url(self, url):
@@ -39,7 +40,7 @@ else:
                 ie.IEHtmlWindow.__init__(self, panel, -1, 
                                          size=wx.Size(size[0], size[1]))
             
-            def show_html(self, strHTML, url_load=False):
+            def show_html(self, str_html, url_load=False):
                 """
                 If first time, will have delay while initialising comtypes.
                 url_load -- so internal links like footnotes will work.
@@ -48,11 +49,12 @@ else:
                     url_fil = os.path.join(mg.INT_PATH, u"ready2load.htm")
                     if debug: print(url_fil)
                     f = codecs.open(url_fil, "w", encoding="utf-8")
-                    f.write(output.rel2abs_css_links(strHTML))
+                    f.write(lib.back2forwards_slashes(output.rel2abs_css_links(\
+                                                                    str_html)))
                     f.close()
                     self.LoadUrl(u"file:///%s" % url_fil)
                 else:
-                    self.LoadString(strHTML)
+                    self.LoadString(lib.back2forwards_slashes(str_html))
                     
             def load_url(self, url):
                 self.LoadUrl(url)
@@ -73,10 +75,10 @@ else:
                 def __init__(self, panel, parent, size):
                     wx.webview.WebView.__init__(self, panel, -1, size=size)
                 
-                def show_html(self, strHTML, url_load=False):
-                    if debug: print("strHTML is: %s" % strHTML)
+                def show_html(self, str_html, url_load=False):
+                    if debug: print("str_html is: %s" % str_html)
                     # NB no issue with backslashes because not in Windows ;-)
-                    self.SetPageSource(strHTML, "file://%s/" % mg.INT_PATH)
+                    self.SetPageSource(str_html, "file://%s/" % mg.INT_PATH)
                 
                 def load_url(self, url):
                     self.LoadURL(url)
@@ -115,10 +117,10 @@ else:
                     scrolled_window.add(ctrl)
                     scrolled_window.show_all()
                 
-                def show_html(self, strHTML, url_load=False):
-                    if debug: print("strHTML is: %s" % strHTML)
+                def show_html(self, str_html, url_load=False):
+                    if debug: print("str_html is: %s" % str_html)
                     # NB no issue with backslashes because not in Windows ;-)
-                    self.ctrl.load_string(strHTML, "text/html", "utf-8",
+                    self.ctrl.load_string(str_html, "text/html", "utf-8",
                                           "file://%s/" % mg.INT_PATH)
                 
                 def load_url(self, url):
@@ -132,10 +134,10 @@ else:
             def __init__(self, panel, parent, size):
                 wx.webkit.WebKitCtrl.__init__(self, panel, -1, size=size)
             
-            def show_html(self, strHTML, url_load=False):
-                if debug: print("strHTML is: %s" % strHTML)
+            def show_html(self, str_html, url_load=False):
+                if debug: print("str_html is: %s" % str_html)
                 # NB no issue with backslashes because not used in Windows ;-)
-                self.SetPageSource(strHTML, "file://%s/" % mg.INT_PATH)
+                self.SetPageSource(str_html, "file://%s/" % mg.INT_PATH)
             
             def load_url(self, url):
                 self.LoadURL(url)
