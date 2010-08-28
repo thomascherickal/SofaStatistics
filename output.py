@@ -800,8 +800,11 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
         rel_display_content = (u"\n<p>Output also saved to '%s'</p>" %
                             lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH]) + 
                             results_with_source)
+        debug = False
         if debug: print(u"\nrel\n" + 100*u"*" + u"\n\n" + rel_display_content)
-        imgs_fixed = rel2abs_rpt_img_links(rel_display_content)
+        css_fixed = rel2abs_css_links(rel_display_content)
+        if debug: print(u"\ncss\n" + 100*u"*" + u"\n\n" + css_fixed)
+        imgs_fixed = rel2abs_rpt_img_links(css_fixed)
         if debug: print(u"\nimgs\n" + 100*u"*" + u"\n\n" + imgs_fixed)
         js_fixed = rel2abs_js_links(imgs_fixed)
         if debug: print(u"\njs\n" + 100*u"*" + u"\n\n" + js_fixed)
