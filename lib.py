@@ -376,7 +376,7 @@ def safe_end_cursor():
     if wx.IsBusy():
         wx.EndBusyCursor()
 
-def get_fld_names(n):
+def get_n_fld_names(n):
     fldnames = []
     for i in range(n):
         fldname = mg.NEXT_FLD_NAME_TEMPLATE % (i+1,)

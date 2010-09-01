@@ -228,9 +228,20 @@ def get_fld_names(tbl, has_header, rows_to_sample):
                     pass
             if cells_n > max_row_cells:
                 max_row_cells = cells_n
-        fldnames = lib.get_fld_names(max_row_cells)
+        fldnames = lib.get_n_fld_names(max_row_cells)
         if debug: print(fldnames)
     return fldnames
+
+def get_el_inner_val(el):
+    """
+    Sometimes the value is not in the first item in el
+    """
+    text2return = None
+    for i in range(3):
+        text2return = el[i].text
+        if text2return is not None:
+            break
+    return text2return
 
 def get_fld_names_from_header_row(row):
     """
@@ -251,12 +262,12 @@ def get_fld_names_from_header_row(row):
         if attrib_dict:
             if COLS_REP in attrib_dict and VAL_TYPE in attrib_dict:
                 raise Exception(_("Field name \"%s\" cannot be repeated")
-                                % el[0].text)
+                                % get_el_inner_val(el))
             elif DATE_VAL in attrib_dict:
                 fldname = attrib_dict[DATE_VAL] # take proper date 
                     # val e.g. 2010-02-01 rather than orig text of 01/02/10
             elif VAL_TYPE in attrib_dict:
-                fldname = el[0].text # take val from inner text element
+                fldname = get_el_inner_val(el) #take val from inner text element
             else: # not a data cell
                 pass # fail to set fldname
                 # e.g. <table:table-cell table:number-columns-repeated="254" 
