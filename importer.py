@@ -199,6 +199,7 @@ def process_val(vals, row_num, row, orig_fld_name, fld_types, check):
     If all is OK, will add val to vals.  NB val will need to be internally 
         quoted unless it is a NULL. 
     If not, will raise an exception.
+    Quote ready for inclusion in SQLite SQL insert query.
     Returns nulled_dots (boolean).
     """
     debug = False
@@ -212,7 +213,7 @@ def process_val(vals, row_num, row, orig_fld_name, fld_types, check):
     fld_type = fld_types[orig_fld_name]
     val = get_val(rawval, check, is_pytime, fld_type, orig_fld_name, row_num)
     if val != u"NULL":
-        val = u"\"%s\"" % val
+        val = dbe_sqlite.quote_val(val)
     vals.append(val)
     if debug: print(val)
     return nulled_dots
@@ -277,6 +278,8 @@ def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names,
                 raise my_exceptions.ImportCancelException
         gauge_start += 1
         row_num = row_num_start + row_idx
+        #if debug and row_num == 12:
+        #    print("Break on this line :-)")
         vals = []
         report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, 
                               allow_none)

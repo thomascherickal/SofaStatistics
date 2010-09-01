@@ -18,7 +18,8 @@ import getdata
 import importer
 
 ROWS_TO_SAMPLE = 20
-
+ESC_DOUBLE_QUOTE = "\x14" # won't occur naturally and doesn't break csv module
+# Shift Out control character in ASCII 
 """
 Support for unicode is lacking from the Python 2 series csv module and quite a
     bit of wrapping is required to work around it.  Must wait for Python 3 or
@@ -85,6 +86,17 @@ def get_avg_row_size(rows):
     return avg_row_size
 
 
+def escape_double_quotes_in_lines(lines):
+    """
+    Needed because csv not handling doubled double quotes inside fields.
+    """
+    escaped_lines = []
+    for line in lines:
+        escaped_line = line.replace(u"\"\"", u"%s\"" % ESC_DOUBLE_QUOTE).\
+                            replace(u"\\\"", u"%s\"" % ESC_DOUBLE_QUOTE)
+        escaped_lines.append(escaped_line)
+    return escaped_lines
+
 # http://docs.python.org/library/csv.html
 class UnicodeCsvReader(object):
     """
@@ -94,8 +106,9 @@ class UnicodeCsvReader(object):
     def __init__(self, utf8_encoded_csv_data, dialect=csv.excel, **kwargs):
         # csv.py doesn't do Unicode; encode temporarily as UTF-8:
         try:
-            self.csv_reader = csv.reader(utf8_encoded_csv_data, dialect=dialect, 
-                                         **kwargs)
+            dialect.escapechar = ESC_DOUBLE_QUOTE
+            csv_data = escape_double_quotes_in_lines(utf8_encoded_csv_data)
+            self.csv_reader = csv.reader(csv_data, dialect=dialect, **kwargs)
         except Exception, e:
             raise Exception(u"Unable to start internal csv reader. "
                             u"\nCaused by error: %s" % lib.ue(e))
@@ -110,7 +123,9 @@ class UnicodeCsvReader(object):
                 if debug: print(u"Iterating through csv.reader")
                 # decode UTF-8 back to Unicode, cell by cell:
                 rowvals = []
+                j = 0 # item counter
                 for val in row: # empty strings etc but never None
+                    j += 1
                     try:
                         uval = val.decode("utf8")
                         rowvals.append(uval)
@@ -118,7 +133,8 @@ class UnicodeCsvReader(object):
                         raise Exception(u"Problem decoding values. "
                                         u"\nCaused by error: %s" % lib.ue(e))
             except Exception, e:
-                raise Exception(u"Problem with csv file on row %s. " % self.i +
+                raise Exception(u"Problem with csv file on row %s, item %s. " %
+                                (self.i, j) +
                                 u"Caused by error: %s" % lib.ue(e))
             yield rowvals
             
@@ -134,8 +150,10 @@ class UnicodeCsvDictReader(object):
         # csv.py doesn't do Unicode; encode temporarily as UTF-8:
         try:
             kwargs = {"fieldnames": fieldnames} if fieldnames else {}
-            self.csv_dictreader = csv.DictReader(utf8_encoded_csv_data,
-                                                 dialect=dialect, **kwargs)
+            dialect.escapechar = ESC_DOUBLE_QUOTE
+            csv_data = escape_double_quotes_in_lines(utf8_encoded_csv_data)
+            self.csv_dictreader = csv.DictReader(csv_data, dialect=dialect, 
+                                                 **kwargs)
         except Exception, e:
             raise Exception(u"Unable to start internal csv reader. "
                             u"\nCaused by error: %s" % lib.ue(e))
@@ -144,19 +162,26 @@ class UnicodeCsvDictReader(object):
     
     def __iter__(self):
         """
-        Iterates through rows.  If no field names were fed in at the start, will
+        Iterates through rows. If no field names were fed in at the start, will
             begin at the second row (the first having been consumed to get the 
             field names).
         If required, decode UTF8-encoded byte string back to Unicode, dict pair 
             by pair.
         """
+        debug = False
+        verbose = True
         for row in self.csv_dictreader:
-            self.i += 1
+            self.i += 1 # row counter
+            if debug and verbose:
+                if self.i == 84: # change this as needed
+                    pprint.pprint(row)
             try:
                 unicode_key_value_tups = []
-                for key_val in row.items():
+                for keyval in row.items():
+                    if debug and verbose: 
+                        print("Row: %s KeyVal: %s" % (self.i, keyval))
                     uni_key_val = []
-                    for item in key_val:
+                    for item in keyval:
                         if item is None:
                             item = u"" # be forgiving and effectively right pad
                         if not isinstance(item, unicode):
