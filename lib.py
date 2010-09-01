@@ -131,7 +131,9 @@ cp1252 = {
 oth_ms_gremlins = {
     u"\xe2\x80\x9c": u"\u201C", # LEFT DOUBLE QUOTATION MARK,
     u"\xe2\x80\x9d": u"\u201D", # RIGHT DOUBLE QUOTATION MARK
-    u"\xe2\x80\x93": u"\u2014", # EM DASH
+    u"\xe2\x80\x93": u"\u2013", # EN DASH
+    u"\xe2\x80\x94": u"\u2014", # EM DASH - guess as to key
+    u"\xe2\x80\xa6": u"\u2026", # HORIZONTAL ELLIPSIS
     }
 
 def fix_cp1252(m):

@@ -40,6 +40,7 @@ COLS_REP = u"number-columns-repeated"
 ROWS_REP = u"number-rows-repeated"
 VAL_TYPE = u"value-type"
 DATE_VAL = u"date-value"
+FORMULA = u"formula"
 
 def get_ods_xml_size(filename):
     myzip = zipfile.ZipFile(filename)
@@ -335,9 +336,12 @@ def get_tbl_cell_el_dets(row):
     empty - <table:table-cell table:style-name="ACELL-0x95496b8"/>
     empty - <table:table-cell table:number-columns-repeated="236" 
         table:style-name="ACELL-0x95496b8"/>
+    empty - <table:table-cell/>
     """
+    debug = False
     tbl_cell_el_dets = []
     for el in row:
+        if debug: print(el.tag)
         if not el.tag.endswith(u"table-cell"):
             continue
         attribs = get_streamlined_attrib_dict(el.attrib.items())
@@ -378,12 +382,18 @@ def dets_from_row(fldnames, coltypes, row):
     Update coltypes and return dict of values in row (using fldnames as keys).
     If there are more cells than fldnames, raise exception.  Suggest user adds
         header row, checks data, and tries again.
+    Formula cells with values have a val type attrib as well and will be picked 
+        up that way first.  It is only if they haven't that they count as an 
+        empty cell.  Important not to just skip empty formulae cells.
     """
     debug = False
-    verbose = False
+    verbose = True
     large = False
     valdict = {}
     tbl_cell_el_dets = get_tbl_cell_el_dets(row)
+    if debug and verbose:
+        print(row)
+        print(tbl_cell_el_dets)
     col_idx = 0
     for el_det in tbl_cell_el_dets:
         attrib_dict = el_det[ATTRIBS] # already streamlined
@@ -395,7 +405,7 @@ def dets_from_row(fldnames, coltypes, row):
             val2use = attrib_dict[DATE_VAL] # take proper date value
                             # e.g. 2010-02-01 rather than orig text of 01/02/10
             bolcontinue, col_idx = process_cells(attrib_dict, coltypes, col_idx, 
-                                            fldnames, valdict, type, val2use)
+                                               fldnames, valdict, type, val2use)
             if not bolcontinue:
                 break
         elif VAL_TYPE in attrib_dict:
@@ -405,12 +415,12 @@ def dets_from_row(fldnames, coltypes, row):
             except KeyError:
                 raise Exception(u"Unknown value-type. Update "
                                 u"ods_reader.xml_type_to_val_type")
-            val2use = el_det[RAW_EL][0].text # take val from inner text element
+            val2use = get_el_inner_val(el_det[RAW_EL])#get val from inner txt el
             bolcontinue, col_idx = process_cells(attrib_dict, coltypes, col_idx, 
                                             fldnames, valdict, type, val2use)
             if not bolcontinue:
                 break
-        elif len(el_det[RAW_EL]) == 0: # empty cell(s)
+        elif len(el_det[RAW_EL]) == 0 or FORMULA in attrib_dict: # empty cell(s)
             # need empty cell for each column spanned (until hit max cols)
             bolcontinue, col_idx = process_cells(attrib_dict, coltypes, col_idx, 
                                          fldnames, valdict, 

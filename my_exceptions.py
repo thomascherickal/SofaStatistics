@@ -17,7 +17,7 @@ class ImportCancelException(Exception):
 class ImportNeededFixException(Exception):
     def __init__(self):
         Exception.__init__(self, u"Import needed fix")
-        
+
 class ImportConfirmationRejected(Exception):
     def __init__(self):
         Exception.__init__(self, _("Unable to process csv file unless settings "

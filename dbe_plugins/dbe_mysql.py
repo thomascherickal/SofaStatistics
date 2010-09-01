@@ -50,6 +50,9 @@ def get_syntax_elements():
             placeholder, get_summable, gte_not_equals)
 
 def get_con_cur_for_db(con_dets_mysql, db):
+    """
+    Could use charset="utf8") http://mysql-python.sourceforge.net/MySQLdb.html
+    """
     try:
         con_dets_mysql["use_unicode"] = True
         if db:
