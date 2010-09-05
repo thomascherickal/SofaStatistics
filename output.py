@@ -227,7 +227,7 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
         css = get_fallback_css()
     if has_dojo:
         if new_js_n_charts is None:
-            make_objs_func_str = u"    makechart_renumber();"
+            make_objs_func_str = u"    makechartRenumber();"
         else:
             make_objs_func_str = u"    //n_charts_start" + \
                 u"\n    %s%s;" % (mg.JS_N_CHARTS_STR, new_js_n_charts) + \
@@ -520,8 +520,7 @@ def extract_html_content(html, start_tag, end_tag):
     try:
         start_idx = html.index(start_tag) + len(start_tag)
     except ValueError:
-        raise Exception(u"Unable to extract content from malformed HTML.  "
-                        u"Original HTML: %s" % html)
+        raise my_exceptions.MalformedHtmlError(html)
     try:
         end_idx = html.index(end_tag)
         extracted = html[start_idx:end_idx]
@@ -540,7 +539,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
     New content is everything between the body tags.
     new_has_dojo -- does the new html being added have Dojo.  NB the report may 
         have over results which have dojo, whether or not the latest output has.
-    If report has dojo, change from makechart_renumber, to next available 
+    If report has dojo, change from makechartRenumber, to next available 
         integer.
     """
     debug = False
@@ -569,7 +568,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
             new_js_n_charts = 1
         existing_no_ends = None
     if has_dojo:
-        new_no_hdr = new_no_hdr.replace(u"_renumber", 
+        new_no_hdr = new_no_hdr.replace(u"Renumber", 
                                         unicode(new_js_n_charts-1))
     hdr_title = time.strftime(_("SOFA Statistics Report") + \
                               " %Y-%m-%d_%H:%M:%S")
@@ -775,9 +774,9 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     # to report) or absolute images links (if standalone GUI only). 
     # If it has dojo, will have relative dojo js and css in the header, a 
     # makeObjects function, also in the header, which only runs 
-    # makecharts_renumber(), and in the body, a function called 
-    # makechart_renumber, a chart called mychart_renumber, and a legend called 
-    # legend_mychart_renumber.
+    # makechartsRenumber(), and in the body, a function called 
+    # makechartRenumber, a chart called mychartRenumber, and a legend called 
+    # legendMychartRenumber.
     f = codecs.open(mg.INT_REPORT_PATH, "U", "utf-8")
     raw_results = lib.clean_bom_utf8(f.read())
     if debug: print(raw_results)
@@ -790,8 +789,14 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
         # Handles source and filter desc internally when making divider between 
         # output.
         # Ignores snippet html header and modifies report header if required.
-        save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
-                       raw_results)
+        try:
+            save_to_report(css_fils, source, tbl_filt_label, tbl_filt, 
+                           new_has_dojo, raw_results)
+        except my_exceptions.MalformedHtmlError, e:
+            wx.MessageBox(_("Problems with the content of the report you are "
+                            "saving to. Please fix, or delete report and start "
+                            "again.\nCaused by error: %s") % lib.ue(e))
+            return False, u""
         # has to deal with local GUI version to display as well
         # Make relative image links absolute so GUI viewers can display images.
         # If not add_to_report, already has absolute link to internal imgs.

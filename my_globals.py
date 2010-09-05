@@ -117,6 +117,8 @@ JS_N_CHARTS_STR = u"var n_charts = "
 CSS_FILS_START_TAG = u"<!--css_fils"
 N_CHARTS_TAG_START = u"//n_charts_start"
 N_CHARTS_TAG_END = u"//n_charts_end"
+DOJO_STYLE_START = u"dojo_style_start"
+DOJO_STYLE_END = u"dojo_style_end"
 # output
 # NB never have a class which is the same as the start of another.
 # Simple search and replace is worth keeping and requires uniqueness.

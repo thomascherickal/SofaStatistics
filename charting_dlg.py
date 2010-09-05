@@ -253,7 +253,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024, 
                      height_init=myheight)
         
-        self.drop_style.Enable(False)
         self.drop_group_by.Enable(False)
 
     def on_show(self, event):
@@ -373,7 +372,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         wx.MessageBox(u"Only simple bar charts available in this release. "
                       u"More coming soon!")
 
-    def get_script(self, css_idx):
+    def get_script(self, css_idx, css_fil):
         "Build script from inputs"
         debug = False
         script_lst = []
@@ -394,7 +393,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"barchart_output = charting_output.barchart_output("
                       u"titles, subtitles,"
                       u"\n    var_label, xaxis_dets, y_values, "
-                      u"css_idx=%s, page_break_after=False)" % css_idx)
+                      u" css_idx=%s, css_fil=\"%s\",page_break_after=False)" %
+                      (css_idx, css_fil))
         script_lst.append(u"fil.write(barchart_output)")
         return u"\n".join(script_lst)
     
@@ -404,8 +404,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             run_ok = self.test_config_ok()
             add_to_report = self.chk_add_to_report.IsChecked()
             if run_ok:
+                css_fil = cc[mg.CURRENT_CSS_PATH]
                 config_dlg.ConfigDlg.on_btn_run(self, event, OUTPUT_MODULES, 
-                                                get_script_args=[], 
+                                                get_script_args=[css_fil], 
                                                 new_has_dojo=True)
         else:
             wx.MessageBox(u"Only simple bar charts available in this release. "

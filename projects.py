@@ -524,13 +524,13 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             exec proj_cont in proj_dic
         except SyntaxError, e:
             wx.MessageBox(\
-                _("Syntax error in project file \"%s\"." % fil_proj + \
-                          os.linesep + os.linesep + "Details: %s" % unicode(e)))
+                _("Syntax error in project file \"%s\"." % fil_proj +
+                  "\n\nDetails: %s" % lib.ue(e)))
             raise
         except Exception, e:
             wx.MessageBox(\
-                _("Error processing project file \"%s\"." % fil_proj + \
-                          os.linesep + os.linesep + "Details: %s" % unicode(e)))
+                _("Error processing project file \"%s\"." % fil_proj +
+                  "\n\nDetails: %s" % lib.ue(e)))
             raise
         try:
             self.proj_name = fil_proj[:-5]

@@ -5,6 +5,15 @@ class MissingConDets(Exception):
 class MalformedDbError(Exception):
     def __init__(self):
         Exception.__init__(self, u"Malformed database error")
+        
+class MalformedHtmlError(Exception):
+    def __init__(self, html):
+        Exception.__init__(self, u"Unable to extract content from malformed "
+                           u"HTML. Original HTML: %s" % html)
+class MalformedCssDojoError(Exception):
+    def __init__(self, text):
+        Exception.__init__(self, u"Unable to extract style from malformed "
+                           u"dojo css. Original text: %s" % text)
 
 class MissingCssException(Exception):
     def __init__(self, missing_css_fil):
