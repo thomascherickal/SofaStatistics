@@ -348,6 +348,36 @@ LEVEL_FULL = _("Full Explanation")
 LEVEL_BRIEF = _("Brief Explanation")
 LEVEL_RESULTS_ONLY = _("Results Only")
 LEVELS = (LEVEL_FULL, LEVEL_BRIEF, LEVEL_RESULTS_ONLY)
+# chart types
+SIMPLE_BARCHART = u"Simple Bar Chart"
+CLUSTERED_BARCHART = u"Clustered Bar Chart"
+TWO_VAR_CHART_TYPES = [CLUSTERED_BARCHART, ]
+DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
+    'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
+    'lightcoral', 'orangered', 'navajowhite', 'slategray', 'palegreen', 
+    'darkslategrey', 'greenyellow', 'burlywood', 'seashell', 
+    'mediumspringgreen', 'mediumorchid', 'papayawhip', 'blanchedalmond', 
+    'chartreuse', 'dimgray', 'lemonchiffon', 'peachpuff', 'springgreen',
+    'aquamarine', 'orange', 'lightsalmon', 'darkslategray', 'brown', 'ivory', 
+    'dodgerblue', 'peru', 'lawngreen', 'chocolate', 'crimson', 'forestgreen', 
+    'darkgrey', 'lightseagreen', 'cyan', 'mintcream', 'transparent', 
+    'antiquewhite', 'skyblue', 'sienna', 'darkturquoise', 'goldenrod', 
+    'darkgreen', 'floralwhite', 'darkviolet', 'darkgray', 'moccasin', 
+    'saddlebrown', 'grey', 'darkslateblue', 'lightskyblue', 'lightpink', 
+    'mediumvioletred', 'deeppink', 'limegreen', 'darkmagenta', 'palegoldenrod', 
+    'plum', 'turquoise', 'lightgoldenrodyellow', 'darkgoldenrod', 'lavender', 
+    'slateblue', 'yellowgreen', 'sandybrown', 'thistle', 'violet', 'magenta', 
+    'dimgrey', 'tan', 'rosybrown', 'olivedrab', 'pink', 'lightblue', 
+    'ghostwhite', 'honeydew', 'cornflowerblue', 'linen', 'darkblue', 
+    'powderblue', 'seagreen', 'darkkhaki', 'snow', 'mediumblue', 'royalblue', 
+    'lightcyan', 'mediumpurple', 'midnightblue', 'cornsilk', 'paleturquoise', 
+    'bisque', 'darkcyan', 'khaki', 'wheat', 'darkorchid', 'deepskyblue', 
+    'salmon', 'darkred', 'steelblue', 'palevioletred', 'lightslategray', 
+    'aliceblue', 'lightslategrey', 'lightgreen', 'orchid', 'gainsboro', 
+    'mediumseagreen', 'lightgray', 'mediumturquoise', 'cadetblue', 
+    'lightyellow', 'lavenderblush', 'coral', 'lightgrey', 'whitesmoke', 
+    'mediumslateblue', 'darkorange', 'mediumaquamarine', 'darksalmon', 'beige', 
+    'blueviolet', 'azure', 'lightsteelblue', 'oldlace']
 # remember defaults //////////
 # stats tests
 GROUP_BY_DEFAULT = None

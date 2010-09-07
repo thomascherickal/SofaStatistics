@@ -15,7 +15,8 @@ import my_exceptions
 import getdata
 import output
 
-def get_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure, val_labels):
+def get_simple_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
+                             xaxis_val_labels):
     """
     Get frequencies for all values in variable plus labels.
     """
@@ -29,11 +30,129 @@ def get_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure, val_labels):
     if debug: print(SQL_get_vals)
     cur.execute(SQL_get_vals)
     xaxis_dets = []
-    y_values = []
+    y_vals = []
     for val, freq in cur.fetchall():
-        xaxis_dets.append((val, val_labels.get(val, unicode(val))))
-        y_values.append(freq)
-    return xaxis_dets, y_values
+        xaxis_dets.append((val, xaxis_val_labels.get(val, unicode(val))))
+        y_vals.append(freq)
+    return xaxis_dets, y_vals
+
+def reshape_sql_crosstab_data(raw_data):
+    """
+    Must be sorted by group by then measures
+    e.g. raw_data = [(1,1,56),
+                     (1,2,103),
+                     (1,3,72),
+                     (1,4,40),
+                     (2,1,13),
+                     (2,2,59),
+                     (2,3,200),
+                     (2,4,0),]
+    from that we want
+    1: [56,103,72,40] # separate data by series
+    2: [13,59,200,0]
+    and
+    1,2,3,4 # vals for axis labelling
+    """
+    debug = True
+    series_data = {}
+    prev_gp = None # init
+    current_series = None
+    oth_vals = None
+    collect_oth = True
+    for current_gp, oth, freq in raw_data:
+        if debug: print(current_gp, oth, freq)
+        if current_gp == prev_gp: # still in same gp
+            current_series.append(freq)
+            if collect_oth:
+                oth_vals.append(oth)
+        else: # transition
+            if current_series: # so not the first row
+                series_data[prev_gp] = current_series
+                collect_oth = False
+            prev_gp = current_gp
+            current_series = [freq,] # starting new collection of freqs
+            if collect_oth:
+                oth_vals = [oth,] # starting collection of oths (only once)
+    # left last row
+    series_data[prev_gp] = current_series
+    if debug:
+        print(series_data)
+        print(oth_vals)
+    return series_data, oth_vals
+
+def get_clustered_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_gp, 
+                                xaxis_val_labels, group_by_val_labels):
+    """
+    Get labels and frequencies for each series, plus labels for x axis.
+    Only include values for either fld_gp or fld_measure if at least one 
+        non-null value in the other dimension.  If a whole series is zero, then 
+        it won't show.  If there is any value in other dim will show that val 
+        and zeroes for rest.
+    If too many bars, provide warning.
+    Result of a cartesian join on left side of a join to ensure all items in
+        crosstab are present.
+    SQL returns something like (grouped by fld_gp, fld_measure, with zero freqs 
+        as needed):
+    data = [(1,1,56),
+            (1,2,103),
+            (1,3,72),
+            (1,4,40),
+            (2,1,13),
+            (2,2,59),
+            (2,3,200),
+            (2,4,0),]
+    series_dets -- [{"label": "Male", "y_vals": [56,103,72,40],
+                    {"label": "Female", "y_vals": [13,59,200,0],}
+    xaxis_dets -- [(1, "North"), (2, "South"), (3, "East"), (4, "West"),]
+    """
+    debug = False
+    obj_quoter = getdata.get_obj_quoter_func(dbe)
+    where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+    SQL_get_measure_vals = u"""SELECT %(fld_measure)s
+        FROM %(tbl)s
+        WHERE %(fld_gp)s IS NOT NULL
+            %(and_tbl_filt)s
+        GROUP BY %(fld_measure)s"""
+    SQL_get_gp_by_vals = u"""SELECT %(fld_gp)s
+        FROM %(tbl)s
+        WHERE %(fld_measure)s IS NOT NULL
+            %(and_tbl_filt)s
+        GROUP BY %(fld_gp)s"""
+    SQL_cartesian_join = """SELECT * FROM (%s) AS qrygp INNER JOIN 
+        (%s) AS qrymeasure""" % (SQL_get_measure_vals, SQL_get_gp_by_vals)
+    SQL_group_by = u"""SELECT %(fld_gp)s, %(fld_measure)s,
+            COUNT(*) AS freq
+        FROM %(tbl)s
+        %(where_tbl_filt)s
+        GROUP BY %(fld_gp)s, %(fld_measure)s"""
+    sql_dic = {u"tbl": obj_quoter(tbl), 
+               u"fld_measure": obj_quoter(fld_measure),
+               u"fld_gp": obj_quoter(fld_gp),
+               u"and_tbl_filt": and_tbl_filt,
+               u"where_tbl_filt": where_tbl_filt}
+    SQL_cartesian_join = SQL_cartesian_join % sql_dic
+    SQL_group_by = SQL_group_by % sql_dic
+    sql_dic[u"qrycart"] = SQL_cartesian_join
+    sql_dic[u"qrygrouped"] = SQL_group_by
+    SQL_get_raw_data = """SELECT %(fld_gp)s, %(fld_measure)s,
+            CASE WHEN freq IS NULL THEN 0 ELSE freq END AS N
+        FROM (%(qrycart)s) AS qrycart LEFT JOIN (%(qrygrouped)s) AS qrygrouped
+        USING(%(fld_gp)s, %(fld_measure)s)
+        ORDER BY %(fld_gp)s, %(fld_measure)s""" % sql_dic
+    if debug: print(SQL_get_raw_data)
+    cur.execute(SQL_get_raw_data)
+    raw_data = cur.fetchall()
+    if debug: print(raw_data)
+    series_data, oth_vals = reshape_sql_crosstab_data(raw_data)
+    series_dets = []
+    for gp_val, freqs in series_data.items():
+        gp_val_label = group_by_val_labels.get(gp_val, unicode(gp_val))
+        series_dic = {u"label": gp_val_label, u"y_vals": freqs}
+        series_dets.append(series_dic)
+    xaxis_dets = []
+    for val in oth_vals:
+        xaxis_dets.append((val, xaxis_val_labels.get(val, unicode(val))))
+    return xaxis_dets, series_dets
 
 def extract_dojo_style(css_fil):
     try:
@@ -62,26 +181,59 @@ def extract_dojo_style(css_fil):
             _("Error processing css dojo file \"%s\"." % css_fil +
               "\n\nDetails: %s" % lib.ue(e)))
         raise
-    return (css_dojo_dic[u"grid_bg"], css_dojo_dic[u"axis_label_font_colour"], 
+    return (css_dojo_dic[u"outer_bg"], 
+            css_dojo_dic[u"grid_bg"], 
+            css_dojo_dic[u"axis_label_font_colour"], 
             css_dojo_dic[u"major_gridline_colour"], 
             css_dojo_dic[u"gridline_width"], 
+            css_dojo_dic[u"stroke_width"], 
             css_dojo_dic[u"tooltip_border_colour"], 
             css_dojo_dic[u"colour_mappings"])
 
-def barchart_output(titles, subtitles, var_label, xaxis_dets, y_values, css_idx, 
+def get_barchart_sizings(xaxis_dets, series_dets):
+    n_clusters = len(xaxis_dets)
+    n_bars_in_cluster = len(series_dets)
+    if n_clusters <= 2:
+        xfontsize = 11
+        width = 500 # image width
+        xgap = 40
+    elif n_clusters <= 5:
+        xfontsize = 10
+        width = 600
+        xgap = 20
+    elif n_clusters <= 8:
+        xfontsize = 10
+        width = 800
+        xgap = 9
+    elif n_clusters <= 12:
+        xfontsize = 7
+        width = 1100
+        xgap = 6
+    else:
+        xfontsize = 6
+        width = 1400
+        xgap = 4
+    if n_bars_in_cluster > 1:
+        width = width*(1 + n_bars_in_cluster/10.0)
+        xgap = xgap/(1 + n_bars_in_cluster/10.0)
+    return width, xgap, xfontsize
+
+def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx, 
                     css_fil, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
-    var_label -- e.g. Age Group
+    series_labels -- e.g. ["Age Group", ] if simple bar chart,
+        e.g. ["Male", "Female"] if clustered bar chart.
     var_numeric -- needs to be quoted or not.
-    y_values -- list of values e.g. [12, 30, 100.5, -1, 40]
+    y_vals -- list of values e.g. [[12, 30, 100.5, -1, 40], ]
     xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
                    (5, "65+")]
     css_idx -- css index so can apply    
     """
+    debug = False
     (CSS_TBL_TITLE, CSS_TBL_SUBTITLE, 
-                            CSS_TBL_TITLE_CELL) = output.get_title_css(css_idx)
+                  CSS_TBL_TITLE_CELL) = output.get_title_css(css_idx)
     title_dets_html_lst = []
     if titles:
         title_dets_html_lst.append(u"<p class='%s %s'>" % (CSS_TBL_TITLE, 
@@ -95,27 +247,7 @@ def barchart_output(titles, subtitles, var_label, xaxis_dets, y_values, css_idx,
     xaxis_labels = u"[" + \
         u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
                                     for i,x in enumerate(xaxis_dets,1)]) + u"]"
-    items_n = len(xaxis_dets)
-    if items_n <= 2:
-        width = 500
-        xgap = 40
-        xfontsize = 11
-    elif items_n <= 5:
-        width = 600
-        xgap = 20
-        xfontsize = 10
-    elif items_n <= 8:
-        width = 800
-        xgap = 9
-        xfontsize = 10
-    elif items_n <= 12:
-        width = 1100
-        xgap = 6
-        xfontsize = 7
-    else:
-        width = 1400
-        xgap = 4
-        xfontsize = 6
+    width, xgap, xfontsize = get_barchart_sizings(xaxis_dets, series_dets)
     html = []
     """
     For each series, set colour details.
@@ -123,48 +255,44 @@ def barchart_output(titles, subtitles, var_label, xaxis_dets, y_values, css_idx,
         each series colour.
     From dojox.charting.action2d.Highlight but with extraneous % removed
     """
-    (grid_bg, axis_label_font_colour, major_gridline_colour, 
-            gridline_width, tooltip_border_colour, colour_mappings) = \
-                                                     extract_dojo_style(css_fil)
+    (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
+            gridline_width, stroke_width, tooltip_border_colour, 
+            colour_mappings) = extract_dojo_style(css_fil)
+    outer_bg = u"" if outer_bg == u"" \
+        else u"chartconf[\"outerBg\"] = \"%s\"" % outer_bg
     colour_cases_list = []
     for bg_colour, hl_colour in colour_mappings:
-        colour_cases_list.append(u"""case \"%s\":
+        colour_cases_list.append(u"""                case \"%s\":
                     hlColour = \"%s\";
                     break;""" % (bg_colour, hl_colour))
     colour_cases = u"\n".join(colour_cases_list)
+    colour_cases = colour_cases.lstrip()
+    # build js for every series
+    series_js_list = []
+    series_names_list = []
+    if debug: print(series_dets)
+    for i, series_det in enumerate(series_dets):
+        series_names_list.append(u"series%s" % i)
+        series_js_list.append(u"var series%s = new Array();" % i)
+        series_js_list.append(u"            series%s[\"seriesLabel\"] = \"%s\";"
+                              % (i, series_det[u"label"]))
+        series_js_list.append(u"            series%s[\"yVals\"] = %s;" % 
+                              (i, series_det[u"y_vals"]))
+        try:
+            fill = colour_mappings[i][0]
+        except IndexError, e:
+            fill = mg.DOJO_COLOURS[i]
+        series_js_list.append(u"            series%s[\"style\"] = "
+            u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\"};"
+            % (i, stroke_width, fill))
+        series_js_list.append(u"")
+    series_js = u"\n            ".join(series_js_list)
+    series_js += u"\n            var series = new Array(%s);" % \
+                                                u", ".join(series_names_list)
+    series_js = series_js.lstrip()
     html.append(u"""
     <script type="text/javascript">
 
-        var DEFAULT_SATURATION  = 100,
-        DEFAULT_LUMINOSITY1 = 75,
-        DEFAULT_LUMINOSITY2 = 50,
-
-        c = dojox.color,
-
-        cc = function(colour){
-            return function(){ return colour; };
-        },
-
-        hl = function(colour){
-
-            var a = new c.Color(colour),
-                x = a.toHsl();
-            if(x.s == 0){
-                x.l = x.l < 50 ? 100 : 0;
-            }else{
-                x.s = DEFAULT_SATURATION;
-                if(x.l < DEFAULT_LUMINOSITY2){
-                    x.l = DEFAULT_LUMINOSITY1;
-                }else if(x.l > DEFAULT_LUMINOSITY1){
-                    x.l = DEFAULT_LUMINOSITY2;
-                }else{
-                    x.l = x.l - DEFAULT_LUMINOSITY2 > DEFAULT_LUMINOSITY1 - x.l 
-                        ? DEFAULT_LUMINOSITY2 : DEFAULT_LUMINOSITY1;
-                }
-            }
-            return c.fromHsl(x);
-        }
-    
         sofaHl = function(colour){
             var hlColour;
             switch (colour.toHex()){
@@ -177,13 +305,7 @@ def barchart_output(titles, subtitles, var_label, xaxis_dets, y_values, css_idx,
         }    
     
         makechartRenumber = function(){
-        
-            var series0 = new Array();
-            series0["varLabel"] = "%(var_label)s";
-            series0["yVals"] = %(y_values)s;
-            series0["style"] = {stroke: {color: "white"}, fill: "#2996e9"};
-            
-            var series = new Array(series0);
+            %(series_js)s
             var chartconf = new Array();
             chartconf["xaxisLabels"] = %(xaxis_labels)s;
             chartconf["xgap"] = %(xgap)s;
@@ -194,6 +316,7 @@ def barchart_output(titles, subtitles, var_label, xaxis_dets, y_values, css_idx,
             chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+            %(outer_bg)s
             makeBarChart("mychartRenumber", series, chartconf);
         }
     </script>
@@ -203,13 +326,14 @@ def barchart_output(titles, subtitles, var_label, xaxis_dets, y_values, css_idx,
     <div id="legendMychartRenumber"></div>
     <br>
     """ % {u"colour_cases": colour_cases, u"titles": title_dets_html, 
-           u"var_label": var_label, u"y_values": unicode(y_values), 
-           u"xaxis_labels": xaxis_labels, u"width": width, u"xgap": xgap, 
-           u"xfontsize": xfontsize, u"grid_bg": grid_bg,
+           u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
+           u"width": width, u"xgap": xgap, u"xfontsize": xfontsize, 
+           u"grid_bg": grid_bg, 
            u"axis_label_font_colour": axis_label_font_colour,
            u"major_gridline_colour": major_gridline_colour,
            u"gridline_width": gridline_width, 
-           u"tooltip_border_colour": tooltip_border_colour})
+           u"tooltip_border_colour": tooltip_border_colour,
+           u"outer_bg": outer_bg})
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

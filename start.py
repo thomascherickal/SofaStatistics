@@ -355,7 +355,7 @@ try:
     run_test_code(mg.TEST_SCRIPT_POST_CONFIG) # can now use dd and proj config
     # 2) Modify existing local SOFA folder if versions require it
     if not local_path_setup_needed: # any fresh one won't need modification
-        try: # if already installed version is older than 0.9.15 ...
+        try: # if already installed version is older than 0.9.16 ...
             installed_version = get_installed_version(mg.LOCAL_PATH)
             if installed_version is None or \
                     lib.version_a_is_newer(version_a=u"0.9.16",
@@ -928,7 +928,8 @@ class StartFrame(wx.Frame):
             msg = _("Unable to connect to data as defined in project %s.  "
                     "Please check your settings" % self.active_proj)
             wx.MessageBox(msg)
-            raise Exception(u"%s.\nCaused by error: %s" % (msg, lib.ue(e)))
+            raise Exception(u"%s.\nCaused by errors:\n\n%s" % 
+                            (msg, traceback.format_exc()))
         finally:
             lib.safe_end_cursor()
             event.Skip()
@@ -939,7 +940,8 @@ class StartFrame(wx.Frame):
         panel_dc.DrawBitmap(self.bmp_chart, HELP_IMG_LEFT-30, HELP_IMG_TOP-20, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
-        txt_charts = _("Make attractive charts e.g. a pie chart of regions")
+        txt_charts = _("Make attractive charts with dynamic visual effects "
+                       "e.g. a bar chart of sales")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_charts, MAX_HELP_TEXT_WIDTH), 
                         wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
