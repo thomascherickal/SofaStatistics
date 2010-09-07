@@ -53,7 +53,7 @@ def reshape_sql_crosstab_data(raw_data):
     and
     1,2,3,4 # vals for axis labelling
     """
-    debug = True
+    debug = False
     series_data = {}
     prev_gp = None # init
     current_series = None
@@ -105,7 +105,7 @@ def get_clustered_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_gp,
                     {"label": "Female", "y_vals": [13,59,200,0],}
     xaxis_dets -- [(1, "North"), (2, "South"), (3, "East"), (4, "West"),]
     """
-    debug = False
+    debug = True
     obj_quoter = getdata.get_obj_quoter_func(dbe)
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     SQL_get_measure_vals = u"""SELECT %(fld_measure)s
@@ -152,6 +152,7 @@ def get_clustered_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_gp,
     xaxis_dets = []
     for val in oth_vals:
         xaxis_dets.append((val, xaxis_val_labels.get(val, unicode(val))))
+    if debug: print(xaxis_dets)
     return xaxis_dets, series_dets
 
 def extract_dojo_style(css_fil):
@@ -191,8 +192,10 @@ def extract_dojo_style(css_fil):
             css_dojo_dic[u"colour_mappings"])
 
 def get_barchart_sizings(xaxis_dets, series_dets):
+    debug = True
     n_clusters = len(xaxis_dets)
     n_bars_in_cluster = len(series_dets)
+    minor_ticks = u"false"
     if n_clusters <= 2:
         xfontsize = 11
         width = 500 # image width
@@ -205,18 +208,27 @@ def get_barchart_sizings(xaxis_dets, series_dets):
         xfontsize = 10
         width = 800
         xgap = 9
-    elif n_clusters <= 12:
+    elif n_clusters <= 10:
+        minor_ticks = u"true"
         xfontsize = 7
-        width = 1100
+        width = 1000
         xgap = 6
+    elif n_clusters <= 16:
+        minor_ticks = u"true"
+        xfontsize = 7
+        width = 1200
+        xgap = 5
     else:
+        minor_ticks = u"true"
         xfontsize = 6
         width = 1400
         xgap = 4
     if n_bars_in_cluster > 1:
         width = width*(1 + n_bars_in_cluster/10.0)
         xgap = xgap/(1 + n_bars_in_cluster/10.0)
-    return width, xgap, xfontsize
+        xfontsize = xfontsize*(1 + n_bars_in_cluster/15.0)
+    if debug: print(width)
+    return width, xgap, xfontsize, minor_ticks
 
 def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx, 
                     css_fil, page_break_after):
@@ -247,7 +259,8 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
     xaxis_labels = u"[" + \
         u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
                                     for i,x in enumerate(xaxis_dets,1)]) + u"]"
-    width, xgap, xfontsize = get_barchart_sizings(xaxis_dets, series_dets)
+    width, xgap, xfontsize, minor_ticks = get_barchart_sizings(xaxis_dets, 
+                                                               series_dets)
     html = []
     """
     For each series, set colour details.
@@ -313,6 +326,7 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
             chartconf["sofaHl"] = sofaHl;
             chartconf["gridlineWidth"] = %(gridline_width)s;
             chartconf["gridBg"] = \"%(grid_bg)s\";
+            chartconf["minorTicks"] = %(minor_ticks)s;
             chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
@@ -333,7 +347,8 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
            u"major_gridline_colour": major_gridline_colour,
            u"gridline_width": gridline_width, 
            u"tooltip_border_colour": tooltip_border_colour,
-           u"outer_bg": outer_bg})
+           u"outer_bg": outer_bg,
+           u"minor_ticks": minor_ticks})
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
