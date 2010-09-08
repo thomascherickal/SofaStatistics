@@ -15,8 +15,7 @@ import my_exceptions
 import getdata
 import output
 
-def get_simple_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
-                             xaxis_val_labels):
+def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, xaxis_val_labels):
     """
     Get frequencies for all values in variable plus labels.
     """
@@ -35,6 +34,17 @@ def get_simple_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure,
         xaxis_dets.append((val, xaxis_val_labels.get(val, unicode(val))))
         y_vals.append(freq)
     return xaxis_dets, y_vals
+    
+def get_simple_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
+                             xaxis_val_labels):
+    return get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
+                          xaxis_val_labels)
+
+def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, fld_measure, xaxis_val_labels):
+    xaxis_dets, y_vals = get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
+                                        xaxis_val_labels)
+    y_labels
+    return xaxis_dets, y_vals, y_labels
 
 def reshape_sql_crosstab_data(raw_data):
     """

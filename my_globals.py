@@ -351,6 +351,7 @@ LEVELS = (LEVEL_FULL, LEVEL_BRIEF, LEVEL_RESULTS_ONLY)
 # chart types
 SIMPLE_BARCHART = u"Simple Bar Chart"
 CLUSTERED_BARCHART = u"Clustered Bar Chart"
+PIE_CHART = u"Pie Chart"
 TWO_VAR_CHART_TYPES = [CLUSTERED_BARCHART, ]
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
@@ -378,6 +379,8 @@ DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred',
     'lightyellow', 'lavenderblush', 'coral', 'lightgrey', 'whitesmoke', 
     'mediumslateblue', 'darkorange', 'mediumaquamarine', 'darksalmon', 'beige', 
     'blueviolet', 'azure', 'lightsteelblue', 'oldlace']
+CHART_VALUES = _("Values:")
+CHART_BY = _("By:")
 # remember defaults //////////
 # stats tests
 GROUP_BY_DEFAULT = None

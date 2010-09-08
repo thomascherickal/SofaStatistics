@@ -17,6 +17,9 @@ OUTPUT_MODULES = ["my_globals as mg", "charting_output", "output",
 cc = config_dlg.get_cc()
 dd = getdata.get_dd()
 
+LIMITS_MSG = (u"Only simple and clustered bar charts available in this release."
+              u"More coming soon!")
+
 class DlgCharting(indep2var.DlgIndep2VarConfig):
     
     
@@ -74,8 +77,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_vars_top_right_bottom = wx.BoxSizer(wx.HORIZONTAL)
         szr_chart_btns = wx.BoxSizer(wx.HORIZONTAL)
         # var 1
-        lbl_var1 = wx.StaticText(self.panel_top, -1, u"Var 1:")
-        lbl_var1.SetFont(self.LABEL_FONT)
+        self.lbl_var1 = wx.StaticText(self.panel_top, -1, mg.CHART_VALUES)
+        self.lbl_var1.SetFont(self.LABEL_FONT)
         # TODO only want the fields which are numeric? Depends
         self.drop_var1 = wx.Choice(self.panel_top, -1, choices=[], 
                                    size=(300,-1))
@@ -85,7 +88,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.sorted_var_names1 = []
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
         # var 2
-        self.lbl_var2 = wx.StaticText(self.panel_top, -1, u"Var 2:")
+        self.lbl_var2 = wx.StaticText(self.panel_top, -1, mg.CHART_BY)
         self.lbl_var2.SetFont(self.LABEL_FONT)
         self.lbl_var2.Enable(False)
         # TODO - only want the fields which are numeric? Depends
@@ -100,7 +103,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.sorted_var_names2 = []
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2)
         # layout
-        szr_vars_top_left_top.Add(lbl_var1, 0, wx.TOP|wx.RIGHT, 5)
+        szr_vars_top_left_top.Add(self.lbl_var1, 0, wx.TOP|wx.RIGHT, 5)
         szr_vars_top_left_top.Add(self.drop_var1, 0, wx.RIGHT|wx.TOP, 5)
         szr_vars_top_left_mid.Add(self.lbl_var2, 0, wx.TOP|wx.RIGHT, 5)
         szr_vars_top_left_mid.Add(self.drop_var2, 0, wx.RIGHT|wx.TOP, 5)
@@ -174,7 +177,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_bar_chart = wx.BoxSizer(wx.VERTICAL)
         self.panel_bar_chart = wx.Panel(self.panel_mid)
         lbl_bar_chart = wx.StaticText(self.panel_bar_chart, -1, 
-                            "Bar chart configuration still under construction")
+                            u"Bar chart configuration still under construction")
         self.szr_bar_chart.Add(lbl_bar_chart, 1, wx.TOP|wx.BOTTOM, 10)
         self.panel_bar_chart.SetSizer(self.szr_bar_chart)
         self.szr_bar_chart.SetSizeHints(self.panel_bar_chart)
@@ -182,18 +185,26 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_clustered_bar_chart = wx.BoxSizer(wx.VERTICAL)
         self.panel_clustered_bar_chart = wx.Panel(self.panel_mid)
         lbl_clustered_bar_chart = wx.StaticText(self.panel_clustered_bar_chart, 
-                                    -1, "Clustered bar chart "
-                                    "configuration still under construction")
+                                    -1, u"Clustered bar chart "
+                                    u"configuration still under construction")
         self.szr_clustered_bar_chart.Add(lbl_clustered_bar_chart, 1, 
                                          wx.TOP|wx.BOTTOM, 10)
         self.panel_clustered_bar_chart.SetSizer(self.szr_clustered_bar_chart)
         self.szr_clustered_bar_chart.SetSizeHints(\
                                         self.panel_clustered_bar_chart)
         self.panel_clustered_bar_chart.Show(False)
+        # pie chart
+        self.szr_pie_chart = wx.BoxSizer(wx.VERTICAL)
+        self.panel_pie_chart = wx.Panel(self.panel_mid)
+        lbl_pie_chart = wx.StaticText(self.panel_pie_chart, -1, 
+                            u"Pie chart configuration still under construction")
+        self.szr_pie_chart.Add(lbl_pie_chart, 1, wx.TOP|wx.BOTTOM, 10)
+        self.panel_pie_chart.SetSizer(self.szr_pie_chart)
+        self.szr_pie_chart.SetSizeHints(self.panel_pie_chart)
+        self.panel_pie_chart.Show(False)
         # default chart type (bar chart)
         self.panel_displayed = self.panel_bar_chart
         self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
-        
         self.panel_mid.SetSizer(self.szr_mid)
         self.szr_mid.SetSizeHints(self.panel_mid)
         # Bottom panel
@@ -291,7 +302,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_pie_chart = wx.BitmapButton(self.panel_mid, -1, 
                                              bmp_btn_pie_chart)
-        self.btn_pie_chart.Bind(wx.EVT_BUTTON, self.on_btn_chart)
+        self.btn_pie_chart.Bind(wx.EVT_BUTTON, self.on_btn_pie_chart)
         self.btn_pie_chart.SetToolTipString(_("Make Pie Chart"))
         szr_chart_btns.Add(self.btn_pie_chart)
         # line charts
@@ -346,7 +357,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.lbl_var2.Enable(show)
     
     def on_btn_bar_chart(self, event):
+        self.btn_bar_chart.SetFocus()
+        self.btn_bar_chart.SetDefault()
+        event.Skip()
         self.chart_type = mg.SIMPLE_BARCHART
+        self.lbl_var1.SetLabel(mg.CHART_VALUES)
+        self.lbl_var2.SetLabel(mg.CHART_BY)
         if self.panel_displayed == self.panel_bar_chart:
             return
         else:
@@ -359,8 +375,16 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_mid.Layout() # self.Layout() doesn't work in Windows
 
     def on_btn_clustered_bar_chart(self, event):
+        self.btn_clustered_bar_chart.SetFocus()
+        self.btn_clustered_bar_chart.SetDefault()
+        event.Skip()
         self.chart_type = mg.CLUSTERED_BARCHART
+        self.lbl_var1.SetLabel(mg.CHART_VALUES)
+        self.lbl_var2.SetLabel(mg.CHART_BY)
+        self.btn_clustered_bar_chart.SetDefault()
+        self.btn_clustered_bar_chart.SetFocus()
         if self.panel_displayed == self.panel_clustered_bar_chart:
+            event.Skip()
             return
         else:
             self.panel_displayed.Show(False)
@@ -371,9 +395,26 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_clustered_bar_chart.Show(True)
         self.panel_mid.Layout()
 
+    def on_btn_pie_chart(self, event):
+        self.btn_pie_chart.SetFocus()
+        self.btn_pie_chart.SetDefault()
+        event.Skip()
+        self.chart_type = mg.PIE_CHART
+        self.lbl_var1.SetLabel(mg.CHART_VALUES)
+        self.lbl_var2.SetLabel(mg.CHART_BY)
+        if self.panel_displayed == self.panel_pie_chart:
+            return
+        else:
+            self.panel_displayed.Show(False)
+        self.display_var2()
+        self.szr_mid.Remove(self.panel_displayed)
+        self.szr_mid.Add(self.panel_pie_chart, 0, wx.GROW)
+        self.panel_displayed = self.panel_pie_chart
+        self.panel_pie_chart.Show(True)
+        self.panel_mid.Layout()
+        
     def on_btn_chart(self, event):
-        wx.MessageBox(u"Only simple and clustered bar charts available in this "
-                      u"release. More coming soon!")
+        wx.MessageBox(LIMITS_MSG)
 
     def get_script(self, css_idx, css_fil):
         "Build script from inputs"
@@ -438,8 +479,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                                 get_script_args=[css_fil], 
                                                 new_has_dojo=True)
         else:
-            wx.MessageBox(u"Only simple and clustered bar charts available in "
-                          u"this release. More coming soon!")
+            wx.MessageBox(LIMITS_MSG)
         
     def on_btn_export(self, event):
         
