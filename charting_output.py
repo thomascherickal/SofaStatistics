@@ -15,7 +15,7 @@ import my_exceptions
 import getdata
 import output
 
-def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, xaxis_val_labels):
+def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, measure_val_labels):
     """
     Get frequencies for all values in variable plus labels.
     """
@@ -28,23 +28,35 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, xaxis_val_labels):
         u"GROUP BY %s" % obj_quoter(fld_measure)
     if debug: print(SQL_get_vals)
     cur.execute(SQL_get_vals)
-    xaxis_dets = []
+    measure_dets = []
     y_vals = []
     for val, freq in cur.fetchall():
-        xaxis_dets.append((val, xaxis_val_labels.get(val, unicode(val))))
+        measure_dets.append((val, measure_val_labels.get(val, unicode(val))))
         y_vals.append(freq)
-    return xaxis_dets, y_vals
+    return measure_dets, y_vals
     
 def get_simple_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
                              xaxis_val_labels):
     return get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
                           xaxis_val_labels)
 
-def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, fld_measure, xaxis_val_labels):
-    xaxis_dets, y_vals = get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
-                                        xaxis_val_labels)
-    y_labels
-    return xaxis_dets, y_vals, y_labels
+def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
+                       slice_val_labels):
+    label_dets, slice_vals = get_basic_dets(dbe, cur, tbl, tbl_filt, 
+                                            fld_measure, slice_val_labels)
+    if len(label_dets) != len(slice_vals):
+        raise Exception(u"Mismatch in number of slice labels and slice values")
+    if len(slice_vals) > 30:
+        raise Exception(u"More than 30 slices in Pie Chart. Too many.")
+    tot_freq = sum(slice_vals)
+    slice_dets = []
+    for i, slice_val in enumerate(slice_vals):
+        slice_dic = {u"y": slice_val, u"text": label_dets[i][1], 
+                     u"tooltip": u"%s<br>%s (%s%%)" % 
+                     (label_dets[i][1], slice_val, 
+                      round((100.0*slice_val)/tot_freq,1))}
+        slice_dets.append(slice_dic)
+    return slice_dets
 
 def reshape_sql_crosstab_data(raw_data):
     """
@@ -240,6 +252,109 @@ def get_barchart_sizings(xaxis_dets, series_dets):
     if debug: print(width)
     return width, xgap, xfontsize, minor_ticks
 
+def setup_highlights(colour_mappings, single_colour, 
+                     override_first_highlight=False):
+    """
+    If single colour in chart, only need one highlight defined.
+    If default style and multiple series, redefine highlight for first. 
+        Basically a hack so the default chart has a highlight which looks good in   
+    """
+    colour_cases_list = []
+    for i, mappings in enumerate(colour_mappings):
+        bg_colour, hl_colour = mappings
+        if i == 0 and override_first_highlight:
+            hl_colour = u"#736354"
+        colour_cases_list.append(u"""                case \"%s\":
+                    hlColour = \"%s\";
+                    break;""" % (bg_colour, hl_colour))
+        if single_colour:
+            break
+    colour_cases = u"\n".join(colour_cases_list)
+    colour_cases = colour_cases.lstrip()
+    return colour_cases
+
+def get_title_dets_html(titles, subtitles, css_idx):
+    (CSS_TBL_TITLE, CSS_TBL_SUBTITLE, 
+                  CSS_TBL_TITLE_CELL) = output.get_title_css(css_idx)
+    title_dets_html_lst = []
+    if titles:
+        title_dets_html_lst.append(u"<p class='%s %s'>" % (CSS_TBL_TITLE, 
+                                                           CSS_TBL_TITLE_CELL) + 
+                                   u"\n<br>".join(titles) + u"</p>")
+    if subtitles:
+        title_dets_html_lst.append(u"<p class='%s %s'>" % (CSS_TBL_SUBTITLE, 
+                                                           CSS_TBL_TITLE_CELL) + 
+                                   u"\n<br>".join(subtitles) + u"</p>")
+    title_dets_html = u"\n".join(title_dets_html_lst)
+    return title_dets_html
+
+def piechart_output(titles, subtitles, slice_dets, css_idx, css_fil, 
+                    page_break_after):
+    debug = False
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
+            gridline_width, stroke_width, tooltip_border_colour, 
+            colour_mappings) = extract_dojo_style(css_fil)
+    outer_bg = u"" if outer_bg == u"" \
+        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
+    colour_cases = setup_highlights(colour_mappings, single_colour=False, 
+                                    override_first_highlight=False)
+    colours = [str(x[0]) for x in colour_mappings]
+    colours.extend(mg.DOJO_COLOURS)
+    slice_colours = colours[:30]
+    slices_js_list = []
+    for slice_det in slice_dets:
+        slices_js_list.append(u"{\"y\": %(y)s, \"text\": \"%(text)s\", " 
+                              u"\"tooltip\": \"%(tooltip)s\"}" % 
+                              {u"y": slice_det[u"y"], 
+                                   u"text": slice_det[u"text"],
+                                   u"tooltip": slice_det[u"tooltip"]})
+    slices_js = u"slices = [" + u",\n    ".join(slices_js_list) + u"\n];"
+    slice_fontsize = 14 if len(slice_dets) < 10 else 10
+    label_font_colour = axis_label_font_colour
+    html = []
+    html.append(u"""
+    <script type="text/javascript">
+
+        sofaHl = function(colour){
+            var hlColour;
+            switch (colour.toHex()){
+                %(colour_cases)s
+                default:
+                    hlColour = hl(colour.toHex());
+                    break;
+            }
+            return new dojox.color.Color(hlColour);
+        }    
+    
+        makechartRenumber = function(){
+            %(slices_js)s
+            var chartconf = new Array();
+            chartconf["sliceColours"] = %(slice_colours)s;
+            chartconf["sliceFontsize"] = %(slice_fontsize)s;
+            chartconf["sofaHl"] = sofaHl;
+            chartconf["labelFontColour"] = \"%(label_font_colour)s\";
+            chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+            %(outer_bg)s
+            makePieChart("mychartRenumber", slices, chartconf);
+        }
+    </script>
+    %(titles)s
+    <div id="mychartRenumber" 
+        style="width: %(width)spx; height: %(height)spx;"></div>
+    <br>
+    """ % {u"slice_colours": slice_colours, u"colour_cases": colour_cases, 
+           u"titles": title_dets_html, u"width": 400, u"height": 400,
+           u"slices_js": slices_js, u"slice_fontsize": slice_fontsize, 
+           u"label_font_colour": label_font_colour,
+           u"tooltip_border_colour": tooltip_border_colour,
+           u"outer_bg": outer_bg,
+           })
+    if page_break_after:
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
+    return u"".join(html)
+    
 def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx, 
                     css_fil, page_break_after):
     """
@@ -254,18 +369,7 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
     css_idx -- css index so can apply    
     """
     debug = False
-    (CSS_TBL_TITLE, CSS_TBL_SUBTITLE, 
-                  CSS_TBL_TITLE_CELL) = output.get_title_css(css_idx)
-    title_dets_html_lst = []
-    if titles:
-        title_dets_html_lst.append(u"<p class='%s %s'>" % (CSS_TBL_TITLE, 
-                                                           CSS_TBL_TITLE_CELL) + 
-                                   u"\n<br>".join(titles) + u"</p>")
-    if subtitles:
-        title_dets_html_lst.append(u"<p class='%s %s'>" % (CSS_TBL_SUBTITLE, 
-                                                           CSS_TBL_TITLE_CELL) + 
-                                   u"\n<br>".join(subtitles) + u"</p>")
-    title_dets_html = u"\n".join(title_dets_html_lst)
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     xaxis_labels = u"[" + \
         u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
                                     for i,x in enumerate(xaxis_dets,1)]) + u"]"
@@ -282,14 +386,12 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
             gridline_width, stroke_width, tooltip_border_colour, 
             colour_mappings) = extract_dojo_style(css_fil)
     outer_bg = u"" if outer_bg == u"" \
-        else u"chartconf[\"outerBg\"] = \"%s\"" % outer_bg
-    colour_cases_list = []
-    for bg_colour, hl_colour in colour_mappings:
-        colour_cases_list.append(u"""                case \"%s\":
-                    hlColour = \"%s\";
-                    break;""" % (bg_colour, hl_colour))
-    colour_cases = u"\n".join(colour_cases_list)
-    colour_cases = colour_cases.lstrip()
+        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
+    single_colour = (len(series_dets) == 1)
+    override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
+                                and single_colour)
+    colour_cases = setup_highlights(colour_mappings, single_colour, 
+                                    override_first_highlight)
     # build js for every series
     series_js_list = []
     series_names_list = []

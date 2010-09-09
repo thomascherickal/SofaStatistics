@@ -435,14 +435,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                               self.val_dics.get(var_name2, {}))
         script_lst.append(u"var_label1=u\"%s\"" % \
                           lib.get_item_label(self.var_labels, var_name1))
-        script_lst.append(u"xaxis_val_labels = %s" % 
+        script_lst.append(u"measure_val_labels = %s" % 
                           self.val_dics.get(var_name1, {}))
         if self.chart_type == mg.SIMPLE_BARCHART:
             script_lst.append(u"xaxis_dets, y_vals = "
                   u"charting_output.get_simple_barchart_dets(dbe=\"%(dbe)s\", "
                   u"cur=cur,"
                   u"\n    tbl=tbl, tbl_filt=tbl_filt, fld_measure=fld_measure, "
-                  u"xaxis_val_labels=xaxis_val_labels)" % {u"dbe": dd.dbe})
+                  u"xaxis_val_labels=measure_val_labels)" % {u"dbe": dd.dbe})
             script_lst.append(u"series_dets = [{u\"label\": var_label1, "
                               u"u\"y_vals\": y_vals},]")
             script_lst.append(u"chart_output = "
@@ -455,22 +455,34 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                         u", cur=cur,"
                   u"\n    tbl=tbl, tbl_filt=tbl_filt, fld_measure=fld_measure, "
                   u"fld_gp=fld_gp, "
-                  u"\n    xaxis_val_labels=xaxis_val_labels, "
+                  u"\n    xaxis_val_labels=measure_val_labels, "
                   u"group_by_val_labels=group_by_val_labels)" % 
                     {u"dbe": dd.dbe})
             script_lst.append(u"chart_output = "
                   u"charting_output.barchart_output(titles, "
                         u"subtitles,"
                   u"\n    xaxis_dets, series_dets, "
-                  u" css_idx=%s, css_fil=\"%s\",page_break_after=False)" %
+                  u" css_idx=%s, css_fil=\"%s\", page_break_after=False)" %
                       (css_idx, css_fil))
+        elif self.chart_type == mg.PIE_CHART:
+            script_lst.append(u"slice_dets = "
+                  u"charting_output.get_pie_chart_dets(dbe=\"%(dbe)s\"" 
+                        u", cur=cur,"
+                  u"\n    tbl=tbl, tbl_filt=tbl_filt, fld_measure=fld_measure, "
+                  u"\n    slice_val_labels=measure_val_labels)" % 
+                    {u"dbe": dd.dbe})
+            script_lst.append(u"chart_output = "
+                  u"charting_output.piechart_output(titles, "
+                        u"subtitles,"
+                  u"\n    slice_dets, css_idx=%s, css_fil=\"%s\", "
+                  u"page_break_after=False)" % (css_idx, css_fil))
         script_lst.append(u"fil.write(chart_output)")
         return u"\n".join(script_lst)
     
     def on_btn_run(self, event):
         # get settings
-        if self.panel_displayed in [self.panel_bar_chart, 
-                                    self.panel_clustered_bar_chart]:
+        if self.chart_type in (mg.SIMPLE_BARCHART, mg.CLUSTERED_BARCHART, 
+                               mg.PIE_CHART):
             run_ok = self.test_config_ok()
             add_to_report = self.chk_add_to_report.IsChecked()
             if run_ok:

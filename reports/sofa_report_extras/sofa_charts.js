@@ -1,4 +1,57 @@
 
+makePieChart = function(chartname, slices, chartconf){
+    // allow charts made without newest config items to keep working
+
+    var tooltipBorderColour = (chartconf["tooltipBorderColour"]) ? chartconf["tooltipBorderColour"] : "#ada9a5";
+    var outerChartBorderColour = (chartconf["outerChartBorderColour"]) ? chartconf["outerChartBorderColour"] : null;
+    var innerChartBorderColour = (chartconf["innerChartBorderColour"]) ? chartconf["innerChartBorderColour"] : null;
+    var outerBg = (chartconf["outerBg"]) ? chartconf["outerBg"] : null;
+    var pieStroke = "#8b9b98";
+
+    var dc = dojox.charting;
+    var mychart = new dc.Chart2D(chartname);
+    
+    
+    var sofa_theme = new dc.Theme({
+		colors: chartconf["sliceColours"],
+        chart: {
+	        stroke: outerChartBorderColour,
+        	fill: outerBg,
+	        pageStyle: null // suggested page style as an object suitable for dojo.style()
+	    }
+	});
+    mychart.setTheme(sofa_theme);
+    mychart.addPlot("default", {
+            type: "Pie",
+            font: "normal normal " + chartconf["sliceFontsize"] + "px Tahoma",
+            fontColor: chartconf["labelFontColour"],
+            labelOffset: -30,
+            radius: 140
+        });
+
+    var pieSeries = Array();
+    var i;
+    for (i in slices){
+        pieSeries[i] = 
+        {
+            y: slices[i]["y"],
+            text: slices[i]["text"],
+            stroke: pieStroke,
+            tooltip: slices[i]["tooltip"]
+        }
+    }
+    mychart.addSeries("Series A", pieSeries);
+    var anim_a = new dc.action2d.MoveSlice(mychart, "default");
+    var anim_b = new dc.action2d.Highlight(mychart, "default", {
+        highlight: chartconf["sofaHl"],
+        duration: 450,
+        easing:   dojo.fx.easing.sineOut
+    });
+    var anim_c = new dc.action2d.Tooltip(mychart, "default", {tooltipBorderColour: tooltipBorderColour});
+    mychart.render();
+    //var legend = new dojox.charting.widget.Legend({chart: mychart}, ("legend" + chartname.substr(0,1).toUpperCase() + chartname.substr(1)));
+}
+
 makeBarChart = function(chartname, series, chartconf){
     // allow charts made without newest config items to keep working
     var gridlineWidth = (chartconf["gridlineWidth"]) ? chartconf["gridlineWidth"] : 3;
@@ -12,8 +65,7 @@ makeBarChart = function(chartname, series, chartconf){
 
     var dc = dojox.charting;
     var mychart = new dc.Chart2D(chartname);
-
-    mychart.setTheme(new dc.Theme({
+    var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
         	fill: outerBg,
@@ -47,7 +99,8 @@ makeBarChart = function(chartname, series, chartconf){
 	            length: 1
 	        }
 	    }
-    }));
+    });
+    mychart.setTheme(sofa_theme);
 
     //mychart.setTheme(dc.themes.PlotKit.blue); //purple, red, cyan, green etc
 
