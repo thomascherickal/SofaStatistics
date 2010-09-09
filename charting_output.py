@@ -205,7 +205,7 @@ def extract_dojo_style(css_fil):
               "\n\nDetails: %s" % lib.ue(e)))
         raise
     return (css_dojo_dic[u"outer_bg"], 
-            css_dojo_dic[u"grid_bg"], 
+            css_dojo_dic[u"inner_bg"], 
             css_dojo_dic[u"axis_label_font_colour"], 
             css_dojo_dic[u"major_gridline_colour"], 
             css_dojo_dic[u"gridline_width"], 
@@ -292,7 +292,7 @@ def piechart_output(titles, subtitles, slice_dets, css_idx, css_fil,
                     page_break_after):
     debug = False
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
+    (outer_bg, inner_bg, axis_label_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
             colour_mappings) = extract_dojo_style(css_fil)
     outer_bg = u"" if outer_bg == u"" \
@@ -309,7 +309,8 @@ def piechart_output(titles, subtitles, slice_dets, css_idx, css_fil,
                               {u"y": slice_det[u"y"], 
                                    u"text": slice_det[u"text"],
                                    u"tooltip": slice_det[u"tooltip"]})
-    slices_js = u"slices = [" + u",\n    ".join(slices_js_list) + u"\n];"
+    slices_js = u"slices = [" + u",\n                ".join(slices_js_list) + \
+                    u"\n];"
     slice_fontsize = 14 if len(slice_dets) < 10 else 10
     label_font_colour = axis_label_font_colour
     html = []
@@ -336,6 +337,7 @@ def piechart_output(titles, subtitles, slice_dets, css_idx, css_fil,
             chartconf["labelFontColour"] = \"%(label_font_colour)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
             %(outer_bg)s
+            chartconf["innerBg"] = \"%(inner_bg)s\";
             makePieChart("mychartRenumber", slices, chartconf);
         }
     </script>
@@ -348,7 +350,7 @@ def piechart_output(titles, subtitles, slice_dets, css_idx, css_fil,
            u"slices_js": slices_js, u"slice_fontsize": slice_fontsize, 
            u"label_font_colour": label_font_colour,
            u"tooltip_border_colour": tooltip_border_colour,
-           u"outer_bg": outer_bg,
+           u"outer_bg": outer_bg, u"inner_bg": inner_bg,
            })
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -454,12 +456,11 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
     """ % {u"colour_cases": colour_cases, u"titles": title_dets_html, 
            u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
            u"width": width, u"xgap": xgap, u"xfontsize": xfontsize, 
-           u"grid_bg": grid_bg, 
            u"axis_label_font_colour": axis_label_font_colour,
            u"major_gridline_colour": major_gridline_colour,
            u"gridline_width": gridline_width, 
            u"tooltip_border_colour": tooltip_border_colour,
-           u"outer_bg": outer_bg,
+           u"outer_bg": outer_bg, u"grid_bg": grid_bg, 
            u"minor_ticks": minor_ticks})
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 

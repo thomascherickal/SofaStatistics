@@ -18,7 +18,7 @@ cc = config_dlg.get_cc()
 dd = getdata.get_dd()
 
 LIMITS_MSG = (u"Only simple and clustered bar charts available in this release."
-              u"More coming soon!")
+              u" More coming soon!")
 
 class DlgCharting(indep2var.DlgIndep2VarConfig):
     
