@@ -127,7 +127,7 @@ def get_clustered_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_gp,
                     {"label": "Female", "y_vals": [13,59,200,0],}
     xaxis_dets -- [(1, "North"), (2, "South"), (3, "East"), (4, "West"),]
     """
-    debug = True
+    debug = False
     obj_quoter = getdata.get_obj_quoter_func(dbe)
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     SQL_get_measure_vals = u"""SELECT %(fld_measure)s

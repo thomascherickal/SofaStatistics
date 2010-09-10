@@ -353,6 +353,9 @@ SIMPLE_BARCHART = u"Simple Bar Chart"
 CLUSTERED_BARCHART = u"Clustered Bar Chart"
 PIE_CHART = u"Pie Chart"
 TWO_VAR_CHART_TYPES = [CLUSTERED_BARCHART, ]
+CHART_TYPE_TO_MIN_DATA_TYPE = {SIMPLE_BARCHART: VAR_TYPE_CAT,
+                               CLUSTERED_BARCHART: VAR_TYPE_CAT,
+                               PIE_CHART: VAR_TYPE_CAT,}
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
     'lightcoral', 'orangered', 'navajowhite', 'slategray', 'palegreen', 

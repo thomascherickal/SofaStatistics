@@ -21,22 +21,7 @@ LIMITS_MSG = (u"Only simple and clustered bar charts available in this release."
               u" More coming soon!")
 
 class DlgCharting(indep2var.DlgIndep2VarConfig):
-    
-    
-    
-    
-    
-    
-    min_data_type = mg.VAR_TYPE_CAT # TODO - wire up for each chart type
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     inc_gp_by_select = True
     
     def __init__(self, title, takes_range=False):
@@ -77,6 +62,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_vars_top_right_bottom = wx.BoxSizer(wx.HORIZONTAL)
         szr_chart_btns = wx.BoxSizer(wx.HORIZONTAL)
         # var 1
+        self.min_data_type = mg.VAR_TYPE_CAT # needed to set up var 1
         self.lbl_var1 = wx.StaticText(self.panel_top, -1, mg.CHART_VALUES)
         self.lbl_var1.SetFont(self.LABEL_FONT)
         # TODO only want the fields which are numeric? Depends
@@ -161,7 +147,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_top.Add(szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.panel_top.SetSizer(szr_top)
         szr_top.SetSizeHints(self.panel_top)
-
         # Charts
         self.chart_type = mg.SIMPLE_BARCHART
         # chart buttons
@@ -349,22 +334,30 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.btn_scatterplot.SetCursor(hand)
             self.btn_histogram.SetCursor(hand)
     
+    def setup_var1(self):
+        self.min_data_type = mg.CHART_TYPE_TO_MIN_DATA_TYPE.get(self.chart_type, 
+                                                                mg.VAR_TYPE_CAT)
+        var_gp, var_name1, var_name2 = self.get_vars()
+        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
+                       var_name1)
+    
     def display_var2(self):
         show = (self.chart_type in mg.TWO_VAR_CHART_TYPES)
         self.drop_var2.Enable(show)
         self.lbl_var2.Enable(show)
     
     def on_btn_bar_chart(self, event):
+        self.chart_type = mg.SIMPLE_BARCHART
         self.btn_bar_chart.SetFocus()
         self.btn_bar_chart.SetDefault()
         event.Skip()
-        self.chart_type = mg.SIMPLE_BARCHART
         self.lbl_var1.SetLabel(mg.CHART_VALUES)
         self.lbl_var2.SetLabel(mg.CHART_BY)
         if self.panel_displayed == self.panel_bar_chart:
             return
         else:
             self.panel_displayed.Show(False)
+            self.setup_var1()
         self.display_var2()
         self.szr_mid.Remove(self.panel_displayed)
         self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
@@ -373,10 +366,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_mid.Layout() # self.Layout() doesn't work in Windows
 
     def on_btn_clustered_bar_chart(self, event):
+        self.chart_type = mg.CLUSTERED_BARCHART
         self.btn_clust_bar_chart.SetFocus()
         self.btn_clust_bar_chart.SetDefault()
         event.Skip()
-        self.chart_type = mg.CLUSTERED_BARCHART
         self.lbl_var1.SetLabel(mg.CHART_VALUES)
         self.lbl_var2.SetLabel(mg.CHART_BY)
         self.btn_clust_bar_chart.SetDefault()
@@ -386,6 +379,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             return
         else:
             self.panel_displayed.Show(False)
+            self.setup_var1()
         self.display_var2()
         self.szr_mid.Remove(self.panel_displayed)
         self.szr_mid.Add(self.panel_clustered_bar_chart, 0, wx.GROW)
@@ -394,16 +388,17 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_mid.Layout()
 
     def on_btn_pie_chart(self, event):
+        self.chart_type = mg.PIE_CHART
         self.btn_pie_chart.SetFocus()
         self.btn_pie_chart.SetDefault()
         event.Skip()
-        self.chart_type = mg.PIE_CHART
         self.lbl_var1.SetLabel(mg.CHART_VALUES)
         self.lbl_var2.SetLabel(mg.CHART_BY)
         if self.panel_displayed == self.panel_pie_chart:
             return
         else:
             self.panel_displayed.Show(False)
+            self.setup_var1()
         self.display_var2()
         self.szr_mid.Remove(self.panel_displayed)
         self.szr_mid.Add(self.panel_pie_chart, 0, wx.GROW)
