@@ -21,7 +21,7 @@ makePieChart = function(chartname, slices, chartconf){
 	    },
 		plotarea: {
 			fill: chartconf["innerBg"]
-		},
+		}
 	});
     mychart.setTheme(sofa_theme);
     mychart.addPlot("default", {
