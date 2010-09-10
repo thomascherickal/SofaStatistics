@@ -17,15 +17,15 @@ import output
 
 def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, measure_val_labels):
     """
-    Get frequencies for all values in variable plus labels.
+    Get frequencies for all non-missing values in variable plus labels.
     """
     debug = False
     obj_quoter = getdata.get_obj_quoter_func(dbe)
-    where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
+    unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     SQL_get_vals = u"SELECT %s, COUNT(*) AS freq " % obj_quoter(fld_measure) + \
         u"FROM %s " % obj_quoter(tbl) + \
-        u" %s " % where_tbl_filt + \
-        u"GROUP BY %s" % obj_quoter(fld_measure)
+        u"WHERE %s IS NOT NULL %s" % (obj_quoter(fld_measure), and_tbl_filt) + \
+        u" GROUP BY %s" % obj_quoter(fld_measure)
     if debug: print(SQL_get_vals)
     cur.execute(SQL_get_vals)
     measure_dets = []
@@ -132,12 +132,12 @@ def get_clustered_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_gp,
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     SQL_get_measure_vals = u"""SELECT %(fld_measure)s
         FROM %(tbl)s
-        WHERE %(fld_gp)s IS NOT NULL
+        WHERE %(fld_gp)s IS NOT NULL AND %(fld_measure)s IS NOT NULL
             %(and_tbl_filt)s
         GROUP BY %(fld_measure)s"""
     SQL_get_gp_by_vals = u"""SELECT %(fld_gp)s
         FROM %(tbl)s
-        WHERE %(fld_measure)s IS NOT NULL
+        WHERE %(fld_measure)s IS NOT NULL AND %(fld_gp)s IS NOT NULL
             %(and_tbl_filt)s
         GROUP BY %(fld_gp)s"""
     SQL_cartesian_join = """SELECT * FROM (%s) AS qrygp INNER JOIN 
@@ -266,6 +266,8 @@ def setup_highlights(colour_mappings, single_colour,
     colour_cases_list = []
     for i, mappings in enumerate(colour_mappings):
         bg_colour, hl_colour = mappings
+        if hl_colour == u"":
+            continue # let default highlighting occur
         if i == 0 and override_first_highlight:
             hl_colour = u"#736354"
         colour_cases_list.append(u"""                case \"%s\":

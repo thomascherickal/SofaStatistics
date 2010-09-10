@@ -18,7 +18,10 @@ makePieChart = function(chartname, slices, chartconf){
 	        stroke: outerChartBorderColour,
         	fill: outerBg,
 	        pageStyle: null // suggested page style as an object suitable for dojo.style()
-	    }
+	    },
+		plotarea: {
+			fill: chartconf["innerBg"]
+		},
 	});
     mychart.setTheme(sofa_theme);
     mychart.addPlot("default", {
@@ -62,6 +65,21 @@ makeBarChart = function(chartname, series, chartconf){
     var axisColour = (chartconf["axisColour"]) ? chartconf["axisColour"] : null;
     var tickColour = (chartconf["tickColour"]) ? chartconf["tickColour"] : null;
     var minorTicks = (chartconf["minorTicks"]) ? chartconf["minorTicks"] : false;
+
+    var getSum = function(myNums){
+        var i
+        var sum = 0
+        for (i in myNums) {
+            sum += myNums[i]
+        }
+        return sum
+    }    
+
+    // chartwide functon setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
+    var getTooltip = function(val){
+        var seriesSum = getSum(val.run.data);
+        return val.y + "<br>(" + Math.round((1000*val.y)/seriesSum)/10 + "%)";
+    };
 
     var dc = dojox.charting;
     var mychart = new dc.Chart2D(chartname);
@@ -123,7 +141,8 @@ makeBarChart = function(chartname, series, chartconf){
         easing:   dojo.fx.easing.sineOut
     });
     var anim_b = new dc.action2d.Shake(mychart, "default");
-    var anim_c = new dc.action2d.Tooltip(mychart, "default", {tooltipBorderColour: tooltipBorderColour});
+    var anim_c = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 
+        tooltipBorderColour: tooltipBorderColour});
     mychart.render();
     var legend = new dojox.charting.widget.Legend({chart: mychart}, ("legend" + chartname.substr(0,1).toUpperCase() + chartname.substr(1)));
 }

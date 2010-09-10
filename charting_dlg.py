@@ -285,17 +285,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_bar_chart.SetFocus()
         szr_chart_btns.Add(self.btn_bar_chart)
         # clustered bar charts
-        bmp_btn_clustered_bar_chart = \
-                            wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
-                                                  u"clustered_bar_chart.xpm"), 
+        bmp_btn_clust_bar_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                        u"images", u"clustered_bar_chart.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.btn_clustered_bar_chart = wx.BitmapButton(self.panel_mid, -1, 
-                                             bmp_btn_clustered_bar_chart)
-        self.btn_clustered_bar_chart.Bind(wx.EVT_BUTTON, 
-                                          self.on_btn_clustered_bar_chart)
-        self.btn_clustered_bar_chart.SetToolTipString(_("Make Clustered Bar "
-                                                        "Chart"))
-        szr_chart_btns.Add(self.btn_clustered_bar_chart)
+        self.btn_clust_bar_chart = wx.BitmapButton(self.panel_mid, -1, 
+                                                       bmp_btn_clust_bar_chart)
+        self.btn_clust_bar_chart.Bind(wx.EVT_BUTTON, 
+                                      self.on_btn_clustered_bar_chart)
+        self.btn_clust_bar_chart.SetToolTipString(_("Make Clustered Bar Chart"))
+        szr_chart_btns.Add(self.btn_clust_bar_chart)
         # pie charts
         bmp_btn_pie_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
                                                   u"pie_chart.xpm"), 
@@ -344,7 +342,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if mg.PLATFORM == mg.LINUX:
             hand = wx.StockCursor(wx.CURSOR_HAND)
             self.btn_bar_chart.SetCursor(hand)
-            self.btn_clustered_bar_chart.SetCursor(hand)
+            self.btn_clust_bar_chart.SetCursor(hand)
             self.btn_pie_chart.SetCursor(hand)
             self.btn_line_chart.SetCursor(hand)
             self.btn_area_chart.SetCursor(hand)
@@ -375,14 +373,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_mid.Layout() # self.Layout() doesn't work in Windows
 
     def on_btn_clustered_bar_chart(self, event):
-        self.btn_clustered_bar_chart.SetFocus()
-        self.btn_clustered_bar_chart.SetDefault()
+        self.btn_clust_bar_chart.SetFocus()
+        self.btn_clust_bar_chart.SetDefault()
         event.Skip()
         self.chart_type = mg.CLUSTERED_BARCHART
         self.lbl_var1.SetLabel(mg.CHART_VALUES)
         self.lbl_var2.SetLabel(mg.CHART_BY)
-        self.btn_clustered_bar_chart.SetDefault()
-        self.btn_clustered_bar_chart.SetFocus()
+        self.btn_clust_bar_chart.SetDefault()
+        self.btn_clust_bar_chart.SetFocus()
         if self.panel_displayed == self.panel_clustered_bar_chart:
             event.Skip()
             return
