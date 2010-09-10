@@ -221,12 +221,14 @@ class FiltSelectDlg(wx.Dialog):
             try:
                 tbl_filt = self.get_quick_filter()
             except Exception, e:
+                lib.safe_end_cursor()
                 wx.MessageBox(_("Problem with design of filter: %s") % 
                               lib.ue(e))
                 return
         else:
             tbl_filt = self.txt_flex_filter.GetValue()
             if not tbl_filt:
+                lib.safe_end_cursor()
                 wx.MessageBox(_("Please enter a filter"))
                 return
         # Must work with a simple query to that database
@@ -258,6 +260,7 @@ class FiltSelectDlg(wx.Dialog):
                        "gender": obj_quoter("gender"),
                        "satisfaction": obj_quoter("satisfaction"),
                        "sqlite_extra_comment": sqlite_extra_comment})
+            lib.safe_end_cursor()
             wx.MessageBox(_("Problem applying filter \"%(filt)s\" to"
                             " \"%(tbl)s\"") % {"filt": tbl_filt, 
                                                "tbl": dd.tbl} + demo)
