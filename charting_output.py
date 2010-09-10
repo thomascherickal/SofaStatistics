@@ -47,7 +47,7 @@ def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, fld_measure,
     if len(label_dets) != len(slice_vals):
         raise Exception(u"Mismatch in number of slice labels and slice values")
     if len(slice_vals) > 30:
-        raise Exception(u"More than 30 slices in Pie Chart. Too many.")
+        raise my_exceptions.TooManySlicesInPieChart
     tot_freq = sum(slice_vals)
     slice_dets = []
     for i, slice_val in enumerate(slice_vals):

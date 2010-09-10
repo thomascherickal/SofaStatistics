@@ -17,8 +17,8 @@ OUTPUT_MODULES = ["my_globals as mg", "charting_output", "output",
 cc = config_dlg.get_cc()
 dd = getdata.get_dd()
 
-LIMITS_MSG = (u"Only simple and clustered bar charts available in this release."
-              u" More coming soon!")
+LIMITS_MSG = (u"Only simple, clustered bar charts, and pie charts are available"
+              u" in this release. More coming soon!")
 
 class DlgCharting(indep2var.DlgIndep2VarConfig):
 

@@ -55,7 +55,11 @@ class TooFewColsInChiSquareException(Exception):
 class TooManyCellsInChiSquareException(Exception):
     def __init__(self):
         Exception.__init__(self, u"Too many cells in contingency table")
-        
+
+class TooManySlicesInPieChart(Exception):
+    def __init__(self):
+        Exception.__init__(self, u"Too many slices in Pie Chart. More than 30.")
+   
 class ExcessReportTableCellsException(Exception):
     def __init__(self, max):
         Exception.__init__(self, _("Only allowed %s cells in report table" % 
