@@ -256,7 +256,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                                                  " (optional)"))
     # default table
     parent.lbl_sqlite_default_tbl = wx.StaticText(scroll, -1, 
-                                                  _("Default Table:"))
+                                               _("Default Table (optional):"))
     parent.lbl_sqlite_default_tbl.SetFont(lblfont)
     DEFAULT_TBL = parent.sqlite_default_tbl if parent.sqlite_default_tbl \
         else u""

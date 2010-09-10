@@ -450,7 +450,7 @@ class SettingsEntry(object):
             other controls.
         """
         debug = False
-        keycode = event.GetKeyCode()
+        keycode = event.get_key_code() # custom event class
         if keycode in [wx.WXK_RETURN]:
             self.grid.DisableCellEditControl()
             self.add_cell_move_evt(mg.MOVE_RIGHT)

@@ -214,7 +214,7 @@ def extract_dojo_style(css_fil):
             css_dojo_dic[u"colour_mappings"])
 
 def get_barchart_sizings(xaxis_dets, series_dets):
-    debug = True
+    debug = False
     n_clusters = len(xaxis_dets)
     n_bars_in_cluster = len(series_dets)
     minor_ticks = u"false"
@@ -248,7 +248,11 @@ def get_barchart_sizings(xaxis_dets, series_dets):
     if n_bars_in_cluster > 1:
         width = width*(1 + n_bars_in_cluster/10.0)
         xgap = xgap/(1 + n_bars_in_cluster/10.0)
-        xfontsize = xfontsize*(1 + n_bars_in_cluster/15.0)
+        if n_bars_in_cluster < 4:
+            xfontsize_mult = 1.2
+        else:
+            xfontsize_mult = 1.3
+        xfontsize = xfontsize*xfontsize_mult
     if debug: print(width)
     return width, xgap, xfontsize, minor_ticks
 
