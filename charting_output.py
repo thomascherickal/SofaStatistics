@@ -322,19 +322,17 @@ def piechart_output(titles, subtitles, slice_dets, css_idx, css_fil,
     html = []
     html.append(u"""
     <script type="text/javascript">
-
-        sofaHl = function(colour){
-            var hlColour;
-            switch (colour.toHex()){
-                %(colour_cases)s
-                default:
-                    hlColour = hl(colour.toHex());
-                    break;
-            }
-            return new dojox.color.Color(hlColour);
-        }    
-    
         makechartRenumber = function(){
+            var sofaHl = function(colour){
+                var hlColour;
+                switch (colour.toHex()){
+                    %(colour_cases)s
+                    default:
+                        hlColour = hl(colour.toHex());
+                        break;
+                }
+                return new dojox.color.Color(hlColour);
+            }            
             %(slices_js)s
             var chartconf = new Array();
             chartconf["sliceColours"] = %(slice_colours)s;
