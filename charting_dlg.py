@@ -246,6 +246,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                      height_init=myheight)
         
         self.drop_group_by.Enable(False)
+        self.drop_group_a.Enable(False)
+        self.drop_group_b.Enable(False)
 
     def on_show(self, event):
         try:
