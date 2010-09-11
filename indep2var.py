@@ -366,8 +366,6 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     
     def setup_group_by(self, var_gp=None):
         var_names = projects.get_approp_var_names()
-        if self.inc_gp_by_select:
-            var_names.insert(0, mg.DROP_SELECT)
         var_gp_by_choice_items, self.sorted_var_names_by = \
                         lib.get_sorted_choice_items(dic_labels=self.var_labels, 
                                         vals=var_names, 
@@ -403,7 +401,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             If 250,000 upwards, use first 250,000 records as source. If more 
             than 20 unique values, only show first 20 and inform user.
         """
-        debug = False
+        debug = True
         n_high = 250000
         quoter = getdata.get_obj_quoter_func(dd.dbe)
         SQL_get_count = "SELECT COUNT(*) FROM %s %s" % (quoter(dd.tbl), 

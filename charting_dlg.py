@@ -99,7 +99,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.lbl_group_by = wx.StaticText(self.panel_top, -1, _("Group By:"))
         self.lbl_group_by.SetFont(self.LABEL_FONT)
         self.drop_group_by = wx.Choice(self.panel_top, -1, choices=[], 
-                                     size=(300,-1))
+                                       size=(300,-1))
         self.drop_group_by.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
         self.drop_group_by.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_by)
         self.drop_group_by.SetToolTipString(variables_rc_msg)
