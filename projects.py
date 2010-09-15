@@ -535,8 +535,10 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         try:
             self.proj_name = fil_proj[:-5]
         except Exception, e:
-            wx.MessageBox(_("Please check %s for errors. Use %s for "
-                            "reference.") % (fil_proj, mg.DEFAULT_PROJ))
+            wx.MessageBox(_("Please check %(fil_proj)s for errors. "
+                            "Use %(def_proj)s for reference.") % 
+                            {u"fil_proj": fil_proj, 
+                             u"def_proj": mg.DEFAULT_PROJ})
             raise
         # Taking settings from proj file (via exec and proj_dic)
         #   and adding them to this frame ready for use.
@@ -550,13 +552,17 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             self.default_dbe = proj_dic["default_dbe"]
             getdata.get_proj_con_settings(self, proj_dic)
         except KeyError, e:
-            wx.MessageBox(_("Please check %s for errors. Use %s for "
-                            "reference.") % (fil_proj, mg.DEFAULT_PROJ))
+            wx.MessageBox(_("Please check %(fil_proj)s for errors. "
+                            "Use %(def_proj)s for reference.") % 
+                            {u"fil_proj": fil_proj, 
+                             u"def_proj": mg.DEFAULT_PROJ})
             raise Exception(u"Key error reading from proj_dic."
                             u"\nCaused by error: %s" % lib.ue(e))
         except Exception, e:
-            wx.MessageBox(_("Please check %s for errors. Use %s for "
-                            "reference.") % (fil_proj, mg.DEFAULT_PROJ))
+            wx.MessageBox(_("Please check %(fil_proj)s for errors. "
+                            "Use %(def_proj)s for reference.") % 
+                            {u"fil_proj": fil_proj, 
+                             u"def_proj": mg.DEFAULT_PROJ})
             raise
     
     def on_dbe_choice(self, event):
@@ -669,9 +675,10 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                 f = codecs.open(fil_name, "w", encoding="utf-8")
             except IOError, e:
                 wx.MessageBox(_(u"Unable to save project file. Please check "
-                                u"\"%s\" is a valid file name."
-                                u"\n\nCaused by error: %s")
-                                % (fil_name, lib.ue(e)))
+                                u"\"%(fil_name)s\" is a valid file name."
+                                u"\n\nCaused by error: %(err)s")
+                                % {u"fil_name": fil_name, 
+                                   u"err": lib.ue(e)})
                 return
             f.write(u"# Windows file paths _must_ have double not single "
                     u"backslashes")

@@ -343,7 +343,7 @@ class ConfigDlg(object):
             css_fils, css_idx = output.get_css_dets()
         except my_exceptions.MissingCssException, e:
             lib.update_local_display(self.html, _("Please check the CSS "
-                                    "file \"%s\" exists or set another. "
+                                    "file exists or set another. "
                                     "Caused by error: %s") % lib.ue(e), 
                                     wrap_text=True)
             lib.safe_end_cursor()
@@ -371,8 +371,10 @@ class ConfigDlg(object):
             except AttributeError:
                 self.can_run_report = True
             if self.can_run_report:
-                msg = _("No output yet. Click \"%s\" (with \"%s\" ticked) "
-                    "to add output to this report.") % (run, add_to_report)
+                msg = _("No output yet. Click \"%(run)s\" (with "
+                        "\"%(add_to_report)s\" ticked) to add output to this "
+                        "report.") % {u"run": run, 
+                                      u"add_to_report": add_to_report}
             else:
                 msg = _("The output file has not been created yet.  Nothing to "
                         "view")

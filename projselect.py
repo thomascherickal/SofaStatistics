@@ -173,8 +173,10 @@ class ProjSelectDlg(wx.Dialog):
             lib.safe_end_cursor()
             wx.MessageBox(_(u"Unable to use the selected project file. Please "
                             u"check name of file and its contents using "
-                            u"%s as example.\nCaused by error: %s"
-                            % (mg.DEFAULT_PROJ, lib.ue(e))))
+                            u"%(def_proj)s as example."
+                            u"\nCaused by error: %(err)s"
+                            % {u"def_proj": mg.DEFAULT_PROJ, 
+                               u"err": lib.ue(e)}))
             return
         lib.safe_end_cursor()
         self.Destroy()

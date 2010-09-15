@@ -207,8 +207,9 @@ def process_val(vals, row_num, row, orig_fld_name, fld_types, check):
     try:
        rawval = row[orig_fld_name]
     except KeyError:
-        raise Exception(_("Row %s doesn't have a value for the \"%s\" field")
-                        % (row_num, orig_fld_name))
+        raise Exception(_("Row %(row_num)s doesn't have a value for the "
+                          "\"%(orig_fld_name)s\" field") % {u"row_num": row_num, 
+                           u"orig_fld_name": orig_fld_name})
     is_pytime = lib.is_pytime(rawval)
     fld_type = fld_types[orig_fld_name]
     val = get_val(rawval, check, is_pytime, fld_type, orig_fld_name, row_num)

@@ -609,7 +609,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                 css_fils, css_idx = output.get_css_dets()
             except my_exceptions.MissingCssException, e:
                 lib.update_local_display(self.html, _("Please check the CSS "
-                                        "file \"%s\" exists or set another. "
+                                        "file exists or set another. "
                                         "Caused by error: %s") % lib.ue(e), 
                                         wrap_text=True)
                 event.Skip()
