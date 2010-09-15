@@ -518,6 +518,18 @@ class StartFrame(wx.Frame):
         except Exception:
             raise Exception(u"Problem creating background button image from %s"
                             % sofa)
+        # stable images
+        quote_left = os.path.join(SCRIPT_PATH, u"images", 
+                                  u"speech_mark_large.xpm")
+        self.bmp_quote_left = \
+                    wx.Image(quote_left, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        quote_right = os.path.join(SCRIPT_PATH, u"images", 
+                                  u"speech_mark_small.xpm")
+        self.bmp_quote_right = \
+                    wx.Image(quote_right, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        top_sofa = os.path.join(SCRIPT_PATH, u"images", u"top_sofa.xpm")
+        self.bmp_top_sofa = \
+                    wx.Image(top_sofa, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         # slice of image to be refreshed (where text and image will be)
         blankwp_rect = wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_IMG_LEFT+35, 250)
         self.blank_wallpaper = self.bmp_sofa.GetSubBitmap(blankwp_rect)
@@ -723,7 +735,10 @@ class StartFrame(wx.Frame):
         try:
             panel_dc = wx.PaintDC(self.panel)
             panel_dc.DrawBitmap(self.bmp_sofa, 0, 0, True)
-            panel_dc.DrawBitmap(self.bmp_import, HELP_IMG_LEFT-30, 
+            panel_dc.DrawBitmap(self.bmp_quote_left, 136, 95, True)
+            panel_dc.DrawBitmap(self.bmp_quote_right, 445, 163, True)
+            panel_dc.DrawBitmap(self.bmp_top_sofa, 555, 65, True)
+            panel_dc.DrawBitmap(self.bmp_chart, HELP_IMG_LEFT-30, 
                                 HELP_IMG_TOP-20, True)
             panel_dc.SetTextForeground(wx.WHITE)
             panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 8, 
@@ -872,7 +887,7 @@ class StartFrame(wx.Frame):
     def on_import_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_import, HELP_IMG_LEFT-40, HELP_IMG_TOP, 
+        panel_dc.DrawBitmap(self.bmp_import, HELP_IMG_LEFT-40, HELP_IMG_TOP-10, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_entry = _("Import data e.g. a csv file, or a spreadsheet (Excel, "

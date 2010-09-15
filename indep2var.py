@@ -401,7 +401,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             If 250,000 upwards, use first 250,000 records as source. If more 
             than 20 unique values, only show first 20 and inform user.
         """
-        debug = True
+        debug = False
         n_high = 250000
         quoter = getdata.get_obj_quoter_func(dd.dbe)
         SQL_get_count = "SELECT COUNT(*) FROM %s %s" % (quoter(dd.tbl), 
