@@ -224,7 +224,7 @@ def populate_extras_path(prog_path, local_path):
     extras = [u"arc.xd.js", u"blank.gif", u"blank.htm", u"dojo.xd.js", 
               u"gradient.xd.js", u"grey_spirals.gif", u"lucid_spirals.gif", 
               u"pebbles.gif", u"sofa_charts.js", 
-              u"sofalayer.js.uncompressed.js", u"tundra.css", u"vml.xd.js"]
+              u"sofadojo_minified.js", u"tundra.css", u"vml.xd.js"]
     for extra in extras:
         try:
             shutil.copy(os.path.join(prog_path, mg.REPORTS_FOLDER, 

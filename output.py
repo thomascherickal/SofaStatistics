@@ -238,7 +238,7 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
         dojo_insert = u"""
 <link rel='stylesheet' type='text/css' href="sofa_report_extras/tundra.css" />
 <script src="sofa_report_extras/dojo.xd.js"></script>
-<script src="sofa_report_extras/sofalayer.js.uncompressed.js"></script>
+<script src="sofa_report_extras/sofadojo_minified.js"></script>
 <script src="sofa_report_extras/sofa_charts.js"></script>
 <script type="text/javascript">
 get_ie_script = function(mysrc){
