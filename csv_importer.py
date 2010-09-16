@@ -86,21 +86,6 @@ def get_avg_row_size(rows):
     return avg_row_size
 
 
-def escape_double_quotes_in_lines(lines):
-    """
-    Needed because csv not handling doubled double quotes inside fields.
-    """
-    escaped_lines = []
-    for i, line in enumerate(lines, 1):
-        try:
-            escaped_line = line.replace(u"\"\"", u"%s\"" % ESC_DOUBLE_QUOTE).\
-                                replace(u"\\\"", u"%s\"" % ESC_DOUBLE_QUOTE)
-        except Exception, e:
-            raise Exception(u"Error escaping double quotes on line %s" % i +
-                            u"\nCaused by error: %s" % lib.ue(e))
-        escaped_lines.append(escaped_line)
-    return escaped_lines
-
 # http://docs.python.org/library/csv.html
 class UnicodeCsvReader(object):
     """
@@ -111,8 +96,8 @@ class UnicodeCsvReader(object):
         # csv.py doesn't do Unicode; encode temporarily as UTF-8:
         try:
             dialect.escapechar = ESC_DOUBLE_QUOTE
-            csv_data = escape_double_quotes_in_lines(utf8_encoded_csv_data)
-            self.csv_reader = csv.reader(csv_data, dialect=dialect, **kwargs)
+            self.csv_reader = csv.reader(utf8_encoded_csv_data, dialect=dialect, 
+                                         **kwargs)
         except Exception, e:
             raise Exception(u"Unable to start internal csv reader. "
                             u"\nCaused by error: %s" % lib.ue(e))
@@ -155,9 +140,8 @@ class UnicodeCsvDictReader(object):
         try:
             kwargs = {"fieldnames": fieldnames} if fieldnames else {}
             dialect.escapechar = ESC_DOUBLE_QUOTE
-            csv_data = escape_double_quotes_in_lines(utf8_encoded_csv_data)
-            self.csv_dictreader = csv.DictReader(csv_data, dialect=dialect, 
-                                                 **kwargs)
+            self.csv_dictreader = csv.DictReader(utf8_encoded_csv_data, 
+                                                 dialect=dialect, **kwargs)
         except Exception, e:
             raise Exception(u"Unable to start internal csv dict reader. "
                             u"\nCaused by error: %s" % lib.ue(e))
@@ -197,6 +181,23 @@ class UnicodeCsvDictReader(object):
                                 u"Caused by error: %s" % lib.ue(e))
             yield dict(unicode_key_value_tups)
 
+def escape_double_quotes_in_uni_lines(lines):
+    """
+    Needed because csv not handling doubled double quotes inside fields.
+    """
+    escaped_lines = []
+    for i, line in enumerate(lines, 1):
+        if not isinstance(line, unicode):
+            raise Exception(u"Cannot escape double quotes unless a unicode "
+                            u"string")
+        try:
+            escaped_line = line.replace(u"\"\"", u"%s\"" % ESC_DOUBLE_QUOTE).\
+                                replace(u"\\\"", u"%s\"" % ESC_DOUBLE_QUOTE)
+        except Exception, e:
+            raise Exception(u"Error escaping double quotes on line %s" % i +
+                            u"\nCaused by error: %s" % lib.ue(e))
+        escaped_lines.append(escaped_line)
+    return escaped_lines
 
 def encode_lines_as_utf8(uni_lines):
     utf8_encoded_lines = []
@@ -212,6 +213,8 @@ def encode_lines_as_utf8(uni_lines):
 def csv_to_utf8_byte_lines(file_path, encoding, n_lines=None, strict=True):
     """
     The csv module infamously only accepts lines of bytes encoded as utf-8.
+    Need to do the escaping of double quotes here so we can deal with a unicode
+        string and not a byte string.
     NB we have no idea what the original encoding was or which computer or OS or 
         locale it was done on.  Eventually we could use chardet module to 
         sensibly guess but in meantime try several - including the local 
@@ -231,7 +234,8 @@ def csv_to_utf8_byte_lines(file_path, encoding, n_lines=None, strict=True):
         if n_lines is not None:
             if i >= n_lines:
                 break
-    utf8_byte_lines = encode_lines_as_utf8(uni_lines)
+    escaped_uni_lines = escape_double_quotes_in_uni_lines(uni_lines)
+    utf8_byte_lines = encode_lines_as_utf8(escaped_uni_lines)
     if debug:
         print(repr(utf8_byte_lines))
     return utf8_byte_lines
