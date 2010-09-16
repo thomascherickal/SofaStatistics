@@ -386,6 +386,7 @@ DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred',
     'blueviolet', 'azure', 'lightsteelblue', 'oldlace']
 CHART_VALUES = _("Values:")
 CHART_BY = _("By:")
+Y_AXIS_FREQ_LABEL = _("Frequency")
 # remember defaults //////////
 # stats tests
 GROUP_BY_DEFAULT = None

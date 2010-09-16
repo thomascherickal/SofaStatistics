@@ -29,11 +29,16 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, measure_val_labels):
     if debug: print(SQL_get_vals)
     cur.execute(SQL_get_vals)
     measure_dets = []
+    max_label_len = 0
     y_vals = []
     for val, freq in cur.fetchall():
-        measure_dets.append((val, measure_val_labels.get(val, unicode(val))))
+        y_val = measure_val_labels.get(val, unicode(val))
+        len_y_val = len(y_val)
+        if len_y_val > max_label_len:
+            max_label_len = len_y_val 
+        measure_dets.append((val, y_val))
         y_vals.append(freq)
-    return measure_dets, y_vals
+    return measure_dets, max_label_len, y_vals
     
 def get_single_val_dets(dbe, cur, tbl, tbl_filt, fld_measure, xaxis_val_labels):
     """
@@ -41,68 +46,6 @@ def get_single_val_dets(dbe, cur, tbl, tbl_filt, fld_measure, xaxis_val_labels):
     """
     return get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
                           xaxis_val_labels)
-
-def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
-                       slice_val_labels):
-    label_dets, slice_vals = get_basic_dets(dbe, cur, tbl, tbl_filt, 
-                                            fld_measure, slice_val_labels)
-    if len(label_dets) != len(slice_vals):
-        raise Exception(u"Mismatch in number of slice labels and slice values")
-    if len(slice_vals) > 30:
-        raise my_exceptions.TooManySlicesInPieChart
-    tot_freq = sum(slice_vals)
-    slice_dets = []
-    for i, slice_val in enumerate(slice_vals):
-        slice_dic = {u"y": slice_val, u"text": label_dets[i][1], 
-                     u"tooltip": u"%s<br>%s (%s%%)" % 
-                     (label_dets[i][1], slice_val, 
-                      round((100.0*slice_val)/tot_freq,1))}
-        slice_dets.append(slice_dic)
-    return slice_dets
-
-def reshape_sql_crosstab_data(raw_data):
-    """
-    Must be sorted by group by then measures
-    e.g. raw_data = [(1,1,56),
-                     (1,2,103),
-                     (1,3,72),
-                     (1,4,40),
-                     (2,1,13),
-                     (2,2,59),
-                     (2,3,200),
-                     (2,4,0),]
-    from that we want
-    1: [56,103,72,40] # separate data by series
-    2: [13,59,200,0]
-    and
-    1,2,3,4 # vals for axis labelling
-    """
-    debug = False
-    series_data = {}
-    prev_gp = None # init
-    current_series = None
-    oth_vals = None
-    collect_oth = True
-    for current_gp, oth, freq in raw_data:
-        if debug: print(current_gp, oth, freq)
-        if current_gp == prev_gp: # still in same gp
-            current_series.append(freq)
-            if collect_oth:
-                oth_vals.append(oth)
-        else: # transition
-            if current_series: # so not the first row
-                series_data[prev_gp] = current_series
-                collect_oth = False
-            prev_gp = current_gp
-            current_series = [freq,] # starting new collection of freqs
-            if collect_oth:
-                oth_vals = [oth,] # starting collection of oths (only once)
-    # left last row
-    series_data[prev_gp] = current_series
-    if debug:
-        print(series_data)
-        print(oth_vals)
-    return series_data, oth_vals
 
 def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt, fld_measure, 
                          fld_gp, xaxis_val_labels, group_by_val_labels):
@@ -182,10 +125,78 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt, fld_measure,
         series_dic = {u"label": gp_val_label, u"y_vals": freqs}
         series_dets.append(series_dic)
     xaxis_dets = []
+    max_label_len = 0
     for val in oth_vals:
-        xaxis_dets.append((val, xaxis_val_labels.get(val, unicode(val))))
+        y_val = xaxis_val_labels.get(val, unicode(val))
+        len_y_val = len(y_val)
+        if len_y_val > max_label_len:
+            max_label_len = len_y_val
+        xaxis_dets.append((val, y_val))
     if debug: print(xaxis_dets)
-    return xaxis_dets, series_dets
+    return xaxis_dets, max_label_len, series_dets
+
+def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
+                       slice_val_labels):
+    label_dets, max_label_len, slice_vals = get_basic_dets(dbe, cur, tbl, 
+                                                         tbl_filt, fld_measure, 
+                                                         slice_val_labels)
+    if len(label_dets) != len(slice_vals):
+        raise Exception(u"Mismatch in number of slice labels and slice values")
+    if len(slice_vals) > 30:
+        raise my_exceptions.TooManySlicesInPieChart
+    tot_freq = sum(slice_vals)
+    slice_dets = []
+    for i, slice_val in enumerate(slice_vals):
+        slice_dic = {u"y": slice_val, u"text": label_dets[i][1], 
+                     u"tooltip": u"%s<br>%s (%s%%)" % 
+                     (label_dets[i][1], slice_val, 
+                      round((100.0*slice_val)/tot_freq,1))}
+        slice_dets.append(slice_dic)
+    return slice_dets
+
+def reshape_sql_crosstab_data(raw_data):
+    """
+    Must be sorted by group by then measures
+    e.g. raw_data = [(1,1,56),
+                     (1,2,103),
+                     (1,3,72),
+                     (1,4,40),
+                     (2,1,13),
+                     (2,2,59),
+                     (2,3,200),
+                     (2,4,0),]
+    from that we want
+    1: [56,103,72,40] # separate data by series
+    2: [13,59,200,0]
+    and
+    1,2,3,4 # vals for axis labelling
+    """
+    debug = False
+    series_data = {}
+    prev_gp = None # init
+    current_series = None
+    oth_vals = None
+    collect_oth = True
+    for current_gp, oth, freq in raw_data:
+        if debug: print(current_gp, oth, freq)
+        if current_gp == prev_gp: # still in same gp
+            current_series.append(freq)
+            if collect_oth:
+                oth_vals.append(oth)
+        else: # transition
+            if current_series: # so not the first row
+                series_data[prev_gp] = current_series
+                collect_oth = False
+            prev_gp = current_gp
+            current_series = [freq,] # starting new collection of freqs
+            if collect_oth:
+                oth_vals = [oth,] # starting collection of oths (only once)
+    # left last row
+    series_data[prev_gp] = current_series
+    if debug:
+        print(series_data)
+        print(oth_vals)
+    return series_data, oth_vals
 
 def extract_dojo_style(css_fil):
     try:
@@ -266,7 +277,7 @@ def get_barchart_sizings(xaxis_dets, series_dets):
     if debug: print(width)
     return width, xgap, xfontsize, minor_ticks
 
-def get_linechart_sizings(xaxis_dets, series_dets):
+def get_linechart_sizings(xaxis_dets, max_label_len, series_dets):
     debug = False
     n_vals = len(xaxis_dets)
     n_lines = len(series_dets)
@@ -282,8 +293,17 @@ def get_linechart_sizings(xaxis_dets, series_dets):
     else:
         width = 2000
         xfontsize = 8
-    minor_ticks = u"true"
-    return width, xfontsize, minor_ticks
+    minor_ticks = u"true" if n_vals > 8 else u"false"
+    micro_ticks = u"true" if n_vals > 100 else u"false"
+    if n_vals > 10:
+        if max_label_len > 10:
+            width += 2000
+        elif max_label_len > 7:
+            width += 1500
+        elif max_label_len > 4:
+            width += 1000
+    if debug: print(width, xfontsize, minor_ticks, micro_ticks)
+    return width, xfontsize, minor_ticks, micro_ticks
 
 def setup_highlights(colour_mappings, single_colour, 
                      override_first_highlight=False):
@@ -390,8 +410,8 @@ def piechart_output(titles, subtitles, slice_dets, css_idx, css_fil,
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
     
-def linechart_output(titles, subtitles, xaxis_dets, series_dets, css_idx, 
-                     css_fil, page_break_after):
+def linechart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets, 
+                     css_idx, css_fil, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -408,8 +428,9 @@ def linechart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
     xaxis_labels = u"[" + \
         u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
                                     for i,x in enumerate(xaxis_dets,1)]) + u"]"
-    width, xfontsize, minor_ticks = get_linechart_sizings(xaxis_dets, 
-                                                          series_dets)
+    (width, xfontsize, minor_ticks, 
+                micro_ticks) = get_linechart_sizings(xaxis_dets, max_label_len, 
+                                                     series_dets)
     html = []
     """
     For each series, set colour details.
@@ -456,8 +477,10 @@ def linechart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
             chartconf["gridlineWidth"] = %(gridline_width)s;
             chartconf["gridBg"] = \"%(grid_bg)s\";
             chartconf["minorTicks"] = %(minor_ticks)s;
+            chartconf["microTicks"] = %(micro_ticks)s;
             chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
+            chartconf["yTitle"] = \"%(y_title)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
             makeLineChart("mychartRenumber", series, chartconf);
         }
@@ -472,10 +495,10 @@ def linechart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
            u"width": width, u"xfontsize": xfontsize, 
            u"axis_label_font_colour": axis_label_font_colour,
            u"major_gridline_colour": major_gridline_colour,
-           u"gridline_width": gridline_width, 
+           u"gridline_width": gridline_width, u"y_title": mg.Y_AXIS_FREQ_LABEL,
            u"tooltip_border_colour": tooltip_border_colour,
            u"grid_bg": grid_bg, 
-           u"minor_ticks": minor_ticks})
+           u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks})
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -567,6 +590,7 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
             chartconf["minorTicks"] = %(minor_ticks)s;
             chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
+            chartconf["yTitle"] = \"%(y_title)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
             %(outer_bg)s
             makeBarChart("mychartRenumber", series, chartconf);
@@ -582,7 +606,7 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
            u"width": width, u"xgap": xgap, u"xfontsize": xfontsize, 
            u"axis_label_font_colour": axis_label_font_colour,
            u"major_gridline_colour": major_gridline_colour,
-           u"gridline_width": gridline_width, 
+           u"gridline_width": gridline_width, u"y_title": mg.Y_AXIS_FREQ_LABEL,
            u"tooltip_border_colour": tooltip_border_colour,
            u"outer_bg": outer_bg, u"grid_bg": grid_bg, 
            u"minor_ticks": minor_ticks})

@@ -1,4 +1,91 @@
 
+makeLineChart = function(chartname, series, chartconf){
+    // allow charts made without newest config items to keep working
+    var gridlineWidth = (chartconf["gridlineWidth"]) ? chartconf["gridlineWidth"] : 3;
+    var tooltipBorderColour = (chartconf["tooltipBorderColour"]) ? chartconf["tooltipBorderColour"] : "#ada9a5";
+    var outerChartBorderColour = (chartconf["outerChartBorderColour"]) ? chartconf["outerChartBorderColour"] : null;
+    var innerChartBorderColour = (chartconf["innerChartBorderColour"]) ? chartconf["innerChartBorderColour"] : null;
+    var axisColour = (chartconf["axisColour"]) ? chartconf["axisColour"] : null;
+    var tickColour = (chartconf["tickColour"]) ? chartconf["tickColour"] : "black";
+    var minorTicks = (chartconf["minorTicks"]) ? chartconf["minorTicks"] : false;
+    var microTicks = (chartconf["microTicks"]) ? chartconf["microTicks"] : false;
+    var y_title = (chartconf["yTitle"]) ? chartconf["yTitle"] : "Frequency";
+
+    var getSum = function(myNums){
+        var i
+        var sum = 0
+        for (i in myNums) {
+            sum += myNums[i]
+        }
+        return sum
+    }    
+
+    // chartwide functon setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
+    var getTooltip = function(val){
+        var seriesSum = getSum(val.run.data);
+        return val.y + "<br>(" + Math.round((1000*val.y)/seriesSum)/10 + "%)";
+    };
+
+    var dc = dojox.charting;
+    var mychart = new dc.Chart2D(chartname);
+    var sofa_theme = new dc.Theme({
+        chart:{
+	        stroke: outerChartBorderColour,
+        	fill: null,
+	        pageStyle: null // suggested page style as an object suitable for dojo.style()
+	    },
+	    plotarea:{
+	        stroke: innerChartBorderColour,
+	        fill: chartconf["gridBg"]
+	    },
+	    axis:{
+	        stroke:	{ // the axis itself
+	            color: axisColour,
+	            width: null
+	        },
+            tick: {	// used as a foundation for all ticks
+	            color:     tickColour,
+	            position:  "center",
+	            fontColor: chartconf["axisLabelFontColour"]
+	        },
+	        majorTick:	{ // major ticks on axis, and used for major gridlines
+	            width:  gridlineWidth,
+	            length: 6, 
+                color: chartconf["majorGridlineColour"]
+	        },
+	        minorTick:	{ // minor ticks on axis, and used for minor gridlines
+	            width:  2,
+	            length: 4,
+                color: chartconf["majorGridlineColour"]
+	        },
+	        microTick:	{ // minor ticks on axis, and used for minor gridlines
+	            width:  1.7,
+	            length: 3,
+                color: tickColour
+	        }
+	    }
+    });
+    mychart.setTheme(sofa_theme);
+    mychart.addAxis("x", {
+                    labels: chartconf["xaxisLabels"], minorTicks: minorTicks, microTicks: microTicks, minorLabels: minorTicks,
+                    font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial"
+    });
+    mychart.addAxis("y", {title: y_title, // normal normal bold
+                    vertical: true, includeZero: true, font: "normal normal normal 10pt Arial", fontWeight: 12
+    });
+    mychart.addPlot("default", {type: "Lines", markers: true, shadows: {dx: 2, dy: 2, dw: 2}});
+    mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
+    var i
+    for (i in series){
+        mychart.addSeries(series[i]["seriesLabel"], series[i]["yVals"], series[i]["style"]);
+    }
+    var anim_a = new dc.action2d.Magnify(mychart, "default");
+    var anim_b = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 
+        tooltipBorderColour: tooltipBorderColour});
+    mychart.render();
+    var legend = new dojox.charting.widget.Legend({chart: mychart}, ("legend" + chartname.substr(0,1).toUpperCase() + chartname.substr(1)));
+}
+
 makePieChart = function(chartname, slices, chartconf){
     // allow charts made without newest config items to keep working
 
@@ -65,6 +152,7 @@ makeBarChart = function(chartname, series, chartconf){
     var axisColour = (chartconf["axisColour"]) ? chartconf["axisColour"] : null;
     var tickColour = (chartconf["tickColour"]) ? chartconf["tickColour"] : null;
     var minorTicks = (chartconf["minorTicks"]) ? chartconf["minorTicks"] : false;
+    var y_title = (chartconf["yTitle"]) ? chartconf["yTitle"] : "Frequency";
 
     var getSum = function(myNums){
         var i
@@ -126,7 +214,7 @@ makeBarChart = function(chartname, series, chartconf){
                     labels: chartconf["xaxisLabels"], minorTicks: minorTicks, 
                     font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial"
     });
-    mychart.addAxis("y", { // normal normal bold
+    mychart.addAxis("y", {title: y_title,  // normal normal bold
                     vertical: true, includeZero: true, font: "normal normal normal 10pt Arial", fontWeight: 12
     });
     mychart.addPlot("default", {type: "ClusteredColumns", gap: chartconf["xgap"], shadows: {dx: 12, dy: 12}});

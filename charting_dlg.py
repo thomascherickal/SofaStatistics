@@ -464,11 +464,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"measure_val_labels = %s" % 
                           self.val_dics.get(var_name1, {}))
         if self.chart_type == mg.SIMPLE_BARCHART:
-            script_lst.append(u"xaxis_dets, y_vals = "
-                  u"charting_output.get_single_val_dets(dbe=\"%(dbe)s\", "
-                  u"cur=cur,"
-                  u"\n    tbl=tbl, tbl_filt=tbl_filt, fld_measure=fld_measure, "
-                  u"xaxis_val_labels=measure_val_labels)" % {u"dbe": dd.dbe})
+            script_lst.append(u"xaxis_dets, max_label_len, y_vals = "
+                  u"charting_output.get_single_val_dets("
+                  u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, tbl_filt=tbl_filt,"
+                        u" fld_measure=fld_measure, "
+                        u"xaxis_val_labels=measure_val_labels)" % 
+                        {u"dbe": dd.dbe})
             script_lst.append(u"series_dets = [{u\"label\": var_label1, "
                               u"u\"y_vals\": y_vals},]")
             script_lst.append(u"chart_output = "
@@ -476,12 +477,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                   u"\n    xaxis_dets, series_dets, css_idx=%s, css_fil=\"%s\", "
                   u"page_break_after=False)" % (css_idx, css_fil))
         elif self.chart_type == mg.CLUSTERED_BARCHART:
-            script_lst.append(u"xaxis_dets, series_dets = "
+            script_lst.append(u"xaxis_dets, max_label_len, series_dets = "
                   u"charting_output.get_grouped_val_dets("
-                  u"chart_type=\"%(chart_type)s\", dbe=\"%(dbe)s\", cur=cur,"
-                  u"\n    tbl=tbl, tbl_filt=tbl_filt, fld_measure=fld_measure, "
-                  u"fld_gp=fld_gp, "
-                  u"\n    xaxis_val_labels=measure_val_labels, "
+                  u"\n    chart_type=\"%(chart_type)s\", dbe=\"%(dbe)s\", "
+                  u"cur=cur, tbl=tbl, tbl_filt=tbl_filt, "
+                  u"fld_measure=fld_measure, fld_gp=fld_gp, "
+                  u"xaxis_val_labels=measure_val_labels, "
                   u"group_by_val_labels=group_by_val_labels)" % 
                     {u"chart_type": self.chart_type, u"dbe": dd.dbe})
             script_lst.append(u"chart_output = "
@@ -492,11 +493,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                       (css_idx, css_fil))
         elif self.chart_type == mg.PIE_CHART:
             script_lst.append(u"slice_dets = "
-                  u"charting_output.get_pie_chart_dets(dbe=\"%(dbe)s\"" 
-                        u", cur=cur,"
-                  u"\n    tbl=tbl, tbl_filt=tbl_filt, fld_measure=fld_measure, "
-                  u"\n    slice_val_labels=measure_val_labels)" % 
-                    {u"dbe": dd.dbe})
+                  u"charting_output.get_pie_chart_dets("
+                  u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, tbl_filt=tbl_filt,"
+                        u" fld_measure=fld_measure, "
+                        u"slice_val_labels=measure_val_labels)" % 
+                            {u"dbe": dd.dbe})
             script_lst.append(u"chart_output = "
                   u"charting_output.piechart_output(titles, "
                         u"subtitles,"
@@ -505,30 +506,28 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         elif self.chart_type == mg.LINE_CHART:
             single_line = (var_name2 == mg.DROP_SELECT)
             if single_line:
-                script_lst.append(u"xaxis_dets, y_vals = "
-                      u"charting_output.get_single_val_dets(dbe=\"%(dbe)s\", "
-                            u"cur=cur,"
-                      u"\n    tbl=tbl, tbl_filt=tbl_filt, "
-                            u"fld_measure=fld_measure, "
-                      u"xaxis_val_labels=measure_val_labels)" % 
+                script_lst.append(u"xaxis_dets, max_label_len, y_vals = "
+                      u"charting_output.get_single_val_dets("
+                      u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, "
+                            u"tbl_filt=tbl_filt, fld_measure=fld_measure, "
+                            u"xaxis_val_labels=measure_val_labels)" % 
                             {u"dbe": dd.dbe})
                 script_lst.append(u"series_dets = [{u\"label\": var_label1, "
                                   u"u\"y_vals\": y_vals},]")
             else:
-                script_lst.append(u"xaxis_dets, series_dets = "
+                script_lst.append(u"xaxis_dets, max_label_len, series_dets = "
                       u"charting_output.get_grouped_val_dets("
-                      u"chart_type=\"%(chart_type)s\", dbe=\"%(dbe)s\","
-                            u" cur=cur,"
-                      u"\n    tbl=tbl, tbl_filt=tbl_filt, "
-                            u"fld_measure=fld_measure, "
-                      u"fld_gp=fld_gp, "
+                      u"chart_type=\"%(chart_type)s\","
+                      u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, "
+                            u"tbl_filt=tbl_filt, fld_measure=fld_measure, "
+                            u"fld_gp=fld_gp, "
                       u"\n    xaxis_val_labels=measure_val_labels, "
                       u"group_by_val_labels=group_by_val_labels)" % 
                         {u"chart_type": self.chart_type, u"dbe": dd.dbe})
             script_lst.append(u"chart_output = "
                   u"charting_output.linechart_output(titles, "
                         u"subtitles,"
-                  u"\n    xaxis_dets, series_dets, "
+                  u"\n    xaxis_dets, max_label_len, series_dets, "
                   u" css_idx=%s, css_fil=\"%s\", page_break_after=False)" %
                       (css_idx, css_fil))
         script_lst.append(u"fil.write(chart_output)")
