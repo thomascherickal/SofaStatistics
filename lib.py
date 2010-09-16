@@ -440,7 +440,9 @@ def add_text_to_bitmap(bitmap, text, font, colour, left=9, top=3):
 
 def get_tbl_filt(dbe, db, tbl):
     """
-    Returns tbl_filt_label, tbl_filt
+    Returns tbl_filt_label, tbl_filt.
+    Do not build tbl_file = clause yourself using this - use get_tbl_filt_clause
+        instead so quoting works.
     """
     try:
         tbl_filt_label, tbl_filt = mg.DBE_TBL_FILTS[dbe][db][tbl]
@@ -449,7 +451,7 @@ def get_tbl_filt(dbe, db, tbl):
     return tbl_filt_label, tbl_filt
 
 def get_tbl_filt_clause(dbe, db, tbl):
-    tbl_filt_label, tbl_filt = get_tbl_filt(dbe, db, tbl)
+    unused, tbl_filt = get_tbl_filt(dbe, db, tbl)
     return u'tbl_filt = u""" %s """' % tbl_filt
 
 def get_tbl_filts(tbl_filt):
@@ -460,8 +462,8 @@ def get_tbl_filts(tbl_filt):
         required).
     """
     if tbl_filt.strip() != "":
-        where_tbl_filt = u" WHERE %s" % tbl_filt
-        and_tbl_filt = u" AND %s" % tbl_filt
+        where_tbl_filt = u""" WHERE %s""" % tbl_filt
+        and_tbl_filt = u""" AND %s""" % tbl_filt
     else:
         where_tbl_filt = u""
         and_tbl_filt = u""

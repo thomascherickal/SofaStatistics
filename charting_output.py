@@ -35,8 +35,10 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, measure_val_labels):
         y_vals.append(freq)
     return measure_dets, y_vals
     
-def get_simple_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
-                             xaxis_val_labels):
+def get_single_val_dets(dbe, cur, tbl, tbl_filt, fld_measure, xaxis_val_labels):
+    """
+    Simple bar charts and single line line charts.
+    """
     return get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
                           xaxis_val_labels)
 
@@ -102,9 +104,10 @@ def reshape_sql_crosstab_data(raw_data):
         print(oth_vals)
     return series_data, oth_vals
 
-def get_clustered_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_gp, 
-                                xaxis_val_labels, group_by_val_labels):
+def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt, fld_measure, 
+                         fld_gp, xaxis_val_labels, group_by_val_labels):
     """
+    e.g. clustered bar charts and multiple line line charts.
     Get labels and frequencies for each series, plus labels for x axis.
     Only include values for either fld_gp or fld_measure if at least one 
         non-null value in the other dimension.  If a whole series is zero, then 
@@ -128,6 +131,7 @@ def get_clustered_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_gp,
     xaxis_dets -- [(1, "North"), (2, "South"), (3, "East"), (4, "West"),]
     """
     debug = False
+    MAX_ITEMS = 150 if chart_type == mg.CLUSTERED_BARCHART else 300
     obj_quoter = getdata.get_obj_quoter_func(dbe)
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     SQL_get_measure_vals = u"""SELECT %(fld_measure)s
@@ -166,8 +170,14 @@ def get_clustered_barchart_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_gp,
     raw_data = cur.fetchall()
     if debug: print(raw_data)
     series_data, oth_vals = reshape_sql_crosstab_data(raw_data)
+    if len(series_data) > 30:
+        raise my_exceptions.TooManySeriesInChart
     series_dets = []
+    tot_items = 0
     for gp_val, freqs in series_data.items():
+        tot_items += len(freqs)
+        if tot_items > MAX_ITEMS:
+            raise my_exceptions.TooManyValsInChartSeries(fld_measure, MAX_ITEMS)
         gp_val_label = group_by_val_labels.get(gp_val, unicode(gp_val))
         series_dic = {u"label": gp_val_label, u"y_vals": freqs}
         series_dets.append(series_dic)
@@ -255,6 +265,25 @@ def get_barchart_sizings(xaxis_dets, series_dets):
         xfontsize = xfontsize*xfontsize_mult
     if debug: print(width)
     return width, xgap, xfontsize, minor_ticks
+
+def get_linechart_sizings(xaxis_dets, series_dets):
+    debug = False
+    n_vals = len(xaxis_dets)
+    n_lines = len(series_dets)
+    if n_vals < 30:
+        width = 800
+        xfontsize = 10
+    elif n_vals < 60:
+        width = 1200
+        xfontsize = 10
+    elif n_vals < 100:
+        width = 1600
+        xfontsize = 9
+    else:
+        width = 2000
+        xfontsize = 8
+    minor_ticks = u"true"
+    return width, xfontsize, minor_ticks
 
 def setup_highlights(colour_mappings, single_colour, 
                      override_first_highlight=False):
@@ -361,6 +390,97 @@ def piechart_output(titles, subtitles, slice_dets, css_idx, css_fil,
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
     
+def linechart_output(titles, subtitles, xaxis_dets, series_dets, css_idx, 
+                     css_fil, page_break_after):
+    """
+    titles -- list of title lines correct styles
+    subtitles -- list of subtitle lines
+    series_labels -- e.g. ["Age Group", ] if simple bar chart,
+        e.g. ["Male", "Female"] if clustered bar chart.
+    var_numeric -- needs to be quoted or not.
+    y_vals -- list of values e.g. [[12, 30, 100.5, -1, 40], ]
+    xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
+                   (5, "65+")]
+    css_idx -- css index so can apply    
+    """
+    debug = False
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    xaxis_labels = u"[" + \
+        u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
+                                    for i,x in enumerate(xaxis_dets,1)]) + u"]"
+    width, xfontsize, minor_ticks = get_linechart_sizings(xaxis_dets, 
+                                                          series_dets)
+    html = []
+    """
+    For each series, set colour details.
+    For the collection of series as a whole, set the highlight mapping from 
+        each series colour.
+    From dojox.charting.action2d.Highlight but with extraneous % removed
+    """
+    (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
+            gridline_width, stroke_width, tooltip_border_colour, 
+            colour_mappings) = extract_dojo_style(css_fil)
+    # Can't have white for line charts because always a white outer background
+    axis_label_font_colour = axis_label_font_colour \
+                            if axis_label_font_colour != u"white" else u"black"
+    # build js for every series
+    series_js_list = []
+    series_names_list = []
+    if debug: print(series_dets)
+    for i, series_det in enumerate(series_dets):
+        series_names_list.append(u"series%s" % i)
+        series_js_list.append(u"var series%s = new Array();" % i)
+        series_js_list.append(u"            series%s[\"seriesLabel\"] = \"%s\";"
+                              % (i, series_det[u"label"]))
+        series_js_list.append(u"            series%s[\"yVals\"] = %s;" % 
+                              (i, series_det[u"y_vals"]))
+        try:
+            stroke = colour_mappings[i][0]
+        except IndexError, e:
+            stroke = mg.DOJO_COLOURS[i]
+        series_js_list.append(u"            series%s[\"style\"] = "
+            u"{stroke: {color: \"%s\", width: \"6px\"}};" % (i, stroke))
+        series_js_list.append(u"")
+    series_js = u"\n            ".join(series_js_list)
+    series_js += u"\n            var series = new Array(%s);" % \
+                                                u", ".join(series_names_list)
+    series_js = series_js.lstrip()
+    html.append(u"""
+    <script type="text/javascript">
+
+        makechartRenumber = function(){
+            %(series_js)s
+            var chartconf = new Array();
+            chartconf["xaxisLabels"] = %(xaxis_labels)s;
+            chartconf["xfontsize"] = %(xfontsize)s;
+            chartconf["gridlineWidth"] = %(gridline_width)s;
+            chartconf["gridBg"] = \"%(grid_bg)s\";
+            chartconf["minorTicks"] = %(minor_ticks)s;
+            chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
+            chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
+            chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+            makeLineChart("mychartRenumber", series, chartconf);
+        }
+    </script>
+    %(titles)s
+    <div id="mychartRenumber" style="width: %(width)spx; height: 300px;"></div>
+    <br>
+    <div id="legendMychartRenumber"></div>
+    <br>
+    """ % {u"titles": title_dets_html, 
+           u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
+           u"width": width, u"xfontsize": xfontsize, 
+           u"axis_label_font_colour": axis_label_font_colour,
+           u"major_gridline_colour": major_gridline_colour,
+           u"gridline_width": gridline_width, 
+           u"tooltip_border_colour": tooltip_border_colour,
+           u"grid_bg": grid_bg, 
+           u"minor_ticks": minor_ticks})
+    if page_break_after:
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
+    return u"".join(html)
+
 def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx, 
                     css_fil, page_break_after):
     """

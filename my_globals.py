@@ -13,7 +13,7 @@ import wx
 
 debug = False
 
-VERSION = u"0.9.16"
+VERSION = u"0.9.17"
 
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
@@ -352,10 +352,12 @@ LEVELS = (LEVEL_FULL, LEVEL_BRIEF, LEVEL_RESULTS_ONLY)
 SIMPLE_BARCHART = u"Simple Bar Chart"
 CLUSTERED_BARCHART = u"Clustered Bar Chart"
 PIE_CHART = u"Pie Chart"
-TWO_VAR_CHART_TYPES = [CLUSTERED_BARCHART, ]
+LINE_CHART = u"Line Chart"
+TWO_VAR_CHART_TYPES = [CLUSTERED_BARCHART, LINE_CHART, ]
 CHART_TYPE_TO_MIN_DATA_TYPE = {SIMPLE_BARCHART: VAR_TYPE_CAT,
                                CLUSTERED_BARCHART: VAR_TYPE_CAT,
-                               PIE_CHART: VAR_TYPE_CAT,}
+                               PIE_CHART: VAR_TYPE_CAT,
+                               LINE_CHART: VAR_TYPE_CAT}
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
     'lightcoral', 'orangered', 'navajowhite', 'slategray', 'palegreen', 

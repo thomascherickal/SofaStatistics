@@ -376,12 +376,14 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                                            self.var_labels, mg.GROUP_BY_DEFAULT)
         self.drop_group_by.SetSelection(idx_gp)
 
-    def setup_var(self, drop_var, default, sorted_var_names, var_name=None):
+    def setup_var(self, drop_var, default, sorted_var_names, var_name=None, 
+                  inc_drop_select=False):
         var_names = projects.get_approp_var_names(self.var_types,
                                                   self.min_data_type)
         var_choice_items, sorted_vals = lib.get_sorted_choice_items(
-                                                    dic_labels=self.var_labels,
-                                                    vals=var_names)
+                                                dic_labels=self.var_labels,
+                                                vals=var_names,
+                                                inc_drop_select=inc_drop_select)
         while True:
             try:
                 del sorted_var_names[0]

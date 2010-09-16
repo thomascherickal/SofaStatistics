@@ -17,7 +17,7 @@ OUTPUT_MODULES = ["my_globals as mg", "charting_output", "output",
 cc = config_dlg.get_cc()
 dd = getdata.get_dd()
 
-LIMITS_MSG = (u"Only simple, clustered bar charts, and pie charts are available"
+LIMITS_MSG = (u"Only bar charts, pie charts, and line charts are available"
               u" in this release. More coming soon!")
 
 class DlgCharting(indep2var.DlgIndep2VarConfig):
@@ -87,7 +87,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.drop_var2.SetItems([])
         self.drop_var2.Enable(False)
         self.sorted_var_names2 = []
-        self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2)
+        self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
+                       var_name=None, inc_drop_select=True)
         # layout
         szr_vars_top_left_top.Add(self.lbl_var1, 0, wx.TOP|wx.RIGHT, 5)
         szr_vars_top_left_top.Add(self.drop_var1, 0, wx.RIGHT|wx.TOP, 5)
@@ -96,7 +97,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_vars_top_left.Add(szr_vars_top_left_top, 0)
         self.szr_vars_top_left.Add(szr_vars_top_left_mid, 0)
         # group by
-        self.lbl_group_by = wx.StaticText(self.panel_top, -1, _("Group By:"))
+        self.lbl_group_by = wx.StaticText(self.panel_top, -1, _("Charts By:"))
         self.lbl_group_by.SetFont(self.LABEL_FONT)
         self.drop_group_by = wx.Choice(self.panel_top, -1, choices=[], 
                                        size=(300,-1))
@@ -187,6 +188,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_pie_chart.SetSizer(self.szr_pie_chart)
         self.szr_pie_chart.SetSizeHints(self.panel_pie_chart)
         self.panel_pie_chart.Show(False)
+        # line chart
+        self.szr_line_chart = wx.BoxSizer(wx.VERTICAL)
+        self.panel_line_chart = wx.Panel(self.panel_mid)
+        lbl_line_chart = wx.StaticText(self.panel_line_chart, -1, 
+                        u"Line chart configuration still under construction")
+        self.szr_line_chart.Add(lbl_line_chart, 1, wx.TOP|wx.BOTTOM, 10)
+        self.panel_line_chart.SetSizer(self.szr_line_chart)
+        self.szr_line_chart.SetSizeHints(self.panel_line_chart)
+        self.panel_line_chart.Show(False)
         # default chart type (bar chart)
         self.panel_displayed = self.panel_bar_chart
         self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
@@ -296,7 +306,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_line_chart = wx.BitmapButton(self.panel_mid, -1, 
                                               bmp_btn_line_chart)
-        self.btn_line_chart.Bind(wx.EVT_BUTTON, self.on_btn_chart)
+        self.btn_line_chart.Bind(wx.EVT_BUTTON, self.on_btn_line_chart)
         self.btn_line_chart.SetToolTipString(_("Make Line Chart"))
         szr_chart_btns.Add(self.btn_line_chart)
         # area charts
@@ -407,7 +417,29 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_displayed = self.panel_pie_chart
         self.panel_pie_chart.Show(True)
         self.panel_mid.Layout()
-        
+
+    def on_btn_line_chart(self, event):
+        self.chart_type = mg.LINE_CHART
+        self.btn_line_chart.SetFocus()
+        self.btn_line_chart.SetDefault()
+        event.Skip()
+        self.lbl_var1.SetLabel(mg.CHART_VALUES)
+        self.lbl_var2.SetLabel(mg.CHART_BY)
+        self.btn_line_chart.SetDefault()
+        self.btn_line_chart.SetFocus()
+        if self.panel_displayed == self.panel_line_chart:
+            event.Skip()
+            return
+        else:
+            self.panel_displayed.Show(False)
+            self.setup_var1()
+        self.display_var2()
+        self.szr_mid.Remove(self.panel_displayed)
+        self.szr_mid.Add(self.panel_line_chart, 0, wx.GROW)
+        self.panel_displayed = self.panel_line_chart
+        self.panel_line_chart.Show(True)
+        self.panel_mid.Layout()
+
     def on_btn_chart(self, event):
         wx.MessageBox(LIMITS_MSG)
 
@@ -418,9 +450,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         titles, subtitles = self.get_titles()
         script_lst.append(u"titles=%s" % unicode(titles))
         script_lst.append(u"subtitles=%s" % unicode(subtitles))
-        unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+        script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         var_gp, var_name1, var_name2 = self.get_vars()
-        script_lst.append(u"tbl_filt = u\"%s\"" % tbl_filt)
         script_lst.append(u"fld_measure = u\"%s\"" % var_name1)
         if self.chart_type in mg.TWO_VAR_CHART_TYPES:
             script_lst.append(u"fld_gp = u\"%s\"" % var_name2)
@@ -434,7 +465,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                           self.val_dics.get(var_name1, {}))
         if self.chart_type == mg.SIMPLE_BARCHART:
             script_lst.append(u"xaxis_dets, y_vals = "
-                  u"charting_output.get_simple_barchart_dets(dbe=\"%(dbe)s\", "
+                  u"charting_output.get_single_val_dets(dbe=\"%(dbe)s\", "
                   u"cur=cur,"
                   u"\n    tbl=tbl, tbl_filt=tbl_filt, fld_measure=fld_measure, "
                   u"xaxis_val_labels=measure_val_labels)" % {u"dbe": dd.dbe})
@@ -446,13 +477,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                   u"page_break_after=False)" % (css_idx, css_fil))
         elif self.chart_type == mg.CLUSTERED_BARCHART:
             script_lst.append(u"xaxis_dets, series_dets = "
-                  u"charting_output.get_clustered_barchart_dets(dbe=\"%(dbe)s\"" 
-                        u", cur=cur,"
+                  u"charting_output.get_grouped_val_dets("
+                  u"chart_type=\"%(chart_type)s\", dbe=\"%(dbe)s\", cur=cur,"
                   u"\n    tbl=tbl, tbl_filt=tbl_filt, fld_measure=fld_measure, "
                   u"fld_gp=fld_gp, "
                   u"\n    xaxis_val_labels=measure_val_labels, "
                   u"group_by_val_labels=group_by_val_labels)" % 
-                    {u"dbe": dd.dbe})
+                    {u"chart_type": self.chart_type, u"dbe": dd.dbe})
             script_lst.append(u"chart_output = "
                   u"charting_output.barchart_output(titles, "
                         u"subtitles,"
@@ -471,13 +502,42 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                         u"subtitles,"
                   u"\n    slice_dets, css_idx=%s, css_fil=\"%s\", "
                   u"page_break_after=False)" % (css_idx, css_fil))
+        elif self.chart_type == mg.LINE_CHART:
+            single_line = (var_name2 == mg.DROP_SELECT)
+            if single_line:
+                script_lst.append(u"xaxis_dets, y_vals = "
+                      u"charting_output.get_single_val_dets(dbe=\"%(dbe)s\", "
+                            u"cur=cur,"
+                      u"\n    tbl=tbl, tbl_filt=tbl_filt, "
+                            u"fld_measure=fld_measure, "
+                      u"xaxis_val_labels=measure_val_labels)" % 
+                            {u"dbe": dd.dbe})
+                script_lst.append(u"series_dets = [{u\"label\": var_label1, "
+                                  u"u\"y_vals\": y_vals},]")
+            else:
+                script_lst.append(u"xaxis_dets, series_dets = "
+                      u"charting_output.get_grouped_val_dets("
+                      u"chart_type=\"%(chart_type)s\", dbe=\"%(dbe)s\","
+                            u" cur=cur,"
+                      u"\n    tbl=tbl, tbl_filt=tbl_filt, "
+                            u"fld_measure=fld_measure, "
+                      u"fld_gp=fld_gp, "
+                      u"\n    xaxis_val_labels=measure_val_labels, "
+                      u"group_by_val_labels=group_by_val_labels)" % 
+                        {u"chart_type": self.chart_type, u"dbe": dd.dbe})
+            script_lst.append(u"chart_output = "
+                  u"charting_output.linechart_output(titles, "
+                        u"subtitles,"
+                  u"\n    xaxis_dets, series_dets, "
+                  u" css_idx=%s, css_fil=\"%s\", page_break_after=False)" %
+                      (css_idx, css_fil))
         script_lst.append(u"fil.write(chart_output)")
         return u"\n".join(script_lst)
     
     def on_btn_run(self, event):
         # get settings
         if self.chart_type in (mg.SIMPLE_BARCHART, mg.CLUSTERED_BARCHART, 
-                               mg.PIE_CHART):
+                               mg.PIE_CHART, mg.LINE_CHART):
             run_ok = self.test_config_ok()
             add_to_report = self.chk_add_to_report.IsChecked()
             if run_ok:
@@ -525,7 +585,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
                        var_name1)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2,
-                       var_name2)
+                       var_name2, inc_drop_select=False)
         self.update_defaults()
 
     def on_database_sel(self, event):
@@ -538,7 +598,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.update_var_dets()
         self.setup_group_by()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
-        #self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2)
+        self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
+                       var_name=None, inc_drop_select=True)
         self.setup_group_by_dropdowns()
                 
     def on_table_sel(self, event):
@@ -548,7 +609,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.update_var_dets()
         self.setup_group_by()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
-        self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2)
+        self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
+                       var_name=None, inc_drop_select=False)
         self.setup_group_by_dropdowns()
     
     def on_var_dets_file_lost_focus(self, event):
@@ -563,7 +625,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
                        var_name1)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
-                       var_name2)
+                       var_name2, inc_drop_select=True)
         self.setup_group_by_dropdowns(val_a, val_b)
         self.update_defaults()
         
@@ -584,7 +646,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
                        var_name1)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
-                       var_name2)
+                       var_name2, inc_drop_select=False)
         self.setup_group_by_dropdowns(val_a, val_b)
         self.update_defaults()
 
@@ -653,13 +715,19 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         Are the appropriate selections made to enable an analysis to be run?
         """
         # main and group by averaged variables cannot be the same
+        if (self.chart_type == mg.CLUSTERED_BARCHART and
+                self.drop_var2.GetStringSelection() == mg.DROP_SELECT):
+            wx.MessageBox(_("A selection must be made for Variable 2"))
+            return False
         if self.drop_group_by.GetStringSelection() == \
                 self.drop_var1.GetStringSelection():
             wx.MessageBox(_("Variable 1 and the Grouped By Variable cannot be "
                             "the same"))
             return False
-        if self.drop_group_by.GetStringSelection() == \
-                self.drop_var2.GetStringSelection():
+        if self.chart_type in mg.TWO_VAR_CHART_TYPES and \
+                self.drop_group_by.GetStringSelection() == \
+                self.drop_var2.GetStringSelection() and \
+                self.drop_group_by.GetStringSelection() != mg.DROP_SELECT:
             wx.MessageBox(_("Variable 2 and the Grouped By Variable cannot be "
                             "the same"))
             return False
@@ -668,9 +736,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 self.drop_var2.GetStringSelection()):
             wx.MessageBox(_("Variable 1 and 2 cannot be the same"))
             return False
-        
-        
-        
         
         # group A and B cannot be the same
         # TODO reactivate when group by re-enabled

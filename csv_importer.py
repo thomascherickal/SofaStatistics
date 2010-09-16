@@ -91,9 +91,13 @@ def escape_double_quotes_in_lines(lines):
     Needed because csv not handling doubled double quotes inside fields.
     """
     escaped_lines = []
-    for line in lines:
-        escaped_line = line.replace(u"\"\"", u"%s\"" % ESC_DOUBLE_QUOTE).\
-                            replace(u"\\\"", u"%s\"" % ESC_DOUBLE_QUOTE)
+    for i, line in enumerate(lines, 1):
+        try:
+            escaped_line = line.replace(u"\"\"", u"%s\"" % ESC_DOUBLE_QUOTE).\
+                                replace(u"\\\"", u"%s\"" % ESC_DOUBLE_QUOTE)
+        except Exception, e:
+            raise Exception(u"Error escaping double quotes on line %s" % i +
+                            u"\nCaused by error: %s" % lib.ue(e))
         escaped_lines.append(escaped_line)
     return escaped_lines
 
@@ -155,7 +159,7 @@ class UnicodeCsvDictReader(object):
             self.csv_dictreader = csv.DictReader(csv_data, dialect=dialect, 
                                                  **kwargs)
         except Exception, e:
-            raise Exception(u"Unable to start internal csv reader. "
+            raise Exception(u"Unable to start internal csv dict reader. "
                             u"\nCaused by error: %s" % lib.ue(e))
         self.fieldnames = self.csv_dictreader.fieldnames
         self.i = 0 if fieldnames else 1 # if no fieldnames, row 1 was consumed

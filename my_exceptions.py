@@ -59,7 +59,16 @@ class TooManyCellsInChiSquareException(Exception):
 class TooManySlicesInPieChart(Exception):
     def __init__(self):
         Exception.__init__(self, u"Too many slices in Pie Chart. More than 30.")
-   
+
+class TooManySeriesInChart(Exception):
+    def __init__(self):
+        Exception.__init__(self, u"Too many series in chart. More than 30.")
+
+class TooManyValsInChartSeries(Exception):
+    def __init__(self, fld_measure, max_items):
+        Exception.__init__(self, u"Too many values to display for %s. " 
+                           % fld_measure + u"More than %s." % max_items)
+
 class ExcessReportTableCellsException(Exception):
     def __init__(self, max):
         Exception.__init__(self, _("Only allowed %s cells in report table" % 
