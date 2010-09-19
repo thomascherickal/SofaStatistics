@@ -17,8 +17,8 @@ OUTPUT_MODULES = ["my_globals as mg", "charting_output", "output",
 cc = config_dlg.get_cc()
 dd = getdata.get_dd()
 
-LIMITS_MSG = (u"Only bar charts, pie charts, and line charts are available"
-              u" in this release. More coming soon!")
+LIMITS_MSG = (u"Only bar charts, pie charts, line charts, and area charts are "
+              u"available in this release. More coming soon!")
 
 class DlgCharting(indep2var.DlgIndep2VarConfig):
 
@@ -197,6 +197,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_line_chart.SetSizer(self.szr_line_chart)
         self.szr_line_chart.SetSizeHints(self.panel_line_chart)
         self.panel_line_chart.Show(False)
+        # area chart
+        self.szr_area_chart = wx.BoxSizer(wx.VERTICAL)
+        self.panel_area_chart = wx.Panel(self.panel_mid)
+        lbl_area_chart = wx.StaticText(self.panel_area_chart, -1, 
+                        u"Area chart configuration still under construction")
+        self.szr_area_chart.Add(lbl_area_chart, 1, wx.TOP|wx.BOTTOM, 10)
+        self.panel_area_chart.SetSizer(self.szr_area_chart)
+        self.szr_area_chart.SetSizeHints(self.panel_area_chart)
+        self.panel_area_chart.Show(False)
         # default chart type (bar chart)
         self.panel_displayed = self.panel_bar_chart
         self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
@@ -315,7 +324,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_area_chart = wx.BitmapButton(self.panel_mid, -1, 
                                               bmp_btn_area_chart)
-        self.btn_area_chart.Bind(wx.EVT_BUTTON, self.on_btn_chart)
+        self.btn_area_chart.Bind(wx.EVT_BUTTON, self.on_btn_area_chart)
         self.btn_area_chart.SetToolTipString(_("Make Area Chart"))
         szr_chart_btns.Add(self.btn_area_chart)
         # scatterplots
@@ -358,87 +367,53 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.drop_var2.Enable(show)
         self.lbl_var2.Enable(show)
     
-    def on_btn_bar_chart(self, event):
-        self.chart_type = mg.SIMPLE_BARCHART
-        self.btn_bar_chart.SetFocus()
-        self.btn_bar_chart.SetDefault()
+    def btn_chart(self, event, btn, panel):
+        btn.SetFocus()
+        btn.SetDefault()
         event.Skip()
         self.lbl_var1.SetLabel(mg.CHART_VALUES)
         self.lbl_var2.SetLabel(mg.CHART_BY)
-        if self.panel_displayed == self.panel_bar_chart:
+        if self.panel_displayed == panel:
             return
         else:
             self.panel_displayed.Show(False)
             self.setup_var1()
         self.display_var2()
         self.szr_mid.Remove(self.panel_displayed)
-        self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
-        self.panel_displayed = self.panel_bar_chart
-        self.panel_bar_chart.Show(True)
+        self.szr_mid.Add(panel, 0, wx.GROW)
+        self.panel_displayed = panel
+        panel.Show(True)
         self.panel_mid.Layout() # self.Layout() doesn't work in Windows
+           
+    def on_btn_bar_chart(self, event):
+        self.chart_type = mg.SIMPLE_BARCHART
+        btn = self.btn_bar_chart
+        panel = self.panel_bar_chart
+        self.btn_chart(event, btn, panel)
 
     def on_btn_clustered_bar_chart(self, event):
         self.chart_type = mg.CLUSTERED_BARCHART
-        self.btn_clust_bar_chart.SetFocus()
-        self.btn_clust_bar_chart.SetDefault()
-        event.Skip()
-        self.lbl_var1.SetLabel(mg.CHART_VALUES)
-        self.lbl_var2.SetLabel(mg.CHART_BY)
-        self.btn_clust_bar_chart.SetDefault()
-        self.btn_clust_bar_chart.SetFocus()
-        if self.panel_displayed == self.panel_clustered_bar_chart:
-            event.Skip()
-            return
-        else:
-            self.panel_displayed.Show(False)
-            self.setup_var1()
-        self.display_var2()
-        self.szr_mid.Remove(self.panel_displayed)
-        self.szr_mid.Add(self.panel_clustered_bar_chart, 0, wx.GROW)
-        self.panel_displayed = self.panel_clustered_bar_chart
-        self.panel_clustered_bar_chart.Show(True)
-        self.panel_mid.Layout()
+        btn = self.btn_clust_bar_chart
+        panel = self.panel_clustered_bar_chart
+        self.btn_chart(event, btn, panel)
 
     def on_btn_pie_chart(self, event):
         self.chart_type = mg.PIE_CHART
-        self.btn_pie_chart.SetFocus()
-        self.btn_pie_chart.SetDefault()
-        event.Skip()
-        self.lbl_var1.SetLabel(mg.CHART_VALUES)
-        self.lbl_var2.SetLabel(mg.CHART_BY)
-        if self.panel_displayed == self.panel_pie_chart:
-            return
-        else:
-            self.panel_displayed.Show(False)
-            self.setup_var1()
-        self.display_var2()
-        self.szr_mid.Remove(self.panel_displayed)
-        self.szr_mid.Add(self.panel_pie_chart, 0, wx.GROW)
-        self.panel_displayed = self.panel_pie_chart
-        self.panel_pie_chart.Show(True)
-        self.panel_mid.Layout()
-
+        btn = self.btn_pie_chart
+        panel = self.panel_pie_chart
+        self.btn_chart(event, btn, panel)
+        
     def on_btn_line_chart(self, event):
         self.chart_type = mg.LINE_CHART
-        self.btn_line_chart.SetFocus()
-        self.btn_line_chart.SetDefault()
-        event.Skip()
-        self.lbl_var1.SetLabel(mg.CHART_VALUES)
-        self.lbl_var2.SetLabel(mg.CHART_BY)
-        self.btn_line_chart.SetDefault()
-        self.btn_line_chart.SetFocus()
-        if self.panel_displayed == self.panel_line_chart:
-            event.Skip()
-            return
-        else:
-            self.panel_displayed.Show(False)
-            self.setup_var1()
-        self.display_var2()
-        self.szr_mid.Remove(self.panel_displayed)
-        self.szr_mid.Add(self.panel_line_chart, 0, wx.GROW)
-        self.panel_displayed = self.panel_line_chart
-        self.panel_line_chart.Show(True)
-        self.panel_mid.Layout()
+        btn = self.btn_line_chart
+        panel = self.panel_line_chart
+        self.btn_chart(event, btn, panel)
+
+    def on_btn_area_chart(self, event):
+        self.chart_type = mg.AREA_CHART
+        btn = self.btn_area_chart
+        panel = self.panel_area_chart
+        self.btn_chart(event, btn, panel)
 
     def on_btn_chart(self, event):
         wx.MessageBox(LIMITS_MSG)
@@ -530,13 +505,29 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                   u"\n    xaxis_dets, max_label_len, series_dets, "
                   u" css_idx=%s, css_fil=\"%s\", page_break_after=False)" %
                       (css_idx, css_fil))
+        elif self.chart_type == mg.AREA_CHART:
+            script_lst.append(u"xaxis_dets, max_label_len, y_vals = "
+                  u"charting_output.get_single_val_dets("
+                  u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, tbl_filt=tbl_filt,"
+                        u" fld_measure=fld_measure, "
+                        u"xaxis_val_labels=measure_val_labels)" % 
+                        {u"dbe": dd.dbe})
+            script_lst.append(u"series_dets = [{u\"label\": var_label1, "
+                              u"u\"y_vals\": y_vals},]")
+            script_lst.append(u"chart_output = "
+                  u"charting_output.areachart_output(titles, "
+                        u"subtitles,"
+                  u"\n    xaxis_dets, max_label_len, series_dets, "
+                  u" css_idx=%s, css_fil=\"%s\", page_break_after=False)" %
+                      (css_idx, css_fil))
+                      
         script_lst.append(u"fil.write(chart_output)")
         return u"\n".join(script_lst)
     
     def on_btn_run(self, event):
         # get settings
         if self.chart_type in (mg.SIMPLE_BARCHART, mg.CLUSTERED_BARCHART, 
-                               mg.PIE_CHART, mg.LINE_CHART):
+                               mg.PIE_CHART, mg.LINE_CHART, mg.AREA_CHART):
             run_ok = self.test_config_ok()
             add_to_report = self.chk_add_to_report.IsChecked()
             if run_ok:

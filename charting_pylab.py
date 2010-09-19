@@ -53,6 +53,7 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False):
     Configure histogram with subplot of normal distribution curve.
     Size is set externally. 
     """
+    debug = False
     axes = fig.gca()
     if thumbnail:
         nbins = 20
@@ -68,6 +69,7 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False):
         normal_line_width = 4
     n, bins, patches = axes.hist(vals, nbins, normed=1, facecolor=mg.FACECOLOR, 
                                  edgecolor=mg.EDGECOLOR)
+    if debug: print(n, bins, patches)
     mu = core_stats.mean(vals)
     sigma = core_stats.stdev(vals)
     y = pylab.normpdf(bins, mu, sigma)

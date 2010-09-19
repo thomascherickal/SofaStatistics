@@ -343,6 +343,117 @@ def get_title_dets_html(titles, subtitles, css_idx):
     title_dets_html = u"\n".join(title_dets_html_lst)
     return title_dets_html
 
+def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx, 
+                    css_fil, page_break_after):
+    """
+    titles -- list of title lines correct styles
+    subtitles -- list of subtitle lines
+    series_labels -- e.g. ["Age Group", ] if simple bar chart,
+        e.g. ["Male", "Female"] if clustered bar chart.
+    var_numeric -- needs to be quoted or not.
+    y_vals -- list of values e.g. [[12, 30, 100.5, -1, 40], ]
+    xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
+                   (5, "65+")]
+    css_idx -- css index so can apply    
+    """
+    debug = False
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    xaxis_labels = u"[" + \
+        u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
+                                    for i,x in enumerate(xaxis_dets,1)]) + u"]"
+    width, xgap, xfontsize, minor_ticks = get_barchart_sizings(xaxis_dets, 
+                                                               series_dets)
+    html = []
+    """
+    For each series, set colour details.
+    For the collection of series as a whole, set the highlight mapping from 
+        each series colour.
+    From dojox.charting.action2d.Highlight but with extraneous % removed
+    """
+    (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
+            gridline_width, stroke_width, tooltip_border_colour, 
+            colour_mappings) = extract_dojo_style(css_fil)
+    outer_bg = u"" if outer_bg == u"" \
+        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
+    single_colour = (len(series_dets) == 1)
+    override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
+                                and single_colour)
+    colour_cases = setup_highlights(colour_mappings, single_colour, 
+                                    override_first_highlight)
+    # build js for every series
+    series_js_list = []
+    series_names_list = []
+    if debug: print(series_dets)
+    for i, series_det in enumerate(series_dets):
+        series_names_list.append(u"series%s" % i)
+        series_js_list.append(u"var series%s = new Array();" % i)
+        series_js_list.append(u"            series%s[\"seriesLabel\"] = \"%s\";"
+                              % (i, series_det[u"label"]))
+        series_js_list.append(u"            series%s[\"yVals\"] = %s;" % 
+                              (i, series_det[u"y_vals"]))
+        try:
+            fill = colour_mappings[i][0]
+        except IndexError, e:
+            fill = mg.DOJO_COLOURS[i]
+        series_js_list.append(u"            series%s[\"style\"] = "
+            u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\"};"
+            % (i, stroke_width, fill))
+        series_js_list.append(u"")
+    series_js = u"\n            ".join(series_js_list)
+    series_js += u"\n            var series = new Array(%s);" % \
+                                                u", ".join(series_names_list)
+    series_js = series_js.lstrip()
+    html.append(u"""
+    <script type="text/javascript">
+
+        sofaHl = function(colour){
+            var hlColour;
+            switch (colour.toHex()){
+                %(colour_cases)s
+                default:
+                    hlColour = hl(colour.toHex());
+                    break;
+            }
+            return new dojox.color.Color(hlColour);
+        }    
+    
+        makechartRenumber = function(){
+            %(series_js)s
+            var chartconf = new Array();
+            chartconf["xaxisLabels"] = %(xaxis_labels)s;
+            chartconf["xgap"] = %(xgap)s;
+            chartconf["xfontsize"] = %(xfontsize)s;
+            chartconf["sofaHl"] = sofaHl;
+            chartconf["gridlineWidth"] = %(gridline_width)s;
+            chartconf["gridBg"] = \"%(grid_bg)s\";
+            chartconf["minorTicks"] = %(minor_ticks)s;
+            chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
+            chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
+            chartconf["yTitle"] = \"%(y_title)s\";
+            chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+            %(outer_bg)s
+            makeBarChart("mychartRenumber", series, chartconf);
+        }
+    </script>
+    %(titles)s
+    <div id="mychartRenumber" style="width: %(width)spx; height: 300px;"></div>
+    <br>
+    <div id="legendMychartRenumber"></div>
+    <br>
+    """ % {u"colour_cases": colour_cases, u"titles": title_dets_html, 
+           u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
+           u"width": width, u"xgap": xgap, u"xfontsize": xfontsize, 
+           u"axis_label_font_colour": axis_label_font_colour,
+           u"major_gridline_colour": major_gridline_colour,
+           u"gridline_width": gridline_width, u"y_title": mg.Y_AXIS_FREQ_LABEL,
+           u"tooltip_border_colour": tooltip_border_colour,
+           u"outer_bg": outer_bg, u"grid_bg": grid_bg, 
+           u"minor_ticks": minor_ticks})
+    if page_break_after:
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
+    return u"".join(html)
+
 def piechart_output(titles, subtitles, slice_dets, css_idx, css_fil, 
                     page_break_after):
     debug = False
@@ -503,9 +614,9 @@ def linechart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
-
-def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx, 
-                    css_fil, page_break_after):
+    
+def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets, 
+                     css_idx, css_fil, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -522,8 +633,9 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
     xaxis_labels = u"[" + \
         u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
                                     for i,x in enumerate(xaxis_dets,1)]) + u"]"
-    width, xgap, xfontsize, minor_ticks = get_barchart_sizings(xaxis_dets, 
-                                                               series_dets)
+    (width, xfontsize, minor_ticks, 
+                micro_ticks) = get_linechart_sizings(xaxis_dets, max_label_len, 
+                                                     series_dets)
     html = []
     """
     For each series, set colour details.
@@ -534,13 +646,11 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
     (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
             colour_mappings) = extract_dojo_style(css_fil)
-    outer_bg = u"" if outer_bg == u"" \
-        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
-    single_colour = (len(series_dets) == 1)
-    override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
-                                and single_colour)
-    colour_cases = setup_highlights(colour_mappings, single_colour, 
-                                    override_first_highlight)
+    # Can't have white for line charts because always a white outer background
+    axis_label_font_colour = axis_label_font_colour \
+                            if axis_label_font_colour != u"white" else u"black"
+    colour_cases = setup_highlights(colour_mappings, single_colour=False, 
+                                    override_first_highlight=True)
     # build js for every series
     series_js_list = []
     series_names_list = []
@@ -553,12 +663,13 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
         series_js_list.append(u"            series%s[\"yVals\"] = %s;" % 
                               (i, series_det[u"y_vals"]))
         try:
-            fill = colour_mappings[i][0]
+            stroke = colour_mappings[i][0]
+            fill = colour_mappings[i][1]
         except IndexError, e:
-            fill = mg.DOJO_COLOURS[i]
+            stroke = mg.DOJO_COLOURS[i]
         series_js_list.append(u"            series%s[\"style\"] = "
-            u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\"};"
-            % (i, stroke_width, fill))
+            u"{stroke: {color: \"%s\", width: \"6px\"}, fill: \"%s\"};" % 
+            (i, stroke, fill))
         series_js_list.append(u"")
     series_js = u"\n            ".join(series_js_list)
     series_js += u"\n            var series = new Array(%s);" % \
@@ -566,34 +677,21 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
     series_js = series_js.lstrip()
     html.append(u"""
     <script type="text/javascript">
-
-        sofaHl = function(colour){
-            var hlColour;
-            switch (colour.toHex()){
-                %(colour_cases)s
-                default:
-                    hlColour = hl(colour.toHex());
-                    break;
-            }
-            return new dojox.color.Color(hlColour);
-        }    
     
         makechartRenumber = function(){
             %(series_js)s
             var chartconf = new Array();
             chartconf["xaxisLabels"] = %(xaxis_labels)s;
-            chartconf["xgap"] = %(xgap)s;
             chartconf["xfontsize"] = %(xfontsize)s;
-            chartconf["sofaHl"] = sofaHl;
             chartconf["gridlineWidth"] = %(gridline_width)s;
             chartconf["gridBg"] = \"%(grid_bg)s\";
             chartconf["minorTicks"] = %(minor_ticks)s;
+            chartconf["microTicks"] = %(micro_ticks)s;
             chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
             chartconf["yTitle"] = \"%(y_title)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
-            %(outer_bg)s
-            makeBarChart("mychartRenumber", series, chartconf);
+            makeAreaChart("mychartRenumber", series, chartconf);
         }
     </script>
     %(titles)s
@@ -601,15 +699,15 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
     <br>
     <div id="legendMychartRenumber"></div>
     <br>
-    """ % {u"colour_cases": colour_cases, u"titles": title_dets_html, 
+    """ % {u"titles": title_dets_html,
            u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
-           u"width": width, u"xgap": xgap, u"xfontsize": xfontsize, 
+           u"width": width, u"xfontsize": xfontsize, 
            u"axis_label_font_colour": axis_label_font_colour,
            u"major_gridline_colour": major_gridline_colour,
            u"gridline_width": gridline_width, u"y_title": mg.Y_AXIS_FREQ_LABEL,
            u"tooltip_border_colour": tooltip_border_colour,
-           u"outer_bg": outer_bg, u"grid_bg": grid_bg, 
-           u"minor_ticks": minor_ticks})
+           u"grid_bg": grid_bg, 
+           u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks})
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

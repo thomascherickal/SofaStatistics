@@ -328,7 +328,7 @@ def freshen_recovery(local_subfolders):
         populate_local_paths(prog_path, mg.RECOVERY_PATH, default_proj)
         config_local_proj(mg.RECOVERY_PATH, default_proj, subfolders_in_proj)
         store_version(mg.RECOVERY_PATH)
-    print(u"Freshened recovery")
+        print(u"Freshened recovery")
 
 subfolders_in_proj = [u"css", mg.INT_FOLDER, u"projs", mg.REPORTS_FOLDER, 
                       u"scripts", u"vdts"]
@@ -355,10 +355,10 @@ try:
     run_test_code(mg.TEST_SCRIPT_POST_CONFIG) # can now use dd and proj config
     # 2) Modify existing local SOFA folder if versions require it
     if not local_path_setup_needed: # any fresh one won't need modification
-        try: # if already installed version is older than 0.9.16 ...
+        try: # if already installed version is older than 0.9.17 ...
             installed_version = get_installed_version(mg.LOCAL_PATH)
             if installed_version is None or \
-                    lib.version_a_is_newer(version_a=u"0.9.16",
+                    lib.version_a_is_newer(version_a=u"0.9.17",
                                            version_b=installed_version):
                 # update css files - url(images...) -> url("images...")
                 populate_css_path(prog_path, mg.LOCAL_PATH)
@@ -887,7 +887,7 @@ class StartFrame(wx.Frame):
     def on_import_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_import, HELP_IMG_LEFT-40, HELP_IMG_TOP-10, 
+        panel_dc.DrawBitmap(self.bmp_import, HELP_IMG_LEFT-40, HELP_IMG_TOP-20, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_entry = _("Import data e.g. a csv file, or a spreadsheet (Excel, "

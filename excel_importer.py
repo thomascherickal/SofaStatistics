@@ -2,7 +2,6 @@ from __future__ import print_function
 import wx
 
 import lib
-import dbe_plugins.dbe_sqlite as dbe_sqlite
 import excel_reader
 import getdata
 import importer

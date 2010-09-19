@@ -213,7 +213,7 @@ def process_val(vals, row_num, row, orig_fld_name, fld_types, check):
     is_pytime = lib.is_pytime(rawval)
     fld_type = fld_types[orig_fld_name]
     val = get_val(rawval, check, is_pytime, fld_type, orig_fld_name, row_num)
-    if val != u"NULL":
+    if fld_type != mg.FLD_TYPE_NUMERIC and val != u"NULL":
         val = dbe_sqlite.quote_val(val)
     vals.append(val)
     if debug: print(val)
