@@ -7,12 +7,17 @@ major_gridline_colour = u"#e29ec9"
 gridline_width = 1
 stroke_width = 1
 tooltip_border_colour = u"#fec79a"
-colour_mappings = [(u"#f87500", u"#f8e8ac"),
-    (u"#3f1931", u"#803363"),
-    (u"#803363", u"#3f1931"),
+colour_mappings = [
     (u"#e29ec9", u"#ffe8f7"),
+    (u"#803363", u"#3f1931"),
+    (u"#f6ecec", u"#fae485"),
+    (u"#614e5f", u"#867484"),
+    (u"#2a1020", u"#4d2840"),
+    (u"#f87500", u"#f8e8ac"),
     (u"#faba85", u"#fae0cb"),
-    (u"#767174", u"#d7cdd3"),]
+    (u"#767174", u"#d7cdd3"),
+    (u"#b22222", u"#c94343"),
+]
 connector_style = u"paleorange"
 dojo_style_end
 */
