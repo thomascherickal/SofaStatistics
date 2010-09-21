@@ -223,8 +223,49 @@ def populate_css_path(prog_path, local_path):
 def populate_extras_path(prog_path, local_path):
     extras = [u"arc.xd.js", u"blank.gif", u"blank.htm", u"dojo.xd.js", 
               u"gradient.xd.js", u"grey_spirals.gif", u"lucid_spirals.gif", 
-              u"pebbles.gif", u"sofa_charts.js", 
-              u"sofadojo_minified.js", u"tundra.css", u"vml.xd.js"]
+              u"pebbles.gif", u"popupMenuBg.gif", u"sofa_charts.js", 
+              u"sofadojo_minified.js", 
+              u"tooltipConnectorDown-defbrown.gif",
+              u"tooltipConnectorDown-defbrown.png",
+              u"tooltipConnectorDown.gif",
+              u"tooltipConnectorDown-greypurp.gif",
+              u"tooltipConnectorDown-greypurp.png",
+              u"tooltipConnectorDown-paleblue.gif",
+              u"tooltipConnectorDown-paleblue.png",
+              u"tooltipConnectorDown-paleorange.gif",
+              u"tooltipConnectorDown-paleorange.png",
+              u"tooltipConnectorDown.png",
+              u"tooltipConnectorLeft-defbrown.gif",
+              u"tooltipConnectorLeft-defbrown.png",
+              u"tooltipConnectorLeft.gif",
+              u"tooltipConnectorLeft-greypurp.gif",
+              u"tooltipConnectorLeft-greypurp.png",
+              u"tooltipConnectorLeft-paleblue.gif",
+              u"tooltipConnectorLeft-paleblue.png",
+              u"tooltipConnectorLeft-paleorange.gif",
+              u"tooltipConnectorLeft-paleorange.png",
+              u"tooltipConnectorLeft.png",
+              u"tooltipConnectorRight-defbrown.gif",
+              u"tooltipConnectorRight-defbrown.png",
+              u"tooltipConnectorRight.gif",
+              u"tooltipConnectorRight-greypurp.gif",
+              u"tooltipConnectorRight-greypurp.png",
+              u"tooltipConnectorRight-paleblue.gif",
+              u"tooltipConnectorRight-paleblue.png",
+              u"tooltipConnectorRight-paleorange.gif",
+              u"tooltipConnectorRight-paleorange.png",
+              u"tooltipConnectorRight.png",
+              u"tooltipConnectorUp-defbrown.gif",
+              u"tooltipConnectorUp-defbrown.png",
+              u"tooltipConnectorUp.gif",
+              u"tooltipConnectorUp-greypurp.gif",
+              u"tooltipConnectorUp-greypurp.png",
+              u"tooltipConnectorUp-paleblue.gif",
+              u"tooltipConnectorUp-paleblue.png",
+              u"tooltipConnectorUp-paleorange.gif",
+              u"tooltipConnectorUp-paleorange.png",
+              u"tooltipConnectorUp.png",
+              u"tundra.css", u"vml.xd.js"]
     for extra in extras:
         try:
             shutil.copy(os.path.join(prog_path, mg.REPORTS_FOLDER, 
@@ -355,10 +396,10 @@ try:
     run_test_code(mg.TEST_SCRIPT_POST_CONFIG) # can now use dd and proj config
     # 2) Modify existing local SOFA folder if versions require it
     if not local_path_setup_needed: # any fresh one won't need modification
-        try: # if already installed version is older than 0.9.17 ...
+        try: # if already installed version is older than 0.9.18 ...
             installed_version = get_installed_version(mg.LOCAL_PATH)
             if installed_version is None or \
-                    lib.version_a_is_newer(version_a=u"0.9.17",
+                    lib.version_a_is_newer(version_a=u"0.9.18",
                                            version_b=installed_version):
                 # update css files - url(images...) -> url("images...")
                 populate_css_path(prog_path, mg.LOCAL_PATH)

@@ -13,6 +13,7 @@ colour_mappings = [(u"#e95f29", u"#ef7d44"),
     (u"#44953a", u"#62ad58"),
     (u"#f43a3a", u"#f75858"),
     ]
+connector_style = u"defbrown"
 dojo_style_end
 */
     body{
@@ -156,4 +157,69 @@ dojo_style_end
     .tbl-header-ftnote{
         color: white;
     }
-
+    /* Tool tip connector arrows */
+    .dijitTooltipBelow-defbrown {
+	
+	    padding-top: 13px;
+    }
+    .dijitTooltipAbove-defbrown {
+	
+	    padding-bottom: 13px;
+    }
+    .tundra .dijitTooltipBelow-defbrown .dijitTooltipConnector {
+	
+	    top: 0px;
+	    left: 3px;
+	    background: url("sofa_report_extras/tooltipConnectorUp-defbrown.png") no-repeat top left !important;
+	    width:16px;
+	    height:14px;
+    }
+    .dj_ie .tundra .dijitTooltipBelow-defbrown .dijitTooltipConnector {
+	
+	    background-image: url("sofa_report_extras/tooltipConnectorUp-defbrown.gif") !important;
+    }
+    .tundra .dijitTooltipAbove-defbrown .dijitTooltipConnector {
+	
+	    bottom: 0px;
+	    left: 3px;
+	    background:url("sofa_report_extras/tooltipConnectorDown-defbrown.png") no-repeat top left !important;
+	    width:16px;
+	    height:14px;
+    }
+    .dj_ie .tundra .dijitTooltipAbove-defbrown .dijitTooltipConnector {
+	    background-image: url("sofa_report_extras/tooltipConnectorDown-defbrown.gif") !important;
+    }
+    .dj_ie6 .tundra .dijitTooltipAbove-defbrown .dijitTooltipConnector {
+	    bottom: -3px;
+    }
+    .tundra .dijitTooltipLeft-defbrown {
+	    padding-right: 14px;
+    }
+    .dj_ie6 .tundra .dijitTooltipLeft-defbrown {
+	    padding-left: 15px;
+    }
+    .tundra .dijitTooltipLeft-defbrown .dijitTooltipConnector {
+	
+	    right: 0px;
+	    bottom: 3px;
+	    background:url("sofa_report_extras/tooltipConnectorRight-defbrown.png") no-repeat top left !important;
+	    width:16px;
+	    height:14px;
+    }
+    .dj_ie .tundra .dijitTooltipLeft-defbrown .dijitTooltipConnector {
+	    background-image: url("sofa_report_extras/tooltipConnectorRight-defbrown.gif") !important;
+    }
+    .tundra .dijitTooltipRight-defbrown {
+	    padding-left: 14px;
+    }
+    .tundra .dijitTooltipRight-defbrown .dijitTooltipConnector {
+	
+	    left: 0px;
+	    bottom: 3px;
+	    background:url("sofa_report_extras/tooltipConnectorLeft-defbrown.png") no-repeat top left !important;
+	    width:16px;
+	    height:14px;
+    }
+    .dj_ie .tundra .dijitTooltipRight-defbrown .dijitTooltipConnector {
+	    background-image: url("sofa_report_extras/tooltipConnectorLeft-defbrown.gif") !important;
+    }

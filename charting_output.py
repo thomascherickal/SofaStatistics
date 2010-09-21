@@ -232,7 +232,9 @@ def extract_dojo_style(css_fil):
             css_dojo_dic[u"gridline_width"], 
             css_dojo_dic[u"stroke_width"], 
             css_dojo_dic[u"tooltip_border_colour"], 
-            css_dojo_dic[u"colour_mappings"])
+            css_dojo_dic[u"colour_mappings"],
+            css_dojo_dic[u"connector_style"],
+            )
 
 def get_barchart_sizings(xaxis_dets, series_dets):
     debug = False
@@ -372,7 +374,7 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
     """
     (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
-            colour_mappings) = extract_dojo_style(css_fil)
+            colour_mappings, connector_style) = extract_dojo_style(css_fil)
     outer_bg = u"" if outer_bg == u"" \
         else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
     single_colour = (len(series_dets) == 1)
@@ -431,6 +433,7 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
             chartconf["yTitle"] = \"%(y_title)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+            chartconf["connectorStyle"] = \"%(connector_style)s\";
             %(outer_bg)s
             makeBarChart("mychartRenumber", series, chartconf);
         }
@@ -447,8 +450,8 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
            u"major_gridline_colour": major_gridline_colour,
            u"gridline_width": gridline_width, u"y_title": mg.Y_AXIS_FREQ_LABEL,
            u"tooltip_border_colour": tooltip_border_colour,
-           u"outer_bg": outer_bg, u"grid_bg": grid_bg, 
-           u"minor_ticks": minor_ticks})
+           u"connector_style": connector_style, u"outer_bg": outer_bg, 
+           u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -460,7 +463,7 @@ def piechart_output(titles, subtitles, slice_dets, css_idx, css_fil,
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     (outer_bg, inner_bg, axis_label_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
-            colour_mappings) = extract_dojo_style(css_fil)
+            colour_mappings, connector_style) = extract_dojo_style(css_fil)
     outer_bg = u"" if outer_bg == u"" \
         else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
     colour_cases = setup_highlights(colour_mappings, single_colour=False, 
@@ -500,6 +503,7 @@ def piechart_output(titles, subtitles, slice_dets, css_idx, css_fil,
             chartconf["sofaHl"] = sofaHl;
             chartconf["labelFontColour"] = \"%(label_font_colour)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+            chartconf["connectorStyle"] = \"%(connector_style)s\";
             %(outer_bg)s
             chartconf["innerBg"] = \"%(inner_bg)s\";
             makePieChart("mychartRenumber", slices, chartconf);
@@ -514,7 +518,8 @@ def piechart_output(titles, subtitles, slice_dets, css_idx, css_fil,
            u"slices_js": slices_js, u"slice_fontsize": slice_fontsize, 
            u"label_font_colour": label_font_colour,
            u"tooltip_border_colour": tooltip_border_colour,
-           u"outer_bg": outer_bg, u"inner_bg": inner_bg,
+           u"connector_style": connector_style, u"outer_bg": outer_bg, 
+           u"inner_bg": inner_bg,
            })
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -551,7 +556,7 @@ def linechart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
     """
     (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
-            colour_mappings) = extract_dojo_style(css_fil)
+            colour_mappings, connector_style) = extract_dojo_style(css_fil)
     # Can't have white for line charts because always a white outer background
     axis_label_font_colour = axis_label_font_colour \
                             if axis_label_font_colour != u"white" else u"black"
@@ -593,6 +598,7 @@ def linechart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
             chartconf["yTitle"] = \"%(y_title)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+            chartconf["connectorStyle"] = \"%(connector_style)s\";
             makeLineChart("mychartRenumber", series, chartconf);
         }
     </script>
@@ -608,7 +614,7 @@ def linechart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
            u"major_gridline_colour": major_gridline_colour,
            u"gridline_width": gridline_width, u"y_title": mg.Y_AXIS_FREQ_LABEL,
            u"tooltip_border_colour": tooltip_border_colour,
-           u"grid_bg": grid_bg, 
+           u"connector_style": connector_style, u"grid_bg": grid_bg, 
            u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks})
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -645,7 +651,7 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
     """
     (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
-            colour_mappings) = extract_dojo_style(css_fil)
+            colour_mappings, connector_style) = extract_dojo_style(css_fil)
     # Can't have white for line charts because always a white outer background
     axis_label_font_colour = axis_label_font_colour \
                             if axis_label_font_colour != u"white" else u"black"
@@ -691,6 +697,7 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
             chartconf["yTitle"] = \"%(y_title)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+            chartconf["connectorStyle"] = \"%(connector_style)s\";
             makeAreaChart("mychartRenumber", series, chartconf);
         }
     </script>
@@ -706,7 +713,7 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
            u"major_gridline_colour": major_gridline_colour,
            u"gridline_width": gridline_width, u"y_title": mg.Y_AXIS_FREQ_LABEL,
            u"tooltip_border_colour": tooltip_border_colour,
-           u"grid_bg": grid_bg, 
+           u"connector_style": connector_style, u"grid_bg": grid_bg, 
            u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks})
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 

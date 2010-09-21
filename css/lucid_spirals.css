@@ -13,6 +13,7 @@ colour_mappings = [(u"#f87500", u"#f8e8ac"),
     (u"#e29ec9", u"#ffe8f7"),
     (u"#faba85", u"#fae0cb"),
     (u"#767174", u"#d7cdd3"),]
+connector_style = u"paleorange"
 dojo_style_end
 */
     body{
@@ -158,4 +159,70 @@ dojo_style_end
     }
     .tbl-header-ftnote{
         color: white;
+    }
+    /* Tool tip connector arrows */
+    .dijitTooltipBelow-paleorange {
+	
+	    padding-top: 13px;
+    }
+    .dijitTooltipAbove-paleorange {
+	
+	    padding-bottom: 13px;
+    }
+    .tundra .dijitTooltipBelow-paleorange .dijitTooltipConnector {
+	
+	    top: 0px;
+	    left: 3px;
+	    background: url("sofa_report_extras/tooltipConnectorUp-paleorange.png") no-repeat top left !important;
+	    width:16px;
+	    height:14px;
+    }
+    .dj_ie .tundra .dijitTooltipBelow-paleorange .dijitTooltipConnector {
+	
+	    background-image: url("sofa_report_extras/tooltipConnectorUp-paleorange.gif") !important;
+    }
+    .tundra .dijitTooltipAbove-paleorange .dijitTooltipConnector {
+	
+	    bottom: 0px;
+	    left: 3px;
+	    background:url("sofa_report_extras/tooltipConnectorDown-paleorange.png") no-repeat top left !important;
+	    width:16px;
+	    height:14px;
+    }
+    .dj_ie .tundra .dijitTooltipAbove-paleorange .dijitTooltipConnector {
+	    background-image: url("sofa_report_extras/tooltipConnectorDown-paleorange.gif") !important;
+    }
+    .dj_ie6 .tundra .dijitTooltipAbove-paleorange .dijitTooltipConnector {
+	    bottom: -3px;
+    }
+    .tundra .dijitTooltipLeft-paleorange {
+	    padding-right: 14px;
+    }
+    .dj_ie6 .tundra .dijitTooltipLeft-paleorange {
+	    padding-left: 15px;
+    }
+    .tundra .dijitTooltipLeft-paleorange .dijitTooltipConnector {
+	
+	    right: 0px;
+	    bottom: 3px;
+	    background:url("sofa_report_extras/tooltipConnectorRight-paleorange.png") no-repeat top left !important;
+	    width:16px;
+	    height:14px;
+    }
+    .dj_ie .tundra .dijitTooltipLeft-paleorange .dijitTooltipConnector {
+	    background-image: url("sofa_report_extras/tooltipConnectorRight-paleorange.gif") !important;
+    }
+    .tundra .dijitTooltipRight-paleorange {
+	    padding-left: 14px;
+    }
+    .tundra .dijitTooltipRight-paleorange .dijitTooltipConnector {
+	
+	    left: 0px;
+	    bottom: 3px;
+	    background:url("sofa_report_extras/tooltipConnectorLeft-paleorange.png") no-repeat top left !important;
+	    width:16px;
+	    height:14px;
+    }
+    .dj_ie .tundra .dijitTooltipRight-paleorange .dijitTooltipConnector {
+	    background-image: url("sofa_report_extras/tooltipConnectorLeft-paleorange.gif") !important;
     }
