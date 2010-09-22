@@ -247,9 +247,9 @@ def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b, tbl_filt,
 #
 # Heavily adapted for use by SciPy 2002 by Travis Oliphant
 
-def histogram (inlist, numbins=30, defaultreallimits=None, printextras=0):
+def histogram (inlist, numbins=10, defaultreallimits=None, printextras=0):
     """
-    From stats.py.  Modified to have 30 default number of bins
+    From stats.py.
     -------------------------------------
     Returns (i) a list of histogram bin counts, (ii) the smallest value
     of the histogram binning, and (iii) the bin width (the last 2 are not
@@ -257,7 +257,7 @@ def histogram (inlist, numbins=30, defaultreallimits=None, printextras=0):
     is given for defaultreallimits, the routine picks (usually non-pretty) bins
     spanning all the numbers in the inlist.
 
-    Usage:   histogram (inlist, numbins=30, defaultreallimits=None,
+    Usage:   histogram (inlist, numbins=10, defaultreallimits=None,
         suppressoutput=0)
     Returns: list of bin values, lowerreallimit, binsize, extrapoints
     """

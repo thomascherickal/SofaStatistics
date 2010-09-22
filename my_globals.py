@@ -355,13 +355,15 @@ PIE_CHART = u"Pie Chart"
 LINE_CHART = u"Line Chart"
 AREA_CHART = u"Area Chart"
 HISTOGRAM = u"Histogram"
-TWO_VAR_CHART_TYPES = [CLUSTERED_BARCHART, LINE_CHART, ]
+SCATTERPLOT = u"Scatterplot"
+TWO_VAR_CHART_TYPES = [CLUSTERED_BARCHART, LINE_CHART, SCATTERPLOT]
 CHART_TYPE_TO_MIN_DATA_TYPE = {SIMPLE_BARCHART: VAR_TYPE_CAT,
                                CLUSTERED_BARCHART: VAR_TYPE_CAT,
                                PIE_CHART: VAR_TYPE_CAT,
                                LINE_CHART: VAR_TYPE_CAT,
                                AREA_CHART: VAR_TYPE_CAT,
-                               HISTOGRAM: VAR_TYPE_QUANT}
+                               HISTOGRAM: VAR_TYPE_QUANT,
+                               SCATTERPLOT: VAR_TYPE_ORD}
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
     'lightcoral', 'orangered', 'navajowhite', 'slategray', 'palegreen', 

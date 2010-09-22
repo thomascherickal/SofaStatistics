@@ -17,7 +17,7 @@ OUTPUT_MODULES = ["my_globals as mg", "charting_output", "output",
 cc = config_dlg.get_cc()
 dd = getdata.get_dd()
 
-LIMITS_MSG = (u"Scatterplots are not currently available in this release. "
+LIMITS_MSG = (u"This chart type is not currently available in this release. "
               u"More chart types coming soon!")
 
 class DlgCharting(indep2var.DlgIndep2VarConfig):
@@ -215,6 +215,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_histogram.SetSizer(self.szr_histogram)
         self.szr_histogram.SetSizeHints(self.panel_histogram)
         self.panel_histogram.Show(False)
+        # scatterplot
+        self.szr_scatterplot = wx.BoxSizer(wx.VERTICAL)
+        self.panel_scatterplot = wx.Panel(self.panel_mid)
+        lbl_scatterplot = wx.StaticText(self.panel_scatterplot, -1, 
+                        u"Scatterplot configuration still under construction")
+        self.szr_scatterplot.Add(lbl_scatterplot, 1, wx.TOP|wx.BOTTOM, 10)
+        self.panel_scatterplot.SetSizer(self.szr_scatterplot)
+        self.szr_scatterplot.SetSizeHints(self.panel_scatterplot)
+        self.panel_scatterplot.Show(False)
         # default chart type (bar chart)
         self.panel_displayed = self.panel_bar_chart
         self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
@@ -351,7 +360,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_scatterplot = wx.BitmapButton(self.panel_mid, -1, 
                                                bmp_btn_scatterplot)
-        self.btn_scatterplot.Bind(wx.EVT_BUTTON, self.on_btn_chart)
+        self.btn_scatterplot.Bind(wx.EVT_BUTTON, self.on_btn_scatterplot)
         self.btn_scatterplot.SetToolTipString(_("Make Scatterplot"))
         szr_chart_btns.Add(self.btn_scatterplot)
         if mg.PLATFORM == mg.LINUX:
@@ -363,19 +372,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.btn_area_chart.SetCursor(hand)
             self.btn_scatterplot.SetCursor(hand)
             self.btn_histogram.SetCursor(hand)
-    
-    def setup_var1(self):
-        self.min_data_type = mg.CHART_TYPE_TO_MIN_DATA_TYPE.get(self.chart_type, 
-                                                                mg.VAR_TYPE_CAT)
-        var_gp, var_name1, var_name2 = self.get_vars()
-        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
-                       var_name1)
-    
-    def display_var2(self):
-        show = (self.chart_type in mg.TWO_VAR_CHART_TYPES)
-        self.drop_var2.Enable(show)
-        self.lbl_var2.Enable(show)
-    
+
     def btn_chart(self, event, btn, panel):
         btn.SetFocus()
         btn.SetDefault()
@@ -383,11 +380,19 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.lbl_var1.SetLabel(mg.CHART_VALUES)
         self.lbl_var2.SetLabel(mg.CHART_BY)
         if self.panel_displayed == panel:
-            return
-        else:
-            self.panel_displayed.Show(False)
-            self.setup_var1()
-        self.display_var2()
+            return # just reclicking on same one
+        self.min_data_type = mg.CHART_TYPE_TO_MIN_DATA_TYPE.get(self.chart_type, 
+                                                                mg.VAR_TYPE_CAT)
+        self.panel_displayed.Show(False)        
+        var_gp, var_name1, var_name2 = self.get_vars()
+        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, 
+                       self.sorted_var_names1, var_name1)
+        show = (self.chart_type in mg.TWO_VAR_CHART_TYPES)
+        if show:
+            self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, 
+                           self.sorted_var_names2, var_name2)
+        self.drop_var2.Enable(show)
+        self.lbl_var2.Enable(show)
         self.szr_mid.Remove(self.panel_displayed)
         self.szr_mid.Add(panel, 0, wx.GROW)
         self.panel_displayed = panel
@@ -428,6 +433,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chart_type = mg.HISTOGRAM
         btn = self.btn_histogram
         panel = self.panel_histogram
+        self.btn_chart(event, btn, panel)
+
+    def on_btn_scatterplot(self, event):
+        self.chart_type = mg.SCATTERPLOT
+        btn = self.btn_scatterplot
+        panel = self.panel_scatterplot
         self.btn_chart(event, btn, panel)
         
     def on_btn_chart(self, event):
@@ -547,14 +558,27 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                   u"\n    minval, maxval, xaxis_dets, y_vals, bin_labels, "
                   u" css_idx=%s, css_fil=\"%s\", page_break_after=False)" %
                       (css_idx, css_fil))
+        elif self.chart_type == mg.SCATTERPLOT:
+            script_lst.append(u"xaxis_dets, max_label_len, series_dets = "
+                  u"charting_output.get_grouped_val_dets("
+                  u"\n    chart_type=\"%(chart_type)s\", dbe=\"%(dbe)s\", "
+                  u"cur=cur, tbl=tbl, tbl_filt=tbl_filt, "
+                  u"fld_measure=fld_measure, fld_gp=fld_gp, "
+                  u"xaxis_val_labels=measure_val_labels, "
+                  u"group_by_val_labels=group_by_val_labels)" % 
+                    {u"chart_type": self.chart_type, u"dbe": dd.dbe})
+            script_lst.append(u"chart_output = "
+                  u"charting_output.barchart_output(titles, "
+                        u"subtitles,"
+                  u"\n    xaxis_dets, series_dets, "
+                  u" css_idx=%s, css_fil=\"%s\", page_break_after=False)" %
+                      (css_idx, css_fil))
         script_lst.append(u"fil.write(chart_output)")
         return u"\n".join(script_lst)
     
     def on_btn_run(self, event):
         # get settings
-        if self.chart_type in (mg.SIMPLE_BARCHART, mg.CLUSTERED_BARCHART, 
-                               mg.PIE_CHART, mg.LINE_CHART, mg.AREA_CHART, 
-                               mg.HISTOGRAM):
+        if self.chart_type not in []:
             run_ok = self.test_config_ok()
             add_to_report = self.chk_add_to_report.IsChecked()
             if run_ok:
@@ -654,11 +678,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         val_a, val_b = self.get_vals()
         var_gp, var_name1, var_name2 = self.get_vars()
         config_dlg.ConfigDlg.on_btn_var_dets_path(self, event)
-        
-        
-        return # will sort out when wiring up for real
-        
-        
         self.setup_group_by(var_gp)
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
                        var_name1)

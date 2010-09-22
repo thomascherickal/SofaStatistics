@@ -378,6 +378,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
 
     def setup_var(self, drop_var, default, sorted_var_names, var_name=None, 
                   inc_drop_select=False):
+        debug = False
+        if debug: print(var_name, self.min_data_type)
         var_names = projects.get_approp_var_names(self.var_types,
                                                   self.min_data_type)
         var_choice_items, sorted_vals = lib.get_sorted_choice_items(
