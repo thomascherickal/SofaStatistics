@@ -17,8 +17,8 @@ OUTPUT_MODULES = ["my_globals as mg", "charting_output", "output",
 cc = config_dlg.get_cc()
 dd = getdata.get_dd()
 
-LIMITS_MSG = (u"Only bar charts, pie charts, line charts, and area charts are "
-              u"available in this release. More coming soon!")
+LIMITS_MSG = (u"Scatterplots are not currently available in this release. "
+              u"More chart types coming soon!")
 
 class DlgCharting(indep2var.DlgIndep2VarConfig):
 
@@ -206,6 +206,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_area_chart.SetSizer(self.szr_area_chart)
         self.szr_area_chart.SetSizeHints(self.panel_area_chart)
         self.panel_area_chart.Show(False)
+        # histogram
+        self.szr_histogram = wx.BoxSizer(wx.VERTICAL)
+        self.panel_histogram = wx.Panel(self.panel_mid)
+        lbl_histogram = wx.StaticText(self.panel_histogram, -1, 
+                        u"Histogram configuration still under construction")
+        self.szr_histogram.Add(lbl_histogram, 1, wx.TOP|wx.BOTTOM, 10)
+        self.panel_histogram.SetSizer(self.szr_histogram)
+        self.szr_histogram.SetSizeHints(self.panel_histogram)
+        self.panel_histogram.Show(False)
         # default chart type (bar chart)
         self.panel_displayed = self.panel_bar_chart
         self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
@@ -327,6 +336,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_area_chart.Bind(wx.EVT_BUTTON, self.on_btn_area_chart)
         self.btn_area_chart.SetToolTipString(_("Make Area Chart"))
         szr_chart_btns.Add(self.btn_area_chart)
+        # histograms
+        bmp_btn_histogram = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                                  u"histogram.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.btn_histogram = wx.BitmapButton(self.panel_mid, -1, 
+                                             bmp_btn_histogram)
+        self.btn_histogram.Bind(wx.EVT_BUTTON, self.on_btn_histogram)
+        self.btn_histogram.SetToolTipString(_("Make Histogram"))
+        szr_chart_btns.Add(self.btn_histogram)
         # scatterplots
         bmp_btn_scatterplot = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
                                                     u"scatterplot.xpm"), 
@@ -336,15 +354,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_scatterplot.Bind(wx.EVT_BUTTON, self.on_btn_chart)
         self.btn_scatterplot.SetToolTipString(_("Make Scatterplot"))
         szr_chart_btns.Add(self.btn_scatterplot)
-        # histograms
-        bmp_btn_histogram = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
-                                                  u"histogram.xpm"), 
-                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.btn_histogram = wx.BitmapButton(self.panel_mid, -1, 
-                                             bmp_btn_histogram)
-        self.btn_histogram.Bind(wx.EVT_BUTTON, self.on_btn_chart)
-        self.btn_histogram.SetToolTipString(_("Make Histogram"))
-        szr_chart_btns.Add(self.btn_histogram)
         if mg.PLATFORM == mg.LINUX:
             hand = wx.StockCursor(wx.CURSOR_HAND)
             self.btn_bar_chart.SetCursor(hand)
@@ -415,6 +424,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         panel = self.panel_area_chart
         self.btn_chart(event, btn, panel)
 
+    def on_btn_histogram(self, event):
+        self.chart_type = mg.HISTOGRAM
+        btn = self.btn_histogram
+        panel = self.panel_histogram
+        self.btn_chart(event, btn, panel)
+        
     def on_btn_chart(self, event):
         wx.MessageBox(LIMITS_MSG)
 
@@ -520,14 +535,26 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                   u"\n    xaxis_dets, max_label_len, series_dets, "
                   u" css_idx=%s, css_fil=\"%s\", page_break_after=False)" %
                       (css_idx, css_fil))
-                      
+        elif self.chart_type == mg.HISTOGRAM:
+            script_lst.append(u"minval, maxval, xaxis_dets, y_vals, bin_labels "
+                  u"= charting_output.get_histo_dets("
+                  u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, tbl_filt=tbl_filt,"
+                        u" fld_measure=fld_measure)" % 
+                        {u"dbe": dd.dbe})
+            script_lst.append(u"chart_output = "
+                  u"charting_output.histogram_output(titles, "
+                        u"subtitles, var_label1, "
+                  u"\n    minval, maxval, xaxis_dets, y_vals, bin_labels, "
+                  u" css_idx=%s, css_fil=\"%s\", page_break_after=False)" %
+                      (css_idx, css_fil))
         script_lst.append(u"fil.write(chart_output)")
         return u"\n".join(script_lst)
     
     def on_btn_run(self, event):
         # get settings
         if self.chart_type in (mg.SIMPLE_BARCHART, mg.CLUSTERED_BARCHART, 
-                               mg.PIE_CHART, mg.LINE_CHART, mg.AREA_CHART):
+                               mg.PIE_CHART, mg.LINE_CHART, mg.AREA_CHART, 
+                               mg.HISTOGRAM):
             run_ok = self.test_config_ok()
             add_to_report = self.chk_add_to_report.IsChecked()
             if run_ok:

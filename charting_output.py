@@ -12,6 +12,7 @@ import pprint
 import my_globals as mg
 import lib
 import my_exceptions
+import core_stats
 import getdata
 import output
 
@@ -32,11 +33,11 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, measure_val_labels):
     max_label_len = 0
     y_vals = []
     for val, freq in cur.fetchall():
-        y_val = measure_val_labels.get(val, unicode(val))
-        len_y_val = len(y_val)
+        val_label = measure_val_labels.get(val, unicode(val))
+        len_y_val = len(val_label)
         if len_y_val > max_label_len:
             max_label_len = len_y_val 
-        measure_dets.append((val, y_val))
+        measure_dets.append((val, val_label))
         y_vals.append(freq)
     return measure_dets, max_label_len, y_vals
     
@@ -153,6 +154,45 @@ def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, fld_measure,
                       round((100.0*slice_val)/tot_freq,1))}
         slice_dets.append(slice_dic)
     return slice_dets
+
+def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure):
+    """
+    xaxis_dets -- [(1, u""), (2: u"", ...]
+    y_vals -- [0.091, ...]
+    bin_labels -- [u"1 to under 2", u"2 to under 3", ...]
+    """
+    debug = False
+    obj_quoter = getdata.get_obj_quoter_func(dbe)
+    unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+    SQL_get_vals = u"SELECT %s " % obj_quoter(fld_measure) + \
+        u"FROM %s " % obj_quoter(tbl) + \
+        u"WHERE %s IS NOT NULL %s" % (obj_quoter(fld_measure), and_tbl_filt) + \
+        u" ORDER BY %s" % obj_quoter(fld_measure)
+    if debug: print(SQL_get_vals)
+    cur.execute(SQL_get_vals)
+    vals = [x[0] for x in cur.fetchall()]
+    nbins = lib.get_nbins_from_vals(vals)
+    y_vals, start, width, extra_points = core_stats.histogram(vals, 
+                                                              numbins=nbins)
+    minval = start
+    # only show as many decimal points as needed
+    dp = 0
+    while True:
+        if (round(start, dp) != round(start + width, dp)) or dp > 6:
+            break
+        dp += 1
+    bin_ranges = []
+    for y_val in y_vals:
+        bin_start = round(start, dp)
+        bin_end = round(start + width, dp)
+        start = bin_end
+        bin_ranges.append((bin_start, bin_end))
+    bin_labels = [_(u"%(lower)s to < %(upper)s") % 
+                        {u"lower": x[0], u"upper": x[1]} for x in bin_ranges]
+    maxval = bin_end
+    xaxis_dets = [(x+1, u"") for x in range(nbins)]
+    if debug: print(minval, maxval, xaxis_dets, y_vals, bin_labels)
+    return minval, maxval, xaxis_dets, y_vals, bin_labels
 
 def reshape_sql_crosstab_data(raw_data):
     """
@@ -719,3 +759,101 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
+
+def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets, 
+                     y_vals, bin_labels, css_idx, css_fil, 
+                     page_break_after=False):
+    """
+    titles -- list of title lines correct styles
+    subtitles -- list of subtitle lines
+    minval -- minimum values for x axis
+    maxval -- maximum value for x axis
+    xaxis_dets -- [(1, u""), (2, u""), ...]
+    y_vals -- list of values e.g. [[12, 30, 100.5, -1, 40], ]
+    bin_labels -- [u"1 to under 2", u"2 to under 3", ...]
+    css_idx -- css index so can apply    
+    """
+    debug = False
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    xaxis_labels = u"[" + \
+        u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
+                                    for i,x in enumerate(xaxis_dets,1)]) + u"]"
+    bin_labs = u"\"" + u"\", \"".join(bin_labels) + u"\""
+    width = 800
+    xfontsize = 10
+    html = []
+    (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
+            gridline_width, stroke_width, tooltip_border_colour, 
+            colour_mappings, connector_style) = extract_dojo_style(css_fil)
+    outer_bg = u"" if outer_bg == u"" \
+        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
+    single_colour = True
+    override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
+                                and single_colour)
+    colour_cases = setup_highlights(colour_mappings, single_colour, 
+                                    override_first_highlight)
+    try:
+        fill = colour_mappings[0][0]
+    except IndexError, e:
+        fill = mg.DOJO_COLOURS[0]
+    html.append(u"""
+    <script type="text/javascript">
+
+        sofaHl = function(colour){
+            var hlColour;
+            switch (colour.toHex()){
+                %(colour_cases)s
+                default:
+                    hlColour = hl(colour.toHex());
+                    break;
+            }
+            return new dojox.color.Color(hlColour);
+        }    
+    
+        makechartRenumber = function(){
+            var histodets = new Array();
+            histodets["seriesLabel"] = "%(var_label)s";
+            histodets["yVals"] = %(y_vals)s;
+            histodets["binLabels"] = [%(bin_labels)s];
+            histodets["style"] = {stroke: {color: \"white\", 
+                width: "%(stroke_width)spx"}, fill: "%(fill)s"};
+            
+            var chartconf = new Array();
+            chartconf["xaxisLabels"] = %(xaxis_labels)s;
+            chartconf["xfontsize"] = %(xfontsize)s;
+            chartconf["sofaHl"] = sofaHl;
+            chartconf["tickColour"] = "%(tick_colour)s";
+            chartconf["gridlineWidth"] = %(gridline_width)s;
+            chartconf["gridBg"] = \"%(grid_bg)s\";
+            chartconf["minorTicks"] = %(minor_ticks)s;
+            chartconf["axisLabelFontColour"] = "%(axis_label_font_colour)s";
+            chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
+            chartconf["yTitle"] = "%(y_title)s";
+            chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
+            chartconf["connectorStyle"] = "%(connector_style)s";
+            chartconf["minVal"] = %(minval)s;
+            chartconf["maxVal"] = %(maxval)s;
+            %(outer_bg)s
+            makeHistogram("mychartRenumber", histodets, chartconf);
+        }
+    </script>
+    %(titles)s
+    <div id="mychartRenumber" style="width: %(width)spx; height: 400px;"></div>
+    <br>
+    """ % {u"stroke_width": stroke_width, u"fill": fill,
+           u"colour_cases": colour_cases, u"titles": title_dets_html, 
+           u"xaxis_labels": xaxis_labels, u"y_vals": u"%s" % y_vals,
+           u"bin_labels": bin_labs, u"minval": minval, u"maxval": maxval,
+           u"width": width, u"xfontsize": xfontsize, u"var_label": var_label,
+           u"axis_label_font_colour": axis_label_font_colour,
+           u"major_gridline_colour": major_gridline_colour,
+           u"gridline_width": gridline_width, u"y_title": mg.Y_AXIS_FREQ_LABEL,
+           u"tooltip_border_colour": tooltip_border_colour,
+           u"connector_style": connector_style, u"outer_bg": outer_bg, 
+           u"grid_bg": grid_bg, u"minor_ticks": u"true",
+           u"tick_colour": major_gridline_colour})
+    if page_break_after:
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
+    return u"".join(html)
+

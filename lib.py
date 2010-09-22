@@ -18,6 +18,21 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
+def get_nbins_from_vals(vals):
+    """
+    For use with histograms
+    """
+    n_vals = len(vals)
+    if n_vals < 50:
+        nbins = 6
+    elif n_vals < 100:
+        nbins = 8
+    elif n_vals < 1000:
+        nbins = 15
+    else:
+        nbins = 20
+    return nbins
+
 def version_a_is_newer(version_a, version_b):
     """
     Must be able to process both version details or error raised.

@@ -7,6 +7,7 @@ import wxmpl
 import pylab # must import after wxmpl so matplotlib.use() is always first
 
 import my_globals as mg
+import lib
 import core_stats
 import wxmpl
 
@@ -55,12 +56,15 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False):
     """
     debug = False
     axes = fig.gca()
+    n_vals = len(vals)
+    nbins = lib.get_nbins_from_vals(vals)    
     if thumbnail:
-        nbins = 20
+        nbins = round(nbins/2, 0)
+        if nbins < 5: 
+            nbins = 5
         axes.axis("off")
         normal_line_width = 1
     else:
-        nbins = 50
         axes.set_xlabel(var_label)
         axes.set_ylabel('P')
         if not hist_label:
