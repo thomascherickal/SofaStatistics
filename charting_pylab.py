@@ -18,7 +18,8 @@ def gen_config(axes_labelsize=14, xtick_labelsize=10, ytick_labelsize=10):
               }
     pylab.rcParams.update(params)
 
-def config_clustered_barchart(plot, var_label_a, y_label, val_labels_a_n, 
+def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot, 
+                              var_label_a, y_label, val_labels_a_n, 
                               val_labels_a, val_labels_b, as_in_bs_lst):
     """
     Clustered bar charts
@@ -27,9 +28,8 @@ def config_clustered_barchart(plot, var_label_a, y_label, val_labels_a_n,
         within bars.
     """
     debug = False
-    # only need 6 because program limits to that. See core_stats.get_obs_exp().
-    colours = ["#333435", "#CCD9D7", "white", "#909090", "black", "#333345"]
     clustered_bars = boomslang.ClusteredBars()
+    clustered_bars.grid_bg = grid_bg
     for i, val_label_b in enumerate(val_labels_b):
         cluster = boomslang.Bar()
         x_vals = range(val_labels_a_n)
@@ -39,7 +39,8 @@ def config_clustered_barchart(plot, var_label_a, y_label, val_labels_a_n,
             print("x_vals: %s" % x_vals)
             print("y_vals: %s" % y_vals)
         cluster.yValues = y_vals
-        cluster.color = colours[i]
+        cluster.color = bar_colours[i]
+        cluster.edgeColor = "white"
         cluster.label = val_label_b
         clustered_bars.add(cluster)
     clustered_bars.spacing = 0.5
@@ -49,13 +50,17 @@ def config_clustered_barchart(plot, var_label_a, y_label, val_labels_a_n,
     plot.setXLabel(var_label_a)
     plot.setYLabel(y_label)
 
-def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False):    
+def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False, 
+                grid_bg=mg.MPL_BGCOLOR, bar_colour=mg.MPL_FACECOLOR, 
+                line_colour=mg.MPL_NORM_LINE_COLOR):    
     """
     Configure histogram with subplot of normal distribution curve.
     Size is set externally. 
     """
     debug = False
     axes = fig.gca()
+    rect = axes.patch
+    rect.set_facecolor(grid_bg)
     n_vals = len(vals)
     nbins = lib.get_nbins_from_vals(vals)    
     if thumbnail:
@@ -71,27 +76,31 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False):
             hist_label = _("Histogram for %s") % var_label
         axes.set_title(hist_label)
         normal_line_width = 4
-    n, bins, patches = axes.hist(vals, nbins, normed=1, facecolor=mg.FACECOLOR, 
-                                 edgecolor=mg.EDGECOLOR)
+    n, bins, patches = axes.hist(vals, nbins, normed=1, facecolor=bar_colour,
+                                 edgecolor=line_colour)
     if debug: print(n, bins, patches)
     mu = core_stats.mean(vals)
     sigma = core_stats.stdev(vals)
     y = pylab.normpdf(bins, mu, sigma)
-    l = axes.plot(bins, y,  color=mg.NORM_LINE_COLOR, 
-                  linewidth=normal_line_width)
+    l = axes.plot(bins, y,  color=line_colour, linewidth=normal_line_width)
 
-def config_scatterplot(fig, sample_a, sample_b, label_a, label_b, a_vs_b):
+def config_scatterplot(grid_bg, dot_colour, line_colour, fig, sample_a, 
+                       sample_b, label_a, label_b, a_vs_b):
     """
     Configure scatterplot with line of best fit.
     Size is set externally. 
     """
-    pylab.plot(sample_a, sample_b, 'o', color=mg.FACECOLOR, label=a_vs_b)
+    pylab.plot(sample_a, sample_b, 'o', color=dot_colour, label=a_vs_b, 
+               markeredgecolor=line_colour)
     p = pylab.polyfit(sample_a, sample_b, 1)
-    pylab.plot(sample_a, pylab.polyval(p, sample_a), "-", 
-               color=mg.NORM_LINE_COLOR, linewidth=4, label="Line of best fit")
+    pylab.plot(sample_a, pylab.polyval(p, sample_a), u"-", 
+               color=line_colour, linewidth=4, 
+               label="Line of best fit")
     axes = fig.gca()
     axes.set_xlabel(label_a)
     axes.set_ylabel(label_b)
+    rect = axes.patch
+    rect.set_facecolor(grid_bg)
     pylab.legend(loc="best")
 
         

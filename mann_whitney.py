@@ -36,7 +36,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                                   {"gp": label_gp, "a": label_a, 
                                    "avg": label_avg, "b": label_b})
 
-    def get_script(self, css_idx, add_to_report, report_name):
+    def get_script(self, css_idx, css_fil, add_to_report, report_name):
         "Build script from inputs"
         var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \
             var_ranked, label_ranked = self.get_drop_vals()
@@ -59,10 +59,10 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"label_ranked = u\"%s\"" % label_ranked)
         script_lst.append(u"u, p, dic_a, dic_b = " + \
             u"core_stats.mannwhitneyu(sample_a, sample_b, label_a, label_b)")
-        script_lst.append(u"mann_whitney_output = " + \
-            u"stats_output.mann_whitney_output(" + \
-            u"u, p, dic_a, dic_b, label_ranked, dp,\n     " + \
-            u"level=mg.OUTPUT_RESULTS_ONLY, css_idx=%s, " % css_idx + \
-            u"page_break_after=False)")
+        script_lst.append(u"mann_whitney_output = "
+            u"stats_output.mann_whitney_output("
+            u"u, p, dic_a, dic_b, label_ranked, "
+            u"css_fil=\"%s\", css_idx=%s, dp=dp,"  % (css_fil, css_idx) +
+            u"\n     level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)")
         script_lst.append(u"fil.write(mann_whitney_output)")
         return u"\n".join(script_lst)

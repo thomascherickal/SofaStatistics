@@ -49,7 +49,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         szr_algorithm.Add(self.rad_speed, 0, wx.LEFT, 10)
         szr.Add(szr_algorithm, 0, wx.TOP, 5)
     
-    def get_script(self, css_idx, add_to_report, report_name):
+    def get_script(self, css_idx, css_fil, add_to_report, report_name):
         "Build script from inputs"
         debug = False
         var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \
@@ -97,8 +97,9 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"anova_output = stats_output.anova_output("
                 u"samples, F, p, dics, sswn, dfwn, mean_squ_wn, "
             u"\n    ssbn, dfbn, mean_squ_bn, label_a, label_b, label_avg, "
-                u"add_to_report, report_name, dp,"
+                u"add_to_report, report_name, css_fil=\"%s\", css_idx=%s, " %
+                (css_fil, css_idx) + u"dp=dp, "
             u"\n    level=mg.OUTPUT_RESULTS_ONLY, "
-                u"css_idx=%s, page_break_after=False)" % css_idx)
+                u"page_break_after=False)" )
         script_lst.append(u"fil.write(anova_output)")
         return u"\n".join(script_lst)

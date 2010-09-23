@@ -330,9 +330,10 @@ DTM_DATA_SEQ = (u"1&nbsp;Feb&nbsp;2009", u"23&nbsp;Aug&nbsp;1994",
 # filters
 DBE_TBL_FILTS = {}
 # Matplotlib
-FACECOLOR = u"#f87526"
-EDGECOLOR = u"#8f8f8f"
-NORM_LINE_COLOR = u"#5a4a3d"
+MPL_FACECOLOR = u"#e95f29"
+MPL_EDGECOLOR = u"white"
+MPL_BGCOLOR = u"#f2f1f0"
+MPL_NORM_LINE_COLOR = u"#736354"
 INT_IMG_ROOT = os.path.join(INT_PATH, u"_img")
 # date formats
 MDY = u"month_day_year"

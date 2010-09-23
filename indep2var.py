@@ -553,9 +553,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         run_ok = self.test_config_ok()
         add_to_report = self.chk_add_to_report.IsChecked()
         if run_ok:
+            get_script_args=[cc[mg.CURRENT_CSS_PATH], add_to_report,
+                             cc[mg.CURRENT_REPORT_PATH]]
             config_dlg.ConfigDlg.on_btn_run(self, event, OUTPUT_MODULES, 
-                                            get_script_args=[add_to_report,
-                                                  cc[mg.CURRENT_REPORT_PATH]])
+                                            get_script_args)
     
     def test_config_ok(self):
         """

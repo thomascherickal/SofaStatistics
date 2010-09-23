@@ -18,6 +18,44 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
+def extract_dojo_style(css_fil):
+    try:
+        f = open(css_fil, "r")
+    except IOError, e:
+        raise my_exceptions.MissingCssException(css_fil)
+    css = f.read()
+    f.close()
+    try:
+        css_dojo_start_idx = css.index(mg.DOJO_STYLE_START)
+        css_dojo_end_idx = css.index(mg.DOJO_STYLE_END)
+    except ValueError, e:
+        raise my_exceptions.MalformedCssDojoError(css)
+    css_dojo = css[css_dojo_start_idx + len(mg.DOJO_STYLE_START):\
+                   css_dojo_end_idx]
+    css_dojo_dic = {}
+    try:
+        exec css_dojo in css_dojo_dic
+    except SyntaxError, e:
+        wx.MessageBox(\
+            _("Syntax error in dojo settings in css file \"%s\"." % css_fil +
+              "\n\nDetails: %s %s" % (css_dojo, lib.ue(e))))
+        raise
+    except Exception, e:
+        wx.MessageBox(\
+            _("Error processing css dojo file \"%s\"." % css_fil +
+              "\n\nDetails: %s" % lib.ue(e)))
+        raise
+    return (css_dojo_dic[u"outer_bg"], 
+            css_dojo_dic[u"inner_bg"], 
+            css_dojo_dic[u"axis_label_font_colour"], 
+            css_dojo_dic[u"major_gridline_colour"], 
+            css_dojo_dic[u"gridline_width"], 
+            css_dojo_dic[u"stroke_width"], 
+            css_dojo_dic[u"tooltip_border_colour"], 
+            css_dojo_dic[u"colour_mappings"],
+            css_dojo_dic[u"connector_style"],
+            )
+
 def get_nbins_from_vals(vals):
     """
     For use with histograms

@@ -29,7 +29,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
                                "do they change together in a linear fashion?") %
                                {"a": label_a, "b": label_b})
     
-    def get_script(self, css_idx, add_to_report, report_name):
+    def get_script(self, css_idx, css_fil, add_to_report, report_name):
         "Build script from inputs"
         script_lst = []
         var_a, label_a, var_b, label_b = self.get_drop_vals()
@@ -53,8 +53,9 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append(u"spearmansr_output = " +
             u"stats_output.spearmansr_output(sample_a, sample_b, r, p,")
         script_lst.append(u"    label_a, label_b, add_to_report, report_name, "
-                          u"dp, ")
-        script_lst.append(u"    level=mg.OUTPUT_RESULTS_ONLY, "
-                          u"css_idx=%s, page_break_after=False)" % css_idx)
+                          u"\n    css_fil=\"%s\", css_idx=%s, dp=dp, " %
+                            (css_fil, css_idx) +
+                          u"\n    level=mg.OUTPUT_RESULTS_ONLY, "
+                          u"page_break_after=False)")
         script_lst.append(u"fil.write(spearmansr_output)")
         return u"\n".join(script_lst)

@@ -32,7 +32,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                                   {"gp": label_gp, "a": label_a, 
                                    "avg": label_avg, "b": label_b})
 
-    def get_script(self, css_idx, add_to_report, report_name):
+    def get_script(self, css_idx, css_fil, add_to_report, report_name):
         "Build script from inputs"
         script_lst = []
         var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \
@@ -63,8 +63,8 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"ttest_indep_output = "
             u"stats_output.ttest_indep_output("
             u"sample_a, sample_b, t, p, "
-            u"\n    dic_a, dic_b, label_avg, add_to_report, report_name, dp, "
-            u"\n    level=mg.OUTPUT_RESULTS_ONLY, "
-            u"css_idx=%s, page_break_after=False)" % css_idx)
+            u"\n    dic_a, dic_b, label_avg, add_to_report, report_name, "
+            u"css_fil=\"%s\", css_idx=%s, dp=dp, " % (css_fil, css_idx) +
+            u"\n    level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)")
         script_lst.append(u"fil.write(ttest_indep_output)")
         return u"\n".join(script_lst)

@@ -8,10 +8,13 @@ gridline_width = 2
 stroke_width = 3
 tooltip_border_colour = u"#5a5a79"
 colour_mappings = [(u"#000033", u"#5a5a79"),
-    (u"#d92e32", u"#d98b8d"),
     (u"#89989e", u"#c6dce4"),
+    (u"#65659f", u"#8a8aba"),
+    (u"#d92e32", u"#d98b8d"),
     (u"#661e55", u"#b988ae"),
-    (u"#d6dee7", u"#ebf4fe"),]
+    (u"#5f6061", u"#848586"),
+    (u"#f3f5f8", u"#ebf4fe"),
+    ]
 connector_style = u"greypurp"
 dojo_style_end
 */

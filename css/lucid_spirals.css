@@ -3,9 +3,9 @@ dojo_style_start
 outer_bg = u"#3f1931"
 inner_bg = u"#3f1931"
 axis_label_font_colour = u"white"
-major_gridline_colour = u"#e29ec9"
+major_gridline_colour = u"#eadfe6"
 gridline_width = 1
-stroke_width = 1
+stroke_width = 3
 tooltip_border_colour = u"#fec79a"
 colour_mappings = [
     (u"#e29ec9", u"#ffe8f7"),

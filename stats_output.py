@@ -5,6 +5,7 @@ import pylab
 import boomslang
 
 import my_globals as mg
+import lib
 import charting_pylab as charts
 import core_stats
 
@@ -16,10 +17,18 @@ No html header or footer added here.  Just some body content.
 
 int_imgs_n = 0 # for internal images so always unique
 
+def get_stats_chart_colours(css_fil):
+    (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
+        gridline_width, stroke_width, tooltip_border_colour, 
+        colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+    item_colours = [x[0] for x in colour_mappings]
+    line_colour = major_gridline_colour
+    return grid_bg, item_colours, line_colour
+
 def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, 
                  mean_squ_bn, label_a, label_b, label_avg, add_to_report,
-                 report_name, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
-                 css_idx=0, page_break_after=False):
+                 report_name, css_fil, css_idx=0, dp=3, 
+                 level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
@@ -139,7 +148,9 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
                           ytick_labelsize=8)
         fig = pylab.figure()
         fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
-        charts.config_hist(fig, sample, label_avg, hist_label)
+        grid_bg, item_colours, line_colour = get_stats_chart_colours(css_fil)
+        charts.config_hist(fig, sample, label_avg, hist_label, False, grid_bg, 
+                           item_colours[0], line_colour)
         img_src = save_report_img(add_to_report, report_name, 
                                   save_func=pylab.savefig, dpi=100)
         html.append(u"\n<img src='%s'>" % img_src)
@@ -256,9 +267,8 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp,
         html.append(footnote % (next_ft, next_ft))
 
 def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, 
-                       add_to_report, report_name, dp=3, 
-                       level=mg.OUTPUT_RESULTS_ONLY, css_idx=0, 
-                       page_break_after=False):
+                       add_to_report, report_name, css_fil, css_idx=0, dp=3, 
+                       level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     """
     Returns HTML table ready to display.
     dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
@@ -277,7 +287,9 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg,
                           ytick_labelsize=8)
         fig = pylab.figure()
         fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
-        charts.config_hist(fig, sample, label_avg, hist_label)
+        grid_bg, item_colours, line_colour = get_stats_chart_colours(css_fil)
+        charts.config_hist(fig, sample, label_avg, hist_label, False, grid_bg, 
+                           item_colours[0], line_colour)
         img_src = save_report_img(add_to_report, report_name, 
                                   save_func=pylab.savefig, dpi=100)
         html.append(u"\n<img src='%s'>" % img_src)
@@ -290,9 +302,9 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg,
     return html_str
 
 def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, diffs, 
-                                add_to_report, report_name, label_avg="", dp=3, 
-                                level=mg.OUTPUT_RESULTS_ONLY, css_idx=0, 
-                                page_break_after=False):
+                        add_to_report, report_name, css_fil, css_idx=0, 
+                        label_avg=u"", dp=3, level=mg.OUTPUT_RESULTS_ONLY,
+                        page_break_after=False):
     """
     Returns HTML table ready to display.
     dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
@@ -309,7 +321,9 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, diffs,
     fig.set_size_inches((7.5, 3.5)) # see dpi to get image size in pixels
     hist_label = u"Differences between %s and %s" % (dic_a["label"], 
                                                      dic_b["label"])
-    charts.config_hist(fig, diffs, _("Differences"), hist_label)
+    grid_bg, item_colours, line_colour = get_stats_chart_colours(css_fil)
+    charts.config_hist(fig, diffs, _("Differences"), hist_label, False, grid_bg, 
+                       item_colours[0], line_colour)
     img_src = save_report_img(add_to_report, report_name, 
                               save_func=pylab.savefig, dpi=100)
     html.append(u"\n<img src='%s'>" % img_src)
@@ -321,9 +335,9 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, diffs,
     html_str = u"\n".join(html)
     return html_str
 
-def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
-                 level=mg.OUTPUT_RESULTS_ONLY, css_idx=0, 
-                 page_break_after=False):
+def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0, 
+                        dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
+                        page_break_after=False):
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
@@ -360,8 +374,8 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, dp=3,
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def wilcoxon_output(t, p, label_a, label_b, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
-                    css_idx=0, page_break_after=False):
+def wilcoxon_output(t, p, label_a, label_b, css_fil, css_idx=0, dp=3, 
+                    level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     html = _("<h2>Results of Wilcoxon Signed Ranks Test of \"%(a)s\" vs "
@@ -420,8 +434,9 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
     if debug: print("img_src: %s" % img_src)
     return img_src
 
-def add_scatterplot(sample_a, sample_b, label_a, label_b, a_vs_b, title, 
-                    add_to_report, report_name, html):
+def add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, sample_b, 
+                    label_a, label_b, a_vs_b, title, add_to_report, 
+                    report_name, html):
     """
     Toggle prefix so every time this is run internally only, a different image 
         is referred to in the html <img src=...>.
@@ -430,15 +445,16 @@ def add_scatterplot(sample_a, sample_b, label_a, label_b, a_vs_b, title,
     debug = False
     fig = pylab.figure()
     fig.set_size_inches((7.5, 4.5)) # see dpi to get image size in pixels
-    charts.config_scatterplot(fig, sample_a, sample_b, label_a, label_b, a_vs_b)
+    charts.config_scatterplot(grid_bg, dot_colour, line_colour, fig, sample_a, 
+                              sample_b, label_a, label_b, a_vs_b)
     img_src = save_report_img(add_to_report, report_name, 
                               save_func=pylab.savefig, dpi=100)
     html.append(u"\n<img src='%s'>" % img_src)
     if debug: print("Just linked to %s" % img_src)
 
 def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
-                     report_name, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
-                     css_idx=0, page_break_after=False):
+                     report_name, css_fil, css_idx=0, dp=3, 
+                     level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     html = []
@@ -450,16 +466,19 @@ def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
     html.append(p_format % round(p, dp))
     html.append(u"\n<p>" + _("Pearson's R statistic") +
                 u": %s</p>" % round(r, dp))
-    add_scatterplot(sample_a, sample_b, label_a, label_b, a_vs_b, title, 
-                    add_to_report, report_name, html)
+    grid_bg, item_colours, line_colour = get_stats_chart_colours(css_fil)
+    dot_colour = item_colours[0]
+    add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, sample_b, 
+                    label_a, label_b, a_vs_b, title, add_to_report, 
+                    report_name, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
 def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
-                      report_name, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
-                      css_idx=0, page_break_after=False):
+                      report_name, css_fil, css_idx=0, dp=3, 
+                      level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     html = []
@@ -471,8 +490,11 @@ def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
     html.append(p_format % round(p, dp))
     html.append(u"\n<p>" + _("Spearman's R statistic") + 
                 u": %s</p>" % round(r, dp))
-    add_scatterplot(sample_a, sample_b, label_a, label_b, a_vs_b, title, 
-                    add_to_report, report_name, html)
+    grid_bg, item_colours, line_colour = get_stats_chart_colours(css_fil)
+    dot_colour = item_colours[0]
+    add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, sample_b, 
+                    label_a, label_b, a_vs_b, title, add_to_report, 
+                    report_name, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -480,9 +502,8 @@ def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
 
 def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report, 
                      report_name, val_labels_a, val_labels_b, lst_obs, lst_exp, 
-                     min_count, perc_cells_lt_5, df, dp=3, 
-                     level=mg.OUTPUT_RESULTS_ONLY, css_idx=0, 
-                     page_break_after=False):
+                     min_count, perc_cells_lt_5, df, css_fil, css_idx=0, dp=3, 
+                     level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     debug = False
     CSS_SPACEHOLDER = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_SPACEHOLDER, css_idx)
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
@@ -582,14 +603,17 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
     # clustered bar charts
-    add_clustered_barcharts(lst_obs, var_label_a, var_label_b, 
-                            val_labels_a, val_labels_b, val_labels_a_n, 
-                            val_labels_b_n, add_to_report, report_name, html)
+    grid_bg, item_colours, line_colour = get_stats_chart_colours(css_fil)
+    add_clustered_barcharts(grid_bg, item_colours, line_colour, lst_obs, 
+                            var_label_a, var_label_b, val_labels_a, 
+                            val_labels_b, val_labels_a_n, val_labels_b_n, 
+                            add_to_report, report_name, html)
     return u"".join(html)
 
-def add_clustered_barcharts(lst_obs, var_label_a, var_label_b, 
-                            val_labels_a, val_labels_b, val_labels_a_n, 
-                            val_labels_b_n, add_to_report, report_name, html):
+def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs, 
+                            var_label_a, var_label_b, val_labels_a, 
+                            val_labels_b, val_labels_a_n, val_labels_b_n, 
+                            add_to_report, report_name, html):
     # NB list_obs is bs within a and we need the other way around
     debug = False
     rows_n = len(lst_obs)/val_labels_b_n
@@ -621,7 +645,8 @@ def add_clustered_barcharts(lst_obs, var_label_a, var_label_b,
     plot.hasLegend(columns=val_labels_b_n, location="lower left")
     plot.setAxesLabelSize(11)
     plot.setLegendLabelSize(9)
-    charts.config_clustered_barchart(plot, var_label_a, y_label, val_labels_a_n, 
+    charts.config_clustered_barchart(grid_bg, bar_colours, line_colour, plot, 
+                                     var_label_a, y_label, val_labels_a_n, 
                                      val_labels_a, val_labels_b, 
                                      propns_as_in_bs_lst)
     img_src = save_report_img(add_to_report, report_name, save_func=plot.save, 
@@ -637,15 +662,17 @@ def add_clustered_barcharts(lst_obs, var_label_a, var_label_b,
     plot.hasLegend(columns=val_labels_b_n, location="lower left")
     plot.setAxesLabelSize(11)
     plot.setLegendLabelSize(9)
-    charts.config_clustered_barchart(plot, var_label_a, y_label, val_labels_a_n, 
+    # only need 6 because program limits to that. See core_stats.get_obs_exp().
+    charts.config_clustered_barchart(grid_bg, bar_colours, line_colour, plot, 
+                                     var_label_a, y_label, val_labels_a_n, 
                                      val_labels_a, val_labels_b, as_in_bs_lst)
     img_src = save_report_img(add_to_report, report_name, save_func=plot.save, 
                               dpi=None)
     html.append(u"\n<img src='%s'>" % img_src)
 
-def kruskal_wallis_output(h, p, label_a, label_b, dics, label_avg, dp=3,
-                 level=mg.OUTPUT_RESULTS_ONLY, css_idx=0, 
-                 page_break_after=False):
+def kruskal_wallis_output(h, p, label_a, label_b, dics, label_avg, css_fil, 
+                          css_idx=0, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
+                          page_break_after=False):
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 

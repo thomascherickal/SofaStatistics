@@ -20,7 +20,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         eg3 = _("Or have house values changed since the recession began?")
         return eg1, eg2, eg3
     
-    def get_script(self, css_idx, add_to_report, report_name):
+    def get_script(self, css_idx, css_fil, add_to_report, report_name):
         "Build script from inputs"
         script_lst = []
         var_a, label_a, var_b, label_b = self.get_drop_vals()
@@ -36,9 +36,10 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"t, p = core_stats.wilcoxont(sample_a, sample_b)")
-        script_lst.append(u"wilcoxon_output = stats_output.wilcoxon_output(" +
-                    u"t, p, label_a, label_b, dp=dp,\n    " +
-                    u"level=mg.OUTPUT_RESULTS_ONLY, css_idx=%s, " % css_idx +
+        script_lst.append(u"wilcoxon_output = stats_output.wilcoxon_output("
+                    u"t, p, label_a, label_b,"
+                    u"\n    css_fil=\"%s\", css_idx=%s, " % (css_fil, css_idx) +
+                    u"dp=dp, level=mg.OUTPUT_RESULTS_ONLY, "
                     u"page_break_after=False)")
         script_lst.append(u"fil.write(wilcoxon_output)")
         return u"\n".join(script_lst)

@@ -238,44 +238,6 @@ def reshape_sql_crosstab_data(raw_data):
         print(oth_vals)
     return series_data, oth_vals
 
-def extract_dojo_style(css_fil):
-    try:
-        f = open(css_fil, "r")
-    except IOError, e:
-        raise my_exceptions.MissingCssException(css_fil)
-    css = f.read()
-    f.close()
-    try:
-        css_dojo_start_idx = css.index(mg.DOJO_STYLE_START)
-        css_dojo_end_idx = css.index(mg.DOJO_STYLE_END)
-    except ValueError, e:
-        raise my_exceptions.MalformedCssDojoError(css)
-    css_dojo = css[css_dojo_start_idx + len(mg.DOJO_STYLE_START):\
-                   css_dojo_end_idx]
-    css_dojo_dic = {}
-    try:
-        exec css_dojo in css_dojo_dic
-    except SyntaxError, e:
-        wx.MessageBox(\
-            _("Syntax error in dojo settings in css file \"%s\"." % css_fil +
-              "\n\nDetails: %s %s" % (css_dojo, lib.ue(e))))
-        raise
-    except Exception, e:
-        wx.MessageBox(\
-            _("Error processing css dojo file \"%s\"." % css_fil +
-              "\n\nDetails: %s" % lib.ue(e)))
-        raise
-    return (css_dojo_dic[u"outer_bg"], 
-            css_dojo_dic[u"inner_bg"], 
-            css_dojo_dic[u"axis_label_font_colour"], 
-            css_dojo_dic[u"major_gridline_colour"], 
-            css_dojo_dic[u"gridline_width"], 
-            css_dojo_dic[u"stroke_width"], 
-            css_dojo_dic[u"tooltip_border_colour"], 
-            css_dojo_dic[u"colour_mappings"],
-            css_dojo_dic[u"connector_style"],
-            )
-
 def get_barchart_sizings(xaxis_dets, series_dets):
     debug = False
     n_clusters = len(xaxis_dets)
@@ -414,7 +376,7 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
     """
     (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
-            colour_mappings, connector_style) = extract_dojo_style(css_fil)
+            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     outer_bg = u"" if outer_bg == u"" \
         else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
     single_colour = (len(series_dets) == 1)
@@ -503,7 +465,7 @@ def piechart_output(titles, subtitles, slice_dets, css_idx, css_fil,
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     (outer_bg, inner_bg, axis_label_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
-            colour_mappings, connector_style) = extract_dojo_style(css_fil)
+            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     outer_bg = u"" if outer_bg == u"" \
         else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
     colour_cases = setup_highlights(colour_mappings, single_colour=False, 
@@ -596,7 +558,7 @@ def linechart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
     """
     (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
-            colour_mappings, connector_style) = extract_dojo_style(css_fil)
+            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     # Can't have white for line charts because always a white outer background
     axis_label_font_colour = axis_label_font_colour \
                             if axis_label_font_colour != u"white" else u"black"
@@ -691,7 +653,7 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
     """
     (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
-            colour_mappings, connector_style) = extract_dojo_style(css_fil)
+            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     # Can't have white for line charts because always a white outer background
     axis_label_font_colour = axis_label_font_colour \
                             if axis_label_font_colour != u"white" else u"black"
@@ -784,7 +746,7 @@ def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets,
     html = []
     (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
-            colour_mappings, connector_style) = extract_dojo_style(css_fil)
+            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     outer_bg = u"" if outer_bg == u"" \
         else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
     single_colour = True

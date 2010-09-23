@@ -33,7 +33,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                                  "between \"%(a)s\" and \"%(b)s\"?") %
                                  {"avg": label_avg, "a": label_a, "b": label_b})
 
-    def get_script(self, css_idx, add_to_report, report_name):
+    def get_script(self, css_idx, css_fil, add_to_report, report_name):
         "Build script from inputs"
         debug = False
         var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \
@@ -73,11 +73,13 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"indep = True")
         script_lst.append(u"h, p, dics = " +
             u"core_stats.kruskalwallish(samples, labels)")
-        script_lst.append(u"kruskal_wallis_output = " +
-            u"stats_output.kruskal_wallis_output(" +
-            u"h, p, label_a," +
-            u"\n    label_b, dics, label_avg, dp," +
-            u"\n    level=mg.OUTPUT_RESULTS_ONLY, " +
-            u"css_idx=%s, page_break_after=False)" % css_idx)
+        script_lst.append(u"kruskal_wallis_output = "
+            u"stats_output.kruskal_wallis_output("
+            u"h, p, label_a,"
+            u"\n    label_b, dics, label_avg, "
+            u"\n    css_fil=\"%s\", css_idx=%s, " % (css_fil, css_idx) +
+            u"dp=dp,"
+            u"\n    level=mg.OUTPUT_RESULTS_ONLY, "
+            u"page_break_after=False)")
         script_lst.append(u"fil.write(kruskal_wallis_output)")
         return u"\n".join(script_lst)

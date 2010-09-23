@@ -30,7 +30,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         self.lbl_phrase.SetLabel(_("Is there a relationship between "
             "\"%(a)s\" and \"%(b)s\"") % {"a": label_a, "b": label_b})
     
-    def get_script(self, css_idx, add_to_report, report_name):
+    def get_script(self, css_idx, css_fil, add_to_report, report_name):
         "Build script from inputs"
         script_lst = []
         var_a, label_a, var_b, label_b = self.get_drop_vals()
@@ -65,8 +65,8 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             u"stats_output.chisquare_output(chisq, p, " +
             u"var_label_a, var_label_b, add_to_report, report_name, " +
             u"\n    val_labels_a, val_labels_b," +
-            u"\n    lst_obs, lst_exp, min_count, perc_cells_lt_5, df, dp=dp," +
-            u"\n    level=mg.OUTPUT_RESULTS_ONLY, " +
-            u"css_idx=%s, page_break_after=False)" % css_idx)
+            u"\n    lst_obs, lst_exp, min_count, perc_cells_lt_5, df, " +
+            u"css_fil=\"%s\", css_idx=%s, dp=dp," % (css_fil, css_idx) +
+            u"\n    level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)")
         script_lst.append(u"fil.write(chisquare_output)")
         return u"\n".join(script_lst)
