@@ -807,7 +807,7 @@ def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets,
             chartconf["minVal"] = %(minval)s;
             chartconf["maxVal"] = %(maxval)s;
             %(outer_bg)s
-            makeHistogram("mychartRenumber", histodets, chartconf);
+            makeHistogram("mychartRenumber", datadets, chartconf);
         }
     </script>
     %(titles)s
@@ -833,22 +833,106 @@ def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets,
 def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups, 
                        label_a, label_b, add_to_report, report_name, css_fil, 
                        css_idx, page_break_after=False):
-    debug = False
+    debug = True
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    a_vs_b = '"%s"' % label_a + _(" vs ") + '"%s"' % label_b
     html = []
-    grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
-    dot_colour = item_colours[0]
     use_mpl = (len(data_tups) > 1000)
     if use_mpl:
-        a_vs_b = '"%s"' % label_a + _(" vs ") + '"%s"' % label_b
+        grid_bg, item_colours, line_colour = \
+                                        output.get_stats_chart_colours(css_fil)
+        colours = item_colours + mg.DOJO_COLOURS
+        dot_colour = colours[0]
         title = _("Scatterplot for %s" % a_vs_b)
         charting_pylab.add_scatterplot(grid_bg, dot_colour, line_colour, 
                                        sample_a, sample_b, label_a, label_b, 
                                        a_vs_b, title, add_to_report, 
                                        report_name, html)
     else:
-        pass
+        width = 800
+        xfontsize = 10
+        xmax = max(sample_a)
+        x_title = label_a
+        ymax = max(sample_b)
+        y_title = label_b
+        if debug: print(label_a, xmax, label_b, ymax)
+        jsdata = []
+        for x, y in data_tups:
+            jsdata.append("{x: %s, y: %s}" % (x, y))
+        xy_pairs = "[" + ",\n".join(jsdata) + "]"
+        (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
+         gridline_width, stroke_width, tooltip_border_colour, 
+         colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+        outer_bg = u"" if outer_bg == u"" \
+            else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
+        single_colour = True
+        override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
+                                    and single_colour)
+        colour_cases = setup_highlights(colour_mappings, single_colour, 
+                                        override_first_highlight)
+        try:
+            fill = colour_mappings[0][0]
+        except IndexError, e:
+            fill = mg.DOJO_COLOURS[0]
+        html.append(u"""
+            <script type="text/javascript">
+        
+                sofaHl = function(colour){
+                    var hlColour;
+                    switch (colour.toHex()){
+                        %(colour_cases)s
+                        default:
+                            hlColour = hl(colour.toHex());
+                            break;
+                    }
+                    return new dojox.color.Color(hlColour);
+                }    
+            
+                makechartRenumber = function(){
+                    var datadets = new Array();
+                    datadets["xyPairs"] = %(xy_pairs)s;
+                    datadets["style"] = {stroke: {color: \"white\", 
+                        width: "%(stroke_width)spx"}, fill: "%(fill)s",
+                        marker: "m-6,0 c0,-8 12,-8 12,0 m-12,0 c0,8 12,8 12,0"};
+                    
+                    var chartconf = new Array();
+                    chartconf["xmax"] = %(xmax)s;
+                    chartconf["ymax"] = %(ymax)s;
+                    chartconf["xfontsize"] = %(xfontsize)s;
+                    chartconf["sofaHl"] = sofaHl;
+                    chartconf["tickColour"] = "%(tick_colour)s";
+                    chartconf["gridlineWidth"] = %(gridline_width)s;
+                    chartconf["gridBg"] = \"%(grid_bg)s\";
+                    chartconf["minorTicks"] = %(minor_ticks)s;
+                    chartconf["axisLabelFontColour"] = "%(axis_label_font_colour)s";
+                    chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
+                    chartconf["xTitle"] = "%(x_title)s";
+                    chartconf["yTitle"] = "%(y_title)s";
+                    chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
+                    chartconf["connectorStyle"] = "%(connector_style)s";
+                    %(outer_bg)s
+                    makeScatterplot("mychartRenumber", datadets, chartconf);
+                }
+            </script>
+            %(titles)s
+            <div id="mychartRenumber" style="width: %(width)spx; 
+                height: 400px;"></div>
+            <br>
+            """ % {u"xy_pairs": xy_pairs, u"xmax": xmax, u"ymax": ymax,
+                   u"x_title": x_title, u"y_title": y_title,
+                   u"stroke_width": stroke_width, u"fill": fill,
+                   u"colour_cases": colour_cases, u"titles": title_dets_html, 
+                   u"width": width, u"xfontsize": xfontsize, 
+                   u"series_label": a_vs_b,
+                   u"axis_label_font_colour": axis_label_font_colour,
+                   u"major_gridline_colour": major_gridline_colour,
+                   u"gridline_width": gridline_width, 
+                   u"tooltip_border_colour": tooltip_border_colour,
+                   u"connector_style": connector_style, u"outer_bg": outer_bg, 
+                   u"grid_bg": grid_bg, u"minor_ticks": u"true",
+                   u"tick_colour": major_gridline_colour})
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
