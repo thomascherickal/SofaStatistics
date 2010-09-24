@@ -389,8 +389,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                        self.sorted_var_names1, var_name1)
         show = (self.chart_type in mg.TWO_VAR_CHART_TYPES)
         if show:
+            inc_drop_select = (self.chart_type == mg.LINE_CHART)
             self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, 
-                           self.sorted_var_names2, var_name2)
+                           self.sorted_var_names2, var_name2, inc_drop_select)
         self.drop_var2.Enable(show)
         self.lbl_var2.Enable(show)
         self.szr_mid.Remove(self.panel_displayed)
@@ -477,10 +478,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                         {u"dbe": dd.dbe})
             script_lst.append(u"series_dets = [{u\"label\": var_label1, "
                               u"u\"y_vals\": y_vals},]")
+            script_lst.append(u"x_title = u\"\"")
             script_lst.append(u"chart_output = "
                   u"charting_output.barchart_output(titles, subtitles,"
-                  u"\n    xaxis_dets, series_dets, css_fil=\"%s\", css_idx=%s, "
-                  u"page_break_after=False)" % (css_fil, css_idx))
+                  u"\n    x_title, xaxis_dets, series_dets, css_fil=\"%s\", "
+                  u"css_idx=%s, page_break_after=False)" % (css_fil, css_idx))
         elif self.chart_type == mg.CLUSTERED_BARCHART:
             script_lst.append(u"xaxis_dets, max_label_len, series_dets = "
                   u"charting_output.get_grouped_val_dets("
@@ -493,7 +495,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             script_lst.append(u"chart_output = "
                   u"charting_output.barchart_output(titles, "
                         u"subtitles,"
-                  u"\n    xaxis_dets, series_dets, "
+                  u"\n    var_label1, xaxis_dets, series_dets, "
                   u" css_fil=\"%s\", css_idx=%s, page_break_after=False)" %
                       (css_fil, css_idx))
         elif self.chart_type == mg.PIE_CHART:
@@ -519,6 +521,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                             {u"dbe": dd.dbe})
                 script_lst.append(u"series_dets = [{u\"label\": var_label1, "
                                   u"u\"y_vals\": y_vals},]")
+                script_lst.append(u"x_title = u\"\"")
             else:
                 script_lst.append(u"xaxis_dets, max_label_len, series_dets = "
                       u"charting_output.get_grouped_val_dets("
@@ -529,10 +532,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                       u"\n    xaxis_val_labels=measure_val_labels, "
                       u"group_by_val_labels=group_by_val_labels)" % 
                         {u"chart_type": self.chart_type, u"dbe": dd.dbe})
+                script_lst.append(u"x_title = var_label1")
             script_lst.append(u"chart_output = "
                   u"charting_output.linechart_output(titles, "
                         u"subtitles,"
-                  u"\n    xaxis_dets, max_label_len, series_dets, "
+                  u"\n    x_title, xaxis_dets, max_label_len, series_dets, "
                   u"css_fil=\"%s\", css_idx=%s,  page_break_after=False)" %
                       (css_fil, css_idx))
         elif self.chart_type == mg.AREA_CHART:

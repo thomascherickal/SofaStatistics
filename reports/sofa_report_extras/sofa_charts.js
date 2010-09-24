@@ -9,6 +9,7 @@ makeBarChart = function(chartname, series, chartconf){
     var axisColour = (chartconf["axisColour"]) ? chartconf["axisColour"] : null;
     var tickColour = (chartconf["tickColour"]) ? chartconf["tickColour"] : null;
     var minorTicks = (chartconf["minorTicks"]) ? chartconf["minorTicks"] : false;
+    var xTitle = (chartconf["xTitle"]) ? chartconf["xTitle"] : "";
     var yTitle = (chartconf["yTitle"]) ? chartconf["yTitle"] : "Frequency";
     var connectorStyle = (chartconf["connectorStyle"]) ? chartconf["connectorStyle"] : "defbrown";
 
@@ -65,14 +66,11 @@ makeBarChart = function(chartname, series, chartconf){
 	    }
     });
     mychart.setTheme(sofa_theme);
-
-    //mychart.setTheme(dc.themes.PlotKit.blue); //purple, red, cyan, green etc
-
-    mychart.addAxis("x", {
+    mychart.addAxis("x", {title: xTitle,
                     labels: chartconf["xaxisLabels"], minorTicks: minorTicks, 
                     font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial"
     });
-    mychart.addAxis("y", {title: yTitle,  // normal normal bold
+    mychart.addAxis("y", {title: yTitle,
                     vertical: true, includeZero: true, font: "normal normal normal 10pt Arial", fontWeight: 12
     });
     mychart.addPlot("default", {type: "ClusteredColumns", gap: chartconf["xgap"], shadows: {dx: 12, dy: 12}});
@@ -160,6 +158,7 @@ makeLineChart = function(chartname, series, chartconf){
     var tickColour = (chartconf["tickColour"]) ? chartconf["tickColour"] : "black";
     var minorTicks = (chartconf["minorTicks"]) ? chartconf["minorTicks"] : false;
     var microTicks = (chartconf["microTicks"]) ? chartconf["microTicks"] : false;
+    var xTitle = (chartconf["xTitle"]) ? chartconf["xTitle"] : "";
     var yTitle = (chartconf["yTitle"]) ? chartconf["yTitle"] : "Frequency";
     var connectorStyle = (chartconf["connectorStyle"]) ? chartconf["connectorStyle"] : "defbrown";
 
@@ -218,11 +217,11 @@ makeLineChart = function(chartname, series, chartconf){
 	    }
     });
     mychart.setTheme(sofa_theme);
-    mychart.addAxis("x", {
+    mychart.addAxis("x", {title: xTitle,
                     labels: chartconf["xaxisLabels"], minorTicks: minorTicks, microTicks: microTicks, minorLabels: minorTicks,
                     font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial"
     });
-    mychart.addAxis("y", {title: yTitle, // normal normal bold
+    mychart.addAxis("y", {title: yTitle,
                     vertical: true, includeZero: true, font: "normal normal normal 10pt Arial", fontWeight: 12
     });
     mychart.addPlot("default", {type: "Lines", markers: true, shadows: {dx: 2, dy: 2, dw: 2}});

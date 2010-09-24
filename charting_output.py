@@ -40,6 +40,8 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, measure_val_labels):
             max_label_len = len_y_val 
         measure_dets.append((val, val_label))
         y_vals.append(freq)
+    if not y_vals:
+        raise my_exceptions.TooFewValsForDisplay
     return measure_dets, max_label_len, y_vals
     
 def get_single_val_dets(dbe, cur, tbl, tbl_filt, fld_measure, xaxis_val_labels):
@@ -114,6 +116,8 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt, fld_measure,
     cur.execute(SQL_get_raw_data)
     raw_data = cur.fetchall()
     if debug: print(raw_data)
+    if not raw_data:
+        raise my_exceptions.TooFewValsForDisplay
     series_data, oth_vals = reshape_sql_crosstab_data(raw_data)
     if len(series_data) > 30:
         raise my_exceptions.TooManySeriesInChart
@@ -172,6 +176,8 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure):
     if debug: print(SQL_get_vals)
     cur.execute(SQL_get_vals)
     vals = [x[0] for x in cur.fetchall()]
+    if not vals:
+        raise my_exceptions.TooFewValsForDisplay
     nbins = lib.get_nbins_from_vals(vals)
     y_vals, start, width, extra_points = core_stats.histogram(vals, 
                                                               numbins=nbins)
@@ -245,7 +251,7 @@ def get_barchart_sizings(xaxis_dets, series_dets):
     n_bars_in_cluster = len(series_dets)
     minor_ticks = u"false"
     if n_clusters <= 2:
-        xfontsize = 11
+        xfontsize = 10
         width = 500 # image width
         xgap = 40
     elif n_clusters <= 5:
@@ -253,7 +259,7 @@ def get_barchart_sizings(xaxis_dets, series_dets):
         width = 600
         xgap = 20
     elif n_clusters <= 8:
-        xfontsize = 10
+        xfontsize = 9
         width = 800
         xgap = 9
     elif n_clusters <= 10:
@@ -279,6 +285,7 @@ def get_barchart_sizings(xaxis_dets, series_dets):
         else:
             xfontsize_mult = 1.3
         xfontsize = xfontsize*xfontsize_mult
+        xfontsize = xfontsize if xfontsize <= 10 else 10
     if debug: print(width)
     return width, xgap, xfontsize, minor_ticks
 
@@ -348,8 +355,8 @@ def get_title_dets_html(titles, subtitles, css_idx):
     title_dets_html = u"\n".join(title_dets_html_lst)
     return title_dets_html
 
-def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx, 
-                    css_fil, page_break_after):
+def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets, 
+                    css_idx, css_fil, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -436,6 +443,7 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
             chartconf["minorTicks"] = %(minor_ticks)s;
             chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
+            chartconf["xTitle"] = \"%(x_title)s\";
             chartconf["yTitle"] = \"%(y_title)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
             chartconf["connectorStyle"] = \"%(connector_style)s\";
@@ -453,7 +461,8 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
            u"width": width, u"xgap": xgap, u"xfontsize": xfontsize, 
            u"axis_label_font_colour": axis_label_font_colour,
            u"major_gridline_colour": major_gridline_colour,
-           u"gridline_width": gridline_width, u"y_title": mg.Y_AXIS_FREQ_LABEL,
+           u"gridline_width": gridline_width, 
+           u"x_title": x_title, u"y_title": mg.Y_AXIS_FREQ_LABEL,
            u"tooltip_border_colour": tooltip_border_colour,
            u"connector_style": connector_style, u"outer_bg": outer_bg, 
            u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
@@ -533,8 +542,8 @@ def piechart_output(titles, subtitles, slice_dets, css_fil, css_idx,
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
     
-def linechart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets, 
-                     css_fil, css_idx, page_break_after):
+def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len, 
+                     series_dets, css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -605,6 +614,7 @@ def linechart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
             chartconf["microTicks"] = %(micro_ticks)s;
             chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
+            chartconf["xTitle"] = \"%(x_title)s\";
             chartconf["yTitle"] = \"%(y_title)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
             chartconf["connectorStyle"] = \"%(connector_style)s\";
@@ -621,7 +631,8 @@ def linechart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
            u"width": width, u"xfontsize": xfontsize, 
            u"axis_label_font_colour": axis_label_font_colour,
            u"major_gridline_colour": major_gridline_colour,
-           u"gridline_width": gridline_width, u"y_title": mg.Y_AXIS_FREQ_LABEL,
+           u"gridline_width": gridline_width, 
+           u"x_title": x_title, u"y_title": mg.Y_AXIS_FREQ_LABEL,
            u"tooltip_border_colour": tooltip_border_colour,
            u"connector_style": connector_style, u"grid_bg": grid_bg, 
            u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks})
@@ -784,11 +795,11 @@ def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets,
         }    
     
         makechartRenumber = function(){
-            var histodets = new Array();
-            histodets["seriesLabel"] = "%(var_label)s";
-            histodets["yVals"] = %(y_vals)s;
-            histodets["binLabels"] = [%(bin_labels)s];
-            histodets["style"] = {stroke: {color: \"white\", 
+            var datadets = new Array();
+            datadets["seriesLabel"] = "%(var_label)s";
+            datadets["yVals"] = %(y_vals)s;
+            datadets["binLabels"] = [%(bin_labels)s];
+            datadets["style"] = {stroke: {color: \"white\", 
                 width: "%(stroke_width)spx"}, fill: "%(fill)s"};
             
             var chartconf = new Array();
@@ -839,6 +850,8 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     a_vs_b = '"%s"' % label_a + _(" vs ") + '"%s"' % label_b
     html = []
+    if not data_tups:
+        raise my_exceptions.TooFewValsForDisplay
     use_mpl = (len(data_tups) > 1000)
     if use_mpl:
         grid_bg, item_colours, line_colour = \
