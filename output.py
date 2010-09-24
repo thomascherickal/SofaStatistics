@@ -67,6 +67,15 @@ import showhtml
 dd = getdata.get_dd()
 cc = config_dlg.get_cc()
 
+
+def get_stats_chart_colours(css_fil):
+    (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
+        gridline_width, stroke_width, tooltip_border_colour, 
+        colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+    item_colours = [x[0] for x in colour_mappings]
+    line_colour = major_gridline_colour
+    return grid_bg, item_colours, line_colour
+
 def get_fallback_css():
     """
     Get fallback CSS.  The "constants" are used so that we can guarantee the 

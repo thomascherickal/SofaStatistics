@@ -55,7 +55,7 @@ def get_list(dbe, cur, tbl, tbl_filt, flds, fld_measure, fld_filter,
     lst = [x[0] for x in cur.fetchall()]
     return lst
 
-def get_paired_lists(dbe, cur, tbl, tbl_filt, fld_a, fld_b):
+def get_paired_data(dbe, cur, tbl, tbl_filt, fld_a, fld_b):
     """
     For each field, returns a list of all non-missing values where there is also
         a non-missing value in the other field.
@@ -71,7 +71,7 @@ def get_paired_lists(dbe, cur, tbl, tbl_filt, fld_a, fld_b):
     data_tups = cur.fetchall()
     lst_a = [x[0] for x in data_tups]
     lst_b = [x[1] for x in data_tups]
-    return lst_a, lst_b
+    return lst_a, lst_b, data_tups
 
 def get_val_quoter(dbe, flds, fld, val):
     """

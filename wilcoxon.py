@@ -25,13 +25,13 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst = []
         var_a, label_a, var_b, label_b = self.get_drop_vals()
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
-        script_lst.append(u"sample_a, sample_b = " +
-            u"core_stats.get_paired_lists(" +
-            u"dbe=u\"%s\", " % dd.dbe +
-            u"cur=cur, tbl=u\"%s\"," % dd.tbl +
-            u"\n    tbl_filt=tbl_filt, " +
-            u"fld_a=u\"%s\", " % var_a +
-            u"fld_b=u\"%s\")" % var_b)
+        script_lst.append(u"sample_a, sample_b, data_tups = "
+                           u"core_stats.get_paired_data("
+                           u"dbe=u\"%s\", " % dd.dbe +
+                           u"cur=cur, tbl=u\"%s\"," % dd.tbl +
+                           u"\n    tbl_filt=tbl_filt, "
+                           u"fld_a=u\"%s\", " % var_a +
+                           u"fld_b=u\"%s\")" % var_b)
         script_lst.append(u"dp = 3")
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)

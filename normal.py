@@ -8,7 +8,7 @@ import pylab # must import after wxmpl so matplotlib.use() is always first
 import my_globals as mg
 import lib
 import my_exceptions
-import charting_pylab as charts
+import charting_pylab
 import config_dlg
 import core_stats
 import getdata
@@ -299,10 +299,11 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             return
         self.btn_details.Enable(True)
         # histogram
-        charts.gen_config()
+        charting_pylab.gen_config()
         fig = pylab.figure()
         fig.set_size_inches((2.3, 1.0)) # see dpi to get image size in pixels
-        charts.config_hist(fig, self.vals, self.data_label, thumbnail=True)
+        charting_pylab.config_hist(fig, self.vals, self.data_label, 
+                                   thumbnail=True)
         pylab.savefig(mg.INT_IMG_ROOT + u".png", dpi=100)
         thumbnail_uncropped = wx.Image(mg.INT_IMG_ROOT + u".png", 
                                        wx.BITMAP_TYPE_PNG).ConvertToBitmap()
@@ -375,8 +376,9 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
         hist_label = u"Histogram of %s\n%s" % (self.data_label, filt_msg)
-        dlg = charts.HistDlg(parent=self, vals=self.vals, 
-                             var_label=self.data_label, hist_label=hist_label)
+        dlg = charting_pylab.HistDlg(parent=self, vals=self.vals, 
+                                     var_label=self.data_label, 
+                                     hist_label=hist_label)
         dlg.ShowModal()
         event.Skip()
     

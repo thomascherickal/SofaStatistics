@@ -12,7 +12,7 @@ import getdata
 import indep2var
 import projects
 
-OUTPUT_MODULES = ["my_globals as mg", "charting_output", "output", 
+OUTPUT_MODULES = ["my_globals as mg", "core_stats", "charting_output", "output", 
                   "getdata"]
 cc = config_dlg.get_cc()
 dd = getdata.get_dd()
@@ -444,7 +444,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def on_btn_chart(self, event):
         wx.MessageBox(LIMITS_MSG)
 
-    def get_script(self, css_idx, css_fil):
+    def get_script(self, css_idx, css_fil, add_to_report, report_name):
         "Build script from inputs"
         debug = False
         script_lst = []
@@ -464,6 +464,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                           lib.get_item_label(self.var_labels, var_name1))
         script_lst.append(u"measure_val_labels = %s" % 
                           self.val_dics.get(var_name1, {}))
+        script_lst.append(u"add_to_report = %s" % ("True" if add_to_report
+                          else "False"))
+        script_lst.append(u"report_name = u\"%s\"" %
+                          lib.escape_pre_write(report_name))
         if self.chart_type == mg.SIMPLE_BARCHART:
             script_lst.append(u"xaxis_dets, max_label_len, y_vals = "
                   u"charting_output.get_single_val_dets("
@@ -475,8 +479,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                               u"u\"y_vals\": y_vals},]")
             script_lst.append(u"chart_output = "
                   u"charting_output.barchart_output(titles, subtitles,"
-                  u"\n    xaxis_dets, series_dets, css_idx=%s, css_fil=\"%s\", "
-                  u"page_break_after=False)" % (css_idx, css_fil))
+                  u"\n    xaxis_dets, series_dets, css_fil=\"%s\", css_idx=%s, "
+                  u"page_break_after=False)" % (css_fil, css_idx))
         elif self.chart_type == mg.CLUSTERED_BARCHART:
             script_lst.append(u"xaxis_dets, max_label_len, series_dets = "
                   u"charting_output.get_grouped_val_dets("
@@ -490,8 +494,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                   u"charting_output.barchart_output(titles, "
                         u"subtitles,"
                   u"\n    xaxis_dets, series_dets, "
-                  u" css_idx=%s, css_fil=\"%s\", page_break_after=False)" %
-                      (css_idx, css_fil))
+                  u" css_fil=\"%s\", css_idx=%s, page_break_after=False)" %
+                      (css_fil, css_idx))
         elif self.chart_type == mg.PIE_CHART:
             script_lst.append(u"slice_dets = "
                   u"charting_output.get_pie_chart_dets("
@@ -502,8 +506,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             script_lst.append(u"chart_output = "
                   u"charting_output.piechart_output(titles, "
                         u"subtitles,"
-                  u"\n    slice_dets, css_idx=%s, css_fil=\"%s\", "
-                  u"page_break_after=False)" % (css_idx, css_fil))
+                  u"\n    slice_dets, css_fil=\"%s\", css_idx=%s, "
+                  u"page_break_after=False)" % (css_fil, css_idx))
         elif self.chart_type == mg.LINE_CHART:
             single_line = (var_name2 == mg.DROP_SELECT)
             if single_line:
@@ -529,8 +533,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                   u"charting_output.linechart_output(titles, "
                         u"subtitles,"
                   u"\n    xaxis_dets, max_label_len, series_dets, "
-                  u" css_idx=%s, css_fil=\"%s\", page_break_after=False)" %
-                      (css_idx, css_fil))
+                  u"css_fil=\"%s\", css_idx=%s,  page_break_after=False)" %
+                      (css_fil, css_idx))
         elif self.chart_type == mg.AREA_CHART:
             script_lst.append(u"xaxis_dets, max_label_len, y_vals = "
                   u"charting_output.get_single_val_dets("
@@ -544,8 +548,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                   u"charting_output.areachart_output(titles, "
                         u"subtitles,"
                   u"\n    xaxis_dets, max_label_len, series_dets, "
-                  u" css_idx=%s, css_fil=\"%s\", page_break_after=False)" %
-                      (css_idx, css_fil))
+                  u" css_fil=\"%s\", css_idx=%s, page_break_after=False)" %
+                      (css_fil, css_idx))
         elif self.chart_type == mg.HISTOGRAM:
             script_lst.append(u"minval, maxval, xaxis_dets, y_vals, bin_labels "
                   u"= charting_output.get_histo_dets("
@@ -556,23 +560,21 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                   u"charting_output.histogram_output(titles, "
                         u"subtitles, var_label1, "
                   u"\n    minval, maxval, xaxis_dets, y_vals, bin_labels, "
-                  u" css_idx=%s, css_fil=\"%s\", page_break_after=False)" %
-                      (css_idx, css_fil))
-        elif self.chart_type == mg.SCATTERPLOT:
-            script_lst.append(u"xaxis_dets, max_label_len, series_dets = "
-                  u"charting_output.get_grouped_val_dets("
-                  u"\n    chart_type=\"%(chart_type)s\", dbe=\"%(dbe)s\", "
-                  u"cur=cur, tbl=tbl, tbl_filt=tbl_filt, "
-                  u"fld_measure=fld_measure, fld_gp=fld_gp, "
-                  u"xaxis_val_labels=measure_val_labels, "
-                  u"group_by_val_labels=group_by_val_labels)" % 
-                    {u"chart_type": self.chart_type, u"dbe": dd.dbe})
+                  u" css_fil=\"%s\", css_idx=%s, page_break_after=False)" %
+                      (css_fil, css_idx))
+        elif self.chart_type == mg.SCATTERPLOT: # fld_measure and fld_gp
+            # really flds a and b in this context
+            script_lst.append(u"sample_a, sample_b, data_tups = "
+                  u"core_stats.get_paired_data(dbe=u\"%s\", " % dd.dbe +
+                  u"cur=cur, tbl=tbl,"
+                  u"\n    tbl_filt=tbl_filt, fld_a=fld_measure, fld_b=fld_gp)")
             script_lst.append(u"chart_output = "
-                  u"charting_output.barchart_output(titles, "
+                  u"charting_output.scatterplot_output(titles, "
                         u"subtitles,"
-                  u"\n    xaxis_dets, series_dets, "
-                  u" css_idx=%s, css_fil=\"%s\", page_break_after=False)" %
-                      (css_idx, css_fil))
+                  u"\n    sample_a, sample_b, data_tups, var_label1, "
+                  u"var_label2, add_to_report, report_name, "
+                  u"\n    css_fil=\"%s\", css_idx=%s, page_break_after=False)" %
+                      (css_fil, css_idx))
         script_lst.append(u"fil.write(chart_output)")
         return u"\n".join(script_lst)
     
@@ -582,13 +584,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             run_ok = self.test_config_ok()
             add_to_report = self.chk_add_to_report.IsChecked()
             if run_ok:
-                css_fil = cc[mg.CURRENT_CSS_PATH]
+                get_script_args=[cc[mg.CURRENT_CSS_PATH], add_to_report,
+                                 cc[mg.CURRENT_REPORT_PATH]]
                 config_dlg.ConfigDlg.on_btn_run(self, event, OUTPUT_MODULES, 
-                                                get_script_args=[css_fil], 
+                                                get_script_args, 
                                                 new_has_dojo=True)
         else:
             wx.MessageBox(LIMITS_MSG)
-        
+
     def on_btn_export(self, event):
         
         

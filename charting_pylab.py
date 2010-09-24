@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+
 import boomslang
 import wx
 import wxmpl
@@ -10,6 +12,54 @@ import my_globals as mg
 import lib
 import core_stats
 import wxmpl
+
+int_imgs_n = 0 # for internal images so always unique
+
+def save_report_img(add_to_report, report_name, save_func=pylab.savefig, 
+                    dpi=None):
+    """
+    report_name -- full path to report
+    If adding to report, save image to a subfolder in reports named after the 
+        report.  Return a relative image source. Make subfolder if not present.
+        Use image name guaranteed not to collide.  Count items in subfolder and
+        use index as part of name.
+    If not adding to report, save image to internal folder, and return absolute
+        image source.  Remember to alternate sets of names so always the 
+        freshest image showing in html (without having to reload etc).
+    """
+    debug = False
+    if add_to_report:
+        # look in report folder for subfolder
+        imgs_path = os.path.join(report_name[:-len(".htm")] + u"_images", u"")
+        if debug: print("imgs_path: %s" % imgs_path)
+        try:
+            os.mkdir(imgs_path)
+        except OSError, e:
+            pass # already there
+        n_imgs = len(os.listdir(imgs_path))
+        file_name = u"%03d.png" % n_imgs
+        img_path = os.path.join(imgs_path, file_name) # absolute
+        args = [img_path]
+        kwargs = {"dpi": dpi} if dpi else {}
+        save_func(*args, **kwargs)
+        if debug: print("Just saved %s" % img_path)
+        subfolder = os.path.split(imgs_path[:-1])[1]
+        img_src = os.path.join(subfolder, file_name) #relative so can shift html
+        if debug: print("add_to_report img_src: %s" % img_src)
+    else:
+        # must ensure internal images are always different each time we
+        # refresh html.  Otherwise might just show old version of same-named 
+        # image file!
+        global int_imgs_n
+        int_imgs_n += 1
+        img_src = mg.INT_IMG_ROOT + u"_%03d.png" % int_imgs_n
+        if debug: print(img_src)
+        args = [img_src]
+        kwargs = {"dpi": dpi} if dpi else {}
+        save_func(*args, **kwargs)
+        if debug: print("Just saved %s" % img_src)
+    if debug: print("img_src: %s" % img_src)
+    return img_src
 
 def gen_config(axes_labelsize=14, xtick_labelsize=10, ytick_labelsize=10):
     params = {"axes.labelsize": axes_labelsize,
@@ -103,7 +153,25 @@ def config_scatterplot(grid_bg, dot_colour, line_colour, fig, sample_a,
     rect.set_facecolor(grid_bg)
     pylab.legend(loc="best")
 
-        
+def add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, sample_b, 
+                    label_a, label_b, a_vs_b, title, add_to_report, 
+                    report_name, html):
+    """
+    Toggle prefix so every time this is run internally only, a different image 
+        is referred to in the html <img src=...>.
+    This works because there is only ever one scatterplot per internal html.
+    """
+    debug = False
+    fig = pylab.figure()
+    fig.set_size_inches((7.5, 4.5)) # see dpi to get image size in pixels
+    config_scatterplot(grid_bg, dot_colour, line_colour, fig, sample_a, 
+                       sample_b, label_a, label_b, a_vs_b)
+    img_src = save_report_img(add_to_report, report_name, 
+                              save_func=pylab.savefig, dpi=100)
+    html.append(u"\n<img src='%s'>" % img_src)
+    if debug: print("Just linked to %s" % img_src)
+
+
 class HistDlg(wxmpl.PlotDlg):
     def __init__(self, parent, vals, var_label, hist_label):
         wxmpl.PlotDlg.__init__(self, parent, 

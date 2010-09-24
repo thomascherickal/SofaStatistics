@@ -12,6 +12,7 @@ import pprint
 import my_globals as mg
 import lib
 import my_exceptions
+import charting_pylab
 import core_stats
 import getdata
 import output
@@ -361,6 +362,8 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
     css_idx -- css index so can apply    
     """
     debug = False
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     xaxis_labels = u"[" + \
         u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
@@ -459,9 +462,11 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def piechart_output(titles, subtitles, slice_dets, css_idx, css_fil, 
+def piechart_output(titles, subtitles, slice_dets, css_fil, css_idx, 
                     page_break_after):
     debug = False
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     (outer_bg, inner_bg, axis_label_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
@@ -529,7 +534,7 @@ def piechart_output(titles, subtitles, slice_dets, css_idx, css_fil,
     return u"".join(html)
     
 def linechart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets, 
-                     css_idx, css_fil, page_break_after):
+                     css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -542,6 +547,8 @@ def linechart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
     css_idx -- css index so can apply    
     """
     debug = False
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     xaxis_labels = u"[" + \
         u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
@@ -624,7 +631,7 @@ def linechart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
     return u"".join(html)
     
 def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets, 
-                     css_idx, css_fil, page_break_after):
+                     css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -637,6 +644,8 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
     css_idx -- css index so can apply    
     """
     debug = False
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     xaxis_labels = u"[" + \
         u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
@@ -723,7 +732,7 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
     return u"".join(html)
 
 def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets, 
-                     y_vals, bin_labels, css_idx, css_fil, 
+                     y_vals, bin_labels, css_fil, css_idx, 
                      page_break_after=False):
     """
     titles -- list of title lines correct styles
@@ -736,6 +745,8 @@ def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets,
     css_idx -- css index so can apply    
     """
     debug = False
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     xaxis_labels = u"[" + \
         u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
@@ -819,3 +830,26 @@ def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets,
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
+def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups, 
+                       label_a, label_b, add_to_report, report_name, css_fil, 
+                       css_idx, page_break_after=False):
+    debug = False
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
+    html = []
+    grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
+    dot_colour = item_colours[0]
+    use_mpl = (len(data_tups) > 1000)
+    if use_mpl:
+        a_vs_b = '"%s"' % label_a + _(" vs ") + '"%s"' % label_b
+        title = _("Scatterplot for %s" % a_vs_b)
+        charting_pylab.add_scatterplot(grid_bg, dot_colour, line_colour, 
+                                       sample_a, sample_b, label_a, label_b, 
+                                       a_vs_b, title, add_to_report, 
+                                       report_name, html)
+    else:
+        pass
+    if page_break_after:
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
+    return u"".join(html)

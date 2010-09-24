@@ -6,24 +6,15 @@ import boomslang
 
 import my_globals as mg
 import lib
-import charting_pylab as charts
+import charting_pylab
 import core_stats
+import output
 
 """
 Output doesn't include the calculation of any values.  These are in discrete
     functions in core_stats, amenable to unit testing.
 No html header or footer added here.  Just some body content.    
 """
-
-int_imgs_n = 0 # for internal images so always unique
-
-def get_stats_chart_colours(css_fil):
-    (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
-        gridline_width, stroke_width, tooltip_border_colour, 
-        colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
-    item_colours = [x[0] for x in colour_mappings]
-    line_colour = major_gridline_colour
-    return grid_bg, item_colours, line_colour
 
 def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, 
                  mean_squ_bn, label_a, label_b, label_avg, add_to_report,
@@ -144,13 +135,14 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         hist_label = dic["label"]
         # histogram
         # http://www.scipy.org/Cookbook/Matplotlib/LaTeX_Examples
-        charts.gen_config(axes_labelsize=10, xtick_labelsize=8, 
-                          ytick_labelsize=8)
+        charting_pylab.gen_config(axes_labelsize=10, xtick_labelsize=8, 
+                                  ytick_labelsize=8)
         fig = pylab.figure()
         fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
-        grid_bg, item_colours, line_colour = get_stats_chart_colours(css_fil)
-        charts.config_hist(fig, sample, label_avg, hist_label, False, grid_bg, 
-                           item_colours[0], line_colour)
+        grid_bg, item_colours, line_colour = \
+                                        output.get_stats_chart_colours(css_fil)
+        charting_pylab.config_hist(fig, sample, label_avg, hist_label, False, 
+                                   grid_bg, item_colours[0], line_colour)
         img_src = save_report_img(add_to_report, report_name, 
                                   save_func=pylab.savefig, dpi=100)
         html.append(u"\n<img src='%s'>" % img_src)
@@ -283,13 +275,14 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg,
     for (suffix, sample, hist_label) in sample_dets:
         # histogram
         # http://www.scipy.org/Cookbook/Matplotlib/LaTeX_Examples
-        charts.gen_config(axes_labelsize=10, xtick_labelsize=8, 
-                          ytick_labelsize=8)
+        charting_pylab.gen_config(axes_labelsize=10, xtick_labelsize=8, 
+                                  ytick_labelsize=8)
         fig = pylab.figure()
         fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
-        grid_bg, item_colours, line_colour = get_stats_chart_colours(css_fil)
-        charts.config_hist(fig, sample, label_avg, hist_label, False, grid_bg, 
-                           item_colours[0], line_colour)
+        grid_bg, item_colours, line_colour = \
+                                        output.get_stats_chart_colours(css_fil)
+        charting_pylab.config_hist(fig, sample, label_avg, hist_label, False, 
+                                   grid_bg, item_colours[0], line_colour)
         img_src = save_report_img(add_to_report, report_name, 
                                   save_func=pylab.savefig, dpi=100)
         html.append(u"\n<img src='%s'>" % img_src)
@@ -315,15 +308,15 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, diffs,
     ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp, 
                         indep, css_idx, html)
     # histogram
-    charts.gen_config(axes_labelsize=10, xtick_labelsize=8, 
-                      ytick_labelsize=8)
+    charting_pylab.gen_config(axes_labelsize=10, xtick_labelsize=8, 
+                              ytick_labelsize=8)
     fig = pylab.figure()
     fig.set_size_inches((7.5, 3.5)) # see dpi to get image size in pixels
     hist_label = u"Differences between %s and %s" % (dic_a["label"], 
                                                      dic_b["label"])
-    grid_bg, item_colours, line_colour = get_stats_chart_colours(css_fil)
-    charts.config_hist(fig, diffs, _("Differences"), hist_label, False, grid_bg, 
-                       item_colours[0], line_colour)
+    grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
+    charting_pylab.config_hist(fig, diffs, _("Differences"), hist_label, False, 
+                               grid_bg, item_colours[0], line_colour)
     img_src = save_report_img(add_to_report, report_name, 
                               save_func=pylab.savefig, dpi=100)
     html.append(u"\n<img src='%s'>" % img_src)
@@ -388,70 +381,6 @@ def wilcoxon_output(t, p, label_a, label_b, css_fil, css_idx=0, dp=3,
         html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
     return html
 
-def save_report_img(add_to_report, report_name, save_func=pylab.savefig, 
-                    dpi=None):
-    """
-    report_name -- full path to report
-    If adding to report, save image to a subfolder in reports named after the 
-        report.  Return a relative image source. Make subfolder if not present.
-        Use image name guaranteed not to collide.  Count items in subfolder and
-        use index as part of name.
-    If not adding to report, save image to internal folder, and return absolute
-        image source.  Remember to alternate sets of names so always the 
-        freshest image showing in html (without having to reload etc).
-    """
-    debug = False
-    if add_to_report:
-        # look in report folder for subfolder
-        imgs_path = os.path.join(report_name[:-len(".htm")] + u"_images", u"")
-        if debug: print("imgs_path: %s" % imgs_path)
-        try:
-            os.mkdir(imgs_path)
-        except OSError, e:
-            pass # already there
-        n_imgs = len(os.listdir(imgs_path))
-        file_name = u"%03d.png" % n_imgs
-        img_path = os.path.join(imgs_path, file_name) # absolute
-        args = [img_path]
-        kwargs = {"dpi": dpi} if dpi else {}
-        save_func(*args, **kwargs)
-        if debug: print("Just saved %s" % img_path)
-        subfolder = os.path.split(imgs_path[:-1])[1]
-        img_src = os.path.join(subfolder, file_name) #relative so can shift html
-        if debug: print("add_to_report img_src: %s" % img_src)
-    else:
-        # must ensure internal images are always different each time we
-        # refresh html.  Otherwise might just show old version of same-named 
-        # image file!
-        global int_imgs_n
-        int_imgs_n += 1
-        img_src = mg.INT_IMG_ROOT + u"_%03d.png" % int_imgs_n
-        if debug: print(img_src)
-        args = [img_src]
-        kwargs = {"dpi": dpi} if dpi else {}
-        save_func(*args, **kwargs)
-        if debug: print("Just saved %s" % img_src)
-    if debug: print("img_src: %s" % img_src)
-    return img_src
-
-def add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, sample_b, 
-                    label_a, label_b, a_vs_b, title, add_to_report, 
-                    report_name, html):
-    """
-    Toggle prefix so every time this is run internally only, a different image 
-        is referred to in the html <img src=...>.
-    This works because there is only ever one scatterplot per internal html.
-    """
-    debug = False
-    fig = pylab.figure()
-    fig.set_size_inches((7.5, 4.5)) # see dpi to get image size in pixels
-    charts.config_scatterplot(grid_bg, dot_colour, line_colour, fig, sample_a, 
-                              sample_b, label_a, label_b, a_vs_b)
-    img_src = save_report_img(add_to_report, report_name, 
-                              save_func=pylab.savefig, dpi=100)
-    html.append(u"\n<img src='%s'>" % img_src)
-    if debug: print("Just linked to %s" % img_src)
-
 def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
                      report_name, css_fil, css_idx=0, dp=3, 
                      level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
@@ -466,11 +395,11 @@ def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
     html.append(p_format % round(p, dp))
     html.append(u"\n<p>" + _("Pearson's R statistic") +
                 u": %s</p>" % round(r, dp))
-    grid_bg, item_colours, line_colour = get_stats_chart_colours(css_fil)
+    grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
     dot_colour = item_colours[0]
-    add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, sample_b, 
-                    label_a, label_b, a_vs_b, title, add_to_report, 
-                    report_name, html)
+    charting_pylab.add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, 
+                                   sample_b, label_a, label_b, a_vs_b, title, 
+                                   add_to_report, report_name, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -490,11 +419,11 @@ def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
     html.append(p_format % round(p, dp))
     html.append(u"\n<p>" + _("Spearman's R statistic") + 
                 u": %s</p>" % round(r, dp))
-    grid_bg, item_colours, line_colour = get_stats_chart_colours(css_fil)
+    grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
     dot_colour = item_colours[0]
-    add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, sample_b, 
-                    label_a, label_b, a_vs_b, title, add_to_report, 
-                    report_name, html)
+    charting_pylab.add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, 
+                                   sample_b, label_a, label_b, a_vs_b, title, 
+                                   add_to_report, report_name, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -603,7 +532,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
     # clustered bar charts
-    grid_bg, item_colours, line_colour = get_stats_chart_colours(css_fil)
+    grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
     add_clustered_barcharts(grid_bg, item_colours, line_colour, lst_obs, 
                             var_label_a, var_label_b, val_labels_a, 
                             val_labels_b, val_labels_a_n, val_labels_b_n, 
@@ -645,10 +574,10 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     plot.hasLegend(columns=val_labels_b_n, location="lower left")
     plot.setAxesLabelSize(11)
     plot.setLegendLabelSize(9)
-    charts.config_clustered_barchart(grid_bg, bar_colours, line_colour, plot, 
-                                     var_label_a, y_label, val_labels_a_n, 
-                                     val_labels_a, val_labels_b, 
-                                     propns_as_in_bs_lst)
+    charting_pylab.config_clustered_barchart(grid_bg, bar_colours, line_colour, 
+                                    plot, var_label_a, y_label, val_labels_a_n, 
+                                    val_labels_a, val_labels_b, 
+                                    propns_as_in_bs_lst)
     img_src = save_report_img(add_to_report, report_name, save_func=plot.save, 
                               dpi=None)
     html.append(u"\n<img src='%s'>" % img_src)
@@ -663,9 +592,9 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     plot.setAxesLabelSize(11)
     plot.setLegendLabelSize(9)
     # only need 6 because program limits to that. See core_stats.get_obs_exp().
-    charts.config_clustered_barchart(grid_bg, bar_colours, line_colour, plot, 
-                                     var_label_a, y_label, val_labels_a_n, 
-                                     val_labels_a, val_labels_b, as_in_bs_lst)
+    charting_pylab.config_clustered_barchart(grid_bg, bar_colours, line_colour, 
+                                    plot, var_label_a, y_label, val_labels_a_n, 
+                                    val_labels_a, val_labels_b, as_in_bs_lst)
     img_src = save_report_img(add_to_report, report_name, save_func=plot.save, 
                               dpi=None)
     html.append(u"\n<img src='%s'>" % img_src)
