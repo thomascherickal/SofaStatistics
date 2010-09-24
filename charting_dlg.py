@@ -567,7 +567,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             script_lst.append(u"sample_a, sample_b, data_tups = "
                   u"core_stats.get_paired_data(dbe=u\"%s\", " % dd.dbe +
                   u"cur=cur, tbl=tbl,"
-                  u"\n    tbl_filt=tbl_filt, fld_a=fld_measure, fld_b=fld_gp)")
+                  u"\n    tbl_filt=tbl_filt, fld_a=fld_measure, fld_b=fld_gp, "
+                  u"unique=True)") # only need unique combinations for plotting
             script_lst.append(u"chart_output = "
                   u"charting_output.scatterplot_output(titles, "
                         u"subtitles,"

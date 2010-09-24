@@ -413,7 +413,7 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
     html.append(u"""
     <script type="text/javascript">
 
-        sofaHl = function(colour){
+        var sofaHlRenumber = function(colour){
             var hlColour;
             switch (colour.toHex()){
                 %(colour_cases)s
@@ -430,7 +430,7 @@ def barchart_output(titles, subtitles, xaxis_dets, series_dets, css_idx,
             chartconf["xaxisLabels"] = %(xaxis_labels)s;
             chartconf["xgap"] = %(xgap)s;
             chartconf["xfontsize"] = %(xfontsize)s;
-            chartconf["sofaHl"] = sofaHl;
+            chartconf["sofaHl"] = sofaHlRenumber;
             chartconf["gridlineWidth"] = %(gridline_width)s;
             chartconf["gridBg"] = \"%(grid_bg)s\";
             chartconf["minorTicks"] = %(minor_ticks)s;
@@ -493,7 +493,7 @@ def piechart_output(titles, subtitles, slice_dets, css_fil, css_idx,
     html.append(u"""
     <script type="text/javascript">
         makechartRenumber = function(){
-            var sofaHl = function(colour){
+            var sofaHlRenumber = function(colour){
                 var hlColour;
                 switch (colour.toHex()){
                     %(colour_cases)s
@@ -507,7 +507,7 @@ def piechart_output(titles, subtitles, slice_dets, css_fil, css_idx,
             var chartconf = new Array();
             chartconf["sliceColours"] = %(slice_colours)s;
             chartconf["sliceFontsize"] = %(slice_fontsize)s;
-            chartconf["sofaHl"] = sofaHl;
+            chartconf["sofaHl"] = sofaHlRenumber;
             chartconf["labelFontColour"] = \"%(label_font_colour)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
             chartconf["connectorStyle"] = \"%(connector_style)s\";
@@ -772,7 +772,7 @@ def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets,
     html.append(u"""
     <script type="text/javascript">
 
-        sofaHl = function(colour){
+        var sofaHlRenumber = function(colour){
             var hlColour;
             switch (colour.toHex()){
                 %(colour_cases)s
@@ -794,7 +794,7 @@ def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets,
             var chartconf = new Array();
             chartconf["xaxisLabels"] = %(xaxis_labels)s;
             chartconf["xfontsize"] = %(xfontsize)s;
-            chartconf["sofaHl"] = sofaHl;
+            chartconf["sofaHl"] = sofaHlRenumber;
             chartconf["tickColour"] = "%(tick_colour)s";
             chartconf["gridlineWidth"] = %(gridline_width)s;
             chartconf["gridBg"] = \"%(grid_bg)s\";
@@ -833,7 +833,7 @@ def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets,
 def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups, 
                        label_a, label_b, add_to_report, report_name, css_fil, 
                        css_idx, page_break_after=False):
-    debug = True
+    debug = False
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
@@ -877,62 +877,62 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
         except IndexError, e:
             fill = mg.DOJO_COLOURS[0]
         html.append(u"""
-            <script type="text/javascript">
-        
-                sofaHl = function(colour){
-                    var hlColour;
-                    switch (colour.toHex()){
-                        %(colour_cases)s
-                        default:
-                            hlColour = hl(colour.toHex());
-                            break;
-                    }
-                    return new dojox.color.Color(hlColour);
-                }    
-            
-                makechartRenumber = function(){
-                    var datadets = new Array();
-                    datadets["xyPairs"] = %(xy_pairs)s;
-                    datadets["style"] = {stroke: {color: \"white\", 
-                        width: "%(stroke_width)spx"}, fill: "%(fill)s",
-                        marker: "m-6,0 c0,-8 12,-8 12,0 m-12,0 c0,8 12,8 12,0"};
-                    
-                    var chartconf = new Array();
-                    chartconf["xmax"] = %(xmax)s;
-                    chartconf["ymax"] = %(ymax)s;
-                    chartconf["xfontsize"] = %(xfontsize)s;
-                    chartconf["sofaHl"] = sofaHl;
-                    chartconf["tickColour"] = "%(tick_colour)s";
-                    chartconf["gridlineWidth"] = %(gridline_width)s;
-                    chartconf["gridBg"] = \"%(grid_bg)s\";
-                    chartconf["minorTicks"] = %(minor_ticks)s;
-                    chartconf["axisLabelFontColour"] = "%(axis_label_font_colour)s";
-                    chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
-                    chartconf["xTitle"] = "%(x_title)s";
-                    chartconf["yTitle"] = "%(y_title)s";
-                    chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
-                    chartconf["connectorStyle"] = "%(connector_style)s";
-                    %(outer_bg)s
-                    makeScatterplot("mychartRenumber", datadets, chartconf);
+        <script type="text/javascript">
+    
+            var sofaHlRenumber = function(colour){
+                var hlColour;
+                switch (colour.toHex()){
+                    %(colour_cases)s
+                    default:
+                        hlColour = hl(colour.toHex());
+                        break;
                 }
-            </script>
-            %(titles)s
-            <div id="mychartRenumber" style="width: %(width)spx; 
-                height: 400px;"></div>
-            <br>
-            """ % {u"xy_pairs": xy_pairs, u"xmax": xmax, u"ymax": ymax,
-                   u"x_title": x_title, u"y_title": y_title,
-                   u"stroke_width": stroke_width, u"fill": fill,
-                   u"colour_cases": colour_cases, u"titles": title_dets_html, 
-                   u"width": width, u"xfontsize": xfontsize, 
-                   u"series_label": a_vs_b,
-                   u"axis_label_font_colour": axis_label_font_colour,
-                   u"major_gridline_colour": major_gridline_colour,
-                   u"gridline_width": gridline_width, 
-                   u"tooltip_border_colour": tooltip_border_colour,
-                   u"connector_style": connector_style, u"outer_bg": outer_bg, 
-                   u"grid_bg": grid_bg, u"minor_ticks": u"true",
-                   u"tick_colour": major_gridline_colour})
+                return new dojox.color.Color(hlColour);
+            }    
+        
+            makechartRenumber = function(){
+                var datadets = new Array();
+                datadets["xyPairs"] = %(xy_pairs)s;
+                datadets["style"] = {stroke: {color: \"white\", 
+                    width: "%(stroke_width)spx"}, fill: "%(fill)s",
+                    marker: "m-6,0 c0,-8 12,-8 12,0 m-12,0 c0,8 12,8 12,0"};
+                
+                var chartconf = new Array();
+                chartconf["xmax"] = %(xmax)s;
+                chartconf["ymax"] = %(ymax)s;
+                chartconf["xfontsize"] = %(xfontsize)s;
+                chartconf["sofaHl"] = sofaHlRenumber;
+                chartconf["tickColour"] = "%(tick_colour)s";
+                chartconf["gridlineWidth"] = %(gridline_width)s;
+                chartconf["gridBg"] = \"%(grid_bg)s\";
+                chartconf["minorTicks"] = %(minor_ticks)s;
+                chartconf["axisLabelFontColour"] = "%(axis_label_font_colour)s";
+                chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
+                chartconf["xTitle"] = "%(x_title)s";
+                chartconf["yTitle"] = "%(y_title)s";
+                chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
+                chartconf["connectorStyle"] = "%(connector_style)s";
+                %(outer_bg)s
+                makeScatterplot("mychartRenumber", datadets, chartconf);
+            }
+        </script>
+        %(titles)s
+        <div id="mychartRenumber" style="width: %(width)spx; 
+            height: 400px;"></div>
+        <br>
+        """ % {u"xy_pairs": xy_pairs, u"xmax": xmax, u"ymax": ymax,
+               u"x_title": x_title, u"y_title": y_title,
+               u"stroke_width": stroke_width, u"fill": fill,
+               u"colour_cases": colour_cases, u"titles": title_dets_html, 
+               u"width": width, u"xfontsize": xfontsize, 
+               u"series_label": a_vs_b,
+               u"axis_label_font_colour": axis_label_font_colour,
+               u"major_gridline_colour": major_gridline_colour,
+               u"gridline_width": gridline_width, 
+               u"tooltip_border_colour": tooltip_border_colour,
+               u"connector_style": connector_style, u"outer_bg": outer_bg, 
+               u"grid_bg": grid_bg, u"minor_ticks": u"true",
+               u"tick_colour": major_gridline_colour})
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
