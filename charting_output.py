@@ -763,7 +763,7 @@ def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets,
         u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
                                     for i,x in enumerate(xaxis_dets,1)]) + u"]"
     bin_labs = u"\"" + u"\", \"".join(bin_labels) + u"\""
-    width = 800
+    width = 700
     xfontsize = 10
     html = []
     (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
@@ -822,7 +822,7 @@ def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets,
         }
     </script>
     %(titles)s
-    <div id="mychartRenumber" style="width: %(width)spx; height: 400px;"></div>
+    <div id="mychartRenumber" style="width: %(width)spx; height: 350px;"></div>
     <br>
     """ % {u"stroke_width": stroke_width, u"fill": fill,
            u"colour_cases": colour_cases, u"titles": title_dets_html, 
@@ -864,7 +864,7 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
                                        a_vs_b, title, add_to_report, 
                                        report_name, html)
     else:
-        width = 800
+        width = 700
         xfontsize = 10
         xmax = max(sample_a)
         x_title = label_a
@@ -931,7 +931,7 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
         </script>
         %(titles)s
         <div id="mychartRenumber" style="width: %(width)spx; 
-            height: 400px;"></div>
+            height: 350px;"></div>
         <br>
         """ % {u"xy_pairs": xy_pairs, u"xmax": xmax, u"ymax": ymax,
                u"x_title": x_title, u"y_title": y_title,

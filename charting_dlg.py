@@ -37,7 +37,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
                            wx.CLIP_CHILDREN)
-        self.takes_range = takes_range
         self.url_load = True # btn_expand
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
@@ -51,9 +50,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_data = self.get_szr_data(self.panel_top) # mixin
         if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
             bx_vars.SetToolTipString(variables_rc_msg)
-        szr_vars = wx.StaticBoxSizer(bx_vars, wx.VERTICAL)
-        szr_vars_top = wx.BoxSizer(wx.HORIZONTAL)
-        szr_vars_bottom = wx.BoxSizer(wx.HORIZONTAL)
+        szr_vars = wx.StaticBoxSizer(bx_vars, wx.HORIZONTAL)
         self.szr_vars_top_left = wx.BoxSizer(wx.VERTICAL)
         szr_vars_top_right = wx.BoxSizer(wx.VERTICAL)
         szr_vars_top_left_top = wx.BoxSizer(wx.HORIZONTAL)
@@ -77,7 +74,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.lbl_var2 = wx.StaticText(self.panel_top, -1, mg.CHART_BY)
         self.lbl_var2.SetFont(self.LABEL_FONT)
         self.lbl_var2.Enable(False)
-        # TODO - only want the fields which are numeric? Depends
         self.drop_var2 = wx.Choice(self.panel_top, -1, choices=[], 
                                    size=(300,-1))
         self.drop_var2.Bind(wx.EVT_CHOICE, self.on_var2_sel)
@@ -90,56 +86,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
                        var_name=None, inc_drop_select=True)
         # layout
-        szr_vars_top_left_top.Add(self.lbl_var1, 0, wx.TOP|wx.RIGHT, 5)
-        szr_vars_top_left_top.Add(self.drop_var1, 0, wx.RIGHT|wx.TOP, 5)
-        szr_vars_top_left_mid.Add(self.lbl_var2, 0, wx.TOP|wx.RIGHT, 5)
-        szr_vars_top_left_mid.Add(self.drop_var2, 0, wx.RIGHT|wx.TOP, 5)
-        self.szr_vars_top_left.Add(szr_vars_top_left_top, 0)
-        self.szr_vars_top_left.Add(szr_vars_top_left_mid, 0)
-        # group by
-        self.lbl_group_by = wx.StaticText(self.panel_top, -1, _("Charts By:"))
-        self.lbl_group_by.SetFont(self.LABEL_FONT)
-        self.drop_group_by = wx.Choice(self.panel_top, -1, choices=[], 
-                                       size=(300,-1))
-        self.drop_group_by.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
-        self.drop_group_by.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_by)
-        self.drop_group_by.SetToolTipString(variables_rc_msg)
-        self.gp_vals_sorted = [] # same order in dropdowns
-        self.gp_choice_items_sorted = [] # refreshed as required and in 
-            # order of labels, not raw values
-        self.sorted_var_names_by = [] # var names sorted by labels i.e. same as 
-            # dropdown.  Refreshed as needed so always usable.
-        self.setup_group_by()     
-        
-        self.lbl_chop_warning = wx.StaticText(self.panel_top, -1, "")
-        szr_vars_top_right_top.Add(self.lbl_group_by, 0, wx.RIGHT|wx.TOP, 5)
-        szr_vars_top_right_top.Add(self.drop_group_by, 0, wx.GROW)
-        szr_vars_top_right_top.Add(self.lbl_chop_warning, 1, wx.TOP|wx.RIGHT, 5)
-        # group by A
-        self.lbl_group_a = wx.StaticText(self.panel_top, -1, _("Group A:"))
-        self.drop_group_a = wx.Choice(self.panel_top, -1, choices=[], 
-                                    size=(200,-1))
-        self.drop_group_a.Bind(wx.EVT_CHOICE, self.on_group_by_a_sel)
-        # group by B
-        self.lbl_group_b = wx.StaticText(self.panel_top, -1, _("Group B:"))
-        self.drop_group_b = wx.Choice(self.panel_top, -1, choices=[], 
-                                    size=(200,-1))
-        self.drop_group_b.Bind(wx.EVT_CHOICE, self.on_group_by_b_sel)
-        self.setup_group_by_dropdowns()
-        szr_vars_top_right_bottom.Add(self.lbl_group_a, 0, wx.RIGHT|wx.TOP, 5)
-        szr_vars_top_right_bottom.Add(self.drop_group_a, 0, wx.RIGHT, 5)
-        szr_vars_top_right_bottom.Add(self.lbl_group_b, 0, wx.RIGHT|wx.TOP, 5)
-        szr_vars_top_right_bottom.Add(self.drop_group_b, 0)
-        szr_vars_top_right.Add(szr_vars_top_right_top, 1, wx.GROW)
-        szr_vars_top_right.Add(szr_vars_top_right_bottom, 0, wx.GROW|wx.TOP, 5)
-        szr_vars_top.Add(self.szr_vars_top_left, 0)
-        ln_vert = wx.StaticLine(self.panel_top, style=wx.LI_VERTICAL) 
-        szr_vars_top.Add(ln_vert, 0, wx.GROW|wx.LEFT|wx.RIGHT, 5)
-        szr_vars_top.Add(szr_vars_top_right, 0)
-        szr_vars.Add(szr_vars_top, 0)      
-        szr_vars.Add(szr_vars_bottom, 0, wx.GROW)
+        szr_vars.Add(self.lbl_var1, 0, wx.TOP|wx.RIGHT, 5)
+        szr_vars.Add(self.drop_var1, 0, wx.RIGHT|wx.TOP, 5)
+        szr_vars.Add(self.lbl_var2, 0, wx.TOP|wx.RIGHT, 5)
+        szr_vars.Add(self.drop_var2, 0, wx.RIGHT|wx.TOP, 5)
         # assemble sizer for top panel
-        static_box_gap = 0 if mg.PLATFORM == mg.MAC else 10
+        static_box_gap = 0 if mg.PLATFORM == mg.MAC else 5
         if static_box_gap:
             szr_top.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
         szr_top.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
@@ -238,12 +190,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_bottom = wx.BoxSizer(wx.VERTICAL)
         lbl_titles = wx.StaticText(self.panel_bottom, -1, _("Title:"))
         lbl_titles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.txt_titles = wx.TextCtrl(self.panel_bottom, -1, size=(250,40), 
+        self.txt_titles = wx.TextCtrl(self.panel_bottom, -1, size=(250,20), 
                                       style=wx.TE_MULTILINE)
         lbl_subtitles = wx.StaticText(self.panel_bottom, -1, _("Subtitle:"))
         lbl_subtitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, 
                                           wx.BOLD))
-        self.txt_subtitles = wx.TextCtrl(self.panel_bottom, -1, size=(250,40), 
+        self.txt_subtitles = wx.TextCtrl(self.panel_bottom, -1, size=(250,20), 
                                          style=wx.TE_MULTILINE)
         szr_titles.Add(lbl_titles, 0, wx.RIGHT, 5)
         szr_titles.Add(self.txt_titles, 1, wx.RIGHT, 10)
@@ -264,14 +216,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW)
         szr_lower.Add(szr_bottom_left, 1, wx.GROW)
         szr_lower.Add(self.szr_output_btns, 0, wx.GROW|wx.LEFT, 10)
-        szr_bottom.Add(szr_titles, 0, wx.GROW|wx.ALL, 10)
+        szr_bottom.Add(szr_titles, 0, wx.GROW|wx.LEFT|wx.TOP|wx.RIGHT, 10)
         szr_bottom.Add(szr_lower, 2, wx.GROW|wx.ALL, 10)
         self.add_other_var_opts()
         self.panel_bottom.SetSizer(szr_bottom)
         szr_bottom.SetSizeHints(self.panel_bottom)
         # assemble entire frame
         szr_main.Add(self.panel_top, 0, wx.GROW)
-        static_box_gap = 0 if mg.PLATFORM == mg.MAC else 10
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
         szr_main.Add(self.panel_mid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
@@ -281,10 +232,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_lst = [self.panel_top, self.panel_mid, self.panel_bottom]
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024, 
                      height_init=myheight)
-        
-        self.drop_group_by.Enable(False)
-        self.drop_group_a.Enable(False)
-        self.drop_group_b.Enable(False)
 
     def on_show(self, event):
         try:
@@ -384,7 +331,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.min_data_type = mg.CHART_TYPE_TO_MIN_DATA_TYPE.get(self.chart_type, 
                                                                 mg.VAR_TYPE_CAT)
         self.panel_displayed.Show(False)        
-        var_gp, var_name1, var_name2 = self.get_vars()
+        var_name1, var_name2 = self.get_vars()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, 
                        self.sorted_var_names1, var_name1)
         show = (self.chart_type in mg.TWO_VAR_CHART_TYPES)
@@ -453,7 +400,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"titles=%s" % unicode(titles))
         script_lst.append(u"subtitles=%s" % unicode(subtitles))
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
-        var_gp, var_name1, var_name2 = self.get_vars()
+        var_name1, var_name2 = self.get_vars()
         script_lst.append(u"fld_measure = u\"%s\"" % var_name1)
         if self.chart_type in mg.TWO_VAR_CHART_TYPES:
             script_lst.append(u"fld_gp = u\"%s\"" % var_name2)
@@ -629,8 +576,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.refresh_vars()
     
     def refresh_vars(self):
-        var_gp, var_name1, var_name2 = self.get_vars()
-        self.setup_group_by(var_gp)
+        var_name1, var_name2 = self.get_vars()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
                        var_name1)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2,
@@ -645,22 +591,18 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         config_dlg.ConfigDlg.on_database_sel(self, event)
         # now update var dropdowns
         self.update_var_dets()
-        self.setup_group_by()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
                        var_name=None, inc_drop_select=True)
-        self.setup_group_by_dropdowns()
                 
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
         config_dlg.ConfigDlg.on_table_sel(self, event)
         # now update var dropdowns
         self.update_var_dets()
-        self.setup_group_by()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
                        var_name=None, inc_drop_select=False)
-        self.setup_group_by_dropdowns()
     
     def on_var_dets_file_lost_focus(self, event):
         """
@@ -668,14 +610,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             position may have changed.
         """
         val_a, val_b = self.get_vals()
-        var_gp, var_name1, var_name2 = self.get_vars()
+        var_name1, var_name2 = self.get_vars()
         config_dlg.ConfigDlg.on_var_dets_file_lost_focus(self, event)
-        self.setup_group_by(var_gp)
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
                        var_name1)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
                        var_name2, inc_drop_select=True)
-        self.setup_group_by_dropdowns(val_a, val_b)
         self.update_defaults()
         
     def on_btn_var_dets_path(self, event):
@@ -684,14 +624,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             position may have changed.
         """
         val_a, val_b = self.get_vals()
-        var_gp, var_name1, var_name2 = self.get_vars()
+        var_name1, var_name2 = self.get_vars()
         config_dlg.ConfigDlg.on_btn_var_dets_path(self, event)
-        self.setup_group_by(var_gp)
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
                        var_name1)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
                        var_name2, inc_drop_select=False)
-        self.setup_group_by_dropdowns(val_a, val_b)
         self.update_defaults()
 
     def get_vars(self):
@@ -706,51 +644,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                                   self.sorted_var_names2)
         else:
             var_name2 = None
-        var_gp, unused = self.get_group_by()
-        return var_gp, var_name1, var_name2
+        return var_name1, var_name2
     
     def update_defaults(self):
-        mg.GROUP_BY_DEFAULT = self.drop_group_by.GetStringSelection()
         mg.VAR_1_DEFAULT = self.drop_var1.GetStringSelection()
         mg.VAR_2_DEFAULT = self.drop_var2.GetStringSelection()
-        mg.VAL_A_DEFAULT = self.drop_group_a.GetStringSelection()
-        mg.VAL_B_DEFAULT = self.drop_group_b.GetStringSelection()
    
-    def get_drop_vals(self):
-        """
-        Get values from main drop downs.
-        Returns var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, 
-            label_b, var_1, label_1, var_1, label_1.
-        """
-        selection_idx_gp = self.drop_group_by.GetSelection()
-        var_gp = self.sorted_var_names_by[selection_idx_gp]
-        label_gp = lib.get_item_label(item_labels=self.var_labels, 
-                                      item_val=var_gp)
-        var_gp_numeric = dd.flds[var_gp][mg.FLD_BOLNUMERIC]
-        # Now the a and b choices under the group
-        val_dic = self.val_dics.get(var_gp, {})
-        selection_idx_a = self.drop_group_a.GetSelection()
-        val_a_raw = self.gp_vals_sorted[selection_idx_a]
-        val_a = lib.any2unicode(val_a_raw)
-        label_a = lib.get_item_label(item_labels=val_dic, 
-                                     item_val=val_a_raw)
-        selection_idx_b = self.drop_group_b.GetSelection()
-        val_b_raw = self.gp_vals_sorted[selection_idx_b]
-        val_b = lib.any2unicode(val_b_raw)
-        label_b = lib.get_item_label(item_labels=val_dic, 
-                                     item_val=val_b_raw)
-        # the other variable(s)
-        selection_idx_1 = self.drop_var1.GetSelection()
-        var_1 = self.sorted_var_names1[selection_idx_1]
-        label_1 = lib.get_item_label(item_labels=self.var_labels, 
-                                     item_val=var_1)
-        selection_idx_2 = self.drop_var2.GetSelection()
-        var_2 = self.sorted_var_names2[selection_idx_2]
-        label_2 = lib.get_item_label(item_labels=self.var_labels, 
-                                     item_val=var_2)
-        return var_gp_numeric, var_gp, label_gp, val_a, label_a, \
-            val_b, label_b, var_1, label_1, var_2, label_2
-
     def update_phrase(self):
         pass
 
@@ -763,56 +662,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 self.drop_var2.GetStringSelection() == mg.DROP_SELECT):
             wx.MessageBox(_("A selection must be made for Variable 2"))
             return False
-        if self.drop_group_by.GetStringSelection() == \
-                self.drop_var1.GetStringSelection():
-            wx.MessageBox(_("Variable 1 and the Grouped By Variable cannot be "
-                            "the same"))
-            return False
-        if self.chart_type in mg.TWO_VAR_CHART_TYPES and \
-                self.drop_group_by.GetStringSelection() == \
-                self.drop_var2.GetStringSelection() and \
-                self.drop_group_by.GetStringSelection() != mg.DROP_SELECT:
-            wx.MessageBox(_("Variable 2 and the Grouped By Variable cannot be "
-                            "the same"))
-            return False
         if (self.chart_type in mg.TWO_VAR_CHART_TYPES and
                 self.drop_var1.GetStringSelection() ==
                 self.drop_var2.GetStringSelection()):
             wx.MessageBox(_("Variable 1 and 2 cannot be the same"))
             return False
-        
-        # group A and B cannot be the same
-        # TODO reactivate when group by re-enabled
-        #if self.drop_group_a.GetStringSelection() == \
-        #        self.drop_group_b.GetStringSelection():
-        #    wx.MessageBox(_("Group A and Group B must be different"))
-        #    return False
-        
-        
-        
-        
-        
-        if self.takes_range:
-            var_gp_numeric, var_gp, unused, unused, unused, unused, unused, \
-                unused, unused, unused, unused = self.get_drop_vals()
-            # group a must be lower than group b
-            val_dic = self.val_dics.get(var_gp, {})
-            selection_idx_a = self.drop_group_a.GetSelection()
-            val_a = self.vals_with_labels[selection_idx_a]
-            selection_idx_b = self.drop_group_b.GetSelection()
-            val_b = self.vals_with_labels[selection_idx_b]
-            if var_gp_numeric:
-                # NB SQLite could have a string in a numeric field
-                # could cause problems even if the string value is not one of 
-                # the ones being tested as a range boundary here.
-                try:
-                    val_a = float(val_a)
-                    val_b = float(val_b)
-                except ValueError:
-                    wx.MessageBox(u"Both values must be numeric.  "
-                        u"Values selected were %s and %s" % (val_a, val_b))
-                    return False
-            if  val_a > val_b:
-                wx.MessageBox(_("Group A must be lower than Group B"))
-                return False
         return True
