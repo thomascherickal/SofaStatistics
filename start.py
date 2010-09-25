@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-dev_debug = True
+dev_debug = False
 test_lang = False
 
 """

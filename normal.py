@@ -277,7 +277,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                                     "and_filt": and_filt}
         dd.cur.execute(s)
         vals = [x[0] for x in dd.cur.fetchall()]
-        if len(set(vals)) == 1:
+        if len(set(vals)) < 2:
             raise my_exceptions.TooFewValsForDisplay
         if not self.paired:
             data_label = var_label_a
