@@ -143,8 +143,8 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
                                         output.get_stats_chart_colours(css_fil)
         charting_pylab.config_hist(fig, sample, label_avg, hist_label, False, 
                                    grid_bg, item_colours[0], line_colour)
-        img_src = save_report_img(add_to_report, report_name, 
-                                  save_func=pylab.savefig, dpi=100)
+        img_src = charting_pylab.save_report_img(add_to_report, report_name, 
+                                               save_func=pylab.savefig, dpi=100)
         html.append(u"\n<img src='%s'>" % img_src)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -283,8 +283,8 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg,
                                         output.get_stats_chart_colours(css_fil)
         charting_pylab.config_hist(fig, sample, label_avg, hist_label, False, 
                                    grid_bg, item_colours[0], line_colour)
-        img_src = save_report_img(add_to_report, report_name, 
-                                  save_func=pylab.savefig, dpi=100)
+        img_src = charting_pylab.save_report_img(add_to_report, report_name, 
+                                               save_func=pylab.savefig, dpi=100)
         html.append(u"\n<img src='%s'>" % img_src)
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
@@ -397,9 +397,11 @@ def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
                 u": %s</p>" % round(r, dp))
     grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
     dot_colour = item_colours[0]
+    title_dets_html = u"" # already got an appropriate title for whole section
     charting_pylab.add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, 
-                                   sample_b, label_a, label_b, a_vs_b, title, 
-                                   add_to_report, report_name, html)
+                                   sample_b, label_a, label_b, a_vs_b, 
+                                   title_dets_html, add_to_report, report_name, 
+                                   html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -421,9 +423,11 @@ def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
                 u": %s</p>" % round(r, dp))
     grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
     dot_colour = item_colours[0]
+    title_dets_html = u"" # already got an appropriate title for whole section
     charting_pylab.add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, 
-                                   sample_b, label_a, label_b, a_vs_b, title, 
-                                   add_to_report, report_name, html)
+                                   sample_b, label_a, label_b, a_vs_b, 
+                                   title_dets_html, add_to_report, report_name, 
+                                   html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

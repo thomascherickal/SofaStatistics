@@ -341,6 +341,9 @@ def setup_highlights(colour_mappings, single_colour,
     return colour_cases
 
 def get_title_dets_html(titles, subtitles, css_idx):
+    """
+    For titles and subtitles.
+    """
     (CSS_TBL_TITLE, CSS_TBL_SUBTITLE, 
                   CSS_TBL_TITLE_CELL) = output.get_title_css(css_idx)
     title_dets_html_lst = []
@@ -477,6 +480,7 @@ def piechart_output(titles, subtitles, slice_dets, css_fil, css_idx,
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    width = 500 if mg.PLATFORM == mg.WINDOWS else 450
     (outer_bg, inner_bg, axis_label_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
             colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
@@ -530,7 +534,7 @@ def piechart_output(titles, subtitles, slice_dets, css_fil, css_idx,
         style="width: %(width)spx; height: %(height)spx;"></div>
     <br>
     """ % {u"slice_colours": slice_colours, u"colour_cases": colour_cases, 
-           u"titles": title_dets_html, u"width": 400, u"height": 400,
+           u"titles": title_dets_html, u"width": width, u"height": 400,
            u"slices_js": slices_js, u"slice_fontsize": slice_fontsize, 
            u"label_font_colour": label_font_colour,
            u"tooltip_border_colour": tooltip_border_colour,
@@ -858,10 +862,9 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
                                         output.get_stats_chart_colours(css_fil)
         colours = item_colours + mg.DOJO_COLOURS
         dot_colour = colours[0]
-        title = _("Scatterplot for %s" % a_vs_b)
         charting_pylab.add_scatterplot(grid_bg, dot_colour, line_colour, 
                                        sample_a, sample_b, label_a, label_b, 
-                                       a_vs_b, title, add_to_report, 
+                                       a_vs_b, title_dets_html, add_to_report, 
                                        report_name, html)
     else:
         width = 700

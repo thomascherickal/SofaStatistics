@@ -236,14 +236,23 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
         css = get_fallback_css()
     if has_dojo:
         if new_js_n_charts is None:
-            make_objs_func_str = u"    makechartRenumber();"
+            make_objs_func_str = (
+                u"\n        try{"
+                u"    makechartRenumber();"
+                u"\n        } catch(exceptionObject) {"
+                u"\n            var keepGoing = true;"
+                u"\n        }")
         else:
-            make_objs_func_str = u"    //n_charts_start" + \
-                u"\n    %s%s;" % (mg.JS_N_CHARTS_STR, new_js_n_charts) + \
-                u"\n    //n_charts_end" + \
-                u"\n    for(var i=0;i<n_charts;i++){" + \
-                u"\n        window[\"makechart\" + i]();" + \
-                u"\n    }"
+            make_objs_func_str = (u"    //n_charts_start"
+                u"\n    %s%s;" % (mg.JS_N_CHARTS_STR, new_js_n_charts) +
+                u"\n    //n_charts_end"
+                u"\n    for(var i=0;i<n_charts;i++){"
+                u"\n        try{"
+                u"\n            window[\"makechart\" + i]();"
+                u"\n        } catch(exceptionObject) {"
+                u"\n            var keepGoing = true;"
+                u"\n        }"
+                u"\n    }")
         dojo_insert = u"""
 <link rel='stylesheet' type='text/css' href="sofa_report_extras/tundra.css" />
 <script src="sofa_report_extras/dojo.xd.js"></script>

@@ -154,7 +154,7 @@ def config_scatterplot(grid_bg, dot_colour, line_colour, fig, sample_a,
     pylab.legend(loc="best")
 
 def add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, sample_b, 
-                    label_a, label_b, a_vs_b, title, add_to_report, 
+                    label_a, label_b, a_vs_b, title_dets_html, add_to_report, 
                     report_name, html):
     """
     Toggle prefix so every time this is run internally only, a different image 
@@ -168,6 +168,7 @@ def add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, sample_b,
                        sample_b, label_a, label_b, a_vs_b)
     img_src = save_report_img(add_to_report, report_name, 
                               save_func=pylab.savefig, dpi=100)
+    html.append(title_dets_html)
     html.append(u"\n<img src='%s'>" % img_src)
     if debug: print("Just linked to %s" % img_src)
 
