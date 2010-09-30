@@ -7,6 +7,7 @@ NB no html headers here - the script generates those beforehand and appends
     this and then the html footer.
 """
 
+import math
 import pprint
 
 import my_globals as mg
@@ -160,6 +161,116 @@ def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, fld_measure,
         slice_dets.append(slice_dic)
     return slice_dets
 
+def get_bins(min_val, max_val):
+    """
+    Goal - set nice bin widths so "nice" value e.g. 0.2, 0.5, 1 (or
+        200, 500, 1000 or 0.002, 0.005, 0.01) and not too many or too few
+        bins.
+    Start with a bin width which splits the data into the optimal number 
+        of bins.  Normalise it, adjust upwards to nice size, and 
+        denormalise.  Check number of bins resulting.
+    OK?  If room to double number of bins, halve size of normalised bin
+        width, and try to adjust upwards to a nice size.  This time,
+        however, there is the option of 2 as an interval size (so we have
+        2, 5, or 10.  Denormalise and recalculate the number of bins.
+    Now reset lower and upper limits if appropriate.  Make lower limit a 
+        multiple of the bin_width and make upper limit n_bins*bin_width higher.
+        Add another bin if not covering max value.
+    n_bins -- need an integer ready for core_stats.histogram
+    """
+    debug = False
+    # init
+    if min_val > max_val:
+        if debug: print("Had to swap %s and %s ..." % (min_val, max_val))
+        min_val, max_val = max_val, min_val
+        if debug: print("... to %s and %s" % (min_val, max_val))
+    data_range = max_val - min_val
+    target_n_bins = 20
+    min_n_bins = 10
+    target_bin_width = 5 # half order of magnitude (10s are order of mag)
+    init_bin_width = data_range/(target_n_bins*1.0)
+    # normalise init_bin_width to val between 1 and 10
+    norm_bin_width = init_bin_width
+    while norm_bin_width <= 1:
+        norm_bin_width *= 10
+    while norm_bin_width > 10:
+        norm_bin_width /= 10.0
+    if debug:
+        print("init: %s, normed: %s" % (init_bin_width, norm_bin_width))
+    # get denorm ratio so can convert norm_bin widths back to data bin widths
+    denorm_ratio = init_bin_width/norm_bin_width
+    # adjust upwards to either 5 or 10
+    better_norm_bin_width = 5 if norm_bin_width <= 5 else 10
+    # denormalise
+    better_bin_width = better_norm_bin_width*denorm_ratio
+    n_bins = int(math.ceil(data_range/better_bin_width))
+    # possible to increase granularity?
+    if n_bins < min_n_bins:
+        # halve normalised bin width and try again but with an extra option of 2
+        norm_bin_width /= 2.0
+        if norm_bin_width <= 2:
+            better_norm_bin_width = 2
+        elif norm_bin_width <= 5:
+            better_norm_bin_width = 5
+        else:
+            better_norm_bin_width = 10
+        # denormalise
+        better_bin_width = better_norm_bin_width*denorm_ratio
+        n_bins = int(math.ceil(data_range/(better_bin_width*1.0)))
+    lower_limit = min_val
+    upper_limit = max_val
+    # Adjust lower and upper limits if bin_width doesn't exactly fit.  If an
+    # exact fit, leave alone on assumption the limits are meaningful e.g. if
+    # 9.69 - 19.69 and 20 bins then leave limits alone.
+    if better_bin_width*n_bins != data_range:
+        if debug: print(data_range, better_bin_width*n_bins)
+        # Set lower limit to a clean multiple of the bin_width e.g. 3*bin_width
+        # or -6*bin_width. Identify existing multiple and set to integer below
+        # (floor). Lower limit is now that lower integer times the bin_width.
+        # NB the multiple is an integer but the lower limit might not be
+        # e.g. if the bin_size is a fraction e.g. 0.002
+        existing_multiple = lower_limit/(better_bin_width*1.0)
+        lower_limit = math.floor(existing_multiple)*better_bin_width
+        upper_limit = lower_limit + (n_bins*better_bin_width)
+    if max_val > upper_limit:
+        upper_limit += better_bin_width
+        n_bins += 1
+    if debug:
+        print(("For %s to %s use an interval size of %s for a data range of %s "
+               "to %s giving you %s bins") % (min_val, max_val, 
+                                              better_bin_width, lower_limit, 
+                                              upper_limit, n_bins))
+    return n_bins, lower_limit, upper_limit
+
+def saw_toothing(y_vals, period, start_idx=0):
+    """
+    Sawtoothing is where every nth bin has values, but the others have none.
+    """
+    period_vals = y_vals[start_idx::period]
+    sum_period = sum(period_vals)
+    sum_all = sum(y_vals)
+    sum_non_period = sum_all - sum_period
+    return sum_non_period == 0
+
+def fix_sawtoothing(raw_data, n_bins, y_vals, start, bin_width):
+    """
+    Look for sawtoothing on commonly found periods (5 and 2).  If found, reduce
+        bins until problem gone or too few bins to keep shrinking.
+    """
+    while n_bins > 5:
+        if saw_toothing(y_vals, period=5):
+            shrink_factor = 5.0
+        elif saw_toothing(y_vals, period=2):
+            shrink_factor = 2.0
+        elif saw_toothing(y_vals, period=2, start_idx=1):
+            shrink_factor = 2.0
+        else:
+            break
+        n_bins = math.ceil(n_bins/shrink_factor)
+        (y_vals, start, 
+         bin_width, unused) = core_stats.histogram(raw_data, n_bins)
+    return y_vals, start, bin_width
+
 def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure):
     """
     xaxis_dets -- [(1, u""), (2: u"", ...]
@@ -178,26 +289,30 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure):
     vals = [x[0] for x in cur.fetchall()]
     if not vals:
         raise my_exceptions.TooFewValsForDisplay
-    nbins = lib.get_nbins_from_vals(vals)
-    y_vals, start, width, extra_points = core_stats.histogram(vals, 
-                                                              numbins=nbins)
+    # use nicest bins practical
+    n_bins, lower_limit, upper_limit = get_bins(min(vals), max(vals))
+    y_vals, start, bin_width, unused = \
+             core_stats.histogram(vals, n_bins, defaultreallimits=[lower_limit, 
+                                                                   upper_limit])
+    y_vals, start, bin_width = fix_sawtoothing(vals, n_bins, y_vals, start, 
+                                               bin_width)
     minval = start
     # only show as many decimal points as needed
     dp = 0
     while True:
-        if (round(start, dp) != round(start + width, dp)) or dp > 6:
+        if (round(start, dp) != round(start + bin_width, dp)) or dp > 6:
             break
         dp += 1
     bin_ranges = []
     for y_val in y_vals:
         bin_start = round(start, dp)
-        bin_end = round(start + width, dp)
+        bin_end = round(start + bin_width, dp)
         start = bin_end
         bin_ranges.append((bin_start, bin_end))
     bin_labels = [_(u"%(lower)s to < %(upper)s") % 
                         {u"lower": x[0], u"upper": x[1]} for x in bin_ranges]
     maxval = bin_end
-    xaxis_dets = [(x+1, u"") for x in range(nbins)]
+    xaxis_dets = [(x+1, u"") for x in range(n_bins)]
     if debug: print(minval, maxval, xaxis_dets, y_vals, bin_labels)
     return minval, maxval, xaxis_dets, y_vals, bin_labels
 
@@ -750,6 +865,7 @@ def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets,
                      y_vals, bin_labels, css_fil, css_idx, 
                      page_break_after=False):
     """
+    See http://trac.dojotoolkit.org/ticket/7926 - he had trouble doing this then
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
     minval -- minimum values for x axis
@@ -892,6 +1008,8 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
             fill = colour_mappings[0][0]
         except IndexError, e:
             fill = mg.DOJO_COLOURS[0]
+        # marker - http://o.dojotoolkit.org/forum/dojox-dojox/dojox-support/...
+        # ...newbie-need-svg-path-segment-string
         html.append(u"""
         <script type="text/javascript">
     
