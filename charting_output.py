@@ -144,8 +144,8 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt, fld_measure,
 def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
                        slice_val_labels):
     label_dets, max_label_len, slice_vals = get_basic_dets(dbe, cur, tbl, 
-                                                         tbl_filt, fld_measure, 
-                                                         slice_val_labels)
+                                                          tbl_filt, fld_measure, 
+                                                          slice_val_labels)
     if len(label_dets) != len(slice_vals):
         raise Exception(u"Mismatch in number of slice labels and slice values")
     if len(slice_vals) > 30:
@@ -153,7 +153,10 @@ def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, fld_measure,
     tot_freq = sum(slice_vals)
     slice_dets = []
     for i, slice_val in enumerate(slice_vals):
-        slice_dic = {u"y": slice_val, u"text": label_dets[i][1], 
+        label = label_dets[i][1]
+        if len(label) > 12:
+            label = u"<br>".join(label.split())
+        slice_dic = {u"y": slice_val, u"text": label, 
                      u"tooltip": u"%s<br>%s (%s%%)" % 
                      (label_dets[i][1], slice_val, 
                       round((100.0*slice_val)/tot_freq,1))}
