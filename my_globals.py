@@ -13,7 +13,7 @@ import wx
 
 debug = False
 
-VERSION = u"0.9.18"
+VERSION = u"0.9.19"
 
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"

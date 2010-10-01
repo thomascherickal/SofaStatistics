@@ -438,12 +438,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.szr_con_dets.SetVirtualSizeHints(self.scroll_con_dets)
         # CONFIG
         # mixin supplying self.szr_config_top and self.szr_config_bottom
-        self.szr_config_bottom, self.szr_config_top = \
-            self.get_misc_config_szrs(self.panel_config, readonly=self.readonly)
-        self.szr_config.Add(self.szr_config_top, 0, 
-                            wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        self.szr_config.Add(self.szr_config_bottom, 0, 
-                            wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        self.szr_config = self.get_config_szr(self.panel_config, 
+                                              readonly=self.readonly)
         self.panel_config.SetSizer(self.szr_config)
         self.szr_config.SetSizeHints(self.panel_config)
         # BOTTOM

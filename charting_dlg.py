@@ -201,8 +201,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_titles.Add(self.txt_titles, 1, wx.RIGHT, 10)
         szr_titles.Add(lbl_subtitles, 0, wx.RIGHT, 5)
         szr_titles.Add(self.txt_subtitles, 1)
-        self.szr_config_bottom, self.szr_config_top = \
-            self.get_misc_config_szrs(self.panel_bottom) # mixin                         
+        self.szr_config = self.get_config_szr(self.panel_bottom) # mixin                         
         self.szr_output_btns = self.get_szr_output_btns(self.panel_bottom, 
                                                         inc_clear=False) # mixin
         self.html = full_html.FullHTML(panel=self.panel_bottom, parent=self, 
@@ -212,8 +211,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         else:
             self.Bind(wx.EVT_SHOW, self.on_show)
         szr_bottom_left.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
-        szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW)
-        szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW)
+        szr_bottom_left.Add(self.szr_config, 0, wx.GROW)
         szr_lower.Add(szr_bottom_left, 1, wx.GROW)
         szr_lower.Add(self.szr_output_btns, 0, wx.GROW|wx.LEFT, 10)
         szr_bottom.Add(szr_titles, 0, wx.GROW|wx.LEFT|wx.TOP|wx.RIGHT, 10)
@@ -603,29 +601,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
                        var_name=None, inc_drop_select=False)
-    
-    def on_var_dets_file_lost_focus(self, event):
+       
+    def on_btn_config(self, event):
         """
         Want to retain already selected item - even though label and even 
             position may have changed.
         """
-        val_a, val_b = self.get_vals()
         var_name1, var_name2 = self.get_vars()
-        config_dlg.ConfigDlg.on_var_dets_file_lost_focus(self, event)
-        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
-                       var_name1)
-        self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
-                       var_name2, inc_drop_select=True)
-        self.update_defaults()
-        
-    def on_btn_var_dets_path(self, event):
-        """
-        Want to retain already selected item - even though label and even 
-            position may have changed.
-        """
-        val_a, val_b = self.get_vals()
-        var_name1, var_name2 = self.get_vars()
-        config_dlg.ConfigDlg.on_btn_var_dets_path(self, event)
+        config_dlg.ConfigDlg.on_btn_config(self, event)
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
                        var_name1)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 

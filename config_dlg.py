@@ -58,6 +58,115 @@ def path2style(path):
     return style
 
 
+class ExtraOutputConfigDlg(wx.Dialog):
+    def __init__(self, parent, readonly):
+        debug = False
+        wx.Dialog.__init__(self, parent=parent, 
+                           title=_("Extra output settings"), 
+                           style=wx.CAPTION|wx.SYSTEM_MENU, 
+                           pos=(mg.HORIZ_OFFSET+100,100))
+        self.parent = parent
+        self.panel = wx.Panel(self)
+        bx_var_config = wx.StaticBox(self.panel, -1, 
+                                     _("Variable config from ... "))
+        bx_script_config = wx.StaticBox(self.panel, -1, 
+                                        _("Export script here to reuse "))        
+        self.txt_var_dets_file = wx.TextCtrl(self.panel, -1, 
+                                        cc[mg.CURRENT_VDTS_PATH], size=(500,-1))
+        self.txt_var_dets_file.Enable(not readonly)
+        # Data config details
+        browse = _("Browse")
+        self.btn_var_dets_path = wx.Button(self.panel, -1, browse)
+        self.btn_var_dets_path.Bind(wx.EVT_BUTTON, self.on_btn_var_dets_path)
+        self.btn_var_dets_path.Enable(not readonly)
+        self.btn_var_dets_path.SetToolTipString(_("Select an existing variable "
+                                                  "config file"))
+        # script
+        self.txt_script_file = wx.TextCtrl(self.panel, -1, 
+                                      cc[mg.CURRENT_SCRIPT_PATH], size=(500,-1))
+        self.txt_script_file.Enable(not readonly)
+        self.btn_script_path = wx.Button(self.panel, -1, browse)
+        self.btn_script_path.Bind(wx.EVT_BUTTON, self.on_btn_script_path)
+        self.btn_script_path.Enable(not readonly)   
+        self.btn_script_path.SetToolTipString(_("Select or create a Python "
+                                                "script file"))
+        szr_main = wx.BoxSizer(wx.VERTICAL)
+        # Variables
+        szr_var_config = wx.StaticBoxSizer(bx_var_config, wx.HORIZONTAL)
+        szr_var_config.Add(self.txt_var_dets_file, 1, wx.GROW)
+        szr_var_config.Add(self.btn_var_dets_path, 0, wx.LEFT|wx.RIGHT, 5)
+        # Script
+        szr_script_config = wx.StaticBoxSizer(bx_script_config, wx.HORIZONTAL)
+        szr_script_config.Add(self.txt_script_file, 1, wx.GROW)
+        szr_script_config.Add(self.btn_script_path, 0, wx.LEFT|wx.RIGHT, 5)
+        self.setup_btns()
+        szr_main.Add(szr_var_config, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(szr_script_config, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_btns_wrapper = wx.BoxSizer(wx.HORIZONTAL)
+        szr_btns_wrapper.Add(self.szr_btns, 1, wx.GROW|wx.ALL, 10)
+        szr_main.Add(szr_btns_wrapper, 0, wx.GROW|wx.RIGHT, 10)
+        self.panel.SetSizer(szr_main)
+        szr_main.SetSizeHints(self)
+        self.Layout()
+        self.txt_script_file.SetFocus()
+
+    def setup_btns(self):
+        """
+        Must have ID of wx.ID_... to trigger validators (no event binding 
+            needed) and for std dialog button layout.
+        NB can only add some buttons as part of standard sizer to be realised.
+        Insert or Add others after the Realize() as required.
+        See http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605904
+        and http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605432
+        """
+        btn_cancel = wx.Button(self.panel, wx.ID_CANCEL) # 
+        btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
+        btn_ok = wx.Button(self.panel, wx.ID_OK, _("Apply"))
+        btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
+        self.szr_btns = wx.StdDialogButtonSizer()
+        # assemble
+        self.szr_btns.AddButton(btn_cancel)
+        self.szr_btns.AddButton(btn_ok)
+        self.szr_btns.Realize()
+        btn_ok.SetDefault()
+
+    def on_cancel(self, event):
+        self.Destroy()
+        self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
+        # (MUST come after Destroy)
+
+    def on_ok(self, event):
+        debug = False
+        cc[mg.CURRENT_VDTS_PATH] = self.txt_var_dets_file.GetValue()
+        cc[mg.CURRENT_SCRIPT_PATH] = self.txt_script_file.GetValue()
+        self.parent.update_var_dets()
+        self.Destroy()
+        self.SetReturnCode(wx.ID_OK) # or nothing happens!  
+        # Prebuilt dialogs must do this internally.
+
+    def on_btn_var_dets_path(self, event):
+        "Open dialog and takes the variable details file selected (if any)"
+        dlg_get_file = wx.FileDialog(self, 
+            _("Choose an existing variable config file:"), 
+            defaultDir=os.path.join(mg.LOCAL_PATH, u"vdts"), 
+            defaultFile=u"", wildcard=_("Config files (*.vdts)|*.vdts"))
+            # MUST have a parent to enforce modal in Windows
+        if dlg_get_file.ShowModal() == wx.ID_OK:
+            self.txt_var_dets_file.SetValue(dlg_get_file.GetPath())
+        dlg_get_file.Destroy()
+    
+    def on_btn_script_path(self, event):
+        "Open dialog and takes the script file selected (if any)"
+        dlg_get_file = wx.FileDialog(self, 
+            _("Choose or create a file to export scripts to:"), 
+            defaultDir=os.path.join(mg.LOCAL_PATH, "scripts"), 
+            defaultFile="", wildcard=_("Scripts (*.py)|*.py"),
+            style=wx.SAVE)
+            # MUST have a parent to enforce modal in Windows
+        if dlg_get_file.ShowModal() == wx.ID_OK:
+            self.txt_script_file.SetValue(dlg_get_file.GetPath())
+        dlg_get_file.Destroy()
+                   
 
 class ConfigDlg(object):
     """
@@ -71,17 +180,15 @@ class ConfigDlg(object):
 
     def get_gen_config_szrs(self, panel, readonly=False):
         """
-        Returns self.szr_data, self.szr_config_bottom (vars and css), 
-            self.szr_config_top (reports and scripts) complete
-            with widgets.  mg.DATA_DETS as dd is set up ready to use.
+        Returns self.szr_data, self.szr_config (reports and css) complete with 
+            widgets.  mg.DATA_DETS as dd is set up ready to use.
         Widgets include dropdowns for database and tables, and textboxes plus 
-            Browse buttons for labels, style, output, and script.
+            Browse buttons for output and style.
         Each widget has a set of events ready to go as well.
         """
         self.szr_data = self.get_szr_data(panel)
-        self.szr_config_bottom, self.szr_config_top = \
-                                    self.get_misc_config_szrs(panel, readonly)
-        return self.szr_data, self.szr_config_bottom, self.szr_config_top
+        self.szr_config = self.get_config_szr(panel, readonly)
+        return self.szr_data, self.szr_config
         
     def get_szr_data(self, panel):
         """
@@ -116,31 +223,19 @@ class ConfigDlg(object):
         self.szr_data.Add(btn_filter, 0)
         return self.szr_data
               
-    def get_misc_config_szrs(self, panel, readonly=False):
+    def get_config_szr(self, panel, readonly=False):
         """
-        Returns self.szr_config_bottom (vars and css), self.szr_config_top 
-            (reports and scripts) complete with widgets.
-        Widgets include textboxes plus Browse buttons for labels, style, output, 
-            and script.
+        Returns self.szr_config (reports and css) complete with widgets.
+        Widgets include textboxes plus Browse buttons for output and style.
         Each widget has a set of events ready to go as well.
         """
         debug = False
-        bx_report_config = wx.StaticBox(panel, -1, _("Send output to ..."))
-        bx_css_config = wx.StaticBox(panel, -1, _("Style output using ..."))
-        bx_var_config = wx.StaticBox(panel, -1, _("Variable config from ..."))
-        bx_script_config = wx.StaticBox(panel, -1, _("Export here to reuse"))
-        # Data config details
-        self.txt_var_dets_file = wx.TextCtrl(panel, -1, 
-                                        cc[mg.CURRENT_VDTS_PATH], size=(200,-1))
-        self.txt_var_dets_file.Bind(wx.EVT_KILL_FOCUS, 
-                                    self.on_var_dets_file_lost_focus)
-        self.txt_var_dets_file.Enable(not readonly)
+        self.readonly = readonly
         browse = _("Browse")
-        self.btn_var_dets_path = wx.Button(panel, -1, browse)
-        self.btn_var_dets_path.Bind(wx.EVT_BUTTON, self.on_btn_var_dets_path)
-        self.btn_var_dets_path.Enable(not readonly)
-        self.btn_var_dets_path.SetToolTipString(_("Select an existing variable "
-                                                  "config file"))
+        bx_report_config = wx.StaticBox(panel, -1, 
+                                        _("Send output to report ... "))
+        bx_css_config = wx.StaticBox(panel, -1, _("Style output using ... "))
+        self.szr_config = wx.BoxSizer(wx.HORIZONTAL)
         # Style config details
         if debug: print(os.listdir(mg.CSS_PATH))
         style_choices = [x[:-len(".css")] for x in os.listdir(mg.CSS_PATH) 
@@ -150,7 +245,7 @@ class ConfigDlg(object):
         idx_fil_css = style_choices.index(path2style(cc[mg.CURRENT_CSS_PATH]))
         self.drop_style.SetSelection(idx_fil_css)
         self.drop_style.Bind(wx.EVT_CHOICE, self.on_drop_style)
-        self.drop_style.Enable(not readonly)
+        self.drop_style.Enable(not self.readonly)
         self.drop_style.SetToolTipString(_("Select an existing css style file"))
         # Output details
         # report
@@ -158,51 +253,43 @@ class ConfigDlg(object):
                                     cc[mg.CURRENT_REPORT_PATH], size=(300,-1))
         self.txt_report_file.Bind(wx.EVT_KILL_FOCUS, 
                                 self.on_report_file_lost_focus)
-        self.txt_report_file.Enable(not readonly)
+        self.txt_report_file.Enable(not self.readonly)
         self.btn_report_path = wx.Button(panel, -1, browse)
         self.btn_report_path.Bind(wx.EVT_BUTTON, self.on_btn_report_path)
-        self.btn_report_path.Enable(not readonly)
+        self.btn_report_path.Enable(not self.readonly)
         self.btn_report_path.SetToolTipString(_("Select or create an HTML "
                                                 "output file"))
         self.btn_view = wx.Button(panel, -1, _("View"))
         self.btn_view.Bind(wx.EVT_BUTTON, self.on_btn_view)
-        self.btn_view.Enable(not readonly)
+        self.btn_view.Enable(not self.readonly)
         self.btn_view.SetToolTipString(_("View selected HTML output file in "
                                          "your default browser"))
-        # script
-        self.txt_script_file = wx.TextCtrl(panel, -1, 
-                                   cc[mg.CURRENT_SCRIPT_PATH], size=(200,-1))
-        self.txt_script_file.Bind(wx.EVT_KILL_FOCUS, 
-                                  self.on_script_file_lost_focus)
-        self.txt_script_file.Enable(not readonly)
-        self.btn_script_path = wx.Button(panel, -1, browse)
-        self.btn_script_path.Bind(wx.EVT_BUTTON, self.on_btn_script_path)
-        self.btn_script_path.Enable(not readonly)   
-        self.btn_script_path.SetToolTipString(_("Select or create a Python "
-                                                "script file"))
-        self.szr_config_top = wx.BoxSizer(wx.HORIZONTAL)
-        self.szr_config_bottom = wx.BoxSizer(wx.HORIZONTAL)
+        btn_config = wx.Button(panel, -1, _("Config"))
+        btn_config.Bind(wx.EVT_BUTTON, self.on_btn_config)
+        btn_config.SetToolTipString(_("Configure variable details file and "
+                                      "script file"))
         # Report
         szr_report_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
         szr_report_config.Add(self.txt_report_file, 1, wx.GROW)
         szr_report_config.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
         szr_report_config.Add(self.btn_view, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szr_config_top.Add(szr_report_config, 3, wx.RIGHT, 10)
+        self.szr_config.Add(szr_report_config, 3, wx.RIGHT, 5)
         # Style
         szr_style_config = wx.StaticBoxSizer(bx_css_config, wx.HORIZONTAL)
         szr_style_config.Add(self.drop_style, 1, wx.GROW)
-        self.szr_config_top.Add(szr_style_config, 1)
-        # Variables
-        szr_var_config = wx.StaticBoxSizer(bx_var_config, wx.HORIZONTAL)
-        szr_var_config.Add(self.txt_var_dets_file, 1, wx.GROW)
-        szr_var_config.Add(self.btn_var_dets_path, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szr_config_bottom.Add(szr_var_config, 1, wx.RIGHT, 10)
-        # Script
-        szr_script_config = wx.StaticBoxSizer(bx_script_config, wx.HORIZONTAL)
-        szr_script_config.Add(self.txt_script_file, 1, wx.GROW)
-        szr_script_config.Add(self.btn_script_path, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szr_config_bottom.Add(szr_script_config, 1)
-        return self.szr_config_bottom, self.szr_config_top
+        self.szr_config.Add(szr_style_config, 1, wx.RIGHT, 5)
+        self.szr_config.Add(btn_config, 0, wx.TOP, 17)
+        return self.szr_config
+    
+    def update_var_dets(self):
+        "Update all variable details, including those already displayed"
+        (self.var_labels, self.var_notes, self.var_types, 
+                     self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
+    
+    def on_btn_config(self, event):
+        dlg = ExtraOutputConfigDlg(parent=self, readonly=self.readonly)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def get_titles(self):
         """
@@ -280,14 +367,6 @@ class ConfigDlg(object):
                                  wx.ALIGN_BOTTOM|wx.BOTTOM, 5)
         return self.szr_output_btns
 
-    def reread_fil_var_dets(self):
-        cc[mg.CURRENT_VDTS_PATH] = self.txt_var_dets_file.GetValue()
-        
-    def update_var_dets(self):
-        "Update all variable details, including those already displayed"
-        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-                                    lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-
     # database/ tables (and views)
     def on_database_sel(self, event):
         """
@@ -312,7 +391,7 @@ class ConfigDlg(object):
     def on_rclick_tables(self, event):
         "Allow addition or removal of data filter"
         self.filters()
-        #event.Skip() - don't use or will appear twice in Windows!
+        # event.Skip() - don't use or will appear twice in Windows!
 
     def on_btn_filter(self, event):
         self.filters()
@@ -325,7 +404,7 @@ class ConfigDlg(object):
             defaultDir=mg.REPORTS_PATH, defaultFile=u"", 
             wildcard=_("HTML files (*.htm)|*.htm|HTML files (*.html)|*.html"),
             style=wx.SAVE)
-            #MUST have a parent to enforce modal in Windows
+            # MUST have a parent to enforce modal in Windows
         if dlg_get_file.ShowModal() == wx.ID_OK:
             cc[mg.CURRENT_REPORT_PATH] = u"%s" % dlg_get_file.GetPath()
             self.txt_report_file.SetValue(cc[mg.CURRENT_REPORT_PATH])
@@ -393,45 +472,6 @@ class ConfigDlg(object):
         cc[mg.CURRENT_REPORT_PATH] = self.txt_report_file.GetValue()
         event.Skip()
     
-    # script output
-    def on_btn_script_path(self, event):
-        "Open dialog and takes the script file selected (if any)"
-        dlg_get_file = wx.FileDialog(self, 
-            _("Choose or create a file to export scripts to:"), 
-            defaultDir=os.path.join(mg.LOCAL_PATH, "scripts"), 
-            defaultFile="", wildcard=_("Scripts (*.py)|*.py"),
-            style=wx.SAVE)
-            #MUST have a parent to enforce modal in Windows
-        if dlg_get_file.ShowModal() == wx.ID_OK:
-            cc[mg.CURRENT_SCRIPT_PATH] = u"%s" % dlg_get_file.GetPath()
-            self.txt_script_file.SetValue(cc[mg.CURRENT_SCRIPT_PATH])
-        dlg_get_file.Destroy()
-
-    def on_script_file_lost_focus(self, event):
-        "Reset script file"
-        cc[mg.CURRENT_SCRIPT_PATH] = self.txt_script_file.GetValue()
-        event.Skip()
-    
-    # label config
-    def on_var_dets_file_lost_focus(self, event):
-        self.reread_fil_var_dets()
-        self.update_var_dets()
-        event.Skip()
-
-    def on_btn_var_dets_path(self, event):
-        "Open dialog and takes the variable details file selected (if any)"
-        dlg_get_file = wx.FileDialog(self, 
-            _("Choose an existing variable config file:"), 
-            defaultDir=os.path.join(mg.LOCAL_PATH, u"vdts"), 
-            defaultFile=u"", wildcard=_("Config files (*.vdts)|*.vdts"))
-            #MUST have a parent to enforce modal in Windows
-        if dlg_get_file.ShowModal() == wx.ID_OK:
-            cc[mg.CURRENT_VDTS_PATH] = u"%s" % dlg_get_file.GetPath()
-            self.txt_var_dets_file.SetValue(cc[mg.CURRENT_VDTS_PATH])
-            self.reread_fil_var_dets()
-            self.update_var_dets()
-        dlg_get_file.Destroy()        
-
     # table style
     def on_drop_style(self, event):
         "Change style"
@@ -460,3 +500,4 @@ def add_icon(frame):
     icon_path = os.path.join(mg.SCRIPT_PATH, u"images", u"tinysofa.xpm")
     ib.AddIconFromFile(icon_path, wx.BITMAP_TYPE_XPM)
     frame.SetIcons(ib)
+    

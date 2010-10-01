@@ -317,8 +317,8 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, diffs,
     grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
     charting_pylab.config_hist(fig, diffs, _("Differences"), hist_label, False, 
                                grid_bg, item_colours[0], line_colour)
-    img_src = save_report_img(add_to_report, report_name, 
-                              save_func=pylab.savefig, dpi=100)
+    img_src = charting_pylab.save_report_img(add_to_report, report_name, 
+                                             save_func=pylab.savefig, dpi=100)
     html.append(u"\n<img src='%s'>" % img_src)
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
@@ -582,8 +582,8 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
                                     plot, var_label_a, y_label, val_labels_a_n, 
                                     val_labels_a, val_labels_b, 
                                     propns_as_in_bs_lst)
-    img_src = save_report_img(add_to_report, report_name, save_func=plot.save, 
-                              dpi=None)
+    img_src = charting_pylab.save_report_img(add_to_report, report_name, 
+                                             save_func=plot.save, dpi=None)
     html.append(u"\n<img src='%s'>" % img_src)
     # chart 2 - freqs
     plot = boomslang.Plot()
@@ -599,8 +599,8 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     charting_pylab.config_clustered_barchart(grid_bg, bar_colours, line_colour, 
                                     plot, var_label_a, y_label, val_labels_a_n, 
                                     val_labels_a, val_labels_b, as_in_bs_lst)
-    img_src = save_report_img(add_to_report, report_name, save_func=plot.save, 
-                              dpi=None)
+    img_src = charting_pylab.save_report_img(add_to_report, report_name, 
+                                             save_func=plot.save, dpi=None)
     html.append(u"\n<img src='%s'>" % img_src)
 
 def kruskal_wallis_output(h, p, label_a, label_b, dics, label_avg, css_fil, 

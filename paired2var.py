@@ -42,10 +42,10 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         bx_vars = wx.StaticBox(self.panel, -1, _("Variables"))
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         config_dlg.add_icon(frame=self)
-        self.szr_data, self.szr_config_bottom, self.szr_config_top = \
-                                    self.get_gen_config_szrs(self.panel) # mixin
+        # mixins
+        self.szr_data, self.szr_config = self.get_gen_config_szrs(self.panel)
         self.szr_output_btns = self.get_szr_output_btns(self.panel,
-                                                        inc_clear=False) # mixin
+                                                        inc_clear=False)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
         eg1, eg2, eg3 = self.get_examples()
@@ -103,8 +103,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         else:
             self.Bind(wx.EVT_SHOW, self.on_show)
         szr_bottom_left.Add(self.html, 1, wx.GROW|wx.LEFT|wx.BOTTOM, 5)
-        szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW)
-        szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW)
+        szr_bottom_left.Add(self.szr_config, 0, wx.GROW)
         #self.szr_level = self.get_szr_level(self.panel) # mixin
         #szr_bottom_left.Add(self.szr_level, 0)
         szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
@@ -227,16 +226,10 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_a, unused = self.get_var_a()
         var_b, unused = self.get_var_b()
         return var_a, var_b
-
-    def on_var_dets_file_lost_focus(self, event):
-        var_a, var_b = self.get_vars()
-        config_dlg.ConfigDlg.on_var_dets_file_lost_focus(self, event)
-        self.setup_groups(var_a, var_b)
-        self.update_phrase()
         
-    def on_btn_var_dets_path(self, event):
+    def on_btn_config(self, event):
         var_a, var_b = self.get_vars()
-        config_dlg.ConfigDlg.on_btn_var_dets_path(self, event)
+        config_dlg.ConfigDlg.on_btn_config(self, event)
         self.setup_groups(var_a, var_b)
         self.update_phrase()
         

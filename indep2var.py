@@ -68,10 +68,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         bx_vars = wx.StaticBox(self.panel, -1, _("Variables"))
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         config_dlg.add_icon(frame=self)
-        self.szr_data, self.szr_config_bottom, self.szr_config_top = \
-                                    self.get_gen_config_szrs(self.panel) # mixin
+        # mixins
+        self.szr_data, self.szr_config = self.get_gen_config_szrs(self.panel) 
         self.szr_output_btns = self.get_szr_output_btns(self.panel, 
-                                                        inc_clear=False) # mixin
+                                                        inc_clear=False)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
         eg1, eg2, eg3 = self.get_examples()
@@ -168,8 +168,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         else:
             self.Bind(wx.EVT_SHOW, self.on_show)
         szr_bottom_left.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
-        szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW)
-        szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW)
+        szr_bottom_left.Add(self.szr_config, 0, wx.GROW)
         #self.szr_level = self.get_szr_level(self.panel) # mixin
         #szr_bottom_left.Add(self.szr_level, 0)
         szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
@@ -269,30 +268,15 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT,
                        self.sorted_var_names_avg)
         self.setup_group_by_dropdowns()
-    
-    def on_var_dets_file_lost_focus(self, event):
-        """
-        Want to retain already selected item - even though label and even 
-            position may have changed.
-        """
-        val_a, val_b = self.get_vals()
-        var_gp, var_avg = self.get_vars()
-        config_dlg.ConfigDlg.on_var_dets_file_lost_focus(self, event)
-        self.setup_group_by(var_gp)
-        self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT, 
-                       self.sorted_var_names_avg, var_avg)
-        self.setup_group_by_dropdowns(val_a, val_b)
-        self.update_defaults()
-        self.update_phrase()
         
-    def on_btn_var_dets_path(self, event):
+    def on_btn_config(self, event):
         """
         Want to retain already selected item - even though label and even 
             position may have changed.
         """
         val_a, val_b = self.get_vals()
         var_gp, var_avg = self.get_vars()
-        config_dlg.ConfigDlg.on_btn_var_dets_path(self, event)
+        config_dlg.ConfigDlg.on_btn_config(self, event)
         self.setup_group_by(var_gp)
         self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT, 
                        self.sorted_var_names_avg, var_avg)

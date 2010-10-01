@@ -117,7 +117,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     def __init__(self, var_labels=None, var_notes=None, val_dics=None):
         debug = False
         wx.Dialog.__init__(self, parent=None, id=-1, 
-                       title=_("Make Report Table"), pos=(mg.HORIZ_OFFSET, 0),
+                       title=_("Make Report Table"), pos=(mg.HORIZ_OFFSET, -1),
                        style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
                        wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         dimtree.DimTree.__init__(self)
@@ -131,8 +131,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         config_dlg.add_icon(frame=self)
         # sizers
         szr_main = wx.BoxSizer(wx.VERTICAL)
-        self.szr_data, self.szr_config_bottom, self.szr_config_top = \
-            self.get_gen_config_szrs(self.panel) # mixin
+        # mixin
+        self.szr_data, self.szr_config = self.get_gen_config_szrs(self.panel)
         szr_mid = wx.BoxSizer(wx.VERTICAL)
         szr_tab_type = wx.BoxSizer(wx.HORIZONTAL)
         szr_opts = wx.BoxSizer(wx.VERTICAL)
@@ -229,10 +229,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.add_default_column_config() # must set up after coltree and demo 
         # html (esp height)
         if mg.PLATFORM == mg.MAC:
-            min_height = 70
+            min_height = 80
             grow_from = 768
         else:
-            min_height = 130
+            min_height = 150
             grow_from = 600
         if mg.MAX_HEIGHT <= grow_from:
             myheight = min_height
@@ -283,10 +283,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         szr_html.Add(lbl_demo_tbls, 0)
         szr_html.Add(self.html, 1, wx.GROW)
         szr_bottom_left.Add(szr_html, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szr_bottom_left.Add(self.szr_config_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 
-                            10)
-        szr_bottom_left.Add(self.szr_config_bottom, 0, wx.GROW|wx.LEFT|\
-                            wx.RIGHT|wx.BOTTOM, 10)
+        szr_bottom_left.Add(self.szr_config, 0, 
+                            wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
         szr_bottom.Add(self.szr_output_btns, 0, wx.GROW|wx.BOTTOM|wx.RIGHT, 10)
         if static_box_gap:
@@ -864,4 +862,11 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.btn_run.Enable(ready2run)
         self.chk_add_to_report.Enable(ready2run)
         self.btn_export.Enable(ready2run)
+        
+    def on_btn_config(self, event):
+        """
+        Variable details may have changed e.g. variable and value labels.
+        """
+        config_dlg.ConfigDlg.on_btn_config(self, event)
+        self.update_var_dets()
            
