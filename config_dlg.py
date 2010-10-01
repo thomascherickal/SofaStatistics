@@ -432,11 +432,11 @@ class ConfigDlg(object):
         bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
                                                        add_to_report, css_fils, 
                                                        new_has_dojo, script)
-        lib.safe_end_cursor()
         if debug: print(str_content)
         lib.update_local_display(self.html, str_content)
         self.str_content = str_content
         self.btn_expand.Enable(bolran_report)
+        lib.safe_end_cursor()
         event.Skip()
         
     def on_btn_view(self, event):

@@ -107,16 +107,22 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False,
     Configure histogram with subplot of normal distribution curve.
     Size is set externally. 
     """
-    debug = False
+    debug = True
     axes = fig.gca()
     rect = axes.patch
     rect.set_facecolor(grid_bg)
     n_vals = len(vals)
-    nbins = lib.get_nbins_from_vals(vals)    
+    # use nicest bins practical
+    n_bins, lower_limit, upper_limit = lib.get_bins(min(vals), max(vals))
+    y_vals, start, bin_width, unused = \
+             core_stats.histogram(vals, n_bins, defaultreallimits=[lower_limit, 
+                                                                   upper_limit])
+    y_vals, start, bin_width = lib.fix_sawtoothing(vals, n_bins, y_vals, start, 
+                                                   bin_width)    
     if thumbnail:
-        nbins = round(nbins/2, 0)
-        if nbins < 5: 
-            nbins = 5
+        n_bins = round(n_bins/2, 0)
+        if n_bins < 5: 
+            n_bins = 5
         axes.axis("off")
         normal_line_width = 1
     else:
@@ -126,13 +132,23 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False,
             hist_label = _("Histogram for %s") % var_label
         axes.set_title(hist_label)
         normal_line_width = 4
-    n, bins, patches = axes.hist(vals, nbins, normed=1, facecolor=bar_colour,
-                                 edgecolor=line_colour)
+    # see entry for hist in http://matplotlib.sourceforge.net/api/axes_api.html
+    n, bins, patches = axes.hist(vals, n_bins, normed=1, 
+                                 range=(lower_limit, upper_limit),
+                                 facecolor=bar_colour, edgecolor=line_colour)
     if debug: print(n, bins, patches)
     mu = core_stats.mean(vals)
     sigma = core_stats.stdev(vals)
     y = pylab.normpdf(bins, mu, sigma)
-    l = axes.plot(bins, y,  color=line_colour, linewidth=normal_line_width)
+    # ensure enough y-axis to show all of normpdf
+    ymin, ymax = axes.get_ylim()
+    if debug:
+        print(y)
+        print(ymin, ymax)
+        print("norm max: %s; axis max: %s" % (max(y), ymax))
+    if max(y) > ymax:
+        axes.set_ylim(ymax=1.05*max(y))
+    l = axes.plot(bins, y, color=line_colour, linewidth=normal_line_width)
 
 def config_scatterplot(grid_bg, dot_colour, line_colour, fig, sample_a, 
                        sample_b, label_a, label_b, a_vs_b):

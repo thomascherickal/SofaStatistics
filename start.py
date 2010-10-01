@@ -399,7 +399,7 @@ try:
         try: # if already installed version is older than 0.9.18 ...
             installed_version = get_installed_version(mg.LOCAL_PATH)
             if installed_version is None or \
-                    lib.version_a_is_newer(version_a=u"0.9.18",
+                    lib.version_a_is_newer(version_a=u"0.9.19",
                                            version_b=installed_version):
                 # update css files - url(images...) -> url("images...")
                 populate_css_path(prog_path, mg.LOCAL_PATH)
