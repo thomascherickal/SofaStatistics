@@ -378,15 +378,9 @@ def get_title_dets_html(titles, subtitles, css_idx):
     return title_dets_html
 
 def get_label_dets(xaxis_dets, series_dets):
-    """
-    For multiple series, don't split label if mid tick (clash with x axis label)
-    """
     label_dets = []
-    i_not_to_split = None
-    if len(xaxis_dets) % 2 != 0 and len(series_dets) > 1:
-        i_not_to_split = math.ceil(len(xaxis_dets)/2.0)
     for i, xaxis_det in enumerate(xaxis_dets,1):
-        val_label = xaxis_det[1] if i == i_not_to_split else xaxis_det[2]
+        val_label = xaxis_det[2]
         label_dets.append(u"{value: %s, text: \"%s\"}" % (i, val_label))
     return label_dets
 
@@ -409,6 +403,8 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     label_dets = get_label_dets(xaxis_dets, series_dets)
     xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
+    axis_label_drop = 30 if x_title else -10
+    height = 310 + axis_label_drop # compensate for loss of bar display height
     width, xgap, xfontsize, minor_ticks = get_barchart_sizings(xaxis_dets, 
                                                                series_dets)
     html = []
@@ -478,6 +474,7 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
             chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
             chartconf["xTitle"] = \"%(x_title)s\";
+            chartconf["axisLabelDrop"] = %(axis_label_drop)s;
             chartconf["yTitle"] = \"%(y_title)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
             chartconf["connectorStyle"] = \"%(connector_style)s\";
@@ -486,16 +483,19 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
         }
     </script>
     %(titles)s
-    <div id="mychartRenumber" style="width: %(width)spx; height: 300px;"></div>
+    <div id="mychartRenumber" style="width: %(width)spx; 
+        height: %(height)spx;"></div>
     <br>
     <div id="legendMychartRenumber"></div>
     <br>
     """ % {u"colour_cases": colour_cases, u"titles": title_dets_html, 
            u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
-           u"width": width, u"xgap": xgap, u"xfontsize": xfontsize, 
+           u"width": width, u"height": height, u"xgap": xgap, 
+           u"xfontsize": xfontsize, 
            u"axis_label_font_colour": axis_label_font_colour,
            u"major_gridline_colour": major_gridline_colour,
            u"gridline_width": gridline_width, 
+           u"axis_label_drop": axis_label_drop,
            u"x_title": x_title, u"y_title": mg.Y_AXIS_FREQ_LABEL,
            u"tooltip_border_colour": tooltip_border_colour,
            u"connector_style": connector_style, u"outer_bg": outer_bg, 
@@ -596,7 +596,9 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     # For multiple, don't split label if mid tick (clash with x axis label)
     label_dets = get_label_dets(xaxis_dets, series_dets)
-    xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"                             
+    xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
+    axis_label_drop = 30 if x_title else -10
+    height = 310 + axis_label_drop # compensate for loss of bar display height                           
     (width, xfontsize, 
      minor_ticks, micro_ticks) = get_linechart_sizings(xaxis_dets, 
                                                      max_label_len, series_dets)
@@ -650,6 +652,7 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
             chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
             chartconf["xTitle"] = \"%(x_title)s\";
+            chartconf["axisLabelDrop"] = %(axis_label_drop)s;
             chartconf["yTitle"] = \"%(y_title)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
             chartconf["connectorStyle"] = \"%(connector_style)s\";
@@ -657,16 +660,18 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
         }
     </script>
     %(titles)s
-    <div id="mychartRenumber" style="width: %(width)spx; height: 300px;"></div>
+    <div id="mychartRenumber" style="width: %(width)spx; 
+        height: %(height)spx;"></div>
     <br>
     <div id="legendMychartRenumber"></div>
     <br>
     """ % {u"titles": title_dets_html, 
            u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
-           u"width": width, u"xfontsize": xfontsize, 
+           u"width": width, u"height": height, u"xfontsize": xfontsize, 
            u"axis_label_font_colour": axis_label_font_colour,
            u"major_gridline_colour": major_gridline_colour,
-           u"gridline_width": gridline_width, 
+           u"gridline_width": gridline_width,
+           u"axis_label_drop": axis_label_drop,
            u"x_title": x_title, u"y_title": mg.Y_AXIS_FREQ_LABEL,
            u"tooltip_border_colour": tooltip_border_colour,
            u"connector_style": connector_style, u"grid_bg": grid_bg, 
@@ -903,6 +908,8 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
         xfontsize = 10
         xmax = max(sample_a)
         x_title = label_a
+        axis_label_drop = 10
+        height = 350
         ymax = max(sample_b)
         y_title = label_b
         if debug: print(label_a, xmax, label_b, ymax)
@@ -960,6 +967,7 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
                 chartconf["axisLabelFontColour"] = "%(axis_label_font_colour)s";
                 chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
                 chartconf["xTitle"] = "%(x_title)s";
+                chartconf["axisLabelDrop"] = %(axis_label_drop)s;
                 chartconf["yTitle"] = "%(y_title)s";
                 chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
                 chartconf["connectorStyle"] = "%(connector_style)s";
@@ -969,17 +977,18 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
         </script>
         %(titles)s
         <div id="mychartRenumber" style="width: %(width)spx; 
-            height: 350px;"></div>
+            height: %(height)spx;"></div>
         <br>
         """ % {u"xy_pairs": xy_pairs, u"xmax": xmax, u"ymax": ymax,
                u"x_title": x_title, u"y_title": y_title,
                u"stroke_width": stroke_width, u"fill": fill,
                u"colour_cases": colour_cases, u"titles": title_dets_html, 
-               u"width": width, u"xfontsize": xfontsize, 
+               u"width": width, u"height": height, u"xfontsize": xfontsize, 
                u"series_label": a_vs_b,
                u"axis_label_font_colour": axis_label_font_colour,
                u"major_gridline_colour": major_gridline_colour,
                u"gridline_width": gridline_width, 
+               u"axis_label_drop": axis_label_drop,
                u"tooltip_border_colour": tooltip_border_colour,
                u"connector_style": connector_style, u"outer_bg": outer_bg, 
                u"grid_bg": grid_bg, u"minor_ticks": u"true",

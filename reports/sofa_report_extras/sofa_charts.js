@@ -10,6 +10,7 @@ makeBarChart = function(chartname, series, chartconf){
     var tickColour = (chartconf["tickColour"]) ? chartconf["tickColour"] : null;
     var minorTicks = (chartconf["minorTicks"]) ? chartconf["minorTicks"] : false;
     var xTitle = (chartconf["xTitle"]) ? chartconf["xTitle"] : "";
+    var axisLabelDrop = (chartconf["axisLabelDrop"]) ? chartconf["axisLabelDrop"] : 30;
     var yTitle = (chartconf["yTitle"]) ? chartconf["yTitle"] : "Frequency";
     var connectorStyle = (chartconf["connectorStyle"]) ? chartconf["connectorStyle"] : "defbrown";
 
@@ -29,7 +30,7 @@ makeBarChart = function(chartname, series, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname);
+    var mychart = new dc.Chart2D(chartname, {margins: {l: 10, t: 10, r: 10, b: 10+axisLabelDrop}});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
@@ -159,6 +160,7 @@ makeLineChart = function(chartname, series, chartconf){
     var minorTicks = (chartconf["minorTicks"]) ? chartconf["minorTicks"] : false;
     var microTicks = (chartconf["microTicks"]) ? chartconf["microTicks"] : false;
     var xTitle = (chartconf["xTitle"]) ? chartconf["xTitle"] : "";
+    var axisLabelDrop = (chartconf["axisLabelDrop"]) ? chartconf["axisLabelDrop"] : 30;
     var yTitle = (chartconf["yTitle"]) ? chartconf["yTitle"] : "Frequency";
     var connectorStyle = (chartconf["connectorStyle"]) ? chartconf["connectorStyle"] : "defbrown";
 
@@ -178,7 +180,7 @@ makeLineChart = function(chartname, series, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname);
+    var mychart = new dc.Chart2D(chartname, {margins: {l: 10, t: 10, r: 10, b: 10+axisLabelDrop}});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
@@ -420,6 +422,7 @@ makeScatterplot = function(chartname, datadets, chartconf){
     var tickColour = (chartconf["tickColour"]) ? chartconf["tickColour"] : null;
     var minorTicks = (chartconf["minorTicks"]) ? chartconf["minorTicks"] : false;
     var xTitle = (chartconf["xTitle"]) ? chartconf["xTitle"] : "Variable A";
+    var axisLabelDrop = (chartconf["axisLabelDrop"]) ? chartconf["axisLabelDrop"] : 0;
     var yTitle = (chartconf["yTitle"]) ? chartconf["yTitle"] : "Variable B";
     var connectorStyle = (chartconf["connectorStyle"]) ? chartconf["connectorStyle"] : "defbrown";
 
@@ -429,7 +432,7 @@ makeScatterplot = function(chartname, datadets, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname);
+    var mychart = new dc.Chart2D(chartname, {margins: {l: 10, t: 10, r: 10, b: 10+axisLabelDrop}});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
