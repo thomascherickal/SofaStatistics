@@ -662,22 +662,20 @@ class DlgConfig(wx.Dialog):
             szr_main.Add(szr_misc, 0, wx.GROW|wx.ALL, 10)
         if self.sort_opt_allowed != SORT_OPT_NONE:
             self.rad_sort_opts = wx.RadioBox(self, -1, _("Sort order"),
-                               choices=[mg.SORT_NONE, mg.SORT_LABEL,
-                                        mg.SORT_FREQ_ASC, mg.SORT_FREQ_DESC],
-                               size=(400,50))
+                                             choices=mg.SORT_OPTS, 
+                                             size=(400,50))
             # set selection according to existing item_conf
-            if item_conf.sort_order == mg.SORT_NONE:
-                self.rad_sort_opts.SetSelection(0)
-            elif item_conf.sort_order == mg.SORT_LABEL:
-                self.rad_sort_opts.SetSelection(1)
-            elif item_conf.sort_order == mg.SORT_FREQ_ASC:
-                self.rad_sort_opts.SetSelection(2)
-            elif item_conf.sort_order == mg.SORT_FREQ_DESC:
-                self.rad_sort_opts.SetSelection(3)
+            try:
+                idx_sort_opt = mg.SORT_OPTS.index(item_conf.sort_order)
+                self.rad_sort_opts.SetSelection(idx_sort_opt)
+            except IndexError, e:
+                pass
             if self.sort_opt_allowed == SORT_OPT_BY_LABEL:
                 # disable freq options
-                self.rad_sort_opts.EnableItem(2, False)
-                self.rad_sort_opts.EnableItem(3, False)
+                idx_freq_asc = mg.SORT_OPTS.index(mg.SORT_FREQ_ASC)
+                self.rad_sort_opts.EnableItem(idx_freq_asc, False)
+                idx_freq_desc = mg.SORT_OPTS.index(mg.SORT_FREQ_DESC)
+                self.rad_sort_opts.EnableItem(idx_freq_desc, False)
             szr_main.Add(self.rad_sort_opts, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.measure_chks_dic = {}
         if self.measures:
@@ -733,16 +731,9 @@ class DlgConfig(wx.Dialog):
         if self.sort_opt_allowed == SORT_OPT_NONE:
             sort_order = mg.SORT_NONE
         else:
-            sort_opt_selection = self.rad_sort_opts.GetSelection()
-            if sort_opt_selection == 0:
-                sort_order = mg.SORT_NONE
-            elif sort_opt_selection == 1:
-                sort_order = mg.SORT_LABEL
-            elif sort_opt_selection == 2:
-                sort_order = mg.SORT_FREQ_ASC
-            elif sort_opt_selection == 3:
-                sort_order = mg.SORT_FREQ_DESC
-            else:
+            try:
+                sort_order = mg.SORT_OPTS[self.rad_sort_opts.GetSelection()]
+            except IndexError, e:
                 raise Exception(u"Unexpected sort type")
         self.item_config_dets.set_sort_order(sort_order)
         for node_id in self.node_ids:

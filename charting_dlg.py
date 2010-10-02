@@ -19,6 +19,8 @@ dd = getdata.get_dd()
 
 LIMITS_MSG = (u"This chart type is not currently available in this release. "
               u"More chart types coming soon!")
+CUR_SORT_OPT = mg.SORT_NONE
+
 
 class DlgCharting(indep2var.DlgIndep2VarConfig):
 
@@ -114,9 +116,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # bar chart
         self.szr_bar_chart = wx.BoxSizer(wx.VERTICAL)
         self.panel_bar_chart = wx.Panel(self.panel_mid)
-        lbl_bar_chart = wx.StaticText(self.panel_bar_chart, -1, 
-                            u"Bar chart configuration still under construction")
-        self.szr_bar_chart.Add(lbl_bar_chart, 1, wx.TOP|wx.BOTTOM, 10)
+        self.rad_bar_sort_opts = wx.RadioBox(self.panel_bar_chart, -1, 
+                                             _("Sort order of bars"), 
+                                             choices=mg.SORT_OPTS, 
+                                             size=(400,50))
+        idx_current_sort_opt = mg.SORT_OPTS.index(CUR_SORT_OPT)
+        self.rad_bar_sort_opts.SetSelection(idx_current_sort_opt)
+        self.rad_bar_sort_opts.Bind(wx.wx.EVT_RADIOBOX, 
+                                    self.on_rad_bar_sort_opt)
+        self.szr_bar_chart.Add(self.rad_bar_sort_opts, 0, wx.TOP, 5)
         self.panel_bar_chart.SetSizer(self.szr_bar_chart)
         self.szr_bar_chart.SetSizeHints(self.panel_bar_chart)
         # clustered bar chart
@@ -134,9 +142,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # pie chart
         self.szr_pie_chart = wx.BoxSizer(wx.VERTICAL)
         self.panel_pie_chart = wx.Panel(self.panel_mid)
-        lbl_pie_chart = wx.StaticText(self.panel_pie_chart, -1, 
-                            u"Pie chart configuration still under construction")
-        self.szr_pie_chart.Add(lbl_pie_chart, 1, wx.TOP|wx.BOTTOM, 10)
+        self.rad_pie_sort_opts = wx.RadioBox(self.panel_pie_chart, -1, 
+                                             _("Sort order of pie slices"), 
+                                             choices=mg.SORT_OPTS, 
+                                             size=(400,50))
+        self.rad_pie_sort_opts.SetSelection(idx_current_sort_opt)
+        self.rad_pie_sort_opts.Bind(wx.wx.EVT_RADIOBOX, 
+                                    self.on_rad_pie_sort_opt)
+        self.szr_pie_chart.Add(self.rad_pie_sort_opts, 0, wx.TOP, 5)
         self.panel_pie_chart.SetSizer(self.szr_pie_chart)
         self.szr_pie_chart.SetSizeHints(self.panel_pie_chart)
         self.panel_pie_chart.Show(False)
@@ -168,11 +181,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_histogram.SetSizeHints(self.panel_histogram)
         self.panel_histogram.Show(False)
         # scatterplot
-        self.szr_scatterplot = wx.BoxSizer(wx.VERTICAL)
+        self.szr_scatterplot = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_scatterplot = wx.Panel(self.panel_mid)
-        lbl_scatterplot = wx.StaticText(self.panel_scatterplot, -1, 
-                        u"Scatterplot configuration still under construction")
-        self.szr_scatterplot.Add(lbl_scatterplot, 1, wx.TOP|wx.BOTTOM, 10)
+        self.chk_borders = wx.CheckBox(self.panel_scatterplot, -1, 
+                                       _("Dot borders?"))
+        self.chk_borders.SetValue(True)
+        self.szr_scatterplot.Add(self.chk_borders, 0, wx.TOP|wx.BOTTOM, 10)
+        self.chk_borders.SetToolTipString(_("Show borders around scatterplot "
+                                            "dots?"))
         self.panel_scatterplot.SetSizer(self.szr_scatterplot)
         self.szr_scatterplot.SetSizeHints(self.panel_scatterplot)
         self.panel_scatterplot.Show(False)
@@ -318,6 +334,23 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.btn_scatterplot.SetCursor(hand)
             self.btn_histogram.SetCursor(hand)
 
+    def on_rad_sort_opt(self, idx_sel):
+        debug = False
+        global CUR_SORT_OPT
+        try:
+            CUR_SORT_OPT = mg.SORT_OPTS[idx_sel]
+        except IndexError, e:
+            pass
+        if debug: print(u"Current sort option: %s" % CUR_SORT_OPT)
+    
+    def on_rad_bar_sort_opt(self, event):
+        idx_sel = self.rad_bar_sort_opts.GetSelection()
+        self.on_rad_sort_opt(idx_sel)
+        
+    def on_rad_pie_sort_opt(self, event):
+        idx_sel = self.rad_pie_sort_opts.GetSelection()
+        self.on_rad_sort_opt(idx_sel)
+        
     def btn_chart(self, event, btn, panel):
         btn.SetFocus()
         btn.SetDefault()
@@ -349,6 +382,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chart_type = mg.SIMPLE_BARCHART
         btn = self.btn_bar_chart
         panel = self.panel_bar_chart
+        self.rad_bar_sort_opts.SetSelection(mg.SORT_OPTS.index(CUR_SORT_OPT))
         self.btn_chart(event, btn, panel)
 
     def on_btn_clustered_bar_chart(self, event):
@@ -361,6 +395,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chart_type = mg.PIE_CHART
         btn = self.btn_pie_chart
         panel = self.panel_pie_chart
+        self.rad_pie_sort_opts.SetSelection(mg.SORT_OPTS.index(CUR_SORT_OPT))
         self.btn_chart(event, btn, panel)
         
     def on_btn_line_chart(self, event):
@@ -419,8 +454,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                   u"charting_output.get_single_val_dets("
                   u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, tbl_filt=tbl_filt,"
                         u" fld_measure=fld_measure, "
-                        u"xaxis_val_labels=measure_val_labels)" % 
-                        {u"dbe": dd.dbe})
+                  u"\n    xaxis_val_labels=measure_val_labels, "
+                        u"sort_opt=\"%(sort_opt)s\")" % {u"dbe": dd.dbe, 
+                                                 u"sort_opt": CUR_SORT_OPT})
             script_lst.append(u"series_dets = [{u\"label\": var_label1, "
                               u"u\"y_vals\": y_vals},]")
             script_lst.append(u"x_title = u\"\"")
@@ -448,8 +484,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                   u"charting_output.get_pie_chart_dets("
                   u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, tbl_filt=tbl_filt,"
                         u" fld_measure=fld_measure, "
-                        u"slice_val_labels=measure_val_labels)" % 
-                            {u"dbe": dd.dbe})
+                        u"slice_val_labels=measure_val_labels, "
+                        u"sort_opt=\"%(sort_opt)s\")" % {u"dbe": dd.dbe, 
+                                                 u"sort_opt": CUR_SORT_OPT})
             script_lst.append(u"chart_output = "
                   u"charting_output.piechart_output(titles, "
                         u"subtitles,"
@@ -462,8 +499,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                       u"charting_output.get_single_val_dets("
                       u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, "
                             u"tbl_filt=tbl_filt, fld_measure=fld_measure, "
-                            u"xaxis_val_labels=measure_val_labels)" % 
-                            {u"dbe": dd.dbe})
+                            u"xaxis_val_labels=measure_val_labels, "
+                            u"sort_opt=mg.SORT_NONE)" % {u"dbe": dd.dbe})
                 script_lst.append(u"series_dets = [{u\"label\": var_label1, "
                                   u"u\"y_vals\": y_vals},]")
                 script_lst.append(u"x_title = u\"\"")
@@ -489,8 +526,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                   u"charting_output.get_single_val_dets("
                   u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, tbl_filt=tbl_filt,"
                         u" fld_measure=fld_measure, "
-                        u"xaxis_val_labels=measure_val_labels)" % 
-                        {u"dbe": dd.dbe})
+                        u"xaxis_val_labels=measure_val_labels, "
+                        u"sort_opt=mg.SORT_NONE)" % {u"dbe": dd.dbe})
             script_lst.append(u"series_dets = [{u\"label\": var_label1, "
                               u"u\"y_vals\": y_vals},]")
             script_lst.append(u"chart_output = "
@@ -518,11 +555,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                   u"cur=cur, tbl=tbl,"
                   u"\n    tbl_filt=tbl_filt, fld_a=fld_measure, fld_b=fld_gp, "
                   u"unique=True)") # only need unique combinations for plotting
+            dot_border = u"True" if self.chk_borders.IsChecked() else u"False"
             script_lst.append(u"chart_output = "
                   u"charting_output.scatterplot_output(titles, "
                         u"subtitles,"
                   u"\n    sample_a, sample_b, data_tups, var_label1, "
-                  u"var_label2, add_to_report, report_name, "
+                  u"var_label2, add_to_report, report_name, %s," % dot_border +
                   u"\n    css_fil=\"%s\", css_idx=%s, page_break_after=False)" %
                       (css_fil, css_idx))
         script_lst.append(u"fil.write(chart_output)")

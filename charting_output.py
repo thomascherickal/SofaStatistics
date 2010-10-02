@@ -7,6 +7,7 @@ NB no html headers here - the script generates those beforehand and appends
     this and then the html footer.
 """
 
+import math
 import pprint
 
 import my_globals as mg
@@ -17,39 +18,49 @@ import core_stats
 import getdata
 import output
 
-def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, measure_val_labels):
+def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, measure_val_labels, 
+                   sort_opt):
     """
     Get frequencies for all non-missing values in variable plus labels.
     """
     debug = False
     obj_quoter = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    SQL_get_vals = u"SELECT %s, COUNT(*) AS freq " % obj_quoter(fld_measure) + \
-        u"FROM %s " % obj_quoter(tbl) + \
-        u"WHERE %s IS NOT NULL %s" % (obj_quoter(fld_measure), and_tbl_filt) + \
-        u" GROUP BY %s" % obj_quoter(fld_measure)
+    SQL_get_vals = (u"SELECT %s, COUNT(*) AS freq " % obj_quoter(fld_measure) +
+          u"FROM %s " % obj_quoter(tbl) +
+          u"WHERE %s IS NOT NULL %s" % (obj_quoter(fld_measure), and_tbl_filt) +
+          u" GROUP BY %s" % obj_quoter(fld_measure))
     if debug: print(SQL_get_vals)
     cur.execute(SQL_get_vals)
+    val_freq_label_lst = []
+    for val, freq in cur.fetchall():
+        val_label = measure_val_labels.get(val, unicode(val))
+        val_freq_label_lst.append((val, freq, val_label))
+    lib.sort_value_labels(sort_opt, val_freq_label_lst)
     measure_dets = []
     max_label_len = 0
     y_vals = []
-    for val, freq in cur.fetchall():
-        val_label = measure_val_labels.get(val, unicode(val))
+    for val, freq, val_label in val_freq_label_lst:
         len_y_val = len(val_label)
         if len_y_val > max_label_len:
-            max_label_len = len_y_val 
-        measure_dets.append((val, val_label))
+            max_label_len = len_y_val
+        if len(val_label) > 12:
+            split_label = u"<br>".join(val_label.split())
+        else:
+            split_label = val_label
+        measure_dets.append((val, val_label, split_label))
         y_vals.append(freq)
     if not y_vals:
         raise my_exceptions.TooFewValsForDisplay
     return measure_dets, max_label_len, y_vals
     
-def get_single_val_dets(dbe, cur, tbl, tbl_filt, fld_measure, xaxis_val_labels):
+def get_single_val_dets(dbe, cur, tbl, tbl_filt, fld_measure, xaxis_val_labels,
+                        sort_opt):
     """
     Simple bar charts and single line line charts.
     """
     return get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
-                          xaxis_val_labels)
+                          xaxis_val_labels, sort_opt)
 
 def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt, fld_measure, 
                          fld_gp, xaxis_val_labels, group_by_val_labels):
@@ -133,19 +144,23 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt, fld_measure,
     xaxis_dets = []
     max_label_len = 0
     for val in oth_vals:
-        y_val = xaxis_val_labels.get(val, unicode(val))
-        len_y_val = len(y_val)
+        val_label = xaxis_val_labels.get(val, unicode(val))
+        len_y_val = len(val_label)
         if len_y_val > max_label_len:
             max_label_len = len_y_val
-        xaxis_dets.append((val, y_val))
+        if len(val_label) > 12:
+            split_label = u"<br>".join(val_label.split())
+        else:
+            split_label = val_label
+        xaxis_dets.append((val, val_label, split_label))
     if debug: print(xaxis_dets)
     return xaxis_dets, max_label_len, series_dets
 
 def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
-                       slice_val_labels):
+                       slice_val_labels, sort_opt):
     label_dets, max_label_len, slice_vals = get_basic_dets(dbe, cur, tbl, 
-                                                          tbl_filt, fld_measure, 
-                                                          slice_val_labels)
+                                                     tbl_filt, fld_measure, 
+                                                     slice_val_labels, sort_opt)
     if len(label_dets) != len(slice_vals):
         raise Exception(u"Mismatch in number of slice labels and slice values")
     if len(slice_vals) > 30:
@@ -153,10 +168,7 @@ def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, fld_measure,
     tot_freq = sum(slice_vals)
     slice_dets = []
     for i, slice_val in enumerate(slice_vals):
-        label = label_dets[i][1]
-        if len(label) > 12:
-            label = u"<br>".join(label.split())
-        slice_dic = {u"y": slice_val, u"text": label, 
+        slice_dic = {u"y": slice_val, u"text": label_dets[i][2], 
                      u"tooltip": u"%s<br>%s (%s%%)" % 
                      (label_dets[i][1], slice_val, 
                       round((100.0*slice_val)/tot_freq,1))}
@@ -365,6 +377,19 @@ def get_title_dets_html(titles, subtitles, css_idx):
     title_dets_html = u"\n".join(title_dets_html_lst)
     return title_dets_html
 
+def get_label_dets(xaxis_dets, series_dets):
+    """
+    For multiple series, don't split label if mid tick (clash with x axis label)
+    """
+    label_dets = []
+    i_not_to_split = None
+    if len(xaxis_dets) % 2 != 0 and len(series_dets) > 1:
+        i_not_to_split = math.ceil(len(xaxis_dets)/2.0)
+    for i, xaxis_det in enumerate(xaxis_dets,1):
+        val_label = xaxis_det[1] if i == i_not_to_split else xaxis_det[2]
+        label_dets.append(u"{value: %s, text: \"%s\"}" % (i, val_label))
+    return label_dets
+
 def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets, 
                     css_idx, css_fil, page_break_after):
     """
@@ -382,9 +407,8 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    xaxis_labels = u"[" + \
-        u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
-                                    for i,x in enumerate(xaxis_dets,1)]) + u"]"
+    label_dets = get_label_dets(xaxis_dets, series_dets)
+    xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
     width, xgap, xfontsize, minor_ticks = get_barchart_sizings(xaxis_dets, 
                                                                series_dets)
     html = []
@@ -570,12 +594,12 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    xaxis_labels = u"[" + \
-        u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
-                                    for i,x in enumerate(xaxis_dets,1)]) + u"]"
-    (width, xfontsize, minor_ticks, 
-                micro_ticks) = get_linechart_sizings(xaxis_dets, max_label_len, 
-                                                     series_dets)
+    # For multiple, don't split label if mid tick (clash with x axis label)
+    label_dets = get_label_dets(xaxis_dets, series_dets)
+    xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"                             
+    (width, xfontsize, 
+     minor_ticks, micro_ticks) = get_linechart_sizings(xaxis_dets, 
+                                                     max_label_len, series_dets)
     html = []
     """
     For each series, set colour details.
@@ -670,7 +694,7 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     xaxis_labels = u"[" + \
-        u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
+        u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[2]) 
                                     for i,x in enumerate(xaxis_dets,1)]) + u"]"
     (width, xfontsize, minor_ticks, 
                 micro_ticks) = get_linechart_sizings(xaxis_dets, max_label_len, 
@@ -854,8 +878,8 @@ def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets,
     return u"".join(html)
 
 def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups, 
-                       label_a, label_b, add_to_report, report_name, css_fil, 
-                       css_idx, page_break_after=False):
+                       label_a, label_b, add_to_report, report_name, 
+                       dot_borders, css_fil, css_idx, page_break_after=False):
     debug = False
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
@@ -870,10 +894,10 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
                                         output.get_stats_chart_colours(css_fil)
         colours = item_colours + mg.DOJO_COLOURS
         dot_colour = colours[0]
-        charting_pylab.add_scatterplot(grid_bg, dot_colour, line_colour, 
-                                       sample_a, sample_b, label_a, label_b, 
-                                       a_vs_b, title_dets_html, add_to_report, 
-                                       report_name, html)
+        charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
+                                       line_colour, sample_a, sample_b, label_a, 
+                                       label_b, a_vs_b, title_dets_html, 
+                                       add_to_report, report_name, html)
     else:
         width = 700
         xfontsize = 10
@@ -889,6 +913,7 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
         (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
          gridline_width, stroke_width, tooltip_border_colour, 
          colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+        stroke_width = stroke_width if dot_borders else 0 
         outer_bg = u"" if outer_bg == u"" \
             else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
         single_colour = True

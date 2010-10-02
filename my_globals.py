@@ -41,10 +41,11 @@ COL_CONFIG_ITEM_LBL = _("Column configuration")
 ROWDIM = _("row") #double as labels
 COLDIM = _("column")
 # actual options selected ...
-SORT_NONE = _("None") #double as labels
-SORT_LABEL = _("By Label")
-SORT_FREQ_ASC = _("By Freq (Asc)")
-SORT_FREQ_DESC = _("By Freq (Desc)")
+SORT_NONE = _(u"None") #double as labels
+SORT_LABEL = _(u"By Label")
+SORT_FREQ_ASC = _(u"By Freq (Asc)")
+SORT_FREQ_DESC = _(u"By Freq (Desc)")
+SORT_OPTS = [SORT_NONE, SORT_LABEL, SORT_FREQ_ASC, SORT_FREQ_DESC]
 # can use content of constant as a short label
 FREQ = _("Freq")
 ROWPCT = _("Row %")

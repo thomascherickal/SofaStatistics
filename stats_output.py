@@ -398,10 +398,11 @@ def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
     grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
     dot_colour = item_colours[0]
     title_dets_html = u"" # already got an appropriate title for whole section
-    charting_pylab.add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, 
-                                   sample_b, label_a, label_b, a_vs_b, 
-                                   title_dets_html, add_to_report, report_name, 
-                                   html)
+    dot_borders = True
+    charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
+                                   line_colour, sample_a, sample_b, label_a, 
+                                   label_b, a_vs_b, title_dets_html, 
+                                   add_to_report, report_name, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -424,10 +425,11 @@ def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
     grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
     dot_colour = item_colours[0]
     title_dets_html = u"" # already got an appropriate title for whole section
-    charting_pylab.add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, 
-                                   sample_b, label_a, label_b, a_vs_b, 
-                                   title_dets_html, add_to_report, report_name, 
-                                   html)
+    dot_borders = True
+    charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
+                                   line_colour, sample_a, sample_b, label_a, 
+                                   label_b, a_vs_b, title_dets_html, 
+                                   add_to_report, report_name, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

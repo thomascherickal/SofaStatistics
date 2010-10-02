@@ -150,14 +150,15 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False,
         axes.set_ylim(ymax=1.05*max(y))
     l = axes.plot(bins, y, color=line_colour, linewidth=normal_line_width)
 
-def config_scatterplot(grid_bg, dot_colour, line_colour, fig, sample_a, 
-                       sample_b, label_a, label_b, a_vs_b):
+def config_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, fig, 
+                       sample_a, sample_b, label_a, label_b, a_vs_b):
     """
     Configure scatterplot with line of best fit.
     Size is set externally. 
     """
+    marker_edge_colour = line_colour if dot_borders else dot_colour
     pylab.plot(sample_a, sample_b, 'o', color=dot_colour, label=a_vs_b, 
-               markeredgecolor=line_colour)
+               markeredgecolor=marker_edge_colour)
     p = pylab.polyfit(sample_a, sample_b, 1)
     pylab.plot(sample_a, pylab.polyval(p, sample_a), u"-", 
                color=line_colour, linewidth=4, 
@@ -169,9 +170,9 @@ def config_scatterplot(grid_bg, dot_colour, line_colour, fig, sample_a,
     rect.set_facecolor(grid_bg)
     pylab.legend(loc="best")
 
-def add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, sample_b, 
-                    label_a, label_b, a_vs_b, title_dets_html, add_to_report, 
-                    report_name, html):
+def add_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, sample_a, 
+                    sample_b, label_a, label_b, a_vs_b, title_dets_html, 
+                    add_to_report, report_name, html):
     """
     Toggle prefix so every time this is run internally only, a different image 
         is referred to in the html <img src=...>.
@@ -180,8 +181,8 @@ def add_scatterplot(grid_bg, dot_colour, line_colour, sample_a, sample_b,
     debug = False
     fig = pylab.figure()
     fig.set_size_inches((7.5, 4.5)) # see dpi to get image size in pixels
-    config_scatterplot(grid_bg, dot_colour, line_colour, fig, sample_a, 
-                       sample_b, label_a, label_b, a_vs_b)
+    config_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, fig, 
+                       sample_a, sample_b, label_a, label_b, a_vs_b)
     img_src = save_report_img(add_to_report, report_name, 
                               save_func=pylab.savefig, dpi=100)
     html.append(title_dets_html)

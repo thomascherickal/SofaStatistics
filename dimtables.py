@@ -1,6 +1,5 @@
 from __future__ import print_function
 import numpy
-from operator import itemgetter
 import pprint
 
 import my_globals as mg
@@ -627,19 +626,6 @@ class LiveTable(DimTable):
                                                "and_tbl_flt": self.and_tbl_filt}
         if debug: print(SQL_get_vals)
         return SQL_get_vals
-
-    def sort_value_labels(self, sort_order, val_freq_label_lst):
-        """
-        Sort value labels list according to sort option selected.
-        A total cell should be added, or not, after this stage.
-        http://www.python.org/dev/peps/pep-0265/
-        """
-        if sort_order == mg.SORT_FREQ_ASC:
-            val_freq_label_lst.sort(key=itemgetter(1))
-        elif sort_order == mg.SORT_FREQ_DESC:
-            val_freq_label_lst.sort(key=itemgetter(1), reverse=True)
-        elif sort_order == mg.SORT_LABEL:
-            val_freq_label_lst.sort(key=itemgetter(2))
             
     def get_sorted_val_freq_label_lst(self, all_vals, tree_dims_node):
         """
@@ -654,7 +640,8 @@ class LiveTable(DimTable):
             val_tup = (val, val_freq, val_label)
             if debug: print(val_tup)
             val_freq_label_lst.append(val_tup)
-        self.sort_value_labels(tree_dims_node.sort_order, val_freq_label_lst)
+        lib.sort_value_labels(tree_dims_node.sort_order, val_freq_label_lst)
+        # A total cell should be added, or not, after this stage.
         return val_freq_label_lst
 
     def add_subtree_if_vals(self, tree_dims_node, tree_labels_node, 

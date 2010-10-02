@@ -8,6 +8,7 @@ from datetime import datetime
 import decimal
 import locale
 import math
+from operator import itemgetter
 import os
 import pprint
 import random
@@ -18,6 +19,18 @@ import wx
 
 # only import my_globals from local modules
 import my_globals as mg
+
+def sort_value_labels(sort_order, val_freq_label_lst):
+    """
+    In-place sort value labels list according to sort option selected.
+    http://www.python.org/dev/peps/pep-0265/
+    """
+    if sort_order == mg.SORT_FREQ_ASC:
+        val_freq_label_lst.sort(key=itemgetter(1))
+    elif sort_order == mg.SORT_FREQ_DESC:
+        val_freq_label_lst.sort(key=itemgetter(1), reverse=True)
+    elif sort_order == mg.SORT_LABEL:
+        val_freq_label_lst.sort(key=itemgetter(2))
 
 def extract_dojo_style(css_fil):
     try:
