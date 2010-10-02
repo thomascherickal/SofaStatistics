@@ -202,11 +202,26 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                             "dots?"))
         self.panel_scatterplot.SetSizer(self.szr_scatterplot)
         self.szr_scatterplot.SetSizeHints(self.panel_scatterplot)
+        # Hide all panels except default.  Display and layout then hide.
+        # Prevents flicker on change later.
+        panels2hide = [self.panel_clustered_bar_chart, self.panel_pie_chart,
+                       self.panel_line_chart, self.panel_area_chart,
+                       self.panel_histogram, self.panel_scatterplot]
+        check = True
+        for panel2hide in panels2hide:
+            self.szr_mid.Add(panel2hide, 0, wx.GROW)
+            if check:
+                self.panel_mid.SetSizer(self.szr_mid)
+                self.szr_mid.SetSizeHints(self.panel_mid)
+                check = False
+            panel2hide.Show(True)
+            self.panel_mid.Layout() # self.Layout() doesn't work in Windows
+            panel2hide.Show(False)
+            self.szr_mid.Remove(panel2hide)
         # default chart type (bar chart)
         self.panel_displayed = self.panel_bar_chart
         self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
-        self.panel_mid.SetSizer(self.szr_mid)
-        self.szr_mid.SetSizeHints(self.panel_mid)
+        self.panel_bar_chart.Show(True)
         # Bottom panel
         self.panel_bottom = wx.Panel(self)
         szr_titles = wx.BoxSizer(wx.HORIZONTAL)
@@ -255,7 +270,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.SetSizer(szr_main)
         szr_lst = [self.panel_top, self.panel_mid, self.panel_bottom]
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024, 
-                     height_init=myheight)
+                     height_init=myheight)            
         
     def on_show(self, event):
         try:
@@ -266,20 +281,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             # any initial content
             html2show = _("<p>Waiting for a report to be run.</p>")
             self.html.show_html(html2show)
-            # hide all panels except default
-            panels2hide = [self.panel_clustered_bar_chart, self.panel_pie_chart,
-                           self.panel_line_chart, self.panel_area_chart,
-                           self.panel_histogram, self.panel_scatterplot]
-            for panel2hide in panels2hide:
-                panel2hide.Show(True)
-                self.szr_mid.Add(panel2hide, 0, wx.GROW)
-                self.szr_mid.Remove(panel2hide)
-                panel2hide.Show(False)
-            # default chart type (bar chart)
-            self.panel_bar_chart.Show(True)
-            self.panel_displayed = self.panel_bar_chart
-            self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
-        
+
     def setup_chart_btns(self, szr_chart_btns):
         # bar charts
         bmp_btn_bar_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
