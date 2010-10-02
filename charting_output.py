@@ -44,10 +44,7 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, measure_val_labels,
         len_y_val = len(val_label)
         if len_y_val > max_label_len:
             max_label_len = len_y_val
-        if len(val_label) > 12:
-            split_label = u"<br>".join(val_label.split())
-        else:
-            split_label = val_label
+        split_label = lib.get_labels_in_lines(orig_txt=val_label, max_width=17)
         measure_dets.append((val, val_label, split_label))
         y_vals.append(freq)
     if not y_vals:
@@ -148,10 +145,7 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt, fld_measure,
         len_y_val = len(val_label)
         if len_y_val > max_label_len:
             max_label_len = len_y_val
-        if len(val_label) > 12:
-            split_label = u"<br>".join(val_label.split())
-        else:
-            split_label = val_label
+        split_label = lib.get_labels_in_lines(orig_txt=val_label, max_width=17)
         xaxis_dets.append((val, val_label, split_label))
     if debug: print(xaxis_dets)
     return xaxis_dets, max_label_len, series_dets

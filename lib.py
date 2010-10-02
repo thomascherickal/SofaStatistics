@@ -565,6 +565,21 @@ def get_next_fld_name(existing_var_names):
     next_fld_name = mg.NEXT_FLD_NAME_TEMPLATE % free_num
     return next_fld_name
 
+def get_labels_in_lines(orig_txt, max_width):
+    lines = []
+    words = orig_txt.split()
+    line_words = []
+    for word in words:
+        line_words.append(word)
+        line_width = len(u" ".join(line_words))
+        if line_width > max_width:
+            line_words.pop()
+            lines.append(u" ".join(line_words))
+            line_words = [word]
+    lines.append(u" ".join(line_words))
+    wrapped_txt = u"<br>".join(lines)
+    return wrapped_txt
+
 def get_text_to_draw(orig_txt, max_width):
     "Return text broken into new lines so wraps within pixel width"
     mem = wx.MemoryDC()
@@ -575,7 +590,7 @@ def get_text_to_draw(orig_txt, max_width):
     line_words = []
     for word in words:
         line_words.append(word)
-        line_width = mem.GetTextExtent(" ".join(line_words))[0]
+        line_width = mem.GetTextExtent(u" ".join(line_words))[0]
         if line_width > max_width:
             line_words.pop()
             lines.append(u" ".join(line_words))
