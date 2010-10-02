@@ -566,6 +566,7 @@ def get_next_fld_name(existing_var_names):
     return next_fld_name
 
 def get_labels_in_lines(orig_txt, max_width):
+    debug = True
     lines = []
     words = orig_txt.split()
     line_words = []
@@ -577,6 +578,10 @@ def get_labels_in_lines(orig_txt, max_width):
             lines.append(u" ".join(line_words))
             line_words = [word]
     lines.append(u" ".join(line_words))
+    lines = [x.center(max_width) for x in lines]
+    if debug: 
+        print(line_words)
+        print(lines)
     wrapped_txt = u"<br>".join(lines)
     return wrapped_txt
 
