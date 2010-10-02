@@ -20,6 +20,7 @@ dd = getdata.get_dd()
 LIMITS_MSG = (u"This chart type is not currently available in this release. "
               u"More chart types coming soon!")
 CUR_SORT_OPT = mg.SORT_NONE
+INC_PERC = True
 
 
 class DlgCharting(indep2var.DlgIndep2VarConfig):
@@ -114,7 +115,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             bx_charts.SetToolTipString(_("Make chart"))
         # Chart Settings
         # bar chart
-        self.szr_bar_chart = wx.BoxSizer(wx.VERTICAL)
+        self.szr_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_bar_chart = wx.Panel(self.panel_mid)
         self.rad_bar_sort_opts = wx.RadioBox(self.panel_bar_chart, -1, 
                                              _("Sort order of bars"), 
@@ -124,21 +125,32 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.rad_bar_sort_opts.SetSelection(idx_current_sort_opt)
         self.rad_bar_sort_opts.Bind(wx.wx.EVT_RADIOBOX, 
                                     self.on_rad_bar_sort_opt)
-        self.szr_bar_chart.Add(self.rad_bar_sort_opts, 0, wx.TOP, 5)
+        self.chk_simple_bar_perc = wx.CheckBox(self.panel_bar_chart, -1, 
+                                               _("Show percent?"))
+        self.chk_simple_bar_perc.SetValue(INC_PERC)
+        self.chk_simple_bar_perc.SetToolTipString(_(u"Show percent in tool "
+                                                    u"tip?"))
+        self.chk_simple_bar_perc.Bind(wx.EVT_CHECKBOX, 
+                                      self.on_chk_simple_bar_perc)
+        self.szr_bar_chart.Add(self.rad_bar_sort_opts, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_bar_chart.Add(self.chk_simple_bar_perc, 0, wx.TOP, 22)
         self.panel_bar_chart.SetSizer(self.szr_bar_chart)
         self.szr_bar_chart.SetSizeHints(self.panel_bar_chart)
         # clustered bar chart
         self.szr_clustered_bar_chart = wx.BoxSizer(wx.VERTICAL)
         self.panel_clustered_bar_chart = wx.Panel(self.panel_mid)
-        lbl_clustered_bar_chart = wx.StaticText(self.panel_clustered_bar_chart, 
-                                    -1, u"Clustered bar chart "
-                                    u"configuration still under construction")
-        self.szr_clustered_bar_chart.Add(lbl_clustered_bar_chart, 1, 
+        self.chk_clust_bar_perc = wx.CheckBox(self.panel_clustered_bar_chart, 
+                                              -1, _("Show percent?"))
+        self.chk_clust_bar_perc.SetValue(INC_PERC)
+        self.chk_clust_bar_perc.SetToolTipString(_(u"Show percent in tool "
+                                                   u"tip?"))
+        self.chk_clust_bar_perc.Bind(wx.EVT_CHECKBOX, 
+                                     self.on_chk_clust_bar_perc)
+        self.szr_clustered_bar_chart.Add(self.chk_clust_bar_perc, 1, 
                                          wx.TOP|wx.BOTTOM, 10)
         self.panel_clustered_bar_chart.SetSizer(self.szr_clustered_bar_chart)
         self.szr_clustered_bar_chart.SetSizeHints(\
                                         self.panel_clustered_bar_chart)
-        self.panel_clustered_bar_chart.Show(False)
         # pie chart
         self.szr_pie_chart = wx.BoxSizer(wx.VERTICAL)
         self.panel_pie_chart = wx.Panel(self.panel_mid)
@@ -152,34 +164,33 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_pie_chart.Add(self.rad_pie_sort_opts, 0, wx.TOP, 5)
         self.panel_pie_chart.SetSizer(self.szr_pie_chart)
         self.szr_pie_chart.SetSizeHints(self.panel_pie_chart)
-        self.panel_pie_chart.Show(False)
         # line chart
         self.szr_line_chart = wx.BoxSizer(wx.VERTICAL)
         self.panel_line_chart = wx.Panel(self.panel_mid)
-        lbl_line_chart = wx.StaticText(self.panel_line_chart, -1, 
-                        u"Line chart configuration still under construction")
-        self.szr_line_chart.Add(lbl_line_chart, 1, wx.TOP|wx.BOTTOM, 10)
+        self.chk_line_perc = wx.CheckBox(self.panel_line_chart, -1, 
+                                         _("Show percent?"))
+        self.chk_line_perc.SetValue(INC_PERC)
+        self.chk_line_perc.SetToolTipString(_(u"Show percent in tool tip?"))
+        self.chk_line_perc.Bind(wx.EVT_CHECKBOX, self.on_chk_line_perc)
+        self.szr_line_chart.Add(self.chk_line_perc, 1, wx.TOP|wx.BOTTOM, 10)
         self.panel_line_chart.SetSizer(self.szr_line_chart)
         self.szr_line_chart.SetSizeHints(self.panel_line_chart)
-        self.panel_line_chart.Show(False)
         # area chart
         self.szr_area_chart = wx.BoxSizer(wx.VERTICAL)
         self.panel_area_chart = wx.Panel(self.panel_mid)
-        lbl_area_chart = wx.StaticText(self.panel_area_chart, -1, 
-                        u"Area chart configuration still under construction")
-        self.szr_area_chart.Add(lbl_area_chart, 1, wx.TOP|wx.BOTTOM, 10)
+        self.chk_area_perc = wx.CheckBox(self.panel_area_chart, -1, 
+                                         _("Show percent?"))
+        self.chk_area_perc.SetValue(INC_PERC)
+        self.chk_area_perc.SetToolTipString(_(u"Show percent in tool tip?"))
+        self.chk_area_perc.Bind(wx.EVT_CHECKBOX, self.on_chk_area_perc)
+        self.szr_area_chart.Add(self.chk_area_perc, 1, wx.TOP|wx.BOTTOM, 10)
         self.panel_area_chart.SetSizer(self.szr_area_chart)
         self.szr_area_chart.SetSizeHints(self.panel_area_chart)
-        self.panel_area_chart.Show(False)
         # histogram
         self.szr_histogram = wx.BoxSizer(wx.VERTICAL)
         self.panel_histogram = wx.Panel(self.panel_mid)
-        lbl_histogram = wx.StaticText(self.panel_histogram, -1, 
-                        u"Histogram configuration still under construction")
-        self.szr_histogram.Add(lbl_histogram, 1, wx.TOP|wx.BOTTOM, 10)
         self.panel_histogram.SetSizer(self.szr_histogram)
         self.szr_histogram.SetSizeHints(self.panel_histogram)
-        self.panel_histogram.Show(False)
         # scatterplot
         self.szr_scatterplot = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_scatterplot = wx.Panel(self.panel_mid)
@@ -191,7 +202,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                             "dots?"))
         self.panel_scatterplot.SetSizer(self.szr_scatterplot)
         self.szr_scatterplot.SetSizeHints(self.panel_scatterplot)
-        self.panel_scatterplot.Show(False)
         # default chart type (bar chart)
         self.panel_displayed = self.panel_bar_chart
         self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
@@ -246,7 +256,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_lst = [self.panel_top, self.panel_mid, self.panel_bottom]
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024, 
                      height_init=myheight)
-
+        
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
@@ -256,7 +266,20 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             # any initial content
             html2show = _("<p>Waiting for a report to be run.</p>")
             self.html.show_html(html2show)
-    
+            # hide all panels except default
+            panels2hide = [self.panel_clustered_bar_chart, self.panel_pie_chart,
+                           self.panel_line_chart, self.panel_area_chart,
+                           self.panel_histogram, self.panel_scatterplot]
+            for panel2hide in panels2hide:
+                panel2hide.Show(True)
+                self.szr_mid.Add(panel2hide, 0, wx.GROW)
+                self.szr_mid.Remove(panel2hide)
+                panel2hide.Show(False)
+            # default chart type (bar chart)
+            self.panel_bar_chart.Show(True)
+            self.panel_displayed = self.panel_bar_chart
+            self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
+        
     def setup_chart_btns(self, szr_chart_btns):
         # bar charts
         bmp_btn_bar_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
@@ -334,6 +357,22 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.btn_scatterplot.SetCursor(hand)
             self.btn_histogram.SetCursor(hand)
 
+    def on_chk_simple_bar_perc(self, event):
+        global INC_PERC
+        INC_PERC = self.chk_simple_bar_perc.IsChecked()
+
+    def on_chk_clust_bar_perc(self, event):
+        global INC_PERC
+        INC_PERC = self.chk_clust_bar_perc.IsChecked()
+
+    def on_chk_line_perc(self, event):
+        global INC_PERC
+        INC_PERC = self.chk_line_perc.IsChecked()
+
+    def on_chk_area_perc(self, event):
+        global INC_PERC
+        INC_PERC = self.chk_area_perc.IsChecked()
+        
     def on_rad_sort_opt(self, idx_sel):
         debug = False
         global CUR_SORT_OPT
@@ -383,12 +422,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn = self.btn_bar_chart
         panel = self.panel_bar_chart
         self.rad_bar_sort_opts.SetSelection(mg.SORT_OPTS.index(CUR_SORT_OPT))
+        self.chk_simple_bar_perc.SetValue(INC_PERC)
         self.btn_chart(event, btn, panel)
 
     def on_btn_clustered_bar_chart(self, event):
         self.chart_type = mg.CLUSTERED_BARCHART
         btn = self.btn_clust_bar_chart
         panel = self.panel_clustered_bar_chart
+        self.chk_clust_bar_perc.SetValue(INC_PERC)
         self.btn_chart(event, btn, panel)
 
     def on_btn_pie_chart(self, event):
@@ -402,12 +443,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chart_type = mg.LINE_CHART
         btn = self.btn_line_chart
         panel = self.panel_line_chart
+        self.chk_line_perc.SetValue(INC_PERC)
         self.btn_chart(event, btn, panel)
 
     def on_btn_area_chart(self, event):
         self.chart_type = mg.AREA_CHART
         btn = self.btn_area_chart
         panel = self.panel_area_chart
+        self.chk_area_perc.SetValue(INC_PERC)
         self.btn_chart(event, btn, panel)
 
     def on_btn_histogram(self, event):
