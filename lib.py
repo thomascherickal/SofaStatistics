@@ -582,7 +582,10 @@ def get_labels_in_lines(orig_txt, max_width):
     if debug: 
         print(line_words)
         print(lines)
-    wrapped_txt = u"<br>".join(lines)
+    if len(lines) == 1:
+        wrapped_txt = lines[0].strip()
+    else:
+        wrapped_txt = u"<br>".join(lines)
     return wrapped_txt
 
 def get_text_to_draw(orig_txt, max_width):
