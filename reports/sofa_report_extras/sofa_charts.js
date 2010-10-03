@@ -497,7 +497,7 @@ makeScatterplot = function(chartname, datadets, chartconf){
     mychart.setTheme(sofa_theme);
     mychart.addAxis("x", {title: xTitle,
                     min: 0, max: chartconf["xmax"],
-                    minorTicks: true, microTicks: false,
+                    minorTicks: minorTicks, microTicks: false,
                     font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial"
     });
     mychart.addAxis("y", {title: yTitle,

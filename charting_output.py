@@ -916,8 +916,12 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
         y_title = label_b
         if debug: print(label_a, xmax, label_b, ymax)
         jsdata = []
+        x_set = set()
         for x, y in data_tups:
             jsdata.append("{x: %s, y: %s}" % (x, y))
+            x_set.add(x)
+        few_unique_x_vals = (len(x_set) < 10)
+        minor_ticks = u"false" if few_unique_x_vals else u"true"
         xy_pairs = "[" + ",\n".join(jsdata) + "]"
         (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
          gridline_width, stroke_width, tooltip_border_colour, 
@@ -993,7 +997,7 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
                u"axis_label_drop": axis_label_drop,
                u"tooltip_border_colour": tooltip_border_colour,
                u"connector_style": connector_style, u"outer_bg": outer_bg, 
-               u"grid_bg": grid_bg, u"minor_ticks": u"true",
+               u"grid_bg": grid_bg, u"minor_ticks": minor_ticks,
                u"tick_colour": major_gridline_colour})
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
