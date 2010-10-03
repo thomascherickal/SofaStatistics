@@ -379,17 +379,16 @@ def get_label_dets(xaxis_dets, series_dets):
     return label_dets
 
 def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets, 
-                    css_idx, css_fil, page_break_after):
+                    inc_perc, css_idx, css_fil, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
     series_labels -- e.g. ["Age Group", ] if simple bar chart,
         e.g. ["Male", "Female"] if clustered bar chart.
     var_numeric -- needs to be quoted or not.
-    y_vals -- list of values e.g. [[12, 30, 100.5, -1, 40], ]
     xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
                    (5, "65+")]
-    css_idx -- css index so can apply    
+    css_idx -- css index so can apply appropriate css styles
     """
     debug = False
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
@@ -401,6 +400,7 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
     height = 310 + axis_label_drop # compensate for loss of bar display height
     width, xgap, xfontsize, minor_ticks = get_barchart_sizings(xaxis_dets, 
                                                                series_dets)
+    inc_perc_js = u"true" if inc_perc else u"false"
     html = []
     """
     For each series, set colour details.
@@ -471,6 +471,7 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
             chartconf["axisLabelDrop"] = %(axis_label_drop)s;
             chartconf["yTitle"] = \"%(y_title)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+            chartconf["incPerc"] = %(inc_perc_js)s;
             chartconf["connectorStyle"] = \"%(connector_style)s\";
             %(outer_bg)s
             makeBarChart("mychartRenumber", series, chartconf);
@@ -491,8 +492,9 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
            u"gridline_width": gridline_width, 
            u"axis_label_drop": axis_label_drop,
            u"x_title": x_title, u"y_title": mg.Y_AXIS_FREQ_LABEL,
-           u"tooltip_border_colour": tooltip_border_colour,
-           u"connector_style": connector_style, u"outer_bg": outer_bg, 
+           u"tooltip_border_colour": tooltip_border_colour, 
+           u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
+           u"outer_bg": outer_bg, 
            u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -572,7 +574,8 @@ def piechart_output(titles, subtitles, slice_dets, css_fil, css_idx,
     return u"".join(html)
     
 def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len, 
-                     series_dets, css_fil, css_idx, page_break_after):
+                     series_dets, inc_perc, css_fil, css_idx, 
+                     page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -596,6 +599,7 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
     (width, xfontsize, 
      minor_ticks, micro_ticks) = get_linechart_sizings(xaxis_dets, 
                                                      max_label_len, series_dets)
+    inc_perc_js = u"true" if inc_perc else u"false"
     html = []
     """
     For each series, set colour details.
@@ -649,6 +653,7 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
             chartconf["axisLabelDrop"] = %(axis_label_drop)s;
             chartconf["yTitle"] = \"%(y_title)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+            chartconf["incPerc"] = %(inc_perc_js)s;
             chartconf["connectorStyle"] = \"%(connector_style)s\";
             makeLineChart("mychartRenumber", series, chartconf);
         }
@@ -668,7 +673,8 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
            u"axis_label_drop": axis_label_drop,
            u"x_title": x_title, u"y_title": mg.Y_AXIS_FREQ_LABEL,
            u"tooltip_border_colour": tooltip_border_colour,
-           u"connector_style": connector_style, u"grid_bg": grid_bg, 
+           u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
+           u"grid_bg": grid_bg, 
            u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks})
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -676,14 +682,13 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
     return u"".join(html)
     
 def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets, 
-                     css_fil, css_idx, page_break_after):
+                     inc_perc, css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
     series_labels -- e.g. ["Age Group", ] if simple bar chart,
         e.g. ["Male", "Female"] if clustered bar chart.
     var_numeric -- needs to be quoted or not.
-    y_vals -- list of values e.g. [[12, 30, 100.5, -1, 40], ]
     xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
                    (5, "65+")]
     css_idx -- css index so can apply    
@@ -695,6 +700,7 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
     xaxis_labels = u"[" + \
         u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[2]) 
                                     for i,x in enumerate(xaxis_dets,1)]) + u"]"
+    inc_perc_js = u"true" if inc_perc else u"false"
     (width, xfontsize, minor_ticks, 
                 micro_ticks) = get_linechart_sizings(xaxis_dets, max_label_len, 
                                                      series_dets)
@@ -753,6 +759,7 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
             chartconf["yTitle"] = \"%(y_title)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+            chartconf["incPerc"] = %(inc_perc_js)s;
             chartconf["connectorStyle"] = \"%(connector_style)s\";
             makeAreaChart("mychartRenumber", series, chartconf);
         }
@@ -769,7 +776,8 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
            u"major_gridline_colour": major_gridline_colour,
            u"gridline_width": gridline_width, u"y_title": mg.Y_AXIS_FREQ_LABEL,
            u"tooltip_border_colour": tooltip_border_colour,
-           u"connector_style": connector_style, u"grid_bg": grid_bg, 
+           u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
+           u"grid_bg": grid_bg, 
            u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks})
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 

@@ -1,18 +1,19 @@
 
 makeBarChart = function(chartname, series, chartconf){
     // allow charts made without newest config items to keep working
-    var gridlineWidth = (chartconf["gridlineWidth"]) ? chartconf["gridlineWidth"] : 3;
-    var tooltipBorderColour = (chartconf["tooltipBorderColour"]) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var outerChartBorderColour = (chartconf["outerChartBorderColour"]) ? chartconf["outerChartBorderColour"] : null;
-    var innerChartBorderColour = (chartconf["innerChartBorderColour"]) ? chartconf["innerChartBorderColour"] : null;
-    var outerBg = (chartconf["outerBg"]) ? chartconf["outerBg"] : null;
-    var axisColour = (chartconf["axisColour"]) ? chartconf["axisColour"] : null;
-    var tickColour = (chartconf["tickColour"]) ? chartconf["tickColour"] : null;
-    var minorTicks = (chartconf["minorTicks"]) ? chartconf["minorTicks"] : false;
-    var xTitle = (chartconf["xTitle"]) ? chartconf["xTitle"] : "";
-    var axisLabelDrop = (chartconf["axisLabelDrop"]) ? chartconf["axisLabelDrop"] : 30;
-    var yTitle = (chartconf["yTitle"]) ? chartconf["yTitle"] : "Frequency";
-    var connectorStyle = (chartconf["connectorStyle"]) ? chartconf["connectorStyle"] : "defbrown";
+    var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;
+    var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
+    var incPerc = ("incPerc" in chartconf) ? chartconf["incPerc"] : true;
+    var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
+    var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
+    var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
+    var outerBg = ("outerBg" in chartconf) ? chartconf["outerBg"] : null;
+    var axisColour = ("axisColour" in chartconf) ? chartconf["axisColour"] : null;
+    var tickColour = ("tickColour" in chartconf) ? chartconf["tickColour"] : null;
+    var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
+    var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "";
+    var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
+    var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
 
     var getSum = function(myNums){
         var i
@@ -26,7 +27,11 @@ makeBarChart = function(chartname, series, chartconf){
     // chartwide functon setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
         var seriesSum = getSum(val.run.data);
-        return val.y + "<br>(" + Math.round((1000*val.y)/seriesSum)/10 + "%)";
+        var tip = val.y;
+        if(incPerc){
+            tip += ("<br>(" + Math.round((1000*val.y)/seriesSum)/10 + "%)");
+        }
+        return tip;
     };
 
     var dc = dojox.charting;
@@ -95,12 +100,12 @@ makeBarChart = function(chartname, series, chartconf){
 makePieChart = function(chartname, slices, chartconf){
     // allow charts made without newest config items to keep working
 
-    var tooltipBorderColour = (chartconf["tooltipBorderColour"]) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var outerChartBorderColour = (chartconf["outerChartBorderColour"]) ? chartconf["outerChartBorderColour"] : null;
-    var innerChartBorderColour = (chartconf["innerChartBorderColour"]) ? chartconf["innerChartBorderColour"] : null;
-    var outerBg = (chartconf["outerBg"]) ? chartconf["outerBg"] : null;
     var pieStroke = "#8b9b98";
-    var connectorStyle = (chartconf["connectorStyle"]) ? chartconf["connectorStyle"] : "defbrown";
+    var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
+    var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
+    var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
+    var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
+    var outerBg = ("outerBg" in chartconf) ? chartconf["outerBg"] : null;
 
     var dc = dojox.charting;
     var mychart = new dc.Chart2D(chartname);
@@ -151,19 +156,31 @@ makePieChart = function(chartname, slices, chartconf){
 
 makeLineChart = function(chartname, series, chartconf){
     // allow charts made without newest config items to keep working
-    var gridlineWidth = (chartconf["gridlineWidth"]) ? chartconf["gridlineWidth"] : 3;
-    var tooltipBorderColour = (chartconf["tooltipBorderColour"]) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var outerChartBorderColour = (chartconf["outerChartBorderColour"]) ? chartconf["outerChartBorderColour"] : null;
-    var innerChartBorderColour = (chartconf["innerChartBorderColour"]) ? chartconf["innerChartBorderColour"] : null;
-    var axisColour = (chartconf["axisColour"]) ? chartconf["axisColour"] : null;
-    var tickColour = (chartconf["tickColour"]) ? chartconf["tickColour"] : "black";
-    var minorTicks = (chartconf["minorTicks"]) ? chartconf["minorTicks"] : false;
-    var microTicks = (chartconf["microTicks"]) ? chartconf["microTicks"] : false;
-    var xTitle = (chartconf["xTitle"]) ? chartconf["xTitle"] : "";
-    var axisLabelDrop = (chartconf["axisLabelDrop"]) ? chartconf["axisLabelDrop"] : 30;
-    var yTitle = (chartconf["yTitle"]) ? chartconf["yTitle"] : "Frequency";
-    var connectorStyle = (chartconf["connectorStyle"]) ? chartconf["connectorStyle"] : "defbrown";
 
+    var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;
+    var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
+    var incPerc = ("incPerc" in chartconf) ? chartconf["incPerc"] : true;
+    var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
+    var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
+    var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
+    var outerBg = ("outerBg" in chartconf) ? chartconf["outerBg"] : null;
+    var axisColour = ("axisColour" in chartconf) ? chartconf["axisColour"] : null;
+    var tickColour = ("tickColour" in chartconf) ? chartconf["tickColour"] : null;
+    var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
+    var microTicks = ("microTicks" in chartconf) ? chartconf["microTicks"] : false;
+    var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "";
+    var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
+    var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
+
+
+    var getTooltip = function(val){
+        var seriesSum = getSum(val.run.data);
+        var tip = val.y;
+        if(incPerc){
+            tip += ("<br>(" + Math.round((1000*val.y)/seriesSum)/10 + "%)");
+        }
+        return tip;
+    };
     var getSum = function(myNums){
         var i
         var sum = 0
@@ -171,12 +188,16 @@ makeLineChart = function(chartname, series, chartconf){
             sum += myNums[i]
         }
         return sum
-    }    
+    }
 
     // chartwide functon setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
         var seriesSum = getSum(val.run.data);
-        return val.y + "<br>(" + Math.round((1000*val.y)/seriesSum)/10 + "%)";
+        var tip = val.y;
+        if(incPerc){
+            tip += ("<br>(" + Math.round((1000*val.y)/seriesSum)/10 + "%)");
+        }
+        return tip;
     };
 
     var dc = dojox.charting;
@@ -241,17 +262,18 @@ makeLineChart = function(chartname, series, chartconf){
 
 makeAreaChart = function(chartname, series, chartconf){
     // allow charts made without newest config items to keep working
-    var gridlineWidth = (chartconf["gridlineWidth"]) ? chartconf["gridlineWidth"] : 3;
-    var tooltipBorderColour = (chartconf["tooltipBorderColour"]) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var outerChartBorderColour = (chartconf["outerChartBorderColour"]) ? chartconf["outerChartBorderColour"] : null;
-    var innerChartBorderColour = (chartconf["innerChartBorderColour"]) ? chartconf["innerChartBorderColour"] : null;
-    var outerBg = (chartconf["outerBg"]) ? chartconf["outerBg"] : null;
-    var axisColour = (chartconf["axisColour"]) ? chartconf["axisColour"] : null;
-    var tickColour = (chartconf["tickColour"]) ? chartconf["tickColour"] : "black";
-    var minorTicks = (chartconf["minorTicks"]) ? chartconf["minorTicks"] : false;
-    var microTicks = (chartconf["microTicks"]) ? chartconf["microTicks"] : false;
-    var yTitle = (chartconf["yTitle"]) ? chartconf["yTitle"] : "Frequency";
-    var connectorStyle = (chartconf["connectorStyle"]) ? chartconf["connectorStyle"] : "defbrown";
+    var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;
+    var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
+    var incPerc = ("incPerc" in chartconf) ? chartconf["incPerc"] : true;
+    var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
+    var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
+    var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
+    var outerBg = ("outerBg" in chartconf) ? chartconf["outerBg"] : null;
+    var axisColour = ("axisColour" in chartconf) ? chartconf["axisColour"] : null;
+    var tickColour = ("tickColour" in chartconf) ? chartconf["tickColour"] : "black";
+    var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
+    var microTicks = ("microTicks" in chartconf) ? chartconf["microTicks"] : false;
+    var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
 
     var getSum = function(myNums){
         var i
@@ -265,7 +287,11 @@ makeAreaChart = function(chartname, series, chartconf){
     // chartwide functon setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
         var seriesSum = getSum(val.run.data);
-        return val.y + "<br>(" + Math.round((1000*val.y)/seriesSum)/10 + "%)";
+        var tip = val.y;
+        if(incPerc){
+            tip += ("<br>(" + Math.round((1000*val.y)/seriesSum)/10 + "%)");
+        }
+        return tip;
     };
 
     var dc = dojox.charting;
@@ -330,16 +356,16 @@ makeAreaChart = function(chartname, series, chartconf){
 
 makeHistogram = function(chartname, datadets, chartconf){
     // allow charts made without newest config items to keep working
-    var gridlineWidth = (chartconf["gridlineWidth"]) ? chartconf["gridlineWidth"] : 3;
-    var tooltipBorderColour = (chartconf["tooltipBorderColour"]) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var outerChartBorderColour = (chartconf["outerChartBorderColour"]) ? chartconf["outerChartBorderColour"] : null;
-    var innerChartBorderColour = (chartconf["innerChartBorderColour"]) ? chartconf["innerChartBorderColour"] : null;
-    var outerBg = (chartconf["outerBg"]) ? chartconf["outerBg"] : null;
-    var axisColour = (chartconf["axisColour"]) ? chartconf["axisColour"] : null;
-    var tickColour = (chartconf["tickColour"]) ? chartconf["tickColour"] : null;
-    var minorTicks = (chartconf["minorTicks"]) ? chartconf["minorTicks"] : false;
-    var yTitle = (chartconf["yTitle"]) ? chartconf["yTitle"] : "P";
-    var connectorStyle = (chartconf["connectorStyle"]) ? chartconf["connectorStyle"] : "defbrown";
+    var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;
+    var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
+    var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
+    var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
+    var outerBg = ("outerBg" in chartconf) ? chartconf["outerBg"] : null;
+    var axisColour = ("axisColour" in chartconf) ? chartconf["axisColour"] : null;
+    var tickColour = ("tickColour" in chartconf) ? chartconf["tickColour"] : null;
+    var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
+    var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "P";
+    var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
 
     // chartwide functon setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
@@ -413,18 +439,18 @@ makeHistogram = function(chartname, datadets, chartconf){
 
 makeScatterplot = function(chartname, datadets, chartconf){
     // allow charts made without newest config items to keep working
-    var gridlineWidth = (chartconf["gridlineWidth"]) ? chartconf["gridlineWidth"] : 3;
-    var tooltipBorderColour = (chartconf["tooltipBorderColour"]) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var outerChartBorderColour = (chartconf["outerChartBorderColour"]) ? chartconf["outerChartBorderColour"] : null;
-    var innerChartBorderColour = (chartconf["innerChartBorderColour"]) ? chartconf["innerChartBorderColour"] : null;
-    var outerBg = (chartconf["outerBg"]) ? chartconf["outerBg"] : null;
-    var axisColour = (chartconf["axisColour"]) ? chartconf["axisColour"] : null;
-    var tickColour = (chartconf["tickColour"]) ? chartconf["tickColour"] : null;
-    var minorTicks = (chartconf["minorTicks"]) ? chartconf["minorTicks"] : false;
-    var xTitle = (chartconf["xTitle"]) ? chartconf["xTitle"] : "Variable A";
-    var axisLabelDrop = (chartconf["axisLabelDrop"]) ? chartconf["axisLabelDrop"] : 0;
-    var yTitle = (chartconf["yTitle"]) ? chartconf["yTitle"] : "Variable B";
-    var connectorStyle = (chartconf["connectorStyle"]) ? chartconf["connectorStyle"] : "defbrown";
+    var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;
+    var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
+    var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
+    var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
+    var outerBg = ("outerBg" in chartconf) ? chartconf["outerBg"] : null;
+    var axisColour = ("axisColour" in chartconf) ? chartconf["axisColour"] : null;
+    var tickColour = ("tickColour" in chartconf) ? chartconf["tickColour"] : null;
+    var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
+    var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "Variable A";
+    var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 0;
+    var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Variable B";
+    var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
 
     // chartwide functon setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){

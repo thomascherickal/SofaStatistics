@@ -566,7 +566,7 @@ def get_next_fld_name(existing_var_names):
     return next_fld_name
 
 def get_labels_in_lines(orig_txt, max_width):
-    debug = True
+    debug = False
     lines = []
     words = orig_txt.split()
     line_words = []

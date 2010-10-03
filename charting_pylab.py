@@ -107,7 +107,7 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False,
     Configure histogram with subplot of normal distribution curve.
     Size is set externally. 
     """
-    debug = True
+    debug = False
     axes = fig.gca()
     rect = axes.patch
     rect.set_facecolor(grid_bg)
