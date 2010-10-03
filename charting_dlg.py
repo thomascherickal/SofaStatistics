@@ -222,6 +222,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_displayed = self.panel_bar_chart
         self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
         self.panel_bar_chart.Show(True)
+        self.panel_mid.SetSizer(self.szr_mid)
+        self.szr_mid.SetSizeHints(self.panel_mid)
         # Bottom panel
         self.panel_bottom = wx.Panel(self)
         szr_titles = wx.BoxSizer(wx.HORIZONTAL)

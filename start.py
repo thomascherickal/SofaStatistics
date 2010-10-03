@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-dev_debug = True
+dev_debug = False
 test_lang = False
 
 """
@@ -71,7 +71,7 @@ except Exception, e:
 # Give the user something if the program fails at an early stage before anything
 # appears on the screen.  Can only guarantee this from here onwards because I 
 # need lib etc.
-class MsgFrame(wx.Frame):
+class ErrMsgFrame(wx.Frame):
     def __init__(self, e, raw_error_msg):
         wx.Frame.__init__(self, None, title=_("SOFA Error"))
         error_msg = lib.ue(e)
@@ -86,7 +86,7 @@ class MsgFrame(wx.Frame):
         sys.exit()
         
 
-class MsgApp(wx.App):
+class ErrMsgApp(wx.App):
 
     def __init__(self, e, raw_error_msg=False):
         self.e = e
@@ -94,11 +94,31 @@ class MsgApp(wx.App):
         wx.App.__init__(self, redirect=False, filename=None)
 
     def OnInit(self):
-        msgframe = MsgFrame(self.e, self.raw_error_msg)
+        msgframe = ErrMsgFrame(self.e, self.raw_error_msg)
         msgframe.Show()
         self.SetTopWindow(msgframe)
         return True
 
+
+class MsgFrame(wx.Frame):
+    def __init__(self, msg):
+        wx.Frame.__init__(self, None, title=_("SOFA Message"))
+        wx.MessageBox(msg)
+        self.Destroy()
+        
+
+class MsgApp(wx.App):
+
+    def __init__(self, msg):
+        self.msg = msg
+        wx.App.__init__(self, redirect=False, filename=None)
+
+    def OnInit(self):
+        msgframe = MsgFrame(self.msg)
+        msgframe.Show()
+        self.SetTopWindow(msgframe)
+        return True
+    
 
 def check_python_version():
     if not sys.version.startswith(u"2.6"):
@@ -124,7 +144,7 @@ def check_python_version():
                u"\n\nFor help, please contact grant@sofastatistics.com")
         f.write(msg)
         f.close()    
-        msgapp = MsgApp(msg + "\n\n" + u"*"*80 +u"\n\nThis message has been "
+        msgapp = ErrMsgApp(msg + "\n\n" + u"*"*80 +u"\n\nThis message has been "
                 u"saved to a file on your Desktop for future reference", True)
         msgapp.MainLoop()
         del msgapp
@@ -338,6 +358,24 @@ def get_installer_version_status(local_path):
         installer_newer_status_known = False
     return installer_is_newer, installer_newer_status_known
 
+def archive_older_default_report():
+    def_rpt_pth = os.path.join(mg.REPORTS_PATH, mg.DEFAULT_REPORT)
+    if os.path.exists(def_rpt_pth):
+        try:
+            new_filename = u"default_report_pre_%s.htm" % mg.VERSION
+            new_version = os.path.join(mg.REPORTS_PATH, new_filename)
+            os.rename(def_rpt_pth, new_version)
+            msg = (u"As part of the upgrade to version %s, SOFA has renamed "
+                   u"\"%s\" to \"%s\" "
+                   u"\nto ensure all new content added to the default report "
+                   u"works with the latest chart display code." % 
+                   (mg.VERSION, mg.DEFAULT_REPORT, new_filename))
+            msgapp = MsgApp(msg)
+            msgapp.MainLoop()
+            del msgapp
+        except OSError, e:
+            pass
+                    
 def freshen_recovery(local_subfolders):
     """
     Need a good upgrade process which leaves existing configuration intact if 
@@ -416,7 +454,8 @@ try:
                                     REPORT_EXTRAS_PATH +
                                     u"\nCaused by error: %s" % lib.ue(e))
                 populate_extras_path(prog_path, mg.LOCAL_PATH)
-                store_version(mg.LOCAL_PATH) # update it so only done once    
+                archive_older_default_report()
+                store_version(mg.LOCAL_PATH) # update it so only done once
         except Exception, e:
             raise Exception(u"Problem modifying your local sofa folder. One "
                             u"option is to delete the %s folder and let SOFA "
@@ -425,7 +464,7 @@ try:
     freshen_recovery(local_subfolders)
 except Exception, e:
     msg = (u"Problem running initial setup.\nCaused by error: %s" % lib.ue(e))
-    msgapp = MsgApp(msg)
+    msgapp = ErrMsgApp(msg)
     msgapp.MainLoop()
     del msgapp
 try:
@@ -438,7 +477,7 @@ try:
 except Exception, e:
     msg = (u"Problem with second round of local importing."
            u"\nCaused by error: %s" % lib.ue(e))
-    msgapp = MsgApp(msg)
+    msgapp = ErrMsgApp(msg)
     msgapp.MainLoop()
     del msgapp
 
@@ -1077,6 +1116,6 @@ try:
     app = SofaApp()
     app.MainLoop()
 except Exception, e:
-    app = MsgApp(e)
+    app = ErrMsgApp(e)
     app.MainLoop()
     del app
