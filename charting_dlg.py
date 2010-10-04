@@ -120,7 +120,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.rad_bar_sort_opts = wx.RadioBox(self.panel_bar_chart, -1, 
                                              _("Sort order of bars"), 
                                              choices=mg.SORT_OPTS, 
-                                             size=(400,50))
+                                             size=(-1,50))
         idx_current_sort_opt = mg.SORT_OPTS.index(CUR_SORT_OPT)
         self.rad_bar_sort_opts.SetSelection(idx_current_sort_opt)
         self.rad_bar_sort_opts.Bind(wx.wx.EVT_RADIOBOX, 
@@ -133,7 +133,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chk_simple_bar_perc.Bind(wx.EVT_CHECKBOX, 
                                       self.on_chk_simple_bar_perc)
         self.szr_bar_chart.Add(self.rad_bar_sort_opts, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_bar_chart.Add(self.chk_simple_bar_perc, 0, wx.TOP, 22)
+        if mg.PLATFORM == mg.WINDOWS:
+            bar_perc_down_by = 15
+        elif mg.PLATFORM == mg.LINUX:
+            bar_perc_down_by = 22
+        else:
+            bar_perc_down_by = 27
+        self.szr_bar_chart.Add(self.chk_simple_bar_perc, 0, wx.TOP, 
+                               bar_perc_down_by)
         self.panel_bar_chart.SetSizer(self.szr_bar_chart)
         self.szr_bar_chart.SetSizeHints(self.panel_bar_chart)
         # clustered bar chart
@@ -157,7 +164,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.rad_pie_sort_opts = wx.RadioBox(self.panel_pie_chart, -1, 
                                              _("Sort order of pie slices"), 
                                              choices=mg.SORT_OPTS, 
-                                             size=(400,50))
+                                             size=(-1,50))
         self.rad_pie_sort_opts.SetSelection(idx_current_sort_opt)
         self.rad_pie_sort_opts.Bind(wx.wx.EVT_RADIOBOX, 
                                     self.on_rad_pie_sort_opt)
@@ -285,69 +292,98 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.html.show_html(html2show)
 
     def setup_chart_btns(self, szr_chart_btns):
+        btn_gap = 2
         # bar charts
-        bmp_btn_bar_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
-                                                  u"bar_chart.xpm"), 
+        self.bmp_btn_bar_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                                u"images", u"bar_chart.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_bar_chart_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                            u"images", u"bar_chart_sel.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_bar_chart = wx.BitmapButton(self.panel_mid, -1, 
-                                             bmp_btn_bar_chart)
+                                             self.bmp_btn_bar_chart_sel, 
+                                             style=wx.NO_BORDER)
         self.btn_bar_chart.Bind(wx.EVT_BUTTON, self.on_btn_bar_chart)
         self.btn_bar_chart.SetToolTipString(_("Make Bar Chart"))
         self.btn_bar_chart.SetDefault()
         self.btn_bar_chart.SetFocus()
-        szr_chart_btns.Add(self.btn_bar_chart)
+        szr_chart_btns.Add(self.btn_bar_chart, 0, wx.RIGHT, btn_gap)
         # clustered bar charts
-        bmp_btn_clust_bar_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+        self.bmp_btn_clust_bar_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, 
                                         u"images", u"clustered_bar_chart.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_clust_bar_chart_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                    u"images", u"clustered_bar_chart_sel.xpm"), 
+                                    wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_clust_bar_chart = wx.BitmapButton(self.panel_mid, -1, 
-                                                       bmp_btn_clust_bar_chart)
+                                                   self.bmp_btn_clust_bar_chart, 
+                                                   style=wx.NO_BORDER)
         self.btn_clust_bar_chart.Bind(wx.EVT_BUTTON, 
                                       self.on_btn_clustered_bar_chart)
         self.btn_clust_bar_chart.SetToolTipString(_("Make Clustered Bar Chart"))
-        szr_chart_btns.Add(self.btn_clust_bar_chart)
+        szr_chart_btns.Add(self.btn_clust_bar_chart, 0, wx.RIGHT, btn_gap)
         # pie charts
-        bmp_btn_pie_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
-                                                  u"pie_chart.xpm"), 
+        self.bmp_btn_pie_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                                u"images", u"pie_chart.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_pie_chart_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                            u"images", u"pie_chart_sel.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap() 
         self.btn_pie_chart = wx.BitmapButton(self.panel_mid, -1, 
-                                             bmp_btn_pie_chart)
+                                             self.bmp_btn_pie_chart, 
+                                             style=wx.NO_BORDER)                  
         self.btn_pie_chart.Bind(wx.EVT_BUTTON, self.on_btn_pie_chart)
         self.btn_pie_chart.SetToolTipString(_("Make Pie Chart"))
-        szr_chart_btns.Add(self.btn_pie_chart)
+        szr_chart_btns.Add(self.btn_pie_chart, 0, wx.RIGHT, btn_gap)
         # line charts
-        bmp_btn_line_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
-                                                   u"line_chart.xpm"), 
+        self.bmp_btn_line_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                            u"images", u"line_chart.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_line_chart_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                            u"images", u"line_chart_sel.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_line_chart = wx.BitmapButton(self.panel_mid, -1, 
-                                              bmp_btn_line_chart)
+                                              self.bmp_btn_line_chart, 
+                                              style=wx.NO_BORDER)
         self.btn_line_chart.Bind(wx.EVT_BUTTON, self.on_btn_line_chart)
         self.btn_line_chart.SetToolTipString(_("Make Line Chart"))
-        szr_chart_btns.Add(self.btn_line_chart)
+        szr_chart_btns.Add(self.btn_line_chart, 0, wx.RIGHT, btn_gap)
         # area charts
-        bmp_btn_area_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
-                                                   u"area_chart.xpm"), 
+        self.bmp_btn_area_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                        u"images", u"area_chart.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_area_chart_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                        u"images", u"area_chart_sel.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_area_chart = wx.BitmapButton(self.panel_mid, -1, 
-                                              bmp_btn_area_chart)
+                                              self.bmp_btn_area_chart, 
+                                              style=wx.NO_BORDER)
         self.btn_area_chart.Bind(wx.EVT_BUTTON, self.on_btn_area_chart)
         self.btn_area_chart.SetToolTipString(_("Make Area Chart"))
-        szr_chart_btns.Add(self.btn_area_chart)
+        szr_chart_btns.Add(self.btn_area_chart, 0, wx.RIGHT, btn_gap)
         # histograms
-        bmp_btn_histogram = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
-                                                  u"histogram.xpm"), 
+        self.bmp_btn_histogram = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                            u"images", u"histogram.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_histogram_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+                                                  u"histogram_sel.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_histogram = wx.BitmapButton(self.panel_mid, -1, 
-                                             bmp_btn_histogram)
+                                             self.bmp_btn_histogram, 
+                                             style=wx.NO_BORDER)
         self.btn_histogram.Bind(wx.EVT_BUTTON, self.on_btn_histogram)
         self.btn_histogram.SetToolTipString(_("Make Histogram"))
-        szr_chart_btns.Add(self.btn_histogram)
+        szr_chart_btns.Add(self.btn_histogram, 0, wx.RIGHT, btn_gap)
         # scatterplots
-        bmp_btn_scatterplot = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
-                                                    u"scatterplot.xpm"), 
+        self.bmp_btn_scatterplot = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                            u"images", u"scatterplot.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_scatterplot_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                            u"images", u"scatterplot_sel.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_scatterplot = wx.BitmapButton(self.panel_mid, -1, 
-                                               bmp_btn_scatterplot)
+                                               self.bmp_btn_scatterplot, 
+                                               style=wx.NO_BORDER)
         self.btn_scatterplot.Bind(wx.EVT_BUTTON, self.on_btn_scatterplot)
         self.btn_scatterplot.SetToolTipString(_("Make Scatterplot"))
         szr_chart_btns.Add(self.btn_scatterplot)
@@ -360,6 +396,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.btn_area_chart.SetCursor(hand)
             self.btn_scatterplot.SetCursor(hand)
             self.btn_histogram.SetCursor(hand)
+        self.btn_to_rollback = self.btn_bar_chart
+        self.bmp_to_rollback_to = self.bmp_btn_bar_chart
 
     def on_chk_simple_bar_perc(self, event):
         global INC_PERC
@@ -394,9 +432,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         idx_sel = self.rad_pie_sort_opts.GetSelection()
         self.on_rad_sort_opt(idx_sel)
         
-    def btn_chart(self, event, btn, panel):
+    def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel):
         btn.SetFocus()
         btn.SetDefault()
+        self.btn_to_rollback.SetBitmapLabel(self.bmp_to_rollback_to)
+        self.btn_to_rollback = btn
+        self.bmp_to_rollback_to = btn_bmp
+        btn.SetBitmapLabel(btn_sel_bmp)
         event.Skip()
         self.lbl_var1.SetLabel(mg.CHART_VALUES)
         self.lbl_var2.SetLabel(mg.CHART_BY)
@@ -424,50 +466,64 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def on_btn_bar_chart(self, event):
         self.chart_type = mg.SIMPLE_BARCHART
         btn = self.btn_bar_chart
+        btn_bmp = self.bmp_btn_bar_chart
+        btn_bmp_sel = self.bmp_btn_bar_chart_sel
         panel = self.panel_bar_chart
         self.rad_bar_sort_opts.SetSelection(mg.SORT_OPTS.index(CUR_SORT_OPT))
         self.chk_simple_bar_perc.SetValue(INC_PERC)
-        self.btn_chart(event, btn, panel)
+        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_clustered_bar_chart(self, event):
         self.chart_type = mg.CLUSTERED_BARCHART
         btn = self.btn_clust_bar_chart
+        btn_bmp = self.bmp_btn_clust_bar_chart
+        btn_bmp_sel = self.bmp_btn_clust_bar_chart_sel
         panel = self.panel_clustered_bar_chart
         self.chk_clust_bar_perc.SetValue(INC_PERC)
-        self.btn_chart(event, btn, panel)
+        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_pie_chart(self, event):
         self.chart_type = mg.PIE_CHART
         btn = self.btn_pie_chart
+        btn_bmp = self.bmp_btn_pie_chart
+        btn_bmp_sel = self.bmp_btn_pie_chart_sel
         panel = self.panel_pie_chart
         self.rad_pie_sort_opts.SetSelection(mg.SORT_OPTS.index(CUR_SORT_OPT))
-        self.btn_chart(event, btn, panel)
+        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
         
     def on_btn_line_chart(self, event):
         self.chart_type = mg.LINE_CHART
         btn = self.btn_line_chart
+        btn_bmp = self.bmp_btn_line_chart
+        btn_bmp_sel = self.bmp_btn_line_chart_sel
         panel = self.panel_line_chart
         self.chk_line_perc.SetValue(INC_PERC)
-        self.btn_chart(event, btn, panel)
+        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_area_chart(self, event):
         self.chart_type = mg.AREA_CHART
         btn = self.btn_area_chart
+        btn_bmp = self.bmp_btn_area_chart
+        btn_bmp_sel = self.bmp_btn_area_chart_sel
         panel = self.panel_area_chart
         self.chk_area_perc.SetValue(INC_PERC)
-        self.btn_chart(event, btn, panel)
+        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_histogram(self, event):
         self.chart_type = mg.HISTOGRAM
         btn = self.btn_histogram
+        btn_bmp = self.bmp_btn_histogram
+        btn_bmp_sel = self.bmp_btn_histogram_sel
         panel = self.panel_histogram
-        self.btn_chart(event, btn, panel)
+        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_scatterplot(self, event):
         self.chart_type = mg.SCATTERPLOT
         btn = self.btn_scatterplot
+        btn_bmp = self.bmp_btn_scatterplot
+        btn_bmp_sel = self.bmp_btn_scatterplot_sel
         panel = self.panel_scatterplot
-        self.btn_chart(event, btn, panel)
+        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
         
     def on_btn_chart(self, event):
         wx.MessageBox(LIMITS_MSG)

@@ -663,7 +663,7 @@ class DlgConfig(wx.Dialog):
         if self.sort_opt_allowed != SORT_OPT_NONE:
             self.rad_sort_opts = wx.RadioBox(self, -1, _("Sort order"),
                                              choices=mg.SORT_OPTS, 
-                                             size=(400,50))
+                                             size=(-1,50))
             # set selection according to existing item_conf
             try:
                 idx_sort_opt = mg.SORT_OPTS.index(item_conf.sort_order)

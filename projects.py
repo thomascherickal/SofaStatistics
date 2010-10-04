@@ -360,7 +360,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.panel_bottom.SetBackgroundColour(wx.Colour(115, 99, 84))
         self.parent = parent
         self.szr_con_dets = wx.BoxSizer(wx.VERTICAL)
-        self.szr_config = wx.BoxSizer(wx.VERTICAL)
+        self.szr_config_outer = wx.BoxSizer(wx.VERTICAL)
         self.szr_bottom = wx.BoxSizer(wx.VERTICAL)
         # get available settings
         self.readonly = readonly
@@ -437,11 +437,12 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         # NEVER SetSizeHints or else grows beyond size!!!!
         self.szr_con_dets.SetVirtualSizeHints(self.scroll_con_dets)
         # CONFIG
-        # mixin supplying self.szr_config_top and self.szr_config_bottom
+        # mixin supplying self.szr_config
         self.szr_config = self.get_config_szr(self.panel_config, 
                                               readonly=self.readonly)
-        self.panel_config.SetSizer(self.szr_config)
-        self.szr_config.SetSizeHints(self.panel_config)
+        self.szr_config_outer.Add(self.szr_config, 0, wx.GROW|wx.ALL, 10)
+        self.panel_config.SetSizer(self.szr_config_outer)
+        self.szr_config_outer.SetSizeHints(self.panel_config)
         # BOTTOM
         self.szr_bottom.Add(self.szr_btns, 0, wx.GROW|wx.ALL|wx.ALIGN_RIGHT, 10)
         self.panel_bottom.SetSizer(self.szr_bottom)

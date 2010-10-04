@@ -266,6 +266,7 @@ class ConfigDlg(object):
                                          "your default browser"))
         btn_config = wx.Button(panel, -1, _("Config"))
         btn_config.Bind(wx.EVT_BUTTON, self.on_btn_config)
+        btn_config.Enable(not self.readonly)
         btn_config.SetToolTipString(_("Configure variable details file and "
                                       "script file"))
         # Report
@@ -278,7 +279,8 @@ class ConfigDlg(object):
         szr_style_config = wx.StaticBoxSizer(bx_css_config, wx.HORIZONTAL)
         szr_style_config.Add(self.drop_style, 1, wx.GROW)
         self.szr_config.Add(szr_style_config, 1, wx.RIGHT, 5)
-        self.szr_config.Add(btn_config, 0, wx.TOP, 17)
+        config_down_by = 27 if mg.PLATFORM == mg.MAC else 17
+        self.szr_config.Add(btn_config, 0, wx.TOP, config_down_by)
         return self.szr_config
     
     def update_var_dets(self):
@@ -363,8 +365,9 @@ class ConfigDlg(object):
         self.szr_output_btns.Add(self.btn_help, 0)
         if inc_clear:
             self.szr_output_btns.Add(self.btn_clear, 0)
+        close_up_by = 13 if mg.PLATFORM == mg.MAC else 5
         self.szr_output_btns.Add(self.btn_close, 1, 
-                                 wx.ALIGN_BOTTOM|wx.BOTTOM, 5)
+                                 wx.ALIGN_BOTTOM|wx.BOTTOM, close_up_by)
         return self.szr_output_btns
 
     # database/ tables (and views)
