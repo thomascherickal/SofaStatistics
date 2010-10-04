@@ -134,7 +134,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                       self.on_chk_simple_bar_perc)
         self.szr_bar_chart.Add(self.rad_bar_sort_opts, 0, wx.TOP|wx.RIGHT, 5)
         if mg.PLATFORM == mg.WINDOWS:
-            bar_perc_down_by = 15
+            bar_perc_down_by = 27
         elif mg.PLATFORM == mg.LINUX:
             bar_perc_down_by = 22
         else:
@@ -292,7 +292,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.html.show_html(html2show)
 
     def setup_chart_btns(self, szr_chart_btns):
-        btn_gap = 2
+        btn_gap = 10 if mg.PLATFORM == mg.WINDOWS else 2
         # bar charts
         self.bmp_btn_bar_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, 
                                                 u"images", u"bar_chart.xpm"), 

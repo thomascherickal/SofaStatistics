@@ -304,6 +304,7 @@ hl = function(colour){
     }
     return c.fromHsl(x);
 }
+var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";
 
 </script>
 

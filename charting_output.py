@@ -375,7 +375,7 @@ def get_label_dets(xaxis_dets, series_dets):
     label_dets = []
     for i, xaxis_det in enumerate(xaxis_dets,1):
         val_label = xaxis_det[2]
-        label_dets.append(u"{value: %s, text: \"%s\"}" % (i, val_label))
+        label_dets.append(u"{value: %s, text: %s}" % (i, val_label))
     return label_dets
 
 def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets, 
@@ -520,7 +520,7 @@ def piechart_output(titles, subtitles, slice_dets, css_fil, css_idx,
     slice_colours = colours[:30]
     slices_js_list = []
     for slice_det in slice_dets:
-        slices_js_list.append(u"{\"y\": %(y)s, \"text\": \"%(text)s\", " 
+        slices_js_list.append(u"{\"y\": %(y)s, \"text\": %(text)s, " 
                               u"\"tooltip\": \"%(tooltip)s\"}" % 
                               {u"y": slice_det[u"y"], 
                                    u"text": slice_det[u"text"],
@@ -698,7 +698,7 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     xaxis_labels = u"[" + \
-        u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[2]) 
+        u",\n            ".join([u"{value: %s, text: %s}" % (i, x[2]) 
                                     for i,x in enumerate(xaxis_dets,1)]) + u"]"
     inc_perc_js = u"true" if inc_perc else u"false"
     (width, xfontsize, minor_ticks, 

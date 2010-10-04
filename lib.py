@@ -566,6 +566,10 @@ def get_next_fld_name(existing_var_names):
     return next_fld_name
 
 def get_labels_in_lines(orig_txt, max_width):
+    """
+    Returns quoted text. Will not be further quoted.
+    Will be "%s" % wrapped txt not "\"%s\"" % wrapped_txt
+    """
     debug = False
     lines = []
     words = orig_txt.split()
@@ -583,9 +587,10 @@ def get_labels_in_lines(orig_txt, max_width):
         print(line_words)
         print(lines)
     if len(lines) == 1:
-        wrapped_txt = lines[0].strip()
+        wrapped_txt = u"\"" + lines[0].strip() + u"\""
     else:
-        wrapped_txt = u"<br>".join(lines)
+        wrapped_txt = u"\"" + u"\" + labelLineBreak + \"".join(lines) + u"\""
+    if debug: print(wrapped_txt)
     return wrapped_txt
 
 def get_text_to_draw(orig_txt, max_width):
