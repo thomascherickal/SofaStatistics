@@ -13,6 +13,7 @@ makeBarChart = function(chartname, series, chartconf){
     var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
     var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "";
     var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
+    var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
 
     var getSum = function(myNums){
@@ -35,7 +36,7 @@ makeBarChart = function(chartname, series, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: 10, t: 10, r: 10, b: 10+axisLabelDrop}});
+    var mychart = new dc.Chart2D(chartname, {margins: {l: 10+leftAxisLabelShift, t: 10, r: 10, b: 10+axisLabelDrop}});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
@@ -170,6 +171,7 @@ makeLineChart = function(chartname, series, chartconf){
     var microTicks = ("microTicks" in chartconf) ? chartconf["microTicks"] : false;
     var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "";
     var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
+    var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
 
 
@@ -201,7 +203,7 @@ makeLineChart = function(chartname, series, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: 10, t: 10, r: 10, b: 10+axisLabelDrop}});
+    var mychart = new dc.Chart2D(chartname, {margins: {l: 10+leftAxisLabelShift, t: 10, r: 10, b: 10+axisLabelDrop}});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
@@ -274,6 +276,7 @@ makeAreaChart = function(chartname, series, chartconf){
     var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
     var microTicks = ("microTicks" in chartconf) ? chartconf["microTicks"] : false;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
+    var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
 
     var getSum = function(myNums){
         var i
@@ -295,7 +298,7 @@ makeAreaChart = function(chartname, series, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname);
+    var mychart = new dc.Chart2D(chartname, {margins: {l: 10+leftAxisLabelShift, t: 10, r: 10, b: 10}});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,

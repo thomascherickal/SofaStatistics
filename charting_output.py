@@ -378,6 +378,20 @@ def get_label_dets(xaxis_dets, series_dets):
         label_dets.append(u"{value: %s, text: %s}" % (i, val_label))
     return label_dets
 
+def get_left_axis_shift(xaxis_dets):
+    """
+    Need to shift margin left if wide labels to keep y-axis title close enough 
+        to y_axis labels.
+    """
+    left_axis_label_shift = 0
+    try:
+        label1_len = len(xaxis_dets[0][1])
+        if label1_len > 5:
+            left_axis_label_shift = label1_len*-1.3
+    except Exception, e:
+        pass
+    return left_axis_label_shift
+
 def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets, 
                     inc_perc, css_idx, css_fil, page_break_after):
     """
@@ -397,6 +411,7 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
     label_dets = get_label_dets(xaxis_dets, series_dets)
     xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
     axis_label_drop = 30 if x_title else 10
+    left_axis_label_shift = get_left_axis_shift(xaxis_dets)
     height = 310 + axis_label_drop # compensate for loss of bar display height
     width, xgap, xfontsize, minor_ticks = get_barchart_sizings(xaxis_dets, 
                                                                series_dets)
@@ -469,6 +484,7 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
             chartconf["xTitle"] = \"%(x_title)s\";
             chartconf["axisLabelDrop"] = %(axis_label_drop)s;
+            chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
             chartconf["yTitle"] = \"%(y_title)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
             chartconf["incPerc"] = %(inc_perc_js)s;
@@ -490,6 +506,7 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
            u"major_gridline_colour": major_gridline_colour,
            u"gridline_width": gridline_width, 
            u"axis_label_drop": axis_label_drop,
+           u"left_axis_label_shift": left_axis_label_shift,
            u"x_title": x_title, u"y_title": mg.Y_AXIS_FREQ_LABEL,
            u"tooltip_border_colour": tooltip_border_colour, 
            u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
@@ -594,6 +611,7 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
     label_dets = get_label_dets(xaxis_dets, series_dets)
     xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
     axis_label_drop = 30 if x_title else -10
+    left_axis_label_shift = get_left_axis_shift(xaxis_dets)
     height = 310 + axis_label_drop # compensate for loss of bar display height                           
     (width, xfontsize, 
      minor_ticks, micro_ticks) = get_linechart_sizings(xaxis_dets, 
@@ -650,6 +668,7 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
             chartconf["xTitle"] = \"%(x_title)s\";
             chartconf["axisLabelDrop"] = %(axis_label_drop)s;
+            chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
             chartconf["yTitle"] = \"%(y_title)s\";
             chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
             chartconf["incPerc"] = %(inc_perc_js)s;
@@ -669,6 +688,7 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
            u"major_gridline_colour": major_gridline_colour,
            u"gridline_width": gridline_width,
            u"axis_label_drop": axis_label_drop,
+           u"left_axis_label_shift": left_axis_label_shift,
            u"x_title": x_title, u"y_title": mg.Y_AXIS_FREQ_LABEL,
            u"tooltip_border_colour": tooltip_border_colour,
            u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
@@ -703,6 +723,7 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
                 micro_ticks) = get_linechart_sizings(xaxis_dets, max_label_len, 
                                                      series_dets)
     html = []
+    left_axis_label_shift = get_left_axis_shift(xaxis_dets)
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 
@@ -753,6 +774,7 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
             chartconf["gridBg"] = \"%(grid_bg)s\";
             chartconf["minorTicks"] = %(minor_ticks)s;
             chartconf["microTicks"] = %(micro_ticks)s;
+            chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
             chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
             chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
             chartconf["yTitle"] = \"%(y_title)s\";
@@ -771,6 +793,7 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
            u"width": width, u"xfontsize": xfontsize, 
            u"axis_label_font_colour": axis_label_font_colour,
            u"major_gridline_colour": major_gridline_colour,
+           u"left_axis_label_shift": left_axis_label_shift,
            u"gridline_width": gridline_width, u"y_title": mg.Y_AXIS_FREQ_LABEL,
            u"tooltip_border_colour": tooltip_border_colour,
            u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
