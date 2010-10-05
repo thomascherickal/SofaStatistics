@@ -42,6 +42,9 @@ QUOTES = [
     (u"Small wonder that students have trouble [learning significance testing]."
      u" They may be trying to think",
      u"W. Edwards Deming"),
+    (u"Any knucklehead can calculate an average, but it takes brains to "
+     u"calculate a confidence interval.", 
+     u"Nate Silver"),
     ]
 
 def get_quote():

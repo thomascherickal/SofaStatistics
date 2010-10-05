@@ -304,7 +304,7 @@ hl = function(colour){
     }
     return c.fromHsl(x);
 }
-var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";
+%(label_line_break_js)s
 
 </script>
 
@@ -320,7 +320,8 @@ var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";
         padding-right: 10px
     }
 -->
-</style>""" % {u"make_objs_func_str": make_objs_func_str}
+</style>""" % {u"make_objs_func_str": make_objs_func_str,
+               u"label_line_break_js": mg.LABEL_LINE_BREAK_JS}
     else:
         dojo_insert = u""
     hdr = mg.DEFAULT_HDR % {u"title": hdr_title, u"css": css, 

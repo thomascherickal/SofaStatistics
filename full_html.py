@@ -40,6 +40,19 @@ else:
                 ie.IEHtmlWindow.__init__(self, panel, -1, 
                                          size=wx.Size(size[0], size[1]))
             
+            def back2forwards_slashes(self, mystr):
+                """
+                But not LABEL_LINE_BREAK_JS.  Don't turn \n in JS to /n!
+                """
+                debug = False
+                safe_str = mystr.replace(mg.LABEL_LINE_BREAK_JS, 
+                                         u"<label_line_break>")
+                new_str = safe_str.replace("\\", "/")
+                final_str = new_str.replace(u"<label_line_break>", 
+                                            mg.LABEL_LINE_BREAK_JS)
+                if debug: print(final_str)
+                return final_str
+            
             def show_html(self, str_html, url_load=False):
                 """
                 If first time, will have delay while initialising comtypes.
@@ -49,12 +62,15 @@ else:
                     url_fil = os.path.join(mg.INT_PATH, u"ready2load.htm")
                     if debug: print(url_fil)
                     f = codecs.open(url_fil, "w", encoding="utf-8")
-                    f.write(lib.back2forwards_slashes(output.rel2abs_css_links(\
-                                                                    str_html)))
+                    html2write = self.back2forwards_slashes(\
+                                    output.rel2abs_css_links(\
+                                    str_html))
+                    f.write(html2write)
                     f.close()
                     self.LoadUrl(u"file:///%s" % url_fil)
                 else:
-                    self.LoadString(lib.back2forwards_slashes(str_html))
+                    html2load = self.back2forwards_slashes(str_html)
+                    self.LoadString(html2load)
                     
             def load_url(self, url):
                 self.LoadUrl(url)

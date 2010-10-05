@@ -748,9 +748,6 @@ def get_file_name(path):
     path = path.replace("\\\\", "\\").replace("\\", "/")
     return os.path.split(path)[1]
 
-def back2forwards_slashes(mystr):
-    return mystr.replace("\\", "/")
-
 def is_integer(val):
     #http://mail.python.org/pipermail/python-list/2006-February/368113.html
     return isinstance(val, (int, long))

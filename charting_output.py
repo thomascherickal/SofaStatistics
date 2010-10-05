@@ -396,7 +396,7 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     label_dets = get_label_dets(xaxis_dets, series_dets)
     xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
-    axis_label_drop = 30 if x_title else -10
+    axis_label_drop = 30 if x_title else 10
     height = 310 + axis_label_drop # compensate for loss of bar display height
     width, xgap, xfontsize, minor_ticks = get_barchart_sizings(xaxis_dets, 
                                                                series_dets)
@@ -480,7 +480,6 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
     %(titles)s
     <div id="mychartRenumber" style="width: %(width)spx; 
         height: %(height)spx;"></div>
-    <br>
     <div id="legendMychartRenumber"></div>
     <br>
     """ % {u"colour_cases": colour_cases, u"titles": title_dets_html, 
@@ -661,7 +660,6 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
     %(titles)s
     <div id="mychartRenumber" style="width: %(width)spx; 
         height: %(height)spx;"></div>
-    <br>
     <div id="legendMychartRenumber"></div>
     <br>
     """ % {u"titles": title_dets_html, 
@@ -766,7 +764,6 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
     </script>
     %(titles)s
     <div id="mychartRenumber" style="width: %(width)spx; height: 300px;"></div>
-    <br>
     <div id="legendMychartRenumber"></div>
     <br>
     """ % {u"titles": title_dets_html,

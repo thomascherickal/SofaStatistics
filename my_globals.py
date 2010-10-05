@@ -13,7 +13,7 @@ import wx
 
 debug = False
 
-VERSION = u"0.9.19"
+VERSION = u"0.9.20"
 
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
@@ -395,6 +395,7 @@ DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred',
 CHART_VALUES = _("Values:")
 CHART_BY = _("By:")
 Y_AXIS_FREQ_LABEL = _("Frequency")
+LABEL_LINE_BREAK_JS = """var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";"""
 # remember defaults //////////
 # stats tests
 GROUP_BY_DEFAULT = None
