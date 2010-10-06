@@ -468,8 +468,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             # prepopulate with default settings
             self.get_proj_settings(fil_proj=mg.DEFAULT_PROJ)
             self.proj_name = mg.EMPTY_PROJ_NAME
-            self.proj_notes = _("Do not delete the internal sofa_db - it is "
-                u"needed to allow you to add new tables to SOFA Statistics")
+            self.proj_notes = _("The internal sofa_db is added by default.  It "
+                u"is needed to allow you to add new tables to SOFA Statistics")
             self.new_proj = True
         try:
             self.proj_name

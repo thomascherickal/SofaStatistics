@@ -523,7 +523,7 @@ def get_data_dropdowns(parent, panel, default_dbs):
         and default selection.  NB must have exact same names.
     Adds db_choice_items to parent.
     """
-    debug = False
+    debug = True
     # databases list needs to be tuple including dbe so can get both from 
     # sequence alone e.g. when identifying selection
     dd = get_dd()

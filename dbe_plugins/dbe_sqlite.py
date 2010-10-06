@@ -75,7 +75,7 @@ def get_con(con_dets, db, add_checks=False):
         try:
             sofa_db_path = con_dets_sqlite[db][DATABASE_KEY]
         except Exception:
-            sofa_db_path = u"Unable to get SQLite default database path"
+            sofa_db_path = u"Unable to get SQLite database path"
     except Exception, e:
         if sofa_db_path == os.path.join(u"/home/g/sofa/_internal", mg.SOFA_DB):
             raise Exception(u"Problem with default project file. Delete "
@@ -92,7 +92,7 @@ def get_con(con_dets, db, add_checks=False):
         print("Overriding so can open sofa_db in SOFA")
         print("*"*60)
         add_checks = True # if having trouble opening e.g. if tmp_tbl left there
-            # will have contraints relying on absent user-defined functions.
+            # will have constraints relying on absent user-defined functions.
     if add_checks:
         # some user-defined functions needed for strict type checking constraints
         add_funcs_to_con(con)
@@ -119,8 +119,11 @@ def get_con_resources(con_dets, default_dbs, db=None, add_checks=False):
             raise
     cur = con.cursor() # must return tuples not dics
     if not has_tbls(cur, db):
-        raise Exception(_("Selected database \"%s\" didn't have any tables.") %
-                        db)
+        raise Exception(_(u"\n\nDatabase \"%s\" didn't have any tables. "
+            u"You can only connect to SQLite databases which have data in them."
+            u"\n\nIf you just wanted an empty SQLite database to put fresh data" 
+            u" into from within SOFA, use the supplied sofa_db database "
+            u"instead.") % db)
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: [db,],
                      mg.DBE_DB: db}
     return con_resources
@@ -286,6 +289,11 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                            init_settings_data=init_settings_data, 
                            settings_data=parent.sqlite_settings_data, 
                            force_focus=True)
+    # disable first row (default sofa db)
+    attr = wx.grid.GridCellAttr()
+    attr.SetReadOnly(True)
+    attr.SetBackgroundColour(mg.READONLY_COLOUR)
+    parent.sqlite_grid.grid.SetRowAttr(0, attr)
     parent.szr_sqlite.Add(parent.sqlite_grid.grid, 1, wx.GROW|wx.ALL, 5)
     szr.Add(parent.szr_sqlite, 0, wx.GROW|wx.ALL, 10)
 
