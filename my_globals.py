@@ -193,6 +193,8 @@ VAR_TYPE_CAT = _("Nominal (names only)")
 VAR_TYPE_ORD = _("Ordinal (rank only)")
 VAR_TYPE_QUANT = _("Quantity (is an amount)")
 VAR_TYPES = [VAR_TYPE_CAT, VAR_TYPE_ORD, VAR_TYPE_QUANT]
+VAR_TYPE_TO_SHORT = {VAR_TYPE_CAT: _("nominal"), VAR_TYPE_ORD: _("ordinal"), 
+                     VAR_TYPE_QUANT: _("quantity")}
 VAR_IDX_CAT = 0
 VAR_IDX_ORD = 1
 VAR_IDX_QUANT = 2

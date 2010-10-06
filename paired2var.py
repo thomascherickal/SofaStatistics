@@ -33,6 +33,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
                            wx.CLIP_CHILDREN)
         self.url_load = True # btn_expand
+        self.html_msg = u""
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         variables_rc_msg = _("Right click variables to view/edit details")
@@ -79,7 +80,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.drop_group_b.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
         self.drop_group_b.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_b)
         self.drop_group_b.SetToolTipString(variables_rc_msg)
-        self.setup_groups()
+        #self.setup_groups()
         szr_vars_top.Add(self.lbl_group_b, 0, wx.LEFT|wx.RIGHT, 5)
         szr_vars_top.Add(self.drop_group_b, 0, wx.GROW)
         # phrase
@@ -124,6 +125,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.panel.SetSizer(szr_main)
         szr_lst = [szr_desc, self.szr_data, szr_vars, szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst)
+        self.setup_groups()
 
     def on_show(self, event):
         try:
@@ -131,8 +133,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         except Exception, e:
             pass # needed on Mac else exception survives
         finally: # any initial content
-            html2show = _("<p>Waiting for a report to be run.</p>")
-            self.html.show_html(html2show)
+            self.html.show_html(self.html_msg)
+            self.html_msg = u""
 
     def on_rclick_group_a(self, event):
         var_a, choice_item = self.get_var_a()
@@ -170,6 +172,22 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         """
         var_names = projects.get_approp_var_names(self.var_types,
                                                   self.min_data_type)
+        if len(var_names) < 2:
+            msg = (_(u"<p>There are not enough suitable variables available"
+                    u" for this analysis. "
+                    u"Only variables with a %s data type can be used in this "
+                    u"analysis."
+                    u"</p><p>This problem sometimes occurs when numeric data is"
+                    u" imported from a spreadsheet as text. In such cases it is"
+                    u" important to format the data columns to a numeric format"
+                    u" in the spreadsheet and re-import it.</p>") % 
+                    mg.VAR_TYPE_TO_SHORT.get(self.min_data_type, _("suitable")))
+        else:
+            msg = _("<p>Waiting for a report to be run.</p>")
+        try:
+            self.html.show_html(msg)
+        except Exception, e: # no html ctrl yet so defer and display when ready
+            self.html_msg = msg
         fld_choice_items, self.sorted_var_names = lib.get_sorted_choice_items(
                                 dic_labels=self.var_labels, vals=var_names)
         return fld_choice_items
