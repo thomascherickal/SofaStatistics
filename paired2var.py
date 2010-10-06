@@ -178,9 +178,10 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                     u"Only variables with a %s data type can be used in this "
                     u"analysis."
                     u"</p><p>This problem sometimes occurs when numeric data is"
-                    u" imported from a spreadsheet as text. In such cases it is"
-                    u" important to format the data columns to a numeric format"
-                    u" in the spreadsheet and re-import it.</p>") % 
+                    u" accidentally imported from a spreadsheet as text. "
+                    u"In such cases the solution is to format the data columns "
+                    u"to a numeric format in the spreadsheet and re-import it."
+                    u"</p>") % 
                     mg.VAR_TYPE_TO_SHORT.get(self.min_data_type, _("suitable")))
         else:
             msg = _("<p>Waiting for a report to be run.</p>")

@@ -468,8 +468,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             # prepopulate with default settings
             self.get_proj_settings(fil_proj=mg.DEFAULT_PROJ)
             self.proj_name = mg.EMPTY_PROJ_NAME
-            self.proj_notes = _("The SOFA Default Database is needed to allow "
-                                "you to add new tables to SOFA Statistics")
+            self.proj_notes = _("Do not delete the internal sofa_db - it is "
+                u"needed to allow you to add new tables to SOFA Statistics")
             self.new_proj = True
         try:
             self.proj_name
@@ -640,11 +640,11 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                 print(u"Failed to change to %s.proj" % proj_name)
                 pass
             proj_notes = self.txt_proj_notes.GetValue()
-            fil_var_dets = self.txt_var_dets_file.GetValue()
+            fil_var_dets = cc[mg.CURRENT_VDTS_PATH]
+            fil_script = cc[mg.CURRENT_SCRIPT_PATH]
             style = self.drop_style.GetStringSelection()
             fil_css = config_dlg.style2path(style)
             fil_report = self.txt_report_file.GetValue()
-            fil_script = self.txt_script_file.GetValue()
             default_dbe = mg.DBES[self.drop_default_dbe.GetSelection()]
             default_dbs = {}
             default_tbls = {}
