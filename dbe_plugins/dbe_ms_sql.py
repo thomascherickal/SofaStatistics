@@ -125,6 +125,12 @@ def get_con_cur_for_db(host, user, pwd, db):
     cur.adoconn = con.adoConn # (need to access from just the cursor) 
     return con, cur
 
+def get_dbs_list(con_dets, default_dbs):
+    con_resources = get_con_resources(con_dets, default_dbs)
+    con_resources[mg.DBE_CUR].close()
+    con_resources[mg.DBE_CON].close()
+    return con_resources[mg.DBE_DBS]
+
 def get_con_resources(con_dets, default_dbs, db=None):
     """
     When opening from scratch, e.g. clicking on Report Tables from Start,

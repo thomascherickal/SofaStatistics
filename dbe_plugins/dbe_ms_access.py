@@ -57,6 +57,17 @@ def get_syntax_elements():
     return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
             placeholder, get_summable, gte_not_equals)
 
+def get_dbs_list(con_dets, default_dbs):
+    """
+    Get list of all databases for this dbe (as per con dets in proj file).
+    NB con_resources will only have one db listed (this dbe has one db per 
+        connection).
+    """
+    con_dets_access = con_dets.get(mg.DBE_MS_ACCESS)
+    if not con_dets_access:
+        raise my_exceptions.MissingConDets(mg.DBE_MS_ACCESS)
+    return con_dets_access.keys()
+
 def get_con_resources(con_dets, default_dbs, db=None):
     """
     When opening from scratch, e.g. clicking on Report Tables from Start,
@@ -74,7 +85,10 @@ def get_con_resources(con_dets, default_dbs, db=None):
         if default_db_access:
             db = default_db_access
         else:
-            db = con_dets_access.keys()[0]
+            try:
+                db = con_dets_access.keys()[0]
+            except IndexError, e:
+                raise my_exceptions.NoMoreConsException
     if not con_dets_access.get(db):
         raise Exception(u"No connections for MS Access database %s" % db)
     con_dets_access_db = con_dets_access[db]
@@ -339,21 +353,25 @@ def set_con_det_defaults(parent):
 def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     """
     Copes with missing default database and table. Will get the first available.
+    Namespace multiple databases with same name (presumably in different 
+        folders).
     """
     parent.msaccess_grid.update_settings_data()
     #pprint.pprint(parent.msaccess_settings_data) # debug
     msaccess_settings = parent.msaccess_settings_data
     if msaccess_settings:
         con_dets_msaccess = {}
+        db_names = []
         for msaccess_setting in msaccess_settings:
             db_path = msaccess_setting[0]
-            db_name = lib.get_file_name(db_path)
+            db_name = lib.get_file_name(db_path) # might not be unique
+            db_name_key = lib.get_unique_db_name_key(db_names, db_name)
             new_msaccess_dic = {}
             new_msaccess_dic[u"database"] = db_path
             new_msaccess_dic[u"mdw"] = msaccess_setting[1]
             new_msaccess_dic[u"user"] = msaccess_setting[2]
             new_msaccess_dic[u"pwd"] = msaccess_setting[3]
-            con_dets_msaccess[db_name] = new_msaccess_dic
+            con_dets_msaccess[db_name_key] = new_msaccess_dic
         con_dets[mg.DBE_MS_ACCESS] = con_dets_msaccess
     MSACCESS_DEFAULT_DB = parent.txt_msaccess_default_db.GetValue()
     MSACCESS_DEFAULT_TBL = parent.txt_msaccess_default_tbl.GetValue()

@@ -20,6 +20,15 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 
+def get_unique_db_name_key(db_names, db_name):
+    "Might have different paths but same name."
+    if db_name in db_names:
+        db_name_key = db_name + u"_" + unicode(db_names.count(db_name))
+    else:
+        db_name_key = db_name
+    db_names.append(db_name)
+    return db_name_key
+
 def sort_value_labels(sort_order, val_freq_label_lst):
     """
     In-place sort value labels list according to sort option selected.

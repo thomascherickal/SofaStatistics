@@ -64,6 +64,12 @@ def get_con_cur_for_db(con_dets_mysql, db):
     cur = con.cursor() # must return tuples not dics
     return con, cur
 
+def get_dbs_list(con_dets, default_dbs):
+    con_resources = get_con_resources(con_dets, default_dbs)
+    con_resources[mg.DBE_CUR].close()
+    con_resources[mg.DBE_CON].close()
+    return con_resources[mg.DBE_DBS]
+
 def get_con_resources(con_dets, default_dbs, db=None):
     """
     When opening from scratch, e.g. clicking on Report Tables from Start,

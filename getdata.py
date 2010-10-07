@@ -48,7 +48,9 @@ def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None,
         db_resources = get_db_resources(dbe, cur, db, default_tbls, tbl)
         dbe_resources.update(db_resources)
         if debug: print("Finished updating dbe resources with db resources")
-    except my_exceptions.MalformedDbError:
+    except my_exceptions.NoMoreConsException, e:
+        raise # just making it obvious
+    except my_exceptions.MalformedDbError, e:
         if stop:
             raise
         else: # try once but with add_checks set to True.  Might work :-)
@@ -128,6 +130,8 @@ class DataDets(object):
         except KeyError, e:
             raise Exception(u"Unable to read project dictionary for required "
                             u"keys.\nCaused by error: %s" % lib.ue(e))
+        except my_exceptions.NoMoreConsException, e:
+            raise # just making it obvious
         except Exception, e:
             raise Exception(u"Unable to set proj dic."
                             u"\nCaused by error: %s" % lib.ue(e))
@@ -154,6 +158,8 @@ class DataDets(object):
             dbe_resources = get_dbe_resources(dbe, self.con_dets, 
                                           self.default_dbs, self.default_tbls, 
                                           db, tbl, add_checks)
+        except my_exceptions.NoMoreConsException, e:
+            raise # just making it obvious
         except Exception, e:
             raise Exception(u"Unable to get dbe resources.\nCaused by error: %s"
                             % lib.ue(e))
@@ -520,23 +526,24 @@ def delete_row(id_fld, row_id):
 def get_data_dropdowns(parent, panel, default_dbs):
     """
     Adds drop_dbs and drop_tbls to frame with correct values 
-        and default selection.  NB must have exact same names.
+        and default selection. NB must have exact same names.
     Adds db_choice_items to parent.
     """
-    debug = True
+    debug = False
     # databases list needs to be tuple including dbe so can get both from 
     # sequence alone e.g. when identifying selection
     dd = get_dd()
-    db_choices = [(x, dd.dbe) for x in dd.dbs]      
+    # can't just use dbs list for dd - sqlite etc may have multiple dbs but only 
+    # one per con
+    dbe_dbs_list = mg.DBE_MODULES[dd.dbe].get_dbs_list(dd.con_dets, default_dbs)
+    db_choices = [(x, dd.dbe) for x in dbe_dbs_list]
     dbes = mg.DBES[:]
     dbes.pop(dbes.index(dd.dbe))
     for oth_dbe in dbes: # may not have any connection details
-        oth_default_db = default_dbs.get(oth_dbe)
         try:
-            con_resources = mg.DBE_MODULES[oth_dbe].get_con_resources(
-                               dd.con_dets, dd.default_dbs, db=oth_default_db)
-            oth_dbs = con_resources[mg.DBE_DBS]
-            oth_db_choices = [(x, oth_dbe) for x in oth_dbs]
+            oth_dbe_dbs_list = mg.DBE_MODULES[oth_dbe].get_dbs_list(dd.con_dets, 
+                                                                    default_dbs)
+            oth_db_choices = [(x, oth_dbe) for x in oth_dbe_dbs_list]
             db_choices.extend(oth_db_choices)
         except my_exceptions.MissingConDets, e:
             if debug: print(unicode(e))
@@ -549,6 +556,7 @@ def get_data_dropdowns(parent, panel, default_dbs):
     parent.drop_dbs = wx.Choice(panel, -1, choices=parent.db_choice_items,
                                 size=(280,-1))
     parent.drop_dbs.Bind(wx.EVT_CHOICE, parent.on_database_sel)
+    
     dbs_lc = [x.lower() for x in dd.dbs]
     selected_dbe_db_idx = dbs_lc.index(dd.db.lower())
     parent.drop_dbs.SetSelection(selected_dbe_db_idx)

@@ -2,6 +2,10 @@ class MissingConDets(Exception):
     def __init__(self, dbe):
         Exception.__init__(self, u"Missing connection details for %s." % dbe)
 
+class NoMoreConsException(Exception):
+    def __init__(self):
+        Exception.__init__(self, u"No more connections for dbe")
+
 class MalformedDbError(Exception):
     def __init__(self):
         Exception.__init__(self, u"Malformed database error")

@@ -98,6 +98,17 @@ def get_con(con_dets, db, add_checks=False):
         add_funcs_to_con(con)
     return con
 
+def get_dbs_list(con_dets, default_dbs):
+    """
+    Get list of all databases for this dbe (as per con dets in proj file).
+    NB con_resources will only have one db listed (this dbe has one db per 
+        connection).
+    """
+    con_dets_sqlite = con_dets.get(mg.DBE_SQLITE)
+    if not con_dets_sqlite:
+        raise my_exceptions.MissingConDets(mg.DBE_SQLITE)
+    return con_dets_sqlite.keys()
+
 def get_con_resources(con_dets, default_dbs, db=None, add_checks=False):
     """
     When opening from scratch, e.g. clicking on Report Tables from Start,
@@ -106,12 +117,15 @@ def get_con_resources(con_dets, default_dbs, db=None, add_checks=False):
     Returns dict with con, cur, dbs, db.
     """
     if not db:
-        # use default, or failing that, try the file_name
+        # if no con specified, use default, or failing that, try a specific file
         default_db = default_dbs.get(mg.DBE_SQLITE) # might be None
         if default_db:
             db = default_db
         else:
-            db = con_dets[mg.DBE_SQLITE].keys()[0]
+            try:
+                db = con_dets[mg.DBE_SQLITE].keys()[0]
+            except IndexError, e:
+                raise my_exceptions.NoMoreConsException
     try:
         con = get_con(con_dets, db, add_checks=add_checks)
     except Exception, e:
@@ -325,19 +339,23 @@ def set_con_det_defaults(parent):
 def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     """
     Copes with missing default database and table. Will get the first available.
+    Namespace multiple databases with same name (presumably in different 
+        folders).
     """
     parent.sqlite_grid.update_settings_data()
     #pprint.pprint(parent.sqlite_settings_data) # debug
     sqlite_settings = parent.sqlite_settings_data
     if sqlite_settings:
         con_dets_sqlite = {}
+        db_names = []
         for sqlite_setting in sqlite_settings:
             # e.g. ("C:\.....\my_sqlite_db",)
             db_path = sqlite_setting[0]
-            db_name = lib.get_file_name(db_path)
+            db_name = lib.get_file_name(db_path) # might not be unique
+            db_name_key = lib.get_unique_db_name_key(db_names, db_name)
             new_sqlite_dic = {}
             new_sqlite_dic[DATABASE_KEY] = db_path
-            con_dets_sqlite[db_name] = new_sqlite_dic
+            con_dets_sqlite[db_name_key] = new_sqlite_dic
         con_dets[mg.DBE_SQLITE] = con_dets_sqlite
     DEFAULT_DB = parent.txt_sqlite_default_db.GetValue()
     DEFAULT_TBL = parent.txt_sqlite_default_tbl.GetValue()

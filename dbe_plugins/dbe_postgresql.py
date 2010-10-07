@@ -85,6 +85,12 @@ def get_syntax_elements():
     return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
             placeholder, get_summable, gte_not_equals)
 
+def get_dbs_list(con_dets, default_dbs):
+    con_resources = get_con_resources(con_dets, default_dbs)
+    con_resources[mg.DBE_CUR].close()
+    con_resources[mg.DBE_CON].close()
+    return con_resources[mg.DBE_DBS]
+
 def get_con_resources(con_dets, default_dbs, db=None):
     """
     Get connection - with a database if possible, else without.  If without,
