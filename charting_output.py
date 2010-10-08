@@ -299,8 +299,10 @@ def get_barchart_sizings(xaxis_dets, series_dets):
             xfontsize_mult = 1.3
         xfontsize = xfontsize*xfontsize_mult
         xfontsize = xfontsize if xfontsize <= 10 else 10
-    if debug: print(width)
-    return width, xgap, xfontsize, minor_ticks
+    left_axis_label_shift = 20 if width > 1200 else 0 # gets squeezed 
+        # out otherwise
+    if debug: print(width, xgap, xfontsize, minor_ticks, left_axis_label_shift)
+    return width, xgap, xfontsize, minor_ticks, left_axis_label_shift
 
 def get_linechart_sizings(xaxis_dets, max_label_len, series_dets):
     debug = False
@@ -383,6 +385,7 @@ def get_left_axis_shift(xaxis_dets):
     Need to shift margin left if wide labels to keep y-axis title close enough 
         to y_axis labels.
     """
+    debug = True
     left_axis_label_shift = 0
     try:
         label1_len = len(xaxis_dets[0][1])
@@ -390,6 +393,7 @@ def get_left_axis_shift(xaxis_dets):
             left_axis_label_shift = label1_len*-1.3
     except Exception, e:
         pass
+    if debug: print(left_axis_label_shift)
     return left_axis_label_shift
 
 def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets, 
@@ -411,10 +415,9 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
     label_dets = get_label_dets(xaxis_dets, series_dets)
     xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
     axis_label_drop = 30 if x_title else 10
-    left_axis_label_shift = get_left_axis_shift(xaxis_dets)
     height = 310 + axis_label_drop # compensate for loss of bar display height
-    width, xgap, xfontsize, minor_ticks = get_barchart_sizings(xaxis_dets, 
-                                                               series_dets)
+    (width, xgap, xfontsize, minor_ticks, 
+          left_axis_label_shift) = get_barchart_sizings(xaxis_dets, series_dets)
     inc_perc_js = u"true" if inc_perc else u"false"
     html = []
     """
@@ -611,7 +614,7 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
     label_dets = get_label_dets(xaxis_dets, series_dets)
     xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
     axis_label_drop = 30 if x_title else -10
-    left_axis_label_shift = get_left_axis_shift(xaxis_dets)
+    left_axis_label_shift = 1
     height = 310 + axis_label_drop # compensate for loss of bar display height                           
     (width, xfontsize, 
      minor_ticks, micro_ticks) = get_linechart_sizings(xaxis_dets, 
@@ -723,7 +726,7 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
                 micro_ticks) = get_linechart_sizings(xaxis_dets, max_label_len, 
                                                      series_dets)
     html = []
-    left_axis_label_shift = get_left_axis_shift(xaxis_dets)
+    left_axis_label_shift = 0
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 

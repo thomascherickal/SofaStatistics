@@ -85,10 +85,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
         if default_db_access:
             db = default_db_access
         else:
-            try:
-                db = con_dets_access.keys()[0]
-            except IndexError, e:
-                raise my_exceptions.NoMoreConsException
+            db = con_dets_access.keys()[0]
     if not con_dets_access.get(db):
         raise Exception(u"No connections for MS Access database %s" % db)
     con_dets_access_db = con_dets_access[db]

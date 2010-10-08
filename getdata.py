@@ -48,8 +48,6 @@ def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None,
         db_resources = get_db_resources(dbe, cur, db, default_tbls, tbl)
         dbe_resources.update(db_resources)
         if debug: print("Finished updating dbe resources with db resources")
-    except my_exceptions.NoMoreConsException, e:
-        raise # just making it obvious
     except my_exceptions.MalformedDbError, e:
         if stop:
             raise
@@ -130,8 +128,6 @@ class DataDets(object):
         except KeyError, e:
             raise Exception(u"Unable to read project dictionary for required "
                             u"keys.\nCaused by error: %s" % lib.ue(e))
-        except my_exceptions.NoMoreConsException, e:
-            raise # just making it obvious
         except Exception, e:
             raise Exception(u"Unable to set proj dic."
                             u"\nCaused by error: %s" % lib.ue(e))
@@ -158,8 +154,6 @@ class DataDets(object):
             dbe_resources = get_dbe_resources(dbe, self.con_dets, 
                                           self.default_dbs, self.default_tbls, 
                                           db, tbl, add_checks)
-        except my_exceptions.NoMoreConsException, e:
-            raise # just making it obvious
         except Exception, e:
             raise Exception(u"Unable to get dbe resources.\nCaused by error: %s"
                             % lib.ue(e))
@@ -551,7 +545,7 @@ def get_data_dropdowns(parent, panel, default_dbs):
         except Exception, e:
             wx.MessageBox(_("Unable to connect to %(oth_dbe)s using the details"
                             " provided.\nCaused by error: %(e)s" % 
-                                {"oth_dbe": oth_dbe, "e": e}))
+                                {"oth_dbe": oth_dbe, "e": lib.ue(e)}))
     parent.db_choice_items = [get_db_item(x[0], x[1]) for x in db_choices]
     parent.drop_dbs = wx.Choice(panel, -1, choices=parent.db_choice_items,
                                 size=(280,-1))
@@ -615,8 +609,9 @@ def refresh_db_dets(parent):
         tbls_lc = [x.lower() for x in dd.tbls]
         parent.drop_tbls.SetSelection(tbls_lc.index(dd.tbl.lower()))
         parent.selected_dbe_db_idx = parent.drop_dbs.GetSelection()
-    except Exception:
-        wx.MessageBox(_("Experienced problem refreshing database details"))
+    except Exception, e:
+        wx.MessageBox(_("Experienced problem refreshing database details.") +
+                      u"\nCaused by error %s" % lib.ue(e))
         parent.drop_dbs.SetSelection(parent.selected_dbe_db_idx)
         raise
     finally:

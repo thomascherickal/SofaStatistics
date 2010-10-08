@@ -122,10 +122,7 @@ def get_con_resources(con_dets, default_dbs, db=None, add_checks=False):
         if default_db:
             db = default_db
         else:
-            try:
-                db = con_dets[mg.DBE_SQLITE].keys()[0]
-            except IndexError, e:
-                raise my_exceptions.NoMoreConsException
+            db = con_dets[mg.DBE_SQLITE].keys()[0]
     try:
         con = get_con(con_dets, db, add_checks=add_checks)
     except Exception, e:
