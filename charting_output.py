@@ -614,11 +614,11 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
     label_dets = get_label_dets(xaxis_dets, series_dets)
     xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
     axis_label_drop = 30 if x_title else -10
-    left_axis_label_shift = 1
     height = 310 + axis_label_drop # compensate for loss of bar display height                           
     (width, xfontsize, 
      minor_ticks, micro_ticks) = get_linechart_sizings(xaxis_dets, 
                                                      max_label_len, series_dets)
+    left_axis_label_shift = 20 if width > 1200 else 0 # gets squeezed 
     inc_perc_js = u"true" if inc_perc else u"false"
     html = []
     """
@@ -726,7 +726,7 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
                 micro_ticks) = get_linechart_sizings(xaxis_dets, max_label_len, 
                                                      series_dets)
     html = []
-    left_axis_label_shift = 0
+    left_axis_label_shift = 20 if width > 1200 else 0 # gets squeezed 
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 
