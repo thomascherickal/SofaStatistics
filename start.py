@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-dev_debug = True
+dev_debug = False
 test_lang = False
 
 """
@@ -936,6 +936,7 @@ class StartFrame(wx.Frame):
         txt_pref = _("Set preferences e.g. format for entering dates")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_pref, MAX_HELP_TEXT_WIDTH), 
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
+        event.Skip()
         
     def on_enter_click(self, event):
         # open proj selection form

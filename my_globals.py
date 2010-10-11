@@ -394,8 +394,8 @@ DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred',
     'lightyellow', 'lavenderblush', 'coral', 'lightgrey', 'whitesmoke', 
     'mediumslateblue', 'darkorange', 'mediumaquamarine', 'darksalmon', 'beige', 
     'blueviolet', 'azure', 'lightsteelblue', 'oldlace']
-CHART_VALUES = _("Values:")
-CHART_BY = _("By:")
+CHART_VALUES = _("Values")
+CHART_BY = _("By")
 Y_AXIS_FREQ_LABEL = _("Frequency")
 LABEL_LINE_BREAK_JS = """var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";"""
 # remember defaults //////////

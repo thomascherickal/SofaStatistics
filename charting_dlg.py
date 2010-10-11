@@ -63,22 +63,23 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_chart_btns = wx.BoxSizer(wx.HORIZONTAL)
         # var 1
         self.min_data_type = mg.VAR_TYPE_CAT # needed to set up var 1
-        self.lbl_var1 = wx.StaticText(self.panel_top, -1, mg.CHART_VALUES)
+        self.lbl_var1 = wx.StaticText(self.panel_top, -1, 
+                                      u"%s:" % mg.CHART_VALUES)
         self.lbl_var1.SetFont(self.LABEL_FONT)
         # TODO only want the fields which are numeric? Depends
         self.drop_var1 = wx.Choice(self.panel_top, -1, choices=[], 
-                                   size=(300,-1))
+                                   size=(250,-1))
         self.drop_var1.Bind(wx.EVT_CHOICE, self.on_var1_sel)
         self.drop_var1.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var1)
         self.drop_var1.SetToolTipString(variables_rc_msg)
         self.sorted_var_names1 = []
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
         # var 2
-        self.lbl_var2 = wx.StaticText(self.panel_top, -1, mg.CHART_BY)
+        self.lbl_var2 = wx.StaticText(self.panel_top, -1, u"%s:" % mg.CHART_BY)
         self.lbl_var2.SetFont(self.LABEL_FONT)
         self.lbl_var2.Enable(False)
         self.drop_var2 = wx.Choice(self.panel_top, -1, choices=[], 
-                                   size=(300,-1))
+                                   size=(250,-1))
         self.drop_var2.Bind(wx.EVT_CHOICE, self.on_var2_sel)
         self.drop_var2.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var2)
         self.drop_var2.SetToolTipString(variables_rc_msg)
@@ -432,7 +433,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         idx_sel = self.rad_pie_sort_opts.GetSelection()
         self.on_rad_sort_opt(idx_sel)
         
-    def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel):
+    def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel, lbla=None, 
+                  lblb=None):
         btn.SetFocus()
         btn.SetDefault()
         self.btn_to_rollback.SetBitmapLabel(self.bmp_to_rollback_to)
@@ -440,10 +442,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.bmp_to_rollback_to = btn_bmp
         btn.SetBitmapLabel(btn_sel_bmp)
         event.Skip()
-        self.lbl_var1.SetLabel(mg.CHART_VALUES)
-        self.lbl_var2.SetLabel(mg.CHART_BY)
         if self.panel_displayed == panel:
             return # just reclicking on same one
+        lbla = lbla if lbla else mg.CHART_VALUES
+        lblb = lblb if lblb else mg.CHART_BY
+        self.lbl_var1.SetLabel(u"%s:" % lbla)
+        self.lbl_var2.SetLabel(u"%s:" % lblb)
+        self.panel_top.Layout()
         self.min_data_type = mg.CHART_TYPE_TO_MIN_DATA_TYPE.get(self.chart_type, 
                                                                 mg.VAR_TYPE_CAT)
         self.panel_displayed.Show(False)        
@@ -523,7 +528,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_scatterplot
         btn_bmp_sel = self.bmp_btn_scatterplot_sel
         panel = self.panel_scatterplot
-        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
+        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel, 
+                       lbla=_(u"X-axis"), lblb=_(u"Y-axis"))
         
     def on_btn_chart(self, event):
         wx.MessageBox(LIMITS_MSG)

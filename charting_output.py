@@ -34,6 +34,7 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, measure_val_labels,
     cur.execute(SQL_get_vals)
     val_freq_label_lst = []
     for val, freq in cur.fetchall():
+        freq = int(freq)
         val_label = measure_val_labels.get(val, unicode(val))
         val_freq_label_lst.append((val, freq, val_label))
     lib.sort_value_labels(sort_opt, val_freq_label_lst)
@@ -238,6 +239,7 @@ def reshape_sql_crosstab_data(raw_data):
     oth_vals = None
     collect_oth = True
     for current_gp, oth, freq in raw_data:
+        freq = int(freq)
         if debug: print(current_gp, oth, freq)
         if current_gp == prev_gp: # still in same gp
             current_series.append(freq)
@@ -385,7 +387,7 @@ def get_left_axis_shift(xaxis_dets):
     Need to shift margin left if wide labels to keep y-axis title close enough 
         to y_axis labels.
     """
-    debug = True
+    debug = False
     left_axis_label_shift = 0
     try:
         label1_len = len(xaxis_dets[0][1])
