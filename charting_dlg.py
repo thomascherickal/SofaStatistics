@@ -50,9 +50,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_top = wx.Panel(self)
         bx_vars = wx.StaticBox(self.panel_top, -1, _("Variables"))
         szr_top = wx.BoxSizer(wx.VERTICAL)
+        szr_help_data = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_data = self.get_szr_data(self.panel_top) # mixin
         if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
             bx_vars.SetToolTipString(variables_rc_msg)
+        self.btn_help = wx.Button(self.panel_top, wx.ID_HELP)
+        self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         szr_vars = wx.StaticBoxSizer(bx_vars, wx.HORIZONTAL)
         self.szr_vars_top_left = wx.BoxSizer(wx.VERTICAL)
         szr_vars_top_right = wx.BoxSizer(wx.VERTICAL)
@@ -90,6 +93,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
                        var_name=None, inc_drop_select=True)
         # layout
+        help_down_by = 27 if mg.PLATFORM == mg.MAC else 17
+        szr_help_data.Add(self.btn_help, 0, wx.TOP, help_down_by)
+        szr_help_data.Add(self.szr_data, 1, wx.LEFT, 5)
         szr_vars.Add(self.lbl_var1, 0, wx.TOP|wx.RIGHT, 5)
         szr_vars.Add(self.drop_var1, 0, wx.RIGHT|wx.TOP, 5)
         szr_vars.Add(self.lbl_var2, 0, wx.TOP|wx.RIGHT, 5)
@@ -98,7 +104,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         static_box_gap = 0 if mg.PLATFORM == mg.MAC else 5
         if static_box_gap:
             szr_top.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
-        szr_top.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_top.Add(szr_help_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
             szr_top.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
         szr_top.Add(szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)

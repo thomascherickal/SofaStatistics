@@ -131,6 +131,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         config_dlg.add_icon(frame=self)
         # sizers
         szr_main = wx.BoxSizer(wx.VERTICAL)
+        szr_top = wx.BoxSizer(wx.HORIZONTAL)
         # mixin
         self.szr_data, self.szr_config = self.get_gen_config_szrs(self.panel)
         szr_mid = wx.BoxSizer(wx.VERTICAL)
@@ -145,6 +146,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         szr_html = wx.BoxSizer(wx.VERTICAL)
         szr_bottom_left = wx.BoxSizer(wx.VERTICAL)
         self.szr_output_btns = self.get_szr_output_btns(self.panel) # mixin
+        self.btn_help = wx.Button(self.panel, wx.ID_HELP)
+        self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         # title details
         lbl_titles = wx.StaticText(self.panel, -1, _("Title:"))
         lbl_titles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -247,9 +250,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             self.Bind(wx.EVT_SHOW, self.on_show)
         self.btn_run.Enable(False)
         self.chk_add_to_report.Enable(False)
-        self.btn_export.Enable(False)
-        lbl_demo_tbls = wx.StaticText(self.panel, -1, _("Output Table:"))
-        lbl_demo_tbls.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        help_down_by = 27 if mg.PLATFORM == mg.MAC else 17
+        szr_top.Add(self.btn_help, 0, wx.TOP, help_down_by)
+        szr_top.Add(self.szr_data, 1, wx.LEFT, 5)
         szr_tab_type.Add(self.rad_tab_type, 0, wx.RIGHT, 10)
         szr_titles.Add(lbl_titles, 0, wx.RIGHT, 5)
         szr_titles.Add(self.txt_titles, 1, wx.GROW|wx.RIGHT, 10)
@@ -280,7 +283,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         szr_cols.Add(self.coltree, 1, wx.GROW)
         szr_trees.Add(szr_rows, 1, wx.GROW|wx.RIGHT, 2)
         szr_trees.Add(szr_cols, 1, wx.GROW|wx.LEFT, 2)
-        szr_html.Add(lbl_demo_tbls, 0)
         szr_html.Add(self.html, 1, wx.GROW)
         szr_bottom_left.Add(szr_html, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_bottom_left.Add(self.szr_config, 0, 
@@ -289,14 +291,14 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         szr_bottom.Add(self.szr_output_btns, 0, wx.GROW|wx.BOTTOM|wx.RIGHT, 10)
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
-        szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(szr_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_main.Add(szr_mid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_main.Add(szr_trees, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
         szr_main.Add(szr_bottom, 2, wx.GROW)
         self.panel.SetSizer(szr_main)
-        szr_lst = [self.szr_data, szr_mid, szr_trees, szr_bottom]
+        szr_lst = [szr_top, szr_mid, szr_trees, szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024)
 
     def on_show(self, event):
@@ -861,7 +863,9 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         ready2run, has_cols = self.table_config_ok(silent=True)
         self.btn_run.Enable(ready2run)
         self.chk_add_to_report.Enable(ready2run)
-        self.btn_export.Enable(ready2run)
+        if mg.ADVANCED:
+            self.btn_export.Enable(ready2run)
+            
         
     def on_btn_config(self, event):
         """

@@ -68,12 +68,15 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         bx_vars = wx.StaticBox(self.panel, -1, _("Variables"))
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         config_dlg.add_icon(frame=self)
+        szr_top = wx.BoxSizer(wx.HORIZONTAL)
         # mixins
         self.szr_data, self.szr_config = self.get_gen_config_szrs(self.panel) 
         self.szr_output_btns = self.get_szr_output_btns(self.panel, 
                                                         inc_clear=False)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
+        self.btn_help = wx.Button(self.panel, wx.ID_HELP)
+        self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         eg1, eg2, eg3 = self.get_examples()
         lbl_desc1 = wx.StaticText(self.panel, -1, eg1)
         lbl_desc2 = wx.StaticText(self.panel, -1, eg2)
@@ -176,7 +179,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         static_box_gap = 0 if mg.PLATFORM == mg.MAC else 10
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
-        szr_main.Add(szr_desc, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        help_down_by = 27 if mg.PLATFORM == mg.MAC else 17
+        szr_top.Add(self.btn_help, 0, wx.TOP, help_down_by)
+        szr_top.Add(szr_desc, 1, wx.LEFT, 5)
+        szr_main.Add(szr_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
         szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
@@ -188,7 +194,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szr_main.Add(szr_bottom, 1, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
         self.add_other_var_opts(szr=self.szr_vars_top_left)
         self.panel.SetSizer(szr_main)
-        szr_lst = [szr_desc, self.szr_data, szr_vars, szr_bottom]
+        szr_lst = [szr_top, self.szr_data, szr_vars, szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst)
 
     def on_show(self, event):

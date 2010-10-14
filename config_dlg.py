@@ -43,7 +43,7 @@ def get_szr_level(parent, panel):
 
 label_divider = " " if mg.PLATFORM == mg.WINDOWS else "\n"
 add_to_report = _("Add to%sreport" % label_divider)
-run = _("Run")
+run = _("Show\nResults")
 
 
 def style2path(style):
@@ -68,9 +68,7 @@ class ExtraOutputConfigDlg(wx.Dialog):
         self.parent = parent
         self.panel = wx.Panel(self)
         bx_var_config = wx.StaticBox(self.panel, -1, 
-                                     _("Variable config from ... "))
-        bx_script_config = wx.StaticBox(self.panel, -1, 
-                                        _("Export script here to reuse "))        
+                                     _("Variable config from ... "))    
         self.txt_var_dets_file = wx.TextCtrl(self.panel, -1, 
                                         cc[mg.CURRENT_VDTS_PATH], size=(500,-1))
         self.txt_var_dets_file.Enable(not readonly)
@@ -81,34 +79,41 @@ class ExtraOutputConfigDlg(wx.Dialog):
         self.btn_var_dets_path.Enable(not readonly)
         self.btn_var_dets_path.SetToolTipString(_("Select an existing variable "
                                                   "config file"))
-        # script
-        self.txt_script_file = wx.TextCtrl(self.panel, -1, 
-                                      cc[mg.CURRENT_SCRIPT_PATH], size=(500,-1))
-        self.txt_script_file.Enable(not readonly)
-        self.btn_script_path = wx.Button(self.panel, -1, browse)
-        self.btn_script_path.Bind(wx.EVT_BUTTON, self.on_btn_script_path)
-        self.btn_script_path.Enable(not readonly)   
-        self.btn_script_path.SetToolTipString(_("Select or create a Python "
-                                                "script file"))
+        if mg.ADVANCED: # add bx before controls in it
+            bx_script_config = wx.StaticBox(self.panel, -1, 
+                                            _("Export script here to reuse "))
+            # script
+            self.txt_script_file = wx.TextCtrl(self.panel, -1, 
+                                          cc[mg.CURRENT_SCRIPT_PATH], 
+                                          size=(500,-1))
+            self.txt_script_file.Enable(False)
+            self.btn_script_path = wx.Button(self.panel, -1, browse)
+            self.btn_script_path.Bind(wx.EVT_BUTTON, self.on_btn_script_path)
+            self.btn_script_path.Enable(False)   
+            self.btn_script_path.SetToolTipString(_("Select or create a Python "
+                                                    "script file"))
         szr_main = wx.BoxSizer(wx.VERTICAL)
         # Variables
         szr_var_config = wx.StaticBoxSizer(bx_var_config, wx.HORIZONTAL)
         szr_var_config.Add(self.txt_var_dets_file, 1, wx.GROW)
         szr_var_config.Add(self.btn_var_dets_path, 0, wx.LEFT|wx.RIGHT, 5)
-        # Script
-        szr_script_config = wx.StaticBoxSizer(bx_script_config, wx.HORIZONTAL)
-        szr_script_config.Add(self.txt_script_file, 1, wx.GROW)
-        szr_script_config.Add(self.btn_script_path, 0, wx.LEFT|wx.RIGHT, 5)
+        if mg.ADVANCED:
+            # Script
+            szr_script_config = wx.StaticBoxSizer(bx_script_config, 
+                                                  wx.HORIZONTAL)
+            szr_script_config.Add(self.txt_script_file, 1, wx.GROW)
+            szr_script_config.Add(self.btn_script_path, 0, wx.LEFT|wx.RIGHT, 5)
         self.setup_btns()
         szr_main.Add(szr_var_config, 0, wx.GROW|wx.ALL, 10)
-        szr_main.Add(szr_script_config, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        if mg.ADVANCED:
+            szr_main.Add(szr_script_config, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_btns_wrapper = wx.BoxSizer(wx.HORIZONTAL)
         szr_btns_wrapper.Add(self.szr_btns, 1, wx.GROW|wx.ALL, 10)
         szr_main.Add(szr_btns_wrapper, 0, wx.GROW|wx.RIGHT, 10)
         self.panel.SetSizer(szr_main)
         szr_main.SetSizeHints(self)
         self.Layout()
-        self.txt_script_file.SetFocus()
+        self.txt_var_dets_file.SetFocus()
 
     def setup_btns(self):
         """
@@ -138,7 +143,8 @@ class ExtraOutputConfigDlg(wx.Dialog):
     def on_ok(self, event):
         debug = False
         cc[mg.CURRENT_VDTS_PATH] = self.txt_var_dets_file.GetValue()
-        cc[mg.CURRENT_SCRIPT_PATH] = self.txt_script_file.GetValue()
+        if mg.ADVANCED:
+            cc[mg.CURRENT_SCRIPT_PATH] = self.txt_script_file.GetValue()
         self.parent.update_var_dets()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
@@ -332,21 +338,21 @@ class ConfigDlg(object):
         return too_long
 
     def get_szr_output_btns(self, panel, inc_clear=True):
-        #main
+        # main
         self.btn_run = wx.Button(panel, -1, run)
         self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
         self.btn_run.SetToolTipString(_("Run report and display results"))
         self.chk_add_to_report = wx.CheckBox(panel, -1, add_to_report)
         self.chk_add_to_report.SetValue(True)
-        self.btn_export = wx.Button(panel, -1, _("Export"))
-        self.btn_export.Bind(wx.EVT_BUTTON, self.on_btn_export)
-        self.btn_export.SetToolTipString(_("Export to script for reuse"))
+        if mg.ADVANCED:
+            self.btn_export = wx.Button(panel, -1, _("Export"))
+            self.btn_export.Bind(wx.EVT_BUTTON, self.on_btn_export)
+            self.btn_export.SetToolTipString(_("Export to script for reuse"))
+            self.btn_export.Enable(False)
         self.btn_expand = wx.Button(panel, -1, _("Expand"))
         self.btn_expand.Bind(wx.EVT_BUTTON, self.on_btn_expand)
         self.btn_expand.SetToolTipString(_("Open report in own window"))
         self.btn_expand.Enable(False)
-        self.btn_help = wx.Button(panel, wx.ID_HELP)
-        self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         if inc_clear:
             self.btn_clear = wx.Button(panel, -1, _("Clear"))
             self.btn_clear.SetToolTipString(_("Clear settings"))
@@ -355,19 +361,23 @@ class ConfigDlg(object):
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_close)
         # add to sizer
         self.szr_output_btns = wx.FlexGridSizer(rows=7, cols=1, hgap=5, vgap=5)
-        self.szr_output_btns.AddGrowableRow(5,2) # idx, propn
+        self.szr_output_btns.AddGrowableRow(3,2) # idx, propn
+        self.szr_output_btns.AddGrowableCol(0,1) # idx, propn
         # only relevant if surrounding sizer stretched vertically enough by its 
         # content.
-        self.szr_output_btns.Add(self.btn_run, 0)
-        self.szr_output_btns.Add(self.chk_add_to_report)
-        self.szr_output_btns.Add(self.btn_expand, wx.ALIGN_TOP)
-        self.szr_output_btns.Add(self.btn_export, 0, wx.TOP, 8)
-        self.szr_output_btns.Add(self.btn_help, 0)
+        self.szr_output_btns.Add(self.btn_run, 1, wx.ALIGN_RIGHT)
+        self.szr_output_btns.Add(self.chk_add_to_report, 1, wx.ALIGN_RIGHT)
+        self.szr_output_btns.Add(self.btn_expand, 1, 
+                                 wx.ALIGN_RIGHT|wx.ALIGN_TOP)
+        if mg.ADVANCED:
+            self.szr_output_btns.Add(self.btn_export, 1, 
+                                     wx.ALIGN_RIGHT|wx.TOP, 8)
         if inc_clear:
-            self.szr_output_btns.Add(self.btn_clear, 0)
+            self.szr_output_btns.Add(self.btn_clear, 1, wx.ALIGN_RIGHT)
         close_up_by = 13 if mg.PLATFORM == mg.MAC else 5
         self.szr_output_btns.Add(self.btn_close, 1, 
-                                 wx.ALIGN_BOTTOM|wx.BOTTOM, close_up_by)
+                                 wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM|wx.BOTTOM, 
+                                 close_up_by)
         return self.szr_output_btns
 
     # database/ tables (and views)

@@ -132,7 +132,11 @@ class DataSelectDlg(wx.Dialog):
         else:
             obj_quoter = getdata.get_obj_quoter_func(dd.dbe)
             SQL_get_count = u"""SELECT COUNT(*) FROM %s """ % obj_quoter(dd.tbl)
-            dd.cur.execute(SQL_get_count)
+            try:
+                dd.cur.execute(SQL_get_count)
+            except Exception, e:
+                wx.MessageBox(_(u"Problem opening selected table."
+                                u"\nCaused by error: %s") % lib.ue(e))
             rows_n = dd.cur.fetchone()[0]
             if rows_n > 200000: # fast enough as long as column resizing is off
                 if wx.MessageBox(_("This table has %s rows. "

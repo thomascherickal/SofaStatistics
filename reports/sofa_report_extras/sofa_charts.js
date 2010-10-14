@@ -107,6 +107,8 @@ makePieChart = function(chartname, slices, chartconf){
     var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
     var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
     var outerBg = ("outerBg" in chartconf) ? chartconf["outerBg"] : null;
+    var radius = ("radius" in chartconf) ? chartconf["radius"] : 140;
+    var labelOffset = ("labelOffset" in chartconf) ? chartconf["labelOffset"] : -30;
 
     var dc = dojox.charting;
     var mychart = new dc.Chart2D(chartname);
@@ -128,8 +130,8 @@ makePieChart = function(chartname, slices, chartconf){
             type: "Pie",
             font: "normal normal " + chartconf["sliceFontsize"] + "px Tahoma",
             fontColor: chartconf["labelFontColour"],
-            labelOffset: -30,
-            radius: 140
+            labelOffset: labelOffset,
+            radius: radius
         });
 
     var pieSeries = Array();

@@ -574,6 +574,8 @@ def piechart_output(titles, subtitles, slice_dets, css_fil, css_idx,
             chartconf["connectorStyle"] = \"%(connector_style)s\";
             %(outer_bg)s
             chartconf["innerBg"] = \"%(inner_bg)s\";
+            chartconf["radius"] = 140;
+            chartconf["labelOffset"] = -30;
             makePieChart("mychartRenumber", slices, chartconf);
         }
     </script>

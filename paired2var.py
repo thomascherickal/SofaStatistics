@@ -48,6 +48,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.szr_output_btns = self.get_szr_output_btns(self.panel,
                                                         inc_clear=False)
         szr_main = wx.BoxSizer(wx.VERTICAL)
+        szr_top = wx.BoxSizer(wx.HORIZONTAL)
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
         eg1, eg2, eg3 = self.get_examples()
         lbl_desc1 = wx.StaticText(self.panel, -1, eg1)
@@ -56,6 +57,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szr_desc.Add(lbl_desc1, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc2, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc3, 1, wx.GROW|wx.LEFT, 5)
+        self.btn_help = wx.Button(self.panel, wx.ID_HELP)
+        self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
             bx_vars.SetToolTipString(variables_rc_msg)
         szr_vars = wx.StaticBoxSizer(bx_vars, wx.VERTICAL)
@@ -112,7 +115,10 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         static_box_gap = 0 if mg.PLATFORM == mg.MAC else 10
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
-        szr_main.Add(szr_desc, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        help_down_by = 27 if mg.PLATFORM == mg.MAC else 17
+        szr_top.Add(self.btn_help, 0, wx.TOP, help_down_by)
+        szr_top.Add(szr_desc, 1, wx.LEFT, 5)
+        szr_main.Add(szr_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
         szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
@@ -123,7 +129,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
         szr_main.Add(szr_bottom, 2, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
         self.panel.SetSizer(szr_main)
-        szr_lst = [szr_desc, self.szr_data, szr_vars, szr_bottom]
+        szr_lst = [szr_top, self.szr_data, szr_vars, szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst)
         self.setup_groups()
 
