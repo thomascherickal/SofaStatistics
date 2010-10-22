@@ -404,8 +404,11 @@ def none2empty(val):
     else:
         return val
 
-def update_type_set(type_set, val):
-    if is_numeric(val): # anything that SQLite can add _as a number_ 
+def update_type_set(type_set, val, comma_dec_sep_ok=False):
+    """
+    Some countries use commas as decimal separators.
+    """
+    if is_numeric(val, comma_dec_sep_ok): #anything SQLite can add _as a number_ 
             # into a numeric field
         type_set.add(mg.VAL_NUMERIC)
     elif is_pytime(val): # COM on Windows
@@ -682,13 +685,14 @@ def get_filt_msg(tbl_filt_label, tbl_filt):
         filt_msg = _("All data in table included - no filtering")
     return filt_msg
 
-def is_numeric(val):
+def is_numeric(val, comma_dec_sep_ok=False):
     """
     Is a value numeric?  This is operationalised to mean can a value be cast as 
         a float.  
     NB the string 5 is numeric.  Scientific notation is numeric. Complex numbers 
         are considered not numeric for general use.  
-    The type may not be numeric but the "content" must be.
+    The type may not be numeric (e.g. might be the string '5') but the "content" 
+        must be.
     http://www.rosettacode.org/wiki/IsNumeric#Python
     """
     if is_pytime(val):
@@ -696,6 +700,11 @@ def is_numeric(val):
     elif val is None:
         return False
     else:
+        try:
+            if comma_dec_sep_ok:
+                val = val.replace(u",", u".")
+        except AttributeError, e:
+            pass
         try:
             i = float(val)
         except (ValueError, TypeError):

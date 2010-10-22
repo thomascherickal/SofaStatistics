@@ -76,7 +76,7 @@ def process_tbl_name(rawname):
     return rawname.replace(u" ", u"_")
 
 def assess_sample_fld(sample_data, has_header, orig_fld_name, orig_fld_names, 
-                      allow_none=True):
+                      allow_none=True, comma_dec_sep_ok=False):
     """
     NB client code gets number of fields in row 1.  Then for each field, it 
         traverses rows (i.e. travels down a col, then down the next etc).  If a
@@ -107,11 +107,12 @@ def assess_sample_fld(sample_data, has_header, orig_fld_name, orig_fld_names,
             if val is None:
                 report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, 
                                       allow_none)
-        lib.update_type_set(type_set, val)
+        lib.update_type_set(type_set, val, comma_dec_sep_ok)
     fld_type = lib.get_overall_fld_type(type_set)
     return fld_type
 
-def get_val(raw_val, check, is_pytime, fld_type, orig_fld_name, row_num):
+def get_val(raw_val, check, is_pytime, fld_type, orig_fld_name, row_num,
+            comma_dec_sep_ok=False):
     """
     Missing values are OK in numeric and date fields in the source field being 
         imported, but a missing value indicator (e.g. ".") is not.  A missing
@@ -120,8 +121,8 @@ def get_val(raw_val, check, is_pytime, fld_type, orig_fld_name, row_num):
     check -- not necessary if part of a sample (will already have been tested)
     """
     if not check:
-        # still need to handle pytime and turn empty strings into NULLs 
-        # for non string fields.
+        # still need to handle pytime, turn empty strings into NULLs for 
+        # non string fields, and handle decimal separators.
         if is_pytime:
             val = lib.pytime_to_datetime_str(raw_val)
         if not is_pytime:
@@ -131,15 +132,29 @@ def get_val(raw_val, check, is_pytime, fld_type, orig_fld_name, row_num):
             elif raw_val == mg.MISSING_VAL_INDICATOR:
                 nulled_dots = True
                 val = u"NULL"
+            elif fld_type == mg.FLD_TYPE_NUMERIC:
+                try:
+                    if comma_dec_sep_ok:
+                        val = raw_val.replace(u",", u".")
+                    else:
+                        val = raw_val
+                except AttributeError, e:
+                    val = raw_val
             else:
                 val = raw_val
     else: # checking
         ok_data = False        
         if fld_type == mg.FLD_TYPE_NUMERIC:
             # must be numeric or empty string or dot (which we'll turn to NULL)
-            if lib.is_numeric(raw_val):
+            if lib.is_numeric(raw_val, comma_dec_sep_ok):
                 ok_data = True
-                val = raw_val
+                try:
+                    if comma_dec_sep_ok:
+                        val = raw_val.replace(u",", u".")
+                    else:
+                        val = raw_val
+                except AttributeError, e:
+                    val = raw_val
             elif raw_val == u"" or raw_val is None:
                 ok_data = True
                 val = u"NULL"
@@ -187,7 +202,8 @@ def get_val(raw_val, check, is_pytime, fld_type, orig_fld_name, row_num):
                                     u"\nExpected column type: %s" % fld_type))    
     return val
 
-def process_val(vals, row_num, row, orig_fld_name, fld_types, check):
+def process_val(vals, row_num, row, orig_fld_name, fld_types, check, 
+                comma_dec_sep_ok=False):
     """
     Add val to vals.
     NB field types are only a guess based on a sample of the first rows in the 
@@ -212,7 +228,8 @@ def process_val(vals, row_num, row, orig_fld_name, fld_types, check):
                            u"orig_fld_name": orig_fld_name})
     is_pytime = lib.is_pytime(rawval)
     fld_type = fld_types[orig_fld_name]
-    val = get_val(rawval, check, is_pytime, fld_type, orig_fld_name, row_num)
+    val = get_val(rawval, check, is_pytime, fld_type, orig_fld_name, row_num, 
+                  comma_dec_sep_ok)
     if fld_type != mg.FLD_TYPE_NUMERIC and val != u"NULL":
         val = dbe_sqlite.quote_val(val)
     vals.append(val)
@@ -255,7 +272,8 @@ def report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, allow_none):
 
 def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names, 
              fld_types, progbar, steps_per_item, gauge_start=0, row_num_start=0, 
-             check=False, keep_importing=None, allow_none=True):
+             check=False, keep_importing=None, allow_none=True, 
+             comma_dec_sep_ok=False):
     """
     Add the rows of data (dicts), processing each cell as you go.
     If checking, will validate and turn empty strings into nulls
@@ -285,7 +303,8 @@ def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names,
         report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, 
                               allow_none)
         for orig_fld_name in orig_fld_names:
-            if process_val(vals, row_num, row, orig_fld_name, fld_types, check):
+            if process_val(vals, row_num, row, orig_fld_name, fld_types, check, 
+                           comma_dec_sep_ok):
                 nulled_dots = True
         # quoting must happen earlier so we can pass in NULL  
         fld_vals_clause = u", ".join([u"%s" % x for x in vals])
@@ -336,7 +355,7 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header,
                    ok_fld_names, orig_fld_names, fld_types, 
                    sample_data, sample_n, remaining_data, 
                    progbar, steps_per_item, gauge_start, 
-                   keep_importing, allow_none=True):
+                   keep_importing, allow_none=True, comma_dec_sep_ok=False):
     """
     Create fresh disposable table in SQLite and insert data into it.
     ok_fld_names -- cleaned field names (shouldn't have a sofa_id field)
@@ -387,7 +406,8 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header,
         if add_rows(con, cur, sample_data, has_header, ok_fld_names, 
                     orig_fld_names, fld_types, progbar, steps_per_item, 
                     gauge_start=gauge_start, row_num_start=1, check=False, 
-                    keep_importing=keep_importing, allow_none=allow_none):
+                    keep_importing=keep_importing, allow_none=allow_none, 
+                    comma_dec_sep_ok=comma_dec_sep_ok):
             nulled_dots = True
         # been through sample since gauge_start
         remainder_gauge_start = gauge_start + (sample_n*steps_per_item)
@@ -396,7 +416,8 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header,
                     orig_fld_names, fld_types, progbar, steps_per_item, 
                     gauge_start=remainder_gauge_start, 
                     row_num_start=row_num_start, check=True, 
-                    keep_importing=keep_importing, allow_none=allow_none):
+                    keep_importing=keep_importing, allow_none=allow_none,
+                    comma_dec_sep_ok=comma_dec_sep_ok):
             nulled_dots = True
     except MismatchException, e:
         nulled_dots = False

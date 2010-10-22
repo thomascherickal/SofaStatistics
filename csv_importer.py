@@ -385,7 +385,8 @@ class CsvImporter(importer.FileImporter):
         importer.FileImporter.__init__(self, self.parent, file_path, tbl_name)
         self.ext = u"CSV"
         
-    def assess_sample(self, reader, progbar, steps_per_item, keep_importing):
+    def assess_sample(self, reader, progbar, steps_per_item, keep_importing, 
+                      comma_delimiter):
         """
         Assess data sample to identify field types based on values in fields.
         If a field has mixed data types will define as string.
@@ -423,7 +424,8 @@ class CsvImporter(importer.FileImporter):
         orig_fld_names = reader.fieldnames
         for orig_fld_name in orig_fld_names:
             fld_type = importer.assess_sample_fld(sample_data, self.has_header,
-                                orig_fld_name, orig_fld_names, allow_none=False)
+                                orig_fld_name, orig_fld_names, allow_none=False,
+                                comma_dec_sep_ok=not comma_delimiter)
             fld_types.append(fld_type)
         fld_types = dict(zip(orig_fld_names, fld_types))
         if not bolhas_rows:
@@ -590,6 +592,7 @@ class CsvImporter(importer.FileImporter):
             lib.safe_end_cursor()
             raise Exception(u"Unable to get initial csv details. "
                             u"\nCaused by error: %s" % lib.ue(e))
+        comma_delimiter = (dialect.delimiter.decode("utf8") == u",")
         try:
             # estimate number of rows (only has to be good enough for progress)
             tot_size = os.path.getsize(self.file_path) # in bytes
@@ -621,7 +624,7 @@ class CsvImporter(importer.FileImporter):
         try:
             orig_fld_names, fld_types, sample_data = \
                             self.assess_sample(reader, progbar, steps_per_item, 
-                                               keep_importing)
+                                               keep_importing, comma_delimiter)
         except Exception, e:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise
@@ -636,7 +639,8 @@ class CsvImporter(importer.FileImporter):
                                 ok_fld_names, orig_fld_names, fld_types, 
                                 sample_data, sample_n, remaining_data, 
                                 progbar, steps_per_item, gauge_start, 
-                                keep_importing, allow_none=False)
+                                keep_importing, allow_none=False, 
+                                comma_dec_sep_ok=not comma_delimiter)
             # so fast only shows last step in progress bar
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                                       self.tbl_name, self.file_path, 
