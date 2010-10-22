@@ -522,7 +522,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                             get_script_args=[has_cols,])
     
     # export script
-    def on_btn_export(self, event):
+    def on_btn_script(self, event):
         """
         Export script for table to file currently displayed (if enough data).
         If the file doesn't exist, make one and add the preliminary code.
@@ -864,7 +864,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.btn_run.Enable(ready2run)
         self.chk_add_to_report.Enable(ready2run)
         if mg.ADVANCED:
-            self.btn_export.Enable(ready2run)
+            self.btn_script.Enable(ready2run)
             
         
     def on_btn_config(self, event):

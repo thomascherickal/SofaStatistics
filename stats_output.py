@@ -340,7 +340,7 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0,
              "\"%(a)s\" vs \"%(b)s\"</h2>") % {"ranked": label_ranked, 
                                                "a": dic_a["label"], 
                                                "b": dic_b["label"]})
-    p_format = u"\n<p>" + _("p value") + u": %%.%sf</p>" % dp
+    p_format = u"\n<p>" + _(u"One-tailed p value") + u": %%.%sf</p>" % dp
     html.append(p_format % round(p, dp))
     html.append(u"\n<p>" + _("U statistic") + u": %s</p>" % round(u, dp))
     html.append(u"\n\n<table cellspacing='0'>\n<thead>")

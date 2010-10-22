@@ -345,10 +345,10 @@ class ConfigDlg(object):
         self.chk_add_to_report = wx.CheckBox(panel, -1, add_to_report)
         self.chk_add_to_report.SetValue(True)
         if mg.ADVANCED:
-            self.btn_export = wx.Button(panel, -1, _("Export"))
-            self.btn_export.Bind(wx.EVT_BUTTON, self.on_btn_export)
-            self.btn_export.SetToolTipString(_("Export to script for reuse"))
-            self.btn_export.Enable(False)
+            self.btn_script = wx.Button(panel, -1, _("To Script"))
+            self.btn_script.Bind(wx.EVT_BUTTON, self.on_btn_script)
+            self.btn_script.SetToolTipString(_("Export to script for reuse"))
+            self.btn_script.Enable(False)
         self.btn_expand = wx.Button(panel, -1, _("Expand"))
         self.btn_expand.Bind(wx.EVT_BUTTON, self.on_btn_expand)
         self.btn_expand.SetToolTipString(_("Open report in own window"))
@@ -370,7 +370,7 @@ class ConfigDlg(object):
         self.szr_output_btns.Add(self.btn_expand, 1, 
                                  wx.ALIGN_RIGHT|wx.ALIGN_TOP)
         if mg.ADVANCED:
-            self.szr_output_btns.Add(self.btn_export, 1, 
+            self.szr_output_btns.Add(self.btn_script, 1, 
                                      wx.ALIGN_RIGHT|wx.TOP, 8)
         if inc_clear:
             self.szr_output_btns.Add(self.btn_clear, 1, wx.ALIGN_RIGHT)

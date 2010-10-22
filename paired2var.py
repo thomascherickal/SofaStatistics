@@ -313,7 +313,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         return True
     
    # export script
-    def on_btn_export(self, event):
+    def on_btn_script(self, event):
         """
         Export script for table to file currently displayed (if enough data).
         If the file doesn't exist, make one and add the preliminary code.

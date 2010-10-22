@@ -553,11 +553,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"fld_measure = u\"%s\"" % var_name1)
         if self.chart_type in mg.TWO_VAR_CHART_TYPES:
             script_lst.append(u"fld_gp = u\"%s\"" % var_name2)
-            script_lst.append(u"var_label2=u\"%s\"" % \
+            script_lst.append(u"var_label2=u\"%s\"" %
                               lib.get_item_label(self.var_labels, var_name2))
             script_lst.append(u"group_by_val_labels = %s" % 
                               self.val_dics.get(var_name2, {}))
-        script_lst.append(u"var_label1=u\"%s\"" % \
+        script_lst.append(u"var_label1=u\"%s\"" %
                           lib.get_item_label(self.var_labels, var_name1))
         script_lst.append(u"measure_val_labels = %s" % 
                           self.val_dics.get(var_name1, {}))
@@ -566,78 +566,16 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"report_name = u\"%s\"" %
                           lib.escape_pre_write(report_name))
         if self.chart_type == mg.SIMPLE_BARCHART:
-            script_lst.append(u"xaxis_dets, max_label_len, y_vals = "
-                  u"charting_output.get_single_val_dets("
-                  u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, tbl_filt=tbl_filt,"
-                        u" fld_measure=fld_measure, "
-                  u"\n    xaxis_val_labels=measure_val_labels, "
-                        u"sort_opt=\"%(sort_opt)s\")" % {u"dbe": dd.dbe, 
-                                                 u"sort_opt": CUR_SORT_OPT})
-            script_lst.append(u"series_dets = [{u\"label\": var_label1, "
-                              u"u\"y_vals\": y_vals},]")
-            script_lst.append(u"x_title = u\"\"")
-            script_lst.append(u"chart_output = "
-                  u"charting_output.barchart_output(titles, subtitles,"
-                  u"\n    x_title, xaxis_dets, series_dets, inc_perc=%s, "
-                    u"css_fil=\"%s\", css_idx=%s, page_break_after=False)" % 
-                    (inc_perc, css_fil, css_idx))
+            script_lst.append(get_simple_barchart_script(inc_perc, css_fil, 
+                                                         css_idx))
         elif self.chart_type == mg.CLUSTERED_BARCHART:
-            script_lst.append(u"xaxis_dets, max_label_len, series_dets = "
-                  u"charting_output.get_grouped_val_dets("
-                  u"\n    chart_type=\"%(chart_type)s\", dbe=\"%(dbe)s\", "
-                  u"cur=cur, tbl=tbl, tbl_filt=tbl_filt, "
-                  u"fld_measure=fld_measure, fld_gp=fld_gp, "
-                  u"xaxis_val_labels=measure_val_labels, "
-                  u"group_by_val_labels=group_by_val_labels)" % 
-                    {u"chart_type": self.chart_type, u"dbe": dd.dbe})
-            script_lst.append(u"chart_output = "
-                  u"charting_output.barchart_output(titles, "
-                        u"subtitles,"
-                  u"\n    var_label1, xaxis_dets, series_dets, inc_perc=%s, "
-                  u" css_fil=\"%s\", css_idx=%s, page_break_after=False)" %
-                      (inc_perc, css_fil, css_idx))
+            script_lst.append(get_clustered_barchart_script(inc_perc, css_fil, 
+                                                    css_idx, self.chart_type))
         elif self.chart_type == mg.PIE_CHART:
-            script_lst.append(u"slice_dets = "
-                  u"charting_output.get_pie_chart_dets("
-                  u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, tbl_filt=tbl_filt,"
-                        u" fld_measure=fld_measure, "
-                        u"slice_val_labels=measure_val_labels, "
-                        u"sort_opt=\"%(sort_opt)s\")" % {u"dbe": dd.dbe, 
-                                                 u"sort_opt": CUR_SORT_OPT})
-            script_lst.append(u"chart_output = "
-                  u"charting_output.piechart_output(titles, "
-                        u"subtitles,"
-                  u"\n    slice_dets, css_fil=\"%s\", css_idx=%s, "
-                  u"page_break_after=False)" % (css_fil, css_idx))
+            script_lst.append(get_pie_chart_script(css_fil, css_idx))
         elif self.chart_type == mg.LINE_CHART:
-            single_line = (var_name2 == mg.DROP_SELECT)
-            if single_line:
-                script_lst.append(u"xaxis_dets, max_label_len, y_vals = "
-                      u"charting_output.get_single_val_dets("
-                      u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, "
-                            u"tbl_filt=tbl_filt, fld_measure=fld_measure, "
-                            u"xaxis_val_labels=measure_val_labels, "
-                            u"sort_opt=mg.SORT_NONE)" % {u"dbe": dd.dbe})
-                script_lst.append(u"series_dets = [{u\"label\": var_label1, "
-                                  u"u\"y_vals\": y_vals},]")
-                script_lst.append(u"x_title = u\"\"")
-            else:
-                script_lst.append(u"xaxis_dets, max_label_len, series_dets = "
-                      u"charting_output.get_grouped_val_dets("
-                      u"chart_type=\"%(chart_type)s\","
-                      u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, "
-                            u"tbl_filt=tbl_filt, fld_measure=fld_measure, "
-                            u"fld_gp=fld_gp, "
-                      u"\n    xaxis_val_labels=measure_val_labels, "
-                      u"group_by_val_labels=group_by_val_labels)" % 
-                        {u"chart_type": self.chart_type, u"dbe": dd.dbe})
-                script_lst.append(u"x_title = var_label1")
-            script_lst.append(u"chart_output = "
-                  u"charting_output.linechart_output(titles, "
-                        u"subtitles,"
-                  u"\n    x_title, xaxis_dets, max_label_len, series_dets, "
-                    u"inc_perc=%s, css_fil=\"%s\", css_idx=%s, "
-                    u"page_break_after=False)" % (inc_perc, css_fil, css_idx))
+            script_lst.append(get_line_chart_script(inc_perc, css_fil, css_idx, 
+                                                    self.chart_type, var_name2))
         elif self.chart_type == mg.AREA_CHART:
             script_lst.append(u"xaxis_dets, max_label_len, y_vals = "
                   u"charting_output.get_single_val_dets("
@@ -697,7 +635,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         else:
             wx.MessageBox(LIMITS_MSG)
 
-    def on_btn_export(self, event):
+    def on_btn_script(self, event):
         
         
         # TODO NB will have new_has_dojo=True
@@ -806,3 +744,72 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             wx.MessageBox(_("Variable 1 and 2 cannot be the same"))
             return False
         return True
+
+
+def get_simple_barchart_script(inc_perc, css_fil, css_idx):
+    script = u"""
+xaxis_dets, max_label_len, y_vals = charting_output.get_single_val_dets(
+                dbe="%(dbe)s", cur=cur, tbl=tbl, tbl_filt=tbl_filt, 
+                fld_measure=fld_measure, xaxis_val_labels=measure_val_labels, 
+                sort_opt="%(sort_opt)s")
+series_dets = [{u"label": var_label1, "y_vals": y_vals},]
+x_title = u""
+chart_output = charting_output.barchart_output(titles, subtitles,
+            x_title, xaxis_dets, series_dets, inc_perc=%(inc_perc)s,
+            css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
+    """ % {u"dbe": dd.dbe, u"sort_opt": CUR_SORT_OPT, u"inc_perc": inc_perc, 
+           u"css_fil": css_fil, u"css_idx": css_idx}
+    return script
+
+def get_clustered_barchart_script(inc_perc, css_fil, css_idx, chart_type):
+    script = u"""
+xaxis_dets, max_label_len, series_dets = charting_output.get_grouped_val_dets(
+            chart_type="%(chart_type)s", dbe="%(dbe)s", cur=cur, tbl=tbl, 
+            tbl_filt=tbl_filt, fld_measure=fld_measure, fld_gp=fld_gp, 
+            xaxis_val_labels=measure_val_labels, 
+            group_by_val_labels=group_by_val_labels) 
+chart_output = charting_output.barchart_output(titles, subtitles,
+            var_label1, xaxis_dets, series_dets, inc_perc=%(inc_perc)s, 
+            css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)    
+    """ % {u"dbe": dd.dbe, u"chart_type": chart_type, u"inc_perc": inc_perc, 
+           u"css_fil": css_fil, u"css_idx": css_idx}
+    return script
+
+def get_pie_chart_script(css_fil, css_idx):
+    script = u"""
+slice_dets = charting_output.get_pie_chart_dets(dbe="%(dbe)s", cur=cur, 
+            tbl=tbl, tbl_filt=tbl_filt, fld_measure=fld_measure,
+            slice_val_labels=measure_val_labels, sort_opt="%(sort_opt)s")
+chart_output = charting_output.piechart_output(titles, subtitles,
+            slice_dets, css_fil="%(css_fil)s", css_idx=%(css_idx)s,
+            page_break_after=False)
+    """ % {u"dbe": dd.dbe, u"sort_opt": CUR_SORT_OPT,  
+           u"css_fil": css_fil, u"css_idx": css_idx}
+    return script
+
+def get_line_chart_script(inc_perc, css_fil, css_idx, chart_type, var_name2):
+    single_line = (var_name2 == mg.DROP_SELECT)
+    if single_line:
+        script = u"""
+xaxis_dets, max_label_len, y_vals = charting_output.get_single_val_dets(
+            dbe="%(dbe)s", cur=cur, tbl=tbl, tbl_filt=tbl_filt, 
+            fld_measure=fld_measure, xaxis_val_labels=measure_val_labels,
+            sort_opt=mg.SORT_NONE)
+series_dets = [{u"label": var_label1, u"y_vals": y_vals},]
+x_title = u""
+        """ % {u"dbe": dd.dbe}
+    else:
+        script = u"""
+xaxis_dets, max_label_len, series_dets = charting_output.get_grouped_val_dets(
+            chart_type="%(chart_type)s", dbe="%(dbe)s", cur=cur, tbl=tbl,
+            tbl_filt=tbl_filt, fld_measure=fld_measure, fld_gp=fld_gp,
+            xaxis_val_labels=measure_val_labels, 
+            group_by_val_labels=group_by_val_labels)
+x_title = var_label1
+        """ % {u"chart_type": chart_type, u"dbe": dd.dbe}
+    script += u"""
+chart_output = charting_output.linechart_output(titles, subtitles, x_title, 
+            xaxis_dets, max_label_len, series_dets, inc_perc=%(inc_perc)s, 
+            css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
+    """ % {u"inc_perc": inc_perc, u"css_fil": css_fil, u"css_idx": css_idx}
+    return script
