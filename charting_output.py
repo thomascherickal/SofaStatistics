@@ -151,24 +151,32 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt, fld_measure,
     if debug: print(xaxis_dets)
     return xaxis_dets, max_label_len, series_dets
 
-def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
+def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_gp,
                        slice_val_labels, sort_opt):
-    label_dets, max_label_len, slice_vals = get_basic_dets(dbe, cur, tbl, 
+    """
+    fld_gp -- chart by each value
+    """
+    pie_slice_dets = []
+    pie_dets = [1,] # just pretend for now
+    for pie_det in pie_dets:
+        slice_dets = []
+        label_dets, max_label_len, slice_vals = get_basic_dets(dbe, cur, tbl, 
                                                      tbl_filt, fld_measure, 
                                                      slice_val_labels, sort_opt)
-    if len(label_dets) != len(slice_vals):
-        raise Exception(u"Mismatch in number of slice labels and slice values")
-    if len(slice_vals) > 30:
-        raise my_exceptions.TooManySlicesInPieChart
-    tot_freq = sum(slice_vals)
-    slice_dets = []
-    for i, slice_val in enumerate(slice_vals):
-        slice_dic = {u"y": slice_val, u"text": label_dets[i][2], 
-                     u"tooltip": u"%s<br>%s (%s%%)" % 
-                     (label_dets[i][1], slice_val, 
-                      round((100.0*slice_val)/tot_freq,1))}
-        slice_dets.append(slice_dic)
-    return slice_dets
+        if len(label_dets) != len(slice_vals):
+            raise Exception(u"Mismatch in number of slice labels and slice "
+                            u"values")
+        if len(slice_vals) > 30:
+            raise my_exceptions.TooManySlicesInPieChart
+        tot_freq = sum(slice_vals)
+        for i, slice_val in enumerate(slice_vals):
+            slice_dic = {u"y": slice_val, u"text": label_dets[i][2], 
+                         u"tooltip": u"%s<br>%s (%s%%)" % 
+                         (label_dets[i][1], slice_val, 
+                          round((100.0*slice_val)/tot_freq,1))}
+            slice_dets.append(slice_dic)
+        pie_slice_dets.append(slice_dets)
+    return pie_slice_dets
 
 def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure):
     """
@@ -522,75 +530,78 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def piechart_output(titles, subtitles, slice_dets, css_fil, css_idx, 
+def piechart_output(titles, subtitles, pie_slice_dets, css_fil, css_idx, 
                     page_break_after):
     debug = False
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    width = 500 if mg.PLATFORM == mg.WINDOWS else 450
-    (outer_bg, inner_bg, axis_label_font_colour, major_gridline_colour, 
-            gridline_width, stroke_width, tooltip_border_colour, 
-            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
-    outer_bg = u"" if outer_bg == u"" \
-        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
-    colour_cases = setup_highlights(colour_mappings, single_colour=False, 
-                                    override_first_highlight=False)
-    colours = [str(x[0]) for x in colour_mappings]
-    colours.extend(mg.DOJO_COLOURS)
-    slice_colours = colours[:30]
-    slices_js_list = []
-    for slice_det in slice_dets:
-        slices_js_list.append(u"{\"y\": %(y)s, \"text\": %(text)s, " 
-                              u"\"tooltip\": \"%(tooltip)s\"}" % 
-                              {u"y": slice_det[u"y"], 
-                                   u"text": slice_det[u"text"],
-                                   u"tooltip": slice_det[u"tooltip"]})
-    slices_js = u"slices = [" + u",\n                ".join(slices_js_list) + \
+    for slice_dets in pie_slice_dets:
+        title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+        width = 500 if mg.PLATFORM == mg.WINDOWS else 450
+        (outer_bg, inner_bg, axis_label_font_colour, 
+             major_gridline_colour, gridline_width, stroke_width, 
+             tooltip_border_colour, 
+             colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+        outer_bg = u"" if outer_bg == u"" \
+            else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
+        colour_cases = setup_highlights(colour_mappings, single_colour=False, 
+                                        override_first_highlight=False)
+        colours = [str(x[0]) for x in colour_mappings]
+        colours.extend(mg.DOJO_COLOURS)
+        slice_colours = colours[:30]
+        slices_js_list = []
+        for slice_det in slice_dets:
+            slices_js_list.append(u"{\"y\": %(y)s, \"text\": %(text)s, " 
+                                  u"\"tooltip\": \"%(tooltip)s\"}" % 
+                                  {u"y": slice_det[u"y"], 
+                                       u"text": slice_det[u"text"],
+                                       u"tooltip": slice_det[u"tooltip"]})
+        slices_js = u"slices = [" + (u",\n" + u" "*4*4).join(slices_js_list) + \
                     u"\n];"
-    slice_fontsize = 14 if len(slice_dets) < 10 else 10
-    label_font_colour = axis_label_font_colour
-    html = []
-    html.append(u"""
-    <script type="text/javascript">
-        makechartRenumber = function(){
-            var sofaHlRenumber = function(colour){
-                var hlColour;
-                switch (colour.toHex()){
-                    %(colour_cases)s
-                    default:
-                        hlColour = hl(colour.toHex());
-                        break;
-                }
-                return new dojox.color.Color(hlColour);
-            }            
-            %(slices_js)s
-            var chartconf = new Array();
-            chartconf["sliceColours"] = %(slice_colours)s;
-            chartconf["sliceFontsize"] = %(slice_fontsize)s;
-            chartconf["sofaHl"] = sofaHlRenumber;
-            chartconf["labelFontColour"] = \"%(label_font_colour)s\";
-            chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
-            chartconf["connectorStyle"] = \"%(connector_style)s\";
-            %(outer_bg)s
-            chartconf["innerBg"] = \"%(inner_bg)s\";
-            chartconf["radius"] = 140;
-            chartconf["labelOffset"] = -30;
-            makePieChart("mychartRenumber", slices, chartconf);
+        slice_fontsize = 14 if len(slice_dets) < 10 else 10
+        label_font_colour = axis_label_font_colour
+        html = []
+        html.append(u"""
+<script type="text/javascript">
+makechartRenumber = function(){
+    var sofaHlRenumber = function(colour){
+        var hlColour;
+        switch (colour.toHex()){
+            %(colour_cases)s
+            default:
+                hlColour = hl(colour.toHex());
+                break;
         }
-    </script>
-    %(titles)s
-    <div id="mychartRenumber" 
-        style="width: %(width)spx; height: %(height)spx;"></div>
-    <br>
-    """ % {u"slice_colours": slice_colours, u"colour_cases": colour_cases, 
-           u"titles": title_dets_html, u"width": width, u"height": 400,
-           u"slices_js": slices_js, u"slice_fontsize": slice_fontsize, 
-           u"label_font_colour": label_font_colour,
-           u"tooltip_border_colour": tooltip_border_colour,
-           u"connector_style": connector_style, u"outer_bg": outer_bg, 
-           u"inner_bg": inner_bg,
-           })
+        return new dojox.color.Color(hlColour);
+    }            
+    %(slices_js)s
+    var chartconf = new Array();
+    chartconf["sliceColours"] = %(slice_colours)s;
+    chartconf["sliceFontsize"] = %(slice_fontsize)s;
+    chartconf["sofaHl"] = sofaHlRenumber;
+    chartconf["labelFontColour"] = \"%(label_font_colour)s\";
+    chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+    chartconf["connectorStyle"] = \"%(connector_style)s\";
+    %(outer_bg)s
+    chartconf["innerBg"] = \"%(inner_bg)s\";
+    chartconf["radius"] = 140;
+    chartconf["labelOffset"] = -30;
+    makePieChart("mychartRenumber", slices, chartconf);
+}
+</script>
+%(titles)s
+<div id="mychartRenumber" 
+    style="width: %(width)spx; height: %(height)spx;"></div>
+<br>
+        """ % {u"slice_colours": slice_colours, u"colour_cases": colour_cases, 
+               u"titles": title_dets_html, u"width": width, u"height": 400,
+               u"slices_js": slices_js, u"slice_fontsize": slice_fontsize, 
+               u"label_font_colour": label_font_colour,
+               u"tooltip_border_colour": tooltip_border_colour,
+               u"connector_style": connector_style, u"outer_bg": outer_bg, 
+               u"inner_bg": inner_bg,
+               })
+    
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

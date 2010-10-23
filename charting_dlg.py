@@ -439,8 +439,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         idx_sel = self.rad_pie_sort_opts.GetSelection()
         self.on_rad_sort_opt(idx_sel)
         
-    def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel, lbla=None, 
-                  lblb=None):
+    def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel, 
+                  inc_drop_select=False, lbla=None, lblb=None):
         btn.SetFocus()
         btn.SetDefault()
         self.btn_to_rollback.SetBitmapLabel(self.bmp_to_rollback_to)
@@ -463,7 +463,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                        self.sorted_var_names1, var_name1)
         show = (self.chart_type in mg.TWO_VAR_CHART_TYPES)
         if show:
-            inc_drop_select = (self.chart_type == mg.LINE_CHART)
             self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, 
                            self.sorted_var_names2, var_name2, inc_drop_select)
         self.drop_var2.Enable(show)
@@ -500,7 +499,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp_sel = self.bmp_btn_pie_chart_sel
         panel = self.panel_pie_chart
         self.rad_pie_sort_opts.SetSelection(mg.SORT_OPTS.index(CUR_SORT_OPT))
-        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
+        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel, 
+                       inc_drop_select=True, lblb=mg.CHART_CHART_BY)
         
     def on_btn_line_chart(self, event):
         self.chart_type = mg.LINE_CHART
@@ -509,7 +509,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp_sel = self.bmp_btn_line_chart_sel
         panel = self.panel_line_chart
         self.chk_line_perc.SetValue(INC_PERC)
-        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
+        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel, 
+                       inc_drop_select=True)
 
     def on_btn_area_chart(self, event):
         self.chart_type = mg.AREA_CHART
@@ -624,6 +625,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         
     def on_rclick_var(self, drop_var, sorted_var_names):
         var_name, choice_item = self.get_var_dets(drop_var, sorted_var_names)
+        if var_name == mg.DROP_SELECT:
+            return
         var_label = lib.get_item_label(self.var_labels, var_name)
         updated = projects.set_var_props(choice_item, var_name, var_label, 
                                          self.var_labels, self.var_notes, 
@@ -742,11 +745,11 @@ chart_output = charting_output.barchart_output(titles, subtitles,
 
 def get_pie_chart_script(css_fil, css_idx):
     script = u"""
-slice_dets = charting_output.get_pie_chart_dets(dbe="%(dbe)s", cur=cur, 
-            tbl=tbl, tbl_filt=tbl_filt, fld_measure=fld_measure,
+pie_slice_dets = charting_output.get_pie_chart_dets(dbe="%(dbe)s", cur=cur, 
+            tbl=tbl, tbl_filt=tbl_filt, fld_measure=fld_measure, fld_gp=fld_gp,
             slice_val_labels=measure_val_labels, sort_opt="%(sort_opt)s")
 chart_output = charting_output.piechart_output(titles, subtitles,
-            slice_dets, css_fil="%(css_fil)s", css_idx=%(css_idx)s,
+            pie_slice_dets, css_fil="%(css_fil)s", css_idx=%(css_idx)s,
             page_break_after=False)
     """ % {u"dbe": dd.dbe, u"sort_opt": CUR_SORT_OPT,  
            u"css_fil": css_fil, u"css_idx": css_idx}

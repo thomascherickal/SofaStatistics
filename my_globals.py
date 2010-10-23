@@ -361,7 +361,7 @@ LINE_CHART = u"Line Chart"
 AREA_CHART = u"Area Chart"
 HISTOGRAM = u"Histogram"
 SCATTERPLOT = u"Scatterplot"
-TWO_VAR_CHART_TYPES = [CLUSTERED_BARCHART, LINE_CHART, SCATTERPLOT]
+TWO_VAR_CHART_TYPES = [PIE_CHART, CLUSTERED_BARCHART, LINE_CHART, SCATTERPLOT]
 CHART_TYPE_TO_MIN_DATA_TYPE = {SIMPLE_BARCHART: VAR_TYPE_CAT,
                                CLUSTERED_BARCHART: VAR_TYPE_CAT,
                                PIE_CHART: VAR_TYPE_CAT,
@@ -397,6 +397,7 @@ DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred',
     'blueviolet', 'azure', 'lightsteelblue', 'oldlace']
 CHART_VALUES = _("Values")
 CHART_BY = _("By")
+CHART_CHART_BY = _("Charts By")
 Y_AXIS_FREQ_LABEL = _("Frequency")
 LABEL_LINE_BREAK_JS = """var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";"""
 # remember defaults //////////
