@@ -934,6 +934,7 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
                                        add_to_report, report_name, html)
     else:
         width = 700
+        left_axis_label_shift = 10
         xfontsize = 10
         xmax = max(sample_a)
         x_title = label_a
@@ -997,6 +998,7 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
                 chartconf["gridlineWidth"] = %(gridline_width)s;
                 chartconf["gridBg"] = \"%(grid_bg)s\";
                 chartconf["minorTicks"] = %(minor_ticks)s;
+                chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
                 chartconf["axisLabelFontColour"] = "%(axis_label_font_colour)s";
                 chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
                 chartconf["xTitle"] = "%(x_title)s";
@@ -1020,6 +1022,7 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
                u"series_label": a_vs_b,
                u"axis_label_font_colour": axis_label_font_colour,
                u"major_gridline_colour": major_gridline_colour,
+               u"left_axis_label_shift": left_axis_label_shift,
                u"gridline_width": gridline_width, 
                u"axis_label_drop": axis_label_drop,
                u"tooltip_border_colour": tooltip_border_colour,

@@ -577,47 +577,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             script_lst.append(get_line_chart_script(inc_perc, css_fil, css_idx, 
                                                     self.chart_type, var_name2))
         elif self.chart_type == mg.AREA_CHART:
-            script_lst.append(u"xaxis_dets, max_label_len, y_vals = "
-                  u"charting_output.get_single_val_dets("
-                  u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, tbl_filt=tbl_filt,"
-                        u" fld_measure=fld_measure, "
-                        u"xaxis_val_labels=measure_val_labels, "
-                        u"sort_opt=mg.SORT_NONE)" % {u"dbe": dd.dbe})
-            script_lst.append(u"series_dets = [{u\"label\": var_label1, "
-                              u"u\"y_vals\": y_vals},]")
-            script_lst.append(u"chart_output = "
-                  u"charting_output.areachart_output(titles, "
-                        u"subtitles,"
-                  u"\n    xaxis_dets, max_label_len, series_dets, inc_perc=%s, "
-                    u" css_fil=\"%s\", css_idx=%s, page_break_after=False)" %
-                      (inc_perc, css_fil, css_idx))
+            script_lst.append(get_area_chart_script(inc_perc, css_fil, css_idx))
         elif self.chart_type == mg.HISTOGRAM:
-            script_lst.append(u"minval, maxval, xaxis_dets, y_vals, bin_labels "
-                  u"= charting_output.get_histo_dets("
-                  u"\n    dbe=\"%(dbe)s\", cur=cur, tbl=tbl, tbl_filt=tbl_filt,"
-                        u" fld_measure=fld_measure)" % 
-                        {u"dbe": dd.dbe})
-            script_lst.append(u"chart_output = "
-                  u"charting_output.histogram_output(titles, "
-                        u"subtitles, var_label1, "
-                  u"\n    minval, maxval, xaxis_dets, y_vals, bin_labels, "
-                    u"css_fil=\"%s\", css_idx=%s, "
-                    u"page_break_after=False)" % (css_fil, css_idx))
-        elif self.chart_type == mg.SCATTERPLOT: # fld_measure and fld_gp
-            # really flds a and b in this context
-            script_lst.append(u"sample_a, sample_b, data_tups = "
-                  u"core_stats.get_paired_data(dbe=u\"%s\", " % dd.dbe +
-                  u"cur=cur, tbl=tbl,"
-                  u"\n    tbl_filt=tbl_filt, fld_a=fld_measure, fld_b=fld_gp, "
-                  u"unique=True)") # only need unique combinations for plotting
-            dot_border = u"True" if self.chk_borders.IsChecked() else u"False"
-            script_lst.append(u"chart_output = "
-                  u"charting_output.scatterplot_output(titles, "
-                        u"subtitles,"
-                  u"\n    sample_a, sample_b, data_tups, var_label1, "
-                  u"var_label2, add_to_report, report_name, %s," % dot_border +
-                  u"\n    css_fil=\"%s\", css_idx=%s, page_break_after=False)" %
-                      (css_fil, css_idx))
+            script_lst.append(get_histogram_script(css_fil, css_idx))
+        elif self.chart_type == mg.SCATTERPLOT:
+            script_lst.append(get_scatterplot_script(css_fil, css_idx, 
+                                       dot_border=self.chk_borders.IsChecked()))
         script_lst.append(u"fil.write(chart_output)")
         return u"\n".join(script_lst)
     
@@ -812,4 +777,45 @@ chart_output = charting_output.linechart_output(titles, subtitles, x_title,
             xaxis_dets, max_label_len, series_dets, inc_perc=%(inc_perc)s, 
             css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"inc_perc": inc_perc, u"css_fil": css_fil, u"css_idx": css_idx}
+    return script
+
+def get_area_chart_script(inc_perc, css_fil, css_idx):
+    script = u"""
+xaxis_dets, max_label_len, y_vals = charting_output.get_single_val_dets(
+            dbe="%(dbe)s", cur=cur, tbl=tbl, tbl_filt=tbl_filt,
+            fld_measure=fld_measure, xaxis_val_labels=measure_val_labels,
+            sort_opt=mg.SORT_NONE)
+series_dets = [{u"label": var_label1, u"y_vals": y_vals},]
+chart_output = charting_output.areachart_output(titles, subtitles,
+            xaxis_dets, max_label_len, series_dets, inc_perc=%(inc_perc)s,
+            css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
+    """ % {u"dbe": dd.dbe, u"inc_perc": inc_perc, u"css_fil": css_fil, 
+           u"css_idx": css_idx}
+    return script
+
+def get_histogram_script(css_fil, css_idx):
+    script = u"""
+minval, maxval, xaxis_dets, y_vals, bin_labels = charting_output.get_histo_dets(
+            dbe="%(dbe)s", cur=cur, tbl=tbl, tbl_filt=tbl_filt,
+            fld_measure=fld_measure)
+chart_output = charting_output.histogram_output(titles, subtitles, var_label1,
+            minval, maxval, xaxis_dets, y_vals, bin_labels,
+            css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
+    """ % {u"dbe": dd.dbe, u"css_fil": css_fil, u"css_idx": css_idx}
+    return script
+
+def get_scatterplot_script(css_fil, css_idx, dot_border):
+    """
+    fld_measure and fld_gp really flds a and b in this context
+    """
+    script = u"""
+sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=u"%(dbe)s",
+            cur=cur, tbl=tbl, tbl_filt=tbl_filt, fld_a=fld_measure, 
+            fld_b=fld_gp, unique=True) # only need unique combos for plotting
+chart_output = charting_output.scatterplot_output(titles, subtitles,
+            sample_a, sample_b, data_tups, var_label1, var_label2, 
+            add_to_report, report_name, %(dot_border)s, css_fil="%(css_fil)s", 
+            css_idx=%(css_idx)s, page_break_after=False)
+    """ % {u"dbe": dd.dbe, u"css_fil": css_fil, u"css_idx": css_idx,
+           u"dot_border": dot_border}
     return script
