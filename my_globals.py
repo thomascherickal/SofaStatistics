@@ -362,7 +362,7 @@ AREA_CHART = u"Area Chart"
 HISTOGRAM = u"Histogram"
 SCATTERPLOT = u"Scatterplot"
 TWO_VAR_CHART_TYPES = [SIMPLE_BARCHART, PIE_CHART, CLUSTERED_BARCHART, 
-                       LINE_CHART, SCATTERPLOT]
+                       LINE_CHART, AREA_CHART, SCATTERPLOT]
 CHART_TYPE_TO_MIN_DATA_TYPE = {SIMPLE_BARCHART: VAR_TYPE_CAT,
                                CLUSTERED_BARCHART: VAR_TYPE_CAT,
                                PIE_CHART: VAR_TYPE_CAT,

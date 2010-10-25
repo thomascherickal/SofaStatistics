@@ -19,6 +19,7 @@ import wx
 
 # only import my_globals from local modules
 import my_globals as mg
+import my_exceptions
 
 def get_unique_db_name_key(db_names, db_name):
     "Might have different paths but same name."

@@ -799,31 +799,31 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
     html.append(u"""
     <script type="text/javascript">
 
-        makechartRenumber = function(){
+        makechartRenumber0 = function(){
             %(series_js)s
             var chartconf = new Array();
             chartconf["xaxisLabels"] = %(xaxis_labels)s;
             chartconf["xfontsize"] = %(xfontsize)s;
             chartconf["gridlineWidth"] = %(gridline_width)s;
-            chartconf["gridBg"] = \"%(grid_bg)s\";
+            chartconf["gridBg"] = "%(grid_bg)s";
             chartconf["minorTicks"] = %(minor_ticks)s;
             chartconf["microTicks"] = %(micro_ticks)s;
-            chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
-            chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
-            chartconf["xTitle"] = \"%(x_title)s\";
+            chartconf["axisLabelFontColour"] = "%(axis_label_font_colour)s";
+            chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
+            chartconf["xTitle"] = "%(x_title)s";
             chartconf["axisLabelDrop"] = %(axis_label_drop)s;
             chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
-            chartconf["yTitle"] = \"%(y_title)s\";
-            chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+            chartconf["yTitle"] = "%(y_title)s";
+            chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
             chartconf["incPerc"] = %(inc_perc_js)s;
-            chartconf["connectorStyle"] = \"%(connector_style)s\";
-            makeLineChart("mychartRenumber", series, chartconf);
+            chartconf["connectorStyle"] = "%(connector_style)s";
+            makeLineChart("mychartRenumber0", series, chartconf);
         }
     </script>
     %(titles)s
-    <div id="mychartRenumber" style="width: %(width)spx; 
+    <div id="mychartRenumber0" style="width: %(width)spx; 
         height: %(height)spx;"></div>
-    <div id="legendMychartRenumber"></div>
+    <div id="legendMychartRenumber0"></div>
     <br>
     """ % {u"titles": title_dets_html, 
            u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
@@ -843,31 +843,22 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
     
-def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets, 
-                     inc_perc, css_fil, css_idx, page_break_after):
+def areachart_output(titles, subtitles, chart_dets, inc_perc, css_fil, css_idx, 
+                     page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
-    series_labels -- e.g. ["Age Group", ] if simple bar chart,
-        e.g. ["Male", "Female"] if clustered bar chart.
-    var_numeric -- needs to be quoted or not.
-    xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
-                   (5, "65+")]
     css_idx -- css index so can apply    
     """
     debug = False
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    xaxis_labels = u"[" + \
-        u",\n            ".join([u"{value: %s, text: %s}" % (i, x[2]) 
-                                    for i,x in enumerate(xaxis_dets,1)]) + u"]"
-    inc_perc_js = u"true" if inc_perc else u"false"
-    (width, xfontsize, minor_ticks, 
-                micro_ticks) = get_linechart_sizings(xaxis_dets, max_label_len, 
-                                                     series_dets)
+    multichart = (len(chart_dets) > 1)
     html = []
-    left_axis_label_shift = 20 if width > 1200 else 0 # gets squeezed 
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    html.append(title_dets_html)
+    inc_perc_js = u"true" if inc_perc else u"false"
+    height = 250 if multichart else 300
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 
@@ -881,68 +872,90 @@ def areachart_output(titles, subtitles, xaxis_dets, max_label_len, series_dets,
     axis_label_font_colour = axis_label_font_colour \
                             if axis_label_font_colour != u"white" else u"black"
     colour_cases = setup_highlights(colour_mappings, single_colour=False, 
-                                    override_first_highlight=True)
-    # build js for every series
-    series_js_list = []
-    series_names_list = []
-    if debug: print(series_dets)
-    for i, series_det in enumerate(series_dets):
-        series_names_list.append(u"series%s" % i)
-        series_js_list.append(u"var series%s = new Array();" % i)
-        series_js_list.append(u"            series%s[\"seriesLabel\"] = \"%s\";"
-                              % (i, series_det[u"label"]))
-        series_js_list.append(u"            series%s[\"yVals\"] = %s;" % 
-                              (i, series_det[u"y_vals"]))
-        try:
-            stroke = colour_mappings[i][0]
-            fill = colour_mappings[i][1]
-        except IndexError, e:
-            stroke = mg.DOJO_COLOURS[i]
-        series_js_list.append(u"            series%s[\"style\"] = "
-            u"{stroke: {color: \"%s\", width: \"6px\"}, fill: \"%s\"};" % 
-            (i, stroke, fill))
-        series_js_list.append(u"")
-    series_js = u"\n            ".join(series_js_list)
-    series_js += u"\n            var series = new Array(%s);" % \
+                                    override_first_highlight=True)    
+    for chart_idx, areachart_det in enumerate(chart_dets):
+        xaxis_dets = areachart_det[mg.CHART_XAXIS_DETS]
+        series_dets = areachart_det[mg.CHART_SERIES_DETS]
+        max_label_len = areachart_det[mg.CHART_MAX_LABEL_LEN]
+        indiv_area_title = "<p><b>%s</b></p>" % \
+                areachart_det[mg.CHART_CHART_BY_LABEL] if multichart else u""
+        xaxis_labels = u"[" + \
+            u",\n            ".join([u"{value: %s, text: %s}" % (i, x[2]) 
+                                    for i,x in enumerate(xaxis_dets,1)]) + u"]"
+        (width, xfontsize, minor_ticks, 
+                micro_ticks) = get_linechart_sizings(xaxis_dets, max_label_len, 
+                                                     series_dets)
+        left_axis_label_shift = 20 if width > 1200 else 0 # gets squeezed 
+        if multichart:
+            width = width*0.8
+            xfontsize = xfontsize*0.8
+            left_axis_label_shift = left_axis_label_shift + 20
+        # build js for every series
+        series_js_list = []
+        series_names_list = []
+        if debug: print(series_dets)
+        for i, series_det in enumerate(series_dets):
+            series_names_list.append(u"series%s" % i)
+            series_js_list.append(u"var series%s = new Array();" % i)
+            series_js_list.append(u"            "
+                                  u"series%s[\"seriesLabel\"] = \"%s\";"
+                                  % (i, series_det[u"label"]))
+            series_js_list.append(u"            series%s[\"yVals\"] = %s;" % 
+                                  (i, series_det[u"y_vals"]))
+            try:
+                stroke = colour_mappings[i][0]
+                fill = colour_mappings[i][1]
+            except IndexError, e:
+                stroke = mg.DOJO_COLOURS[i]
+            series_js_list.append(u"            series%s[\"style\"] = "
+                u"{stroke: {color: \"%s\", width: \"6px\"}, fill: \"%s\"};" % 
+                (i, stroke, fill))
+            series_js_list.append(u"")
+        series_js = u"\n            ".join(series_js_list)
+        series_js += u"\n            var series = new Array(%s);" % \
                                                 u", ".join(series_names_list)
-    series_js = series_js.lstrip()
-    html.append(u"""
-    <script type="text/javascript">
-    
-        makechartRenumber = function(){
-            %(series_js)s
-            var chartconf = new Array();
-            chartconf["xaxisLabels"] = %(xaxis_labels)s;
-            chartconf["xfontsize"] = %(xfontsize)s;
-            chartconf["gridlineWidth"] = %(gridline_width)s;
-            chartconf["gridBg"] = \"%(grid_bg)s\";
-            chartconf["minorTicks"] = %(minor_ticks)s;
-            chartconf["microTicks"] = %(micro_ticks)s;
-            chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
-            chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
-            chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
-            chartconf["yTitle"] = \"%(y_title)s\";
-            chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
-            chartconf["incPerc"] = %(inc_perc_js)s;
-            chartconf["connectorStyle"] = \"%(connector_style)s\";
-            makeAreaChart("mychartRenumber", series, chartconf);
-        }
-    </script>
-    %(titles)s
-    <div id="mychartRenumber" style="width: %(width)spx; height: 300px;"></div>
-    <div id="legendMychartRenumber"></div>
-    <br>
-    """ % {u"titles": title_dets_html,
-           u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
-           u"width": width, u"xfontsize": xfontsize, 
-           u"axis_label_font_colour": axis_label_font_colour,
-           u"major_gridline_colour": major_gridline_colour,
-           u"left_axis_label_shift": left_axis_label_shift,
-           u"gridline_width": gridline_width, u"y_title": mg.Y_AXIS_FREQ_LABEL,
-           u"tooltip_border_colour": tooltip_border_colour,
-           u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
-           u"grid_bg": grid_bg, 
-           u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks})
+        series_js = series_js.lstrip()
+        html.append(u"""
+<script type="text/javascript">
+makechartRenumber%(chart_idx)s = function(){
+    %(series_js)s
+    var chartconf = new Array();
+    chartconf["xaxisLabels"] = %(xaxis_labels)s;
+    chartconf["xfontsize"] = %(xfontsize)s;
+    chartconf["gridlineWidth"] = %(gridline_width)s;
+    chartconf["gridBg"] = "%(grid_bg)s";
+    chartconf["minorTicks"] = %(minor_ticks)s;
+    chartconf["microTicks"] = %(micro_ticks)s;
+    chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
+    chartconf["axisLabelFontColour"] = "%(axis_label_font_colour)s";
+    chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
+    chartconf["yTitle"] = "%(y_title)s";
+    chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
+    chartconf["incPerc"] = %(inc_perc_js)s;
+    chartconf["connectorStyle"] = "%(connector_style)s";
+    makeAreaChart("mychartRenumber%(chart_idx)s", series, chartconf);
+}
+</script>
+
+<div style="float: left; margin-right: 10px;">
+%(indiv_area_title)s
+<div id="mychartRenumber%(chart_idx)s" 
+    style="width: %(width)spx; height: %(height)spx;">
+</div>
+</div>
+        """ % {u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
+               u"indiv_area_title": indiv_area_title,
+               u"width": width, u"height": height, u"xfontsize": xfontsize, 
+               u"axis_label_font_colour": axis_label_font_colour,
+               u"major_gridline_colour": major_gridline_colour,
+               u"left_axis_label_shift": left_axis_label_shift,
+               u"gridline_width": gridline_width, 
+               u"y_title": mg.Y_AXIS_FREQ_LABEL,
+               u"tooltip_border_colour": tooltip_border_colour,
+               u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
+               u"grid_bg": grid_bg, u"chart_idx": chart_idx,
+               u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks})
+    html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

@@ -520,7 +520,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp_sel = self.bmp_btn_area_chart_sel
         panel = self.panel_area_chart
         self.chk_area_perc.SetValue(INC_PERC)
-        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
+        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel,
+                       inc_drop_select=True, lblb=mg.CHART_CHART_BY)
 
     def on_btn_histogram(self, event):
         self.chart_type = mg.HISTOGRAM
@@ -778,20 +779,24 @@ def get_line_chart_script(inc_perc, css_fil, css_idx, chart_type, var_name2):
     single_line = (var_name2 == mg.DROP_SELECT)
     if single_line:
         script = u"""
-xaxis_dets, max_label_len, y_vals = charting_output.get_single_val_dets(
+single_linechart_dets = charting_output.get_single_val_dets(
             dbe="%(dbe)s", cur=cur, tbl=tbl, tbl_filt=tbl_filt, 
-            fld_measure=fld_measure, xaxis_val_labels=measure_val_labels,
+            fld_gp=fld_gp, fld_gp_name=var_label2, fld_gp_lbls=fld_gp_lbls, 
+            fld_measure=fld_measure, fld_measure_lbls=fld_measure_lbls, 
             sort_opt=mg.SORT_NONE)
-series_dets = [{u"label": var_label1, u"y_vals": y_vals},]
+chart_by_label = single_linechart_dets[0][mg.CHART_CHART_BY_LABEL]
+xaxis_dets = single_linechart_dets[0][mg.CHART_MEASURE_DETS]
+y_vals = single_linechart_dets[0][mg.CHART_Y_VALS]
+max_label_len = single_linechart_dets[0][mg.CHART_MAX_LABEL_LEN]
+series_dets = [{u"label": var_label1, "y_vals": y_vals},]
 x_title = u""
         """ % {u"dbe": dd.dbe}
     else:
         script = u"""
 xaxis_dets, max_label_len, series_dets = charting_output.get_grouped_val_dets(
-            chart_type="%(chart_type)s", dbe="%(dbe)s", cur=cur, tbl=tbl,
-            tbl_filt=tbl_filt, fld_measure=fld_measure, fld_gp=fld_gp,
-            xaxis_val_labels=measure_val_labels, 
-            group_by_val_labels=group_by_val_labels)
+            chart_type="%(chart_type)s", dbe="%(dbe)s", cur=cur, tbl=tbl, 
+            tbl_filt=tbl_filt, fld_gp=fld_gp, fld_gp_lbls=fld_gp_lbls, 
+            fld_measure=fld_measure, fld_measure_lbls=fld_measure_lbls)
 x_title = var_label1
         """ % {u"chart_type": chart_type, u"dbe": dd.dbe}
     script += u"""
@@ -803,13 +808,24 @@ chart_output = charting_output.linechart_output(titles, subtitles, x_title,
 
 def get_area_chart_script(inc_perc, css_fil, css_idx):
     script = u"""
-xaxis_dets, max_label_len, y_vals = charting_output.get_single_val_dets(
-            dbe="%(dbe)s", cur=cur, tbl=tbl, tbl_filt=tbl_filt,
-            fld_measure=fld_measure, xaxis_val_labels=measure_val_labels,
+areachart_dets = charting_output.get_single_val_dets(
+            dbe="%(dbe)s", cur=cur, tbl=tbl, tbl_filt=tbl_filt, 
+            fld_gp=fld_gp, fld_gp_name=var_label2, fld_gp_lbls=fld_gp_lbls, 
+            fld_measure=fld_measure, fld_measure_lbls=fld_measure_lbls, 
             sort_opt=mg.SORT_NONE)
-series_dets = [{u"label": var_label1, u"y_vals": y_vals},]
+chart_dets = []
+for areachart_det in areachart_dets:
+    chart_by_label = areachart_det[mg.CHART_CHART_BY_LABEL]
+    xaxis_dets = areachart_det[mg.CHART_MEASURE_DETS]
+    y_vals = areachart_det[mg.CHART_Y_VALS]
+    series_dets = [{u"label": var_label1, "y_vals": y_vals},]
+    max_label_len = areachart_det[mg.CHART_MAX_LABEL_LEN]
+    chart_dets.append({mg.CHART_CHART_BY_LABEL: chart_by_label,
+                       mg.CHART_XAXIS_DETS: xaxis_dets, 
+                       mg.CHART_SERIES_DETS: series_dets,
+                       mg.CHART_MAX_LABEL_LEN: max_label_len})
 chart_output = charting_output.areachart_output(titles, subtitles,
-            xaxis_dets, max_label_len, series_dets, inc_perc=%(inc_perc)s,
+            chart_dets, inc_perc=%(inc_perc)s,
             css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"inc_perc": inc_perc, u"css_fil": css_fil, 
            u"css_idx": css_idx}
