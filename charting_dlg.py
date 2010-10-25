@@ -80,7 +80,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # var 2
         self.lbl_var2 = wx.StaticText(self.panel_top, -1, u"%s:" % mg.CHART_BY)
         self.lbl_var2.SetFont(self.LABEL_FONT)
-        self.lbl_var2.Enable(False)
+        self.lbl_var2.Enable(True)
         self.drop_var2 = wx.Choice(self.panel_top, -1, choices=[], 
                                    size=(250,-1))
         self.drop_var2.Bind(wx.EVT_CHOICE, self.on_var2_sel)
@@ -88,7 +88,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.drop_var2.SetToolTipString(variables_rc_msg)
         self.sorted_var_names2 = []
         self.drop_var2.SetItems([])
-        self.drop_var2.Enable(False)
+        self.drop_var2.Enable(True)
         self.sorted_var_names2 = []
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
                        var_name=None, inc_drop_select=True)
@@ -481,7 +481,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         panel = self.panel_bar_chart
         self.rad_bar_sort_opts.SetSelection(mg.SORT_OPTS.index(CUR_SORT_OPT))
         self.chk_simple_bar_perc.SetValue(INC_PERC)
-        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
+        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel,
+                       inc_drop_select=True, lblb=mg.CHART_CHART_BY)
 
     def on_btn_clustered_bar_chart(self, event):
         self.chart_type = mg.CLUSTERED_BARCHART
@@ -719,15 +720,25 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
 
 def get_simple_barchart_script(inc_perc, css_fil, css_idx):
     script = u"""
-xaxis_dets, max_label_len, y_vals = charting_output.get_single_val_dets(
-                dbe="%(dbe)s", cur=cur, tbl=tbl, tbl_filt=tbl_filt, 
-                fld_measure=fld_measure, xaxis_val_labels=measure_val_labels, 
-                sort_opt="%(sort_opt)s")
-series_dets = [{u"label": var_label1, "y_vals": y_vals},]
+simple_barchart_dets = charting_output.get_single_val_dets(
+            dbe="%(dbe)s", cur=cur, tbl=tbl, tbl_filt=tbl_filt, 
+            fld_gp=fld_gp, fld_gp_name=var_label2, fld_gp_lbls=fld_gp_lbls, 
+            fld_measure=fld_measure, fld_measure_lbls=fld_measure_lbls, 
+            sort_opt="%(sort_opt)s")
+barchart_dets = []
+for simple_barchart_det in simple_barchart_dets:
+    chart_by_label = simple_barchart_det[mg.CHART_CHART_BY_LABEL]
+    xaxis_dets = simple_barchart_det[mg.CHART_MEASURE_DETS]
+    y_vals = simple_barchart_det[mg.CHART_Y_VALS]
+    series_dets = [{u"label": var_label1, "y_vals": y_vals},]
+    barchart_dets.append({mg.CHART_CHART_BY_LABEL: chart_by_label,
+                          mg.CHART_XAXIS_DETS: xaxis_dets, 
+                          mg.CHART_SERIES_DETS: series_dets})
 x_title = u""
 chart_output = charting_output.barchart_output(titles, subtitles,
-            x_title, xaxis_dets, series_dets, inc_perc=%(inc_perc)s,
-            css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
+            x_title, barchart_dets, inc_perc=%(inc_perc)s, 
+            css_fil="%(css_fil)s", css_idx=%(css_idx)s, 
+            page_break_after=False)
     """ % {u"dbe": dd.dbe, u"sort_opt": CUR_SORT_OPT, u"inc_perc": inc_perc, 
            u"css_fil": css_fil, u"css_idx": css_idx}
     return script
@@ -736,11 +747,14 @@ def get_clustered_barchart_script(inc_perc, css_fil, css_idx, chart_type):
     script = u"""
 xaxis_dets, max_label_len, series_dets = charting_output.get_grouped_val_dets(
             chart_type="%(chart_type)s", dbe="%(dbe)s", cur=cur, tbl=tbl, 
-            tbl_filt=tbl_filt, fld_measure=fld_measure, fld_gp=fld_gp, 
-            xaxis_val_labels=measure_val_labels, 
-            group_by_val_labels=group_by_val_labels) 
+            tbl_filt=tbl_filt, fld_gp=fld_gp, fld_gp_lbls=fld_gp_lbls, 
+            fld_measure=fld_measure, fld_measure_lbls=fld_measure_lbls)
+chart_by_label = mg.CHART_CHART_BY_LABEL_ALL
+barchart_dets = [{mg.CHART_CHART_BY_LABEL: chart_by_label,
+                  mg.CHART_XAXIS_DETS: xaxis_dets, 
+                  mg.CHART_SERIES_DETS: series_dets}]
 chart_output = charting_output.barchart_output(titles, subtitles,
-            var_label1, xaxis_dets, series_dets, inc_perc=%(inc_perc)s, 
+            var_label1, barchart_dets, inc_perc=%(inc_perc)s, 
             css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)    
     """ % {u"dbe": dd.dbe, u"chart_type": chart_type, u"inc_perc": inc_perc, 
            u"css_fil": css_fil, u"css_idx": css_idx}

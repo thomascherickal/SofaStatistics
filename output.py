@@ -840,7 +840,9 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     except my_exceptions.TooManyValsInChartSeries, e:
         wx.MessageBox(lib.ue(e))
         return False, u""
-        
+    except my_exceptions.TooManyChartsInSeries, e:
+        wx.MessageBox(lib.ue(e))
+        return False, u""
     except Exception, e:
         err_content = _(u"<h1>Ooops!</h1>\n<p>Unable to run script to "
                         u"generate report. Caused by error: %s</p>") % lib.ue(e)

@@ -69,6 +69,11 @@ class TooManyValsInChartSeries(Exception):
         Exception.__init__(self, u"Too many values to display for %s. " 
                            % fld_measure + u"More than %s." % max_items)
 
+class TooManyChartsInSeries(Exception):
+    def __init__(self, fld_gp_name, max_items):
+        Exception.__init__(self, u"Too many charts to display for \"%s\".  " 
+                           % fld_gp_name + u"More than %s." % max_items)
+
 class ExcessReportTableCellsException(Exception):
     def __init__(self, max):
         Exception.__init__(self, _("Only allowed %s cells in report table" % 

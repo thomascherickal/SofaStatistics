@@ -94,6 +94,9 @@ def get_split_results(fld_gp_name, fld_gp_labels, raw_results):
             prev_fld_gp_val = fld_gp_val
         else:
             val_freqs_lst.append((fld_measure, freq))
+        if len(split_raw_results) > mg.CHART_MAX_CHARTS_IN_SET:
+            raise my_exceptions.TooManyChartsInSeries(fld_gp_name, 
+                                           max_items=mg.CHART_MAX_CHARTS_IN_SET)
     # save prev dic across
     split_raw_results.append(fld_gp_dic)
     return split_raw_results
@@ -125,21 +128,18 @@ def get_indiv_basic_dets(indiv_label, indiv_raw_results, measure_val_labels,
             mg.CHART_MAX_LABEL_LEN: max_label_len, 
             mg.CHART_Y_VALS: y_vals}
 
-def get_single_val_dets(dbe, cur, tbl, tbl_filt, fld_measure, xaxis_val_labels,
-                        sort_opt):
+def get_single_val_dets(dbe, cur, tbl, tbl_filt, 
+                        fld_gp, fld_gp_name, fld_gp_lbls, 
+                        fld_measure, fld_measure_lbls, sort_opt):
     """
     Simple bar charts and single line line charts.
     """
-    
+    return get_basic_dets(dbe, cur, tbl, tbl_filt, 
+                          fld_gp, fld_gp_name, fld_gp_lbls, 
+                          fld_measure, fld_measure_lbls, sort_opt)
 
-    # add fld_gp
-    
-    
-    return get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
-                          xaxis_val_labels, fld_gp, sort_opt)
-
-def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt, fld_measure, 
-                         fld_gp, xaxis_val_labels, group_by_val_labels):
+def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
+                         fld_gp, fld_gp_lbls, fld_measure, fld_measure_lbls):
     """
     e.g. clustered bar charts and multiple line line charts.
     Get labels and frequencies for each series, plus labels for x axis.
@@ -214,13 +214,13 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt, fld_measure,
         tot_items += len(freqs)
         if tot_items > MAX_ITEMS:
             raise my_exceptions.TooManyValsInChartSeries(fld_measure, MAX_ITEMS)
-        gp_val_label = group_by_val_labels.get(gp_val, unicode(gp_val))
+        gp_val_label = fld_gp_lbls.get(gp_val, unicode(gp_val))
         series_dic = {u"label": gp_val_label, u"y_vals": freqs}
         series_dets.append(series_dic)
     xaxis_dets = []
     max_label_len = 0
     for val in oth_vals:
-        val_label = xaxis_val_labels.get(val, unicode(val))
+        val_label = fld_measure_lbls.get(val, unicode(val))
         len_y_val = len(val_label)
         if len_y_val > max_label_len:
             max_label_len = len_y_val
@@ -497,8 +497,8 @@ def get_left_axis_shift(xaxis_dets):
     if debug: print(left_axis_label_shift)
     return left_axis_label_shift
 
-def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets, 
-                    inc_perc, css_idx, css_fil, page_break_after):
+def barchart_output(titles, subtitles, x_title, barchart_dets, inc_perc, 
+                    css_idx, css_fil, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -511,16 +511,16 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
     """
     debug = False
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                      css_idx)
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    label_dets = get_label_dets(xaxis_dets, series_dets)
-    xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
-    axis_label_drop = 30 if x_title else 10
-    height = 310 + axis_label_drop # compensate for loss of bar display height
-    (width, xgap, xfontsize, minor_ticks, 
-          left_axis_label_shift) = get_barchart_sizings(xaxis_dets, series_dets)
-    inc_perc_js = u"true" if inc_perc else u"false"
+                                                          css_idx)
     html = []
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    html.append(title_dets_html)
+    multichart = (len(barchart_dets) > 1)
+    axis_label_drop = 30 if x_title else 10
+    if multichart:
+        axis_label_drop = axis_label_drop*0.8
+    height = 310 + axis_label_drop # compensate for loss of bar display height
+    inc_perc_js = u"true" if inc_perc else u"false"
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 
@@ -532,38 +532,53 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
             colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     outer_bg = u"" if outer_bg == u"" \
         else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
-    single_colour = (len(series_dets) == 1)
-    override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
-                                and single_colour)
-    colour_cases = setup_highlights(colour_mappings, single_colour, 
-                                    override_first_highlight)
-    # build js for every series
-    series_js_list = []
-    series_names_list = []
-    if debug: print(series_dets)
-    for i, series_det in enumerate(series_dets):
-        series_names_list.append(u"series%s" % i)
-        series_js_list.append(u"var series%s = new Array();" % i)
-        series_js_list.append(u"            series%s[\"seriesLabel\"] = \"%s\";"
-                              % (i, series_det[u"label"]))
-        series_js_list.append(u"            series%s[\"yVals\"] = %s;" % 
-                              (i, series_det[u"y_vals"]))
-        try:
-            fill = colour_mappings[i][0]
-        except IndexError, e:
-            fill = mg.DOJO_COLOURS[i]
-        series_js_list.append(u"            series%s[\"style\"] = "
-            u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\"};"
-            % (i, stroke_width, fill))
-        series_js_list.append(u"")
-    series_js = u"\n            ".join(series_js_list)
-    series_js += u"\n            var series = new Array(%s);" % \
+    for chart_idx, barchart_det in enumerate(barchart_dets):
+        xaxis_dets = barchart_det[mg.CHART_XAXIS_DETS]
+        series_dets = barchart_det[mg.CHART_SERIES_DETS]
+        indiv_bar_title = "<p><b>%s</b></p>" % \
+                    barchart_det[mg.CHART_CHART_BY_LABEL] if multichart else u""
+        label_dets = get_label_dets(xaxis_dets, series_dets)
+        single_colour = (len(series_dets) == 1)
+        override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
+                                    and single_colour)
+        colour_cases = setup_highlights(colour_mappings, single_colour, 
+                                        override_first_highlight)
+        xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
+        (width, xgap, xfontsize, minor_ticks, 
+              left_axis_label_shift) = get_barchart_sizings(xaxis_dets, 
+                                                            series_dets)
+        if multichart:
+            width = width*0.8
+            xgap = xgap*0.8
+            xfontsize = xfontsize*0.8
+            left_axis_label_shift = left_axis_label_shift + 20
+        # build js for every series
+        series_js_list = []
+        series_names_list = []
+        if debug: print(series_dets)
+        for i, series_det in enumerate(series_dets):
+            series_names_list.append(u"series%s" % i)
+            series_js_list.append(u"var series%s = new Array();" % i)
+            series_js_list.append(u"            series%s[\"seriesLabel\"] = \"%s\";"
+                                  % (i, series_det[u"label"]))
+            series_js_list.append(u"            series%s[\"yVals\"] = %s;" % 
+                                  (i, series_det[u"y_vals"]))
+            try:
+                fill = colour_mappings[i][0]
+            except IndexError, e:
+                fill = mg.DOJO_COLOURS[i]
+            series_js_list.append(u"            series%s[\"style\"] = "
+                u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\"};"
+                % (i, stroke_width, fill))
+            series_js_list.append(u"")
+        series_js = u"\n            ".join(series_js_list)
+        series_js += u"\n            var series = new Array(%s);" % \
                                                 u", ".join(series_names_list)
-    series_js = series_js.lstrip()
-    html.append(u"""
+        series_js = series_js.lstrip()
+        html.append(u"""
     <script type="text/javascript">
-
-        var sofaHlRenumber = function(colour){
+    
+        var sofaHlRenumber%(chart_idx)s = function(colour){
             var hlColour;
             switch (colour.toHex()){
                 %(colour_cases)s
@@ -572,15 +587,15 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
                     break;
             }
             return new dojox.color.Color(hlColour);
-        }    
+        }
     
-        makechartRenumber = function(){
+        makechartRenumber%(chart_idx)s = function(){
             %(series_js)s
             var chartconf = new Array();
             chartconf["xaxisLabels"] = %(xaxis_labels)s;
             chartconf["xgap"] = %(xgap)s;
             chartconf["xfontsize"] = %(xfontsize)s;
-            chartconf["sofaHl"] = sofaHlRenumber;
+            chartconf["sofaHl"] = sofaHlRenumber%(chart_idx)s;
             chartconf["gridlineWidth"] = %(gridline_width)s;
             chartconf["gridBg"] = \"%(grid_bg)s\";
             chartconf["minorTicks"] = %(minor_ticks)s;
@@ -594,28 +609,32 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
             chartconf["incPerc"] = %(inc_perc_js)s;
             chartconf["connectorStyle"] = \"%(connector_style)s\";
             %(outer_bg)s
-            makeBarChart("mychartRenumber", series, chartconf);
+            makeBarChart("mychartRenumber%(chart_idx)s", series, chartconf);
         }
     </script>
     %(titles)s
-    <div id="mychartRenumber" style="width: %(width)spx; 
-        height: %(height)spx;"></div>
-    <div id="legendMychartRenumber"></div>
-    <br>
-    """ % {u"colour_cases": colour_cases, u"titles": title_dets_html, 
-           u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
-           u"width": width, u"height": height, u"xgap": xgap, 
-           u"xfontsize": xfontsize, 
-           u"axis_label_font_colour": axis_label_font_colour,
-           u"major_gridline_colour": major_gridline_colour,
-           u"gridline_width": gridline_width, 
-           u"axis_label_drop": axis_label_drop,
-           u"left_axis_label_shift": left_axis_label_shift,
-           u"x_title": x_title, u"y_title": mg.Y_AXIS_FREQ_LABEL,
-           u"tooltip_border_colour": tooltip_border_colour, 
-           u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
-           u"outer_bg": outer_bg, 
-           u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
+    <div style="float: left; margin-right: 10px;">
+    %(indiv_bar_title)s
+    <div id="mychartRenumber%(chart_idx)s" 
+        style="width: %(width)spx; height: %(height)spx;">
+    </div>
+    <div id="legendMychartRenumber%(chart_idx)s"></div>
+    </div>
+        """ % {u"colour_cases": colour_cases, u"titles": title_dets_html, 
+               u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
+               u"width": width, u"height": height, u"xgap": xgap, 
+               u"xfontsize": xfontsize, u"indiv_bar_title": indiv_bar_title,
+               u"axis_label_font_colour": axis_label_font_colour,
+               u"major_gridline_colour": major_gridline_colour,
+               u"gridline_width": gridline_width, 
+               u"axis_label_drop": axis_label_drop,
+               u"left_axis_label_shift": left_axis_label_shift,
+               u"x_title": x_title, u"y_title": mg.Y_AXIS_FREQ_LABEL,
+               u"tooltip_border_colour": tooltip_border_colour, 
+               u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
+               u"outer_bg": outer_bg, u"chart_idx": chart_idx,
+               u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
+    html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -627,15 +646,16 @@ def piechart_output(titles, subtitles, pie_chart_dets, css_fil, css_idx,
     if debug: print(pie_chart_dets)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    multipies = (len(pie_chart_dets) > 1)
+    multichart = (len(pie_chart_dets) > 1)
     html = []
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     width = 500 if mg.PLATFORM == mg.WINDOWS else 450
-    width = width*0.8 if multipies else width
-    height = 350 if multipies else 400
-    radius = 120 if multipies else 140
-    label_offset = -20 if multipies else -30
+    if multichart:
+        width = width*0.8
+    height = 350 if multichart else 400
+    radius = 120 if multichart else 140
+    label_offset = -20 if multichart else -30
     (outer_bg, inner_bg, axis_label_font_colour, 
          major_gridline_colour, gridline_width, stroke_width, 
          tooltip_border_colour, 
@@ -648,11 +668,12 @@ def piechart_output(titles, subtitles, pie_chart_dets, css_fil, css_idx,
     colours.extend(mg.DOJO_COLOURS)
     slice_colours = colours[:30]
     label_font_colour = axis_label_font_colour
-    for i, pie_chart_det in enumerate(pie_chart_dets):
+    for chart_idx, pie_chart_det in enumerate(pie_chart_dets):
         slices_js_list = []
         slice_dets = pie_chart_det[mg.CHART_SLICE_DETS]
         slice_fontsize = 14 if len(slice_dets) < 10 else 10
-        slice_fontsize = slice_fontsize*0.8 if multipies else slice_fontsize
+        if multichart:
+            slice_fontsize = slice_fontsize*0.8
         for slice_det in slice_dets:
             slices_js_list.append(u"{\"y\": %(y)s, \"text\": %(text)s, " 
                     u"\"tooltip\": \"%(tooltip)s\"}" % {u"y": slice_det[u"y"], 
@@ -660,12 +681,12 @@ def piechart_output(titles, subtitles, pie_chart_dets, css_fil, css_idx,
                     u"tooltip": slice_det[u"tooltip"]})
         slices_js = u"slices = [" + (u",\n" + u" "*4*4).join(slices_js_list) + \
                     u"\n];"
-        indiv_pie_title = "<b>%s</b>" % pie_chart_det[mg.CHART_CHART_BY_LABEL] \
-            if multipies else u"<b>Test title</b>"
+        indiv_pie_title = "<p><b>%s</b></p>" % \
+                   pie_chart_det[mg.CHART_CHART_BY_LABEL] if multichart else u""
         html.append(u"""
 <script type="text/javascript">
-makechartRenumber%(i)s = function(){
-    var sofaHlRenumber%(i)s = function(colour){
+makechartRenumber%(chart_idx)s = function(){
+    var sofaHlRenumber%(chart_idx)s = function(colour){
         var hlColour;
         switch (colour.toHex()){
             %(colour_cases)s
@@ -679,7 +700,7 @@ makechartRenumber%(i)s = function(){
     var chartconf = new Array();
     chartconf["sliceColours"] = %(slice_colours)s;
     chartconf["sliceFontsize"] = %(slice_fontsize)s;
-    chartconf["sofaHl"] = sofaHlRenumber%(i)s;
+    chartconf["sofaHl"] = sofaHlRenumber%(chart_idx)s;
     chartconf["labelFontColour"] = "%(label_font_colour)s";
     chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
     chartconf["connectorStyle"] = "%(connector_style)s";
@@ -687,12 +708,12 @@ makechartRenumber%(i)s = function(){
     chartconf["innerBg"] = "%(inner_bg)s";
     chartconf["radius"] = %(radius)s;
     chartconf["labelOffset"] = %(label_offset)s;
-    makePieChart("mychartRenumber%(i)s", slices, chartconf);
+    makePieChart("mychartRenumber%(chart_idx)s", slices, chartconf);
 }
 </script>
 <div style="float: left; margin-right: 10px;">
-<p>%(indiv_pie_title)s</p>
-<div id="mychartRenumber%(i)s" 
+%(indiv_pie_title)s
+<div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx;">
 </div>
 </div>
@@ -704,7 +725,7 @@ makechartRenumber%(i)s = function(){
                u"label_font_colour": label_font_colour,
                u"tooltip_border_colour": tooltip_border_colour,
                u"connector_style": connector_style, u"outer_bg": outer_bg, 
-               u"inner_bg": inner_bg, u"i": i,
+               u"inner_bg": inner_bg, u"chart_idx": chart_idx,
                })
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:

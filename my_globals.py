@@ -361,7 +361,8 @@ LINE_CHART = u"Line Chart"
 AREA_CHART = u"Area Chart"
 HISTOGRAM = u"Histogram"
 SCATTERPLOT = u"Scatterplot"
-TWO_VAR_CHART_TYPES = [PIE_CHART, CLUSTERED_BARCHART, LINE_CHART, SCATTERPLOT]
+TWO_VAR_CHART_TYPES = [SIMPLE_BARCHART, PIE_CHART, CLUSTERED_BARCHART, 
+                       LINE_CHART, SCATTERPLOT]
 CHART_TYPE_TO_MIN_DATA_TYPE = {SIMPLE_BARCHART: VAR_TYPE_CAT,
                                CLUSTERED_BARCHART: VAR_TYPE_CAT,
                                PIE_CHART: VAR_TYPE_CAT,
@@ -408,6 +409,8 @@ CHART_MEASURE_DETS = u"measure_dets"
 CHART_MAX_LABEL_LEN = u"max_label_len"
 CHART_Y_VALS = u"y_vals"
 CHART_SLICE_DETS = u"slice_dets"
+CHART_XAXIS_DETS = u"xaxis_dets"
+CHART_SERIES_DETS = u"series_dets"
 # remember defaults //////////
 # stats tests
 GROUP_BY_DEFAULT = None
