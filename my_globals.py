@@ -400,6 +400,14 @@ CHART_BY = _("By")
 CHART_CHART_BY = _("Charts By")
 Y_AXIS_FREQ_LABEL = _("Frequency")
 LABEL_LINE_BREAK_JS = """var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";"""
+CHART_MAX_CHARTS_IN_SET = 12
+CHART_CHART_BY_LABEL = u"chart_by_label"
+CHART_CHART_BY_LABEL_ALL = u"chart_by_label_all"
+CHART_VAL_FREQS = u"chart_val_freqs"
+CHART_MEASURE_DETS = u"measure_dets"
+CHART_MAX_LABEL_LEN = u"max_label_len"
+CHART_Y_VALS = u"y_vals"
+CHART_SLICE_DETS = u"slice_dets"
 # remember defaults //////////
 # stats tests
 GROUP_BY_DEFAULT = None

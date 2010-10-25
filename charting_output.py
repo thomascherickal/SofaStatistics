@@ -18,22 +18,94 @@ import core_stats
 import getdata
 import output
 
-def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, measure_val_labels, 
-                   sort_opt):
+def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls, 
+                   fld_measure, fld_measure_labels, sort_opt):
     """
     Get frequencies for all non-missing values in variable plus labels.
+    Return list of dics with CHART_CHART_BY_LABEL, CHART_MEASURE_DETS, 
+        CHART_MAX_LABEL_LEN, and CHART_Y_VALS.
+    CHART_CHART_BY_LABEL is something like All if no chart by variable.
     """
     debug = False
-    obj_quoter = getdata.get_obj_quoter_func(dbe)
+    objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    SQL_get_vals = (u"SELECT %s, COUNT(*) AS freq " % obj_quoter(fld_measure) +
-          u"FROM %s " % obj_quoter(tbl) +
-          u"WHERE %s IS NOT NULL %s" % (obj_quoter(fld_measure), and_tbl_filt) +
-          u" GROUP BY %s" % obj_quoter(fld_measure))
+    sql_dic = {u"fld_gp": objqtr(fld_gp), u"fld_measure": objqtr(fld_measure),
+               u"and_tbl_filt": and_tbl_filt, u"tbl": objqtr(tbl)}
+    if fld_gp:
+        SQL_get_vals = (u"""SELECT %(fld_gp)s, %(fld_measure)s, COUNT(*) AS freq
+            FROM %(tbl)s
+            WHERE %(fld_measure)s IS NOT NULL %(and_tbl_filt)s
+            GROUP BY %(fld_gp)s, %(fld_measure)s
+            ORDER BY %(fld_gp)s, %(fld_measure)s""") % sql_dic
+    else:
+        SQL_get_vals = (u"""SELECT %(fld_measure)s, COUNT(*) AS freq
+            FROM %(tbl)s
+            WHERE %(fld_measure)s IS NOT NULL %(and_tbl_filt)s
+            GROUP BY %(fld_measure)s
+            ORDER BY %(fld_measure)s""") % sql_dic
     if debug: print(SQL_get_vals)
     cur.execute(SQL_get_vals)
+    raw_results = cur.fetchall()
+    if not raw_results:
+        raise my_exceptions.TooFewValsForDisplay
+    all_basic_dets = []
+    if fld_gp:
+        split_results = get_split_results(fld_gp_name, fld_gp_lbls, raw_results)
+    else:
+        split_results = [{mg.CHART_CHART_BY_LABEL: mg.CHART_CHART_BY_LABEL_ALL,
+                          mg.CHART_VAL_FREQS: raw_results},]
+    for indiv_result in split_results:
+        indiv_label = indiv_result[mg.CHART_CHART_BY_LABEL]
+        indiv_raw_results = indiv_result[mg.CHART_VAL_FREQS]
+        indiv_basic_dets = get_indiv_basic_dets(indiv_label, indiv_raw_results, 
+                                                fld_measure_labels, sort_opt)
+        all_basic_dets.append(indiv_basic_dets)
+    return all_basic_dets
+
+def get_split_results(fld_gp_name, fld_gp_labels, raw_results):
+    """
+    e.g.
+    fld_gp, fld_measure, freq
+    1,1,100
+    1,2,56
+    2,1,6
+    2,2,113
+    --->
+    []
+    return dict for each lot of field groups:
+    [{mg.CHART_CHART_BY_LABEL: , 
+      mg.CHART_VAL_FREQS: [(fld_measure, freq), ...]}, 
+      ...]
+    """
+    split_raw_results = []
+    prev_fld_gp_val = None
+    for fld_gp_val, fld_measure, freq in raw_results:
+        first_gp = (prev_fld_gp_val == None)
+        same_group = (fld_gp_val == prev_fld_gp_val)
+        if not same_group:
+            if not first_gp: # save prev dic across
+                split_raw_results.append(fld_gp_dic)
+            fld_gp_val_label = fld_gp_labels.get(fld_gp_val, fld_gp_val)
+            chart_by_label = u"%s: %s" % (fld_gp_name, fld_gp_val_label)
+            fld_gp_dic = {}
+            fld_gp_dic[mg.CHART_CHART_BY_LABEL] = chart_by_label
+            val_freqs_lst = [(fld_measure, freq),]
+            fld_gp_dic[mg.CHART_VAL_FREQS] = val_freqs_lst
+            prev_fld_gp_val = fld_gp_val
+        else:
+            val_freqs_lst.append((fld_measure, freq))
+    # save prev dic across
+    split_raw_results.append(fld_gp_dic)
+    return split_raw_results
+
+def get_indiv_basic_dets(indiv_label, indiv_raw_results, measure_val_labels, 
+                         sort_opt):
+    """
+    Returns dict for indiv chart containing: CHART_CHART_BY_LABEL, 
+        CHART_MEASURE_DETS, CHART_MAX_LABEL_LEN, CHART_Y_VALS
+    """
     val_freq_label_lst = []
-    for val, freq in cur.fetchall():
+    for val, freq in indiv_raw_results:
         freq = int(freq)
         val_label = measure_val_labels.get(val, unicode(val))
         val_freq_label_lst.append((val, freq, val_label))
@@ -48,17 +120,23 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, measure_val_labels,
         split_label = lib.get_labels_in_lines(orig_txt=val_label, max_width=17)
         measure_dets.append((val, val_label, split_label))
         y_vals.append(freq)
-    if not y_vals:
-        raise my_exceptions.TooFewValsForDisplay
-    return measure_dets, max_label_len, y_vals
-    
+    return {mg.CHART_CHART_BY_LABEL: indiv_label,
+            mg.CHART_MEASURE_DETS: measure_dets, 
+            mg.CHART_MAX_LABEL_LEN: max_label_len, 
+            mg.CHART_Y_VALS: y_vals}
+
 def get_single_val_dets(dbe, cur, tbl, tbl_filt, fld_measure, xaxis_val_labels,
                         sort_opt):
     """
     Simple bar charts and single line line charts.
     """
+    
+
+    # add fld_gp
+    
+    
     return get_basic_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
-                          xaxis_val_labels, sort_opt)
+                          xaxis_val_labels, fld_gp, sort_opt)
 
 def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt, fld_measure, 
                          fld_gp, xaxis_val_labels, group_by_val_labels):
@@ -151,32 +229,45 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt, fld_measure,
     if debug: print(xaxis_dets)
     return xaxis_dets, max_label_len, series_dets
 
-def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_gp,
-                       slice_val_labels, sort_opt):
+def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, 
+                       fld_gp, fld_gp_name, fld_gp_lbls, 
+                       fld_measure, fld_measure_lbls, sort_opt):
     """
     fld_gp -- chart by each value
+    basic_pie_dets -- list of dicts, one for each indiv pie chart.  Each dict 
+        contains: CHART_CHART_BY_LABEL, CHART_MEASURE_DETS, CHART_MAX_LABEL_LEN, 
+        CHART_Y_VALS.
     """
-    pie_slice_dets = []
-    pie_dets = [1,] # just pretend for now
-    for pie_det in pie_dets:
-        slice_dets = []
-        label_dets, max_label_len, slice_vals = get_basic_dets(dbe, cur, tbl, 
-                                                     tbl_filt, fld_measure, 
-                                                     slice_val_labels, sort_opt)
+    debug = False
+    pie_chart_dets = []
+    basic_pie_dets = get_basic_dets(dbe, cur, tbl, tbl_filt, 
+                                    fld_gp, fld_gp_name, fld_gp_lbls, 
+                                    fld_measure, fld_measure_lbls, sort_opt)
+    for basic_pie_det in basic_pie_dets:
+        if debug: print(basic_pie_det)
+        indiv_pie_dets = {}
+        chart_by_label = basic_pie_det[mg.CHART_CHART_BY_LABEL]
+        label_dets = basic_pie_det[mg.CHART_MEASURE_DETS]
+        max_label_len = basic_pie_det[mg.CHART_MAX_LABEL_LEN]
+        slice_vals = basic_pie_det[mg.CHART_Y_VALS]
         if len(label_dets) != len(slice_vals):
             raise Exception(u"Mismatch in number of slice labels and slice "
                             u"values")
         if len(slice_vals) > 30:
             raise my_exceptions.TooManySlicesInPieChart
         tot_freq = sum(slice_vals)
+        slice_dets = []
         for i, slice_val in enumerate(slice_vals):
             slice_dic = {u"y": slice_val, u"text": label_dets[i][2], 
                          u"tooltip": u"%s<br>%s (%s%%)" % 
                          (label_dets[i][1], slice_val, 
                           round((100.0*slice_val)/tot_freq,1))}
             slice_dets.append(slice_dic)
-        pie_slice_dets.append(slice_dets)
-    return pie_slice_dets
+        indiv_pie_dets[mg.CHART_SLICE_DETS] = slice_dets
+        indiv_pie_dets[mg.CHART_CHART_BY_LABEL] = chart_by_label
+        # add other details later e.g. label for pie chart
+        pie_chart_dets.append(indiv_pie_dets)
+    return pie_chart_dets
 
 def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure):
     """
@@ -530,41 +621,51 @@ def barchart_output(titles, subtitles, x_title, xaxis_dets, series_dets,
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def piechart_output(titles, subtitles, pie_slice_dets, css_fil, css_idx, 
+def piechart_output(titles, subtitles, pie_chart_dets, css_fil, css_idx, 
                     page_break_after):
-    debug = False
+    debug = True
+    if debug: print(pie_chart_dets)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    for slice_dets in pie_slice_dets:
-        title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-        width = 500 if mg.PLATFORM == mg.WINDOWS else 450
-        (outer_bg, inner_bg, axis_label_font_colour, 
-             major_gridline_colour, gridline_width, stroke_width, 
-             tooltip_border_colour, 
-             colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
-        outer_bg = u"" if outer_bg == u"" \
-            else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
-        colour_cases = setup_highlights(colour_mappings, single_colour=False, 
-                                        override_first_highlight=False)
-        colours = [str(x[0]) for x in colour_mappings]
-        colours.extend(mg.DOJO_COLOURS)
-        slice_colours = colours[:30]
+    multipies = (len(pie_chart_dets) > 1)
+    html = []
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    html.append(title_dets_html)
+    width = 500 if mg.PLATFORM == mg.WINDOWS else 450
+    width = width*0.8 if multipies else width
+    height = 350 if multipies else 400
+    radius = 120 if multipies else 140
+    label_offset = -20 if multipies else -30
+    (outer_bg, inner_bg, axis_label_font_colour, 
+         major_gridline_colour, gridline_width, stroke_width, 
+         tooltip_border_colour, 
+         colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+    outer_bg = u"" if outer_bg == u"" \
+        else u"""chartconf["outerBg"] = "%s";""" % outer_bg
+    colour_cases = setup_highlights(colour_mappings, single_colour=False, 
+                                    override_first_highlight=False)
+    colours = [str(x[0]) for x in colour_mappings]
+    colours.extend(mg.DOJO_COLOURS)
+    slice_colours = colours[:30]
+    label_font_colour = axis_label_font_colour
+    for i, pie_chart_det in enumerate(pie_chart_dets):
         slices_js_list = []
+        slice_dets = pie_chart_det[mg.CHART_SLICE_DETS]
+        slice_fontsize = 14 if len(slice_dets) < 10 else 10
+        slice_fontsize = slice_fontsize*0.8 if multipies else slice_fontsize
         for slice_det in slice_dets:
             slices_js_list.append(u"{\"y\": %(y)s, \"text\": %(text)s, " 
-                                  u"\"tooltip\": \"%(tooltip)s\"}" % 
-                                  {u"y": slice_det[u"y"], 
-                                       u"text": slice_det[u"text"],
-                                       u"tooltip": slice_det[u"tooltip"]})
+                    u"\"tooltip\": \"%(tooltip)s\"}" % {u"y": slice_det[u"y"], 
+                    u"text": slice_det[u"text"], 
+                    u"tooltip": slice_det[u"tooltip"]})
         slices_js = u"slices = [" + (u",\n" + u" "*4*4).join(slices_js_list) + \
                     u"\n];"
-        slice_fontsize = 14 if len(slice_dets) < 10 else 10
-        label_font_colour = axis_label_font_colour
-        html = []
+        indiv_pie_title = "<b>%s</b>" % pie_chart_det[mg.CHART_CHART_BY_LABEL] \
+            if multipies else u"<b>Test title</b>"
         html.append(u"""
 <script type="text/javascript">
-makechartRenumber = function(){
-    var sofaHlRenumber = function(colour){
+makechartRenumber%(i)s = function(){
+    var sofaHlRenumber%(i)s = function(colour){
         var hlColour;
         switch (colour.toHex()){
             %(colour_cases)s
@@ -578,30 +679,34 @@ makechartRenumber = function(){
     var chartconf = new Array();
     chartconf["sliceColours"] = %(slice_colours)s;
     chartconf["sliceFontsize"] = %(slice_fontsize)s;
-    chartconf["sofaHl"] = sofaHlRenumber;
-    chartconf["labelFontColour"] = \"%(label_font_colour)s\";
-    chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
-    chartconf["connectorStyle"] = \"%(connector_style)s\";
+    chartconf["sofaHl"] = sofaHlRenumber%(i)s;
+    chartconf["labelFontColour"] = "%(label_font_colour)s";
+    chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
+    chartconf["connectorStyle"] = "%(connector_style)s";
     %(outer_bg)s
-    chartconf["innerBg"] = \"%(inner_bg)s\";
-    chartconf["radius"] = 140;
-    chartconf["labelOffset"] = -30;
-    makePieChart("mychartRenumber", slices, chartconf);
+    chartconf["innerBg"] = "%(inner_bg)s";
+    chartconf["radius"] = %(radius)s;
+    chartconf["labelOffset"] = %(label_offset)s;
+    makePieChart("mychartRenumber%(i)s", slices, chartconf);
 }
 </script>
-%(titles)s
-<div id="mychartRenumber" 
-    style="width: %(width)spx; height: %(height)spx;"></div>
-<br>
+<div style="float: left; margin-right: 10px;">
+<p>%(indiv_pie_title)s</p>
+<div id="mychartRenumber%(i)s" 
+    style="width: %(width)spx; height: %(height)spx;">
+</div>
+</div>
         """ % {u"slice_colours": slice_colours, u"colour_cases": colour_cases, 
-               u"titles": title_dets_html, u"width": width, u"height": 400,
+               u"width": width, u"height": height, u"radius": radius,
+               u"label_offset": label_offset,
+               u"indiv_pie_title": indiv_pie_title,
                u"slices_js": slices_js, u"slice_fontsize": slice_fontsize, 
                u"label_font_colour": label_font_colour,
                u"tooltip_border_colour": tooltip_border_colour,
                u"connector_style": connector_style, u"outer_bg": outer_bg, 
-               u"inner_bg": inner_bg,
+               u"inner_bg": inner_bg, u"i": i,
                })
-    
+    html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

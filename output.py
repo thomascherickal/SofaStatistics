@@ -236,23 +236,27 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
         css = get_fallback_css()
     if has_dojo:
         if new_js_n_charts is None:
-            make_objs_func_str = (
-                u"\n        try{"
-                u"    makechartRenumber();"
-                u"\n        } catch(exceptionObject) {"
-                u"\n            var keepGoing = true;"
-                u"\n        }")
+            make_objs_func_str = u"""
+    for(var i=0;i<%s;i++){
+        try{
+            window["makechartRenumber" + i]();
+        } catch(exceptionObject) {
+            var keepGoing = true;
+        }
+    }
+    """ % mg.CHART_MAX_CHARTS_IN_SET
         else:
-            make_objs_func_str = (u"    //n_charts_start"
-                u"\n    %s%s;" % (mg.JS_N_CHARTS_STR, new_js_n_charts) +
-                u"\n    //n_charts_end"
-                u"\n    for(var i=0;i<n_charts;i++){"
-                u"\n        try{"
-                u"\n            window[\"makechart\" + i]();"
-                u"\n        } catch(exceptionObject) {"
-                u"\n            var keepGoing = true;"
-                u"\n        }"
-                u"\n    }")
+            make_objs_func_str = u"""
+    //n_charts_start
+    %s%s;
+    //n_charts_end
+    for(var i=0;i<n_charts;i++){
+        try{
+            window["makechart" + i]();
+        } catch(exceptionObject) {
+            var keepGoing = true;
+        }
+    }""" % (mg.JS_N_CHARTS_STR, new_js_n_charts)
         dojo_insert = u"""
 <link rel='stylesheet' type='text/css' href="sofa_report_extras/tundra.css" />
 <script src="sofa_report_extras/dojo.xd.js"></script>
@@ -335,7 +339,7 @@ def get_html_ftr():
     "Close HTML off cleanly"
     return u"</body></html>"
 
-def get_js_n_charts(existing_html):
+def get_js_n_charts(html):
     """
     Read from report html. 3 in this example.  None if not there or an error.
     //n_charts_start
@@ -345,10 +349,10 @@ def get_js_n_charts(existing_html):
     """
     debug = False
     try:
-        idx_start = existing_html.index(mg.N_CHARTS_TAG_START) + \
+        idx_start = html.index(mg.N_CHARTS_TAG_START) + \
                                                     len(mg.N_CHARTS_TAG_START)
-        idx_end = existing_html.index(mg.N_CHARTS_TAG_END)
-        raw_n_charts_str = existing_html[idx_start: idx_end]
+        idx_end = html.index(mg.N_CHARTS_TAG_END)
+        raw_n_charts_str = html[idx_start: idx_end]
         if debug: print(raw_n_charts_str)
         js_n_charts = int(raw_n_charts_str.strip().lstrip(mg.JS_N_CHARTS_STR).\
                           rstrip(u";"))
@@ -356,6 +360,13 @@ def get_js_n_charts(existing_html):
     except Exception:
         js_n_charts = None
     return js_n_charts
+
+def get_makechartRenumbers_n(html):
+    """
+    Count occurrences of makechartRenumber.
+    """
+    makechartRenumbers_n = html.count(u"makechartRenumber")
+    return makechartRenumbers_n
 
 def get_css_dets():
     """
@@ -589,13 +600,15 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
         plus new js functions to make new charts.
     New content is everything between the body tags.
     new_has_dojo -- does the new html being added have Dojo.  NB the report may 
-        have over results which have dojo, whether or not the latest output has.
-    If report has dojo, change from makechartRenumber, to next available 
-        integer.
+        have other results which have dojo, whether or not the latest output 
+        has.
+    If report has dojo, change from makechartRenumber0 etc, to next available 
+        integers.
     """
     debug = False
     new_no_hdr = extract_html_body(new_html)
     new_js_n_charts = None # init
+    n_charts_in_new = get_makechartRenumbers_n(new_html)
     if os.path.exists(cc[mg.CURRENT_REPORT_PATH]):
         f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "U", "utf-8")
         existing_html = lib.clean_bom_utf8(f.read())
@@ -604,11 +617,11 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
         if has_dojo:
             js_n_charts = get_js_n_charts(existing_html)
             if js_n_charts is None:
-                new_js_n_charts = 1
+                new_js_n_charts = n_charts_in_new
             else:
                 new_js_n_charts = js_n_charts
                 if new_has_dojo:
-                    new_js_n_charts += 1
+                    new_js_n_charts += n_charts_in_new
             if debug: print("n_charts: %s, new_n_charts: %s" % (js_n_charts, 
                                                                 new_js_n_charts))
         existing_no_ends = extract_html_body(existing_html)
@@ -616,11 +629,15 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
     else:
         has_dojo = new_has_dojo
         if has_dojo:
-            new_js_n_charts = 1
+            new_js_n_charts = n_charts_in_new
         existing_no_ends = None
     if has_dojo:
-        new_no_hdr = new_no_hdr.replace(u"Renumber", 
-                                        unicode(new_js_n_charts-1))
+        """
+        May be a set of charts e.g. Renumber0, Renumber1 etc
+        """
+        for i in range(n_charts_in_new):
+            replacement = unicode(new_js_n_charts - n_charts_in_new + i )
+            new_no_hdr = new_no_hdr.replace(u"Renumber%s" % i, replacement)
     hdr_title = time.strftime(_("SOFA Statistics Report") + \
                               " %Y-%m-%d_%H:%M:%S")
     hdr = get_html_hdr(hdr_title, css_fils, has_dojo, new_js_n_charts)
@@ -834,10 +851,10 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     # background images, and in the body either relative image links (if added 
     # to report) or absolute images links (if standalone GUI only). 
     # If it has dojo, will have relative dojo js and css in the header, a 
-    # makeObjects function, also in the header, which only runs 
-    # makechartsRenumber(), and in the body, a function called 
-    # makechartRenumber, a chart called mychartRenumber, and a legend called 
-    # legendMychartRenumber.
+    # makeObjects function, also in the header, which only runs from 0 to N
+    # makechartsRenumber0(), and in the body, a function called 
+    # makechartRenumber0, a chart called mychartRenumber0, and a legend called 
+    # legendMychartRenumber0, and makechartsRenumber1 etc.
     f = codecs.open(mg.INT_REPORT_PATH, "U", "utf-8")
     raw_results = lib.clean_bom_utf8(f.read())
     if debug: print(raw_results)

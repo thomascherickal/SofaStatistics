@@ -553,14 +553,17 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         var_name1, var_name2 = self.get_vars()
         script_lst.append(u"fld_measure = u\"%s\"" % var_name1)
         if self.chart_type in mg.TWO_VAR_CHART_TYPES:
-            script_lst.append(u"fld_gp = u\"%s\"" % var_name2)
+            if var_name2 == mg.DROP_SELECT:
+                script_lst.append(u"fld_gp = None")
+            else:
+                script_lst.append(u"fld_gp = u\"%s\"" % var_name2)
             script_lst.append(u"var_label2=u\"%s\"" %
                               lib.get_item_label(self.var_labels, var_name2))
-            script_lst.append(u"group_by_val_labels = %s" % 
+            script_lst.append(u"fld_gp_lbls = %s" % 
                               self.val_dics.get(var_name2, {}))
         script_lst.append(u"var_label1=u\"%s\"" %
                           lib.get_item_label(self.var_labels, var_name1))
-        script_lst.append(u"measure_val_labels = %s" % 
+        script_lst.append(u"fld_measure_lbls = %s" % 
                           self.val_dics.get(var_name1, {}))
         script_lst.append(u"add_to_report = %s" % ("True" if add_to_report
                           else "False"))
@@ -745,11 +748,13 @@ chart_output = charting_output.barchart_output(titles, subtitles,
 
 def get_pie_chart_script(css_fil, css_idx):
     script = u"""
-pie_slice_dets = charting_output.get_pie_chart_dets(dbe="%(dbe)s", cur=cur, 
-            tbl=tbl, tbl_filt=tbl_filt, fld_measure=fld_measure, fld_gp=fld_gp,
-            slice_val_labels=measure_val_labels, sort_opt="%(sort_opt)s")
+pie_chart_dets = charting_output.get_pie_chart_dets(dbe="%(dbe)s", cur=cur, 
+            tbl=tbl, tbl_filt=tbl_filt, 
+            fld_gp=fld_gp, fld_gp_name=var_label2, fld_gp_lbls=fld_gp_lbls, 
+            fld_measure=fld_measure, fld_measure_lbls=fld_measure_lbls, 
+            sort_opt="%(sort_opt)s")
 chart_output = charting_output.piechart_output(titles, subtitles,
-            pie_slice_dets, css_fil="%(css_fil)s", css_idx=%(css_idx)s,
+            pie_chart_dets, css_fil="%(css_fil)s", css_idx=%(css_idx)s,
             page_break_after=False)
     """ % {u"dbe": dd.dbe, u"sort_opt": CUR_SORT_OPT,  
            u"css_fil": css_fil, u"css_idx": css_idx}
