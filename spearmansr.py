@@ -34,13 +34,11 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst = []
         var_a, label_a, var_b, label_b = self.get_drop_vals()
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
-        script_lst.append(u"sample_a, sample_b, data_tups = " + \
-            u"core_stats.get_paired_data(" + \
-            u"dbe=u\"%s\", " % dd.dbe + \
-            u"cur=cur, tbl=u\"%s\",\n    " % dd.tbl + \
-            u"tbl_filt=tbl_filt, " + \
-            u"fld_a=u\"%s\", " % var_a + \
-            u"fld_b=u\"%s\")" % var_b)
+        script_lst.append(u"""
+sample_a, sample_b, data_tups = core_stats.get_paired_data(
+    dbe=u"%(dbe)s", cur=cur, tbl=u"%(tbl)s",
+    tbl_filt=tbl_filt, fld_a=u"%(var_a)s", fld_b=u"%(var_b)s")""" %
+            {u"dbe": dd.dbe, u"tbl": dd.tbl, u"var_a": var_a, u"var_b": var_b})
         script_lst.append(u"add_to_report = %s" % ("True" if add_to_report \
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
@@ -48,14 +46,12 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append(u"dp = 3")
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
-        script_lst.append(u"r, p = " + \
-            u"core_stats.spearmanr(sample_a, sample_b)")
-        script_lst.append(u"spearmansr_output = " +
-            u"stats_output.spearmansr_output(sample_a, sample_b, r, p,")
-        script_lst.append(u"    label_a, label_b, add_to_report, report_name, "
-                          u"\n    css_fil=\"%s\", css_idx=%s, dp=dp, " %
-                            (css_fil, css_idx) +
-                          u"\n    level=mg.OUTPUT_RESULTS_ONLY, "
-                          u"page_break_after=False)")
+        script_lst.append(u"r, p = core_stats.spearmanr(sample_a, sample_b)")
+        script_lst.append(u"""
+spearmansr_output = stats_output.spearmansr_output(sample_a, sample_b, r, p,
+    label_a, label_b, add_to_report, report_name,
+    css_fil="%(css_fil)s", css_idx=%(css_idx)s, dp=dp,
+    level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)""" %
+            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(spearmansr_output)")
         return u"\n".join(script_lst)

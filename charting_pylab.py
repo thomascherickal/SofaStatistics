@@ -177,15 +177,17 @@ def config_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, fig,
 
 def add_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, sample_a, 
                     sample_b, label_a, label_b, a_vs_b, title_dets_html, 
-                    add_to_report, report_name, html):
+                    add_to_report, report_name, html, width_inches=7.5,
+                    height_inches=4.5):
     """
     Toggle prefix so every time this is run internally only, a different image 
         is referred to in the html <img src=...>.
     This works because there is only ever one scatterplot per internal html.
+    width_inches and height_inches -- see dpi to get image size in pixels
     """
     debug = False
     fig = pylab.figure()
-    fig.set_size_inches((7.5, 4.5)) # see dpi to get image size in pixels
+    fig.set_size_inches((width_inches, height_inches)) 
     config_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, fig, 
                        sample_a, sample_b, label_a, label_b, a_vs_b)
     img_src = save_report_img(add_to_report, report_name, 

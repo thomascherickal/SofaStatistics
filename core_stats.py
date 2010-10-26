@@ -62,19 +62,21 @@ def get_paired_data(dbe, cur, tbl, tbl_filt, fld_a, fld_b, unique=False):
         Used in, for example, the paired samples t-test.
     unique -- only look at unique pairs.  Useful for scatter plotting.
     """
-    quoter = getdata.get_obj_quoter_func(dbe)
+    obj_qtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+    sql_dic = {u"fld_a": obj_qtr(fld_a),u"fld_b": obj_qtr(fld_b),
+               u"tbl": obj_qtr(tbl), u"and_tbl_filt": and_tbl_filt}
     if unique:
-        SQL_get_lists = u"SELECT %s, %s " % (quoter(fld_a), quoter(fld_b)) + \
-            u"FROM %s " % quoter(tbl) + \
-            u"WHERE %s IS NOT NULL " % quoter(fld_a) + \
-            u" AND %s IS NOT NULL " % quoter(fld_b) + and_tbl_filt + \
-            u"GROUP BY %s, %s" % (quoter(fld_a), quoter(fld_b))
+        SQL_get_lists = u"""SELECT %(fld_a)s, %(fld_b)s
+            FROM %(tbl)s
+            WHERE %(fld_a)s IS NOT NULL
+            AND %(fld_b)s IS NOT NULL %(and_tbl_filt)s
+            GROUP BY %(fld_a)s, %(fld_b)s""" % sql_dic
     else:
-        SQL_get_lists = u"SELECT %s, %s " % (quoter(fld_a), quoter(fld_b)) + \
-            u"FROM %s " % quoter(tbl) + \
-            u"WHERE %s IS NOT NULL " % quoter(fld_a) + \
-            u" AND %s IS NOT NULL " % quoter(fld_b) + and_tbl_filt
+        SQL_get_lists = u"""SELECT %(fld_a)s, %(fld_b)s
+            FROM %(tbl)s
+            WHERE %(fld_a)s IS NOT NULL
+            AND %(fld_b)s IS NOT NULL %(and_tbl_filt)s""" % sql_dic
     cur.execute(SQL_get_lists)
     data_tups = cur.fetchall()
     lst_a = [x[0] for x in data_tups]

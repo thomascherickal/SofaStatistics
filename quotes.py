@@ -34,7 +34,7 @@ QUOTES = [
      u"Joseph L. Brothers, Linux/PowerPC Project"),
     (u"Statistical significance is a phrase that every science graduate "
      u"student learns, but few comprehend.",
-     u"Tom_Siegfried"),
+     u"Tom Siegfried"),
     (u"We believe that statistics can be used to support radical campaigns "
      u"for progressive social change. ... Social problems should not be "
      u"disguised by technical language.",

@@ -91,15 +91,15 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"report_name = u\"%s\"" % 
                           lib.escape_pre_write(report_name))
         high = self.rad_precision.GetValue()
-        script_lst.append(u"p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, "
-            u"mean_squ_bn = \\\n    core_stats.anova(samples, labels, "
-            u"high=%s)" % high)
-        script_lst.append(u"anova_output = stats_output.anova_output("
-                u"samples, F, p, dics, sswn, dfwn, mean_squ_wn, "
-            u"\n    ssbn, dfbn, mean_squ_bn, label_a, label_b, label_avg, "
-                u"add_to_report, report_name, css_fil=\"%s\", css_idx=%s, " %
-                (css_fil, css_idx) + u"dp=dp, "
-            u"\n    level=mg.OUTPUT_RESULTS_ONLY, "
-                u"page_break_after=False)" )
+        script_lst.append(u"""
+p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, mean_squ_bn = \
+                           core_stats.anova(samples, labels, high=%s)""" % high)
+        script_lst.append(u"""
+anova_output = stats_output.anova_output(samples, F, p, dics, sswn, dfwn, 
+            mean_squ_wn, ssbn, dfbn, mean_squ_bn, label_a, label_b, label_avg,
+            add_to_report, report_name, css_fil="%(css_fil)s", 
+            css_idx=%(css_idx)s, dp=dp, level=mg.OUTPUT_RESULTS_ONLY,
+            page_break_after=False)""" %
+            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(anova_output)")
         return u"\n".join(script_lst)

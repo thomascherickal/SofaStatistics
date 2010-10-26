@@ -1163,10 +1163,17 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
                                         output.get_stats_chart_colours(css_fil)
         colours = item_colours + mg.DOJO_COLOURS
         dot_colour = colours[0]
+        if multichart:
+            width_inches = 6.0
+            height_inches = 3.6
+        else:
+            width_inches = 7.5
+            height_inches = 4.5
         charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
                                        line_colour, sample_a, sample_b, label_a, 
                                        label_b, a_vs_b, title_dets_html, 
-                                       add_to_report, report_name, html)
+                                       add_to_report, report_name, html,
+                                       width_inches, height_inches)
     else:
         width = 700
         left_axis_label_shift = 10

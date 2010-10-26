@@ -885,7 +885,7 @@ class StartFrame(wx.Frame):
     def on_help_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_help, HELP_IMG_LEFT+50, HELP_IMG_TOP-25, 
+        panel_dc.DrawBitmap(self.bmp_help, HELP_IMG_LEFT, HELP_IMG_TOP-25, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_help = _("Get help on-line, including screen shots and step-by-step" 

@@ -754,7 +754,7 @@ chart_output = charting_output.barchart_output(titles, subtitles,
             css_fil="%(css_fil)s", css_idx=%(css_idx)s, 
             page_break_after=False)
     """ % {u"dbe": dd.dbe, u"sort_opt": CUR_SORT_OPT, u"inc_perc": inc_perc, 
-           u"css_fil": css_fil, u"css_idx": css_idx}
+           u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx}
     return script
 
 def get_clustered_barchart_script(inc_perc, css_fil, css_idx, chart_type):
@@ -771,7 +771,7 @@ chart_output = charting_output.barchart_output(titles, subtitles,
             var_label1, barchart_dets, inc_perc=%(inc_perc)s, 
             css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)    
     """ % {u"dbe": dd.dbe, u"chart_type": chart_type, u"inc_perc": inc_perc, 
-           u"css_fil": css_fil, u"css_idx": css_idx}
+           u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx}
     return script
 
 def get_pie_chart_script(css_fil, css_idx):
@@ -785,7 +785,7 @@ chart_output = charting_output.piechart_output(titles, subtitles,
             pie_chart_dets, css_fil="%(css_fil)s", css_idx=%(css_idx)s,
             page_break_after=False)
     """ % {u"dbe": dd.dbe, u"sort_opt": CUR_SORT_OPT,  
-           u"css_fil": css_fil, u"css_idx": css_idx}
+           u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx}
     return script
 
 def get_line_chart_script(inc_perc, css_fil, css_idx, chart_type, var_name2):
@@ -816,7 +816,8 @@ x_title = var_label1
 chart_output = charting_output.linechart_output(titles, subtitles, x_title, 
             xaxis_dets, max_label_len, series_dets, inc_perc=%(inc_perc)s, 
             css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"inc_perc": inc_perc, u"css_fil": css_fil, u"css_idx": css_idx}
+    """ % {u"inc_perc": inc_perc, u"css_fil": lib.escape_pre_write(css_fil), 
+           u"css_idx": css_idx}
     return script
 
 def get_area_chart_script(inc_perc, css_fil, css_idx):
@@ -840,8 +841,8 @@ for areachart_det in areachart_dets:
 chart_output = charting_output.areachart_output(titles, subtitles,
             chart_dets, inc_perc=%(inc_perc)s,
             css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"dbe": dd.dbe, u"inc_perc": inc_perc, u"css_fil": css_fil, 
-           u"css_idx": css_idx}
+    """ % {u"dbe": dd.dbe, u"inc_perc": inc_perc, 
+           u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx}
     return script
 
 def get_histogram_script(css_fil, css_idx):
@@ -853,7 +854,8 @@ histo_dets = charting_output.get_histo_dets(dbe="%(dbe)s", cur=cur, tbl=tbl,
 chart_output = charting_output.histogram_output(titles, subtitles, var_label1,
             histo_dets, css_fil="%(css_fil)s", 
             css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"dbe": dd.dbe, u"css_fil": css_fil, u"css_idx": css_idx}
+    """ % {u"dbe": dd.dbe, u"css_fil": lib.escape_pre_write(css_fil), 
+           u"css_idx": css_idx}
     return script
 
 def get_scatterplot_script(css_fil, css_idx, dot_border):
@@ -868,6 +870,6 @@ chart_output = charting_output.scatterplot_output(titles, subtitles,
             sample_a, sample_b, data_tups, var_label1, var_label2, 
             add_to_report, report_name, %(dot_border)s, css_fil="%(css_fil)s", 
             css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"dbe": dd.dbe, u"css_fil": css_fil, u"css_idx": css_idx,
-           u"dot_border": dot_border}
+    """ % {u"dbe": dd.dbe, u"css_fil": lib.escape_pre_write(css_fil), 
+           u"css_idx": css_idx, u"dot_border": dot_border}
     return script

@@ -41,14 +41,13 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         val_str_quoted_a = val_a if var_gp_numeric else u"u\"%s\"" % val_a
         val_str_quoted_b = val_b if var_gp_numeric else u"u\"%s\"" % val_b
-        str_get_sample = (u"sample_%s = core_stats.get_list(" +
-                        u"dbe=u\"%s\", " % dd.dbe +
-                        u"cur=cur, tbl=u\"%s\"," % dd.tbl +
-                        u"\n    tbl_filt=tbl_filt, " +
-                        u"flds=flds, " +
-                        u"fld_measure=u\"%s\", " % lib.esc_str_input(var_avg) +
-                        u"fld_filter=u\"%s\", " % lib.esc_str_input(var_gp) +
-                        u"filter_val=%s)")
+        str_get_sample = (u"""
+sample_%%s = core_stats.get_list(dbe=u"%(dbe)s", cur=cur, 
+    tbl=u"%(tbl)s", tbl_filt=tbl_filt, flds=flds, 
+    fld_measure=u"%(var_avg)s", 
+    fld_filter=u"%(var_gp)s", filter_val=%%s)""" % {u"dbe": dd.dbe, 
+            u"tbl": dd.tbl, u"var_avg": lib.esc_str_input(var_avg),
+            u"var_gp": lib.esc_str_input(var_gp)})
         script_lst.append(str_get_sample % (u"a", val_str_quoted_a))
         script_lst.append(str_get_sample % (u"b", val_str_quoted_b))
         script_lst.append(u"label_a = u\"%s\"" % label_a)
@@ -60,11 +59,11 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                           lib.escape_pre_write(report_name))
         script_lst.append(u"t, p, dic_a, dic_b = " + \
             u"core_stats.ttest_ind(sample_a, sample_b, label_a, label_b)")
-        script_lst.append(u"ttest_indep_output = "
-            u"stats_output.ttest_indep_output("
-            u"sample_a, sample_b, t, p, "
-            u"\n    dic_a, dic_b, label_avg, add_to_report, report_name, "
-            u"css_fil=\"%s\", css_idx=%s, dp=dp, " % (css_fil, css_idx) +
-            u"\n    level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)")
+        script_lst.append(u"""
+ttest_indep_output = stats_output.ttest_indep_output(sample_a, sample_b, t, p,
+    dic_a, dic_b, label_avg, add_to_report, report_name,
+    css_fil="%(css_fil)s", css_idx=%(css_idx)s, dp=dp,
+    level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)""" %
+            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(ttest_indep_output)")
         return u"\n".join(script_lst)

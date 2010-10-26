@@ -43,16 +43,18 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append(u"var_label_b = u\"%s\"" % label_b)
         unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-        script_lst.append(u"chisq, p, vals_a, vals_b, lst_obs, lst_exp, " +
-            u"min_count, perc_cells_lt_5, df = \\" +
-            u"\n    core_stats.pearsons_chisquare(dbe=u\"%s\", " % dd.dbe +
-            u"db=u\"%s\", " % dd.db +
-            u"cur=cur, tbl=u\"%s\"," % dd.tbl +
-            u"\n    flds=flds, fld_a=u\"%s\", fld_b=u\"%s\"," % 
-                (lib.esc_str_input(var_a), lib.esc_str_input(var_b)) +
-            u"\n    tbl_filt=u\"\"\" %s \"\"\", " % tbl_filt +
-            u"where_tbl_filt=\"\"\" %s \"\"\"," % where_tbl_filt +
-            u"\n    and_tbl_filt=\"\"\" %s \"\"\")" % and_tbl_filt)
+        script_lst.append(u"""
+chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df = \\
+    core_stats.pearsons_chisquare(dbe=u"%(dbe)s",
+    db=u"%(db)s", cur=cur, tbl=u"%(tbl)s",
+    flds=flds, fld_a=u"%(fld_a)s", fld_b=u"%(fld_b)s",
+    tbl_filt=u\"\"\" %(tbl_filt)s \"\"\",
+    where_tbl_filt=\"\"\" %(where_tbl_filt)s \"\"\",
+    and_tbl_filt=\"\"\" %(and_tbl_filt)s \"\"\")""" %
+            {u"dbe": dd.dbe, u"db": dd.db, u"tbl": dd.tbl, 
+             u"fld_a": lib.esc_str_input(var_a),
+             u"fld_b": lib.esc_str_input(var_b), u"tbl_filt": tbl_filt,
+             u"where_tbl_filt": where_tbl_filt, u"and_tbl_filt": and_tbl_filt})
         val_dic_a = self.val_dics.get(var_a, {})
         val_dic_b = self.val_dics.get(var_b, {})
         script_lst.append(u"val_dic_a = %s" % pprint.pformat(val_dic_a))
@@ -61,12 +63,12 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
                           u"x in vals_a]")
         script_lst.append(u"val_labels_b = [val_dic_b.get(x, x) for " +
                           u"x in vals_b]")        
-        script_lst.append(u"chisquare_output = " +
-            u"stats_output.chisquare_output(chisq, p, " +
-            u"var_label_a, var_label_b, add_to_report, report_name, " +
-            u"\n    val_labels_a, val_labels_b," +
-            u"\n    lst_obs, lst_exp, min_count, perc_cells_lt_5, df, " +
-            u"css_fil=\"%s\", css_idx=%s, dp=dp," % (css_fil, css_idx) +
-            u"\n    level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)")
+        script_lst.append(u"""
+chisquare_output = stats_output.chisquare_output(chisq, p, var_label_a, 
+    var_label_b, add_to_report, report_name, val_labels_a, val_labels_b,
+    lst_obs, lst_exp, min_count, perc_cells_lt_5, df,
+    css_fil="%(css_fil)s", css_idx=%(css_idx)s, dp=dp,
+    level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)""" %
+            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(chisquare_output)")
         return u"\n".join(script_lst)
