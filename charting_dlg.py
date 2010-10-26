@@ -78,6 +78,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.sorted_var_names1 = []
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
         # var 2
+        self.min_data_type2 = self.min_data_type
         self.lbl_var2 = wx.StaticText(self.panel_top, -1, u"%s:" % mg.CHART_BY)
         self.lbl_var2.SetFont(self.LABEL_FONT)
         self.lbl_var2.Enable(True)
@@ -462,11 +463,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         var_name1, var_name2 = self.get_vars()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, 
                        self.sorted_var_names1, var_name1)
+        if override_min_data_type2:
+            self.min_data_type2 = override_min_data_type2
+        else:
+            self.min_data_type2 = self.min_data_type
         show = (self.chart_type in mg.TWO_VAR_CHART_TYPES)
         if show:
             self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, 
                            self.sorted_var_names2, var_name2, inc_drop_select,
-                           override_min_data_type=override_min_data_type2)
+                           override_min_data_type=self.min_data_type2)
         self.drop_var2.Enable(show)
         self.lbl_var2.Enable(show)
         self.szr_mid.Remove(self.panel_displayed)
@@ -648,7 +653,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
                        var_name1)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2,
-                       var_name2, inc_drop_select=False)
+                       var_name2, inc_drop_select=False, 
+                       override_min_data_type=self.min_data_type2)
         self.update_defaults()
 
     def on_database_sel(self, event):
@@ -661,7 +667,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.update_var_dets()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
-                       var_name=None, inc_drop_select=True)
+                       var_name=None, inc_drop_select=True,
+                       override_min_data_type=self.min_data_type2)
                 
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
@@ -670,7 +677,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.update_var_dets()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
-                       var_name=None, inc_drop_select=False)
+                       var_name=None, inc_drop_select=False,
+                       override_min_data_type=self.min_data_type2)
        
     def on_btn_config(self, event):
         """
@@ -682,7 +690,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
                        var_name1)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
-                       var_name2, inc_drop_select=False)
+                       var_name2, inc_drop_select=False,
+                       override_min_data_type=self.min_data_type2)
         self.update_defaults()
 
     def get_vars(self):
