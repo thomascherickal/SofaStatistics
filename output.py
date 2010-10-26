@@ -262,10 +262,14 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
             var keepGoing = true;
         }
     }""" % (mg.JS_N_CHARTS_STR, new_js_n_charts)
+        dojo_debug = False
+        dojo_js_source = (u"file:///home/g/sofa/reports/sofa_report_extras/"
+                          u"sofalayer.js.uncompressed.js") if dojo_debug \
+                          else u"sofa_report_extras/sofadojo_minified.js"
         dojo_insert = u"""
 <link rel='stylesheet' type='text/css' href="sofa_report_extras/tundra.css" />
 <script src="sofa_report_extras/dojo.xd.js"></script>
-<script src="sofa_report_extras/sofadojo_minified.js"></script>
+<script src="%(dojo_js_source)s"></script>
 <script src="sofa_report_extras/sofa_charts.js"></script>
 <script type="text/javascript">
 get_ie_script = function(mysrc){
@@ -330,7 +334,8 @@ hl = function(colour){
     }
 -->
 </style>""" % {u"make_objs_func_str": make_objs_func_str,
-               u"label_line_break_js": mg.LABEL_LINE_BREAK_JS}
+               u"label_line_break_js": mg.LABEL_LINE_BREAK_JS,
+               u"dojo_js_source": dojo_js_source}
     else:
         dojo_insert = u""
     hdr = mg.DEFAULT_HDR % {u"title": hdr_title, u"css": css, 

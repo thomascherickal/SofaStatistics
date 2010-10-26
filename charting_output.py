@@ -818,7 +818,7 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
     (width, xfontsize, 
      minor_ticks, micro_ticks) = get_linechart_sizings(xaxis_dets, 
                                                      max_label_len, series_dets)
-    left_axis_label_shift = 20 if width > 1200 else 0 # gets squeezed 
+    left_axis_label_shift = 20 if width > 1200 else 10 # gets squeezed 
     inc_perc_js = u"true" if inc_perc else u"false"
     html = []
     """
@@ -858,7 +858,7 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
     html.append(u"""
     <script type="text/javascript">
 
-        makechartRenumber0 = function(){
+        makechartRenumber00 = function(){
             %(series_js)s
             var chartconf = new Array();
             chartconf["xaxisLabels"] = %(xaxis_labels)s;
@@ -876,13 +876,13 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
             chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
             chartconf["incPerc"] = %(inc_perc_js)s;
             chartconf["connectorStyle"] = "%(connector_style)s";
-            makeLineChart("mychartRenumber0", series, chartconf);
+            makeLineChart("mychartRenumber00", series, chartconf);
         }
     </script>
     %(titles)s
-    <div id="mychartRenumber0" style="width: %(width)spx; 
+    <div id="mychartRenumber00" style="width: %(width)spx; 
         height: %(height)spx;"></div>
-    <div id="legendMychartRenumber0"></div>
+    <div id="legendMychartRenumber00"></div>
     <br>
     """ % {u"titles": title_dets_html, 
            u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
@@ -1206,7 +1206,7 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
         html.append(u"""
         <script type="text/javascript">
     
-            var sofaHlRenumber = function(colour){
+            var sofaHlRenumber00 = function(colour){
                 var hlColour;
                 switch (colour.toHex()){
                     %(colour_cases)s
@@ -1217,7 +1217,7 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
                 return new dojox.color.Color(hlColour);
             }    
         
-            makechartRenumber = function(){
+            makechartRenumber00 = function(){
                 var datadets = new Array();
                 datadets["xyPairs"] = %(xy_pairs)s;
                 datadets["style"] = {stroke: {color: \"white\", 
@@ -1228,7 +1228,7 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
                 chartconf["xmax"] = %(xmax)s;
                 chartconf["ymax"] = %(ymax)s;
                 chartconf["xfontsize"] = %(xfontsize)s;
-                chartconf["sofaHl"] = sofaHlRenumber;
+                chartconf["sofaHl"] = sofaHlRenumber00;
                 chartconf["tickColour"] = "%(tick_colour)s";
                 chartconf["gridlineWidth"] = %(gridline_width)s;
                 chartconf["gridBg"] = \"%(grid_bg)s\";
@@ -1242,11 +1242,11 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
                 chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
                 chartconf["connectorStyle"] = "%(connector_style)s";
                 %(outer_bg)s
-                makeScatterplot("mychartRenumber", datadets, chartconf);
+                makeScatterplot("mychartRenumber00", datadets, chartconf);
             }
         </script>
         %(titles)s
-        <div id="mychartRenumber" style="width: %(width)spx; 
+        <div id="mychartRenumber00" style="width: %(width)spx; 
             height: %(height)spx;"></div>
         <br>
         """ % {u"xy_pairs": xy_pairs, u"xmax": xmax, u"ymax": ymax,

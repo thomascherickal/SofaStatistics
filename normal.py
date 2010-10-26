@@ -303,7 +303,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         fig = pylab.figure()
         fig.set_size_inches((2.3, 1.0)) # see dpi to get image size in pixels
         charting_pylab.config_hist(fig, self.vals, self.data_label, 
-                                   thumbnail=True)
+                                   thumbnail=True, inc_attrib=False)
         pylab.savefig(mg.INT_IMG_ROOT + u".png", dpi=100)
         thumbnail_uncropped = wx.Image(mg.INT_IMG_ROOT + u".png", 
                                        wx.BITMAP_TYPE_PNG).ConvertToBitmap()

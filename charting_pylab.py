@@ -78,7 +78,7 @@ def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot,
         within bars.
     """
     debug = False
-    clustered_bars = boomslang.ClusteredBars()
+    clustered_bars = boomslang.ClusteredBars(attribution=mg.ATTRIBUTION)
     clustered_bars.grid_bg = grid_bg
     for i, val_label_b in enumerate(val_labels_b):
         cluster = boomslang.Bar()
@@ -102,7 +102,7 @@ def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot,
 
 def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False, 
                 grid_bg=mg.MPL_BGCOLOR, bar_colour=mg.MPL_FACECOLOR, 
-                line_colour=mg.MPL_NORM_LINE_COLOR):    
+                line_colour=mg.MPL_NORM_LINE_COLOR, inc_attrib=True):    
     """
     Configure histogram with subplot of normal distribution curve.
     Size is set externally. 
@@ -149,6 +149,9 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False,
     if max(y) > ymax:
         axes.set_ylim(ymax=1.05*max(y))
     l = axes.plot(bins, y, color=line_colour, linewidth=normal_line_width)
+    if inc_attrib:
+        pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
+                       fontsize=7, rotation=270)
 
 def config_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, fig, 
                        sample_a, sample_b, label_a, label_b, a_vs_b):
@@ -169,6 +172,8 @@ def config_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, fig,
     rect = axes.patch
     rect.set_facecolor(grid_bg)
     pylab.legend(loc="best")
+    pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
+                   fontsize=7, rotation=270)
 
 def add_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, sample_a, 
                     sample_b, label_a, label_b, a_vs_b, title_dets_html, 

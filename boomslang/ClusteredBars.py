@@ -9,9 +9,10 @@ class ClusteredBars(PlotInfo):
     A clustered bar chart consisting of multiple series of bars
     with the same X axis values.
     """
-    def __init__(self):
+    def __init__(self, attribution=u""): # SOFA
         PlotInfo.__init__(self, "clustered bar")
 
+        self.attribution = attribution # SOFA
         self.grid_bg = "white" # SOFA
         self.bars = []
         self.spacing = 0
@@ -49,6 +50,8 @@ class ClusteredBars(PlotInfo):
 
         rect = axis.patch # SOFA
         rect.set_facecolor(self.grid_bg) # SOFA
+        axis.annotate(self.attribution, xy=(1,0.4), xycoords='axes fraction', 
+                          fontsize=7, rotation=270) # SOFA
         
         numBars = len(self.bars)
         
