@@ -18,8 +18,10 @@ import core_stats
 import getdata
 import output
 
+dd = getdata.get_dd()
+
 def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls, 
-                   fld_measure, fld_measure_labels, sort_opt):
+                   fld_measure, fld_measure_lbls, sort_opt):
     """
     Get frequencies for all non-missing values in variable plus labels.
     Return list of dics with CHART_CHART_BY_LABEL, CHART_MEASURE_DETS, 
@@ -58,11 +60,11 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
         indiv_label = indiv_result[mg.CHART_CHART_BY_LABEL]
         indiv_raw_results = indiv_result[mg.CHART_VAL_FREQS]
         indiv_basic_dets = get_indiv_basic_dets(indiv_label, indiv_raw_results, 
-                                                fld_measure_labels, sort_opt)
+                                                fld_measure_lbls, sort_opt)
         all_basic_dets.append(indiv_basic_dets)
     return all_basic_dets
 
-def get_split_results(fld_gp_name, fld_gp_labels, raw_results):
+def get_split_results(fld_gp_name, fld_gp_lbls, raw_results):
     """
     e.g.
     fld_gp, fld_measure, freq
@@ -85,10 +87,10 @@ def get_split_results(fld_gp_name, fld_gp_labels, raw_results):
         if not same_group:
             if not first_gp: # save prev dic across
                 split_raw_results.append(fld_gp_dic)
-            fld_gp_val_label = fld_gp_labels.get(fld_gp_val, fld_gp_val)
-            chart_by_label = u"%s: %s" % (fld_gp_name, fld_gp_val_label)
+            fld_gp_val_lbl = fld_gp_lbls.get(fld_gp_val, fld_gp_val)
+            chart_by_lbl = u"%s: %s" % (fld_gp_name, fld_gp_val_lbl)
             fld_gp_dic = {}
-            fld_gp_dic[mg.CHART_CHART_BY_LABEL] = chart_by_label
+            fld_gp_dic[mg.CHART_CHART_BY_LABEL] = chart_by_lbl
             val_freqs_lst = [(fld_measure, freq),]
             fld_gp_dic[mg.CHART_VAL_FREQS] = val_freqs_lst
             prev_fld_gp_val = fld_gp_val
@@ -101,7 +103,7 @@ def get_split_results(fld_gp_name, fld_gp_labels, raw_results):
     split_raw_results.append(fld_gp_dic)
     return split_raw_results
 
-def get_indiv_basic_dets(indiv_label, indiv_raw_results, measure_val_labels, 
+def get_indiv_basic_dets(indiv_label, indiv_raw_results, measure_val_lbls, 
                          sort_opt):
     """
     Returns dict for indiv chart containing: CHART_CHART_BY_LABEL, 
@@ -110,7 +112,7 @@ def get_indiv_basic_dets(indiv_label, indiv_raw_results, measure_val_labels,
     val_freq_label_lst = []
     for val, freq in indiv_raw_results:
         freq = int(freq)
-        val_label = measure_val_labels.get(val, unicode(val))
+        val_label = measure_val_lbls.get(val, unicode(val))
         val_freq_label_lst.append((val, freq, val_label))
     lib.sort_value_labels(sort_opt, val_freq_label_lst)
     measure_dets = []
@@ -269,50 +271,91 @@ def get_pie_chart_dets(dbe, cur, tbl, tbl_filt,
         pie_chart_dets.append(indiv_pie_dets)
     return pie_chart_dets
 
-def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure):
+def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls, 
+                   fld_measure):
     """
+    Make separate db call each histogram.  Getting all values anyway and don't 
+        want to store in memory.
+    Return list of dicts - one for each histogram.  Each contains: 
+        CHART_XAXIS_DETS, CHART_Y_VALS, CHART_MINVAL, CHART_MAXVAL, 
+        CHART_BIN_LABELS.
     xaxis_dets -- [(1, u""), (2: u"", ...]
     y_vals -- [0.091, ...]
     bin_labels -- [u"1 to under 2", u"2 to under 3", ...]
     """
     debug = False
-    obj_quoter = getdata.get_obj_quoter_func(dbe)
+    objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    SQL_get_vals = u"SELECT %s " % obj_quoter(fld_measure) + \
-        u"FROM %s " % obj_quoter(tbl) + \
-        u"WHERE %s IS NOT NULL %s" % (obj_quoter(fld_measure), and_tbl_filt) + \
-        u" ORDER BY %s" % obj_quoter(fld_measure)
-    if debug: print(SQL_get_vals)
-    cur.execute(SQL_get_vals)
-    vals = [x[0] for x in cur.fetchall()]
-    if not vals:
-        raise my_exceptions.TooFewValsForDisplay
-    # use nicest bins practical
-    n_bins, lower_limit, upper_limit = lib.get_bins(min(vals), max(vals))
-    y_vals, start, bin_width, unused = \
-             core_stats.histogram(vals, n_bins, defaultreallimits=[lower_limit, 
+    sql_dic = {u"fld_gp": objqtr(fld_gp), u"fld_measure": objqtr(fld_measure),
+               u"and_tbl_filt": and_tbl_filt, u"tbl": objqtr(tbl)}
+    if fld_gp:
+        SQL_fld_gp_vals = u"""SELECT %(fld_gp)s 
+            FROM %(tbl)s 
+            WHERE %(fld_measure)s IS NOT NULL %(and_tbl_filt)s 
+            GROUP BY %(fld_gp)s""" % sql_dic
+        cur.execute(SQL_fld_gp_vals)
+        fld_gp_vals = [x[0] for x in cur.fetchall()]
+        if len(fld_gp_vals) > mg.CHART_MAX_CHARTS_IN_SET:
+            raise my_exceptions.TooManyChartsInSeries(fld_gp_name, 
+                                           max_items=mg.CHART_MAX_CHARTS_IN_SET)
+    else:
+        fld_gp_vals = [None,] # Got to have something to loop through ;-)
+    histo_dets = []
+    for fld_gp_val in fld_gp_vals:
+        if fld_gp:
+            filt = getdata.make_fld_val_clause(dbe, dd.flds, fld_name=fld_gp, 
+                                               val=fld_gp_val)
+            and_fld_gp_filt = u" and %s" % filt
+            fld_gp_val_lbl = fld_gp_lbls.get(fld_gp_val, fld_gp_val)
+            chart_by_label = u"%s: %s" % (fld_gp_name, fld_gp_val_lbl)
+        else:
+            and_fld_gp_filt = u""
+            chart_by_label = mg.CHART_CHART_BY_LABEL_ALL
+        sql_dic[u"and_fld_gp_filt"] = and_fld_gp_filt
+        SQL_get_vals = u"""SELECT %(fld_measure)s 
+            FROM %(tbl)s
+            WHERE %(fld_measure)s IS NOT NULL
+                %(and_tbl_filt)s %(and_fld_gp_filt)s
+            ORDER BY %(fld_measure)s""" % sql_dic
+        if debug: print(SQL_get_vals)
+        cur.execute(SQL_get_vals)
+        vals = [x[0] for x in cur.fetchall()]
+        if not vals:
+            raise my_exceptions.TooFewValsForDisplay
+        # use nicest bins practical
+        n_bins, lower_limit, upper_limit = lib.get_bins(min(vals), max(vals))
+        (y_vals, start, 
+            bin_width, unused) = core_stats.histogram(vals, n_bins, 
+                                                defaultreallimits=[lower_limit, 
                                                                    upper_limit])
-    y_vals, start, bin_width = lib.fix_sawtoothing(vals, n_bins, y_vals, start, 
-                                                   bin_width)
-    minval = start
-    # only show as many decimal points as needed
-    dp = 0
-    while True:
-        if (round(start, dp) != round(start + bin_width, dp)) or dp > 6:
-            break
-        dp += 1
-    bin_ranges = []
-    for y_val in y_vals:
-        bin_start = round(start, dp)
-        bin_end = round(start + bin_width, dp)
-        start = bin_end
-        bin_ranges.append((bin_start, bin_end))
-    bin_labels = [_(u"%(lower)s to < %(upper)s") % 
-                        {u"lower": x[0], u"upper": x[1]} for x in bin_ranges]
-    maxval = bin_end
-    xaxis_dets = [(x+1, u"") for x in range(n_bins)]
-    if debug: print(minval, maxval, xaxis_dets, y_vals, bin_labels)
-    return minval, maxval, xaxis_dets, y_vals, bin_labels
+        y_vals, start, bin_width = lib.fix_sawtoothing(vals, n_bins, y_vals, 
+                                                       start, bin_width)
+        minval = start
+        # only show as many decimal points as needed
+        dp = 0
+        while True:
+            if (round(start, dp) != round(start + bin_width, dp)) or dp > 6:
+                break
+            dp += 1
+        bin_ranges = []
+        for y_val in y_vals:
+            bin_start = round(start, dp)
+            bin_end = round(start + bin_width, dp)
+            start = bin_end
+            bin_ranges.append((bin_start, bin_end))
+        bin_labels = [_(u"%(lower)s to < %(upper)s") % 
+                            {u"lower": x[0], u"upper": x[1]} for x in bin_ranges]
+        maxval = bin_end
+        xaxis_dets = [(x+1, u"") for x in range(n_bins)]
+        if debug: print(minval, maxval, xaxis_dets, y_vals, bin_labels)
+        histo_dic = {mg.CHART_CHART_BY_LABEL: chart_by_label,
+                     mg.CHART_XAXIS_DETS: xaxis_dets,
+                     mg.CHART_Y_VALS: y_vals,
+                     mg.CHART_MINVAL: minval,
+                     mg.CHART_MAXVAL: maxval,
+                     mg.CHART_BIN_LABELS: bin_labels}
+        histo_dets.append(histo_dic)
+    return histo_dets
 
 def reshape_sql_crosstab_data(raw_data):
     """
@@ -497,6 +540,17 @@ def get_left_axis_shift(xaxis_dets):
     if debug: print(left_axis_label_shift)
     return left_axis_label_shift
 
+def is_multichart(chart_dets):
+    if len(chart_dets) > 1:
+        multichart = True
+    elif len(chart_dets) == 1:
+        # might be only one field group value - still needs indiv chart title
+        multichart = (chart_dets[0][mg.CHART_CHART_BY_LABEL] !=
+                      mg.CHART_CHART_BY_LABEL_ALL) 
+    else:
+        multichart = False
+    return multichart
+
 def barchart_output(titles, subtitles, x_title, barchart_dets, inc_perc, 
                     css_idx, css_fil, page_break_after):
     """
@@ -515,7 +569,7 @@ def barchart_output(titles, subtitles, x_title, barchart_dets, inc_perc,
     html = []
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
-    multichart = (len(barchart_dets) > 1)
+    multichart = is_multichart(barchart_dets)
     axis_label_drop = 30 if x_title else 10
     if multichart:
         axis_label_drop = axis_label_drop*0.8
@@ -632,8 +686,13 @@ def barchart_output(titles, subtitles, x_title, barchart_dets, inc_perc,
                u"x_title": x_title, u"y_title": mg.Y_AXIS_FREQ_LABEL,
                u"tooltip_border_colour": tooltip_border_colour, 
                u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
-               u"outer_bg": outer_bg, u"chart_idx": chart_idx,
+               u"outer_bg": outer_bg, 
+               u"chart_idx": u"%02d" % chart_idx,
                u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
+    """
+    zero padding chart_idx so that when we search and replace, and go to replace 
+        Renumber1 with Renumber15, we don't change Renumber16 to Renumber156 ;-)
+    """
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -646,7 +705,7 @@ def piechart_output(titles, subtitles, pie_chart_dets, css_fil, css_idx,
     if debug: print(pie_chart_dets)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    multichart = (len(pie_chart_dets) > 1)
+    multichart = is_multichart(pie_chart_dets)
     html = []
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
@@ -725,7 +784,7 @@ makechartRenumber%(chart_idx)s = function(){
                u"label_font_colour": label_font_colour,
                u"tooltip_border_colour": tooltip_border_colour,
                u"connector_style": connector_style, u"outer_bg": outer_bg, 
-               u"inner_bg": inner_bg, u"chart_idx": chart_idx,
+               u"inner_bg": inner_bg, u"chart_idx": u"%02d" % chart_idx,
                })
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
@@ -853,7 +912,7 @@ def areachart_output(titles, subtitles, chart_dets, inc_perc, css_fil, css_idx,
     debug = False
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    multichart = (len(chart_dets) > 1)
+    multichart = is_multichart(chart_dets)
     html = []
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
@@ -953,7 +1012,7 @@ makechartRenumber%(chart_idx)s = function(){
                u"y_title": mg.Y_AXIS_FREQ_LABEL,
                u"tooltip_border_colour": tooltip_border_colour,
                u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
-               u"grid_bg": grid_bg, u"chart_idx": chart_idx,
+               u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx,
                u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks})
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
@@ -961,9 +1020,8 @@ makechartRenumber%(chart_idx)s = function(){
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets, 
-                     y_vals, bin_labels, css_fil, css_idx, 
-                     page_break_after=False):
+def histogram_output(titles, subtitles, var_label, histo_dets, css_fil, 
+                     css_idx, page_break_after=False):
     """
     See http://trac.dojotoolkit.org/ticket/7926 - he had trouble doing this then
     titles -- list of title lines correct styles
@@ -978,14 +1036,11 @@ def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets,
     debug = False
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    xaxis_labels = u"[" + \
-        u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
-                                    for i,x in enumerate(xaxis_dets,1)]) + u"]"
-    bin_labs = u"\"" + u"\", \"".join(bin_labels) + u"\""
-    width = 700
-    xfontsize = 10
+    multichart = is_multichart(histo_dets)
     html = []
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    html.append(title_dets_html)
+    height = 300 if multichart else 350
     (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
             colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
@@ -1000,62 +1055,92 @@ def histogram_output(titles, subtitles, var_label, minval, maxval, xaxis_dets,
         fill = colour_mappings[0][0]
     except IndexError, e:
         fill = mg.DOJO_COLOURS[0]
-    html.append(u"""
-    <script type="text/javascript">
+    for chart_idx, histo_det in enumerate(histo_dets):
+        minval = histo_det[mg.CHART_MINVAL]
+        maxval = histo_det[mg.CHART_MAXVAL]
+        xaxis_dets = histo_det[mg.CHART_XAXIS_DETS]
+        y_vals = histo_det[mg.CHART_Y_VALS]
+        bin_labels = histo_det[mg.CHART_BIN_LABELS]
+        indiv_histo_title = "<p><b>%s</b></p>" % \
+                histo_det[mg.CHART_CHART_BY_LABEL] if multichart else u""        
+        xaxis_labels = u"[" + \
+            u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
+                                    for i,x in enumerate(xaxis_dets,1)]) + u"]"
+        bin_labs = u"\"" + u"\", \"".join(bin_labels) + u"\""
+        width = 700
+        xfontsize = 10
+        left_axis_label_shift = 30 if width > 1200 else 10 # gets squeezed 
+        if multichart:
+            width = width*0.8
+            xfontsize = xfontsize*0.8
+            left_axis_label_shift = left_axis_label_shift + 20        
+        html.append(u"""
+<script type="text/javascript">
 
-        var sofaHlRenumber = function(colour){
-            var hlColour;
-            switch (colour.toHex()){
-                %(colour_cases)s
-                default:
-                    hlColour = hl(colour.toHex());
-                    break;
-            }
-            return new dojox.color.Color(hlColour);
-        }    
+var sofaHlRenumber%(chart_idx)s = function(colour){
+    var hlColour;
+    switch (colour.toHex()){
+        %(colour_cases)s
+        default:
+            hlColour = hl(colour.toHex());
+            break;
+    }
+    return new dojox.color.Color(hlColour);
+}    
+
+makechartRenumber%(chart_idx)s = function(){
+    var datadets = new Array();
+    datadets["seriesLabel"] = "%(var_label)s";
+    datadets["yVals"] = %(y_vals)s;
+    datadets["binLabels"] = [%(bin_labels)s];
+    datadets["style"] = {stroke: {color: "white", 
+        width: "%(stroke_width)spx"}, fill: "%(fill)s"};
     
-        makechartRenumber = function(){
-            var datadets = new Array();
-            datadets["seriesLabel"] = "%(var_label)s";
-            datadets["yVals"] = %(y_vals)s;
-            datadets["binLabels"] = [%(bin_labels)s];
-            datadets["style"] = {stroke: {color: \"white\", 
-                width: "%(stroke_width)spx"}, fill: "%(fill)s"};
-            
-            var chartconf = new Array();
-            chartconf["xaxisLabels"] = %(xaxis_labels)s;
-            chartconf["xfontsize"] = %(xfontsize)s;
-            chartconf["sofaHl"] = sofaHlRenumber;
-            chartconf["tickColour"] = "%(tick_colour)s";
-            chartconf["gridlineWidth"] = %(gridline_width)s;
-            chartconf["gridBg"] = \"%(grid_bg)s\";
-            chartconf["minorTicks"] = %(minor_ticks)s;
-            chartconf["axisLabelFontColour"] = "%(axis_label_font_colour)s";
-            chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
-            chartconf["yTitle"] = "%(y_title)s";
-            chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
-            chartconf["connectorStyle"] = "%(connector_style)s";
-            chartconf["minVal"] = %(minval)s;
-            chartconf["maxVal"] = %(maxval)s;
-            %(outer_bg)s
-            makeHistogram("mychartRenumber", datadets, chartconf);
-        }
-    </script>
-    %(titles)s
-    <div id="mychartRenumber" style="width: %(width)spx; height: 350px;"></div>
-    <br>
-    """ % {u"stroke_width": stroke_width, u"fill": fill,
-           u"colour_cases": colour_cases, u"titles": title_dets_html, 
-           u"xaxis_labels": xaxis_labels, u"y_vals": u"%s" % y_vals,
-           u"bin_labels": bin_labs, u"minval": minval, u"maxval": maxval,
-           u"width": width, u"xfontsize": xfontsize, u"var_label": var_label,
-           u"axis_label_font_colour": axis_label_font_colour,
-           u"major_gridline_colour": major_gridline_colour,
-           u"gridline_width": gridline_width, u"y_title": mg.Y_AXIS_FREQ_LABEL,
-           u"tooltip_border_colour": tooltip_border_colour,
-           u"connector_style": connector_style, u"outer_bg": outer_bg, 
-           u"grid_bg": grid_bg, u"minor_ticks": u"true",
-           u"tick_colour": major_gridline_colour})
+    var chartconf = new Array();
+    chartconf["xaxisLabels"] = %(xaxis_labels)s;
+    chartconf["xfontsize"] = %(xfontsize)s;
+    chartconf["sofaHl"] = sofaHlRenumber%(chart_idx)s;
+    chartconf["tickColour"] = "%(tick_colour)s";
+    chartconf["gridlineWidth"] = %(gridline_width)s;
+    chartconf["gridBg"] = "%(grid_bg)s";
+    chartconf["minorTicks"] = %(minor_ticks)s;
+    chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
+    chartconf["axisLabelFontColour"] = "%(axis_label_font_colour)s";
+    chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
+    chartconf["yTitle"] = "%(y_title)s";
+    chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
+    chartconf["connectorStyle"] = "%(connector_style)s";
+    chartconf["minVal"] = %(minval)s;
+    chartconf["maxVal"] = %(maxval)s;
+    %(outer_bg)s
+    makeHistogram("mychartRenumber%(chart_idx)s", datadets, chartconf);
+}
+</script>
+
+<div style="float: left; margin-right: 10px;">
+%(indiv_histo_title)s
+<div id="mychartRenumber%(chart_idx)s" 
+    style="width: %(width)spx; height: %(height)spx;">
+</div>
+</div>
+        """ % {u"indiv_histo_title": indiv_histo_title,
+               u"stroke_width": stroke_width, u"fill": fill,
+               u"colour_cases": colour_cases,
+               u"xaxis_labels": xaxis_labels, u"y_vals": u"%s" % y_vals,
+               u"bin_labels": bin_labs, u"minval": minval, u"maxval": maxval,
+               u"width": width, u"height": height, u"xfontsize": xfontsize, 
+               u"var_label": var_label,
+               u"left_axis_label_shift": left_axis_label_shift,
+               u"axis_label_font_colour": axis_label_font_colour,
+               u"major_gridline_colour": major_gridline_colour,
+               u"gridline_width": gridline_width, 
+               u"y_title": mg.Y_AXIS_FREQ_LABEL,
+               u"tooltip_border_colour": tooltip_border_colour,
+               u"connector_style": connector_style, u"outer_bg": outer_bg, 
+               u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx,
+               u"minor_ticks": u"true",
+               u"tick_colour": major_gridline_colour})
+    html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

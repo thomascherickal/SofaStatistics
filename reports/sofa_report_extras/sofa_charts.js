@@ -112,8 +112,7 @@ makePieChart = function(chartname, slices, chartconf){
 
     var dc = dojox.charting;
     var mychart = new dc.Chart2D(chartname);
-    
-    
+        
     var sofa_theme = new dc.Theme({
 		colors: chartconf["sliceColours"],
         chart: {
@@ -371,6 +370,7 @@ makeHistogram = function(chartname, datadets, chartconf){
     var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "P";
     var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
+    var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
 
     // chartwide functon setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
@@ -378,7 +378,7 @@ makeHistogram = function(chartname, datadets, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname);
+    var mychart = new dc.Chart2D(chartname, {margins: {l: 10+leftAxisLabelShift, t: 10, r: 10, b: 10}});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,

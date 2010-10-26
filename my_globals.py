@@ -20,7 +20,7 @@ MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
 PYTHON_ENCODING_DECLARATION = u"#! /usr/bin/env python" + os.linesep + \
     u"# -*- coding: utf-8 -*-" + os.linesep
-DROP_SELECT = _("Select")
+DROP_SELECT = _("Nothing selected")
 # core stats *********************************************************
 STATS_DIC_LABEL = u"label"
 STATS_DIC_N = u"n"
@@ -362,7 +362,7 @@ AREA_CHART = u"Area Chart"
 HISTOGRAM = u"Histogram"
 SCATTERPLOT = u"Scatterplot"
 TWO_VAR_CHART_TYPES = [SIMPLE_BARCHART, PIE_CHART, CLUSTERED_BARCHART, 
-                       LINE_CHART, AREA_CHART, SCATTERPLOT]
+                       LINE_CHART, AREA_CHART, HISTOGRAM, SCATTERPLOT]
 CHART_TYPE_TO_MIN_DATA_TYPE = {SIMPLE_BARCHART: VAR_TYPE_CAT,
                                CLUSTERED_BARCHART: VAR_TYPE_CAT,
                                PIE_CHART: VAR_TYPE_CAT,
@@ -401,7 +401,7 @@ CHART_BY = _("By")
 CHART_CHART_BY = _("Charts By")
 Y_AXIS_FREQ_LABEL = _("Frequency")
 LABEL_LINE_BREAK_JS = """var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";"""
-CHART_MAX_CHARTS_IN_SET = 12
+CHART_MAX_CHARTS_IN_SET = 16
 CHART_CHART_BY_LABEL = u"chart_by_label"
 CHART_CHART_BY_LABEL_ALL = u"chart_by_label_all"
 CHART_VAL_FREQS = u"chart_val_freqs"
@@ -411,6 +411,9 @@ CHART_Y_VALS = u"y_vals"
 CHART_SLICE_DETS = u"slice_dets"
 CHART_XAXIS_DETS = u"xaxis_dets"
 CHART_SERIES_DETS = u"series_dets"
+CHART_MINVAL = u"minval"
+CHART_MAXVAL = u"maxval"
+CHART_BIN_LABELS = u"bin_labels"
 # remember defaults //////////
 # stats tests
 GROUP_BY_DEFAULT = None

@@ -367,11 +367,13 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.drop_group_by.SetSelection(idx_gp)
 
     def setup_var(self, drop_var, default, sorted_var_names, var_name=None, 
-                  inc_drop_select=False):
+                  inc_drop_select=False, override_min_data_type=None):
         debug = False
-        if debug: print(var_name, self.min_data_type)
+        min_data_type = override_min_data_type if override_min_data_type \
+            else self.min_data_type
+        if debug: print(var_name, self.min_data_type, override_min_data_type)
         var_names = projects.get_approp_var_names(self.var_types,
-                                                  self.min_data_type)
+                                                  min_data_type)
         var_choice_items, sorted_vals = lib.get_sorted_choice_items(
                                                 dic_labels=self.var_labels,
                                                 vals=var_names,

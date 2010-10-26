@@ -235,11 +235,16 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
         if debug: print("\n\nUsing default css")
         css = get_fallback_css()
     if has_dojo:
+        """
+        zero padding so that when we search and replace, and we go to replace 
+            Renumber1 with Renumber15, we don't change Renumber16 to 
+            Renumber156 ;-)
+        """
         if new_js_n_charts is None:
             make_objs_func_str = u"""
     for(var i=0;i<%s;i++){
         try{
-            window["makechartRenumber" + i]();
+            window["makechartRenumber" + String('00'+i).slice(-2)]();
         } catch(exceptionObject) {
             var keepGoing = true;
         }
@@ -252,7 +257,7 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
     //n_charts_end
     for(var i=0;i<n_charts;i++){
         try{
-            window["makechart" + i]();
+            window["makechart" + String('00'+i).slice(-2)]();
         } catch(exceptionObject) {
             var keepGoing = true;
         }
@@ -365,7 +370,7 @@ def get_makechartRenumbers_n(html):
     """
     Count occurrences of makechartRenumber.
     """
-    makechartRenumbers_n = html.count(u"makechartRenumber")
+    makechartRenumbers_n = html.count(u"makechartRenumber") - 1 # one in header
     return makechartRenumbers_n
 
 def get_css_dets():
@@ -634,10 +639,17 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
     if has_dojo:
         """
         May be a set of charts e.g. Renumber0, Renumber1 etc
+        zero padding chart_idx so that when we search and replace, and go to 
+            replace Renumber1 with Renumber15, we don't change Renumber16 to 
+            Renumber156 ;-)
         """
         for i in range(n_charts_in_new):
-            replacement = unicode(new_js_n_charts - n_charts_in_new + i )
-            new_no_hdr = new_no_hdr.replace(u"Renumber%s" % i, replacement)
+            orig_n_charts = new_js_n_charts - n_charts_in_new
+            new_n = (orig_n_charts) + i
+            replacement = u"%02d" % new_n
+            i_zero_padded = u"%02d" % i
+            new_no_hdr = new_no_hdr.replace(u"Renumber%s" % i_zero_padded, 
+                                            replacement)
     hdr_title = time.strftime(_("SOFA Statistics Report") + \
                               " %Y-%m-%d_%H:%M:%S")
     hdr = get_html_hdr(hdr_title, css_fils, has_dojo, new_js_n_charts)

@@ -440,7 +440,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.on_rad_sort_opt(idx_sel)
         
     def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel, 
-                  inc_drop_select=False, lbla=None, lblb=None):
+                  inc_drop_select=False, lbla=None, lblb=None, 
+                  override_min_data_type2=None):
         btn.SetFocus()
         btn.SetDefault()
         self.btn_to_rollback.SetBitmapLabel(self.bmp_to_rollback_to)
@@ -464,7 +465,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         show = (self.chart_type in mg.TWO_VAR_CHART_TYPES)
         if show:
             self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, 
-                           self.sorted_var_names2, var_name2, inc_drop_select)
+                           self.sorted_var_names2, var_name2, inc_drop_select,
+                           override_min_data_type=override_min_data_type2)
         self.drop_var2.Enable(show)
         self.lbl_var2.Enable(show)
         self.szr_mid.Remove(self.panel_displayed)
@@ -529,7 +531,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_histogram
         btn_bmp_sel = self.bmp_btn_histogram_sel
         panel = self.panel_histogram
-        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
+        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel,
+                       inc_drop_select=True, lblb=mg.CHART_CHART_BY,
+                       override_min_data_type2=mg.VAR_TYPE_CAT)
 
     def on_btn_scatterplot(self, event):
         self.chart_type = mg.SCATTERPLOT
@@ -833,12 +837,13 @@ chart_output = charting_output.areachart_output(titles, subtitles,
 
 def get_histogram_script(css_fil, css_idx):
     script = u"""
-minval, maxval, xaxis_dets, y_vals, bin_labels = charting_output.get_histo_dets(
-            dbe="%(dbe)s", cur=cur, tbl=tbl, tbl_filt=tbl_filt,
+histo_dets = charting_output.get_histo_dets(dbe="%(dbe)s", cur=cur, tbl=tbl, 
+            tbl_filt=tbl_filt, 
+            fld_gp=fld_gp, fld_gp_name=var_label2, fld_gp_lbls=fld_gp_lbls,
             fld_measure=fld_measure)
 chart_output = charting_output.histogram_output(titles, subtitles, var_label1,
-            minval, maxval, xaxis_dets, y_vals, bin_labels,
-            css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
+            histo_dets, css_fil="%(css_fil)s", 
+            css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": css_fil, u"css_idx": css_idx}
     return script
 
