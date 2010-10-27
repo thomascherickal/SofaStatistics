@@ -589,6 +589,7 @@ def barchart_output(titles, subtitles, x_title, barchart_dets, inc_perc,
     for chart_idx, barchart_det in enumerate(barchart_dets):
         xaxis_dets = barchart_det[mg.CHART_XAXIS_DETS]
         series_dets = barchart_det[mg.CHART_SERIES_DETS]
+        pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
         indiv_bar_title = "<p><b>%s</b></p>" % \
                     barchart_det[mg.CHART_CHART_BY_LABEL] if multichart else u""
         label_dets = get_label_dets(xaxis_dets, series_dets)
@@ -666,13 +667,16 @@ def barchart_output(titles, subtitles, x_title, barchart_dets, inc_perc,
             makeBarChart("mychartRenumber%(chart_idx)s", series, chartconf);
         }
     </script>
+    
     %(titles)s
-    <div style="float: left; margin-right: 10px;">
+    
+    <div style="float: left; margin-right: 10px; %(pagebreak)s">
     %(indiv_bar_title)s
     <div id="mychartRenumber%(chart_idx)s" 
         style="width: %(width)spx; height: %(height)spx;">
-    </div>
-    <div id="legendMychartRenumber%(chart_idx)s"></div>
+        </div>
+    <div id="legendMychartRenumber%(chart_idx)s">
+        </div>
     </div>
         """ % {u"colour_cases": colour_cases, u"titles": title_dets_html, 
                u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
@@ -686,7 +690,7 @@ def barchart_output(titles, subtitles, x_title, barchart_dets, inc_perc,
                u"x_title": x_title, u"y_title": mg.Y_AXIS_FREQ_LABEL,
                u"tooltip_border_colour": tooltip_border_colour, 
                u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
-               u"outer_bg": outer_bg, 
+               u"outer_bg": outer_bg,  u"pagebreak": pagebreak,
                u"chart_idx": u"%02d" % chart_idx,
                u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
     """
@@ -701,7 +705,7 @@ def barchart_output(titles, subtitles, x_title, barchart_dets, inc_perc,
 
 def piechart_output(titles, subtitles, pie_chart_dets, css_fil, css_idx, 
                     page_break_after):
-    debug = True
+    debug = False
     if debug: print(pie_chart_dets)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
@@ -728,6 +732,7 @@ def piechart_output(titles, subtitles, pie_chart_dets, css_fil, css_idx,
     slice_colours = colours[:30]
     label_font_colour = axis_label_font_colour
     for chart_idx, pie_chart_det in enumerate(pie_chart_dets):
+        pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
         slices_js_list = []
         slice_dets = pie_chart_det[mg.CHART_SLICE_DETS]
         slice_fontsize = 14 if len(slice_dets) < 10 else 10
@@ -770,15 +775,16 @@ makechartRenumber%(chart_idx)s = function(){
     makePieChart("mychartRenumber%(chart_idx)s", slices, chartconf);
 }
 </script>
-<div style="float: left; margin-right: 10px;">
+
+<div style="float: left; margin-right: 10px; %(pagebreak)s">
 %(indiv_pie_title)s
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx;">
-</div>
+    </div>
 </div>
         """ % {u"slice_colours": slice_colours, u"colour_cases": colour_cases, 
                u"width": width, u"height": height, u"radius": radius,
-               u"label_offset": label_offset,
+               u"label_offset": label_offset, u"pagebreak": pagebreak,
                u"indiv_pie_title": indiv_pie_title,
                u"slices_js": slices_js, u"slice_fontsize": slice_fontsize, 
                u"label_font_colour": label_font_colour,
@@ -837,6 +843,7 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
     series_js_list = []
     series_names_list = []
     if debug: print(series_dets)
+    pagebreak = u"page-break-after: always;"
     for i, series_det in enumerate(series_dets):
         series_names_list.append(u"series%s" % i)
         series_js_list.append(u"var series%s = new Array();" % i)
@@ -856,40 +863,48 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
                                                 u", ".join(series_names_list)
     series_js = series_js.lstrip()
     html.append(u"""
-    <script type="text/javascript">
+<script type="text/javascript">
 
-        makechartRenumber00 = function(){
-            %(series_js)s
-            var chartconf = new Array();
-            chartconf["xaxisLabels"] = %(xaxis_labels)s;
-            chartconf["xfontsize"] = %(xfontsize)s;
-            chartconf["gridlineWidth"] = %(gridline_width)s;
-            chartconf["gridBg"] = "%(grid_bg)s";
-            chartconf["minorTicks"] = %(minor_ticks)s;
-            chartconf["microTicks"] = %(micro_ticks)s;
-            chartconf["axisLabelFontColour"] = "%(axis_label_font_colour)s";
-            chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
-            chartconf["xTitle"] = "%(x_title)s";
-            chartconf["axisLabelDrop"] = %(axis_label_drop)s;
-            chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
-            chartconf["yTitle"] = "%(y_title)s";
-            chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
-            chartconf["incPerc"] = %(inc_perc_js)s;
-            chartconf["connectorStyle"] = "%(connector_style)s";
-            makeLineChart("mychartRenumber00", series, chartconf);
-        }
-    </script>
-    %(titles)s
-    <div id="mychartRenumber00" style="width: %(width)spx; 
-        height: %(height)spx;"></div>
-    <div id="legendMychartRenumber00"></div>
-    <br>
+makechartRenumber00 = function(){
+    %(series_js)s
+    var chartconf = new Array();
+    chartconf["xaxisLabels"] = %(xaxis_labels)s;
+    chartconf["xfontsize"] = %(xfontsize)s;
+    chartconf["gridlineWidth"] = %(gridline_width)s;
+    chartconf["gridBg"] = "%(grid_bg)s";
+    chartconf["minorTicks"] = %(minor_ticks)s;
+    chartconf["microTicks"] = %(micro_ticks)s;
+    chartconf["axisLabelFontColour"] = "%(axis_label_font_colour)s";
+    chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
+    chartconf["xTitle"] = "%(x_title)s";
+    chartconf["axisLabelDrop"] = %(axis_label_drop)s;
+    chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
+    chartconf["yTitle"] = "%(y_title)s";
+    chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
+    chartconf["incPerc"] = %(inc_perc_js)s;
+    chartconf["connectorStyle"] = "%(connector_style)s";
+    makeLineChart("mychartRenumber00", series, chartconf);
+}
+</script>
+%(titles)s
+    
+<div style="float: left; margin-right: 10px; %(pagebreak)s">
+
+<div id="mychartRenumber00" style="width: %(width)spx; 
+        height: %(height)spx;">
+    </div>
+<div id="legendMychartRenumber00">
+    </div>
+</div>
+    
+    
+    
     """ % {u"titles": title_dets_html, 
            u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
            u"width": width, u"height": height, u"xfontsize": xfontsize, 
            u"axis_label_font_colour": axis_label_font_colour,
            u"major_gridline_colour": major_gridline_colour,
-           u"gridline_width": gridline_width,
+           u"gridline_width": gridline_width, u"pagebreak": pagebreak,
            u"axis_label_drop": axis_label_drop,
            u"left_axis_label_shift": left_axis_label_shift,
            u"x_title": x_title, u"y_title": mg.Y_AXIS_FREQ_LABEL,
@@ -936,6 +951,7 @@ def areachart_output(titles, subtitles, chart_dets, inc_perc, css_fil, css_idx,
         xaxis_dets = areachart_det[mg.CHART_XAXIS_DETS]
         series_dets = areachart_det[mg.CHART_SERIES_DETS]
         max_label_len = areachart_det[mg.CHART_MAX_LABEL_LEN]
+        pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
         indiv_area_title = "<p><b>%s</b></p>" % \
                 areachart_det[mg.CHART_CHART_BY_LABEL] if multichart else u""
         xaxis_labels = u"[" + \
@@ -996,11 +1012,11 @@ makechartRenumber%(chart_idx)s = function(){
 }
 </script>
 
-<div style="float: left; margin-right: 10px;">
+<div style="float: left; margin-right: 10px; %(pagebreak)s">
 %(indiv_area_title)s
 <div id="mychartRenumber%(chart_idx)s" 
-    style="width: %(width)spx; height: %(height)spx;">
-</div>
+    style="width: %(width)spx; height: %(height)spx; %(pagebreak)s">
+    </div>
 </div>
         """ % {u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
                u"indiv_area_title": indiv_area_title,
@@ -1009,7 +1025,7 @@ makechartRenumber%(chart_idx)s = function(){
                u"major_gridline_colour": major_gridline_colour,
                u"left_axis_label_shift": left_axis_label_shift,
                u"gridline_width": gridline_width, 
-               u"y_title": mg.Y_AXIS_FREQ_LABEL,
+               u"y_title": mg.Y_AXIS_FREQ_LABEL, u"pagebreak": pagebreak,
                u"tooltip_border_colour": tooltip_border_colour,
                u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
                u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx,
@@ -1061,6 +1077,7 @@ def histogram_output(titles, subtitles, var_label, histo_dets, css_fil,
         xaxis_dets = histo_det[mg.CHART_XAXIS_DETS]
         y_vals = histo_det[mg.CHART_Y_VALS]
         bin_labels = histo_det[mg.CHART_BIN_LABELS]
+        pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
         indiv_histo_title = "<p><b>%s</b></p>" % \
                 histo_det[mg.CHART_CHART_BY_LABEL] if multichart else u""        
         xaxis_labels = u"[" + \
@@ -1117,11 +1134,11 @@ makechartRenumber%(chart_idx)s = function(){
 }
 </script>
 
-<div style="float: left; margin-right: 10px;">
+<div style="float: left; margin-right: 10px; %(pagebreak)s">
 %(indiv_histo_title)s
 <div id="mychartRenumber%(chart_idx)s" 
-    style="width: %(width)spx; height: %(height)spx;">
-</div>
+        style="width: %(width)spx; height: %(height)spx;">
+    </div>
 </div>
         """ % {u"indiv_histo_title": indiv_histo_title,
                u"stroke_width": stroke_width, u"fill": fill,
@@ -1134,7 +1151,7 @@ makechartRenumber%(chart_idx)s = function(){
                u"axis_label_font_colour": axis_label_font_colour,
                u"major_gridline_colour": major_gridline_colour,
                u"gridline_width": gridline_width, 
-               u"y_title": mg.Y_AXIS_FREQ_LABEL,
+               u"y_title": mg.Y_AXIS_FREQ_LABEL, u"pagebreak": pagebreak,
                u"tooltip_border_colour": tooltip_border_colour,
                u"connector_style": connector_style, u"outer_bg": outer_bg, 
                u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx,
@@ -1175,6 +1192,7 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
                                        add_to_report, report_name, html,
                                        width_inches, height_inches)
     else:
+        pagebreak = u"page-break-after: always;"
         width = 700
         left_axis_label_shift = 10
         xfontsize = 10
@@ -1252,16 +1270,20 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
                 makeScatterplot("mychartRenumber00", datadets, chartconf);
             }
         </script>
+        
         %(titles)s
+
         <div id="mychartRenumber00" style="width: %(width)spx; 
-            height: %(height)spx;"></div>
-        <br>
+            height: %(height)spx; float: left; margin-right: 10px; 
+            %(pagebreak)s">
+        </div>
+            
         """ % {u"xy_pairs": xy_pairs, u"xmax": xmax, u"ymax": ymax,
                u"x_title": x_title, u"y_title": y_title,
                u"stroke_width": stroke_width, u"fill": fill,
                u"colour_cases": colour_cases, u"titles": title_dets_html, 
                u"width": width, u"height": height, u"xfontsize": xfontsize, 
-               u"series_label": a_vs_b,
+               u"series_label": a_vs_b, u"pagebreak": pagebreak,
                u"axis_label_font_colour": axis_label_font_colour,
                u"major_gridline_colour": major_gridline_colour,
                u"left_axis_label_shift": left_axis_label_shift,

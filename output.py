@@ -539,13 +539,18 @@ def rel2abs_css_links(strhtml):
     """
     return rel2abs_rpt_extras(strhtml, tpl=u"href=\"%s")
 
-def get_divider(source, tbl_filt_label, tbl_filt):
+def get_divider(source, tbl_filt_label, tbl_filt, page_break_before=False):
     """
     Get the HTML divider between content -includes source e.g. database, table 
         and time stamp; and a filter description.
-    """    
+    """
+    debug = False
     filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
-    return u"\n<br><br>\n<hr>\n%s\n<p>%s</p>" % (source, filt_msg)
+    pagebreak = u" page-break-before: always " if page_break_before else u""
+    div = u"""\n<br><br>\n<hr style="clear: both; %s">\n%s\n<p>%s</p>""" % \
+                (pagebreak, source, filt_msg)
+    if debug: print(div)
+    return div
 
 def get_source(db, tblname):
     full_datestamp = u"\n# on %s" % lib.get_unicode_datestamp()
@@ -619,7 +624,8 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
     new_no_hdr = extract_html_body(new_html)
     new_js_n_charts = None # init
     n_charts_in_new = get_makechartRenumbers_n(new_html)
-    if os.path.exists(cc[mg.CURRENT_REPORT_PATH]):
+    existing_report = os.path.exists(cc[mg.CURRENT_REPORT_PATH])
+    if existing_report:
         f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "U", "utf-8")
         existing_html = lib.clean_bom_utf8(f.read())
         existing_has_dojo = hdr_has_dojo(existing_html)
@@ -664,7 +670,8 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
     f.write(hdr)
     if existing_no_ends:
         f.write(existing_no_ends)
-    f.write(get_divider(source, tbl_filt_label, tbl_filt))
+    pagebreak = existing_report
+    f.write(get_divider(source, tbl_filt_label, tbl_filt, pagebreak))
     f.write(new_no_hdr)
     f.write(get_html_ftr())
     f.close()
