@@ -117,7 +117,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     def __init__(self, var_labels=None, var_notes=None, val_dics=None):
         debug = False
         wx.Dialog.__init__(self, parent=None, id=-1, 
-                       title=_("Make Report Table"), pos=(mg.HORIZ_OFFSET, -1),
+                       title=_("Make Report Table"), 
+                       pos=(mg.HORIZ_OFFSET, 0), # -1 positions too low on 768v
                        style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
                        wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         dimtree.DimTree.__init__(self)

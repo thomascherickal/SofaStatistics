@@ -52,7 +52,7 @@ class StatsSelectDlg(wx.Dialog):
         wx.Dialog.__init__(self, None, title=_("Select Statistical Test"), 
               size=(width,height),
               style=wx.CAPTION|wx.MINIMIZE_BOX|wx.SYSTEM_MENU,
-              pos=(mg.HORIZ_OFFSET,-1))
+              pos=(mg.HORIZ_OFFSET,0)) # -1 positions it too low on 768 v
         self.proj_name = proj_name
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
