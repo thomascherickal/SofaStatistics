@@ -707,7 +707,7 @@ class StartFrame(wx.Frame):
             # help images
             help = os.path.join(SCRIPT_PATH, u"images", u"help.xpm")
             self.bmp_help = wx.Image(help, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-            proj = os.path.join(SCRIPT_PATH, u"images", u"briefcase.xpm")
+            proj = os.path.join(SCRIPT_PATH, u"images", u"projects.xpm")
             self.bmp_proj = wx.Image(proj, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
             prefs = os.path.join(SCRIPT_PATH, u"images", u"prefs.xpm")
             self.bmp_prefs = \
@@ -904,7 +904,8 @@ class StartFrame(wx.Frame):
     def on_proj_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_proj, HELP_IMG_LEFT, HELP_IMG_TOP, True)
+        panel_dc.DrawBitmap(self.bmp_proj, HELP_IMG_LEFT-20, HELP_IMG_TOP-20, 
+                            True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_projs = _("Projects let SOFA know how to connect to your data, "
                       "what labels to use, your favourite styles etc. The "
@@ -930,7 +931,7 @@ class StartFrame(wx.Frame):
     def on_prefs_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_prefs, HELP_IMG_LEFT+50, HELP_IMG_TOP-10, 
+        panel_dc.DrawBitmap(self.bmp_prefs, HELP_IMG_LEFT, HELP_IMG_TOP-10, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_pref = _("Set preferences e.g. format for entering dates")
@@ -1062,7 +1063,7 @@ class StartFrame(wx.Frame):
     def on_stats_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_stats, HELP_IMG_LEFT-30, HELP_IMG_TOP-20, 
+        panel_dc.DrawBitmap(self.bmp_stats, HELP_IMG_LEFT-20, HELP_IMG_TOP-10, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_stats1 = _("Run statistical tests on your data - e.g. a "
