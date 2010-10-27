@@ -931,7 +931,7 @@ class StartFrame(wx.Frame):
     def on_prefs_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_prefs, HELP_IMG_LEFT, HELP_IMG_TOP-10, 
+        panel_dc.DrawBitmap(self.bmp_prefs, HELP_IMG_LEFT+35, HELP_IMG_TOP-10, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_pref = _("Set preferences e.g. format for entering dates")
@@ -997,7 +997,7 @@ class StartFrame(wx.Frame):
     def on_tables_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_tabs, HELP_IMG_LEFT-40, HELP_IMG_TOP-25, 
+        panel_dc.DrawBitmap(self.bmp_tabs, HELP_IMG_LEFT+10, HELP_IMG_TOP-10, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_tabs1 = _("Make report tables e.g. Age vs Gender")
@@ -1063,7 +1063,7 @@ class StartFrame(wx.Frame):
     def on_stats_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_stats, HELP_IMG_LEFT-20, HELP_IMG_TOP-10, 
+        panel_dc.DrawBitmap(self.bmp_stats, HELP_IMG_LEFT+10, HELP_IMG_TOP-25, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
         txt_stats1 = _("Run statistical tests on your data - e.g. a "
