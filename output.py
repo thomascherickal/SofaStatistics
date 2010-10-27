@@ -332,6 +332,17 @@ hl = function(colour){
         vertical-align: text-top; 
         padding-right: 10px
     }
+    @media print {
+        .screen-float-only{
+        float: none;
+        }
+    }
+    
+    @media screen {
+        .screen-float-only{
+        float: left;
+        }
+    }
 -->
 </style>""" % {u"make_objs_func_str": make_objs_func_str,
                u"label_line_break_js": mg.LABEL_LINE_BREAK_JS,

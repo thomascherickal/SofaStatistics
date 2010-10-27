@@ -631,53 +631,53 @@ def barchart_output(titles, subtitles, x_title, barchart_dets, inc_perc,
                                                 u", ".join(series_names_list)
         series_js = series_js.lstrip()
         html.append(u"""
-    <script type="text/javascript">
-    
-        var sofaHlRenumber%(chart_idx)s = function(colour){
-            var hlColour;
-            switch (colour.toHex()){
-                %(colour_cases)s
-                default:
-                    hlColour = hl(colour.toHex());
-                    break;
-            }
-            return new dojox.color.Color(hlColour);
-        }
-    
-        makechartRenumber%(chart_idx)s = function(){
-            %(series_js)s
-            var chartconf = new Array();
-            chartconf["xaxisLabels"] = %(xaxis_labels)s;
-            chartconf["xgap"] = %(xgap)s;
-            chartconf["xfontsize"] = %(xfontsize)s;
-            chartconf["sofaHl"] = sofaHlRenumber%(chart_idx)s;
-            chartconf["gridlineWidth"] = %(gridline_width)s;
-            chartconf["gridBg"] = \"%(grid_bg)s\";
-            chartconf["minorTicks"] = %(minor_ticks)s;
-            chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
-            chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
-            chartconf["xTitle"] = \"%(x_title)s\";
-            chartconf["axisLabelDrop"] = %(axis_label_drop)s;
-            chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
-            chartconf["yTitle"] = \"%(y_title)s\";
-            chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
-            chartconf["incPerc"] = %(inc_perc_js)s;
-            chartconf["connectorStyle"] = \"%(connector_style)s\";
-            %(outer_bg)s
-            makeBarChart("mychartRenumber%(chart_idx)s", series, chartconf);
-        }
-    </script>
-    
-    %(titles)s
-    
-    <div style="float: left; margin-right: 10px; %(pagebreak)s">
-    %(indiv_bar_title)s
-    <div id="mychartRenumber%(chart_idx)s" 
-        style="width: %(width)spx; height: %(height)spx;">
-        </div>
-    <div id="legendMychartRenumber%(chart_idx)s">
-        </div>
+<script type="text/javascript">
+
+var sofaHlRenumber%(chart_idx)s = function(colour){
+    var hlColour;
+    switch (colour.toHex()){
+        %(colour_cases)s
+        default:
+            hlColour = hl(colour.toHex());
+            break;
+    }
+    return new dojox.color.Color(hlColour);
+}
+
+makechartRenumber%(chart_idx)s = function(){
+    %(series_js)s
+    var chartconf = new Array();
+    chartconf["xaxisLabels"] = %(xaxis_labels)s;
+    chartconf["xgap"] = %(xgap)s;
+    chartconf["xfontsize"] = %(xfontsize)s;
+    chartconf["sofaHl"] = sofaHlRenumber%(chart_idx)s;
+    chartconf["gridlineWidth"] = %(gridline_width)s;
+    chartconf["gridBg"] = \"%(grid_bg)s\";
+    chartconf["minorTicks"] = %(minor_ticks)s;
+    chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
+    chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
+    chartconf["xTitle"] = \"%(x_title)s\";
+    chartconf["axisLabelDrop"] = %(axis_label_drop)s;
+    chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
+    chartconf["yTitle"] = \"%(y_title)s\";
+    chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+    chartconf["incPerc"] = %(inc_perc_js)s;
+    chartconf["connectorStyle"] = \"%(connector_style)s\";
+    %(outer_bg)s
+    makeBarChart("mychartRenumber%(chart_idx)s", series, chartconf);
+}
+</script>
+
+%(titles)s
+
+<div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
+%(indiv_bar_title)s
+<div id="mychartRenumber%(chart_idx)s" 
+    style="width: %(width)spx; height: %(height)spx;">
     </div>
+<div id="legendMychartRenumber%(chart_idx)s">
+    </div>
+</div>
         """ % {u"colour_cases": colour_cases, u"titles": title_dets_html, 
                u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
                u"width": width, u"height": height, u"xgap": xgap, 
@@ -776,7 +776,7 @@ makechartRenumber%(chart_idx)s = function(){
 }
 </script>
 
-<div style="float: left; margin-right: 10px; %(pagebreak)s">
+<div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
 %(indiv_pie_title)s
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx;">
@@ -888,7 +888,7 @@ makechartRenumber00 = function(){
 </script>
 %(titles)s
     
-<div style="float: left; margin-right: 10px; %(pagebreak)s">
+<div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
 
 <div id="mychartRenumber00" style="width: %(width)spx; 
         height: %(height)spx;">
@@ -896,9 +896,6 @@ makechartRenumber00 = function(){
 <div id="legendMychartRenumber00">
     </div>
 </div>
-    
-    
-    
     """ % {u"titles": title_dets_html, 
            u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
            u"width": width, u"height": height, u"xfontsize": xfontsize, 
@@ -1134,7 +1131,7 @@ makechartRenumber%(chart_idx)s = function(){
 }
 </script>
 
-<div style="float: left; margin-right: 10px; %(pagebreak)s">
+<div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
 %(indiv_histo_title)s
 <div id="mychartRenumber%(chart_idx)s" 
         style="width: %(width)spx; height: %(height)spx;">
@@ -1229,55 +1226,54 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
         # marker - http://o.dojotoolkit.org/forum/dojox-dojox/dojox-support/...
         # ...newbie-need-svg-path-segment-string
         html.append(u"""
-        <script type="text/javascript">
-    
-            var sofaHlRenumber00 = function(colour){
-                var hlColour;
-                switch (colour.toHex()){
-                    %(colour_cases)s
-                    default:
-                        hlColour = hl(colour.toHex());
-                        break;
-                }
-                return new dojox.color.Color(hlColour);
-            }    
-        
-            makechartRenumber00 = function(){
-                var datadets = new Array();
-                datadets["xyPairs"] = %(xy_pairs)s;
-                datadets["style"] = {stroke: {color: \"white\", 
-                    width: "%(stroke_width)spx"}, fill: "%(fill)s",
-                    marker: "m-6,0 c0,-8 12,-8 12,0 m-12,0 c0,8 12,8 12,0"};
-                
-                var chartconf = new Array();
-                chartconf["xmax"] = %(xmax)s;
-                chartconf["ymax"] = %(ymax)s;
-                chartconf["xfontsize"] = %(xfontsize)s;
-                chartconf["sofaHl"] = sofaHlRenumber00;
-                chartconf["tickColour"] = "%(tick_colour)s";
-                chartconf["gridlineWidth"] = %(gridline_width)s;
-                chartconf["gridBg"] = \"%(grid_bg)s\";
-                chartconf["minorTicks"] = %(minor_ticks)s;
-                chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
-                chartconf["axisLabelFontColour"] = "%(axis_label_font_colour)s";
-                chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
-                chartconf["xTitle"] = "%(x_title)s";
-                chartconf["axisLabelDrop"] = %(axis_label_drop)s;
-                chartconf["yTitle"] = "%(y_title)s";
-                chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
-                chartconf["connectorStyle"] = "%(connector_style)s";
-                %(outer_bg)s
-                makeScatterplot("mychartRenumber00", datadets, chartconf);
-            }
-        </script>
-        
-        %(titles)s
+<script type="text/javascript">
 
-        <div id="mychartRenumber00" style="width: %(width)spx; 
-            height: %(height)spx; float: left; margin-right: 10px; 
-            %(pagebreak)s">
-        </div>
-            
+var sofaHlRenumber00 = function(colour){
+    var hlColour;
+    switch (colour.toHex()){
+        %(colour_cases)s
+        default:
+            hlColour = hl(colour.toHex());
+            break;
+    }
+    return new dojox.color.Color(hlColour);
+}    
+
+makechartRenumber00 = function(){
+    var datadets = new Array();
+    datadets["xyPairs"] = %(xy_pairs)s;
+    datadets["style"] = {stroke: {color: \"white\", 
+        width: "%(stroke_width)spx"}, fill: "%(fill)s",
+        marker: "m-6,0 c0,-8 12,-8 12,0 m-12,0 c0,8 12,8 12,0"};
+    
+    var chartconf = new Array();
+    chartconf["xmax"] = %(xmax)s;
+    chartconf["ymax"] = %(ymax)s;
+    chartconf["xfontsize"] = %(xfontsize)s;
+    chartconf["sofaHl"] = sofaHlRenumber00;
+    chartconf["tickColour"] = "%(tick_colour)s";
+    chartconf["gridlineWidth"] = %(gridline_width)s;
+    chartconf["gridBg"] = \"%(grid_bg)s\";
+    chartconf["minorTicks"] = %(minor_ticks)s;
+    chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
+    chartconf["axisLabelFontColour"] = "%(axis_label_font_colour)s";
+    chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
+    chartconf["xTitle"] = "%(x_title)s";
+    chartconf["axisLabelDrop"] = %(axis_label_drop)s;
+    chartconf["yTitle"] = "%(y_title)s";
+    chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
+    chartconf["connectorStyle"] = "%(connector_style)s";
+    %(outer_bg)s
+    makeScatterplot("mychartRenumber00", datadets, chartconf);
+}
+</script>
+
+%(titles)s
+
+<div class=screen-float-only id="mychartRenumber00" 
+    style="width: %(width)spx; height: %(height)spx; margin-right: 10px; 
+    %(pagebreak)s">
+</div>            
         """ % {u"xy_pairs": xy_pairs, u"xmax": xmax, u"ymax": ymax,
                u"x_title": x_title, u"y_title": y_title,
                u"stroke_width": stroke_width, u"fill": fill,
