@@ -668,8 +668,6 @@ makechartRenumber%(chart_idx)s = function(){
 }
 </script>
 
-%(titles)s
-
 <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
 %(indiv_bar_title)s
 <div id="mychartRenumber%(chart_idx)s" 
@@ -678,7 +676,7 @@ makechartRenumber%(chart_idx)s = function(){
 <div id="legendMychartRenumber%(chart_idx)s">
     </div>
 </div>
-        """ % {u"colour_cases": colour_cases, u"titles": title_dets_html, 
+        """ % {u"colour_cases": colour_cases,
                u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
                u"width": width, u"height": height, u"xgap": xgap, 
                u"xfontsize": xfontsize, u"indiv_bar_title": indiv_bar_title,
@@ -1177,6 +1175,7 @@ def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups,
                                         output.get_stats_chart_colours(css_fil)
         colours = item_colours + mg.DOJO_COLOURS
         dot_colour = colours[0]
+        multichart = False # TODO allow multichart
         if multichart:
             width_inches = 6.0
             height_inches = 3.6
