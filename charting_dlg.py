@@ -440,9 +440,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         idx_sel = self.rad_pie_sort_opts.GetSelection()
         self.on_rad_sort_opt(idx_sel)
         
-    def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel, 
-                  inc_drop_select=False, lbla=None, lblb=None, 
-                  override_min_data_type2=None):
+    def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel, lbla=None, 
+                  lblb=None, override_min_data_type2=None):
         btn.SetFocus()
         btn.SetDefault()
         self.btn_to_rollback.SetBitmapLabel(self.bmp_to_rollback_to)
@@ -467,11 +466,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.min_data_type2 = override_min_data_type2
         else:
             self.min_data_type2 = self.min_data_type
-        show = (self.chart_type in mg.TWO_VAR_CHART_TYPES)
-        if show:
-            self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, 
-                           self.sorted_var_names2, var_name2, inc_drop_select,
-                           override_min_data_type=self.min_data_type2)
+        inc_drop_select = (self.chart_type in mg.OPTIONAL_ONE_VAR_CHART_TYPES)
+        self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
+                       var_name2, inc_drop_select, 
+                       override_min_data_type=self.min_data_type2)
         self.drop_var2.Enable(show)
         self.lbl_var2.Enable(show)
         self.szr_mid.Remove(self.panel_displayed)
@@ -489,7 +487,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.rad_bar_sort_opts.SetSelection(mg.SORT_OPTS.index(CUR_SORT_OPT))
         self.chk_simple_bar_perc.SetValue(INC_PERC)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel,
-                       inc_drop_select=True, lblb=mg.CHART_CHART_BY)
+                       lblb=mg.CHART_CHART_BY)
 
     def on_btn_clustered_bar_chart(self, event):
         self.chart_type = mg.CLUSTERED_BARCHART
@@ -508,7 +506,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         panel = self.panel_pie_chart
         self.rad_pie_sort_opts.SetSelection(mg.SORT_OPTS.index(CUR_SORT_OPT))
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel, 
-                       inc_drop_select=True, lblb=mg.CHART_CHART_BY)
+                       lblb=mg.CHART_CHART_BY)
         
     def on_btn_line_chart(self, event):
         self.chart_type = mg.LINE_CHART
@@ -528,7 +526,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         panel = self.panel_area_chart
         self.chk_area_perc.SetValue(INC_PERC)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel,
-                       inc_drop_select=True, lblb=mg.CHART_CHART_BY)
+                       lblb=mg.CHART_CHART_BY)
 
     def on_btn_histogram(self, event):
         self.chart_type = mg.HISTOGRAM
@@ -537,7 +535,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp_sel = self.bmp_btn_histogram_sel
         panel = self.panel_histogram
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel,
-                       inc_drop_select=True, lblb=mg.CHART_CHART_BY,
+                       lblb=mg.CHART_CHART_BY,
                        override_min_data_type2=mg.VAR_TYPE_CAT)
 
     def on_btn_scatterplot(self, event):
@@ -563,15 +561,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         var_name1, var_name2 = self.get_vars()
         script_lst.append(u"fld_measure = u\"%s\"" % var_name1)
-        if self.chart_type in mg.TWO_VAR_CHART_TYPES:
-            if var_name2 == mg.DROP_SELECT:
-                script_lst.append(u"fld_gp = None")
-            else:
-                script_lst.append(u"fld_gp = u\"%s\"" % var_name2)
-            script_lst.append(u"var_label2=u\"%s\"" %
-                              lib.get_item_label(self.var_labels, var_name2))
-            script_lst.append(u"fld_gp_lbls = %s" % 
-                              self.val_dics.get(var_name2, {}))
+        if var_name2 == mg.DROP_SELECT:
+            script_lst.append(u"fld_gp = None")
+        else:
+            script_lst.append(u"fld_gp = u\"%s\"" % var_name2)
+        script_lst.append(u"var_label2=u\"%s\"" %
+                          lib.get_item_label(self.var_labels, var_name2))
+        script_lst.append(u"fld_gp_lbls = %s" % 
+                          self.val_dics.get(var_name2, {}))
         script_lst.append(u"var_label1=u\"%s\"" %
                           lib.get_item_label(self.var_labels, var_name1))
         script_lst.append(u"fld_measure_lbls = %s" % 
@@ -652,8 +649,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         var_name1, var_name2 = self.get_vars()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
                        var_name1)
+        inc_drop_select = (self.chart_type in mg.OPTIONAL_ONE_VAR_CHART_TYPES)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2,
-                       var_name2, inc_drop_select=False, 
+                       var_name2, inc_drop_select, 
                        override_min_data_type=self.min_data_type2)
         self.update_defaults()
 
@@ -666,8 +664,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # now update var dropdowns
         self.update_var_dets()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
+        inc_drop_select = (self.chart_type in mg.OPTIONAL_ONE_VAR_CHART_TYPES)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
-                       var_name=None, inc_drop_select=True,
+                       var_name=None, inc_drop_select=inc_drop_select,
                        override_min_data_type=self.min_data_type2)
                 
     def on_table_sel(self, event):
@@ -676,8 +675,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # now update var dropdowns
         self.update_var_dets()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1)
+        inc_drop_select = (self.chart_type in mg.OPTIONAL_ONE_VAR_CHART_TYPES)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
-                       var_name=None, inc_drop_select=False,
+                       var_name=None, inc_drop_select=inc_drop_select,
                        override_min_data_type=self.min_data_type2)
        
     def on_btn_config(self, event):
@@ -689,8 +689,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         config_dlg.ConfigDlg.on_btn_config(self, event)
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
                        var_name1)
+        inc_drop_select = (self.chart_type in mg.OPTIONAL_ONE_VAR_CHART_TYPES)
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
-                       var_name2, inc_drop_select=False,
+                       var_name2, inc_drop_select=inc_drop_select,
                        override_min_data_type=self.min_data_type2)
         self.update_defaults()
 
@@ -701,11 +702,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         """
         var_name1, unused = self.get_var_dets(self.drop_var1, 
                                               self.sorted_var_names1)
-        if self.chart_type in mg.TWO_VAR_CHART_TYPES:
-            var_name2, unused = self.get_var_dets(self.drop_var2, 
-                                                  self.sorted_var_names2)
-        else:
-            var_name2 = None
+        var_name2, unused = self.get_var_dets(self.drop_var2, 
+                                              self.sorted_var_names2)
         return var_name1, var_name2
     
     def update_defaults(self):
@@ -724,8 +722,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 self.drop_var2.GetStringSelection() == mg.DROP_SELECT):
             wx.MessageBox(_("A selection must be made for Variable 2"))
             return False
-        if (self.chart_type in mg.TWO_VAR_CHART_TYPES and
-                self.drop_var1.GetStringSelection() ==
+        if (self.drop_var1.GetStringSelection() ==
                 self.drop_var2.GetStringSelection()):
             wx.MessageBox(_("Variable 1 and 2 cannot be the same"))
             return False
