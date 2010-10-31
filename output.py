@@ -862,9 +862,8 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
                         "values. More than %s cells in contingency table.") % \
                         mg.MAX_CHI_CELLS)
         return False, u""
-    except my_exceptions.TooFewValsForDisplay:
-        wx.MessageBox(_("Not enough data to display. Please check variables "
-                        "and any filtering."))
+    except my_exceptions.TooFewValsForDisplay, e:
+        wx.MessageBox(lib.ue(e))
         return False, u""
     except my_exceptions.TooManySlicesInPieChart:
         wx.MessageBox(_("Too many slices in Pie Chart. More than 30."))

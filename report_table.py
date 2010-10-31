@@ -447,8 +447,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  val_dics=self.val_dics)
         elif self.tab_type == mg.RAW_DISPLAY:
             self.enable_opts(enable=True)
-            self.demo_tab = demotables.DemoRawTable(txtTitles=self.txt_titles, 
-                             txtSubtitles=self.txt_subtitles, 
+            self.demo_tab = demotables.DemoRawTable(txt_titles=self.txt_titles, 
+                             txt_subtitles=self.txt_subtitles, 
                              colroot=self.colroot, coltree=self.coltree, 
                              var_labels=self.var_labels, val_dics=self.val_dics,
                              chk_totals_row=self.chk_totals_row,

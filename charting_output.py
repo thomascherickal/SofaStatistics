@@ -101,6 +101,9 @@ def get_split_results(fld_gp_name, fld_gp_lbls, raw_results):
                                            max_items=mg.CHART_MAX_CHARTS_IN_SET)
     # save prev dic across
     split_raw_results.append(fld_gp_dic)
+    if len(split_raw_results) > mg.CHART_MAX_CHARTS_IN_SET:
+        raise my_exceptions.TooManyChartsInSeries(fld_gp_name, 
+                                       max_items=mg.CHART_MAX_CHARTS_IN_SET)
     return split_raw_results
 
 def get_indiv_basic_dets(indiv_label, indiv_raw_results, measure_val_lbls, 
@@ -320,8 +323,8 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
         if debug: print(SQL_get_vals)
         cur.execute(SQL_get_vals)
         vals = [x[0] for x in cur.fetchall()]
-        if not vals:
-            raise my_exceptions.TooFewValsForDisplay
+        if len(vals) < mg.MIN_HISTO_VALS:
+            raise my_exceptions.TooFewValsForDisplay(min_n= mg.MIN_HISTO_VALS)
         # use nicest bins practical
         n_bins, lower_limit, upper_limit = lib.get_bins(min(vals), max(vals))
         (y_vals, start, 
@@ -1085,7 +1088,7 @@ def histogram_output(titles, subtitles, var_label, histo_dets, css_fil,
         if multichart:
             width = width*0.8
             xfontsize = xfontsize*0.8
-            left_axis_label_shift = left_axis_label_shift + 20        
+            left_axis_label_shift += 20
         html.append(u"""
 <script type="text/javascript">
 
@@ -1158,73 +1161,80 @@ makechartRenumber%(chart_idx)s = function(){
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def scatterplot_output(titles, subtitles, sample_a, sample_b, data_tups, 
-                       label_a, label_b, add_to_report, report_name, 
-                       dot_borders, css_fil, css_idx, page_break_after=False):
+def use_mpl_scatterplots(scatter_data):
+    """
+    Don't want Dojo scatterplots with millions of values - the html would become 
+        enormous and unwieldy for a start.
+    And want one style of scatterplots for all plots in a chart series.
+    """
+    use_mpl = False
+    for indiv_data in scatter_data:
+        if len(indiv_data[mg.DATA_TUPS]) > mg.MAX_POINTS_DOJO_SCATTERPLOT:
+            use_mpl = True
+            break
+    return use_mpl
+
+def make_mpl_scatterplot(multichart, html, dot_borders, sample_a, sample_b, 
+                         label_a, label_b, a_vs_b, title_dets_html, 
+                         add_to_report, report_name, css_fil):
     debug = False
-    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                      css_idx)
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    a_vs_b = '"%s"' % label_a + _(" vs ") + '"%s"' % label_b
-    html = []
-    if not data_tups:
-        raise my_exceptions.TooFewValsForDisplay
-    use_mpl = (len(data_tups) > 1000)
-    if use_mpl:
-        grid_bg, item_colours, line_colour = \
-                                        output.get_stats_chart_colours(css_fil)
-        colours = item_colours + mg.DOJO_COLOURS
-        dot_colour = colours[0]
-        multichart = False # TODO allow multichart
-        if multichart:
-            width_inches = 6.0
-            height_inches = 3.6
-        else:
-            width_inches = 7.5
-            height_inches = 4.5
-        charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
-                                       line_colour, sample_a, sample_b, label_a, 
-                                       label_b, a_vs_b, title_dets_html, 
-                                       add_to_report, report_name, html,
-                                       width_inches, height_inches)
+    (grid_bg, item_colours, 
+               line_colour) = output.get_stats_chart_colours(css_fil)
+    colours = item_colours + mg.DOJO_COLOURS
+    dot_colour = colours[0]
+    if multichart:
+        width_inches, height_inches = (6.0, 3.6)
     else:
-        pagebreak = u"page-break-after: always;"
-        width = 700
-        left_axis_label_shift = 10
-        xfontsize = 10
-        xmax = max(sample_a)
-        x_title = label_a
-        axis_label_drop = 10
-        height = 350
-        ymax = max(sample_b)
-        y_title = label_b
-        if debug: print(label_a, xmax, label_b, ymax)
-        jsdata = []
-        x_set = set()
-        for x, y in data_tups:
-            jsdata.append("{x: %s, y: %s}" % (x, y))
-            x_set.add(x)
-        few_unique_x_vals = (len(x_set) < 10)
-        minor_ticks = u"false" if few_unique_x_vals else u"true"
-        xy_pairs = "[" + ",\n".join(jsdata) + "]"
-        (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
-         gridline_width, stroke_width, tooltip_border_colour, 
-         colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
-        stroke_width = stroke_width if dot_borders else 0 
-        outer_bg = u"" if outer_bg == u"" \
-            else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
-        single_colour = True
-        override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
-                                    and single_colour)
-        colour_cases = setup_highlights(colour_mappings, single_colour, 
-                                        override_first_highlight)
-        try:
-            fill = colour_mappings[0][0]
-        except IndexError, e:
-            fill = mg.DOJO_COLOURS[0]
-        # marker - http://o.dojotoolkit.org/forum/dojox-dojox/dojox-support/...
-        # ...newbie-need-svg-path-segment-string
-        html.append(u"""
+        width_inches, height_inches = (7.5, 4.5)
+    charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
+                                   line_colour, sample_a, sample_b, 
+                                   label_a, label_b, a_vs_b, 
+                                   title_dets_html, add_to_report, 
+                                   report_name, html, width_inches, 
+                                   height_inches)
+
+def make_dojo_scatterplot(multichart, html, dot_borders, sample_a, sample_b,
+                          data_tups, label_a, label_b, a_vs_b, title_dets_html,
+                          css_fil, pagebreak):
+    debug = False
+    if multichart:
+        width, height = (500, 300)
+    else:
+        width, height = (700, 350)
+    left_axis_label_shift = 10
+    xfontsize = 10
+    xmax = max(sample_a)
+    x_title = label_a
+    axis_label_drop = 10
+    ymax = max(sample_b)
+    y_title = label_b
+    if debug: print(label_a, xmax, label_b, ymax)
+    jsdata = []
+    x_set = set()
+    for x, y in data_tups:
+        jsdata.append("{x: %s, y: %s}" % (x, y))
+        x_set.add(x)
+    few_unique_x_vals = (len(x_set) < 10)
+    minor_ticks = u"false" if few_unique_x_vals else u"true"
+    xy_pairs = "[" + ",\n".join(jsdata) + "]"
+    (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
+     gridline_width, stroke_width, tooltip_border_colour, 
+     colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+    stroke_width = stroke_width if dot_borders else 0 
+    outer_bg = u"" if outer_bg == u"" \
+        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
+    single_colour = True
+    override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
+                                and single_colour)
+    colour_cases = setup_highlights(colour_mappings, single_colour, 
+                                    override_first_highlight)
+    try:
+        fill = colour_mappings[0][0]
+    except IndexError, e:
+        fill = mg.DOJO_COLOURS[0]
+    # marker - http://o.dojotoolkit.org/forum/dojox-dojox/dojox-support/...
+    # ...newbie-need-svg-path-segment-string
+    html.append(u"""
 <script type="text/javascript">
 
 var sofaHlRenumber00 = function(colour){
@@ -1273,22 +1283,52 @@ makechartRenumber00 = function(){
     style="width: %(width)spx; height: %(height)spx; margin-right: 10px; 
     %(pagebreak)s">
 </div>            
-        """ % {u"xy_pairs": xy_pairs, u"xmax": xmax, u"ymax": ymax,
-               u"x_title": x_title, u"y_title": y_title,
-               u"stroke_width": stroke_width, u"fill": fill,
-               u"colour_cases": colour_cases, u"titles": title_dets_html, 
-               u"width": width, u"height": height, u"xfontsize": xfontsize, 
-               u"series_label": a_vs_b, u"pagebreak": pagebreak,
-               u"axis_label_font_colour": axis_label_font_colour,
-               u"major_gridline_colour": major_gridline_colour,
-               u"left_axis_label_shift": left_axis_label_shift,
-               u"gridline_width": gridline_width, 
-               u"axis_label_drop": axis_label_drop,
-               u"tooltip_border_colour": tooltip_border_colour,
-               u"connector_style": connector_style, u"outer_bg": outer_bg, 
-               u"grid_bg": grid_bg, u"minor_ticks": minor_ticks,
-               u"tick_colour": major_gridline_colour})
+""" % {u"xy_pairs": xy_pairs, u"xmax": xmax, u"ymax": ymax,
+       u"x_title": x_title, u"y_title": y_title,
+       u"stroke_width": stroke_width, u"fill": fill,
+       u"colour_cases": colour_cases, u"titles": title_dets_html, 
+       u"width": width, u"height": height, u"xfontsize": xfontsize, 
+       u"series_label": a_vs_b, u"pagebreak": pagebreak,
+       u"axis_label_font_colour": axis_label_font_colour,
+       u"major_gridline_colour": major_gridline_colour,
+       u"left_axis_label_shift": left_axis_label_shift,
+       u"gridline_width": gridline_width, 
+       u"axis_label_drop": axis_label_drop,
+       u"tooltip_border_colour": tooltip_border_colour,
+       u"connector_style": connector_style, u"outer_bg": outer_bg, 
+       u"grid_bg": grid_bg, u"minor_ticks": minor_ticks,
+       u"tick_colour": major_gridline_colour})
+
+def scatterplot_output(titles, subtitles, scatter_data, label_a, label_b, 
+                       add_to_report, report_name, dot_borders, css_fil, 
+                       css_idx, page_break_after=False):
+    """
+    scatter_data -- dict with keys SAMPLE_A, SAMPLE_B, DATA_TUPS
+    """
+    debug = False
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
+    pagebreak = u"page-break-after: always;"
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    a_vs_b = '"%s"' % label_a + _(" vs ") + '"%s"' % label_b
+    html = []
+    if not scatter_data:
+        raise my_exceptions.TooFewValsForDisplay
+    multichart = (len(scatter_data) > 1)
+    use_mpl = use_mpl_scatterplots(scatter_data)
+    for indiv_data in scatter_data:
+        sample_a = indiv_data[mg.SAMPLE_A]
+        sample_b = indiv_data[mg.SAMPLE_B]
+        data_tups = indiv_data[mg.DATA_TUPS]
+        if use_mpl:
+            make_mpl_scatterplot(multichart, html, dot_borders, sample_a, 
+                                 sample_b, label_a, label_b, a_vs_b, 
+                                 title_dets_html, add_to_report, report_name, 
+                                 css_fil)
+        else:
+            make_dojo_scatterplot(multichart, html, dot_borders, sample_a, 
+                                  sample_b, data_tups, label_a, label_b, a_vs_b, 
+                                  title_dets_html, css_fil, pagebreak)
     if page_break_after:
-        html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
+        html.append(u"<br><hr><br><div class='%s'></div>" % page_break_before)
     return u"".join(html)

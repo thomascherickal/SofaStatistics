@@ -74,10 +74,10 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
     Demo display raw table (uses demo data only for illustrative purposes)
     """
     
-    def __init__(self, txtTitles, txtSubtitles, colroot, coltree, var_labels, 
+    def __init__(self, txt_titles, txt_subtitles, colroot, coltree, var_labels, 
                  val_dics, chk_totals_row, chk_first_as_label):
-        self.txt_titles = txtTitles
-        self.txt_subtitles = txtSubtitles
+        self.txt_titles = txt_titles
+        self.txt_subtitles = txt_subtitles
         self.colroot = colroot
         self.coltree = coltree
         self.var_labels = var_labels

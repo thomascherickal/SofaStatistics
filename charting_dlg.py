@@ -248,12 +248,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_bottom = wx.BoxSizer(wx.VERTICAL)
         lbl_titles = wx.StaticText(self.panel_bottom, -1, _("Title:"))
         lbl_titles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.txt_titles = wx.TextCtrl(self.panel_bottom, -1, size=(250,20), 
+        title_height = 40 if mg.PLATFORM == mg.MAC else 20
+        self.txt_titles = wx.TextCtrl(self.panel_bottom, -1, 
+                                      size=(250,title_height), 
                                       style=wx.TE_MULTILINE)
         lbl_subtitles = wx.StaticText(self.panel_bottom, -1, _("Subtitle:"))
         lbl_subtitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, 
                                           wx.BOLD))
-        self.txt_subtitles = wx.TextCtrl(self.panel_bottom, -1, size=(250,20), 
+        self.txt_subtitles = wx.TextCtrl(self.panel_bottom, -1, 
+                                         size=(250,title_height), 
                                          style=wx.TE_MULTILINE)
         szr_titles.Add(lbl_titles, 0, wx.RIGHT, 5)
         szr_titles.Add(self.txt_titles, 1, wx.RIGHT, 10)
@@ -470,8 +473,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
                        var_name2, inc_drop_select, 
                        override_min_data_type=self.min_data_type2)
-        self.drop_var2.Enable(show)
-        self.lbl_var2.Enable(show)
+        self.drop_var2.Enable(True)
+        self.lbl_var2.Enable(True)
         self.szr_mid.Remove(self.panel_displayed)
         self.szr_mid.Add(panel, 0, wx.GROW)
         self.panel_displayed = panel
@@ -515,8 +518,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp_sel = self.bmp_btn_line_chart_sel
         panel = self.panel_line_chart
         self.chk_line_perc.SetValue(INC_PERC)
-        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel, 
-                       inc_drop_select=True)
+        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_area_chart(self, event):
         self.chart_type = mg.AREA_CHART
@@ -863,9 +865,14 @@ def get_scatterplot_script(css_fil, css_idx, dot_border):
 sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=u"%(dbe)s",
             cur=cur, tbl=tbl, tbl_filt=tbl_filt, fld_a=fld_measure, 
             fld_b=fld_gp, unique=True) # only need unique combos for plotting
+if data_tups:
+    scatter_data = [{mg.SAMPLE_A: sample_a, mg.SAMPLE_B: sample_b,
+                     mg.DATA_TUPS: data_tups},]
+else:
+    scatter_data = []
 chart_output = charting_output.scatterplot_output(titles, subtitles,
-            sample_a, sample_b, data_tups, var_label1, var_label2, 
-            add_to_report, report_name, %(dot_border)s, css_fil="%(css_fil)s", 
+            scatter_data, var_label1, var_label2, add_to_report, report_name, 
+            %(dot_border)s, css_fil="%(css_fil)s", 
             css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": lib.escape_pre_write(css_fil), 
            u"css_idx": css_idx, u"dot_border": dot_border}

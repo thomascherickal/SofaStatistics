@@ -13,7 +13,7 @@ import wx
 
 debug = False
 
-VERSION = u"0.9.21"
+VERSION = u"0.9.22"
 ADVANCED = False
 ATTRIBUTION = u"sofastatistics.com"
 
@@ -415,6 +415,11 @@ CHART_SERIES_DETS = u"series_dets"
 CHART_MINVAL = u"minval"
 CHART_MAXVAL = u"maxval"
 CHART_BIN_LABELS = u"bin_labels"
+MIN_HISTO_VALS = 5
+MAX_POINTS_DOJO_SCATTERPLOT = 1000
+SAMPLE_A = u"sample_a"
+SAMPLE_B = u"sample_b"
+DATA_TUPS = u"data_tups"
 # remember defaults //////////
 # stats tests
 GROUP_BY_DEFAULT = None

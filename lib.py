@@ -20,6 +20,7 @@ import wx
 # only import my_globals from local modules
 import my_globals as mg
 import my_exceptions
+import core_stats
 
 def get_unique_db_name_key(db_names, db_name):
     "Might have different paths but same name."
@@ -104,6 +105,8 @@ def get_bins(min_val, max_val):
         min_val, max_val = max_val, min_val
         if debug: print("... to %s and %s" % (min_val, max_val))
     data_range = max_val - min_val
+    if data_range == 0:
+        data_range = 1
     target_n_bins = 20
     min_n_bins = 10
     target_bin_width = 5 # half order of magnitude (10s are order of mag)
@@ -185,7 +188,7 @@ def fix_sawtoothing(raw_data, n_bins, y_vals, start, bin_width):
             shrink_factor = 2.0
         else:
             break
-        n_bins = math.ceil(n_bins/shrink_factor)
+        n_bins = int(math.ceil(n_bins/shrink_factor))
         (y_vals, start, 
          bin_width, unused) = core_stats.histogram(raw_data, n_bins)
     return y_vals, start, bin_width

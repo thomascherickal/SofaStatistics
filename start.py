@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-dev_debug = True
+dev_debug = False
 test_lang = False
 
 """
@@ -459,7 +459,8 @@ try:
         except Exception, e:
             raise Exception(u"Problem modifying your local sofa folder. One "
                             u"option is to delete the %s folder and let SOFA "
-                            u"make a fresh one." % mg.LOCAL_PATH)
+                            u"make a fresh one.\nCaused by error: %s" %
+                            (mg.LOCAL_PATH, lib.ue(e)))
     # 3) Make a fresh recovery folder if needed
     freshen_recovery(local_subfolders)
 except Exception, e:

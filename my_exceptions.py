@@ -80,8 +80,12 @@ class ExcessReportTableCellsException(Exception):
                                    max))
 
 class TooFewValsForDisplay(Exception):
-    def __init__(self):
-        Exception.__init__(self, u"Too few values for display")
+    def __init__(self, min_n=None):
+        msg = (u"Not enough data to display. Please check variables "
+               u"and any filtering.")
+        if min_n:
+            msg += " Need at least %s values." % min_n
+        Exception.__init__(self, msg)
 
 class NoNodesException(Exception):
     def __init__(self):
