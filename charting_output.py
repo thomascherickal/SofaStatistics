@@ -1175,8 +1175,8 @@ def use_mpl_scatterplots(scatter_data):
     return use_mpl
 
 def make_mpl_scatterplot(multichart, html, dot_borders, sample_a, sample_b, 
-                         label_a, label_b, a_vs_b, title_dets_html, 
-                         add_to_report, report_name, css_fil):
+                         label_a, label_b, a_vs_b, add_to_report, report_name, 
+                         css_fil, pagebreak):
     debug = False
     (grid_bg, item_colours, 
                line_colour) = output.get_stats_chart_colours(css_fil)
@@ -1186,16 +1186,20 @@ def make_mpl_scatterplot(multichart, html, dot_borders, sample_a, sample_b,
         width_inches, height_inches = (6.0, 3.6)
     else:
         width_inches, height_inches = (7.5, 4.5)
+    title_dets_html = u"" # handled prior to this step
+    html.append(u"""<div class=screen-float-only style="margin-right: 10px; 
+        %(pagebreak)s">""" % {u"pagebreak": pagebreak}) 
     charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
                                    line_colour, sample_a, sample_b, 
                                    label_a, label_b, a_vs_b, 
                                    title_dets_html, add_to_report, 
                                    report_name, html, width_inches, 
                                    height_inches)
+    html.append(u"</div>")
 
 def make_dojo_scatterplot(multichart, html, dot_borders, sample_a, sample_b,
-                          data_tups, label_a, label_b, a_vs_b, title_dets_html,
-                          css_fil, pagebreak):
+                          data_tups, label_a, label_b, a_vs_b, css_fil, 
+                          pagebreak):
     debug = False
     if multichart:
         width, height = (500, 300)
@@ -1277,8 +1281,6 @@ makechartRenumber00 = function(){
 }
 </script>
 
-%(titles)s
-
 <div class=screen-float-only id="mychartRenumber00" 
     style="width: %(width)spx; height: %(height)spx; margin-right: 10px; 
     %(pagebreak)s">
@@ -1286,7 +1288,7 @@ makechartRenumber00 = function(){
 """ % {u"xy_pairs": xy_pairs, u"xmax": xmax, u"ymax": ymax,
        u"x_title": x_title, u"y_title": y_title,
        u"stroke_width": stroke_width, u"fill": fill,
-       u"colour_cases": colour_cases, u"titles": title_dets_html, 
+       u"colour_cases": colour_cases, 
        u"width": width, u"height": height, u"xfontsize": xfontsize, 
        u"series_label": a_vs_b, u"pagebreak": pagebreak,
        u"axis_label_font_colour": axis_label_font_colour,
@@ -1312,6 +1314,7 @@ def scatterplot_output(titles, subtitles, scatter_data, label_a, label_b,
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     a_vs_b = '"%s"' % label_a + _(" vs ") + '"%s"' % label_b
     html = []
+    html.append(title_dets_html)
     if not scatter_data:
         raise my_exceptions.TooFewValsForDisplay
     multichart = (len(scatter_data) > 1)
@@ -1323,12 +1326,11 @@ def scatterplot_output(titles, subtitles, scatter_data, label_a, label_b,
         if use_mpl:
             make_mpl_scatterplot(multichart, html, dot_borders, sample_a, 
                                  sample_b, label_a, label_b, a_vs_b, 
-                                 title_dets_html, add_to_report, report_name, 
-                                 css_fil)
+                                 add_to_report, report_name, css_fil, pagebreak)
         else:
             make_dojo_scatterplot(multichart, html, dot_borders, sample_a, 
                                   sample_b, data_tups, label_a, label_b, a_vs_b, 
-                                  title_dets_html, css_fil, pagebreak)
+                                  css_fil, pagebreak)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % page_break_before)
     return u"".join(html)

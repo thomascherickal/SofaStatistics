@@ -371,6 +371,7 @@ CHART_TYPE_TO_MIN_DATA_TYPE = {SIMPLE_BARCHART: VAR_TYPE_CAT,
                                AREA_CHART: VAR_TYPE_CAT,
                                HISTOGRAM: VAR_TYPE_QUANT,
                                SCATTERPLOT: VAR_TYPE_ORD}
+THREE_VAR_CHART_TYPES = [SCATTERPLOT,]
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
     'lightcoral', 'orangered', 'navajowhite', 'slategray', 'palegreen', 
@@ -426,6 +427,7 @@ GROUP_BY_DEFAULT = None
 VAR_AVG_DEFAULT = None
 VAR_1_DEFAULT = None
 VAR_2_DEFAULT = None
+VAR_3_DEFAULT = None
 GROUP_A_DEFAULT = None
 GROUP_B_DEFAULT = None
 VAL_A_DEFAULT = None
