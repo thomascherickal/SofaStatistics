@@ -420,6 +420,8 @@ MIN_HISTO_VALS = 5
 MAX_POINTS_DOJO_SCATTERPLOT = 1000
 SAMPLE_A = u"sample_a"
 SAMPLE_B = u"sample_b"
+LIST_X = u"list_x"
+LIST_Y = u"list_y"
 DATA_TUPS = u"data_tups"
 # remember defaults //////////
 # stats tests

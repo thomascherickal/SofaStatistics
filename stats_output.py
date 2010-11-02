@@ -381,15 +381,15 @@ def wilcoxon_output(t, p, label_a, label_b, css_fil, css_idx=0, dp=3,
         html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
     return html
 
-def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
+def pearsonsr_output(list_x, list_y, r, p, label_x, label_y, add_to_report,
                      report_name, css_fil, css_idx=0, dp=3, 
                      level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     html = []
-    a_vs_b = '"%s"' % label_a + _(" vs ") + '"%s"' % label_b
+    x_vs_y = '"%s"' % label_x + _(" vs ") + '"%s"' % label_y
     title = (_("Results of Pearson's Test of Linear Correlation "
-               "for %s") % a_vs_b)
+               "for %s") % x_vs_y)
     html.append("<h2>%s</h2>" % title)
     p_format = u"\n<p>" + _("p value") + u": %%.%sf</p>" % dp
     html.append(p_format % round(p, dp))
@@ -400,23 +400,23 @@ def pearsonsr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
     title_dets_html = u"" # already got an appropriate title for whole section
     dot_borders = True
     charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
-                                   line_colour, sample_a, sample_b, label_a, 
-                                   label_b, a_vs_b, title_dets_html, 
+                                   line_colour, list_x, list_y, label_x, 
+                                   label_y, x_vs_y, title_dets_html, 
                                    add_to_report, report_name, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
+def spearmansr_output(list_x, list_y, r, p, label_x, label_y, add_to_report,
                       report_name, css_fil, css_idx=0, dp=3, 
                       level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     html = []
-    a_vs_b = '"%s"' % label_a + _(" vs ") + '"%s"' % label_b
+    x_vs_y = '"%s"' % label_x + _(" vs ") + '"%s"' % label_y
     title = (_("Results of Spearman's Test of Linear Correlation "
-               "for %s") % a_vs_b)
+               "for %s") % x_vs_y)
     html.append("<h2>%s</h2>" % title)
     p_format = u"\n<p>" + _("p value") + u": %%.%sf</p>" % dp
     html.append(p_format % round(p, dp))
@@ -427,8 +427,8 @@ def spearmansr_output(sample_a, sample_b, r, p, label_a, label_b, add_to_report,
     title_dets_html = u"" # already got an appropriate title for whole section
     dot_borders = True
     charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
-                                   line_colour, sample_a, sample_b, label_a, 
-                                   label_b, a_vs_b, title_dets_html, 
+                                   line_colour, list_x, list_y, label_x, 
+                                   label_y, x_vs_y, title_dets_html, 
                                    add_to_report, report_name, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 

@@ -360,6 +360,75 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
         histo_dets.append(histo_dic)
     return histo_dets
 
+def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, fld_x_axis, fld_y_axis, 
+                         fld_gp, fld_gp_name, fld_gp_lbls, unique=True):
+    """
+    unique -- unique x-y pairs only
+    """
+    debug = False
+    obj_qtr = getdata.get_obj_quoter_func(dbe)
+    unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+    sql_dic = {u"fld_gp": obj_qtr(fld_gp),
+               u"fld_x_axis": obj_qtr(fld_x_axis),
+               u"fld_y_axis": obj_qtr(fld_y_axis),
+               u"tbl": obj_qtr(tbl), u"and_tbl_filt": and_tbl_filt}
+    if fld_gp:
+        SQL_fld_gp_vals = u"""SELECT %(fld_gp)s 
+            FROM %(tbl)s 
+            WHERE %(fld_x_axis)s IS NOT NULL AND %(fld_y_axis)s IS NOT NULL  
+            %(and_tbl_filt)s 
+            GROUP BY %(fld_gp)s""" % sql_dic
+        cur.execute(SQL_fld_gp_vals)
+        fld_gp_vals = [x[0] for x in cur.fetchall()]
+        if len(fld_gp_vals) > mg.CHART_MAX_CHARTS_IN_SET:
+            raise my_exceptions.TooManyChartsInSeries(fld_gp_name, 
+                                           max_items=mg.CHART_MAX_CHARTS_IN_SET)
+        elif len(fld_gp_vals) == 0:
+            raise my_exceptions.TooFewValsForDisplay
+    else:
+        fld_gp_vals = [None,] # Got to have something to loop through ;-)
+    scatterplot_dets = []
+    for fld_gp_val in fld_gp_vals:
+        if fld_gp:
+            filt = getdata.make_fld_val_clause(dbe, dd.flds, fld_name=fld_gp, 
+                                               val=fld_gp_val)
+            and_fld_gp_filt = u" and %s" % filt
+            fld_gp_val_lbl = fld_gp_lbls.get(fld_gp_val, fld_gp_val)
+            chart_by_label = u"%s: %s" % (fld_gp_name, fld_gp_val_lbl)
+        else:
+            and_fld_gp_filt = u""
+            chart_by_label = mg.CHART_CHART_BY_LABEL_ALL
+        sql_dic[u"and_fld_gp_filt"] = and_fld_gp_filt
+        if unique:
+            SQL_get_pairs = u"""SELECT %(fld_x_axis)s, %(fld_y_axis)s
+                    FROM %(tbl)s
+                    WHERE %(fld_x_axis)s IS NOT NULL
+                    AND %(fld_y_axis)s IS NOT NULL 
+                    %(and_fld_gp_filt)s
+                    %(and_tbl_filt)s
+                    GROUP BY %(fld_x_axis)s, %(fld_y_axis)s""" % sql_dic
+        else:
+            SQL_get_pairs = u"""SELECT %(fld_x_axis)s, %(fld_y_axis)s
+                    FROM %(tbl)s
+                    WHERE %(fld_x_axis)s IS NOT NULL
+                    AND %(fld_y_axis)s IS NOT NULL 
+                    %(and_fld_gp_filt)s
+                    %(and_tbl_filt)s""" % sql_dic
+        if debug: print(SQL_get_pairs)
+        cur.execute(SQL_get_pairs)
+        data_tups = cur.fetchall()
+        if not fld_gp:
+            if not data_tups:
+                raise my_exceptions.TooFewValsForDisplay
+        lst_x = [x[0] for x in data_tups]
+        lst_y = [x[1] for x in data_tups]
+        if debug: print(chart_by_label)
+        scatterplot_dic = {mg.CHART_CHART_BY_LABEL: chart_by_label,
+                           mg.LIST_X: lst_x, mg.LIST_Y: lst_y,
+                           mg.DATA_TUPS: data_tups,}
+        scatterplot_dets.append(scatterplot_dic)
+    return scatterplot_dets
+
 def reshape_sql_crosstab_data(raw_data):
     """
     Must be sorted by group by then measures
@@ -1015,6 +1084,8 @@ makechartRenumber%(chart_idx)s = function(){
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx; %(pagebreak)s">
     </div>
+<div id="legendMychartRenumber%(chart_idx)s">
+    </div>
 </div>
         """ % {u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
                u"indiv_area_title": indiv_area_title,
@@ -1161,22 +1232,22 @@ makechartRenumber%(chart_idx)s = function(){
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def use_mpl_scatterplots(scatter_data):
+def use_mpl_scatterplots(scatterplot_dets):
     """
     Don't want Dojo scatterplots with millions of values - the html would become 
         enormous and unwieldy for a start.
     And want one style of scatterplots for all plots in a chart series.
     """
     use_mpl = False
-    for indiv_data in scatter_data:
+    for indiv_data in scatterplot_dets:
         if len(indiv_data[mg.DATA_TUPS]) > mg.MAX_POINTS_DOJO_SCATTERPLOT:
             use_mpl = True
             break
     return use_mpl
 
-def make_mpl_scatterplot(multichart, html, dot_borders, sample_a, sample_b, 
-                         label_a, label_b, a_vs_b, add_to_report, report_name, 
-                         css_fil, pagebreak):
+def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders, 
+                         list_x, list_y, label_x, label_y, x_vs_y, 
+                         add_to_report, report_name, css_fil, pagebreak):
     debug = False
     (grid_bg, item_colours, 
                line_colour) = output.get_stats_chart_colours(css_fil)
@@ -1188,31 +1259,31 @@ def make_mpl_scatterplot(multichart, html, dot_borders, sample_a, sample_b,
         width_inches, height_inches = (7.5, 4.5)
     title_dets_html = u"" # handled prior to this step
     html.append(u"""<div class=screen-float-only style="margin-right: 10px; 
-        %(pagebreak)s">""" % {u"pagebreak": pagebreak}) 
+        %(pagebreak)s">""" % {u"pagebreak": pagebreak})
+    html.append(indiv_scatterplot_title)
     charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
-                                   line_colour, sample_a, sample_b, 
-                                   label_a, label_b, a_vs_b, 
-                                   title_dets_html, add_to_report, 
-                                   report_name, html, width_inches, 
-                                   height_inches)
+                                   line_colour, list_x, list_y, label_x, 
+                                   label_y, x_vs_y, title_dets_html, 
+                                   add_to_report, report_name, html, 
+                                   width_inches, height_inches)
     html.append(u"</div>")
 
-def make_dojo_scatterplot(multichart, html, dot_borders, sample_a, sample_b,
-                          data_tups, label_a, label_b, a_vs_b, css_fil, 
-                          pagebreak):
+def make_dojo_scatterplot(chart_idx, multichart, html, indiv_scatterplot_title, 
+                          dot_borders, data_tups, list_x, list_y, label_x, 
+                          label_y, x_vs_y, css_fil, pagebreak):
     debug = False
-    if multichart:
+    if multichart:  
         width, height = (500, 300)
     else:
         width, height = (700, 350)
     left_axis_label_shift = 10
     xfontsize = 10
-    xmax = max(sample_a)
-    x_title = label_a
+    xmax = max(list_x)
+    x_title = label_x
     axis_label_drop = 10
-    ymax = max(sample_b)
-    y_title = label_b
-    if debug: print(label_a, xmax, label_b, ymax)
+    ymax = max(list_y)
+    y_title = label_y
+    if debug: print(label_x, xmax, label_y, ymax)
     jsdata = []
     x_set = set()
     for x, y in data_tups:
@@ -1241,7 +1312,7 @@ def make_dojo_scatterplot(multichart, html, dot_borders, sample_a, sample_b,
     html.append(u"""
 <script type="text/javascript">
 
-var sofaHlRenumber00 = function(colour){
+var sofaHlRenumber%(chart_idx)s = function(colour){
     var hlColour;
     switch (colour.toHex()){
         %(colour_cases)s
@@ -1252,7 +1323,7 @@ var sofaHlRenumber00 = function(colour){
     return new dojox.color.Color(hlColour);
 }    
 
-makechartRenumber00 = function(){
+makechartRenumber%(chart_idx)s = function(){
     var datadets = new Array();
     datadets["xyPairs"] = %(xy_pairs)s;
     datadets["style"] = {stroke: {color: \"white\", 
@@ -1263,7 +1334,7 @@ makechartRenumber00 = function(){
     chartconf["xmax"] = %(xmax)s;
     chartconf["ymax"] = %(ymax)s;
     chartconf["xfontsize"] = %(xfontsize)s;
-    chartconf["sofaHl"] = sofaHlRenumber00;
+    chartconf["sofaHl"] = sofaHlRenumber%(chart_idx)s;
     chartconf["tickColour"] = "%(tick_colour)s";
     chartconf["gridlineWidth"] = %(gridline_width)s;
     chartconf["gridBg"] = \"%(grid_bg)s\";
@@ -1277,20 +1348,23 @@ makechartRenumber00 = function(){
     chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
     chartconf["connectorStyle"] = "%(connector_style)s";
     %(outer_bg)s
-    makeScatterplot("mychartRenumber00", datadets, chartconf);
+    makeScatterplot("mychartRenumber%(chart_idx)s", datadets, chartconf);
 }
 </script>
 
-<div class=screen-float-only id="mychartRenumber00" 
-    style="width: %(width)spx; height: %(height)spx; margin-right: 10px; 
-    %(pagebreak)s">
-</div>            
-""" % {u"xy_pairs": xy_pairs, u"xmax": xmax, u"ymax": ymax,
+<div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
+%(indiv_scatterplot_title)s
+<div id="mychartRenumber%(chart_idx)s" 
+        style="width: %(width)spx; height: %(height)spx;">
+    </div>
+</div>      
+""" % {u"indiv_scatterplot_title": indiv_scatterplot_title,
+       u"xy_pairs": xy_pairs, u"xmax": xmax, u"ymax": ymax,
        u"x_title": x_title, u"y_title": y_title,
        u"stroke_width": stroke_width, u"fill": fill,
        u"colour_cases": colour_cases, 
        u"width": width, u"height": height, u"xfontsize": xfontsize, 
-       u"series_label": a_vs_b, u"pagebreak": pagebreak,
+       u"series_label": x_vs_y, u"pagebreak": pagebreak,
        u"axis_label_font_colour": axis_label_font_colour,
        u"major_gridline_colour": major_gridline_colour,
        u"left_axis_label_shift": left_axis_label_shift,
@@ -1298,10 +1372,10 @@ makechartRenumber00 = function(){
        u"axis_label_drop": axis_label_drop,
        u"tooltip_border_colour": tooltip_border_colour,
        u"connector_style": connector_style, u"outer_bg": outer_bg, 
-       u"grid_bg": grid_bg, u"minor_ticks": minor_ticks,
-       u"tick_colour": major_gridline_colour})
+       u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx, 
+       u"minor_ticks": minor_ticks, u"tick_colour": major_gridline_colour})
 
-def scatterplot_output(titles, subtitles, scatter_data, label_a, label_b, 
+def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y, 
                        add_to_report, report_name, dot_borders, css_fil, 
                        css_idx, page_break_after=False):
     """
@@ -1312,25 +1386,28 @@ def scatterplot_output(titles, subtitles, scatter_data, label_a, label_b,
                                                       css_idx)
     pagebreak = u"page-break-after: always;"
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    a_vs_b = '"%s"' % label_a + _(" vs ") + '"%s"' % label_b
+    x_vs_y = '"%s"' % label_x + _(" vs ") + '"%s"' % label_y
     html = []
     html.append(title_dets_html)
-    if not scatter_data:
-        raise my_exceptions.TooFewValsForDisplay
-    multichart = (len(scatter_data) > 1)
-    use_mpl = use_mpl_scatterplots(scatter_data)
-    for indiv_data in scatter_data:
-        sample_a = indiv_data[mg.SAMPLE_A]
-        sample_b = indiv_data[mg.SAMPLE_B]
+    multichart = (len(scatterplot_dets) > 1)
+    use_mpl = use_mpl_scatterplots(scatterplot_dets)
+    for chart_idx, indiv_data in enumerate(scatterplot_dets):
+        chart_by_lbl = indiv_data[mg.CHART_CHART_BY_LABEL]
         data_tups = indiv_data[mg.DATA_TUPS]
+        list_x = indiv_data[mg.LIST_X]
+        list_y = indiv_data[mg.LIST_Y]
+        indiv_scatterplot_title = "<p><b>%s</b></p>" % \
+                                            chart_by_lbl if multichart else u""
         if use_mpl:
-            make_mpl_scatterplot(multichart, html, dot_borders, sample_a, 
-                                 sample_b, label_a, label_b, a_vs_b, 
-                                 add_to_report, report_name, css_fil, pagebreak)
+            make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, 
+                                 dot_borders, list_x, list_y, 
+                                 label_x, label_y, x_vs_y, add_to_report, 
+                                 report_name, css_fil, pagebreak)
         else:
-            make_dojo_scatterplot(multichart, html, dot_borders, sample_a, 
-                                  sample_b, data_tups, label_a, label_b, a_vs_b, 
-                                  css_fil, pagebreak)
+            make_dojo_scatterplot(chart_idx, multichart, html, 
+                                  indiv_scatterplot_title, 
+                                  dot_borders, data_tups, list_x, list_y, 
+                                  label_x, label_y, x_vs_y, css_fil, pagebreak)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % page_break_before)
     return u"".join(html)

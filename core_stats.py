@@ -67,17 +67,17 @@ def get_paired_data(dbe, cur, tbl, tbl_filt, fld_a, fld_b, unique=False):
     sql_dic = {u"fld_a": obj_qtr(fld_a),u"fld_b": obj_qtr(fld_b),
                u"tbl": obj_qtr(tbl), u"and_tbl_filt": and_tbl_filt}
     if unique:
-        SQL_get_lists = u"""SELECT %(fld_a)s, %(fld_b)s
+        SQL_get_pairs = u"""SELECT %(fld_a)s, %(fld_b)s
             FROM %(tbl)s
             WHERE %(fld_a)s IS NOT NULL
             AND %(fld_b)s IS NOT NULL %(and_tbl_filt)s
             GROUP BY %(fld_a)s, %(fld_b)s""" % sql_dic
     else:
-        SQL_get_lists = u"""SELECT %(fld_a)s, %(fld_b)s
+        SQL_get_pairs = u"""SELECT %(fld_a)s, %(fld_b)s
             FROM %(tbl)s
             WHERE %(fld_a)s IS NOT NULL
             AND %(fld_b)s IS NOT NULL %(and_tbl_filt)s""" % sql_dic
-    cur.execute(SQL_get_lists)
+    cur.execute(SQL_get_pairs)
     data_tups = cur.fetchall()
     lst_a = [x[0] for x in data_tups]
     lst_b = [x[1] for x in data_tups]

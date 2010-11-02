@@ -175,8 +175,8 @@ def config_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, fig,
     pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
                    fontsize=7, rotation=270)
 
-def add_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, sample_a, 
-                    sample_b, label_a, label_b, a_vs_b, title_dets_html, 
+def add_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, list_x, 
+                    list_y, label_x, label_y, x_vs_y, title_dets_html, 
                     add_to_report, report_name, html, width_inches=7.5,
                     height_inches=4.5):
     """
@@ -189,7 +189,7 @@ def add_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, sample_a,
     fig = pylab.figure()
     fig.set_size_inches((width_inches, height_inches)) 
     config_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, fig, 
-                       sample_a, sample_b, label_a, label_b, a_vs_b)
+                       list_x, list_y, label_x, label_y, x_vs_y)
     img_src = save_report_img(add_to_report, report_name, 
                               save_func=pylab.savefig, dpi=100)
     html.append(title_dets_html)

@@ -789,10 +789,10 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     f.write(u"\n" + u"default_dbs = %s" % default_dbs_str)
     default_tbls_str = pprint.pformat(dd.default_tbls)
     f.write(u"\ndefault_tbls = %s" % default_tbls_str)
-    f.write(u"\ndbe_resources = getdata.get_dbe_resources(dbe=\"%s\", " % 
-            dd.dbe)
+    f.write(u"\ndbe =\"%s\"" % dd.dbe)
+    f.write(u"\ndbe_resources = getdata.get_dbe_resources(dbe,")
     f.write(u"\n    con_dets=con_dets, default_dbs=default_dbs, "
-            u"default_tbls=default_tbls, ")
+            u"\n    default_tbls=default_tbls, ")
     f.write(u"\n    db=\"%s\", tbl=\"%s\")" % (dd.db, dd.tbl))
     f.write(u"\ncon = dbe_resources[mg.DBE_CON]")
     f.write(u"\ncur = dbe_resources[mg.DBE_CUR]")
