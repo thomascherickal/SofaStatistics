@@ -66,7 +66,8 @@ try:
     import config_globals
     import my_exceptions
 except Exception, e:
-    raise Exception(u"Problem with first round of local importing")
+    raise Exception(u"Problem with first round of local importing. %s" %
+                    traceback.format_exc())
 
 # Give the user something if the program fails at an early stage before anything
 # appears on the screen.  Can only guarantee this from here onwards because I 
@@ -121,30 +122,57 @@ class MsgApp(wx.App):
     
 
 def check_python_version():
-    if not sys.version.startswith(u"2.6"):
+    pyversion = sys.version[:3]
+    if pyversion not in (u"2.6", u"2.7"):
         fixit_file = os.path.join(mg.USER_PATH, u"Desktop", 
                                   u"how to get SOFA working.txt")
         f = open(fixit_file, "w")
-        msg = (u"\n" + u"*"*80 + 
-               u"\nHOW TO GET SOFA STATISTICS WORKING AGAIN\n" 
-               + u"*"*80 +
-               u"\n\nIt looks like an incorrect version of Python is being "
-               u"used to run SOFA Statistics. "
-               u"Fortunately, this is easily fixed (assuming you installed "
-               u"Python 2.6 as part of the SOFA installation)."
-               u"\n\nYou need to click the SOFA icon once with the right mouse "
-               u"button and select Properties.\n\nIn the Shortcut tab, there "
-               u"is a text box called Target.\n\nChange it from "
-               u"\"C:\\Program Files\\sofa\\start.pyw\"\nto\n"
-               u"C:\\Python26\\pythonw.exe "
-               u"\"C:\Program Files\\sofa\\start.pyw\" "
-               u"and click the OK button down the bottom.\n\nIf Python 2.6 is "
-               u"installed somewhere else, change the Target details "
-               u"accordingly - e.g. to D:\Python26 etc"
-               u"\n\nFor help, please contact grant@sofastatistics.com")
+        div = u"*"*80
+        win_msg = u"""
+Fortunately, this is easily fixed (assuming you installed Python 2.6 
+as part of the SOFA installation).
+
+You need to click the SOFA icon once with the right mouse button and 
+select Properties.
+
+In the Shortcut tab, there is a text box called Target.
+
+Change it from "C:\\Program Files\\sofa\\start.pyw"
+to
+C:\\Python26\\pythonw.exe "C:\Program Files\\sofa\\start.pyw"
+and click the OK button down the bottom.
+
+If Python 2.6 is installed somewhere else, change the Target details 
+accordingly - e.g. to D:\Python26 etc
+"""
+        mac_msg = u"""
+The icon for SOFA Statistics created during installation should explicitly
+refer to the correct version of Python (2.6).  Are you launching 
+SOFA Statistics in some other way?  Only Python 2.6 or 2.7 will work.
+        """
+        oth_msg = u"""
+If you have multiple versions of Python available you will need to ensure 
+that SOFA Statistics is launched with version 2.6 or 2.7 explicitly
+defined.  E.g. /usr/bin/python2.6 instead of python.
+        """
+        if mg.PLATFORM == mg.WINDOWS:
+            os_msg = win_msg
+        elif mg.PLATFORM == mg.MAC:
+            os_msg = mac_msg
+        else:
+            os_msg = oth_msg
+        msg_dic = {u"div": div, u"os_msg": os_msg}
+        msg = (u"""
+%(div)s
+HOW TO GET SOFA STATISTICS WORKING AGAIN 
+%(div)s
+
+It looks like an incorrect version of Python is being used to run SOFA Statistics.
+%(os_msg)s
+For help, please contact grant@sofastatistics.com""") % msg_dic
         f.write(msg)
         f.close()    
-        msgapp = ErrMsgApp(msg + "\n\n" + u"*"*80 +u"\n\nThis message has been "
+        msgapp = ErrMsgApp(msg + "\n\n" + div +u"\n\nThis message has been "
                 u"saved to a file on your Desktop for future reference", True)
         msgapp.MainLoop()
         del msgapp

@@ -12,7 +12,7 @@ import lib
 try:
     import pgdb
 except ImportError, e:
-    raise Exception(u"Problem importing PostgreSQL.\nCaused by error: %s"
+    raise Exception(u"Not importing PostgreSQL.\nReason: %s"
                     % lib.ue(e))
 
 # http://www.postgresql.org/docs/8.4/static/datatype.html
