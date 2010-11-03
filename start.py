@@ -122,38 +122,40 @@ class MsgApp(wx.App):
     
 
 def check_python_version():
+    debug = False
     pyversion = sys.version[:3]
+    if debug: pyversion = None
     if pyversion not in (u"2.6", u"2.7"):
         fixit_file = os.path.join(mg.USER_PATH, u"Desktop", 
                                   u"how to get SOFA working.txt")
         f = open(fixit_file, "w")
         div = u"*"*80
         win_msg = u"""
-Fortunately, this is easily fixed (assuming you installed Python 2.6 
-as part of the SOFA installation).
+Fortunately, this is easily fixed (assuming you installed Python 2.6 as part of 
+the SOFA installation).
 
-You need to click the SOFA icon once with the right mouse button and 
-select Properties.
+You need to click the SOFA icon once with the right mouse button and select 
+Properties.
 
 In the Shortcut tab, there is a text box called Target.
 
 Change it from "C:\\Program Files\\sofa\\start.pyw"
 to
-C:\\Python26\\pythonw.exe "C:\Program Files\\sofa\\start.pyw"
-and click the OK button down the bottom.
+C:\\Python26\\pythonw.exe "C:\Program Files\\sofa\\start.pyw" and click the OK 
+button down the bottom.
 
-If Python 2.6 is installed somewhere else, change the Target details 
-accordingly - e.g. to D:\Python26 etc
+If Python 2.6 is installed somewhere else, change the Target details accordingly
+- e.g. to D:\Python26 etc
 """
         mac_msg = u"""
-The icon for SOFA Statistics created during installation should explicitly
-refer to the correct version of Python (2.6).  Are you launching 
-SOFA Statistics in some other way?  Only Python 2.6 or 2.7 will work.
+The icon for SOFA Statistics created during installation should explicitly refer
+to the correct version of Python (2.6).  Are you launching SOFA Statistics in 
+some other way?  Only Python 2.6 or 2.7 will work.
         """
         oth_msg = u"""
-If you have multiple versions of Python available you will need to ensure 
-that SOFA Statistics is launched with version 2.6 or 2.7 explicitly
-defined.  E.g. /usr/bin/python2.6 instead of python.
+If you have multiple versions of Python available you will need to ensure that
+SOFA Statistics is launched with version 2.6 or 2.7 explicitly defined.
+E.g. /usr/bin/python2.6 instead of python.
         """
         if mg.PLATFORM == mg.WINDOWS:
             os_msg = win_msg

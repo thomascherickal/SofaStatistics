@@ -348,12 +348,18 @@ OK_TIME_FORMATS = ["%I%p", "%I:%M%p", "%H:%M", "%H:%M:%S"]
 OK_DATE_FORMATS = None
 OK_DATE_FORMAT_EXAMPLES = None
 # preferences
-PREFS_KEY = "Prefs"
-DEFAULT_LEVEL_KEY = "default level key"
-LEVEL_FULL = _("Full Explanation")
-LEVEL_BRIEF = _("Brief Explanation")
-LEVEL_RESULTS_ONLY = _("Results Only")
+PREFS_KEY = u"Prefs"
+DEFAULT_LEVEL_KEY = u"default explanation level"
+LEVEL_FULL = _(u"Full Explanation")
+LEVEL_BRIEF = _(u"Brief Explanation")
+LEVEL_RESULTS_ONLY = _(u"Results Only")
 LEVELS = (LEVEL_FULL, LEVEL_BRIEF, LEVEL_RESULTS_ONLY)
+VERSION_CHECK_KEY = u"version checking level"
+VERSION_CHECK_NONE = _(u"No checking")
+VERSION_CHECK_MAJOR = _(u"Only report major changes")
+VERSION_CHECK_ALL = _(u"Report any version changes")
+VERSION_CHECK_OPTS = [VERSION_CHECK_NONE, VERSION_CHECK_MAJOR, 
+                      VERSION_CHECK_ALL]
 # chart types
 SIMPLE_BARCHART = u"Simple Bar Chart"
 CLUSTERED_BARCHART = u"Clustered Bar Chart"
