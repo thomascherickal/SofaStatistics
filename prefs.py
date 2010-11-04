@@ -12,21 +12,28 @@ import config_globals
 
 
 class PrefsDlg(wx.Dialog):
-    def __init__(self, parent, prefs_dic):
+    def __init__(self, parent, prefs_dic_in):
+        """
+        prefs_dic_in -- expects a dict, even an empty one. If empty, or with 
+            wrong keys, starts fresh and will store what gets selected here if
+            user applies changes.
+        Explanation level is unusual in that it can get (re)set on most dialogs 
+            as well, and the sizer is shared code as well.
+        """
         wx.Dialog.__init__(self, parent=parent, title=_("Preferences"), 
                            style=wx.CAPTION|wx.SYSTEM_MENU, 
                            pos=(mg.HORIZ_OFFSET+100,300))
-        if not prefs_dic:
-            prefs_dic[mg.PREFS_KEY] = {mg.DEFAULT_LEVEL_KEY: mg.LEVEL_BRIEF,
-                                    mg.VERSION_CHECK_KEY: mg.VERSION_CHECK_ALL}
-        self.prefs_dic = prefs_dic
+        if not prefs_dic_in or mg.PREFS_KEY not in prefs_dic_in:
+            prefs_dic_in = {mg.PREFS_KEY: {}}
         self.parent = parent
         self.panel = wx.Panel(self)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
-        self.rad_versions = wx.RadioBox(self.panel, -1, _("Version Checking"), 
+        self.rad_versions = wx.RadioBox(self.panel, -1, _("Upgrade Checking"), 
                                         choices=mg.VERSION_CHECK_OPTS, 
                                         style=wx.RA_SPECIFY_COLS)
-        self.rad_versions.SetStringSelection(mg.VERSION_CHECK_ALL)
+        version_check_lev = prefs_dic_in[mg.PREFS_KEY].get(mg.VERSION_CHECK_KEY, 
+                                                           mg.VERSION_CHECK_ALL)
+        self.rad_versions.SetStringSelection(version_check_lev)
         self.szr_versions = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_versions.Add(self.rad_versions, 0, wx.RIGHT, 10)
         self.rad_versions.Enable(True)
@@ -59,15 +66,16 @@ class PrefsDlg(wx.Dialog):
         # (MUST come after Destroy)
     
     def on_ok(self, event):
-        # collect prefs
-        self.prefs_dic[mg.PREFS_KEY][mg.DEFAULT_LEVEL_KEY] = \
+        # collect prefs.  Do it all from scratch here
+        prefs_dic_out = {mg.PREFS_KEY: {}}
+        prefs_dic_out[mg.PREFS_KEY][mg.DEFAULT_LEVEL_KEY] = \
             self.rad_level.GetStringSelection()
-        self.prefs_dic[mg.PREFS_KEY][mg.VERSION_CHECK_KEY] = \
+        prefs_dic_out[mg.PREFS_KEY][mg.VERSION_CHECK_KEY] = \
             self.rad_versions.GetStringSelection()
         # create updated prefs file
         prefs_path = os.path.join(mg.INT_PATH, mg.INT_PREFS_FILE)
         f = codecs.open(prefs_path, "w", "utf-8")
-        prefs_str = pprint.pformat(self.prefs_dic[mg.PREFS_KEY])
+        prefs_str = pprint.pformat(prefs_dic_out[mg.PREFS_KEY])
         f.write(u"%s = " % mg.PREFS_KEY + prefs_str)
         f.close()
         # misc

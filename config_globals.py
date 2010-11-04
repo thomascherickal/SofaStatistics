@@ -152,6 +152,7 @@ def set_ok_date_formats():
 def get_settings_dic(subfolder, fil_name):
     """
     Returns settings_dic with keys for each setting.
+    Used for project dics, preferences dics etc.
     """
     import lib
     

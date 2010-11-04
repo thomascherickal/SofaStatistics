@@ -184,7 +184,7 @@ check_python_version() # do as early as possible.  Game over if Python faulty.
 COPYRIGHT = u"\u00a9"
 SCREEN_WIDTH = 1000
 TEXT_BROWN = (90, 74, 61)
-TOP_TOP = 9
+TOP_TOP = 7
 BTN_LEFT= 5
 BTN_WIDTH = 170
 BTN_RIGHT = SCREEN_WIDTH - (BTN_WIDTH + 18)
@@ -195,7 +195,8 @@ MAX_HELP_TEXT_WIDTH = 330 # pixels
 HELP_TEXT_WIDTH = 330
 HELP_IMG_LEFT = 575
 HELP_IMG_TOP = 315
-MAIN_RIGHT = 650
+MAIN_SOFA_LOGO_RIGHT = 555
+VERSION_RIGHT = MAIN_SOFA_LOGO_RIGHT + 10
 SCRIPT_PATH = mg.SCRIPT_PATH
 
 def get_installed_version(local_path):
@@ -603,7 +604,7 @@ class StartFrame(wx.Frame):
         self.panel = wx.Panel(self, size=(SCREEN_WIDTH, 600)) # win
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)
-        self.Bind(wx.EVT_SHOW, self.on_show) # no Mac version needed - win only
+        self.Bind(wx.EVT_SHOW, self.on_show) # doesn't run on Mac
         self.active_proj = mg.DEFAULT_PROJ
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=self.active_proj)
@@ -630,17 +631,20 @@ class StartFrame(wx.Frame):
             raise Exception(u"Problem creating background button image from %s"
                             % sofa)
         # stable images
+        upgrade = os.path.join(SCRIPT_PATH, u"images", u"upgrade.xpm")
+        self.bmp_upgrade = wx.Image(upgrade, 
+                                    wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         quote_left = os.path.join(SCRIPT_PATH, u"images", 
                                   u"speech_mark_large.xpm")
-        self.bmp_quote_left = \
-                    wx.Image(quote_left, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_quote_left = wx.Image(quote_left, 
+                                       wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         quote_right = os.path.join(SCRIPT_PATH, u"images", 
                                   u"speech_mark_small.xpm")
-        self.bmp_quote_right = \
-                    wx.Image(quote_right, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_quote_right = wx.Image(quote_right, 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         top_sofa = os.path.join(SCRIPT_PATH, u"images", u"top_sofa.xpm")
-        self.bmp_top_sofa = \
-                    wx.Image(top_sofa, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_top_sofa = wx.Image(top_sofa, 
+                                     wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         # slice of image to be refreshed (where text and image will be)
         blankwp_rect = wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_IMG_LEFT+35, 250)
         self.blank_wallpaper = self.bmp_sofa.GetSubBitmap(blankwp_rect)
@@ -764,38 +768,44 @@ class StartFrame(wx.Frame):
         except Exception, e:
             raise Exception(u"Problem setting up help images."
                             u"\nCaused by error: %s" % lib.ue(e))
-        self.HELP_TEXT_FONT = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
+        # upgrade available?
+        try:
+            prefs_dic = \
+                config_globals.get_settings_dic(subfolder=mg.INT_FOLDER, 
+                                                fil_name=mg.INT_PREFS_FILE)
+            version_lev = prefs_dic[mg.PREFS_KEY][mg.VERSION_CHECK_KEY]
+            if version_lev == mg.VERSION_CHECK_NONE:
+                raise Exception(u"No permission to check for new versions")
+            else:
+                new_version = self.upgrade_available(version_lev)
+                if debug: print(new_version)
+            self.upgrade_available = \
+                                lib.version_a_is_newer(version_a=new_version, 
+                                                       version_b=mg.VERSION)
+        except Exception, e:
+            self.upgrade_available = False
+        # home link
         link_home = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com", 
                                      pos=(MAIN_LEFT, TOP_TOP), 
                                      URL="http://www.sofastatistics.com")
-        link_home.SetColours(link=wx.Colour(255,255,255), 
-                             visited=wx.Colour(255,255,255), 
-                             rollover=wx.Colour(255,255,255))
-        link_home.SetOwnBackgroundColour(wx.Colour(0, 0, 0))
-        link_home.SetOwnFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9, 
-                                     wx.SWISS, wx.NORMAL, wx.NORMAL))
-        link_home.SetSize(wx.Size(200, 17))
-        link_home.SetUnderlines(link=True, visited=True, rollover=False)
-        link_home.SetLinkCursor(wx.CURSOR_HAND)
-        link_home.EnableRollover(True)
-        link_home.SetVisited(True)
-        link_home.UpdateLink(True)
+        self.setup_link(link=link_home, link_colour=wx.Colour(255,255,255), 
+                        bg_colour=wx.Colour(0, 0, 0))
+        # help link
         link_help = hl.HyperLinkCtrl(self.panel, -1, 
                             _("Get help from community"), 
                             pos=(MAIN_LEFT, TOP_TOP + 200), 
                             URL="http://groups.google.com/group/sofastatistics")
-        link_help.SetColours(link=TEXT_BROWN, 
-                             visited=TEXT_BROWN, 
-                             rollover=TEXT_BROWN)
-        link_help.SetOwnBackgroundColour(wx.Colour(205, 217, 215))
-        link_help.SetOwnFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9, 
-                                     wx.SWISS, wx.NORMAL, wx.NORMAL))
-        link_help.SetSize(wx.Size(200, 17))
-        link_help.SetUnderlines(link=True, visited=True, rollover=False)
-        link_help.SetLinkCursor(wx.CURSOR_HAND)
-        link_help.EnableRollover(True)
-        link_help.SetVisited(True)
-        link_help.UpdateLink(True)
+        self.setup_link(link=link_help, link_colour=TEXT_BROWN, 
+                        bg_colour=wx.Colour(205, 217, 215))
+        # upgrade link
+        if self.upgrade_available:
+            link_upgrade = hl.HyperLinkCtrl(self.panel, -1, 
+                            _(u"Upgrade to %s here") % new_version, 
+                            pos=(VERSION_RIGHT+125, TOP_TOP), 
+                            URL="http://www.sofastatistics.com/downloads.php")
+            self.setup_link(link=link_upgrade, 
+                            link_colour=wx.Colour(255,255,255), 
+                            bg_colour=wx.Colour(0, 0, 0))
         if mg.DBE_PROBLEM:
             prob = os.path.join(mg.INT_PATH, u"database connection problem.txt")
             f = codecs.open(prob, "w", "utf8")
@@ -805,8 +815,38 @@ class StartFrame(wx.Frame):
             wx.MessageBox(_("Please click on \"Enter/Edit Data\" and delete"
                         " the table \"%s\"") % mg.TMP_TBL_NAME)
     
+    def upgrade_available(self, version_lev):
+        """
+        Is there a new version or a new major version?
+        """
+        import urllib # http://docs.python.org/library/urllib.html
+        file2read = u"latest_sofa_version.txt" \
+                    if version_lev == mg.VERSION_CHECK_MAJOR \
+                    else u"latest_major_sofa_version.txt"
+        url2open = u"http://www.sofastatistics.com/%s" % file2read
+        try:
+            url_reply = urllib.urlopen(url2open)
+            new_version = u"%s" % url_reply.read().strip()
+        except Exception, e:
+            raise Exception(u"Unable to extract latest sofa version."
+                            u"/nCaused by error: %s" % lib.ue(e))
+        return new_version
+    
+    def setup_link(self, link, link_colour, bg_colour):
+        link.SetColours(link=link_colour, visited=link_colour, 
+                        rollover=link_colour)
+        link.SetOwnBackgroundColour(bg_colour)
+        link.SetOwnFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9, 
+                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
+        link.SetSize(wx.Size(250, 17))
+        link.SetUnderlines(link=True, visited=True, rollover=False)
+        link.SetLinkCursor(wx.CURSOR_HAND)
+        link.EnableRollover(True)
+        link.SetVisited(True)
+        link.UpdateLink(True)
+        
     def on_show(self, event):
-        self.init_com_types(self.panel)
+        self.init_com_types(self.panel) # fortunately, not needed on Mac
     
     def init_com_types(self, panel):
         """
@@ -846,16 +886,19 @@ class StartFrame(wx.Frame):
         try:
             panel_dc = wx.PaintDC(self.panel)
             panel_dc.DrawBitmap(self.bmp_sofa, 0, 0, True)
+            if self.upgrade_available:
+                panel_dc.DrawBitmap(self.bmp_upgrade, VERSION_RIGHT+95, 4, True)
             panel_dc.DrawBitmap(self.bmp_quote_left, 136, 95, True)
             panel_dc.DrawBitmap(self.bmp_quote_right, 445, 163, True)
-            panel_dc.DrawBitmap(self.bmp_top_sofa, 555, 65, True)
+            panel_dc.DrawBitmap(self.bmp_top_sofa, MAIN_SOFA_LOGO_RIGHT, 65, 
+                                True)
             panel_dc.DrawBitmap(self.bmp_chart, HELP_IMG_LEFT-30, 
                                 HELP_IMG_TOP-20, True)
             panel_dc.SetTextForeground(wx.WHITE)
-            panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 8, 
+            panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9, 
                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
             panel_dc.DrawLabel(_("Version %s") % mg.VERSION, 
-                               wx.Rect(MAIN_RIGHT, TOP_TOP, 100, 20))
+                               wx.Rect(VERSION_RIGHT, TOP_TOP, 100, 20))
             panel_dc.SetFont(wx.Font(self.main_font_size+5 if 
                                      mg.PLATFORM == mg.MAC 
                                      else self.main_font_size, 
@@ -889,7 +932,7 @@ class StartFrame(wx.Frame):
             panel_dc.SetFont(wx.Font(14 if mg.PLATFORM == mg.MAC else 11, 
                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
             panel_dc.DrawLabel(_("Currently using \"%s\" project settings") % 
-                                    self.active_proj[:-5],
+                                              self.active_proj[:-len(u".proj")],
                                wx.Rect(MAIN_LEFT, 247, 400, 30))
             event.Skip()
         except Exception, e:
@@ -955,7 +998,7 @@ class StartFrame(wx.Frame):
         except Exception:
             prefs_dic = {}
         if debug: print(prefs_dic)
-        dlg = prefs.PrefsDlg(parent=self, prefs_dic=prefs_dic)
+        dlg = prefs.PrefsDlg(parent=self, prefs_dic_in=prefs_dic)
         dlg.ShowModal()
         event.Skip()
     

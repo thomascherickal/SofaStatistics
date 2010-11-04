@@ -356,8 +356,8 @@ LEVEL_RESULTS_ONLY = _(u"Results Only")
 LEVELS = (LEVEL_FULL, LEVEL_BRIEF, LEVEL_RESULTS_ONLY)
 VERSION_CHECK_KEY = u"version checking level"
 VERSION_CHECK_NONE = _(u"No checking")
-VERSION_CHECK_MAJOR = _(u"Only report major changes")
-VERSION_CHECK_ALL = _(u"Report any version changes")
+VERSION_CHECK_MAJOR = _(u"Only report major upgrades")
+VERSION_CHECK_ALL = _(u"Report any version upgrades")
 VERSION_CHECK_OPTS = [VERSION_CHECK_NONE, VERSION_CHECK_MAJOR, 
                       VERSION_CHECK_ALL]
 # chart types
