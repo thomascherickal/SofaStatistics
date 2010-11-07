@@ -579,9 +579,11 @@ class SofaApp(wx.App):
         except Exception, e:
             try:
                 frame.Close()
-            except Exception:
+            except NameError:
                 pass
-            raise
+            # raise original exception having closed frame if possible
+            raise Exception(lib.ue(e))
+        
 
 class StartFrame(wx.Frame):
     
@@ -773,7 +775,8 @@ class StartFrame(wx.Frame):
             prefs_dic = \
                 config_globals.get_settings_dic(subfolder=mg.INT_FOLDER, 
                                                 fil_name=mg.INT_PREFS_FILE)
-            version_lev = prefs_dic[mg.PREFS_KEY][mg.VERSION_CHECK_KEY]
+            version_lev = prefs_dic[mg.PREFS_KEY].get(mg.VERSION_CHECK_KEY, 
+                                                      mg.VERSION_CHECK_ALL)
             if version_lev == mg.VERSION_CHECK_NONE:
                 raise Exception(u"No permission to check for new versions")
             else:
@@ -1077,8 +1080,9 @@ class StartFrame(wx.Frame):
         txt_tabs1 = _("Make report tables e.g. Age vs Gender")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_tabs1, MAX_HELP_TEXT_WIDTH), 
                         wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))       
-        txt_tabs2 = _("Can make simple Frequency Tables, Crosstabs, "
-                "Summary Tables (mean, median, etc), and simple lists of data.")
+        txt_tabs2 = _(u"Can make simple Frequency Tables, Crosstabs, "
+                u"Row Stats Tables (mean, median, standard deviation etc), "
+                u"and simple lists of data.")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_tabs2, MAX_HELP_TEXT_WIDTH), 
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP+30, HELP_TEXT_WIDTH, 260))
         event.Skip()

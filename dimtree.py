@@ -646,7 +646,7 @@ class DlgConfig(wx.Dialog):
         first_node_id = node_ids[0]
         # base item configuration on first one selected
         item_conf = self.tree.GetItemPyData(first_node_id)
-        chk_size = (150, 20)
+        chk_size = (170, 20)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         var_lbl = tree.GetItemText(first_node_id)
         lbl_var = wx.StaticText(self, -1, var_lbl)
