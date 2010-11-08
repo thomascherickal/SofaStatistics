@@ -551,11 +551,15 @@ class SofaApp(wx.App):
         try:
             # http://wiki.wxpython.org/RecipesI18n
             path = sys.path[0].decode(sys.getfilesystemencoding())
-            langdir = os.path.join(path,u'locale')
-            langid = wx.LANGUAGE_GALICIAN if test_lang else wx.LANGUAGE_DEFAULT
+            langdir = os.path.join(path, u'locale')
+            # wx.LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, wx.LANGUAGE_HEBREW
+            langid = wx.LANGUAGE_CROATIAN if test_lang else wx.LANGUAGE_DEFAULT
             # next line will only work if locale is installed on the computer
             mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
             canon_name = mylocale.GetCanonicalName() # e.g. en_NZ, gl_ES etc
+            if not canon_name:
+                mylocale = wx.Locale(wx.LANGUAGE_DEFAULT)
+                canon_name = mylocale.GetCanonicalName()
             # want main title to be right size but some langs too long for that
             self.main_font_size = 20 if canon_name.startswith('en_') else 16
             mytrans = gettext.translation(u"sofa", langdir, 
@@ -578,7 +582,7 @@ class SofaApp(wx.App):
             return True
         except Exception, e:
             try:
-                frame.Close()
+                fred.Close()
             except NameError:
                 pass
             # raise original exception having closed frame if possible
@@ -680,12 +684,12 @@ class StartFrame(wx.Frame):
         self.btn_prefs.Bind(wx.EVT_BUTTON, self.on_prefs_click)
         self.btn_prefs.Bind(wx.EVT_ENTER_WINDOW, self.on_prefs_enter)
         # Data entry
-        bmp_btn_enter = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
+        bmp_btn_data = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                         _("Enter/Edit Data"), font_buttons, "white")
-        self.btn_enter = wx.BitmapButton(self.panel, -1, bmp_btn_enter, 
+        self.btn_data = wx.BitmapButton(self.panel, -1, bmp_btn_data, 
                                          pos=(BTN_LEFT, g.next()))
-        self.btn_enter.Bind(wx.EVT_BUTTON, self.on_enter_click)
-        self.btn_enter.Bind(wx.EVT_ENTER_WINDOW, self.on_enter_enter)
+        self.btn_data.Bind(wx.EVT_BUTTON, self.on_data_click)
+        self.btn_data.Bind(wx.EVT_ENTER_WINDOW, self.on_data_enter)
         # Import
         bmp_btn_import = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                          _("Import Data"), font_buttons, "white")
@@ -728,7 +732,7 @@ class StartFrame(wx.Frame):
             self.btn_help.SetCursor(hand)
             self.btn_proj.SetCursor(hand)
             self.btn_prefs.SetCursor(hand)
-            self.btn_enter.SetCursor(hand)
+            self.btn_data.SetCursor(hand)
             self.btn_import.SetCursor(hand)
             self.btn_tables.SetCursor(hand)
             self.btn_charts.SetCursor(hand)
@@ -1016,7 +1020,7 @@ class StartFrame(wx.Frame):
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
         
-    def on_enter_click(self, event):
+    def on_data_click(self, event):
         # open proj selection form
         import dataselect
         proj_name = self.active_proj
@@ -1024,15 +1028,30 @@ class StartFrame(wx.Frame):
         dlgData.ShowModal()
         event.Skip()
         
-    def on_enter_enter(self, event):
+    def on_data_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_data, HELP_IMG_LEFT-30, HELP_IMG_TOP-20, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
-        txt_entry = _("Enter data into a fresh dataset or select an existing "
-                      "one to edit or add data to.")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_entry, MAX_HELP_TEXT_WIDTH), 
+        txt1 = _(u"Enter data into a fresh data table or select an existing "
+                 u"table to edit or add data to.")
+        txt2 = _(u"For tables in the SOFA database you can also:")
+        txt3 = _(u"* rename data tables, ")
+        txt4 = _(u"* add, delete or rename fields, ")
+        txt5 = _(u"* change the data type of fields, ")
+        txt6 = _(u"* recode values from one field into another")
+        txt7 = _(u"e.g. age into age group")
+        text2draw = (
+             lib.get_text_to_draw(txt1, MAX_HELP_TEXT_WIDTH) + u"\n\n" +
+             lib.get_text_to_draw(txt2, MAX_HELP_TEXT_WIDTH) + u"\n " +
+             lib.get_text_to_draw(txt3, MAX_HELP_TEXT_WIDTH) + u"\n " +
+             lib.get_text_to_draw(txt4, MAX_HELP_TEXT_WIDTH) + u"\n " +
+             lib.get_text_to_draw(txt5, MAX_HELP_TEXT_WIDTH) + u"\n " +
+             lib.get_text_to_draw(txt6, MAX_HELP_TEXT_WIDTH) + u"\n    " +
+             lib.get_text_to_draw(txt7, MAX_HELP_TEXT_WIDTH)
+                     )
+        panel_dc.DrawLabel(text2draw, 
                     wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
         event.Skip()
 
@@ -1077,14 +1096,14 @@ class StartFrame(wx.Frame):
         panel_dc.DrawBitmap(self.bmp_tabs, HELP_IMG_LEFT+10, HELP_IMG_TOP-10, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
-        txt_tabs1 = _("Make report tables e.g. Age vs Gender")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_tabs1, MAX_HELP_TEXT_WIDTH), 
-                        wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))       
-        txt_tabs2 = _(u"Can make simple Frequency Tables, Crosstabs, "
+        txt1 = _(u"Make report tables e.g. Age vs Gender") 
+        txt2 = _(u"Can make simple Frequency Tables, Crosstabs, "
                 u"Row Stats Tables (mean, median, standard deviation etc), "
                 u"and simple lists of data.")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_tabs2, MAX_HELP_TEXT_WIDTH), 
-                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP+30, HELP_TEXT_WIDTH, 260))
+        txt2draw = (lib.get_text_to_draw(txt1, MAX_HELP_TEXT_WIDTH) + u"\n\n" +
+                    lib.get_text_to_draw(txt2, MAX_HELP_TEXT_WIDTH))
+        panel_dc.DrawLabel(txt2draw, wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, 
+                                             HELP_TEXT_WIDTH, 260))      
         event.Skip()
     
     def get_script(self, cont, script):
@@ -1100,8 +1119,8 @@ class StartFrame(wx.Frame):
             lib.safe_end_cursor()
             dlg.ShowModal()
         except Exception, e:
-            msg = _("Unable to connect to data as defined in project %s.  "
-                    "Please check your settings" % self.active_proj)
+            msg = _(u"Unable to connect to data as defined in project %s.  "
+                    u"Please check your settings" % self.active_proj)
             wx.MessageBox(msg)
             raise Exception(u"%s.\nCaused by errors:\n\n%s" % 
                             (msg, traceback.format_exc()))
@@ -1144,28 +1163,18 @@ class StartFrame(wx.Frame):
         panel_dc.DrawBitmap(self.bmp_stats, HELP_IMG_LEFT+10, HELP_IMG_TOP-25, 
                             True)
         panel_dc.SetTextForeground(TEXT_BROWN)
-        txt_stats1 = _("Run statistical tests on your data - e.g. a "
-                       "Chi Square to see if there is a relationship between "
-                       "age group and gender.")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_stats1, 
-                                                MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 
-                                   260))
-        txt_stats2 = _("SOFA focuses on the statistical tests most users "
-                       "need most of the time.")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_stats2, 
-                                                MAX_HELP_TEXT_WIDTH), 
-                wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 61, HELP_TEXT_WIDTH, 320))
-        txt_stats3 = u"QUOTE:"
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_stats3, 
-                                                MAX_HELP_TEXT_WIDTH), 
-                           wx.Rect(MAIN_LEFT, HELP_TEXT_TOP + 106, 
-                                   HELP_TEXT_WIDTH, 320))
-        txt_stats4 = u"%s (%s)" % quotes.get_quote()
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_stats4, 
-                                                MAX_HELP_TEXT_WIDTH - 20), 
-                           wx.Rect(MAIN_LEFT + 10, HELP_TEXT_TOP + 131, 
-                                   HELP_TEXT_WIDTH-10, 320))
+        txt1 = _(u"Run statistical tests on your data - e.g. a Chi Square to "
+                u"see if there is a relationship between age group and gender.")
+        txt2 = _(u"SOFA focuses on the statistical tests most users need most "
+                 u"of the time.")
+        txt3 = u"QUOTE: %s (%s)" % quotes.get_quote()
+        txt2draw = (
+                    lib.get_text_to_draw(txt1, MAX_HELP_TEXT_WIDTH) + u"\n\n" +
+                    lib.get_text_to_draw(txt2, MAX_HELP_TEXT_WIDTH) + u"\n\n" +
+                    lib.get_text_to_draw(txt3, MAX_HELP_TEXT_WIDTH)
+                    )
+        panel_dc.DrawLabel(txt2draw, wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, 
+                                             HELP_TEXT_WIDTH, 260))
         event.Skip()
     
     def on_exit_click(self, event):
