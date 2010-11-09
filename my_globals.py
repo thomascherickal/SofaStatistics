@@ -16,7 +16,8 @@ debug = False
 VERSION = u"0.9.22"
 ADVANCED = False
 ATTRIBUTION = u"sofastatistics.com"
-
+# wx.LANGUAGE_GALICIAN, wx.LANGUAGE_CROATIAN, wx.LANGUAGE_HEBREW
+TEST_LANGID = wx.LANGUAGE_DANISH
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
 PYTHON_ENCODING_DECLARATION = u"#! /usr/bin/env python" + os.linesep + \

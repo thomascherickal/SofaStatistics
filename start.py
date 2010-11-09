@@ -4,7 +4,7 @@
 from __future__ import absolute_import
 
 dev_debug = True
-test_lang = False
+test_lang = True
 
 """
 Start up launches the SOFA main form.  Along the way it tries to detect errors
@@ -59,7 +59,12 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 # http://wiki.wxpython.org/RecipesI18n
 # Install gettext.  Now all strings enclosed in "_()" will automatically be
 # translated.
-gettext.install('sofa', './locale', unicode=True)
+localedir = u"./locale"
+for path in sys.path:
+    if u"sofa" in path.lower(): # if user hasn't used sofa in name, use default
+        localedir = os.path.join(path, u"locale")
+        break
+gettext.install(domain='sofa', localedir=localedir, unicode=True)
 try:
     import my_globals as mg # has translated text
     import lib
@@ -548,24 +553,44 @@ class SofaApp(wx.App):
         wx.App.__init__(self, redirect=redirect, filename=filename)
 
     def OnInit(self):
+        debug = True
+        """
+        If a language isn't installed on the OS then it won't even look for the
+            locale subfolder.  GetLanguage() will return a 1 instead of the 
+            langid. 
+        """
         try:
             # http://wiki.wxpython.org/RecipesI18n
-            path = sys.path[0].decode(sys.getfilesystemencoding())
-            langdir = os.path.join(path, u'locale')
-            # wx.LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, wx.LANGUAGE_HEBREW
-            langid = wx.LANGUAGE_CROATIAN if test_lang else wx.LANGUAGE_DEFAULT
+            langdir = os.path.join(mg.SCRIPT_PATH, u'locale')
+            langid = mg.TEST_LANGID if test_lang else wx.LANGUAGE_DEFAULT
             # next line will only work if locale is installed on the computer
             mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
-            canon_name = mylocale.GetCanonicalName() # e.g. en_NZ, gl_ES etc
-            if not canon_name:
+            if debug:
+                print(u"langid: %s" % langid)
+                print(u"Getlanguage: %s" % mylocale.GetLanguage())
+                print(u"GetCanonicalName: %s" % mylocale.GetCanonicalName())
+                print(u"GetSysName: %s" % mylocale.GetSysName())
+                print(u"GetLocale: %s" % mylocale.GetLocale())
+                print(u"GetName: %s" % mylocale.GetName())
+            if mylocale.IsOk():
+                canon_name = mylocale.GetCanonicalName()
+            else:
+                """
+                Resetting mylocale makes frame flash and die if not clean first.
+                http://www.java2s.com/Open-Source/Python/GUI/wxPython/...
+                             ...wxPython-src-2.8.11.0/wxPython/demo/I18N.py.htm
+                """
+                assert sys.getrefcount(mylocale) <= 2
+                del mylocale # otherwise C++ object persists too long & crashes
                 mylocale = wx.Locale(wx.LANGUAGE_DEFAULT)
                 canon_name = mylocale.GetCanonicalName()
             # want main title to be right size but some langs too long for that
             self.main_font_size = 20 if canon_name.startswith('en_') else 16
             mytrans = gettext.translation(u"sofa", langdir, 
-                                        languages=[canon_name], fallback = True)
+                                    languages=[canon_name,], fallback=True)
+            if debug: print(canon_name)
             mytrans.install()
-            if platform.system() == u"Linux":
+            if mg.PLATFORM == mg.LINUX:
                 try:
                     # to get some language settings to display properly:
                     os.environ['LANG'] = u"%s.UTF-8" % canon_name
@@ -582,7 +607,7 @@ class SofaApp(wx.App):
             return True
         except Exception, e:
             try:
-                fred.Close()
+                frame.Close()
             except NameError:
                 pass
             # raise original exception having closed frame if possible

@@ -477,11 +477,11 @@ class CsvImporter(importer.FileImporter):
         """
         local_encoding = locale.getpreferredencoding()
         if mg.PLATFORM == mg.WINDOWS:
-            encodings = [local_encoding, "cp1252", "iso-8859-1", "cp1257", 
-                         "utf8", "big5"]
+            encodings = ["cp1252", "iso-8859-1", "cp1257", "utf-8", "big5"]
         else:
-            encodings = [local_encoding, "utf8", "iso-8859-1", "cp1252", 
-                         "cp1257", "big5"]
+            encodings = ["utf-8", "iso-8859-1", "cp1252", "cp1257", "big5"]
+        if local_encoding.lower() not in encodings:
+            encodings.insert(0, local_encoding.lower())
         possible_encodings = []
         for encoding in encodings:
             try:

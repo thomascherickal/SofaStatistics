@@ -20,7 +20,7 @@ import my_globals as mg
 
 def set_SCRIPT_PATH():
     # print(sys.path)
-     # NB won't work within an interpreter
+    # NB won't work within an interpreter
     # http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
     path_found = False
     for path in sys.path:
