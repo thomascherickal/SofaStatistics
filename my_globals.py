@@ -16,8 +16,9 @@ debug = False
 VERSION = u"0.9.22"
 ADVANCED = False
 ATTRIBUTION = u"sofastatistics.com"
-# wx.LANGUAGE_GALICIAN, wx.LANGUAGE_CROATIAN, wx.LANGUAGE_HEBREW
-TEST_LANGID = wx.LANGUAGE_DANISH
+# LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, LANGUAGE_RUSSIAN, LANGUAGE_HEBREW
+# LANGUAGE_BRETON, LANGUAGE_SPANISH
+TEST_LANGID = wx.LANGUAGE_GALICIAN
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
 PYTHON_ENCODING_DECLARATION = u"#! /usr/bin/env python" + os.linesep + \
@@ -180,6 +181,7 @@ REPORT_EXTRAS_FOLDER = u"sofa_report_extras"
 REPORT_EXTRAS_PATH = os.path.join(REPORTS_PATH, REPORT_EXTRAS_FOLDER)
 SCRIPT_PATH = None # set in config_globals
 PATH_ERROR = None
+LANGID_ERROR = None
 INT_PATH = os.path.join(LOCAL_PATH, INT_FOLDER)
 INT_SCRIPT_PATH = os.path.join(INT_PATH, u"script.py")
 INT_REPORT_FILE = u"report.htm"

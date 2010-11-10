@@ -243,11 +243,24 @@ class StatsSelectDlg(wx.Dialog):
         panel_dc = wx.PaintDC(self.panel)
         panel_dc.DrawBitmap(self.bmp_stats_select, 0, 0, True)
         panel_dc.SetTextForeground(TEXT_BROWN)
-        panel_dc.SetFont(wx.Font(13, wx.SWISS, wx.NORMAL, wx.BOLD))
-        panel_dc.DrawLabel(_("SELECT A STATISTICAL TEST HERE"), 
-           wx.Rect(MAIN_LEFT, 53, 100, 100))
-        panel_dc.DrawLabel(_("OR GET HELP CHOOSING BELOW"), 
-           wx.Rect(MAIN_LEFT, 95, 100, 100))
+        test_sel_txt = _("SELECT A STATISTICAL TEST HERE")
+        test_sel_max_width = 350
+        test_sel_font_sz = 13
+        test_sel_fs = lib.get_font_size_to_fit(text=test_sel_txt, 
+                                               max_width=test_sel_max_width, 
+                                               font_sz=test_sel_font_sz,
+                                               min_font_sz=10)
+        panel_dc.SetFont(wx.Font(test_sel_fs, wx.SWISS, wx.NORMAL, wx.BOLD))
+        panel_dc.DrawLabel(test_sel_txt, wx.Rect(MAIN_LEFT, 53, 100, 100))
+        get_help_txt = _("OR GET HELP CHOOSING BELOW")
+        get_help_max_width = 350
+        get_help_font_sz = 13
+        get_help_fs = lib.get_font_size_to_fit(text=get_help_txt, 
+                                               max_width=get_help_max_width, 
+                                               font_sz=get_help_font_sz,
+                                               min_font_sz=11)
+        panel_dc.SetFont(wx.Font(get_help_fs, wx.SWISS, wx.NORMAL, wx.BOLD))
+        panel_dc.DrawLabel(get_help_txt, wx.Rect(MAIN_LEFT, 95, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         panel_dc.DrawLabel(_("Tests that show if there is a difference"), 
            wx.Rect(BUTTON1_LEFT, DIFF_TOP, 100, 100))

@@ -613,7 +613,7 @@ def get_text_to_draw(orig_txt, max_width):
     "Return text broken into new lines so wraps within pixel width"
     mem = wx.MemoryDC()
     mem.SelectObject(wx.EmptyBitmap(100,100)) # mac fails without this
-        # add words to it until its width is too long then put into split
+    # add words to it until its width is too long then put into split
     lines = []
     words = orig_txt.split()
     line_words = []
@@ -629,18 +629,42 @@ def get_text_to_draw(orig_txt, max_width):
     mem.SelectObject(wx.NullBitmap)
     return wrapped_txt
 
-def add_text_to_bitmap(bitmap, text, font, colour, left=9, top=3):
+def get_font_size_to_fit(text, max_width, font_sz, min_font_sz):
+    "Shrink font until it fits or is min size"
+    mem = wx.MemoryDC()
+    mem.SelectObject(wx.EmptyBitmap(max_width,100)) # mac fails without this
+    while font_sz > min_font_sz:
+        font = wx.Font(font_sz, wx.SWISS, wx.NORMAL, wx.BOLD)
+        mem.SetFont(font)
+        text_width = mem.GetTextExtent(text)[0]
+        if text_width < max_width: 
+            break
+        else:
+            font_sz -= 1
+    return font_sz
+
+def add_text_to_bitmap(bitmap, text, btn_font_sz, colour, left=9, top=3):
     """
     Add short text to bitmap with standard left margin.
     Can then use bitmap for a bitmap button.
     See http://wiki.wxpython.org/index.cgi/WorkingWithImages
     """
+    width = bitmap.GetWidth()
+    height = bitmap.GetHeight()
+    rect = wx.Rect(left, top, width, height)
     mem = wx.MemoryDC()
     mem.SelectObject(bitmap)
-    mem.SetFont(font)
     mem.SetTextForeground(colour)
-    rect = wx.Rect(left, top, bitmap.GetWidth(), bitmap.GetHeight())
-    mem.DrawLabel(text, rect)    
+    while btn_font_sz > 7:
+        font = wx.Font(btn_font_sz, wx.SWISS, wx.NORMAL, wx.BOLD)
+        mem.SetFont(font)
+        max_text_width = width - (2*left)
+        text_width = mem.GetTextExtent(text)[0]
+        if text_width < max_text_width: 
+            break
+        else:
+            btn_font_sz -= 1
+    mem.DrawLabel(text, rect)
     mem.SelectObject(wx.NullBitmap)
     return bitmap
 

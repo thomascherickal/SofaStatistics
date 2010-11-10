@@ -168,8 +168,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         msg = self.blank_hist_txt_paired if self.paired \
                                             else self.blank_hist_txt_unpaired
         bmp_blank_hist = wx.BitmapFromImage(self.img_blank_hist)
-        msg_font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
-        lib.add_text_to_bitmap(bmp_blank_hist, msg, msg_font, "white", 
+        msg_font_sz = 10
+        lib.add_text_to_bitmap(bmp_blank_hist, msg, msg_font_sz, "white", 
                                left=20, top=20)
         return bmp_blank_hist
         

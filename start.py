@@ -553,7 +553,7 @@ class SofaApp(wx.App):
         wx.App.__init__(self, redirect=redirect, filename=filename)
 
     def OnInit(self):
-        debug = True
+        debug = False
         """
         If a language isn't installed on the OS then it won't even look for the
             locale subfolder.  GetLanguage() will return a 1 instead of the 
@@ -575,6 +575,19 @@ class SofaApp(wx.App):
             if mylocale.IsOk():
                 canon_name = mylocale.GetCanonicalName()
             else:
+                if mg.PLATFORM == mg.LINUX:
+                    cli = (u"\n\nSee list of languages installed on your "
+                           u"system by typing\n       locale -a\ninto a "
+                           u"terminal and hitting the Enter key.")
+                else:
+                    cli = u""
+                mg.LANGID_ERROR = (
+                    u"LANGUAGE ERROR:\n\n"
+                    u"SOFA couldn't set its locale to %(lang)s."
+                    u"\n\nDoes your system have %(lang)s installed?%(cli)s"
+                    u"\n\nPlease contact developer for advice - "
+                    u"grant@sofastatistics.com") % {u"cli": cli,
+                                    u"lang": mylocale.GetLanguageName(langid)}
                 """
                 Resetting mylocale makes frame flash and die if not clean first.
                 http://www.java2s.com/Open-Source/Python/GUI/wxPython/...
@@ -584,12 +597,10 @@ class SofaApp(wx.App):
                 del mylocale # otherwise C++ object persists too long & crashes
                 mylocale = wx.Locale(wx.LANGUAGE_DEFAULT)
                 canon_name = mylocale.GetCanonicalName()
-            # want main title to be right size but some langs too long for that
-            self.main_font_size = 20 if canon_name.startswith('en_') else 16
             mytrans = gettext.translation(u"sofa", langdir, 
                                     languages=[canon_name,], fallback=True)
             if debug: print(canon_name)
-            mytrans.install()
+            mytrans.install(unicode=True) # must set explicitly here for mac
             if mg.PLATFORM == mg.LINUX:
                 try:
                     # to get some language settings to display properly:
@@ -599,7 +610,7 @@ class SofaApp(wx.App):
             mg.MAX_WIDTH = wx.Display().GetGeometry()[2]
             mg.MAX_HEIGHT = wx.Display().GetGeometry()[3]
             mg.HORIZ_OFFSET = 0 if mg.MAX_WIDTH < 1224 else 200
-            frame = StartFrame(self.main_font_size)
+            frame = StartFrame()
             frame.CentreOnScreen(wx.VERTICAL) # on dual monitor, 
                 # wx.BOTH puts in screen 2 (in Ubuntu at least)!
             frame.Show()
@@ -616,15 +627,16 @@ class SofaApp(wx.App):
 
 class StartFrame(wx.Frame):
     
-    def __init__(self, main_font_size):
+    def __init__(self):
         debug = False
+        # An early error that needs to be shown to user in GUI once GUI 
+        # available.  Can't find the folder this is in - renamed?
         try:
             error_msg = mg.PATH_ERROR
-        except Exception:
+        except NameError:
             error_msg = None
         if error_msg:
             raise Exception(error_msg)
-        self.main_font_size = main_font_size
         # Gen set up
         wx.Frame.__init__(self, None, title=_("SOFA Start"), 
                           size=(SCREEN_WIDTH, 600), pos=(mg.HORIZ_OFFSET,-1),
@@ -682,13 +694,12 @@ class StartFrame(wx.Frame):
         blankps_rect = wx.Rect(MAIN_LEFT, 218, 610, 30)
         self.blank_proj_strip = self.bmp_sofa.GetSubBitmap(blankps_rect)
         # buttons
-        font_buttons = wx.Font(14 if mg.PLATFORM == mg.MAC else 10, 
-                               wx.SWISS, wx.NORMAL, wx.BOLD)
+        btn_font_sz = 14 if mg.PLATFORM == mg.MAC else 10
         g = get_next_y_pos(284, BTN_DROP)
         # on-line help
         bmp_btn_help = \
            lib.add_text_to_bitmap(get_blank_btn_bmp(xpm=u"blankhelpbutton.xpm"), 
-                _("Online Help"), font_buttons, "white")
+                                  _("Online Help"), btn_font_sz, "white")
         self.btn_help = wx.BitmapButton(self.panel, -1, bmp_btn_help, 
                                         pos=(BTN_LEFT, g.next()))
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_help_click)
@@ -696,28 +707,28 @@ class StartFrame(wx.Frame):
         self.btn_help.SetDefault()
         # Proj
         bmp_btn_proj = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
-                        _("Select Project"), font_buttons, "white")
+                                    _("Select Project"), btn_font_sz, "white")
         self.btn_proj = wx.BitmapButton(self.panel, -1, bmp_btn_proj, 
                                         pos=(BTN_LEFT, g.next()))
         self.btn_proj.Bind(wx.EVT_BUTTON, self.on_proj_click)
         self.btn_proj.Bind(wx.EVT_ENTER_WINDOW, self.on_proj_enter)
         # Prefs
         bmp_btn_pref = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
-                       _("Preferences"), font_buttons, "white")
+                                        _("Preferences"), btn_font_sz, "white")
         self.btn_prefs = wx.BitmapButton(self.panel, -1, bmp_btn_pref, 
                                          pos=(BTN_LEFT, g.next()))
         self.btn_prefs.Bind(wx.EVT_BUTTON, self.on_prefs_click)
         self.btn_prefs.Bind(wx.EVT_ENTER_WINDOW, self.on_prefs_enter)
         # Data entry
         bmp_btn_data = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
-                        _("Enter/Edit Data"), font_buttons, "white")
+                                    _("Enter/Edit Data"), btn_font_sz, "white")
         self.btn_data = wx.BitmapButton(self.panel, -1, bmp_btn_data, 
                                          pos=(BTN_LEFT, g.next()))
         self.btn_data.Bind(wx.EVT_BUTTON, self.on_data_click)
         self.btn_data.Bind(wx.EVT_ENTER_WINDOW, self.on_data_enter)
         # Import
         bmp_btn_import = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
-                         _("Import Data"), font_buttons, "white")
+                                        _("Import Data"), btn_font_sz, "white")
         self.btn_import = wx.BitmapButton(self.panel, -1, bmp_btn_import, 
                                           pos=(BTN_LEFT, g.next()))
         self.btn_import.Bind(wx.EVT_BUTTON, self.on_import_click)
@@ -726,28 +737,28 @@ class StartFrame(wx.Frame):
         g = get_next_y_pos(284, BTN_DROP)
         # Report tables
         bmp_btn_tables = lib.add_text_to_bitmap(get_blank_btn_bmp(),
-                         _("Report Tables"), font_buttons, "white")
+                                    _("Report Tables"), btn_font_sz, "white")
         self.btn_tables = wx.BitmapButton(self.panel, -1, bmp_btn_tables, 
                                           pos=(BTN_RIGHT, g.next()))
         self.btn_tables.Bind(wx.EVT_BUTTON, self.on_tables_click)
         self.btn_tables.Bind(wx.EVT_ENTER_WINDOW, self.on_tables_enter)
         # Charts
         bmp_btn_charts = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
-                         _("Charts"), font_buttons, "white")
+                                            _("Charts"), btn_font_sz, "white")
         self.btn_charts = wx.BitmapButton(self.panel, -1, bmp_btn_charts, 
                                           pos=(BTN_RIGHT, g.next()))
         self.btn_charts.Bind(wx.EVT_BUTTON, self.on_charts_click)
         self.btn_charts.Bind(wx.EVT_ENTER_WINDOW, self.on_charts_enter)
         # Stats
         bmp_btn_stats = lib.add_text_to_bitmap(get_blank_btn_bmp(),
-                        _("Statistics"), font_buttons, "white")
+                                        _("Statistics"), btn_font_sz, "white")
         self.btn_statistics = wx.BitmapButton(self.panel, -1, bmp_btn_stats, 
                                               pos=(BTN_RIGHT, g.next()))
         self.btn_statistics.Bind(wx.EVT_BUTTON, self.on_stats_click)
         self.btn_statistics.Bind(wx.EVT_ENTER_WINDOW, self.on_stats_enter)
         # Exit  
         bmp_btn_exit = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
-                       _("Exit"), font_buttons, "white")
+                                              _("Exit"), btn_font_sz, "white")
         self.btn_exit = wx.BitmapButton(self.panel, -1, bmp_btn_exit, 
                                         pos=(BTN_RIGHT, g.next()))
         self.btn_exit.Bind(wx.EVT_BUTTON, self.on_exit_click)
@@ -846,6 +857,17 @@ class StartFrame(wx.Frame):
         if mg.MUST_DEL_TMP:
             wx.MessageBox(_("Please click on \"Enter/Edit Data\" and delete"
                         " the table \"%s\"") % mg.TMP_TBL_NAME)
+        # Language locale problem - provide more useful message to go alongside
+        # system one.
+        try:
+            langid_msg = mg.LANGID_ERROR
+        except NameError:
+            langid_msg = None
+        if langid_msg:
+            wx.CallAfter(self.on_langid_err_msg, langid_msg)
+        
+    def on_langid_err_msg(self, langid_msg):
+        wx.MessageBox(langid_msg)
     
     def upgrade_available(self, version_lev):
         """
@@ -931,12 +953,14 @@ class StartFrame(wx.Frame):
                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
             panel_dc.DrawLabel(_("Version %s") % mg.VERSION, 
                                wx.Rect(VERSION_RIGHT, TOP_TOP, 100, 20))
-            panel_dc.SetFont(wx.Font(self.main_font_size+5 if 
-                                     mg.PLATFORM == mg.MAC 
-                                     else self.main_font_size, 
-                                     wx.SWISS, wx.NORMAL, wx.NORMAL))
-            panel_dc.DrawLabel(_("Statistics Open For All"), 
-                               wx.Rect(MAIN_LEFT, 80, 100, 100))
+            font_sz = 25 if mg.PLATFORM == mg.MAC else 20
+            main_text = _("Statistics Open For All")
+            main_text_width = MAX_HELP_TEXT_WIDTH + 60
+            main_fs = lib.get_font_size_to_fit(main_text, main_text_width, 
+                                               font_sz, min_font_sz=14)
+            panel_dc.SetFont(wx.Font(main_fs, wx.SWISS, wx.NORMAL, wx.NORMAL))
+            panel_dc.DrawLabel(main_text, wx.Rect(MAIN_LEFT, 80, 
+                                                  main_text_width, 100))
             panel_dc.SetFont(wx.Font(14 if mg.PLATFORM == mg.MAC else 9, 
                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
             panel_dc.SetTextForeground(TEXT_BROWN)
@@ -963,7 +987,7 @@ class StartFrame(wx.Frame):
             panel_dc.SetTextForeground(wx.WHITE)
             panel_dc.SetFont(wx.Font(14 if mg.PLATFORM == mg.MAC else 11, 
                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
-            panel_dc.DrawLabel(_("Currently using \"%s\" project settings") % 
+            panel_dc.DrawLabel(_(u"Currently using \"%s\" project settings") % 
                                               self.active_proj[:-len(u".proj")],
                                wx.Rect(MAIN_LEFT, 247, 400, 30))
             event.Skip()
