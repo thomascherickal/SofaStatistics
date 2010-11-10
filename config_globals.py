@@ -28,10 +28,11 @@ def set_SCRIPT_PATH():
             path_found = True
             break
     if not path_found:
-        mg.PATH_ERROR = _("Unable to locate folder this program is running in."
-                "\n\nNB the final subfolder must have the word \"sofa\" in it."
-                "\nSo \"C:\\Program Files\\sofa\" is ok"
-                "\nbut \"C:\\Program Files\\my stats\" is not.")
+        mg.DEFERRED_ERRORS.append(_("Unable to locate folder this program is "
+            "running in."
+            "\n\nNB the final subfolder must have the word \"sofa\" in it."
+            "\nSo \"C:\\Program Files\\sofa\" is ok"
+            "\nbut \"C:\\Program Files\\my stats\" is not."))
     mg.SCRIPT_PATH = path
 
 """

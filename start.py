@@ -401,14 +401,12 @@ def archive_older_default_report():
             new_filename = u"default_report_pre_%s.htm" % mg.VERSION
             new_version = os.path.join(mg.REPORTS_PATH, new_filename)
             os.rename(def_rpt_pth, new_version)
-            msg = (u"As part of the upgrade to version %s, SOFA has renamed "
-                   u"\"%s\" to \"%s\" "
-                   u"\nto ensure all new content added to the default report "
-                   u"works with the latest chart display code." % 
-                   (mg.VERSION, mg.DEFAULT_REPORT, new_filename))
-            msgapp = MsgApp(msg)
-            msgapp.MainLoop()
-            del msgapp
+            mg.DEFERRED_WARNING_MSGS.append("EXISTING REPORT SAFEGUARDED:"
+                "\n\nAs part of the upgrade to version %s, "
+                "SOFA has renamed \"%s\" to \"%s\" "
+                "\nto ensure all new content added to the default report "
+                "works with the latest chart display code." % 
+                (mg.VERSION, mg.DEFAULT_REPORT, new_filename))
         except OSError, e:
             pass
                     
@@ -564,6 +562,8 @@ class SofaApp(wx.App):
             langdir = os.path.join(mg.SCRIPT_PATH, u'locale')
             langid = mg.TEST_LANGID if test_lang else wx.LANGUAGE_DEFAULT
             # next line will only work if locale is installed on the computer
+            # on Macs, must be after app starts ...
+            # ... (http://programming.itags.org/python/2877/)
             mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
             if debug:
                 print(u"langid: %s" % langid)
@@ -581,13 +581,15 @@ class SofaApp(wx.App):
                            u"terminal and hitting the Enter key.")
                 else:
                     cli = u""
-                mg.LANGID_ERROR = (
+                # Language locale problem - provide more useful message to go 
+                # alongside system one.
+                mg.DEFERRED_WARNING_MSGS.append(
                     u"LANGUAGE ERROR:\n\n"
-                    u"SOFA couldn't set its locale to %(lang)s."
-                    u"\n\nDoes your system have %(lang)s installed?%(cli)s"
+                    u"SOFA couldn't set its locale to %(lang)s. Does your "
+                    u"system have %(lang)s installed?%(cli)s"
                     u"\n\nPlease contact developer for advice - "
-                    u"grant@sofastatistics.com") % {u"cli": cli,
-                                    u"lang": mylocale.GetLanguageName(langid)}
+                    u"grant@sofastatistics.com" % {u"cli": cli,
+                                    u"lang": mylocale.GetLanguageName(langid)})
                 """
                 Resetting mylocale makes frame flash and die if not clean first.
                 http://www.java2s.com/Open-Source/Python/GUI/wxPython/...
@@ -597,6 +599,7 @@ class SofaApp(wx.App):
                 del mylocale # otherwise C++ object persists too long & crashes
                 mylocale = wx.Locale(wx.LANGUAGE_DEFAULT)
                 canon_name = mylocale.GetCanonicalName()
+            
             mytrans = gettext.translation(u"sofa", langdir, 
                                     languages=[canon_name,], fallback=True)
             if debug: print(canon_name)
@@ -629,14 +632,11 @@ class StartFrame(wx.Frame):
     
     def __init__(self):
         debug = False
-        # An early error that needs to be shown to user in GUI once GUI 
-        # available.  Can't find the folder this is in - renamed?
-        try:
-            error_msg = mg.PATH_ERROR
-        except NameError:
-            error_msg = None
-        if error_msg:
-            raise Exception(error_msg)
+        # The earliest point at which error messages can be shown to the user 
+        # in a GUI.  E.g. Can't find the folder this script is in.
+        deferred_error_msg = u"\n\n".join(mg.DEFERRED_ERRORS)
+        if deferred_error_msg:
+            raise Exception(deferred_error_msg)
         # Gen set up
         wx.Frame.__init__(self, None, title=_("SOFA Start"), 
                           size=(SCREEN_WIDTH, 600), pos=(mg.HORIZ_OFFSET,-1),
@@ -857,17 +857,13 @@ class StartFrame(wx.Frame):
         if mg.MUST_DEL_TMP:
             wx.MessageBox(_("Please click on \"Enter/Edit Data\" and delete"
                         " the table \"%s\"") % mg.TMP_TBL_NAME)
-        # Language locale problem - provide more useful message to go alongside
-        # system one.
-        try:
-            langid_msg = mg.LANGID_ERROR
-        except NameError:
-            langid_msg = None
-        if langid_msg:
-            wx.CallAfter(self.on_langid_err_msg, langid_msg)
+        # any warnings to display once screen visible?
+        deferred_warning_msg = "\n------------\n".join(mg.DEFERRED_WARNING_MSGS)
+        if deferred_warning_msg:
+            wx.CallAfter(self.on_deferred_warning_msg, deferred_warning_msg)
         
-    def on_langid_err_msg(self, langid_msg):
-        wx.MessageBox(langid_msg)
+    def on_deferred_warning_msg(self, deferred_warning_msg):
+        wx.MessageBox(deferred_warning_msg)
     
     def upgrade_available(self, version_lev):
         """
