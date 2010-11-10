@@ -172,13 +172,15 @@ def get_settings_dic(subfolder, fil_name):
         exec settings_cont in settings_dic
     except SyntaxError, e:
         wx.MessageBox(\
-            _("Syntax error in settings file \"%s\"." % fil_name + \
-                      os.linesep + os.linesep + "Details: %s" % lib.ue(e)))
+            _(u"Syntax error in settings file \"%(fil_name)s\"."
+              u"\n\nDetails: %(details)s") % {u"fil_name": fil_name,  
+                                             u"details": lib.ue(e)})
         raise
     except Exception, e:
         wx.MessageBox(
-            _("Error processing settings file \"%s\"." % fil_name +
-                      os.linesep + os.linesep + "Details: %s" % lib.ue(e)))
+            _(u"Error processing settings file \"%(fil_name)s\"."
+              u"\n\nDetails: %(details)s") % {u"fil_name": fil_name, 
+                                              u"details": lib.ue(e)})
         raise
     return settings_dic
 

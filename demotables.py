@@ -59,8 +59,8 @@ class DemoTable(object):
         except my_exceptions.TooFewValsForDisplay:
             raise
         except Exception, e:
-            wx.MessageBox(_("Unable to make report.  Error details: %s" % 
-                            lib.ue(e)))
+            wx.MessageBox(_("Unable to make report. Error details: %s") % 
+                            lib.ue(e))
             raise
         html.append(main_html)
         html.append(u"\n</table>")

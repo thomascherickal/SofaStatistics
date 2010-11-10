@@ -337,9 +337,9 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0,
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     html = []
     html.append(_("<h2>Results of Mann Whitney U Test of \"%(ranked)s\" for "
-             "\"%(a)s\" vs \"%(b)s\"</h2>") % {"ranked": label_ranked, 
-                                               "a": dic_a["label"], 
-                                               "b": dic_b["label"]})
+                  "\"%(a)s\" vs \"%(b)s\"</h2>") % {"ranked": label_ranked, 
+                                                    "a": dic_a["label"], 
+                                                    "b": dic_b["label"]})
     p_format = u"\n<p>" + _(u"One-tailed p value") + u": %%.%sf</p>" % dp
     html.append(p_format % round(p, dp))
     html.append(u"\n<p>" + _("U statistic") + u": %s</p>" % round(u, dp))
@@ -461,8 +461,8 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
     val_labels_b_n = len(val_labels_b)
     html = []
     html.append(_("<h2>Results of Pearson's Chi Square Test of Association "
-        "Between \"%(laba)s\" and \"%(labb)s\"</h2>") % {"laba": var_label_a, 
-                                                         "labb": var_label_b})
+        "Between \"%(laba)s\" and \"%(labb)s\"</h2>") % {u"laba": var_label_a, 
+                                                         u"labb": var_label_b})
     p_format = u"\n<p>" + _("p value") + u": %%.%sf</p>" % dp
     html.append(p_format % round(p, dp))
     html.append(u"\n<p>" + _("Pearson's Chi Square statistic") + u": %s</p>" %

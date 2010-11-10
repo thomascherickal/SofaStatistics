@@ -689,7 +689,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             item_conf.sort_order
         numeric_arg = u", \n    bolnumeric=%s" % item_conf.bolnumeric
         fld_name = _("Column configuration") if child_fld_name is None \
-            else child_fld_name
+                                             else child_fld_name
         script_lst.append(u"# Defining %s (\"%s\")" % (child_node_label, 
                                                        fld_name))
         script_lst.append(child_node_label + \

@@ -69,7 +69,7 @@ def update_vdt(var_labels, var_notes, var_types, val_dics):
     f.write(u"\nvar_types=" + pprint.pformat(var_types))
     f.write(u"\n\nval_dics=" + pprint.pformat(val_dics))
     f.close()
-    wx.MessageBox(_("Settings saved to \"%s\"" % cc[mg.CURRENT_VDTS_PATH]))
+    wx.MessageBox(_("Settings saved to \"%s\"") % cc[mg.CURRENT_VDTS_PATH])
 
 def set_var_props(choice_item, var_name, var_label, var_labels, var_notes, 
                   var_types, val_dics):
@@ -521,13 +521,15 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             exec proj_cont in proj_dic
         except SyntaxError, e:
             wx.MessageBox(\
-                _("Syntax error in project file \"%s\"." % fil_proj +
-                  "\n\nDetails: %s" % lib.ue(e)))
+                _(u"Syntax error in project file \"%(fil_proj)s\"."
+                  u"\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
+                                              u"err": lib.ue(e)})
             raise
         except Exception, e:
             wx.MessageBox(\
-                _("Error processing project file \"%s\"." % fil_proj +
-                  "\n\nDetails: %s" % lib.ue(e)))
+                _(u"Error processing project file \"%(fil_proj)s\"."
+                  u"\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
+                                              u"err": lib.ue(e)})
             raise
         try:
             self.proj_name = fil_proj[:-5]

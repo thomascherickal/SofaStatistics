@@ -83,10 +83,10 @@ def process_orig(orig, fldname, fldtype):
         r_part = parts[1].strip()
         if r_part == MIN:
             raise Exception(_("%(min)s can only be on the left side "
-                              "e.g.%(min)s TO 12") % {"min": MIN})
+                              "e.g.%(min)s TO 12") % {u"min": MIN})
         if l_part == MAX:
             raise Exception(_("%(max)s can only be on the right side "
-                              "e.g. %(max)s TO 12") % {"max": MAX})
+                              "e.g. %(max)s TO 12") % {u"max": MAX})
         has_min = False
         has_max = False
         num_mismatch = False
@@ -480,7 +480,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                     orig_clause = process_orig(orig, self.fldname, fldtype)
                 except Exception, e:
                     wx.MessageBox(_("Problem with your recode configuration."
-                                    "\nCaused by error: %s" % lib.ue(e)))
+                                    "\nCaused by error: %s") % lib.ue(e))
                     return
                 process_label(dict_labels, new_fldtype, new, label)
                 when_clauses.append(make_when_clause(orig_clause, new, 
@@ -531,8 +531,8 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             return
         # can't already be in use
         if new_fldname in self.fld_names:
-            wx.MessageBox(_("Unable to use an existing field name (%s)" % 
-                            new_fldname))
+            wx.MessageBox(_("Unable to use an existing field name (%s)") % 
+                            new_fldname)
             return
         fldtype = self.fld_types[fld_idx]
         self.tabentry.update_settings_data()

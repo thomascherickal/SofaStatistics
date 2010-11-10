@@ -42,7 +42,7 @@ def get_szr_level(parent, panel):
     return parent.szr_level
 
 label_divider = " " if mg.PLATFORM == mg.WINDOWS else "\n"
-add_to_report = _("Add to%sreport" % label_divider)
+add_to_report = _("Add to%sreport") % label_divider
 run = _("Show Results") if mg.PLATFORM == mg.MAC else _("Show\nResults")
 
 

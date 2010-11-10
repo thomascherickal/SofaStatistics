@@ -282,8 +282,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         if not self.paired:
             data_label = var_label_a
         else:
-            data_label = _("Difference between %(a)s and %(b)s" % 
-                           {"a": var_label_a, "b": var_label_b})
+            data_label = _("Difference between %(a)s and %(b)s") % \
+                           {"a": var_label_a, "b": var_label_b}
         return data_label, vals
     
     def update_examination(self):
@@ -314,7 +314,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         n_vals = len(self.vals)
         USUAL_FAIL_N = 100
         if n_vals < 20:
-            msg = _("Need at least 20 values to test normality.  Rely entirely "
+            msg = _("Need at least 20 values to test normality. Rely entirely "
                 "on visual inspection of graph above.")
         else:
             try:

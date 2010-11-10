@@ -65,7 +65,7 @@ def process_fld_names(raw_names):
         if not dbe_sqlite.valid_name(name):
             raise Exception(_("Unable to use field name \"%s\". Please only "
                               "use letters, numbers and underscores. No spaces,"
-                              " full stops etc." % raw_names[i]))
+                              " full stops etc.") % raw_names[i])
     return names
 
 def process_tbl_name(rawname):
@@ -265,10 +265,10 @@ def report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, allow_none):
             .replace(u"]", u"")
         raise Exception(_("Incorrect number of fields in %(row_msg)s.\n\n"
                           "Expected %(n_flds)s but found %(n_row_items)s.\n\n"
-                          "Faulty Row: %(vals_str)s" 
+                          "Faulty Row: %(vals_str)s")
                           % {"row_msg": row_msg, "n_flds": n_flds, 
                              "n_row_items": n_row_items, 
-                             "vals_str": vals_str}))
+                             "vals_str": vals_str})
 
 def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names, 
              fld_types, progbar, steps_per_item, gauge_start=0, row_num_start=0, 
@@ -469,7 +469,7 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
                  "converted into a missing value.")
     msg += _("\n\nYou can view your imported data by clicking on "
              "'Enter/Edit Data' on the main form. You'll find it in the "
-             "'%s' database." % mg.SOFA_DB)
+             "'%s' database.") % mg.SOFA_DB
     wx.MessageBox(msg % {"tbl": tbl_name})
 
 class HasHeaderDlg(wx.Dialog):
@@ -726,7 +726,7 @@ class ImportFileSelectDlg(wx.Dialog):
             msg = _("A table named \"%(tbl)s\" "
                   "already exists in the SOFA default database.\n\n"
                   "Do you want to replace it with the new data from "
-                  "\"%(fil)s\"?") 
+                  "\"%(fil)s\"?")
             retval = wx.MessageBox(msg % {"tbl": tbl_name, "fil": file_path}, 
                                    title, wx.YES_NO|wx.ICON_QUESTION)
             if retval == wx.NO: # no overwrite so get new one (or else!)

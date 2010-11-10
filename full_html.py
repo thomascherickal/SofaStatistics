@@ -31,8 +31,8 @@ else:
             import wx.lib.iewin as ie
         except ImportError, e: # using traceback because can be fiendish
             raise Exception(_("Problem importing wx.lib.iewin."
-                              "\nCaused by errors:\n\n%s" % 
-                              traceback.format_exc()))        
+                              "\nCaused by errors:\n\n%s") % 
+                              traceback.format_exc())
         
         class FullHTML(ie.IEHtmlWindow):
         

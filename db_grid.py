@@ -678,7 +678,7 @@ class TblEditor(wx.Dialog):
             if not usable_datetime:
                 eg1 = mg.OK_DATE_FORMAT_EXAMPLES[0]
                 eg2 = mg.OK_DATE_FORMAT_EXAMPLES[1]
-                wx.MessageBox("\"%s\" " % raw_val + \
+                wx.MessageBox(u"\"%s\" " % raw_val + \
                       _(" is not a valid datetime.\n\n"
                         "Either enter a valid date/ datetime\n") + \
                       _("e.g. %(eg1)s or %(eg2)s") % {"eg1": eg1, "eg2": eg2} +
@@ -690,7 +690,7 @@ class TblEditor(wx.Dialog):
             if max_len is None: # SQLite returns None if TEXT
                 return False
             if len(raw_val) > max_len:
-                wx.MessageBox("\"%s\" " % raw_val +
+                wx.MessageBox(u"\"%s\" " % raw_val +
                       _("is longer than the maximum of %s. Either enter a "
                         "shorter value or the missing value character (.)")
                       % max_len)
@@ -761,7 +761,7 @@ class TblEditor(wx.Dialog):
                 continue
             if not self.cell_ok_to_save(row=row, col=col_idx):
                 wx.MessageBox(_("Unable to save new row.  Invalid value "
-                              "in column") + "%s" % (col_idx + 1))
+                              "in column") + u"%s" % (col_idx + 1))
                 return False
         return True
 
@@ -784,11 +784,11 @@ class TblEditor(wx.Dialog):
             dd.con.commit()
         except Exception, e:
             if self.debug or debug: 
-                print("update_cell failed to save %s. " %
-                      self.dbtbl.sql_cell_to_update + "\nCaused by error: %s"
+                print(u"update_cell failed to save %s. " %
+                      self.dbtbl.sql_cell_to_update + u"\nCaused by error: %s"
                       % lib.ue(e))
             bolUpdatedCell = False
-            wx.MessageBox(_("Unable to save change to database.  %s") % 
+            wx.MessageBox(_("Unable to save change to database. %s") % 
                           lib.ue(e))
         if self.dbtbl.row_vals_dic.get(row):
             del self.dbtbl.row_vals_dic[row] # force a fresh read
@@ -944,7 +944,7 @@ class TblEditor(wx.Dialog):
             else:
                 tip = self.get_cell_tooltip(col, raw_val)
                 if self.readonly or col in self.readonly_cols:
-                    tip = _(u"%s (Read only column)" % tip)
+                    tip = _(u"%s (Read only column)") % tip
             self.grid.GetGridWindow().SetToolTipString(tip)
         event.Skip()
         
@@ -955,10 +955,10 @@ class TblEditor(wx.Dialog):
         if self.dbtbl.rows_n < 2000:
             self.set_col_widths()
         else:
-            retval = wx.MessageBox(_("This table has %(rows)s rows and %(cols)s"
-                            " columns.  Do you wish to resize?" % \
+            retval = wx.MessageBox(_("This table has %(rows)s rows and "
+                            "%(cols)s columns. Do you wish to resize?") %
                             {u"rows": self.dbtbl.rows_n, 
-                             u"cols": self.get_cols_n()}),
+                             u"cols": self.get_cols_n()},
                             _("Proceed with resizing columns"), 
                             style=wx.YES_NO|wx.ICON_QUESTION)
             if retval == wx.YES:

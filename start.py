@@ -4,7 +4,7 @@
 from __future__ import absolute_import
 
 dev_debug = True
-test_lang = True
+test_lang = False
 
 """
 Start up launches the SOFA main form.  Along the way it tries to detect errors
@@ -179,7 +179,7 @@ It looks like an incorrect version of Python is being used to run SOFA Statistic
 For help, please contact grant@sofastatistics.com""") % msg_dic
         f.write(msg)
         f.close()    
-        msgapp = ErrMsgApp(msg + "\n\n" + div +u"\n\nThis message has been "
+        msgapp = ErrMsgApp(msg + u"\n\n" + div + u"\n\nThis message has been "
                 u"saved to a file on your Desktop for future reference", True)
         msgapp.MainLoop()
         del msgapp
@@ -257,11 +257,14 @@ def run_test_code(script):
         # http://docs.python.org/reference/simple_stmts.html
         exec test_code in test_dic
     except SyntaxError, e:
-        raise Exception(_("Syntax error in test script \"%s\".  " % test_path +
-                          "\nCaused by error: %s" % lib.ue(e)))
+        raise Exception(_(u"Syntax error in test script \"%(test_path)s\"."
+                          u"\nCaused by error: %(err)s") % 
+                          {u"test_path": test_path, u"err": lib.ue(e)})
     except Exception, e:
-        raise Exception(_("Error running test script \"%s\"." % test_path +
-                          "\nCaused by errors:\n\n%s" % traceback.format_exc()))
+        raise Exception(_(u"Error running test script \"%(test_path)s\"."
+                          u"\nCaused by errors:\n\n%(err)s") %
+                          {u"test_path": test_path, 
+                           u"err": traceback.format_exc()})
     print(u"Ran test code %s" % script)
 
 def populate_css_path(prog_path, local_path):
@@ -658,8 +661,8 @@ class StartFrame(wx.Frame):
             except Exception, e:
                 lib.safe_end_cursor()
                 wx.MessageBox(_("Unable to connect to data as defined in " 
-                                "project %s.  Please check your settings." % 
-                                self.active_proj))
+                                "project %s. Please check your settings.") % 
+                                self.active_proj)
                 raise # for debugging
                 return
         config_dlg.add_icon(frame=self)
@@ -858,7 +861,8 @@ class StartFrame(wx.Frame):
             wx.MessageBox(_("Please click on \"Enter/Edit Data\" and delete"
                         " the table \"%s\"") % mg.TMP_TBL_NAME)
         # any warnings to display once screen visible?
-        deferred_warning_msg = "\n------------\n".join(mg.DEFERRED_WARNING_MSGS)
+        warning_div = u"\n\n" + u"-"*20 + u"\n\n"
+        deferred_warning_msg = warning_div.join(mg.DEFERRED_WARNING_MSGS)
         if deferred_warning_msg:
             wx.CallAfter(self.on_deferred_warning_msg, deferred_warning_msg)
         
@@ -1129,8 +1133,8 @@ class StartFrame(wx.Frame):
             lib.safe_end_cursor()
             dlg.ShowModal()
         except Exception, e:
-            msg = _("Unable to open report table dialog. Caused by error: %s" % 
-                    lib.ue(e))
+            msg = _("Unable to open report table dialog."
+                    "\nCaused by error: %s") % lib.ue(e)
             wx.MessageBox(msg)
         finally:
             lib.safe_end_cursor()
@@ -1166,7 +1170,7 @@ class StartFrame(wx.Frame):
             dlg.ShowModal()
         except Exception, e:
             msg = _(u"Unable to connect to data as defined in project %s.  "
-                    u"Please check your settings" % self.active_proj)
+                    u"Please check your settings") % self.active_proj
             wx.MessageBox(msg)
             raise Exception(u"%s.\nCaused by errors:\n\n%s" % 
                             (msg, traceback.format_exc()))
@@ -1196,7 +1200,7 @@ class StartFrame(wx.Frame):
             dlg.ShowModal()
         except Exception, e:
             msg = _("Unable to connect to data as defined in project %s.  "
-                    "Please check your settings." % self.active_proj)
+                    "Please check your settings.") % self.active_proj
             wx.MessageBox(msg)
             raise Exception(u"%s.\nCaused by error: %s" % (msg, lib.ue(e)))
         finally:

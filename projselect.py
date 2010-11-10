@@ -94,13 +94,15 @@ class ProjSelectDlg(wx.Dialog):
             exec proj_cont in proj_dic
         except SyntaxError, e:
             wx.MessageBox(\
-                _("Syntax error in project file \"%s\"." % fil_proj + \
-                          os.linesep + os.linesep + "Details: %s" % unicode(e)))
+                _(u"Syntax error in project file \"%(fil_proj)s\"."
+                  u"\n\nDetails: %s") % {u"fil_proj": fil_proj,
+                                         u"err": unicode(e)})
             raise
         except Exception, e:
             wx.MessageBox(\
-                _("Error processing project file \"%s\"." % fil_proj + \
-                          os.linesep + os.linesep + "Details: %s" % unicode(e)))
+                _(u"Error processing project file \"%(fil_proj)s\"."
+                  u"\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
+                                              u"err": unicode(e)})
             raise
         # must always be stored, even if only ""
         try:
@@ -174,9 +176,9 @@ class ProjSelectDlg(wx.Dialog):
             wx.MessageBox(_(u"Unable to use the selected project file. Please "
                             u"check name of file and its contents using "
                             u"%(def_proj)s as example."
-                            u"\nCaused by error: %(err)s"
-                            % {u"def_proj": mg.DEFAULT_PROJ, 
-                               u"err": lib.ue(e)}))
+                            u"\nCaused by error: %(err)s")
+                                % {u"def_proj": mg.DEFAULT_PROJ, 
+                                   u"err": lib.ue(e)})
             return
         lib.safe_end_cursor()
         self.Destroy()

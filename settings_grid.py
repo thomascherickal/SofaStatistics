@@ -282,7 +282,7 @@ class SettingsEntry(object):
             file_phrase = self.col_dets[col_idx].get("file_phrase", "")
             # use * - *.* will not pickup files without extensions in Ubuntu
             wildcard = self.col_dets[col_idx].get("file_wildcard", 
-                                                  _("Any file") + " (*)|*")
+                                                  _("Any file") + u" (*)|*")
             editor = text_browser.GridCellTextBrowseEditor(self.grid, 
                                                         file_phrase, wildcard)
         elif col_type == COL_DROPDOWN:

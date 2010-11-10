@@ -544,8 +544,8 @@ def get_data_dropdowns(parent, panel, default_dbs):
             pass # no connection possible
         except Exception, e:
             wx.MessageBox(_("Unable to connect to %(oth_dbe)s using the details"
-                            " provided.\nCaused by error: %(e)s" % 
-                                {"oth_dbe": oth_dbe, "e": lib.ue(e)}))
+                            " provided.\nCaused by error: %(e)s") % 
+                                {"oth_dbe": oth_dbe, "e": lib.ue(e)})
     parent.db_choice_items = [get_db_item(x[0], x[1]) for x in db_choices]
     parent.drop_dbs = wx.Choice(panel, -1, choices=parent.db_choice_items,
                                 size=(280,-1))
@@ -611,7 +611,7 @@ def refresh_db_dets(parent):
         parent.selected_dbe_db_idx = parent.drop_dbs.GetSelection()
     except Exception, e:
         wx.MessageBox(_("Experienced problem refreshing database details.") +
-                      u"\nCaused by error %s" % lib.ue(e))
+                      u"\nCaused by error %s") % lib.ue(e)
         parent.drop_dbs.SetSelection(parent.selected_dbe_db_idx)
         raise
     finally:

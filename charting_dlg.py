@@ -738,9 +738,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             setof2 = set([self.drop_var1.GetStringSelection(),
                         self.drop_var2.GetStringSelection()])
             if len(setof2) < 2:
-                wx.MessageBox(_(u"Variables %s and %s must be different") % 
-                              (self.lbl_var1.GetLabel().rstrip(u":"), 
-                               self.lbl_var2.GetLabel().rstrip(u":")))
+                wx.MessageBox(_(u"Variables %(var1)s and %(var2)s must be "
+                                u"different") % 
+                              {u"var1": self.lbl_var1.GetLabel().rstrip(u":"), 
+                               u"var2": self.lbl_var2.GetLabel().rstrip(u":")})
                 return False
         return True
 

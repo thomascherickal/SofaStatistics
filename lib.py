@@ -62,13 +62,15 @@ def extract_dojo_style(css_fil):
         exec css_dojo in css_dojo_dic
     except SyntaxError, e:
         wx.MessageBox(\
-            _("Syntax error in dojo settings in css file \"%s\"." % css_fil +
-              "\n\nDetails: %s %s" % (css_dojo, lib.ue(e))))
+            _(u"Syntax error in dojo settings in css file \"%(css_fil)s\"."
+              u"\n\nDetails: %(css_dojo)s %(err)s") % {"css_fil": css_fil,
+              u"css_dojo": css_dojo, u"err": lib.ue(e)})
         raise
     except Exception, e:
         wx.MessageBox(\
-            _("Error processing css dojo file \"%s\"." % css_fil +
-              "\n\nDetails: %s" % lib.ue(e)))
+            _(u"Error processing css dojo file \"%(css_fil)s\"."
+              u"\n\nDetails: %(err)s") % {u"css_fil": css_fil,
+              u"err": lib.ue(e)})
         raise
     return (css_dojo_dic[u"outer_bg"], 
             css_dojo_dic[u"inner_bg"], 
@@ -522,21 +524,22 @@ def get_var_dets(fil_var_dets):
         exec var_dets in var_dets_dic
     except SyntaxError, e:
         wx.MessageBox(\
-            _("Syntax error in variable details file \"%s\"." % fil_var_dets + \
-                      os.linesep + os.linesep + "Details: %s" % unicode(e)))
+            _(u"Syntax error in variable details file \"%(fil_var_dets)s\"."
+              u"\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets, 
+                                          u"err": unicode(e)})
         raise
     except Exception, e:
         wx.MessageBox(\
-            _("Error processing variable"
-              " details file \"%s\"." % fil_var_dets + \
-              os.linesep + os.linesep + "Details: %s" % unicode(e)))
+            _(u"Error processing variable details file \"%(fil_var_dets)s\"."
+              u"\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets, 
+                                          u"err": unicode(e)})
         raise
     try:
         results = var_dets_dic["var_labels"], var_dets_dic["var_notes"], \
                       var_dets_dic["var_types"], var_dets_dic["val_dics"]
     except Exception, e:
         raise Exception(u"Three variables needed in " +
-                    u"'%s': var_labels, var_notes, var_types, and val_dics.  " +
+                    u"'%s': var_labels, var_notes, var_types, and val_dics. " +
                     u"Please check file." % fil_var_dets)
     return results
 

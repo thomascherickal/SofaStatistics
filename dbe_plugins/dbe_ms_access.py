@@ -289,14 +289,14 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                   "col_type": settings_grid.COL_TEXT_BROWSE, 
                   "col_width": 250, 
                   "file_phrase": _("Choose an MS Access database file"), 
-                  "file_wildcard": _("MS Access databases") + " (*.mdb)|*.mdb",
+                  "file_wildcard": _("MS Access databases") + u" (*.mdb)|*.mdb",
                   "empty_ok": False}
-    col_det_sec = {"col_label": _("Security File") + " (*.mdw) (opt)", 
+    col_det_sec = {"col_label": _("Security File") + u" (*.mdw) (opt)", 
                   "col_type": settings_grid.COL_TEXT_BROWSE, 
                   "col_width": 250, 
                   "file_phrase": _("Choose an MS Access security file"), 
                   "file_wildcard": _("MS Access security files") + \
-                        " (*.mdw)|*.mdw",
+                        u" (*.mdw)|*.mdw",
                   "empty_ok": True}
     col_det_usr = {"col_label": _("User Name (opt)"), 
                   "col_type": settings_grid.COL_STR, 

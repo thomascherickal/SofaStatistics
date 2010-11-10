@@ -175,7 +175,7 @@ class GdataDownloadDlg(wx.Dialog):
         email = self.txt_email.GetValue()
         pwd = self.txt_pwd.GetValue()
         complete = (email != u"" and pwd != u"")
-        if debug: print("email: \"%s\" pwd: \"%s\" complete: %s" % \
+        if debug: print(u"email: \"%s\" pwd: \"%s\" complete: %s" % \
                         (email, pwd, complete))
         self.btn_sign_in.Enable(complete)
     
@@ -285,16 +285,16 @@ class GdataDownloadDlg(wx.Dialog):
             worksheet_name = worksheet_names[self.wksheet_idx]
             self.lst_worksheets.SetItems(worksheet_names)
             self.lst_worksheets.SetSelection(self.wksheet_idx)
-            self.lbl_download.SetLabel(_("Ready to download %s" % 
-                                         worksheet_name))
+            self.lbl_download.SetLabel(_("Ready to download %s") % 
+                                         worksheet_name)
         elif n_worksheets > 0:
             self.wksheet_idx = 0
             worksheet_name = worksheet_names[self.wksheet_idx]
             self.lst_worksheets.Enable(True)
             self.lst_worksheets.SetItems(worksheet_names)
             self.lst_worksheets.SetSelection(self.wksheet_idx)
-            self.lbl_download.SetLabel(_("Ready to download %s" % 
-                                         worksheet_name))
+            self.lbl_download.SetLabel(_("Ready to download %s") % 
+                                         worksheet_name)
     
     def get_worksheet_names(self, spreadsheet_key):
         feed = self.gs_client.GetWorksheetsFeed(spreadsheet_key)
@@ -328,7 +328,7 @@ class GdataDownloadDlg(wx.Dialog):
         self.wksheet_idx = self.lst_worksheets.GetSelection()
         worksheet_names = self.get_worksheet_names(self.spreadsheet_key)
         worksheet_name = worksheet_names[self.wksheet_idx]
-        self.lbl_download.SetLabel(_("Ready to download %s" % worksheet_name))
+        self.lbl_download.SetLabel(_("Ready to download %s") % worksheet_name)
         lib.safe_end_cursor()
         event.Skip()
     

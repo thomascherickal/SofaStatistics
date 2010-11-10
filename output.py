@@ -401,9 +401,9 @@ def get_css_dets():
         one using cc[mg.CURRENT_CSS_PATH].
     """
     if not os.path.exists(cc[mg.CURRENT_CSS_PATH]):
-        retval = wx.MessageBox(_("The CSS style file '%s' doesn't "
-                            "exist.  Continue using the default style instead?"
-                            % cc[mg.CURRENT_CSS_PATH]), _("Needs CSS Style"), 
+        retval = wx.MessageBox(_("The CSS style file '%s' doesn't exist. "
+                            "Continue using the default style instead?") % 
+                            cc[mg.CURRENT_CSS_PATH], _("Needs CSS Style"), 
                             style=wx.YES_NO|wx.ICON_QUESTION)
         if retval == wx.YES:
             cc[mg.CURRENT_CSS_PATH] = mg.DEFAULT_CSS_PATH
@@ -724,7 +724,7 @@ def export_script(script, css_fils, new_has_dojo=False):
     add_end_script_code(f)
     f.close()
     wx.MessageBox(_("Script added to end of \"%s\" ready for reuse and "
-                    "automation" % cc[mg.CURRENT_SCRIPT_PATH]))
+                    "automation") % cc[mg.CURRENT_SCRIPT_PATH])
 
 def add_divider_code(f, tbl_filt_label, tbl_filt):
     """
