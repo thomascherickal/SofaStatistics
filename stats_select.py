@@ -245,7 +245,7 @@ class StatsSelectDlg(wx.Dialog):
         panel_dc.SetTextForeground(TEXT_BROWN)
         test_sel_txt = _("SELECT A STATISTICAL TEST HERE")
         test_sel_max_width = 350
-        test_sel_font_sz = 13
+        test_sel_font_sz = 16 if mg.PLATFORM == mg.MAC else 13
         test_sel_fs = lib.get_font_size_to_fit(text=test_sel_txt, 
                                                max_width=test_sel_max_width, 
                                                font_sz=test_sel_font_sz,
@@ -254,7 +254,7 @@ class StatsSelectDlg(wx.Dialog):
         panel_dc.DrawLabel(test_sel_txt, wx.Rect(MAIN_LEFT, 53, 100, 100))
         get_help_txt = _("OR GET HELP CHOOSING BELOW")
         get_help_max_width = 350
-        get_help_font_sz = 13
+        get_help_font_sz = 16 if mg.PLATFORM == mg.MAC else 13
         get_help_fs = lib.get_font_size_to_fit(text=get_help_txt, 
                                                max_width=get_help_max_width, 
                                                font_sz=get_help_font_sz,

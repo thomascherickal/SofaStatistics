@@ -953,9 +953,10 @@ class StartFrame(wx.Frame):
                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
             panel_dc.DrawLabel(_("Version %s") % mg.VERSION, 
                                wx.Rect(VERSION_RIGHT, TOP_TOP, 100, 20))
-            font_sz = 25 if mg.PLATFORM == mg.MAC else 20
+            font_sz = 28 if mg.PLATFORM == mg.MAC else 20
             main_text = _("Statistics Open For All")
-            main_text_width = MAX_HELP_TEXT_WIDTH + 60
+            extra_width = 40 if mg.PLATFORM == mg.MAC else 60
+            main_text_width = MAX_HELP_TEXT_WIDTH + extra_width
             main_fs = lib.get_font_size_to_fit(main_text, main_text_width, 
                                                font_sz, min_font_sz=14)
             panel_dc.SetFont(wx.Font(main_fs, wx.SWISS, wx.NORMAL, wx.NORMAL))
