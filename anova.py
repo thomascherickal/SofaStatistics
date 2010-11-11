@@ -81,12 +81,16 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                 val_label = unicode(val).upper()
             lst_labels.append(val_label)
         samples = u"[%s]" % u", ".join(lst_samples)
+        script_lst.append(u"raw_labels = %s" % lst_labels)
         script_lst.append(u"raw_samples = %s" % samples)
-        script_lst.append(u"samples = [x for x in raw_samples if len(x) > 0]")
+        script_lst.append(u"raw_sample_dets = zip(raw_labels, raw_samples)")
+        script_lst.append(u"sample_dets = [x for x in raw_sample_dets "
+                          u"if len(x[1]) > 0]")
+        script_lst.append(u"labels = [x[0] for x in sample_dets]")
+        script_lst.append(u"samples = [x[1] for x in sample_dets]")
         script_lst.append(u"""
 if len(samples) < 2:
     raise my_exceptions.TooFewSamplesForAnalysisException""")
-        script_lst.append(u"labels = %s" % lst_labels)
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"label_avg = u\"%s\"" % label_avg)
@@ -96,7 +100,7 @@ if len(samples) < 2:
                           lib.escape_pre_write(report_name))
         high = self.rad_precision.GetValue()
         script_lst.append(u"""
-p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, mean_squ_bn = \
+p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, mean_squ_bn = \\
                            core_stats.anova(samples, labels, high=%s)""" % high)
         script_lst.append(u"""
 anova_output = stats_output.anova_output(samples, F, p, dics, sswn, dfwn, 
