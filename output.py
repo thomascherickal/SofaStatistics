@@ -866,6 +866,9 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     except my_exceptions.TooFewValsForDisplay, e:
         wx.MessageBox(lib.ue(e))
         return False, u""
+    except my_exceptions.TooFewSamplesForAnalysisException, e:
+        wx.MessageBox(lib.ue(e))
+        return False, u""
     except my_exceptions.TooManySlicesInPieChart:
         wx.MessageBox(_("Too many slices in Pie Chart. More than 30."))
         return False, u""

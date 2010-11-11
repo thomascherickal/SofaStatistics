@@ -22,13 +22,13 @@ STATS_TESTS = [TEST_ANOVA, TEST_CHI_SQUARE, TEST_PEARSONS_R, TEST_SPEARMANS_R,
                TEST_KRUSKAL_WALLIS, TEST_MANN_WHITNEY, TEST_TTEST_INDEP, 
                TEST_TTEST_PAIRED, TEST_WILCOXON]
 MAIN_LEFT = 45
-HELP_LEFT = MAIN_LEFT + 235
 DIFF_TOP = 125
 REL_TOP = DIFF_TOP + 195
 QUESTIONS_TOP = REL_TOP + 150
 QUESTION_BTNS_TOP = QUESTIONS_TOP + 30
 BUTTON1_LEFT = MAIN_LEFT + 20
-BUTTON2_LEFT = MAIN_LEFT + 130
+BUTTON2_LEFT = MAIN_LEFT + 165
+HELP_LEFT = MAIN_LEFT + 300
 CONFIG_LEFT = 560
 if mg.PLATFORM == mg.WINDOWS:
      CONFIG_LEFT += 10
@@ -487,13 +487,13 @@ class StatsSelectDlg(wx.Dialog):
                     "clicking on the \"%s\" button down the bottom left.") % 
                     self.normality_label, tips_width)
         elif test_type == TEST_CHI_SQUARE:
-            tips = _("")
+            tips = u"" #"_("")
         elif test_type == TEST_PEARSONS_R:
-            tips = _("")
+            tips = u"" #"_("")
         elif test_type == TEST_SPEARMANS_R:
-            tips = _("")
+            tips = u"" #"_("")
         elif test_type == TEST_KRUSKAL_WALLIS:
-            tips = _("")
+            tips = u"" #"_("")
         elif test_type == TEST_MANN_WHITNEY:
             if assisted:
                 tips = lib.get_text_to_draw(_("The Mann-Whitney is probably a "
@@ -545,11 +545,11 @@ class StatsSelectDlg(wx.Dialog):
                 tips += lib.get_text_to_draw(_("It also copes better with small "
                     "sample sizes e.g. < 20."), tips_width)
         elif test_type == TEST_TTEST_PAIRED:
-            tips = _("")
+            tips = u"" #"_("")
         elif test_type == TEST_WILCOXON:
-            tips = _("")
+            tips = u"" #"_("")
         else:
-            tips = _("")
+            tips = u"" #"_("")
         self.lbl_tips.SetLabel(tips)
     
     def select_test(self):

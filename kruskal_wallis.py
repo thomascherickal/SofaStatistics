@@ -65,7 +65,11 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                 val_label = unicode(val).upper()
             lst_labels.append(val_label)
         samples = u"[%s]" % u", ".join(lst_samples)
-        script_lst.append(u"samples = %s" % samples)
+        script_lst.append(u"raw_samples = %s" % samples)
+        script_lst.append(u"samples = [x for x in raw_samples if len(x) > 0]")
+        script_lst.append(u"""
+if len(samples) < 2:
+    raise my_exceptions.TooFewSamplesForAnalysisException""")
         script_lst.append(u"labels = %s" % lst_labels)
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)

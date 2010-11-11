@@ -42,18 +42,20 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             var_ranked, label_ranked = self.get_drop_vals()
         script_lst = [u"dp = 3"]
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
-        strGet_Sample = (u"sample_%s = core_stats.get_list(" +
-                    u"dbe=u\"%s\", " % dd.dbe +
-                    u"cur=cur, tbl=u\"%s\",\n    " % dd.tbl +
-                    u"tbl_filt=tbl_filt, " +
-                    u"flds=flds, " +
-                    u"fld_measure=u\"%s\", " % lib.esc_str_input(var_ranked) +
-                    u"fld_filter=u\"%s\", " % lib.esc_str_input(var_gp) +
-                    u"filter_val=%s)")
+        str_get_sample = (u"""
+sample_%%s = core_stats.get_list(dbe=u"%(dbe)s", cur=cur, 
+        tbl=u"%(tbl)s", tbl_filt=tbl_filt, flds=flds, 
+        fld_measure=u"%(fld_measure)s", fld_filter=u"%(fld_filter)s",
+        filter_val=%%s)""" % {u"dbe": dd.dbe, u"tbl": dd.tbl,
+                              u"fld_measure": lib.esc_str_input(var_ranked),
+                              u"fld_filter": lib.esc_str_input(var_gp)})
         val_str_quoted_a = val_a if var_gp_numeric else u"u\"%s\"" % val_a
         val_str_quoted_b = val_b if var_gp_numeric else u"u\"%s\"" % val_b
-        script_lst.append(strGet_Sample % (u"a", val_str_quoted_a))
-        script_lst.append(strGet_Sample % (u"b", val_str_quoted_b))
+        script_lst.append(str_get_sample % (u"a", val_str_quoted_a))
+        script_lst.append(str_get_sample % (u"b", val_str_quoted_b))
+        script_lst.append(u"""
+if len(sample_a) < 2 or len(sample_b) < 2:
+    raise my_exceptions.TooFewSamplesForAnalysisException""")
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"label_ranked = u\"%s\"" % label_ranked)

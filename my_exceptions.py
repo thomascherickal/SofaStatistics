@@ -74,6 +74,12 @@ class TooManyChartsInSeries(Exception):
         Exception.__init__(self, u"Too many charts to display for \"%s\".  " 
                            % fld_gp_name + u"More than %s." % max_items)
 
+class TooFewSamplesForAnalysisException(Exception):
+    def __init__(self):
+        Exception.__init__(self, u"At least two samples with non-missing data "
+                           u"needed to run the analysis.  Please check "
+                           u"filtering or source data.")
+
 class ExcessReportTableCellsException(Exception):
     def __init__(self, max):
         Exception.__init__(self, _("Only allowed %s cells in report table" % 
