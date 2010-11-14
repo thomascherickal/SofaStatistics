@@ -27,7 +27,6 @@ class RawTable(object):
         self.titles = titles
         self.subtitles = subtitles
         self.dbe = dbe
-        self.quoter = getdata.get_obj_quoter_func(self.dbe)
         self.col_names = col_names
         self.col_labels = col_labels
         self.flds = flds
@@ -91,11 +90,12 @@ class RawTable(object):
         row_tots = [0 for x in self.col_names]
         if self.first_col_as_label:
             del row_tots[0] # ignore label col
-        obj_quoter = getdata.get_obj_quoter_func(self.dbe)
-        colnames_clause = u", ".join([obj_quoter(x) for x in self.col_names])
-        SQL_get_data = u"""SELECT %s FROM %s %s """ % (colnames_clause, 
-                                                       obj_quoter(self.tbl), 
-                                                       self.where_tbl_filt)
+        objqtr = getdata.get_obj_quoter_func(self.dbe)
+        colnames_clause = u", ".join([objqtr(x) for x in self.col_names])
+        SQL_get_data = u"""SELECT %s FROM %s %s """ % \
+                                    (colnames_clause, 
+                                     getdata.tblname_qtr(self.dbe, self.tbl), 
+                                     self.where_tbl_filt)
         if debug: print(SQL_get_data)
         self.cur.execute(SQL_get_data)
         cols_n = len(self.col_names)

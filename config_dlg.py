@@ -321,11 +321,10 @@ class ConfigDlg(object):
         # check not a massive table
         too_long = False
         # count records in table
-        quoter = getdata.get_obj_quoter_func(dd.dbe)
         unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
-        SQL_get_count = u"SELECT COUNT(*) FROM %s %s" % (quoter(dd.tbl), 
-                                                         where_tbl_filt)
+        SQL_get_count = u"SELECT COUNT(*) FROM %s %s" % \
+                          (getdata.tblname_qtr(dd.dbe, dd.tbl), where_tbl_filt)
         dd.cur.execute(SQL_get_count)
         rows_n = dd.cur.fetchone()[0]
         if rows_n > 250000:

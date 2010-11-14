@@ -32,7 +32,8 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     sql_dic = {u"fld_gp": objqtr(fld_gp), u"fld_measure": objqtr(fld_measure),
-               u"and_tbl_filt": and_tbl_filt, u"tbl": objqtr(tbl)}
+               u"and_tbl_filt": and_tbl_filt, 
+               u"tbl": getdata.tblname_qtr(dbe, tbl)}
     if fld_gp:
         SQL_get_vals = (u"""SELECT %(fld_gp)s, %(fld_measure)s, COUNT(*) AS freq
             FROM %(tbl)s
@@ -171,7 +172,7 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
     """
     debug = False
     MAX_ITEMS = 150 if chart_type == mg.CLUSTERED_BARCHART else 300
-    obj_quoter = getdata.get_obj_quoter_func(dbe)
+    objqtr = getdata.get_obj_quoter_func(dbe)
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     SQL_get_measure_vals = u"""SELECT %(fld_measure)s
         FROM %(tbl)s
@@ -190,9 +191,9 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
         FROM %(tbl)s
         %(where_tbl_filt)s
         GROUP BY %(fld_gp)s, %(fld_measure)s"""
-    sql_dic = {u"tbl": obj_quoter(tbl), 
-               u"fld_measure": obj_quoter(fld_measure),
-               u"fld_gp": obj_quoter(fld_gp),
+    sql_dic = {u"tbl": getdata.tblname_qtr(dbe, tbl), 
+               u"fld_measure": objqtr(fld_measure),
+               u"fld_gp": objqtr(fld_gp),
                u"and_tbl_filt": and_tbl_filt,
                u"where_tbl_filt": where_tbl_filt}
     SQL_cartesian_join = SQL_cartesian_join % sql_dic
@@ -290,7 +291,8 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     sql_dic = {u"fld_gp": objqtr(fld_gp), u"fld_measure": objqtr(fld_measure),
-               u"and_tbl_filt": and_tbl_filt, u"tbl": objqtr(tbl)}
+               u"and_tbl_filt": and_tbl_filt, 
+               u"tbl": getdata.tblname_qtr(dbe, tbl)}
     if fld_gp:
         SQL_fld_gp_vals = u"""SELECT %(fld_gp)s 
             FROM %(tbl)s 
@@ -366,12 +368,13 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, fld_x_axis, fld_y_axis,
     unique -- unique x-y pairs only
     """
     debug = False
-    obj_qtr = getdata.get_obj_quoter_func(dbe)
+    objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    sql_dic = {u"fld_gp": obj_qtr(fld_gp),
-               u"fld_x_axis": obj_qtr(fld_x_axis),
-               u"fld_y_axis": obj_qtr(fld_y_axis),
-               u"tbl": obj_qtr(tbl), u"and_tbl_filt": and_tbl_filt}
+    sql_dic = {u"fld_gp": objqtr(fld_gp),
+               u"fld_x_axis": objqtr(fld_x_axis),
+               u"fld_y_axis": objqtr(fld_y_axis),
+               u"tbl": getdata.tblname_qtr(dbe, tbl), 
+               u"and_tbl_filt": and_tbl_filt}
     if fld_gp:
         SQL_fld_gp_vals = u"""SELECT %(fld_gp)s 
             FROM %(tbl)s 

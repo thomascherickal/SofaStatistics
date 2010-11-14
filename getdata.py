@@ -10,6 +10,7 @@ import my_globals as mg
 import my_exceptions
 import config_globals
 import lib
+import getdata
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 
 debug = False
@@ -97,14 +98,14 @@ def get_tbl(dbe, db, tbls, default_tbls):
             raise Exception(u"No tables found in database \"%s\"" % db)
     return tbl
 
-def tblname2sql(dbe, tblname):
+def tblname_qtr(dbe, tblname):
     """
     If any dots in table name, use first dot as split between schema and table 
         name.
     """
-    quote_obj = get_obj_quoter_func(dbe)
+    objqtr = get_obj_quoter_func(dbe)
     name_parts = tblname.split(u".", 1) # only want one split if any
-    sql = u".".join([quote_obj(x) for x in name_parts])
+    sql = u".".join([objqtr(x) for x in name_parts])
     return sql
 
 def tblname2parts(dbe, tblname):
@@ -265,9 +266,9 @@ def get_init_settings_data(tblname):
     """
     debug = False
     dd = get_dd()
-    obj_quoter = get_obj_quoter_func(dd.dbe)
     dd.con.commit()
-    dd.cur.execute(u"PRAGMA table_info(%s)" % obj_quoter(tblname))
+    dd.cur.execute(u"PRAGMA table_info(%s)" % getdata.tblname_qtr(dd.dbe, 
+                                                                  tblname))
     config = dd.cur.fetchall()
     if debug: print(config)
     table_config = [(x[1], get_gen_fld_type(fld_type=x[2])) for x in config]
@@ -322,8 +323,8 @@ def make_fld_val_clause_non_numeric(fld_name, val, dbe_gte, quote_obj,
 def make_fld_val_clause(dbe, flds, fld_name, val, gte=mg.GTE_EQUALS):
     """
     Make a filter clause with a field name = a value (numeric or non-numeric).
-    quote_obj -- function specific to database engine for quoting objects
-    quote_val -- function specific to database engine for quoting values
+    objqtr -- function specific to database engine for quoting objects
+    valqtr -- function specific to database engine for quoting values
     Handle val=None.  Treat as Null for clause.
     If a string number is received e.g. u'56' it will be treated as a string
         if the dbe is SQLite and will be treated differently from 56 for 
@@ -331,16 +332,16 @@ def make_fld_val_clause(dbe, flds, fld_name, val, gte=mg.GTE_EQUALS):
     """
     debug = False
     bolsqlite = (dbe == mg.DBE_SQLITE)
-    quote_obj = get_obj_quoter_func(dbe)
-    quote_val = get_val_quoter_func(dbe)
+    objqtr = get_obj_quoter_func(dbe)
+    valqtr = get_val_quoter_func(dbe)
     dbe_gte = get_gte(dbe, gte)
     bolnumeric = flds[fld_name][mg.FLD_BOLNUMERIC]
     boldatetime = flds[fld_name][mg.FLD_BOLDATETIME]
     if val is None:
         if gte == mg.GTE_EQUALS:
-            clause = u"%s IS NULL" % quote_obj(fld_name)
+            clause = u"%s IS NULL" % objqtr(fld_name)
         elif gte == mg.GTE_NOT_EQUALS:
-            clause = u"%s IS NOT NULL" % quote_obj(fld_name)
+            clause = u"%s IS NOT NULL" % objqtr(fld_name)
         else:
             raise Exception(u"Can only use = or %s " % mg.GTE_NOT_EQUALS +
                             u"with missing or Null values.")
@@ -352,10 +353,10 @@ def make_fld_val_clause(dbe, flds, fld_name, val, gte=mg.GTE_EQUALS):
             if not lib.is_basic_num(val):
                 num = False
         if num:
-            clause = u"%s %s %s" % (quote_obj(fld_name), dbe_gte, val)
+            clause = u"%s %s %s" % (objqtr(fld_name), dbe_gte, val)
         else:
             clause = make_fld_val_clause_non_numeric(fld_name, val, dbe_gte, 
-                                                     quote_obj, quote_val)
+                                                     objqtr, valqtr)
     if debug: print(clause)
     return clause
 
@@ -488,7 +489,7 @@ def insert_row(data):
     fld_placeholders_clause = " (" + \
         u", ".join([placeholder for x in range(len(data))]) + u") "
     # e.g. " (%s, %s, %s, ...) or (?, ?, ?, ...)"
-    SQL_insert = u"INSERT INTO %s " % tblname2sql(dd.dbe, dd.tbl) + \
+    SQL_insert = u"INSERT INTO %s " % tblname_qtr(dd.dbe, dd.tbl) + \
                     fld_names_clause + u"VALUES %s" % fld_placeholders_clause
     if debug: print(SQL_insert)
     data_lst = []
@@ -518,10 +519,10 @@ def delete_row(id_fld, row_id):
     """
     debug = False
     dd = get_dd()
-    quote_obj = get_obj_quoter_func(dd.dbe)
+    objqtr = get_obj_quoter_func(dd.dbe)
     placeholder = get_placeholder(dd.dbe)
-    SQL_delete = u"DELETE FROM %s " % getdata.tblname2sql(dd.dbe, dd.tbl) + \
-        u"WHERE %s = %s" % (quote_obj(id_fld), placeholder)
+    SQL_delete = u"DELETE FROM %s " % getdata.tblname_qtr(dd.dbe, dd.tbl) + \
+                 u"WHERE %s = %s" % (objqtr(id_fld), placeholder)
     if debug: print(SQL_delete)
     data_tup = (row_id,)
     try:
@@ -681,7 +682,7 @@ def make_flds_clause(settings_data):
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
     debug = False
-    sqlite_quoter = get_obj_quoter_func(mg.DBE_SQLITE)
+    objqtr = get_obj_quoter_func(mg.DBE_SQLITE)
     # get orig_name, new_name tuples for all fields in final table apart 
     # from the sofa_id.
     orig_new_names = [(x[mg.TBL_FLD_NAME_ORIG], x[mg.TBL_FLD_NAME])
@@ -692,8 +693,8 @@ def make_flds_clause(settings_data):
         print("orig_new_names: %s" % orig_new_names)
     fld_clause_items = []
     for orig_name, new_name in orig_new_names:
-        qorig_name = sqlite_quoter(orig_name)
-        qnew_name = sqlite_quoter(new_name)
+        qorig_name = objqtr(orig_name)
+        qnew_name = objqtr(new_name)
         if orig_name is None:
             clause = u"NULL %s" % qnew_name
         elif orig_name == new_name:
@@ -726,8 +727,8 @@ def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):
     strict_typing -- add check constraints to fields.
     """
     debug = False
-    quoter = get_obj_quoter_func(mg.DBE_SQLITE)
-    sofa_id = quoter(mg.SOFA_ID)
+    objqtr = get_obj_quoter_func(mg.DBE_SQLITE)
+    sofa_id = objqtr(mg.SOFA_ID)
     if inc_sofa_id:
         fld_clause_items = [u"%s INTEGER PRIMARY KEY" % sofa_id]
     else:
@@ -741,12 +742,12 @@ def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):
                             u"%s" % sys._getframe().f_code.co_name)
         tosqlite = mg.GEN2SQLITE_DIC[fld_type]
         if strict_typing:
-            check = tosqlite["check_clause"] % {"fld_name": quoter(fld_name)}
+            check = tosqlite["check_clause"] % {"fld_name": objqtr(fld_name)}
         else:
             check = ""
         if debug: print(u"%s %s %s" % (fld_name, fld_type, check))
         clause = u"%(fld_name)s %(fld_type)s %(check_clause)s" % \
-                                            {"fld_name": quoter(fld_name), 
+                                            {"fld_name": objqtr(fld_name), 
                                             "fld_type": tosqlite["sqlite_type"],
                                             "check_clause": check}
         fld_clause_items.append(clause)

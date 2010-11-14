@@ -22,13 +22,12 @@ MAX = u"MAX"
 REMAINING = u"REMAINING"
 MISSING = u"MISSING"
 
-# no need to use getdata.tblname2sql - all sqlite here so no schemas
-obj_quoter = dbe_sqlite.quote_obj
-val_quoter = dbe_sqlite.quote_val
+objqtr = dbe_sqlite.quote_obj
+valqtr = dbe_sqlite.quote_val
 
 def make_when_clause(orig_clause, new, new_fld_type):
     if new_fld_type in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
-        new = val_quoter(new)
+        new = valqtr(new)
     when_clause = u"            WHEN %s THEN %s" % (orig_clause, new)
     return when_clause
 
@@ -67,7 +66,7 @@ def process_orig(orig, fldname, fldtype):
     3) Assume we are dealing with a single value e.g. 1 or Did Not Reply
     """
     debug = False
-    fld = obj_quoter(fldname)
+    fld = objqtr(fldname)
     if not isinstance(orig, basestring):
         raise Exception(u"process_orig() expects strings")
     orig_clause = None
@@ -117,8 +116,8 @@ def process_orig(orig, fldname, fldtype):
             raise Exception(_("Only date values can be recoded for this "
                               "variable"))
         if fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
-            l_prep = val_quoter(l_part)
-            r_prep = val_quoter(r_part)
+            l_prep = valqtr(l_part)
+            r_prep = valqtr(r_part)
         else:
             l_prep = l_part
             r_prep = r_part
@@ -135,7 +134,7 @@ def process_orig(orig, fldname, fldtype):
     # 3 Single value
     else:
         if fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
-            orig_clause = u"%s = %s" % (fld, val_quoter(orig))
+            orig_clause = u"%s = %s" % (fld, valqtr(orig))
         elif fldtype == mg.FLD_TYPE_NUMERIC:
             if not lib.is_numeric(orig):
                 raise Exception(_("The field being recoded is numeric but you "
@@ -154,8 +153,8 @@ def process_label(dict_labels, new_fldtype, new, label):
     if label == u"":
         return
     if new_fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
-        new = val_quoter(new)
-    dict_labels[new] = val_quoter(label)
+        new = valqtr(new)
+    dict_labels[new] = valqtr(label)
     
 def warn_about_existing_labels(recode_dlg, val, row, col, grid, col_dets):
     """
@@ -372,13 +371,14 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         """
         dd.con.commit()
         getdata.force_tbls_refresh()
-        SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % obj_quoter(self.tblname)
+        SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
+                                getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname)
         dd.cur.execute(SQL_drop_orig)
         dd.con.commit()
         getdata.force_tbls_refresh()
         SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
-                          (obj_quoter(mg.TMP_TBL_NAME),
-                           obj_quoter(self.tblname)))
+                          (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME),
+                           getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname)))
         dd.cur.execute(SQL_rename_tbl)
         getdata.force_tbls_refresh()
         dd.set_db(dd.db, tbl=self.tblname) # refresh tbls downwards
@@ -396,11 +396,12 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         debug = False
         # rename table to tmp
         getdata.force_tbls_refresh()
-        SQL_drop_tmp = u"DROP TABLE IF EXISTS %s" % obj_quoter(mg.TMP_TBL_NAME)
+        SQL_drop_tmp = u"DROP TABLE IF EXISTS %s" % \
+                            getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
         dd.cur.execute(SQL_drop_tmp)
         SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
-                          (obj_quoter(self.tblname), 
-                           obj_quoter(mg.TMP_TBL_NAME)))
+                          (getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname), 
+                           getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)))
         dd.cur.execute(SQL_rename_tbl)
         # create new table with orig name and extra field
         create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
@@ -408,12 +409,13 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                                                         inc_sofa_id=True)
         getdata.force_tbls_refresh()
         SQL_make_recoded_tbl = u"CREATE TABLE %s (%s) " % \
-                                   (obj_quoter(self.tblname), create_fld_clause)
+                            (getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname), 
+                             create_fld_clause)
         if debug: print(u"SQL_make_recoded_tbl: %s" % SQL_make_recoded_tbl)
         dd.cur.execute(SQL_make_recoded_tbl)
         # want fields before new field, then case when, then any remaining flds
         fld_clauses_lst = []
-        fld_clauses_lst.append(u"NULL AS %s" % obj_quoter(mg.SOFA_ID))
+        fld_clauses_lst.append(u"NULL AS %s" % objqtr(mg.SOFA_ID))
         # fldnames from start of other (non sofa_id) fields to before new field 
         # (may be none)
         if debug: 
@@ -423,19 +425,21 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         name_types_pre_new = oth_name_types[: idx_new_fld_in_oth_name_types]
         if debug: print(u"name_types_pre_new: %s" % name_types_pre_new)
         for name, unused in name_types_pre_new:
-            fld_clauses_lst.append(obj_quoter(name))
+            fld_clauses_lst.append(objqtr(name))
         fld_clauses_lst.append(case_when)
         # want fields after new field (if any).  Skip new recoded fld.
         name_types_post_new = oth_name_types[idx_new_fld_in_oth_name_types+1:]
         if debug: print(u"name_types_post_new: %s" % name_types_post_new)
         for name, unused in name_types_post_new:
-            fld_clauses_lst.append(obj_quoter(name))
+            fld_clauses_lst.append(objqtr(name))
         fld_clauses = u",\n    ".join(fld_clauses_lst)
         SQL_insert_content = ("INSERT INTO %(tblname)s "
             "\n    SELECT %(fld_clauses)s "
-            "\n    FROM %(tmp_tbl)s" % {"tblname": obj_quoter(self.tblname), 
-                                  "fld_clauses": fld_clauses,
-                                  "tmp_tbl": obj_quoter(mg.TMP_TBL_NAME)})
+            "\n    FROM %(tmp_tbl)s" % 
+                {u"tblname": getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname), 
+                 u"fld_clauses": fld_clauses,
+                 u"tmp_tbl": getdata.tblname_qtr(mg.DBE_SQLITE, 
+                                                 mg.TMP_TBL_NAME)})
         print("*"*60)
         print(SQL_insert_content) # worth keeping and not likely to be overdone
         print("*"*60)
@@ -448,7 +452,8 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             raise
         dd.con.commit()
         getdata.force_tbls_refresh()
-        SQL_drop_tmp = u"DROP TABLE IF EXISTS %s" % obj_quoter(mg.TMP_TBL_NAME)
+        SQL_drop_tmp = u"DROP TABLE IF EXISTS %s" % \
+                            getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
         dd.cur.execute(SQL_drop_tmp)
         dd.con.commit()
         dd.set_db(dd.db, tbl=self.tblname) # refresh tbls downwards
@@ -489,7 +494,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             else: # REMAINING
                 # if multiple REMAINING clauses the last "wins"
                 if new_fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
-                    remaining_to = val_quoter(new)
+                    remaining_to = valqtr(new)
                 else:
                     remaining_to = new
                 remaining_new = new
@@ -506,7 +511,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         case_when_lst.append(u"    CASE")
         case_when_lst.extend(when_clauses)
         case_when_lst.append(u"        END\n    AS %s" % 
-                             obj_quoter(new_fldname))
+                             objqtr(new_fldname))
         case_when = u"\n".join(case_when_lst)
         if debug: 
             pprint.pprint(dict_labels)

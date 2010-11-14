@@ -23,8 +23,6 @@ FILE_UNKNOWN = u"unknown"
 GAUGE_STEPS = 50
 
 dd = getdata.get_dd()
-# no need to use getdata.tblname2sql - all sqlite here so no schemas
-obj_quoter = dbe_sqlite.quote_obj
 
 class MismatchException(Exception):
     def __init__(self, fld_name, details):
@@ -289,7 +287,8 @@ def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names,
     """
     debug = False
     nulled_dots = False
-    fld_names_clause = u", ".join([obj_quoter(x) for x in ok_fld_names])
+    fld_names_clause = u", ".join([dbe_sqlite.quote_obj(x) for x 
+                                   in ok_fld_names])
     for row_idx, row in enumerate(rows):
         if row_idx % 50 == 0:
             wx.Yield()
@@ -451,12 +450,14 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
     """
     debug = False
     try:
-        SQL_drop_tbl = u"DROP TABLE IF EXISTS %s" % obj_quoter(tbl_name)
+        SQL_drop_tbl = u"DROP TABLE IF EXISTS %s" % \
+                                    getdata.tblname_qtr(mg.DBE_SQLITE,tbl_name)
         if debug: print(SQL_drop_tbl)
         cur.execute(SQL_drop_tbl)
         con.commit()
         SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
-                          (obj_quoter(mg.TMP_TBL_NAME), obj_quoter(tbl_name)))
+                          (getdata.tblname_qtr(mg.DBE_SQLITE,mg.TMP_TBL_NAME), 
+                           getdata.tblname_qtr(mg.DBE_SQLITE,tbl_name)))
         if debug: print(SQL_rename_tbl)
         cur.execute(SQL_rename_tbl)
         con.commit()

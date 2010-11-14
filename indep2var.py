@@ -399,25 +399,25 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         """
         debug = False
         n_high = 250000
-        quoter = getdata.get_obj_quoter_func(dd.dbe)
-        SQL_get_count = "SELECT COUNT(*) FROM %s %s" % (quoter(dd.tbl), 
-                                                        where_filt)
+        objqtr = getdata.get_obj_quoter_func(dd.dbe)
+        SQL_get_count = "SELECT COUNT(*) FROM %s %s" % \
+                            (getdata.tblname_qtr(dd.dbe, dd.tbl), where_filt)
         if debug: print(SQL_get_count)
         dd.cur.execute(SQL_get_count)
         rows_n = dd.cur.fetchone()[0]
         if debug: print(u"%s records" % unicode(rows_n))
         high_n_recs = (rows_n >= n_high)
         if high_n_recs:
-            source = u"(%s) AS qry" % getdata.get_first_sql(dd.dbe, dd.tbl, 
-                                                            top_n=n_high)
+            source = u"(%s) AS qry" % getdata.get_first_sql(dd.dbe, 
+                              getdata.tblname_qtr(dd.dbe, dd.tbl), top_n=n_high)
             if debug: print(source)
         else:
-            source = quoter(dd.tbl)
+            source = getdata.tblname_qtr(dd.dbe, dd.tbl)
         SQL_get_sorted_vals = u"""SELECT %(var_gp)s 
             FROM %(source)s
             %(where_filt)s
             GROUP BY %(var_gp)s 
-            ORDER BY %(var_gp)s""" % {"var_gp": quoter(var_gp), 
+            ORDER BY %(var_gp)s""" % {"var_gp": objqtr(var_gp), 
                                      "source": source, "where_filt": where_filt}
         if debug: print(SQL_get_sorted_vals)
         dd.cur.execute(SQL_get_sorted_vals)

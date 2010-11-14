@@ -496,10 +496,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         too_long = False
         if self.tab_type == mg.RAW_DISPLAY:
             # count records in table
-            quoter = getdata.get_obj_quoter_func(dd.dbe)
             unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
             where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
-            s = u"SELECT COUNT(*) FROM %s %s" % (quoter(dd.tbl), where_tbl_filt)
+            s = u"SELECT COUNT(*) FROM %s %s" % \
+                        (getdata.tblname_qtr(dd.dbe, dd.tbl), where_tbl_filt)
             dd.cur.execute(s)
             rows_n = dd.cur.fetchone()[0]
             strn = locale.format('%d', rows_n, True)

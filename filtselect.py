@@ -232,8 +232,9 @@ class FiltSelectDlg(wx.Dialog):
                 wx.MessageBox(_("Please enter a filter"))
                 return
         # Must work with a simple query to that database
-        obj_quoter = getdata.get_obj_quoter_func(dd.dbe)
-        filt_test_SQL = u"""SELECT * FROM %s """ % obj_quoter(dd.tbl) + \
+        objqtr = getdata.get_obj_quoter_func(dd.dbe)
+        filt_test_SQL = u"""SELECT * FROM %s """ % getdata.tblname_qtr(dd.dbe, 
+                                                                    dd.tbl) + \
                         u"""WHERE (%s)""" % tbl_filt
         if debug: print("Filter: %s" % filt_test_SQL)
         try:
@@ -253,12 +254,12 @@ class FiltSelectDlg(wx.Dialog):
                 "OR %(gender)s = 2"
                 u"\ne.g. %(satisfaction)s not in (9, 99, 999)") %
                       {"dbe": dd.dbe,
-                       "city": obj_quoter("city"), 
+                       "city": objqtr("city"), 
                        "vancouver": val_quoter("Vancouver"),
                        "unknown_city": val_quoter("Unknown City"),
-                       "age": obj_quoter("age"),
-                       "gender": obj_quoter("gender"),
-                       "satisfaction": obj_quoter("satisfaction"),
+                       "age": objqtr("age"),
+                       "gender": objqtr("gender"),
+                       "satisfaction": objqtr("satisfaction"),
                        "sqlite_extra_comment": sqlite_extra_comment})
             lib.safe_end_cursor()
             wx.MessageBox(_("Problem applying filter \"%(filt)s\" to"

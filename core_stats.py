@@ -44,11 +44,11 @@ def get_list(dbe, cur, tbl, tbl_filt, flds, fld_measure, fld_filter,
     debug = False
     fld_val_clause = getdata.make_fld_val_clause(dbe, flds, fld_filter, 
                                                  filter_val)
-    obj_quoter = getdata.get_obj_quoter_func(dbe)
+    objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    SQL_get_list = u"SELECT %s " % obj_quoter(fld_measure) + \
-        u"FROM %s " % obj_quoter(tbl) + \
-        u"WHERE %s IS NOT NULL " % obj_quoter(fld_measure) + \
+    SQL_get_list = u"SELECT %s " % objqtr(fld_measure) + \
+        u"FROM %s " % getdata.tblname_qtr(dbe, tbl) + \
+        u"WHERE %s IS NOT NULL " % objqtr(fld_measure) + \
         u"AND %s " % fld_val_clause + and_tbl_filt
     if debug: print(SQL_get_list)
     cur.execute(SQL_get_list)
@@ -62,10 +62,11 @@ def get_paired_data(dbe, cur, tbl, tbl_filt, fld_a, fld_b, unique=False):
         Used in, for example, the paired samples t-test.
     unique -- only look at unique pairs.  Useful for scatter plotting.
     """
-    obj_qtr = getdata.get_obj_quoter_func(dbe)
+    objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    sql_dic = {u"fld_a": obj_qtr(fld_a),u"fld_b": obj_qtr(fld_b),
-               u"tbl": obj_qtr(tbl), u"and_tbl_filt": and_tbl_filt}
+    sql_dic = {u"fld_a": objqtr(fld_a),u"fld_b": objqtr(fld_b),
+               u"tbl": getdata.tblname_qtr(dbe, tbl), 
+               u"and_tbl_filt": and_tbl_filt}
     if unique:
         SQL_get_pairs = u"""SELECT %(fld_a)s, %(fld_b)s
             FROM %(tbl)s
@@ -112,10 +113,10 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     The lists are b within a e.g. a1b1, a1b2, a1b3, a2b1, a2b2 ...    
     """
     debug = False
-    obj_quoter = getdata.get_obj_quoter_func(dbe)
-    qtbl = obj_quoter(tbl)
-    qfld_a = obj_quoter(fld_a)
-    qfld_b = obj_quoter(fld_b)
+    objqtr = getdata.get_obj_quoter_func(dbe)
+    qtbl = getdata.tblname_qtr(dbe, tbl)
+    qfld_a = objqtr(fld_a)
+    qfld_b = objqtr(fld_b)
     # get row vals used
     SQL_row_vals_used = u"""SELECT %(qfld_a)s
         FROM %(qtbl)s

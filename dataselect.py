@@ -12,7 +12,6 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
 import table_config
 
-sqlite_quoter = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
 dd = getdata.get_dd()
 cc = config_dlg.get_cc()
 
@@ -130,9 +129,8 @@ class DataSelectDlg(wx.Dialog):
                     "index")
             wx.MessageBox(msg % dd.tbl) # needed for caching even if read only
         else:
-            obj_quoter = getdata.get_obj_quoter_func(dd.dbe)
             SQL_get_count = u"""SELECT COUNT(*) FROM %s """ % \
-                                            getdata.tblname2sql(dd.dbe, dd.tbl)
+                                            getdata.tblname_qtr(dd.dbe, dd.tbl)
             try:
                 dd.cur.execute(SQL_get_count)
             except Exception, e:
@@ -164,8 +162,8 @@ class DataSelectDlg(wx.Dialog):
         if wx.MessageBox(_("Do you wish to delete \"%s\"?") % dd.tbl, 
                            caption=_("DELETE"), 
                            style=wx.YES_NO|wx.NO_DEFAULT) == wx.YES:
-            obj_quoter = getdata.get_obj_quoter_func(dd.dbe)
-            dd.cur.execute("DROP TABLE IF EXISTS %s" % obj_quoter(dd.tbl))
+            dd.cur.execute("DROP TABLE IF EXISTS %s" % 
+                           getdata.tblname_qtr(dd.dbe, dd.tbl))
             dd.con.commit()
         dd.set_db(dd.db) # refresh tbls downwards
         self.reset_tbl_dropdown()

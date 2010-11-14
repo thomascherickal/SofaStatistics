@@ -16,8 +16,7 @@ import settings_grid
 
 dd = getdata.get_dd()
 cc = config_dlg.get_cc()
-# no need to use getdata.tblname2sql - all sqlite here so no schemas
-obj_quoter = dbe_sqlite.quote_obj
+objqtr = dbe_sqlite.quote_obj
 
 WAITING_MSG = _("<p>Waiting for at least one field to be configured.</p>")
 
@@ -78,15 +77,18 @@ def has_data_changed(orig_data, final_data):
 def copy_orig_tbl(orig_tbl_name):
     dd.con.commit()
     getdata.force_tbls_refresh()
-    SQL_drop_tmp2 = u"DROP TABLE IF EXISTS %s" % obj_quoter(mg.TMP_TBL_NAME2)
+    SQL_drop_tmp2 = u"DROP TABLE IF EXISTS %s" % \
+                            getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME2)
     dd.cur.execute(SQL_drop_tmp2)
     dd.con.commit()
     # In SQLite, CREATE TABLE AS drops all constraints, indexes etc.
     SQL_make_copy = u"CREATE TABLE %s AS SELECT * FROM %s" % \
-                    (obj_quoter(mg.TMP_TBL_NAME2), obj_quoter(orig_tbl_name))
+                    (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME2), 
+                     getdata.tblname_qtr(mg.DBE_SQLITE, orig_tbl_name))
     dd.cur.execute(SQL_make_copy)
     SQL_restore_index = u"CREATE UNIQUE INDEX sofa_id_idx on %s (%s)" % \
-                        (obj_quoter(mg.TMP_TBL_NAME2), obj_quoter(mg.SOFA_ID))
+                        (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME2), 
+                         getdata.tblname_qtr(mg.DBE_SQLITE, mg.SOFA_ID))
     dd.cur.execute(SQL_restore_index)
     getdata.force_tbls_refresh()
 
@@ -97,13 +99,15 @@ def restore_copy_tbl(orig_tbl_name):
     dd.con.commit()
     getdata.force_tbls_refresh()
     SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
-                      (obj_quoter(mg.TMP_TBL_NAME2), obj_quoter(orig_tbl_name)))
+                      (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME2), 
+                       getdata.tblname_qtr(mg.DBE_SQLITE, orig_tbl_name)))
     dd.cur.execute(SQL_rename_tbl)
 
 def wipe_tbl(tblname):
     dd.con.commit()
     getdata.force_tbls_refresh()
-    SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % obj_quoter(tblname)
+    SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
+                                    getdata.tblname_qtr(mg.DBE_SQLITE, tblname)
     dd.cur.execute(SQL_drop_orig)
     dd.con.commit()
  
@@ -123,7 +127,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
     debug = False
-    tmp_name = obj_quoter(mg.TMP_TBL_NAME)
+    tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
     getdata.reset_con(add_checks=True) # can't deactivate the user-defined 
         # functions until the tmp table has been deleted.
     getdata.force_tbls_refresh()
@@ -141,9 +145,9 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     # unable to use CREATE ... AS SELECT at same time as defining table.
     # attempt to insert data into strictly-typed fields.
     select_fld_clause = getdata.make_flds_clause(fld_settings)
-    SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (tmp_name, 
-                                                      select_fld_clause, 
-                                                      obj_quoter(orig_tbl_name))
+    SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % \
+                            (tmp_name, select_fld_clause, 
+                             getdata.tblname_qtr(mg.DBE_SQLITE, orig_tbl_name))
     if debug: print(SQL_insert_all)
     dd.cur.execute(SQL_insert_all)
     dd.con.commit()
@@ -156,8 +160,8 @@ def make_redesigned_tbl(final_name, oth_name_types):
         functions.
     """
     debug = False
-    tmp_name = obj_quoter(mg.TMP_TBL_NAME)
-    final_name = obj_quoter(final_name)
+    tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
+    final_name = getdata.tblname_qtr(mg.DBE_SQLITE, final_name)
     create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
                                                     strict_typing=False,
                                                     inc_sofa_id=True)
@@ -191,7 +195,7 @@ def make_redesigned_tbl(final_name, oth_name_types):
                                                          create_fld_clause)
     dd.cur.execute(SQL_make_redesigned_tbl)
     dd.con.commit()
-    oth_names = [obj_quoter(x[0]) for x in oth_name_types]
+    oth_names = [objqtr(x[0]) for x in oth_name_types]
     null_plus_oth_flds = u" NULL, " + u", ".join(oth_names)
     SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (final_name, 
                                                 null_plus_oth_flds, tmp_name)
@@ -541,11 +545,10 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         Fill in rest with demo data.
         """
         debug = False
-        obj_quoter = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
-        flds_clause = u", ".join([obj_quoter(x) for x in db_flds_orig_names
+        flds_clause = u", ".join([objqtr(x) for x in db_flds_orig_names
                                   if x is not None])
-        SQL_get_data = u"""SELECT %s FROM %s """ % (flds_clause,
-                                            obj_quoter(self.tblname_lst[0]))
+        SQL_get_data = u"""SELECT %s FROM %s """ % (flds_clause, 
+                        getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname_lst[0]))
         dd.cur.execute(SQL_get_data) # NB won't contain any new or inserted flds
         rows = []
         row_idx = 0
@@ -770,7 +773,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             dd.con.commit()
             getdata.force_tbls_refresh()
             SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % \
-                                                obj_quoter(mg.TMP_TBL_NAME)
+                             getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
             dd.cur.execute(SQL_drop_tmp_tbl)
             dd.con.commit()
             raise FldMismatchException

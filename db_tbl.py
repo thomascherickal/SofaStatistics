@@ -20,7 +20,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         wx.grid.PyGridTableBase.__init__(self)
         self.debug = False
         self.grid = grid
-        self.quote_obj = getdata.get_obj_quoter_func(dd.dbe)
+        self.objqtr = getdata.get_obj_quoter_func(dd.dbe)
         self.quote_val = getdata.get_val_quoter_func(dd.dbe)
         self.readonly = readonly        
         self.set_num_rows()
@@ -52,9 +52,9 @@ class DbTbl(wx.grid.PyGridTableBase):
         Zero-based.
         """
         SQL_get_id_vals = u"SELECT %s FROM %s ORDER BY %s" % \
-                                        (self.quote_obj(self.id_col_name), 
-                                         getdata.tblname2sql(dd.dbe, dd.tbl), 
-                                         self.quote_obj(self.id_col_name))
+                                        (self.objqtr(self.id_col_name), 
+                                         getdata.tblname_qtr(dd.dbe, dd.tbl), 
+                                         self.objqtr(self.id_col_name))
         if debug: print(SQL_get_id_vals)
         dd.cur.execute(SQL_get_id_vals)
         # NB could easily be 10s or 100s of thousands of records
@@ -106,7 +106,7 @@ class DbTbl(wx.grid.PyGridTableBase):
 
     def set_num_rows(self):
         debug = False
-        SQL_rows_n = u"SELECT COUNT(*) FROM %s" % getdata.tblname2sql(dd.dbe, 
+        SQL_rows_n = u"SELECT COUNT(*) FROM %s" % getdata.tblname_qtr(dd.dbe, 
                                                                       dd.tbl)
         dd.cur.execute(SQL_rows_n)
         self.rows_n = dd.cur.fetchone()[0]
@@ -207,10 +207,10 @@ class DbTbl(wx.grid.PyGridTableBase):
                 IN_clause_lst.append(value)
             IN_clause = u", ".join(IN_clause_lst)
             SQL_get_values = u"SELECT * " + \
-                u" FROM %s " % getdata.tblname2sql(dd.dbe, dd.tbl) + \
-                u" WHERE %s IN(%s)" % (self.quote_obj(self.id_col_name), 
+                u" FROM %s " % getdata.tblname_qtr(dd.dbe, dd.tbl) + \
+                u" WHERE %s IN(%s)" % (self.objqtr(self.id_col_name), 
                                       IN_clause) + \
-                u" ORDER BY %s" % self.quote_obj(self.id_col_name)
+                u" ORDER BY %s" % self.objqtr(self.id_col_name)
             if debug or self.debug: print(SQL_get_values)
             #dd.con.commit() # extra commits keep postgresql problems away
                 # when a cell change is rejected by SOFA Stats validation
@@ -278,9 +278,9 @@ class DbTbl(wx.grid.PyGridTableBase):
             val2use = u"NULL" if raw_val_to_use is None \
                 else self.quote_val(raw_val_to_use)
             # TODO - think about possibilities of SQL injection by hostile party
-            SQL_update_value = u"UPDATE %s " % getdata.tblname2sql(dd.dbe, 
+            SQL_update_value = u"UPDATE %s " % getdata.tblname_qtr(dd.dbe, 
                                                                    dd.tbl) + \
-                    u" SET %s = %s " % (self.quote_obj(col_name), val2use) + \
+                    u" SET %s = %s " % (self.objqtr(col_name), val2use) + \
                     u" WHERE %s = " % self.id_col_name + unicode(id_value)
             if self.debug or debug: 
                 print(u"SetValue - SQL update value: %s" % SQL_update_value)

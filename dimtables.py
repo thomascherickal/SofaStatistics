@@ -1131,7 +1131,7 @@ class SummTable(LiveTable):
         # if using raw data (or finding bad data) must handle non-numeric values 
         # myself
         SQL_get_vals = u"SELECT %s " % self.quote_obj(row_fld) + \
-            u"FROM %s %s" % (getdata.tblname2sql(self.dbe, self.tbl), filter)
+            u"FROM %s %s" % (getdata.tblname_qtr(self.dbe, self.tbl), filter)
         sql_for_raw_only = [mg.MEDIAN, mg.STD_DEV]
         if measure in sql_for_raw_only:
             self.cur.execute(SQL_get_vals)
@@ -1139,7 +1139,7 @@ class SummTable(LiveTable):
             if debug: print(data)
         if measure == mg.MIN:
             SQL_get_min = u"SELECT MIN(%s) " % self.quote_obj(row_fld) + \
-                u"FROM " + getdata.tblname2sql(self.dbe, self.tbl) + filter
+                u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) + filter
             try:
                 self.cur.execute(SQL_get_min)
                 data_val = self.cur.fetchone()[0]
@@ -1147,7 +1147,7 @@ class SummTable(LiveTable):
                 raise Exception(u"Unable to get minimum of %s." % row_fld)
         elif measure == mg.MAX:
             SQL_get_max = u"SELECT MAX(%s) " % self.quote_obj(row_fld) + \
-                u"FROM " + getdata.tblname2sql(self.dbe, self.tbl) + filter
+                u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) + filter
             try:
                 self.cur.execute(SQL_get_max)
                 data_val = self.cur.fetchone()[0]
@@ -1156,7 +1156,7 @@ class SummTable(LiveTable):
         elif measure == mg.RANGE:
             SQL_get_range = u"SELECT (MAX(%(fld)s) - MIN(%(fld)s)) " % \
                     {u"fld": self.quote_obj(row_fld)} + \
-                u"FROM " + getdata.tblname2sql(self.dbe, self.tbl) + filter
+                u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) + filter
             try:
                 self.cur.execute(SQL_get_range)
                 data_val = self.cur.fetchone()[0]
@@ -1164,7 +1164,7 @@ class SummTable(LiveTable):
                 raise Exception(u"Unable to get range of %s." % row_fld)
         elif measure == mg.SUM:
             SQL_get_sum = u"SELECT SUM(%s) " % self.quote_obj(row_fld) + \
-                u"FROM " + getdata.tblname2sql(self.dbe, self.tbl) + filter
+                u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) + filter
             try:
                 self.cur.execute(SQL_get_sum)
                 data_val = self.cur.fetchone()[0]
@@ -1172,7 +1172,7 @@ class SummTable(LiveTable):
                 raise Exception(u"Unable to calculate sum of %s." % row_fld)
         elif measure == mg.MEAN:
             SQL_get_mean = u"SELECT AVG(%s) " % self.quote_obj(row_fld) + \
-                u"FROM %s %s" % (selgetdata.tblname2sql(self.dbe, self.tbl), 
+                u"FROM %s %s" % (selgetdata.tblname_qtr(self.dbe, self.tbl), 
                                  filter)
             try:
                 self.cur.execute(SQL_get_mean)
@@ -1194,7 +1194,7 @@ class SummTable(LiveTable):
                                     % row_fld)
         elif measure == mg.SUMM_N:
             SQL_get_n = u"SELECT COUNT(%s) " % self.quote_obj(row_fld) + \
-                u"FROM %s %s" % (getdata.tblname2sql(self.dbe, self.tbl), 
+                u"FROM %s %s" % (getdata.tblname_qtr(self.dbe, self.tbl), 
                                  filter)
             try:
                 self.cur.execute(SQL_get_n)
