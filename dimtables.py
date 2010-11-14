@@ -621,9 +621,9 @@ class LiveTable(DimTable):
                         u"FROM %(tbl)s "
                         u"WHERE %(filt_clause)s %(and_tbl_flt)s "
                         u"GROUP BY %(fld)s") % {"fld": self.quote_obj(fld), 
-                                               "tbl": self.quote_obj(self.tbl), 
-                                               "filt_clause": final_filt_clause,
-                                               "and_tbl_flt": self.and_tbl_filt}
+                               "tbl": gedata.tblname_qtr(self.dbe, self.tbl), 
+                               "filt_clause": final_filt_clause,
+                               "and_tbl_flt": self.and_tbl_filt}
         if debug: print(SQL_get_vals)
         return SQL_get_vals
             
@@ -851,7 +851,7 @@ class GenTable(LiveTable):
         debug = False
         SQL_select_results = (u"SELECT " +
                  u", ".join(SQL_table_select_clauses_lst) +
-                 u" FROM %s" % self.quote_obj(self.tbl) +
+                 u" FROM %s" % getdata.tblname_qtr(self.dbe, self.tbl) +
                  self.where_tbl_filt)
         if debug: print(SQL_select_results)
         return SQL_select_results
