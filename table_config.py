@@ -16,6 +16,7 @@ import settings_grid
 
 dd = getdata.get_dd()
 cc = config_dlg.get_cc()
+# no need to use getdata.tblname2sql - all sqlite here so no schemas
 obj_quoter = dbe_sqlite.quote_obj
 
 WAITING_MSG = _("<p>Waiting for at least one field to be configured.</p>")

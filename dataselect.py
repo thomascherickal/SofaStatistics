@@ -131,7 +131,8 @@ class DataSelectDlg(wx.Dialog):
             wx.MessageBox(msg % dd.tbl) # needed for caching even if read only
         else:
             obj_quoter = getdata.get_obj_quoter_func(dd.dbe)
-            SQL_get_count = u"""SELECT COUNT(*) FROM %s """ % obj_quoter(dd.tbl)
+            SQL_get_count = u"""SELECT COUNT(*) FROM %s """ % \
+                                            getdata.tblname2sql(dd.dbe, dd.tbl)
             try:
                 dd.cur.execute(SQL_get_count)
             except Exception, e:

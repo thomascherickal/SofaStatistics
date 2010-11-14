@@ -52,8 +52,9 @@ class DbTbl(wx.grid.PyGridTableBase):
         Zero-based.
         """
         SQL_get_id_vals = u"SELECT %s FROM %s ORDER BY %s" % \
-                    (self.quote_obj(self.id_col_name), self.quote_obj(dd.tbl), 
-                     self.quote_obj(self.id_col_name))
+                                        (self.quote_obj(self.id_col_name), 
+                                         getdata.tblname2sql(dd.dbe, dd.tbl), 
+                                         self.quote_obj(self.id_col_name))
         if debug: print(SQL_get_id_vals)
         dd.cur.execute(SQL_get_id_vals)
         # NB could easily be 10s or 100s of thousands of records
@@ -105,7 +106,8 @@ class DbTbl(wx.grid.PyGridTableBase):
 
     def set_num_rows(self):
         debug = False
-        SQL_rows_n = u"SELECT COUNT(*) FROM %s" % self.quote_obj(dd.tbl)
+        SQL_rows_n = u"SELECT COUNT(*) FROM %s" % getdata.tblname2sql(dd.dbe, 
+                                                                      dd.tbl)
         dd.cur.execute(SQL_rows_n)
         self.rows_n = dd.cur.fetchone()[0]
         if not self.readonly:
@@ -205,7 +207,7 @@ class DbTbl(wx.grid.PyGridTableBase):
                 IN_clause_lst.append(value)
             IN_clause = u", ".join(IN_clause_lst)
             SQL_get_values = u"SELECT * " + \
-                u" FROM %s " % self.quote_obj(dd.tbl) + \
+                u" FROM %s " % getdata.tblname2sql(dd.dbe, dd.tbl) + \
                 u" WHERE %s IN(%s)" % (self.quote_obj(self.id_col_name), 
                                       IN_clause) + \
                 u" ORDER BY %s" % self.quote_obj(self.id_col_name)
@@ -276,7 +278,8 @@ class DbTbl(wx.grid.PyGridTableBase):
             val2use = u"NULL" if raw_val_to_use is None \
                 else self.quote_val(raw_val_to_use)
             # TODO - think about possibilities of SQL injection by hostile party
-            SQL_update_value = u"UPDATE %s " % self.quote_obj(dd.tbl) + \
+            SQL_update_value = u"UPDATE %s " % getdata.tblname2sql(dd.dbe, 
+                                                                   dd.tbl) + \
                     u" SET %s = %s " % (self.quote_obj(col_name), val2use) + \
                     u" WHERE %s = " % self.id_col_name + unicode(id_value)
             if self.debug or debug: 

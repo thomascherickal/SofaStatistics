@@ -23,6 +23,7 @@ FILE_UNKNOWN = u"unknown"
 GAUGE_STEPS = 50
 
 dd = getdata.get_dd()
+# no need to use getdata.tblname2sql - all sqlite here so no schemas
 obj_quoter = dbe_sqlite.quote_obj
 
 class MismatchException(Exception):

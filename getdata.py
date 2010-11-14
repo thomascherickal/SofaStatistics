@@ -97,6 +97,22 @@ def get_tbl(dbe, db, tbls, default_tbls):
             raise Exception(u"No tables found in database \"%s\"" % db)
     return tbl
 
+def tblname2sql(dbe, tblname):
+    """
+    If any dots in table name, use first dot as split between schema and table 
+        name.
+    """
+    quote_obj = get_obj_quoter_func(dbe)
+    name_parts = tblname.split(u".", 1) # only want one split if any
+    sql = u".".join([quote_obj(x) for x in name_parts])
+    return sql
+
+def tblname2parts(dbe, tblname):
+    name_parts = tblname.split(u".", 1) # only want one split if any
+    if len(name_parts) != 2:
+        raise Exception("Expected schema and table name.")
+    return name_parts[0], name_parts[1]
+
 
 class DataDets(object):
     """
@@ -472,8 +488,8 @@ def insert_row(data):
     fld_placeholders_clause = " (" + \
         u", ".join([placeholder for x in range(len(data))]) + u") "
     # e.g. " (%s, %s, %s, ...) or (?, ?, ?, ...)"
-    SQL_insert = u"INSERT INTO %s " % quote_obj(dd.tbl) + fld_names_clause + \
-        u"VALUES %s" % fld_placeholders_clause
+    SQL_insert = u"INSERT INTO %s " % tblname2sql(dd.dbe, dd.tbl) + \
+                    fld_names_clause + u"VALUES %s" % fld_placeholders_clause
     if debug: print(SQL_insert)
     data_lst = []
     for i, data_dets in enumerate(data):
@@ -504,7 +520,7 @@ def delete_row(id_fld, row_id):
     dd = get_dd()
     quote_obj = get_obj_quoter_func(dd.dbe)
     placeholder = get_placeholder(dd.dbe)
-    SQL_delete = u"DELETE FROM %s " % quote_obj(dd.tbl) + \
+    SQL_delete = u"DELETE FROM %s " % getdata.tblname2sql(dd.dbe, dd.tbl) + \
         u"WHERE %s = %s" % (quote_obj(id_fld), placeholder)
     if debug: print(SQL_delete)
     data_tup = (row_id,)
@@ -514,7 +530,7 @@ def delete_row(id_fld, row_id):
         return True, None
     except Exception, e:
         if debug: print(u"Failed to delete row.  SQL: %s, row id: %s" %
-            (SQL_delete, row_id) + u"\n\nOriginal error: %s" % lib.ue(e))
+                (SQL_delete, row_id) + u"\n\nOriginal error: %s" % lib.ue(e))
         return False, u"%s" % lib.ue(e)
 
 def get_data_dropdowns(parent, panel, default_dbs):
@@ -568,14 +584,14 @@ def setup_drop_tbls(drop_tbls):
     debug = False
     dd = get_dd()
     tbls_with_filts = []
-    for i, tbl_name in enumerate(dd.tbls):
-        if tbl_name.lower() == dd.tbl.lower():
+    for i, tblname in enumerate(dd.tbls):
+        if tblname.lower() == dd.tbl.lower():
             idx_tbl = i
-        tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, tbl_name)
+        tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, tblname)
         if tbl_filt:
-            tbl_with_filt = "%s %s" % (tbl_name, _("(filtered)"))
+            tbl_with_filt = "%s %s" % (tblname, _("(filtered)"))
         else:
-            tbl_with_filt = tbl_name
+            tbl_with_filt = tblname
         tbls_with_filts.append(tbl_with_filt)
     drop_tbls.SetItems(tbls_with_filts)
     try:

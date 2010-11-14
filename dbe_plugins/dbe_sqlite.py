@@ -11,6 +11,7 @@ import wx
 import my_globals as mg
 import lib
 import my_exceptions
+import getdata
 import settings_grid
 
 Row = sqlite.Row # needed for making cursor return dicts
@@ -139,7 +140,7 @@ def get_con_resources(con_dets, default_dbs, db=None, add_checks=False):
                      mg.DBE_DB: db}
     return con_resources
 
-def get_unsorted_tbls_list(cur, db):
+def get_unsorted_tblnames(cur, db):
     "Get table names given database and cursor"
     SQL_get_tbls = u"""SELECT name 
         FROM sqlite_master 
@@ -158,13 +159,13 @@ def get_unsorted_tbls_list(cur, db):
 
 def get_tbls(cur, db):
     "Get table names given database and cursor"
-    tbls = get_unsorted_tbls_list(cur, db)
+    tbls = get_unsorted_tblnames(cur, db)
     tbls.sort(key=lambda s: s.upper())
     return tbls
 
 def has_tbls(cur, db):
     "Any non-system tables?"
-    tbls = get_unsorted_tbls_list(cur, db)
+    tbls = get_unsorted_tblnames(cur, db)
     if tbls:
         return True
     return False

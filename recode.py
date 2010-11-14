@@ -22,6 +22,7 @@ MAX = u"MAX"
 REMAINING = u"REMAINING"
 MISSING = u"MISSING"
 
+# no need to use getdata.tblname2sql - all sqlite here so no schemas
 obj_quoter = dbe_sqlite.quote_obj
 val_quoter = dbe_sqlite.quote_val
 

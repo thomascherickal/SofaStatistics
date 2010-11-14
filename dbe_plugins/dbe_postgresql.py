@@ -9,6 +9,7 @@ import pprint
 import my_globals as mg
 import my_exceptions
 import lib
+import getdata
 try:
     import pgdb
 except ImportError, e:
@@ -162,7 +163,7 @@ def get_tbls(cur, db):
     Get table names given database and cursor.
     http://www.alberton.info/postgresql_meta_info.html
     """
-    SQL_get_tbl_names = u"""SELECT table_name
+    SQL_get_tbl_names = u"""SELECT table_schema || '.' || table_name
         FROM information_schema.tables
         WHERE table_type = 'BASE TABLE'
             AND table_schema NOT IN ('pg_catalog', 'information_schema')"""
@@ -173,7 +174,7 @@ def get_tbls(cur, db):
 
 def has_tbls(cur, db):
     "Any non-system tables?  Need to use cursor that matches db"
-    SQL_get_tbl_names = u"""SELECT table_name
+    SQL_get_tbl_names = u"""SELECT table_schema || '.' || table_name
         FROM information_schema.tables
         WHERE table_type = 'BASE TABLE'
             AND table_schema NOT IN ('pg_catalog', 'information_schema')"""
@@ -240,6 +241,7 @@ def get_flds(cur, db, tbl):
     http://archives.postgresql.org/pgsql-sql/2007-01/msg00082.php
     """
     debug = False
+    schema, tblname = getdata.tblname2parts(mg.DBE_PGSQL, tbl)
     SQL_get_fld_dets = u"""SELECT columns.column_name 
         AS col_name, 
             columns.ordinal_position 
@@ -273,9 +275,10 @@ def get_flds(cur, db, tbl):
             lower(columns.data_type) IN (%s) """ % quote_val(TIMESTAMP) + \
         u""" AS timestamp
         FROM information_schema.columns
-        WHERE columns.table_schema::text = 'public'::text
-        AND columns.table_name = %s
-        ORDER BY columns.ordinal_position """ % quote_val(tbl) 
+        WHERE columns.table_schema::text = %(schema)s
+        AND columns.table_name = %(tblname)s
+        ORDER BY columns.ordinal_position """ % {u"schema": quote_val(schema),
+                                                 u"tblname": quote_val(tblname)}
     cur.execute(SQL_get_fld_dets)
     fld_dets = cur.fetchall()
     if debug: pprint.pprint(fld_dets)
@@ -320,14 +323,22 @@ def get_index_dets(cur, db, tbl):
     each idx is a dict name, is_unique, flds
     http://www.alberton.info/postgresql_meta_info.html
     """
+    debug = True
+    schema, tblname = getdata.tblname2parts(mg.DBE_PGSQL, tbl)
     SQL_get_main_index_dets = u"""SELECT relname, indkey, indisunique
         FROM pg_class, pg_index
         WHERE pg_class.oid = pg_index.indexrelid
         AND pg_class.oid IN (
         SELECT indexrelid
-        FROM pg_index INNER JOIN pg_class
+        FROM pg_index 
+        INNER JOIN pg_class
         ON pg_class.oid=pg_index.indrelid
-        WHERE pg_class.relname=%s)""" % quote_val(tbl)
+        INNER JOIN pg_namespace n
+        ON pg_class.relnamespace = n.oid
+        WHERE n.nspname = %(schema)s
+        AND pg_class.relname=%(tblname)s)""" % {u"schema": quote_val(schema),
+                                                u"tblname": quote_val(tblname)}
+    if debug: print(SQL_get_main_index_dets)
     cur.execute(SQL_get_main_index_dets)
     main_index_dets = cur.fetchall()
     idxs = []
@@ -342,11 +353,16 @@ def get_index_dets(cur, db, tbl):
            FROM pg_index c
            LEFT JOIN pg_class t
            ON c.indrelid  = t.oid
+           INNER JOIN pg_namespace n
+           ON t.relnamespace = n.oid
            LEFT JOIN pg_attribute a
            ON a.attrelid = t.oid
            AND a.attnum = ANY(indkey)
-           WHERE t.relname = %s
-           AND a.attnum IN(%s) """ % (quote_val(tbl), fld_oids)
+           WHERE n.nspname = %(schema)s
+           AND t.relname = %(tblname)s
+           AND a.attnum IN(%(fld_oids)s) """ % {u"schema": quote_val(schema),
+                                                u"tblname": quote_val(tblname), 
+                                                u"fld_oids": fld_oids}
         cur.execute(SQL_get_idx_flds)
         fld_names = [x[1] for x in cur.fetchall()]
         idx_dic = {mg.IDX_NAME: idx_name, mg.IDX_IS_UNIQUE: unique_index, 
