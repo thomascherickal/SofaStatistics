@@ -156,18 +156,18 @@ class DbTbl(wx.grid.PyGridTableBase):
             of the grid as a whole - displaying, scrolling, updating etc.
         Very IMPORTANT to have a unique field we can use to identify rows
             if at all possible.
-        Much, much faster to do one database call per row than once per cell 
-            (esp with lots of columns).
         On larger datasets (> 10,000) performance is hideous
             using order by and limit or similar.
         Need to be able to filter to individual, unique, indexed row.
         Use unique index where possible - if < 1000 recs and no unique
-            index, use the method below (while telling the user the lack of 
-            an index significantly harms performance esp while scrolling). 
+            index, could use the method below (while telling the user the lack 
+            of an index significantly harms performance esp while scrolling). 
         SQL_get_value = "SELECT %s " % col_name + \
             " FROM %s " % dd.tbl + \
             " ORDER BY %s " % id_col_name + \
             " LIMIT %s, 1" % row
+        Much, much faster to do one database call per row than once per cell 
+            (esp with lots of columns).
         NB if not read only will be an empty row at the end.
         Turn None (Null) into . as missing value identifier.
         """

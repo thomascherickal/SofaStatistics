@@ -165,7 +165,7 @@ def get_tbls(cur, db):
     """
     SQL_get_tbl_names = u"""SELECT table_schema || '.' || table_name
         FROM information_schema.tables
-        WHERE table_type = 'BASE TABLE'
+        WHERE table_type IN('BASE TABLE', 'VIEW')
             AND table_schema NOT IN ('pg_catalog', 'information_schema')"""
     cur.execute(SQL_get_tbl_names)
     tbls = [x[0] for x in cur.fetchall()] 
@@ -176,7 +176,7 @@ def has_tbls(cur, db):
     "Any non-system tables?  Need to use cursor that matches db"
     SQL_get_tbl_names = u"""SELECT table_schema || '.' || table_name
         FROM information_schema.tables
-        WHERE table_type = 'BASE TABLE'
+        WHERE table_type IN('BASE TABLE', 'VIEW')
             AND table_schema NOT IN ('pg_catalog', 'information_schema')"""
     cur.execute(SQL_get_tbl_names)
     tbls = [x[0] for x in cur.fetchall()]

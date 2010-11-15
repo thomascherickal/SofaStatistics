@@ -230,7 +230,11 @@ def process_val(vals, row_num, row, orig_fld_name, fld_types, check,
     val = get_val(rawval, check, is_pytime, fld_type, orig_fld_name, row_num, 
                   comma_dec_sep_ok)
     if fld_type != mg.FLD_TYPE_NUMERIC and val != u"NULL":
-        val = dbe_sqlite.quote_val(val)
+        try:
+            val = dbe_sqlite.quote_val(val)
+        except Exception, e:
+            raise Exception(_("Tried to quote %(val)s on row %(row_num)s but "
+                              "failed.") % {u"val": val, u"row_num": row_num})
     vals.append(val)
     if debug: print(val)
     return nulled_dots

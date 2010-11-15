@@ -621,7 +621,7 @@ class LiveTable(DimTable):
                         u"FROM %(tbl)s "
                         u"WHERE %(filt_clause)s %(and_tbl_flt)s "
                         u"GROUP BY %(fld)s") % {"fld": self.quote_obj(fld), 
-                               "tbl": gedata.tblname_qtr(self.dbe, self.tbl), 
+                               "tbl": getdata.tblname_qtr(self.dbe, self.tbl), 
                                "filt_clause": final_filt_clause,
                                "and_tbl_flt": self.and_tbl_filt}
         if debug: print(SQL_get_vals)
