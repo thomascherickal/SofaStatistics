@@ -229,11 +229,19 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
             css_lst.append(css_txt)
             f.close()
         css = (os.linesep + os.linesep).join(css_lst)
-        if grey: # appending it will override whatever else it is set to
-            css += u"\ntd, th {\n    color: #5f5f5f;\n}"
     else:
         if debug: print("\n\nUsing default css")
         css = get_fallback_css()
+    if grey: # appending it will override whatever else it is set to
+        css += u"\ntd, th {\n    color: #5f5f5f;\n}"
+    css = u"""
+body {
+    background-color: #fefefe;
+}
+td, th {
+    background-color: white;
+}
+""" + css
     if has_dojo:
         """
         zero padding so that when we search and replace, and we go to replace 

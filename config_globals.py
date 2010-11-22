@@ -94,11 +94,16 @@ def get_date_fmt():
     Returns MDY, DMY, or YMD.
     """
     debug = False
+    default_d_fmt = mg.DMY
     try:
         if mg.PLATFORM == mg.WINDOWS:
-            # the following must have been specially installed
-            import win32api
-            import win32con
+            try: # the following must have been specially installed
+                import win32api
+                import win32con
+            except ImportError, e:
+                raise Exception(_("Problem with Windows modules. Did all steps "
+                          "in installation succeed? You may need to "
+                          "install again.\nError caused by: %s" % lib.ue(e)))
             rkey = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, 
                                        'Control Panel\\International')
             raw_d_fmt = win32api.RegQueryValueEx(rkey, "iDate")[0]
@@ -117,15 +122,16 @@ def get_date_fmt():
                          "%d-%m-%y": mg.DMY, "%d-%m-%Y": mg.DMY,
                          "%y/%m/%d": mg.YMD, "%Y/%m/%d": mg.YMD, 
                          "%y-%m-%d": mg.YMD, "%Y-%m-%d": mg.YMD}
+        try:
+            if debug: print("%s %s" % (raw2const, raw_d_fmt))
+            d_fmt = raw2const[raw_d_fmt]
+        except KeyError:
+            print(u"Unexpected raw_d_fmt (%s) in get_date_fmt()" % raw_d_fmt)
+            d_fmt = default_d_fmt
     except Exception, e:
         import lib
-        raise Exception(u"Unable to get date format. %s" % lib.ue(e))
-    try:
-        if debug: print("%s %s" % (raw2const, raw_d_fmt))
-        d_fmt = raw2const[raw_d_fmt]
-    except KeyError:
-        print(u"Unexpected raw_d_fmt (%s) in get_date_fmt()" % raw_d_fmt)
-        d_fmt = mg.DMY
+        print(u"Unable to get date format.\nCaused by error: %s" % lib.ue(e))
+        d_fmt = default_d_fmt
     return d_fmt
 
 def set_ok_date_formats():
