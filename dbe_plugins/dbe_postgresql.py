@@ -323,7 +323,7 @@ def get_index_dets(cur, db, tbl):
     each idx is a dict name, is_unique, flds
     http://www.alberton.info/postgresql_meta_info.html
     """
-    debug = True
+    debug = False
     schema, tblname = getdata.tblname2parts(mg.DBE_PGSQL, tbl)
     SQL_get_main_index_dets = u"""SELECT relname, indkey, indisunique
         FROM pg_class, pg_index

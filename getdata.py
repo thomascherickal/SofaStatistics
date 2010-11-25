@@ -628,7 +628,7 @@ def refresh_db_dets(parent):
         parent.selected_dbe_db_idx = parent.drop_dbs.GetSelection()
     except Exception, e:
         wx.MessageBox(_("Experienced problem refreshing database details.") +
-                      u"\nCaused by error %s") % lib.ue(e)
+                      u"\nCaused by error %s" % lib.ue(e))
         parent.drop_dbs.SetSelection(parent.selected_dbe_db_idx)
         raise
     finally:
