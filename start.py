@@ -453,7 +453,7 @@ local_subfolders = subfolders_in_proj + oth_subfolders
 if mg.PLATFORM == mg.MAC:
     prog_path = MAC_PATH
 else:
-    prog_path = os.path.dirname(__file__)
+    prog_path = mg.SCRIPT_PATH
 installer_is_newer, installer_newer_status_known = \
                                     get_installer_version_status(mg.LOCAL_PATH)
 try:

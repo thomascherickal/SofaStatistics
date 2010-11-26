@@ -19,26 +19,35 @@ This module is used immediately after my_globals is loaded and needs to complete
 import my_globals as mg
 
 def set_SCRIPT_PATH():
-    # print(sys.path)
-    # NB won't work within an interpreter
-    # http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
-    path_found = False
-    for path in sys.path:
-        if u"sofa" in path.lower():
-            path_found = True
-            break
-    if not path_found:
-        mg.DEFERRED_ERRORS.append(_("Unable to locate folder this program is "
-            "running in."
-            "\n\nNB the final subfolder must have the word \"sofa\" in it."
-            "\nSo \"C:\\Program Files\\sofa\" is ok"
-            "\nbut \"C:\\Program Files\\my stats\" is not."))
-    mg.SCRIPT_PATH = path
-
-"""
-Include database engine in system if in dbe_plugins folder and os-appropriate.
-"""
+    """
+    Using __file__ doesn't work if running start.py from an interpreter 
+        e.g. IDLE.
+        http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
+    """
+    debug = True
+    try:
+        mg.SCRIPT_PATH = os.path.dirname(__file__)
+        if debug: print(__file__)
+    except NameError, e:
+        path_found = False
+        for path in sys.path:
+            if u"sofa" in path.lower():
+                path_found = True
+                break
+        if not path_found:
+            mg.DEFERRED_ERRORS.append(_("Unable to locate folder this program "
+                "is running in."
+                "\n\nNB the final subfolder must have the word \"sofa\" in it."
+                "\nSo \"C:\\Program Files\\sofa\" is ok"
+                "\nbut \"C:\\Program Files\\my stats\" is not."))
+        if debug: print(sys.path)  
+        mg.SCRIPT_PATH = path
+        
 def import_dbe_plugin(dbe_plugin):
+    """
+    Include database engine in system if in dbe_plugins folder and 
+        os-appropriate.
+    """
     try:
         if dbe_plugin == mg.DBE_SQLITE:
             import dbe_plugins.dbe_sqlite as dbe_sqlite
@@ -67,8 +76,8 @@ def import_dbe_plugins():
     for dbe_plugin, dbe_mod_name in mg.DBE_PLUGINS:
         wrong_os = (dbe_plugin in [mg.DBE_MS_ACCESS, mg.DBE_MS_SQL] 
                     and mg.PLATFORM != mg.WINDOWS)
-        dbe_plugin_mod = os.path.join(os.path.dirname(__file__), u"dbe_plugins", 
-                                       u"%s.py" % dbe_mod_name)
+        dbe_plugin_mod = os.path.join(mg.SCRIPT_PATH, u"dbe_plugins", 
+                                      u"%s.py" % dbe_mod_name)
         if os.path.exists(dbe_plugin_mod):
             if not wrong_os:
                 try:

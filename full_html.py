@@ -30,9 +30,14 @@ else:
         try:
             import wx.lib.iewin as ie
         except ImportError, e: # using traceback because can be fiendish
-            raise Exception(_("Problem importing wx.lib.iewin."
-                              "\nCaused by errors:\n\n%s") % 
-                              traceback.format_exc())
+            mytraceback = traceback.format_exc()
+            if "Typelib newer than module" in mytraceback:
+                extra_msg = _("SOFA has detected an inconsistent file date. "
+                              "Is your system date/time set correctly?\n")
+            else:
+                extra_msg = u""
+            raise Exception(extra_msg + _("Problem importing wx.lib.iewin.") +
+                            u"\nCaused by errors:\n\n%s" % mytraceback)
         
         class FullHTML(ie.IEHtmlWindow):
         
