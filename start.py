@@ -512,7 +512,8 @@ try:
     about = u"getdata"
     import getdata # call before all modules relying on mg.DATA_DETS as dd
     about = u"config_dlg"
-    import config_dlg # actually uses proj dict and connects to sofa_db
+    import config_dlg # actually uses proj dict and connects to sofa_db. Thus
+        # can't rely on wx.msgboxes etc because wx.App not up yet
     about = u"full_html"
     import full_html
     about = u"projects"

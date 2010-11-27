@@ -12,7 +12,6 @@ import config_globals
 import lib
 import getdata
 import dbe_plugins.dbe_sqlite as dbe_sqlite
-
 debug = False
 
 # data resources
@@ -777,5 +776,4 @@ def make_sofa_tbl(con, cur, tbl_name, oth_name_types, strict_typing=False):
     con.commit()
     if debug: print(u"Successfully created %s" % tbl_name)
     force_tbls_refresh()
-    reset_con(tbl_name=tbl_name, add_checks=False)
-    
+    reset_con(tbl_name=tbl_name, add_checks=False)    

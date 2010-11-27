@@ -24,7 +24,7 @@ def set_SCRIPT_PATH():
         e.g. IDLE.
         http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
     """
-    debug = True
+    debug = False
     try:
         mg.SCRIPT_PATH = os.path.dirname(__file__)
         if debug: print(__file__)
@@ -186,17 +186,24 @@ def get_settings_dic(subfolder, fil_name):
         # http://docs.python.org/reference/simple_stmts.html
         exec settings_cont in settings_dic
     except SyntaxError, e:
-        wx.MessageBox(\
-            _(u"Syntax error in settings file \"%(fil_name)s\"."
-              u"\n\nDetails: %(details)s") % {u"fil_name": fil_name,  
-                                             u"details": lib.ue(e)})
-        raise
+        err_msg = _(u"Syntax error in settings file \"%(fil_name)s\"."
+                    u"\n\nDetails: %(details)s") % {u"fil_name": fil_name,  
+                                                    u"details": lib.ue(e)}
+        try:
+            wx.MessageBox(err_msg) # only works if wx.App up. May have been 
+                # called when importing config.dlg which does get_dd()
+            raise
+        except Exception, e:
+            raise Exception(err_msg)
     except Exception, e:
-        wx.MessageBox(
-            _(u"Error processing settings file \"%(fil_name)s\"."
-              u"\n\nDetails: %(details)s") % {u"fil_name": fil_name, 
-                                              u"details": lib.ue(e)})
-        raise
+        err_msg = _(u"Error processing settings file \"%(fil_name)s\"."
+                    u"\n\nDetails: %(details)s") % {u"fil_name": fil_name, 
+                                                    u"details": lib.ue(e)}
+        try:
+            wx.MessageBox(err_msg)
+            raise
+        except Exception, e:
+            raise Exception(err_msg)
     return settings_dic
 
 def set_DEFAULT_LEVEL(ignore_prefs=False):

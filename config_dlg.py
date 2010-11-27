@@ -18,7 +18,7 @@ def get_cc():
     debug = False
     if not mg.CURRENT_CONFIG:
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
-                                               fil_name=mg.DEFAULT_PROJ)
+                                                   fil_name=mg.DEFAULT_PROJ)
         mg.CURRENT_CONFIG = {mg.CURRENT_REPORT_PATH: proj_dic["fil_report"],
                              mg.CURRENT_CSS_PATH: proj_dic["fil_css"],
                              mg.CURRENT_VDTS_PATH: proj_dic["fil_var_dets"],
