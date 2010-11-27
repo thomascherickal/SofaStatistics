@@ -82,10 +82,13 @@ class ErrMsgFrame(wx.Frame):
         wx.Frame.__init__(self, None, title=_("SOFA Error"))
         error_msg = lib.ue(e)
         if not raw_error_msg:
-            error_msg = (u"Something went wrong with running SOFA Statistics. "
-                         u"Please email the lead developer for help - "
-                         u"grant@sofastatistics.com\n\nCaused by error: " +
-                         error_msg)
+            error_msg = (u"Oops! Something went wrong running SOFA Statistics "
+                         u"version %s.  " % mg.VERSION +
+                         u"Please email lead developer grant@sofastatistics.com"
+                         u" for help (usually reasonably prompt)."
+                         u"\n\nIf you know how, include a screenshot of this "
+                         u"full message."
+                         u"\n\nCaused by error: %s" % error_msg)
         wx.MessageBox(error_msg)
         self.Destroy()
         import sys
@@ -506,18 +509,27 @@ except Exception, e:
     msgapp.MainLoop()
     del msgapp
 try:
+    about = u"getdata"
     import getdata # call before all modules relying on mg.DATA_DETS as dd
+    about = u"config_dlg"
     import config_dlg # actually uses proj dict and connects to sofa_db
+    about = u"full_html"
     import full_html
+    about = u"projects"
     import projects
+    about = u"projselect"
     import projselect
+    about = u"quotes"
     import quotes
 except Exception, e:
-    msg = (u"Problem with second round of local importing."
-           u"\nCaused by error: %s" % lib.ue(e))
+    msg = (u"Problem with second round of local importing while "
+           u"importing %s." % about +
+           u"\nCaused by error: %s" % lib.ue(e) +
+           u"\n\nMore details that may help developer:\n%s" % 
+           traceback.format_exc())
     msgapp = ErrMsgApp(msg)
-    msgapp.MainLoop()
-    del msgapp
+    # msgapp.MainLoop() # already sys.exit()
+    # del msgapp
 
 def get_blank_btn_bmp(xpm=u"blankbutton.xpm"):
     blank_btn_path = os.path.join(SCRIPT_PATH, u"images", xpm)

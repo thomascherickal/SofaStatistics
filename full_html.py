@@ -6,7 +6,6 @@ import wx
 import my_globals as mg
 import lib
 import output
-
 use_renderer = True # False if renderer not available and other testing required
 debug = False
 
