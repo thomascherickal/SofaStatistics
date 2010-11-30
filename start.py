@@ -1,10 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-
 from __future__ import absolute_import
 
-dev_debug = True
+show_early_steps = True
+dev_debug = True # relates to errors etc once GUI application running. 
+    # show_early_steps is about revealing any errors before that point.
 test_lang = False
+INIT_DEBUG_MSG = u"Please note the messages above (e.g. with a screen-shot)" + \
+                 u" and press any key to close"
 
 """
 Start up launches the SOFA main form.  Along the way it tries to detect errors
@@ -29,50 +32,92 @@ When the form is shown for the first time on Windows versions, a warning is
 """
 
 import warnings
+if show_early_steps: print(u"Just imported warnings")
 warnings.simplefilter('ignore', DeprecationWarning)
 warnings.simplefilter('ignore', UserWarning)
 
 import codecs
+if show_early_steps: print(u"Just imported codecs")
 import gettext
+if show_early_steps: print(u"Just imported gettext")
 import glob
+if show_early_steps: print(u"Just imported glob")
 import os
+if show_early_steps: print(u"Just imported os")
 import platform
+if show_early_steps: print(u"Just imported platform")
 import shutil
+if show_early_steps: print(u"Just imported shutil")
 import sqlite3 as sqlite
+if show_early_steps: print(u"Just imported sqlite3")
 import sys
+if show_early_steps: print(u"Just imported sys")
 import traceback
+if show_early_steps: print(u"Just imported traceback")
 MAC_PATH = u"/Library/sofa"
 if platform.system() == "Darwin":
     sys.path.insert(0, MAC_PATH) # start is running from Apps folder
-import wxversion
-wxversion.select("2.8")
+try:
+    import wxversion
+    wxversion.select("2.8")
+except Exception, e:
+    msg = u"There seems to be a problem with wxversion."
+    if show_early_steps: 
+        print(msg)
+        raw_input(INIT_DEBUG_MSG)
+    raise Exception(msg)
+if show_early_steps: print(u"Just ran wxversion")
 import wx
+if show_early_steps: print(u"Just imported wx")
 try:
     from agw import hyperlink as hl
 except ImportError: # if it's not there locally, try the wxPython lib.
     try:
         import wx.lib.agw.hyperlink as hl
     except ImportError:
-        raise Exception(u"There seems to be a problem related to your "
-                        u"wxPython package.")
+        msg = u"There seems to be a problem related to your wxPython package."
+        if show_early_steps: 
+            print(msg)
+            raw_input(INIT_DEBUG_MSG)
+        raise Exception(msg)
 # All i18n except for wx-based (which MUST happen after wx.App init)
 # http://wiki.wxpython.org/RecipesI18n
 # Install gettext.  Now all strings enclosed in "_()" will automatically be
 # translated.
-localedir = u"./locale"
-for path in sys.path:
-    if u"sofa" in path.lower(): # if user hasn't used sofa in name, use default
-        localedir = os.path.join(path, u"locale")
-        break
+localedir = u"./locale" # fall back
+try:
+    localedir = os.path.join(os.path.dirname(__file__), u"locale")
+    if debug: print(__file__)
+except NameError, e:
+    for path in sys.path:
+        if u"sofa" in path.lower(): # if user hasn't used sofa, use default
+            localedir = os.path.join(path, u"locale")
+            break
+if show_early_steps: print(u"Just identified locale folder")
 gettext.install(domain='sofa', localedir=localedir, unicode=True)
+if show_early_steps: print(u"Just installed gettext")
 try:
     import my_globals as mg # has translated text
+except Exception, e:
+    msg = u"Problem with importing my_globals. %s" % \
+                traceback.format_exc()
+    if show_early_steps: 
+        print(msg)
+        raw_input(INIT_DEBUG_MSG)
+    raise Exception(msg)
+try:
     import lib
     import config_globals
     import my_exceptions
 except Exception, e:
-    raise Exception(u"Problem with first round of local importing. %s" %
-                    traceback.format_exc())
+    msg = u"Problem with first round of local importing. %s" % \
+                traceback.format_exc()
+    if show_early_steps: 
+        print(msg)
+        raw_input(INIT_DEBUG_MSG) # not holding up any other way of getting msg 
+            # to user.  Unlike when a GUI msg possible later on.  In those cases
+            # just let that step happen.
+    raise Exception(msg)
 
 # Give the user something if the program fails at an early stage before anything
 # appears on the screen.  Can only guarantee this from here onwards because I 
@@ -186,9 +231,8 @@ For help, please contact grant@sofastatistics.com""") % msg_dic
                 u"saved to a file on your Desktop for future reference", True)
         msgapp.MainLoop()
         del msgapp
-
 check_python_version() # do as early as possible.  Game over if Python faulty.
-
+if show_early_steps: print(u"Just checked python version")
 COPYRIGHT = u"\u00a9"
 SCREEN_WIDTH = 1000
 TEXT_BROWN = (90, 74, 61)
@@ -457,8 +501,10 @@ if mg.PLATFORM == mg.MAC:
     prog_path = MAC_PATH
 else:
     prog_path = mg.SCRIPT_PATH
-installer_is_newer, installer_newer_status_known = \
-                                    get_installer_version_status(mg.LOCAL_PATH)
+if show_early_steps: print(u"Just set prog_path")
+(installer_is_newer, 
+    installer_newer_status_known) = get_installer_version_status(mg.LOCAL_PATH)
+if show_early_steps: print(u"Just ran get_installer_version_status")
 try:
     # 1) create local SOFA folder if missing. Otherwise, leave intact for now
     local_path_setup_needed = not os.path.exists(mg.LOCAL_PATH)
@@ -505,6 +551,7 @@ try:
     freshen_recovery(local_subfolders)
 except Exception, e:
     msg = (u"Problem running initial setup.\nCaused by error: %s" % lib.ue(e))
+    if show_early_steps: print(msg)
     msgapp = ErrMsgApp(msg)
     msgapp.MainLoop()
     del msgapp
@@ -836,7 +883,7 @@ class StartFrame(wx.Frame):
             if version_lev == mg.VERSION_CHECK_NONE:
                 raise Exception(u"No permission to check for new versions")
             else:
-                new_version = self.upgrade_available(version_lev)
+                new_version = self.get_latest_version(version_lev)
                 if debug: print(new_version)
             self.upgrade_available = \
                                 lib.version_a_is_newer(version_a=new_version, 
@@ -882,14 +929,14 @@ class StartFrame(wx.Frame):
     def on_deferred_warning_msg(self, deferred_warning_msg):
         wx.MessageBox(deferred_warning_msg)
     
-    def upgrade_available(self, version_lev):
+    def get_latest_version(self, version_lev):
         """
         Is there a new version or a new major version?
         """
         import urllib # http://docs.python.org/library/urllib.html
-        file2read = u"latest_sofa_version.txt" \
+        file2read = u"latest_major_sofa_version.txt" \
                     if version_lev == mg.VERSION_CHECK_MAJOR \
-                    else u"latest_major_sofa_version.txt"
+                    else u"latest_sofa_version.txt"
         url2open = u"http://www.sofastatistics.com/%s" % file2read
         try:
             url_reply = urllib.urlopen(url2open)
@@ -1266,6 +1313,10 @@ class StartFrame(wx.Frame):
 
 try:
     app = SofaApp()
+    #inspect = True
+    #if inspect:
+    #    import wx.lib.inspection
+    #    wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
 except Exception, e:
     app = ErrMsgApp(e)
