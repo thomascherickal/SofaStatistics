@@ -56,26 +56,29 @@ myEVT_CELL_MOVE = wx.NewEventType()
 # event to bind to
 EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 
+def get_display_dims(maxheight, iswindows):
+    mywidth = 900
+    if iswindows:
+        mid_height = 820
+        unavailable_height = 40 # 20 OK for normal height taskbars only
+    else:
+        mid_height = 910
+        unavailable_height = 110
+    if maxheight <= 620:
+        myheight = 600
+    elif maxheight <= mid_height:
+        myheight = maxheight - unavailable_height
+    else:
+        mywidth = 1000
+        myheight = 800
+    return mywidth, myheight
+
 
 class TblEditor(wx.Dialog):
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics, 
                  readonly=True, set_col_widths=True):
         self.debug = False
         self.readonly = readonly
-        mywidth = 900
-        if mg.PLATFORM == mg.WINDOWS:
-            mid_height = 820
-            height_drop = 20
-        else:
-            mid_height = 910
-            height_drop = 110
-        if mg.MAX_HEIGHT <= 620:
-            myheight = 600
-        elif mg.MAX_HEIGHT <= mid_height:
-            myheight = mg.MAX_HEIGHT - height_drop
-        else:
-            mywidth = 1000
-            myheight = 800
         title = _("Data from ") + "%s.%s" % (dd.db, dd.tbl)
         if self.readonly:
             title += _(" (Read Only)")
@@ -159,6 +162,9 @@ class TblEditor(wx.Dialog):
         self.szr_main.Add(szr_bottom, 0, wx.GROW|wx.ALL, 5)
         self.panel.SetSizer(self.szr_main)
         szr_lst = [self.grid, szr_bottom]
+        iswindows = (mg.PLATFORM == mg.WINDOWS)
+        mywidth, myheight = get_display_dims(maxheight=mg.MAX_HEIGHT,
+                                             iswindows=iswindows)
         lib.set_size(window=self, szr_lst=szr_lst, width_init=mywidth, 
                      height_init=myheight)
         self.grid.SetFocus()
