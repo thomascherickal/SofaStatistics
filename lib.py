@@ -414,8 +414,8 @@ def update_type_set(type_set, val, comma_dec_sep_ok=False):
     """
     Some countries use commas as decimal separators.
     """
-    if is_numeric(val, comma_dec_sep_ok): #anything SQLite can add _as a number_ 
-            # into a numeric field
+    if is_numeric(val, comma_dec_sep_ok): # anything SQLite can add 
+            # _as a number_ into a numeric field
         type_set.add(mg.VAL_NUMERIC)
     elif is_pytime(val): # COM on Windows
         type_set.add(mg.VAL_DATETIME)

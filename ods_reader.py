@@ -1,4 +1,5 @@
 
+import re
 import wx
 import xml.etree.ElementTree as etree
 import zipfile
@@ -377,6 +378,26 @@ def process_cells(attrib_dict, coltypes, col_idx, fldnames, valdict, type,
         col_idx += 1
     return bolcontinue, col_idx
 
+def extract_date_if_possible(val2use, type):
+    """
+    Needed because Google Docs spreadsheets return timestamp as a float with a 
+        text format e.g. 40347.8271296296 and 6/18/2010 19:51:04.  If a float,
+        check to see if a valid datetime anyway.
+    """
+    debug = False
+    if type != mg.VAL_NUMERIC:
+        return val2use, type
+    if re.search(r"\d{1,2}/\d{1,2}/\d\d\d\d \d{1,2}:\d{1,2}:\d{1,2}", val2use):
+        if debug: print("Supposedly a number yet text matches datetime pattern")
+        type = mg.VAL_DATETIME
+        mydate, mytime = val2use.split()
+        # assumed Google Docs will use US m/d/yyyy format
+        monthpart, daypart, yearpart = mydate.split(u"/")
+        # must follow a format expected in lib.get_dets_of_usable_datetime_str
+        val2use = u"%i/%02i/%02i %s" % (int(yearpart), int(monthpart), 
+                                        int(daypart), mytime)
+    return val2use, type
+
 def dets_from_row(fldnames, coltypes, row):
     """
     Update coltypes and return dict of values in row (using fldnames as keys).
@@ -416,6 +437,9 @@ def dets_from_row(fldnames, coltypes, row):
                 raise Exception(u"Unknown value-type. Update "
                                 u"ods_reader.xml_type_to_val_type")
             val2use = get_el_inner_val(el_det[RAW_EL])#get val from inner txt el
+            # NB need to treat as datetime if it really is even though not
+            # properly tagged as a date-value (e.g. Google Docs spreadsheets)
+            val2use, type = extract_date_if_possible(val2use, type)
             bolcontinue, col_idx = process_cells(attrib_dict, coltypes, col_idx, 
                                             fldnames, valdict, type, val2use)
             if not bolcontinue:
