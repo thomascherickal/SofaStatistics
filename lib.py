@@ -881,10 +881,11 @@ def mysql2textdate(mysql_date, output_format):
 
 def is_date_part(datetime_str):
     """
-    Assumes date will have - or / or . and time will not.
+    Assumes date will have - or / or . or , and time will not.
     If a mishmash will fail bad_date later.
     """
-    return "-" in datetime_str or "/" in datetime_str or "." in datetime_str
+    return ("-" in datetime_str or "/" in datetime_str or "." in datetime_str 
+            or "," in datetime_str)
 
 def is_time_part(datetime_str):
     """
@@ -905,7 +906,9 @@ def is_year(datetime_str):
 
 def datetime_split(datetime_str):
     """
-    Split date and time (if both)
+    Split date and time (if both).
+    A space can be treated as the splitter unless after a comma, in which case 
+        it should be seen as an internal part of a date e.g. Feb 11, 2010.
     Return date part, time part, order (True unless order 
         time then date).
     Return None for any missing components.
@@ -913,7 +916,7 @@ def datetime_split(datetime_str):
         (or time and date).
     boldate_then_time -- only False if time then date with both present.
     """
-    if " " in datetime_str:
+    if u" " in datetime_str and u", " not in datetime_str:
         boldate_then_time = True
         datetime_split = datetime_str.split(" ")
         if len(datetime_split) != 2:

@@ -384,18 +384,15 @@ def extract_date_if_possible(val2use, type):
         text format e.g. 40347.8271296296 and 6/18/2010 19:51:04.  If a float,
         check to see if a valid datetime anyway.
     """
-    debug = False
-    if type != mg.VAL_NUMERIC:
-        return val2use, type
-    if re.search(r"\d{1,2}/\d{1,2}/\d\d\d\d \d{1,2}:\d{1,2}:\d{1,2}", val2use):
-        if debug: print("Supposedly a number yet text matches datetime pattern")
-        type = mg.VAL_DATETIME
-        mydate, mytime = val2use.split()
-        # assumed Google Docs will use US m/d/yyyy format
-        monthpart, daypart, yearpart = mydate.split(u"/")
-        # must follow a format expected in lib.get_dets_of_usable_datetime_str
-        val2use = u"%i/%02i/%02i %s" % (int(yearpart), int(monthpart), 
-                                        int(daypart), mytime)
+    if type != mg.VAL_DATETIME: # not needed if already a datetime
+        google_docs_default_date = u"%m/%d/%Y" # OK if already in list
+        mg.OK_DATE_FORMATS.append(google_docs_default_date) 
+        try:
+            val2use = lib.get_std_datetime_str(val2use)
+            type = mg.VAL_DATETIME
+        except Exception, e:
+            pass
+        mg.OK_DATE_FORMATS.pop() # back to normal
     return val2use, type
 
 def dets_from_row(fldnames, coltypes, row):

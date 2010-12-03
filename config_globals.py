@@ -160,7 +160,10 @@ def set_ok_date_formats():
     else:
         raise Exception("Unexpected d_fmt value (%s) in get_date_fmt_lists()"
                         % d_fmt)
-    always_ok_date_formats = ["%Y-%m-%d", "%Y/%m/%d", "%Y"]
+    always_ok_date_formats = ["%Y-%m-%d", "%Y/%m/%d", "%Y", 
+                              "%B %d, %Y", # February 11, 2010 
+                              "%b %d, %Y", # Feb 11, 2010
+                              ]
     ok_date_formats =  extra_ok_date_formats + always_ok_date_formats
     mg.OK_DATE_FORMATS = ok_date_formats
     mg.OK_DATE_FORMAT_EXAMPLES = ok_date_format_examples
