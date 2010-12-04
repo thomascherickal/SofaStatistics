@@ -385,7 +385,7 @@ class CsvImporter(importer.FileImporter):
         importer.FileImporter.__init__(self, self.parent, file_path, tbl_name)
         self.ext = u"CSV"
         
-    def assess_sample(self, reader, progbar, steps_per_item, keep_importing, 
+    def assess_sample(self, reader, progbar, steps_per_item, import_status, 
                       comma_delimiter):
         """
         Assess data sample to identify field types based on values in fields.
@@ -406,7 +406,7 @@ class CsvImporter(importer.FileImporter):
                     print(row)
             if i % 50 == 0:
                 wx.Yield()
-                if keep_importing == set([False]):
+                if import_status[mg.CANCEL_IMPORT]:
                     progbar.SetValue(0)
                     raise my_exceptions.ImportCancelException
             if self.has_header and i == 0:
@@ -570,7 +570,7 @@ class CsvImporter(importer.FileImporter):
         return True # cover all this in more complex fashion handling encoding 
             #and delimiters
 
-    def import_content(self, progbar, keep_importing, lbl_feedback):
+    def import_content(self, progbar, import_status, lbl_feedback):
         """
         Get field types dict.  Use it to test each and every item before they 
             are added to database (after adding the records already tested).
@@ -622,9 +622,9 @@ class CsvImporter(importer.FileImporter):
         items_n = rows_n + sample_n + 1 # 1 is for the final tmp to named step
         steps_per_item = importer.get_steps_per_item(items_n)
         try:
-            orig_fld_names, fld_types, sample_data = \
-                            self.assess_sample(reader, progbar, steps_per_item, 
-                                               keep_importing, comma_delimiter)
+            (orig_fld_names, fld_types, 
+             sample_data) = self.assess_sample(reader, progbar, steps_per_item, 
+                                               import_status, comma_delimiter)
         except Exception, e:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise
@@ -633,18 +633,16 @@ class CsvImporter(importer.FileImporter):
             # start again from beginning of data (e.g. if correction made)
         gauge_start = steps_per_item*sample_n
         try:
-            nulled_dots = importer.add_to_tmp_tbl(
-                                default_dd.con, default_dd.cur, self.file_path, 
-                                self.tbl_name, self.has_header, 
-                                ok_fld_names, orig_fld_names, fld_types, 
-                                sample_data, sample_n, remaining_data, 
-                                progbar, steps_per_item, gauge_start, 
-                                keep_importing, allow_none=False, 
-                                comma_dec_sep_ok=not comma_delimiter)
+            feedback = {mg.NULLED_DOTS: False}
+            importer.add_to_tmp_tbl(feedback, import_status, default_dd.con, 
+                default_dd.cur, self.file_path, self.tbl_name, self.has_header, 
+                ok_fld_names, orig_fld_names, fld_types, sample_data, sample_n, 
+                remaining_data, progbar, steps_per_item, gauge_start,
+                allow_none=False, comma_dec_sep_ok=not comma_delimiter)
             # so fast only shows last step in progress bar
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                                       self.tbl_name, self.file_path, 
-                                      progbar, nulled_dots)
+                                      progbar, feedback[mg.NULLED_DOTS])
         except Exception, e:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise

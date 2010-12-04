@@ -21,7 +21,7 @@ class ExcelImporter(importer.FileImporter):
         self.ext = u"XLS"
     
     def assess_sample(self, wksheet, orig_fld_names, progbar, steps_per_item, 
-                      keep_importing):
+                      import_status):
         """
         Assess data sample to identify field types based on values in fields.
         If a field has mixed data types will define as string.
@@ -38,7 +38,7 @@ class ExcelImporter(importer.FileImporter):
         for i, row in enumerate(wksheet): # iterates through data rows only
             if i % 50 == 0:
                 wx.Yield()
-                if keep_importing == set([False]):
+                if import_status[mg.CANCEL_IMPORT]:
                     progbar.SetValue(0)
                     raise ImportCancelException
             if debug: print(row)
@@ -60,7 +60,7 @@ class ExcelImporter(importer.FileImporter):
             raise Exception(u"No data to import")
         return fld_types, sample_data
     
-    def import_content(self, progbar, keep_importing, lbl_feedback):
+    def import_content(self, progbar, import_status, lbl_feedback):
         """
         Get field types dict.  Use it to test each and every item before they 
             are added to database (after adding the records already tested).
@@ -96,7 +96,7 @@ class ExcelImporter(importer.FileImporter):
             print("steps_per_item: %s" % steps_per_item)
             print("About to assess data sample")
         fld_types, sample_data = self.assess_sample(wksheet, orig_fld_names, 
-                                    progbar, steps_per_item, keep_importing)
+                                        progbar, steps_per_item, import_status)
         if debug:
             print("Just finished assessing data sample")
             print(fld_types)
@@ -106,16 +106,14 @@ class ExcelImporter(importer.FileImporter):
         remaining_data = [x for x in wksheet][sample_n:]
         gauge_start = steps_per_item*sample_n
         try:
-            nulled_dots = importer.add_to_tmp_tbl(
-                            default_dd.con, default_dd.cur, self.file_path, 
-                            self.tbl_name, self.has_header, 
-                            ok_fld_names, orig_fld_names, fld_types, 
-                            sample_data, sample_n, remaining_data, 
-                            progbar, steps_per_item, gauge_start, 
-                            keep_importing)
+            feedback = {mg.NULLED_DOTS: False}
+            importer.add_to_tmp_tbl(feedback, import_status, default_dd.con, 
+                default_dd.cur, self.file_path, self.tbl_name, self.has_header, 
+                ok_fld_names, orig_fld_names, fld_types, sample_data, sample_n, 
+                remaining_data, progbar, steps_per_item, gauge_start)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                                       self.tbl_name, self.file_path,
-                                      progbar, nulled_dots)
+                                      progbar, feedback[mg.NULLED_DOTS])
         except Exception, e:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise

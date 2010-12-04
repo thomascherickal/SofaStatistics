@@ -110,9 +110,10 @@ def assess_sample_fld(sample_data, has_header, orig_fld_name, orig_fld_names,
     fld_type = lib.get_overall_fld_type(type_set)
     return fld_type
 
-def get_val(raw_val, check, is_pytime, fld_type, orig_fld_name, row_num,
-            comma_dec_sep_ok=False):
+def get_val(feedback, raw_val, check, is_pytime, fld_type, orig_fld_name, 
+            row_num, comma_dec_sep_ok=False):
     """
+    feedback -- dic with mg.NULLED_DOTS
     Missing values are OK in numeric and date fields in the source field being 
         imported, but a missing value indicator (e.g. ".") is not.  A missing
         value indicator is fine in the data _once it has been imported_ but
@@ -129,7 +130,7 @@ def get_val(raw_val, check, is_pytime, fld_type, orig_fld_name, row_num,
                                         mg.FLD_TYPE_DATE] and raw_val == u""):
                 val = u"NULL"
             elif raw_val == mg.MISSING_VAL_INDICATOR:
-                nulled_dots = True
+                feedback[mg.NULLED_DOTS] = True
                 val = u"NULL"
             elif fld_type == mg.FLD_TYPE_NUMERIC:
                 try:
@@ -158,7 +159,7 @@ def get_val(raw_val, check, is_pytime, fld_type, orig_fld_name, row_num,
                 ok_data = True
                 val = u"NULL"
             elif raw_val == mg.MISSING_VAL_INDICATOR: # not ok in numeric field
-                nulled_dots = True
+                feedback[mg.NULLED_DOTS] = True
                 val = u"NULL"
             else:
                 pass # no need to set val - not ok_data so exception later
@@ -173,7 +174,7 @@ def get_val(raw_val, check, is_pytime, fld_type, orig_fld_name, row_num,
                     ok_data = True
                     val = u"NULL"
                 elif raw_val == mg.MISSING_VAL_INDICATOR: # not ok in numeric fld
-                    nulled_dots = True
+                    feedback[mg.NULLED_DOTS] = True
                     val = u"NULL"
                 else:
                     try:
@@ -187,7 +188,7 @@ def get_val(raw_val, check, is_pytime, fld_type, orig_fld_name, row_num,
             if raw_val is None or raw_val == u"":
                 val = u"NULL"
             elif raw_val == mg.MISSING_VAL_INDICATOR:
-                nulled_dots = True
+                feedback[mg.NULLED_DOTS] = True
                 val = u"NULL"
             else:
                 val = raw_val
@@ -201,10 +202,11 @@ def get_val(raw_val, check, is_pytime, fld_type, orig_fld_name, row_num,
                                     u"\nExpected column type: %s" % fld_type))    
     return val
 
-def process_val(vals, row_num, row, orig_fld_name, fld_types, check, 
+def process_val(feedback, vals, row_num, row, orig_fld_name, fld_types, check, 
                 comma_dec_sep_ok=False):
     """
     Add val to vals.
+    feedback -- dic with mg.NULLED_DOTS
     NB field types are only a guess based on a sample of the first rows in the 
         file being imported.  Could be wrong.
     If checking, will validate and turn empty strings into nulls
@@ -215,10 +217,8 @@ def process_val(vals, row_num, row, orig_fld_name, fld_types, check,
         quoted unless it is a NULL. 
     If not, will raise an exception.
     Quote ready for inclusion in SQLite SQL insert query.
-    Returns nulled_dots (boolean).
     """
     debug = False
-    nulled_dots = False
     try:
        rawval = row[orig_fld_name]
     except KeyError:
@@ -227,8 +227,8 @@ def process_val(vals, row_num, row, orig_fld_name, fld_types, check,
                            u"orig_fld_name": orig_fld_name})
     is_pytime = lib.is_pytime(rawval)
     fld_type = fld_types[orig_fld_name]
-    val = get_val(rawval, check, is_pytime, fld_type, orig_fld_name, row_num, 
-                  comma_dec_sep_ok)
+    val = get_val(feedback, rawval, check, is_pytime, fld_type, orig_fld_name, 
+                  row_num, comma_dec_sep_ok)
     if fld_type != mg.FLD_TYPE_NUMERIC and val != u"NULL":
         try:
             val = dbe_sqlite.quote_val(val)
@@ -237,7 +237,6 @@ def process_val(vals, row_num, row, orig_fld_name, fld_types, check,
                               "failed.") % {u"val": val, u"row_num": row_num})
     vals.append(val)
     if debug: print(val)
-    return nulled_dots
 
 def report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, allow_none):
     debug = False
@@ -273,30 +272,29 @@ def report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, allow_none):
                              "n_row_items": n_row_items, 
                              "vals_str": vals_str})
 
-def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names, 
-             fld_types, progbar, steps_per_item, gauge_start=0, row_num_start=0, 
-             check=False, keep_importing=None, allow_none=True, 
+def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fld_names, 
+             orig_fld_names, fld_types, progbar, steps_per_item, gauge_start=0, 
+             row_num_start=0, check=False, allow_none=True, 
              comma_dec_sep_ok=False):
     """
+    feedback -- dic with mg.NULLED_DOTS
     Add the rows of data (dicts), processing each cell as you go.
     If checking, will validate and turn empty strings into nulls
         as required.
     If not checking (e.g. because a pre-tested sample) only do the
         empty string to null conversions.
-    Returns nulled_dots (boolean).
     row_num_start -- row number (not idx) starting on
     allow_none -- if Excel returns None for an empty cell that is correct bvr.
         If a csv files does, however, it is not. Should be empty str.
     TODO - insert multiple lines at once for performance.
     """
     debug = False
-    nulled_dots = False
     fld_names_clause = u", ".join([dbe_sqlite.quote_obj(x) for x 
                                    in ok_fld_names])
     for row_idx, row in enumerate(rows):
         if row_idx % 50 == 0:
             wx.Yield()
-            if keep_importing == set([False]):
+            if import_status[mg.CANCEL_IMPORT]:
                 progbar.SetValue(0)
                 raise my_exceptions.ImportCancelException
         gauge_start += 1
@@ -307,9 +305,8 @@ def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names,
         report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, 
                               allow_none)
         for orig_fld_name in orig_fld_names:
-            if process_val(vals, row_num, row, orig_fld_name, fld_types, check, 
-                           comma_dec_sep_ok):
-                nulled_dots = True
+            process_val(feedback, vals, row_num, row, orig_fld_name, fld_types, 
+                        check, comma_dec_sep_ok)
         # quoting must happen earlier so we can pass in NULL  
         fld_vals_clause = u", ".join([u"%s" % x for x in vals])
         SQL_insert_row = u"INSERT INTO %s " % mg.TMP_TBL_NAME + \
@@ -325,7 +322,6 @@ def add_rows(con, cur, rows, has_header, ok_fld_names, orig_fld_names,
             raise Exception(u"Unable to add row %s.\nCaused by error: %s"
                             % (row_num, lib.ue(e)))
     con.commit()
-    return nulled_dots
 
 def get_steps_per_item(items_n):
     """
@@ -354,28 +350,13 @@ def post_fail_tidy(progbar, con, cur):
     con.commit()
     con.close()
     progbar.SetValue(0)
-    
-def add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header, 
-                   ok_fld_names, orig_fld_names, fld_types, 
-                   sample_data, sample_n, remaining_data, 
-                   progbar, steps_per_item, gauge_start, 
-                   keep_importing, allow_none=True, comma_dec_sep_ok=False):
-    """
-    Create fresh disposable table in SQLite and insert data into it.
-    ok_fld_names -- cleaned field names (shouldn't have a sofa_id field)
-    orig_fld_names -- original names - useful for taking data from row dicts but 
-        not the names to use for the new table.
-    fld_types -- dict with field types for original field names
-    sample_data -- list of dicts using orig fld names
-    remaining_data -- as for sample data
-    allow_none -- if Excel returns None for an empty cell that is correct bvr.
-        If a csv files does, however, it is not. Should be empty str.
-    Give it a unique identifier field as well.
-    Set up the data type constraints needed.
-    Returns nulled_dots (boolean).
-    """
+
+def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path, 
+                          tbl_name, has_header, ok_fld_names, orig_fld_names, 
+                          fld_types, sample_data, sample_n, remaining_data,
+                          progbar, steps_per_item, gauge_start, allow_none=True, 
+                          comma_dec_sep_ok=False):
     debug = False
-    nulled_dots = False
     if debug:
         print(u"Original field names are: %s" % orig_fld_names)
         print(u"Cleaned (ok) field names are: %s" % ok_fld_names)
@@ -407,24 +388,22 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header,
         # Add sample and then remaining data to disposable table.
         # Already been through sample once when assessing it so part way through 
         # process already.
-        if add_rows(con, cur, sample_data, has_header, ok_fld_names, 
-                    orig_fld_names, fld_types, progbar, steps_per_item, 
-                    gauge_start=gauge_start, row_num_start=1, check=False, 
-                    keep_importing=keep_importing, allow_none=allow_none, 
-                    comma_dec_sep_ok=comma_dec_sep_ok):
-            nulled_dots = True
+        add_rows(feedback, import_status, con, cur, sample_data, has_header, 
+                 ok_fld_names, orig_fld_names, fld_types, progbar, 
+                 steps_per_item, gauge_start=gauge_start, row_num_start=1, 
+                 check=False, allow_none=allow_none, 
+                 comma_dec_sep_ok=comma_dec_sep_ok)
         # been through sample since gauge_start
         remainder_gauge_start = gauge_start + (sample_n*steps_per_item)
         row_num_start = sample_n + 1
-        if add_rows(con, cur, remaining_data, has_header, ok_fld_names, 
-                    orig_fld_names, fld_types, progbar, steps_per_item, 
-                    gauge_start=remainder_gauge_start, 
-                    row_num_start=row_num_start, check=True, 
-                    keep_importing=keep_importing, allow_none=allow_none,
-                    comma_dec_sep_ok=comma_dec_sep_ok):
-            nulled_dots = True
+        add_rows(feedback, import_status, con, cur, remaining_data, has_header, 
+                 ok_fld_names, orig_fld_names, fld_types, progbar, 
+                 steps_per_item, gauge_start=remainder_gauge_start, 
+                 row_num_start=row_num_start, check=True, allow_none=allow_none, 
+                 comma_dec_sep_ok=comma_dec_sep_ok)
+        return True
     except MismatchException, e:
-        nulled_dots = False
+        feedback[mg.NULLED_DOTS] = False
         con.commit()
         progbar.SetValue(0)
         # go through again or raise an exception
@@ -434,21 +413,43 @@ def add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header,
         if retCode == wx.YES:
             # change fld_type to string and start again
             fld_types[e.fld_name] = mg.FLD_TYPE_STRING
-            if add_to_tmp_tbl(con, cur, file_path, tbl_name, has_header, 
-                              ok_fld_names, orig_fld_names, fld_types, 
-                              sample_data, sample_n, remaining_data, 
-                              progbar, steps_per_item, gauge_start,
-                              keep_importing):
-                nulled_dots = True
+            return False
         else:
             raise Exception(u"Mismatch between data in column and expected "
-                            u"column type")
-    return nulled_dots
+                            u"column type")    
+
+def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tbl_name, 
+                   has_header, ok_fld_names, orig_fld_names, fld_types, 
+                   sample_data, sample_n, remaining_data, progbar, 
+                   steps_per_item, gauge_start, allow_none=True, 
+                   comma_dec_sep_ok=False):
+    """
+    Create fresh disposable table in SQLite and insert data into it.
+    feedback -- dic with mg.NULLED_DOTS
+    ok_fld_names -- cleaned field names (shouldn't have a sofa_id field)
+    orig_fld_names -- original names - useful for taking data from row dicts but 
+        not the names to use for the new table.
+    fld_types -- dict with field types for original field names
+    sample_data -- list of dicts using orig fld names
+    remaining_data -- as for sample data
+    allow_none -- if Excel returns None for an empty cell that is correct bvr.
+        If a csv files does, however, it is not. Should be empty str.
+    Give it a unique identifier field as well.
+    Set up the data type constraints needed.
+    Keep trying till success or user decodes not to fix and keep going.  Fix 
+        involves changing the relevant fld_type to string, which will accept 
+        anything.
+    """
+    while True: # keep trying till success or user decodes not to fix & continue
+        if try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path, 
+                tbl_name, has_header, ok_fld_names, orig_fld_names, fld_types, 
+                sample_data, sample_n, remaining_data, progbar, steps_per_item, 
+                gauge_start, allow_none=True, comma_dec_sep_ok=False):
+            break
     
 def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
     """
     Rename table to final name.
-    Separated from add_to_tmp_tbl to allow the latter to recurse.
     This part is only called once at the end and is so fast there is no need to
         report progress till completion.
     """
@@ -580,8 +581,8 @@ class ImportFileSelectDlg(wx.Dialog):
         self.CentreOnScreen(wx.VERTICAL)
         self.parent = parent
         self.panel = wx.Panel(self)
-        self.keep_importing = set([True]) # can change and running script can 
-            # check on it.
+        self.import_status = {mg.CANCEL_IMPORT: False} # can change and 
+                                            # running script can check on it.
         self.file_type = FILE_UNKNOWN
         config_dlg.add_icon(frame=self)
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -704,8 +705,7 @@ class ImportFileSelectDlg(wx.Dialog):
         self.Destroy()
     
     def on_cancel(self, event):
-        self.keep_importing.discard(True)
-        self.keep_importing.add(False)
+        self.import_status[mg.CANCEL_IMPORT] = True
     
     def check_tbl_name(self, file_path, tbl_name):
         """
@@ -846,7 +846,7 @@ class ImportFileSelectDlg(wx.Dialog):
             lib.safe_end_cursor()
         if proceed:
             try:
-                file_importer.import_content(self.progbar, self.keep_importing,
+                file_importer.import_content(self.progbar, self.import_status,
                                              self.lbl_feedback)
                 dd.set_db(dd.db, tbl=tbl_name)
                 lib.safe_end_cursor()
@@ -855,8 +855,7 @@ class ImportFileSelectDlg(wx.Dialog):
                 wx.MessageBox(lib.ue(e))
             except my_exceptions.ImportCancelException, e:
                 lib.safe_end_cursor()
-                self.keep_importing.discard(False)
-                self.keep_importing.add(True)
+                self.import_status[mg.CANCEL_IMPORT] = False # reinit
                 wx.MessageBox(lib.ue(e))
             except Exception, e:
                 lib.safe_end_cursor()

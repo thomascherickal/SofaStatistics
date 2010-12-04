@@ -229,6 +229,8 @@ IDX_IS_UNIQUE = u"index is unique"
 IDX_FLDS = u"index fields"
 # misc data
 READONLY_COLOUR = wx.Colour(221,231,229)
+NULLED_DOTS = u"dots_converted to null"
+CANCEL_IMPORT = u"cancel import"
 MISSING_VAL_INDICATOR = u"."
 RET_CHANGED_DESIGN = 30101966 # must be integer and not 5101 etc
 # must be defined before dbe modules called - used in them
