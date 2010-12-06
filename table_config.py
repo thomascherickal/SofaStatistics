@@ -398,7 +398,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         """
         self.new = new
         self.changes_made = False
-        if self.new and readonly:
+        self.readonly = readonly
+        if self.new and self.readonly:
             raise Exception(u"If new, should never be read only")
         self.var_labels = var_labels
         self.val_dics = val_dics
@@ -416,7 +417,6 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.init_settings_data = init_fld_settings[:] # can check if end 
             # result changed
         self.setup_settings_data(init_fld_settings)
-        self.readonly = readonly
         if not insert_data_func:
             insert_data_func = insert_data
         if not cell_invalidation_func:
@@ -436,7 +436,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                    ]
         grid_size = (300,250)
         title = _("Configure Data Table")
-        if readonly:
+        if self.readonly:
             title += _(" (Read Only)")
         wx.Dialog.__init__(self, None, title=title, size=(500,400), 
                            style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU)
@@ -449,7 +449,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                                         size=(450,-1))
         self.txt_tblname.Enable(not self.readonly)
         self.txt_tblname.SetValidator(SafeTblNameValidator(name_ok_to_reuse))
-        if not readonly:
+        if not self.readonly:
             btn_recode = wx.Button(self.panel, -1, _("Recode"))
             btn_recode.Bind(wx.EVT_BUTTON, self.on_recode)
             btn_recode.SetToolTipString(_("Recode values from one field into a "
@@ -495,7 +495,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.szr_main.Add(self.szr_tbl_label, 0, wx.GROW|wx.ALL, 10)
         self.szr_main.Add(szr_design, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
-        if not readonly:
+        if not self.readonly:
             self.szr_btns.Insert(2, btn_recode, 0, wx.LEFT, 10)
         self.panel.SetSizer(self.szr_main)
         self.szr_main.SetSizeHints(self)
@@ -851,6 +851,17 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.tabentry.grid.ForceRefresh()
         self.update_demo()
 
+    def get_change_status(self):
+        tblname_changed = False
+        new_tbl = True
+        if self.tblname_lst:
+            tblname_changed = (self.tblname_lst[0] !=
+                               self.txt_tblname.GetValue())
+            new_tbl = False
+        data_changed = has_data_changed(orig_data=self.init_settings_data, 
+                                        final_data=self.settings_data)
+        return new_tbl, tblname_changed, data_changed
+
     def on_recode(self, event):
         debug = False
         if self.readonly:
@@ -860,14 +871,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             print(u"init_settings_data: %s" % self.init_settings_data)
             print(self.settings_data)
         # save any changes in table_config dlg first
-        tblname_changed = False
-        new_tbl = True
-        if self.tblname_lst:
-            tblname_changed = (self.tblname_lst[0] !=
-                               self.txt_tblname.GetValue())
-            new_tbl = False
-        data_changed = has_data_changed(orig_data=self.init_settings_data, 
-                                        final_data=self.settings_data)
+        new_tbl, tblname_changed, data_changed = self.get_change_status()
         if new_tbl or tblname_changed or data_changed:
             ret = wx.MessageBox(_("You will need to save the changes you made "
                                   "first. Save changes and continue?"),
@@ -922,14 +926,21 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         """
         Override so we can extend to include table name.
         """
-        try:
-            self.make_changes()
-        except FldMismatchException:
-             wx.MessageBox(_("Unable to modify table. Some data does not match "
-                             "the column type. Please edit and try again."))
-             return
-        self.Destroy()
-        self.SetReturnCode(mg.RET_CHANGED_DESIGN)
+        if self.readonly:
+            self.Destroy()
+        else:
+            new_tbl, tblname_changed, data_changed = self.get_change_status()
+            if new_tbl or tblname_changed or data_changed:
+                try:
+                    self.make_changes()
+                    self.Destroy()
+                    self.SetReturnCode(mg.RET_CHANGED_DESIGN)
+                except FldMismatchException:
+                     wx.MessageBox(_("Unable to modify table. Some data does "
+                                     "not match the column type. Please edit "
+                                     "and try again."))
+            else:
+                wx.MessageBox(_("No changes to update."))
 
     
 class ConfigTableEntry(settings_grid.SettingsEntry):
