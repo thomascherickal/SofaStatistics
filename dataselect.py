@@ -106,6 +106,9 @@ class DataSelectDlg(wx.Dialog):
         self.btn_design.Enable(sofa_db)
         delete_enable = (sofa_db and dd.tbl != mg.DEMO_TBL)
         self.btn_delete.Enable(delete_enable)
+        if sofa_db:
+            readonly = (dd.tbl == mg.DEMO_TBL)
+            self.chk_readonly.SetValue(readonly)
         self.chk_readonly.Enable(not sofa_db)
         
     def on_database_sel(self, event):

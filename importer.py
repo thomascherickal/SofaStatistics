@@ -32,6 +32,33 @@ class MismatchException(Exception):
         Exception.__init__(self, (u"Found data not matching expected "
                                   u"column type.\n\n%s" % details))
 
+class FixMismatchDlg(wx.Dialog):
+    def __init__(self):
+        wx.Dialog.__init__(self, None, title=_("Found Data of Wrong Type"),
+                           size=(500,600), style=wx.CAPTION|wx.SYSTEM_MENU)
+        debug = False
+        self.var_labels = var_labels
+        self.var_notes = var_notes
+        self.var_types = var_types
+        self.val_dics = val_dics
+        self.updated = updated
+        self.panel = wx.Panel(self)
+        self.szr_main = wx.BoxSizer(wx.VERTICAL)
+        szr_std_btns = wx.StdDialogButtonSizer()
+        self.lst_vars = wx.ListBox(self.panel, -1, choices=[])
+        self.setup_vars()
+        self.lst_vars.Bind(wx.EVT_LISTBOX, self.on_lst_click)
+        btn_ok = wx.Button(self.panel, wx.ID_OK)
+        btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
+        self.panel.SetSizer(self.szr_main)
+        self.szr_main.Add(self.lst_vars, 0, wx.ALL, 10)
+        szr_std_btns.AddButton(btn_ok)
+        szr_std_btns.Realize()
+        self.szr_main.Add(szr_std_btns, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
+        self.szr_main.SetSizeHints(self)
+        self.Layout()
+
+
 def process_fld_names(raw_names):
     """
     Turn spaces into underscores and then check all names are unique.
@@ -199,7 +226,7 @@ def get_val(feedback, raw_val, check, is_pytime, fld_type, orig_fld_name,
                                     details=(u"Column: %s" % orig_fld_name +
                                     u"\nRow: %s" % (row_num) +
                                     u"\nValue: \"%s\"" % raw_val +
-                                    u"\nExpected column type: %s" % fld_type))    
+                                    u"\nExpected column type: %s" % fld_type))
     return val
 
 def process_val(feedback, vals, row_num, row, orig_fld_name, fld_types, check, 
