@@ -36,31 +36,21 @@ class MismatchException(Exception):
 
 
 class FixMismatchDlg(wx.Dialog):
-    """
-    Receives data type options e.g. date and number, or just number, and adjusts
-        fld_types and faulty2missing_fld_list as appropriate.  E.g. may change a 
-        field type from number to date and may add field to list where faulty 
-        data (e.g. non-dates) to missing values. 
-    """
+    # weird bugs when using stdbtndialog here and calling dlg multiple times
+    # actual cause not known but buggy original had a setup_btns method
     def __init__(self, fldname, fld_type_choices, fld_types, 
-                 faulty2missing_fld_list, assessing_sample=False):
-        """
-        assessing_sample -- assessing sample and need to make choice?  If False
-            then an actual mismatch found in the data.
-        """
+             faulty2missing_fld_list, assessing_sample=False):
         if assessing_sample:
             title_txt = _("MIX OF DATA TYPES")
         else:
             title_txt = _("DATA TYPE MISMATCH")
-        wx.Dialog.__init__(self, None, title=title_txt, size=(500,600), 
-                           style=wx.CAPTION|wx.SYSTEM_MENU)
-        debug = False
         self.fldname = fldname
         self.fld_type_choices = fld_type_choices
         self.fld_types = fld_types
         self.faulty2missing_fld_list = faulty2missing_fld_list
+        wx.Dialog.__init__(self, None, title=title_txt, size=(500,600), 
+                           style=wx.CAPTION|wx.SYSTEM_MENU)
         self.panel = wx.Panel(self)
-        self.szr_main = wx.BoxSizer(wx.VERTICAL)
         if assessing_sample:
             choice_txt = _(u"A mix of data types was found in a sample of data "
                            u"in \"%s\"."
@@ -76,44 +66,28 @@ class FixMismatchDlg(wx.Dialog):
         lbl_implications = wx.StaticText(self.panel, -1, _(u"If you choose %s ,"
             u" any values that are not of that type will be turned to missing."
             % types))
-        self.setup_btns()
-        self.szr_main.Add(lbl_choice, 0, wx.GROW|wx.ALL, 10)
-        self.szr_main.Add(lbl_implications, 0, wx.GROW|wx.ALL, 10)
-        self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
-        self.panel.SetSizer(self.szr_main)
-        self.szr_main.SetSizeHints(self)
-        self.Layout()
-
-    def setup_btns(self):
-        """
-        Must have ID of wx.ID_... to trigger validators (no event binding 
-            needed) and for std dialog button layout.
-        NB can only add some buttons as part of standard sizer to be realised.
-        Insert or Add others after the Realize() as required.
-        See http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605904
-        and http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605432
-        """
-        self.szr_btns = wx.BoxSizer(wx.HORIZONTAL)
-        szr_oth_btns = wx.BoxSizer(wx.HORIZONTAL)
-        szr_std_btns = wx.StdDialogButtonSizer()
-        btn_cancel = wx.Button(self.panel, wx.ID_CANCEL) # 
-        btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
-        szr_std_btns.AddButton(btn_cancel)
-        szr_std_btns.Realize()
-        self.szr_btns.Add(szr_std_btns, 0, wx.GROW)
+        szr_main = wx.BoxSizer(wx.VERTICAL)
+        szr_btns = wx.BoxSizer(wx.HORIZONTAL)
+        btn_text = wx.Button(self.panel, mg.RET_TEXT, mg.FLD_TYPE_STRING)
+        btn_text.Bind(wx.EVT_BUTTON, self.on_text)
+        szr_btns.Add(btn_text, 0, wx.LEFT|wx.RIGHT, 10)
         if mg.FLD_TYPE_NUMERIC in self.fld_type_choices:
             btn_num = wx.Button(self.panel, mg.RET_NUMERIC, mg.FLD_TYPE_NUMERIC)
             btn_num.Bind(wx.EVT_BUTTON, self.on_num)
-            szr_oth_btns.Add(btn_num, 0, wx.LEFT|wx.RIGHT, 10)
+            szr_btns.Add(btn_num, 0, wx.LEFT|wx.RIGHT, 10)
         if mg.FLD_TYPE_DATE in self.fld_type_choices:
             btn_date = wx.Button(self.panel, mg.RET_DATE, mg.FLD_TYPE_DATE)
             btn_date.Bind(wx.EVT_BUTTON, self.on_date)
-            szr_oth_btns.Add(btn_date, 0,  wx.LEFT|wx.RIGHT, 10)
-        btn_text = wx.Button(self.panel, mg.RET_TEXT, mg.FLD_TYPE_STRING)
-        btn_text.Bind(wx.EVT_BUTTON, self.on_text)
-        szr_oth_btns.Add(btn_text, 0, wx.LEFT|wx.RIGHT, 10)
-        self.szr_btns.Add(szr_std_btns, 1)
-        self.szr_btns.Add(szr_oth_btns, 0)
+            szr_btns.Add(btn_date, 0,  wx.LEFT|wx.RIGHT, 10)
+        btn_cancel = wx.Button(self.panel, wx.ID_CANCEL) # 
+        btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
+        szr_btns.Add(btn_cancel, 0,  wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(lbl_choice, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(lbl_implications, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(szr_btns, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
+        self.panel.SetSizer(szr_main)
+        szr_main.SetSizeHints(self)
+        self.Layout()
     
     def on_num(self, event):
         self.fld_types[self.fldname] = mg.FLD_TYPE_NUMERIC
@@ -136,7 +110,7 @@ class FixMismatchDlg(wx.Dialog):
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
         # (MUST come after Destroy)
-        
+               
 
 def process_fld_names(raw_names):
     """
@@ -431,6 +405,8 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fld_names,
         except MismatchException, e:
             if debug: print("A mismatch exception")
             raise # keep this particular type of exception bubbling out
+        except Exception, e:
+            raise
         # quoting must happen earlier so we can pass in NULL  
         fld_vals_clause = u", ".join([u"%s" % x for x in vals])
         SQL_insert_row = u"INSERT INTO %s " % mg.TMP_TBL_NAME + \
@@ -483,6 +459,7 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
         print(u"Original field names are: %s" % orig_fld_names)
         print(u"Cleaned (ok) field names are: %s" % ok_fld_names)
         print(u"Field types are: %s" % fld_types)
+        print(u"Faulty to missing field list: %s" % faulty2missing_fld_list)
         print(u"Sample data is: %s" % sample_data)
     try:
         con.commit()
