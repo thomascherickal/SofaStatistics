@@ -36,7 +36,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                                                    "a": label_a, "b": label_b})
 
     def add_other_var_opts(self, szr):
-        self.lbl_algorithm = wx.StaticText(self.panel, -1, "Algorithm: ")
+        self.lbl_algorithm = wx.StaticText(self.panel, -1, _("Algorithm: "))
         self.rad_precision = wx.RadioButton(self.panel, -1, _("Precision"), 
                                             style=wx.RB_GROUP)
         self.rad_speed = wx.RadioButton(self.panel, -1, _("Speed"))

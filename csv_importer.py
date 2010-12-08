@@ -114,6 +114,11 @@ class UnicodeCsvReader(object):
                 rowvals = []
                 j = 0 # item counter
                 for val in row: # empty strings etc but never None
+                    if isinstance(val, list):
+                        raise Exception(u"Expected text but got a list of "
+                                        u"text.\nYou probably forgot to "
+                                        u"quote a value containing a value "
+                                        u"separator e.g. Feb 11, 2010")
                     j += 1
                     try:
                         uval = val.decode("utf8")
@@ -124,7 +129,7 @@ class UnicodeCsvReader(object):
             except Exception, e:
                 raise Exception(u"Problem with csv file on row %s, item %s. " %
                                 (self.i, j) +
-                                u"Caused by error: %s" % lib.ue(e))
+                                u"\nCaused by error: %s" % lib.ue(e))
             yield rowvals
             
 
@@ -172,13 +177,18 @@ class UnicodeCsvDictReader(object):
                     for item in keyval:
                         if item is None:
                             item = u"" # be forgiving and effectively right pad
+                        if isinstance(item, list):
+                            raise Exception(u"Expected text but got a list of "
+                                            u"text.\nYou probably forgot to "
+                                            u"quote a value containing a value "
+                                            u"separator e.g. Feb 11, 2010")
                         if not isinstance(item, unicode):
                             item = item.decode("utf8")
                         uni_key_val.append(item)
                     unicode_key_value_tups.append(tuple(uni_key_val))
             except Exception, e:
                 raise Exception(u"Problem with csv file on row %s. " % self.i +
-                                u"Caused by error: %s" % lib.ue(e))
+                                u"\nCaused by error: %s" % lib.ue(e))
             yield dict(unicode_key_value_tups)
 
 def escape_double_quotes_in_uni_lines(lines):
@@ -626,14 +636,10 @@ class CsvImporter(importer.FileImporter):
             (orig_fld_names, fld_types, 
              sample_data) = self.assess_sample(reader, progbar, steps_per_item, 
                                                import_status, comma_delimiter)
-        except Exception, e:
-            importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
-            raise
-        # NB reader will be at position ready to access records after sample
-        remaining_data = list(reader) # must be a list not a reader or can't 
-            # start again from beginning of data (e.g. if correction made)
-        gauge_start = steps_per_item*sample_n
-        try:
+            # NB reader will be at position ready to access records after sample
+            remaining_data = list(reader) # must be a list not a reader or can't 
+                # start again from beginning of data (e.g. if correction made)
+            gauge_start = steps_per_item*sample_n
             feedback = {mg.NULLED_DOTS: False}
             importer.add_to_tmp_tbl(feedback, import_status, default_dd.con, 
                 default_dd.cur, self.file_path, self.tbl_name, self.has_header, 

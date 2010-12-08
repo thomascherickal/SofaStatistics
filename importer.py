@@ -24,40 +24,119 @@ GAUGE_STEPS = 50
 
 dd = getdata.get_dd()
 
+
 class MismatchException(Exception):
-    def __init__(self, fld_name, details):
+    def __init__(self, fldname, expected_fld_type, details):
         debug = False
         if debug: print("A mismatch exception")
-        self.fld_name = fld_name
+        self.fldname = fldname
+        self.expected_fld_type = expected_fld_type
         Exception.__init__(self, (u"Found data not matching expected "
                                   u"column type.\n\n%s" % details))
 
+
 class FixMismatchDlg(wx.Dialog):
-    def __init__(self):
-        wx.Dialog.__init__(self, None, title=_("Found Data of Wrong Type"),
-                           size=(500,600), style=wx.CAPTION|wx.SYSTEM_MENU)
+    """
+    Receives data type options e.g. date and number, or just number, and adjusts
+        fld_types and faulty2missing_fld_list as appropriate.  E.g. may change a 
+        field type from number to date and may add field to list where faulty 
+        data (e.g. non-dates) to missing values. 
+    """
+    def __init__(self, fldname, fld_type_choices, fld_types, 
+                 faulty2missing_fld_list, assessing_sample=False):
+        """
+        assessing_sample -- assessing sample and need to make choice?  If False
+            then an actual mismatch found in the data.
+        """
+        if assessing_sample:
+            title_txt = _("MIX OF DATA TYPES")
+        else:
+            title_txt = _("DATA TYPE MISMATCH")
+        wx.Dialog.__init__(self, None, title=title_txt, size=(500,600), 
+                           style=wx.CAPTION|wx.SYSTEM_MENU)
         debug = False
-        self.var_labels = var_labels
-        self.var_notes = var_notes
-        self.var_types = var_types
-        self.val_dics = val_dics
-        self.updated = updated
+        self.fldname = fldname
+        self.fld_type_choices = fld_type_choices
+        self.fld_types = fld_types
+        self.faulty2missing_fld_list = faulty2missing_fld_list
         self.panel = wx.Panel(self)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
-        szr_std_btns = wx.StdDialogButtonSizer()
-        self.lst_vars = wx.ListBox(self.panel, -1, choices=[])
-        self.setup_vars()
-        self.lst_vars.Bind(wx.EVT_LISTBOX, self.on_lst_click)
-        btn_ok = wx.Button(self.panel, wx.ID_OK)
-        btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
+        if assessing_sample:
+            choice_txt = _(u"A mix of data types was found in a sample of data "
+                           u"in \"%s\"."
+                           u"\nPlease select the appropriate type.") % fldname
+        else:
+            choice_txt = _(u"Data was found in \"%(fldname)s\" which doesn't "
+                           u"match the expected data type (%(data_type)s)."
+                           u"\nPlease select the appropriate type.") % \
+                                           {u"fldname": fldname, 
+                                            u"data_type": fld_types[fldname]}
+        lbl_choice = wx.StaticText(self.panel, -1, choice_txt)
+        types = u" or ".join(["\"%s\"" % x for x in fld_type_choices])
+        lbl_implications = wx.StaticText(self.panel, -1, _(u"If you choose %s ,"
+            u" any values that are not of that type will be turned to missing."
+            % types))
+        self.setup_btns()
+        self.szr_main.Add(lbl_choice, 0, wx.GROW|wx.ALL, 10)
+        self.szr_main.Add(lbl_implications, 0, wx.GROW|wx.ALL, 10)
+        self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
         self.panel.SetSizer(self.szr_main)
-        self.szr_main.Add(self.lst_vars, 0, wx.ALL, 10)
-        szr_std_btns.AddButton(btn_ok)
-        szr_std_btns.Realize()
-        self.szr_main.Add(szr_std_btns, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
         self.szr_main.SetSizeHints(self)
         self.Layout()
 
+    def setup_btns(self):
+        """
+        Must have ID of wx.ID_... to trigger validators (no event binding 
+            needed) and for std dialog button layout.
+        NB can only add some buttons as part of standard sizer to be realised.
+        Insert or Add others after the Realize() as required.
+        See http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605904
+        and http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605432
+        """
+        self.szr_btns = wx.BoxSizer(wx.HORIZONTAL)
+        szr_oth_btns = wx.BoxSizer(wx.HORIZONTAL)
+        szr_std_btns = wx.StdDialogButtonSizer()
+        btn_cancel = wx.Button(self.panel, wx.ID_CANCEL) # 
+        btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
+        szr_std_btns.AddButton(btn_cancel)
+        szr_std_btns.Realize()
+        self.szr_btns.Add(szr_std_btns, 0, wx.GROW)
+        if mg.FLD_TYPE_NUMERIC in self.fld_type_choices:
+            btn_num = wx.Button(self.panel, mg.RET_NUMERIC, mg.FLD_TYPE_NUMERIC)
+            btn_num.Bind(wx.EVT_BUTTON, self.on_num)
+            szr_oth_btns.Add(btn_num, 0, wx.LEFT|wx.RIGHT, 10)
+        if mg.FLD_TYPE_DATE in self.fld_type_choices:
+            btn_date = wx.Button(self.panel, mg.RET_DATE, mg.FLD_TYPE_DATE)
+            btn_date.Bind(wx.EVT_BUTTON, self.on_date)
+            szr_oth_btns.Add(btn_date, 0,  wx.LEFT|wx.RIGHT, 10)
+        btn_text = wx.Button(self.panel, mg.RET_TEXT, mg.FLD_TYPE_STRING)
+        btn_text.Bind(wx.EVT_BUTTON, self.on_text)
+        szr_oth_btns.Add(btn_text, 0, wx.LEFT|wx.RIGHT, 10)
+        self.szr_btns.Add(szr_std_btns, 1)
+        self.szr_btns.Add(szr_oth_btns, 0)
+    
+    def on_num(self, event):
+        self.fld_types[self.fldname] = mg.FLD_TYPE_NUMERIC
+        self.faulty2missing_fld_list.append(self.fldname)
+        self.Destroy()
+        self.SetReturnCode(mg.RET_NUMERIC)
+    
+    def on_date(self, event):
+        self.fld_types[self.fldname] = mg.FLD_TYPE_DATE
+        self.faulty2missing_fld_list.append(self.fldname)
+        self.Destroy()
+        self.SetReturnCode(mg.RET_DATE)
+        
+    def on_text(self, event):
+        self.fld_types[self.fldname] = mg.FLD_TYPE_STRING
+        self.Destroy()
+        self.SetReturnCode(mg.RET_TEXT)
+        
+    def on_cancel(self, event):
+        self.Destroy()
+        self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
+        # (MUST come after Destroy)
+        
 
 def process_fld_names(raw_names):
     """
@@ -225,7 +304,8 @@ def get_val(feedback, raw_val, check, is_pytime, fld_type, orig_fld_name,
             if orig_fld_name in faulty2missing_fld_list:
                 val = u"NULL" # replace faulty value with a null
             else:
-                raise MismatchException(fld_name=orig_fld_name,
+                raise MismatchException(fldname=orig_fld_name,
+                                    expected_fld_type=fld_type,
                                     details=(u"Column: %s" % orig_fld_name +
                                     u"\nRow: %s" % (row_num) +
                                     u"\nValue: \"%s\"" % raw_val +
@@ -319,28 +399,37 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fld_names,
         If a csv files does, however, it is not. Should be empty str.
     TODO - insert multiple lines at once for performance.
     """
-    debug = False
+    debug = True
     fld_names_clause = u", ".join([dbe_sqlite.quote_obj(x) for x 
                                    in ok_fld_names])
     for row_idx, row in enumerate(rows):
+        if debug: 
+            print(row)
+            print(str(row_idx))
         if row_idx % 50 == 0:
+            if debug: print("About to Yield")
             wx.Yield()
+            if debug: print("Just yielded")
             if import_status[mg.CANCEL_IMPORT]:
                 progbar.SetValue(0)
                 raise my_exceptions.ImportCancelException
+        if debug: print("About to set gauge_start")
         gauge_start += 1
+        if debug: print("gauge_start is %s" % gauge_start)
         row_num = row_num_start + row_idx
         #if debug and row_num == 12:
         #    print("Break on this line :-)")
         vals = []
         report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, 
                               allow_none)
+        if debug: print("No field n mismatch")
         try:
             for orig_fld_name in orig_fld_names:
                 process_val(feedback, vals, row_num, row, orig_fld_name, 
                             fld_types, faulty2missing_fld_list, check, 
                             comma_dec_sep_ok)
         except MismatchException, e:
+            if debug: print("A mismatch exception")
             raise # keep this particular type of exception bubbling out
         # quoting must happen earlier so we can pass in NULL  
         fld_vals_clause = u", ".join([u"%s" % x for x in vals])
@@ -389,7 +478,7 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
                           fld_types, faulty2missing_fld_list, sample_data, 
                           sample_n, remaining_data, progbar, steps_per_item, 
                           gauge_start, allow_none=True, comma_dec_sep_ok=False):
-    debug = False
+    debug = True
     if debug:
         print(u"Original field names are: %s" % orig_fld_names)
         print(u"Cleaned (ok) field names are: %s" % ok_fld_names)
@@ -442,16 +531,17 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
         con.commit()
         progbar.SetValue(0)
         # go through again or raise an exception
-        retCode = wx.MessageBox(u"%s\n\n" % lib.ue(e) + \
-                                _("Fix and keep going?"), 
-                                _("KEEP GOING?"), wx.YES_NO|wx.ICON_QUESTION)
-        if retCode == wx.YES:
-            # change fld_type to string and start again
-            fld_types[e.fld_name] = mg.FLD_TYPE_STRING
-            return False
-        else:
+        dlg = FixMismatchDlg(fldname=e.fldname, 
+                             fld_type_choices=[e.expected_fld_type,], 
+                             fld_types=fld_types, 
+                             faulty2missing_fld_list=faulty2missing_fld_list, 
+                             assessing_sample=False)
+        retval = dlg.ShowModal()
+        if retval == wx.ID_CANCEL:
             raise Exception(u"Mismatch between data in column and expected "
-                            u"column type")    
+                            u"column type")             
+        else:
+            return False # start again :-)
 
 def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tbl_name, 
                    has_header, ok_fld_names, orig_fld_names, fld_types, 

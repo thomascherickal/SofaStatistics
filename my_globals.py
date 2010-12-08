@@ -301,6 +301,9 @@ GEN2SQLITE_DIC = {
             "check_clause": ("CHECK(typeof(%(fld_name)s) = 'null' "
             "or is_std_datetime_str(%(fld_name)s))")},
     }
+RET_NUMERIC = 2010 # anything OK as long as no collision with wx.ID_CANCEL
+RET_DATE = 2011
+RET_TEXT = 2012
 # grids
 # move directions
 MOVE_LEFT = u"move left"
