@@ -578,6 +578,7 @@ class CsvImporter(importer.FileImporter):
             table to final name.
         """
         debug = False
+        faulty2missing_fld_list = []
         wx.BeginBusyCursor()
         try:
             (dialect, encoding, 
@@ -636,7 +637,8 @@ class CsvImporter(importer.FileImporter):
             feedback = {mg.NULLED_DOTS: False}
             importer.add_to_tmp_tbl(feedback, import_status, default_dd.con, 
                 default_dd.cur, self.file_path, self.tbl_name, self.has_header, 
-                ok_fld_names, orig_fld_names, fld_types, sample_data, sample_n, 
+                ok_fld_names, orig_fld_names, fld_types, 
+                faulty2missing_fld_list, sample_data, sample_n, 
                 remaining_data, progbar, steps_per_item, gauge_start,
                 allow_none=False, comma_dec_sep_ok=not comma_delimiter)
             # so fast only shows last step in progress bar

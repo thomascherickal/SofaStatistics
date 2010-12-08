@@ -138,7 +138,7 @@ def assess_sample_fld(sample_data, has_header, orig_fld_name, orig_fld_names,
     return fld_type
 
 def get_val(feedback, raw_val, check, is_pytime, fld_type, orig_fld_name, 
-            row_num, comma_dec_sep_ok=False):
+            faulty2missing_fld_list, row_num, comma_dec_sep_ok=False):
     """
     feedback -- dic with mg.NULLED_DOTS
     Missing values are OK in numeric and date fields in the source field being 
@@ -222,15 +222,18 @@ def get_val(feedback, raw_val, check, is_pytime, fld_type, orig_fld_name,
         else:
             raise Exception(u"Unexpected field type in importer.get_val()")
         if not ok_data:
-            raise MismatchException(fld_name=orig_fld_name,
+            if orig_fld_name in faulty2missing_fld_list:
+                val = u"NULL" # replace faulty value with a null
+            else:
+                raise MismatchException(fld_name=orig_fld_name,
                                     details=(u"Column: %s" % orig_fld_name +
                                     u"\nRow: %s" % (row_num) +
                                     u"\nValue: \"%s\"" % raw_val +
                                     u"\nExpected column type: %s" % fld_type))
     return val
 
-def process_val(feedback, vals, row_num, row, orig_fld_name, fld_types, check, 
-                comma_dec_sep_ok=False):
+def process_val(feedback, vals, row_num, row, orig_fld_name, fld_types, 
+                faulty2missing_fld_list, check, comma_dec_sep_ok=False):
     """
     Add val to vals.
     feedback -- dic with mg.NULLED_DOTS
@@ -242,7 +245,8 @@ def process_val(feedback, vals, row_num, row, orig_fld_name, fld_types, check,
         pytime (Excel) and empty string to null conversions.
     If all is OK, will add val to vals.  NB val will need to be internally 
         quoted unless it is a NULL. 
-    If not, will raise an exception.
+    If not, will turn to missing if in faulty2missing_fld_list, otherwise will 
+        raise an exception.
     Quote ready for inclusion in SQLite SQL insert query.
     """
     debug = False
@@ -255,7 +259,7 @@ def process_val(feedback, vals, row_num, row, orig_fld_name, fld_types, check,
     is_pytime = lib.is_pytime(rawval)
     fld_type = fld_types[orig_fld_name]
     val = get_val(feedback, rawval, check, is_pytime, fld_type, orig_fld_name, 
-                  row_num, comma_dec_sep_ok)
+                  faulty2missing_fld_list, row_num, comma_dec_sep_ok)
     if fld_type != mg.FLD_TYPE_NUMERIC and val != u"NULL":
         try:
             val = dbe_sqlite.quote_val(val)
@@ -300,9 +304,9 @@ def report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, allow_none):
                              "vals_str": vals_str})
 
 def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fld_names, 
-             orig_fld_names, fld_types, progbar, steps_per_item, gauge_start=0, 
-             row_num_start=0, check=False, allow_none=True, 
-             comma_dec_sep_ok=False):
+             orig_fld_names, fld_types, faulty2missing_fld_list, progbar, 
+             steps_per_item, gauge_start=0, row_num_start=0, check=False, 
+             allow_none=True, comma_dec_sep_ok=False):
     """
     feedback -- dic with mg.NULLED_DOTS
     Add the rows of data (dicts), processing each cell as you go.
@@ -331,9 +335,13 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fld_names,
         vals = []
         report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, 
                               allow_none)
-        for orig_fld_name in orig_fld_names:
-            process_val(feedback, vals, row_num, row, orig_fld_name, fld_types, 
-                        check, comma_dec_sep_ok)
+        try:
+            for orig_fld_name in orig_fld_names:
+                process_val(feedback, vals, row_num, row, orig_fld_name, 
+                            fld_types, faulty2missing_fld_list, check, 
+                            comma_dec_sep_ok)
+        except MismatchException, e:
+            raise # keep this particular type of exception bubbling out
         # quoting must happen earlier so we can pass in NULL  
         fld_vals_clause = u", ".join([u"%s" % x for x in vals])
         SQL_insert_row = u"INSERT INTO %s " % mg.TMP_TBL_NAME + \
@@ -343,8 +351,6 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fld_names,
             cur.execute(SQL_insert_row)
             gauge_val = gauge_start + (row_num*steps_per_item)
             progbar.SetValue(gauge_val)
-        except MismatchException, e:
-            raise # keep this particular type of exception bubbling out
         except Exception, e:
             raise Exception(u"Unable to add row %s.\nCaused by error: %s"
                             % (row_num, lib.ue(e)))
@@ -380,9 +386,9 @@ def post_fail_tidy(progbar, con, cur):
 
 def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path, 
                           tbl_name, has_header, ok_fld_names, orig_fld_names, 
-                          fld_types, sample_data, sample_n, remaining_data,
-                          progbar, steps_per_item, gauge_start, allow_none=True, 
-                          comma_dec_sep_ok=False):
+                          fld_types, faulty2missing_fld_list, sample_data, 
+                          sample_n, remaining_data, progbar, steps_per_item, 
+                          gauge_start, allow_none=True, comma_dec_sep_ok=False):
     debug = False
     if debug:
         print(u"Original field names are: %s" % orig_fld_names)
@@ -416,17 +422,19 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
         # Already been through sample once when assessing it so part way through 
         # process already.
         add_rows(feedback, import_status, con, cur, sample_data, has_header, 
-                 ok_fld_names, orig_fld_names, fld_types, progbar, 
-                 steps_per_item, gauge_start=gauge_start, row_num_start=1, 
+                 ok_fld_names, orig_fld_names, fld_types, 
+                 faulty2missing_fld_list, progbar, steps_per_item, 
+                 gauge_start=gauge_start, row_num_start=1, 
                  check=False, allow_none=allow_none, 
                  comma_dec_sep_ok=comma_dec_sep_ok)
         # been through sample since gauge_start
         remainder_gauge_start = gauge_start + (sample_n*steps_per_item)
         row_num_start = sample_n + 1
         add_rows(feedback, import_status, con, cur, remaining_data, has_header, 
-                 ok_fld_names, orig_fld_names, fld_types, progbar, 
-                 steps_per_item, gauge_start=remainder_gauge_start, 
-                 row_num_start=row_num_start, check=True, allow_none=allow_none, 
+                 ok_fld_names, orig_fld_names, fld_types, 
+                 faulty2missing_fld_list, progbar, steps_per_item, 
+                 gauge_start=remainder_gauge_start, row_num_start=row_num_start, 
+                 check=True, allow_none=allow_none, 
                  comma_dec_sep_ok=comma_dec_sep_ok)
         return True
     except MismatchException, e:
@@ -447,9 +455,9 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
 
 def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tbl_name, 
                    has_header, ok_fld_names, orig_fld_names, fld_types, 
-                   sample_data, sample_n, remaining_data, progbar, 
-                   steps_per_item, gauge_start, allow_none=True, 
-                   comma_dec_sep_ok=False):
+                   faulty2missing_fld_list, sample_data, sample_n, 
+                   remaining_data, progbar, steps_per_item, gauge_start, 
+                   allow_none=True, comma_dec_sep_ok=False):
     """
     Create fresh disposable table in SQLite and insert data into it.
     feedback -- dic with mg.NULLED_DOTS
@@ -457,6 +465,8 @@ def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tbl_name,
     orig_fld_names -- original names - useful for taking data from row dicts but 
         not the names to use for the new table.
     fld_types -- dict with field types for original field names
+    faulty2missing_fld_list -- list of fields where we should turn faulty values 
+        to missing.
     sample_data -- list of dicts using orig fld names
     remaining_data -- as for sample data
     allow_none -- if Excel returns None for an empty cell that is correct bvr.
@@ -470,8 +480,9 @@ def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tbl_name,
     while True: # keep trying till success or user decodes not to fix & continue
         if try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path, 
                 tbl_name, has_header, ok_fld_names, orig_fld_names, fld_types, 
-                sample_data, sample_n, remaining_data, progbar, steps_per_item, 
-                gauge_start, allow_none=True, comma_dec_sep_ok=False):
+                faulty2missing_fld_list, sample_data, sample_n, remaining_data, 
+                progbar, steps_per_item, gauge_start, allow_none=True, 
+                comma_dec_sep_ok=False):
             break
     
 def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):

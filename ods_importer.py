@@ -56,6 +56,7 @@ class OdsImporter(importer.FileImporter):
             table to final name.
         """
         debug = False
+        faulty2missing_fld_list = []
         large = True
         wx.BeginBusyCursor()
         # Use up 2/3rds of the progress bar in initial step (parsing html and  
@@ -93,8 +94,9 @@ class OdsImporter(importer.FileImporter):
             feedback = {mg.NULLED_DOTS: False}
             importer.add_to_tmp_tbl(feedback, import_status, default_dd.con, 
                 default_dd.cur, self.file_path, self.tbl_name, self.has_header, 
-                fldnames, fldnames, fld_types, sample_data, sample_n, rows, 
-                progbar, steps_per_item, gauge_start)
+                fldnames, fldnames, fld_types, faulty2missing_fld_list,
+                sample_data, sample_n, rows, progbar, steps_per_item, 
+                gauge_start)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                                       self.tbl_name, self.file_path,
                                       progbar, feedback[mg.NULLED_DOTS])

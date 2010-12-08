@@ -68,6 +68,7 @@ class ExcelImporter(importer.FileImporter):
             table to final name.
         """
         debug = False
+        faulty2missing_fld_list = []
         wx.BeginBusyCursor()
         try:
             wkbook = excel_reader.Workbook(self.file_path, 
@@ -109,7 +110,8 @@ class ExcelImporter(importer.FileImporter):
             feedback = {mg.NULLED_DOTS: False}
             importer.add_to_tmp_tbl(feedback, import_status, default_dd.con, 
                 default_dd.cur, self.file_path, self.tbl_name, self.has_header, 
-                ok_fld_names, orig_fld_names, fld_types, sample_data, sample_n, 
+                ok_fld_names, orig_fld_names, fld_types, 
+                faulty2missing_fld_list, sample_data, sample_n, 
                 remaining_data, progbar, steps_per_item, gauge_start)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                                       self.tbl_name, self.file_path,
