@@ -240,9 +240,9 @@ def get_val(feedback, raw_val, is_pytime, fld_type, orig_fld_name,
     """
     feedback -- dic with mg.NULLED_DOTS
     Missing values are OK in numeric and date fields in the source field being 
-        imported, but a missing value indicator (e.g. ".") is not.  A missing
-        value indicator is fine in the data _once it has been imported_ but
-        not beforehand.
+        imported, but a missing value indicator (e.g. ".") is not. Must be 
+        converted to a null.  A missing value indicator is fine in the data 
+        _once it has been imported_ but not beforehand.
     Checking is always necessary, even for a sample which has already been 
         examined. May have found a variable conflict and need to handle it after 
         it raises a mismatch error by turning faulty values to nulls.
@@ -264,23 +264,28 @@ def get_val(feedback, raw_val, is_pytime, fld_type, orig_fld_name,
             ok_data = True
             val = u"NULL"
         elif raw_val == mg.MISSING_VAL_INDICATOR: # not ok in numeric field
+            ok_data = True
             feedback[mg.NULLED_DOTS] = True
             val = u"NULL"
         else:
             pass # no need to set val - not ok_data so exception later
     elif fld_type == mg.FLD_TYPE_DATE:
-        # must be pytime or datetime 
+        # must be pytime or datetime string
         # or empty string or dot (which we'll turn to NULL).
+        is_datetime = False
         if is_pytime:
-            ok_data = True
             if debug: print(u"pytime raw val: %s" % raw_val)
             val = lib.pytime_to_datetime_str(raw_val)
             if debug: print(u"pytime val: %s" % val)
+            ok_data = True
         else:
+            if debug: print(u"Raw val: %s" % raw_val)
             if raw_val == u"" or raw_val is None:
                 ok_data = True
                 val = u"NULL"
             elif raw_val == mg.MISSING_VAL_INDICATOR: # not ok in numeric fld
+                ok_data = True
+                if debug: print(u"Date field has a missing value.")
                 feedback[mg.NULLED_DOTS] = True
                 val = u"NULL"
             else:
@@ -292,12 +297,9 @@ def get_val(feedback, raw_val, is_pytime, fld_type, orig_fld_name,
                 except Exception:
                     pass # no need to set val - not ok_data so excepn later
     elif fld_type == mg.FLD_TYPE_STRING:
-        # None or dot or empty string we'll turn to NULL
+        # None or empty string we'll turn to NULL
         ok_data = True
         if raw_val is None or raw_val == u"":
-            val = u"NULL"
-        elif raw_val == mg.MISSING_VAL_INDICATOR:
-            feedback[mg.NULLED_DOTS] = True
             val = u"NULL"
         else:
             val = raw_val

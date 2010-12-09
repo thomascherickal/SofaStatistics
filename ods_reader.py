@@ -1,5 +1,4 @@
 
-import datetime
 import re
 import time
 import wx
@@ -422,10 +421,7 @@ def extract_date_if_possible(el_det, attrib_dict, xml_type, type):
                 str_float = attrib_dict.get(VALUE)
                 days_since_1900 = str_float
                 if days_since_1900:
-                    dt = lib.dates_1900_to_datetime(days_since_1900)
-                    if dt.microsecond > 500000: # add a second
-                        dt += datetime.timedelta(seconds=1)
-                    val2use = dt.isoformat(" ").split(".")[0] # trunc microsecs
+                    val2use = lib.dates_1900_to_datetime_str(days_since_1900)
                     type = mg.VAL_DATE
                     if debug: print(str_float, val2use)
             else:

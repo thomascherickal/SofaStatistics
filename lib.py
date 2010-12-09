@@ -28,6 +28,13 @@ def dates_1900_to_datetime(days_since_1900):
     mydatetime = DATETIME_ZERO + datetime.timedelta(days)
     return mydatetime
 
+def dates_1900_to_datetime_str(days_since_1900):
+    dt = dates_1900_to_datetime(days_since_1900)
+    if dt.microsecond > 500000: # add a second if microsecs adds more than half
+        dt += datetime.timedelta(seconds=1)
+    datetime_str = dt.isoformat(" ").split(".")[0] # truncate microsecs
+    return datetime_str
+
 def get_unique_db_name_key(db_names, db_name):
     "Might have different paths but same name."
     if db_name in db_names:
