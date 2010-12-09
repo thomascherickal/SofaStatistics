@@ -24,7 +24,9 @@ import core_stats
 
 def dates_1900_to_datetime(days_since_1900):
     DATETIME_ZERO = datetime.datetime(1899, 12, 30, 0, 0, 0)
-    return DATETIME_ZERO + datetime.timedelta(days=float(days_since_1900))
+    days = float(days_since_1900)
+    mydatetime = DATETIME_ZERO + datetime.timedelta(days)
+    return mydatetime
 
 def get_unique_db_name_key(db_names, db_name):
     "Might have different paths but same name."

@@ -1,4 +1,5 @@
 
+import datetime
 import re
 import time
 import wx
@@ -404,25 +405,29 @@ def extract_date_if_possible(el_det, attrib_dict, xml_type, type):
         office:value="40413.743425925924">
     <text:p>50/23/2010 17:50:32</text:p>
     """
+    debug = True
     text = get_el_inner_val(el_det[RAW_EL]) # get val from inner txt el
     if xml_type == XML_TYPE_FLOAT:
         try:
             # is it really a date even though not formally formatted as a date?
             # see if text contains multiple /s
-            float_val = float(attrib_dict.get(VALUE))
             google_docs_default_date = u"%m/%d/%Y" # OK if already in list
             mg.OK_DATE_FORMATS.append(google_docs_default_date)
             usable_datetime = lib.is_usable_datetime_str(raw_datetime_str=text)
             # OK for this purpose to accept invalid dates - we calculate the 
-            # datetime from the number anyway - this is just an indicator that this 
-            # is meant to be a date e.g. 50/23/2010 17:50:32.
+            # datetime from the number anyway - this is just an indicator that 
+            # this is meant to be a date e.g. 50/23/2010 17:50:32.
             attempted_date = text.count(u"/") > 1
             if usable_datetime or attempted_date:
-                days_since_1900 = float_val
-                if days_since_1900 is not None:
+                str_float = attrib_dict.get(VALUE)
+                days_since_1900 = str_float
+                if days_since_1900:
                     dt = lib.dates_1900_to_datetime(days_since_1900)
-                    val2use = dt.isoformat(" ").split(".")[0]
+                    if dt.microsecond > 500000: # add a second
+                        dt += datetime.timedelta(seconds=1)
+                    val2use = dt.isoformat(" ").split(".")[0] # trunc microsecs
                     type = mg.VAL_DATE
+                    if debug: print(str_float, val2use)
             else:
                 val2use = text
         except Exception, e:
