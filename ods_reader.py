@@ -1,5 +1,6 @@
 
 import re
+import time
 import wx
 import xml.etree.ElementTree as etree
 import zipfile
@@ -34,12 +35,15 @@ Example of float cell:
     </table:table-cell>
 """
 
-xml_type_to_val_type = {"string": mg.VAL_STRING, "float": mg.VAL_NUMERIC}
+XML_TYPE_FLOAT = u"float"
+xml_type_to_val_type = {"string": mg.VAL_STRING, 
+                        XML_TYPE_FLOAT: mg.VAL_NUMERIC}
 RAW_EL = u"raw element"
 ATTRIBS = u"attribs"
 COLS_REP = u"number-columns-repeated"
 ROWS_REP = u"number-rows-repeated"
 VAL_TYPE = u"value-type"
+VALUE = u"value"
 DATE_VAL = u"date-value"
 FORMULA = u"formula"
 
@@ -238,12 +242,23 @@ def get_el_inner_val(el):
     """
     Sometimes the value is not in the first item in el
     """
-    text2return = None
-    for i in range(3):
-        text2return = el[i].text
-        if text2return is not None:
-            break
-    return text2return
+    debug = False
+    text2return = []
+    i = 0
+    while True:
+        try:
+            item_text = el[i].text
+            if item_text is not None:
+                text2return.append(item_text)
+        except IndexError, e:
+           break
+        i += 1
+    if text2return:
+        if debug: print(etree.tostring(el))
+        return u"\n".join(text2return)
+    else:
+        if debug: print("NO TEXT in el - " + etree.tostring(el))
+        return u""
 
 def get_fld_names_from_header_row(row):
     """
@@ -283,8 +298,8 @@ def get_fld_names_from_header_row(row):
             orig_fld_names.append(fldname)
     return importer.process_fld_names(orig_fld_names)
 
-def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, prog_steps_for_xml_steps, 
-                 next_prog_val, has_header=True):
+def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
+                 prog_steps_for_xml_steps, next_prog_val, has_header=True):
     """
     Returns fld_types (dict with field names as keys) and rows (list of dicts).
     Limited value in further optimising my code.  The xml parsing stage takes up 
@@ -322,7 +337,8 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, prog_steps_for_xml_steps,
             raise Exception(u"Error getting details from row idx %s."
                             u"\nCaused by error: %s" % (i, lib.ue(e)))
     for fldname, type_set in zip(fldnames, coltypes):
-        fld_type = lib.get_overall_fld_type(type_set)
+        fld_type = importer.get_best_fld_type(fldname, type_set,
+                                              faulty2missing_fld_list)
         fld_types[fldname] = fld_type
     return fld_types, rows
 
@@ -378,21 +394,42 @@ def process_cells(attrib_dict, coltypes, col_idx, fldnames, valdict, type,
         col_idx += 1
     return bolcontinue, col_idx
 
-def extract_date_if_possible(val2use, type):
+def extract_date_if_possible(el_det, attrib_dict, xml_type, type):
     """
     Needed because Google Docs spreadsheets return timestamp as a float with a 
         text format e.g. 40347.8271296296 and 6/18/2010 19:51:04.  If a float,
-        check to see if a valid datetime anyway.
+        check to see if a valid datetime anyway.  NB date text might be invalid 
+        and not align with float value e.g. 
+    <table:table-cell table:style-name="ce22" office:value-type="float" 
+        office:value="40413.743425925924">
+    <text:p>50/23/2010 17:50:32</text:p>
     """
-    if type != mg.VAL_DATETIME: # not needed if already a datetime
-        google_docs_default_date = u"%m/%d/%Y" # OK if already in list
-        mg.OK_DATE_FORMATS.append(google_docs_default_date) 
+    text = get_el_inner_val(el_det[RAW_EL]) # get val from inner txt el
+    if xml_type == XML_TYPE_FLOAT:
         try:
-            val2use = lib.get_std_datetime_str(val2use)
-            type = mg.VAL_DATETIME
+            # is it really a date even though not formally formatted as a date?
+            # see if text contains multiple /s
+            float_val = float(attrib_dict.get(VALUE))
+            google_docs_default_date = u"%m/%d/%Y" # OK if already in list
+            mg.OK_DATE_FORMATS.append(google_docs_default_date)
+            usable_datetime = lib.is_usable_datetime_str(raw_datetime_str=text)
+            # OK for this purpose to accept invalid dates - we calculate the 
+            # datetime from the number anyway - this is just an indicator that this 
+            # is meant to be a date e.g. 50/23/2010 17:50:32.
+            attempted_date = text.count(u"/") > 1
+            if usable_datetime or attempted_date:
+                days_since_1900 = float_val
+                if days_since_1900 is not None:
+                    dt = lib.dates_1900_to_datetime(days_since_1900)
+                    val2use = dt.isoformat(" ").split(".")[0]
+                    type = mg.VAL_DATE
+            else:
+                val2use = text
         except Exception, e:
-            pass
+            val2use = text
         mg.OK_DATE_FORMATS.pop() # back to normal
+    else:
+        val2use = text
     return val2use, type
 
 def dets_from_row(fldnames, coltypes, row):
@@ -405,7 +442,7 @@ def dets_from_row(fldnames, coltypes, row):
         empty cell.  Important not to just skip empty formulae cells.
     """
     debug = False
-    verbose = True
+    verbose = False
     large = False
     valdict = {}
     tbl_cell_el_dets = get_tbl_cell_el_dets(row)
@@ -419,9 +456,10 @@ def dets_from_row(fldnames, coltypes, row):
         val2use = u""
         type = mg.VAL_EMPTY_STRING
         if DATE_VAL in attrib_dict:
-            type = mg.VAL_DATETIME
+            type = mg.VAL_DATE
             val2use = attrib_dict[DATE_VAL] # take proper date value
                             # e.g. 2010-02-01 rather than orig text of 01/02/10
+            if debug: print(val2use)
             bolcontinue, col_idx = process_cells(attrib_dict, coltypes, col_idx, 
                                                fldnames, valdict, type, val2use)
             if not bolcontinue:
@@ -433,12 +471,13 @@ def dets_from_row(fldnames, coltypes, row):
             except KeyError:
                 raise Exception(u"Unknown value-type. Update "
                                 u"ods_reader.xml_type_to_val_type")
-            val2use = get_el_inner_val(el_det[RAW_EL])#get val from inner txt el
             # NB need to treat as datetime if it really is even though not
             # properly tagged as a date-value (e.g. Google Docs spreadsheets)
-            val2use, type = extract_date_if_possible(val2use, type)
+            val2use, type = extract_date_if_possible(el_det, attrib_dict, 
+                                                     xml_type, type)
+            if debug: print(val2use)
             bolcontinue, col_idx = process_cells(attrib_dict, coltypes, col_idx, 
-                                            fldnames, valdict, type, val2use)
+                                               fldnames, valdict, type, val2use)
             if not bolcontinue:
                 break
         elif len(el_det[RAW_EL]) == 0 or FORMULA in attrib_dict: # empty cell(s)

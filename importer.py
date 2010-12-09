@@ -40,6 +40,9 @@ class FixMismatchDlg(wx.Dialog):
     # actual cause not known but buggy original had a setup_btns method
     def __init__(self, fldname, fld_type_choices, fld_types, 
              faulty2missing_fld_list, assessing_sample=False):
+        """
+        fld_type_choices -- doesn't include string.
+        """
         if assessing_sample:
             title_txt = _("MIX OF DATA TYPES")
         else:
@@ -62,15 +65,12 @@ class FixMismatchDlg(wx.Dialog):
                                            {u"fldname": fldname, 
                                             u"data_type": fld_types[fldname]}
         lbl_choice = wx.StaticText(self.panel, -1, choice_txt)
-        types = u" or ".join(["\"%s\"" % x for x in fld_type_choices])
+        types = u" or ".join(["\"%s\"" % x for x in self.fld_type_choices])
         lbl_implications = wx.StaticText(self.panel, -1, _(u"If you choose %s ,"
             u" any values that are not of that type will be turned to missing."
             % types))
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_btns = wx.BoxSizer(wx.HORIZONTAL)
-        btn_text = wx.Button(self.panel, mg.RET_TEXT, mg.FLD_TYPE_STRING)
-        btn_text.Bind(wx.EVT_BUTTON, self.on_text)
-        szr_btns.Add(btn_text, 0, wx.LEFT|wx.RIGHT, 10)
         if mg.FLD_TYPE_NUMERIC in self.fld_type_choices:
             btn_num = wx.Button(self.panel, mg.RET_NUMERIC, mg.FLD_TYPE_NUMERIC)
             btn_num.Bind(wx.EVT_BUTTON, self.on_num)
@@ -79,6 +79,9 @@ class FixMismatchDlg(wx.Dialog):
             btn_date = wx.Button(self.panel, mg.RET_DATE, mg.FLD_TYPE_DATE)
             btn_date.Bind(wx.EVT_BUTTON, self.on_date)
             szr_btns.Add(btn_date, 0,  wx.LEFT|wx.RIGHT, 10)
+        btn_text = wx.Button(self.panel, mg.RET_TEXT, mg.FLD_TYPE_STRING)
+        btn_text.Bind(wx.EVT_BUTTON, self.on_text)
+        szr_btns.Add(btn_text, 0, wx.LEFT|wx.RIGHT, 10)
         btn_cancel = wx.Button(self.panel, wx.ID_CANCEL) # 
         btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
         szr_btns.Add(btn_cancel, 0,  wx.LEFT|wx.RIGHT, 10)
@@ -110,7 +113,47 @@ class FixMismatchDlg(wx.Dialog):
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
         # (MUST come after Destroy)
-               
+    
+    
+def get_best_fld_type(fldname, type_set, faulty2missing_fld_list):
+    """
+    type_set may contain empty_str as well as actual types.  Useful to remove
+        empty str and see what is left.
+    faulty2missing_fld_list -- so we can stay with the selected best type by 
+        setting faulty values that don't match type to missing.
+    STRING is the fallback.
+    """
+    debug = False
+    main_type_set = type_set.copy()
+    main_type_set.discard(mg.VAL_EMPTY_STRING)
+    if main_type_set == set([mg.VAL_NUMERIC]):
+        fld_type = mg.FLD_TYPE_NUMERIC
+    elif main_type_set == set([mg.VAL_DATE]):
+        fld_type = mg.FLD_TYPE_DATE
+    elif (main_type_set == set([mg.VAL_STRING]) 
+            or type_set == set([mg.VAL_EMPTY_STRING])):
+        fld_type = mg.FLD_TYPE_STRING
+    elif len(main_type_set) > 1:
+        # get user to choose
+        fld_types = {}
+        fld_type_choices = []
+        if mg.VAL_NUMERIC in main_type_set:
+            fld_type_choices.append(mg.FLD_TYPE_NUMERIC)
+        if mg.VAL_DATE in main_type_set:
+            fld_type_choices.append(mg.FLD_TYPE_DATE)
+        dlg = FixMismatchDlg(fldname=fldname, 
+                             fld_type_choices=fld_type_choices, 
+                             fld_types=fld_types, 
+                             faulty2missing_fld_list=faulty2missing_fld_list, 
+                             assessing_sample=True)
+        retval = dlg.ShowModal()
+        if retval == wx.ID_CANCEL:
+            raise Exception(u"Inconsistencies in data type.")             
+        else:
+            fld_type = fld_types[fldname]
+    else:
+        fld_type = mg.FLD_TYPE_STRING    
+    return fld_type
 
 def process_fld_names(raw_names):
     """
@@ -155,7 +198,8 @@ def process_tbl_name(rawname):
     return rawname.replace(u" ", u"_")
 
 def assess_sample_fld(sample_data, has_header, orig_fld_name, orig_fld_names, 
-                      allow_none=True, comma_dec_sep_ok=False):
+                      faulty2missing_fld_list, allow_none=True, 
+                      comma_dec_sep_ok=False):
     """
     NB client code gets number of fields in row 1.  Then for each field, it 
         traverses rows (i.e. travels down a col, then down the next etc).  If a
@@ -187,10 +231,11 @@ def assess_sample_fld(sample_data, has_header, orig_fld_name, orig_fld_names,
                 report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, 
                                       allow_none)
         lib.update_type_set(type_set, val, comma_dec_sep_ok)
-    fld_type = lib.get_overall_fld_type(type_set)
+    fld_type = get_best_fld_type(fldname=orig_fld_name, type_set=type_set, 
+                                faulty2missing_fld_list=faulty2missing_fld_list)
     return fld_type
 
-def get_val(feedback, raw_val, check, is_pytime, fld_type, orig_fld_name, 
+def get_val(feedback, raw_val, is_pytime, fld_type, orig_fld_name, 
             faulty2missing_fld_list, row_num, comma_dec_sep_ok=False):
     """
     feedback -- dic with mg.NULLED_DOTS
@@ -198,96 +243,80 @@ def get_val(feedback, raw_val, check, is_pytime, fld_type, orig_fld_name,
         imported, but a missing value indicator (e.g. ".") is not.  A missing
         value indicator is fine in the data _once it has been imported_ but
         not beforehand.
-    check -- not necessary if part of a sample (will already have been tested)
+    Checking is always necessary, even for a sample which has already been 
+        examined. May have found a variable conflict and need to handle it after 
+        it raises a mismatch error by turning faulty values to nulls.
     """
-    if not check:
-        # still need to handle pytime, turn empty strings into NULLs for 
-        # non string fields, and handle decimal separators.
-        if is_pytime:
-            val = lib.pytime_to_datetime_str(raw_val)
-        if not is_pytime:
-            if raw_val is None or (fld_type in [mg.FLD_TYPE_NUMERIC, 
-                                        mg.FLD_TYPE_DATE] and raw_val == u""):
-                val = u"NULL"
-            elif raw_val == mg.MISSING_VAL_INDICATOR:
-                feedback[mg.NULLED_DOTS] = True
-                val = u"NULL"
-            elif fld_type == mg.FLD_TYPE_NUMERIC:
-                try:
-                    if comma_dec_sep_ok:
-                        val = raw_val.replace(u",", u".")
-                    else:
-                        val = raw_val
-                except AttributeError, e:
-                    val = raw_val
-            else:
-                val = raw_val
-    else: # checking
-        ok_data = False        
-        if fld_type == mg.FLD_TYPE_NUMERIC:
-            # must be numeric or empty string or dot (which we'll turn to NULL)
-            if lib.is_numeric(raw_val, comma_dec_sep_ok):
-                ok_data = True
-                try:
-                    if comma_dec_sep_ok:
-                        val = raw_val.replace(u",", u".")
-                    else:
-                        val = raw_val
-                except AttributeError, e:
-                    val = raw_val
-            elif raw_val == u"" or raw_val is None:
-                ok_data = True
-                val = u"NULL"
-            elif raw_val == mg.MISSING_VAL_INDICATOR: # not ok in numeric field
-                feedback[mg.NULLED_DOTS] = True
-                val = u"NULL"
-            else:
-                pass # no need to set val - not ok_data so exception later
-        elif fld_type == mg.FLD_TYPE_DATE:
-            # must be pytime or datetime 
-            # or empty string or dot (which we'll turn to NULL).
-            if is_pytime:
-                ok_data = True
-                val = lib.pytime_to_datetime_str(raw_val)
-            else:
-                if raw_val == u"" or raw_val is None:
-                    ok_data = True
-                    val = u"NULL"
-                elif raw_val == mg.MISSING_VAL_INDICATOR: # not ok in numeric fld
-                    feedback[mg.NULLED_DOTS] = True
-                    val = u"NULL"
-                else:
-                    try:
-                        val = lib.get_std_datetime_str(raw_val)
-                        ok_data = True
-                    except Exception:
-                        pass # no need to set val - not ok_data so excepn later
-        elif fld_type == mg.FLD_TYPE_STRING:
-            # None or dot or empty string we'll turn to NULL
+    debug = False
+    ok_data = False        
+    if fld_type == mg.FLD_TYPE_NUMERIC:
+        # must be numeric or empty string or dot (which we'll turn to NULL)
+        if lib.is_numeric(raw_val, comma_dec_sep_ok):
             ok_data = True
-            if raw_val is None or raw_val == u"":
+            try:
+                if comma_dec_sep_ok:
+                    val = raw_val.replace(u",", u".")
+                else:
+                    val = raw_val
+            except AttributeError, e:
+                val = raw_val
+        elif raw_val == u"" or raw_val is None:
+            ok_data = True
+            val = u"NULL"
+        elif raw_val == mg.MISSING_VAL_INDICATOR: # not ok in numeric field
+            feedback[mg.NULLED_DOTS] = True
+            val = u"NULL"
+        else:
+            pass # no need to set val - not ok_data so exception later
+    elif fld_type == mg.FLD_TYPE_DATE:
+        # must be pytime or datetime 
+        # or empty string or dot (which we'll turn to NULL).
+        if is_pytime:
+            ok_data = True
+            if debug: print(u"pytime raw val: %s" % raw_val)
+            val = lib.pytime_to_datetime_str(raw_val)
+            if debug: print(u"pytime val: %s" % val)
+        else:
+            if raw_val == u"" or raw_val is None:
+                ok_data = True
                 val = u"NULL"
-            elif raw_val == mg.MISSING_VAL_INDICATOR:
+            elif raw_val == mg.MISSING_VAL_INDICATOR: # not ok in numeric fld
                 feedback[mg.NULLED_DOTS] = True
                 val = u"NULL"
             else:
-                val = raw_val
+                try:
+                    if debug: print(u"Raw val: %s" % raw_val)
+                    val = lib.get_std_datetime_str(raw_val)
+                    if debug: print(u"Date val: %s" % val)
+                    ok_data = True
+                except Exception:
+                    pass # no need to set val - not ok_data so excepn later
+    elif fld_type == mg.FLD_TYPE_STRING:
+        # None or dot or empty string we'll turn to NULL
+        ok_data = True
+        if raw_val is None or raw_val == u"":
+            val = u"NULL"
+        elif raw_val == mg.MISSING_VAL_INDICATOR:
+            feedback[mg.NULLED_DOTS] = True
+            val = u"NULL"
         else:
-            raise Exception(u"Unexpected field type in importer.get_val()")
-        if not ok_data:
-            if orig_fld_name in faulty2missing_fld_list:
-                val = u"NULL" # replace faulty value with a null
-            else:
-                raise MismatchException(fldname=orig_fld_name,
-                                    expected_fld_type=fld_type,
-                                    details=(u"Column: %s" % orig_fld_name +
-                                    u"\nRow: %s" % (row_num) +
-                                    u"\nValue: \"%s\"" % raw_val +
-                                    u"\nExpected column type: %s" % fld_type))
+            val = raw_val
+    else:
+        raise Exception(u"Unexpected field type in importer.get_val()")
+    if not ok_data:
+        if orig_fld_name in faulty2missing_fld_list:
+            val = u"NULL" # replace faulty value with a null
+        else:
+            raise MismatchException(fldname=orig_fld_name,
+                                expected_fld_type=fld_type,
+                                details=(u"Column: %s" % orig_fld_name +
+                                u"\nRow: %s" % (row_num) +
+                                u"\nValue: \"%s\"" % raw_val +
+                                u"\nExpected column type: %s" % fld_type))
     return val
 
 def process_val(feedback, vals, row_num, row, orig_fld_name, fld_types, 
-                faulty2missing_fld_list, check, comma_dec_sep_ok=False):
+                faulty2missing_fld_list, comma_dec_sep_ok=False):
     """
     Add val to vals.
     feedback -- dic with mg.NULLED_DOTS
@@ -312,7 +341,7 @@ def process_val(feedback, vals, row_num, row, orig_fld_name, fld_types,
                            u"orig_fld_name": orig_fld_name})
     is_pytime = lib.is_pytime(rawval)
     fld_type = fld_types[orig_fld_name]
-    val = get_val(feedback, rawval, check, is_pytime, fld_type, orig_fld_name, 
+    val = get_val(feedback, rawval, is_pytime, fld_type, orig_fld_name, 
                   faulty2missing_fld_list, row_num, comma_dec_sep_ok)
     if fld_type != mg.FLD_TYPE_NUMERIC and val != u"NULL":
         try:
@@ -359,8 +388,8 @@ def report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, allow_none):
 
 def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fld_names, 
              orig_fld_names, fld_types, faulty2missing_fld_list, progbar, 
-             steps_per_item, gauge_start=0, row_num_start=0, check=False, 
-             allow_none=True, comma_dec_sep_ok=False):
+             steps_per_item, gauge_start=0, row_num_start=0, allow_none=True, 
+             comma_dec_sep_ok=False):
     """
     feedback -- dic with mg.NULLED_DOTS
     Add the rows of data (dicts), processing each cell as you go.
@@ -373,7 +402,7 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fld_names,
         If a csv files does, however, it is not. Should be empty str.
     TODO - insert multiple lines at once for performance.
     """
-    debug = True
+    debug = False
     fld_names_clause = u", ".join([dbe_sqlite.quote_obj(x) for x 
                                    in ok_fld_names])
     for row_idx, row in enumerate(rows):
@@ -381,26 +410,21 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fld_names,
             print(row)
             print(str(row_idx))
         if row_idx % 50 == 0:
-            if debug: print("About to Yield")
             wx.Yield()
-            if debug: print("Just yielded")
             if import_status[mg.CANCEL_IMPORT]:
                 progbar.SetValue(0)
                 raise my_exceptions.ImportCancelException
-        if debug: print("About to set gauge_start")
         gauge_start += 1
-        if debug: print("gauge_start is %s" % gauge_start)
         row_num = row_num_start + row_idx
         #if debug and row_num == 12:
         #    print("Break on this line :-)")
         vals = []
         report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, 
                               allow_none)
-        if debug: print("No field n mismatch")
         try:
             for orig_fld_name in orig_fld_names:
                 process_val(feedback, vals, row_num, row, orig_fld_name, 
-                            fld_types, faulty2missing_fld_list, check, 
+                            fld_types, faulty2missing_fld_list, 
                             comma_dec_sep_ok)
         except MismatchException, e:
             if debug: print("A mismatch exception")
@@ -451,16 +475,16 @@ def post_fail_tidy(progbar, con, cur):
 
 def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path, 
                           tbl_name, has_header, ok_fld_names, orig_fld_names, 
-                          fld_types, faulty2missing_fld_list, sample_data, 
-                          sample_n, remaining_data, progbar, steps_per_item, 
-                          gauge_start, allow_none=True, comma_dec_sep_ok=False):
-    debug = True
+                          fld_types, faulty2missing_fld_list, data, progbar, 
+                          steps_per_item, gauge_start, allow_none=True, 
+                          comma_dec_sep_ok=False):
+    debug = False
     if debug:
         print(u"Original field names are: %s" % orig_fld_names)
         print(u"Cleaned (ok) field names are: %s" % ok_fld_names)
         print(u"Field types are: %s" % fld_types)
         print(u"Faulty to missing field list: %s" % faulty2missing_fld_list)
-        print(u"Sample data is: %s" % sample_data)
+        print(u"Data is: %s" % data)
     try:
         con.commit()
         SQL_get_tbl_names = u"""SELECT name 
@@ -487,21 +511,11 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
         # Add sample and then remaining data to disposable table.
         # Already been through sample once when assessing it so part way through 
         # process already.
-        add_rows(feedback, import_status, con, cur, sample_data, has_header, 
+        add_rows(feedback, import_status, con, cur, data, has_header, 
                  ok_fld_names, orig_fld_names, fld_types, 
                  faulty2missing_fld_list, progbar, steps_per_item, 
                  gauge_start=gauge_start, row_num_start=1, 
-                 check=False, allow_none=allow_none, 
-                 comma_dec_sep_ok=comma_dec_sep_ok)
-        # been through sample since gauge_start
-        remainder_gauge_start = gauge_start + (sample_n*steps_per_item)
-        row_num_start = sample_n + 1
-        add_rows(feedback, import_status, con, cur, remaining_data, has_header, 
-                 ok_fld_names, orig_fld_names, fld_types, 
-                 faulty2missing_fld_list, progbar, steps_per_item, 
-                 gauge_start=remainder_gauge_start, row_num_start=row_num_start, 
-                 check=True, allow_none=allow_none, 
-                 comma_dec_sep_ok=comma_dec_sep_ok)
+                 allow_none=allow_none, comma_dec_sep_ok=comma_dec_sep_ok)
         return True
     except MismatchException, e:
         feedback[mg.NULLED_DOTS] = False
@@ -522,9 +536,8 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
 
 def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tbl_name, 
                    has_header, ok_fld_names, orig_fld_names, fld_types, 
-                   faulty2missing_fld_list, sample_data, sample_n, 
-                   remaining_data, progbar, steps_per_item, gauge_start, 
-                   allow_none=True, comma_dec_sep_ok=False):
+                   faulty2missing_fld_list, data, progbar, steps_per_item, 
+                   gauge_start, allow_none=True, comma_dec_sep_ok=False):
     """
     Create fresh disposable table in SQLite and insert data into it.
     feedback -- dic with mg.NULLED_DOTS
@@ -534,8 +547,7 @@ def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tbl_name,
     fld_types -- dict with field types for original field names
     faulty2missing_fld_list -- list of fields where we should turn faulty values 
         to missing.
-    sample_data -- list of dicts using orig fld names
-    remaining_data -- as for sample data
+    data -- list of dicts using orig fld names
     allow_none -- if Excel returns None for an empty cell that is correct bvr.
         If a csv files does, however, it is not. Should be empty str.
     Give it a unique identifier field as well.
@@ -547,9 +559,8 @@ def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tbl_name,
     while True: # keep trying till success or user decodes not to fix & continue
         if try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path, 
                 tbl_name, has_header, ok_fld_names, orig_fld_names, fld_types, 
-                faulty2missing_fld_list, sample_data, sample_n, remaining_data, 
-                progbar, steps_per_item, gauge_start, allow_none=True, 
-                comma_dec_sep_ok=False):
+                faulty2missing_fld_list, data, progbar, steps_per_item, 
+                gauge_start, allow_none=True, comma_dec_sep_ok=False):
             break
     
 def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):

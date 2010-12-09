@@ -4,7 +4,7 @@
 from __future__ import print_function
 
 import codecs
-from datetime import datetime
+import datetime
 import decimal
 import locale
 import math
@@ -21,6 +21,10 @@ import wx
 import my_globals as mg
 import my_exceptions
 import core_stats
+
+def dates_1900_to_datetime(days_since_1900):
+    DATETIME_ZERO = datetime.datetime(1899, 12, 30, 0, 0, 0)
+    return DATETIME_ZERO + datetime.timedelta(days=float(days_since_1900))
 
 def get_unique_db_name_key(db_names, db_name):
     "Might have different paths but same name."
@@ -228,7 +232,7 @@ def version_a_is_newer(version_a, version_b):
 
 def get_unicode_datestamp():
     debug = False
-    now = datetime.now()
+    now = datetime.datetime.now()
     try:
         raw_datestamp = now.strftime(u"%d/%m/%Y at %I:%M %p")
         # see http://groups.google.com/group/comp.lang.python/browse_thread/...
@@ -418,26 +422,35 @@ def update_type_set(type_set, val, comma_dec_sep_ok=False):
             # _as a number_ into a numeric field
         type_set.add(mg.VAL_NUMERIC)
     elif is_pytime(val): # COM on Windows
-        type_set.add(mg.VAL_DATETIME)
+        type_set.add(mg.VAL_DATE)
     else:
         usable_datetime = is_usable_datetime_str(val)
         if usable_datetime:
-            type_set.add(mg.VAL_DATETIME)
+            type_set.add(mg.VAL_DATE)
         elif val == u"":
             type_set.add(mg.VAL_EMPTY_STRING)
         else:
             type_set.add(mg.VAL_STRING)
 
 def get_overall_fld_type(type_set):
-    numeric_only_set = set([mg.VAL_NUMERIC])
-    numeric_or_empt_str_set = set([mg.VAL_NUMERIC, mg.VAL_EMPTY_STRING])
-    datetime_only_set = set([mg.VAL_DATETIME])
-    datetime_or_empt_str_set = set([mg.VAL_DATETIME, mg.VAL_EMPTY_STRING])
-    if type_set == numeric_only_set or type_set == numeric_or_empt_str_set:
+    """
+    type_set may contain empty_str as well as actual types.  Useful to remove
+        empty str and see what is left.
+    STRING is the fallback.
+    """
+    debug = False
+    main_type_set = type_set.copy()
+    main_type_set.discard(mg.VAL_EMPTY_STRING)
+    if main_type_set == set([mg.VAL_NUMERIC]):
         fld_type = mg.FLD_TYPE_NUMERIC
-    elif type_set == datetime_only_set or type_set == datetime_or_empt_str_set:
+    elif main_type_set == set([mg.VAL_DATE]):
         fld_type = mg.FLD_TYPE_DATE
+    elif (main_type_set == set([mg.VAL_STRING]) 
+            or type_set == set([mg.VAL_EMPTY_STRING])):
+        fld_type = mg.FLD_TYPE_STRING
     else:
+        if len(main_type_set) > 1:
+            if debug: print(main_type_set)
         fld_type = mg.FLD_TYPE_STRING    
     return fld_type
 

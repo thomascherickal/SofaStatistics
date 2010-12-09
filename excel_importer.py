@@ -21,7 +21,7 @@ class ExcelImporter(importer.FileImporter):
         self.ext = u"XLS"
     
     def assess_sample(self, wksheet, orig_fld_names, progbar, steps_per_item, 
-                      import_status):
+                      import_status, faulty2missing_fld_list):
         """
         Assess data sample to identify field types based on values in fields.
         If a field has mixed data types will define as string.
@@ -53,7 +53,8 @@ class ExcelImporter(importer.FileImporter):
         fld_types = []
         for orig_fld_name in orig_fld_names:
             fld_type = importer.assess_sample_fld(sample_data, self.has_header, 
-                                                  orig_fld_name, orig_fld_names)
+                                                  orig_fld_name, orig_fld_names,
+                                                  faulty2missing_fld_list)
             fld_types.append(fld_type)
         fld_types = dict(zip(orig_fld_names, fld_types))
         if not has_rows:
@@ -97,22 +98,20 @@ class ExcelImporter(importer.FileImporter):
             print("steps_per_item: %s" % steps_per_item)
             print("About to assess data sample")
         fld_types, sample_data = self.assess_sample(wksheet, orig_fld_names, 
-                                        progbar, steps_per_item, import_status)
+                                        progbar, steps_per_item, import_status,
+                                        faulty2missing_fld_list)
         if debug:
             print("Just finished assessing data sample")
             print(fld_types)
             print(sample_data)
-        # NB wksheet will NOT be at position ready to access records after 
-        # sample.  Can't just pass in spreadsheet.
-        remaining_data = [x for x in wksheet][sample_n:]
         gauge_start = steps_per_item*sample_n
         try:
             feedback = {mg.NULLED_DOTS: False}
             importer.add_to_tmp_tbl(feedback, import_status, default_dd.con, 
                 default_dd.cur, self.file_path, self.tbl_name, self.has_header, 
                 ok_fld_names, orig_fld_names, fld_types, 
-                faulty2missing_fld_list, sample_data, sample_n, 
-                remaining_data, progbar, steps_per_item, gauge_start)
+                faulty2missing_fld_list, data, progbar, steps_per_item, 
+                gauge_start)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                                       self.tbl_name, self.file_path,
                                       progbar, feedback[mg.NULLED_DOTS])

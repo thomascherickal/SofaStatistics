@@ -281,7 +281,7 @@ FLD_NAME_START = u"var"
 NEXT_FLD_NAME_TEMPLATE = FLD_NAME_START + u"%03i"
 # importer
 VAL_NUMERIC = u"numeric value"
-VAL_DATETIME = u"datetime value"
+VAL_DATE = u"datetime value"
 VAL_STRING = u"string value"
 VAL_EMPTY_STRING = u"empty string value"
 HAS_HEADER = 1966 # anything OK as long as no collision with wx.ID_CANCEL
