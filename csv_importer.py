@@ -335,6 +335,7 @@ class DlgImportDisplay(wx.Dialog):
         event.Skip()
     
     def get_content(self):
+        debug = True
         self.utf8_encoded_csv_sample = csv_to_utf8_byte_lines(self.file_path,
                                           self.encoding, n_lines=ROWS_TO_SAMPLE)
         try:
@@ -357,7 +358,16 @@ class DlgImportDisplay(wx.Dialog):
             raise Exception(u"Unable to create reader for file. "
                             u"\nCaused by error: %s" % lib.ue(e))
         decoded_lines = [] # init
-        for row in tmp_reader:
+        rows = [x for x in tmp_reader if x] # exclude empty rows
+        try:
+            max_row_len = max([len(x) for x in rows])
+        except Exception, e:
+            max_row_len = None
+        for row in rows:
+            len_row = len(row)
+            if debug: print(len_row, row)
+            if len_row < max_row_len:
+                row += [u"" for x in range(max_row_len - len_row)]
             line = u"<tr><td>" + u"</td><td>".join(row) + u"</td></tr>"
             decoded_lines.append(line)
         trows = u"\n".join(decoded_lines)

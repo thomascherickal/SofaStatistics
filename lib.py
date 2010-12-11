@@ -606,7 +606,7 @@ def get_next_fld_name(existing_var_names):
     next_fld_name = mg.NEXT_FLD_NAME_TEMPLATE % free_num
     return next_fld_name
 
-def get_labels_in_lines(orig_txt, max_width):
+def get_labels_in_lines(orig_txt, max_width, dojo=False):
     """
     Returns quoted text. Will not be further quoted.
     Will be "%s" % wrapped txt not "\"%s\"" % wrapped_txt
@@ -627,10 +627,17 @@ def get_labels_in_lines(orig_txt, max_width):
     if debug: 
         print(line_words)
         print(lines)
-    if len(lines) == 1:
-        wrapped_txt = u"\"" + lines[0].strip() + u"\""
+    if dojo:
+        if len(lines) == 1:
+            wrapped_txt = u"\"" + lines[0].strip() + u"\""
+        else:
+            wrapped_txt = u"\"" + u"\" + labelLineBreak + \"".join(lines) + \
+                                                                        u"\""
     else:
-        wrapped_txt = u"\"" + u"\" + labelLineBreak + \"".join(lines) + u"\""
+        if len(lines) == 1:
+            wrapped_txt = lines[0].strip()
+        else:
+            wrapped_txt = u"\n".join(lines)
     if debug: print(wrapped_txt)
     return wrapped_txt
 

@@ -80,6 +80,7 @@ def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot,
     debug = False
     clustered_bars = boomslang.ClusteredBars(attribution=mg.ATTRIBUTION)
     clustered_bars.grid_bg = grid_bg
+    labels_n = len(val_labels_b)
     for i, val_label_b in enumerate(val_labels_b):
         cluster = boomslang.Bar()
         x_vals = range(val_labels_a_n)
@@ -91,7 +92,9 @@ def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot,
         cluster.yValues = y_vals
         cluster.color = bar_colours[i]
         cluster.edgeColor = "white"
-        cluster.label = val_label_b
+        max_width = 17 if labels_n < 5 else 10
+        cluster.label = lib.get_labels_in_lines(orig_txt=val_label_b, 
+                                                max_width=max_width)
         clustered_bars.add(cluster)
     clustered_bars.spacing = 0.5
     clustered_bars.xTickLabels = val_labels_a

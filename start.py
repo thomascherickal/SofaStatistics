@@ -315,15 +315,20 @@ def run_test_code(script):
     print(u"Ran test code %s" % script)
 
 def populate_css_path(prog_path, local_path):
+    """
+    If something is wrong identifying script path, here is where it will fail 
+        first.
+    """
     styles = [mg.DEFAULT_STYLE, u"grey_spirals.css", u"lucid_spirals.css", 
               u"pebbles.css"]
     for style in styles:
         try:
             shutil.copy(os.path.join(prog_path, u"css", style), 
                         os.path.join(local_path, u"css", style))
-        except Exception, e:
+        except Exception, e: # more diagnostic info to explain why it failed
             raise Exception(u"Problem populating css path."
-                            u"\nCaused by error: %s" % lib.ue(e))
+                            u"\nCaused by error: %s" % lib.ue(e) +
+                            u"\nFile location details: %s" % sys.path)
     print(u"Populated css paths under %s" % local_path)
 
 def populate_extras_path(prog_path, local_path):
@@ -460,7 +465,7 @@ def archive_older_default_report():
         except OSError, e:
             pass
                     
-def freshen_recovery(local_subfolders):
+def freshen_recovery(prog_path, local_subfolders, subfolders_in_proj):
     """
     Need a good upgrade process which leaves existing configuration intact if 
         possible but creates recovery folder which is guaranteed to work with 
@@ -477,8 +482,9 @@ def freshen_recovery(local_subfolders):
         to the ordinary home "sofa" folder.  This will only work, of course, if 
         the folder is made operational by renaming it to "sofa".
     """
-    installer_recovery_is_newer, installer_recovery_newer_status_known = \
-                                get_installer_version_status(mg.RECOVERY_PATH)
+    (installer_recovery_is_newer, 
+     installer_recovery_newer_status_known) = \
+                                  get_installer_version_status(mg.RECOVERY_PATH)
     if (installer_recovery_is_newer or not installer_recovery_newer_status_known
             or not os.path.exists(mg.RECOVERY_PATH)):
         # make fresh recovery folder (over top of previous if necessary)
@@ -548,7 +554,7 @@ try:
                             u"make a fresh one.\nCaused by error: %s" %
                             (mg.LOCAL_PATH, lib.ue(e)))
     # 3) Make a fresh recovery folder if needed
-    freshen_recovery(local_subfolders)
+    freshen_recovery(prog_path, local_subfolders, subfolders_in_proj)
 except Exception, e:
     msg = (u"Problem running initial setup.\nCaused by error: %s" % lib.ue(e))
     if show_early_steps: print(msg)

@@ -126,7 +126,8 @@ def get_indiv_basic_dets(indiv_label, indiv_raw_results, measure_val_lbls,
         len_y_val = len(val_label)
         if len_y_val > max_label_len:
             max_label_len = len_y_val
-        split_label = lib.get_labels_in_lines(orig_txt=val_label, max_width=17)
+        split_label = lib.get_labels_in_lines(orig_txt=val_label, max_width=17, 
+                                              dojo=True)
         measure_dets.append((val, val_label, split_label))
         y_vals.append(freq)
     return {mg.CHART_CHART_BY_LABEL: indiv_label,
@@ -230,7 +231,8 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
         len_y_val = len(val_label)
         if len_y_val > max_label_len:
             max_label_len = len_y_val
-        split_label = lib.get_labels_in_lines(orig_txt=val_label, max_width=17)
+        split_label = lib.get_labels_in_lines(orig_txt=val_label, max_width=17,
+                                              dojo=True)
         xaxis_dets.append((val, val_label, split_label))
     if debug: print(xaxis_dets)
     return xaxis_dets, max_label_len, series_dets

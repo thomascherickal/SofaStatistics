@@ -404,7 +404,7 @@ def extract_date_if_possible(el_det, attrib_dict, xml_type, type):
         office:value="40413.743425925924">
     <text:p>50/23/2010 17:50:32</text:p>
     """
-    debug = True
+    debug = False
     text = get_el_inner_val(el_det[RAW_EL]) # get val from inner txt el
     if xml_type == XML_TYPE_FLOAT:
         try:

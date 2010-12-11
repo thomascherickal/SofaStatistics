@@ -1172,16 +1172,16 @@ class SummTable(LiveTable):
                 raise Exception(u"Unable to calculate sum of %s." % row_fld)
         elif measure == mg.MEAN:
             SQL_get_mean = u"SELECT AVG(%s) " % self.quote_obj(row_fld) + \
-                u"FROM %s %s" % (selgetdata.tblname_qtr(self.dbe, self.tbl), 
+                u"FROM %s %s" % (getdata.tblname_qtr(self.dbe, self.tbl), 
                                  filter)
             try:
                 self.cur.execute(SQL_get_mean)
-                data_val =  round(self.cur.fetchone()[0],2)
+                data_val = round(self.cur.fetchone()[0],2)
             except Exception, e:
                 raise Exception(u"Unable to calculate mean of %s." % row_fld)
         elif measure == mg.MEDIAN:
             try:
-                data_val =  round(numpy.median(data),2)
+                data_val = round(numpy.median(data),2)
             except Exception, e:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
@@ -1203,7 +1203,7 @@ class SummTable(LiveTable):
                 raise Exception(u"Unable to calculate N for %s." % row_fld)
         elif measure == mg.STD_DEV:
             try:
-                data_val =  round(numpy.std(data),2)
+                data_val = round(numpy.std(data),2)
             except Exception, e:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
