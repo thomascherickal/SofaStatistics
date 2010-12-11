@@ -335,7 +335,7 @@ class DlgImportDisplay(wx.Dialog):
         event.Skip()
     
     def get_content(self):
-        debug = True
+        debug = False
         self.utf8_encoded_csv_sample = csv_to_utf8_byte_lines(self.file_path,
                                           self.encoding, n_lines=ROWS_TO_SAMPLE)
         try:
@@ -367,6 +367,7 @@ class DlgImportDisplay(wx.Dialog):
             len_row = len(row)
             if debug: print(len_row, row)
             if len_row < max_row_len:
+                # right pad sequence with empty str (to become empty str cells)
                 row += [u"" for x in range(max_row_len - len_row)]
             line = u"<tr><td>" + u"</td><td>".join(row) + u"</td></tr>"
             decoded_lines.append(line)

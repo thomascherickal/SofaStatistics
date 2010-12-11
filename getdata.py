@@ -352,7 +352,9 @@ def make_fld_val_clause(dbe, flds, fld_name, val, gte=mg.GTE_EQUALS):
             if not lib.is_basic_num(val):
                 num = False
         if num:
-            clause = u"%s %s %s" % (objqtr(fld_name), dbe_gte, val)
+            # need repr otherwise truncates decimals e.g. 111.582756811 instead 
+            # of 111.58275680743
+            clause = u"%s %s %s" % (objqtr(fld_name), dbe_gte, repr(val))
         else:
             clause = make_fld_val_clause_non_numeric(fld_name, val, dbe_gte, 
                                                      objqtr, valqtr)
