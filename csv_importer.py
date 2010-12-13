@@ -33,6 +33,14 @@ def consolidate_line_seps(str):
         str = str.replace(sep, os.linesep)
     return str
 
+def ok_delimiter(delimiter):
+    try:
+        ord_delimiter = ord(delimiter)
+        if not 31 < ord_delimiter < 127:
+            raise Exception(u"The auto-detected delimiter is unprintable.") 
+    except Exception, e:
+        raise Exception(u"Unable to assess the auto-detected delimiter")
+
 def get_dialect(file_path):
     debug = False
     try:
@@ -45,7 +53,18 @@ def get_dialect(file_path):
         sniff_sample = "".join(sample_lines)
         sniffer = csv.Sniffer()
         dialect = sniffer.sniff(sniff_sample)
-        if debug: print(dialect)
+        if debug: print(dialect.delimiter)
+        try:
+            ok_delimiter(dialect.delimiter)
+        except Exception, e:
+            raise Exception(u"Unable to identify delimiter in csv file. "
+                u"\n\nPlease check your csv file can be opened successfully in "
+                u"a text editor. If not, SOFA can't import it. SOFA has "
+                u"problems with csv files that have been saved in a "
+                u"Microsoft-only format."
+                u"\n\nIf saving as csv in in Excel, make sure to select "
+                u" 'Yes' to leave out features incompatible with csv."
+                u"\n\nCaused by error: %s\n" % lib.ue(e))
     except IOError:
             raise Exception(u"Unable to find file \"%s\" for importing. "
                             u"Please check that file exists." % file_path)
@@ -380,8 +399,13 @@ class DlgImportDisplay(wx.Dialog):
         return content, content_height
     
     def set_display(self):
-        content, unused = self.get_content()
-        self.html_content.SetPage(content)
+        if len(self.dialect.delimiter) > 0:
+            try:
+                content, unused = self.get_content()
+                self.html_content.SetPage(content)
+            except Exception, e:
+                wx.MessageBox(u"Unable to use the delimiter character supplied."
+                              u"\nCaused by error: %s" % lib.ue(e))
     
     def on_btn_cancel(self, event):
         self.Destroy()
@@ -546,8 +570,8 @@ class CsvImporter(importer.FileImporter):
         """
         debug = False
         try:
-            dialect, encoding, self.has_header, utf8_encoded_csv_sample = \
-                                                    self.get_sample_with_dets()
+            (dialect, encoding, self.has_header, 
+             utf8_encoded_csv_sample) = self.get_sample_with_dets()
         except my_exceptions.ImportConfirmationRejected, e:
             raise
         except Exception, e:

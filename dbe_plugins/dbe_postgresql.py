@@ -414,11 +414,11 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_pgsql_user.Enable(not readonly)
     parent.txt_pgsql_user.SetToolTipString(_("User e.g. postgres"))
     # password
-    parent.lbl_pgsql_pwd = wx.StaticText(scroll, -1, _("Password:"), 
-                                         style=wx.TE_PASSWORD)
+    parent.lbl_pgsql_pwd = wx.StaticText(scroll, -1, _("Password:"))
     parent.lbl_pgsql_pwd.SetFont(lblfont)
     pgsql_pwd = parent.pgsql_pwd if parent.pgsql_pwd else u""
-    parent.txt_pgsql_pwd = wx.TextCtrl(scroll, -1, pgsql_pwd, size=(300,-1))
+    parent.txt_pgsql_pwd = wx.TextCtrl(scroll, -1, pgsql_pwd, size=(300,-1), 
+                                       style=wx.TE_PASSWORD)
     parent.txt_pgsql_pwd.Enable(not readonly)
     parent.txt_pgsql_pwd.SetToolTipString(_("Password"))
     #2 pgsql
