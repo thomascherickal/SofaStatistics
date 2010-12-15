@@ -4,7 +4,7 @@ import wx.grid
 import pprint
 
 import my_globals as mg
-import text_browser
+import controls
 
 COL_STR = u"col_string"
 COL_INT = u"col_integer"
@@ -233,7 +233,7 @@ class SettingsEntry(object):
         self.grid.Bind(EVT_CELL_MOVE, self.on_cell_move)
         self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.on_cell_change)
         self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.on_select_cell)
-        self.grid.Bind(text_browser.EVT_TEXT_BROWSE_KEY_DOWN, 
+        self.grid.Bind(controls.EVT_TEXT_BROWSE_KEY_DOWN, 
                        self.on_text_browse_key_down)
         self.frame.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, 
                         self.on_grid_editor_created)
@@ -283,8 +283,8 @@ class SettingsEntry(object):
             # use * - *.* will not pickup files without extensions in Ubuntu
             wildcard = self.col_dets[col_idx].get("file_wildcard", 
                                                   _("Any file") + u" (*)|*")
-            editor = text_browser.GridCellTextBrowseEditor(self.grid, 
-                                                        file_phrase, wildcard)
+            editor = controls.GridCellTextBrowseEditor(self.grid, file_phrase, 
+                                                       wildcard)
         elif col_type == COL_DROPDOWN:
             dropdown_vals = self.col_dets[col_idx].get("dropdown_vals")
             if dropdown_vals:
