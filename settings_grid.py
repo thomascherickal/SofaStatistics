@@ -11,6 +11,7 @@ COL_INT = u"col_integer"
 COL_FLOAT = u"col_float"
 COL_TEXT_BROWSE = u"col_button"
 COL_DROPDOWN = u"col_dropdown"
+COL_PWD = u"col_pwd"
 
 
 class CellMoveEvent(wx.PyCommandEvent):
@@ -293,6 +294,9 @@ class SettingsEntry(object):
             else:
                 raise Exception(u"settings_grid.get_new_renderer_editor: "
                                 u"needed to supply dropdown_vals")
+        elif col_type == COL_PWD:
+            renderer = controls.GridCellPwdRenderer()
+            editor = controls.GridCellPwdEditor()
         else:
             renderer = wx.grid.GridCellStringRenderer()
             editor = wx.grid.GridCellTextEditor()

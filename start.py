@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 show_early_steps = True
-dev_debug = False # relates to errors etc once GUI application running. 
+dev_debug = True # relates to errors etc once GUI application running. 
     # show_early_steps is about revealing any errors before that point.
 test_lang = False
 INIT_DEBUG_MSG = u"Please note the messages above (e.g. with a screen-shot)" + \

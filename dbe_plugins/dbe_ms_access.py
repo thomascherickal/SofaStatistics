@@ -305,7 +305,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                   "file_wildcard": None,
                   "empty_ok": True}
     col_det_pwd = {"col_label": _("Password (opt)"), 
-                  "col_type": settings_grid.COL_STR, 
+                  "col_type": settings_grid.COL_PWD, 
                   "col_width": 130, 
                   "file_phrase": None, 
                   "file_wildcard": None,

@@ -165,4 +165,79 @@ class GridCellTextBrowseEditor(wx.grid.PyGridCellEditor):
     def Clone(self):
         # wxPython
         return GridCellTextBrowseEditor(self.file_phrase, self.wildcard)
+
+
+class GridCellPwdEditor(wx.grid.PyGridCellEditor):
+    """
+    Provides a password text box.
+    """
+    def __init__(self):
+        self.debug = False
+        wx.grid.PyGridCellEditor.__init__(self)
+    
+    def Create(self, parent, id, evt_handler):
+        # wxPython
+        self.pwd_editor = wx.TextCtrl(parent, -1, style=wx.TE_PASSWORD)
+        self.SetControl(self.pwd_editor)
+        if evt_handler:
+            self.pwd_editor.PushEventHandler(evt_handler)
+    
+    def BeginEdit(self, row, col, grid):
+        # wxPython
+        if self.debug: print("Beginning edit")
+        self.start_val = grid.GetTable().GetValue(row, col)
+        self.pwd_editor.SetValue(self.start_val)
+        self.pwd_editor.SetInsertionPointEnd()
+        self.pwd_editor.SetFocus()
+        self.pwd_editor.SetSelection(0, self.pwd_editor.GetLastPosition())
+       
+    def EndEdit(self, row, col, grid):
+        # wxPython
+        changed = False
+        val = self.pwd_editor.GetValue()
+        if val != self.start_val:
+            changed = True
+            grid.GetTable().SetValue(row, col, val) # update the table
+        self.start_val = ""
+        # self.pwd_editor.SetValue("")
+        return changed
+    
+    def Reset(self):
+        # wxPython
+        self.pwd_editor.SetValue(self.start_val)
+        self.pwd_editor.SetInsertionPointEnd()
+    
+    def Clone(self):
+        # wxPython
+        return GridCellPwdEditor()
+       
+    
+class GridCellPwdRenderer(wx.grid.PyGridCellRenderer):
+    
+    def __init__(self):
+        wx.grid.PyGridCellRenderer.__init__(self)
+    
+    def Draw(self, grid, attr, dc, rect, row, col, isSelected):
+        text = grid.GetCellValue(row, col)
+        hAlign, vAlign = attr.GetAlignment()
+        bg = wx.WHITE
+        dc.SetTextBackground(bg)
+        dc.SetTextForeground(attr.GetTextColour())
+        font = attr.GetFont()
+        font.SetPointSize(font.GetPointSize()+3)
+        dc.SetFont(font)
+        dc.SetBrush(wx.Brush(bg, wx.SOLID))
+        dc.SetPen(wx.TRANSPARENT_PEN)
+        dc.DrawRectangleRect(rect)
+        grid.DrawTextRectangle(dc, len(text)*u"\N{BULLET}", rect, hAlign, 
+                               vAlign)
+    
+    def GetBestSize(self, grid, attr, dc, row, col):
+        text = grid.GetCellValue(row, col)
+        dc.SetFont(attr.GetFont())
+        w, h = dc.GetTextExtent(text)
+        return wx.Size(w, h)
+    
+    def Clone(self):
+        return GridCellPwdRenderer()
     
