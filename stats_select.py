@@ -181,7 +181,9 @@ class StatsSelectDlg(wx.Dialog):
         btn_groups.Bind(wx.EVT_BUTTON, self.on_groups_btn)
         self.normality_label = _("Normality")
         self.normality_msg = _("Use the \"%s\" button at the bottom to assess "
-                "the normality of your numerical data") % self.normality_label
+                "the normality of your numerical data.\n\nData which is ordered"
+                " (ordinal) but not numerical is automatically not normal.") % \
+                self.normality_label
         btn_normality = wx.Button(self.panel, -1, self.normality_label,
                                   pos=(BUTTON2_LEFT, QUESTION_BTNS_TOP))
         btn_normality.SetToolTipString(_("Assess the normality of your "
@@ -471,11 +473,22 @@ class StatsSelectDlg(wx.Dialog):
         self.lst_tests.SetFocus()
     
     def update_test_tips(self, test_type, assisted=True):
+        """
+        assisted -- the system has chosen this.  If not assisted, just say 
+            something generic about the test.  If assisted, affirm the choice 
+            and/or add any caveats.
+        """
         tips_width = 390
         if test_type == TEST_ANOVA:
             if assisted:
                 tips = lib.get_text_to_draw(_("The ANOVA (Analysis Of Variance)"
-                    " is probably a good choice."), tips_width)
+                    " is probably a good choice. The Kruskal-Wallis H may "
+                    "still be preferable if your data is not adequately "
+                    "normal."), tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    self.normality_label, tips_width)
             else:
                 tips = lib.get_text_to_draw(_("The ANOVA (Analysis Of Variance)"
                     " is good for seeing if there is a difference in means "
@@ -483,39 +496,99 @@ class StatsSelectDlg(wx.Dialog):
                     "adequately normal. Generally the ANOVA is robust to "
                     "non-normality."), tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_("You can evaluate normality by "
-                    "clicking on the \"%s\" button down the bottom left.") % 
+                tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") % 
                     self.normality_label, tips_width)
-        elif test_type == TEST_CHI_SQUARE:
-            tips = u"" #"_("")
-        elif test_type == TEST_PEARSONS_R:
-            tips = u"" #"_("")
-        elif test_type == TEST_SPEARMANS_R:
-            tips = u"" #"_("")
         elif test_type == TEST_KRUSKAL_WALLIS:
-            tips = u"" #"_("")
-        elif test_type == TEST_MANN_WHITNEY:
             if assisted:
-                tips = lib.get_text_to_draw(_("The Mann-Whitney is probably a "
-                    "good choice.  The Independent t-test may still be "
-                    "preferable if your data is numerical and doesn't violate "
-                    "normality too much.  Generally the t-test is robust"
-                    " to non-normality."),
-                    tips_width)
+                tips = lib.get_text_to_draw(_("The Kruskal-Wallis H"
+                    " is probably a good choice. The ANOVA (Analysis Of "
+                    "Variance) may still be preferable if your data is "
+                    "numerical and adequately normal."), tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_("You can evaluate normality by "
-                    "clicking on the \"%s\" button down the bottom left.") % 
+                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                    u" can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") % 
                     self.normality_label, tips_width)
             else:
-                tips = lib.get_text_to_draw(_("The Mann-Whitney is good for "
-                    "seeing if there is a difference between two groups when "
-                    "the data is at least ordinal (ordered)."), tips_width)
-                tips += u"\n\n" 
-                tips += lib.get_text_to_draw(_("The Independent t-test may be "
-                    "preferable if your data is numerical and doesn't violate "
-                    "normality too much.  Generally the t-test is robust"
-                    " to non-normality."),
+                tips = lib.get_text_to_draw(_("The Kruskal-Wallis H"
+                    " is good for seeing if there is a difference in values "
+                    "between multiple groups when the data is at least ordered"
+                    " (ordinal). The ANOVA (Analysis Of "
+                    "Variance) may still be preferable if your data is "
+                    "numerical and adequately normal."), tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                    u" can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    self.normality_label, tips_width)
+        elif test_type == TEST_CHI_SQUARE:
+            if assisted:
+                tips = lib.get_text_to_draw(_("The Chi Square test"
+                    " is probably a good choice."), tips_width)
+            else:
+                tips = lib.get_text_to_draw(_("The Chi Square test is one of "
+                    "the most widely used tests in social science. It is good "
+                    "for seeing if the results for two variables are "
+                    "independent or related. Is there a relationship between "
+                    "gender and income group for example?"), tips_width)
+        elif test_type == TEST_PEARSONS_R:
+            if assisted:
+                tips = lib.get_text_to_draw(_("The Pearson's R Correlation test"
+                    " is probably a good choice if you are testing linear "
+                    "correlation. Always look at the scatterplot to decide if a"
+                    " linear relationship. The Spearman's R Correlation test "
+                    "may be preferable in some cases because of its resistance"
+                    " to extreme outliers (isolated high or low values)."), 
                     tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                    u" can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    self.normality_label, tips_width)
+            else:
+                tips = lib.get_text_to_draw(_("The Pearson's R Correlation test"
+                    " is good for testing linear "
+                    "correlation when your data is numerical and adequately "
+                    "normal. Always look at the scatterplot to decide if a "
+                    "linear relationship. The Spearman's R Correlation test "
+                    "may be preferable in some cases because of its resistance"
+                    " to extreme outliers (isolated high or low values)."), 
+                    tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                    u" can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    self.normality_label, tips_width)
+        elif test_type == TEST_SPEARMANS_R:
+            if assisted:
+                tips = lib.get_text_to_draw(_("The Spearman's R Correlation "
+                                              "test"
+                    " is probably a good choice if you are testing linear "
+                    "correlation. Always look at the scatterplot to decide if a"
+                    " linear relationship. The Pearson's R Correlation test "
+                    "may still be preferable if your data is "
+                    "numerical and adequately normal."), 
+                    tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                    u" can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    self.normality_label, tips_width)
+            else:
+                tips = lib.get_text_to_draw(_("The Spearman's R Correlation "
+                                              "test is good for "
+                    "testing linear "
+                    "correlation. Always look at the scatterplot to decide if a"
+                    " linear relationship. The Pearson's R Correlation test "
+                    "may still be preferable if your data is "
+                    "numerical and adequately normal."), 
+                    tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                    u" can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    self.normality_label, tips_width)
         elif test_type == TEST_TTEST_INDEP:
             if assisted:
                 tips = lib.get_text_to_draw(_("The Independent t-test is "
@@ -527,29 +600,95 @@ class StatsSelectDlg(wx.Dialog):
                 tips += lib.get_text_to_draw(_("The Mann-Whitney also copes "
                     "better with small sample sizes e.g. < 20."), tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_("You can evaluate normality by "
-                    "clicking on the \"%s\" button down the bottom left.")
+                tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.")
                     % self.normality_label, tips_width)
             else:
-                tips = lib.get_text_to_draw(_("The Independent t-test is good "
-                    "for seeing if there is a difference between two groups "
-                    "when the data is numerical and adequately normal.  "
-                    "Generally the t-test is robust to non-normality."), 
-                    tips_width)
+                tips = lib.get_text_to_draw(_("The Independent t-test is a very"
+                    " popular test. It is good for seeing if there is a "
+                    "difference between two groups when the data is numerical "
+                    "and adequately normal. Generally the t-test is robust to "
+                    "non-normality."), tips_width)
                 tips += u"\n\n" 
                 tips += lib.get_text_to_draw(_("The Mann-Whitney may be "
                     "preferable in some cases because of its resistance"
                     " to extreme outliers (isolated high or low values)."), 
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_("It also copes better with small "
-                    "sample sizes e.g. < 20."), tips_width)
+                tips += lib.get_text_to_draw(_("It also copes better with small"
+                    " sample sizes e.g. < 20."), tips_width)
+        elif test_type == TEST_MANN_WHITNEY:
+            if assisted:
+                tips = lib.get_text_to_draw(_("The Mann-Whitney is probably a "
+                    "good choice.  The Independent t-test may still be "
+                    "preferable if your data is numerical and doesn't violate "
+                    "normality too much.  Generally the t-test is robust"
+                    " to non-normality."),
+                    tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                    u" can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    self.normality_label, tips_width)
+            else:
+                tips = lib.get_text_to_draw(_("The Mann-Whitney is good for "
+                    "seeing if there is a difference between two groups when "
+                    "the data is at least ordinal (ordered)."), tips_width)
+                tips += u"\n\n" 
+                tips += lib.get_text_to_draw(_("The Independent t-test may be "
+                    "preferable if your data is numerical and doesn't violate "
+                    "normality too much.  Generally the t-test is robust"
+                    " to non-normality."),
+                    tips_width)
         elif test_type == TEST_TTEST_PAIRED:
-            tips = u"" #"_("")
+            if assisted:
+                tips = lib.get_text_to_draw(_("The paired t-test"
+                    " is probably a good choice.  The Wilcoxon Signed Ranks "
+                    "test may still be preferable because of its resistance"
+                    " to extreme outliers (isolated high or low values)."), 
+                    tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                    u" can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    self.normality_label, tips_width)
+            else:
+                tips = lib.get_text_to_draw(_("The paired t-test is good for "
+                    "looking at differences in paired numerical data e.g. two "
+                    "values recorded for the same person at different times. "
+                    "The results must be adequately normal"), 
+                    tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    self.normality_label, tips_width)
         elif test_type == TEST_WILCOXON:
-            tips = u"" #"_("")
+            if assisted:
+                tips = lib.get_text_to_draw(_("The Wilcoxon Signed Ranks"
+                    " is probably a good choice. The paired t-test may be "
+                    "preferable if your data is numerical and doesn't violate "
+                    "normality too much."), 
+                    tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    self.normality_label, tips_width)
+            else:
+                tips = lib.get_text_to_draw(_("The Wilcoxon Signed Ranks is "
+                    "good for looking at differences in paired data e.g. two "
+                    "values recorded for the same person at different times. "
+                    "The data must be at least ordered (ordinal)."), 
+                    tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_("The paired t-test may be "
+                    "preferable if your data is numerical and doesn't violate "
+                    "normality too much."), tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    self.normality_label, tips_width)
         else:
-            tips = u"" #"_("")
+            tips = u""
         self.lbl_tips.SetLabel(tips)
     
     def select_test(self):
