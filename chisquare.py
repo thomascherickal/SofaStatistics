@@ -72,3 +72,11 @@ chisquare_output = stats_output.chisquare_output(chisq, p, var_label_a,
             {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(chisquare_output)")
         return u"\n".join(script_lst)
+
+    def on_btn_help(self, event):
+        import webbrowser
+        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
+              u"?id=help:chisquare"
+        webbrowser.open_new_tab(url)
+        event.Skip()
+        
