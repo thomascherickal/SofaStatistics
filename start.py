@@ -293,15 +293,13 @@ def run_test_code(script):
     Look for file called TEST_SCRIPT_EARLIEST or TEST_SCRIPT_POST_CONFIG in 
         internal folder.  If there, run it.
     """
-    debug = False
     test_path = os.path.join(mg.INT_PATH, script)
     if not os.path.exists(test_path):
         return
     f = codecs.open(test_path, "r", "utf8")
-    test_code = f.read().replace(u"\r",u"") # need \n for Windows and Mac
+    test_code = lib.get_exec_ready_text(text=f.read())
     f.close()
     test_code = lib.clean_bom_utf8(test_code)
-    if debug: print(repr(test_code))
     test_dic = {}
     try:
         # http://docs.python.org/reference/simple_stmts.html

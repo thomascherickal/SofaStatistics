@@ -22,6 +22,16 @@ import my_globals as mg
 import my_exceptions
 import core_stats
 
+def get_exec_ready_text(text):
+    """
+    test -- often the result of f.read()
+    exec can't handle some Windows scripts e.g. print("Hello world")\r\n
+    you can see
+    """
+    debug = False
+    if debug: print(repr(text)) # look for terminating \r\n on Windows sometimes
+    return text.replace(u"\r", u"")
+
 def dates_1900_to_datetime(days_since_1900):
     DATETIME_ZERO = datetime.datetime(1899, 12, 30, 0, 0, 0)
     days = float(days_since_1900)
@@ -68,8 +78,8 @@ def extract_dojo_style(css_fil):
         css_dojo_end_idx = css.index(mg.DOJO_STYLE_END)
     except ValueError, e:
         raise my_exceptions.MalformedCssDojoError(css)
-    css_dojo = css[css_dojo_start_idx + len(mg.DOJO_STYLE_START):\
-                   css_dojo_end_idx]
+    text = css[css_dojo_start_idx + len(mg.DOJO_STYLE_START): css_dojo_end_idx]
+    css_dojo = get_exec_ready_text(text)
     css_dojo_dic = {}
     try:
         exec css_dojo in css_dojo_dic
@@ -538,8 +548,9 @@ def get_var_dets(fil_var_dets):
         var_types = {}
         val_dics = {}
         return var_labels, var_notes, var_types, val_dics
-    var_dets = clean_bom_utf8(f.read())
+    var_dets_txt = get_exec_ready_text(text=f.read())
     f.close()
+    var_dets = clean_bom_utf8(var_dets_txt)
     var_dets_dic = {}
     try:
         # http://docs.python.org/reference/simple_stmts.html

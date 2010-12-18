@@ -428,6 +428,7 @@ def get_css_dets():
                 idx_start = content.index(mg.CSS_FILS_START_TAG) + len("<!--")
                 idx_end = content.index("-->")
                 css_fils_str = content[idx_start: idx_end]
+                css_file_str = lib.get_exec_ready_text(text=css_file_str)
                 css_dets_dic = {}
                 exec css_fils_str in css_dets_dic
                 css_fils = css_dets_dic[u"css_fils"]
@@ -841,9 +842,11 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     f.close()
     # run script
     f = codecs.open(mg.INT_SCRIPT_PATH, "r", "utf-8")
-    script = lib.clean_bom_utf8(f.read())    
-    script = script[script.index(mg.MAIN_SCRIPT_START):]
+    script_txt = f.read()
     f.close()
+    script_txt = lib.get_exec_ready_text(text=script_txt)
+    script = lib.clean_bom_utf8(script_txt)    
+    script = script[script.index(mg.MAIN_SCRIPT_START):]
     try:
         dummy_dic = {}
         exec script in dummy_dic

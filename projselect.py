@@ -87,8 +87,9 @@ class ProjSelectDlg(wx.Dialog):
     def get_notes(self, fil_proj):
         proj_path = os.path.join(mg.LOCAL_PATH, "projs", fil_proj)
         f = codecs.open(proj_path, "U", encoding="utf-8")
-        proj_cont = lib.clean_bom_utf8(f.read())
+        proj_txt = lib.get_exec_ready_text(text=f.read())
         f.close()
+        proj_cont = lib.clean_bom_utf8(proj_txt)
         proj_dic = {}
         try:
             exec proj_cont in proj_dic
