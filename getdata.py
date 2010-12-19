@@ -354,6 +354,15 @@ def make_fld_val_clause(dbe, flds, fld_name, val, gte=mg.GTE_EQUALS):
         if num:
             # need repr otherwise truncates decimals e.g. 111.582756811 instead 
             # of 111.58275680743
+            if debug:
+                print(repr(val))
+                print(val)
+                print(unicode(val))
+                print(float(repr(val)) == val)
+            if float(repr(val)) != val:
+                # will not be found using an SQL query
+                raise Exception(u"%s is not a suitable value for use as a "
+                                u"category" % repr(val))
             clause = u"%s %s %s" % (objqtr(fld_name), dbe_gte, repr(val))
         else:
             clause = make_fld_val_clause_non_numeric(fld_name, val, dbe_gte, 

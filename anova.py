@@ -111,3 +111,10 @@ anova_output = stats_output.anova_output(samples, F, p, dics, sswn, dfwn,
             {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(anova_output)")
         return u"\n".join(script_lst)
+
+    def on_btn_help(self, event):
+        import webbrowser
+        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
+              u"?id=help:anova"
+        webbrowser.open_new_tab(url)
+        event.Skip()

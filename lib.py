@@ -838,7 +838,7 @@ def get_file_name(path):
     return os.path.split(path)[1]
 
 def is_integer(val):
-    #http://mail.python.org/pipermail/python-list/2006-February/368113.html
+    # http://mail.python.org/pipermail/python-list/2006-February/368113.html
     return isinstance(val, (int, long))
 
 def is_string(val):
