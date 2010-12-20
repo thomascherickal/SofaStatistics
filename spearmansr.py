@@ -55,3 +55,10 @@ spearmansr_output = stats_output.spearmansr_output(sample_a, sample_b, r, p,
             {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(spearmansr_output)")
         return u"\n".join(script_lst)
+    
+    def on_btn_help(self, event):
+        import webbrowser
+        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
+              u"?id=help:spearmansr"
+        webbrowser.open_new_tab(url)
+        event.Skip()

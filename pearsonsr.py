@@ -56,3 +56,10 @@ pearsonsr_output = stats_output.pearsonsr_output(sample_a, sample_b, r, p,
              u"css_idx": css_idx})
         script_lst.append(u"fil.write(pearsonsr_output)")
         return u"\n".join(script_lst)
+
+    def on_btn_help(self, event):
+        import webbrowser
+        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
+              u"?id=help:pearsonsr"
+        webbrowser.open_new_tab(url)
+        event.Skip()

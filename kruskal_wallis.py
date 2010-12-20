@@ -91,3 +91,10 @@ if len(samples) < 2:
             u"page_break_after=False)")
         script_lst.append(u"fil.write(kruskal_wallis_output)")
         return u"\n".join(script_lst)
+
+    def on_btn_help(self, event):
+        import webbrowser
+        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
+              u"?id=help:kruskal"
+        webbrowser.open_new_tab(url)
+        event.Skip()
