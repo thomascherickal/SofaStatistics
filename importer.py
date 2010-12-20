@@ -574,13 +574,13 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
     debug = False
     try:
         SQL_drop_tbl = u"DROP TABLE IF EXISTS %s" % \
-                                    getdata.tblname_qtr(mg.DBE_SQLITE,tbl_name)
+                                    getdata.tblname_qtr(mg.DBE_SQLITE, tbl_name)
         if debug: print(SQL_drop_tbl)
         cur.execute(SQL_drop_tbl)
         con.commit()
         SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
-                          (getdata.tblname_qtr(mg.DBE_SQLITE,mg.TMP_TBL_NAME), 
-                           getdata.tblname_qtr(mg.DBE_SQLITE,tbl_name)))
+                          (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME), 
+                           getdata.tblname_qtr(mg.DBE_SQLITE, tbl_name)))
         if debug: print(SQL_rename_tbl)
         cur.execute(SQL_rename_tbl)
         con.commit()

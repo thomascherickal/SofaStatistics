@@ -386,8 +386,9 @@ def valid_name(name):
     cur = con.cursor()
     valid = False
     try:
-        cur.execute("""CREATE TABLE "%s" (`%s` TEXT)""" % (name, name))
-        cur.execute("""DROP TABLE "%s" """ % name)
+        tblname = getdata.tblname_qtr(mg.DBE_SQLITE, name)
+        cur.execute("""CREATE TABLE "%s" (`%s` TEXT)""" % (tblname, name))
+        cur.execute("""DROP TABLE "%s" """ % tblname)
         valid = True
     except Exception, e:
         if debug: print(lib.ue(e))

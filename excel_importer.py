@@ -5,6 +5,7 @@ import lib
 import excel_reader
 import getdata
 import importer
+import my_globals as mg
 from my_exceptions import ImportCancelException
 
 ROWS_TO_SAMPLE = 500 # fast enough to sample quite a few
@@ -104,6 +105,7 @@ class ExcelImporter(importer.FileImporter):
             print("Just finished assessing data sample")
             print(fld_types)
             print(sample_data)
+        data = [x for x in wksheet]
         gauge_start = steps_per_item*sample_n
         try:
             feedback = {mg.NULLED_DOTS: False}
