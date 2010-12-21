@@ -84,11 +84,15 @@ def get_dbs(host, user, pwd, default_dbs, db=None):
     all_dbs = [x[0] for x in cur.fetchall() if x[0] != u"master"]
     dbs = []
     for db4list in all_dbs:
-        con, cur = get_con_cur_for_db(host, user, pwd, db4list)
+        try:
+            con, cur = get_con_cur_for_db(host, user, pwd, db4list)
+        except Exception, e:
+            continue
         if has_tbls(cur, db4list):
             dbs.append(db4list)
     if not dbs:
-        raise Exception(_("Unable to find any databases with tables."))
+        raise Exception(_("Unable to find any databases that have tables "
+                          "and you have permission to access."))
     dbs_lc = [x.lower() for x in dbs]
     # get db (default if possible otherwise first)
     # NB db must be accessible from connection

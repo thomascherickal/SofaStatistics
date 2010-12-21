@@ -128,7 +128,8 @@ def get_con_resources(con_dets, default_dbs, db=None):
         cur.close()
         con.close()
     if not dbs:
-        raise Exception(_("Unable to find any databases with tables."))
+        raise Exception(_("Unable to find any databases that have tables "
+                          "and you have permission to access."))
     dbs_lc = [x.lower() for x in dbs]
     # get db (default if possible otherwise first)
     # NB db must be accessible from connection

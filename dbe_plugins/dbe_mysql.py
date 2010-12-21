@@ -92,13 +92,17 @@ def get_con_resources(con_dets, default_dbs, db=None):
     all_dbs = [x[0] for x in cur.fetchall() if x[0] != u"information_schema"]
     dbs = []
     for db4list in all_dbs:
-        con, cur = get_con_cur_for_db(con_dets_mysql, db4list)
+        try:
+            con, cur = get_con_cur_for_db(con_dets_mysql, db4list)
+        except Exception, e:
+            continue
         if has_tbls(cur, db4list):
             dbs.append(db4list)
         cur.close()
         con.close()
     if not dbs:
-        raise Exception(_("Unable to find any databases with tables."))
+        raise Exception(_("Unable to find any databases that have tables "
+                          "and you have permission to access."))
     dbs_lc = [x.lower() for x in dbs]
     con, cur = get_con_cur_for_db(con_dets_mysql, db)
     if not db:
