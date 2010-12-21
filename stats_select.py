@@ -665,9 +665,10 @@ class StatsSelectDlg(wx.Dialog):
         elif test_type == TEST_WILCOXON:
             if assisted:
                 tips = lib.get_text_to_draw(_("The Wilcoxon Signed Ranks"
-                    " is probably a good choice. The paired t-test may be "
-                    "preferable if your data is numerical and doesn't violate "
-                    "normality too much."), 
+                    " is probably a good choice as long as your data is "
+                    "measured at (approximately) an interval level. The paired "
+                    "t-test may be preferable if your data is numerical and "
+                    "doesn't violate normality too much."), 
                     tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
@@ -677,7 +678,8 @@ class StatsSelectDlg(wx.Dialog):
                 tips = lib.get_text_to_draw(_("The Wilcoxon Signed Ranks is "
                     "good for looking at differences in paired data e.g. two "
                     "values recorded for the same person at different times. "
-                    "The data must be at least ordered (ordinal)."), 
+                    "The data must be measured at (approximately) an interval "
+                    "level."), 
                     tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_("The paired t-test may be "

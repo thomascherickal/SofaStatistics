@@ -49,19 +49,26 @@ def get_first_sql(tblname, top_n, order_val=None):
 def get_syntax_elements():
     return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
             placeholder, get_summable, gte_not_equals)
-    
+
+def get_DSN(provider, host, user, pwd, db):
+    """
+    http://www.connectionstrings.com/sql-server-2005
+    """
+    DSN = u"""PROVIDER=%s;
+        Data Source='%s';
+        User ID='%s';
+        Password='%s';
+        Initial Catalog='%s';
+        Integrated Security=SSPI""" % (provider, host, user, pwd, db)
+    return DSN
+
 def get_dbs(host, user, pwd, default_dbs, db=None):
     """
     Get dbs and the db to use.  Exclude master.
     NB need to use a separate connection here with db Initial Catalog
         undefined.        
     """
-    DSN = u"""PROVIDER=SQLOLEDB;
-        Data Source='%s';
-        User ID='%s';
-        Password='%s';
-        Initial Catalog='';
-        Integrated Security=SSPI""" % (host, user, pwd)
+    DSN = get_DSN(provider=u"SQLOLEDB", host=host, user=user, pwd=pwd, db=u"")
     try:
         con = adodbapi.connect(connstr=DSN)
     except Exception, e:
@@ -108,12 +115,7 @@ def set_db_in_con_dets(con_dets, db):
     con_dets[u"db"] = db
     
 def get_con_cur_for_db(host, user, pwd, db):
-    DSN = u"""PROVIDER=SQLOLEDB;
-        Data Source='%s';
-        User ID='%s';
-        Password='%s';
-        Initial Catalog='%s';
-        Integrated Security=SSPI""" % (host, user, pwd, db)
+    DSN = get_DSN(provider=u"SQLOLEDB", host=host, user=user, pwd=pwd, db=db)
     try:
         con = adodbapi.connect(connstr=DSN)
     except Exception, e:

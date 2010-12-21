@@ -315,6 +315,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             html2show = _("<p>Waiting for a report to be run.</p>")
             self.html.show_html(html2show)
 
+    def on_btn_help(self, event):
+        import webbrowser
+        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
+              u"?id=help:charts"
+        webbrowser.open_new_tab(url)
+        event.Skip()
+
     def setup_chart_btns(self, szr_chart_btns):
         btn_gap = 10 if mg.PLATFORM == mg.WINDOWS else 2
         # bar charts
