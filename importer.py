@@ -565,7 +565,7 @@ def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tbl_name,
                 gauge_start, allow_none=True, comma_dec_sep_ok=False):
             break
     
-def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
+def tmp_to_named_tbl(con, cur, tblname, file_path, progbar, nulled_dots):
     """
     Rename table to final name.
     This part is only called once at the end and is so fast there is no need to
@@ -574,13 +574,13 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
     debug = False
     try:
         SQL_drop_tbl = u"DROP TABLE IF EXISTS %s" % \
-                                    getdata.tblname_qtr(mg.DBE_SQLITE, tbl_name)
+                                    getdata.tblname_qtr(mg.DBE_SQLITE, tblname)
         if debug: print(SQL_drop_tbl)
         cur.execute(SQL_drop_tbl)
         con.commit()
         SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
                           (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME), 
-                           getdata.tblname_qtr(mg.DBE_SQLITE, tbl_name)))
+                           getdata.tblname_qtr(mg.DBE_SQLITE, tblname)))
         if debug: print(SQL_rename_tbl)
         cur.execute(SQL_rename_tbl)
         con.commit()
@@ -595,7 +595,7 @@ def tmp_to_named_tbl(con, cur, tbl_name, file_path, progbar, nulled_dots):
     msg += _("\n\nYou can view your imported data by clicking on "
              "'Enter/Edit Data' on the main form. You'll find it in the "
              "'%s' database.") % mg.SOFA_DB
-    wx.MessageBox(msg % {"tbl": tbl_name})
+    wx.MessageBox(msg % {"tbl": tblname})
 
 class HasHeaderDlg(wx.Dialog):
     def __init__(self, parent, ext):

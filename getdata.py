@@ -222,22 +222,21 @@ def get_dd():
         if debug: print("Updated mg.DATA_DETS")
     return mg.DATA_DETS
 
-def force_tbls_refresh():
+def force_sofa_tbls_refresh(sofa_default_db_cur):
     """
     Sometimes you drop a table, make it, drop it, go to make it and it still 
         seems to be there.  This seems to force a refresh.
     commit() doesn't seem to solve the problem and it occurs even though only 
         one connection in play. 
     """
-    dd = get_dd()
     SQL_get_tbls = u"""SELECT name 
         FROM sqlite_master 
         WHERE type = 'table'
         ORDER BY name"""
     try:
-        dd.cur.execute(SQL_get_tbls)
+        sofa_default_db_cur.execute(SQL_get_tbls)
     except Exception, e:
-        raise Exception(u"force_tbls_refresh() can only be used for the "
+        raise Exception(u"force_sofa_tbls_refresh() can only be used for the "
                         u"default db")
 
 def reset_con(tbl_name=None, add_checks=False):
@@ -786,5 +785,5 @@ def make_sofa_tbl(con, cur, tbl_name, oth_name_types, strict_typing=False):
     cur.execute(SQL_make_tbl)
     con.commit()
     if debug: print(u"Successfully created %s" % tbl_name)
-    force_tbls_refresh()
+    force_sofa_tbls_refresh(sofa_default_db_cur=cur)
     reset_con(tbl_name=tbl_name, add_checks=False)    

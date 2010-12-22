@@ -387,10 +387,14 @@ def valid_name(name):
     valid = False
     try:
         tblname = getdata.tblname_qtr(mg.DBE_SQLITE, name)
-        cur.execute("""CREATE TABLE "%s" (`%s` TEXT)""" % (tblname, name))
+        sql_make = """CREATE TABLE %s (`%s` TEXT)""" % (tblname, name)
+        if debug: print(sql_make)
+        cur.execute(sql_make)
         con.commit() # otherwise when committing, no net change to commit and 
             # no actual chance to succeed or fail
-        cur.execute("""DROP TABLE "%s" """ % tblname)
+        sql_drop = """DROP TABLE %s """ % tblname
+        if debug: print(sql_drop)
+        cur.execute(sql_drop)
         con.commit()
         valid = True
     except Exception, e:

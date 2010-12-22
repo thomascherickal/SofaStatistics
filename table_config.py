@@ -76,7 +76,7 @@ def has_data_changed(orig_data, final_data):
 
 def copy_orig_tbl(orig_tbl_name):
     dd.con.commit()
-    getdata.force_tbls_refresh()
+    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
     SQL_drop_tmp2 = u"DROP TABLE IF EXISTS %s" % \
                             getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME2)
     dd.cur.execute(SQL_drop_tmp2)
@@ -90,14 +90,14 @@ def copy_orig_tbl(orig_tbl_name):
                         (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME2), 
                          getdata.tblname_qtr(mg.DBE_SQLITE, mg.SOFA_ID))
     dd.cur.execute(SQL_restore_index)
-    getdata.force_tbls_refresh()
+    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
 
 def restore_copy_tbl(orig_tbl_name):
     """
     Will only work if orig tbl already wiped
     """
     dd.con.commit()
-    getdata.force_tbls_refresh()
+    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
     SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
                       (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME2), 
                        getdata.tblname_qtr(mg.DBE_SQLITE, orig_tbl_name)))
@@ -105,7 +105,7 @@ def restore_copy_tbl(orig_tbl_name):
 
 def wipe_tbl(tblname):
     dd.con.commit()
-    getdata.force_tbls_refresh()
+    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
     SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
                                     getdata.tblname_qtr(mg.DBE_SQLITE, tblname)
     dd.cur.execute(SQL_drop_orig)
@@ -130,7 +130,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
     getdata.reset_con(add_checks=True) # can't deactivate the user-defined 
         # functions until the tmp table has been deleted.
-    getdata.force_tbls_refresh()
+    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
     SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % tmp_name
     dd.cur.execute(SQL_drop_tmp_tbl)
     dd.con.commit()
@@ -177,7 +177,7 @@ def make_redesigned_tbl(final_name, oth_name_types):
         tbls = [x[0] for x in dd.cur.fetchall()]
         tbls.sort(key=lambda s: s.upper())
         print(tbls)
-    getdata.force_tbls_refresh()
+    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
     SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % final_name
     dd.cur.execute(SQL_drop_orig)
     dd.con.commit()
@@ -213,7 +213,7 @@ def make_redesigned_tbl(final_name, oth_name_types):
         tbls = [x[0] for x in dd.cur.fetchall()]
         tbls.sort(key=lambda s: s.upper())
         print(tbls)
-    getdata.force_tbls_refresh()
+    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
     SQL_drop_tmp = u"DROP TABLE %s" % tmp_name # crucial this happens
     dd.cur.execute(SQL_drop_tmp)
     dd.con.commit()
@@ -771,7 +771,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         except sqlite.IntegrityError, e:
             if debug: print(unicode(e))
             dd.con.commit()
-            getdata.force_tbls_refresh()
+            getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
             SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % \
                              getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
             dd.cur.execute(SQL_drop_tmp_tbl)

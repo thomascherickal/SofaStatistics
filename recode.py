@@ -370,17 +370,17 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             original table merely because of a recode problem
         """
         dd.con.commit()
-        getdata.force_tbls_refresh()
+        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
                                 getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname)
         dd.cur.execute(SQL_drop_orig)
         dd.con.commit()
-        getdata.force_tbls_refresh()
+        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
                           (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME),
                            getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname)))
         dd.cur.execute(SQL_rename_tbl)
-        getdata.force_tbls_refresh()
+        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         dd.set_db(dd.db, tbl=self.tblname) # refresh tbls downwards
     
     def recode_tbl(self, case_when, oth_name_types, 
@@ -395,7 +395,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         """
         debug = False
         # rename table to tmp
-        getdata.force_tbls_refresh()
+        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_drop_tmp = u"DROP TABLE IF EXISTS %s" % \
                             getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
         dd.cur.execute(SQL_drop_tmp)
@@ -407,7 +407,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
                                                         strict_typing=False,
                                                         inc_sofa_id=True)
-        getdata.force_tbls_refresh()
+        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_make_recoded_tbl = u"CREATE TABLE %s (%s) " % \
                             (getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname), 
                              create_fld_clause)
@@ -451,7 +451,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             self.recover_from_failed_recode()
             raise
         dd.con.commit()
-        getdata.force_tbls_refresh()
+        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_drop_tmp = u"DROP TABLE IF EXISTS %s" % \
                             getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
         dd.cur.execute(SQL_drop_tmp)
