@@ -28,15 +28,19 @@ else:
     if mg.PLATFORM == mg.WINDOWS:
         try:
             import wx.lib.iewin as ie
-        except ImportError, e: # using traceback because can be fiendish
+        except ImportError, e: # can be fiendish - traceback shown in start.py
             mytraceback = traceback.format_exc()
             if "Typelib newer than module" in mytraceback:
                 extra_msg = _("SOFA has detected an inconsistent file date. "
                               "Is your system date/time set correctly?\n")
+            elif "comtypes" in mytraceback: # No module named comtypes
+                extra_msg = (u"Problem with comtypes: look at help in "
+                             u"http://www.sofastatistics.com/wiki/doku.php?"
+                             u"id=help:will_not_start#no_module_named_comtypes")
             else:
                 extra_msg = u""
             raise Exception(extra_msg + _("Problem importing wx.lib.iewin.") +
-                            u"\nCaused by errors:\n\n%s" % mytraceback)
+                            u"\nCaused by errors:\n\n%s" % lib.ue(e))
         
         class FullHTML(ie.IEHtmlWindow):
         

@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 show_early_steps = True
-dev_debug = False # relates to errors etc once GUI application running. 
+dev_debug = True # relates to errors etc once GUI application running. 
     # show_early_steps is about revealing any errors before that point.
 test_lang = False
 INIT_DEBUG_MSG = u"Please note the messages above (e.g. with a screen-shot)" + \
@@ -881,12 +881,17 @@ class StartFrame(wx.Frame):
             raise Exception(u"Problem setting up help images."
                             u"\nCaused by error: %s" % lib.ue(e))
         # upgrade available?
+        # get level of version checking
         try:
             prefs_dic = \
                 config_globals.get_settings_dic(subfolder=mg.INT_FOLDER, 
                                                 fil_name=mg.INT_PREFS_FILE)
             version_lev = prefs_dic[mg.PREFS_KEY].get(mg.VERSION_CHECK_KEY, 
                                                       mg.VERSION_CHECK_ALL)
+        except Exception, e:
+            version_lev = mg.VERSION_CHECK_ALL
+        # get upgrade available status
+        try:
             if version_lev == mg.VERSION_CHECK_NONE:
                 raise Exception(u"No permission to check for new versions")
             else:
@@ -941,6 +946,7 @@ class StartFrame(wx.Frame):
         Is there a new version or a new major version?
         """
         import urllib # http://docs.python.org/library/urllib.html
+        debug = False
         file2read = u"latest_major_sofa_version.txt" \
                     if version_lev == mg.VERSION_CHECK_MAJOR \
                     else u"latest_sofa_version.txt"
@@ -948,6 +954,7 @@ class StartFrame(wx.Frame):
         try:
             url_reply = urllib.urlopen(url2open)
             new_version = u"%s" % url_reply.read().strip()
+            if debug: print("Checked new version: %s" % new_version)
         except Exception, e:
             raise Exception(u"Unable to extract latest sofa version."
                             u"/nCaused by error: %s" % lib.ue(e))
