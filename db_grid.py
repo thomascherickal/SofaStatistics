@@ -83,7 +83,7 @@ class TblEditor(wx.Dialog):
         if self.readonly:
             title += _(" (Read Only)")
         wx.Dialog.__init__(self, None, title=title, 
-                           pos=(mg.HORIZ_OFFSET+100, 0), 
+                           pos=(mg.HORIZ_OFFSET, 0), 
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
                            wx.CLIP_CHILDREN)

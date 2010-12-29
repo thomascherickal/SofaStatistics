@@ -514,7 +514,7 @@ class CsvImporter(importer.FileImporter):
                             "before importing.  May have line "
                             "breaks in the wrong places.") % new_file)
         else:
-            wx.MessageBox(_("Unable to import file in current form"))        
+            wx.MessageBox(_("Unable to import file in current form"))
 
     def get_possible_encodings(self):
         """

@@ -709,7 +709,7 @@ class StartFrame(wx.Frame):
             raise Exception(deferred_error_msg)
         # Gen set up
         wx.Frame.__init__(self, None, title=_("SOFA Start"), 
-                          size=(SCREEN_WIDTH, 600), pos=(mg.HORIZ_OFFSET,-1),
+                          size=(SCREEN_WIDTH, 600), pos=(mg.HORIZ_OFFSET+5,-1),
                           style=wx.CAPTION|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
@@ -1050,7 +1050,7 @@ class StartFrame(wx.Frame):
             panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 7, 
                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
             panel_dc.DrawLabel(u"Released under open source AGPL3 licence\n%s "
-                               "2009-2010 Paton-Simpson & Associates Ltd" %
+                               "2009-2011 Paton-Simpson & Associates Ltd" %
                                COPYRIGHT, 
                                wx.Rect(MAIN_LEFT, 547, 100, 50))
             panel_dc.DrawBitmap(self.bmp_agpl3, MAIN_LEFT-115, 542, True)

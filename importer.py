@@ -192,10 +192,10 @@ def process_fld_names(raw_names):
 
 def process_tbl_name(rawname):
     """
-    Turn spaces into underscores.  NB doesn't check if a duplicate etc at this 
-        stage.
+    Turn spaces, hyphens and dots into underscores.
+    NB doesn't check if a duplicate etc at this stage.
     """
-    return rawname.replace(u" ", u"_")
+    return rawname.replace(u" ", u"_").replace(u".", u"_").replace(u"-", u"_")
 
 def assess_sample_fld(sample_data, has_header, orig_fld_name, orig_fld_names, 
                       faulty2missing_fld_list, allow_none=True, 
@@ -893,6 +893,17 @@ class ImportFileSelectDlg(wx.Dialog):
         unused, extension = self.get_file_start_ext(file_path)
         if extension.lower() == u".csv":
             self.file_type = FILE_CSV
+        elif extension.lower() == u".txt":
+            ret = wx.MessageBox(_("SOFA imports txt files as csv files.\n\n"
+                                 "Is your txt file a valid csv file?"), 
+                                 caption=_("CSV FILE?"), style=wx.YES_NO)
+            if ret == wx.NO:
+                wx.MessageBox(_("Unable to import txt files unless csv format "
+                                "inside"))
+                self.align_btns_to_importing(importing=False)
+                return
+            else:
+                self.file_type = FILE_CSV
         elif extension.lower() == u".xls":
             if mg.PLATFORM != mg.WINDOWS:
                 wx.MessageBox(_("Excel spreadsheets are only supported on "
