@@ -115,7 +115,8 @@ class FixMismatchDlg(wx.Dialog):
         # (MUST come after Destroy)
     
     
-def get_best_fld_type(fldname, type_set, faulty2missing_fld_list):
+def get_best_fld_type(fldname, type_set, faulty2missing_fld_list, 
+                      testing=False):
     """
     type_set may contain empty_str as well as actual types.  Useful to remove
         empty str and see what is left.
@@ -141,16 +142,19 @@ def get_best_fld_type(fldname, type_set, faulty2missing_fld_list):
             fld_type_choices.append(mg.FLD_TYPE_NUMERIC)
         if mg.VAL_DATE in main_type_set:
             fld_type_choices.append(mg.FLD_TYPE_DATE)
-        dlg = FixMismatchDlg(fldname=fldname, 
-                             fld_type_choices=fld_type_choices, 
-                             fld_types=fld_types, 
-                             faulty2missing_fld_list=faulty2missing_fld_list, 
-                             assessing_sample=True)
-        retval = dlg.ShowModal()
-        if retval == wx.ID_CANCEL:
-            raise Exception(u"Inconsistencies in data type.")             
+        if not testing:
+            dlg = FixMismatchDlg(fldname=fldname, 
+                                fld_type_choices=fld_type_choices, 
+                                fld_types=fld_types, 
+                                faulty2missing_fld_list=faulty2missing_fld_list, 
+                                assessing_sample=True)
+            retval = dlg.ShowModal()
+            if retval == wx.ID_CANCEL:
+                raise Exception(u"Inconsistencies in data type.")             
+            else:
+                fld_type = fld_types[fldname]
         else:
-            fld_type = fld_types[fldname]
+            fld_type = mg.FLD_TYPE_STRING
     else:
         fld_type = mg.FLD_TYPE_STRING    
     return fld_type
@@ -199,7 +203,7 @@ def process_tbl_name(rawname):
 
 def assess_sample_fld(sample_data, has_header, orig_fld_name, orig_fld_names, 
                       faulty2missing_fld_list, allow_none=True, 
-                      comma_dec_sep_ok=False):
+                      comma_dec_sep_ok=False, testing=False):
     """
     NB client code gets number of fields in row 1.  Then for each field, it 
         traverses rows (i.e. travels down a col, then down the next etc).  If a
@@ -232,7 +236,8 @@ def assess_sample_fld(sample_data, has_header, orig_fld_name, orig_fld_names,
                                       allow_none)
         lib.update_type_set(type_set, val, comma_dec_sep_ok)
     fld_type = get_best_fld_type(fldname=orig_fld_name, type_set=type_set, 
-                                faulty2missing_fld_list=faulty2missing_fld_list)
+                                faulty2missing_fld_list=faulty2missing_fld_list,
+                                testing=testing)
     return fld_type
 
 def get_val(feedback, raw_val, is_pytime, fld_type, orig_fld_name, 

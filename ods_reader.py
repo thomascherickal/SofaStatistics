@@ -299,7 +299,8 @@ def get_fld_names_from_header_row(row):
     return importer.process_fld_names(orig_fld_names)
 
 def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
-                 prog_steps_for_xml_steps, next_prog_val, has_header=True):
+                 prog_steps_for_xml_steps, next_prog_val, has_header=True,
+                 testing=False):
     """
     Returns fld_types (dict with field names as keys) and rows (list of dicts).
     Limited value in further optimising my code.  The xml parsing stage takes up 
@@ -338,7 +339,8 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
                             u"\nCaused by error: %s" % (i, lib.ue(e)))
     for fldname, type_set in zip(fldnames, coltypes):
         fld_type = importer.get_best_fld_type(fldname, type_set,
-                                              faulty2missing_fld_list)
+                                              faulty2missing_fld_list, 
+                                              testing=testing)
         fld_types[fldname] = fld_type
     return fld_types, rows
 

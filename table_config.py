@@ -794,7 +794,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             # contained by that and not the dialog itself. 
             # http://www.nabble.com/validator-not-in-a-dialog-td23112169.html
             if not self.panel.Validate(): # runs validators on all assoc ctrls
-                return True
+                raise Exception(_("Problem making changes to table design."))
         if self.tblname_lst: # empty ready to repopulate
             del self.tblname_lst[0]
         tblname = self.txt_tblname.GetValue()
@@ -893,6 +893,10 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                                      "not match the column type. Please edit "
                                      "and try again."))
                      return
+                except Exception, e:
+                     wx.MessageBox(_("Unable to modify table. Caused by error:"
+                                     " %s") % lib.ue(e))
+                     return
             else:
                 return
         tblname = self.tblname_lst[0]
@@ -939,8 +943,14 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                      wx.MessageBox(_("Unable to modify table. Some data does "
                                      "not match the column type. Please edit "
                                      "and try again."))
+                     return
+                except Exception, e:
+                     wx.MessageBox(_("Unable to modify table. Caused by error:"
+                                     " %s") % lib.ue(e))
+                     return
             else:
                 wx.MessageBox(_("No changes to update."))
+                return
 
     
 class ConfigTableEntry(settings_grid.SettingsEntry):

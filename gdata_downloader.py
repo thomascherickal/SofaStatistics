@@ -42,8 +42,7 @@ class GdataDownloadDlg(wx.Dialog):
                                   _("Sign into your Google Account"))
         bx_spreadsheets = wx.StaticBox(self.panel, -1, 
                                        _("Select a spreadsheet"))
-        bx_worksheets = wx.StaticBox(self.panel, -1, 
-                                       _("Select a worksheet"))
+        bx_worksheets = wx.StaticBox(self.panel, -1, _("Select a worksheet"))
         szr_sign_in = wx.StaticBoxSizer(bx_sign_in, wx.VERTICAL)
         szr_sign_in_inner = wx.FlexGridSizer(rows=2, cols=3, hgap=5, vgap=5)
         szr_sign_in.Add(szr_sign_in_inner, 0, wx.GROW|wx.TOP, 10)
@@ -53,12 +52,12 @@ class GdataDownloadDlg(wx.Dialog):
         szr_download = wx.BoxSizer(wx.HORIZONTAL)
         szr_bottom_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
         szr_bottom_btns.AddGrowableCol(0,2) # idx, propn
-        
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         # sign in details
         self.lbl_email = wx.StaticText(self.panel, -1, _("Email login:"))
         self.lbl_email.SetFont(lblfont)
-        self.txt_email = wx.TextCtrl(self.panel, -1, u"", size=(320,-1))
+        # for screencasting, hide email too - , style=wx.TE_PASSWORD
+        self.txt_email = wx.TextCtrl(self.panel, -1, u"", size=(320,-1)) 
         self.txt_email.Bind(wx.EVT_CHAR, self.on_email_char)
         img_ctrl_gdata = wx.StaticBitmap(self.panel)
         img_gdata = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
