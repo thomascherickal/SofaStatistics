@@ -35,8 +35,7 @@ class DataSelectDlg(wx.Dialog):
                                   size=(480,20))
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=proj_name)
-        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-                                    lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
+        self.update_var_dets()
         # set up self.drop_dbs and self.drop_tbls
         self.drop_dbs, self.drop_tbls = getdata.get_data_dropdowns(self, 
                                             self.panel, proj_dic["default_dbs"])
@@ -92,6 +91,10 @@ class DataSelectDlg(wx.Dialog):
         self.Layout()
         self.ctrl_enablement()
         lib.safe_end_cursor()
+
+    def update_var_dets(self):
+        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
+                                    lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
 
     def add_feedback(self, feedback):
         self.lbl_feedback.SetLabel(feedback)
@@ -197,8 +200,8 @@ class DataSelectDlg(wx.Dialog):
         ret = dlg_config.ShowModal()
         if debug: pprint.pprint(fld_settings)
         if ret == mg.RET_CHANGED_DESIGN and not readonly:
-            # update tbl dropdown
             self.reset_tbl_dropdown()
+            self.update_var_dets()
     
     def on_new(self, event):
         """

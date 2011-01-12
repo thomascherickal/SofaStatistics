@@ -150,11 +150,15 @@ def process_label(dict_labels, new_fldtype, new, label):
     """
     Add non-empty label to dictionary of labels for variable
     """
+    debug = False
     if label == u"":
         return
     if new_fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
         new = valqtr(new)
-    dict_labels[new] = valqtr(label)
+    elif new_fldtype in (mg.FLD_TYPE_NUMERIC):
+        new = float(new)
+    if debug: print(new, label)
+    dict_labels[new] = label
     
 def warn_about_existing_labels(recode_dlg, val, row, col, grid, col_dets):
     """
@@ -461,7 +465,10 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
     def update_labels(self, fldname, dict_labels):
         """
         Look in vdt file in current project
+        Variable name updated to fldname if not present
         """
+        if fldname not in self.var_labels:
+            self.var_labels[fldname] = fldname.title() # else leave alone
         try:
             self.val_dics[fldname].update(dict_labels)
         except KeyError:
@@ -501,9 +508,9 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                 remaining_label = label
         if remaining_to:
             if when_clauses: # pop it on the end
-                remaining_clause = u"            ELSE %s" % remaining_to
+                remaining_clause = u" "*12 + u"ELSE %s" % remaining_to
             else: # the only clause
-                remaining_clause = u"            WHEN 1=1 %s" % remaining_to
+                remaining_clause = u" "*12 + u"WHEN 1=1 THEN %s" % remaining_to
             when_clauses.append(remaining_clause)
             process_label(dict_labels, new_fldtype, remaining_new, 
                           remaining_label)
@@ -578,6 +585,6 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         except Exception, e:
             raise Exception(_("Problem recoding table."
                               "\nCaused by error: %s") % lib.ue(e))
-        self.update_labels(self.fldname, dict_labels)
+        self.update_labels(new_fldname, dict_labels)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)

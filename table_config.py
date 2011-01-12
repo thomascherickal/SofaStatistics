@@ -904,6 +904,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         dlg = recode.RecodeDlg(tblname, self.settings_data)
         ret = dlg.ShowModal()
         if ret == wx.ID_OK: # run recode
+            self.changes_made = True
             self.refresh_dlg()
             # now that the grid has been updated, we can update settings data 
             # (which does it from the grid)
@@ -933,6 +934,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         if self.readonly:
             self.Destroy()
         else:
+            # NB any changes defined in recode are already done
             new_tbl, tblname_changed, data_changed = self.get_change_status()
             if new_tbl or tblname_changed or data_changed:
                 try:
@@ -948,6 +950,10 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                      wx.MessageBox(_("Unable to modify table. Caused by error:"
                                      " %s") % lib.ue(e))
                      return
+            elif self.changes_made: # not in tableconf. Must've been in recoding
+                self.Destroy()
+                self.SetReturnCode(mg.RET_CHANGED_DESIGN)
+                return
             else:
                 wx.MessageBox(_("No changes to update."))
                 return
