@@ -31,14 +31,14 @@ def set_SCRIPT_PATH():
     except NameError, e:
         path_found = False
         for path in sys.path:
-            if u"sofa" in path.lower():
+            if u"sofastats" in path.lower():
                 path_found = True
                 break
         if not path_found:
             mg.DEFERRED_ERRORS.append(_("Unable to locate folder this program "
                 "is running in."
-                "\n\nNB the final subfolder must have the word \"sofa\" in it."
-                "\nSo \"C:\\Program Files\\sofa\" is ok"
+                "\n\nNB the final subfolder must have the word \"sofastats\" "
+                "in it.\nSo \"C:\\Program Files\\sofastats\" is ok"
                 "\nbut \"C:\\Program Files\\my stats\" is not."))
         if debug: print(sys.path)  
         mg.SCRIPT_PATH = path

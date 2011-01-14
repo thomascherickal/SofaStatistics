@@ -54,7 +54,7 @@ import sys
 if show_early_steps: print(u"Just imported sys")
 import traceback
 if show_early_steps: print(u"Just imported traceback")
-MAC_PATH = u"/Library/sofa"
+MAC_PATH = u"/Library/sofastats"
 if platform.system() == "Darwin":
     sys.path.insert(0, MAC_PATH) # start is running from Apps folder
 try:
@@ -90,11 +90,12 @@ try:
     if debug: print(__file__)
 except NameError, e:
     for path in sys.path:
-        if u"sofa" in path.lower(): # if user hasn't used sofa, use default
+        if u"sofastats" in path.lower(): # if user hasn't used sofastats, 
+            # use default
             localedir = os.path.join(path, u"locale")
             break
 if show_early_steps: print(u"Just identified locale folder")
-gettext.install(domain='sofa', localedir=localedir, unicode=True)
+gettext.install(domain='sofastats', localedir=localedir, unicode=True)
 if show_early_steps: print(u"Just installed gettext")
 try:
     import my_globals as mg # has translated text
@@ -197,10 +198,10 @@ Properties.
 
 In the Shortcut tab, there is a text box called Target.
 
-Change it from "C:\\Program Files\\sofa\\start.pyw"
+Change it from "C:\\Program Files\\sofastats\\start.pyw"
 to
-C:\\Python26\\pythonw.exe "C:\Program Files\\sofa\\start.pyw" and click the OK 
-button down the bottom.
+C:\\Python26\\pythonw.exe "C:\Program Files\\sofastats\\start.pyw" and click 
+the OK button down the bottom.
 
 If Python 2.6 is installed somewhere else, change the Target details accordingly
 - e.g. to D:\Python26 etc
@@ -341,8 +342,8 @@ def populate_css_path(prog_path, local_path):
 def populate_extras_path(prog_path, local_path):
     extras = [u"arc.xd.js", u"blank.gif", u"blank.htm", u"dojo.xd.js", 
               u"gradient.xd.js", u"grey_spirals.gif", u"lucid_spirals.gif", 
-              u"pebbles.gif", u"popupMenuBg.gif", u"sofa_charts.js", 
-              u"sofadojo_minified.js", 
+              u"pebbles.gif", u"popupMenuBg.gif", u"sofastats_charts.js", 
+              u"sofastatsdojo_minified.js", 
               u"tooltipConnectorDown-defbrown.gif",
               u"tooltipConnectorDown-defbrown.png",
               u"tooltipConnectorDown.gif",
@@ -420,7 +421,7 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
     f.close()
     for path in settings_subfolders:
         new_str = lib.escape_pre_write(os.path.join(mg.LOCAL_PATH, path, u""))
-        proj_str = proj_str.replace(u"/home/g/sofa/%s/" % path, new_str)
+        proj_str = proj_str.replace(u"/home/g/sofastats/%s/" % path, new_str)
     # add MS Access and SQL Server into mix if Windows
     if mg.PLATFORM == mg.WINDOWS:
         proj_str = proj_str.replace(u"default_dbs = {",
@@ -477,17 +478,17 @@ def freshen_recovery(prog_path, local_subfolders, subfolders_in_proj):
     Need a good upgrade process which leaves existing configuration intact if 
         possible but creates recovery folder which is guaranteed to work with 
         the version just installed.
-    Always have two local folders - the main sofa folder and a sofa_recovery 
-        folder.
+    Always have two local folders - the main sofastats folder and a 
+        sofastats_recovery folder.
     If the version of SOFA running is newer than the version in __version__.txt, 
-        wipe the sofa_recovery folder, and make it afresh.  The home folder 
+        wipe the sofastats_recovery folder, and make it afresh.  The home folder 
         should always contain a sofa-type folder which would allow the latest 
-        installed version of SOFA to run.  If the ordinary sofa folder is faulty 
-        in some way, can always wipe it and rename sofa_recovery to sofa and 
-        open up successfully.
-    The "sofa_recovery" folder should have a default project file which points 
-        to the ordinary home "sofa" folder.  This will only work, of course, if 
-        the folder is made operational by renaming it to "sofa".
+        installed version of SOFA to run.  If the ordinary sofastats folder is 
+        faulty in some way, can always wipe it and rename sofastats_recovery to 
+        sofastats and open up successfully.
+    The "sofastats_recovery" folder should have a default project file which 
+        points to the ordinary home "sofastats" folder.  This will only work, of 
+        course, if the folder is made operational by renaming it to "sofastats".
     """
     (installer_recovery_is_newer, 
      installer_recovery_newer_status_known) = \
@@ -540,7 +541,7 @@ try:
                                            version_b=installed_version):
                 # update css files - url(images...) -> url("images...")
                 populate_css_path(prog_path, mg.LOCAL_PATH)
-                # add new sofa_report_extras folder and populate it
+                # add new sofastats_report_extras folder and populate it
                 REPORT_EXTRAS_PATH = os.path.join(mg.LOCAL_PATH, 
                                                   mg.REPORTS_FOLDER, 
                                                   mg.REPORT_EXTRAS_FOLDER)
@@ -556,9 +557,9 @@ try:
                 archive_older_default_report()
                 store_version(mg.LOCAL_PATH) # update it so only done once
         except Exception, e:
-            raise Exception(u"Problem modifying your local sofa folder. One "
-                            u"option is to delete the %s folder and let SOFA "
-                            u"make a fresh one.\nCaused by error: %s" %
+            raise Exception(u"Problem modifying your local sofastats folder. "
+                            u"One option is to delete the %s folder and let"
+                            u" SOFA make a fresh one.\nCaused by error: %s" %
                             (mg.LOCAL_PATH, lib.ue(e)))
     # 3) Make a fresh recovery folder if needed
     freshen_recovery(prog_path, local_subfolders, subfolders_in_proj)
@@ -676,7 +677,7 @@ class SofaApp(wx.App):
                 mylocale = wx.Locale(wx.LANGUAGE_DEFAULT)
                 canon_name = mylocale.GetCanonicalName()
             
-            mytrans = gettext.translation(u"sofa", langdir, 
+            mytrans = gettext.translation(u"sofastats", langdir, 
                                     languages=[canon_name,], fallback=True)
             if debug: print(canon_name)
             mytrans.install(unicode=True) # must set explicitly here for mac
@@ -953,9 +954,9 @@ class StartFrame(wx.Frame):
         """
         import urllib # http://docs.python.org/library/urllib.html
         debug = False
-        file2read = u"latest_major_sofa_version.txt" \
+        file2read = u"latest_major_sofastats_version.txt" \
                     if version_lev == mg.VERSION_CHECK_MAJOR \
-                    else u"latest_sofa_version.txt"
+                    else u"latest_sofastats_version.txt"
         url2open = u"http://www.sofastatistics.com/%s" % file2read
         try:
             url_reply = urllib.urlopen(url2open)

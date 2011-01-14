@@ -271,14 +271,16 @@ td, th {
         }
     }""" % (mg.JS_N_CHARTS_STR, new_js_n_charts)
         dojo_debug = False
-        dojo_js_source = (u"file:///home/g/sofa/reports/sofa_report_extras/"
-                          u"sofalayer.js.uncompressed.js") if dojo_debug \
-                          else u"sofa_report_extras/sofadojo_minified.js"
+        dojo_js_source = (
+                  u"file:///home/g/sofastats/reports/sofastats_report_extras"
+                  u"/sofalayer.js.uncompressed.js") if dojo_debug \
+                  else u"sofastats_report_extras/sofastatsdojo_minified.js"
         dojo_insert = u"""
-<link rel='stylesheet' type='text/css' href="sofa_report_extras/tundra.css" />
-<script src="sofa_report_extras/dojo.xd.js"></script>
+<link rel='stylesheet' type='text/css' 
+href="sofastats_report_extras/tundra.css" />
+<script src="sofastats_report_extras/dojo.xd.js"></script>
 <script src="%(dojo_js_source)s"></script>
-<script src="sofa_report_extras/sofa_charts.js"></script>
+<script src="sofastats_report_extras/sofastats_charts.js"></script>
 <script type="text/javascript">
 get_ie_script = function(mysrc){
     var script = document.createElement('script');
@@ -287,9 +289,9 @@ get_ie_script = function(mysrc){
     document.getElementsByTagName('head')[0].appendChild(script); 
 }
 if(dojo.isIE){
-    get_ie_script("sofa_report_extras/arc.xd.js");
-    get_ie_script("sofa_report_extras/gradient.xd.js");
-    get_ie_script("sofa_report_extras/vml.xd.js");
+    get_ie_script("sofastats_report_extras/arc.xd.js");
+    get_ie_script("sofastats_report_extras/gradient.xd.js");
+    get_ie_script("sofastats_report_extras/vml.xd.js");
 }
 makeObjects = function(){
 %(make_objs_func_str)s
@@ -505,7 +507,7 @@ def rel2abs_rpt_img_links(str_html):
     So this functionality is only needed for GUI display of report-associated 
         images/js.
     Turn my_report_name/001.png to e.g. 
-        /home/g/sofa/reports/my_report_name/001.png so that the html can be 
+        /home/g/sofastats/reports/my_report_name/001.png so that the html can be 
         written to, and read from, anywhere (and still show the images!) in the 
         temporary GUI displays.
     """
@@ -538,24 +540,25 @@ def rel2abs_extra_js_links(strhtml):
 def rel2abs_css_bg_imgs(strhtml):
     """
     Make all css background images work off absolute rather than relative paths.  
-    Turn url("sofa_report_extras/tile.gif"); to 
-         url("/home/g/sofa/reports/sofa_report_extras/tile.gif");.
+    Turn url("sofastats_report_extras/tile.gif"); to 
+         url("/home/g/sofastats/reports/sofastats_report_extras/tile.gif");.
     """
     return rel2abs_rpt_extras(strhtml, tpl=u"url(\"%s")
 
 def rel2abs_js_links(strhtml):
     """
     Make all js links work off absolute rather than relative paths.
-    Turn <script src="sofa_report_extras/sofalayer.js"> to 
-    <script src="file:////home/g/sofa/reports/sofa_report_extras/sofalayer.js">.
+    Turn <script src="sofastats_report_extras/sofalayer.js"> to 
+    <script src="file:////home/g/sofastats/reports/sofastats_report_extras/
+        sofalayer.js">.
     """
     return rel2abs_rpt_extras(strhtml, tpl=u"<script src=\"%s")
 
 def rel2abs_css_links(strhtml):
     """
     Make all css links work off absolute rather than relative paths.
-    Turn href="sofa_report_extras/tundra.css" to 
-    href="file:///home/g/sofa/reports/sofa_report_extras/tundra.css".
+    Turn href="sofastats_report_extras/tundra.css" to 
+    href="file:///home/g/sofastats/reports/sofastats_report_extras/tundra.css".
     """
     return rel2abs_rpt_extras(strhtml, tpl=u"href=\"%s")
 
@@ -762,7 +765,7 @@ def insert_prelim_code(modules, f, fil_report, css_fils, new_has_dojo):
     f.write(u"\nimport sys")
     f.write(u"\nimport gettext")
     f.write(u"\nimport numpy as np")
-    f.write(u"\ngettext.install(domain='sofa', localedir='./locale', "
+    f.write(u"\ngettext.install(domain='sofastats', localedir='./locale', "
             u"unicode=False)")
     f.write(u"\nsys.path.append(u'%s')" % \
             lib.escape_pre_write(mg.SCRIPT_PATH))

@@ -78,7 +78,8 @@ def get_con(con_dets, db, add_checks=False):
         except Exception:
             sofa_db_path = u"Unable to get SQLite database path"
     except Exception, e:
-        if sofa_db_path == os.path.join(u"/home/g/sofa/_internal", mg.SOFA_DB):
+        if sofa_db_path == os.path.join(u"/home/g/sofastats/_internal", 
+                                        mg.SOFA_DB):
             raise Exception(u"Problem with default project file. Delete "
                             u"%s and restart SOFA.\nCaused by error %s." %
                             (os.path.join(mg.INT_PATH, mg.PROJ_CUSTOMISED_FILE), 

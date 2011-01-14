@@ -170,24 +170,24 @@ dojo_style_end
 	
 	    top: 0px;
 	    left: 3px;
-	    background: url("sofa_report_extras/tooltipConnectorUp-defbrown.png") no-repeat top left !important;
+	    background: url("sofastats_report_extras/tooltipConnectorUp-defbrown.png") no-repeat top left !important;
 	    width:16px;
 	    height:14px;
     }
     .dj_ie .tundra .dijitTooltipBelow-defbrown .dijitTooltipConnector {
 	
-	    background-image: url("sofa_report_extras/tooltipConnectorUp-defbrown.gif") !important;
+	    background-image: url("sofastats_report_extras/tooltipConnectorUp-defbrown.gif") !important;
     }
     .tundra .dijitTooltipAbove-defbrown .dijitTooltipConnector {
 	
 	    bottom: 0px;
 	    left: 3px;
-	    background:url("sofa_report_extras/tooltipConnectorDown-defbrown.png") no-repeat top left !important;
+	    background:url("sofastats_report_extras/tooltipConnectorDown-defbrown.png") no-repeat top left !important;
 	    width:16px;
 	    height:14px;
     }
     .dj_ie .tundra .dijitTooltipAbove-defbrown .dijitTooltipConnector {
-	    background-image: url("sofa_report_extras/tooltipConnectorDown-defbrown.gif") !important;
+	    background-image: url("sofastats_report_extras/tooltipConnectorDown-defbrown.gif") !important;
     }
     .dj_ie6 .tundra .dijitTooltipAbove-defbrown .dijitTooltipConnector {
 	    bottom: -3px;
@@ -202,12 +202,12 @@ dojo_style_end
 	
 	    right: 0px;
 	    bottom: 3px;
-	    background:url("sofa_report_extras/tooltipConnectorRight-defbrown.png") no-repeat top left !important;
+	    background:url("sofastats_report_extras/tooltipConnectorRight-defbrown.png") no-repeat top left !important;
 	    width:16px;
 	    height:14px;
     }
     .dj_ie .tundra .dijitTooltipLeft-defbrown .dijitTooltipConnector {
-	    background-image: url("sofa_report_extras/tooltipConnectorRight-defbrown.gif") !important;
+	    background-image: url("sofastats_report_extras/tooltipConnectorRight-defbrown.gif") !important;
     }
     .tundra .dijitTooltipRight-defbrown {
 	    padding-left: 14px;
@@ -216,10 +216,10 @@ dojo_style_end
 	
 	    left: 0px;
 	    bottom: 3px;
-	    background:url("sofa_report_extras/tooltipConnectorLeft-defbrown.png") no-repeat top left !important;
+	    background:url("sofastats_report_extras/tooltipConnectorLeft-defbrown.png") no-repeat top left !important;
 	    width:16px;
 	    height:14px;
     }
     .dj_ie .tundra .dijitTooltipRight-defbrown .dijitTooltipConnector {
-	    background-image: url("sofa_report_extras/tooltipConnectorLeft-defbrown.gif") !important;
+	    background-image: url("sofastats_report_extras/tooltipConnectorLeft-defbrown.gif") !important;
     }
