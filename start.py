@@ -178,14 +178,19 @@ def check_python_version():
     debug = False
     pyversion = sys.version[:3]
     if debug: pyversion = None
-    if pyversion not in (u"2.6", u"2.7"):
+    # Linux installer doesn't have hard-wired site-packages so 2.7 should 
+    # also work.
+    if (mg.PLATFORM != mg.LINUX and pyversion != u"2.6") \
+            or (mg.PLATFORM == mg.WINDOWS and pyversion not in(u"2.6", u"2.7")):
         fixit_file = os.path.join(mg.USER_PATH, u"Desktop", 
                                   u"how to get SOFA working.txt")
         f = open(fixit_file, "w")
         div = u"*"*80
         win_msg = u"""
 Fortunately, this is easily fixed (assuming you installed Python 2.6 as part of 
-the SOFA installation).
+the SOFA installation).  NB during installation you needed to install all the 
+extra packages e.g. mysqldb, comtypes etc to the python26 folder, 
+not to python27 etc.
 
 You need to click the SOFA icon once with the right mouse button and select 
 Properties.
@@ -203,7 +208,7 @@ If Python 2.6 is installed somewhere else, change the Target details accordingly
         mac_msg = u"""
 The icon for SOFA Statistics created during installation should explicitly refer
 to the correct version of Python (2.6).  Are you launching SOFA Statistics in 
-some other way?  Only Python 2.6 or 2.7 will work.
+some other way?  Only Python 2.6 will work.
         """
         oth_msg = u"""
 If you have multiple versions of Python available you will need to ensure that
@@ -231,6 +236,7 @@ For help, please contact grant@sofastatistics.com""") % msg_dic
                 u"saved to a file on your Desktop for future reference", True)
         msgapp.MainLoop()
         del msgapp
+                
 check_python_version() # do as early as possible.  Game over if Python faulty.
 if show_early_steps: print(u"Just checked python version")
 COPYRIGHT = u"\u00a9"
