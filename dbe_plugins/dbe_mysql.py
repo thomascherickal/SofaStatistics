@@ -1,17 +1,16 @@
 from __future__ import print_function
 from __future__ import division # so 5/2 = 2.5 not 2 !
 
-# 0.9.9 released 24/4/2010 was the last version with the code for using 
-# information_schema instead of the cross-version SHOW statements.
+# 0.9.25 the first to use pymysql (for OS X). 
 
-if mg.platform == mg.MAC:
-    import pymysql as mysql # easier to get working on a Mac
-else:
-    import MySQLdb as mysql
 import wx
 import pprint
 
 import my_globals as mg
+if mg.platform == mg.MAC:
+    import pymysql as mysql # easier to get working on a Mac
+else:
+    import MySQLdb as mysql
 import my_exceptions
 import lib
 
