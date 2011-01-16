@@ -61,7 +61,8 @@ try:
     import wxversion
     wxversion.select("2.8")
 except Exception, e:
-    msg = u"There seems to be a problem with wxversion."
+    msg = u"There seems to be a problem with wxversion. %s" % \
+        traceback.format_exc()
     if show_early_steps: 
         print(msg)
         raw_input(INIT_DEBUG_MSG)
@@ -75,7 +76,8 @@ except ImportError: # if it's not there locally, try the wxPython lib.
     try:
         import wx.lib.agw.hyperlink as hl
     except ImportError:
-        msg = u"There seems to be a problem related to your wxPython package."
+        msg = (u"There seems to be a problem related to your wxPython "
+               u"package. %s" % traceback.format_exc())
         if show_early_steps: 
             print(msg)
             raw_input(INIT_DEBUG_MSG)
@@ -94,7 +96,8 @@ except NameError, e:
             # use default
             localedir = os.path.join(path, u"locale")
             break
-if show_early_steps: print(u"Just identified locale folder")
+if show_early_steps: 
+    print(u"Just identified locale folder")
 gettext.install(domain='sofastats', localedir=localedir, unicode=True)
 if show_early_steps: print(u"Just installed gettext")
 try:
@@ -565,7 +568,9 @@ try:
     freshen_recovery(prog_path, local_subfolders, subfolders_in_proj)
 except Exception, e:
     msg = (u"Problem running initial setup.\nCaused by error: %s" % lib.ue(e))
-    if show_early_steps: print(msg)
+    if show_early_steps: 
+        print(msg)
+        print(traceback.format_exc()) 
     msgapp = ErrMsgApp(msg)
     msgapp.MainLoop()
     del msgapp
@@ -1216,6 +1221,7 @@ class StartFrame(wx.Frame):
         except Exception, e:
             msg = _("Unable to open report table dialog."
                     "\nCaused by error: %s") % lib.ue(e)
+            print(traceback.format_exc())
             wx.MessageBox(msg)
         finally:
             lib.safe_end_cursor()
@@ -1283,7 +1289,8 @@ class StartFrame(wx.Frame):
             msg = _("Unable to connect to data as defined in project %s.  "
                     "Please check your settings.") % self.active_proj
             wx.MessageBox(msg)
-            raise Exception(u"%s.\nCaused by error: %s" % (msg, lib.ue(e)))
+            raise Exception(u"%s.\nCaused by error: %s" % (msg, 
+                                                    traceback.format_exc()))
         finally:
             lib.safe_end_cursor()
             event.Skip()
@@ -1340,6 +1347,7 @@ try:
     #    wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
 except Exception, e:
+    print(traceback.format_exc())
     app = ErrMsgApp(e)
     app.MainLoop()
     del app

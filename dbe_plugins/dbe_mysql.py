@@ -4,12 +4,16 @@ from __future__ import division # so 5/2 = 2.5 not 2 !
 # 0.9.9 released 24/4/2010 was the last version with the code for using 
 # information_schema instead of the cross-version SHOW statements.
 
-import MySQLdb
+if mg.platform == mg.MAC:
+    import pymysql as mysql # easier to get working on a Mac
+else:
+    import MySQLdb as mysql
 import wx
 import pprint
 
 import my_globals as mg
 import my_exceptions
+import lib
 
 BIGINT = "bigint"
 DECIMAL = "decimal"
@@ -57,7 +61,7 @@ def get_con_cur_for_db(con_dets_mysql, db):
         con_dets_mysql["use_unicode"] = True
         if db:
             con_dets_mysql["db"] = db
-        con = MySQLdb.connect(**con_dets_mysql)
+        con = mysql.connect(**con_dets_mysql)
     except Exception, e:
         raise Exception(u"Unable to connect to MySQL db. "
                         u"\nCaused by error: %s" % lib.ue(e))
@@ -116,7 +120,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
         cur.close()
         con.close()
         con_dets_mysql["db"] = db
-        con = MySQLdb.connect(**con_dets_mysql)
+        con = mysql.connect(**con_dets_mysql)
         cur = con.cursor()
     else:
         if db.lower() not in dbs_lc:
@@ -533,7 +537,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
         mysql_port = 3306
     mysql_user = parent.txt_mysql_user.GetValue()
     mysql_pwd = parent.txt_mysql_pwd.GetValue()
-    has_mysql_con = mysql_host and mysql_user and mysql_pwd
+    has_mysql_con = mysql_host and mysql_user # allow blank password
     incomplete_mysql = (mysql_host or mysql_user or mysql_pwd \
                 or mysql_default_db or mysql_default_tbl) and not has_mysql_con
     if incomplete_mysql:

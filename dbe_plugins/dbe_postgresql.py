@@ -499,7 +499,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     pgsql_host = parent.txt_pgsql_host.GetValue()
     pgsql_user = parent.txt_pgsql_user.GetValue()
     pgsql_pwd = parent.txt_pgsql_pwd.GetValue()
-    has_pgsql_con = pgsql_host and pgsql_user and pgsql_pwd
+    has_pgsql_con = pgsql_host and pgsql_user # allow blank password
     incomplete_pgsql = (pgsql_host or pgsql_user or pgsql_pwd \
         or pgsql_default_db or pgsql_default_tbl) and not has_pgsql_con
     if incomplete_pgsql:
