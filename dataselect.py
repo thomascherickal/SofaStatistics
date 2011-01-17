@@ -154,7 +154,7 @@ class DataSelectDlg(wx.Dialog):
             if self.chk_readonly.IsEnabled():
                 readonly = self.chk_readonly.IsChecked()
             set_col_widths = True if rows_n < 1000 else False
-            dlg = db_grid.TblEditor(self, self.var_labels, self.var_notes, 
+            dlg = db_grid.TblEditor(self, dd, self.var_labels, self.var_notes, 
                                     self.var_types, self.val_dics, readonly, 
                                     set_col_widths=set_col_widths)
             lib.safe_end_cursor()
@@ -168,12 +168,16 @@ class DataSelectDlg(wx.Dialog):
         if wx.MessageBox(_("Do you wish to delete \"%s\"?") % dd.tbl, 
                            caption=_("DELETE"), 
                            style=wx.YES_NO|wx.NO_DEFAULT) == wx.YES:
-            dd.cur.execute("DROP TABLE IF EXISTS %s" % 
-                           getdata.tblname_qtr(dd.dbe, dd.tbl))
-            dd.con.commit()
-        dd.set_db(dd.db) # refresh tbls downwards
-        self.reset_tbl_dropdown()
-        self.ctrl_enablement()
+            try:
+                dd.cur.execute("DROP TABLE IF EXISTS %s" % 
+                               getdata.tblname_qtr(dd.dbe, dd.tbl))
+                dd.con.commit()
+                dd.set_db(dd.db) # refresh tbls downwards
+                self.reset_tbl_dropdown()
+                self.ctrl_enablement()
+            except Exception, e:
+                wx.MessageBox(u"Unable to delete \"%s\". Caused by error: %s"\
+                              % (dd.tbl, lib.ue(e)))
         event.Skip()
 
     def on_design(self, event):
@@ -222,7 +226,8 @@ class DataSelectDlg(wx.Dialog):
             return
         tblname_lst = [] # not quite worth using validator mechanism ;-)
         init_fld_settings = [("sofa_id", "Numeric"), ("var001", "Numeric"),]
-        fld_settings = [] # can read final result at the end  
+        fld_settings = [] # can read final result at the end
+        if debug: print(mg.DATA_DETS)
         dlg_config = table_config.ConfigTableDlg(self.var_labels, self.val_dics, 
                                  tblname_lst, init_fld_settings, fld_settings, 
                                  readonly=False, new=True)
@@ -232,11 +237,14 @@ class DataSelectDlg(wx.Dialog):
             event.Skip()
             return
         # update tbl dropdown
+        if debug: print(mg.DATA_DETS)
         self.reset_tbl_dropdown()
         # open data          
         wx.BeginBusyCursor()
         readonly = False
-        dlg = db_grid.TblEditor(self, self.var_labels, self.var_notes, 
+        tbl_dd = getdata.get_default_db_dets()
+        tbl_dd.set_tbl(tblname_lst[0])
+        dlg = db_grid.TblEditor(self, tbl_dd, self.var_labels, self.var_notes, 
                                 self.var_types, self.val_dics, readonly)
         lib.safe_end_cursor()
         dlg.ShowModal()

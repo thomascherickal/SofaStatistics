@@ -20,6 +20,7 @@ dojo_style_end
 */
     body{
         font-size: 12px;
+        font-family: Ubuntu, Helvetica, sans-serif;
     }
     h1, h2{
         font-family: Arial, Helvetica, sans-serif;

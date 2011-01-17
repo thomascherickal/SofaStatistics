@@ -18,6 +18,13 @@ import settings_grid
 # Unlike in every other module, we don't want a data object for the selected 
 # database - everything here is always for the default SQLite database only
 default_dd = getdata.get_default_db_dets()
+def refresh_default_dd():
+    """
+    Need to refresh in case tables have been added, deleted or modified since
+        the module was opened and default_dd initialised.
+    """
+    global default_dd
+    default_dd.set_db(db=mg.SOFA_DB)
 cc = config_dlg.get_cc()
 objqtr = dbe_sqlite.quote_obj
 
@@ -78,6 +85,7 @@ def has_data_changed(orig_data, final_data):
     return data_changed
 
 def copy_orig_tbl(orig_tbl_name):
+    refresh_default_dd()
     default_dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
     SQL_drop_tmp2 = u"DROP TABLE IF EXISTS %s" % \
@@ -94,25 +102,30 @@ def copy_orig_tbl(orig_tbl_name):
                          getdata.tblname_qtr(mg.DBE_SQLITE, mg.SOFA_ID))
     default_dd.cur.execute(SQL_restore_index)
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
+    refresh_default_dd()
 
 def restore_copy_tbl(orig_tbl_name):
     """
     Will only work if orig tbl already wiped
     """
+    refresh_default_dd()
     default_dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
     SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
                       (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME2), 
                        getdata.tblname_qtr(mg.DBE_SQLITE, orig_tbl_name)))
     default_dd.cur.execute(SQL_rename_tbl)
+    refresh_default_dd()
 
 def wipe_tbl(tblname):
+    refresh_default_dd()
     default_dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
     SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
                                     getdata.tblname_qtr(mg.DBE_SQLITE, tblname)
     default_dd.cur.execute(SQL_drop_orig)
     default_dd.con.commit()
+    refresh_default_dd()
  
 def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     """
@@ -129,11 +142,12 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     fld_settings -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
-    debug = True
+    debug = False
+    refresh_default_dd()
     if debug: print(u"DBE in make_strict_typing_tbl is: ", default_dd.dbe)
     tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
-    getdata.reset_con(add_checks=True) # can't deactivate the user-defined 
-        # functions until the tmp table has been deleted.
+    getdata.reset_main_con_if_sofa_default(add_checks=True) # can't deactivate 
+        # the user-defined functions until the tmp table has been deleted.
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
     SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % tmp_name
     default_dd.cur.execute(SQL_drop_tmp_tbl)
@@ -155,6 +169,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     if debug: print(SQL_insert_all)
     default_dd.cur.execute(SQL_insert_all)
     default_dd.con.commit()
+    refresh_default_dd()
 
 def make_redesigned_tbl(final_name, oth_name_types):
     """
@@ -163,7 +178,8 @@ def make_redesigned_tbl(final_name, oth_name_types):
     Don't want new table to have any constraints which rely on user-defined 
         functions.
     """
-    debug = True
+    debug = False
+    refresh_default_dd()
     if debug: print(u"DBE in make_redesigned_tbl is: ", default_dd.dbe)
     tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
     final_name = getdata.tblname_qtr(mg.DBE_SQLITE, final_name)
@@ -232,7 +248,9 @@ def make_redesigned_tbl(final_name, oth_name_types):
         tbls = [x[0] for x in default_dd.cur.fetchall()]
         tbls.sort(key=lambda s: s.upper())
         print(tbls)
-    getdata.reset_con(add_checks=False) # should be OK now tmp table gone
+    getdata.reset_main_con_if_sofa_default(add_checks=False) # Should be OK now 
+                                                             # tmp table gone
+    refresh_default_dd()
 
 def insert_data(row_idx, grid_data):
     """
@@ -304,7 +322,7 @@ def validate_tbl_name(tbl_name, name_ok_to_reuse):
     else:
         duplicate = getdata.dup_tbl_name(tbl_name)
     if duplicate:
-        msg = _("Cannot use this name.  A table named \"%s\" already exists in"
+        msg = _("Cannot use this name. A table named \"%s\" already exists in"
                 " the default SOFA database") % tbl_name
         return False, msg
     return True, u""
@@ -326,6 +344,7 @@ class SafeTblNameValidator(wx.PyValidator):
         
     def Validate(self, win):
         # wxPython
+        # Handle any messages here and here alone
         text_ctrl = self.GetWindow()
         text = text_ctrl.GetValue()
         valid, msg = validate_tbl_name(text, self.name_ok_to_reuse)
@@ -550,6 +569,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         Fill in rest with demo data.
         """
         debug = False
+        refresh_default_dd()
         flds_clause = u", ".join([objqtr(x) for x in db_flds_orig_names
                                   if x is not None])
         if debug: print(u"flds_clause", flds_clause)
@@ -744,12 +764,14 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         Do not use check constraints (based on user-defined functions) or else 
             only SOFA will be able to open the SQLite database.
         """
-        debug = True
+        debug = False
+        refresh_default_dd()
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
         tbl_name = self.tblname_lst[0]
         if debug: print(u"DBE in make_new_tbl is: ", default_dd.dbe)
         getdata.make_sofa_tbl(default_dd.con, default_dd.cur, tbl_name, 
                               oth_name_types)
+        refresh_default_dd()
         wx.MessageBox(_("Your new table has been added to the default SOFA "
                         "database"))
             
@@ -771,6 +793,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             anymore.
         """
         debug = False
+        refresh_default_dd()
         orig_tbl_name = default_dd.tbl
         # other (i.e. not the sofa_id) field details
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
@@ -796,16 +819,17 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         except Exception:
             restore_copy_tbl(orig_tbl_name)
         wipe_tbl(mg.TMP_TBL_NAME2)
-        default_dd.set_db(default_dd.db, tbl=final_name) # refresh tbls down
+        refresh_default_dd()
     
     def make_changes(self):
         debug = False
+        refresh_default_dd()
         if not self.readonly:
             # NB must run Validate on the panel because the objects are 
             # contained by that and not the dialog itself. 
             # http://www.nabble.com/validator-not-in-a-dialog-td23112169.html
             if not self.panel.Validate(): # runs validators on all assoc ctrls
-                raise Exception(_("Problem making changes to table design."))
+                raise Exception(_(u"Invalid table design."))
         if self.tblname_lst: # empty ready to repopulate
             del self.tblname_lst[0]
         tblname = self.txt_tblname.GetValue()
@@ -815,7 +839,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         else:
             if not self.readonly:
                 self.modify_tbl()
-        default_dd.set_db(default_dd.db, tbl=tblname) # refresh tbls downwards
+        refresh_default_dd()
         self.changes_made = True
 
     def refresh_dlg(self):

@@ -220,6 +220,7 @@ def get_dd():
                                                    fil_name=mg.DEFAULT_PROJ)
         mg.DATA_DETS = DataDets(proj_dic)
         if debug: print("Updated mg.DATA_DETS")
+    if debug: print(mg.DATA_DETS)
     return mg.DATA_DETS
 
 def force_sofa_tbls_refresh(sofa_default_db_cur):
@@ -239,10 +240,15 @@ def force_sofa_tbls_refresh(sofa_default_db_cur):
         raise Exception(u"force_sofa_tbls_refresh() can only be used for the "
                         u"default db")
 
-def reset_con(tbl_name=None, add_checks=False):
+def reset_main_con_if_sofa_default(tbl_name=None, add_checks=False):
+    """
+    If the main connection is to the default database, and there has been a 
+        change e.g. new table, the connection
+    """
     dd = get_dd()
-    dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl_name, 
-               add_checks=add_checks)
+    if dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB:
+        dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl_name, 
+                   add_checks=add_checks)
 
 def get_gen_fld_type(fld_type):
     """
@@ -472,15 +478,14 @@ def prep_val(dbe, val, fld_dic):
         prep_val = val2use
     return prep_val
 
-def insert_row(data):
+def insert_row(tbl_dd, data):
     """
     Returns success (boolean) and message (None or error).
     data = [(value as string (or None), fld_dets), ...]
     """
     debug = False
-    dd = get_dd()
-    (unused, left_obj_quote, right_obj_quote, quote_obj, quote_val, placeholder, 
-        unused, unused) = get_dbe_syntax_elements(dd.dbe) 
+    (unused, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
+              placeholder, unused, unused) = get_dbe_syntax_elements(tbl_dd.dbe) 
     """
     data = [(value as string (or None), fld_name, fld_dets), ...]
     Modify any values (according to field details) to be ready for insertion.
@@ -498,20 +503,20 @@ def insert_row(data):
     fld_placeholders_clause = " (" + \
         u", ".join([placeholder for x in range(len(data))]) + u") "
     # e.g. " (%s, %s, %s, ...) or (?, ?, ?, ...)"
-    SQL_insert = u"INSERT INTO %s " % tblname_qtr(dd.dbe, dd.tbl) + \
+    SQL_insert = u"INSERT INTO %s " % tblname_qtr(tbl_dd.dbe, tbl_dd.tbl) + \
                     fld_names_clause + u"VALUES %s" % fld_placeholders_clause
     if debug: print(SQL_insert)
     data_lst = []
     for i, data_dets in enumerate(data):
         if debug: pprint.pprint(data_dets)
         val, fld_name, fld_dic = data_dets
-        val2use = prep_val(dd.dbe, val, fld_dic)
+        val2use = prep_val(tbl_dd.dbe, val, fld_dic)
         data_lst.append(val2use)
     data_tup = tuple(data_lst)
     msg = None
     try:
-        dd.cur.execute(SQL_insert, data_tup)
-        dd.con.commit()
+        tbl_dd.cur.execute(SQL_insert, data_tup)
+        tbl_dd.con.commit()
         return True, None
     except Exception, e:
         if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
@@ -787,4 +792,6 @@ def make_sofa_tbl(con, cur, tbl_name, oth_name_types, strict_typing=False):
     con.commit()
     if debug: print(u"Successfully created %s" % tbl_name)
     force_sofa_tbls_refresh(sofa_default_db_cur=cur)
-    reset_con(tbl_name=tbl_name, add_checks=False)    
+    # If the main data connection is to this (default sofa) database it must be 
+    # reconnected to ensure the change has been registered.
+    reset_main_con_if_sofa_default(tbl_name=tbl_name, add_checks=False)    
