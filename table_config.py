@@ -18,15 +18,26 @@ import settings_grid
 # Unlike in every other module, we don't want a data object for the selected 
 # database - everything here is always for the default SQLite database only
 default_dd = getdata.get_default_db_dets()
-def refresh_default_dd():
+
+def refresh_default_dd(tbl=None):
     """
     Need to refresh in case tables have been added, deleted or modified since
         the module was opened and default_dd initialised.
     """
-    global default_dd
     default_dd.set_db(db=mg.SOFA_DB)
+    
 cc = config_dlg.get_cc()
 objqtr = dbe_sqlite.quote_obj
+
+def reset_default_dd(tbl=None, add_checks=False):
+    global default_dd
+    try:
+        default_dd = getdata.get_default_db_dets()
+        default_dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl, 
+                add_checks=add_checks) # Must reset entire dbe to change checks
+    except Exception, e:
+        raise Exception(u"Problem resetting default_dd with tbl %s."
+                        u"\nCaused by error: %s" % (tbl, lib.ue(e)))   
 
 WAITING_MSG = _("<p>Waiting for at least one field to be configured.</p>")
 
@@ -85,7 +96,6 @@ def has_data_changed(orig_data, final_data):
     return data_changed
 
 def copy_orig_tbl(orig_tbl_name):
-    refresh_default_dd()
     default_dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
     SQL_drop_tmp2 = u"DROP TABLE IF EXISTS %s" % \
@@ -102,30 +112,28 @@ def copy_orig_tbl(orig_tbl_name):
                          getdata.tblname_qtr(mg.DBE_SQLITE, mg.SOFA_ID))
     default_dd.cur.execute(SQL_restore_index)
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
-    refresh_default_dd()
+    refresh_default_dd(tbl=mg.TMP_TBL_NAME2)
 
 def restore_copy_tbl(orig_tbl_name):
     """
     Will only work if orig tbl already wiped
     """
-    refresh_default_dd()
     default_dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
     SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
                       (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME2), 
                        getdata.tblname_qtr(mg.DBE_SQLITE, orig_tbl_name)))
     default_dd.cur.execute(SQL_rename_tbl)
-    refresh_default_dd()
+    refresh_default_dd(tbl=orig_tbl_name)
 
 def wipe_tbl(tblname):
-    refresh_default_dd()
     default_dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
     SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
                                     getdata.tblname_qtr(mg.DBE_SQLITE, tblname)
     default_dd.cur.execute(SQL_drop_orig)
     default_dd.con.commit()
-    refresh_default_dd()
+    refresh_default_dd(tbl=None)
  
 def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     """
@@ -143,11 +151,10 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
     debug = False
-    refresh_default_dd()
     if debug: print(u"DBE in make_strict_typing_tbl is: ", default_dd.dbe)
     tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
-    getdata.reset_main_con_if_sofa_default(add_checks=True) # can't deactivate 
-        # the user-defined functions until the tmp table has been deleted.
+    reset_default_dd(tbl=orig_tbl_name, add_checks=True) # Can't deactivate the 
+                  # user-defined functions until the tmp table has been deleted.
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
     SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % tmp_name
     default_dd.cur.execute(SQL_drop_tmp_tbl)
@@ -167,9 +174,13 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
                             (tmp_name, select_fld_clause, 
                              getdata.tblname_qtr(mg.DBE_SQLITE, orig_tbl_name))
     if debug: print(SQL_insert_all)
-    default_dd.cur.execute(SQL_insert_all)
-    default_dd.con.commit()
-    refresh_default_dd()
+    try:
+        default_dd.cur.execute(SQL_insert_all)
+        default_dd.con.commit()
+    except Exception, e:
+        raise Exception(u"Problem inserting data into strict-typed table."
+                        u"\nCaused by error: %s" % lib.ue(e))
+    refresh_default_dd(tbl=tmp_name)
 
 def make_redesigned_tbl(final_name, oth_name_types):
     """
@@ -179,9 +190,9 @@ def make_redesigned_tbl(final_name, oth_name_types):
         functions.
     """
     debug = False
-    refresh_default_dd()
     if debug: print(u"DBE in make_redesigned_tbl is: ", default_dd.dbe)
     tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
+    unquoted_final_name = final_name
     final_name = getdata.tblname_qtr(mg.DBE_SQLITE, final_name)
     create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
                                                     strict_typing=False,
@@ -248,9 +259,9 @@ def make_redesigned_tbl(final_name, oth_name_types):
         tbls = [x[0] for x in default_dd.cur.fetchall()]
         tbls.sort(key=lambda s: s.upper())
         print(tbls)
-    getdata.reset_main_con_if_sofa_default(add_checks=False) # Should be OK now 
-                                                             # tmp table gone
-    refresh_default_dd()
+    reset_default_dd(tbl=unquoted_final_name, add_checks=False) # should be OK 
+        # now tmp table gone.
+    # refresh_default_dd(tbl=final_name) # redundant
 
 def insert_data(row_idx, grid_data):
     """
@@ -569,12 +580,13 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         Fill in rest with demo data.
         """
         debug = False
-        refresh_default_dd()
+        tbl = self.tblname_lst[0]
+        reset_default_dd(tbl=tbl)
         flds_clause = u", ".join([objqtr(x) for x in db_flds_orig_names
                                   if x is not None])
         if debug: print(u"flds_clause", flds_clause)
         SQL_get_data = u"""SELECT %s FROM %s """ % (flds_clause, 
-                        getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname_lst[0]))
+                        getdata.tblname_qtr(mg.DBE_SQLITE, tbl))
         if debug: print(u"SQL_get_data", SQL_get_data)
         default_dd.cur.execute(SQL_get_data) # NB won't contain any new 
             # or inserted flds
@@ -671,6 +683,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                                                 design_flds_types)
                 rows.append(row_lst)
         else:
+            
             rows = self.get_real_demo_data(display_n, db_flds_orig_names, 
                                   design_flds_orig_names, design_flds_new_names, 
                                   design_flds_col_labels, design_flds_types)
@@ -765,13 +778,12 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             only SOFA will be able to open the SQLite database.
         """
         debug = False
-        refresh_default_dd()
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
         tbl_name = self.tblname_lst[0]
         if debug: print(u"DBE in make_new_tbl is: ", default_dd.dbe)
         getdata.make_sofa_tbl(default_dd.con, default_dd.cur, tbl_name, 
                               oth_name_types)
-        refresh_default_dd()
+        refresh_default_dd(tbl=tbl_name)
         wx.MessageBox(_("Your new table has been added to the default SOFA "
                         "database"))
             
@@ -793,7 +805,6 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             anymore.
         """
         debug = False
-        refresh_default_dd()
         orig_tbl_name = default_dd.tbl
         # other (i.e. not the sofa_id) field details
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
@@ -811,19 +822,24 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             default_dd.cur.execute(SQL_drop_tmp_tbl)
             default_dd.con.commit()
             raise FldMismatchException
+        except Exception, e:
+            raise Exception(u"Problem making strictly-typed table."
+                            u"\nCaused by error: %s" % lib.ue(e))
         copy_orig_tbl(orig_tbl_name)
         wipe_tbl(orig_tbl_name)
         final_name = self.tblname_lst[0] # may have been renamed
         try:
             make_redesigned_tbl(final_name, oth_name_types)
-        except Exception:
+            refresh_default_dd(tbl=final_name)
+        except Exception, e:
             restore_copy_tbl(orig_tbl_name)
+            refresh_default_dd(tbl=orig_tbl_name)
+            raise Exception(u"Problem making redesigned table."
+                            u"\nCaused by error: %s" % lib.ue(e))
         wipe_tbl(mg.TMP_TBL_NAME2)
-        refresh_default_dd()
     
     def make_changes(self):
         debug = False
-        refresh_default_dd()
         if not self.readonly:
             # NB must run Validate on the panel because the objects are 
             # contained by that and not the dialog itself. 
@@ -834,12 +850,12 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             del self.tblname_lst[0]
         tblname = self.txt_tblname.GetValue()
         self.tblname_lst.append(tblname)
+        reset_default_dd(tbl=tblname)
         if self.new:
             self.make_new_tbl()
         else:
             if not self.readonly:
                 self.modify_tbl()
-        refresh_default_dd()
         self.changes_made = True
 
     def refresh_dlg(self):
@@ -929,7 +945,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                                      "and try again."))
                      return
                 except Exception, e:
-                     wx.MessageBox(_("Unable to modify table. Caused by error:"
+                     wx.MessageBox(_("Unable to modify table.\nCaused by error:"
                                      " %s") % lib.ue(e))
                      return
             else:
@@ -982,7 +998,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                                      "and try again."))
                      return
                 except Exception, e:
-                     wx.MessageBox(_("Unable to modify table. Caused by error:"
+                     wx.MessageBox(_("Unable to modify table.\nCaused by error:"
                                      " %s") % lib.ue(e))
                      return
             elif self.changes_made: # not in tableconf. Must've been in recoding

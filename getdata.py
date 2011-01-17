@@ -227,7 +227,7 @@ def force_sofa_tbls_refresh(sofa_default_db_cur):
     """
     Sometimes you drop a table, make it, drop it, go to make it and it still 
         seems to be there.  This seems to force a refresh.
-    commit() doesn't seem to solve the problem and it occurs even though only 
+    commit() doesn't seem to solve the problem and it occurs even when only 
         one connection in play. 
     """
     SQL_get_tbls = u"""SELECT name 
@@ -794,4 +794,7 @@ def make_sofa_tbl(con, cur, tbl_name, oth_name_types, strict_typing=False):
     force_sofa_tbls_refresh(sofa_default_db_cur=cur)
     # If the main data connection is to this (default sofa) database it must be 
     # reconnected to ensure the change has been registered.
-    reset_main_con_if_sofa_default(tbl_name=tbl_name, add_checks=False)    
+    dd = get_dd()
+    if dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB:
+        dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl_name, 
+                   add_checks=False)
