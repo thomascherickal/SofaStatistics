@@ -24,12 +24,15 @@ def refresh_default_dd(tbl=None):
     Need to refresh in case tables have been added, deleted or modified since
         the module was opened and default_dd initialised.
     """
-    default_dd.set_db(db=mg.SOFA_DB)
+    default_dd.set_db(db=mg.SOFA_DB, tbl=tbl)
     
 cc = config_dlg.get_cc()
 objqtr = dbe_sqlite.quote_obj
 
 def reset_default_dd(tbl=None, add_checks=False):
+    """
+    Completely reset connection etc with option of changing add_checks setting.
+    """
     global default_dd
     try:
         default_dd = getdata.get_default_db_dets()
@@ -180,7 +183,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     except Exception, e:
         raise Exception(u"Problem inserting data into strict-typed table."
                         u"\nCaused by error: %s" % lib.ue(e))
-    refresh_default_dd(tbl=tmp_name)
+    refresh_default_dd(tbl=mg.TMP_TBL_NAME)
 
 def make_redesigned_tbl(final_name, oth_name_types):
     """
@@ -581,7 +584,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         """
         debug = False
         tbl = self.tblname_lst[0]
-        reset_default_dd(tbl=tbl)
+        refresh_default_dd(tbl=tbl)
         flds_clause = u", ".join([objqtr(x) for x in db_flds_orig_names
                                   if x is not None])
         if debug: print(u"flds_clause", flds_clause)
@@ -840,6 +843,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
     
     def make_changes(self):
         debug = False
+        refresh_default_dd(tbl=None)
         if not self.readonly:
             # NB must run Validate on the panel because the objects are 
             # contained by that and not the dialog itself. 
@@ -850,11 +854,12 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             del self.tblname_lst[0]
         tblname = self.txt_tblname.GetValue()
         self.tblname_lst.append(tblname)
-        reset_default_dd(tbl=tblname)
         if self.new:
             self.make_new_tbl()
+            refresh_default_dd(tbl=tblname)
         else:
             if not self.readonly:
+                refresh_default_dd(tbl=tblname)
                 self.modify_tbl()
         self.changes_made = True
 

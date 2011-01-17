@@ -268,7 +268,7 @@ def get_init_settings_data(tblname):
     "Numeric", "Date", "Text".
     Only works for an SQLite database (should be the default one).
     """
-    debug = False
+    debug = True
     dd = get_dd()
     dd.con.commit()
     dd.cur.execute(u"PRAGMA table_info(%s)" % getdata.tblname_qtr(dd.dbe, 

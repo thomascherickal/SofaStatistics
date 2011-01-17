@@ -187,7 +187,7 @@ class DataSelectDlg(wx.Dialog):
         NB only enabled (for either viewing or editing) for the default SQLite 
             database.
         """
-        debug = False
+        debug = True
         readonly = False # only read only if the demo table
         if dd.tbl == mg.DEMO_TBL and not readonly:
             wx.MessageBox(_("The design of the default SOFA table cannot be "
@@ -204,6 +204,9 @@ class DataSelectDlg(wx.Dialog):
         ret = dlg_config.ShowModal()
         if debug: pprint.pprint(fld_settings)
         if ret == mg.RET_CHANGED_DESIGN and not readonly:
+            if debug: print(u"Flds before: %s" % dd.flds)
+            dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=dd.tbl)
+            if debug: print(u"Flds after: %s" % dd.flds)
             self.reset_tbl_dropdown()
             self.update_var_dets()
     
