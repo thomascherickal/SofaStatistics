@@ -6,6 +6,7 @@ import wx
 
 import my_globals as mg
 import lib
+import config_globals
 import config_dlg
 import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
@@ -14,7 +15,9 @@ import projects
 import recode
 import settings_grid
 
-dd = getdata.get_dd()
+# Unlike in every other module, we don't want a data object for the selected 
+# database - everything here is always for the default SQLite database only
+default_dd = getdata.get_default_db_dets()
 cc = config_dlg.get_cc()
 objqtr = dbe_sqlite.quote_obj
 
@@ -75,41 +78,41 @@ def has_data_changed(orig_data, final_data):
     return data_changed
 
 def copy_orig_tbl(orig_tbl_name):
-    dd.con.commit()
-    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
+    default_dd.con.commit()
+    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
     SQL_drop_tmp2 = u"DROP TABLE IF EXISTS %s" % \
                             getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME2)
-    dd.cur.execute(SQL_drop_tmp2)
-    dd.con.commit()
+    default_dd.cur.execute(SQL_drop_tmp2)
+    default_dd.con.commit()
     # In SQLite, CREATE TABLE AS drops all constraints, indexes etc.
     SQL_make_copy = u"CREATE TABLE %s AS SELECT * FROM %s" % \
                     (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME2), 
                      getdata.tblname_qtr(mg.DBE_SQLITE, orig_tbl_name))
-    dd.cur.execute(SQL_make_copy)
+    default_dd.cur.execute(SQL_make_copy)
     SQL_restore_index = u"CREATE UNIQUE INDEX sofa_id_idx on %s (%s)" % \
                         (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME2), 
                          getdata.tblname_qtr(mg.DBE_SQLITE, mg.SOFA_ID))
-    dd.cur.execute(SQL_restore_index)
-    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
+    default_dd.cur.execute(SQL_restore_index)
+    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
 
 def restore_copy_tbl(orig_tbl_name):
     """
     Will only work if orig tbl already wiped
     """
-    dd.con.commit()
-    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
+    default_dd.con.commit()
+    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
     SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
                       (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME2), 
                        getdata.tblname_qtr(mg.DBE_SQLITE, orig_tbl_name)))
-    dd.cur.execute(SQL_rename_tbl)
+    default_dd.cur.execute(SQL_rename_tbl)
 
 def wipe_tbl(tblname):
-    dd.con.commit()
-    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
+    default_dd.con.commit()
+    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
     SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
                                     getdata.tblname_qtr(mg.DBE_SQLITE, tblname)
-    dd.cur.execute(SQL_drop_orig)
-    dd.con.commit()
+    default_dd.cur.execute(SQL_drop_orig)
+    default_dd.con.commit()
  
 def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     """
@@ -126,14 +129,15 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     fld_settings -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
-    debug = False
+    debug = True
+    if debug: print(u"DBE in make_strict_typing_tbl is: ", default_dd.dbe)
     tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
     getdata.reset_con(add_checks=True) # can't deactivate the user-defined 
         # functions until the tmp table has been deleted.
-    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
+    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
     SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % tmp_name
-    dd.cur.execute(SQL_drop_tmp_tbl)
-    dd.con.commit()
+    default_dd.cur.execute(SQL_drop_tmp_tbl)
+    default_dd.con.commit()
     # create table with strictly-typed fields
     create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
                                                     strict_typing=True,
@@ -141,7 +145,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     SQL_make_tmp_tbl = u"CREATE TABLE %s (%s) " % (tmp_name, 
                                                    create_fld_clause)
     if debug: print(SQL_make_tmp_tbl)
-    dd.cur.execute(SQL_make_tmp_tbl)
+    default_dd.cur.execute(SQL_make_tmp_tbl)
     # unable to use CREATE ... AS SELECT at same time as defining table.
     # attempt to insert data into strictly-typed fields.
     select_fld_clause = getdata.make_flds_clause(fld_settings)
@@ -149,8 +153,8 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
                             (tmp_name, select_fld_clause, 
                              getdata.tblname_qtr(mg.DBE_SQLITE, orig_tbl_name))
     if debug: print(SQL_insert_all)
-    dd.cur.execute(SQL_insert_all)
-    dd.con.commit()
+    default_dd.cur.execute(SQL_insert_all)
+    default_dd.con.commit()
 
 def make_redesigned_tbl(final_name, oth_name_types):
     """
@@ -159,72 +163,73 @@ def make_redesigned_tbl(final_name, oth_name_types):
     Don't want new table to have any constraints which rely on user-defined 
         functions.
     """
-    debug = False
+    debug = True
+    if debug: print(u"DBE in make_redesigned_tbl is: ", default_dd.dbe)
     tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
     final_name = getdata.tblname_qtr(mg.DBE_SQLITE, final_name)
     create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
                                                     strict_typing=False,
                                                     inc_sofa_id=True)
     if debug: print(create_fld_clause)
-    dd.con.commit()
+    default_dd.con.commit()
     if debug:
         print(u"About to drop %s" % final_name)
         SQL_get_tbls = u"""SELECT name 
             FROM sqlite_master 
             WHERE type = 'table'
             ORDER BY name"""
-        dd.cur.execute(SQL_get_tbls)
-        tbls = [x[0] for x in dd.cur.fetchall()]
+        default_dd.cur.execute(SQL_get_tbls)
+        tbls = [x[0] for x in default_dd.cur.fetchall()]
         tbls.sort(key=lambda s: s.upper())
         print(tbls)
-    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
+    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
     SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % final_name
-    dd.cur.execute(SQL_drop_orig)
-    dd.con.commit()
+    default_dd.cur.execute(SQL_drop_orig)
+    default_dd.con.commit()
     if debug:
         print(u"Supposedly just dropped %s" % final_name)
         SQL_get_tbls = u"""SELECT name 
             FROM sqlite_master 
             WHERE type = 'table'
             ORDER BY name"""
-        dd.cur.execute(SQL_get_tbls)
-        tbls = [x[0] for x in dd.cur.fetchall()]
+        default_dd.cur.execute(SQL_get_tbls)
+        tbls = [x[0] for x in default_dd.cur.fetchall()]
         tbls.sort(key=lambda s: s.upper())
         print(tbls)
     SQL_make_redesigned_tbl = u"CREATE TABLE %s (%s)" % (final_name, 
                                                          create_fld_clause)
-    dd.cur.execute(SQL_make_redesigned_tbl)
-    dd.con.commit()
+    default_dd.cur.execute(SQL_make_redesigned_tbl)
+    default_dd.con.commit()
     oth_names = [objqtr(x[0]) for x in oth_name_types]
     null_plus_oth_flds = u" NULL, " + u", ".join(oth_names)
     SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (final_name, 
                                                 null_plus_oth_flds, tmp_name)
     if debug: print(SQL_insert_all)
-    dd.con.commit()
-    dd.cur.execute(SQL_insert_all)
-    dd.con.commit()
+    default_dd.con.commit()
+    default_dd.cur.execute(SQL_insert_all)
+    default_dd.con.commit()
     if debug:
         print(u"About to drop %s" % tmp_name)
         SQL_get_tbls = u"""SELECT name 
             FROM sqlite_master 
             WHERE type = 'table'
             ORDER BY name"""
-        dd.cur.execute(SQL_get_tbls)
-        tbls = [x[0] for x in dd.cur.fetchall()]
+        default_dd.cur.execute(SQL_get_tbls)
+        tbls = [x[0] for x in default_dd.cur.fetchall()]
         tbls.sort(key=lambda s: s.upper())
         print(tbls)
-    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
+    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
     SQL_drop_tmp = u"DROP TABLE %s" % tmp_name # crucial this happens
-    dd.cur.execute(SQL_drop_tmp)
-    dd.con.commit()
+    default_dd.cur.execute(SQL_drop_tmp)
+    default_dd.con.commit()
     if debug:
         print(u"Supposedly just dropped %s" % tmp_name)
         SQL_get_tbls = u"""SELECT name 
             FROM sqlite_master 
             WHERE type = 'table'
             ORDER BY name"""
-        dd.cur.execute(SQL_get_tbls)
-        tbls = [x[0] for x in dd.cur.fetchall()]
+        default_dd.cur.execute(SQL_get_tbls)
+        tbls = [x[0] for x in default_dd.cur.fetchall()]
         tbls.sort(key=lambda s: s.upper())
         print(tbls)
     getdata.reset_con(add_checks=False) # should be OK now tmp table gone
@@ -547,15 +552,18 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         debug = False
         flds_clause = u", ".join([objqtr(x) for x in db_flds_orig_names
                                   if x is not None])
+        if debug: print(u"flds_clause", flds_clause)
         SQL_get_data = u"""SELECT %s FROM %s """ % (flds_clause, 
                         getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname_lst[0]))
-        dd.cur.execute(SQL_get_data) # NB won't contain any new or inserted flds
+        if debug: print(u"SQL_get_data", SQL_get_data)
+        default_dd.cur.execute(SQL_get_data) # NB won't contain any new 
+            # or inserted flds
         rows = []
         row_idx = 0
         while True:
             if row_idx >= display_n:
                 break # got all we need
-            row_obj = dd.cur.fetchone()
+            row_obj = default_dd.cur.fetchone()
             if row_obj is None:
                 break # run out of rows
             row_dict = dict(zip(db_flds_orig_names, row_obj))
@@ -735,10 +743,13 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         Only interested in SQLite when making a fresh SOFA table
         Do not use check constraints (based on user-defined functions) or else 
             only SOFA will be able to open the SQLite database.
-        """       
+        """
+        debug = True
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
-        tbl_name = self.tblname_lst[0] 
-        getdata.make_sofa_tbl(dd.con, dd.cur, tbl_name, oth_name_types)
+        tbl_name = self.tblname_lst[0]
+        if debug: print(u"DBE in make_new_tbl is: ", default_dd.dbe)
+        getdata.make_sofa_tbl(default_dd.con, default_dd.cur, tbl_name, 
+                              oth_name_types)
         wx.MessageBox(_("Your new table has been added to the default SOFA "
                         "database"))
             
@@ -760,7 +771,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             anymore.
         """
         debug = False
-        orig_tbl_name = dd.tbl
+        orig_tbl_name = default_dd.tbl
         # other (i.e. not the sofa_id) field details
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
         if debug: print("oth_name_types to feed into make_strict_typing_tbl %s" 
@@ -770,12 +781,12 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                                    self.settings_data)
         except sqlite.IntegrityError, e:
             if debug: print(unicode(e))
-            dd.con.commit()
-            getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
+            default_dd.con.commit()
+            getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
             SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % \
                              getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
-            dd.cur.execute(SQL_drop_tmp_tbl)
-            dd.con.commit()
+            default_dd.cur.execute(SQL_drop_tmp_tbl)
+            default_dd.con.commit()
             raise FldMismatchException
         copy_orig_tbl(orig_tbl_name)
         wipe_tbl(orig_tbl_name)
@@ -785,7 +796,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         except Exception:
             restore_copy_tbl(orig_tbl_name)
         wipe_tbl(mg.TMP_TBL_NAME2)
-        dd.set_db(dd.db, tbl=final_name) # refresh tbls downwards
+        default_dd.set_db(default_dd.db, tbl=final_name) # refresh tbls down
     
     def make_changes(self):
         debug = False
@@ -804,7 +815,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         else:
             if not self.readonly:
                 self.modify_tbl()
-        dd.set_db(dd.db, tbl=tblname) # refresh tbls downwards
+        default_dd.set_db(default_dd.db, tbl=tblname) # refresh tbls downwards
         self.changes_made = True
 
     def refresh_dlg(self):
