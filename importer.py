@@ -177,6 +177,8 @@ def process_fld_names(raw_names):
                                     u"\nCaused by error: %s" % lib.ue(e))
             name = raw_name.replace(u" ", u"_")
             names.append(name)
+            if mg.SOFA_ID in names:
+                raise Exception(_(u"%s is a reserved field name.") % mg.SOFA_ID)
     except AttributeError:
         raise Exception(u"Field names must all be text strings.")
     except TypeError:

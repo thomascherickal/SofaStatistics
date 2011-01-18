@@ -262,18 +262,17 @@ def get_gen_fld_type(fld_type):
         gen_fld_type = mg.FLD_TYPE_STRING
     return gen_fld_type
 
-def get_init_settings_data(tblname):
+def get_init_settings_data(default_dd, tblname):
     """
     Get ordered list of tuples of field names and field types for named table.
     "Numeric", "Date", "Text".
     Only works for an SQLite database (should be the default one).
     """
-    debug = True
-    dd = get_dd()
-    dd.con.commit()
-    dd.cur.execute(u"PRAGMA table_info(%s)" % getdata.tblname_qtr(dd.dbe, 
-                                                                  tblname))
-    config = dd.cur.fetchall()
+    debug = False
+    default_dd.con.commit()
+    default_dd.cur.execute(u"PRAGMA table_info(%s)" % \
+                           getdata.tblname_qtr(default_dd.dbe, tblname))
+    config = default_dd.cur.fetchall()
     if debug: print(config)
     table_config = [(x[1], get_gen_fld_type(fld_type=x[2])) for x in config]
     return table_config
@@ -519,8 +518,8 @@ def insert_row(tbl_dd, data):
         tbl_dd.con.commit()
         return True, None
     except Exception, e:
-        if debug: print(u"Failed to insert row.  SQL: %s, Data: %s" %
-                (SQL_insert, unicode(data_tup)) + u"\n\nOriginal error: %s" % 
+        if debug: print(u"Failed to insert row. SQL: %s, Data: %s" %
+                (SQL_insert, unicode(data_tup)) + u"\n\nCaused by error: %s" % 
                 lib.ue(e))
         return False, u"%s" % lib.ue(e)
 
@@ -729,6 +728,9 @@ def get_oth_name_types(settings_data):
     oth_name_types = [(x[mg.TBL_FLD_NAME], x[mg.TBL_FLD_TYPE])
                             for x in settings_data
                             if x[mg.TBL_FLD_NAME] != mg.SOFA_ID]
+    if not oth_name_types:
+        raise Exception(_(u"Must always be at least one field in addition to "
+                          u"the \"%s\" field") % mg.SOFA_ID)
     return oth_name_types
 
 def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):

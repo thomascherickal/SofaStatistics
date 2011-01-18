@@ -130,6 +130,7 @@ class DataSelectDlg(wx.Dialog):
 
     def on_open(self, event):
         ""
+        debug = False
         if not dd.has_unique:
             msg = _("Table \"%s\" cannot be opened because it lacks a unique "
                     "index")
@@ -142,7 +143,13 @@ class DataSelectDlg(wx.Dialog):
             except Exception, e:
                 wx.MessageBox(_(u"Problem opening selected table."
                                 u"\nCaused by error: %s") % lib.ue(e))
-            rows_n = dd.cur.fetchone()[0]
+            res = dd.cur.fetchone()
+            if res is None:
+                rows_n = 0
+                if debug: print(u"Unable to get first item from %s." % 
+                                SQL_get_count)
+            else:
+                rows_n = res[0]
             if rows_n > 200000: # fast enough as long as column resizing is off
                 if wx.MessageBox(_("This table has %s rows. "
                                    "Do you wish to open it?") % rows_n, 
@@ -187,7 +194,7 @@ class DataSelectDlg(wx.Dialog):
         NB only enabled (for either viewing or editing) for the default SQLite 
             database.
         """
-        debug = True
+        debug = False
         readonly = False # only read only if the demo table
         if dd.tbl == mg.DEMO_TBL and not readonly:
             wx.MessageBox(_("The design of the default SOFA table cannot be "
@@ -195,7 +202,7 @@ class DataSelectDlg(wx.Dialog):
             self.chk_readonly.SetValue(True)
             readonly = True
         tblname_lst = [dd.tbl,]
-        init_fld_settings = getdata.get_init_settings_data(dd.tbl)
+        init_fld_settings = getdata.get_init_settings_data(dd, dd.tbl)
         if debug: print("Initial table_config data: %s" % init_fld_settings)
         fld_settings = [] # can read final result at the end  
         dlg_config = table_config.ConfigTableDlg(self.var_labels, self.val_dics, 
@@ -205,7 +212,8 @@ class DataSelectDlg(wx.Dialog):
         if debug: pprint.pprint(fld_settings)
         if ret == mg.RET_CHANGED_DESIGN and not readonly:
             if debug: print(u"Flds before: %s" % dd.flds)
-            dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=dd.tbl)
+            returned_tblname = tblname_lst[0]
+            dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=returned_tblname)
             if debug: print(u"Flds after: %s" % dd.flds)
             self.reset_tbl_dropdown()
             self.update_var_dets()

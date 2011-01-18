@@ -115,6 +115,10 @@ def copy_orig_tbl(orig_tbl_name):
                          getdata.tblname_qtr(mg.DBE_SQLITE, mg.SOFA_ID))
     default_dd.cur.execute(SQL_restore_index)
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=default_dd.cur)
+    
+    
+    
+    
     refresh_default_dd(tbl=mg.TMP_TBL_NAME2)
 
 def restore_copy_tbl(orig_tbl_name):
@@ -153,7 +157,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     fld_settings -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
-    debug = False
+    debug = True
     if debug: print(u"DBE in make_strict_typing_tbl is: ", default_dd.dbe)
     tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
     reset_default_dd(tbl=orig_tbl_name, add_checks=True) # Can't deactivate the 
@@ -180,9 +184,11 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     try:
         default_dd.cur.execute(SQL_insert_all)
         default_dd.con.commit()
+    except sqlite.IntegrityError, e:
+        raise
     except Exception, e:
-        raise Exception(u"Problem inserting data into strict-typed table."
-                        u"\nCaused by error: %s" % lib.ue(e))
+        reset_default_dd(tbl=orig_tbl_name, add_checks=False)
+        raise
     refresh_default_dd(tbl=mg.TMP_TBL_NAME)
 
 def make_redesigned_tbl(final_name, oth_name_types):
@@ -582,14 +588,14 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         Add as many rows from orig data as possible up to the row limit.
         Fill in rest with demo data.
         """
-        debug = False
-        tbl = self.tblname_lst[0]
-        refresh_default_dd(tbl=tbl)
+        debug = True
+        orig_tblname = self.tblname_lst[0]
+        refresh_default_dd(tbl=orig_tblname)
         flds_clause = u", ".join([objqtr(x) for x in db_flds_orig_names
                                   if x is not None])
         if debug: print(u"flds_clause", flds_clause)
         SQL_get_data = u"""SELECT %s FROM %s """ % (flds_clause, 
-                        getdata.tblname_qtr(mg.DBE_SQLITE, tbl))
+                        getdata.tblname_qtr(mg.DBE_SQLITE, orig_tblname))
         if debug: print(u"SQL_get_data", SQL_get_data)
         default_dd.cur.execute(SQL_get_data) # NB won't contain any new 
             # or inserted flds
@@ -842,31 +848,42 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         wipe_tbl(mg.TMP_TBL_NAME2)
     
     def make_changes(self):
+        """
+        The table name with the details we want will either be the new table 
+            (only possible after made of course) or if an existing table, 
+            the original name.
+        """
         debug = False
-        refresh_default_dd(tbl=None)
         if not self.readonly:
             # NB must run Validate on the panel because the objects are 
             # contained by that and not the dialog itself. 
             # http://www.nabble.com/validator-not-in-a-dialog-td23112169.html
             if not self.panel.Validate(): # runs validators on all assoc ctrls
                 raise Exception(_(u"Invalid table design."))
-        if self.tblname_lst: # empty ready to repopulate
-            del self.tblname_lst[0]
-        tblname = self.txt_tblname.GetValue()
-        self.tblname_lst.append(tblname)
+        gui_tblname = self.txt_tblname.GetValue()
         if self.new:
+            if self.tblname_lst:
+                raise Exception(u"Table name list should be empty for a new "
+                                u"table")
+            self.tblname_lst.append(gui_tblname)
             self.make_new_tbl()
-            refresh_default_dd(tbl=tblname)
+            refresh_default_dd(tbl=gui_tblname)
         else:
             if not self.readonly:
-                refresh_default_dd(tbl=tblname)
+                orig_tblname = self.tblname_lst[0]
+                del self.tblname_lst[0] # empty ready to repopulate
+                self.tblname_lst.append(gui_tblname)
+                refresh_default_dd(tbl=orig_tblname) # the new one hasn't hit 
+                    # the database yet
                 self.modify_tbl()
         self.changes_made = True
 
     def refresh_dlg(self):
         """
-        NB never doing this to a read-only table.  So always sofa_id, any other 
+        NB never doing this to a read-only table. So always sofa_id, any other 
             rows, then a new row.
+        Called by recode because it is the only thing which changes the 
+            underlying data table prior to Update.
         Need to wipe all rows in the middle then insert fresh ones.
         Also need to update any state information the grid relies on.
         NB typically working on the tabentry object or its grid, not on self.
@@ -880,7 +897,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.tabentry.grid.ForceRefresh()
         self.tabentry.safe_layout_adjustment()
         # get list of name/type tuples (including sofa_id)
-        init_settings_data = getdata.get_init_settings_data(self.tblname)
+        init_settings_data = getdata.get_init_settings_data(default_dd, 
+                                                            self.tblname)
         self.setup_settings_data(init_settings_data)
         self.tabentry.rows_n = len(init_settings_data) + 1 # + new row
         self.tabentry.rows_to_fill = self.tabentry.rows_n
@@ -957,7 +975,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                 return
         tblname = self.tblname_lst[0]
         # open recode dialog
-        dlg = recode.RecodeDlg(tblname, self.settings_data)
+        dlg = recode.RecodeDlg(default_dd, tblname, self.settings_data)
         ret = dlg.ShowModal()
         if ret == wx.ID_OK: # run recode
             self.changes_made = True
@@ -994,6 +1012,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             new_tbl, tblname_changed, data_changed = self.get_change_status()
             if new_tbl or tblname_changed or data_changed:
                 try:
+                    orig_tblname = self.tblname_lst[0]
+                    refresh_default_dd(tbl=orig_tblname)
                     self.make_changes()
                     self.Destroy()
                     self.SetReturnCode(mg.RET_CHANGED_DESIGN)
