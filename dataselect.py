@@ -193,14 +193,17 @@ class DataSelectDlg(wx.Dialog):
             table (fld names and types).
         NB only enabled (for either viewing or editing) for the default SQLite 
             database.
+        No need to change the data_dets because we are using the same one.
         """
         debug = False
         readonly = False # only read only if the demo table
-        if dd.tbl == mg.DEMO_TBL and not readonly:
+        default_db = (dd.db == mg.SOFA_DB and dd.tbl == mg.DEMO_TBL)
+        if default_db and not readonly:
             wx.MessageBox(_("The design of the default SOFA table cannot be "
                             "changed"))
             self.chk_readonly.SetValue(True)
             readonly = True
+        # table config dialog
         tblname_lst = [dd.tbl,]
         init_fld_settings = getdata.get_init_settings_data(dd, dd.tbl)
         if debug: print("Initial table_config data: %s" % init_fld_settings)
@@ -225,6 +228,7 @@ class DataSelectDlg(wx.Dialog):
             rename.  Must be able to add fields, and rename fields.
         """
         debug = False
+        default_db = (dd.db == mg.SOFA_DB and dd.tbl == mg.DEMO_TBL)
         try:
             con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)
             # not dd.con because we may fail making a new one and need to 
@@ -235,6 +239,13 @@ class DataSelectDlg(wx.Dialog):
                             "the default SOFA database so a new table cannot "
                             "be made there."))
             return
+        # switch dd if necessary i.e. not the default sofa db selected
+        if not default_db:
+            dbe2restore = dd.dbe
+            db2restore = dd.db
+            tbl2restore = dd.tbl
+            dd.set_dbe(dbe=mg.SQLITE, db=mg.SOFA_DB, tbl=tbl2restore)
+        # table config dialog
         tblname_lst = [] # not quite worth using validator mechanism ;-)
         init_fld_settings = [("sofa_id", "Numeric"), ("var001", "Numeric"),]
         fld_settings = [] # can read final result at the end
@@ -249,16 +260,18 @@ class DataSelectDlg(wx.Dialog):
             return
         # update tbl dropdown
         if debug: print(mg.DATA_DETS)
-        self.reset_tbl_dropdown()
-        # open data          
+        if default_db:
+            self.reset_tbl_dropdown() # won't be affected otherwise
+        # open data
         wx.BeginBusyCursor()
         readonly = False
-        tbl_dd = getdata.get_default_db_dets()
-        tbl_dd.set_tbl(tblname_lst[0])
-        dlg = db_grid.TblEditor(self, tbl_dd, self.var_labels, self.var_notes, 
+        dlg = db_grid.TblEditor(self, self.var_labels, self.var_notes, 
                                 self.var_types, self.val_dics, readonly)
         lib.safe_end_cursor()
         dlg.ShowModal()
+        # restore dd to original if necessary
+        if not default_db:
+            dd.set_dbe(dbe=dbe2restore, db=db2restore)
         self.ctrl_enablement()
         event.Skip()
     

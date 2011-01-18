@@ -13,6 +13,7 @@ import getdata
 import projects
 import settings_grid
 
+dd = getdata.get_dd()
 cc = config_dlg.get_cc()
 
 TO = u"TO"
@@ -244,14 +245,13 @@ class RecodeHelpDlg(wx.Dialog):
 
 class RecodeDlg(settings_grid.SettingsEntryDlg):
     
-    def __init__(self, default_dd, tblname, fld_settings):
+    def __init__(self, tblname, fld_settings):
         """
         tblname -- table containing the variable we are recoding
         fld_settings -- a list of dicts with the following keys: 
             mg.TBL_FLD_NAME, mg.TBL_FLD_NAME_ORIG, mg.TBL_FLD_TYPE, 
             mg.TBL_FLD_TYPE_ORIG.
         """
-        self.default_dd = default_dd
         self.tblname = tblname
         self.warned = [] # For cell_response_func.  Lists vars warned about.
         col_dets = [
@@ -373,19 +373,19 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             rename tmp table back to orig name. That way, we haven't wiped the 
             original table merely because of a recode problem
         """
-        self.default_dd.con.commit()
-        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=self.default_dd.cur)
+        dd.con.commit()
+        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
                                 getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname)
-        self.default_dd.cur.execute(SQL_drop_orig)
-        self.default_dd.con.commit()
-        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=self.default_dd.cur)
+        dd.cur.execute(SQL_drop_orig)
+        dd.con.commit()
+        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
                           (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME),
                            getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname)))
-        self.default_dd.cur.execute(SQL_rename_tbl)
-        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=self.default_dd.cur)
-        self.default_dd.set_db(self.default_dd.db, tbl=self.tblname)
+        dd.cur.execute(SQL_rename_tbl)
+        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
+        dd.set_db(dd.db, tbl=self.tblname)
     
     def recode_tbl(self, case_when, oth_name_types, 
                    idx_new_fld_in_oth_name_types):
@@ -399,24 +399,24 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         """
         debug = False
         # rename table to tmp
-        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=self.default_dd.cur)
+        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_drop_tmp = u"DROP TABLE IF EXISTS %s" % \
                             getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
-        self.default_dd.cur.execute(SQL_drop_tmp)
+        dd.cur.execute(SQL_drop_tmp)
         SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
                           (getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname), 
                            getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)))
-        self.default_dd.cur.execute(SQL_rename_tbl)
+        dd.cur.execute(SQL_rename_tbl)
         # create new table with orig name and extra field
         create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
                                                         strict_typing=False,
                                                         inc_sofa_id=True)
-        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=self.default_dd.cur)
+        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_make_recoded_tbl = u"CREATE TABLE %s (%s) " % \
                             (getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname), 
                              create_fld_clause)
         if debug: print(u"SQL_make_recoded_tbl: %s" % SQL_make_recoded_tbl)
-        self.default_dd.cur.execute(SQL_make_recoded_tbl)
+        dd.cur.execute(SQL_make_recoded_tbl)
         # want fields before new field, then case when, then any remaining flds
         fld_clauses_lst = []
         fld_clauses_lst.append(u"NULL AS %s" % objqtr(mg.SOFA_ID))
@@ -448,19 +448,19 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         print(SQL_insert_content) # worth keeping and not likely to be overdone
         print("*"*60)
         try:
-            self.default_dd.cur.execute(SQL_insert_content)
+            dd.cur.execute(SQL_insert_content)
         except Exception, e:
             print(SQL_insert_content)
             print(unicode(e))
             self.recover_from_failed_recode()
             raise
-        self.default_dd.con.commit()
-        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=self.default_dd.cur)
+        dd.con.commit()
+        getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_drop_tmp = u"DROP TABLE IF EXISTS %s" % \
                             getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
-        self.default_dd.cur.execute(SQL_drop_tmp)
-        self.default_dd.con.commit()
-        self.default_dd.set_db(self.default_dd.db, tbl=self.tblname)
+        dd.cur.execute(SQL_drop_tmp)
+        dd.con.commit()
+        dd.set_db(dd.db, tbl=self.tblname)
 
     def update_labels(self, fldname, dict_labels):
         """
