@@ -99,6 +99,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         self.default_dbs = default_dbs
         self.default_tbls = default_tbls
         self.con_dets = con_dets
+        self.cur = cur
         self.db = db
         self.tbl = tbl
         self.flds = flds

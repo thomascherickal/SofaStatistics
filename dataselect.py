@@ -161,7 +161,7 @@ class DataSelectDlg(wx.Dialog):
             if self.chk_readonly.IsEnabled():
                 readonly = self.chk_readonly.IsChecked()
             set_col_widths = True if rows_n < 1000 else False
-            dlg = db_grid.TblEditor(self, dd, self.var_labels, self.var_notes, 
+            dlg = db_grid.TblEditor(self, self.var_labels, self.var_notes, 
                                     self.var_types, self.val_dics, readonly, 
                                     set_col_widths=set_col_widths)
             lib.safe_end_cursor()
@@ -239,12 +239,12 @@ class DataSelectDlg(wx.Dialog):
                             "the default SOFA database so a new table cannot "
                             "be made there."))
             return
-        # switch dd if necessary i.e. not the default sofa db selected
+        # switch dd if necessary i.e. if default sofa db not already selected
         if not default_db:
             dbe2restore = dd.dbe
             db2restore = dd.db
             tbl2restore = dd.tbl
-            dd.set_dbe(dbe=mg.SQLITE, db=mg.SOFA_DB, tbl=tbl2restore)
+            dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB)
         # table config dialog
         tblname_lst = [] # not quite worth using validator mechanism ;-)
         init_fld_settings = [("sofa_id", "Numeric"), ("var001", "Numeric"),]

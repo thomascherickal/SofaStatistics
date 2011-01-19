@@ -832,12 +832,12 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                 raise Exception(_(u"Invalid table design."))
         gui_tblname = self.txt_tblname.GetValue()
         if self.new:
-            if self.tblname_lst:
-                raise Exception(u"Table name list should be empty for a new "
-                                u"table")
+            try:
+                del self.tblname_lst[0] # empty ready to repopulate
+            except Exception, e:
+                pass
             self.tblname_lst.append(gui_tblname)
             self.make_new_tbl()
-            self.tblname_lst.append(gui_tblname)
             dd.set_tbl(tbl=gui_tblname)
         else:
             if not self.readonly:

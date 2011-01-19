@@ -97,7 +97,7 @@ class RawTable(object):
                                      getdata.tblname_qtr(self.dbe, self.tbl), 
                                      self.where_tbl_filt)
         if debug: print(SQL_get_data)
-        self.cur.execute(SQL_get_data)
+        self.cur.execute(SQL_get_data) # must be dd.cur
         cols_n = len(self.col_names)
         # pre-store val dics for each column where possible
         col_val_dics = []
