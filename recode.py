@@ -159,11 +159,22 @@ def process_label(dict_labels, new_fldtype, new, label):
         new = float(new)
     if debug: print(new, label)
     dict_labels[new] = label
-    
+
+def recode_cell_invalidation(recode_dlg, val, row, col, grid, col_dets):
+    """
+    Return boolean and string message.
+    No dots as from or too (idxes 0 and 1).
+    """
+    if val == mg.MISSING_VAL_INDICATOR and col in (0,1):
+        return True, _(u"Please do not use the \"%s\" to recode to or from. " \
+                       u"Use MISSING for missing as required.") % \
+                       mg.MISSING_VAL_INDICATOR
+    return False, u""
+
 def warn_about_existing_labels(recode_dlg, val, row, col, grid, col_dets):
     """
     If a non-empty value, check to see if this variable has value labels 
-        already.  If it does, let the user know.
+        already. If it does, let the user know.
     """
     debug = False
     if recode_dlg.new_fldname in recode_dlg.warned: # once is enough
@@ -300,7 +311,8 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         self.tabentry = settings_grid.SettingsEntry(self, self.panel, False, 
                                 grid_size, col_dets, init_recode_clauses_data, 
                                 self.recode_clauses_data,
-                                cell_response_func=warn_about_existing_labels)
+                                cell_response_func=warn_about_existing_labels,
+                                cell_invalidation_func=recode_cell_invalidation)
         self.tabentry.grid.Enable(False)
         self.tabentry.grid.SetToolTipString(_("Disabled until there is a "
                                               "variable to recode to"))

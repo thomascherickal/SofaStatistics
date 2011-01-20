@@ -105,14 +105,14 @@ class DataSelectDlg(wx.Dialog):
         Can only design tables in the default SOFA database.
         Only need read only option if outside the default sofa database.
         """
-        sofa_db = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)
-        self.btn_design.Enable(sofa_db)
-        delete_enable = (sofa_db and dd.tbl != mg.DEMO_TBL)
+        sofa_default_db = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)
+        self.btn_design.Enable(sofa_default_db)
+        delete_enable = (sofa_default_db and dd.tbl != mg.DEMO_TBL)
         self.btn_delete.Enable(delete_enable)
-        if sofa_db:
+        if sofa_default_db:
             readonly = (dd.tbl == mg.DEMO_TBL)
             self.chk_readonly.SetValue(readonly)
-        self.chk_readonly.Enable(not sofa_db)
+        self.chk_readonly.Enable(not sofa_default_db)
         
     def on_database_sel(self, event):
         getdata.refresh_db_dets(self)
@@ -197,8 +197,9 @@ class DataSelectDlg(wx.Dialog):
         """
         debug = False
         readonly = False # only read only if the demo table
-        default_db = (dd.db == mg.SOFA_DB and dd.tbl == mg.DEMO_TBL)
-        if default_db and not readonly:
+        sofa_demo_tbl = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB 
+                         and dd.tbl == mg.DEMO_TBL)
+        if sofa_demo_tbl and not readonly:
             wx.MessageBox(_("The design of the default SOFA table cannot be "
                             "changed"))
             self.chk_readonly.SetValue(True)
@@ -228,7 +229,7 @@ class DataSelectDlg(wx.Dialog):
             rename.  Must be able to add fields, and rename fields.
         """
         debug = False
-        default_db = (dd.db == mg.SOFA_DB and dd.tbl == mg.DEMO_TBL)
+        sofa_default_db = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)
         try:
             con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)
             # not dd.con because we may fail making a new one and need to 
@@ -240,7 +241,7 @@ class DataSelectDlg(wx.Dialog):
                             "be made there."))
             return
         # switch dd if necessary i.e. if default sofa db not already selected
-        if not default_db:
+        if not sofa_default_db:
             dbe2restore = dd.dbe
             db2restore = dd.db
             tbl2restore = dd.tbl
@@ -260,7 +261,7 @@ class DataSelectDlg(wx.Dialog):
             return
         # update tbl dropdown
         if debug: print(mg.DATA_DETS)
-        if default_db:
+        if sofa_default_db:
             self.reset_tbl_dropdown() # won't be affected otherwise
         # open data
         wx.BeginBusyCursor()
@@ -270,8 +271,8 @@ class DataSelectDlg(wx.Dialog):
         lib.safe_end_cursor()
         dlg.ShowModal()
         # restore dd to original if necessary
-        if not default_db:
-            dd.set_dbe(dbe=dbe2restore, db=db2restore)
+        if not sofa_default_db:
+            dd.set_dbe(dbe=dbe2restore, db=db2restore, tbl=tbl2restore)
         self.ctrl_enablement()
         event.Skip()
     

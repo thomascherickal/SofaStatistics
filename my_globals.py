@@ -326,6 +326,7 @@ TBL_FLD_TYPE = u"fld_type"
 TBL_FLD_TYPE_ORIG = u"fld_type_orig"
 TMP_TBL_NAME = u"sofa_tmp_tbl"
 TMP_TBL_NAME2 = u"sofa_tmp_tbl2"
+STRICT_TMP_TBL = u"tmp_strict"
 SOFA_ID = u"sofa_id"
 # demo data
 NUM_DATA_SEQ = (1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 12.0, 35.0)

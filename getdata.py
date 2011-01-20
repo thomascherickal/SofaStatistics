@@ -171,8 +171,8 @@ class DataDets(object):
                                           self.default_dbs, self.default_tbls, 
                                           db, tbl, add_checks)
         except Exception, e:
-            raise Exception(u"Unable to get dbe resources.\nCaused by error: %s"
-                            % lib.ue(e))
+            raise Exception(u"Unable to get dbe resources."
+                            u"\nCaused by error: %s" % lib.ue(e))
         self.dbe = dbe # only change if getting dbe resources worked
         if debug: print(u"Finished getting dbe resources")
         self.con = dbe_resources[mg.DBE_CON]
@@ -238,7 +238,7 @@ def force_sofa_tbls_refresh(sofa_default_db_cur):
         sofa_default_db_cur.execute(SQL_get_tbls)
     except Exception, e:
         raise Exception(u"force_sofa_tbls_refresh() can only be used for the "
-                        u"default db")
+                        u"default db\nCaused by error: %s" % lib.ue(e))
 
 def reset_main_con_if_sofa_default(tbl_name=None, add_checks=False):
     """
@@ -269,6 +269,7 @@ def get_init_settings_data(default_dd, tblname):
     Only works for an SQLite database (should be the default one).
     """
     debug = False
+    if debug: print(u"default_dd: %s" % default_dd)
     default_dd.con.commit()
     default_dd.cur.execute(u"PRAGMA table_info(%s)" % \
                            getdata.tblname_qtr(default_dd.dbe, tblname))
@@ -356,18 +357,20 @@ def make_fld_val_clause(dbe, flds, fld_name, val, gte=mg.GTE_EQUALS):
             if not lib.is_basic_num(val):
                 num = False
         if num:
-            # need repr otherwise truncates decimals e.g. 111.582756811 instead 
-            # of 111.58275680743
+            # Need repr otherwise truncates decimals e.g. 111.582756811 instead 
+            # of 111.58275680743.
+            # MySQL return L on end of longs so strip it off
+            val2use = repr(val).strip(u"L")
             if debug:
-                print(repr(val))
-                print(val)
-                print(unicode(val))
-                print(float(repr(val)) == val)
-            if float(repr(val)) != val:
+                print(u"val2use: %s" % val2use)
+                print(u"val: %s" % val)
+                print(u"unicode(val): %s" % unicode(val))
+                print(float(val2use) == val)
+            if float(repr(val).strip(u"L")) != val:
                 # will not be found using an SQL query
                 raise Exception(u"%s is not a suitable value for use as a "
-                                u"category" % repr(val))
-            clause = u"%s %s %s" % (objqtr(fld_name), dbe_gte, repr(val))
+                                u"category" % val2use)
+            clause = u"%s %s %s" % (objqtr(fld_name), dbe_gte, repr(val).strip(u"L"))
         else:
             clause = make_fld_val_clause_non_numeric(fld_name, val, dbe_gte, 
                                                      objqtr, valqtr)

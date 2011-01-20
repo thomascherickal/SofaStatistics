@@ -131,9 +131,9 @@ class SettingsEntryDlg(wx.Dialog):
         event.Skip()
         
     
-def cell_invalidation(val, row, col, grid, col_dets):
+def cell_invalidation(frame, val, row, col, grid, col_dets):
     "Return boolean and string message"
-    return False, ""
+    return False, u""
 
 def cell_response(self, val, row, col, grid, col_dets):
     pass
@@ -740,7 +740,7 @@ class SettingsEntry(object):
         """
         self.grid.DisableCellEditControl()
         val = self.get_val(row, col)
-        return self.cell_invalidation_func(val, row, col, self.grid, 
+        return self.cell_invalidation_func(self.frame, val, row, col, self.grid, 
                                            self.col_dets)
     
     def get_val(self, row, col):

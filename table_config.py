@@ -23,14 +23,18 @@ def reset_default_dd(tbl=None, add_checks=False):
     """
     Completely reset connection etc with option of changing add_checks setting.
     """
-    global dd
+    debug = False
+    if debug: print("Resetting connection to default db. Add_checks: %s" % 
+                    add_checks)
     try:
         dd.cur.close()
         dd.con.close()
-        dd = None
-        dd = getdata.get_default_db_dets()
         dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl, 
                 add_checks=add_checks) # Must reset entire dbe to change checks
+        if debug: # check the connection is still working
+            obj_qtr = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
+            dd.cur.execute(u"SELECT * FROM %s" % obj_qtr(dd.tbls[0]))
+            print(dd.cur.fetchone())
     except Exception, e:
         raise Exception(u"Problem resetting dd with tbl %s."
                         u"\nCaused by error: %s" % (tbl, lib.ue(e)))   
@@ -143,20 +147,17 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     fld_settings -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
-    debug = True
+    debug = False
     if debug: print(u"DBE in make_strict_typing_tbl is: ", dd.dbe)
-    tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
     reset_default_dd(tbl=orig_tbl_name, add_checks=True) # Can't deactivate the 
                   # user-defined functions until the tmp table has been deleted.
-    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
-    SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % tmp_name
-    dd.cur.execute(SQL_drop_tmp_tbl)
-    dd.con.commit()
+    wipe_tbl(mg.STRICT_TMP_TBL)
     # create table with strictly-typed fields
     create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
                                                     strict_typing=True,
                                                     inc_sofa_id=False)
-    SQL_make_tmp_tbl = u"CREATE TABLE %s (%s) " % (tmp_name, 
+    qtd_tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.STRICT_TMP_TBL)
+    SQL_make_tmp_tbl = u"CREATE TABLE %s (%s) " % (qtd_tmp_name, 
                                                    create_fld_clause)
     if debug: print(SQL_make_tmp_tbl)
     dd.cur.execute(SQL_make_tmp_tbl)
@@ -164,17 +165,41 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     # attempt to insert data into strictly-typed fields.
     select_fld_clause = getdata.make_flds_clause(fld_settings)
     SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % \
-                            (tmp_name, select_fld_clause, 
+                            (qtd_tmp_name, select_fld_clause, 
                              getdata.tblname_qtr(mg.DBE_SQLITE, orig_tbl_name))
     if debug: print(SQL_insert_all)
-    try:
-        dd.cur.execute(SQL_insert_all)
-        dd.con.commit()
-    except sqlite.IntegrityError, e:
-        raise
-    except Exception, e:
-        reset_default_dd(tbl=orig_tbl_name, add_checks=False)
-        raise
+    dd.cur.execute(SQL_insert_all)
+    dd.con.commit()
+
+def strict_cleanup(restore_tblname):
+    """
+    Must happen one way or another - whether an error or not
+    """
+    debug = False
+    if debug:
+        print(u"About to drop %s" % mg.STRICT_TMP_TBL)
+        SQL_get_tbls = u"""SELECT name 
+            FROM sqlite_master 
+            WHERE type = 'table'
+            ORDER BY name"""
+        dd.cur.execute(SQL_get_tbls)
+        tbls = [x[0] for x in dd.cur.fetchall()]
+        tbls.sort(key=lambda s: s.upper())
+        print(tbls)
+    wipe_tbl(mg.STRICT_TMP_TBL)
+    if debug:
+        print(u"Supposedly just dropped %s" % mg.STRICT_TMP_TBL)
+        SQL_get_tbls = u"""SELECT name 
+            FROM sqlite_master 
+            WHERE type = 'table'
+            ORDER BY name"""
+        dd.cur.execute(SQL_get_tbls)
+        tbls = [x[0] for x in dd.cur.fetchall()]
+        tbls.sort(key=lambda s: s.upper())
+        print(tbls)
+    reset_default_dd(tbl=restore_tblname, add_checks=False) # Should be OK now
+                                                        # strict tmp table gone.
+    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
 
 def make_redesigned_tbl(final_name, oth_name_types):
     """
@@ -185,7 +210,7 @@ def make_redesigned_tbl(final_name, oth_name_types):
     """
     debug = False
     if debug: print(u"DBE in make_redesigned_tbl is: ", dd.dbe)
-    tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
+    tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.STRICT_TMP_TBL)
     unquoted_final_name = final_name
     final_name = getdata.tblname_qtr(mg.DBE_SQLITE, final_name)
     create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
@@ -203,10 +228,7 @@ def make_redesigned_tbl(final_name, oth_name_types):
         tbls = [x[0] for x in dd.cur.fetchall()]
         tbls.sort(key=lambda s: s.upper())
         print(tbls)
-    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
-    SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % final_name
-    dd.cur.execute(SQL_drop_orig)
-    dd.con.commit()
+    wipe_tbl(unquoted_final_name)
     if debug:
         print(u"Supposedly just dropped %s" % final_name)
         SQL_get_tbls = u"""SELECT name 
@@ -229,32 +251,6 @@ def make_redesigned_tbl(final_name, oth_name_types):
     dd.con.commit()
     dd.cur.execute(SQL_insert_all)
     dd.con.commit()
-    if debug:
-        print(u"About to drop %s" % tmp_name)
-        SQL_get_tbls = u"""SELECT name 
-            FROM sqlite_master 
-            WHERE type = 'table'
-            ORDER BY name"""
-        dd.cur.execute(SQL_get_tbls)
-        tbls = [x[0] for x in dd.cur.fetchall()]
-        tbls.sort(key=lambda s: s.upper())
-        print(tbls)
-    getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
-    SQL_drop_tmp = u"DROP TABLE %s" % tmp_name # crucial this happens
-    dd.cur.execute(SQL_drop_tmp)
-    dd.con.commit()
-    if debug:
-        print(u"Supposedly just dropped %s" % tmp_name)
-        SQL_get_tbls = u"""SELECT name 
-            FROM sqlite_master 
-            WHERE type = 'table'
-            ORDER BY name"""
-        dd.cur.execute(SQL_get_tbls)
-        tbls = [x[0] for x in dd.cur.fetchall()]
-        tbls.sort(key=lambda s: s.upper())
-        print(tbls)
-    reset_default_dd(tbl=unquoted_final_name, add_checks=False) # should be OK 
-        # now tmp table gone.
 
 def insert_data(row_idx, grid_data):
     """
@@ -267,7 +263,7 @@ def insert_data(row_idx, grid_data):
     row_data = [next_fld_name, mg.FLD_TYPE_NUMERIC]
     return row_data
 
-def cell_invalidation(val, row, col, grid, col_dets):
+def cell_invalidation(frame, val, row, col, grid, col_dets):
     """
     The first column text must be either empty, or 
         alphanumeric (and underscores), and unique (field name) 
@@ -572,7 +568,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         Add as many rows from orig data as possible up to the row limit.
         Fill in rest with demo data.
         """
-        debug = True
+        debug = False
         orig_tblname = self.tblname_lst[0]
         flds_clause = u", ".join([objqtr(x) for x in db_flds_orig_names
                                   if x is not None])
@@ -761,10 +757,9 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
         tbl_name = self.tblname_lst[0]
         if debug: print(u"DBE in make_new_tbl is: ", dd.dbe)
-        getdata.make_sofa_tbl(dd.con, dd.cur, tbl_name, 
-                              oth_name_types)
-        wx.MessageBox(_("Your new table has been added to the default SOFA "
-                        "database"))
+        getdata.make_sofa_tbl(dd.con, dd.cur, tbl_name, oth_name_types)
+        wx.MessageBox(_(u"Your new table has been added to the default SOFA "
+                        u"database"))
             
     def modify_tbl(self):
         """
@@ -775,7 +770,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         If any conversion errors (e.g. trying to change a field which 
             currently contains "fred" to a numeric field) abort 
             reconfiguration (with encouragement to fix source data or change
-            type to string).
+            type to string).  Wipe strict tmp table and refresh everything.
         Assuming reconfiguration is OK, create final table with original 
             table's name, without strict typing, but with an auto-
             incrementing and indexed SOFA_ID.
@@ -789,19 +784,15 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
         if debug: print("oth_name_types to feed into make_strict_typing_tbl %s" 
                         % oth_name_types)
-        try:
+        try: # 1 way or other must do strict_cleanup()
             make_strict_typing_tbl(orig_tbl_name, oth_name_types, 
                                    self.settings_data)
         except sqlite.IntegrityError, e:
-            if debug: print(unicode(e))
-            dd.con.commit()
-            getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
-            SQL_drop_tmp_tbl = u"DROP TABLE IF EXISTS %s" % \
-                             getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
-            dd.cur.execute(SQL_drop_tmp_tbl)
-            dd.con.commit()
+            if debug: print(lib.ue(e))
+            strict_cleanup(restore_tblname=orig_tbl_name)
             raise FldMismatchException
         except Exception, e:
+            strict_cleanup(restore_tblname=orig_tbl_name)
             raise Exception(u"Problem making strictly-typed table."
                             u"\nCaused by error: %s" % lib.ue(e))
         copy_orig_tbl(orig_tbl_name)
@@ -809,9 +800,11 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         final_name = self.tblname_lst[0] # may have been renamed
         try:
             make_redesigned_tbl(final_name, oth_name_types)
+            strict_cleanup(restore_tblname=final_name)
             dd.set_tbl(tbl=final_name)
         except Exception, e:
-            restore_copy_tbl(orig_tbl_name)
+            strict_cleanup(restore_tblname=orig_tbl_name)
+            restore_copy_tbl(orig_tbl_name) # effectively removes tmp_tbl 2
             dd.set_tbl(tbl=orig_tbl_name)
             raise Exception(u"Problem making redesigned table."
                             u"\nCaused by error: %s" % lib.ue(e))
@@ -939,8 +932,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                                      "and try again."))
                      return
                 except Exception, e:
-                     wx.MessageBox(_("Unable to modify table.\nCaused by error:"
-                                     " %s") % lib.ue(e))
+                     wx.MessageBox(_(u"Unable to modify table."
+                                     u"\nCaused by error: %s") % lib.ue(e))
                      return
             else:
                 return
