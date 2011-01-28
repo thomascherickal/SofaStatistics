@@ -53,6 +53,8 @@ def get_list(dbe, cur, tbl, tbl_filt, flds, fld_measure, fld_filter,
     if debug: print(SQL_get_list)
     cur.execute(SQL_get_list)
     lst = [x[0] for x in cur.fetchall()]
+    if len(lst) < 2:
+        raise my_exceptions.TooFewValsInSamplesForAnalysisException
     return lst
 
 def get_paired_data(dbe, cur, tbl, tbl_filt, fld_a, fld_b, unique=False):

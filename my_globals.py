@@ -452,6 +452,8 @@ VAL_B_DEFAULT = None
 MAX_CHI_DIMS = 6
 MIN_CHI_DIMS = 2
 MAX_CHI_CELLS = 25
+MAX_PIE_SLICES = 30
+MAX_CHART_SERIES = 30
 JS_WRAPPER_L = u"\n\n<script type=\"text/javascript\">"
 JS_WRAPPER_R = u"\n</script>"
 

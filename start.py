@@ -339,6 +339,8 @@ def populate_css_path(prog_path, local_path):
         except Exception, e: # more diagnostic info to explain why it failed
             raise Exception(u"Problem populating css path."
                             u"\nCaused by error: %s" % lib.ue(e) +
+                            u"\nprog_path: %s" % prog_path +
+                            u"\nlocal_path: %s" % local_path +
                             u"\nFile location details: %s" % sys.path)
     print(u"Populated css paths under %s" % local_path)
 
@@ -907,7 +909,8 @@ class StartFrame(wx.Frame):
             if version_lev == mg.VERSION_CHECK_NONE:
                 raise Exception(u"No permission to check for new versions")
             else:
-                new_version = self.get_latest_version(version_lev)
+                if not dev_debug:
+                    new_version = self.get_latest_version(version_lev)
                 if debug: print(new_version)
             self.upgrade_available = \
                                 lib.version_a_is_newer(version_a=new_version, 

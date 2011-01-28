@@ -213,7 +213,7 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
     if not raw_data:
         raise my_exceptions.TooFewValsForDisplay
     series_data, oth_vals = reshape_sql_crosstab_data(raw_data)
-    if len(series_data) > 30:
+    if len(series_data) > mg.MAX_CHART_SERIES:
         raise my_exceptions.TooManySeriesInChart
     series_dets = []
     tot_items = 0
@@ -261,7 +261,7 @@ def get_pie_chart_dets(dbe, cur, tbl, tbl_filt,
         if len(label_dets) != len(slice_vals):
             raise Exception(u"Mismatch in number of slice labels and slice "
                             u"values")
-        if len(slice_vals) > 30:
+        if len(slice_vals) > mg.MAX_PIE_SLICES:
             raise my_exceptions.TooManySlicesInPieChart
         tot_freq = sum(slice_vals)
         slice_dets = []

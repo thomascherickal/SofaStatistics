@@ -1,3 +1,5 @@
+import my_globals as mg
+
 class MissingConDets(Exception):
     def __init__(self, dbe):
         Exception.__init__(self, u"Missing connection details for %s." % dbe)
@@ -36,65 +38,82 @@ class InvalidTestSelectionException(Exception):
     def __init__(self):
         Exception.__init__(self, u"Invalid test selection.")
 
-class TooManyRowsInChiSquareException(Exception):
-    def __init__(self):
-        Exception.__init__(self, u"Too many rows in contingency table")
-
-class TooManyColsInChiSquareException(Exception):
-    def __init__(self):
-        Exception.__init__(self, u"Too many columns in contingency table")
-
-class TooFewRowsInChiSquareException(Exception):
-    def __init__(self):
-        Exception.__init__(self, u"Not enough rows in contingency table")
-
-class TooFewColsInChiSquareException(Exception):
-    def __init__(self):
-        Exception.__init__(self, u"Not enough columns in contingency table")
-
-class TooManyCellsInChiSquareException(Exception):
-    def __init__(self):
-        Exception.__init__(self, u"Too many cells in contingency table")
-
-class TooManySlicesInPieChart(Exception):
-    def __init__(self):
-        Exception.__init__(self, u"Too many slices in Pie Chart. More than 30.")
-
-class TooManySeriesInChart(Exception):
-    def __init__(self):
-        Exception.__init__(self, u"Too many series in chart. More than 30.")
-
-class TooManyValsInChartSeries(Exception):
-    def __init__(self, fld_measure, max_items):
-        Exception.__init__(self, u"Too many values to display for %s. " 
-                           % fld_measure + u"More than %s." % max_items)
-
-class TooManyChartsInSeries(Exception):
-    def __init__(self, fld_gp_name, max_items):
-        Exception.__init__(self, u"Too many charts to display for \"%s\".  " 
-                           % fld_gp_name + u"More than %s." % max_items)
-
-class TooFewSamplesForAnalysisException(Exception):
-    def __init__(self):
-        Exception.__init__(self, u"At least two samples with non-missing data "
-                           u"needed to run the analysis.  Please check "
-                           u"filtering or source data.")
-
-class ExcessReportTableCellsException(Exception):
-    def __init__(self, max):
-        Exception.__init__(self, _("Only allowed %s cells in report table" % 
-                                   max))
-
-class TooFewValsForDisplay(Exception):
-    def __init__(self, min_n=None):
-        msg = (u"Not enough data to display. Please check variables "
-               u"and any filtering.")
-        if min_n:
-            msg += " Need at least %s values." % min_n
-        Exception.__init__(self, msg)
-
 class NoNodesException(Exception):
     def __init__(self):
         Exception.__init__(self, u"Cannot get terminal nodes until " +
                     u"there is at least one node added to tree")
 
+# Output exceptions - trapped as a group in output usually
+class OutputException(Exception):
+    pass
+
+class TooManyCellsInChiSquareException(OutputException):
+    def __init__(self):
+        OutputException.__init__(self, _("Please select variables which have "
+                "fewer different values. More than %s cells in contingency "
+                "table.") % mg.MAX_CHI_CELLS)
+
+class TooManyRowsInChiSquareException(OutputException):
+    def __init__(self):
+        OutputException.__init__(self, _("Please select a variable with no "
+                        "more than %s values for Group A.") % mg.MAX_CHI_DIMS)
+
+class TooManyColsInChiSquareException(OutputException):
+    def __init__(self):
+        OutputException.__init__(self, _("Please select a variable with no "
+            "more than %s values for Group B.") % mg.MAX_CHI_DIMS)
+
+class TooFewRowsInChiSquareException(OutputException):
+    def __init__(self):
+        OutputException.__init__(self, _("Please select a variable with at "
+                        "least %s values for Group A.") % mg.MIN_CHI_DIMS)
+
+class TooFewColsInChiSquareException(OutputException):
+    def __init__(self):
+        OutputException.__init__(self, _("Please select a variable with at "
+                        "least %s values for Group B.") % mg.MIN_CHI_DIMS)
+
+class TooFewValsInSamplesForAnalysisException(OutputException):
+    def __init__(self):
+        OutputException.__init__(self, u"At least two values are needed in "
+                           u"each group to run the analysis. Please check "
+                           u"filtering or source data.")
+
+class ExcessReportTableCellsException(OutputException):
+    def __init__(self, max):
+        OutputException.__init__(self, _(u"Only allowed %s cells in "
+                                         u"report table") % max)
+
+class TooFewValsForDisplay(OutputException):
+    def __init__(self, min_n=None):
+        msg = (u"Not enough data to display. Please check variables "
+               u"and any filtering.")
+        if min_n:
+            msg += " Need at least %s values." % min_n
+        OutputException.__init__(self, msg)
+
+class TooFewSamplesForAnalysisException(OutputException):
+    def __init__(self):
+        OutputException.__init__(self, u"At least two samples with non-missing "
+                           u"data needed to run the analysis. Please check "
+                           u"filtering or source data.")
+
+class TooManySlicesInPieChart(OutputException):
+    def __init__(self):
+        OutputException.__init__(self, _("Too many slices in Pie Chart. "
+                                         "More than %s.") % mg.MAX_PIE_SLICES)
+
+class TooManySeriesInChart(OutputException):
+    def __init__(self):
+        OutputException.__init__(self, _(u"Too many series in chart. More "
+                                         "than %s.") % mg.MAX_CHART_SERIES)
+
+class TooManyValsInChartSeries(OutputException):
+    def __init__(self, fld_measure, max_items):
+        OutputException.__init__(self, u"Too many values to display for %s. " 
+                           % fld_measure + u"More than %s." % max_items)
+
+class TooManyChartsInSeries(OutputException):
+    def __init__(self, fld_gp_name, max_items):
+        OutputException.__init__(self, u"Too many charts to display for "
+                    "\"%s\". " % fld_gp_name + u"More than %s." % max_items)
