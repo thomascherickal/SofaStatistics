@@ -550,7 +550,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             wx.MessageBox(_("Please add a new field name"))
             self.txt_to.SetFocus()
             return
-        if not dbe_sqlite.valid_name(new_fldname):
+        if not dbe_sqlite.valid_fldname(new_fldname):
             wx.MessageBox(_("Field names can only contain letters, numbers, "
                                "and underscores"))
             return

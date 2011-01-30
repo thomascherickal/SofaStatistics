@@ -190,7 +190,7 @@ def process_fld_names(raw_names):
         raise Exception(u"Duplicate field name (once spaces turned to "
                         u"underscores)")
     for i, name in enumerate(names):
-        if not dbe_sqlite.valid_name(name):
+        if not dbe_sqlite.valid_fldname(name):
             raise Exception(_("Unable to use field name \"%s\". Please only "
                               "use letters, numbers and underscores. No spaces,"
                               " full stops etc.") % raw_names[i])
@@ -839,7 +839,7 @@ class ImportFileSelectDlg(wx.Dialog):
         Raises exception if no suitable name selected.
         """
         # check existing names
-        valid_name = dbe_sqlite.valid_name(tbl_name)
+        valid_name = dbe_sqlite.valid_tblname(tbl_name)
         if not valid_name:
             title = _("FAULTY SOFA TABLE NAME")
             msg = _("You can only use letters, numbers and underscores in a "

@@ -289,7 +289,7 @@ def _invalid_fld_name(row, grid):
     field_name = grid.GetCellValue(row=row, col=0)
     if field_name.strip() == u"":
         return False, ""
-    if not dbe_sqlite.valid_name(field_name):
+    if not dbe_sqlite.valid_fldname(field_name):
         msg = _("Field names can only contain letters, numbers, and "
               "underscores")
         return True, msg
@@ -312,7 +312,7 @@ def _invalid_fld_type(row, grid):
 
 def validate_tbl_name(tbl_name, name_ok_to_reuse):
     "Returns boolean plus string message"
-    valid_name = dbe_sqlite.valid_name(tbl_name)
+    valid_name = dbe_sqlite.valid_tblname(tbl_name)
     if not valid_name:
         msg = _("You can only use letters, numbers and underscores "
             "in a SOFA name.  Use another name?")

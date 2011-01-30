@@ -372,10 +372,18 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
 
 # unique to SQLite (because used to store tables for user-entered data plus 
 # imported data)
-def valid_name(name):
+    
+def valid_tblname(tblname):
+    return valid_name(tblname, is_tblname=True)
+
+def valid_fldname(fldname):
+    return valid_name(fldname, is_tblname=False)
+
+def valid_name(name, is_tblname=True):
     """
+    tbl -- True for tblname being tested, False if a fldname being tested.
     Bad name for SQLite?  The best way is to find out for real (not too costly
-        and 100% valid by definition).  Strangely, SQLite accepts u"" as a table
+        and 100% valid by definition). Strangely, SQLite accepts u"" as a table
         name but we won't ;-).
     """
     debug = False
@@ -387,13 +395,18 @@ def valid_name(name):
     cur = con.cursor()
     valid = False
     try:
-        tblname = getdata.tblname_qtr(mg.DBE_SQLITE, name)
-        sql_make = """CREATE TABLE %s (`%s` TEXT)""" % (tblname, name)
+        if is_tblname:
+            tblname = getdata.tblname_qtr(mg.DBE_SQLITE, name)
+            fldname = u"safefldname"
+        else:
+            tblname = u"safetblname"
+            fldname = name
+        sql_make = "CREATE TABLE %s (`%s` TEXT)" % (tblname, fldname)
         if debug: print(sql_make)
         cur.execute(sql_make)
         con.commit() # otherwise when committing, no net change to commit and 
             # no actual chance to succeed or fail
-        sql_drop = """DROP TABLE %s """ % tblname
+        sql_drop = "DROP TABLE %s" % tblname
         if debug: print(sql_drop)
         cur.execute(sql_drop)
         con.commit()
