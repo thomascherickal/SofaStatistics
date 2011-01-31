@@ -8,7 +8,6 @@ import config_dlg
 import normal
 import projects
 
-TEXT_BROWN = (90, 74, 61)
 TEST_ANOVA = _("ANOVA")
 TEST_CHI_SQUARE = _("Chi Square")
 TEST_PEARSONS_R = _("Correlation - Pearson's")
@@ -21,25 +20,6 @@ TEST_WILCOXON = _("Wilcoxon Signed Ranks")
 STATS_TESTS = [TEST_ANOVA, TEST_CHI_SQUARE, TEST_PEARSONS_R, TEST_SPEARMANS_R,
                TEST_KRUSKAL_WALLIS, TEST_MANN_WHITNEY, TEST_TTEST_INDEP, 
                TEST_TTEST_PAIRED, TEST_WILCOXON]
-MAIN_LEFT = 45
-DIFF_TOP = 125
-REL_TOP = DIFF_TOP + 195
-QUESTIONS_TOP = REL_TOP + 150
-QUESTION_BTNS_TOP = QUESTIONS_TOP + 30
-BUTTON1_LEFT = MAIN_LEFT + 20
-BUTTON2_LEFT = MAIN_LEFT + 165
-HELP_LEFT = MAIN_LEFT + 300
-CONFIG_LEFT = 560
-if mg.PLATFORM == mg.WINDOWS:
-     CONFIG_LEFT += 10
-BUTTON_LIFT = 0 if mg.PLATFORM == mg.WINDOWS else 4
-DIV_LINE_WIDTH = 203
-LST_LEFT = 485
-LST_WIDTH = 200
-LST_TOP = 55
-LST_HEIGHT = 220
-SCROLL_ALLOWANCE = 20
-
 cc = config_dlg.get_cc()
 
 
@@ -47,135 +27,181 @@ class StatsSelectDlg(wx.Dialog):
     
     def __init__(self, proj_name, var_labels=None, var_notes=None, 
                  val_dics=None):
-        width = 1000
-        height = 600
+        # layout "constants"
+        self.tight_layout = (mg.MAX_WIDTH <= 1024 or mg.MAX_HEIGHT <= 600)
+        #self.tight_layout = True
+        self.tight_height_drop = 24
+        self.tight_width_drop = 57
+        if not self.tight_layout:
+            self.form_width = 1000
+            self.form_height = 600
+            self.diff_top = 125
+            self.rel_top = self.diff_top + 195
+            self.main_left = 45
+            self.lst_left = 485
+            self.questions_top = self.rel_top + 150
+            self.question_btns_top = self.questions_top + 30
+            self.config_left = 560
+        else:
+            self.form_width = 1000-self.tight_width_drop
+            self.form_height = 600-self.tight_height_drop
+            self.diff_top = 120
+            self.rel_top = self.diff_top + 192
+            self.main_left = 30
+            self.lst_left = 460
+            self.questions_top = self.rel_top + 145
+            self.question_btns_top = self.questions_top + 25
+            self.config_left = 520 
+        self.btn1_left = self.main_left + 20
+        self.btn2_left = self.main_left + 165
+        self.help_left = self.main_left + 300
+        if mg.PLATFORM == mg.WINDOWS:
+             self.config_left += 10
+        self.btn_lift = 0 if mg.PLATFORM == mg.WINDOWS else 4
+        self.div_line_width = 203
+        self.lst_width = 200
+        self.lst_top = 55
+        self.lst_height = 220
+        self.scroll_allowance = 20
+        self.text_brown = (90, 74, 61)
         wx.Dialog.__init__(self, None, title=_("Select Statistical Test"), 
-              size=(width,height),
+              size=(self.form_width,self.form_height),
               style=wx.CAPTION|wx.MINIMIZE_BOX|wx.SYSTEM_MENU,
               pos=(mg.HORIZ_OFFSET,0)) # -1 positions it too low on 768 v
         self.proj_name = proj_name
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize())
-        self.panel = wx.Panel(self, size=(width,height)) # needed by Windows
+        # panel settings is needed by Windows
+        self.panel = wx.Panel(self, size=(self.form_width,self.form_height))
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)        
         config_dlg.add_icon(frame=self)
         # background image
+        if not self.tight_layout:
+            stats_sel_img = u"stats_select.gif"
+        else:
+            stats_sel_img = u"stats_select_tight.gif"
         img_stats_select = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
-                                                 u"stats_select.xpm"), 
-                           wx.BITMAP_TYPE_XPM)
+                                                 stats_sel_img), 
+                           wx.BITMAP_TYPE_GIF)
         self.bmp_stats_select = wx.BitmapFromImage(img_stats_select)
         # direct or assisted
         self.rad_direct = wx.RadioButton(self.panel, -1, 
-                            pos=(MAIN_LEFT-25, 55), 
+                            pos=(self.main_left-25, 55), 
                             style=wx.RB_GROUP) # groups all till next RB_GROUP
         self.rad_direct.Bind(wx.EVT_RADIOBUTTON, self.on_radio_direct_btn)
         self.rad_direct.SetValue(True)
         self.rad_assisted = wx.RadioButton(self.panel, -1, 
-                                          pos=(MAIN_LEFT - 25, 95))
+                                          pos=(self.main_left - 25, 95))
         self.rad_assisted.Bind(wx.EVT_RADIOBUTTON, self.on_radio_assisted_btn)
         # main assisted options
         self.rad_differences = wx.RadioButton(self.panel, -1, 
-                                             pos=(MAIN_LEFT, DIFF_TOP), 
+                                             pos=(self.main_left, 
+                                                  self.diff_top), 
                                              style=wx.RB_GROUP)
         self.rad_differences.Bind(wx.EVT_RADIOBUTTON, self.on_radio_diff_btn)
         self.rad_differences.Enable(False)
         self.rad_relationships = wx.RadioButton(self.panel, -1,
-                                                pos=(MAIN_LEFT, REL_TOP))
+                                                pos=(self.main_left, 
+                                                     self.rel_top))
         self.rad_relationships.Bind(wx.EVT_RADIOBUTTON, self.on_radio_rel_btn)
         self.rad_relationships.Enable(False)
         # choices (NB can't use RadioBoxes and wallpaper in Windows)
         # choices line 1
-        DIFF_LN_1 = DIFF_TOP + 65
+        DIFF_LN_1 = self.diff_top + 65
         self.rad_2groups = wx.RadioButton(self.panel, -1, _("2 groups"), 
                                           style=wx.RB_GROUP,
-                                          pos=(BUTTON1_LEFT, DIFF_LN_1))
+                                          pos=(self.btn1_left, DIFF_LN_1))
         self.rad_2groups.Bind(wx.EVT_RADIOBUTTON, self.on_radio2_groups_btn)
         self.rad_3groups = wx.RadioButton(self.panel, -1, _("3 or more"),
-                                         pos=(BUTTON2_LEFT, DIFF_LN_1))
+                                         pos=(self.btn2_left, DIFF_LN_1))
         self.rad_3groups.Bind(wx.EVT_RADIOBUTTON, self.on_radio3_groups_btn)
         self.rad_2groups.Enable(False)
         self.rad_3groups.Enable(False)
         self.btn_groups_help = wx.Button(self.panel, wx.ID_HELP, 
-                                         pos=(HELP_LEFT, DIFF_LN_1-BUTTON_LIFT))
+                                         pos=(self.help_left, 
+                                              DIFF_LN_1-self.btn_lift))
         self.btn_groups_help.Enable(False)
         self.btn_groups_help.Bind(wx.EVT_BUTTON, self.on_groups_help_btn)
         # divider
-        wx.StaticLine(self.panel, pos=(BUTTON1_LEFT, DIFF_LN_1 + 30),
-                      size=(DIV_LINE_WIDTH, 1))   
+        wx.StaticLine(self.panel, pos=(self.btn1_left, DIFF_LN_1 + 30),
+                      size=(self.div_line_width, 1))   
         # choices line 2
         DIFF_LN_2 = DIFF_LN_1 + 45
         lbl_normal = _("Normal")
         lbl_not_normal = _("Not normal")
         self.rad_normal1 = wx.RadioButton(self.panel, -1, lbl_normal, 
                                          style=wx.RB_GROUP,
-                                         pos=(BUTTON1_LEFT, DIFF_LN_2))
+                                         pos=(self.btn1_left, DIFF_LN_2))
         self.rad_normal1.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
         self.rad_not_normal1 = wx.RadioButton(self.panel, -1, lbl_not_normal,
-                                            pos=(BUTTON2_LEFT, DIFF_LN_2))
+                                            pos=(self.btn2_left, DIFF_LN_2))
         self.rad_not_normal1.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
         self.rad_normal1.Enable(False)
         self.rad_not_normal1.Enable(False)
         self.btn_normal_help1 = wx.Button(self.panel, wx.ID_HELP,
-                                       pos=(HELP_LEFT, DIFF_LN_2 - BUTTON_LIFT))
+                                       pos=(self.help_left, 
+                                            DIFF_LN_2 - self.btn_lift))
         self.btn_normal_help1.Bind(wx.EVT_BUTTON, self.on_normal_help1_btn)
         self.btn_normal_help1.Enable(False)
         # divider
-        wx.StaticLine(self.panel, pos=(BUTTON1_LEFT, DIFF_LN_2 + 30),
-                      size=(DIV_LINE_WIDTH, 1))
+        wx.StaticLine(self.panel, pos=(self.btn1_left, DIFF_LN_2 + 30),
+                      size=(self.div_line_width, 1))
         # choices line 3
         DIFF_LN_3 = DIFF_LN_2 + 45
         self.rad_indep = wx.RadioButton(self.panel, -1, _("Independent"), 
                                        style=wx.RB_GROUP,
-                                       pos=(BUTTON1_LEFT, DIFF_LN_3))
+                                       pos=(self.btn1_left, DIFF_LN_3))
         self.rad_indep.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
         self.rad_paired = wx.RadioButton(self.panel, -1, _("Paired"),
-                                         pos=(BUTTON2_LEFT, DIFF_LN_3))
+                                         pos=(self.btn2_left, DIFF_LN_3))
         self.rad_paired.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
         self.rad_indep.Enable(False)
         self.rad_paired.Enable(False)
         self.btn_indep_help = wx.Button(self.panel, wx.ID_HELP,
-                                        pos=(HELP_LEFT, DIFF_LN_3 - BUTTON_LIFT))
+                                        pos=(self.help_left, 
+                                             DIFF_LN_3 - self.btn_lift))
         self.btn_indep_help.Bind(wx.EVT_BUTTON, self.on_indep_help_btn)
         self.btn_indep_help.Enable(False)
         # choices line 4
-        DIFF_LN_4 = REL_TOP + 60
+        DIFF_LN_4 = self.rel_top + 60
         self.rad_nominal = wx.RadioButton(self.panel, -1, _("Names Only"), 
                                           style=wx.RB_GROUP,
-                                          pos=(BUTTON1_LEFT, DIFF_LN_4))
+                                          pos=(self.btn1_left, DIFF_LN_4))
         self.rad_nominal.Bind(wx.EVT_RADIOBUTTON, self.on_radio_nominal_btn)
         self.rad_ordered = wx.RadioButton(self.panel, -1, _("Ordered"),
-                                      pos=(BUTTON2_LEFT, DIFF_LN_4))
+                                      pos=(self.btn2_left, DIFF_LN_4))
         self.rad_ordered.Bind(wx.EVT_RADIOBUTTON, self.on_radio_ordered_btn)
         self.rad_nominal.Enable(False)
         self.rad_ordered.Enable(False)
         self.btn_type_help = wx.Button(self.panel, wx.ID_HELP, 
-                                       pos=(HELP_LEFT, DIFF_LN_4 - BUTTON_LIFT))
+                                       pos=(self.help_left, 
+                                            DIFF_LN_4 - self.btn_lift))
         self.btn_type_help.Bind(wx.EVT_BUTTON, self.on_type_help_btn)
         self.btn_type_help.Enable(False)
         # divider
-        wx.StaticLine(self.panel, pos=(BUTTON1_LEFT, DIFF_LN_4 + 30),
-                      size=(DIV_LINE_WIDTH, 1))   
+        wx.StaticLine(self.panel, pos=(self.btn1_left, DIFF_LN_4 + 30),
+                      size=(self.div_line_width, 1))   
         # choices line 4
-        DIFF_LN_5 = REL_TOP + 105
+        DIFF_LN_5 = self.rel_top + 105
         self.rad_normal2 = wx.RadioButton(self.panel, -1, lbl_normal, 
                                          style=wx.RB_GROUP,
-                                         pos=(BUTTON1_LEFT, DIFF_LN_5))
+                                         pos=(self.btn1_left, DIFF_LN_5))
         self.rad_normal2.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
         self.rad_not_normal2 = wx.RadioButton(self.panel, -1, lbl_not_normal,
-                                            pos=(BUTTON2_LEFT, DIFF_LN_5))
+                                            pos=(self.btn2_left, DIFF_LN_5))
         self.rad_not_normal2.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
         self.rad_normal2.Enable(False)
         self.rad_not_normal2.Enable(False)
         self.btn_normal_help2 = wx.Button(self.panel, wx.ID_HELP,
-                                          pos=(HELP_LEFT, DIFF_LN_5))
+                                          pos=(self.help_left, DIFF_LN_5))
         self.btn_normal_help2.Bind(wx.EVT_BUTTON, self.on_normal_help2_btn)
         self.btn_normal_help2.Enable(False)
         # data exploration
         self.groups_label = _("Groups")
         btn_groups = wx.Button(self.panel, -1, self.groups_label,
-                                  pos=(BUTTON1_LEFT, QUESTION_BTNS_TOP))
+                                  pos=(self.btn1_left, self.question_btns_top))
         btn_groups.SetToolTipString(_("Make report tables to see how many "
                                       "groups in data"))
         btn_groups.Bind(wx.EVT_BUTTON, self.on_groups_btn)
@@ -185,20 +211,21 @@ class StatsSelectDlg(wx.Dialog):
                 " (ordinal) but not numerical is automatically not normal.") % \
                 self.normality_label
         btn_normality = wx.Button(self.panel, -1, self.normality_label,
-                                  pos=(BUTTON2_LEFT, QUESTION_BTNS_TOP))
+                                  pos=(self.btn2_left, self.question_btns_top))
         btn_normality.SetToolTipString(_("Assess the normality of your "
                                          "numerical data"))
         btn_normality.Bind(wx.EVT_BUTTON, self.on_normality_btn)
         self.data_type_label = _("Data Type")
         btn_type = wx.Button(self.panel, -1, self.data_type_label,
-                                  pos=(HELP_LEFT, QUESTION_BTNS_TOP))
+                                  pos=(self.help_left, self.question_btns_top))
         btn_type.SetToolTipString(_("Assess data type e.g. categorical, "
                                     "ordered etc"))
         btn_type.Bind(wx.EVT_BUTTON, self.on_type_btn)
         # listbox of tests
-        self.lst_tests = wx.ListCtrl(self.panel, -1, pos=(LST_LEFT, LST_TOP), 
-                                size=(LST_WIDTH + SCROLL_ALLOWANCE, LST_HEIGHT),
-                                style=wx.LC_REPORT)
+        self.lst_tests = wx.ListCtrl(self.panel, -1, 
+                 pos=(self.lst_left, self.lst_top), 
+                 size=(self.lst_width+self.scroll_allowance, self.lst_height),
+                 style=wx.LC_REPORT)
         il = wx.ImageList(16, 16)
         self.idx_tick = 0
         self.idx_blank = 1
@@ -209,7 +236,7 @@ class StatsSelectDlg(wx.Dialog):
             il.Add(bmp)
         self.lst_tests.AssignImageList(il, wx.IMAGE_LIST_SMALL)
         self.lst_tests.InsertColumn(0, _("Statistical Test"))
-        self.lst_tests.SetColumnWidth(0, LST_WIDTH - 25)
+        self.lst_tests.SetColumnWidth(0, self.lst_width - 25)
         self.lst_tests.InsertColumn(1, u"")
         self.lst_tests.SetColumnWidth(1, 25)
         for i, test in enumerate(STATS_TESTS):
@@ -223,15 +250,18 @@ class StatsSelectDlg(wx.Dialog):
                            self.on_list_item_activated)
         # tips etc
         self.lbl_tips = wx.StaticText(self.panel, -1,
-                                      pos=(LST_LEFT, LST_TOP + LST_HEIGHT + 40))
+                                      pos=(self.lst_left, 
+                                           self.lst_top+self.lst_height+40))
         self.lbl_tips.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        self.lbl_tips.SetForegroundColour(TEXT_BROWN)
+        self.lbl_tips.SetForegroundColour(self.text_brown)
         # run test button
         self.btn_config = wx.Button(self.panel, -1, _("CONFIGURE TEST"),
-             pos=(CONFIG_LEFT + LST_WIDTH + 55, LST_TOP))
+             pos=(self.config_left + self.lst_width + 55, self.lst_top))
         self.btn_config.Bind(wx.EVT_BUTTON, self.on_config_clicked)
         # close button
-        self.btn_close = wx.Button(self.panel, wx.ID_CLOSE, pos=(900,558))
+        self.btn_close = wx.Button(self.panel, wx.ID_CLOSE, 
+                                   pos=(self.form_width-100,
+                                        self.form_height-42))
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_close_click)
         self.update_test_tips(STATS_TESTS[0], assisted=False)
         self.lst_tests.SetFocus()
@@ -244,7 +274,7 @@ class StatsSelectDlg(wx.Dialog):
         """
         panel_dc = wx.PaintDC(self.panel)
         panel_dc.DrawBitmap(self.bmp_stats_select, 0, 0, True)
-        panel_dc.SetTextForeground(TEXT_BROWN)
+        panel_dc.SetTextForeground(self.text_brown)
         test_sel_txt = _("SELECT A STATISTICAL TEST HERE")
         test_sel_max_width = 350
         test_sel_font_sz = 16 if mg.PLATFORM == mg.MAC else 13
@@ -253,7 +283,7 @@ class StatsSelectDlg(wx.Dialog):
                                                font_sz=test_sel_font_sz,
                                                min_font_sz=10)
         panel_dc.SetFont(wx.Font(test_sel_fs, wx.SWISS, wx.NORMAL, wx.BOLD))
-        panel_dc.DrawLabel(test_sel_txt, wx.Rect(MAIN_LEFT, 53, 100, 100))
+        panel_dc.DrawLabel(test_sel_txt, wx.Rect(self.main_left, 53, 100, 100))
         get_help_txt = _("OR GET HELP CHOOSING BELOW")
         get_help_max_width = 350
         get_help_font_sz = 16 if mg.PLATFORM == mg.MAC else 13
@@ -262,27 +292,27 @@ class StatsSelectDlg(wx.Dialog):
                                                font_sz=get_help_font_sz,
                                                min_font_sz=11)
         panel_dc.SetFont(wx.Font(get_help_fs, wx.SWISS, wx.NORMAL, wx.BOLD))
-        panel_dc.DrawLabel(get_help_txt, wx.Rect(MAIN_LEFT, 95, 100, 100))
+        panel_dc.DrawLabel(get_help_txt, wx.Rect(self.main_left, 95, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         panel_dc.DrawLabel(_("Tests that show if there is a difference"), 
-           wx.Rect(BUTTON1_LEFT, DIFF_TOP, 100, 100))
+           wx.Rect(self.btn1_left, self.diff_top, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
         diff_txt = lib.get_text_to_draw(_("E.g. Do females have a larger "
                            "vocabulary average than males?"), 300)
         panel_dc.DrawLabel(diff_txt, 
-           wx.Rect(BUTTON1_LEFT, DIFF_TOP + 20, 100, 100))
+           wx.Rect(self.btn1_left, self.diff_top + 20, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         panel_dc.DrawLabel(_("Tests that show if there is a relationship"), 
-           wx.Rect(BUTTON1_LEFT, REL_TOP, 100, 100))
+           wx.Rect(self.btn1_left, self.rel_top, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
         panel_dc.DrawLabel(_("E.g. Does wealth increase with age?"), 
-           wx.Rect(BUTTON1_LEFT, REL_TOP + 27, 100, 100))
+           wx.Rect(self.btn1_left, self.rel_top + 27, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         panel_dc.DrawLabel(_("Answering questions about your data"), 
-           wx.Rect(BUTTON1_LEFT, REL_TOP + 150, 100, 100))
+           wx.Rect(self.btn1_left, self.questions_top, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         panel_dc.DrawLabel(_("Tips"), 
-           wx.Rect(LST_LEFT, LST_TOP + LST_HEIGHT + 20, 100, 100))
+           wx.Rect(self.lst_left, self.lst_top+self.lst_height+20, 100, 100))
         event.Skip()
     
     def on_radio_direct_btn(self, event):        
