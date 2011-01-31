@@ -243,23 +243,6 @@ For help, please contact grant@sofastatistics.com""") % msg_dic
                 
 check_python_version() # do as early as possible.  Game over if Python faulty.
 if show_early_steps: print(u"Just checked python version")
-COPYRIGHT = u"\u00a9"
-SCREEN_WIDTH = 1000
-TEXT_BROWN = (90, 74, 61)
-TOP_TOP = 7
-BTN_LEFT= 5
-BTN_WIDTH = 170
-BTN_RIGHT = SCREEN_WIDTH - (BTN_WIDTH + 18)
-BTN_DROP = 40
-MAIN_LEFT = 200
-HELP_TEXT_TOP = 288
-MAX_HELP_TEXT_WIDTH = 330 # pixels
-HELP_TEXT_WIDTH = 330
-HELP_IMG_LEFT = 575
-HELP_IMG_TOP = 315
-MAIN_SOFA_LOGO_RIGHT = 555
-VERSION_RIGHT = MAIN_SOFA_LOGO_RIGHT + 10
-SCRIPT_PATH = mg.SCRIPT_PATH
 
 def get_installed_version(local_path):
     """
@@ -601,7 +584,7 @@ except Exception, e:
     # del msgapp
 
 def get_blank_btn_bmp(xpm=u"blankbutton.xpm"):
-    blank_btn_path = os.path.join(SCRIPT_PATH, u"images", xpm)
+    blank_btn_path = os.path.join(mg.SCRIPT_PATH, u"images", xpm)
     if not os.path.exists(blank_btn_path):
         raise Exception(u"Problem finding background button image.  "
                         u"Missing path: %s" % blank_btn_path)
@@ -683,7 +666,6 @@ class SofaApp(wx.App):
                 del mylocale # otherwise C++ object persists too long & crashes
                 mylocale = wx.Locale(wx.LANGUAGE_DEFAULT)
                 canon_name = mylocale.GetCanonicalName()
-            
             mytrans = gettext.translation(u"sofastats", langdir, 
                                     languages=[canon_name,], fallback=True)
             if debug: print(canon_name)
@@ -716,19 +698,68 @@ class StartFrame(wx.Frame):
     
     def __init__(self):
         debug = False
+        # layout "constants"
+        self.tight_layout = (mg.MAX_WIDTH <= 1024 or mg.MAX_HEIGHT <= 600)
+        #self.tight_layout = True
+        self.tight_height_drop = 24
+        self.tight_width_drop = 57
+        if not self.tight_layout:
+            self.form_width = 1000
+            self.form_height = 600
+            self.blankwp_height = 250
+        else:
+            self.form_width = 1000-self.tight_width_drop
+            self.form_height = 600-self.tight_height_drop
+            self.blankwp_height = 250-self.tight_height_drop
+        btn_width = 170
+        self.btn_right = self.form_width - (btn_width + 18)
+        self.top_top = 7
+        self.btn_left = 5
+        self.btn_drop = 40
+        self.main_left = 200
+        self.help_text_top = 288
+        self.max_help_text_width = 330 # pixels
+        self.help_text_width = 330
+        self.help_img_top = 315
+        self.main_sofa_logo_right = 555
+        self.version_right = self.main_sofa_logo_right + 10
+        if not self.tight_layout:
+            self.help_img_left = 575
+            self.chart_img_offset = -30
+            self.import_img_offset = -40
+            self.report_img_offset = 10
+            self.stats_img_offset = 10
+            self.proj_img_offset = -20
+            self.help_img_offset = 0
+            self.prefs_img_offset = 35
+            self.data_img_offset = -30
+            self.form_pos_left = mg.HORIZ_OFFSET+5
+        else:
+            self.help_img_left = 575-self.tight_width_drop
+            self.chart_img_offset = -10
+            self.import_img_offset = -10
+            self.report_img_offset = 30
+            self.stats_img_offset = 30
+            self.proj_img_offset = 30
+            self.help_img_offset = 30
+            self.prefs_img_offset = 55
+            self.data_img_offset = 45
+            self.form_pos_left = mg.MAX_WIDTH-(self.form_width+10)
         # The earliest point at which error messages can be shown to the user 
         # in a GUI.  E.g. Can't find the folder this script is in.
+        self.text_brown = (90, 74, 61)
         deferred_error_msg = u"\n\n".join(mg.DEFERRED_ERRORS)
         if deferred_error_msg:
             raise Exception(deferred_error_msg)
         # Gen set up
         wx.Frame.__init__(self, None, title=_("SOFA Start"), 
-                          size=(SCREEN_WIDTH, 600), pos=(mg.HORIZ_OFFSET+5,-1),
+                          size=(self.form_width, self.form_height), 
+                          pos=(self.form_pos_left,-1),
                           style=wx.CAPTION|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize())
-        self.panel = wx.Panel(self, size=(SCREEN_WIDTH, 600)) # win
+        self.panel = wx.Panel(self, size=(self.form_width, self.form_height)) # win
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SHOW, self.on_show) # doesn't run on Mac
@@ -748,44 +779,59 @@ class StartFrame(wx.Frame):
                 return
         config_dlg.add_icon(frame=self)
         # background image
-        sofa = os.path.join(SCRIPT_PATH, u"images", u"sofa2.xpm")
-        if not os.path.exists(sofa):
+        if not self.tight_layout:
+            sofabg_img = u"sofastats_start_bg.gif"
+            demo_chart_img = u"demo_chart.gif"
+            proj_img = u"projects.gif"
+            data_img = u"data.gif"
+        else:
+            sofabg_img = u"sofastats_start_bg_tight.gif"
+            demo_chart_img = u"demo_chart_tight.gif"
+            proj_img = u"projects_tight.gif"
+            data_img = u"data_tight.gif"
+        sofabg = os.path.join(mg.SCRIPT_PATH, u"images", sofabg_img)
+        top_sofa = os.path.join(mg.SCRIPT_PATH, u"images", u"top_sofa.gif")
+        demo_chart = os.path.join(mg.SCRIPT_PATH, u"images", demo_chart_img)
+        proj = os.path.join(mg.SCRIPT_PATH, u"images", proj_img)
+        data = os.path.join(mg.SCRIPT_PATH, u"images", data_img)
+        if not os.path.exists(sofabg):
             raise Exception(u"Problem finding background button image.  "
-                            u"Missing path: %s" % sofa)
+                            u"Missing path: %s" % sofabg)
         try:
-            self.bmp_sofa = wx.Image(sofa, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+            self.bmp_sofabg = \
+                        wx.Image(sofabg, wx.BITMAP_TYPE_GIF).ConvertToBitmap()
         except Exception:
             raise Exception(u"Problem creating background button image from %s"
-                            % sofa)
+                            % sofabg)
         # stable images
-        upgrade = os.path.join(SCRIPT_PATH, u"images", u"upgrade.xpm")
+        upgrade = os.path.join(mg.SCRIPT_PATH, u"images", u"upgrade.xpm")
         self.bmp_upgrade = wx.Image(upgrade, 
                                     wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        quote_left = os.path.join(SCRIPT_PATH, u"images", 
+        quote_left = os.path.join(mg.SCRIPT_PATH, u"images", 
                                   u"speech_mark_large.xpm")
         self.bmp_quote_left = wx.Image(quote_left, 
                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        quote_right = os.path.join(SCRIPT_PATH, u"images", 
+        quote_right = os.path.join(mg.SCRIPT_PATH, u"images", 
                                   u"speech_mark_small.xpm")
         self.bmp_quote_right = wx.Image(quote_right, 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        top_sofa = os.path.join(SCRIPT_PATH, u"images", u"top_sofa.xpm")
         self.bmp_top_sofa = wx.Image(top_sofa, 
-                                     wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+                                     wx.BITMAP_TYPE_GIF).ConvertToBitmap()
         # slice of image to be refreshed (where text and image will be)
-        blankwp_rect = wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_IMG_LEFT+35, 250)
-        self.blank_wallpaper = self.bmp_sofa.GetSubBitmap(blankwp_rect)
-        blankps_rect = wx.Rect(MAIN_LEFT, 218, 610, 30)
-        self.blank_proj_strip = self.bmp_sofa.GetSubBitmap(blankps_rect)
+        blankwp_rect = wx.Rect(self.main_left, self.help_text_top, 
+                               self.help_img_left+35, self.blankwp_height)
+        self.blank_wallpaper = self.bmp_sofabg.GetSubBitmap(blankwp_rect)
+        blankps_rect = wx.Rect(self.main_left, 218, 610, 30)
+        self.blank_proj_strip = self.bmp_sofabg.GetSubBitmap(blankps_rect)
         # buttons
         btn_font_sz = 14 if mg.PLATFORM == mg.MAC else 10
-        g = get_next_y_pos(284, BTN_DROP)
+        g = get_next_y_pos(284, self.btn_drop)
         # on-line help
         bmp_btn_help = \
            lib.add_text_to_bitmap(get_blank_btn_bmp(xpm=u"blankhelpbutton.xpm"), 
                                   _("Online Help"), btn_font_sz, "white")
         self.btn_help = wx.BitmapButton(self.panel, -1, bmp_btn_help, 
-                                        pos=(BTN_LEFT, g.next()))
+                                        pos=(self.btn_left, g.next()))
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_help_click)
         self.btn_help.Bind(wx.EVT_ENTER_WINDOW, self.on_help_enter)
         self.btn_help.SetDefault()
@@ -793,58 +839,58 @@ class StartFrame(wx.Frame):
         bmp_btn_proj = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                                     _("Select Project"), btn_font_sz, "white")
         self.btn_proj = wx.BitmapButton(self.panel, -1, bmp_btn_proj, 
-                                        pos=(BTN_LEFT, g.next()))
+                                        pos=(self.btn_left, g.next()))
         self.btn_proj.Bind(wx.EVT_BUTTON, self.on_proj_click)
         self.btn_proj.Bind(wx.EVT_ENTER_WINDOW, self.on_proj_enter)
         # Prefs
         bmp_btn_pref = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                                         _("Preferences"), btn_font_sz, "white")
         self.btn_prefs = wx.BitmapButton(self.panel, -1, bmp_btn_pref, 
-                                         pos=(BTN_LEFT, g.next()))
+                                         pos=(self.btn_left, g.next()))
         self.btn_prefs.Bind(wx.EVT_BUTTON, self.on_prefs_click)
         self.btn_prefs.Bind(wx.EVT_ENTER_WINDOW, self.on_prefs_enter)
         # Data entry
         bmp_btn_data = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                                     _("Enter/Edit Data"), btn_font_sz, "white")
         self.btn_data = wx.BitmapButton(self.panel, -1, bmp_btn_data, 
-                                         pos=(BTN_LEFT, g.next()))
+                                         pos=(self.btn_left, g.next()))
         self.btn_data.Bind(wx.EVT_BUTTON, self.on_data_click)
         self.btn_data.Bind(wx.EVT_ENTER_WINDOW, self.on_data_enter)
         # Import
         bmp_btn_import = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                                         _("Import Data"), btn_font_sz, "white")
         self.btn_import = wx.BitmapButton(self.panel, -1, bmp_btn_import, 
-                                          pos=(BTN_LEFT, g.next()))
+                                          pos=(self.btn_left, g.next()))
         self.btn_import.Bind(wx.EVT_BUTTON, self.on_import_click)
         self.btn_import.Bind(wx.EVT_ENTER_WINDOW, self.on_import_enter)
         # Right
-        g = get_next_y_pos(284, BTN_DROP)
+        g = get_next_y_pos(284, self.btn_drop)
         # Report tables
         bmp_btn_tables = lib.add_text_to_bitmap(get_blank_btn_bmp(),
                                     _("Report Tables"), btn_font_sz, "white")
         self.btn_tables = wx.BitmapButton(self.panel, -1, bmp_btn_tables, 
-                                          pos=(BTN_RIGHT, g.next()))
+                                          pos=(self.btn_right, g.next()))
         self.btn_tables.Bind(wx.EVT_BUTTON, self.on_tables_click)
         self.btn_tables.Bind(wx.EVT_ENTER_WINDOW, self.on_tables_enter)
         # Charts
         bmp_btn_charts = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                                             _("Charts"), btn_font_sz, "white")
         self.btn_charts = wx.BitmapButton(self.panel, -1, bmp_btn_charts, 
-                                          pos=(BTN_RIGHT, g.next()))
+                                          pos=(self.btn_right, g.next()))
         self.btn_charts.Bind(wx.EVT_BUTTON, self.on_charts_click)
         self.btn_charts.Bind(wx.EVT_ENTER_WINDOW, self.on_charts_enter)
         # Stats
         bmp_btn_stats = lib.add_text_to_bitmap(get_blank_btn_bmp(),
                                         _("Statistics"), btn_font_sz, "white")
         self.btn_statistics = wx.BitmapButton(self.panel, -1, bmp_btn_stats, 
-                                              pos=(BTN_RIGHT, g.next()))
+                                              pos=(self.btn_right, g.next()))
         self.btn_statistics.Bind(wx.EVT_BUTTON, self.on_stats_click)
         self.btn_statistics.Bind(wx.EVT_ENTER_WINDOW, self.on_stats_enter)
         # Exit  
         bmp_btn_exit = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                                               _("Exit"), btn_font_sz, "white")
         self.btn_exit = wx.BitmapButton(self.panel, -1, bmp_btn_exit, 
-                                        pos=(BTN_RIGHT, g.next()))
+                                        pos=(self.btn_right, g.next()))
         self.btn_exit.Bind(wx.EVT_BUTTON, self.on_exit_click)
         self.btn_exit.Bind(wx.EVT_ENTER_WINDOW, self.on_exit_enter)
         if mg.PLATFORM == mg.LINUX:
@@ -866,29 +912,26 @@ class StartFrame(wx.Frame):
                             "over the buttons lets you see what you can do.")
         try:
             # help images
-            help = os.path.join(SCRIPT_PATH, u"images", u"help.xpm")
-            self.bmp_help = wx.Image(help, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-            proj = os.path.join(SCRIPT_PATH, u"images", u"projects.xpm")
-            self.bmp_proj = wx.Image(proj, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-            prefs = os.path.join(SCRIPT_PATH, u"images", u"prefs.xpm")
+            help = os.path.join(mg.SCRIPT_PATH, u"images", u"help.gif")
+            self.bmp_help = wx.Image(help, wx.BITMAP_TYPE_GIF).ConvertToBitmap()
+            self.bmp_proj = wx.Image(proj, wx.BITMAP_TYPE_GIF).ConvertToBitmap()
+            prefs = os.path.join(mg.SCRIPT_PATH, u"images", u"prefs.gif")
             self.bmp_prefs = \
-                           wx.Image(prefs, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-            data = os.path.join(SCRIPT_PATH, u"images", u"data.xpm")
-            self.bmp_data = wx.Image(data, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-            imprt = os.path.join(SCRIPT_PATH, u"images", u"import.xpm")
+                           wx.Image(prefs, wx.BITMAP_TYPE_GIF).ConvertToBitmap()
+            self.bmp_data = wx.Image(data, wx.BITMAP_TYPE_GIF).ConvertToBitmap()
+            imprt = os.path.join(mg.SCRIPT_PATH, u"images", u"import.gif")
             self.bmp_import = \
-                           wx.Image(imprt, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-            tabs = os.path.join(SCRIPT_PATH, u"images", u"table.xpm")
-            self.bmp_tabs = wx.Image(tabs, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-            chart = os.path.join(SCRIPT_PATH, u"images", u"demo_chart.xpm")
+                           wx.Image(imprt, wx.BITMAP_TYPE_GIF).ConvertToBitmap()
+            tabs = os.path.join(mg.SCRIPT_PATH, u"images", u"table.gif")
+            self.bmp_tabs = wx.Image(tabs, wx.BITMAP_TYPE_GIF).ConvertToBitmap()
             self.bmp_chart = \
-                           wx.Image(chart, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-            stats = os.path.join(SCRIPT_PATH, u"images", u"stats.xpm")
+                    wx.Image(demo_chart, wx.BITMAP_TYPE_GIF).ConvertToBitmap()
+            stats = os.path.join(mg.SCRIPT_PATH, u"images", u"stats.gif")
             self.bmp_stats = \
-                           wx.Image(stats, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-            exit = os.path.join(SCRIPT_PATH, u"images", u"exit.xpm")
-            self.bmp_exit = wx.Image(exit, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-            agpl3 = os.path.join(SCRIPT_PATH, u"images", u"agpl3.xpm")
+                           wx.Image(stats, wx.BITMAP_TYPE_GIF).ConvertToBitmap()
+            exit = os.path.join(mg.SCRIPT_PATH, u"images", u"exit.gif")
+            self.bmp_exit = wx.Image(exit, wx.BITMAP_TYPE_GIF).ConvertToBitmap()
+            agpl3 = os.path.join(mg.SCRIPT_PATH, u"images", u"agpl3.xpm")
             self.bmp_agpl3 = \
                            wx.Image(agpl3, wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         except Exception, e:
@@ -919,22 +962,22 @@ class StartFrame(wx.Frame):
             self.upgrade_available = False
         # home link
         link_home = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com", 
-                                     pos=(MAIN_LEFT, TOP_TOP), 
+                                     pos=(self.main_left, self.top_top), 
                                      URL="http://www.sofastatistics.com")
         self.setup_link(link=link_home, link_colour=wx.Colour(255,255,255), 
                         bg_colour=wx.Colour(0, 0, 0))
         # help link
         link_help = hl.HyperLinkCtrl(self.panel, -1, 
                             _("Get help from community"), 
-                            pos=(MAIN_LEFT, TOP_TOP + 200), 
+                            pos=(self.main_left, self.top_top + 200), 
                             URL="http://groups.google.com/group/sofastatistics")
-        self.setup_link(link=link_help, link_colour=TEXT_BROWN, 
+        self.setup_link(link=link_help, link_colour=self.text_brown, 
                         bg_colour=wx.Colour(205, 217, 215))
         # upgrade link
         if self.upgrade_available:
             link_upgrade = hl.HyperLinkCtrl(self.panel, -1, 
                             _(u"Upgrade to %s here") % new_version, 
-                            pos=(VERSION_RIGHT+125, TOP_TOP), 
+                            pos=(self.version_right+125, self.top_top), 
                             URL="http://www.sofastatistics.com/downloads.php")
             self.setup_link(link=link_upgrade, 
                             link_colour=wx.Colour(255,255,255), 
@@ -1028,58 +1071,66 @@ class StartFrame(wx.Frame):
         """
         try:
             panel_dc = wx.PaintDC(self.panel)
-            panel_dc.DrawBitmap(self.bmp_sofa, 0, 0, True)
+            panel_dc.DrawBitmap(self.bmp_sofabg, 0, 0, True)
             if self.upgrade_available:
-                panel_dc.DrawBitmap(self.bmp_upgrade, VERSION_RIGHT+95, 4, True)
+                panel_dc.DrawBitmap(self.bmp_upgrade, self.version_right+95, 4, 
+                                    True)
             panel_dc.DrawBitmap(self.bmp_quote_left, 136, 95, True)
             panel_dc.DrawBitmap(self.bmp_quote_right, 445, 163, True)
-            panel_dc.DrawBitmap(self.bmp_top_sofa, MAIN_SOFA_LOGO_RIGHT, 65, 
-                                True)
-            panel_dc.DrawBitmap(self.bmp_chart, HELP_IMG_LEFT-30, 
-                                HELP_IMG_TOP-20, True)
+            panel_dc.DrawBitmap(self.bmp_top_sofa, self.main_sofa_logo_right, 
+                                65, True)
+            panel_dc.DrawBitmap(self.bmp_chart, 
+                                self.help_img_left+self.chart_img_offset, 
+                                self.help_img_top-20, True)
             panel_dc.SetTextForeground(wx.WHITE)
             panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9, 
                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
             panel_dc.DrawLabel(_("Version %s") % mg.VERSION, 
-                               wx.Rect(VERSION_RIGHT, TOP_TOP, 100, 20))
+                               wx.Rect(self.version_right, self.top_top, 
+                                       100, 20))
             font_sz = 28 if mg.PLATFORM == mg.MAC else 20
             main_text = _("Statistics Open For All")
             extra_width = 40 if mg.PLATFORM == mg.MAC else 60
-            main_text_width = MAX_HELP_TEXT_WIDTH + extra_width
+            main_text_width = self.max_help_text_width + extra_width
             main_fs = lib.get_font_size_to_fit(main_text, main_text_width, 
                                                font_sz, min_font_sz=14)
             panel_dc.SetFont(wx.Font(main_fs, wx.SWISS, wx.NORMAL, wx.NORMAL))
-            panel_dc.DrawLabel(main_text, wx.Rect(MAIN_LEFT, 80, 
+            panel_dc.DrawLabel(main_text, wx.Rect(self.main_left, 80, 
                                                   main_text_width, 100))
             panel_dc.SetFont(wx.Font(14 if mg.PLATFORM == mg.MAC else 9, 
                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
-            panel_dc.SetTextForeground(TEXT_BROWN)
+            panel_dc.SetTextForeground(self.text_brown)
             panel_dc.DrawLabel(_("SOFA - Statistics Open For All"
                                  "\nthe user-friendly, open-source statistics,"
                                  "\nanalysis & reporting package"), 
-               wx.Rect(MAIN_LEFT, 115, 100, 100))
+               wx.Rect(self.main_left, 115, 100, 100))
             panel_dc.DrawLabel(lib.get_text_to_draw(self.txtWelcome, 
-                                                    MAX_HELP_TEXT_WIDTH), 
-                        wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
+                                                    self.max_help_text_width), 
+                        wx.Rect(self.main_left, self.help_text_top, 
+                                self.help_text_width, 260))
             panel_dc.SetTextForeground(wx.WHITE)
             panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 7, 
                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
+            copyright = u"\u00a9"
             panel_dc.DrawLabel(u"Released under open source AGPL3 licence\n%s "
                                "2009-2011 Paton-Simpson & Associates Ltd" %
-                               COPYRIGHT, 
-                               wx.Rect(MAIN_LEFT, 547, 100, 50))
-            panel_dc.DrawBitmap(self.bmp_agpl3, MAIN_LEFT-115, 542, True)
+                               copyright, 
+                               wx.Rect(self.main_left, self.form_height-53, 
+                                       100, 50))
+            panel_dc.DrawBitmap(self.bmp_agpl3, self.main_left-115, 
+                                self.form_height-58, True)
             # make default db if not already there
             def_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB)
             con = sqlite.connect(def_db)
             con.close()
-            panel_dc.DrawBitmap(self.blank_proj_strip, MAIN_LEFT, 218, False)
+            panel_dc.DrawBitmap(self.blank_proj_strip, self.main_left, 218, 
+                                False)
             panel_dc.SetTextForeground(wx.WHITE)
             panel_dc.SetFont(wx.Font(14 if mg.PLATFORM == mg.MAC else 11, 
                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
             panel_dc.DrawLabel(_(u"Currently using \"%s\" project settings") % 
                                               self.active_proj[:-len(u".proj")],
-                               wx.Rect(MAIN_LEFT, 247, 400, 30))
+                               wx.Rect(self.main_left, 247, 400, 30))
             event.Skip()
         except Exception, e:
             event.Skip()
@@ -1088,8 +1139,8 @@ class StartFrame(wx.Frame):
             self.Destroy()
 
     def draw_blank_wallpaper(self, panel_dc):
-        panel_dc.DrawBitmap(self.blank_wallpaper, MAIN_LEFT, HELP_TEXT_TOP, 
-                            False)
+        panel_dc.DrawBitmap(self.blank_wallpaper, self.main_left, 
+                            self.help_text_top, False)
         
     def set_proj(self, proj_text=""):
         "proj_text must NOT have .proj on the end"
@@ -1105,13 +1156,16 @@ class StartFrame(wx.Frame):
     def on_help_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_help, HELP_IMG_LEFT, HELP_IMG_TOP-25, 
-                            True)
-        panel_dc.SetTextForeground(TEXT_BROWN)
+        panel_dc.DrawBitmap(self.bmp_help, 
+                            self.help_img_left+self.help_img_offset, 
+                            self.help_img_top-25, True)
+        panel_dc.SetTextForeground(self.text_brown)
         txt_help = _("Get help on-line, including screen shots and step-by-step" 
                      " instructions. Regularly updated.")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_help, MAX_HELP_TEXT_WIDTH), 
-                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_help, 
+                                                self.max_help_text_width), 
+                    wx.Rect(self.main_left, self.help_text_top, 
+                            self.help_text_width, 260))
         event.Skip()
            
     def on_proj_click(self, event):
@@ -1124,14 +1178,17 @@ class StartFrame(wx.Frame):
     def on_proj_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_proj, HELP_IMG_LEFT-20, HELP_IMG_TOP-20, 
-                            True)
-        panel_dc.SetTextForeground(TEXT_BROWN)
+        panel_dc.DrawBitmap(self.bmp_proj, 
+                            self.help_img_left+self.proj_img_offset, 
+                            self.help_img_top-20, True)
+        panel_dc.SetTextForeground(self.text_brown)
         txt_projs = _("Projects let SOFA know how to connect to your data, "
                       "what labels to use, your favourite styles etc. The "
                       "default project is OK to get you started.")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_projs, MAX_HELP_TEXT_WIDTH), 
-                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_projs, 
+                                                self.max_help_text_width), 
+                    wx.Rect(self.main_left, self.help_text_top, 
+                            self.help_text_width, 260))
         event.Skip()
     
     def on_prefs_click(self, event):
@@ -1151,12 +1208,15 @@ class StartFrame(wx.Frame):
     def on_prefs_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_prefs, HELP_IMG_LEFT+35, HELP_IMG_TOP-10, 
-                            True)
-        panel_dc.SetTextForeground(TEXT_BROWN)
+        panel_dc.DrawBitmap(self.bmp_prefs, 
+                            self.help_img_left+self.prefs_img_offset, 
+                            self.help_img_top-10, True)
+        panel_dc.SetTextForeground(self.text_brown)
         txt_pref = _("Set preferences e.g. format for entering dates")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_pref, MAX_HELP_TEXT_WIDTH), 
-                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_pref, 
+                                                self.max_help_text_width), 
+                    wx.Rect(self.main_left, self.help_text_top, 
+                            self.help_text_width, 260))
         event.Skip()
         
     def on_data_click(self, event):
@@ -1170,9 +1230,10 @@ class StartFrame(wx.Frame):
     def on_data_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_data, HELP_IMG_LEFT-30, HELP_IMG_TOP-20, 
-                            True)
-        panel_dc.SetTextForeground(TEXT_BROWN)
+        panel_dc.DrawBitmap(self.bmp_data, 
+                            self.help_img_left+self.data_img_offset, 
+                            self.help_img_top-25, True)
+        panel_dc.SetTextForeground(self.text_brown)
         txt1 = _(u"Enter data into a fresh data table or select an existing "
                  u"table to edit or add data to.")
         txt2 = _(u"For tables in the SOFA database you can also:")
@@ -1182,16 +1243,17 @@ class StartFrame(wx.Frame):
         txt6 = _(u"* recode values from one field into another")
         txt7 = _(u"e.g. age into age group")
         text2draw = (
-             lib.get_text_to_draw(txt1, MAX_HELP_TEXT_WIDTH) + u"\n\n" +
-             lib.get_text_to_draw(txt2, MAX_HELP_TEXT_WIDTH) + u"\n " +
-             lib.get_text_to_draw(txt3, MAX_HELP_TEXT_WIDTH) + u"\n " +
-             lib.get_text_to_draw(txt4, MAX_HELP_TEXT_WIDTH) + u"\n " +
-             lib.get_text_to_draw(txt5, MAX_HELP_TEXT_WIDTH) + u"\n " +
-             lib.get_text_to_draw(txt6, MAX_HELP_TEXT_WIDTH) + u"\n    " +
-             lib.get_text_to_draw(txt7, MAX_HELP_TEXT_WIDTH)
+             lib.get_text_to_draw(txt1, self.max_help_text_width) + u"\n\n" +
+             lib.get_text_to_draw(txt2, self.max_help_text_width) + u"\n " +
+             lib.get_text_to_draw(txt3, self.max_help_text_width) + u"\n " +
+             lib.get_text_to_draw(txt4, self.max_help_text_width) + u"\n " +
+             lib.get_text_to_draw(txt5, self.max_help_text_width) + u"\n " +
+             lib.get_text_to_draw(txt6, self.max_help_text_width) + u"\n    " +
+             lib.get_text_to_draw(txt7, self.max_help_text_width)
                      )
         panel_dc.DrawLabel(text2draw, 
-                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
+                    wx.Rect(self.main_left, self.help_text_top, 
+                            self.help_text_width, 260))
         event.Skip()
 
     def on_import_click(self, event):
@@ -1204,13 +1266,16 @@ class StartFrame(wx.Frame):
     def on_import_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_import, HELP_IMG_LEFT-40, HELP_IMG_TOP-20, 
-                            True)
-        panel_dc.SetTextForeground(TEXT_BROWN)
+        panel_dc.DrawBitmap(self.bmp_import, 
+                            self.help_img_left+self.import_img_offset, 
+                            self.help_img_top-20, True)
+        panel_dc.SetTextForeground(self.text_brown)
         txt_entry = _("Import data e.g. a csv file, or a spreadsheet (Excel, "
                       "Open Document, or Google Docs).")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_entry, MAX_HELP_TEXT_WIDTH), 
-                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH-10, 260))
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_entry, 
+                                                self.max_help_text_width), 
+                    wx.Rect(self.main_left, self.help_text_top, 
+                            self.help_text_width-10, 260))
         event.Skip()
 
     def on_tables_click(self, event):
@@ -1233,17 +1298,19 @@ class StartFrame(wx.Frame):
     def on_tables_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_tabs, HELP_IMG_LEFT+10, HELP_IMG_TOP-10, 
-                            True)
-        panel_dc.SetTextForeground(TEXT_BROWN)
+        panel_dc.DrawBitmap(self.bmp_tabs, 
+                            self.help_img_left+self.report_img_offset, 
+                            self.help_img_top-10, True)
+        panel_dc.SetTextForeground(self.text_brown)
         txt1 = _(u"Make report tables e.g. Age vs Gender") 
         txt2 = _(u"Can make simple Frequency Tables, Crosstabs, "
                 u"Row Stats Tables (mean, median, standard deviation etc), "
                 u"and simple lists of data.")
-        txt2draw = (lib.get_text_to_draw(txt1, MAX_HELP_TEXT_WIDTH) + u"\n\n" +
-                    lib.get_text_to_draw(txt2, MAX_HELP_TEXT_WIDTH))
-        panel_dc.DrawLabel(txt2draw, wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, 
-                                             HELP_TEXT_WIDTH, 260))      
+        txt2draw = (lib.get_text_to_draw(txt1, self.max_help_text_width) + 
+                    u"\n\n" +
+                    lib.get_text_to_draw(txt2, self.max_help_text_width))
+        panel_dc.DrawLabel(txt2draw, wx.Rect(self.main_left, self.help_text_top, 
+                                             self.help_text_width, 260))      
         event.Skip()
     
     def get_script(self, cont, script):
@@ -1271,13 +1338,16 @@ class StartFrame(wx.Frame):
     def on_charts_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_chart, HELP_IMG_LEFT-30, HELP_IMG_TOP-20, 
-                            True)
-        panel_dc.SetTextForeground(TEXT_BROWN)
+        panel_dc.DrawBitmap(self.bmp_chart, 
+                            self.help_img_left+self.chart_img_offset, 
+                            self.help_img_top-20, True)
+        panel_dc.SetTextForeground(self.text_brown)
         txt_charts = _("Make attractive charts with dynamic visual effects "
                        "e.g. a bar chart of sales")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_charts, MAX_HELP_TEXT_WIDTH), 
-                        wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_charts, 
+                                                self.max_help_text_width), 
+                        wx.Rect(self.main_left, self.help_text_top, 
+                                self.help_text_width, 260))
         event.Skip()
     
     def on_stats_click(self, event):
@@ -1301,21 +1371,24 @@ class StartFrame(wx.Frame):
     def on_stats_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_stats, HELP_IMG_LEFT+10, HELP_IMG_TOP-25, 
-                            True)
-        panel_dc.SetTextForeground(TEXT_BROWN)
+        panel_dc.DrawBitmap(self.bmp_stats, 
+                            self.help_img_left+self.stats_img_offset, 
+                            self.help_img_top-25, True)
+        panel_dc.SetTextForeground(self.text_brown)
         txt1 = _(u"Run statistical tests on your data - e.g. a Chi Square to "
                 u"see if there is a relationship between age group and gender.")
         txt2 = _(u"SOFA focuses on the statistical tests most users need most "
                  u"of the time.")
         txt3 = u"QUOTE: %s (%s)" % quotes.get_quote()
         txt2draw = (
-                    lib.get_text_to_draw(txt1, MAX_HELP_TEXT_WIDTH) + u"\n\n" +
-                    lib.get_text_to_draw(txt2, MAX_HELP_TEXT_WIDTH) + u"\n\n" +
-                    lib.get_text_to_draw(txt3, MAX_HELP_TEXT_WIDTH)
+                    lib.get_text_to_draw(txt1, self.max_help_text_width) + 
+                    u"\n\n" +
+                    lib.get_text_to_draw(txt2, self.max_help_text_width) + 
+                    u"\n\n" +
+                    lib.get_text_to_draw(txt3, self.max_help_text_width)
                     )
-        panel_dc.DrawLabel(txt2draw, wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, 
-                                             HELP_TEXT_WIDTH, 260))
+        panel_dc.DrawLabel(txt2draw, wx.Rect(self.main_left, self.help_text_top, 
+                                             self.help_text_width, 260))
         event.Skip()
     
     def on_exit_click(self, event):
@@ -1334,12 +1407,14 @@ class StartFrame(wx.Frame):
     def on_exit_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_exit, HELP_IMG_LEFT-40, HELP_IMG_TOP-20, 
-                            True)
-        panel_dc.SetTextForeground(TEXT_BROWN)
+        panel_dc.DrawBitmap(self.bmp_exit, self.help_img_left-40, 
+                            self.help_img_top-20, True)
+        panel_dc.SetTextForeground(self.text_brown)
         txt_exit = _("Exit SOFA Statistics")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_exit, MAX_HELP_TEXT_WIDTH), 
-                    wx.Rect(MAIN_LEFT, HELP_TEXT_TOP, HELP_TEXT_WIDTH, 260))
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_exit, 
+                                                self.max_help_text_width), 
+                    wx.Rect(self.main_left, self.help_text_top, 
+                            self.help_text_width, 260))
         event.Skip()
 
 try:
