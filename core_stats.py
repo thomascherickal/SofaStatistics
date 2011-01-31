@@ -1727,7 +1727,8 @@ def obrientransform(*args):
         determine reason for such a tiny threshold of difference.
     No other changes except renamed function and renamed var to 
         variance, plus raise ValueError as soon as check = 0 without continuing
-        to pointlessly loop through other items.
+        to pointlessly loop through other items. Also raise useful exception if
+        about to have a ZeroDivisionError because t3 = 0.
     Also n[j] is cast as int when used in range. And updated error message
         and desc text.  And added debug print.
     ------------------------------------
@@ -1741,6 +1742,7 @@ def obrientransform(*args):
     Returns: transformed data for use in an ANOVA
     """
     debug = False
+
     TINY = 1e-7 # 1e-10 was original value
     k = len(args)
     n = [0.0]*k
@@ -1750,6 +1752,9 @@ def obrientransform(*args):
     for i in range(k):
         nargs.append(copy.deepcopy(args[i]))
         n[i] = float(len(nargs[i]))
+        if n[i] < 3:
+            raise Exception(u"Must have at least 3 values in each sample to run" 
+                            u" obrientransform.\n%s" % nargs[i])
         v[i] = variance(nargs[i])
         m[i] = mean(nargs[i])
     for j in range(k):
@@ -1757,6 +1762,9 @@ def obrientransform(*args):
             t1 = (n[j]-1.5)*n[j]*(nargs[j][i]-m[j])**2
             t2 = 0.5*v[j]*(n[j]-1.0)
             t3 = (n[j]-1.0)*(n[j]-2.0)
+            if t3 == 0:
+                raise Exception(u"Unable to calculate obrientransform because "
+                                u"t3 is zero.")
             nargs[j][i] = (t1-t2) / float(t3)
     # Check for convergence before allowing results to be returned
     for j in range(k):
@@ -1769,55 +1777,20 @@ def obrientransform(*args):
             raise ValueError(u"Lack of convergence in obrientransform.")
     return nargs
 
-def colex (listoflists, cnums):
-    """
-    From pstat.py.  No changes except renamed function
-    Extracts column(s).
-    ------------------------------------
-    Extracts from listoflists the columns specified in the list 'cnums'
-        (cnums can be an integer, a sequence of integers, or a string-expression 
-        that corresponds to a slice operation on the variable x ... 
-        e.g., 'x[3:]' will colex columns 3 onward from the listoflists).
-    
-    Usage:   colex (listoflists,cnums)
-    Returns: a list-of-lists corresponding to the columns from listoflists
-             specified by cnums, in the order the column numbers appear in cnums
-    """
-    global index
-    column = 0
-    if type(cnums) in [ListType, TupleType]:  # if multiple columns to get
-        index = cnums[0]
-        column = map(lambda x: x[index], listoflists)
-        for col in cnums[1:]:
-            index = col
-            column = abut(column,map(lambda x: x[index], listoflists))
-    elif type(cnums) == StringType:           # if an 'x[3:]' type expr.
-        evalstring = 'map(lambda x: x' + cnums + ', listoflists)'
-        column = eval(evalstring)
-    else:                                     # else it's just 1 col to get
-        index = cnums
-        column = map(lambda x: x[index], listoflists)
-    return column
-
 def sim_variance(samples, threshold=0.05):
     """
     Returns bolsim, p
-    From stats.py.  From inside lpaired. F_oneway changed to anova. Not only 
-        able to use 0.05 as threshold. Changed return.
+    From stats.py.  From inside lpaired. F_oneway changed to anova and no need 
+        to column extract to get transformed samples. 
+    Plus not only able to use 0.05 as threshold. Also changed return.
     ------------------------------------
     Comparing variances.
     Using O'BRIEN'S TEST FOR HOMOGENEITY OF VARIANCE, Maxwell & delaney, p.112
     """
-    debug = False
     r = obrientransform(*samples)
-    cols0 = colex(r, 0)
-    cols1 = colex(r, 1)
-    if debug:
-        print("Cols 0: %s" % cols0)
-        print("Cols 1: %s" % cols1)
-    samples = [cols0, cols1]
+    trans_samples = [r[0], r[1]]
     labels = ["sample a", "sample b"]
     p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, mean_squ_bn = \
-        anova(samples, labels)
+        anova(trans_samples, labels)
     bolsim = (p >= threshold)
     return bolsim, p
