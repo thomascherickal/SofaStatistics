@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-dev_debug = True # relates to errors etc once GUI application running. 
+dev_debug = False # relates to errors etc once GUI application running. 
     # show_early_steps is about revealing any errors before that point.
 test_lang = False
 show_early_steps = True
@@ -313,7 +313,7 @@ def populate_css_path(prog_path, local_path):
     If something is wrong identifying script path, here is where it will fail 
         first.
     """
-    styles = [mg.DEFAULT_STYLE, u"grey_spirals.css", u"lucid_spirals.css", 
+    styles = [mg.DEFAULT_STYLE, u"grey spirals.css", u"lucid spirals.css", 
               u"pebbles.css"]
     for style in styles:
         try:

@@ -430,7 +430,7 @@ def get_css_dets():
                 idx_start = content.index(mg.CSS_FILS_START_TAG) + len("<!--")
                 idx_end = content.index("-->")
                 css_fils_str = content[idx_start: idx_end]
-                css_file_str = lib.get_exec_ready_text(text=css_file_str)
+                css_fils_str = lib.get_exec_ready_text(text=css_fils_str)
                 css_dets_dic = {}
                 exec css_fils_str in css_dets_dic
                 css_fils = css_dets_dic[u"css_fils"]

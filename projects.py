@@ -336,14 +336,18 @@ class GetSettings(settings_grid.SettingsEntryDlg):
 class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
     def __init__(self, parent, readonly=False, fil_proj=None):
         self.can_run_report = False
+        if mg.MAX_WIDTH <= 1024:
+            mywidth = 976
+        else:
+            mywidth = 1024
         if mg.MAX_HEIGHT <= 620:
-            myheight = 600
+            myheight = 576
         elif mg.MAX_HEIGHT <= 870:
             myheight = mg.MAX_HEIGHT - 70
         else:
             myheight = 800
         wx.Dialog.__init__(self, parent=parent, title=_("Project Settings"),
-               size=(1024, myheight), 
+               size=(mywidth, myheight), 
                style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
                wx.SYSTEM_MENU|wx.CAPTION|wx.TAB_TRAVERSAL) 
                # wx.CLIP_CHILDREN causes problems in Windows
