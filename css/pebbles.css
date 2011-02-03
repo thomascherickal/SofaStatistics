@@ -163,6 +163,9 @@ dojo_style_end
     .tbl-header-ftnote{
         color: white;
     }
+    .ftnote{
+        color: black;
+    }
     /* Tool tip connector arrows */
     .dijitTooltipBelow-greypurp {
 	

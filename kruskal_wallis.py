@@ -79,12 +79,12 @@ if len(samples) < 2:
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"label_avg = u\"%s\"" % label_avg)
         script_lst.append(u"indep = True")
-        script_lst.append(u"h, p, dics = " +
+        script_lst.append(u"h, p, dics, df = " +
             u"core_stats.kruskalwallish(samples, labels)")
         script_lst.append(u"kruskal_wallis_output = "
             u"stats_output.kruskal_wallis_output("
             u"h, p, label_a,"
-            u"\n    label_b, dics, label_avg, "
+            u"\n    label_b, dics, df, label_avg, "
             u"\n    css_fil=\"%s\", css_idx=%s, " % (css_fil, css_idx) +
             u"dp=dp,"
             u"\n    level=mg.OUTPUT_RESULTS_ONLY, "

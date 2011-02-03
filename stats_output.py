@@ -41,18 +41,17 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean Sum of Squares") + \
             u"</th>" + \
         u"\n<th class='%s'>F</th>" % CSS_FIRST_COL_VAR)
-    # footnote 1
+    # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<th class='%s'>" % CSS_FIRST_COL_VAR +
                 u"p<a class='%s' href='#ft1'><sup>1</sup></a></th></tr>" %
                 CSS_TBL_HDR_FTNOTE)
-    footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> If p is small, "
-        "e.g. less than 0.01, or 0.001, you can assume the result is "
-        "statistically significant i.e. there is a difference.</p>")
+    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
+                     mg.P_EXPLAN_DIFF)
     html.append(u"\n</thead>\n<tbody>")
     html.append(u"\n<tr><td>" + _("Between") +
                 u"</td><td>%s</td><td>%s</td>" % (round(ssbn, dp), dfbn))
     html.append(u"<td>%s</td><td>%s</td><td>%s</td></tr>" %
-                (round(mean_squ_bn, dp), round(F, dp), round(p, dp)))
+                (round(mean_squ_bn, dp), round(F, dp), lib.get_p(p, dp)))
     html.append(u"\n<tr><td>" + _("Within") +
                 u"</td><td>%s</td><td>%s</td>" % (round(sswn, dp), dfwn))
     html.append(u"<td>%s</td><td></td><td></td></tr>" % round(mean_squ_wn, dp))
@@ -118,7 +117,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
             unused, p_arr, cskew, unused, ckurtosis, unused = \
                                                 core_stats.normaltest(sample)
             results += (round(ckurtosis, dp), round(cskew, dp), 
-                        round(p_arr[0], dp))
+                        lib.get_p(p_arr[0], dp))
         except Exception:
             results += (_("Unable to calculate kurtosis"), 
                         _("Unable to calculate skew"),
@@ -151,8 +150,8 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp, 
-                        indep, css_idx, html):
+def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg, 
+                        dp, indep, css_idx, html):
     """
     Footnotes are autonumbered at end.  The links to them will need numbering 
         though.
@@ -165,18 +164,19 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp,
     if indep:
         html.append(_("<h2>Results of Independent Samples t-test "
             "of average \"%(avg)s\" for \"%(a)s\" vs \"%(b)s\"</h2>") % \
-            {"avg": label_avg, "a": dic_a["label"], "b": dic_b["label"]})
+            {"avg": label_avg, "a": dic_a[mg.STATS_DIC_LABEL], 
+             "b": dic_b[mg.STATS_DIC_LABEL]})
     else:
         html.append(_("<h2>Results of Paired Samples t-test "
             "of \"%(a)s\" vs \"%(b)s\"</h2>") % 
-            {"a": dic_a["label"], "b": dic_b["label"]})
-    # always footnote 1
-    html.append(u"\n<p>" + _("p value") + u": %s" % round(p, dp) + 
+            {"a": dic_a[mg.STATS_DIC_LABEL], "b": dic_b[mg.STATS_DIC_LABEL]})
+    # always footnote 1 (so can hardwire anchor)
+    html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
-    footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> If p is small, "
-        "e.g. less than 0.01, or 0.001, you can assume the result is "
-        "statistically significant i.e. there is a difference.</p>")
+    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
+                     mg.P_EXPLAN_DIFF)
     html.append(u"\n<p>" + _("t statistic") + u": %s</p>" % round(t, dp))
+    html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
     if indep:
         try:
             bolsim, p_sim = core_stats.sim_variance([sample_a, sample_b], 
@@ -258,7 +258,7 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp,
         next_ft = i + 1
         html.append(footnote % (next_ft, next_ft))
 
-def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, 
+def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg, 
                        add_to_report, report_name, css_fil, css_idx=0, dp=3, 
                        level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     """
@@ -268,8 +268,8 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg,
     """
     html = []
     indep = True
-    ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp, 
-                        indep, css_idx, html)
+    ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg, 
+                        dp, indep, css_idx, html)
     sample_dets = [(u"a", sample_a, dic_a["label"]), 
                    (u"b", sample_b, dic_b["label"])]
     for (suffix, sample, hist_label) in sample_dets:
@@ -294,7 +294,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, label_avg,
     html_str = u"\n".join(html)
     return html_str
 
-def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, diffs, 
+def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs, 
                         add_to_report, report_name, css_fil, css_idx=0, 
                         label_avg=u"", dp=3, level=mg.OUTPUT_RESULTS_ONLY,
                         page_break_after=False):
@@ -305,8 +305,8 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, diffs,
     """
     html = []
     indep = False
-    ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, label_avg, dp, 
-                        indep, css_idx, html)
+    ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg, 
+                        dp, indep, css_idx, html)
     # histogram
     charting_pylab.gen_config(axes_labelsize=10, xtick_labelsize=8, 
                               ytick_labelsize=8)
@@ -335,14 +335,42 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0,
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
+    CSS_FTNOTE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FTNOTE, css_idx)
     html = []
+    footnotes = []
+    label_a = dic_a[mg.STATS_DIC_LABEL]
+    label_b = dic_b[mg.STATS_DIC_LABEL]
+    n_a = dic_a[mg.STATS_DIC_N]
+    n_b = dic_b[mg.STATS_DIC_N]
     html.append(_("<h2>Results of Mann Whitney U Test of \"%(ranked)s\" for "
                   "\"%(a)s\" vs \"%(b)s\"</h2>") % {"ranked": label_ranked, 
-                                                    "a": dic_a["label"], 
-                                                    "b": dic_b["label"]})
-    p_format = u"\n<p>" + _(u"One-tailed p value") + u": %%.%sf</p>" % dp
-    html.append(p_format % round(p, dp))
-    html.append(u"\n<p>" + _("U statistic") + u": %s</p>" % round(u, dp))
+                                                    "a": label_a, 
+                                                    "b": label_b})
+    # always footnote 1 (so can hardwire anchor)
+    html.append(u"\n<p>" + _("One-tailed p value") \
+                + u": %s" % lib.get_p(p, dp) + 
+                u" <a href='#ft1'><sup>1</sup></a></p>")
+    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
+                     mg.P_EXPLAN_DIFF)
+    # always footnote 2
+    html.append(u"\n<p>" + _("U statistic") +
+                u": %s <a class='%s' href='#ft2'><sup>2</sup></a></p>" % 
+                (round(u, dp), CSS_FTNOTE))
+    footnotes.append((u"\n<p><a id='ft%%s'></a><sup>%%s</sup> U is based on "
+        u"the results of matches between "
+        u"the \"%(label_a)s\" and \"%(label_b)s\" groups. "
+        u"In each match, the winner is the one with the "
+        u"highest \"%(label_ranked)s\" "
+        u"(in a draw, each group gets half a point which is why U can "
+        u"sometimes end in .5). "
+        u"The further the number is away from an even "
+        u"result i.e. half the number of possible matches "
+        u"(i.e. half of %(n_a)s x %(n_b)s i.e. %(even_matches)s) "
+        u"the more unlikely the difference is by chance "
+        u"alone and the more statistically significant it is.</p>") % 
+            {u"label_a": label_a, u"label_b": label_b, u"n_a": n_a, 
+             u"n_b": n_b, u"label_ranked": label_ranked,
+             u"even_matches": (n_a*n_b)/float(2)})
     html.append(u"\n\n<table cellspacing='0'>\n<thead>")
     html.append(u"\n<tr>" +
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + u"</th>" +
@@ -362,6 +390,9 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0,
                                dic[mg.STATS_DIC_MIN], 
                                dic[mg.STATS_DIC_MAX]))
     html.append(u"\n</tbody>\n</table>\n")
+    for i, footnote in enumerate(footnotes):
+        next_ft = i + 1
+        html.append(footnote % (next_ft, next_ft))
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -371,30 +402,45 @@ def wilcoxon_output(t, p, label_a, label_b, css_fil, css_idx=0, dp=3,
                     level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    html = _("<h2>Results of Wilcoxon Signed Ranks Test of \"%(a)s\" vs "
-             "\"%(b)s\"</h2>") % {"a": label_a, "b": label_b}
-    p_format = u"\n<p>p value: %%.%sf</p>" % dp
-    html += p_format % round(p, dp)
-    html += u"\n<p>" + _("Wilcoxon Signed Ranks statistic") + u": %s</p>" % \
-        round(t, dp)
+    html = []
+    footnotes = []
+    html.append(_("<h2>Results of Wilcoxon Signed Ranks Test of \"%(a)s\" vs "
+                  "\"%(b)s\"</h2>") % {"a": label_a, "b": label_b})
+    # always footnote 1 (so can hardwire anchor)
+    html.append(u"\n<p>" + _("One-tailed p value") + \
+                u": %s" % lib.get_p(p, dp) + 
+                u" <a href='#ft1'><sup>1</sup></a></p>")
+    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
+                     mg.P_EXPLAN_DIFF)
+    html.append(u"\n<p>" + _("Wilcoxon Signed Ranks statistic") + \
+                u": %s</p>" % round(t, dp))
+    for i, footnote in enumerate(footnotes):
+        next_ft = i + 1
+        html.append(footnote % (next_ft, next_ft))
     if page_break_after:
         html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
-    return html
+    return u"".join(html)
 
-def pearsonsr_output(list_x, list_y, r, p, label_x, label_y, add_to_report,
+def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
                      report_name, css_fil, css_idx=0, dp=3, 
                      level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     html = []
+    footnotes = []
     x_vs_y = '"%s"' % label_x + _(" vs ") + '"%s"' % label_y
     title = (_("Results of Pearson's Test of Linear Correlation "
                "for %s") % x_vs_y)
     html.append("<h2>%s</h2>" % title)
-    p_format = u"\n<p>" + _("p value") + u": %%.%sf</p>" % dp
-    html.append(p_format % round(p, dp))
+    # always footnote 1 (so can hardwire anchor)
+    html.append(u"\n<p>" + _("One-tailed p value") + \
+                u": %s" % lib.get_p(p, dp) + 
+                u" <a href='#ft1'><sup>1</sup></a></p>")
+    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
+                     mg.P_EXPLAN_REL)
     html.append(u"\n<p>" + _("Pearson's R statistic") +
                 u": %s</p>" % round(r, dp))
+    html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
     grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
     dot_colour = item_colours[0]
     title_dets_html = u"" # already got an appropriate title for whole section
@@ -403,25 +449,33 @@ def pearsonsr_output(list_x, list_y, r, p, label_x, label_y, add_to_report,
                                    line_colour, list_x, list_y, label_x, 
                                    label_y, x_vs_y, title_dets_html, 
                                    add_to_report, report_name, html)
+    for i, footnote in enumerate(footnotes):
+        next_ft = i + 1
+        html.append(footnote % (next_ft, next_ft))
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def spearmansr_output(list_x, list_y, r, p, label_x, label_y, add_to_report,
+def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
                       report_name, css_fil, css_idx=0, dp=3, 
                       level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     html = []
+    footnotes = []
     x_vs_y = '"%s"' % label_x + _(" vs ") + '"%s"' % label_y
     title = (_("Results of Spearman's Test of Linear Correlation "
                "for %s") % x_vs_y)
     html.append("<h2>%s</h2>" % title)
-    p_format = u"\n<p>" + _("p value") + u": %%.%sf</p>" % dp
-    html.append(p_format % round(p, dp))
+    # always footnote 1 (so can hardwire anchor)
+    html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
+                u" <a href='#ft1'><sup>1</sup></a></p>")
+    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
+                     mg.P_EXPLAN_REL)
     html.append(u"\n<p>" + _("Spearman's R statistic") + 
                 u": %s</p>" % round(r, dp))
+    html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
     grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
     dot_colour = item_colours[0]
     title_dets_html = u"" # already got an appropriate title for whole section
@@ -430,6 +484,9 @@ def spearmansr_output(list_x, list_y, r, p, label_x, label_y, add_to_report,
                                    line_colour, list_x, list_y, label_x, 
                                    label_y, x_vs_y, title_dets_html, 
                                    add_to_report, report_name, html)
+    for i, footnote in enumerate(footnotes):
+        next_ft = i + 1
+        html.append(footnote % (next_ft, next_ft))
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -460,14 +517,18 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
     val_labels_a_n = len(val_labels_a)
     val_labels_b_n = len(val_labels_b)
     html = []
+    footnotes = []
     html.append(_("<h2>Results of Pearson's Chi Square Test of Association "
         "Between \"%(laba)s\" and \"%(labb)s\"</h2>") % {u"laba": var_label_a, 
                                                          u"labb": var_label_b})
-    p_format = u"\n<p>" + _("p value") + u": %%.%sf</p>" % dp
-    html.append(p_format % round(p, dp))
+    # always footnote 1 (so can hardwire anchor)
+    html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
+                u" <a href='#ft1'><sup>1</sup></a></p>")
+    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
+                     mg.P_EXPLAN_REL)  
     html.append(u"\n<p>" + _("Pearson's Chi Square statistic") + u": %s</p>" %
                 round(chi, dp))
-    html.append(u"\n<p>" + _("Degrees of Freedom (df)") + u": %s</p>" % df)
+    html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
     # headings
     html.append(u"\n\n<table cellspacing='0'>\n<thead>")
     html.append(u"\n<tr><th class='%s' colspan=2 rowspan=3></th>" % 
@@ -534,6 +595,9 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
                 round(min_count, dp))
     html.append(u"\n<p>% " + _("cells with expected count < 5") + u": %s</p>" %
                 round(perc_cells_lt_5, 1))
+    for i, footnote in enumerate(footnotes):
+        next_ft = i + 1
+        html.append(footnote % (next_ft, next_ft))
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -605,7 +669,7 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
                                              save_func=plot.save, dpi=None)
     html.append(u"\n<img src='%s'>" % img_src)
 
-def kruskal_wallis_output(h, p, label_a, label_b, dics, label_avg, css_fil, 
+def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil, 
                           css_idx=0, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
                           page_break_after=False):
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
@@ -613,13 +677,18 @@ def kruskal_wallis_output(h, p, label_a, label_b, dics, label_avg, css_fil,
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     html = []
+    footnotes = []
     html.append(_("<h2>Results of Kruskal-Wallis H test of average %(avg)s for "
                  "groups from \"%(a)s\" to \"%(b)s\"</h2>") % {"avg": label_avg, 
                                                 "a": label_a, "b": label_b})
-    p_format = "\n<p>" + _("p value") + ": %%.%sf</p>" % dp
-    html.append(p_format % round(p, dp))
+    # always footnote 1 (so can hardwire anchor)
+    html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
+                u" <a href='#ft1'><sup>1</sup></a></p>")
+    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
+                     mg.P_EXPLAN_DIFF) 
     html.append("\n<p>" + _("Kruskal-Wallis H statistic") + ": %s</p>" % \
                                                                 round(h, dp))
+    html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
     html.append(u"\n\n<table cellspacing='0'>\n<thead>")
     html.append(u"\n<tr>" +
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + u"</th>" +
@@ -636,6 +705,10 @@ def kruskal_wallis_output(h, p, label_a, label_b, dics, label_avg, css_fil,
                                round(dic[mg.STATS_DIC_MEDIAN], dp),
                                dic[mg.STATS_DIC_MIN], 
                                dic[mg.STATS_DIC_MAX]))
+    html.append(u"\n</tbody></table>")
+    for i, footnote in enumerate(footnotes):
+        next_ft = i + 1
+        html.append(footnote % (next_ft, next_ft))
     if page_break_after:
         html.append("<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

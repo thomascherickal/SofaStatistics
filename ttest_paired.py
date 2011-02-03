@@ -39,11 +39,11 @@ sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=u"%(dbe)s",
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
                           lib.escape_pre_write(report_name))
-        script_lst.append(u"t, p, dic_a, dic_b, diffs = " +
+        script_lst.append(u"t, p, dic_a, dic_b, df, diffs = " +
             u"core_stats.ttest_rel(sample_a, sample_b, label_a, label_b)")
         script_lst.append(u"""
 ttest_paired_output = stats_output.ttest_paired_output(sample_a, sample_b, t, p,
-    dic_a, dic_b, diffs, add_to_report, report_name,
+    dic_a, dic_b, df, diffs, add_to_report, report_name,
     css_fil="%(css_fil)s", css_idx=%(css_idx)s, label_avg=u"", dp=dp,
     level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)""" %
             {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})        

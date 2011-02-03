@@ -498,7 +498,7 @@ def get_summary_dics(samples, labels, quant=False):
 def kruskalwallish(samples, labels):
     """
     From stats.py.  No changes except also return a dic for each sample with 
-        median etc and args -> samples.  
+        median etc and args -> samples, plus df.  
     -------------------------------------
     The Kruskal-Wallis H-test is a non-parametric ANOVA for 3 or more
     groups, requiring at least 5 subjects in each group.  This function
@@ -530,7 +530,7 @@ def kruskalwallish(samples, labels):
     if T == 0:
         raise ValueError(u"All numbers are identical in kruskalwallish")
     h = h / float(T)
-    return h, chisqprob(h,df), dics
+    return h, chisqprob(h,df), dics, df
 
 def ttest_ind(sample_a, sample_b, label_a, label_b, use_orig_var=False):
     """
@@ -539,7 +539,7 @@ def ttest_ind(sample_a, sample_b, label_a, label_b, use_orig_var=False):
         presentation.  There are no changes to algorithms apart from calculating 
         sds once, rather than squaring to get var and taking sqrt to get sd 
         again ;-).  Plus use variance to get var, not stdev then squared.
-    Returns t, p, dic_a, dic_b (p is the two-tailed probability)
+    Returns t, p, dic_a, dic_b, df (p is the two-tailed probability)
     
     use_orig_var = use original (flawed) approach to sd and var.  Needed for 
         unit testing against stats.py.  Sort of like matching bug for bug ;-).
@@ -575,7 +575,7 @@ def ttest_ind(sample_a, sample_b, label_a, label_b, use_orig_var=False):
     dic_b = {mg.STATS_DIC_LABEL: label_b, mg.STATS_DIC_N: n_b, 
              mg.STATS_DIC_MEAN: mean_b, mg.STATS_DIC_SD: sd_b, 
              mg.STATS_DIC_MIN: min_b, mg.STATS_DIC_MAX: max_b}
-    return t, p, dic_a, dic_b
+    return t, p, dic_a, dic_b, df
 
 def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     """
@@ -620,7 +620,7 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     dic_b = {mg.STATS_DIC_LABEL: label_b, mg.STATS_DIC_N: n, 
              mg.STATS_DIC_MEAN: mean_b, mg.STATS_DIC_SD: sd_b, 
              mg.STATS_DIC_MIN: min_b, mg.STATS_DIC_MAX: max_b}
-    return t, p, dic_a, dic_b, diffs
+    return t, p, dic_a, dic_b, df, diffs
 
 def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     """
@@ -739,7 +739,7 @@ def pearsonr(x,y):
     df = n-2
     t = r*math.sqrt(df/((1.0-r+TINY)*(1.0+r+TINY)))
     prob = betai(0.5*df,0.5,df/float(df+t*t))
-    return r, prob
+    return r, prob, df
 
 def spearmanr(x,y):
     """
@@ -764,7 +764,7 @@ def spearmanr(x,y):
     probrs = betai(0.5*df,0.5,df/(df+t*t))  # t already a float
     # probability values for rs are from part 2 of the spearman function in
     # Numerical Recipes, p.510.  They are close to tables, but not exact. (?)
-    return rs, probrs
+    return rs, probrs, df
 
 def rankdata(inlist):
     """

@@ -13,7 +13,7 @@ import wx
 
 debug = False
 
-VERSION = u"1.0.1"
+VERSION = u"1.0.2"
 ADVANCED = False
 ATTRIBUTION = u"sofastatistics.com"
 # LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, LANGUAGE_RUSSIAN, LANGUAGE_HEBREW
@@ -32,6 +32,13 @@ STATS_DIC_MEAN = u"mean"
 STATS_DIC_SD = u"sd"
 STATS_DIC_MIN = u"min"
 STATS_DIC_MAX = u"max"
+DF = _("Degrees of Freedom (df)")
+P_EXPLAN_DIFF = (u"If p is small, "
+            u"e.g. less than 0.01, or 0.001, you can assume the result is "
+            u"statistically significant i.e. there is a difference.")
+P_EXPLAN_REL = (u"If p is small, "
+            u"e.g. less than 0.01, or 0.001, you can assume the result is "
+            u"statistically significant i.e. there is a relationship.")
 # stats output *******************************************************
 OUTPUT_RESULTS_ONLY = u"Output results only"
 # Making tables ******************************************************
@@ -146,6 +153,7 @@ CSS_MEASURE = u"measure"
 CSS_TOTAL_ROW = u"total-row"
 CSS_PAGE_BREAK_BEFORE = u"page-break-before"
 CSS_TBL_HDR_FTNOTE = u"tbl-header-ftnote"
+CSS_FTNOTE = u"ftnote"
 CSS_ELEMENTS = [CSS_ALIGN_RIGHT, CSS_LBL, CSS_TBL_TITLE, 
     CSS_TBL_TITLE_CELL, CSS_TBL_SUBTITLE, CSS_FIRST_COL_VAR, CSS_FIRST_ROW_VAR,
     CSS_TOPLINE, CSS_DATACELL, CSS_FIRST_DATACELL, CSS_SPACEHOLDER, CSS_ROW_VAL, 

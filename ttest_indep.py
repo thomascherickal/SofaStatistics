@@ -60,11 +60,11 @@ if len(sample_a) < 2 or len(sample_b) < 2:
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
                           lib.escape_pre_write(report_name))
-        script_lst.append(u"t, p, dic_a, dic_b = " + \
+        script_lst.append(u"t, p, dic_a, dic_b, df = " + \
             u"core_stats.ttest_ind(sample_a, sample_b, label_a, label_b)")
         script_lst.append(u"""
 ttest_indep_output = stats_output.ttest_indep_output(sample_a, sample_b, t, p,
-    dic_a, dic_b, label_avg, add_to_report, report_name,
+    dic_a, dic_b, df, label_avg, add_to_report, report_name,
     css_fil="%(css_fil)s", css_idx=%(css_idx)s, dp=dp,
     level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)""" %
             {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})

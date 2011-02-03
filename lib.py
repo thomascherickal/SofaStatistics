@@ -22,6 +22,14 @@ import my_globals as mg
 import my_exceptions
 import core_stats
 
+def get_p(p, dp):
+    if p < 0.001:
+        p_str = u"< 0.001"
+    else:
+        p_format = u"%%.%sf" % dp
+        p_str = p_format % round(p, dp)
+    return p_str
+
 def get_exec_ready_text(text):
     """
     test -- often the result of f.read()
