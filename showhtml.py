@@ -37,7 +37,8 @@ class DlgHTML(wx.Dialog):
     "Show HTML window with content displayed"    
     
     def __init__(self, parent, title, url=None, content=None, url_load=False,
-                 file_name=mg.INT_REPORT_FILE, print_folder=mg.INT_FOLDER):
+                 file_name=mg.INT_REPORT_FILE, print_folder=mg.INT_FOLDER,
+                 width_reduction=20, height_reduction=40):
         """
         url -- url to display (either this or content).
         content -- html ready to display.
@@ -79,7 +80,8 @@ class DlgHTML(wx.Dialog):
         self.Layout()
         height_adj = 60 if mg.PLATFORM != mg.WINDOWS else 0
         pos_y = 40 if mg.PLATFORM != mg.WINDOWS else 5
-        self.SetSize((mg.MAX_WIDTH-20, mg.MAX_HEIGHT-(40+height_adj)))
+        self.SetSize((mg.MAX_WIDTH-width_reduction, 
+                      mg.MAX_HEIGHT-(height_reduction+height_adj)))
         self.SetPosition((10, pos_y))
         self.Restore()
         lib.safe_end_cursor()

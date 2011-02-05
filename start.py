@@ -38,6 +38,8 @@ warnings.simplefilter('ignore', UserWarning)
 
 import codecs
 if show_early_steps: print(u"Just imported codecs")
+import datetime
+if show_early_steps: print(u"Just imported datetime")
 import gettext
 if show_early_steps: print(u"Just imported gettext")
 import glob
@@ -995,9 +997,70 @@ class StartFrame(wx.Frame):
         deferred_warning_msg = warning_div.join(mg.DEFERRED_WARNING_MSGS)
         if deferred_warning_msg:
             wx.CallAfter(self.on_deferred_warning_msg, deferred_warning_msg)
+        else:
+            wx.CallAfter(self.sofastats_connect)
         
     def on_deferred_warning_msg(self, deferred_warning_msg):
         wx.MessageBox(deferred_warning_msg)
+        
+    def sofastats_connect(self):
+        debug = False
+        connect_now = False
+        sofastats_connect_fil = os.path.join(mg.INT_PATH, 
+                                             mg.SOFASTATS_CONNECT_FILE)
+        wx.BeginBusyCursor()
+        try:
+            # read date from file if possible
+            f = codecs.open(sofastats_connect_fil, "U", encoding="utf-8")
+            connect_cont = lib.get_exec_ready_text(text=f.read())
+            f.close()
+            connect_cont = lib.clean_bom_utf8(connect_cont)
+            connect_dic = {}
+            # http://docs.python.org/reference/simple_stmts.html
+            exec connect_cont in connect_dic
+            # if date <= now, connect_now and update file
+            connect_date = connect_dic[mg.SOFASTATS_CONNECT_VAR]
+            now_str = unicode(datetime.datetime.today())
+            expired_date = (connect_date <= now_str)
+            if expired_date:
+                self.update_sofastats_connect_date(sofastats_connect_fil)                
+                connect_now = True
+        except Exception, e: # if any probs, create new file and connect
+            self.update_sofastats_connect_date(sofastats_connect_fil)    
+            connect_now = True
+        if connect_now:
+            try:
+                # check we can!
+                import showhtml
+                import urllib # http://docs.python.org/library/urllib.html
+                file2read = mg.SOFASTATS_CONNECT_URL
+                url2open = u"http://www.sofastatistics.com/%s" % file2read
+                url_reply = urllib.urlopen(url2open)
+                if debug: print("Checked sofastatistics.com connection: %s" 
+                                % new_version)
+                # seems OK so connect
+                width_reduction=mg.MAX_WIDTH*0.25 if mg.MAX_WIDTH > 1000 \
+                                                  else 200
+                height_reduction=mg.MAX_HEIGHT*0.25 if mg.MAX_HEIGHT > 600 \
+                                                    else 100
+                dlg = showhtml.DlgHTML(parent=self, 
+                       title=_("What's happening in SOFA Statistics"), 
+                       url='http://www.sofastatistics.com/sofastats_connect.php',
+                       width_reduction=mg.MAX_WIDTH*0.25, 
+                       height_reduction=mg.MAX_HEIGHT*0.25)
+                dlg.ShowModal()
+            except Exception, e:
+                if debug: print(u"Unable to connect to sofastatistics.com."
+                                u"/nCaused by error: %s" % lib.ue(e))
+                pass
+        lib.safe_end_cursor()
+    
+    def update_sofastats_connect_date(self, sofastats_connect_fil):
+        f = codecs.open(sofastats_connect_fil, "w", encoding="utf-8")
+        next_check_date = (datetime.datetime.today() +
+                           datetime.timedelta(days=120)).strftime('%Y-%m-%d')
+        f.write("%s = '%s'" % (mg.SOFASTATS_CONNECT_VAR, next_check_date))
+        f.close()
     
     def get_latest_version(self, version_lev):
         """
@@ -1005,9 +1068,9 @@ class StartFrame(wx.Frame):
         """
         import urllib # http://docs.python.org/library/urllib.html
         debug = False
-        file2read = u"latest_major_sofastats_version.txt" \
+        file2read = mg.SOFASTATS_MAJOR_VERSION_CHECK \
                     if version_lev == mg.VERSION_CHECK_MAJOR \
-                    else u"latest_sofastats_version.txt"
+                    else mg.SOFASTATS_VERSION_CHECK
         url2open = u"http://www.sofastatistics.com/%s" % file2read
         try:
             url_reply = urllib.urlopen(url2open)

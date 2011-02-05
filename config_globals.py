@@ -177,7 +177,7 @@ def get_settings_dic(subfolder, fil_name):
     settings_path = os.path.join(mg.LOCAL_PATH, subfolder, fil_name)
     try:
         f = codecs.open(settings_path, "U", encoding="utf-8")
-    except IOError:
+    except IOError, e:
         raise Exception("Unable to get settings from non-existent file %s"
                         % settings_path)
     settings_cont = lib.get_exec_ready_text(text=f.read())
