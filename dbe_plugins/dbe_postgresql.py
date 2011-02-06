@@ -67,12 +67,8 @@ def quote_obj(raw_val):
     return u'%s%s%s' % (left_obj_quote, raw_val, right_obj_quote)
 
 def quote_val(raw_val):
-    try:
-        val = raw_val.replace(u"'", u"''") # escape internal single quotes
-    except AttributeError, e:
-        raise Exception(u"Inappropriate attempt to quote non-string value."
-                        u"\nCaused by error: %s" % lib.ue(e))
-    return u"'%s'" % val
+    return lib.quote_val(raw_val, unsafe_internal_quote=u"'", 
+                         safe_internal_quote=u"''")
 
 def get_summable(clause):
     return u"CASE WHEN %s THEN 1 ELSE 0 END" % clause

@@ -320,7 +320,11 @@ def get_dbe_syntax_elements(dbe):
 def make_fld_val_clause_non_numeric(fld_name, val, dbe_gte, quote_obj, 
                                     quote_val):
     debug = False
-    clause = "%s %s %s" % (quote_obj(fld_name), dbe_gte, quote_val(val))
+    quoted_obj = quote_obj(fld_name)
+    if debug: print("quoted_obj: %s" % quoted_obj)
+    quoted_val = quote_val(val)    
+    if debug: print("quoted_val: %s" % quoted_val)
+    clause = "%s %s %s" % (quoted_obj, dbe_gte, quoted_val)
     if debug: print(clause)
     return clause
     

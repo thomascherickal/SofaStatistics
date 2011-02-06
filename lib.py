@@ -22,6 +22,20 @@ import my_globals as mg
 import my_exceptions
 import core_stats
 
+def quote_val(raw_val, unsafe_internal_quote, safe_internal_quote):
+    """
+    Might be a string or a datetime but can't be a number
+    """
+    try:
+        val = raw_val.isoformat()
+    except AttributeError, e:
+        try: # escape internal double quotes
+            val = raw_val.replace(unsafe_internal_quote, safe_internal_quote)
+        except AttributeError, e:
+            raise Exception(u"Inappropriate attempt to quote non-string value."
+                            u"\nCaused by error: %s" % lib.ue(e))
+    return u"\"%s\"" % val
+
 def get_p(p, dp):
     if p < 0.001:
         p_str = u"< 0.001"
