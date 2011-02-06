@@ -1004,6 +1004,14 @@ class StartFrame(wx.Frame):
         wx.MessageBox(deferred_warning_msg)
         
     def sofastats_connect(self):
+        """
+        If first time, or file otherwise missing or damaged, create file with
+            date set 3 weeks in future as signal to connect to the 
+            sofastatistics.com "What's Happening" web page. Whenever a 
+            connection is made, reset date to approx 4 months away.
+        If file exists and date can be read, connect if time has passed and 
+            reset date to approx 4 months away.
+        """
         debug = False
         connect_now = False
         sofastats_connect_fil = os.path.join(mg.INT_PATH, 
@@ -1023,11 +1031,12 @@ class StartFrame(wx.Frame):
             now_str = unicode(datetime.datetime.today())
             expired_date = (connect_date <= now_str)
             if expired_date:
-                self.update_sofastats_connect_date(sofastats_connect_fil)                
+                self.update_sofastats_connect_date(sofastats_connect_fil, 
+                                                   days2wait=120)                
                 connect_now = True
-        except Exception, e: # if any probs, create new file and connect
-            self.update_sofastats_connect_date(sofastats_connect_fil)    
-            connect_now = True
+        except Exception, e: # if any probs, create new file for 3 weeks away
+            self.update_sofastats_connect_date(sofastats_connect_fil, 
+                                               days2wait=21)
         if connect_now:
             try:
                 # check we can!
@@ -1055,10 +1064,11 @@ class StartFrame(wx.Frame):
                 pass
         lib.safe_end_cursor()
     
-    def update_sofastats_connect_date(self, sofastats_connect_fil):
+    def update_sofastats_connect_date(self, sofastats_connect_fil, 
+                                      days2wait=120):
         f = codecs.open(sofastats_connect_fil, "w", encoding="utf-8")
         next_check_date = (datetime.datetime.today() +
-                           datetime.timedelta(days=120)).strftime('%Y-%m-%d')
+                        datetime.timedelta(days=days2wait)).strftime('%Y-%m-%d')
         f.write("%s = '%s'" % (mg.SOFASTATS_CONNECT_VAR, next_check_date))
         f.close()
     
