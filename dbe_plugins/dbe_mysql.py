@@ -7,7 +7,7 @@ import wx
 import pprint
 
 import my_globals as mg
-if mg.platform == mg.MAC:
+if mg.PLATFORM == mg.MAC:
     import pymysql as mysql # easier to get working on a Mac
 else:
     import MySQLdb as mysql
