@@ -121,12 +121,12 @@ except Exception, e:
     if show_early_steps: 
         print(msg)
         raw_input(INIT_DEBUG_MSG) # not holding up any other way of getting msg 
-            # to user.  Unlike when a GUI msg possible later on.  In those cases
+            # to user.  Unlike when a GUI msg possible later on. In those cases
             # just let that step happen.
     raise Exception(msg)
 
 # Give the user something if the program fails at an early stage before anything
-# appears on the screen.  Can only guarantee this from here onwards because I 
+# appears on the screen. Can only guarantee this from here onwards because I 
 # need lib etc.
 class ErrMsgFrame(wx.Frame):
     def __init__(self, e, raw_error_msg):
@@ -575,6 +575,10 @@ try:
     import projselect
     about = u"quotes"
     import quotes
+except my_exceptions.ComtypesException, e:
+    msgapp = ErrMsgApp(lib.ue(e))
+except my_exceptions.InconsistentFileDateException, e:
+    msgapp = ErrMsgApp(lib.ue(e))
 except Exception, e:
     msg = (u"Problem with second round of local importing while "
            u"importing %s." % about +

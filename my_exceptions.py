@@ -43,6 +43,18 @@ class NoNodesException(Exception):
         Exception.__init__(self, u"Cannot get terminal nodes until " +
                     u"there is at least one node added to tree")
 
+class ComtypesException(Exception):
+    def __init__(self):
+        Exception.__init__(self, u"Problem with comtypes."
+                           u"\n\nPlease look at help in:"
+                           u"\n\nhttp://www.sofastatistics.com/wiki/doku.php?"
+                           u"id=help:will_not_start#no_module_named_comtypes")
+
+class InconsistentFileDateException(Exception):
+    def __init__(self):
+        Exception.__init__(self, _(u"SOFA has detected an inconsistent file "
+                              u"date. Is your system date/time set correctly?"))
+
 # Output exceptions - trapped as a group in output usually
 class OutputException(Exception):
     pass
@@ -117,3 +129,5 @@ class TooManyChartsInSeries(OutputException):
     def __init__(self, fld_gp_name, max_items):
         OutputException.__init__(self, u"Too many charts to display for "
                     "\"%s\". " % fld_gp_name + u"More than %s." % max_items)
+
+
