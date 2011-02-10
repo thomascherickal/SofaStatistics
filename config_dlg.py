@@ -29,12 +29,13 @@ import output # uses get_cc
 cc = get_cc()
 
 # explanation level
-def get_szr_level(parent, panel):
+def get_szr_level(parent, panel, horiz=True):
     """
     Get self.szr_level with radio widgets. 
     """
+    hv_style = wx.RA_SPECIFY_COLS if horiz else wx.RA_SPECIFY_ROWS
     parent.rad_level = wx.RadioBox(panel, -1, _("Output Level"), 
-                                   choices=mg.LEVELS, style=wx.RA_SPECIFY_COLS)
+                                   choices=mg.LEVELS, style=hv_style)
     parent.rad_level.SetStringSelection(mg.DEFAULT_LEVEL)
     parent.szr_level = wx.BoxSizer(wx.HORIZONTAL)
     parent.szr_level.Add(parent.rad_level, 0, wx.RIGHT, 10)

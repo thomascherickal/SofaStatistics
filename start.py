@@ -759,9 +759,9 @@ class StartFrame(wx.Frame):
             raise Exception(deferred_error_msg)
         # Gen set up
         wx.Frame.__init__(self, None, title=_("SOFA Start"), 
-                          size=(self.form_width, self.form_height), 
-                          pos=(self.form_pos_left,-1),
-                          style=wx.CAPTION|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
+                  size=(self.form_width, self.form_height), 
+                  pos=(self.form_pos_left,-1),
+                  style=wx.CAPTION|wx.MINIMIZE_BOX|wx.CLOSE_BOX|wx.SYSTEM_MENU)
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize())
@@ -769,6 +769,7 @@ class StartFrame(wx.Frame):
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SHOW, self.on_show) # doesn't run on Mac
+        self.Bind(wx.EVT_CLOSE, self.on_exit_click)
         self.active_proj = mg.DEFAULT_PROJ
         proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
                                                    fil_name=self.active_proj)
@@ -1010,11 +1011,11 @@ class StartFrame(wx.Frame):
     def sofastats_connect(self):
         """
         If first time, or file otherwise missing or damaged, create file with
-            date set 3 weeks in future as signal to connect to the 
+            date set a short time in the future as signal to connect to the 
             sofastatistics.com "What's Happening" web page. Whenever a 
-            connection is made, reset date to approx 4 months away.
+            connection is made, reset date to a longer period away.
         If file exists and date can be read, connect if time has passed and 
-            reset date to approx 4 months away.
+            reset date to a longer period away.
         """
         debug = False
         connect_now = False
@@ -1036,11 +1037,11 @@ class StartFrame(wx.Frame):
             expired_date = (connect_date <= now_str)
             if expired_date:
                 self.update_sofastats_connect_date(sofastats_connect_fil, 
-                                                   days2wait=120)                
+                                        days2wait=mg.SOFASTATS_CONNECT_REGULAR)
                 connect_now = True
         except Exception, e: # if any probs, create new file for 3 weeks away
             self.update_sofastats_connect_date(sofastats_connect_fil, 
-                                               days2wait=21)
+                                        days2wait=mg.SOFASTATS_CONNECT_INITIAL)
         if connect_now:
             try:
                 # check we can!
@@ -1472,7 +1473,7 @@ class StartFrame(wx.Frame):
         debug = False
         wx.BeginBusyCursor()
         # wipe any internal images
-        int_img_pattern = os.path.join(mg.INT_PATH, "*.png")
+        int_img_pattern = os.path.join(mg.INT_PATH, u"*.png")
         if debug: print(int_img_pattern)
         for delme in glob.glob(int_img_pattern):
             if debug: print(delme)

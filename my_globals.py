@@ -13,7 +13,7 @@ import wx
 
 debug = False
 
-VERSION = u"1.0.2"
+VERSION = u"1.0.3"
 ADVANCED = False
 ATTRIBUTION = u"sofastatistics.com"
 # LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, LANGUAGE_RUSSIAN, LANGUAGE_HEBREW
@@ -179,8 +179,11 @@ VERSION_FILE = u"__version__.txt"
 SOFASTATS_CONNECT_FILE = u"next_sofastats_connect.txt"
 SOFASTATS_CONNECT_VAR = u"next_sofastats_connect_date"
 SOFASTATS_CONNECT_URL = "able_to_connect.txt"
+SOFASTATS_CONNECT_INITIAL = 14 # days
+SOFASTATS_CONNECT_REGULAR = 56 # days
 SOFASTATS_VERSION_CHECK = u"latest_sofastats_version.txt"
 SOFASTATS_MAJOR_VERSION_CHECK = u"latest_major_sofastats_version.txt"
+
 GOOGLE_DOWNLOAD_EXT = u"ods" # csv has trouble with empty cols e.g. 1,2\n3\n4,5
 GOOGLE_DOWNLOAD = u"temporary_google_spreadsheet.%s" % GOOGLE_DOWNLOAD_EXT
 INT_FOLDER = u"_internal"

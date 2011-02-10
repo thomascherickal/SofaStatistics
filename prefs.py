@@ -30,14 +30,14 @@ class PrefsDlg(wx.Dialog):
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         self.rad_versions = wx.RadioBox(self.panel, -1, _("Upgrade Checking"), 
                                         choices=mg.VERSION_CHECK_OPTS, 
-                                        style=wx.RA_SPECIFY_COLS)
+                                        style=wx.RA_SPECIFY_ROWS)
         version_check_lev = prefs_dic_in[mg.PREFS_KEY].get(mg.VERSION_CHECK_KEY, 
                                                            mg.VERSION_CHECK_ALL)
         self.rad_versions.SetStringSelection(version_check_lev)
         self.szr_versions = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_versions.Add(self.rad_versions, 0, wx.RIGHT, 10)
         self.rad_versions.Enable(True)
-        self.szr_level = config_dlg.get_szr_level(self, self.panel)
+        self.szr_level = config_dlg.get_szr_level(self, self.panel, horiz=False)
         self.szr_main.Add(self.szr_versions, 0, wx.ALL, 10)
         self.szr_main.Add(self.szr_level, 0, wx.ALL, 10)
         self.setup_btns()
