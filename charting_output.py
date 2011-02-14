@@ -1158,9 +1158,9 @@ def histogram_output(titles, subtitles, var_label, histo_dets, css_fil,
             u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
                                     for i,x in enumerate(xaxis_dets,1)]) + u"]"
         bin_labs = u"\"" + u"\", \"".join(bin_labels) + u"\""
-        width = 700
-        xfontsize = 10
-        left_axis_label_shift = 30 if width > 1200 else 10 # gets squeezed 
+        width = 700 if len(xaxis_dets) <= 20 else 900
+        xfontsize = 10 if len(xaxis_dets) <= 20 else 8
+        left_axis_label_shift = 10 
         if multichart:
             width = width*0.8
             xfontsize = xfontsize*0.8
