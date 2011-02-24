@@ -4,8 +4,10 @@ from __future__ import absolute_import
 
 dev_debug = True # relates to errors etc once GUI application running. 
     # show_early_steps is about revealing any errors before that point.
+
 test_lang = False
 show_early_steps = True
+force_error = False
 INIT_DEBUG_MSG = u"Please note the messages above (e.g. with a screen-shot)" + \
                  u" and press any key to close"
 
@@ -134,12 +136,14 @@ class ErrMsgFrame(wx.Frame):
         error_msg = lib.ue(e)
         if not raw_error_msg:
             error_msg = (u"Oops! Something went wrong running SOFA Statistics "
-                         u"version %s.  " % mg.VERSION +
-                         u"Please email lead developer grant@sofastatistics.com"
-                         u" for help (usually reasonably prompt)."
-                         u"\n\nIf you know how, include a screenshot of this "
-                         u"full message."
-                         u"\n\nCaused by error: %s" % error_msg)
+                 u"version %s. " % mg.VERSION + u"\n\nHelp is available at "
+                 u"http://www.sofastatistics.com/userguide.php under "
+                 u"\"SOFA won't start - solutions\". You can also email lead "
+                 u"developer grant@sofastatistics.com for help (usually "
+                 u"reasonably prompt)."
+                 u"\n\nIf you know how, please include a screenshot of this "
+                 u"full message."
+                 u"\n\nCaused by error: %s" % error_msg)
         wx.MessageBox(error_msg)
         self.Destroy()
         import sys
@@ -480,6 +484,8 @@ def freshen_recovery(prog_path, local_subfolders, subfolders_in_proj):
         points to the ordinary home "sofastats" folder.  This will only work, of 
         course, if the folder is made operational by renaming it to "sofastats".
     """
+    if force_error:
+        raise Exception("Error added to make error message appear :-)")
     (installer_recovery_is_newer, 
      installer_recovery_newer_status_known) = \
                                   get_installer_version_status(mg.RECOVERY_PATH)

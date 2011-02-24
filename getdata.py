@@ -158,7 +158,7 @@ class DataDets(object):
         """
         debug = False
         if debug: print("About to get dbe resources")
-        # free up if in use.  MS Access will crash otherwise.
+        # free up if in use. MS Access will crash otherwise.
         try:
             self.cur.close()
             self.cur = None

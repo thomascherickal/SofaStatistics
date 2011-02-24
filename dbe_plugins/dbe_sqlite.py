@@ -71,7 +71,8 @@ def get_con(con_dets, db, add_checks=False):
     if not con_dets_sqlite.get(db):
         raise Exception(u"No connections for SQLite database %s" % db)
     try:
-        sofa_db_path = u"Unable to get connection details"
+        sofa_db_path = (u"Unable to get connection details for db '%s' "
+                        u"using: %s") % (db, pprint.pformat(con_dets_sqlite))
         con = sqlite.connect(**con_dets_sqlite[db])
         try:
             sofa_db_path = con_dets_sqlite[db][DATABASE_KEY]
