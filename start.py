@@ -1042,12 +1042,10 @@ class StartFrame(wx.Frame):
             now_str = unicode(datetime.datetime.today())
             expired_date = (connect_date <= now_str)
             if expired_date:
-                self.update_sofastats_connect_date(sofastats_connect_fil, 
-                                        days2wait=mg.SOFASTATS_CONNECT_REGULAR)
                 connect_now = True
-        except Exception, e: # if any probs, create new file for 3 weeks away
+        except Exception, e: # if probs, create new file for few weeks away
             self.update_sofastats_connect_date(sofastats_connect_fil, 
-                                        days2wait=mg.SOFASTATS_CONNECT_INITIAL)
+                                         days2wait=mg.SOFASTATS_CONNECT_INITIAL)
         if connect_now:
             try:
                 # check we can!
@@ -1069,6 +1067,9 @@ class StartFrame(wx.Frame):
                        width_reduction=mg.MAX_WIDTH*0.25, 
                        height_reduction=mg.MAX_HEIGHT*0.25)
                 dlg.ShowModal()
+                # set next contact date
+                self.update_sofastats_connect_date(sofastats_connect_fil, 
+                                         days2wait=mg.SOFASTATS_CONNECT_REGULAR)
             except Exception, e:
                 if debug: print(u"Unable to connect to sofastatistics.com."
                                 u"/nCaused by error: %s" % lib.ue(e))
