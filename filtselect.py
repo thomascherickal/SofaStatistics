@@ -33,7 +33,8 @@ def get_val(raw_val, flds, fld_name):
         raise Exception(u"Only a number, an empty string, or Null can be "
                         u"entered for filtering a numeric field")
     elif boldatetime:
-        usable_datetime = lib.is_usable_datetime_str(raw_val)
+        usable_datetime = lib.is_usable_datetime_str(raw_val, 
+                                        mg.OK_DATE_FORMATS, mg.OK_TIME_FORMATS)
         if usable_datetime:
             if debug: print("A valid datetime: '%s'" % raw_val)
             return lib.get_std_datetime_str(raw_val)

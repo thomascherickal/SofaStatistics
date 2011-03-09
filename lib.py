@@ -465,7 +465,8 @@ def update_type_set(type_set, val, comma_dec_sep_ok=False):
     elif is_pytime(val): # COM on Windows
         type_set.add(mg.VAL_DATE)
     else:
-        usable_datetime = is_usable_datetime_str(val)
+        usable_datetime = is_usable_datetime_str(val, mg.OK_DATE_FORMATS, 
+                                                 mg.OK_TIME_FORMATS)
         if usable_datetime:
             type_set.add(mg.VAL_DATE)
         elif val == u"":
@@ -1003,7 +1004,8 @@ def datetime_split(datetime_str):
         else:
             return (None, None, boldate_then_time)
 
-def get_dets_of_usable_datetime_str(raw_datetime_str):
+def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats, 
+                                    ok_time_formats):
     """
     Returns (date_part, date_format, time_part, time_format, boldate_then_time) 
         if a usable datetime.  NB usable doesn't mean valid as such.  E.g. we 
@@ -1026,7 +1028,7 @@ def get_dets_of_usable_datetime_str(raw_datetime_str):
     if date_part:
         # see cell_invalid for message about correct datetime entry formats
         bad_date = True
-        for ok_date_format in mg.OK_DATE_FORMATS:
+        for ok_date_format in ok_date_formats:
             try:
                 t = time.strptime(date_part, ok_date_format)
                 date_format = ok_date_format
@@ -1039,8 +1041,7 @@ def get_dets_of_usable_datetime_str(raw_datetime_str):
     time_format = None
     if time_part:
         bad_time = True
-        ok_time_formats = ["%I%p", "%I:%M%p", "%H:%M", "%H:%M:%S"]
-        for ok_time_format in mg.OK_TIME_FORMATS:
+        for ok_time_format in ok_time_formats:
             try:
                 t = time.strptime(time_part, ok_time_format)
                 time_format = ok_time_format
@@ -1053,7 +1054,7 @@ def get_dets_of_usable_datetime_str(raw_datetime_str):
     # have at least one part and no bad parts
     return (date_part, date_format, time_part, time_format, boldate_then_time)
 
-def is_usable_datetime_str(raw_datetime_str):
+def is_usable_datetime_str(raw_datetime_str, ok_date_formats, ok_time_formats):
     """
     Is the datetime string usable?  Used for checking user-entered datetimes.
     Doesn't cover all possibilities - just what is needed for typical data 
@@ -1070,7 +1071,8 @@ def is_usable_datetime_str(raw_datetime_str):
     Should only be one space in string (if any) - between date and time
         (or time and date).
     """
-    return get_dets_of_usable_datetime_str(raw_datetime_str) is not None
+    return get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats, 
+                                           ok_time_formats) is not None
     
 def is_std_datetime_str(raw_datetime_str):
     """
