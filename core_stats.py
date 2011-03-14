@@ -262,7 +262,11 @@ def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b, tbl_filt,
 
 def histogram (inlist, numbins=10, defaultreallimits=None, printextras=0):
     """
-    From stats.py.
+    From stats.py. Modified to include uppermost value in top bin. This is
+        essential if wanting to have "nice", human-readable bins e.g. 10 to < 20
+        because the only alternatives are worse. NB label of top bin must be 
+        explicit about including upper values. Known problem with continuous
+        distributions. 
     -------------------------------------
     Returns (i) a list of histogram bin counts, (ii) the smallest value
     of the histogram binning, and (iii) the bin width (the last 2 are not
@@ -274,7 +278,6 @@ def histogram (inlist, numbins=10, defaultreallimits=None, printextras=0):
         suppressoutput=0)
     Returns: list of bin values, lowerreallimit, binsize, extrapoints
     """
-    debug = False
     if (defaultreallimits <> None):
         if type(defaultreallimits) not in [ListType, TupleType] or \
                 len(defaultreallimits)==1: # only one limit given, assumed to be 
@@ -296,12 +299,15 @@ def histogram (inlist, numbins=10, defaultreallimits=None, printextras=0):
             if (num-lowerreallimit) < 0:
                 extrapoints = extrapoints + 1
             else:
-                bintoincrement = int((num-lowerreallimit)/float(binsize))
-                bins[bintoincrement] = bins[bintoincrement] + 1
+                if num == upperreallimit:
+                    bins[numbins-1] += 1
+                else:
+                    bintoincrement = int((num-lowerreallimit)/float(binsize))
+                    bins[bintoincrement] = bins[bintoincrement] + 1
         except:
             extrapoints = extrapoints + 1
     if (extrapoints > 0 and printextras == 1):
-        if debug: print('\nPoints outside given histogram range =', extrapoints)
+        print('\nPoints outside given histogram range =', extrapoints)
     return (bins, lowerreallimit, binsize, extrapoints)
 
 def chisquare(f_obs,f_exp=None, df=None):

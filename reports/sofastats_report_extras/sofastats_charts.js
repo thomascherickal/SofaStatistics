@@ -370,6 +370,7 @@ makeHistogram = function(chartname, datadets, chartconf){
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "P";
     var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
     var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
+    var incNormal = ("incNormal" in chartconf)? chartconf["incNormal"] : false;
 
     // chartwide functon setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
@@ -425,11 +426,15 @@ makeHistogram = function(chartname, datadets, chartconf){
     mychart.addAxis("y", {title: yTitle,  // normal normal bold
                     vertical: true, includeZero: true, font: "normal normal normal 10pt Arial", fontWeight: 12
     });
-    mychart.addPlot("default", {type: "ClusteredColumns", gap: 0, shadows: {dx: 12, dy: 12}});
+    mychart.addPlot("normal", {type: "Lines", markers: true, shadows: {dx: 2, dy: 2, dw: 2}}); // must come first to be seen!
+    mychart.addPlot("default", {type: "Columns", gap: 0, shadows: {dx: 12, dy: 12}});
     mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
     mychart.addPlot("othergrid", {type: "Areas", hAxis: "x2", vAxis: "y"});
     mychart.addSeries(datadets["seriesLabel"], datadets["yVals"], datadets["style"]);
-
+    if(incNormal == true){
+        mychart.addPlot("normal", {type: "Lines", markers: false, shadows: {dx: 2, dy: 2, dw: 2}});
+        mychart.addSeries("Normal Dist Curve", datadets["normYs"], datadets["normStyle"]); 
+    }
     var anim_a = new dc.action2d.Highlight(mychart, "default", {
         highlight: chartconf["sofaHl"],
         duration: 450,

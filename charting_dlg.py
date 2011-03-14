@@ -229,6 +229,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # histogram
         self.szr_histogram = wx.BoxSizer(wx.VERTICAL)
         self.panel_histogram = wx.Panel(self.panel_mid)
+        self.chk_show_normal = wx.CheckBox(self.panel_histogram, -1, 
+                                           _("Show normal curve?"))
+        self.chk_show_normal.SetValue(False)
+        self.chk_show_normal.SetToolTipString(_(u"Show normal curve?"))
+        self.szr_histogram.Add(self.chk_show_normal, 0, 
+                               wx.TOP|wx.BOTTOM|wx.LEFT, 10)
         self.panel_histogram.SetSizer(self.szr_histogram)
         self.szr_histogram.SetSizeHints(self.panel_histogram)
         # scatterplot
@@ -836,7 +842,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         elif self.chart_type == mg.AREA_CHART:
             script_lst.append(get_area_chart_script(inc_perc, css_fil, css_idx))
         elif self.chart_type == mg.HISTOGRAM:
-            script_lst.append(get_histogram_script(css_fil, css_idx))
+            inc_normal = u"True" if self.chk_show_normal.IsChecked() \
+                                 else u"False"
+            script_lst.append(get_histogram_script(inc_normal, css_fil, 
+                                                   css_idx))
         elif self.chart_type == mg.SCATTERPLOT:
             script_lst.append(get_scatterplot_script(css_fil, css_idx, 
                                        dot_border=self.chk_borders.IsChecked()))
@@ -954,15 +963,15 @@ chart_output = charting_output.areachart_output(titles, subtitles,
            u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx}
     return script
 
-def get_histogram_script(css_fil, css_idx):
+def get_histogram_script(inc_normal, css_fil, css_idx):
     script = u"""
 histo_dets = charting_output.get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, 
             fld_gp_name, fld_gp_lbls, fld_measure)
 chart_output = charting_output.histogram_output(titles, subtitles, 
-            fld_measure_name, histo_dets, css_fil="%(css_fil)s", 
-            css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"dbe": dd.dbe, u"css_fil": lib.escape_pre_write(css_fil), 
-           u"css_idx": css_idx}
+            fld_measure_name, histo_dets, inc_normal=%(inc_normal)s, 
+            css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
+    """ % {u"dbe": dd.dbe, u"inc_normal": inc_normal, 
+           u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx}
     return script
 
 def get_scatterplot_script(css_fil, css_idx, dot_border):

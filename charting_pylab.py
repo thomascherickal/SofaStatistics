@@ -110,7 +110,7 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False,
     Configure histogram with subplot of normal distribution curve.
     Size is set externally. 
     """
-    debug = False
+    debug = True
     axes = fig.gca()
     rect = axes.patch
     rect.set_facecolor(grid_bg)
@@ -140,18 +140,16 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False,
                                  range=(lower_limit, upper_limit),
                                  facecolor=bar_colour, edgecolor=line_colour)
     if debug: print(n, bins, patches)
-    mu = core_stats.mean(vals)
-    sigma = core_stats.stdev(vals)
-    y = pylab.normpdf(bins, mu, sigma)
+    norm_ys = lib.get_normal_ys(vals, bins)
     # ensure enough y-axis to show all of normpdf
     ymin, ymax = axes.get_ylim()
     if debug:
-        print(y)
+        print(norm_ys)
         print(ymin, ymax)
-        print("norm max: %s; axis max: %s" % (max(y), ymax))
-    if max(y) > ymax:
-        axes.set_ylim(ymax=1.05*max(y))
-    l = axes.plot(bins, y, color=line_colour, linewidth=normal_line_width)
+        print("norm max: %s; axis max: %s" % (max(norm_ys), ymax))
+    if max(norm_ys) > ymax:
+        axes.set_ylim(ymax=1.05*max(norm_ys))
+    l = axes.plot(bins, norm_ys, color=line_colour, linewidth=normal_line_width)
     if inc_attrib:
         pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
                        fontsize=7, rotation=270)

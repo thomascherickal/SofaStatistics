@@ -11,6 +11,7 @@ import math
 from operator import itemgetter
 import os
 import pprint
+import pylab
 import random
 import re
 import sys
@@ -21,6 +22,16 @@ import wx
 import my_globals as mg
 import my_exceptions
 import core_stats
+
+def get_normal_ys(vals, bins):
+    """
+    Get np array of y values for normal distribution curve with given values 
+        and bins.
+    """
+    mu = core_stats.mean(vals)
+    sigma = core_stats.stdev(vals)
+    norm_ys = pylab.normpdf(bins, mu, sigma)
+    return norm_ys
 
 def quote_val(raw_val, unsafe_internal_quote, safe_internal_quote):
     """
@@ -237,7 +248,7 @@ def fix_sawtoothing(raw_data, n_bins, y_vals, start, bin_width):
             break
         n_bins = int(math.ceil(n_bins/shrink_factor))
         (y_vals, start, 
-         bin_width, unused) = core_stats.histogram(raw_data, n_bins)
+            bin_width, unused) = core_stats.histogram(raw_data, n_bins)
     return y_vals, start, bin_width
 
 def version_a_is_newer(version_a, version_b):

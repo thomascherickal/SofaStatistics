@@ -8,6 +8,7 @@ NB no html headers here - the script generates those beforehand and appends
 """
 
 import math
+import numpy as np
 import pprint
 
 import my_globals as mg
@@ -280,16 +281,16 @@ def get_pie_chart_dets(dbe, cur, tbl, tbl_filt,
 def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls, 
                    fld_measure):
     """
-    Make separate db call each histogram.  Getting all values anyway and don't 
+    Make separate db call each histogram. Getting all values anyway and don't 
         want to store in memory.
-    Return list of dicts - one for each histogram.  Each contains: 
+    Return list of dicts - one for each histogram. Each contains: 
         CHART_XAXIS_DETS, CHART_Y_VALS, CHART_MINVAL, CHART_MAXVAL, 
         CHART_BIN_LABELS.
     xaxis_dets -- [(1, u""), (2: u"", ...]
     y_vals -- [0.091, ...]
     bin_labels -- [u"1 to under 2", u"2 to under 3", ...]
     """
-    debug = False
+    debug = True
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     sql_dic = {u"fld_gp": objqtr(fld_gp), u"fld_measure": objqtr(fld_measure),
@@ -328,7 +329,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
         cur.execute(SQL_get_vals)
         vals = [x[0] for x in cur.fetchall()]
         if len(vals) < mg.MIN_HISTO_VALS:
-            raise my_exceptions.TooFewValsForDisplay(min_n= mg.MIN_HISTO_VALS)
+            raise my_exceptions.TooFewValsForDisplay(min_n=mg.MIN_HISTO_VALS)
         # use nicest bins practical
         n_bins, lower_limit, upper_limit = lib.get_bins(min(vals), max(vals))
         (y_vals, start, 
@@ -344,20 +345,29 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
             if (round(start, dp) != round(start + bin_width, dp)) or dp > 6:
                 break
             dp += 1
-        bin_ranges = []
+        bin_ranges = [] # needed for labels
+        bins = [] # needed to get y vals for normal dist curve
         for y_val in y_vals:
             bin_start = round(start, dp)
+            bins.append(bin_start)
             bin_end = round(start + bin_width, dp)
             start = bin_end
             bin_ranges.append((bin_start, bin_end))
         bin_labels = [_(u"%(lower)s to < %(upper)s") % 
-                            {u"lower": x[0], u"upper": x[1]} for x in bin_ranges]
+                        {u"lower": x[0], u"upper": x[1]} for x in bin_ranges]
+        bin_labels[-1] = bin_labels[-1].replace(u"<", u"<=")
         maxval = bin_end
         xaxis_dets = [(x+1, u"") for x in range(n_bins)]
+        norm_ys = list(lib.get_normal_ys(vals, np.array(bins)))
+        sum_yval = sum(y_vals)
+        sum_norm_ys = sum(norm_ys)
+        norm_multiplier = sum_yval/(1.0*sum_norm_ys)
+        norm_ys = [x*norm_multiplier for x in norm_ys]
         if debug: print(minval, maxval, xaxis_dets, y_vals, bin_labels)
         histo_dic = {mg.CHART_CHART_BY_LABEL: chart_by_label,
                      mg.CHART_XAXIS_DETS: xaxis_dets,
                      mg.CHART_Y_VALS: y_vals,
+                     mg.CHART_NORMAL_Y_VALS: norm_ys,
                      mg.CHART_MINVAL: minval,
                      mg.CHART_MAXVAL: maxval,
                      mg.CHART_BIN_LABELS: bin_labels}
@@ -1188,8 +1198,8 @@ makechartRenumber%(chart_idx)s = function(){
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def histogram_output(titles, subtitles, var_label, histo_dets, css_fil, 
-                     css_idx, page_break_after=False):
+def histogram_output(titles, subtitles, var_label, histo_dets, inc_normal,
+                     css_fil, css_idx, page_break_after=False):
     """
     See http://trac.dojotoolkit.org/ticket/7926 - he had trouble doing this then
     titles -- list of title lines correct styles
@@ -1197,7 +1207,7 @@ def histogram_output(titles, subtitles, var_label, histo_dets, css_fil,
     minval -- minimum values for x axis
     maxval -- maximum value for x axis
     xaxis_dets -- [(1, u""), (2, u""), ...]
-    y_vals -- list of values e.g. [[12, 30, 100.5, -1, 40], ]
+    y_vals -- list of values e.g. [12, 30, 100.5, -1, 40]
     bin_labels -- [u"1 to under 2", u"2 to under 3", ...]
     css_idx -- css index so can apply    
     """
@@ -1223,11 +1233,13 @@ def histogram_output(titles, subtitles, var_label, histo_dets, css_fil,
         fill = colour_mappings[0][0]
     except IndexError, e:
         fill = mg.DOJO_COLOURS[0]
+    js_inc_normal = u"true" if inc_normal else u"false"
     for chart_idx, histo_det in enumerate(histo_dets):
         minval = histo_det[mg.CHART_MINVAL]
         maxval = histo_det[mg.CHART_MAXVAL]
         xaxis_dets = histo_det[mg.CHART_XAXIS_DETS]
         y_vals = histo_det[mg.CHART_Y_VALS]
+        norm_ys = histo_det[mg.CHART_NORMAL_Y_VALS]
         bin_labels = histo_det[mg.CHART_BIN_LABELS]
         pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
         indiv_histo_title = "<p><b>%s</b></p>" % \
@@ -1261,9 +1273,13 @@ makechartRenumber%(chart_idx)s = function(){
     var datadets = new Array();
     datadets["seriesLabel"] = "%(var_label)s";
     datadets["yVals"] = %(y_vals)s;
+    datadets["normYs"] = %(norm_ys)s;
     datadets["binLabels"] = [%(bin_labels)s];
     datadets["style"] = {stroke: {color: "white", 
         width: "%(stroke_width)spx"}, fill: "%(fill)s"};
+    datadets["normStyle"] = {plot: "normal", 
+        stroke: {color: "%(major_gridline_colour)s", 
+        width: "%(normal_stroke_width)spx"}, fill: "%(fill)s"};
     
     var chartconf = new Array();
     chartconf["xaxisLabels"] = %(xaxis_labels)s;
@@ -1281,6 +1297,7 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["connectorStyle"] = "%(connector_style)s";
     chartconf["minVal"] = %(minval)s;
     chartconf["maxVal"] = %(maxval)s;
+    chartconf["incNormal"] = %(js_inc_normal)s;
     %(outer_bg)s
     makeHistogram("mychartRenumber%(chart_idx)s", datadets, chartconf);
 }
@@ -1293,7 +1310,8 @@ makechartRenumber%(chart_idx)s = function(){
     </div>
 </div>
         """ % {u"indiv_histo_title": indiv_histo_title,
-               u"stroke_width": stroke_width, u"fill": fill,
+               u"stroke_width": stroke_width, 
+               u"normal_stroke_width": stroke_width*2, u"fill": fill,
                u"colour_cases": colour_cases,
                u"xaxis_labels": xaxis_labels, u"y_vals": u"%s" % y_vals,
                u"bin_labels": bin_labs, u"minval": minval, u"maxval": maxval,
@@ -1308,7 +1326,8 @@ makechartRenumber%(chart_idx)s = function(){
                u"connector_style": connector_style, u"outer_bg": outer_bg, 
                u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx,
                u"minor_ticks": u"true",
-               u"tick_colour": major_gridline_colour})
+               u"tick_colour": major_gridline_colour, 
+               u"norm_ys": norm_ys, u"js_inc_normal": js_inc_normal})
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -1332,8 +1351,8 @@ def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders,
                          list_x, list_y, label_x, label_y, x_vs_y, 
                          add_to_report, report_name, css_fil, pagebreak):
     debug = False
-    (grid_bg, item_colours, 
-               line_colour) = output.get_stats_chart_colours(css_fil)
+    (grid_bg, 
+         item_colours, line_colour) = output.get_stats_chart_colours(css_fil)
     colours = item_colours + mg.DOJO_COLOURS
     dot_colour = colours[0]
     if multichart:
