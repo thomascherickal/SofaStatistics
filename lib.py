@@ -702,7 +702,7 @@ def get_font_size_to_fit(text, max_width, font_sz, min_font_sz):
         font = wx.Font(font_sz, wx.SWISS, wx.NORMAL, wx.BOLD)
         mem.SetFont(font)
         text_width = mem.GetTextExtent(text)[0]
-        if text_width < max_width: 
+        if text_width < max_width:
             break
         else:
             font_sz -= 1
@@ -1014,6 +1014,9 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
         into a standard string for data entry.
     """
     debug = False
+    
+    
+    
     if not is_string(raw_datetime_str):
         if debug: print("%s is not a valid datetime string" % raw_datetime_str)
         return None
@@ -1053,7 +1056,8 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
     # have at least one part and no bad parts
     return (date_part, date_format, time_part, time_format, boldate_then_time)
 
-def is_usable_datetime_str(raw_datetime_str, ok_date_formats, ok_time_formats):
+def is_usable_datetime_str(raw_datetime_str, ok_date_formats=None, 
+                           ok_time_formats=None):
     """
     Is the datetime string usable?  Used for checking user-entered datetimes.
     Doesn't cover all possibilities - just what is needed for typical data 
@@ -1097,7 +1101,9 @@ def get_std_datetime_str(raw_datetime_str):
     
     """
     debug = False
-    datetime_dets = get_dets_of_usable_datetime_str(raw_datetime_str)
+    datetime_dets = get_dets_of_usable_datetime_str(raw_datetime_str, 
+                                                    mg.OK_DATE_FORMATS, 
+                                                    mg.OK_TIME_FORMATS)
     if datetime_dets is None:
         raise Exception(u"Need a usable datetime string to return a standard "
                         u"datetime string.")

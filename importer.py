@@ -277,7 +277,7 @@ def get_val(feedback, raw_val, is_pytime, fld_type, orig_fld_name,
         else:
             pass # no need to set val - not ok_data so exception later
     elif fld_type == mg.FLD_TYPE_DATE:
-        # must be pytime or datetime string
+        # must be pytime or datetime string or usable date string
         # or empty string or dot (which we'll turn to NULL).
         is_datetime = False
         if is_pytime:
@@ -302,7 +302,7 @@ def get_val(feedback, raw_val, is_pytime, fld_type, orig_fld_name,
                     if debug: print(u"Date val: %s" % val)
                     ok_data = True
                 except Exception:
-                    pass # no need to set val - not ok_data so excepn later
+                    pass # no need to set val - not ok_data so exception later
     elif fld_type == mg.FLD_TYPE_STRING:
         # None or empty string we'll turn to NULL
         ok_data = True

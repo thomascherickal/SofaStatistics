@@ -900,11 +900,34 @@ def get_trend_y_vals(y_vals):
         trend_y_vals.append(a + b*x)
     return trend_y_vals
 
-print get_trend_y_vals([2,5,1])
+def get_smooth_y_vals(y_vals):
+    "Returns values to plot a smoothed line which fits the y_vals provided"
+    smooth_y_vals = []
+    weight = 0.8
+    val1 = None
+    val2 = None
+    val3 = None
+    for i, y_val in enumerate(y_vals, 1):
+        if i > 3:
+            val1 = val2 # slips down a notch
+        if i > 2:
+            val2 = val3
+        if i > 1:
+            val3 = val4
+        val4 = y_val # pops in at the top
+        vals = [val4, val3, val2, val1]
+        numer = 0
+        denom = 0
+        for i, val in enumerate(vals,1):
+            if val is not None:
+                numer += val*(weight**i)
+                denom += weight**i
+        smooth_y_vals.append(numer/(1.0*denom))
+    return smooth_y_vals
 
 def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len, 
-                     series_dets, inc_perc, inc_trend, css_fil, css_idx, 
-                     page_break_after):
+                     series_dets, inc_perc, inc_trend, inc_smooth, 
+                     css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -952,11 +975,16 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
     series_names_list = []
     if debug: 
         print(series_dets)
+    if inc_trend or inc_smooth:
+        raw_y_vals = series_dets[0][mg.CHART_Y_VALS]
     if inc_trend:
-        y_vals = series_dets[0][mg.CHART_Y_VALS]
-        trend_y_vals = get_trend_y_vals(y_vals)        
+        trend_y_vals = get_trend_y_vals(raw_y_vals)        
         series_dets.append({mg.CHART_Y_VALS: trend_y_vals, 
                              u'label': u'Trend line'})
+    if inc_smooth:
+        smooth_y_vals = get_smooth_y_vals(raw_y_vals)        
+        series_dets.append({mg.CHART_Y_VALS: smooth_y_vals, 
+                             u'label': u'Smoothed data line'})
     pagebreak = u"page-break-after: always;"
     for i, series_det in enumerate(series_dets):
         series_names_list.append(u"series%s" % i)
@@ -969,12 +997,19 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
             stroke = colour_mappings[i][0]
         except IndexError, e:
             stroke = mg.DOJO_COLOURS[i]
+        # To set markers explicitly:
         # http://dojotoolkit.org/api/1.5/dojox/charting/Theme/Markers/CIRCLE
-        marker_style = ", marker: ''" if inc_trend and i == 1 \
-            else ", marker: dojox.charting.Theme.defaultMarkers.CIRCLE"
+        # e.g. marker: dojox.charting.Theme.defaultMarkers.CIRCLE"
+        if i == 1 and (inc_trend or inc_smooth) or \
+                i == 2 and (inc_trend and inc_smooth):
+            # curved has tension and no markers
+            # tension has no effect on already straight (trend) line
+            plot_style = u", plot: 'curved'"
+        else:
+            plot_style = u""
         series_js_list.append(u"            series%s['style'] = "
-            u"{stroke: {color: '%s', width: '6px'} %s};" % (i, stroke, 
-                                                            marker_style))
+            u"{stroke: {color: '%s', width: '6px'} %s };" % (i, stroke, 
+                                                             plot_style))
         series_js_list.append(u"")
     series_js = u"\n            ".join(series_js_list)
     series_js += u"\n            var series = new Array(%s);" % \
