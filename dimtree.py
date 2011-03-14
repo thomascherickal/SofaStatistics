@@ -108,6 +108,7 @@ class DimTree(object):
                         oth_dim_root=self.rowroot)
     
     def get_selected_idxs(self, dim, sorted_choices):
+        "Where we provide a single or multi choice dialog to select variables."
         selected_idxs = None # init
         if ((self.tab_type == mg.ROW_SUMM and dim == mg.ROWDIM) 
                 or self.tab_type == mg.RAW_DISPLAY):

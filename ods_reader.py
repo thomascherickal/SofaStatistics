@@ -413,15 +413,14 @@ def extract_date_if_possible(el_det, attrib_dict, xml_type, type):
             # is it really a date even though not formally formatted as a date?
             # see if text contains multiple /s
             google_docs_default_date = u"%m/%d/%Y" # OK if already in list
-            ok_date_formats = mg.OK_DATE_FORMATS[:]
-            ok_date_formats.append(google_docs_default_date)
-            try:
-                ok_date_formats.remove(u"%Y") # so we don't assume 2136 is a yr
+            probable_date_formats = mg.OK_DATE_FORMATS[:]
+            probable_date_formats.append(google_docs_default_date)
+            try: # so we don't assume 2136 is a year
+                probable_date_formats.remove(u"%Y")
             except ValueError, e:
                 pass
             usable_datetime = lib.is_usable_datetime_str(raw_datetime_str=text, 
-                                            ok_date_formats=ok_date_formats, 
-                                            ok_time_formats=mg.OK_TIME_FORMATS)
+                                          ok_date_formats=probable_date_formats)
             # OK for this purpose to accept invalid dates - we calculate the 
             # datetime from the number anyway - this is just an indicator that 
             # this is meant to be a date e.g. 50/23/2010 17:50:32.

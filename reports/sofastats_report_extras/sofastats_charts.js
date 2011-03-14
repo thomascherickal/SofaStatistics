@@ -175,7 +175,6 @@ makeLineChart = function(chartname, series, chartconf){
     var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
 
-
     var getTooltip = function(val){
         var seriesSum = getSum(val.run.data);
         var tip = val.y;
@@ -193,7 +192,7 @@ makeLineChart = function(chartname, series, chartconf){
         return sum
     }
 
-    // chartwide functon setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
+    // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
         var seriesSum = getSum(val.run.data);
         var tip = val.y;

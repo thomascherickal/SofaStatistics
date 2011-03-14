@@ -465,8 +465,7 @@ def update_type_set(type_set, val, comma_dec_sep_ok=False):
     elif is_pytime(val): # COM on Windows
         type_set.add(mg.VAL_DATE)
     else:
-        usable_datetime = is_usable_datetime_str(val, mg.OK_DATE_FORMATS, 
-                                                 mg.OK_TIME_FORMATS)
+        usable_datetime = is_usable_datetime_str(val)
         if usable_datetime:
             type_set.add(mg.VAL_DATE)
         elif val == u"":
@@ -1071,8 +1070,10 @@ def is_usable_datetime_str(raw_datetime_str, ok_date_formats, ok_time_formats):
     Should only be one space in string (if any) - between date and time
         (or time and date).
     """
-    return get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats, 
-                                           ok_time_formats) is not None
+    ok_date_formats
+    return get_dets_of_usable_datetime_str(raw_datetime_str, 
+                            ok_date_formats or mg.OK_DATE_FORMATS, 
+                            ok_time_formats or mg.OK_TIME_FORMATS) is not None
     
 def is_std_datetime_str(raw_datetime_str):
     """

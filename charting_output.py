@@ -872,9 +872,38 @@ makechartRenumber%(chart_idx)s = function(){
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
-    
+
+
+def get_trend_y_vals(y_vals):
+    "Returns values to plot a straight line which fits the y_vals provided"
+    debug = False
+    sumy = sum(y_vals)
+    if debug: print("sumy: %s" % sumy)
+    n = len(y_vals)
+    sumx = sum(range(1,n+1))
+    if debug: print("sumx: %s" % sumx)
+    sumxy = 0
+    sumx2 = 0
+    for x, y_val in enumerate(y_vals,1):
+        sumxy += x*y_val
+        sumx2 += x**2
+    if debug: print("sumxy: %s" % sumxy)
+    if debug: print("sumx2: %s" % sumx2)
+    b_num = (n*sumxy)-(sumx*sumy)
+    if debug: print("b_num: %s" % b_num)
+    b_denom = (n*sumx2) - (sumx**2)
+    if debug: print("b_denom: %s" % b_denom)
+    b = b_num/(1.0*b_denom)
+    a = (sumy - (sumx*b))/(1.0*n)
+    trend_y_vals = []
+    for x in range(1,n+1):
+        trend_y_vals.append(a + b*x)
+    return trend_y_vals
+
+print get_trend_y_vals([2,5,1])
+
 def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len, 
-                     series_dets, inc_perc, css_fil, css_idx, 
+                     series_dets, inc_perc, inc_trend, css_fil, css_idx, 
                      page_break_after):
     """
     titles -- list of title lines correct styles
@@ -914,10 +943,20 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
     # Can't have white for line charts because always a white outer background
     axis_label_font_colour = axis_label_font_colour \
                             if axis_label_font_colour != u"white" else u"black"
-    # build js for every series
+    """
+    Build js for every series.
+    If only one series, and trendlines are selected, make an additional series
+        for the trendline.
+    """
     series_js_list = []
     series_names_list = []
-    if debug: print(series_dets)
+    if debug: 
+        print(series_dets)
+    if inc_trend:
+        y_vals = series_dets[0][mg.CHART_Y_VALS]
+        trend_y_vals = get_trend_y_vals(y_vals)        
+        series_dets.append({mg.CHART_Y_VALS: trend_y_vals, 
+                             u'label': u'Trend line'})
     pagebreak = u"page-break-after: always;"
     for i, series_det in enumerate(series_dets):
         series_names_list.append(u"series%s" % i)
@@ -925,13 +964,17 @@ def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len,
         series_js_list.append(u"            series%s[\"seriesLabel\"] = \"%s\";"
                               % (i, series_det[u"label"]))
         series_js_list.append(u"            series%s[\"yVals\"] = %s;" % 
-                              (i, series_det[u"y_vals"]))
+                              (i, series_det[mg.CHART_Y_VALS]))
         try:
             stroke = colour_mappings[i][0]
         except IndexError, e:
             stroke = mg.DOJO_COLOURS[i]
-        series_js_list.append(u"            series%s[\"style\"] = "
-            u"{stroke: {color: \"%s\", width: \"6px\"}};" % (i, stroke))
+        # http://dojotoolkit.org/api/1.5/dojox/charting/Theme/Markers/CIRCLE
+        marker_style = ", marker: ''" if inc_trend and i == 1 \
+            else ", marker: dojox.charting.Theme.defaultMarkers.CIRCLE"
+        series_js_list.append(u"            series%s['style'] = "
+            u"{stroke: {color: '%s', width: '6px'} %s};" % (i, stroke, 
+                                                            marker_style))
         series_js_list.append(u"")
     series_js = u"\n            ".join(series_js_list)
     series_js += u"\n            var series = new Array(%s);" % \

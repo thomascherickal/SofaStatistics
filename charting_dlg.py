@@ -193,14 +193,20 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_pie_chart.SetSizer(self.szr_pie_chart)
         self.szr_pie_chart.SetSizeHints(self.panel_pie_chart)
         # line chart
-        self.szr_line_chart = wx.BoxSizer(wx.VERTICAL)
+        self.szr_line_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_line_chart = wx.Panel(self.panel_mid)
         self.chk_line_perc = wx.CheckBox(self.panel_line_chart, -1, 
                                          _("Show percent?"))
         self.chk_line_perc.SetValue(INC_PERC)
         self.chk_line_perc.SetToolTipString(_(u"Show percent in tool tip?"))
         self.chk_line_perc.Bind(wx.EVT_CHECKBOX, self.on_chk_line_perc)
-        self.szr_line_chart.Add(self.chk_line_perc, 1, wx.TOP|wx.BOTTOM, 10)
+        self.szr_line_chart.Add(self.chk_line_perc, 0, wx.TOP|wx.BOTTOM, 10)
+        self.chk_line_trend = wx.CheckBox(self.panel_line_chart, -1, 
+                                         _("Show trend line?"))
+        self.chk_line_trend.SetValue(False)
+        self.chk_line_trend.SetToolTipString(_(u"Show trend line?"))
+        self.szr_line_chart.Add(self.chk_line_trend, 0, 
+                                wx.TOP|wx.BOTTOM|wx.LEFT, 10)        
         self.panel_line_chart.SetSizer(self.szr_line_chart)
         self.szr_line_chart.SetSizeHints(self.panel_line_chart)
         # area chart
@@ -230,7 +236,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                             "dots?"))
         self.panel_scatterplot.SetSizer(self.szr_scatterplot)
         self.szr_scatterplot.SetSizeHints(self.panel_scatterplot)
-        # Hide all panels except default.  Display and layout then hide.
+        # Hide all panels except default. Display and layout then hide.
         # Prevents flicker on change later.
         panels2hide = [self.panel_clustered_bar_chart, self.panel_pie_chart,
                        self.panel_line_chart, self.panel_area_chart,
@@ -396,8 +402,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.bmp_btn_histogram = wx.Image(os.path.join(mg.SCRIPT_PATH, 
                                             u"images", u"histogram.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.bmp_btn_histogram_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
-                                                  u"histogram_sel.xpm"), 
+        self.bmp_btn_histogram_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                        u"images", u"histogram_sel.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_histogram = wx.BitmapButton(self.panel_mid, -1, 
                                              self.bmp_btn_histogram, 
@@ -608,7 +614,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         pass
         
     def on_var2_sel(self, event):
-        pass
+        "Only enable trendlines if chart type is line and a single line chart"
+        show_trend_opt = (self.chart_type == mg.LINE_CHART and 
+                          self.drop_var2.GetStringSelection() == mg.DROP_SELECT)
+        self.chk_line_trend.Enable(show_trend_opt)
     
     def on_var3_sel(self, event):
         pass
@@ -804,7 +813,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         elif self.chart_type == mg.PIE_CHART:
             script_lst.append(get_pie_chart_script(css_fil, css_idx))
         elif self.chart_type == mg.LINE_CHART:
-            script_lst.append(get_line_chart_script(inc_perc, css_fil, css_idx, 
+            inc_trend = u"True" if self.chk_line_trend.IsChecked() \
+                                    and self.chk_line_trend.Enabled \
+                                else u"False"
+            script_lst.append(get_line_chart_script(inc_perc, inc_trend, 
+                                                    css_fil, css_idx, 
                                                     self.chart_type, varname2))
         elif self.chart_type == mg.AREA_CHART:
             script_lst.append(get_area_chart_script(inc_perc, css_fil, css_idx))
@@ -871,7 +884,8 @@ chart_output = charting_output.piechart_output(titles, subtitles,
            u"css_idx": css_idx}
     return script
 
-def get_line_chart_script(inc_perc, css_fil, css_idx, chart_type, varname2):
+def get_line_chart_script(inc_perc, inc_trend, css_fil, css_idx, chart_type, 
+                          varname2):
     single_line = (varname2 == mg.DROP_SELECT)
     if single_line:
         script = u"""
@@ -896,9 +910,10 @@ x_title = fld_measure_name
     script += u"""
 chart_output = charting_output.linechart_output(titles, subtitles, x_title, 
             xaxis_dets, max_label_len, series_dets, inc_perc=%(inc_perc)s, 
-            css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"inc_perc": inc_perc, u"css_fil": lib.escape_pre_write(css_fil), 
-           u"css_idx": css_idx}
+            inc_trend=%(inc_trend)s, css_fil="%(css_fil)s", css_idx=%(css_idx)s, 
+            page_break_after=False)
+    """ % {u"inc_perc": inc_perc, u"inc_trend": inc_trend, 
+           u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx}
     return script
 
 def get_area_chart_script(inc_perc, css_fil, css_idx):

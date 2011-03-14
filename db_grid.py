@@ -681,8 +681,7 @@ class TblEditor(wx.Dialog):
                 return True
             return False
         elif fld_dic[mg.FLD_BOLDATETIME]:
-            usable_datetime = lib.is_usable_datetime_str(raw_val, 
-                                        mg.OK_DATE_FORMATS, mg.OK_TIME_FORMATS)
+            usable_datetime = lib.is_usable_datetime_str(raw_val)
             if not usable_datetime:
                 eg1 = mg.OK_DATE_FORMAT_EXAMPLES[0]
                 eg2 = mg.OK_DATE_FORMAT_EXAMPLES[1]
