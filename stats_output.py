@@ -347,8 +347,9 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0,
                                                     "a": label_a, 
                                                     "b": label_b})
     # always footnote 1 (so can hardwire anchor)
-    html.append(u"\n<p>" + _("One-tailed p value") \
-                + u": %s" % lib.get_p(p, dp) + 
+    # double one-tailed p value so can report two-tailed result
+    html.append(u"\n<p>" + _("Two-tailed p value") \
+                + u": %s" % lib.get_p(p*2, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
     footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
                      mg.P_EXPLAN_DIFF)
@@ -407,7 +408,7 @@ def wilcoxon_output(t, p, label_a, label_b, css_fil, css_idx=0, dp=3,
     html.append(_("<h2>Results of Wilcoxon Signed Ranks Test of \"%(a)s\" vs "
                   "\"%(b)s\"</h2>") % {"a": label_a, "b": label_b})
     # always footnote 1 (so can hardwire anchor)
-    html.append(u"\n<p>" + _("One-tailed p value") + \
+    html.append(u"\n<p>" + _("Two-tailed p value") + \
                 u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
     footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
@@ -433,7 +434,7 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
                "for %s") % x_vs_y)
     html.append("<h2>%s</h2>" % title)
     # always footnote 1 (so can hardwire anchor)
-    html.append(u"\n<p>" + _("One-tailed p value") + \
+    html.append(u"\n<p>" + _("Two-tailed p value") + \
                 u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
     footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
