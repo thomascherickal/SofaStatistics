@@ -402,12 +402,20 @@ def valid_name(name, is_tblname=True):
         else:
             tblname = u"safetblname"
             fldname = name
+        # in case it survives somehow esp safetblname
+        # OK if this fails here
+        sql_drop = "DROP TABLE IF EXISTS %s" % tblname
+        if debug: print(sql_drop)
+        cur.execute(sql_drop)
+        con.commit()
+        # usable names in practice?
         sql_make = "CREATE TABLE %s (`%s` TEXT)" % (tblname, fldname)
         if debug: print(sql_make)
         cur.execute(sql_make)
         con.commit() # otherwise when committing, no net change to commit and 
             # no actual chance to succeed or fail
-        sql_drop = "DROP TABLE %s" % tblname
+        # clean up
+        sql_drop = "DROP TABLE IF EXISTS %s" % tblname
         if debug: print(sql_drop)
         cur.execute(sql_drop)
         con.commit()
