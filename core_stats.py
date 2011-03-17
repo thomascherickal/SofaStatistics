@@ -677,26 +677,27 @@ def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
              mg.STATS_DIC_MAX: max_b}
     return smallu, p, dic_a, dic_b
 
-def wilcoxont(x, y):
+def wilcoxont(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     """
-    From stats.py.  Added error trapping.
+    From stats.py.  Added error trapping. Changes to variable labels.
+    Added calculation of n, medians, plus min and max values.
     -------------------------------------
     Calculates the Wilcoxon T-test for related samples and returns the
     result.  A non-parametric T-test.
 
-    Usage:   wilcoxont(x,y)
+    Usage:   wilcoxont(sample_a,sample_b)
     Returns: a t-statistic, two-tail probability estimate, z
     """
-    if len(x) <> len(y):
+    if len(sample_a) <> len(sample_b):
         raise ValueError(u"Unequal N in wilcoxont.  Aborting.")
-    n = len(x)
+    n = len(sample_a)
     d=[]
-    for i in range(len(x)):
+    for i in range(len(sample_a)):
         try:
-            diff = x[i] - y[i]
+            diff = sample_a[i] - sample_b[i]
         except TypeError, e:            
             raise Exception(u"Both values in pair must be numeric: %s and %s"
-                            % (x[i], y[i]))
+                            % (sample_a[i], sample_b[i]))
         if diff <> 0:
             d.append(diff)
     count = len(d)
@@ -714,7 +715,18 @@ def wilcoxont(x, y):
     se =  math.sqrt(count*(count+1)*(2.0*count+1.0)/24.0)
     z = math.fabs(wt-mn) / se
     prob = 2*(1.0 -zprob(abs(z)))
-    return wt, prob
+    min_a = min(sample_a)
+    min_b = min(sample_b)
+    max_a = max(sample_a)
+    max_b = max(sample_b)
+    dic_a = {mg.STATS_DIC_LABEL: label_a, mg.STATS_DIC_N: n,  
+             mg.STATS_DIC_MEDIAN: np.median(sample_a), 
+             mg.STATS_DIC_MIN: min_a, mg.STATS_DIC_MAX: max_a}
+    dic_b = {mg.STATS_DIC_LABEL: label_b, mg.STATS_DIC_N: n,
+             mg.STATS_DIC_MEDIAN: np.median(sample_b),  
+             mg.STATS_DIC_MIN: min_b, 
+             mg.STATS_DIC_MAX: max_b}
+    return wt, prob, dic_a, dic_b
 
 def pearsonr(x,y):
     """

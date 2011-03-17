@@ -35,9 +35,10 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append(u"dp = 3")
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
-        script_lst.append(u"t, p = core_stats.wilcoxont(sample_a, sample_b)")
-        script_lst.append(u"wilcoxon_output = stats_output.wilcoxon_output("
-                    u"t, p, label_a, label_b,"
+        script_lst.append(u"t, p, dic_a, dic_b = " + \
+                u"core_stats.wilcoxont(sample_a, sample_b, label_a, label_b)")
+        script_lst.append(u"wilcoxon_output = " + \
+                    u"stats_output.wilcoxon_output(t, p, dic_a, dic_b,"
                     u"\n    css_fil=\"%s\", css_idx=%s, " % (css_fil, css_idx) +
                     u"dp=dp, level=mg.OUTPUT_RESULTS_ONLY, "
                     u"page_break_after=False)")

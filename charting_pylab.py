@@ -135,6 +135,8 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False,
             hist_label = _("Histogram for %s") % var_label
         axes.set_title(hist_label)
         normal_line_width = 4
+    #n_bins = 4 # test only
+    #wx.MessageBox("n_bins: %s" % n_bins)
     # see entry for hist in http://matplotlib.sourceforge.net/api/axes_api.html
     n, bins, patches = axes.hist(vals, n_bins, normed=1, 
                                  range=(lower_limit, upper_limit),

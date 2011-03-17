@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import wx
 import wxmpl
 import pylab # must import after wxmpl so matplotlib.use() is always first
@@ -13,7 +14,6 @@ import config_dlg
 import core_stats
 import getdata
 import full_html
-import os
 import projects
 
 dd = getdata.get_dd()

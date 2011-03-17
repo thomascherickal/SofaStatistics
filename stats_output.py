@@ -335,7 +335,6 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0,
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
-    CSS_FTNOTE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FTNOTE, css_idx)
     html = []
     footnotes = []
     label_a = dic_a[mg.STATS_DIC_LABEL]
@@ -355,8 +354,7 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0,
                      mg.P_EXPLAN_DIFF)
     # always footnote 2
     html.append(u"\n<p>" + _("U statistic") +
-                u": %s <a class='%s' href='#ft2'><sup>2</sup></a></p>" % 
-                (round(u, dp), CSS_FTNOTE))
+                u": %s <a href='#ft2'><sup>2</sup></a></p>" % round(u, dp))
     footnotes.append((u"\n<p><a id='ft%%s'></a><sup>%%s</sup> U is based on "
         u"the results of matches between "
         u"the \"%(label_a)s\" and \"%(label_b)s\" groups. "
@@ -399,12 +397,16 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0,
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def wilcoxon_output(t, p, label_a, label_b, css_fil, css_idx=0, dp=3, 
+def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3, 
                     level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
+    CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
+    CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     html = []
     footnotes = []
+    label_a = dic_a[mg.STATS_DIC_LABEL]
+    label_b = dic_b[mg.STATS_DIC_LABEL]
     html.append(_("<h2>Results of Wilcoxon Signed Ranks Test of \"%(a)s\" vs "
                   "\"%(b)s\"</h2>") % {"a": label_a, "b": label_b})
     # always footnote 1 (so can hardwire anchor)
@@ -415,6 +417,23 @@ def wilcoxon_output(t, p, label_a, label_b, css_fil, css_idx=0, dp=3,
                      mg.P_EXPLAN_DIFF)
     html.append(u"\n<p>" + _("Wilcoxon Signed Ranks statistic") + \
                 u": %s</p>" % round(t, dp))
+    html.append(u"\n\n<table cellspacing='0'>\n<thead>")
+    html.append(u"\n<tr>" +
+        u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Variable") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Median") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th></tr>")
+    html.append(u"\n</thead>\n<tbody>")
+    row_tpl = u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" + \
+        u"<td>%s</td><td>%s</td><td>%s</td></tr>"
+    for dic in [dic_a, dic_b]:
+        html.append(row_tpl % (dic[mg.STATS_DIC_LABEL], 
+                               dic[mg.STATS_DIC_N], 
+                               round(dic[mg.STATS_DIC_MEDIAN], dp), 
+                               dic[mg.STATS_DIC_MIN], 
+                               dic[mg.STATS_DIC_MAX]))
+    html.append(u"\n</tbody>\n</table>\n")
     for i, footnote in enumerate(footnotes):
         next_ft = i + 1
         html.append(footnote % (next_ft, next_ft))
