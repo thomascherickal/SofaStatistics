@@ -126,12 +126,18 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         szr_vars_top_right_top.Add(self.lbl_group_by, 0, wx.RIGHT|wx.TOP, 5)
         szr_vars_top_right_top.Add(self.drop_group_by, 0, wx.GROW|wx.RIGHT, 5)
         szr_vars_top_right_top.Add(self.lbl_chop_warning, 1, wx.RIGHT, 5)
+        if self.range_gps:
+            group_a_lbl = _("From Group")
+            group_b_lbl = _("To")
+        else:
+            group_a_lbl = _("Group A:")
+            group_b_lbl = _("Group B:")
         # group by A
-        self.lbl_group_a = wx.StaticText(self.panel, -1, _("Group A:"))
+        self.lbl_group_a = wx.StaticText(self.panel, -1, group_a_lbl)
         self.drop_group_a = wx.Choice(self.panel, -1, choices=[], size=(200,-1))
         self.drop_group_a.Bind(wx.EVT_CHOICE, self.on_group_by_a_sel)
         # group by B
-        self.lbl_group_b = wx.StaticText(self.panel, -1, _("Group B:"))
+        self.lbl_group_b = wx.StaticText(self.panel, -1, group_b_lbl)
         self.drop_group_b = wx.Choice(self.panel, -1, choices=[], size=(200,-1))
         self.drop_group_b.Bind(wx.EVT_CHOICE, self.on_group_by_b_sel)
         self.setup_group_by_dropdowns()

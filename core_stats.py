@@ -313,7 +313,7 @@ def histogram (inlist, numbins=10, defaultreallimits=None, printextras=0):
 def chisquare(f_obs,f_exp=None, df=None):
     """
     From stats.py.  Modified to receive df e.g. when in a crosstab.
-    In a crosstab, df will NOT be k-1 it will be (a-1) x (b-1)
+    In a crosstab, df will NOT  be k-1 it will be (a-1) x (b-1)
           Male   Female
     0-19
     20-29

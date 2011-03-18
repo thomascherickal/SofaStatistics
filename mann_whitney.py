@@ -14,6 +14,7 @@ dd = getdata.get_dd()
 class DlgConfig(indep2var.DlgIndep2VarConfig):
 
     averaged = _("Ranked")
+    range_gps = False
     min_data_type = mg.VAR_TYPE_ORD
 
     def get_examples(self):

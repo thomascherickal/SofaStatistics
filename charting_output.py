@@ -290,7 +290,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
     y_vals -- [0.091, ...]
     bin_labels -- [u"1 to under 2", u"2 to under 3", ...]
     """
-    debug = True
+    debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     sql_dic = {u"fld_gp": objqtr(fld_gp), u"fld_measure": objqtr(fld_measure),

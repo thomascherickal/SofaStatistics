@@ -13,7 +13,8 @@ dd = getdata.get_dd()
 
 class DlgConfig(indep2var.DlgIndep2VarConfig):
 
-    averaged = _("Averaged")    
+    averaged = _("Averaged")
+    range_gps = True   
     min_data_type = mg.VAR_TYPE_QUANT
 
     def get_examples(self):

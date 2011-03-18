@@ -26,6 +26,7 @@ INC_PERC = True
 class DlgCharting(indep2var.DlgIndep2VarConfig):
 
     inc_gp_by_select = True
+    range_gps = False
     
     def __init__(self, title, takes_range=False):
         # see http://old.nabble.com/wx.StaticBoxSizer-td21662703.html
