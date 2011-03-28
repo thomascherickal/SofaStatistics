@@ -68,7 +68,7 @@ def quote_obj(raw_val):
 
 def quote_val(raw_val):
     return lib.quote_val(raw_val, unsafe_internal_quote=u"'", 
-                         safe_internal_quote=u"''")
+                         safe_internal_quote=u"''", use_double_quotes=False)
 
 def get_summable(clause):
     return u"CASE WHEN %s THEN 1 ELSE 0 END" % clause

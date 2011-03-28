@@ -33,7 +33,8 @@ def get_normal_ys(vals, bins):
     norm_ys = pylab.normpdf(bins, mu, sigma)
     return norm_ys
 
-def quote_val(raw_val, unsafe_internal_quote, safe_internal_quote):
+def quote_val(raw_val, unsafe_internal_quote, safe_internal_quote, 
+              use_double_quotes=True):
     """
     Might be a string or a datetime but can't be a number
     """
@@ -45,7 +46,11 @@ def quote_val(raw_val, unsafe_internal_quote, safe_internal_quote):
         except AttributeError, e:
             raise Exception(u"Inappropriate attempt to quote non-string value."
                             u"\nCaused by error: %s" % lib.ue(e))
-    return u"\"%s\"" % val
+    if use_double_quotes:
+        newval = u"\"%s\"" % val
+    else:
+        newval = u"\'%s\'" % val
+    return newval
 
 def get_p(p, dp):
     if p < 0.001:
