@@ -17,12 +17,12 @@ dd = getdata.get_dd()
 def get_cc():
     debug = False
     if not mg.CURRENT_CONFIG:
-        proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
+        proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
                                                    fil_name=mg.DEFAULT_PROJ)
-        mg.CURRENT_CONFIG = {mg.CURRENT_REPORT_PATH: proj_dic["fil_report"],
-                             mg.CURRENT_CSS_PATH: proj_dic["fil_css"],
-                             mg.CURRENT_VDTS_PATH: proj_dic["fil_var_dets"],
-                             mg.CURRENT_SCRIPT_PATH: proj_dic["fil_script"]}
+        mg.CURRENT_CONFIG = {mg.CURRENT_REPORT_PATH: proj_dic[mg.PROJ_FIL_RPT],
+                         mg.CURRENT_CSS_PATH: proj_dic[mg.PROJ_FIL_CSS],
+                         mg.CURRENT_VDTS_PATH: proj_dic[mg.PROJ_FIL_VDTS],
+                         mg.CURRENT_SCRIPT_PATH: proj_dic[mg.PROJ_FIL_SCRIPT]}
         if debug: print("Updated mg.CURRENT_CONFIG")
     return mg.CURRENT_CONFIG
 import output # uses get_cc
@@ -155,7 +155,7 @@ class ExtraOutputConfigDlg(wx.Dialog):
         "Open dialog and takes the variable details file selected (if any)"
         dlg_get_file = wx.FileDialog(self, 
             _("Choose an existing variable config file:"), 
-            defaultDir=os.path.join(mg.LOCAL_PATH, u"vdts"), 
+            defaultDir=os.path.join(mg.LOCAL_PATH, mg.VDTS_FOLDER), 
             defaultFile=u"", wildcard=_("Config files (*.vdts)|*.vdts"))
             # MUST have a parent to enforce modal in Windows
         if dlg_get_file.ShowModal() == wx.ID_OK:
@@ -166,7 +166,7 @@ class ExtraOutputConfigDlg(wx.Dialog):
         "Open dialog and takes the script file selected (if any)"
         dlg_get_file = wx.FileDialog(self, 
             _("Choose or create a file to export scripts to:"), 
-            defaultDir=os.path.join(mg.LOCAL_PATH, "scripts"), 
+            defaultDir=os.path.join(mg.LOCAL_PATH, mg.SCRIPTS_FOLDER), 
             defaultFile="", wildcard=_("Scripts (*.py)|*.py"),
             style=wx.SAVE)
             # MUST have a parent to enforce modal in Windows

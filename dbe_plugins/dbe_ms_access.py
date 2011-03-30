@@ -321,11 +321,12 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
 
 def get_proj_settings(parent, proj_dic):
     parent.msaccess_default_db = \
-        proj_dic["default_dbs"].get(mg.DBE_MS_ACCESS)
-    parent.msaccess_default_tbl = proj_dic["default_tbls"].get(mg.DBE_MS_ACCESS)
-    if proj_dic["con_dets"].get(mg.DBE_MS_ACCESS):
+        proj_dic[mg.PROJ_DEFAULT_DBS].get(mg.DBE_MS_ACCESS)
+    parent.msaccess_default_tbl = \
+                            proj_dic[mg.PROJ_DEFAULT_TBLS].get(mg.DBE_MS_ACCESS)
+    if proj_dic[mg.PROJ_CON_DETS].get(mg.DBE_MS_ACCESS):
         parent.msaccess_data = [(x["database"], x["mdw"], x["user"], x["pwd"]) \
-            for x in proj_dic["con_dets"][mg.DBE_MS_ACCESS].values()]
+            for x in proj_dic[mg.PROJ_CON_DETS][mg.DBE_MS_ACCESS].values()]
     else:
         parent.msaccess_data = []
 

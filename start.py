@@ -323,8 +323,8 @@ def populate_css_path(prog_path, local_path):
               u"pebbles.css"]
     for style in styles:
         try:
-            shutil.copy(os.path.join(prog_path, u"css", style), 
-                        os.path.join(local_path, u"css", style))
+            shutil.copy(os.path.join(prog_path, mg.CSS_FOLDER, style), 
+                        os.path.join(local_path, mg.CSS_FOLDER, style))
         except Exception, e: # more diagnostic info to explain why it failed
             raise Exception(u"Problem populating css path."
                             u"\nCaused by error: %s" % lib.ue(e) +
@@ -398,10 +398,10 @@ def populate_local_paths(prog_path, local_path, default_proj):
     populate_css_path(prog_path, local_path)
     shutil.copy(os.path.join(prog_path, mg.INT_FOLDER, mg.SOFA_DB), 
                 os.path.join(local_path, mg.INT_FOLDER, mg.SOFA_DB))
-    shutil.copy(os.path.join(prog_path, u"projs", mg.DEFAULT_PROJ), 
+    shutil.copy(os.path.join(prog_path, mg.PROJS_FOLDER, mg.DEFAULT_PROJ), 
                 default_proj)
-    shutil.copy(os.path.join(prog_path, u"vdts", mg.DEFAULT_VDTS), 
-                os.path.join(local_path, u"vdts", mg.DEFAULT_VDTS))
+    shutil.copy(os.path.join(prog_path, mg.VDTS_FOLDER, mg.DEFAULT_VDTS), 
+                os.path.join(local_path, mg.VDTS_FOLDER, mg.DEFAULT_VDTS))
     populate_extras_path(prog_path, local_path)
     print(u"Populated local paths under %s" % local_path)
 
@@ -497,14 +497,15 @@ def freshen_recovery(prog_path, local_subfolders, subfolders_in_proj):
         except OSError:
             pass
         make_local_subfolders(mg.RECOVERY_PATH, local_subfolders)
-        default_proj = os.path.join(mg.RECOVERY_PATH, u"projs", mg.DEFAULT_PROJ)
+        default_proj = os.path.join(mg.RECOVERY_PATH, mg.PROJS_FOLDER, 
+                                    mg.DEFAULT_PROJ)
         populate_local_paths(prog_path, mg.RECOVERY_PATH, default_proj)
         config_local_proj(mg.RECOVERY_PATH, default_proj, subfolders_in_proj)
         store_version(mg.RECOVERY_PATH)
         print(u"Freshened recovery")
 
-subfolders_in_proj = [u"css", mg.INT_FOLDER, u"projs", mg.REPORTS_FOLDER, 
-                      u"scripts", u"vdts"]
+subfolders_in_proj = [mg.CSS_FOLDER, mg.INT_FOLDER, mg.PROJS_FOLDER, 
+                      mg.REPORTS_FOLDER, mg.SCRIPTS_FOLDER, mg.VDTS_FOLDER]
 oth_subfolders = [os.path.join(mg.REPORTS_FOLDER, mg.REPORT_EXTRAS_FOLDER)]
 local_subfolders = subfolders_in_proj + oth_subfolders
 if mg.PLATFORM == mg.MAC:
@@ -523,7 +524,8 @@ try:
     run_test_code(mg.TEST_SCRIPT_EARLIEST)
     if local_path_setup_needed:
         # need mg but must run pre code calling dd
-        default_proj = os.path.join(mg.LOCAL_PATH, u"projs", mg.DEFAULT_PROJ)
+        default_proj = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, 
+                                    mg.DEFAULT_PROJ)
         populate_local_paths(prog_path, mg.LOCAL_PATH, default_proj)
         config_local_proj(mg.LOCAL_PATH, default_proj, subfolders_in_proj)
         store_version(mg.LOCAL_PATH)
@@ -777,7 +779,7 @@ class StartFrame(wx.Frame):
         self.Bind(wx.EVT_SHOW, self.on_show) # doesn't run on Mac
         self.Bind(wx.EVT_CLOSE, self.on_exit_click)
         self.active_proj = mg.DEFAULT_PROJ
-        proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
+        proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
                                                    fil_name=self.active_proj)
         if not mg.DATA_DETS:
             try:

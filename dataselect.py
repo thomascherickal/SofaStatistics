@@ -33,12 +33,13 @@ class DataSelectDlg(wx.Dialog):
         lbl_choose = wx.StaticText(self.panel, -1, 
                                   _("Choose an existing data table ..."), 
                                   size=(480,20))
-        proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
+        proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
                                                    fil_name=proj_name)
         self.update_var_dets()
         # set up self.drop_dbs and self.drop_tbls
-        self.drop_dbs, self.drop_tbls = getdata.get_data_dropdowns(self, 
-                                            self.panel, proj_dic["default_dbs"])
+        (self.drop_dbs, 
+         self.drop_tbls) = getdata.get_data_dropdowns(self, self.panel, 
+                                                proj_dic[mg.PROJ_DEFAULT_DBS])
         self.chk_readonly = wx.CheckBox(self.panel, -1, _("Read Only"))
         self.chk_readonly.SetValue(True)
         self.btn_delete = wx.Button(self.panel, -1, _("Delete"))

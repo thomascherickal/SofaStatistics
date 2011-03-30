@@ -312,13 +312,12 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     szr.Add(parent.szr_sqlite, 0, wx.GROW|wx.ALL, 10)
 
 def get_proj_settings(parent, proj_dic):
-    parent.sqlite_default_db = \
-        proj_dic["default_dbs"].get(mg.DBE_SQLITE)
+    parent.sqlite_default_db = proj_dic[mg.PROJ_DEFAULT_DBS].get(mg.DBE_SQLITE)
     parent.sqlite_default_tbl = \
-        proj_dic["default_tbls"].get(mg.DBE_SQLITE)
-    if proj_dic["con_dets"].get(mg.DBE_SQLITE):
+                              proj_dic[mg.PROJ_DEFAULT_TBLS].get(mg.DBE_SQLITE)
+    if proj_dic[mg.PROJ_CON_DETS].get(mg.DBE_SQLITE):
         parent.sqlite_data = [(x[DATABASE_KEY],) \
-             for x in proj_dic["con_dets"][mg.DBE_SQLITE].values()]
+             for x in proj_dic[mg.PROJ_CON_DETS][mg.DBE_SQLITE].values()]
     else:
         parent.sqlite_data = []
 

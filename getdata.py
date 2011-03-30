@@ -36,7 +36,8 @@ def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None,
     try:
         dbe_resources = {}
         if debug: print("About to update dbe resources with con resources")
-        kwargs = {"con_dets": con_dets, "default_dbs": default_dbs, "db": db}
+        kwargs = {mg.PROJ_CON_DETS: con_dets, mg.PROJ_DEFAULT_DBS: default_dbs, 
+                  "db": db}
         if dbe == mg.DBE_SQLITE:
             kwargs["add_checks"] = add_checks
         dbe_resources.update(mg.DBE_MODULES[dbe].get_con_resources(**kwargs))
@@ -130,26 +131,48 @@ class DataDets(object):
         self.set_proj_dic(proj_dic)
         if debug: print("Finished setting proj dic")
 
-    def set_proj_dic(self, proj_dic):
+    def set_proj_dic(self, proj_dic, dic2restore=None):
         """
         Setting project can have implications for default dbe, default dbs, 
             default tbls, dbs, db etc.
+        dic2restore --  if it turns to custard, what proj to restore to 
+            (presumably a previously working one).
         """
-        # next 3 are dicts with dbes as key (if present)
         try:
-            self.default_dbs = proj_dic["default_dbs"]
-            self.default_tbls = proj_dic["default_tbls"]
-            self.con_dets = proj_dic["con_dets"]
-            self.set_dbe(proj_dic["default_dbe"])
+            # next 3 are dicts with dbes as key (if present)
+            con_dets = proj_dic[mg.PROJ_CON_DETS]
+            default_dbs = proj_dic[mg.PROJ_DEFAULT_DBS]
+            default_tbls = proj_dic[mg.PROJ_DEFAULT_TBLS]
+            dbe = proj_dic[mg.PROJ_DBE]
+            db = default_dbs.get(dbe)
+            tbl = default_tbls.get(dbe)
+            add_checks = False
+            self.set_dbe(dbe, db, tbl, add_checks, con_dets, default_dbs, 
+                         default_tbls)
         except KeyError, e:
+            self.restore_proj_dic(dic2restore)
             raise Exception(u"Unable to read project dictionary for required "
                             u"keys.\nCaused by error: %s" % lib.ue(e))
         except Exception, e:
+            self.restore_proj_dic(dic2restore)
             raise Exception(u"Unable to set proj dic."
                             u"\nCaused by error: %s" % lib.ue(e))
-        self.proj_dic = proj_dic # only change if successful
+        # only change if successful
+        self.con_dets = con_dets
+        self.default_dbs = default_dbs
+        self.default_tbls = default_tbls
+        self.proj_dic = proj_dic
 
-    def set_dbe(self, dbe, db=None, tbl=None, add_checks=False):
+    def restore_proj_dic(self, dic2restore):
+        "Restore to original project (or default if all else fails)"
+        if dic2restore:
+            default_proj_dic = \
+                    config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
+                                                    fil_name=mg.DEFAULT_PROJ)
+            self.set_proj_dic(dic2restore, default_proj_dic)
+
+    def set_dbe(self, dbe, db=None, tbl=None, add_checks=False, 
+                con_dets=None, default_dbs=None, default_tbls=None):
         """
         Changing dbe has implications for everything connected.
         May want to refresh dbe and db together (e.g. dbe-db dropdown).
@@ -158,6 +181,9 @@ class DataDets(object):
         """
         debug = False
         if debug: print("About to get dbe resources")
+        con_dets = con_dets or self.con_dets
+        default_dbs = default_dbs or self.default_dbs
+        default_tbls = default_tbls or self.default_tbls
         # free up if in use. MS Access will crash otherwise.
         try:
             self.cur.close()
@@ -167,9 +193,8 @@ class DataDets(object):
         except Exception:
             pass
         try:
-            dbe_resources = get_dbe_resources(dbe, self.con_dets, 
-                                          self.default_dbs, self.default_tbls, 
-                                          db, tbl, add_checks)
+            dbe_resources = get_dbe_resources(dbe, con_dets, default_dbs, 
+                                              default_tbls, db, tbl, add_checks)
         except Exception, e:
             raise Exception(u"Unable to get dbe resources."
                             u"\nCaused by error: %s" % lib.ue(e))
@@ -216,7 +241,7 @@ class DataDets(object):
 def get_dd():
     debug = False
     if not mg.DATA_DETS:
-        proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
+        proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
                                                    fil_name=mg.DEFAULT_PROJ)
         mg.DATA_DETS = DataDets(proj_dic)
         if debug: print("Updated mg.DATA_DETS")
@@ -679,7 +704,7 @@ def get_default_db_dets():
     Returns con, cur, dbs, tbls, flds, idxs, has_unique from default
         SOFA SQLite database.
     """
-    proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
+    proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
                                                fil_name=mg.DEFAULT_PROJ)
     default_dd = DataDets(proj_dic)
     default_dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB)

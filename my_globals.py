@@ -13,7 +13,7 @@ import wx
 
 debug = False
 
-VERSION = u"1.0.3"
+VERSION = u"1.0.4"
 ADVANCED = False
 ATTRIBUTION = u"sofastatistics.com"
 # LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, LANGUAGE_RUSSIAN, LANGUAGE_HEBREW
@@ -167,6 +167,14 @@ USE_SQLITE_UDFS = False # set to true if unable to open default database -
 # even open).  Delete it and restore this to False. 
 SOFA_DB = u"sofa_db"
 DEMO_TBL = u"demo_tbl"
+PROJ_FIL_VDTS = u"fil_var_dets"
+PROJ_FIL_RPT = u"fil_report"
+PROJ_FIL_SCRIPT = u"fil_script"
+PROJ_FIL_CSS = u"fil_css"
+PROJ_CON_DETS = u"con_dets"
+PROJ_DBE = u"default_dbe"
+PROJ_DEFAULT_DBS = u"default_dbs"
+PROJ_DEFAULT_TBLS = u"default_tbls"
 DEFAULT_PROJ = u"default.proj"
 DEFAULT_VDTS = u"general_var_dets.vdts"
 DEFAULT_STYLE = u"default.css"
@@ -183,7 +191,6 @@ SOFASTATS_CONNECT_INITIAL = 14 # days
 SOFASTATS_CONNECT_REGULAR = 56 # days
 SOFASTATS_VERSION_CHECK = u"latest_sofastats_version.txt"
 SOFASTATS_MAJOR_VERSION_CHECK = u"latest_major_sofastats_version.txt"
-
 GOOGLE_DOWNLOAD_EXT = u"ods" # csv has trouble with empty cols e.g. 1,2\n3\n4,5
 GOOGLE_DOWNLOAD = u"temporary_google_spreadsheet.%s" % GOOGLE_DOWNLOAD_EXT
 INT_FOLDER = u"_internal"
@@ -192,6 +199,10 @@ USER_PATH = unicode(os.path.expanduser("~"), local_encoding)
 LOCAL_PATH = os.path.join(USER_PATH, u"sofastats")
 RECOVERY_PATH = os.path.join(USER_PATH, u"sofastats_recovery")
 REPORTS_FOLDER = u"reports"
+PROJS_FOLDER = u"projs"
+VDTS_FOLDER = u"vdts"
+SCRIPTS_FOLDER = u"scripts"
+CSS_FOLDER = u"css"
 REPORTS_PATH = os.path.join(LOCAL_PATH, REPORTS_FOLDER)
 REPORT_EXTRAS_FOLDER = u"sofastats_report_extras"
 REPORT_EXTRAS_PATH = os.path.join(REPORTS_PATH, REPORT_EXTRAS_FOLDER)
@@ -203,7 +214,7 @@ INT_SCRIPT_PATH = os.path.join(INT_PATH, u"script.py")
 INT_REPORT_FILE = u"report.htm"
 INT_PREFS_FILE = u"prefs.txt"
 INT_REPORT_PATH = os.path.join(INT_PATH, INT_REPORT_FILE)
-CSS_PATH = os.path.join(LOCAL_PATH, u"css")
+CSS_PATH = os.path.join(LOCAL_PATH, CSS_FOLDER)
 DEFAULT_CSS_PATH = os.path.join(CSS_PATH, DEFAULT_STYLE)
 CURRENT_CONFIG = None
 CURRENT_REPORT_PATH = u"current_report_path"

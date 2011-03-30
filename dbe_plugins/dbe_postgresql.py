@@ -90,7 +90,7 @@ def get_dbs_list(con_dets, default_dbs):
 
 def get_con_resources(con_dets, default_dbs, db=None):
     """
-    Get connection - with a database if possible, else without.  If without,
+    Get connection - with a database if possible, else without. If without,
         use connection to identify databases and select one.  Then remake
         connection with selected database and remake cursor.
     """
@@ -103,8 +103,15 @@ def get_con_resources(con_dets, default_dbs, db=None):
             con_dets_pgsql["database"] = db
         con = pgdb.connect(**con_dets_pgsql)
     except Exception, e:
-        raise Exception(u"Unable to connect to PostgreSQL db."
-                        u"\nCaused by error: %s" % lib.ue(e))
+        user = con_dets_pgsql.get("user")
+        if user != 'postgres' and not db:
+            msg = u"Unable to connect to PostgreSQL db. A default database " + \
+                  u"is required unless the user is 'postgres'." + \
+                  u"\nCaused by error: %s" % lib.ue(e)
+        else:
+            msg = u"Unable to connect to PostgreSQL db." + \
+                  u"\nCaused by error: %s" % lib.ue(e)
+        raise Exception(msg)
     cur = con.cursor() # must return tuples not dics
     # get database name
     SQL_get_db_names = u"""SELECT datname FROM pg_database"""
@@ -383,7 +390,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                                               size=(250,-1))
     parent.txt_pgsql_default_db.Enable(not readonly)
     parent.txt_pgsql_default_db.SetToolTipString(_("Default database"
-                                                   " (optional)"))
+                                            " (optional if user is postgres)"))
     # default table
     parent.lbl_pgsql_default_tbl = wx.StaticText(scroll, -1, 
                                                  _("Default Table:"))
@@ -450,15 +457,13 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     szr.Add(parent.szr_pgsql, 0, wx.GROW|wx.ALL, 10)
     
 def get_proj_settings(parent, proj_dic):
-    parent.pgsql_default_db = proj_dic["default_dbs"].get(mg.DBE_PGSQL)
-    parent.pgsql_default_tbl = \
-        proj_dic["default_tbls"].get(mg.DBE_PGSQL)
+    parent.pgsql_default_db = proj_dic[mg.PROJ_DEFAULT_DBS].get(mg.DBE_PGSQL)
+    parent.pgsql_default_tbl = proj_dic[mg.PROJ_DEFAULT_TBLS].get(mg.DBE_PGSQL)
     # optional (although if any pgsql, for eg, must have all)
-    if proj_dic["con_dets"].get(mg.DBE_PGSQL):
-        parent.pgsql_host = proj_dic["con_dets"][mg.DBE_PGSQL]["host"]
-        parent.pgsql_user = proj_dic["con_dets"][mg.DBE_PGSQL]["user"]
-        parent.pgsql_pwd = \
-            proj_dic["con_dets"][mg.DBE_PGSQL]["password"]
+    if proj_dic[mg.PROJ_CON_DETS].get(mg.DBE_PGSQL):
+        parent.pgsql_host = proj_dic[mg.PROJ_CON_DETS][mg.DBE_PGSQL]["host"]
+        parent.pgsql_user = proj_dic[mg.PROJ_CON_DETS][mg.DBE_PGSQL]["user"]
+        parent.pgsql_pwd = proj_dic[mg.PROJ_CON_DETS][mg.DBE_PGSQL]["password"]
     else:
         parent.pgsql_host, parent.pgsql_user, parent.pgsql_pwd = u"", u"", u""
 
@@ -487,6 +492,7 @@ def set_con_det_defaults(parent):
 def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     """
     Copes with missing default database and table. Will get the first available.
+    Must have a default db if user not 'postgres'.
     """
     default_db = parent.txt_pgsql_default_db.GetValue()
     pgsql_default_db = default_db if default_db else None
@@ -496,10 +502,16 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     pgsql_user = parent.txt_pgsql_user.GetValue()
     pgsql_pwd = parent.txt_pgsql_pwd.GetValue()
     has_pgsql_con = pgsql_host and pgsql_user # allow blank password
-    incomplete_pgsql = (pgsql_host or pgsql_user or pgsql_pwd \
-        or pgsql_default_db or pgsql_default_tbl) and not has_pgsql_con
+    missing_db = pgsql_user != 'postgres' and not pgsql_default_db
+    dirty = (pgsql_host or pgsql_user or pgsql_pwd or pgsql_default_db 
+             or pgsql_default_tbl)
+    incomplete_pgsql = dirty and (not has_pgsql_con or missing_db)
     if incomplete_pgsql:
-        wx.MessageBox(_("The PostgreSQL details are incomplete"))
+        msg = _("The PostgreSQL details are incomplete.")
+        if missing_db:
+            msg += _(u" A default database is required unless the user is "
+                     u"'postgres'")
+        wx.MessageBox(msg)
         parent.txt_pgsql_default_db.SetFocus()
     default_dbs[mg.DBE_PGSQL] = pgsql_default_db \
         if pgsql_default_db else None    

@@ -78,7 +78,7 @@ class ProjSelectDlg(wx.Dialog):
         self.szr_btns.Realize()
     
     def get_notes(self, fil_proj):
-        proj_path = os.path.join(mg.LOCAL_PATH, "projs", fil_proj)
+        proj_path = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, fil_proj)
         f = codecs.open(proj_path, "U", encoding="utf-8")
         proj_txt = lib.get_exec_ready_text(text=f.read())
         f.close()
@@ -158,11 +158,12 @@ class ProjSelectDlg(wx.Dialog):
     def on_ok(self, event):
         proj_sel_id = self.drop_projs.GetSelection()
         fil_proj = self.projs[proj_sel_id]
-        proj_dic = config_globals.get_settings_dic(subfolder=u"projs", 
+        proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
                                                    fil_name=fil_proj)
         try:
             wx.BeginBusyCursor()
-            dd.set_proj_dic(proj_dic)
+            dic2restore = dd.proj_dic
+            dd.set_proj_dic(proj_dic, dic2restore)
             proj_name = fil_proj[:-5] # might not be a sensible ...proj file
             self.parent.set_proj(proj_name)
         except Exception, e:

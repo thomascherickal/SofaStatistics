@@ -471,19 +471,18 @@ def get_proj_settings(parent, proj_dic):
     Want to store port, but not complicate things for the user unnecessarily. So
         only show host:port if non-standard port.
     """
-    parent.mysql_default_db = proj_dic["default_dbs"].get(mg.DBE_MYSQL)
-    parent.mysql_default_tbl = \
-        proj_dic["default_tbls"].get(mg.DBE_MYSQL)
+    parent.mysql_default_db = proj_dic[mg.PROJ_DEFAULT_DBS].get(mg.DBE_MYSQL)
+    parent.mysql_default_tbl = proj_dic[mg.PROJ_DEFAULT_TBLS].get(mg.DBE_MYSQL)
     # optional (although if any mysql, for eg, must have host, user, and passwd)
-    if proj_dic["con_dets"].get(mg.DBE_MYSQL):
-        raw_host = proj_dic["con_dets"][mg.DBE_MYSQL]["host"]
-        raw_port = proj_dic["con_dets"][mg.DBE_MYSQL].get("port", 3306)
+    if proj_dic[mg.PROJ_CON_DETS].get(mg.DBE_MYSQL):
+        raw_host = proj_dic[mg.PROJ_CON_DETS][mg.DBE_MYSQL]["host"]
+        raw_port = proj_dic[mg.PROJ_CON_DETS][mg.DBE_MYSQL].get("port", 3306)
         if raw_port != 3306:
             parent.mysql_host = u"%s:%s" % (raw_host, raw_port)
         else:
             parent.mysql_host = raw_host
-        parent.mysql_user = proj_dic["con_dets"][mg.DBE_MYSQL]["user"]
-        parent.mysql_pwd = proj_dic["con_dets"][mg.DBE_MYSQL]["passwd"]
+        parent.mysql_user = proj_dic[mg.PROJ_CON_DETS][mg.DBE_MYSQL]["user"]
+        parent.mysql_pwd = proj_dic[mg.PROJ_CON_DETS][mg.DBE_MYSQL]["passwd"]
     else:
         parent.mysql_host, parent.mysql_user, parent.mysql_pwd = u"", u"", u""
 
@@ -533,8 +532,9 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     mysql_user = parent.txt_mysql_user.GetValue()
     mysql_pwd = parent.txt_mysql_pwd.GetValue()
     has_mysql_con = mysql_host and mysql_user # allow blank password
-    incomplete_mysql = (mysql_host or mysql_user or mysql_pwd \
-                or mysql_default_db or mysql_default_tbl) and not has_mysql_con
+    dirty = (mysql_host or mysql_user or mysql_pwd or mysql_default_db 
+             or mysql_default_tbl)
+    incomplete_mysql = dirty and not has_mysql_con
     if incomplete_mysql:
         wx.MessageBox(_("The MySQL details are incomplete"))
         parent.txt_mysql_default_db.SetFocus()

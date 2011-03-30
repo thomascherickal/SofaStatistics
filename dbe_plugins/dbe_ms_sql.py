@@ -367,15 +367,13 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     szr.Add(parent.szr_mssql, 0, wx.GROW|wx.ALL, 10)
 
 def get_proj_settings(parent, proj_dic):
-    parent.mssql_default_db = \
-        proj_dic[u"default_dbs"].get(mg.DBE_MS_SQL)
-    parent.mssql_default_tbl = \
-        proj_dic[u"default_tbls"].get(mg.DBE_MS_SQL)
+    parent.mssql_default_db = proj_dic[mg.PROJ_DEFAULT_DBS].get(mg.DBE_MS_SQL)
+    parent.mssql_default_tbl = proj_dic[mg.PROJ_DEFAULT_TBLS].get(mg.DBE_MS_SQL)
     # optional (although if any mssql, for eg, must have all)
-    if proj_dic[u"con_dets"].get(mg.DBE_MS_SQL):
-        parent.mssql_host = proj_dic["con_dets"][mg.DBE_MS_SQL]["host"]
-        parent.mssql_user = proj_dic["con_dets"][mg.DBE_MS_SQL]["user"]
-        parent.mssql_pwd = proj_dic["con_dets"][mg.DBE_MS_SQL]["passwd"]
+    if proj_dic[mg.PROJ_CON_DETS].get(mg.DBE_MS_SQL):
+        parent.mssql_host = proj_dic[mg.PROJ_CON_DETS][mg.DBE_MS_SQL]["host"]
+        parent.mssql_user = proj_dic[mg.PROJ_CON_DETS][mg.DBE_MS_SQL]["user"]
+        parent.mssql_pwd = proj_dic[mg.PROJ_CON_DETS][mg.DBE_MS_SQL]["passwd"]
     else:
         parent.mssql_host, parent.mssql_user, parent.mssql_pwd = "", "", ""
 
@@ -411,8 +409,9 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     mssql_user = parent.txt_mssql_user.GetValue()
     mssql_pwd = parent.txt_mssql_pwd.GetValue()
     has_mssql_con = mssql_host and mssql_user and mssql_pwd
-    incomplete_mssql = (mssql_host or mssql_user or mssql_pwd \
-        or mssql_default_db or mssql_default_tbl) and not has_mssql_con
+    dirty = (mssql_host or mssql_user or mssql_pwd or mssql_default_db 
+             or mssql_default_tbl)
+    incomplete_mssql = dirty and not has_mssql_con
     if incomplete_mssql:
         wx.MessageBox(_("The SQL Server details are incomplete"))
         parent.txt_mssql_default_db.SetFocus()
