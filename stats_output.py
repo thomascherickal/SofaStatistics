@@ -350,13 +350,13 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0,
     html.append(u"\n<p>" + _("Two-tailed p value") \
                 + u": %s" % lib.get_p(p*2, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
-    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
-                     mg.P_EXPLAN_DIFF)
+    footnotes.append("\n<p><a id='ft%%(ftnum)s'></a><sup>%%(ftnum)s</sup> %s</p>"
+                     % mg.P_EXPLAN_DIFF)
     # always footnote 2
     html.append(u"\n<p>" + _("U statistic") +
                 u": %s <a href='#ft2'><sup>2</sup></a></p>" % round(u, dp))
-    footnotes.append((u"\n<p><a id='ft%%s'></a><sup>%%s</sup> U is based on "
-        u"the results of matches between "
+    footnotes.append((u"\n<p><a id='ft%%(ftnum)s'></a><sup>%%(ftnum)s</sup> U "
+        u"is based on the results of matches between "
         u"the \"%(label_a)s\" and \"%(label_b)s\" groups. "
         u"In each match, the winner is the one with the "
         u"highest \"%(label_ranked)s\" "
@@ -367,8 +367,9 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0,
         u"(i.e. half of %(n_a)s x %(n_b)s i.e. %(even_matches)s) "
         u"the more unlikely the difference is by chance "
         u"alone and the more statistically significant it is.</p>") % 
-            {u"label_a": label_a, u"label_b": label_b, u"n_a": n_a, 
-             u"n_b": n_b, u"label_ranked": label_ranked,
+            {u"label_a": label_a.replace(u"%",u"%%"), 
+             u"label_b": label_b.replace(u"%",u"%%"), u"n_a": n_a, 
+             u"n_b": n_b, u"label_ranked": label_ranked.replace(u"%",u"%%"),
              u"even_matches": (n_a*n_b)/float(2)})
     html.append(u"\n\n<table cellspacing='0'>\n<thead>")
     html.append(u"\n<tr>" +
@@ -391,7 +392,7 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0,
     html.append(u"\n</tbody>\n</table>\n")
     for i, footnote in enumerate(footnotes):
         next_ft = i + 1
-        html.append(footnote % (next_ft, next_ft))
+        html.append(footnote % {u"ftnum": next_ft})
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
