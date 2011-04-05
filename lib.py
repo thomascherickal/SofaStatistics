@@ -471,23 +471,28 @@ def none2empty(val):
     else:
         return val
 
+def get_val_type(val, comma_dec_sep_ok=False):
+    if is_numeric(val, comma_dec_sep_ok): # anything SQLite can add 
+            # _as a number_ into a numeric field
+        val_type = mg.VAL_NUMERIC
+    elif is_pytime(val): # COM on Windows
+        val_type = mg.VAL_DATE
+    else:
+        usable_datetime = is_usable_datetime_str(val)
+        if usable_datetime:
+            val_type = mg.VAL_DATE
+        elif val == u"":
+            val_type = mg.VAL_EMPTY_STRING
+        else:
+            val_type = mg.VAL_STRING
+    return val_type    
+
 def update_type_set(type_set, val, comma_dec_sep_ok=False):
     """
     Some countries use commas as decimal separators.
     """
-    if is_numeric(val, comma_dec_sep_ok): # anything SQLite can add 
-            # _as a number_ into a numeric field
-        type_set.add(mg.VAL_NUMERIC)
-    elif is_pytime(val): # COM on Windows
-        type_set.add(mg.VAL_DATE)
-    else:
-        usable_datetime = is_usable_datetime_str(val)
-        if usable_datetime:
-            type_set.add(mg.VAL_DATE)
-        elif val == u"":
-            type_set.add(mg.VAL_EMPTY_STRING)
-        else:
-            type_set.add(mg.VAL_STRING)
+    val_type = get_val_type(val, comma_dec_sep_ok)
+    type_set.add(val_type)
 
 def get_overall_fld_type(type_set):
     """
@@ -1030,9 +1035,6 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
         into a standard string for data entry.
     """
     debug = False
-    
-    
-    
     if not is_string(raw_datetime_str):
         if debug: print("%s is not a valid datetime string" % raw_datetime_str)
         return None

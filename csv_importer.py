@@ -41,16 +41,31 @@ def ok_delimiter(delimiter):
     except Exception, e:
         raise Exception(u"Unable to assess the auto-detected delimiter")
 
-def get_dialect(file_path):
+def has_comma_delim(dialect):
+    comma_delimiter = (dialect.delimiter.decode("utf8") == u",")
+    return comma_delimiter
+
+def get_sample_rows(file_path):
     debug = False
     try:
         f = open(file_path) # don't use "U" - let it fail if necessary
             # and suggest an automatic cleanup.
-        sample_lines = []
-        for i, line in enumerate(f.readline()):
+        sample_rows = []
+        for i, row in enumerate(f):
             if i < 20:
-                sample_lines.append(line)
-        sniff_sample = "".join(sample_lines)
+                if debug: print(row)
+                sample_rows.append(row)
+    except IOError:
+            raise Exception(u"Unable to find file \"%s\" for importing. "
+                            u"Please check that file exists." % file_path)
+    except Exception, e:
+        raise Exception(u"Unable to open and sample csv file. "
+                        u"\nCaused by error: %s" % lib.ue(e))
+    return sample_rows
+
+def get_dialect(sniff_sample):
+    debug = False
+    try:
         sniffer = csv.Sniffer()
         dialect = sniffer.sniff(sniff_sample)
         if debug: print(dialect.delimiter)
@@ -65,14 +80,95 @@ def get_dialect(file_path):
                 u"\n\nIf saving as csv in in Excel, make sure to select "
                 u" 'Yes' to leave out features incompatible with csv."
                 u"\n\nCaused by error: %s\n" % lib.ue(e))
-    except IOError:
-            raise Exception(u"Unable to find file \"%s\" for importing. "
-                            u"Please check that file exists." % file_path)
     except Exception, e:
         raise Exception(u"Unable to open and sample csv file. "
                         u"\nCaused by error: %s" % lib.ue(e))
     return dialect
-    
+
+def fix_text(file_path):
+    ret = wx.MessageBox(_("The file needs new lines standardised first. "
+                         "Can SOFA Statistics make a tidied copy for you?"), 
+                         caption=_("FIX TEXT?"), style=wx.YES_NO)
+    if ret == wx.YES:
+        new_file = make_tidied_copy(file_path)
+        wx.MessageBox(_("Please check tidied version \"%s\" "
+                        "before importing.  May have line "
+                        "breaks in the wrong places.") % new_file)
+    else:
+        wx.MessageBox(_("Unable to import file in current form"))
+
+def make_tidied_copy(path):
+    """
+    Return renamed copy with line separators all turned to the one type
+        appropriate to the OS.
+    NB file may be broken csv so may need manual correction.
+    """
+    pathstart, filename = os.path.split(path)
+    filestart, extension = os.path.splitext(filename)
+    new_file = os.path.join(pathstart, filestart + "_tidied" + extension)
+    f = open(path)
+    raw = f.read()
+    f.close()
+    newstr = consolidate_line_seps(raw)
+    f = open(new_file, "w")
+    f.write(newstr)
+    f.close()
+    return new_file
+
+def has_header_row(sample_rows, delim, comma_dec_sep_ok=False):
+    """
+    Will return True if nothing but unambiguous strings in first row and 
+        anything in other rows that is probably not be a string e.g. a number 
+        or a date. Empty strings are not proof of anything so are skipped.
+    """
+    if len(sample_rows) < 2: # a header row needs a following row to be a header
+        return False
+    first_row = sample_rows[0]
+    first_row_vals = first_row.split(delim)
+    for val in first_row_vals: # must all be non-empty strings to be a header
+        val_type = lib.get_val_type(val, comma_dec_sep_ok)
+        if val_type != mg.VAL_STRING: # empty strings no good as heading values
+            return False
+    for row in sample_rows[1:]: # Only strings in potential header. Must look 
+            # for any non-strings to be sure.
+        row_vals = row.split(delim)
+        for val in row_vals:
+            val_type = lib.get_val_type(val, comma_dec_sep_ok)
+            if val_type in [mg.VAL_DATE, mg.VAL_NUMERIC]:
+                return True
+    return False
+
+def get_prob_has_hdr(sample_rows, file_path, dialect):
+    """
+    Method used in csv rejects some clear-cut cases where there is a header - 
+        ignores any columns which are of mixed type - takes them out of 
+        contention. If none survive, always assumes no header as never has any 
+        columns to test.
+    Need an additional test looking for all strings in top, and anything below 
+        that is numeric or a date.
+    """
+    try:
+        sniffer = csv.Sniffer()
+        hdr_sample = "\n".join(sample_rows)
+        prob_has_hdr = sniffer.has_header(hdr_sample)
+    except csv.Error, e:
+        lib.safe_end_cursor()
+        if lib.ue(e).startswith(u"new-line character seen in unquoted "
+                                u"field"):
+            fix_text(file_path)
+            raise my_exceptions.ImportNeededFixException
+        else:
+            raise
+    except Exception, e:
+        raise Exception(u"Problem testing sample for probably header."
+                        u"\nCaused by error: %s" % lib.ue(e))
+    if not prob_has_hdr:
+        # test it myself
+        delim = dialect.delimiter.decode("utf8")
+        comma_dec_sep_ok = not has_comma_delim(dialect)
+        prob_has_hdr = has_header_row(sample_rows, delim, comma_dec_sep_ok)
+    return prob_has_hdr
+
 def get_avg_row_size(rows):
     """
     Measures length of string of comma separated values in bytes.
@@ -278,7 +374,8 @@ class DlgImportDisplay(wx.Dialog):
     Also select whether data has a header or not. 
     """
     
-    def __init__(self, parent, file_path, dialect, encodings, retvals):
+    def __init__(self, parent, file_path, dialect, encodings, probably_has_hdr,
+                 retvals):
         wx.Dialog.__init__(self, parent=parent, 
                            title=_("Contents look correct?"), 
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
@@ -308,6 +405,7 @@ class DlgImportDisplay(wx.Dialog):
         self.drop_encodings.SetSelection(0)
         self.drop_encodings.Bind(wx.EVT_CHOICE, self.on_sel_encoding)
         self.chk_has_header = wx.CheckBox(panel, -1, _("Has header row"))
+        self.chk_has_header.SetValue(probably_has_hdr)
         szr_options.Add(lbl_delim, 0, wx.RIGHT, 5)
         szr_options.Add(self.txt_delim, 0, wx.GROW|wx.RIGHT, 10)
         szr_options.Add(lbl_encoding, 0, wx.RIGHT, 5)
@@ -359,7 +457,7 @@ class DlgImportDisplay(wx.Dialog):
                                           self.encoding, n_lines=ROWS_TO_SAMPLE)
         try:
             # don't use dict reader - consumes first row when we don't know
-            # field names.  And if not a header, we might expect some values to
+            # field names. And if not a header, we might expect some values to
             # be repeated, which means the row dicts could have fewer fields
             # than there are actual fields.
             tmp_reader = UnicodeCsvReader(self.utf8_encoded_csv_sample, 
@@ -368,7 +466,7 @@ class DlgImportDisplay(wx.Dialog):
             lib.safe_end_cursor()
             if lib.ue(e).startswith(u"new-line character seen in unquoted "
                                     u"field"):
-                self.fix_text()
+                fix_text(self.file_path)
                 raise my_exceptions.ImportNeededFixException
             else:
                 raise
@@ -486,36 +584,6 @@ class CsvImporter(importer.FileImporter):
         """
         return get_avg_row_size(rows=tmp_reader)
 
-    def make_tidied_copy(self, path):
-        """
-        Return renamed copy with line separators all turned to the one type
-            appropriate to the OS.
-        NB file may be broken csv so may need manual correction.
-        """
-        pathstart, filename = os.path.split(path)
-        filestart, extension = os.path.splitext(filename)
-        new_file = os.path.join(pathstart, filestart + "_tidied" + extension)
-        f = open(path)
-        raw = f.read()
-        f.close()
-        newstr = consolidate_line_seps(raw)
-        f = open(new_file, "w")
-        f.write(newstr)
-        f.close()
-        return new_file
-
-    def fix_text(self):
-        ret = wx.MessageBox(_("The file needs new lines standardised first. "
-                             "Can SOFA Statistics make a tidied copy for you?"), 
-                             caption=_("FIX TEXT?"), style=wx.YES_NO)
-        if ret == wx.YES:
-            new_file = self.make_tidied_copy(self.file_path)
-            wx.MessageBox(_("Please check tidied version \"%s\" "
-                            "before importing.  May have line "
-                            "breaks in the wrong places.") % new_file)
-        else:
-            wx.MessageBox(_("Unable to import file in current form"))
-
     def get_possible_encodings(self):
         """
         Get list of encodings which potentially work for a sample.  Fast enough 
@@ -549,15 +617,20 @@ class CsvImporter(importer.FileImporter):
             is given a choice. Could use chardets somehow as well.
         """
         debug = False
-        dialect = get_dialect(self.file_path)
+        sample_rows = get_sample_rows(self.file_path)
+        sniff_sample = "".join(sample_rows) # not u"" but ""
+            # otherwise error: "delimiter" must be an 1-character string
+        dialect = get_dialect(sniff_sample)
         encodings = self.get_possible_encodings()
+        probably_has_hdr = get_prob_has_hdr(sample_rows, self.file_path, 
+                                            dialect)
         if not encodings:
             raise Exception(_("Data could not be processed using available "
                               "encodings"))
         # give user choice to change encoding, delimiter, and say if has header
         retvals = [] # populate inside dlg
         dlg = DlgImportDisplay(self.parent, self.file_path, dialect, encodings, 
-                               retvals)
+                               probably_has_hdr, retvals)
         ret = dlg.ShowModal()
         if ret != wx.ID_OK:
             raise my_exceptions.ImportConfirmationRejected
@@ -571,7 +644,7 @@ class CsvImporter(importer.FileImporter):
         debug = False
         try:
             (dialect, encoding, self.has_header, 
-             utf8_encoded_csv_sample) = self.get_sample_with_dets()
+                utf8_encoded_csv_sample) = self.get_sample_with_dets()
         except my_exceptions.ImportConfirmationRejected, e:
             raise
         except Exception, e:
@@ -628,7 +701,7 @@ class CsvImporter(importer.FileImporter):
         wx.BeginBusyCursor()
         try:
             (dialect, encoding, 
-             ok_fld_names, row_size) = self.get_init_csv_details()
+                ok_fld_names, row_size) = self.get_init_csv_details()
         except my_exceptions.ImportNeededFixException:
             lib.safe_end_cursor()
             return
@@ -639,7 +712,7 @@ class CsvImporter(importer.FileImporter):
             lib.safe_end_cursor()
             raise Exception(u"Unable to get initial csv details. "
                             u"\nCaused by error: %s" % lib.ue(e))
-        comma_delimiter = (dialect.delimiter.decode("utf8") == u",")
+        comma_delimiter = has_comma_delim(dialect)
         try:
             # estimate number of rows (only has to be good enough for progress)
             tot_size = os.path.getsize(self.file_path) # in bytes
