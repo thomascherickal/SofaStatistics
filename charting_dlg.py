@@ -14,9 +14,6 @@ import projects
 
 OUTPUT_MODULES = ["my_globals as mg", "core_stats", "charting_output", "output", 
                   "getdata"]
-cc = config_dlg.get_cc()
-dd = getdata.get_dd()
-
 LIMITS_MSG = (u"This chart type is not currently available in this release. "
               u"More chart types coming soon!")
 CUR_SORT_OPT = mg.SORT_NONE
@@ -30,6 +27,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     
     def __init__(self, title, takes_range=False):
         # see http://old.nabble.com/wx.StaticBoxSizer-td21662703.html
+        cc = config_dlg.get_cc()
         if mg.MAX_HEIGHT <= 620:
             myheight = 600
         elif mg.MAX_HEIGHT <= 870:
@@ -607,6 +605,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
 
     def on_btn_run(self, event):
         # get settings
+        cc = config_dlg.get_cc()
         if self.chart_type not in []:
             run_ok = self.test_config_ok()
             add_to_report = self.chk_add_to_report.IsChecked()
@@ -781,6 +780,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def get_script(self, css_idx, css_fil, add_to_report, report_name):
         "Build script from inputs"
         debug = False
+        dd = getdata.get_dd()
         inc_perc = u"True" if INC_PERC else u"False"
         script_lst = []
         titles, subtitles = self.get_titles()
@@ -910,6 +910,7 @@ chart_output = charting_output.piechart_output(titles, subtitles,
 
 def get_line_chart_script(inc_perc, inc_trend, inc_smooth, css_fil, css_idx, 
                           chart_type, varname2):
+    dd = getdata.get_dd()
     single_line = (varname2 == mg.DROP_SELECT)
     if single_line:
         script = u"""
@@ -942,6 +943,7 @@ chart_output = charting_output.linechart_output(titles, subtitles, x_title,
     return script
 
 def get_area_chart_script(inc_perc, css_fil, css_idx):
+    dd = getdata.get_dd()
     script = u"""
 areachart_dets = charting_output.get_single_val_dets(dbe, cur, tbl, tbl_filt, 
             fld_gp, fld_gp_name, fld_gp_lbls, fld_measure, fld_measure_lbls, 
@@ -965,6 +967,7 @@ chart_output = charting_output.areachart_output(titles, subtitles,
     return script
 
 def get_histogram_script(inc_normal, css_fil, css_idx):
+    dd = getdata.get_dd()
     script = u"""
 histo_dets = charting_output.get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, 
             fld_gp_name, fld_gp_lbls, fld_measure)
@@ -976,6 +979,7 @@ chart_output = charting_output.histogram_output(titles, subtitles,
     return script
 
 def get_scatterplot_script(css_fil, css_idx, dot_border):
+    dd = getdata.get_dd()
     script = u"""
 scatterplot_dets = charting_output.get_scatterplot_dets(dbe, cur, tbl, tbl_filt, 
             fld_x_axis, fld_y_axis, fld_gp, fld_gp_name, fld_gp_lbls, 

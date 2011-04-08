@@ -8,8 +8,6 @@ import lib
 import getdata
 import indep2var
 
-dd = getdata.get_dd()
-
 
 class DlgConfig(indep2var.DlgIndep2VarConfig):
 
@@ -39,6 +37,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
 
     def get_script(self, css_idx, css_fil, add_to_report, report_name):
         "Build script from inputs"
+        dd = getdata.get_dd()
         var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \
             var_ranked, label_ranked = self.get_drop_vals()
         script_lst = [u"dp = 3"]

@@ -24,8 +24,6 @@ import rawtables
 
 OUTPUT_MODULES = ["my_globals as mg", "dimtables", "rawtables", "output", 
                   "getdata"]
-dd = getdata.get_dd()
-cc = config_dlg.get_cc()
 
 def replace_titles_subtitles(orig, titles, subtitles):
     """
@@ -116,6 +114,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     
     def __init__(self, var_labels=None, var_notes=None, val_dics=None):
         debug = False
+        cc = config_dlg.get_cc()
         wx.Dialog.__init__(self, parent=None, id=-1, 
                        title=_("Make Report Table"), 
                        pos=(mg.HORIZ_OFFSET, 0), # -1 positions too low on 768v
@@ -315,6 +314,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
 
     def update_css(self):
         "Update css, including for demo table"
+        cc = config_dlg.get_cc()
         config_dlg.ConfigDlg.update_css(self)
         self.demo_tab.fil_css = cc[mg.CURRENT_CSS_PATH]
         self.update_demo_display()
@@ -342,6 +342,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         Things to do after the data source has changed.
         Db-related details are set at point of instantiation - need updating.
         """
+        dd = getdata.get_dd()
         if self.tab_type == mg.RAW_DISPLAY:
             # Raw Tables cannot draw on dd and demo raw tables is a child of 
             # that therefore must store in self
@@ -493,6 +494,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     # run 
     def too_long(self):
         # check not a massive report table.  Overrides default
+        dd = getdata.get_dd()
         too_long = False
         if self.tab_type == mg.RAW_DISPLAY:
             # count records in table
@@ -552,6 +554,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             to know what this report will be called (so we can know where any
             images are to link to).
         """
+        dd = getdata.get_dd()
         self.g = self.get_next_node_name()
         script_lst = []
         # set up variables required for passing into main table instantiation
@@ -771,6 +774,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         If only changing titles or subtitles, keep the rest constant.
         """
         debug = False
+        cc = config_dlg.get_cc()
         demo_html = u""
         self.btn_expand.Enable(False)
         if titles_only:

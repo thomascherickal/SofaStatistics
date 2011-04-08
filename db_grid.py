@@ -39,8 +39,6 @@ Intended behaviour: tabbing moves left and right.  If at end, takes to next line
     line if possible.
 """
 
-dd = getdata.get_dd()
-
 
 class CellMoveEvent(wx.PyCommandEvent):
     "See 3.6.1 in wxPython in Action"
@@ -79,6 +77,7 @@ class TblEditor(wx.Dialog):
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics, 
                  readonly=True, set_col_widths=True):
         self.debug = False
+        dd = getdata.get_dd()
         self.readonly = readonly
         title = _("Data from ") + "%s.%s" % (dd.db, dd.tbl)
         if self.readonly:
@@ -234,6 +233,7 @@ class TblEditor(wx.Dialog):
         Must process here.  NB dest row and col yet to be determined.
         """
         debug = False
+        dd = getdata.get_dd()
         keycode = event.GetKeyCode()
         if self.debug or debug: 
             print("on_grid_key_down - keycode %s pressed" % keycode)
@@ -462,6 +462,7 @@ class TblEditor(wx.Dialog):
             cell at destination row and col.
         """
         debug = False
+        dd = getdata.get_dd()
         # 1) move type
         was_final_col = (src_col == len(dd.flds) - 1)
         was_new_row = self.is_new_row(self.current_row_idx)
@@ -762,6 +763,7 @@ class TblEditor(wx.Dialog):
         col2skip -- so we can skip validating a cell that has just passed e.g. 
             in leaving_new_row 
         """
+        dd = getdata.get_dd()
         if self.debug: print("row_ok_to_save - row %s" % row)
         for col_idx in range(len(dd.flds)):
             if col_idx == col2skip:
@@ -783,6 +785,7 @@ class TblEditor(wx.Dialog):
             stamp but at 2pm.
         """
         debug = False
+        dd = getdata.get_dd()
         if self.debug or debug: print("update_cell - row %s col %s" % (row, col))
         bolUpdatedCell = True
         try:
@@ -808,6 +811,7 @@ class TblEditor(wx.Dialog):
             Not autonumber or timestamp etc.
         Updates rows_n and rows_to_fill as part of process
         """
+        dd = getdata.get_dd()
         data = []
         for col in range(len(dd.flds)):
             fld_name = self.dbtbl.fld_names[col]
@@ -870,6 +874,7 @@ class TblEditor(wx.Dialog):
 
     def set_new_row_ed(self, row_idx):
         "Set cell editor for cells in new row"
+        dd = getdata.get_dd()
         for col_idx in range(len(dd.flds)):
             self.grid.SetCellEditor(row_idx, col_idx, 
                                     wx.grid.GridCellTextEditor())
@@ -956,6 +961,7 @@ class TblEditor(wx.Dialog):
         event.Skip()
         
     def get_cols_n(self):
+        dd = getdata.get_dd()
         return len(dd.flds)
     
     def on_size_cols(self, event):
@@ -976,6 +982,7 @@ class TblEditor(wx.Dialog):
     def set_col_widths(self):
         "Set column widths based on display widths of fields"
         debug = False
+        dd = getdata.get_dd()
         wx.BeginBusyCursor()
         self.parent.add_feedback("Setting column widths " + \
                     "(%s columns for %s rows)..." % (self.dbtbl.GetNumberCols(), 

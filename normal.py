@@ -16,8 +16,6 @@ import getdata
 import full_html
 import projects
 
-dd = getdata.get_dd()
-
 
 class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
     
@@ -249,6 +247,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         NB For a paired sample, the 'variable' is the difference between two 
             selected variables.
         """
+        dd = getdata.get_dd()
         var_a, choice_item_a = self.get_var_a()
         var_label_a = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_a)
@@ -374,6 +373,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         event.Skip()
           
     def on_details_click(self, event):
+        dd = getdata.get_dd()
         tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
         hist_label = u"Histogram of %s\n%s" % (self.data_label, filt_msg)

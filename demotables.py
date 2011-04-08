@@ -12,9 +12,6 @@ import output
 import rawtables
 import wx
 
-dd = getdata.get_dd()
-cc = config_dlg.get_cc()
-
 
 class DemoTable(object):
     """
@@ -32,6 +29,7 @@ class DemoTable(object):
     def get_demo_html(self, css_idx):
         "Get demo HTML for table"
         debug = False
+        cc = config_dlg.get_cc()
         # sort titles out first
         if self.txt_titles.GetValue():
             self.titles = [u"%s" % x for x \
@@ -76,6 +74,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
     
     def __init__(self, txt_titles, txt_subtitles, colroot, coltree, var_labels, 
                  val_dics, chk_totals_row, chk_first_as_label):
+        dd = getdata.get_dd()
         self.txt_titles = txt_titles
         self.txt_subtitles = txt_subtitles
         self.colroot = colroot
@@ -116,6 +115,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         Update anything which might have changed first.
         Db details are updated anytime db or tbl changes.
         """
+        dd = getdata.get_dd()
         self.add_total_row = self.chk_totals_row.IsChecked()
         self.first_col_as_label = self.chk_first_as_label.IsChecked()
         unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)

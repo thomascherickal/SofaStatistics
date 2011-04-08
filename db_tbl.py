@@ -12,11 +12,10 @@ import getdata
 
 debug = False
 
-dd = getdata.get_dd()
-
 
 class DbTbl(wx.grid.PyGridTableBase):
     def __init__(self, grid, var_labels, readonly):
+        dd = getdata.get_dd()
         wx.grid.PyGridTableBase.__init__(self)
         self.debug = False
         self.grid = grid
@@ -51,6 +50,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         Using a list makes it easy to delete items and insert them.
         Zero-based.
         """
+        dd = getdata.get_dd()
         SQL_get_id_vals = u"SELECT %s FROM %s ORDER BY %s" % \
                                         (self.objqtr(self.id_col_name), 
                                          getdata.tblname_qtr(dd.dbe, dd.tbl), 
@@ -64,6 +64,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         return self.fld_names[col]
     
     def get_fld_dic(self, col):
+        dd = getdata.get_dd()
         fld_name = self.get_fld_name(col)
         return dd.flds[fld_name]
     
@@ -75,6 +76,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         idxs = [idx0, idx1, ...]
         each idx = (name, is_unique, flds)
         """
+        dd = getdata.get_dd()
         idx_is_unique = 1
         idx_flds = 2
         for idx in dd.idxs:
@@ -94,6 +96,7 @@ class DbTbl(wx.grid.PyGridTableBase):
     
     def GetNumberCols(self):
         # wxPython
+        dd = getdata.get_dd()
         num_cols = len(dd.flds)
         if self.debug:
             print(u"N cols: %s" % num_cols)
@@ -106,6 +109,7 @@ class DbTbl(wx.grid.PyGridTableBase):
 
     def set_num_rows(self):
         debug = False
+        dd = getdata.get_dd()
         SQL_rows_n = u"SELECT COUNT(*) FROM %s" % getdata.tblname_qtr(dd.dbe, 
                                                                       dd.tbl)
         dd.cur.execute(SQL_rows_n)
@@ -173,6 +177,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         """
         # try cache first
         debug = False
+        dd = getdata.get_dd()
         try:
             val = self.row_vals_dic[row][col]
         except KeyError:
@@ -259,6 +264,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             updated.
         """
         debug = False
+        dd = getdata.get_dd()
         if self.debug or debug: 
             print(u"SetValue - row %s, " % row +
             u"col %s with value \"%s\" ************************" % (col, value))

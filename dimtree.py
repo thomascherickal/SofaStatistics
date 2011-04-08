@@ -17,8 +17,6 @@ SORT_OPT_NONE = 0 # No sorting options
 SORT_OPT_BY_LABEL = 1 # Only provide option of sorting by label
 SORT_OPT_ALL = 2 # Option of sorting by labels and freqs
 
-dd = getdata.get_dd()
-
 """
 Dimtree (tree of dimensions i.e. rows and columns) handles the GUI configuration 
     of the report table.  All it does is collect the right information to pass 
@@ -181,6 +179,7 @@ class DimTree(object):
         Variable name not applicable when a column config item 
             (col_no_vars_item) rather than a normal column variable.
         """
+        dd = getdata.get_dd()
         item_conf = lib.ItemConfig()
         # reuse stored item config from same sort if set previously
         if self.tab_type != mg.RAW_DISPLAY: # Data list has nothing to reuse
@@ -266,6 +265,7 @@ class DimTree(object):
         Try to add var under selected var.
         Only do so if OK e.g. no duplicate text in either dim.
         """
+        dd = getdata.get_dd()
         var_names = dd.flds.keys()
         sorted_choices, sorted_vars = lib.get_sorted_choice_items(
                                                     self.var_labels, var_names)

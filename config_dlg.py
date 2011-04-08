@@ -9,10 +9,9 @@ import my_globals as mg
 import config_globals
 import lib
 import getdata
-# import filtselect # prevent circular import
+import output
+#import filtselect # prevent circular import (inherits from Dlg not loaded yet)
 import webbrowser
-
-dd = getdata.get_dd()
 
 def get_cc():
     debug = False
@@ -25,8 +24,6 @@ def get_cc():
                          mg.CURRENT_SCRIPT_PATH: proj_dic[mg.PROJ_FIL_SCRIPT]}
         if debug: print("Updated mg.CURRENT_CONFIG")
     return mg.CURRENT_CONFIG
-import output # uses get_cc
-cc = get_cc()
 
 # explanation level
 def get_szr_level(parent, panel, horiz=True):
@@ -62,6 +59,7 @@ def path2style(path):
 class ExtraOutputConfigDlg(wx.Dialog):
     def __init__(self, parent, readonly):
         debug = False
+        cc = get_cc()
         wx.Dialog.__init__(self, parent=parent, 
                            title=_("Extra output settings"), 
                            style=wx.CAPTION|wx.SYSTEM_MENU, 
@@ -143,6 +141,7 @@ class ExtraOutputConfigDlg(wx.Dialog):
 
     def on_ok(self, event):
         debug = False
+        cc = get_cc()
         cc[mg.CURRENT_VDTS_PATH] = self.txt_var_dets_file.GetValue()
         if mg.ADVANCED:
             cc[mg.CURRENT_SCRIPT_PATH] = self.txt_script_file.GetValue()
@@ -211,6 +210,7 @@ class ConfigDlg(object):
         lbl_databases.SetFont(self.LABEL_FONT)
         # get various db settings
         # set up self.drop_dbs and self.drop_tbls
+        dd = getdata.get_dd()
         self.drop_dbs, self.drop_tbls = getdata.get_data_dropdowns(self, panel, 
                                                                 dd.default_dbs)
         # 2) Tables
@@ -237,6 +237,7 @@ class ConfigDlg(object):
         Each widget has a set of events ready to go as well.
         """
         debug = False
+        cc = get_cc()
         self.readonly = readonly
         browse = _("Browse")
         bx_report_config = wx.StaticBox(panel, -1, 
@@ -292,6 +293,7 @@ class ConfigDlg(object):
     
     def update_var_dets(self):
         "Update all variable details, including those already displayed"
+        cc = get_cc()
         (self.var_labels, self.var_notes, self.var_types, 
                      self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
     
@@ -319,6 +321,7 @@ class ConfigDlg(object):
         return titles, subtitles
     
     def too_long(self):
+        dd = getdata.get_dd()
         # check not a massive table
         too_long = False
         # count records in table
@@ -393,7 +396,7 @@ class ConfigDlg(object):
         getdata.refresh_tbl_dets(self)
 
     def filters(self):
-        import filtselect
+        import filtselect # by now, DLG will be available to inherit from
         dlg = filtselect.FiltSelectDlg(self, self.var_labels, self.var_notes, 
                                        self.var_types, self.val_dics)
         dlg.ShowModal()
@@ -412,6 +415,7 @@ class ConfigDlg(object):
     # report output
     def on_btn_report_path(self, event):
         "Open dialog and takes the report file selected (if any)"
+        cc = get_cc()
         dlg_get_file = wx.FileDialog(self, 
             _("Choose or create a report output file:"), 
             defaultDir=mg.REPORTS_PATH, defaultFile=u"", 
@@ -426,6 +430,7 @@ class ConfigDlg(object):
     def on_btn_run(self, event, OUTPUT_MODULES, get_script_args, 
                    new_has_dojo=False):
         debug = False
+        cc = get_cc()
         if self.too_long():
             return
         wx.BeginBusyCursor()
@@ -457,6 +462,7 @@ class ConfigDlg(object):
         Open report in user's default web browser.
         """
         debug = False
+        cc = get_cc()
         if not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH]):
             try:
                 self.can_run_report
@@ -482,6 +488,7 @@ class ConfigDlg(object):
 
     def on_report_file_lost_focus(self, event):
         "Reset report output file"
+        cc = get_cc()
         cc[mg.CURRENT_REPORT_PATH] = self.txt_report_file.GetValue()
         event.Skip()
     
@@ -492,6 +499,7 @@ class ConfigDlg(object):
     
     def update_css(self):
         "Update css, including for demo table"
+        cc = get_cc()
         cc[mg.CURRENT_CSS_PATH] = \
             style2path(self.drop_style.GetStringSelection())
         

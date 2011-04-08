@@ -22,8 +22,6 @@ FILE_ODS = u"ods"
 FILE_UNKNOWN = u"unknown"
 GAUGE_STEPS = 50
 
-dd = getdata.get_dd()
-
 
 class MismatchException(Exception):
     def __init__(self, fldname, expected_fld_type, details):
@@ -888,6 +886,7 @@ class ImportFileSelectDlg(wx.Dialog):
         Identify type of file by extension and open dialog if needed
             to get any additional choices e.g. separator used in 'csv'.
         """
+        dd = getdata.get_dd()
         self.align_btns_to_importing(importing=True)
         self.progbar.SetValue(0)
         file_path = self.txt_file.GetValue()

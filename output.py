@@ -64,10 +64,6 @@ import showhtml
 # do not use os.linesep for anything going to be read and exec'd
 # in Windows the \r\n makes it fail.
 
-dd = getdata.get_dd()
-cc = config_dlg.get_cc()
-
-
 def get_stats_chart_colours(css_fil):
     (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
         gridline_width, stroke_width, tooltip_border_colour, 
@@ -410,6 +406,7 @@ def get_css_dets():
     If not there (empty report or manually broken by user?) make and use a new
         one using cc[mg.CURRENT_CSS_PATH].
     """
+    cc = config_dlg.get_cc()
     if not os.path.exists(cc[mg.CURRENT_CSS_PATH]):
         retval = wx.MessageBox(_("The CSS style file '%s' doesn't exist. "
                             "Continue using the default style instead?") % 
@@ -644,6 +641,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
         integers.
     """
     debug = False
+    cc = config_dlg.get_cc()
     new_no_hdr = extract_html_body(new_html)
     new_js_n_charts = None # init
     n_charts_in_new = get_makechartRenumbers_n(new_html)
@@ -711,6 +709,8 @@ def _strip_script(script):
     return stripped
 
 def export_script(script, css_fils, new_has_dojo=False):
+    dd = getdata.get_dd()
+    cc = config_dlg.get_cc()
     modules = ["my_globals as mg", "core_stats", "dimtables", "getdata", 
                "output", "rawtables", "stats_output"]
     if os.path.exists(cc[mg.CURRENT_SCRIPT_PATH]):
@@ -742,6 +742,7 @@ def add_divider_code(f, tbl_filt_label, tbl_filt):
     """
     Adds divider code to a script file.
     """
+    dd = getdata.get_dd()
     f.write(u"\nsource = output.get_source(u\"%s\", u\"%s\")" % (dd.db, dd.tbl))
     f.write(u"\ndivider = output.get_divider(source, "
             u" u\"\"\" %s \"\"\", u\"\"\" %s \"\"\")" % (tbl_filt_label, 
@@ -790,6 +791,7 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     f - open file handle ready for writing
     """
     debug = False
+    dd = getdata.get_dd()
     full_datestamp = u"\n# Script exported %s" % lib.get_unicode_datestamp()
     # Fresh connection for each in case it changes in between tables
     f.write(u"#%s" % (u"-"*65))
@@ -834,6 +836,8 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     add_to_report -- also append result to current report.
     """
     debug = False
+    dd = getdata.get_dd()
+    cc = config_dlg.get_cc()
     # generate script
     f = codecs.open(mg.INT_SCRIPT_PATH, "w", "utf-8")
     if debug: print(css_fils)

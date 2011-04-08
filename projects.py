@@ -13,8 +13,6 @@ import config_dlg
 import settings_grid
 
 LOCAL_PATH = mg.LOCAL_PATH
-dd = getdata.get_dd()
-cc = config_dlg.get_cc()
 
 def get_projs():
     """
@@ -63,6 +61,7 @@ def update_val_labels(val_dics, var_name, val_type, keyvals):
     
 def update_vdt(var_labels, var_notes, var_types, val_dics):
     # update lbl file
+    cc = config_dlg.get_cc()
     f = codecs.open(cc[mg.CURRENT_VDTS_PATH], "w", encoding="utf-8")
     f.write(u"\nvar_labels=" + pprint.pformat(var_labels))
     f.write(u"\nvar_notes=" + pprint.pformat(var_notes))
@@ -78,6 +77,7 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
         value labels.  Then stores in appropriate labels file.
     Returns True if user clicks OK to properties (presumably modified).
     """
+    dd = getdata.get_dd()
     # get val_dic for variable (if any) and display in editable list
     init_settings_data = []
     if val_dics.get(var_name):
@@ -126,6 +126,7 @@ def get_approp_var_names(var_types=None, min_data_type=mg.VAR_TYPE_CAT):
     """
     Get filtered list of variable names according to minimum data type.
     """
+    dd = getdata.get_dd()
     if min_data_type == mg.VAR_TYPE_CAT:
         var_names = [x for x in dd.flds]
     elif min_data_type == mg.VAR_TYPE_ORD:
@@ -207,6 +208,7 @@ class ListVarsDlg(wx.Dialog):
         var_label = lib.get_item_label(item_labels=self.var_labels, 
                                        item_val=var_name)
         if debug:
+            dd = getdata.get_dd()
             print(var_name)
             pprint.pprint(dd.flds)
         updated = set_var_props(choice_item, var_name, var_label,
@@ -628,6 +630,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
        
     def on_ok(self, event):
         # get the data (separated for easier debugging)
+        cc = config_dlg.get_cc()
         proj_name = self.txt_name.GetValue()
         if self.readonly:
             self.parent.store_proj_name(u"%s.proj" % proj_name)

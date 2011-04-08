@@ -19,8 +19,6 @@ import core_stats
 import getdata
 import output
 
-dd = getdata.get_dd()
-
 def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls, 
                    fld_measure, fld_measure_lbls, sort_opt):
     """
@@ -291,6 +289,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
     bin_labels -- [u"1 to under 2", u"2 to under 3", ...]
     """
     debug = False
+    dd = getdata.get_dd()
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     sql_dic = {u"fld_gp": objqtr(fld_gp), u"fld_measure": objqtr(fld_measure),
@@ -380,6 +379,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, fld_x_axis, fld_y_axis,
     unique -- unique x-y pairs only
     """
     debug = False
+    dd = getdata.get_dd()
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     sql_dic = {u"fld_gp": objqtr(fld_gp),

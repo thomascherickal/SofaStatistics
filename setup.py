@@ -520,7 +520,7 @@ def setup_folders():
         installer_newer_status_known) = get_installer_version_status(mg.LOCAL_PATH)
     if show_early_steps: print(u"Just ran get_installer_version_status")
     try:
-        # 1) create local SOFA folder if missing. Otherwise, leave intact for now
+        # 1) make local SOFA folder if missing. Otherwise, leave intact for now
         local_path_setup_needed = not os.path.exists(mg.LOCAL_PATH)
         if local_path_setup_needed:
             make_local_subfolders(mg.LOCAL_PATH, local_subfolders)
@@ -572,18 +572,17 @@ def setup_folders():
         msgapp = ErrMsgApp(msg)
         msgapp.MainLoop()
         del msgapp
+    return local_path_setup_needed
 
-setup_folders()
-    
 # local importing
 try:
-    about = u"getdata"
-    import getdata # call before all modules relying on mg.DATA_DETS as dd
     about = u"config_dlg"
     import config_dlg # actually uses proj dict and connects to sofa_db. Thus
         # can't rely on wx.msgboxes etc because wx.App not up yet
     about = u"full_html"
     import full_html
+    about = u"getdata"
+    import getdata
     about = u"projects"
     import projects
     about = u"projselect"

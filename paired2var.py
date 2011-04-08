@@ -16,8 +16,6 @@ import projects
 OUTPUT_MODULES = ["my_globals as mg", "core_stats", "getdata", "output", 
                   "stats_output"]
 
-cc = config_dlg.get_cc()
-
 
 class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     """
@@ -27,6 +25,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     """
     
     def __init__(self, title):
+        cc = config_dlg.get_cc()
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
                            pos=(mg.HORIZ_OFFSET,0), 
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
@@ -293,6 +292,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             putting output in special location (INT_REPORT_PATH) and into report 
             file, and finally, display html output.
         """
+        cc = config_dlg.get_cc()
         run_ok = self.test_config_ok()
         add_to_report = self.chk_add_to_report.IsChecked()
         if run_ok:
@@ -321,6 +321,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             the new exported script.
         If the file exists and is not empty, append the script on the end.
         """
+        cc = config_dlg.get_cc()
         export_ok = self.test_config_ok()
         if export_ok:
             add_to_report = self.chk_add_to_report.IsChecked()

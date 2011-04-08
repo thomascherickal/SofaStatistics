@@ -13,9 +13,6 @@ import getdata
 import projects
 import settings_grid
 
-dd = getdata.get_dd()
-cc = config_dlg.get_cc()
-
 TO = u"TO"
 MIN = u"MIN"
 MAX = u"MAX"
@@ -263,6 +260,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             mg.TBL_FLD_NAME, mg.TBL_FLD_NAME_ORIG, mg.TBL_FLD_TYPE, 
             mg.TBL_FLD_TYPE_ORIG.
         """
+        cc = config_dlg.get_cc()
         self.tblname = tblname
         self.warned = [] # For cell_response_func.  Lists vars warned about.
         col_dets = [
@@ -385,6 +383,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             rename tmp table back to orig name. That way, we haven't wiped the 
             original table merely because of a recode problem
         """
+        dd = getdata.get_dd()
         dd.con.commit()
         getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
@@ -408,8 +407,12 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         idx_new_fld_in_oth_name_types -- needed an index which could be used in 
             oth_name_types. An idx for the orig field wouldn't work if the field 
             was the sofa_id.
+        Doesn't use ALTER TABLE mytable ADD newvar syntax etc followed by 
+        UPDATE mytable SET newvar = ... because we want to put the new variable 
+            in straight after the source variable.
         """
         debug = False
+        dd = getdata.get_dd()
         # rename table to tmp
         getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_drop_tmp = u"DROP TABLE IF EXISTS %s" % \
@@ -443,7 +446,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         for name, unused in name_types_pre_new:
             fld_clauses_lst.append(objqtr(name))
         fld_clauses_lst.append(case_when)
-        # want fields after new field (if any).  Skip new recoded fld.
+        # want fields after new field (if any). Skip new recoded fld.
         name_types_post_new = oth_name_types[idx_new_fld_in_oth_name_types+1:]
         if debug: print(u"name_types_post_new: %s" % name_types_post_new)
         for name, unused in name_types_post_new:

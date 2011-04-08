@@ -7,8 +7,6 @@ import lib
 import getdata
 import projects
 
-dd = getdata.get_dd()
-
 def get_val(raw_val, flds, fld_name):
     """
     Value is validated first.  Raw value will always be a string.
@@ -53,6 +51,7 @@ def get_val(raw_val, flds, fld_name):
 class FiltSelectDlg(wx.Dialog):
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics):
         debug = False
+        dd = getdata.get_dd()
         self.var_labels = var_labels
         self.var_notes = var_notes
         self.var_types = var_types
@@ -188,6 +187,7 @@ class FiltSelectDlg(wx.Dialog):
         event.Skip()
         
     def on_delete(self, event):
+        dd = getdata.get_dd()
         try:
             del mg.DBE_TBL_FILTS[dd.dbe][dd.db][dd.tbl]
         except KeyError:
@@ -205,6 +205,7 @@ class FiltSelectDlg(wx.Dialog):
     def get_quick_filter(self):
         "Get filter from quick setting"
         debug = False
+        dd = getdata.get_dd()
         idx_var = self.drop_vars.GetSelection()
         fld_name = self.sorted_var_names[idx_var]      
         val = get_val(self.txt_val.GetValue(), dd.flds, fld_name)
@@ -215,6 +216,7 @@ class FiltSelectDlg(wx.Dialog):
 
     def on_ok(self, event):
         debug = False
+        dd = getdata.get_dd()
         wx.BeginBusyCursor()
         tbl_filt_label = self.txt_label.GetValue() 
         if self.rad_quick.GetValue():

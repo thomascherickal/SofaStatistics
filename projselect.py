@@ -11,8 +11,6 @@ import getdata
 import config_dlg
 import projects
 
-dd = getdata.get_dd()
-
 
 class ProjSelectDlg(wx.Dialog):
     def __init__(self, parent, projs, proj):
@@ -156,6 +154,7 @@ class ProjSelectDlg(wx.Dialog):
         self.Destroy()
     
     def on_ok(self, event):
+        dd = getdata.get_dd()
         proj_sel_id = self.drop_projs.GetSelection()
         fil_proj = self.projs[proj_sel_id]
         proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 

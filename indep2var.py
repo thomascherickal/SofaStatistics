@@ -18,9 +18,6 @@ import projects
 OUTPUT_MODULES = ["my_globals as mg", "core_stats", "getdata", "output", 
                   "stats_output"]
 
-dd = getdata.get_dd()
-cc = config_dlg.get_cc()
-
 def get_range_idxs(vals, val_a, val_b):
     """
     Get range indexes for two values from list of values.
@@ -52,6 +49,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     inc_gp_by_select = False
     
     def __init__(self, title, takes_range=False):
+        cc = config_dlg.get_cc()
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
                            pos=(mg.HORIZ_OFFSET, 0), 
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|
@@ -404,6 +402,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             than 20 unique values, only show first 20 and inform user.
         """
         debug = False
+        dd = getdata.get_dd()
         n_high = 250000
         objqtr = getdata.get_obj_quoter_func(dd.dbe)
         SQL_get_count = "SELECT COUNT(*) FROM %s %s" % \
@@ -486,6 +485,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         Sets choices for drop_group_a and B accordingly.
         """
         debug = False
+        dd = getdata.get_dd()
         wx.BeginBusyCursor()
         var_gp, choice_item = self.get_group_by()
         if not choice_item or choice_item == mg.DROP_SELECT:
@@ -512,6 +512,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         Returns var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, 
             label_b, var_avg, label_avg.
         """
+        dd = getdata.get_dd()
         selection_idx_gp = self.drop_group_by.GetSelection()
         var_gp = self.sorted_var_names_by[selection_idx_gp]
         label_gp = lib.get_item_label(item_labels=self.var_labels, 
@@ -548,6 +549,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             putting output in special location (INT_REPORT_PATH) and into report 
             file, and finally, display html output.
         """
+        cc = config_dlg.get_cc()
         run_ok = self.test_config_ok()
         add_to_report = self.chk_add_to_report.IsChecked()
         if run_ok:
@@ -605,6 +607,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             the new exported script.
         If the file exists and is not empty, append the script on the end.
         """
+        cc = config_dlg.get_cc()
         export_ok = self.test_config_ok()
         if export_ok:
             add_to_report = self.chk_add_to_report.IsChecked()

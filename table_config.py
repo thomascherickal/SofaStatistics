@@ -15,8 +15,6 @@ import projects
 import recode
 import settings_grid
 
-dd = getdata.get_dd()
-cc = config_dlg.get_cc()
 objqtr = dbe_sqlite.quote_obj
 
 def reset_default_dd(tbl=None, add_checks=False):
@@ -24,6 +22,7 @@ def reset_default_dd(tbl=None, add_checks=False):
     Completely reset connection etc with option of changing add_checks setting.
     """
     debug = False
+    dd = getdata.get_dd()
     if debug: print("Resetting connection to default db. Add_checks: %s" % 
                     add_checks)
     try:
@@ -96,6 +95,7 @@ def has_data_changed(orig_data, final_data):
     return data_changed
 
 def copy_orig_tbl(orig_tbl_name):
+    dd = getdata.get_dd()
     dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
     SQL_drop_tmp2 = u"DROP TABLE IF EXISTS %s" % \
@@ -117,6 +117,7 @@ def restore_copy_tbl(orig_tbl_name):
     """
     Will only work if orig tbl already wiped
     """
+    dd = getdata.get_dd()
     dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
     SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
@@ -125,6 +126,7 @@ def restore_copy_tbl(orig_tbl_name):
     dd.cur.execute(SQL_rename_tbl)
 
 def wipe_tbl(tblname):
+    dd = getdata.get_dd()
     dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
     SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
@@ -134,11 +136,12 @@ def wipe_tbl(tblname):
  
 def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     """
-    Make table for purpose of forcing all data into strict type fields.  Not
+    Make table for purpose of forcing all data into strict type fields. Not
         necessary to check sofa_id field (autoincremented integer) so not 
         included.
-    Will be dropped when making redesigned table.  If not, will
-    Make table with all the fields apart from the sofa_id.  The fields
+    Will be dropped when making redesigned table. If not, will not be possible 
+        to interact with database using tools like SQLite Database Browser.
+    Make table with all the fields apart from the sofa_id. The fields
         should be set with strict check constraints so that, even though the
         table is SQLite, it cannot accept inappropriate data.
     Try to insert into strict table all fields in original table (apart from 
@@ -148,6 +151,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
     debug = False
+    dd = getdata.get_dd()
     if debug: print(u"DBE in make_strict_typing_tbl is: ", dd.dbe)
     reset_default_dd(tbl=orig_tbl_name, add_checks=True) # Can't deactivate the 
                   # user-defined functions until the tmp table has been deleted.
@@ -176,6 +180,7 @@ def strict_cleanup(restore_tblname):
     Must happen one way or another - whether an error or not
     """
     debug = False
+    dd = getdata.get_dd()
     if debug:
         print(u"About to drop %s" % mg.STRICT_TMP_TBL)
         SQL_get_tbls = u"""SELECT name 
@@ -209,6 +214,7 @@ def make_redesigned_tbl(final_name, oth_name_types):
         functions.
     """
     debug = False
+    dd = getdata.get_dd()
     if debug: print(u"DBE in make_redesigned_tbl is: ", dd.dbe)
     tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.STRICT_TMP_TBL)
     unquoted_final_name = final_name
@@ -569,6 +575,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         Fill in rest with demo data.
         """
         debug = False
+        dd = getdata.get_dd()
         orig_tblname = self.tblname_lst[0]
         flds_clause = u", ".join([objqtr(x) for x in db_flds_orig_names
                                   if x is not None])
@@ -754,6 +761,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             only SOFA will be able to open the SQLite database.
         """
         debug = False
+        dd = getdata.get_dd()
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
         tbl_name = self.tblname_lst[0]
         if debug: print(u"DBE in make_new_tbl is: ", dd.dbe)
@@ -779,6 +787,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             anymore.
         """
         debug = False
+        dd = getdata.get_dd()
         orig_tbl_name = dd.tbl
         # other (i.e. not the sofa_id) field details
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
@@ -817,6 +826,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             the original name.
         """
         debug = False
+        dd = getdata.get_dd()
         if not self.readonly:
             # NB must run Validate on the panel because the objects are 
             # contained by that and not the dialog itself. 
@@ -852,6 +862,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         Also need to update any state information the grid relies on.
         NB typically working on the tabentry object or its grid, not on self.
         """
+        dd = getdata.get_dd()
         self.tabentry.any_editor_shown = False
         self.tabentry.new_editor_shown = False
         # Delete all rows after the first one (sofa_id) and before the new one
@@ -861,8 +872,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.tabentry.grid.ForceRefresh()
         self.tabentry.safe_layout_adjustment()
         # get list of name/type tuples (including sofa_id)
-        init_settings_data = getdata.get_init_settings_data(dd, 
-                                                            self.tblname)
+        init_settings_data = getdata.get_init_settings_data(dd, self.tblname)
         self.setup_settings_data(init_settings_data)
         self.tabentry.rows_n = len(init_settings_data) + 1 # + new row
         self.tabentry.rows_to_fill = self.tabentry.rows_n
@@ -969,6 +979,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         """
         Override so we can extend to include table name.
         """
+        dd = getdata.get_dd()
         if self.readonly:
             self.Destroy()
         else:
@@ -1011,6 +1022,7 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
     def __init__(self, frame, panel, readonly, grid_size, col_dets, 
                  init_settings_data, settings_data, insert_data_func=None, 
                  cell_invalidation_func=None, cell_response_func=None):
+        cc = config_dlg.get_cc()
         self.frame = frame
         self.readonly = readonly
         force_focus = False

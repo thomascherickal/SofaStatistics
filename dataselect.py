@@ -12,9 +12,6 @@ import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
 import table_config
 
-dd = getdata.get_dd()
-cc = config_dlg.get_cc()
-
 
 class DataSelectDlg(wx.Dialog):
     def __init__(self, parent, proj_name):
@@ -94,6 +91,7 @@ class DataSelectDlg(wx.Dialog):
         lib.safe_end_cursor()
 
     def update_var_dets(self):
+        cc = config_dlg.get_cc()
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
 
@@ -106,6 +104,7 @@ class DataSelectDlg(wx.Dialog):
         Can only design tables in the default SOFA database.
         Only need read only option if outside the default sofa database.
         """
+        dd = getdata.get_dd()
         sofa_default_db = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)
         self.btn_design.Enable(sofa_default_db)
         delete_enable = (sofa_default_db and dd.tbl != mg.DEMO_TBL)
@@ -132,6 +131,7 @@ class DataSelectDlg(wx.Dialog):
     def on_open(self, event):
         ""
         debug = False
+        dd = getdata.get_dd()
         if not dd.has_unique:
             msg = _("Table \"%s\" cannot be opened because it lacks a unique "
                     "index")
@@ -173,6 +173,7 @@ class DataSelectDlg(wx.Dialog):
         """
         Delete selected table (giving user choice to back out).
         """
+        dd = getdata.get_dd()
         if wx.MessageBox(_("Do you wish to delete \"%s\"?") % dd.tbl, 
                            caption=_("DELETE"), 
                            style=wx.YES_NO|wx.NO_DEFAULT) == wx.YES:
@@ -197,6 +198,7 @@ class DataSelectDlg(wx.Dialog):
         No need to change the data_dets because we are using the same one.
         """
         debug = False
+        dd = getdata.get_dd()
         readonly = False # only read only if the demo table
         sofa_demo_tbl = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB 
                          and dd.tbl == mg.DEMO_TBL)
@@ -230,6 +232,7 @@ class DataSelectDlg(wx.Dialog):
             rename.  Must be able to add fields, and rename fields.
         """
         debug = False
+        dd = getdata.get_dd()
         sofa_default_db = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)
         try:
             con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)

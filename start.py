@@ -30,14 +30,21 @@ dev_debug = True # relates to errors etc once GUI application running.
 show_early_steps = True # same in setup
 test_lang = False
 
+import sys
+import platform
+# About letting other modules even be found and called
+MAC_PATH = u"/Library/sofastats"
+if platform.system() == "Darwin":
+    sys.path.insert(0, MAC_PATH) # start is running from Apps folder
+
 import setup # if any modules are going to fail, it will be in here
+LOCAL_PATH_SETUP_NEEDED = setup.setup_folders()
 
 import codecs
 import datetime
 import gettext
 import glob
 import os
-import sys
 import traceback
 import wx
 
@@ -61,6 +68,9 @@ import lib
 import config_globals
 import config_dlg
 import getdata
+import projects
+import projselect
+import quotes
 
 
 def get_blank_btn_bmp(xpm=u"blankbutton.xpm"):
@@ -83,6 +93,41 @@ def get_next_y_pos(start, height):
         yield start + (i*height)
         i += 1
 
+class FeedbackDlg(wx.Dialog):
+    def __init__(self, parent):
+        wx.Dialog.__init__(self, parent=parent, title=_("Feedback"), 
+                           style=wx.CAPTION|wx.SYSTEM_MENU, 
+                           pos=(mg.HORIZ_OFFSET+100,300))
+        self.parent = parent
+        self.panel = wx.Panel(self)
+        self.szr_main = wx.BoxSizer(wx.VERTICAL)
+        szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=50)
+        szr_btns.AddGrowableCol(0,1) # idx, propn
+        btn_exit = wx.Button(self.panel, -1, _("Just Exit"))
+        btn_exit.Bind(wx.EVT_BUTTON, self.on_btn_exit)
+        btn_feedback = wx.Button(self.panel, -1, _("Give Quick Feedback"))
+        btn_feedback.Bind(wx.EVT_BUTTON, self.on_btn_feedback)
+        szr_btns.Add(btn_exit, 0)
+        szr_btns.Add(btn_feedback, 0, wx.ALIGN_RIGHT)
+        txt_invitation = wx.StaticText(self.panel, -1, 
+                            _(u"Did SOFA meet your needs? Please let us know "
+                              u"by answering a short survey."))
+        self.szr_main.Add(txt_invitation, 1, wx.GROW|wx.ALL, 10)
+        self.szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
+        self.panel.SetSizer(self.szr_main)
+        self.szr_main.SetSizeHints(self)
+        self.Layout()
+        
+    def on_btn_exit(self, event):
+        self.Destroy()
+        
+    def on_btn_feedback(self, event):
+        import webbrowser
+        url = u"http://www.sofastatistics.com/feedback.htm"
+        webbrowser.open_new_tab(url)
+        self.Destroy()
+        event.Skip()
+        
 
 class SofaApp(wx.App):
 
@@ -235,7 +280,7 @@ class StartFrame(wx.Frame):
         wx.Frame.__init__(self, None, title=_("SOFA Start"), 
                   size=(self.form_width, self.form_height), 
                   pos=(self.form_pos_left,-1),
-                  style=wx.CAPTION|wx.MINIMIZE_BOX|wx.CLOSE_BOX|wx.SYSTEM_MENU)
+                  style=wx.CAPTION|wx.MINIMIZE_BOX|wx.SYSTEM_MENU) #wx.CLOSE_BOX|
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize())
@@ -520,7 +565,10 @@ class StartFrame(wx.Frame):
                 import showhtml
                 import urllib # http://docs.python.org/library/urllib.html
                 file2read = mg.SOFASTATS_CONNECT_URL
-                url2open = u"http://www.sofastatistics.com/%s" % file2read
+                # so I can see which versions are still in use
+                # without violating privacy etc
+                url2open = u"http://www.sofastatistics.com/%s?version=%s" % \
+                                                        (file2read, mg.VERSION)
                 url_reply = urllib.urlopen(url2open)
                 if debug: print("Checked sofastatistics.com connection: %s" 
                                 % new_version)
@@ -931,6 +979,9 @@ class StartFrame(wx.Frame):
             if debug: print(delme)
             os.remove(delme)
         lib.safe_end_cursor()
+        if LOCAL_PATH_SETUP_NEEDED: # if first use, pop up on way out
+            dlg = FeedbackDlg(self)
+            dlg.ShowModal()
         self.Destroy()
         sys.exit()
         

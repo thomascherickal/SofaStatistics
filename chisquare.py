@@ -7,8 +7,6 @@ import lib
 import getdata
 import paired2var
 
-dd = getdata.get_dd()
-
 
 class DlgConfig(paired2var.DlgPaired2VarConfig):
     
@@ -32,6 +30,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
     
     def get_script(self, css_idx, css_fil, add_to_report, report_name):
         "Build script from inputs"
+        dd = getdata.get_dd()
         script_lst = []
         var_a, label_a, var_b, label_b = self.get_drop_vals()
         script_lst.append(u"add_to_report = %s" % ("True" if add_to_report
