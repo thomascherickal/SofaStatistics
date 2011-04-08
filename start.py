@@ -353,15 +353,17 @@ class StartFrame(wx.Frame):
         # buttons
         btn_font_sz = 14 if mg.PLATFORM == mg.MAC else 10
         g = get_next_y_pos(284, self.btn_drop)
-        # on-line help
-        bmp_btn_help = \
+        # get started
+        bmp_btn_get_started = \
            lib.add_text_to_bitmap(get_blank_btn_bmp(xpm=u"blankhelpbutton.xpm"), 
-                                  _("Online Help"), btn_font_sz, "white")
-        self.btn_help = wx.BitmapButton(self.panel, -1, bmp_btn_help, 
-                                        pos=(self.btn_left, g.next()))
-        self.btn_help.Bind(wx.EVT_BUTTON, self.on_help_click)
-        self.btn_help.Bind(wx.EVT_ENTER_WINDOW, self.on_help_enter)
-        self.btn_help.SetDefault()
+                                  _("Get Started"), btn_font_sz, "white")
+        self.btn_get_started = wx.BitmapButton(self.panel, -1, 
+                                               bmp_btn_get_started, 
+                                               pos=(self.btn_left, g.next()))
+        self.btn_get_started.Bind(wx.EVT_BUTTON, self.on_get_started_click)
+        self.btn_get_started.Bind(wx.EVT_ENTER_WINDOW, 
+                                  self.on_get_started_enter)
+        self.btn_get_started.SetDefault()
         # Data entry
         bmp_btn_data = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                                     _("Enter/Edit Data"), btn_font_sz, "white")
@@ -399,6 +401,15 @@ class StartFrame(wx.Frame):
         self.btn_statistics.Bind(wx.EVT_ENTER_WINDOW, self.on_stats_enter)
         # Right
         g = get_next_y_pos(284, self.btn_drop)
+        # on-line help
+        bmp_btn_help = \
+           lib.add_text_to_bitmap(get_blank_btn_bmp(xpm=u"blankhelpbutton.xpm"), 
+                                  _("Online Help"), btn_font_sz, "white")
+        self.btn_help = wx.BitmapButton(self.panel, -1, bmp_btn_help, 
+                                        pos=(self.btn_right, g.next()))
+        self.btn_help.Bind(wx.EVT_BUTTON, self.on_help_click)
+        self.btn_help.Bind(wx.EVT_ENTER_WINDOW, self.on_help_enter)
+        self.btn_help.SetDefault()
         # Proj
         bmp_btn_proj = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                                     _("Select Project"), btn_font_sz, "white")
@@ -437,10 +448,20 @@ class StartFrame(wx.Frame):
         # http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3045245
         self.txtWelcome = _("Welcome to SOFA Statistics.  Hovering the mouse "
                             "over the buttons lets you see what you can do.")
+        if mg.PLATFORM == mg.MAC:
+            self.help_font = wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        elif mg.PLATFORM == mg.WINDOWS:
+            self.help_font = wx.Font(10.5, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        else:
+            self.help_font = wx.Font(10.5, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         try:
             # help images
             help = os.path.join(mg.SCRIPT_PATH, u"images", u"help.gif")
             self.bmp_help = wx.Image(help, wx.BITMAP_TYPE_GIF).ConvertToBitmap()
+            get_started = os.path.join(mg.SCRIPT_PATH, u"images",
+                                       u"step_by_step.gif")
+            self.bmp_get_started = \
+                     wx.Image(get_started, wx.BITMAP_TYPE_GIF).ConvertToBitmap()
             self.bmp_proj = wx.Image(proj, wx.BITMAP_TYPE_GIF).ConvertToBitmap()
             prefs = os.path.join(mg.SCRIPT_PATH, u"images", u"prefs.gif")
             self.bmp_prefs = \
@@ -657,7 +678,7 @@ class StartFrame(wx.Frame):
         NB painting like this sets things behind the controls.
         """
         try:
-            panel_dc = wx.PaintDC(self.panel)
+            panel_dc = wx.ClientDC(self.panel)
             panel_dc.DrawBitmap(self.bmp_sofabg, 0, 0, True)
             if self.upgrade_available:
                 panel_dc.DrawBitmap(self.bmp_upgrade, self.version_right+95, 4, 
@@ -691,6 +712,7 @@ class StartFrame(wx.Frame):
                                  "\nthe user-friendly, open-source statistics,"
                                  "\nanalysis & reporting package"), 
                wx.Rect(self.main_left, 115, 100, 100))
+            panel_dc.SetFont(self.help_font)
             panel_dc.DrawLabel(lib.get_text_to_draw(self.txtWelcome, 
                                                     self.max_help_text_width), 
                         wx.Rect(self.main_left, self.help_text_top, 
@@ -734,6 +756,29 @@ class StartFrame(wx.Frame):
         self.active_proj = u"%s.proj" % proj_text
         self.Refresh()
 
+    def on_get_started_click(self, event):
+        import webbrowser
+        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
+              u"?id=help:getting_started"
+        webbrowser.open_new_tab(url)
+        event.Skip()
+
+    def on_get_started_enter(self, event):
+        panel_dc = wx.ClientDC(self.panel)
+        self.draw_blank_wallpaper(panel_dc)
+        panel_dc.DrawBitmap(self.bmp_get_started, 
+                            self.help_img_left+self.help_img_offset, 
+                            self.help_img_top-25, True)
+        panel_dc.SetTextForeground(self.text_brown)
+        panel_dc.SetFont(self.help_font)
+        txt_get_started = _(u"Step-by-step examples with screen-shots "
+                            u"to get you started.")
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_get_started, 
+                                                self.max_help_text_width), 
+                    wx.Rect(self.main_left, self.help_text_top, 
+                            self.help_text_width, 260))
+        event.Skip()
+
     def on_help_click(self, event):
         import webbrowser
         url = u"http://www.sofastatistics.com/help.php"
@@ -747,14 +792,16 @@ class StartFrame(wx.Frame):
                             self.help_img_left+self.help_img_offset, 
                             self.help_img_top-25, True)
         panel_dc.SetTextForeground(self.text_brown)
-        txt_help = _("Get help on-line, including screen shots and step-by-step" 
-                     " instructions. Regularly updated.")
+        panel_dc.SetFont(self.help_font)
+        txt_help = _(u"Get help on-line, including screen shots and "
+                     u"step-by-step instructions. Connect to the community. "
+                     u"Get direct help from the developer.")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_help, 
                                                 self.max_help_text_width), 
                     wx.Rect(self.main_left, self.help_text_top, 
                             self.help_text_width, 260))
         event.Skip()
-           
+
     def on_proj_click(self, event):
         proj_fils = projects.get_projs() # should always be the default present
         # open proj selection form
@@ -769,6 +816,7 @@ class StartFrame(wx.Frame):
                             self.help_img_left+self.proj_img_offset, 
                             self.help_img_top-20, True)
         panel_dc.SetTextForeground(self.text_brown)
+        panel_dc.SetFont(self.help_font)
         txt_projs = _("Projects let SOFA know how to connect to your data, "
                       "what labels to use, your favourite styles etc. The "
                       "default project is OK to get you started.")
@@ -799,6 +847,7 @@ class StartFrame(wx.Frame):
                             self.help_img_left+self.prefs_img_offset, 
                             self.help_img_top-10, True)
         panel_dc.SetTextForeground(self.text_brown)
+        panel_dc.SetFont(self.help_font)
         txt_pref = _("Set preferences e.g. format for entering dates")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_pref, 
                                                 self.max_help_text_width), 
@@ -821,6 +870,7 @@ class StartFrame(wx.Frame):
                             self.help_img_left+self.data_img_offset, 
                             self.help_img_top-25, True)
         panel_dc.SetTextForeground(self.text_brown)
+        panel_dc.SetFont(self.help_font)
         txt1 = _(u"Enter data into a fresh data table or select an existing "
                  u"table to edit or add data to.")
         txt2 = _(u"For tables in the SOFA database you can also:")
@@ -857,6 +907,7 @@ class StartFrame(wx.Frame):
                             self.help_img_left+self.import_img_offset, 
                             self.help_img_top-20, True)
         panel_dc.SetTextForeground(self.text_brown)
+        panel_dc.SetFont(self.help_font)
         txt_entry = _("Import data e.g. a csv file, or a spreadsheet (Excel, "
                       "Open Document, or Google Docs).")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_entry, 
@@ -889,6 +940,7 @@ class StartFrame(wx.Frame):
                             self.help_img_left+self.report_img_offset, 
                             self.help_img_top-10, True)
         panel_dc.SetTextForeground(self.text_brown)
+        panel_dc.SetFont(self.help_font)
         txt1 = _(u"Make report tables e.g. Age vs Gender") 
         txt2 = _(u"Can make simple Frequency Tables, Crosstabs, "
                 u"Row Stats Tables (mean, median, standard deviation etc), "
@@ -929,6 +981,7 @@ class StartFrame(wx.Frame):
                             self.help_img_left+self.chart_img_offset, 
                             self.help_img_top-20, True)
         panel_dc.SetTextForeground(self.text_brown)
+        panel_dc.SetFont(self.help_font)
         txt_charts = _("Make attractive charts with dynamic visual effects "
                        "e.g. a bar chart of sales")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_charts, 
@@ -962,6 +1015,7 @@ class StartFrame(wx.Frame):
                             self.help_img_left+self.stats_img_offset, 
                             self.help_img_top-25, True)
         panel_dc.SetTextForeground(self.text_brown)
+        panel_dc.SetFont(self.help_font)
         txt1 = _(u"Run statistical tests on your data - e.g. a Chi Square to "
                 u"see if there is a relationship between age group and gender.")
         txt2 = _(u"SOFA focuses on the statistical tests most users need most "
@@ -1000,6 +1054,7 @@ class StartFrame(wx.Frame):
         panel_dc.DrawBitmap(self.bmp_exit, self.help_img_left-40, 
                             self.help_img_top-20, True)
         panel_dc.SetTextForeground(self.text_brown)
+        panel_dc.SetFont(self.help_font)
         txt_exit = _("Exit SOFA Statistics")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_exit, 
                                                 self.max_help_text_width), 
