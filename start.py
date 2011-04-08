@@ -225,22 +225,23 @@ class StartFrame(wx.Frame):
         debug = False
         # layout "constants"
         self.tight_layout = (mg.MAX_WIDTH <= 1024 or mg.MAX_HEIGHT <= 600)
-        #self.tight_layout = True
+        #self.tight_layout = True # for testing
         self.tight_height_drop = 24
         self.tight_width_drop = 57
         if not self.tight_layout:
             self.form_width = 1000
             self.form_height = 600
             self.blankwp_height = 250
+            self.btn_drop = 40
         else:
             self.form_width = 1000-self.tight_width_drop
             self.form_height = 600-self.tight_height_drop
             self.blankwp_height = 250-self.tight_height_drop
+            self.btn_drop = 37
         btn_width = 170
         self.btn_right = self.form_width - (btn_width + 18)
         self.top_top = 7
         self.btn_left = 5
-        self.btn_drop = 40
         self.main_left = 200
         self.help_text_top = 288
         self.max_help_text_width = 330 # pixels
@@ -361,20 +362,6 @@ class StartFrame(wx.Frame):
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_help_click)
         self.btn_help.Bind(wx.EVT_ENTER_WINDOW, self.on_help_enter)
         self.btn_help.SetDefault()
-        # Proj
-        bmp_btn_proj = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
-                                    _("Select Project"), btn_font_sz, "white")
-        self.btn_proj = wx.BitmapButton(self.panel, -1, bmp_btn_proj, 
-                                        pos=(self.btn_left, g.next()))
-        self.btn_proj.Bind(wx.EVT_BUTTON, self.on_proj_click)
-        self.btn_proj.Bind(wx.EVT_ENTER_WINDOW, self.on_proj_enter)
-        # Prefs
-        bmp_btn_pref = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
-                                        _("Preferences"), btn_font_sz, "white")
-        self.btn_prefs = wx.BitmapButton(self.panel, -1, bmp_btn_pref, 
-                                         pos=(self.btn_left, g.next()))
-        self.btn_prefs.Bind(wx.EVT_BUTTON, self.on_prefs_click)
-        self.btn_prefs.Bind(wx.EVT_ENTER_WINDOW, self.on_prefs_enter)
         # Data entry
         bmp_btn_data = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                                     _("Enter/Edit Data"), btn_font_sz, "white")
@@ -389,29 +376,43 @@ class StartFrame(wx.Frame):
                                           pos=(self.btn_left, g.next()))
         self.btn_import.Bind(wx.EVT_BUTTON, self.on_import_click)
         self.btn_import.Bind(wx.EVT_ENTER_WINDOW, self.on_import_enter)
-        # Right
-        g = get_next_y_pos(284, self.btn_drop)
         # Report tables
         bmp_btn_tables = lib.add_text_to_bitmap(get_blank_btn_bmp(),
                                     _("Report Tables"), btn_font_sz, "white")
         self.btn_tables = wx.BitmapButton(self.panel, -1, bmp_btn_tables, 
-                                          pos=(self.btn_right, g.next()))
+                                          pos=(self.btn_left, g.next()))
         self.btn_tables.Bind(wx.EVT_BUTTON, self.on_tables_click)
         self.btn_tables.Bind(wx.EVT_ENTER_WINDOW, self.on_tables_enter)
         # Charts
         bmp_btn_charts = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                                             _("Charts"), btn_font_sz, "white")
         self.btn_charts = wx.BitmapButton(self.panel, -1, bmp_btn_charts, 
-                                          pos=(self.btn_right, g.next()))
+                                          pos=(self.btn_left, g.next()))
         self.btn_charts.Bind(wx.EVT_BUTTON, self.on_charts_click)
         self.btn_charts.Bind(wx.EVT_ENTER_WINDOW, self.on_charts_enter)
         # Stats
         bmp_btn_stats = lib.add_text_to_bitmap(get_blank_btn_bmp(),
                                         _("Statistics"), btn_font_sz, "white")
         self.btn_statistics = wx.BitmapButton(self.panel, -1, bmp_btn_stats, 
-                                              pos=(self.btn_right, g.next()))
+                                              pos=(self.btn_left, g.next()))
         self.btn_statistics.Bind(wx.EVT_BUTTON, self.on_stats_click)
         self.btn_statistics.Bind(wx.EVT_ENTER_WINDOW, self.on_stats_enter)
+        # Right
+        g = get_next_y_pos(284, self.btn_drop)
+        # Proj
+        bmp_btn_proj = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
+                                    _("Select Project"), btn_font_sz, "white")
+        self.btn_proj = wx.BitmapButton(self.panel, -1, bmp_btn_proj, 
+                                        pos=(self.btn_right, g.next()))
+        self.btn_proj.Bind(wx.EVT_BUTTON, self.on_proj_click)
+        self.btn_proj.Bind(wx.EVT_ENTER_WINDOW, self.on_proj_enter)
+        # Prefs
+        bmp_btn_pref = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
+                                        _("Preferences"), btn_font_sz, "white")
+        self.btn_prefs = wx.BitmapButton(self.panel, -1, bmp_btn_pref, 
+                                         pos=(self.btn_right, g.next()))
+        self.btn_prefs.Bind(wx.EVT_BUTTON, self.on_prefs_click)
+        self.btn_prefs.Bind(wx.EVT_ENTER_WINDOW, self.on_prefs_enter)
         # Exit  
         bmp_btn_exit = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
                                               _("Exit"), btn_font_sz, "white")
