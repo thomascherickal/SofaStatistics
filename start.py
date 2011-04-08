@@ -508,6 +508,14 @@ class StartFrame(wx.Frame):
             self.setup_link(link=link_upgrade, 
                             link_colour=wx.Colour(255,255,255), 
                             bg_colour=wx.Colour(0, 0, 0))
+        # feedback link
+        link_feedback = hl.HyperLinkCtrl(self.panel, -1, 
+                        _(u"Give quick feedback on SOFA"), 
+                        pos=(self.version_right, self.form_height-53), 
+                        URL="http://www.sofastatistics.com/feedback.htm")
+        self.setup_link(link=link_feedback, 
+                        link_colour=wx.Colour(255,255,255), 
+                        bg_colour=wx.Colour(116, 99, 84))
         if mg.DBE_PROBLEM:
             prob = os.path.join(mg.INT_PATH, u"database connection problem.txt")
             f = codecs.open(prob, "w", "utf8")

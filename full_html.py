@@ -38,6 +38,9 @@ else:
             else:
                 raise Exception(_(u"Problem importing wx.lib.iewin.") +
                             u"\nCaused by errors:\n\n%s" % lib.ue(e))
+        except Exception, e:
+            raise Exception(_(u"Problem importing wx.lib.iewin.") +
+                        u"\nCaused by errors:\n\n%s" % lib.ue(e))
         
         class FullHTML(ie.IEHtmlWindow):
         
