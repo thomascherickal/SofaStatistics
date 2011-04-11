@@ -48,7 +48,7 @@ class ComtypesException(Exception):
         Exception.__init__(self, u"Problem with comtypes."
                            u"\n\nPlease look at help in:"
                            u"\n\nhttp://www.sofastatistics.com/wiki/doku.php?"
-                           u"id=help:will_not_start#no_module_named_comtypes")
+                           u"id=help:will_not_start#problems_with_comtypes")
 
 class InconsistentFileDateException(Exception):
     def __init__(self):

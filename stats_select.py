@@ -65,7 +65,7 @@ class StatsSelectDlg(wx.Dialog):
         self.text_brown = (90, 74, 61)
         wx.Dialog.__init__(self, None, title=_("Select Statistical Test"), 
               size=(self.form_width,self.form_height),
-              style=wx.CAPTION|wx.MINIMIZE_BOX|wx.SYSTEM_MENU,
+              style=wx.CAPTION|wx.MINIMIZE_BOX|wx.CLOSE_BOX|wx.SYSTEM_MENU,
               pos=(mg.HORIZ_OFFSET,0)) # -1 positions it too low on 768 v
         self.proj_name = proj_name
         # Windows doesn't include window decorations
@@ -76,6 +76,7 @@ class StatsSelectDlg(wx.Dialog):
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)        
         config_dlg.add_icon(frame=self)
+        self.Bind(wx.EVT_CLOSE, self.on_close_click)
         # background image
         if not self.tight_layout:
             stats_sel_img = u"stats_select.gif"

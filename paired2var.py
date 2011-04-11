@@ -29,8 +29,9 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
                            pos=(mg.HORIZ_OFFSET,0), 
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
-                           wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
-                           wx.CLIP_CHILDREN)
+                           wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
+                           wx.CAPTION|wx.CLIP_CHILDREN)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         self.url_load = True # btn_expand
         self.html_msg = u""
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \

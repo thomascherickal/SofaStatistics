@@ -33,10 +33,11 @@ class GdataDownloadDlg(wx.Dialog):
         title = _("Download Google Spreadsheet")
         wx.Dialog.__init__(self, parent=parent, title=title, 
                        style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
-                       wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN, 
+                       wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN, 
                        pos=(mg.HORIZ_OFFSET+100,100))
         self.parent = parent
         self.panel = wx.Panel(self)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         bx_sign_in = wx.StaticBox(self.panel, -1, # must come before any content
                                   _("Sign into your Google Account"))

@@ -174,8 +174,10 @@ class ListVarsDlg(wx.Dialog):
     def __init__(self, var_labels, var_notes, var_types, val_dics, updated):
         "updated -- empty set - add True to 'return' updated True"
         wx.Dialog.__init__(self, None, title=_("Variable Details"),
-                           size=(500,600), style=wx.CAPTION|wx.SYSTEM_MENU)
+                           size=(500,600), 
+                           style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU)
         debug = False
+        self.Bind(wx.EVT_CLOSE, self.on_ok)
         self.var_labels = var_labels
         self.var_notes = var_notes
         self.var_types = var_types
@@ -263,8 +265,10 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         grid_size = (250, 250)
         wx.Dialog.__init__(self, None, title=title,
                           size=(500,400), pos=(mg.HORIZ_OFFSET+150,100),
-                          style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU)
+                          style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|\
+                            wx.SYSTEM_MENU)
         self.panel = wx.Panel(self)
+        self.Bind(wx.EVT_CLOSE, self.on_ok)
         self.var_desc = var_desc
         # New controls
         lbl_var_label = wx.StaticText(self.panel, -1, _("Variable Label:"))

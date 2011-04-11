@@ -48,7 +48,9 @@ class DlgHTML(wx.Dialog):
         print_folder -- needs to be a subfolder of the current folder.
         """
         wx.Dialog.__init__(self, parent=parent, id=-1, title=title,
-                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU)
+                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|\
+                                wx.SYSTEM_MENU)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         self.file_name = file_name
         self.print_folder = print_folder
         self.url = url

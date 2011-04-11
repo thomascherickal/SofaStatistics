@@ -85,9 +85,10 @@ class TblEditor(wx.Dialog):
         wx.Dialog.__init__(self, None, title=title, 
                            pos=(mg.HORIZ_OFFSET, 0), 
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
-                           wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
-                           wx.CLIP_CHILDREN)
+                           wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
+                           wx.CAPTION|wx.CLIP_CHILDREN)
         self.parent = parent
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         self.var_labels = var_labels
         self.var_notes = var_notes
         self.var_types = var_types

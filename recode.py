@@ -203,9 +203,10 @@ class RecodeHelpDlg(wx.Dialog):
     def __init__(self, parent):
         debug = False
         wx.Dialog.__init__(self, parent=parent, title=_("Recoding Help"), 
-                           style=wx.CAPTION|wx.SYSTEM_MENU, 
+                           style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU, 
                            pos=(mg.HORIZ_OFFSET+100,100))
         self.panel = wx.Panel(self)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         bx_rules = wx.StaticBox(self.panel, -1, _("Recoding Rules"))
         szr_rules = wx.StaticBoxSizer(bx_rules, wx.VERTICAL)
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)

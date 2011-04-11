@@ -33,7 +33,7 @@ else:
             mytraceback = traceback.format_exc()
             if "Typelib newer than module" in mytraceback:
                 raise my_exceptions.InconsistentFileDateException()
-            elif "comtypes" in mytraceback: # No module named comtypes
+            elif "comtypes" in mytraceback: # No module named comtypes etc
                 raise my_exceptions.ComtypesException()
             else:
                 raise Exception(_(u"Problem importing wx.lib.iewin.") +

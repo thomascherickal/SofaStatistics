@@ -281,7 +281,7 @@ class StartFrame(wx.Frame):
         wx.Frame.__init__(self, None, title=_("SOFA Start"), 
                   size=(self.form_width, self.form_height), 
                   pos=(self.form_pos_left,-1),
-                  style=wx.CAPTION|wx.MINIMIZE_BOX|wx.SYSTEM_MENU) #wx.CLOSE_BOX|
+                  style=wx.CAPTION|wx.MINIMIZE_BOX|wx.CLOSE_BOX|wx.SYSTEM_MENU)
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize())

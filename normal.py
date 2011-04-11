@@ -23,8 +23,9 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         wx.Dialog.__init__(self, parent=parent, title=_("Normal Data?"),
                            size=(1024,600), 
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
-                           wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
-                           wx.CLIP_CHILDREN)
+                           wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
+                           wx.CAPTION|wx.CLIP_CHILDREN)
+        self.Bind(wx.EVT_CLOSE, self.on_ok)
         # the following properties all required to utilise get_szr_data
         self.var_labels = var_labels
         self.var_notes = var_notes

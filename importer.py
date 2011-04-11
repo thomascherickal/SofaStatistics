@@ -699,11 +699,13 @@ class ImportFileSelectDlg(wx.Dialog):
         title = _("Select file to import") + \
             u" (csv/xls/ods/Google spreadsheet)"
         wx.Dialog.__init__(self, parent=parent, title=title,
-                           size=(550,300), style=wx.CAPTION|wx.SYSTEM_MENU, 
+                           size=(550,300), 
+                           style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU, 
                            pos=(mg.HORIZ_OFFSET+100,-1))
         self.CentreOnScreen(wx.VERTICAL)
         self.parent = parent
         self.panel = wx.Panel(self)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         self.import_status = {mg.CANCEL_IMPORT: False} # can change and 
                                             # running script can check on it.
         self.file_type = FILE_UNKNOWN
