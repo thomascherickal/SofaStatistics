@@ -4,6 +4,8 @@
 from __future__ import print_function
 import codecs
 import csv
+
+
 import locale
 import os
 import pprint
@@ -27,6 +29,18 @@ Support for unicode is lacking from the Python 2 series csv module and quite a
 See http://docs.python.org/library/csv.html#examples
 http://bugs.python.org/issue1606092
 """
+
+class MyDialect(csv.Dialect):
+    """
+    Enough to cope with single column csvs (with or without 
+        commas as decimal separators)
+    """
+    delimiter = ';'
+    quotechar = '"'
+    doublequote = True
+    skipinitialspace = False
+    lineterminator = '\n'
+    quoting = csv.QUOTE_MINIMAL
 
 def consolidate_line_seps(str):
     for sep in ["\n", "\r", "\r\n"]:
@@ -67,7 +81,13 @@ def get_dialect(sniff_sample):
     debug = False
     try:
         sniffer = csv.Sniffer()
-        dialect = sniffer.sniff(sniff_sample)
+        try:
+            dialect = sniffer.sniff(sniff_sample)
+        except Exception, e:
+            if lib.ue(e).startswith(u"Could not determine delimiter"):
+                dialect = MyDialect() # try a safe one of my own
+            else:
+                raise
         if debug: print(dialect.delimiter)
         try:
             ok_delimiter(dialect.delimiter)
@@ -149,11 +169,20 @@ def get_prob_has_hdr(sample_rows, file_path, dialect):
     """
     try:
         sniffer = csv.Sniffer()
+        sample_rows = [x.strip("\n") for x in sample_rows]
         hdr_sample = "\n".join(sample_rows)
         prob_has_hdr = sniffer.has_header(hdr_sample)
+        if not prob_has_hdr:
+            # test it myself
+            delim = dialect.delimiter.decode("utf8")
+            comma_dec_sep_ok = not has_comma_delim(dialect)
+            prob_has_hdr = has_header_row(sample_rows, delim, comma_dec_sep_ok)        
     except csv.Error, e:
         lib.safe_end_cursor()
-        if lib.ue(e).startswith(u"new-line character seen in unquoted "
+        if lib.ue(e).startswith(u"Could not determine delimiter"):
+            prob_has_hdr = False # If everything else succeeds don't let this 
+                # stop things. Don't raise error.
+        elif lib.ue(e).startswith(u"new-line character seen in unquoted "
                                 u"field"):
             fix_text(file_path)
             raise my_exceptions.ImportNeededFixException
@@ -162,11 +191,6 @@ def get_prob_has_hdr(sample_rows, file_path, dialect):
     except Exception, e:
         raise Exception(u"Problem testing sample for probably header."
                         u"\nCaused by error: %s" % lib.ue(e))
-    if not prob_has_hdr:
-        # test it myself
-        delim = dialect.delimiter.decode("utf8")
-        comma_dec_sep_ok = not has_comma_delim(dialect)
-        prob_has_hdr = has_header_row(sample_rows, delim, comma_dec_sep_ok)
     return prob_has_hdr
 
 def get_avg_row_size(rows):
