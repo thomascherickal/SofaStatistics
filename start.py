@@ -25,7 +25,7 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-dev_debug = True # relates to errors etc once GUI application running.
+dev_debug = False # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 test_lang = False
@@ -257,6 +257,7 @@ class StartFrame(wx.Frame):
             self.stats_img_offset = 10
             self.proj_img_offset = -20
             self.help_img_offset = 0
+            self.get_started_img_offset = 0
             self.prefs_img_offset = 35
             self.data_img_offset = -30
             self.form_pos_left = mg.HORIZ_OFFSET+5
@@ -268,6 +269,7 @@ class StartFrame(wx.Frame):
             self.stats_img_offset = 30
             self.proj_img_offset = 30
             self.help_img_offset = 30
+            self.get_started_img_offset = 0
             self.prefs_img_offset = 55
             self.data_img_offset = 45
             self.form_pos_left = mg.MAX_WIDTH-(self.form_width+10)
@@ -449,7 +451,7 @@ class StartFrame(wx.Frame):
         self.txtWelcome = _("Welcome to SOFA Statistics.  Hovering the mouse "
                             "over the buttons lets you see what you can do.")
         if mg.PLATFORM == mg.MAC:
-            self.help_font = wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+            self.help_font = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         elif mg.PLATFORM == mg.WINDOWS:
             self.help_font = wx.Font(10.5, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         else:
@@ -767,7 +769,7 @@ class StartFrame(wx.Frame):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_get_started, 
-                            self.help_img_left+self.help_img_offset, 
+                            self.help_img_left+self.get_started_img_offset, 
                             self.help_img_top-25, True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)

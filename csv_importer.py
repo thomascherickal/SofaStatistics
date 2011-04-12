@@ -20,6 +20,8 @@ import getdata
 import importer
 
 ROWS_TO_SAMPLE = 20
+ERR_NO_DELIM = u"Could not determine delimiter"
+ERR_NEW_LINE = u"new-line character seen in unquoted field"
 ESC_DOUBLE_QUOTE = "\x14" # won't occur naturally and doesn't break csv module
 # Shift Out control character in ASCII 
 """
@@ -84,7 +86,7 @@ def get_dialect(sniff_sample):
         try:
             dialect = sniffer.sniff(sniff_sample)
         except Exception, e:
-            if lib.ue(e).startswith(u"Could not determine delimiter"):
+            if lib.ue(e).startswith(ERR_NO_DELIM):
                 dialect = MyDialect() # try a safe one of my own
             else:
                 raise
@@ -179,11 +181,10 @@ def get_prob_has_hdr(sample_rows, file_path, dialect):
             prob_has_hdr = has_header_row(sample_rows, delim, comma_dec_sep_ok)        
     except csv.Error, e:
         lib.safe_end_cursor()
-        if lib.ue(e).startswith(u"Could not determine delimiter"):
+        if lib.ue(e).startswith(ERR_NO_DELIM):
             prob_has_hdr = False # If everything else succeeds don't let this 
                 # stop things. Don't raise error.
-        elif lib.ue(e).startswith(u"new-line character seen in unquoted "
-                                u"field"):
+        elif lib.ue(e).startswith(ERR_NEW_LINE):
             fix_text(file_path)
             raise my_exceptions.ImportNeededFixException
         else:
@@ -205,6 +206,7 @@ def get_avg_row_size(rows):
     """
     debug = False
     size = 0
+    i = None
     for i, row in enumerate(rows, 1):
         try:
             values = row.values()
@@ -221,7 +223,11 @@ def get_avg_row_size(rows):
         if debug: print(row, row_str, row_size)
         #if debug: print(row_size)
         size += row_size
-    avg_row_size = float(size)/i
+    if i is None:
+        avg_row_size = 10 # if only one then can be almost anything - progress
+            # will flash by any way
+    else:
+        avg_row_size = float(size)/i
     return avg_row_size
 
 
@@ -488,8 +494,7 @@ class DlgImportDisplay(wx.Dialog):
                                           dialect=self.dialect)
         except csv.Error, e:
             lib.safe_end_cursor()
-            if lib.ue(e).startswith(u"new-line character seen in unquoted "
-                                    u"field"):
+            if lib.ue(e).startswith(ERR_NEW_LINE):
                 fix_text(self.file_path)
                 raise my_exceptions.ImportNeededFixException
             else:
