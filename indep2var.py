@@ -122,6 +122,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             # dropdown.  Refreshed as needed so always usable.
         self.setup_group_by()
         self.lbl_chop_warning = wx.StaticText(self.panel, -1, u"")
+        self.lbl_chop_warning.SetFont(wx.Font(9, wx.SWISS, wx.NORMAL, 
+                                              wx.NORMAL))
         szr_vars_top_right_top.Add(self.lbl_group_by, 0, wx.RIGHT|wx.TOP, 5)
         szr_vars_top_right_top.Add(self.drop_group_by, 0, wx.GROW|wx.RIGHT, 5)
         szr_vars_top_right_top.Add(self.lbl_chop_warning, 1, wx.RIGHT, 5)
@@ -449,7 +451,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                     chop_warning = _("Showing first 20 groups in\n"
                                      " in first %s rows") % strn
                 else:
-                    chop_warning =_("Showing first 20\n unique groups")
+                    chop_warning =_("Showing first 20 unique groups")
                 break
         self.lbl_chop_warning.SetLabel(chop_warning)
         self.gp_choice_items_sorted = [lib.get_choice_item(val_dic, x) 

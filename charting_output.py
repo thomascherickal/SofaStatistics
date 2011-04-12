@@ -36,7 +36,9 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
     if fld_gp:
         SQL_get_vals = (u"""SELECT %(fld_gp)s, %(fld_measure)s, COUNT(*) AS freq
             FROM %(tbl)s
-            WHERE %(fld_measure)s IS NOT NULL %(and_tbl_filt)s
+            WHERE %(fld_measure)s IS NOT NULL 
+                AND %(fld_gp)s IS NOT NULL 
+                %(and_tbl_filt)s
             GROUP BY %(fld_gp)s, %(fld_measure)s
             ORDER BY %(fld_gp)s, %(fld_measure)s""") % sql_dic
     else:
