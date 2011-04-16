@@ -20,7 +20,8 @@ import getdata
 import output
 
 def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls, 
-                   fld_measure, fld_measure_lbls, sort_opt):
+                   fld_measure, fld_measure_lbls, sort_opt, 
+                   measure=mg.CHART_FREQS):
     """
     Get frequencies for all non-missing values in variable plus labels.
     Return list of dics with CHART_CHART_BY_LABEL, CHART_MEASURE_DETS, 
@@ -30,11 +31,13 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
     debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+    measure_sql = u"COUNT(*)" if measure == mg.CHART_FREQS else u"AVG(*)"
     sql_dic = {u"fld_gp": objqtr(fld_gp), u"fld_measure": objqtr(fld_measure),
-               u"and_tbl_filt": and_tbl_filt, 
+               u"and_tbl_filt": and_tbl_filt, u"measure": measure_sql,
                u"tbl": getdata.tblname_qtr(dbe, tbl)}
     if fld_gp:
-        SQL_get_vals = (u"""SELECT %(fld_gp)s, %(fld_measure)s, COUNT(*) AS freq
+        SQL_get_vals = (u"""SELECT %(fld_gp)s, %(fld_measure)s, 
+                %(measure)s AS measure
             FROM %(tbl)s
             WHERE %(fld_measure)s IS NOT NULL 
                 AND %(fld_gp)s IS NOT NULL 
@@ -42,7 +45,7 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
             GROUP BY %(fld_gp)s, %(fld_measure)s
             ORDER BY %(fld_gp)s, %(fld_measure)s""") % sql_dic
     else:
-        SQL_get_vals = (u"""SELECT %(fld_measure)s, COUNT(*) AS freq
+        SQL_get_vals = (u"""SELECT %(fld_measure)s, %(measure)s AS measure
             FROM %(tbl)s
             WHERE %(fld_measure)s IS NOT NULL %(and_tbl_filt)s
             GROUP BY %(fld_measure)s
@@ -57,10 +60,10 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
         split_results = get_split_results(fld_gp_name, fld_gp_lbls, raw_results)
     else:
         split_results = [{mg.CHART_CHART_BY_LABEL: mg.CHART_CHART_BY_LABEL_ALL,
-                          mg.CHART_VAL_FREQS: raw_results},]
+                          mg.CHART_VAL_MEASURES: raw_results},]
     for indiv_result in split_results:
         indiv_label = indiv_result[mg.CHART_CHART_BY_LABEL]
-        indiv_raw_results = indiv_result[mg.CHART_VAL_FREQS]
+        indiv_raw_results = indiv_result[mg.CHART_VAL_MEASURES]
         indiv_basic_dets = get_indiv_basic_dets(indiv_label, indiv_raw_results, 
                                                 fld_measure_lbls, sort_opt)
         all_basic_dets.append(indiv_basic_dets)
@@ -69,7 +72,7 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
 def get_split_results(fld_gp_name, fld_gp_lbls, raw_results):
     """
     e.g.
-    fld_gp, fld_measure, freq
+    fld_gp, fld_measure, freq (or avg)
     1,1,100
     1,2,56
     2,1,6
@@ -78,12 +81,13 @@ def get_split_results(fld_gp_name, fld_gp_lbls, raw_results):
     []
     return dict for each lot of field groups:
     [{mg.CHART_CHART_BY_LABEL: , 
-      mg.CHART_VAL_FREQS: [(fld_measure, freq), ...]}, 
+      mg.CHART_VAL_MEASURES: [(fld_measure, measure), ...]}, 
       ...]
+    measure - freqs or avgs
     """
     split_raw_results = []
     prev_fld_gp_val = None
-    for fld_gp_val, fld_measure, freq in raw_results:
+    for fld_gp_val, fld_measure, measure in raw_results:
         first_gp = (prev_fld_gp_val == None)
         same_group = (fld_gp_val == prev_fld_gp_val)
         if not same_group:
@@ -93,11 +97,11 @@ def get_split_results(fld_gp_name, fld_gp_lbls, raw_results):
             chart_by_lbl = u"%s: %s" % (fld_gp_name, fld_gp_val_lbl)
             fld_gp_dic = {}
             fld_gp_dic[mg.CHART_CHART_BY_LABEL] = chart_by_lbl
-            val_freqs_lst = [(fld_measure, freq),]
-            fld_gp_dic[mg.CHART_VAL_FREQS] = val_freqs_lst
+            val_measures_lst = [(fld_measure, measure),]
+            fld_gp_dic[mg.CHART_VAL_MEASURES] = val_measures_lst
             prev_fld_gp_val = fld_gp_val
         else:
-            val_freqs_lst.append((fld_measure, freq))
+            val_measures_lst.append((fld_measure, measure))
         if len(split_raw_results) > mg.CHART_MAX_CHARTS_IN_SET:
             raise my_exceptions.TooManyChartsInSeries(fld_gp_name, 
                                            max_items=mg.CHART_MAX_CHARTS_IN_SET)
@@ -138,13 +142,14 @@ def get_indiv_basic_dets(indiv_label, indiv_raw_results, measure_val_lbls,
 
 def get_single_val_dets(dbe, cur, tbl, tbl_filt, 
                         fld_gp, fld_gp_name, fld_gp_lbls, 
-                        fld_measure, fld_measure_lbls, sort_opt):
+                        fld_measure, fld_measure_lbls, sort_opt, 
+                        measure=mg.CHART_FREQS):
     """
     Simple bar charts and single line line charts.
     """
     return get_basic_dets(dbe, cur, tbl, tbl_filt, 
                           fld_gp, fld_gp_name, fld_gp_lbls, 
-                          fld_measure, fld_measure_lbls, sort_opt)
+                          fld_measure, fld_measure_lbls, sort_opt, measure)
 
 def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
                          fld_gp, fld_gp_lbls, fld_measure, fld_measure_lbls):

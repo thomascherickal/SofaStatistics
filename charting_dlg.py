@@ -18,6 +18,7 @@ LIMITS_MSG = (u"This chart type is not currently available in this release. "
               u"More chart types coming soon!")
 CUR_SORT_OPT = mg.SORT_NONE
 INC_PERC = True
+SHOW_AVG = False
 
 
 class DlgCharting(indep2var.DlgIndep2VarConfig):
@@ -153,15 +154,25 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                                     u"tip?"))
         self.chk_simple_bar_perc.Bind(wx.EVT_CHECKBOX, 
                                       self.on_chk_simple_bar_perc)
+        self.chk_simple_bar_avg = wx.CheckBox(self.panel_bar_chart, -1, 
+                                              _("Show averages?"))
+        self.chk_simple_bar_avg.SetValue(SHOW_AVG)
+        self.chk_simple_bar_avg.SetToolTipString(_(u"Show averages not "
+                                                   u"frequencies?"))
+        self.chk_simple_bar_avg.Bind(wx.EVT_CHECKBOX, 
+                                      self.on_chk_simple_bar_avg)
         self.szr_bar_chart.Add(self.rad_bar_sort_opts, 0, wx.TOP|wx.RIGHT, 5)
         if mg.PLATFORM == mg.WINDOWS:
-            bar_perc_down_by = 27
+            tickbox_down_by = 27 # to line up with a combo
         elif mg.PLATFORM == mg.LINUX:
-            bar_perc_down_by = 22
+            tickbox_down_by = 22
         else:
-            bar_perc_down_by = 27
+            tickbox_down_by = 27
         self.szr_bar_chart.Add(self.chk_simple_bar_perc, 0, wx.TOP, 
-                               bar_perc_down_by)
+                               tickbox_down_by)
+        self.szr_bar_chart.AddSpacer(10)
+        self.szr_bar_chart.Add(self.chk_simple_bar_avg, 0, wx.TOP, 
+                               tickbox_down_by)
         self.panel_bar_chart.SetSizer(self.szr_bar_chart)
         self.szr_bar_chart.SetSizeHints(self.panel_bar_chart)
         # clustered bar chart
@@ -211,19 +222,34 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                          _("Show smoothed data line?"))
         self.chk_line_smooth.SetValue(False)
         self.chk_line_smooth.SetToolTipString(_(u"Show smoothed data line?"))
+        self.chk_line_avg = wx.CheckBox(self.panel_line_chart, -1, 
+                                        _("Show averages?"))
+        self.chk_line_avg.SetValue(SHOW_AVG)
+        self.chk_line_avg.SetToolTipString(_(u"Show averages not frequencies?"))
+        self.chk_line_avg.Bind(wx.EVT_CHECKBOX, self.on_chk_line_avg)
         self.szr_line_chart.Add(self.chk_line_smooth, 0, 
+                                wx.TOP|wx.BOTTOM|wx.LEFT, 10)
+        self.szr_line_chart.Add(self.chk_line_avg, 0, 
                                 wx.TOP|wx.BOTTOM|wx.LEFT, 10)
         self.panel_line_chart.SetSizer(self.szr_line_chart)
         self.szr_line_chart.SetSizeHints(self.panel_line_chart)
         # area chart
-        self.szr_area_chart = wx.BoxSizer(wx.VERTICAL)
+        self.szr_area_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_area_chart = wx.Panel(self.panel_mid)
         self.chk_area_perc = wx.CheckBox(self.panel_area_chart, -1, 
                                          _("Show percent?"))
         self.chk_area_perc.SetValue(INC_PERC)
         self.chk_area_perc.SetToolTipString(_(u"Show percent in tool tip?"))
         self.chk_area_perc.Bind(wx.EVT_CHECKBOX, self.on_chk_area_perc)
-        self.szr_area_chart.Add(self.chk_area_perc, 1, wx.TOP|wx.BOTTOM, 10)
+        self.chk_area_avg = wx.CheckBox(self.panel_area_chart, -1, 
+                                        _("Show averages?"))
+        self.chk_area_avg.SetValue(SHOW_AVG)
+        self.chk_area_avg.SetToolTipString(_(u"Show averages not frequencies?"))
+        self.chk_area_avg.Bind(wx.EVT_CHECKBOX, self.on_chk_area_avg)
+        self.szr_area_chart.Add(self.chk_area_perc, 0, 
+                                wx.TOP|wx.BOTTOM|wx.LEFT, 10)
+        self.szr_area_chart.Add(self.chk_area_avg, 0, 
+                                wx.TOP|wx.BOTTOM|wx.LEFT, 10)
         self.panel_area_chart.SetSizer(self.szr_area_chart)
         self.szr_area_chart.SetSizeHints(self.panel_area_chart)
         # histogram
@@ -452,6 +478,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         global INC_PERC
         INC_PERC = self.chk_simple_bar_perc.IsChecked()
 
+    def on_chk_simple_bar_avg(self, event):
+        global SHOW_AVG
+        SHOW_AVG = self.chk_simple_bar_avg.IsChecked()
+
     def on_chk_clust_bar_perc(self, event):
         global INC_PERC
         INC_PERC = self.chk_clust_bar_perc.IsChecked()
@@ -460,9 +490,17 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         global INC_PERC
         INC_PERC = self.chk_line_perc.IsChecked()
 
+    def on_chk_line_avg(self, event):
+        global INC_PERC
+        INC_PERC = self.chk_line_avg.IsChecked()
+        
     def on_chk_area_perc(self, event):
         global INC_PERC
         INC_PERC = self.chk_area_perc.IsChecked()
+        
+    def on_chk_area_avg(self, event):
+        global SHOW_AVG
+        SHOW_AVG = self.chk_area_avg.IsChecked()
         
     def on_rad_sort_opt(self, idx_sel):
         debug = False
@@ -541,6 +579,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         panel = self.panel_bar_chart
         self.rad_bar_sort_opts.SetSelection(mg.SORT_OPTS.index(CUR_SORT_OPT))
         self.chk_simple_bar_perc.SetValue(INC_PERC)
+        self.chk_simple_bar_avg.SetValue(SHOW_AVG)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel,
                        lblb=mg.CHART_CHART_BY)
 
@@ -570,6 +609,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp_sel = self.bmp_btn_line_chart_sel
         panel = self.panel_line_chart
         self.chk_line_perc.SetValue(INC_PERC)
+        self.chk_line_avg.SetValue(SHOW_AVG)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_area_chart(self, event):
@@ -579,6 +619,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp_sel = self.bmp_btn_area_chart_sel
         panel = self.panel_area_chart
         self.chk_area_perc.SetValue(INC_PERC)
+        self.chk_area_avg.SetValue(SHOW_AVG)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel,
                        lblb=mg.CHART_CHART_BY)
 

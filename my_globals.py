@@ -13,7 +13,7 @@ import wx
 
 debug = False
 
-VERSION = u"1.0.4"
+VERSION = u"1.0.5"
 ADVANCED = False
 ATTRIBUTION = u"sofastatistics.com"
 # LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, LANGUAGE_RUSSIAN, LANGUAGE_HEBREW
@@ -448,7 +448,7 @@ LABEL_LINE_BREAK_JS = """var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";"""
 CHART_MAX_CHARTS_IN_SET = 16
 CHART_CHART_BY_LABEL = u"chart_by_label"
 CHART_CHART_BY_LABEL_ALL = u"chart_by_label_all"
-CHART_VAL_FREQS = u"chart_val_freqs"
+CHART_VAL_MEASURES = u"chart_val_measures" # e.g. freqs or avgs
 CHART_MEASURE_DETS = u"measure_dets"
 CHART_MAX_LABEL_LEN = u"max_label_len"
 CHART_Y_VALS = u"y_vals"
@@ -466,6 +466,8 @@ SAMPLE_B = u"sample_b"
 LIST_X = u"list_x"
 LIST_Y = u"list_y"
 DATA_TUPS = u"data_tups"
+CHART_FREQS = "chart_freqs"
+CHARTS_AVGS = "chart_avgs"
 # remember defaults //////////
 # stats tests
 GROUP_BY_DEFAULT = None
