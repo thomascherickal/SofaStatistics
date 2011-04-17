@@ -396,6 +396,11 @@ VERSION_CHECK_MAJOR = _(u"Only report major upgrades")
 VERSION_CHECK_ALL = _(u"Report any version upgrades")
 VERSION_CHECK_OPTS = [VERSION_CHECK_NONE, VERSION_CHECK_MAJOR, 
                       VERSION_CHECK_ALL]
+CHART_VALUES = _("Values")
+CHART_BY = _("By")
+CHART_CHART_BY = _("Charts By")
+CHART_AVERAGED = _("Averaged")
+Y_AXIS_FREQ_LABEL = _("Frequency")
 # chart types
 SIMPLE_BARCHART = u"Simple Bar Chart"
 CLUSTERED_BARCHART = u"Clustered Bar Chart"
@@ -406,14 +411,22 @@ HISTOGRAM = u"Histogram"
 SCATTERPLOT = u"Scatterplot"
 OPTIONAL_ONE_VAR_CHART_TYPES = [SIMPLE_BARCHART, PIE_CHART, LINE_CHART, 
                                 AREA_CHART, HISTOGRAM]
-CHART_TYPE_TO_MIN_DATA_TYPE = {SIMPLE_BARCHART: VAR_TYPE_CAT,
-                               CLUSTERED_BARCHART: VAR_TYPE_CAT,
-                               PIE_CHART: VAR_TYPE_CAT,
-                               LINE_CHART: VAR_TYPE_CAT,
-                               AREA_CHART: VAR_TYPE_CAT,
-                               HISTOGRAM: VAR_TYPE_QUANT,
-                               SCATTERPLOT: VAR_TYPE_ORD}
+CHART_TYPE_TO_MIN_DATA_TYPES = {SIMPLE_BARCHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
+                               CLUSTERED_BARCHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
+                               PIE_CHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
+                               LINE_CHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
+                               AREA_CHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
+                               HISTOGRAM: (VAR_TYPE_QUANT, VAR_TYPE_CAT),
+                               SCATTERPLOT: (VAR_TYPE_ORD, VAR_TYPE_ORD)}
+CHART_TYPE_TO_LABELS = {SIMPLE_BARCHART: (CHART_VALUES, CHART_CHART_BY),
+                        CLUSTERED_BARCHART: (CHART_VALUES, CHART_BY),
+                        PIE_CHART: (CHART_VALUES, CHART_CHART_BY),
+                        LINE_CHART: (CHART_VALUES, CHART_BY),
+                        AREA_CHART: (CHART_VALUES, CHART_CHART_BY),
+                        HISTOGRAM: (CHART_VALUES, CHART_CHART_BY),
+                        SCATTERPLOT: (_(u"X-axis"), _(u"Y-axis"))}
 THREE_VAR_CHART_TYPES = [SCATTERPLOT,]
+AVG_OPTION_CHART_TYPES = [SIMPLE_BARCHART, LINE_CHART, AREA_CHART,]
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
     'lightcoral', 'orangered', 'navajowhite', 'slategray', 'palegreen', 
@@ -440,10 +453,6 @@ DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred',
     'lightyellow', 'lavenderblush', 'coral', 'lightgrey', 'whitesmoke', 
     'mediumslateblue', 'darkorange', 'mediumaquamarine', 'darksalmon', 'beige', 
     'blueviolet', 'azure', 'lightsteelblue', 'oldlace']
-CHART_VALUES = _("Values")
-CHART_BY = _("By")
-CHART_CHART_BY = _("Charts By")
-Y_AXIS_FREQ_LABEL = _("Frequency")
 LABEL_LINE_BREAK_JS = """var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";"""
 CHART_MAX_CHARTS_IN_SET = 16
 CHART_CHART_BY_LABEL = u"chart_by_label"

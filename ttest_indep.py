@@ -8,7 +8,7 @@ import indep2var
 
 class DlgConfig(indep2var.DlgIndep2VarConfig):
 
-    averaged = _("Averaged")
+    averaged = mg.CHART_AVERAGED
     range_gps = False
     min_data_type = mg.VAR_TYPE_QUANT
 
