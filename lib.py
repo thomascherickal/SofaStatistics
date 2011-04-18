@@ -97,9 +97,9 @@ def sort_value_labels(sort_order, val_freq_label_lst):
     In-place sort value labels list according to sort option selected.
     http://www.python.org/dev/peps/pep-0265/
     """
-    if sort_order == mg.SORT_FREQ_ASC:
+    if sort_order == mg.SORT_INCREASING:
         val_freq_label_lst.sort(key=itemgetter(1))
-    elif sort_order == mg.SORT_FREQ_DESC:
+    elif sort_order == mg.SORT_DECREASING:
         val_freq_label_lst.sort(key=itemgetter(1), reverse=True)
     elif sort_order == mg.SORT_LABEL:
         val_freq_label_lst.sort(key=itemgetter(2))
@@ -1274,9 +1274,9 @@ class ItemConfig(object):
             sort_order_part = None
         elif self.sort_order == mg.SORT_LABEL:
             sort_order_part = _("Sort by Label")
-        elif self.sort_order == mg.SORT_FREQ_ASC:
+        elif self.sort_order == mg.SORT_INCREASING:
             sort_order_part = _("Sort by Freq (Asc)")
-        elif self.sort_order == mg.SORT_FREQ_DESC:
+        elif self.sort_order == mg.SORT_DECREASING:
             sort_order_part = _("Sort by Freq (Desc)")            
         if sort_order_part:
             str_parts.append(sort_order_part)

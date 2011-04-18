@@ -306,8 +306,8 @@ class DimTree(object):
                     item_conf = tree.GetItemPyData(ancestor)
                     if item_conf: #ignore root node
                         item_conf.measures_lst = []
-                        if item_conf.sort_order in [mg.SORT_FREQ_ASC, 
-                                                    mg.SORT_FREQ_DESC]:
+                        if item_conf.sort_order in [mg.SORT_INCREASING, 
+                                                    mg.SORT_DECREASING]:
                             item_conf.sort_order = mg.SORT_NONE
                         tree.SetItemText(ancestor, 
                                          item_conf.get_summary(), 1)                        
@@ -673,9 +673,9 @@ class DlgConfig(wx.Dialog):
                 pass
             if self.sort_opt_allowed == SORT_OPT_BY_LABEL:
                 # disable freq options
-                idx_freq_asc = mg.SORT_OPTS.index(mg.SORT_FREQ_ASC)
+                idx_freq_asc = mg.SORT_OPTS.index(mg.SORT_INCREASING)
                 self.rad_sort_opts.EnableItem(idx_freq_asc, False)
-                idx_freq_desc = mg.SORT_OPTS.index(mg.SORT_FREQ_DESC)
+                idx_freq_desc = mg.SORT_OPTS.index(mg.SORT_DECREASING)
                 self.rad_sort_opts.EnableItem(idx_freq_desc, False)
             szr_main.Add(self.rad_sort_opts, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.measure_chks_dic = {}

@@ -1062,7 +1062,7 @@ simple_barchart_dets = charting_output.get_single_val_dets(
             fld_gp=fld_gp, fld_gp_name=fld_gp_name, fld_gp_lbls=fld_gp_lbls, 
             fld_measure=fld_measure, fld_measure_lbls=fld_measure_lbls, 
             fld_by=fld_by, fld_by_name=fld_by_name, fld_by_lbls=fld_by_lbls,
-            sort_opt=%(sort_opt)s, measure=measure)
+            sort_opt="%(sort_opt)s", measure=measure)
 barchart_dets = []
 for simple_barchart_det in simple_barchart_dets:
     chart_by_label = simple_barchart_det[mg.CHART_CHART_BY_LABEL]

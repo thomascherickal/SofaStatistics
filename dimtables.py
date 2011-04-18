@@ -74,8 +74,8 @@ class DimNode(tree.Node):
     labels - a dictionary of labels e.g. {"1": "Male", "2": "Female"}
     measures - e.g. FREQ
     has_tot - boolean
-    sort_order - mg.SORT_NONE, mg.SORT_LABEL, mg.SORT_FREQ_ASC, 
-        mg.SORT_FREQ_DESC
+    sort_order - mg.SORT_NONE, mg.SORT_LABEL, mg.SORT_INCREASING, 
+        mg.SORT_DECREASING
     bolnumeric - so can set up filters correctly e.g. gender = "1" or 
         gender = 1 as appropriate
     """

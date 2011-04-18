@@ -350,7 +350,8 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
 
 def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, 
                        fld_gp, fld_gp_name, fld_gp_lbls, 
-                       fld_measure, fld_measure_lbls, sort_opt):
+                       fld_measure, fld_measure_lbls, 
+                       sort_opt, measure=mg.CHART_FREQS):
     """
     fld_gp -- chart by each value
     basic_pie_dets -- list of dicts, one for each indiv pie chart.  Each dict 
@@ -360,8 +361,10 @@ def get_pie_chart_dets(dbe, cur, tbl, tbl_filt,
     debug = False
     pie_chart_dets = []
     basic_pie_dets = get_basic_dets(dbe, cur, tbl, tbl_filt, 
-                                    fld_gp, fld_gp_name, fld_gp_lbls, 
-                                    fld_measure, fld_measure_lbls, sort_opt)
+                                fld_gp, fld_gp_name, fld_gp_lbls, 
+                                fld_measure, fld_measure_lbls, 
+                                fld_by=None, fld_by_name=None, fld_by_lbls=None,
+                                sort_opt=sort_opt, measure=measure)
     for basic_pie_det in basic_pie_dets:
         if debug: print(basic_pie_det)
         indiv_pie_dets = {}
