@@ -20,8 +20,9 @@ import getdata
 import output
 
 def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls, 
-                   fld_measure, fld_measure_lbls, sort_opt, 
-                   measure=mg.CHART_FREQS):
+                   fld_measure, fld_measure_lbls, 
+                   fld_by, fld_by_name, fld_by_lbls,
+                   sort_opt, measure=mg.CHART_FREQS):
     """
     Get frequencies for all non-missing values in variable plus labels.
     Return list of dics with CHART_CHART_BY_LABEL, CHART_MEASURE_DETS, 
@@ -31,25 +32,52 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
     debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    measure_sql = u"COUNT(*)" if measure == mg.CHART_FREQS else u"AVG(*)"
     sql_dic = {u"fld_gp": objqtr(fld_gp), u"fld_measure": objqtr(fld_measure),
-               u"and_tbl_filt": and_tbl_filt, u"measure": measure_sql,
+               u"and_tbl_filt": and_tbl_filt, 
                u"tbl": getdata.tblname_qtr(dbe, tbl)}
-    if fld_gp:
-        SQL_get_vals = (u"""SELECT %(fld_gp)s, %(fld_measure)s, 
-                %(measure)s AS measure
-            FROM %(tbl)s
-            WHERE %(fld_measure)s IS NOT NULL 
-                AND %(fld_gp)s IS NOT NULL 
-                %(and_tbl_filt)s
-            GROUP BY %(fld_gp)s, %(fld_measure)s
-            ORDER BY %(fld_gp)s, %(fld_measure)s""") % sql_dic
+    if measure == mg.CHART_FREQS:
+        if fld_gp:
+            # group by both group_by and measure fields, count non-missing vals
+            SQL_get_vals = (u"""SELECT %(fld_gp)s, %(fld_measure)s, 
+                    COUNT(*) AS measure
+                FROM %(tbl)s
+                WHERE %(fld_measure)s IS NOT NULL 
+                    AND %(fld_gp)s IS NOT NULL 
+                    %(and_tbl_filt)s
+                GROUP BY %(fld_gp)s, %(fld_measure)s
+                ORDER BY %(fld_gp)s, %(fld_measure)s""") % sql_dic
+        else:
+            # group by measure field only, count non-missing vals
+            SQL_get_vals = (u"""SELECT %(fld_measure)s, COUNT(*) AS measure
+                FROM %(tbl)s
+                WHERE %(fld_measure)s IS NOT NULL %(and_tbl_filt)s
+                GROUP BY %(fld_measure)s
+                ORDER BY %(fld_measure)s""") % sql_dic
     else:
-        SQL_get_vals = (u"""SELECT %(fld_measure)s, %(measure)s AS measure
-            FROM %(tbl)s
-            WHERE %(fld_measure)s IS NOT NULL %(and_tbl_filt)s
-            GROUP BY %(fld_measure)s
-            ORDER BY %(fld_measure)s""") % sql_dic
+        if fld_by is None:
+            raise Exception("Need fld_by if doing anything other than FREQS")
+        sql_dic[u"fld_by"] = objqtr(fld_by)
+        if fld_gp:
+            # group by group_by field and by field, and get AVG of measure field
+            SQL_get_vals = (u"""SELECT %(fld_gp)s, %(fld_by)s, 
+                    AVG(%(fld_measure)s) AS measure
+                FROM %(tbl)s
+                WHERE %(fld_measure)s IS NOT NULL 
+                    AND %(fld_by)s IS NOT NULL 
+                    AND %(fld_gp)s IS NOT NULL 
+                    %(and_tbl_filt)s
+                GROUP BY %(fld_gp)s, %(fld_by)s
+                ORDER BY %(fld_gp)s, %(fld_by)s""") % sql_dic
+        else:
+            # group by by field, and get AVG of measure field
+            SQL_get_vals = (u"""SELECT %(fld_by)s,
+                    AVG(%(fld_measure)s) AS measure
+                FROM %(tbl)s
+                WHERE %(fld_measure)s IS NOT NULL 
+                    AND %(fld_by)s IS NOT NULL 
+                    %(and_tbl_filt)s
+                GROUP BY %(fld_by)s
+                ORDER BY %(fld_by)s""") % sql_dic
     if debug: print(SQL_get_vals)
     cur.execute(SQL_get_vals)
     raw_results = cur.fetchall()
@@ -64,15 +92,21 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
     for indiv_result in split_results:
         indiv_label = indiv_result[mg.CHART_CHART_BY_LABEL]
         indiv_raw_results = indiv_result[mg.CHART_VAL_MEASURES]
+        if measure == mg.CHART_FREQS:
+            measure_val_lbls = fld_measure_lbls
+            dp = 0
+        else:
+            measure_val_lbls = fld_by_lbls
+            dp = 2
         indiv_basic_dets = get_indiv_basic_dets(indiv_label, indiv_raw_results, 
-                                                fld_measure_lbls, sort_opt)
+                                                measure_val_lbls, sort_opt, dp)
         all_basic_dets.append(indiv_basic_dets)
     return all_basic_dets
 
 def get_split_results(fld_gp_name, fld_gp_lbls, raw_results):
     """
     e.g.
-    fld_gp, fld_measure, freq (or avg)
+    fld_gp, fld_measure, freq
     1,1,100
     1,2,56
     2,1,6
@@ -113,28 +147,31 @@ def get_split_results(fld_gp_name, fld_gp_lbls, raw_results):
     return split_raw_results
 
 def get_indiv_basic_dets(indiv_label, indiv_raw_results, measure_val_lbls, 
-                         sort_opt):
+                         sort_opt, dp=0):
     """
     Returns dict for indiv chart containing: CHART_CHART_BY_LABEL, 
         CHART_MEASURE_DETS, CHART_MAX_LABEL_LEN, CHART_Y_VALS
     """
     val_freq_label_lst = []
-    for val, freq in indiv_raw_results:
-        freq = int(freq)
+    for val, measure in indiv_raw_results:
+        if dp == 0:
+            measure = int(measure)
+        else:
+            measure = round(measure, dp)
         val_label = measure_val_lbls.get(val, unicode(val))
-        val_freq_label_lst.append((val, freq, val_label))
+        val_freq_label_lst.append((val, measure, val_label))
     lib.sort_value_labels(sort_opt, val_freq_label_lst)
     measure_dets = []
     max_label_len = 0
     y_vals = []
-    for val, freq, val_label in val_freq_label_lst:
+    for val, measure, val_label in val_freq_label_lst:
         len_y_val = len(val_label)
         if len_y_val > max_label_len:
             max_label_len = len_y_val
         split_label = lib.get_labels_in_lines(orig_txt=val_label, max_width=17, 
                                               dojo=True)
         measure_dets.append((val, val_label, split_label))
-        y_vals.append(freq)
+        y_vals.append(measure)
     return {mg.CHART_CHART_BY_LABEL: indiv_label,
             mg.CHART_MEASURE_DETS: measure_dets, 
             mg.CHART_MAX_LABEL_LEN: max_label_len, 
@@ -142,14 +179,23 @@ def get_indiv_basic_dets(indiv_label, indiv_raw_results, measure_val_lbls,
 
 def get_single_val_dets(dbe, cur, tbl, tbl_filt, 
                         fld_gp, fld_gp_name, fld_gp_lbls, 
-                        fld_measure, fld_measure_lbls, sort_opt, 
-                        measure=mg.CHART_FREQS):
+                        fld_measure, fld_measure_lbls, 
+                        fld_by=None, fld_by_name=None, fld_by_lbls=None,
+                        sort_opt=mg.SORT_NONE, measure=mg.CHART_FREQS):
     """
     Simple bar charts and single line line charts.
+    fld_gp -- chart by variable
+    fld_measure -- the variable being counted or averaged. Only need labels if 
+        being counted.
+    fld_by -- the field being grouped for a function such as average
+        e.g. AVG(fld_measure) ... GROUP BY fld_by (if a chart by var, then 
+        grouped by both fld_gp, fld_by. Not needed if doing FREQS.
     """
     return get_basic_dets(dbe, cur, tbl, tbl_filt, 
                           fld_gp, fld_gp_name, fld_gp_lbls, 
-                          fld_measure, fld_measure_lbls, sort_opt, measure)
+                          fld_measure, fld_measure_lbls, 
+                          fld_by, fld_by_name, fld_by_lbls,
+                          sort_opt, measure)
 
 def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
                          fld_gp, fld_gp_lbls, fld_measure, fld_measure_lbls):
@@ -645,8 +691,8 @@ def is_multichart(chart_dets):
         multichart = False
     return multichart
 
-def barchart_output(titles, subtitles, x_title, barchart_dets, inc_perc, 
-                    css_idx, css_fil, page_break_after):
+def barchart_output(titles, subtitles, x_title, y_title, barchart_dets, 
+                    inc_perc, css_idx, css_fil, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -779,7 +825,7 @@ makechartRenumber%(chart_idx)s = function(){
                u"gridline_width": gridline_width, 
                u"axis_label_drop": axis_label_drop,
                u"left_axis_label_shift": left_axis_label_shift,
-               u"x_title": x_title, u"y_title": mg.Y_AXIS_FREQ_LABEL,
+               u"x_title": x_title, u"y_title": y_title,
                u"tooltip_border_colour": tooltip_border_colour, 
                u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
                u"outer_bg": outer_bg,  u"pagebreak": pagebreak,
@@ -942,9 +988,9 @@ def get_smooth_y_vals(y_vals):
         smooth_y_vals.append(numer/(1.0*denom))
     return smooth_y_vals
 
-def linechart_output(titles, subtitles, x_title, xaxis_dets, max_label_len, 
-                     series_dets, inc_perc, inc_trend, inc_smooth, 
-                     css_fil, css_idx, page_break_after):
+def linechart_output(titles, subtitles, x_title, y_title, xaxis_dets, 
+                     max_label_len, series_dets, inc_perc, inc_trend, 
+                     inc_smooth, css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -1074,7 +1120,7 @@ makechartRenumber00 = function(){
            u"gridline_width": gridline_width, u"pagebreak": pagebreak,
            u"axis_label_drop": axis_label_drop,
            u"left_axis_label_shift": left_axis_label_shift,
-           u"x_title": x_title, u"y_title": mg.Y_AXIS_FREQ_LABEL,
+           u"x_title": x_title, u"y_title": y_title,
            u"tooltip_border_colour": tooltip_border_colour,
            u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
            u"grid_bg": grid_bg, 
@@ -1084,8 +1130,8 @@ makechartRenumber00 = function(){
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
     
-def areachart_output(titles, subtitles, chart_dets, inc_perc, css_fil, css_idx, 
-                     page_break_after):
+def areachart_output(titles, subtitles, y_title, chart_dets, inc_perc, 
+                     css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -1194,7 +1240,7 @@ makechartRenumber%(chart_idx)s = function(){
                u"major_gridline_colour": major_gridline_colour,
                u"left_axis_label_shift": left_axis_label_shift,
                u"gridline_width": gridline_width, 
-               u"y_title": mg.Y_AXIS_FREQ_LABEL, u"pagebreak": pagebreak,
+               u"y_title": y_title, u"pagebreak": pagebreak,
                u"tooltip_border_colour": tooltip_border_colour,
                u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
                u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx,

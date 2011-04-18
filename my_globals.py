@@ -426,7 +426,8 @@ CHART_TYPE_TO_LABELS = {SIMPLE_BARCHART: (CHART_VALUES, CHART_CHART_BY),
                         HISTOGRAM: (CHART_VALUES, CHART_CHART_BY),
                         SCATTERPLOT: (_(u"X-axis"), _(u"Y-axis"))}
 THREE_VAR_CHART_TYPES = [SCATTERPLOT,]
-AVG_OPTION_CHART_TYPES = [SIMPLE_BARCHART, LINE_CHART, AREA_CHART,]
+AVG_OPTION_CHART_TYPES = [SIMPLE_BARCHART, CLUSTERED_BARCHART, LINE_CHART, 
+                          AREA_CHART,]
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
     'lightcoral', 'orangered', 'navajowhite', 'slategray', 'palegreen', 
@@ -476,7 +477,7 @@ LIST_X = u"list_x"
 LIST_Y = u"list_y"
 DATA_TUPS = u"data_tups"
 CHART_FREQS = "chart_freqs"
-CHARTS_AVGS = "chart_avgs"
+CHART_AVGS = "chart_avgs"
 # remember defaults //////////
 # stats tests
 GROUP_BY_DEFAULT = None
