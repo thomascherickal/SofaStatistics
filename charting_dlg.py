@@ -498,7 +498,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # set drop1 to numeric, change label for drop1 to Averaged and 
         #    drop2 to By, add drop3
         unused, varname2, varname3 = self.get_vars()
-        self.min_data_type1 = mg.VAR_TYPE_CAT
+        self.min_data_type1 = mg.VAR_TYPE_QUANT
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1,
                        override_min_data_type=self.min_data_type1)
         if from_scratch:
