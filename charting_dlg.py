@@ -494,7 +494,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_to_rollback = self.btn_bar_chart
         self.bmp_to_rollback_to = self.bmp_btn_bar_chart
 
-    def set_avg_dropdowns(self, from_scratch=False, inc_var3=True):
+    def set_avg_dropdowns(self, from_scratch=False):
         # set drop1 to numeric, change label for drop1 to Averaged and 
         #    drop2 to By, add drop3
         unused, varname2, varname3 = self.get_vars()
@@ -512,16 +512,16 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.lbl_var2.Enable(True)
         self.lbl_var1.SetLabel(u"%s:" % mg.CHART_AVERAGED)
         self.lbl_var2.SetLabel(u"%s:" % mg.CHART_BY)
-        if inc_var3:
-            self.setup_var(self.drop_var3, mg.VAR_3_DEFAULT, 
-                           self.sorted_var_names3, varname3, 
-                           inc_drop_select=True, 
-                           override_min_data_type=mg.VAR_TYPE_CAT)
-            self.drop_var3.Show()
-            self.lbl_var3.Show()
+        if self.chart_type in mg.AVG_HAS_NO_CHART_BY_CHART_TYPES:
+            self.lbl_var3.SetLabel(u"%s:" % mg.CHART_BY)
         else:
-            self.drop_var3.Hide()
-            self.lbl_var3.Hide()
+            self.lbl_var3.SetLabel(u"%s:" % mg.CHART_CHART_BY)
+        self.setup_var(self.drop_var3, mg.VAR_3_DEFAULT, 
+                       self.sorted_var_names3, varname3, 
+                       inc_drop_select=True, 
+                       override_min_data_type=mg.VAR_TYPE_CAT)
+        self.drop_var3.Show()
+        self.lbl_var3.Show()
         self.panel_top.Layout()
 
     def unset_avg_dropdowns(self):
@@ -585,7 +585,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         global INC_PERC
         SHOW_AVG = self.chk_line_avg.IsChecked()
         if SHOW_AVG:
-            self.set_avg_dropdowns(inc_var3=False)
+            self.set_avg_dropdowns()
             self.chk_line_perc.Enable(False)
             INC_PERC = False
         else:
@@ -646,8 +646,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if self.panel_displayed == panel:
             return # just reclicking on same one
         if (self.chart_type in mg.AVG_OPTION_CHART_TYPES) and SHOW_AVG:
-            inc_var3 = False if self.chart_type == mg.LINE_CHART else True
-            self.set_avg_dropdowns(from_scratch=True, inc_var3=inc_var3)
+            self.set_avg_dropdowns(from_scratch=True)
         else:
             lbla, lblb = mg.CHART_TYPE_TO_LABELS.get(self.chart_type, 
                                                      (mg.CHART_VALUES, 
@@ -712,6 +711,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp_sel = self.bmp_btn_clust_bar_chart_sel
         panel = self.panel_clustered_bar_chart
         self.chk_clust_bar_perc.SetValue(INC_PERC)
+        self.chk_clust_bar_avg.SetValue(SHOW_AVG)
+        self.chk_clust_bar_perc.Enable(not SHOW_AVG)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_pie_chart(self, event):
@@ -923,7 +924,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         """
         has3vars = (self.chart_type in mg.THREE_VAR_CHART_TYPES
                     or (self.chart_type in mg.AVG_OPTION_CHART_TYPES 
-                        and SHOW_AVG and self.chart_type != mg.LINE_CHART))
+                        and SHOW_AVG))
         if has3vars:        
             setof3 = set([self.drop_var1.GetStringSelection(),
                         self.drop_var2.GetStringSelection(),
@@ -999,7 +1000,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # var 3 - always chart by
         has3vars = (self.chart_type in mg.THREE_VAR_CHART_TYPES
                     or (self.chart_type in mg.AVG_OPTION_CHART_TYPES 
-                        and SHOW_AVG and self.chart_type != mg.LINE_CHART))
+                        and SHOW_AVG))
         if has3vars:
             if varname3 == mg.DROP_SELECT:
                 script_lst.append(u"fld_gp = None")
@@ -1088,14 +1089,18 @@ def get_clustered_barchart_script(inc_perc, css_fil, css_idx, chart_type):
     script = u"""
 chart_type="%(chart_type)s"
 xaxis_dets, max_label_len, series_dets = charting_output.get_grouped_val_dets(
-            chart_type, dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_lbls, 
-            fld_measure, fld_measure_lbls)
+            chart_type, dbe, cur, tbl, tbl_filt, 
+            fld_gp, fld_gp_lbls, 
+            fld_measure, fld_measure_lbls,
+            fld_by, fld_by_name, fld_by_lbls, 
+            measure=measure)
 chart_by_label = mg.CHART_CHART_BY_LABEL_ALL
 barchart_dets = [{mg.CHART_CHART_BY_LABEL: chart_by_label,
                   mg.CHART_XAXIS_DETS: xaxis_dets, 
                   mg.CHART_SERIES_DETS: series_dets}]
 x_title = u"" # uses series label instead
-y_title = mg.Y_AXIS_FREQ_LABEL
+y_title = (mg.Y_AXIS_FREQ_LABEL if measure == mg.CHART_FREQS
+                                else u"Mean %%s" %% fld_measure_name) 
 chart_output = charting_output.barchart_output(titles, subtitles,
             x_title, y_title, barchart_dets, inc_perc=%(inc_perc)s, 
             css_fil="%(css_fil)s", css_idx=%(css_idx)s, 
@@ -1119,7 +1124,8 @@ chart_output = charting_output.piechart_output(titles, subtitles,
 def get_line_chart_script(inc_perc, inc_trend, inc_smooth, css_fil, css_idx, 
                           chart_type, varname2, varname3):
     dd = getdata.get_dd()
-    single_line = SHOW_AVG or (not SHOW_AVG and varname2 == mg.DROP_SELECT)
+    single_line = ((SHOW_AVG and varname3 == mg.DROP_SELECT) 
+                   or (not SHOW_AVG and varname2 == mg.DROP_SELECT))
     if single_line:
         script = u"""
 single_linechart_dets = charting_output.get_single_val_dets(
@@ -1143,10 +1149,14 @@ y_title = (mg.Y_AXIS_FREQ_LABEL if measure == mg.CHART_FREQS
         script = u"""
 chart_type="%(chart_type)s"
 xaxis_dets, max_label_len, series_dets = charting_output.get_grouped_val_dets(
-            chart_type, dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_lbls, 
-            fld_measure, fld_measure_lbls)
-x_title = fld_measure_name
-y_title = mg.Y_AXIS_FREQ_LABEL
+            chart_type, dbe, cur, tbl, tbl_filt, 
+            fld_gp, fld_gp_lbls, 
+            fld_measure, fld_measure_lbls,
+            fld_by, fld_by_name, fld_by_lbls, 
+            measure=measure)
+x_title = fld_measure_name if measure == mg.CHART_FREQS else fld_by_name
+y_title = (mg.Y_AXIS_FREQ_LABEL if measure == mg.CHART_FREQS
+                                else u"Mean %%s" %% fld_measure_name) 
         """ % {u"chart_type": chart_type, u"dbe": dd.dbe}
     script += u"""
 chart_output = charting_output.linechart_output(titles, subtitles, 

@@ -198,27 +198,17 @@ def get_single_val_dets(dbe, cur, tbl, tbl_filt,
                           sort_opt, measure)
 
 def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
-                         fld_gp, fld_gp_lbls, fld_measure, fld_measure_lbls):
+                         fld_gp, fld_gp_lbls, 
+                         fld_measure, fld_measure_lbls, 
+                         fld_by, fld_by_name, fld_by_lbls,
+                         measure=mg.CHART_FREQS):
     """
     e.g. clustered bar charts and multiple line line charts.
     Get labels and frequencies for each series, plus labels for x axis.
-    Only include values for either fld_gp or fld_measure if at least one 
-        non-null value in the other dimension.  If a whole series is zero, then 
-        it won't show.  If there is any value in other dim will show that val 
-        and zeroes for rest.
     If too many bars, provide warning.
     Result of a cartesian join on left side of a join to ensure all items in
         crosstab are present.
-    SQL returns something like (grouped by fld_gp, fld_measure, with zero freqs 
-        as needed):
-    data = [(1,1,56),
-            (1,2,103),
-            (1,3,72),
-            (1,4,40),
-            (2,1,13),
-            (2,2,59),
-            (2,3,200),
-            (2,4,0),]
+
     series_dets -- [{"label": "Male", "y_vals": [56,103,72,40],
                     {"label": "Female", "y_vals": [13,59,200,0],}
     xaxis_dets -- [(1, "North"), (2, "South"), (3, "East"), (4, "West"),]
@@ -227,59 +217,128 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
     MAX_ITEMS = 150 if chart_type == mg.CLUSTERED_BARCHART else 300
     objqtr = getdata.get_obj_quoter_func(dbe)
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    SQL_get_measure_vals = u"""SELECT %(fld_measure)s
-        FROM %(tbl)s
-        WHERE %(fld_gp)s IS NOT NULL AND %(fld_measure)s IS NOT NULL
-            %(and_tbl_filt)s
-        GROUP BY %(fld_measure)s"""
-    SQL_get_gp_by_vals = u"""SELECT %(fld_gp)s
-        FROM %(tbl)s
-        WHERE %(fld_measure)s IS NOT NULL AND %(fld_gp)s IS NOT NULL
-            %(and_tbl_filt)s
-        GROUP BY %(fld_gp)s"""
-    SQL_cartesian_join = """SELECT * FROM (%s) AS qrygp INNER JOIN 
-        (%s) AS qrymeasure""" % (SQL_get_measure_vals, SQL_get_gp_by_vals)
-    SQL_group_by = u"""SELECT %(fld_gp)s, %(fld_measure)s,
-            COUNT(*) AS freq
-        FROM %(tbl)s
-        %(where_tbl_filt)s
-        GROUP BY %(fld_gp)s, %(fld_measure)s"""
-    sql_dic = {u"tbl": getdata.tblname_qtr(dbe, tbl), 
-               u"fld_measure": objqtr(fld_measure),
-               u"fld_gp": objqtr(fld_gp),
-               u"and_tbl_filt": and_tbl_filt,
-               u"where_tbl_filt": where_tbl_filt}
-    SQL_cartesian_join = SQL_cartesian_join % sql_dic
-    SQL_group_by = SQL_group_by % sql_dic
-    sql_dic[u"qrycart"] = SQL_cartesian_join
-    sql_dic[u"qrygrouped"] = SQL_group_by
-    SQL_get_raw_data = """SELECT %(fld_gp)s, %(fld_measure)s,
-            CASE WHEN freq IS NULL THEN 0 ELSE freq END AS N
-        FROM (%(qrycart)s) AS qrycart LEFT JOIN (%(qrygrouped)s) AS qrygrouped
-        USING(%(fld_gp)s, %(fld_measure)s)
-        ORDER BY %(fld_gp)s, %(fld_measure)s""" % sql_dic
+    xlabelsdic = fld_measure_lbls if measure == mg.CHART_FREQS else fld_by_lbls
+    if measure == mg.CHART_FREQS:
+        """
+        Only include values for either fld_gp or fld_measure if at least one 
+            non-null value in the other dimension.  If a whole series is zero, 
+            then it won't show. If there is any value in other dim will show 
+            that val and zeroes for rest.
+        SQL returns something like (grouped by fld_gp, fld_measure, with zero 
+            freqs as needed):
+        data = [(1,1,56),
+                (1,2,103),
+                (1,3,72),
+                (1,4,40),
+                (2,1,13),
+                (2,2,59),
+                (2,3,200),
+                (2,4,0),]
+        """
+        SQL_get_measure_vals = u"""SELECT %(fld_measure)s
+            FROM %(tbl)s
+            WHERE %(fld_gp)s IS NOT NULL AND %(fld_measure)s IS NOT NULL
+                %(and_tbl_filt)s
+            GROUP BY %(fld_measure)s"""
+        SQL_get_gp_by_vals = u"""SELECT %(fld_gp)s
+            FROM %(tbl)s
+            WHERE %(fld_measure)s IS NOT NULL AND %(fld_gp)s IS NOT NULL
+                %(and_tbl_filt)s
+            GROUP BY %(fld_gp)s"""
+        SQL_cartesian_join = """SELECT * FROM (%s) AS qrymeasure INNER JOIN 
+            (%s) AS qrygp""" % (SQL_get_measure_vals, SQL_get_gp_by_vals)
+        SQL_group_by = u"""SELECT %(fld_gp)s, %(fld_measure)s,
+                COUNT(*) AS freq
+            FROM %(tbl)s
+            %(where_tbl_filt)s
+            GROUP BY %(fld_gp)s, %(fld_measure)s"""
+        sql_dic = {u"tbl": getdata.tblname_qtr(dbe, tbl), 
+                   u"fld_measure": objqtr(fld_measure),
+                   u"fld_gp": objqtr(fld_gp),
+                   u"and_tbl_filt": and_tbl_filt,
+                   u"where_tbl_filt": where_tbl_filt}
+        SQL_cartesian_join = SQL_cartesian_join % sql_dic
+        SQL_group_by = SQL_group_by % sql_dic
+        sql_dic[u"qrycart"] = SQL_cartesian_join
+        sql_dic[u"qrygrouped"] = SQL_group_by
+        SQL_get_raw_data = """SELECT %(fld_gp)s, %(fld_measure)s,
+                CASE WHEN freq IS NULL THEN 0 ELSE freq END AS N
+            FROM (%(qrycart)s) AS qrycart LEFT JOIN (%(qrygrouped)s) 
+                AS qrygrouped
+            USING(%(fld_gp)s, %(fld_measure)s)
+            ORDER BY %(fld_gp)s, %(fld_measure)s""" % sql_dic
+    else:
+        """
+        Only include values for either fld_gp or fld_by if at least one 
+            non-null value in the other dimension.  If a whole series is zero, 
+            then it won't show. If there is any value in other dim will show 
+            that val and zeroes for rest.
+        SQL returns something like (grouped by fld_gp, fld_by, with zero 
+            avgs as needed):
+        data = [(1,1,56),
+                (1,2,103),
+                (1,3,72),
+                (1,4,40),
+                (2,1,13),
+                (2,2,59),
+                (2,3,200),
+                (2,4,0),]
+        """
+        SQL_get_by_vals = u"""SELECT %(fld_by)s
+            FROM %(tbl)s
+            WHERE %(fld_gp)s IS NOT NULL AND %(fld_by)s IS NOT NULL
+                %(and_tbl_filt)s
+            GROUP BY %(fld_by)s"""
+        SQL_get_gp_by_vals = u"""SELECT %(fld_gp)s
+            FROM %(tbl)s
+            WHERE %(fld_by)s IS NOT NULL AND %(fld_gp)s IS NOT NULL
+                %(and_tbl_filt)s
+            GROUP BY %(fld_gp)s"""
+        SQL_cartesian_join = """SELECT * FROM (%s) AS qryby INNER JOIN 
+            (%s) AS qrygp""" % (SQL_get_by_vals, SQL_get_gp_by_vals)
+        SQL_group_by = u"""SELECT %(fld_gp)s, %(fld_by)s,
+                AVG(%(fld_measure)s) AS measure
+            FROM %(tbl)s
+            %(where_tbl_filt)s
+            GROUP BY %(fld_gp)s, %(fld_by)s"""
+        sql_dic = {u"tbl": getdata.tblname_qtr(dbe, tbl), 
+                   u"fld_measure": objqtr(fld_measure),
+                   u"fld_gp": objqtr(fld_gp), u"fld_by": objqtr(fld_by),
+                   u"and_tbl_filt": and_tbl_filt,
+                   u"where_tbl_filt": where_tbl_filt}
+        SQL_cartesian_join = SQL_cartesian_join % sql_dic
+        SQL_group_by = SQL_group_by % sql_dic
+        sql_dic[u"qrycart"] = SQL_cartesian_join
+        sql_dic[u"qrygrouped"] = SQL_group_by
+        SQL_get_raw_data = """SELECT %(fld_gp)s, %(fld_by)s,
+                CASE WHEN measure IS NULL THEN 0 ELSE measure END AS val
+            FROM (%(qrycart)s) AS qrycart LEFT JOIN (%(qrygrouped)s) 
+                AS qrygrouped
+            USING(%(fld_gp)s, %(fld_by)s)
+            ORDER BY %(fld_gp)s, %(fld_by)s""" % sql_dic
     if debug: print(SQL_get_raw_data)
     cur.execute(SQL_get_raw_data)
     raw_data = cur.fetchall()
     if debug: print(raw_data)
     if not raw_data:
         raise my_exceptions.TooFewValsForDisplay
-    series_data, oth_vals = reshape_sql_crosstab_data(raw_data)
+    dp = 0 if measure == mg.CHART_FREQS else 2
+    series_data, oth_vals = reshape_sql_crosstab_data(raw_data, dp)
     if len(series_data) > mg.MAX_CHART_SERIES:
         raise my_exceptions.TooManySeriesInChart
     series_dets = []
     tot_items = 0
-    for gp_val, freqs in series_data.items():
-        tot_items += len(freqs)
+    for gp_val, measures in series_data.items():
+        tot_items += len(measures)
         if tot_items > MAX_ITEMS:
             raise my_exceptions.TooManyValsInChartSeries(fld_measure, MAX_ITEMS)
         gp_val_label = fld_gp_lbls.get(gp_val, unicode(gp_val))
-        series_dic = {u"label": gp_val_label, u"y_vals": freqs}
+        series_dic = {u"label": gp_val_label, u"y_vals": measures}
         series_dets.append(series_dic)
     xaxis_dets = []
     max_label_len = 0
     for val in oth_vals:
-        val_label = fld_measure_lbls.get(val, unicode(val))
+        val_label = xlabelsdic.get(val, unicode(val))
         len_y_val = len(val_label)
         if len_y_val > max_label_len:
             max_label_len = len_y_val
@@ -497,7 +556,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, fld_x_axis, fld_y_axis,
         scatterplot_dets.append(scatterplot_dic)
     return scatterplot_dets
 
-def reshape_sql_crosstab_data(raw_data):
+def reshape_sql_crosstab_data(raw_data, dp=0):
     """
     Must be sorted by group by then measures
     e.g. raw_data = [(1,1,56),
@@ -520,11 +579,14 @@ def reshape_sql_crosstab_data(raw_data):
     current_series = None
     oth_vals = None
     collect_oth = True
-    for current_gp, oth, freq in raw_data:
-        freq = int(freq)
-        if debug: print(current_gp, oth, freq)
+    for current_gp, oth, measure in raw_data:
+        if dp == 0:
+            measure = int(measure)
+        else:
+            measure = round(measure, dp)
+        if debug: print(current_gp, oth, measure)
         if current_gp == prev_gp: # still in same gp
-            current_series.append(freq)
+            current_series.append(measure)
             if collect_oth:
                 oth_vals.append(oth)
         else: # transition
@@ -532,7 +594,7 @@ def reshape_sql_crosstab_data(raw_data):
                 series_data[prev_gp] = current_series
                 collect_oth = False
             prev_gp = current_gp
-            current_series = [freq,] # starting new collection of freqs
+            current_series = [measure,] # starting new collection of measures
             if collect_oth:
                 oth_vals = [oth,] # starting collection of oths (only once)
     # left last row

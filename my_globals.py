@@ -428,6 +428,7 @@ CHART_TYPE_TO_LABELS = {SIMPLE_BARCHART: (CHART_VALUES, CHART_CHART_BY),
 THREE_VAR_CHART_TYPES = [SCATTERPLOT,]
 AVG_OPTION_CHART_TYPES = [SIMPLE_BARCHART, CLUSTERED_BARCHART, LINE_CHART, 
                           AREA_CHART,]
+AVG_HAS_NO_CHART_BY_CHART_TYPES = [CLUSTERED_BARCHART, LINE_CHART,]
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
     'lightcoral', 'orangered', 'navajowhite', 'slategray', 'palegreen', 
