@@ -113,8 +113,9 @@ class FeedbackDlg(wx.Dialog):
                             _(u"Did SOFA meet your needs? Please let us know "
                               u"by answering a short survey."
                               u"\n(You can answer later by clicking on the "
-                              u"\"Give quick feedback on SOFA\" link"
-                              u"\ndown the bottom of the main form)"))
+                              u"\"%s\" link"
+                              u"\ndown the bottom of the main form)") % 
+                              mg.FEEDBACK_LINK)
         self.szr_main.Add(txt_invitation, 1, wx.GROW|wx.ALL, 10)
         self.szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(self.szr_main)
@@ -536,8 +537,7 @@ class StartFrame(wx.Frame):
                             link_colour=wx.Colour(255,255,255), 
                             bg_colour=wx.Colour(0, 0, 0))
         # feedback link
-        link_feedback = hl.HyperLinkCtrl(self.panel, -1, 
-                        _(u"Give quick feedback on SOFA"), 
+        link_feedback = hl.HyperLinkCtrl(self.panel, -1, mg.FEEDBACK_LINK, 
                         pos=(self.version_right, self.form_height-53), 
                         URL="http://www.sofastatistics.com/feedback.htm")
         self.setup_link(link=link_feedback, 

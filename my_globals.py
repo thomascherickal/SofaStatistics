@@ -19,6 +19,7 @@ ATTRIBUTION = u"sofastatistics.com"
 # LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, LANGUAGE_RUSSIAN, LANGUAGE_HEBREW
 # LANGUAGE_BRETON, LANGUAGE_SPANISH
 TEST_LANGID = wx.LANGUAGE_CROATIAN
+FEEDBACK_LINK = _(u"Give quick feedback on SOFA")
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
 PYTHON_ENCODING_DECLARATION = u"#! /usr/bin/env python" + os.linesep + \
