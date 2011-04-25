@@ -408,30 +408,37 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
     Modify default project settings to point to local (user) SOFA directory.
     """
     # change home username
-    f = codecs.open(default_proj, "r", "utf-8")
-    proj_str = f.read() # provided by me - no BOM or non-ascii 
-    f.close()
-    for path in settings_subfolders:
-        new_str = lib.escape_pre_write(os.path.join(mg.LOCAL_PATH, path, u""))
-        proj_str = proj_str.replace(u"/home/g/sofastats/%s/" % path, new_str)
-    # add MS Access and SQL Server into mix if Windows
-    if mg.PLATFORM == mg.WINDOWS:
-        proj_str = proj_str.replace(u"default_dbs = {",
-                            u"default_dbs = {'%s': None, " % mg.DBE_MS_ACCESS)
-        proj_str = proj_str.replace(u"default_tbls = {",
-                            u"default_tbls = {'%s': None, " % mg.DBE_MS_ACCESS)
-        proj_str = proj_str.replace(u"default_dbs = {",
-                            u"default_dbs = {'%s': None, " % mg.DBE_MS_SQL)
-        proj_str = proj_str.replace(u"default_tbls = {",
-                            u"default_tbls = {'%s': None, " % mg.DBE_MS_SQL)
-    f = codecs.open(default_proj, "w", "utf-8")
-    f.write(proj_str)
-    f.close()
-    # create file as tag we have done the changes to the proj file
-    f = open(os.path.join(local_path, mg.PROJ_CUSTOMISED_FILE), "w")
-    f.write(u"Local project file customised successfully :-)")
-    f.close()
-    print(u"Configured default project file for user")
+    try:
+        f = codecs.open(default_proj, "r", "utf-8")
+        proj_str = f.read() # provided by me - no BOM or non-ascii 
+        f.close()
+        for path in settings_subfolders:
+            new_str = lib.escape_pre_write(os.path.join(mg.LOCAL_PATH, path, u""))
+            proj_str = proj_str.replace(u"/home/g/sofastats/%s/" % path, new_str)
+        # add MS Access and SQL Server into mix if Windows
+        if mg.PLATFORM == mg.WINDOWS:
+            proj_str = proj_str.replace(u"default_dbs = {",
+                                u"default_dbs = {'%s': None, " % mg.DBE_MS_ACCESS)
+            proj_str = proj_str.replace(u"default_tbls = {",
+                                u"default_tbls = {'%s': None, " % mg.DBE_MS_ACCESS)
+            proj_str = proj_str.replace(u"default_dbs = {",
+                                u"default_dbs = {'%s': None, " % mg.DBE_MS_SQL)
+            proj_str = proj_str.replace(u"default_tbls = {",
+                                u"default_tbls = {'%s': None, " % mg.DBE_MS_SQL)
+        f = codecs.open(default_proj, "w", "utf-8")
+        f.write(proj_str)
+        f.close()
+        # create file as tag we have done the changes to the proj file
+        f = open(os.path.join(local_path, mg.PROJ_CUSTOMISED_FILE), "w")
+        f.write(u"Local project file customised successfully :-)")
+        f.close()
+        print(u"Configured default project file for user")
+    except Exception, e:
+        raise Exception(u"Problem configuring default project settings. "
+                        u"It may be best to delete your local sofastats folder "
+                        u"e.g. C:\\Users\\username\\sofastats or C:\\Documents "
+                        u"and Settings\\username\\sofastats"
+                        u"\nCaused by error: %s" % lib.ue(e))
 
 def store_version(local_path):
     f = file(os.path.join(local_path, mg.VERSION_FILE), "w")

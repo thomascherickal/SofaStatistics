@@ -939,6 +939,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             if self.drop_var2.GetStringSelection() == mg.DROP_SELECT:
                 wx.MessageBox("Please make a selection for the second variable")
                 return False
+            if (self.chart_type == mg.CLUSTERED_BARCHART 
+                    and self.drop_var3.GetStringSelection() == mg.DROP_SELECT):
+                wx.MessageBox("Please make a selection for the third variable")
+                return False
         else:
             setof2 = set([self.drop_var1.GetStringSelection(),
                         self.drop_var2.GetStringSelection()])

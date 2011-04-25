@@ -111,7 +111,10 @@ class FeedbackDlg(wx.Dialog):
         szr_btns.Add(btn_feedback, 0, wx.ALIGN_RIGHT)
         txt_invitation = wx.StaticText(self.panel, -1, 
                             _(u"Did SOFA meet your needs? Please let us know "
-                              u"by answering a short survey."))
+                              u"by answering a short survey."
+                              u"\n(You can answer later by clicking on the "
+                              u"\"Give quick feedback on SOFA\" link"
+                              u"\ndown the bottom of the main form)"))
         self.szr_main.Add(txt_invitation, 1, wx.GROW|wx.ALL, 10)
         self.szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(self.szr_main)
