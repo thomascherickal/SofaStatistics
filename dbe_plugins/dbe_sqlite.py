@@ -21,6 +21,7 @@ DEFAULT_TBL = u"sqlite_default_tbl"
 NUMERIC_TYPES = [u"integer", u"float", u"numeric", u"real"]
 DATE_TYPES = [u"date", u"datetime", u"time", u"timestamp"]
 DATABASE_KEY = u"database"
+DATABASE_FLD_LABEL = _("Database(s)")
 
 if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
 placeholder = u"?"
@@ -290,7 +291,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     szr_sqlite_inner.Add(parent.lbl_sqlite_default_tbl, 0, wx.LEFT|wx.RIGHT, 5)
     szr_sqlite_inner.Add(parent.txt_sqlite_default_tbl, 0, wx.RIGHT, 10)
     parent.szr_sqlite.Add(szr_sqlite_inner, 0, wx.GROW)
-    sqlite_col_dets = [{"col_label": _("Database(s)"), 
+    sqlite_col_dets = [{"col_label": DATABASE_FLD_LABEL, 
                         "col_type": settings_grid.COL_TEXT_BROWSE, 
                         "col_width": 400, 
                         "file_phrase": _("Choose an SQLite database file")}]
@@ -341,6 +342,16 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     Namespace multiple databases with same name (presumably in different 
         folders).
     """
+    if parent.sqlite_grid.new_is_dirty:
+        incomplete_sqlite = True
+        has_sqlite_con = False
+        wx.MessageBox(_(u"The SQLite details on the new row "
+                        u"have not been saved. "
+                        u"Select the \"%s\" field in the new row "
+                        u"and press Enter")
+                        % DATABASE_FLD_LABEL)
+        parent.sqlite_grid.SetFocus()
+        return incomplete_sqlite, has_sqlite_con
     parent.sqlite_grid.update_settings_data()
     #pprint.pprint(parent.sqlite_settings_data) # debug
     sqlite_settings = parent.sqlite_settings_data
@@ -366,8 +377,9 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     if incomplete_sqlite:
         wx.MessageBox(_("The SQLite details are incomplete"))
         parent.txt_sqlite_default_db.SetFocus()
-    default_dbs[mg.DBE_SQLITE] = DEFAULT_DB if DEFAULT_DB else None
-    default_tbls[mg.DBE_SQLITE] = DEFAULT_TBL if DEFAULT_TBL else None
+    else:
+        default_dbs[mg.DBE_SQLITE] = DEFAULT_DB if DEFAULT_DB else None
+        default_tbls[mg.DBE_SQLITE] = DEFAULT_TBL if DEFAULT_TBL else None
     return incomplete_sqlite, has_sqlite_con
 
 # unique to SQLite (because used to store tables for user-entered data plus 

@@ -380,6 +380,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         # misc
         lblfont = wx.Font(9, wx.SWISS, wx.NORMAL, wx.BOLD)
         # Project Name and notes
+        lbl_empty = wx.StaticText(self.panel_top, -1, "")
         lbl_name = wx.StaticText(self.panel_top, -1, _("Project Name:"))
         lbl_name.SetFont(lblfont)
         self.txt_name = wx.TextCtrl(self.panel_top, -1, self.proj_name, 
@@ -388,24 +389,28 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         lbl_proj_notes = wx.StaticText(self.panel_top, -1, _("Notes:"))
         lbl_proj_notes.SetFont(lblfont)
         self.txt_proj_notes = wx.TextCtrl(self.panel_top, -1, self.proj_notes,
-                                        size=(100,40), style=wx.TE_MULTILINE)
+                                          style=wx.TE_MULTILINE)
         self.txt_proj_notes.Enable(not self.readonly)
         szr_desc = wx.BoxSizer(wx.HORIZONTAL)
         szr_desc_left = wx.BoxSizer(wx.VERTICAL)
         szr_desc_mid = wx.BoxSizer(wx.VERTICAL)
         szr_desc_right = wx.BoxSizer(wx.VERTICAL)
-        img_ctrl_sofa = wx.StaticBitmap(self.panel_top)
-        img_sofa = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
-                                        u"sofa_left.xpm"), wx.BITMAP_TYPE_XPM)
-        bmp_sofa = wx.BitmapFromImage(img_sofa)
-        img_ctrl_sofa.SetBitmap(bmp_sofa)
-        szr_desc_left.Add(img_ctrl_sofa, 0, wx.TOP|wx.RIGHT, 10)
+        self.btn_help = wx.Button(self.panel_top, wx.ID_HELP)
+        self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
+        #img_ctrl_sofa = wx.StaticBitmap(self.panel_top)
+        #img_sofa = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+        #                                u"sofa_left.xpm"), wx.BITMAP_TYPE_XPM)
+        #bmp_sofa = wx.BitmapFromImage(img_sofa)
+        #img_ctrl_sofa.SetBitmap(bmp_sofa)
+        szr_desc_left.Add(lbl_empty, 0, wx.RIGHT, 10)
+        szr_desc_left.Add(self.btn_help, 0, wx.RIGHT, 10)
         szr_desc_mid.Add(lbl_name, 0)
-        szr_desc_mid.Add(self.txt_name, 0)
+        szr_desc_mid.Add(self.txt_name, 0, wx.RIGHT, 10)
+        #szr_desc_left.Add(img_ctrl_sofa, 0, wx.TOP, 10)
         szr_desc_right.Add(lbl_proj_notes, 0)
         szr_desc_right.Add(self.txt_proj_notes, 1, wx.GROW)
         szr_desc.Add(szr_desc_left, 0)
-        szr_desc.Add(szr_desc_mid, 0, wx.LEFT|wx.RIGHT, 10)
+        szr_desc.Add(szr_desc_mid)
         szr_desc.Add(szr_desc_right, 1, wx.GROW)
         # DATA CONNECTIONS
         lbl_data_con_dets = wx.StaticText(self.panel_top, -1, 
@@ -458,7 +463,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.panel_bottom.SetSizer(self.szr_bottom)
         self.szr_bottom.SetSizeHints(self.panel_bottom)
         # FINAL # NB any ratio changes must work in multiple OSs
-        self.szr.Add(self.panel_top, 1, wx.GROW)
+        self.szr.Add(self.panel_top, 0, wx.GROW)
         self.szr.Add(self.scroll_con_dets, 3, 
                      wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
         self.szr.Add(self.panel_config, 0, wx.GROW)
@@ -469,7 +474,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.Layout()
         self.sqlite_grid.grid.SetFocus()
         self.txt_name.SetFocus()
-        
+    
     def set_defaults(self, fil_proj):
         if fil_proj:
             self.new_proj = False
@@ -596,7 +601,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             if not self.new:
                 btn_delete = wx.Button(self.panel_bottom, wx.ID_DELETE)
                 btn_delete.Bind(wx.EVT_BUTTON, self.on_delete)
-            btn_cancel = wx.Button(self.panel_bottom, wx.ID_CANCEL) # 
+            btn_cancel = wx.Button(self.panel_bottom, wx.ID_CANCEL)
             btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
             btn_ok = wx.Button(self.panel_bottom, wx.ID_OK, _("Update"))
         btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
@@ -607,6 +612,16 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.szr_btns.Realize()
         if not self.readonly and not self.new:
             self.szr_btns.Insert(0, btn_delete, 0)
+
+    def on_btn_help(self, event):
+        """
+        Export script if enough data to create table.
+        """
+        import webbrowser
+        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
+              u"?id=help:projects"
+        webbrowser.open_new_tab(url)
+        event.Skip()
 
     def on_delete(self, event):
         proj_name = self.txt_name.GetValue()
@@ -664,9 +679,9 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             default_dbs = {}
             default_tbls = {}
             con_dets = {}
-            any_incomplete, any_cons, completed_dbes = \
-                                    getdata.process_con_dets(self, default_dbs, 
-                                                         default_tbls, con_dets)
+            (any_incomplete, any_cons, 
+             completed_dbes) = getdata.process_con_dets(self, default_dbs, 
+                                                        default_tbls, con_dets)
             if any_incomplete:
                 return
             enough_completed = proj_name and any_cons

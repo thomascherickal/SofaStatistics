@@ -234,6 +234,10 @@ class SettingsEntry(object):
         self.grid.Bind(EVT_CELL_MOVE, self.on_cell_move)
         self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.on_cell_change)
         self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.on_select_cell)
+        
+        self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.on_mouse_cell)
+        self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.on_mouse_cell)
+        
         self.grid.Bind(controls.EVT_TEXT_BROWSE_KEY_DOWN, 
                        self.on_text_browse_key_down)
         self.frame.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, 
@@ -250,7 +254,7 @@ class SettingsEntry(object):
                 self.grid.SetCellValue(row=i, col=j, 
                                        s=unicode(init_settings_data[i][j]))
         if not self.readonly:
-                self.grid.SetRowLabelValue(self.rows_n - 1, u"*")
+                self.grid.SetRowLabelValue(self.rows_n - 1, mg.NEW_IS_READY)
         self.current_col_idx = 0
         if self.readonly:
             self.current_row_idx = 0
@@ -372,6 +376,10 @@ class SettingsEntry(object):
             (dest_row, dest_col, direction) + u"******************************") 
         self.add_cell_move_evt(direction, dest_row, dest_col)
 
+    def on_mouse_cell(self, event):
+        self.update_new_is_dirty()
+        event.Skip()
+
     def on_grid_editor_created(self, event):
         """
         Need to bind KeyDown to the control itself e.g. a choice control.
@@ -440,13 +448,16 @@ class SettingsEntry(object):
     def update_new_is_dirty(self):
         debug = False
         if self.is_new_row(self.current_row_idx):
-            if debug: print("Updated new_is_dirty to True")
             self.new_is_dirty = True
-            self.grid.SetRowLabelValue(self.current_row_idx, u"...")
+            if debug: print("Updated new_is_dirty to True")
+            self.grid.SetRowLabelValue(self.current_row_idx, mg.NEW_IS_DIRTY)
+        else:
+            self.grid.SetRowLabelValue(self.get_new_row_idx(), mg.NEW_IS_READY)
     
     def on_text_browse_key_down(self, event):
         """
-        Text browser - hit enter from text box part of composite control.  
+        Text browser - hit enter from text box part of composite control OR 
+            clicked on Browse button.  
             If the final col, will go to left of new line.  Otherwise, will just
             move right.
         NB we only get here if editing the text browser.  If in the cell 
@@ -455,9 +466,13 @@ class SettingsEntry(object):
         """
         debug = False
         keycode = event.get_key_code() # custom event class
-        if keycode in [wx.WXK_RETURN]:
+        if keycode in [controls.MY_KEY_TEXT_BROWSE_MOVE_NEXT, 
+                       controls.MY_KEY_TEXT_BROWSE_BROWSE_BTN]:
             self.grid.DisableCellEditControl()
             self.add_cell_move_evt(mg.MOVE_RIGHT)
+        elif keycode == wx.WXK_ESCAPE:
+            self.grid.DisableCellEditControl()
+            self.grid.SetFocus()
             
     def on_cell_move(self, event):
         """
@@ -651,11 +666,18 @@ class SettingsEntry(object):
         return dest_row_is_new
     
     def is_new_row(self, row):
-        "2 rows inc new - new row if idx = 1 i.e. subtract 1"
+        "e.g. if 2 rows inc new - new row if idx = 1 i.e. subtract 1"
         debug = False
         if debug: print("row: %s; rows_to_fill: %s" % (row, self.rows_to_fill))
         new_row = (row == self.rows_to_fill)
         return new_row
+    
+    def get_new_row_idx(self):
+        """
+        if 2 rows to fill then the final row (2) will be the new one - 
+            not zero-based indexing.
+        """
+        return self.rows_to_fill
     
     def leaving_existing_cell(self):
         """
@@ -702,11 +724,12 @@ class SettingsEntry(object):
         is_dirty = self.is_dirty(self.current_row_idx)
         if self.debug or debug: 
             print(u"leaving_new_row - dest row %s dest col %s " %
-                (dest_row, dest_col) +
-                u"original direction %s dirty %s" % (direction, is_dirty))
+                  (dest_row, dest_col) +
+                  u"original direction %s dirty %s" % (direction, is_dirty))
         if direction in [mg.MOVE_UP, mg.MOVE_UP_RIGHT, mg.MOVE_UP_LEFT] \
                 and not is_dirty:
             move_to_dest = True # always OK
+            self.new_is_dirty = False
         else: # must check OK to move
             ok_to_save, msg = self.cell_ok_to_save(self.current_row_idx, 
                                                    self.current_col_idx)
@@ -722,6 +745,7 @@ class SettingsEntry(object):
                 self.add_new_row()
                 if debug or self.debug: print("Added new row")
                 saved_new_row = True
+                self.new_is_dirty = False
         return move_to_dest, saved_new_row
     
     # VALIDATION ///////////////////////////////////////////////////////////////
@@ -732,7 +756,7 @@ class SettingsEntry(object):
             if self.grid.GetCellValue(row, col_idx) != "":
                 return True
         return False
-      
+    
     def cell_invalid(self, row, col):
         """
         Return boolean and string message.
@@ -860,7 +884,7 @@ class SettingsEntry(object):
         """
         self.grid.DeleteRows(pos=row, numRows=1)
         self.reset_row_n(change=-1)
-        self.grid.SetRowLabelValue(self.rows_n - 1, "*")
+        self.grid.SetRowLabelValue(self.rows_n - 1, mg.NEW_IS_READY)
         self.grid.HideCellEditControl()
         self.grid.ForceRefresh()
         self.safe_layout_adjustment()
@@ -928,7 +952,7 @@ class SettingsEntry(object):
         self.reset_row_n(change=1)
         # reset label for all rows after insert
         self.update_next_row_labels(row_idx)
-        self.grid.SetRowLabelValue(self.rows_n - 1, "*")
+        self.grid.SetRowLabelValue(self.rows_n - 1, mg.NEW_IS_READY)
         if row_idx <= self.current_row_idx: # inserting above our selected cell
             self.current_row_idx += 1
             self.grid.SetGridCursor(self.current_row_idx, self.current_col_idx)
@@ -959,7 +983,7 @@ class SettingsEntry(object):
             self.grid.SetCellEditor(new_row_idx, col_idx, editor)
         self.reset_row_n(change=1)
         self.grid.SetRowLabelValue(self.rows_n - 2, unicode(self.rows_n - 1))
-        self.grid.SetRowLabelValue(self.rows_n - 1, u"*")
+        self.grid.SetRowLabelValue(self.rows_n - 1, mg.NEW_IS_READY)
         self.safe_layout_adjustment()
         
     def safe_layout_adjustment(self):
@@ -1013,7 +1037,7 @@ class SettingsEntry(object):
 
     def update_settings_data(self):
         """
-        Update settings_data.  Separated for reuse. NB clear it first so can 
+        Update settings_data. Separated for reuse. NB clear it first so can 
             refresh repeatedly.
         """
         grid_data = self.get_grid_data()

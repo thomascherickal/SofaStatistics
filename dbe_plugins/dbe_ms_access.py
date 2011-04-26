@@ -350,6 +350,15 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     Namespace multiple databases with same name (presumably in different 
         folders).
     """
+    if parent.msaccess_grid.new_is_dirty:
+        incomplete_msaccess = True
+        has_msaccess_con = False
+        wx.MessageBox(_(u"The MS Access details on the new row "
+                        u"have not been saved. "
+                        u"Select the final field in the new row "
+                        u"and press Enter"))
+        parent.msaccess_grid.SetFocus()
+        return incomplete_msaccess, has_msaccess_con
     parent.msaccess_grid.update_settings_data()
     #pprint.pprint(parent.msaccess_settings_data) # debug
     msaccess_settings = parent.msaccess_settings_data
@@ -378,8 +387,9 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     if incomplete_msaccess:
         wx.MessageBox(_("The MS Access details are incomplete"))
         parent.txt_msaccess_default_db.SetFocus()
-    default_dbs[mg.DBE_MS_ACCESS] = MSACCESS_DEFAULT_DB \
-        if MSACCESS_DEFAULT_DB else None            
-    default_tbls[mg.DBE_MS_ACCESS] = MSACCESS_DEFAULT_TBL \
-        if MSACCESS_DEFAULT_TBL else None
+    else:
+        default_dbs[mg.DBE_MS_ACCESS] = MSACCESS_DEFAULT_DB \
+            if MSACCESS_DEFAULT_DB else None            
+        default_tbls[mg.DBE_MS_ACCESS] = MSACCESS_DEFAULT_TBL \
+            if MSACCESS_DEFAULT_TBL else None
     return incomplete_msaccess, has_msaccess_con

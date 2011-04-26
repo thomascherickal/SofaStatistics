@@ -137,9 +137,9 @@ class DbTbl(wx.grid.PyGridTableBase):
         new_row = row > self.rows_to_fill
         if new_row:
             if self.new_is_dirty:
-                return u"..."
+                return mg.NEW_IS_DIRTY
             else:
-                return u"*"
+                return mg.NEW_IS_READY
         else:
             return row + 1
     

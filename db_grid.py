@@ -317,7 +317,8 @@ class TblEditor(wx.Dialog):
                 if deleted:
                     self.grid.DeleteRows(row_idx, numRows=1)
                     self.reset_row_n(change=-1)
-                    self.grid.SetRowLabelValue(self.dbtbl.rows_n - 1, "*")
+                    self.grid.SetRowLabelValue(self.dbtbl.rows_n - 1, 
+                                               mg.NEW_IS_READY)
                     self.grid.HideCellEditControl()
                     self.grid.BeginBatch()
                     msg = wx.grid.GridTableMessage(self.dbtbl, 
@@ -607,6 +608,8 @@ class TblEditor(wx.Dialog):
                 move_to_dest = False
             else:
                 move_to_dest = self.save_row(self.current_row_idx)
+            if move_to_dest:
+                self.dbtbl.new_is_dirty = False
         return move_to_dest
 
     # VALIDATION ///////////////////////////////////////////////////////////////
@@ -861,7 +864,7 @@ class TblEditor(wx.Dialog):
         "Reset new row label and restore previous new row label to default"
         prev_row = row - 1
         self.grid.SetRowLabelValue(prev_row, unicode(prev_row))
-        self.grid.SetRowLabelValue(row, "*")
+        self.grid.SetRowLabelValue(row, mg.NEW_IS_READY)
     
     def init_new_row_buffer(self):
         "Initialise new row buffer"

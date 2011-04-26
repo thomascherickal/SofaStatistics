@@ -13,10 +13,13 @@ class KeyDownEvent(wx.PyCommandEvent):
     def get_key_code(self):
         return self.keycode
 
-# new event type to pass around
+# new event types to pass around
 myEVT_TEXT_BROWSE_KEY_DOWN = wx.NewEventType()
-# event to bind to
+# events to bind to
 EVT_TEXT_BROWSE_KEY_DOWN = wx.PyEventBinder(myEVT_TEXT_BROWSE_KEY_DOWN, 1)
+
+MY_KEY_TEXT_BROWSE_BROWSE_BTN = 1000 # wx.WXK_SPECIAL20 is 212 and is highest?
+MY_KEY_TEXT_BROWSE_MOVE_NEXT = 1001
 
 
 class TextBrowse(wx.PyControl):
@@ -40,7 +43,6 @@ class TextBrowse(wx.PyControl):
         self.txt.Bind(wx.EVT_KEY_DOWN, self.on_txt_key_down)
         self.btn_browse = wx.Button(self, -1, _("Browse ..."))
         self.btn_browse.Bind(wx.EVT_BUTTON, self.on_btn_browse_click)
-        self.btn_browse.Bind(wx.EVT_KEY_DOWN, self.on_btn_browse_key_down)
         szr = wx.BoxSizer(wx.HORIZONTAL)
         self.txt_margins = 3
         self.btn_margin = 3
@@ -66,28 +68,24 @@ class TextBrowse(wx.PyControl):
         http://wiki.wxpython.org/AnotherTutorial ...
         ... #head-999ff1e3fbf5694a51a91cf4ed2140f692da013c
         """
-        if event.GetKeyCode() in [wx.WXK_RETURN]:
+        if event.GetKeyCode() in [wx.WXK_RETURN, wx.WXK_TAB]:
             key_event = KeyDownEvent(myEVT_TEXT_BROWSE_KEY_DOWN, self.GetId())
             key_event.SetEventObject(self)
-            key_event.set_key_code(wx.WXK_RETURN)
+            key_event.set_key_code(MY_KEY_TEXT_BROWSE_MOVE_NEXT)
             self.GetEventHandler().ProcessEvent(key_event)
-        elif event.GetKeyCode() in [wx.WXK_TAB]:
-            self.btn_browse.SetFocus()
+        elif event.GetKeyCode() == wx.WXK_ESCAPE:
+            key_event = KeyDownEvent(myEVT_TEXT_BROWSE_KEY_DOWN, self.GetId())
+            key_event.SetEventObject(self)
+            key_event.set_key_code(wx.WXK_ESCAPE)
+            self.GetEventHandler().ProcessEvent(key_event)
         else:
             event.Skip()
-    
-    def on_btn_browse_key_down(self, event):
-        """
-        Respond to keypresses on the browse button.
-        """
-        keycode = event.GetKeyCode()
-        if keycode == wx.WXK_TAB:
-            self.txt.SetFocus()
-        else: # e.g. let it be processed
-            event.Skip()
-    
+        
     def on_btn_browse_click(self, event):
-        "Open dialog and takes the file selected (if any)"
+        """
+        Open dialog and takes the file selected (if any)
+        """
+        gotval = False
         dlg_get_file = wx.FileDialog(self, message=self.file_phrase, 
                                    wildcard=self.wildcard)
             #defaultDir="spreadsheets", 
@@ -95,8 +93,13 @@ class TextBrowse(wx.PyControl):
         #MUST have a parent to enforce modal in Windows
         if dlg_get_file.ShowModal() == wx.ID_OK:
             self.txt.SetValue("%s" % dlg_get_file.GetPath())
+            gotval = True
         dlg_get_file.Destroy()
-        self.txt.SetFocus()
+        if gotval:
+            key_event = KeyDownEvent(myEVT_TEXT_BROWSE_KEY_DOWN, self.GetId())
+            key_event.SetEventObject(self)
+            key_event.set_key_code(MY_KEY_TEXT_BROWSE_BROWSE_BTN)
+            self.GetEventHandler().ProcessEvent(key_event)
     
     def set_text(self, text):
         self.txt.SetValue(text)

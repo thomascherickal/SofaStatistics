@@ -887,7 +887,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             self.tabentry.grid.SetRowLabelValue(row_idx, unicode(row_idx+1))
             self.tabentry.grid.ForceRefresh() # deleteme
         # extra config
-        self.tabentry.grid.SetRowLabelValue(self.tabentry.rows_n-1, u"*")
+        self.tabentry.grid.SetRowLabelValue(self.tabentry.rows_n-1, 
+                                            mg.NEW_IS_READY)
         # set cell and record position
         self.tabentry.respond_to_select_cell = False
         row2sel = 0 if self.tabentry.rows_n == 1 else 1
