@@ -466,9 +466,13 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     dot_colour = item_colours[0]
     title_dets_html = u"" # already got an appropriate title for whole section
     dot_borders = True
-    
-    line_lst = [x for x in list_x]
-    
+    slope, intercept, r, prob, sterrest = core_stats.linregress(list_x, list_y)
+    def gety(x, slope, intercept):
+        y = (x*slope) + intercept
+        return y
+    minx = min(list_x)
+    maxx = max(list_x)
+    line_lst = [gety(minx, slope, intercept), gety(maxx, slope, intercept)]
     charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
                                    line_colour, list_x, list_y, label_x, 
                                    label_y, x_vs_y, title_dets_html, 

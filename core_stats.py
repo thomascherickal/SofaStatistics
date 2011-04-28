@@ -728,6 +728,37 @@ def wilcoxont(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
              mg.STATS_DIC_MAX: max_b}
     return wt, prob, dic_a, dic_b
 
+
+def linregress(x,y):
+    """
+    From stats.py. No changes except calling renamed ss (now sum_squares).  
+    -------------------------------------
+    Calculates a regression line on x,y pairs.  
+
+    Usage:   linregress(x,y)      x,y are equal-length lists of x-y coordinates
+    Returns: slope, intercept, r, two-tailed prob, sterr-of-estimate
+    """
+    TINY = 1.0e-20
+    if len(x) <> len(y):
+        raise ValueError, 'Input values not paired in linregress.  Aborting.'
+    n = len(x)
+    x = map(float,x)
+    y = map(float,y)
+    xmean = mean(x)
+    ymean = mean(y)
+    r_num = float(n*(summult(x,y)) - sum(x)*sum(y))
+    r_den = math.sqrt((n*sum_squares(x) - square_of_sums(x)) \
+                     *(n*sum_squares(y) - square_of_sums(y)))
+    r = r_num / r_den
+    z = 0.5*math.log((1.0+r+TINY)/(1.0-r+TINY))
+    df = n-2
+    t = r*math.sqrt(df/((1.0-r+TINY)*(1.0+r+TINY)))
+    prob = betai(0.5*df,0.5,df/(df+t*t))
+    slope = r_num / float(n*sum_squares(x) - square_of_sums(x))
+    intercept = ymean - slope*xmean
+    sterrest = math.sqrt(1-r*r)*samplestdev(y)
+    return slope, intercept, r, prob, sterrest
+
 def pearsonr(x,y):
     """
     From stats.py.  No changes apart from added error trapping.  
@@ -1020,7 +1051,7 @@ def amean (inarray,dimension=None,keepdims=0):
 
 def variance(vals, high=False):
     """
-    From stats.py.  No changes except option of using Decimals not floats.
+    From stats.py. No changes except option of using Decimals not floats.
     Plus trapping n=1 error (results in div by zero  with /n-1) and n=0.  
     -------------------------------------
     Returns the variance of the values in the passed list using N-1
@@ -1045,10 +1076,34 @@ def variance(vals, high=False):
         var = sum_squares(deviations, high)/lib.n2d(n-1)
     return var
 
+def samplevar (vals, high=False):
+    """
+    From stats.py. No changes except option of using Decimals not floats.
+    Plus trapping n=1 error (results in div by zero  with /n-1) and n=0.  
+    -------------------------------------
+    Returns the variance of the values in the passed list using
+    N for the denominator (i.e., DESCRIBES the sample variance only).
+
+    Usage:   samplevar(vals)
+    """
+    n = len(vals)
+    if n < 2:
+        raise Exception(u"Need more than 1 value to calculate variance.  "
+                        u"Values supplied: %s" % vals)
+    mn = mean(vals)
+    deviations = []
+    for item in vals:
+        deviations.append(item-mn)
+    if not high:
+        var = sum_squares(deviations)/float(n)
+    else:
+        var = sum_squares(deviations, high)/lib.n2d(n)
+    return var
+
 def stdev(vals, high=False):
     """
-    From stats.py.  No changes except option of using Decimals instead 
-        of floats.  
+    From stats.py. No changes except option of using Decimals instead 
+        of floats. Uses renamed var (now variance).
     -------------------------------------
     Returns the standard deviation of the values in the passed list
     using N-1 in the denominator (i.e., to estimate population stdev).
@@ -1061,7 +1116,27 @@ def stdev(vals, high=False):
         else:
             stdev = math.sqrt(variance(vals))
     except ValueError:
-        raise Exception(u"stdev - error getting square root.  Negative "
+        raise Exception(u"stdev - error getting square root. Negative "
+                        u"variance value?")
+    return stdev
+
+def samplestdev(vals, high=False):
+    """
+    From stats.py. No changes except option of using Decimals instead 
+        of floats.
+    -------------------------------------
+    Returns the standard deviation of the values in the passed list using
+    N for the denominator (i.e., DESCRIBES the sample stdev only).
+    
+    Usage:   samplestdev(vals)
+    """
+    try:
+        if high:
+            stdev = lib.n2d(math.sqrt(samplevar(vals, high)))
+        else:
+            stdev = math.sqrt(samplevar(vals))
+    except ValueError:
+        raise Exception(u"samplestdev - error getting square root. Negative "
                         u"variance value?")
     return stdev
 
@@ -1116,7 +1191,9 @@ def betai(a, b, x, high=False):
 
 def sum_squares(vals, high=False):
     """
-    From stats.py.  No changes except option of using Decimal instead of float.  
+    From stats.py. No changes except option of using Decimal instead of float,
+        and changes to variable names.
+    Was called ss
     -------------------------------------
     Squares each value in the passed list, adds up these squares and
     returns the result.

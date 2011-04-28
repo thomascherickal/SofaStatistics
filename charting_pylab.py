@@ -167,8 +167,8 @@ def config_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, fig,
     pylab.plot(sample_a, sample_b, 'o', color=dot_colour, label=a_vs_b, 
                markeredgecolor=marker_edge_colour)
     if line_lst is not None:
-        pylab.plot(sample_a, line_lst, u"-", color=line_colour, linewidth=4, 
-                   label=line_lbl)
+        pylab.plot([min(sample_a), max(sample_a)], line_lst, u"-", 
+                   color=line_colour, linewidth=4, label=line_lbl)
     axes = fig.gca()
     axes.set_xlabel(label_a)
     axes.set_ylabel(label_b)
@@ -191,10 +191,6 @@ def add_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, list_x,
     debug = False
     fig = pylab.figure()
     fig.set_size_inches((width_inches, height_inches))
-    if line_lst is None:
-        p = pylab.polyfit(list_x, list_y, 1)
-        line_lst = pylab.polyval(p, list_x)
-        line_lbl = u"Line of best fit"
     config_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, fig, 
                        list_x, list_y, label_x, label_y, x_vs_y, 
                        line_lst, line_lbl)
