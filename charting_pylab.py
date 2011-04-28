@@ -157,7 +157,8 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False,
                        fontsize=7, rotation=270)
 
 def config_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, fig, 
-                       sample_a, sample_b, label_a, label_b, a_vs_b):
+                       sample_a, sample_b, label_a, label_b, a_vs_b,
+                       line_lst=None, line_lbl=u""):
     """
     Configure scatterplot with line of best fit.
     Size is set externally. 
@@ -165,10 +166,9 @@ def config_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, fig,
     marker_edge_colour = line_colour if dot_borders else dot_colour
     pylab.plot(sample_a, sample_b, 'o', color=dot_colour, label=a_vs_b, 
                markeredgecolor=marker_edge_colour)
-    p = pylab.polyfit(sample_a, sample_b, 1)
-    pylab.plot(sample_a, pylab.polyval(p, sample_a), u"-", 
-               color=line_colour, linewidth=4, 
-               label="Line of best fit")
+    if line_lst is not None:
+        pylab.plot(sample_a, line_lst, u"-", color=line_colour, linewidth=4, 
+                   label=line_lbl)
     axes = fig.gca()
     axes.set_xlabel(label_a)
     axes.set_ylabel(label_b)
@@ -181,7 +181,7 @@ def config_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, fig,
 def add_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, list_x, 
                     list_y, label_x, label_y, x_vs_y, title_dets_html, 
                     add_to_report, report_name, html, width_inches=7.5,
-                    height_inches=4.5):
+                    height_inches=4.5, line_lst=None, line_lbl=u""):
     """
     Toggle prefix so every time this is run internally only, a different image 
         is referred to in the html <img src=...>.
@@ -190,9 +190,14 @@ def add_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, list_x,
     """
     debug = False
     fig = pylab.figure()
-    fig.set_size_inches((width_inches, height_inches)) 
+    fig.set_size_inches((width_inches, height_inches))
+    if line_lst is None:
+        p = pylab.polyfit(list_x, list_y, 1)
+        line_lst = pylab.polyval(p, list_x)
+        line_lbl = u"Line of best fit"
     config_scatterplot(grid_bg, dot_colour, dot_borders, line_colour, fig, 
-                       list_x, list_y, label_x, label_y, x_vs_y)
+                       list_x, list_y, label_x, label_y, x_vs_y, 
+                       line_lst, line_lbl)
     img_src = save_report_img(add_to_report, report_name, 
                               save_func=pylab.savefig, dpi=100)
     html.append(title_dets_html)

@@ -466,10 +466,15 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     dot_colour = item_colours[0]
     title_dets_html = u"" # already got an appropriate title for whole section
     dot_borders = True
+    
+    line_lst = [x for x in list_x]
+    
     charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
                                    line_colour, list_x, list_y, label_x, 
                                    label_y, x_vs_y, title_dets_html, 
-                                   add_to_report, report_name, html)
+                                   add_to_report, report_name, html,
+                                   line_lst=line_lst, 
+                                   line_lbl=u"Regression line")
     for i, footnote in enumerate(footnotes):
         next_ft = i + 1
         html.append(footnote % (next_ft, next_ft))

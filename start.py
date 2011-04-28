@@ -1056,8 +1056,8 @@ class StartFrame(wx.Frame):
     def on_exit_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_exit, self.help_img_left-40, 
-                            self.help_img_top-20, True)
+        panel_dc.DrawBitmap(self.bmp_exit, self.help_img_left, 
+                            self.help_img_top-12, True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
         txt_exit = _("Exit SOFA Statistics")
