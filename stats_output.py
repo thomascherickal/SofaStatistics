@@ -447,6 +447,7 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
                      level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
+    slope, intercept, r, prob, sterrest = core_stats.linregress(list_x, list_y)
     html = []
     footnotes = []
     x_vs_y = '"%s"' % label_x + _(" vs ") + '"%s"' % label_y
@@ -457,16 +458,22 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     html.append(u"\n<p>" + _("Two-tailed p value") + \
                 u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
-    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
+    footnotes.append(u"\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
                      mg.P_EXPLAN_REL)
     html.append(u"\n<p>" + _("Pearson's R statistic") +
                 u": %s</p>" % round(r, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
+    html.append(u"<p>Linear Regression Details: "
+                u"<a href='#ft2'><sup>2</sup></a></p>")
+    footnotes.append(u"\n<p><a id='ft%s'></a><sup>%s</sup>"
+        u"Always look at the scatter plot when interpreting the linear "
+        u"regression line.</p>")
+    html.append(u"<ul><li>Slope: %s</li>" % round(slope, dp))
+    html.append(u"<li>Intercept: %s</li></ul>" % round(intercept, dp))
     grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
     dot_colour = item_colours[0]
     title_dets_html = u"" # already got an appropriate title for whole section
     dot_borders = True
-    slope, intercept, r, prob, sterrest = core_stats.linregress(list_x, list_y)
     def gety(x, slope, intercept):
         y = (x*slope) + intercept
         return y

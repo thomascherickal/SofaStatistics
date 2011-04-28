@@ -689,7 +689,7 @@ def wilcoxont(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     Returns: a t-statistic, two-tail probability estimate, z
     """
     if len(sample_a) <> len(sample_b):
-        raise ValueError(u"Unequal N in wilcoxont.  Aborting.")
+        raise ValueError(u"Unequal N in wilcoxont. Aborting.")
     n = len(sample_a)
     d=[]
     for i in range(len(sample_a)):
@@ -740,7 +740,7 @@ def linregress(x,y):
     """
     TINY = 1.0e-20
     if len(x) <> len(y):
-        raise ValueError, 'Input values not paired in linregress.  Aborting.'
+        raise ValueError, 'Input values not paired in linregress. Aborting.'
     n = len(x)
     x = map(float,x)
     y = map(float,y)
