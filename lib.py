@@ -23,6 +23,9 @@ import my_globals as mg
 import my_exceptions
 import core_stats
 
+def current_lang_rtl():
+    return wx.GetApp().GetLayoutDirection() == wx.Layout_RightToLeft
+
 def get_normal_ys(vals, bins):
     """
     Get np array of y values for normal distribution curve with given values 
@@ -729,18 +732,24 @@ def get_font_size_to_fit(text, max_width, font_sz, min_font_sz):
             font_sz -= 1
     return font_sz
 
-def add_text_to_bitmap(bitmap, text, btn_font_sz, colour, left=9, top=3):
+def add_text_to_bitmap(bitmap, text, btn_font_sz, colour, left=9, top=3, 
+                       rtl=False):
     """
     Add short text to bitmap with standard left margin.
     Can then use bitmap for a bitmap button.
     See http://wiki.wxpython.org/index.cgi/WorkingWithImages
     """
+    debug = False
     width = bitmap.GetWidth()
     height = bitmap.GetHeight()
     rect = wx.Rect(left, top, width, height)
     mem = wx.MemoryDC()
     mem.SelectObject(bitmap)
     mem.SetTextForeground(colour)
+    direction = wx.Layout_RightToLeft if rtl else wx.Layout_LeftToRight
+    mem.SetLayoutDirection(direction) # doesn't work on all systems 
+        # and XP vs Win 7 different. No effect on Ubuntu.
+    if debug: print(mem.GetLayoutDirection())
     while btn_font_sz > 7:
         font = wx.Font(btn_font_sz, wx.SWISS, wx.NORMAL, wx.BOLD)
         mem.SetFont(font)
@@ -750,7 +759,8 @@ def add_text_to_bitmap(bitmap, text, btn_font_sz, colour, left=9, top=3):
             break
         else:
             btn_font_sz -= 1
-    mem.DrawLabel(text, rect)
+    mir = wx.MirrorDC(mem, mirror=rtl)
+    mir.DrawLabel(text, rect)
     mem.SelectObject(wx.NullBitmap)
     return bitmap
 

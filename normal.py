@@ -168,8 +168,10 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                                             else self.blank_hist_txt_unpaired
         bmp_blank_hist = wx.BitmapFromImage(self.img_blank_hist)
         msg_font_sz = 10
+        rtl = lib.current_lang_rtl()
+        rtl = True # test only
         lib.add_text_to_bitmap(bmp_blank_hist, msg, msg_font_sz, "white", 
-                               left=20, top=20)
+                               left=20, top=20, rtl=rtl)
         return bmp_blank_hist
         
     def set_histo_to_blank(self):
