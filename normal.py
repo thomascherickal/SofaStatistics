@@ -169,9 +169,10 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         bmp_blank_hist = wx.BitmapFromImage(self.img_blank_hist)
         msg_font_sz = 10
         rtl = lib.current_lang_rtl()
-        rtl = True # test only
+        #rtl = True # test only
         lib.add_text_to_bitmap(bmp_blank_hist, msg, msg_font_sz, "white", 
-                               left=20, top=20, rtl=rtl)
+                               left=20, top=20)
+        bmp_blank_hist = lib.reverse_bmp(bmp_blank_hist)
         return bmp_blank_hist
         
     def set_histo_to_blank(self):
@@ -312,6 +313,9 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                                        wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         rem_blank_axes_rect = wx.Rect(15, 0, 200, 100)
         thumbnail = thumbnail_uncropped.GetSubBitmap(rem_blank_axes_rect)
+        rtl = lib.current_lang_rtl()
+        #rtl = True # test only
+        thumbnail = lib.reverse_bmp(thumbnail)
         self.img_hist.SetBitmap(thumbnail)
         # normality test (includes both kurtosis and skew)
         n_vals = len(self.vals)

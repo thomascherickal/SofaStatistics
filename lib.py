@@ -732,24 +732,18 @@ def get_font_size_to_fit(text, max_width, font_sz, min_font_sz):
             font_sz -= 1
     return font_sz
 
-def add_text_to_bitmap(bitmap, text, btn_font_sz, colour, left=9, top=3, 
-                       rtl=False):
+def add_text_to_bitmap(bitmap, text, btn_font_sz, colour, left=9, top=3):
     """
     Add short text to bitmap with standard left margin.
     Can then use bitmap for a bitmap button.
     See http://wiki.wxpython.org/index.cgi/WorkingWithImages
     """
-    debug = False
     width = bitmap.GetWidth()
     height = bitmap.GetHeight()
     rect = wx.Rect(left, top, width, height)
     mem = wx.MemoryDC()
     mem.SelectObject(bitmap)
     mem.SetTextForeground(colour)
-    direction = wx.Layout_RightToLeft if rtl else wx.Layout_LeftToRight
-    mem.SetLayoutDirection(direction) # doesn't work on all systems 
-        # and XP vs Win 7 different. No effect on Ubuntu.
-    if debug: print(mem.GetLayoutDirection())
     while btn_font_sz > 7:
         font = wx.Font(btn_font_sz, wx.SWISS, wx.NORMAL, wx.BOLD)
         mem.SetFont(font)
@@ -759,10 +753,38 @@ def add_text_to_bitmap(bitmap, text, btn_font_sz, colour, left=9, top=3,
             break
         else:
             btn_font_sz -= 1
-    mir = wx.MirrorDC(mem, mirror=rtl)
-    mir.DrawLabel(text, rect)
+    mem.DrawLabel(text, rect)
     mem.SelectObject(wx.NullBitmap)
     return bitmap
+
+def get_blank_btn_bmp(xpm=u"blankbutton.xpm"):
+    blank_btn_path = os.path.join(mg.SCRIPT_PATH, u"images", xpm)
+    if not os.path.exists(blank_btn_path):
+        raise Exception(u"Problem finding background button image.  "
+                        u"Missing path: %s" % blank_btn_path)
+    try:
+        blank_btn_bmp = wx.Image(blank_btn_path, 
+                                 wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+    except Exception:
+        raise Exception(u"Problem creating background button image from %s"
+                        % blank_btn_path)
+    return blank_btn_bmp
+
+def get_bmp(src_img_path, bmp_type=wx.BITMAP_TYPE_GIF, rtl=False):
+    """
+    Makes image with path details, mirrors if required, then converts to a 
+        bitmap and returns it.
+    """
+    img = wx.Image(src_img_path, bmp_type)
+    if rtl:
+        img = img.Mirror()
+    bmp = img.ConvertToBitmap()
+    return bmp
+
+def reverse_bmp(bmp):
+    img = wx.ImageFromBitmap(bmp).Mirror()
+    bmp = img.ConvertToBitmap()
+    return bmp
 
 def get_tbl_filt(dbe, db, tbl):
     """

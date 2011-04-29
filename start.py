@@ -74,35 +74,6 @@ import quotes
 
 RTL = False
 
-def get_blank_btn_bmp(xpm=u"blankbutton.xpm"):
-    blank_btn_path = os.path.join(mg.SCRIPT_PATH, u"images", xpm)
-    if not os.path.exists(blank_btn_path):
-        raise Exception(u"Problem finding background button image.  "
-                        u"Missing path: %s" % blank_btn_path)
-    try:
-        blank_btn_bmp = wx.Image(blank_btn_path, 
-                                 wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-    except Exception:
-        raise Exception(u"Problem creating background button image from %s"
-                        % blank_btn_path)
-    return blank_btn_bmp
-
-def get_bmp(src_img_path, bmp_type=wx.BITMAP_TYPE_GIF, rtl=False):
-    """
-    Makes image with path details, mirrors if required, then converts to a 
-        bitmap and returns it.
-    """
-    img = wx.Image(src_img_path, bmp_type)
-    if rtl:
-        img = img.Mirror()
-    bmp = img.ConvertToBitmap()
-    return bmp
-
-def reverse_bmp(bmp):
-    img = wx.ImageFromBitmap(bmp).Mirror()
-    bmp = img.ConvertToBitmap()
-    return bmp
-
 def get_next_y_pos(start, height):
     "Facilitate regular y position of buttons"
     i = 0
@@ -351,23 +322,23 @@ class StartFrame(wx.Frame):
             raise Exception(u"Problem finding background button image.  "
                             u"Missing path: %s" % sofabg)
         try:
-            self.bmp_sofabg = get_bmp(src_img_path=sofabg, rtl=RTL)
+            self.bmp_sofabg = lib.get_bmp(src_img_path=sofabg, rtl=RTL)
         except Exception:
             raise Exception(u"Problem creating background button image from %s"
                             % sofabg)
         # stable images
         upgrade = os.path.join(mg.SCRIPT_PATH, u"images", u"upgrade.xpm")
-        self.bmp_upgrade = get_bmp(src_img_path=upgrade, 
-                                   bmp_type=wx.BITMAP_TYPE_XPM, rtl=RTL)
+        self.bmp_upgrade = lib.get_bmp(src_img_path=upgrade, 
+                                       bmp_type=wx.BITMAP_TYPE_XPM, rtl=RTL)
         quote_left = os.path.join(mg.SCRIPT_PATH, u"images", 
                                   u"speech_mark_large.xpm")
-        self.bmp_quote_left = get_bmp(src_img_path=quote_left, 
-                                      bmp_type=wx.BITMAP_TYPE_XPM, rtl=RTL)
+        self.bmp_quote_left = lib.get_bmp(src_img_path=quote_left, 
+                                          bmp_type=wx.BITMAP_TYPE_XPM, rtl=RTL)
         quote_right = os.path.join(mg.SCRIPT_PATH, u"images", 
                                   u"speech_mark_small.xpm")
-        self.bmp_quote_right = get_bmp(src_img_path=quote_right, 
-                                      bmp_type=wx.BITMAP_TYPE_XPM, rtl=RTL)
-        self.bmp_top_sofa = get_bmp(src_img_path=top_sofa) # ok if reversed
+        self.bmp_quote_right = lib.get_bmp(src_img_path=quote_right, 
+                                           bmp_type=wx.BITMAP_TYPE_XPM, rtl=RTL)
+        self.bmp_top_sofa = lib.get_bmp(src_img_path=top_sofa) # ok if reversed
         # slice of image to be refreshed (where text and image will be)
         blankwp_rect = wx.Rect(self.main_left, self.help_text_top, 
                                self.help_img_left+35, self.blankwp_height)
@@ -378,10 +349,10 @@ class StartFrame(wx.Frame):
         btn_font_sz = 14 if mg.PLATFORM == mg.MAC else 10
         g = get_next_y_pos(284, self.btn_drop)
         # get started
-        get_started_btn_bmp = get_blank_btn_bmp(xpm=u"blankhelpbutton.xpm")
+        get_started_btn_bmp = lib.get_blank_btn_bmp(xpm=u"blankhelpbutton.xpm")
         bmp_btn_get_started = lib.add_text_to_bitmap(get_started_btn_bmp,
-                                _("Get Started"), btn_font_sz, "white", rtl=RTL)
-        if RTL: bmp_btn_get_started = reverse_bmp(bmp_btn_get_started)
+                                         _("Get Started"), btn_font_sz, "white")
+        if RTL: bmp_btn_get_started = lib.reverse_bmp(bmp_btn_get_started)
         self.btn_get_started = wx.BitmapButton(self.panel, -1, 
                                                bmp_btn_get_started, 
                                                pos=(self.btn_left, g.next()))
@@ -390,41 +361,41 @@ class StartFrame(wx.Frame):
                                   self.on_get_started_enter)
         self.btn_get_started.SetDefault()
         # Data entry
-        bmp_btn_data = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
-                            _("Enter/Edit Data"), btn_font_sz, "white", rtl=RTL)
-        if RTL: bmp_btn_data = reverse_bmp(bmp_btn_data)
+        bmp_btn_data = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
+                                     _("Enter/Edit Data"), btn_font_sz, "white")
+        if RTL: bmp_btn_data = lib.reverse_bmp(bmp_btn_data)
         self.btn_data = wx.BitmapButton(self.panel, -1, bmp_btn_data, 
                                          pos=(self.btn_left, g.next()))
         self.btn_data.Bind(wx.EVT_BUTTON, self.on_data_click)
         self.btn_data.Bind(wx.EVT_ENTER_WINDOW, self.on_data_enter)
         # Import
-        bmp_btn_import = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
-                                _("Import Data"), btn_font_sz, "white", rtl=RTL)
-        if RTL: bmp_btn_import = reverse_bmp(bmp_btn_import)
+        bmp_btn_import = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
+                                         _("Import Data"), btn_font_sz, "white")
+        if RTL: bmp_btn_import = lib.reverse_bmp(bmp_btn_import)
         self.btn_import = wx.BitmapButton(self.panel, -1, bmp_btn_import, 
                                           pos=(self.btn_left, g.next()))
         self.btn_import.Bind(wx.EVT_BUTTON, self.on_import_click)
         self.btn_import.Bind(wx.EVT_ENTER_WINDOW, self.on_import_enter)
         # Report tables
-        bmp_btn_tables = lib.add_text_to_bitmap(get_blank_btn_bmp(),
-                              _("Report Tables"), btn_font_sz, "white", rtl=RTL)
-        if RTL: bmp_btn_tables = reverse_bmp(bmp_btn_tables)
+        bmp_btn_tables = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(),
+                                       _("Report Tables"), btn_font_sz, "white")
+        if RTL: bmp_btn_tables = lib.reverse_bmp(bmp_btn_tables)
         self.btn_tables = wx.BitmapButton(self.panel, -1, bmp_btn_tables, 
                                           pos=(self.btn_left, g.next()))
         self.btn_tables.Bind(wx.EVT_BUTTON, self.on_tables_click)
         self.btn_tables.Bind(wx.EVT_ENTER_WINDOW, self.on_tables_enter)
         # Charts
-        bmp_btn_charts = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
-                                     _("Charts"), btn_font_sz, "white", rtl=RTL)
-        if RTL: bmp_btn_charts = reverse_bmp(bmp_btn_charts)
+        bmp_btn_charts = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
+                                              _("Charts"), btn_font_sz, "white")
+        if RTL: bmp_btn_charts = lib.reverse_bmp(bmp_btn_charts)
         self.btn_charts = wx.BitmapButton(self.panel, -1, bmp_btn_charts, 
                                           pos=(self.btn_left, g.next()))
         self.btn_charts.Bind(wx.EVT_BUTTON, self.on_charts_click)
         self.btn_charts.Bind(wx.EVT_ENTER_WINDOW, self.on_charts_enter)
         # Stats
-        bmp_btn_stats = lib.add_text_to_bitmap(get_blank_btn_bmp(),
-                                 _("Statistics"), btn_font_sz, "white", rtl=RTL)
-        if RTL: bmp_btn_stats = reverse_bmp(bmp_btn_stats)
+        bmp_btn_stats = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(),
+                                          _("Statistics"), btn_font_sz, "white")
+        if RTL: bmp_btn_stats = lib.reverse_bmp(bmp_btn_stats)
         self.btn_statistics = wx.BitmapButton(self.panel, -1, bmp_btn_stats, 
                                               pos=(self.btn_left, g.next()))
         self.btn_statistics.Bind(wx.EVT_BUTTON, self.on_stats_click)
@@ -432,35 +403,35 @@ class StartFrame(wx.Frame):
         # Right
         g = get_next_y_pos(284, self.btn_drop)
         # on-line help
-        help_btn_bmp = get_blank_btn_bmp(xpm=u"blankhelpbutton.xpm")
+        help_btn_bmp = lib.get_blank_btn_bmp(xpm=u"blankhelpbutton.xpm")
         bmp_btn_help = lib.add_text_to_bitmap(help_btn_bmp, 
-                                _("Online Help"), btn_font_sz, "white", rtl=RTL)
-        if RTL: bmp_btn_help = reverse_bmp(bmp_btn_help)
+                                         _("Online Help"), btn_font_sz, "white")
+        if RTL: bmp_btn_help = lib.reverse_bmp(bmp_btn_help)
         self.btn_help = wx.BitmapButton(self.panel, -1, bmp_btn_help, 
                                         pos=(self.btn_right, g.next()))
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_help_click)
         self.btn_help.Bind(wx.EVT_ENTER_WINDOW, self.on_help_enter)
         self.btn_help.SetDefault()
         # Proj
-        bmp_btn_proj = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
-                             _("Select Project"), btn_font_sz, "white", rtl=RTL)
-        if RTL: bmp_btn_proj = reverse_bmp(bmp_btn_proj)
+        bmp_btn_proj = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
+                                      _("Select Project"), btn_font_sz, "white")
+        if RTL: bmp_btn_proj = lib.reverse_bmp(bmp_btn_proj)
         self.btn_proj = wx.BitmapButton(self.panel, -1, bmp_btn_proj, 
                                         pos=(self.btn_right, g.next()))
         self.btn_proj.Bind(wx.EVT_BUTTON, self.on_proj_click)
         self.btn_proj.Bind(wx.EVT_ENTER_WINDOW, self.on_proj_enter)
         # Prefs
-        bmp_btn_prefs = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
-                                _("Preferences"), btn_font_sz, "white", rtl=RTL)
-        if RTL: bmp_btn_prefs = reverse_bmp(bmp_btn_prefs)
+        bmp_btn_prefs = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
+                                         _("Preferences"), btn_font_sz, "white")
+        if RTL: bmp_btn_prefs = lib.reverse_bmp(bmp_btn_prefs)
         self.btn_prefs = wx.BitmapButton(self.panel, -1, bmp_btn_prefs, 
                                          pos=(self.btn_right, g.next()))
         self.btn_prefs.Bind(wx.EVT_BUTTON, self.on_prefs_click)
         self.btn_prefs.Bind(wx.EVT_ENTER_WINDOW, self.on_prefs_enter)
         # Exit  
-        bmp_btn_exit = lib.add_text_to_bitmap(get_blank_btn_bmp(), 
-                                       _("Exit"), btn_font_sz, "white", rtl=RTL)
-        if RTL: bmp_btn_exit = reverse_bmp(bmp_btn_exit)
+        bmp_btn_exit = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
+                                              _("Exit"), btn_font_sz, "white")
+        if RTL: bmp_btn_exit = lib.reverse_bmp(bmp_btn_exit)
         self.btn_exit = wx.BitmapButton(self.panel, -1, bmp_btn_exit, 
                                         pos=(self.btn_right, g.next()))
         self.btn_exit.Bind(wx.EVT_BUTTON, self.on_exit_click)
@@ -491,25 +462,26 @@ class StartFrame(wx.Frame):
         try:
             # help images
             help = os.path.join(mg.SCRIPT_PATH, u"images", u"help.gif")
-            self.bmp_help = get_bmp(src_img_path=help, rtl=RTL)
+            self.bmp_help = lib.get_bmp(src_img_path=help, rtl=RTL)
             get_started = os.path.join(mg.SCRIPT_PATH, u"images",
                                        u"step_by_step.gif")
-            self.bmp_get_started = get_bmp(src_img_path=get_started, rtl=RTL)
-            self.bmp_proj = get_bmp(src_img_path=proj, rtl=RTL)
+            self.bmp_get_started = lib.get_bmp(src_img_path=get_started, 
+                                               rtl=RTL)
+            self.bmp_proj = lib.get_bmp(src_img_path=proj, rtl=RTL)
             prefs = os.path.join(mg.SCRIPT_PATH, u"images", u"prefs.gif")
-            self.bmp_prefs = get_bmp(src_img_path=prefs, rtl=RTL)
-            self.bmp_data = get_bmp(src_img_path=data, rtl=RTL)
+            self.bmp_prefs = lib.get_bmp(src_img_path=prefs, rtl=RTL)
+            self.bmp_data = lib.get_bmp(src_img_path=data, rtl=RTL)
             imprt = os.path.join(mg.SCRIPT_PATH, u"images", u"import.gif")
-            self.bmp_import = get_bmp(src_img_path=imprt, rtl=RTL)
+            self.bmp_import = lib.get_bmp(src_img_path=imprt, rtl=RTL)
             tabs = os.path.join(mg.SCRIPT_PATH, u"images", u"table.gif")
-            self.bmp_tabs = get_bmp(src_img_path=tabs, rtl=RTL)
-            self.bmp_chart = get_bmp(src_img_path=demo_chart, rtl=RTL)
+            self.bmp_tabs = lib.get_bmp(src_img_path=tabs, rtl=RTL)
+            self.bmp_chart = lib.get_bmp(src_img_path=demo_chart, rtl=RTL)
             stats = os.path.join(mg.SCRIPT_PATH, u"images", u"stats.gif")
-            self.bmp_stats = get_bmp(src_img_path=stats, rtl=RTL)
+            self.bmp_stats = lib.get_bmp(src_img_path=stats, rtl=RTL)
             exit = os.path.join(mg.SCRIPT_PATH, u"images", u"exit.gif")
-            self.bmp_exit = get_bmp(src_img_path=exit, rtl=RTL)
+            self.bmp_exit = lib.get_bmp(src_img_path=exit, rtl=RTL)
             agpl3 = os.path.join(mg.SCRIPT_PATH, u"images", u"agpl3.xpm")
-            self.bmp_agpl3 = get_bmp(src_img_path=agpl3, 
+            self.bmp_agpl3 = lib.get_bmp(src_img_path=agpl3, 
                                      bmp_type=wx.BITMAP_TYPE_XPM, rtl=RTL)
         except Exception, e:
             raise Exception(u"Problem setting up help images."
