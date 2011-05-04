@@ -11,7 +11,6 @@ import pylab # must import after wxmpl so matplotlib.use() is always first
 import my_globals as mg
 import lib
 import core_stats
-import wxmpl
 
 int_imgs_n = 0 # for internal images so always unique
 

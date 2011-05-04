@@ -11,7 +11,8 @@ import math
 from operator import itemgetter
 import os
 import pprint
-import pylab
+import wxmpl
+import pylab # must import after wxmpl so matplotlib.use() is always first
 import random
 import re
 import sys
@@ -25,6 +26,11 @@ import core_stats
 
 def current_lang_rtl():
     return wx.GetApp().GetLayoutDirection() == wx.Layout_RightToLeft
+
+def mustreverse():
+    "Other OSs may require it too but uncertain at this stage"
+    #return True #testing
+    return current_lang_rtl and mg.PLATFORM == mg.WINDOWS
 
 def get_normal_ys(vals, bins):
     """
@@ -770,13 +776,13 @@ def get_blank_btn_bmp(xpm=u"blankbutton.xpm"):
                         % blank_btn_path)
     return blank_btn_bmp
 
-def get_bmp(src_img_path, bmp_type=wx.BITMAP_TYPE_GIF, rtl=False):
+def get_bmp(src_img_path, bmp_type=wx.BITMAP_TYPE_GIF, reverse=False):
     """
     Makes image with path details, mirrors if required, then converts to a 
         bitmap and returns it.
     """
     img = wx.Image(src_img_path, bmp_type)
-    if rtl:
+    if reverse:
         img = img.Mirror()
     bmp = img.ConvertToBitmap()
     return bmp

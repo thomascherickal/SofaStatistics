@@ -1,7 +1,8 @@
 import cgi
 import numpy as np
 import os
-import pylab
+import wxmpl
+import pylab # must import after wxmpl so matplotlib.use() is always first
 import boomslang
 
 import my_globals as mg

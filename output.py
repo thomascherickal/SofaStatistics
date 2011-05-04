@@ -52,6 +52,7 @@ import codecs
 import os
 import pprint
 import time
+import traceback
 import wx
 
 import my_globals as mg
@@ -861,6 +862,7 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
         wx.MessageBox(lib.ue(e))
         return False, u""
     except Exception, e:
+        print("Unable to run report: %s" % traceback.format_exc())
         err_content = _(u"<h1>Ooops!</h1>\n<p>Unable to run script to "
                         u"generate report. Caused by error: %s</p>") % lib.ue(e)
         if debug:

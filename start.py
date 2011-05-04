@@ -72,7 +72,7 @@ import projects
 import projselect
 import quotes
 
-RTL = False
+REVERSE = False
 
 def get_next_y_pos(start, height):
     "Facilitate regular y position of buttons"
@@ -279,9 +279,8 @@ class StartFrame(wx.Frame):
         # Windows doesn't include window decorations
         y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize())
-        global RTL
-        RTL = lib.current_lang_rtl()
-        #RTL = True # testing only
+        global REVERSE
+        REVERSE = lib.mustreverse()
         self.panel = wx.Panel(self, size=(self.form_width, self.form_height)) # win
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)
@@ -322,22 +321,25 @@ class StartFrame(wx.Frame):
             raise Exception(u"Problem finding background button image.  "
                             u"Missing path: %s" % sofabg)
         try:
-            self.bmp_sofabg = lib.get_bmp(src_img_path=sofabg, rtl=RTL)
+            self.bmp_sofabg = lib.get_bmp(src_img_path=sofabg, reverse=REVERSE)
         except Exception:
             raise Exception(u"Problem creating background button image from %s"
                             % sofabg)
         # stable images
         upgrade = os.path.join(mg.SCRIPT_PATH, u"images", u"upgrade.xpm")
         self.bmp_upgrade = lib.get_bmp(src_img_path=upgrade, 
-                                       bmp_type=wx.BITMAP_TYPE_XPM, rtl=RTL)
+                                       bmp_type=wx.BITMAP_TYPE_XPM, 
+                                       reverse=REVERSE)
         quote_left = os.path.join(mg.SCRIPT_PATH, u"images", 
                                   u"speech_mark_large.xpm")
         self.bmp_quote_left = lib.get_bmp(src_img_path=quote_left, 
-                                          bmp_type=wx.BITMAP_TYPE_XPM, rtl=RTL)
+                                          bmp_type=wx.BITMAP_TYPE_XPM, 
+                                          reverse=REVERSE)
         quote_right = os.path.join(mg.SCRIPT_PATH, u"images", 
                                   u"speech_mark_small.xpm")
         self.bmp_quote_right = lib.get_bmp(src_img_path=quote_right, 
-                                           bmp_type=wx.BITMAP_TYPE_XPM, rtl=RTL)
+                                           bmp_type=wx.BITMAP_TYPE_XPM, 
+                                           reverse=REVERSE)
         self.bmp_top_sofa = lib.get_bmp(src_img_path=top_sofa) # ok if reversed
         # slice of image to be refreshed (where text and image will be)
         blankwp_rect = wx.Rect(self.main_left, self.help_text_top, 
@@ -352,7 +354,7 @@ class StartFrame(wx.Frame):
         get_started_btn_bmp = lib.get_blank_btn_bmp(xpm=u"blankhelpbutton.xpm")
         bmp_btn_get_started = lib.add_text_to_bitmap(get_started_btn_bmp,
                                          _("Get Started"), btn_font_sz, "white")
-        if RTL: bmp_btn_get_started = lib.reverse_bmp(bmp_btn_get_started)
+        if REVERSE: bmp_btn_get_started = lib.reverse_bmp(bmp_btn_get_started)
         self.btn_get_started = wx.BitmapButton(self.panel, -1, 
                                                bmp_btn_get_started, 
                                                pos=(self.btn_left, g.next()))
@@ -363,7 +365,7 @@ class StartFrame(wx.Frame):
         # Data entry
         bmp_btn_data = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
                                      _("Enter/Edit Data"), btn_font_sz, "white")
-        if RTL: bmp_btn_data = lib.reverse_bmp(bmp_btn_data)
+        if REVERSE: bmp_btn_data = lib.reverse_bmp(bmp_btn_data)
         self.btn_data = wx.BitmapButton(self.panel, -1, bmp_btn_data, 
                                          pos=(self.btn_left, g.next()))
         self.btn_data.Bind(wx.EVT_BUTTON, self.on_data_click)
@@ -371,7 +373,7 @@ class StartFrame(wx.Frame):
         # Import
         bmp_btn_import = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
                                          _("Import Data"), btn_font_sz, "white")
-        if RTL: bmp_btn_import = lib.reverse_bmp(bmp_btn_import)
+        if REVERSE: bmp_btn_import = lib.reverse_bmp(bmp_btn_import)
         self.btn_import = wx.BitmapButton(self.panel, -1, bmp_btn_import, 
                                           pos=(self.btn_left, g.next()))
         self.btn_import.Bind(wx.EVT_BUTTON, self.on_import_click)
@@ -379,7 +381,7 @@ class StartFrame(wx.Frame):
         # Report tables
         bmp_btn_tables = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(),
                                        _("Report Tables"), btn_font_sz, "white")
-        if RTL: bmp_btn_tables = lib.reverse_bmp(bmp_btn_tables)
+        if REVERSE: bmp_btn_tables = lib.reverse_bmp(bmp_btn_tables)
         self.btn_tables = wx.BitmapButton(self.panel, -1, bmp_btn_tables, 
                                           pos=(self.btn_left, g.next()))
         self.btn_tables.Bind(wx.EVT_BUTTON, self.on_tables_click)
@@ -387,7 +389,7 @@ class StartFrame(wx.Frame):
         # Charts
         bmp_btn_charts = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
                                               _("Charts"), btn_font_sz, "white")
-        if RTL: bmp_btn_charts = lib.reverse_bmp(bmp_btn_charts)
+        if REVERSE: bmp_btn_charts = lib.reverse_bmp(bmp_btn_charts)
         self.btn_charts = wx.BitmapButton(self.panel, -1, bmp_btn_charts, 
                                           pos=(self.btn_left, g.next()))
         self.btn_charts.Bind(wx.EVT_BUTTON, self.on_charts_click)
@@ -395,7 +397,7 @@ class StartFrame(wx.Frame):
         # Stats
         bmp_btn_stats = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(),
                                           _("Statistics"), btn_font_sz, "white")
-        if RTL: bmp_btn_stats = lib.reverse_bmp(bmp_btn_stats)
+        if REVERSE: bmp_btn_stats = lib.reverse_bmp(bmp_btn_stats)
         self.btn_statistics = wx.BitmapButton(self.panel, -1, bmp_btn_stats, 
                                               pos=(self.btn_left, g.next()))
         self.btn_statistics.Bind(wx.EVT_BUTTON, self.on_stats_click)
@@ -406,7 +408,7 @@ class StartFrame(wx.Frame):
         help_btn_bmp = lib.get_blank_btn_bmp(xpm=u"blankhelpbutton.xpm")
         bmp_btn_help = lib.add_text_to_bitmap(help_btn_bmp, 
                                          _("Online Help"), btn_font_sz, "white")
-        if RTL: bmp_btn_help = lib.reverse_bmp(bmp_btn_help)
+        if REVERSE: bmp_btn_help = lib.reverse_bmp(bmp_btn_help)
         self.btn_help = wx.BitmapButton(self.panel, -1, bmp_btn_help, 
                                         pos=(self.btn_right, g.next()))
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_help_click)
@@ -415,7 +417,7 @@ class StartFrame(wx.Frame):
         # Proj
         bmp_btn_proj = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
                                       _("Select Project"), btn_font_sz, "white")
-        if RTL: bmp_btn_proj = lib.reverse_bmp(bmp_btn_proj)
+        if REVERSE: bmp_btn_proj = lib.reverse_bmp(bmp_btn_proj)
         self.btn_proj = wx.BitmapButton(self.panel, -1, bmp_btn_proj, 
                                         pos=(self.btn_right, g.next()))
         self.btn_proj.Bind(wx.EVT_BUTTON, self.on_proj_click)
@@ -423,7 +425,7 @@ class StartFrame(wx.Frame):
         # Prefs
         bmp_btn_prefs = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
                                          _("Preferences"), btn_font_sz, "white")
-        if RTL: bmp_btn_prefs = lib.reverse_bmp(bmp_btn_prefs)
+        if REVERSE: bmp_btn_prefs = lib.reverse_bmp(bmp_btn_prefs)
         self.btn_prefs = wx.BitmapButton(self.panel, -1, bmp_btn_prefs, 
                                          pos=(self.btn_right, g.next()))
         self.btn_prefs.Bind(wx.EVT_BUTTON, self.on_prefs_click)
@@ -431,7 +433,7 @@ class StartFrame(wx.Frame):
         # Exit  
         bmp_btn_exit = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
                                               _("Exit"), btn_font_sz, "white")
-        if RTL: bmp_btn_exit = lib.reverse_bmp(bmp_btn_exit)
+        if REVERSE: bmp_btn_exit = lib.reverse_bmp(bmp_btn_exit)
         self.btn_exit = wx.BitmapButton(self.panel, -1, bmp_btn_exit, 
                                         pos=(self.btn_right, g.next()))
         self.btn_exit.Bind(wx.EVT_BUTTON, self.on_exit_click)
@@ -462,27 +464,29 @@ class StartFrame(wx.Frame):
         try:
             # help images
             help = os.path.join(mg.SCRIPT_PATH, u"images", u"help.gif")
-            self.bmp_help = lib.get_bmp(src_img_path=help, rtl=RTL)
+            self.bmp_help = lib.get_bmp(src_img_path=help, reverse=REVERSE)
             get_started = os.path.join(mg.SCRIPT_PATH, u"images",
                                        u"step_by_step.gif")
             self.bmp_get_started = lib.get_bmp(src_img_path=get_started, 
-                                               rtl=RTL)
-            self.bmp_proj = lib.get_bmp(src_img_path=proj, rtl=RTL)
+                                               reverse=REVERSE)
+            self.bmp_proj = lib.get_bmp(src_img_path=proj, reverse=REVERSE)
             prefs = os.path.join(mg.SCRIPT_PATH, u"images", u"prefs.gif")
-            self.bmp_prefs = lib.get_bmp(src_img_path=prefs, rtl=RTL)
-            self.bmp_data = lib.get_bmp(src_img_path=data, rtl=RTL)
+            self.bmp_prefs = lib.get_bmp(src_img_path=prefs, reverse=REVERSE)
+            self.bmp_data = lib.get_bmp(src_img_path=data, reverse=REVERSE)
             imprt = os.path.join(mg.SCRIPT_PATH, u"images", u"import.gif")
-            self.bmp_import = lib.get_bmp(src_img_path=imprt, rtl=RTL)
+            self.bmp_import = lib.get_bmp(src_img_path=imprt, reverse=REVERSE)
             tabs = os.path.join(mg.SCRIPT_PATH, u"images", u"table.gif")
-            self.bmp_tabs = lib.get_bmp(src_img_path=tabs, rtl=RTL)
-            self.bmp_chart = lib.get_bmp(src_img_path=demo_chart, rtl=RTL)
+            self.bmp_tabs = lib.get_bmp(src_img_path=tabs, reverse=REVERSE)
+            self.bmp_chart = lib.get_bmp(src_img_path=demo_chart, 
+                                         reverse=REVERSE)
             stats = os.path.join(mg.SCRIPT_PATH, u"images", u"stats.gif")
-            self.bmp_stats = lib.get_bmp(src_img_path=stats, rtl=RTL)
+            self.bmp_stats = lib.get_bmp(src_img_path=stats, reverse=REVERSE)
             exit = os.path.join(mg.SCRIPT_PATH, u"images", u"exit.gif")
-            self.bmp_exit = lib.get_bmp(src_img_path=exit, rtl=RTL)
+            self.bmp_exit = lib.get_bmp(src_img_path=exit, reverse=REVERSE)
             agpl3 = os.path.join(mg.SCRIPT_PATH, u"images", u"agpl3.xpm")
             self.bmp_agpl3 = lib.get_bmp(src_img_path=agpl3, 
-                                     bmp_type=wx.BITMAP_TYPE_XPM, rtl=RTL)
+                                     bmp_type=wx.BITMAP_TYPE_XPM, 
+                                     reverse=REVERSE)
         except Exception, e:
             raise Exception(u"Problem setting up help images."
                             u"\nCaused by error: %s" % lib.ue(e))
@@ -510,7 +514,7 @@ class StartFrame(wx.Frame):
         except Exception, e:
             self.upgrade_available = False
         # home link
-        home_link_hpos = self.version_right if RTL else self.main_left
+        home_link_hpos = self.version_right if REVERSE else self.main_left
         link_home = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com", 
                                      pos=(home_link_hpos, self.top_top), 
                                      URL="http://www.sofastatistics.com")
@@ -525,7 +529,7 @@ class StartFrame(wx.Frame):
                         bg_colour=wx.Colour(205, 217, 215))
         # upgrade link
         if self.upgrade_available:
-            upgrade_link_hpos = self.main_left if RTL \
+            upgrade_link_hpos = self.main_left if REVERSE \
                                                else self.version_right+125
             link_upgrade = hl.HyperLinkCtrl(self.panel, -1, 
                             _(u"Upgrade to %s here") % new_version, 
@@ -535,7 +539,7 @@ class StartFrame(wx.Frame):
                             link_colour=wx.Colour(255,255,255), 
                             bg_colour=wx.Colour(0, 0, 0))
         # feedback link
-        feedback_link_hpos = self.main_left if RTL\
+        feedback_link_hpos = self.main_left if REVERSE\
                                             else self.main_sofa_logo_right
         link_feedback = hl.HyperLinkCtrl(self.panel, -1, mg.FEEDBACK_LINK, 
                         pos=(feedback_link_hpos, self.form_height-53), 
@@ -659,7 +663,7 @@ class StartFrame(wx.Frame):
                         rollover=link_colour)
         link.SetOwnBackgroundColour(bg_colour)
         link.SetOwnFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9, 
-                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
+                                wx.SWISS, wx.NORMAL, wx.NORMAL))
         link.SetSize(wx.Size(250, 17))
         link.SetUnderlines(link=True, visited=True, rollover=False)
         link.SetLinkCursor(wx.CURSOR_HAND)
@@ -690,8 +694,8 @@ class StartFrame(wx.Frame):
                                     True)
             orig_left_pos = 136
             orig_right_pos = 445
-            left_pos = orig_right_pos if RTL else orig_left_pos
-            right_pos = orig_left_pos if RTL else orig_right_pos
+            left_pos = orig_right_pos if REVERSE else orig_left_pos
+            right_pos = orig_left_pos if REVERSE else orig_right_pos
             panel_dc.DrawBitmap(self.bmp_quote_left, left_pos, 95, True)
             panel_dc.DrawBitmap(self.bmp_quote_right, right_pos, 163, True)
             panel_dc.DrawBitmap(self.bmp_top_sofa, self.main_sofa_logo_right, 
@@ -702,9 +706,11 @@ class StartFrame(wx.Frame):
             panel_dc.SetTextForeground(wx.WHITE)
             panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9, 
                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
+            version_link_hpos = self.main_left if REVERSE \
+                                               else self.version_right
             panel_dc.DrawLabel(_("Version %s") % mg.VERSION, 
-                               wx.Rect(self.version_right, self.top_top, 
-                                       100, 20))
+                               wx.Rect(version_link_hpos, 
+                                       self.top_top, 100, 20))
             font_sz = 28 if mg.PLATFORM == mg.MAC else 20
             main_text = _("Statistics Open For All")
             extra_width = 40 if mg.PLATFORM == mg.MAC else 60
