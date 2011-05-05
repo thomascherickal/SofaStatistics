@@ -273,18 +273,27 @@ class GdataDownloadDlg(wx.Dialog):
         return spreadsheet_dets_lst
     
     def process_worksheets(self):
+        """
+        Get worksheets for spreadsheet and make selection.
+        """
         # get worksheets for that spreadsheet
         worksheet_names = self.get_worksheet_names(self.spreadsheet_key)
         n_worksheets = len(worksheet_names)
+        self.skip_lists = True # otherwise, when set items, will trigger 
+            # on_select_worksheet and may change self.wksheet_idx 
+            # to -1 (not found).
         if n_worksheets == 0:
+            self.lst_worksheets.SetItems([])
             lib.safe_end_cursor()
             wx.MessageBox(_("No worksheets available in %s") % spreadsheet_name)
             return
         elif n_worksheets == 1:
             self.wksheet_idx = 0
             worksheet_name = worksheet_names[self.wksheet_idx]
+            self.lst_worksheets.Enable(True) # not essential but easier to read
             self.lst_worksheets.SetItems(worksheet_names)
             self.lst_worksheets.SetSelection(self.wksheet_idx)
+            self.lst_worksheets.SetFocus()
             self.lbl_download.SetLabel(_("Ready to download %s") % 
                                          worksheet_name)
         elif n_worksheets > 0:
@@ -293,8 +302,10 @@ class GdataDownloadDlg(wx.Dialog):
             self.lst_worksheets.Enable(True)
             self.lst_worksheets.SetItems(worksheet_names)
             self.lst_worksheets.SetSelection(self.wksheet_idx)
+            self.lst_worksheets.SetFocus()
             self.lbl_download.SetLabel(_("Ready to download %s") % 
                                          worksheet_name)
+        self.skip_lists = False
     
     def get_worksheet_names(self, spreadsheet_key):
         feed = self.gs_client.GetWorksheetsFeed(spreadsheet_key)
@@ -316,7 +327,6 @@ class GdataDownloadDlg(wx.Dialog):
             lib.safe_end_cursor()
             event.Skip()
             return
-        self.spreadsheet_key = sel_spreadsheet_dets[SPREADSHEET_KEY]
         self.process_worksheets()
         lib.safe_end_cursor()
         event.Skip()
@@ -334,10 +344,10 @@ class GdataDownloadDlg(wx.Dialog):
     
     def on_btn_download(self, event):
         wx.BeginBusyCursor()
-        url = (
-            u"http://spreadsheets.google.com/feeds/download/spreadsheets/Export"
-            u"?key=%s&exportFormat=%s") % (self.spreadsheet_key, 
-                                           mg.GOOGLE_DOWNLOAD_EXT)
+        url = (u"http://spreadsheets.google.com/"
+               u"feeds/download/spreadsheets/Export"
+               u"?key=%s&exportFormat=%s") % (self.spreadsheet_key, 
+                                              mg.GOOGLE_DOWNLOAD_EXT)
         file_path = os.path.join(mg.INT_PATH, mg.GOOGLE_DOWNLOAD)
         docs_token = self.gd_client.GetClientLoginToken()
         self.gd_client.SetClientLoginToken(self.gs_client.GetClientLoginToken())
@@ -357,6 +367,8 @@ class GdataDownloadDlg(wx.Dialog):
         event.Skip()
         
     def on_close(self, event):
+        self.skip_lists = True # Yes - it does try to go through 
+            # on_select_worksheet again!
         self.Destroy()
         self.SetReturnCode(wx.ID_CLOSE) # only for dialogs
         # (MUST come after Destroy)
