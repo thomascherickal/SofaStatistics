@@ -380,10 +380,11 @@ def get_pie_chart_dets(dbe, cur, tbl, tbl_filt,
         tot_freq = sum(slice_vals)
         slice_dets = []
         for i, slice_val in enumerate(slice_vals):
+            # line breaks result in no display
+            tiplbl = label_dets[i][1].replace(u"\n", u" ")
             slice_dic = {u"y": slice_val, u"text": label_dets[i][2], 
-                         u"tooltip": u"%s<br>%s (%s%%)" % 
-                         (label_dets[i][1], slice_val, 
-                          round((100.0*slice_val)/tot_freq,1))}
+                         u"tooltip": u"%s<br>%s (%s%%)" % (tiplbl, slice_val, 
+                                           round((100.0*slice_val)/tot_freq,1))}
             slice_dets.append(slice_dic)
         indiv_pie_dets[mg.CHART_SLICE_DETS] = slice_dets
         indiv_pie_dets[mg.CHART_CHART_BY_LABEL] = chart_by_label

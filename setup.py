@@ -523,9 +523,6 @@ def setup_folders():
     else:
         prog_path = mg.SCRIPT_PATH
     if show_early_steps: print(u"Just set prog_path")
-    (installer_is_newer, 
-        installer_newer_status_known) = get_installer_version_status(mg.LOCAL_PATH)
-    if show_early_steps: print(u"Just ran get_installer_version_status")
     try:
         # 1) make local SOFA folder if missing. Otherwise, leave intact for now
         local_path_setup_needed = not os.path.exists(mg.LOCAL_PATH)
@@ -539,7 +536,7 @@ def setup_folders():
             populate_local_paths(prog_path, mg.LOCAL_PATH, default_proj)
             config_local_proj(mg.LOCAL_PATH, default_proj, subfolders_in_proj)
             store_version(mg.LOCAL_PATH)
-        run_test_code(mg.TEST_SCRIPT_POST_CONFIG) # can now use dd and proj config
+        run_test_code(mg.TEST_SCRIPT_POST_CONFIG)#can now use dd and proj config
         # 2) Modify existing local SOFA folder if versions require it
         if not local_path_setup_needed: # any fresh one won't need modification
             try: # if already installed version is older than 0.9.18 ...

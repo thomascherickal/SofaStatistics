@@ -341,7 +341,12 @@ class GdataDownloadDlg(wx.Dialog):
         file_path = os.path.join(mg.INT_PATH, mg.GOOGLE_DOWNLOAD)
         docs_token = self.gd_client.GetClientLoginToken()
         self.gd_client.SetClientLoginToken(self.gs_client.GetClientLoginToken())
-        self.gd_client.Export(url, file_path, gid=self.wksheet_idx)
+        try:
+            self.gd_client.Export(url, file_path, gid=self.wksheet_idx)
+        except gdata_service.RequestError, e:
+            lib.safe_end_cursor()
+            wx.MessageBox(_(u"Error downloading - please try again."))
+            return
         self.gd_client.SetClientLoginToken(docs_token)
         lib.safe_end_cursor()
         wx.MessageBox(_("Successfully downloaded worksheet ready for import."))
