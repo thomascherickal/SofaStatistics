@@ -105,7 +105,8 @@ p, F, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, mean_squ_bn = \\
         script_lst.append(u"""
 anova_output = stats_output.anova_output(samples, F, p, dics, sswn, dfwn, 
             mean_squ_wn, ssbn, dfbn, mean_squ_bn, label_a, label_b, label_avg,
-            add_to_report, report_name, css_fil="%(css_fil)s", 
+            add_to_report, report_name, 
+            css_fil=u"%(css_fil)s", 
             css_idx=%(css_idx)s, dp=dp, level=mg.OUTPUT_RESULTS_ONLY,
             page_break_after=False)""" %
             {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})

@@ -81,14 +81,12 @@ if len(samples) < 2:
         script_lst.append(u"indep = True")
         script_lst.append(u"h, p, dics, df = " +
             u"core_stats.kruskalwallish(samples, labels)")
-        script_lst.append(u"kruskal_wallis_output = "
-            u"stats_output.kruskal_wallis_output("
-            u"h, p, label_a,"
-            u"\n    label_b, dics, df, label_avg, "
-            u"\n    css_fil=\"%s\", css_idx=%s, " % (css_fil, css_idx) +
-            u"dp=dp,"
-            u"\n    level=mg.OUTPUT_RESULTS_ONLY, "
-            u"page_break_after=False)")
+        script_lst.append(u"""
+kruskal_wallis_output = stats_output.kruskal_wallis_output(h, p, label_a,
+            label_b, dics, df, label_avg, css_fil=u"%(css_fil)s", 
+            css_idx=%(css_idx)s, dp=dp, level=mg.OUTPUT_RESULTS_ONLY, 
+            page_break_after=False)""" % 
+            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(kruskal_wallis_output)")
         return u"\n".join(script_lst)
 

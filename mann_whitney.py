@@ -61,11 +61,12 @@ if len(sample_a) < 2 or len(sample_b) < 2:
         script_lst.append(u"label_ranked = u\"%s\"" % label_ranked)
         script_lst.append(u"u, p, dic_a, dic_b = " + \
             u"core_stats.mannwhitneyu(sample_a, sample_b, label_a, label_b)")
-        script_lst.append(u"mann_whitney_output = "
-            u"stats_output.mann_whitney_output("
-            u"u, p, dic_a, dic_b, label_ranked, "
-            u"css_fil=\"%s\", css_idx=%s, dp=dp,"  % (css_fil, css_idx) +
-            u"\n     level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)")
+        script_lst.append(u"""
+mann_whitney_output = stats_output.mann_whitney_output(u, p, dic_a, dic_b, 
+            label_ranked, css_fil=u"%(css_fil)s", 
+            css_idx=%(css_idx)s, dp=dp, level=mg.OUTPUT_RESULTS_ONLY, 
+            page_break_after=False)""" %
+            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(mann_whitney_output)")
         return u"\n".join(script_lst)
 

@@ -36,11 +36,12 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"t, p, dic_a, dic_b = " + \
                 u"core_stats.wilcoxont(sample_a, sample_b, label_a, label_b)")
-        script_lst.append(u"wilcoxon_output = " + \
-                    u"stats_output.wilcoxon_output(t, p, dic_a, dic_b,"
-                    u"\n    css_fil=\"%s\", css_idx=%s, " % (css_fil, css_idx) +
-                    u"dp=dp, level=mg.OUTPUT_RESULTS_ONLY, "
-                    u"page_break_after=False)")
+        script_lst.append(u"""
+wilcoxon_output = stats_output.wilcoxon_output(t, p, dic_a, dic_b,
+            css_fil=u"%(css_fil)s", 
+            css_idx=%(css_idx)s, dp=dp, level=mg.OUTPUT_RESULTS_ONLY,
+            page_break_after=False)""" % 
+            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(wilcoxon_output)")
         return u"\n".join(script_lst)
 

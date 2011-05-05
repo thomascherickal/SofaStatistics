@@ -809,7 +809,7 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     f.write(u"\ndbe_resources = getdata.get_dbe_resources(dbe,")
     f.write(u"\n    con_dets=con_dets, default_dbs=default_dbs, "
             u"\n    default_tbls=default_tbls, ")
-    f.write(u"\n    db=\"%s\", tbl=\"%s\")" % (dd.db, dd.tbl))
+    f.write(u"\n    db=u\"%s\", tbl=u\"%s\")" % (dd.db, dd.tbl))
     f.write(u"\ncon = dbe_resources[mg.DBE_CON]")
     f.write(u"\ncur = dbe_resources[mg.DBE_CUR]")
     f.write(u"\ndbs = dbe_resources[mg.DBE_DBS]")
