@@ -35,12 +35,16 @@ def quote_obj(raw_val):
     return u"%s%s%s" % (left_obj_quote, raw_val, right_obj_quote)
 
 def quote_val(raw_val):
+    """
+    Single quote is the literal delimiter and internal single quotes need 
+        escaping by repeating them.
+    """
     try:
-        val = raw_val.replace('"', '""') # escape internal double quotes
+        val = raw_val.replace("'", "''") # escape internal single quotes
     except AttributeError, e:
         raise Exception(u"Inappropriate attempt to quote non-string value."
                         u"\nCaused by error: %s" % lib.ue(e))
-    return u"\"%s\"" % val
+    return u"'%s'" % val
 
 def get_summable(clause):
     return clause
