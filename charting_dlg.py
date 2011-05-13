@@ -996,9 +996,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             script_lst.append(u"%s = None" % var2lbl)
         else:
             script_lst.append(u"%s = u\"%s\"" % (var2lbl, varname2))
+        script_lst.append(u"%s_name=u\"%s\"" % (var2lbl,
+                                 lib.get_item_label(self.var_labels, varname2)))
         if self.chart_type != mg.SCATTERPLOT: # no labels needed
-            script_lst.append(u"%s_name=u\"%s\"" % (var2lbl,
-                              lib.get_item_label(self.var_labels, varname2)))
             script_lst.append(u"%s_lbls = %s" % (var2lbl, 
                                             self.val_dics.get(varname2, {})))
         # var 3 - always chart by
