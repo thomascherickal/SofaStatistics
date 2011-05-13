@@ -25,7 +25,7 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-dev_debug = True # relates to errors etc once GUI application running.
+dev_debug = False # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 test_lang = False
@@ -100,9 +100,11 @@ class FeedbackDlg(wx.Dialog):
         txt_invitation = wx.StaticText(self.panel, -1, 
                             _(u"Did SOFA meet your needs? Please let us know "
                               u"by answering a short survey."
-                              u"\n(You can answer later by clicking on the "
+                              u"\n\n(You can answer later by clicking on the "
                               u"\"%s\" link"
-                              u"\ndown the bottom of the main form)") % 
+                              u"\ndown the bottom of the main form "
+                              u"and you are always welcome to\nemail "
+                              u"grant@sofastatistics.com)") % 
                               mg.FEEDBACK_LINK)
         self.szr_main.Add(txt_invitation, 1, wx.GROW|wx.ALL, 10)
         self.szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
@@ -1057,6 +1059,7 @@ class StartFrame(wx.Frame):
             if debug: print(delme)
             os.remove(delme)
         lib.safe_end_cursor()
+        # LOCAL_PATH_SETUP_NEEDED = True # testing
         if LOCAL_PATH_SETUP_NEEDED: # if first use, pop up on way out
             dlg = FeedbackDlg(self)
             dlg.ShowModal()

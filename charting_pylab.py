@@ -6,7 +6,8 @@ import os
 import boomslang
 import wx
 import wxmpl
-import pylab # must import after wxmpl so matplotlib.use() is always first
+import pylab # must import after wxmpl so matplotlib.use() (which is in wxmpl) 
+    # is always first
 
 import my_globals as mg
 import lib

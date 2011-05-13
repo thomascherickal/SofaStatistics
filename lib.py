@@ -30,7 +30,7 @@ def current_lang_rtl():
 def mustreverse():
     "Other OSs may require it too but uncertain at this stage"
     #return True #testing
-    return current_lang_rtl and mg.PLATFORM == mg.WINDOWS
+    return current_lang_rtl() and mg.PLATFORM == mg.WINDOWS
 
 def get_normal_ys(vals, bins):
     """

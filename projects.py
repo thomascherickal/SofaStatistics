@@ -698,6 +698,12 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             # write the data
             fil_name = os.path.join(LOCAL_PATH, mg.PROJS_FOLDER, u"%s.proj" % \
                                     proj_name)
+            # In Windows, MySQL.proj and mysql.proj are the same in the file 
+            # system - if already a file with same name, delete it first
+            # otherwise will write to mysql.proj when saving MySQL.proj.
+            # And MySQL won't appear in list on return to projselect.
+            if mg.PLATFORM == mg.WINDOWS and os.path.exists(fil_name):
+                os.remove(fil_name)
             try:
                 f = codecs.open(fil_name, "w", encoding="utf-8")
             except IOError, e:
