@@ -649,7 +649,7 @@ def get_barchart_sizings(xaxis_dets, series_dets):
             xfontsize_mult = 1.3
         xfontsize = xfontsize*xfontsize_mult
         xfontsize = xfontsize if xfontsize <= 10 else 10
-    left_axis_label_shift = 20 if width > 1200 else 0 # gets squeezed 
+    left_axis_label_shift = 20 if width > 1200 else 10 # gets squeezed 
         # out otherwise
     if debug: print(width, xgap, xfontsize, minor_ticks, left_axis_label_shift)
     return width, xgap, xfontsize, minor_ticks, left_axis_label_shift
