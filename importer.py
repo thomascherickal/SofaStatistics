@@ -148,7 +148,7 @@ def get_best_fld_type(fldname, type_set, faulty2missing_fld_list,
                                 assessing_sample=True)
             retval = dlg.ShowModal()
             if retval == wx.ID_CANCEL:
-                raise Exception(u"Inconsistencies in data type.")             
+                raise Exception(u"Inconsistencies in data type.")         
             else:
                 fld_type = fld_types[fldname]
         else:
@@ -995,6 +995,7 @@ class ImportFileSelectDlg(wx.Dialog):
                 self.import_status[mg.CANCEL_IMPORT] = False # reinit
                 wx.MessageBox(lib.ue(e))
             except Exception, e:
+                self.progbar.SetValue(0)
                 lib.safe_end_cursor()
                 wx.MessageBox(_("Unable to import data\n\nError") + u": %s" % 
                               lib.ue(e))
