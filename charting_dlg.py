@@ -1074,7 +1074,7 @@ for simple_barchart_det in simple_barchart_dets:
     y_vals = simple_barchart_det[mg.CHART_Y_VALS]
     series_label = (fld_measure_name if measure == mg.CHART_FREQS
                                      else fld_by_name)    
-    series_dets = [{u"label": series_label, "y_vals": y_vals},]
+    series_dets = [{mg.CHART_SERIES_LABEL: series_label, "y_vals": y_vals},]
     barchart_dets.append({mg.CHART_CHART_BY_LABEL: chart_by_label,
                           mg.CHART_XAXIS_DETS: xaxis_dets, 
                           mg.CHART_SERIES_DETS: series_dets})
@@ -1144,7 +1144,7 @@ y_vals = single_linechart_dets[0][mg.CHART_Y_VALS]
 max_label_len = single_linechart_dets[0][mg.CHART_MAX_LABEL_LEN]
 series_label = (fld_measure_name if measure == mg.CHART_FREQS
                                  else fld_by_name)  
-series_dets = [{u"label": series_label, "y_vals": y_vals},]
+series_dets = [{mg.CHART_SERIES_LABEL: series_label, "y_vals": y_vals},]
 x_title = u"" # uses series label instead
 y_title = (mg.Y_AXIS_FREQ_LABEL if measure == mg.CHART_FREQS
                                 else u"Mean %%s" %% fld_measure_name) 
@@ -1191,7 +1191,7 @@ for areachart_det in areachart_dets:
     y_vals = areachart_det[mg.CHART_Y_VALS]
     series_label = (fld_measure_name if measure == mg.CHART_FREQS
                                  else fld_by_name)
-    series_dets = [{u"label": series_label, "y_vals": y_vals},]
+    series_dets = [{mg.CHART_SERIES_LABEL: series_label, "y_vals": y_vals},]
     max_label_len = areachart_det[mg.CHART_MAX_LABEL_LEN]
     chart_dets.append({mg.CHART_CHART_BY_LABEL: chart_by_label,
                        mg.CHART_XAXIS_DETS: xaxis_dets, 

@@ -143,7 +143,7 @@ def extract_dojo_style(css_fil):
               u"err": lib.ue(e)})
         raise
     return (css_dojo_dic[u"outer_bg"], 
-            css_dojo_dic[u"inner_bg"], 
+            css_dojo_dic[u"inner_bg"], # grid_bg
             css_dojo_dic[u"axis_label_font_colour"], 
             css_dojo_dic[u"major_gridline_colour"], 
             css_dojo_dic[u"gridline_width"], 

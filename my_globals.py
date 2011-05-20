@@ -13,7 +13,7 @@ import wx
 
 debug = False
 
-VERSION = u"1.0.5"
+VERSION = u"1.0.6"
 ADVANCED = False
 ATTRIBUTION = u"sofastatistics.com"
 # LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, LANGUAGE_RUSSIAN, LANGUAGE_HEBREW
@@ -470,6 +470,16 @@ CHART_NORMAL_Y_VALS = u"normal_y_vals"
 CHART_SLICE_DETS = u"slice_dets"
 CHART_XAXIS_DETS = u"xaxis_dets"
 CHART_SERIES_DETS = u"series_dets"
+CHART_SERIES_LABEL = u"series_label"
+CHART_BOXDETS = u"boxdets"
+CHART_BOXPLOT_WIDTH = 0.25
+CHART_BOXPLOT_DISPLAY = u"boxplot_display"
+CHART_BOXPLOT_LWHISKER = u"lwhisker"
+CHART_BOXPLOT_LBOX = u"lbox"
+CHART_BOXPLOT_MEDIAN = u"median"
+CHART_BOXPLOT_UBOX = u"ubox"
+CHART_BOXPLOT_UWHISKER = u"uwhisker"
+CHART_BOXPLOT_OUTLIERS = u"outliers"
 CHART_MINVAL = u"minval"
 CHART_MAXVAL = u"maxval"
 CHART_BIN_LABELS = u"bin_labels"

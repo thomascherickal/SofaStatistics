@@ -324,6 +324,20 @@ hl = function(colour){
     }
     return c.fromHsl(x);
 }
+
+getfainthex = function(hexcolour){
+    var a = new c.Color(hexcolour)
+    x = a.toHsl();
+    x.s = x.s * 1.5;
+    x.l = x.l * 1.25;
+    return c.fromHsl(x);
+}
+
+makefaint = function(colour){
+    var fainthex = getfainthex(colour.toHex());
+    return new dojox.color.Color(fainthex);
+}
+
 %(label_line_break_js)s
 
 </script>

@@ -333,7 +333,8 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
         if tot_items > MAX_ITEMS:
             raise my_exceptions.TooManyValsInChartSeries(fld_measure, MAX_ITEMS)
         gp_val_label = fld_gp_lbls.get(gp_val, unicode(gp_val))
-        series_dic = {u"label": gp_val_label, u"y_vals": measures}
+        series_dic = {mg.CHART_SERIES_LABEL: gp_val_label, 
+                      mg.CHART_Y_VALS: measures}
         series_dets.append(series_dic)
     xaxis_dets = []
     max_label_len = 0
@@ -682,6 +683,31 @@ def get_linechart_sizings(xaxis_dets, max_label_len, series_dets):
     if debug: print(width, xfontsize, minor_ticks, micro_ticks)
     return width, xfontsize, minor_ticks, micro_ticks
 
+def get_boxplot_sizings(xaxis_dets, max_label_len, series_dets):
+    debug = False
+    n_vals = len(xaxis_dets)
+    n_series = len(series_dets)
+    n_boxes = n_vals*n_series
+    if n_vals < 6:
+        width = 800
+    elif n_vals < 10:
+        width = 900
+    else:
+        width = 1000
+    xfontsize = 10
+    if n_series > 2:
+        width += (n_series*100)
+    if n_vals > 5:
+        xfontsize = 9
+        if max_label_len > 10:
+            width += 100
+        elif max_label_len > 7:
+            width += 50
+        elif max_label_len > 4:
+            width += 30
+    if debug: print(width, xfontsize)
+    return width, xfontsize
+
 def setup_highlights(colour_mappings, single_colour, 
                      override_first_highlight=False):
     """
@@ -726,7 +752,7 @@ def get_title_dets_html(titles, subtitles, css_idx):
 def get_label_dets(xaxis_dets, series_dets):
     label_dets = []
     for i, xaxis_det in enumerate(xaxis_dets,1):
-        val_label = xaxis_det[2]
+        val_label = xaxis_det[2] # the split variant of the label
         label_dets.append(u"{value: %s, text: %s}" % (i, val_label))
     return label_dets
 
@@ -821,9 +847,9 @@ def barchart_output(titles, subtitles, x_title, y_title, barchart_dets,
             series_names_list.append(u"series%s" % i)
             series_js_list.append(u"var series%s = new Array();" % i)
             series_js_list.append(u"            series%s[\"seriesLabel\"] = \"%s\";"
-                                  % (i, series_det[u"label"]))
+                                  % (i, series_det[mg.CHART_SERIES_LABEL]))
             series_js_list.append(u"            series%s[\"yVals\"] = %s;" % 
-                                  (i, series_det[u"y_vals"]))
+                                  (i, series_det[mg.CHART_Y_VALS]))
             try:
                 fill = colour_mappings[i][0]
             except IndexError, e:
@@ -923,7 +949,7 @@ def piechart_output(titles, subtitles, pie_chart_dets, css_fil, css_idx,
     height = 350 if multichart else 400
     radius = 120 if multichart else 140
     label_offset = -20 if multichart else -30
-    (outer_bg, inner_bg, axis_label_font_colour, 
+    (outer_bg, grid_bg, axis_label_font_colour, 
          major_gridline_colour, gridline_width, stroke_width, 
          tooltip_border_colour, 
          colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
@@ -973,7 +999,7 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
     chartconf["connectorStyle"] = "%(connector_style)s";
     %(outer_bg)s
-    chartconf["innerBg"] = "%(inner_bg)s";
+    chartconf["gridBg"] = "%(grid_bg)s";
     chartconf["radius"] = %(radius)s;
     chartconf["labelOffset"] = %(label_offset)s;
     makePieChart("mychartRenumber%(chart_idx)s", slices, chartconf);
@@ -994,7 +1020,7 @@ makechartRenumber%(chart_idx)s = function(){
                u"label_font_colour": label_font_colour,
                u"tooltip_border_colour": tooltip_border_colour,
                u"connector_style": connector_style, u"outer_bg": outer_bg, 
-               u"inner_bg": inner_bg, u"chart_idx": u"%02d" % chart_idx,
+               u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx,
                })
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
@@ -1060,10 +1086,6 @@ def linechart_output(titles, subtitles, x_title, y_title, xaxis_dets,
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
-    series_labels -- e.g. ["Age Group", ] if simple bar chart,
-        e.g. ["Male", "Female"] if clustered bar chart.
-    var_numeric -- needs to be quoted or not.
-    y_vals -- list of values e.g. [[12, 30, 100.5, -1, 40], ]
     xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
                    (5, "65+")]
     css_idx -- css index so can apply    
@@ -1072,7 +1094,7 @@ def linechart_output(titles, subtitles, x_title, y_title, xaxis_dets,
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    # For multiple, don't split label if mid tick (clash with x axis label)
+    # For multiple, don't split label if the mid tick (clash with x axis label)
     label_dets = get_label_dets(xaxis_dets, series_dets)
     xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
     axis_label_drop = 30 if x_title else -10
@@ -1119,7 +1141,7 @@ def linechart_output(titles, subtitles, x_title, y_title, xaxis_dets,
         series_names_list.append(u"series%s" % i)
         series_js_list.append(u"var series%s = new Array();" % i)
         series_js_list.append(u"            series%s[\"seriesLabel\"] = \"%s\";"
-                              % (i, series_det[u"label"]))
+                              % (i, series_det[mg.CHART_SERIES_LABEL]))
         series_js_list.append(u"            series%s[\"yVals\"] = %s;" % 
                               (i, series_det[mg.CHART_Y_VALS]))
         try:
@@ -1253,9 +1275,9 @@ def areachart_output(titles, subtitles, y_title, chart_dets, inc_perc,
             series_js_list.append(u"var series%s = new Array();" % i)
             series_js_list.append(u"            "
                                   u"series%s[\"seriesLabel\"] = \"%s\";"
-                                  % (i, series_det[u"label"]))
+                                  % (i, series_det[mg.CHART_SERIES_LABEL]))
             series_js_list.append(u"            series%s[\"yVals\"] = %s;" % 
-                                  (i, series_det[u"y_vals"]))
+                                  (i, series_det[mg.CHART_Y_VALS]))
             try:
                 stroke = colour_mappings[i][0]
                 fill = colour_mappings[i][1]
@@ -1491,7 +1513,7 @@ def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders,
 
 def make_dojo_scatterplot(chart_idx, multichart, html, indiv_scatterplot_title, 
                           dot_borders, data_tups, list_x, list_y, label_x, 
-                          label_y, x_vs_y, css_fil, pagebreak):
+                          label_y, css_fil, pagebreak):
     debug = False
     if multichart:  
         width, height = (500, 300)
@@ -1585,7 +1607,7 @@ makechartRenumber%(chart_idx)s = function(){
        u"stroke_width": stroke_width, u"fill": fill,
        u"colour_cases": colour_cases, 
        u"width": width, u"height": height, u"xfontsize": xfontsize, 
-       u"series_label": x_vs_y, u"pagebreak": pagebreak,
+       u"pagebreak": pagebreak,
        u"axis_label_font_colour": axis_label_font_colour,
        u"major_gridline_colour": major_gridline_colour,
        u"left_axis_label_shift": left_axis_label_shift,
@@ -1628,7 +1650,218 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
             make_dojo_scatterplot(chart_idx, multichart, html, 
                                   indiv_scatterplot_title, 
                                   dot_borders, data_tups, list_x, list_y, 
-                                  label_x, label_y, x_vs_y, css_fil, pagebreak)
+                                  label_x, label_y, css_fil, pagebreak)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % page_break_before)
     return u"".join(html)
+
+def boxplot_output(titles, subtitles, x_title, y_title, xaxis_dets, 
+                   max_label_len, series_dets, xmin, xmax, ymin, ymax, 
+                   css_fil, css_idx, page_break_after):
+    """
+    titles -- list of title lines correct styles
+    subtitles -- list of subtitle lines
+    xaxis_dets -- [(0, "", ""), (1, "Under 20", ...] NB blanks either end
+    series_dets -- [{mg.CHART_SERIES_LABEL: "Girls", 
+        mg.CHART_BOXDETS: [{mg.CHART_BOXPLOT_DISPLAY: True, 
+                                mg.CHART_BOXPLOT_LWHISKER: 1.7, 
+                                mg.CHART_BOXPLOT_LBOX: 3.2, ...}, 
+                           {mg.CHART_BOXPLOT_DISPLAY: True, etc}, 
+                                    ...]},
+                          ...]
+    NB supply a boxdet even for an empty box. Put marker that it should be 
+        skipped in terms of output to js. mg.CHART_BOXPLOT_DISPLAY
+    # list of subseries dicts each of which has a label and a list of dicts 
+        (one per box).
+    css_idx -- css index so can apply
+    """
+    debug = False
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    # For multiple, don't split label if the mid tick (clash with x axis label)
+    label_dets = get_label_dets(xaxis_dets, series_dets)
+    label_dets.insert(0, u"""{value: 0, text: ""}""")
+    label_dets.append(u"""{value: %s, text: ""}""" % len(label_dets))
+    xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
+    axis_label_drop = 30 if x_title else -10
+    height = 500 + axis_label_drop # compensate for loss of display height                           
+    (width, xfontsize) = get_boxplot_sizings(xaxis_dets, max_label_len, 
+                                             series_dets)
+    yfontsize = xfontsize
+    left_axis_label_shift = 20 if width > 1200 else 10 # gets squeezed
+    html = []
+    """
+    For each series, set colour details.
+    For the collection of series as a whole, set the highlight mapping from 
+        each series colour.
+    From dojox.charting.action2d.Highlight but with extraneous % removed
+    """
+    (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
+            gridline_width, stroke_width, tooltip_border_colour, 
+            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+    # Can't have white for boxplots because always a white outer background
+    axis_label_font_colour = axis_label_font_colour \
+                            if axis_label_font_colour != u"white" else u"black"
+    """
+    Build js for every series.
+    colour_mappings - take first of each pair to use as outline of box plots, 
+        and use getfainthex() to get lighter colour for interior (so we can see
+        the details of the median line) and an even lighter version for the 
+        highlight. The css-defined highlight is good for bar charts etc where
+        change is the key, not visibility of interior details.
+    """
+    if debug:
+        print(series_dets)
+    pagebreak = u"page-break-after: always;"
+    n_series = len(series_dets)
+    n_boxes = len(series_dets[0][mg.CHART_BOXDETS])
+    """
+    For each box, we need to identify the center. For this we need to know 
+        the number of boxes, where the first one starts, and the horizontal 
+        jump rightwards for each one (= the gap which is width + extra 
+        breathing space).
+    """
+    if n_boxes == 0:
+        raise Exception("Box count of 0")
+    n_gaps = n_series - 1
+    shrinkage = n_series*0.6
+    gap = 0.4/shrinkage
+    pre_series = []
+    bar_width = mg.CHART_BOXPLOT_WIDTH/shrinkage
+    pre_series.append(u"    var width = %s;" % bar_width)
+    pre_series.append(u"    var seriesconf = new Array();")
+    pre_series.append(u"    var seriesdummy = [];")
+    pre_series_str = "\n".join(pre_series)
+    
+    offset_start = -((gap*n_gaps)/2.0) # if 1 box, offset = 0 i.e. middle
+    offsets = [offset_start + (x*gap) for x in range(n_series)]
+    series_js = []
+    for series_idx, series_det in enumerate(series_dets):
+        """
+        series_det -- [((lwhisker, lbox, median, ubox, uwhisker, outliers), 
+                (lwhisker etc), ...),
+               ...] # list of subseries tuples each of which has a tuple 
+                      per box.
+        We flatten out the series and do it across and back across for 
+            each sub series.
+        """
+        series_js.append(u"    // series%s" % series_idx)
+        try:
+            stroke = colour_mappings[series_idx][0]
+        except IndexError, e:
+            stroke = mg.DOJO_COLOURS[series_idx]
+        series_js.append(u"    var strokecol%s = \"%s\";" % (series_idx, 
+                                                             stroke))
+        series_js.append(u"    var fillcol%s = getfainthex(strokecol%s);" 
+                         % (series_idx, series_idx))
+        series_js.append(u"    seriesconf[%(series_idx)s] = {seriesLabel: "
+             u"\"%(series_label)s\", "
+             u"seriesStyle: {stroke: {color: strokecol%(series_idx)s, "
+             u"width: \"1px\"}, fill: fillcol%(series_idx)s}};"
+             % {u"series_idx": series_idx, 
+                u"series_label": series_det[mg.CHART_SERIES_LABEL]})
+        series_js.append(u"    var series%(series_idx)s = [" 
+                      % {u"series_idx": series_idx})
+        offset = offsets[series_idx]
+        box_js = [] 
+        for boxdet_idx, boxdet in enumerate(series_det[mg.CHART_BOXDETS]):
+            if not boxdet[mg.CHART_BOXPLOT_DISPLAY]:
+                continue
+            unique_name = u"%s%s" % (series_idx, boxdet_idx)
+            box_js.append(u"""        {seriesLabel: "dummylabel%(unique_name)s", 
+        boxDets: {stroke: strokecol%(series_idx)s, fill: fillcol%(series_idx)s, 
+                  center: %(boxdets_idx)s + 1 + %(offset)s, width: width,
+                  summary_data: {%(lwhisker)s: %(lwhisker_val)s, 
+                                 %(lbox)s: %(lbox_val)s,  
+                                 %(median)s: %(median_val)s, 
+                                 %(ubox)s: %(ubox_val)s, 
+                                 %(uwhisker)s: %(uwhisker_val)s, 
+                                 %(outliers)s: %(outliers_val)s}
+                 }
+              }""" % {u"unique_name": unique_name, u"series_idx": series_idx,
+                        u"boxdets_idx": boxdet_idx, u"offset": offset,
+                        u"lwhisker": mg.CHART_BOXPLOT_LWHISKER, 
+                        u"lwhisker_val": boxdet[mg.CHART_BOXPLOT_LWHISKER],
+                        u"lbox": mg.CHART_BOXPLOT_LBOX, 
+                        u"lbox_val": boxdet[mg.CHART_BOXPLOT_LBOX],
+                        u"median": mg.CHART_BOXPLOT_MEDIAN, 
+                        u"median_val": boxdet[mg.CHART_BOXPLOT_MEDIAN],
+                        u"ubox": mg.CHART_BOXPLOT_UBOX, 
+                        u"ubox_val": boxdet[mg.CHART_BOXPLOT_UBOX],
+                        u"uwhisker": mg.CHART_BOXPLOT_UWHISKER, 
+                        u"uwhisker_val": boxdet[mg.CHART_BOXPLOT_UWHISKER],
+                        u"outliers": mg.CHART_BOXPLOT_OUTLIERS, 
+                        u"outliers_val": boxdet[mg.CHART_BOXPLOT_OUTLIERS],
+                        })
+        series_js.append(u",\n".join(box_js))            
+        series_js.append(u"        ];") # close series list
+    series_lst = ["series%s" % x for x in range(len(series_dets))]
+    series_js.append(u"    var series = seriesdummy.concat(%s);" 
+                     % ", ".join(series_lst))
+    series_js_str = u"\n".join(series_js)
+    html.append(u"""
+<script type="text/javascript">
+
+makechartRenumber00 = function(){
+%(pre_series_str)s
+%(series_js_str)s
+    var chartconf = new Array();
+    chartconf["makefaint"] = makefaint;
+    chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
+    chartconf["connectorStyle"] = "%(connector_style)s";
+    chartconf["outerBg"] = "%(outer_bg)s";
+    chartconf["gridBg"] = "%(grid_bg)s";
+    chartconf["axisColour"] = "black";
+    chartconf["axisLabelFontColour"] = "%(axis_label_font_colour)s";
+    chartconf["innerChartBorderColour"] = "white";
+    chartconf["outerChartBorderColour"] = "white";
+    chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
+    chartconf["tickColour"] = "black";
+    chartconf["gridlineWidth"] = %(gridline_width)s;
+    chartconf["xfontsize"] = %(xfontsize)s;
+    chartconf["yfontsize"] = %(yfontsize)s;
+    chartconf["xTitle"] = "%(x_title)s";
+    chartconf["yTitle"] = "%(y_title)s";
+    chartconf["xaxisLabels"] = %(xaxis_labels)s;
+    chartconf["axisLabelDrop"] = %(axis_label_drop)s;
+    chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
+    chartconf["xmin"] = %(xmin)s;
+    chartconf["xmax"] = %(xmax)s;
+    chartconf["ymin"] = %(ymin)s;
+    chartconf["ymax"] = %(ymax)s;
+    makeBoxAndWhisker("mychartRenumber00", series, seriesconf, chartconf);
+}
+</script>
+%(titles)s
+    
+<div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
+
+<div id="mychartRenumber00" style="width: %(width)spx; 
+        height: %(height)spx;">
+    </div>
+<div id="dummychartRenumber00" 
+    style="width: 0px; height: 0px; visibility: hidden;">
+    </div>
+<div id="legendMychartRenumber00">
+    </div>
+</div>
+    """ % {u"titles": title_dets_html, u"pre_series_str": pre_series_str,
+           u"series_js_str": series_js_str, u"xaxis_labels": xaxis_labels, 
+           u"width": width, u"height": height, 
+           u"xfontsize": xfontsize, u"yfontsize": yfontsize, 
+           u"xmin": xmin, u"xmax": xmax, u"ymin": ymin, u"ymax": ymax,
+           u"x_title": x_title, u"y_title": y_title,
+           u"axis_label_font_colour": axis_label_font_colour,
+           u"major_gridline_colour": major_gridline_colour,
+           u"gridline_width": gridline_width, u"pagebreak": pagebreak,
+           u"axis_label_drop": axis_label_drop,
+           u"left_axis_label_shift": left_axis_label_shift,
+           u"tooltip_border_colour": tooltip_border_colour,
+           u"connector_style": connector_style, 
+           u"outer_bg": outer_bg, u"grid_bg": grid_bg})
+    if page_break_after:
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
+    return u"".join(html)
+    
