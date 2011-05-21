@@ -251,6 +251,7 @@ def fix_sawtoothing(raw_data, n_bins, y_vals, start, bin_width):
     Look for sawtoothing on commonly found periods (5 and 2).  If found, reduce
         bins until problem gone or too few bins to keep shrinking.
     """
+    debug = False
     while n_bins > 5:
         if saw_toothing(y_vals, period=5):
             shrink_factor = 5.0
@@ -263,6 +264,7 @@ def fix_sawtoothing(raw_data, n_bins, y_vals, start, bin_width):
         n_bins = int(math.ceil(n_bins/shrink_factor))
         (y_vals, start, 
             bin_width, unused) = core_stats.histogram(raw_data, n_bins)
+        if debug: print(y_vals)
     return y_vals, start, bin_width
 
 def version_a_is_newer(version_a, version_b):

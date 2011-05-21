@@ -260,7 +260,8 @@ def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b, tbl_filt,
 #
 # Heavily adapted for use by SciPy 2002 by Travis Oliphant
 
-def histogram (inlist, numbins=10, defaultreallimits=None, printextras=0):
+def histogram (inlist, numbins=10, defaultreallimits=None, printextras=0,
+               inc_uppermost_val_in_top_bin=True):
     """
     From stats.py. Modified to include uppermost value in top bin. This is
         essential if wanting to have "nice", human-readable bins e.g. 10 to < 20
@@ -270,7 +271,7 @@ def histogram (inlist, numbins=10, defaultreallimits=None, printextras=0):
     -------------------------------------
     Returns (i) a list of histogram bin counts, (ii) the smallest value
     of the histogram binning, and (iii) the bin width (the last 2 are not
-    necessarily integers).  Default number of bins is 10.  If no sequence object
+    necessarily integers).  Default number of bins is 10. If no sequence object
     is given for defaultreallimits, the routine picks (usually non-pretty) bins
     spanning all the numbers in the inlist.
 
@@ -278,6 +279,7 @@ def histogram (inlist, numbins=10, defaultreallimits=None, printextras=0):
         suppressoutput=0)
     Returns: list of bin values, lowerreallimit, binsize, extrapoints
     """
+    debug = False
     if (defaultreallimits <> None):
         if type(defaultreallimits) not in [ListType, TupleType] or \
                 len(defaultreallimits)==1: # only one limit given, assumed to be 
@@ -292,22 +294,26 @@ def histogram (inlist, numbins=10, defaultreallimits=None, printextras=0):
         estbinwidth=(max(inlist)-min(inlist))/float(numbins) +1e-6 #1=>cover all
         binsize = ((max(inlist)-min(inlist)+estbinwidth))/float(numbins)
         lowerreallimit = min(inlist) - binsize/2 #lower real limit,1st bin
+        upperreallimit = 1.000001 * max(inlist) # added by me so able to include 
+            # top val in final bin. Use same code as orig to calc upp from lower
     bins = [0]*(numbins)
     extrapoints = 0
     for num in inlist:
         try:
-            if (num-lowerreallimit) < 0:
+            if (num-lowerreallimit) < 0 and inc_uppermost_val_in_top_bin:
                 extrapoints = extrapoints + 1
             else:
-                if num == upperreallimit:
+                if num == upperreallimit: # includes uppermost value in top bin
                     bins[numbins-1] += 1
-                else:
+                else: # the original always did this if not 
+                            # (num-lowerreallimit) < 0
                     bintoincrement = int((num-lowerreallimit)/float(binsize))
                     bins[bintoincrement] = bins[bintoincrement] + 1
         except:
             extrapoints = extrapoints + 1
     if (extrapoints > 0 and printextras == 1):
         print('\nPoints outside given histogram range =', extrapoints)
+    if debug: print(bins, lowerreallimit, binsize, extrapoints)
     return (bins, lowerreallimit, binsize, extrapoints)
 
 def chisquare(f_obs,f_exp=None, df=None):
@@ -977,6 +983,37 @@ def azprob(z):
     prob = np.where(np.greater(z,0), (x+1)*0.5, (1-x)*0.5)
     return prob
 
+def scoreatpercentile (vals, percent):
+    """
+    From stats.py. No changes except renaming function, vars and params, 
+        printing only a warning if debug, splitting expressions into sub 
+        variables for better debugging, and not including uppermost values in 
+        top bin when using histogram function (i.e. the original stats.py 
+        behaviour).
+    -------------------------------------
+    Returns the score at a given percentile relative to the distribution
+    given by vals.
+
+    Usage:   scoreatpercentile(vals,percent)
+    """
+    debug = False
+    if percent > 1:
+        if debug:
+            print("\nDividing percent>1 by 100 in scoreatpercentile().\n")
+        percent = percent / 100.0
+    targetcf = percent*len(vals)
+    bins, lrl, binsize, extras = histogram(vals, 
+                                           inc_uppermost_val_in_top_bin=False)
+    cumhist = cumsum(copy.deepcopy(bins))
+    for i in range(len(cumhist)):
+        if cumhist[i] >= targetcf:
+            break
+    if debug: print(bins)
+    numer = (targetcf - cumhist[i-1])
+    denom = float(bins[i])
+    score = binsize * (numer/denom) + (lrl+binsize*i)
+    return score
+
 def mean(vals, high=False):
     """
     From stats.py.  No changes except option of using Decimals instead 
@@ -1009,7 +1046,7 @@ def amean (inarray,dimension=None,keepdims=0):
     """
     From stats.py.  No changes except renamed functions, and N->np. 
     -------------------------------------
-    Calculates the arithmatic mean of the values in the passed array.
+    Calculates the arithmetic mean of the values in the passed array.
     That is:  1/n * (x1 + x2 + ... + xn).  Defaults to ALL values in the
     passed array.  Use dimension=None to flatten array first.  REMEMBER: if
     dimension=0, it collapses over dimension 0 ('rows' in a 2D array) only, and
@@ -1603,6 +1640,20 @@ def asum(a, dimension=None, keepdims=0):
                 shp[dim] = 1
             s = np.reshape(s,shp)
     return s
+
+def cumsum (inlist):
+    """
+    From stats.py. No changes except renamed function. 
+    ------------------------------------
+    Returns a list consisting of the cumulative sum of the items in the
+    passed list.
+
+    Usage:   cumsum(inlist)
+    """
+    newlist = copy.deepcopy(inlist)
+    for i in range(1,len(newlist)):
+        newlist[i] = newlist[i] + newlist[i-1]
+    return newlist
 
 def kurtosis(a, dimension=None):
     """

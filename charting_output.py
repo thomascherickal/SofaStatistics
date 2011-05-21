@@ -449,7 +449,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
         # use nicest bins practical
         n_bins, lower_limit, upper_limit = lib.get_bins(min(vals), max(vals))
         (y_vals, start, 
-            bin_width, unused) = core_stats.histogram(vals, n_bins, 
+         bin_width, unused) = core_stats.histogram(vals, n_bins, 
                                                 defaultreallimits=[lower_limit, 
                                                                    upper_limit])
         y_vals, start, bin_width = lib.fix_sawtoothing(vals, n_bins, y_vals, 
