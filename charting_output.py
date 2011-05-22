@@ -19,9 +19,10 @@ import core_stats
 import getdata
 import output
 
-def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls, 
+def get_basic_dets(dbe, cur, tbl, tbl_filt,  
                    fld_measure, fld_measure_lbls, 
-                   fld_by, fld_by_name, fld_by_lbls,
+                   fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
+                   fld_chart_by, fld_chart_by_name, fld_chart_by_lbls,
                    sort_opt, measure=mg.CHART_FREQS):
     """
     Get frequencies for all non-missing values in variable plus labels.
@@ -32,20 +33,21 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
     debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    sql_dic = {u"fld_gp": objqtr(fld_gp), u"fld_measure": objqtr(fld_measure),
+    sql_dic = {mg.FLD_CHART_BY: objqtr(fld_chart_by), 
+               u"fld_measure": objqtr(fld_measure),
                u"and_tbl_filt": and_tbl_filt, 
                u"tbl": getdata.tblname_qtr(dbe, tbl)}
     if measure == mg.CHART_FREQS:
-        if fld_gp:
+        if fld_chart_by:
             # group by both group_by and measure fields, count non-missing vals
-            SQL_get_vals = (u"""SELECT %(fld_gp)s, %(fld_measure)s, 
+            SQL_get_vals = (u"""SELECT %(fld_chart_by)s, %(fld_measure)s, 
                     COUNT(*) AS measure
                 FROM %(tbl)s
                 WHERE %(fld_measure)s IS NOT NULL 
-                    AND %(fld_gp)s IS NOT NULL 
+                    AND %(fld_chart_by)s IS NOT NULL 
                     %(and_tbl_filt)s
-                GROUP BY %(fld_gp)s, %(fld_measure)s
-                ORDER BY %(fld_gp)s, %(fld_measure)s""") % sql_dic
+                GROUP BY %(fld_chart_by)s, %(fld_measure)s
+                ORDER BY %(fld_chart_by)s, %(fld_measure)s""") % sql_dic
         else:
             # group by measure field only, count non-missing vals
             SQL_get_vals = (u"""SELECT %(fld_measure)s, COUNT(*) AS measure
@@ -54,38 +56,39 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
                 GROUP BY %(fld_measure)s
                 ORDER BY %(fld_measure)s""") % sql_dic
     else:
-        if fld_by is None:
-            raise Exception("Need fld_by if doing anything other than FREQS")
-        sql_dic[u"fld_by"] = objqtr(fld_by)
-        if fld_gp:
+        if fld_gp_by is None:
+            raise Exception("Need fld_gp_by if doing anything other than FREQS")
+        sql_dic[mg.FLD_GROUP_BY] = objqtr(fld_gp_by)
+        if fld_chart_by:
             # group by group_by field and by field, and get AVG of measure field
-            SQL_get_vals = (u"""SELECT %(fld_gp)s, %(fld_by)s, 
+            SQL_get_vals = (u"""SELECT %(fld_chart_by)s, %(fld_gp_by)s, 
                     AVG(%(fld_measure)s) AS measure
                 FROM %(tbl)s
                 WHERE %(fld_measure)s IS NOT NULL 
-                    AND %(fld_by)s IS NOT NULL 
-                    AND %(fld_gp)s IS NOT NULL 
+                    AND %(fld_gp_by)s IS NOT NULL 
+                    AND %(fld_chart_by)s IS NOT NULL 
                     %(and_tbl_filt)s
-                GROUP BY %(fld_gp)s, %(fld_by)s
-                ORDER BY %(fld_gp)s, %(fld_by)s""") % sql_dic
+                GROUP BY %(fld_chart_by)s, %(fld_gp_by)s
+                ORDER BY %(fld_chart_by)s, %(fld_gp_by)s""") % sql_dic
         else:
             # group by by field, and get AVG of measure field
-            SQL_get_vals = (u"""SELECT %(fld_by)s,
+            SQL_get_vals = (u"""SELECT %(fld_gp_by)s,
                     AVG(%(fld_measure)s) AS measure
                 FROM %(tbl)s
                 WHERE %(fld_measure)s IS NOT NULL 
-                    AND %(fld_by)s IS NOT NULL 
+                    AND %(fld_gp_by)s IS NOT NULL 
                     %(and_tbl_filt)s
-                GROUP BY %(fld_by)s
-                ORDER BY %(fld_by)s""") % sql_dic
+                GROUP BY %(fld_gp_by)s
+                ORDER BY %(fld_gp_by)s""") % sql_dic
     if debug: print(SQL_get_vals)
     cur.execute(SQL_get_vals)
     raw_results = cur.fetchall()
     if not raw_results:
         raise my_exceptions.TooFewValsForDisplay
     all_basic_dets = []
-    if fld_gp:
-        split_results = get_split_results(fld_gp_name, fld_gp_lbls, raw_results)
+    if fld_chart_by:
+        split_results = get_split_results(fld_chart_by_name, fld_chart_by_lbls, 
+                                          raw_results)
     else:
         split_results = [{mg.CHART_CHART_BY_LABEL: mg.CHART_CHART_BY_LABEL_ALL,
                           mg.CHART_VAL_MEASURES: raw_results},]
@@ -96,17 +99,17 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
             measure_val_lbls = fld_measure_lbls
             dp = 0
         else:
-            measure_val_lbls = fld_by_lbls
+            measure_val_lbls = fld_gp_by_lbls
             dp = 2
         indiv_basic_dets = get_indiv_basic_dets(indiv_label, indiv_raw_results, 
                                                 measure_val_lbls, sort_opt, dp)
         all_basic_dets.append(indiv_basic_dets)
     return all_basic_dets
 
-def get_split_results(fld_gp_name, fld_gp_lbls, raw_results):
+def get_split_results(fld_chart_by_name, fld_chart_by_lbls, raw_results):
     """
     e.g.
-    fld_gp, fld_measure, freq
+    fld_chart_by, fld_measure, freq
     1,1,100
     1,2,56
     2,1,6
@@ -120,29 +123,30 @@ def get_split_results(fld_gp_name, fld_gp_lbls, raw_results):
     measure - freqs or avgs
     """
     split_raw_results = []
-    prev_fld_gp_val = None
-    for fld_gp_val, fld_measure, measure in raw_results:
-        first_gp = (prev_fld_gp_val == None)
-        same_group = (fld_gp_val == prev_fld_gp_val)
+    prev_fld_chart_by_val = None
+    for fld_chart_by_val, fld_measure, measure in raw_results:
+        first_gp = (prev_fld_chart_by_val == None)
+        same_group = (fld_chart_by_val == prev_fld_chart_by_val)
         if not same_group:
             if not first_gp: # save prev dic across
-                split_raw_results.append(fld_gp_dic)
-            fld_gp_val_lbl = fld_gp_lbls.get(fld_gp_val, fld_gp_val)
-            chart_by_lbl = u"%s: %s" % (fld_gp_name, fld_gp_val_lbl)
-            fld_gp_dic = {}
-            fld_gp_dic[mg.CHART_CHART_BY_LABEL] = chart_by_lbl
+                split_raw_results.append(fld_chart_by_dic)
+            fld_chart_by_val_lbl = fld_chart_by_lbls.get(fld_chart_by_val, 
+                                                         fld_chart_by_val)
+            chart_by_lbl = u"%s: %s" % (fld_chart_by_name, fld_chart_by_val_lbl)
+            fld_chart_by_dic = {}
+            fld_chart_by_dic[mg.CHART_CHART_BY_LABEL] = chart_by_lbl
             val_measures_lst = [(fld_measure, measure),]
-            fld_gp_dic[mg.CHART_VAL_MEASURES] = val_measures_lst
-            prev_fld_gp_val = fld_gp_val
+            fld_chart_by_dic[mg.CHART_VAL_MEASURES] = val_measures_lst
+            prev_fld_chart_by_val = fld_chart_by_val
         else:
             val_measures_lst.append((fld_measure, measure))
         if len(split_raw_results) > mg.CHART_MAX_CHARTS_IN_SET:
-            raise my_exceptions.TooManyChartsInSeries(fld_gp_name, 
+            raise my_exceptions.TooManyChartsInSeries(fld_chart_by_name, 
                                            max_items=mg.CHART_MAX_CHARTS_IN_SET)
     # save prev dic across
-    split_raw_results.append(fld_gp_dic)
+    split_raw_results.append(fld_chart_by_dic)
     if len(split_raw_results) > mg.CHART_MAX_CHARTS_IN_SET:
-        raise my_exceptions.TooManyChartsInSeries(fld_gp_name, 
+        raise my_exceptions.TooManyChartsInSeries(fld_chart_by_name, 
                                        max_items=mg.CHART_MAX_CHARTS_IN_SET)
     return split_raw_results
 
@@ -177,30 +181,30 @@ def get_indiv_basic_dets(indiv_label, indiv_raw_results, measure_val_lbls,
             mg.CHART_MAX_LABEL_LEN: max_label_len, 
             mg.CHART_Y_VALS: y_vals}
 
-def get_single_val_dets(dbe, cur, tbl, tbl_filt, 
-                        fld_gp, fld_gp_name, fld_gp_lbls, 
+def get_single_val_dets(dbe, cur, tbl, tbl_filt,
                         fld_measure, fld_measure_lbls, 
-                        fld_by=None, fld_by_name=None, fld_by_lbls=None,
+                        fld_gp_by, fld_gp_by_name, fld_gp_by_lbls, 
+                        fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
                         sort_opt=mg.SORT_NONE, measure=mg.CHART_FREQS):
     """
     Simple bar charts and single line line charts.
-    fld_gp -- chart by variable
+    fld_chart_by -- chart by variable
     fld_measure -- the variable being counted or averaged. Only need labels if 
         being counted.
-    fld_by -- the field being grouped for a function such as average
-        e.g. AVG(fld_measure) ... GROUP BY fld_by (if a chart by var, then 
-        grouped by both fld_gp, fld_by. Not needed if doing FREQS.
+    fld_gp_by -- the field being grouped for a function such as average
+        e.g. AVG(fld_measure) ... GROUP BY fld_gp_by (if a chart by var, then 
+        grouped by both fld_chart_by, fld_gp_by. Not needed if doing FREQS.
     """
     return get_basic_dets(dbe, cur, tbl, tbl_filt, 
-                          fld_gp, fld_gp_name, fld_gp_lbls, 
                           fld_measure, fld_measure_lbls, 
-                          fld_by, fld_by_name, fld_by_lbls,
+                          fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
+                          fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
                           sort_opt, measure)
 
 def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
-                         fld_gp, fld_gp_lbls, 
                          fld_measure, fld_measure_lbls, 
-                         fld_by, fld_by_name, fld_by_lbls,
+                         fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
+                         fld_chart_by, fld_chart_by_lbls, 
                          measure=mg.CHART_FREQS):
     """
     e.g. clustered bar charts and multiple line line charts.
@@ -217,15 +221,16 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
     MAX_ITEMS = 150 if chart_type == mg.CLUSTERED_BARCHART else 300
     objqtr = getdata.get_obj_quoter_func(dbe)
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    xlabelsdic = fld_measure_lbls if measure == mg.CHART_FREQS else fld_by_lbls
+    xlabelsdic = fld_measure_lbls if measure == mg.CHART_FREQS \
+                                  else fld_gp_by_lbls
     if measure == mg.CHART_FREQS:
         """
-        Only include values for either fld_gp or fld_measure if at least one 
-            non-null value in the other dimension.  If a whole series is zero, 
-            then it won't show. If there is any value in other dim will show 
-            that val and zeroes for rest.
-        SQL returns something like (grouped by fld_gp, fld_measure, with zero 
-            freqs as needed):
+        Only include values for either fld_chart_by or fld_measure if at least 
+            one non-null value in the other dimension.  If a whole series is 
+            zero, then it won't show. If there is any value in other dim will 
+            show that val and zeroes for rest.
+        SQL returns something like (grouped by fld_chart_by, fld_measure, with 
+            zero freqs as needed):
         data = [(1,1,56),
                 (1,2,103),
                 (1,3,72),
@@ -237,43 +242,43 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
         """
         SQL_get_measure_vals = u"""SELECT %(fld_measure)s
             FROM %(tbl)s
-            WHERE %(fld_gp)s IS NOT NULL AND %(fld_measure)s IS NOT NULL
+            WHERE %(fld_chart_by)s IS NOT NULL AND %(fld_measure)s IS NOT NULL
                 %(and_tbl_filt)s
             GROUP BY %(fld_measure)s"""
-        SQL_get_gp_by_vals = u"""SELECT %(fld_gp)s
+        SQL_get_gp_by_vals = u"""SELECT %(fld_chart_by)s
             FROM %(tbl)s
-            WHERE %(fld_measure)s IS NOT NULL AND %(fld_gp)s IS NOT NULL
+            WHERE %(fld_measure)s IS NOT NULL AND %(fld_chart_by)s IS NOT NULL
                 %(and_tbl_filt)s
-            GROUP BY %(fld_gp)s"""
+            GROUP BY %(fld_chart_by)s"""
         SQL_cartesian_join = """SELECT * FROM (%s) AS qrymeasure INNER JOIN 
             (%s) AS qrygp""" % (SQL_get_measure_vals, SQL_get_gp_by_vals)
-        SQL_group_by = u"""SELECT %(fld_gp)s, %(fld_measure)s,
+        SQL_group_by = u"""SELECT %(fld_chart_by)s, %(fld_measure)s,
                 COUNT(*) AS freq
             FROM %(tbl)s
             %(where_tbl_filt)s
-            GROUP BY %(fld_gp)s, %(fld_measure)s"""
+            GROUP BY %(fld_chart_by)s, %(fld_measure)s"""
         sql_dic = {u"tbl": getdata.tblname_qtr(dbe, tbl), 
                    u"fld_measure": objqtr(fld_measure),
-                   u"fld_gp": objqtr(fld_gp),
+                   mg.FLD_CHART_BY: objqtr(fld_chart_by),
                    u"and_tbl_filt": and_tbl_filt,
                    u"where_tbl_filt": where_tbl_filt}
         SQL_cartesian_join = SQL_cartesian_join % sql_dic
         SQL_group_by = SQL_group_by % sql_dic
         sql_dic[u"qrycart"] = SQL_cartesian_join
         sql_dic[u"qrygrouped"] = SQL_group_by
-        SQL_get_raw_data = """SELECT %(fld_gp)s, %(fld_measure)s,
+        SQL_get_raw_data = """SELECT %(fld_chart_by)s, %(fld_measure)s,
                 CASE WHEN freq IS NULL THEN 0 ELSE freq END AS N
             FROM (%(qrycart)s) AS qrycart LEFT JOIN (%(qrygrouped)s) 
                 AS qrygrouped
-            USING(%(fld_gp)s, %(fld_measure)s)
-            ORDER BY %(fld_gp)s, %(fld_measure)s""" % sql_dic
-    else:
+            USING(%(fld_chart_by)s, %(fld_measure)s)
+            ORDER BY %(fld_chart_by)s, %(fld_measure)s""" % sql_dic
+    elif measure == mg.CHART_AVGS:
         """
-        Only include values for either fld_gp or fld_by if at least one 
+        Only include values for either fld_chart_by or fld_gp_by if at least one 
             non-null value in the other dimension.  If a whole series is zero, 
             then it won't show. If there is any value in other dim will show 
             that val and zeroes for rest.
-        SQL returns something like (grouped by fld_gp, fld_by, with zero 
+        SQL returns something like (grouped by fld_chart_by, fld_gp_by, with zero 
             avgs as needed):
         data = [(1,1,56),
                 (1,2,103),
@@ -284,38 +289,39 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
                 (2,3,200),
                 (2,4,0),]
         """
-        SQL_get_by_vals = u"""SELECT %(fld_by)s
+        SQL_get_by_vals = u"""SELECT %(fld_gp_by)s
             FROM %(tbl)s
-            WHERE %(fld_gp)s IS NOT NULL AND %(fld_by)s IS NOT NULL
+            WHERE %(fld_chart_by)s IS NOT NULL AND %(fld_gp_by)s IS NOT NULL
                 %(and_tbl_filt)s
-            GROUP BY %(fld_by)s"""
-        SQL_get_gp_by_vals = u"""SELECT %(fld_gp)s
+            GROUP BY %(fld_gp_by)s"""
+        SQL_get_gp_by_vals = u"""SELECT %(fld_chart_by)s
             FROM %(tbl)s
-            WHERE %(fld_by)s IS NOT NULL AND %(fld_gp)s IS NOT NULL
+            WHERE %(fld_gp_by)s IS NOT NULL AND %(fld_chart_by)s IS NOT NULL
                 %(and_tbl_filt)s
-            GROUP BY %(fld_gp)s"""
+            GROUP BY %(fld_chart_by)s"""
         SQL_cartesian_join = """SELECT * FROM (%s) AS qryby INNER JOIN 
             (%s) AS qrygp""" % (SQL_get_by_vals, SQL_get_gp_by_vals)
-        SQL_group_by = u"""SELECT %(fld_gp)s, %(fld_by)s,
+        SQL_group_by = u"""SELECT %(fld_chart_by)s, %(fld_gp_by)s,
                 AVG(%(fld_measure)s) AS measure
             FROM %(tbl)s
             %(where_tbl_filt)s
-            GROUP BY %(fld_gp)s, %(fld_by)s"""
+            GROUP BY %(fld_chart_by)s, %(fld_gp_by)s"""
         sql_dic = {u"tbl": getdata.tblname_qtr(dbe, tbl), 
                    u"fld_measure": objqtr(fld_measure),
-                   u"fld_gp": objqtr(fld_gp), u"fld_by": objqtr(fld_by),
+                   mg.FLD_CHART_BY: objqtr(fld_chart_by), 
+                   mg.FLD_GROUP_BY: objqtr(fld_gp_by),
                    u"and_tbl_filt": and_tbl_filt,
                    u"where_tbl_filt": where_tbl_filt}
         SQL_cartesian_join = SQL_cartesian_join % sql_dic
         SQL_group_by = SQL_group_by % sql_dic
         sql_dic[u"qrycart"] = SQL_cartesian_join
         sql_dic[u"qrygrouped"] = SQL_group_by
-        SQL_get_raw_data = """SELECT %(fld_gp)s, %(fld_by)s,
+        SQL_get_raw_data = """SELECT %(fld_chart_by)s, %(fld_gp_by)s,
                 CASE WHEN measure IS NULL THEN 0 ELSE measure END AS val
             FROM (%(qrycart)s) AS qrycart LEFT JOIN (%(qrygrouped)s) 
                 AS qrygrouped
-            USING(%(fld_gp)s, %(fld_by)s)
-            ORDER BY %(fld_gp)s, %(fld_by)s""" % sql_dic
+            USING(%(fld_chart_by)s, %(fld_gp_by)s)
+            ORDER BY %(fld_chart_by)s, %(fld_gp_by)s""" % sql_dic
     if debug: print(SQL_get_raw_data)
     cur.execute(SQL_get_raw_data)
     raw_data = cur.fetchall()
@@ -332,7 +338,7 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
         tot_items += len(measures)
         if tot_items > MAX_ITEMS:
             raise my_exceptions.TooManyValsInChartSeries(fld_measure, MAX_ITEMS)
-        gp_val_label = fld_gp_lbls.get(gp_val, unicode(gp_val))
+        gp_val_label = fld_chart_by_lbls.get(gp_val, unicode(gp_val))
         series_dic = {mg.CHART_SERIES_LABEL: gp_val_label, 
                       mg.CHART_Y_VALS: measures}
         series_dets.append(series_dic)
@@ -349,12 +355,22 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
     if debug: print(xaxis_dets)
     return xaxis_dets, max_label_len, series_dets
 
+def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
+                     fld_gp_by, fld_gp_by_name, fld_gp_by_lbls, 
+                     fld_chart_by, fld_chart_by_lbls):
+    """
+    
+    """
+    
+    
+    return xaxis_dets, max_label_len, boxplot_dets
+
 def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, 
-                       fld_gp, fld_gp_name, fld_gp_lbls, 
+                       fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
                        fld_measure, fld_measure_lbls, 
                        sort_opt, measure=mg.CHART_FREQS):
     """
-    fld_gp -- chart by each value
+    fld_chart_by -- chart by each value
     basic_pie_dets -- list of dicts, one for each indiv pie chart.  Each dict 
         contains: CHART_CHART_BY_LABEL, CHART_MEASURE_DETS, CHART_MAX_LABEL_LEN, 
         CHART_Y_VALS.
@@ -362,10 +378,12 @@ def get_pie_chart_dets(dbe, cur, tbl, tbl_filt,
     debug = False
     pie_chart_dets = []
     basic_pie_dets = get_basic_dets(dbe, cur, tbl, tbl_filt, 
-                                fld_gp, fld_gp_name, fld_gp_lbls, 
-                                fld_measure, fld_measure_lbls, 
-                                fld_by=None, fld_by_name=None, fld_by_lbls=None,
-                                sort_opt=sort_opt, measure=measure)
+                       fld_measure, fld_measure_lbls, 
+                       fld_gp_by=None, fld_gp_by_name=None, fld_gp_by_lbls=None,
+                       fld_chart_by=fld_chart_by, 
+                       fld_chart_by_name=fld_chart_by_name, 
+                       fld_chart_by_lbls=fld_chart_by_lbls, 
+                       sort_opt=sort_opt, measure=measure)
     for basic_pie_det in basic_pie_dets:
         if debug: print(basic_pie_det)
         indiv_pie_dets = {}
@@ -393,8 +411,8 @@ def get_pie_chart_dets(dbe, cur, tbl, tbl_filt,
         pie_chart_dets.append(indiv_pie_dets)
     return pie_chart_dets
 
-def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls, 
-                   fld_measure):
+def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure,
+                   fld_chart_by, fld_chart_by_name, fld_chart_by_lbls):
     """
     Make separate db call each histogram. Getting all values anyway and don't 
         want to store in memory.
@@ -409,37 +427,41 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
     dd = getdata.get_dd()
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    sql_dic = {u"fld_gp": objqtr(fld_gp), u"fld_measure": objqtr(fld_measure),
+    sql_dic = {mg.FLD_CHART_BY: objqtr(fld_chart_by), 
+               u"fld_measure": objqtr(fld_measure),
                u"and_tbl_filt": and_tbl_filt, 
                u"tbl": getdata.tblname_qtr(dbe, tbl)}
-    if fld_gp:
-        SQL_fld_gp_vals = u"""SELECT %(fld_gp)s 
+    if fld_chart_by:
+        SQL_fld_chart_by_vals = u"""SELECT %(fld_chart_by)s 
             FROM %(tbl)s 
             WHERE %(fld_measure)s IS NOT NULL %(and_tbl_filt)s 
-            GROUP BY %(fld_gp)s""" % sql_dic
-        cur.execute(SQL_fld_gp_vals)
-        fld_gp_vals = [x[0] for x in cur.fetchall()]
-        if len(fld_gp_vals) > mg.CHART_MAX_CHARTS_IN_SET:
-            raise my_exceptions.TooManyChartsInSeries(fld_gp_name, 
+            GROUP BY %(fld_chart_by)s""" % sql_dic
+        cur.execute(SQL_fld_chart_by_vals)
+        fld_chart_by_vals = [x[0] for x in cur.fetchall()]
+        if len(fld_chart_by_vals) > mg.CHART_MAX_CHARTS_IN_SET:
+            raise my_exceptions.TooManyChartsInSeries(fld_chart_by_name, 
                                            max_items=mg.CHART_MAX_CHARTS_IN_SET)
     else:
-        fld_gp_vals = [None,] # Got to have something to loop through ;-)
+        fld_chart_by_vals = [None,] # Got to have something to loop through ;-)
     histo_dets = []
-    for fld_gp_val in fld_gp_vals:
-        if fld_gp:
-            filt = getdata.make_fld_val_clause(dbe, dd.flds, fld_name=fld_gp, 
-                                               val=fld_gp_val)
-            and_fld_gp_filt = u" and %s" % filt
-            fld_gp_val_lbl = fld_gp_lbls.get(fld_gp_val, fld_gp_val)
-            chart_by_label = u"%s: %s" % (fld_gp_name, fld_gp_val_lbl)
+    for fld_chart_by_val in fld_chart_by_vals:
+        if fld_chart_by:
+            filt = getdata.make_fld_val_clause(dbe, dd.flds, 
+                                               fld_name=fld_chart_by, 
+                                               val=fld_chart_by_val)
+            and_fld_chart_by_filt = u" and %s" % filt
+            fld_chart_by_val_lbl = fld_chart_by_lbls.get(fld_chart_by_val, 
+                                                         fld_chart_by_val)
+            chart_by_label = u"%s: %s" % (fld_chart_by_name, 
+                                          fld_chart_by_val_lbl)
         else:
-            and_fld_gp_filt = u""
+            and_fld_chart_by_filt = u""
             chart_by_label = mg.CHART_CHART_BY_LABEL_ALL
-        sql_dic[u"and_fld_gp_filt"] = and_fld_gp_filt
+        sql_dic[u"and_fld_chart_by_filt"] = and_fld_chart_by_filt
         SQL_get_vals = u"""SELECT %(fld_measure)s 
             FROM %(tbl)s
             WHERE %(fld_measure)s IS NOT NULL
-                %(and_tbl_filt)s %(and_fld_gp_filt)s
+                %(and_tbl_filt)s %(and_fld_chart_by_filt)s
             ORDER BY %(fld_measure)s""" % sql_dic
         if debug: print(SQL_get_vals)
         cur.execute(SQL_get_vals)
@@ -491,7 +513,8 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, fld_gp_name, fld_gp_lbls,
     return histo_dets
 
 def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, fld_x_axis, fld_y_axis, 
-                         fld_gp, fld_gp_name, fld_gp_lbls, unique=True):
+                         fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
+                         unique=True):
     """
     unique -- unique x-y pairs only
     """
@@ -499,44 +522,47 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, fld_x_axis, fld_y_axis,
     dd = getdata.get_dd()
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    sql_dic = {u"fld_gp": objqtr(fld_gp),
+    sql_dic = {mg.FLD_CHART_BY: objqtr(fld_chart_by),
                u"fld_x_axis": objqtr(fld_x_axis),
                u"fld_y_axis": objqtr(fld_y_axis),
                u"tbl": getdata.tblname_qtr(dbe, tbl), 
                u"and_tbl_filt": and_tbl_filt}
-    if fld_gp:
-        SQL_fld_gp_vals = u"""SELECT %(fld_gp)s 
+    if fld_chart_by:
+        SQL_fld_chart_by_vals = u"""SELECT %(fld_chart_by)s 
             FROM %(tbl)s 
             WHERE %(fld_x_axis)s IS NOT NULL AND %(fld_y_axis)s IS NOT NULL  
             %(and_tbl_filt)s 
-            GROUP BY %(fld_gp)s""" % sql_dic
-        cur.execute(SQL_fld_gp_vals)
-        fld_gp_vals = [x[0] for x in cur.fetchall()]
-        if len(fld_gp_vals) > mg.CHART_MAX_CHARTS_IN_SET:
-            raise my_exceptions.TooManyChartsInSeries(fld_gp_name, 
+            GROUP BY %(fld_chart_by)s""" % sql_dic
+        cur.execute(SQL_fld_chart_by_vals)
+        fld_chart_by_vals = [x[0] for x in cur.fetchall()]
+        if len(fld_chart_by_vals) > mg.CHART_MAX_CHARTS_IN_SET:
+            raise my_exceptions.TooManyChartsInSeries(fld_chart_by_name, 
                                            max_items=mg.CHART_MAX_CHARTS_IN_SET)
-        elif len(fld_gp_vals) == 0:
+        elif len(fld_chart_by_vals) == 0:
             raise my_exceptions.TooFewValsForDisplay
     else:
-        fld_gp_vals = [None,] # Got to have something to loop through ;-)
+        fld_chart_by_vals = [None,] # Got to have something to loop through ;-)
     scatterplot_dets = []
-    for fld_gp_val in fld_gp_vals:
-        if fld_gp:
-            filt = getdata.make_fld_val_clause(dbe, dd.flds, fld_name=fld_gp, 
-                                               val=fld_gp_val)
-            and_fld_gp_filt = u" and %s" % filt
-            fld_gp_val_lbl = fld_gp_lbls.get(fld_gp_val, fld_gp_val)
-            chart_by_label = u"%s: %s" % (fld_gp_name, fld_gp_val_lbl)
+    for fld_chart_by_val in fld_chart_by_vals:
+        if fld_chart_by:
+            filt = getdata.make_fld_val_clause(dbe, dd.flds, 
+                                               fld_name=fld_chart_by, 
+                                               val=fld_chart_by_val)
+            and_fld_chart_by_filt = u" and %s" % filt
+            fld_chart_by_val_lbl = fld_chart_by_lbls.get(fld_chart_by_val, 
+                                                         fld_chart_by_val)
+            chart_by_label = u"%s: %s" % (fld_chart_by_name, 
+                                          fld_chart_by_val_lbl)
         else:
-            and_fld_gp_filt = u""
+            and_fld_chart_by_filt = u""
             chart_by_label = mg.CHART_CHART_BY_LABEL_ALL
-        sql_dic[u"and_fld_gp_filt"] = and_fld_gp_filt
+        sql_dic[u"and_fld_chart_by_filt"] = and_fld_chart_by_filt
         if unique:
             SQL_get_pairs = u"""SELECT %(fld_x_axis)s, %(fld_y_axis)s
                     FROM %(tbl)s
                     WHERE %(fld_x_axis)s IS NOT NULL
                     AND %(fld_y_axis)s IS NOT NULL 
-                    %(and_fld_gp_filt)s
+                    %(and_fld_chart_by_filt)s
                     %(and_tbl_filt)s
                     GROUP BY %(fld_x_axis)s, %(fld_y_axis)s""" % sql_dic
         else:
@@ -544,12 +570,12 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, fld_x_axis, fld_y_axis,
                     FROM %(tbl)s
                     WHERE %(fld_x_axis)s IS NOT NULL
                     AND %(fld_y_axis)s IS NOT NULL 
-                    %(and_fld_gp_filt)s
+                    %(and_fld_chart_by_filt)s
                     %(and_tbl_filt)s""" % sql_dic
         if debug: print(SQL_get_pairs)
         cur.execute(SQL_get_pairs)
         data_tups = cur.fetchall()
-        if not fld_gp:
+        if not fld_chart_by:
             if not data_tups:
                 raise my_exceptions.TooFewValsForDisplay
         lst_x = [x[0] for x in data_tups]

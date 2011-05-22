@@ -126,8 +126,8 @@ class TooManyValsInChartSeries(OutputException):
                            % fld_measure + u"More than %s." % max_items)
 
 class TooManyChartsInSeries(OutputException):
-    def __init__(self, fld_gp_name, max_items):
+    def __init__(self, fld_chart_by_name, max_items):
         OutputException.__init__(self, u"Too many charts to display for "
-                    "\"%s\". " % fld_gp_name + u"More than %s." % max_items)
+                "\"%s\". " % fld_chart_by_name + u"More than %s." % max_items)
 
 

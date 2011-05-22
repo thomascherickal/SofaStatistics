@@ -400,11 +400,20 @@ VERSION_CHECK_ALL = _(u"Report any version upgrades")
 VERSION_CHECK_OPTS = [VERSION_CHECK_NONE, VERSION_CHECK_MAJOR, 
                       VERSION_CHECK_ALL]
 CHART_VALUES = _("Values")
+CHART_DESCRIBED = _("Described")
 CHART_BY = _("By")
 CHART_CHART_BY = _("Charts By")
+CHART_SERIES_BY = _("Series By")
 CHART_AVERAGED = _("Averaged")
 Y_AXIS_FREQ_LABEL = _("Frequency")
-# chart types
+# charts
+FLD_MEASURE = u"fld_measure"
+FLD_GROUP_BY = u"fld_gp_by"
+FLD_GROUP_BY_NAME = u"fld_gp_by_name"
+FLD_GROUP_BY_LBLS = u"fld_gp_by_lbls"
+FLD_CHART_BY = u"fld_chart_by"
+FLD_CHART_BY_NAME = u"fld_chart_by_name"
+FLD_CHART_BY_LBLS = u"fld_chart_by_lbls"
 SIMPLE_BARCHART = u"Simple Bar Chart"
 CLUSTERED_BARCHART = u"Clustered Bar Chart"
 PIE_CHART = u"Pie Chart"
@@ -423,16 +432,16 @@ CHART_TYPE_TO_MIN_DATA_TYPES = {SIMPLE_BARCHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
                                HISTOGRAM: (VAR_TYPE_QUANT, VAR_TYPE_CAT),
                                SCATTERPLOT: (VAR_TYPE_ORD, VAR_TYPE_ORD),
                                BOXPLOT: (VAR_TYPE_QUANT, VAR_TYPE_CAT),}
-CHART_TYPE_TO_LABELS = {SIMPLE_BARCHART: (CHART_VALUES, CHART_CHART_BY),
-                        CLUSTERED_BARCHART: (CHART_VALUES, CHART_BY),
-                        PIE_CHART: (CHART_VALUES, CHART_CHART_BY),
-                        LINE_CHART: (CHART_VALUES, CHART_BY),
-                        AREA_CHART: (CHART_VALUES, CHART_CHART_BY),
-                        HISTOGRAM: (CHART_VALUES, CHART_CHART_BY),
-                        SCATTERPLOT: (_(u"X-axis"), _(u"Y-axis")),
-                        BOXPLOT: (CHART_VALUES, CHART_CHART_BY),
-                        }
-THREE_VAR_CHART_TYPES = [SCATTERPLOT,]
+CHART_TYPE_TO_LABELS = {SIMPLE_BARCHART: (CHART_VALUES, CHART_CHART_BY, None),
+                CLUSTERED_BARCHART: (CHART_VALUES, CHART_BY, CHART_CHART_BY),
+                PIE_CHART: (CHART_VALUES, CHART_CHART_BY, None),
+                LINE_CHART: (CHART_VALUES, CHART_BY, CHART_CHART_BY),
+                AREA_CHART: (CHART_VALUES, CHART_CHART_BY, None),
+                HISTOGRAM: (CHART_VALUES, CHART_CHART_BY, None),
+                SCATTERPLOT: (_(u"X-axis"), _(u"Y-axis"), CHART_CHART_BY),
+                BOXPLOT: (CHART_DESCRIBED, CHART_BY, CHART_SERIES_BY),
+                }
+THREE_VAR_CHART_TYPES = [SCATTERPLOT, BOXPLOT]
 AVG_OPTION_CHART_TYPES = [SIMPLE_BARCHART, CLUSTERED_BARCHART, LINE_CHART, 
                           AREA_CHART,]
 AVG_HAS_NO_CHART_BY_CHART_TYPES = [CLUSTERED_BARCHART, LINE_CHART,]

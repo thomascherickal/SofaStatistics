@@ -554,10 +554,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                                  mg.VAR_TYPE_CAT))
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1,
                        override_min_data_type=self.min_data_type1)
-        lbla, lblb = mg.CHART_TYPE_TO_LABELS.get(self.chart_type, 
-                                                 (mg.CHART_VALUES, mg.CHART_BY))
-        self.lbl_var1.SetLabel(u"%s:" % lbla)
-        self.lbl_var2.SetLabel(u"%s:" % lblb)
+        (lbl1, lbl2,
+         unused) = mg.CHART_TYPE_TO_LABELS.get(self.chart_type, 
+                              (mg.CHART_VALUES, mg.CHART_BY, mg.CHART_CHART_BY))
+        self.lbl_var1.SetLabel(u"%s:" % lbl1)
+        self.lbl_var2.SetLabel(u"%s:" % lbl2)
         self.drop_var3.Hide()
         self.lbl_var3.Hide()
         self.panel_top.Layout()
@@ -668,11 +669,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if (self.chart_type in mg.AVG_OPTION_CHART_TYPES) and SHOW_AVG:
             self.set_avg_dropdowns(from_scratch=True)
         else:
-            lbla, lblb = mg.CHART_TYPE_TO_LABELS.get(self.chart_type, 
-                                                     (mg.CHART_VALUES, 
-                                                      mg.CHART_BY))
-            self.lbl_var1.SetLabel(u"%s:" % lbla)
-            self.lbl_var2.SetLabel(u"%s:" % lblb)
+            (lbl1, lbl2,
+             lbl3) = mg.CHART_TYPE_TO_LABELS.get(self.chart_type, 
+                              (mg.CHART_VALUES, mg.CHART_BY, mg.CHART_CHART_BY))
+            self.lbl_var1.SetLabel(u"%s:" % lbl1)
+            self.lbl_var2.SetLabel(u"%s:" % lbl2)
+            self.lbl_var3.SetLabel(u"%s:" % lbl3)
             self.panel_top.Layout()
             (self.min_data_type1, 
              self.min_data_type2) = \
@@ -687,9 +689,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                            self.sorted_var_names1, varname1,
                            override_min_data_type=self.min_data_type1)
             # var 2
-            inc_drop_select = (self.chart_type in mg.OPTIONAL_ONE_VAR_CHART_TYPES)
-            self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
-                           varname2, inc_drop_select, 
+            inc_drop_select = (self.chart_type in 
+                               mg.OPTIONAL_ONE_VAR_CHART_TYPES)
+            self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, 
+                           self.sorted_var_names2, varname2, inc_drop_select, 
                            override_min_data_type=self.min_data_type2)
             self.drop_var2.Enable(True)
             self.lbl_var2.Enable(True)
@@ -988,7 +991,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         return True
 
     def get_script(self, css_idx, css_fil, add_to_report, report_name):
-        "Build script from inputs"
+        """
+        Build script from inputs
+        fld_measure -- the main thing being graphed
+        mg.FLD_GROUP_BY -- for grouping by (e.g. separate lines or bar series)
+        mg.FLD_CHART_BY -- for charting by (separate charts)
+        """
         debug = False
         dd = getdata.get_dd()
         inc_perc = u"False" if not INC_PERC \
@@ -1002,7 +1010,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         varname1, varname2, varname3 = self.get_vars()
         # var 1 - always the measure field unless a scatterplot
         var1lbl = u"fld_x_axis" if self.chart_type == mg.SCATTERPLOT \
-                                                else u"fld_measure"
+                                else mg.FLD_MEASURE
         script_lst.append(u"%s = u\"%s\"" % (var1lbl, varname1))
         script_lst.append(u"%s_name=u\"%s\"" % (var1lbl,
                           lib.get_item_label(self.var_labels, varname1)))
@@ -1012,14 +1020,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if self.chart_type == mg.SCATTERPLOT:
             var2lbl = u"fld_y_axis"
         elif (self.chart_type in mg.AVG_OPTION_CHART_TYPES) and SHOW_AVG:
-            var2lbl = u"fld_by"
+            var2lbl = mg.FLD_GROUP_BY
         elif (self.chart_type in mg.AVG_OPTION_CHART_TYPES) and not SHOW_AVG:
-            var2lbl = u"fld_gp"
-            script_lst.append("fld_by=None")
-            script_lst.append("fld_by_name=None")
-            script_lst.append("fld_by_lbls=None")
+            var2lbl = mg.FLD_CHART_BY
+            script_lst.append("%s=None" % mg.FLD_GROUP_BY)
+            script_lst.append("%s=None" % mg.FLD_GROUP_BY_NAME)
+            script_lst.append("%s=None" % mg.FLD_GROUP_BY_LBLS)
         else:
-            var2lbl = u"fld_gp"
+            var2lbl = mg.FLD_CHART_BY
         if varname2 == mg.DROP_SELECT:
             script_lst.append(u"%s = None" % var2lbl)
         else:
@@ -1028,26 +1036,26 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                  lib.get_item_label(self.var_labels, varname2)))
         if self.chart_type != mg.SCATTERPLOT: # no labels needed
             script_lst.append(u"%s_lbls = %s" % (var2lbl, 
-                                            self.val_dics.get(varname2, {})))
+                                               self.val_dics.get(varname2, {})))
         # var 3 - always chart by
         has3vars = (self.chart_type in mg.THREE_VAR_CHART_TYPES
                     or (self.chart_type in mg.AVG_OPTION_CHART_TYPES 
                         and SHOW_AVG))
         if has3vars:
             if varname3 == mg.DROP_SELECT:
-                script_lst.append(u"fld_gp = None")
+                script_lst.append(u"%s = None" % mg.FLD_CHART_BY)
             else:
-                script_lst.append(u"fld_gp = u\"%s\"" % varname3)
-            script_lst.append(u"fld_gp_name=u\"%s\"" % 
-                              lib.get_item_label(self.var_labels, varname3))
-            script_lst.append(u"fld_gp_lbls = %s" % 
-                              self.val_dics.get(varname3, {}))
-        elif var2lbl != u"fld_gp":
-            script_lst.append("fld_gp=None")
-            script_lst.append("fld_gp_name=None")
-            script_lst.append("fld_gp_lbls=None")
+                script_lst.append(u"%s = u\"%s\"" % (mg.FLD_CHART_BY, varname3))
+            script_lst.append(u"%s=u\"%s\"" % (mg.FLD_CHART_BY_NAME,
+                                lib.get_item_label(self.var_labels, varname3)))
+            script_lst.append(u"%s = %s" % (mg.FLD_CHART_BY_LBLS,
+                                            self.val_dics.get(varname3, {})))
+        elif var2lbl != mg.FLD_CHART_BY:
+            script_lst.append("%s=None" % mg.FLD_CHART_BY)
+            script_lst.append("%s=None" % mg.FLD_CHART_BY_NAME)
+            script_lst.append("%s=None" % mg.FLD_CHART_BY_LBLS)
         script_lst.append(u"add_to_report = %s" % ("True" if add_to_report
-                          else "False"))
+                                                          else "False"))
         script_lst.append(u"report_name = u\"%s\"" %
                           lib.escape_pre_write(report_name))
         if (self.chart_type in mg.AVG_OPTION_CHART_TYPES):
@@ -1093,9 +1101,11 @@ def get_simple_barchart_script(inc_perc, css_fil, css_idx):
     script = u"""
 simple_barchart_dets = charting_output.get_single_val_dets(
             dbe=dbe, cur=cur, tbl=tbl, tbl_filt=tbl_filt, 
-            fld_gp=fld_gp, fld_gp_name=fld_gp_name, fld_gp_lbls=fld_gp_lbls, 
             fld_measure=fld_measure, fld_measure_lbls=fld_measure_lbls, 
-            fld_by=fld_by, fld_by_name=fld_by_name, fld_by_lbls=fld_by_lbls,
+            fld_gp_by=fld_gp_by, fld_gp_by_name=fld_gp_by_name, 
+                fld_gp_by_lbls=fld_gp_by_lbls,
+            fld_chart_by=fld_chart_by, fld_chart_by_name=fld_chart_by_name, 
+                fld_chart_by_lbls=fld_chart_by_lbls, 
             sort_opt="%(sort_opt)s", measure=measure)
 barchart_dets = []
 for simple_barchart_det in simple_barchart_dets:
@@ -1103,7 +1113,7 @@ for simple_barchart_det in simple_barchart_dets:
     xaxis_dets = simple_barchart_det[mg.CHART_MEASURE_DETS]
     y_vals = simple_barchart_det[mg.CHART_Y_VALS]
     series_label = (fld_measure_name if measure == mg.CHART_FREQS
-                                     else fld_by_name)    
+                                     else fld_gp_by_name)    
     series_dets = [{mg.CHART_SERIES_LABEL: series_label, "y_vals": y_vals},]
     barchart_dets.append({mg.CHART_CHART_BY_LABEL: chart_by_label,
                           mg.CHART_XAXIS_DETS: xaxis_dets, 
@@ -1124,9 +1134,9 @@ def get_clustered_barchart_script(inc_perc, css_fil, css_idx, chart_type):
 chart_type="%(chart_type)s"
 xaxis_dets, max_label_len, series_dets = charting_output.get_grouped_val_dets(
             chart_type, dbe, cur, tbl, tbl_filt, 
-            fld_gp, fld_gp_lbls, 
             fld_measure, fld_measure_lbls,
-            fld_by, fld_by_name, fld_by_lbls, 
+            fld_gp_by, fld_gp_by_name, fld_gp_by_lbls, 
+            fld_chart_by, fld_chart_by_lbls, 
             measure=measure)
 chart_by_label = mg.CHART_CHART_BY_LABEL_ALL
 barchart_dets = [{mg.CHART_CHART_BY_LABEL: chart_by_label,
@@ -1146,7 +1156,8 @@ chart_output = charting_output.barchart_output(titles, subtitles,
 def get_pie_chart_script(css_fil, css_idx):
     script = u"""
 pie_chart_dets = charting_output.get_pie_chart_dets(dbe, cur, tbl, tbl_filt, 
-            fld_gp, fld_gp_name, fld_gp_lbls, fld_measure, fld_measure_lbls, 
+            fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
+            fld_measure, fld_measure_lbls, 
             sort_opt="%(sort_opt)s")
 chart_output = charting_output.piechart_output(titles, subtitles,
             pie_chart_dets, css_fil="%(css_fil)s", css_idx=%(css_idx)s,
@@ -1164,16 +1175,18 @@ def get_line_chart_script(inc_perc, inc_trend, inc_smooth, css_fil, css_idx,
         script = u"""
 single_linechart_dets = charting_output.get_single_val_dets(
             dbe=dbe, cur=cur, tbl=tbl, tbl_filt=tbl_filt, 
-            fld_gp=fld_gp, fld_gp_name=fld_gp_name, fld_gp_lbls=fld_gp_lbls, 
             fld_measure=fld_measure, fld_measure_lbls=fld_measure_lbls, 
-            fld_by=fld_by, fld_by_name=fld_by_name, fld_by_lbls=fld_by_lbls,
+            fld_gp_by=fld_gp_by, fld_gp_by_name=fld_gp_by_name, 
+                fld_gp_by_lbls=fld_gp_by_lbls,
+            fld_chart_by=fld_chart_by, fld_chart_by_name=fld_chart_by_name, 
+                fld_chart_by_lbls=fld_chart_by_lbls, 
             sort_opt=mg.SORT_NONE, measure=measure)
 chart_by_label = single_linechart_dets[0][mg.CHART_CHART_BY_LABEL]
 xaxis_dets = single_linechart_dets[0][mg.CHART_MEASURE_DETS]
 y_vals = single_linechart_dets[0][mg.CHART_Y_VALS]
 max_label_len = single_linechart_dets[0][mg.CHART_MAX_LABEL_LEN]
 series_label = (fld_measure_name if measure == mg.CHART_FREQS
-                                 else fld_by_name)  
+                                 else fld_gp_by_name)  
 series_dets = [{mg.CHART_SERIES_LABEL: series_label, "y_vals": y_vals},]
 x_title = u"" # uses series label instead
 y_title = (mg.Y_AXIS_FREQ_LABEL if measure == mg.CHART_FREQS
@@ -1184,11 +1197,11 @@ y_title = (mg.Y_AXIS_FREQ_LABEL if measure == mg.CHART_FREQS
 chart_type="%(chart_type)s"
 xaxis_dets, max_label_len, series_dets = charting_output.get_grouped_val_dets(
             chart_type, dbe, cur, tbl, tbl_filt, 
-            fld_gp, fld_gp_lbls, 
             fld_measure, fld_measure_lbls,
-            fld_by, fld_by_name, fld_by_lbls, 
+            fld_gp_by, fld_gp_by_name, fld_gp_by_lbls, 
+            fld_chart_by, fld_chart_by_lbls, 
             measure=measure)
-x_title = fld_measure_name if measure == mg.CHART_FREQS else fld_by_name
+x_title = fld_measure_name if measure == mg.CHART_FREQS else fld_gp_by_name
 y_title = (mg.Y_AXIS_FREQ_LABEL if measure == mg.CHART_FREQS
                                 else u"Mean %%s" %% fld_measure_name) 
         """ % {u"chart_type": chart_type, u"dbe": dd.dbe}
@@ -1208,9 +1221,11 @@ def get_area_chart_script(inc_perc, css_fil, css_idx):
     script = u"""
 areachart_dets = charting_output.get_single_val_dets(
             dbe=dbe, cur=cur, tbl=tbl, tbl_filt=tbl_filt, 
-            fld_gp=fld_gp, fld_gp_name=fld_gp_name, fld_gp_lbls=fld_gp_lbls, 
             fld_measure=fld_measure, fld_measure_lbls=fld_measure_lbls, 
-            fld_by=fld_by, fld_by_name=fld_by_name, fld_by_lbls=fld_by_lbls,
+            fld_gp_by=fld_gp_by, fld_gp_by_name=fld_gp_by_name, 
+                fld_gp_by_lbls=fld_gp_by_lbls,
+            fld_chart_by=fld_chart_by, fld_chart_by_name=fld_chart_by_name, 
+                fld_chart_by_lbls=fld_chart_by_lbls, 
             sort_opt=mg.SORT_NONE, measure=measure)            
 y_title = (mg.Y_AXIS_FREQ_LABEL if measure == mg.CHART_FREQS
                                 else u"Mean %%s" %% fld_measure_name) 
@@ -1220,7 +1235,7 @@ for areachart_det in areachart_dets:
     xaxis_dets = areachart_det[mg.CHART_MEASURE_DETS]
     y_vals = areachart_det[mg.CHART_Y_VALS]
     series_label = (fld_measure_name if measure == mg.CHART_FREQS
-                                 else fld_by_name)
+                                 else fld_gp_by_name)
     series_dets = [{mg.CHART_SERIES_LABEL: series_label, "y_vals": y_vals},]
     max_label_len = areachart_det[mg.CHART_MAX_LABEL_LEN]
     chart_dets.append({mg.CHART_CHART_BY_LABEL: chart_by_label,
@@ -1237,8 +1252,9 @@ chart_output = charting_output.areachart_output(titles, subtitles, y_title,
 def get_histogram_script(inc_normal, css_fil, css_idx):
     dd = getdata.get_dd()
     script = u"""
-histo_dets = charting_output.get_histo_dets(dbe, cur, tbl, tbl_filt, fld_gp, 
-            fld_gp_name, fld_gp_lbls, fld_measure)
+histo_dets = charting_output.get_histo_dets(dbe, cur, tbl, tbl_filt, 
+                                           fld_measure, fld_chart_by, 
+                                           fld_chart_by_name, fld_chart_by_lbls)
 chart_output = charting_output.histogram_output(titles, subtitles, 
             fld_measure_name, histo_dets, inc_normal=%(inc_normal)s, 
             css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
@@ -1250,7 +1266,8 @@ def get_scatterplot_script(css_fil, css_idx, dot_border):
     dd = getdata.get_dd()
     script = u"""
 scatterplot_dets = charting_output.get_scatterplot_dets(dbe, cur, tbl, tbl_filt, 
-            fld_x_axis, fld_y_axis, fld_gp, fld_gp_name, fld_gp_lbls, 
+            fld_x_axis, fld_y_axis, 
+            fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
             unique=True)
 chart_output = charting_output.scatterplot_output(titles, subtitles,
             scatterplot_dets, fld_x_axis_name, fld_y_axis_name, add_to_report, 
@@ -1263,9 +1280,11 @@ chart_output = charting_output.scatterplot_output(titles, subtitles,
 def get_boxplot_script(css_fil, css_idx):
     dd = getdata.get_dd()
     script = u"""
-boxplot_dets = charting_output.get_boxplot_dets(dbe, cur, tbl, tbl_filt, 
-            fld_x_axis, fld_y_axis, fld_gp, fld_gp_name, fld_gp_lbls, 
-            unique=True)
+(xaxis_dets, max_label_len, 
+      boxplot_dets) = charting_output.get_boxplot_dets(dbe, cur, tbl, 
+                                      tbl_filt, fld_measure, 
+                                      fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
+                                      fld_chart_by, fld_chart_by_lbls)
 chart_output = charting_output.boxplot_output(titles, subtitles,
             x_title, y_title, xaxis_dets, max_label_len, boxplot_dets,
             xmin, xmax, ymin, ymax, css_fil="%(css_fil)s", 
