@@ -412,22 +412,26 @@ LINE_CHART = u"Line Chart"
 AREA_CHART = u"Area Chart"
 HISTOGRAM = u"Histogram"
 SCATTERPLOT = u"Scatterplot"
+BOXPLOT = u"Box and Whisker Plot"
 OPTIONAL_ONE_VAR_CHART_TYPES = [SIMPLE_BARCHART, PIE_CHART, LINE_CHART, 
-                                AREA_CHART, HISTOGRAM]
+                                AREA_CHART, HISTOGRAM, BOXPLOT]
 CHART_TYPE_TO_MIN_DATA_TYPES = {SIMPLE_BARCHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
                                CLUSTERED_BARCHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
                                PIE_CHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
                                LINE_CHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
                                AREA_CHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
                                HISTOGRAM: (VAR_TYPE_QUANT, VAR_TYPE_CAT),
-                               SCATTERPLOT: (VAR_TYPE_ORD, VAR_TYPE_ORD)}
+                               SCATTERPLOT: (VAR_TYPE_ORD, VAR_TYPE_ORD),
+                               BOXPLOT: (VAR_TYPE_QUANT, VAR_TYPE_CAT),}
 CHART_TYPE_TO_LABELS = {SIMPLE_BARCHART: (CHART_VALUES, CHART_CHART_BY),
                         CLUSTERED_BARCHART: (CHART_VALUES, CHART_BY),
                         PIE_CHART: (CHART_VALUES, CHART_CHART_BY),
                         LINE_CHART: (CHART_VALUES, CHART_BY),
                         AREA_CHART: (CHART_VALUES, CHART_CHART_BY),
                         HISTOGRAM: (CHART_VALUES, CHART_CHART_BY),
-                        SCATTERPLOT: (_(u"X-axis"), _(u"Y-axis"))}
+                        SCATTERPLOT: (_(u"X-axis"), _(u"Y-axis")),
+                        BOXPLOT: (CHART_VALUES, CHART_CHART_BY),
+                        }
 THREE_VAR_CHART_TYPES = [SCATTERPLOT,]
 AVG_OPTION_CHART_TYPES = [SIMPLE_BARCHART, CLUSTERED_BARCHART, LINE_CHART, 
                           AREA_CHART,]

@@ -294,11 +294,17 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                             "dots?"))
         self.panel_scatterplot.SetSizer(self.szr_scatterplot)
         self.szr_scatterplot.SetSizeHints(self.panel_scatterplot)
+        # boxplot
+        self.szr_boxplot = wx.BoxSizer(wx.HORIZONTAL)
+        self.panel_boxplot = wx.Panel(self.panel_mid)
+        self.panel_boxplot.SetSizer(self.szr_boxplot)
+        self.szr_boxplot.SetSizeHints(self.panel_boxplot)
         # Hide all panels except default. Display and layout then hide.
         # Prevents flicker on change later.
         panels2hide = [self.panel_clustered_bar_chart, self.panel_pie_chart,
                        self.panel_line_chart, self.panel_area_chart,
-                       self.panel_histogram, self.panel_scatterplot]
+                       self.panel_histogram, self.panel_scatterplot, 
+                       self.panel_boxplot]
         check = True
         for panel2hide in panels2hide:
             self.szr_mid.Add(panel2hide, 0, wx.GROW)
@@ -482,6 +488,19 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_scatterplot.Bind(wx.EVT_BUTTON, self.on_btn_scatterplot)
         self.btn_scatterplot.SetToolTipString(_("Make Scatterplot"))
         szr_chart_btns.Add(self.btn_scatterplot)
+        # boxplots
+        self.bmp_btn_boxplot = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                            u"images", u"boxplot.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_boxplot_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+                                            u"images", u"boxplot_sel.xpm"), 
+                                        wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.btn_boxplot = wx.BitmapButton(self.panel_mid, -1, 
+                                               self.bmp_btn_boxplot, 
+                                               style=wx.NO_BORDER)
+        self.btn_boxplot.Bind(wx.EVT_BUTTON, self.on_btn_boxplot)
+        self.btn_boxplot.SetToolTipString(_("Make Box and Whisker Plot"))
+        szr_chart_btns.Add(self.btn_boxplot)
         if mg.PLATFORM == mg.LINUX:
             hand = wx.StockCursor(wx.CURSOR_HAND)
             self.btn_bar_chart.SetCursor(hand)
@@ -489,8 +508,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.btn_pie_chart.SetCursor(hand)
             self.btn_line_chart.SetCursor(hand)
             self.btn_area_chart.SetCursor(hand)
-            self.btn_scatterplot.SetCursor(hand)
             self.btn_histogram.SetCursor(hand)
+            self.btn_scatterplot.SetCursor(hand)
+            self.btn_boxplot.SetCursor(hand)
         self.btn_to_rollback = self.btn_bar_chart
         self.bmp_to_rollback_to = self.bmp_btn_bar_chart
 
@@ -760,6 +780,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_scatterplot
         btn_bmp_sel = self.bmp_btn_scatterplot_sel
         panel = self.panel_scatterplot
+        self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
+
+    def on_btn_boxplot(self, event):
+        self.chart_type = mg.BOXPLOT
+        btn = self.btn_boxplot
+        btn_bmp = self.bmp_btn_boxplot
+        btn_bmp_sel = self.bmp_btn_boxplot_sel
+        panel = self.panel_boxplot
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
         
     def on_btn_chart(self, event):
@@ -1055,6 +1083,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         elif self.chart_type == mg.SCATTERPLOT:
             script_lst.append(get_scatterplot_script(css_fil, css_idx, 
                                        dot_border=self.chk_borders.IsChecked()))
+        elif self.chart_type == mg.BOXPLOT:
+            script_lst.append(get_boxplot_script(css_fil, css_idx))
         script_lst.append(u"fil.write(chart_output)")
         return u"\n".join(script_lst)
     
@@ -1228,4 +1258,18 @@ chart_output = charting_output.scatterplot_output(titles, subtitles,
             css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": lib.escape_pre_write(css_fil), 
            u"css_idx": css_idx, u"dot_border": dot_border}
+    return script
+
+def get_boxplot_script(css_fil, css_idx):
+    dd = getdata.get_dd()
+    script = u"""
+boxplot_dets = charting_output.get_boxplot_dets(dbe, cur, tbl, tbl_filt, 
+            fld_x_axis, fld_y_axis, fld_gp, fld_gp_name, fld_gp_lbls, 
+            unique=True)
+chart_output = charting_output.boxplot_output(titles, subtitles,
+            x_title, y_title, xaxis_dets, max_label_len, boxplot_dets,
+            xmin, xmax, ymin, ymax, css_fil="%(css_fil)s", 
+            css_idx=%(css_idx)s, page_break_after=False)
+    """ % {u"dbe": dd.dbe, u"css_fil": lib.escape_pre_write(css_fil), 
+           u"css_idx": css_idx}
     return script
