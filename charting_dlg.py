@@ -1021,13 +1021,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             var2lbl = u"fld_y_axis"
         elif (self.chart_type in mg.AVG_OPTION_CHART_TYPES) and SHOW_AVG:
             var2lbl = mg.FLD_GROUP_BY
-        elif (self.chart_type in mg.AVG_OPTION_CHART_TYPES) and not SHOW_AVG:
+        else:
             var2lbl = mg.FLD_CHART_BY
             script_lst.append("%s=None" % mg.FLD_GROUP_BY)
             script_lst.append("%s=None" % mg.FLD_GROUP_BY_NAME)
             script_lst.append("%s=None" % mg.FLD_GROUP_BY_LBLS)
-        else:
-            var2lbl = mg.FLD_CHART_BY
         if varname2 == mg.DROP_SELECT:
             script_lst.append(u"%s = None" % var2lbl)
         else:
@@ -1134,15 +1132,16 @@ chart_output = charting_output.clustered_barchart_output(titles, subtitles,
            u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx}
     return script
 
-
 def get_pie_chart_script(css_fil, css_idx):
     script = u"""
-pie_chart_dets = charting_output.get_pie_chart_dets(dbe, cur, tbl, tbl_filt, 
-            fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
-            fld_measure, fld_measure_lbls, 
-            sort_opt="%(sort_opt)s")
+chart_dets = charting_output.get_chart_dets(mg.PIE_CHART, 
+                            dbe, cur, tbl, tbl_filt, 
+                            fld_measure, fld_measure_name, fld_measure_lbls, 
+                            fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
+                            fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
+                            sort_opt="%(sort_opt)s", measure=mg.CHART_FREQS)
 chart_output = charting_output.piechart_output(titles, subtitles,
-            pie_chart_dets, css_fil="%(css_fil)s", css_idx=%(css_idx)s,
+            chart_dets, css_fil="%(css_fil)s", css_idx=%(css_idx)s,
             page_break_after=False)
     """ % {u"sort_opt": CUR_SORT_OPT, u"css_fil": lib.escape_pre_write(css_fil), 
            u"css_idx": css_idx}

@@ -226,6 +226,9 @@ def structure_data(chart_type, raw_data, max_items, xlabelsdic, fld_gp_by,
             if len(vals_etc_lst) > max_items:
                 raise my_exceptions.TooManyValsInChartSeries(fld_measure, 
                                                              max_items)
+            if (chart_type == mg.PIE_CHART 
+                    and len(vals_etc_lst) > mg.MAX_PIE_SLICES):
+                raise my_exceptions.TooManySlicesInPieChart
             prev_group_val = group_val
         # save last one across
         (sorted_xaxis_dets, 
@@ -245,7 +248,6 @@ def structure_data(chart_type, raw_data, max_items, xlabelsdic, fld_gp_by,
         """
         vals_etc_lst = []
         max_lbl_len = 0
-        y_vals = []
         for x_val, y_val in raw_data:
             x_val_lbl = xlabelsdic.get(x_val, unicode(x_val))
             x_val_split_lbl = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
@@ -254,7 +256,7 @@ def structure_data(chart_type, raw_data, max_items, xlabelsdic, fld_gp_by,
                 max_lbl_len = len(x_val_lbl)
             vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
                                  x_val_split_lbl))
-            if len(y_vals) > max_items:
+            if len(vals_etc_lst) > max_items:
                 raise my_exceptions.TooManyValsInChartSeries(fld_measure, 
                                                              max_items)
         chart_lbl = mg.CHART_LBL_SINGLE_CHART
@@ -750,52 +752,6 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure,
     
     
     return xaxis_dets, max_label_len, boxplot_dets
-
-def get_pie_chart_dets(dbe, cur, tbl, tbl_filt, 
-                       fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
-                       fld_measure, fld_measure_lbls, 
-                       sort_opt, measure=mg.CHART_FREQS):
-    """
-    fld_chart_by -- chart by each value
-    basic_pie_dets -- list of dicts, one for each indiv pie chart.  Each dict 
-        contains: CHART_CHART_BY_LBL, CHART_MEASURE_DETS, CHART_MAX_LBL_LEN, 
-        CHART_Y_VALS.
-    """
-    debug = False
-    pie_chart_dets = []
-    basic_pie_dets = get_basic_dets(dbe, cur, tbl, tbl_filt, 
-                       fld_measure, fld_measure_lbls, 
-                       fld_gp_by=None, fld_gp_by_name=None, fld_gp_by_lbls=None,
-                       fld_chart_by=fld_chart_by, 
-                       fld_chart_by_name=fld_chart_by_name, 
-                       fld_chart_by_lbls=fld_chart_by_lbls, 
-                       sort_opt=sort_opt, measure=measure)
-    for basic_pie_det in basic_pie_dets:
-        if debug: print(basic_pie_det)
-        indiv_pie_dets = {}
-        chart_by_label = basic_pie_det[mg.CHART_CHART_BY_LBL]
-        label_dets = basic_pie_det[mg.CHART_MEASURE_DETS]
-        max_label_len = basic_pie_det[mg.CHART_MAX_LBL_LEN]
-        slice_vals = basic_pie_det[mg.CHART_Y_VALS]
-        if len(label_dets) != len(slice_vals):
-            raise Exception(u"Mismatch in number of slice labels and slice "
-                            u"values")
-        if len(slice_vals) > mg.MAX_PIE_SLICES:
-            raise my_exceptions.TooManySlicesInPieChart
-        tot_freq = sum(slice_vals)
-        slice_dets = []
-        for i, slice_val in enumerate(slice_vals):
-            # line breaks result in no display
-            tiplbl = label_dets[i][1].replace(u"\n", u" ")
-            slice_dic = {u"y": slice_val, u"text": label_dets[i][2], 
-                         u"tooltip": u"%s<br>%s (%s%%)" % (tiplbl, slice_val, 
-                                           round((100.0*slice_val)/tot_freq,1))}
-            slice_dets.append(slice_dic)
-        indiv_pie_dets[mg.CHART_SLICE_DETS] = slice_dets
-        indiv_pie_dets[mg.CHART_CHART_BY_LBL] = chart_by_label
-        # add other details later e.g. label for pie chart
-        pie_chart_dets.append(indiv_pie_dets)
-    return pie_chart_dets
 
 def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure,
                    fld_chart_by, fld_chart_by_name, fld_chart_by_lbls):
@@ -1540,13 +1496,28 @@ makechartRenumber00 = function(){
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def piechart_output(titles, subtitles, pie_chart_dets, css_fil, css_idx, 
+def piechart_output(titles, subtitles, chart_dets, css_fil, css_idx, 
                     page_break_after):
+    """
+    chart_dets --         
+        
+    Even though one xaxis_dets per series, only one is needed for a clustered
+        bar chart ad it will fit all series.
+    Each series (possibly only one) has a chart lbl (possibly not used), a
+        legend lbl, xaxis_dets, and y vals.
+    chart_dets = {mg.CHART_MAX_LBL_LEN: ...,
+                  mg.CHART_SERIES_DETS: see below}
+                  series_dets = [{mg.CHART_LBL: ...,
+                                  mg.CHART_LEGEND_LBL: ..., 
+                                  mg.CHART_MULTICHART: ...,
+                                  mg.CHART_XAXIS_DETS: ...,
+                                  mg.CHART_Y_VALS: ...}]
+    """
     debug = False
     if debug: print(pie_chart_dets)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    multichart = is_multichart(pie_chart_dets)
+    multichart = chart_dets[mg.CHART_SERIES_DETS][0][mg.CHART_MULTICHART]
     html = []
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
@@ -1568,22 +1539,29 @@ def piechart_output(titles, subtitles, pie_chart_dets, css_fil, css_idx,
     colours.extend(mg.DOJO_COLOURS)
     slice_colours = colours[:30]
     label_font_colour = axis_label_font_colour
-    for chart_idx, pie_chart_det in enumerate(pie_chart_dets):
+    slice_fontsize = 14 if len(chart_dets) < 10 else 10
+    if multichart:
+        slice_fontsize = slice_fontsize*0.8
+    # one series per chart
+    series_dets = chart_dets[mg.CHART_SERIES_DETS]
+    for chart_idx, chart_det in enumerate(series_dets):
         pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
-        slices_js_list = []
-        slice_dets = pie_chart_det[mg.CHART_SLICE_DETS]
-        slice_fontsize = 14 if len(slice_dets) < 10 else 10
-        if multichart:
-            slice_fontsize = slice_fontsize*0.8
-        for slice_det in slice_dets:
-            slices_js_list.append(u"{\"y\": %(y)s, \"text\": %(text)s, " 
-                    u"\"tooltip\": \"%(tooltip)s\"}" % {u"y": slice_det[u"y"], 
-                    u"text": slice_det[u"text"], 
-                    u"tooltip": slice_det[u"tooltip"]})
-        slices_js = u"slices = [" + (u",\n" + u" "*4*4).join(slices_js_list) + \
+        slices_js_lst = []
+        # build indiv slice details for this chart
+        y_vals = chart_det[mg.CHART_Y_VALS]
+        tot_y_vals = sum(y_vals)
+        xy_dets = zip(chart_det[mg.CHART_XAXIS_DETS], y_vals)
+        for ((val, val_lbl, split_lbl), y_val) in xy_dets:
+            tiplbl = val_lbl.replace(u"\n", u" ") # line breaks mean no display
+            tooltip = u"%s<br>%s (%s%%)" % (tiplbl, int(y_val), 
+                                            round((100.0*y_val)/tot_y_vals, 1))
+            slices_js_lst.append(u"{\"y\": %(y)s, \"text\": %(text)s, " 
+                    u"\"tooltip\": \"%(tooltip)s\"}" % 
+                    {u"y": y_val, u"text": split_lbl, u"tooltip": tooltip})
+        slices_js = u"slices = [" + (u",\n" + u" "*4*4).join(slices_js_lst) + \
                     u"\n];"
-        indiv_pie_title = "<p><b>%s</b></p>" % \
-                   pie_chart_det[mg.CHART_CHART_BY_LBL] if multichart else u""
+        indiv_pie_title = "<p><b>%s</b></p>" % chart_det[mg.CHART_LBL] \
+                                                        if multichart else u""
         html.append(u"""
 <script type="text/javascript">
 makechartRenumber%(chart_idx)s = function(){
@@ -1618,17 +1596,16 @@ makechartRenumber%(chart_idx)s = function(){
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx;">
     </div>
-</div>
-        """ % {u"slice_colours": slice_colours, u"colour_cases": colour_cases, 
-               u"width": width, u"height": height, u"radius": radius,
-               u"label_offset": label_offset, u"pagebreak": pagebreak,
-               u"indiv_pie_title": indiv_pie_title,
-               u"slices_js": slices_js, u"slice_fontsize": slice_fontsize, 
-               u"label_font_colour": label_font_colour,
-               u"tooltip_border_colour": tooltip_border_colour,
-               u"connector_style": connector_style, u"outer_bg": outer_bg, 
-               u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx,
-               })
+</div>""" % {u"slice_colours": slice_colours, u"colour_cases": colour_cases, 
+             u"width": width, u"height": height, u"radius": radius,
+             u"label_offset": label_offset, u"pagebreak": pagebreak,
+             u"indiv_pie_title": indiv_pie_title,
+             u"slices_js": slices_js, u"slice_fontsize": slice_fontsize, 
+             u"label_font_colour": label_font_colour,
+             u"tooltip_border_colour": tooltip_border_colour,
+             u"connector_style": connector_style, u"outer_bg": outer_bg, 
+             u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx,
+             })
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
