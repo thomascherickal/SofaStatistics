@@ -1068,7 +1068,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                                          css_idx))
         elif self.chart_type == mg.CLUSTERED_BARCHART:
             script_lst.append(get_clustered_barchart_script(inc_perc, css_fil, 
-                                                    css_idx, self.chart_type))
+                                                            css_idx))
         elif self.chart_type == mg.PIE_CHART:
             script_lst.append(get_pie_chart_script(css_fil, css_idx))
         elif self.chart_type == mg.LINE_CHART:
@@ -1095,63 +1095,45 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             script_lst.append(get_boxplot_script(css_fil, css_idx))
         script_lst.append(u"fil.write(chart_output)")
         return u"\n".join(script_lst)
-    
 
 def get_simple_barchart_script(inc_perc, css_fil, css_idx):
     script = u"""
-simple_barchart_dets = charting_output.get_single_val_dets(
-            dbe=dbe, cur=cur, tbl=tbl, tbl_filt=tbl_filt, 
-            fld_measure=fld_measure, fld_measure_lbls=fld_measure_lbls, 
-            fld_gp_by=fld_gp_by, fld_gp_by_name=fld_gp_by_name, 
-                fld_gp_by_lbls=fld_gp_by_lbls,
-            fld_chart_by=fld_chart_by, fld_chart_by_name=fld_chart_by_name, 
-                fld_chart_by_lbls=fld_chart_by_lbls, 
-            sort_opt="%(sort_opt)s", measure=measure)
-barchart_dets = []
-for simple_barchart_det in simple_barchart_dets:
-    chart_by_label = simple_barchart_det[mg.CHART_CHART_BY_LABEL]
-    xaxis_dets = simple_barchart_det[mg.CHART_MEASURE_DETS]
-    y_vals = simple_barchart_det[mg.CHART_Y_VALS]
-    series_label = (fld_measure_name if measure == mg.CHART_FREQS
-                                     else fld_gp_by_name)    
-    series_dets = [{mg.CHART_SERIES_LABEL: series_label, "y_vals": y_vals},]
-    barchart_dets.append({mg.CHART_CHART_BY_LABEL: chart_by_label,
-                          mg.CHART_XAXIS_DETS: xaxis_dets, 
-                          mg.CHART_SERIES_DETS: series_dets})
+chart_dets = charting_output.get_chart_dets(mg.SIMPLE_BARCHART, 
+                            dbe, cur, tbl, tbl_filt, 
+                            fld_measure, fld_measure_name, fld_measure_lbls, 
+                            fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
+                            fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
+                            sort_opt="%(sort_opt)s", measure=measure)
 x_title = u"" # uses series label instead
 y_title = (mg.Y_AXIS_FREQ_LABEL if measure == mg.CHART_FREQS
                                 else u"Mean %%s" %% fld_measure_name) 
-chart_output = charting_output.barchart_output(titles, subtitles,
-            x_title, y_title, barchart_dets, inc_perc=%(inc_perc)s, 
+chart_output = charting_output.simple_barchart_output(titles, subtitles,
+            x_title, y_title, chart_dets, inc_perc=%(inc_perc)s, 
             css_fil="%(css_fil)s", css_idx=%(css_idx)s, 
             page_break_after=False)
     """ % {u"sort_opt": CUR_SORT_OPT, u"inc_perc": inc_perc, 
            u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx}
     return script
 
-def get_clustered_barchart_script(inc_perc, css_fil, css_idx, chart_type):
+def get_clustered_barchart_script(inc_perc, css_fil, css_idx):
     script = u"""
-chart_type="%(chart_type)s"
-xaxis_dets, max_label_len, series_dets = charting_output.get_grouped_val_dets(
-            chart_type, dbe, cur, tbl, tbl_filt, 
-            fld_measure, fld_measure_lbls,
-            fld_gp_by, fld_gp_by_name, fld_gp_by_lbls, 
-            fld_chart_by, fld_chart_by_lbls, 
-            measure=measure)
-chart_by_label = mg.CHART_CHART_BY_LABEL_ALL
-barchart_dets = [{mg.CHART_CHART_BY_LABEL: chart_by_label,
-                  mg.CHART_XAXIS_DETS: xaxis_dets, 
-                  mg.CHART_SERIES_DETS: series_dets}]
+chart_dets = charting_output.get_chart_dets(mg.CLUSTERED_BARCHART, 
+                            dbe, cur, tbl, tbl_filt, 
+                            fld_measure, fld_measure_name, fld_measure_lbls, 
+                            fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
+                            fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
+                            sort_opt="%(sort_opt)s", measure=measure)
 x_title = u"" # uses series label instead
 y_title = (mg.Y_AXIS_FREQ_LABEL if measure == mg.CHART_FREQS
                                 else u"Mean %%s" %% fld_measure_name) 
-chart_output = charting_output.barchart_output(titles, subtitles,
-            x_title, y_title, barchart_dets, inc_perc=%(inc_perc)s, 
-            css_fil="%(css_fil)s", css_idx=%(css_idx)s, 
-            page_break_after=False)    
-    """ % {u"chart_type": chart_type, u"inc_perc": inc_perc, 
+chart_output = charting_output.clustered_barchart_output(titles, subtitles,
+                            x_title, y_title, chart_dets, inc_perc=%(inc_perc)s, 
+                            css_fil="%(css_fil)s", css_idx=%(css_idx)s, 
+                            page_break_after=False)    
+    """ % {u"sort_opt": mg.SORT_NONE, u"inc_perc": inc_perc, 
            u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx}
     return script
+
 
 def get_pie_chart_script(css_fil, css_idx):
     script = u"""
@@ -1181,13 +1163,13 @@ single_linechart_dets = charting_output.get_single_val_dets(
             fld_chart_by=fld_chart_by, fld_chart_by_name=fld_chart_by_name, 
                 fld_chart_by_lbls=fld_chart_by_lbls, 
             sort_opt=mg.SORT_NONE, measure=measure)
-chart_by_label = single_linechart_dets[0][mg.CHART_CHART_BY_LABEL]
+chart_by_label = single_linechart_dets[0][mg.CHART_CHART_BY_LBL]
 xaxis_dets = single_linechart_dets[0][mg.CHART_MEASURE_DETS]
 y_vals = single_linechart_dets[0][mg.CHART_Y_VALS]
-max_label_len = single_linechart_dets[0][mg.CHART_MAX_LABEL_LEN]
+max_label_len = single_linechart_dets[0][mg.CHART_MAX_LBL_LEN]
 series_label = (fld_measure_name if measure == mg.CHART_FREQS
                                  else fld_gp_by_name)  
-series_dets = [{mg.CHART_SERIES_LABEL: series_label, "y_vals": y_vals},]
+series_dets = [{mg.CHART_SERIES_LBL: series_label, "y_vals": y_vals},]
 x_title = u"" # uses series label instead
 y_title = (mg.Y_AXIS_FREQ_LABEL if measure == mg.CHART_FREQS
                                 else u"Mean %%s" %% fld_measure_name) 
@@ -1231,17 +1213,17 @@ y_title = (mg.Y_AXIS_FREQ_LABEL if measure == mg.CHART_FREQS
                                 else u"Mean %%s" %% fld_measure_name) 
 chart_dets = []
 for areachart_det in areachart_dets:
-    chart_by_label = areachart_det[mg.CHART_CHART_BY_LABEL]
+    chart_by_label = areachart_det[mg.CHART_CHART_BY_LBL]
     xaxis_dets = areachart_det[mg.CHART_MEASURE_DETS]
     y_vals = areachart_det[mg.CHART_Y_VALS]
     series_label = (fld_measure_name if measure == mg.CHART_FREQS
                                  else fld_gp_by_name)
-    series_dets = [{mg.CHART_SERIES_LABEL: series_label, "y_vals": y_vals},]
-    max_label_len = areachart_det[mg.CHART_MAX_LABEL_LEN]
-    chart_dets.append({mg.CHART_CHART_BY_LABEL: chart_by_label,
+    series_dets = [{mg.CHART_SERIES_LBL: series_label, "y_vals": y_vals},]
+    max_label_len = areachart_det[mg.CHART_MAX_LBL_LEN]
+    chart_dets.append({mg.CHART_CHART_BY_LBL: chart_by_label,
                        mg.CHART_XAXIS_DETS: xaxis_dets, 
                        mg.CHART_SERIES_DETS: series_dets,
-                       mg.CHART_MAX_LABEL_LEN: max_label_len})
+                       mg.CHART_MAX_LBL_LEN: max_label_len})
 chart_output = charting_output.areachart_output(titles, subtitles, y_title,
             chart_dets, inc_perc=%(inc_perc)s,
             css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)

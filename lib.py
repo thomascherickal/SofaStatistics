@@ -101,17 +101,36 @@ def get_unique_db_name_key(db_names, db_name):
     db_names.append(db_name)
     return db_name_key
 
-def sort_value_labels(sort_order, val_freq_label_lst):
+def sort_value_labels(sort_order, vals_etc_lst, idx_measure, idx_lbl):
     """
     In-place sort value labels list according to sort option selected.
     http://www.python.org/dev/peps/pep-0265/
     """
     if sort_order == mg.SORT_INCREASING:
-        val_freq_label_lst.sort(key=itemgetter(1))
+        vals_etc_lst.sort(key=itemgetter(idx_measure))
     elif sort_order == mg.SORT_DECREASING:
-        val_freq_label_lst.sort(key=itemgetter(1), reverse=True)
+        vals_etc_lst.sort(key=itemgetter(idx_measure), reverse=True)
     elif sort_order == mg.SORT_LABEL:
-        val_freq_label_lst.sort(key=itemgetter(2))
+        vals_etc_lst.sort(key=itemgetter(idx_lbl))
+
+def get_sorted_vals(sort_order, vals, lbls):
+    """
+    Get sorted values according to values in supplied list or their labels 
+        according to sort option selected.
+    http://www.python.org/dev/peps/pep-0265/
+    """
+    if sort_order == mg.SORT_INCREASING:
+        sorted_vals = sorted(vals)
+    elif sort_order == mg.SORT_DECREASING:
+        sorted_vals = sorted(vals)
+        sorted_vals.sort(reverse=True)
+    elif sort_order == mg.SORT_LABEL:
+        val_lbls = [(x, lbls.get(x, unicode(x))) for x in vals]
+        val_lbls.sort(key=itemgetter(1))
+        sorted_vals = [x[0] for x in vals_lbls]
+    else:
+        sorted_vals = vals
+    return sorted_vals
 
 def extract_dojo_style(css_fil):
     try:
@@ -671,7 +690,7 @@ def get_next_fld_name(existing_var_names):
     next_fld_name = mg.NEXT_FLD_NAME_TEMPLATE % free_num
     return next_fld_name
 
-def get_labels_in_lines(orig_txt, max_width, dojo=False):
+def get_lbls_in_lines(orig_txt, max_width, dojo=False):
     """
     Returns quoted text. Will not be further quoted.
     Will be "%s" % wrapped txt not "\"%s\"" % wrapped_txt

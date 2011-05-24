@@ -19,6 +19,391 @@ import core_stats
 import getdata
 import output
 
+def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt, 
+                     measure, fld_measure, fld_gp_by, fld_chart_by,
+                     fld_group_series):
+    objqtr = getdata.get_obj_quoter_func(dbe)
+    sql_dic = {u"tbl": tbl_quoted, 
+               u"fld_measure": objqtr(fld_measure),
+               u"fld_group_series": objqtr(fld_group_series),
+               mg.FLD_GROUP_BY: objqtr(fld_gp_by),
+               mg.FLD_CHART_BY: objqtr(fld_chart_by), 
+               u"and_tbl_filt": and_tbl_filt,
+               u"where_tbl_filt": where_tbl_filt}
+    if fld_group_series:
+        # series fld, the x vals, and the y vals
+        if measure == mg.CHART_FREQS:
+            """
+            Show zero values.            
+            Only include values for either fld_group_series or fld_measure if 
+                at least one non-null value in the other dimension. If a whole 
+                series is zero, then it won't show. If there is any value in 
+                other dim will show that val and zeroes for rest.
+            SQL returns something like (grouped by fld_group_series, 
+                fld_measure, N with zero freqs as needed):
+            data = [(1,1,56),
+                    (1,2,103),
+                    (1,3,72),
+                    (2,1,13),
+                    (2,2,0),
+                    (2,3,200),]
+            """
+            SQL_get_measure_vals = u"""SELECT %(fld_measure)s
+                FROM %(tbl)s
+                WHERE %(fld_group_series)s IS NOT NULL 
+                    AND %(fld_measure)s IS NOT NULL
+                    %(and_tbl_filt)s
+                GROUP BY %(fld_measure)s"""
+            SQL_get_group_vals = u"""SELECT %(fld_group_series)s
+                FROM %(tbl)s
+                WHERE %(fld_measure)s IS NOT NULL 
+                    AND %(fld_group_series)s IS NOT NULL
+                    %(and_tbl_filt)s
+                GROUP BY %(fld_group_series)s"""
+            SQL_cartesian_join = """SELECT * FROM (%s) AS qrymeasure INNER JOIN 
+                (%s) AS qrygp""" % (SQL_get_measure_vals, SQL_get_group_vals)
+            SQL_group_by = u"""SELECT %(fld_group_series)s, %(fld_measure)s,
+                    COUNT(*) AS freq
+                FROM %(tbl)s
+                %(where_tbl_filt)s
+                GROUP BY %(fld_group_series)s, %(fld_measure)s"""
+            SQL_cartesian_join = SQL_cartesian_join % sql_dic
+            SQL_group_by = SQL_group_by % sql_dic
+            sql_dic[u"qrycart"] = SQL_cartesian_join
+            sql_dic[u"qrygrouped"] = SQL_group_by
+            SQL_get_raw_data = """SELECT %(fld_group_series)s, %(fld_measure)s,
+                    CASE WHEN freq IS NULL THEN 0 ELSE freq END AS N
+                FROM (%(qrycart)s) AS qrycart LEFT JOIN (%(qrygrouped)s) 
+                    AS qrygrouped
+                USING(%(fld_group_series)s, %(fld_measure)s)
+                ORDER BY %(fld_group_series)s, %(fld_measure)s""" % sql_dic
+        elif measure == mg.CHART_AVGS:
+            """
+            Must and will have measure, group_by, and chart_by 
+                (the group series). Otherwise fld_group_series would be True.
+            Only include values for either fld_chart_by or fld_gp_by if at 
+                least one non-null value in the other dimension. If a whole 
+                    series is zero, then it won't show. If there is any value 
+                    in other dim will show that val and zeroes for rest.
+            SQL returns something like (grouped by fld_chart_by, fld_gp_by, 
+                averaged measure with zero avgs as needed):
+            data = [(1,1,56),
+                    (1,2,103),
+                    (1,3,72),
+                    (2,1,13),
+                    (2,2,0),
+                    (2,3,200),]
+            """
+            SQL_get_gp_by_vals = u"""SELECT %(fld_gp_by)s
+                FROM %(tbl)s
+                WHERE %(fld_chart_by)s IS NOT NULL AND %(fld_gp_by)s IS NOT NULL
+                    %(and_tbl_filt)s
+                GROUP BY %(fld_gp_by)s"""
+            SQL_get_chart_by_vals = u"""SELECT %(fld_chart_by)s
+                FROM %(tbl)s
+                WHERE %(fld_gp_by)s IS NOT NULL AND %(fld_chart_by)s IS NOT NULL
+                    %(and_tbl_filt)s
+                GROUP BY %(fld_chart_by)s"""
+            SQL_cartesian_join = """SELECT * FROM (%s) AS qryby INNER JOIN 
+                (%s) AS qrygp""" % (SQL_get_gp_by_vals, SQL_get_chart_by_vals)
+            SQL_group_by = u"""SELECT %(fld_chart_by)s, %(fld_gp_by)s,
+                    AVG(%(fld_measure)s) AS measure
+                FROM %(tbl)s
+                %(where_tbl_filt)s
+                GROUP BY %(fld_chart_by)s, %(fld_gp_by)s"""
+            SQL_cartesian_join = SQL_cartesian_join % sql_dic
+            SQL_group_by = SQL_group_by % sql_dic
+            sql_dic[u"qrycart"] = SQL_cartesian_join
+            sql_dic[u"qrygrouped"] = SQL_group_by
+            SQL_get_raw_data = """SELECT %(fld_chart_by)s, %(fld_gp_by)s,
+                    CASE WHEN measure IS NULL THEN 0 ELSE measure END AS val
+                FROM (%(qrycart)s) AS qrycart LEFT JOIN (%(qrygrouped)s) 
+                    AS qrygrouped
+                USING(%(fld_chart_by)s, %(fld_gp_by)s)
+                ORDER BY %(fld_chart_by)s, %(fld_gp_by)s""" % sql_dic
+    else: # no series grouping
+        # the x vals, and the y vals
+        if measure == mg.CHART_FREQS:
+            # group by measure field only, count non-missing vals
+            SQL_get_raw_data = (u"""SELECT %(fld_measure)s, 
+                    COUNT(*) AS measure
+                FROM %(tbl)s
+                WHERE %(fld_measure)s IS NOT NULL %(and_tbl_filt)s
+                GROUP BY %(fld_measure)s
+                ORDER BY %(fld_measure)s""") % sql_dic
+        elif measure == mg.CHART_AVGS:
+            # group by group by field, and get AVG of measure field
+            SQL_get_raw_data = (u"""SELECT %(fld_gp_by)s,
+                    AVG(%(fld_measure)s) AS measure
+                FROM %(tbl)s
+                WHERE %(fld_measure)s IS NOT NULL 
+                    AND %(fld_gp_by)s IS NOT NULL 
+                    %(and_tbl_filt)s
+                GROUP BY %(fld_gp_by)s
+                ORDER BY %(fld_gp_by)s""") % sql_dic           
+    return SQL_get_raw_data
+
+def get_sorted_xaxis_and_y_vals(sort_opt, vals_etc_lst):
+    """
+    Sort in place then iterate and build new lists with guaranteed 
+        synchronisation.
+    """
+    lib.sort_value_labels(sort_opt, vals_etc_lst, idx_measure=1, idx_lbl=2)
+    sorted_xaxis_dets = []
+    sorted_y_vals = []
+    for val, measure, lbl, lbl_split in vals_etc_lst:
+        sorted_xaxis_dets.append((val, lbl, lbl_split))
+        sorted_y_vals.append(measure)
+    return sorted_xaxis_dets, sorted_y_vals
+
+def structure_data(chart_type, raw_data, max_items, xlabelsdic, fld_gp_by, 
+                   fld_chart_by, fld_chart_by_name, 
+                   legend_fld_name, legend_fld_lbls,
+                   chart_fld_name, chart_fld_lbls, sort_opt, dp):
+    """
+    Take raw columns of data from SQL cursor and create required dict.
+    """
+    n_cols = len(raw_data[0])
+    multi_series = (n_cols > 2)
+    if multi_series: # whether multichart or multiple series within a chart
+        """
+        Must be sorted by first two so groups and y_vals in order. Apply any 
+            sorting before iterating through.
+        e.g. raw_data = [(1,1,56),
+                         (1,2,103),
+                         (1,3,72),
+                         (1,4,40),
+                         (2,1,13),
+                         (2,2,59),
+                         (2,3,200),
+                         (2,4,0),]
+        """
+        xaxis_dets = []
+        max_lbl_len = 0
+        series_dets = []
+        multichart = (fld_chart_by is not None 
+                      and chart_type not in mg.AVG_HAS_NO_CHART_BY_CHART_TYPES)
+        first_group = True
+        prev_group_val = None
+        for group_val, x_val, y_val in raw_data:
+            same_group = (group_val == prev_group_val)
+            if not same_group:
+                first_group = (prev_group_val is None)
+                if not first_group: # save previous one
+                    (sorted_xaxis_dets, 
+                     sorted_y_vals) = get_sorted_xaxis_and_y_vals(sort_opt,
+                                                                  vals_etc_lst)
+                    series_dets.append({mg.CHART_LBL: chart_lbl,
+                                        mg.CHART_LEGEND_LBL: legend_lbl, 
+                                        mg.CHART_MULTICHART: multichart,
+                                        mg.CHART_XAXIS_DETS: sorted_xaxis_dets,
+                                        mg.CHART_Y_VALS: sorted_y_vals})
+                vals_etc_lst = [] # reinit
+                if multichart:
+                    chart_lbl = u"%s: %s" % (chart_fld_name, 
+                                             chart_fld_lbls.get(group_val, 
+                                                            unicode(group_val)))
+                    legend_lbl = legend_fld_name
+                else:
+                    chart_lbl = mg.CHART_LBL_SINGLE_CHART
+                    legend_lbl = legend_fld_lbls.get(group_val, 
+                                                     unicode(group_val))
+                if len(series_dets) > mg.MAX_CHART_SERIES:
+                    if fld_chart_by:
+                        raise my_exceptions.TooManyChartsInSeries(
+                                                    fld_chart_by_name,
+                                                    mg.CHART_MAX_CHARTS_IN_SET)
+                    else:
+                        raise my_exceptions.TooManySeriesInChart()
+            # depending on sorting, may need one per chart.
+            x_val_lbl = xlabelsdic.get(x_val, unicode(x_val))
+            x_val_split_lbl = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
+                                                    max_width=17, dojo=True)
+            if len(x_val_lbl) > max_lbl_len:
+                max_lbl_len = len(x_val_lbl)
+            vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
+                                 x_val_split_lbl))
+            if len(vals_etc_lst) > max_items:
+                raise my_exceptions.TooManyValsInChartSeries(fld_measure, 
+                                                             max_items)
+            prev_group_val = group_val
+        # save last one across
+        (sorted_xaxis_dets, 
+         sorted_y_vals) = get_sorted_xaxis_and_y_vals(sort_opt, vals_etc_lst)
+        series_dets.append({mg.CHART_LBL: chart_lbl,
+                            mg.CHART_LEGEND_LBL: legend_lbl,
+                            mg.CHART_MULTICHART: multichart,
+                            mg.CHART_XAXIS_DETS: sorted_xaxis_dets,
+                            mg.CHART_Y_VALS: sorted_y_vals})
+    else: # single series
+        """
+        Must be sorted by first column.
+        e.g. raw_data = [(1,56),
+                         (2,103),
+                         (3,72),
+                         (4,40),]
+        """
+        vals_etc_lst = []
+        max_lbl_len = 0
+        y_vals = []
+        for x_val, y_val in raw_data:
+            x_val_lbl = xlabelsdic.get(x_val, unicode(x_val))
+            x_val_split_lbl = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
+                                                    max_width=17, dojo=True)
+            if len(x_val_lbl) > max_lbl_len:
+                max_lbl_len = len(x_val_lbl)
+            vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
+                                 x_val_split_lbl))
+            if len(y_vals) > max_items:
+                raise my_exceptions.TooManyValsInChartSeries(fld_measure, 
+                                                             max_items)
+        chart_lbl = mg.CHART_LBL_SINGLE_CHART
+        legend_lbl = legend_fld_name
+        (sorted_xaxis_dets, 
+         sorted_y_vals) = get_sorted_xaxis_and_y_vals(sort_opt, vals_etc_lst)
+        series_dets = [{mg.CHART_LBL: chart_lbl,
+                        mg.CHART_LEGEND_LBL: legend_lbl, 
+                        mg.CHART_MULTICHART: False,
+                        mg.CHART_XAXIS_DETS: sorted_xaxis_dets,
+                        mg.CHART_Y_VALS: sorted_y_vals}]
+    """
+    Each series (possibly only one) has a chart lbl (possibly not used), a
+        legend lbl, an xaxis_dets (may vary according to sorting used) 
+        and y vals.
+    """
+    chart_dets = {mg.CHART_MAX_LBL_LEN: max_lbl_len,
+                  mg.CHART_SERIES_DETS: series_dets}
+    return chart_dets
+
+def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt, 
+                   fld_measure, fld_measure_name, fld_measure_lbls, 
+                   fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
+                   fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
+                   sort_opt, measure):
+    """
+    Returns some overall details for the chart plus series details (only the
+        one series in some cases).
+    Only at most one grouping variable - either group by (e.g. clustered bar 
+        charts) or chart by (e.g. pie charts). May be neither.
+    """
+    debug = False
+    # misc setup
+    max_items = 150 if chart_type == mg.CLUSTERED_BARCHART else 300
+    tbl_quoted = getdata.tblname_qtr(dbe, tbl)
+    where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+    xlabelsdic = fld_measure_lbls if measure == mg.CHART_FREQS \
+                                  else fld_gp_by_lbls
+    # validate fields supplied (or not)
+    # check fld_gp_by and fld_chart_by are present as required
+    if chart_type == mg.CLUSTERED_BARCHART:
+        if fld_chart_by is None:
+            raise Exception(u"%ss must have a field set to cluster by" 
+                            % chart_type)
+    if measure == mg.CHART_AVGS and fld_gp_by is None:
+            raise Exception(u"%ss reporting averages must have a field "
+                            u"set to group by" % chart_type)
+    if (chart_type == mg.CLUSTERED_BARCHART and measure == mg.CHART_AVGS 
+            and fld_chart_by is None):
+        raise Exception(u"%ss must have a field set to cluster by if "
+                        u"charting averages" 
+                        % chart_type)
+    # more setup and validation according to measure type and fields completed
+    if measure == mg.CHART_FREQS:
+        if not (fld_gp_by is None or fld_chart_by is None):
+            raise Exception(u"SOFA doesn't have any charts reporting frequency "
+                            u"with both the group by and chart by fields set.")
+        dp = 0
+        # Either gp by or chart by
+        if fld_gp_by is not None:
+            fld_group_series = fld_gp_by
+            legend_fld_name = fld_gp_by_name # e.g. Country
+            legend_fld_lbls = fld_gp_by_lbls # e.g. {1: Japan, ...}
+            chart_fld_name = mg.CHART_LBL_SINGLE_CHART
+            chart_fld_lbls = {}
+        elif fld_chart_by is not None:
+            fld_group_series = fld_chart_by
+            if chart_type in mg.AVG_HAS_NO_CHART_BY_CHART_TYPES:
+                legend_fld_name = fld_chart_by_name
+                legend_fld_lbls = fld_chart_by_lbls
+                chart_fld_name = mg.CHART_LBL_SINGLE_CHART
+                chart_fld_lbls = {}
+            else:
+                legend_fld_name = fld_measure_name # e.g. Age Group in orange box
+                legend_fld_lbls = fld_measure_lbls
+                chart_fld_name = fld_chart_by_name
+                chart_fld_lbls = fld_chart_by_lbls
+        else:
+            fld_group_series = None
+            legend_fld_name = fld_measure_name # e.g. Age Group in orange box
+            legend_fld_lbls = {}
+            chart_fld_name = mg.CHART_LBL_SINGLE_CHART 
+            chart_fld_lbls = {}
+    elif measure == mg.CHART_AVGS:
+        """
+        May or may not have fld_chart_by set but must have fld_gp_by to enable 
+            averaging of fld_measure.
+        """
+        dp = 2
+        # in examples, age is measure, country is gp by, and gender is chart by
+        if fld_chart_by is not None:
+            fld_group_series = fld_chart_by
+            """
+            NB for line charts and clustered bar charts, not actually new 
+                charts if chart_by.
+            """
+            if chart_type in mg.AVG_HAS_NO_CHART_BY_CHART_TYPES:
+                legend_fld_name = fld_chart_by_name # e.g. Age Group in orange box
+                legend_fld_lbls = fld_chart_by_lbls
+                chart_fld_name = mg.CHART_LBL_SINGLE_CHART
+                chart_fld_lbls = {}
+            else:
+                legend_fld_name = fld_gp_by_name # e.g. Age Group in orange box
+                legend_fld_lbls = {}
+                chart_fld_name = fld_chart_by_name 
+                chart_fld_lbls = fld_chart_by_lbls
+        else:
+            fld_group_series = None
+            legend_fld_name = fld_gp_by_name # e.g. Country in orange box
+            legend_fld_lbls = {}
+            chart_fld_name = mg.CHART_LBL_SINGLE_CHART
+            chart_fld_lbls = {}
+    # Get data as per setup
+    SQL_raw_data = get_SQL_raw_data(dbe, tbl_quoted, 
+                                    where_tbl_filt, and_tbl_filt, 
+                                    measure, fld_measure, 
+                                    fld_gp_by, fld_chart_by, fld_group_series)
+    if debug: print(SQL_raw_data)
+    cur.execute(SQL_raw_data)
+    raw_data = cur.fetchall()
+    if debug: print(raw_data)
+    if not raw_data:
+        raise my_exceptions.TooFewValsForDisplay
+    # restructure and return data
+    chart_dets = structure_data(chart_type, raw_data, max_items, xlabelsdic, 
+                                fld_gp_by, 
+                                fld_chart_by, fld_chart_by_name, 
+                                legend_fld_name, legend_fld_lbls,
+                                chart_fld_name, chart_fld_lbls, 
+                                sort_opt, dp)
+    return chart_dets
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def get_basic_dets(dbe, cur, tbl, tbl_filt,  
                    fld_measure, fld_measure_lbls, 
                    fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
@@ -26,9 +411,9 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt,
                    sort_opt, measure=mg.CHART_FREQS):
     """
     Get frequencies for all non-missing values in variable plus labels.
-    Return list of dics with CHART_CHART_BY_LABEL, CHART_MEASURE_DETS, 
-        CHART_MAX_LABEL_LEN, and CHART_Y_VALS.
-    CHART_CHART_BY_LABEL is something like All if no chart by variable.
+    Return list of dics with CHART_CHART_BY_LBL, CHART_MEASURE_DETS, 
+        CHART_MAX_LBL_LEN, and CHART_Y_VALS.
+    CHART_CHART_BY_LBL is something like All if no chart by variable.
     """
     debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
@@ -55,7 +440,7 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt,
                 WHERE %(fld_measure)s IS NOT NULL %(and_tbl_filt)s
                 GROUP BY %(fld_measure)s
                 ORDER BY %(fld_measure)s""") % sql_dic
-    else:
+    else: # AVG
         if fld_gp_by is None:
             raise Exception("Need fld_gp_by if doing anything other than FREQS")
         sql_dic[mg.FLD_GROUP_BY] = objqtr(fld_gp_by)
@@ -71,7 +456,7 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt,
                 GROUP BY %(fld_chart_by)s, %(fld_gp_by)s
                 ORDER BY %(fld_chart_by)s, %(fld_gp_by)s""") % sql_dic
         else:
-            # group by by field, and get AVG of measure field
+            # group by group by field, and get AVG of measure field
             SQL_get_vals = (u"""SELECT %(fld_gp_by)s,
                     AVG(%(fld_measure)s) AS measure
                 FROM %(tbl)s
@@ -90,10 +475,10 @@ def get_basic_dets(dbe, cur, tbl, tbl_filt,
         split_results = get_split_results(fld_chart_by_name, fld_chart_by_lbls, 
                                           raw_results)
     else:
-        split_results = [{mg.CHART_CHART_BY_LABEL: mg.CHART_CHART_BY_LABEL_ALL,
+        split_results = [{mg.CHART_CHART_BY_LBL: mg.CHART_LBL_SINGLE_CHART,
                           mg.CHART_VAL_MEASURES: raw_results},]
     for indiv_result in split_results:
-        indiv_label = indiv_result[mg.CHART_CHART_BY_LABEL]
+        indiv_label = indiv_result[mg.CHART_CHART_BY_LBL]
         indiv_raw_results = indiv_result[mg.CHART_VAL_MEASURES]
         if measure == mg.CHART_FREQS:
             measure_val_lbls = fld_measure_lbls
@@ -117,10 +502,10 @@ def get_split_results(fld_chart_by_name, fld_chart_by_lbls, raw_results):
     --->
     []
     return dict for each lot of field groups:
-    [{mg.CHART_CHART_BY_LABEL: , 
+    [{mg.CHART_CHART_BY_LBL: , 
       mg.CHART_VAL_MEASURES: [(fld_measure, measure), ...]}, 
-      ...]
-    measure - freqs or avgs
+      ...] e.g. mg.CHART_VAL_MEASURES: [(1, 100), (2, 56), ...]
+        where measure is either freqs or avgs
     """
     split_raw_results = []
     prev_fld_chart_by_val = None
@@ -134,7 +519,7 @@ def get_split_results(fld_chart_by_name, fld_chart_by_lbls, raw_results):
                                                          fld_chart_by_val)
             chart_by_lbl = u"%s: %s" % (fld_chart_by_name, fld_chart_by_val_lbl)
             fld_chart_by_dic = {}
-            fld_chart_by_dic[mg.CHART_CHART_BY_LABEL] = chart_by_lbl
+            fld_chart_by_dic[mg.CHART_CHART_BY_LBL] = chart_by_lbl
             val_measures_lst = [(fld_measure, measure),]
             fld_chart_by_dic[mg.CHART_VAL_MEASURES] = val_measures_lst
             prev_fld_chart_by_val = fld_chart_by_val
@@ -153,8 +538,8 @@ def get_split_results(fld_chart_by_name, fld_chart_by_lbls, raw_results):
 def get_indiv_basic_dets(indiv_label, indiv_raw_results, measure_val_lbls, 
                          sort_opt, dp=0):
     """
-    Returns dict for indiv chart containing: CHART_CHART_BY_LABEL, 
-        CHART_MEASURE_DETS, CHART_MAX_LABEL_LEN, CHART_Y_VALS
+    Returns dict for indiv chart containing: CHART_CHART_BY_LBL, 
+        CHART_MEASURE_DETS, CHART_MAX_LBL_LEN, CHART_Y_VALS
     """
     val_freq_label_lst = []
     for val, measure in indiv_raw_results:
@@ -164,7 +549,8 @@ def get_indiv_basic_dets(indiv_label, indiv_raw_results, measure_val_lbls,
             measure = round(measure, dp)
         val_label = measure_val_lbls.get(val, unicode(val))
         val_freq_label_lst.append((val, measure, val_label))
-    lib.sort_value_labels(sort_opt, val_freq_label_lst)
+    lib.sort_value_labels(sort_opt, val_freq_label_lst, idx_measure=1, 
+                          idx_lbl=2)
     measure_dets = []
     max_label_len = 0
     y_vals = []
@@ -172,13 +558,13 @@ def get_indiv_basic_dets(indiv_label, indiv_raw_results, measure_val_lbls,
         len_y_val = len(val_label)
         if len_y_val > max_label_len:
             max_label_len = len_y_val
-        split_label = lib.get_labels_in_lines(orig_txt=val_label, max_width=17, 
-                                              dojo=True)
+        split_label = lib.get_lbls_in_lines(orig_txt=val_label, max_width=17, 
+                                            dojo=True)
         measure_dets.append((val, val_label, split_label))
         y_vals.append(measure)
-    return {mg.CHART_CHART_BY_LABEL: indiv_label,
+    return {mg.CHART_CHART_BY_LBL: indiv_label,
             mg.CHART_MEASURE_DETS: measure_dets, 
-            mg.CHART_MAX_LABEL_LEN: max_label_len, 
+            mg.CHART_MAX_LBL_LEN: max_label_len, 
             mg.CHART_Y_VALS: y_vals}
 
 def get_single_val_dets(dbe, cur, tbl, tbl_filt,
@@ -226,7 +612,7 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
     if measure == mg.CHART_FREQS:
         """
         Only include values for either fld_chart_by or fld_measure if at least 
-            one non-null value in the other dimension.  If a whole series is 
+            one non-null value in the other dimension. If a whole series is 
             zero, then it won't show. If there is any value in other dim will 
             show that val and zeroes for rest.
         SQL returns something like (grouped by fld_chart_by, fld_measure, with 
@@ -236,7 +622,7 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
                 (1,3,72),
                 (1,4,40),
                 (2,1,13),
-                (2,2,59),
+                (2,2,0),
                 (2,3,200),
                 (2,4,0),]
         """
@@ -245,13 +631,13 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
             WHERE %(fld_chart_by)s IS NOT NULL AND %(fld_measure)s IS NOT NULL
                 %(and_tbl_filt)s
             GROUP BY %(fld_measure)s"""
-        SQL_get_gp_by_vals = u"""SELECT %(fld_chart_by)s
+        SQL_get_chart_by_vals = u"""SELECT %(fld_chart_by)s
             FROM %(tbl)s
             WHERE %(fld_measure)s IS NOT NULL AND %(fld_chart_by)s IS NOT NULL
                 %(and_tbl_filt)s
             GROUP BY %(fld_chart_by)s"""
         SQL_cartesian_join = """SELECT * FROM (%s) AS qrymeasure INNER JOIN 
-            (%s) AS qrygp""" % (SQL_get_measure_vals, SQL_get_gp_by_vals)
+            (%s) AS qrygp""" % (SQL_get_measure_vals, SQL_get_chart_by_vals)
         SQL_group_by = u"""SELECT %(fld_chart_by)s, %(fld_measure)s,
                 COUNT(*) AS freq
             FROM %(tbl)s
@@ -278,8 +664,8 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
             non-null value in the other dimension.  If a whole series is zero, 
             then it won't show. If there is any value in other dim will show 
             that val and zeroes for rest.
-        SQL returns something like (grouped by fld_chart_by, fld_gp_by, with zero 
-            avgs as needed):
+        SQL returns something like (grouped by fld_chart_by, fld_gp_by, with 
+            zero avgs as needed):
         data = [(1,1,56),
                 (1,2,103),
                 (1,3,72),
@@ -289,18 +675,18 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
                 (2,3,200),
                 (2,4,0),]
         """
-        SQL_get_by_vals = u"""SELECT %(fld_gp_by)s
+        SQL_get_gp_by_vals = u"""SELECT %(fld_gp_by)s
             FROM %(tbl)s
             WHERE %(fld_chart_by)s IS NOT NULL AND %(fld_gp_by)s IS NOT NULL
                 %(and_tbl_filt)s
             GROUP BY %(fld_gp_by)s"""
-        SQL_get_gp_by_vals = u"""SELECT %(fld_chart_by)s
+        SQL_get_chart_by_vals = u"""SELECT %(fld_chart_by)s
             FROM %(tbl)s
             WHERE %(fld_gp_by)s IS NOT NULL AND %(fld_chart_by)s IS NOT NULL
                 %(and_tbl_filt)s
             GROUP BY %(fld_chart_by)s"""
         SQL_cartesian_join = """SELECT * FROM (%s) AS qryby INNER JOIN 
-            (%s) AS qrygp""" % (SQL_get_by_vals, SQL_get_gp_by_vals)
+            (%s) AS qrygp""" % (SQL_get_gp_by_vals, SQL_get_chart_by_vals)
         SQL_group_by = u"""SELECT %(fld_chart_by)s, %(fld_gp_by)s,
                 AVG(%(fld_measure)s) AS measure
             FROM %(tbl)s
@@ -339,7 +725,7 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
         if tot_items > MAX_ITEMS:
             raise my_exceptions.TooManyValsInChartSeries(fld_measure, MAX_ITEMS)
         gp_val_label = fld_chart_by_lbls.get(gp_val, unicode(gp_val))
-        series_dic = {mg.CHART_SERIES_LABEL: gp_val_label, 
+        series_dic = {mg.CHART_SERIES_LBL: gp_val_label, 
                       mg.CHART_Y_VALS: measures}
         series_dets.append(series_dic)
     xaxis_dets = []
@@ -349,8 +735,8 @@ def get_grouped_val_dets(chart_type, dbe, cur, tbl, tbl_filt,
         len_y_val = len(val_label)
         if len_y_val > max_label_len:
             max_label_len = len_y_val
-        split_label = lib.get_labels_in_lines(orig_txt=val_label, max_width=17,
-                                              dojo=True)
+        split_label = lib.get_lbls_in_lines(orig_txt=val_label, max_width=17,
+                                            dojo=True)
         xaxis_dets.append((val, val_label, split_label))
     if debug: print(xaxis_dets)
     return xaxis_dets, max_label_len, series_dets
@@ -372,7 +758,7 @@ def get_pie_chart_dets(dbe, cur, tbl, tbl_filt,
     """
     fld_chart_by -- chart by each value
     basic_pie_dets -- list of dicts, one for each indiv pie chart.  Each dict 
-        contains: CHART_CHART_BY_LABEL, CHART_MEASURE_DETS, CHART_MAX_LABEL_LEN, 
+        contains: CHART_CHART_BY_LBL, CHART_MEASURE_DETS, CHART_MAX_LBL_LEN, 
         CHART_Y_VALS.
     """
     debug = False
@@ -387,9 +773,9 @@ def get_pie_chart_dets(dbe, cur, tbl, tbl_filt,
     for basic_pie_det in basic_pie_dets:
         if debug: print(basic_pie_det)
         indiv_pie_dets = {}
-        chart_by_label = basic_pie_det[mg.CHART_CHART_BY_LABEL]
+        chart_by_label = basic_pie_det[mg.CHART_CHART_BY_LBL]
         label_dets = basic_pie_det[mg.CHART_MEASURE_DETS]
-        max_label_len = basic_pie_det[mg.CHART_MAX_LABEL_LEN]
+        max_label_len = basic_pie_det[mg.CHART_MAX_LBL_LEN]
         slice_vals = basic_pie_det[mg.CHART_Y_VALS]
         if len(label_dets) != len(slice_vals):
             raise Exception(u"Mismatch in number of slice labels and slice "
@@ -406,7 +792,7 @@ def get_pie_chart_dets(dbe, cur, tbl, tbl_filt,
                                            round((100.0*slice_val)/tot_freq,1))}
             slice_dets.append(slice_dic)
         indiv_pie_dets[mg.CHART_SLICE_DETS] = slice_dets
-        indiv_pie_dets[mg.CHART_CHART_BY_LABEL] = chart_by_label
+        indiv_pie_dets[mg.CHART_CHART_BY_LBL] = chart_by_label
         # add other details later e.g. label for pie chart
         pie_chart_dets.append(indiv_pie_dets)
     return pie_chart_dets
@@ -456,7 +842,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure,
                                           fld_chart_by_val_lbl)
         else:
             and_fld_chart_by_filt = u""
-            chart_by_label = mg.CHART_CHART_BY_LABEL_ALL
+            chart_by_label = mg.CHART_LBL_SINGLE_CHART
         sql_dic[u"and_fld_chart_by_filt"] = and_fld_chart_by_filt
         SQL_get_vals = u"""SELECT %(fld_measure)s 
             FROM %(tbl)s
@@ -502,7 +888,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure,
         norm_multiplier = sum_yval/(1.0*sum_norm_ys)
         norm_ys = [x*norm_multiplier for x in norm_ys]
         if debug: print(minval, maxval, xaxis_dets, y_vals, bin_labels)
-        histo_dic = {mg.CHART_CHART_BY_LABEL: chart_by_label,
+        histo_dic = {mg.CHART_CHART_BY_LBL: chart_by_label,
                      mg.CHART_XAXIS_DETS: xaxis_dets,
                      mg.CHART_Y_VALS: y_vals,
                      mg.CHART_NORMAL_Y_VALS: norm_ys,
@@ -555,7 +941,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, fld_x_axis, fld_y_axis,
                                           fld_chart_by_val_lbl)
         else:
             and_fld_chart_by_filt = u""
-            chart_by_label = mg.CHART_CHART_BY_LABEL_ALL
+            chart_by_label = mg.CHART_LBL_SINGLE_CHART
         sql_dic[u"and_fld_chart_by_filt"] = and_fld_chart_by_filt
         if unique:
             SQL_get_pairs = u"""SELECT %(fld_x_axis)s, %(fld_y_axis)s
@@ -581,7 +967,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, fld_x_axis, fld_y_axis,
         lst_x = [x[0] for x in data_tups]
         lst_y = [x[1] for x in data_tups]
         if debug: print(chart_by_label)
-        scatterplot_dic = {mg.CHART_CHART_BY_LABEL: chart_by_label,
+        scatterplot_dic = {mg.CHART_CHART_BY_LBL: chart_by_label,
                            mg.LIST_X: lst_x, mg.LIST_Y: lst_y,
                            mg.DATA_TUPS: data_tups,}
         scatterplot_dets.append(scatterplot_dic)
@@ -635,10 +1021,8 @@ def reshape_sql_crosstab_data(raw_data, dp=0):
         print(oth_vals)
     return series_data, oth_vals
 
-def get_barchart_sizings(xaxis_dets, series_dets):
+def get_barchart_sizings(n_clusters, n_bars_in_cluster):
     debug = False
-    n_clusters = len(xaxis_dets)
-    n_bars_in_cluster = len(series_dets)
     minor_ticks = u"false"
     if n_clusters <= 2:
         xfontsize = 10
@@ -775,7 +1159,7 @@ def get_title_dets_html(titles, subtitles, css_idx):
     title_dets_html = u"\n".join(title_dets_html_lst)
     return title_dets_html
 
-def get_label_dets(xaxis_dets, series_dets):
+def get_label_dets(xaxis_dets):
     label_dets = []
     for i, xaxis_det in enumerate(xaxis_dets,1):
         val_label = xaxis_det[2] # the split variant of the label
@@ -803,92 +1187,37 @@ def is_multichart(chart_dets):
         multichart = True
     elif len(chart_dets) == 1:
         # might be only one field group value - still needs indiv chart title
-        multichart = (chart_dets[0][mg.CHART_CHART_BY_LABEL] !=
-                      mg.CHART_CHART_BY_LABEL_ALL) 
+        multichart = (chart_dets[0][mg.CHART_CHART_BY_LBL] !=
+                      mg.CHART_LBL_SINGLE_CHART) 
     else:
         multichart = False
     return multichart
 
-def barchart_output(titles, subtitles, x_title, y_title, barchart_dets, 
-                    inc_perc, css_idx, css_fil, page_break_after):
+def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets, 
+                           inc_perc, css_idx, css_fil, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
-    series_labels -- e.g. ["Age Group", ] if simple bar chart,
-        e.g. ["Male", "Female"] if clustered bar chart.
+    chart_dets --         
+        
+    If chart by, multiple xaxis_dets so we can have sort order by freq etc 
+        which will vary by chart.
+    Each series (possibly only one) has a chart lbl (possibly not used), a
+        legend lbl, and y vals.
+    chart_dets = {mg.CHART_MAX_LBL_LEN: ...,
+                  mg.CHART_SERIES_DETS: see below}
+                  series_dets = [{mg.CHART_LBL: ...,
+                                  mg.CHART_LEGEND_LBL: ..., 
+                                  mg.CHART_MULTICHART: ...,
+                                  mg.CHART_XAXIS_DETS: ...,
+                                  mg.CHART_Y_VALS: ...}]
     var_numeric -- needs to be quoted or not.
     xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
                    (5, "65+")]
     css_idx -- css index so can apply appropriate css styles
     """
     debug = False
-    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                          css_idx)
-    html = []
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    html.append(title_dets_html)
-    multichart = is_multichart(barchart_dets)
-    axis_label_drop = 30 if x_title else 10
-    if multichart:
-        axis_label_drop = axis_label_drop*0.8
-    height = 310 + axis_label_drop # compensate for loss of bar display height
-    inc_perc_js = u"true" if inc_perc else u"false"
-    """
-    For each series, set colour details.
-    For the collection of series as a whole, set the highlight mapping from 
-        each series colour.
-    From dojox.charting.action2d.Highlight but with extraneous % removed
-    """
-    (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
-            gridline_width, stroke_width, tooltip_border_colour, 
-            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
-    outer_bg = u"" if outer_bg == u"" \
-        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
-    for chart_idx, barchart_det in enumerate(barchart_dets):
-        xaxis_dets = barchart_det[mg.CHART_XAXIS_DETS]
-        series_dets = barchart_det[mg.CHART_SERIES_DETS]
-        pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
-        indiv_bar_title = "<p><b>%s</b></p>" % \
-                    barchart_det[mg.CHART_CHART_BY_LABEL] if multichart else u""
-        label_dets = get_label_dets(xaxis_dets, series_dets)
-        single_colour = (len(series_dets) == 1)
-        override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
-                                    and single_colour)
-        colour_cases = setup_highlights(colour_mappings, single_colour, 
-                                        override_first_highlight)
-        xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
-        (width, xgap, xfontsize, minor_ticks, 
-              left_axis_label_shift) = get_barchart_sizings(xaxis_dets, 
-                                                            series_dets)
-        if multichart:
-            width = width*0.8
-            xgap = xgap*0.8
-            xfontsize = xfontsize*0.8
-            left_axis_label_shift = left_axis_label_shift + 20
-        # build js for every series
-        series_js_list = []
-        series_names_list = []
-        if debug: print(series_dets)
-        for i, series_det in enumerate(series_dets):
-            series_names_list.append(u"series%s" % i)
-            series_js_list.append(u"var series%s = new Array();" % i)
-            series_js_list.append(u"            series%s[\"seriesLabel\"] = \"%s\";"
-                                  % (i, series_det[mg.CHART_SERIES_LABEL]))
-            series_js_list.append(u"            series%s[\"yVals\"] = %s;" % 
-                                  (i, series_det[mg.CHART_Y_VALS]))
-            try:
-                fill = colour_mappings[i][0]
-            except IndexError, e:
-                fill = mg.DOJO_COLOURS[i]
-            series_js_list.append(u"            series%s[\"style\"] = "
-                u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\"};"
-                % (i, stroke_width, fill))
-            series_js_list.append(u"")
-        series_js = u"\n            ".join(series_js_list)
-        series_js += u"\n            var series = new Array(%s);" % \
-                                                u", ".join(series_names_list)
-        series_js = series_js.lstrip()
-        html.append(u"""
+    html_tpl = u"""
 <script type="text/javascript">
 
 var sofaHlRenumber%(chart_idx)s = function(colour){
@@ -933,8 +1262,120 @@ makechartRenumber%(chart_idx)s = function(){
     </div>
 <div id="legendMychartRenumber%(chart_idx)s">
     </div>
-</div>
-        """ % {u"colour_cases": colour_cases,
+</div>"""
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                          css_idx)
+    html = []
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    html.append(title_dets_html)
+    multichart = chart_dets[mg.CHART_SERIES_DETS][0][mg.CHART_MULTICHART]
+    axis_label_drop = 30 if x_title else 10
+    if multichart:
+        axis_label_drop = axis_label_drop*0.8
+    height = 310 + axis_label_drop # compensate for loss of bar display height
+    inc_perc_js = u"true" if inc_perc else u"false"
+    """
+    For each series, set colour details.
+    For the collection of series as a whole, set the highlight mapping from 
+        each series colour.
+    From dojox.charting.action2d.Highlight but with extraneous % removed
+    """
+    (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
+            gridline_width, stroke_width, tooltip_border_colour, 
+            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+    try:
+        fill = colour_mappings[0][0]
+    except IndexError, e:
+        fill = mg.DOJO_COLOURS[0]
+    outer_bg = u"" if outer_bg == u"" \
+        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
+    single_colour = True
+    override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
+                                and single_colour)
+    colour_cases = setup_highlights(colour_mappings, single_colour, 
+                                    override_first_highlight)
+    n_bars_in_cluster = 1
+    # always the same number, irrespective of order
+    n_clusters = len(chart_dets[mg.CHART_SERIES_DETS][0][mg.CHART_XAXIS_DETS])
+    (width, xgap, xfontsize, minor_ticks, 
+        left_axis_label_shift) = get_barchart_sizings(n_clusters, 
+                                                      n_bars_in_cluster)
+    if multichart:
+        width = width*0.8
+        xgap = xgap*0.8
+        xfontsize = xfontsize*0.8
+        left_axis_label_shift = left_axis_label_shift + 20
+        for (chart_idx, 
+             series_det) in enumerate(chart_dets[mg.CHART_SERIES_DETS]):
+            xaxis_dets = series_det[mg.CHART_XAXIS_DETS]
+            label_dets = get_label_dets(xaxis_dets)
+            xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
+            pagebreak = u"" if chart_idx % 2 == 0 \
+                            else u"page-break-after: always;"
+            indiv_bar_title = "<p><b>%s</b></p>" % series_det[mg.CHART_LBL]
+            # build js for every series
+            series_js_list = []
+            series_names_list = []
+            if debug: print(series_dets)
+            series_names_list.append(u"series%s" % chart_idx)
+            series_js_list.append(u"var series%s = new Array();" % chart_idx)
+            series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
+                                 % (chart_idx, series_det[mg.CHART_LEGEND_LBL]))
+            series_js_list.append(u"series%s[\"yVals\"] = %s;" % 
+                                  (chart_idx, series_det[mg.CHART_Y_VALS]))
+            series_js_list.append(u"series%s[\"style\"] = "
+                u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\"};"
+                % (chart_idx, stroke_width, fill))
+            series_js_list.append(u"")
+            series_js = u"\n    ".join(series_js_list)
+            series_js += u"\nvar series = new Array(%s);" \
+                         % u", ".join(series_names_list)
+            series_js = series_js.lstrip()
+            html.append(html_tpl % {u"colour_cases": colour_cases,
+                   u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
+                   u"width": width, u"height": height, u"xgap": xgap, 
+                   u"xfontsize": xfontsize, u"indiv_bar_title": indiv_bar_title,
+                   u"axis_label_font_colour": axis_label_font_colour,
+                   u"major_gridline_colour": major_gridline_colour,
+                   u"gridline_width": gridline_width, 
+                   u"axis_label_drop": axis_label_drop,
+                   u"left_axis_label_shift": left_axis_label_shift,
+                   u"x_title": x_title, u"y_title": y_title,
+                   u"tooltip_border_colour": tooltip_border_colour, 
+                   u"inc_perc_js": inc_perc_js, 
+                   u"connector_style": connector_style, 
+                   u"outer_bg": outer_bg,  u"pagebreak": pagebreak,
+                   u"chart_idx": u"%02d" % chart_idx,
+                   u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
+        """
+        zero padding chart_idx so that when we search and replace, and go to 
+            replace Renumber1 with Renumber15, we don't change Renumber16 to 
+            Renumber156 ;-)
+        """
+    else: # not a series of charts but a single series within a chart
+        chart_idx = 0    
+        indiv_bar_title = u""
+        pagebreak = u""
+        # build js for series
+        series_js_lst = []
+        series_det = chart_dets[mg.CHART_SERIES_DETS][0]
+        if debug: print(series_det)
+        xaxis_dets = series_det[mg.CHART_XAXIS_DETS]
+        label_dets = get_label_dets(xaxis_dets)
+        xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
+        series_js_lst.append(u"var series0 = new Array();")
+        series_js_lst.append(u"series0[\"seriesLabel\"] = \"%s\";"
+                             % series_det[mg.CHART_LEGEND_LBL])
+        series_js_lst.append(u"series0[\"yVals\"] = %s;"
+                             % series_det[mg.CHART_Y_VALS])
+        series_js_lst.append(u"series0[\"style\"] = "
+            u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\"};"
+            % (stroke_width, fill))
+        series_js_lst.append(u"var series = new Array(series0);")
+        series_js_lst.append(u"")
+        series_js = u"\n    ".join(series_js_lst)
+        series_js = series_js.lstrip()
+        html.append(html_tpl % {u"colour_cases": colour_cases,
                u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
                u"width": width, u"height": height, u"xgap": xgap, 
                u"xfontsize": xfontsize, u"indiv_bar_title": indiv_bar_title,
@@ -949,10 +1390,150 @@ makechartRenumber%(chart_idx)s = function(){
                u"outer_bg": outer_bg,  u"pagebreak": pagebreak,
                u"chart_idx": u"%02d" % chart_idx,
                u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
+    html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
+    if page_break_after:
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
+    return u"".join(html)
+
+def clustered_barchart_output(titles, subtitles, x_title, y_title, chart_dets, 
+                              inc_perc, css_idx, css_fil, page_break_after):
     """
-    zero padding chart_idx so that when we search and replace, and go to replace 
-        Renumber1 with Renumber15, we don't change Renumber16 to Renumber156 ;-)
+    titles -- list of title lines correct styles
+    subtitles -- list of subtitle lines
+    chart_dets --         
+        
+    Even though one xaxis_dets per series, only one is needed for a clustered
+        bar chart ad it will fit all series.
+    Each series (possibly only one) has a chart lbl (possibly not used), a
+        legend lbl, xaxis_dets, and y vals.
+    chart_dets = {mg.CHART_MAX_LBL_LEN: ...,
+                  mg.CHART_SERIES_DETS: see below}
+                  series_dets = [{mg.CHART_LBL: ...,
+                                  mg.CHART_LEGEND_LBL: ..., 
+                                  mg.CHART_MULTICHART: ...,
+                                  mg.CHART_XAXIS_DETS: ...,
+                                  mg.CHART_Y_VALS: ...}]
+    var_numeric -- needs to be quoted or not.
+    xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
+                   (5, "65+")]
+    css_idx -- css index so can apply appropriate css styles
     """
+    debug = False
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
+    html = []
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    html.append(title_dets_html)
+    multichart = False
+    axis_label_drop = 30 if x_title else 10
+    height = 310 + axis_label_drop # compensate for loss of bar display height
+    inc_perc_js = u"true" if inc_perc else u"false"
+    """
+    For each series, set colour details.
+    For the collection of series as a whole, set the highlight mapping from 
+        each series colour.
+    From dojox.charting.action2d.Highlight but with extraneous % removed
+    """
+    (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
+            gridline_width, stroke_width, tooltip_border_colour, 
+            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+    outer_bg = u"" if outer_bg == u"" \
+        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
+    xaxis_dets = chart_dets[mg.CHART_SERIES_DETS][0][mg.CHART_XAXIS_DETS]
+    label_dets = get_label_dets(xaxis_dets)
+    xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
+    series_dets = chart_dets[mg.CHART_SERIES_DETS]
+    n_bars_in_cluster = len(series_dets)
+    n_clusters = len(xaxis_dets)
+    (width, xgap, xfontsize, minor_ticks, 
+     left_axis_label_shift) = get_barchart_sizings(n_clusters, 
+                                                   n_bars_in_cluster)
+    single_colour = (len(series_dets) == 1)
+    override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
+                                and single_colour)
+    colour_cases = setup_highlights(colour_mappings, single_colour, 
+                                    override_first_highlight)
+    series_js_list = []
+    series_names_list = []
+    if debug: print(series_dets)
+    for i, series_det in enumerate(series_dets):
+        series_names_list.append(u"series%s" % i)
+        series_js_list.append(u"var series%s = new Array();" % i)
+        series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
+                              % (i, series_det[mg.CHART_LEGEND_LBL]))
+        series_js_list.append(u"series%s[\"yVals\"] = %s;" % 
+                              (i, series_det[mg.CHART_Y_VALS]))
+        try:
+            fill = colour_mappings[i][0]
+        except IndexError, e:
+            fill = mg.DOJO_COLOURS[i]
+        series_js_list.append(u"series%s[\"style\"] = "
+            u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\"};"
+            % (i, stroke_width, fill))
+        series_js_list.append(u"")
+    series_js = u"\n    ".join(series_js_list)
+    series_js += u"\n    var series = new Array(%s);" % \
+                                            u", ".join(series_names_list)
+    series_js = series_js.lstrip()
+    html.append(u"""
+<script type="text/javascript">
+
+var sofaHlRenumber00 = function(colour){
+    var hlColour;
+    switch (colour.toHex()){
+        %(colour_cases)s
+        default:
+            hlColour = hl(colour.toHex());
+            break;
+    }
+    return new dojox.color.Color(hlColour);
+}
+
+makechartRenumber00 = function(){
+    %(series_js)s
+    var chartconf = new Array();
+    chartconf["xaxisLabels"] = %(xaxis_labels)s;
+    chartconf["xgap"] = %(xgap)s;
+    chartconf["xfontsize"] = %(xfontsize)s;
+    chartconf["sofaHl"] = sofaHlRenumber00;
+    chartconf["gridlineWidth"] = %(gridline_width)s;
+    chartconf["gridBg"] = \"%(grid_bg)s\";
+    chartconf["minorTicks"] = %(minor_ticks)s;
+    chartconf["axisLabelFontColour"] = \"%(axis_label_font_colour)s\";
+    chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
+    chartconf["xTitle"] = \"%(x_title)s\";
+    chartconf["axisLabelDrop"] = %(axis_label_drop)s;
+    chartconf["leftAxisLabelShift"] = %(left_axis_label_shift)s;
+    chartconf["yTitle"] = \"%(y_title)s\";
+    chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+    chartconf["incPerc"] = %(inc_perc_js)s;
+    chartconf["connectorStyle"] = \"%(connector_style)s\";
+    %(outer_bg)s
+    makeBarChart("mychartRenumber00", series, chartconf);
+}
+</script>
+
+<div class="screen-float-only" style="margin-right: 10px; ">
+<div id="mychartRenumber00" 
+    style="width: %(width)spx; height: %(height)spx;">
+    </div>
+<div id="legendMychartRenumber00">
+    </div>
+</div>""" % {u"colour_cases": colour_cases,
+             u"series_js": series_js, u"xaxis_labels": xaxis_labels, 
+             u"width": width, u"height": height, u"xgap": xgap, 
+             u"xfontsize": xfontsize,
+             u"axis_label_font_colour": axis_label_font_colour,
+             u"major_gridline_colour": major_gridline_colour,
+             u"gridline_width": gridline_width, 
+             u"axis_label_drop": axis_label_drop,
+             u"left_axis_label_shift": left_axis_label_shift,
+             u"x_title": x_title, u"y_title": y_title,
+             u"tooltip_border_colour": tooltip_border_colour, 
+             u"inc_perc_js": inc_perc_js, u"connector_style": connector_style, 
+             u"outer_bg": outer_bg,
+             u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -1002,7 +1583,7 @@ def piechart_output(titles, subtitles, pie_chart_dets, css_fil, css_idx,
         slices_js = u"slices = [" + (u",\n" + u" "*4*4).join(slices_js_list) + \
                     u"\n];"
         indiv_pie_title = "<p><b>%s</b></p>" % \
-                   pie_chart_det[mg.CHART_CHART_BY_LABEL] if multichart else u""
+                   pie_chart_det[mg.CHART_CHART_BY_LBL] if multichart else u""
         html.append(u"""
 <script type="text/javascript">
 makechartRenumber%(chart_idx)s = function(){
@@ -1121,7 +1702,7 @@ def linechart_output(titles, subtitles, x_title, y_title, xaxis_dets,
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     # For multiple, don't split label if the mid tick (clash with x axis label)
-    label_dets = get_label_dets(xaxis_dets, series_dets)
+    label_dets = get_label_dets(xaxis_dets)
     xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
     axis_label_drop = 30 if x_title else -10
     height = 310 + axis_label_drop # compensate for loss of bar display height                           
@@ -1167,7 +1748,7 @@ def linechart_output(titles, subtitles, x_title, y_title, xaxis_dets,
         series_names_list.append(u"series%s" % i)
         series_js_list.append(u"var series%s = new Array();" % i)
         series_js_list.append(u"            series%s[\"seriesLabel\"] = \"%s\";"
-                              % (i, series_det[mg.CHART_SERIES_LABEL]))
+                              % (i, series_det[mg.CHART_SERIES_LBL]))
         series_js_list.append(u"            series%s[\"yVals\"] = %s;" % 
                               (i, series_det[mg.CHART_Y_VALS]))
         try:
@@ -1277,10 +1858,10 @@ def areachart_output(titles, subtitles, y_title, chart_dets, inc_perc,
     for chart_idx, areachart_det in enumerate(chart_dets):
         xaxis_dets = areachart_det[mg.CHART_XAXIS_DETS]
         series_dets = areachart_det[mg.CHART_SERIES_DETS]
-        max_label_len = areachart_det[mg.CHART_MAX_LABEL_LEN]
+        max_label_len = areachart_det[mg.CHART_MAX_LBL_LEN]
         pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
         indiv_area_title = "<p><b>%s</b></p>" % \
-                areachart_det[mg.CHART_CHART_BY_LABEL] if multichart else u""
+                areachart_det[mg.CHART_CHART_BY_LBL] if multichart else u""
         xaxis_labels = u"[" + \
             u",\n            ".join([u"{value: %s, text: %s}" % (i, x[2]) 
                                     for i,x in enumerate(xaxis_dets,1)]) + u"]"
@@ -1301,7 +1882,7 @@ def areachart_output(titles, subtitles, y_title, chart_dets, inc_perc,
             series_js_list.append(u"var series%s = new Array();" % i)
             series_js_list.append(u"            "
                                   u"series%s[\"seriesLabel\"] = \"%s\";"
-                                  % (i, series_det[mg.CHART_SERIES_LABEL]))
+                                  % (i, series_det[mg.CHART_SERIES_LBL]))
             series_js_list.append(u"            series%s[\"yVals\"] = %s;" % 
                                   (i, series_det[mg.CHART_Y_VALS]))
             try:
@@ -1410,7 +1991,7 @@ def histogram_output(titles, subtitles, var_label, histo_dets, inc_normal,
         bin_labels = histo_det[mg.CHART_BIN_LABELS]
         pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
         indiv_histo_title = "<p><b>%s</b></p>" % \
-                histo_det[mg.CHART_CHART_BY_LABEL] if multichart else u""        
+                histo_det[mg.CHART_CHART_BY_LBL] if multichart else u""        
         xaxis_labels = u"[" + \
             u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
                                     for i,x in enumerate(xaxis_dets,1)]) + u"]"
@@ -1661,7 +2242,7 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
     multichart = (len(scatterplot_dets) > 1)
     use_mpl = use_mpl_scatterplots(scatterplot_dets)
     for chart_idx, indiv_data in enumerate(scatterplot_dets):
-        chart_by_lbl = indiv_data[mg.CHART_CHART_BY_LABEL]
+        chart_by_lbl = indiv_data[mg.CHART_CHART_BY_LBL]
         data_tups = indiv_data[mg.DATA_TUPS]
         list_x = indiv_data[mg.LIST_X]
         list_y = indiv_data[mg.LIST_Y]
@@ -1688,7 +2269,7 @@ def boxplot_output(titles, subtitles, x_title, y_title, xaxis_dets,
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
     xaxis_dets -- [(0, "", ""), (1, "Under 20", ...] NB blanks either end
-    series_dets -- [{mg.CHART_SERIES_LABEL: "Girls", 
+    series_dets -- [{mg.CHART_SERIES_LBL: "Girls", 
         mg.CHART_BOXDETS: [{mg.CHART_BOXPLOT_DISPLAY: True, 
                                 mg.CHART_BOXPLOT_LWHISKER: 1.7, 
                                 mg.CHART_BOXPLOT_LBOX: 3.2, ...}, 
@@ -1706,7 +2287,7 @@ def boxplot_output(titles, subtitles, x_title, y_title, xaxis_dets,
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     # For multiple, don't split label if the mid tick (clash with x axis label)
-    label_dets = get_label_dets(xaxis_dets, series_dets)
+    label_dets = get_label_dets(xaxis_dets)
     label_dets.insert(0, u"""{value: 0, text: ""}""")
     label_dets.append(u"""{value: %s, text: ""}""" % len(label_dets))
     xaxis_labels = u"[" + u",\n            ".join(label_dets) + u"]"
@@ -1786,7 +2367,7 @@ def boxplot_output(titles, subtitles, x_title, y_title, xaxis_dets,
              u"seriesStyle: {stroke: {color: strokecol%(series_idx)s, "
              u"width: \"1px\"}, fill: fillcol%(series_idx)s}};"
              % {u"series_idx": series_idx, 
-                u"series_label": series_det[mg.CHART_SERIES_LABEL]})
+                u"series_label": series_det[mg.CHART_SERIES_LBL]})
         series_js.append(u"    var series%(series_idx)s = [" 
                       % {u"series_idx": series_idx})
         offset = offsets[series_idx]

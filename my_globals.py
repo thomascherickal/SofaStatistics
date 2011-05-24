@@ -473,17 +473,23 @@ DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred',
     'blueviolet', 'azure', 'lightsteelblue', 'oldlace']
 LABEL_LINE_BREAK_JS = """var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";"""
 CHART_MAX_CHARTS_IN_SET = 16
-CHART_CHART_BY_LABEL = u"chart_by_label"
-CHART_CHART_BY_LABEL_ALL = u"chart_by_label_all"
+CHART_CHART_BY_LBL = u"chart_by_lbl"
+
+
+CHART_LBL = u"Chart lbl"
+CHART_LEGEND_LBL = u"Legend lbl"
+
+CHART_LBL_SINGLE_CHART = u"Single chart only"
 CHART_VAL_MEASURES = u"chart_val_measures" # e.g. freqs or avgs
 CHART_MEASURE_DETS = u"measure_dets"
-CHART_MAX_LABEL_LEN = u"max_label_len"
+CHART_MAX_LBL_LEN = u"max_lbl_len"
 CHART_Y_VALS = u"y_vals"
 CHART_NORMAL_Y_VALS = u"normal_y_vals"
 CHART_SLICE_DETS = u"slice_dets"
 CHART_XAXIS_DETS = u"xaxis_dets"
 CHART_SERIES_DETS = u"series_dets"
-CHART_SERIES_LABEL = u"series_label"
+CHART_SERIES_LBL = u"series_label"
+CHART_MULTICHART = u"multichart"
 CHART_BOXDETS = u"boxdets"
 CHART_BOXPLOT_WIDTH = 0.25
 CHART_BOXPLOT_DISPLAY = u"boxplot_display"

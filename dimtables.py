@@ -640,7 +640,8 @@ class LiveTable(DimTable):
             val_tup = (val, val_freq, val_label)
             if debug: print(val_tup)
             val_freq_label_lst.append(val_tup)
-        lib.sort_value_labels(tree_dims_node.sort_order, val_freq_label_lst)
+        lib.sort_value_labels(tree_dims_node.sort_order, val_freq_label_lst, 
+                              idx_measure=1, idx_lbl=2)
         # A total cell should be added, or not, after this stage.
         return val_freq_label_lst
 
