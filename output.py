@@ -366,7 +366,7 @@ makefaint = function(colour){
     }
 -->
 </style>""" % {u"make_objs_func_str": make_objs_func_str,
-               u"label_line_break_js": mg.LABEL_LINE_BREAK_JS,
+               u"label_line_break_js": mg.LBL_LINE_BREAK_JS,
                u"dojo_js_source": dojo_js_source}
     else:
         dojo_insert = u""

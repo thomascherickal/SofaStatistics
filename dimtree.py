@@ -762,14 +762,14 @@ class DlgRowConfig(DlgConfig):
         title = _("Configure Row Item")
         if inc_measures:
             self.measures = [
-                        (mg.MEAN, mg.measures_long_label_dic[mg.MEAN]), 
-                        (mg.MEDIAN, mg.measures_long_label_dic[mg.MEDIAN]), 
-                        (mg.SUMM_N, mg.measures_long_label_dic[mg.SUMM_N]), 
-                        (mg.STD_DEV, mg.measures_long_label_dic[mg.STD_DEV]),
-                        (mg.SUM, mg.measures_long_label_dic[mg.SUM]),
-                        (mg.MIN, mg.measures_long_label_dic[mg.MIN]),
-                        (mg.MAX, mg.measures_long_label_dic[mg.MAX]),
-                        (mg.RANGE, mg.measures_long_label_dic[mg.RANGE]),
+                        (mg.MEAN, mg.measures_long_lbl_dic[mg.MEAN]), 
+                        (mg.MEDIAN, mg.measures_long_lbl_dic[mg.MEDIAN]), 
+                        (mg.SUMM_N, mg.measures_long_lbl_dic[mg.SUMM_N]), 
+                        (mg.STD_DEV, mg.measures_long_lbl_dic[mg.STD_DEV]),
+                        (mg.SUM, mg.measures_long_lbl_dic[mg.SUM]),
+                        (mg.MIN, mg.measures_long_lbl_dic[mg.MIN]),
+                        (mg.MAX, mg.measures_long_lbl_dic[mg.MAX]),
+                        (mg.RANGE, mg.measures_long_lbl_dic[mg.RANGE]),
                         ]
         else:
             self.measures = []
@@ -787,12 +787,12 @@ class DlgColConfig(DlgConfig):
         title = _("Configure Column Item")
         if inc_measures:
             self.measures = [
-                (mg.FREQ, mg.measures_long_label_dic[mg.FREQ]), 
-                (mg.COLPCT, mg.measures_long_label_dic[mg.COLPCT])
+                (mg.FREQ, mg.measures_long_lbl_dic[mg.FREQ]), 
+                (mg.COLPCT, mg.measures_long_lbl_dic[mg.COLPCT])
                 ]
             if has_col_vars:
                 self.measures.append((mg.ROWPCT, 
-                                      mg.measures_long_label_dic[mg.ROWPCT]))
+                                      mg.measures_long_lbl_dic[mg.ROWPCT]))
         else:
             self.measures = []
         size = wx.DefaultSize

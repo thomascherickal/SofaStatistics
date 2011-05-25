@@ -54,14 +54,14 @@ else:
             
             def back2forwards_slashes(self, mystr):
                 """
-                But not LABEL_LINE_BREAK_JS.  Don't turn \n in JS to /n!
+                But not LBL_LINE_BREAK_JS.  Don't turn \n in JS to /n!
                 """
                 debug = False
-                safe_str = mystr.replace(mg.LABEL_LINE_BREAK_JS, 
+                safe_str = mystr.replace(mg.LBL_LINE_BREAK_JS, 
                                          u"<label_line_break>")
                 new_str = safe_str.replace("\\", "/")
                 final_str = new_str.replace(u"<label_line_break>", 
-                                            mg.LABEL_LINE_BREAK_JS)
+                                            mg.LBL_LINE_BREAK_JS)
                 if debug: print(final_str)
                 return final_str
             

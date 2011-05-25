@@ -26,7 +26,7 @@ PYTHON_ENCODING_DECLARATION = u"#! /usr/bin/env python" + os.linesep + \
     u"# -*- coding: utf-8 -*-" + os.linesep
 DROP_SELECT = _("Nothing selected")
 # core stats *********************************************************
-STATS_DIC_LABEL = u"label"
+STATS_DIC_LBL = u"label"
 STATS_DIC_N = u"n"
 STATS_DIC_MEDIAN = u"median"
 STATS_DIC_MEAN = u"mean"
@@ -54,10 +54,10 @@ ROWDIM = _("row") #double as labels
 COLDIM = _("column")
 # actual options selected ...
 SORT_NONE = _(u"None") # double as labels
-SORT_LABEL = _(u"By Label")
+SORT_LBL = _(u"By Label")
 SORT_INCREASING = _(u"Increasing")
 SORT_DECREASING = _(u"Decreasing")
-SORT_OPTS = [SORT_NONE, SORT_LABEL, SORT_INCREASING, SORT_DECREASING]
+SORT_OPTS = [SORT_NONE, SORT_LBL, SORT_INCREASING, SORT_DECREASING]
 # can use content of constant as a short label
 FREQ = _("Freq")
 ROWPCT = _("Row %")
@@ -70,18 +70,18 @@ STD_DEV = _("Std Dev")
 MIN = _("Min")
 MAX = _("Max")
 RANGE = _("Range")
-measures_long_label_dic = {FREQ: _("Frequency"), 
-                           ROWPCT: _("Row %"),
-                           COLPCT: _("Column %"),
-                           SUM: _("Sum"), 
-                           MEAN: _("Mean"),
-                           MEDIAN: _("Median"), 
-                           SUMM_N: "N",
-                           STD_DEV: _("Standard Deviation"),
-                           MIN: _("Minimum"),
-                           MAX: _("Maximum"),
-                           RANGE: _("Range"),
-                           }
+measures_long_lbl_dic = {FREQ: _("Frequency"), 
+                         ROWPCT: _("Row %"),
+                         COLPCT: _("Column %"),
+                         SUM: _("Sum"), 
+                         MEAN: _("Mean"),
+                         MEDIAN: _("Median"), 
+                         SUMM_N: "N",
+                         STD_DEV: _("Standard Deviation"),
+                         MIN: _("Minimum"),
+                         MAX: _("Maximum"),
+                         RANGE: _("Range"),
+                         }
 # content of constant and constant (ready to include in exported script)
 # e.g. "dimtables.%s" "ROWPCT"
 script_export_measures_dic = {FREQ: u"FREQ", 
@@ -405,7 +405,7 @@ CHART_BY = _("By")
 CHART_CHART_BY = _("Charts By")
 CHART_SERIES_BY = _("Series By")
 CHART_AVERAGED = _("Averaged")
-Y_AXIS_FREQ_LABEL = _("Frequency")
+Y_AXIS_FREQ_LBL = _("Frequency")
 # charts
 FLD_MEASURE = u"fld_measure"
 FLD_GROUP_BY = u"fld_gp_by"
@@ -432,7 +432,7 @@ CHART_TYPE_TO_MIN_DATA_TYPES = {SIMPLE_BARCHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
                                HISTOGRAM: (VAR_TYPE_QUANT, VAR_TYPE_CAT),
                                SCATTERPLOT: (VAR_TYPE_ORD, VAR_TYPE_ORD),
                                BOXPLOT: (VAR_TYPE_QUANT, VAR_TYPE_CAT),}
-CHART_TYPE_TO_LABELS = {SIMPLE_BARCHART: (CHART_VALUES, CHART_CHART_BY, None),
+CHART_TYPE_TO_LBLS = {SIMPLE_BARCHART: (CHART_VALUES, CHART_CHART_BY, None),
                 CLUSTERED_BARCHART: (CHART_VALUES, CHART_BY, CHART_CHART_BY),
                 PIE_CHART: (CHART_VALUES, CHART_CHART_BY, None),
                 LINE_CHART: (CHART_VALUES, CHART_BY, CHART_CHART_BY),
@@ -442,9 +442,8 @@ CHART_TYPE_TO_LABELS = {SIMPLE_BARCHART: (CHART_VALUES, CHART_CHART_BY, None),
                 BOXPLOT: (CHART_DESCRIBED, CHART_BY, CHART_SERIES_BY),
                 }
 THREE_VAR_CHART_TYPES = [SCATTERPLOT, BOXPLOT]
-AVG_OPTION_CHART_TYPES = [SIMPLE_BARCHART, CLUSTERED_BARCHART, LINE_CHART, 
-                          AREA_CHART,]
-AVG_HAS_NO_CHART_BY_CHART_TYPES = [CLUSTERED_BARCHART, LINE_CHART,]
+HAS_AVG_OPTION = [SIMPLE_BARCHART, CLUSTERED_BARCHART, LINE_CHART, AREA_CHART,]
+NO_CHART_BY = [CLUSTERED_BARCHART, LINE_CHART,]
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
     'lightcoral', 'orangered', 'navajowhite', 'slategray', 'palegreen', 
@@ -471,7 +470,7 @@ DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred',
     'lightyellow', 'lavenderblush', 'coral', 'lightgrey', 'whitesmoke', 
     'mediumslateblue', 'darkorange', 'mediumaquamarine', 'darksalmon', 'beige', 
     'blueviolet', 'azure', 'lightsteelblue', 'oldlace']
-LABEL_LINE_BREAK_JS = """var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";"""
+LBL_LINE_BREAK_JS = """var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";"""
 CHART_MAX_CHARTS_IN_SET = 16
 CHART_CHART_BY_LBL = u"chart_by_lbl"
 
@@ -501,7 +500,7 @@ CHART_BOXPLOT_UWHISKER = u"uwhisker"
 CHART_BOXPLOT_OUTLIERS = u"outliers"
 CHART_MINVAL = u"minval"
 CHART_MAXVAL = u"maxval"
-CHART_BIN_LABELS = u"bin_labels"
+CHART_BIN_LBLS = u"bin_labels"
 MIN_HISTO_VALS = 5
 MAX_POINTS_DOJO_SCATTERPLOT = 1000
 SAMPLE_A = u"sample_a"

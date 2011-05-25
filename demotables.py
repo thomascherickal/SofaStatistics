@@ -242,7 +242,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                     if i > 1:
                         break
                     subitems_lst.append(val_label)
-                if item_conf.sort_order == mg.SORT_LABEL:
+                if item_conf.sort_order == mg.SORT_LBL:
                     subitems_lst.sort()
                 i = len(subitems_lst) + 1 # so first filler is Val 2 if first 
                 # value already filled

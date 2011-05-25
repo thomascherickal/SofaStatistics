@@ -366,7 +366,7 @@ def anova_orig(lst_samples, lst_labels, high=False):
     for i in range(a):
         sample = lst_samples[i]
         label = lst_labels[i]
-        dics.append({mg.STATS_DIC_LABEL: label, 
+        dics.append({mg.STATS_DIC_LBL: label, 
                      mg.STATS_DIC_N: n, 
                      mg.STATS_DIC_MEAN: mean(sample), 
                      mg.STATS_DIC_SD: stdev(sample), 
@@ -406,7 +406,7 @@ def anova(samples, labels, high=True):
     for i in range(n_samples):
         sample = samples[i]
         label = labels[i]
-        dics.append({mg.STATS_DIC_LABEL: label, 
+        dics.append({mg.STATS_DIC_LBL: label, 
                      mg.STATS_DIC_N: sample_ns[i], 
                      mg.STATS_DIC_MEAN: mean(sample, high), 
                      mg.STATS_DIC_SD: stdev(sample, high), 
@@ -495,7 +495,7 @@ def get_summary_dics(samples, labels, quant=False):
     """
     dics = []
     for i, sample in enumerate(samples):
-        dic = {mg.STATS_DIC_LABEL: labels[i],
+        dic = {mg.STATS_DIC_LBL: labels[i],
                mg.STATS_DIC_N: len(sample),
                mg.STATS_DIC_MEDIAN: np.median(sample),
                mg.STATS_DIC_MIN: min(sample),
@@ -581,10 +581,10 @@ def ttest_ind(sample_a, sample_b, label_a, label_b, use_orig_var=False):
     min_b = min(sample_b)
     max_a = max(sample_a)
     max_b = max(sample_b)
-    dic_a = {mg.STATS_DIC_LABEL: label_a, mg.STATS_DIC_N: n_a, 
+    dic_a = {mg.STATS_DIC_LBL: label_a, mg.STATS_DIC_N: n_a, 
              mg.STATS_DIC_MEAN: mean_a, mg.STATS_DIC_SD: sd_a, 
              mg.STATS_DIC_MIN: min_a, mg.STATS_DIC_MAX: max_a}
-    dic_b = {mg.STATS_DIC_LABEL: label_b, mg.STATS_DIC_N: n_b, 
+    dic_b = {mg.STATS_DIC_LBL: label_b, mg.STATS_DIC_N: n_b, 
              mg.STATS_DIC_MEAN: mean_b, mg.STATS_DIC_SD: sd_b, 
              mg.STATS_DIC_MIN: min_b, mg.STATS_DIC_MAX: max_b}
     return t, p, dic_a, dic_b, df
@@ -626,10 +626,10 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     max_b = max(sample_b)
     sd_a = math.sqrt(var_a)
     sd_b = math.sqrt(var_b)
-    dic_a = {mg.STATS_DIC_LABEL: label_a, mg.STATS_DIC_N: n, 
+    dic_a = {mg.STATS_DIC_LBL: label_a, mg.STATS_DIC_N: n, 
              mg.STATS_DIC_MEAN: mean_a, mg.STATS_DIC_SD: sd_a, 
              mg.STATS_DIC_MIN: min_a, mg.STATS_DIC_MAX: max_a}
-    dic_b = {mg.STATS_DIC_LABEL: label_b, mg.STATS_DIC_N: n, 
+    dic_b = {mg.STATS_DIC_LBL: label_b, mg.STATS_DIC_N: n, 
              mg.STATS_DIC_MEAN: mean_b, mg.STATS_DIC_SD: sd_b, 
              mg.STATS_DIC_MIN: min_b, mg.STATS_DIC_MAX: max_b}
     return t, p, dic_a, dic_b, df, diffs
@@ -672,11 +672,11 @@ def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     min_b = min(sample_b)
     max_a = max(sample_a)
     max_b = max(sample_b)
-    dic_a = {mg.STATS_DIC_LABEL: label_a, mg.STATS_DIC_N: n_a, 
+    dic_a = {mg.STATS_DIC_LBL: label_a, mg.STATS_DIC_N: n_a, 
              "avg rank": avg_rank_a, 
              mg.STATS_DIC_MEDIAN: np.median(sample_a), 
              mg.STATS_DIC_MIN: min_a, mg.STATS_DIC_MAX: max_a}
-    dic_b = {mg.STATS_DIC_LABEL: label_b, mg.STATS_DIC_N: n_b, 
+    dic_b = {mg.STATS_DIC_LBL: label_b, mg.STATS_DIC_N: n_b, 
              "avg rank": avg_rank_b,
              mg.STATS_DIC_MEDIAN: np.median(sample_b),  
              mg.STATS_DIC_MIN: min_b, 
@@ -725,10 +725,10 @@ def wilcoxont(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     min_b = min(sample_b)
     max_a = max(sample_a)
     max_b = max(sample_b)
-    dic_a = {mg.STATS_DIC_LABEL: label_a, mg.STATS_DIC_N: n,  
+    dic_a = {mg.STATS_DIC_LBL: label_a, mg.STATS_DIC_N: n,  
              mg.STATS_DIC_MEDIAN: np.median(sample_a), 
              mg.STATS_DIC_MIN: min_a, mg.STATS_DIC_MAX: max_a}
-    dic_b = {mg.STATS_DIC_LABEL: label_b, mg.STATS_DIC_N: n,
+    dic_b = {mg.STATS_DIC_LBL: label_b, mg.STATS_DIC_N: n,
              mg.STATS_DIC_MEDIAN: np.median(sample_b),  
              mg.STATS_DIC_MIN: min_b, 
              mg.STATS_DIC_MAX: max_b}

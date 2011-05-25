@@ -165,12 +165,12 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
     if indep:
         html.append(_("<h2>Results of Independent Samples t-test "
             "of average \"%(avg)s\" for \"%(a)s\" vs \"%(b)s\"</h2>") % \
-            {"avg": label_avg, "a": dic_a[mg.STATS_DIC_LABEL], 
-             "b": dic_b[mg.STATS_DIC_LABEL]})
+            {"avg": label_avg, "a": dic_a[mg.STATS_DIC_LBL], 
+             "b": dic_b[mg.STATS_DIC_LBL]})
     else:
         html.append(_("<h2>Results of Paired Samples t-test "
             "of \"%(a)s\" vs \"%(b)s\"</h2>") % 
-            {"a": dic_a[mg.STATS_DIC_LABEL], "b": dic_b[mg.STATS_DIC_LABEL]})
+            {"a": dic_a[mg.STATS_DIC_LBL], "b": dic_b[mg.STATS_DIC_LBL]})
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
@@ -338,8 +338,8 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0,
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     html = []
     footnotes = []
-    label_a = dic_a[mg.STATS_DIC_LABEL]
-    label_b = dic_b[mg.STATS_DIC_LABEL]
+    label_a = dic_a[mg.STATS_DIC_LBL]
+    label_b = dic_b[mg.STATS_DIC_LBL]
     n_a = dic_a[mg.STATS_DIC_N]
     n_b = dic_b[mg.STATS_DIC_N]
     html.append(_("<h2>Results of Mann Whitney U Test of \"%(ranked)s\" for "
@@ -384,7 +384,7 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0,
     row_tpl = u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" + \
         u"<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
     for dic in [dic_a, dic_b]:
-        html.append(row_tpl % (dic[mg.STATS_DIC_LABEL], 
+        html.append(row_tpl % (dic[mg.STATS_DIC_LBL], 
                                dic[mg.STATS_DIC_N], 
                                round(dic[mg.STATS_DIC_MEDIAN], dp), 
                                round(dic["avg rank"], dp),
@@ -407,8 +407,8 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3,
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     html = []
     footnotes = []
-    label_a = dic_a[mg.STATS_DIC_LABEL]
-    label_b = dic_b[mg.STATS_DIC_LABEL]
+    label_a = dic_a[mg.STATS_DIC_LBL]
+    label_b = dic_b[mg.STATS_DIC_LBL]
     html.append(_("<h2>Results of Wilcoxon Signed Ranks Test of \"%(a)s\" vs "
                   "\"%(b)s\"</h2>") % {"a": label_a, "b": label_b})
     # always footnote 1 (so can hardwire anchor)
@@ -430,7 +430,7 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3,
     row_tpl = u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" + \
         u"<td>%s</td><td>%s</td><td>%s</td></tr>"
     for dic in [dic_a, dic_b]:
-        html.append(row_tpl % (dic[mg.STATS_DIC_LABEL], 
+        html.append(row_tpl % (dic[mg.STATS_DIC_LBL], 
                                dic[mg.STATS_DIC_N], 
                                round(dic[mg.STATS_DIC_MEDIAN], dp), 
                                dic[mg.STATS_DIC_MIN], 
@@ -738,7 +738,7 @@ def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil,
     row_tpl = u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" + \
         u"<td>%s</td><td>%s</td><td>%s</td></tr>"
     for dic in dics:
-        html.append(row_tpl % (dic[mg.STATS_DIC_LABEL], 
+        html.append(row_tpl % (dic[mg.STATS_DIC_LBL], 
                                dic[mg.STATS_DIC_N], 
                                round(dic[mg.STATS_DIC_MEDIAN], dp),
                                dic[mg.STATS_DIC_MIN], 

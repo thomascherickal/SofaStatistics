@@ -74,7 +74,7 @@ class DimNode(tree.Node):
     labels - a dictionary of labels e.g. {"1": "Male", "2": "Female"}
     measures - e.g. FREQ
     has_tot - boolean
-    sort_order - mg.SORT_NONE, mg.SORT_LABEL, mg.SORT_INCREASING, 
+    sort_order - mg.SORT_NONE, mg.SORT_LBL, mg.SORT_INCREASING, 
         mg.SORT_DECREASING
     bolnumeric - so can set up filters correctly e.g. gender = "1" or 
         gender = 1 as appropriate
@@ -640,8 +640,8 @@ class LiveTable(DimTable):
             val_tup = (val, val_freq, val_label)
             if debug: print(val_tup)
             val_freq_label_lst.append(val_tup)
-        lib.sort_value_labels(tree_dims_node.sort_order, val_freq_label_lst, 
-                              idx_measure=1, idx_lbl=2)
+        lib.sort_value_lbls(tree_dims_node.sort_order, val_freq_label_lst, 
+                            idx_measure=1, idx_lbl=2)
         # A total cell should be added, or not, after this stage.
         return val_freq_label_lst
 

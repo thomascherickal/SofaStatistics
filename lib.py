@@ -101,7 +101,7 @@ def get_unique_db_name_key(db_names, db_name):
     db_names.append(db_name)
     return db_name_key
 
-def sort_value_labels(sort_order, vals_etc_lst, idx_measure, idx_lbl):
+def sort_value_lbls(sort_order, vals_etc_lst, idx_measure, idx_lbl):
     """
     In-place sort value labels list according to sort option selected.
     http://www.python.org/dev/peps/pep-0265/
@@ -110,7 +110,7 @@ def sort_value_labels(sort_order, vals_etc_lst, idx_measure, idx_lbl):
         vals_etc_lst.sort(key=itemgetter(idx_measure))
     elif sort_order == mg.SORT_DECREASING:
         vals_etc_lst.sort(key=itemgetter(idx_measure), reverse=True)
-    elif sort_order == mg.SORT_LABEL:
+    elif sort_order == mg.SORT_LBL:
         vals_etc_lst.sort(key=itemgetter(idx_lbl))
 
 def get_sorted_vals(sort_order, vals, lbls):
@@ -124,7 +124,7 @@ def get_sorted_vals(sort_order, vals, lbls):
     elif sort_order == mg.SORT_DECREASING:
         sorted_vals = sorted(vals)
         sorted_vals.sort(reverse=True)
-    elif sort_order == mg.SORT_LABEL:
+    elif sort_order == mg.SORT_LBL:
         val_lbls = [(x, lbls.get(x, unicode(x))) for x in vals]
         val_lbls.sort(key=itemgetter(1))
         sorted_vals = [x[0] for x in vals_lbls]
@@ -1331,7 +1331,7 @@ class ItemConfig(object):
             str_parts.append(total_part)
         if self.sort_order == mg.SORT_NONE:
             sort_order_part = None
-        elif self.sort_order == mg.SORT_LABEL:
+        elif self.sort_order == mg.SORT_LBL:
             sort_order_part = _("Sort by Label")
         elif self.sort_order == mg.SORT_INCREASING:
             sort_order_part = _("Sort by Freq (Asc)")
