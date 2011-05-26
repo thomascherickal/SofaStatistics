@@ -524,7 +524,8 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
             max_measure = max(measure_vals)
             if max_measure > ymax:
                 ymax = max_measure
-            outliers = [x for x in measure_vals if x < lwhisker or x > uwhisker]
+            outliers = [round(x, 2) for x in measure_vals 
+                        if x < lwhisker or x > uwhisker]
             box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
                        mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
                        mg.CHART_BOXPLOT_LWHISKER: round(lwhisker, 2),
@@ -785,12 +786,12 @@ def get_barchart_sizings(n_clusters, n_bars_in_cluster):
     elif n_clusters <= 10:
         minor_ticks = u"true"
         xfontsize = 7
-        width = 1000
+        width = 900
         xgap = 6
     elif n_clusters <= 16:
         minor_ticks = u"true"
         xfontsize = 7
-        width = 1200
+        width = 1000
         xgap = 5
     else:
         minor_ticks = u"true"
@@ -841,6 +842,7 @@ def get_linechart_sizings(xaxis_dets, max_lbl_len, series_dets):
 
 def get_boxplot_sizings(xaxis_dets, max_lbl_len, series_dets):
     debug = False
+    minor_ticks = u"false"
     n_vals = len(xaxis_dets)
     n_series = len(series_dets)
     n_boxes = n_vals*n_series
@@ -848,21 +850,34 @@ def get_boxplot_sizings(xaxis_dets, max_lbl_len, series_dets):
         width = 500
     elif n_vals < 10:
         width = 600
+    elif n_vals < 13:
+        minor_ticks = u"true"
+        width = 800
+    elif n_vals < 15:
+        minor_ticks = u"true"
+        width = 1000
     else:
-        width = 700
-    xfontsize = 10
+        minor_ticks = u"true"
+        width = 1300
     if n_series > 2:
         width += (n_series*80)
+    xfontsize = 11
     if n_vals > 5:
+        xfontsize = 10
+    elif n_vals > 10:
         xfontsize = 9
-        if max_lbl_len > 10:
-            width += 80
-        elif max_lbl_len > 7:
-            width += 40
-        elif max_lbl_len > 4:
-            width += 20
-    if debug: print(width, xfontsize)
-    return width, xfontsize
+    if max_lbl_len > 14:
+        width *= 1.9
+        xfontsize *= 0.9
+    if max_lbl_len > 10:
+        width *= 1.7
+        xfontsize *= 0.95
+    elif max_lbl_len > 7:
+        width *= 1.5
+    elif max_lbl_len > 4:
+        width *= 1.2
+    if debug: print(width, xfontsize)    
+    return width, xfontsize, minor_ticks
 
 def setup_highlights(colour_mappings, single_colour, 
                      override_first_highlight=False):
@@ -2054,9 +2069,9 @@ def boxplot_output(titles, subtitles, x_title, y_title, xaxis_dets,
     lbl_dets.append(u"""{value: %s, text: ""}""" % len(lbl_dets))
     xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
     axis_lbl_drop = 30 if x_title else -10
-    height = 400 + axis_lbl_drop # compensate for loss of display height                           
-    (width, xfontsize) = get_boxplot_sizings(xaxis_dets, max_lbl_len, 
-                                             chart_dets)
+    height = 350 + axis_lbl_drop # compensate for loss of display height                           
+    (width, xfontsize,
+        minor_ticks) = get_boxplot_sizings(xaxis_dets, max_lbl_len, chart_dets)
     yfontsize = xfontsize
     left_axis_lbl_shift = 20 if width > 1200 else 10 # gets squeezed
     html = []
@@ -2070,6 +2085,7 @@ def boxplot_output(titles, subtitles, x_title, y_title, xaxis_dets,
             gridline_width, stroke_width, tooltip_border_colour, 
             colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     # Can't have white for boxplots because always a white outer background
+    outer_bg = u"white"
     axis_lbl_font_colour = axis_lbl_font_colour \
                             if axis_lbl_font_colour != u"white" else u"black"
     """
@@ -2187,6 +2203,7 @@ makechartRenumber00 = function(){
     chartconf["outerChartBorderColour"] = "white";
     chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
     chartconf["tickColour"] = "black";
+    chartconf["minorTicks"] = %(minor_ticks)s;
     chartconf["gridlineWidth"] = %(gridline_width)s;
     chartconf["xfontsize"] = %(xfontsize)s;
     chartconf["yfontsize"] = %(yfontsize)s;
@@ -2224,7 +2241,7 @@ makechartRenumber00 = function(){
            u"axis_lbl_font_colour": axis_lbl_font_colour,
            u"major_gridline_colour": major_gridline_colour,
            u"gridline_width": gridline_width, u"pagebreak": pagebreak,
-           u"axis_lbl_drop": axis_lbl_drop,
+           u"axis_lbl_drop": axis_lbl_drop, u"minor_ticks": minor_ticks,
            u"left_axis_lbl_shift": left_axis_lbl_shift,
            u"tooltip_border_colour": tooltip_border_colour,
            u"connector_style": connector_style, 

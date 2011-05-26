@@ -541,6 +541,7 @@ makeBoxAndWhisker = function(chartname, series, seriesconf, chartconf){
     var outerBg = ("outerBg" in chartconf) ? chartconf["outerBg"] : null;
     var axisColour = ("axisColour" in chartconf) ? chartconf["axisColour"] : null;
     var tickColour = ("tickColour" in chartconf) ? chartconf["tickColour"] : null;
+    var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
     var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "";
     var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
     var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
@@ -593,7 +594,7 @@ makeBoxAndWhisker = function(chartname, series, seriesconf, chartconf){
     mychart.addPlot("default", {type: "BoxAndWhisker", markers: true});
     mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
     mychart.addAxis("x", {title: xTitle, min: chartconf["xmin"], max: chartconf["xmax"], 
-                          majorTicks: true, minorTicks: false, 
+                          majorTicks: true, minorTicks: minorTicks, 
                           labels: chartconf["xaxisLabels"],
                           font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial"});
     mychart.addAxis("y", {title: yTitle, vertical: true, min: chartconf["ymin"], max: chartconf["ymax"], 
