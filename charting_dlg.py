@@ -488,7 +488,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                                style=wx.NO_BORDER)
         self.btn_scatterplot.Bind(wx.EVT_BUTTON, self.on_btn_scatterplot)
         self.btn_scatterplot.SetToolTipString(_("Make Scatterplot"))
-        szr_chart_btns.Add(self.btn_scatterplot)
+        szr_chart_btns.Add(self.btn_scatterplot, 0, wx.RIGHT, btn_gap)
         # boxplots
         self.bmp_btn_boxplot = wx.Image(os.path.join(mg.SCRIPT_PATH, 
                                             u"images", u"boxplot.xpm"), 
@@ -1244,13 +1244,16 @@ chart_output = charting_output.scatterplot_output(titles, subtitles,
 def get_boxplot_script(css_fil, css_idx):
     dd = getdata.get_dd()
     script = u"""
-(xaxis_dets, max_label_len, 
-      boxplot_dets) = charting_output.get_boxplot_dets(dbe, cur, tbl, 
-                                      tbl_filt, fld_measure, 
+(xaxis_dets, xmin, xmax, ymin, ymax,
+      max_label_len, chart_dets) = charting_output.get_boxplot_dets(dbe, cur, 
+                                      tbl, tbl_filt, 
+                                      fld_measure, fld_measure_name,
                                       fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
                                       fld_chart_by, fld_chart_by_lbls)
+x_title = fld_gp_by_name if fld_chart_by else u""
+y_title = fld_measure_name 
 chart_output = charting_output.boxplot_output(titles, subtitles,
-            x_title, y_title, xaxis_dets, max_label_len, boxplot_dets,
+            x_title, y_title, xaxis_dets, max_label_len, chart_dets,
             xmin, xmax, ymin, ymax, css_fil="%(css_fil)s", 
             css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": lib.escape_pre_write(css_fil), 

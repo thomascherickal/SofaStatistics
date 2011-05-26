@@ -116,9 +116,9 @@ class TooManySlicesInPieChart(OutputException):
                                          "More than %s.") % mg.MAX_PIE_SLICES)
 
 class TooManySeriesInChart(OutputException):
-    def __init__(self):
+    def __init__(self, max_items):
         OutputException.__init__(self, _(u"Too many series in chart. More "
-                                         "than %s.") % mg.MAX_CHART_SERIES)
+                                         "than %s.") % max_items)
 
 class TooManyValsInChartSeries(OutputException):
     def __init__(self, fld_measure, max_items):
@@ -130,4 +130,7 @@ class TooManyChartsInSeries(OutputException):
         OutputException.__init__(self, u"Too many charts to display for "
                 "\"%s\". " % fld_chart_by_name + u"More than %s." % max_items)
 
-
+class TooManyBoxplotsInSeries(OutputException):
+    def __init__(self, fld_gp_by, max_items):
+        OutputException.__init__(self, u"Too many boxplots to display for %s. " 
+                           % fld_gp_by + u"More than %s." % max_items)

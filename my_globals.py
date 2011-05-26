@@ -443,7 +443,7 @@ CHART_TYPE_TO_LBLS = {SIMPLE_BARCHART: (CHART_VALUES, CHART_CHART_BY, None),
                 }
 THREE_VAR_CHART_TYPES = [SCATTERPLOT, BOXPLOT]
 HAS_AVG_OPTION = [SIMPLE_BARCHART, CLUSTERED_BARCHART, LINE_CHART, AREA_CHART,]
-NO_CHART_BY = [CLUSTERED_BARCHART, LINE_CHART,]
+NO_CHART_BY = [CLUSTERED_BARCHART, LINE_CHART, BOXPLOT, ]
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
     'lightcoral', 'orangered', 'navajowhite', 'slategray', 'palegreen', 
@@ -472,12 +472,11 @@ DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred',
     'blueviolet', 'azure', 'lightsteelblue', 'oldlace']
 LBL_LINE_BREAK_JS = """var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";"""
 CHART_MAX_CHARTS_IN_SET = 16
+CHART_MAX_SERIES_IN_BOXPLOT = 8
+CHART_MAX_BOXPLOTS_IN_SERIES = 20
 CHART_CHART_BY_LBL = u"chart_by_lbl"
-
-
 CHART_LBL = u"Chart lbl"
 CHART_LEGEND_LBL = u"Legend lbl"
-
 CHART_LBL_SINGLE_CHART = u"Single chart only"
 CHART_VAL_MEASURES = u"chart_val_measures" # e.g. freqs or avgs
 CHART_MEASURE_DETS = u"measure_dets"

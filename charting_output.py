@@ -5,6 +5,11 @@
 Use English UK spelling e.g. colour and when writing JS use camelcase.
 NB no html headers here - the script generates those beforehand and appends 
     this and then the html footer.
+For most charts we can use freq and AVG - something SQL does just fine using 
+    GROUP BY. Accordingly, we can reuse get_chart_dets in many cases. In other
+    cases, however, e.g. box plots, we need to analyse the values to get results 
+    that SQL can't do well e.g. quartiles. In such cases we have to custom-make 
+    the specific queries we need.
 """
 
 import math
@@ -178,7 +183,6 @@ def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_gp_by,
                          (2,3,200),
                          (2,4,0),]
         """
-        xaxis_dets = []
         max_lbl_len = 0
         series_dets = []
         multichart = (fld_chart_by is not None 
@@ -214,7 +218,8 @@ def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_gp_by,
                                                     fld_chart_by_name,
                                                     mg.CHART_MAX_CHARTS_IN_SET)
                     else:
-                        raise my_exceptions.TooManySeriesInChart()
+                        raise my_exceptions.TooManySeriesInChart(
+                                                        mg.MAX_CHART_SERIES)
             # depending on sorting, may need one per chart.
             x_val_lbl = xlblsdic.get(x_val, unicode(x_val))
             x_val_split_lbl = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
@@ -383,15 +388,162 @@ def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt,
                                 sort_opt, dp)
     return chart_dets
 
-def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, 
+def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name, 
                      fld_gp_by, fld_gp_by_name, fld_gp_by_lbls, 
                      fld_chart_by, fld_chart_by_lbls):
     """
-    
+    NB can't just use group by SQL to get results - need upper and lower 
+        quartiles etc and we have to work on the raw values to achieve this. We
+        have to do more work outside of SQL to get the values we need.
+    chart_by is really series_by in the case of boxplots but it is easier to 
+        use the term used throughout the rest of the code as the outer loop and
+        gp_by as the inner loop.
+    xaxis_dets -- [(0, "", ""), (1, "Under 20", ...] NB blanks either end
+    series_dets -- [{mg.CHART_SERIES_LBL: "Girls", 
+        mg.CHART_BOXDETS: [{mg.CHART_BOXPLOT_DISPLAY: True, 
+                                mg.CHART_BOXPLOT_LWHISKER: 1.7, 
+                                mg.CHART_BOXPLOT_LBOX: 3.2, ...}, 
+                           {mg.CHART_BOXPLOT_DISPLAY: True, etc}, 
+                                    ...]},
+                          ...]
+    NB supply a boxdet even for an empty box. Put marker that it should be 
+        skipped in terms of output to js. mg.CHART_BOXPLOT_DISPLAY
+    # list of subseries dicts each of which has a label and a list of dicts 
+        (one per box).
     """
-    
-    
-    return xaxis_dets, max_lbl_len, boxplot_dets
+    debug = False
+    dd = getdata.get_dd()
+    objqtr = getdata.get_obj_quoter_func(dbe)
+    where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+    boxplot_width = 0.25
+    chart_dets = []
+    # get all fld_chart_by_vals where an x_val but OK to be missing a measure 
+        # (box will be missing in series)
+    xaxis_dets = [] # (0, u"''", u"''")]
+    max_lbl_len = 0
+    sql_dic = {mg.FLD_CHART_BY: objqtr(fld_chart_by), 
+               mg.FLD_GROUP_BY: objqtr(fld_gp_by), 
+               u"fld_measure": objqtr(fld_measure),
+               u"where_tbl_filt": where_tbl_filt, 
+               u"and_tbl_filt": and_tbl_filt, 
+               u"tbl": getdata.tblname_qtr(dbe, tbl)}
+    if fld_chart_by: # must have gp_by as well but measure optional
+        SQL_fld_chart_by_vals = u"""SELECT %(fld_chart_by)s 
+            FROM %(tbl)s 
+            WHERE %(fld_gp_by)s IS NOT NULL %(and_tbl_filt)s 
+            GROUP BY %(fld_chart_by)s""" % sql_dic
+        if debug: print(SQL_fld_chart_by_vals)
+        cur.execute(SQL_fld_chart_by_vals)
+        fld_chart_by_vals = [x[0] for x in cur.fetchall()]
+        if len(fld_chart_by_vals) > mg.CHART_MAX_SERIES_IN_BOXPLOT:
+            raise my_exceptions.TooManyChartsInSeries(fld_chart_by_name, 
+                                    max_items=mg.CHART_MAX_SERIES_IN_BOXPLOT)
+    else:
+        fld_chart_by_vals = [None,] # Got to have something to loop through ;-)
+    ymin = 0 # init
+    ymax = 0
+    first_chart_by = True
+    for fld_chart_by_val in fld_chart_by_vals: # e.g. "Boys" and "Girls"
+        # set up series (chart by) filter and 
+        if fld_chart_by:
+            filt = getdata.make_fld_val_clause(dbe, dd.flds, 
+                                               fld_name=fld_chart_by, 
+                                               val=fld_chart_by_val)
+            and_fld_chart_by_filt = u" AND %s" % filt
+            if where_tbl_filt:
+                comb_filt = u"%s AND %s" % (where_tbl_filt , filt)
+            else:
+                comb_filt = u"WHERE %s" % filt
+            sql_dic[u"comb_filt"] = comb_filt
+            SQL_gp_vals = u"""SELECT %(fld_gp_by)s 
+                FROM %(tbl)s 
+                %(comb_filt)s 
+                GROUP BY %(fld_gp_by)s""" % sql_dic
+            legend_lbl = fld_chart_by_lbls.get(fld_chart_by_val, 
+                                               unicode(fld_chart_by_val))
+        else:
+            and_fld_chart_by_filt = u""
+            SQL_gp_vals = u"""SELECT %(fld_gp_by)s 
+                FROM %(tbl)s 
+                %(where_tbl_filt)s 
+                GROUP BY %(fld_gp_by)s""" % sql_dic
+            legend_lbl = fld_gp_by_name
+        sql_dic[u"and_fld_chart_by_filt"] = and_fld_chart_by_filt
+        if debug: print(SQL_gp_vals)
+        cur.execute(SQL_gp_vals)
+        gp_by_vals = [x[0] for x in cur.fetchall()]
+        if len(gp_by_vals) > mg.CHART_MAX_BOXPLOTS_IN_SERIES:
+            raise my_exceptions.TooManyBoxplotsInSeries(fld_gp_by_name, 
+                                max_items=mg.CHART_MAX_BOXPLOTS_IN_SERIES)            
+        # time to get the boxplot information for the series
+        boxdet_series = []
+        for i, gp_val in enumerate(gp_by_vals, 1): # e.g. "Mt Albert Grammar", 
+                # "Epsom Girls Grammar", "Hebron Christian College", ...
+            if first_chart_by: # build xaxis_dets once
+                x_val_lbl = fld_gp_by_lbls.get(gp_val, unicode(gp_val))
+                x_val_split_lbl = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
+                                                        max_width=17, dojo=True)
+                if len(x_val_lbl) > max_lbl_len:
+                    max_lbl_len = len(x_val_lbl)
+                xaxis_dets.append((i, x_val_lbl, x_val_split_lbl))
+            # Now see if any measure values with series_by_val and gp_val
+            # Apply tbl_filt, series_by filt, and gp_by filt
+            gp_by_filt = getdata.make_fld_val_clause(dbe, dd.flds, 
+                                                     fld_name=fld_gp_by, 
+                                                     val=gp_val)
+            sql_dic[u"gp_by_filt"] = gp_by_filt
+            SQL_measure_vals = u"""SELECT %(fld_measure)s
+                FROM %(tbl)s
+                WHERE %(gp_by_filt)s
+                %(and_fld_chart_by_filt)s
+                ORDER BY %(fld_measure)s""" % sql_dic
+            cur.execute(SQL_measure_vals)
+            measure_vals = [x[0] for x in cur.fetchall()]
+            boxplot_display = True if measure_vals else False
+            # This is bound to be really inefficient - optimise one day?
+            lbox = core_stats.scoreatpercentile(measure_vals, percent=25.0)
+            median = core_stats.scoreatpercentile(measure_vals, percent=50.0)
+            ubox = core_stats.scoreatpercentile(measure_vals, percent=75.0)
+            iqr = ubox-median
+            raw_lwhisker = lbox - (1.5*iqr)
+            # wrap up to next value
+            for val in measure_vals:
+                if val > raw_lwhisker:
+                    lwhisker = val
+                    break
+            min_measure = min(measure_vals)
+            if min_measure < ymin:
+                ymin = min_measure            
+            raw_uwhisker = ubox + (1.5*iqr)
+            # wrap down to next value
+            measure_vals.reverse()
+            for val in measure_vals:
+                if val < raw_uwhisker:
+                    uwhisker = val
+                    break
+            max_measure = max(measure_vals)
+            if max_measure > ymax:
+                ymax = max_measure
+            outliers = [x for x in measure_vals if x < lwhisker or x > uwhisker]
+            box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
+                       mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
+                       mg.CHART_BOXPLOT_LWHISKER: round(lwhisker, 2),
+                       mg.CHART_BOXPLOT_LBOX: round(lbox, 2),
+                       mg.CHART_BOXPLOT_MEDIAN: round(median, 2),
+                       mg.CHART_BOXPLOT_UBOX: round(ubox, 2),
+                       mg.CHART_BOXPLOT_UWHISKER: round(uwhisker, 2),
+                       mg.CHART_BOXPLOT_OUTLIERS: outliers}
+            boxdet_series.append(box_dic)
+        series_dic = {mg.CHART_SERIES_LBL: legend_lbl, 
+                      mg.CHART_BOXDETS: boxdet_series}
+        chart_dets.append(series_dic)
+        first_chart_by = False
+    xmin = 0.5
+    xmax = i+0.5
+    ymax *=1.1
+    xaxis_dets.append((xmax, u"''", u"''"))
+    if debug: print(xaxis_dets)
+    return xaxis_dets, xmin, xmax, ymin, ymax, max_lbl_len, chart_dets
 
 def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure,
                    fld_chart_by, fld_chart_by_name, fld_chart_by_lbls):
@@ -693,22 +845,22 @@ def get_boxplot_sizings(xaxis_dets, max_lbl_len, series_dets):
     n_series = len(series_dets)
     n_boxes = n_vals*n_series
     if n_vals < 6:
-        width = 800
+        width = 500
     elif n_vals < 10:
-        width = 900
+        width = 600
     else:
-        width = 1000
+        width = 700
     xfontsize = 10
     if n_series > 2:
-        width += (n_series*100)
+        width += (n_series*80)
     if n_vals > 5:
         xfontsize = 9
         if max_lbl_len > 10:
-            width += 100
+            width += 80
         elif max_lbl_len > 7:
-            width += 50
+            width += 40
         elif max_lbl_len > 4:
-            width += 30
+            width += 20
     if debug: print(width, xfontsize)
     return width, xfontsize
 
@@ -1873,13 +2025,13 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
     return u"".join(html)
 
 def boxplot_output(titles, subtitles, x_title, y_title, xaxis_dets, 
-                   max_lbl_len, series_dets, xmin, xmax, ymin, ymax, 
+                   max_lbl_len, chart_dets, xmin, xmax, ymin, ymax, 
                    css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
     xaxis_dets -- [(0, "", ""), (1, "Under 20", ...] NB blanks either end
-    series_dets -- [{mg.CHART_SERIES_LBL: "Girls", 
+    boxplot_dets -- [{mg.CHART_SERIES_LBL: "Girls", 
         mg.CHART_BOXDETS: [{mg.CHART_BOXPLOT_DISPLAY: True, 
                                 mg.CHART_BOXPLOT_LWHISKER: 1.7, 
                                 mg.CHART_BOXPLOT_LBOX: 3.2, ...}, 
@@ -1902,9 +2054,9 @@ def boxplot_output(titles, subtitles, x_title, y_title, xaxis_dets,
     lbl_dets.append(u"""{value: %s, text: ""}""" % len(lbl_dets))
     xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
     axis_lbl_drop = 30 if x_title else -10
-    height = 500 + axis_lbl_drop # compensate for loss of display height                           
+    height = 400 + axis_lbl_drop # compensate for loss of display height                           
     (width, xfontsize) = get_boxplot_sizings(xaxis_dets, max_lbl_len, 
-                                             series_dets)
+                                             chart_dets)
     yfontsize = xfontsize
     left_axis_lbl_shift = 20 if width > 1200 else 10 # gets squeezed
     html = []
@@ -1929,10 +2081,10 @@ def boxplot_output(titles, subtitles, x_title, y_title, xaxis_dets,
         change is the key, not visibility of interior details.
     """
     if debug:
-        print(series_dets)
+        print(chart_dets)
     pagebreak = u"page-break-after: always;"
-    n_series = len(series_dets)
-    n_boxes = len(series_dets[0][mg.CHART_BOXDETS])
+    n_series = len(chart_dets)
+    n_boxes = len(chart_dets[0][mg.CHART_BOXDETS])
     """
     For each box, we need to identify the center. For this we need to know 
         the number of boxes, where the first one starts, and the horizontal 
@@ -1954,7 +2106,7 @@ def boxplot_output(titles, subtitles, x_title, y_title, xaxis_dets,
     offset_start = -((gap*n_gaps)/2.0) # if 1 box, offset = 0 i.e. middle
     offsets = [offset_start + (x*gap) for x in range(n_series)]
     series_js = []
-    for series_idx, series_det in enumerate(series_dets):
+    for series_idx, series_det in enumerate(chart_dets):
         """
         series_det -- [((lwhisker, lbox, median, ubox, uwhisker, outliers), 
                 (lwhisker etc), ...),
@@ -2013,7 +2165,7 @@ def boxplot_output(titles, subtitles, x_title, y_title, xaxis_dets,
                         })
         series_js.append(u",\n".join(box_js))            
         series_js.append(u"        ];") # close series list
-    series_lst = ["series%s" % x for x in range(len(series_dets))]
+    series_lst = ["series%s" % x for x in range(len(chart_dets))]
     series_js.append(u"    var series = seriesdummy.concat(%s);" 
                      % ", ".join(series_lst))
     series_js_str = u"\n".join(series_js)
