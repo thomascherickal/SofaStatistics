@@ -860,10 +860,10 @@ def get_boxplot_sizings(xaxis_dets, max_lbl_len, series_dets):
         width = 700
     elif n_vals < 15:
         minor_ticks = u"true"
-        width = 800
+        width = 900
     else:
         minor_ticks = u"true"
-        width = 1100
+        width = 1500
     if n_series > 2:
         width += (n_series*80)
     xfontsize = 11

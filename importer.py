@@ -567,7 +567,8 @@ def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tbl_name,
         if try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path, 
                 tbl_name, has_header, ok_fld_names, orig_fld_names, fld_types, 
                 faulty2missing_fld_list, data, progbar, steps_per_item, 
-                gauge_start, allow_none=True, comma_dec_sep_ok=False):
+                gauge_start, allow_none=True, 
+                comma_dec_sep_ok=comma_dec_sep_ok):
             break
     
 def tmp_to_named_tbl(con, cur, tblname, file_path, progbar, nulled_dots):
