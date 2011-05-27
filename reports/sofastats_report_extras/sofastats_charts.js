@@ -591,7 +591,7 @@ makeBoxAndWhisker = function(chartname, series, seriesconf, chartconf){
 	    }
     });
     mychart.setTheme(sofa_theme);
-    mychart.addPlot("default", {type: "BoxAndWhisker", markers: true});
+    mychart.addPlot("default", {type: "Boxplot", markers: true});
     mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
     mychart.addAxis("x", {title: xTitle, min: chartconf["xmin"], max: chartconf["xmax"], 
                           majorTicks: true, minorTicks: minorTicks, 

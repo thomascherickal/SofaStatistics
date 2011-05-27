@@ -474,6 +474,7 @@ LBL_LINE_BREAK_JS = """var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";"""
 CHART_MAX_CHARTS_IN_SET = 16
 CHART_MAX_SERIES_IN_BOXPLOT = 8
 CHART_MAX_BOXPLOTS_IN_SERIES = 20
+CHART_MIN_DISPLAY_VALS_FOR_BOXPLOT = 15 
 CHART_CHART_BY_LBL = u"chart_by_lbl"
 CHART_LBL = u"Chart lbl"
 CHART_LEGEND_LBL = u"Legend lbl"
@@ -489,7 +490,7 @@ CHART_SERIES_DETS = u"series_dets"
 CHART_SERIES_LBL = u"series_label"
 CHART_MULTICHART = u"multichart"
 CHART_BOXDETS = u"boxdets"
-CHART_BOXPLOT_WIDTH = 0.25
+CHART_BOXPLOT_WIDTH = 0.15
 CHART_BOXPLOT_DISPLAY = u"boxplot_display"
 CHART_BOXPLOT_LWHISKER = u"lwhisker"
 CHART_BOXPLOT_LBOX = u"lbox"

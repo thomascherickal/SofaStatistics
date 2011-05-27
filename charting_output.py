@@ -390,7 +390,7 @@ def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt,
 
 def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name, 
                      fld_gp_by, fld_gp_by_name, fld_gp_by_lbls, 
-                     fld_chart_by, fld_chart_by_lbls):
+                     fld_chart_by, fld_chart_by_name, fld_chart_by_lbls):
     """
     NB can't just use group by SQL to get results - need upper and lower 
         quartiles etc and we have to work on the raw values to achieve this. We
@@ -436,13 +436,14 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
         cur.execute(SQL_fld_chart_by_vals)
         fld_chart_by_vals = [x[0] for x in cur.fetchall()]
         if len(fld_chart_by_vals) > mg.CHART_MAX_SERIES_IN_BOXPLOT:
-            raise my_exceptions.TooManyChartsInSeries(fld_chart_by_name, 
+            raise my_exceptions.TooManySeriesInChart( 
                                     max_items=mg.CHART_MAX_SERIES_IN_BOXPLOT)
     else:
         fld_chart_by_vals = [None,] # Got to have something to loop through ;-)
     ymin = 0 # init
     ymax = 0
     first_chart_by = True
+    any_missing_boxes = False
     for fld_chart_by_val in fld_chart_by_vals: # e.g. "Boys" and "Girls"
         # set up series (chart by) filter and 
         if fld_chart_by:
@@ -499,7 +500,10 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
                 ORDER BY %(fld_measure)s""" % sql_dic
             cur.execute(SQL_measure_vals)
             measure_vals = [x[0] for x in cur.fetchall()]
-            boxplot_display = True if measure_vals else False
+            boxplot_display = (len(measure_vals) > 
+                               mg.CHART_MIN_DISPLAY_VALS_FOR_BOXPLOT)
+            if not boxplot_display:
+                any_missing_boxes = True
             # This is bound to be really inefficient - optimise one day?
             lbox = core_stats.scoreatpercentile(measure_vals, percent=25.0)
             median = core_stats.scoreatpercentile(measure_vals, percent=50.0)
@@ -544,7 +548,8 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
     ymax *=1.1
     xaxis_dets.append((xmax, u"''", u"''"))
     if debug: print(xaxis_dets)
-    return xaxis_dets, xmin, xmax, ymin, ymax, max_lbl_len, chart_dets
+    return (xaxis_dets, xmin, xmax, ymin, ymax, max_lbl_len, chart_dets, 
+            any_missing_boxes)
 
 def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure,
                    fld_chart_by, fld_chart_by_name, fld_chart_by_lbls):
@@ -847,18 +852,18 @@ def get_boxplot_sizings(xaxis_dets, max_lbl_len, series_dets):
     n_series = len(series_dets)
     n_boxes = n_vals*n_series
     if n_vals < 6:
-        width = 500
+        width = 400
     elif n_vals < 10:
-        width = 600
+        width = 500
     elif n_vals < 13:
         minor_ticks = u"true"
-        width = 800
+        width = 700
     elif n_vals < 15:
         minor_ticks = u"true"
-        width = 1000
+        width = 800
     else:
         minor_ticks = u"true"
-        width = 1300
+        width = 1100
     if n_series > 2:
         width += (n_series*80)
     xfontsize = 11
@@ -867,15 +872,11 @@ def get_boxplot_sizings(xaxis_dets, max_lbl_len, series_dets):
     elif n_vals > 10:
         xfontsize = 9
     if max_lbl_len > 14:
-        width *= 1.9
+        width *= 1.5
         xfontsize *= 0.9
     if max_lbl_len > 10:
-        width *= 1.7
+        width *= 1.3
         xfontsize *= 0.95
-    elif max_lbl_len > 7:
-        width *= 1.5
-    elif max_lbl_len > 4:
-        width *= 1.2
     if debug: print(width, xfontsize)    
     return width, xfontsize, minor_ticks
 
@@ -2039,8 +2040,8 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
         html.append(u"<br><hr><br><div class='%s'></div>" % page_break_before)
     return u"".join(html)
 
-def boxplot_output(titles, subtitles, x_title, y_title, xaxis_dets, 
-                   max_lbl_len, chart_dets, xmin, xmax, ymin, ymax, 
+def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title, 
+                   xaxis_dets, max_lbl_len, chart_dets, xmin, xmax, ymin, ymax, 
                    css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
@@ -2075,6 +2076,10 @@ def boxplot_output(titles, subtitles, x_title, y_title, xaxis_dets,
     yfontsize = xfontsize
     left_axis_lbl_shift = 20 if width > 1200 else 10 # gets squeezed
     html = []
+    if any_missing_boxes:
+        html.append(u"<p>At least one box will not be displayed because it "
+                    u"lacks at least %s values.</p>"
+                    % mg.CHART_MIN_DISPLAY_VALS_FOR_BOXPLOT)
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 

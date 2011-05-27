@@ -1244,17 +1244,18 @@ chart_output = charting_output.scatterplot_output(titles, subtitles,
 def get_boxplot_script(css_fil, css_idx):
     dd = getdata.get_dd()
     script = u"""
-(xaxis_dets, xmin, xmax, ymin, ymax,
-      max_label_len, chart_dets) = charting_output.get_boxplot_dets(dbe, cur, 
-                                      tbl, tbl_filt, 
-                                      fld_measure, fld_measure_name,
-                                      fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
-                                      fld_chart_by, fld_chart_by_lbls)
+(xaxis_dets, xmin, xmax, 
+ ymin, ymax, max_label_len, 
+ chart_dets, 
+ any_missing_boxes) = charting_output.get_boxplot_dets(dbe, cur, tbl, tbl_filt, 
+                          fld_measure, fld_measure_name,
+                          fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
+                          fld_chart_by, fld_chart_by_name, fld_chart_by_lbls)
 x_title = fld_gp_by_name if fld_chart_by else u""
 y_title = fld_measure_name 
-chart_output = charting_output.boxplot_output(titles, subtitles,
-            x_title, y_title, xaxis_dets, max_label_len, chart_dets,
-            xmin, xmax, ymin, ymax, css_fil="%(css_fil)s", 
+chart_output = charting_output.boxplot_output(titles, subtitles, 
+            any_missing_boxes, x_title, y_title, xaxis_dets, max_label_len, 
+            chart_dets, xmin, xmax, ymin, ymax, css_fil="%(css_fil)s", 
             css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": lib.escape_pre_write(css_fil), 
            u"css_idx": css_idx}
