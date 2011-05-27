@@ -423,8 +423,16 @@ class ConfigDlg(object):
             style=wx.SAVE)
             # MUST have a parent to enforce modal in Windows
         if dlg_get_file.ShowModal() == wx.ID_OK:
-            cc[mg.CURRENT_REPORT_PATH] = u"%s" % dlg_get_file.GetPath()
-            self.txt_report_file.SetValue(cc[mg.CURRENT_REPORT_PATH])
+            new_rpt_pth = u"%s" % dlg_get_file.GetPath()
+            new_rpt = os.path.split(new_rpt_pth)[1]
+            cc[mg.CURRENT_REPORT_PATH] = new_rpt_pth
+            self.txt_report_file.SetValue(new_rpt_pth)
+            wx.MessageBox(_(u"Please note that any SOFA Charts you add "
+                u"to \"%(new_rpt)s\" won't display unless the "
+                u"\"%(report_extras_folder)s\" subfolder is in the same folder "
+                u"as you open \"%(new_rpt)s\" from.") % 
+                {u"report_extras_folder": mg.REPORT_EXTRAS_FOLDER, 
+                 u"new_rpt": new_rpt})
         dlg_get_file.Destroy()
 
     def on_btn_run(self, event, OUTPUT_MODULES, get_script_args, 
