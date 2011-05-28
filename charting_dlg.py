@@ -614,6 +614,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.unset_avg_dropdowns()
             self.chk_line_perc.Enable(True)
             INC_PERC = self.chk_line_perc.IsChecked()
+        self.setup_line_extras()
         
     def on_chk_area_perc(self, event):
         global INC_PERC
@@ -818,22 +819,26 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     
     def on_var1_sel(self, event):
         pass
-        
-    def on_var2_sel(self, event):
+    
+    def setup_line_extras(self):
         """
         Only enable trendlines and smooth line if chart type is line and a 
             single line chart.
         """
-        show_line_extras = (self.chart_type == mg.LINE_CHART 
-                and (SHOW_AVG 
+        show_line_extras = (self.chart_type == mg.LINE_CHART and (
+                (not SHOW_AVG # normal and dropdown2 is nothing
+                     and self.drop_var2.GetStringSelection() == mg.DROP_SELECT)
+                 or (SHOW_AVG # AVG and dropdown3 is nothing
                      and self.drop_var3.GetStringSelection() == mg.DROP_SELECT)
-                or (not SHOW_AVG 
-                    and self.drop_var2.GetStringSelection() == mg.DROP_SELECT))
+            ))
         self.chk_line_trend.Enable(show_line_extras)
         self.chk_line_smooth.Enable(show_line_extras)
+        
+    def on_var2_sel(self, event):
+        self.setup_line_extras()
     
     def on_var3_sel(self, event):
-        pass
+        self.setup_line_extras()
     
     def add_other_var_opts(self, szr=None):
         pass

@@ -1490,6 +1490,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets,
     If only one series, and trendlines are selected, make an additional series
         for the trendline.
     """
+    debug = False
     series_js_list = []
     series_names_list = []
     series0 = series_dets[0]
@@ -1498,20 +1499,21 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets,
     if inc_trend:
         trend_y_vals = get_trend_y_vals(raw_y_vals)
         # repeat most of it
-        trend_series = {mg.CHART_LBL: u'Trend line',
-                        mg.CHART_LEGEND_LBL: series0[mg.CHART_LEGEND_LBL], 
+        trend_series = {mg.CHART_LBL: series0[mg.CHART_LEGEND_LBL],
+                        mg.CHART_LEGEND_LBL: u'Trend line', 
                         mg.CHART_MULTICHART: series0[mg.CHART_MULTICHART],
                         mg.CHART_XAXIS_DETS: series0[mg.CHART_XAXIS_DETS],
                         mg.CHART_Y_VALS: trend_y_vals}
         series_dets.append(trend_series)
     if inc_smooth:
         smooth_y_vals = get_smooth_y_vals(raw_y_vals)
-        smooth_series = {mg.CHART_LBL: u'Smoothed data line',
-                         mg.CHART_LEGEND_LBL: series0[mg.CHART_LEGEND_LBL], 
+        smooth_series = {mg.CHART_LBL: series0[mg.CHART_LEGEND_LBL],
+                         mg.CHART_LEGEND_LBL: u'Smoothed data line', 
                          mg.CHART_MULTICHART: series0[mg.CHART_MULTICHART],
                          mg.CHART_XAXIS_DETS: series0[mg.CHART_XAXIS_DETS],
                          mg.CHART_Y_VALS: smooth_y_vals}
         series_dets.append(smooth_series)
+    if debug: pprint.pprint(series_dets)
     pagebreak = u"page-break-after: always;"
     for i, series_det in enumerate(series_dets):
         series_names_list.append(u"series%s" % i)
