@@ -29,22 +29,17 @@ else:
     if mg.PLATFORM == mg.WINDOWS:
         try:
             import wx.lib.iewin as ie
-        except ImportError, e: # can be fiendish - traceback shown in start.py
+        except Exception, e:
             mytraceback = traceback.format_exc()
             if "Typelib newer than module" in mytraceback:
                 raise my_exceptions.InconsistentFileDateException()
             elif "comtypes" in mytraceback or "IUnknown" in mytraceback:
-                 # No module named comtypes, 
-                 # 'module' object has no attribute 'IUnknown' etc
-                 raise my_exceptions.ComtypesException()
-            elif "IUnknown" in mytraceback: # No module named comtypes etc
-                raise my_exceptions.IUnknownException()
+                # No module named comtypes, 
+                # 'module' object has no attribute 'IUnknown' etc
+                raise my_exceptions.ComtypesException()
             else:
                 raise Exception(_(u"Problem importing wx.lib.iewin.") +
                             u"\nCaused by errors:\n\n%s" % lib.ue(e))
-        except Exception, e:
-            raise Exception(_(u"Problem importing wx.lib.iewin.") +
-                        u"\nCaused by errors:\n\n%s" % lib.ue(e))
         
         class FullHTML(ie.IEHtmlWindow):
         

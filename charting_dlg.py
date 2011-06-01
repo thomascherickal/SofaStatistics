@@ -759,6 +759,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chk_line_avg.SetValue(SHOW_AVG)
         self.chk_line_perc.Enable(not SHOW_AVG)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
+        self.setup_line_extras()
 
     def on_btn_area_chart(self, event):
         self.chart_type = mg.AREA_CHART

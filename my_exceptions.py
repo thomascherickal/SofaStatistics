@@ -46,10 +46,10 @@ class NoNodesException(Exception):
 class ComtypesException(Exception):
     def __init__(self):
         Exception.__init__(self, u"Problem with comtypes."
-                           u"\n\nPlease look at help in:"
+                           u"\n\nTo fix, please look at help in:"
                            u"\n\nhttp://www.sofastatistics.com/wiki/doku.php?"
                            u"id=help:will_not_start#problems_with_comtypes")
-        
+
 class InconsistentFileDateException(Exception):
     def __init__(self):
         Exception.__init__(self, _(u"SOFA has detected an inconsistent file "
