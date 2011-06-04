@@ -2234,7 +2234,8 @@ makechartRenumber00 = function(){
         height: %(height)spx;">
     </div>
 <div id="dummychartRenumber00" 
-    style="width: 0px; height: 0px; visibility: hidden;">
+    style="float: right; width: 100px; height: 100px; visibility: hidden;">
+    <!--needs width and height for IE 6 so must float to keep out of way-->
     </div>
 <div id="legendMychartRenumber00">
     </div>

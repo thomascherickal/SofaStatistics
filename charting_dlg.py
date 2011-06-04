@@ -990,7 +990,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                u"var2": self.lbl_var2.GetLabel().rstrip(u":")})
                 return False
             # 2 drop downs showing - second must be completed if SHOW_AVG
-            if (SHOW_AVG 
+            if (self.chart_type in mg.HAS_AVG_OPTION and SHOW_AVG 
                     and self.drop_var2.GetStringSelection() == mg.DROP_SELECT):
                 wx.MessageBox("Please make a selection for the second variable")
                 return False
