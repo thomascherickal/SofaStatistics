@@ -45,6 +45,8 @@ QUOTES = [
     (u"Any knucklehead can calculate an average, but it takes brains to "
      u"calculate a confidence interval.", 
      u"Nate Silver"),
+    (u"Statistics show that of those who contract the habit of eating, very "
+     u"few survive.", u"George Bernard Shaw"),
     ]
 
 def get_quote():

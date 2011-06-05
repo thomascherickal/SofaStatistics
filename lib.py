@@ -1046,6 +1046,18 @@ def is_year(datetime_str):
         pass
     return dt_is_year
 
+def get_splitter(datetime_str):
+    """
+    e.g. Google docs spreadsheets use 2011-04-14T23:33:05
+    """
+    if u" " in datetime_str and u", " not in datetime_str:
+        splitter = u" "
+    elif u"T" in datetime_str:
+        splitter = u"T"
+    else:
+        splitter = None
+    return splitter
+
 def datetime_split(datetime_str):
     """
     Split date and time (if both).
@@ -1058,9 +1070,10 @@ def datetime_split(datetime_str):
         (or time and date).
     boldate_then_time -- only False if time then date with both present.
     """
-    if u" " in datetime_str and u", " not in datetime_str:
+    splitter = get_splitter(datetime_str)
+    if splitter:
         boldate_then_time = True
-        datetime_split = datetime_str.split(" ")
+        datetime_split = datetime_str.split(splitter)
         if len(datetime_split) != 2:
             return (None, None, True)
         if is_date_part(datetime_split[0]) \
