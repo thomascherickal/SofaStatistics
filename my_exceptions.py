@@ -50,6 +50,12 @@ class ComtypesException(Exception):
                            u"\n\nhttp://www.sofastatistics.com/wiki/doku.php?"
                            u"id=help:will_not_start#problems_with_comtypes")
 
+class MatplotlibBackendException(Exception):
+    def __init__(self, orig_error):
+        Exception.__init__(self, u"Problem with matplotlib backend. You may "
+           u"need to install a separate matplotlib library for the wx backend "
+           u"e.g. python-matplotlib-wx\n\nOrig error: %s" % orig_error)
+        
 class InconsistentFileDateException(Exception):
     def __init__(self):
         Exception.__init__(self, _(u"SOFA has detected an inconsistent file "

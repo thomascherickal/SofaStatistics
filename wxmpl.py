@@ -25,7 +25,15 @@ import matplotlib.numerix as Numerix
 from matplotlib.axes import _process_plot_var_args
 from matplotlib.backend_bases import FigureCanvasBase
 from matplotlib.backends.backend_agg import FigureCanvasAgg, RendererAgg
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
+# start added for SOFA ********************************************************
+try:
+    from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
+    # raise Exception("test") # testing only
+except Exception, e:
+    import my_exceptions
+    import lib
+    raise my_exceptions.MatplotlibBackendException(lib.ue(e))
+# end added for SOFA **********************************************************
 from matplotlib.figure import Figure
 from matplotlib.font_manager import FontProperties
 from matplotlib.projections.polar import PolarAxes

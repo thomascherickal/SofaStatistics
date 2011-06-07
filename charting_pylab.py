@@ -5,12 +5,18 @@ import os
 
 import boomslang
 import wx
-import wxmpl
-import pylab # must import after wxmpl so matplotlib.use() (which is in wxmpl) 
-    # is always first
 
 import my_globals as mg
 import lib
+import my_exceptions
+
+try:
+    import wxmpl
+except my_exceptions.MatplotlibBackendException, e:
+    wx.MessageBox(lib.ue(e))
+import pylab # must import after wxmpl so matplotlib.use() (which is in wxmpl) 
+    # is always first
+
 import core_stats
 
 int_imgs_n = 0 # for internal images so always unique

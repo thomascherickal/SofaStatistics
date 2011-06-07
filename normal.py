@@ -3,12 +3,17 @@
 
 import os
 import wx
-import wxmpl
-import pylab # must import after wxmpl so matplotlib.use() is always first
 
 import my_globals as mg
 import lib
 import my_exceptions
+
+try:
+    import wxmpl
+except my_exceptions.MatplotlibBackendException, e:
+    wx.MessageBox(lib.ue(e))
+import pylab # must import after wxmpl so matplotlib.use() is always first
+
 import charting_pylab
 import config_dlg
 import core_stats

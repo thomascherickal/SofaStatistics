@@ -11,8 +11,6 @@ import math
 from operator import itemgetter
 import os
 import pprint
-import wxmpl
-import pylab # must import after wxmpl so matplotlib.use() is always first
 import random
 import re
 import sys
@@ -37,6 +35,8 @@ def get_normal_ys(vals, bins):
     Get np array of y values for normal distribution curve with given values 
         and bins.
     """
+    import wxmpl
+    import pylab # must import after wxmpl so matplotlib.use() is always first
     mu = core_stats.mean(vals)
     sigma = core_stats.stdev(vals)
     norm_ys = pylab.normpdf(bins, mu, sigma)
