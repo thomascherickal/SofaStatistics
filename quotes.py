@@ -47,6 +47,10 @@ QUOTES = [
      u"Nate Silver"),
     (u"Statistics show that of those who contract the habit of eating, very "
      u"few survive.", u"George Bernard Shaw"),
+    (u"\"Give us a copper Guv,\" said the beggar to the Treasury statistician "
+     u"when he waylaid him in Parliament square. \"I haven't eaten for three days.\" "
+     u"\"Ah,\" said the statistician, \"And how does that compare with the same "
+     u"period last year?", u"Russell Lewis"),
     ]
 
 def get_quote():

@@ -1136,7 +1136,9 @@ class SummTable(LiveTable):
         sql_for_raw_only = [mg.MEDIAN, mg.STD_DEV]
         if measure in sql_for_raw_only:
             self.cur.execute(SQL_get_vals)
-            data = [x[0] for x in self.cur.fetchall() if x[0]]
+            raw_vals = self.cur.fetchall() # sometimes returns REALS as strings
+            if debug: print(raw_vals)
+            data = [float(x[0]) for x in raw_vals if x[0]]
             if debug: print(data)
         if measure == mg.MIN:
             SQL_get_min = u"SELECT MIN(%s) " % self.quote_obj(row_fld) + \
