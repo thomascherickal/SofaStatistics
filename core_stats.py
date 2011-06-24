@@ -38,7 +38,8 @@ def get_freqs(sample):
 def get_list(dbe, cur, tbl, tbl_filt, flds, fld_measure, fld_filter, 
              filter_val):
     """
-    Get list of non-missing values in field.
+    Get list of non-missing values in field. Must return list of floats. SQLite 
+        sometimes returns strings even though REAL data type. Not known why.
     Used, for example, in the independent samples t-test.
     """
     debug = False
@@ -52,7 +53,8 @@ def get_list(dbe, cur, tbl, tbl_filt, flds, fld_measure, fld_filter,
         u"AND %s " % fld_val_clause + and_tbl_filt
     if debug: print(SQL_get_list)
     cur.execute(SQL_get_list)
-    lst = [x[0] for x in cur.fetchall()]
+    # SQLite sometimes returns strings even if REAL
+    lst = [float(x[0]) for x in cur.fetchall()]
     if len(lst) < 2:
         raise my_exceptions.TooFewValsInSamplesForAnalysisException
     return lst
@@ -82,8 +84,9 @@ def get_paired_data(dbe, cur, tbl, tbl_filt, fld_a, fld_b, unique=False):
             AND %(fld_b)s IS NOT NULL %(and_tbl_filt)s""" % sql_dic
     cur.execute(SQL_get_pairs)
     data_tups = cur.fetchall()
-    lst_a = [x[0] for x in data_tups]
-    lst_b = [x[1] for x in data_tups]
+    # SQLite sometimes returns strings even if REAL
+    lst_a = [float(x[0]) for x in data_tups]
+    lst_b = [float(x[1]) for x in data_tups]
     return lst_a, lst_b, data_tups
 
 def get_val_quoter(dbe, flds, fld, val):
@@ -129,7 +132,8 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
                                    "qfld_b": qfld_b, 
                                    "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_row_vals_used)
-    vals_a = [x[0] for x in cur.fetchall()]
+    # SQLite sometimes returns strings even if REAL
+    vals_a = [float(x[0]) for x in cur.fetchall()]
     if len(vals_a) > mg.MAX_CHI_DIMS:
         raise my_exceptions.TooManyRowsInChiSquareException
     if len(vals_a) < mg.MIN_CHI_DIMS:
@@ -144,7 +148,8 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
                                    "qfld_b": qfld_b, 
                                    "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_col_vals_used)
-    vals_b = [x[0] for x in cur.fetchall()]
+    # SQLite sometimes returns strings even if REAL
+    vals_b = [float(x[0]) for x in cur.fetchall()]
     if len(vals_b) > mg.MAX_CHI_DIMS:
         raise my_exceptions.TooManyColsInChiSquareException
     if len(vals_b) < mg.MIN_CHI_DIMS:
