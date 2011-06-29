@@ -39,12 +39,12 @@ class OdsImporter(importer.FileImporter):
                             u"Please check that file exists." % self.file_path)
         size = ods_reader.get_ods_xml_size(self.file_path)
         if size > 1000000:
-            retval = wx.MessageBox(_("This spreadsheet may take a while to "
+            ret = wx.MessageBox(_("This spreadsheet may take a while to "
                             "import.\n\nInstead of importing, it could be "
                             "faster to save as csv and import the csv " 
                             "version.\n\nImport now anyway?"), 
-                            _("SLOW IMPORT"), wx.YES_NO | wx.ICON_INFORMATION)
-            if retval == wx.NO:
+                            _("SLOW IMPORT"), wx.YES_NO|wx.ICON_INFORMATION)
+            if ret == wx.NO:
                 return False
         return importer.FileImporter.get_params(self) # checking for header
     

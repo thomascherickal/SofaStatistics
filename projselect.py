@@ -124,20 +124,20 @@ class ProjSelectDlg(wx.Dialog):
             raise
             return
         # refresh projects list and display accordingly
-        retval = dlgProj.ShowModal()
-        if retval == wx.ID_DELETE:
+        ret = dlgProj.ShowModal()
+        if ret == wx.ID_DELETE:
             # redo and pick 1st
             self.projs = projects.get_projs()
             self.drop_projs.SetItems(self.projs)
             self.drop_projs.SetSelection(0)
             self.set_notes(0)
-        elif retval == wx.ID_OK:
+        elif ret == wx.ID_OK:
             self.set_to_name_from_ok()
           
     def on_new_click(self, event):
         dlg_proj = projects.ProjectDlg(parent=self, readonly=False)
-        retval = dlg_proj.ShowModal()
-        if retval == wx.ID_OK:
+        ret = dlg_proj.ShowModal()
+        if ret == wx.ID_OK:
             self.set_to_name_from_ok()
 
     def set_to_name_from_ok(self):

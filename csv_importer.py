@@ -411,6 +411,7 @@ class DlgImportDisplay(wx.Dialog):
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
                            wx.CLIP_CHILDREN)
+        debug = True
         lib.safe_end_cursor() # needed for Mac
         self.parent = parent
         self.file_path = file_path
@@ -442,6 +443,7 @@ class DlgImportDisplay(wx.Dialog):
         szr_options.Add(self.drop_encodings, 0, wx.GROW|wx.RIGHT, 10)
         szr_options.Add(self.chk_has_header, 0)
         content, content_height = self.get_content()
+        if debug: print(content)
         self.html_content = wx.html.HtmlWindow(panel, -1, 
                                                size=(500,content_height))
         self.html_content.SetPage(content)
@@ -675,11 +677,13 @@ class CsvImporter(importer.FileImporter):
             (dialect, encoding, self.has_header, 
                 utf8_encoded_csv_sample) = self.get_sample_with_dets()
         except my_exceptions.ImportConfirmationRejected, e:
+            lib.safe_end_cursor()
             raise
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to get sample of csv with details. "
                             u"\nCaused by error: %s" % lib.ue(e))
+        wx.BeginBusyCursor()
         if self.has_header:
             try:
                 # 1st row will be consumed to get field names

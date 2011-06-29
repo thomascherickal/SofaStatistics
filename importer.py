@@ -146,8 +146,8 @@ def get_best_fld_type(fldname, type_set, faulty2missing_fld_list,
                                 fld_types=fld_types, 
                                 faulty2missing_fld_list=faulty2missing_fld_list, 
                                 assessing_sample=True)
-            retval = dlg.ShowModal()
-            if retval == wx.ID_CANCEL:
+            ret = dlg.ShowModal()
+            if ret == wx.ID_CANCEL:
                 raise Exception(u"Inconsistencies in data type.")         
             else:
                 fld_type = fld_types[fldname]
@@ -184,14 +184,36 @@ def process_fld_names(raw_names):
     except Exception, e:
         raise Exception(u"Problem processing field names list."
                         u"\nCaused by error: %s" % lib.ue(e))
-    if len(names) != len(set(names)):
+    n_names = len(names)
+    if n_names != len(set(names)):
         raise Exception(u"Duplicate field name (once spaces turned to "
                         u"underscores)")
-    for i, name in enumerate(names):
-        if not dbe_sqlite.valid_fldname(name):
-            raise Exception(_("Unable to use field name \"%s\". Please only "
-                              "use letters, numbers and underscores. No spaces,"
-                              " full stops etc.") % raw_names[i])
+    quickcheck = False
+    if n_names > 50:
+        # don't test each name individually - takes too long
+        # we gain speed and lose ability to single out bad variable name
+        if wx.MessageBox(_(u"There are %s fields so the process of "
+                           u"checking them all will take a while. "
+                           u"Do you want to do a quick check only?") % n_names, 
+                         caption=_("QUICK CHECK ONLY?"), 
+                         style=wx.YES_NO) == wx.YES:
+            quickcheck = True
+    if quickcheck:
+        # quick check
+        if not dbe_sqlite.valid_fldnames(fldnames=names, block_sz=100):
+            raise Exception(_(u"Unable to use field names provided. Please "
+                u"only use letters, numbers and underscores. No spaces, full "
+                u"stops etc. If you want to know which field name failed, try "
+                u"again and do the more thorough check (say No to quick check "
+                u"only)."))
+    else:
+        # thorough check
+        for i, name in enumerate(names):
+            if not dbe_sqlite.valid_fldname(name):
+                raise Exception(_(u"Unable to use field name \"%s\". "
+                      u"Please only use letters, numbers and "
+                      u"underscores. No spaces, full stops etc.") % 
+                                raw_names[i])
     return names
 
 def process_tbl_name(rawname):
@@ -534,8 +556,8 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
                              fld_types=fld_types, 
                              faulty2missing_fld_list=faulty2missing_fld_list, 
                              assessing_sample=False)
-        retval = dlg.ShowModal()
-        if retval == wx.ID_CANCEL:
+        ret = dlg.ShowModal()
+        if ret == wx.ID_CANCEL:
             raise Exception(u"Mismatch between data in column and expected "
                             u"column type")             
         else:
@@ -810,8 +832,8 @@ class ImportFileSelectDlg(wx.Dialog):
         "Open dialog and take the file selected (if any)"
         dlg_gdata = gdata_downloader.GdataDownloadDlg(self)
         # MUST have a parent to enforce modal in Windows
-        retval = dlg_gdata.ShowModal()
-        if retval != wx.ID_CLOSE:
+        ret = dlg_gdata.ShowModal()
+        if ret != wx.ID_CLOSE:
             path = os.path.join(mg.INT_PATH, mg.GOOGLE_DOWNLOAD)
             self.txt_file.SetValue(path)
             filestart, unused = self.get_file_start_ext(path)
@@ -845,11 +867,11 @@ class ImportFileSelectDlg(wx.Dialog):
             title = _("FAULTY SOFA TABLE NAME")
             msg = _("You can only use letters, numbers and underscores in a "
                 "SOFA Table Name.  Use another name?")
-            retval = wx.MessageBox(msg, title, wx.YES_NO|wx.ICON_QUESTION)
-            if retval == wx.NO:
+            ret = wx.MessageBox(msg, title, wx.YES_NO|wx.ICON_QUESTION)
+            if ret == wx.NO:
                 raise Exception(u"Had a problem with faulty SOFA Table Name but"
                             u" user cancelled initial process of resolving it")
-            elif retval == wx.YES:
+            elif ret == wx.YES:
                 self.txt_int_name.SetFocus()
                 return None
         duplicate = getdata.dup_tbl_name(tbl_name)
@@ -859,14 +881,14 @@ class ImportFileSelectDlg(wx.Dialog):
                   "already exists in the SOFA default database.\n\n"
                   "Do you want to replace it with the new data from "
                   "\"%(fil)s\"?")
-            retval = wx.MessageBox(msg % {"tbl": tbl_name, "fil": file_path}, 
-                                   title, wx.YES_NO|wx.ICON_QUESTION)
-            if retval == wx.NO: # no overwrite so get new one (or else!)
+            ret = wx.MessageBox(msg % {"tbl": tbl_name, "fil": file_path}, 
+                                title, wx.YES_NO|wx.ICON_QUESTION)
+            if ret == wx.NO: # no overwrite so get new one (or else!)
                 wx.MessageBox(_("Please change the SOFA Table Name and try "
                                 "again"))
                 self.txt_int_name.SetFocus()
                 return None
-            elif retval == wx.YES:
+            elif ret == wx.YES:
                 pass # use the name (and overwrite original)
         return tbl_name
 

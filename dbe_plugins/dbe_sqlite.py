@@ -395,6 +395,65 @@ def valid_tblname(tblname):
 def valid_fldname(fldname):
     return valid_name(fldname, is_tblname=False)
 
+def get_blocks(fldnames, block_sz=50):
+    "Make blocks of at most block_sz"
+    debug = False
+    blocks = []
+    i = 0
+    while True:
+        block = fldnames[i*block_sz:(i+1)*block_sz]
+        if debug: print("Block is: %s" % block)
+        if not block: break
+        blocks.append(block)
+        i += 1
+    if debug: print(blocks)
+    return blocks
+
+def valid_fldnames(fldnames, block_sz=50):
+    valid = True
+    # make blocks of at most block_sz
+    blocks = get_blocks(fldnames, block_sz)
+    for block in blocks:
+        if not valid_fldnames_block(block):
+            valid = False
+            break
+    return valid
+
+def valid_fldnames_block(block):
+    debug = False
+    default_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, u"sofa_tmp")
+    con = sqlite.connect(default_db)
+    add_funcs_to_con(con)
+    cur = con.cursor()
+    valid = False
+    try:
+        flds_clause = u", ".join([u"`%s` TEXT" % x for x in block])
+        tblname = u"safetblname"
+        # in case it survives somehow esp safetblname
+        # OK if this fails here
+        sql_drop = "DROP TABLE IF EXISTS %s" % tblname
+        if debug: print(sql_drop)
+        cur.execute(sql_drop)
+        con.commit()
+        # usable names in practice?
+        sql_make = "CREATE TABLE %s (%s)" % (tblname, flds_clause)
+        if debug: print(sql_make)
+        cur.execute(sql_make)
+        con.commit() # otherwise when committing, no net change to commit and 
+            # no actual chance to succeed or fail
+        # clean up
+        sql_drop = "DROP TABLE IF EXISTS %s" % tblname
+        if debug: print(sql_drop)
+        cur.execute(sql_drop)
+        con.commit()
+        valid = True
+    except Exception, e:
+        if debug: print(lib.ue(e))
+    finally:
+        cur.close()
+        con.close()
+        return valid
+    
 def valid_name(name, is_tblname=True):
     """
     tbl -- True for tblname being tested, False if a fldname being tested.

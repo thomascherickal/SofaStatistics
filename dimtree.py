@@ -112,14 +112,14 @@ class DimTree(object):
                 or self.tab_type == mg.RAW_DISPLAY):
             dlg = wx.MultiChoiceDialog(self, _("Select a variable"), 
                                        _("Variables"), choices=sorted_choices)
-            retval = dlg.ShowModal()
-            if retval == wx.ID_OK:
+            ret = dlg.ShowModal()
+            if ret == wx.ID_OK:
                 selected_idxs = dlg.GetSelections()
         else:
-            retval = wx.GetSingleChoiceIndex(_("Select a variable"), 
+            ret = wx.GetSingleChoiceIndex(_("Select a variable"), 
                             _("Variables"), choices=sorted_choices, parent=self)
-            if retval != -1:
-                selected_idxs = [retval,]
+            if ret != -1:
+                selected_idxs = [ret,]
         return selected_idxs
     
     def try_adding(self, tree, root, dim, oth_dim, oth_dim_tree, oth_dim_root):

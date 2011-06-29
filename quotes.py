@@ -51,6 +51,29 @@ QUOTES = [
      u"when he waylaid him in Parliament square. \"I haven't eaten for three days.\" "
      u"\"Ah,\" said the statistician, \"And how does that compare with the same "
      u"period last year?", u"Russell Lewis"),
+    (u"It has now been proven beyond a doubt that smoking is the major cause "
+     u"of statistics.", u"Unknown"),
+    (u"I have always been told that old statisticians do not fade away, "
+     u"but rather are \"broken down by age and sex\".", "Unknown"),
+    (u"There are two kind of statistics, the kind you look up, and the "
+     u"kind you make up.",  "Rex Stout (1886-1975)"),
+    (u"A single death is a tragedy, a million deaths is a statistic.",
+     u"Joseph Stalin (1879-1953)"),
+    (u"The weaker the data available upon which to base one's conclusion, "
+     u"the greater the precision which should be quoted in order to give "
+     u"the data authenticity.", "Norman R. Augustine"),
+    (u"Statistics means never having to say you are certain.", "Unknown"),
+    (u"If there is a 50-50 chance that something can go wrong, then 9 times "
+     u"out of ten it will.", u"Paul Harvey News"),
+    (u"A statistician's wife had twins. He was delighted. He rang the minister "
+     u"who was also delighted. \"Bring them to church on Sunday and we'll "
+     u"baptize them,\" said the minister. \"No,\" replied the statistician. "
+     u"\"Baptize one. We'll keep the other as a control.\"", 
+     u"STATS: The Magazine For Students of Statistics"),
+    (u"Reason #7 for being a statistician: You never have to be right - only close.",
+     u"Unknown"),
+    (u"You might be a Statistician if ... you found accountancy too exciting",
+     u"Unknown"),
     ]
 
 def get_quote():

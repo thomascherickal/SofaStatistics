@@ -423,11 +423,11 @@ def get_css_dets():
     """
     cc = config_dlg.get_cc()
     if not os.path.exists(cc[mg.CURRENT_CSS_PATH]):
-        retval = wx.MessageBox(_("The CSS style file '%s' doesn't exist. "
+        ret = wx.MessageBox(_("The CSS style file '%s' doesn't exist. "
                             "Continue using the default style instead?") % 
                             cc[mg.CURRENT_CSS_PATH], _("Needs CSS Style"), 
                             style=wx.YES_NO|wx.ICON_QUESTION)
-        if retval == wx.YES:
+        if ret == wx.YES:
             cc[mg.CURRENT_CSS_PATH] = mg.DEFAULT_CSS_PATH
         else:
             raise my_exceptions.MissingCssException(cc[mg.CURRENT_CSS_PATH])
