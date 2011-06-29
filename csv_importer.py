@@ -411,7 +411,7 @@ class DlgImportDisplay(wx.Dialog):
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
                            wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|\
                            wx.CLIP_CHILDREN)
-        debug = True
+        debug = False
         lib.safe_end_cursor() # needed for Mac
         self.parent = parent
         self.file_path = file_path

@@ -200,20 +200,22 @@ def process_fld_names(raw_names):
             quickcheck = True
     if quickcheck:
         # quick check
-        if not dbe_sqlite.valid_fldnames(fldnames=names, block_sz=100):
+        valid, err = dbe_sqlite.valid_fldnames(fldnames=names, block_sz=100)
+        if not valid:
             raise Exception(_(u"Unable to use field names provided. Please "
                 u"only use letters, numbers and underscores. No spaces, full "
                 u"stops etc. If you want to know which field name failed, try "
                 u"again and do the more thorough check (say No to quick check "
-                u"only)."))
+                u"only).\nOrig error: %s") % err)
     else:
         # thorough check
         for i, name in enumerate(names):
-            if not dbe_sqlite.valid_fldname(name):
+            valid, err = dbe_sqlite.valid_fldname(name)
+            if not valid:
                 raise Exception(_(u"Unable to use field name \"%s\". "
-                      u"Please only use letters, numbers and "
-                      u"underscores. No spaces, full stops etc.") % 
-                                raw_names[i])
+                      u"Please only use letters, numbers and underscores. No "
+                      u"spaces, full stops etc.\nOrig error: %s") % 
+                                (raw_names[i], err))
     return names
 
 def process_tbl_name(rawname):
@@ -862,11 +864,11 @@ class ImportFileSelectDlg(wx.Dialog):
         Raises exception if no suitable name selected.
         """
         # check existing names
-        valid_name = dbe_sqlite.valid_tblname(tbl_name)
-        if not valid_name:
+        valid, err = dbe_sqlite.valid_tblname(tbl_name)
+        if not valid:
             title = _("FAULTY SOFA TABLE NAME")
             msg = _("You can only use letters, numbers and underscores in a "
-                "SOFA Table Name.  Use another name?")
+                "SOFA Table Name. Use another name?\nOrig error: %s") % err
             ret = wx.MessageBox(msg, title, wx.YES_NO|wx.ICON_QUESTION)
             if ret == wx.NO:
                 raise Exception(u"Had a problem with faulty SOFA Table Name but"

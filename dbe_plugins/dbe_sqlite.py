@@ -411,13 +411,16 @@ def get_blocks(fldnames, block_sz=50):
 
 def valid_fldnames(fldnames, block_sz=50):
     valid = True
+    err = ""
     # make blocks of at most block_sz
     blocks = get_blocks(fldnames, block_sz)
     for block in blocks:
-        if not valid_fldnames_block(block):
+        block_valid, block_err = valid_fldnames_block(block)
+        if not block_valid:
             valid = False
+            err = block_err
             break
-    return valid
+    return valid, err
 
 def valid_fldnames_block(block):
     debug = False
@@ -425,7 +428,8 @@ def valid_fldnames_block(block):
     con = sqlite.connect(default_db)
     add_funcs_to_con(con)
     cur = con.cursor()
-    valid = False
+    valid = True
+    err = u""
     try:
         flds_clause = u", ".join([u"`%s` TEXT" % x for x in block])
         tblname = u"safetblname"
@@ -446,13 +450,14 @@ def valid_fldnames_block(block):
         if debug: print(sql_drop)
         cur.execute(sql_drop)
         con.commit()
-        valid = True
     except Exception, e:
         if debug: print(lib.ue(e))
+        valid = False
+        err = lib.ue(e)
     finally:
         cur.close()
         con.close()
-        return valid
+        return valid, err
     
 def valid_name(name, is_tblname=True):
     """
@@ -468,7 +473,8 @@ def valid_name(name, is_tblname=True):
     con = sqlite.connect(default_db)
     add_funcs_to_con(con)
     cur = con.cursor()
-    valid = False
+    valid = True
+    err = ""
     try:
         if is_tblname:
             tblname = getdata.tblname_qtr(mg.DBE_SQLITE, name)
@@ -493,10 +499,11 @@ def valid_name(name, is_tblname=True):
         if debug: print(sql_drop)
         cur.execute(sql_drop)
         con.commit()
-        valid = True
     except Exception, e:
+        valid = False
         if debug: print(lib.ue(e))
+        err = lib.ue(e)
     finally:
         cur.close()
         con.close()
-        return valid
+        return valid, err
