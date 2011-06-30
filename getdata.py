@@ -36,11 +36,12 @@ def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None,
     try:
         dbe_resources = {}
         if debug: print("About to update dbe resources with con resources")
+        # no unicode keys for 2.6 bug http://bugs.python.org/issue2646
         kwargs = {mg.PROJ_CON_DETS: con_dets, mg.PROJ_DEFAULT_DBS: default_dbs, 
                   "db": db}
         if dbe == mg.DBE_SQLITE:
             kwargs["add_checks"] = add_checks
-        if debug: print(kwargs)          
+        if debug: print(kwargs)
         dbe_resources.update(mg.DBE_MODULES[dbe].get_con_resources(**kwargs))
         cur = dbe_resources[mg.DBE_CUR]
         dbs = dbe_resources[mg.DBE_DBS]

@@ -541,6 +541,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     default_dbs[mg.DBE_MYSQL] = mysql_default_db
     default_tbls[mg.DBE_MYSQL] = mysql_default_tbl
     if mysql_host and mysql_user and mysql_pwd:
+        # no unicode keys for 2.6 bug http://bugs.python.org/issue2646
         con_dets_mysql = {"host": mysql_host, "port": mysql_port, 
                           "user": mysql_user, "passwd": mysql_pwd}
         con_dets[mg.DBE_MYSQL] = con_dets_mysql

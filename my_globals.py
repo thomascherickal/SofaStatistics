@@ -172,9 +172,12 @@ PROJ_FIL_VDTS = u"fil_var_dets"
 PROJ_FIL_RPT = u"fil_report"
 PROJ_FIL_SCRIPT = u"fil_script"
 PROJ_FIL_CSS = u"fil_css"
-PROJ_CON_DETS = u"con_dets"
+
+# no unicode keys for 2.6 bug http://bugs.python.org/issue2646
+PROJ_CON_DETS = "con_dets"
+PROJ_DEFAULT_DBS = "default_dbs"
+
 PROJ_DBE = u"default_dbe"
-PROJ_DEFAULT_DBS = u"default_dbs"
 PROJ_DEFAULT_TBLS = u"default_tbls"
 DEFAULT_PROJ = u"default.proj"
 DEFAULT_VDTS = u"general_var_dets.vdts"

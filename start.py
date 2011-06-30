@@ -292,6 +292,7 @@ class StartFrame(wx.Frame):
                                                    fil_name=self.active_proj)
         if not mg.DATA_DETS:
             try:
+                # trying to actually connect to a database on start up
                 mg.DATA_DETS = getdata.DataDets(proj_dic)
                 if debug: print("Updated mg.DATA_DETS")
             except Exception, e:

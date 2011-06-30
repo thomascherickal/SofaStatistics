@@ -20,7 +20,8 @@ DEFAULT_DB = u"sqlite_default_db"
 DEFAULT_TBL = u"sqlite_default_tbl"
 NUMERIC_TYPES = [u"integer", u"float", u"numeric", u"real"]
 DATE_TYPES = [u"date", u"datetime", u"time", u"timestamp"]
-DATABASE_KEY = u"database"
+# no unicode keys for 2.6 bug http://bugs.python.org/issue2646
+DATABASE_KEY = "database"
 DATABASE_FLD_LABEL = _("Database(s)")
 
 if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
