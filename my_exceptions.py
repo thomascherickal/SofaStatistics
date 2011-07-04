@@ -140,3 +140,8 @@ class TooManyBoxplotsInSeries(OutputException):
     def __init__(self, fld_gp_by, max_items):
         OutputException.__init__(self, u"Too many boxplots to display for %s. " 
                            % fld_gp_by + u"More than %s." % max_items)
+
+class TooFewBoxplotsInSeries(OutputException):
+    def __init__(self):
+        OutputException.__init__(self, u"Too few boxplots to display. "
+                                 u"Inadequate variability or number of values.")

@@ -444,6 +444,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
     ymax = 0
     first_chart_by = True
     any_missing_boxes = False
+    any_displayed_boxes = False
     for fld_chart_by_val in fld_chart_by_vals: # e.g. "Boys" and "Girls"
         # set up series (chart by) filter and 
         if fld_chart_by:
@@ -500,49 +501,71 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
                 ORDER BY %(fld_measure)s""" % sql_dic
             cur.execute(SQL_measure_vals)
             measure_vals = [x[0] for x in cur.fetchall()]
-            boxplot_display = (len(measure_vals) > 
-                               mg.CHART_MIN_DISPLAY_VALS_FOR_BOXPLOT)
-            if not boxplot_display:
-                any_missing_boxes = True
             # This is bound to be really inefficient - optimise one day?
             lbox = core_stats.scoreatpercentile(measure_vals, percent=25.0)
             median = core_stats.scoreatpercentile(measure_vals, percent=50.0)
             ubox = core_stats.scoreatpercentile(measure_vals, percent=75.0)
-            iqr = ubox-median
-            raw_lwhisker = lbox - (1.5*iqr)
-            # wrap up to next value
-            for val in measure_vals:
-                if val > raw_lwhisker:
-                    lwhisker = val
-                    break
-            min_measure = min(measure_vals)
-            if min_measure < ymin:
-                ymin = min_measure            
-            raw_uwhisker = ubox + (1.5*iqr)
-            # wrap down to next value
-            measure_vals.reverse()
-            for val in measure_vals:
-                if val < raw_uwhisker:
-                    uwhisker = val
-                    break
-            max_measure = max(measure_vals)
-            if max_measure > ymax:
-                ymax = max_measure
-            outliers = [round(x, 2) for x in measure_vals 
-                        if x < lwhisker or x > uwhisker]
-            box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
-                       mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
-                       mg.CHART_BOXPLOT_LWHISKER: round(lwhisker, 2),
-                       mg.CHART_BOXPLOT_LBOX: round(lbox, 2),
-                       mg.CHART_BOXPLOT_MEDIAN: round(median, 2),
-                       mg.CHART_BOXPLOT_UBOX: round(ubox, 2),
-                       mg.CHART_BOXPLOT_UWHISKER: round(uwhisker, 2),
-                       mg.CHART_BOXPLOT_OUTLIERS: outliers}
+            enough_vals = (len(measure_vals) > 
+                           mg.CHART_MIN_DISPLAY_VALS_FOR_BOXPLOT)
+            # Round them because even if all vals the same e.g. 1.0 will differ
+            # very slightly because of method used to calc quartiles using 
+            # floating point.
+            line_vals = set([round(lbox,5), round(median,5), round(ubox,5)])
+            enough_diff = (len(line_vals) == 3)
+            if debug: print("%s, %s %s %s %s" % (enough_vals, enough_diff, lbox, 
+                                                 median, ubox))
+            boxplot_display = enough_vals and enough_diff
+            if not boxplot_display:
+                any_missing_boxes = True
+                box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
+                           mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
+                           mg.CHART_BOXPLOT_LWHISKER: None,
+                           mg.CHART_BOXPLOT_LBOX: None,
+                           mg.CHART_BOXPLOT_MEDIAN: None,
+                           mg.CHART_BOXPLOT_UBOX: None,
+                           mg.CHART_BOXPLOT_UWHISKER: None,
+                           mg.CHART_BOXPLOT_OUTLIERS: None}
+            else:
+                any_displayed_boxes = True
+                iqr = ubox-median
+                raw_lwhisker = lbox - (1.5*iqr)
+                # wrap up to next value
+                lwhisker = raw_lwhisker # init
+                for val in measure_vals:
+                    if val > raw_lwhisker:
+                        lwhisker = val
+                        break
+                min_measure = min(measure_vals)
+                if min_measure < ymin:
+                    ymin = min_measure            
+                raw_uwhisker = ubox + (1.5*iqr)
+                # wrap down to next value
+                measure_vals.reverse()
+                uwhisker = raw_uwhisker # init
+                for val in measure_vals:
+                    if val < raw_uwhisker:
+                        uwhisker = val
+                        break
+                max_measure = max(measure_vals)
+                if max_measure > ymax:
+                    ymax = max_measure
+                outliers = [round(x, 2) for x in measure_vals 
+                            if x < lwhisker or x > uwhisker]
+                box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
+                           mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
+                           mg.CHART_BOXPLOT_LWHISKER: round(lwhisker, 2),
+                           mg.CHART_BOXPLOT_LBOX: round(lbox, 2),
+                           mg.CHART_BOXPLOT_MEDIAN: round(median, 2),
+                           mg.CHART_BOXPLOT_UBOX: round(ubox, 2),
+                           mg.CHART_BOXPLOT_UWHISKER: round(uwhisker, 2),
+                           mg.CHART_BOXPLOT_OUTLIERS: outliers}
             boxdet_series.append(box_dic)
         series_dic = {mg.CHART_SERIES_LBL: legend_lbl, 
                       mg.CHART_BOXDETS: boxdet_series}
         chart_dets.append(series_dic)
         first_chart_by = False
+    if not any_displayed_boxes:
+        raise my_exceptions.TooFewBoxplotsInSeries
     xmin = 0.5
     xmax = i+0.5
     ymax *=1.1
@@ -2080,8 +2103,8 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     html = []
     if any_missing_boxes:
         html.append(u"<p>At least one box will not be displayed because it "
-                    u"lacks at least %s values.</p>"
-                    % mg.CHART_MIN_DISPLAY_VALS_FOR_BOXPLOT)
+                    u"lacks at least %s values or has inadequate "
+                    u"variability.</p>" % mg.CHART_MIN_DISPLAY_VALS_FOR_BOXPLOT)
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 
