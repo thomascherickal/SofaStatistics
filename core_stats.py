@@ -230,9 +230,11 @@ def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b, tbl_filt,
     Returns chisq, p, min_count, perc_cells_lt_5
     """
     debug = False
-    vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df = \
-                    get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, 
-                                and_tbl_filt, flds, fld_a, fld_b)
+    (vals_a, vals_b, lst_obs, 
+     lst_exp, min_count, 
+     perc_cells_lt_5, df ) = get_obs_exp(dbe, cur, tbl, tbl_filt, 
+                                         where_tbl_filt, and_tbl_filt, flds, 
+                                         fld_a, fld_b)
     if debug: print(lst_obs, lst_exp)
     chisq, p = chisquare(lst_obs, lst_exp, df)
     return (chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, 

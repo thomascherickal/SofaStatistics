@@ -697,7 +697,11 @@ def get_lbls_in_lines(orig_txt, max_width, dojo=False):
     """
     debug = False
     lines = []
-    words = orig_txt.split()
+    try:
+        words = orig_txt.split()
+    except Exception, e:
+        raise Exception("Tried to split a non-text label. "
+                        "Is the script not supplying text labels?")
     line_words = []
     for word in words:
         line_words.append(word)

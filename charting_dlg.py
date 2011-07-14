@@ -1010,9 +1010,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         """
         debug = False
         dd = getdata.get_dd()
-        inc_perc = u"False" if not INC_PERC \
-            or (self.chart_type in mg.HAS_AVG_OPTION and SHOW_AVG) \
-                else u"True"
+        inc_perc = (u"False" if not INC_PERC
+                        or (self.chart_type in mg.HAS_AVG_OPTION and SHOW_AVG)
+                    else u"True")
         script_lst = []
         titles, subtitles = self.get_titles()
         script_lst.append(u"titles=%s" % unicode(titles))

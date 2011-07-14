@@ -58,9 +58,9 @@ chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df = \\
         val_dic_b = self.val_dics.get(var_b, {})
         script_lst.append(u"val_dic_a = %s" % pprint.pformat(val_dic_a))
         script_lst.append(u"val_dic_b = %s" % pprint.pformat(val_dic_b))
-        script_lst.append(u"val_labels_a = [val_dic_a.get(x, x) for " +
+        script_lst.append(u"val_labels_a = [val_dic_a.get(x, unicode(x)) for "
                           u"x in vals_a]")
-        script_lst.append(u"val_labels_b = [val_dic_b.get(x, x) for " +
+        script_lst.append(u"val_labels_b = [val_dic_b.get(x, unicode(x)) for "
                           u"x in vals_b]")        
         script_lst.append(u"""
 chisquare_output = stats_output.chisquare_output(chisq, p, var_label_a, 

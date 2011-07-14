@@ -33,7 +33,7 @@ sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=u"%(dbe)s",
         script_lst.append(u"dp = 3")
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
-        script_lst.append(u"t, p, dic_a, dic_b = " + \
+        script_lst.append(u"t, p, dic_a, dic_b = "
                 u"core_stats.wilcoxont(sample_a, sample_b, label_a, label_b)")
         script_lst.append(u"""
 wilcoxon_output = stats_output.wilcoxon_output(t, p, dic_a, dic_b,

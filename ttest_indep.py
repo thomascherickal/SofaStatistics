@@ -35,8 +35,8 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         "Build script from inputs"
         dd = getdata.get_dd()
         script_lst = []
-        var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \
-            var_avg, label_avg = self.get_drop_vals()
+        (var_gp_numeric, var_gp, label_gp, val_a, 
+         label_a, val_b, label_b, var_avg, label_avg) = self.get_drop_vals()
         script_lst.append(u"dp = 3")
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         val_str_quoted_a = val_a if var_gp_numeric else u"u\"%s\"" % val_a
@@ -56,11 +56,11 @@ if len(sample_a) < 2 or len(sample_b) < 2:
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"label_avg = u\"%s\"" % label_avg)
-        script_lst.append(u"add_to_report = %s" % ("True" if add_to_report \
+        script_lst.append(u"add_to_report = %s" % ("True" if add_to_report
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
                           lib.escape_pre_write(report_name))
-        script_lst.append(u"t, p, dic_a, dic_b, df = " + \
+        script_lst.append(u"t, p, dic_a, dic_b, df = "
             u"core_stats.ttest_ind(sample_a, sample_b, label_a, label_b)")
         script_lst.append(u"""
 ttest_indep_output = stats_output.ttest_indep_output(sample_a, sample_b, t, p,

@@ -38,7 +38,7 @@ sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=u"%(dbe)s",
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
                           lib.escape_pre_write(report_name))
-        script_lst.append(u"t, p, dic_a, dic_b, df, diffs = " +
+        script_lst.append(u"t, p, dic_a, dic_b, df, diffs = "
             u"core_stats.ttest_rel(sample_a, sample_b, label_a, label_b)")
         script_lst.append(u"""
 ttest_paired_output = stats_output.ttest_paired_output(sample_a, sample_b, t, p,

@@ -161,10 +161,10 @@ def check_python_version():
     debug = False
     pyversion = sys.version[:3]
     if debug: pyversion = None
-    # Linux installer doesn't have hard-wired site-packages so 2.7 should 
-    # also work.
+    # Linux installer doesn't have hard-wired site-packages so 2.6 or 2.7 should 
+    # work. Other installers have site-packages for 2.6 only.
     if (mg.PLATFORM != mg.LINUX and pyversion != u"2.6") \
-            or (mg.PLATFORM == mg.WINDOWS and pyversion not in(u"2.6", u"2.7")):
+            or (mg.PLATFORM == mg.LINUX and pyversion not in(u"2.6", u"2.7")):
         fixit_file = os.path.join(mg.USER_PATH, u"Desktop", 
                                   u"how to get SOFA working.txt")
         f = open(fixit_file, "w")
