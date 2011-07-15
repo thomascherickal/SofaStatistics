@@ -417,7 +417,9 @@ class SettingsEntry(object):
                 # don't skip. Smother event so delete not entered anywhere.
                 return
             else:
-                event.Skip() # wasn't a row delete attempt so allow to proceed
+                # set to empty string
+                self.grid.SetCellValue(self.current_row_idx, 
+                                       self.current_col_idx, u"")
         elif keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
             if keycode == wx.WXK_TAB:
                 if event.ShiftDown():

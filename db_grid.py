@@ -240,7 +240,7 @@ class TblEditor(wx.Dialog):
         Potentially capture use of keypress to move away from a cell.
         Must process here. NB dest row and col yet to be determined.
         """
-        debug = False
+        debug = True
         see_native_bvr = False
         if see_native_bvr:
             print("SHOWING NATIVE BVR !!!!!!!")
@@ -262,7 +262,15 @@ class TblEditor(wx.Dialog):
                 col = self.current_col_idx
                 self.dbtbl.SetValue(row, col, mg.MISSING_VAL_INDICATOR)
                 self.dbtbl.force_refresh()
-                self.dbtbl.row_vals_dic[row][col] = mg.MISSING_VAL_INDICATOR
+                try: # won't work if new row
+                    self.dbtbl.row_vals_dic[row][col] = mg.MISSING_VAL_INDICATOR
+                except Exception, e:
+                    pass
+                # Don't set self.dbtbl.new_is_dirty = True because of 
+                # a deletion only.
+                #new_row = self.dbtbl.is_new_row(row)
+                #if new_row:
+                #    self.dbtbl.new_is_dirty = True
         elif keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
             if keycode == wx.WXK_TAB:
                 if event.ShiftDown():
