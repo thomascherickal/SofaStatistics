@@ -338,7 +338,7 @@ class SettingsEntry(object):
     
     def on_select_cell(self, event):
         """
-        Capture use of move away from a cell.  May be result of mouse click 
+        Capture use of move away from a cell. May be result of mouse click 
             or a keypress.
         """
         debug = False
@@ -406,18 +406,18 @@ class SettingsEntry(object):
         If a single row is selected, the key is a delete, and we are not inside 
             and editor, delete selected row if possible.
         """
-        debug = False
+        debug = True
         keycode = event.GetKeyCode()
         if self.debug or debug: 
             print(u"on_grid_key_down - keycode %s pressed" % keycode)
-        if keycode in [wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE] and not \
-                self.readonly:
+        if (keycode in [wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE] 
+                and not self.readonly):
             # None if no deletion occurs
             if self.try_to_delete_row(assume_row_deletion_attempt=False):
-                # don't skip.  Smother event so delete not entered anywhere
+                # don't skip. Smother event so delete not entered anywhere.
                 return
             else:
-                event.Skip() # wan't a row delete attempt so allow to proceed 
+                event.Skip() # wasn't a row delete attempt so allow to proceed
         elif keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
             if keycode == wx.WXK_TAB:
                 if event.ShiftDown():
@@ -433,10 +433,24 @@ class SettingsEntry(object):
             final_col = (src_col == len(self.col_dets) - 1)
             if final_col and direction in [mg.MOVE_RIGHT, mg.MOVE_DOWN]:
                 self.add_cell_move_evt(direction)
-                # Do not Skip and send event on its way.
-                # Smother the event here so our code can determine where the 
-                # selection goes next.  Otherwise, Return will appear in cell 
-                # below and trigger other responses.
+                """
+                Do not Skip and send event on its way.
+                Smother the event here so our code can determine where the 
+                    selection goes next. Matters when a Return which will 
+                    otherwise natively appear in cell below and trigger other 
+                    responses.
+                """
+            elif keycode == wx.WXK_RETURN:
+                # A return but not at the end - normally would go down but we 
+                # want to go right. Whether OK to or not will be decided when 
+                # event processed.
+                self.add_cell_move_evt(direction=mg.MOVE_RIGHT)
+                """
+                Do not Skip and send event on its way.
+                Smother the event here so our code can determine where the 
+                    selection goes next. Otherwise Return will cause us to 
+                    natively appear in cell below and trigger other responses.
+                """
             else:
                 event.Skip()
                 return

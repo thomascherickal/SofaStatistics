@@ -17,12 +17,12 @@ TblEditor is the grid (the Dialog containing the grid).
 Cell values are taken from the database in batches and cached for performance
     reasons.
 Navigation around inside the grid triggers data saving (cells updated or 
-    a new row added).  Validation occurs first to ensure that values will be
-    acceptable to the underlying database.  If not, the cursor stays at the 
+    a new row added). Validation occurs first to ensure that values will be
+    acceptable to the underlying database. If not, the cursor stays at the 
     original location.
 Because the important methods such as on_select_cell and SetValue occur in 
     a different sequence depending on whether we use the mouse or the keyboard,
-    a custom event is added to the end of the event queue.  It ensures that 
+    a custom event is added to the end of the event queue. It ensures that 
     validation and decisions about where the cursor can go (or must stay) always 
     happen after the other steps are complete.
 If a user enters a value, we see the new value, but nothing happens to the
@@ -31,11 +31,11 @@ save_row() and update_cell() are where actual changes to the database are made.
 When update_cell is called, the cache for that row is wiped to force it to be
     updated from the database itself (including data which may be entered in one 
     form and stored in another e.g. dates)
-When save_row() is called, the cache is not updated.  It is better to force the
+When save_row() is called, the cache is not updated. It is better to force the
     grid to look up the value from the db.  Thus it will show autocreated values
     e.g. timestamp, autoincrement etc
-Intended behaviour: tabbing moves left and right.  If at end, takes to next line
-    if possible.  Return moves down if possible or, if at end, to start of next
+Intended behaviour: tabbing moves left and right. If at end, takes to next line
+    if possible. Return moves down if possible or, if at end, to start of next
     line if possible.
 """
 
@@ -189,9 +189,15 @@ class TblEditor(wx.Dialog):
     
     def on_select_cell(self, event):
         """
-        Capture use of move away from a cell.  May be result of mouse click 
+        Capture use of move away from a cell. May be result of mouse click 
             or a keypress.
         """
+        debug = False
+        see_native_bvr = False
+        if see_native_bvr:
+            print("SHOWING NATIVE BVR !!!!!!!")
+            event.Skip()
+            return
         if not self.respond_to_select_cell:
             self.respond_to_select_cell = True
             event.Skip()
@@ -220,20 +226,26 @@ class TblEditor(wx.Dialog):
                 direction = mg.MOVE_UP_LEFT
         else:
             raise Exception(u"db_grid.on_select_cell - where is direction?")
-        if self.debug: 
+        if self.debug or debug: 
             print("on_select_cell - selected row: %s, col: %s, direction: %s" %
             (dest_row, dest_col, direction) + "*******************************") 
         self.add_cell_move_evt(direction, dest_row, dest_col)
         
     def on_grid_key_down(self, event):
         """
-        Potentially capture use of keypress to move away from a cell.
+        Normally we let on_select_cell handle cell navigation instead.
         The only case where we can't rely on on_select_cell to take care of
             add_cell_move_evt for us is if we are moving right or down from the 
             last col after a keypress.
-        Must process here.  NB dest row and col yet to be determined.
+        Potentially capture use of keypress to move away from a cell.
+        Must process here. NB dest row and col yet to be determined.
         """
         debug = False
+        see_native_bvr = False
+        if see_native_bvr:
+            print("SHOWING NATIVE BVR !!!!!!!")
+            event.Skip()
+            return
         dd = getdata.get_dd()
         keycode = event.GetKeyCode()
         if self.debug or debug: 
@@ -242,8 +254,15 @@ class TblEditor(wx.Dialog):
                                                    wx.WXK_NUMPAD_DELETE]:
             # None if no deletion occurs
             if self.try_to_delete_row(assume_row_deletion_attempt=False):
-                # don't skip.  Smother event so delete not entered anywhere
+                # don't skip. Smother event so delete not entered anywhere.
                 return
+            else:
+                # set to missing value instead of empty string
+                row = self.current_row_idx
+                col = self.current_col_idx
+                self.dbtbl.SetValue(row, col, mg.MISSING_VAL_INDICATOR)
+                self.dbtbl.force_refresh()
+                self.dbtbl.row_vals_dic[row][col] = mg.MISSING_VAL_INDICATOR
         elif keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
             if keycode == wx.WXK_TAB:
                 if event.ShiftDown():
@@ -251,22 +270,38 @@ class TblEditor(wx.Dialog):
                 else:
                     direction = mg.MOVE_RIGHT
             elif keycode == wx.WXK_RETURN:
-                direction = mg.MOVE_DOWN
+                direction = mg.MOVE_DOWN # the native bvr
             src_row=self.current_row_idx
             src_col=self.current_col_idx
             if self.debug or debug: 
-                print("on_grid_key_down - keypress in row " +
-                "%s col %s ******************************" % (src_row, src_col))
+                print("on_grid_key_down - keypress in row %s col %s"
+                      " ******************************" % (src_row, src_col))
             final_col = (src_col == len(dd.flds) - 1)
             if final_col and direction in [mg.MOVE_RIGHT, mg.MOVE_DOWN]:
                 self.add_cell_move_evt(direction)
-                # Do not Skip and send event on its way.
-                # Smother the event here so our code can determine where the 
-                # selection goes next.  Otherwise, Return will appear in cell 
-                # below and trigger other responses.
+                """
+                Do not Skip and send event on its way.
+                Smother the event here so our code can determine where the 
+                    selection goes next. Matters when a Return which will 
+                    otherwise natively appear in cell below and trigger other 
+                    responses.
+                """
+            elif keycode == wx.WXK_RETURN:
+                # A return but not at the end - normally would go down but we 
+                # want to go right. Whether OK to or not will be decided when 
+                # event processed.
+                self.add_cell_move_evt(direction=mg.MOVE_RIGHT)
+                """
+                Do not Skip and send event on its way.
+                Smother the event here so our code can determine where the 
+                    selection goes next. Otherwise Return will cause us to 
+                    natively appear in cell below and trigger other responses.
+                """
             else:
+                # For a TAB, will natively move right (or left with Shift) 
+                # stopping at either end.
                 event.Skip()
-        else:
+        else: # presumably entering a value :-)
             event.Skip()
             
     def ok_to_delete_row(self, row):
@@ -383,8 +418,8 @@ class TblEditor(wx.Dialog):
         direction = event.direction
         if self.debug or debug: 
             print("settings_grid.on_cell_move src_row: %s src_col %s " %
-                (src_row, src_col) + "dest_row: %s dest_col: %s " %
-                (dest_row, dest_col) + "direction %s" % direction)
+                 (src_row, src_col) + "dest_row: %s dest_col: %s " %
+                 (dest_row, dest_col) + "direction %s" % direction)
         # process_cell_move called from text editor as well so keep separate
         self.process_cell_move(src_ctrl, src_row, src_col, dest_row, dest_col, 
                                direction)
@@ -400,12 +435,13 @@ class TblEditor(wx.Dialog):
         self.dbtbl.force_refresh()
         if self.debug or debug:
             print("process_cell_move - " +
-                "source row %s source col %s " % (src_row, src_col) +
-                "dest row %s dest col %s " % (dest_row, dest_col) +
-                "direction: %s" % direction)
-        (was_final_col, was_new_row, was_final_row, move_type, dest_row, 
-                dest_col) = self.get_move_dets(src_row, src_col, dest_row, 
-                                               dest_col, direction)
+                  "source row %s source col %s " % (src_row, src_col) +
+                  "dest row %s dest col %s " % (dest_row, dest_col) +
+                  "direction: %s" % direction)
+        (was_final_col, was_new_row, 
+         was_final_row, move_type, 
+         dest_row, dest_col) = self.get_move_dets(src_row, src_col, dest_row, 
+                                                  dest_col, direction)
         if move_type in [mg.MOVING_IN_EXISTING, mg.LEAVING_EXISTING]:
             move_to_dest = self.leaving_existing_cell(was_final_col, 
                                                       was_final_row, direction)
@@ -791,7 +827,7 @@ class TblEditor(wx.Dialog):
         debug = False
         dd = getdata.get_dd()
         if self.debug or debug: print("update_cell - row %s col %s" % (row, col))
-        bolUpdatedCell = True
+        bol_updated_cell = True
         try:
             dd.con.commit()
             dd.cur.execute(self.dbtbl.sql_cell_to_update)
@@ -801,13 +837,13 @@ class TblEditor(wx.Dialog):
                 print(u"update_cell failed to save %s. " %
                       self.dbtbl.sql_cell_to_update + u"\nCaused by error: %s"
                       % lib.ue(e))
-            bolUpdatedCell = False
+            bol_updated_cell = False
             wx.MessageBox(_("Unable to save change to database. %s") % 
                           lib.ue(e))
         if self.dbtbl.row_vals_dic.get(row):
             del self.dbtbl.row_vals_dic[row] # force a fresh read
         self.dbtbl.grid.ForceRefresh()
-        return bolUpdatedCell
+        return bol_updated_cell
     
     def save_row(self, row):
         """
@@ -887,7 +923,7 @@ class TblEditor(wx.Dialog):
     
     def on_grid_editor_created(self, event):
         """
-        Need to identify control just opened.  Might need to return to it and
+        Need to identify control just opened. Might need to return to it and
             set insertion point.
         """
         debug = False

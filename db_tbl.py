@@ -276,7 +276,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             col_name = self.fld_names[col]
             raw_val_to_use = getdata.prep_val(dbe=dd.dbe, val=value, 
                                              fld_dic=dd.flds[col_name])
-            self.val_of_cell_to_update = raw_val_to_use            
+            self.val_of_cell_to_update = raw_val_to_use         
             if self.must_quote: # only refers to index column
                 id_value = self.quote_val(self.row_ids_lst[row])
             else:
