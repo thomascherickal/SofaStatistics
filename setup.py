@@ -107,17 +107,26 @@ class ErrMsgFrame(wx.Frame):
     def __init__(self, e, raw_error_msg):
         wx.Frame.__init__(self, None, title=_("SOFA Error"))
         error_msg = lib.ue(e)
+        mybreak = u"\n" + u"*"*30 + u"\n"
+        err_msg_fname = u"sofastats_error_details.txt"
         if not raw_error_msg:
             error_msg = (u"Oops! Something went wrong running SOFA Statistics "
-                 u"version %s. " % mg.VERSION + u"\n\nHelp is available at "
-                 u"http://www.sofastatistics.com/userguide.php under "
-                 u"\"SOFA won't start - solutions\". You can also email lead "
-                 u"developer grant@sofastatistics.com for help (usually "
-                 u"reasonably prompt)."
-                 u"\n\nIf you know how, please include a screenshot of this "
-                 u"full message."
-                 u"\n\nCaused by error: %s" % error_msg)
+                u"version %(version)s.\n\nHelp is available at "
+                u"http://www.sofastatistics.com/userguide.php under "
+                u"\"SOFA won't start - solutions\". You can also email "
+                u"lead developer grant@sofastatistics.com for help (usually "
+                u"reasonably prompt).\n\nSOFA is about to make an error file "
+                u"on your desktop. Please include that file "
+                u"(\"%(err_msg_fname)s\") in your email."
+                u"\n%(mybreak)s\nCaused by error: %(error_msg)s""" % 
+                {"version": mg.VERSION, "err_msg_fname": err_msg_fname, 
+                 "error_msg": error_msg, "mybreak": mybreak})
         wx.MessageBox(error_msg)
+        f = open(os.path.join(mg.USER_PATH, u"Desktop", err_msg_fname), "w")
+        f.write(error_msg)
+        f.write(mybreak)
+        f.write(traceback.format_exc())
+        f.close()
         self.Destroy()
         import sys
         sys.exit()
@@ -525,17 +534,23 @@ def setup_folders():
     if show_early_steps: print(u"Just set prog_path")
     try:
         # 1) make local SOFA folder if missing. Otherwise, leave intact for now
-        local_path_setup_needed = not os.path.exists(mg.LOCAL_PATH)
-        if local_path_setup_needed:
-            make_local_subfolders(mg.LOCAL_PATH, local_subfolders)
-        run_test_code(mg.TEST_SCRIPT_EARLIEST)
-        if local_path_setup_needed:
-            # need mg but must run pre code calling dd
-            default_proj = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, 
-                                        mg.DEFAULT_PROJ)
-            populate_local_paths(prog_path, mg.LOCAL_PATH, default_proj)
-            config_local_proj(mg.LOCAL_PATH, default_proj, subfolders_in_proj)
-            store_version(mg.LOCAL_PATH)
+        try:
+            local_path_setup_needed = not os.path.exists(mg.LOCAL_PATH)
+            if local_path_setup_needed:
+                make_local_subfolders(mg.LOCAL_PATH, local_subfolders)
+            run_test_code(mg.TEST_SCRIPT_EARLIEST)
+            if local_path_setup_needed:
+                # need mg but must run pre code calling dd
+                default_proj = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, 
+                                            mg.DEFAULT_PROJ)
+                populate_local_paths(prog_path, mg.LOCAL_PATH, default_proj)
+                config_local_proj(mg.LOCAL_PATH, default_proj, 
+                                  subfolders_in_proj)
+                store_version(mg.LOCAL_PATH)
+        except Exception, e:
+            raise Exception(u"Unable to make local sofa folders in \"%s.\""
+                            % mg.LOCAL_PATH +
+                            u"\nCaused by error: %s" % lib.ue(e))
         run_test_code(mg.TEST_SCRIPT_POST_CONFIG)#can now use dd and proj config
         # 2) Modify existing local SOFA folder if versions require it
         if not local_path_setup_needed: # any fresh one won't need modification
@@ -555,24 +570,29 @@ def setup_folders():
                     except OSError, e:
                         pass # already there
                     except Exception, e:
-                        raise Exception(u"Unable to make report extras path %s." % 
-                                        REPORT_EXTRAS_PATH +
+                        raise Exception(u"Unable to make report extras "
+                                        u"path \"%s\"." % REPORT_EXTRAS_PATH +
                                         u"\nCaused by error: %s" % lib.ue(e))
                     populate_extras_path(prog_path, mg.LOCAL_PATH)
                     archive_older_default_report()
                     store_version(mg.LOCAL_PATH) # update it so only done once
             except Exception, e:
-                raise Exception(u"Problem modifying your local sofastats folder. "
-                                u"One option is to delete the %s folder and let"
-                                u" SOFA make a fresh one.\nCaused by error: %s" %
-                                (mg.LOCAL_PATH, lib.ue(e)))
+                raise Exception(u"Problem modifying your local sofastats "
+                        u"folder. One option is to delete the \"%s\" folder and"
+                        u" let SOFA make a fresh one.\nCaused by error: %s" %
+                        (mg.LOCAL_PATH, lib.ue(e)))
         # 3) Make a fresh recovery folder if needed
-        freshen_recovery(prog_path, local_subfolders, subfolders_in_proj)
+        try:
+            freshen_recovery(prog_path, local_subfolders, subfolders_in_proj)
+        except Exception, e:
+            raise Exception(u"Problem freshening your recovery folder \"%s\"."
+                    u"\nCaused by error: %s" % (prog_path, lib.ue(e)))
     except Exception, e:
-        msg = (u"Problem running initial setup.\nCaused by error: %s" % lib.ue(e))
+        msg = (u"Problem running initial setup.\nCaused by error: %s" % 
+               lib.ue(e))
         if show_early_steps: 
             print(msg)
-            print(traceback.format_exc()) 
+            print(traceback.format_exc())
         msgapp = ErrMsgApp(msg)
         msgapp.MainLoop()
         del msgapp

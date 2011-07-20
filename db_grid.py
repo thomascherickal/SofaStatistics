@@ -240,7 +240,7 @@ class TblEditor(wx.Dialog):
         Potentially capture use of keypress to move away from a cell.
         Must process here. NB dest row and col yet to be determined.
         """
-        debug = True
+        debug = False
         see_native_bvr = False
         if see_native_bvr:
             print("SHOWING NATIVE BVR !!!!!!!")
