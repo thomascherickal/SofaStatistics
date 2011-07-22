@@ -58,7 +58,7 @@ except ImportError: # if it's not there locally, try the wxPython lib.
     except ImportError:
         msg = (u"There seems to be a problem related to your wxPython "
                u"package. %s" % traceback.format_exc())
-        if show_early_steps: 
+        if show_early_steps:
             print(msg)
             raw_input(setup.INIT_DEBUG_MSG)
         raise Exception(msg)

@@ -26,8 +26,10 @@ def set_SCRIPT_PATH():
     """
     debug = False
     try:
-        mg.SCRIPT_PATH = os.path.dirname(__file__)
-        if debug: print(__file__)
+        rawpth = os.path.dirname(__file__)
+        if debug: 
+            print(__file__)
+            print(mg.SCRIPT_PATH)
     except NameError, e:
         path_found = False
         for path in sys.path:
@@ -41,7 +43,9 @@ def set_SCRIPT_PATH():
                 "in it.\nSo \"C:\\Program Files\\sofastats\" is ok"
                 "\nbut \"C:\\Program Files\\my stats\" is not."))
         if debug: print(sys.path)  
-        mg.SCRIPT_PATH = path
+        rawpth = path
+    local_encoding = sys.getfilesystemencoding()
+    mg.SCRIPT_PATH = unicode(rawpth, local_encoding)
         
 def import_dbe_plugin(dbe_plugin):
     """

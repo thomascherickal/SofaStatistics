@@ -63,10 +63,10 @@ def update_vdt(var_labels, var_notes, var_types, val_dics):
     # update lbl file
     cc = config_dlg.get_cc()
     f = codecs.open(cc[mg.CURRENT_VDTS_PATH], "w", encoding="utf-8")
-    f.write(u"\nvar_labels=" + pprint.pformat(var_labels))
-    f.write(u"\nvar_notes=" + pprint.pformat(var_notes))
-    f.write(u"\nvar_types=" + pprint.pformat(var_types))
-    f.write(u"\n\nval_dics=" + pprint.pformat(val_dics))
+    f.write(u"\nvar_labels=" + lib.dic2unicode(var_labels))
+    f.write(u"\nvar_notes=" + lib.dic2unicode(var_notes))
+    f.write(u"\nvar_types=" + lib.dic2unicode(var_types))
+    f.write(u"\n\nval_dics=" + lib.dic2unicode(val_dics))
     f.close()
     wx.MessageBox(_("Settings saved to \"%s\"") % cc[mg.CURRENT_VDTS_PATH])
 
@@ -731,9 +731,12 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             f.write(u"\nfil_script = u\"%s\"" % 
                     lib.escape_pre_write(fil_script))
             f.write(u"\ndefault_dbe = u\"%s\"" % default_dbe)
-            f.write(u"\n\ndefault_dbs = " + pprint.pformat(default_dbs))
-            f.write(u"\n\ndefault_tbls = " + pprint.pformat(default_tbls))
-            f.write(u"\n\ncon_dets = " + pprint.pformat(con_dets))
+            f.write(u"\n\ndefault_dbs = " + 
+                    lib.escape_pre_write(lib.dic2unicode(default_dbs)))
+            f.write(u"\n\ndefault_tbls = " + 
+                    lib.escape_pre_write(lib.dic2unicode(default_tbls)))
+            f.write(u"\n\ncon_dets = " + 
+                    lib.escape_pre_write(lib.dic2unicode(con_dets)))
             f.close()
             self.parent.parent.set_proj(proj_name)
         self.Destroy()

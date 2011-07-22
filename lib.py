@@ -134,7 +134,7 @@ def get_sorted_vals(sort_order, vals, lbls):
 
 def extract_dojo_style(css_fil):
     try:
-        f = open(css_fil, "r")
+        f = codecs.open(css_fil, "r", "utf-8")
     except IOError, e:
         raise my_exceptions.MissingCssException(css_fil)
     css = f.read()
@@ -925,6 +925,36 @@ def n2d(f):
     return result
 
 # uncovered
+
+def get_unicode_repr(item):
+    if isinstance(item, unicode):
+        return u'u"%s"' % unicode(item).replace('"', '""')
+    elif isinstance(item, str):
+        return u'"%s"' % unicode(item).replace('"', '""')
+    elif item is None:
+        return u"None"
+    else:
+        return u"%s" % unicode(item).replace('"', '""')
+
+def dic2unicode(mydic, indent=1):
+    """
+    Needed because pprint.pformat() can't cope with strings like 'João Rosário'.
+    Pity so will have to wait till Python 3 version to handle more elegantly.
+    Goal is to make files that Python can run.
+    """
+    try:
+        keyvals = mydic.items()
+    except Exception, e: # not a dict, just a value
+        return get_unicode_repr(mydic)
+    ustr = u"{"
+    rows = []
+    for key, val in keyvals:
+        keystr = get_unicode_repr(key) + u": "
+        rows.append(keystr + dic2unicode(val, indent + len(u"{" + keystr)))
+    joiner = u",\n%s" % (indent*u" ",)
+    ustr += (joiner.join(rows))
+    ustr += u"}"
+    return ustr
 
 def clean_bom_utf8(raw):
     if raw.startswith(unicode(codecs.BOM_UTF8, "utf-8")):

@@ -75,10 +75,15 @@ def get_con(con_dets, db, add_checks=False):
     if not con_dets_sqlite:
         raise my_exceptions.MissingConDets(mg.DBE_SQLITE)
     if not con_dets_sqlite.get(db):
-        raise Exception(u"No connections for SQLite database %s" % db)
+        raise Exception(u"No connections for SQLite database \"%s\"" % db)
     try:
-        sofa_db_path = (u"Unable to get connection details for db '%s' "
-                        u"using: %s") % (db, pprint.pformat(con_dets_sqlite))
+        try:
+            sqlite_con_dets_str = lib.dic2unicode(con_dets_sqlite)
+            sofa_db_path = (u"Unable to get connection details for db '%s' "
+                            u"using: %s" % 
+                            (db, lib.escape_pre_write(sqlite_con_dets_str)))
+        except Exception, e:
+            sofa_db_path = u"Unable to get SQLite connection details."
         con = sqlite.connect(**con_dets_sqlite[db])
         try:
             sofa_db_path = con_dets_sqlite[db][DATABASE_KEY]

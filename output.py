@@ -701,7 +701,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
                               " %Y-%m-%d_%H:%M:%S")
     hdr = get_html_hdr(hdr_title, css_fils, has_dojo, new_js_n_charts)
     f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "w", "utf-8")
-    css_fils_str = pprint.pformat(css_fils)
+    css_fils_str = '[u"' + u'",\nu"'.join(css_fils) + u'"]'
     f.write(u"%s = %s-->\n\n" % (mg.CSS_FILS_START_TAG, css_fils_str))
     f.write(hdr)
     if existing_no_ends:
@@ -790,7 +790,7 @@ def insert_prelim_code(modules, f, fil_report, css_fils, new_has_dojo):
     f.write(u"\nimport my_exceptions")
     f.write(u"""\n\nfil = codecs.open(u"%s",""" % \
                       lib.escape_pre_write(fil_report) + u""" "w", "utf-8")""")
-    css_fils_str = pprint.pformat(css_fils)
+    css_fils_str = u'[u"' + u'",\nu"'.join(css_fils) + u'"]'
     f.write(u"\ncss_fils=%s" % css_fils_str)
     has_dojo = new_has_dojo # always for making single output item e.g. chart
     has_dojo_str = u"True" if has_dojo else u"False"
@@ -813,11 +813,11 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     f.write(full_datestamp)
     if inc_divider:
         add_divider_code(f, tbl_filt_label, tbl_filt)
-    con_dets_str = pprint.pformat(dd.con_dets)
-    f.write(u"\n" + u"con_dets = %s" % con_dets_str)
-    default_dbs_str = pprint.pformat(dd.default_dbs)
+    con_dets_str = lib.dic2unicode(dd.con_dets)
+    f.write(u"\n" + u"con_dets = %s" % lib.escape_pre_write(con_dets_str))
+    default_dbs_str = lib.dic2unicode(dd.default_dbs)
     f.write(u"\n" + u"default_dbs = %s" % default_dbs_str)
-    default_tbls_str = pprint.pformat(dd.default_tbls)
+    default_tbls_str = lib.dic2unicode(dd.default_tbls)
     f.write(u"\ndefault_tbls = %s" % default_tbls_str)
     f.write(u"\ndbe =\"%s\"" % dd.dbe)
     f.write(u"\ndbe_resources = getdata.get_dbe_resources(dbe,")
@@ -847,7 +847,7 @@ def add_end_script_code(f):
 def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     """
     Runs report and returns bolran_report, and HTML representation of report 
-        (or of the error) for GUI display.  Report includes HTML header.
+        (or of the error) for GUI display. Report includes HTML header.
     add_to_report -- also append result to current report.
     """
     debug = False

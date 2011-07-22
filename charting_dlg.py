@@ -654,7 +654,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                   override_min_data_type1=None):
         """
         min_data_type is an indep2var thing which we ignore. We need more 
-            fine-grained control -- e.g. numerical only for some drop downs and categorical upwards for others.
+            fine-grained control -- e.g. numerical only for some drop downs and 
+            categorical upwards for others.
         override_min_data_type1 -- 1 must be overridden if doing averages 
             (must be numeric). No need to override 2 and 3 - always 
             categorical upwards.
@@ -1124,7 +1125,7 @@ y_title = (mg.Y_AXIS_FREQ_LBL if measure == mg.CHART_FREQS
                               else u"Mean %%s" %% fld_measure_name) 
 chart_output = charting_output.simple_barchart_output(titles, subtitles,
             x_title, y_title, chart_dets, inc_perc=%(inc_perc)s, 
-            css_fil="%(css_fil)s", css_idx=%(css_idx)s, 
+            css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
             page_break_after=False)
     """ % {u"sort_opt": CUR_SORT_OPT, u"inc_perc": inc_perc, 
            u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx}
@@ -1143,7 +1144,7 @@ y_title = (mg.Y_AXIS_FREQ_LBL if measure == mg.CHART_FREQS
                               else u"Mean %%s" %% fld_measure_name) 
 chart_output = charting_output.clustered_barchart_output(titles, subtitles,
                             x_title, y_title, chart_dets, inc_perc=%(inc_perc)s, 
-                            css_fil="%(css_fil)s", css_idx=%(css_idx)s, 
+                            css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
                             page_break_after=False)    
     """ % {u"sort_opt": mg.SORT_NONE, u"inc_perc": inc_perc, 
            u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx}
@@ -1158,7 +1159,7 @@ chart_dets = charting_output.get_chart_dets(mg.PIE_CHART,
                             fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
                             sort_opt="%(sort_opt)s", measure=mg.CHART_FREQS)
 chart_output = charting_output.piechart_output(titles, subtitles,
-            chart_dets, css_fil="%(css_fil)s", css_idx=%(css_idx)s,
+            chart_dets, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s,
             page_break_after=False)
     """ % {u"sort_opt": CUR_SORT_OPT, u"css_fil": lib.escape_pre_write(css_fil), 
            u"css_idx": css_idx}
@@ -1190,7 +1191,7 @@ chart_dets = charting_output.get_chart_dets(mg.LINE_CHART,
 chart_output = charting_output.linechart_output(titles, subtitles, 
                             x_title, y_title, chart_dets, inc_perc=%(inc_perc)s, 
                             inc_trend=%(inc_trend)s, inc_smooth=%(inc_smooth)s, 
-                            css_fil="%(css_fil)s", css_idx=%(css_idx)s, 
+                            css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
                             page_break_after=False)""" %\
                             {u"inc_perc": inc_perc, u"xy_titles": xy_titles,
                              u"inc_trend": inc_trend, u"inc_smooth": inc_smooth, 
@@ -1212,7 +1213,7 @@ y_title = (mg.Y_AXIS_FREQ_LBL if measure == mg.CHART_FREQS
                               else u"Mean %%s" %% fld_measure_name) 
 chart_output = charting_output.areachart_output(titles, subtitles, 
                             x_title, y_title, chart_dets, inc_perc=%(inc_perc)s,
-                            css_fil="%(css_fil)s", css_idx=%(css_idx)s, 
+                            css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
                             page_break_after=False)""" % \
                             {u"dbe": dd.dbe, u"inc_perc": inc_perc, 
                              u"css_fil": lib.escape_pre_write(css_fil), 
@@ -1227,7 +1228,7 @@ histo_dets = charting_output.get_histo_dets(dbe, cur, tbl, tbl_filt,
                                            fld_chart_by_name, fld_chart_by_lbls)
 chart_output = charting_output.histogram_output(titles, subtitles, 
             fld_measure_name, histo_dets, inc_normal=%(inc_normal)s, 
-            css_fil="%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
+            css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"inc_normal": inc_normal, 
            u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx}
     return script
@@ -1241,7 +1242,7 @@ scatterplot_dets = charting_output.get_scatterplot_dets(dbe, cur, tbl, tbl_filt,
             unique=True)
 chart_output = charting_output.scatterplot_output(titles, subtitles,
             scatterplot_dets, fld_x_axis_name, fld_y_axis_name, add_to_report, 
-            report_name, %(dot_border)s, css_fil="%(css_fil)s", 
+            report_name, %(dot_border)s, css_fil=u"%(css_fil)s", 
             css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": lib.escape_pre_write(css_fil), 
            u"css_idx": css_idx, u"dot_border": dot_border}
@@ -1261,7 +1262,7 @@ x_title = fld_gp_by_name if fld_chart_by else u""
 y_title = fld_measure_name 
 chart_output = charting_output.boxplot_output(titles, subtitles, 
             any_missing_boxes, x_title, y_title, xaxis_dets, max_label_len, 
-            chart_dets, xmin, xmax, ymin, ymax, css_fil="%(css_fil)s", 
+            chart_dets, xmin, xmax, ymin, ymax, css_fil=u"%(css_fil)s", 
             css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": lib.escape_pre_write(css_fil), 
            u"css_idx": css_idx}

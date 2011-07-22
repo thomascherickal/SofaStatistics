@@ -596,7 +596,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                 break # run out of rows
             row_dict = dict(zip(db_flds_orig_names, row_obj))
             if debug:
-                print(u"\nRow dicts is \n%s" % pprint.pformat(row_dict)) 
+                print(u"\nRow dicts is \n%s" % lib.dic2unicode(row_dict)) 
             row_lst = []
             row_dets = zip(design_flds_orig_names, design_flds_new_names, 
                            design_flds_col_labels, design_flds_types)

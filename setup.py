@@ -278,21 +278,17 @@ def make_local_subfolders(local_path, local_subfolders):
     """
     try:
         os.mkdir(local_path)
-    except OSError, e:
-        pass
     except Exception, e:
-        raise Exception(u"Unable to make local SOFA path %s." % local_path +
+        raise Exception(u"Unable to make local SOFA path \"%s\"." % local_path +
                         u"\nCaused by error: %s" % lib.ue(e))
     for local_subfolder in local_subfolders: # create required subfolders
         try:
             os.mkdir(os.path.join(local_path, local_subfolder))
-        except OSError, e:
-            pass
         except Exception, e:
-            raise Exception(u"Unable to make local subfolder %s." % 
+            raise Exception(u"Unable to make local subfolder \"%s\"." % 
                             local_subfolder +
                             u"\nCaused by error: %s" % lib.ue(e))
-    print(u"Made local subfolders under %s" % local_path)
+    print(u"Made local subfolders under \"%s\"" % local_path)
 
 def run_test_code(script):
     """
