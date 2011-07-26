@@ -791,7 +791,7 @@ def insert_prelim_code(modules, f, fil_report, css_fils, new_has_dojo):
     f.write(u"""\n\nfil = codecs.open(u"%s",""" % \
                       lib.escape_pre_write(fil_report) + u""" "w", "utf-8")""")
     css_fils_str = u'[u"' + u'",\nu"'.join(css_fils) + u'"]'
-    f.write(u"\ncss_fils=%s" % css_fils_str)
+    f.write(u"\ncss_fils=%s" % lib.escape_pre_write(css_fils_str))
     has_dojo = new_has_dojo # always for making single output item e.g. chart
     has_dojo_str = u"True" if has_dojo else u"False"
     f.write(u"\nfil.write(output.get_html_hdr(\"Report(s)\", css_fils, "
@@ -854,21 +854,32 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     dd = getdata.get_dd()
     cc = config_dlg.get_cc()
     # generate script
-    f = codecs.open(mg.INT_SCRIPT_PATH, "w", "utf-8")
-    if debug: print(css_fils)
-    insert_prelim_code(modules, f, mg.INT_REPORT_PATH, css_fils, new_has_dojo)
-    tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
-    append_exported_script(f, inner_script, tbl_filt_label, tbl_filt, 
-                           inc_divider=False)
-    add_end_script_code(f)
-    f.close()
+    try:
+        f = codecs.open(mg.INT_SCRIPT_PATH, "w", "utf-8")
+        if debug: print(css_fils)
+        insert_prelim_code(modules, f, mg.INT_REPORT_PATH, css_fils, 
+                           new_has_dojo)
+        tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+        append_exported_script(f, inner_script, tbl_filt_label, tbl_filt, 
+                               inc_divider=False)
+        add_end_script_code(f)
+        f.close()
+    except Exception, e:
+        raise Exception(u"<h1>Ooops!</h1>\n<p>Unable to make the script "
+                        u"needed to make the output."
+                        u"\nOrig error: %s</p>" % lib.ue(e))
     # run script
-    f = codecs.open(mg.INT_SCRIPT_PATH, "r", "utf-8")
-    script_txt = f.read()
-    f.close()
-    script_txt = lib.get_exec_ready_text(text=script_txt)
-    script = lib.clean_bom_utf8(script_txt)    
-    script = script[script.index(mg.MAIN_SCRIPT_START):]
+    try:
+        f = codecs.open(mg.INT_SCRIPT_PATH, "r", "utf-8")
+        script_txt = f.read()
+        f.close()
+        script_txt = lib.get_exec_ready_text(text=script_txt)
+        script = lib.clean_bom_utf8(script_txt)    
+        script = script[script.index(mg.MAIN_SCRIPT_START):]
+    except Exception, e:
+        raise Exception(u"<h1>Ooops!</h1>\n<p>Unable to read part of script "
+                        u"for execution."
+                        u"\nOrig error: %s</p>" % lib.ue(e))
     try:
         dummy_dic = {}
         exec script in dummy_dic
@@ -890,13 +901,18 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     # makechartsRenumber0(), and in the body, a function called 
     # makechartRenumber0, a chart called mychartRenumber0, and a legend called 
     # legendMychartRenumber0, and makechartsRenumber1 etc.
-    f = codecs.open(mg.INT_REPORT_PATH, "U", "utf-8")
-    raw_results = lib.clean_bom_utf8(f.read())
-    if debug: print(raw_results)
-    f.close()
-    source = get_source(dd.db, dd.tbl)
-    filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
-    results_with_source = source + u"<p>%s</p>" % filt_msg + raw_results
+    try:
+        f = codecs.open(mg.INT_REPORT_PATH, "U", "utf-8")
+        raw_results = lib.clean_bom_utf8(f.read())
+        if debug: print(raw_results)
+        f.close()
+        source = get_source(dd.db, dd.tbl)
+        filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
+        results_with_source = source + u"<p>%s</p>" % filt_msg + raw_results
+    except Exception, e:
+        raise Exception(u"<h1>Ooops!</h1>\n<p>Unable to read local copy of "
+                        u"output report."
+                        u"\nOrig error: %s</p>" % lib.ue(e))
     if add_to_report:
         # Append into html file. 
         # Handles source and filter desc internally when making divider between 
@@ -915,27 +931,40 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
         # If not add_to_report, already has absolute link to internal imgs.
         # If in real report, will need a relative version for actual report.
         # Make relative js absolute so dojo charts can display.
-        rel_display_content = (u"\n<p>Output also saved to '%s'</p>" %
+        try:
+            rel_display_content = (u"\n<p>Output also saved to '%s'</p>" %
                             lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH]) + 
                             results_with_source)
-        debug = False
-        if debug: print(u"\nrel\n" + 100*u"*" + u"\n\n" + rel_display_content)
-        css_fixed = rel2abs_css_links(rel_display_content)
-        if debug: print(u"\ncss\n" + 100*u"*" + u"\n\n" + css_fixed)
-        imgs_fixed = rel2abs_rpt_img_links(css_fixed)
-        if debug: print(u"\nimgs\n" + 100*u"*" + u"\n\n" + imgs_fixed)
-        js_fixed = rel2abs_js_links(imgs_fixed)
-        if debug: print(u"\njs\n" + 100*u"*" + u"\n\n" + js_fixed)
-        ie_js_fixed = rel2abs_extra_js_links(js_fixed)
-        if debug: print(u"\nie\n" + 100*u"*" + u"\n\n" + ie_js_fixed)
-        gui_display_content = rel2abs_css_bg_imgs(ie_js_fixed)
-        if debug: print(u"\ngui\n" + 100*u"*" + u"\n\n" + gui_display_content)
+            debug = False
+            if debug:
+                print(u"\nrel\n" + 100*u"*" + u"\n\n" + rel_display_content)
+            css_links_fixed = rel2abs_css_links(rel_display_content)
+            if debug: print(u"\ncss\n" + 100*u"*" + u"\n\n" + css_links_fixed)
+            imgs_fixed = rel2abs_rpt_img_links(css_links_fixed)
+            if debug: print(u"\nimgs\n" + 100*u"*" + u"\n\n" + imgs_fixed)
+            js_fixed = rel2abs_js_links(imgs_fixed)
+            if debug: print(u"\njs\n" + 100*u"*" + u"\n\n" + js_fixed)
+            ie_js_fixed = rel2abs_extra_js_links(js_fixed)
+            if debug: print(u"\nie\n" + 100*u"*" + u"\n\n" + ie_js_fixed)
+            gui_display_content = rel2abs_css_bg_imgs(ie_js_fixed)
+            if debug: 
+                print(u"\ngui\n" + 100*u"*" + u"\n\n" + gui_display_content)
+        except Exception, e:
+            raise Exception(u"<h1>Ooops!</h1>\n<p>Problems getting copy of "
+                            u"output to display."
+                            u"\nOrig error: %s</p>" % lib.ue(e))
     else: # standalone internal GUI only - make everything absolute
         # need to make background css images absolute
         # need to make css and js links absolute
-        gui_display_content = \
-                    rel2abs_extra_js_links(rel2abs_js_links(rel2abs_css_links(\
-                                     rel2abs_css_bg_imgs(results_with_source))))
+        try:
+            css_imgs_fixed = rel2abs_css_bg_imgs(results_with_source)
+            css_links_fixed = rel2abs_css_links(css_imgs_fixed)
+            js_fixed = rel2abs_js_links(css_links_fixed)
+            gui_display_content = rel2abs_extra_js_links(js_fixed)
+        except Exception, e:
+            raise Exception(u"<h1>Ooops!</h1>\n<p>Problems getting content to "
+                            u"display on screen."
+                            u"\nOrig error: %s</p>" % lib.ue(e))
     if debug: print(gui_display_content)
     return True, gui_display_content
 

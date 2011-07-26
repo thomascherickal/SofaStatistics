@@ -132,8 +132,12 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
                                    "qfld_b": qfld_b, 
                                    "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_row_vals_used)
+    row_vals_used = cur.fetchall()
     # SQLite sometimes returns strings even if REAL
-    vals_a = [float(x[0]) for x in cur.fetchall()]
+    try:
+        vals_a = [float(x[0]) for x in row_vals_used]
+    except Exception, e:
+        vals_a = [x[0] for x in row_vals_used]
     if len(vals_a) > mg.MAX_CHI_DIMS:
         raise my_exceptions.TooManyRowsInChiSquareException
     if len(vals_a) < mg.MIN_CHI_DIMS:
@@ -148,8 +152,12 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
                                    "qfld_b": qfld_b, 
                                    "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_col_vals_used)
+    col_vals_used = cur.fetchall()
     # SQLite sometimes returns strings even if REAL
-    vals_b = [float(x[0]) for x in cur.fetchall()]
+    try:
+        vals_b = [float(x[0]) for x in col_vals_used]
+    except Exception, e:
+        vals_b = [x[0] for x in col_vals_used]
     if len(vals_b) > mg.MAX_CHI_DIMS:
         raise my_exceptions.TooManyColsInChiSquareException
     if len(vals_b) < mg.MIN_CHI_DIMS:

@@ -74,22 +74,26 @@ class TooManyCellsInChiSquareException(OutputException):
 class TooManyRowsInChiSquareException(OutputException):
     def __init__(self):
         OutputException.__init__(self, _("Please select a variable with no "
-                        "more than %s values for Group A.") % mg.MAX_CHI_DIMS)
+                                         "more than %s different row values "
+                                         "for Group A.") % mg.MAX_CHI_DIMS)
 
 class TooManyColsInChiSquareException(OutputException):
     def __init__(self):
         OutputException.__init__(self, _("Please select a variable with no "
-            "more than %s values for Group B.") % mg.MAX_CHI_DIMS)
+                                         "more than %s different column values "
+                                         "for Group B.") % mg.MAX_CHI_DIMS)
 
 class TooFewRowsInChiSquareException(OutputException):
     def __init__(self):
         OutputException.__init__(self, _("Please select a variable with at "
-                        "least %s values for Group A.") % mg.MIN_CHI_DIMS)
+                                         "least %s different row values for "
+                                         "Group A.") % mg.MIN_CHI_DIMS)
 
 class TooFewColsInChiSquareException(OutputException):
     def __init__(self):
         OutputException.__init__(self, _("Please select a variable with at "
-                        "least %s values for Group B.") % mg.MIN_CHI_DIMS)
+                                         "least %s different column values "
+                                         "for Group B.") % mg.MIN_CHI_DIMS)
 
 class TooFewValsInSamplesForAnalysisException(OutputException):
     def __init__(self):
