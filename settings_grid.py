@@ -406,7 +406,7 @@ class SettingsEntry(object):
         If a single row is selected, the key is a delete, and we are not inside 
             and editor, delete selected row if possible.
         """
-        debug = True
+        debug = False
         keycode = event.GetKeyCode()
         if self.debug or debug: 
             print(u"on_grid_key_down - keycode %s pressed" % keycode)
@@ -417,9 +417,12 @@ class SettingsEntry(object):
                 # don't skip. Smother event so delete not entered anywhere.
                 return
             else:
-                # set to empty string
-                self.grid.SetCellValue(self.current_row_idx, 
-                                       self.current_col_idx, u"")
+                if not self.any_editor_shown:
+                    # set to empty string
+                    self.grid.SetCellValue(self.current_row_idx, 
+                                           self.current_col_idx, u"")
+                else:
+                    event.Skip()
         elif keycode in [wx.WXK_TAB, wx.WXK_RETURN]:
             if keycode == wx.WXK_TAB:
                 if event.ShiftDown():
