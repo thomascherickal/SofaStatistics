@@ -55,7 +55,7 @@ def update_val_labels(val_dics, var_name, val_type, keyvals):
         elif val_type == settings_grid.COL_FLOAT:
             key = float(key)
         elif val_type == settings_grid.COL_INT:
-            key = int(key)
+            key = int(float(key)) # so '12.0' -> 12. int('12.0') -> err
         new_val_dic[key] = value
     val_dics[var_name] = new_val_dic
     

@@ -363,7 +363,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     
     def setup_group_by(self, var_gp=None):
         var_names = projects.get_approp_var_names()
-        var_gp_by_choice_items, self.sorted_var_names_by = \
+        (var_gp_by_choice_items, 
+         self.sorted_var_names_by) = \
                         lib.get_sorted_choice_items(dic_labels=self.var_labels, 
                                         vals=var_names, 
                                         inc_drop_select=self.inc_gp_by_select)
@@ -397,7 +398,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                                              self.var_labels, default)
         drop_var.SetSelection(idx_var)
 
-    def setup_group_val_items(self, var_gp, val_a, val_b, where_filt):
+    def setup_group_val_items(self, var_gp, val_a, val_b, where_filt, and_filt):
         """
         If under 250,000 records in source table (when filtered, if applicable), 
             use entire table as source for group by query to get unique values. 
@@ -423,10 +424,11 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             source = getdata.tblname_qtr(dd.dbe, dd.tbl)
         SQL_get_sorted_vals = u"""SELECT %(var_gp)s 
             FROM %(source)s
-            %(where_filt)s
+            WHERE %(var_gp)s IS NOT NULL
+                %(and_filt)s
             GROUP BY %(var_gp)s 
             ORDER BY %(var_gp)s""" % {"var_gp": objqtr(var_gp), 
-                                     "source": source, "where_filt": where_filt}
+                                     "source": source, "and_filt": and_filt}
         if debug: print(SQL_get_sorted_vals)
         dd.cur.execute(SQL_get_sorted_vals)
         val_dic = self.val_dics.get(var_gp, {})
@@ -505,8 +507,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         self.lbl_group_b.Enable(True)
         self.drop_group_b.Enable(True)
         unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
-        where_filt, unused = lib.get_tbl_filts(tbl_filt)
-        self.setup_group_val_items(var_gp, val_a, val_b, where_filt)
+        where_filt, and_filt = lib.get_tbl_filts(tbl_filt)
+        self.setup_group_val_items(var_gp, val_a, val_b, where_filt, and_filt)
         lib.safe_end_cursor()
     
     def get_drop_vals(self):
@@ -538,8 +540,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         var_avg = self.sorted_var_names_avg[selection_idx_avg]
         label_avg = lib.get_item_label(item_labels=self.var_labels, 
                                        item_val=var_avg)
-        return var_gp_numeric, var_gp, label_gp, val_a, label_a, \
-            val_b, label_b, var_avg, label_avg
+        return (var_gp_numeric, var_gp, label_gp, val_a, label_a, 
+                val_b, label_b, var_avg, label_avg)
         
     def on_averaged_sel(self, event):        
         self.update_phrase()
@@ -577,8 +579,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             wx.MessageBox(_("Group A and Group B must be different"))
             return False
         if self.takes_range:
-            var_gp_numeric, var_gp, unused, unused, unused, unused, unused, \
-                unused, unused = self.get_drop_vals()
+            (var_gp_numeric, var_gp, unused, unused, 
+             unused, unused, unused, unused, unused) = self.get_drop_vals()
             # group a must be lower than group b
             val_dic = self.val_dics.get(var_gp, {})
             selection_idx_a = self.drop_group_a.GetSelection()
@@ -592,7 +594,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                 try:
                     val_a = float(val_a)
                     val_b = float(val_b)
-                except ValueError:
+                except (ValueError, TypeError):
                     wx.MessageBox(u"Both values must be numeric.  "
                         u"Values selected were %s and %s" % (val_a, val_b))
                     return False
