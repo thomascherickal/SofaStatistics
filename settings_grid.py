@@ -406,7 +406,7 @@ class SettingsEntry(object):
         If a single row is selected, the key is a delete, and we are not inside 
             and editor, delete selected row if possible.
         """
-        debug = False
+        debug = True
         keycode = event.GetKeyCode()
         if self.debug or debug: 
             print(u"on_grid_key_down - keycode %s pressed" % keycode)

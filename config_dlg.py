@@ -299,8 +299,9 @@ class ConfigDlg(object):
     
     def on_btn_config(self, event):
         dlg = ExtraOutputConfigDlg(parent=self, readonly=self.readonly)
-        dlg.ShowModal()
+        ret = dlg.ShowModal()
         dlg.Destroy()
+        return ret
 
     def get_titles(self):
         """

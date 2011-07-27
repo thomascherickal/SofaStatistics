@@ -359,7 +359,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.setup_action_btns()
         self.update_demo_display()
         
-    def update_var_dets(self):
+    def update_var_dets(self, update_display=True):
         "Update all labels, including those already displayed"
         config_dlg.ConfigDlg.update_var_dets(self)
         # update dim trees
@@ -372,7 +372,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         # update demo area
         self.demo_tab.var_labels = self.var_labels
         self.demo_tab.val_dics = self.val_dics
-        self.update_demo_display()    
+        if update_display:
+            self.update_demo_display()    
     
     def refresh_vars(self):
         self.update_var_dets()
@@ -877,6 +878,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         """
         Variable details may have changed e.g. variable and value labels.
         """
-        config_dlg.ConfigDlg.on_btn_config(self, event)
-        self.update_var_dets()
+        ret = config_dlg.ConfigDlg.on_btn_config(self, event)
+        update_display = (ret != wx.ID_CANCEL)
+        self.update_var_dets(update_display)
            
