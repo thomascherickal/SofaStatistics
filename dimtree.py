@@ -700,7 +700,7 @@ class DlgConfig(wx.Dialog):
         # using the approach which will follow the platform convention 
         # for standard buttons
         szr_btns = wx.StdDialogButtonSizer()
-        szr_btns.AddSpacer(wx.Size(20,5)) # ensure wide enough for title
+        szr_btns.AddSpacer(wx.Size(40,5)) # ensure wide enough for title
         szr_btns.AddButton(btn_cancel)
         szr_btns.AddButton(btn_ok)
         szr_btns.Realize()

@@ -146,14 +146,15 @@ def has_header_row(sample_rows, delim, comma_dec_sep_ok=False):
     if len(sample_rows) < 2: # a header row needs a following row to be a header
         return False
     first_row = sample_rows[0]
-    first_row_vals = first_row.split(delim)
+    delim_str = delim.encode("utf-8")
+    first_row_vals = first_row.split(delim_str)
     for val in first_row_vals: # must all be non-empty strings to be a header
         val_type = lib.get_val_type(val, comma_dec_sep_ok)
         if val_type != mg.VAL_STRING: # empty strings no good as heading values
             return False
     for row in sample_rows[1:]: # Only strings in potential header. Must look 
             # for any non-strings to be sure.
-        row_vals = row.split(delim)
+        row_vals = row.split(delim_str)
         for val in row_vals:
             val_type = lib.get_val_type(val, comma_dec_sep_ok)
             if val_type in [mg.VAL_DATE, mg.VAL_NUMERIC]:
@@ -190,8 +191,8 @@ def get_prob_has_hdr(sample_rows, file_path, dialect):
         else:
             raise
     except Exception, e:
-        raise Exception(u"Problem testing sample for probably header."
-                        u"\nCaused by error: %s" % lib.ue(e))
+        prob_has_hdr = False # If everything else succeeds don't let this 
+                             # stop things. Don't raise error.
     return prob_has_hdr
 
 def get_avg_row_size(rows):
@@ -239,8 +240,10 @@ class UnicodeCsvReader(object):
     """
     def __init__(self, utf8_encoded_csv_data, dialect=csv.excel, **kwargs):
         # csv.py doesn't do Unicode; encode temporarily as UTF-8:
+        debug = False
         try:
             dialect.escapechar = ESC_DOUBLE_QUOTE
+            if debug: print(dialect.delimiter)
             self.csv_reader = csv.reader(utf8_encoded_csv_data, dialect=dialect, 
                                          **kwargs)
         except Exception, e:
