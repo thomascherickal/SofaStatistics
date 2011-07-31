@@ -623,9 +623,9 @@ def tmp_to_named_tbl(con, cur, tblname, file_path, progbar, nulled_dots):
     if nulled_dots:
         msg += _("\n\nAt least one field contained a single dot '.'.  This was "
                  "converted into a missing value.")
-    msg += _("\n\nYou can view your imported data by clicking on "
-             "'Enter/Edit Data' on the main form. You'll find it in the "
-             "'%s' database.") % mg.SOFA_DB
+    msg += _("\n\nYou can check your imported data by clicking the "
+             "'Enter/Edit Data' button on the main form. You'll find your "
+             "data in the '%s' database.") % mg.SOFA_DB
     wx.MessageBox(msg % {"tbl": tblname})
 
 def get_content_dets(strdata):
@@ -910,7 +910,9 @@ class ImportFileSelectDlg(wx.Dialog):
         dlg_gdata = gdata_downloader.GdataDownloadDlg(self)
         # MUST have a parent to enforce modal in Windows
         ret = dlg_gdata.ShowModal()
-        if ret != wx.ID_CLOSE:
+        downloaded = False
+        if ret != wx.ID_CLOSE: # successfully downloaded
+            downloaded = True
             path = os.path.join(mg.INT_PATH, mg.GOOGLE_DOWNLOAD)
             self.txt_file.SetValue(path)
             filestart, unused = self.get_file_start_ext(path)
@@ -919,6 +921,9 @@ class ImportFileSelectDlg(wx.Dialog):
         self.txt_int_name.SetFocus()
         self.align_btns_to_completeness()
         self.btn_import.SetDefault()
+        if downloaded:
+            # start import automatically
+            self.run_import()
         event.Skip()
     
     def get_file_start_ext(self, path):
@@ -983,7 +988,7 @@ class ImportFileSelectDlg(wx.Dialog):
         self.btn_cancel.Enable(importing)
         self.btn_import.Enable(not importing)
 
-    def on_import(self, event):
+    def run_import(self):
         """
         Identify type of file by extension and open dialog if needed
             to get any additional choices e.g. separator used in 'csv'.
@@ -1100,4 +1105,7 @@ class ImportFileSelectDlg(wx.Dialog):
                 wx.MessageBox(_("Unable to import data\n\nError") + u": %s" % 
                               lib.ue(e))
         self.align_btns_to_importing(importing=False)
+        
+    def on_import(self, event):
+        self.run_import()
         event.Skip()
