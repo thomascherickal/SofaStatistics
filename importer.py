@@ -5,6 +5,7 @@ from __future__ import print_function
 import os
 import pprint
 import wx
+import wx.html
 
 import my_globals as mg
 import lib
@@ -627,6 +628,30 @@ def tmp_to_named_tbl(con, cur, tblname, file_path, progbar, nulled_dots):
              "'%s' database.") % mg.SOFA_DB
     wx.MessageBox(msg % {"tbl": tblname})
 
+def get_content_dets(strdata):
+    debug = False
+    try:
+        max_row_len = max([len(x) for x in strdata])
+    except Exception, e:
+        max_row_len = None
+    lines = [] # init
+    for row in strdata:
+        len_row = len(row)
+        if debug: print(len_row, row)
+        if len_row < max_row_len:
+            # right pad sequence with empty str (to become empty str cells)
+            row += [u"" for x in range(max_row_len - len_row)]
+        line = u"<tr><td>" + u"</td><td>".join(row) + u"</td></tr>"
+        lines.append(line)
+    trows = u"\n".join(lines)
+    content = u"<table border='1' style='border-collapse: collapse;'>" + \
+                                u"<tbody>\n" + trows + u"\n</tbody></table>"
+    n_lines_actual = len(lines)
+    content_height = 35*n_lines_actual
+    content_height = 300 if content_height > 300 else content_height
+    return content, content_height
+
+
 class HasHeaderDlg(wx.Dialog):
     def __init__(self, parent, ext):
         wx.Dialog.__init__(self, parent=parent, title=_("Header row?"),
@@ -691,8 +716,58 @@ class HasHeaderDlg(wx.Dialog):
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL) # or nothing happens!  
         # Prebuilt dialogs presumably do this internally.
+    
+    
+class HasHeaderGivenDataDlg(wx.Dialog):
+    def __init__(self, parent, ext, strdata):
+        debug = False
+        wx.Dialog.__init__(self, parent=parent, title=_("Header row?"),
+                           size=(850, 450), style=wx.CAPTION|wx.SYSTEM_MENU, 
+                           pos=(mg.HORIZ_OFFSET+200,120))
+        self.parent = parent
+        self.panel = wx.Panel(self)
+        szr_main = wx.BoxSizer(wx.VERTICAL)
+        szr_btns = wx.BoxSizer(wx.HORIZONTAL)
+        lbl_explan = wx.StaticText(self.panel, -1, _("Does your %s file have a "
+                                                     "header row?") % ext)
+        content, unused = get_content_dets(strdata)
+        if debug: print(content)
+        html_content = wx.html.HtmlWindow(self.panel, -1, size=(820,440))
+        html_content.SetPage(content)
+        btn_has_header = wx.Button(self.panel, mg.HAS_HEADER, 
+                                   _("Has Header Row"))
+        btn_has_header.Bind(wx.EVT_BUTTON, self.on_btn_has_header)
+        btn_has_header.SetDefault()
+        btn_no_header = wx.Button(self.panel, -1, _("No Header"))
+        btn_no_header.Bind(wx.EVT_BUTTON, self.on_btn_no_header)
+        btn_cancel = wx.Button(self.panel, wx.ID_CANCEL)
+        btn_cancel.Bind(wx.EVT_BUTTON, self.on_btn_cancel)
+        szr_btns.Add(btn_has_header, 0)
+        szr_btns.Add(btn_no_header, 0, wx.LEFT, 5)
+        szr_btns.Add(btn_cancel, 0, wx.LEFT, 20)
+        szr_main.Add(lbl_explan, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(html_content, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
+        self.panel.SetSizer(szr_main)
+        szr_main.SetSizeHints(self)
+        self.Layout()
         
+    def on_btn_has_header(self, event):
+        self.Destroy()
+        self.SetReturnCode(mg.HAS_HEADER) # or nothing happens!  
+        # Prebuilt dialogs presumably do this internally.
         
+    def on_btn_no_header(self, event):
+        self.Destroy()
+        self.SetReturnCode(mg.NO_HEADER) # or nothing happens!  
+        # Prebuilt dialogs presumably do this internally.
+        
+    def on_btn_cancel(self, event):
+        self.Destroy()
+        self.SetReturnCode(wx.ID_CANCEL) # or nothing happens!  
+        # Prebuilt dialogs presumably do this internally.
+
+
 class FileImporter(object):
     def __init__(self, parent, file_path, tbl_name):
         self.parent = parent

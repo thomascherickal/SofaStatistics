@@ -52,21 +52,22 @@ def get_ods_xml_size(filename):
     size = myzip.getinfo("content.xml").file_size
     return size
 
-def get_contents_xml_tree(lbl_feedback, progbar, prog_step1, prog_step2,
-                          filename):
+def get_contents_xml_tree(filename, lbl_feedback=None, progbar=None, 
+                          prog_step1=None, prog_step2=None):
     debug = False
     myzip = zipfile.ZipFile(filename)
     cont = myzip.open("content.xml")
     myzip.close()
     if debug: print("Starting parse process ...")
-    progbar.SetValue(prog_step1)
-    lbl_feedback.SetLabel(_("Please be patient. The next step may take a few "
-                            "minutes ..."))
+    if progbar is not None: progbar.SetValue(prog_step1)
+    if lbl_feedback is not None:
+        lbl_feedback.SetLabel(_("Please be patient. The next step may take a "
+                                "few minutes ..."))
     wx.Yield()
     tree = etree.parse(cont) # the most time-intensive bit
-    lbl_feedback.SetLabel(u"")
+    if lbl_feedback is not None: lbl_feedback.SetLabel(u"")
     wx.Yield()
-    progbar.SetValue(prog_step2)
+    if progbar is not None: progbar.SetValue(prog_step2)
     wx.Yield()
     if debug: print("Finishing parse process.")
     return tree
@@ -439,6 +440,47 @@ def extract_date_if_possible(el_det, attrib_dict, xml_type, type):
     else:
         val2use = text
     return val2use, type
+
+def get_vals_from_row(row, n_flds):
+    """
+    Get rows back as list of lists of vals (as unicode  ready for display).
+    Based on dets_from_row - which lumps more responsibilities for efficiency 
+        reasons.
+    """
+    debug = False
+    vals = []
+    tbl_cell_el_dets = get_tbl_cell_el_dets(row)
+    cols = 0
+    for el_det in tbl_cell_el_dets:
+        attrib_dict = el_det[ATTRIBS] # already streamlined
+        # the defaults unless overridden by actual data
+        val2use = None
+        if DATE_VAL in attrib_dict:
+            val2use = attrib_dict[DATE_VAL] # take proper date value
+                            # e.g. 2010-02-01 rather than orig text of 01/02/10
+        elif VAL_TYPE in attrib_dict:
+            xml_type = attrib_dict[VAL_TYPE]
+            try:
+                type = xml_type_to_val_type[xml_type]
+            except KeyError:
+                raise Exception(u"Unknown value-type. Update "
+                                u"ods_reader.xml_type_to_val_type")
+            # NB need to treat as datetime if it really is even though not
+            # properly tagged as a date-value (e.g. Google Docs spreadsheets)
+            val2use, unused = extract_date_if_possible(el_det, attrib_dict, 
+                                                       xml_type, type)
+        elif len(el_det[RAW_EL]) == 0 or FORMULA in attrib_dict: # empty cell(s)
+            # need empty cell for each column spanned (until hit max cols)
+            val2use=u""
+        else:
+            continue
+        if debug: print(val2use)
+        vals.append(val2use)
+        cols += 1
+        if cols == n_flds:
+            break
+    if debug: print(vals)
+    return vals
 
 def dets_from_row(fldnames, coltypes, row):
     """

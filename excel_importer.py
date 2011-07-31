@@ -21,6 +21,37 @@ class ExcelImporter(importer.FileImporter):
         importer.FileImporter.__init__(self, parent, file_path, tbl_name)
         self.ext = u"XLS"
     
+    def get_params(self):
+        "Ignore field names - just use fld1 etc"
+        debug = True
+        wkbook = excel_reader.Workbook(self.file_path, sheets_have_hdrs=False)
+        # get up to 4 rows
+        sheets = wkbook.get_sheet_names()
+        if debug: print(sheets)
+        wksheet = wkbook.get_sheet(name=sheets[0])
+        fldnames = wksheet.get_fld_names() # will be sofa-made and safe
+        strdata = []
+        i = 0
+        for row in wksheet:
+            newrow = []
+            for fldname in fldnames:
+                rawval = row[fldname]
+                val2show = (rawval if isinstance(rawval, basestring) 
+                            else unicode(rawval))
+                newrow.append(val2show)
+            strdata.append(newrow)
+            i += 1
+            if i > 3:
+                break
+        dlg = importer.HasHeaderGivenDataDlg(self.parent, self.ext, strdata)
+        ret = dlg.ShowModal()
+        if debug: print(unicode(ret))
+        if ret == wx.ID_CANCEL:
+            return False
+        else:
+            self.has_header = (ret == mg.HAS_HEADER)
+        return True
+    
     def assess_sample(self, wksheet, orig_fld_names, progbar, steps_per_item, 
                       import_status, faulty2missing_fld_list):
         """

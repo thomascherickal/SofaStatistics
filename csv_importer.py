@@ -508,26 +508,8 @@ class DlgImportDisplay(wx.Dialog):
             lib.safe_end_cursor()
             raise Exception(u"Unable to create reader for file. "
                             u"\nCaused by error: %s" % lib.ue(e))
-        decoded_lines = [] # init
-        rows = [x for x in tmp_reader if x] # exclude empty rows
-        try:
-            max_row_len = max([len(x) for x in rows])
-        except Exception, e:
-            max_row_len = None
-        for row in rows:
-            len_row = len(row)
-            if debug: print(len_row, row)
-            if len_row < max_row_len:
-                # right pad sequence with empty str (to become empty str cells)
-                row += [u"" for x in range(max_row_len - len_row)]
-            line = u"<tr><td>" + u"</td><td>".join(row) + u"</td></tr>"
-            decoded_lines.append(line)
-        trows = u"\n".join(decoded_lines)
-        content = u"<table border='1' style='border-collapse: collapse;'>" + \
-                                    u"<tbody>\n" + trows + u"\n</tbody></table>"
-        n_lines_actual = len(decoded_lines)
-        content_height = 35*n_lines_actual
-        content_height = 300 if content_height > 300 else content_height
+        strdata = [x for x in tmp_reader if x] # exclude empty rows
+        content, content_height = importer.get_content_dets(strdata)
         return content, content_height
     
     def set_display(self):
