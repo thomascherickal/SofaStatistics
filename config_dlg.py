@@ -211,15 +211,23 @@ class ConfigDlg(object):
         # get various db settings
         # set up self.drop_dbs and self.drop_tbls
         dd = getdata.get_dd()
-        self.drop_dbs, self.drop_tbls = getdata.get_data_dropdowns(self, panel, 
-                                                                dd.default_dbs)
+        (self.drop_dbs, 
+         self.drop_tbls) = getdata.get_data_dropdowns(self, panel, 
+                                                      dd.default_dbs)
         # 2) Tables
         # not wanted in all cases when dropdowns used e.g. data select
         self.drop_tbls.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_tables)
         self.drop_tbls.SetToolTipString(_("Right click to add/remove filter"))
         lbl_tables = wx.StaticText(panel, -1, _("Table:"))
         lbl_tables.SetFont(self.LABEL_FONT)
-        # 3) Filtering
+        # 3) Readonly
+        self.chk_readonly = wx.CheckBox(panel, -1, _("Read Only"))
+        self.chk_readonly.SetValue(True)
+        getdata.readonly_enablement(self.chk_readonly)
+        # 4) Open
+        self.btn_open = wx.Button(panel, wx.ID_OPEN)
+        self.btn_open.Bind(wx.EVT_BUTTON, self.on_open)
+        # 5) Filtering
         btn_filter = wx.Button(panel, -1, _("Filter"))
         btn_filter.Bind(wx.EVT_BUTTON, self.on_btn_filter)
         self.szr_data = wx.StaticBoxSizer(bx_data, wx.HORIZONTAL)
@@ -227,6 +235,8 @@ class ConfigDlg(object):
         self.szr_data.Add(self.drop_dbs, 0, wx.RIGHT, 10)
         self.szr_data.Add(lbl_tables, 0, wx.RIGHT, 5)
         self.szr_data.Add(self.drop_tbls, 0, wx.RIGHT, 10)
+        self.szr_data.Add(self.chk_readonly, 0, wx.RIGHT, 10)
+        self.szr_data.Add(self.btn_open, 0, wx.RIGHT, 10)
         self.szr_data.Add(btn_filter, 0)
         return self.szr_data
               
@@ -391,10 +401,12 @@ class ConfigDlg(object):
             details e.g. MS SQL Server model database.
         """
         getdata.refresh_db_dets(self)
+        getdata.readonly_enablement(self.chk_readonly)
         
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
         getdata.refresh_tbl_dets(self)
+        getdata.readonly_enablement(self.chk_readonly)
 
     def filters(self):
         import filtselect # by now, DLG will be available to inherit from
@@ -412,6 +424,9 @@ class ConfigDlg(object):
 
     def on_btn_filter(self, event):
         self.filters()
+        
+    def on_open(self, event):
+        getdata.open_database(self, event)
         
     # report output
     def on_btn_report_path(self, event):

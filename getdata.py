@@ -12,6 +12,7 @@ import config_globals
 import lib
 import getdata
 import dbe_plugins.dbe_sqlite as dbe_sqlite
+import db_grid
 debug = False
 
 # data resources
@@ -581,6 +582,59 @@ def delete_row(id_fld, row_id):
                 (SQL_delete, row_id) + u"\n\nOriginal error: %s" % lib.ue(e))
         return False, u"%s" % lib.ue(e)
 
+def readonly_enablement(chk_readonly):
+    """
+    Intended to protect SOFA users from inadvertently damaging externally-linked 
+        databases from within SOFA.
+    """
+    dd = get_dd()
+    sofa_default_db = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)
+    if sofa_default_db:
+        readonly = (dd.tbl == mg.DEMO_TBL)
+        chk_readonly.SetValue(readonly)
+    chk_readonly.Enable(not sofa_default_db)
+
+def open_database(parent, event):
+    debug = False
+    dd = get_dd()
+    if not dd.has_unique:
+        msg = _("Table \"%s\" cannot be opened because it lacks a unique "
+                "index")
+        wx.MessageBox(msg % dd.tbl) # needed for caching even if read only
+    else:
+        SQL_get_count = (u"""SELECT COUNT(*) FROM %s """ %
+                         getdata.tblname_qtr(dd.dbe, dd.tbl))
+        try:
+            dd.cur.execute(SQL_get_count)
+        except Exception, e:
+            wx.MessageBox(_(u"Problem opening selected table."
+                            u"\nCaused by error: %s") % lib.ue(e))
+        res = dd.cur.fetchone()
+        if res is None:
+            rows_n = 0
+            if debug: print(u"Unable to get first item from %s." % 
+                            SQL_get_count)
+        else:
+            rows_n = res[0]
+        if rows_n > 200000: # fast enough as long as column resizing is off
+            if wx.MessageBox(_("This table has %s rows. "
+                               "Do you wish to open it?") % rows_n, 
+                               caption=_("LONG REPORT"), 
+                               style=wx.YES_NO) == wx.NO:
+                return
+        wx.BeginBusyCursor()
+        # protect linked non-SOFA databases from inadvertent changes
+        readonly = False
+        if parent.chk_readonly.IsEnabled():
+            readonly = parent.chk_readonly.IsChecked()
+        set_col_widths = True if rows_n < 1000 else False
+        dlg = db_grid.TblEditor(parent, parent.var_labels, parent.var_notes, 
+                                parent.var_types, parent.val_dics, readonly, 
+                                set_col_widths=set_col_widths)
+        lib.safe_end_cursor()
+        dlg.ShowModal()
+    event.Skip()
+
 def get_data_dropdowns(parent, panel, default_dbs):
     """
     Adds drop_dbs and drop_tbls to frame with correct values 
@@ -612,14 +666,14 @@ def get_data_dropdowns(parent, panel, default_dbs):
                                 {"oth_dbe": oth_dbe, "e": lib.ue(e)})
     parent.db_choice_items = [get_db_item(x[0], x[1]) for x in db_choices]
     parent.drop_dbs = wx.Choice(panel, -1, choices=parent.db_choice_items,
-                                size=(280,-1))
+                                size=(200,-1))
     parent.drop_dbs.Bind(wx.EVT_CHOICE, parent.on_database_sel)
     
     dbs_lc = [x.lower() for x in dd.dbs]
     selected_dbe_db_idx = dbs_lc.index(dd.db.lower())
     parent.drop_dbs.SetSelection(selected_dbe_db_idx)
     parent.selected_dbe_db_idx = selected_dbe_db_idx
-    parent.drop_tbls = wx.Choice(panel, -1, choices=[], size=(280,-1))
+    parent.drop_tbls = wx.Choice(panel, -1, choices=[], size=(200,-1))
     setup_drop_tbls(parent.drop_tbls)
     parent.drop_tbls.Bind(wx.EVT_CHOICE, parent.on_table_sel)
     return parent.drop_dbs, parent.drop_tbls

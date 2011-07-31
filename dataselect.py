@@ -110,10 +110,7 @@ class DataSelectDlg(wx.Dialog):
         self.btn_design.Enable(sofa_default_db)
         delete_enable = (sofa_default_db and dd.tbl != mg.DEMO_TBL)
         self.btn_delete.Enable(delete_enable)
-        if sofa_default_db:
-            readonly = (dd.tbl == mg.DEMO_TBL)
-            self.chk_readonly.SetValue(readonly)
-        self.chk_readonly.Enable(not sofa_default_db)
+        getdata.readonly_enablement(self.chk_readonly)
         
     def on_database_sel(self, event):
         getdata.refresh_db_dets(self)
@@ -130,45 +127,7 @@ class DataSelectDlg(wx.Dialog):
         self.ctrl_enablement()
 
     def on_open(self, event):
-        ""
-        debug = False
-        dd = getdata.get_dd()
-        if not dd.has_unique:
-            msg = _("Table \"%s\" cannot be opened because it lacks a unique "
-                    "index")
-            wx.MessageBox(msg % dd.tbl) # needed for caching even if read only
-        else:
-            SQL_get_count = u"""SELECT COUNT(*) FROM %s """ % \
-                                            getdata.tblname_qtr(dd.dbe, dd.tbl)
-            try:
-                dd.cur.execute(SQL_get_count)
-            except Exception, e:
-                wx.MessageBox(_(u"Problem opening selected table."
-                                u"\nCaused by error: %s") % lib.ue(e))
-            res = dd.cur.fetchone()
-            if res is None:
-                rows_n = 0
-                if debug: print(u"Unable to get first item from %s." % 
-                                SQL_get_count)
-            else:
-                rows_n = res[0]
-            if rows_n > 200000: # fast enough as long as column resizing is off
-                if wx.MessageBox(_("This table has %s rows. "
-                                   "Do you wish to open it?") % rows_n, 
-                                   caption=_("LONG REPORT"), 
-                                   style=wx.YES_NO) == wx.NO:
-                    return
-            wx.BeginBusyCursor()
-            readonly = False
-            if self.chk_readonly.IsEnabled():
-                readonly = self.chk_readonly.IsChecked()
-            set_col_widths = True if rows_n < 1000 else False
-            dlg = db_grid.TblEditor(self, self.var_labels, self.var_notes, 
-                                    self.var_types, self.val_dics, readonly, 
-                                    set_col_widths=set_col_widths)
-            lib.safe_end_cursor()
-            dlg.ShowModal()
-        event.Skip()
+        getdata.open_database(self, event)
     
     def on_delete(self, event):
         """
