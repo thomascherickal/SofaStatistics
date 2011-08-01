@@ -1032,9 +1032,12 @@ class TblEditor(wx.Dialog):
         debug = False
         dd = getdata.get_dd()
         wx.BeginBusyCursor()
-        self.parent.add_feedback("Setting column widths " + \
-                    "(%s columns for %s rows)..." % (self.dbtbl.GetNumberCols(), 
-                                                     self.dbtbl.rows_n))
+        try:
+            msg = ("Setting column widths (%s columns for %s rows)..." % 
+                                (self.dbtbl.GetNumberCols(), self.dbtbl.rows_n))
+            self.parent.add_feedback(msg)
+        except Exception, e:
+            pass
         pix_per_char = 8
         sorted_fld_names = getdata.flds_dic_to_fld_names_lst(dd.flds)
         for col_idx, fld_name in enumerate(sorted_fld_names):
@@ -1067,7 +1070,10 @@ class TblEditor(wx.Dialog):
                 self.grid.SetColSize(col_idx, fld_name_width)
             if debug or self.debug: 
                 print("%s %s" % (fld_name, self.grid.GetColSize(col_idx)))
-        self.parent.add_feedback("")
+        try:
+            self.parent.add_feedback(u"")
+        except Exception, e:
+            pass
         lib.safe_end_cursor()
     
     def is_new_row(self, row):
