@@ -470,7 +470,11 @@ class ConfigDlg(object):
             lib.safe_end_cursor()
             event.Skip()
             return
-        script = self.get_script(css_idx, *get_script_args)
+        try:
+            script = self.get_script(css_idx, *get_script_args)
+        except Exception, e:
+            raise Exception("Problem getting script. Orig error: %s" % 
+                            lib.ue(e))
         bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
                                                        add_to_report, css_fils, 
                                                        new_has_dojo, script)

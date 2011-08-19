@@ -25,7 +25,7 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-dev_debug = True # relates to errors etc once GUI application running.
+dev_debug = False # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 test_lang = False
@@ -417,8 +417,9 @@ class StartFrame(wx.Frame):
         self.btn_help.Bind(wx.EVT_ENTER_WINDOW, self.on_help_enter)
         self.btn_help.SetDefault()
         # Proj
+        self.sel_proj_lbl = _("Select Project")
         bmp_btn_proj = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
-                                      _("Select Project"), btn_font_sz, "white")
+                                      self.sel_proj_lbl, btn_font_sz, "white")
         if REVERSE: bmp_btn_proj = lib.reverse_bmp(bmp_btn_proj)
         self.btn_proj = wx.BitmapButton(self.panel, -1, bmp_btn_proj, 
                                         pos=(self.btn_right, g.next()))
@@ -925,8 +926,10 @@ class StartFrame(wx.Frame):
                             self.help_img_top-20, True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
-        txt_entry = _("Import data e.g. a csv file, or a spreadsheet (Excel, "
-                      "Open Document, or Google Docs).")
+        txt_entry = _(u"Import data e.g. a csv file, or a spreadsheet (Excel, "
+                      u"Open Document, or Google Docs). To connect to "
+                      u"databases, click on %s and configure connection "
+                      u"settings instead.") % self.sel_proj_lbl
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_entry, 
                                                 self.max_help_text_width), 
                     wx.Rect(self.main_left, self.help_text_top, 

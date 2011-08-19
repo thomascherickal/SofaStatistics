@@ -20,30 +20,14 @@ import my_globals as mg
 
 def set_SCRIPT_PATH():
     """
-    Using __file__ doesn't work if running start.py from an interpreter 
-        e.g. IDLE.
-        http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
+    Using __file__ on start.py doesn't work (it will show where the interpreter 
+        is) but it will on an imported module in same path, even if running 
+        from an interpreter e.g. IDLE.
+    http://stackoverflow.com/questions/247770/retrieving-python-module-path
+    http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
     """
     debug = False
-    try:
-        rawpth = os.path.dirname(__file__)
-        if debug: 
-            print(__file__)
-            print(mg.SCRIPT_PATH)
-    except NameError, e:
-        path_found = False
-        for path in sys.path:
-            if u"sofastats" in path.lower():
-                path_found = True
-                break
-        if not path_found:
-            mg.DEFERRED_ERRORS.append(_("Unable to locate folder this program "
-                "is running in."
-                "\n\nNB the final subfolder must have the word \"sofastats\" "
-                "in it.\nSo \"C:\\Program Files\\sofastats\" is ok"
-                "\nbut \"C:\\Program Files\\my stats\" is not."))
-        if debug: print(sys.path)  
-        rawpth = path
+    rawpth = os.path.dirname(mg.__file__)
     local_encoding = sys.getfilesystemencoding()
     mg.SCRIPT_PATH = unicode(rawpth, local_encoding)
         

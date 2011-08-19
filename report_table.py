@@ -588,12 +588,12 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             col_names, col_labels = lib.get_col_dets(self.coltree, self.colroot, 
                                                      self.var_labels)
             # pprint.pformat() fails on non-ascii - a shame
-            script_lst.append(u"col_names = " + (col_names))
-            script_lst.append(u"col_labels = " + (col_labels))
+            script_lst.append(u"col_names = " + unicode(col_names))
+            script_lst.append(u"col_labels = " + unicode(col_labels))
             script_lst.append(u"flds = " + lib.dic2unicode(dd.flds))
             script_lst.append(u"var_labels = " +
                               lib.dic2unicode(self.var_labels))
-            script_lst.append(u"val_dics = " + (self.val_dics))
+            script_lst.append(u"val_dics = " + lib.dic2unicode(self.val_dics))
         # process title dets
         titles, subtitles = self.get_titles()
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
