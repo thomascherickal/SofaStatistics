@@ -66,41 +66,42 @@ def add_funcs_to_con(con):
 def get_con(con_dets, db, add_checks=False):
     """
     Use this connection rather than hand-making one.  Risk of malformed database
-        schema.  E.g. DatabaseError: malformed database schema (sofa_tmp_tbl) - 
+        schema. E.g. DatabaseError: malformed database schema (sofa_tmp_tbl) - 
         no such function: is_numeric
     add_checks -- adds user-defined functions so can be used in check 
         constraints to ensure data type integrity.
     """
-    con_dets_sqlite = con_dets.get(mg.DBE_SQLITE)
-    if not con_dets_sqlite:
-        raise my_exceptions.MissingConDets(mg.DBE_SQLITE)
-    if not con_dets_sqlite.get(db):
-        raise Exception(u"No connections for SQLite database \"%s\"" % db)
+    # any sqlite connection details at all?
     try:
-        try:
-            sqlite_con_dets_str = lib.dic2unicode(con_dets_sqlite)
-            sofa_db_path = (u"Unable to get connection details for db '%s' "
-                            u"using: %s" % 
-                            (db, lib.escape_pre_write(sqlite_con_dets_str)))
-        except Exception, e:
-            sofa_db_path = u"Unable to get SQLite connection details."
-        con = sqlite.connect(**con_dets_sqlite[db])
-        try:
-            sofa_db_path = con_dets_sqlite[db][DATABASE_KEY]
-        except Exception:
-            sofa_db_path = u"Unable to get SQLite database path"
+        con_dets_sqlite = con_dets[mg.DBE_SQLITE]
     except Exception, e:
-        if sofa_db_path == os.path.join(u"/home/g/sofastats/_internal", 
-                                        mg.SOFA_DB):
+        raise my_exceptions.MissingConDets(mg.DBE_SQLITE)
+    # able to extract con dets in a form usable for scripts?
+    try:
+        sqlite_con_dets_str = lib.dic2unicode(con_dets_sqlite)
+    except Exception, e:
+        raise Exception(u"Unable to extract connection details from %s."
+                        u"\nCaused by error: %s" % (con_dets_sqlite, lib.ue(e)))
+    # any connection details for this database?
+    try:
+        con_dets_sqlite_db = con_dets_sqlite[db]
+    except Exception, e:
+        raise Exception(u"No connections for SQLite database \"%s\"" % db)
+    # able to actually connect to database?
+    try:
+        con = sqlite.connect(**con_dets_sqlite_db)
+    except Exception, e:
+        # failure because still pointing to dev path?
+        if u"/home/g/sofastats" in sqlite_con_dets_str:
             raise Exception(u"Problem with default project file. Delete "
                             u"%s and restart SOFA.\nCaused by error %s." %
                             (os.path.join(mg.INT_PATH, mg.PROJ_CUSTOMISED_FILE), 
                             lib.ue(e)))
         else:
-            raise Exception(u"Unable to connect to SQLite database using "
-                            u"supplied database: \"%s\" and supplied " % db +
-                            u"connection details: %s." % sofa_db_path +
-                            u"\nCaused by error: %s." % lib.ue(e))
+            raise Exception(u"Unable to make connection with db '%s' "
+                u"using: %s"
+                u"\nCaused by error: %s" % 
+                (db, lib.escape_pre_write(sqlite_con_dets_str), lib.ue(e)))
     if mg.USE_SQLITE_UDFS:
         print("*"*60)
         print("Overriding so can open sofa_db in SOFA")
