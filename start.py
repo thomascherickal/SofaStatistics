@@ -140,7 +140,9 @@ class SofaApp(wx.App):
         """
         If a language isn't installed on the OS then it won't even look for the
             locale subfolder.  GetLanguage() will return a 1 instead of the 
-            langid. 
+            langid.
+        See also http://code.google.com/
+            p/bpbible/source/browse/trunk/gui/i18n.py?r=977#36
         """
         try:
             # http://wiki.wxpython.org/RecipesI18n
@@ -168,13 +170,52 @@ class SofaApp(wx.App):
                     cli = u""
                 # Language locale problem - provide more useful message to go 
                 # alongside system one.
+                try:
+                    langname = mylocale.GetLanguageName(langid)
+                except Exception, e:
+                    langname = u"Unable to get langname."
+                try:
+                    lang = mylocale.GetLanguage()
+                except Exception, e:
+                    lang = u"Unable to get language."  
+                try:    
+                    canon_name = mylocale.GetCanonicalName()
+                except Exception, e:
+                    canon_name = u"Unable to get canonical name."
+                try:
+                    sysname = mylocale.GetSysName
+                except Exception, e:
+                    sysname = u"Unable to get system name."
+                try:
+                    getlocale = mylocale.GetLocale
+                except Exception, e:
+                    getlocale = u"Unable to get locale."
+                try:
+                    localename = mylocale.GetName
+                except Exception, e:
+                    localename = u"Unable to get locale name."
                 mg.DEFERRED_WARNING_MSGS.append(
                     u"LANGUAGE ERROR:\n\n"
-                    u"SOFA couldn't set its locale to %(lang)s. Does your "
-                    u"system have %(lang)s installed?%(cli)s"
+                    u"SOFA couldn't set its locale to %(GetLanguageName)s. "
+                    u"Does your system have %(GetLanguageName)s installed?"
+                    u"%(cli)s"
                     u"\n\nPlease contact developer for advice - "
-                    u"grant@sofastatistics.com" % {u"cli": cli,
-                                    u"lang": mylocale.GetLanguageName(langid)})
+                    u"grant@sofastatistics.com"
+                    u"\n\nExtra details for developer:"
+                    u"\nlangid: %(langid)s"
+                    u"\nGetlanguage: %(Getlanguage)s" 
+                    u"\nGetCanonicalName: %(GetCanonicalName)s" 
+                    u"\nGetSysName: %(GetSysName)s" 
+                    u"\nGetLocale: %(GetLocale)s" 
+                    u"\nGetName: %(GetName)s" % {u"cli": cli,
+                                                u"GetLanguageName": langname,
+                                                u"langid": langid,
+                                                u"Getlanguage": lang,
+                                                u"GetCanonicalName": canon_name,
+                                                u"GetSysName": sysname,
+                                                u"GetLocale": getlocale,
+                                                u"GetName": localename,
+                                                })
                 """
                 Resetting mylocale makes frame flash and die if not clean first.
                 http://www.java2s.com/Open-Source/Python/GUI/wxPython/...
