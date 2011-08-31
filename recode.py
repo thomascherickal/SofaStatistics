@@ -384,7 +384,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             rename tmp table back to orig name. That way, we haven't wiped the 
             original table merely because of a recode problem
         """
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         dd.con.commit()
         getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
@@ -413,7 +413,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             in straight after the source variable.
         """
         debug = False
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         # rename table to tmp
         getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_drop_tmp = u"DROP TABLE IF EXISTS %s" % \

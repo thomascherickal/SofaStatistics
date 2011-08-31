@@ -273,7 +273,13 @@ GTE_LT = u"<"
 GTE_GTE = u">="
 GTE_LTE = u"<="
 GTES = [GTE_EQUALS, GTE_NOT_EQUALS, GTE_GT, GTE_LT, GTE_GTE, GTE_LTE]
-DATA_DETS = None
+DATADETS_OBJ = None # stores settings for the current database and has a cursor 
+    # to that database and methods for changing the database. This really 
+    # deserves to be a global for the application as it removed a massive amount 
+    # of fragile passing around of the object. Ensures that once changed, 
+    # everything is consistent across every report, analysis etc until changed 
+    # again. Prevented a lots of minor bugs elegantly. A good global :-)
+    # Easy enough to mock one for testing. 
 DBE_CON = u"dbe_con" # connection resource
 DBE_CUR = u"dbe_cur" # cursor resource (tuple-based)
 DBE_DBS = u"dbe dbs" # names

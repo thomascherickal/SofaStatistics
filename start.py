@@ -325,7 +325,8 @@ class StartFrame(wx.Frame):
         self.SetClientSize(self.GetSize())
         global REVERSE
         REVERSE = lib.mustreverse()
-        self.panel = wx.Panel(self, size=(self.form_width, self.form_height)) # win
+        self.panel = wx.Panel(self, size=(self.form_width, 
+                                          self.form_height)) # win
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SHOW, self.on_show) # doesn't run on Mac
@@ -333,18 +334,17 @@ class StartFrame(wx.Frame):
         self.active_proj = mg.DEFAULT_PROJ
         proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
                                                    fil_name=self.active_proj)
-        if not mg.DATA_DETS:
-            try:
-                # trying to actually connect to a database on start up
-                mg.DATA_DETS = getdata.DataDets(proj_dic)
-                if debug: print("Updated mg.DATA_DETS")
-            except Exception, e:
-                lib.safe_end_cursor()
-                wx.MessageBox(_("Unable to connect to data as defined in " 
-                                "project %s. Please check your settings.") % 
-                                self.active_proj)
-                raise # for debugging
-                return
+        try:
+            # trying to actually connect to a database on start up
+            mg.DATADETS_OBJ = getdata.DataDets(proj_dic)
+            if show_early_steps: print("Initialised mg.DATADETS_OBJ")
+        except Exception, e:
+            lib.safe_end_cursor()
+            wx.MessageBox(_("Unable to connect to data as defined in " 
+                            "project %s. Please check your settings.") % 
+                            self.active_proj)
+            raise # for debugging
+            return
         config_dlg.add_icon(frame=self)
         # background image
         if not self.tight_layout:

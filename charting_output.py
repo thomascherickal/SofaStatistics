@@ -412,7 +412,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
         (one per box).
     """
     debug = False
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     objqtr = getdata.get_obj_quoter_func(dbe)
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     boxplot_width = 0.25
@@ -587,7 +587,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure,
     bin_labels -- [u"1 to under 2", u"2 to under 3", ...]
     """
     debug = False
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     sql_dic = {mg.FLD_CHART_BY: objqtr(fld_chart_by), 
@@ -681,7 +681,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, fld_x_axis, fld_y_axis,
     unique -- unique x-y pairs only
     """
     debug = False
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     sql_dic = {mg.FLD_CHART_BY: objqtr(fld_chart_by),

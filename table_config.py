@@ -23,7 +23,7 @@ def reset_default_dd(tbl=None, add_checks=False):
     Completely reset connection etc with option of changing add_checks setting.
     """
     debug = False
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     if debug: print("Resetting connection to default db. Add_checks: %s" % 
                     add_checks)
     try:
@@ -96,7 +96,7 @@ def has_data_changed(orig_data, final_data):
     return data_changed
 
 def copy_orig_tbl(orig_tbl_name):
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
     SQL_drop_tmp2 = u"DROP TABLE IF EXISTS %s" % \
@@ -118,7 +118,7 @@ def restore_copy_tbl(orig_tbl_name):
     """
     Will only work if orig tbl already wiped
     """
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
     SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
@@ -127,7 +127,7 @@ def restore_copy_tbl(orig_tbl_name):
     dd.cur.execute(SQL_rename_tbl)
 
 def wipe_tbl(tblname):
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
     SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
@@ -152,7 +152,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
         TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
     """
     debug = False
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     if debug: print(u"DBE in make_strict_typing_tbl is: ", dd.dbe)
     reset_default_dd(tbl=orig_tbl_name, add_checks=True) # Can't deactivate the 
                   # user-defined functions until the tmp table has been deleted.
@@ -181,7 +181,7 @@ def strict_cleanup(restore_tblname):
     Must happen one way or another - whether an error or not
     """
     debug = False
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     if debug:
         print(u"About to drop %s" % mg.STRICT_TMP_TBL)
         SQL_get_tbls = u"""SELECT name 
@@ -215,7 +215,7 @@ def make_redesigned_tbl(final_name, oth_name_types):
         functions.
     """
     debug = False
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     if debug: print(u"DBE in make_redesigned_tbl is: ", dd.dbe)
     tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.STRICT_TMP_TBL)
     unquoted_final_name = final_name
@@ -574,7 +574,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         Fill in rest with demo data.
         """
         debug = False
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         orig_tblname = self.tblname_lst[0]
         flds_clause = u", ".join([objqtr(x) for x in db_flds_orig_names
                                   if x is not None])
@@ -760,7 +760,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             only SOFA will be able to open the SQLite database.
         """
         debug = False
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
         tbl_name = self.tblname_lst[0]
         if debug: print(u"DBE in make_new_tbl is: ", dd.dbe)
@@ -786,7 +786,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             anymore.
         """
         debug = False
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         orig_tbl_name = dd.tbl
         # other (i.e. not the sofa_id) field details
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
@@ -825,7 +825,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             the original name.
         """
         debug = False
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         if not self.readonly:
             # NB must run Validate on the panel because the objects are 
             # contained by that and not the dialog itself. 
@@ -862,7 +862,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         Also need to update any state information the grid relies on.
         NB typically working on the tabentry object or its grid, not on self.
         """
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         self.tabentry.any_editor_shown = False
         self.tabentry.new_editor_shown = False
         # Delete all rows after the first one (sofa_id) and before the new one
@@ -980,7 +980,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         """
         Override so we can extend to include table name.
         """
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         if self.readonly:
             self.Destroy()
         else:

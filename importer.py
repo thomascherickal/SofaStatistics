@@ -994,7 +994,7 @@ class ImportFileSelectDlg(wx.Dialog):
         Identify type of file by extension and open dialog if needed
             to get any additional choices e.g. separator used in 'csv'.
         """
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         self.align_btns_to_importing(importing=True)
         self.progbar.SetValue(0)
         file_path = self.txt_file.GetValue()

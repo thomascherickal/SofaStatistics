@@ -406,7 +406,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             than 20 unique values, only show first 20 and inform user.
         """
         debug = False
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         n_high = 250000
         objqtr = getdata.get_obj_quoter_func(dd.dbe)
         SQL_get_count = "SELECT COUNT(*) FROM %s %s" % \
@@ -490,7 +490,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         Sets choices for drop_group_a and B accordingly.
         """
         debug = False
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         wx.BeginBusyCursor()
         var_gp, choice_item = self.get_group_by()
         if not choice_item or choice_item == mg.DROP_SELECT:
@@ -517,7 +517,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         Returns var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, 
             label_b, var_avg, label_avg.
         """
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         selection_idx_gp = self.drop_group_by.GetSelection()
         var_gp = self.sorted_var_names_by[selection_idx_gp]
         label_gp = lib.get_item_label(item_labels=self.var_labels, 

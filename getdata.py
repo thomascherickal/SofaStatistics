@@ -1,4 +1,4 @@
-# should be imported before any modules which rely on mg.DATA_DETS as dd object
+# should be imported before any modules which rely on mg.DATADETS_OBJ as dd object
 
 from __future__ import print_function
 import os
@@ -241,16 +241,6 @@ class DataDets(object):
                 "tbl": self.tbl, "flds": self.flds, "idxs": self.idxs,
                 "has_unique": self.has_unique})
 
-def get_dd():
-    debug = False
-    if not mg.DATA_DETS:
-        proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
-                                                   fil_name=mg.DEFAULT_PROJ)
-        mg.DATA_DETS = DataDets(proj_dic)
-        if debug: print("Updated mg.DATA_DETS")
-    if debug: print(mg.DATA_DETS)
-    return mg.DATA_DETS
-
 def force_sofa_tbls_refresh(sofa_default_db_cur):
     """
     Sometimes you drop a table, make it, drop it, go to make it and it still 
@@ -273,7 +263,7 @@ def reset_main_con_if_sofa_default(tbl_name=None, add_checks=False):
     If the main connection is to the default database, and there has been a 
         change e.g. new table, the connection
     """
-    dd = get_dd()
+    dd = mg.DATADETS_OBJ
     if dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB:
         dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl_name, 
                    add_checks=add_checks)
@@ -566,7 +556,7 @@ def delete_row(id_fld, row_id):
     TODO - test this in Windows.
     """
     debug = False
-    dd = get_dd()
+    dd = mg.DATADETS_OBJ
     objqtr = get_obj_quoter_func(dd.dbe)
     placeholder = get_placeholder(dd.dbe)
     SQL_delete = u"DELETE FROM %s " % getdata.tblname_qtr(dd.dbe, dd.tbl) + \
@@ -587,7 +577,7 @@ def readonly_enablement(chk_readonly):
     Intended to protect SOFA users from inadvertently damaging externally-linked 
         databases from within SOFA.
     """
-    dd = get_dd()
+    dd = mg.DATADETS_OBJ
     sofa_default_db = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)
     if sofa_default_db:
         readonly = (dd.tbl == mg.DEMO_TBL)
@@ -596,7 +586,7 @@ def readonly_enablement(chk_readonly):
 
 def open_database(parent, event):
     debug = False
-    dd = get_dd()
+    dd = mg.DATADETS_OBJ
     if not dd.has_unique:
         msg = _("Table \"%s\" cannot be opened because it lacks a unique "
                 "index")
@@ -644,7 +634,7 @@ def get_data_dropdowns(parent, panel, default_dbs):
     debug = False
     # databases list needs to be tuple including dbe so can get both from 
     # sequence alone e.g. when identifying selection
-    dd = get_dd()
+    dd = mg.DATADETS_OBJ
     # can't just use dbs list for dd - sqlite etc may have multiple dbs but only 
     # one per con
     dbe_dbs_list = mg.DBE_MODULES[dd.dbe].get_dbs_list(dd.con_dets, default_dbs)
@@ -684,7 +674,7 @@ def setup_drop_tbls(drop_tbls):
         appended to end of name.
     """
     debug = False
-    dd = get_dd()
+    dd = mg.DATADETS_OBJ
     tbls_with_filts = []
     for i, tblname in enumerate(dd.tbls):
         if tblname.lower() == dd.tbl.lower():
@@ -709,7 +699,7 @@ def refresh_db_dets(parent):
         the selected idx to what has just been selected.
     """
     wx.BeginBusyCursor()
-    dd = mg.DATA_DETS
+    dd = mg.DATADETS_OBJ
     db_choice_item = parent.db_choice_items[parent.drop_dbs.GetSelection()]
     db, dbe = extract_db_dets(db_choice_item)
     try:
@@ -741,7 +731,7 @@ def refresh_tbl_dets(parent):
     Run anything like reset_tbl_dropdown first.
     """
     wx.BeginBusyCursor()
-    dd = get_dd()
+    dd = mg.DATADETS_OBJ
     try:
         tbl = dd.tbls[parent.drop_tbls.GetSelection()]
         dd.set_tbl(tbl)
@@ -884,7 +874,7 @@ def make_sofa_tbl(con, cur, tbl_name, oth_name_types, strict_typing=False):
     force_sofa_tbls_refresh(sofa_default_db_cur=cur)
     # If the main data connection is to this (default sofa) database it must be 
     # reconnected to ensure the change has been registered.
-    dd = get_dd()
+    dd = mg.DATADETS_OBJ
     if dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB:
         dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl_name, 
                    add_checks=False)

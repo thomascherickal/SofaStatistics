@@ -1011,7 +1011,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             fld_chart_by etc,
         """
         debug = False
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         inc_perc = (u"False" if not INC_PERC
                         or (self.chart_type in mg.HAS_AVG_OPTION and SHOW_AVG)
                     else u"True")
@@ -1168,7 +1168,7 @@ chart_output = charting_output.piechart_output(titles, subtitles,
 
 def get_line_chart_script(inc_perc, inc_trend, inc_smooth, css_fil, css_idx, 
                           chart_type, varname2, varname3):
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     single_line = ((SHOW_AVG and varname3 == mg.DROP_SELECT) 
                    or (not SHOW_AVG and varname2 == mg.DROP_SELECT))
     if single_line:
@@ -1201,7 +1201,7 @@ chart_output = charting_output.linechart_output(titles, subtitles,
     return script
 
 def get_area_chart_script(inc_perc, css_fil, css_idx):
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     script = u"""
 chart_dets = charting_output.get_chart_dets(mg.AREA_CHART, 
                             dbe, cur, tbl, tbl_filt, 
@@ -1222,7 +1222,7 @@ chart_output = charting_output.areachart_output(titles, subtitles,
     return script
 
 def get_histogram_script(inc_normal, css_fil, css_idx):
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     script = u"""
 histo_dets = charting_output.get_histo_dets(dbe, cur, tbl, tbl_filt, 
                                            fld_measure, fld_chart_by, 
@@ -1235,7 +1235,7 @@ chart_output = charting_output.histogram_output(titles, subtitles,
     return script
 
 def get_scatterplot_script(css_fil, css_idx, dot_border):
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     script = u"""
 scatterplot_dets = charting_output.get_scatterplot_dets(dbe, cur, tbl, tbl_filt, 
             fld_x_axis, fld_y_axis, 
@@ -1250,7 +1250,7 @@ chart_output = charting_output.scatterplot_output(titles, subtitles,
     return script
 
 def get_boxplot_script(css_fil, css_idx):
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     script = u"""
 (xaxis_dets, xmin, xmax, 
  ymin, ymax, max_label_len, 

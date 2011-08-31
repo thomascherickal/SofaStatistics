@@ -154,7 +154,7 @@ class ProjSelectDlg(wx.Dialog):
         self.Destroy()
     
     def on_ok(self, event):
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         proj_sel_id = self.drop_projs.GetSelection()
         fil_proj = self.projs[proj_sel_id]
         proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 

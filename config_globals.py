@@ -180,8 +180,7 @@ def get_settings_dic(subfolder, fil_name):
                     u"\n\nDetails: %(details)s") % {u"fil_name": fil_name,  
                                                     u"details": lib.ue(e)}
         try:
-            wx.MessageBox(err_msg) # only works if wx.App up. May have been 
-                # called when importing config.dlg which does get_dd()
+            wx.MessageBox(err_msg) # only works if wx.App up.
             raise
         except Exception, e:
             raise Exception(err_msg)

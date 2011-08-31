@@ -20,7 +20,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
     
     def get_script(self, css_idx, css_fil, add_to_report, report_name):
         "Build script from inputs"
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         script_lst = []
         var_a, label_a, var_b, label_b = self.get_drop_vals()
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))

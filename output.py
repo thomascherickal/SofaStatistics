@@ -725,7 +725,7 @@ def _strip_script(script):
     return stripped
 
 def export_script(script, css_fils, new_has_dojo=False):
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     cc = config_dlg.get_cc()
     modules = ["my_globals as mg", "core_stats", "dimtables", "getdata", 
                "output", "rawtables", "stats_output"]
@@ -758,7 +758,7 @@ def add_divider_code(f, tbl_filt_label, tbl_filt):
     """
     Adds divider code to a script file.
     """
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     f.write(u"\nsource = output.get_source(u\"%s\", u\"%s\")" % (dd.db, dd.tbl))
     f.write(u"\ndivider = output.get_divider(source, "
             u" u\"\"\" %s \"\"\", u\"\"\" %s \"\"\")" % (tbl_filt_label, 
@@ -807,7 +807,7 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     f - open file handle ready for writing
     """
     debug = False
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     full_datestamp = u"\n# Script exported %s" % lib.get_unicode_datestamp()
     # Fresh connection for each in case it changes in between tables
     f.write(u"#%s" % (u"-"*65))
@@ -852,7 +852,7 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     add_to_report -- also append result to current report.
     """
     debug = False
-    dd = getdata.get_dd()
+    dd = mg.DATADETS_OBJ
     cc = config_dlg.get_cc()
     # generate script
     try:

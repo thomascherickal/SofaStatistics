@@ -74,7 +74,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
     
     def __init__(self, txt_titles, txt_subtitles, colroot, coltree, var_labels, 
                  val_dics, chk_totals_row, chk_first_as_label):
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         self.txt_titles = txt_titles
         self.txt_subtitles = txt_subtitles
         self.colroot = colroot
@@ -115,7 +115,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         Update anything which might have changed first.
         Db details are updated anytime db or tbl changes.
         """
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         self.add_total_row = self.chk_totals_row.IsChecked()
         self.first_col_as_label = self.chk_first_as_label.IsChecked()
         unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)

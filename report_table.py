@@ -343,7 +343,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         Things to do after the data source has changed.
         Db-related details are set at point of instantiation - need updating.
         """
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         if self.tab_type == mg.RAW_DISPLAY:
             # Raw Tables cannot draw on dd and demo raw tables is a child of 
             # that therefore must store in self
@@ -496,7 +496,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     # run 
     def too_long(self):
         # check not a massive report table.  Overrides default
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         too_long = False
         if self.tab_type == mg.RAW_DISPLAY:
             # count records in table
@@ -556,7 +556,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             to know what this report will be called (so we can know where any
             images are to link to).
         """
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         self.g = self.get_next_node_name()
         script_lst = []
         # set up variables required for passing into main table instantiation

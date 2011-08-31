@@ -180,7 +180,7 @@ class DimTree(object):
         Variable name not applicable when a column config item 
             (col_no_vars_item) rather than a normal column variable.
         """
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         item_conf = lib.ItemConfig()
         # reuse stored item config from same sort if set previously
         if self.tab_type != mg.RAW_DISPLAY: # Data list has nothing to reuse
@@ -266,7 +266,7 @@ class DimTree(object):
         Try to add var under selected var.
         Only do so if OK e.g. no duplicate text in either dim.
         """
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         var_names = dd.flds.keys()
         sorted_choices, sorted_vars = lib.get_sorted_choice_items(
                                                     self.var_labels, var_names)

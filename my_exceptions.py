@@ -2,7 +2,8 @@ import my_globals as mg
 
 class DoNothingException(Exception):
     def __init__(self, msg=""):
-        print("Nothing to do exception. %s" % msg)
+        pass
+        #print("Nothing to do exception. %s" % msg)
 
 class MissingConDets(Exception):
     def __init__(self, dbe):

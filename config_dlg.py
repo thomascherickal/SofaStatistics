@@ -187,7 +187,7 @@ class ConfigDlg(object):
     def get_gen_config_szrs(self, panel, readonly=False):
         """
         Returns self.szr_data, self.szr_config (reports and css) complete with 
-            widgets.  mg.DATA_DETS as dd is set up ready to use.
+            widgets.  mg.DATADETS_OBJ as dd is set up ready to use.
         Widgets include dropdowns for database and tables, and textboxes plus 
             Browse buttons for output and style.
         Each widget has a set of events ready to go as well.
@@ -210,7 +210,7 @@ class ConfigDlg(object):
         lbl_databases.SetFont(self.LABEL_FONT)
         # get various db settings
         # set up self.drop_dbs and self.drop_tbls
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         (self.drop_dbs, 
          self.drop_tbls) = getdata.get_data_dropdowns(self, panel, 
                                                       dd.default_dbs)
@@ -332,7 +332,7 @@ class ConfigDlg(object):
         return titles, subtitles
     
     def too_long(self):
-        dd = getdata.get_dd()
+        dd = mg.DATADETS_OBJ
         # check not a massive table
         too_long = False
         # count records in table
