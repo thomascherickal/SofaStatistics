@@ -194,7 +194,7 @@ class DataDets(object):
             self.con.close()
             self.con = None
         except Exception:
-            pass
+            my_exceptions.DoNothingException()
         try:
             dbe_resources = get_dbe_resources(dbe, con_dets, default_dbs, 
                                               default_tbls, db, tbl, add_checks)

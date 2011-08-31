@@ -65,6 +65,7 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 
 import my_globals as mg
 import lib
+import my_exceptions
 import config_globals
 import config_dlg
 import getdata
@@ -234,7 +235,8 @@ class SofaApp(wx.App):
                     # to get some language settings to display properly:
                     os.environ['LANG'] = u"%s.UTF-8" % canon_name
                 except (ValueError, KeyError):
-                    pass
+                    my_exceptions.DoNothingException("OK if unable to get "
+                                                     "environment settings.")
             mg.MAX_WIDTH = wx.Display().GetGeometry()[2]
             mg.MAX_HEIGHT = wx.Display().GetGeometry()[3]
             mg.HORIZ_OFFSET = 0 if mg.MAX_WIDTH < 1224 else 200
@@ -248,7 +250,7 @@ class SofaApp(wx.App):
             try:
                 frame.Close()
             except NameError:
-                pass
+                my_exceptions.DoNothingException("Better exception coming.")
             # raise original exception having closed frame if possible
             raise Exception(lib.ue(e))
         
@@ -672,7 +674,8 @@ class StartFrame(wx.Frame):
             except Exception, e:
                 if debug: print(u"Unable to connect to sofastatistics.com."
                                 u"/nCaused by error: %s" % lib.ue(e))
-                pass
+                my_exceptions.DoNothingException("Don't make a fuss if fails "
+                                                 "to contact main website.")
         lib.safe_end_cursor()
     
     def update_sofastats_connect_date(self, sofastats_connect_fil, 

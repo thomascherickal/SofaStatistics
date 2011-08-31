@@ -137,7 +137,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         try:
             self.html.pizza_magic() # must happen after Show
         except Exception, e:
-            pass # needed on Mac else exception survives
+            my_exceptions.DoNothingException() # need on Mac or exceptn survives
         finally: # any initial content
             self.html.show_html(self.html_msg)
             self.html_msg = u""
@@ -359,7 +359,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                 output.add_end_script_code(f)
                 f.close()
         except Exception:
-            pass
+            my_exceptions.DoNothingException()
         finally:
             self.Destroy()
             event.Skip()

@@ -4,6 +4,7 @@ import wx.grid
 import pprint
 
 import my_globals as mg
+import my_exceptions
 import controls
 
 COL_STR = u"col_string"
@@ -582,7 +583,8 @@ class SettingsEntry(object):
                 try:
                     src_ctrl.SetInsertionPointEnd()
                 except Exception:
-                    pass
+                    my_exceptions.DoNothingException("OK if source control has "
+                                        "no ability to set insertion point.")
         return stayed_still, saved_new_row
     
     def get_move_dets(self, src_row, src_col, dest_row, dest_col, direction):

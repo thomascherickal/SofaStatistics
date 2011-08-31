@@ -881,7 +881,8 @@ def is_numeric(val, comma_dec_sep_ok=False):
             if comma_dec_sep_ok:
                 val = val.replace(u",", u".")
         except AttributeError, e:
-            pass
+            my_exceptions.DoNothingException("Only needed to succeed if a "
+                                             "string. Presumably wasn't so OK.")
         try:
             i = float(val)
         except (ValueError, TypeError):
@@ -1072,12 +1073,11 @@ def is_time_part(datetime_str):
         or "pm" in datetime_str.lower()
 
 def is_year(datetime_str):
-    dt_is_year = False
     try:
         year = int(datetime_str)
         dt_is_year = (1 <= year < 10000) 
     except Exception:
-        pass
+        dt_is_year = False
     return dt_is_year
 
 def get_splitter(datetime_str):
@@ -1160,8 +1160,8 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
                 date_format = ok_date_format
                 bad_date = False
                 break
-            except:
-                pass
+            except Exception, e:
+                continue
         if bad_date:
             return None
     time_format = None
@@ -1173,8 +1173,8 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
                 time_format = ok_time_format
                 bad_time = False
                 break
-            except:
-                pass
+            except Exception, e:
+                continue
         if bad_time:
             return None
     # have at least one part and no bad parts

@@ -8,6 +8,7 @@ import wx
 
 import my_globals as mg
 import lib
+import my_exceptions
 import getdata
 import config_dlg
 import settings_grid
@@ -146,12 +147,12 @@ def get_approp_var_names(var_types=None, min_data_type=mg.VAR_TYPE_CAT):
 
 def get_idx_to_select(choice_items, drop_var, var_labels, default):
     """
-    Get index to select.  If variable passed in, use that if possible.
+    Get index to select. If variable passed in, use that if possible.
     It will not be possible if it has been removed from the list e.g. because
         of a user reclassification of data type (e.g. was quantitative but
         has been redefined as categorical); or because of a change of filtering.
     If no variable passed in, or it was but couldn't be used (see above),
-        use the default if possible.  If not possible, select the first 
+        use the default if possible. If not possible, select the first 
         item.
     """
     var_removed = False
@@ -168,7 +169,8 @@ def get_idx_to_select(choice_items, drop_var, var_labels, default):
             try:
                 idx = choice_items.index(default)
             except ValueError:
-                pass
+                my_exceptions.DoNothingException("OK if no default - use idx "
+                                                 "of 0.")
     return idx
     
     
@@ -627,9 +629,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
 
     def on_delete(self, event):
         proj_name = self.txt_name.GetValue()
-        if wx.MessageBox(_("Deleting a project cannot be undone.  "
-                           "Do you want to delete the \"%s\" project?") % \
-                           proj_name, 
+        if wx.MessageBox(_("Deleting a project cannot be undone. Do you want "
+                           "to delete the \"%s\" project?") % proj_name, 
                 style=wx.YES|wx.NO|wx.ICON_EXCLAMATION|wx.NO_DEFAULT) == wx.NO:
             return
         try:
@@ -638,7 +639,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             #print(fil_to_delete) # debug
             os.remove(fil_to_delete)
         except Exception:
-            pass
+            raise Exception("Unable to delete selected project.")
         self.Destroy()
         self.SetReturnCode(wx.ID_DELETE) # only for dialogs 
         # (MUST come after Destroy)
@@ -665,12 +666,11 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                 self.txt_name.SetFocus()
                 return
             try:
-                # only needed if returning to projselect form
-                # so OK to fail otherwise
                self.parent.store_proj_name(u"%s.proj" % proj_name)
             except Exception:
                 print(u"Failed to change to %s.proj" % proj_name)
-                pass
+                my_exceptions.DoNothingException("Only needed if returning to "
+                                    "projselect form so OK to fail otherwise.")
             proj_notes = self.txt_proj_notes.GetValue()
             fil_var_dets = cc[mg.CURRENT_VDTS_PATH]
             fil_script = cc[mg.CURRENT_SCRIPT_PATH]

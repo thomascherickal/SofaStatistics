@@ -312,7 +312,7 @@ def get_flds(cur, db, tbl):
                 txt_len = col_type[col_type.index(u"("):].strip()[1:-1]
                 max_len = int(txt_len)
             except Exception:
-                pass
+                my_exceptions.DoNothingException()
         charset = tbl_charset if fld_txt else None
         dets_dic = {
                     mg.FLD_SEQ: i,

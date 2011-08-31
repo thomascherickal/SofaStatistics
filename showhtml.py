@@ -3,6 +3,7 @@ import os
 
 import my_globals as mg
 import lib
+import my_exceptions
 import full_html
 
 def get_html(title, content, template, root="", file_name="", print_folder=""):
@@ -92,7 +93,7 @@ class DlgHTML(wx.Dialog):
         try:
             self.html.pizza_magic() # must happen after Show
         except Exception, e:
-            pass # needed on Mac else exception survives
+            my_exceptions.DoNothingException() # need on Mac or exceptn survives
         finally: # any initial content
             self.show_content(self.url, self.content, self.url_load)
             

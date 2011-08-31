@@ -2,6 +2,7 @@ import os
 import win32com.client
 
 import my_globals as mg
+import my_exceptions
 
 # Copyright (c) Grant Paton-Simpson 2009. All rights reserved. 
 # Based on excel.py with major modifications
@@ -104,7 +105,7 @@ class Workbook(object):
             self.con.Close()
             del self.con
         except Exception:
-            pass
+            my_exceptions.DoNothingException()
 
 
 class Worksheet(object):

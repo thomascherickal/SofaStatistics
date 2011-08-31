@@ -325,7 +325,8 @@ def get_val(feedback, raw_val, is_pytime, fld_type, orig_fld_name,
                     if debug: print(u"Date val: %s" % val)
                     ok_data = True
                 except Exception:
-                    pass # no need to set val - not ok_data so exception later
+                    my_exceptions.DoNothingException("no need to set val - not "
+                                                "ok_data so exception later")
     elif fld_type == mg.FLD_TYPE_STRING:
         # None or empty string we'll turn to NULL
         ok_data = True
@@ -971,7 +972,7 @@ class ImportFileSelectDlg(wx.Dialog):
                 self.txt_int_name.SetFocus()
                 return None
             elif ret == wx.YES:
-                pass # use the name (and overwrite original)
+                my_exceptions.DoNothingException() # use name (& overwrite orig)
         return tbl_name
 
     def align_btns_to_completeness(self):

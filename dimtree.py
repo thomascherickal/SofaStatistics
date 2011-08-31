@@ -6,6 +6,7 @@ import wx
 
 import my_globals as mg
 import lib
+import my_exceptions
 import getdata
 import dimtables
 import projects
@@ -670,7 +671,7 @@ class DlgConfig(wx.Dialog):
                 idx_sort_opt = mg.SORT_OPTS.index(item_conf.sort_order)
                 self.rad_sort_opts.SetSelection(idx_sort_opt)
             except IndexError, e:
-                pass
+                my_exceptions.DoNothingException()
             if self.sort_opt_allowed == SORT_OPT_BY_LABEL:
                 # disable freq options
                 idx_freq_asc = mg.SORT_OPTS.index(mg.SORT_INCREASING)

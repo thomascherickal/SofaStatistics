@@ -6,6 +6,7 @@ import wx
 
 import my_globals as mg
 import lib
+import my_exceptions
 import config_globals
 import config_dlg
 import getdata # must be anything referring to plugin modules
@@ -537,7 +538,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         try:
             self.html.pizza_magic() # must happen after Show
         except Exception, e:
-            pass # needed on Mac else exception survives
+            my_exceptions.DoNothingException() # need on Mac or exceptn survives
         finally: # any initial content
             self.update_demo()
             
@@ -545,16 +546,13 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         """
         Get best possible demo value for display in absence of source data.
         """
-        val = None
         if col_label.lower() == mg.SOFA_ID:
             val = row_idx + 1
         else:
             try:
                 val = random.choice(self.val_dics[col_label])
             except Exception:
-                pass
-        if val is None:
-            val = lib.get_rand_val_of_type(type)
+                val = lib.get_rand_val_of_type(type)
         return val
     
     def get_demo_row_lst(self, row_idx, design_flds_col_labels, 
@@ -839,7 +837,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             try:
                 del self.tblname_lst[0] # empty ready to repopulate
             except Exception, e:
-                pass
+                my_exceptions.DoNothingException("OK to fail to delete item "
+                                                 "in list if already empty.")
             self.tblname_lst.append(gui_tblname)
             self.make_new_tbl()
             dd.set_tbl(tbl=gui_tblname)

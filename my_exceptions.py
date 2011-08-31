@@ -1,5 +1,9 @@
 import my_globals as mg
 
+class DoNothingException(Exception):
+    def __init__(self, msg=""):
+        print("Nothing to do exception. %s" % msg)
+
 class MissingConDets(Exception):
     def __init__(self, dbe):
         Exception.__init__(self, u"Missing connection details for %s." % dbe)

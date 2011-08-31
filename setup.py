@@ -249,7 +249,7 @@ def init_com_types(parent, panel):
         try:
             h.pizza_magic() # must happen after Show
         except Exception:
-            pass
+            my_exceptions.DoNothingException()
         h.show_html(u"")
         h = None
         # leave tag saying it is done
@@ -475,7 +475,7 @@ def archive_older_default_report():
                 "works with the latest chart display code." % 
                 (mg.VERSION, mg.DEFAULT_REPORT, new_filename))
         except OSError, e:
-            pass
+            raise Exception("Unable to archive older default report.")
                     
 def freshen_recovery(prog_path, local_subfolders, subfolders_in_proj):
     """
@@ -505,7 +505,8 @@ def freshen_recovery(prog_path, local_subfolders, subfolders_in_proj):
         try:
             shutil.rmtree(mg.RECOVERY_PATH)
         except OSError:
-            pass
+            my_exceptions.DoNothingException("OK to fail removing recovery "
+                                             "path if not there.")
         make_local_subfolders(mg.RECOVERY_PATH, local_subfolders)
         default_proj = os.path.join(mg.RECOVERY_PATH, mg.PROJS_FOLDER, 
                                     mg.DEFAULT_PROJ)
@@ -564,7 +565,7 @@ def setup_folders():
                     try:
                         os.mkdir(REPORT_EXTRAS_PATH) # under reports
                     except OSError, e:
-                        pass # already there
+                        my_exceptions.DoNothingException("Already there.")
                     except Exception, e:
                         raise Exception(u"Unable to make report extras "
                                         u"path \"%s\"." % REPORT_EXTRAS_PATH +

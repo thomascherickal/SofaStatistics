@@ -963,7 +963,7 @@ def get_left_axis_shift(xaxis_dets):
         if label1_len > 5:
             left_axis_lbl_shift = label1_len*-1.3
     except Exception, e:
-        pass
+        my_exceptions.DoNothingException()
     if debug: print(left_axis_lbl_shift)
     return left_axis_lbl_shift
 

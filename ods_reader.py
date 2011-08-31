@@ -7,6 +7,7 @@ import zipfile
 
 import my_globals as mg
 import lib
+import my_exceptions
 import importer
 
 """
@@ -419,7 +420,8 @@ def extract_date_if_possible(el_det, attrib_dict, xml_type, type):
             try: # so we don't assume 2136 is a year
                 probable_date_formats.remove(u"%Y")
             except ValueError, e:
-                pass
+                my_exceptions.DoNothingException("If not there, OK that "
+                                                 "removing it failed")
             usable_datetime = lib.is_usable_datetime_str(raw_datetime_str=text, 
                                           ok_date_formats=probable_date_formats)
             # OK for this purpose to accept invalid dates - we calculate the 

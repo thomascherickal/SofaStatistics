@@ -306,7 +306,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         try:
             self.html.pizza_magic() # must happen after Show
         except Exception, e:
-            pass # needed on Mac else exception survives
+            my_exceptions.DoNothingException() # need on Mac or exceptn survives
         finally: # any initial content
             has_rows, has_cols = self.get_row_col_status()
             waiting_msg = get_missing_dets_msg(self.tab_type, has_rows, 
@@ -760,7 +760,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 output.add_end_script_code(f)
                 f.close()
         except Exception:
-            pass
+            my_exceptions.DoNothingException()
         finally:
             self.Destroy()
             event.Skip()

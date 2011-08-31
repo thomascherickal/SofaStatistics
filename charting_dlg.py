@@ -6,6 +6,7 @@ import wx
 
 import my_globals as mg
 import lib
+import my_exceptions
 import config_dlg
 import full_html
 import getdata
@@ -380,7 +381,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         try:
             self.html.pizza_magic() # must happen after Show
         except Exception, e:
-            pass # needed on Mac else exception survives
+            my_exceptions.DoNothingException() # need on Mac or exception survives
         finally:
             # any initial content
             html2show = _("<p>Waiting for a report to be run.</p>")
@@ -639,7 +640,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         try:
             CUR_SORT_OPT = mg.SORT_OPTS[idx_sel]
         except IndexError, e:
-            pass
+            my_exceptions.DoNothingException()
         if debug: print(u"Current sort option: %s" % CUR_SORT_OPT)
     
     def on_rad_bar_sort_opt(self, event):
@@ -952,7 +953,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         try: # might not be visible
             mg.VAR_3_DEFAULT = self.drop_var3.GetStringSelection()
         except Exception, e:
-            pass
+            my_exceptions.DoNothingException()
    
     def update_phrase(self):
         pass
