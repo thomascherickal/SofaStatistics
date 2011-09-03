@@ -213,10 +213,10 @@ def process_fld_names(raw_names):
         for i, name in enumerate(names):
             valid, err = dbe_sqlite.valid_fldname(name)
             if not valid:
-                raise Exception(_(u"Unable to use field name \"%s\". "
+                raise Exception(_(u"Unable to use field name \"%(fldname)s\". "
                       u"Please only use letters, numbers and underscores. No "
-                      u"spaces, full stops etc.\nOrig error: %s") % 
-                                (raw_names[i], err))
+                      u"spaces, full stops etc.\nOrig error: %(err)s") % 
+                                {"fldname": raw_names[i], "err": err})
     return names
 
 def process_tbl_name(rawname):
