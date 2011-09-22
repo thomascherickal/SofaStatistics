@@ -23,7 +23,7 @@ class ExcelImporter(importer.FileImporter):
     
     def get_params(self):
         "Ignore field names - just use fld1 etc"
-        debug = True
+        debug = False
         wkbook = excel_reader.Workbook(self.file_path, sheets_have_hdrs=False)
         # get up to 4 rows
         sheets = wkbook.get_sheet_names()

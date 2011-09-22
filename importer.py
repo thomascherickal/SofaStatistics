@@ -516,7 +516,7 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
                           fld_types, faulty2missing_fld_list, data, progbar, 
                           steps_per_item, gauge_start, allow_none=True, 
                           comma_dec_sep_ok=False):
-    debug = True
+    debug = False
     if debug:
         print(u"Original field names are: %s" % orig_fld_names)
         print(u"Cleaned (ok) field names are: %s" % ok_fld_names)

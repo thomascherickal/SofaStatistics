@@ -105,21 +105,21 @@ def get_tbl(tree):
         if el.tag.endswith("body"):
             body = el
             break
-    if not body:
+    if body is None:
         exit
     sheet = None
     for el in body:
         if el.tag.endswith("spreadsheet"):
             sheet = el
             break
-    if not sheet:
+    if sheet is None:
         exit
     tbl = None
     for el in sheet:
         if el.tag.endswith("table"):
             tbl = el
             break
-    if not tbl:
+    if tbl is None:
         raise Exception(u"Unable to get tree from xml")
     return tbl
 
@@ -196,7 +196,7 @@ def get_fld_names(tbl, has_header, rows_to_sample):
         datarows = get_data_rows(tbl, inc_empty=False, n=1)
         try:
             row = datarows[0]
-            fldnames = get_fld_names_from_header_row(row)
+            fldnames = get_fldnames_from_header_row(row)
         except IndexError:
             raise Exception(_("Need at least one row to import"))
     else:
@@ -242,29 +242,43 @@ def get_fld_names(tbl, has_header, rows_to_sample):
 
 def get_el_inner_val(el):
     """
-    Sometimes the value is not in the first item in el
+    Sometimes the value is not in the first item in el.
+    Need to handle cells with multiple lines. Each is an indiv subel.
+    Each line may be an element with a subelement.
     """
     debug = False
+    if debug: print(len(el))
     text2return = []
-    i = 0
-    while True:
-        try:
-            item_text = el[i].text
-            if item_text is not None:
-                text2return.append(item_text)
-        except IndexError, e:
-           break
-        i += 1
+    subels = list(el)
+    for subel in subels:
+        line_text = ""
+        subel_text = subel.text
+        if subel_text is not None:
+            line_text += subel_text
+        else:
+            continue
+        subel_tail = subel.tail
+        if subel_tail is not None:
+            line_text += subel_tail
+        innermost_els = list(subel)
+        for innermost_el in innermost_els:
+            innermost_el_text = innermost_el.text
+            if innermost_el_text is not None:
+                line_text += innermost_el_text
+            innermost_el_tail = innermost_el.tail
+            if innermost_el_tail is not None:
+                line_text += innermost_el_tail
+        text2return.append(line_text)
     if text2return:
-        if debug: print(etree.tostring(el))
+        if debug: print("Element as string - " + etree.tostring(el))
         return u"\n".join(text2return)
     else:
         if debug: print("NO TEXT in el - " + etree.tostring(el))
         return u""
 
-def get_fld_names_from_header_row(row):
+def get_fldnames_from_header_row(row):
     """
-    As soon as hits an empty cell, stops collecting field names.  This is the
+    As soon as hits an empty cell, stops collecting field names. This is the
         intended behaviour.
     If a header cell is repeated, raise an exception.
     """
@@ -275,6 +289,7 @@ def get_fld_names_from_header_row(row):
             print(u"\nChild element of a table-row: " + etree.tostring(el))
         items = el.attrib.items()
         attrib_dict = get_streamlined_attrib_dict(items)
+        if debug: print(attrib_dict)
         # stays None unless there is a date-value or value-type attrib
         fldname = None
         type = None
@@ -283,9 +298,11 @@ def get_fld_names_from_header_row(row):
                 raise Exception(_("Field name \"%s\" cannot be repeated")
                                 % get_el_inner_val(el))
             elif DATE_VAL in attrib_dict:
+                if debug: print("Getting fldname from DATE_VAL")
                 fldname = attrib_dict[DATE_VAL] # take proper date 
                     # val e.g. 2010-02-01 rather than orig text of 01/02/10
             elif VAL_TYPE in attrib_dict:
+                if debug: print("Getting fldname from inner val")
                 fldname = get_el_inner_val(el) #take val from inner text element
             else: # not a data cell
                 pass # fail to set fldname
@@ -294,6 +311,7 @@ def get_fld_names_from_header_row(row):
         if fldname is None:
             break # just hit an empty cell - we're done.
         else:
+            if debug: print(fldname)
             if fldname in orig_fld_names:
                 raise Exception(_("Field name \"%s\" has been repeated")
                                 % fldname)
