@@ -236,7 +236,7 @@ def get_fld_names(tbl, has_header, rows_to_sample):
                     pass
             if cells_n > max_row_cells:
                 max_row_cells = cells_n
-        fldnames = lib.get_n_fld_names(max_row_cells)
+        fldnames = lib.get_n_fldnames(max_row_cells)
         if debug: print(fldnames)
     return fldnames
 

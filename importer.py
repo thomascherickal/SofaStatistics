@@ -161,6 +161,7 @@ def get_best_fld_type(fldname, type_set, faulty2missing_fld_list,
 def process_fld_names(raw_names):
     """
     Turn spaces into underscores and then check all names are unique.
+    Checks all field names OK for sqlite and none are empty strings.
     Expects a list of field name strings.
     """
     debug = False
@@ -178,6 +179,7 @@ def process_fld_names(raw_names):
             names.append(name)
             if mg.SOFA_ID in names:
                 raise Exception(_(u"%s is a reserved field name.") % mg.SOFA_ID)
+        names = lib.get_filled_blank_fldnames(names)
     except AttributeError:
         raise Exception(u"Field names must all be text strings.")
     except TypeError:
@@ -187,6 +189,9 @@ def process_fld_names(raw_names):
                         u"\nCaused by error: %s" % lib.ue(e))
     n_names = len(names)
     if n_names != len(set(names)):
+        if debug:
+            names.sort() 
+            print(names)
         raise Exception(u"Duplicate field name (once spaces turned to "
                         u"underscores)")
     quickcheck = False
@@ -511,7 +516,7 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
                           fld_types, faulty2missing_fld_list, data, progbar, 
                           steps_per_item, gauge_start, allow_none=True, 
                           comma_dec_sep_ok=False):
-    debug = False
+    debug = True
     if debug:
         print(u"Original field names are: %s" % orig_fld_names)
         print(u"Cleaned (ok) field names are: %s" % ok_fld_names)
@@ -537,6 +542,7 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
         fld_names = zip(ok_fld_names, orig_fld_names)
         for ok_fld_name, orig_fld_name in fld_names:
             oth_name_types.append((ok_fld_name, fld_types[orig_fld_name]))
+        if debug: print(oth_name_types)
         getdata.make_sofa_tbl(con, cur, tbl_name, oth_name_types)
     except Exception, e:
         raise   

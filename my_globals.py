@@ -315,8 +315,8 @@ DBE_PLUGINS = [(DBE_SQLITE, u"dbe_sqlite"),
                (DBE_MS_SQL, u"dbe_ms_sql"),
                (DBE_PGSQL, u"dbe_postgresql"),
                ]
-FLD_NAME_START = u"var"
-NEXT_FLD_NAME_TEMPLATE = FLD_NAME_START + u"%03i"
+FLDNAME_START = u"var"
+NEXT_FLDNAME_TEMPLATE = FLDNAME_START + u"%03i"
 # importer
 VAL_NUMERIC = u"numeric value"
 VAL_DATE = u"datetime value"

@@ -815,9 +815,9 @@ def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):
     """
     Get text clause which defines fields for use in an SQLite create table 
         statement. The table will be created inside the default SOFA SQLite 
-        database.  If the sofa_id is included, the text must define the sofa_id 
+        database. If the sofa_id is included, the text must define the sofa_id 
         as UNIQUE.
-    oth_name_types -- ok_fld_name, fld_type.  Does not include sofa_id. The 
+    oth_name_types -- ok_fld_name, fld_type. Does not include sofa_id. The 
         sofa_id can be added below if required.
     strict_typing -- add check constraints to fields.
     """

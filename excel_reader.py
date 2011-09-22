@@ -29,7 +29,7 @@ Handled OK in OLEDB by HDR=No. HDR=0 didn't work even though it was supposed to!
 """
 
 def get_numbered_flds(n_flds):
-    return [mg.NEXT_FLD_NAME_TEMPLATE % (x+1,) for x in range(n_flds)]
+    return [mg.NEXT_FLDNAME_TEMPLATE % (x+1,) for x in range(n_flds)]
 
 def plain_process(val):
     """

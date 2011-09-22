@@ -266,7 +266,7 @@ def insert_data(row_idx, grid_data):
         collisions).
     """
     existing_var_names = [x[0] for x in grid_data]
-    next_fld_name = lib.get_next_fld_name(existing_var_names)
+    next_fld_name = lib.get_next_fldname(existing_var_names)
     row_data = [next_fld_name, mg.FLD_TYPE_NUMERIC]
     return row_data
 

@@ -665,30 +665,44 @@ def safe_end_cursor():
     if wx.IsBusy():
         wx.EndBusyCursor()
 
-def get_n_fld_names(n):
+def get_n_fldnames(n):
     fldnames = []
     for i in range(n):
-        fldname = mg.NEXT_FLD_NAME_TEMPLATE % (i+1,)
+        fldname = mg.NEXT_FLDNAME_TEMPLATE % (i+1,)
         fldnames.append(fldname)
     return fldnames
 
-def get_next_fld_name(existing_var_names):
+def get_filled_blank_fldnames(existing_fldnames):
+    """
+    If some field names are blank e.g. empty columns in a csv file, autofill
+        with safe names.
+    """
+    fldnames = []
+    for i, name in enumerate(existing_fldnames, 1):
+        if name == u"":
+            newname = mg.NEXT_FLDNAME_TEMPLATE % (i+1,)
+            fldnames.append(newname)
+        else:
+            fldnames.append(name)
+    return fldnames
+
+def get_next_fldname(existing_fldnames):
     """
     Get next available variable name where names follow a template e.g. var001,
-        var002 etc.If a gap, starts after last one.  Gaps are not filled.
+        var002 etc.If a gap, starts after last one. Gaps are not filled.
     """
     nums_used = []
-    for var_name in existing_var_names:
-        if not var_name.startswith(mg.FLD_NAME_START):
+    for fldname in existing_fldnames:
+        if not fldname.startswith(mg.FLDNAME_START):
             continue
         try:
-            num_used = int(var_name[-len(mg.FLD_NAME_START):])
+            num_used = int(fldname[-len(mg.FLDNAME_START):])
         except ValueError:
             continue
         nums_used.append(num_used)
     free_num = max(nums_used) + 1 if nums_used else 1
-    next_fld_name = mg.NEXT_FLD_NAME_TEMPLATE % free_num
-    return next_fld_name
+    next_fldname = mg.NEXT_FLDNAME_TEMPLATE % free_num
+    return next_fldname
 
 def get_lbls_in_lines(orig_txt, max_width, dojo=False):
     """

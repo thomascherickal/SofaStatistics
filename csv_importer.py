@@ -695,7 +695,7 @@ class CsvImporter(importer.FileImporter):
                                 u"\nCaused by error: %s" % lib.ue(e)) 
             for row in tmp_reader:
                 if debug: print(row)
-                ok_fld_names = [mg.NEXT_FLD_NAME_TEMPLATE % (x+1,) 
+                ok_fld_names = [mg.NEXT_FLDNAME_TEMPLATE % (x+1,) 
                                for x in range(len(row))]
                 break
         if not ok_fld_names:
