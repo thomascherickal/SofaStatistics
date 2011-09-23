@@ -34,6 +34,15 @@ Example of float cell:
     <table:table-cell office:value-type="float" office:value="1">
     <text:p>1</text:p>
     </table:table-cell>
+    
+get_ods_dets() is the most main starting point. It is supplied with fldnames 
+    already by get_fld_names() which uses get_tbl() as an input and gets and
+    processes the first data_row.
+get_ods_dets gets data rows (actually table-row elements) with get_data_rows().
+Then we loop through rows (table-row elements) and for each row get a list of 
+    field types (as identified in the actual row) and a values dictionary using 
+    the fldnames as keys using dets_from_row().
+
 """
 
 XML_TYPE_FLOAT = u"float"
@@ -244,7 +253,8 @@ def get_el_inner_val(el):
     """
     Sometimes the value is not in the first item in el.
     Need to handle cells with multiple lines. Each is an indiv subel.
-    Each line may be an element with a subelement.
+    Each line may have subelement with text.
+    Each element may have a tail as well.
     """
     debug = False
     if debug: print(len(el))
@@ -278,54 +288,73 @@ def get_el_inner_val(el):
 
 def get_fldnames_from_header_row(row):
     """
-    As soon as hits an empty cell, stops collecting field names. This is the
-        intended behaviour.
-    If a header cell is repeated, raise an exception.
+    Work across row collecting fldnames. Stop when hit end of data columns.
+    NB an empty cell is allowed as part of a dataset if deemed to be a divider.
+    Only single column dividers are allowed.
+    Sometimes grab one cell too many (empty cell may have been a divider but 
+        turned out not to be) so need to remove last fldname.
+    An empty cell is deemed to be a divider unless a column-repeating empty 
+        cell, or two empty cells in a row). 
+    OK to grab an empty string for a field name if a divider column (empty field 
+        names will be autofilled later). 
+    Only empty string field names are allowed to be repeated (they will be made 
+        distinct when autofilled later).
     """
-    debug = False
-    orig_fld_names = []
+    debug = True
+    orig_fldnames = []
     for i, el in enumerate(row):
-        if debug: 
-            print(u"\nChild element of a table-row: " + etree.tostring(el))
+        if debug: print(u"\nChild element of table-row: " + etree.tostring(el))
         items = el.attrib.items()
         attrib_dict = get_streamlined_attrib_dict(items)
         if debug: print(attrib_dict)
-        # stays None unless there is a date-value or value-type attrib
-        fldname = None
-        type = None
-        if attrib_dict:
-            if COLS_REP in attrib_dict and VAL_TYPE in attrib_dict:
-                raise Exception(_("Field name \"%s\" cannot be repeated")
-                                % get_el_inner_val(el))
-            elif DATE_VAL in attrib_dict:
-                if debug: print("Getting fldname from DATE_VAL")
-                fldname = attrib_dict[DATE_VAL] # take proper date 
-                    # val e.g. 2010-02-01 rather than orig text of 01/02/10
-            elif VAL_TYPE in attrib_dict:
-                if debug: print("Getting fldname from inner val")
-                fldname = get_el_inner_val(el) #take val from inner text element
-            else: # not a data cell
-                pass # fail to set fldname
-                # e.g. <table:table-cell table:number-columns-repeated="254" 
-                # table:style-name="ACELL-0x88a3bc8"/>
-        if fldname is None:
-            break # just hit an empty cell - we're done.
-        else:
-            if debug: print(fldname)
-            if fldname in orig_fld_names:
-                raise Exception(_("Field name \"%s\" has been repeated")
-                                % fldname)
-            orig_fld_names.append(fldname)
-    return importer.process_fld_names(orig_fld_names)
+        if COLS_REP in attrib_dict and VAL_TYPE in attrib_dict:
+            # e.g. <table:table-cell table:number-columns-repeated="254" 
+            # table:style-name="ACELL-0x88a3bc8"/>
+            raise Exception(_("Field name \"%s\" cannot be repeated")
+                            % get_el_inner_val(el))
+        # if got this far, must be non-repeating cell details
+        if DATE_VAL in attrib_dict:
+            if debug: print("Getting fldname from DATE_VAL")
+            fldname = attrib_dict[DATE_VAL] # take proper date 
+                # val e.g. 2010-02-01 rather than orig text of 01/02/10
+            last_was_empty = False
+        elif VAL_TYPE in attrib_dict:
+            if debug: print("Getting fldname from inner val")
+            fldname = get_el_inner_val(el) #take val from inner text element
+            last_was_empty = False
+        else: 
+            if debug: print("No fldname provided by cell")
+            """
+            No data in cell but still may be needed as part of data e.g. if a 
+                divider column. We know it can't be column-repeating (eliminated 
+                above) so only need to look if had an empty cell immediately 
+                before.
+            Set fldname to empty string if not last column.
+            """
+            if last_was_empty:
+                break
+            fldname = u""
+            last_was_empty = True
+        if debug: print(fldname)
+        if fldname != u"" and fldname in orig_fldnames:
+            raise Exception(_("Field name \"%s\" has been repeated")
+                            % fldname)
+        orig_fldnames.append(fldname)
+    # If last fldname is empty, remove it. We had to give it a chance as a 
+    # potential divider column but it clearly wasn't.
+    if orig_fldnames[-1] == u"":
+        orig_fldnames.pop()
+    if debug: print(orig_fldnames)
+    return importer.process_fld_names(orig_fldnames)
 
 def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
                  prog_steps_for_xml_steps, next_prog_val, has_header=True,
                  testing=False):
     """
     Returns fld_types (dict with field names as keys) and rows (list of dicts).
-    Limited value in further optimising my code.  The xml parsing stage takes up 
-        most of the time.  Using the SAX approach would significantly reduce 
-        memory usage but would it save any time overall?  Harder code and may 
+    Limited value in further optimising my code. The xml parsing stage takes up 
+        most of the time. Using the SAX approach would significantly reduce 
+        memory usage but would it save any time overall? Harder code and may 
         even be slower.
     BTW, XML is a terrible way to store lots of data ;-).
     """
@@ -505,11 +534,11 @@ def get_vals_from_row(row, n_flds):
 def dets_from_row(fldnames, coltypes, row):
     """
     Update coltypes and return dict of values in row (using fldnames as keys).
-    If there are more cells than fldnames, raise exception.  Suggest user adds
+    If there are more cells than fldnames, raise exception. Suggest user adds
         header row, checks data, and tries again.
     Formula cells with values have a val type attrib as well and will be picked 
-        up that way first.  It is only if they haven't that they count as an 
-        empty cell.  Important not to just skip empty formulae cells.
+        up that way first. It is only if they haven't that they count as an 
+        empty cell. Important not to just skip empty formulae cells.
     """
     debug = False
     verbose = False
