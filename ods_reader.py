@@ -14,7 +14,7 @@ import importer
 NB need to handle ods from OpenOffice Calc, and Gnumeric at least.  Some 
     differences.
 NB some internal xml files are mainly empty yet they still have to be parsed.
-    They may even be very large e.g. 54MB!  Extremely inefficient under these 
+    They may even be very large e.g. 54MB! Extremely inefficient under these 
     circumstances.
 Example of date cell:
     <table:table-cell table:style-name="ce1" office:value-type="date" 
@@ -42,7 +42,10 @@ get_ods_dets gets data rows (actually table-row elements) with get_data_rows().
 Then we loop through rows (table-row elements) and for each row get a list of 
     field types (as identified in the actual row) and a values dictionary using 
     the fldnames as keys using dets_from_row().
-
+For each cell element in the row, we use process_cells() to process individual 
+    cell (or cells if col repeating). Update types and valdict.
+There is a problem if the number of data cells exceed the number of fldnames 
+    identified.
 """
 
 XML_TYPE_FLOAT = u"float"
@@ -300,7 +303,7 @@ def get_fldnames_from_header_row(row):
     Only empty string field names are allowed to be repeated (they will be made 
         distinct when autofilled later).
     """
-    debug = True
+    debug = False
     orig_fldnames = []
     for i, el in enumerate(row):
         if debug: print(u"\nChild element of table-row: " + etree.tostring(el))
@@ -426,7 +429,11 @@ def add_type_to_coltypes(coltypes, col_idx, type):
 def update_types_and_val_dict(coltypes, col_idx, fldnames, valdict, type, 
                               val2use):
     add_type_to_coltypes(coltypes, col_idx, type)
-    fldname = fldnames[col_idx]
+    try:
+        fldname = fldnames[col_idx]
+    except IndexError:
+        raise Exception(u"Didn't get enough field names to cover "
+                        u"all the data cells.")
     valdict[fldname] = val2use
 
 def process_cells(attrib_dict, coltypes, col_idx, fldnames, valdict, type, 

@@ -25,7 +25,7 @@ SCRIPT_END = u"#sofa_script_end"
 PYTHON_ENCODING_DECLARATION = u"#! /usr/bin/env python" + os.linesep + \
     u"# -*- coding: utf-8 -*-" + os.linesep
 DROP_SELECT = _("Nothing selected")
-ODS_GETTING_LARGE = 1500000
+ODS_GETTING_LARGE = 10000000
 # core stats *********************************************************
 STATS_DIC_LBL = u"label"
 STATS_DIC_N = u"n"

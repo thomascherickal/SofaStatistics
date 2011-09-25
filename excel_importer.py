@@ -1,14 +1,15 @@
 from __future__ import print_function
 import wx
 
-import lib
-import excel_reader
-import getdata
-import importer
 import my_globals as mg
 from my_exceptions import ImportCancelException
+import lib
+import getdata
+import importer
+import xlrd
 
 ROWS_TO_SAMPLE = 500 # fast enough to sample quite a few
+
 
 class ExcelImporter(importer.FileImporter):
     """
@@ -17,32 +18,32 @@ class ExcelImporter(importer.FileImporter):
     Adds unique index id so can identify unique records with certainty.
     """
     
-    def __init__(self, parent, file_path, tbl_name):
-        importer.FileImporter.__init__(self, parent, file_path, tbl_name)
+    def __init__(self, parent, file_path, tblname):
+        importer.FileImporter.__init__(self, parent, file_path, tblname)
         self.ext = u"XLS"
     
     def get_params(self):
-        "Ignore field names - just use fld1 etc"
         debug = False
-        wkbook = excel_reader.Workbook(self.file_path, sheets_have_hdrs=False)
-        # get up to 4 rows
-        sheets = wkbook.get_sheet_names()
-        if debug: print(sheets)
-        wksheet = wkbook.get_sheet(name=sheets[0])
-        fldnames = wksheet.get_fld_names() # will be sofa-made and safe
+        wkbook = xlrd.open_workbook(self.file_path)
+        wksheet = wkbook.sheet_by_index(0)
         strdata = []
         i = 0
-        for row in wksheet:
+        while True:
             newrow = []
-            for fldname in fldnames:
-                rawval = row[fldname]
-                val2show = (rawval if isinstance(rawval, basestring) 
-                            else unicode(rawval))
-                newrow.append(val2show)
+            j = 0
+            while True:
+                try:
+                    rawval = wksheet.cell_value(rowx=i, colx=j)
+                    val2show = (rawval if isinstance(rawval, basestring) 
+                                       else unicode(rawval))
+                    newrow.append(val2show)
+                except Exception, e:
+                    break
+                j += 1
             strdata.append(newrow)
-            i += 1
-            if i > 3:
+            if i == wksheet.nrows or i > 2:
                 break
+            i += 1
         dlg = importer.HasHeaderGivenDataDlg(self.parent, self.ext, strdata)
         ret = dlg.ShowModal()
         if debug: print(unicode(ret))
@@ -51,6 +52,31 @@ class ExcelImporter(importer.FileImporter):
         else:
             self.has_header = (ret == mg.HAS_HEADER)
         return True
+    
+    def get_fldnames(self, wksheet):
+        if self.has_header:
+            # use values of first row
+            fldnames = []
+            for col_idx in range(wksheet.ncols):
+                raw_fldname = wksheet.cell_value(rowx=0, colx=col_idx)
+                fldname = (raw_fldname if isinstance(raw_fldname, basestring) 
+                                       else unicode(raw_fldname))
+                fldnames.append(fldname)
+        else:
+            # numbered is OK
+            fldnames = [mg.NEXT_FLDNAME_TEMPLATE % (x+1,) for x 
+                        in range(wksheet.ncols)]
+        return fldnames
+    
+    def get_rowdict(self, row_idx, wksheet, fldnames):
+        rowvals = []
+        for col_idx in range(wksheet.ncols):
+            rawval = wksheet.cell_value(rowx=row_idx, colx=col_idx)
+            val2use = (rawval if isinstance(rawval, basestring) 
+                              else unicode(rawval))
+            rowvals.append(val2use)
+        rowdict = dict(zip(fldnames, rowvals))
+        return rowdict
     
     def assess_sample(self, wksheet, orig_fld_names, progbar, steps_per_item, 
                       import_status, faulty2missing_fld_list):
@@ -67,21 +93,24 @@ class ExcelImporter(importer.FileImporter):
         debug = False
         has_rows = False
         sample_data = []
-        for i, row in enumerate(wksheet): # iterates through data rows only
-            if i % 50 == 0:
+        fldnames = self.get_fldnames(wksheet)
+        row_idx = 1 if self.has_header else 0
+        while row_idx < wksheet.nrows: # iterates through data rows only
+            if row_idx % 50 == 0:
                 wx.Yield()
                 if import_status[mg.CANCEL_IMPORT]:
                     progbar.SetValue(0)
                     raise ImportCancelException
-            if debug: print(row)
+            if debug: print(wksheet.row(row_idx))
             # if has_header, starts at 1st data row
             has_rows = True
-            # process row
-            sample_data.append(row)
-            gauge_val = i*steps_per_item
+            rowdict = self.get_rowdict(row_idx, wksheet, fldnames)
+            sample_data.append(rowdict)
+            gauge_val = row_idx*steps_per_item
             progbar.SetValue(gauge_val)
-            if i == (ROWS_TO_SAMPLE - 1):
+            if row_idx == (ROWS_TO_SAMPLE - 1):
                 break
+            row_idx += 1
         fld_types = []
         for orig_fld_name in orig_fld_names:
             fld_type = importer.assess_sample_fld(sample_data, self.has_header, 
@@ -104,14 +133,11 @@ class ExcelImporter(importer.FileImporter):
         faulty2missing_fld_list = []
         wx.BeginBusyCursor()
         try:
-            wkbook = excel_reader.Workbook(self.file_path, 
-                                           sheets_have_hdrs=self.has_header)
-            sheets = wkbook.get_sheet_names()
-            if debug: print(sheets)
-            wksheet = wkbook.get_sheet(name=sheets[0])
-            rows_n = wksheet.get_data_rows_n()
+            wkbook = xlrd.open_workbook(self.file_path,)
+            wksheet = wkbook.sheet_by_index(0)
+            n_datarows = wksheet.nrows -1 if self.has_header else wksheet.nrows
             # get field names
-            orig_fld_names = wksheet.get_fld_names()
+            orig_fld_names = self.get_fldnames(wksheet)
             ok_fld_names = importer.process_fld_names(orig_fld_names)
             if debug: print(ok_fld_names)
         except IOError, e:
@@ -123,8 +149,9 @@ class ExcelImporter(importer.FileImporter):
             raise Exception(u"Unable to read spreadsheet."
                             u"\nCaused by error: %s" % lib.ue(e))
         default_dd = getdata.get_default_db_dets()
-        sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= rows_n else rows_n
-        items_n = rows_n + sample_n
+        sample_n = (ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_datarows 
+                                   else n_datarows)
+        items_n = n_datarows + sample_n
         steps_per_item = importer.get_steps_per_item(items_n)
         if debug: 
             print("steps_per_item: %s" % steps_per_item)
@@ -136,7 +163,11 @@ class ExcelImporter(importer.FileImporter):
             print("Just finished assessing data sample")
             print(fld_types)
             print(sample_data)
-        data = [x for x in wksheet]
+        data = []
+        row_idx = 1 if self.has_header else 0
+        while row_idx < wksheet.nrows: # iterates through data rows only
+            data.append(self.get_rowdict(row_idx, wksheet, orig_fld_names))
+            row_idx += 1
         gauge_start = steps_per_item*sample_n
         try:
             feedback = {mg.NULLED_DOTS: False}
@@ -155,3 +186,4 @@ class ExcelImporter(importer.FileImporter):
         default_dd.con.commit()
         default_dd.con.close()
         progbar.SetValue(0)
+        

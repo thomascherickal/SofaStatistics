@@ -235,13 +235,13 @@ def assess_sample_fld(sample_data, has_header, orig_fld_name, orig_fld_names,
                       faulty2missing_fld_list, allow_none=True, 
                       comma_dec_sep_ok=False, testing=False):
     """
-    NB client code gets number of fields in row 1.  Then for each field, it 
+    NB client code gets number of fields in row 1. Then for each field, it 
         traverses rows (i.e. travels down a col, then down the next etc).  If a
         row has more flds than are in the first row, no problems will be picked
-        up here because we never go into the problematic column.  But we will
+        up here because we never go into the problematic column. But we will
         strike None values in csv files, for eg, when a row is shorter than it
         should be.
-    sample_data -- dict
+    sample_data -- list of dicts.
     allow_none -- if Excel returns None for an empty cell that is correct bvr.
         If a csv files does, however, it is not. Should be empty str.
     For individual values, if numeric, assume numeric, 
@@ -1025,14 +1025,14 @@ class ImportFileSelectDlg(wx.Dialog):
             else:
                 self.file_type = FILE_CSV
         elif extension.lower() == u".xls":
-            if mg.PLATFORM != mg.WINDOWS:
-                wx.MessageBox(_("Excel spreadsheets are only supported on "
-                              "Windows.  Try exporting to CSV first from "
-                              "Excel (within Windows)"))
-                self.align_btns_to_importing(importing=False)
-                return
-            else:
-                self.file_type = FILE_EXCEL
+            #if mg.PLATFORM != mg.WINDOWS:
+            #    wx.MessageBox(_("Excel spreadsheets are only supported on "
+            #                  "Windows. Try exporting to CSV first from "
+            #                  "Excel (within Windows)"))
+            #    self.align_btns_to_importing(importing=False)
+            #    return
+            #else:
+            self.file_type = FILE_EXCEL
         elif extension.lower() == u".ods":
             self.file_type = FILE_ODS
         else:
@@ -1063,8 +1063,8 @@ class ImportFileSelectDlg(wx.Dialog):
             self.align_btns_to_importing(importing=False)
             return
         try:
-            final_tbl_name = self.check_tbl_name(file_path, tbl_name)
-            if final_tbl_name is None:
+            final_tblname = self.check_tbl_name(file_path, tbl_name)
+            if final_tblname is None:
                 self.align_btns_to_importing(importing=False)
                 self.progbar.SetValue(0)
                 return
@@ -1077,15 +1077,15 @@ class ImportFileSelectDlg(wx.Dialog):
         if self.file_type == FILE_CSV:
             import csv_importer
             file_importer = csv_importer.CsvImporter(self, file_path, 
-                                                     final_tbl_name)
+                                                     final_tblname)
         elif self.file_type == FILE_EXCEL:
             import excel_importer
             file_importer = excel_importer.ExcelImporter(self, file_path,
-                                                         final_tbl_name)
+                                                         final_tblname)
         elif self.file_type == FILE_ODS:
             import ods_importer
             file_importer = ods_importer.OdsImporter(self, file_path,
-                                                     final_tbl_name)
+                                                     final_tblname)
         proceed = False
         try:
             proceed = file_importer.get_params()
