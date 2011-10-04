@@ -374,7 +374,7 @@ def csv_to_utf8_byte_lines(file_path, encoding, n_lines=None, strict=True):
     Need to do the escaping of double quotes here so we can deal with a unicode
         string and not a byte string.
     NB we have no idea what the original encoding was or which computer or OS or 
-        locale it was done on.  Eventually we could use chardet module to 
+        locale it was done on. Eventually we could use chardet module to 
         sensibly guess but in meantime try several - including the local 
         encoding then utf-8 etc.
     """

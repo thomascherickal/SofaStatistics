@@ -26,6 +26,7 @@ class ExcelImporter(importer.FileImporter):
         debug = False
         wkbook = xlrd.open_workbook(self.file_path)
         wksheet = wkbook.sheet_by_index(0)
+        if debug: print([x.type for x in wksheet.col_types])
         strdata = []
         i = 0
         while True:

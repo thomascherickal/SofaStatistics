@@ -505,7 +505,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             fil_default_var_dets = os.path.join(LOCAL_PATH, mg.VDTS_FOLDER, 
                                                 mg.DEFAULT_VDTS)
             if not os.path.exists(fil_default_var_dets):
-                f = open(fil_default_var_dets, "w")
+                f = codecs.open(fil_default_var_dets, "w", "utf-8")
                 f.write(u"# add variable details here")
                 f.close()
             self.fil_var_dets = fil_default_var_dets

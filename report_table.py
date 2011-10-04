@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+import codecs
 import locale
 import pprint
 import os
@@ -756,7 +757,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             # add end to each open script file and close.
             for fil_script in self.open_scripts:
                 # add ending code to script
-                f = open(fil_script, "a")
+                f = codecs.open(fil_script, "a", "utf-8")
                 output.add_end_script_code(f)
                 f.close()
         except Exception:

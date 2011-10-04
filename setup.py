@@ -105,6 +105,10 @@ except Exception, e:
 # need lib etc.
 class ErrMsgFrame(wx.Frame):
     def __init__(self, e, raw_error_msg):
+        """
+        raw_error_msg -- boolean. If not to be used as is (raw), wrap in Oops! 
+            etc, version number etc.
+        """
         wx.Frame.__init__(self, None, title=_("SOFA Error"))
         error_msg = lib.ue(e)
         mybreak = u"\n" + u"*"*30 + u"\n"
@@ -122,7 +126,8 @@ class ErrMsgFrame(wx.Frame):
                 {"version": mg.VERSION, "err_msg_fname": err_msg_fname, 
                  "error_msg": error_msg, "mybreak": mybreak})
         wx.MessageBox(error_msg)
-        f = open(os.path.join(mg.USER_PATH, u"Desktop", err_msg_fname), "w")
+        f = codecs.open(os.path.join(mg.USER_PATH, u"Desktop", err_msg_fname), 
+                        "w", "utf-8")
         f.write(error_msg)
         f.write(mybreak)
         f.write(traceback.format_exc())
@@ -176,7 +181,7 @@ def check_python_version():
             or (mg.PLATFORM == mg.LINUX and pyversion not in(u"2.6", u"2.7")):
         fixit_file = os.path.join(mg.USER_PATH, u"Desktop", 
                                   u"how to get SOFA working.txt")
-        f = open(fixit_file, "w")
+        f = codecs.open(fixit_file, "w", "utf-8")
         div = u"*"*80
         win_msg = u"""
 Fortunately, this is easily fixed (assuming you installed Python 2.6 as part of 
@@ -265,7 +270,7 @@ def get_installed_version(local_path):
     """
     version_path = os.path.join(local_path, mg.VERSION_FILE)
     if os.path.exists(version_path):
-        f = open(version_path, "r")
+        f = codecs.open(version_path, "r", "utf-8")
         installed_version = f.read().strip()
         f.close()
     else:
@@ -434,7 +439,8 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
         f.write(proj_str)
         f.close()
         # create file as tag we have done the changes to the proj file
-        f = open(os.path.join(local_path, mg.PROJ_CUSTOMISED_FILE), "w")
+        f = codecs.open(os.path.join(local_path, mg.PROJ_CUSTOMISED_FILE), "w", 
+                        "utf-8")
         f.write(u"Local project file customised successfully :-)")
         f.close()
         print(u"Configured default project file for user")

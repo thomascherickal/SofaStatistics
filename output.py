@@ -210,10 +210,10 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
         css_lst = []
         for i, css_fil in enumerate(css_fils):
             try:
-                f = open(css_fil, "r")
+                f = codecs.open(css_fil, "r", "utf-8")
             except IOError, e:
                 if default_if_prob:
-                    f = open(mg.DEFAULT_CSS_PATH, "r")
+                    f = codecs.open(mg.DEFAULT_CSS_PATH, "r", "utf-8")
                 else:
                     raise my_exceptions.MissingCssException(css_fil)
             css_txt = f.read()
