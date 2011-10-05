@@ -1207,7 +1207,8 @@ class SummTable(LiveTable):
                 raise Exception(u"Unable to calculate N for %s." % row_fld)
         elif measure == mg.STD_DEV:
             try:
-                data_val = round(numpy.std(data),2)
+                data_val = round(numpy.std(data, ddof=1),2) # use ddof=1 for 
+                                                            # sample sd
             except Exception, e:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
