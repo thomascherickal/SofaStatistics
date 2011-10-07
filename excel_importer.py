@@ -1,4 +1,6 @@
 from __future__ import print_function
+
+from datetime import datetime
 import wx
 
 import my_globals as mg
@@ -23,28 +25,24 @@ class ExcelImporter(importer.FileImporter):
         self.ext = u"XLS"
     
     def get_params(self):
+        """
+        Display each cell based on cell characteristics only - no attempt to 
+            collapse down to one data type e.g. dates only or numbers only.
+        """
         debug = False
         wkbook = xlrd.open_workbook(self.file_path)
         wksheet = wkbook.sheet_by_index(0)
-        if debug: print([x.type for x in wksheet.col_types])
         strdata = []
-        i = 0
-        while True:
+        for rowx in range(wksheet.nrows):
+            rowtypes = wksheet.row_types(rowx)
             newrow = []
-            j = 0
-            while True:
-                try:
-                    rawval = wksheet.cell_value(rowx=i, colx=j)
-                    val2show = (rawval if isinstance(rawval, basestring) 
-                                       else unicode(rawval))
-                    newrow.append(val2show)
-                except Exception, e:
-                    break
-                j += 1
+            for colx in range(wksheet.ncols):
+                rawval = wksheet.cell_value(rowx, colx)
+                val2show = self.getval2use(wkbook, rowtypes[colx], rawval)
+                newrow.append(val2show)
             strdata.append(newrow)
-            if i == wksheet.nrows or i > 2:
+            if rowx > 2:
                 break
-            i += 1
         dlg = importer.HasHeaderGivenDataDlg(self.parent, self.ext, strdata)
         ret = dlg.ShowModal()
         if debug: print(unicode(ret))
@@ -69,20 +67,34 @@ class ExcelImporter(importer.FileImporter):
                         in range(wksheet.ncols)]
         return fldnames
     
-    def get_rowdict(self, row_idx, wksheet, fldnames):
+    def getval2use(self, wkbook, coltype, rawval):
+        if coltype == xlrd.XL_CELL_DATE:
+            datetup = xlrd.xldate_as_tuple(rawval, wkbook.datemode)
+            cellval = datetime(*datetup).isoformat(" ")
+        else:
+            cellval = rawval
+        val2use = (cellval if isinstance(cellval, basestring) 
+                           else unicode(cellval))
+        return val2use
+            
+    def get_rowdict(self, rowx, wkbook, wksheet, fldnames):
         rowvals = []
-        for col_idx in range(wksheet.ncols):
-            rawval = wksheet.cell_value(rowx=row_idx, colx=col_idx)
-            val2use = (rawval if isinstance(rawval, basestring) 
-                              else unicode(rawval))
+        rowtypes = wksheet.row_types(rowx)
+        rawrowvals = wksheet.row_values(rowx) # more efficient to grab once
+        for colx in range(wksheet.ncols):
+            rawval = rawrowvals[colx]
+            val2use = self.getval2use(wkbook, rowtypes[colx], rawval)
             rowvals.append(val2use)
         rowdict = dict(zip(fldnames, rowvals))
         return rowdict
     
-    def assess_sample(self, wksheet, orig_fld_names, progbar, steps_per_item, 
-                      import_status, faulty2missing_fld_list):
+    def assess_sample(self, wkbook, wksheet, orig_fld_names, progbar, 
+                      steps_per_item, import_status, faulty2missing_fld_list):
         """
         Assess data sample to identify field types based on values in fields.
+        Doesn't really use built-in xlrd functionality for getting type data.
+        Uses it indirectly to get values e.g. dates in correct form.
+        Decided to stay with existing approach. 
         If a field has mixed data types will define as string.
         Returns fld_types, sample_data.
         fld_types - dict with original field names as keys and field types as 
@@ -105,7 +117,7 @@ class ExcelImporter(importer.FileImporter):
             if debug: print(wksheet.row(row_idx))
             # if has_header, starts at 1st data row
             has_rows = True
-            rowdict = self.get_rowdict(row_idx, wksheet, fldnames)
+            rowdict = self.get_rowdict(row_idx, wkbook, wksheet, fldnames)
             sample_data.append(rowdict)
             gauge_val = row_idx*steps_per_item
             progbar.SetValue(gauge_val)
@@ -117,11 +129,11 @@ class ExcelImporter(importer.FileImporter):
             fld_type = importer.assess_sample_fld(sample_data, self.has_header, 
                                                   orig_fld_name, orig_fld_names,
                                                   faulty2missing_fld_list)
-            fld_types.append(fld_type)
+            fld_types.append(fld_type)            
         fld_types = dict(zip(orig_fld_names, fld_types))
         if not has_rows:
             raise Exception(u"No data to import")
-        return fld_types, sample_data
+        return fld_types, sample_data 
     
     def import_content(self, progbar, import_status, lbl_feedback):
         """
@@ -157,9 +169,9 @@ class ExcelImporter(importer.FileImporter):
         if debug: 
             print("steps_per_item: %s" % steps_per_item)
             print("About to assess data sample")
-        fld_types, sample_data = self.assess_sample(wksheet, orig_fld_names, 
-                                        progbar, steps_per_item, import_status,
-                                        faulty2missing_fld_list)
+        fld_types, sample_data = self.assess_sample(wkbook, wksheet, 
+                                        orig_fld_names, progbar, steps_per_item, 
+                                        import_status, faulty2missing_fld_list)
         if debug:
             print("Just finished assessing data sample")
             print(fld_types)
@@ -167,7 +179,8 @@ class ExcelImporter(importer.FileImporter):
         data = []
         row_idx = 1 if self.has_header else 0
         while row_idx < wksheet.nrows: # iterates through data rows only
-            data.append(self.get_rowdict(row_idx, wksheet, orig_fld_names))
+            data.append(self.get_rowdict(row_idx, wkbook, wksheet, 
+                                         orig_fld_names))
             row_idx += 1
         gauge_start = steps_per_item*sample_n
         try:

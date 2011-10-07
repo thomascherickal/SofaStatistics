@@ -369,7 +369,7 @@ class TblEditor(wx.Dialog):
                             wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED, row_idx, 1)
                     self.grid.ProcessTableMessage(msg)
                     msg = wx.grid.GridTableMessage(self.dbtbl, 
-                                        wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
+                                    wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
                     self.grid.ProcessTableMessage(msg)
                     self.grid.EndBatch()
                     self.grid.ForceRefresh()
