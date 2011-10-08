@@ -55,11 +55,11 @@ class OdsImporter(importer.FileImporter):
                                                 rows_to_sample=ROWS_TO_SAMPLE)
             if not fldnames:
                 raise Exception(_("Unable to extract or generate field names"))
-            datarows = ods_reader.get_data_rows(tbl, inc_empty=False)
+            rows = ods_reader.get_rows(tbl, inc_empty=False)
             lib.safe_end_cursor()
             strdata = []
-            for i, datarow in enumerate(datarows):
-                strrow = ods_reader.get_vals_from_row(datarow, len(fldnames))
+            for i, row in enumerate(rows):
+                strrow = ods_reader.get_vals_from_row(row, len(fldnames))
                 strdata.append(strrow)
                 if i > 3:
                     break

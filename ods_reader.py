@@ -38,7 +38,7 @@ Example of float cell:
 get_ods_dets() is the most main starting point. It is supplied with fldnames 
     already by get_fld_names() which uses get_tbl() as an input and gets and
     processes the first data_row.
-get_ods_dets gets data rows (actually table-row elements) with get_data_rows().
+get_ods_dets gets data rows (actually table-row elements) with get_rows().
 Then we loop through rows (table-row elements) and for each row get a list of 
     field types (as identified in the actual row) and a values dictionary using 
     the fldnames as keys using dets_from_row().
@@ -151,10 +151,11 @@ def get_has_data_cells(el):
             return True
     return False
 
-def get_data_rows(tbl, inc_empty=True, n=None):
+def get_rows(tbl, inc_empty=True, n=None):
     """
     Even if empty rows are included, they are only included if there is a 
         non-empty row afterwards.
+    Breaks if any rows repeated.
     """
     debug = False
     datarows = []
@@ -205,9 +206,9 @@ def get_fld_names(tbl, has_header, rows_to_sample):
     """
     debug = False
     if has_header:
-        datarows = get_data_rows(tbl, inc_empty=False, n=1)
+        rows = get_rows(tbl, inc_empty=False, n=1)
         try:
-            row = datarows[0]
+            row = rows[0]
             fldnames = get_fldnames_from_header_row(row)
         except IndexError:
             raise Exception(_("Need at least one row to import"))
@@ -221,14 +222,14 @@ def get_fld_names(tbl, has_header, rows_to_sample):
         # If all the rows in the sample have an empty final col (NB we have no 
         #     header row) then we will mistakenly leave that column out. Users
         #     have the option of adding a header and trying again.
-        datarows = get_data_rows(tbl, inc_empty=False)
-        for i, datarow in enumerate(datarows):
+        rows = get_rows(tbl, inc_empty=False)
+        for i, row in enumerate(rows):
             if (i+1) > rows_to_sample:
                 break
             # get number of data elements
             cells_n = 0
             prev_empty_cells_to_add = 0
-            for el in datarow:
+            for el in row:
                 # Count every cell - only count empty cells (inc repeated empty
                 #     cells if followed by a value-type cell.
                 # Only interested in table cells.
@@ -366,35 +367,40 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
     for (key, value) in tbl.attrib.items():
         if key[-5:].endswith("}name"):
             if debug: print("The sheet is named \"%s\"" % value)
-    rows = []
+    datarows = []
     coltypes = [] # one set per column containing all types
     fld_types = {}
     if debug:
         print("prog_steps_for_xml_steps: %s" % prog_steps_for_xml_steps)
         print("next_prog_val: %s" % next_prog_val)
     prog_steps_left = prog_steps_for_xml_steps - next_prog_val
-    datarows = get_data_rows(tbl, inc_empty=True)
-    row_n = len(datarows)*1.0
+    rows = get_rows(tbl, inc_empty=True)
+    row_n = len(rows)*1.0
+    if (has_header and row_n == 1) or (not has_header and row_n == 0):
+        raise Exception(u"No data rows identified. Either there were no "
+                        u"data rows at all or there were too many empty rows "
+                        u"before the first data row.")
     steps_per_item = prog_steps_left/row_n
     if debug: print("Has %s rows including any headers" % row_n)
-    for i, datarow in enumerate(datarows):
+    for i, row in enumerate(rows):
         try:
             if not (has_header and i == 0):
-                coltypes, valdict = dets_from_row(fldnames, coltypes, datarow)
+                coltypes, valdict = dets_from_row(fldnames, coltypes, row)
                 if valdict:
-                    rows.append(valdict)
+                    datarows.append(valdict)
                 gauge_val = next_prog_val + (i*steps_per_item)
                 progbar.SetValue(gauge_val)
                 wx.Yield()
         except Exception, e:
             raise Exception(u"Error getting details from row idx %s."
                             u"\nCaused by error: %s" % (i, lib.ue(e)))
+    if debug: print(datarows)
     for fldname, type_set in zip(fldnames, coltypes):
         fld_type = importer.get_best_fld_type(fldname, type_set,
                                               faulty2missing_fld_list, 
                                               testing=testing)
         fld_types[fldname] = fld_type
-    return fld_types, rows
+    return fld_types, datarows
 
 def get_tbl_cell_el_dets(row):
     """
