@@ -66,7 +66,7 @@ def get_dbs(host, user, pwd, default_dbs, db=None):
     """
     DSN = get_DSN(provider=u"SQLOLEDB", host=host, user=user, pwd=pwd, db=u"")
     try:
-        con = adodbapi.connect(connstr=DSN)
+        con = adodbapi.connect(DSN)
     except Exception, e:
         raise Exception(u"Unable to connect to MS SQL Server with host: "
                         u"%s; user: %s; and pwd: %s" % (host, user, pwd))
@@ -117,7 +117,7 @@ def set_db_in_con_dets(con_dets, db):
 def get_con_cur_for_db(host, user, pwd, db):
     DSN = get_DSN(provider=u"SQLOLEDB", host=host, user=user, pwd=pwd, db=db)
     try:
-        con = adodbapi.connect(connstr=DSN)
+        con = adodbapi.connect(DSN)
     except Exception, e:
         raise Exception(u"Unable to connect to MS SQL Server with "
                         u"database %s; and supplied connection: " % db +

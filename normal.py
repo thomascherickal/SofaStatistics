@@ -328,8 +328,8 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                 "on visual inspection of graph above.")
         else:
             try:
-                unused, p_arr, cskew, unused, ckurtosis, unused = \
-                        core_stats.normaltest(self.vals)
+                (unused, p_arr, cskew, 
+                 unused, ckurtosis, unused) = core_stats.normaltest(self.vals)
                 p = p_arr[0]
                 if abs(cskew) <= 1:
                     sindic = "a great sign"
@@ -350,7 +350,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                                  " which is probably %(indic)s.") % \
                                  {"kurt": round(ckurtosis, 3), "indic": kindic}               
                 if n_vals > USUAL_FAIL_N:
-                    msg = _("Rely on visual inspection of graph above. "
+                    msg = _("Rely on visual inspection of graph. "
                         "Although the data failed the ideal normality test, "
                         "most real-world data-sets with as many results (%s) "
                         "would fail for even slight differences from the "
@@ -359,13 +359,13 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                 else:
                     if p < 0.05:
                         msg = _("The distribution of %s passed one test for "
-                            "normality.  Confirm or reject based on visual "
-                            "inspection of graph above.") % self.data_label + \
+                            "normality. Confirm or reject based on visual "
+                            "inspection of graph.") % self.data_label + \
                                 u" " + skew_msg + u" " + kurtosis_msg
                     else:
                         msg = _("Although the distribution of %s is not "
                             "perfectly 'normal', it may still be 'normal' "
-                            "enough for use. View graph above to decide.") % \
+                            "enough for use. View graph to decide.") % \
                                 self.data_label + u" " + skew_msg + u" " + \
                                 kurtosis_msg
             except Exception:

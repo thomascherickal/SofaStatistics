@@ -99,7 +99,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
            u"Jet OLEDB:System Database=%(mdw)s;" % {"db": database, "usr": user, 
                                                     "pwd": pwd, "mdw": mdw})
     try:
-        con = adodbapi.connect(connstr=DSN)
+        con = adodbapi.connect(DSN)
     except Exception, e:
         raise Exception(u"Unable to connect to MS Access database using "
                         u"supplied database: %s, user: %s, "

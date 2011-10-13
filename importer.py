@@ -1025,16 +1025,15 @@ class ImportFileSelectDlg(wx.Dialog):
             else:
                 self.file_type = FILE_CSV
         elif extension.lower() == u".xls":
-            #if mg.PLATFORM != mg.WINDOWS:
-            #    wx.MessageBox(_("Excel spreadsheets are only supported on "
-            #                  "Windows. Try exporting to CSV first from "
-            #                  "Excel (within Windows)"))
-            #    self.align_btns_to_importing(importing=False)
-            #    return
-            #else:
             self.file_type = FILE_EXCEL
         elif extension.lower() == u".ods":
             self.file_type = FILE_ODS
+        elif extension.lower() == u".xlsx":
+            self.file_type == FILE_UNKNOWN
+            wx.MessageBox("XLSX files are not currently supported. Please save"
+                          " as XLS or convert to another supported format.")
+            self.align_btns_to_importing(importing=False)
+            return
         else:
             self.file_type == FILE_UNKNOWN
             wx.MessageBox(_("Files with the file name extension "

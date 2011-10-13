@@ -74,6 +74,8 @@ QUOTES = [
      u"Unknown"),
     (u"You might be a Statistician if ... you found accountancy too exciting",
      u"Unknown"),
+    (u"If you live to the age of a hundred you have it made because very few "
+     u"people die past the age of a hundred.", u"George Burns"),
     ]
 
 def get_quote():

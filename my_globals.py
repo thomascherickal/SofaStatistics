@@ -13,7 +13,7 @@ import wx
 
 debug = False
 
-VERSION = u"1.1.1"
+VERSION = u"1.1.2"
 ADVANCED = False
 ATTRIBUTION = u"sofastatistics.com"
 # LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, LANGUAGE_RUSSIAN, LANGUAGE_HEBREW
