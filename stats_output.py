@@ -336,7 +336,7 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
     html_str = u"\n".join(html)
     return html_str
 
-def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0, 
+def mann_whitney_output(u, p, dic_a, dic_b, z, label_ranked, css_fil, css_idx=0, 
                         dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
                         page_break_after=False):
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
@@ -358,11 +358,12 @@ def mann_whitney_output(u, p, dic_a, dic_b, label_ranked, css_fil, css_idx=0,
     html.append(u"\n<p>" + _("Two-tailed p value") \
                 + u": %s" % lib.get_p(p*2, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
-    footnotes.append("\n<p><a id='ft%%(ftnum)s'></a><sup>%%(ftnum)s</sup> %s</p>"
-                     % mg.P_EXPLAN_DIFF)
+    footnotes.append("\n<p><a id='ft%%(ftnum)s'></a>"
+                     "<sup>%%(ftnum)s</sup> %s</p>" % mg.P_EXPLAN_DIFF)
     # always footnote 2
     html.append(u"\n<p>" + _("U statistic") +
                 u": %s <a href='#ft2'><sup>2</sup></a></p>" % round(u, dp))
+    html.append(u"\n<p>z: %s</p>" % round(z, dp))
     footnotes.append((u"\n<p><a id='ft%%(ftnum)s'></a><sup>%%(ftnum)s</sup> U "
         u"is based on the results of matches between "
         u"the \"%(label_a)s\" and \"%(label_b)s\" groups. "

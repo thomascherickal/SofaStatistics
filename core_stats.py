@@ -696,7 +696,7 @@ def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
              mg.STATS_DIC_MEDIAN: np.median(sample_b),  
              mg.STATS_DIC_MIN: min_b, 
              mg.STATS_DIC_MAX: max_b}
-    return smallu, p, dic_a, dic_b
+    return smallu, p, dic_a, dic_b, z
 
 def wilcoxont(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     """
