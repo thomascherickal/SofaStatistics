@@ -423,18 +423,20 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
         proj_str = f.read() # provided by me - no BOM or non-ascii 
         f.close()
         for path in settings_subfolders:
-            new_str = lib.escape_pre_write(os.path.join(mg.LOCAL_PATH, path, u""))
-            proj_str = proj_str.replace(u"/home/g/sofastats/%s/" % path, new_str)
+            new_str = lib.escape_pre_write(os.path.join(mg.LOCAL_PATH, 
+                                                        path, u""))
+            proj_str = proj_str.replace(u"/home/g/sofastats/%s/" % path, 
+                                        new_str)
         # add MS Access and SQL Server into mix if Windows
         if mg.PLATFORM == mg.WINDOWS:
             proj_str = proj_str.replace(u"default_dbs = {",
-                                u"default_dbs = {'%s': None, " % mg.DBE_MS_ACCESS)
+                            u"default_dbs = {'%s': None, " % mg.DBE_MS_ACCESS)
             proj_str = proj_str.replace(u"default_tbls = {",
-                                u"default_tbls = {'%s': None, " % mg.DBE_MS_ACCESS)
+                            u"default_tbls = {'%s': None, " % mg.DBE_MS_ACCESS)
             proj_str = proj_str.replace(u"default_dbs = {",
-                                u"default_dbs = {'%s': None, " % mg.DBE_MS_SQL)
+                            u"default_dbs = {'%s': None, " % mg.DBE_MS_SQL)
             proj_str = proj_str.replace(u"default_tbls = {",
-                                u"default_tbls = {'%s': None, " % mg.DBE_MS_SQL)
+                            u"default_tbls = {'%s': None, " % mg.DBE_MS_SQL)
         f = codecs.open(default_proj, "w", "utf-8")
         f.write(proj_str)
         f.close()

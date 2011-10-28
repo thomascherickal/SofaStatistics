@@ -4,8 +4,8 @@
 """
 Start up launches the SOFA main form. Along the way it tries to detect errors
     and report on them to the user so that they can seek help. E.g. faulty
-    version of Python being used to launch SOFA; or missing images needed by the 
-    form.
+    version of Python being used to launch SOFA; or missing images needed by 
+    the form.
 Start up can also run test code to diagnose early problems.
 Start up also checks to see if the current user of SOFA has their local SOFA 
     folder in place ready to use. If not, SOFA constructs one. First, it 
@@ -25,7 +25,7 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-dev_debug = False # relates to errors etc once GUI application running.
+dev_debug = True # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 test_lang = False
@@ -37,7 +37,7 @@ MAC_PATH = u"/Library/sofastats"
 if platform.system() == "Darwin":
     sys.path.insert(0, MAC_PATH) # start is running from Apps folder
 
-import setup # if any modules are going to fail, it will be in here
+import setup # if any modules are going to fail, it will be when this imported
 LOCAL_PATH_SETUP_NEEDED = setup.setup_folders()
 
 import codecs
@@ -75,12 +75,170 @@ import quotes
 
 REVERSE = False
 
+
+class SofaApp(wx.App):
+
+    def __init__(self):
+        # if wanting to initialise the parent class it must be run in 
+        # child __init__ and nowhere else (not in OnInit for example).
+        if dev_debug:
+            redirect = False
+            filename = None
+        else:
+            redirect = True
+            filename = os.path.join(mg.INT_PATH, u'output.txt')
+        wx.App.__init__(self, redirect=redirect, filename=filename)
+    
+    def OnInit(self):
+        """
+        Application needs a frame to open so do that after setting some global 
+            values for screen dimensions.
+        Also responsible for setting translations etc so application 
+            internationalised.
+        """
+        debug = False
+        try:
+            try:
+                self.setup_i18n()
+            except Exception, e:
+                my_exceptions.DoNothingException("OK if unable to get "
+                    "translation settings. English will do.")
+            self.store_screen_dims()
+            frame = StartFrame()
+            # on dual monitor, wx.BOTH puts in screen 2 (in Ubuntu at least)!
+            frame.CentreOnScreen(wx.VERTICAL)
+            frame.Show()
+            self.SetTopWindow(frame)
+            return True
+        except Exception, e: # frame will close by itself now
+            raise Exception(u"Problem initialising application. "
+                            u"Original error: %s" % lib.ue(e))
+    
+    def setup_i18n(self):
+        """
+        If a language isn't installed on the OS then it won't even look for the
+            locale subfolder. GetLanguage() will return 1 instead of the langid.
+        See http://code.google.com/p/bpbible/source/browse/trunk/gui/i18n.py?r=977#36
+        """
+        # http://wiki.wxpython.org/RecipesI18n
+        langdir = os.path.join(mg.SCRIPT_PATH, u'locale')
+        langid = mg.TEST_LANGID if test_lang else wx.LANGUAGE_DEFAULT
+        # Next line will only work if locale installed on computer. On Macs,
+        # must be after app starts (http://programming.itags.org/python/2877/)
+        mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
+        if debug: self.print_locale_dets(mylocale, langid)
+        try:
+            canon_name = self.get_canon_name(mylocale, langid)
+        except Exception, e:
+            raise Exception(u"Unable to get canon name. Original error: %s" 
+                            % lib.ue(e))
+        languages = [canon_name,]
+        try:
+            mytrans = gettext.translation(u"sofastats", langdir, languages, 
+                                          fallback=True)
+            mytrans.install(unicode=True) # must set explicitly here for Mac
+        except Exception, e:
+            raise Exception(u"Problem installing translation. "
+                            u"Original error: %s" % lib.ue(e))
+        if mg.PLATFORM == mg.LINUX:
+            try: # to get some language settings to display properly:
+                os.environ['LANG'] = u"%s.UTF-8" % canon_name
+            except (ValueError, KeyError):
+                my_exceptions.DoNothingException("OK if unable to get "
+                                                 "environment settings.")
+    
+    def print_locale_dets(self, mylocale, langid):
+        print(u"langid: %s" % langid)
+        print(u"Getlanguage: %s" % mylocale.GetLanguage())
+        print(u"GetCanonicalName: %s" % mylocale.GetCanonicalName())
+        print(u"GetSysName: %s" % mylocale.GetSysName())
+        print(u"GetLocale: %s" % mylocale.GetLocale())
+        print(u"GetName: %s" % mylocale.GetName())        
+    
+    def get_canon_name(self, mylocale, langid):
+        """
+        Get canon_name the normal way if possible. If not, get a fallback and
+            supply as much information as possible.
+        """
+        debug = False
+        if mylocale.IsOk():
+            canon_name = mylocale.GetCanonicalName()
+        else:
+            # Language locale problem - provide more useful message to go 
+            # alongside system one.
+            if mg.PLATFORM == mg.LINUX:
+                cli = (u"\n\nSee list of languages installed on your "
+                       u"system by typing\n       locale -a\ninto a "
+                       u"terminal and hitting the Enter key.")
+            else:
+                cli = u""
+            try:
+                langname = mylocale.GetLanguageName(langid)
+            except Exception, e:
+                langname = u"Unable to get langname."
+            try:
+                lang = mylocale.GetLanguage()
+            except Exception, e:
+                lang = u"Unable to get language."  
+            try:    
+                canon_name = mylocale.GetCanonicalName()
+            except Exception, e:
+                canon_name = u"Unable to get canonical name."
+            try:
+                sysname = mylocale.GetSysName
+            except Exception, e:
+                sysname = u"Unable to get system name."
+            try:
+                getlocale = mylocale.GetLocale
+            except Exception, e:
+                getlocale = u"Unable to get locale."
+            try:
+                localename = mylocale.GetName
+            except Exception, e:
+                localename = u"Unable to get locale name."
+            mg.DEFERRED_WARNING_MSGS.append(
+                u"LANGUAGE ERROR:\n\n"
+                u"SOFA couldn't set its locale to %(GetLanguageName)s. "
+                u"Does your system have %(GetLanguageName)s installed?"
+                u"%(cli)s"
+                u"\n\nPlease contact developer for advice - "
+                u"grant@sofastatistics.com"
+                u"\n\nExtra details for developer:"
+                u"\nlangid: %(langid)s"
+                u"\nGetlanguage: %(Getlanguage)s" 
+                u"\nGetCanonicalName: %(GetCanonicalName)s" 
+                u"\nGetSysName: %(GetSysName)s" 
+                u"\nGetLocale: %(GetLocale)s" 
+                u"\nGetName: %(GetName)s" % {u"cli": cli,
+                                            u"GetLanguageName": langname,
+                                            u"langid": langid,
+                                            u"Getlanguage": lang,
+                                            u"GetCanonicalName": canon_name,
+                                            u"GetSysName": sysname,
+                                            u"GetLocale": getlocale,
+                                            u"GetName": localename})
+            # Resetting mylocale makes frame flash and die if not clean first.
+            # http://www.java2s.com/Open-Source/Python/GUI/wxPython/wxPython-src-2.8.11.0/wxPython/demo/I18N.py.htm
+            assert sys.getrefcount(mylocale) <= 2
+            del mylocale # otherwise C++ object persists too long & crashes
+            mylocale = wx.Locale(wx.LANGUAGE_DEFAULT)
+            canon_name = mylocale.GetCanonicalName()
+        if debug: print(canon_name)
+        return canon_name
+    
+    def store_screen_dims(self):
+        mg.MAX_WIDTH = wx.Display().GetGeometry()[2]
+        mg.MAX_HEIGHT = wx.Display().GetGeometry()[3]
+        mg.HORIZ_OFFSET = 0 if mg.MAX_WIDTH < 1224 else 200
+
+
 def get_next_y_pos(start, height):
     "Facilitate regular y position of buttons"
     i = 0
     while True:
         yield start + (i*height)
         i += 1
+
 
 class FeedbackDlg(wx.Dialog):
     def __init__(self, parent):
@@ -121,139 +279,7 @@ class FeedbackDlg(wx.Dialog):
         webbrowser.open_new_tab(url)
         self.Destroy()
         event.Skip()
-        
 
-class SofaApp(wx.App):
-
-    def __init__(self):
-        # if wanting to initialise the parent class it must be run in 
-        # child __init__ and nowhere else.
-        if dev_debug:
-            redirect = False
-            filename = None
-        else:
-            redirect = True
-            filename = os.path.join(mg.INT_PATH, u'output.txt')
-        wx.App.__init__(self, redirect=redirect, filename=filename)
-
-    def OnInit(self):
-        debug = False
-        """
-        If a language isn't installed on the OS then it won't even look for the
-            locale subfolder.  GetLanguage() will return a 1 instead of the 
-            langid.
-        See also http://code.google.com/
-            p/bpbible/source/browse/trunk/gui/i18n.py?r=977#36
-        """
-        try:
-            # http://wiki.wxpython.org/RecipesI18n
-            langdir = os.path.join(mg.SCRIPT_PATH, u'locale')
-            langid = mg.TEST_LANGID if test_lang else wx.LANGUAGE_DEFAULT
-            # next line will only work if locale is installed on the computer
-            # on Macs, must be after app starts ...
-            # ... (http://programming.itags.org/python/2877/)
-            mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
-            if debug:
-                print(u"langid: %s" % langid)
-                print(u"Getlanguage: %s" % mylocale.GetLanguage())
-                print(u"GetCanonicalName: %s" % mylocale.GetCanonicalName())
-                print(u"GetSysName: %s" % mylocale.GetSysName())
-                print(u"GetLocale: %s" % mylocale.GetLocale())
-                print(u"GetName: %s" % mylocale.GetName())
-            if mylocale.IsOk():
-                canon_name = mylocale.GetCanonicalName()
-            else:
-                if mg.PLATFORM == mg.LINUX:
-                    cli = (u"\n\nSee list of languages installed on your "
-                           u"system by typing\n       locale -a\ninto a "
-                           u"terminal and hitting the Enter key.")
-                else:
-                    cli = u""
-                # Language locale problem - provide more useful message to go 
-                # alongside system one.
-                try:
-                    langname = mylocale.GetLanguageName(langid)
-                except Exception, e:
-                    langname = u"Unable to get langname."
-                try:
-                    lang = mylocale.GetLanguage()
-                except Exception, e:
-                    lang = u"Unable to get language."  
-                try:    
-                    canon_name = mylocale.GetCanonicalName()
-                except Exception, e:
-                    canon_name = u"Unable to get canonical name."
-                try:
-                    sysname = mylocale.GetSysName
-                except Exception, e:
-                    sysname = u"Unable to get system name."
-                try:
-                    getlocale = mylocale.GetLocale
-                except Exception, e:
-                    getlocale = u"Unable to get locale."
-                try:
-                    localename = mylocale.GetName
-                except Exception, e:
-                    localename = u"Unable to get locale name."
-                mg.DEFERRED_WARNING_MSGS.append(
-                    u"LANGUAGE ERROR:\n\n"
-                    u"SOFA couldn't set its locale to %(GetLanguageName)s. "
-                    u"Does your system have %(GetLanguageName)s installed?"
-                    u"%(cli)s"
-                    u"\n\nPlease contact developer for advice - "
-                    u"grant@sofastatistics.com"
-                    u"\n\nExtra details for developer:"
-                    u"\nlangid: %(langid)s"
-                    u"\nGetlanguage: %(Getlanguage)s" 
-                    u"\nGetCanonicalName: %(GetCanonicalName)s" 
-                    u"\nGetSysName: %(GetSysName)s" 
-                    u"\nGetLocale: %(GetLocale)s" 
-                    u"\nGetName: %(GetName)s" % {u"cli": cli,
-                                                u"GetLanguageName": langname,
-                                                u"langid": langid,
-                                                u"Getlanguage": lang,
-                                                u"GetCanonicalName": canon_name,
-                                                u"GetSysName": sysname,
-                                                u"GetLocale": getlocale,
-                                                u"GetName": localename,
-                                                })
-                """
-                Resetting mylocale makes frame flash and die if not clean first.
-                http://www.java2s.com/Open-Source/Python/GUI/wxPython/...
-                             ...wxPython-src-2.8.11.0/wxPython/demo/I18N.py.htm
-                """
-                assert sys.getrefcount(mylocale) <= 2
-                del mylocale # otherwise C++ object persists too long & crashes
-                mylocale = wx.Locale(wx.LANGUAGE_DEFAULT)
-                canon_name = mylocale.GetCanonicalName()
-            mytrans = gettext.translation(u"sofastats", langdir, 
-                                    languages=[canon_name,], fallback=True)
-            if debug: print(canon_name)
-            mytrans.install(unicode=True) # must set explicitly here for mac
-            if mg.PLATFORM == mg.LINUX:
-                try:
-                    # to get some language settings to display properly:
-                    os.environ['LANG'] = u"%s.UTF-8" % canon_name
-                except (ValueError, KeyError):
-                    my_exceptions.DoNothingException("OK if unable to get "
-                                                     "environment settings.")
-            mg.MAX_WIDTH = wx.Display().GetGeometry()[2]
-            mg.MAX_HEIGHT = wx.Display().GetGeometry()[3]
-            mg.HORIZ_OFFSET = 0 if mg.MAX_WIDTH < 1224 else 200
-            frame = StartFrame()
-            frame.CentreOnScreen(wx.VERTICAL) # on dual monitor, 
-                # wx.BOTH puts in screen 2 (in Ubuntu at least)!
-            frame.Show()
-            self.SetTopWindow(frame)
-            return True
-        except Exception, e:
-            try:
-                frame.Close()
-            except NameError:
-                my_exceptions.DoNothingException("Better exception coming.")
-            # raise original exception having closed frame if possible
-            raise Exception(lib.ue(e))
-        
 
 class StartFrame(wx.Frame):
     
