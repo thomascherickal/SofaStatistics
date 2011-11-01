@@ -283,12 +283,15 @@ def make_local_subfolders(local_path, local_subfolders):
     """
     try:
         os.mkdir(local_path)
+        if show_early_steps: print(u"Made local folder successfully.")
     except Exception, e:
         raise Exception(u"Unable to make local SOFA path \"%s\"." % local_path +
                         u"\nCaused by error: %s" % lib.ue(e))
     for local_subfolder in local_subfolders: # create required subfolders
         try:
             os.mkdir(os.path.join(local_path, local_subfolder))
+            if show_early_steps: print(u"Added %s successfully." % 
+                                       local_subfolder)
         except Exception, e:
             raise Exception(u"Unable to make local subfolder \"%s\"." % 
                             local_subfolder +
@@ -333,6 +336,7 @@ def populate_css_path(prog_path, local_path):
         try:
             shutil.copy(os.path.join(prog_path, mg.CSS_FOLDER, style), 
                         os.path.join(local_path, mg.CSS_FOLDER, style))
+            if show_early_steps: print(u"Just copied %s" % style)
         except Exception, e: # more diagnostic info to explain why it failed
             raise Exception(u"Problem populating css path."
                             u"\nCaused by error: %s" % lib.ue(e) +
@@ -393,6 +397,7 @@ def populate_extras_path(prog_path, local_path):
                                      mg.REPORT_EXTRAS_FOLDER, extra), 
                         os.path.join(local_path, mg.REPORTS_FOLDER, 
                                      mg.REPORT_EXTRAS_FOLDER, extra))
+            if show_early_steps: print(u"Just copied %s" % extra)
         except Exception, e:
             raise Exception(u"Problem populating report extras path."
                             u"\nCaused by error: %s" % lib.ue(e))
@@ -406,10 +411,13 @@ def populate_local_paths(prog_path, local_path, default_proj):
     populate_css_path(prog_path, local_path)
     shutil.copy(os.path.join(prog_path, mg.INT_FOLDER, mg.SOFA_DB), 
                 os.path.join(local_path, mg.INT_FOLDER, mg.SOFA_DB))
+    if show_early_steps: print(u"Just copied %s" % mg.SOFA_DB)
     shutil.copy(os.path.join(prog_path, mg.PROJS_FOLDER, mg.DEFAULT_PROJ), 
                 default_proj)
+    if show_early_steps: print(u"Just copied %s" % default_proj)
     shutil.copy(os.path.join(prog_path, mg.VDTS_FOLDER, mg.DEFAULT_VDTS), 
                 os.path.join(local_path, mg.VDTS_FOLDER, mg.DEFAULT_VDTS))
+    if show_early_steps: print(u"Just copied %s" % mg.DEFAULT_VDTS)
     populate_extras_path(prog_path, local_path)
     print(u"Populated local paths under %s" % local_path)
 
@@ -422,24 +430,30 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
         f = codecs.open(default_proj, "r", "utf-8")
         proj_str = f.read() # provided by me - no BOM or non-ascii 
         f.close()
+        if show_early_steps: print(u"Just read default project")
         for path in settings_subfolders:
             new_str = lib.escape_pre_write(os.path.join(mg.LOCAL_PATH, 
                                                         path, u""))
             proj_str = proj_str.replace(u"/home/g/sofastats/%s/" % path, 
                                         new_str)
+            if show_early_steps: print(u"Just modified %s" % path)
         # add MS Access and SQL Server into mix if Windows
         if mg.PLATFORM == mg.WINDOWS:
             proj_str = proj_str.replace(u"default_dbs = {",
                             u"default_dbs = {'%s': None, " % mg.DBE_MS_ACCESS)
             proj_str = proj_str.replace(u"default_tbls = {",
                             u"default_tbls = {'%s': None, " % mg.DBE_MS_ACCESS)
+            if show_early_steps: print(u"Just updated %s" % mg.DBE_MS_ACCESS)
             proj_str = proj_str.replace(u"default_dbs = {",
                             u"default_dbs = {'%s': None, " % mg.DBE_MS_SQL)
             proj_str = proj_str.replace(u"default_tbls = {",
                             u"default_tbls = {'%s': None, " % mg.DBE_MS_SQL)
+            if show_early_steps: print(u"Just updated %s" % mg.DBE_MS_SQL)
         f = codecs.open(default_proj, "w", "utf-8")
         f.write(proj_str)
         f.close()
+        if show_early_steps: print(u"Just wrote to default project %s" % 
+                                   default_proj)
         # create file as tag we have done the changes to the proj file
         f = codecs.open(os.path.join(local_path, mg.PROJ_CUSTOMISED_FILE), "w", 
                         "utf-8")
@@ -476,6 +490,8 @@ def archive_older_default_report():
             new_filename = u"default_report_pre_%s.htm" % mg.VERSION
             new_version = os.path.join(mg.REPORTS_PATH, new_filename)
             os.rename(def_rpt_pth, new_version)
+            if show_early_steps: print(u"Just renamed %s to new version" % 
+                                       def_rpt_pth)
             mg.DEFERRED_WARNING_MSGS.append("EXISTING REPORT SAFEGUARDED:"
                 "\n\nAs part of the upgrade to version %s, "
                 "SOFA has renamed \"%s\" to \"%s\" "
@@ -507,11 +523,13 @@ def freshen_recovery(prog_path, local_subfolders, subfolders_in_proj):
     (installer_recovery_is_newer, 
      installer_recovery_newer_status_known) = \
                                   get_installer_version_status(mg.RECOVERY_PATH)
+    if show_early_steps: print(u"Just identified installer recovery status")
     if (installer_recovery_is_newer or not installer_recovery_newer_status_known
             or not os.path.exists(mg.RECOVERY_PATH)):
         # make fresh recovery folder (over top of previous if necessary)
         try:
             shutil.rmtree(mg.RECOVERY_PATH)
+            if show_early_steps: print(u"Just deleted %s" % mg.RECOVERY_PATH)
         except OSError:
             my_exceptions.DoNothingException("OK to fail removing recovery "
                                              "path if not there.")
@@ -561,6 +579,7 @@ def setup_folders():
         if not local_path_setup_needed: # any fresh one won't need modification
             try: # if already installed version is older than 0.9.18 ...
                 installed_version = get_installed_version(mg.LOCAL_PATH)
+                if show_early_steps: print(u"Just got installed version")
                 if installed_version is None or \
                         lib.version_a_is_newer(version_a=mg.VERSION,
                                                version_b=installed_version):
@@ -572,6 +591,8 @@ def setup_folders():
                                                       mg.REPORT_EXTRAS_FOLDER)
                     try:
                         os.mkdir(REPORT_EXTRAS_PATH) # under reports
+                        if show_early_steps: print(u"Just made %s" % 
+                                                   REPORT_EXTRAS_PATH)
                     except OSError, e:
                         my_exceptions.DoNothingException("Already there.")
                     except Exception, e:
@@ -593,6 +614,8 @@ def setup_folders():
             raise Exception(u"Problem freshening your recovery folder \"%s\"."
                     u"\nCaused by error: %s" % (prog_path, lib.ue(e)))
     except Exception, e:
+        if show_early_steps: print(u"Problem running initial setup - about to "
+                                   u"make msg.")
         msg = (u"Problem running initial setup.\nCaused by error: %s" % 
                lib.ue(e))
         if show_early_steps: 

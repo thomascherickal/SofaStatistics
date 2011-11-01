@@ -25,7 +25,7 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-dev_debug = True # relates to errors etc once GUI application running.
+dev_debug = False # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 test_lang = False
@@ -39,7 +39,7 @@ if platform.system() == "Darwin":
 
 import setup # if any modules are going to fail, it will be when this imported
 LOCAL_PATH_SETUP_NEEDED = setup.setup_folders()
-
+if show_early_steps: print(u"Completed setup_folders successfully.")
 import codecs
 import datetime
 import gettext
@@ -47,6 +47,7 @@ import glob
 import os
 import traceback
 import wx
+if show_early_steps: print(u"Imported wx successfully.")
 
 import sqlite3 as sqlite
 "Import hyperlink"
@@ -62,16 +63,26 @@ except ImportError: # if it's not there locally, try the wxPython lib.
             print(msg)
             raw_input(setup.INIT_DEBUG_MSG)
         raise Exception(msg)
+if show_early_steps: print(u"Imported hl successfully.")
 
 import my_globals as mg
+if show_early_steps: print(u"Imported my_globals successfully.")
 import lib
+if show_early_steps: print(u"Imported lib successfully.")
 import my_exceptions
+if show_early_steps: print(u"Imported my_exceptions successfully.")
 import config_globals
+if show_early_steps: print(u"Imported config_globals successfully.")
 import config_dlg
+if show_early_steps: print(u"Imported config_dlg successfully.")
 import getdata
+if show_early_steps: print(u"Imported getdata successfully.")
 import projects
+if show_early_steps: print(u"Imported projects successfully.")
 import projselect
+if show_early_steps: print(u"Imported projselect successfully.")
 import quotes
+if show_early_steps: print(u"Imported quotes successfully.")
 
 REVERSE = False
 
@@ -285,6 +296,134 @@ class StartFrame(wx.Frame):
     
     def __init__(self):
         debug = False
+        # earliest point error msgs can be shown to user in a GUI.
+        deferred_error_msg = u"\n\n".join(mg.DEFERRED_ERRORS)
+        if deferred_error_msg:
+            raise Exception(deferred_error_msg)
+        self.set_layout_constants()
+        self.text_brown = (90, 74, 61) # on_paint needs this etc
+        wx.Frame.__init__(self, None, title=_("SOFA Start"), 
+                  size=(self.form_width, self.form_height), 
+                  pos=(self.form_pos_left,-1),
+                  style=wx.CAPTION|wx.MINIMIZE_BOX|wx.CLOSE_BOX|wx.SYSTEM_MENU)
+        self.SetClientSize(self.GetSize())
+        global REVERSE
+        REVERSE = lib.mustreverse()
+        self.panel = wx.Panel(self, size=(self.form_width, self.form_height)) # win
+        self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
+        self.panel.Bind(wx.EVT_PAINT, self.on_paint)
+        self.Bind(wx.EVT_SHOW, self.on_show) # doesn't run on Mac
+        self.Bind(wx.EVT_CLOSE, self.on_exit_click)
+        self.active_proj = mg.DEFAULT_PROJ
+        proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
+                                                   fil_name=self.active_proj)
+        try:
+            # trying to actually connect to a database on start up
+            mg.DATADETS_OBJ = getdata.DataDets(proj_dic)
+            if show_early_steps: print(u"Initialised mg.DATADETS_OBJ")
+        except Exception, e:
+            lib.safe_end_cursor()
+            wx.MessageBox(_("Unable to connect to data as defined in " 
+                            "project %s. Please check your settings.") % 
+                            self.active_proj)
+            raise # for debugging
+        show_more_steps = True
+        try:
+            config_dlg.add_icon(frame=self)
+            if show_more_steps: print(u"Added icon to frame")
+        except Exception, e:
+            lib.safe_end_cursor()
+            wx.MessageBox(u"Problem adding icon to frame")
+            raise # for debugging
+        try:
+            self.make_sized_imgs()
+            if show_more_steps: print(u"Made sized images")
+        except Exception, e:
+            lib.safe_end_cursor()
+            wx.MessageBox(u"Problem making sized images")
+            raise # for debugging
+        try:
+            self.setup_stable_imgs()
+            if show_more_steps: print(u"Set up stable images")
+        except Exception, e:
+            lib.safe_end_cursor()
+            wx.MessageBox(u"Problem making sized images")
+            raise # for debugging
+        try:
+            self.setup_buttons()
+            if show_more_steps: print(u"Set up buttons")
+        except Exception, e:
+            lib.safe_end_cursor()
+            wx.MessageBox(u"Problem setting up buttons")
+            raise # for debugging
+        # text
+        # NB cannot have transparent background properly in Windows if using
+        # a static ctrl 
+        # http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3045245
+        self.txtWelcome = _("Welcome to SOFA Statistics.  Hovering the mouse "
+                            "over the buttons lets you see what you can do.")
+        if mg.PLATFORM == mg.MAC:
+            self.help_font = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        elif mg.PLATFORM == mg.WINDOWS:
+            self.help_font = wx.Font(10.5, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        else:
+            self.help_font = wx.Font(10.5, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        try:
+            self.set_help_imgs()
+            if show_more_steps: print(u"Set up help images")
+        except Exception, e:
+            lib.safe_end_cursor()
+            raise Exception(u"Problem setting up help images."
+                            u"\nCaused by error: %s" % lib.ue(e))
+        # Upgrade available? 1) get level of version checking
+        try:
+            prefs_dic = \
+                config_globals.get_settings_dic(subfolder=mg.INT_FOLDER, 
+                                                fil_name=mg.INT_PREFS_FILE)
+            version_lev = prefs_dic[mg.PREFS_KEY].get(mg.VERSION_CHECK_KEY, 
+                                                      mg.VERSION_CHECK_ALL)
+        except Exception, e:
+            version_lev = mg.VERSION_CHECK_ALL
+        if show_more_steps: print(u"Got version level")
+        # 2) get upgrade available status
+        try:
+            if version_lev == mg.VERSION_CHECK_NONE:
+                raise Exception(u"No permission to check for new versions")
+            else:
+                if not dev_debug:
+                    new_version = self.get_latest_version(version_lev)
+                if debug: print(new_version)
+            self.upgrade_available = \
+                                lib.version_a_is_newer(version_a=new_version, 
+                                                       version_b=mg.VERSION)
+        except Exception, e:
+            self.upgrade_available = False
+        if show_more_steps: print(u"Identified if upgrade available")
+        try:
+            self.setup_links()
+            if show_more_steps: print(u"Set up links")
+        except Exception, e:
+            lib.safe_end_cursor()
+            wx.MessageBox(u"Problem setting up links")
+            raise # for debugging
+            return
+        if mg.DBE_PROBLEM:
+            prob = os.path.join(mg.INT_PATH, u"database connection problem.txt")
+            f = codecs.open(prob, "w", "utf8")
+            f.write(u"\n\n".join(mg.DBE_PROBLEM))
+            f.close()
+        if mg.MUST_DEL_TMP:
+            wx.MessageBox(_("Please click on \"Enter/Edit Data\" and delete"
+                        " the table \"%s\"") % mg.TMP_TBL_NAME)
+        # any warnings to display once screen visible?
+        warning_div = u"\n\n" + u"-"*20 + u"\n\n"
+        deferred_warning_msg = warning_div.join(mg.DEFERRED_WARNING_MSGS)
+        if deferred_warning_msg:
+            wx.CallAfter(self.on_deferred_warning_msg, deferred_warning_msg)
+        else:
+            wx.CallAfter(self.sofastats_connect)
+    
+    def set_layout_constants(self):
         # layout "constants"
         self.tight_layout = (mg.MAX_WIDTH <= 1024 or mg.MAX_HEIGHT <= 600)
         #self.tight_layout = True # for testing
@@ -334,45 +473,9 @@ class StartFrame(wx.Frame):
             self.get_started_img_offset = 0
             self.prefs_img_offset = 55
             self.data_img_offset = 45
-            self.form_pos_left = mg.MAX_WIDTH-(self.form_width+10)
-        # The earliest point at which error messages can be shown to the user 
-        # in a GUI.  E.g. Can't find the folder this script is in.
-        self.text_brown = (90, 74, 61)
-        deferred_error_msg = u"\n\n".join(mg.DEFERRED_ERRORS)
-        if deferred_error_msg:
-            raise Exception(deferred_error_msg)
-        # Gen set up
-        wx.Frame.__init__(self, None, title=_("SOFA Start"), 
-                  size=(self.form_width, self.form_height), 
-                  pos=(self.form_pos_left,-1),
-                  style=wx.CAPTION|wx.MINIMIZE_BOX|wx.CLOSE_BOX|wx.SYSTEM_MENU)
-        # Windows doesn't include window decorations
-        y_start = self.GetClientSize()[1] - self.GetSize()[1]
-        self.SetClientSize(self.GetSize())
-        global REVERSE
-        REVERSE = lib.mustreverse()
-        self.panel = wx.Panel(self, size=(self.form_width, 
-                                          self.form_height)) # win
-        self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
-        self.panel.Bind(wx.EVT_PAINT, self.on_paint)
-        self.Bind(wx.EVT_SHOW, self.on_show) # doesn't run on Mac
-        self.Bind(wx.EVT_CLOSE, self.on_exit_click)
-        self.active_proj = mg.DEFAULT_PROJ
-        proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
-                                                   fil_name=self.active_proj)
-        try:
-            # trying to actually connect to a database on start up
-            mg.DATADETS_OBJ = getdata.DataDets(proj_dic)
-            if show_early_steps: print("Initialised mg.DATADETS_OBJ")
-        except Exception, e:
-            lib.safe_end_cursor()
-            wx.MessageBox(_("Unable to connect to data as defined in " 
-                            "project %s. Please check your settings.") % 
-                            self.active_proj)
-            raise # for debugging
-            return
-        config_dlg.add_icon(frame=self)
-        # background image
+            self.form_pos_left = mg.MAX_WIDTH-(self.form_width+10) 
+    
+    def make_sized_imgs(self):
         if not self.tight_layout:
             sofabg_img = u"sofastats_start_bg.gif"
             demo_chart_img = u"demo_chart.gif"
@@ -384,10 +487,11 @@ class StartFrame(wx.Frame):
             proj_img = u"projects_tight.gif"
             data_img = u"data_tight.gif"
         sofabg = os.path.join(mg.SCRIPT_PATH, u"images", sofabg_img)
-        top_sofa = os.path.join(mg.SCRIPT_PATH, u"images", u"top_sofa.gif")
-        demo_chart = os.path.join(mg.SCRIPT_PATH, u"images", demo_chart_img)
-        proj = os.path.join(mg.SCRIPT_PATH, u"images", proj_img)
-        data = os.path.join(mg.SCRIPT_PATH, u"images", data_img)
+        self.top_sofa = os.path.join(mg.SCRIPT_PATH, u"images", u"top_sofa.gif")
+        self.demo_chart_sized = os.path.join(mg.SCRIPT_PATH, u"images", 
+                                             demo_chart_img)
+        self.proj_sized = os.path.join(mg.SCRIPT_PATH, u"images", proj_img)
+        self.data_sized = os.path.join(mg.SCRIPT_PATH, u"images", data_img)
         if not os.path.exists(sofabg):
             raise Exception(u"Problem finding background button image.  "
                             u"Missing path: %s" % sofabg)
@@ -396,7 +500,37 @@ class StartFrame(wx.Frame):
         except Exception:
             raise Exception(u"Problem creating background button image from %s"
                             % sofabg)
-        # stable images
+    
+    def set_help_imgs(self):
+        # help images
+        help = os.path.join(mg.SCRIPT_PATH, u"images", u"help.gif")
+        self.bmp_help = lib.get_bmp(src_img_path=help, reverse=REVERSE)
+        get_started = os.path.join(mg.SCRIPT_PATH, u"images",
+                                   u"step_by_step.gif")
+        self.bmp_get_started = lib.get_bmp(src_img_path=get_started, 
+                                           reverse=REVERSE)
+        self.bmp_proj = lib.get_bmp(src_img_path=self.proj_sized, 
+                                    reverse=REVERSE)
+        prefs = os.path.join(mg.SCRIPT_PATH, u"images", u"prefs.gif")
+        self.bmp_prefs = lib.get_bmp(src_img_path=prefs, reverse=REVERSE)
+        self.bmp_data = lib.get_bmp(src_img_path=self.data_sized, 
+                                    reverse=REVERSE)
+        imprt = os.path.join(mg.SCRIPT_PATH, u"images", u"import.gif")
+        self.bmp_import = lib.get_bmp(src_img_path=imprt, reverse=REVERSE)
+        tabs = os.path.join(mg.SCRIPT_PATH, u"images", u"table.gif")
+        self.bmp_tabs = lib.get_bmp(src_img_path=tabs, reverse=REVERSE)
+        self.bmp_chart = lib.get_bmp(src_img_path=self.demo_chart_sized, 
+                                     reverse=REVERSE)
+        stats = os.path.join(mg.SCRIPT_PATH, u"images", u"stats.gif")
+        self.bmp_stats = lib.get_bmp(src_img_path=stats, reverse=REVERSE)
+        exit = os.path.join(mg.SCRIPT_PATH, u"images", u"exit.gif")
+        self.bmp_exit = lib.get_bmp(src_img_path=exit, reverse=REVERSE)
+        agpl3 = os.path.join(mg.SCRIPT_PATH, u"images", u"agpl3.xpm")
+        self.bmp_agpl3 = lib.get_bmp(src_img_path=agpl3, 
+                                 bmp_type=wx.BITMAP_TYPE_XPM, 
+                                 reverse=REVERSE)
+    
+    def setup_stable_imgs(self):
         upgrade = os.path.join(mg.SCRIPT_PATH, u"images", u"upgrade.xpm")
         self.bmp_upgrade = lib.get_bmp(src_img_path=upgrade, 
                                        bmp_type=wx.BITMAP_TYPE_XPM, 
@@ -411,14 +545,15 @@ class StartFrame(wx.Frame):
         self.bmp_quote_right = lib.get_bmp(src_img_path=quote_right, 
                                            bmp_type=wx.BITMAP_TYPE_XPM, 
                                            reverse=REVERSE)
-        self.bmp_top_sofa = lib.get_bmp(src_img_path=top_sofa) # ok if reversed
+        self.bmp_top_sofa = lib.get_bmp(src_img_path=self.top_sofa) # ok if reversed
         # slice of image to be refreshed (where text and image will be)
         blankwp_rect = wx.Rect(self.main_left, self.help_text_top, 
                                self.help_img_left+35, self.blankwp_height)
         self.blank_wallpaper = self.bmp_sofabg.GetSubBitmap(blankwp_rect)
         blankps_rect = wx.Rect(self.main_left, 218, 610, 30)
         self.blank_proj_strip = self.bmp_sofabg.GetSubBitmap(blankps_rect)
-        # buttons
+    
+    def setup_buttons(self):
         btn_font_sz = 14 if mg.PLATFORM == mg.MAC else 10
         g = get_next_y_pos(284, self.btn_drop)
         # get started
@@ -521,70 +656,8 @@ class StartFrame(wx.Frame):
             self.btn_charts.SetCursor(hand)
             self.btn_statistics.SetCursor(hand)
             self.btn_exit.SetCursor(hand)
-        # text
-        # NB cannot have transparent background properly in Windows if using
-        # a static ctrl 
-        # http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3045245
-        self.txtWelcome = _("Welcome to SOFA Statistics.  Hovering the mouse "
-                            "over the buttons lets you see what you can do.")
-        if mg.PLATFORM == mg.MAC:
-            self.help_font = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
-        elif mg.PLATFORM == mg.WINDOWS:
-            self.help_font = wx.Font(10.5, wx.DEFAULT, wx.NORMAL, wx.BOLD)
-        else:
-            self.help_font = wx.Font(10.5, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
-        try:
-            # help images
-            help = os.path.join(mg.SCRIPT_PATH, u"images", u"help.gif")
-            self.bmp_help = lib.get_bmp(src_img_path=help, reverse=REVERSE)
-            get_started = os.path.join(mg.SCRIPT_PATH, u"images",
-                                       u"step_by_step.gif")
-            self.bmp_get_started = lib.get_bmp(src_img_path=get_started, 
-                                               reverse=REVERSE)
-            self.bmp_proj = lib.get_bmp(src_img_path=proj, reverse=REVERSE)
-            prefs = os.path.join(mg.SCRIPT_PATH, u"images", u"prefs.gif")
-            self.bmp_prefs = lib.get_bmp(src_img_path=prefs, reverse=REVERSE)
-            self.bmp_data = lib.get_bmp(src_img_path=data, reverse=REVERSE)
-            imprt = os.path.join(mg.SCRIPT_PATH, u"images", u"import.gif")
-            self.bmp_import = lib.get_bmp(src_img_path=imprt, reverse=REVERSE)
-            tabs = os.path.join(mg.SCRIPT_PATH, u"images", u"table.gif")
-            self.bmp_tabs = lib.get_bmp(src_img_path=tabs, reverse=REVERSE)
-            self.bmp_chart = lib.get_bmp(src_img_path=demo_chart, 
-                                         reverse=REVERSE)
-            stats = os.path.join(mg.SCRIPT_PATH, u"images", u"stats.gif")
-            self.bmp_stats = lib.get_bmp(src_img_path=stats, reverse=REVERSE)
-            exit = os.path.join(mg.SCRIPT_PATH, u"images", u"exit.gif")
-            self.bmp_exit = lib.get_bmp(src_img_path=exit, reverse=REVERSE)
-            agpl3 = os.path.join(mg.SCRIPT_PATH, u"images", u"agpl3.xpm")
-            self.bmp_agpl3 = lib.get_bmp(src_img_path=agpl3, 
-                                     bmp_type=wx.BITMAP_TYPE_XPM, 
-                                     reverse=REVERSE)
-        except Exception, e:
-            raise Exception(u"Problem setting up help images."
-                            u"\nCaused by error: %s" % lib.ue(e))
-        # upgrade available?
-        # get level of version checking
-        try:
-            prefs_dic = \
-                config_globals.get_settings_dic(subfolder=mg.INT_FOLDER, 
-                                                fil_name=mg.INT_PREFS_FILE)
-            version_lev = prefs_dic[mg.PREFS_KEY].get(mg.VERSION_CHECK_KEY, 
-                                                      mg.VERSION_CHECK_ALL)
-        except Exception, e:
-            version_lev = mg.VERSION_CHECK_ALL
-        # get upgrade available status
-        try:
-            if version_lev == mg.VERSION_CHECK_NONE:
-                raise Exception(u"No permission to check for new versions")
-            else:
-                if not dev_debug:
-                    new_version = self.get_latest_version(version_lev)
-                if debug: print(new_version)
-            self.upgrade_available = \
-                                lib.version_a_is_newer(version_a=new_version, 
-                                                       version_b=mg.VERSION)
-        except Exception, e:
-            self.upgrade_available = False
+    
+    def setup_links(self):
         # home link
         home_link_hpos = self.version_right if REVERSE else self.main_left
         link_home = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com", 
@@ -619,22 +692,7 @@ class StartFrame(wx.Frame):
         self.setup_link(link=link_feedback, 
                         link_colour=wx.Colour(255,255,255), 
                         bg_colour=wx.Colour(116, 99, 84))
-        if mg.DBE_PROBLEM:
-            prob = os.path.join(mg.INT_PATH, u"database connection problem.txt")
-            f = codecs.open(prob, "w", "utf8")
-            f.write(u"\n\n".join(mg.DBE_PROBLEM))
-            f.close()
-        if mg.MUST_DEL_TMP:
-            wx.MessageBox(_("Please click on \"Enter/Edit Data\" and delete"
-                        " the table \"%s\"") % mg.TMP_TBL_NAME)
-        # any warnings to display once screen visible?
-        warning_div = u"\n\n" + u"-"*20 + u"\n\n"
-        deferred_warning_msg = warning_div.join(mg.DEFERRED_WARNING_MSGS)
-        if deferred_warning_msg:
-            wx.CallAfter(self.on_deferred_warning_msg, deferred_warning_msg)
-        else:
-            wx.CallAfter(self.sofastats_connect)
-        
+    
     def on_deferred_warning_msg(self, deferred_warning_msg):
         wx.MessageBox(deferred_warning_msg)
         
@@ -1154,6 +1212,7 @@ class StartFrame(wx.Frame):
         event.Skip()
 
 try:
+    if show_early_steps: print(u"About to load app")
     app = SofaApp()
     #inspect = True
     #if inspect:
