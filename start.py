@@ -25,9 +25,11 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-dev_debug = False # relates to errors etc once GUI application running.
+
+dev_debug = True # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
+show_more_steps = True
 test_lang = False
 
 import sys
@@ -127,25 +129,19 @@ class SofaApp(wx.App):
     
     def setup_i18n(self):
         """
-        If a language isn't installed on the OS then it won't even look for the
-            locale subfolder. GetLanguage() will return 1 instead of the langid.
-        See http://code.google.com/p/bpbible/source/browse/trunk/gui/i18n.py?r=977#36
+        Esp http://wiki.wxpython.org/Internationalization
+        See also http://wiki.wxpython.org/RecipesI18n
         """
-        # http://wiki.wxpython.org/RecipesI18n
+        debug = False
         langdir = os.path.join(mg.SCRIPT_PATH, u'locale')
-        langid = mg.TEST_LANGID if test_lang else wx.LANGUAGE_DEFAULT
-        # Next line will only work if locale installed on computer. On Macs,
-        # must be after app starts (http://programming.itags.org/python/2877/)
-        mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
-        if debug: self.print_locale_dets(mylocale, langid)
         try:
-            canon_name = self.get_canon_name(mylocale, langid)
+            canon_name = self.get_canon_name(langdir)
         except Exception, e:
             raise Exception(u"Unable to get canon name. Original error: %s" 
                             % lib.ue(e))
-        languages = [canon_name,]
         try:
-            mytrans = gettext.translation(u"sofastats", langdir, languages, 
+            mytrans = gettext.translation(u"sofastats", langdir, 
+                                          languages=[canon_name,], 
                                           fallback=True)
             mytrans.install(unicode=True) # must set explicitly here for Mac
         except Exception, e:
@@ -155,38 +151,60 @@ class SofaApp(wx.App):
             try: # to get some language settings to display properly:
                 os.environ['LANG'] = u"%s.UTF-8" % canon_name
             except (ValueError, KeyError):
-                my_exceptions.DoNothingException("OK if unable to get "
+                my_exceptions.DoNothingException("OK if unable to set "
                                                  "environment settings.")
     
-    def print_locale_dets(self, mylocale, langid):
-        print(u"langid: %s" % langid)
-        print(u"Getlanguage: %s" % mylocale.GetLanguage())
-        print(u"GetCanonicalName: %s" % mylocale.GetCanonicalName())
-        print(u"GetSysName: %s" % mylocale.GetSysName())
-        print(u"GetLocale: %s" % mylocale.GetLocale())
-        print(u"GetName: %s" % mylocale.GetName())        
-    
-    def get_canon_name(self, mylocale, langid):
+    def get_canon_name(self, langdir):
         """
-        Get canon_name the normal way if possible. If not, get a fallback and
-            supply as much information as possible.
+        Try to get a canon_name that will work on this system.
+        First try the language default. Will only work if SOFA has support for 
+            that language (and if language actually installed on system).
+        If not possible, fall back to English. 
+        If a failure because SOFA translation not provided, let user know they 
+            can ask for a translation or even help contribute to a translation.
+        If fails in spite of translation being supplied, suggest options and 
+            message to pass for support.
         """
         debug = False
+        orig_langid = (mg.TEST_LANGID if test_lang else wx.LANGUAGE_DEFAULT)
+        langinfo = wx.Locale.GetLanguageInfo(orig_langid)
+        langname = langinfo.Description
+        translation_supplied = self.translation_supplied(langdir, orig_langid)
+        if translation_supplied:
+            langid = orig_langid # try it - still might fail
+        else:
+            langid = wx.LANGUAGE_ENGLISH
+            print(u"SOFA does not appear to have been translated into "
+                  u"%(langname)s yet. SOFA will operate in UK English "
+                  u"instead. If you are able to help translate "
+                  u"English into %(langname)s please contact " 
+                  u"grant@sofastatistics.com.""" % {"langname": langname})
+        # Next line will only work if locale installed on computer. On Macs,
+        # must be after app starts (http://programming.itags.org/python/2877/)
+        mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
+        if debug: self.print_locale_dets(mylocale, langid)
         if mylocale.IsOk():
             canon_name = mylocale.GetCanonicalName()
-        else:
-            # Language locale problem - provide more useful message to go 
-            # alongside system one.
+        else: # failed
+            """
+            If a language isn't installed on the OS then it won't even look for 
+                the locale subfolder. GetLanguage() will return 1 instead of the 
+                langid. See also http://code.google.com/p/bpbible/source/browse/trunk/gui/i18n.py?r=977#36
+            """
             if mg.PLATFORM == mg.LINUX:
                 cli = (u"\n\nSee list of languages installed on your "
                        u"system by typing\n       locale -a\ninto a "
                        u"terminal and hitting the Enter key.")
             else:
                 cli = u""
-            try:
-                langname = mylocale.GetLanguageName(langid)
-            except Exception, e:
-                langname = u"Unable to get langname."
+            msg = (u"Because there was a problem providing a %(langname)s "
+                   u"translation, SOFA will now operate in English instead."
+                   u" SOFA is operating perfectly apart from the attempt "
+                   u"to set the translation."
+                   u"\n\nDoes your system have "
+                   u"%(langname)s installed?%(cli)s\n\nThe developer may "
+                   u"be able to supply extra help: grant@sofastatistics.com" 
+                   % {"langname": langname, "cli": cli})
             try:
                 lang = mylocale.GetLanguage()
             except Exception, e:
@@ -196,46 +214,72 @@ class SofaApp(wx.App):
             except Exception, e:
                 canon_name = u"Unable to get canonical name."
             try:
-                sysname = mylocale.GetSysName
+                sysname = mylocale.GetSysName()
             except Exception, e:
                 sysname = u"Unable to get system name."
             try:
-                getlocale = mylocale.GetLocale
+                getlocale = mylocale.GetLocale()
             except Exception, e:
                 getlocale = u"Unable to get locale."
             try:
-                localename = mylocale.GetName
+                localename = mylocale.GetName()
             except Exception, e:
                 localename = u"Unable to get locale name."
-            mg.DEFERRED_WARNING_MSGS.append(
-                u"LANGUAGE ERROR:\n\n"
-                u"SOFA couldn't set its locale to %(GetLanguageName)s. "
-                u"Does your system have %(GetLanguageName)s installed?"
-                u"%(cli)s"
-                u"\n\nPlease contact developer for advice - "
-                u"grant@sofastatistics.com"
-                u"\n\nExtra details for developer:"
-                u"\nlangid: %(langid)s"
-                u"\nGetlanguage: %(Getlanguage)s" 
-                u"\nGetCanonicalName: %(GetCanonicalName)s" 
-                u"\nGetSysName: %(GetSysName)s" 
-                u"\nGetLocale: %(GetLocale)s" 
-                u"\nGetName: %(GetName)s" % {u"cli": cli,
-                                            u"GetLanguageName": langname,
-                                            u"langid": langid,
-                                            u"Getlanguage": lang,
-                                            u"GetCanonicalName": canon_name,
-                                            u"GetSysName": sysname,
-                                            u"GetLocale": getlocale,
-                                            u"GetName": localename})
+            extra_diagnostics = (u"\n\nExtra details for developer:"
+            u"\nlangid: %(langid)s"
+            u"\nGetlanguage: %(Getlanguage)s" 
+            u"\nGetCanonicalName: %(GetCanonicalName)s" 
+            u"\nGetSysName: %(GetSysName)s" 
+            u"\nGetLocale: %(GetLocale)s" 
+            u"\nGetName: %(GetName)s" % {u"GetLanguageName": langname,
+                                         u"langid": langid,
+                                         u"Getlanguage": lang,
+                                         u"GetCanonicalName": canon_name,
+                                         u"GetSysName": sysname,
+                                         u"GetLocale": getlocale,
+                                         u"GetName": localename})
+            msg += extra_diagnostics
             # Resetting mylocale makes frame flash and die if not clean first.
             # http://www.java2s.com/Open-Source/Python/GUI/wxPython/wxPython-src-2.8.11.0/wxPython/demo/I18N.py.htm
             assert sys.getrefcount(mylocale) <= 2
             del mylocale # otherwise C++ object persists too long & crashes
-            mylocale = wx.Locale(wx.LANGUAGE_DEFAULT)
+            mylocale = wx.Locale(wx.LANGUAGE_ENGLISH)
             canon_name = mylocale.GetCanonicalName()
+            mg.DEFERRED_WARNING_MSGS.append(msg)
         if debug: print(canon_name)
         return canon_name
+    
+    def get_langids_supported_by_sofa(self, langdir):
+        locale_pths = os.listdir(langdir)
+        langids = []
+        for locale_pth in locale_pths:
+            try:
+                langinfo = wx.Locale.FindLanguageInfo(locale_pth)
+                langids.append(langinfo.Language)
+            except Exception, e:
+                raise my_exceptions.DoNothingException("Don't prevent the user "
+                                           "getting an English version of SOFA "
+                                           "running over this problem.")
+        return langids
+    
+    def translation_supplied(self, langdir, langid):
+        """
+        See what is under the locale folder supplied by SOFA installation.
+        """
+        try:
+            langids_supplied = self.get_langids_supported_by_sofa(langdir)
+            supplied = (langid in langids_supplied)
+        except Exception, e:
+            supplied = True  
+        return supplied
+    
+    def print_locale_dets(self, mylocale, langid):
+        print(u"langid: %s" % langid)
+        print(u"Getlanguage: %s" % mylocale.GetLanguage())
+        print(u"GetCanonicalName: %s" % mylocale.GetCanonicalName())
+        print(u"GetSysName: %s" % mylocale.GetSysName())
+        print(u"GetLocale: %s" % mylocale.GetLocale())
+        print(u"GetName: %s" % mylocale.GetName())   
     
     def store_screen_dims(self):
         mg.MAX_WIDTH = wx.Display().GetGeometry()[2]
@@ -327,7 +371,6 @@ class StartFrame(wx.Frame):
                             "project %s. Please check your settings.") % 
                             self.active_proj)
             raise # for debugging
-        show_more_steps = True
         try:
             config_dlg.add_icon(frame=self)
             if show_more_steps: print(u"Added icon to frame")
@@ -412,16 +455,22 @@ class StartFrame(wx.Frame):
             f = codecs.open(prob, "w", "utf8")
             f.write(u"\n\n".join(mg.DBE_PROBLEM))
             f.close()
+        if show_more_steps: print(u"Passed check for database problems")
         if mg.MUST_DEL_TMP:
             wx.MessageBox(_("Please click on \"Enter/Edit Data\" and delete"
                         " the table \"%s\"") % mg.TMP_TBL_NAME)
+        if show_more_steps: print(u"Passed check for having to delete database")
         # any warnings to display once screen visible?
         warning_div = u"\n\n" + u"-"*20 + u"\n\n"
         deferred_warning_msg = warning_div.join(mg.DEFERRED_WARNING_MSGS)
+        if show_more_steps: print(u"Assembled warning message")
         if deferred_warning_msg:
+            if show_more_steps: print(u"Has deferred warning message")
             wx.CallAfter(self.on_deferred_warning_msg, deferred_warning_msg)
+            if show_more_steps: print(u"Set warning message to CallAfter")
         else:
             wx.CallAfter(self.sofastats_connect)
+            if show_more_steps: print(u"Set sofastats_connect to CallAfter")
     
     def set_layout_constants(self):
         # layout "constants"
@@ -710,28 +759,41 @@ class StartFrame(wx.Frame):
         sofastats_connect_fil = os.path.join(mg.INT_PATH, 
                                              mg.SOFASTATS_CONNECT_FILE)
         wx.BeginBusyCursor()
+        if show_more_steps: print(u"About to attempt reading connect file")
         try:
             # read date from file if possible
             f = codecs.open(sofastats_connect_fil, "U", encoding="utf-8")
             connect_cont = lib.get_exec_ready_text(text=f.read())
             f.close()
+            if show_more_steps: print(u"Just got connection details")
             connect_cont = lib.clean_bom_utf8(connect_cont)
             connect_dic = {}
             # http://docs.python.org/reference/simple_stmts.html
             exec connect_cont in connect_dic
+            if show_more_steps: print(u"Just executed connection details")
             # if date <= now, connect_now and update file
             connect_date = connect_dic[mg.SOFASTATS_CONNECT_VAR]
             now_str = unicode(datetime.datetime.today())
             expired_date = (connect_date <= now_str)
+            if show_more_steps: print(u"Just worked out expired date")
             if expired_date:
                 connect_now = True
+            if show_more_steps: print(u"Successfully read connect file")
         except Exception, e: # if probs, create new file for few weeks away
-            self.update_sofastats_connect_date(sofastats_connect_fil, 
+            try:
+                if show_more_steps: 
+                    print(u"About to update sofastats connect date")
+                self.update_sofastats_connect_date(sofastats_connect_fil, 
                                          days2wait=mg.SOFASTATS_CONNECT_INITIAL)
+                if show_more_steps: print(u"Updated connect date")
+            except Exception, e:
+                raise Exception("Unable to update sofastats connect date")
         if connect_now:
             try:
                 # check we can!
+                if show_more_steps: print(u"About to import showhtml")
                 import showhtml
+                if show_more_steps: print(u"About to import urllib")
                 import urllib # http://docs.python.org/library/urllib.html
                 file2read = mg.SOFASTATS_CONNECT_URL
                 # so I can see which versions are still in use
@@ -739,13 +801,16 @@ class StartFrame(wx.Frame):
                 url2open = u"http://www.sofastatistics.com/%s?version=%s" % \
                                                         (file2read, mg.VERSION)
                 url_reply = urllib.urlopen(url2open)
-                if debug: print("Checked sofastatistics.com connection: %s" 
-                                % new_version)
+                if show_more_steps: 
+                    print("Checked sofastatistics.com connection: %s" % 
+                          new_version)
                 # seems OK so connect
                 width_reduction=mg.MAX_WIDTH*0.25 if mg.MAX_WIDTH > 1000 \
                                                   else 200
                 height_reduction=mg.MAX_HEIGHT*0.25 if mg.MAX_HEIGHT > 600 \
                                                     else 100
+                if show_more_steps: print(u"Worked out height and width "
+                                          u"reduction")
                 dlg = showhtml.DlgHTML(parent=self, 
                        title=_("What's happening in SOFA Statistics"), 
                        url='http://www.sofastatistics.com/sofastats_connect.php',
@@ -753,8 +818,14 @@ class StartFrame(wx.Frame):
                        height_reduction=mg.MAX_HEIGHT*0.25)
                 dlg.ShowModal()
                 # set next contact date
-                self.update_sofastats_connect_date(sofastats_connect_fil, 
-                                         days2wait=mg.SOFASTATS_CONNECT_REGULAR)
+                try:
+                    if show_more_steps: 
+                        print(u"About to update sofastats connect date")
+                    self.update_sofastats_connect_date(sofastats_connect_fil, 
+                                             days2wait=mg.SOFASTATS_CONNECT_REGULAR)
+                    if show_more_steps: print(u"Updated connect date")
+                except Exception, e:
+                    raise Exception("Unable to update sofastats connect date")                
             except Exception, e:
                 if debug: print(u"Unable to connect to sofastatistics.com."
                                 u"/nCaused by error: %s" % lib.ue(e))
