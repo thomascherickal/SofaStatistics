@@ -258,7 +258,7 @@ def init_com_types(parent, panel):
         h.show_html(u"")
         h = None
         # leave tag saying it is done
-        f = file(comtypes_tag, "w")
+        f = codecs.open(comtypes_tag, "w", "utf-8")
         f.write(u"Comtypes handled successfully :-)")
         f.close()
 
@@ -468,7 +468,7 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
                         u"\nCaused by error: %s" % lib.ue(e))
 
 def store_version(local_path):
-    f = file(os.path.join(local_path, mg.VERSION_FILE), "w")
+    f = codecs.open(os.path.join(local_path, mg.VERSION_FILE), "w", "utf-8")
     f.write(mg.VERSION)
     f.close()
     print(u"Stored version as %s" % mg.VERSION)

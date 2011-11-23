@@ -1,3 +1,4 @@
+import codecs
 import wx
 import os
 
@@ -21,7 +22,7 @@ def get_html(title, content, template, root="", file_name="", print_folder=""):
     fil.close()
     #save copy of html content (for printing)
     if print_folder:
-        fil = file(os.path.join(print_folder, file_name), "w")
+        fil = codecs.open(os.path.join(print_folder, file_name), "w", "utf-8")
         fil.write(html)
         fil.close()
     return html

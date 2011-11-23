@@ -25,8 +25,7 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-
-dev_debug = True # relates to errors etc once GUI application running.
+dev_debug = False # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 show_more_steps = True
@@ -38,6 +37,17 @@ import platform
 MAC_PATH = u"/Library/sofastats"
 if platform.system() == "Darwin":
     sys.path.insert(0, MAC_PATH) # start is running from Apps folder
+elif platform.system() == u"Windows":
+    # handle pyw issue - but allow py to output useful messages
+    try: # http://bugs.python.org/issue1415#msg57459
+        print(" "*10000) # large enough to force flush to file
+    except IOError, e: # fails in pyw (i.e. running pythonw.exe)
+        # IOError: [Errno 9] Bad file descriptor error when eventually tries to 
+        # flush content of all the writes to file.
+        class NullWriter:
+            def write(self, data):
+                pass
+        sys.stdout = NullWriter()
 
 import setup # if any modules are going to fail, it will be when this imported
 LOCAL_PATH_SETUP_NEEDED = setup.setup_folders()
