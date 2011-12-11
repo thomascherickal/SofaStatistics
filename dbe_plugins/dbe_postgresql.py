@@ -11,14 +11,17 @@ import my_exceptions
 import lib
 import getdata
 try:
-    import pgdb
+    import psycopg as pg
 except ImportError, e:
-    raise Exception(u"Not importing PostgreSQL driver. NB SOFA can only work "
-        u"with PostgreSQL if its path e.g. \"C:\\Program Files\\PostgreSQL\\"
-        u"9.1\\bin\" is added to your Windows PATH variable. See "
-        u"http://geekswithblogs.net/renso/archive/2009/10/21/"
-        u"how-to-set-the-windows-path-in-windows-7.aspx\nReason: %s" % 
-        lib.ue(e))
+    try:
+        import pgdb as pg
+    except ImportError, e:
+        raise Exception(u"Not importing PostgreSQL driver. NB SOFA can only work "
+            u"with PostgreSQL if its path e.g. \"C:\\Program Files\\PostgreSQL\\"
+            u"9.1\\bin\" is added to your Windows PATH variable. See "
+            u"http://geekswithblogs.net/renso/archive/2009/10/21/"
+            u"how-to-set-the-windows-path-in-windows-7.aspx\nReason: %s" % 
+            lib.ue(e))
 
 # http://www.postgresql.org/docs/8.4/static/datatype.html
 BIGINT = u"bigint" # "signed eight-byte integer"
@@ -105,7 +108,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
     try:
         if db:
             con_dets_pgsql["database"] = db
-        con = pgdb.connect(**con_dets_pgsql)
+        con = pg.connect(**con_dets_pgsql)
     except Exception, e:
         user = con_dets_pgsql.get("user")
         if user != 'postgres' and not db:
@@ -126,7 +129,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
     for db4list in all_dbs:
         con_dets_pgsql["database"] = db4list
         try:
-            con = pgdb.connect(**con_dets_pgsql)
+            con = pg.connect(**con_dets_pgsql)
         except Exception:
             continue
         cur = con.cursor()
@@ -142,7 +145,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
     # NB db must be accessible from connection
     if db:
         con_dets_pgsql["database"] = db
-    con = pgdb.connect(**con_dets_pgsql)
+    con = pg.connect(**con_dets_pgsql)
     cur = con.cursor()
     if not db:
         # use default if possible, or fall back to first
@@ -155,7 +158,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
         cur.close()
         con.close()
         con_dets_pgsql["database"] = db
-        con = pgdb.connect(**con_dets_pgsql)
+        con = pg.connect(**con_dets_pgsql)
         cur = con.cursor()
     else:
         if db.lower() not in dbs_lc:
