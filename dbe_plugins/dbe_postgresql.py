@@ -13,8 +13,12 @@ import getdata
 try:
     import pgdb
 except ImportError, e:
-    raise Exception(u"Not importing PostgreSQL.\nReason: %s"
-                    % lib.ue(e))
+    raise Exception(u"Not importing PostgreSQL driver. NB SOFA can only work "
+        u"with PostgreSQL if its path e.g. \"C:\\Program Files\\PostgreSQL\\"
+        u"9.1\\bin\" is added to your Windows PATH variable. See "
+        u"http://geekswithblogs.net/renso/archive/2009/10/21/"
+        u"how-to-set-the-windows-path-in-windows-7.aspx\nReason: %s" % 
+        lib.ue(e))
 
 # http://www.postgresql.org/docs/8.4/static/datatype.html
 BIGINT = u"bigint" # "signed eight-byte integer"

@@ -45,17 +45,18 @@ if show_early_steps: print(u"Just imported traceback")
 MAC_PATH = u"/Library/sofastats"
 if platform.system() == "Darwin":
     sys.path.insert(0, MAC_PATH) # start is running from Apps folder
-try:
-    import wxversion
-    wxversion.select("2.8")
-except Exception, e:
-    msg = u"There seems to be a problem with wxversion. %s" % \
-        traceback.format_exc()
-    if show_early_steps: 
-        print(msg)
-        raw_input(INIT_DEBUG_MSG)
-    raise Exception(msg)
-if show_early_steps: print(u"Just ran wxversion")
+if not(hasattr(sys, 'frozen') and sys.frozen):
+    try:
+        import wxversion
+        wxversion.select("2.8")
+    except Exception, e:
+        msg = u"There seems to be a problem with wxversion. %s" % \
+            traceback.format_exc()
+        if show_early_steps: 
+            print(msg)
+            raw_input(INIT_DEBUG_MSG)
+        raise Exception(msg)
+    if show_early_steps: print(u"Just ran wxversion")
 import wx
 if show_early_steps: print(u"Just imported wx")
 # All i18n except for wx-based (which MUST happen after wx.App init)

@@ -25,7 +25,7 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-dev_debug = False # relates to errors etc once GUI application running.
+dev_debug = True # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 show_more_steps = True
@@ -169,7 +169,8 @@ class SofaApp(wx.App):
         Try to get a canon_name that will work on this system.
         First try the language default. Will only work if SOFA has support for 
             that language (and if language actually installed on system).
-        If not possible, fall back to English. 
+        If not possible, fall back to closest language supplied. And failing 
+            that, fall back to English. 
         If a failure because SOFA translation not provided, let user know they 
             can ask for a translation or even help contribute to a translation.
         If fails in spite of translation being supplied, suggest options and 
@@ -177,18 +178,31 @@ class SofaApp(wx.App):
         """
         debug = False
         orig_langid = (mg.TEST_LANGID if test_lang else wx.LANGUAGE_DEFAULT)
-        langinfo = wx.Locale.GetLanguageInfo(orig_langid)
-        langname = langinfo.Description
+        # get name for message
+        orig_langinfo = wx.Locale.GetLanguageInfo(orig_langid)
+        orig_langname = orig_langinfo.Description
         translation_supplied = self.translation_supplied(langdir, orig_langid)
         if translation_supplied:
             langid = orig_langid # try it - still might fail
         else:
-            langid = wx.LANGUAGE_ENGLISH
-            print(u"SOFA does not appear to have been translated into "
-                  u"%(langname)s yet. SOFA will operate in UK English "
-                  u"instead. If you are able to help translate "
-                  u"English into %(langname)s please contact " 
-                  u"grant@sofastatistics.com.""" % {"langname": langname})
+            closest_langid_supplied = self.get_closest_langid_supplied(langdir, 
+                                                                orig_langinfo)
+            if closest_langid_supplied:
+                langid = closest_langid_supplied
+                langinfo_used = wx.Locale.GetLanguageInfo(langid)
+                langname_used = langinfo_used.Description
+            else:
+                langid = wx.LANGUAGE_ENGLISH
+                langname_used = "UK English"
+            msg = (u"SOFA does not appear to have been translated into "
+                   u"%(orig_langname)s yet. SOFA will operate in "
+                   u"%(langname_used)s instead. "
+                   u"If you are able to help translate English into "
+                   u"%(orig_langname)s please contact "
+                   u"grant@sofastatistics.com." % 
+                                        {"orig_langname": orig_langname,
+                                         "langname_used": langname_used})
+            print(msg)
         # Next line will only work if locale installed on computer. On Macs,
         # must be after app starts (http://programming.itags.org/python/2877/)
         mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
@@ -199,7 +213,8 @@ class SofaApp(wx.App):
             """
             If a language isn't installed on the OS then it won't even look for 
                 the locale subfolder. GetLanguage() will return 1 instead of the 
-                langid. See also http://code.google.com/p/bpbible/source/browse/trunk/gui/i18n.py?r=977#36
+                langid. See also 
+                http://code.google.com/p/bpbible/source/browse/trunk/gui/i18n.py?r=977#36
             """
             if mg.PLATFORM == mg.LINUX:
                 cli = (u"\n\nSee list of languages installed on your "
@@ -268,9 +283,28 @@ class SofaApp(wx.App):
                 langids.append(langinfo.Language)
             except Exception, e:
                 raise my_exceptions.DoNothingException("Don't prevent the user "
-                                           "getting an English version of SOFA "
-                                           "running over this problem.")
+                                       "getting an English version of SOFA "
+                                       "running because of this minor problem.")
         return langids
+    
+    def get_closest_langid_supplied(self, langdir, orig_langinfo):
+        try:
+            closest_langid_supplied = None # init
+            orig_canon_name = orig_langinfo.CanonicalName
+            if "_" in orig_canon_name:
+                orig_root = orig_canon_name.split("_")[0]
+                langids_supplied = self.get_langids_supported_by_sofa(langdir)
+                for langid in langids_supplied:
+                    langinfo = wx.Locale.GetLanguageInfo(langid)
+                    canon_name = langinfo.CanonicalName
+                    if "_" in canon_name:
+                        root = canon_name.split("_")[0]
+                        if root == orig_root:
+                            closest_langid_supplied = langid
+                            break
+        except Exception, e:
+            closest_langid_supplied = None
+        return closest_langid_supplied
     
     def translation_supplied(self, langdir, langid):
         """
@@ -280,7 +314,7 @@ class SofaApp(wx.App):
             langids_supplied = self.get_langids_supported_by_sofa(langdir)
             supplied = (langid in langids_supplied)
         except Exception, e:
-            supplied = True  
+            supplied = False  
         return supplied
     
     def print_locale_dets(self, mylocale, langid):
