@@ -42,13 +42,12 @@ import traceback
 if show_early_steps: print(u"Just imported traceback")
 # yes - an action in a module - but only called once and really about letting 
 # other modules even be found and called
-MAC_PATH = u"/Library/sofastats"
-if platform.system() == "Darwin":
-    sys.path.insert(0, MAC_PATH) # start is running from Apps folder
 if not(hasattr(sys, 'frozen') and sys.frozen):
     try:
         import wxversion
         wxversion.select("2.8")
+    except wxversion.AlreadyImportedError, e:
+        pass
     except Exception, e:
         msg = u"There seems to be a problem with wxversion. %s" % \
             traceback.format_exc()
@@ -551,10 +550,7 @@ def setup_folders():
                           mg.REPORTS_FOLDER, mg.SCRIPTS_FOLDER, mg.VDTS_FOLDER]
     oth_subfolders = [os.path.join(mg.REPORTS_FOLDER, mg.REPORT_EXTRAS_FOLDER)]
     local_subfolders = subfolders_in_proj + oth_subfolders
-    if mg.PLATFORM == mg.MAC:
-        prog_path = MAC_PATH
-    else:
-        prog_path = mg.SCRIPT_PATH
+    prog_path = mg.SCRIPT_PATH
     if show_early_steps: print(u"Just set prog_path")
     try:
         # 1) make local SOFA folder if missing. Otherwise, leave intact for now

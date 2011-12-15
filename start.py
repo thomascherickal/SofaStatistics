@@ -33,11 +33,8 @@ test_lang = False
 
 import sys
 import platform
-# About letting other modules even be found and called
-MAC_PATH = u"/Library/sofastats"
-if platform.system() == "Darwin":
-    sys.path.insert(0, MAC_PATH) # start is running from Apps folder
-elif platform.system() == u"Windows":
+
+if platform.system() == u"Windows":
     # handle pyw issue - but allow py to output useful messages
     try: # http://bugs.python.org/issue1415#msg57459
         print(" "*10000) # large enough to force flush to file
