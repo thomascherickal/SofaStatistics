@@ -25,7 +25,7 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-dev_debug = False # relates to errors etc once GUI application running.
+dev_debug = True # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 show_more_steps = True
@@ -459,38 +459,22 @@ class StartFrame(wx.Frame):
             lib.safe_end_cursor()
             raise Exception(u"Problem setting up help images."
                             u"\nCaused by error: %s" % lib.ue(e))
-        # Upgrade available? 1) get level of version checking
-        try:
-            prefs_dic = \
-                config_globals.get_settings_dic(subfolder=mg.INT_FOLDER, 
-                                                fil_name=mg.INT_PREFS_FILE)
-            version_lev = prefs_dic[mg.PREFS_KEY].get(mg.VERSION_CHECK_KEY, 
-                                                      mg.VERSION_CHECK_ALL)
-        except Exception, e:
-            version_lev = mg.VERSION_CHECK_ALL
+        # upgrade available?
+        version_lev = self.get_version_lev()
         if show_more_steps: print(u"Got version level")
-        # 2) get upgrade available status
-        try:
-            if version_lev == mg.VERSION_CHECK_NONE:
-                raise Exception(u"No permission to check for new versions")
-            else:
-                if not dev_debug:
-                    new_version = self.get_latest_version(version_lev)
-                if debug: print(new_version)
-            self.upgrade_available = \
-                                lib.version_a_is_newer(version_a=new_version, 
-                                                       version_b=mg.VERSION)
-        except Exception, e:
-            self.upgrade_available = False
+        new_version = self.get_new_version(version_lev)
+        if show_more_steps: print(u"Got new version (if possible)")
+        self.set_upgrade_availability(new_version)
         if show_more_steps: print(u"Identified if upgrade available")
         try:
-            self.setup_links()
+            self.setup_links(new_version)
             if show_more_steps: print(u"Set up links")
         except Exception, e:
             lib.safe_end_cursor()
             wx.MessageBox(u"Problem setting up links")
             raise # for debugging
             return
+        # database check
         if mg.DBE_PROBLEM:
             prob = os.path.join(mg.INT_PATH, u"database connection problem.txt")
             f = codecs.open(prob, "w", "utf8")
@@ -512,6 +496,42 @@ class StartFrame(wx.Frame):
         else:
             wx.CallAfter(self.sofastats_connect)
             if show_more_steps: print(u"Set sofastats_connect to CallAfter")
+    
+    def get_version_lev(self):
+        try:
+            prefs_dic = config_globals.get_settings_dic(subfolder=mg.INT_FOLDER, 
+                                                     fil_name=mg.INT_PREFS_FILE)
+            version_lev = prefs_dic[mg.PREFS_KEY].get(mg.VERSION_CHECK_KEY, 
+                                                      mg.VERSION_CHECK_ALL)
+        except Exception, e:
+            version_lev = mg.VERSION_CHECK_ALL
+        return version_lev
+    
+    def get_new_version(self, version_lev):
+        """
+        Return empty string if no new version or checking prevented.
+        """
+        debug = True
+        new_version = u""
+        try:
+            if version_lev != mg.VERSION_CHECK_NONE:
+                new_version = self.get_latest_version(version_lev)
+        except Exception, e:
+            pass
+        if debug: print(new_version)
+        return new_version
+    
+    def set_upgrade_availability(self, new_version):
+        """
+        new_version will be empty string or a version number e.g. 1.1.3
+        Upgrade unavailable if nothing newer or if checking prevented or a 
+            connection not made.
+        """
+        try:
+            self.upgrade_available = lib.version_a_is_newer(version_a=new_version, 
+                                                           version_b=mg.VERSION)
+        except Exception, e:
+            self.upgrade_available = False
     
     def set_layout_constants(self):
         # layout "constants"
@@ -747,7 +767,11 @@ class StartFrame(wx.Frame):
             self.btn_statistics.SetCursor(hand)
             self.btn_exit.SetCursor(hand)
     
-    def setup_links(self):
+    def setup_links(self, new_version):
+        """
+        new_version might be an empty string but, if so, there should be no 
+            upgrade available so no link displayed anyway.
+        """
         # home link
         home_link_hpos = self.version_right if REVERSE else self.main_left
         link_home = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com", 

@@ -13,7 +13,7 @@ import wx
 
 debug = False
 
-VERSION = u"1.1.3"
+VERSION = u"1.1.4"
 ADVANCED = False
 ATTRIBUTION = u"sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html
