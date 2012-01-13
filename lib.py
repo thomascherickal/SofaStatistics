@@ -22,6 +22,16 @@ import my_globals as mg
 import my_exceptions
 import core_stats
 
+def get_num2display(num, output_type, inc_perc=True):
+    if output_type == mg.FREQ:
+        num2display = unicode(num)
+    else:
+        if inc_perc:
+            num2display = u"%s%%" % round(num, 1)
+        else:
+            num2display = u"%s" % round(num, 1)
+    return num2display
+
 def current_lang_rtl():
     return wx.GetApp().GetLayoutDirection() == wx.Layout_RightToLeft
 

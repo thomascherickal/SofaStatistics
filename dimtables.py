@@ -945,10 +945,11 @@ class GenTable(LiveTable):
         # build the body row html
         for row in row_label_rows_lst:
             for j in range(len(col_term_nodes)):
-                data_format = mg.data_format_dic[data_item_presn_lst[i][1]]
-                data_val = data_format(results[i])
+                num2display = lib.get_num2display(num=results[i], 
+                                  output_type=data_item_presn_lst[i][1], 
+                                  inc_perc=True)
                 row.append(data_item_presn_lst[i][0] + \
-                           data_val + data_item_presn_lst[i][2])
+                           num2display + data_item_presn_lst[i][2])
                 i=i+1
         return row_label_rows_lst
     

@@ -105,12 +105,6 @@ TBL_TITLE_START = u"<!--_title_start-->"
 TBL_TITLE_END = u"<!--_title_end-->"
 TBL_SUBTITLE_START = u"<!--_subtitle_start-->"
 TBL_SUBTITLE_END = u"<!--_subtitle_end-->"
-def pct_1_dec(num):
-    if debug: print(num)
-    return "%s%%" % round(num,1)
-def pct_2_dec(num):
-    return "%s%%" % round(num,2)
-data_format_dic = {FREQ: str, ROWPCT: pct_1_dec, COLPCT: pct_1_dec}
 DEFAULT_HDR = \
 u"""<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
 'http://www.w3.org/TR/html4/loose.dtd'>
