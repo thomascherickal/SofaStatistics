@@ -411,10 +411,10 @@ class LiveTable(DimTable):
             if too many (and abort).
         Required if using get_cell_n_ok().
         """
-        (self.row_label_rows_lst, self.tree_row_labels, row_label_cols_n) = \
-                                                    self.get_row_dets(css_idx)
-        self.tree_col_labels, self.hdr_html = self.get_hdr_dets(
-                                                    row_label_cols_n, css_idx)
+        (self.row_label_rows_lst, self.tree_row_labels, 
+                row_label_cols_n) = self.get_row_dets(css_idx)
+        (self.tree_col_labels, 
+                self.hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)
         self.prep_css_idx = css_idx
         self.prepared = True
     

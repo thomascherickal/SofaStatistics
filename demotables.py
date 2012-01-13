@@ -400,13 +400,10 @@ class GenDemoTable(DemoDimTable):
                     cellclass = CSS_DATACELL
                 # build data row list
                 raw_val = lib.get_rand_val_of_type(mg.FLD_TYPE_NUMERIC)
-                data_val = unicode(raw_val)  
-                if colmeasure in [mg.ROWPCT, mg.COLPCT]:
-                    val = u"%s%%" % data_val
-                else:
-                    val = data_val
+                data_format = mg.data_format_dic[colmeasure]
+                data_val = data_format(raw_val)
                 data_item_presn_lst.append(u"<td class='%s'>%s</td>" % \
-                                           (cellclass, val))
+                                           (cellclass, data_val))
                 i=i+1
         i=0
         # put the cell data (inc html) into the right places
