@@ -816,8 +816,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 self.prev_demo = None
             else:
                 demo_tbl_html = (_("<p class='gui-msg-medium'>Example data - "
-                       "click 'Run' for actual results<br>&nbsp;&nbsp;or "
-                       "keep configuring</p>"))
+                       "click '%s' for actual results<br>&nbsp;&nbsp;or "
+                       "keep configuring</p>") % config_dlg.run)
                 current_style = config_dlg.path2style(cc[mg.CURRENT_CSS_PATH])
                 demo_tbl_html += u"\n\n" + demo_html
                 self.prev_demo = demo_tbl_html

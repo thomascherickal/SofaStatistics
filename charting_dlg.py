@@ -22,6 +22,13 @@ INC_PERC = True
 SHOW_AVG = False
 
 
+"""
+If sorting of x-axis not explicit, will be sort_opt=mg.SORT_NONE and will thus 
+    be sorted by values not labels and order of values determined by GROUP BY
+    in database engine used. See specifics in, for example, 
+    get_line_chart_script().
+"""
+
 class DlgCharting(indep2var.DlgIndep2VarConfig):
 
     inc_gp_by_select = True

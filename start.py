@@ -1004,7 +1004,7 @@ class StartFrame(wx.Frame):
                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
             copyright = u"\u00a9"
             panel_dc.DrawLabel(u"Released under open source AGPL3 licence\n%s "
-                               "2009-2011 Paton-Simpson & Associates Ltd" %
+                               "2009-2012 Paton-Simpson & Associates Ltd" %
                                copyright, 
                                wx.Rect(self.main_left, self.form_height-53, 
                                        100, 50))
