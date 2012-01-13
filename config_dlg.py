@@ -355,7 +355,7 @@ class ConfigDlg(object):
         # main
         self.btn_run = wx.Button(panel, -1, run)
         self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
-        self.btn_run.SetToolTipString(_("Run report and display results"))
+        self.btn_run.SetToolTipString(_("Run report and show results"))
         self.chk_add_to_report = wx.CheckBox(panel, -1, add_to_report)
         self.chk_add_to_report.SetValue(True)
         if mg.ADVANCED:

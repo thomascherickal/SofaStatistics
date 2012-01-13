@@ -138,7 +138,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.szr_data, self.szr_config = self.get_gen_config_szrs(self.panel)
         szr_mid = wx.BoxSizer(wx.VERTICAL)
         szr_tab_type = wx.BoxSizer(wx.HORIZONTAL)
-        szr_opts = wx.BoxSizer(wx.VERTICAL)
+        szr_opts = wx.BoxSizer(wx.HORIZONTAL)
+        szr_raw_display_opts = wx.BoxSizer(wx.VERTICAL)
         szr_titles = wx.BoxSizer(wx.HORIZONTAL)
         szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
         szr_trees = wx.BoxSizer(wx.HORIZONTAL)
@@ -174,9 +175,16 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.chk_totals_row = wx.CheckBox(self.panel, -1, _("Totals Row?"))
         self.chk_totals_row.Bind(wx.EVT_CHECKBOX, self.on_chk_totals_row)
         self.chk_first_as_label = wx.CheckBox(self.panel, -1, 
-                                           _("First col as label?"))
-        self.chk_first_as_label.Bind(wx.EVT_CHECKBOX, self.on_chk_first_as_label)
-        self.enable_opts(enable=False)
+                                              _("First col as label?"))
+        self.chk_first_as_label.Bind(wx.EVT_CHECKBOX, 
+                                     self.on_chk_first_as_label)
+        self.enable_raw_display_opts(enable=False)
+        self.chk_show_perc_symbol = wx.CheckBox(self.panel, -1, 
+                                                _("Show % symbol?"))
+        self.chk_show_perc_symbol.Bind(wx.EVT_CHECKBOX, 
+                                       self.on_chk_show_perc_symbol)
+        self.enable_show_perc_symbol_opt(enable=True)
+        self.chk_show_perc_symbol.SetValue(True) # True is default
         #text labels
         lbl_rows = wx.StaticText(self.panel, -1, _("Rows:"))
         lbl_rows.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -260,8 +268,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         szr_titles.Add(self.txt_titles, 1, wx.GROW|wx.RIGHT, 10)
         szr_titles.Add(lbl_subtitles, 0, wx.RIGHT, 5)
         szr_titles.Add(self.txt_subtitles, 1, wx.GROW)
-        szr_opts.Add(self.chk_totals_row, 0)        
-        szr_opts.Add(self.chk_first_as_label)
+        szr_raw_display_opts.Add(self.chk_totals_row, 0)        
+        szr_raw_display_opts.Add(self.chk_first_as_label, 0)
+        szr_opts.Add(szr_raw_display_opts, 0) 
+        szr_opts.Add(self.chk_show_perc_symbol, 0)
         szr_tab_type.Add(szr_opts, 0)
         static_box_gap = 0 if mg.PLATFORM == mg.MAC else 5
         if static_box_gap:
@@ -396,10 +406,12 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     
     def update_by_tab_type(self):
         """
-        Delete all col vars.  May add back the default col config if a FREQS TBL
+        Delete all col vars. May add back the default col config if a FREQS TBL
         If changed to row summ or raw display, delete all row vars.
         If changing to freq or crosstab, leave row vars alone but wipe their 
             measures.
+        Don't set show_perc when instantiating here as needs to be checked every 
+            time get_demo_html_if_ok() is called.
         """
         self.tab_type = self.rad_tab_type.GetSelection() # for convenience
         self.coltree.DeleteChildren(self.colroot)
@@ -416,9 +428,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                          item_conf.get_summary(), 1)
         # link to appropriate demo table type
         if self.tab_type == mg.FREQS_TBL:
-            self.chk_totals_row.SetValue(False)
-            self.chk_first_as_label.SetValue(False)
-            self.enable_opts(enable=False)
+            self.enable_raw_display_opts(enable=False)
+            self.enable_show_perc_symbol_opt(enable=True)
             self.demo_tab = demotables.GenDemoTable(txtTitles=self.txt_titles, 
                                  txtSubtitles=self.txt_subtitles,
                                  colroot=self.colroot, rowroot=self.rowroot, 
@@ -428,9 +439,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  val_dics=self.val_dics)
             self.add_default_column_config()
         if self.tab_type == mg.CROSSTAB:
-            self.chk_totals_row.SetValue(False)
-            self.chk_first_as_label.SetValue(False)
-            self.enable_opts(enable=False)
+            self.enable_raw_display_opts(enable=False)
+            self.enable_show_perc_symbol_opt(enable=True)
             self.demo_tab = demotables.GenDemoTable(txtTitles=self.txt_titles, 
                                  txtSubtitles=self.txt_subtitles,
                                  colroot=self.colroot, rowroot=self.rowroot, 
@@ -439,9 +449,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics)
         elif self.tab_type == mg.ROW_SUMM:
-            self.chk_totals_row.SetValue(False)
-            self.chk_first_as_label.SetValue(False)
-            self.enable_opts(enable=False)
+            self.enable_raw_display_opts(enable=False)
+            self.enable_show_perc_symbol_opt(enable=False)
             self.demo_tab = demotables.SummDemoTable(txtTitles=self.txt_titles, 
                                  txtSubtitles=self.txt_subtitles,
                                  colroot=self.colroot, rowroot=self.rowroot, 
@@ -450,13 +459,14 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                  var_labels=self.var_labels, 
                                  val_dics=self.val_dics)
         elif self.tab_type == mg.RAW_DISPLAY:
-            self.enable_opts(enable=True)
+            self.enable_raw_display_opts(enable=True)
+            self.enable_show_perc_symbol_opt(enable=False)
             self.demo_tab = demotables.DemoRawTable(txt_titles=self.txt_titles, 
                              txt_subtitles=self.txt_subtitles, 
                              colroot=self.colroot, coltree=self.coltree, 
                              var_labels=self.var_labels, val_dics=self.val_dics,
-                             chk_totals_row=self.chk_totals_row,
-                             chk_first_as_label=self.chk_first_as_label)
+                             totals_row=self.chk_totals_row.IsChecked(),
+                             first_as_label=self.chk_first_as_label.IsChecked())
         # in case they were disabled and then we changed tab type
         self.setup_row_btns()
         self.setup_col_btns()
@@ -464,10 +474,14 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         self.update_demo_display()
         self.txt_titles.SetFocus()
         
-    def enable_opts(self, enable=True):
-        "Enable (or disable) options"
+    def enable_raw_display_opts(self, enable=True):
+        "Enable (or disable) raw display options"
         self.chk_totals_row.Enable(enable)
         self.chk_first_as_label.Enable(enable)
+        
+    def enable_show_perc_symbol_opt(self, enable=True):
+        "Enable (or disable) Show Percentage Symbol option"
+        self.chk_show_perc_symbol.Enable(enable)
         
     def on_chk_totals_row(self, event):
         "Update display as total rows checkbox changes"
@@ -476,7 +490,11 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     def on_chk_first_as_label(self, event):
         "Update display as first column as label checkbox changes"
         self.update_demo_display()
-                
+    
+    def on_chk_show_perc_symbol(self, event):
+        "Update display as show percentage symbol checkbox changes"
+        self.update_demo_display()
+    
     # titles/subtitles
     def on_title_change(self, event):
         """
@@ -600,6 +618,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         # NB the following text is all going to be run
         if self.tab_type in (mg.FREQS_TBL, mg.CROSSTAB):
+            show_perc = (u"True" if self.chk_show_perc_symbol.IsChecked() 
+                         else u"False")
             script_lst.append(u"tab_test = dimtables.GenTable(" +
                             u"titles=%s," % unicode(titles) +
                             u"\n    subtitles=%s," % unicode(subtitles) +
@@ -607,7 +627,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                             u"tbl=u\"%s\", " % dd.tbl +
                             u"tbl_filt=tbl_filt," +
                             u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " +
-                            u"tree_cols=tree_cols)")
+                            u"tree_cols=tree_cols, show_perc=%s)" % show_perc)
         elif self.tab_type == mg.ROW_SUMM:
             script_lst.append(u"tab_test = dimtables.SummTable(" +
                             u"titles=%s," % unicode(titles) +
@@ -619,8 +639,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                             u"tree_cols=tree_cols)")
         elif self.tab_type == mg.RAW_DISPLAY:
             tot_rows = u"True" if self.chk_totals_row.IsChecked() else u"False"
-            first_label = u"True" if self.chk_first_as_label.IsChecked() \
-                else u"False"
+            first_label = (u"True" if self.chk_first_as_label.IsChecked()
+                           else u"False")
             script_lst.append(u"tab_test = rawtables.RawTable(" +
                     u"titles=%s, " % unicode(titles) +
                     u"\n    subtitles=%s, " % unicode(subtitles) +
@@ -792,7 +812,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                                    has_cols)
                 demo_tbl_html = waiting_msg
         else:
-            try:
+            try: # need to reset here otherwise stays as was set when instantiated
+                self.demo_tab.show_perc = self.chk_show_perc_symbol.IsChecked()
                 demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
             except my_exceptions.MissingCssException, e:
                 lib.update_local_display(self.html, _("Please check the CSS "

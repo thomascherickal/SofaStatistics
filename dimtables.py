@@ -377,7 +377,7 @@ class LiveTable(DimTable):
     """
     
     def __init__(self, titles, subtitles, dbe, tbl, tbl_filt, cur, flds, 
-                 tree_rows, tree_cols):
+                 tree_rows, tree_cols, show_perc=True):
         """
         cur - must return tuples, not dictionaries
         """
@@ -397,6 +397,7 @@ class LiveTable(DimTable):
         self.flds = flds
         self.tree_rows = tree_rows
         self.tree_cols = tree_cols
+        self.show_perc = show_perc
     
     def get_data_cell_n(self, tree_col_labels, tree_row_labels):
         col_term_nodes = tree_col_labels.get_terminal_nodes()
@@ -947,7 +948,7 @@ class GenTable(LiveTable):
             for j in range(len(col_term_nodes)):
                 num2display = lib.get_num2display(num=results[i], 
                                   output_type=data_item_presn_lst[i][1], 
-                                  inc_perc=True)
+                                  inc_perc=self.show_perc)
                 row.append(data_item_presn_lst[i][0] + \
                            num2display + data_item_presn_lst[i][2])
                 i=i+1

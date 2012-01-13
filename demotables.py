@@ -32,13 +32,13 @@ class DemoTable(object):
         cc = config_dlg.get_cc()
         # sort titles out first
         if self.txt_titles.GetValue():
-            self.titles = [u"%s" % x for x \
-                      in self.txt_titles.GetValue().split(u"\n")]
+            self.titles = [u"%s" % x for x 
+                           in self.txt_titles.GetValue().split(u"\n")]
         else:
             self.titles = []
         if self.txt_subtitles.GetValue():
-            self.subtitles = [u"%s" % x for x \
-                         in self.txt_subtitles.GetValue().split(u"\n")]
+            self.subtitles = [u"%s" % x for x 
+                              in self.txt_subtitles.GetValue().split(u"\n")]
         else:
             self.subtitles = []
         if debug: print(cc[mg.CURRENT_CSS_PATH])
@@ -73,7 +73,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
     """
     
     def __init__(self, txt_titles, txt_subtitles, colroot, coltree, var_labels, 
-                 val_dics, chk_totals_row, chk_first_as_label):
+                 val_dics, totals_row, first_as_label):
         dd = mg.DATADETS_OBJ
         self.txt_titles = txt_titles
         self.txt_subtitles = txt_subtitles
@@ -81,8 +81,8 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         self.coltree = coltree
         self.var_labels = var_labels
         self.val_dics = val_dics
-        self.chk_totals_row = chk_totals_row
-        self.chk_first_as_label = chk_first_as_label
+        self.totals_row = totals_row
+        self.first_as_label = first_as_label
         self.dbe = dd.dbe
         self.cur = dd.cur
         self.tbl = dd.tbl
@@ -116,8 +116,8 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         Db details are updated anytime db or tbl changes.
         """
         dd = mg.DATADETS_OBJ
-        self.add_total_row = self.chk_totals_row.IsChecked()
-        self.first_col_as_label = self.chk_first_as_label.IsChecked()
+        self.add_total_row = self.totals_row
+        self.first_col_as_label = self.first_as_label
         unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         self.where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
         self.col_names, self.col_labels = lib.get_col_dets(self.coltree, 
@@ -144,13 +144,15 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         self.col_no_vars_item = col_no_vars_item
         self.var_labels = var_labels
         self.val_dics = val_dics
+        # show_perc not set here when instantiated as must be checked from UI 
+        #    each time get_demo_html_if_ok() is called.
     
     def get_html(self, css_idx):
         "Returns demo_html"
         debug = False
         html = []
-        (row_label_rows_lst, tree_row_labels, row_label_cols_n) = \
-                                                    self.get_row_dets(css_idx)
+        (row_label_rows_lst, tree_row_labels, 
+                    row_label_cols_n) = self.get_row_dets(css_idx)
         (tree_col_dets, hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)
         html.append(hdr_html)
         if debug: print(row_label_rows_lst)
@@ -158,8 +160,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                                                      tree_row_labels, 
                                                      tree_col_dets, css_idx)        
         html.append(u"\n\n<tbody>")
-        for row in row_label_rows_lst:
-            # flatten row list
+        for row in row_label_rows_lst: # flatten row list
             html.append(u"\n" + u"".join(row) + u"</tr>")
         html.append(u"\n</tbody>")
         demo_html = u"".join(html)
@@ -284,8 +285,8 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
     
     def add_measures(self, node, measures, is_coltot=False, force_freq=False):
         sep_measures = measures[:]
-        if force_freq and is_coltot and mg.ROWPCT in measures \
-                and mg.FREQ not in measures:
+        if (force_freq and is_coltot and mg.ROWPCT in measures
+                and mg.FREQ not in measures):
             sep_measures.append(mg.FREQ)
         for measure in sep_measures:
             node.add_child(dimtables.LabelNode(label=measure, measure=measure))
@@ -402,7 +403,7 @@ class GenDemoTable(DemoDimTable):
                 raw_val = lib.get_rand_val_of_type(mg.FLD_TYPE_NUMERIC)
                 num2display = lib.get_num2display(num=raw_val, 
                                                   output_type=colmeasure, 
-                                                  inc_perc=True)
+                                                  inc_perc=self.show_perc)
                 data_item_presn_lst.append(u"<td class='%s'>%s</td>" % \
                                            (cellclass, num2display))
                 i=i+1
