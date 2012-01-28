@@ -1,14 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import pprint
 import wx
 
 import my_globals as mg
 import lib
 import my_exceptions
-import getdata
-import dimtables
 import projects
 
 MEASURES = u"measures"
@@ -522,7 +519,7 @@ class DimTree(object):
         if not node_ids:
             has_children = False
         else:
-            item, cookie = self.coltree.GetFirstChild(node_ids[0])
+            item, unused = self.coltree.GetFirstChild(node_ids[0])
             has_children = True if item else False
         inc_measures = self.tab_type == mg.FREQS_TBL or \
                        ((self.tab_type == mg.CROSSTAB) and not has_children)
@@ -670,7 +667,7 @@ class DlgConfig(wx.Dialog):
             try:
                 idx_sort_opt = mg.SORT_OPTS.index(item_conf.sort_order)
                 self.rad_sort_opts.SetSelection(idx_sort_opt)
-            except IndexError, e:
+            except IndexError:
                 my_exceptions.DoNothingException()
             if self.sort_opt_allowed == SORT_OPT_BY_LABEL:
                 # disable freq options
@@ -717,7 +714,7 @@ class DlgConfig(wx.Dialog):
         # measures
         measures_lst = []
         any_measures = False
-        for measure, label in self.measures:
+        for measure, unused in self.measures:
             ticked = self.measure_chks_dic[measure].GetValue()
             if ticked:
                 any_measures = True
@@ -736,7 +733,7 @@ class DlgConfig(wx.Dialog):
         else:
             try:
                 sort_order = mg.SORT_OPTS[self.rad_sort_opts.GetSelection()]
-            except IndexError, e:
+            except IndexError:
                 raise Exception(u"Unexpected sort type")
         self.item_config_dets.set_sort_order(sort_order)
         for node_id in self.node_ids:

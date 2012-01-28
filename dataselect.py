@@ -1,6 +1,5 @@
 from __future__ import print_function
 import pprint
-import sys
 import wx
 
 import my_globals as mg
@@ -15,7 +14,6 @@ import table_config
 
 class DataSelectDlg(wx.Dialog):
     def __init__(self, parent, proj_name):
-        debug = False
         title = _("Data in \"%s\" Project") % proj_name
         wx.Dialog.__init__(self, parent=parent, title=title, 
                            style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU, 

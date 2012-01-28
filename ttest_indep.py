@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import my_globals as mg
 import lib
-import getdata
 import indep2var
 
 
@@ -35,7 +34,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
-        (var_gp_numeric, var_gp, label_gp, val_a, 
+        (var_gp_numeric, var_gp, unused, val_a, 
          label_a, val_b, label_b, var_avg, label_avg) = self.get_drop_vals()
         script_lst.append(u"dp = 3")
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))

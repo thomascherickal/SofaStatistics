@@ -1,6 +1,5 @@
 from __future__ import print_function
 import numpy
-import pprint
 
 import my_globals as mg
 import lib
@@ -466,7 +465,6 @@ class LiveTable(DimTable):
         row_label_cols_n - needed to set up header (need to span the 
             row labels).
         """
-        debug = False
         tree_row_labels = LabelNodeTree()
         for child in self.tree_rows.root_node.children:
             self.add_subtree_to_label_tree(tree_dims_node=child, 
@@ -690,7 +688,7 @@ class LiveTable(DimTable):
             var_measures = tree_dims_node.measures
             if not var_measures: # they unticked everything!
                 var_measures = [mg.FREQ]
-        for val, val_freq, val_label in val_freq_label_lst:
+        for val, unused, val_label in val_freq_label_lst:
             # e.g. male, female
             # add level 2 to the data tree - the value nodes (plus total?); 
             # pass on and extend filtering from higher level in data tree
@@ -945,7 +943,7 @@ class GenTable(LiveTable):
         # using the data item HTML tuples and the results data, 
         # build the body row html
         for row in row_label_rows_lst:
-            for j in range(len(col_term_nodes)):
+            for unused in col_term_nodes:
                 num2display = lib.get_num2display(num=results[i], 
                                   output_type=data_item_presn_lst[i][1], 
                                   inc_perc=self.show_perc)
@@ -1062,8 +1060,8 @@ class SummTable(LiveTable):
         row_measures_lst = [x.measure for x in row_term_nodes]
         col_filters_lst = [x.filts for x in col_term_nodes] #can be [[],[],[], ...]
         row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
-        col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
-        col_tots_lst = [x.is_coltot for x in col_term_nodes]
+        #col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
+        #col_tots_lst = [x.is_coltot for x in col_term_nodes]
         data_cells_n = len(row_term_nodes) * len(col_term_nodes)
         if self.debug: print(u"%s data cells in table" % data_cells_n)
         row_label_rows_lst = self.get_row_labels_row_lst(row_filt_flds_lst, 
@@ -1098,7 +1096,7 @@ class SummTable(LiveTable):
                                      (cellclass, data_val))
         i=0
         for row in row_label_rows_lst:
-            for j in range(len(col_term_nodes)):
+            for unused in col_term_nodes:
                 row.append(data_item_lst[i])
                 i=i+1
         return row_label_rows_lst
@@ -1149,7 +1147,7 @@ class SummTable(LiveTable):
             try:
                 self.cur.execute(SQL_get_min)
                 data_val = self.cur.fetchone()[0]
-            except Exception, e:
+            except Exception:
                 raise Exception(u"Unable to get minimum of %s." % row_fld)
         elif measure == mg.MAX:
             SQL_get_max = u"SELECT MAX(%s) " % self.quote_obj(row_fld) + \
@@ -1157,7 +1155,7 @@ class SummTable(LiveTable):
             try:
                 self.cur.execute(SQL_get_max)
                 data_val = self.cur.fetchone()[0]
-            except Exception, e:
+            except Exception:
                 raise Exception(u"Unable to get maximum of %s." % row_fld)
         elif measure == mg.RANGE:
             SQL_get_range = u"SELECT (MAX(%(fld)s) - MIN(%(fld)s)) " % \
@@ -1166,7 +1164,7 @@ class SummTable(LiveTable):
             try:
                 self.cur.execute(SQL_get_range)
                 data_val = self.cur.fetchone()[0]
-            except Exception, e:
+            except Exception:
                 raise Exception(u"Unable to get range of %s." % row_fld)
         elif measure == mg.SUM:
             SQL_get_sum = u"SELECT SUM(%s) " % self.quote_obj(row_fld) + \
@@ -1174,7 +1172,7 @@ class SummTable(LiveTable):
             try:
                 self.cur.execute(SQL_get_sum)
                 data_val = self.cur.fetchone()[0]
-            except Exception, e:
+            except Exception:
                 raise Exception(u"Unable to calculate sum of %s." % row_fld)
         elif measure == mg.MEAN:
             SQL_get_mean = u"SELECT AVG(%s) " % self.quote_obj(row_fld) + \
@@ -1183,12 +1181,12 @@ class SummTable(LiveTable):
             try:
                 self.cur.execute(SQL_get_mean)
                 data_val = round(self.cur.fetchone()[0],2)
-            except Exception, e:
+            except Exception:
                 raise Exception(u"Unable to calculate mean of %s." % row_fld)
         elif measure == mg.MEDIAN:
             try:
                 data_val = round(numpy.median(data),2)
-            except Exception, e:
+            except Exception:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
                     raise Exception(
@@ -1205,13 +1203,13 @@ class SummTable(LiveTable):
             try:
                 self.cur.execute(SQL_get_n)
                 data_val = u"N=%s" % self.cur.fetchone()[0]
-            except Exception, e:
+            except Exception:
                 raise Exception(u"Unable to calculate N for %s." % row_fld)
         elif measure == mg.STD_DEV:
             try:
                 data_val = round(numpy.std(data, ddof=1),2) # use ddof=1 for 
                                                             # sample sd
-            except Exception, e:
+            except Exception:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
                     raise Exception(

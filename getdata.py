@@ -1,7 +1,6 @@
 # should be imported before any modules which rely on mg.DATADETS_OBJ as dd object
 
 from __future__ import print_function
-import os
 import pprint
 import sys
 import wx
@@ -10,7 +9,6 @@ import my_globals as mg
 import my_exceptions
 import config_globals
 import lib
-import getdata
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import db_grid
 debug = False
@@ -45,14 +43,14 @@ def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None,
         if debug: print(kwargs)
         dbe_resources.update(mg.DBE_MODULES[dbe].get_con_resources(**kwargs))
         cur = dbe_resources[mg.DBE_CUR]
-        dbs = dbe_resources[mg.DBE_DBS]
+        #dbs = dbe_resources[mg.DBE_DBS]
         db = dbe_resources[mg.DBE_DB] # Try this first. 
             # If this database has no tables, try others and reset db.
         if debug: print("About to update dbe resources with db resources")
         db_resources = get_db_resources(dbe, cur, db, default_tbls, tbl)
         dbe_resources.update(db_resources)
         if debug: print("Finished updating dbe resources with db resources")
-    except my_exceptions.MalformedDbError, e:
+    except my_exceptions.MalformedDbError:
         if stop:
             raise
         else: # try once but with add_checks set to True.  Might work :-)
@@ -66,7 +64,7 @@ def get_db_resources(dbe, cur, db, default_tbls, tbl):
     debug = False
     tbls = mg.DBE_MODULES[dbe].get_tbls(cur, db)
     if not tbls:
-        raise my_exceptions.NoTablesException()
+        raise Exception("No Tables")
     if debug: print("About to get tbl")
     if tbl:
         if tbl not in tbls:
@@ -289,8 +287,8 @@ def get_init_settings_data(default_dd, tblname):
     debug = False
     if debug: print(u"default_dd: %s" % default_dd)
     default_dd.con.commit()
-    default_dd.cur.execute(u"PRAGMA table_info(%s)" % \
-                           getdata.tblname_qtr(default_dd.dbe, tblname))
+    default_dd.cur.execute(u"PRAGMA table_info(%s)" % 
+                           tblname_qtr(default_dd.dbe, tblname))
     config = default_dd.cur.fetchall()
     if debug: print(config)
     table_config = [(x[1], get_gen_fld_type(fld_type=x[2])) for x in config]
@@ -362,7 +360,7 @@ def make_fld_val_clause(dbe, flds, fld_name, val, gte=mg.GTE_EQUALS):
     valqtr = get_val_quoter_func(dbe)
     dbe_gte = get_gte(dbe, gte)
     bolnumeric = flds[fld_name][mg.FLD_BOLNUMERIC]
-    boldatetime = flds[fld_name][mg.FLD_BOLDATETIME]
+    #boldatetime = flds[fld_name][mg.FLD_BOLDATETIME]
     if val is None:
         if gte == mg.GTE_EQUALS:
             clause = u"%s IS NULL" % objqtr(fld_name)
@@ -508,7 +506,7 @@ def insert_row(tbl_dd, data):
     data = [(value as string (or None), fld_dets), ...]
     """
     debug = False
-    (unused, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
+    (unused, left_obj_quote, right_obj_quote, unused, unused, 
               placeholder, unused, unused) = get_dbe_syntax_elements(tbl_dd.dbe) 
     """
     data = [(value as string (or None), fld_name, fld_dets), ...]
@@ -518,7 +516,7 @@ def insert_row(tbl_dd, data):
     TODO - test this in Windows.
     """
     if debug: pprint.pprint(data)
-    fld_dics = [x[2] for x in data]
+    #fld_dics = [x[2] for x in data]
     fld_names = [x[1] for x in data]
     joiner = u"%s, %s" % (right_obj_quote, left_obj_quote)
     fld_names_clause = u" (%s" % left_obj_quote + \
@@ -531,13 +529,12 @@ def insert_row(tbl_dd, data):
                     fld_names_clause + u"VALUES %s" % fld_placeholders_clause
     if debug: print(SQL_insert)
     data_lst = []
-    for i, data_dets in enumerate(data):
+    for data_dets in data:
         if debug: pprint.pprint(data_dets)
-        val, fld_name, fld_dic = data_dets
+        val, unused, fld_dic = data_dets
         val2use = prep_val(tbl_dd.dbe, val, fld_dic)
         data_lst.append(val2use)
     data_tup = tuple(data_lst)
-    msg = None
     try:
         tbl_dd.cur.execute(SQL_insert, data_tup)
         tbl_dd.con.commit()
@@ -559,7 +556,7 @@ def delete_row(id_fld, row_id):
     dd = mg.DATADETS_OBJ
     objqtr = get_obj_quoter_func(dd.dbe)
     placeholder = get_placeholder(dd.dbe)
-    SQL_delete = u"DELETE FROM %s " % getdata.tblname_qtr(dd.dbe, dd.tbl) + \
+    SQL_delete = u"DELETE FROM %s " % tblname_qtr(dd.dbe, dd.tbl) + \
                  u"WHERE %s = %s" % (objqtr(id_fld), placeholder)
     if debug: print(SQL_delete)
     data_tup = (row_id,)
@@ -592,8 +589,8 @@ def open_database(parent, event):
                 "index")
         wx.MessageBox(msg % dd.tbl) # needed for caching even if read only
     else:
-        SQL_get_count = (u"""SELECT COUNT(*) FROM %s """ %
-                         getdata.tblname_qtr(dd.dbe, dd.tbl))
+        SQL_get_count = (u"""SELECT COUNT(*) FROM %s """ % tblname_qtr(dd.dbe, 
+                                                                       dd.tbl))
         try:
             dd.cur.execute(SQL_get_count)
         except Exception, e:
@@ -673,13 +670,12 @@ def setup_drop_tbls(drop_tbls):
     Set-up tables dropdown.  Any tables with filtering should have (filtered)
         appended to end of name.
     """
-    debug = False
     dd = mg.DATADETS_OBJ
     tbls_with_filts = []
     for i, tblname in enumerate(dd.tbls):
         if tblname.lower() == dd.tbl.lower():
             idx_tbl = i
-        tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, tblname)
+        unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, tblname)
         if tbl_filt:
             tbl_with_filt = "%s %s" % (tblname, _("(filtered)"))
         else:
@@ -739,7 +735,7 @@ def refresh_tbl_dets(parent):
         parent.flds = dd.flds
         parent.idxs = dd.idxs
         parent.has_unique = dd.has_unique
-    except Exception, e:
+    except Exception:
         wx.MessageBox(_("Experienced problem refreshing table details"))
         raise
     finally:

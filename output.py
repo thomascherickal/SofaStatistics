@@ -50,7 +50,6 @@ When being added to an html report, the header is completely removed and
 from __future__ import print_function
 import codecs
 import os
-import pprint
 import time
 import traceback
 import wx
@@ -58,7 +57,6 @@ import wx
 import my_globals as mg
 import lib
 import my_exceptions
-import getdata
 import config_dlg
 import showhtml
 
@@ -66,9 +64,8 @@ import showhtml
 # in Windows the \r\n makes it fail.
 
 def get_stats_chart_colours(css_fil):
-    (outer_bg, grid_bg, axis_label_font_colour, major_gridline_colour, 
-        gridline_width, stroke_width, tooltip_border_colour, 
-        colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+    (unused, grid_bg, unused, major_gridline_colour, unused, 
+     unused, unused, colour_mappings, unused) = lib.extract_dojo_style(css_fil)
     item_colours = [x[0] for x in colour_mappings]
     line_colour = major_gridline_colour
     return grid_bg, item_colours, line_colour
@@ -211,7 +208,7 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
         for i, css_fil in enumerate(css_fils):
             try:
                 f = codecs.open(css_fil, "r", "utf-8")
-            except IOError, e:
+            except IOError:
                 if default_if_prob:
                     f = codecs.open(mg.DEFAULT_CSS_PATH, "r", "utf-8")
                 else:
@@ -620,7 +617,7 @@ def extract_html_body(html):
 def hdr_has_dojo(html):
     html_hdr = extract_html_hdr(html)
     try:
-        idx = html_hdr.index(u"dojo.addOnLoad")
+        unused = html_hdr.index(u"dojo.addOnLoad")
         hdr_has_dojo = True
     except ValueError:
         hdr_has_dojo = False
@@ -806,7 +803,6 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     Append exported script onto existing script file.
     f - open file handle ready for writing
     """
-    debug = False
     dd = mg.DATADETS_OBJ
     full_datestamp = u"\n# Script exported %s" % lib.get_unicode_datestamp()
     # Fresh connection for each in case it changes in between tables

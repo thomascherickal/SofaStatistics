@@ -1,7 +1,6 @@
 from __future__ import print_function
 import wx
 import wx.grid
-import pprint
 
 import my_globals as mg
 import my_exceptions
@@ -107,7 +106,7 @@ class SettingsEntryDlg(wx.Dialog):
         self.SetReturnCode(wx.ID_OK)
         
     def on_delete(self, event):
-        row_del = self.tabentry.try_to_delete_row()
+        unused = self.tabentry.try_to_delete_row()
         self.tabentry.grid.SetFocus()
         event.Skip()
     
@@ -127,7 +126,7 @@ class SettingsEntryDlg(wx.Dialog):
         """
         Insert before.
         """
-        bolinserted, row_before, row_data = self.insert_before()
+        unused, unused, unused = self.insert_before()
         self.tabentry.grid.SetFocus()
         event.Skip()
         
@@ -175,7 +174,7 @@ class SettingsEntry(object):
         self.cell_response_func = cell_response_func \
             if cell_response_func else cell_response
         # store any fixed min col_widths
-        self.col_widths = [None for x in range(len(self.col_dets))] # initialise
+        self.col_widths = [None for x in range(len(self.col_dets))] # init
         for col_idx, col_det in enumerate(self.col_dets):
             if col_det.get("col_width"):
                 self.col_widths[col_idx] = col_det["col_width"]
@@ -484,7 +483,6 @@ class SettingsEntry(object):
             otherwise, enter will move you down, which is consistent with all 
             other controls.
         """
-        debug = False
         keycode = event.get_key_code() # custom event class
         if keycode in [controls.MY_KEY_TEXT_BROWSE_MOVE_NEXT, 
                        controls.MY_KEY_TEXT_BROWSE_BROWSE_BTN]:
@@ -526,7 +524,6 @@ class SettingsEntry(object):
         # the focus anywhere else (because it triggers EVT_CELL_MOVE and then
         # we grab the focus again below!).
         moved = ((src_row, src_col) != (dest_row, dest_col))
-        left_row = (src_row != dest_row)
         if self.force_focus and moved:
             self.grid.SetFocus()
             # http://www.nabble.com/Setting-focus-to-grid-td17920756.html
@@ -952,13 +949,12 @@ class SettingsEntry(object):
         Returns bolinserted, and row_data (list if content put into inserted 
             row, None if not).
         """
-        debug = False
         if self.new_is_dirty:
             wx.MessageBox(_("Cannot insert a row while in the middle of making "
                             "a new one"))
             return False, None
         grid_data = self.get_grid_data() # only needed to prevent field name
-                                         # collisions
+        # collisions
         row_idx = pos
         self.grid.InsertRows(row_idx)
         row_data = None

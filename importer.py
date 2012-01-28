@@ -3,7 +3,6 @@
 
 from __future__ import print_function
 import os
-import pprint
 import wx
 import wx.html
 
@@ -15,7 +14,6 @@ import getdata # must be before anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 # import csv_importer etc below to avoid circular import
 import gdata_downloader
-import projects
 
 FILE_CSV = u"csv"
 FILE_EXCEL = u"excel"
@@ -123,7 +121,6 @@ def get_best_fld_type(fldname, type_set, faulty2missing_fld_list,
         setting faulty values that don't match type to missing.
     STRING is the fallback.
     """
-    debug = False
     main_type_set = type_set.copy()
     main_type_set.discard(mg.VAL_EMPTY_STRING)
     if main_type_set == set([mg.VAL_NUMERIC]):
@@ -293,7 +290,7 @@ def get_val(feedback, raw_val, is_pytime, fld_type, orig_fld_name,
                     val = raw_val.replace(u",", u".")
                 else:
                     val = raw_val
-            except AttributeError, e:
+            except AttributeError:
                 val = raw_val
         elif raw_val == u"" or raw_val is None:
             ok_data = True
@@ -307,7 +304,6 @@ def get_val(feedback, raw_val, is_pytime, fld_type, orig_fld_name,
     elif fld_type == mg.FLD_TYPE_DATE:
         # must be pytime or datetime string or usable date string
         # or empty string or dot (which we'll turn to NULL).
-        is_datetime = False
         if is_pytime:
             if debug: print(u"pytime raw val: %s" % raw_val)
             val = lib.pytime_to_datetime_str(raw_val)
@@ -372,7 +368,7 @@ def process_val(feedback, vals, row_num, row, orig_fld_name, fld_types,
     """
     debug = False
     try:
-       rawval = row[orig_fld_name]
+        rawval = row[orig_fld_name]
     except KeyError:
         raise Exception(_("Row %(row_num)s doesn't have a value for the "
                           "\"%(orig_fld_name)s\" field") % {u"row_num": row_num, 
@@ -384,7 +380,7 @@ def process_val(feedback, vals, row_num, row, orig_fld_name, fld_types,
     if fld_type != mg.FLD_TYPE_NUMERIC and val != u"NULL":
         try:
             val = dbe_sqlite.quote_val(val)
-        except Exception, e:
+        except Exception:
             raise Exception(_("Tried to quote %(val)s on row %(row_num)s but "
                               "failed.") % {u"val": val, u"row_num": row_num})
     vals.append(val)
@@ -639,7 +635,7 @@ def get_content_dets(strdata):
     debug = False
     try:
         max_row_len = max([len(x) for x in strdata])
-    except Exception, e:
+    except Exception:
         max_row_len = None
     lines = [] # init
     for row in strdata:
@@ -1029,13 +1025,13 @@ class ImportFileSelectDlg(wx.Dialog):
         elif extension.lower() == u".ods":
             self.file_type = FILE_ODS
         elif extension.lower() == u".xlsx":
-            self.file_type == FILE_UNKNOWN
+            self.file_type = FILE_UNKNOWN
             wx.MessageBox("XLSX files are not currently supported. Please save"
                           " as XLS or convert to another supported format.")
             self.align_btns_to_importing(importing=False)
             return
         else:
-            self.file_type == FILE_UNKNOWN
+            self.file_type = FILE_UNKNOWN
             wx.MessageBox(_("Files with the file name extension "
                             "'%s' are not supported") % extension)
             self.align_btns_to_importing(importing=False)

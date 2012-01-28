@@ -8,7 +8,6 @@ import my_globals as mg
 import lib
 import my_exceptions
 import getdata
-import dbe_plugins.dbe_sqlite as dbe_sqlite 
 import db_tbl
 import projects
 
@@ -265,7 +264,7 @@ class TblEditor(wx.Dialog):
                 self.dbtbl.force_refresh()
                 try: # won't work if new row
                     self.dbtbl.row_vals_dic[row][col] = mg.MISSING_VAL_INDICATOR
-                except Exception, e:
+                except Exception:
                     my_exceptions.DoNothingException()
                 # Don't set self.dbtbl.new_is_dirty = True because of 
                 # a deletion only.
@@ -447,7 +446,7 @@ class TblEditor(wx.Dialog):
                   "source row %s source col %s " % (src_row, src_col) +
                   "dest row %s dest col %s " % (dest_row, dest_col) +
                   "direction: %s" % direction)
-        (was_final_col, was_new_row, 
+        (was_final_col, unused, 
          was_final_row, move_type, 
          dest_row, dest_col) = self.get_move_dets(src_row, src_col, dest_row, 
                                                   dest_col, direction)
@@ -690,7 +689,6 @@ class TblEditor(wx.Dialog):
         debug = False
         if self.debug or debug: 
             print("In cell_invalid for row %s col %s" % (row, col))
-        cell_invalid = False # innocent until proven guilty
         if self.dbtbl.is_new_row(row):
             if self.debug or debug:
                 print("New buffer is %s" % self.dbtbl.new_buffer)
@@ -715,8 +713,8 @@ class TblEditor(wx.Dialog):
         if raw_val == mg.MISSING_VAL_INDICATOR or raw_val is None:
             return False
         elif not fld_dic[mg.FLD_DATA_ENTRY_OK]: 
-             # i.e. not autonumber, timestamp etc
-             # and raw_val != mg.MISSING_VAL_INDICATOR unnecessary
+            # i.e. not autonumber, timestamp etc
+            # and raw_val != mg.MISSING_VAL_INDICATOR unnecessary
             raise Exception(u"This field should have been read only")
         elif fld_dic[mg.FLD_BOLNUMERIC]:
             if not lib.is_numeric(raw_val):
@@ -893,7 +891,6 @@ class TblEditor(wx.Dialog):
         self.dbtbl.set_row_ids_lst()
         self.dbtbl.set_num_rows() # need to refresh
         new_row_idx = self.dbtbl.rows_n - 1
-        data_tup = tuple([x[0] for x in data])
         # do not add to row_vals_dic - force it to look it up from the db
         # will thus show autocreated values e.g. timestamp, autoincrement etc
         self.display_new_row()
@@ -1037,7 +1034,7 @@ class TblEditor(wx.Dialog):
             msg = ("Setting column widths (%s columns for %s rows)..." % 
                                 (self.dbtbl.GetNumberCols(), self.dbtbl.rows_n))
             self.parent.add_feedback(msg)
-        except Exception, e:
+        except Exception:
             my_exceptions.DoNothingException()
         pix_per_char = 8
         sorted_fld_names = getdata.flds_dic_to_fld_names_lst(dd.flds)
@@ -1073,7 +1070,7 @@ class TblEditor(wx.Dialog):
                 print("%s %s" % (fld_name, self.grid.GetColSize(col_idx)))
         try:
             self.parent.add_feedback(u"")
-        except Exception, e:
+        except Exception:
             my_exceptions.DoNothingException()
         lib.safe_end_cursor()
     

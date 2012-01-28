@@ -50,7 +50,6 @@ def get_val(raw_val, flds, fld_name):
 
 class FiltSelectDlg(wx.Dialog):
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics):
-        debug = False
         dd = mg.DATADETS_OBJ
         self.var_labels = var_labels
         self.var_notes = var_notes

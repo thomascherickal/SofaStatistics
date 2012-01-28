@@ -12,6 +12,7 @@ from __future__ import absolute_import
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True
 force_error = False
+debug = False
 
 INIT_DEBUG_MSG = u"Please note the messages above (e.g. with a screen-shot)" + \
                  u" and press any key to close"

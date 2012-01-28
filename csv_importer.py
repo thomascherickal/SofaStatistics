@@ -15,7 +15,6 @@ import wx.html
 import my_globals as mg
 import lib
 import my_exceptions
-import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
 import importer
 
@@ -54,7 +53,7 @@ def ok_delimiter(delimiter):
         ord_delimiter = ord(delimiter)
         if not 31 < ord_delimiter < 127:
             raise Exception(u"The auto-detected delimiter is unprintable.") 
-    except Exception, e:
+    except Exception:
         raise Exception(u"Unable to assess the auto-detected delimiter")
 
 def has_comma_delim(dialect):
@@ -192,7 +191,7 @@ def get_prob_has_hdr(sample_rows, file_path, dialect):
             raise
     except Exception, e:
         prob_has_hdr = False # If everything else succeeds don't let this 
-                             # stop things. Don't raise error.
+        # stop things. Don't raise error.
     return prob_has_hdr
 
 def get_avg_row_size(rows):
@@ -487,7 +486,6 @@ class DlgImportDisplay(wx.Dialog):
         event.Skip()
     
     def get_content(self):
-        debug = False
         self.utf8_encoded_csv_sample = csv_to_utf8_byte_lines(self.file_path,
                                           self.encoding, n_lines=ROWS_TO_SAMPLE)
         try:
@@ -615,10 +613,10 @@ class CsvImporter(importer.FileImporter):
         possible_encodings = []
         for encoding in encodings:
             try:
-                utf8_encoded_csv_sample = csv_to_utf8_byte_lines(self.file_path, 
-                                            encoding, n_lines=ROWS_TO_SAMPLE)
+                unused = csv_to_utf8_byte_lines(self.file_path, encoding,
+                                                n_lines=ROWS_TO_SAMPLE)
                 possible_encodings.append(encoding)
-            except Exception, e:
+            except Exception:
                 continue
         return possible_encodings
                       
@@ -632,7 +630,6 @@ class CsvImporter(importer.FileImporter):
             encoding used to create them in the first place. That's why the user 
             is given a choice. Could use chardets somehow as well.
         """
-        debug = False
         sample_rows = get_sample_rows(self.file_path)
         sniff_sample = "".join(sample_rows) # not u"" but ""
             # otherwise error: "delimiter" must be an 1-character string

@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 import locale
-import os
 
 import wx
 import wx.html
@@ -207,7 +206,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
-        except Exception, e:
+        except Exception:
             my_exceptions.DoNothingException() # need on Mac or exceptn survives
         finally: # any initial content
             html2show = _("<p>Waiting for a report to be run.</p>")
@@ -489,7 +488,6 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         Gets unique values for selected variable.
         Sets choices for drop_group_a and B accordingly.
         """
-        debug = False
         dd = mg.DATADETS_OBJ
         wx.BeginBusyCursor()
         var_gp, choice_item = self.get_group_by()
@@ -579,10 +577,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             wx.MessageBox(_("Group A and Group B must be different"))
             return False
         if self.takes_range:
-            (var_gp_numeric, var_gp, unused, unused, 
+            (var_gp_numeric, unused, unused, unused, 
              unused, unused, unused, unused, unused) = self.get_drop_vals()
             # group a must be lower than group b
-            val_dic = self.val_dics.get(var_gp, {})
             selection_idx_a = self.drop_group_a.GetSelection()
             val_a = self.gp_vals_sorted[selection_idx_a]
             selection_idx_b = self.drop_group_b.GetSelection()
@@ -603,7 +600,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                 return False
         return True
     
-   # export script
+    # export script
     def on_btn_script(self, event):
         """
         Export script for table to file currently displayed (if enough data).
@@ -647,7 +644,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                 f = file(fil_script, "a")
                 output.add_end_script_code(f)
                 f.close()
-        except Exception, e:
+        except Exception:
             my_exceptions.DoNothingException()
         finally:
             self.Destroy()

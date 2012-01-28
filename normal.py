@@ -70,7 +70,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         szr_paired = wx.BoxSizer(wx.HORIZONTAL)
         self.bx_vars = wx.StaticBox(self.panel, -1, self.varbox_label_unpaired)
         szr_vars = wx.StaticBoxSizer(self.bx_vars, wx.HORIZONTAL)
-        szr_vars_right = wx.BoxSizer(wx.VERTICAL)
+        #szr_vars_right = wx.BoxSizer(wx.VERTICAL)
         #self.szr_level = self.get_szr_level(self.panel) # mixin
         self.szr_examine = wx.BoxSizer(wx.HORIZONTAL)
         szr_shape = wx.BoxSizer(wx.VERTICAL)
@@ -231,7 +231,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         if var_b:
             self.drop_var_b.SetItems(var_choices)
             idx_b = self.sorted_var_names.index(var) if var else 0
-            self.drop_var_b.SetSelection(idx_a)
+            self.drop_var_b.SetSelection(idx_b)
 
     def refresh_vars(self):
         config_dlg.ConfigDlg.update_var_dets(self)
@@ -256,11 +256,11 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             selected variables.
         """
         dd = mg.DATADETS_OBJ
-        var_a, choice_item_a = self.get_var_a()
+        var_a, unused = self.get_var_a()
         var_label_a = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_a)
         if self.paired:
-            var_b, choice_item_b = self.get_var_b()
+            var_b, unused = self.get_var_b()
             var_label_b = lib.get_item_label(item_labels=self.var_labels, 
                                              item_val=var_b)
         unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)

@@ -1,11 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-import os
-import wx
 
 import my_globals as mg
 import lib
-import getdata
 import indep2var
 
 
@@ -38,7 +35,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
     def get_script(self, css_idx, css_fil, add_to_report, report_name):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
-        var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \
+        var_gp_numeric, var_gp, unused, val_a, label_a, val_b, label_b, \
             var_ranked, label_ranked = self.get_drop_vals()
         script_lst = [u"dp = 3"]
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))

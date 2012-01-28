@@ -5,7 +5,6 @@ import pprint
 import wx
 
 import my_globals as mg
-import config_globals
 import lib
 import config_dlg
 import dbe_plugins.dbe_sqlite as dbe_sqlite
@@ -201,7 +200,6 @@ def warn_about_existing_labels(recode_dlg, val, row, col, grid, col_dets):
 
 class RecodeHelpDlg(wx.Dialog):
     def __init__(self, parent):
-        debug = False
         wx.Dialog.__init__(self, parent=parent, title=_("Recoding Help"), 
                            style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU, 
                            pos=(mg.HORIZ_OFFSET+100,100))
@@ -209,7 +207,6 @@ class RecodeHelpDlg(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self.on_close)
         bx_rules = wx.StaticBox(self.panel, -1, _("Recoding Rules"))
         szr_rules = wx.StaticBoxSizer(bx_rules, wx.VERTICAL)
-        lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         rules = _("1. Ranges use the keyword TO e.g. \"150 TO 250\". "
             "All keywords must be upper case, so \"TO\" will work but \"to\" "
@@ -350,9 +347,9 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
     def on_var_rclick(self, event):
         var_label = lib.get_item_label(self.var_labels, self.fldname)
         choice_item = lib.get_choice_item(self.var_labels, self.fldname)
-        updated = projects.set_var_props(choice_item, self.fldname, var_label, 
-                                         self.var_labels, self.var_notes, 
-                                         self.var_types, self.val_dics)
+        unused = projects.set_var_props(choice_item, self.fldname, var_label, 
+                                        self.var_labels, self.var_notes, 
+                                        self.var_types, self.val_dics)
     def on_txt_to_char(self, event):
         keycode = event.GetKeyCode()
         if keycode == wx.WXK_RETURN:

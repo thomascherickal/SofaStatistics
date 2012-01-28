@@ -93,7 +93,7 @@ class DlgHTML(wx.Dialog):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
-        except Exception, e:
+        except Exception:
             my_exceptions.DoNothingException() # need on Mac or exceptn survives
         finally: # any initial content
             self.show_content(self.url, self.content, self.url_load)

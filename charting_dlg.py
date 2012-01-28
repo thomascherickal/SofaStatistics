@@ -9,7 +9,6 @@ import lib
 import my_exceptions
 import config_dlg
 import full_html
-import getdata
 import indep2var
 import projects
 
@@ -51,7 +50,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         SHOW_AVG = False
         INC_PERC = True
         self.min_data_type = None # not used here - need fine-grained control of 
-                                  # up to 3 drop downs
+        # up to 3 drop downs
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.url_load = True # btn_expand
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
@@ -71,11 +70,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         szr_vars = wx.StaticBoxSizer(bx_vars, wx.HORIZONTAL)
         self.szr_vars_top_left = wx.BoxSizer(wx.VERTICAL)
-        szr_vars_top_right = wx.BoxSizer(wx.VERTICAL)
-        szr_vars_top_left_top = wx.BoxSizer(wx.HORIZONTAL)
-        szr_vars_top_left_mid = wx.BoxSizer(wx.HORIZONTAL)
-        szr_vars_top_right_top = wx.BoxSizer(wx.HORIZONTAL)
-        szr_vars_top_right_bottom = wx.BoxSizer(wx.HORIZONTAL)
+        #szr_vars_top_right = wx.BoxSizer(wx.VERTICAL)
+        #szr_vars_top_left_top = wx.BoxSizer(wx.HORIZONTAL)
+        #szr_vars_top_left_mid = wx.BoxSizer(wx.HORIZONTAL)
+        #szr_vars_top_right_top = wx.BoxSizer(wx.HORIZONTAL)
+        #szr_vars_top_right_bottom = wx.BoxSizer(wx.HORIZONTAL)
         szr_chart_btns = wx.BoxSizer(wx.HORIZONTAL)
         (self.min_data_type1, 
          self.min_data_type2) = \
@@ -387,7 +386,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
-        except Exception, e:
+        except Exception:
             my_exceptions.DoNothingException() # need on Mac or exception survives
         finally:
             # any initial content
@@ -646,7 +645,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         global CUR_SORT_OPT
         try:
             CUR_SORT_OPT = mg.SORT_OPTS[idx_sel]
-        except IndexError, e:
+        except IndexError:
             my_exceptions.DoNothingException()
         if debug: print(u"Current sort option: %s" % CUR_SORT_OPT)
     
@@ -959,7 +958,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         mg.VAR_2_DEFAULT = self.drop_var2.GetStringSelection()
         try: # might not be visible
             mg.VAR_3_DEFAULT = self.drop_var3.GetStringSelection()
-        except Exception, e:
+        except Exception:
             my_exceptions.DoNothingException()
    
     def update_phrase(self):
@@ -1017,7 +1016,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             fld_gp_by etc, (If var 2 is By, set to this and if ).
             fld_chart_by etc,
         """
-        debug = False
         dd = mg.DATADETS_OBJ
         inc_perc = (u"False" if not INC_PERC
                         or (self.chart_type in mg.HAS_AVG_OPTION and SHOW_AVG)
@@ -1058,7 +1056,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             script_lst.append(u"%s_name = None" % var2lbl)
             script_lst.append(u"%s_lbls = None" % var2lbl)
         else: # Labels not needed for scatterplot but no harm and keeps 
-              # consistent.
+            # consistent.
             script_lst.append(u"%s = u\"%s\"" % (var2lbl, varname2))
             script_lst.append(u"%s_name=u\"%s\"" % (var2lbl,
                                  lib.get_item_label(self.var_labels, varname2)))
@@ -1175,7 +1173,6 @@ chart_output = charting_output.piechart_output(titles, subtitles,
 
 def get_line_chart_script(inc_perc, inc_trend, inc_smooth, css_fil, css_idx, 
                           chart_type, varname2, varname3):
-    dd = mg.DATADETS_OBJ
     single_line = ((SHOW_AVG and varname3 == mg.DROP_SELECT) 
                    or (not SHOW_AVG and varname2 == mg.DROP_SELECT))
     if single_line:

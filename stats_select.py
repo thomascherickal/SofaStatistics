@@ -55,7 +55,7 @@ class StatsSelectDlg(wx.Dialog):
         self.btn2_left = self.main_left + 165
         self.help_left = self.main_left + 300
         if mg.PLATFORM == mg.WINDOWS:
-             self.config_left += 10
+            self.config_left += 10
         self.btn_lift = 0 if mg.PLATFORM == mg.WINDOWS else 4
         self.div_line_width = 203
         self.lst_width = 200
@@ -69,7 +69,7 @@ class StatsSelectDlg(wx.Dialog):
               pos=(mg.HORIZ_OFFSET,0)) # -1 positions it too low on 768 v
         self.proj_name = proj_name
         # Windows doesn't include window decorations
-        y_start = self.GetClientSize()[1] - self.GetSize()[1]
+        #y_start = self.GetClientSize()[1] - self.GetSize()[1]
         self.SetClientSize(self.GetSize())
         # panel settings is needed by Windows
         self.panel = wx.Panel(self, size=(self.form_width,self.form_height))
@@ -240,9 +240,9 @@ class StatsSelectDlg(wx.Dialog):
         self.lst_tests.InsertColumn(1, u"")
         self.lst_tests.SetColumnWidth(1, 25)
         for i, test in enumerate(STATS_TESTS):
-            idx = self.lst_tests.InsertStringItem(i, test)
+            unused = self.lst_tests.InsertStringItem(i, test)
             self.lst_tests.SetStringItem(i, 1, u"", self.idx_blank)
-        idx = self.lst_tests.InsertStringItem(i+1, u"")
+        unused = self.lst_tests.InsertStringItem(i+1, u"")
         self.lst_tests.Select(0)
         self.lst_tests.Bind(wx.EVT_LIST_ITEM_SELECTED, 
                            self.on_list_item_selected)
@@ -482,14 +482,14 @@ class StatsSelectDlg(wx.Dialog):
         # set left first
         try:
             self.rad_normal2.SetValue(True)
-        except Exception, e:
+        except Exception:
             my_exceptions.DoNothingException("OK to fail if not enabled.")
         self.rad_normal2.Enable(enable)
         self.rad_not_normal2.Enable(enable)
         self.btn_normal_help2.Enable(enable)
     
     def remove_test_indicators(self):
-        for i, test in enumerate(STATS_TESTS):
+        for i, unused in enumerate(STATS_TESTS):
             self.lst_tests.SetStringItem(i, 1, "", self.idx_blank)
             self.lst_tests.Select(i, on=0)
     
@@ -853,7 +853,7 @@ class StatsSelectDlg(wx.Dialog):
                 dlg.ShowModal()
             else:
                 raise Exception(u"Unknown test")
-        except Exception, e:
+        except Exception:
             wx.MessageBox(_("Unable to connect to data as defined in "
                    "project %s.  Please check your settings.") % self.proj_name)
             raise
@@ -861,4 +861,3 @@ class StatsSelectDlg(wx.Dialog):
     
     def on_close_click(self, event):
         self.Destroy()
-       

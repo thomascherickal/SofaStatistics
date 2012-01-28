@@ -3,7 +3,6 @@ from __future__ import print_function
 import codecs
 import os
 import pprint
-import sys
 import wx
 
 import my_globals as mg
@@ -180,7 +179,6 @@ class ListVarsDlg(wx.Dialog):
         wx.Dialog.__init__(self, None, title=_("Variable Details"),
                            size=(500,600), 
                            style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU)
-        debug = False
         self.Bind(wx.EVT_CLOSE, self.on_ok)
         self.var_labels = var_labels
         self.var_notes = var_notes
@@ -360,7 +358,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                size=(mywidth, myheight), 
                style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
                wx.SYSTEM_MENU|wx.CAPTION|wx.TAB_TRAVERSAL) 
-               # wx.CLIP_CHILDREN causes problems in Windows
+        # wx.CLIP_CHILDREN causes problems in Windows
         self.szr = wx.BoxSizer(wx.VERTICAL)
         self.panel_top = wx.Panel(self)
         self.panel_top.SetBackgroundColour(wx.Colour(205, 217, 215))
@@ -666,7 +664,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                 self.txt_name.SetFocus()
                 return
             try:
-               self.parent.store_proj_name(u"%s.proj" % proj_name)
+                self.parent.store_proj_name(u"%s.proj" % proj_name)
             except Exception:
                 print(u"Failed to change to %s.proj" % proj_name)
                 my_exceptions.DoNothingException("Only needed if returning to "

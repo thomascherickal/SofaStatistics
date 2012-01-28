@@ -77,10 +77,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         each idx = (name, is_unique, flds)
         """
         dd = mg.DATADETS_OBJ
-        idx_is_unique = 1
-        idx_flds = 2
         for idx in dd.idxs:
-            name = idx[mg.IDX_NAME] 
             is_unique = idx[mg.IDX_IS_UNIQUE]
             fld_names = idx[mg.IDX_FLDS]
             if is_unique:
@@ -272,10 +269,9 @@ class DbTbl(wx.grid.PyGridTableBase):
             self.new_buffer[(row, col)] = value
         else:
             self.bol_attempt_cell_update = True
-            row_id = self.GetValue(row, self.idx_id)
             col_name = self.fld_names[col]
             raw_val_to_use = getdata.prep_val(dbe=dd.dbe, val=value, 
-                                             fld_dic=dd.flds[col_name])
+                                              fld_dic=dd.flds[col_name])
             self.val_of_cell_to_update = raw_val_to_use         
             if self.must_quote: # only refers to index column
                 id_value = self.quote_val(self.row_ids_lst[row])

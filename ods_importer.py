@@ -4,11 +4,9 @@ import wx
 
 import my_globals as mg
 import lib
-import dbe_plugins.dbe_sqlite as dbe_sqlite
 import ods_reader
 import getdata
 import importer
-from my_exceptions import ImportCancelException
 
 debug = False
 if debug:
@@ -121,7 +119,7 @@ class OdsImporter(importer.FileImporter):
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                                       self.tbl_name, self.file_path,
                                       progbar, feedback[mg.NULLED_DOTS])
-        except Exception, e:
+        except Exception:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise
         default_dd.cur.close()

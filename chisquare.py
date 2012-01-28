@@ -1,10 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-import pprint
 
 import my_globals as mg
 import lib
-import getdata
 import paired2var
 
 

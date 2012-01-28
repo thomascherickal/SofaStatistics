@@ -7,7 +7,6 @@ import wx
 import my_globals as mg
 import lib
 import my_exceptions
-import config_globals
 import config_dlg
 import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
@@ -155,7 +154,7 @@ def make_strict_typing_tbl(orig_tbl_name, oth_name_types, fld_settings):
     dd = mg.DATADETS_OBJ
     if debug: print(u"DBE in make_strict_typing_tbl is: ", dd.dbe)
     reset_default_dd(tbl=orig_tbl_name, add_checks=True) # Can't deactivate the 
-                  # user-defined functions until the tmp table has been deleted.
+    # user-defined functions until the tmp table has been deleted.
     wipe_tbl(mg.STRICT_TMP_TBL)
     # create table with strictly-typed fields
     create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
@@ -320,7 +319,7 @@ def _invalid_fld_type(row, grid):
 
 def validate_tbl_name(tbl_name, name_ok_to_reuse):
     "Returns boolean plus string message"
-    valid, err = dbe_sqlite.valid_tblname(tbl_name)
+    valid, unused = dbe_sqlite.valid_tblname(tbl_name)
     if not valid:
         msg = _("You can only use letters, numbers and underscores "
             "in a SOFA name.  Use another name?")
@@ -537,7 +536,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
-        except Exception, e:
+        except Exception:
             my_exceptions.DoNothingException() # need on Mac or exceptn survives
         finally: # any initial content
             self.update_demo()
@@ -824,7 +823,6 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             (only possible after made of course) or if an existing table, 
             the original name.
         """
-        debug = False
         dd = mg.DATADETS_OBJ
         if not self.readonly:
             # NB must run Validate on the panel because the objects are 
@@ -836,7 +834,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         if self.new:
             try:
                 del self.tblname_lst[0] # empty ready to repopulate
-            except Exception, e:
+            except Exception:
                 my_exceptions.DoNothingException("OK to fail to delete item "
                                                  "in list if already empty.")
             self.tblname_lst.append(gui_tblname)
@@ -848,7 +846,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                 del self.tblname_lst[0] # empty ready to repopulate
                 self.tblname_lst.append(gui_tblname)
                 dd.set_tbl(tbl=orig_tblname) # The new one hasn't hit the 
-                                             # database yet.
+                # database yet.
                 self.modify_tbl()
         self.changes_made = True
 
@@ -938,14 +936,14 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                         pprint.pprint(u"init_settings_data after update: %s" % 
                                                         self.init_settings_data)
                 except FldMismatchException:
-                     wx.MessageBox(_("Unable to modify table. Some data does "
-                                     "not match the column type. Please edit "
-                                     "and try again."))
-                     return
+                    wx.MessageBox(_("Unable to modify table. Some data does "
+                                    "not match the column type. Please edit "
+                                    "and try again."))
+                    return
                 except Exception, e:
-                     wx.MessageBox(_(u"Unable to modify table."
-                                     u"\nCaused by error: %s") % lib.ue(e))
-                     return
+                    wx.MessageBox(_(u"Unable to modify table."
+                                    u"\nCaused by error: %s") % lib.ue(e))
+                    return
             else:
                 return
         tblname = self.tblname_lst[0]
@@ -997,14 +995,14 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                     self.Destroy()
                     self.SetReturnCode(mg.RET_CHANGED_DESIGN)
                 except FldMismatchException:
-                     wx.MessageBox(_("Unable to modify table. Some data does "
-                                     "not match the column type. Please edit "
-                                     "and try again."))
-                     return
+                    wx.MessageBox(_("Unable to modify table. Some data does "
+                                    "not match the column type. Please edit "
+                                    "and try again."))
+                    return
                 except Exception, e:
-                     wx.MessageBox(_("Unable to modify table.\nCaused by error:"
-                                     " %s") % lib.ue(e))
-                     return
+                    wx.MessageBox(_("Unable to modify table.\nCaused by error:"
+                                    " %s") % lib.ue(e))
+                    return
             elif self.changes_made: # not in tableconf. Must've been in recoding
                 self.Destroy()
                 self.SetReturnCode(mg.RET_CHANGED_DESIGN)

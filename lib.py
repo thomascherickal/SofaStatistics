@@ -10,10 +10,8 @@ import locale
 import math
 from operator import itemgetter
 import os
-import pprint
 import random
 import re
-import sys
 import time
 import wx
 
@@ -64,7 +62,7 @@ def quote_val(raw_val, unsafe_internal_quote, safe_internal_quote,
             val = raw_val.replace(unsafe_internal_quote, safe_internal_quote)
         except AttributeError, e:
             raise Exception(u"Inappropriate attempt to quote non-string value."
-                            u"\nCaused by error: %s" % lib.ue(e))
+                            u"\nCaused by error: %s" % ue(e))
     if use_double_quotes:
         newval = u"\"%s\"" % val
     else:
@@ -137,7 +135,7 @@ def get_sorted_vals(sort_order, vals, lbls):
     elif sort_order == mg.SORT_LBL:
         val_lbls = [(x, lbls.get(x, unicode(x))) for x in vals]
         val_lbls.sort(key=itemgetter(1))
-        sorted_vals = [x[0] for x in vals_lbls]
+        sorted_vals = [x[0] for x in val_lbls]
     else:
         sorted_vals = vals
     return sorted_vals
@@ -163,13 +161,13 @@ def extract_dojo_style(css_fil):
         wx.MessageBox(\
             _(u"Syntax error in dojo settings in css file \"%(css_fil)s\"."
               u"\n\nDetails: %(css_dojo)s %(err)s") % {"css_fil": css_fil,
-              u"css_dojo": css_dojo, u"err": lib.ue(e)})
+              u"css_dojo": css_dojo, u"err": ue(e)})
         raise
     except Exception, e:
         wx.MessageBox(\
             _(u"Error processing css dojo file \"%(css_fil)s\"."
               u"\n\nDetails: %(err)s") % {u"css_fil": css_fil,
-              u"err": lib.ue(e)})
+              u"err": ue(e)})
         raise
     return (css_dojo_dic[u"outer_bg"], 
             css_dojo_dic[u"inner_bg"], # grid_bg
@@ -210,7 +208,6 @@ def get_bins(min_val, max_val):
         data_range = 1
     target_n_bins = 20
     min_n_bins = 10
-    target_bin_width = 5 # half order of magnitude (10s are order of mag)
     init_bin_width = data_range/(target_n_bins*1.0)
     # normalise init_bin_width to val between 1 and 10
     norm_bin_width = init_bin_width
@@ -305,14 +302,14 @@ def version_a_is_newer(version_a, version_b):
         if len(version_b_parts) != 3: 
             raise Exception(u"Faulty Version B details")
         version_b_parts = [int(x) for x in version_b_parts]
-    except Exception, e:
+    except Exception:
         raise Exception(u"Version B parts faulty")
     try:
         version_a_parts = version_a.split(u".")
         if len(version_a_parts) != 3:
             raise Exception(u"Faulty Version A details")
         version_a_parts = [int(x) for x in version_a_parts]
-    except Exception, e:
+    except Exception:
         raise Exception(u"Version A parts faulty")
     if version_a_parts[0] > version_b_parts[0]:
         is_newer = True
@@ -723,7 +720,7 @@ def get_lbls_in_lines(orig_txt, max_width, dojo=False):
     lines = []
     try:
         words = orig_txt.split()
-    except Exception, e:
+    except Exception:
         raise Exception("Tried to split a non-text label. "
                         "Is the script not supplying text labels?")
     line_words = []
@@ -904,11 +901,11 @@ def is_numeric(val, comma_dec_sep_ok=False):
         try:
             if comma_dec_sep_ok:
                 val = val.replace(u",", u".")
-        except AttributeError, e:
+        except AttributeError:
             my_exceptions.DoNothingException("Only needed to succeed if a "
                                              "string. Presumably wasn't so OK.")
         try:
-            i = float(val)
+            unused = float(val)
         except (ValueError, TypeError):
             return False
         else:
@@ -969,7 +966,7 @@ def dic2unicode(mydic, indent=1):
     """
     try:
         keyvals = mydic.items()
-    except Exception, e: # not a dict, just a value
+    except Exception: # not a dict, just a value
         return get_unicode_repr(mydic)
     ustr = u"{"
     rows = []
@@ -1179,11 +1176,11 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
         bad_date = True
         for ok_date_format in ok_date_formats:
             try:
-                t = time.strptime(date_part, ok_date_format)
+                unused = time.strptime(date_part, ok_date_format)
                 date_format = ok_date_format
                 bad_date = False
                 break
-            except Exception, e:
+            except Exception:
                 continue
         if bad_date:
             return None
@@ -1192,11 +1189,11 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
         bad_time = True
         for ok_time_format in ok_time_formats:
             try:
-                t = time.strptime(time_part, ok_time_format)
+                unused = time.strptime(time_part, ok_time_format)
                 time_format = ok_time_format
                 bad_time = False
                 break
-            except Exception, e:
+            except Exception:
                 continue
         if bad_time:
             return None
@@ -1234,7 +1231,7 @@ def is_std_datetime_str(raw_datetime_str):
     http://www.cl.cam.ac.uk/~mgk25/iso-time.html
     """
     try:
-        t = time.strptime(raw_datetime_str, "%Y-%m-%d %H:%M:%S")
+        unused = time.strptime(raw_datetime_str, "%Y-%m-%d %H:%M:%S")
         return True
     except Exception:
         return False
@@ -1323,18 +1320,6 @@ def get_sorted_choice_items(dic_labels, vals, inc_drop_select=False):
         choice_items.insert(0, mg.DROP_SELECT)
         sorted_vals.insert(0, mg.DROP_SELECT)
     return choice_items, sorted_vals
-
-def get_selected_choice_item(vars_lst, var_labels, idx):
-    
-    return choice_item
-
-def get_selected_var_name(vars_lst, idx):
-    
-    return var_name
-
-def get_selected_var_label(vars_lst, var_labels, idx):
-    
-    return var_label
 
 # report tables
 def get_default_measure(tab_type):
@@ -1443,7 +1428,7 @@ def item_has_children(tree, parent):
     bool ItemHasChildren(const wxTreeItemId& item) const
     Returns TRUE if the item has children.
     """
-    item, cookie = tree.GetFirstChild(parent) # item is an id
+    item, unused = tree.GetFirstChild(parent) # item is an id
     return True if item else False
 
 def get_tree_ctrl_descendants(tree, parent, descendants=None):
@@ -1506,7 +1491,6 @@ class StaticWrapText(wx.StaticText):
         lines = []
         # get the maximum width (that of our parent)
         max_width = self.GetParent().GetVirtualSizeTuple()[0]        
-        index = 0
         current = []
         for word in words:
             current.append(word)

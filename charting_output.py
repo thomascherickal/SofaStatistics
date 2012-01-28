@@ -12,7 +12,6 @@ For most charts we can use freq and AVG - something SQL does just fine using
     the specific queries we need.
 """
 
-import math
 import numpy as np
 import pprint
 
@@ -161,8 +160,8 @@ def get_sorted_xaxis_and_y_vals(sort_opt, vals_etc_lst):
         sorted_y_vals.append(measure)
     return sorted_xaxis_dets, sorted_y_vals
 
-def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_gp_by, 
-                   fld_chart_by, fld_chart_by_name, 
+def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_measure, 
+                   fld_gp_by, fld_chart_by, fld_chart_by_name, 
                    legend_fld_name, legend_fld_lbls,
                    chart_fld_name, chart_fld_lbls, sort_opt, dp):
     """
@@ -188,7 +187,8 @@ def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_gp_by,
         multichart = (fld_chart_by is not None 
                       and chart_type not in mg.NO_CHART_BY)
         first_group = True
-        prev_group_val = None
+        (prev_group_val, vals_etc_lst, 
+            chart_lbl, legend_lbl) = None, None, None, None
         for group_val, x_val, y_val in raw_data:
             same_group = (group_val == prev_group_val)
             if not same_group:
@@ -381,7 +381,7 @@ def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt,
         raise my_exceptions.TooFewValsForDisplay
     # restructure and return data
     chart_dets = structure_data(chart_type, raw_data, max_items, xlblsdic, 
-                                fld_gp_by, 
+                                fld_measure, fld_gp_by, 
                                 fld_chart_by, fld_chart_by_name, 
                                 legend_fld_name, legend_fld_lbls,
                                 chart_fld_name, chart_fld_lbls, 
@@ -647,7 +647,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure,
             dp += 1
         bin_ranges = [] # needed for labels
         bins = [] # needed to get y vals for normal dist curve
-        for y_val in y_vals:
+        for unused in y_vals:
             bin_start = round(start, dp)
             bins.append(bin_start)
             bin_end = round(start + bin_width, dp)
@@ -843,7 +843,7 @@ def get_barchart_sizings(n_clusters, n_bars_in_cluster):
 def get_linechart_sizings(xaxis_dets, max_lbl_len, series_dets):
     debug = False
     n_vals = len(xaxis_dets)
-    n_lines = len(series_dets)
+    #n_lines = len(series_dets)
     if n_vals < 30:
         width = 800
         xfontsize = 10
@@ -873,7 +873,7 @@ def get_boxplot_sizings(xaxis_dets, max_lbl_len, series_dets):
     minor_ticks = u"false"
     n_vals = len(xaxis_dets)
     n_series = len(series_dets)
-    n_boxes = n_vals*n_series
+    #n_boxes = n_vals*n_series
     if n_vals < 6:
         width = 400
     elif n_vals < 10:
@@ -962,7 +962,7 @@ def get_left_axis_shift(xaxis_dets):
         label1_len = len(xaxis_dets[0][1])
         if label1_len > 5:
             left_axis_lbl_shift = label1_len*-1.3
-    except Exception, e:
+    except Exception:
         my_exceptions.DoNothingException()
     if debug: print(left_axis_lbl_shift)
     return left_axis_lbl_shift
@@ -1001,7 +1001,6 @@ def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
                    (5, "65+")]
     css_idx -- css index so can apply appropriate css styles
     """
-    debug = False
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                           css_idx)
@@ -1024,7 +1023,7 @@ def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
             colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     try:
         fill = colour_mappings[0][0]
-    except IndexError, e:
+    except IndexError:
         fill = mg.DOJO_COLOURS[0]
     outer_bg = u"" if outer_bg == u"" \
         else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
@@ -1055,7 +1054,6 @@ def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
         # build js for every series
         series_js_list = []
         series_names_list = []
-        if debug: print(series_dets)
         series_names_list.append(u"series%s" % chart_idx)
         series_js_list.append(u"var series%s = new Array();" % chart_idx)
         series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
@@ -1172,7 +1170,6 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
-    multichart = False
     axis_lbl_drop = 30 if x_title else 10
     height = 310 + axis_lbl_drop # compensate for loss of bar display height
     inc_perc_js = u"true" if inc_perc else u"false"
@@ -1212,7 +1209,7 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
                               (i, series_det[mg.CHART_Y_VALS]))
         try:
             fill = colour_mappings[i][0]
-        except IndexError, e:
+        except IndexError:
             fill = mg.DOJO_COLOURS[i]
         series_js_list.append(u"series%s[\"style\"] = "
             u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\"};"
@@ -1303,9 +1300,7 @@ def piechart_output(titles, subtitles, chart_dets, css_fil, css_idx,
                                   mg.CHART_XAXIS_DETS: ...,
                                   mg.CHART_Y_VALS: ...}]
     """
-    debug = False
     html = []
-    if debug: print(pie_chart_dets)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     series_dets = chart_dets[mg.CHART_SERIES_DETS]
@@ -1319,7 +1314,7 @@ def piechart_output(titles, subtitles, chart_dets, css_fil, css_idx,
     radius = 120 if multichart else 140
     lbl_offset = -20 if multichart else -30
     (outer_bg, grid_bg, axis_lbl_font_colour, 
-         major_gridline_colour, gridline_width, stroke_width, 
+         unused, unused, unused, 
          tooltip_border_colour, 
          colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     outer_bg = u"" if outer_bg == u"" \
@@ -1341,7 +1336,7 @@ def piechart_output(titles, subtitles, chart_dets, css_fil, css_idx,
         y_vals = chart_det[mg.CHART_Y_VALS]
         tot_y_vals = sum(y_vals)
         xy_dets = zip(chart_det[mg.CHART_XAXIS_DETS], y_vals)
-        for ((val, val_lbl, split_lbl), y_val) in xy_dets:
+        for ((unused, val_lbl, split_lbl), y_val) in xy_dets:
             tiplbl = val_lbl.replace(u"\n", u" ") # line breaks mean no display
             tooltip = u"%s<br>%s (%s%%)" % (tiplbl, int(y_val), 
                                             round((100.0*y_val)/tot_y_vals, 1))
@@ -1436,6 +1431,7 @@ def get_smooth_y_vals(y_vals):
     val1 = None
     val2 = None
     val3 = None
+    val4 = None
     for i, y_val in enumerate(y_vals, 1):
         if i > 3:
             val1 = val2 # slips down a notch
@@ -1502,8 +1498,8 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets,
         each series colour.
     From dojox.charting.action2d.Highlight but with extraneous % removed
     """
-    (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
-            gridline_width, stroke_width, tooltip_border_colour, 
+    (unused, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
+            gridline_width, unused, tooltip_border_colour, 
             colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     # Can't have white for line charts because always a white outer background
     axis_lbl_font_colour = axis_lbl_font_colour \
@@ -1547,7 +1543,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets,
                               (i, series_det[mg.CHART_Y_VALS]))
         try:
             stroke = colour_mappings[i][0]
-        except IndexError, e:
+        except IndexError:
             stroke = mg.DOJO_COLOURS[i]
         # To set markers explicitly:
         # http://dojotoolkit.org/api/1.5/dojox/charting/Theme/Markers/CIRCLE
@@ -1668,18 +1664,16 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets, inc_perc,
         each series colour.
     From dojox.charting.action2d.Highlight but with extraneous % removed
     """
-    (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
-            gridline_width, stroke_width, tooltip_border_colour, 
+    (unused, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
+            gridline_width, unused, tooltip_border_colour, 
             colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     # Can't have white for line charts because always a white outer background
     axis_lbl_font_colour = axis_lbl_font_colour \
                             if axis_lbl_font_colour != u"white" else u"black"
-    colour_cases = setup_highlights(colour_mappings, single_colour=False, 
-                                    override_first_highlight=True)
     try:
         stroke = colour_mappings[0][0]
         fill = colour_mappings[0][1]
-    except IndexError, e:
+    except IndexError:
         stroke = mg.DOJO_COLOURS[0]
     # build js for every series
     series_js_list = []
@@ -1762,7 +1756,6 @@ def histogram_output(titles, subtitles, var_lbl, histo_dets, inc_normal,
     bin_lbls -- [u"1 to under 2", u"2 to under 3", ...]
     css_idx -- css index so can apply    
     """
-    debug = False
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     multichart = is_multichart(histo_dets)
@@ -1782,7 +1775,7 @@ def histogram_output(titles, subtitles, var_lbl, histo_dets, inc_normal,
                                     override_first_highlight)
     try:
         fill = colour_mappings[0][0]
-    except IndexError, e:
+    except IndexError:
         fill = mg.DOJO_COLOURS[0]
     js_inc_normal = u"true" if inc_normal else u"false"
     for chart_idx, histo_det in enumerate(histo_dets):
@@ -1901,7 +1894,6 @@ def use_mpl_scatterplots(scatterplot_dets):
 def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders, 
                          list_x, list_y, label_x, label_y, x_vs_y, 
                          add_to_report, report_name, css_fil, pagebreak):
-    debug = False
     (grid_bg, 
          item_colours, line_colour) = output.get_stats_chart_colours(css_fil)
     colours = item_colours + mg.DOJO_COLOURS
@@ -1958,7 +1950,7 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_scatterplot_title,
                                     override_first_highlight)
     try:
         fill = colour_mappings[0][0]
-    except IndexError, e:
+    except IndexError:
         fill = mg.DOJO_COLOURS[0]
     # marker - http://o.dojotoolkit.org/forum/dojox-dojox/dojox-support/...
     # ...newbie-need-svg-path-segment-string
@@ -2034,7 +2026,6 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
     """
     scatter_data -- dict with keys SAMPLE_A, SAMPLE_B, DATA_TUPS
     """
-    debug = False
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     pagebreak = u"page-break-after: always;"
@@ -2062,7 +2053,8 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
                                   dot_borders, data_tups, list_x, list_y, 
                                   label_x, label_y, css_fil, pagebreak)
     if page_break_after:
-        html.append(u"<br><hr><br><div class='%s'></div>" % page_break_before)
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
 def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title, 
@@ -2111,8 +2103,8 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
         each series colour.
     From dojox.charting.action2d.Highlight but with extraneous % removed
     """
-    (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
-            gridline_width, stroke_width, tooltip_border_colour, 
+    (unused, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
+            gridline_width, unused, tooltip_border_colour, 
             colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     # Can't have white for boxplots because always a white outer background
     outer_bg = u"white"
@@ -2164,7 +2156,7 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
         series_js.append(u"    // series%s" % series_idx)
         try:
             stroke = colour_mappings[series_idx][0]
-        except IndexError, e:
+        except IndexError:
             stroke = mg.DOJO_COLOURS[series_idx]
         series_js.append(u"    var strokecol%s = \"%s\";" % (series_idx, 
                                                              stroke))

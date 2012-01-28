@@ -6,7 +6,7 @@ from collections import defaultdict
 import copy
 import decimal
 import math
-from types import IntType, FloatType, ListType, TupleType, StringType
+from types import IntType, FloatType, ListType, TupleType
 import numpy as np
 
 import my_globals as mg
@@ -136,7 +136,7 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     # SQLite sometimes returns strings even if REAL
     try:
         vals_a = [float(x[0]) for x in row_vals_used]
-    except Exception, e:
+    except Exception:
         vals_a = [x[0] for x in row_vals_used]
     if len(vals_a) > mg.MAX_CHI_DIMS:
         raise my_exceptions.TooManyRowsInChiSquareException
@@ -156,7 +156,7 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     # SQLite sometimes returns strings even if REAL
     try:
         vals_b = [float(x[0]) for x in col_vals_used]
-    except Exception, e:
+    except Exception:
         vals_b = [x[0] for x in col_vals_used]
     if len(vals_b) > mg.MAX_CHI_DIMS:
         raise my_exceptions.TooManyColsInChiSquareException
@@ -716,7 +716,7 @@ def wilcoxont(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     for i in range(len(sample_a)):
         try:
             diff = sample_a[i] - sample_b[i]
-        except TypeError, e:            
+        except TypeError:            
             raise Exception(u"Both values in pair must be numeric: %s and %s"
                             % (sample_a[i], sample_b[i]))
         if diff <> 0:

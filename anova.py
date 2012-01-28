@@ -49,10 +49,9 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
     
     def get_script(self, css_idx, css_fil, add_to_report, report_name):
         "Build script from inputs"
-        debug = False
         dd = mg.DATADETS_OBJ
-        var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, label_b, \
-            var_avg, label_avg = self.get_drop_vals()
+        (var_gp_numeric, var_gp, unused, val_a, label_a, 
+                    val_b, label_b, var_avg, label_avg) = self.get_drop_vals()
         script_lst = [u"dp = 3"]
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         lst_samples = []

@@ -1,13 +1,11 @@
 from __future__ import print_function
 import codecs
 import os
-import sys
 import wx
 
 import my_globals as mg
 import config_globals
 import lib
-import getdata
 import config_dlg
 import projects
 
@@ -120,7 +118,7 @@ class ProjSelectDlg(wx.Dialog):
         try:
             dlgProj = projects.ProjectDlg(parent=self, readonly=readonly,
                           fil_proj=self.projs[self.drop_projs.GetSelection()])
-        except Exception, e:
+        except Exception:
             raise
             return
         # refresh projects list and display accordingly

@@ -6,6 +6,7 @@ import os
 import wx
 
 import my_globals as mg
+import my_exceptions
 import config_globals
 import lib
 import getdata
@@ -58,7 +59,6 @@ def path2style(path):
 
 class ExtraOutputConfigDlg(wx.Dialog):
     def __init__(self, parent, readonly):
-        debug = False
         cc = get_cc()
         wx.Dialog.__init__(self, parent=parent, 
                            title=_("Extra output settings"), 
@@ -140,7 +140,6 @@ class ExtraOutputConfigDlg(wx.Dialog):
         # (MUST come after Destroy)
 
     def on_ok(self, event):
-        debug = False
         cc = get_cc()
         cc[mg.CURRENT_VDTS_PATH] = self.txt_var_dets_file.GetValue()
         if mg.ADVANCED:

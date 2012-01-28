@@ -1,6 +1,5 @@
 import cgi
 import numpy as np
-import os
 import boomslang
 
 import my_globals as mg
@@ -65,7 +64,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     html.append(u"<td>%s</td><td></td><td></td></tr>" % round(mean_squ_wn, dp))
     html.append(u"\n</tbody>\n</table>\n")
     try:
-        bolsim, p_sim = core_stats.sim_variance(samples, threshold=0.01)
+        unused, p_sim = core_stats.sim_variance(samples, threshold=0.01)
         msg = round(p_sim, dp)
     except Exception:
         msg = "Unable to calculate"
@@ -136,8 +135,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     for i, footnote in enumerate(footnotes):
         next_ft = i + 1
         html.append(footnote % (next_ft, next_ft))
-    for i, dic_sample_tup in enumerate(dic_sample_tups):
-        suffix = u"%s" % i
+    for dic_sample_tup in dic_sample_tups:
         dic, sample = dic_sample_tup
         hist_label = dic["label"]
         # histogram
@@ -187,7 +185,7 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
     if indep:
         try:
-            bolsim, p_sim = core_stats.sim_variance([sample_a, sample_b], 
+            unused, p_sim = core_stats.sim_variance([sample_a, sample_b], 
                                                     threshold=0.01)
             msg = round(p_sim, dp)
         except Exception:
@@ -280,7 +278,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
                         dp, indep, css_idx, html)
     sample_dets = [(u"a", sample_a, dic_a["label"]), 
                    (u"b", sample_b, dic_b["label"])]
-    for (suffix, sample, hist_label) in sample_dets:
+    for (unused, sample, hist_label) in sample_dets:
         # histogram
         # http://www.scipy.org/Cookbook/Matplotlib/LaTeX_Examples
         charting_pylab.gen_config(axes_labelsize=10, xtick_labelsize=8, 
@@ -456,7 +454,7 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
                      level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    slope, intercept, r, prob, sterrest = core_stats.linregress(list_x, list_y)
+    slope, intercept, r, unused, unused = core_stats.linregress(list_x, list_y)
     html = []
     footnotes = []
     x_vs_y = '"%s"' % label_x + _(" vs ") + '"%s"' % label_y
@@ -542,7 +540,6 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
                      report_name, val_labels_a, val_labels_b, lst_obs, lst_exp, 
                      min_count, perc_cells_lt_5, df, css_fil, css_idx=0, dp=3, 
                      level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
-    debug = False
     CSS_SPACEHOLDER = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_SPACEHOLDER, css_idx)
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_FIRST_ROW_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_ROW_VAR, css_idx)
@@ -600,11 +597,11 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
     # total row totals
     row_obs_tot_tot = 0 
     row_exp_tot_tot = 0
-    for row_i, val_a in enumerate(val_labels_a_html):
+    for val_a in val_labels_a_html:
         row_obs_tot = 0
         row_exp_tot = 0
         html.append(u"<td class='%s'>%s</td>" % (CSS_ROW_VAL, val_a))        
-        for col_i, val_b in enumerate(val_labels_b_html):
+        for col_i, unused in enumerate(val_labels_b_html):
             obs = lst_obs[item_i]
             exp = lst_exp[item_i]
             html.append(u"<td class='%s'>" % CSS_DATACELL +

@@ -26,7 +26,6 @@ def set_SCRIPT_PATH():
     http://stackoverflow.com/questions/247770/retrieving-python-module-path
     http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
     """
-    debug = False
     rawpth = os.path.dirname(mg.__file__)
     local_encoding = sys.getfilesystemencoding()
     mg.SCRIPT_PATH = unicode(rawpth, local_encoding)
@@ -103,6 +102,7 @@ def get_date_fmt():
                 import win32api
                 import win32con
             except ImportError, e:
+                import lib
                 raise Exception(_("Problem with Windows modules. Did all steps "
                           "in installation succeed? You may need to "
                           "install again.\nError caused by: %s" % lib.ue(e)))

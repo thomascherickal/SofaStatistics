@@ -42,6 +42,8 @@ if platform.system() == u"Windows":
         # IOError: [Errno 9] Bad file descriptor error when eventually tries to 
         # flush content of all the writes to file.
         class NullWriter:
+            def __init__(self):
+                pass
             def write(self, data):
                 pass
         sys.stdout = NullWriter()
@@ -116,7 +118,6 @@ class SofaApp(wx.App):
         Also responsible for setting translations etc so application 
             internationalised.
         """
-        debug = False
         try:
             try:
                 self.setup_i18n()
@@ -139,7 +140,6 @@ class SofaApp(wx.App):
         Esp http://wiki.wxpython.org/Internationalization
         See also http://wiki.wxpython.org/RecipesI18n
         """
-        debug = False
         langdir = os.path.join(mg.SCRIPT_PATH, u'locale')
         try:
             canon_name = self.get_canon_name(langdir)
@@ -161,6 +161,58 @@ class SofaApp(wx.App):
                 my_exceptions.DoNothingException("OK if unable to set "
                                                  "environment settings.")
     
+    def get_langid_and_name(self, langdir):
+        """
+        Get the best langid possible.
+        If some variant of English e.g. English (Australia) just use the main 
+            English version. There will probably never be lots of English 
+            translations.
+        Otherwise, try the language default. Will only work if SOFA has support 
+            for that language (and if language actually installed on system).
+        If not possible, fall back to closest language supplied. And failing 
+            that, fall back to English.
+        If a failure because SOFA translation not provided, let user know they 
+            can ask for a translation or even help contribute to a translation.
+        """
+        orig_langid = (mg.TEST_LANGID if test_lang else wx.LANGUAGE_DEFAULT)
+        orig_langinfo = wx.Locale.GetLanguageInfo(orig_langid)
+        orig_canon_name = orig_langinfo.CanonicalName
+        english = False
+        if "_" in orig_canon_name:
+            orig_root = orig_canon_name.split("_")[0]
+            if orig_root == u"en":
+                english = True
+        if english:
+            langid = wx.LANGUAGE_ENGLISH
+            langname_used = "UK English"
+        else:
+            # get name for message
+            orig_langname = orig_langinfo.Description
+            translation_supplied = self.translation_supplied(langdir, 
+                                                             orig_langid)
+            if translation_supplied:
+                langid = orig_langid # try it - still might fail
+                langname_used = orig_langname
+            else:
+                closest_langid_supplied = self.get_closest_langid_supplied(
+                                                        langdir, orig_langinfo)
+                if closest_langid_supplied:
+                    langid = closest_langid_supplied
+                    langinfo_used = wx.Locale.GetLanguageInfo(langid)
+                    langname_used = langinfo_used.Description
+                else:
+                    langid = wx.LANGUAGE_ENGLISH
+                    langname_used = "UK English"
+                msg = (u"SOFA does not appear to have been translated into "
+                       u"%(orig_langname)s yet. SOFA will operate in "
+                       u"%(langname_used)s instead. If you are able to help "
+                       u"translate English into %(orig_langname)s please "
+                       u"contact grant@sofastatistics.com." % 
+                                            {"orig_langname": orig_langname,
+                                             "langname_used": langname_used})
+                print(msg)
+        return langid, langname_used
+    
     def get_canon_name(self, langdir):
         """
         Try to get a canon_name that will work on this system.
@@ -168,38 +220,11 @@ class SofaApp(wx.App):
             that language (and if language actually installed on system).
         If not possible, fall back to closest language supplied. And failing 
             that, fall back to English. 
-        If a failure because SOFA translation not provided, let user know they 
-            can ask for a translation or even help contribute to a translation.
         If fails in spite of translation being supplied, suggest options and 
             message to pass for support.
         """
         debug = False
-        orig_langid = (mg.TEST_LANGID if test_lang else wx.LANGUAGE_DEFAULT)
-        # get name for message
-        orig_langinfo = wx.Locale.GetLanguageInfo(orig_langid)
-        orig_langname = orig_langinfo.Description
-        translation_supplied = self.translation_supplied(langdir, orig_langid)
-        if translation_supplied:
-            langid = orig_langid # try it - still might fail
-        else:
-            closest_langid_supplied = self.get_closest_langid_supplied(langdir, 
-                                                                orig_langinfo)
-            if closest_langid_supplied:
-                langid = closest_langid_supplied
-                langinfo_used = wx.Locale.GetLanguageInfo(langid)
-                langname_used = langinfo_used.Description
-            else:
-                langid = wx.LANGUAGE_ENGLISH
-                langname_used = "UK English"
-            msg = (u"SOFA does not appear to have been translated into "
-                   u"%(orig_langname)s yet. SOFA will operate in "
-                   u"%(langname_used)s instead. "
-                   u"If you are able to help translate English into "
-                   u"%(orig_langname)s please contact "
-                   u"grant@sofastatistics.com." % 
-                                        {"orig_langname": orig_langname,
-                                         "langname_used": langname_used})
-            print(msg)
+        langid, langname = self.get_langid_and_name(langdir)
         # Next line will only work if locale installed on computer. On Macs,
         # must be after app starts (http://programming.itags.org/python/2877/)
         mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
@@ -207,69 +232,70 @@ class SofaApp(wx.App):
         if mylocale.IsOk():
             canon_name = mylocale.GetCanonicalName()
         else: # failed
-            """
-            If a language isn't installed on the OS then it won't even look for 
-                the locale subfolder. GetLanguage() will return 1 instead of the 
-                langid. See also 
-                http://code.google.com/p/bpbible/source/browse/trunk/gui/i18n.py?r=977#36
-            """
-            if mg.PLATFORM == mg.LINUX:
-                cli = (u"\n\nSee list of languages installed on your "
-                       u"system by typing\n       locale -a\ninto a "
-                       u"terminal and hitting the Enter key.")
-            else:
-                cli = u""
-            msg = (u"Because there was a problem providing a %(langname)s "
-                   u"translation, SOFA will now operate in English instead."
-                   u" SOFA is operating perfectly apart from the attempt "
-                   u"to set the translation."
-                   u"\n\nDoes your system have "
-                   u"%(langname)s installed?%(cli)s\n\nThe developer may "
-                   u"be able to supply extra help: grant@sofastatistics.com" 
-                   % {"langname": langname, "cli": cli})
-            try:
-                lang = mylocale.GetLanguage()
-            except Exception, e:
-                lang = u"Unable to get language."  
-            try:    
-                canon_name = mylocale.GetCanonicalName()
-            except Exception, e:
-                canon_name = u"Unable to get canonical name."
-            try:
-                sysname = mylocale.GetSysName()
-            except Exception, e:
-                sysname = u"Unable to get system name."
-            try:
-                getlocale = mylocale.GetLocale()
-            except Exception, e:
-                getlocale = u"Unable to get locale."
-            try:
-                localename = mylocale.GetName()
-            except Exception, e:
-                localename = u"Unable to get locale name."
-            extra_diagnostics = (u"\n\nExtra details for developer:"
-            u"\nlangid: %(langid)s"
-            u"\nGetlanguage: %(Getlanguage)s" 
-            u"\nGetCanonicalName: %(GetCanonicalName)s" 
-            u"\nGetSysName: %(GetSysName)s" 
-            u"\nGetLocale: %(GetLocale)s" 
-            u"\nGetName: %(GetName)s" % {u"GetLanguageName": langname,
-                                         u"langid": langid,
-                                         u"Getlanguage": lang,
-                                         u"GetCanonicalName": canon_name,
-                                         u"GetSysName": sysname,
-                                         u"GetLocale": getlocale,
-                                         u"GetName": localename})
-            msg += extra_diagnostics
+            self.warn_about_canon_probs(mylocale, langid, langname)
             # Resetting mylocale makes frame flash and die if not clean first.
             # http://www.java2s.com/Open-Source/Python/GUI/wxPython/wxPython-src-2.8.11.0/wxPython/demo/I18N.py.htm
             assert sys.getrefcount(mylocale) <= 2
             del mylocale # otherwise C++ object persists too long & crashes
             mylocale = wx.Locale(wx.LANGUAGE_ENGLISH)
             canon_name = mylocale.GetCanonicalName()
-            mg.DEFERRED_WARNING_MSGS.append(msg)
         if debug: print(canon_name)
         return canon_name
+    
+    def warn_about_canon_probs(self, mylocale, langid, langname):
+        """
+        If a language isn't installed on the OS then it won't even look for 
+            the locale subfolder. GetLanguage() will return 1 instead of the 
+            langid. See also 
+            http://code.google.com/p/bpbible/source/browse/trunk/gui/i18n.py?r=977#36
+        """
+        if mg.PLATFORM == mg.LINUX:
+            cli = (u"\n\nSee list of languages installed on your "
+                   u"system by typing\n       locale -a\ninto a "
+                   u"terminal and hitting the Enter key.")
+        else:
+            cli = u""
+        msg = (u"Because there was a problem providing a %(langname)s "
+               u"translation, SOFA will now operate in English instead. SOFA is"
+               u" operating perfectly apart from the attempt to set the "
+               u"translation.\n\nDoes your system have %(langname)s installed?"
+               u"%(cli)s\n\nThe developer may be able to supply extra help: "
+               u"grant@sofastatistics.com" % {"langname": langname, "cli": cli})
+        try:
+            lang = mylocale.GetLanguage()
+        except Exception, e:
+            lang = u"Unable to get language."  
+        try:    
+            canon_name = mylocale.GetCanonicalName()
+        except Exception, e:
+            canon_name = u"Unable to get canonical name."
+        try:
+            sysname = mylocale.GetSysName()
+        except Exception, e:
+            sysname = u"Unable to get system name."
+        try:
+            getlocale = mylocale.GetLocale()
+        except Exception, e:
+            getlocale = u"Unable to get locale."
+        try:
+            localename = mylocale.GetName()
+        except Exception, e:
+            localename = u"Unable to get locale name."
+        extra_diagnostics = (u"\n\nExtra details for developer:"
+        u"\nlangid: %(langid)s"
+        u"\nGetlanguage: %(Getlanguage)s" 
+        u"\nGetCanonicalName: %(GetCanonicalName)s" 
+        u"\nGetSysName: %(GetSysName)s" 
+        u"\nGetLocale: %(GetLocale)s" 
+        u"\nGetName: %(GetName)s" % {u"GetLanguageName": langname,
+                                     u"langid": langid,
+                                     u"Getlanguage": lang,
+                                     u"GetCanonicalName": canon_name,
+                                     u"GetSysName": sysname,
+                                     u"GetLocale": getlocale,
+                                     u"GetName": localename})
+        msg += extra_diagnostics
+        mg.DEFERRED_WARNING_MSGS.append(msg)        
     
     def get_langids_supported_by_sofa(self, langdir):
         locale_pths = os.listdir(langdir)
@@ -380,7 +406,6 @@ class FeedbackDlg(wx.Dialog):
 class StartFrame(wx.Frame):
     
     def __init__(self):
-        debug = False
         # earliest point error msgs can be shown to user in a GUI.
         deferred_error_msg = u"\n\n".join(mg.DEFERRED_ERRORS)
         if deferred_error_msg:
@@ -865,15 +890,14 @@ class StartFrame(wx.Frame):
                 # without violating privacy etc
                 url2open = u"http://www.sofastatistics.com/%s?version=%s" % \
                                                         (file2read, mg.VERSION)
-                url_reply = urllib.urlopen(url2open)
+                unused = urllib.urlopen(url2open)
                 if show_more_steps: 
-                    print("Checked sofastatistics.com connection: %s" % 
-                          new_version)
+                    print("Checked sofastatistics.com connection")
                 # seems OK so connect
-                width_reduction=mg.MAX_WIDTH*0.25 if mg.MAX_WIDTH > 1000 \
-                                                  else 200
-                height_reduction=mg.MAX_HEIGHT*0.25 if mg.MAX_HEIGHT > 600 \
-                                                    else 100
+                #width_reduction=mg.MAX_WIDTH*0.25 if mg.MAX_WIDTH > 1000 \
+                #                                  else 200
+                #height_reduction=mg.MAX_HEIGHT*0.25 if mg.MAX_HEIGHT > 600 \
+                #                                    else 100
                 if show_more_steps: print(u"Worked out height and width "
                                           u"reduction")
                 dlg = showhtml.DlgHTML(parent=self, 

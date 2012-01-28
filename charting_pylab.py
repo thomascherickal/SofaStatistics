@@ -120,7 +120,7 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False,
     axes = fig.gca()
     rect = axes.patch
     rect.set_facecolor(grid_bg)
-    n_vals = len(vals)
+    #n_vals = len(vals)
     # use nicest bins practical
     n_bins, lower_limit, upper_limit = lib.get_bins(min(vals), max(vals))
     y_vals, start, bin_width, unused = \
@@ -157,7 +157,8 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False,
         print("norm max: %s; axis max: %s" % (max(norm_ys), ymax))
     if max(norm_ys) > ymax:
         axes.set_ylim(ymax=1.05*max(norm_ys))
-    l = axes.plot(bins, norm_ys, color=line_colour, linewidth=normal_line_width)
+    unused = axes.plot(bins, norm_ys, color=line_colour, 
+                       linewidth=normal_line_width)
     if inc_attrib:
         pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
                        fontsize=7, rotation=270)

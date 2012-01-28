@@ -1,6 +1,4 @@
 
-import re
-import time
 import wx
 import xml.etree.ElementTree as etree
 import zipfile
@@ -139,7 +137,6 @@ def get_has_data_cells(el):
     """
     Checks to see if this table-row element has a table-cell child with data.
     """
-    has_data_cells = False
     if not el.tag.endswith("table-row"):
         raise Exception(u"Trying to check for data cells but not a table-row")
     for sub_el in el: # only interested in table cells.  Look in them for data
@@ -157,7 +154,6 @@ def get_rows(tbl, inc_empty=True, n=None):
         non-empty row afterwards.
     Breaks if any rows repeated.
     """
-    debug = False
     datarows = []
     prev_empty_rows_to_add = []
     for el in tbl:
@@ -306,7 +302,7 @@ def get_fldnames_from_header_row(row):
     """
     debug = False
     orig_fldnames = []
-    for i, el in enumerate(row):
+    for el in row:
         if debug: print(u"\nChild element of table-row: " + etree.tostring(el))
         items = el.attrib.items()
         attrib_dict = get_streamlined_attrib_dict(items)
@@ -363,7 +359,6 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
     BTW, XML is a terrible way to store lots of data ;-).
     """
     debug = False
-    large = True
     for (key, value) in tbl.attrib.items():
         if key[-5:].endswith("}name"):
             if debug: print("The sheet is named \"%s\"" % value)
@@ -449,7 +444,7 @@ def process_cells(attrib_dict, coltypes, col_idx, fldnames, valdict, type,
     Return bolcontinue, col_idx to use next.
     """
     bolcontinue = True
-    for i in range(get_col_rep(attrib_dict)):
+    for unused in range(get_col_rep(attrib_dict)):
         update_types_and_val_dict(coltypes, col_idx, fldnames, valdict, type, 
                                   val2use)
         if col_idx == len(fldnames) - 1:
@@ -479,7 +474,7 @@ def extract_date_if_possible(el_det, attrib_dict, xml_type, type):
             probable_date_formats.append(google_docs_default_date)
             try: # so we don't assume 2136 is a year
                 probable_date_formats.remove(u"%Y")
-            except ValueError, e:
+            except ValueError:
                 my_exceptions.DoNothingException("If not there, OK that "
                                                  "removing it failed")
             usable_datetime = lib.is_usable_datetime_str(raw_datetime_str=text, 
@@ -497,7 +492,7 @@ def extract_date_if_possible(el_det, attrib_dict, xml_type, type):
                     if debug: print(str_float, val2use)
             else:
                 val2use = text
-        except Exception, e:
+        except Exception:
             val2use = text
     else:
         val2use = text
@@ -555,7 +550,6 @@ def dets_from_row(fldnames, coltypes, row):
     """
     debug = False
     verbose = False
-    large = False
     valdict = {}
     tbl_cell_el_dets = get_tbl_cell_el_dets(row)
     if debug and verbose:

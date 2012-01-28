@@ -13,7 +13,6 @@ import wx
 
 import my_globals as mg
 import googleapi.gdata.spreadsheet.service as gdata_spreadsheet_service
-import googleapi.gdata.spreadsheet as gdata_spreadsheet
 import googleapi.gdata.docs.service as gdata_docs_service
 import googleapi.gdata.service as gdata_service
 import lib
@@ -28,7 +27,6 @@ SPREADSHEET_KEY = u"spreadsheet key"
 
 class GdataDownloadDlg(wx.Dialog):
     def __init__(self, parent):
-        debug = False
         wx.BeginBusyCursor()
         title = _("Download Google Spreadsheet")
         wx.Dialog.__init__(self, parent=parent, title=title, 
@@ -226,7 +224,6 @@ class GdataDownloadDlg(wx.Dialog):
         self.lst_spreadsheets.Enable(True)
         self.btn_select_spreadsheet.Enable(True)
         self.btn_restart.Enable(True)
-        spreadsheet_name = self.spreadsheet_dets_lst[0][SPREADSHEET_NAME]
         self.spreadsheet_key = self.spreadsheet_dets_lst[0][SPREADSHEET_KEY]
         if len(self.spreadsheet_dets_lst) == 1:    
             self.lst_spreadsheets.Enable(False)
@@ -285,6 +282,7 @@ class GdataDownloadDlg(wx.Dialog):
         if n_worksheets == 0:
             self.lst_worksheets.SetItems([])
             lib.safe_end_cursor()
+            spreadsheet_name = self.spreadsheet_dets_lst[0][SPREADSHEET_NAME]
             wx.MessageBox(_("No worksheets available in %s") % spreadsheet_name)
             return
         elif n_worksheets == 1:

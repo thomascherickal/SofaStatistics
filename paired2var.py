@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-import os
 
 import wx
 import wx.html
@@ -136,7 +135,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
-        except Exception, e:
+        except Exception:
             my_exceptions.DoNothingException() # need on Mac or exceptn survives
         finally: # any initial content
             self.html.show_html(self.html_msg)
@@ -193,7 +192,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             msg = _("<p>Waiting for a report to be run.</p>")
         try:
             self.html.show_html(msg)
-        except Exception, e: # no html ctrl yet so defer and display when ready
+        except Exception: # no html ctrl yet so defer and display when ready
             self.html_msg = msg
         fld_choice_items, self.sorted_var_names = lib.get_sorted_choice_items(
                                 dic_labels=self.var_labels, vals=var_names)
@@ -279,7 +278,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         """
         Update phrase based on Group A and Group B.
         """
-        var_a, label_a, var_b, label_b = self.get_drop_vals()
+        unused, label_a, unused, label_b = self.get_drop_vals()
         self.lbl_phrase.SetLabel(_("Is \"%(a)s\" different from \"%(b)s\"?") %
                                 {"a": label_a, "b": label_b})
     
@@ -313,7 +312,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             return False
         return True
     
-   # export script
+    # export script
     def on_btn_script(self, event):
         """
         Export script for table to file currently displayed (if enough data).

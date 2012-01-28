@@ -4,10 +4,6 @@
 from __future__ import print_function
 import codecs
 import locale
-import pprint
-import os
-import random
-import sys
 import wx
 import wx.gizmos
 
@@ -17,11 +13,9 @@ import my_exceptions
 import getdata
 import config_dlg
 import demotables
-import dimtables
 import dimtree
 import full_html
 import output
-import rawtables
 
 OUTPUT_MODULES = ["my_globals as mg", "dimtables", "rawtables", "output", 
                   "getdata"]
@@ -316,7 +310,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
-        except Exception, e:
+        except Exception:
             my_exceptions.DoNothingException() # need on Mac or exceptn survives
         finally: # any initial content
             has_rows, has_cols = self.get_row_col_status()
@@ -798,7 +792,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         If only changing titles or subtitles, keep the rest constant.
         """
         debug = False
-        cc = config_dlg.get_cc()
         demo_html = u""
         self.btn_expand.Enable(False)
         if titles_only:
@@ -839,7 +832,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                 demo_tbl_html = (_("<p class='gui-msg-medium'>Example data - "
                        "click '%s' for actual results<br>&nbsp;&nbsp;or "
                        "keep configuring</p>") % config_dlg.run)
-                current_style = config_dlg.path2style(cc[mg.CURRENT_CSS_PATH])
                 demo_tbl_html += u"\n\n" + demo_html
                 self.prev_demo = demo_tbl_html
         if debug: print(u"\n" + demo_tbl_html + "\n")
@@ -889,7 +881,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         Enable or disable the action buttons (Run and Export) according to 
             completeness of configuration data.
         """
-        ready2run, has_cols = self.table_config_ok(silent=True)
+        ready2run, unused = self.table_config_ok(silent=True)
         self.btn_run.Enable(ready2run)
         self.chk_add_to_report.Enable(ready2run)
         if mg.ADVANCED:
@@ -903,4 +895,3 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         ret = config_dlg.ConfigDlg.on_btn_config(self, event)
         update_display = (ret != wx.ID_CANCEL)
         self.update_var_dets(update_display)
-           

@@ -1,5 +1,3 @@
-import os
-import datetime
 
 import my_globals as mg
 import lib

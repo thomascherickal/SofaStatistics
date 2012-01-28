@@ -1,12 +1,9 @@
 from __future__ import print_function
 
-import random
-
 import my_globals as mg
 import lib
 import my_exceptions
 import config_dlg
-import getdata
 import dimtables
 import output
 import rawtables
@@ -225,7 +222,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
             new_var_node = tree_labels_node.add_child(
                                         dimtables.LabelNode(label=var_label))
             # terminal tree_dim_item (got any children)?
-            item, cookie = self.coltree.GetFirstChild(tree_dims_item)
+            item, unused = self.coltree.GetFirstChild(tree_dims_item)
             is_terminal = not item #i.e. if there is only the root there
             if dim == mg.ROWDIM and self.has_row_measures:
                 # add measure label nodes
@@ -239,7 +236,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                 # possibly a total
                 labels_dic = self.val_dics.get(var_name, {})
                 subitems_lst = [] # build subitems list
-                for (i, (key, val_label)) in enumerate(labels_dic.items()):
+                for (i, (unused, val_label)) in enumerate(labels_dic.items()):
                     if i > 1:
                         break
                     subitems_lst.append(val_label)
@@ -388,10 +385,9 @@ class GenDemoTable(DemoDimTable):
         CSS_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_DATACELL, css_idx)
         i=0
         data_item_presn_lst = []
-        for (row_filter, row_filt_flds) in zip(row_filters_lst,
-                                               row_filt_flds_lst):
+        for unused in row_filters_lst:
             first = True
-            for (colmeasure, col_filter, coltot, col_filt_flds) in \
+            for (colmeasure, unused, unused, unused) in \
                         zip(col_measures_lst, col_filters_lst, 
                             col_tots_lst, col_filt_flds_lst):
                 if first:
@@ -410,7 +406,7 @@ class GenDemoTable(DemoDimTable):
         i=0
         # put the cell data (inc html) into the right places
         for row in row_label_rows_lst:
-            for j in range(len(col_term_nodes)):
+            for unused in col_term_nodes:
                 row.append(data_item_presn_lst[i])
                 i=i+1
         return row_label_rows_lst
@@ -465,9 +461,9 @@ class SummDemoTable(DemoDimTable):
         row_measures_lst = [x.measure for x in row_term_nodes]
         col_filters_lst = [x.filts for x in col_term_nodes] #can be [[],[],[], ...]
         row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
-        col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
-        col_tots_lst = [x.is_coltot for x in col_term_nodes]
-        data_cells_n = len(row_term_nodes) * len(col_term_nodes)
+        #col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
+        #col_tots_lst = [x.is_coltot for x in col_term_nodes]
+        #data_cells_n = len(row_term_nodes) * len(col_term_nodes)
         #print("%s data cells in table" % data_cells_n)
         row_label_rows_lst = self.get_row_labels_row_lst(row_filt_flds_lst, 
                                 row_measures_lst, col_filters_lst, 
@@ -486,10 +482,9 @@ class SummDemoTable(DemoDimTable):
                                                        css_idx)
         CSS_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_DATACELL, css_idx)
         data_item_lst = []
-        for (rowmeasure, row_fld_lst) in zip(row_measures_lst, 
-                                             row_flds_lst):
+        for rowmeasure in row_measures_lst:
             first = True
-            for col_filter_lst in col_filters_lst:
+            for unused in col_filters_lst:
                 #styling
                 if first:
                     cellclass = CSS_FIRST_DATACELL
@@ -506,7 +501,7 @@ class SummDemoTable(DemoDimTable):
                                      (cellclass, val))
         i=0
         for row in row_label_rows_lst:
-            for j in range(len(col_term_nodes)):
+            for unused in col_term_nodes:
                 row.append(data_item_lst[i])
                 i=i+1
         return row_label_rows_lst
