@@ -13,7 +13,6 @@ WxMpl (wxPython+matplotlib) is a library of components that provide these
 missing features in the form of a better matplolib FigureCanvas.
 """
 
-
 import wx
 import sys
 import os.path
@@ -21,7 +20,13 @@ import weakref
 
 import matplotlib
 matplotlib.use('WXAgg')
-import matplotlib.numerix as Numerix
+# start added for SOFA ********************************************************
+# minimising scattered changes to code - acknowledged to be a hack
+try:
+    import matplotlib.numerix as Numerix
+except ImportError:
+    import matplotlib.numpy as Numerix # so matplotlib.numerix.float -> matplotlib.numpy.float etc
+# end added for SOFA **********************************************************
 from matplotlib.axes import _process_plot_var_args
 from matplotlib.backend_bases import FigureCanvasBase
 from matplotlib.backends.backend_agg import FigureCanvasAgg, RendererAgg

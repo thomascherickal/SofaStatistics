@@ -112,7 +112,7 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     """
     Get list of observed and expected values ready for inclusion in Pearson's
         Chi Square test.
-    NB must return 0 if nothing.  All cells must be filled.
+    NB must return 0 if nothing. All cells must be filled.
     Returns lst_obs, lst_exp, min_count, perc_cells_lt_5, df.
     NB some dbes return integers and some return Decimals.
     The lists are b within a e.g. a1b1, a1b2, a1b3, a2b1, a2b2 ...    
@@ -122,7 +122,7 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     qtbl = getdata.tblname_qtr(dbe, tbl)
     qfld_a = objqtr(fld_a)
     qfld_b = objqtr(fld_b)
-    # get row vals used
+    # A) get ROW vals used ***********************
     SQL_row_vals_used = u"""SELECT %(qfld_a)s
         FROM %(qtbl)s
         WHERE %(qfld_b)s IS NOT NULL AND %(qfld_a)s IS NOT NULL
@@ -142,7 +142,7 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
         raise my_exceptions.TooManyRowsInChiSquareException
     if len(vals_a) < mg.MIN_CHI_DIMS:
         raise my_exceptions.TooFewRowsInChiSquareException
-    # get col vals used
+    # B) get COL vals used (almost a repeat) ***********************
     SQL_col_vals_used = u"""SELECT %(qfld_b)s
         FROM %(qtbl)s
         WHERE %(qfld_a)s IS NOT NULL AND %(qfld_b)s IS NOT NULL
@@ -164,6 +164,7 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
         raise my_exceptions.TooFewColsInChiSquareException
     if len(vals_a)*len(vals_b) > mg.MAX_CHI_CELLS:
         raise my_exceptions.TooManyCellsInChiSquareException
+    # C) combine results of A) and B) ***********************
     # build SQL to get all observed values (for each a, through b's)
     SQL_get_obs = u"SELECT "
     sql_lst = []
@@ -190,8 +191,8 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     if debug: print(u"lst_obs: %s" % lst_obs)
     obs_total = float(sum(lst_obs))
     # expected values
-    lst_fracs_a = get_fracs(cur, tbl_filt, qtbl, qfld_a)
-    lst_fracs_b = get_fracs(cur, tbl_filt, qtbl, qfld_b)
+    lst_fracs_a = get_fracs(cur, tbl_filt, qtbl, qfld_a, qfld_b)
+    lst_fracs_b = get_fracs(cur, tbl_filt, qtbl, qfld_b, qfld_a)
     df = (len(lst_fracs_a)-1)*(len(lst_fracs_b)-1)
     lst_exp = []
     for frac_a in lst_fracs_a:
@@ -206,10 +207,10 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     perc_cells_lt_5 = 100*(len(lst_lt_5))/float(len(lst_exp))
     return vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df
 
-def get_fracs(cur, tbl_filt, qtbl, qfld):
+def get_fracs(cur, tbl_filt, qtbl, qfld, oth_qfld):
     """
     What fraction of the cross tab values are for each value in field?
-    Leaves out values where data is missing.
+    Leaves out values where either bit of the data pair is missing.
     Returns lst_fracs
     """
     debug = False
@@ -217,9 +218,11 @@ def get_fracs(cur, tbl_filt, qtbl, qfld):
     SQL_get_fracs = u"""SELECT %(qfld)s, COUNT(*)
         FROM %(qtbl)s 
         WHERE %(qfld)s IS NOT NULL
+        AND %(oth_qfld)s IS NOT NULL
         %(and_tbl_filt)s
         GROUP BY %(qfld)s
         ORDER BY %(qfld)s """ % {"qfld": qfld, "qtbl": qtbl, 
+                                 "oth_qfld": oth_qfld, 
                                  "and_tbl_filt": and_tbl_filt}
     if debug: print(SQL_get_fracs)
     cur.execute(SQL_get_fracs)

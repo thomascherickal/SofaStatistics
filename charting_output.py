@@ -1670,6 +1670,8 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets, inc_perc,
     # Can't have white for line charts because always a white outer background
     axis_lbl_font_colour = axis_lbl_font_colour \
                             if axis_lbl_font_colour != u"white" else u"black"
+    #unused = setup_highlights(colour_mappings, single_colour=False, 
+    #                                override_first_highlight=True)
     try:
         stroke = colour_mappings[0][0]
         fill = colour_mappings[0][1]
