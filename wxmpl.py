@@ -25,7 +25,7 @@ matplotlib.use('WXAgg')
 try:
     import matplotlib.numerix as Numerix
 except ImportError:
-    import matplotlib.numpy as Numerix # so matplotlib.numerix.float -> matplotlib.numpy.float etc
+    from matplotlib import numpy as Numerix # so matplotlib.numerix.float -> matplotlib.numpy.float etc
 # end added for SOFA **********************************************************
 from matplotlib.axes import _process_plot_var_args
 from matplotlib.backend_bases import FigureCanvasBase
