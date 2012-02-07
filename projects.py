@@ -84,7 +84,16 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
         val_dic = val_dics.get(var_name)
         if val_dic:
             for key, value in val_dic.items():
-                init_settings_data.append((key, unicode(value)))
+                # If a number, even if stored as string, get as number and use 
+                # that and sort by that.
+                try:
+                    newkey = int(key)
+                except Exception:
+                    try:
+                        newkey = float(key)
+                    except Exception:
+                        newkey = key
+                init_settings_data.append((newkey, unicode(value)))
     init_settings_data.sort(key=lambda s: s[0])
     settings_data = [] # get settings_data back updated
     bolnumeric = dd.flds[var_name][mg.FLD_BOLNUMERIC]
@@ -92,9 +101,8 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
     boldatetime = dd.flds[var_name][mg.FLD_BOLDATETIME]
     boltext = dd.flds[var_name][mg.FLD_BOLTEXT]
     if bolnumeric:
-        if boldecimal \
-                or dd.dbe == mg.DBE_SQLITE: # could be either int or float so  
-                    # have to allow the more inclusive.
+        if boldecimal or dd.dbe == mg.DBE_SQLITE: # could be int or float so  
+                                             # have to allow the more inclusive.
             val_type = settings_grid.COL_FLOAT
         else:
             val_type = settings_grid.COL_INT
