@@ -1057,7 +1057,7 @@ class StartFrame(wx.Frame):
         panel_dc.DrawBitmap(self.blank_wallpaper, self.main_left, 
                             self.help_text_top, False)
         
-    def set_proj(self, proj_text=""):
+    def set_proj_lbl(self, proj_text=""):
         "proj_text must NOT have .proj on the end"
         self.active_proj = u"%s.proj" % proj_text
         self.Refresh()

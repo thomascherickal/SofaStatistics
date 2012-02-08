@@ -161,16 +161,18 @@ class ProjSelectDlg(wx.Dialog):
             wx.BeginBusyCursor()
             dic2restore = dd.proj_dic
             dd.set_proj_dic(proj_dic, dic2restore)
+            cc = config_dlg.get_cc()
+            cc[mg.CURRENT_VDTS_PATH] = proj_dic[mg.PROJ_FIL_VDTS]
+            if mg.ADVANCED:
+                cc[mg.CURRENT_SCRIPT_PATH] = proj_dic[mg.PROJ_FIL_SCRIPT]
             proj_name = fil_proj[:-5] # might not be a sensible ...proj file
-            self.parent.set_proj(proj_name)
+            self.parent.set_proj_lbl(proj_name)
         except Exception, e:
             lib.safe_end_cursor()
             wx.MessageBox(_(u"Unable to use the selected project file. Please "
-                            u"check name of file and its contents using "
-                            u"%(def_proj)s as example."
-                            u"\nCaused by error: %(err)s")
-                                % {u"def_proj": mg.DEFAULT_PROJ, 
-                                   u"err": lib.ue(e)})
+                u"check name of file and its contents using %(def_proj)s as "
+                u"example.\nCaused by error: %(err)s") % 
+                          {u"def_proj": mg.DEFAULT_PROJ, u"err": lib.ue(e)})
             return
         lib.safe_end_cursor()
         self.Destroy()

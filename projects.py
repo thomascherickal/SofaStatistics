@@ -628,11 +628,25 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         Export script if enough data to create table.
         """
         import webbrowser
-        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
-              u"?id=help:projects"
+        url = (u"http://www.sofastatistics.com/wiki/doku.php"
+               u"?id=help:projects")
         webbrowser.open_new_tab(url)
         event.Skip()
-
+    
+    def on_btn_config(self, event):
+        """
+        Don't make the act of associating a proj file with a particular vdt 
+            cause anything directly by itself. Only if a project is selected, 
+            should the vdt file associated with it become "live".
+        """
+        cc = config_dlg.get_cc()
+        ret_dic = config_dlg.ConfigDlg.on_btn_config(self, event, 
+                                                     also_reset_cc_paths=False)
+        if ret_dic: # might have cancelled
+            cc[mg.CURRENT_VDTS_PATH] = ret_dic[mg.VDT_RET]
+            if mg.ADVANCED:
+                cc[mg.CURRENT_SCRIPT_PATH] = ret_dic[mg.SCRIPT_RET]
+    
     def on_delete(self, event):
         proj_name = self.txt_name.GetValue()
         if wx.MessageBox(_("Deleting a project cannot be undone. Do you want "
@@ -678,8 +692,17 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                 my_exceptions.DoNothingException("Only needed if returning to "
                                     "projselect form so OK to fail otherwise.")
             proj_notes = self.txt_proj_notes.GetValue()
+            
+            
+            
+            
             fil_var_dets = cc[mg.CURRENT_VDTS_PATH]
             fil_script = cc[mg.CURRENT_SCRIPT_PATH]
+            
+            
+            
+            
+            
             style = self.drop_style.GetStringSelection()
             fil_css = config_dlg.style2path(style)
             fil_report = self.txt_report_file.GetValue()
@@ -746,7 +769,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             f.write(u"\n\ncon_dets = " + 
                     lib.escape_pre_write(lib.dic2unicode(con_dets)))
             f.close()
-            self.parent.parent.set_proj(proj_name)
+            self.parent.parent.set_proj_lbl(proj_name)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # only for dialogs
         # (MUST come after Destroy)        

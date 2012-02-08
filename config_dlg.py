@@ -58,7 +58,7 @@ def path2style(path):
 
 
 class ExtraOutputConfigDlg(wx.Dialog):
-    def __init__(self, parent, readonly):
+    def __init__(self, parent, readonly, ret_dic):
         cc = get_cc()
         wx.Dialog.__init__(self, parent=parent, 
                            title=_("Extra output settings"), 
@@ -66,6 +66,7 @@ class ExtraOutputConfigDlg(wx.Dialog):
                            pos=(mg.HORIZ_OFFSET+100,100))
         self.parent = parent
         self.panel = wx.Panel(self)
+        self.ret_dic = ret_dic
         bx_var_config = wx.StaticBox(self.panel, -1, 
                                      _("Variable config from ... "))    
         self.txt_var_dets_file = wx.TextCtrl(self.panel, -1, 
@@ -140,10 +141,9 @@ class ExtraOutputConfigDlg(wx.Dialog):
         # (MUST come after Destroy)
 
     def on_ok(self, event):
-        cc = get_cc()
-        cc[mg.CURRENT_VDTS_PATH] = self.txt_var_dets_file.GetValue()
+        self.ret_dic[mg.VDT_RET] = self.txt_var_dets_file.GetValue()
         if mg.ADVANCED:
-            cc[mg.CURRENT_SCRIPT_PATH] = self.txt_script_file.GetValue()
+            self.ret_dic[mg.SCRIPT_RET] = self.txt_script_file.GetValue()
         self.parent.update_var_dets()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
@@ -306,11 +306,18 @@ class ConfigDlg(object):
         (self.var_labels, self.var_notes, self.var_types, 
                      self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
     
-    def on_btn_config(self, event):
-        dlg = ExtraOutputConfigDlg(parent=self, readonly=self.readonly)
+    def on_btn_config(self, event, also_reset_cc_paths=True):
+        cc = get_cc()
+        ret_dic = {}
+        dlg = ExtraOutputConfigDlg(parent=self, readonly=self.readonly, 
+                                   ret_dic=ret_dic)
         ret = dlg.ShowModal()
+        if ret==wx.ID_OK and also_reset_cc_paths:
+            cc[mg.CURRENT_VDTS_PATH] = ret_dic[mg.VDT_RET]
+            if mg.ADVANCED:
+                cc[mg.CURRENT_SCRIPT_PATH] = ret_dic[mg.SCRIPT_RET]
         dlg.Destroy()
-        return ret
+        return ret_dic
 
     def get_titles(self):
         """
