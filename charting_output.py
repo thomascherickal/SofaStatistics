@@ -1050,7 +1050,10 @@ def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
         xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
         pagebreak = u"" if chart_idx % 2 == 0 \
                         else u"page-break-after: always;"
-        indiv_bar_title = "<p><b>%s</b></p>" % series_det[mg.CHART_LBL]
+        if multichart:
+            indiv_bar_title = "<p><b>%s</b></p>" % series_det[mg.CHART_LBL]
+        else:
+            indiv_bar_title = u""
         # build js for every series
         series_js_list = []
         series_names_list = []
