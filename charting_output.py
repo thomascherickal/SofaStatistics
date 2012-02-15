@@ -440,7 +440,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
                                     max_items=mg.CHART_MAX_SERIES_IN_BOXPLOT)
     else:
         fld_chart_by_vals = [None,] # Got to have something to loop through ;-)
-    ymin = 0 # init
+    ymin = None # init
     ymax = 0
     first_chart_by = True
     any_missing_boxes = False
@@ -536,8 +536,10 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
                         lwhisker = val
                         break
                 min_measure = min(measure_vals)
-                if min_measure < ymin:
-                    ymin = min_measure            
+                if ymin is None:
+                    ymin = min_measure
+                elif min_measure < ymin:
+                    ymin = min_measure
                 raw_uwhisker = ubox + (1.5*iqr)
                 # wrap down to next value
                 measure_vals.reverse()
@@ -568,6 +570,11 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
         raise my_exceptions.TooFewBoxplotsInSeries
     xmin = 0.5
     xmax = i+0.5
+    ymin *=0.9
+    # use 0 as ymin if possible - if gap small compared with content, use 0
+    gap2content = (1.0*ymin)/(ymax-ymin)
+    if gap2content < 0.6:
+        ymin = 0
     ymax *=1.1
     xaxis_dets.append((xmax, u"''", u"''"))
     if debug: print(xaxis_dets)
@@ -2129,7 +2136,7 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     n_series = len(chart_dets)
     n_boxes = len(chart_dets[0][mg.CHART_BOXDETS])
     """
-    For each box, we need to identify the center. For this we need to know 
+    For each box, we need to identify the centre. For this we need to know 
         the number of boxes, where the first one starts, and the horizontal 
         jump rightwards for each one (= the gap which is width + extra 
         breathing space).
