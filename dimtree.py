@@ -761,15 +761,17 @@ class DlgRowConfig(DlgConfig):
         title = _("Configure Row Item")
         if inc_measures:
             self.measures = [
-                        (mg.MEAN, mg.measures_long_lbl_dic[mg.MEAN]), 
-                        (mg.MEDIAN, mg.measures_long_lbl_dic[mg.MEDIAN]), 
-                        (mg.SUMM_N, mg.measures_long_lbl_dic[mg.SUMM_N]), 
-                        (mg.STD_DEV, mg.measures_long_lbl_dic[mg.STD_DEV]),
-                        (mg.SUM, mg.measures_long_lbl_dic[mg.SUM]),
-                        (mg.MIN, mg.measures_long_lbl_dic[mg.MIN]),
-                        (mg.MAX, mg.measures_long_lbl_dic[mg.MAX]),
-                        (mg.RANGE, mg.measures_long_lbl_dic[mg.RANGE]),
-                        ]
+               (mg.MEAN, mg.measures_long_lbl_dic[mg.MEAN]), 
+               (mg.MEDIAN, mg.measures_long_lbl_dic[mg.MEDIAN]), 
+               (mg.LOWER_QUARTILE, mg.measures_long_lbl_dic[mg.LOWER_QUARTILE]),
+               (mg.UPPER_QUARTILE, mg.measures_long_lbl_dic[mg.UPPER_QUARTILE]),
+               (mg.SUMM_N, mg.measures_long_lbl_dic[mg.SUMM_N]), 
+               (mg.STD_DEV, mg.measures_long_lbl_dic[mg.STD_DEV]),
+               (mg.SUM, mg.measures_long_lbl_dic[mg.SUM]),
+               (mg.MIN, mg.measures_long_lbl_dic[mg.MIN]),
+               (mg.MAX, mg.measures_long_lbl_dic[mg.MAX]),
+               (mg.RANGE, mg.measures_long_lbl_dic[mg.RANGE]),
+               ]
         else:
             self.measures = []
         size = wx.DefaultSize

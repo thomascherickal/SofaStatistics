@@ -4,6 +4,7 @@ import numpy
 import my_globals as mg
 import lib
 import my_exceptions
+import core_stats
 import getdata
 import output
 import tree
@@ -1130,10 +1131,12 @@ class SummTable(LiveTable):
         else: 
             filter = self.where_tbl_filt
         # if using raw data (or finding bad data) must handle non-numeric values 
-        # myself
+        # myself. Not using SQL to do aggregate calculations - only to get raw 
+        # vals which are then processed by numpy or whatever.
         SQL_get_vals = u"SELECT %s " % self.quote_obj(row_fld) + \
             u"FROM %s %s" % (getdata.tblname_qtr(self.dbe, self.tbl), filter)
-        sql_for_raw_only = [mg.MEDIAN, mg.STD_DEV]
+        sql_for_raw_only = [mg.MEDIAN, mg.LOWER_QUARTILE, mg.UPPER_QUARTILE,
+                            mg.STD_DEV]
         if measure in sql_for_raw_only:
             self.cur.execute(SQL_get_vals)
             raw_vals = self.cur.fetchall() # sometimes returns REALS as strings
@@ -1196,6 +1199,34 @@ class SummTable(LiveTable):
                 else:
                     raise Exception(u"Unable to calculate median for %s."
                                     % row_fld)
+        elif measure == mg.LOWER_QUARTILE:
+            try:
+                data_val = round(core_stats.scoreatpercentile(data, 
+                                                              percent=25.0),2)
+            except Exception:
+                bad_val = self.get_non_num_val(SQL_get_vals)
+                if bad_val is not None:
+                    raise Exception(u"Unable to calculate lower quartile "
+                        u"for %s. " % row_fld +
+                        u"The field contains at least one non-numeric " +
+                        u"value: \"%s\"" % bad_val)
+                else:
+                    raise Exception(u"Unable to calculate lower quartile "
+                                    u"for %s." % row_fld)
+        elif measure == mg.UPPER_QUARTILE:
+            try:
+                data_val = round(core_stats.scoreatpercentile(data, 
+                                                              percent=75.0),2)
+            except Exception:
+                bad_val = self.get_non_num_val(SQL_get_vals)
+                if bad_val is not None:
+                    raise Exception(u"Unable to calculate upper quartile "
+                        u"for %s. " % row_fld +
+                        u"The field contains at least one non-numeric " +
+                        u"value: \"%s\"" % bad_val)
+                else:
+                    raise Exception(u"Unable to calculate upper quartile "
+                                    u"for %s." % row_fld)
         elif measure == mg.SUMM_N:
             SQL_get_n = u"SELECT COUNT(%s) " % self.quote_obj(row_fld) + \
                 u"FROM %s %s" % (getdata.tblname_qtr(self.dbe, self.tbl), 

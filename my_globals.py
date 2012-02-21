@@ -76,6 +76,8 @@ STD_DEV = _("Std Dev")
 MIN = _("Min")
 MAX = _("Max")
 RANGE = _("Range")
+LOWER_QUARTILE = _("L. Quartile")
+UPPER_QUARTILE = _("U. Quartile")
 measures_long_lbl_dic = {FREQ: _("Frequency"), 
                          ROWPCT: _("Row %"),
                          COLPCT: _("Column %"),
@@ -87,6 +89,8 @@ measures_long_lbl_dic = {FREQ: _("Frequency"),
                          MIN: _("Minimum"),
                          MAX: _("Maximum"),
                          RANGE: _("Range"),
+                         LOWER_QUARTILE: _("Lower Quartile"),
+                         UPPER_QUARTILE: _("Upper Quartile"),
                          }
 # content of constant and constant (ready to include in exported script)
 # e.g. "dimtables.%s" "ROWPCT"
@@ -101,6 +105,8 @@ script_export_measures_dic = {FREQ: u"FREQ",
                               MIN: u"MIN",
                               MAX: u"MAX",
                               RANGE: u"RANGE",
+                              LOWER_QUARTILE: u"LOWER_QUARTILE",
+                              UPPER_QUARTILE: u"UPPER_QUARTILE",
                               }
 # Used to make it easy to slice into html and replace titles and subtitles only.
 # Changing the return values of get html functions to get html_pre_title, 
