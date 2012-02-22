@@ -138,6 +138,9 @@ def get_date_fmt():
 
 def set_ok_date_formats():
     d_fmt = get_date_fmt()
+    set_ok_date_formats_by_fmt(d_fmt)
+
+def set_ok_date_formats_by_fmt(d_fmt):
     if d_fmt == mg.DMY:
         extra_ok_date_formats = ["%d-%m-%y", "%d-%m-%Y",
                                  "%d/%m/%y", "%d/%m/%Y",
@@ -145,7 +148,8 @@ def set_ok_date_formats():
         ok_date_format_examples = ["31/3/09", "2:30pm 31/3/2009"]
     elif d_fmt == mg.MDY:
         # needed for US, Canada, the Philippines etc
-        extra_ok_date_formats = ["%m-%d-%y", "%m/%d/%y", "%m-%d-%Y", "%m/%d/%Y"]
+        extra_ok_date_formats = ["%m-%d-%y", "%m/%d/%y", "%m.%d.%y", 
+                                 "%m-%d-%Y", "%m/%d/%Y", "%m.%d.%Y"]
         ok_date_format_examples = ["3/31/09", "2:30pm 3/31/2009"]
     elif d_fmt == mg.YMD:
         extra_ok_date_formats = []
@@ -160,7 +164,7 @@ def set_ok_date_formats():
     ok_date_formats =  extra_ok_date_formats + always_ok_date_formats
     mg.OK_DATE_FORMATS = ok_date_formats
     mg.OK_DATE_FORMAT_EXAMPLES = ok_date_format_examples
-
+    
 def get_settings_dic(subfolder, fil_name):
     """
     Returns settings_dic with keys for each setting.
