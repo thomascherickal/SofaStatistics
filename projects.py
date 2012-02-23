@@ -102,7 +102,7 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
     boltext = dd.flds[var_name][mg.FLD_BOLTEXT]
     if bolnumeric:
         if boldecimal or dd.dbe == mg.DBE_SQLITE: # could be int or float so  
-                                             # have to allow the more inclusive.
+            # have to allow the more inclusive.
             val_type = settings_grid.COL_FLOAT
         else:
             val_type = settings_grid.COL_INT
@@ -123,7 +123,14 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
                               init_settings_data, settings_data, val_type)
     ret = getsettings.ShowModal()
     if ret == wx.ID_OK:
-        var_labels[var_name] = var_desc["label"]
+        if var_desc["label"].strip():
+            var_labels[var_name] = var_desc["label"]
+        else:
+            try: # otherwise uses empty string as label which can't be seen ;-). 
+                # Better to act as if has no label at all.
+                del var_labels[var_name]
+            except KeyError:
+                pass
         var_notes[var_name] = var_desc["notes"]
         var_types[var_name] = var_desc["type"]
         update_val_labels(val_dics, var_name, val_type, keyvals=settings_data)
