@@ -818,7 +818,7 @@ class ImportFileSelectDlg(wx.Dialog):
         # file path
         lbl_file_path = wx.StaticText(self.panel, -1, _("Source File:"))
         lbl_file_path.SetFont(lblfont)
-        self.txt_file = wx.TextCtrl(self.panel, -1, u"", size=(320,-1))
+        self.txt_file = wx.TextCtrl(self.panel, -1, u"", size=(400,-1))
         self.txt_file.Bind(wx.EVT_CHAR, self.on_file_char)
         self.txt_file.SetFocus()
         btn_file_path = wx.Button(self.panel, -1, _("Browse ..."))
@@ -831,7 +831,7 @@ class ImportFileSelectDlg(wx.Dialog):
         # comment
         lbl_comment = wx.StaticText(self.panel, -1, 
             _("The Source File will be imported into SOFA with the SOFA Table "
-              "Name recorded below:"))
+              "Name entered below:"))
         # internal SOFA name
         lbl_int_name = wx.StaticText(self.panel, -1, _("SOFA Table Name:"))
         lbl_int_name.SetFont(lblfont)
@@ -840,6 +840,8 @@ class ImportFileSelectDlg(wx.Dialog):
         # feedback
         self.lbl_feedback = wx.StaticText(self.panel)
         # buttons
+        btn_help = wx.Button(self.panel, wx.ID_HELP)
+        btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         self.btn_cancel = wx.Button(self.panel, wx.ID_CANCEL)
         self.btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
         self.btn_cancel.Enable(False)
@@ -853,13 +855,17 @@ class ImportFileSelectDlg(wx.Dialog):
                                 style=wx.GA_PROGRESSBAR)
         # sizers
         szr_file_path = wx.BoxSizer(wx.HORIZONTAL)
+        szr_file_path.Add(btn_help, 0, wx.LEFT, 10)
         szr_file_path.Add(lbl_file_path, 0, wx.LEFT, 10)
-        szr_file_path.Add(self.txt_file, 1, wx.GROW|wx.LEFT|wx.RIGHT, 5)
-        szr_file_path.Add(btn_file_path, 0, wx.RIGHT, 10)
-        szr_file_path.Add(btn_google, 0, wx.RIGHT, 10)
-        szr_int_name = wx.BoxSizer(wx.HORIZONTAL)
-        szr_int_name.Add(lbl_int_name, 0, wx.RIGHT, 5)
-        szr_int_name.Add(self.txt_int_name, 1)
+        szr_file_path.Add(self.txt_file, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_get_file = wx.FlexGridSizer(rows=1, cols=2, hgap=0, vgap=0)
+        szr_get_file.AddGrowableCol(0,1) # idx, propn
+        szr_get_file.Add(btn_file_path, 0, wx.ALIGN_RIGHT|wx.RIGHT, 10)
+        szr_get_file.Add(btn_google, 0, wx.ALIGN_RIGHT|wx.RIGHT, 10)
+        szr_int_name = wx.FlexGridSizer(rows=1, cols=2, hgap=0, vgap=0)
+        szr_int_name.AddGrowableCol(0,1) # idx, propn
+        szr_int_name.Add(lbl_int_name, 0, wx.ALIGN_RIGHT|wx.RIGHT, 5)
+        szr_int_name.Add(self.txt_int_name, 1, wx.ALIGN_RIGHT)
         szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
         szr_btns.AddGrowableCol(1,2) # idx, propn
         szr_btns.Add(self.btn_cancel, 0)
@@ -869,8 +875,9 @@ class ImportFileSelectDlg(wx.Dialog):
         szr_close.Add(self.lbl_feedback)        
         szr_close.Add(self.btn_close, 0, wx.ALIGN_RIGHT)
         szr_main.Add(szr_file_path, 0, wx.GROW|wx.TOP, 20)
+        szr_main.Add(szr_get_file, 0, wx.GROW|wx.TOP, 10)
         szr_main.Add(lbl_comment, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
-        szr_main.Add(szr_int_name, 0, wx.ALL, 10)
+        szr_main.Add(szr_int_name, 0, wx.GROW|wx.ALL, 10)
         szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
         szr_main.Add(self.progbar, 0, wx.GROW|wx.ALL, 10)
         szr_main.Add(szr_close, 0, wx.GROW|wx.ALL, 10)
@@ -906,6 +913,13 @@ class ImportFileSelectDlg(wx.Dialog):
         self.txt_int_name.SetFocus()
         self.align_btns_to_completeness()
         self.btn_import.SetDefault()
+        event.Skip()
+    
+    def on_btn_help(self, event):
+        import webbrowser
+        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
+              u"?id=help:importing"
+        webbrowser.open_new_tab(url)
         event.Skip()
     
     def on_btn_google(self, event):
