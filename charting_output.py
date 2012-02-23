@@ -410,6 +410,11 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
         skipped in terms of output to js. mg.CHART_BOXPLOT_DISPLAY
     # list of subseries dicts each of which has a label and a list of dicts 
         (one per box).
+    http://en.wikipedia.org/wiki/Box_plot: one of several options: the lowest 
+        datum still within 1.5 IQR of the lower quartile, and the highest datum 
+        still within 1.5 IQR of the upper quartile.
+    Because of this variability, it is appropriate to describe the convention 
+        being used for the whiskers and outliers in the caption for the plot.
     """
     debug = False
     dd = mg.DATADETS_OBJ
@@ -501,10 +506,10 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
                 ORDER BY %(fld_measure)s""" % sql_dic
             cur.execute(SQL_measure_vals)
             measure_vals = [x[0] for x in cur.fetchall()]
-            # This is bound to be really inefficient - optimise one day?
-            lbox = core_stats.scoreatpercentile(measure_vals, percent=25.0)
-            median = core_stats.scoreatpercentile(measure_vals, percent=50.0)
-            ubox = core_stats.scoreatpercentile(measure_vals, percent=75.0)
+            median = round(np.median(measure_vals),2)
+            lq, uq = core_stats.get_quartiles(measure_vals)
+            lbox = round(lq, 2)
+            ubox = round(uq, 2)
             enough_vals = (len(measure_vals) > 
                            mg.CHART_MIN_DISPLAY_VALS_FOR_BOXPLOT)
             # Round them because even if all vals the same e.g. 1.0 will differ
@@ -527,27 +532,16 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
                            mg.CHART_BOXPLOT_OUTLIERS: None}
             else:
                 any_displayed_boxes = True
-                iqr = ubox-median
+                iqr = ubox-lbox
                 raw_lwhisker = lbox - (1.5*iqr)
-                # wrap up to next value
-                lwhisker = raw_lwhisker # init
-                for val in measure_vals:
-                    if val > raw_lwhisker:
-                        lwhisker = val
-                        break
+                lwhisker = get_lwhisker(raw_lwhisker, lbox, measure_vals)
                 min_measure = min(measure_vals)
                 if ymin is None:
                     ymin = min_measure
                 elif min_measure < ymin:
                     ymin = min_measure
                 raw_uwhisker = ubox + (1.5*iqr)
-                # wrap down to next value
-                measure_vals.reverse()
-                uwhisker = raw_uwhisker # init
-                for val in measure_vals:
-                    if val < raw_uwhisker:
-                        uwhisker = val
-                        break
+                uwhisker = get_uwhisker(raw_uwhisker, ubox, measure_vals)
                 max_measure = max(measure_vals)
                 if max_measure > ymax:
                     ymax = max_measure
@@ -580,6 +574,40 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
     if debug: print(xaxis_dets)
     return (xaxis_dets, xmin, xmax, ymin, ymax, max_lbl_len, chart_dets, 
             any_missing_boxes)
+
+def get_lwhisker(raw_lwhisker, lbox, measure_vals):
+    """
+    Make no lower than the minimum value within (inclusive) 1.5*iqr below lq.
+    Must never go above lbox.
+    """
+    lwhisker = raw_lwhisker # init
+    measure_vals.sort() # no side effects
+    for val in measure_vals: # going upwards
+        if val < raw_lwhisker:
+            pass # keep going up
+        elif val >= raw_lwhisker:
+            lwhisker = val
+            break
+    if lwhisker > lbox:
+        lwhisker = lbox
+    return lwhisker
+
+def get_uwhisker(raw_uwhisker, ubox, measure_vals):
+    """
+    Make sure no higher than the maximum value within (inclusive) 
+        1.5*iqr above uq. Must never fall below ubox.
+    """
+    uwhisker = raw_uwhisker # init
+    measure_vals.reverse() # no side effects
+    for val in measure_vals: # going downwards
+        if val > raw_uwhisker:
+            pass # keep going down
+        elif val <= raw_uwhisker:
+            uwhisker = val
+            break
+    if uwhisker < ubox:
+        uwhisker = ubox
+    return uwhisker
 
 def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure,
                    fld_chart_by, fld_chart_by_name, fld_chart_by_lbls):

@@ -1201,8 +1201,8 @@ class SummTable(LiveTable):
                                     % row_fld)
         elif measure == mg.LOWER_QUARTILE:
             try:
-                data_val = round(core_stats.scoreatpercentile(data, 
-                                                              percent=25.0),2)
+                lq, unused = core_stats.get_quartiles(data)
+                data_val = round(lq, 2)
             except Exception:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
@@ -1215,8 +1215,8 @@ class SummTable(LiveTable):
                                     u"for %s." % row_fld)
         elif measure == mg.UPPER_QUARTILE:
             try:
-                data_val = round(core_stats.scoreatpercentile(data, 
-                                                              percent=75.0),2)
+                unused, uq = core_stats.get_quartiles(data)
+                data_val = round(uq, 2)
             except Exception:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:

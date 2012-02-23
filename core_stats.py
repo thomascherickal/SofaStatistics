@@ -1020,8 +1020,8 @@ def scoreatpercentile (vals, percent):
             print("\nDividing percent>1 by 100 in scoreatpercentile().\n")
         percent = percent / 100.0
     targetcf = percent*len(vals)
-    bins, lrl, binsize, extras = histogram(vals, 
-                                           inc_uppermost_val_in_top_bin=False)
+    (bins, lrl, 
+     binsize, unused) = histogram(vals, inc_uppermost_val_in_top_bin=False)
     cumhist = cumsum(copy.deepcopy(bins))
     for i in range(len(cumhist)):
         if cumhist[i] >= targetcf:
@@ -1031,6 +1031,31 @@ def scoreatpercentile (vals, percent):
     denom = float(bins[i])
     score = binsize * (numer/denom) + (lrl+binsize*i)
     return score
+
+def get_quartiles(vals):
+    """
+    From Wild & Seber Introduction to Probability and Statistics 1996 pp.74-77
+    Depth of quartiles is (int(n/2)+1)/2 (from left for LQ and from 
+        right for UQ).
+    """
+    debug = False
+    newvals = vals[:]
+    newvals.sort() # leaving vals untouched
+    n = len(newvals)
+    depth = (int(n/2.0)+1.0)/2.0
+    if debug: print(depth)
+    ldepth = int(depth)
+    # NB zero-based so subtract 1 for position going upwards
+    if int(depth) == depth:
+        lq = newvals[ldepth-1]
+        uq = newvals[-ldepth]
+    else: # int truncates towards 0 but depth is always a positive number
+        # 1,3,4,5,60 depth = 5/2 i.e. [2.5] i.e. 2 -> 2+1 i.e. 3 -> 3/2 i.e. 1.5 
+        # so lq = (1+3)/2 i.e. 2 and uq = (5+60)/2 i.e. 32.5
+        udepth = int(depth) + 1
+        lq = (newvals[ldepth-1] + newvals[udepth - 1])/2.0
+        uq = (newvals[-ldepth] + newvals[-udepth])/2.0
+    return lq, uq
 
 def mean(vals, high=False):
     """
