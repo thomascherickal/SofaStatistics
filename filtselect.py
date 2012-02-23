@@ -51,6 +51,7 @@ def get_val(raw_val, flds, fld_name):
 class FiltSelectDlg(wx.Dialog):
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics):
         dd = mg.DATADETS_OBJ
+        self.var_dets = _("Variable Details")
         self.var_labels = var_labels
         self.var_notes = var_notes
         self.var_types = var_types
@@ -67,12 +68,15 @@ class FiltSelectDlg(wx.Dialog):
         szr_label = wx.BoxSizer(wx.HORIZONTAL)
         szr_quick = wx.BoxSizer(wx.HORIZONTAL)
         szr_flex = wx.BoxSizer(wx.VERTICAL)
+        szr_flex_across = wx.BoxSizer(wx.HORIZONTAL)
         # assemble
         self.rad_quick = wx.RadioButton(self.panel, -1, _("Quick"), 
                                        style=wx.RB_GROUP)
         rad_flex = wx.RadioButton(self.panel, -1, _("Flexible"))
         self.rad_quick.Bind(wx.EVT_RADIOBUTTON, self.on_rad_quick_sel)
         rad_flex.Bind(wx.EVT_RADIOBUTTON, self.on_rad_flex_sel)
+        btn_help = wx.Button(self.panel, wx.ID_HELP)
+        btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         # label content
         lbl_label = wx.StaticText(self.panel, -1, _("Label (optional):"))
         self.txt_label = wx.TextCtrl(self.panel, -1, tbl_filt_label)
@@ -104,7 +108,9 @@ class FiltSelectDlg(wx.Dialog):
                                            style=wx.TE_MULTILINE, size=(-1,75))
         self.lbl_flex_example = wx.StaticText(self.panel, -1, 
                                            _("(enter a filter e.g. agegp > 5)"))
-        szr_flex.Add(rad_flex, 0)
+        szr_flex_across.Add(rad_flex, 0, wx.RIGHT, 10)
+        szr_flex_across.Add(btn_help, 0)
+        szr_flex.Add(szr_flex_across, 0, wx.TOP|wx.BOTTOM, 10)
         szr_flex.Add(self.lbl_flex_example, 0)
         szr_flex.Add(self.txt_flex_filter, 1, wx.GROW)
         if self.tbl_filt:
@@ -146,7 +152,7 @@ class FiltSelectDlg(wx.Dialog):
         See http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605904
         and http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605432
         """
-        btn_var_dets = wx.Button(self.panel, -1, _("Variable Details"))
+        btn_var_dets = wx.Button(self.panel, -1, self.var_dets)
         btn_var_dets.Bind(wx.EVT_BUTTON, self.on_var_dets)
         btn_delete = wx.Button(self.panel, wx.ID_DELETE, _("Remove"))
         btn_delete.Bind(wx.EVT_BUTTON, self.on_delete)
@@ -201,6 +207,10 @@ class FiltSelectDlg(wx.Dialog):
         self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
         # (MUST come after Destroy)
 
+    def on_btn_help(self, event):
+        demo = self.get_demo()
+        wx.MessageBox(demo)
+    
     def get_quick_filter(self):
         "Get filter from quick setting"
         debug = False
@@ -212,7 +222,34 @@ class FiltSelectDlg(wx.Dialog):
         filt = getdata.make_fld_val_clause(dd.dbe, dd.flds, fld_name, val, gte)
         if debug: print(filt)
         return filt
-
+    
+    def get_demo(self):
+        dd = mg.DATADETS_OBJ
+        val_quoter = getdata.get_val_quoter_func(dd.dbe)
+        objqtr = getdata.get_obj_quoter_func(dd.dbe)
+        if dd.dbe == mg.DBE_SQLITE:
+            sqlite_extra_comment = u" (such as the default SOFA database)"
+        else:
+            sqlite_extra_comment = u""
+        demo = ((_("Filters for %(dbe)s data%(sqlite_extra_comment)s "
+                   "should look like this:") +
+            u"\n\ne.g. %(city)s = %(vancouver)s"
+            u"\ne.g. %(city)s != %(unknown_city)s"
+            u"\ne.g. %(age)s >= 20"
+            u"\ne.g. (%(city)s = %(vancouver)s AND %(age)s >= 20) "
+            "OR %(gender)s = 2"
+            u"\ne.g. %(satisfaction)s not in (9, 99, 999)"
+            u"\n\nAny valid SQL should work.") %
+                  {"dbe": dd.dbe,
+                   "city": objqtr("city"), 
+                   "vancouver": val_quoter("Vancouver"),
+                   "unknown_city": val_quoter("Unknown City"),
+                   "age": objqtr("age"),
+                   "gender": objqtr("gender"),
+                   "satisfaction": objqtr("satisfaction"),
+                   "sqlite_extra_comment": sqlite_extra_comment})
+        return demo
+    
     def on_ok(self, event):
         debug = False
         dd = mg.DATADETS_OBJ
@@ -233,39 +270,19 @@ class FiltSelectDlg(wx.Dialog):
                 wx.MessageBox(_("Please enter a filter"))
                 return
         # Must work with a simple query to that database
-        objqtr = getdata.get_obj_quoter_func(dd.dbe)
-        filt_test_SQL = u"""SELECT * FROM %s """ % getdata.tblname_qtr(dd.dbe, 
-                                                                    dd.tbl) + \
-                        u"""WHERE (%s)""" % tbl_filt
+        filt_test_SQL = (u"""SELECT * FROM %s """ % 
+            getdata.tblname_qtr(dd.dbe, dd.tbl) + u"""WHERE (%s)""" % tbl_filt)
         if debug: print("Filter: %s" % filt_test_SQL)
         try:
             dd.cur.execute(filt_test_SQL)
         except Exception:
-            val_quoter = getdata.get_val_quoter_func(dd.dbe)
-            if dd.dbe == mg.DBE_SQLITE:
-                sqlite_extra_comment = u" (such as the default SOFA database)"
-            else:
-                sqlite_extra_comment = u""
-            demo = ((_("\n\nFilters for %(dbe)s data%(sqlite_extra_comment)s "
-                       "should look like this:") +
-                u"\n\ne.g. %(city)s = %(vancouver)s"
-                u"\ne.g. %(city)s != %(unknown_city)s"
-                u"\ne.g. %(age)s >= 20"
-                u"\ne.g. (%(city)s = %(vancouver)s AND %(age)s >= 20) "
-                "OR %(gender)s = 2"
-                u"\ne.g. %(satisfaction)s not in (9, 99, 999)") %
-                      {"dbe": dd.dbe,
-                       "city": objqtr("city"), 
-                       "vancouver": val_quoter("Vancouver"),
-                       "unknown_city": val_quoter("Unknown City"),
-                       "age": objqtr("age"),
-                       "gender": objqtr("gender"),
-                       "satisfaction": objqtr("satisfaction"),
-                       "sqlite_extra_comment": sqlite_extra_comment})
+            demo = self.get_demo()
             lib.safe_end_cursor()
             wx.MessageBox(_("Problem applying filter \"%(filt)s\" to"
                             " \"%(tbl)s\"") % {"filt": tbl_filt, 
-                                               "tbl": dd.tbl} + demo)
+                                               "tbl": dd.tbl} + u"\n\n" + demo +
+                          u"\n\nCheck for mistakes in variable names and types "
+                          u"by clicking on the \"%s\" button." % self.var_dets)
             return
         if dd.dbe not in mg.DBE_TBL_FILTS:
             mg.DBE_TBL_FILTS[dd.dbe] = {}
