@@ -580,22 +580,22 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
                                                     item=self.rowroot):
                 # child -- NB GUI tree items, not my Dim Node obj
                 item_conf = self.rowtree.GetItemPyData(child)
-                child_fld_name = item_conf.var_name
+                child_fldname = item_conf.var_name
                 self.add_to_parent(script_lst=script_lst, tree=self.rowtree, 
                             parent=self.rowtree, parent_node_label=u"tree_rows",
                             parent_name=u"row",
-                            child=child, child_fld_name=child_fld_name)
+                            child=child, child_fldname=child_fldname)
             script_lst.append(u"# Columns" + 57*u"*")
             script_lst.append(u"tree_cols = dimtables.DimNodeTree()")
             if has_cols:
                 for child in lib.get_tree_ctrl_children(tree=self.coltree, 
                                                         item=self.colroot):
                     item_conf = self.coltree.GetItemPyData(child)
-                    child_fld_name = item_conf.var_name
+                    child_fldname = item_conf.var_name
                     self.add_to_parent(script_lst=script_lst, tree=self.coltree, 
                             parent=self.coltree, parent_node_label=u"tree_cols",
                             parent_name=u"column",
-                            child=child, child_fld_name=child_fld_name)
+                            child=child, child_fldname=child_fldname)
             script_lst.append(u"# Misc" + 60*u"*")
         elif self.tab_type == mg.RAW_DISPLAY:
             col_names, col_labels = lib.get_col_dets(self.coltree, self.colroot, 
@@ -669,13 +669,13 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             i += 1
  
     def add_to_parent(self, script_lst, tree, parent, parent_node_label, 
-                      parent_name, child, child_fld_name):
+                      parent_name, child, child_fldname):
         """
         Add script code for adding child nodes to parent nodes.
         tree -- TreeListCtrl tree
         parent, child -- TreeListCtrl items
         parent_node_label -- for parent_node_label.add_child(...)
-        child_fld_name -- used to get variable label, and value labels
+        child_fldname -- used to get variable label, and value labels
             from relevant dicts; plus as the field name
         """
         debug = False
@@ -684,13 +684,13 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             fld_arg = u""
             var_label = _("Frequency column")
         else:
-            fld_arg = u"fld=u\"%s\", " % child_fld_name
+            fld_arg = u"fld=u\"%s\", " % child_fldname
             if debug: 
                 print(self.var_labels)
                 print(self.val_dics)
-            var_label = self.var_labels.get(child_fld_name, 
-                                            child_fld_name.title())
-        labels_dic = self.val_dics.get(child_fld_name, {})
+            var_label = self.var_labels.get(child_fldname, 
+                                            child_fldname.title())
+        labels_dic = self.val_dics.get(child_fldname, {})
         child_node_label = self.g.next()
         item_conf = tree.GetItemPyData(child)
         measures_lst = item_conf.measures_lst
@@ -708,10 +708,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         sort_order_arg = u", \n    sort_order=u\"%s\"" % \
             item_conf.sort_order
         numeric_arg = u", \n    bolnumeric=%s" % item_conf.bolnumeric
-        fld_name = _("Column configuration") if child_fld_name is None \
-                                             else child_fld_name
+        fldname = _("Column configuration") if child_fldname is None \
+                                             else child_fldname
         script_lst.append(u"# Defining %s (\"%s\")" % (child_node_label, 
-                                                       fld_name))
+                                                       fldname))
         script_lst.append(child_node_label + \
                           u" = dimtables.DimNode(" + fld_arg + \
                           u"\n    label=u\"%s\"," % unicode(var_label) + \
@@ -721,10 +721,10 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         if parent_node_label in (u"tree_rows", u"tree_cols"):
             parent_name = u"rows" if parent_node_label == u"tree_rows" \
                 else u"columns"          
-            script_lst.append(u"# Adding \"%s\" to %s" % (fld_name, 
+            script_lst.append(u"# Adding \"%s\" to %s" % (fldname, 
                                                           parent_name))
         else:
-            script_lst.append(u"# Adding \"%s\" under \"%s\"" % (fld_name, 
+            script_lst.append(u"# Adding \"%s\" under \"%s\"" % (fldname, 
                                                                  parent_name))
         script_lst.append(u"%s.add_child(%s)" % (parent_node_label, 
                                                  child_node_label))
@@ -732,11 +732,11 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         for grandchild in lib.get_tree_ctrl_children(tree=tree, item=child):
             # grandchild -- NB GUI tree items, not my Dim Node obj
             item_conf = tree.GetItemPyData(grandchild)
-            grandchild_fld_name = item_conf.var_name
+            grandchild_fldname = item_conf.var_name
             self.add_to_parent(script_lst=script_lst, tree=tree, parent=child,
                                parent_node_label=child_node_label, 
-                               parent_name=child_fld_name, child=grandchild, 
-                               child_fld_name=grandchild_fld_name)
+                               parent_name=child_fldname, child=grandchild, 
+                               child_fldname=grandchild_fldname)
     
     def on_btn_help(self, event):
         """

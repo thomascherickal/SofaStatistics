@@ -396,7 +396,7 @@ class GenDemoTable(DemoDimTable):
                 else:
                     cellclass = CSS_DATACELL
                 # build data row list
-                raw_val = lib.get_rand_val_of_type(mg.FLD_TYPE_NUMERIC)
+                raw_val = lib.get_rand_val_of_type(mg.FLDTYPE_NUMERIC)
                 num2display = lib.get_num2display(num=raw_val, 
                                                   output_type=colmeasure, 
                                                   inc_perc=self.show_perc)
@@ -491,7 +491,7 @@ class SummDemoTable(DemoDimTable):
                     first = False
                 else:
                     cellclass = CSS_DATACELL
-                raw_val = lib.get_rand_val_of_type(mg.FLD_TYPE_NUMERIC)
+                raw_val = lib.get_rand_val_of_type(mg.FLDTYPE_NUMERIC)
                 data_val = unicode(raw_val)  
                 if rowmeasure == mg.SUMM_N:
                     val = u"N=%s" % data_val

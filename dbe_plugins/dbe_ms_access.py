@@ -138,10 +138,10 @@ def has_tbls(cur, db):
             return True
     return False
 
-def fld_unique(fld_name, idxs):
+def fld_unique(fldname, idxs):
     for idx in idxs:
         if idx[mg.IDX_IS_UNIQUE]:
-            if fld_name in idx[mg.IDX_FLDS]:
+            if fldname in idx[mg.IDX_FLDS]:
                 return True
     return False
 
@@ -163,18 +163,18 @@ def get_flds(cur, db, tbl):
     extras = {}
     rs = cur.adoconn.OpenSchema(AD_SCHEMA_COLUMNS, (None, None, tbl)) 
     while not rs.EOF:
-        fld_name = rs.Fields(u"COLUMN_NAME").Value
+        fldname = rs.Fields(u"COLUMN_NAME").Value
         ord_pos = rs.Fields(u"ORDINAL_POSITION").Value
         char_set = rs.Fields(u"CHARACTER_SET_NAME").Value
-        extras[fld_name] = (ord_pos, char_set)
+        extras[fldname] = (ord_pos, char_set)
         rs.MoveNext()
     flds = {}
     idxs, has_unique = get_index_dets(cur, db, tbl)
     for col in cat.Tables(tbl).Columns:
         # build dic of fields, each with dic of characteristics
-        fld_name = col.Name            
-        fld_type = dbe_globals.get_ado_dict().get(col.Type)
-        if not fld_type:
+        fldname = col.Name            
+        fldtype = dbe_globals.get_ado_dict().get(col.Type)
+        if not fldtype:
             raise Exception(u"Not an MS Access ADO field type %d" % col.Type)
         bolautonum = col.Properties(u"AutoIncrement").Value
         boldata_entry_ok = False if bolautonum else True
@@ -182,24 +182,24 @@ def get_flds(cur, db, tbl):
         # autonumber)
         bolnullable = col.Properties(u"Nullable").Value
         if has_unique:
-            if fld_unique(fld_name, idxs) and not bolautonum:
+            if fld_unique(fldname, idxs) and not bolautonum:
                 bolnullable = False
-        bolnumeric = fld_type in dbe_globals.NUMERIC_TYPES
+        bolnumeric = fldtype in dbe_globals.NUMERIC_TYPES
         dec_pts = col.NumericScale if col.NumericScale < 18 else 0
-        boldatetime = fld_type in dbe_globals.DATETIME_TYPES
+        boldatetime = fldtype in dbe_globals.DATETIME_TYPES
         fld_txt = not bolnumeric and not boldatetime
         num_prec = col.Precision
         bolsigned = True if bolnumeric else None
-        min_val, max_val = dbe_globals.get_min_max(fld_type, num_prec, 
+        min_val, max_val = dbe_globals.get_min_max(fldtype, num_prec, 
                                                    dec_pts)
         dets_dic = {
-                    mg.FLD_SEQ: extras[fld_name][0],
+                    mg.FLD_SEQ: extras[fldname][0],
                     mg.FLD_BOLNULLABLE: bolnullable,
                     mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
                     mg.FLD_COLUMN_DEFAULT: col.Properties(u"Default").Value,
                     mg.FLD_BOLTEXT: fld_txt,
                     mg.FLD_TEXT_LENGTH: col.DefinedSize,
-                    mg.FLD_CHARSET: extras[fld_name][1],
+                    mg.FLD_CHARSET: extras[fldname][1],
                     mg.FLD_BOLNUMERIC: bolnumeric,
                     mg.FLD_BOLAUTONUMBER: bolautonum,
                     mg.FLD_DECPTS: dec_pts,
@@ -209,7 +209,7 @@ def get_flds(cur, db, tbl):
                     mg.FLD_NUM_MAX_VAL: max_val,
                     mg.FLD_BOLDATETIME: boldatetime, 
                     }
-        flds[fld_name] = dets_dic
+        flds[fldname] = dets_dic
     debug = False 
     if debug:
         pprint.pprint(flds)
@@ -232,9 +232,9 @@ def get_index_dets(cur, db, tbl):
     for index in index_coll:
         if index.Unique:
             has_unique = True
-        fld_names = [x.Name for x in index.Columns]
+        fldnames = [x.Name for x in index.Columns]
         idx_dic = {mg.IDX_NAME: index.Name, mg.IDX_IS_UNIQUE: index.Unique, 
-                   mg.IDX_FLDS: fld_names}
+                   mg.IDX_FLDS: fldnames}
         idxs.append(idx_dic)
     cat = None
     debug = False
@@ -282,27 +282,27 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                            wx.GROW|wx.RIGHT, 10)
     parent.szr_msaccess.Add(szr_msaccess_inner, 0)
     col_det_db = {"col_label": _("Database(s)"), 
-                  "col_type": settings_grid.COL_TEXT_BROWSE, 
-                  "col_width": 250, 
+                  "coltype": settings_grid.COL_TEXT_BROWSE, 
+                  "colwidth": 250, 
                   "file_phrase": _("Choose an MS Access database file"), 
                   "file_wildcard": _("MS Access databases") + u" (*.mdb)|*.mdb",
                   "empty_ok": False}
     col_det_sec = {"col_label": _("Security File") + u" (*.mdw) (opt)", 
-                  "col_type": settings_grid.COL_TEXT_BROWSE, 
-                  "col_width": 250, 
+                  "coltype": settings_grid.COL_TEXT_BROWSE, 
+                  "colwidth": 250, 
                   "file_phrase": _("Choose an MS Access security file"), 
                   "file_wildcard": _("MS Access security files") + \
                         u" (*.mdw)|*.mdw",
                   "empty_ok": True}
     col_det_usr = {"col_label": _("User Name (opt)"), 
-                  "col_type": settings_grid.COL_STR, 
-                  "col_width": 130, 
+                  "coltype": settings_grid.COL_STR, 
+                  "colwidth": 130, 
                   "file_phrase": None, 
                   "file_wildcard": None,
                   "empty_ok": True}
     col_det_pwd = {"col_label": _("Password (opt)"), 
-                  "col_type": settings_grid.COL_PWD, 
-                  "col_width": 130, 
+                  "coltype": settings_grid.COL_PWD, 
+                  "colwidth": 130, 
                   "file_phrase": None, 
                   "file_wildcard": None,
                   "empty_ok": True}

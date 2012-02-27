@@ -174,28 +174,28 @@ def get_tbls(cur, db):
     Get table names given database and cursor.
     http://www.alberton.info/postgresql_meta_info.html
     """
-    SQL_get_tbl_names = u"""SELECT table_schema || '.' || table_name
+    SQL_get_tblnames = u"""SELECT table_schema || '.' || table_name
         FROM information_schema.tables
         WHERE table_type IN('BASE TABLE', 'VIEW')
             AND table_schema NOT IN ('pg_catalog', 'information_schema')"""
-    cur.execute(SQL_get_tbl_names)
+    cur.execute(SQL_get_tblnames)
     tbls = [x[0] for x in cur.fetchall()] 
     tbls.sort(key=lambda s: s.upper())
     return tbls
 
 def has_tbls(cur, db):
     "Any non-system tables?  Need to use cursor that matches db"
-    SQL_get_tbl_names = u"""SELECT table_schema || '.' || table_name
+    SQL_get_tblnames = u"""SELECT table_schema || '.' || table_name
         FROM information_schema.tables
         WHERE table_type IN('BASE TABLE', 'VIEW')
             AND table_schema NOT IN ('pg_catalog', 'information_schema')"""
-    cur.execute(SQL_get_tbl_names)
+    cur.execute(SQL_get_tblnames)
     tbls = [x[0] for x in cur.fetchall()]
     if tbls:
         return True
     return False
     
-def get_min_max(fld_type, num_prec, dec_pts, autonum):
+def get_min_max(fldtype, num_prec, dec_pts, autonum):
     """
     Returns minimum and maximum allowable numeric values.
     num_prec - precision e.g. 6 for 23.5141
@@ -215,28 +215,28 @@ def get_min_max(fld_type, num_prec, dec_pts, autonum):
         The database will store these as zero. TODO - confirm with 
         PostgreSQL.
     """
-    if fld_type == SMALLINT:
+    if fldtype == SMALLINT:
         min = -(2**15)
         max = (2**15)-1
-    elif fld_type == INTEGER:
+    elif fldtype == INTEGER:
         min = 1 if autonum else -(2**31)
         max = (2**31)-1
-    elif fld_type == BIGINT:
+    elif fldtype == BIGINT:
         min = 1 if autonum else -(2**63)
         max = (2**63)-1
     # http://www.postgresql.org/docs/8.4/static/datatype-money.html
-    elif fld_type == MONEY:
+    elif fldtype == MONEY:
         min = -92233720368547758.08
         max = 92233720368547758.07
-    elif fld_type == REAL:
+    elif fldtype == REAL:
         # variable-precision, inexact. 6 decimal digits precision.
         min = -(2**128)
         max = (2**128)-1 # actually, rather a bit less, but this will do
-    elif fld_type == DOUBLE:
+    elif fldtype == DOUBLE:
         # variable-precision, inexact. 15 decimal digits precision.
         min = -(2**1024)
         max = (2**1024)-1
-    elif fld_type == NUMERIC: #alias of decimal
+    elif fldtype == NUMERIC: #alias of decimal
         # variable-precision, inexact. 15 decimal digits precision.
         abs_max = 10**(num_prec - dec_pts)
         min = -abs_max
@@ -295,14 +295,14 @@ def get_flds(cur, db, tbl):
     if debug: pprint.pprint(fld_dets)
     # build dic of fields, each with dic of characteristics
     flds = {}
-    for (fld_name, ord_pos, nullable, fld_default, fld_type, max_len, 
+    for (fldname, ord_pos, nullable, fld_default, fldtype, max_len, 
              charset, numeric, autonum, dec_pts, num_prec, boldatetime, 
              timestamp) in fld_dets:
         bolnullable = True if nullable == u"YES" else False
         boldata_entry_ok = False if (autonum or timestamp) else True
         bolnumeric = True if numeric else False
         fld_txt = not bolnumeric and not boldatetime
-        min_val, max_val = get_min_max(fld_type, num_prec, dec_pts, autonum)
+        min_val, max_val = get_min_max(fldtype, num_prec, dec_pts, autonum)
         # http://www.postgresql.org/docs/current/static/datatype-numeric.html
         # even autonum could start from a negative i.e. signed value
         bolsigned = True if bolnumeric else None
@@ -323,7 +323,7 @@ def get_flds(cur, db, tbl):
                     mg.FLD_NUM_MAX_VAL: max_val,
                     mg.FLD_BOLDATETIME: boldatetime,
                     }
-        flds[fld_name] = dets_dic
+        flds[fldname] = dets_dic
     return flds
 
 def get_index_dets(cur, db, tbl):
@@ -354,8 +354,8 @@ def get_index_dets(cur, db, tbl):
     main_index_dets = cur.fetchall()
     idxs = []
     has_unique = False
-    for idx_name, indkey, unique_index in main_index_dets:
-        fld_names = []
+    for idxname, indkey, unique_index in main_index_dets:
+        fldnames = []
         if unique_index:
             has_unique = True
         # get field names
@@ -375,9 +375,9 @@ def get_index_dets(cur, db, tbl):
                                                 u"tblname": quote_val(tblname), 
                                                 u"fld_oids": fld_oids}
         cur.execute(SQL_get_idx_flds)
-        fld_names = [x[1] for x in cur.fetchall()]
-        idx_dic = {mg.IDX_NAME: idx_name, mg.IDX_IS_UNIQUE: unique_index, 
-                   mg.IDX_FLDS: fld_names}
+        fldnames = [x[1] for x in cur.fetchall()]
+        idx_dic = {mg.IDX_NAME: idxname, mg.IDX_IS_UNIQUE: unique_index, 
+                   mg.IDX_FLDS: fldnames}
         idxs.append(idx_dic)
     debug = False
     if debug:

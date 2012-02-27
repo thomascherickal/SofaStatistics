@@ -135,100 +135,100 @@ def get_tbls(cur, db):
     Get table names given database and cursor.
     SHOW TABLES works with older versions of MySQL than information_schema
     """
-    #SQL_get_tbl_names = u"""SELECT TABLE_NAME 
+    #SQL_get_tblnames = u"""SELECT TABLE_NAME 
     #    FROM information_schema.TABLES
     #    WHERE TABLE_SCHEMA = %s
     #    UNION SELECT TABLE_NAME
     #    FROM information_schema.VIEWS
     #    WHERE TABLE_SCHEMA = %s """ % (quote_val(db), quote_val(db))
-    SQL_get_tbl_names = u"""SHOW TABLES FROM %s """ % quote_obj(db)
-    cur.execute(SQL_get_tbl_names)
+    SQL_get_tblnames = u"""SHOW TABLES FROM %s """ % quote_obj(db)
+    cur.execute(SQL_get_tblnames)
     tbls = [x[0] for x in cur.fetchall()]
     tbls.sort(key=lambda s: s.upper())
     return tbls
 
 def has_tbls(cur, db):
     "Any non-system tables?  Cursor should match db"
-    SQL_get_tbl_names = u"""SHOW TABLES FROM %s """ % quote_obj(db)
-    cur.execute(SQL_get_tbl_names)
+    SQL_get_tblnames = u"""SHOW TABLES FROM %s """ % quote_obj(db)
+    cur.execute(SQL_get_tblnames)
     tbls = [x[0] for x in cur.fetchall()]
     if tbls:
         return True
     return False 
 
-def get_min_max(col_type, num_prec, dec_pts):
+def get_min_max(coltype, num_prec, dec_pts):
     """
-    Use col_type not fld_type.  The former is inconsistent - float 
+    Use coltype not fldtype.  The former is inconsistent - float 
         and double have unsigned at end but not rest!
     Returns minimum and maximum allowable numeric values.
     NB even though a floating point type will not store values closer 
         to zero than a certain level, such values will be accepted here.
         The database will store these as zero.
     """
-    if col_type.lower().startswith(TINYINT) \
-            and not col_type.lower().endswith("unsigned"):
+    if coltype.lower().startswith(TINYINT) \
+            and not coltype.lower().endswith("unsigned"):
         min = -(2**7)
         max = (2**7)-1
-    elif col_type.lower().startswith(TINYINT) \
-            and col_type.lower().endswith("unsigned"):
+    elif coltype.lower().startswith(TINYINT) \
+            and coltype.lower().endswith("unsigned"):
         min = 0
         max = (2**8)-1
-    elif col_type.lower().startswith(SMALLINT) \
-            and not col_type.lower().endswith("unsigned"):
+    elif coltype.lower().startswith(SMALLINT) \
+            and not coltype.lower().endswith("unsigned"):
         min = -(2**15)
         max = (2**15)-1
-    elif col_type.lower().startswith(SMALLINT) \
-            and col_type.lower().endswith("unsigned"):
+    elif coltype.lower().startswith(SMALLINT) \
+            and coltype.lower().endswith("unsigned"):
         min = 0
         max = (2**16)-1
-    elif col_type.lower().startswith(MEDIUMINT) \
-            and not col_type.lower().endswith("unsigned"):
+    elif coltype.lower().startswith(MEDIUMINT) \
+            and not coltype.lower().endswith("unsigned"):
         min = -(2**23)
         max = (2**23)-1
-    elif col_type.lower().startswith(MEDIUMINT) \
-            and col_type.lower().endswith("unsigned"):
+    elif coltype.lower().startswith(MEDIUMINT) \
+            and coltype.lower().endswith("unsigned"):
         min = 0
         max = (2**24)-1
-    elif col_type.lower().startswith(INT) \
-            and not col_type.lower().endswith("unsigned"):
+    elif coltype.lower().startswith(INT) \
+            and not coltype.lower().endswith("unsigned"):
         min = -(2**31)
         max = (2**31)-1
-    elif col_type.lower().startswith(INT) \
-            and col_type.lower().endswith("unsigned"):
+    elif coltype.lower().startswith(INT) \
+            and coltype.lower().endswith("unsigned"):
         min = 0
         max = (2**32)-1
-    elif col_type.lower().startswith(BIGINT) \
-            and not col_type.lower().endswith("unsigned"):
+    elif coltype.lower().startswith(BIGINT) \
+            and not coltype.lower().endswith("unsigned"):
         min = -(2**63)
         max = (2**63)-1
-    elif col_type.lower().startswith(BIGINT) \
-            and col_type.lower().endswith("unsigned"):
+    elif coltype.lower().startswith(BIGINT) \
+            and coltype.lower().endswith("unsigned"):
         min = 0
         max = (2**64)-1
-    elif col_type.lower().startswith(FLOAT) \
-            and not col_type.lower().endswith("unsigned"):
+    elif coltype.lower().startswith(FLOAT) \
+            and not coltype.lower().endswith("unsigned"):
         min = -3.402823466E+38
         max = 3.402823466E+38
-    elif col_type.lower().startswith(FLOAT) \
-            and col_type.lower().endswith("unsigned"):
+    elif coltype.lower().startswith(FLOAT) \
+            and coltype.lower().endswith("unsigned"):
         min = 0
         max = 3.402823466E+38
-    elif col_type.lower().startswith(DOUBLE) \
-            and not col_type.lower().endswith("unsigned"):
+    elif coltype.lower().startswith(DOUBLE) \
+            and not coltype.lower().endswith("unsigned"):
         min = -1.7976931348623157E+308
         max = 1.7976931348623157E+308
-    elif col_type.lower().startswith(DOUBLE) \
-            and col_type.lower().endswith("unsigned"):
+    elif coltype.lower().startswith(DOUBLE) \
+            and coltype.lower().endswith("unsigned"):
         min = 0
         max = 1.7976931348623157E+308
-    elif col_type.lower().startswith(DECIMAL) \
-            and not col_type.lower().endswith("unsigned"):
+    elif coltype.lower().startswith(DECIMAL) \
+            and not coltype.lower().endswith("unsigned"):
         # e.g. 6,2 -> 9999.99
         abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
         min = -abs_max
         max = abs_max
-    elif col_type.lower().startswith(DECIMAL) \
-            and col_type.lower().endswith("unsigned"):
+    elif coltype.lower().startswith(DECIMAL) \
+            and coltype.lower().endswith("unsigned"):
         abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
         min = 0
         max = abs_max
@@ -276,45 +276,45 @@ def get_flds(cur, db, tbl):
     flds = {}
     for i, row in enumerate(cur.fetchall()):
         if debug: print(row)
-        fld_name, col_type, nullable, unused, fld_default, extra = row
+        fldname, coltype, nullable, unused, fld_default, extra = row
         bolnullable = True if nullable == u"YES" else False
         autonum = u"auto_increment" in extra
-        timestamp = col_type.lower().startswith("timestamp")
+        timestamp = coltype.lower().startswith("timestamp")
         boldata_entry_ok = not (autonum or timestamp)
         bolnumeric = False
         for num_type in numeric_lst:
-            if col_type.lower().startswith(num_type):
+            if coltype.lower().startswith(num_type):
                 bolnumeric = True
                 break
         if fld_default and bolnumeric:
             fld_default = float(fld_default) # so 0.0 not '0.0'
         boldatetime = False
         for dt_type in datetime_lst:
-            if col_type.lower().startswith(dt_type):
+            if coltype.lower().startswith(dt_type):
                 boldatetime = True
                 break
         fld_txt = not bolnumeric and not boldatetime
-        bolsigned = (col_type.find("unsigned") == -1) if bolnumeric else None
+        bolsigned = (coltype.find("unsigned") == -1) if bolnumeric else None
         # init
         num_prec = None
         dec_pts = None
-        if col_type.lower().startswith(DECIMAL) or \
-                col_type.lower().startswith(FLOAT):
+        if coltype.lower().startswith(DECIMAL) or \
+                coltype.lower().startswith(FLOAT):
             # e.g. get 10 and 0 from "(10,0)"
             try:
                 num_prec, dec_pts = [int(x) for x in 
-                    col_type[col_type.index(u"("):].strip()[1:-1].split(u",")]
+                    coltype[coltype.index(u"("):].strip()[1:-1].split(u",")]
             except Exception:
-                if col_type.lower().startswith(FLOAT):
+                if coltype.lower().startswith(FLOAT):
                     num_prec = 12
-        elif col_type.lower().startswith(INT):
+        elif coltype.lower().startswith(INT):
             num_prec = 10
             dec_pts = 0
-        min_val, max_val = get_min_max(col_type, num_prec, dec_pts)
+        min_val, max_val = get_min_max(coltype, num_prec, dec_pts)
         max_len = None
         if fld_txt:
             try:
-                txt_len = col_type[col_type.index(u"("):].strip()[1:-1]
+                txt_len = coltype[coltype.index(u"("):].strip()[1:-1]
                 max_len = int(txt_len)
             except Exception:
                 my_exceptions.DoNothingException()
@@ -336,7 +336,7 @@ def get_flds(cur, db, tbl):
                     mg.FLD_NUM_MAX_VAL: max_val,
                     mg.FLD_BOLDATETIME: boldatetime,
                     }
-        flds[fld_name] = dets_dic
+        flds[fldname] = dets_dic
     if debug: print("flds: %s" % flds)
     return flds
 

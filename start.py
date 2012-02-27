@@ -469,7 +469,7 @@ class StartFrame(wx.Frame):
         # NB cannot have transparent background properly in Windows if using
         # a static ctrl 
         # http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3045245
-        self.txtWelcome = _("Welcome to SOFA Statistics.  Hovering the mouse "
+        self.txtWelcome = _("Welcome to SOFA Statistics. Hovering the mouse "
                             "over the buttons lets you see what you can do.")
         if mg.PLATFORM == mg.MAC:
             self.help_font = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
@@ -508,7 +508,7 @@ class StartFrame(wx.Frame):
         if show_more_steps: print(u"Passed check for database problems")
         if mg.MUST_DEL_TMP:
             wx.MessageBox(_("Please click on \"Enter/Edit Data\" and delete"
-                        " the table \"%s\"") % mg.TMP_TBL_NAME)
+                        " the table \"%s\"") % mg.TMP_TBLNAME)
         if show_more_steps: print(u"Passed check for having to delete database")
         # any warnings to display once screen visible?
         warning_div = u"\n\n" + u"-"*20 + u"\n\n"
@@ -536,7 +536,7 @@ class StartFrame(wx.Frame):
         """
         Return empty string if no new version or checking prevented.
         """
-        debug = True
+        debug = False
         new_version = u""
         try:
             if version_lev != mg.VERSION_CHECK_NONE:

@@ -127,7 +127,7 @@ def get_ado_dict():
             adGUID: ADO_GUID,
             }
     
-def get_min_max(fld_type, num_prec, dec_pts):
+def get_min_max(fldtype, num_prec, dec_pts):
     """
     Returns minimum and maximum allowable numeric values.  
     Nones if not numeric (or if an unknown numeric e.g. ADO_VARNUMERIC).
@@ -137,41 +137,41 @@ def get_min_max(fld_type, num_prec, dec_pts):
     http://www.databasedev.co.uk/fields_datatypes.html
     http://www.sql-server-helper.com/faq/data-types-p01.aspx
     """
-    if fld_type == ADO_TINYINT:
+    if fldtype == ADO_TINYINT:
         min = -(2**8)
         max = (2**8)-1 # 255
-    elif fld_type == ADO_UNSIGNEDTINYINT:
+    elif fldtype == ADO_UNSIGNEDTINYINT:
         min = 0
         max = (2**8)-1 # 255
-    elif fld_type == ADO_SMALLINT:
+    elif fldtype == ADO_SMALLINT:
         min = -(2**15)
         max = (2**15)-1
-    elif fld_type == ADO_UNSIGNEDSMALLINT:
+    elif fldtype == ADO_UNSIGNEDSMALLINT:
         min = 0
         max = (2**15)-1
-    elif fld_type == ADO_INTEGER:
+    elif fldtype == ADO_INTEGER:
         min = -(2**31)
         max = (2**31)-1
-    elif fld_type == ADO_UNSIGNEDINT:
+    elif fldtype == ADO_UNSIGNEDINT:
         min = 0
         max = (2**31)-1
-    elif fld_type == ADO_BIGINT:
+    elif fldtype == ADO_BIGINT:
         min = -(2**63)
         max = (2**63)-1
-    elif fld_type == ADO_UNSIGNEDBIGINT:
+    elif fldtype == ADO_UNSIGNEDBIGINT:
         min = 0
         max = (2**63)-1
-    elif fld_type in [ADO_DECIMAL, ADO_NUMERIC]:
+    elif fldtype in [ADO_DECIMAL, ADO_NUMERIC]:
         # (+- 38 if .adp as opposed to .mdb)
         min = -(10**28 -1)
         max = (10**28)-1
-    elif fld_type == ADO_SINGLE: # signed by default
+    elif fldtype == ADO_SINGLE: # signed by default
         min = -(2**128) # -3.402823466E+38
         max = (2**128)-1 # 3.402823466E+38
-    elif fld_type == ADO_DOUBLE:
+    elif fldtype == ADO_DOUBLE:
         min = -(2**1024) # -1.79769313486231E308
         max = 2**1024 # 1.79769313486231E308
-    elif fld_type == ADO_CURRENCY:
+    elif fldtype == ADO_CURRENCY:
         """
         Accurate to 15 digits to the left of the decimal point and 
             4 digits to the right.

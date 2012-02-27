@@ -256,27 +256,27 @@ def force_sofa_tbls_refresh(sofa_default_db_cur):
         raise Exception(u"force_sofa_tbls_refresh() can only be used for the "
                         u"default db\nCaused by error: %s" % lib.ue(e))
 
-def reset_main_con_if_sofa_default(tbl_name=None, add_checks=False):
+def reset_main_con_if_sofa_default(tblname=None, add_checks=False):
     """
     If the main connection is to the default database, and there has been a 
         change e.g. new table, the connection
     """
     dd = mg.DATADETS_OBJ
     if dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB:
-        dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl_name, 
+        dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tblname, 
                    add_checks=add_checks)
 
-def get_gen_fld_type(fld_type):
+def get_gen_fldtype(fldtype):
     """
     Get general field type from specific.
     """
-    if fld_type.lower() in dbe_sqlite.NUMERIC_TYPES:
-        gen_fld_type = mg.FLD_TYPE_NUMERIC
-    elif fld_type.lower() in dbe_sqlite.DATE_TYPES:
-        gen_fld_type = mg.FLD_TYPE_DATE
+    if fldtype.lower() in dbe_sqlite.NUMERIC_TYPES:
+        gen_fldtype = mg.FLDTYPE_NUMERIC
+    elif fldtype.lower() in dbe_sqlite.DATE_TYPES:
+        gen_fldtype = mg.FLDTYPE_DATE
     else:
-        gen_fld_type = mg.FLD_TYPE_STRING
-    return gen_fld_type
+        gen_fldtype = mg.FLDTYPE_STRING
+    return gen_fldtype
 
 def get_init_settings_data(default_dd, tblname):
     """
@@ -291,7 +291,7 @@ def get_init_settings_data(default_dd, tblname):
                            tblname_qtr(default_dd.dbe, tblname))
     config = default_dd.cur.fetchall()
     if debug: print(config)
-    table_config = [(x[1], get_gen_fld_type(fld_type=x[2])) for x in config]
+    table_config = [(x[1], get_gen_fldtype(fldtype=x[2])) for x in config]
     return table_config
 
 # syntax
@@ -333,10 +333,10 @@ def get_dbe_syntax_elements(dbe):
     return mg.DBE_MODULES[dbe].get_syntax_elements()
 ##########################################################################################
 
-def make_fld_val_clause_non_numeric(fld_name, val, dbe_gte, quote_obj, 
+def make_fld_val_clause_non_numeric(fldname, val, dbe_gte, quote_obj, 
                                     quote_val):
     debug = False
-    quoted_obj = quote_obj(fld_name)
+    quoted_obj = quote_obj(fldname)
     if debug: print("quoted_obj: %s" % quoted_obj)
     quoted_val = quote_val(val)    
     if debug: print("quoted_val: %s" % quoted_val)
@@ -344,7 +344,7 @@ def make_fld_val_clause_non_numeric(fld_name, val, dbe_gte, quote_obj,
     if debug: print(clause)
     return clause
     
-def make_fld_val_clause(dbe, flds, fld_name, val, gte=mg.GTE_EQUALS):
+def make_fld_val_clause(dbe, flds, fldname, val, gte=mg.GTE_EQUALS):
     """
     Make a filter clause with a field name = a value (numeric or non-numeric).
     objqtr -- function specific to database engine for quoting objects
@@ -359,13 +359,13 @@ def make_fld_val_clause(dbe, flds, fld_name, val, gte=mg.GTE_EQUALS):
     objqtr = get_obj_quoter_func(dbe)
     valqtr = get_val_quoter_func(dbe)
     dbe_gte = get_gte(dbe, gte)
-    bolnumeric = flds[fld_name][mg.FLD_BOLNUMERIC]
-    #boldatetime = flds[fld_name][mg.FLD_BOLDATETIME]
+    bolnumeric = flds[fldname][mg.FLD_BOLNUMERIC]
+    #boldatetime = flds[fldname][mg.FLD_BOLDATETIME]
     if val is None:
         if gte == mg.GTE_EQUALS:
-            clause = u"%s IS NULL" % objqtr(fld_name)
+            clause = u"%s IS NULL" % objqtr(fldname)
         elif gte == mg.GTE_NOT_EQUALS:
-            clause = u"%s IS NOT NULL" % objqtr(fld_name)
+            clause = u"%s IS NOT NULL" % objqtr(fldname)
         else:
             raise Exception(u"Can only use = or %s " % mg.GTE_NOT_EQUALS +
                             u"with missing or Null values.")
@@ -390,9 +390,9 @@ def make_fld_val_clause(dbe, flds, fld_name, val, gte=mg.GTE_EQUALS):
                 # will not be found using an SQL query
                 raise Exception(u"%s is not a suitable value for use as a "
                                 u"category" % val2use)
-            clause = u"%s %s %s" % (objqtr(fld_name), dbe_gte, repr(val).strip(u"L"))
+            clause = u"%s %s %s" % (objqtr(fldname), dbe_gte, repr(val).strip(u"L"))
         else:
-            clause = make_fld_val_clause_non_numeric(fld_name, val, dbe_gte, 
+            clause = make_fld_val_clause_non_numeric(fldname, val, dbe_gte, 
                                                      objqtr, valqtr)
     if debug: print(clause)
     return clause
@@ -408,10 +408,10 @@ def get_proj_con_settings(parent, proj_dic):
     for dbe in mg.DBES:
         mg.DBE_MODULES[dbe].get_proj_settings(parent, proj_dic)
 
-def flds_dic_to_fld_names_lst(flds_dic):
+def fldsdic_to_fldnames_lst(fldsdic):
     # pprint.pprint(flds_dic) # debug
-    flds_lst = sorted(flds_dic, key=lambda s: flds_dic[s][mg.FLD_SEQ])
-    return flds_lst
+    fldslst = sorted(fldsdic, key=lambda s: fldsdic[s][mg.FLD_SEQ])
+    return fldslst
 
 def set_con_det_defaults(parent):
     """
@@ -509,7 +509,7 @@ def insert_row(tbl_dd, data):
     (unused, left_obj_quote, right_obj_quote, unused, unused, 
               placeholder, unused, unused) = get_dbe_syntax_elements(tbl_dd.dbe) 
     """
-    data = [(value as string (or None), fld_name, fld_dets), ...]
+    data = [(value as string (or None), fldname, fld_dets), ...]
     Modify any values (according to field details) to be ready for insertion.
     Use placeholders in execute statement.
     Commit insert statement.
@@ -517,16 +517,16 @@ def insert_row(tbl_dd, data):
     """
     if debug: pprint.pprint(data)
     #fld_dics = [x[2] for x in data]
-    fld_names = [x[1] for x in data]
+    fldnames = [x[1] for x in data]
     joiner = u"%s, %s" % (right_obj_quote, left_obj_quote)
-    fld_names_clause = u" (%s" % left_obj_quote + \
-        joiner.join(fld_names) + u"%s) " % right_obj_quote
+    fldnames_clause = u" (%s" % left_obj_quote + \
+        joiner.join(fldnames) + u"%s) " % right_obj_quote
     # e.g. (`fname`, `lname`, `dob` ...)
     fld_placeholders_clause = " (" + \
         u", ".join([placeholder for x in range(len(data))]) + u") "
     # e.g. " (%s, %s, %s, ...) or (?, ?, ?, ...)"
     SQL_insert = u"INSERT INTO %s " % tblname_qtr(tbl_dd.dbe, tbl_dd.tbl) + \
-                    fld_names_clause + u"VALUES %s" % fld_placeholders_clause
+                    fldnames_clause + u"VALUES %s" % fld_placeholders_clause
     if debug: print(SQL_insert)
     data_lst = []
     for data_dets in data:
@@ -614,10 +614,10 @@ def open_database(parent, event):
         readonly = False
         if parent.chk_readonly.IsEnabled():
             readonly = parent.chk_readonly.IsChecked()
-        set_col_widths = True if rows_n < 1000 else False
+        set_colwidths = True if rows_n < 1000 else False
         dlg = db_grid.TblEditor(parent, parent.var_labels, parent.var_notes, 
                                 parent.var_types, parent.val_dics, readonly, 
-                                set_col_widths=set_col_widths)
+                                set_colwidths=set_colwidths)
         lib.safe_end_cursor()
         dlg.ShowModal()
     event.Skip()
@@ -752,13 +752,13 @@ def get_default_db_dets():
     default_dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB)
     return default_dd
 
-def dup_tbl_name(tbl_name):
+def dup_tblname(tblname):
     """
     Duplicate name in default SQLite SOFA database?
     """
     default_dd = get_default_db_dets()
     default_dd.con.close()
-    return tbl_name in default_dd.tbls
+    return tblname in default_dd.tbls
 
 def make_flds_clause(settings_data):
     """
@@ -766,16 +766,16 @@ def make_flds_clause(settings_data):
         original and new names if an existing field which has changed name. 
         Does not include the sofa_id.  NB a new field will only have a new name 
         so the orig name will be None.
-    settings_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
-        TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
+    settings_data -- dict with TBL_FLDNAME, TBL_FLDNAME_ORIG, TBL_FLDTYPE,
+        TBL_FLDTYPE_ORIG. Includes row with sofa_id.
     """
     debug = False
     objqtr = get_obj_quoter_func(mg.DBE_SQLITE)
     # get orig_name, new_name tuples for all fields in final table apart 
     # from the sofa_id.
-    orig_new_names = [(x[mg.TBL_FLD_NAME_ORIG], x[mg.TBL_FLD_NAME])
+    orig_new_names = [(x[mg.TBL_FLDNAME_ORIG], x[mg.TBL_FLDNAME])
                        for x in settings_data 
-                       if x[mg.TBL_FLD_NAME_ORIG] != mg.SOFA_ID]
+                       if x[mg.TBL_FLDNAME_ORIG] != mg.SOFA_ID]
     if debug:
         print("settings_data: %s" % settings_data)
         print("orig_new_names: %s" % orig_new_names)
@@ -796,12 +796,12 @@ def make_flds_clause(settings_data):
 def get_oth_name_types(settings_data):
     """
     Returns name, type tuples for all fields except for the sofa_id.
-    settings_data -- dict with TBL_FLD_NAME, TBL_FLD_NAME_ORIG, TBL_FLD_TYPE,
-        TBL_FLD_TYPE_ORIG. Includes row with sofa_id.
+    settings_data -- dict with TBL_FLDNAME, TBL_FLDNAME_ORIG, TBL_FLDTYPE,
+        TBL_FLDTYPE_ORIG. Includes row with sofa_id.
     """
-    oth_name_types = [(x[mg.TBL_FLD_NAME], x[mg.TBL_FLD_TYPE])
+    oth_name_types = [(x[mg.TBL_FLDNAME], x[mg.TBL_FLDTYPE])
                             for x in settings_data
-                            if x[mg.TBL_FLD_NAME] != mg.SOFA_ID]
+                            if x[mg.TBL_FLDNAME] != mg.SOFA_ID]
     if not oth_name_types:
         raise Exception(_(u"Must always be at least one field in addition to "
                           u"the \"%s\" field") % mg.SOFA_ID)
@@ -813,7 +813,7 @@ def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):
         statement. The table will be created inside the default SOFA SQLite 
         database. If the sofa_id is included, the text must define the sofa_id 
         as UNIQUE.
-    oth_name_types -- ok_fld_name, fld_type. Does not include sofa_id. The 
+    oth_name_types -- ok_fldname, fldtype. Does not include sofa_id. The 
         sofa_id can be added below if required.
     strict_typing -- add check constraints to fields.
     """
@@ -824,22 +824,22 @@ def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):
         fld_clause_items = [u"%s INTEGER PRIMARY KEY" % sofa_id]
     else:
         fld_clause_items = []
-    for fld_name, fld_type in oth_name_types:
-        if fld_name == mg.SOFA_ID:
+    for fldname, fldtype in oth_name_types:
+        if fldname == mg.SOFA_ID:
             raise Exception(u"Do not pass sofa_id into %s" %
                             sys._getframe().f_code.co_name)
-        if fld_name == "":
+        if fldname == "":
             raise Exception(u"Do not pass fields with empty string names into "
                             u"%s" % sys._getframe().f_code.co_name)
-        tosqlite = mg.GEN2SQLITE_DIC[fld_type]
+        tosqlite = mg.GEN2SQLITE_DIC[fldtype]
         if strict_typing:
-            check = tosqlite["check_clause"] % {"fld_name": objqtr(fld_name)}
+            check = tosqlite["check_clause"] % {"fldname": objqtr(fldname)}
         else:
             check = ""
-        if debug: print(u"%s %s %s" % (fld_name, fld_type, check))
-        clause = u"%(fld_name)s %(fld_type)s %(check_clause)s" % \
-                                            {"fld_name": objqtr(fld_name), 
-                                            "fld_type": tosqlite["sqlite_type"],
+        if debug: print(u"%s %s %s" % (fldname, fldtype, check))
+        clause = u"%(fldname)s %(fldtype)s %(check_clause)s" % \
+                                            {"fldname": objqtr(fldname), 
+                                            "fldtype": tosqlite["sqlite_type"],
                                             "check_clause": check}
         fld_clause_items.append(clause)
     if inc_sofa_id:
@@ -847,13 +847,13 @@ def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):
     fld_clause = u", ".join(fld_clause_items)
     return fld_clause
 
-def make_sofa_tbl(con, cur, tbl_name, oth_name_types, strict_typing=False):
+def make_sofa_tbl(con, cur, tblname, oth_name_types, strict_typing=False):
     """
     Make a table into the SOFA default database.  Must have autonumber SOFA_ID.
     Optionally may apply type checking constraint on fields (NB no longer able
         to open database outside of this application which using user-defined
         functions in table definitions).
-    oth_name_types -- [(ok_fld_name, fld_type), ...].  No need to reference 
+    oth_name_types -- [(ok_fldname, fldtype), ...].  No need to reference 
         old names or types.
     strict_typing -- uses user-defined functions to apply strict typing via
         check clauses as part of create table statements.
@@ -862,15 +862,15 @@ def make_sofa_tbl(con, cur, tbl_name, oth_name_types, strict_typing=False):
     fld_clause = get_create_flds_txt(oth_name_types, 
                                      strict_typing=strict_typing, 
                                      inc_sofa_id=True)
-    SQL_make_tbl = u"""CREATE TABLE "%s" (%s)""" % (tbl_name, fld_clause)
+    SQL_make_tbl = u"""CREATE TABLE "%s" (%s)""" % (tblname, fld_clause)
     if debug: print(SQL_make_tbl)
     cur.execute(SQL_make_tbl)
     con.commit()
-    if debug: print(u"Successfully created %s" % tbl_name)
+    if debug: print(u"Successfully created %s" % tblname)
     force_sofa_tbls_refresh(sofa_default_db_cur=cur)
     # If the main data connection is to this (default sofa) database it must be 
     # reconnected to ensure the change has been registered.
     dd = mg.DATADETS_OBJ
     if dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB:
-        dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl_name, 
+        dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tblname, 
                    add_checks=False)

@@ -52,15 +52,16 @@ class ExcelImporter(importer.FileImporter):
             self.has_header = (ret == mg.HAS_HEADER)
         return True
     
-    def get_fldnames(self, wksheet):
+    def get_ok_fldnames(self, wksheet):
         if self.has_header:
             # use values of first row
-            fldnames = []
+            orig_fldnames = []
             for col_idx in range(wksheet.ncols):
                 raw_fldname = wksheet.cell_value(rowx=0, colx=col_idx)
                 fldname = (raw_fldname if isinstance(raw_fldname, basestring) 
                                        else unicode(raw_fldname))
-                fldnames.append(fldname)
+                orig_fldnames.append(fldname)
+            fldnames = lib.get_unique_fldnames(orig_fldnames)
         else:
             # numbered is OK
             fldnames = [mg.NEXT_FLDNAME_TEMPLATE % (x+1,) for x 
@@ -88,7 +89,7 @@ class ExcelImporter(importer.FileImporter):
         rowdict = dict(zip(fldnames, rowvals))
         return rowdict
     
-    def assess_sample(self, wkbook, wksheet, orig_fld_names, progbar, 
+    def assess_sample(self, wkbook, wksheet, ok_fldnames, progbar, 
                       steps_per_item, import_status, faulty2missing_fld_list):
         """
         Assess data sample to identify field types based on values in fields.
@@ -96,8 +97,8 @@ class ExcelImporter(importer.FileImporter):
         Uses it indirectly to get values e.g. dates in correct form.
         Decided to stay with existing approach. 
         If a field has mixed data types will define as string.
-        Returns fld_types, sample_data.
-        fld_types - dict with original field names as keys and field types as 
+        Returns fldtypes, sample_data.
+        fldtypes - dict with ok field names as keys and field types as 
             values.
         sample_data - list of dicts containing the first rows of data 
             (no point reading them all again during subsequent steps).   
@@ -106,7 +107,7 @@ class ExcelImporter(importer.FileImporter):
         debug = False
         has_rows = False
         sample_data = []
-        fldnames = self.get_fldnames(wksheet)
+        ok_fldnames = self.get_ok_fldnames(wksheet)
         row_idx = 1 if self.has_header else 0
         while row_idx < wksheet.nrows: # iterates through data rows only
             if row_idx % 50 == 0:
@@ -117,23 +118,23 @@ class ExcelImporter(importer.FileImporter):
             if debug: print(wksheet.row(row_idx))
             # if has_header, starts at 1st data row
             has_rows = True
-            rowdict = self.get_rowdict(row_idx, wkbook, wksheet, fldnames)
+            rowdict = self.get_rowdict(row_idx, wkbook, wksheet, ok_fldnames)
             sample_data.append(rowdict)
             gauge_val = row_idx*steps_per_item
             progbar.SetValue(gauge_val)
             if row_idx == (ROWS_TO_SAMPLE - 1):
                 break
             row_idx += 1
-        fld_types = []
-        for orig_fld_name in orig_fld_names:
-            fld_type = importer.assess_sample_fld(sample_data, self.has_header, 
-                                                  orig_fld_name, orig_fld_names,
+        fldtypes = []
+        for ok_fldname in ok_fldnames:
+            fldtype = importer.assess_sample_fld(sample_data, self.has_header, 
+                                                  ok_fldname, ok_fldnames,
                                                   faulty2missing_fld_list)
-            fld_types.append(fld_type)            
-        fld_types = dict(zip(orig_fld_names, fld_types))
+            fldtypes.append(fldtype)            
+        fldtypes = dict(zip(ok_fldnames, fldtypes))
         if not has_rows:
             raise Exception(u"No data to import")
-        return fld_types, sample_data 
+        return fldtypes, sample_data 
     
     def import_content(self, progbar, import_status, lbl_feedback):
         """
@@ -150,9 +151,8 @@ class ExcelImporter(importer.FileImporter):
             wksheet = wkbook.sheet_by_index(0)
             n_datarows = wksheet.nrows -1 if self.has_header else wksheet.nrows
             # get field names
-            orig_fld_names = self.get_fldnames(wksheet)
-            ok_fld_names = importer.process_fld_names(orig_fld_names)
-            if debug: print(ok_fld_names)
+            ok_fldnames = self.get_ok_fldnames(wksheet)
+            if debug: print(ok_fldnames)
         except IOError, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to find file \"%s\" for importing."
@@ -169,29 +169,28 @@ class ExcelImporter(importer.FileImporter):
         if debug: 
             print("steps_per_item: %s" % steps_per_item)
             print("About to assess data sample")
-        fld_types, sample_data = self.assess_sample(wkbook, wksheet, 
-                                        orig_fld_names, progbar, steps_per_item, 
+        fldtypes, sample_data = self.assess_sample(wkbook, wksheet, 
+                                        ok_fldnames, progbar, steps_per_item, 
                                         import_status, faulty2missing_fld_list)
         if debug:
             print("Just finished assessing data sample")
-            print(fld_types)
+            print(fldtypes)
             print(sample_data)
         data = []
         row_idx = 1 if self.has_header else 0
         while row_idx < wksheet.nrows: # iterates through data rows only
             data.append(self.get_rowdict(row_idx, wkbook, wksheet, 
-                                         orig_fld_names))
+                                         ok_fldnames))
             row_idx += 1
         gauge_start = steps_per_item*sample_n
         try:
             feedback = {mg.NULLED_DOTS: False}
             importer.add_to_tmp_tbl(feedback, import_status, default_dd.con, 
-                default_dd.cur, self.file_path, self.tbl_name, self.has_header, 
-                ok_fld_names, orig_fld_names, fld_types, 
-                faulty2missing_fld_list, data, progbar, steps_per_item, 
-                gauge_start)
+                default_dd.cur, self.file_path, self.tblname, self.has_header, 
+                ok_fldnames, fldtypes, faulty2missing_fld_list, data, progbar, 
+                steps_per_item, gauge_start)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
-                                      self.tbl_name, self.file_path,
+                                      self.tblname, self.file_path,
                                       progbar, feedback[mg.NULLED_DOTS])
         except Exception, e:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)

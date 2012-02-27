@@ -75,7 +75,7 @@ def get_display_dims(maxheight, iswindows):
 
 class TblEditor(wx.Dialog):
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics, 
-                 readonly=True, set_col_widths=True):
+                 readonly=True, set_colwidths=True):
         self.debug = False
         dd = mg.DATADETS_OBJ
         self.readonly = readonly
@@ -134,8 +134,8 @@ class TblEditor(wx.Dialog):
         self.col2select = col2select # used to determine where cursor should 
             # land when moving from end of new row.
         self.any_editor_shown = False
-        if set_col_widths:
-            self.set_col_widths()
+        if set_colwidths:
+            self.set_colwidths()
         self.grid.GetGridColLabelWindow().SetToolTipString(_("Right click "
                                             "variable to view/edit details"))
         self.respond_to_select_cell = True
@@ -725,7 +725,7 @@ class TblEditor(wx.Dialog):
             if not self.value_in_range(raw_val, fld_dic):
                 wx.MessageBox("\"%s\" " % raw_val + \
                               _("is invalid for data type ") + \
-                              "%s" % self.dbtbl.get_fld_name(col))
+                              "%s" % self.dbtbl.get_fldname(col))
                 return True
             return False
         elif fld_dic[mg.FLD_BOLDATETIME]:
@@ -795,9 +795,9 @@ class TblEditor(wx.Dialog):
                 not fld_dic[mg.FLD_BOLNULLABLE] and \
              fld_dic[mg.FLD_DATA_ENTRY_OK])
         if missing_not_nullable_prob:
-            fld_name = self.dbtbl.get_fld_name(col)
+            fldname = self.dbtbl.get_fldname(col)
             wx.MessageBox(_("%s will not allow missing values to "
-                          "be stored") % fld_name)
+                          "be stored") % fldname)
         ok_to_save = not self.cell_invalid(row, col) and \
             not missing_not_nullable_prob
         return ok_to_save
@@ -861,14 +861,14 @@ class TblEditor(wx.Dialog):
         dd = mg.DATADETS_OBJ
         data = []
         for col in range(len(dd.flds)):
-            fld_name = self.dbtbl.fld_names[col]
-            fld_dic = dd.flds[fld_name]
-            if not fld_dic[mg.FLD_DATA_ENTRY_OK]:
+            fldname = self.dbtbl.fldnames[col]
+            flddic = dd.flds[fldname]
+            if not flddic[mg.FLD_DATA_ENTRY_OK]:
                 continue
             raw_val = self.dbtbl.new_buffer.get((row, col), None)
             if raw_val == mg.MISSING_VAL_INDICATOR:
                 raw_val = None
-            data.append((raw_val, fld_name, fld_dic))
+            data.append((raw_val, fldname, flddic))
         row_inserted, msg = getdata.insert_row(dd, data)
         if row_inserted:
             if self.debug: print("save_row - Just inserted row")
@@ -886,7 +886,7 @@ class TblEditor(wx.Dialog):
     def setup_new_row(self, data):
         """
         Setup new row ready to receive new data.
-        data = [(value as string (or None), fld_name, fld_dets), ...]
+        data = [(value as string (or None), fldname, flddets), ...]
         """
         self.dbtbl.set_row_ids_lst()
         self.dbtbl.set_num_rows() # need to refresh
@@ -942,7 +942,7 @@ class TblEditor(wx.Dialog):
         col = event.GetCol()
         if col >= 0:
             if debug: wx.MessageBox("Col %s was clicked" % col)
-            var_name = self.dbtbl.fld_names[col]
+            var_name = self.dbtbl.fldnames[col]
             var_label = self.var_labels.get(var_name, "")
             choice_item = lib.get_choice_item(self.var_labels, var_name)
             projects.set_var_props(choice_item, var_name, var_label,
@@ -956,8 +956,8 @@ class TblEditor(wx.Dialog):
             won't match {5: "5's label"}.
         """
         debug = False
-        fld_name = self.dbtbl.fld_names[col]
-        fld_val_dic = self.val_dics.get(fld_name, {})
+        fldname = self.dbtbl.fldnames[col]
+        fld_val_dic = self.val_dics.get(fldname, {})
         tip = fld_val_dic.get(raw_val)
         if tip is None:
             try:
@@ -1012,7 +1012,7 @@ class TblEditor(wx.Dialog):
     
     def on_size_cols(self, event):
         if self.dbtbl.rows_n < 2000:
-            self.set_col_widths()
+            self.set_colwidths()
         else:
             ret = wx.MessageBox(_("This table has %(rows)s rows and "
                                 "%(cols)s columns. Do you wish to resize?") %
@@ -1021,11 +1021,11 @@ class TblEditor(wx.Dialog):
                                 _("Proceed with resizing columns"), 
                                 style=wx.YES_NO|wx.ICON_QUESTION)
             if ret == wx.YES:
-                self.set_col_widths()
+                self.set_colwidths()
         self.grid.SetFocus()
         event.Skip()
     
-    def set_col_widths(self):
+    def set_colwidths(self):
         "Set column widths based on display widths of fields"
         debug = False
         dd = mg.DATADETS_OBJ
@@ -1037,37 +1037,37 @@ class TblEditor(wx.Dialog):
         except Exception:
             my_exceptions.DoNothingException()
         pix_per_char = 8
-        sorted_fld_names = getdata.flds_dic_to_fld_names_lst(dd.flds)
-        for col_idx, fld_name in enumerate(sorted_fld_names):
-            fld_dic = dd.flds[fld_name]
-            col_width = None
+        sorted_fldnames = getdata.fldsdic_to_fldnames_lst(dd.flds)
+        for col_idx, fldname in enumerate(sorted_fldnames):
+            fld_dic = dd.flds[fldname]
+            colwidth = None
             if fld_dic[mg.FLD_BOLTEXT]:
                 txt_len = fld_dic[mg.FLD_TEXT_LENGTH]
-                col_width = txt_len*pix_per_char if txt_len is not None \
+                colwidth = txt_len*pix_per_char if txt_len is not None \
                     and txt_len < 25 else None # leave for auto
             elif fld_dic[mg.FLD_BOLNUMERIC]:
                 num_len = fld_dic[mg.FLD_NUM_WIDTH]
-                col_width = num_len*pix_per_char if num_len is not None \
+                colwidth = num_len*pix_per_char if num_len is not None \
                     else None
             elif fld_dic[mg.FLD_BOLDATETIME]:
-                col_width = 170
-            if col_width:
+                colwidth = 170
+            if colwidth:
                 if debug or self.debug: 
-                    print("Width of %s set to %s" % (fld_name, col_width))
-                self.grid.SetColSize(col_idx, col_width)
+                    print("Width of %s set to %s" % (fldname, colwidth))
+                self.grid.SetColSize(col_idx, colwidth)
             else:
-                if debug or self.debug: print("Autosizing %s" % fld_name)
+                if debug or self.debug: print("Autosizing %s" % fldname)
                 self.grid.AutoSizeColumn(col_idx, setAsMin=False)            
-            fld_name_width = len(fld_name)*pix_per_char
+            fldname_width = len(fldname)*pix_per_char
             # if actual column width is small and the label width is larger,
             # use label width.
             self.grid.ForceRefresh()
             actual_width = self.grid.GetColSize(col_idx)
             if actual_width < 15*pix_per_char \
-                    and actual_width < fld_name_width:
-                self.grid.SetColSize(col_idx, fld_name_width)
+                    and actual_width < fldname_width:
+                self.grid.SetColSize(col_idx, fldname_width)
             if debug or self.debug: 
-                print("%s %s" % (fld_name, self.grid.GetColSize(col_idx)))
+                print("%s %s" % (fldname, self.grid.GetColSize(col_idx)))
         try:
             self.parent.add_feedback(u"")
         except Exception:

@@ -34,7 +34,7 @@ Example of float cell:
     </table:table-cell>
     
 get_ods_dets() is the most main starting point. It is supplied with fldnames 
-    already by get_fld_names() which uses get_tbl() as an input and gets and
+    already by get_ok_fldnames() which uses get_tbl() as an input and gets and
     processes the first data_row.
 get_ods_dets gets data rows (actually table-row elements) with get_rows().
 Then we loop through rows (table-row elements) and for each row get a list of 
@@ -195,9 +195,9 @@ def get_col_rep(el_attribs):
         colrep = 1
     return colrep
 
-def get_fld_names(tbl, has_header, rows_to_sample):
+def get_ok_fldnames(tbl, has_header, rows_to_sample):
     """
-    Get cleaned field names.  Will be used to create row dicts as required by
+    Get cleaned field names. Will be used to create row dicts as required by
         importer.add_to_tmp_tbl().
     """
     debug = False
@@ -205,7 +205,7 @@ def get_fld_names(tbl, has_header, rows_to_sample):
         rows = get_rows(tbl, inc_empty=False, n=1)
         try:
             row = rows[0]
-            fldnames = get_fldnames_from_header_row(row)
+            ok_fldnames = get_fldnames_from_header_row(row)
         except IndexError:
             raise Exception(_("Need at least one row to import"))
     else:
@@ -245,9 +245,9 @@ def get_fld_names(tbl, has_header, rows_to_sample):
                     pass
             if cells_n > max_row_cells:
                 max_row_cells = cells_n
-        fldnames = lib.get_n_fldnames(max_row_cells)
-        if debug: print(fldnames)
-    return fldnames
+        ok_fldnames = lib.get_n_fldnames(max_row_cells)
+        if debug: print(ok_fldnames)
+    return ok_fldnames
 
 def get_el_inner_val(el):
     """
@@ -299,9 +299,13 @@ def get_fldnames_from_header_row(row):
         names will be autofilled later). 
     Only empty string field names are allowed to be repeated (they will be made 
         distinct when autofilled later).
+    One oddity of this approach is that a csv or xls version of the same file 
+        which has a blank field label as the final col will have that col 
+        autonamed whereas here it and all its data will be ignored. 
     """
     debug = False
     orig_fldnames = []
+    last_was_empty = False # init
     for el in row:
         if debug: print(u"\nChild element of table-row: " + etree.tostring(el))
         items = el.attrib.items()
@@ -336,22 +340,19 @@ def get_fldnames_from_header_row(row):
             fldname = u""
             last_was_empty = True
         if debug: print(fldname)
-        if fldname != u"" and fldname in orig_fldnames:
-            raise Exception(_("Field name \"%s\" has been repeated")
-                            % fldname)
         orig_fldnames.append(fldname)
     # If last fldname is empty, remove it. We had to give it a chance as a 
     # potential divider column but it clearly wasn't.
     if orig_fldnames[-1] == u"":
         orig_fldnames.pop()
     if debug: print(orig_fldnames)
-    return importer.process_fld_names(orig_fldnames)
+    return importer.process_fldnames(orig_fldnames)
 
 def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
                  prog_steps_for_xml_steps, next_prog_val, has_header=True,
                  testing=False):
     """
-    Returns fld_types (dict with field names as keys) and rows (list of dicts).
+    Returns fldtypes (dict with field names as keys) and rows (list of dicts).
     Limited value in further optimising my code. The xml parsing stage takes up 
         most of the time. Using the SAX approach would significantly reduce 
         memory usage but would it save any time overall? Harder code and may 
@@ -364,7 +365,7 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
             if debug: print("The sheet is named \"%s\"" % value)
     datarows = []
     coltypes = [] # one set per column containing all types
-    fld_types = {}
+    fldtypes = {}
     if debug:
         print("prog_steps_for_xml_steps: %s" % prog_steps_for_xml_steps)
         print("next_prog_val: %s" % next_prog_val)
@@ -391,11 +392,11 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
                             u"\nCaused by error: %s" % (i, lib.ue(e)))
     if debug: print(datarows)
     for fldname, type_set in zip(fldnames, coltypes):
-        fld_type = importer.get_best_fld_type(fldname, type_set,
-                                              faulty2missing_fld_list, 
-                                              testing=testing)
-        fld_types[fldname] = fld_type
-    return fld_types, datarows
+        fldtype = importer.get_best_fldtype(fldname, type_set,
+                                            faulty2missing_fld_list, 
+                                            testing=testing)
+        fldtypes[fldname] = fldtype
+    return fldtypes, datarows
 
 def get_tbl_cell_el_dets(row):
     """

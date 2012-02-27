@@ -7,7 +7,7 @@ import lib
 import getdata
 import projects
 
-def get_val(raw_val, flds, fld_name):
+def get_val(raw_val, flds, fldname):
     """
     Value is validated first.  Raw value will always be a string.
     If numeric, must be a number, an empty string (turned to Null), 
@@ -19,8 +19,8 @@ def get_val(raw_val, flds, fld_name):
         processed correctly as a Null when clauses are made.
     """
     debug = False
-    bolnumeric = flds[fld_name][mg.FLD_BOLNUMERIC]
-    boldatetime = flds[fld_name][mg.FLD_BOLDATETIME]
+    bolnumeric = flds[fldname][mg.FLD_BOLNUMERIC]
+    boldatetime = flds[fldname][mg.FLD_BOLDATETIME]
     if bolnumeric:
         if lib.is_numeric(raw_val):
             return float(raw_val)
@@ -187,8 +187,8 @@ class FiltSelectDlg(wx.Dialog):
         dlg.ShowModal()
         if updated:
             idx_var = self.drop_vars.GetSelection()
-            fld_name = self.sorted_var_names[idx_var]
-            self.setup_vars(var=fld_name)
+            fldname = self.sorted_var_names[idx_var]
+            self.setup_vars(var=fldname)
         event.Skip()
         
     def on_delete(self, event):
@@ -216,10 +216,10 @@ class FiltSelectDlg(wx.Dialog):
         debug = False
         dd = mg.DATADETS_OBJ
         idx_var = self.drop_vars.GetSelection()
-        fld_name = self.sorted_var_names[idx_var]      
-        val = get_val(self.txt_val.GetValue(), dd.flds, fld_name)
+        fldname = self.sorted_var_names[idx_var]      
+        val = get_val(self.txt_val.GetValue(), dd.flds, fldname)
         gte = self.drop_gte.GetStringSelection()
-        filt = getdata.make_fld_val_clause(dd.dbe, dd.flds, fld_name, val, gte)
+        filt = getdata.make_fld_val_clause(dd.dbe, dd.flds, fldname, val, gte)
         if debug: print(filt)
         return filt
     

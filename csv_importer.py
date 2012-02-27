@@ -537,9 +537,9 @@ class CsvImporter(importer.FileImporter):
     Adds unique index id so can identify unique records with certainty.
     """
     
-    def __init__(self, parent, file_path, tbl_name):
+    def __init__(self, parent, file_path, tblname):
         self.parent = parent
-        importer.FileImporter.__init__(self, self.parent, file_path, tbl_name)
+        importer.FileImporter.__init__(self, self.parent, file_path, tblname)
         self.ext = u"CSV"
         
     def assess_sample(self, reader, progbar, steps_per_item, import_status, 
@@ -547,8 +547,8 @@ class CsvImporter(importer.FileImporter):
         """
         Assess data sample to identify field types based on values in fields.
         If a field has mixed data types will define as string.
-        Returns orig_fld_names, fld_types, sample_data.
-        fld_types - dict with original (uncorrected) field names as keys and 
+        Returns ok_fldnames, fldtypes, sample_data.
+        fldtypes - dict with original (uncorrected) field names as keys and 
             field types as values.
         sample_data - list of dicts containing the first rows of data 
             (no point reading them all again during subsequent steps).   
@@ -577,18 +577,18 @@ class CsvImporter(importer.FileImporter):
             i2break = ROWS_TO_SAMPLE if self.has_header else ROWS_TO_SAMPLE - 1
             if i == i2break:
                 break
-        fld_types = []
-        orig_fld_names = reader.fieldnames
-        for orig_fld_name in orig_fld_names:
-            fld_type = importer.assess_sample_fld(sample_data, self.has_header,
-                                orig_fld_name, orig_fld_names, 
-                                faulty2missing_fld_list, allow_none=False,
-                                comma_dec_sep_ok=not comma_delimiter)
-            fld_types.append(fld_type)
-        fld_types = dict(zip(orig_fld_names, fld_types))
+        fldtypes = []
+        ok_fldnames = lib.get_unique_fldnames(reader.fieldnames)
+        for ok_fldname in ok_fldnames:
+            fldtype = importer.assess_sample_fld(sample_data, self.has_header,
+                                    ok_fldname, ok_fldnames, 
+                                    faulty2missing_fld_list, allow_none=False,
+                                    comma_dec_sep_ok=not comma_delimiter)
+            fldtypes.append(fldtype)
+        fldtypes = dict(zip(ok_fldnames, fldtypes))
         if not bolhas_rows:
             raise Exception(u"No data to import")
-        return orig_fld_names, fld_types, sample_data
+        return ok_fldnames, fldtypes, sample_data
     
     def get_avg_row_size(self, tmp_reader):
         """
@@ -677,8 +677,7 @@ class CsvImporter(importer.FileImporter):
                 lib.safe_end_cursor()
                 raise Exception(u"Unable to get sample of csv with details. "
                                 u"\nCaused by error: %s" % lib.ue(e)) 
-            orig_names = tmp_reader.fieldnames
-            ok_fld_names = importer.process_fld_names(orig_names)
+            ok_fldnames = importer.process_fldnames(tmp_reader.fieldnames)
         else: # get number of fields from first row (not consumed because not 
             # using dictreader.
             try:
@@ -692,13 +691,13 @@ class CsvImporter(importer.FileImporter):
                                 u"\nCaused by error: %s" % lib.ue(e)) 
             for row in tmp_reader:
                 if debug: print(row)
-                ok_fld_names = [mg.NEXT_FLDNAME_TEMPLATE % (x+1,) 
+                ok_fldnames = [mg.NEXT_FLDNAME_TEMPLATE % (x+1,) 
                                for x in range(len(row))]
                 break
-        if not ok_fld_names:
+        if not ok_fldnames:
             raise Exception(u"Unable to get ok field names")
         row_size = self.get_avg_row_size(tmp_reader)
-        return dialect, encoding, ok_fld_names, row_size
+        return dialect, encoding, ok_fldnames, row_size
 
     def get_params(self):
         return True # cover all this in more complex fashion handling encoding 
@@ -716,7 +715,7 @@ class CsvImporter(importer.FileImporter):
         wx.BeginBusyCursor()
         try:
             (dialect, encoding, 
-                ok_fld_names, row_size) = self.get_init_csv_details()
+                ok_fldnames, row_size) = self.get_init_csv_details()
         except my_exceptions.ImportNeededFixException:
             lib.safe_end_cursor()
             return
@@ -747,7 +746,7 @@ class CsvImporter(importer.FileImporter):
             # we supply field names so will start with first row
             reader = UnicodeCsvDictReader(utf8_encoded_csv_data, 
                                           dialect=dialect, 
-                                          fieldnames=ok_fld_names)
+                                          fieldnames=ok_fldnames)
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to create reader for file. "
@@ -757,7 +756,7 @@ class CsvImporter(importer.FileImporter):
         items_n = rows_n + sample_n + 1 # 1 is for the final tmp to named step
         steps_per_item = importer.get_steps_per_item(items_n)
         try:
-            (orig_fld_names, fld_types, 
+            (ok_fldnames, fldtypes, 
              sample_data) = self.assess_sample(reader, progbar, steps_per_item, 
                                                import_status, comma_delimiter, 
                                                faulty2missing_fld_list)
@@ -767,14 +766,13 @@ class CsvImporter(importer.FileImporter):
             gauge_start = steps_per_item*sample_n
             feedback = {mg.NULLED_DOTS: False}
             importer.add_to_tmp_tbl(feedback, import_status, default_dd.con, 
-                default_dd.cur, self.file_path, self.tbl_name, self.has_header, 
-                ok_fld_names, orig_fld_names, fld_types, 
-                faulty2missing_fld_list, data, progbar, steps_per_item, 
-                gauge_start, allow_none=False, 
+                default_dd.cur, self.file_path, self.tblname, self.has_header, 
+                ok_fldnames, fldtypes, faulty2missing_fld_list, data, progbar, 
+                steps_per_item, gauge_start, allow_none=False, 
                 comma_dec_sep_ok=not comma_delimiter)
             # so fast only shows last step in progress bar
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
-                                      self.tbl_name, self.file_path, 
+                                      self.tblname, self.file_path, 
                                       progbar, feedback[mg.NULLED_DOTS])
         except Exception, e:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)

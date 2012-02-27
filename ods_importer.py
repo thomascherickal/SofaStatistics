@@ -23,8 +23,8 @@ class OdsImporter(importer.FileImporter):
     Adds unique index id so can identify unique records with certainty.
     """
     
-    def __init__(self, parent, file_path, tbl_name):
-        importer.FileImporter.__init__(self, parent, file_path, tbl_name)
+    def __init__(self, parent, file_path, tblname):
+        importer.FileImporter.__init__(self, parent, file_path, tblname)
         self.ext = u"ODS"
         
     def get_params(self):
@@ -49,15 +49,15 @@ class OdsImporter(importer.FileImporter):
             wx.BeginBusyCursor()
             tree = ods_reader.get_contents_xml_tree(self.file_path)
             tbl = ods_reader.get_tbl(tree)
-            fldnames = ods_reader.get_fld_names(tbl, has_header=False, 
-                                                rows_to_sample=ROWS_TO_SAMPLE)
-            if not fldnames:
+            ok_fldnames = ods_reader.get_ok_fldnames(tbl, has_header=False, 
+                                                  rows_to_sample=ROWS_TO_SAMPLE)
+            if not ok_fldnames:
                 raise Exception(_("Unable to extract or generate field names"))
             rows = ods_reader.get_rows(tbl, inc_empty=False)
             lib.safe_end_cursor()
             strdata = []
             for i, row in enumerate(rows):
-                strrow = ods_reader.get_vals_from_row(row, len(fldnames))
+                strrow = ods_reader.get_vals_from_row(row, len(ok_fldnames))
                 strdata.append(strrow)
                 if i > 3:
                     break
@@ -89,14 +89,14 @@ class OdsImporter(importer.FileImporter):
         tree = ods_reader.get_contents_xml_tree(self.file_path, lbl_feedback, 
                                                 progbar, prog_step1, prog_step2)
         tbl = ods_reader.get_tbl(tree)
-        fldnames = ods_reader.get_fld_names(tbl, self.has_header, 
-                                            ROWS_TO_SAMPLE)
-        if not fldnames:
+        ok_fldnames = ods_reader.get_ok_fldnames(tbl, self.has_header, 
+                                                 ROWS_TO_SAMPLE)
+        if not ok_fldnames:
             raise Exception(_("Unable to extract or generate field names"))
         # Will expect exactly the same number of fields as we have names for.
         # Have to process twice as much before it will add another step on bar.
-        fld_types, rows = ods_reader.get_ods_dets(lbl_feedback, progbar, tbl,
-                                        fldnames, faulty2missing_fld_list, 
+        fldtypes, rows = ods_reader.get_ods_dets(lbl_feedback, progbar, tbl,
+                                        ok_fldnames, faulty2missing_fld_list, 
                                         prog_steps_for_xml_steps, 
                                         next_prog_val=prog_step2, 
                                         has_header=self.has_header)
@@ -113,11 +113,11 @@ class OdsImporter(importer.FileImporter):
         try:
             feedback = {mg.NULLED_DOTS: False}
             importer.add_to_tmp_tbl(feedback, import_status, default_dd.con, 
-                default_dd.cur, self.file_path, self.tbl_name, self.has_header, 
-                fldnames, fldnames, fld_types, faulty2missing_fld_list, rows, 
+                default_dd.cur, self.file_path, self.tblname, self.has_header, 
+                ok_fldnames, fldtypes, faulty2missing_fld_list, rows, 
                 progbar, steps_per_item, gauge_start)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
-                                      self.tbl_name, self.file_path,
+                                      self.tblname, self.file_path,
                                       progbar, feedback[mg.NULLED_DOTS])
         except Exception:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)

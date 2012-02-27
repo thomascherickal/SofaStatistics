@@ -274,10 +274,10 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         col_dets - See under settings_grid.SettingsEntry
         settings_data - add details to it in form of a list of tuples.
         """
-        col_dets = [{"col_label": _("Value"), "col_type": val_type, 
-                     "col_width": 50}, 
-                    {"col_label": _("Label"), "col_type": settings_grid.COL_STR, 
-                     "col_width": 200},
+        col_dets = [{"col_label": _("Value"), "coltype": val_type, 
+                     "colwidth": 50}, 
+                    {"col_label": _("Label"), "coltype": settings_grid.COL_STR, 
+                     "colwidth": 200},
                      ]
         grid_size = (250, 250)
         wx.Dialog.__init__(self, None, title=title,

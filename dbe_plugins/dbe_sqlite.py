@@ -205,12 +205,12 @@ def get_flds(cur, db, tbl):
     cur.execute(u"PRAGMA table_info(%s)" % quote_obj(tbl))
     fld_dets = cur.fetchall() 
     flds = {}
-    for cid, fld_name, fld_type, notnull, dflt_value, pk in fld_dets:
+    for cid, fldname, fldtype, notnull, dflt_value, pk in fld_dets:
         bolnullable = True if notnull == 0 else False
-        bolnumeric = fld_type.lower() in NUMERIC_TYPES
-        bolautonum = (pk == 1 and fld_type.lower() == "integer")            
+        bolnumeric = fldtype.lower() in NUMERIC_TYPES
+        bolautonum = (pk == 1 and fldtype.lower() == "integer")            
         boldata_entry_ok = False if bolautonum else True
-        boldatetime = fld_type.lower() in DATE_TYPES
+        boldatetime = fldtype.lower() in DATE_TYPES
         fld_txt = not bolnumeric and not boldatetime
         bolsigned = True if bolnumeric else None
         dets_dic = {
@@ -219,7 +219,7 @@ def get_flds(cur, db, tbl):
             mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
             mg.FLD_COLUMN_DEFAULT: dflt_value,
             mg.FLD_BOLTEXT: fld_txt,
-            mg.FLD_TEXT_LENGTH: get_char_len(fld_type),
+            mg.FLD_TEXT_LENGTH: get_char_len(fldtype),
             mg.FLD_CHARSET: encoding,
             mg.FLD_BOLNUMERIC: bolnumeric,
             mg.FLD_BOLAUTONUMBER: bolautonum,
@@ -230,7 +230,7 @@ def get_flds(cur, db, tbl):
             mg.FLD_NUM_MAX_VAL: None, # not really applicable - no limit
             mg.FLD_BOLDATETIME: boldatetime, 
             }
-        flds[fld_name] = dets_dic
+        flds[fldname] = dets_dic
     return flds
 
 def get_index_dets(cur, db, tbl):
@@ -254,15 +254,15 @@ def get_index_dets(cur, db, tbl):
         for i, idx_name in enumerate(idx_names):
             cur.execute(u"PRAGMA index_info(\"%s\")" % idx_name)
             # [(seqno, cid, name), ...]
-            flds_idx_names = 2
+            flds_idxnames = 2
             index_info = cur.fetchall()
             if debug: pprint.pprint(index_info)
-            fld_names = [x[flds_idx_names] for x in index_info]
+            fldnames = [x[flds_idxnames] for x in index_info]
             unique = (idx_lst[i][names_idx_unique] == 1)
             if unique:
                 has_unique = True
             idx_dic = {mg.IDX_NAME: idx_name, mg.IDX_IS_UNIQUE: unique, 
-                       mg.IDX_FLDS: fld_names}
+                       mg.IDX_FLDS: fldnames}
             idxs.append(idx_dic)
     if debug:
         pprint.pprint(idxs)
@@ -301,8 +301,8 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     szr_sqlite_inner.Add(parent.txt_sqlite_default_tbl, 0, wx.RIGHT, 10)
     parent.szr_sqlite.Add(szr_sqlite_inner, 0, wx.GROW)
     sqlite_col_dets = [{"col_label": DATABASE_FLD_LABEL, 
-                        "col_type": settings_grid.COL_TEXT_BROWSE, 
-                        "col_width": 400, 
+                        "coltype": settings_grid.COL_TEXT_BROWSE, 
+                        "colwidth": 400, 
                         "file_phrase": _("Choose an SQLite database file")}]
     parent.sqlite_settings_data = []
     init_settings_data = parent.sqlite_data[:]

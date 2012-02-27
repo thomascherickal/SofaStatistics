@@ -531,7 +531,7 @@ def update_type_set(type_set, val, comma_dec_sep_ok=False):
     val_type = get_val_type(val, comma_dec_sep_ok)
     type_set.add(val_type)
 
-def get_overall_fld_type(type_set):
+def get_overall_fldtype(type_set):
     """
     type_set may contain empty_str as well as actual types.  Useful to remove
         empty str and see what is left.
@@ -541,17 +541,17 @@ def get_overall_fld_type(type_set):
     main_type_set = type_set.copy()
     main_type_set.discard(mg.VAL_EMPTY_STRING)
     if main_type_set == set([mg.VAL_NUMERIC]):
-        fld_type = mg.FLD_TYPE_NUMERIC
+        fldtype = mg.FLDTYPE_NUMERIC
     elif main_type_set == set([mg.VAL_DATE]):
-        fld_type = mg.FLD_TYPE_DATE
+        fldtype = mg.FLDTYPE_DATE
     elif (main_type_set == set([mg.VAL_STRING]) 
             or type_set == set([mg.VAL_EMPTY_STRING])):
-        fld_type = mg.FLD_TYPE_STRING
+        fldtype = mg.FLDTYPE_STRING
     else:
         if len(main_type_set) > 1:
             if debug: print(main_type_set)
-        fld_type = mg.FLD_TYPE_STRING    
-    return fld_type
+        fldtype = mg.FLDTYPE_STRING    
+    return fldtype
 
 def update_local_display(html_ctrl, str_content, wrap_text=False):
     str_content = u"<p>%s</p>" % str_content if wrap_text else str_content 
@@ -657,11 +657,11 @@ def get_var_dets(fil_var_dets):
     return results
 
 def get_rand_val_of_type(type):
-    if type == mg.FLD_TYPE_NUMERIC:
+    if type == mg.FLDTYPE_NUMERIC:
         vals_of_type = mg.NUM_DATA_SEQ
-    elif type == mg.FLD_TYPE_STRING:
+    elif type == mg.FLDTYPE_STRING:
         vals_of_type = mg.STR_DATA_SEQ
-    elif type == mg.FLD_TYPE_DATE:
+    elif type == mg.FLDTYPE_DATE:
         vals_of_type = mg.DTM_DATA_SEQ
     else:
         raise Exception(u"Unknown type in get_rand_val_of_type")
@@ -679,18 +679,29 @@ def get_n_fldnames(n):
         fldnames.append(fldname)
     return fldnames
 
-def get_filled_blank_fldnames(existing_fldnames):
+def get_unique_fldnames(existing_fldnames):
     """
     If some field names are blank e.g. empty columns in a csv file, autofill
-        with safe names.
+        with safe names (numbered to be unique). Create numbered versions of 
+        duplicates to ensure they are also unique.
     """
     fldnames = []
+    prev_fldnames_and_counters = {}
     for i, name in enumerate(existing_fldnames, 1):
         if name == u"":
             newname = mg.NEXT_FLDNAME_TEMPLATE % (i+1,)
-            fldnames.append(newname)
         else:
-            fldnames.append(name)
+            if existing_fldnames.count(name) > 1:
+                if name not in prev_fldnames_and_counters:
+                    prev_fldnames_and_counters[name] = 1
+                else:
+                    prev_fldnames_and_counters[name] += 1
+                # make unique using next number
+                newname = mg.NEXT_VARIANT_FLDNAME_TEMPLATE % (name, 
+                                            prev_fldnames_and_counters[name])
+            else:
+                newname = name
+        fldnames.append(newname)
     return fldnames
 
 def get_next_fldname(existing_fldnames):

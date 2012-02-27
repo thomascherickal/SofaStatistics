@@ -23,11 +23,11 @@ GAUGE_STEPS = 50
 
 
 class MismatchException(Exception):
-    def __init__(self, fldname, expected_fld_type, details):
+    def __init__(self, fldname, expected_fldtype, details):
         debug = False
         if debug: print("A mismatch exception")
         self.fldname = fldname
-        self.expected_fld_type = expected_fld_type
+        self.expected_fldtype = expected_fldtype
         Exception.__init__(self, (u"Found data not matching expected "
                                   u"column type.\n\n%s" % details))
 
@@ -35,18 +35,18 @@ class MismatchException(Exception):
 class FixMismatchDlg(wx.Dialog):
     # weird bugs when using stdbtndialog here and calling dlg multiple times
     # actual cause not known but buggy original had a setup_btns method
-    def __init__(self, fldname, fld_type_choices, fld_types, 
+    def __init__(self, fldname, fldtype_choices, fldtypes, 
              faulty2missing_fld_list, assessing_sample=False):
         """
-        fld_type_choices -- doesn't include string.
+        fldtype_choices -- doesn't include string.
         """
         if assessing_sample:
             title_txt = _("MIX OF DATA TYPES")
         else:
             title_txt = _("DATA TYPE MISMATCH")
         self.fldname = fldname
-        self.fld_type_choices = fld_type_choices
-        self.fld_types = fld_types
+        self.fldtype_choices = fldtype_choices
+        self.fldtypes = fldtypes
         self.faulty2missing_fld_list = faulty2missing_fld_list
         wx.Dialog.__init__(self, None, title=title_txt, size=(500,600), 
                            style=wx.CAPTION|wx.SYSTEM_MENU)
@@ -60,23 +60,23 @@ class FixMismatchDlg(wx.Dialog):
                            u"match the expected data type (%(data_type)s)."
                            u"\nPlease select the appropriate type.") % \
                                            {u"fldname": fldname, 
-                                            u"data_type": fld_types[fldname]}
+                                            u"data_type": fldtypes[fldname]}
         lbl_choice = wx.StaticText(self.panel, -1, choice_txt)
-        types = u" or ".join(["\"%s\"" % x for x in self.fld_type_choices])
+        types = u" or ".join(["\"%s\"" % x for x in self.fldtype_choices])
         lbl_implications = wx.StaticText(self.panel, -1, _(u"If you choose %s ,"
             u" any values that are not of that type will be turned to missing."
             % types))
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_btns = wx.BoxSizer(wx.HORIZONTAL)
-        if mg.FLD_TYPE_NUMERIC in self.fld_type_choices:
-            btn_num = wx.Button(self.panel, mg.RET_NUMERIC, mg.FLD_TYPE_NUMERIC)
+        if mg.FLDTYPE_NUMERIC in self.fldtype_choices:
+            btn_num = wx.Button(self.panel, mg.RET_NUMERIC, mg.FLDTYPE_NUMERIC)
             btn_num.Bind(wx.EVT_BUTTON, self.on_num)
             szr_btns.Add(btn_num, 0, wx.LEFT|wx.RIGHT, 10)
-        if mg.FLD_TYPE_DATE in self.fld_type_choices:
-            btn_date = wx.Button(self.panel, mg.RET_DATE, mg.FLD_TYPE_DATE)
+        if mg.FLDTYPE_DATE in self.fldtype_choices:
+            btn_date = wx.Button(self.panel, mg.RET_DATE, mg.FLDTYPE_DATE)
             btn_date.Bind(wx.EVT_BUTTON, self.on_date)
             szr_btns.Add(btn_date, 0,  wx.LEFT|wx.RIGHT, 10)
-        btn_text = wx.Button(self.panel, mg.RET_TEXT, mg.FLD_TYPE_STRING)
+        btn_text = wx.Button(self.panel, mg.RET_TEXT, mg.FLDTYPE_STRING)
         btn_text.Bind(wx.EVT_BUTTON, self.on_text)
         szr_btns.Add(btn_text, 0, wx.LEFT|wx.RIGHT, 10)
         btn_cancel = wx.Button(self.panel, wx.ID_CANCEL) # 
@@ -90,19 +90,19 @@ class FixMismatchDlg(wx.Dialog):
         self.Layout()
     
     def on_num(self, event):
-        self.fld_types[self.fldname] = mg.FLD_TYPE_NUMERIC
+        self.fldtypes[self.fldname] = mg.FLDTYPE_NUMERIC
         self.faulty2missing_fld_list.append(self.fldname)
         self.Destroy()
         self.SetReturnCode(mg.RET_NUMERIC)
     
     def on_date(self, event):
-        self.fld_types[self.fldname] = mg.FLD_TYPE_DATE
+        self.fldtypes[self.fldname] = mg.FLDTYPE_DATE
         self.faulty2missing_fld_list.append(self.fldname)
         self.Destroy()
         self.SetReturnCode(mg.RET_DATE)
         
     def on_text(self, event):
-        self.fld_types[self.fldname] = mg.FLD_TYPE_STRING
+        self.fldtypes[self.fldname] = mg.FLDTYPE_STRING
         self.Destroy()
         self.SetReturnCode(mg.RET_TEXT)
         
@@ -112,7 +112,7 @@ class FixMismatchDlg(wx.Dialog):
         # (MUST come after Destroy)
     
     
-def get_best_fld_type(fldname, type_set, faulty2missing_fld_list, 
+def get_best_fldtype(fldname, type_set, faulty2missing_fld_list, 
                       testing=False):
     """
     type_set may contain empty_str as well as actual types.  Useful to remove
@@ -124,42 +124,48 @@ def get_best_fld_type(fldname, type_set, faulty2missing_fld_list,
     main_type_set = type_set.copy()
     main_type_set.discard(mg.VAL_EMPTY_STRING)
     if main_type_set == set([mg.VAL_NUMERIC]):
-        fld_type = mg.FLD_TYPE_NUMERIC
+        fldtype = mg.FLDTYPE_NUMERIC
     elif main_type_set == set([mg.VAL_DATE]):
-        fld_type = mg.FLD_TYPE_DATE
+        fldtype = mg.FLDTYPE_DATE
     elif (main_type_set == set([mg.VAL_STRING]) 
             or type_set == set([mg.VAL_EMPTY_STRING])):
-        fld_type = mg.FLD_TYPE_STRING
+        fldtype = mg.FLDTYPE_STRING
     elif len(main_type_set) > 1:
         # get user to choose
-        fld_types = {}
-        fld_type_choices = []
+        fldtypes = {}
+        fldtype_choices = []
         if mg.VAL_NUMERIC in main_type_set:
-            fld_type_choices.append(mg.FLD_TYPE_NUMERIC)
+            fldtype_choices.append(mg.FLDTYPE_NUMERIC)
         if mg.VAL_DATE in main_type_set:
-            fld_type_choices.append(mg.FLD_TYPE_DATE)
+            fldtype_choices.append(mg.FLDTYPE_DATE)
         if not testing:
             dlg = FixMismatchDlg(fldname=fldname, 
-                                fld_type_choices=fld_type_choices, 
-                                fld_types=fld_types, 
+                                fldtype_choices=fldtype_choices, 
+                                fldtypes=fldtypes, 
                                 faulty2missing_fld_list=faulty2missing_fld_list, 
                                 assessing_sample=True)
             ret = dlg.ShowModal()
             if ret == wx.ID_CANCEL:
                 raise Exception(u"Inconsistencies in data type.")         
             else:
-                fld_type = fld_types[fldname]
+                fldtype = fldtypes[fldname]
         else:
-            fld_type = mg.FLD_TYPE_STRING
+            fldtype = mg.FLDTYPE_STRING
     else:
-        fld_type = mg.FLD_TYPE_STRING    
-    return fld_type
+        fldtype = mg.FLDTYPE_STRING    
+    return fldtype
 
-def process_fld_names(raw_names):
+def process_fldnames(raw_names):
     """
-    Turn spaces into underscores and then check all names are unique.
+    Turn spaces into underscores, fills blank field names with a safe and 
+        uniquely numbered name, and appends a unique number to duplicate field 
+        names.
     Checks all field names OK for sqlite and none are empty strings.
-    Expects a list of field name strings.
+    Expects a list of field name strings. Returns the same number of field 
+        names.
+    The client code should not rely on the row data it extracts having the same 
+        field names exactly as they may be modified e.g. spaces turned to 
+        underscores.
     """
     debug = False
     try:
@@ -176,7 +182,7 @@ def process_fld_names(raw_names):
             names.append(name)
             if mg.SOFA_ID in names:
                 raise Exception(_(u"%s is a reserved field name.") % mg.SOFA_ID)
-        names = lib.get_filled_blank_fldnames(names)
+        names = lib.get_unique_fldnames(names)
     except AttributeError:
         raise Exception(u"Field names must all be text strings.")
     except TypeError:
@@ -184,14 +190,8 @@ def process_fld_names(raw_names):
     except Exception, e:
         raise Exception(u"Problem processing field names list."
                         u"\nCaused by error: %s" % lib.ue(e))
-    n_names = len(names)
-    if n_names != len(set(names)):
-        if debug:
-            names.sort() 
-            print(names)
-        raise Exception(u"Duplicate field name (once spaces turned to "
-                        u"underscores)")
     quickcheck = False
+    n_names = len(names)
     if n_names > 50:
         # don't test each name individually - takes too long
         # we gain speed and lose ability to single out bad variable name
@@ -221,14 +221,14 @@ def process_fld_names(raw_names):
                                 {"fldname": raw_names[i], "err": err})
     return names
 
-def process_tbl_name(rawname):
+def process_tblname(rawname):
     """
     Turn spaces, hyphens and dots into underscores.
     NB doesn't check if a duplicate etc at this stage.
     """
     return rawname.replace(u" ", u"_").replace(u".", u"_").replace(u"-", u"_")
 
-def assess_sample_fld(sample_data, has_header, orig_fld_name, orig_fld_names, 
+def assess_sample_fld(sample_data, has_header, ok_fldname, ok_fldnames, 
                       faulty2missing_fld_list, allow_none=True, 
                       comma_dec_sep_ok=False, testing=False):
     """
@@ -255,19 +255,19 @@ def assess_sample_fld(sample_data, has_header, orig_fld_name, orig_fld_names,
     for row_num, row in enumerate(sample_data, 1):
         if debug: print(row_num, row) # look esp for Nones
         if allow_none:
-            val = lib.if_none(row[orig_fld_name], u"")
+            val = lib.if_none(row[ok_fldname], u"")
         else: # csvs don't allow none for example
-            val = row[orig_fld_name]
+            val = row[ok_fldname]
             if val is None:
-                report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, 
+                report_fld_n_mismatch(row, row_num, has_header, ok_fldnames, 
                                       allow_none)
         lib.update_type_set(type_set, val, comma_dec_sep_ok)
-    fld_type = get_best_fld_type(fldname=orig_fld_name, type_set=type_set, 
-                                faulty2missing_fld_list=faulty2missing_fld_list,
-                                testing=testing)
-    return fld_type
+    fldtype = get_best_fldtype(fldname=ok_fldname, type_set=type_set, 
+                               faulty2missing_fld_list=faulty2missing_fld_list,
+                               testing=testing)
+    return fldtype
 
-def get_val(feedback, raw_val, is_pytime, fld_type, orig_fld_name, 
+def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname, 
             faulty2missing_fld_list, row_num, comma_dec_sep_ok=False):
     """
     feedback -- dic with mg.NULLED_DOTS
@@ -281,7 +281,7 @@ def get_val(feedback, raw_val, is_pytime, fld_type, orig_fld_name,
     """
     debug = False
     ok_data = False        
-    if fld_type == mg.FLD_TYPE_NUMERIC:
+    if fldtype == mg.FLDTYPE_NUMERIC:
         # must be numeric or empty string or dot (which we'll turn to NULL)
         if lib.is_numeric(raw_val, comma_dec_sep_ok):
             ok_data = True
@@ -301,7 +301,7 @@ def get_val(feedback, raw_val, is_pytime, fld_type, orig_fld_name,
             val = u"NULL"
         else:
             pass # no need to set val - not ok_data so exception later
-    elif fld_type == mg.FLD_TYPE_DATE:
+    elif fldtype == mg.FLDTYPE_DATE:
         # must be pytime or datetime string or usable date string
         # or empty string or dot (which we'll turn to NULL).
         if is_pytime:
@@ -328,7 +328,7 @@ def get_val(feedback, raw_val, is_pytime, fld_type, orig_fld_name,
                 except Exception:
                     my_exceptions.DoNothingException("no need to set val - not "
                                                 "ok_data so exception later")
-    elif fld_type == mg.FLD_TYPE_STRING:
+    elif fldtype == mg.FLDTYPE_STRING:
         # None or empty string we'll turn to NULL
         ok_data = True
         if raw_val is None or raw_val == u"":
@@ -338,18 +338,18 @@ def get_val(feedback, raw_val, is_pytime, fld_type, orig_fld_name,
     else:
         raise Exception(u"Unexpected field type in importer.get_val()")
     if not ok_data:
-        if orig_fld_name in faulty2missing_fld_list:
+        if ok_fldname in faulty2missing_fld_list:
             val = u"NULL" # replace faulty value with a null
         else:
-            raise MismatchException(fldname=orig_fld_name,
-                                expected_fld_type=fld_type,
-                                details=(u"Column: %s" % orig_fld_name +
-                                u"\nRow: %s" % (row_num) +
-                                u"\nValue: \"%s\"" % raw_val +
-                                u"\nExpected column type: %s" % fld_type))
+            raise MismatchException(fldname=ok_fldname,
+                                    expected_fldtype=fldtype,
+                                    details=(u"Column: %s" % ok_fldname +
+                                    u"\nRow: %s" % (row_num) +
+                                    u"\nValue: \"%s\"" % raw_val +
+                                    u"\nExpected column type: %s" % fldtype))
     return val
 
-def process_val(feedback, vals, row_num, row, orig_fld_name, fld_types, 
+def process_val(feedback, vals, row_num, row, ok_fldname, fldtypes, 
                 faulty2missing_fld_list, comma_dec_sep_ok=False):
     """
     Add val to vals.
@@ -368,16 +368,23 @@ def process_val(feedback, vals, row_num, row, orig_fld_name, fld_types,
     """
     debug = False
     try:
-        rawval = row[orig_fld_name]
+        rawval = row[ok_fldname]
     except KeyError:
+        try:
+            int(ok_fldname[-3:])
+            msg = (u" (NB some field names may have been altered to prevent "
+                   u"duplicates or otherwise invalid names).")
+        except Exception:
+            msg = u""
         raise Exception(_("Row %(row_num)s doesn't have a value for the "
-                          "\"%(orig_fld_name)s\" field") % {u"row_num": row_num, 
-                           u"orig_fld_name": orig_fld_name})
+                          "\"%(ok_fldname)s\" field %(msg)s") % 
+                        {u"row_num": row_num, u"ok_fldname": ok_fldname, 
+                         u"msg": msg})
     is_pytime = lib.is_pytime(rawval)
-    fld_type = fld_types[orig_fld_name]
-    val = get_val(feedback, rawval, is_pytime, fld_type, orig_fld_name, 
+    fldtype = fldtypes[ok_fldname]
+    val = get_val(feedback, rawval, is_pytime, fldtype, ok_fldname, 
                   faulty2missing_fld_list, row_num, comma_dec_sep_ok)
-    if fld_type != mg.FLD_TYPE_NUMERIC and val != u"NULL":
+    if fldtype != mg.FLDTYPE_NUMERIC and val != u"NULL":
         try:
             val = dbe_sqlite.quote_val(val)
         except Exception:
@@ -386,14 +393,14 @@ def process_val(feedback, vals, row_num, row, orig_fld_name, fld_types,
     vals.append(val)
     if debug: print(val)
 
-def report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, allow_none):
+def report_fld_n_mismatch(row, row_num, has_header, ok_fldnames, allow_none):
     debug = False
     if debug: print(row_num, row)
     if not allow_none:
         n_row_items = len([x for x in row.values() if x is not None])
     else:
         n_row_items = len(row)
-    n_flds = len(orig_fld_names)
+    n_flds = len(ok_fldnames)
     if n_row_items != n_flds:
         if has_header:
             row_msg = _("Row %s (including header row)") % (row_num+1,)
@@ -401,8 +408,8 @@ def report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, allow_none):
             row_msg = _("Row %s") % row_num  
         # if csv has 2 flds and receives 3 vals will be var1:1,var2:2,None:[3]!
         vals = []
-        for orig_fld_name in orig_fld_names:
-            vals.append(row[orig_fld_name])
+        for ok_fldname in ok_fldnames:
+            vals.append(row[ok_fldname])
         vals_under_none = row.get(None)
         if vals_under_none:
             vals.extend(vals_under_none)
@@ -420,9 +427,9 @@ def report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, allow_none):
                              "n_row_items": n_row_items, 
                              "vals_str": vals_str})
 
-def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fld_names, 
-             orig_fld_names, fld_types, faulty2missing_fld_list, progbar, 
-             steps_per_item, gauge_start=0, row_num_start=0, allow_none=True, 
+def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fldnames, 
+             fldtypes, faulty2missing_fld_list, progbar, steps_per_item, 
+             gauge_start=0, row_num_start=0, allow_none=True, 
              comma_dec_sep_ok=False):
     """
     feedback -- dic with mg.NULLED_DOTS
@@ -437,8 +444,8 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fld_names,
     TODO - insert multiple lines at once for performance.
     """
     debug = False
-    fld_names_clause = u", ".join([dbe_sqlite.quote_obj(x) for x 
-                                   in ok_fld_names])
+    fldnames_clause = u", ".join([dbe_sqlite.quote_obj(x) for x 
+                                   in ok_fldnames])
     for row_idx, row in enumerate(rows):
         if debug: 
             print(row)
@@ -453,13 +460,12 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fld_names,
         #if debug and row_num == 12:
         #    print("Break on this line :-)")
         vals = []
-        report_fld_n_mismatch(row, row_num, has_header, orig_fld_names, 
+        report_fld_n_mismatch(row, row_num, has_header, ok_fldnames, 
                               allow_none)
         try:
-            for orig_fld_name in orig_fld_names:
-                process_val(feedback, vals, row_num, row, orig_fld_name, 
-                            fld_types, faulty2missing_fld_list, 
-                            comma_dec_sep_ok)
+            for ok_fldname in ok_fldnames:
+                process_val(feedback, vals, row_num, row, ok_fldname, 
+                            fldtypes, faulty2missing_fld_list, comma_dec_sep_ok)
         except MismatchException, e:
             if debug: print("A mismatch exception")
             raise # keep this particular type of exception bubbling out
@@ -467,8 +473,8 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fld_names,
             raise
         # quoting must happen earlier so we can pass in NULL  
         fld_vals_clause = u", ".join([u"%s" % x for x in vals])
-        SQL_insert_row = u"INSERT INTO %s " % mg.TMP_TBL_NAME + \
-            u"(%s) VALUES(%s)" % (fld_names_clause, fld_vals_clause)
+        SQL_insert_row = u"INSERT INTO %s " % mg.TMP_TBLNAME + \
+            u"(%s) VALUES(%s)" % (fldnames_clause, fld_vals_clause)
         if debug: print(SQL_insert_row)
         try:
             cur.execute(SQL_insert_row)
@@ -495,7 +501,7 @@ def get_steps_per_item(items_n):
 
 def drop_tmp_tbl(con, cur):
     con.commit()
-    SQL_drop_disp_tbl = u"DROP TABLE IF EXISTS %s" % mg.TMP_TBL_NAME
+    SQL_drop_disp_tbl = u"DROP TABLE IF EXISTS %s" % mg.TMP_TBLNAME
     cur.execute(SQL_drop_disp_tbl)
     con.commit()
 
@@ -508,38 +514,36 @@ def post_fail_tidy(progbar, con, cur):
     progbar.SetValue(0)
 
 def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path, 
-                          tbl_name, has_header, ok_fld_names, orig_fld_names, 
-                          fld_types, faulty2missing_fld_list, data, progbar, 
+                          tblname, has_header, ok_fldnames, fldtypes, 
+                          faulty2missing_fld_list, data, progbar, 
                           steps_per_item, gauge_start, allow_none=True, 
                           comma_dec_sep_ok=False):
     debug = False
     if debug:
-        print(u"Original field names are: %s" % orig_fld_names)
-        print(u"Cleaned (ok) field names are: %s" % ok_fld_names)
-        print(u"Field types are: %s" % fld_types)
+        print(u"Cleaned (ok) field names are: %s" % ok_fldnames)
+        print(u"Field types are: %s" % fldtypes)
         print(u"Faulty to missing field list: %s" % faulty2missing_fld_list)
         print(u"Data is: %s" % data)
     try:
         con.commit()
-        SQL_get_tbl_names = u"""SELECT name 
+        SQL_get_tblnames = u"""SELECT name 
             FROM sqlite_master 
             WHERE type = 'table'"""
-        cur.execute(SQL_get_tbl_names) # otherwise it doesn't always seem to have the 
+        cur.execute(SQL_get_tblnames) # otherwise it doesn't always seem to have the 
             # latest data on which tables exist
         drop_tmp_tbl(con, cur)
-        if debug: print(u"Successfully dropped %s" % mg.TMP_TBL_NAME)
+        if debug: print(u"Successfully dropped %s" % mg.TMP_TBLNAME)
     except Exception, e:
         raise
     try:
-        tbl_name = mg.TMP_TBL_NAME
-        # oth_name_types -- ok_fld_name, fld_type (taken from original source 
-        # and the key will be orig_fld_name)
+        tblname = mg.TMP_TBLNAME
+        # oth_name_types -- ok_fldname, fldtype (taken from original source 
+        # and the key will be ok_fldname)
         oth_name_types = []
-        fld_names = zip(ok_fld_names, orig_fld_names)
-        for ok_fld_name, orig_fld_name in fld_names:
-            oth_name_types.append((ok_fld_name, fld_types[orig_fld_name]))
+        for ok_fldname in ok_fldnames:
+            oth_name_types.append((ok_fldname, fldtypes[ok_fldname]))
         if debug: print(oth_name_types)
-        getdata.make_sofa_tbl(con, cur, tbl_name, oth_name_types)
+        getdata.make_sofa_tbl(con, cur, tblname, oth_name_types)
     except Exception, e:
         raise   
     try:
@@ -547,9 +551,8 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
         # Already been through sample once when assessing it so part way through 
         # process already.
         add_rows(feedback, import_status, con, cur, data, has_header, 
-                 ok_fld_names, orig_fld_names, fld_types, 
-                 faulty2missing_fld_list, progbar, steps_per_item, 
-                 gauge_start=gauge_start, row_num_start=1, 
+                 ok_fldnames, fldtypes, faulty2missing_fld_list, progbar, 
+                 steps_per_item, gauge_start=gauge_start, row_num_start=1, 
                  allow_none=allow_none, comma_dec_sep_ok=comma_dec_sep_ok)
         return True
     except MismatchException, e:
@@ -558,8 +561,8 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
         progbar.SetValue(0)
         # go through again or raise an exception
         dlg = FixMismatchDlg(fldname=e.fldname, 
-                             fld_type_choices=[e.expected_fld_type,], 
-                             fld_types=fld_types, 
+                             fldtype_choices=[e.expected_fldtype,], 
+                             fldtypes=fldtypes, 
                              faulty2missing_fld_list=faulty2missing_fld_list, 
                              assessing_sample=False)
         ret = dlg.ShowModal()
@@ -569,17 +572,15 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
         else:
             return False # start again :-)
 
-def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tbl_name, 
-                   has_header, ok_fld_names, orig_fld_names, fld_types, 
+def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tblname, 
+                   has_header, ok_fldnames, fldtypes, 
                    faulty2missing_fld_list, data, progbar, steps_per_item, 
                    gauge_start, allow_none=True, comma_dec_sep_ok=False):
     """
     Create fresh disposable table in SQLite and insert data into it.
     feedback -- dic with mg.NULLED_DOTS
-    ok_fld_names -- cleaned field names (shouldn't have a sofa_id field)
-    orig_fld_names -- original names - useful for taking data from row dicts but 
-        not the names to use for the new table.
-    fld_types -- dict with field types for original field names
+    ok_fldnames -- cleaned field names (shouldn't have a sofa_id field)
+    fldtypes -- dict with field types for original field names
     faulty2missing_fld_list -- list of fields where we should turn faulty values 
         to missing.
     data -- list of dicts using orig fld names
@@ -588,12 +589,12 @@ def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tbl_name,
     Give it a unique identifier field as well.
     Set up the data type constraints needed.
     Keep trying till success or user decodes not to fix and keep going.  Fix 
-        involves changing the relevant fld_type to string, which will accept 
+        involves changing the relevant fldtype to string, which will accept 
         anything.
     """
     while True: # keep trying till success or user decodes not to fix & continue
         if try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path, 
-                tbl_name, has_header, ok_fld_names, orig_fld_names, fld_types, 
+                tblname, has_header, ok_fldnames, fldtypes, 
                 faulty2missing_fld_list, data, progbar, steps_per_item, 
                 gauge_start, allow_none=True, 
                 comma_dec_sep_ok=comma_dec_sep_ok):
@@ -613,7 +614,7 @@ def tmp_to_named_tbl(con, cur, tblname, file_path, progbar, nulled_dots):
         cur.execute(SQL_drop_tbl)
         con.commit()
         SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
-                          (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME), 
+                          (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME), 
                            getdata.tblname_qtr(mg.DBE_SQLITE, tblname)))
         if debug: print(SQL_rename_tbl)
         cur.execute(SQL_rename_tbl)
@@ -772,10 +773,10 @@ class HasHeaderGivenDataDlg(wx.Dialog):
 
 
 class FileImporter(object):
-    def __init__(self, parent, file_path, tbl_name):
+    def __init__(self, parent, file_path, tblname):
         self.parent = parent
         self.file_path = file_path
-        self.tbl_name = tbl_name
+        self.tblname = tblname
         self.has_header = True
     
     def get_params(self):
@@ -907,7 +908,7 @@ class ImportFileSelectDlg(wx.Dialog):
             path = dlg_get_file.GetPath()
             self.txt_file.SetValue(path)
             filestart, unused = self.get_file_start_ext(path)
-            newname = process_tbl_name(filestart)
+            newname = process_tblname(filestart)
             self.txt_int_name.SetValue(newname)
         dlg_get_file.Destroy()
         self.txt_int_name.SetFocus()
@@ -933,7 +934,7 @@ class ImportFileSelectDlg(wx.Dialog):
             path = os.path.join(mg.INT_PATH, mg.GOOGLE_DOWNLOAD)
             self.txt_file.SetValue(path)
             filestart, unused = self.get_file_start_ext(path)
-            newname = process_tbl_name(filestart)
+            newname = process_tblname(filestart)
             self.txt_int_name.SetValue(newname)
         self.txt_int_name.SetFocus()
         self.align_btns_to_completeness()
@@ -954,14 +955,14 @@ class ImportFileSelectDlg(wx.Dialog):
     def on_cancel(self, event):
         self.import_status[mg.CANCEL_IMPORT] = True
     
-    def check_tbl_name(self, file_path, tbl_name):
+    def check_tblname(self, file_path, tblname):
         """
-        Returns tbl_name (None if no suitable name to use).
+        Returns tblname (None if no suitable name to use).
         Checks table name and gives user option of correcting it if problems.
         Raises exception if no suitable name selected.
         """
         # check existing names
-        valid, err = dbe_sqlite.valid_tblname(tbl_name)
+        valid, err = dbe_sqlite.valid_tblname(tblname)
         if not valid:
             title = _("FAULTY SOFA TABLE NAME")
             msg = _("You can only use letters, numbers and underscores in a "
@@ -973,14 +974,14 @@ class ImportFileSelectDlg(wx.Dialog):
             elif ret == wx.YES:
                 self.txt_int_name.SetFocus()
                 return None
-        duplicate = getdata.dup_tbl_name(tbl_name)
+        duplicate = getdata.dup_tblname(tblname)
         if duplicate:
             title = _("SOFA NAME ALREADY EXISTS")
             msg = _("A table named \"%(tbl)s\" "
                   "already exists in the SOFA default database.\n\n"
                   "Do you want to replace it with the new data from "
                   "\"%(fil)s\"?")
-            ret = wx.MessageBox(msg % {"tbl": tbl_name, "fil": file_path}, 
+            ret = wx.MessageBox(msg % {"tbl": tblname, "fil": file_path}, 
                                 title, wx.YES_NO|wx.ICON_QUESTION)
             if ret == wx.NO: # no overwrite so get new one (or else!)
                 wx.MessageBox(_("Please change the SOFA Table Name and try "
@@ -989,7 +990,7 @@ class ImportFileSelectDlg(wx.Dialog):
                 return None
             elif ret == wx.YES:
                 my_exceptions.DoNothingException() # use name (& overwrite orig)
-        return tbl_name
+        return tblname
 
     def align_btns_to_completeness(self):
         debug = False
@@ -1050,29 +1051,29 @@ class ImportFileSelectDlg(wx.Dialog):
                             "'%s' are not supported") % extension)
             self.align_btns_to_importing(importing=False)
             return
-        tbl_name = self.txt_int_name.GetValue()
-        if not tbl_name:
+        tblname = self.txt_int_name.GetValue()
+        if not tblname:
             wx.MessageBox(_("Please select a SOFA Table Name for the file"))
             self.align_btns_to_importing(importing=False)
             self.txt_int_name.SetFocus()
             return
-        if u" " in tbl_name:
+        if u" " in tblname:
             wx.MessageBox(_("SOFA Table Name can't have empty spaces"))
             self.align_btns_to_importing(importing=False)
             return
         bad_chars = [u"-", ]
         for bad_char in bad_chars:
-            if bad_char in tbl_name:
+            if bad_char in tblname:
                 wx.MessageBox(_("Do not include '%s' in SOFA Table Name") % 
                               bad_char)
                 self.align_btns_to_importing(importing=False)
                 return
-        if tbl_name[0] in [unicode(x) for x in range(10)]:
+        if tblname[0] in [unicode(x) for x in range(10)]:
             wx.MessageBox(_("SOFA Table Names cannot start with a digit"))
             self.align_btns_to_importing(importing=False)
             return
         try:
-            final_tblname = self.check_tbl_name(file_path, tbl_name)
+            final_tblname = self.check_tblname(file_path, tblname)
             if final_tblname is None:
                 self.align_btns_to_importing(importing=False)
                 self.progbar.SetValue(0)
@@ -1106,7 +1107,7 @@ class ImportFileSelectDlg(wx.Dialog):
             try:
                 file_importer.import_content(self.progbar, self.import_status,
                                              self.lbl_feedback)
-                dd.set_db(dd.db, tbl=tbl_name)
+                dd.set_db(dd.db, tbl=tblname)
                 lib.safe_end_cursor()
             except my_exceptions.ImportConfirmationRejected, e:
                 lib.safe_end_cursor()

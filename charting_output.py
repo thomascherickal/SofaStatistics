@@ -162,8 +162,8 @@ def get_sorted_xaxis_and_y_vals(sort_opt, vals_etc_lst):
 
 def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_measure, 
                    fld_gp_by, fld_chart_by, fld_chart_by_name, 
-                   legend_fld_name, legend_fld_lbls,
-                   chart_fld_name, chart_fld_lbls, sort_opt, dp):
+                   legend_fldname, legend_fldlbls,
+                   chart_fldname, chart_fldlbls, sort_opt, dp):
     """
     Take raw columns of data from SQL cursor and create required dict.
     """
@@ -204,14 +204,14 @@ def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_measure,
                                         mg.CHART_Y_VALS: sorted_y_vals})
                 vals_etc_lst = [] # reinit
                 if multichart:
-                    chart_lbl = u"%s: %s" % (chart_fld_name, 
-                                             chart_fld_lbls.get(group_val, 
+                    chart_lbl = u"%s: %s" % (chart_fldname, 
+                                             chart_fldlbls.get(group_val, 
                                                             unicode(group_val)))
-                    legend_lbl = legend_fld_name
+                    legend_lbl = legend_fldname
                 else:
                     chart_lbl = mg.CHART_LBL_SINGLE_CHART
-                    legend_lbl = legend_fld_lbls.get(group_val, 
-                                                     unicode(group_val))
+                    legend_lbl = legend_fldlbls.get(group_val, 
+                                                    unicode(group_val))
                 if len(series_dets) > mg.MAX_CHART_SERIES:
                     if fld_chart_by:
                         raise my_exceptions.TooManyChartsInSeries(
@@ -265,7 +265,7 @@ def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_measure,
                 raise my_exceptions.TooManyValsInChartSeries(fld_measure, 
                                                              max_items)
         chart_lbl = mg.CHART_LBL_SINGLE_CHART
-        legend_lbl = legend_fld_name
+        legend_lbl = legend_fldname
         (sorted_xaxis_dets, 
          sorted_y_vals) = get_sorted_xaxis_and_y_vals(sort_opt, vals_etc_lst)
         series_dets = [{mg.CHART_LBL: chart_lbl,
@@ -323,22 +323,22 @@ def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt,
         # Either gp by or chart by
         if fld_gp_by is not None: # has BY
             fld_group_series = fld_gp_by
-            legend_fld_name = fld_gp_by_name # e.g. Country
-            legend_fld_lbls = fld_gp_by_lbls # e.g. {1: Japan, ...}
-            chart_fld_name = mg.CHART_LBL_SINGLE_CHART
-            chart_fld_lbls = {}
+            legend_fldname = fld_gp_by_name # e.g. Country
+            legend_fldlbls = fld_gp_by_lbls # e.g. {1: Japan, ...}
+            chart_fldname = mg.CHART_LBL_SINGLE_CHART
+            chart_fldlbls = {}
         elif fld_chart_by is not None: # CHARTS BY
             fld_group_series = fld_chart_by
-            legend_fld_name = fld_measure_name # e.g. Country in orange box
-            legend_fld_lbls = fld_measure_lbls
-            chart_fld_name = fld_chart_by_name
-            chart_fld_lbls = fld_chart_by_lbls
+            legend_fldname = fld_measure_name # e.g. Country in orange box
+            legend_fldlbls = fld_measure_lbls
+            chart_fldname = fld_chart_by_name
+            chart_fldlbls = fld_chart_by_lbls
         else: # e.g. simple bar chart without a chart by selected
             fld_group_series = None
-            legend_fld_name = fld_measure_name # e.g. Age Group in box
-            legend_fld_lbls = {}
-            chart_fld_name = mg.CHART_LBL_SINGLE_CHART # won't show
-            chart_fld_lbls = {}
+            legend_fldname = fld_measure_name # e.g. Age Group in box
+            legend_fldlbls = {}
+            chart_fldname = mg.CHART_LBL_SINGLE_CHART # won't show
+            chart_fldlbls = {}
     elif measure == mg.CHART_AVGS:
         """
         May or may not have fld_chart_by set but must have fld_gp_by to enable 
@@ -353,21 +353,21 @@ def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt,
                 charts if chart_by.
             """
             if chart_type in mg.NO_CHART_BY:
-                legend_fld_name = fld_chart_by_name # e.g. Age Group in orange box
-                legend_fld_lbls = fld_chart_by_lbls
-                chart_fld_name = mg.CHART_LBL_SINGLE_CHART
-                chart_fld_lbls = {}
+                legend_fldname = fld_chart_by_name # e.g. Age Group in orange box
+                legend_fldlbls = fld_chart_by_lbls
+                chart_fldname = mg.CHART_LBL_SINGLE_CHART
+                chart_fldlbls = {}
             else:
-                legend_fld_name = fld_gp_by_name # e.g. Age Group in orange box
-                legend_fld_lbls = {}
-                chart_fld_name = fld_chart_by_name 
-                chart_fld_lbls = fld_chart_by_lbls
+                legend_fldname = fld_gp_by_name # e.g. Age Group in orange box
+                legend_fldlbls = {}
+                chart_fldname = fld_chart_by_name 
+                chart_fldlbls = fld_chart_by_lbls
         else:
             fld_group_series = None
-            legend_fld_name = fld_gp_by_name # e.g. Country in orange box
-            legend_fld_lbls = {}
-            chart_fld_name = mg.CHART_LBL_SINGLE_CHART
-            chart_fld_lbls = {}
+            legend_fldname = fld_gp_by_name # e.g. Country in orange box
+            legend_fldlbls = {}
+            chart_fldname = mg.CHART_LBL_SINGLE_CHART
+            chart_fldlbls = {}
     # Get data as per setup
     SQL_raw_data = get_SQL_raw_data(dbe, tbl_quoted, 
                                     where_tbl_filt, and_tbl_filt, 
@@ -383,8 +383,8 @@ def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt,
     chart_dets = structure_data(chart_type, raw_data, max_items, xlblsdic, 
                                 fld_measure, fld_gp_by, 
                                 fld_chart_by, fld_chart_by_name, 
-                                legend_fld_name, legend_fld_lbls,
-                                chart_fld_name, chart_fld_lbls, 
+                                legend_fldname, legend_fldlbls,
+                                chart_fldname, chart_fldlbls, 
                                 sort_opt, dp)
     return chart_dets
 
@@ -454,7 +454,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
         # set up series (chart by) filter and 
         if fld_chart_by:
             filt = getdata.make_fld_val_clause(dbe, dd.flds, 
-                                               fld_name=fld_chart_by, 
+                                               fldname=fld_chart_by, 
                                                val=fld_chart_by_val)
             and_fld_chart_by_filt = u" AND %s" % filt
             if where_tbl_filt:
@@ -496,7 +496,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
             # Now see if any measure values with series_by_val and gp_val
             # Apply tbl_filt, series_by filt, and gp_by filt
             gp_by_filt = getdata.make_fld_val_clause(dbe, dd.flds, 
-                                                     fld_name=fld_gp_by, 
+                                                     fldname=fld_gp_by, 
                                                      val=gp_val)
             sql_dic[u"gp_by_filt"] = gp_by_filt
             SQL_measure_vals = u"""SELECT %(fld_measure)s
@@ -645,7 +645,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure,
     for fld_chart_by_val in fld_chart_by_vals:
         if fld_chart_by:
             filt = getdata.make_fld_val_clause(dbe, dd.flds, 
-                                               fld_name=fld_chart_by, 
+                                               fldname=fld_chart_by, 
                                                val=fld_chart_by_val)
             and_fld_chart_by_filt = u" and %s" % filt
             fld_chart_by_val_lbl = fld_chart_by_lbls.get(fld_chart_by_val, 
@@ -743,7 +743,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, fld_x_axis, fld_y_axis,
     for fld_chart_by_val in fld_chart_by_vals:
         if fld_chart_by:
             filt = getdata.make_fld_val_clause(dbe, dd.flds, 
-                                               fld_name=fld_chart_by, 
+                                               fldname=fld_chart_by, 
                                                val=fld_chart_by_val)
             and_fld_chart_by_filt = u" and %s" % filt
             fld_chart_by_val_lbl = fld_chart_by_lbls.get(fld_chart_by_val, 

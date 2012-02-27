@@ -23,15 +23,15 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.quote_val = getdata.get_val_quoter_func(dd.dbe)
         self.readonly = readonly        
         self.set_num_rows()
-        self.fld_names = getdata.flds_dic_to_fld_names_lst(flds_dic=dd.flds)
-        self.fld_labels = [var_labels.get(x, x.title()) for x in self.fld_names]
+        self.fldnames = getdata.fldsdic_to_fldnames_lst(fldsdic=dd.flds)
+        self.fldlbls = [var_labels.get(x, x.title()) for x in self.fldnames]
         self.idx_id, self.must_quote = self.get_index_col()
-        self.id_col_name = self.fld_names[self.idx_id]
+        self.id_col_name = self.fldnames[self.idx_id]
         self.set_row_ids_lst()
         self.row_vals_dic = {} # key = row, val = list of values
         if self.debug:
-            pprint.pprint(self.fld_names)
-            pprint.pprint(self.fld_labels)
+            pprint.pprint(self.fldnames)
+            pprint.pprint(self.fldlbls)
             pprint.pprint(dd.flds)
             pprint.pprint(self.row_ids_lst)
         self.bol_attempt_cell_update = False
@@ -60,13 +60,13 @@ class DbTbl(wx.grid.PyGridTableBase):
         # NB could easily be 10s or 100s of thousands of records
         self.row_ids_lst = [x[0] for x in dd.cur.fetchall()]
     
-    def get_fld_name(self, col):
-        return self.fld_names[col]
+    def get_fldname(self, col):
+        return self.fldnames[col]
     
     def get_fld_dic(self, col):
         dd = mg.DATADETS_OBJ
-        fld_name = self.get_fld_name(col)
-        return dd.flds[fld_name]
+        fldname = self.get_fldname(col)
+        return dd.flds[fldname]
     
     def get_index_col(self):
         """
@@ -79,13 +79,12 @@ class DbTbl(wx.grid.PyGridTableBase):
         dd = mg.DATADETS_OBJ
         for idx in dd.idxs:
             is_unique = idx[mg.IDX_IS_UNIQUE]
-            fld_names = idx[mg.IDX_FLDS]
+            fldnames = idx[mg.IDX_FLDS]
             if is_unique:
                 # pretend only ever one field (TODO see above)
-                fld_to_use = fld_names[0]
-                must_quote = not \
-                    dd.flds[fld_to_use][mg.FLD_BOLNUMERIC]
-                col_idx = self.fld_names.index(fld_to_use)
+                fld2use = fldnames[0]
+                must_quote = not dd.flds[fld2use][mg.FLD_BOLNUMERIC]
+                col_idx = self.fldnames.index(fld2use)
                 if self.debug:
                     print(u"Col idx: %s" % col_idx)
                     print(u"Must quote:" + unicode(must_quote))
@@ -269,9 +268,9 @@ class DbTbl(wx.grid.PyGridTableBase):
             self.new_buffer[(row, col)] = value
         else:
             self.bol_attempt_cell_update = True
-            col_name = self.fld_names[col]
+            colname = self.fldnames[col]
             raw_val_to_use = getdata.prep_val(dbe=dd.dbe, val=value, 
-                                              fld_dic=dd.flds[col_name])
+                                              fld_dic=dd.flds[colname])
             self.val_of_cell_to_update = raw_val_to_use         
             if self.must_quote: # only refers to index column
                 id_value = self.quote_val(self.row_ids_lst[row])
@@ -282,7 +281,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             # TODO - think about possibilities of SQL injection by hostile party
             SQL_update_value = u"UPDATE %s " % \
                     getdata.tblname_qtr(dd.dbe, dd.tbl) + \
-                    u" SET %s = %s " % (self.objqtr(col_name), val2use) + \
+                    u" SET %s = %s " % (self.objqtr(colname), val2use) + \
                     u" WHERE %s = " % self.id_col_name + unicode(id_value)
             if self.debug or debug: 
                 print(u"SetValue - SQL update value: %s" % SQL_update_value)

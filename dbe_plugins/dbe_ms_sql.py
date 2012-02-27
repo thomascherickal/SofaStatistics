@@ -199,21 +199,21 @@ def get_flds(cur, db, tbl):
     extras = {}
     rs = cur.adoconn.OpenSchema(AD_SCHEMA_COLUMNS, (None, None, tbl)) 
     while not rs.EOF:
-        fld_name = rs.Fields(u"COLUMN_NAME").Value
+        fldname = rs.Fields(u"COLUMN_NAME").Value
         ord_pos = rs.Fields(u"ORDINAL_POSITION").Value
         char_set = rs.Fields(u"CHARACTER_SET_NAME").Value
-        extras[fld_name] = (ord_pos, char_set)
+        extras[fldname] = (ord_pos, char_set)
         rs.MoveNext()
     flds = {}
     for col in cat.Tables(tbl).Columns:
         # build dic of fields, each with dic of characteristics
-        fld_name = col.Name
+        fldname = col.Name
         if debug: print(col.Type)
-        fld_type = dbe_globals.get_ado_dict().get(col.Type)
-        if not fld_type:
+        fldtype = dbe_globals.get_ado_dict().get(col.Type)
+        if not fldtype:
             raise Exception(u"Not an MS SQL Server ADO field type %d"
                             % col.Type)
-        bolnumeric = fld_type in dbe_globals.NUMERIC_TYPES
+        bolnumeric = fldtype in dbe_globals.NUMERIC_TYPES
         try:
             bolautonum = col.Properties(u"AutoIncrement").Value
         except Exception:
@@ -228,20 +228,20 @@ def get_flds(cur, db, tbl):
             default = ""
         boldata_entry_ok = False if bolautonum else True
         dec_pts = col.NumericScale if col.NumericScale < 18 else 0
-        boldatetime = fld_type in dbe_globals.DATETIME_TYPES
+        boldatetime = fldtype in dbe_globals.DATETIME_TYPES
         fld_txt = not bolnumeric and not boldatetime
         num_prec = col.Precision
         bolsigned = True if bolnumeric else None
-        min_val, max_val = dbe_globals.get_min_max(fld_type, num_prec, 
+        min_val, max_val = dbe_globals.get_min_max(fldtype, num_prec, 
                                                    dec_pts)
         dets_dic = {
-                    mg.FLD_SEQ: extras[fld_name][0],
+                    mg.FLD_SEQ: extras[fldname][0],
                     mg.FLD_BOLNULLABLE: bolnullable,
                     mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
                     mg.FLD_COLUMN_DEFAULT: default,
                     mg.FLD_BOLTEXT: fld_txt,
                     mg.FLD_TEXT_LENGTH: col.DefinedSize,
-                    mg.FLD_CHARSET: extras[fld_name][1],
+                    mg.FLD_CHARSET: extras[fldname][1],
                     mg.FLD_BOLNUMERIC: bolnumeric,
                     mg.FLD_BOLAUTONUMBER: bolautonum,
                     mg.FLD_DECPTS: dec_pts,
@@ -251,7 +251,7 @@ def get_flds(cur, db, tbl):
                     mg.FLD_NUM_MAX_VAL: max_val,
                     mg.FLD_BOLDATETIME: boldatetime, 
                     }
-        flds[fld_name] = dets_dic
+        flds[fldname] = dets_dic
     debug = False 
     if debug:
         pprint.pprint(flds)
@@ -274,9 +274,9 @@ def get_index_dets(cur, db, tbl):
     for index in index_coll:
         if index.Unique:
             has_unique = True
-        fld_names = [x.Name for x in index.Columns]
+        fldnames = [x.Name for x in index.Columns]
         idx_dic = {mg.IDX_NAME: index.Name, mg.IDX_IS_UNIQUE: index.Unique, 
-                   mg.IDX_FLDS: fld_names}
+                   mg.IDX_FLDS: fldnames}
         idxs.append(idx_dic)
     cat = None
     debug = False

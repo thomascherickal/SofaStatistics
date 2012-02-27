@@ -146,8 +146,8 @@ class SettingsEntry(object):
                  insert_data_func=None, cell_invalidation_func=None, 
                  cell_response_func=None):
         """
-        col_dets - list of dic.  Keys = "col_label", "col_type", 
-            and, optionally, "col_width", "file_phrase", "file_wildcard", 
+        col_dets - list of dic.  Keys = "col_label", "coltype", 
+            and, optionally, "colwidth", "file_phrase", "file_wildcard", 
             "empty_ok", "col_min_val", "col_max_val", "col_precision".
             Also "dropdown_vals" which is a list of values for the dropdown.
         init_settings_data - list of tuples (must have at least one item, even 
@@ -173,11 +173,11 @@ class SettingsEntry(object):
             if cell_invalidation_func else cell_invalidation
         self.cell_response_func = cell_response_func \
             if cell_response_func else cell_response
-        # store any fixed min col_widths
-        self.col_widths = [None for x in range(len(self.col_dets))] # init
+        # store any fixed min colwidths
+        self.colwidths = [None for x in range(len(self.col_dets))] # init
         for col_idx, col_det in enumerate(self.col_dets):
-            if col_det.get("col_width"):
-                self.col_widths[col_idx] = col_det["col_width"]
+            if col_det.get("colwidth"):
+                self.colwidths[col_idx] = col_det["colwidth"]
         self.init_settings_data = init_settings_data
         self.settings_data = settings_data
         self.any_editor_shown = False
@@ -200,20 +200,20 @@ class SettingsEntry(object):
         self.grid.EnableEditing(not self.readonly)
         # Set any col min widths specifically specified
         for col_idx in range(len(self.col_dets)):
-            col_width = self.col_widths[col_idx]
-            if col_width:
-                self.grid.SetColMinimalWidth(col_idx, col_width)
-                self.grid.SetColSize(col_idx, col_width)
+            colwidth = self.colwidths[col_idx]
+            if colwidth:
+                self.grid.SetColMinimalWidth(col_idx, colwidth)
+                self.grid.SetColSize(col_idx, colwidth)
                 # otherwise will only see effect after resizing
             else:
                 self.grid.AutoSizeColumn(col_idx, setAsMin=False)
         self.grid.ForceRefresh()
         # set col rendering and editing (string is default)
         for col_idx, col_det in enumerate(self.col_dets):
-            col_type = col_det["col_type"]
-            if col_type == COL_INT:
+            coltype = col_det["coltype"]
+            if coltype == COL_INT:
                 self.grid.SetColFormatNumber(col_idx)
-            elif col_type == COL_FLOAT:
+            elif coltype == COL_FLOAT:
                 width, precision = self.get_width_precision(col_idx)
                 self.grid.SetColFormatFloat(col_idx, width, precision)
             # must set editor cell by cell amazingly
@@ -223,8 +223,8 @@ class SettingsEntry(object):
                 self.grid.SetCellEditor(row_idx, col_idx, editor)
         # set min row height if text browser used
         for col_idx, col_det in enumerate(self.col_dets):
-            col_type = col_det["col_type"]
-            if col_type == COL_TEXT_BROWSE:
+            coltype = col_det["coltype"]
+            if coltype == COL_TEXT_BROWSE:
                 self.grid.SetDefaultRowSize(30)
                 break
         # unlike normal grids, we can assume limited number of rows
@@ -272,17 +272,17 @@ class SettingsEntry(object):
         Returns renderer, editor.
         Nearly (but not quite) worth making classes ;-)
         """
-        col_type = self.col_dets[col_idx]["col_type"]
-        if col_type == COL_INT:
+        coltype = self.col_dets[col_idx]["coltype"]
+        if coltype == COL_INT:
             min = self.col_dets[col_idx].get("col_min_val", -1) # -1 no minimum
             max = self.col_dets[col_idx].get("col_max_val", min)
             renderer = wx.grid.GridCellNumberRenderer()
             editor = wx.grid.GridCellNumberEditor(min, max)
-        elif col_type == COL_FLOAT:
+        elif coltype == COL_FLOAT:
             width, precision = self.get_width_precision(col_idx)
             renderer = wx.grid.GridCellFloatRenderer(width, precision)
             editor = wx.grid.GridCellFloatEditor(width, precision)
-        elif col_type == COL_TEXT_BROWSE:
+        elif coltype == COL_TEXT_BROWSE:
             renderer = wx.grid.GridCellStringRenderer()
             file_phrase = self.col_dets[col_idx].get("file_phrase", "")
             # use * - *.* will not pickup files without extensions in Ubuntu
@@ -290,7 +290,7 @@ class SettingsEntry(object):
                                                   _("Any file") + u" (*)|*")
             editor = controls.GridCellTextBrowseEditor(self.grid, file_phrase, 
                                                        wildcard)
-        elif col_type == COL_DROPDOWN:
+        elif coltype == COL_DROPDOWN:
             dropdown_vals = self.col_dets[col_idx].get("dropdown_vals")
             if dropdown_vals:
                 renderer = wx.grid.GridCellStringRenderer()
@@ -298,7 +298,7 @@ class SettingsEntry(object):
             else:
                 raise Exception(u"settings_grid.get_new_renderer_editor: "
                                 u"needed to supply dropdown_vals")
-        elif col_type == COL_PWD:
+        elif coltype == COL_PWD:
             renderer = controls.GridCellPwdRenderer()
             editor = controls.GridCellPwdEditor()
         else:
@@ -310,7 +310,7 @@ class SettingsEntry(object):
         """
         Returns width, precision.
         """
-        width = self.col_dets[col_idx].get("col_width", 5)
+        width = self.col_dets[col_idx].get("colwidth", 5)
         precision = self.col_dets[col_idx].get("col_precision", 1)
         return width, precision
 

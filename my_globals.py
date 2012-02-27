@@ -13,7 +13,7 @@ import wx
 
 debug = False
 
-VERSION = u"1.1.4"
+VERSION = u"1.1.5"
 ADVANCED = False
 ATTRIBUTION = u"sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html
@@ -324,6 +324,7 @@ DBE_PLUGINS = [(DBE_SQLITE, u"dbe_sqlite"),
                ]
 FLDNAME_START = u"var"
 NEXT_FLDNAME_TEMPLATE = FLDNAME_START + u"%03i"
+NEXT_VARIANT_FLDNAME_TEMPLATE = u"%s%03i"
 # importer
 VAL_NUMERIC = u"numeric value"
 VAL_DATE = u"datetime value"
@@ -332,19 +333,19 @@ VAL_EMPTY_STRING = u"empty string value"
 HAS_HEADER = 1966 # anything OK as long as no collision with wx.ID_CANCEL
 NO_HEADER = 1967
 # field type labels - must work as labels as well as consts
-FLD_TYPE_NUMERIC = _("Numeric")
-FLD_TYPE_STRING = _("Text")
-FLD_TYPE_DATE = _("Date")
+FLDTYPE_NUMERIC = _("Numeric")
+FLDTYPE_STRING = _("Text")
+FLDTYPE_DATE = _("Date")
 GEN2SQLITE_DIC = {
-    FLD_TYPE_NUMERIC: {"sqlite_type": "REAL", 
-            "check_clause": ("CHECK(typeof(%(fld_name)s) = 'null' "
-            "or is_numeric(%(fld_name)s))")},
-    FLD_TYPE_STRING: {"sqlite_type": "TEXT",
+    FLDTYPE_NUMERIC: {"sqlite_type": "REAL", 
+            "check_clause": ("CHECK(typeof(%(fldname)s) = 'null' "
+            "or is_numeric(%(fldname)s))")},
+    FLDTYPE_STRING: {"sqlite_type": "TEXT",
             "check_clause": ""},
-    FLD_TYPE_DATE: {"sqlite_type": "DATETIME", # DATETIME not a native storage 
+    FLDTYPE_DATE: {"sqlite_type": "DATETIME", # DATETIME not a native storage 
                 #class but can still be discovered via PRAGMA table_info()
-            "check_clause": ("CHECK(typeof(%(fld_name)s) = 'null' "
-            "or is_std_datetime_str(%(fld_name)s))")},
+            "check_clause": ("CHECK(typeof(%(fldname)s) = 'null' "
+            "or is_std_datetime_str(%(fldname)s))")},
     }
 RET_NUMERIC = 2010 # anything OK as long as no collision with wx.ID_CANCEL
 RET_DATE = 2011
@@ -367,12 +368,12 @@ MOVING_IN_NEW = u"moving in new"
 LEAVING_EXISTING = u"leaving existing"
 LEAVING_NEW = u"leaving new"
 # table details
-TBL_FLD_NAME = u"fld_name"
-TBL_FLD_NAME_ORIG = u"fld_name_orig"
-TBL_FLD_TYPE = u"fld_type"
-TBL_FLD_TYPE_ORIG = u"fld_type_orig"
-TMP_TBL_NAME = u"sofa_tmp_tbl"
-TMP_TBL_NAME2 = u"sofa_tmp_tbl2"
+TBL_FLDNAME = u"fldname"
+TBL_FLDNAME_ORIG = u"fldname_orig"
+TBL_FLDTYPE = u"fldtype"
+TBL_FLDTYPE_ORIG = u"fldtype_orig"
+TMP_TBLNAME = u"sofa_tmp_tbl"
+TMP_TBLNAME2 = u"sofa_tmp_tbl2"
 STRICT_TMP_TBL = u"tmp_strict"
 SOFA_ID = u"sofa_id"
 # demo data

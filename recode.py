@@ -21,8 +21,8 @@ MISSING = u"MISSING"
 objqtr = dbe_sqlite.quote_obj
 valqtr = dbe_sqlite.quote_val
 
-def make_when_clause(orig_clause, new, new_fld_type):
-    if new_fld_type in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
+def make_when_clause(orig_clause, new, new_fldtype):
+    if new_fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
         new = valqtr(new)
     when_clause = u"            WHEN %s THEN %s" % (orig_clause, new)
     return when_clause
@@ -90,17 +90,17 @@ def process_orig(orig, fldname, fldtype):
         if l_part == MIN:
             has_min = True
         else:
-            if (fldtype == mg.FLD_TYPE_NUMERIC and not lib.is_numeric(l_part)):
+            if (fldtype == mg.FLDTYPE_NUMERIC and not lib.is_numeric(l_part)):
                 num_mismatch = True
-            elif (fldtype == mg.FLD_TYPE_DATE 
+            elif (fldtype == mg.FLDTYPE_DATE 
                     and not lib.is_std_datetime_str(l_part)):
                 date_mismatch = True
         if r_part == MAX:
             has_max = True
         else:
-            if (fldtype == mg.FLD_TYPE_NUMERIC and not lib.is_numeric(r_part)):
+            if (fldtype == mg.FLDTYPE_NUMERIC and not lib.is_numeric(r_part)):
                 num_mismatch = True
-            elif (fldtype == mg.FLD_TYPE_DATE
+            elif (fldtype == mg.FLDTYPE_DATE
                     and not lib.is_std_datetime_str(r_part)):
                 date_mismatch = True
         if num_mismatch:
@@ -111,7 +111,7 @@ def process_orig(orig, fldname, fldtype):
             if debug: print(l_part, r_part)
             raise Exception(_("Only date values can be recoded for this "
                               "variable"))
-        if fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
+        if fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
             l_prep = valqtr(l_part)
             r_prep = valqtr(r_part)
         else:
@@ -129,9 +129,9 @@ def process_orig(orig, fldname, fldtype):
                 orig_clause = u"%s BETWEEN %s AND %s" % (fld, l_prep, r_prep)
     # 3 Single value
     else:
-        if fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
+        if fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
             orig_clause = u"%s = %s" % (fld, valqtr(orig))
-        elif fldtype == mg.FLD_TYPE_NUMERIC:
+        elif fldtype == mg.FLDTYPE_NUMERIC:
             if not lib.is_numeric(orig):
                 raise Exception(_("The field being recoded is numeric but you "
                                   "are trying to recode a non-numeric value"))
@@ -149,9 +149,9 @@ def process_label(dict_labels, new_fldtype, new, label):
     debug = False
     if label == u"":
         return
-    if new_fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
+    if new_fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
         new = valqtr(new)
-    elif new_fldtype in (mg.FLD_TYPE_NUMERIC):
+    elif new_fldtype in (mg.FLDTYPE_NUMERIC):
         new = float(new)
     if debug: print(new, label)
     dict_labels[new] = label
@@ -255,19 +255,19 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         """
         tblname -- table containing the variable we are recoding
         fld_settings -- a list of dicts with the following keys: 
-            mg.TBL_FLD_NAME, mg.TBL_FLD_NAME_ORIG, mg.TBL_FLD_TYPE, 
-            mg.TBL_FLD_TYPE_ORIG.
+            mg.TBL_FLDNAME, mg.TBL_FLDNAME_ORIG, mg.TBL_FLDTYPE, 
+            mg.TBL_FLDTYPE_ORIG.
         """
         cc = config_dlg.get_cc()
         self.tblname = tblname
         self.warned = [] # For cell_response_func.  Lists vars warned about.
         col_dets = [
-                    {"col_label": _("From"), "col_type": settings_grid.COL_STR, 
-                     "col_width": 200},
-                    {"col_label": _("To"), "col_type": settings_grid.COL_STR, 
-                     "col_width": 200},
-                    {"col_label": _("Label"), "col_type": settings_grid.COL_STR, 
-                     "col_width": 200, "empty_ok": True},
+                    {"col_label": _("From"), "coltype": settings_grid.COL_STR, 
+                     "colwidth": 200},
+                    {"col_label": _("To"), "coltype": settings_grid.COL_STR, 
+                     "colwidth": 200},
+                    {"col_label": _("Label"), "coltype": settings_grid.COL_STR, 
+                     "colwidth": 200, "empty_ok": True},
                      ]
         grid_size = (640, 250)
         wx.Dialog.__init__(self, None, title=_("Recode Variable"),
@@ -282,16 +282,16 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         self.settings_data = fld_settings
         # [('string', 'fname', 'fname (string)'), ...]
         # field type is used for validation and constructing recode SQL string
-        fld_dets = [(x[mg.TBL_FLD_TYPE], x[mg.TBL_FLD_NAME],
-                     u"%s (%s)" % (x[mg.TBL_FLD_NAME], x[mg.TBL_FLD_TYPE])) 
+        fld_dets = [(x[mg.TBL_FLDTYPE], x[mg.TBL_FLDNAME],
+                     u"%s (%s)" % (x[mg.TBL_FLDNAME], x[mg.TBL_FLDTYPE])) 
                     for x in self.settings_data]
         fld_dets.sort(key=lambda s: s[2].upper()) # needed consistent sorting
-        self.fld_types = [x[0] for x in fld_dets]
-        self.fld_names = [x[1] for x in fld_dets]
-        self.fld_choices = [x[2] for x in fld_dets]
-        self.fldname = self.fld_names[0]
+        self.fldtypes = [x[0] for x in fld_dets]
+        self.fldnames = [x[1] for x in fld_dets]
+        self.fldchoices = [x[2] for x in fld_dets]
+        self.fldname = self.fldnames[0]
         self.new_fldname = u""
-        self.drop_from = wx.Choice(self.panel, -1, choices=self.fld_choices, 
+        self.drop_from = wx.Choice(self.panel, -1, choices=self.fldchoices, 
                                    size=(250,-1))
         self.drop_from.SetSelection(0)
         self.drop_from.Bind(wx.EVT_CHOICE, self.on_var_sel)
@@ -342,7 +342,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
 
     def on_var_sel(self, event):
         var_idx = self.drop_from.GetSelection()
-        self.fldname = self.fld_names[var_idx]
+        self.fldname = self.fldnames[var_idx]
 
     def on_var_rclick(self, event):
         var_label = lib.get_item_label(self.var_labels, self.fldname)
@@ -390,7 +390,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         dd.con.commit()
         getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
-                          (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME),
+                          (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME),
                            getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname)))
         dd.cur.execute(SQL_rename_tbl)
         getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
@@ -414,11 +414,11 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         # rename table to tmp
         getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_drop_tmp = u"DROP TABLE IF EXISTS %s" % \
-                            getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
+                            getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME)
         dd.cur.execute(SQL_drop_tmp)
         SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
                           (getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname), 
-                           getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)))
+                           getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME)))
         dd.cur.execute(SQL_rename_tbl)
         # create new table with orig name and extra field
         create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
@@ -456,7 +456,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                 {u"tblname": getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname), 
                  u"fld_clauses": fld_clauses,
                  u"tmp_tbl": getdata.tblname_qtr(mg.DBE_SQLITE, 
-                                                 mg.TMP_TBL_NAME)})
+                                                 mg.TMP_TBLNAME)})
         print("*"*60)
         print(SQL_insert_content) # worth keeping and not likely to be overdone
         print("*"*60)
@@ -470,7 +470,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         dd.con.commit()
         getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_drop_tmp = u"DROP TABLE IF EXISTS %s" % \
-                            getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBL_NAME)
+                            getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME)
         dd.cur.execute(SQL_drop_tmp)
         dd.con.commit()
         dd.set_db(dd.db, tbl=self.tblname)
@@ -513,7 +513,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                                                      new_fldtype))
             else: # REMAINING
                 # if multiple REMAINING clauses the last "wins"
-                if new_fldtype in (mg.FLD_TYPE_STRING, mg.FLD_TYPE_DATE):
+                if new_fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
                     remaining_to = valqtr(new)
                 else:
                     remaining_to = new
@@ -557,11 +557,11 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
                                "and underscores.\nOrig error: %s") % err)
             return
         # can't already be in use
-        if new_fldname in self.fld_names:
+        if new_fldname in self.fldnames:
             wx.MessageBox(_("Unable to use an existing field name (%s)") % 
                             new_fldname)
             return
-        fldtype = self.fld_types[fld_idx]
+        fldtype = self.fldtypes[fld_idx]
         self.tabentry.update_settings_data()
         if debug: 
             print(pprint.pformat(self.recode_clauses_data))
@@ -577,7 +577,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         new_vals = [x[1] for x in self.recode_clauses_data]
         for new_val in new_vals:
             lib.update_type_set(type_set, val=new_val)
-        new_fldtype = lib.get_overall_fld_type(type_set)
+        new_fldtype = lib.get_overall_fldtype(type_set)
         case_when = self.get_case_when_clause(new_fldname, new_fldtype, fldtype, 
                                               dict_labels)
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
