@@ -141,7 +141,7 @@ class DbTbl(wx.grid.PyGridTableBase):
     
     def GetColLabelValue(self, col):
         # wxPython
-        return self.fld_labels[col]
+        return self.fldlbls[col]
     
     def none_to_missing_val(self, val):
         if val is None:
