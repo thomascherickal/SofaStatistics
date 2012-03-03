@@ -647,7 +647,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
     A new header is required each time because there may be new css included 
         plus new js functions to make new charts.
     New content is everything between the body tags.
-    new_has_dojo -- does the new html being added have Dojo.  NB the report may 
+    new_has_dojo -- does the new html being added have Dojo. NB the report may 
         have other results which have dojo, whether or not the latest output 
         has.
     If report has dojo, change from makechartRenumber0 etc, to next available 
@@ -835,7 +835,7 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     # script ;-)
 
 def add_end_script_code(f):
-    "Add ending code to script.  NB leaves open file."
+    "Add ending code to script. NB leaves open file."
     f.write(u"\n" + u"\n" + mg.SCRIPT_END + \
             u"-"*(65 - len(mg.SCRIPT_END)) + u"\n")
     f.write(u"\n" + u"fil.write(output.get_html_ftr())")

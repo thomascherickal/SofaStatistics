@@ -402,7 +402,7 @@ class SettingsEntry(object):
         The only case where we can't rely on on_select_cell to take care of
             add_cell_move_evt for us is if we are moving right or down from the 
             last col after a keypress.
-        Must process here.  NB dest row and col yet to be determined.
+        Must process here. NB dest row and col yet to be determined.
         If a single row is selected, the key is a delete, and we are not inside 
             and editor, delete selected row if possible.
         """
@@ -821,7 +821,7 @@ class SettingsEntry(object):
 
     def row_ok_to_save(self, row, col2skip=None):
         """
-        Each cell must be OK to save.  NB validation may be stricter than what 
+        Each cell must be OK to save. NB validation may be stricter than what 
             the database will accept into its fields e.g. must be one of three 
             strings ("Numeric", "Text", or "Date").
         col2skip -- so we can skip validating a cell that has just passed e.g. 

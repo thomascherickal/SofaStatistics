@@ -3,6 +3,7 @@ import random
 import sqlite3 as sqlite
 import string
 import wx
+import wx.grid
 
 import my_globals as mg
 import lib

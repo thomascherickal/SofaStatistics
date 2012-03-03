@@ -20,7 +20,7 @@ FILE_EXCEL = u"excel"
 FILE_ODS = u"ods"
 FILE_UNKNOWN = u"unknown"
 GAUGE_STEPS = 50
-
+    
 
 class MismatchException(Exception):
     def __init__(self, fldname, expected_fldtype, details):
@@ -155,7 +155,7 @@ def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
         fldtype = mg.FLDTYPE_STRING    
     return fldtype
 
-def process_fldnames(raw_names):
+def process_fldnames(raw_names, headless=False):
     """
     Turn spaces into underscores, fills blank field names with a safe and 
         uniquely numbered name, and appends a unique number to duplicate field 
@@ -193,14 +193,18 @@ def process_fldnames(raw_names):
     quickcheck = False
     n_names = len(names)
     if n_names > 50:
-        # don't test each name individually - takes too long
-        # we gain speed and lose ability to single out bad variable name
-        if wx.MessageBox(_(u"There are %s fields so the process of "
-                           u"checking them all will take a while. "
-                           u"Do you want to do a quick check only?") % n_names, 
-                         caption=_("QUICK CHECK ONLY?"), 
-                         style=wx.YES_NO) == wx.YES:
-            quickcheck = True
+        if headless:
+            pass
+        else:
+            # don't test each name individually - takes too long
+            # we gain speed and lose ability to single out bad variable name
+            if wx.MessageBox(_(u"There are %s fields so the process of "
+                               u"checking them all will take a while. "
+                               u"Do you want to do a quick check only?") % 
+                                                                    n_names, 
+                             caption=_("QUICK CHECK ONLY?"), 
+                             style=wx.YES_NO) == wx.YES:
+                quickcheck = True
     if quickcheck:
         # quick check
         valid, err = dbe_sqlite.valid_fldnames(fldnames=names, block_sz=100)
@@ -360,7 +364,7 @@ def process_val(feedback, vals, row_num, row, ok_fldname, fldtypes,
         as required.  Also turn '.' into null as required (and leave msg).
     If not checking (e.g. because a pre-tested sample) only do the
         pytime (Excel) and empty string to null conversions.
-    If all is OK, will add val to vals.  NB val will need to be internally 
+    If all is OK, will add val to vals. NB val will need to be internally 
         quoted unless it is a NULL. 
     If not, will turn to missing if in faulty2missing_fld_list, otherwise will 
         raise an exception.
@@ -773,10 +777,14 @@ class HasHeaderGivenDataDlg(wx.Dialog):
 
 
 class FileImporter(object):
-    def __init__(self, parent, file_path, tblname):
+    def __init__(self, parent, file_path, tblname, headless, 
+                 headless_has_header, supplied_encoding=None):
         self.parent = parent
         self.file_path = file_path
         self.tblname = tblname
+        self.headless = headless
+        self.headless_has_header = headless_has_header
+        self.supplied_encoding = supplied_encoding
         self.has_header = True
     
     def get_params(self):
@@ -784,14 +792,18 @@ class FileImporter(object):
         Get any user choices required.
         """
         debug = False
-        dlg = HasHeaderDlg(self.parent, self.ext)
-        ret = dlg.ShowModal()
-        if debug: print(unicode(ret))
-        if ret == wx.ID_CANCEL:
-            return False
+        if self.headless:
+            self.has_header = True
+            return True
         else:
-            self.has_header = (ret == mg.HAS_HEADER)
-        return True
+            dlg = HasHeaderDlg(self.parent, self.ext)
+            ret = dlg.ShowModal()
+            if debug: print(unicode(ret))
+            if ret == wx.ID_CANCEL:
+                return False
+            else:
+                self.has_header = (ret == mg.HAS_HEADER)
+                return True
     
     
 class ImportFileSelectDlg(wx.Dialog):
@@ -955,7 +967,7 @@ class ImportFileSelectDlg(wx.Dialog):
     def on_cancel(self, event):
         self.import_status[mg.CANCEL_IMPORT] = True
     
-    def check_tblname(self, file_path, tblname):
+    def check_tblname(self, file_path, tblname, headless):
         """
         Returns tblname (None if no suitable name to use).
         Checks table name and gives user option of correcting it if problems.
@@ -964,32 +976,39 @@ class ImportFileSelectDlg(wx.Dialog):
         # check existing names
         valid, err = dbe_sqlite.valid_tblname(tblname)
         if not valid:
-            title = _("FAULTY SOFA TABLE NAME")
-            msg = _("You can only use letters, numbers and underscores in a "
-                "SOFA Table Name. Use another name?\nOrig error: %s") % err
-            ret = wx.MessageBox(msg, title, wx.YES_NO|wx.ICON_QUESTION)
-            if ret == wx.NO:
-                raise Exception(u"Had a problem with faulty SOFA Table Name but"
-                            u" user cancelled initial process of resolving it")
-            elif ret == wx.YES:
-                self.txt_int_name.SetFocus()
-                return None
+            if headless:
+                raise Exception("Faulty SOFA table name.")
+            else:
+                title = _("FAULTY SOFA TABLE NAME")
+                msg = (_("You can only use letters, numbers and underscores in "
+                       "a SOFA Table Name. Use another name?\nOrig error: %s") 
+                       % err)
+                ret = wx.MessageBox(msg, title, wx.YES_NO|wx.ICON_QUESTION)
+                if ret == wx.NO:
+                    raise Exception(u"Had a problem with faulty SOFA Table "
+                                    u"Name but user cancelled initial process "
+                                    u"of resolving it")
+                elif ret == wx.YES:
+                    self.txt_int_name.SetFocus()
+                    return None
         duplicate = getdata.dup_tblname(tblname)
         if duplicate:
-            title = _("SOFA NAME ALREADY EXISTS")
-            msg = _("A table named \"%(tbl)s\" "
-                  "already exists in the SOFA default database.\n\n"
-                  "Do you want to replace it with the new data from "
-                  "\"%(fil)s\"?")
-            ret = wx.MessageBox(msg % {"tbl": tblname, "fil": file_path}, 
-                                title, wx.YES_NO|wx.ICON_QUESTION)
-            if ret == wx.NO: # no overwrite so get new one (or else!)
-                wx.MessageBox(_("Please change the SOFA Table Name and try "
-                                "again"))
-                self.txt_int_name.SetFocus()
-                return None
-            elif ret == wx.YES:
-                my_exceptions.DoNothingException() # use name (& overwrite orig)
+            if not headless: # assume OK to overwrite existing table name with 
+                # fresh data if running headless
+                title = _("SOFA NAME ALREADY EXISTS")
+                msg = _("A table named \"%(tbl)s\" "
+                      "already exists in the SOFA default database.\n\n"
+                      "Do you want to replace it with the new data from "
+                      "\"%(fil)s\"?")
+                ret = wx.MessageBox(msg % {"tbl": tblname, "fil": file_path}, 
+                                    title, wx.YES_NO|wx.ICON_QUESTION)
+                if ret == wx.NO: # no overwrite so get new one (or else!)
+                    wx.MessageBox(_("Please change the SOFA Table Name and try "
+                                    "again"))
+                    self.txt_int_name.SetFocus()
+                    return None
+                elif ret == wx.YES:
+                    my_exceptions.DoNothingException() # use name (overwrite orig)
         return tblname
 
     def align_btns_to_completeness(self):
@@ -1005,124 +1024,208 @@ class ImportFileSelectDlg(wx.Dialog):
         self.btn_close.Enable(not importing)
         self.btn_cancel.Enable(importing)
         self.btn_import.Enable(not importing)
+    
+    def on_import(self, event):
+        run_gui_import(self)
+        event.Skip()
 
-    def run_import(self):
-        """
-        Identify type of file by extension and open dialog if needed
-            to get any additional choices e.g. separator used in 'csv'.
-        """
-        dd = mg.DATADETS_OBJ
+
+class DummyProgbar(object):
+    def SetValue(self, unused):
+        pass
+
+class DummyLabel(object):
+    def SetLabel(self, unused):
+        pass      
+
+class DummyImporter(object):    
+    def __init__(self):
+        self.progbar = DummyProgbar()
+        self.import_status = {mg.CANCEL_IMPORT: False} # can change and 
+        # running script can check on it.
+        self.lbl_feedback = DummyLabel()
+        
+def run_gui_import(self):
+    run_import(self)
+    
+def run_headless_import(file_path, tblname, headless_has_header):
+    dummy_importer = DummyImporter()
+    run_import(dummy_importer, headless=True, file_path=file_path, 
+               tblname=tblname, headless_has_header=headless_has_header)
+
+def run_import(self, headless=False, file_path=None, tblname=None, 
+               headless_has_header=True, supplied_encoding=None):
+    """
+    Identify type of file by extension and open dialog if needed
+        to get any additional choices e.g. separator used in 'csv'.
+    headless -- enable script to be run without user intervention. Anything
+        that would normally prompt user decisions raises an exception 
+        instead.
+    headless_has_header -- seeing as we won't tell it through the GUI if 
+        headless, need to tell it here.
+    supplied_encoding -- if headless, we can't manually select from likely 
+        encoding so must supply here.
+    """
+    dd = mg.DATADETS_OBJ
+    if not headless:
         self.align_btns_to_importing(importing=True)
         self.progbar.SetValue(0)
         file_path = self.txt_file.GetValue()
-        if not file_path:
+    if not file_path:
+        if headless:
+            raise Exception(_(u"A file name must be supplied when importing"
+                              u" if running in headless mode."))
+        else:
             wx.MessageBox(_("Please select a file"))
             self.align_btns_to_importing(importing=False)
             self.txt_file.SetFocus()
             return
-        # identify file type
-        unused, extension = self.get_file_start_ext(file_path)
-        if extension.lower() == u".csv":
+    # identify file type
+    unused, extension = self.get_file_start_ext(file_path)
+    if extension.lower() == u".csv":
+        self.file_type = FILE_CSV
+    elif extension.lower() == u".txt":
+        if headless:
             self.file_type = FILE_CSV
-        elif extension.lower() == u".txt":
+        else:
             ret = wx.MessageBox(_("SOFA imports txt files as csv files.\n\n"
                                  "Is your txt file a valid csv file?"), 
                                  caption=_("CSV FILE?"), style=wx.YES_NO)
             if ret == wx.NO:
-                wx.MessageBox(_("Unable to import txt files unless csv format "
-                                "inside"))
+                wx.MessageBox(_("Unable to import txt files unless csv "
+                                "format inside"))
                 self.align_btns_to_importing(importing=False)
                 return
             else:
                 self.file_type = FILE_CSV
-        elif extension.lower() == u".xls":
-            self.file_type = FILE_EXCEL
-        elif extension.lower() == u".ods":
-            self.file_type = FILE_ODS
-        elif extension.lower() == u".xlsx":
-            self.file_type = FILE_UNKNOWN
-            wx.MessageBox("XLSX files are not currently supported. Please save"
-                          " as XLS or convert to another supported format.")
+    elif extension.lower() == u".xls":
+        self.file_type = FILE_EXCEL
+    elif extension.lower() == u".ods":
+        self.file_type = FILE_ODS
+    elif extension.lower() == u".xlsx":
+        self.file_type = FILE_UNKNOWN
+        xlsx_msg = ("XLSX files are not currently supported. Please save"
+                    " as XLS or convert to another supported format.")
+        if headless:
+            raise Exception(xlsx_msg)
+        else:
+            wx.MessageBox(xlsx_msg)
             self.align_btns_to_importing(importing=False)
             return
+    else:
+        unknown_msg = _("Files with the file name extension "
+                        "'%s' are not supported") % extension
+        if headless:
+            raise Exception(unknown_msg)
         else:
             self.file_type = FILE_UNKNOWN
-            wx.MessageBox(_("Files with the file name extension "
-                            "'%s' are not supported") % extension)
+            wx.MessageBox(unknown_msg)
             self.align_btns_to_importing(importing=False)
             return
+    if not headless:
         tblname = self.txt_int_name.GetValue()
-        if not tblname:
+    if not tblname:
+        if headless:
+            raise Exception("Unable to import headless unless a table "
+                            "name supplied")
+        else:
             wx.MessageBox(_("Please select a SOFA Table Name for the file"))
             self.align_btns_to_importing(importing=False)
             self.txt_int_name.SetFocus()
             return
-        if u" " in tblname:
-            wx.MessageBox(_("SOFA Table Name can't have empty spaces"))
+    if u" " in tblname:
+        empty_spaces_msg = _("SOFA Table Name can't have empty spaces")
+        if headless:
+            raise Exception(empty_spaces_msg)
+        else:
+            wx.MessageBox(empty_spaces_msg)
             self.align_btns_to_importing(importing=False)
             return
-        bad_chars = [u"-", ]
-        for bad_char in bad_chars:
-            if bad_char in tblname:
-                wx.MessageBox(_("Do not include '%s' in SOFA Table Name") % 
-                              bad_char)
+    bad_chars = [u"-", ]
+    for bad_char in bad_chars:
+        if bad_char in tblname:
+            bad_char_msg = (_("Do not include '%s' in SOFA Table Name") % 
+                            bad_char)
+            if headless:
+                raise Exception(bad_char_msg)
+            else:
+                wx.MessageBox(bad_char_msg)
                 self.align_btns_to_importing(importing=False)
                 return
-        if tblname[0] in [unicode(x) for x in range(10)]:
-            wx.MessageBox(_("SOFA Table Names cannot start with a digit"))
+    if tblname[0] in [unicode(x) for x in range(10)]:
+        digit_msg = _("SOFA Table Names cannot start with a digit")
+        if headless:
+            raise Exception(digit_msg)
+        else:
+            wx.MessageBox(digit_msg)
             self.align_btns_to_importing(importing=False)
             return
-        try:
-            final_tblname = self.check_tblname(file_path, tblname)
-            if final_tblname is None:
+    try:
+        final_tblname = self.check_tblname(file_path, tblname, headless)
+        if final_tblname is None:
+            if headless:
+                raise Exception("Table name supplied is inappropriate for "
+                                "some reason.")
+            else:
                 self.align_btns_to_importing(importing=False)
                 self.progbar.SetValue(0)
                 return
-        except Exception:
+    except Exception:
+        if headless:
+            raise
+        else:
             wx.MessageBox(_("Please select a suitable SOFA Table Name "
                             "and try again"))
             self.align_btns_to_importing(importing=False)
             return
-        # import file
-        if self.file_type == FILE_CSV:
-            import csv_importer
-            file_importer = csv_importer.CsvImporter(self, file_path, 
-                                                     final_tblname)
-        elif self.file_type == FILE_EXCEL:
-            import excel_importer
-            file_importer = excel_importer.ExcelImporter(self, file_path,
-                                                         final_tblname)
-        elif self.file_type == FILE_ODS:
-            import ods_importer
-            file_importer = ods_importer.OdsImporter(self, file_path,
-                                                     final_tblname)
-        proceed = False
-        try:
-            proceed = file_importer.get_params()
-        except Exception, e:
+    # import file
+    if self.file_type == FILE_CSV:
+        import csv_importer
+        file_importer = csv_importer.CsvImporter(self, file_path, 
+                                final_tblname, headless, headless_has_header,
+                                supplied_encoding)
+    elif self.file_type == FILE_EXCEL:
+        import excel_importer
+        file_importer = excel_importer.ExcelImporter(self, file_path,
+                                final_tblname, headless, headless_has_header)
+    elif self.file_type == FILE_ODS:
+        import ods_importer
+        file_importer = ods_importer.OdsImporter(self, file_path,
+                                final_tblname, headless, headless_has_header)
+    proceed = False
+    try:
+        proceed = file_importer.get_params()
+    except Exception, e:
+        if headless:
+            raise
+        else:
             wx.MessageBox(_("Unable to import data\n\nError") + u": %s" % 
                           lib.ue(e))
             lib.safe_end_cursor()
-        if proceed:
-            try:
-                file_importer.import_content(self.progbar, self.import_status,
-                                             self.lbl_feedback)
-                dd.set_db(dd.db, tbl=tblname)
-                lib.safe_end_cursor()
-            except my_exceptions.ImportConfirmationRejected, e:
-                lib.safe_end_cursor()
+    if proceed:
+        try:
+            file_importer.import_content(self.progbar, self.import_status,
+                                         self.lbl_feedback)
+            dd.set_db(dd.db, tbl=tblname)
+            lib.safe_end_cursor()
+        except my_exceptions.ImportConfirmationRejected, e:
+            lib.safe_end_cursor()
+            if headless: # although should never occur when headless
+                raise
+            else:
                 wx.MessageBox(lib.ue(e))
-            except my_exceptions.ImportCancelException, e:
-                lib.safe_end_cursor()
-                self.import_status[mg.CANCEL_IMPORT] = False # reinit
+        except my_exceptions.ImportCancelException, e:
+            lib.safe_end_cursor()
+            self.import_status[mg.CANCEL_IMPORT] = False # reinit
+            if not headless: # should never occur when headless
                 wx.MessageBox(lib.ue(e))
-            except Exception, e:
+        except Exception, e:
+            if headless:
+                raise
+            else:
                 self.progbar.SetValue(0)
                 lib.safe_end_cursor()
                 wx.MessageBox(_("Unable to import data\n\nError") + u": %s" % 
                               lib.ue(e))
+    if not headless:
         self.align_btns_to_importing(importing=False)
-        
-    def on_import(self, event):
-        self.run_import()
-        event.Skip()

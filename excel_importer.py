@@ -20,8 +20,10 @@ class ExcelImporter(importer.FileImporter):
     Adds unique index id so can identify unique records with certainty.
     """
     
-    def __init__(self, parent, file_path, tblname):
-        importer.FileImporter.__init__(self, parent, file_path, tblname)
+    def __init__(self, parent, file_path, tblname, headless, 
+                 headless_has_header):
+        importer.FileImporter.__init__(self, parent, file_path, tblname,
+                                       headless, headless_has_header)
         self.ext = u"XLS"
     
     def get_params(self):
@@ -30,27 +32,31 @@ class ExcelImporter(importer.FileImporter):
             collapse down to one data type e.g. dates only or numbers only.
         """
         debug = False
-        wkbook = xlrd.open_workbook(self.file_path)
-        wksheet = wkbook.sheet_by_index(0)
-        strdata = []
-        for rowx in range(wksheet.nrows):
-            rowtypes = wksheet.row_types(rowx)
-            newrow = []
-            for colx in range(wksheet.ncols):
-                rawval = wksheet.cell_value(rowx, colx)
-                val2show = self.getval2use(wkbook, rowtypes[colx], rawval)
-                newrow.append(val2show)
-            strdata.append(newrow)
-            if rowx > 2:
-                break
-        dlg = importer.HasHeaderGivenDataDlg(self.parent, self.ext, strdata)
-        ret = dlg.ShowModal()
-        if debug: print(unicode(ret))
-        if ret == wx.ID_CANCEL:
-            return False
+        if self.headless:
+            self.has_header = self.headless_has_header
+            return True
         else:
-            self.has_header = (ret == mg.HAS_HEADER)
-        return True
+            wkbook = xlrd.open_workbook(self.file_path)
+            wksheet = wkbook.sheet_by_index(0)
+            strdata = []
+            for rowx in range(wksheet.nrows):
+                rowtypes = wksheet.row_types(rowx)
+                newrow = []
+                for colx in range(wksheet.ncols):
+                    rawval = wksheet.cell_value(rowx, colx)
+                    val2show = self.getval2use(wkbook, rowtypes[colx], rawval)
+                    newrow.append(val2show)
+                strdata.append(newrow)
+                if rowx > 2:
+                    break
+            dlg = importer.HasHeaderGivenDataDlg(self.parent, self.ext, strdata)
+            ret = dlg.ShowModal()
+            if debug: print(unicode(ret))
+            if ret == wx.ID_CANCEL:
+                return False
+            else:
+                self.has_header = (ret == mg.HAS_HEADER)
+            return True
     
     def get_ok_fldnames(self, wksheet):
         if self.has_header:
@@ -111,7 +117,8 @@ class ExcelImporter(importer.FileImporter):
         row_idx = 1 if self.has_header else 0
         while row_idx < wksheet.nrows: # iterates through data rows only
             if row_idx % 50 == 0:
-                wx.Yield()
+                if not self.headless:
+                    wx.Yield()
                 if import_status[mg.CANCEL_IMPORT]:
                     progbar.SetValue(0)
                     raise ImportCancelException
@@ -145,7 +152,8 @@ class ExcelImporter(importer.FileImporter):
         """
         debug = False
         faulty2missing_fld_list = []
-        wx.BeginBusyCursor()
+        if not self.headless:
+            wx.BeginBusyCursor()
         try:
             wkbook = xlrd.open_workbook(self.file_path,)
             wksheet = wkbook.sheet_by_index(0)

@@ -36,7 +36,7 @@ def get_proj_notes(fil_proj, proj_dic):
     """
     if fil_proj == mg.DEFAULT_PROJ:
         proj_notes = _("Default project so users can get started without "
-                       "having to understand projects.  NB read only.")
+                       "having to understand projects. NB read only.")
     else:
         proj_notes = proj_dic["proj_notes"]
     return proj_notes

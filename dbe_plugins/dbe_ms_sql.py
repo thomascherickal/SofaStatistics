@@ -67,14 +67,14 @@ def get_dbs(host, user, pwd, default_dbs, db=None):
     DSN = get_DSN(provider=u"SQLOLEDB", host=host, user=user, pwd=pwd, db=u"")
     try:
         con = adodbapi.connect(DSN)
-    except Exception, e:
+    except Exception:
         raise Exception(u"Unable to connect to MS SQL Server with host: "
                         u"%s; user: %s; and pwd: %s" % (host, user, pwd))
     cur = con.cursor() # must return tuples not dics
     cur.adoconn = con.adoConn # (need to access from just the cursor)
     try: # MS SQL Server 2000
         cur.execute(u"SELECT name FROM master.dbo.sysdatabases ORDER BY name")
-    except Exception, e: # SQL Server 2005
+    except Exception: # SQL Server 2005
         cur.execute(u"SELECT name FROM sys.databases ORDER BY name")
     # only want dbs with at least one table.
     all_dbs = [x[0] for x in cur.fetchall() if x[0] != u"master"]
@@ -82,7 +82,7 @@ def get_dbs(host, user, pwd, default_dbs, db=None):
     for db4list in all_dbs:
         try:
             con, cur = get_con_cur_for_db(host, user, pwd, db4list)
-        except Exception, e:
+        except Exception:
             continue
         if has_tbls(cur, db4list):
             dbs.append(db4list)
@@ -159,7 +159,6 @@ def get_tbls(cur, db):
     Get table names given database and cursor. NB not system tables.
     Cursor must be suitable for db.
     """
-    tbls = []
     cat = win32com.client.Dispatch(r'ADOX.Catalog')
     cat.ActiveConnection = cur.adoconn
     alltables = cat.Tables

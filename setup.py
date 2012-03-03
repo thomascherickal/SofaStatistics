@@ -186,7 +186,7 @@ def check_python_version():
         div = u"*"*80
         win_msg = u"""
 Fortunately, this is easily fixed (assuming you installed Python 2.6 as part of 
-the SOFA installation).  NB during installation you needed to install all the 
+the SOFA installation). NB during installation you needed to install all the 
 extra packages e.g. mysqldb, comtypes etc to the python26 folder, 
 not to python27 etc.
 
@@ -425,6 +425,9 @@ def populate_local_paths(prog_path, local_path, default_proj):
 def config_local_proj(local_path, default_proj, settings_subfolders):
     """
     Modify default project settings to point to local (user) SOFA directory.
+    NB user paths can have any characters in them e.g. an apostrophe in Tim's, 
+        so escaping is essential if the outer quotes are needed internally. 
+        Assume stored in double quotes.
     """
     # change home username
     try:
@@ -433,10 +436,11 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
         f.close()
         if show_early_steps: print(u"Just read default project")
         for path in settings_subfolders:
-            new_str = lib.escape_pre_write(os.path.join(mg.LOCAL_PATH, 
-                                                        path, u""))
+            new_path = lib.escape_pre_write(os.path.join(mg.LOCAL_PATH, 
+                                                         path, u""))
+            new_path = new_path.replace('"', '""')
             proj_str = proj_str.replace(u"/home/g/sofastats/%s/" % path, 
-                                        new_str)
+                                        new_path)
             if show_early_steps: print(u"Just modified %s" % path)
         # add MS Access and SQL Server into mix if Windows
         if mg.PLATFORM == mg.WINDOWS:

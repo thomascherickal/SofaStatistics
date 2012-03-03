@@ -580,9 +580,9 @@ class LiveTable(DimTable):
         for child in tree_dims_node.children:            
             subtree_term_nodes += child.get_terminal_nodes()
         if subtree_term_nodes:
-            subtree_filt_fld_lsts = [x.filt_flds[flds_done:] for x \
+            subtree_filt_fld_lsts = [x.filt_flds[flds_done:] for x
                                      in subtree_term_nodes]
-            dim_clause = self.tree_fld_lsts_to_clause(\
+            dim_clause = self.tree_fld_lsts_to_clause(
                                     tree_fld_lsts=subtree_filt_fld_lsts)
         else:
             dim_clause = ""
@@ -594,10 +594,10 @@ class LiveTable(DimTable):
         if oth_subtree_term_nodes:
             # NB the other dimension could be fieldless e.g. we are a row dim 
             # and the oth dim has col measures and no field set
-            oth_subtree_filt_fld_lsts = [x.filt_flds for x \
-                                     in oth_subtree_term_nodes \
-                                     if x.filt_flds != [None]]
-            oth_dim_clause = self.tree_fld_lsts_to_clause(\
+            oth_subtree_filt_fld_lsts = [x.filt_flds for x
+                                         in oth_subtree_term_nodes
+                                         if x.filt_flds != [None]]
+            oth_dim_clause = self.tree_fld_lsts_to_clause(
                                     tree_fld_lsts=oth_subtree_filt_fld_lsts)
         else:
             oth_dim_clause = u""
@@ -1120,7 +1120,7 @@ class SummTable(LiveTable):
     def get_data_val(self, measure, row_fld, col_filter_lst):
         """
         measure - e.g. MEAN
-        row_fld - the numeric field we are calculating the summary of.  NB if
+        row_fld - the numeric field we are calculating the summary of. NB if
             SQLite, may be a numeric field with some non-numeric values in it.
         col_filter - so we only look at values in the column.
         """

@@ -559,7 +559,7 @@ def update_local_display(html_ctrl, str_content, wrap_text=False):
 
 def get_min_content_size(szr_lst, vertical=True):
     """
-    For a list of sizers return min content size overall.  NB excludes padding 
+    For a list of sizers return min content size overall. NB excludes padding 
         (border).
     Returns x, y.
     vertical -- whether parent sizer of szr_lst is vertical.
@@ -669,8 +669,11 @@ def get_rand_val_of_type(type):
 
 def safe_end_cursor():
     "Problems in Windows if no matching beginning cursor."
-    if wx.IsBusy():
-        wx.EndBusyCursor()
+    try:
+        if wx.IsBusy():
+            wx.EndBusyCursor()
+    except Exception:
+        pass # might be called outside of gui e.g. headless importing
 
 def get_n_fldnames(n):
     fldnames = []
@@ -924,7 +927,7 @@ def is_numeric(val, comma_dec_sep_ok=False):
 
 def is_basic_num(val):
     """
-    Is a value of a basic numeric type - i.e. integer, long, float?  NB complex 
+    Is a value of a basic numeric type - i.e. integer, long, float? NB complex 
         or Decimal values are not considered basic numbers.
     NB a string containing a numeric value is not a number type even though it
         will pass is_numeric().
@@ -1078,7 +1081,7 @@ def date_range2mysql(entered_start_date, entered_end_date):
 def mysql2textdate(mysql_date, output_format):
     """
     Takes MySQL date e.g. 2008-01-25 and returns date string according to 
-        format.  NB must be valid format for strftime.
+        format. NB must be valid format for strftime.
     TODO - make safe for weird encoding issues.  See get_unicode_datestamp().
     """
     year = int(mysql_date[:4])
@@ -1165,7 +1168,7 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
                                     ok_time_formats):
     """
     Returns (date_part, date_format, time_part, time_format, boldate_then_time) 
-        if a usable datetime.  NB usable doesn't mean valid as such.  E.g. we 
+        if a usable datetime. NB usable doesn't mean valid as such.  E.g. we 
         may need to add a date to the time to make it valid.
     Returns None if not usable.
     These parts can be used to make a valid time object ready for conversion 

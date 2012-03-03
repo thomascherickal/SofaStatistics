@@ -184,7 +184,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         """
         NB tree_dims_item is a wxPython TreeCtrl item.
         If the tree_dims_item is the special col_no_vars_item, just add the 
-            measures underneath the label node.  NB this is the GUI tree item,
+            measures underneath the label node. NB this is the GUI tree item,
             not the Dim Nodes item that gets built off it when the script is
             actually run.
         Otherwise, for each dim item, e.g. gender, add node to the labels tree,

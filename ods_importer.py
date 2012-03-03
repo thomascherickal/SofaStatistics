@@ -23,8 +23,10 @@ class OdsImporter(importer.FileImporter):
     Adds unique index id so can identify unique records with certainty.
     """
     
-    def __init__(self, parent, file_path, tblname):
-        importer.FileImporter.__init__(self, parent, file_path, tblname)
+    def __init__(self, parent, file_path, tblname, headless, 
+                 headless_has_header):
+        importer.FileImporter.__init__(self, parent, file_path, tblname,
+                                       headless, headless_has_header)
         self.ext = u"ODS"
         
     def get_params(self):
@@ -32,43 +34,51 @@ class OdsImporter(importer.FileImporter):
         Get any user choices required.
         """
         debug = False
-        if not os.path.exists(self.file_path):
-            raise Exception(u"Unable to find file \"%s\" for importing. "
-                            u"Please check that file exists." % self.file_path)
-        size = ods_reader.get_ods_xml_size(self.file_path)
-        if size > mg.ODS_GETTING_LARGE:
-            ret = wx.MessageBox(_("This spreadsheet may take a while to "
-                    "import.\n\nInstead of importing, it could be faster to "
-                    "save as csv and import the csv version." 
-                    "\n\nImport now anyway?"), 
-                    _("SLOW IMPORT"), wx.YES_NO|wx.ICON_INFORMATION)
-            if ret == wx.NO:
-                return False
-            return importer.FileImporter.get_params(self) # check for header
+        if self.headless:
+            self.has_header = self.headless_has_header
+            return True
         else:
-            wx.BeginBusyCursor()
-            tree = ods_reader.get_contents_xml_tree(self.file_path)
-            tbl = ods_reader.get_tbl(tree)
-            ok_fldnames = ods_reader.get_ok_fldnames(tbl, has_header=False, 
-                                                  rows_to_sample=ROWS_TO_SAMPLE)
-            if not ok_fldnames:
-                raise Exception(_("Unable to extract or generate field names"))
-            rows = ods_reader.get_rows(tbl, inc_empty=False)
-            lib.safe_end_cursor()
-            strdata = []
-            for i, row in enumerate(rows):
-                strrow = ods_reader.get_vals_from_row(row, len(ok_fldnames))
-                strdata.append(strrow)
-                if i > 3:
-                    break
-            dlg = importer.HasHeaderGivenDataDlg(self.parent, self.ext, strdata)
-            ret = dlg.ShowModal()
-            if debug: print(unicode(ret))
-            if ret == wx.ID_CANCEL:
-                return False
+            if not os.path.exists(self.file_path):
+                raise Exception(u"Unable to find file \"%s\" for importing. "
+                                u"Please check that file exists." % 
+                                self.file_path)
+            size = ods_reader.get_ods_xml_size(self.file_path)
+            if size > mg.ODS_GETTING_LARGE:
+                ret = wx.MessageBox(_("This spreadsheet may take a while to "
+                        "import.\n\nInstead of importing, it could be faster to "
+                        "save as csv and import the csv version." 
+                        "\n\nImport now anyway?"), 
+                        _("SLOW IMPORT"), wx.YES_NO|wx.ICON_INFORMATION)
+                if ret == wx.NO:
+                    return False
+                return importer.FileImporter.get_params(self) # check for header
             else:
-                self.has_header = (ret == mg.HAS_HEADER)
-                return True
+                wx.BeginBusyCursor()
+                tree = ods_reader.get_contents_xml_tree(self.file_path)
+                tbl = ods_reader.get_tbl(tree)
+                ok_fldnames = ods_reader.get_ok_fldnames(tbl, has_header=False, 
+                                                rows_to_sample=ROWS_TO_SAMPLE, 
+                                                self.headless)
+                if not ok_fldnames:
+                    raise Exception(_("Unable to extract or generate field "
+                                      "names"))
+                rows = ods_reader.get_rows(tbl, inc_empty=False)
+                lib.safe_end_cursor()
+                strdata = []
+                for i, row in enumerate(rows):
+                    strrow = ods_reader.get_vals_from_row(row, len(ok_fldnames))
+                    strdata.append(strrow)
+                    if i > 3:
+                        break
+                dlg = importer.HasHeaderGivenDataDlg(self.parent, self.ext, 
+                                                     strdata)
+                ret = dlg.ShowModal()
+                if debug: print(unicode(ret))
+                if ret == wx.ID_CANCEL:
+                    return False
+                else:
+                    self.has_header = (ret == mg.HAS_HEADER)
+                    return True
     
     def import_content(self, progbar, import_status, lbl_feedback):
         """
@@ -80,7 +90,8 @@ class OdsImporter(importer.FileImporter):
         debug = False
         faulty2missing_fld_list = []
         large = True
-        wx.BeginBusyCursor()
+        if not self.headless:
+            wx.BeginBusyCursor()
         # Use up 2/3rds of the progress bar in initial step (parsing html and  
         # then extracting data from it) and 1/3rd adding to the SQLite database.
         prog_steps_for_xml_steps = importer.GAUGE_STEPS*(2.0/3.0)
@@ -90,7 +101,7 @@ class OdsImporter(importer.FileImporter):
                                                 progbar, prog_step1, prog_step2)
         tbl = ods_reader.get_tbl(tree)
         ok_fldnames = ods_reader.get_ok_fldnames(tbl, self.has_header, 
-                                                 ROWS_TO_SAMPLE)
+                                                 ROWS_TO_SAMPLE, self.headless)
         if not ok_fldnames:
             raise Exception(_("Unable to extract or generate field names"))
         # Will expect exactly the same number of fields as we have names for.

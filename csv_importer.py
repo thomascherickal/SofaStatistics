@@ -5,7 +5,6 @@ from __future__ import print_function
 import codecs
 import csv
 
-
 import locale
 import os
 import pprint
@@ -107,6 +106,7 @@ def get_dialect(sniff_sample):
     return dialect
 
 def fix_text(file_path):
+    "Should never be called in headless mode"
     ret = wx.MessageBox(_("The file needs new lines standardised first. "
                          "Can SOFA Statistics make a tidied copy for you?"), 
                          caption=_("FIX TEXT?"), style=wx.YES_NO)
@@ -537,9 +537,12 @@ class CsvImporter(importer.FileImporter):
     Adds unique index id so can identify unique records with certainty.
     """
     
-    def __init__(self, parent, file_path, tblname):
+    def __init__(self, parent, file_path, tblname, headless, 
+                 headless_has_header, supplied_encoding):
         self.parent = parent
-        importer.FileImporter.__init__(self, self.parent, file_path, tblname)
+        importer.FileImporter.__init__(self, self.parent, file_path, tblname, 
+                                       headless, headless_has_header, 
+                                       supplied_encoding)
         self.ext = u"CSV"
         
     def assess_sample(self, reader, progbar, steps_per_item, import_status, 
@@ -562,7 +565,8 @@ class CsvImporter(importer.FileImporter):
                 if i < 10:
                     print(row)
             if i % 50 == 0:
-                wx.Yield()
+                if not self.headless:
+                    wx.Yield()
                 if import_status[mg.CANCEL_IMPORT]:
                     progbar.SetValue(0)
                     raise my_exceptions.ImportCancelException
@@ -634,20 +638,30 @@ class CsvImporter(importer.FileImporter):
         sniff_sample = "".join(sample_rows) # not u"" but ""
             # otherwise error: "delimiter" must be an 1-character string
         dialect = get_dialect(sniff_sample)
-        encodings = self.get_possible_encodings()
-        probably_has_hdr = get_prob_has_hdr(sample_rows, self.file_path, 
-                                            dialect)
-        if not encodings:
-            raise Exception(_("Data could not be processed using available "
-                              "encodings"))
-        # give user choice to change encoding, delimiter, and say if has header
-        retvals = [] # populate inside dlg
-        dlg = DlgImportDisplay(self.parent, self.file_path, dialect, encodings, 
-                               probably_has_hdr, retvals)
-        ret = dlg.ShowModal()
-        if ret != wx.ID_OK:
-            raise my_exceptions.ImportConfirmationRejected
-        (encoding, has_header, utf8_encoded_csv_sample) = retvals
+        if self.headless and (self.supplied_encoding is None and 
+                         self.headless_has_header is None):
+            raise Exception("Must supply encoding and header status if "
+                            "running headless")
+        if self.headless:
+            encoding = self.supplied_encoding
+            has_header = self.headless_has_header
+            utf8_encoded_csv_sample = csv_to_utf8_byte_lines(self.file_path,
+                                              encoding, n_lines=ROWS_TO_SAMPLE)
+        else:
+            encodings = self.get_possible_encodings()
+            probably_has_hdr = get_prob_has_hdr(sample_rows, self.file_path, 
+                                                dialect)
+            if not encodings:
+                raise Exception(_("Data could not be processed using available "
+                                  "encodings"))
+            # give user choice to change encoding, delimiter, and say if has header
+            retvals = [] # populate inside dlg
+            dlg = DlgImportDisplay(self.parent, self.file_path, dialect, 
+                                   encodings, probably_has_hdr, retvals)
+            ret = dlg.ShowModal()
+            if ret != wx.ID_OK:
+                raise my_exceptions.ImportConfirmationRejected
+            (encoding, has_header, utf8_encoded_csv_sample) = retvals
         return dialect, encoding, has_header, utf8_encoded_csv_sample
 
     def get_init_csv_details(self):
@@ -665,7 +679,8 @@ class CsvImporter(importer.FileImporter):
             lib.safe_end_cursor()
             raise Exception(u"Unable to get sample of csv with details. "
                             u"\nCaused by error: %s" % lib.ue(e))
-        wx.BeginBusyCursor()
+        if not self.headless:
+            wx.BeginBusyCursor()
         if self.has_header:
             try:
                 # 1st row will be consumed to get field names
@@ -677,7 +692,8 @@ class CsvImporter(importer.FileImporter):
                 lib.safe_end_cursor()
                 raise Exception(u"Unable to get sample of csv with details. "
                                 u"\nCaused by error: %s" % lib.ue(e)) 
-            ok_fldnames = importer.process_fldnames(tmp_reader.fieldnames)
+            ok_fldnames = importer.process_fldnames(tmp_reader.fieldnames,
+                                                    self.headless)
         else: # get number of fields from first row (not consumed because not 
             # using dictreader.
             try:
@@ -712,10 +728,11 @@ class CsvImporter(importer.FileImporter):
         """
         debug = False
         faulty2missing_fld_list = []
-        wx.BeginBusyCursor()
+        if not self.headless:
+            wx.BeginBusyCursor()
         try:
             (dialect, encoding, 
-                ok_fldnames, row_size) = self.get_init_csv_details()
+             ok_fldnames, row_size) = self.get_init_csv_details()
         except my_exceptions.ImportNeededFixException:
             lib.safe_end_cursor()
             return

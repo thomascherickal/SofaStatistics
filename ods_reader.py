@@ -195,7 +195,7 @@ def get_col_rep(el_attribs):
         colrep = 1
     return colrep
 
-def get_ok_fldnames(tbl, has_header, rows_to_sample):
+def get_ok_fldnames(tbl, has_header, rows_to_sample, headless):
     """
     Get cleaned field names. Will be used to create row dicts as required by
         importer.add_to_tmp_tbl().
@@ -205,7 +205,7 @@ def get_ok_fldnames(tbl, has_header, rows_to_sample):
         rows = get_rows(tbl, inc_empty=False, n=1)
         try:
             row = rows[0]
-            ok_fldnames = get_fldnames_from_header_row(row)
+            ok_fldnames = get_fldnames_from_header_row(row, headless)
         except IndexError:
             raise Exception(_("Need at least one row to import"))
     else:
@@ -286,7 +286,7 @@ def get_el_inner_val(el):
         if debug: print("NO TEXT in el - " + etree.tostring(el))
         return u""
 
-def get_fldnames_from_header_row(row):
+def get_fldnames_from_header_row(row, headless=False):
     """
     Work across row collecting fldnames. Stop when hit end of data columns.
     NB an empty cell is allowed as part of a dataset if deemed to be a divider.
@@ -346,7 +346,7 @@ def get_fldnames_from_header_row(row):
     if orig_fldnames[-1] == u"":
         orig_fldnames.pop()
     if debug: print(orig_fldnames)
-    return importer.process_fldnames(orig_fldnames)
+    return importer.process_fldnames(orig_fldnames, headless)
 
 def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
                  prog_steps_for_xml_steps, next_prog_val, has_header=True,
@@ -458,7 +458,7 @@ def extract_date_if_possible(el_det, attrib_dict, xml_type, type):
     """
     Needed because Google Docs spreadsheets return timestamp as a float with a 
         text format e.g. 40347.8271296296 and 6/18/2010 19:51:04.  If a float,
-        check to see if a valid datetime anyway.  NB date text might be invalid 
+        check to see if a valid datetime anyway. NB date text might be invalid 
         and not align with float value e.g. 
     <table:table-cell table:style-name="ce22" office:value-type="float" 
         office:value="40413.743425925924">

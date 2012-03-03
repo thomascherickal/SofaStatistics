@@ -804,7 +804,7 @@ class TblEditor(wx.Dialog):
 
     def row_ok_to_save(self, row, col2skip=None):
         """
-        Each cell must be OK to save.  NB validation may be stricter than what 
+        Each cell must be OK to save. NB validation may be stricter than what 
             the database will accept into its fields e.g. must be one of three 
             strings ("Numeric", "Text", or "Date").
         col2skip -- so we can skip validating a cell that has just passed e.g. 

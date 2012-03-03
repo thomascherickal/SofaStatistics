@@ -764,7 +764,7 @@ def make_flds_clause(settings_data):
     """
     Create a clause ready to put in a select statement which takes into account
         original and new names if an existing field which has changed name. 
-        Does not include the sofa_id.  NB a new field will only have a new name 
+        Does not include the sofa_id. NB a new field will only have a new name 
         so the orig name will be None.
     settings_data -- dict with TBL_FLDNAME, TBL_FLDNAME_ORIG, TBL_FLDTYPE,
         TBL_FLDTYPE_ORIG. Includes row with sofa_id.
