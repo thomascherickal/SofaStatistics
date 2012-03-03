@@ -199,7 +199,8 @@ class ExcelImporter(importer.FileImporter):
                 steps_per_item, gauge_start)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                                       self.tblname, self.file_path,
-                                      progbar, feedback[mg.NULLED_DOTS])
+                                      progbar, feedback[mg.NULLED_DOTS],
+                                      self.headless)
         except Exception, e:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise

@@ -604,7 +604,8 @@ def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tblname,
                 comma_dec_sep_ok=comma_dec_sep_ok):
             break
     
-def tmp_to_named_tbl(con, cur, tblname, file_path, progbar, nulled_dots):
+def tmp_to_named_tbl(con, cur, tblname, file_path, progbar, nulled_dots,
+                     headless=False):
     """
     Rename table to final name.
     This part is only called once at the end and is so fast there is no need to
@@ -634,7 +635,8 @@ def tmp_to_named_tbl(con, cur, tblname, file_path, progbar, nulled_dots):
     msg += _("\n\nYou can check your imported data by clicking the "
              "'Enter/Edit Data' button on the main form. You'll find your "
              "data in the '%s' database.") % mg.SOFA_DB
-    wx.MessageBox(msg % {"tbl": tblname})
+    if not headless:
+        wx.MessageBox(msg % {"tbl": tblname})
 
 def get_content_dets(strdata):
     debug = False
@@ -919,7 +921,7 @@ class ImportFileSelectDlg(wx.Dialog):
         if dlg_get_file.ShowModal() == wx.ID_OK:
             path = dlg_get_file.GetPath()
             self.txt_file.SetValue(path)
-            filestart, unused = self.get_file_start_ext(path)
+            filestart, unused = get_file_start_ext(path)
             newname = process_tblname(filestart)
             self.txt_int_name.SetValue(newname)
         dlg_get_file.Destroy()
@@ -945,7 +947,7 @@ class ImportFileSelectDlg(wx.Dialog):
             downloaded = True
             path = os.path.join(mg.INT_PATH, mg.GOOGLE_DOWNLOAD)
             self.txt_file.SetValue(path)
-            filestart, unused = self.get_file_start_ext(path)
+            filestart, unused = get_file_start_ext(path)
             newname = process_tblname(filestart)
             self.txt_int_name.SetValue(newname)
         self.txt_int_name.SetFocus()
@@ -955,61 +957,12 @@ class ImportFileSelectDlg(wx.Dialog):
             # start import automatically
             self.run_import()
         event.Skip()
-    
-    def get_file_start_ext(self, path):
-        unused, filename = os.path.split(path)
-        filestart, extension = os.path.splitext(filename)
-        return filestart, extension
-    
+        
     def on_close(self, event):
         self.Destroy()
     
     def on_cancel(self, event):
         self.import_status[mg.CANCEL_IMPORT] = True
-    
-    def check_tblname(self, file_path, tblname, headless):
-        """
-        Returns tblname (None if no suitable name to use).
-        Checks table name and gives user option of correcting it if problems.
-        Raises exception if no suitable name selected.
-        """
-        # check existing names
-        valid, err = dbe_sqlite.valid_tblname(tblname)
-        if not valid:
-            if headless:
-                raise Exception("Faulty SOFA table name.")
-            else:
-                title = _("FAULTY SOFA TABLE NAME")
-                msg = (_("You can only use letters, numbers and underscores in "
-                       "a SOFA Table Name. Use another name?\nOrig error: %s") 
-                       % err)
-                ret = wx.MessageBox(msg, title, wx.YES_NO|wx.ICON_QUESTION)
-                if ret == wx.NO:
-                    raise Exception(u"Had a problem with faulty SOFA Table "
-                                    u"Name but user cancelled initial process "
-                                    u"of resolving it")
-                elif ret == wx.YES:
-                    self.txt_int_name.SetFocus()
-                    return None
-        duplicate = getdata.dup_tblname(tblname)
-        if duplicate:
-            if not headless: # assume OK to overwrite existing table name with 
-                # fresh data if running headless
-                title = _("SOFA NAME ALREADY EXISTS")
-                msg = _("A table named \"%(tbl)s\" "
-                      "already exists in the SOFA default database.\n\n"
-                      "Do you want to replace it with the new data from "
-                      "\"%(fil)s\"?")
-                ret = wx.MessageBox(msg % {"tbl": tblname, "fil": file_path}, 
-                                    title, wx.YES_NO|wx.ICON_QUESTION)
-                if ret == wx.NO: # no overwrite so get new one (or else!)
-                    wx.MessageBox(_("Please change the SOFA Table Name and try "
-                                    "again"))
-                    self.txt_int_name.SetFocus()
-                    return None
-                elif ret == wx.YES:
-                    my_exceptions.DoNothingException() # use name (overwrite orig)
-        return tblname
 
     def align_btns_to_completeness(self):
         debug = False
@@ -1029,6 +982,52 @@ class ImportFileSelectDlg(wx.Dialog):
         run_gui_import(self)
         event.Skip()
 
+def get_file_start_ext(path):
+    unused, filename = os.path.split(path)
+    filestart, extension = os.path.splitext(filename)
+    return filestart, extension
+
+def check_tblname(file_path, tblname, headless):
+    """
+    Returns tblname (None if no suitable name to use).
+    Checks table name and gives user option of correcting it if problems.
+    Raises exception if no suitable name selected.
+    """
+    # check existing names
+    valid, err = dbe_sqlite.valid_tblname(tblname)
+    if not valid:
+        if headless:
+            raise Exception("Faulty SOFA table name.")
+        else:
+            title = _("FAULTY SOFA TABLE NAME")
+            msg = (_("You can only use letters, numbers and underscores in "
+                   "a SOFA Table Name. Use another name?\nOrig error: %s") 
+                   % err)
+            ret = wx.MessageBox(msg, title, wx.YES_NO|wx.ICON_QUESTION)
+            if ret == wx.NO:
+                raise Exception(u"Had a problem with faulty SOFA Table "
+                                u"Name but user cancelled initial process "
+                                u"of resolving it")
+            elif ret == wx.YES:
+                return None
+    duplicate = getdata.dup_tblname(tblname)
+    if duplicate:
+        if not headless: # assume OK to overwrite existing table name with 
+            # fresh data if running headless
+            title = _("SOFA NAME ALREADY EXISTS")
+            msg = _("A table named \"%(tbl)s\" "
+                  "already exists in the SOFA default database.\n\n"
+                  "Do you want to replace it with the new data from "
+                  "\"%(fil)s\"?")
+            ret = wx.MessageBox(msg % {"tbl": tblname, "fil": file_path}, 
+                                title, wx.YES_NO|wx.ICON_QUESTION)
+            if ret == wx.NO: # no overwrite so get new one (or else!)
+                wx.MessageBox(_("Please change the SOFA Table Name and try "
+                                "again"))
+                return None
+            elif ret == wx.YES:
+                my_exceptions.DoNothingException() # use name (overwrite orig)
+    return tblname
 
 class DummyProgbar(object):
     def SetValue(self, unused):
@@ -1048,10 +1047,12 @@ class DummyImporter(object):
 def run_gui_import(self):
     run_import(self)
     
-def run_headless_import(file_path, tblname, headless_has_header):
+def run_headless_import(file_path, tblname, headless_has_header, 
+                        supplied_encoding=None):
     dummy_importer = DummyImporter()
     run_import(dummy_importer, headless=True, file_path=file_path, 
-               tblname=tblname, headless_has_header=headless_has_header)
+               tblname=tblname, headless_has_header=headless_has_header,
+               supplied_encoding=supplied_encoding)
 
 def run_import(self, headless=False, file_path=None, tblname=None, 
                headless_has_header=True, supplied_encoding=None):
@@ -1081,7 +1082,7 @@ def run_import(self, headless=False, file_path=None, tblname=None,
             self.txt_file.SetFocus()
             return
     # identify file type
-    unused, extension = self.get_file_start_ext(file_path)
+    unused, extension = get_file_start_ext(file_path)
     if extension.lower() == u".csv":
         self.file_type = FILE_CSV
     elif extension.lower() == u".txt":
@@ -1161,12 +1162,13 @@ def run_import(self, headless=False, file_path=None, tblname=None,
             self.align_btns_to_importing(importing=False)
             return
     try:
-        final_tblname = self.check_tblname(file_path, tblname, headless)
+        final_tblname = check_tblname(file_path, tblname, headless)
         if final_tblname is None:
             if headless:
                 raise Exception("Table name supplied is inappropriate for "
                                 "some reason.")
             else:
+                self.txt_int_name.SetFocus()
                 self.align_btns_to_importing(importing=False)
                 self.progbar.SetValue(0)
                 return
