@@ -26,6 +26,10 @@ import output
 def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt, 
                      measure, fld_measure, fld_gp_by, fld_chart_by,
                      fld_group_series):
+    """
+    Don't use freq as my own field name as it may conflict with freq if selected 
+        by user.
+    """
     objqtr = getdata.get_obj_quoter_func(dbe)
     sql_dic = {u"tbl": tbl_quoted, 
                u"fld_measure": objqtr(fld_measure),
@@ -38,7 +42,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         # series fld, the x vals, and the y vals
         if measure == mg.CHART_FREQS:
             """
-            Show zero values.            
+            Show zero values.
             Only include values for either fld_group_series or fld_measure if 
                 at least one non-null value in the other dimension. If a whole 
                 series is zero, then it won't show. If there is any value in 
@@ -67,7 +71,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
             SQL_cartesian_join = """SELECT * FROM (%s) AS qrymeasure INNER JOIN 
                 (%s) AS qrygp""" % (SQL_get_measure_vals, SQL_get_group_vals)
             SQL_group_by = u"""SELECT %(fld_group_series)s, %(fld_measure)s,
-                    COUNT(*) AS freq
+                    COUNT(*) AS _sofa_freq
                 FROM %(tbl)s
                 %(where_tbl_filt)s
                 GROUP BY %(fld_group_series)s, %(fld_measure)s"""
@@ -76,7 +80,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
             sql_dic[u"qrycart"] = SQL_cartesian_join
             sql_dic[u"qrygrouped"] = SQL_group_by
             SQL_get_raw_data = """SELECT %(fld_group_series)s, %(fld_measure)s,
-                    CASE WHEN freq IS NULL THEN 0 ELSE freq END AS N
+                    CASE WHEN _sofa_freq IS NULL THEN 0 ELSE _sofa_freq END AS N
                 FROM (%(qrycart)s) AS qrycart LEFT JOIN (%(qrygrouped)s) 
                     AS qrygrouped
                 USING(%(fld_group_series)s, %(fld_measure)s)
@@ -293,7 +297,7 @@ def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt,
     Only at most one grouping variable - either group by (e.g. clustered bar 
         charts) or chart by (e.g. pie charts). May be neither.
     """
-    debug = False
+    debug = True
     # misc setup
     max_items = 150 if chart_type == mg.CLUSTERED_BARCHART else 300
     tbl_quoted = getdata.tblname_qtr(dbe, tbl)

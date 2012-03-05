@@ -58,7 +58,7 @@ class OdsImporter(importer.FileImporter):
                 tbl = ods_reader.get_tbl(tree)
                 ok_fldnames = ods_reader.get_ok_fldnames(tbl, has_header=False, 
                                                 rows_to_sample=ROWS_TO_SAMPLE, 
-                                                self.headless)
+                                                headless=self.headless)
                 if not ok_fldnames:
                     raise Exception(_("Unable to extract or generate field "
                                       "names"))
