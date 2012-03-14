@@ -240,6 +240,10 @@ REG_REC = u"registration_records"
 REG_PATH = os.path.join(INT_PATH, REG_REC)
 PURCHASE_REC = u"purchase_records"
 PURCHASED_PATH = os.path.join(INT_PATH, PURCHASE_REC)
+USERDETS = u"user_dets"
+USERDETS_PATH = os.path.join(INT_PATH, USERDETS)
+CONTROL = u"control"
+CONTROL_PATH = os.path.join(INT_PATH, CONTROL)
 INT_SCRIPT_PATH = os.path.join(INT_PATH, u"script.py")
 INT_REPORT_FILE = u"report.htm"
 INT_PREFS_FILE = u"prefs.txt"
@@ -566,6 +570,8 @@ REGEXTS = u"regexts"
 PURCHEXTS = u"purchexts"
 LOCALPHRASE = u"WSGosset" # must be 8 long exactly
 USERNAME = u"username"
+DISPLAYNAME = u"displayname"
+CONTROLVAR = u"control"
 
 # ////////////////////////////////////////////////////////////
 # leaving all this to the end is mainly about avoiding circular import problems

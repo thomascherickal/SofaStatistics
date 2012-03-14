@@ -1634,174 +1634,8 @@ class UsernameIDValidator(wx.PyValidator):
         return True
 
 
-def decrypt_cont(encrypted_cont):
-    # http://stackoverflow.com/questions/3815656/simple-encrypt-decrypt-lib-in-python-with-private-key
-    decrypter = DES.new(mg.LOCALPHRASE, DES.MODE_ECB)
-    decrypted_cont = decrypter.decrypt(encrypted_cont).rstrip() # remove any padding added to keep length a multiple of 8 (default block size)
-    return decrypted_cont
-
-def get_pad_to_8(mystr):
-    mod8 = len(mystr) % 8
-    pad_to_8 = 8 - mod8 if mod8 else 0
-    return pad_to_8
-
-def encrypt_cont(cont):
-    # http://stackoverflow.com/questions/3815656/simple-encrypt-decrypt-lib-in-python-with-private-key
-    encrypter = DES.new(mg.LOCALPHRASE, DES.MODE_ECB)
-    pad_to_8 = get_pad_to_8(cont)
-    padding_required = pad_to_8*" " # Strings for DES must be a multiple of 8 in length
-    encrypted_cont = encrypter.encrypt(cont + padding_required)
-    return encrypted_cont
-
-def get_priv_cont(path, varname):
-    """
-    If file not found, make it with an empty list of extensions.
-    """
-    try:
-        f = open(path)
-    except IOError:
-        f = open(path, "w")
-        plain_cont = u"%s = []" % varname
-        encrypted_cont = encrypt_cont(plain_cont)
-        f.write(encrypted_cont)
-        f.close()
-        f = open(path)
-    try:
-        rawcont = f.read()
-        f.close()
-        cont = decrypt_cont(rawcont)
-    except Exception, e:
-        # wipe file so clean start (cannot be manually fixed)
-        raise Exception("Unable to get content of registration file. "
-                        "Orig error: %s" % ue(e))
-    return cont
-
-def has_local_rec(extension, path, varname):
-    try:
-        cont = get_priv_cont(path, varname)
-        mydic = {}
-        # http://docs.python.org/reference/simple_stmts.html
-        exec cont in mydic
-        has_local = extension in mydic[varname]
-    except Exception:
-        has_local = False
-    return has_local
-
-def store_local_priv(extension, path, varname, label):
-    try:
-        cont = get_priv_cont(path, varname)
-        mydic = {}
-        # http://docs.python.org/reference/simple_stmts.html
-        exec cont in mydic
-        if extension not in mydic[varname]:
-            mydic[varname].append(extension)
-        plain_newcont = "%s = %s" % (varname, mydic[varname])
-        encrypted_newcont = encrypt_cont(plain_newcont)
-        f = open(path, "w")
-        f.write(encrypted_newcont)
-        f.close()
-    except Exception, e:
-        raise Exception("Unable to store local %s. Orig error: %s" % (label, 
-                                                                      ue(e)))
-        
-def has_user_dets():
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    return False
-
-def mk_user_dets(username, displayname):
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    pass
-
-def ensure_user_dets_stored(username):
-    """
-    Ensure there is a user dets file with at least something stored.
-    If details are missing, create fresh copy using supplied username.
-    """
-    if not has_user_dets:
-        # make clean user dets file with username and an initial displayname
-        displayname = username
-        mk_user_dets(username, displayname)
-
-def store_username(username):
-    """
-    Make user file if not there. Add declaration if variable not there, 
-        otherwise just change the value.
-    Having a username merely means that the user has registered using that name.
-    It does not mean the user has purchased all the extensions in use.
-    On proof of purchase, the latest display name will always update what is 
-        stored in the user dets file.
-    """
-    ensure_user_dets_stored(username)
-    
-    
-    
-    
-    
-    
-    
-    pass
-
-def update_displayname(username, displayname):
-    """
-    
-    """
-    ensure_user_dets_stored(username)
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    pass
 
         
-def rec_as_registered(extension):
-    """
-    Is this registered? And recorded as such? Maybe I have to ask for the user 
-        to register first but is it finally registered and recorded?
-    """
-    registered = has_local_rec(extension, path=mg.REG_PATH, varname=mg.REGEXTS)
-    if not registered: # get user to register via a GUI
-        retdict = {mg.REGISTERED: None, mg.USERNAME: None}
-        dlg = DlgGetRegistration(extension, retdict)
-        dlg.ShowModal() # will keep them there till successful or they give up
-        if retdict[mg.REGISTERED]:
-            store_local_priv(extension, path=mg.REG_PATH, varname=mg.REGEXTS, 
-                             label="registration")
-            store_username(retdict[mg.USERNAME])
-            registered = True
-            wx.MessageBox(_("Congratulations - you have successfully "
-                            "registered this SOFA extension."))
-        else:
-            wx.MessageBox(_("If you're having trouble registering please "
-                            "contact Grant at grant@sofastatistics.com"))
-    return registered
 
 def web_rec_of_purchase(username, extension):
     
@@ -1834,7 +1668,7 @@ def wipe_control(extension):
     
     pass
 
-def ensure_control(extension):
+def set_control_if_missing(extension):
     
     
     
@@ -1848,6 +1682,158 @@ def ensure_control(extension):
     
     pass
 
+def decrypt_cont(encrypted_cont):
+    # http://stackoverflow.com/questions/3815656/simple-encrypt-decrypt-lib-in-python-with-private-key
+    decrypter = DES.new(mg.LOCALPHRASE, DES.MODE_ECB)
+    decrypted_cont = decrypter.decrypt(encrypted_cont).rstrip() # remove any padding added to keep length a multiple of 8 (default block size)
+    return decrypted_cont
+
+def get_pad_to_8(mystr):
+    mod8 = len(mystr) % 8
+    pad_to_8 = 8 - mod8 if mod8 else 0
+    return pad_to_8
+
+def encrypt_cont(cont):
+    # http://stackoverflow.com/questions/3815656/simple-encrypt-decrypt-lib-in-python-with-private-key
+    encrypter = DES.new(mg.LOCALPHRASE, DES.MODE_ECB)
+    pad_to_8 = get_pad_to_8(cont)
+    padding_required = pad_to_8*" " # Strings for DES must be a multiple of 8 in length
+    encrypted_cont = encrypter.encrypt(cont + padding_required)
+    return encrypted_cont
+
+def get_priv_cont(path, label):
+    """
+    Get the unencrypted content of the private file.
+    """
+    try:
+        f = open(path)
+        rawcont = f.read()
+        f.close()
+        cont = decrypt_cont(rawcont)
+        return cont
+    except Exception, e:
+        raise Exception(u"Unable to get unencrypted content of %s file. "
+                        u"Orig error: %s" % (label, ue(e)))
+
+def ext_in_local_list(extension, path, varname, label):
+    """
+    Is this extension in a local list? False if any problems e.g file missing.
+    """
+    try:
+        cont = get_priv_cont(path, label)
+        mydic = {}
+        # http://docs.python.org/reference/simple_stmts.html
+        exec cont in mydic
+        has_local = extension in mydic[varname]
+    except Exception:
+        has_local = False
+    return has_local
+
+def rec_as_registered(extension):
+    """
+    Is this registered? And recorded as such? Maybe I have to ask for the user 
+        to register first but is it finally registered and recorded?
+    """
+    label = "registration"
+    registered = ext_in_local_list(extension, path=mg.REG_PATH, 
+                                   varname=mg.REGEXTS, label=label)
+    if not registered: # get user to register via a GUI
+        retdict = {mg.REGISTERED: None, mg.USERNAME: None}
+        dlg = DlgGetRegistration(extension, retdict)
+        dlg.ShowModal() # will keep them there till successful or they give up
+        if retdict[mg.REGISTERED]:
+            try:
+                add_ext_to_local_list(extension, path=mg.REG_PATH, 
+                                      varname=mg.REGEXTS, label=label)
+            except Exception:
+                mk_local_ext_list(extension, path=mg.REG_PATH, 
+                                  varname=mg.REGEXTS, label=label)
+            try:
+                set_user_dets(username=retdict[mg.USERNAME], displayname=None)
+            except Exception:
+                mk_user_dets(username=retdict[mg.USERNAME], displayname="")
+            registered = True
+            wx.MessageBox(_("Congratulations - you have successfully "
+                            "registered this SOFA extension."))
+        else:
+            wx.MessageBox(_("If you're having trouble registering please "
+                            "contact Grant at grant@sofastatistics.com"))
+    return registered
+
+def mk_local_ext_list(extension, path, varname, label):
+    """
+    Make a local extension list and initialise with extension if supplied.
+    """
+    try:
+        f = open(path, "w")
+        extstr = '"%s"' % extension if extension else u""
+        cont = u'%s = [u"%s"]' % (varname, extstr)
+        encrypted_cont = encrypt_cont(cont)
+        f.write(encrypted_cont)
+        f.close()
+    except Exception, e:
+        raise Exception(u"Problem making local %s extension list. "
+                        u"Orig error: %s" % (label, ue(e)))
+
+def mk_user_dets(username, displayname):
+    """
+    Make new user details file.
+    """
+    try:
+        plain_newcont = '%s = u"%s"\n%s = u"%s"' % (mg.USERNAME, username, 
+                                                    mg.DISPLAYNAME, displayname)
+        encrypted_newcont = encrypt_cont(plain_newcont)
+        f = open(mg.USERDETS_PATH, "w")
+        f.write(encrypted_newcont)
+        f.close()
+    except Exception, e:
+        raise Exception(u"Problem making user details file. Orig error: %s" % 
+                        ue(e))
+
+def set_user_dets(username=None, displayname=None):
+    """
+    Set user details. If any problems, raise exception.
+    """
+    if username is None and displayname is None:
+        raise Exception(u"Unable to set user details without at least one "
+                        u"detail")
+    try:
+        cont = get_priv_cont(path=mg.USERDETS_PATH, label="user details")
+        mydic = {}
+        # http://docs.python.org/reference/simple_stmts.html
+        exec cont in mydic
+        username2use = username if username else mydic[mg.USERNAME]
+        displayname2use = displayname if displayname else mydic[mg.DISPLAYNAME]
+        plain_newcont = '%s = u"%s"\n%s = u"%s"' % (mg.USERNAME, username2use, 
+                                                mg.DISPLAYNAME, displayname2use)
+        encrypted_newcont = encrypt_cont(plain_newcont)
+        f = open(mg.USERDETS_PATH, "w")
+        f.write(encrypted_newcont)
+        f.close()
+    except Exception, e:
+        raise Exception(u"Problem setting user details. Orig error: %s" % ue(e))
+
+def add_ext_to_local_list(extension, path, varname, label):
+    """
+    Add extension to a local list. NB raises exception if not possible.
+    Won't add if already there.
+    """
+    try:
+        cont = get_priv_cont(path, label)
+        mydic = {}
+        # http://docs.python.org/reference/simple_stmts.html
+        exec cont in mydic
+        if extension not in mydic[varname]:
+            mydic[varname].append(extension)
+        plain_newcont = '%s = u"%s"' % (varname, mydic[varname])
+        encrypted_newcont = encrypt_cont(plain_newcont)
+        f = open(path, "w")
+        f.write(encrypted_newcont)
+        f.close()
+    except Exception, e:
+        raise Exception(u"Unable to add extension to local %s list. "
+                        u"Orig error: %s" % (label, ue(e)))
+        
 def rec_as_purchased(username, extension):
     """
     Is this module purchased? And recorded as such locally?
@@ -1856,41 +1842,50 @@ def rec_as_purchased(username, extension):
     if extension in CHECKED_EXTS:
         purchased = True # no point doing the resource expensive check each time
     else: 
-        local_purchase_rec = has_local_rec(extension, path=mg.PURCHASED_PATH, 
-                                           varname=mg.PURCHEXTS)
-        if local_purchase_rec:
-            purchased = local_purchase_rec
+        has_local_purchase_rec = ext_in_local_list(extension, 
+                                                   path=mg.PURCHASED_PATH, 
+                                                   varname=mg.PURCHEXTS)
+        if has_local_purchase_rec:
+            purchased = has_local_purchase_rec
         else:
             # do it the hard way (automatically False if unable to connect)
             purchased, displayname = web_rec_of_purchase(username, extension)
             if purchased:
-                store_local_priv(extension, path=mg.PURCHASED_PATH, 
-                                 varname=mg.PURCHEXTS, label="purchase details")
-                update_displayname(username, displayname)
+                try:
+                    add_ext_to_local_list(extension, path=mg.PURCHASED_PATH, 
+                                          varname=mg.PURCHEXTS, 
+                                          label="purchase details")
+                except Exception:
+                    mk_local_ext_list(extension, path=mg.PURCHASED_PATH, 
+                                      varname=mg.PURCHEXTS, 
+                                      label="purchase details")
+                set_user_dets(username, displayname)
         if purchased:
             CHECKED_EXTS.append(extension)
     return purchased
 
-def get_username():
-    
-    
-    
-    
-    
-    username = ""
-    
-    
-    
-    
-    
-    
-    
-    return username
+def get_userdets():
+    """
+    Get username and displayname from local userdets file.
+    """
+    try:
+        cont = get_priv_cont(path=mg.USERDETS_PATH, label="user details")
+        mydic = {}
+        # http://docs.python.org/reference/simple_stmts.html
+        exec cont in mydic
+        username = mydic[mg.USERNAME]
+        displayname = mydic[mg.DISPLAYNAME]
+        return username, displayname
+    except Exception, e:
+        raise Exception(u"Unable to get user details. Orig error: %s" % ue(e))
 
 def is_system_ok(extension):
     if not rec_as_registered(extension):
         return False
-    username = get_username()
+    try:
+        username, unused = get_userdets()
+    except Exception:
+        return False
     if rec_as_purchased(username, extension):
         wipe_control(extension)
         system_ok = True
