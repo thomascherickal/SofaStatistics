@@ -4,6 +4,7 @@
 from __future__ import print_function
 import os
 import platform
+from subprocess import Popen, PIPE
 import sys
 import wx
 
@@ -203,9 +204,24 @@ SOFASTATS_VERSION_CHECK = u"latest_sofastatistics_version.txt"
 SOFASTATS_MAJOR_VERSION_CHECK = u"latest_major_sofastatistics_version.txt"
 GOOGLE_DOWNLOAD_EXT = u"ods" # csv has trouble with empty cols e.g. 1,2\n3\n4,5
 GOOGLE_DOWNLOAD = u"temporary_google_spreadsheet.%s" % GOOGLE_DOWNLOAD_EXT
+LINUX = u"linux"
+WINDOWS = u"windows"
+MAC = u"mac"
+platforms = {u"Linux": LINUX, u"Windows": WINDOWS, u"Darwin": MAC}
+PLATFORM = platforms.get(platform.system())
 INT_FOLDER = u"_internal"
 local_encoding = sys.getfilesystemencoding()
-USER_PATH = unicode(os.path.expanduser("~"), local_encoding)
+OLD_SOFASTATS_FOLDER = False
+if PLATFORM == LINUX: # see https://bugs.launchpad.net/sofastatistics/+bug/952077
+    try:
+        USER_PATH = Popen(['xdg-user-dir', 'DOCUMENTS'], 
+                          stdout=PIPE).communicate()[0].strip()
+    except OSError:
+        USER_PATH = ""
+    USER_PATH = unicode(USER_PATH or os.path.expanduser('~'), local_encoding)
+    
+else:
+    USER_PATH = unicode(os.path.expanduser("~"), local_encoding)
 LOCAL_PATH = os.path.join(USER_PATH, u"sofastats")
 RECOVERY_PATH = os.path.join(USER_PATH, u"sofastats_recovery")
 REPORTS_FOLDER = u"reports"
@@ -220,6 +236,10 @@ SCRIPT_PATH = None # set in config_globals
 DEFERRED_ERRORS = [] # show to user immediately a GUI is available
 DEFERRED_WARNING_MSGS = [] # show to user once start screen visible
 INT_PATH = os.path.join(LOCAL_PATH, INT_FOLDER)
+REG_REC = u"registration_records"
+REG_PATH = os.path.join(INT_PATH, REG_REC)
+PURCHASE_REC = u"purchase_records"
+PURCHASED_PATH = os.path.join(INT_PATH, PURCHASE_REC)
 INT_SCRIPT_PATH = os.path.join(INT_PATH, u"script.py")
 INT_REPORT_FILE = u"report.htm"
 INT_PREFS_FILE = u"prefs.txt"
@@ -307,11 +327,6 @@ DBE_MYSQL = u"MySQL"
 DBE_MS_ACCESS = u"MS Access"
 DBE_MS_SQL = u"MS SQL Server"
 DBE_PGSQL = u"PostgreSQL"
-LINUX = u"linux"
-WINDOWS = u"windows"
-MAC = u"mac"
-platforms = {u"Linux": LINUX, u"Windows": WINDOWS, u"Darwin": MAC}
-PLATFORM = platforms.get(platform.system())
 MUST_DEL_TMP = False
 DBE_PROBLEM = []
 DBES = []
@@ -546,6 +561,11 @@ MAX_PIE_SLICES = 30
 MAX_CHART_SERIES = 30
 JS_WRAPPER_L = u"\n\n<script type=\"text/javascript\">"
 JS_WRAPPER_R = u"\n</script>"
+REGISTERED = u"registered"
+REGEXTS = u"regexts"
+PURCHEXTS = u"purchexts"
+LOCALPHRASE = u"WSGosset" # must be 8 long exactly
+USERNAME = u"username"
 
 # ////////////////////////////////////////////////////////////
 # leaving all this to the end is mainly about avoiding circular import problems

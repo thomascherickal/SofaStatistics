@@ -4,8 +4,10 @@
 from __future__ import print_function
 
 import codecs
+from Crypto.Cipher import DES
 import datetime
 import decimal
+import hashlib
 import locale
 import math
 from operator import itemgetter
@@ -19,6 +21,8 @@ import wx
 import my_globals as mg
 import my_exceptions
 import core_stats
+
+CHECKED_EXTS = []
 
 def get_num2display(num, output_type, inc_perc=True):
     if output_type == mg.FREQ:
@@ -1523,3 +1527,374 @@ class StaticWrapText(wx.StaticText):
         # dispatch to the wrap method which will 
         # determine if any changes are needed
         self.__wrap()
+
+
+class DlgGetRegistration(wx.Dialog):
+    
+    def __init__(self, extension, retdict):
+        wx.Dialog.__init__(self, parent=None, id=-1, title="Register extension", 
+                   size=(800, 600), style=wx.MINIMIZE_BOX|wx.SYSTEM_MENU|\
+                                          wx.CAPTION|wx.CLIP_CHILDREN)
+        self.panel = wx.Panel(self)
+        self.retdict = retdict
+        szr_main = wx.BoxSizer(wx.VERTICAL)
+        szr_inputs = wx.FlexGridSizer(rows=2, cols=2, hgap=5, vgap=5)
+        lbl_username = wx.StaticText(self.panel, -1,_("Username:"))
+        self.txt_username = wx.TextCtrl(self.panel, -1, "", size=(150,-1))
+        lbl_id = wx.StaticText(self.panel, -1,_("ID:"))
+        self.txt_id = wx.TextCtrl(self.panel, -1, "", size=(350,-1))
+        self.txt_username.SetValidator(UsernameIDValidator(self.txt_username, 
+                                                           self.txt_id))
+        szr_inputs.AddMany(items=[lbl_username, self.txt_username, lbl_id, 
+                                  self.txt_id])
+        self.setup_btns()
+        szr_main.Add(szr_inputs, 0, wx.ALL, 10)
+        szr_main.Add(self.szr_btns, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
+        self.panel.SetSizer(szr_main)
+        szr_main.SetSizeHints(self)
+        self.Layout()
+        self.txt_username.SetFocus()
+        
+    def setup_btns(self):
+        """
+        Must have ID of wx.ID_... to trigger validators (no event binding 
+            needed) and for std dialog button layout.
+        NB can only add some buttons as part of standard sizer to be realised.
+        Insert or Add others after the Realize() as required.
+        See http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605904
+        and http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605432
+        """
+        btn_cancel = wx.Button(self.panel, wx.ID_CANCEL) # 
+        btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
+        btn_ok = wx.Button(self.panel, wx.ID_OK, _("Apply"))
+        btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
+        self.szr_btns = wx.StdDialogButtonSizer()
+        # assemble
+        self.szr_btns.AddButton(btn_cancel)
+        self.szr_btns.AddButton(btn_ok)
+        self.szr_btns.Realize()
+        btn_ok.SetDefault()
+    
+    def on_cancel(self, event):
+        self.Destroy()
+        self.SetReturnCode(wx.ID_CANCEL) # or nothing happens!
+        # Prebuilt dialogs presumably do this internally.
+    
+    def on_ok(self, event):
+        if not self.panel.Validate(): # runs validators on all assoc controls
+            return True
+        self.retdict[mg.REGISTERED] = True
+        self.retdict[mg.USERNAME] = self.txt_username.GetValue()
+        self.Destroy()
+        self.SetReturnCode(wx.ID_OK) # or nothing happens!
+        # Prebuilt dialogs presumably do this internally.
+
+
+def valid_username_id(username, id):
+    # id must be a hash of the username
+    # in web database will use http://php.net/manual/en/function.crypt.php
+    is_valid = (hashlib.sha1(username).hexdigest() == id)
+    return is_valid
+
+
+class UsernameIDValidator(wx.PyValidator):
+    def __init__(self, txt_username, txt_id):
+        """
+        Not ok to duplicate an existing name unless it is the same table i.e.
+            a name ok to reuse.  None if a new table.
+        """
+        wx.PyValidator.__init__(self)
+        self.txt_username = txt_username
+        self.txt_id = txt_id
+    
+    def Clone(self):
+        # wxPython
+        return UsernameIDValidator(self.txt_username, self.txt_id)
+        
+    def Validate(self, win):
+        # wxPython
+        # Handle any messages here and here alone
+        username = self.txt_username.GetValue()
+        id = self.txt_id.GetValue()
+        if not valid_username_id(username, id):
+            wx.MessageBox(_("Please enter a valid username and ID."))
+            self.txt_username.SetFocus()
+            self.txt_username.Refresh()
+            return False
+        else:
+            self.txt_username.Refresh()
+            return True
+    
+    def TransferToWindow(self):
+        # wxPython
+        return True
+    
+    def TransferFromWindow(self):
+        # wxPython
+        return True
+
+
+def decrypt_cont(encrypted_cont):
+    # http://stackoverflow.com/questions/3815656/simple-encrypt-decrypt-lib-in-python-with-private-key
+    decrypter = DES.new(mg.LOCALPHRASE, DES.MODE_ECB)
+    decrypted_cont = decrypter.decrypt(encrypted_cont).rstrip() # remove any padding added to keep length a multiple of 8 (default block size)
+    return decrypted_cont
+
+def get_pad_to_8(mystr):
+    mod8 = len(mystr) % 8
+    pad_to_8 = 8 - mod8 if mod8 else 0
+    return pad_to_8
+
+def encrypt_cont(cont):
+    # http://stackoverflow.com/questions/3815656/simple-encrypt-decrypt-lib-in-python-with-private-key
+    encrypter = DES.new(mg.LOCALPHRASE, DES.MODE_ECB)
+    pad_to_8 = get_pad_to_8(cont)
+    padding_required = pad_to_8*" " # Strings for DES must be a multiple of 8 in length
+    encrypted_cont = encrypter.encrypt(cont + padding_required)
+    return encrypted_cont
+
+def get_priv_cont(path, varname):
+    """
+    If file not found, make it with an empty list of extensions.
+    """
+    try:
+        f = open(path)
+    except IOError:
+        f = open(path, "w")
+        plain_cont = u"%s = []" % varname
+        encrypted_cont = encrypt_cont(plain_cont)
+        f.write(encrypted_cont)
+        f.close()
+        f = open(path)
+    try:
+        rawcont = f.read()
+        f.close()
+        cont = decrypt_cont(rawcont)
+    except Exception, e:
+        # wipe file so clean start (cannot be manually fixed)
+        raise Exception("Unable to get content of registration file. "
+                        "Orig error: %s" % ue(e))
+    return cont
+
+def has_local_rec(extension, path, varname):
+    try:
+        cont = get_priv_cont(path, varname)
+        mydic = {}
+        # http://docs.python.org/reference/simple_stmts.html
+        exec cont in mydic
+        has_local = extension in mydic[varname]
+    except Exception:
+        has_local = False
+    return has_local
+
+def store_local_priv(extension, path, varname, label):
+    try:
+        cont = get_priv_cont(path, varname)
+        mydic = {}
+        # http://docs.python.org/reference/simple_stmts.html
+        exec cont in mydic
+        if extension not in mydic[varname]:
+            mydic[varname].append(extension)
+        plain_newcont = "%s = %s" % (varname, mydic[varname])
+        encrypted_newcont = encrypt_cont(plain_newcont)
+        f = open(path, "w")
+        f.write(encrypted_newcont)
+        f.close()
+    except Exception, e:
+        raise Exception("Unable to store local %s. Orig error: %s" % (label, 
+                                                                      ue(e)))
+        
+def has_user_dets():
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    return False
+
+def mk_user_dets(username, displayname):
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    pass
+
+def ensure_user_dets_stored(username):
+    """
+    Ensure there is a user dets file with at least something stored.
+    If details are missing, create fresh copy using supplied username.
+    """
+    if not has_user_dets:
+        # make clean user dets file with username and an initial displayname
+        displayname = username
+        mk_user_dets(username, displayname)
+
+def store_username(username):
+    """
+    Make user file if not there. Add declaration if variable not there, 
+        otherwise just change the value.
+    Having a username merely means that the user has registered using that name.
+    It does not mean the user has purchased all the extensions in use.
+    On proof of purchase, the latest display name will always update what is 
+        stored in the user dets file.
+    """
+    ensure_user_dets_stored(username)
+    
+    
+    
+    
+    
+    
+    
+    pass
+
+def update_displayname(username, displayname):
+    """
+    
+    """
+    ensure_user_dets_stored(username)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    pass
+
+        
+def rec_as_registered(extension):
+    """
+    Is this registered? And recorded as such? Maybe I have to ask for the user 
+        to register first but is it finally registered and recorded?
+    """
+    registered = has_local_rec(extension, path=mg.REG_PATH, varname=mg.REGEXTS)
+    if not registered: # get user to register via a GUI
+        retdict = {mg.REGISTERED: None, mg.USERNAME: None}
+        dlg = DlgGetRegistration(extension, retdict)
+        dlg.ShowModal() # will keep them there till successful or they give up
+        if retdict[mg.REGISTERED]:
+            store_local_priv(extension, path=mg.REG_PATH, varname=mg.REGEXTS, 
+                             label="registration")
+            store_username(retdict[mg.USERNAME])
+            registered = True
+            wx.MessageBox(_("Congratulations - you have successfully "
+                            "registered this SOFA extension."))
+        else:
+            wx.MessageBox(_("If you're having trouble registering please "
+                            "contact Grant at grant@sofastatistics.com"))
+    return registered
+
+def web_rec_of_purchase(username, extension):
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    purchased = True
+    displayname = "Demo Displayname"
+    
+    
+    return purchased, displayname
+
+def wipe_control(extension):
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    pass
+
+def ensure_control(extension):
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    pass
+
+def rec_as_purchased(username, extension):
+    """
+    Is this module purchased? And recorded as such locally?
+    """
+    global CHECKED_EXTS
+    if extension in CHECKED_EXTS:
+        purchased = True # no point doing the resource expensive check each time
+    else: 
+        local_purchase_rec = has_local_rec(extension, path=mg.PURCHASED_PATH, 
+                                           varname=mg.PURCHEXTS)
+        if local_purchase_rec:
+            purchased = local_purchase_rec
+        else:
+            # do it the hard way (automatically False if unable to connect)
+            purchased, displayname = web_rec_of_purchase(username, extension)
+            if purchased:
+                store_local_priv(extension, path=mg.PURCHASED_PATH, 
+                                 varname=mg.PURCHEXTS, label="purchase details")
+                update_displayname(username, displayname)
+        if purchased:
+            CHECKED_EXTS.append(extension)
+    return purchased
+
+def get_username():
+    
+    
+    
+    
+    
+    username = ""
+    
+    
+    
+    
+    
+    
+    
+    return username
+
+def is_system_ok(extension):
+    if not rec_as_registered(extension):
+        return False
+    username = get_username()
+    if rec_as_purchased(username, extension):
+        wipe_control(extension)
+        system_ok = True
+    else:
+        ensure_control(extension)
+        system_ok = False
+    return system_ok

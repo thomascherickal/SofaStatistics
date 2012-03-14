@@ -144,8 +144,8 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
                                   ytick_labelsize=8)
         fig = pylab.figure()
         fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
-        grid_bg, item_colours, line_colour = \
-                                        output.get_stats_chart_colours(css_fil)
+        (grid_bg, item_colours, 
+            line_colour) = output.get_stats_chart_colours(css_fil)
         charting_pylab.config_hist(fig, sample, label_avg, hist_label, False, 
                                    grid_bg, item_colours[0], line_colour)
         img_src = charting_pylab.save_report_img(add_to_report, report_name, 

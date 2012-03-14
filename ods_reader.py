@@ -116,14 +116,14 @@ def get_tbl(tree):
             body = el
             break
     if body is None:
-        exit
+        raise Exception("No body found in for XML")
     sheet = None
     for el in body:
         if el.tag.endswith("spreadsheet"):
             sheet = el
             break
     if sheet is None:
-        exit
+        raise Exception("No sheet found in for XML")
     tbl = None
     for el in sheet:
         if el.tag.endswith("table"):

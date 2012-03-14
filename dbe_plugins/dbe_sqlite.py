@@ -90,7 +90,7 @@ def get_con(con_dets, db, add_checks=False):
         con = sqlite.connect(**con_dets_sqlite_db)
     except Exception, e:
         # failure because still pointing to dev path?
-        if u"/home/g/sofastats" in sqlite_con_dets_str:
+        if u"/home/g/Documents/sofastats" in sqlite_con_dets_str:
             raise Exception(u"Problem with default project file. Delete "
                             u"%s and restart SOFA.\nCaused by error %s." %
                             (os.path.join(mg.INT_PATH, mg.PROJ_CUSTOMISED_FILE), 

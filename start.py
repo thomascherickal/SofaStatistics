@@ -49,6 +49,8 @@ if platform.system() == u"Windows":
         sys.stdout = NullWriter()
 
 import setup # if any modules are going to fail, it will be when this imported
+# wipe the next line once we pass March 2013 (plus one that uses installed_version later)
+installed_version = setup.get_installed_version_local_path() # must run before everything gets changed in setup_folders!
 LOCAL_PATH_SETUP_NEEDED = setup.setup_folders()
 if show_early_steps: print(u"Completed setup_folders successfully.")
 import codecs
@@ -96,6 +98,15 @@ import quotes
 if show_early_steps: print(u"Imported quotes successfully.")
 
 REVERSE = False
+
+# wipe this next code block once we pass March 2013
+if (mg.PLATFORM == mg.LINUX and installed_version is not None 
+        and installed_version < "1.1.5"): # None is less than anything ;-)
+    mg.DEFERRED_WARNING_MSGS.append(u"The upgrade has created new "
+        u"sofastats and sofastats_recovery folders in %s. If you want to "
+        u"keep what was in the old location you will need to manually copy "
+        u"it across. You will also need to modify any custom proj files to "
+        u"take into account the new folder locations." % mg.USER_PATH)
 
 
 class SofaApp(wx.App):
@@ -1086,6 +1097,13 @@ class StartFrame(wx.Frame):
         event.Skip()
 
     def on_help_click(self, event):
+        
+        
+        
+        import proext1
+        proext1.my_key_function()
+        
+        
         import webbrowser
         url = u"http://www.sofastatistics.com/help.php"
         webbrowser.open_new_tab(url)

@@ -12,8 +12,6 @@ import getdata
 import config_dlg
 import settings_grid
 
-LOCAL_PATH = mg.LOCAL_PATH
-
 def get_projs():
     """
     NB includes .proj at end.
@@ -23,7 +21,7 @@ def get_projs():
         filenames will still be returned as string objects.
     May need unicode results so always provide a unicode path. 
     """
-    proj_fils = os.listdir(os.path.join(LOCAL_PATH, mg.PROJS_FOLDER))
+    proj_fils = os.listdir(os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER))
     proj_fils = [x for x in proj_fils if x.endswith(u".proj")]
     proj_fils.sort()
     return proj_fils
@@ -515,7 +513,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             self.fil_var_dets
         except AttributeError:
             # make empty labels file if necessary
-            fil_default_var_dets = os.path.join(LOCAL_PATH, mg.VDTS_FOLDER, 
+            fil_default_var_dets = os.path.join(mg.LOCAL_PATH, mg.VDTS_FOLDER, 
                                                 mg.DEFAULT_VDTS)
             if not os.path.exists(fil_default_var_dets):
                 f = codecs.open(fil_default_var_dets, "w", "utf-8")
@@ -525,7 +523,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         try:            
             self.fil_css
         except AttributeError:
-            self.fil_css = os.path.join(LOCAL_PATH, mg.CSS_FOLDER, 
+            self.fil_css = os.path.join(mg.LOCAL_PATH, mg.CSS_FOLDER, 
                                         mg.DEFAULT_STYLE)
         try:            
             self.fil_report
@@ -534,7 +532,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         try:            
             self.fil_script
         except AttributeError:
-            self.fil_script = os.path.join(LOCAL_PATH, mg.SCRIPTS_FOLDER, 
+            self.fil_script = os.path.join(mg.LOCAL_PATH, mg.SCRIPTS_FOLDER, 
                                            mg.DEFAULT_SCRIPT)
         try:
             self.default_dbe
@@ -545,7 +543,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         """
         NB get any paths in form ready to display
         """
-        proj_path = os.path.join(LOCAL_PATH, mg.PROJS_FOLDER, fil_proj)
+        proj_path = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, fil_proj)
         f = codecs.open(proj_path, "U", encoding="utf-8")
         proj_txt = lib.get_exec_ready_text(text=f.read())
         f.close()
@@ -661,7 +659,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                 style=wx.YES|wx.NO|wx.ICON_EXCLAMATION|wx.NO_DEFAULT) == wx.NO:
             return
         try:
-            fil_to_delete = os.path.join(LOCAL_PATH, mg.PROJS_FOLDER, 
+            fil_to_delete = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, 
                                    "%s.proj" % self.txt_name.GetValue())
             #print(fil_to_delete) # debug
             os.remove(fil_to_delete)
@@ -734,8 +732,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                       " file.") % default_dbe)
                 return
             # write the data
-            fil_name = os.path.join(LOCAL_PATH, mg.PROJS_FOLDER, u"%s.proj" % \
-                                    proj_name)
+            fil_name = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, u"%s.proj" 
+                                    % proj_name)
             # In Windows, MySQL.proj and mysql.proj are the same in the file 
             # system - if already a file with same name, delete it first
             # otherwise will write to mysql.proj when saving MySQL.proj.
