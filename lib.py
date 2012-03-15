@@ -1633,54 +1633,112 @@ class UsernameIDValidator(wx.PyValidator):
         # wxPython
         return True
 
-
-
-        
-
+# control code ---------------------------------------------------
 def web_rec_of_purchase(username, extension):
+    """
+    TODO - un-hardwire this.
+    """
     
     
-    
-    
-    
-    
-    
-    
+
     
     
     purchased = True
     displayname = "Demo Displayname"
-    
-    
     return purchased, displayname
 
-def wipe_control(extension):
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    pass
+def is_control_due(extension):
+    """
+    If unable to assess control due, assume not due.
+    """
+    try:
+        cont = get_priv_cont(path=mg.CONTROL_PATH, label=u"control")
+        mydic = {}
+        # http://docs.python.org/reference/simple_stmts.html
+        exec cont in mydic
+        iso_control_date = mydic[extension]
+        iso_now = datetime.datetime.today().date().isoformat()
+        control_due = iso_control_date >= iso_now
+    except Exception:
+        control_due = False
+    return control_due
 
-def set_control_if_missing(extension):
+def give_std_control_msg(extension):
+    wx.MessageBox(u"This extension has not been successfully recorded as "
+        u"purchased. If you have purchased it, however, please contact "
+        u"grant@sofastatistics.com for assistance. Otherwise, you can purchase "
+        u"this extension from sofastatistics.com")    
+
+def wipe_ext_control(extension):
+    """
+    Try to wipe control for extension. If fails, raise exception.
+    """
+    try:
+        cont = get_priv_cont(path=mg.CONTROL_PATH, label=u"control")
+        mydic = {}
+        # http://docs.python.org/reference/simple_stmts.html
+        exec cont in mydic
+        try:
+            del mydic[extension]
+        except KeyError:
+            pass
+    except Exception, e:
+        raise Exception(u"Unable to wipe control for extension %s. "
+                        u"Orig error: %s" % (extension, ue(e)))
+
+def wipe_all_ext_controls():
+    """
+    Better to allow an unpurchase extension than prevent a user using a 
+        legitimately-purchased one.
+    """
+    f = codecs.open(mg.CONTROL_PATH, "w", encoding="utf-8")
+    f.close()
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    pass
+def get_iso_control_date():
+    """
+    Get date ready for controls to be applied.
+    """
+    now = datetime.datetime.today()
+    delay = datetime.timedelta(weeks=6)
+    delay_date = now + delay
+    iso_control_date = delay_date.date().isoformat()
+    return iso_control_date
+
+def set_ext_control_if_missing(extension):
+    """
+    If an extension doesn't appear in the control dict, add it with the 
+        appropriate control date. Raise exception if an problems e.g. control 
+        list missing.
+    """
+    try:
+        cont = get_priv_cont(path=mg.CONTROL_PATH, label=u"control")
+        mydic = {}
+        # http://docs.python.org/reference/simple_stmts.html
+        exec cont in mydic
+        if not extension in mydic[mg.CONTROLVAR]:
+            mydic[mg.CONTROLVAR][extension] = get_iso_control_date()
+        plain_newcont = "%s = %s" % (mg.CONTROLVAR, mydic[mg.CONTROLVAR])
+        encrypted_newcont = encrypt_cont(plain_newcont)
+        f = codecs.open(mg.CONTROL_PATH, "w", encoding="utf-8")
+        f.write(encrypted_newcont)
+        f.close()
+    except Exception, e:
+        raise Exception(u"Problem setting control for %s extension. "
+                        u"Orig error: %s" % (extension, ue(e)))
+
+def mk_ext_control():
+    """
+    Make new extensions control file.
+    """
+    try:
+        plain_newcont = "%s = {}" % (mg.CONTROLVAR)
+        encrypted_newcont = encrypt_cont(plain_newcont)
+        f = codecs.open(mg.CONTROL_PATH, "w", encoding="utf-8")
+        f.write(encrypted_newcont)
+        f.close()
+    except Exception, e:
+        raise Exception(u"Problem making extensions control file. "
+                        u"Orig error: %s" % ue(e))
 
 def decrypt_cont(encrypted_cont):
     # http://stackoverflow.com/questions/3815656/simple-encrypt-decrypt-lib-in-python-with-private-key
@@ -1706,7 +1764,7 @@ def get_priv_cont(path, label):
     Get the unencrypted content of the private file.
     """
     try:
-        f = open(path)
+        f = codecs.open(path, "r", encoding="utf-8")
         rawcont = f.read()
         f.close()
         cont = decrypt_cont(rawcont)
@@ -1729,7 +1787,7 @@ def ext_in_local_list(extension, path, varname, label):
         has_local = False
     return has_local
 
-def rec_as_registered(extension):
+def recorded_as_registered(extension):
     """
     Is this registered? And recorded as such? Maybe I have to ask for the user 
         to register first but is it finally registered and recorded?
@@ -1765,8 +1823,8 @@ def mk_local_ext_list(extension, path, varname, label):
     Make a local extension list and initialise with extension if supplied.
     """
     try:
-        f = open(path, "w")
-        extstr = '"%s"' % extension if extension else u""
+        f = codecs.open(path, "w", encoding="utf-8")
+        extstr = extension if extension else u""
         cont = u'%s = [u"%s"]' % (varname, extstr)
         encrypted_cont = encrypt_cont(cont)
         f.write(encrypted_cont)
@@ -1783,7 +1841,7 @@ def mk_user_dets(username, displayname):
         plain_newcont = '%s = u"%s"\n%s = u"%s"' % (mg.USERNAME, username, 
                                                     mg.DISPLAYNAME, displayname)
         encrypted_newcont = encrypt_cont(plain_newcont)
-        f = open(mg.USERDETS_PATH, "w")
+        f = codecs.open(mg.USERDETS_PATH, "w", encoding="utf-8")
         f.write(encrypted_newcont)
         f.close()
     except Exception, e:
@@ -1798,7 +1856,7 @@ def set_user_dets(username=None, displayname=None):
         raise Exception(u"Unable to set user details without at least one "
                         u"detail")
     try:
-        cont = get_priv_cont(path=mg.USERDETS_PATH, label="user details")
+        cont = get_priv_cont(path=mg.USERDETS_PATH, label=u"user details")
         mydic = {}
         # http://docs.python.org/reference/simple_stmts.html
         exec cont in mydic
@@ -1807,7 +1865,7 @@ def set_user_dets(username=None, displayname=None):
         plain_newcont = '%s = u"%s"\n%s = u"%s"' % (mg.USERNAME, username2use, 
                                                 mg.DISPLAYNAME, displayname2use)
         encrypted_newcont = encrypt_cont(plain_newcont)
-        f = open(mg.USERDETS_PATH, "w")
+        f = codecs.open(mg.USERDETS_PATH, "w", encoding="utf-8")
         f.write(encrypted_newcont)
         f.close()
     except Exception, e:
@@ -1827,24 +1885,26 @@ def add_ext_to_local_list(extension, path, varname, label):
             mydic[varname].append(extension)
         plain_newcont = '%s = u"%s"' % (varname, mydic[varname])
         encrypted_newcont = encrypt_cont(plain_newcont)
-        f = open(path, "w")
+        f = codecs.open(path, "w", encoding="utf-8")
         f.write(encrypted_newcont)
         f.close()
     except Exception, e:
         raise Exception(u"Unable to add extension to local %s list. "
                         u"Orig error: %s" % (label, ue(e)))
         
-def rec_as_purchased(username, extension):
+def recorded_as_purchased(username, extension):
     """
-    Is this module purchased? And recorded as such locally?
+    Is this module purchased? And recorded as such locally? This code may check 
+        SOFA web database first and make a local record if appropriate.
     """
     global CHECKED_EXTS
     if extension in CHECKED_EXTS:
         purchased = True # no point doing the resource expensive check each time
-    else: 
+    else:
+        label=u"purchase details"
         has_local_purchase_rec = ext_in_local_list(extension, 
-                                                   path=mg.PURCHASED_PATH, 
-                                                   varname=mg.PURCHEXTS)
+                                       path=mg.PURCHASED_PATH, 
+                                       varname=mg.PURCHEXTS, label=label)
         if has_local_purchase_rec:
             purchased = has_local_purchase_rec
         else:
@@ -1853,12 +1913,10 @@ def rec_as_purchased(username, extension):
             if purchased:
                 try:
                     add_ext_to_local_list(extension, path=mg.PURCHASED_PATH, 
-                                          varname=mg.PURCHEXTS, 
-                                          label="purchase details")
+                                          varname=mg.PURCHEXTS, label=label)
                 except Exception:
                     mk_local_ext_list(extension, path=mg.PURCHASED_PATH, 
-                                      varname=mg.PURCHEXTS, 
-                                      label="purchase details")
+                                      varname=mg.PURCHEXTS, label=label)
                 set_user_dets(username, displayname)
         if purchased:
             CHECKED_EXTS.append(extension)
@@ -1869,7 +1927,7 @@ def get_userdets():
     Get username and displayname from local userdets file.
     """
     try:
-        cont = get_priv_cont(path=mg.USERDETS_PATH, label="user details")
+        cont = get_priv_cont(path=mg.USERDETS_PATH, label=u"user details")
         mydic = {}
         # http://docs.python.org/reference/simple_stmts.html
         exec cont in mydic
@@ -1880,16 +1938,25 @@ def get_userdets():
         raise Exception(u"Unable to get user details. Orig error: %s" % ue(e))
 
 def is_system_ok(extension):
-    if not rec_as_registered(extension):
+    # quick exits
+    if not recorded_as_registered(extension):
         return False
     try:
         username, unused = get_userdets()
     except Exception:
         return False
-    if rec_as_purchased(username, extension):
-        wipe_control(extension)
+    # harder checks
+    if recorded_as_purchased(username, extension):
+        try:
+            wipe_ext_control(extension)
+        except Exception:
+            wipe_all_ext_controls() # never stop a legit user just because a problem with control file
         system_ok = True
     else:
-        ensure_control(extension)
-        system_ok = False
+        try:
+            set_ext_control_if_missing(extension)
+        except Exception:
+            mk_ext_control()
+            set_ext_control_if_missing(extension)
+        system_ok = not is_control_due(extension)
     return system_ok

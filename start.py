@@ -1100,8 +1100,8 @@ class StartFrame(wx.Frame):
         
         
         
-        import proext1
-        proext1.my_key_function()
+        import proext2
+        proext2.my_key_function()
         
         
         import webbrowser
