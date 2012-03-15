@@ -506,12 +506,12 @@ makeScatterplot = function(chartname, datadets, chartconf){
     });
     mychart.setTheme(sofa_theme);
     mychart.addAxis("x", {title: xTitle,
-                    min: 0, max: chartconf["xmax"],
+                    min: chartconf["xmin"], max: chartconf["xmax"],
                     minorTicks: minorTicks, microTicks: false,
                     font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial"
     });
     mychart.addAxis("y", {title: yTitle,
-                    min: 0, max: chartconf["ymax"],
+                    min: chartconf["ymin"], max: chartconf["ymax"],
                     vertical: true, includeZero: true, font: "normal normal normal 10pt Arial", fontWeight: 12
     });
     mychart.addPlot("default", {type: "Scatter"});

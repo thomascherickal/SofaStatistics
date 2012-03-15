@@ -573,7 +573,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
     gap2content = (1.0*ymin)/(ymax-ymin)
     if gap2content < 0.6:
         ymin = 0
-    ymax *=1.1
+    ymax *=1.1    
     xaxis_dets.append((xmax, u"''", u"''"))
     if debug: print(xaxis_dets)
     return (xaxis_dets, xmin, xmax, ymin, ymax, max_lbl_len, chart_dets, 
@@ -1957,6 +1957,17 @@ def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders,
                                    width_inches, height_inches)
     html.append(u"</div>")
 
+def get_min_max(vals):
+    axismin = min(vals)
+    axismax = max(vals)
+    axismin *=0.9
+    # use 0 as axismin if possible - if gap small compared with content, use 0
+    gap2content = (1.0*axismin)/(axismax-axismin)
+    if gap2content < 0.6:
+        axismin = 0
+    axismax *=1.1
+    return axismin, axismax
+
 def make_dojo_scatterplot(chart_idx, multichart, html, indiv_scatterplot_title, 
                           dot_borders, data_tups, list_x, list_y, label_x, 
                           label_y, css_fil, pagebreak):
@@ -1967,12 +1978,12 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_scatterplot_title,
         width, height = (700, 350)
     left_axis_lbl_shift = 10
     xfontsize = 10
-    xmax = max(list_x)
+    xmin, xmax = get_min_max(list_x)
+    ymin, ymax = get_min_max(list_y)
     x_title = label_x
     axis_lbl_drop = 10
-    ymax = max(list_y)
     y_title = label_y
-    if debug: print(label_x, xmax, label_y, ymax)
+    if debug: print(label_x, xmin, xmax, label_y, ymin, ymax)
     jsdata = []
     x_set = set()
     for x, y in data_tups:
@@ -2020,6 +2031,8 @@ makechartRenumber%(chart_idx)s = function(){
         marker: "m-6,0 c0,-8 12,-8 12,0 m-12,0 c0,8 12,8 12,0"};
     
     var chartconf = new Array();
+    chartconf["xmin"] = %(xmin)s;
+    chartconf["ymin"] = %(ymin)s;
     chartconf["xmax"] = %(xmax)s;
     chartconf["ymax"] = %(ymax)s;
     chartconf["xfontsize"] = %(xfontsize)s;
@@ -2048,7 +2061,8 @@ makechartRenumber%(chart_idx)s = function(){
     </div>
 </div>      
 """ % {u"indiv_scatterplot_title": indiv_scatterplot_title,
-       u"xy_pairs": xy_pairs, u"xmax": xmax, u"ymax": ymax,
+       u"xy_pairs": xy_pairs, u"xmin": xmin, u"ymin": ymin, 
+       u"xmax": xmax, u"ymax": ymax,
        u"x_title": x_title, u"y_title": y_title,
        u"stroke_width": stroke_width, u"fill": fill,
        u"colour_cases": colour_cases, 
