@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from datetime import datetime
+import datetime
 import wx
 
 import my_globals as mg
@@ -77,7 +77,12 @@ class ExcelImporter(importer.FileImporter):
     def getval2use(self, wkbook, coltype, rawval):
         if coltype == xlrd.XL_CELL_DATE:
             datetup = xlrd.xldate_as_tuple(rawval, wkbook.datemode)
-            cellval = datetime(*datetup).isoformat(" ")
+            # Handle times (NB if they are trying to record duration, they 
+            # should use an integer e.g. seconds
+            if datetup[0] == 0:
+                cellval = datetime.time(datetup[3], datetup[4], datetup[5])
+            else:
+                cellval = datetime.datetime(*datetup).isoformat(" ")
         else:
             cellval = rawval
         val2use = (cellval if isinstance(cellval, basestring) 

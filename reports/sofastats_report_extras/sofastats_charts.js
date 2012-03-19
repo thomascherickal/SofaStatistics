@@ -512,7 +512,7 @@ makeScatterplot = function(chartname, datadets, chartconf){
     });
     mychart.addAxis("y", {title: yTitle,
                     min: chartconf["ymin"], max: chartconf["ymax"],
-                    vertical: true, includeZero: true, font: "normal normal normal 10pt Arial", fontWeight: 12
+                    vertical: true, font: "normal normal normal 10pt Arial", fontWeight: 12
     });
     mychart.addPlot("default", {type: "Scatter"});
     mychart.addPlot("grid", {type: "Grid", vMajorLines: true});

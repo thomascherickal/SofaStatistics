@@ -1637,6 +1637,8 @@ class UsernameIDValidator(wx.PyValidator):
 def web_rec_of_purchase(username, extension):
     """
     TODO - un-hardwire this.
+    Returns purchased status for particular extension, and displayname (may not
+        exist in which case returns empty string.
     """
     
     
@@ -1646,6 +1648,12 @@ def web_rec_of_purchase(username, extension):
     purchased = True
     displayname = "Demo Displayname"
     return purchased, displayname
+
+def update_reg_status(username, extension):
+    """
+    TO DO - wire this up
+    """
+    pass
 
 def is_control_due(extension):
     """

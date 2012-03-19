@@ -568,12 +568,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
         raise my_exceptions.TooFewBoxplotsInSeries
     xmin = 0.5
     xmax = i+0.5
-    ymin *=0.9
-    # use 0 as ymin if possible - if gap small compared with content, use 0
-    gap2content = (1.0*ymin)/(ymax-ymin)
-    if gap2content < 0.6:
-        ymin = 0
-    ymax *=1.1    
+    ymin, ymax = get_optimal_min_max(ymin, ymax)
     xaxis_dets.append((xmax, u"''", u"''"))
     if debug: print(xaxis_dets)
     return (xaxis_dets, xmin, xmax, ymin, ymax, max_lbl_len, chart_dets, 
@@ -1939,7 +1934,7 @@ def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders,
                          list_x, list_y, label_x, label_y, x_vs_y, 
                          add_to_report, report_name, css_fil, pagebreak):
     (grid_bg, 
-         item_colours, line_colour) = output.get_stats_chart_colours(css_fil)
+        item_colours, line_colour) = output.get_stats_chart_colours(css_fil)
     colours = item_colours + mg.DOJO_COLOURS
     dot_colour = colours[0]
     if multichart:
@@ -1951,15 +1946,12 @@ def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders,
         %(pagebreak)s">""" % {u"pagebreak": pagebreak})
     html.append(indiv_scatterplot_title)
     charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
-                                   line_colour, list_x, list_y, label_x, 
-                                   label_y, x_vs_y, title_dets_html, 
-                                   add_to_report, report_name, html, 
-                                   width_inches, height_inches)
+                       line_colour, list_x, list_y, label_x, label_y, x_vs_y, 
+                       title_dets_html, add_to_report, report_name, html, 
+                       width_inches, height_inches)
     html.append(u"</div>")
 
-def get_min_max(vals):
-    axismin = min(vals)
-    axismax = max(vals)
+def get_optimal_min_max(axismin, axismax):
     axismin *=0.9
     # use 0 as axismin if possible - if gap small compared with content, use 0
     gap2content = (1.0*axismin)/(axismax-axismin)
@@ -1978,8 +1970,8 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_scatterplot_title,
         width, height = (700, 350)
     left_axis_lbl_shift = 10
     xfontsize = 10
-    xmin, xmax = get_min_max(list_x)
-    ymin, ymax = get_min_max(list_y)
+    xmin, xmax = get_optimal_min_max(min(list_x), max(list_x))
+    ymin, ymax = get_optimal_min_max(min(list_y), max(list_y))
     x_title = label_x
     axis_lbl_drop = 10
     y_title = label_y
