@@ -521,6 +521,7 @@ class StartFrame(wx.Frame):
             wx.MessageBox(_("Please click on \"Enter/Edit Data\" and delete"
                         " the table \"%s\"") % mg.TMP_TBLNAME)
         if show_more_steps: print(u"Passed check for having to delete database")
+        wx.CallAfter(lib.check_crack) # won't stop form load if fails
         # any warnings to display once screen visible?
         warning_div = u"\n\n" + u"-"*20 + u"\n\n"
         deferred_warning_msg = warning_div.join(mg.DEFERRED_WARNING_MSGS)

@@ -22,7 +22,8 @@ import my_globals as mg
 import my_exceptions
 import core_stats
 
-CHECKED_EXTS = []
+# so we only do expensive tasks once per module per session
+PURCHASE_CHECKED_EXTS = [] # individual extensions may have different purchase statements
 
 def get_num2display(num, output_type, inc_perc=True):
     if output_type == mg.FREQ:
@@ -1634,11 +1635,11 @@ class UsernameIDValidator(wx.PyValidator):
         return True
 
 # control code ---------------------------------------------------
-def web_rec_of_purchase(username, extension):
+def has_web_rec_of_purchase(username, extension):
     """
     TODO - un-hardwire this.
     Returns purchased status for particular extension, and displayname (may not
-        exist in which case returns empty string.
+        exist in which case returns empty string. False if deemed cracked.
     """
     
     
@@ -1649,10 +1650,17 @@ def web_rec_of_purchase(username, extension):
     displayname = "Demo Displayname"
     return purchased, displayname
 
-def update_reg_status(username, extension):
+def update_web_reg_status(username, extension):
     """
     TO DO - wire this up
+    If registration_status on the SOFA web database is 'unreg', set it to 'reg'.
     """
+    
+    
+    
+    
+    
+    
     pass
 
 def is_control_due(extension):
@@ -1899,14 +1907,20 @@ def add_ext_to_local_list(extension, path, varname, label):
     except Exception, e:
         raise Exception(u"Unable to add extension to local %s list. "
                         u"Orig error: %s" % (label, ue(e)))
-        
+
+def clear_local_list(path):
+    """
+    May be necessary if we discover a username has been cracked.
+    """
+    os.remove(path)
+            
 def recorded_as_purchased(username, extension):
     """
     Is this module purchased? And recorded as such locally? This code may check 
         SOFA web database first and make a local record if appropriate.
     """
-    global CHECKED_EXTS
-    if extension in CHECKED_EXTS:
+    global PURCHASE_CHECKED_EXTS
+    if extension in PURCHASE_CHECKED_EXTS:
         purchased = True # no point doing the resource expensive check each time
     else:
         label=u"purchase details"
@@ -1917,7 +1931,8 @@ def recorded_as_purchased(username, extension):
             purchased = has_local_purchase_rec
         else:
             # do it the hard way (automatically False if unable to connect)
-            purchased, displayname = web_rec_of_purchase(username, extension)
+            purchased, displayname = has_web_rec_of_purchase(username, 
+                                                             extension)
             if purchased:
                 try:
                     add_ext_to_local_list(extension, path=mg.PURCHASED_PATH, 
@@ -1927,7 +1942,7 @@ def recorded_as_purchased(username, extension):
                                       varname=mg.PURCHEXTS, label=label)
                 set_user_dets(username, displayname)
         if purchased:
-            CHECKED_EXTS.append(extension)
+            PURCHASE_CHECKED_EXTS.append(extension)
     return purchased
 
 def get_userdets():
@@ -1945,6 +1960,27 @@ def get_userdets():
     except Exception, e:
         raise Exception(u"Unable to get user details. Orig error: %s" % ue(e))
 
+def is_username_cracked(username):
+    """
+    TO DO - wire this up.
+    """
+    return False
+
+def check_crack():
+    """
+    Connect to SOFA web database and check to see if username deemed cracked. 
+    If so, wipe local records of extensions as being purchased. Nothing else 
+        needed as lack of this list will automatically trigger checks later on.
+    """
+    try:
+        username, unused = get_userdets()
+        cracked = is_username_cracked(username)
+        if cracked:
+            clear_local_list(mg.PURCHASED_PATH)
+    except Exception:
+        raise my_exceptions.DoNothingException(u"Unable to check crack. "
+                    u"But more important to keep lib loading successfully.")
+        
 def is_system_ok(extension):
     # quick exits
     if not recorded_as_registered(extension):
