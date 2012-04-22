@@ -594,13 +594,7 @@ class StatsSelectDlg(wx.Dialog):
                     self.normality_label, tips_width)
         elif test_type == TEST_SPEARMANS_R:
             if assisted:
-                tips = lib.get_text_to_draw(_("The Spearman's R Correlation "
-                                              "test"
-                    " is probably a good choice if you are testing linear "
-                    "correlation. Always look at the scatterplot to decide if a"
-                    " linear relationship. The Pearson's R Correlation test "
-                    "may still be preferable if your data is "
-                    "numerical and adequately normal."), 
+                tips = lib.get_text_to_draw(_("The Spearman's R Correlation test is probably a good choice if you are testing to see if two variables change together e.g. if one increases, the other also increases (or at least stays the same). Always look at the scatterplot to check the actual relationship e.g. roughly linear. The Pearson's R Correlation test may still be preferable if your data is numerical and adequately normal."), 
                     tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
@@ -608,13 +602,7 @@ class StatsSelectDlg(wx.Dialog):
                     u"clicking on the \"%s\" button down the bottom left.") % 
                     self.normality_label, tips_width)
             else:
-                tips = lib.get_text_to_draw(_("The Spearman's R Correlation "
-                                              "test is good for "
-                    "testing linear "
-                    "correlation. Always look at the scatterplot to decide if a"
-                    " linear relationship. The Pearson's R Correlation test "
-                    "may still be preferable if your data is "
-                    "numerical and adequately normal."), 
+                tips = lib.get_text_to_draw(_("The Spearman's R Correlation test is good for testing to see if two variables change together e.g. if one increases, the other also increases (or at least stays the same). Always look at the scatterplot to check the actual relationship e.g. roughly linear. The Pearson's R Correlation test may still be preferable if your data is numerical and adequately normal."), 
                     tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_(u"If your data is numerical, you"

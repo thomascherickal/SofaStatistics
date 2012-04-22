@@ -21,6 +21,16 @@ MISSING = u"MISSING"
 objqtr = dbe_sqlite.quote_obj
 valqtr = dbe_sqlite.quote_val
 
+"""
+Take user input and translate into valid SQLite clauses for an update statement.
+Note: need to rebuild table so that constraints (e.g. only accept numbers only)
+    can be added to the table.
+on_recode() checks things out, then, if OK, calls recode_tbl().
+get_case_when_clause() calls process_orig() for each line in the recoding
+    instructions e.g. 1 TO 6 --> "Inappropriate" becomes an SQLite clause ready 
+    to include in the update statement.
+"""
+
 def make_when_clause(orig_clause, new, new_fldtype):
     if new_fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
         new = valqtr(new)
@@ -54,13 +64,21 @@ def process_orig(orig, fldname, fldtype):
     Special:
     REMAINING
     MISSING
-    2) Then look for TO.  OK to use for strings. 
+    2) Then look for TO. OK to use for strings. 
     If found, split and identify if either side is MIN or 
     MAX. NB MIN must be on left and MAX on right. OK to have both. 
     NB MIN TO MAX != REMAINING.  The latter includes NULLS.
     Examples: a TO b, a TO MAX, MIN TO MAX, MIN TO B  
     3) Assume we are dealing with a single value e.g. 1 or Did Not Reply
     """
+    
+    
+    
+    
+    raise Exception("Does this kill the table? ;-)") # Yes ;-)
+    
+    
+    
     debug = False
     fld = objqtr(fldname)
     if not isinstance(orig, basestring):
@@ -494,7 +512,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         """
         Recoding into new variable with a CASE WHEN SQL syntax clause.
         Order doesn't matter except for REMAINING which is ELSE in CASE 
-            statement.  Must come last and only once.
+            statement. Must come last and only once.
         """
         debug = False
         when_clauses = []
@@ -502,12 +520,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         for orig, new, label in self.recode_clauses_data:
             if debug: print(orig, new, label)
             if orig.strip() != REMAINING: # i.e. ordinary
-                try:
-                    orig_clause = process_orig(orig, self.fldname, fldtype)
-                except Exception, e:
-                    wx.MessageBox(_("Problem with your recode configuration."
-                                    "\nCaused by error: %s") % lib.ue(e))
-                    return
+                orig_clause = process_orig(orig, self.fldname, fldtype)
                 process_label(dict_labels, new_fldtype, new, label)
                 when_clauses.append(make_when_clause(orig_clause, new, 
                                                      new_fldtype))
@@ -578,8 +591,13 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         for new_val in new_vals:
             lib.update_type_set(type_set, val=new_val)
         new_fldtype = lib.get_overall_fldtype(type_set)
-        case_when = self.get_case_when_clause(new_fldname, new_fldtype, fldtype, 
-                                              dict_labels)
+        try:
+            case_when = self.get_case_when_clause(new_fldname, new_fldtype, 
+                                                  fldtype, dict_labels)
+        except Exception, e:
+            wx.MessageBox(_("Problem with your recode configuration."
+                            "\nCaused by error: %s") % lib.ue(e))
+            return
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
         # insert new field just after the source field
         if self.fldname == mg.SOFA_ID:

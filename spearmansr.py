@@ -10,8 +10,9 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
     min_data_type = mg.VAR_TYPE_ORD
     
     def get_examples(self):
-        eg1 = _("Answers the question, is there a linear relationship "
-            "between two variables i.e. do they both change together?")
+        eg1 = _("Answers the question, do two variables change together. E.g. "
+                "if one increases, the other also increases "
+                "(or stays the same).")
         eg2 = _("For example, does IQ correlate with exam scores?")
         eg3 = _("Or does a brief measure of addiction correlate with a much "
             "longer measure?")
