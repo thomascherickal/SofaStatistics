@@ -71,14 +71,6 @@ def process_orig(orig, fldname, fldtype):
     Examples: a TO b, a TO MAX, MIN TO MAX, MIN TO B  
     3) Assume we are dealing with a single value e.g. 1 or Did Not Reply
     """
-    
-    
-    
-    
-    raise Exception("Does this kill the table? ;-)") # Yes ;-)
-    
-    
-    
     debug = False
     fld = objqtr(fldname)
     if not isinstance(orig, basestring):

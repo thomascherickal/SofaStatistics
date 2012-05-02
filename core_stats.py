@@ -17,6 +17,16 @@ import getdata
 D = decimal.Decimal
 decimal.getcontext().prec = 200
 
+"""
+The "minus 3" at the end of this formula is often explained as a correction to 
+    make the kurtosis of the normal distribution equal to zero. Another reason 
+    can be seen by looking at the formula for the kurtosis of the sum of 
+    random variables. ... This formula would be much more complicated if 
+    kurtosis were defined just as μ4 / σ4 (without the minus 3).
+    http://en.wikipedia.org/wiki/Kurtosis
+"""
+FISHER_KURTOSIS_ADJUSTMENT = 3.0
+
 def get_freqs(sample):
     """
     From a given data sample, return a sorted list of values and frequencies.
@@ -1714,13 +1724,13 @@ def kurtosis(a, dimension=None):
     Returns: kurtosis of values in a along dimension, and ZERO where all vals 
         equal
     """
-    FISHER_ADJUSTMENT = 3.0
     denom = np.power(moment(a, 2, dimension), 2)
     zero = np.equal(denom, 0)
     if type(denom) == np.ndarray and asum(zero) <> 0:
         print("Number of zeros in akurtosis: ", asum(zero))
     denom = denom + zero  # prevent divide-by-zero
-    return np.where(zero, 0, moment(a, 4, dimension)/denom) - FISHER_ADJUSTMENT
+    return (np.where(zero, 0, moment(a, 4, dimension)/denom) 
+            - FISHER_KURTOSIS_ADJUSTMENT)
 
 def achisqprob(chisq, df):
     """
@@ -1860,7 +1870,8 @@ def kurtosistest(a, dimension=None):
     n = float(a.shape[dimension])
     if n<20:
         print("kurtosistest only valid for n>=20 ... continuing anyway, n=", n)
-    b2 = kurtosis(a, dimension) + FISHER_ADJUSTMENT
+    kurt = kurtosis(a, dimension) # I changed the kurtosis code to subtract the Fischer Adjustment (3)
+    b2 = kurt + FISHER_KURTOSIS_ADJUSTMENT # added so that b2 is exactly as it would have been in the original stats.py
     E = 3.0*(n-1) /(n+1)
     varb2 = 24.0*n*(n-2)*(n-3) / ((n+1)*(n+1)*(n+3)*(n+5))
     x = (b2-E)/np.sqrt(varb2)
@@ -1868,7 +1879,7 @@ def kurtosistest(a, dimension=None):
         sqrtbeta1 = 6.0*(n*n-5*n+2)/((n+7)*(n+9)) * np.sqrt((6.0*(n+3)*(n+5))/
                                                            (n*(n-2)*(n-3)))
     except ZeroDivisionError:
-        raise Exception(u"Unable to calculate kurtosis test.  Zero division "
+        raise Exception(u"Unable to calculate kurtosis test. Zero division "
                         u"error")
     A = 6.0 + 8.0/sqrtbeta1 *(2.0/sqrtbeta1 + np.sqrt(1+4.0/(sqrtbeta1**2)))
     term1 = 1 -2/(9.0*A)
@@ -1877,7 +1888,7 @@ def kurtosistest(a, dimension=None):
     term2 = np.where(np.equal(denom,0), term1, np.power((1-2.0/A)/denom,1/3.0))
     Z = ( term1 - term2 ) / np.sqrt(2/(9.0*A))
     Z = np.where(np.equal(denom,99), 0, Z)
-    return Z, (1.0-azprob(Z))*2, b2
+    return Z, (1.0-azprob(Z))*2, kurt # I want to return the Fischer Adjusted kurtosis, not b2
 
 def normaltest(a, dimension=None):
     """

@@ -340,7 +340,7 @@ class SafeTblNameValidator(wx.PyValidator):
     def __init__(self, name_ok_to_reuse):
         """
         Not ok to duplicate an existing name unless it is the same table i.e.
-            a name ok to reuse.  None if a new table.
+            a name ok to reuse. None if a new table.
         """
         wx.PyValidator.__init__(self)
         self.name_ok_to_reuse = name_ok_to_reuse
