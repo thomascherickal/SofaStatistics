@@ -23,6 +23,8 @@ import core_stats
 import getdata
 import output
 
+AVG_CHAR_WIDTH_PXLS = 4
+
 def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt, 
                      measure, fld_measure, fld_gp_by, fld_chart_by,
                      fld_group_series):
@@ -173,6 +175,7 @@ def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_measure,
     """
     n_cols = len(raw_data[0])
     multi_series = (n_cols > 2)
+    max_lbl_len = 0
     if multi_series: # whether multichart or multiple series within a chart
         """
         Must be sorted by first two so groups and y_vals in order. Apply any 
@@ -186,7 +189,6 @@ def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_measure,
                          (2,3,200),
                          (2,4,0),]
         """
-        max_lbl_len = 0
         series_dets = []
         multichart = (fld_chart_by is not None 
                       and chart_type not in mg.NO_CHART_BY)
@@ -230,8 +232,8 @@ def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_measure,
              actual_lbl_width) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
                                                        max_width=17, dojo=True,
                                                        rotate=rotate)
-            if len(x_val_lbl) > max_lbl_len:
-                max_lbl_len = len(x_val_lbl)
+            if actual_lbl_width > max_lbl_len:
+                max_lbl_len = actual_lbl_width
             vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
                                  x_val_split_lbl))
             if len(vals_etc_lst) > max_items:
@@ -258,15 +260,14 @@ def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_measure,
                          (4,40),]
         """
         vals_etc_lst = []
-        max_lbl_len = 0
         for x_val, y_val in raw_data:
             x_val_lbl = xlblsdic.get(x_val, unicode(x_val))
             (x_val_split_lbl, 
              actual_lbl_width) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
                                                        max_width=17, dojo=True,
                                                        rotate=rotate)
-            if len(x_val_lbl) > max_lbl_len:
-                max_lbl_len = len(x_val_lbl)
+            if actual_lbl_width > max_lbl_len:
+                max_lbl_len = actual_lbl_width
             vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
                                  x_val_split_lbl))
             if len(vals_etc_lst) > max_items:
@@ -503,8 +504,8 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
                  actual_lbl_width) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
                                                         max_width=17, dojo=True,
                                                         rotate=rotate)
-                if len(x_val_lbl) > max_lbl_len:
-                    max_lbl_len = len(x_val_lbl)
+                if actual_lbl_width > max_lbl_len:
+                    max_lbl_len = actual_lbl_width
                 xaxis_dets.append((i, x_val_lbl, x_val_split_lbl))
             # Now see if any measure values with series_by_val and gp_val
             # Apply tbl_filt, series_by filt, and gp_by filt
@@ -883,7 +884,7 @@ def get_barchart_sizings(n_clusters, n_bars_in_cluster):
     if debug: print(width, xgap, xfontsize, minor_ticks, left_axis_lbl_shift)
     return width, xgap, xfontsize, minor_ticks, left_axis_lbl_shift
 
-def get_linechart_sizings(xaxis_dets, max_lbl_len, series_dets):
+def get_linechart_sizings(xaxis_dets, max_lbl_width, series_dets):
     debug = False
     n_vals = len(xaxis_dets)
     #n_lines = len(series_dets)
@@ -902,16 +903,16 @@ def get_linechart_sizings(xaxis_dets, max_lbl_len, series_dets):
     minor_ticks = u"true" if n_vals > 8 else u"false"
     micro_ticks = u"true" if n_vals > 100 else u"false"
     if n_vals > 10:
-        if max_lbl_len > 10:
+        if max_lbl_width > 10:
             width += 2000
-        elif max_lbl_len > 7:
+        elif max_lbl_width > 7:
             width += 1500
-        elif max_lbl_len > 4:
+        elif max_lbl_width > 4:
             width += 1000
     if debug: print(width, xfontsize, minor_ticks, micro_ticks)
     return width, xfontsize, minor_ticks, micro_ticks
 
-def get_boxplot_sizings(xaxis_dets, max_lbl_len, series_dets):
+def get_boxplot_sizings(xaxis_dets, max_lbl_width, series_dets):
     debug = False
     minor_ticks = u"false"
     n_vals = len(xaxis_dets)
@@ -937,10 +938,10 @@ def get_boxplot_sizings(xaxis_dets, max_lbl_len, series_dets):
         xfontsize = 10
     elif n_vals > 10:
         xfontsize = 9
-    if max_lbl_len > 14:
+    if max_lbl_width > 14:
         width *= 1.5
         xfontsize *= 0.9
-    if max_lbl_len > 10:
+    if max_lbl_width > 10:
         width *= 1.3
         xfontsize *= 0.95
     if debug: print(width, xfontsize)    
@@ -1056,8 +1057,11 @@ def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
     axis_lbl_drop = 30 if x_title else 10
     if multichart:
         axis_lbl_drop = axis_lbl_drop*0.8
-    rotate_factor = 1.3 if rotate else 1.0 # make taller if vertical labels
-    height = (310*rotate_factor) + axis_lbl_drop
+    max_lbl_len = chart_dets[mg.CHART_MAX_LBL_LEN]
+    height = 310
+    if rotate:
+        height += AVG_CHAR_WIDTH_PXLS*max_lbl_len 
+    height += axis_lbl_drop  # compensate for loss of bar display height    
     inc_perc_js = u"true" if inc_perc else u"false"
     """
     For each series, set colour details.
@@ -1225,8 +1229,12 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     axis_lbl_drop = 30 if x_title else 10 # compensate for loss of bar display height
-    rotate_factor = 1.3 if rotate else 1.0 # make taller if vertical labels
-    height = (310*rotate_factor) + axis_lbl_drop
+    max_lbl_len = chart_dets[mg.CHART_MAX_LBL_LEN]
+    height = 310
+    if rotate:
+        height += AVG_CHAR_WIDTH_PXLS*max_lbl_len 
+    height += axis_lbl_drop  # compensate for loss of bar display height
+    
     inc_perc_js = u"true" if inc_perc else u"false"
     """
     For each series, set colour details.
@@ -1543,12 +1551,15 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets,
     lbl_dets = get_lbl_dets(xaxis_dets)
     xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
     axis_lbl_drop = 30 if x_title else -10
-    rotate_factor = 1.3 if rotate else 1.0 # make taller if vertical labels
-    height = (310*rotate_factor) + axis_lbl_drop # compensate for loss of bar display height
-    max_lbl_len = chart_dets[mg.CHART_MAX_LBL_LEN]                 
+    max_lbl_len = chart_dets[mg.CHART_MAX_LBL_LEN]
+    height = 310
+    if rotate:
+        height += AVG_CHAR_WIDTH_PXLS*max_lbl_len 
+    height += axis_lbl_drop  # compensate for loss of bar display height
+    max_lbl_width = 1 if rotate else max_lbl_len
     (width, xfontsize, 
      minor_ticks, micro_ticks) = get_linechart_sizings(xaxis_dets, 
-                                                       max_lbl_len, series_dets)
+                                                    max_lbl_width, series_dets)
     left_axis_lbl_shift = 20 if width > 1200 else 10 # gets squeezed 
     inc_perc_js = u"true" if inc_perc else u"false"
     """
@@ -1707,8 +1718,9 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets,
     lbl_dets = get_lbl_dets(xaxis_dets)
     xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
     max_lbl_len = chart_dets[mg.CHART_MAX_LBL_LEN]
+    max_lbl_width = 1 if rotate else max_lbl_len
     (width, xfontsize, minor_ticks, 
-                micro_ticks) = get_linechart_sizings(xaxis_dets, max_lbl_len, 
+                micro_ticks) = get_linechart_sizings(xaxis_dets, max_lbl_width, 
                                                      series_dets)
     left_axis_lbl_shift = 20 if width > 1200 else 0 # gets squeezed 
     if multichart:
@@ -1718,8 +1730,9 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets,
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     inc_perc_js = u"true" if inc_perc else u"false"
-    rotate_factor = 1.3 if rotate else 1.0
-    height = (250*rotate_factor) if multichart else 300
+    height = 250 if multichart else 300
+    if rotate:
+        height += AVG_CHAR_WIDTH_PXLS*max_lbl_len   
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 
@@ -2165,10 +2178,14 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     lbl_dets.append(u"""{value: %s, text: ""}""" % len(lbl_dets))
     xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
     axis_lbl_drop = 30 if x_title else -10 # compensate for loss of display height
-    rotate_factor = 1.3 if rotate else 1.0
-    height = (350*rotate_factor) + axis_lbl_drop
+    height = 350
+    if rotate:
+        height += AVG_CHAR_WIDTH_PXLS*max_lbl_len 
+    height += axis_lbl_drop
+    max_lbl_width = 1 if rotate else max_lbl_len
     (width, xfontsize,
-        minor_ticks) = get_boxplot_sizings(xaxis_dets, max_lbl_len, chart_dets)
+        minor_ticks) = get_boxplot_sizings(xaxis_dets, max_lbl_width, 
+                                           chart_dets)
     yfontsize = xfontsize
     left_axis_lbl_shift = 20 if width > 1200 else 10 # gets squeezed
     html = []

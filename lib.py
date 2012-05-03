@@ -768,8 +768,8 @@ def get_lbls_in_lines(orig_txt, max_width, dojo=False, rotate=False):
                 # see - http://grokbase.com/t/dojo/dojo-interest/09cat4bkvg/...
                 #...dojox-charting-line-break-in-axis-labels-ie
                 wrapped_txt = (u"\"" 
-                               + u"\" + \"".join(x.strip() for x in lines) 
-                               + u"\"")
+                           + u"\" + \" \" + \"".join(x.strip() for x in lines) 
+                           + u"\"")
                 actual_lbl_width = sum(len(x)+1 for x in lines) - 1
             else:
                 wrapped_txt = (u"\"" + 
