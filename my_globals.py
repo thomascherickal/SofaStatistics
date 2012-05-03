@@ -219,7 +219,6 @@ if PLATFORM == LINUX: # see https://bugs.launchpad.net/sofastatistics/+bug/95207
     except OSError:
         USER_PATH = ""
     USER_PATH = unicode(USER_PATH or os.path.expanduser('~'), local_encoding)
-    
 else:
     USER_PATH = unicode(os.path.expanduser("~"), local_encoding)
 LOCAL_PATH = os.path.join(USER_PATH, u"sofastats")

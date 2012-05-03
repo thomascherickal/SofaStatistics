@@ -13,6 +13,7 @@ makeBarChart = function(chartname, series, chartconf){
     var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
     var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "";
     var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
+    var axisLabelRotate = ("axisLabelRotate" in chartconf) ? chartconf["axisLabelRotate"] : 0;
     var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
 
@@ -75,7 +76,8 @@ makeBarChart = function(chartname, series, chartconf){
     mychart.setTheme(sofa_theme);
     mychart.addAxis("x", {title: xTitle,
                     labels: chartconf["xaxisLabels"], minorTicks: minorTicks, 
-                    font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial"
+                    font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial",
+                    rotation: axisLabelRotate
     });
     mychart.addAxis("y", {title: yTitle,
                     vertical: true, includeZero: true, font: "normal normal normal 10pt Arial", fontWeight: 12
@@ -172,6 +174,7 @@ makeLineChart = function(chartname, series, chartconf){
     var microTicks = ("microTicks" in chartconf) ? chartconf["microTicks"] : false;
     var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "";
     var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
+    var axisLabelRotate = ("axisLabelRotate" in chartconf) ? chartconf["axisLabelRotate"] : 0;
     var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
 
@@ -244,7 +247,8 @@ makeLineChart = function(chartname, series, chartconf){
     mychart.setTheme(sofa_theme);
     mychart.addAxis("x", {title: xTitle,
                     labels: chartconf["xaxisLabels"], minorTicks: minorTicks, microTicks: microTicks, minorLabels: minorTicks,
-                    font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial"
+                    font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial",
+                    rotation: axisLabelRotate
     });
     mychart.addAxis("y", {title: yTitle,
                     vertical: true, includeZero: true, font: "normal normal normal 10pt Arial", fontWeight: 12
@@ -277,6 +281,7 @@ makeAreaChart = function(chartname, series, chartconf){
     var microTicks = ("microTicks" in chartconf) ? chartconf["microTicks"] : false;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
     var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
+    var axisLabelRotate = ("axisLabelRotate" in chartconf) ? chartconf["axisLabelRotate"] : 0;
 
     var getSum = function(myNums){
         var i
@@ -339,7 +344,8 @@ makeAreaChart = function(chartname, series, chartconf){
     mychart.setTheme(sofa_theme);
     mychart.addAxis("x", {
                     labels: chartconf["xaxisLabels"], minorTicks: minorTicks,  microTicks: microTicks, minorLabels: minorTicks,
-                    font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial"
+                    font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial",
+                    rotation: axisLabelRotate
     });
     mychart.addAxis("y", {title: yTitle,  // normal normal bold
                     vertical: true, includeZero: true, font: "normal normal normal 10pt Arial", fontWeight: 12
@@ -544,6 +550,7 @@ makeBoxAndWhisker = function(chartname, series, seriesconf, chartconf){
     var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
     var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "";
     var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
+    var axisLabelRotate = ("axisLabelRotate" in chartconf) ? chartconf["axisLabelRotate"] : 0;
     var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
 
@@ -596,7 +603,8 @@ makeBoxAndWhisker = function(chartname, series, seriesconf, chartconf){
     mychart.addAxis("x", {title: xTitle, min: chartconf["xmin"], max: chartconf["xmax"], 
                           majorTicks: true, minorTicks: minorTicks, 
                           labels: chartconf["xaxisLabels"],
-                          font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial"});
+                          font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial",
+                          rotation: axisLabelRotate});
     mychart.addAxis("y", {title: yTitle, vertical: true, min: chartconf["ymin"], max: chartconf["ymax"], 
                           majorTicks: true, minorTicks: true,
                           font: "normal normal normal " + chartconf["yfontsize"] + "pt Arial"});

@@ -730,10 +730,12 @@ def get_next_fldname(existing_fldnames):
     next_fldname = mg.NEXT_FLDNAME_TEMPLATE % free_num
     return next_fldname
 
-def get_lbls_in_lines(orig_txt, max_width, dojo=False):
+def get_lbls_in_lines(orig_txt, max_width, dojo=False, rotate=False):
     """
     Returns quoted text. Will not be further quoted.
     Will be "%s" % wrapped txt not "\"%s\"" % wrapped_txt
+    actual_lbl_width -- may be broken into lines if not rotated. If rotated, we
+        need sum of each line (no line breaks possible at present).
     """
     debug = False
     lines = []
@@ -757,17 +759,32 @@ def get_lbls_in_lines(orig_txt, max_width, dojo=False):
         print(lines)
     if dojo:
         if len(lines) == 1:
-            wrapped_txt = u"\"" + lines[0].strip() + u"\""
+            raw_lbl = lines[0].strip()
+            wrapped_txt = u"\"" + raw_lbl + u"\""
+            actual_lbl_width = len(raw_lbl)
         else:
-            wrapped_txt = u"\"" + u"\" + labelLineBreak + \"".join(lines) + \
-                                                                        u"\""
+            if rotate: # displays <br> for some reason so can't use it
+                # no current way identified for line breaks when rotated
+                # see - http://grokbase.com/t/dojo/dojo-interest/09cat4bkvg/...
+                #...dojox-charting-line-break-in-axis-labels-ie
+                wrapped_txt = (u"\"" 
+                               + u"\" + \"".join(x.strip() for x in lines) 
+                               + u"\"")
+                actual_lbl_width = sum(len(x)+1 for x in lines) - 1
+            else:
+                wrapped_txt = (u"\"" + 
+                               u"\" + labelLineBreak + \"".join(lines) + u"\"")
+                actual_lbl_width = max_width # they are centred in max_width
     else:
         if len(lines) == 1:
-            wrapped_txt = lines[0].strip()
+            raw_lbl = lines[0].strip()
+            wrapped_txt = raw_lbl
+            actual_lbl_width = len(raw_lbl)
         else:
             wrapped_txt = u"\n".join(lines)
+            actual_lbl_width = max_width # they are centred in max_width
     if debug: print(wrapped_txt)
-    return wrapped_txt
+    return wrapped_txt, actual_lbl_width
 
 def get_text_to_draw(orig_txt, max_width):
     "Return text broken into new lines so wraps within pixel width"

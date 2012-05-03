@@ -99,8 +99,8 @@ def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot,
         cluster.color = bar_colours[i]
         cluster.edgeColor = "white"
         max_width = 17 if labels_n < 5 else 10
-        cluster.label = lib.get_lbls_in_lines(orig_txt=val_label_b, 
-                                              max_width=max_width)
+        cluster.label, unused = lib.get_lbls_in_lines(orig_txt=val_label_b, 
+                                                      max_width=max_width)
         clustered_bars.add(cluster)
     clustered_bars.spacing = 0.5
     clustered_bars.xTickLabels = val_labels_a

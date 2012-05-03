@@ -167,7 +167,7 @@ def get_sorted_xaxis_and_y_vals(sort_opt, vals_etc_lst):
 def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_measure, 
                    fld_gp_by, fld_chart_by, fld_chart_by_name, 
                    legend_fldname, legend_fldlbls,
-                   chart_fldname, chart_fldlbls, sort_opt, dp):
+                   chart_fldname, chart_fldlbls, sort_opt, dp, rotate=False):
     """
     Take raw columns of data from SQL cursor and create required dict.
     """
@@ -226,8 +226,10 @@ def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_measure,
                                                         mg.MAX_CHART_SERIES)
             # depending on sorting, may need one per chart.
             x_val_lbl = xlblsdic.get(x_val, unicode(x_val))
-            x_val_split_lbl = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
-                                                    max_width=17, dojo=True)
+            (x_val_split_lbl,
+             actual_lbl_width) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
+                                                       max_width=17, dojo=True,
+                                                       rotate=rotate)
             if len(x_val_lbl) > max_lbl_len:
                 max_lbl_len = len(x_val_lbl)
             vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
@@ -259,8 +261,10 @@ def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_measure,
         max_lbl_len = 0
         for x_val, y_val in raw_data:
             x_val_lbl = xlblsdic.get(x_val, unicode(x_val))
-            x_val_split_lbl = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
-                                                    max_width=17, dojo=True)
+            (x_val_split_lbl, 
+             actual_lbl_width) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
+                                                       max_width=17, dojo=True,
+                                                       rotate=rotate)
             if len(x_val_lbl) > max_lbl_len:
                 max_lbl_len = len(x_val_lbl)
             vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
@@ -290,12 +294,14 @@ def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt,
                    fld_measure, fld_measure_name, fld_measure_lbls, 
                    fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
                    fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
-                   sort_opt, measure):
+                   sort_opt, measure, rotate=False):
     """
     Returns some overall details for the chart plus series details (only the
         one series in some cases).
     Only at most one grouping variable - either group by (e.g. clustered bar 
         charts) or chart by (e.g. pie charts). May be neither.
+    Note - not all charts have x-axis labels and thus the option of rotating 
+        them.
     """
     debug = True
     # misc setup
@@ -389,12 +395,13 @@ def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt,
                                 fld_chart_by, fld_chart_by_name, 
                                 legend_fldname, legend_fldlbls,
                                 chart_fldname, chart_fldlbls, 
-                                sort_opt, dp)
+                                sort_opt, dp, rotate)
     return chart_dets
 
 def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name, 
                      fld_gp_by, fld_gp_by_name, fld_gp_by_lbls, 
-                     fld_chart_by, fld_chart_by_name, fld_chart_by_lbls):
+                     fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
+                     rotate=False):
     """
     NB can't just use group by SQL to get results - need upper and lower 
         quartiles etc and we have to work on the raw values to achieve this. We
@@ -492,8 +499,10 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
                 # "Epsom Girls Grammar", "Hebron Christian College", ...
             if first_chart_by: # build xaxis_dets once
                 x_val_lbl = fld_gp_by_lbls.get(gp_val, unicode(gp_val))
-                x_val_split_lbl = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
-                                                        max_width=17, dojo=True)
+                (x_val_split_lbl, 
+                 actual_lbl_width) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
+                                                        max_width=17, dojo=True,
+                                                        rotate=rotate)
                 if len(x_val_lbl) > max_lbl_len:
                     max_lbl_len = len(x_val_lbl)
                 xaxis_dets.append((i, x_val_lbl, x_val_split_lbl))
@@ -1013,7 +1022,8 @@ def is_multichart(chart_dets):
     return multichart
 
 def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets, 
-                           inc_perc, css_idx, css_fil, page_break_after):
+                           inc_perc, rotate, css_idx, css_fil, 
+                           page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -1035,16 +1045,19 @@ def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
                    (5, "65+")]
     css_idx -- css index so can apply appropriate css styles
     """
+    axis_lbl_rotate = -90 if rotate else 0
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                           css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     multichart = chart_dets[mg.CHART_SERIES_DETS][0][mg.CHART_MULTICHART]
+    # compensate for loss of bar display height
     axis_lbl_drop = 30 if x_title else 10
     if multichart:
         axis_lbl_drop = axis_lbl_drop*0.8
-    height = 310 + axis_lbl_drop # compensate for loss of bar display height
+    rotate_factor = 1.3 if rotate else 1.0 # make taller if vertical labels
+    height = (310*rotate_factor) + axis_lbl_drop
     inc_perc_js = u"true" if inc_perc else u"false"
     """
     For each series, set colour details.
@@ -1134,6 +1147,7 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
     chartconf["xTitle"] = \"%(x_title)s\";
     chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
+    chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
     chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
     chartconf["yTitle"] = \"%(y_title)s\";
     chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
@@ -1159,6 +1173,7 @@ makechartRenumber%(chart_idx)s = function(){
                u"major_gridline_colour": major_gridline_colour,
                u"gridline_width": gridline_width, 
                u"axis_lbl_drop": axis_lbl_drop,
+               u"axis_lbl_rotate": axis_lbl_rotate,
                u"left_axis_lbl_shift": left_axis_lbl_shift,
                u"x_title": x_title, u"y_title": y_title,
                u"tooltip_border_colour": tooltip_border_colour, 
@@ -1179,7 +1194,8 @@ makechartRenumber%(chart_idx)s = function(){
     return u"".join(html)
 
 def clustered_barchart_output(titles, subtitles, x_title, y_title, chart_dets, 
-                              inc_perc, css_idx, css_fil, page_break_after):
+                              inc_perc, rotate, css_idx, css_fil, 
+                              page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -1202,13 +1218,15 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
     css_idx -- css index so can apply appropriate css styles
     """
     debug = False
+    axis_lbl_rotate = -90 if rotate else 0
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
-    axis_lbl_drop = 30 if x_title else 10
-    height = 310 + axis_lbl_drop # compensate for loss of bar display height
+    axis_lbl_drop = 30 if x_title else 10 # compensate for loss of bar display height
+    rotate_factor = 1.3 if rotate else 1.0 # make taller if vertical labels
+    height = (310*rotate_factor) + axis_lbl_drop
     inc_perc_js = u"true" if inc_perc else u"false"
     """
     For each series, set colour details.
@@ -1284,6 +1302,7 @@ makechartRenumber00 = function(){
     chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
     chartconf["xTitle"] = \"%(x_title)s\";
     chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
+    chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
     chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
     chartconf["yTitle"] = \"%(y_title)s\";
     chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
@@ -1308,6 +1327,7 @@ makechartRenumber00 = function(){
              u"major_gridline_colour": major_gridline_colour,
              u"gridline_width": gridline_width, 
              u"axis_lbl_drop": axis_lbl_drop,
+             u"axis_lbl_rotate": axis_lbl_rotate,
              u"left_axis_lbl_shift": left_axis_lbl_shift,
              u"x_title": x_title, u"y_title": y_title,
              u"tooltip_border_colour": tooltip_border_colour, 
@@ -1488,7 +1508,7 @@ def get_smooth_y_vals(y_vals):
     return smooth_y_vals
 
 def linechart_output(titles, subtitles, x_title, y_title, chart_dets, 
-                     inc_perc, inc_trend, inc_smooth, 
+                     inc_perc, rotate, inc_trend, inc_smooth, 
                      css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
@@ -1509,6 +1529,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets,
     css_idx -- css index so can apply    
     """
     debug = False
+    axis_lbl_rotate = -90 if rotate else 0
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
@@ -1522,7 +1543,8 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets,
     lbl_dets = get_lbl_dets(xaxis_dets)
     xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
     axis_lbl_drop = 30 if x_title else -10
-    height = 310 + axis_lbl_drop # compensate for loss of bar display height
+    rotate_factor = 1.3 if rotate else 1.0 # make taller if vertical labels
+    height = (310*rotate_factor) + axis_lbl_drop # compensate for loss of bar display height
     max_lbl_len = chart_dets[mg.CHART_MAX_LBL_LEN]                 
     (width, xfontsize, 
      minor_ticks, micro_ticks) = get_linechart_sizings(xaxis_dets, 
@@ -1546,7 +1568,6 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets,
     If only one series, and trendlines are selected, make an additional series
         for the trendline.
     """
-    debug = False
     series_js_list = []
     series_names_list = []
     series0 = series_dets[0]
@@ -1616,6 +1637,7 @@ makechartRenumber00 = function(){
     chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
     chartconf["xTitle"] = "%(x_title)s";
     chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
+    chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
     chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
     chartconf["yTitle"] = "%(y_title)s";
     chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
@@ -1640,6 +1662,7 @@ makechartRenumber00 = function(){
              u"major_gridline_colour": major_gridline_colour,
              u"gridline_width": gridline_width, u"pagebreak": pagebreak,
              u"axis_lbl_drop": axis_lbl_drop,
+             u"axis_lbl_rotate": axis_lbl_rotate,
              u"left_axis_lbl_shift": left_axis_lbl_shift,
              u"x_title": x_title, u"y_title": y_title,
              u"tooltip_border_colour": tooltip_border_colour,
@@ -1651,8 +1674,8 @@ makechartRenumber00 = function(){
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
     
-def areachart_output(titles, subtitles, x_title, y_title, chart_dets, inc_perc, 
-                     css_fil, css_idx, page_break_after):
+def areachart_output(titles, subtitles, x_title, y_title, chart_dets, 
+                     inc_perc, rotate, css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -1672,6 +1695,7 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets, inc_perc,
     css_idx -- css index so can apply    
     """
     debug = False
+    axis_lbl_rotate = -90 if rotate else 0
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
@@ -1694,7 +1718,8 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets, inc_perc,
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     inc_perc_js = u"true" if inc_perc else u"false"
-    height = 250 if multichart else 300
+    rotate_factor = 1.3 if rotate else 1.0
+    height = (250*rotate_factor) if multichart else 300
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 
@@ -1747,6 +1772,7 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["minorTicks"] = %(minor_ticks)s;
     chartconf["microTicks"] = %(micro_ticks)s;
     chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
+    chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
     chartconf["axisLabelFontColour"] = "%(axis_lbl_font_colour)s";
     chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
     chartconf["yTitle"] = "%(y_title)s";
@@ -1770,6 +1796,7 @@ makechartRenumber%(chart_idx)s = function(){
              u"axis_lbl_font_colour": axis_lbl_font_colour,
              u"major_gridline_colour": major_gridline_colour,
              u"left_axis_lbl_shift": left_axis_lbl_shift,
+             u"axis_lbl_rotate": axis_lbl_rotate,
              u"gridline_width": gridline_width, 
              u"y_title": y_title, u"pagebreak": pagebreak,
              u"tooltip_border_colour": tooltip_border_colour,
@@ -2109,7 +2136,7 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
 
 def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title, 
                    xaxis_dets, max_lbl_len, chart_dets, xmin, xmax, ymin, ymax, 
-                   css_fil, css_idx, page_break_after):
+                   rotate, css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -2128,6 +2155,7 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     css_idx -- css index so can apply
     """
     debug = False
+    axis_lbl_rotate = -90 if rotate else 0
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
@@ -2136,8 +2164,9 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     lbl_dets.insert(0, u"""{value: 0, text: ""}""")
     lbl_dets.append(u"""{value: %s, text: ""}""" % len(lbl_dets))
     xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
-    axis_lbl_drop = 30 if x_title else -10
-    height = 350 + axis_lbl_drop # compensate for loss of display height                           
+    axis_lbl_drop = 30 if x_title else -10 # compensate for loss of display height
+    rotate_factor = 1.3 if rotate else 1.0
+    height = (350*rotate_factor) + axis_lbl_drop
     (width, xfontsize,
         minor_ticks) = get_boxplot_sizings(xaxis_dets, max_lbl_len, chart_dets)
     yfontsize = xfontsize
@@ -2283,6 +2312,7 @@ makechartRenumber00 = function(){
     chartconf["yTitle"] = "%(y_title)s";
     chartconf["xaxisLabels"] = %(xaxis_lbls)s;
     chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
+    chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
     chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
     chartconf["xmin"] = %(xmin)s;
     chartconf["xmax"] = %(xmax)s;
@@ -2316,6 +2346,7 @@ makechartRenumber00 = function(){
            u"gridline_width": gridline_width, u"pagebreak": pagebreak,
            u"axis_lbl_drop": axis_lbl_drop, u"minor_ticks": minor_ticks,
            u"left_axis_lbl_shift": left_axis_lbl_shift,
+           u"axis_lbl_rotate": axis_lbl_rotate,
            u"tooltip_border_colour": tooltip_border_colour,
            u"connector_style": connector_style, 
            u"outer_bg": outer_bg, u"grid_bg": grid_bg})
