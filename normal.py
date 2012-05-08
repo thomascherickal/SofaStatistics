@@ -30,7 +30,7 @@ class NormalityDlg(wx.Dialog, config_output.ConfigUI):
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
                            wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
                            wx.CAPTION|wx.CLIP_CHILDREN)
-        config_output.ConfigUI.__init__(autoupdate=True)
+        config_output.ConfigUI.__init__(self, autoupdate=True)
         self.Bind(wx.EVT_CLOSE, self.on_ok)
         # the following properties all required to utilise get_szr_data
         self.var_labels = var_labels

@@ -356,7 +356,7 @@ class GetSettings(settings_grid.SettingsEntryDlg):
 
 class ProjectDlg(wx.Dialog, config_output.ConfigUI):
     def __init__(self, parent, readonly=False, fil_proj=None):
-        config_output.ConfigUI.__init__(autoupdate=False)
+        config_output.ConfigUI.__init__(self, autoupdate=False)
         self.can_run_report = False
         if mg.MAX_WIDTH <= 1024:
             mywidth = 976

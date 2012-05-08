@@ -54,7 +54,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|
                            wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
                            wx.CAPTION|wx.CLIP_CHILDREN)
-        config_output.ConfigUI.__init__(autoupdate=True)
+        config_output.ConfigUI.__init__(self,autoupdate=True)
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.takes_range = takes_range
         self.url_load = True # btn_expand

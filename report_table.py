@@ -114,7 +114,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                        pos=(mg.HORIZ_OFFSET, 0), # -1 positions too low on 768v
                        style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
                        wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
-        config_output.ConfigUI.__init__(autoupdate=True)
+        config_output.ConfigUI.__init__(self, autoupdate=True)
         dimtree.DimTree.__init__(self)
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.url_load = True # btn_expand    
