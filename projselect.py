@@ -162,6 +162,7 @@ class ProjSelectDlg(wx.Dialog):
             dic2restore = dd.proj_dic
             dd.set_proj_dic(proj_dic, dic2restore)
             cc = config_dlg.get_cc()
+            cc[mg.CURRENT_REPORT_PATH] = proj_dic[mg.PROJ_FIL_RPT]
             cc[mg.CURRENT_VDTS_PATH] = proj_dic[mg.PROJ_FIL_VDTS]
             if mg.ADVANCED:
                 cc[mg.CURRENT_SCRIPT_PATH] = proj_dic[mg.PROJ_FIL_SCRIPT]

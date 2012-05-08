@@ -239,11 +239,14 @@ class ConfigDlg(object):
         self.szr_data.Add(btn_filter, 0)
         return self.szr_data
               
-    def get_config_szr(self, panel, readonly=False):
+    def get_config_szr(self, panel, readonly=False, report_file=None):
         """
         Returns self.szr_config (reports and css) complete with widgets.
         Widgets include textboxes plus Browse buttons for output and style.
         Each widget has a set of events ready to go as well.
+        Sets defaults to current stored values in global cc.
+        report_file -- usually just want what is stored to global but when in 
+            project dialog need to have option of taking from proj file.
         """
         debug = False
         cc = get_cc()
@@ -266,10 +269,12 @@ class ConfigDlg(object):
         self.drop_style.SetToolTipString(_("Select an existing css style file"))
         # Output details
         # report
-        self.txt_report_file = wx.TextCtrl(panel, -1, 
-                                    cc[mg.CURRENT_REPORT_PATH], size=(300,-1))
+        if not report_file:
+            report_file = cc[mg.CURRENT_REPORT_PATH]
+        self.txt_report_file = wx.TextCtrl(panel, -1, report_file, 
+                                           size=(300,-1))
         self.txt_report_file.Bind(wx.EVT_KILL_FOCUS, 
-                                self.on_report_file_lost_focus)
+                                  self.on_report_file_lost_focus)
         self.txt_report_file.Enable(not self.readonly)
         self.btn_report_path = wx.Button(panel, -1, browse)
         self.btn_report_path.Bind(wx.EVT_BUTTON, self.on_btn_report_path)
@@ -534,8 +539,8 @@ class ConfigDlg(object):
     def update_css(self):
         "Update css, including for demo table"
         cc = get_cc()
-        cc[mg.CURRENT_CSS_PATH] = \
-            style2path(self.drop_style.GetStringSelection())
+        style = self.drop_style.GetStringSelection()
+        cc[mg.CURRENT_CSS_PATH] = style2path(style)
         
     # explanation level
     def get_szr_level(self, panel):
@@ -551,8 +556,14 @@ class ConfigDlg(object):
         event.Skip()
 
 def add_icon(frame):
+    """
+    Probably best to add largest first: http://stackoverflow.com/questions/...
+    ...525329/embedding-icon-in-exe-with-py2exe-visible-in-vista/6198910#6198910
+    """
     ib = wx.IconBundle()
-    icon_path = os.path.join(mg.SCRIPT_PATH, u"images", u"tinysofa.xpm")
-    ib.AddIconFromFile(icon_path, wx.BITMAP_TYPE_XPM)
+    for sz in [128, 64, 48, 32, 16]:
+        icon_path = os.path.join(mg.SCRIPT_PATH, u"images", 
+                                 u"sofastats_%s.xpm" % sz)
+        ib.AddIconFromFile(icon_path, wx.BITMAP_TYPE_XPM)
     frame.SetIcons(ib)
     

@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 import codecs
+# Windows installers http://www.voidspace.org.uk/python/modules.shtml#pycrypto
 from Crypto.Cipher import DES
 import datetime
 import decimal

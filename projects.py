@@ -469,7 +469,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         # CONFIG
         # mixin supplying self.szr_config
         self.szr_config = self.get_config_szr(self.panel_config, 
-                                              readonly=self.readonly)
+                                              readonly=self.readonly, 
+                                              report_file=self.fil_report)
         self.szr_config_outer.Add(self.szr_config, 0, wx.GROW|wx.ALL, 10)
         self.panel_config.SetSizer(self.szr_config_outer)
         self.szr_config_outer.SetSizeHints(self.panel_config)
@@ -491,6 +492,10 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         self.txt_name.SetFocus()
     
     def set_defaults(self, fil_proj):
+        """
+        If a proj file, grabs default settings from there and stores as 
+            attributes of dialog via get_proj_settings().
+        """
         if fil_proj:
             self.new_proj = False
             self.get_proj_settings(fil_proj)
@@ -498,7 +503,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             # prepopulate with default settings
             self.get_proj_settings(fil_proj=mg.DEFAULT_PROJ)
             self.proj_name = mg.EMPTY_PROJ_NAME
-            self.proj_notes = _("The internal sofa_db is added by default.  It "
+            self.proj_notes = _("The internal sofa_db is added by default. It "
                 u"is needed to allow you to add new tables to SOFA Statistics")
             self.new_proj = True
         try:
@@ -676,6 +681,10 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         # (MUST come after Destroy)
        
     def on_ok(self, event):
+        """
+        If not read-only, writes settings to proj file.
+        Name, notes and report are all taken from the text in the text boxes.
+        """
         # get the data (separated for easier debugging)
         cc = config_dlg.get_cc()
         proj_name = self.txt_name.GetValue()
@@ -697,17 +706,8 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
                 my_exceptions.DoNothingException("Only needed if returning to "
                                     "projselect form so OK to fail otherwise.")
             proj_notes = self.txt_proj_notes.GetValue()
-            
-            
-            
-            
             fil_var_dets = cc[mg.CURRENT_VDTS_PATH]
             fil_script = cc[mg.CURRENT_SCRIPT_PATH]
-            
-            
-            
-            
-            
             style = self.drop_style.GetStringSelection()
             fil_css = config_dlg.style2path(style)
             fil_report = self.txt_report_file.GetValue()
