@@ -86,8 +86,8 @@ import my_exceptions
 if show_early_steps: print(u"Imported my_exceptions successfully.")
 import config_globals
 if show_early_steps: print(u"Imported config_globals successfully.")
-import config_dlg
-if show_early_steps: print(u"Imported config_dlg successfully.")
+import config_output
+if show_early_steps: print(u"Imported config_output successfully.")
 import getdata
 if show_early_steps: print(u"Imported getdata successfully.")
 import projects
@@ -449,7 +449,7 @@ class StartFrame(wx.Frame):
                             self.active_proj)
             raise # for debugging
         try:
-            config_dlg.add_icon(frame=self)
+            config_output.add_icon(frame=self)
             if show_more_steps: print(u"Added icon to frame")
         except Exception, e:
             lib.safe_end_cursor()

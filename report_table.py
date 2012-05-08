@@ -11,7 +11,7 @@ import my_globals as mg
 import lib
 import my_exceptions
 import getdata
-import config_dlg
+import config_output
 import demotables
 import dimtree
 import full_html
@@ -98,23 +98,23 @@ def get_missing_dets_msg(tab_type, has_rows, has_cols):
         raise Exception(u"Unknown table type")
 
 
-class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
+class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
     """
-    ConfigDlg - provides reusable interface for data selection, setting labels 
-        etc.  Sets values for db, default_tbl etc and responds to selections 
-        etc.
+    ConfigUI -- provides reusable interface for data selection, setting labels 
+        etc. Sets values for db, default_tbl etc and responds to selections etc.
     self.col_no_vars_item -- the column item when there are no column variables,
         only columns related to the row variables e.g. total, row and col %s.
     """
     
     def __init__(self, var_labels=None, var_notes=None, val_dics=None):
         debug = False
-        cc = config_dlg.get_cc()
+        cc = config_output.get_cc()
         wx.Dialog.__init__(self, parent=None, id=-1, 
                        title=_("Make Report Table"), 
                        pos=(mg.HORIZ_OFFSET, 0), # -1 positions too low on 768v
                        style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
                        wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
+        config_output.ConfigUI.__init__(autoupdate=True)
         dimtree.DimTree.__init__(self)
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.url_load = True # btn_expand    
@@ -124,7 +124,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             # reset to None if deleted all col vars
         # set up panel for frame
         self.panel = wx.Panel(self)
-        config_dlg.add_icon(frame=self)
+        config_output.add_icon(frame=self)
         # sizers
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_top = wx.BoxSizer(wx.HORIZONTAL)
@@ -320,8 +320,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
 
     def update_css(self):
         "Update css, including for demo table"
-        cc = config_dlg.get_cc()
-        config_dlg.ConfigDlg.update_css(self)
+        cc = config_output.get_cc()
+        config_output.ConfigUI.update_css(self)
         self.demo_tab.fil_css = cc[mg.CURRENT_CSS_PATH]
         self.update_demo_display()
     
@@ -332,7 +332,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             fields, has_unique, and idxs after a database selection.
         Clear dim areas.
         """
-        config_dlg.ConfigDlg.on_database_sel(self, event)
+        config_output.ConfigUI.on_database_sel(self, event)
         self.data_changed()
         
     def on_table_sel(self, event):
@@ -340,7 +340,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         Reset table, fields, has_unique, and idxs.
         Clear dim areas.
         """       
-        config_dlg.ConfigDlg.on_table_sel(self, event)
+        config_output.ConfigUI.on_table_sel(self, event)
         self.data_changed()
     
     def data_changed(self):
@@ -366,7 +366,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         
     def update_var_dets(self, update_display=True):
         "Update all labels, including those already displayed"
-        config_dlg.ConfigDlg.update_var_dets(self)
+        config_output.ConfigUI.update_var_dets(self)
         # update dim trees
         rowdescendants = lib.get_tree_ctrl_descendants(self.rowtree, 
                                                        self.rowroot)
@@ -536,8 +536,8 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         """
         run_ok, has_cols = self.table_config_ok()
         if run_ok:
-            config_dlg.ConfigDlg.on_btn_run(self, event, OUTPUT_MODULES, 
-                                            get_script_args=[has_cols,])
+            config_output.ConfigUI.on_btn_run(self, event, OUTPUT_MODULES, 
+                                              get_script_args=[has_cols,])
     
     # export script
     def on_btn_script(self, event):
@@ -831,7 +831,7 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
             else:
                 demo_tbl_html = (_("<p class='gui-msg-medium'>Example data - "
                        "click '%s' for actual results<br>&nbsp;&nbsp;or "
-                       "keep configuring</p>") % config_dlg.run)
+                       "keep configuring</p>") % config_output.run)
                 demo_tbl_html += u"\n\n" + demo_html
                 self.prev_demo = demo_tbl_html
         if debug: print(u"\n" + demo_tbl_html + "\n")
@@ -892,6 +892,6 @@ class DlgMakeTable(wx.Dialog, config_dlg.ConfigDlg, dimtree.DimTree):
         """
         Variable details may have changed e.g. variable and value labels.
         """
-        ret = config_dlg.ConfigDlg.on_btn_config(self, event)
+        ret = config_output.ConfigUI.on_btn_config(self, event)
         update_display = (ret != wx.ID_CANCEL)
         self.update_var_dets(update_display)

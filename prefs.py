@@ -7,7 +7,7 @@ import pprint
 import wx
 
 import my_globals as mg
-import config_dlg
+import config_output
 import config_globals
 
 
@@ -37,7 +37,8 @@ class PrefsDlg(wx.Dialog):
         self.szr_versions = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_versions.Add(self.rad_versions, 0, wx.RIGHT, 10)
         self.rad_versions.Enable(True)
-        self.szr_level = config_dlg.get_szr_level(self, self.panel, horiz=False)
+        self.szr_level = config_output.get_szr_level(self, self.panel, 
+                                                     horiz=False)
         self.szr_main.Add(self.szr_versions, 0, wx.ALL, 10)
         self.szr_main.Add(self.szr_level, 0, wx.ALL, 10)
         self.setup_btns()

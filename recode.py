@@ -6,7 +6,7 @@ import wx
 
 import my_globals as mg
 import lib
-import config_dlg
+import config_output
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
 import projects
@@ -268,7 +268,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             mg.TBL_FLDNAME, mg.TBL_FLDNAME_ORIG, mg.TBL_FLDTYPE, 
             mg.TBL_FLDTYPE_ORIG.
         """
-        cc = config_dlg.get_cc()
+        cc = config_output.get_cc()
         self.tblname = tblname
         self.warned = [] # For cell_response_func.  Lists vars warned about.
         col_dets = [

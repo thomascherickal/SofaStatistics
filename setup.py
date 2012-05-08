@@ -633,8 +633,8 @@ def setup_folders():
 
 # local importing
 try:
-    about = u"config_dlg"
-    import config_dlg # actually uses proj dict and connects to sofa_db. Thus
+    about = u"config_output"
+    import config_output # actually uses proj dict and connects to sofa_db. Thus
         # can't rely on wx.msgboxes etc because wx.App not up yet
     about = u"full_html"
     import full_html

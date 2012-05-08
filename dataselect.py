@@ -5,7 +5,7 @@ import wx
 import my_globals as mg
 import config_globals
 import lib
-import config_dlg
+import config_output
 import db_grid
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
@@ -90,9 +90,10 @@ class DataSelectDlg(wx.Dialog):
         lib.safe_end_cursor()
 
     def update_var_dets(self):
-        cc = config_dlg.get_cc()
-        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-                                    lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
+        cc = config_output.get_cc()
+        (self.var_labels, self.var_notes, 
+         self.var_types, 
+         self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
 
     def add_feedback(self, feedback):
         self.lbl_feedback.SetLabel(feedback)

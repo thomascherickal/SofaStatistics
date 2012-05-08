@@ -15,14 +15,14 @@ except my_exceptions.MatplotlibBackendException, e:
 import pylab # must import after wxmpl so matplotlib.use() is always first
 
 import charting_pylab
-import config_dlg
+import config_output
 import core_stats
 import getdata
 import full_html
 import projects
 
 
-class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
+class NormalityDlg(wx.Dialog, config_output.ConfigUI):
     
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics):
         wx.Dialog.__init__(self, parent=parent, title=_("Normal Data?"),
@@ -30,6 +30,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
                            wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
                            wx.CAPTION|wx.CLIP_CHILDREN)
+        config_output.ConfigUI.__init__(autoupdate=True)
         self.Bind(wx.EVT_CLOSE, self.on_ok)
         # the following properties all required to utilise get_szr_data
         self.var_labels = var_labels
@@ -197,19 +198,19 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
         event.Skip()
 
     def on_database_sel(self, event):
-        config_dlg.ConfigDlg.on_database_sel(self, event)
+        config_output.ConfigUI.on_database_sel(self, event)
         self.setup_vars(var_a=True, var_b=self.paired)
         self.set_histo_to_blank()
         self.set_output_to_blank()
         
     def on_table_sel(self, event):
-        config_dlg.ConfigDlg.on_table_sel(self, event)
+        config_output.ConfigUI.on_table_sel(self, event)
         self.setup_vars(var_a=True, var_b=self.paired)
         self.set_histo_to_blank()
         self.set_output_to_blank()
         
     def on_rclick_tables(self, event):
-        config_dlg.ConfigDlg.on_rclick_tables(self, event)
+        config_output.ConfigUI.on_rclick_tables(self, event)
         self.update_examination()
         #event.Skip() - don't use or will appear twice in Windows!
     
@@ -234,7 +235,7 @@ class NormalityDlg(wx.Dialog, config_dlg.ConfigDlg):
             self.drop_var_b.SetSelection(idx_b)
 
     def refresh_vars(self):
-        config_dlg.ConfigDlg.update_var_dets(self)
+        config_output.ConfigUI.update_var_dets(self)
         
     def get_var_a(self):
         idx = self.drop_var_a.GetSelection()

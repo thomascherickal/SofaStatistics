@@ -6,7 +6,7 @@ import wx
 import my_globals as mg
 import config_globals
 import lib
-import config_dlg
+import config_output
 import projects
 
 
@@ -19,7 +19,7 @@ class ProjSelectDlg(wx.Dialog):
         self.parent = parent
         self.panel = wx.Panel(self)
         self.projs = projs
-        config_dlg.add_icon(frame=self)
+        config_output.add_icon(frame=self)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_main_inner = wx.BoxSizer(wx.VERTICAL)
         lbl_proj = wx.StaticText(self.panel, -1, _("Project:"))
@@ -161,8 +161,9 @@ class ProjSelectDlg(wx.Dialog):
             wx.BeginBusyCursor()
             dic2restore = dd.proj_dic
             dd.set_proj_dic(proj_dic, dic2restore)
-            cc = config_dlg.get_cc()
+            cc = config_output.get_cc()
             cc[mg.CURRENT_REPORT_PATH] = proj_dic[mg.PROJ_FIL_RPT]
+            cc[mg.CURRENT_CSS_PATH] = proj_dic[mg.PROJ_FIL_CSS]
             cc[mg.CURRENT_VDTS_PATH] = proj_dic[mg.PROJ_FIL_VDTS]
             if mg.ADVANCED:
                 cc[mg.CURRENT_SCRIPT_PATH] = proj_dic[mg.PROJ_FIL_SCRIPT]

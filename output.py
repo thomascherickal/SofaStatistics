@@ -57,7 +57,7 @@ import wx
 import my_globals as mg
 import lib
 import my_exceptions
-import config_dlg
+import config_output
 import showhtml
 
 # do not use os.linesep for anything going to be read and exec'd
@@ -418,7 +418,7 @@ def get_css_dets():
     If not there (empty report or manually broken by user?) make and use a new
         one using cc[mg.CURRENT_CSS_PATH].
     """
-    cc = config_dlg.get_cc()
+    cc = config_output.get_cc()
     if not os.path.exists(cc[mg.CURRENT_CSS_PATH]):
         ret = wx.MessageBox(_("The CSS style file '%s' doesn't exist. "
                             "Continue using the default style instead?") % 
@@ -654,7 +654,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
         integers.
     """
     debug = False
-    cc = config_dlg.get_cc()
+    cc = config_output.get_cc()
     new_no_hdr = extract_html_body(new_html)
     new_js_n_charts = None # init
     n_charts_in_new = get_makechartRenumbers_n(new_html)
@@ -723,7 +723,7 @@ def _strip_script(script):
 
 def export_script(script, css_fils, new_has_dojo=False):
     dd = mg.DATADETS_OBJ
-    cc = config_dlg.get_cc()
+    cc = config_output.get_cc()
     modules = ["my_globals as mg", "core_stats", "dimtables", "getdata", 
                "output", "rawtables", "stats_output"]
     if os.path.exists(cc[mg.CURRENT_SCRIPT_PATH]):
@@ -849,7 +849,7 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     """
     debug = False
     dd = mg.DATADETS_OBJ
-    cc = config_dlg.get_cc()
+    cc = config_output.get_cc()
     # generate script
     try:
         f = codecs.open(mg.INT_SCRIPT_PATH, "w", "utf-8")

@@ -175,10 +175,10 @@ USE_SQLITE_UDFS = False # set to true if unable to open default database -
 # even open).  Delete it and restore this to False. 
 SOFA_DB = u"sofa_db"
 DEMO_TBL = u"demo_tbl"
-PROJ_FIL_VDTS = u"fil_var_dets"
 PROJ_FIL_RPT = u"fil_report"
-PROJ_FIL_SCRIPT = u"fil_script"
 PROJ_FIL_CSS = u"fil_css"
+PROJ_FIL_VDTS = u"fil_var_dets"
+PROJ_FIL_SCRIPT = u"fil_script"
 
 # no unicode keys for 2.6 bug http://bugs.python.org/issue2646
 PROJ_CON_DETS = "con_dets"
@@ -253,9 +253,9 @@ CURRENT_CONFIG = None
 CURRENT_REPORT_PATH = u"current_report_path"
 CURRENT_CSS_PATH = u"current_css_path"
 CURRENT_VDTS_PATH = u"current_vdts_path"
+CURRENT_SCRIPT_PATH = u"current_script_path"
 VDT_RET = u"vdt_ret"
 SCRIPT_RET = u"script_ret"
-CURRENT_SCRIPT_PATH = u"current_script_path"
 VAR_TYPE_CAT = _("Nominal (names only)")
 VAR_TYPE_ORD = _("Ordinal (rank only)")
 VAR_TYPE_QUANT = _("Quantity (is an amount)")

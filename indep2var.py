@@ -9,7 +9,7 @@ import my_globals as mg
 import lib
 import my_exceptions
 import getdata
-import config_dlg
+import config_output
 import full_html
 import output
 import projects
@@ -39,21 +39,22 @@ def get_range_idxs(vals, val_a, val_b):
     return idx_val_a, idx_val_b
 
 
-class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
+class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
     """
-    ConfigDlg - provides reusable interface for data selection, setting labels, 
+    ConfigUI - provides reusable interface for data selection, setting labels, 
         exporting scripts buttons etc.  Sets values for db, default_tbl etc and 
         responds to selections etc.
     """
     inc_gp_by_select = False
     
     def __init__(self, title, takes_range=False):
-        cc = config_dlg.get_cc()
+        cc = config_output.get_cc()
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
                            pos=(mg.HORIZ_OFFSET, 0), 
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|
                            wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
                            wx.CAPTION|wx.CLIP_CHILDREN)
+        config_output.ConfigUI.__init__(autoupdate=True)
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.takes_range = takes_range
         self.url_load = True # btn_expand
@@ -65,7 +66,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         bx_desc = wx.StaticBox(self.panel, -1, _("Purpose"))
         bx_vars = wx.StaticBox(self.panel, -1, _("Variables"))
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
-        config_dlg.add_icon(frame=self)
+        config_output.add_icon(frame=self)
         szr_top = wx.BoxSizer(wx.HORIZONTAL)
         # mixins
         self.szr_data, self.szr_config = self.get_gen_config_szrs(self.panel) 
@@ -219,7 +220,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         """
         Extend to pass on filter changes to group by val options a and b.
         """
-        config_dlg.ConfigDlg.on_rclick_tables(self, event)
+        config_output.ConfigUI.on_rclick_tables(self, event)
         self.refresh_vals()
         # event.Skip() - don't use or will appear twice in Windows!
 
@@ -263,7 +264,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         Reset dbe, database, cursor, tables, table, tables dropdown, 
             fields, has_unique, and idxs after a database selection.
         """
-        config_dlg.ConfigDlg.on_database_sel(self, event)
+        config_output.ConfigUI.on_database_sel(self, event)
         # now update var dropdowns
         self.update_var_dets()
         self.setup_group_by()
@@ -273,7 +274,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
                 
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
-        config_dlg.ConfigDlg.on_table_sel(self, event)
+        config_output.ConfigUI.on_table_sel(self, event)
         # now update var dropdowns
         self.update_var_dets()
         self.setup_group_by()
@@ -288,7 +289,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
         """
         val_a, val_b = self.get_vals()
         var_gp, var_avg = self.get_vars()
-        config_dlg.ConfigDlg.on_btn_config(self, event)
+        config_output.ConfigUI.on_btn_config(self, event)
         self.setup_group_by(var_gp)
         self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT, 
                        self.sorted_var_names_avg, var_avg)
@@ -552,14 +553,14 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             putting output in special location (INT_REPORT_PATH) and into report 
             file, and finally, display html output.
         """
-        cc = config_dlg.get_cc()
+        cc = config_output.get_cc()
         run_ok = self.test_config_ok()
         add_to_report = self.chk_add_to_report.IsChecked()
         if run_ok:
             get_script_args=[cc[mg.CURRENT_CSS_PATH], add_to_report,
                              cc[mg.CURRENT_REPORT_PATH]]
-            config_dlg.ConfigDlg.on_btn_run(self, event, OUTPUT_MODULES, 
-                                            get_script_args)
+            config_output.ConfigUI.on_btn_run(self, event, OUTPUT_MODULES, 
+                                              get_script_args)
     
     def test_config_ok(self):
         """
@@ -609,7 +610,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_dlg.ConfigDlg):
             the new exported script.
         If the file exists and is not empty, append the script on the end.
         """
-        cc = config_dlg.get_cc()
+        cc = config_output.get_cc()
         export_ok = self.test_config_ok()
         if export_ok:
             add_to_report = self.chk_add_to_report.IsChecked()

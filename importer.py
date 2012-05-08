@@ -9,7 +9,7 @@ import wx.html
 import my_globals as mg
 import lib
 import my_exceptions
-import config_dlg
+import config_output
 import getdata # must be before anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 # import csv_importer etc below to avoid circular import
@@ -827,7 +827,7 @@ class ImportFileSelectDlg(wx.Dialog):
         self.import_status = {mg.CANCEL_IMPORT: False} # can change and 
                                             # running script can check on it.
         self.file_type = FILE_UNKNOWN
-        config_dlg.add_icon(frame=self)
+        config_output.add_icon(frame=self)
         lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         # file path

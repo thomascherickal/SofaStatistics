@@ -4,7 +4,7 @@ import wx
 import my_globals as mg
 import lib
 import my_exceptions
-import config_dlg
+import config_output
 import normal
 import projects
 
@@ -75,7 +75,7 @@ class StatsSelectDlg(wx.Dialog):
         self.panel = wx.Panel(self, size=(self.form_width,self.form_height))
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)        
-        config_dlg.add_icon(frame=self)
+        config_output.add_icon(frame=self)
         self.Bind(wx.EVT_CLOSE, self.on_close_click)
         # background image
         if not self.tight_layout:
@@ -384,7 +384,7 @@ class StatsSelectDlg(wx.Dialog):
               "Table") % self.groups_label)
     
     def examine_normality(self):
-        cc = config_dlg.get_cc()
+        cc = config_output.get_cc()
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         dlg = normal.NormalityDlg(self, self.var_labels, self.var_notes, 
@@ -470,7 +470,7 @@ class StatsSelectDlg(wx.Dialog):
         event.Skip()
     
     def on_type_btn(self, event):
-        cc = config_dlg.get_cc()
+        cc = config_output.get_cc()
         updated = set() # will get populated with a True to indicate update
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])

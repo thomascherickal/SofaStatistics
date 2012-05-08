@@ -7,7 +7,7 @@ import wx
 import my_globals as mg
 import lib
 import my_exceptions
-import config_dlg
+import config_output
 import full_html
 import indep2var
 import projects
@@ -36,7 +36,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     
     def __init__(self, title, takes_range=False):
         # see http://old.nabble.com/wx.StaticBoxSizer-td21662703.html
-        cc = config_dlg.get_cc()
+        cc = config_output.get_cc()
         if mg.MAX_HEIGHT <= 620:
             myheight = 600
         elif mg.MAX_HEIGHT <= 870:
@@ -57,7 +57,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         variables_rc_msg = _("Right click variables to view/edit details")
-        config_dlg.add_icon(frame=self)
+        config_output.add_icon(frame=self)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         # top panel
         self.panel_top = wx.Panel(self)
@@ -876,16 +876,16 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
 
     def on_btn_run(self, event):
         # get settings
-        cc = config_dlg.get_cc()
+        cc = config_output.get_cc()
         if self.chart_type not in []:
             run_ok = self.test_config_ok()
             add_to_report = self.chk_add_to_report.IsChecked()
             if run_ok:
                 get_script_args=[cc[mg.CURRENT_CSS_PATH], add_to_report,
                                  cc[mg.CURRENT_REPORT_PATH]]
-                config_dlg.ConfigDlg.on_btn_run(self, event, OUTPUT_MODULES, 
-                                                get_script_args, 
-                                                new_has_dojo=True)
+                config_output.ConfigUI.on_btn_run(self, event, OUTPUT_MODULES, 
+                                                  get_script_args, 
+                                                  new_has_dojo=True)
         else:
             wx.MessageBox(LIMITS_MSG)
 
@@ -958,7 +958,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         Reset dbe, database, cursor, tables, table, tables dropdown, 
             fields, has_unique, and idxs after a database selection.
         """
-        config_dlg.ConfigDlg.on_database_sel(self, event)
+        config_output.ConfigUI.on_database_sel(self, event)
         # now update var dropdowns
         self.update_var_dets()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1,
@@ -974,7 +974,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
-        config_dlg.ConfigDlg.on_table_sel(self, event)
+        config_output.ConfigUI.on_table_sel(self, event)
         # now update var dropdowns
         self.update_var_dets()
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1,
@@ -994,7 +994,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             position may have changed.
         """
         varname1, varname2, varname3 = self.get_vars()
-        config_dlg.ConfigDlg.on_btn_config(self, event)
+        config_output.ConfigUI.on_btn_config(self, event)
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
                        varname1, override_min_data_type=self.min_data_type1)
         inc_drop_select = (self.chart_type in mg.OPTIONAL_ONE_VAR_CHART_TYPES)

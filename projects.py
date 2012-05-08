@@ -9,7 +9,7 @@ import my_globals as mg
 import lib
 import my_exceptions
 import getdata
-import config_dlg
+import config_output
 import settings_grid
 
 def get_projs():
@@ -59,7 +59,7 @@ def update_val_labels(val_dics, var_name, val_type, keyvals):
     
 def update_vdt(var_labels, var_notes, var_types, val_dics):
     # update lbl file
-    cc = config_dlg.get_cc()
+    cc = config_output.get_cc()
     f = codecs.open(cc[mg.CURRENT_VDTS_PATH], "w", encoding="utf-8")
     f.write(u"\nvar_labels=" + lib.dic2unicode(var_labels))
     f.write(u"\nvar_notes=" + lib.dic2unicode(var_notes))
@@ -354,8 +354,9 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         self.SetReturnCode(wx.ID_OK)
 
 
-class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
+class ProjectDlg(wx.Dialog, config_output.ConfigUI):
     def __init__(self, parent, readonly=False, fil_proj=None):
+        config_output.ConfigUI.__init__(autoupdate=False)
         self.can_run_report = False
         if mg.MAX_WIDTH <= 1024:
             mywidth = 976
@@ -643,20 +644,6 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         webbrowser.open_new_tab(url)
         event.Skip()
     
-    def on_btn_config(self, event):
-        """
-        Don't make the act of associating a proj file with a particular vdt 
-            cause anything directly by itself. Only if a project is selected, 
-            should the vdt file associated with it become "live".
-        """
-        cc = config_dlg.get_cc()
-        ret_dic = config_dlg.ConfigDlg.on_btn_config(self, event, 
-                                                     also_reset_cc_paths=False)
-        if ret_dic: # might have cancelled
-            cc[mg.CURRENT_VDTS_PATH] = ret_dic[mg.VDT_RET]
-            if mg.ADVANCED:
-                cc[mg.CURRENT_SCRIPT_PATH] = ret_dic[mg.SCRIPT_RET]
-    
     def on_delete(self, event):
         proj_name = self.txt_name.GetValue()
         if wx.MessageBox(_("Deleting a project cannot be undone. Do you want "
@@ -686,7 +673,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
         Name, notes and report are all taken from the text in the text boxes.
         """
         # get the data (separated for easier debugging)
-        cc = config_dlg.get_cc()
+        cc = config_output.get_cc()
         proj_name = self.txt_name.GetValue()
         if self.readonly:
             self.parent.store_proj_name(u"%s.proj" % proj_name)
@@ -709,7 +696,7 @@ class ProjectDlg(wx.Dialog, config_dlg.ConfigDlg):
             fil_var_dets = cc[mg.CURRENT_VDTS_PATH]
             fil_script = cc[mg.CURRENT_SCRIPT_PATH]
             style = self.drop_style.GetStringSelection()
-            fil_css = config_dlg.style2path(style)
+            fil_css = config_output.style2path(style)
             fil_report = self.txt_report_file.GetValue()
             default_dbe = mg.DBES[self.drop_default_dbe.GetSelection()]
             default_dbs = {}

@@ -8,7 +8,7 @@ import wx.grid
 import my_globals as mg
 import lib
 import my_exceptions
-import config_dlg
+import config_output
 import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import full_html
@@ -1022,7 +1022,7 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
     def __init__(self, frame, panel, readonly, grid_size, col_dets, 
                  init_settings_data, settings_data, insert_data_func=None, 
                  cell_invalidation_func=None, cell_response_func=None):
-        cc = config_dlg.get_cc()
+        cc = config_output.get_cc()
         self.frame = frame
         self.readonly = readonly
         force_focus = False

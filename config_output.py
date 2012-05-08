@@ -173,15 +173,27 @@ class ExtraOutputConfigDlg(wx.Dialog):
         dlg_get_file.Destroy()
                    
 
-class ConfigDlg(object):
+class ConfigUI(object):
     """
     The standard interface for choosing data, styles etc.
     Can get sizers ready to use complete with widgets, event methods, and even
         properties e.g. dd.con, dd.cur etc.
     Used mixin because of large number of properties set and needing to be 
-        shared.  The downside is that not always clear where something got set
+        shared. The downside is that not always clear where something got set
         when looking from the class that inherits from this mixin.
     """
+    
+    def __init__(self, autoupdate):
+        """
+        This interface is used in two cases - where we want changes to be 
+            automatically shared across all subsequent operations e.g. selecting 
+            a different style; and where we don't e.g. when modifying a project 
+            file. In the latter case, we only want changes to become global when 
+            a project is selected, not while configuring a project. We might 
+            modify a project but not select it e.g. cancel on projselect stage. 
+            Use self.autoupdate as determinant.
+        """
+        self.autoupdate = autoupdate
 
     def get_gen_config_szrs(self, panel, readonly=False):
         """
@@ -311,13 +323,13 @@ class ConfigDlg(object):
         (self.var_labels, self.var_notes, self.var_types, 
                      self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
     
-    def on_btn_config(self, event, also_reset_cc_paths=True):
+    def on_btn_config(self, event):
         cc = get_cc()
         ret_dic = {}
         dlg = ExtraOutputConfigDlg(parent=self, readonly=self.readonly, 
                                    ret_dic=ret_dic)
         ret = dlg.ShowModal()
-        if ret==wx.ID_OK and also_reset_cc_paths:
+        if ret==wx.ID_OK and self.autoupdate:
             cc[mg.CURRENT_VDTS_PATH] = ret_dic[mg.VDT_RET]
             if mg.ADVANCED:
                 cc[mg.CURRENT_SCRIPT_PATH] = ret_dic[mg.SCRIPT_RET]
@@ -452,7 +464,8 @@ class ConfigDlg(object):
         if dlg_get_file.ShowModal() == wx.ID_OK:
             new_rpt_pth = u"%s" % dlg_get_file.GetPath()
             new_rpt = os.path.split(new_rpt_pth)[1]
-            cc[mg.CURRENT_REPORT_PATH] = new_rpt_pth
+            if self.autoupdate:
+                cc[mg.CURRENT_REPORT_PATH] = new_rpt_pth
             self.txt_report_file.SetValue(new_rpt_pth)
             wx.MessageBox(_(u"Please note that any SOFA Charts you add "
                 u"to \"%(new_rpt)s\" won't display unless the "
@@ -527,8 +540,9 @@ class ConfigDlg(object):
 
     def on_report_file_lost_focus(self, event):
         "Reset report output file"
-        cc = get_cc()
-        cc[mg.CURRENT_REPORT_PATH] = self.txt_report_file.GetValue()
+        if self.autoupdate:
+            cc = get_cc()
+            cc[mg.CURRENT_REPORT_PATH] = self.txt_report_file.GetValue()
         event.Skip()
     
     # table style
@@ -538,9 +552,10 @@ class ConfigDlg(object):
     
     def update_css(self):
         "Update css, including for demo table"
-        cc = get_cc()
-        style = self.drop_style.GetStringSelection()
-        cc[mg.CURRENT_CSS_PATH] = style2path(style)
+        if self.autoupdate:
+            cc = get_cc()
+            style = self.drop_style.GetStringSelection()
+            cc[mg.CURRENT_CSS_PATH] = style2path(style)
         
     # explanation level
     def get_szr_level(self, panel):
