@@ -392,6 +392,8 @@ class ProjectDlg(wx.Dialog, config_output.ConfigUI):
         self.readonly = readonly
         self.new = (fil_proj is None)
         self.set_defaults(fil_proj)
+        self.set_extra_dets(vdt_file=self.fil_var_dets, 
+                            script_file=self.script_file) # so opens proj settings
         getdata.set_con_det_defaults(self)
         # misc
         lblfont = wx.Font(9, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -471,7 +473,8 @@ class ProjectDlg(wx.Dialog, config_output.ConfigUI):
         # mixin supplying self.szr_config
         self.szr_config = self.get_config_szr(self.panel_config, 
                                               readonly=self.readonly, 
-                                              report_file=self.fil_report)
+                                              report_file=self.fil_report,
+                                              css_file=self.fil_css)
         self.szr_config_outer.Add(self.szr_config, 0, wx.GROW|wx.ALL, 10)
         self.panel_config.SetSizer(self.szr_config_outer)
         self.szr_config_outer.SetSizeHints(self.panel_config)
@@ -634,6 +637,15 @@ class ProjectDlg(wx.Dialog, config_output.ConfigUI):
         if not self.readonly and not self.new:
             self.szr_btns.Insert(0, btn_delete, 0)
 
+    def on_btn_config(self, event):
+        ret_dic = config_output.ConfigUI.on_btn_config(self, event)
+        self.vdt_file = ret_dic[mg.VDT_RET]
+        if mg.ADVANCED:
+            self.script_file = ret_dic[mg.SCRIPT_RET]
+        self.set_extra_dets(vdt_file=self.vdt_file, 
+                            script_file=self.script_file) # so opens proj 
+            # settings with these same settings even if not saved yet.
+
     def on_btn_help(self, event):
         """
         Export script if enough data to create table.
@@ -673,7 +685,6 @@ class ProjectDlg(wx.Dialog, config_output.ConfigUI):
         Name, notes and report are all taken from the text in the text boxes.
         """
         # get the data (separated for easier debugging)
-        cc = config_output.get_cc()
         proj_name = self.txt_name.GetValue()
         if self.readonly:
             self.parent.store_proj_name(u"%s.proj" % proj_name)
@@ -693,8 +704,8 @@ class ProjectDlg(wx.Dialog, config_output.ConfigUI):
                 my_exceptions.DoNothingException("Only needed if returning to "
                                     "projselect form so OK to fail otherwise.")
             proj_notes = self.txt_proj_notes.GetValue()
-            fil_var_dets = cc[mg.CURRENT_VDTS_PATH]
-            fil_script = cc[mg.CURRENT_SCRIPT_PATH]
+            fil_var_dets = self.vdt_file
+            fil_script = self.script_file if self.script_file else ""
             style = self.drop_style.GetStringSelection()
             fil_css = config_output.style2path(style)
             fil_report = self.txt_report_file.GetValue()

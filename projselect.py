@@ -115,11 +115,13 @@ class ProjSelectDlg(wx.Dialog):
     def on_edit(self,event):
         proj_sel_id = self.drop_projs.GetSelection()
         readonly = (self.projs[proj_sel_id] == mg.DEFAULT_PROJ)
+        fil_proj = self.projs[self.drop_projs.GetSelection()]
         try:
             dlgProj = projects.ProjectDlg(parent=self, readonly=readonly,
-                          fil_proj=self.projs[self.drop_projs.GetSelection()])
-        except Exception:
-            raise
+                                          fil_proj=fil_proj)
+        except Exception, e:
+            wx.MessageBox("Unable to open project dialog for %s. Orig error: %s" 
+                          % (fil_proj, e))
             return
         # refresh projects list and display accordingly
         ret = dlgProj.ShowModal()

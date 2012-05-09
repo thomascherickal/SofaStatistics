@@ -58,7 +58,8 @@ def path2style(path):
 
 
 class ExtraOutputConfigDlg(wx.Dialog):
-    def __init__(self, parent, readonly, ret_dic):
+    def __init__(self, parent, readonly, ret_dic, vdt_file=None, 
+                 script_file=None):
         cc = get_cc()
         wx.Dialog.__init__(self, parent=parent, 
                            title=_("Extra output settings"), 
@@ -68,9 +69,10 @@ class ExtraOutputConfigDlg(wx.Dialog):
         self.panel = wx.Panel(self)
         self.ret_dic = ret_dic
         bx_var_config = wx.StaticBox(self.panel, -1, 
-                                     _("Variable config from ... "))    
-        self.txt_var_dets_file = wx.TextCtrl(self.panel, -1, 
-                                        cc[mg.CURRENT_VDTS_PATH], size=(500,-1))
+                                     _("Variable config from ... "))
+        vdt2use = (vdt_file if vdt_file else cc[mg.CURRENT_VDTS_PATH])
+        self.txt_var_dets_file = wx.TextCtrl(self.panel, -1, vdt2use, 
+                                             size=(500,-1))
         self.txt_var_dets_file.Enable(not readonly)
         # Data config details
         browse = _("Browse")
@@ -83,9 +85,10 @@ class ExtraOutputConfigDlg(wx.Dialog):
             bx_script_config = wx.StaticBox(self.panel, -1, 
                                             _("Export script here to reuse "))
             # script
-            self.txt_script_file = wx.TextCtrl(self.panel, -1, 
-                                          cc[mg.CURRENT_SCRIPT_PATH], 
-                                          size=(500,-1))
+            script2use = (script_file if script_file 
+                          else cc[mg.CURRENT_SCRIPT_PATH])
+            self.txt_script_file = wx.TextCtrl(self.panel, -1, script2use, 
+                                               size=(500,-1))
             self.txt_script_file.Enable(False)
             self.btn_script_path = wx.Button(self.panel, -1, browse)
             self.btn_script_path.Bind(wx.EVT_BUTTON, self.on_btn_script_path)
@@ -196,6 +199,9 @@ class ConfigUI(object):
         debug = False
         if debug: print("autoupdate got set")
         self.autoupdate = autoupdate
+        # init
+        self.vdt_file = None
+        self.script_file = None
 
     def get_gen_config_szrs(self, panel, readonly=False):
         """
@@ -252,8 +258,13 @@ class ConfigUI(object):
         self.szr_data.Add(self.btn_open, 0, wx.RIGHT, 10)
         self.szr_data.Add(btn_filter, 0)
         return self.szr_data
-              
-    def get_config_szr(self, panel, readonly=False, report_file=None):
+    
+    def set_extra_dets(self, vdt_file, script_file):          
+        self.vdt_file = vdt_file
+        self.script_file = script_file
+        
+    def get_config_szr(self, panel, readonly=False, report_file=None, 
+                       css_file=None):
         """
         Returns self.szr_config (reports and css) complete with widgets.
         Widgets include textboxes plus Browse buttons for output and style.
@@ -276,7 +287,9 @@ class ConfigUI(object):
                          if x.endswith(u".css")]
         style_choices.sort()
         self.drop_style = wx.Choice(panel, -1, choices=style_choices)
-        idx_fil_css = style_choices.index(path2style(cc[mg.CURRENT_CSS_PATH]))
+        style = (path2style(css_file) if css_file 
+                 else path2style(cc[mg.CURRENT_CSS_PATH]))
+        idx_fil_css = style_choices.index(style)
         self.drop_style.SetSelection(idx_fil_css)
         self.drop_style.Bind(wx.EVT_CHOICE, self.on_drop_style)
         self.drop_style.Enable(not self.readonly)
@@ -329,7 +342,8 @@ class ConfigUI(object):
         cc = get_cc()
         ret_dic = {}
         dlg = ExtraOutputConfigDlg(parent=self, readonly=self.readonly, 
-                                   ret_dic=ret_dic)
+                                   ret_dic=ret_dic, vdt_file=self.vdt_file, 
+                                   script_file=self.script_file)
         ret = dlg.ShowModal()
         if ret==wx.ID_OK and self.autoupdate:
             cc[mg.CURRENT_VDTS_PATH] = ret_dic[mg.VDT_RET]
