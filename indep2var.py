@@ -49,10 +49,16 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
     
     def __init__(self, title, takes_range=False):
         cc = config_output.get_cc()
+        if mg.MAX_HEIGHT <= 620:
+            myheight = 600
+        elif mg.MAX_HEIGHT <= 870:
+            myheight = mg.MAX_HEIGHT - 70
+        else:
+            myheight = 800
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
-                           pos=(mg.HORIZ_OFFSET, 0), 
+                           pos=(mg.HORIZ_OFFSET, 0), size=(1024, myheight),
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|
-                           wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
+                           wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|
                            wx.CAPTION|wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self,autoupdate=True)
         self.Bind(wx.EVT_CLOSE, self.on_close)

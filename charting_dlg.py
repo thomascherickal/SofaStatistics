@@ -34,20 +34,23 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     inc_gp_by_select = True
     range_gps = False
     
-    def __init__(self, title, takes_range=False):
+    def __init__(self, title):
         # see http://old.nabble.com/wx.StaticBoxSizer-td21662703.html
-        cc = config_output.get_cc()
         if mg.MAX_HEIGHT <= 620:
             myheight = 600
         elif mg.MAX_HEIGHT <= 870:
             myheight = mg.MAX_HEIGHT - 70
         else:
             myheight = 800
+        # can't use indep2var.DlgIndep2VarConfig - too many differences
+        # so must init everything manually here
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
-                           pos=(mg.HORIZ_OFFSET, 0), size=(1024, myheight),
-                           style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
-                           wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
-                           wx.CAPTION|wx.CLIP_CHILDREN)
+                   pos=(mg.HORIZ_OFFSET, 0), size=(1024, myheight),
+                   style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|
+                   wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|
+                   wx.CAPTION|wx.CLIP_CHILDREN)
+        config_output.ConfigUI.__init__(self, autoupdate=True)
+        cc = config_output.get_cc()
         SHOW_AVG = False
         INC_PERC = True
         self.min_data_type = None # not used here - need fine-grained control of 

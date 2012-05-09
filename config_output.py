@@ -193,6 +193,8 @@ class ConfigUI(object):
             modify a project but not select it e.g. cancel on projselect stage. 
             Use self.autoupdate as determinant.
         """
+        debug = False
+        if debug: print("autoupdate got set")
         self.autoupdate = autoupdate
 
     def get_gen_config_szrs(self, panel, readonly=False):
