@@ -1610,9 +1610,18 @@ class DlgGetRegistration(wx.Dialog):
 
 
 def valid_username_id(username, id):
-    # id must be a hash of the username
-    # in web database will use http://php.net/manual/en/function.crypt.php
-    is_valid = (hashlib.sha1(username).hexdigest() == id)
+    """
+    id must be a hash of the username
+    in web database will use http://php.net/manual/en/function.crypt.php
+    http://www.velocityreviews.com/forums/t646428-unicode-and-hashlib.html
+    """
+    debug = False
+    hashed_username = hashlib.sha1(username.encode("utf-8")).hexdigest()
+    if debug:
+        print(u"username: %s" % username)
+        print(u"id: %s" % id)
+        print(u"hashed_username: %s" % hashed_username)
+    is_valid = (hashed_username == id)
     return is_valid
 
 
@@ -1725,7 +1734,7 @@ def wipe_all_ext_controls():
     Better to allow an unpurchase extension than prevent a user using a 
         legitimately-purchased one.
     """
-    f = codecs.open(mg.CONTROL_PATH, "w", encoding="utf-8")
+    f = open(mg.CONTROL_PATH, "wb")
     f.close()
     
 def get_iso_control_date():
@@ -1753,7 +1762,7 @@ def set_ext_control_if_missing(extension):
             mydic[mg.CONTROLVAR][extension] = get_iso_control_date()
         plain_newcont = "%s = %s" % (mg.CONTROLVAR, mydic[mg.CONTROLVAR])
         encrypted_newcont = encrypt_cont(plain_newcont)
-        f = codecs.open(mg.CONTROL_PATH, "w", encoding="utf-8")
+        f = open(mg.CONTROL_PATH, "wb")
         f.write(encrypted_newcont)
         f.close()
     except Exception, e:
@@ -1767,7 +1776,7 @@ def mk_ext_control():
     try:
         plain_newcont = "%s = {}" % (mg.CONTROLVAR)
         encrypted_newcont = encrypt_cont(plain_newcont)
-        f = codecs.open(mg.CONTROL_PATH, "w", encoding="utf-8")
+        f = open(mg.CONTROL_PATH, "wb")
         f.write(encrypted_newcont)
         f.close()
     except Exception, e:
@@ -1775,22 +1784,48 @@ def mk_ext_control():
                         u"Orig error: %s" % ue(e))
 
 def decrypt_cont(encrypted_cont):
-    # http://stackoverflow.com/questions/3815656/simple-encrypt-decrypt-lib-in-python-with-private-key
+    """
+    http://stackoverflow.com/questions/3815656/...
+    ...simple-encrypt-decrypt-lib-in-python-with-private-key
+    NB cannot read as utf-8 or use codecs.
+    """
     decrypter = DES.new(mg.LOCALPHRASE, DES.MODE_ECB)
     decrypted_cont = decrypter.decrypt(encrypted_cont).rstrip() # remove any padding added to keep length a multiple of 8 (default block size)
     return decrypted_cont
 
 def get_pad_to_8(mystr):
-    mod8 = len(mystr) % 8
+    """
+    Must pad according to byte-length, not length per se. E.g. Günther is 
+        8 bytes long.
+    """
+    debug = False
+    byte_len = len(mystr.encode("utf-8"))
+    if debug: 
+        print("mystr: %s" % mystr)
+        print("Length mystr: %s" % len(mystr))
+        print("Byte length mystr: %s" % byte_len)
+    mod8 = byte_len % 8
     pad_to_8 = 8 - mod8 if mod8 else 0
     return pad_to_8
 
 def encrypt_cont(cont):
-    # http://stackoverflow.com/questions/3815656/simple-encrypt-decrypt-lib-in-python-with-private-key
+    """
+    http://stackoverflow.com/questions/3815656/...
+    ...simple-encrypt-decrypt-lib-in-python-with-private-key
+    NB this content can only be written to a raw file in wb mode - do not use 
+        codecs.
+    """
+    debug = False
     encrypter = DES.new(mg.LOCALPHRASE, DES.MODE_ECB)
     pad_to_8 = get_pad_to_8(cont)
-    padding_required = pad_to_8*" " # Strings for DES must be a multiple of 8 in length
-    encrypted_cont = encrypter.encrypt(cont + padding_required)
+    padding_required = pad_to_8*" " # Strings for DES must be a multiple of 8 in length (byte length)
+    padded_cont = cont + padding_required
+    if debug:
+        print(u"Padded cont: %s" % padded_cont)
+        print(u"Length padded content: %s" % len(padded_cont))
+        print(u"Length padded encoded content: %s" % 
+              len(padded_cont.encode("utf-8")))
+    encrypted_cont = encrypter.encrypt(padded_cont)
     return encrypted_cont
 
 def get_priv_cont(path, label):
@@ -1798,7 +1833,7 @@ def get_priv_cont(path, label):
     Get the unencrypted content of the private file.
     """
     try:
-        f = codecs.open(path, "r", encoding="utf-8")
+        f = open(path, "rb")
         rawcont = f.read()
         f.close()
         cont = decrypt_cont(rawcont)
@@ -1857,7 +1892,7 @@ def mk_local_ext_list(extension, path, varname, label):
     Make a local extension list and initialise with extension if supplied.
     """
     try:
-        f = codecs.open(path, "w", encoding="utf-8")
+        f = open(path, "wb")
         extstr = extension if extension else u""
         cont = u'%s = [u"%s"]' % (varname, extstr)
         encrypted_cont = encrypt_cont(cont)
@@ -1875,7 +1910,7 @@ def mk_user_dets(username, displayname):
         plain_newcont = '%s = u"%s"\n%s = u"%s"' % (mg.USERNAME, username, 
                                                     mg.DISPLAYNAME, displayname)
         encrypted_newcont = encrypt_cont(plain_newcont)
-        f = codecs.open(mg.USERDETS_PATH, "w", encoding="utf-8")
+        f = open(mg.USERDETS_PATH, "wb")
         f.write(encrypted_newcont)
         f.close()
     except Exception, e:
@@ -1899,7 +1934,7 @@ def set_user_dets(username=None, displayname=None):
         plain_newcont = '%s = u"%s"\n%s = u"%s"' % (mg.USERNAME, username2use, 
                                                 mg.DISPLAYNAME, displayname2use)
         encrypted_newcont = encrypt_cont(plain_newcont)
-        f = codecs.open(mg.USERDETS_PATH, "w", encoding="utf-8")
+        f = open(mg.USERDETS_PATH, "wb")
         f.write(encrypted_newcont)
         f.close()
     except Exception, e:
@@ -1919,7 +1954,7 @@ def add_ext_to_local_list(extension, path, varname, label):
             mydic[varname].append(extension)
         plain_newcont = '%s = u"%s"' % (varname, mydic[varname])
         encrypted_newcont = encrypt_cont(plain_newcont)
-        f = codecs.open(path, "w", encoding="utf-8")
+        f = open(path, "wb")
         f.write(encrypted_newcont)
         f.close()
     except Exception, e:
@@ -1976,7 +2011,8 @@ def get_userdets():
         displayname = mydic[mg.DISPLAYNAME]
         return username, displayname
     except Exception, e:
-        raise Exception(u"Unable to get user details. Orig error: %s" % ue(e))
+        raise Exception(u"Unable to get user details from %s. Orig error: %s" 
+                        % (mg.USERDETS_PATH, ue(e)))
 
 def is_username_cracked(username):
     """
@@ -1984,20 +2020,23 @@ def is_username_cracked(username):
     """
     return False
 
-def check_crack():
+def check_crack(show_more_steps):
     """
     Connect to SOFA web database and check to see if username deemed cracked. 
     If so, wipe local records of extensions as being purchased. Nothing else 
         needed as lack of this list will automatically trigger checks later on.
     """
     try:
+        if show_more_steps: print(u"About to get userdets")
         username, unused = get_userdets()
+        if show_more_steps: print(u"Got userdets")
         cracked = is_username_cracked(username)
         if cracked:
             clear_local_list(mg.PURCHASED_PATH)
-    except Exception:
+    except Exception, e:
         raise my_exceptions.DoNothingException(u"Unable to check crack. "
-                    u"But more important to keep lib loading successfully.")
+                    u"But more important to keep lib loading successfully. "
+                    u"Orig error: %s" % ue(e))
         
 def is_system_ok(extension):
     # quick exits

@@ -304,7 +304,7 @@ def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt,
     Note - not all charts have x-axis labels and thus the option of rotating 
         them.
     """
-    debug = True
+    debug = False
     # misc setup
     max_items = 150 if chart_type == mg.CLUSTERED_BARCHART else 300
     tbl_quoted = getdata.tblname_qtr(dbe, tbl)

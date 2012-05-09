@@ -521,7 +521,7 @@ class StartFrame(wx.Frame):
             wx.MessageBox(_("Please click on \"Enter/Edit Data\" and delete"
                         " the table \"%s\"") % mg.TMP_TBLNAME)
         if show_more_steps: print(u"Passed check for having to delete database")
-        wx.CallAfter(lib.check_crack) # won't stop form load if fails
+        wx.CallAfter(lib.check_crack, show_more_steps) # won't stop form load if fails
         # any warnings to display once screen visible?
         warning_div = u"\n\n" + u"-"*20 + u"\n\n"
         deferred_warning_msg = warning_div.join(mg.DEFERRED_WARNING_MSGS)
@@ -923,7 +923,7 @@ class StartFrame(wx.Frame):
                     if show_more_steps: 
                         print(u"About to update sofastats connect date")
                     self.update_sofastats_connect_date(sofastats_connect_fil, 
-                                             days2wait=mg.SOFASTATS_CONNECT_REGULAR)
+                                        days2wait=mg.SOFASTATS_CONNECT_REGULAR)
                     if show_more_steps: print(u"Updated connect date")
                 except Exception, e:
                     raise Exception("Unable to update sofastats connect date")                
@@ -948,13 +948,14 @@ class StartFrame(wx.Frame):
         """
         import urllib # http://docs.python.org/library/urllib.html
         debug = False
-        file2read = mg.SOFASTATS_MAJOR_VERSION_CHECK \
-                    if version_lev == mg.VERSION_CHECK_MAJOR \
-                    else mg.SOFASTATS_VERSION_CHECK
+        file2read = (mg.SOFASTATS_MAJOR_VERSION_CHECK 
+                     if version_lev == mg.VERSION_CHECK_MAJOR 
+                     else mg.SOFASTATS_VERSION_CHECK)
         url2open = u"http://www.sofastatistics.com/%s" % file2read
         try:
             url_reply = urllib.urlopen(url2open)
             new_version = u"%s" % url_reply.read().strip()
+            url_reply.close()
             if debug: print("Checked new version: %s" % new_version)
         except Exception, e:
             raise Exception(u"Unable to extract latest sofa version."
@@ -1100,7 +1101,7 @@ class StartFrame(wx.Frame):
     def on_help_click(self, event):
         
         
-        
+        # to shake out some bugs
         import proext2
         proext2.my_key_function()
         
