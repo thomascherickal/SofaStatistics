@@ -1101,14 +1101,14 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
             
     def update_settings_data(self):
         """
-        Update settings_data.  Overridden so we can include original field 
+        Update settings_data. Overridden so we can include original field 
             details (needed when making new version of the original table).
         Fill in details of fldnames and fldtypes (leaving original versions
-            untouched). 
+            untouched).
         NB do not clear it - only modify.
         """
         debug = False
-        grid_data = self.get_grid_data() # only saved data
+        grid_data = self.get_grid_data() # only saved data. eol-safe inc
         if debug: 
             print("grid data: %s" % grid_data)
             print("Original settings data:")

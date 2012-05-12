@@ -4,6 +4,7 @@ import wx.grid
 
 import my_globals as mg
 import my_exceptions
+import lib
 import controls
 
 COL_STR = u"col_string"
@@ -1048,7 +1049,7 @@ class SettingsEntry(object):
             row_data = []
             for col_idx in range(len(self.col_dets)):
                 val = self.grid.GetCellValue(row=row_idx, col=col_idx)
-                row_data.append(val)
+                row_data.append(lib.fix_eols(val))
             grid_data.append(tuple(row_data))
         return grid_data
 

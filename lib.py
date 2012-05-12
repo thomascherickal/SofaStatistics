@@ -26,6 +26,9 @@ import core_stats
 # so we only do expensive tasks once per module per session
 PURCHASE_CHECKED_EXTS = [] # individual extensions may have different purchase statements
 
+def fix_eols(orig):
+    return orig.replace(u"\n", u" ")
+
 def get_num2display(num, output_type, inc_perc=True):
     if output_type == mg.FREQ:
         num2display = unicode(num)

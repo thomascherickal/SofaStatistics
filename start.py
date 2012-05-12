@@ -1102,8 +1102,8 @@ class StartFrame(wx.Frame):
         
         
         # to shake out some bugs
-        import proext2
-        proext2.my_key_function()
+        #import proext2
+        #proext2.my_key_function()
         
         
         import webbrowser

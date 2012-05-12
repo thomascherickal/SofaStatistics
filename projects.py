@@ -346,10 +346,10 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         """
         Override so we can extend to include variable label, type, and notes.
         """
-        self.var_desc["label"] = self.txt_var_label.GetValue()
-        self.var_desc["notes"] = self.txt_var_notes.GetValue()
+        self.var_desc["label"] = lib.fix_eols(self.txt_var_label.GetValue())
+        self.var_desc["notes"] = lib.fix_eols(self.txt_var_notes.GetValue())
         self.var_desc["type"] = self.rad_data_type.GetStringSelection()
-        self.tabentry.update_settings_data()
+        self.tabentry.update_settings_data() # eol-safe already
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
 
