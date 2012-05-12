@@ -37,6 +37,7 @@ When save_row() is called, the cache is not updated. It is better to force the
 Intended behaviour: tabbing moves left and right. If at end, takes to next line
     if possible. Return moves down if possible or, if at end, to start of next
     line if possible.
+    All data going in or out passes through fix_eols.
 """
 
 
@@ -759,7 +760,7 @@ class TblEditor(wx.Dialog):
         What was the value of a cell?
         NB always returned as a string.
         If it has just been edited, GetCellValue(), which calls 
-            dbtbl.GetValue(), will not work.  It will get the cached version
+            dbtbl.GetValue(), will not work. It will get the cached version
             which is now out-of-date (we presumably just changed it).
         Need to get version stored by editor. So MUST close editors which 
             presumably flushes the value to where it becomes available to
@@ -778,6 +779,8 @@ class TblEditor(wx.Dialog):
         else:
             self.grid.DisableCellEditControl()
             raw_val = self.grid.GetCellValue(row, col)
+        if debug: print(raw_val)
+        raw_val = lib.fix_eols(raw_val) # everything coming out goes through here
         return raw_val
     
     def cell_ok_to_save(self, row, col):
@@ -790,16 +793,15 @@ class TblEditor(wx.Dialog):
             print("cell_ok_to_save - row %s col %s" % (row, col))
         raw_val = self.get_raw_val(row, col)
         fld_dic = self.dbtbl.get_fld_dic(col)
-        missing_not_nullable_prob = \
-            (raw_val == mg.MISSING_VAL_INDICATOR and \
-                not fld_dic[mg.FLD_BOLNULLABLE] and \
-             fld_dic[mg.FLD_DATA_ENTRY_OK])
+        missing_not_nullable_prob = (raw_val == mg.MISSING_VAL_INDICATOR and
+                                     not fld_dic[mg.FLD_BOLNULLABLE] and
+                                     fld_dic[mg.FLD_DATA_ENTRY_OK])
         if missing_not_nullable_prob:
             fldname = self.dbtbl.get_fldname(col)
             wx.MessageBox(_("%s will not allow missing values to "
                           "be stored") % fldname)
-        ok_to_save = not self.cell_invalid(row, col) and \
-            not missing_not_nullable_prob
+        ok_to_save = (not self.cell_invalid(row, col) 
+                      and not missing_not_nullable_prob)
         return ok_to_save
 
     def row_ok_to_save(self, row, col2skip=None):
@@ -868,6 +870,7 @@ class TblEditor(wx.Dialog):
             raw_val = self.dbtbl.new_buffer.get((row, col), None)
             if raw_val == mg.MISSING_VAL_INDICATOR:
                 raw_val = None
+            raw_val = lib.fix_eols(raw_val) # everything being saved goes through here
             data.append((raw_val, fldname, flddic))
         row_inserted, msg = getdata.insert_row(dd, data)
         if row_inserted:

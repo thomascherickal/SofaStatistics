@@ -256,7 +256,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         If a new row, stores value in new row buffer ready to be saved if 
             OK to save row.
         If an existing, ordinary row, stores sql_cell_to_update if OK to update
-            cell.  Cache will be updated if, and only if, the cell is actually
+            cell. Cache will be updated if, and only if, the cell is actually
             updated.
         """
         debug = False
@@ -276,8 +276,8 @@ class DbTbl(wx.grid.PyGridTableBase):
                 id_value = self.quote_val(self.row_ids_lst[row])
             else:
                 id_value = self.row_ids_lst[row]
-            val2use = u"NULL" if raw_val_to_use is None \
-                else self.quote_val(raw_val_to_use)
+            val2use = (u"NULL" if raw_val_to_use is None
+                       else self.quote_val(raw_val_to_use))
             # TODO - think about possibilities of SQL injection by hostile party
             SQL_update_value = u"UPDATE %s " % \
                     getdata.tblname_qtr(dd.dbe, dd.tbl) + \
