@@ -272,7 +272,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         """
         config_output.ConfigUI.on_database_sel(self, event)
         # now update var dropdowns
-        self.update_var_dets()
+        config_output.update_var_dets(dlg=self)
         self.setup_group_by()
         self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT,
                        self.sorted_var_names_avg)
@@ -282,7 +282,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         "Reset key data details after table selection."       
         config_output.ConfigUI.on_table_sel(self, event)
         # now update var dropdowns
-        self.update_var_dets()
+        config_output.update_var_dets(dlg=self)
         self.setup_group_by()
         self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT,
                        self.sorted_var_names_avg)

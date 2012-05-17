@@ -27,7 +27,15 @@ import core_stats
 PURCHASE_CHECKED_EXTS = [] # individual extensions may have different purchase statements
 
 def fix_eols(orig):
-    return orig.replace(u"\n", u" ")
+    """
+    Prevent EOL errors by replacing any new lines with spaces.
+    Prevents variable or value labels, for example, with line breaks.
+    """
+    try:
+        fixed = orig.replace(u"\n", u" ")
+    except AttributeError: # e.g. None
+        fixed = orig
+    return fixed
 
 def get_num2display(num, output_type, inc_perc=True):
     if output_type == mg.FREQ:
@@ -641,24 +649,23 @@ def get_var_dets(fil_var_dets):
     f.close()
     var_dets = clean_bom_utf8(var_dets_txt)
     var_dets_dic = {}
-    try:
-        # http://docs.python.org/reference/simple_stmts.html
+    try: # http://docs.python.org/reference/simple_stmts.html
         exec var_dets in var_dets_dic
     except SyntaxError, e:
-        wx.MessageBox(\
+        wx.MessageBox(
             _(u"Syntax error in variable details file \"%(fil_var_dets)s\"."
               u"\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets, 
                                           u"err": unicode(e)})
         raise
     except Exception, e:
-        wx.MessageBox(\
+        wx.MessageBox(
             _(u"Error processing variable details file \"%(fil_var_dets)s\"."
               u"\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets, 
                                           u"err": unicode(e)})
         raise
     try:
-        results = var_dets_dic["var_labels"], var_dets_dic["var_notes"], \
-                      var_dets_dic["var_types"], var_dets_dic["val_dics"]
+        results = (var_dets_dic["var_labels"], var_dets_dic["var_notes"],
+                   var_dets_dic["var_types"], var_dets_dic["val_dics"])
     except Exception, e:
         raise Exception(u"Three variables needed in " +
                     u"'%s': var_labels, var_notes, var_types, and val_dics. " +

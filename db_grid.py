@@ -7,6 +7,7 @@ import wx.grid
 import my_globals as mg
 import lib
 import my_exceptions
+import config_output
 import getdata
 import db_tbl
 import projects
@@ -1096,5 +1097,5 @@ class TblEditor(wx.Dialog):
         event.Skip()
     
     def on_close(self, event):
-        self.parent.update_var_dets()
+        config_output.update_var_dets(dlg=self.parent)
         self.Destroy()

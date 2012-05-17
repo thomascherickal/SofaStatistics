@@ -367,7 +367,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         
     def update_var_dets(self, update_display=True):
         "Update all labels, including those already displayed"
-        config_output.ConfigUI.update_var_dets(self)
+        config_output.update_var_dets(dlg=self)
         # update dim trees
         rowdescendants = lib.get_tree_ctrl_descendants(self.rowtree, 
                                                        self.rowroot)

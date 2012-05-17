@@ -26,6 +26,13 @@ def get_cc():
         if debug: print("Updated mg.CURRENT_CONFIG")
     return mg.CURRENT_CONFIG
 
+def update_var_dets(dlg):
+    "Update all variable details, including those already displayed"
+    cc = get_cc()
+    (dlg.var_labels, dlg.var_notes, 
+     dlg.var_types, 
+     dlg.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
+
 # explanation level
 def get_szr_level(parent, panel, horiz=True):
     """
@@ -55,9 +62,13 @@ def path2style(path):
     if style == u"":
         raise Exception("Problem stripping style out of path (%s)" % path)
     return style
-
+     
 
 class ExtraOutputConfigDlg(wx.Dialog):
+    """
+    Shouldn't set variable details globally - it may not be appropriate to 
+        autoupdate. Leave that for the parent dialog this returns to.
+    """
     def __init__(self, parent, readonly, ret_dic, vdt_file=None, 
                  script_file=None):
         cc = get_cc()
@@ -147,7 +158,6 @@ class ExtraOutputConfigDlg(wx.Dialog):
         self.ret_dic[mg.VDT_RET] = self.txt_var_dets_file.GetValue()
         if mg.ADVANCED:
             self.ret_dic[mg.SCRIPT_RET] = self.txt_script_file.GetValue()
-        self.parent.update_var_dets()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
         # Prebuilt dialogs must do this internally.
@@ -174,7 +184,7 @@ class ExtraOutputConfigDlg(wx.Dialog):
         if dlg_get_file.ShowModal() == wx.ID_OK:
             self.txt_script_file.SetValue(dlg_get_file.GetPath())
         dlg_get_file.Destroy()
-                   
+       
 
 class ConfigUI(object):
     """
@@ -331,13 +341,7 @@ class ConfigUI(object):
         config_down_by = 27 if mg.PLATFORM == mg.MAC else 17
         self.szr_config.Add(btn_config, 0, wx.TOP, config_down_by)
         return self.szr_config
-    
-    def update_var_dets(self):
-        "Update all variable details, including those already displayed"
-        cc = get_cc()
-        (self.var_labels, self.var_notes, self.var_types, 
-                     self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-    
+        
     def on_btn_config(self, event):
         cc = get_cc()
         ret_dic = {}
@@ -346,9 +350,20 @@ class ConfigUI(object):
                                    script_file=self.script_file)
         ret = dlg.ShowModal()
         if ret==wx.ID_OK and self.autoupdate:
+            orig_vdts_path = cc[mg.CURRENT_VDTS_PATH]
             cc[mg.CURRENT_VDTS_PATH] = ret_dic[mg.VDT_RET]
             if mg.ADVANCED:
+                orig_script_path = cc[mg.CURRENT_SCRIPT_PATH]
                 cc[mg.CURRENT_SCRIPT_PATH] = ret_dic[mg.SCRIPT_RET]
+            try:
+                update_var_dets(dlg=self)
+            except Exception, e:
+                wx.MessageBox(_(u"Unable to apply new variable definitions. "
+                                u"Orig error: %s") % lib.ue(e))
+                # roll back e.g. syntax error in selected files
+                cc[mg.CURRENT_VDTS_PATH] = orig_vdts_path
+                if mg.ADVANCED:
+                    cc[mg.CURRENT_SCRIPT_PATH] = orig_script_path
         dlg.Destroy()
         return ret_dic
 

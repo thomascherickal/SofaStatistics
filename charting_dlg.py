@@ -963,7 +963,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         """
         config_output.ConfigUI.on_database_sel(self, event)
         # now update var dropdowns
-        self.update_var_dets()
+        config_output.update_var_dets(dlg=self)
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1,
                        override_min_data_type=self.min_data_type1)
         inc_drop_select = (self.chart_type in mg.OPTIONAL_ONE_VAR_CHART_TYPES)
@@ -979,7 +979,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         "Reset key data details after table selection."       
         config_output.ConfigUI.on_table_sel(self, event)
         # now update var dropdowns
-        self.update_var_dets()
+        config_output.update_var_dets(dlg=self)
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1,
                        override_min_data_type=self.min_data_type1)
         inc_drop_select = (self.chart_type in mg.OPTIONAL_ONE_VAR_CHART_TYPES)

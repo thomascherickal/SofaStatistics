@@ -31,7 +31,7 @@ class DataSelectDlg(wx.Dialog):
                                   size=(480,20))
         proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
                                                    fil_name=proj_name)
-        self.update_var_dets()
+        config_output.update_var_dets(dlg=self)
         # set up self.drop_dbs and self.drop_tbls
         (self.drop_dbs, 
          self.drop_tbls) = getdata.get_data_dropdowns(self, self.panel, 
@@ -88,12 +88,6 @@ class DataSelectDlg(wx.Dialog):
         self.Layout()
         self.ctrl_enablement()
         lib.safe_end_cursor()
-
-    def update_var_dets(self):
-        cc = config_output.get_cc()
-        (self.var_labels, self.var_notes, 
-         self.var_types, 
-         self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
 
     def add_feedback(self, feedback):
         self.lbl_feedback.SetLabel(feedback)
@@ -182,7 +176,7 @@ class DataSelectDlg(wx.Dialog):
             dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=returned_tblname)
             if debug: print(u"Flds after: %s" % dd.flds)
             self.reset_tbl_dropdown()
-            self.update_var_dets()
+            config_output.update_var_dets(dlg=self)
     
     def on_new(self, event):
         """

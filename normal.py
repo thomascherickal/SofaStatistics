@@ -235,7 +235,7 @@ class NormalityDlg(wx.Dialog, config_output.ConfigUI):
             self.drop_var_b.SetSelection(idx_b)
 
     def refresh_vars(self):
-        config_output.ConfigUI.update_var_dets(self)
+        config_output.update_var_dets(dlg=self)
         
     def get_var_a(self):
         idx = self.drop_var_a.GetSelection()
