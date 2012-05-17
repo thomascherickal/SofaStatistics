@@ -632,44 +632,59 @@ def esc_str_input(raw):
                         u"\nCaused by error: %s" % ue(e))
     return new_str
 
+def get_invalid_var_dets_msg(fil_var_dets):
+    debug = False
+    try:
+        f = codecs.open(fil_var_dets, "U", encoding="utf-8")
+        var_dets_txt = get_exec_ready_text(text=f.read())
+        f.close()
+        var_dets = clean_bom_utf8(var_dets_txt)
+        var_dets_dic = {}
+        exec var_dets in var_dets_dic
+        if debug: wx.MessageBox(u"%s got a clean bill of health from "
+                                u"get_invalid_var_dets_msg()!" % fil_var_dets)
+        return None
+    except Exception, e:
+        return ue(e)
+
 def get_var_dets(fil_var_dets):
     """
     Get variable details from fil_var_dets file.
     Returns var_labels, var_notes, var_types, val_dics.
+    If any errors, return empty dicts and let user continue. Perhaps a corrupted 
+        vdts file. Not a reason to bring the whole show down. At least make it
+        easy for them to fix the variable details/change the project settings 
+        etc. 
     """
+    empty_var_dets = ({},{},{},{})
     try:
         f = codecs.open(fil_var_dets, "U", encoding="utf-8")
     except IOError:
-        var_labels = {}
-        var_notes = {}
-        var_types = {}
-        val_dics = {}
-        return var_labels, var_notes, var_types, val_dics
+        return empty_var_dets
     var_dets_txt = get_exec_ready_text(text=f.read())
     f.close()
     var_dets = clean_bom_utf8(var_dets_txt)
     var_dets_dic = {}
+    results = empty_var_dets # init
     try: # http://docs.python.org/reference/simple_stmts.html
         exec var_dets in var_dets_dic
+        try:
+            results = (var_dets_dic["var_labels"], var_dets_dic["var_notes"],
+                       var_dets_dic["var_types"], var_dets_dic["val_dics"])
+        except Exception, e:
+            wx.MessageBox(u"Three variables needed in '%s': var_labels, "
+                          u"var_notes, var_types, and val_dics. "
+                          u"Please check file." % fil_var_dets)
     except SyntaxError, e:
         wx.MessageBox(
             _(u"Syntax error in variable details file \"%(fil_var_dets)s\"."
               u"\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets, 
                                           u"err": unicode(e)})
-        raise
     except Exception, e:
         wx.MessageBox(
             _(u"Error processing variable details file \"%(fil_var_dets)s\"."
               u"\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets, 
                                           u"err": unicode(e)})
-        raise
-    try:
-        results = (var_dets_dic["var_labels"], var_dets_dic["var_notes"],
-                   var_dets_dic["var_types"], var_dets_dic["val_dics"])
-    except Exception, e:
-        raise Exception(u"Three variables needed in " +
-                    u"'%s': var_labels, var_notes, var_types, and val_dics. " +
-                    u"Please check file." % fil_var_dets)
     return results
 
 def get_rand_val_of_type(type):

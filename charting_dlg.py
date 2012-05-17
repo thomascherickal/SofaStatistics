@@ -57,8 +57,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # up to 3 drop downs
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.url_load = True # btn_expand
-        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-                                    lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
+        (self.var_labels, self.var_notes, 
+         self.var_types, 
+         self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         variables_rc_msg = _("Right click variables to view/edit details")
         config_output.add_icon(frame=self)
         szr_main = wx.BoxSizer(wx.VERTICAL)

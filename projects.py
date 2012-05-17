@@ -61,10 +61,10 @@ def update_vdt(var_labels, var_notes, var_types, val_dics):
     # update lbl file
     cc = config_output.get_cc()
     f = codecs.open(cc[mg.CURRENT_VDTS_PATH], "w", encoding="utf-8")
-    f.write(u"\nvar_labels=" + lib.dic2unicode(var_labels))
-    f.write(u"\nvar_notes=" + lib.dic2unicode(var_notes))
-    f.write(u"\nvar_types=" + lib.dic2unicode(var_types))
-    f.write(u"\n\nval_dics=" + lib.dic2unicode(val_dics))
+    f.write(u"var_labels=" + lib.dic2unicode(var_labels))
+    f.write(u"\n\nvar_notes=" + lib.dic2unicode(var_notes))
+    f.write(u"\n\nvar_types=" + lib.dic2unicode(var_types))
+    f.write(u"\n\n\nval_dics=" + lib.dic2unicode(val_dics))
     f.close()
     wx.MessageBox(_("Settings saved to \"%s\"") % cc[mg.CURRENT_VDTS_PATH])
 

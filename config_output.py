@@ -27,11 +27,13 @@ def get_cc():
     return mg.CURRENT_CONFIG
 
 def update_var_dets(dlg):
-    "Update all variable details, including those already displayed"
+    """
+    Update all variable details, including those already displayed.
+    Even if errors etc will set something, even if empty dicts.
+    """
     cc = get_cc()
     (dlg.var_labels, dlg.var_notes, 
-     dlg.var_types, 
-     dlg.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
+     dlg.var_types, dlg.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
 
 # explanation level
 def get_szr_level(parent, panel, horiz=True):
@@ -81,8 +83,8 @@ class ExtraOutputConfigDlg(wx.Dialog):
         self.ret_dic = ret_dic
         bx_var_config = wx.StaticBox(self.panel, -1, 
                                      _("Variable config from ... "))
-        vdt2use = (vdt_file if vdt_file else cc[mg.CURRENT_VDTS_PATH])
-        self.txt_var_dets_file = wx.TextCtrl(self.panel, -1, vdt2use, 
+        self.initial_vdt = (vdt_file if vdt_file else cc[mg.CURRENT_VDTS_PATH])
+        self.txt_var_dets_file = wx.TextCtrl(self.panel, -1, self.initial_vdt, 
                                              size=(500,-1))
         self.txt_var_dets_file.Enable(not readonly)
         # Data config details
@@ -155,7 +157,25 @@ class ExtraOutputConfigDlg(wx.Dialog):
         # (MUST come after Destroy)
 
     def on_ok(self, event):
-        self.ret_dic[mg.VDT_RET] = self.txt_var_dets_file.GetValue()
+        """
+        Best to prevent storing an invalid vdt file in a project rather than 
+            just catching once selected.
+        Still have to handle it if corrupted after being set as part of a 
+            project - just work with empty dicts for variable details until 
+            overwritten as part of any update. Will effectively wipe a faulty 
+            vdt except for the new item being added. Looks at everything stored 
+            (nothing ;-) plus new item) and stores that.
+        """
+        cc = get_cc()
+        entered_vdt_path = self.txt_var_dets_file.GetValue()
+        invalid_msg = lib.get_invalid_var_dets_msg(entered_vdt_path)
+        if not invalid_msg:
+            self.ret_dic[mg.VDT_RET] = entered_vdt_path
+        else:
+            wx.MessageBox(_(u"Unable to use vdt file \"%s\" entered. "
+                            u"Orig error: %s") % (entered_vdt_path, 
+                                                  invalid_msg))
+            self.ret_dic[mg.VDT_RET] = self.initial_vdt
         if mg.ADVANCED:
             self.ret_dic[mg.SCRIPT_RET] = self.txt_script_file.GetValue()
         self.Destroy()
@@ -343,6 +363,9 @@ class ConfigUI(object):
         return self.szr_config
         
     def on_btn_config(self, event):
+        """
+        Return the settings selected
+        """
         cc = get_cc()
         ret_dic = {}
         dlg = ExtraOutputConfigDlg(parent=self, readonly=self.readonly, 
@@ -350,20 +373,10 @@ class ConfigUI(object):
                                    script_file=self.script_file)
         ret = dlg.ShowModal()
         if ret==wx.ID_OK and self.autoupdate:
-            orig_vdts_path = cc[mg.CURRENT_VDTS_PATH]
             cc[mg.CURRENT_VDTS_PATH] = ret_dic[mg.VDT_RET]
             if mg.ADVANCED:
-                orig_script_path = cc[mg.CURRENT_SCRIPT_PATH]
                 cc[mg.CURRENT_SCRIPT_PATH] = ret_dic[mg.SCRIPT_RET]
-            try:
-                update_var_dets(dlg=self)
-            except Exception, e:
-                wx.MessageBox(_(u"Unable to apply new variable definitions. "
-                                u"Orig error: %s") % lib.ue(e))
-                # roll back e.g. syntax error in selected files
-                cc[mg.CURRENT_VDTS_PATH] = orig_vdts_path
-                if mg.ADVANCED:
-                    cc[mg.CURRENT_SCRIPT_PATH] = orig_script_path
+            update_var_dets(dlg=self)
         dlg.Destroy()
         return ret_dic
 
