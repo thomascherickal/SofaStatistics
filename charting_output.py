@@ -840,35 +840,37 @@ def reshape_sql_crosstab_data(raw_data, dp=0):
         print(oth_vals)
     return series_data, oth_vals
 
-def get_barchart_sizings(n_clusters, n_bars_in_cluster):
+def get_barchart_sizings(n_clusters, n_bars_in_cluster, max_lbl_width):
     debug = False
     minor_ticks = u"false"
+    # If wide labels, may not display almost any if one is too wide. Widen to take account.
+    lbl_width_factor = 1.1 if max_lbl_width >= 15  else 1.0
     if n_clusters <= 2:
         xfontsize = 10
-        width = 500 # image width
+        width = 500*lbl_width_factor # image width
         xgap = 40
     elif n_clusters <= 5:
         xfontsize = 10
-        width = 600
+        width = 600*lbl_width_factor
         xgap = 20
     elif n_clusters <= 8:
         xfontsize = 9
-        width = 800
+        width = 800*lbl_width_factor
         xgap = 9
     elif n_clusters <= 10:
         minor_ticks = u"true"
         xfontsize = 7
-        width = 900
+        width = 900*lbl_width_factor
         xgap = 6
     elif n_clusters <= 16:
         minor_ticks = u"true"
         xfontsize = 7
-        width = 1000
+        width = 1000*lbl_width_factor
         xgap = 5
     else:
         minor_ticks = u"true"
         xfontsize = 6
-        width = 1400
+        width = 1400*lbl_width_factor
         xgap = 4
     if n_bars_in_cluster > 1:
         width = width*(1 + n_bars_in_cluster/10.0)
@@ -887,28 +889,21 @@ def get_barchart_sizings(n_clusters, n_bars_in_cluster):
 def get_linechart_sizings(xaxis_dets, max_lbl_width, series_dets):
     debug = False
     n_vals = len(xaxis_dets)
-    #n_lines = len(series_dets)
-    if n_vals < 30:
+    # n_lines = len(series_dets)
+    px_per_char = 7
+    width = n_vals*max_lbl_width*px_per_char
+    if width < 800:
         width = 800
+    if n_vals < 30:
         xfontsize = 10
     elif n_vals < 60:
-        width = 1200
         xfontsize = 10
     elif n_vals < 100:
-        width = 1600
         xfontsize = 9
     else:
-        width = 2000
         xfontsize = 8
     minor_ticks = u"true" if n_vals > 8 else u"false"
     micro_ticks = u"true" if n_vals > 100 else u"false"
-    if n_vals > 10:
-        if max_lbl_width > 10:
-            width += 2000
-        elif max_lbl_width > 7:
-            width += 1500
-        elif max_lbl_width > 4:
-            width += 1000
     if debug: print(width, xfontsize, minor_ticks, micro_ticks)
     return width, xfontsize, minor_ticks, micro_ticks
 
@@ -1049,7 +1044,7 @@ def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
     axis_lbl_rotate = -90 if rotate else 0
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                          css_idx)
+                                                      css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     multichart = chart_dets[mg.CHART_SERIES_DETS][0][mg.CHART_MULTICHART]
@@ -1076,8 +1071,8 @@ def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
         fill = colour_mappings[0][0]
     except IndexError:
         fill = mg.DOJO_COLOURS[0]
-    outer_bg = u"" if outer_bg == u"" \
-        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
+    outer_bg = (u"" if outer_bg == u""
+                else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
     single_colour = True
     override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
                                 and single_colour)
@@ -1086,9 +1081,11 @@ def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
     n_bars_in_cluster = 1
     # always the same number, irrespective of order
     n_clusters = len(chart_dets[mg.CHART_SERIES_DETS][0][mg.CHART_XAXIS_DETS])
-    (width, xgap, xfontsize, minor_ticks, 
-        left_axis_lbl_shift) = get_barchart_sizings(n_clusters, 
-                                                      n_bars_in_cluster)
+    max_lbl_width = 1 if rotate else max_lbl_len
+    (width, xgap, xfontsize, 
+     minor_ticks, 
+     left_axis_lbl_shift) = get_barchart_sizings(n_clusters, n_bars_in_cluster, 
+                                                 max_lbl_width)
     if multichart:
         width = width*0.8
         xgap = xgap*0.8
@@ -1253,8 +1250,11 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
     series_dets = chart_dets[mg.CHART_SERIES_DETS]
     n_bars_in_cluster = len(series_dets)
     n_clusters = len(xaxis_dets)
-    (width, xgap, xfontsize, minor_ticks, 
-     left_axis_lbl_shift) = get_barchart_sizings(n_clusters, n_bars_in_cluster)
+    max_lbl_width = 1 if rotate else max_lbl_len
+    (width, xgap, xfontsize, 
+     minor_ticks, 
+     left_axis_lbl_shift) = get_barchart_sizings(n_clusters, n_bars_in_cluster, 
+                                                 max_lbl_width)
     single_colour = (len(series_dets) == 1)
     override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
                                 and single_colour)

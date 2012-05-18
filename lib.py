@@ -672,7 +672,7 @@ def get_var_dets(fil_var_dets):
             results = (var_dets_dic["var_labels"], var_dets_dic["var_notes"],
                        var_dets_dic["var_types"], var_dets_dic["val_dics"])
         except Exception, e:
-            wx.MessageBox(u"Three variables needed in '%s': var_labels, "
+            wx.MessageBox(u"Four variables needed in \"%s\": var_labels, "
                           u"var_notes, var_types, and val_dics. "
                           u"Please check file." % fil_var_dets)
     except SyntaxError, e:
