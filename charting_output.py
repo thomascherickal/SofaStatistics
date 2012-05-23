@@ -890,10 +890,10 @@ def get_linechart_sizings(xaxis_dets, max_lbl_width, series_dets):
     debug = False
     n_vals = len(xaxis_dets)
     # n_lines = len(series_dets)
-    px_per_char = 7
-    width = n_vals*max_lbl_width*px_per_char
-    if width < 800:
-        width = 800
+    px_per_char = 9
+    width = (n_vals*max_lbl_width*px_per_char) + 20 # add 20 to be safe
+    if width < 850:
+        width = 850
     if n_vals < 30:
         xfontsize = 10
     elif n_vals < 60:
@@ -1560,7 +1560,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets,
     (width, xfontsize, 
      minor_ticks, micro_ticks) = get_linechart_sizings(xaxis_dets, 
                                                     max_lbl_width, series_dets)
-    left_axis_lbl_shift = 20 if width > 1200 else 10 # gets squeezed 
+    left_axis_lbl_shift = 20 if width > 1200 else 15 # gets squeezed 
     inc_perc_js = u"true" if inc_perc else u"false"
     """
     For each series, set colour details.

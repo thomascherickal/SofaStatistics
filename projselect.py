@@ -120,8 +120,8 @@ class ProjSelectDlg(wx.Dialog):
             dlgProj = projects.ProjectDlg(parent=self, readonly=readonly,
                                           fil_proj=fil_proj)
         except Exception, e:
-            wx.MessageBox("Unable to open project dialog for %s. Orig error: %s" 
-                          % (fil_proj, e))
+            wx.MessageBox(u"Unable to open project dialog for %s. "
+                          u"Orig error: %s" % (fil_proj, lib.ue(e)))
             return
         # refresh projects list and display accordingly
         ret = dlgProj.ShowModal()

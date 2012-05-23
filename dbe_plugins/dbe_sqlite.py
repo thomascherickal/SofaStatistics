@@ -3,8 +3,8 @@ import sqlite3 as sqlite
 import os
 import pprint
 import re
-import string
 import wx
+import wx.grid
 
 import my_globals as mg
 import lib
@@ -313,21 +313,42 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                            init_settings_data=init_settings_data, 
                            settings_data=parent.sqlite_settings_data, 
                            force_focus=True)
-    # disable first row (default sofa db)
+    """
+    Make sofa_db stand out as special but allow users to edit it (it may have 
+        changed location since the project was created).
+    Responsibility for making sure there is a database called sofa_db is up to 
+        the validation code for saving the project.
+    """
     attr = wx.grid.GridCellAttr()
-    attr.SetReadOnly(True)
+    #attr.SetReadOnly(True)
     attr.SetBackgroundColour(mg.READONLY_COLOUR)
-    parent.sqlite_grid.grid.SetRowAttr(0, attr)
+    for row_idx, db_path in enumerate([x[0] for x in init_settings_data]):
+        db_name = lib.get_file_name(db_path) # might not be unique
+        if db_is_default_sofa_db(db_name):
+            parent.sqlite_grid.grid.SetRowAttr(row_idx, attr)
     parent.szr_sqlite.Add(parent.sqlite_grid.grid, 1, wx.GROW|wx.ALL, 5)
     szr.Add(parent.szr_sqlite, 0, wx.GROW|wx.ALL, 10)
+
+def db_is_default_sofa_db(db_name):
+    """
+    Be generous in what counts as a default sofa database. The following should 
+        all be OK: sofa_db (of course), original_sofa_db, sofa_db_testing etc.
+    The user may have made copies, shifted it around etc. The only fixed one is 
+        that created during installation. The default project references that 
+        and it cannot be changed. But if they make copies etc and put them 
+        somewhere else, those versions can be used just like a standard default.
+    Of course, a user can mess things up by giving other unsuitable files names
+        which include sofa_db.
+    """
+    return mg.SOFA_DB in db_name
 
 def get_proj_settings(parent, proj_dic):
     parent.sqlite_default_db = proj_dic[mg.PROJ_DEFAULT_DBS].get(mg.DBE_SQLITE)
     parent.sqlite_default_tbl = \
                               proj_dic[mg.PROJ_DEFAULT_TBLS].get(mg.DBE_SQLITE)
     if proj_dic[mg.PROJ_CON_DETS].get(mg.DBE_SQLITE):
-        parent.sqlite_data = [(x[DATABASE_KEY],) \
-             for x in proj_dic[mg.PROJ_CON_DETS][mg.DBE_SQLITE].values()]
+        parent.sqlite_data = [(x[DATABASE_KEY],) for x in 
+                            proj_dic[mg.PROJ_CON_DETS][mg.DBE_SQLITE].values()]
     else:
         parent.sqlite_data = []
 
@@ -354,16 +375,15 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     if parent.sqlite_grid.new_is_dirty:
         incomplete_sqlite = True
         has_sqlite_con = False
-        wx.MessageBox(_(u"The SQLite details on the new row "
-                        u"have not been saved. "
-                        u"Select the \"%s\" field in the new row "
-                        u"and press Enter")
-                        % DATABASE_FLD_LABEL)
+        wx.MessageBox(_(u"The SQLite details on the new row have not been "
+            u"saved. Select the \"%s\" field in the new row and press Enter")
+            % DATABASE_FLD_LABEL)
         parent.sqlite_grid.SetFocus()
         return incomplete_sqlite, has_sqlite_con
     parent.sqlite_grid.update_settings_data()
     #pprint.pprint(parent.sqlite_settings_data) # debug
     sqlite_settings = parent.sqlite_settings_data
+    lacks_default_sofa_db = True
     if sqlite_settings:
         con_dets_sqlite = {}
         db_names = []
@@ -371,6 +391,9 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
             # e.g. ("C:\.....\my_sqlite_db",)
             db_path = sqlite_setting[0]
             db_name = lib.get_file_name(db_path) # might not be unique
+            if db_is_default_sofa_db(db_name):
+                lacks_default_sofa_db = False
+            # need unique version to use as key
             db_name_key = lib.get_unique_db_name_key(db_names, db_name)
             new_sqlite_dic = {}
             new_sqlite_dic[DATABASE_KEY] = db_path
@@ -382,9 +405,17 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
         has_sqlite_con = con_dets[mg.DBE_SQLITE]
     except KeyError:
         has_sqlite_con = False
-    incomplete_sqlite = (DEFAULT_DB or DEFAULT_TBL) and not has_sqlite_con
+    defaults_but_no_conns = (DEFAULT_DB or DEFAULT_TBL) and not has_sqlite_con
+    conns_but_no_default_sofa_db = has_sqlite_con and lacks_default_sofa_db
+    incomplete_sqlite = defaults_but_no_conns or conns_but_no_default_sofa_db
     if incomplete_sqlite:
-        wx.MessageBox(_("The SQLite details are incomplete"))
+        if defaults_but_no_conns:
+            wx.MessageBox(_(u"The SQLite details are partially complete - "
+                        u"either add a database or clear the SQLite default "
+                        u"database and table"))
+        elif conns_but_no_default_sofa_db:
+            wx.MessageBox(_(u"The sofa default database \"%s\"must be included"
+                            u" in the project.") % mg.SOFA_DB)
         parent.txt_sqlite_default_db.SetFocus()
     else:
         default_dbs[mg.DBE_SQLITE] = DEFAULT_DB if DEFAULT_DB else None

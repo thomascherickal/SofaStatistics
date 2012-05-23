@@ -94,8 +94,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         # wxPython
         dd = mg.DATADETS_OBJ
         num_cols = len(dd.flds)
-        if self.debug:
-            print(u"N cols: %s" % num_cols)
+        if self.debug: print(u"N cols: %s" % num_cols)
         return num_cols
 
     def DeleteRows(self, pos=0, numRows=1):
@@ -113,8 +112,8 @@ class DbTbl(wx.grid.PyGridTableBase):
         if not self.readonly:
             self.rows_n += 1
         if self.debug or debug: print(u"N rows: %s" % self.rows_n)
-        self.rows_to_fill = self.rows_n - 1 if self.readonly \
-                                            else self.rows_n - 2
+        self.rows_to_fill = (self.rows_n - 1 if self.readonly
+                             else self.rows_n - 2)
     
     def GetNumberRows(self):
         # wxPython
@@ -182,17 +181,16 @@ class DbTbl(wx.grid.PyGridTableBase):
             If new row, just return value from new_buffer (or missing value).
             Otherwise, fill cache (up to extra (e.g. 10) rows above and below) 
                  and then grab this col value.
-            More expensive for first cell but heaps 
-                less expensive for rest.
-            Set cell editor while at it.  Very expensive for large table 
-                so do it as needed.
+            More expensive for first cell but heaps less expensive for rest.
+            Set cell editor while at it. Very expensive for large table so do it 
+                as needed.
             """
             if self.is_new_row(row):
                 return self.new_buffer.get((row, col), mg.MISSING_VAL_INDICATOR)
             # identify row range            
             row_min = row - extra if row - extra > 0 else 0
-            row_max = row + extra if row + extra < self.rows_to_fill \
-                else self.rows_to_fill
+            row_max = (row + extra if row + extra < self.rows_to_fill
+                       else self.rows_to_fill)
             # create IN clause listing id values
             IN_clause_lst = []
             for row_idx in range(row_min, row_max + 1):
@@ -207,11 +205,11 @@ class DbTbl(wx.grid.PyGridTableBase):
                     value = u"%s" % raw_val
                 IN_clause_lst.append(value)
             IN_clause = u", ".join(IN_clause_lst)
-            SQL_get_values = u"SELECT * " + \
-                u" FROM %s " % getdata.tblname_qtr(dd.dbe, dd.tbl) + \
+            SQL_get_values = (u"SELECT * " +
+                u" FROM %s " % getdata.tblname_qtr(dd.dbe, dd.tbl) +
                 u" WHERE %s IN(%s)" % (self.objqtr(self.id_col_name), 
-                                      IN_clause) + \
-                u" ORDER BY %s" % self.objqtr(self.id_col_name)
+                                       IN_clause) +
+                u" ORDER BY %s" % self.objqtr(self.id_col_name))
             if debug or self.debug: print(SQL_get_values)
             #dd.con.commit() # extra commits keep postgresql problems
                 # away when a cell change is rejected by SOFA Stats validation
@@ -279,10 +277,10 @@ class DbTbl(wx.grid.PyGridTableBase):
             val2use = (u"NULL" if raw_val_to_use is None
                        else self.quote_val(raw_val_to_use))
             # TODO - think about possibilities of SQL injection by hostile party
-            SQL_update_value = u"UPDATE %s " % \
-                    getdata.tblname_qtr(dd.dbe, dd.tbl) + \
-                    u" SET %s = %s " % (self.objqtr(colname), val2use) + \
-                    u" WHERE %s = " % self.id_col_name + unicode(id_value)
+            SQL_update_value = (u"UPDATE %s " %
+                        getdata.tblname_qtr(dd.dbe, dd.tbl) +
+                        u" SET %s = %s " % (self.objqtr(colname), val2use) +
+                        u" WHERE %s = " % self.id_col_name + unicode(id_value))
             if self.debug or debug: 
                 print(u"SetValue - SQL update value: %s" % SQL_update_value)
                 print(u"SetValue - Value of cell to update: %s" %
@@ -298,15 +296,15 @@ class DbTbl(wx.grid.PyGridTableBase):
         """
         self.grid.BeginBatch()
         msg = wx.grid.GridTableMessage(self, 
-                            wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED, 1)
+                                    wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED, 1)
         self.grid.ProcessTableMessage(msg)
         msg = wx.grid.GridTableMessage(self, 
-                            wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
+                                    wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
         self.grid.ProcessTableMessage(msg)
         self.grid.EndBatch()
         self.grid.ForceRefresh()
         
     def force_refresh(self):
         msg = wx.grid.GridTableMessage(self, 
-                wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
+                                    wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
         self.grid.ProcessTableMessage(msg)

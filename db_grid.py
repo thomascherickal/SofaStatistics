@@ -104,28 +104,38 @@ class TblEditor(wx.Dialog):
         self.dbtbl = db_tbl.DbTbl(self.grid, var_labels, self.readonly)
         self.grid.SetTable(self.dbtbl, takeOwnership=True)
         self.readonly_cols = []
+        # set col rendering (string is default)
+        for col_idx in range(len(dd.flds)):
+            fld_dic = self.dbtbl.get_fld_dic(col_idx)
+            if fld_dic[mg.FLD_BOLNUMERIC]:
+                if fld_dic[mg.FLD_DECPTS] > 0: # float
+                    width = fld_dic[mg.FLD_NUM_WIDTH]
+                    precision = fld_dic[mg.FLD_DECPTS]
+                    self.grid.SetColFormatFloat(col_idx, width, precision)
+                else: # int
+                    self.grid.SetColFormatNumber(col_idx)
         if self.readonly:
             col2select = 0
             self.grid.SetGridCursor(0, col2select)
             self.current_row_idx = 0
             self.current_col_idx = col2select
-            for idx_col in range(len(dd.flds)):
+            for col_idx in range(len(dd.flds)):
                 attr = wx.grid.GridCellAttr()
                 attr.SetBackgroundColour(mg.READONLY_COLOUR)
-                self.grid.SetColAttr(idx_col, attr)
+                self.grid.SetColAttr(col_idx, attr)
         else:
             # disable any columns which do not allow data entry and set colour
             col2select = None # first editable col
-            for idx_col in range(len(dd.flds)):
-                fld_dic = self.dbtbl.get_fld_dic(idx_col)
+            for col_idx in range(len(dd.flds)):
+                fld_dic = self.dbtbl.get_fld_dic(col_idx)
                 if not fld_dic[mg.FLD_DATA_ENTRY_OK]:
-                    self.readonly_cols.append(idx_col)
+                    self.readonly_cols.append(col_idx)
                     attr = wx.grid.GridCellAttr()
                     attr.SetReadOnly(True)
                     attr.SetBackgroundColour(mg.READONLY_COLOUR)
-                    self.grid.SetColAttr(idx_col, attr)
+                    self.grid.SetColAttr(col_idx, attr)
                 elif col2select is None: # set once
-                    col2select = idx_col
+                    col2select = col_idx
             col2select = 0 if col2select is None else col2select
             # start at new line
             new_row_idx = self.dbtbl.GetNumberRows() - 1
@@ -695,14 +705,14 @@ class TblEditor(wx.Dialog):
             if self.debug or debug:
                 print("New buffer is %s" % self.dbtbl.new_buffer)
             raw_val = self.dbtbl.new_buffer.get((row, col), 
-                                            mg.MISSING_VAL_INDICATOR)
+                                                mg.MISSING_VAL_INDICATOR)
         else:
             raw_val = self.get_raw_val(row, col)
             existing_row_data_lst = self.dbtbl.row_vals_dic.get(row)
             if existing_row_data_lst:
                 prev_val = unicode(existing_row_data_lst[col])
-            if self.debug or debug: 
-                print("prev_val: %s raw_val: %s" % (prev_val,  raw_val))
+            if self.debug or debug:
+                print("prev_val: %s raw_val: %s" % (prev_val, raw_val))
             if raw_val == prev_val:
                 if self.debug or debug: print("Unchanged")
                 return False # i.e. OK
@@ -794,9 +804,9 @@ class TblEditor(wx.Dialog):
             print("cell_ok_to_save - row %s col %s" % (row, col))
         raw_val = self.get_raw_val(row, col)
         fld_dic = self.dbtbl.get_fld_dic(col)
-        missing_not_nullable_prob = (raw_val == mg.MISSING_VAL_INDICATOR and
-                                     not fld_dic[mg.FLD_BOLNULLABLE] and
-                                     fld_dic[mg.FLD_DATA_ENTRY_OK])
+        missing_not_nullable_prob = (raw_val == mg.MISSING_VAL_INDICATOR
+                                     and not fld_dic[mg.FLD_BOLNULLABLE]
+                                     and fld_dic[mg.FLD_DATA_ENTRY_OK])
         if missing_not_nullable_prob:
             fldname = self.dbtbl.get_fldname(col)
             wx.MessageBox(_("%s will not allow missing values to "
@@ -836,7 +846,8 @@ class TblEditor(wx.Dialog):
         """
         debug = False
         dd = mg.DATADETS_OBJ
-        if self.debug or debug: print("update_cell - row %s col %s" % (row, col))
+        if self.debug or debug:
+            print("update_cell - row %s col %s" % (row, col))
         bol_updated_cell = True
         try:
             dd.con.commit()
@@ -930,7 +941,7 @@ class TblEditor(wx.Dialog):
                                     wx.grid.GridCellTextEditor())
 
     # MISC //////////////////////////////////////////////////////////////////
-    
+
     def on_grid_editor_created(self, event):
         """
         Need to identify control just opened. Might need to return to it and
@@ -1047,12 +1058,12 @@ class TblEditor(wx.Dialog):
             colwidth = None
             if fld_dic[mg.FLD_BOLTEXT]:
                 txt_len = fld_dic[mg.FLD_TEXT_LENGTH]
-                colwidth = txt_len*pix_per_char if txt_len is not None \
-                    and txt_len < 25 else None # leave for auto
+                colwidth = (txt_len*pix_per_char if txt_len is not None
+                            and txt_len < 25 else None) # leave for auto
             elif fld_dic[mg.FLD_BOLNUMERIC]:
                 num_len = fld_dic[mg.FLD_NUM_WIDTH]
-                colwidth = num_len*pix_per_char if num_len is not None \
-                    else None
+                colwidth = (num_len*pix_per_char if num_len is not None
+                            else None)
             elif fld_dic[mg.FLD_BOLDATETIME]:
                 colwidth = 170
             if colwidth:

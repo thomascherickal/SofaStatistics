@@ -39,10 +39,10 @@ class SettingsEntryDlg(wx.Dialog):
         col_dets -- see under SettingsEntry.
         data -- list of tuples (tuples must have at least one item, even if only 
             a "rename me").  Empty list ok.
-        settings_data -- is effectively "returned".  Add details to it in form 
+        settings_data -- is effectively "returned". Add details to it in form 
             of a list of tuples.
         insert_data_func -- what data do you want to see in a new inserted row 
-            (if any).  Must take row index as argument.
+            (if any). Must take row index as argument.
         """
         wx.Dialog.__init__(self, None, title=title, size=(400,400), 
                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU, 
@@ -191,8 +191,8 @@ class SettingsEntry(object):
             self.rows_n += 1
         self.cols_n = len(self.col_dets)
         if self.rows_n > 1:
-            data_cols_n = len(init_settings_data[0])
-            #pprint.pprint(init_settings_data) # debug
+            data_cols_n = len(self.init_settings_data[0])
+            #pprint.pprint(self.init_settings_data) # debug
             if data_cols_n != self.cols_n:
                 raise Exception(u"There must be one set of column details per"
                                 u" column of data (currently %s details for "
@@ -253,7 +253,7 @@ class SettingsEntry(object):
         for i in range(self.rows_to_fill):
             for j in range(self.cols_n):
                 self.grid.SetCellValue(row=i, col=j, 
-                                       s=unicode(init_settings_data[i][j]))
+                                       s=unicode(self.init_settings_data[i][j]))
         if not self.readonly:
                 self.grid.SetRowLabelValue(self.rows_n - 1, mg.NEW_IS_READY)
         self.current_col_idx = 0
@@ -310,6 +310,8 @@ class SettingsEntry(object):
     def get_width_precision(self, col_idx):
         """
         Returns width, precision.
+        width (int): Minimum number of characters to be shown.
+        precision (int): Number of digits after the decimal dot.
         """
         width = self.col_dets[col_idx].get("colwidth", 5)
         precision = self.col_dets[col_idx].get("col_precision", 1)

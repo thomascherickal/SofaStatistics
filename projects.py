@@ -377,8 +377,8 @@ class ProjectDlg(wx.Dialog, config_output.ConfigUI):
         self.panel_top = wx.Panel(self)
         self.panel_top.SetBackgroundColour(wx.Colour(205, 217, 215))
         self.scroll_con_dets = wx.PyScrolledWindow(self, 
-                size=(900, 350), # need for Windows
-                style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
+                                        size=(900, 350), # need for Windows
+                                        style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
         self.scroll_con_dets.SetScrollRate(10,10) # gives it the scroll bars
         self.panel_config = wx.Panel(self)
         self.panel_config.SetBackgroundColour(wx.Colour(205, 217, 215))
@@ -705,7 +705,7 @@ class ProjectDlg(wx.Dialog, config_output.ConfigUI):
                                     "projselect form so OK to fail otherwise.")
             proj_notes = self.txt_proj_notes.GetValue()
             fil_var_dets = self.vdt_file
-            fil_script = self.script_file if self.script_file else ""
+            fil_script = self.script_file if self.script_file else u""
             style = self.drop_style.GetStringSelection()
             fil_css = config_output.style2path(style)
             fil_report = self.txt_report_file.GetValue()

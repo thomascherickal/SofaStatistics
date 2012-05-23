@@ -20,7 +20,7 @@ FILE_EXCEL = u"excel"
 FILE_ODS = u"ods"
 FILE_UNKNOWN = u"unknown"
 GAUGE_STEPS = 50
-    
+
 
 class MismatchException(Exception):
     def __init__(self, fldname, expected_fldtype, details):

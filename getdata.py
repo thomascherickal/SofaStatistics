@@ -400,8 +400,8 @@ def make_fld_val_clause(dbe, flds, fldname, val, gte=mg.GTE_EQUALS):
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     ""
     for dbe in mg.DBES:
-        mg.DBE_MODULES[dbe].set_data_con_gui(parent, readonly, scroll, 
-                                                     szr, lblfont)
+        mg.DBE_MODULES[dbe].set_data_con_gui(parent, readonly, scroll, szr, 
+                                             lblfont)
 
 def get_proj_con_settings(parent, proj_dic):
     "Get project connection settings"
