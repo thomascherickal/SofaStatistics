@@ -423,6 +423,7 @@ class DlgImportDisplay(wx.Dialog):
         panel = wx.Panel(self)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_options = wx.BoxSizer(wx.HORIZONTAL)
+        szr_header = wx.BoxSizer(wx.VERTICAL)
         szr_btns = wx.StdDialogButtonSizer()
         lbl_instructions = wx.StaticText(panel, -1, _("If the fields are not "
                             "separated correctly, enter a different delimiter "
@@ -439,11 +440,15 @@ class DlgImportDisplay(wx.Dialog):
         self.drop_encodings.Bind(wx.EVT_CHOICE, self.on_sel_encoding)
         self.chk_has_header = wx.CheckBox(panel, -1, _("Has header row"))
         self.chk_has_header.SetValue(probably_has_hdr)
+        lbl_hdr_warning = wx.StaticText(panel, -1, _(u"Note - SOFA cannot "
+                                            u"handle multiple header rows."))
         szr_options.Add(lbl_delim, 0, wx.RIGHT, 5)
-        szr_options.Add(self.txt_delim, 0, wx.GROW|wx.RIGHT, 10)
+        szr_options.Add(self.txt_delim, 0, wx.RIGHT, 10)
         szr_options.Add(lbl_encoding, 0, wx.RIGHT, 5)
-        szr_options.Add(self.drop_encodings, 0, wx.GROW|wx.RIGHT, 10)
-        szr_options.Add(self.chk_has_header, 0)
+        szr_options.Add(self.drop_encodings, 0, wx.RIGHT, 10)
+        szr_header.Add(self.chk_has_header, 0)
+        szr_header.Add(lbl_hdr_warning, 0)
+        szr_options.Add(szr_header, 0)
         content, content_height = self.get_content()
         if debug: print(content)
         self.html_content = wx.html.HtmlWindow(panel, -1, 

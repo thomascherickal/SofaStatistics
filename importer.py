@@ -738,8 +738,9 @@ class HasHeaderGivenDataDlg(wx.Dialog):
         self.panel = wx.Panel(self)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_btns = wx.BoxSizer(wx.HORIZONTAL)
-        lbl_explan = wx.StaticText(self.panel, -1, _("Does your %s file have a "
-                                                     "header row?") % ext)
+        explan = _(u"Does your %s file have a header row? Note - SOFA cannot "
+                   u"handle multiple header rows.") % ext
+        lbl_explan = wx.StaticText(self.panel, -1, explan)
         content, unused = get_content_dets(strdata)
         if debug: print(content)
         html_content = wx.html.HtmlWindow(self.panel, -1, size=(820,440))
