@@ -142,6 +142,9 @@ def get_con_resources(con_dets, default_dbs, db=None, add_checks=False):
             print(unicode(e))
             raise
     cur = con.cursor() # must return tuples not dics
+    if cur is None:
+        raise Exception(_(u"Unable to get valid cursor from database "
+                          u"connection to \"%s\"" % db))
     if not has_tbls(cur, db):
         raise Exception(_(u"\n\nDatabase \"%s\" didn't have any tables. "
             u"You can only connect to SQLite databases which have data in them."

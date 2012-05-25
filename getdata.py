@@ -632,8 +632,8 @@ def get_data_dropdowns(parent, panel, default_dbs):
     # databases list needs to be tuple including dbe so can get both from 
     # sequence alone e.g. when identifying selection
     dd = mg.DATADETS_OBJ
-    # can't just use dbs list for dd - sqlite etc may have multiple dbs but only 
-    # one per con
+    # Can't just use dbs list for dd - sqlite etc may have multiple dbs but only 
+    # one per con.
     dbe_dbs_list = mg.DBE_MODULES[dd.dbe].get_dbs_list(dd.con_dets, default_dbs)
     db_choices = [(x, dd.dbe) for x in dbe_dbs_list]
     dbes = mg.DBES[:]
@@ -687,37 +687,49 @@ def setup_drop_tbls(drop_tbls):
     except NameError:
         raise Exception(u"Table \"%s\" not found in tables list" % dd.tbl)
 
+def set_parent_db_dets(parent, dbe, db):
+    """
+    Set all parent database details including drop down.
+    """
+    dd = mg.DATADETS_OBJ
+    dd.set_dbe(dbe, db)
+    parent.dbe = dd.dbe
+    parent.db = dd.db
+    parent.con = dd.con
+    parent.cur = dd.cur
+    parent.tbls = dd.tbls
+    parent.tbl = dd.tbl
+    parent.flds = dd.flds
+    parent.idxs = dd.idxs
+    parent.has_unique = dd.has_unique
+    parent.drop_tbls.SetItems(dd.tbls)
+    tbls_lc = [x.lower() for x in dd.tbls]
+    parent.drop_tbls.SetSelection(tbls_lc.index(dd.tbl.lower()))
+    
 def refresh_db_dets(parent):
     """
     Responds to a database selection.
     When the database dropdowns are created, the selected idx is stored. If
-        need to undo, we set selection to that.  If ok to accept change, reset 
-        the selected idx to what has just been selected.
+        need to undo, we set selection to that and also reset all database 
+        details. If ok to accept change, reset the selected idx to what has just 
+        been selected.
     """
     wx.BeginBusyCursor()
-    dd = mg.DATADETS_OBJ
     db_choice_item = parent.db_choice_items[parent.drop_dbs.GetSelection()]
     db, dbe = extract_db_dets(db_choice_item)
     try:
-        dd.set_dbe(dbe, db)
-        parent.dbe = dd.dbe
-        parent.db = dd.db
-        parent.con = dd.con
-        parent.cur = dd.cur
-        parent.tbls = dd.tbls
-        parent.tbl = dd.tbl
-        parent.flds = dd.flds
-        parent.idxs = dd.idxs
-        parent.has_unique = dd.has_unique
-        parent.drop_tbls.SetItems(dd.tbls)
-        tbls_lc = [x.lower() for x in dd.tbls]
-        parent.drop_tbls.SetSelection(tbls_lc.index(dd.tbl.lower()))
+        set_parent_db_dets(parent, dbe, db)
+        # successful so can now change
         parent.selected_dbe_db_idx = parent.drop_dbs.GetSelection()
     except Exception, e:
         wx.MessageBox(_("Experienced problem refreshing database details.") +
                       u"\nCaused by error %s" % lib.ue(e))
-        parent.drop_dbs.SetSelection(parent.selected_dbe_db_idx)
-        raise
+        # roll back
+        orig_selected_dbe_db_idx = parent.selected_dbe_db_idx
+        orig_db_choice_item = parent.db_choice_items[orig_selected_dbe_db_idx]
+        orig_db, orig_dbe = extract_db_dets(orig_db_choice_item)
+        set_parent_db_dets(parent, orig_dbe, orig_db)
+        parent.drop_dbs.SetSelection(orig_selected_dbe_db_idx)
     finally:
         lib.safe_end_cursor()
 
