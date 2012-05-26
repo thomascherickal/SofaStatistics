@@ -772,7 +772,6 @@ class ProjectDlg(wx.Dialog, config_output.ConfigUI):
             f.write(u"\n\ncon_dets = " + 
                     lib.escape_pre_write(lib.dic2unicode(con_dets)))
             f.close()
-            self.parent.parent.set_proj_lbl(proj_name)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # only for dialogs
         # (MUST come after Destroy)        

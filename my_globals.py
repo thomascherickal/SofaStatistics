@@ -419,7 +419,7 @@ INT_IMG_ROOT = os.path.join(INT_PATH, u"_img")
 MDY = u"month_day_year"
 DMY = u"day_month_year"
 YMD = u"year_month_day"
-OK_TIME_FORMATS = ["%I%p", "%I:%M%p", "%H:%M", "%H:%M:%S"]
+OK_TIME_FORMATS = ["%I%p", "%I:%M%p", "%H:%M", "%H:%M:%S"] # currently no spaces allowed e.g. 4 pm
 OK_DATE_FORMATS = None
 OK_DATE_FORMAT_EXAMPLES = None
 # preferences

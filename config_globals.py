@@ -160,6 +160,12 @@ def set_ok_date_formats_by_fmt(d_fmt):
     always_ok_date_formats = ["%Y-%m-%d", "%Y/%m/%d", "%Y", 
                               "%B %d, %Y", # February 11, 2010 
                               "%b %d, %Y", # Feb 11, 2010
+                              "%B %d %Y", # February 11 2010 
+                              "%b %d %Y", # Feb 11 2010
+                              "%d %B, %Y", # 11 February, 2010 
+                              "%d %b, %Y", # 11 Feb, 2010
+                              "%d %B %Y", # 11 February 2010 
+                              "%d %b %Y", # 11 Feb 2010
                               ]
     ok_date_formats =  extra_ok_date_formats + always_ok_date_formats
     mg.OK_DATE_FORMATS = ok_date_formats

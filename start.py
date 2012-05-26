@@ -25,7 +25,7 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-dev_debug = True # relates to errors etc once GUI application running.
+dev_debug = False # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 show_more_steps = True
@@ -1072,8 +1072,10 @@ class StartFrame(wx.Frame):
         
     def set_proj_lbl(self, proj_text=""):
         "proj_text must NOT have .proj on the end"
+        debug = False
         self.active_proj = u"%s.proj" % proj_text
         self.Refresh()
+        if debug: print(u"Setting proj_text to %s" % proj_text)
 
     def on_get_started_click(self, event):
         import webbrowser

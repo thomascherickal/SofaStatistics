@@ -1140,19 +1140,22 @@ def mysql2textdate(mysql_date, output_format):
 
 def is_date_part(datetime_str):
     """
-    Assumes date will have - or / or . or , and time will not.
+    Assumes date will have - or / or . or , or space and time will not.
     If a mishmash will fail bad_date later.
     """
-    return ("-" in datetime_str or "/" in datetime_str or "." in datetime_str 
-            or "," in datetime_str)
+    return (u"-" in datetime_str
+            or u"/" in datetime_str 
+            or u"." in datetime_str 
+            or u"," in datetime_str
+            or u" " in datetime_str)
 
 def is_time_part(datetime_str):
     """
     Assumes time will have : (or am/pm) and date will not.
     If a mishmash will fail bad_time later.
     """
-    return ":" in datetime_str or "am" in datetime_str.lower() \
-        or "pm" in datetime_str.lower()
+    return (":" in datetime_str or "am" in datetime_str.lower()
+            or "pm" in datetime_str.lower())
 
 def is_year(datetime_str):
     try:
@@ -1162,55 +1165,84 @@ def is_year(datetime_str):
         dt_is_year = False
     return dt_is_year
 
-def get_splitter(datetime_str):
+def get_datetime_parts(datetime_str):
     """
-    e.g. Google docs spreadsheets use 2011-04-14T23:33:05
+    Return potential date and time parts separately if possible.
+    Split in the ways that ensure any legitimate datetime strings are split 
+        properly.
+    E.g. 2009 (or 4pm) returned as a list of 1 item []
+    E.g. 2011-04-14T23:33:05 returned as [u"2011-04-14", u"23:33:052"]
+     (Google docs spreadsheets use 2011-04-14T23:33:05).
+    E.g. 1 Feb, 2009 4pm returned as [u"1 Feb, 2009", u"4pm"]
+    E.g. 1 Feb 2009 returned as [u"1 Feb 2009"]
+    E.g. 1 Feb 2009 4pm returned as [u"1 Feb 2009", u"4pm"]
+    E.g. 21/12/2009 4pm returned as [u"21/12/2009", u"4pm"]
+    Not sure which way round they are yet or no need to guarantee that the parts 
+        are even valid as either dates or times.
+    Copes with spaces in times by removing them e.g. 4 pm -> 4pm
+    Returns parts_lst.
     """
-    if u" " in datetime_str and u", " not in datetime_str:
-        splitter = u" "
-    elif u"T" in datetime_str:
-        splitter = u"T"
+    datetime_str = datetime_str.replace(u" pm", u"pm")
+    datetime_str = datetime_str.replace(u" am", u"am")
+    datetime_str = datetime_str.replace(u" PM", u"PM")
+    datetime_str = datetime_str.replace(u" AM", u"AM")
+    if datetime_str.count(u"T") == 1:
+        parts_lst = datetime_str.split(u"T") # e.g. [u"2011-04-14", u"23:33:052"]
+    elif u" " in datetime_str: # split by last one unless ... last one fails time test
+        # So we handle 1 Feb 2009 and 1 Feb 2009 4pm and 2011/03/23 4pm correctly
+        # and 4pm 2011/03/23.
+        # Assumed no spaces in times (as cleaned up to this point e.g. 4 pm -> 4pm).
+        # So if a valid time, will either be first or last item or not at all. 
+        last_bit_passes_time_test = is_time_part(datetime_str.split()[-1])
+        first_bit_passes_time_test = is_time_part(datetime_str.split()[0])
+        if not first_bit_passes_time_test and not last_bit_passes_time_test: # this is our best shot - still might fail
+            parts_lst = [datetime_str]
+        else: # Has to be split to potentially be valid. Split by last space 
+            # (or first space if potentially starts with time).
+            # Safe because we have removed spaces within times.
+            bits = datetime_str.split(u" ") # e.g. [u"1 Feb 2009", u"4pm"]
+            if first_bit_passes_time_test:
+                first = bits[0]
+                last = u" ".join([x for x in bits[1:]]) # at least one bit
+            else:
+                first = u" ".join([x for x in bits[:-1]]) # at least one bit
+                last = bits[-1]
+            parts_lst = [first, last]
     else:
-        splitter = None
-    return splitter
+        parts_lst = [datetime_str,]
+    return parts_lst
 
 def datetime_split(datetime_str):
     """
     Split date and time (if both).
-    A space can be treated as the splitter unless after a comma, in which case 
-        it should be seen as an internal part of a date e.g. Feb 11, 2010.
     Return date part, time part, order (True unless order 
         time then date).
     Return None for any missing components.
-    Must be only one space in string (if any) - between date and time
-        (or time and date).
     boldate_then_time -- only False if time then date with both present.
     """
-    splitter = get_splitter(datetime_str)
-    if splitter:
+    parts_lst = get_datetime_parts(datetime_str)
+    if len(parts_lst) == 1:
+        if is_year(datetime_str):
+            return (datetime_str, None, True)
+        else: # only one part
+            boldate_then_time = True
+            if is_date_part(datetime_str):
+                return (datetime_str, None, boldate_then_time)
+            elif is_time_part(datetime_str):
+                return (None, datetime_str, boldate_then_time)
+            else:
+                return (None, None, boldate_then_time)
+    elif len(parts_lst) == 2:
         boldate_then_time = True
-        datetime_split = datetime_str.split(splitter)
-        if len(datetime_split) != 2:
-            return (None, None, True)
-        if is_date_part(datetime_split[0]) \
-                and is_time_part(datetime_split[1]):
-            return (datetime_split[0], datetime_split[1], True)
-        elif is_date_part(datetime_split[1]) \
-                and is_time_part(datetime_split[0]):
+        if (is_date_part(parts_lst[0]) and is_time_part(parts_lst[1])):
+            return (parts_lst[0], parts_lst[1], True)
+        elif (is_date_part(parts_lst[1]) and is_time_part(parts_lst[0])):
             boldate_then_time = False
-            return (datetime_split[1], datetime_split[0], boldate_then_time)
+            return (parts_lst[1], parts_lst[0], boldate_then_time)
         else:
             return (None, None, boldate_then_time)
-    elif is_year(datetime_str):
-        return (datetime_str, None, True)
-    else: # only one part
-        boldate_then_time = True
-        if is_date_part(datetime_str):
-            return (datetime_str, None, boldate_then_time)
-        elif is_time_part(datetime_str):
-            return (None, datetime_str, boldate_then_time)
-        else:
-            return (None, None, boldate_then_time)
+    else:
+        return (None, None, True)
 
 def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats, 
                                     ok_time_formats):
@@ -1262,10 +1294,13 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
     # have at least one part and no bad parts
     return (date_part, date_format, time_part, time_format, boldate_then_time)
 
+print(get_dets_of_usable_datetime_str("4 am Feb 1 2011", mg.OK_DATE_FORMATS, 
+                                      mg.OK_TIME_FORMATS))
+
 def is_usable_datetime_str(raw_datetime_str, ok_date_formats=None, 
                            ok_time_formats=None):
     """
-    Is the datetime string usable?  Used for checking user-entered datetimes.
+    Is the datetime string usable? Used for checking user-entered datetimes.
     Doesn't cover all possibilities - just what is needed for typical data 
         entry.
     If only a time, can always use today's date later to prepare for SQL.
@@ -1280,7 +1315,6 @@ def is_usable_datetime_str(raw_datetime_str, ok_date_formats=None,
     Should only be one space in string (if any) - between date and time
         (or time and date).
     """
-    ok_date_formats
     return get_dets_of_usable_datetime_str(raw_datetime_str, 
                             ok_date_formats or mg.OK_DATE_FORMATS, 
                             ok_time_formats or mg.OK_TIME_FORMATS) is not None
