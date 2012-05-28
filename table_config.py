@@ -588,6 +588,9 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         row_idx = 0
         while True:
             if row_idx >= display_n:
+                # refreshing cursor prevents table lock for some reason
+                dd.cur.close()
+                dd.cur = dd.con.cursor()
                 break # got all we need
             row_obj = dd.cur.fetchone()
             if row_obj is None:
@@ -677,7 +680,6 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                                                 design_flds_types)
                 rows.append(row_lst)
         else:
-            
             rows = self.get_real_demo_data(display_n, db_flds_orig_names, 
                                   design_flds_orig_names, design_flds_new_names, 
                                   design_flds_col_labels, design_flds_types)

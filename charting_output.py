@@ -24,6 +24,7 @@ import getdata
 import output
 
 AVG_CHAR_WIDTH_PXLS = 4
+TXT_WIDTH_WHEN_ROTATED = 4
 
 def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt, 
                      measure, fld_measure, fld_gp_by, fld_chart_by,
@@ -1081,7 +1082,7 @@ def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
     n_bars_in_cluster = 1
     # always the same number, irrespective of order
     n_clusters = len(chart_dets[mg.CHART_SERIES_DETS][0][mg.CHART_XAXIS_DETS])
-    max_lbl_width = 1 if rotate else max_lbl_len
+    max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
     (width, xgap, xfontsize, 
      minor_ticks, 
      left_axis_lbl_shift) = get_barchart_sizings(n_clusters, n_bars_in_cluster, 
@@ -1250,7 +1251,7 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
     series_dets = chart_dets[mg.CHART_SERIES_DETS]
     n_bars_in_cluster = len(series_dets)
     n_clusters = len(xaxis_dets)
-    max_lbl_width = 1 if rotate else max_lbl_len
+    max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
     (width, xgap, xfontsize, 
      minor_ticks, 
      left_axis_lbl_shift) = get_barchart_sizings(n_clusters, n_bars_in_cluster, 
@@ -1556,7 +1557,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets,
     if rotate:
         height += AVG_CHAR_WIDTH_PXLS*max_lbl_len 
     height += axis_lbl_drop  # compensate for loss of bar display height
-    max_lbl_width = 1 if rotate else max_lbl_len
+    max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
     (width, xfontsize, 
      minor_ticks, micro_ticks) = get_linechart_sizings(xaxis_dets, 
                                                     max_lbl_width, series_dets)
@@ -1718,7 +1719,7 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets,
     lbl_dets = get_lbl_dets(xaxis_dets)
     xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
     max_lbl_len = chart_dets[mg.CHART_MAX_LBL_LEN]
-    max_lbl_width = 1 if rotate else max_lbl_len
+    max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
     (width, xfontsize, minor_ticks, 
                 micro_ticks) = get_linechart_sizings(xaxis_dets, max_lbl_width, 
                                                      series_dets)
@@ -2182,7 +2183,7 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     if rotate:
         height += AVG_CHAR_WIDTH_PXLS*max_lbl_len 
     height += axis_lbl_drop
-    max_lbl_width = 1 if rotate else max_lbl_len
+    max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
     (width, xfontsize,
         minor_ticks) = get_boxplot_sizings(xaxis_dets, max_lbl_width, 
                                            chart_dets)

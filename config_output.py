@@ -166,7 +166,6 @@ class ExtraOutputConfigDlg(wx.Dialog):
             vdt except for the new item being added. Looks at everything stored 
             (nothing ;-) plus new item) and stores that.
         """
-        cc = get_cc()
         entered_vdt_path = self.txt_var_dets_file.GetValue()
         invalid_msg = lib.get_invalid_var_dets_msg(entered_vdt_path)
         if not invalid_msg:

@@ -522,7 +522,9 @@ def rel2abs_rpt_img_links(str_html):
         temporary GUI displays.
     """
     debug = False
-    report_path = os.path.join(mg.REPORTS_PATH, u"")
+    cc = config_output.get_cc()
+    report_path = os.path.split(cc[mg.CURRENT_REPORT_PATH])[0]
+    report_path = os.path.join(report_path, u"")
     if debug: print(u"report_path: %s" % report_path)
     abs_display_content = str_html.replace(u"<img src='", 
                                            u"<img src='%s" % report_path)\

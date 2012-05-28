@@ -1294,8 +1294,8 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
     # have at least one part and no bad parts
     return (date_part, date_format, time_part, time_format, boldate_then_time)
 
-print(get_dets_of_usable_datetime_str("4 am Feb 1 2011", mg.OK_DATE_FORMATS, 
-                                      mg.OK_TIME_FORMATS))
+#print(get_dets_of_usable_datetime_str("4 am Feb 1 2011", mg.OK_DATE_FORMATS, 
+#                                      mg.OK_TIME_FORMATS))
 
 def is_usable_datetime_str(raw_datetime_str, ok_date_formats=None, 
                            ok_time_formats=None):
