@@ -21,7 +21,6 @@ INC_PERC = True
 SHOW_AVG = False
 ROTATE = False
 
-
 """
 If sorting of x-axis not explicit, will be sort_opt=mg.SORT_NONE and will thus 
     be sorted by values not labels and order of values determined by GROUP BY
