@@ -47,8 +47,8 @@ class DimTree(object):
             update_default_item_conf()). 
         Used in set_initial_config() when setting up a fresh item.
         """
-        self.default_item_confs = \
-            {mg.FREQS_TBL: {mg.COLDIM: {MEASURES: None}, 
+        self.default_item_confs = {
+             mg.FREQS_TBL: {mg.COLDIM: {MEASURES: None}, 
                             mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: None}},
              mg.CROSSTAB: {mg.COLDIM: {HAS_TOT: None, SORT_ORDER: None, 
                                        MEASURES: None}, 

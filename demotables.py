@@ -66,7 +66,9 @@ class DemoTable(object):
 
 class DemoRawTable(rawtables.RawTable, DemoTable):
     """
-    Demo display raw table (uses demo data only for illustrative purposes)
+    Demo display raw table. Reads actual data. Note: database may change after 
+        demo instantiated. In which case it would try to read the wrong data 
+        unless the self.dbe etc were updated.
     """
     
     def __init__(self, txt_titles, txt_subtitles, colroot, coltree, var_labels, 
@@ -127,7 +129,13 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
 
     
 class DemoDimTable(dimtables.DimTable, DemoTable):
-    "A demo table only - no real data inside"
+    """
+    A demo table only - no real data inside. Just uses labels from GUI (stored 
+        in tree structures) to fake up a table with no real numbers inside.
+    The only connection with the database is when the variables are defined. And 
+        the trees get wiped every time a database or table change is made. So
+        always fresh and running off selected data.
+    """
     
     def __init__(self, txtTitles, txtSubtitles, colroot, rowroot, rowtree, 
                  coltree, col_no_vars_item, var_labels, val_dics):

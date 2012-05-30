@@ -18,6 +18,12 @@ D = decimal.Decimal
 decimal.getcontext().prec = 200
 
 """
+Don't use dd - this and any other modules we wish to run as a standalone script 
+must have dbe, db etc explicitly fed in. If the script is built by the GUI, the
+GUI reads dd values and feeds them into the script.
+"""
+
+"""
 The "minus 3" at the end of this formula is often explained as a correction to 
     make the kurtosis of the normal distribution equal to zero. Another reason 
     can be seen by looking at the formula for the kurtosis of the sum of 

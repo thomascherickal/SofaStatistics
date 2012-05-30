@@ -10,6 +10,12 @@ import output
 import tree
 
 """
+Don't use dd - this and any other modules we wish to run as a standalone script 
+must have dbe, db etc explicitly fed in. If the script is built by the GUI, the
+GUI reads dd values and feeds them into the script.
+"""
+
+"""
 Not to be confused with the dimtree which controls what is shown in the GUI tree 
     control.
 Dimension node trees are things like:

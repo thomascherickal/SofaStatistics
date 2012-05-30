@@ -4,8 +4,11 @@ import lib
 import getdata
 import output
 
-# don't use dd - this needs to be runnable as a standalone script - everything 
-# has to be explicit
+"""
+Don't use dd - this and any other modules we wish to run as a standalone script 
+must have dbe, db etc explicitly fed in. If the script is built by the GUI, the
+GUI reads dd values and feeds them into the script.
+"""
 
 
 class RawTable(object):
@@ -90,8 +93,7 @@ class RawTable(object):
             del row_tots[0] # ignore label col
         objqtr = getdata.get_obj_quoter_func(self.dbe)
         colnames_clause = u", ".join([objqtr(x) for x in self.col_names])
-        SQL_get_data = u"""SELECT %s FROM %s %s """ % \
-                                    (colnames_clause, 
+        SQL_get_data = u"""SELECT %s FROM %s %s """ % (colnames_clause, 
                                      getdata.tblname_qtr(self.dbe, self.tbl), 
                                      self.where_tbl_filt)
         if debug: print(SQL_get_data)
