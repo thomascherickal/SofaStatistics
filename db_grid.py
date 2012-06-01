@@ -672,15 +672,17 @@ class TblEditor(wx.Dialog):
 
     def value_in_range(self, raw_val, fld_dic):
         "NB may be None if N/A e.g. SQLite"
-        min = fld_dic[mg.FLD_NUM_MIN_VAL]
-        max = fld_dic[mg.FLD_NUM_MAX_VAL]        
-        if min is not None:
-            if Decimal(raw_val) < Decimal(unicode(min)):
-                if self.debug: print("%s is < the min of %s" % (raw_val, min))
+        min_val = fld_dic[mg.FLD_NUM_MIN_VAL]
+        max_val = fld_dic[mg.FLD_NUM_MAX_VAL]        
+        if min_val is not None:
+            if Decimal(raw_val) < Decimal(unicode(min_val)):
+                if self.debug: 
+                    print("%s is < the min_val of %s" % (raw_val, min_val))
                 return False
-        if max is not None:
-            if Decimal(raw_val) > Decimal(unicode(max)):
-                if self.debug: print("%s is > the max of %s" % (raw_val, max))
+        if max_val is not None:
+            if Decimal(raw_val) > Decimal(unicode(max_val)):
+                if self.debug: 
+                    print("%s is > the max_val of %s" % (raw_val, max_val))
                 return False
         if self.debug: print("%s was accepted" % raw_val)
         return True

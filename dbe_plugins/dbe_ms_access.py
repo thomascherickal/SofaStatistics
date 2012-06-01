@@ -117,7 +117,6 @@ def get_con_resources(con_dets, default_dbs, db=None):
 
 def get_tbls(cur, db):
     "Get table names given database and cursor. NB not system tables"
-    tbls = []
     cat = win32com.client.Dispatch(r'ADOX.Catalog')
     cat.ActiveConnection = cur.adoconn
     alltables = cat.Tables

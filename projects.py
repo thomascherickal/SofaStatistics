@@ -115,8 +115,8 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
         def_type = mg.VAR_TYPE_CAT # see notes when enabling under GetSettings
     else:
         def_type = mg.VAR_TYPE_CAT
-    type = var_types.get(var_name, def_type)
-    var_desc = {"label": var_label, "notes": notes, "type": type}
+    var_type = var_types.get(var_name, def_type)
+    var_desc = {"label": var_label, "notes": notes, "type": var_type}
     getsettings = GetSettings(title, boltext, boldatetime, var_desc, 
                               init_settings_data, settings_data, val_type)
     ret = getsettings.ShowModal()

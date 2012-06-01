@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import wx
+import wx.grid
 
 class KeyDownEvent(wx.PyCommandEvent):
     "See 3.6.1 in wxPython in Action"

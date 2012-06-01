@@ -112,7 +112,7 @@ else:
             gobject.threads_init()
             import pygtk
             pygtk.require('2.0')
-            import gtk, gtk.gdk
+            import gtk.gdk
             # pywebkitgtk (http://code.google.com/p/pywebkitgtk/)
             import webkit
         

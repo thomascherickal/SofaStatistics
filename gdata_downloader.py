@@ -351,7 +351,7 @@ class GdataDownloadDlg(wx.Dialog):
         self.gd_client.SetClientLoginToken(self.gs_client.GetClientLoginToken())
         try:
             self.gd_client.Export(url, file_path, gid=self.wksheet_idx)
-        except gdata_service.RequestError, e:
+        except gdata_service.RequestError:
             lib.safe_end_cursor()
             wx.MessageBox(_(u"Error downloading - please try again."))
             return

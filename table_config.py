@@ -542,7 +542,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         finally: # any initial content
             self.update_demo()
             
-    def get_demo_val(self, row_idx, col_label, type):
+    def get_demo_val(self, row_idx, col_label, lbl_type):
         """
         Get best possible demo value for display in absence of source data.
         """
@@ -552,7 +552,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             try:
                 val = random.choice(self.val_dics[col_label])
             except Exception:
-                val = lib.get_rand_val_of_type(type)
+                val = lib.get_rand_val_of_type(lbl_type)
         return val
     
     def get_demo_row_lst(self, row_idx, design_flds_col_labels, 
@@ -561,8 +561,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         row_lst = []
         label_types = zip(design_flds_col_labels, design_flds_types)
         if debug: print("Label types:\n%s" % label_types)
-        for col_label, type in label_types:
-            val2use = self.get_demo_val(row_idx, col_label, type)
+        for col_label, lbl_type in label_types:
+            val2use = self.get_demo_val(row_idx, col_label, lbl_type)
             row_lst.append(val2use)
         return row_lst
     
@@ -602,9 +602,9 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             row_dets = zip(design_flds_orig_names, design_flds_new_names, 
                            design_flds_col_labels, design_flds_types)
             if debug: print("Row dets:\n%s" % pprint.pformat(row_dets))
-            for orig_fldname, new_fldname, col_label, type in row_dets:
+            for orig_fldname, new_fldname, col_label, lbl_type in row_dets:
                 if orig_fldname is None: # i.e. an inserted or added field
-                    rawval = self.get_demo_val(row_idx, col_label, type)
+                    rawval = self.get_demo_val(row_idx, col_label, lbl_type)
                 else:
                     try:
                         rawval = row_dict[orig_fldname]

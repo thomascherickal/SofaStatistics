@@ -42,11 +42,10 @@ class DemoTable(object):
         html = []
         try:
             html.append(output.get_html_hdr(hdr_title=_(u"Report(s)"), 
-                                            css_fils=[cc[mg.CURRENT_CSS_PATH],], 
-                                            has_dojo=False, 
-                                            new_js_n_charts = None,
-                                            default_if_prob=True, 
-                                            grey=True, abs=True))
+                                    css_fils=[cc[mg.CURRENT_CSS_PATH],], 
+                                    has_dojo=False, new_js_n_charts = None,
+                                    default_if_prob=True, grey=True, 
+                                    abs_pth=True))
             html.append(u"<table cellspacing='0'>\n") # IE6 no CSS borderspacing
             main_html = self.get_html(css_idx)
         except my_exceptions.MissingCssException:
@@ -66,42 +65,23 @@ class DemoTable(object):
 
 class DemoRawTable(rawtables.RawTable, DemoTable):
     """
-    Demo display raw table. Reads actual data. Note: database may change after 
-        demo instantiated. In which case it would try to read the wrong data 
-        unless the self.dbe etc were updated.
+    Demo display raw table. Reads actual data.
     """
     
     def __init__(self, txt_titles, txt_subtitles, colroot, coltree, var_labels, 
-                 val_dics, totals_row, first_as_label):
-        dd = mg.DATADETS_OBJ
+                 val_dics, add_total_row, first_col_as_label):
+        """
+        txt_titles -- actual GUI object - turned into text 
+        """
         self.txt_titles = txt_titles
         self.txt_subtitles = txt_subtitles
         self.colroot = colroot
         self.coltree = coltree
         self.var_labels = var_labels
         self.val_dics = val_dics
-        self.totals_row = totals_row
-        self.first_as_label = first_as_label
-        self.dbe = dd.dbe
-        self.cur = dd.cur
-        self.tbl = dd.tbl
-        self.flds = dd.flds
-
-    def update_db_dets(self, dbe, default_dbs, default_tbls, con_dets, cur, db, 
-                       tbl,flds): 
-        """
-        Needed if table selected changes after the table type has been set to 
-            raw.
-        """
-        self.dbe = dbe
-        self.default_dbs = default_dbs
-        self.default_tbls = default_tbls
-        self.con_dets = con_dets
-        self.cur = cur
-        self.db = db
-        self.tbl = tbl
-        self.flds = flds
-    
+        self.add_total_row = add_total_row
+        self.first_col_as_label = first_col_as_label
+   
     def get_demo_html_if_ok(self, css_idx):
         "Show demo table if sufficient data to do so"
         has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
@@ -111,20 +91,19 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
     def get_html(self, css_idx):
         """
         Returns demo_html.
-        Update anything which might have changed first.
-        Db details are updated anytime db or tbl changes.
+        Always run off fresh data - guaranteed by using dd. Can't take db 
+            settings when instantiated - may change after that.
         """
         dd = mg.DATADETS_OBJ
-        self.add_total_row = self.totals_row
-        self.first_col_as_label = self.first_as_label
         unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
-        self.where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
-        self.col_names, self.col_labels = lib.get_col_dets(self.coltree, 
-                                                           self.colroot, 
-                                                           self.var_labels)
-        demo_html = rawtables.RawTable.get_html(self, css_idx, 
-                                                page_break_after=False, 
-                                                display_n=4)
+        where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
+        col_names, col_labels = lib.get_col_dets(self.coltree, self.colroot, 
+                                                 self.var_labels)
+        demo_html = rawtables.get_html(self.titles, self.subtitles, dd.dbe,  
+                                   col_labels, col_names, dd.tbl, dd.flds, dd.cur, 
+                                   self.first_col_as_label, self.val_dics, 
+                                   self.add_total_row, where_tbl_filt, css_idx, 
+                                   page_break_after=False, display_n=4)
         return demo_html
 
     
@@ -137,11 +116,11 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         always fresh and running off selected data.
     """
     
-    def __init__(self, txtTitles, txtSubtitles, colroot, rowroot, rowtree, 
+    def __init__(self, txt_titles, txt_subtitles, colroot, rowroot, rowtree, 
                  coltree, col_no_vars_item, var_labels, val_dics):
         self.debug = False
-        self.txt_titles = txtTitles
-        self.txt_subtitles = txtSubtitles
+        self.txt_titles = txt_titles
+        self.txt_subtitles = txt_subtitles
         self.colroot = colroot
         self.rowroot = rowroot
         self.rowtree = rowtree
@@ -264,8 +243,8 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                     # make val node e.g. Male
                     subitem_node = dimtables.LabelNode(label=subitem)
                     new_var_node.add_child(subitem_node)                
-                    if is_terminal and dim == mg.COLDIM and \
-                            self.has_col_measures:
+                    if (is_terminal and dim == mg.COLDIM 
+                        and self.has_col_measures):
                         # add measure label nodes
                         measures = item_conf.measures_lst
                         if not measures:
@@ -321,9 +300,9 @@ class GenDemoTable(DemoDimTable):
     has_col_measures = True
     default_measure = lib.get_default_measure(mg.FREQS_TBL)
     
-    def __init__(self, txtTitles, txtSubtitles, colroot, rowroot, rowtree, 
+    def __init__(self, txt_titles, txt_subtitles, colroot, rowroot, rowtree, 
                  coltree, col_no_vars_item, var_labels, val_dics):
-        DemoDimTable.__init__(self, txtTitles, txtSubtitles, colroot, rowroot, 
+        DemoDimTable.__init__(self, txt_titles, txt_subtitles, colroot, rowroot, 
                               rowtree, coltree, col_no_vars_item, var_labels, 
                               val_dics)
         
@@ -428,9 +407,9 @@ class SummDemoTable(DemoDimTable):
     has_col_measures = False
     default_measure = lib.get_default_measure(mg.ROW_SUMM)
     
-    def __init__(self, txtTitles, txtSubtitles, colroot, rowroot, rowtree, 
+    def __init__(self, txt_titles, txt_subtitles, colroot, rowroot, rowtree, 
                  coltree, col_no_vars_item, var_labels, val_dics):
-        DemoDimTable.__init__(self, txtTitles, txtSubtitles, colroot, rowroot, 
+        DemoDimTable.__init__(self, txt_titles, txt_subtitles, colroot, rowroot, 
                               rowtree, coltree, col_no_vars_item, var_labels, 
                               val_dics)
 

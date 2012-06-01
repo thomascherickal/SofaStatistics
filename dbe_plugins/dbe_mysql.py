@@ -167,75 +167,75 @@ def get_min_max(coltype, num_prec, dec_pts):
     """
     if coltype.lower().startswith(TINYINT) \
             and not coltype.lower().endswith("unsigned"):
-        min = -(2**7)
-        max = (2**7)-1
+        min_val = -(2**7)
+        max_val = (2**7)-1
     elif coltype.lower().startswith(TINYINT) \
             and coltype.lower().endswith("unsigned"):
-        min = 0
-        max = (2**8)-1
+        min_val = 0
+        max_val = (2**8)-1
     elif coltype.lower().startswith(SMALLINT) \
             and not coltype.lower().endswith("unsigned"):
-        min = -(2**15)
-        max = (2**15)-1
+        min_val = -(2**15)
+        max_val = (2**15)-1
     elif coltype.lower().startswith(SMALLINT) \
             and coltype.lower().endswith("unsigned"):
-        min = 0
-        max = (2**16)-1
+        min_val = 0
+        max_val = (2**16)-1
     elif coltype.lower().startswith(MEDIUMINT) \
             and not coltype.lower().endswith("unsigned"):
-        min = -(2**23)
-        max = (2**23)-1
+        min_val = -(2**23)
+        max_val = (2**23)-1
     elif coltype.lower().startswith(MEDIUMINT) \
             and coltype.lower().endswith("unsigned"):
-        min = 0
-        max = (2**24)-1
+        min_val = 0
+        max_val = (2**24)-1
     elif coltype.lower().startswith(INT) \
             and not coltype.lower().endswith("unsigned"):
-        min = -(2**31)
-        max = (2**31)-1
+        min_val = -(2**31)
+        max_val = (2**31)-1
     elif coltype.lower().startswith(INT) \
             and coltype.lower().endswith("unsigned"):
-        min = 0
-        max = (2**32)-1
+        min_val = 0
+        max_val = (2**32)-1
     elif coltype.lower().startswith(BIGINT) \
             and not coltype.lower().endswith("unsigned"):
-        min = -(2**63)
-        max = (2**63)-1
+        min_val = -(2**63)
+        max_val = (2**63)-1
     elif coltype.lower().startswith(BIGINT) \
             and coltype.lower().endswith("unsigned"):
-        min = 0
-        max = (2**64)-1
+        min_val = 0
+        max_val = (2**64)-1
     elif coltype.lower().startswith(FLOAT) \
             and not coltype.lower().endswith("unsigned"):
-        min = -3.402823466E+38
-        max = 3.402823466E+38
+        min_val = -3.402823466E+38
+        max_val = 3.402823466E+38
     elif coltype.lower().startswith(FLOAT) \
             and coltype.lower().endswith("unsigned"):
-        min = 0
-        max = 3.402823466E+38
+        min_val = 0
+        max_val = 3.402823466E+38
     elif coltype.lower().startswith(DOUBLE) \
             and not coltype.lower().endswith("unsigned"):
-        min = -1.7976931348623157E+308
-        max = 1.7976931348623157E+308
+        min_val = -1.7976931348623157E+308
+        max_val = 1.7976931348623157E+308
     elif coltype.lower().startswith(DOUBLE) \
             and coltype.lower().endswith("unsigned"):
-        min = 0
-        max = 1.7976931348623157E+308
+        min_val = 0
+        max_val = 1.7976931348623157E+308
     elif coltype.lower().startswith(DECIMAL) \
             and not coltype.lower().endswith("unsigned"):
         # e.g. 6,2 -> 9999.99
         abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
-        min = -abs_max
-        max = abs_max
+        min_val = -abs_max
+        max_val = abs_max
     elif coltype.lower().startswith(DECIMAL) \
             and coltype.lower().endswith("unsigned"):
         abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
-        min = 0
-        max = abs_max
+        min_val = 0
+        max_val = abs_max
     else:
-        min = None
-        max = None
-    return min, max
+        min_val = None
+        max_val = None
+    return min_val, max_val
 
 def get_flds(cur, db, tbl):
     """

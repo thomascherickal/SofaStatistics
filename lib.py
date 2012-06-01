@@ -687,15 +687,15 @@ def get_var_dets(fil_var_dets):
                                           u"err": unicode(e)})
     return results
 
-def get_rand_val_of_type(type):
-    if type == mg.FLDTYPE_NUMERIC:
+def get_rand_val_of_type(lbl_type):
+    if lbl_type == mg.FLDTYPE_NUMERIC:
         vals_of_type = mg.NUM_DATA_SEQ
-    elif type == mg.FLDTYPE_STRING:
+    elif lbl_type == mg.FLDTYPE_STRING:
         vals_of_type = mg.STR_DATA_SEQ
-    elif type == mg.FLDTYPE_DATE:
+    elif lbl_type == mg.FLDTYPE_DATE:
         vals_of_type = mg.DTM_DATA_SEQ
     else:
-        raise Exception(u"Unknown type in get_rand_val_of_type")
+        raise Exception(u"Unknown lbl_type in get_rand_val_of_type")
     return random.choice(vals_of_type)
 
 def safe_end_cursor():
@@ -1668,7 +1668,7 @@ class DlgGetRegistration(wx.Dialog):
         # Prebuilt dialogs presumably do this internally.
 
 
-def valid_username_id(username, id):
+def valid_username_id(username, username_id):
     """
     id must be a hash of the username
     in web database will use http://php.net/manual/en/function.crypt.php
@@ -1678,9 +1678,9 @@ def valid_username_id(username, id):
     hashed_username = hashlib.sha1(username.encode("utf-8")).hexdigest()
     if debug:
         print(u"username: %s" % username)
-        print(u"id: %s" % id)
+        print(u"id: %s" % username_id)
         print(u"hashed_username: %s" % hashed_username)
-    is_valid = (hashed_username == id)
+    is_valid = (hashed_username == username_id)
     return is_valid
 
 
@@ -1702,8 +1702,8 @@ class UsernameIDValidator(wx.PyValidator):
         # wxPython
         # Handle any messages here and here alone
         username = self.txt_username.GetValue()
-        id = self.txt_id.GetValue()
-        if not valid_username_id(username, id):
+        username_id = self.txt_id.GetValue()
+        if not valid_username_id(username, username_id):
             wx.MessageBox(_("Please enter a valid username and ID."))
             self.txt_username.SetFocus()
             self.txt_username.Refresh()

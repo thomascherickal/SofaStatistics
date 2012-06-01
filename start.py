@@ -650,8 +650,8 @@ class StartFrame(wx.Frame):
     
     def set_help_imgs(self):
         # help images
-        help = os.path.join(mg.SCRIPT_PATH, u"images", u"help.gif")
-        self.bmp_help = lib.get_bmp(src_img_path=help, reverse=REVERSE)
+        help_img = os.path.join(mg.SCRIPT_PATH, u"images", u"help.gif")
+        self.bmp_help = lib.get_bmp(src_img_path=help_img, reverse=REVERSE)
         get_started = os.path.join(mg.SCRIPT_PATH, u"images",
                                    u"step_by_step.gif")
         self.bmp_get_started = lib.get_bmp(src_img_path=get_started, 
@@ -670,8 +670,8 @@ class StartFrame(wx.Frame):
                                      reverse=REVERSE)
         stats = os.path.join(mg.SCRIPT_PATH, u"images", u"stats.gif")
         self.bmp_stats = lib.get_bmp(src_img_path=stats, reverse=REVERSE)
-        exit = os.path.join(mg.SCRIPT_PATH, u"images", u"exit.gif")
-        self.bmp_exit = lib.get_bmp(src_img_path=exit, reverse=REVERSE)
+        exit_img = os.path.join(mg.SCRIPT_PATH, u"images", u"exit.gif")
+        self.bmp_exit = lib.get_bmp(src_img_path=exit_img, reverse=REVERSE)
         agpl3 = os.path.join(mg.SCRIPT_PATH, u"images", u"agpl3.xpm")
         self.bmp_agpl3 = lib.get_bmp(src_img_path=agpl3, 
                                  bmp_type=wx.BITMAP_TYPE_XPM, 
@@ -1039,10 +1039,10 @@ class StartFrame(wx.Frame):
             panel_dc.SetTextForeground(wx.WHITE)
             panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 7, 
                                      wx.SWISS, wx.NORMAL, wx.NORMAL))
-            copyright = u"\u00a9"
+            ucopyright = u"\u00a9"
             panel_dc.DrawLabel(u"Released under open source AGPL3 licence\n%s "
                                "2009-2012 Paton-Simpson & Associates Ltd" %
-                               copyright, 
+                               ucopyright, 
                                wx.Rect(self.main_left, self.form_height-53, 
                                        100, 50))
             panel_dc.DrawBitmap(self.bmp_agpl3, self.main_left-115, 

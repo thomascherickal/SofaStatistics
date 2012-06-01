@@ -224,8 +224,8 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         # setup demo table type
         if debug: print(cc[mg.CURRENT_CSS_PATH])
         self.prev_demo = None
-        self.demo_tab = demotables.GenDemoTable(txtTitles=self.txt_titles, 
-                                 txtSubtitles=self.txt_subtitles,
+        self.demo_tab = demotables.GenDemoTable(txt_titles=self.txt_titles, 
+                                 txt_subtitles=self.txt_subtitles,
                                  colroot=self.colroot, rowroot=self.rowroot, 
                                  rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
@@ -347,15 +347,11 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
     def data_changed(self):
         """
         Things to do after the data source has changed.
-        Db-related details are set at point of instantiation - need updating.
+        Note - real tables always run a script supplied fresh db details. Demo 
+            tables either don't use real data (dim tables use labels and items 
+            stored in variable trees) or take the data details they need at the 
+            moment they generate the html. 
         """
-        dd = mg.DATADETS_OBJ
-        if self.tab_type == mg.RAW_DISPLAY:
-            # Raw Tables cannot draw on dd and demo raw tables is a child of 
-            # that therefore must store in self
-            self.demo_tab.update_db_dets(dd.dbe, dd.default_dbs, 
-                                         dd.default_tbls, dd.con_dets, 
-                                         dd.cur, dd.db, dd.tbl, dd.flds)
         self.delete_all_dim_children()
         self.col_no_vars_item = None
         if self.tab_type == mg.FREQS_TBL:
@@ -425,8 +421,8 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         if self.tab_type == mg.FREQS_TBL:
             self.enable_raw_display_opts(enable=False)
             self.enable_show_perc_symbol_opt(enable=True)
-            self.demo_tab = demotables.GenDemoTable(txtTitles=self.txt_titles, 
-                                 txtSubtitles=self.txt_subtitles,
+            self.demo_tab = demotables.GenDemoTable(txt_titles=self.txt_titles, 
+                                 txt_subtitles=self.txt_subtitles,
                                  colroot=self.colroot, rowroot=self.rowroot, 
                                  rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
@@ -436,8 +432,8 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         if self.tab_type == mg.CROSSTAB:
             self.enable_raw_display_opts(enable=False)
             self.enable_show_perc_symbol_opt(enable=True)
-            self.demo_tab = demotables.GenDemoTable(txtTitles=self.txt_titles, 
-                                 txtSubtitles=self.txt_subtitles,
+            self.demo_tab = demotables.GenDemoTable(txt_titles=self.txt_titles, 
+                                 txt_subtitles=self.txt_subtitles,
                                  colroot=self.colroot, rowroot=self.rowroot, 
                                  rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
@@ -446,8 +442,8 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         elif self.tab_type == mg.ROW_SUMM:
             self.enable_raw_display_opts(enable=False)
             self.enable_show_perc_symbol_opt(enable=False)
-            self.demo_tab = demotables.SummDemoTable(txtTitles=self.txt_titles, 
-                                 txtSubtitles=self.txt_subtitles,
+            self.demo_tab = demotables.SummDemoTable(txt_titles=self.txt_titles, 
+                                 txt_subtitles=self.txt_subtitles,
                                  colroot=self.colroot, rowroot=self.rowroot, 
                                  rowtree=self.rowtree, coltree=self.coltree, 
                                  col_no_vars_item=self.col_no_vars_item, 
@@ -457,11 +453,11 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
             self.enable_raw_display_opts(enable=True)
             self.enable_show_perc_symbol_opt(enable=False)
             self.demo_tab = demotables.DemoRawTable(txt_titles=self.txt_titles, 
-                             txt_subtitles=self.txt_subtitles, 
-                             colroot=self.colroot, coltree=self.coltree, 
-                             var_labels=self.var_labels, val_dics=self.val_dics,
-                             totals_row=self.chk_totals_row.IsChecked(),
-                             first_as_label=self.chk_first_as_label.IsChecked())
+                         txt_subtitles=self.txt_subtitles, 
+                         colroot=self.colroot, coltree=self.coltree, 
+                         var_labels=self.var_labels, val_dics=self.val_dics,
+                         add_total_row=self.chk_totals_row.IsChecked(),
+                         first_col_as_label=self.chk_first_as_label.IsChecked())
         # in case they were disabled and then we changed tab type
         self.setup_row_btns()
         self.setup_col_btns()

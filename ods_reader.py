@@ -422,15 +422,15 @@ def get_tbl_cell_el_dets(row):
         tbl_cell_el_dets.append(el_dict)  
     return tbl_cell_el_dets
 
-def add_type_to_coltypes(coltypes, col_idx, type):
+def add_type_to_coltypes(coltypes, col_idx, coltype):
     try:
-        coltypes[col_idx].add(type)
+        coltypes[col_idx].add(coltype)
     except IndexError:
-        coltypes.append(set([type]))    
+        coltypes.append(set([coltype]))    
 
-def update_types_and_val_dict(coltypes, col_idx, fldnames, valdict, type, 
+def update_types_and_val_dict(coltypes, col_idx, fldnames, valdict, coltype, 
                               val2use):
-    add_type_to_coltypes(coltypes, col_idx, type)
+    add_type_to_coltypes(coltypes, col_idx, coltype)
     try:
         fldname = fldnames[col_idx]
     except IndexError:
@@ -438,7 +438,7 @@ def update_types_and_val_dict(coltypes, col_idx, fldnames, valdict, type,
                         u"all the data cells.")
     valdict[fldname] = val2use
 
-def process_cells(attrib_dict, coltypes, col_idx, fldnames, valdict, type, 
+def process_cells(attrib_dict, coltypes, col_idx, fldnames, valdict, coltype, 
                   val2use):
     """
     Process cell (or cells if col repeating). Update types and valdict.
@@ -446,7 +446,7 @@ def process_cells(attrib_dict, coltypes, col_idx, fldnames, valdict, type,
     """
     bolcontinue = True
     for unused in range(get_col_rep(attrib_dict)):
-        update_types_and_val_dict(coltypes, col_idx, fldnames, valdict, type, 
+        update_types_and_val_dict(coltypes, col_idx, fldnames, valdict, coltype, 
                                   val2use)
         if col_idx == len(fldnames) - 1:
             bolcontinue = False
@@ -454,7 +454,7 @@ def process_cells(attrib_dict, coltypes, col_idx, fldnames, valdict, type,
         col_idx += 1
     return bolcontinue, col_idx
 
-def extract_date_if_possible(el_det, attrib_dict, xml_type, type):
+def extract_date_if_possible(el_det, attrib_dict, xml_type, coltype):
     """
     Needed because Google Docs spreadsheets return timestamp as a float with a 
         text format e.g. 40347.8271296296 and 6/18/2010 19:51:04.  If a float,
@@ -489,7 +489,7 @@ def extract_date_if_possible(el_det, attrib_dict, xml_type, type):
                 days_since_1900 = str_float
                 if days_since_1900:
                     val2use = lib.dates_1900_to_datetime_str(days_since_1900)
-                    type = mg.VAL_DATE
+                    coltype = mg.VAL_DATE
                     if debug: print(str_float, val2use)
             else:
                 val2use = text
@@ -497,7 +497,7 @@ def extract_date_if_possible(el_det, attrib_dict, xml_type, type):
             val2use = text
     else:
         val2use = text
-    return val2use, type
+    return val2use, coltype
 
 def get_vals_from_row(row, n_flds):
     """
@@ -519,14 +519,14 @@ def get_vals_from_row(row, n_flds):
         elif VAL_TYPE in attrib_dict:
             xml_type = attrib_dict[VAL_TYPE]
             try:
-                type = xml_type_to_val_type[xml_type]
+                coltype = xml_type_to_val_type[xml_type]
             except KeyError:
                 raise Exception(u"Unknown value-type. Update "
                                 u"ods_reader.xml_type_to_val_type")
             # NB need to treat as datetime if it really is even though not
             # properly tagged as a date-value (e.g. Google Docs spreadsheets)
             val2use, unused = extract_date_if_possible(el_det, attrib_dict, 
-                                                       xml_type, type)
+                                                       xml_type, coltype)
         elif len(el_det[RAW_EL]) == 0 or FORMULA in attrib_dict: # empty cell(s)
             # need empty cell for each column spanned (until hit max cols)
             val2use=u""
@@ -561,37 +561,40 @@ def dets_from_row(fldnames, coltypes, row):
         attrib_dict = el_det[ATTRIBS] # already streamlined
         # the defaults unless overridden by actual data
         val2use = u""
-        type = mg.VAL_EMPTY_STRING
+        coltype = mg.VAL_EMPTY_STRING
         if DATE_VAL in attrib_dict:
-            type = mg.VAL_DATE
+            coltype = mg.VAL_DATE
             val2use = attrib_dict[DATE_VAL] # take proper date value
                             # e.g. 2010-02-01 rather than orig text of 01/02/10
             if debug: print(val2use)
-            bolcontinue, col_idx = process_cells(attrib_dict, coltypes, col_idx, 
-                                               fldnames, valdict, type, val2use)
+            (bolcontinue, 
+             col_idx) = process_cells(attrib_dict, coltypes, col_idx, fldnames, 
+                                      valdict, coltype, val2use)
             if not bolcontinue:
                 break
         elif VAL_TYPE in attrib_dict:
             xml_type = attrib_dict[VAL_TYPE]
             try:
-                type = xml_type_to_val_type[xml_type]
+                coltype = xml_type_to_val_type[xml_type]
             except KeyError:
                 raise Exception(u"Unknown value-type. Update "
                                 u"ods_reader.xml_type_to_val_type")
             # NB need to treat as datetime if it really is even though not
             # properly tagged as a date-value (e.g. Google Docs spreadsheets)
-            val2use, type = extract_date_if_possible(el_det, attrib_dict, 
-                                                     xml_type, type)
+            val2use, coltype = extract_date_if_possible(el_det, attrib_dict, 
+                                                        xml_type, coltype)
             if debug: print(val2use)
-            bolcontinue, col_idx = process_cells(attrib_dict, coltypes, col_idx, 
-                                               fldnames, valdict, type, val2use)
+            (bolcontinue, 
+             col_idx) = process_cells(attrib_dict, coltypes, col_idx, fldnames, 
+                                      valdict, coltype, val2use)
             if not bolcontinue:
                 break
         elif len(el_det[RAW_EL]) == 0 or FORMULA in attrib_dict: # empty cell(s)
             # need empty cell for each column spanned (until hit max cols)
-            bolcontinue, col_idx = process_cells(attrib_dict, coltypes, col_idx, 
-                                         fldnames, valdict, 
-                                         type=mg.VAL_EMPTY_STRING, val2use=u"")
+            (bolcontinue, 
+             col_idx) = process_cells(attrib_dict, coltypes, col_idx, fldnames, 
+                                      valdict, coltype=mg.VAL_EMPTY_STRING, 
+                                      val2use=u"")
             if not bolcontinue:
                 break
         else:

@@ -185,7 +185,7 @@ def get_fallback_css():
     return default_css
     
 def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
-                 default_if_prob=False, grey=False, abs=False):
+                 default_if_prob=False, grey=False, abs_pth=False):
     """
     Get HTML header.
     Add suffixes to each of the main classes so can have multiple styles in a
@@ -199,7 +199,7 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
         probably be handled to give the user some feedback).
     grey -- make the text in the cells grey instead of black so it is more
         clearly an example rather than real data.
-    abs -- absolute paths to background images in css.
+    abs_pth -- absolute paths to background images in css.
     """
     debug = False
     if debug: print(css_fils[0])
@@ -369,7 +369,7 @@ makefaint = function(colour){
         dojo_insert = u""
     hdr = mg.DEFAULT_HDR % {u"title": hdr_title, u"css": css, 
                             u"dojo_insert": dojo_insert}
-    if abs:
+    if abs_pth:
         hdr = rel2abs_css_bg_imgs(hdr)
     if debug: print(hdr)
     return hdr

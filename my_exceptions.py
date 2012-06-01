@@ -106,9 +106,9 @@ class TooFewValsInSamplesForAnalysisException(OutputException):
                            u"filtering or source data.")
 
 class ExcessReportTableCellsException(OutputException):
-    def __init__(self, max):
+    def __init__(self, max_cells):
         OutputException.__init__(self, _(u"Only allowed %s cells in "
-                                         u"report table") % max)
+                                         u"report table") % max_cells)
 
 class TooFewValsForDisplay(OutputException):
     def __init__(self, min_n=None):

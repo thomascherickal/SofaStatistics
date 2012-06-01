@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import wx
-import wx.html
 
 import my_globals as mg
 import lib

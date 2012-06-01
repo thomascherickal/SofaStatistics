@@ -39,7 +39,7 @@ CIDR = u"cidr" # "IPv4 or IPv6 network address"
 CIRCLE = u"circle" # "circle on a plane"
 DATE = u"date" # "calendar date (year, month, day)"
 DECIMAL = u"decimal" # The types decimal and numeric are equivalent. 
-  # Both types are part of the SQL standard. 
+# Both types are part of the SQL standard. 
 DOUBLE = u"double precision" # "double precision floating-point number (8 bytes)"
 INET = u"inet" # "IPv4 or IPv6 host address"
 INTEGER = u"integer" # "signed four-byte integer"
@@ -216,35 +216,35 @@ def get_min_max(fldtype, num_prec, dec_pts, autonum):
         PostgreSQL.
     """
     if fldtype == SMALLINT:
-        min = -(2**15)
-        max = (2**15)-1
+        min_val = -(2**15)
+        max_val = (2**15)-1
     elif fldtype == INTEGER:
-        min = 1 if autonum else -(2**31)
-        max = (2**31)-1
+        min_val = 1 if autonum else -(2**31)
+        max_val = (2**31)-1
     elif fldtype == BIGINT:
-        min = 1 if autonum else -(2**63)
-        max = (2**63)-1
+        min_val = 1 if autonum else -(2**63)
+        max_val = (2**63)-1
     # http://www.postgresql.org/docs/8.4/static/datatype-money.html
     elif fldtype == MONEY:
-        min = -92233720368547758.08
-        max = 92233720368547758.07
+        min_val = -92233720368547758.08
+        max_val = 92233720368547758.07
     elif fldtype == REAL:
         # variable-precision, inexact. 6 decimal digits precision.
-        min = -(2**128)
-        max = (2**128)-1 # actually, rather a bit less, but this will do
+        min_val = -(2**128)
+        max_val = (2**128)-1 # actually, rather a bit less, but this will do
     elif fldtype == DOUBLE:
         # variable-precision, inexact. 15 decimal digits precision.
-        min = -(2**1024)
-        max = (2**1024)-1
+        min_val = -(2**1024)
+        max_val = (2**1024)-1
     elif fldtype == NUMERIC: #alias of decimal
         # variable-precision, inexact. 15 decimal digits precision.
         abs_max = 10**(num_prec - dec_pts)
-        min = -abs_max
-        max = abs_max
+        min_val = -abs_max
+        max_val = abs_max
     else:
-        min = None
-        max = None
-    return min, max
+        min_val = None
+        max_val = None
+    return min_val, max_val
     
 def get_flds(cur, db, tbl):
     """
