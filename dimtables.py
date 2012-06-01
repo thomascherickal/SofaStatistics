@@ -396,9 +396,10 @@ class LiveTable(DimTable):
         self.tbl = tbl
         self.tbl_filt = tbl_filt
         self.where_tbl_filt, self.and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-        (self.if_clause, unused, unused, self.quote_obj, self.quote_val, 
-            self.placeholder, self.get_summable, self.gte_not_equals) = \
-                                    getdata.get_dbe_syntax_elements(self.dbe)
+        (self.if_clause, unused, unused, 
+         self.quote_obj, self.quote_val, 
+         self.placeholder, self.get_summable, 
+         self.gte_not_equals) = getdata.get_dbe_syntax_elements(self.dbe)
         self.cur = cur
         self.flds = flds
         self.tree_rows = tree_rows

@@ -164,6 +164,8 @@ class RawTable(object):
         """
         Set up table details required to make mg.
         dbe - needed for quoting entities and values
+        Need it in __init__ rather than get_html because that needs to follow 
+            same API as demo dim tables.
         """
         debug = False
         self.titles = titles

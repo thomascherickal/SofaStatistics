@@ -1307,7 +1307,7 @@ chart_output = charting_output.areachart_output(titles, subtitles,
 def get_histogram_script(inc_normal, css_fil, css_idx):
     dd = mg.DATADETS_OBJ
     script = u"""
-histo_dets = charting_output.get_histo_dets(dbe, cur, tbl, tbl_filt, 
+histo_dets = charting_output.get_histo_dets(dbe, cur, tbl, tbl_filt, flds,
                                            fld_measure, fld_chart_by, 
                                            fld_chart_by_name, fld_chart_by_lbls)
 chart_output = charting_output.histogram_output(titles, subtitles, 
@@ -1321,7 +1321,7 @@ def get_scatterplot_script(css_fil, css_idx, dot_border):
     dd = mg.DATADETS_OBJ
     script = u"""
 scatterplot_dets = charting_output.get_scatterplot_dets(dbe, cur, tbl, tbl_filt, 
-            fld_x_axis, fld_y_axis, 
+            flds, fld_x_axis, fld_y_axis, 
             fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
             unique=True)
 chart_output = charting_output.scatterplot_output(titles, subtitles,

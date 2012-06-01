@@ -309,7 +309,9 @@ DATADETS_OBJ = None # stores settings for the current database and has a cursor
     # of fragile passing around of the object. Ensures that once changed, 
     # everything is consistent across every report, analysis etc until changed 
     # again. Prevented a lots of minor bugs elegantly. A good global :-)
-    # Easy enough to mock one for testing. 
+    # Easy enough to mock one for testing. Not used inside scripts which are to 
+    # be run headless. Database details are taken from this object and fed into 
+    # script which is then run.
 DBE_CON = u"dbe_con" # connection resource
 DBE_CUR = u"dbe_cur" # cursor resource (tuple-based)
 DBE_DBS = u"dbe dbs" # names

@@ -619,7 +619,7 @@ def get_uwhisker(raw_uwhisker, ubox, measure_vals):
         uwhisker = ubox
     return uwhisker
 
-def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure,
+def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, fld_measure,
                    fld_chart_by, fld_chart_by_name, fld_chart_by_lbls):
     """
     Make separate db call each histogram. Getting all values anyway and don't 
@@ -632,7 +632,6 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure,
     bin_labels -- [u"1 to under 2", u"2 to under 3", ...]
     """
     debug = False
-    dd = mg.DATADETS_OBJ
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     sql_dic = {mg.FLD_CHART_BY: objqtr(fld_chart_by), 
@@ -654,7 +653,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure,
     histo_dets = []
     for fld_chart_by_val in fld_chart_by_vals:
         if fld_chart_by:
-            filt = getdata.make_fld_val_clause(dbe, dd.flds, 
+            filt = getdata.make_fld_val_clause(dbe, flds, 
                                                fldname=fld_chart_by, 
                                                val=fld_chart_by_val)
             and_fld_chart_by_filt = u" and %s" % filt
@@ -719,14 +718,13 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, fld_measure,
         histo_dets.append(histo_dic)
     return histo_dets
 
-def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, fld_x_axis, fld_y_axis, 
+def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds, fld_x_axis, fld_y_axis, 
                          fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
                          unique=True):
     """
     unique -- unique x-y pairs only
     """
     debug = False
-    dd = mg.DATADETS_OBJ
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     sql_dic = {mg.FLD_CHART_BY: objqtr(fld_chart_by),
@@ -752,7 +750,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, fld_x_axis, fld_y_axis,
     scatterplot_dets = []
     for fld_chart_by_val in fld_chart_by_vals:
         if fld_chart_by:
-            filt = getdata.make_fld_val_clause(dbe, dd.flds, 
+            filt = getdata.make_fld_val_clause(dbe, flds, 
                                                fldname=fld_chart_by, 
                                                val=fld_chart_by_val)
             and_fld_chart_by_filt = u" and %s" % filt
