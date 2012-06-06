@@ -364,7 +364,7 @@ class GenDemoTable(DemoDimTable):
                                row_label_rows_lst, data_cells_n,
                                col_term_nodes, css_idx):
         """
-        Get list of row data.  Each row in the list is represented
+        Get list of row data. Each row in the list is represented
         by a row of strings to concatenate, one per data point.
         """
         CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL, 
@@ -374,9 +374,9 @@ class GenDemoTable(DemoDimTable):
         data_item_presn_lst = []
         for unused in row_filters_lst:
             first = True
-            for (colmeasure, unused, unused, unused) in \
-                        zip(col_measures_lst, col_filters_lst, 
-                            col_tots_lst, col_filt_flds_lst):
+            for (colmeasure, unused, 
+                 unused, unused) in zip(col_measures_lst, col_filters_lst, 
+                                        col_tots_lst, col_filt_flds_lst):
                 if first:
                     cellclass = CSS_FIRST_DATACELL
                     first = False

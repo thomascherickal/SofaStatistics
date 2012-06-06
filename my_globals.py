@@ -65,6 +65,9 @@ SORT_LBL = _(u"By Label")
 SORT_INCREASING = _(u"Increasing")
 SORT_DECREASING = _(u"Decreasing")
 SORT_OPTS = [SORT_NONE, SORT_LBL, SORT_INCREASING, SORT_DECREASING]
+SHOW_FREQ = _(u"Frequency")
+SHOW_PERC = _(u"Percent")
+DATA_SHOW_OPTS = [SHOW_FREQ, SHOW_PERC]
 # can use content of constant as a short label
 FREQ = _("Freq")
 ROWPCT = _("Row %")
@@ -444,6 +447,7 @@ CHART_CHART_BY = _("Charts By")
 CHART_SERIES_BY = _("Series By")
 CHART_AVERAGED = _("Averaged")
 Y_AXIS_FREQ_LBL = _("Frequency")
+Y_AXIS_PERC_LBL = _(u"Percentage")
 # charts
 FLD_MEASURE = u"fld_measure"
 FLD_GROUP_BY = u"fld_gp_by"
@@ -521,6 +525,7 @@ CHART_VAL_MEASURES = u"chart_val_measures" # e.g. freqs or avgs
 CHART_MEASURE_DETS = u"measure_dets"
 CHART_MAX_LBL_LEN = u"max_lbl_len"
 CHART_Y_VALS = u"y_vals"
+CHART_TOOLTIPS = u"tooltips"
 CHART_NORMAL_Y_VALS = u"normal_y_vals"
 CHART_SLICE_DETS = u"slice_dets"
 CHART_XAXIS_DETS = u"xaxis_dets"

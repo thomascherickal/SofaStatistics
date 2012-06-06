@@ -3,7 +3,6 @@ makeBarChart = function(chartname, series, chartconf){
     // allow charts made without newest config items to keep working
     var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;
     var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var incPerc = ("incPerc" in chartconf) ? chartconf["incPerc"] : true;
     var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
     var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
     var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
@@ -17,22 +16,9 @@ makeBarChart = function(chartname, series, chartconf){
     var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
 
-    var getSum = function(myNums){
-        var i
-        var sum = 0
-        for (i in myNums) {
-            sum += myNums[i]
-        }
-        return sum
-    }    
-
     // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
-        var seriesSum = getSum(val.run.data);
         var tip = val.y;
-        if(incPerc){
-            tip += ("<br>(" + Math.round((1000*val.y)/seriesSum)/10 + "%)");
-        }
         return tip;
     };
 
@@ -163,7 +149,6 @@ makeLineChart = function(chartname, series, chartconf){
 
     var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;
     var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var incPerc = ("incPerc" in chartconf) ? chartconf["incPerc"] : true;
     var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
     var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
     var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
@@ -270,7 +255,6 @@ makeAreaChart = function(chartname, series, chartconf){
     // allow charts made without newest config items to keep working
     var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;
     var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var incPerc = ("incPerc" in chartconf) ? chartconf["incPerc"] : true;
     var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
     var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
     var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;

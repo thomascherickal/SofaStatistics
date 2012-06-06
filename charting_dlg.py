@@ -17,7 +17,7 @@ OUTPUT_MODULES = ["my_globals as mg", "core_stats", "charting_output", "output",
 LIMITS_MSG = (u"This chart type is not currently available in this release. "
               u"More chart types coming soon!")
 CUR_SORT_OPT = mg.SORT_NONE
-INC_PERC = True
+CUR_DATA_OPT = mg.SHOW_FREQ
 SHOW_AVG = False
 ROTATE = False
 
@@ -50,8 +50,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                    wx.CAPTION|wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self, autoupdate=True)
         cc = config_output.get_cc()
+        global SHOW_AVG
         SHOW_AVG = False
-        INC_PERC = True
+        global CUR_DATA_OPT
+        CUR_DATA_OPT = mg.SHOW_FREQ
         self.min_data_type = None # not used here - need fine-grained control of 
         # up to 3 drop downs
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -161,34 +163,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # bar chart
         self.szr_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_bar_chart = wx.Panel(self.panel_mid)
-        self.rad_bar_sort_opts = wx.RadioBox(self.panel_bar_chart, -1, 
-                                             _("Sort order of bars"), 
-                                             choices=mg.SORT_OPTS, 
-                                             size=(-1,50))
-        idx_current_sort_opt = mg.SORT_OPTS.index(CUR_SORT_OPT)
-        self.rad_bar_sort_opts.SetSelection(idx_current_sort_opt)
-        self.rad_bar_sort_opts.Bind(wx.wx.EVT_RADIOBOX, 
-                                    self.on_rad_bar_sort_opt)
-        self.chk_simple_bar_perc = wx.CheckBox(self.panel_bar_chart, -1, 
-                                               _("Show percent?"))
-        self.chk_simple_bar_perc.SetValue(INC_PERC)
-        self.chk_simple_bar_perc.SetToolTipString(_(u"Show percent in tool "
-                                                    u"tip?"))
-        self.chk_simple_bar_perc.Bind(wx.EVT_CHECKBOX, 
-                                      self.on_chk_simple_bar_perc)
-        self.chk_simple_bar_avg = wx.CheckBox(self.panel_bar_chart, -1, 
-                                              _("Show averages?"))
-        self.chk_simple_bar_avg.SetValue(SHOW_AVG)
-        self.chk_simple_bar_avg.SetToolTipString(_(u"Show averages not "
-                                                   u"frequencies?"))
-        self.chk_simple_bar_avg.Bind(wx.EVT_CHECKBOX, 
-                                      self.on_chk_simple_bar_avg)
-        self.chk_simple_bar_rotate = wx.CheckBox(self.panel_bar_chart, -1, 
-                                               _("Rotate labels?"))
-        self.chk_simple_bar_rotate.SetValue(ROTATE)
-        self.chk_simple_bar_rotate.SetToolTipString(_(u"Rotate x-axis labels?"))
-        self.chk_simple_bar_rotate.Bind(wx.EVT_CHECKBOX, 
-                                        self.on_chk_simple_bar_rotate)
+        self.rad_bar_sort_opts = self.get_rad_sort(self.panel_bar_chart)
+        self.rad_simple_bar_perc = self.get_rad_perc(self.panel_bar_chart)
+        self.chk_simple_bar_avg = self.get_chk_avg(self.panel_bar_chart, 
+                                                   self.on_chk_simple_bar_avg)
+        self.chk_simple_bar_rotate = self.get_chk_rotate(self.panel_bar_chart)
         if mg.PLATFORM == mg.WINDOWS:
             tickbox_down_by = 27 # to line up with a combo
         elif mg.PLATFORM == mg.LINUX:
@@ -196,8 +175,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         else:
             tickbox_down_by = 27
         self.szr_bar_chart.Add(self.rad_bar_sort_opts, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_bar_chart.Add(self.chk_simple_bar_perc, 0, wx.TOP, 
-                               tickbox_down_by)
+        self.szr_bar_chart.Add(self.rad_simple_bar_perc, 0, wx.TOP, 5)
         self.szr_bar_chart.AddSpacer(10)
         self.szr_bar_chart.Add(self.chk_simple_bar_rotate, 0, wx.TOP, 
                                tickbox_down_by)
@@ -207,66 +185,34 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_bar_chart.SetSizer(self.szr_bar_chart)
         self.szr_bar_chart.SetSizeHints(self.panel_bar_chart)
         # clustered bar chart
-        self.szr_clustered_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
-        self.panel_clustered_bar_chart = wx.Panel(self.panel_mid)
-        self.chk_clust_bar_perc = wx.CheckBox(self.panel_clustered_bar_chart, 
-                                              -1, _("Show percent?"))
-        self.chk_clust_bar_perc.SetValue(INC_PERC)
-        self.chk_clust_bar_perc.SetToolTipString(_(u"Show percent in tool "
-                                                   u"tip?"))
-        self.chk_clust_bar_perc.Bind(wx.EVT_CHECKBOX, 
-                                     self.on_chk_clust_bar_perc)
-        self.chk_clust_bar_rotate = wx.CheckBox(self.panel_clustered_bar_chart, 
-                                                -1, _("Rotate labels?"))
-        self.chk_clust_bar_rotate.SetValue(ROTATE)
-        self.chk_clust_bar_rotate.SetToolTipString(_(u"Rotate x-axis labels?"))
-        self.chk_clust_bar_rotate.Bind(wx.EVT_CHECKBOX, 
-                                       self.on_chk_clust_bar_rotate)
-        self.chk_clust_bar_avg = wx.CheckBox(self.panel_clustered_bar_chart, -1, 
-                                             _("Show averages?"))
-        self.chk_clust_bar_avg.SetValue(SHOW_AVG)
-        self.chk_clust_bar_avg.SetToolTipString(_(u"Show averages not "
-                                                  u"frequencies?"))
-        self.chk_clust_bar_avg.Bind(wx.EVT_CHECKBOX, 
-                                      self.on_chk_clust_bar_avg)
-        self.szr_clustered_bar_chart.Add(self.chk_clust_bar_perc, 0, wx.TOP, 
+        self.szr_clust_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
+        self.panel_clust_bar_chart = wx.Panel(self.panel_mid)
+        self.rad_clust_bar_perc = self.get_rad_perc(self.panel_clust_bar_chart)
+        self.chk_clust_bar_rotate = self.get_chk_rotate(self.panel_clust_bar_chart)
+        self.chk_clust_bar_avg = self.get_chk_avg(self.panel_clust_bar_chart, 
+                                                  self.on_chk_clust_bar_avg)
+        self.szr_clust_bar_chart.Add(self.rad_clust_bar_perc, 0, wx.TOP, 5)
+        self.szr_clust_bar_chart.AddSpacer(10)
+        self.szr_clust_bar_chart.Add(self.chk_clust_bar_rotate, 0, wx.TOP, 
                                          tickbox_down_by)
-        self.szr_clustered_bar_chart.AddSpacer(10)
-        self.szr_clustered_bar_chart.Add(self.chk_clust_bar_rotate, 0, wx.TOP, 
+        self.szr_clust_bar_chart.AddSpacer(10)
+        self.szr_clust_bar_chart.Add(self.chk_clust_bar_avg, 0, wx.TOP, 
                                          tickbox_down_by)
-        self.szr_clustered_bar_chart.AddSpacer(10)
-        self.szr_clustered_bar_chart.Add(self.chk_clust_bar_avg, 0, wx.TOP, 
-                                         tickbox_down_by)
-        self.panel_clustered_bar_chart.SetSizer(self.szr_clustered_bar_chart)
-        self.szr_clustered_bar_chart.SetSizeHints(\
-                                        self.panel_clustered_bar_chart)
+        self.panel_clust_bar_chart.SetSizer(self.szr_clust_bar_chart)
+        self.szr_clust_bar_chart.SetSizeHints(self.panel_clust_bar_chart)
         # pie chart
         self.szr_pie_chart = wx.BoxSizer(wx.VERTICAL)
         self.panel_pie_chart = wx.Panel(self.panel_mid)
-        self.rad_pie_sort_opts = wx.RadioBox(self.panel_pie_chart, -1, 
-                                             _("Sort order of pie slices"), 
-                                             choices=mg.SORT_OPTS, 
-                                             size=(-1,50))
-        self.rad_pie_sort_opts.SetSelection(idx_current_sort_opt)
-        self.rad_pie_sort_opts.Bind(wx.wx.EVT_RADIOBOX, 
-                                    self.on_rad_pie_sort_opt)
+        self.rad_pie_sort_opts = self.get_rad_sort(self.panel_pie_chart)
         self.szr_pie_chart.Add(self.rad_pie_sort_opts, 0, wx.TOP, 5)
         self.panel_pie_chart.SetSizer(self.szr_pie_chart)
         self.szr_pie_chart.SetSizeHints(self.panel_pie_chart)
         # line chart
         self.szr_line_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_line_chart = wx.Panel(self.panel_mid)
-        self.chk_line_perc = wx.CheckBox(self.panel_line_chart, -1, 
-                                         _("Show percent?"))
-        self.chk_line_perc.SetValue(INC_PERC)
-        self.chk_line_perc.SetToolTipString(_(u"Show percent in tool tip?"))
-        self.chk_line_perc.Bind(wx.EVT_CHECKBOX, self.on_chk_line_perc)
-        self.szr_line_chart.Add(self.chk_line_perc, 0, wx.TOP|wx.BOTTOM, 10)
-        self.chk_line_rotate = wx.CheckBox(self.panel_line_chart, -1, 
-                                               _("Rotate labels?"))
-        self.chk_line_rotate.SetValue(ROTATE)
-        self.chk_line_rotate.SetToolTipString(_(u"Rotate x-axis labels?"))
-        self.chk_line_rotate.Bind(wx.EVT_CHECKBOX, self.on_chk_line_rotate)
+        self.rad_line_perc = self.get_rad_perc(self.panel_line_chart)
+        self.szr_line_chart.Add(self.rad_line_perc, 0, wx.TOP, 5)
+        self.chk_line_rotate = self.get_chk_rotate(self.panel_line_chart)
         self.chk_line_trend = wx.CheckBox(self.panel_line_chart, -1, 
                                          _("Show trend line?"))
         self.chk_line_trend.SetValue(False)
@@ -275,46 +221,36 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                          _("Show smoothed data line?"))
         self.chk_line_smooth.SetValue(False)
         self.chk_line_smooth.SetToolTipString(_(u"Show smoothed data line?"))
-        self.chk_line_avg = wx.CheckBox(self.panel_line_chart, -1, 
-                                        _("Show averages?"))
-        self.chk_line_avg.SetValue(SHOW_AVG)
-        self.chk_line_avg.SetToolTipString(_(u"Show averages not frequencies?"))
-        self.chk_line_avg.Bind(wx.EVT_CHECKBOX, self.on_chk_line_avg)
-        self.szr_line_chart.Add(self.chk_line_rotate, 0, 
-                                wx.TOP|wx.BOTTOM|wx.LEFT, 10)
-        self.szr_line_chart.Add(self.chk_line_trend, 0, 
-                                wx.TOP|wx.BOTTOM|wx.LEFT, 10)
-        self.szr_line_chart.Add(self.chk_line_smooth, 0, 
-                                wx.TOP|wx.BOTTOM|wx.LEFT, 10)
-        self.szr_line_chart.Add(self.chk_line_avg, 0, 
-                                wx.TOP|wx.BOTTOM|wx.LEFT, 10)
+        self.chk_line_avg = self.get_chk_avg(self.panel_line_chart, 
+                                             self.on_chk_line_avg)
+        self.szr_line_chart.AddSpacer(10)
+        self.szr_line_chart.Add(self.chk_line_rotate, 0, wx.TOP, 
+                                tickbox_down_by)
+        self.szr_line_chart.AddSpacer(10)
+        self.szr_line_chart.Add(self.chk_line_trend, 0, wx.TOP, 
+                                tickbox_down_by)
+        self.szr_line_chart.AddSpacer(10)
+        self.szr_line_chart.Add(self.chk_line_smooth, 0, wx.TOP, 
+                                tickbox_down_by)
+        self.szr_line_chart.AddSpacer(10)
+        self.szr_line_chart.Add(self.chk_line_avg, 0, wx.TOP, 
+                                tickbox_down_by)
         self.panel_line_chart.SetSizer(self.szr_line_chart)
         self.szr_line_chart.SetSizeHints(self.panel_line_chart)
         # area chart
         self.szr_area_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_area_chart = wx.Panel(self.panel_mid)
-        self.chk_area_perc = wx.CheckBox(self.panel_area_chart, -1, 
-                                         _("Show percent?"))
-        self.chk_area_perc.SetValue(INC_PERC)
-        self.chk_area_perc.SetToolTipString(_(u"Show percent in tool tip?"))
-        self.chk_area_perc.Bind(wx.EVT_CHECKBOX, self.on_chk_area_perc)
-        
-        self.chk_area_rotate = wx.CheckBox(self.panel_area_chart, -1, 
-                                               _("Rotate labels?"))
-        self.chk_area_rotate.SetValue(ROTATE)
-        self.chk_area_rotate.SetToolTipString(_(u"Rotate x-axis labels?"))
-        self.chk_area_rotate.Bind(wx.EVT_CHECKBOX, self.on_chk_area_rotate)
-        self.chk_area_avg = wx.CheckBox(self.panel_area_chart, -1, 
-                                        _("Show averages?"))
-        self.chk_area_avg.SetValue(SHOW_AVG)
-        self.chk_area_avg.SetToolTipString(_(u"Show averages not frequencies?"))
-        self.chk_area_avg.Bind(wx.EVT_CHECKBOX, self.on_chk_area_avg)
-        self.szr_area_chart.Add(self.chk_area_perc, 0, 
-                                wx.TOP|wx.BOTTOM|wx.LEFT, 10)
-        self.szr_area_chart.Add(self.chk_area_rotate, 0, 
-                                wx.TOP|wx.BOTTOM|wx.LEFT, 10)
-        self.szr_area_chart.Add(self.chk_area_avg, 0, 
-                                wx.TOP|wx.BOTTOM|wx.LEFT, 10)
+        self.rad_area_perc = self.get_rad_perc(self.panel_area_chart)
+        self.chk_area_rotate = self.get_chk_rotate(self.panel_area_chart)
+        self.chk_area_avg = self.get_chk_avg(self.panel_area_chart, 
+                                             self.on_chk_area_avg)
+        self.szr_area_chart.Add(self.rad_area_perc, 0, wx.TOP, 5)
+        self.szr_area_chart.AddSpacer(10)
+        self.szr_area_chart.Add(self.chk_area_rotate, 0, wx.TOP, 
+                                tickbox_down_by)
+        self.szr_area_chart.AddSpacer(10)
+        self.szr_area_chart.Add(self.chk_area_avg, 0, wx.TOP, 
+                                tickbox_down_by)
         self.panel_area_chart.SetSizer(self.szr_area_chart)
         self.szr_area_chart.SetSizeHints(self.panel_area_chart)
         # histogram
@@ -342,19 +278,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # boxplot
         self.szr_boxplot = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_boxplot = wx.Panel(self.panel_mid)
-        self.chk_boxplot_rotate = wx.CheckBox(self.panel_boxplot, -1, 
-                                               _("Rotate labels?"))
-        self.chk_boxplot_rotate.SetValue(ROTATE)
-        self.chk_boxplot_rotate.SetToolTipString(_(u"Rotate x-axis labels?"))
-        self.chk_boxplot_rotate.Bind(wx.EVT_CHECKBOX, 
-                                     self.on_chk_boxplot_rotate)        
+        self.chk_boxplot_rotate = self.get_chk_rotate(self.panel_boxplot)
         self.szr_boxplot.Add(self.chk_boxplot_rotate, 0, 
                              wx.TOP|wx.BOTTOM|wx.LEFT, 10)
         self.panel_boxplot.SetSizer(self.szr_boxplot)
         self.szr_boxplot.SetSizeHints(self.panel_boxplot)
         # Hide all panels except default. Display and layout then hide.
         # Prevents flicker on change later.
-        panels2hide = [self.panel_clustered_bar_chart, self.panel_pie_chart,
+        panels2hide = [self.panel_clust_bar_chart, self.panel_pie_chart,
                        self.panel_line_chart, self.panel_area_chart,
                        self.panel_histogram, self.panel_scatterplot, 
                        self.panel_boxplot]
@@ -427,7 +358,38 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_lst = [self.panel_top, self.panel_mid, self.panel_bottom]
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024, 
                      height_init=myheight)            
-        
+    
+    def get_rad_perc(self, panel):
+        rad = wx.RadioBox(panel, -1, _(u"Data reported"), 
+                          choices=mg.DATA_SHOW_OPTS, size=(-1,50))
+        idx_data_opt = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
+        rad.SetSelection(idx_data_opt)
+        rad.SetToolTipString(_(u"Report frequency or percentage?"))
+        rad.Bind(wx.EVT_RADIOBOX, self.on_rad_perc)
+        return rad
+    
+    def get_chk_rotate(self, panel):
+        chk = wx.CheckBox(panel, -1, _("Rotate labels?"))
+        chk.SetValue(ROTATE)
+        chk.SetToolTipString(_(u"Rotate x-axis labels?"))
+        chk.Bind(wx.EVT_CHECKBOX, self.on_chk_rotate)
+        return chk
+    
+    def get_rad_sort(self, panel):
+        rad = wx.RadioBox(panel, -1, _("Sort order of bars"), 
+                          choices=mg.SORT_OPTS, size=(-1,50))
+        idx_current_sort_opt = mg.SORT_OPTS.index(CUR_SORT_OPT)
+        rad.SetSelection(idx_current_sort_opt)
+        rad.Bind(wx.EVT_RADIOBOX, self.on_rad_sort_opt)
+        return rad
+    
+    def get_chk_avg(self, panel, on_event):
+        chk = wx.CheckBox(panel, -1, _("Show averages?"))
+        chk.SetValue(SHOW_AVG)
+        chk.SetToolTipString(_(u"Show averages not frequencies?"))
+        chk.Bind(wx.EVT_CHECKBOX, on_event)
+        return chk
+    
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
@@ -440,8 +402,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
 
     def on_btn_help(self, event):
         import webbrowser
-        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
-              u"?id=help:charts"
+        url = (u"http://www.sofastatistics.com/wiki/doku.php"
+               u"?id=help:charts")
         webbrowser.open_new_tab(url)
         event.Skip()
 
@@ -602,9 +564,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # drop3
         (self.min_data_type1, 
          self.min_data_type2) = \
-            mg.CHART_TYPE_TO_MIN_DATA_TYPES.get(self.chart_type, 
-                                                (mg.VAR_TYPE_CAT,
-                                                 mg.VAR_TYPE_CAT))
+                        mg.CHART_TYPE_TO_MIN_DATA_TYPES.get(self.chart_type, 
+                                                            (mg.VAR_TYPE_CAT,
+                                                             mg.VAR_TYPE_CAT))
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1,
                        override_min_data_type=self.min_data_type1)
         (lbl1, lbl2,
@@ -616,111 +578,59 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.lbl_var3.Hide()
         self.panel_top.Layout()
 
-    def on_chk_simple_bar_perc(self, event):
-        global INC_PERC
-        INC_PERC = self.chk_simple_bar_perc.IsChecked()
-
-    def on_chk_simple_bar_rotate(self, event):
+    def on_rad_perc(self, event):
+        debug = False
+        global CUR_DATA_OPT
+        # http://www.blog.pythonlibrary.org/2011/09/20/...
+        # ... wxpython-binding-multiple-widgets-to-the-same-handler/
+        rad = event.GetEventObject()
+        idx_sel = rad.GetSelection()
+        try:
+            CUR_DATA_OPT = mg.DATA_SHOW_OPTS[idx_sel]
+        except IndexError:
+            my_exceptions.DoNothingException()
+        if debug: print(u"Current data option: %s" % CUR_DATA_OPT)
+    
+    def on_chk_rotate(self, event):
         global ROTATE
-        ROTATE = self.chk_simple_bar_rotate.IsChecked()
+        chk = event.GetEventObject()
+        ROTATE = chk.IsChecked()
 
-    def on_chk_simple_bar_avg(self, event):
+    def on_chk_avg(self, chk, rad):
         global SHOW_AVG
-        global INC_PERC
-        SHOW_AVG = self.chk_simple_bar_avg.IsChecked()
+        global CUR_DATA_OPT
+        SHOW_AVG = chk.IsChecked()
         if SHOW_AVG:
             self.set_avg_dropdowns()
-            self.chk_simple_bar_perc.Enable(False)
-            INC_PERC = False
+            rad.Enable(False)
+            CUR_DATA_OPT = mg.SHOW_FREQ
         else:
             self.unset_avg_dropdowns()
-            self.chk_simple_bar_perc.Enable(True)
-            INC_PERC = self.chk_simple_bar_perc.IsChecked()
-
-    def on_chk_clust_bar_perc(self, event):
-        global INC_PERC
-        INC_PERC = self.chk_clust_bar_perc.IsChecked()
-
-    def on_chk_clust_bar_rotate(self, event):
-        global ROTATE
-        ROTATE = self.chk_clust_bar_rotate.IsChecked()
+            rad.Enable(True)
+            CUR_DATA_OPT = mg.DATA_SHOW_OPTS[rad.GetSelection()]
+            
+    def on_chk_simple_bar_avg(self, event):
+        self.on_chk_avg(self.chk_simple_bar_avg, self.rad_simple_bar_perc)
 
     def on_chk_clust_bar_avg(self, event):
-        global SHOW_AVG
-        global INC_PERC
-        SHOW_AVG = self.chk_clust_bar_avg.IsChecked()
-        if SHOW_AVG:
-            self.set_avg_dropdowns()
-            self.chk_clust_bar_perc.Enable(False)
-            INC_PERC = False
-        else:
-            self.unset_avg_dropdowns()
-            self.chk_clust_bar_perc.Enable(True)
-            INC_PERC = self.chk_clust_bar_perc.IsChecked()
-            
-    def on_chk_line_perc(self, event):
-        global INC_PERC
-        INC_PERC = self.chk_line_perc.IsChecked()
-
-    def on_chk_line_rotate(self, event):
-        global ROTATE
-        ROTATE = self.chk_line_rotate.IsChecked()
-
+        self.on_chk_avg(self.chk_clust_bar_avg, self.rad_clust_bar_perc)
+                    
     def on_chk_line_avg(self, event):
-        global SHOW_AVG
-        global INC_PERC
-        SHOW_AVG = self.chk_line_avg.IsChecked()
-        if SHOW_AVG:
-            self.set_avg_dropdowns()
-            self.chk_line_perc.Enable(False)
-            INC_PERC = False
-        else:
-            self.unset_avg_dropdowns()
-            self.chk_line_perc.Enable(True)
-            INC_PERC = self.chk_line_perc.IsChecked()
-        self.setup_line_extras()
-        
-    def on_chk_area_perc(self, event):
-        global INC_PERC
-        INC_PERC = self.chk_area_perc.IsChecked()
-
-    def on_chk_area_rotate(self, event):
-        global ROTATE
-        ROTATE = self.chk_area_rotate.IsChecked()
-        
+        self.on_chk_avg(self.chk_line_avg, self.rad_line_perc)
+                        
     def on_chk_area_avg(self, event):
-        global SHOW_AVG
-        global INC_PERC
-        SHOW_AVG = self.chk_area_avg.IsChecked()
-        if SHOW_AVG:
-            self.set_avg_dropdowns()
-            self.chk_area_perc.Enable(False)
-            INC_PERC = False
-        else:
-            self.unset_avg_dropdowns()
-            self.chk_area_perc.Enable(True)
-            INC_PERC = self.chk_area_perc.IsChecked()
-   
-    def on_chk_boxplot_rotate(self, event):
-        global ROTATE
-        ROTATE = self.chk_boxplot_rotate.IsChecked()
-        
-    def on_rad_sort_opt(self, idx_sel):
+        self.on_chk_avg(self.chk_area_avg, self.rad_area_perc)
+    
+    def on_rad_sort_opt(self, event):
         debug = False
         global CUR_SORT_OPT
+        rad = event.GetEventObject()
+        idx_sel = rad.GetSelection()
         try:
             CUR_SORT_OPT = mg.SORT_OPTS[idx_sel]
         except IndexError:
             my_exceptions.DoNothingException()
         if debug: print(u"Current sort option: %s" % CUR_SORT_OPT)
-    
-    def on_rad_bar_sort_opt(self, event):
-        idx_sel = self.rad_bar_sort_opts.GetSelection()
-        self.on_rad_sort_opt(idx_sel)
-        
-    def on_rad_pie_sort_opt(self, event):
-        idx_sel = self.rad_pie_sort_opts.GetSelection()
-        self.on_rad_sort_opt(idx_sel)
         
     def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel,
                   override_min_data_type1=None):
@@ -797,10 +707,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp_sel = self.bmp_btn_bar_chart_sel
         panel = self.panel_bar_chart
         self.rad_bar_sort_opts.SetSelection(mg.SORT_OPTS.index(CUR_SORT_OPT))
-        self.chk_simple_bar_perc.SetValue(INC_PERC)
+        self.rad_simple_bar_perc.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
         self.chk_simple_bar_rotate.SetValue(ROTATE)
         self.chk_simple_bar_avg.SetValue(SHOW_AVG)
-        self.chk_simple_bar_perc.Enable(not SHOW_AVG)
+        self.rad_simple_bar_perc.Enable(not SHOW_AVG)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_clustered_bar_chart(self, event):
@@ -808,11 +718,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn = self.btn_clust_bar_chart
         btn_bmp = self.bmp_btn_clust_bar_chart
         btn_bmp_sel = self.bmp_btn_clust_bar_chart_sel
-        panel = self.panel_clustered_bar_chart
-        self.chk_clust_bar_perc.SetValue(INC_PERC)
-        self.chk_clust_bar_rotate.SetValue(ROTATE)
+        panel = self.panel_clust_bar_chart
+        self.rad_clust_bar_perc.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
         self.chk_clust_bar_avg.SetValue(SHOW_AVG)
-        self.chk_clust_bar_perc.Enable(not SHOW_AVG)
+        self.rad_clust_bar_perc.Enable(not SHOW_AVG)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_pie_chart(self, event):
@@ -830,10 +739,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_line_chart
         btn_bmp_sel = self.bmp_btn_line_chart_sel
         panel = self.panel_line_chart
-        self.chk_line_perc.SetValue(INC_PERC)
+        self.rad_line_perc.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
         self.chk_line_rotate.SetValue(ROTATE)
         self.chk_line_avg.SetValue(SHOW_AVG)
-        self.chk_line_perc.Enable(not SHOW_AVG)
+        self.rad_line_perc.Enable(not SHOW_AVG)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
         self.setup_line_extras()
 
@@ -843,10 +752,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_area_chart
         btn_bmp_sel = self.bmp_btn_area_chart_sel
         panel = self.panel_area_chart
-        self.chk_area_perc.SetValue(INC_PERC)
+        self.rad_area_perc.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
         self.chk_area_rotate.SetValue(ROTATE)
         self.chk_area_avg.SetValue(SHOW_AVG)
-        self.chk_area_perc.Enable(not SHOW_AVG)
+        self.rad_area_perc.Enable(not SHOW_AVG)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_histogram(self, event):
@@ -1087,9 +996,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             fld_chart_by etc,
         """
         dd = mg.DATADETS_OBJ
-        inc_perc = (u"False" if not INC_PERC
-                        or (self.chart_type in mg.HAS_AVG_OPTION and SHOW_AVG)
-                    else u"True")
+        is_perc = not(CUR_DATA_OPT == mg.SHOW_FREQ
+                      or (self.chart_type in mg.HAS_AVG_OPTION and SHOW_AVG))
         rotate = u"True" if ROTATE else u"False"
         script_lst = []
         titles, subtitles = self.get_titles()
@@ -1157,10 +1065,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             else:
                 script_lst.append(u"measure = mg.CHART_FREQS")
         if self.chart_type == mg.SIMPLE_BARCHART:
-            script_lst.append(get_simple_barchart_script(inc_perc, rotate,
+            script_lst.append(get_simple_barchart_script(is_perc, rotate,
                                                          css_fil, css_idx))
         elif self.chart_type == mg.CLUSTERED_BARCHART:
-            script_lst.append(get_clustered_barchart_script(inc_perc, rotate,
+            script_lst.append(get_clustered_barchart_script(is_perc, rotate,
                                                             css_fil, css_idx))
         elif self.chart_type == mg.PIE_CHART:
             script_lst.append(get_pie_chart_script(css_fil, css_idx))
@@ -1171,11 +1079,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             inc_smooth = u"True" if self.chk_line_smooth.IsChecked() \
                                     and self.chk_line_smooth.Enabled \
                                 else u"False"
-            script_lst.append(get_line_chart_script(inc_perc, rotate, inc_trend, 
+            script_lst.append(get_line_chart_script(is_perc, rotate, inc_trend, 
                                         inc_smooth, css_fil, css_idx, 
                                         self.chart_type, varname2, varname3))
         elif self.chart_type == mg.AREA_CHART:
-            script_lst.append(get_area_chart_script(inc_perc, rotate, css_fil, 
+            script_lst.append(get_area_chart_script(is_perc, rotate, css_fil, 
                                                     css_idx))
         elif self.chart_type == mg.HISTOGRAM:
             inc_normal = u"True" if self.chk_show_normal.IsChecked() \
@@ -1190,7 +1098,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"fil.write(chart_output)")
         return u"\n".join(script_lst)
 
-def get_simple_barchart_script(inc_perc, rotate, css_fil, css_idx):
+def get_simple_barchart_script(is_perc, rotate, css_fil, css_idx):
+    ytitle2use = u"mg.Y_AXIS_PERC_LBL" if is_perc else u"mg.Y_AXIS_FREQ_LBL"
     script = u"""
 chart_dets = charting_output.get_chart_dets(mg.SIMPLE_BARCHART, 
                             dbe, cur, tbl, tbl_filt, 
@@ -1198,19 +1107,21 @@ chart_dets = charting_output.get_chart_dets(mg.SIMPLE_BARCHART,
                             fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
                             fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
                             sort_opt="%(sort_opt)s", measure=measure, 
-                            rotate=%(rotate)s)
+                            rotate=%(rotate)s, is_perc=%(is_perc)s)
 x_title = u"" # uses series label instead
-y_title = (mg.Y_AXIS_FREQ_LBL if measure == mg.CHART_FREQS
+y_title = (%(ytitle2use)s if measure == mg.CHART_FREQS
                               else u"Mean %%s" %% fld_measure_name) 
 chart_output = charting_output.simple_barchart_output(titles, subtitles,
-            x_title, y_title, chart_dets, inc_perc=%(inc_perc)s, 
-            rotate=%(rotate)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
-            page_break_after=False)
-    """ % {u"sort_opt": CUR_SORT_OPT, u"inc_perc": inc_perc, u"rotate": rotate,
+    x_title, y_title, chart_dets, rotate=%(rotate)s, 
+    css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
+    page_break_after=False)
+    """ % {u"sort_opt": CUR_SORT_OPT, u"is_perc": str(is_perc), 
+           u"ytitle2use": ytitle2use, u"rotate": rotate,
            u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx}
     return script
 
-def get_clustered_barchart_script(inc_perc, rotate, css_fil, css_idx):
+def get_clustered_barchart_script(is_perc, rotate, css_fil, css_idx):
+    ytitle2use = u"mg.Y_AXIS_PERC_LBL" if is_perc else u"mg.Y_AXIS_FREQ_LBL"
     script = u"""
 chart_dets = charting_output.get_chart_dets(mg.CLUSTERED_BARCHART, 
                             dbe, cur, tbl, tbl_filt, 
@@ -1218,15 +1129,16 @@ chart_dets = charting_output.get_chart_dets(mg.CLUSTERED_BARCHART,
                             fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
                             fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
                             sort_opt="%(sort_opt)s", measure=measure,
-                            rotate=%(rotate)s)
+                            rotate=%(rotate)s, is_perc=%(is_perc)s)
 x_title = fld_measure_name if measure == mg.CHART_FREQS else fld_gp_by_name
-y_title = (mg.Y_AXIS_FREQ_LBL if measure == mg.CHART_FREQS
+y_title = (%(ytitle2use)s if measure == mg.CHART_FREQS
                               else u"Mean %%s" %% fld_measure_name) 
 chart_output = charting_output.clustered_barchart_output(titles, subtitles,
-                            x_title, y_title, chart_dets, inc_perc=%(inc_perc)s, 
-                            rotate=%(rotate)s, css_fil=u"%(css_fil)s", 
-                            css_idx=%(css_idx)s, page_break_after=False)    
-    """ % {u"sort_opt": mg.SORT_NONE, u"inc_perc": inc_perc, u"rotate": rotate, 
+    x_title, y_title, chart_dets, rotate=%(rotate)s, 
+    css_fil=u"%(css_fil)s", 
+    css_idx=%(css_idx)s, page_break_after=False)    
+    """ % {u"sort_opt": mg.SORT_NONE, u"is_perc": str(is_perc), 
+           u"ytitle2use": ytitle2use, u"rotate": rotate, 
            u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx}
     return script
 
@@ -1245,63 +1157,63 @@ chart_output = charting_output.piechart_output(titles, subtitles,
            u"css_idx": css_idx}
     return script
 
-def get_line_chart_script(inc_perc, rotate, inc_trend, inc_smooth, css_fil, 
-                             css_idx, chart_type, varname2, varname3):
+def get_line_chart_script(is_perc, rotate, inc_trend, inc_smooth, css_fil, 
+                          css_idx, chart_type, varname2, varname3):
+    ytitle2use = u"mg.Y_AXIS_PERC_LBL" if is_perc else u"mg.Y_AXIS_FREQ_LBL"
     single_line = ((SHOW_AVG and varname3 == mg.DROP_SELECT) 
                    or (not SHOW_AVG and varname2 == mg.DROP_SELECT))
     if single_line:
-        xy_titles = u"""
+        xy_titles = (u"""
 x_title = u"" # uses series label instead
-y_title = (mg.Y_AXIS_FREQ_LBL if measure == mg.CHART_FREQS
-                              else u"Mean %s" % fld_measure_name)"""
+y_title = (%(ytitle2use)s if measure == mg.CHART_FREQS
+                              else u"Mean %%s" %% fld_measure_name)""" % 
+                              {u"ytitle2use": ytitle2use})
     else:
-        xy_titles = u"""
+        xy_titles = (u"""
 x_title = fld_measure_name if measure == mg.CHART_FREQS else fld_gp_by_name
-y_title = (mg.Y_AXIS_FREQ_LBL if measure == mg.CHART_FREQS
-                              else u"Mean %s" % fld_measure_name)"""
-    script = u"""
+y_title = (%(ytitle2use)s if measure == mg.CHART_FREQS
+                              else u"Mean %%s" %% fld_measure_name)""" % 
+                              {u"ytitle2use": ytitle2use})
+    script = (u"""
 chart_dets = charting_output.get_chart_dets(mg.LINE_CHART, 
                             dbe, cur, tbl, tbl_filt, 
                             fld_measure, fld_measure_name, fld_measure_lbls, 
                             fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
                             fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
                             sort_opt=mg.SORT_NONE, measure=measure,
-                            rotate=%(rotate)s)
+                            rotate=%(rotate)s, is_perc=%(is_perc)s)
 %(xy_titles)s
 chart_output = charting_output.linechart_output(titles, subtitles, 
-                            x_title, y_title, chart_dets, inc_perc=%(inc_perc)s, 
-                            rotate=%(rotate)s, inc_trend=%(inc_trend)s, 
-                            inc_smooth=%(inc_smooth)s, 
-                            css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
-                            page_break_after=False)""" % \
-                            {u"inc_perc": inc_perc, u"rotate": rotate, 
-                             u"xy_titles": xy_titles,
-                             u"inc_trend": inc_trend, u"inc_smooth": inc_smooth, 
-                             u"css_fil": lib.escape_pre_write(css_fil), 
-                             u"css_idx": css_idx}
+    x_title, y_title, chart_dets, rotate=%(rotate)s, inc_trend=%(inc_trend)s, 
+    inc_smooth=%(inc_smooth)s, 
+    css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
+    page_break_after=False)""" %
+        {u"is_perc": str(is_perc), u"rotate": rotate, u"xy_titles": xy_titles,
+         u"inc_trend": inc_trend, u"inc_smooth": inc_smooth, 
+         u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
     return script
 
-def get_area_chart_script(inc_perc, rotate, css_fil, css_idx):
+def get_area_chart_script(is_perc, rotate, css_fil, css_idx):
+    ytitle2use = u"mg.Y_AXIS_PERC_LBL" if is_perc else u"mg.Y_AXIS_FREQ_LBL"
     dd = mg.DATADETS_OBJ
-    script = u"""
+    script = (u"""
 chart_dets = charting_output.get_chart_dets(mg.AREA_CHART, 
                             dbe, cur, tbl, tbl_filt, 
                             fld_measure, fld_measure_name, fld_measure_lbls, 
                             fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
                             fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
                             sort_opt=mg.SORT_NONE, measure=measure,
-                            rotate=%(rotate)s)      
+                            rotate=%(rotate)s, is_perc=%(is_perc)s)
 x_title = u"" # uses series label instead
-y_title = (mg.Y_AXIS_FREQ_LBL if measure == mg.CHART_FREQS
+y_title = (%(ytitle2use)s if measure == mg.CHART_FREQS
                               else u"Mean %%s" %% fld_measure_name) 
 chart_output = charting_output.areachart_output(titles, subtitles, 
-                            x_title, y_title, chart_dets, inc_perc=%(inc_perc)s,
-                            rotate=%(rotate)s, css_fil=u"%(css_fil)s", 
-                            css_idx=%(css_idx)s, page_break_after=False)""" % \
-                            {u"dbe": dd.dbe, u"inc_perc": inc_perc, 
-                             u"rotate": rotate, 
-                             u"css_fil": lib.escape_pre_write(css_fil), 
-                             u"css_idx": css_idx}
+    x_title, y_title, chart_dets, rotate=%(rotate)s, 
+    css_fil=u"%(css_fil)s", 
+    css_idx=%(css_idx)s, page_break_after=False)""" %
+    {u"dbe": dd.dbe, u"is_perc": str(is_perc), 
+     u"rotate": rotate, u"ytitle2use": ytitle2use, 
+     u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
     return script
 
 def get_histogram_script(inc_normal, css_fil, css_idx):
