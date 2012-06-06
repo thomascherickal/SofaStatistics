@@ -16,9 +16,18 @@ makeBarChart = function(chartname, series, chartconf){
     var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
 
-    // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
+    /* chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals), shape, x, y, chart, plot, hAxis, eventMask, type, event
+
+    val.run has chart, group, htmlElements, dirty, stroke, fill, plot, data, dyn, name
+    val.run = val.run.chart.series[0]
+
+    val.run.chart has margins, stroke, fill, delayInMs, theme, axes, stack, plots, series, runs, dirty,coords,node,surface,dim,offsets,plotArea AND any other variables I put in with the options - the third parameter of addSeries().
+
+    val.run.data has 0,1,2,3,4 etc such that val.run.data[0] is the y-val for the first item
+
+*/
     var getTooltip = function(val){
-        var tip = val.y;
+        var tip = val.run.yLbls[val.index];
         return tip;
     };
 
@@ -72,7 +81,7 @@ makeBarChart = function(chartname, series, chartconf){
     mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
     var i
     for (i in series){
-        mychart.addSeries(series[i]["seriesLabel"], series[i]["yVals"], series[i]["style"]);
+        mychart.addSeries(series[i]["seriesLabel"], series[i]["yVals"], series[i]["options"]);
     }
     var anim_a = new dc.action2d.Highlight(mychart, "default", {
         highlight: chartconf["sofaHl"],
@@ -164,29 +173,7 @@ makeLineChart = function(chartname, series, chartconf){
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
 
     var getTooltip = function(val){
-        var seriesSum = getSum(val.run.data);
-        var tip = val.y;
-        if(incPerc){
-            tip += ("<br>(" + Math.round((1000*val.y)/seriesSum)/10 + "%)");
-        }
-        return tip;
-    };
-    var getSum = function(myNums){
-        var i
-        var sum = 0
-        for (i in myNums) {
-            sum += myNums[i]
-        }
-        return sum
-    }
-
-    // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
-    var getTooltip = function(val){
-        var seriesSum = getSum(val.run.data);
-        var tip = val.y;
-        if(incPerc){
-            tip += ("<br>(" + Math.round((1000*val.y)/seriesSum)/10 + "%)");
-        }
+        var tip = val.run.yLbls[val.index];
         return tip;
     };
 
@@ -242,7 +229,7 @@ makeLineChart = function(chartname, series, chartconf){
     mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
     var i
     for (i in series){
-        mychart.addSeries(series[i]["seriesLabel"], series[i]["yVals"], series[i]["style"]);
+        mychart.addSeries(series[i]["seriesLabel"], series[i]["yVals"], series[i]["options"]);
     }
     var anim_a = new dc.action2d.Magnify(mychart, "default");
     var anim_b = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 
@@ -267,22 +254,8 @@ makeAreaChart = function(chartname, series, chartconf){
     var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
     var axisLabelRotate = ("axisLabelRotate" in chartconf) ? chartconf["axisLabelRotate"] : 0;
 
-    var getSum = function(myNums){
-        var i
-        var sum = 0
-        for (i in myNums) {
-            sum += myNums[i]
-        }
-        return sum
-    }    
-
-    // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
-        var seriesSum = getSum(val.run.data);
-        var tip = val.y;
-        if(incPerc){
-            tip += ("<br>(" + Math.round((1000*val.y)/seriesSum)/10 + "%)");
-        }
+        var tip = val.run.yLbls[val.index];
         return tip;
     };
 
@@ -338,7 +311,7 @@ makeAreaChart = function(chartname, series, chartconf){
     mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
     var i
     for (i in series){
-        mychart.addSeries(series[i]["seriesLabel"], series[i]["yVals"], series[i]["style"]);
+        mychart.addSeries(series[i]["seriesLabel"], series[i]["yVals"], series[i]["options"]);
     }
     var anim_a = new dc.action2d.Magnify(mychart, "default");
     var anim_b = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 

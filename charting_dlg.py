@@ -177,10 +177,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_bar_chart.Add(self.rad_bar_sort_opts, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_bar_chart.Add(self.rad_simple_bar_perc, 0, wx.TOP, 5)
         self.szr_bar_chart.AddSpacer(10)
-        self.szr_bar_chart.Add(self.chk_simple_bar_rotate, 0, wx.TOP, 
+        self.szr_bar_chart.Add(self.chk_simple_bar_avg, 0, wx.TOP, 
                                tickbox_down_by)
         self.szr_bar_chart.AddSpacer(10)
-        self.szr_bar_chart.Add(self.chk_simple_bar_avg, 0, wx.TOP, 
+        self.szr_bar_chart.Add(self.chk_simple_bar_rotate, 0, wx.TOP, 
                                tickbox_down_by)
         self.panel_bar_chart.SetSizer(self.szr_bar_chart)
         self.szr_bar_chart.SetSizeHints(self.panel_bar_chart)
@@ -193,10 +193,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                                   self.on_chk_clust_bar_avg)
         self.szr_clust_bar_chart.Add(self.rad_clust_bar_perc, 0, wx.TOP, 5)
         self.szr_clust_bar_chart.AddSpacer(10)
-        self.szr_clust_bar_chart.Add(self.chk_clust_bar_rotate, 0, wx.TOP, 
+        self.szr_clust_bar_chart.Add(self.chk_clust_bar_avg, 0, wx.TOP, 
                                          tickbox_down_by)
         self.szr_clust_bar_chart.AddSpacer(10)
-        self.szr_clust_bar_chart.Add(self.chk_clust_bar_avg, 0, wx.TOP, 
+        self.szr_clust_bar_chart.Add(self.chk_clust_bar_rotate, 0, wx.TOP, 
                                          tickbox_down_by)
         self.panel_clust_bar_chart.SetSizer(self.szr_clust_bar_chart)
         self.szr_clust_bar_chart.SetSizeHints(self.panel_clust_bar_chart)
@@ -224,7 +224,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chk_line_avg = self.get_chk_avg(self.panel_line_chart, 
                                              self.on_chk_line_avg)
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_rotate, 0, wx.TOP, 
+        self.szr_line_chart.Add(self.chk_line_avg, 0, wx.TOP, 
                                 tickbox_down_by)
         self.szr_line_chart.AddSpacer(10)
         self.szr_line_chart.Add(self.chk_line_trend, 0, wx.TOP, 
@@ -233,7 +233,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_line_chart.Add(self.chk_line_smooth, 0, wx.TOP, 
                                 tickbox_down_by)
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_avg, 0, wx.TOP, 
+        self.szr_line_chart.Add(self.chk_line_rotate, 0, wx.TOP, 
                                 tickbox_down_by)
         self.panel_line_chart.SetSizer(self.szr_line_chart)
         self.szr_line_chart.SetSizeHints(self.panel_line_chart)
@@ -246,10 +246,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                              self.on_chk_area_avg)
         self.szr_area_chart.Add(self.rad_area_perc, 0, wx.TOP, 5)
         self.szr_area_chart.AddSpacer(10)
-        self.szr_area_chart.Add(self.chk_area_rotate, 0, wx.TOP, 
+        self.szr_area_chart.Add(self.chk_area_avg, 0, wx.TOP, 
                                 tickbox_down_by)
         self.szr_area_chart.AddSpacer(10)
-        self.szr_area_chart.Add(self.chk_area_avg, 0, wx.TOP, 
+        self.szr_area_chart.Add(self.chk_area_rotate, 0, wx.TOP, 
                                 tickbox_down_by)
         self.panel_area_chart.SetSizer(self.szr_area_chart)
         self.szr_area_chart.SetSizeHints(self.panel_area_chart)
@@ -598,16 +598,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
 
     def on_chk_avg(self, chk, rad):
         global SHOW_AVG
-        global CUR_DATA_OPT
         SHOW_AVG = chk.IsChecked()
         if SHOW_AVG:
             self.set_avg_dropdowns()
             rad.Enable(False)
-            CUR_DATA_OPT = mg.SHOW_FREQ
         else:
             self.unset_avg_dropdowns()
             rad.Enable(True)
-            CUR_DATA_OPT = mg.DATA_SHOW_OPTS[rad.GetSelection()]
             
     def on_chk_simple_bar_avg(self, event):
         self.on_chk_avg(self.chk_simple_bar_avg, self.rad_simple_bar_perc)
