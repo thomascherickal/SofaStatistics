@@ -1029,6 +1029,14 @@ def is_multichart(chart_dets):
         multichart = False
     return multichart
 
+def get_ymax(series_dets):
+    all_y_vals = []
+    for series_det in series_dets:
+        all_y_vals += series_det[mg.CHART_Y_VALS]
+    max_all_y_vals = max(all_y_vals)
+    ymax = max_all_y_vals*1.1
+    return ymax
+
 def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets, 
                            rotate, css_idx, css_fil, page_break_after):
     """
@@ -1097,6 +1105,7 @@ def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
      minor_ticks, 
      left_axis_lbl_shift) = get_barchart_sizings(n_clusters, n_bars_in_cluster, 
                                                  max_lbl_width)
+    ymax = get_ymax(chart_dets[mg.CHART_SERIES_DETS])
     if multichart:
         width = width*0.8
         xgap = xgap*0.8
@@ -1164,6 +1173,7 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["yTitle"] = \"%(y_title)s\";
     chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
     chartconf["connectorStyle"] = \"%(connector_style)s\";
+    chartconf["ymax"] = %(ymax)s;
     %(outer_bg)s
     makeBarChart("mychartRenumber%(chart_idx)s", series, chartconf);
 }
@@ -1178,7 +1188,7 @@ makechartRenumber%(chart_idx)s = function(){
     </div>
 </div>""" % {u"colour_cases": colour_cases,
                u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
-               u"width": width, u"height": height, u"xgap": xgap, 
+               u"width": width, u"height": height, u"ymax": ymax, u"xgap": xgap, 
                u"xfontsize": xfontsize, u"indiv_bar_title": indiv_bar_title,
                u"axis_lbl_font_colour": axis_lbl_font_colour,
                u"major_gridline_colour": major_gridline_colour,
@@ -1220,7 +1230,8 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
                                   mg.CHART_LEGEND_LBL: ..., 
                                   mg.CHART_MULTICHART: ...,
                                   mg.CHART_XAXIS_DETS: ...,
-                                  mg.CHART_Y_VALS: ...}]
+                                  mg.CHART_Y_VALS: ...,
+                                  mg.CHART_TOOLTIPS: ....}]
     var_numeric -- needs to be quoted or not.
     xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
                    (5, "65+")]
@@ -1261,6 +1272,7 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
      minor_ticks, 
      left_axis_lbl_shift) = get_barchart_sizings(n_clusters, n_bars_in_cluster, 
                                                  max_lbl_width)
+    ymax = get_ymax(chart_dets[mg.CHART_SERIES_DETS])
     single_colour = (len(series_dets) == 1)
     override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
                                 and single_colour)
@@ -1322,6 +1334,7 @@ makechartRenumber00 = function(){
     chartconf["yTitle"] = \"%(y_title)s\";
     chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
     chartconf["connectorStyle"] = \"%(connector_style)s\";
+    chartconf["ymax"] = %(ymax)s;
     %(outer_bg)s
     makeBarChart("mychartRenumber00", series, chartconf);
 }
@@ -1335,7 +1348,7 @@ makechartRenumber00 = function(){
     </div>
 </div>""" % {u"colour_cases": colour_cases,
              u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
-             u"width": width, u"height": height, u"xgap": xgap, 
+             u"width": width, u"height": height, u"xgap": xgap, u"ymax": ymax,
              u"xfontsize": xfontsize,
              u"axis_lbl_font_colour": axis_lbl_font_colour,
              u"major_gridline_colour": major_gridline_colour,
@@ -1369,7 +1382,8 @@ def piechart_output(titles, subtitles, chart_dets, css_fil, css_idx,
                                   mg.CHART_LEGEND_LBL: ..., 
                                   mg.CHART_MULTICHART: ...,
                                   mg.CHART_XAXIS_DETS: ...,
-                                  mg.CHART_Y_VALS: ...}]
+                                  mg.CHART_Y_VALS: ...,
+                                  mg.CHART_TOOLTIPS: ....}]
     """
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
@@ -1538,7 +1552,8 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
                                   mg.CHART_LEGEND_LBL: ..., 
                                   mg.CHART_MULTICHART: ...,
                                   mg.CHART_XAXIS_DETS: ...,
-                                  mg.CHART_Y_VALS: ...}]
+                                  mg.CHART_Y_VALS: ...,
+                                  mg.CHART_TOOLTIPS: ....}]
     css_idx -- css index so can apply    
     """
     debug = False
@@ -1706,7 +1721,8 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
                                   mg.CHART_LEGEND_LBL: ..., 
                                   mg.CHART_MULTICHART: ...,
                                   mg.CHART_XAXIS_DETS: ...,
-                                  mg.CHART_Y_VALS: ...}]
+                                  mg.CHART_Y_VALS: ...,
+                                  mg.CHART_TOOLTIPS: ....}]
     css_idx -- css index so can apply    
     """
     debug = False
@@ -1734,6 +1750,7 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     height = 250 if multichart else 300
+    ymax = get_ymax(chart_dets[mg.CHART_SERIES_DETS])
     if rotate:
         height += AVG_CHAR_WIDTH_PXLS*max_lbl_len   
     """
@@ -1793,6 +1810,7 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["axisLabelFontColour"] = "%(axis_lbl_font_colour)s";
     chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
     chartconf["yTitle"] = "%(y_title)s";
+    chartconf["ymax"] = %(ymax)s;
     chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
     chartconf["connectorStyle"] = "%(connector_style)s";
     makeAreaChart("mychartRenumber%(chart_idx)s", series, chartconf);
@@ -1812,7 +1830,7 @@ makechartRenumber%(chart_idx)s = function(){
              u"axis_lbl_font_colour": axis_lbl_font_colour,
              u"major_gridline_colour": major_gridline_colour,
              u"left_axis_lbl_shift": left_axis_lbl_shift,
-             u"axis_lbl_rotate": axis_lbl_rotate,
+             u"axis_lbl_rotate": axis_lbl_rotate, u"ymax": ymax,
              u"gridline_width": gridline_width, 
              u"y_title": y_title, u"pagebreak": pagebreak,
              u"tooltip_border_colour": tooltip_border_colour,
@@ -1974,7 +1992,7 @@ def use_mpl_scatterplots(scatterplot_dets):
     return use_mpl
 
 def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders, 
-                         list_x, list_y, label_x, label_y, x_vs_y, 
+                         list_x, list_y, label_x, label_y, ymin, ymax, x_vs_y, 
                          add_to_report, report_name, css_fil, pagebreak):
     (grid_bg, 
         item_colours, line_colour) = output.get_stats_chart_colours(css_fil)
@@ -1991,7 +2009,7 @@ def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders,
     charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
                        line_colour, list_x, list_y, label_x, label_y, x_vs_y, 
                        title_dets_html, add_to_report, report_name, html, 
-                       width_inches, height_inches)
+                       width_inches, height_inches, ymin=ymin, ymax=ymax)
     html.append(u"</div>")
 
 def get_optimal_min_max(axismin, axismax):
@@ -2005,7 +2023,7 @@ def get_optimal_min_max(axismin, axismax):
 
 def make_dojo_scatterplot(chart_idx, multichart, html, indiv_scatterplot_title, 
                           dot_borders, data_tups, list_x, list_y, label_x, 
-                          label_y, css_fil, pagebreak):
+                          label_y, ymin, ymax, css_fil, pagebreak):
     debug = False
     if multichart:  
         width, height = (500, 300)
@@ -2014,7 +2032,6 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_scatterplot_title,
     left_axis_lbl_shift = 10
     xfontsize = 10
     xmin, xmax = get_optimal_min_max(min(list_x), max(list_x))
-    ymin, ymax = get_optimal_min_max(min(list_y), max(list_y))
     x_title = label_x
     axis_lbl_drop = 10
     y_title = label_y
@@ -2082,6 +2099,7 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["xTitle"] = "%(x_title)s";
     chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
     chartconf["yTitle"] = "%(y_title)s";
+    chartconf["ymax"] = %(ymax)s;
     chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
     chartconf["connectorStyle"] = "%(connector_style)s";
     %(outer_bg)s
@@ -2113,6 +2131,13 @@ makechartRenumber%(chart_idx)s = function(){
        u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx, 
        u"minor_ticks": minor_ticks, u"tick_colour": major_gridline_colour})
 
+def get_scatterplot_ymin_ymax(scatterplot_dets):
+    all_y_vals = []
+    for scatterplot_det in scatterplot_dets:
+        all_y_vals += scatterplot_det[mg.LIST_Y]
+    ymin, ymax = get_optimal_min_max(min(all_y_vals), max(all_y_vals))
+    return ymin, ymax
+
 def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y, 
                        add_to_report, report_name, dot_borders, css_fil, 
                        css_idx, page_break_after=False):
@@ -2128,23 +2153,24 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
     html.append(title_dets_html)
     multichart = (len(scatterplot_dets) > 1)
     use_mpl = use_mpl_scatterplots(scatterplot_dets)
-    for chart_idx, indiv_data in enumerate(scatterplot_dets):
-        chart_by_lbl = indiv_data[mg.CHART_CHART_BY_LBL]
-        data_tups = indiv_data[mg.DATA_TUPS]
-        list_x = indiv_data[mg.LIST_X]
-        list_y = indiv_data[mg.LIST_Y]
+    ymin, ymax = get_scatterplot_ymin_ymax(scatterplot_dets)
+    for chart_idx, scatterplot_det in enumerate(scatterplot_dets):
+        chart_by_lbl = scatterplot_det[mg.CHART_CHART_BY_LBL]
+        data_tups = scatterplot_det[mg.DATA_TUPS]
+        list_x = scatterplot_det[mg.LIST_X]
+        list_y = scatterplot_det[mg.LIST_Y]
         indiv_scatterplot_title = "<p><b>%s</b></p>" % \
                                             chart_by_lbl if multichart else u""
         if use_mpl:
             make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, 
                                  dot_borders, list_x, list_y, 
-                                 label_x, label_y, x_vs_y, add_to_report, 
-                                 report_name, css_fil, pagebreak)
+                                 label_x, label_y, ymin, ymax, x_vs_y, 
+                                 add_to_report, report_name, css_fil, pagebreak)
         else:
             make_dojo_scatterplot(chart_idx, multichart, html, 
-                                  indiv_scatterplot_title, 
-                                  dot_borders, data_tups, list_x, list_y, 
-                                  label_x, label_y, css_fil, pagebreak)
+                                  indiv_scatterplot_title, dot_borders, 
+                                  data_tups, list_x, list_y, label_x, label_y, 
+                                  ymin, ymax, css_fil, pagebreak)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

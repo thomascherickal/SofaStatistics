@@ -40,7 +40,7 @@ class DlgHTML(wx.Dialog):
     
     def __init__(self, parent, title, url=None, content=None, url_load=False,
                  file_name=mg.INT_REPORT_FILE, print_folder=mg.INT_FOLDER,
-                 width_reduction=20, height_reduction=40):
+                 width_reduction=80, height_reduction=40):
         """
         url -- url to display (either this or content).
         content -- html ready to display.
@@ -50,8 +50,8 @@ class DlgHTML(wx.Dialog):
         print_folder -- needs to be a subfolder of the current folder.
         """
         wx.Dialog.__init__(self, parent=parent, id=-1, title=title,
-                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|\
-                                wx.SYSTEM_MENU)
+                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
+                                 wx.SYSTEM_MENU)
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.file_name = file_name
         self.print_folder = print_folder
