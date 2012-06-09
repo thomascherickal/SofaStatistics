@@ -203,7 +203,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # pie chart
         self.szr_pie_chart = wx.BoxSizer(wx.VERTICAL)
         self.panel_pie_chart = wx.Panel(self.panel_mid)
-        self.rad_pie_sort_opts = self.get_rad_sort(self.panel_pie_chart)
+        self.rad_pie_sort_opts = self.get_rad_sort(self.panel_pie_chart, 
+                                                   u"slices")
         self.szr_pie_chart.Add(self.rad_pie_sort_opts, 0, wx.TOP, 5)
         self.panel_pie_chart.SetSizer(self.szr_pie_chart)
         self.szr_pie_chart.SetSizeHints(self.panel_pie_chart)
@@ -375,8 +376,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         chk.Bind(wx.EVT_CHECKBOX, self.on_chk_rotate)
         return chk
     
-    def get_rad_sort(self, panel):
-        rad = wx.RadioBox(panel, -1, _("Sort order of bars"), 
+    def get_rad_sort(self, panel, sort_item=u"bars"):
+        rad = wx.RadioBox(panel, -1, _(u"Sort order of %s" % sort_item), 
                           choices=mg.SORT_OPTS, size=(-1,50))
         idx_current_sort_opt = mg.SORT_OPTS.index(CUR_SORT_OPT)
         rad.SetSelection(idx_current_sort_opt)
