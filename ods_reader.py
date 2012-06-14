@@ -46,9 +46,15 @@ There is a problem if the number of data cells exceed the number of fldnames
     identified.
 """
 
+XML_TYPE_STR = u"string"
 XML_TYPE_FLOAT = u"float"
-xml_type_to_val_type = {"string": mg.VAL_STRING, 
-                        XML_TYPE_FLOAT: mg.VAL_NUMERIC}
+XML_TYPE_PERC = u"percentage"
+XML_TYPE_CURRENCY = u"currency"
+XML_TYPE_FRACTION = u"fraction"
+XML_TYPE_BOOL = u"boolean"
+XML_TYPE_TIME = u"time"
+XML_TYPE_DATE = u"date"
+XML_TYPE_SCIENTIFIC = u"scientific"
 RAW_EL = u"raw element"
 ATTRIBS = u"attribs"
 COLS_REP = u"number-columns-repeated"
@@ -454,19 +460,34 @@ def process_cells(attrib_dict, coltypes, col_idx, fldnames, valdict, coltype,
         col_idx += 1
     return bolcontinue, col_idx
 
-def extract_date_if_possible(el_det, attrib_dict, xml_type, coltype):
+def get_val_and_type(attrib_dict, el_det):
     """
-    Needed because Google Docs spreadsheets return timestamp as a float with a 
-        text format e.g. 40347.8271296296 and 6/18/2010 19:51:04.  If a float,
-        check to see if a valid datetime anyway. NB date text might be invalid 
-        and not align with float value e.g. 
-    <table:table-cell table:style-name="ce22" office:value-type="float" 
-        office:value="40413.743425925924">
-    <text:p>50/23/2010 17:50:32</text:p>
+    Not straight forward - the value we want is in different places depending on
+        value type.
     """
-    debug = False
+    debug = True
+    xml_type = attrib_dict[VAL_TYPE]
+    xml_value = attrib_dict.get(VALUE)
     text = get_el_inner_val(el_det[RAW_EL]) # get val from inner txt el
-    if xml_type == XML_TYPE_FLOAT:
+    if debug: print(xml_type, xml_value, text)
+    if xml_type == XML_TYPE_STR:
+        val2use = text
+        coltype = mg.VAL_STRING
+    elif xml_type == XML_TYPE_FLOAT:
+        """
+        NB need to treat as datetime if it really is even though not
+            properly tagged as a date-value (e.g. Google Docs spreadsheets).
+        Needed because Google Docs spreadsheets return timestamp as a float with 
+            a text format e.g. 40347.8271296296 and 6/18/2010 19:51:04. If a 
+            float, check to see if a valid datetime anyway. NB date text might 
+            be invalid and not align with float value e.g. 
+        <table:table-cell table:style-name="ce22" office:value-type="float" 
+            office:value="40413.743425925924">
+        <text:p>50/23/2010 17:50:32</text:p>
+        """
+        # unless a date
+        val2use = xml_value
+        coltype = mg.VAL_NUMERIC
         try:
             # is it really a date even though not formally formatted as a date?
             # see if text contains multiple /s
@@ -485,18 +506,58 @@ def extract_date_if_possible(el_det, attrib_dict, xml_type, coltype):
             # this is meant to be a date e.g. 50/23/2010 17:50:32.
             attempted_date = text.count(u"/") > 1
             if usable_datetime or attempted_date:
-                str_float = attrib_dict.get(VALUE)
-                days_since_1900 = str_float
+                days_since_1900 = xml_value
                 if days_since_1900:
                     val2use = lib.dates_1900_to_datetime_str(days_since_1900)
                     coltype = mg.VAL_DATE
-                    if debug: print(str_float, val2use)
-            else:
-                val2use = text
+                    if debug: print(xml_value, val2use)
+        except Exception:
+            my_exceptions.DoNothingException("Unable to detect if date or not "
+                                             "so will fall back to string.")
+    elif xml_type == XML_TYPE_PERC:
+        """
+        <table:table-cell table:style-name="ce2" office:value-type="percentage" 
+                office:value="23">
+            <text:p>2300.00%</text:p>
+        </table:table-cell>
+        """
+        try:
+            val2use = unicode(100*float(xml_value))
+            coltype = mg.VAL_NUMERIC
         except Exception:
             val2use = text
-    else:
+            coltype = mg.VAL_STRING
+    elif xml_type == XML_TYPE_CURRENCY:
+        """
+        <table:table-cell table:style-name="ce3" office:value-type="currency" 
+                office:currency="NZD" office:value="24">
+            <text:p>$24.00</text:p>
+        </table:table-cell>
+        """
+        val2use = xml_value
+        coltype = mg.VAL_NUMERIC
+    elif xml_type == XML_TYPE_TIME:
+        """
+        <table:table-cell table:style-name="ce6" office:value-type="time" 
+                office:time-value="PT672H00M00S">
+            <text:p>00:00:00</text:p>
+        </table:table-cell>
+        """
         val2use = text
+        coltype = mg.VAL_DATE
+    elif xml_type == XML_TYPE_BOOL:
+        """
+        <table:table-cell table:style-name="ce8" office:value-type="boolean" 
+                office:boolean-value="31">
+            <text:p>TRUE</text:p>
+        </table:table-cell>
+        """
+        val2use = text
+        coltype = mg.VAL_STRING
+    else:
+        if debug: print(attrib_dict)
+        val2use = text
+        coltype = mg.VAL_STRING
     return val2use, coltype
 
 def get_vals_from_row(row, n_flds):
@@ -517,16 +578,7 @@ def get_vals_from_row(row, n_flds):
             val2use = attrib_dict[DATE_VAL] # take proper date value
                             # e.g. 2010-02-01 rather than orig text of 01/02/10
         elif VAL_TYPE in attrib_dict:
-            xml_type = attrib_dict[VAL_TYPE]
-            try:
-                coltype = xml_type_to_val_type[xml_type]
-            except KeyError:
-                raise Exception(u"Unknown value-type. Update "
-                                u"ods_reader.xml_type_to_val_type")
-            # NB need to treat as datetime if it really is even though not
-            # properly tagged as a date-value (e.g. Google Docs spreadsheets)
-            val2use, unused = extract_date_if_possible(el_det, attrib_dict, 
-                                                       xml_type, coltype)
+            val2use, unused = get_val_and_type(attrib_dict, el_det)
         elif len(el_det[RAW_EL]) == 0 or FORMULA in attrib_dict: # empty cell(s)
             # need empty cell for each column spanned (until hit max cols)
             val2use=u""
@@ -573,16 +625,7 @@ def dets_from_row(fldnames, coltypes, row):
             if not bolcontinue:
                 break
         elif VAL_TYPE in attrib_dict:
-            xml_type = attrib_dict[VAL_TYPE]
-            try:
-                coltype = xml_type_to_val_type[xml_type]
-            except KeyError:
-                raise Exception(u"Unknown value-type. Update "
-                                u"ods_reader.xml_type_to_val_type")
-            # NB need to treat as datetime if it really is even though not
-            # properly tagged as a date-value (e.g. Google Docs spreadsheets)
-            val2use, coltype = extract_date_if_possible(el_det, attrib_dict, 
-                                                        xml_type, coltype)
+            val2use, coltype = get_val_and_type(attrib_dict, el_det)
             if debug: print(val2use)
             (bolcontinue, 
              col_idx) = process_cells(attrib_dict, coltypes, col_idx, fldnames, 
