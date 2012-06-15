@@ -209,7 +209,12 @@ class FiltSelectDlg(wx.Dialog):
 
     def on_btn_help(self, event):
         demo = self.get_demo()
-        wx.MessageBox(demo)
+        dlg = lib.HelpDlg(parent=self, title=_("Filtering Help"), 
+                          guidance_lbl=_("Filtering Rules"), 
+                          activity_lbl=u"filtering", guidance=demo, 
+                          help_pg=u"filtering_data")
+        dlg.ShowModal()
+        event.Skip()
     
     def get_quick_filter(self):
         "Get filter from quick setting"

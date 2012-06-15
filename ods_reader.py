@@ -465,7 +465,7 @@ def get_val_and_type(attrib_dict, el_det):
     Not straight forward - the value we want is in different places depending on
         value type.
     """
-    debug = True
+    debug = False
     xml_type = attrib_dict[VAL_TYPE]
     xml_value = attrib_dict.get(VALUE)
     text = get_el_inner_val(el_det[RAW_EL]) # get val from inner txt el
@@ -475,6 +475,8 @@ def get_val_and_type(attrib_dict, el_det):
         coltype = mg.VAL_STRING
     elif xml_type == XML_TYPE_FLOAT:
         """
+        For Scientific, Fraction, and Date etc always safest to use xml_value 
+            rather than text.
         NB need to treat as datetime if it really is even though not
             properly tagged as a date-value (e.g. Google Docs spreadsheets).
         Needed because Google Docs spreadsheets return timestamp as a float with 

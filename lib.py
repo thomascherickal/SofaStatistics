@@ -26,6 +26,47 @@ import core_stats
 # so we only do expensive tasks once per module per session
 PURCHASE_CHECKED_EXTS = [] # individual extensions may have different purchase statements
 
+class HelpDlg(wx.Dialog):
+    def __init__(self, parent, title, guidance_lbl, activity_lbl, guidance, 
+                 help_pg):
+        wx.Dialog.__init__(self, parent=parent, title=title, 
+                           style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU, 
+                           pos=(mg.HORIZ_OFFSET+100,100))
+        self.panel = wx.Panel(self)
+        self.help_pg = help_pg
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+        bx_guidance = wx.StaticBox(self.panel, -1, guidance_lbl)
+        szr_guidance = wx.StaticBoxSizer(bx_guidance, wx.VERTICAL)
+        szr_main = wx.BoxSizer(wx.VERTICAL)
+        lbl_guidance = wx.StaticText(self.panel, -1, guidance)
+        szr_guidance.Add(lbl_guidance, 1, wx.GROW|wx.ALL, 10)
+        btn_online_help = wx.Button(self.panel, -1, _("Online Help"))
+        btn_online_help.Bind(wx.EVT_BUTTON, self.on_online_help)
+        btn_online_help.SetToolTipString(_(u"Get more help with %s "
+                                           "online") % activity_lbl)
+        btn_close = wx.Button(self.panel, wx.ID_CLOSE)
+        btn_close.Bind(wx.EVT_BUTTON, self.on_close)
+        szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
+        szr_btns.AddGrowableCol(1,2) # idx, propn
+        szr_btns.Add(btn_online_help, 0)
+        szr_btns.Add(btn_close, 0, wx.ALIGN_RIGHT)
+        szr_main.Add(szr_guidance, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
+        self.panel.SetSizer(szr_main)
+        szr_main.SetSizeHints(self)
+        self.Layout()
+        
+    def on_online_help(self, event):
+        import webbrowser
+        url = (u"http://www.sofastatistics.com/wiki/doku.php"
+               u"?id=help:%s" % self.help_pg)
+        webbrowser.open_new_tab(url)
+        event.Skip()
+        
+    def on_close(self, event):
+        self.Destroy()
+        
+
 def fix_eols(orig):
     """
     Prevent EOL errors by replacing any new lines with spaces.
