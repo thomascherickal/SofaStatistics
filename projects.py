@@ -139,7 +139,9 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
     
 def get_approp_var_names(var_types=None, min_data_type=mg.VAR_TYPE_CAT):
     """
-    Get filtered list of variable names according to minimum data type.
+    Get filtered list of variable names according to minimum data type. Use the 
+        information on the type of each variable to decide whether meets 
+        minimum e.g ordinal.
     """
     dd = mg.DATADETS_OBJ
     if min_data_type == mg.VAR_TYPE_CAT:

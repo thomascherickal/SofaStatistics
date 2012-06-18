@@ -64,8 +64,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.takes_range = takes_range
         self.url_load = True # btn_expand
-        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-                                    lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
+        (self.var_labels, self.var_notes, 
+         self.var_types, 
+         self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         variables_rc_msg = _("Right click variables to view/edit details")
         # set up panel for frame
         self.panel = wx.Panel(self)
@@ -382,14 +383,29 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
 
     def setup_var(self, drop_var, default, sorted_var_names, var_name=None, 
                   inc_drop_select=False, override_min_data_type=None):
+        """
+        Set up dropdown of available variables according to minimum data type 
+            e.g. ordinal. Set to display correct item if a variable name 
+            supplied.
+        Return sorted_var_names by altering the mutable var.
+        drop_var -- the dropdown object widget
+        default -- what we will try to display to keep continuity. unless 
+            overridden by var_name or not available e.g. changed data source.
+        sorted_var_names --  way of returning sorted var names
+        var_name -- variable to display (overrides default if set)
+        inc_drop_select -- include "Select" as first item?
+        override_min_data_type -- instead of taking min var type from overall 
+            object we override it e.g. if a variable being averaged we must have 
+            numeric.
+        """
         debug = False
-        min_data_type = override_min_data_type if override_min_data_type \
-            else self.min_data_type
+        min_data_type = (override_min_data_type if override_min_data_type
+                         else self.min_data_type)
         if debug: print(var_name, self.min_data_type, override_min_data_type)
         var_names = projects.get_approp_var_names(self.var_types,
                                                   min_data_type)
-        var_choice_items, sorted_vals = lib.get_sorted_choice_items(
-                                                dic_labels=self.var_labels,
+        (var_choice_items, 
+         sorted_vals) = lib.get_sorted_choice_items(dic_labels=self.var_labels,
                                                 vals=var_names,
                                                 inc_drop_select=inc_drop_select)
         while True:

@@ -893,7 +893,7 @@ def get_barchart_sizings(n_clusters, n_bars_in_cluster, max_lbl_width):
             xfontsize_mult = 1.3
         xfontsize = xfontsize*xfontsize_mult
         xfontsize = xfontsize if xfontsize <= 10 else 10
-    left_axis_lbl_shift = 20 if width > 1200 else 10 # gets squeezed 
+    left_axis_lbl_shift = 30 if width > 1200 else 20 # gets squeezed 
         # out otherwise
     if debug: print(width, xgap, xfontsize, minor_ticks, left_axis_lbl_shift)
     return width, xgap, xfontsize, minor_ticks, left_axis_lbl_shift
