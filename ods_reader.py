@@ -9,10 +9,10 @@ import my_exceptions
 import importer
 
 """
-NB need to handle ods from OpenOffice Calc, and Gnumeric at least.  Some 
+NB need to handle ods from OpenOffice Calc, and Gnumeric at least. Some 
     differences.
 NB some internal xml files are mainly empty yet they still have to be parsed.
-    They may even be very large e.g. 54MB! Extremely inefficient under these 
+    They may even be very large e.g. 100MB! Extremely inefficient under these 
     circumstances.
 Example of date cell:
     <table:table-cell table:style-name="ce1" office:value-type="date" 

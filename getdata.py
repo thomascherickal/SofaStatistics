@@ -242,7 +242,7 @@ class DataDets(object):
 def force_sofa_tbls_refresh(sofa_default_db_cur):
     """
     Sometimes you drop a table, make it, drop it, go to make it and it still 
-        seems to be there.  This seems to force a refresh.
+        seems to be there. This seems to force a refresh.
     commit() doesn't seem to solve the problem and it occurs even when only 
         one connection in play. 
     """

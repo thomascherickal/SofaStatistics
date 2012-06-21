@@ -1601,10 +1601,10 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
     series_js_list = []
     series_names_list = []
     series0 = series_dets[0]
+    dummy_tooltips = [u"",]
     if inc_trend or inc_smooth:
         raw_y_vals = series0[mg.CHART_Y_VALS]
     if inc_trend:
-        dummy_tooltips = [u"",]
         trend_y_vals = get_trend_y_vals(raw_y_vals)
         # repeat most of it
         trend_series = {mg.CHART_LBL: series0[mg.CHART_LEGEND_LBL],
