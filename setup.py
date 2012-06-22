@@ -609,26 +609,6 @@ def setup_folders():
                     populate_extras_path(prog_path, mg.LOCAL_PATH)
                     archive_older_default_report()
                     store_version(mg.LOCAL_PATH) # update it so only done once
-                    try:
-                        """
-                        Wipe all pycs to avoid old ones being accidentally used.
-                            Can happen if pyc generated during a previous 
-                            install ends up with a more recent date than the
-                            freshly installed py module.
-                        E.g. get_data v1 is installed on user system AFTER 
-                            get_data v2 is created by dev. User eventually 
-                            upgrades SOFA to v2 which overwrites get_data.py.
-                            But because get_data.py is older than get_data.pyc,
-                            the pyc is not regenerated. Voila - using the old 
-                            one!
-                        """
-                        local_fils = os.listdir(mg.LOCAL_PATH)
-                        for filename in local_fils:
-                            if filename[-3:] == 'pyc':
-                                os.remove(filename)
-                    except Exception:
-                        my_exceptions.DoNothingException(u"Don't fail SOFA "
-                                    u"merely because couldn't wipe pyc files.")
             except Exception, e:
                 raise Exception(u"Problem modifying your local sofastats "
                         u"folder. One option is to delete the \"%s\" folder and"
