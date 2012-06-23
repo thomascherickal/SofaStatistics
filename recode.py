@@ -545,7 +545,8 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         type_set = set()
         new_vals = [x[1] for x in self.recode_clauses_data]
         for new_val in new_vals:
-            lib.update_type_set(type_set, val=new_val)
+            val_type = lib.get_val_type(new_val)
+            type_set.add(val_type)
         new_fldtype = lib.get_overall_fldtype(type_set)
         try:
             case_when = self.get_case_when_clause(new_fldname, new_fldtype, 

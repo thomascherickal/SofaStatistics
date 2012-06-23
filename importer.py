@@ -20,23 +20,16 @@ FILE_EXCEL = u"excel"
 FILE_ODS = u"ods"
 FILE_UNKNOWN = u"unknown"
 GAUGE_STEPS = 50
-
-
-class MismatchException(Exception):
-    def __init__(self, fldname, expected_fldtype, details):
-        debug = False
-        if debug: print("A mismatch exception")
-        self.fldname = fldname
-        self.expected_fldtype = expected_fldtype
-        Exception.__init__(self, (u"Found data not matching expected "
-                                  u"column type.\n\n%s" % details))
+FIRST_MISMATCH_TPL = (u"\nRow: %(row)s"
+                      u"\nValue: \"%(value)s\""
+                      u"\nExpected column type: %(fldtype)s")
 
 
 class FixMismatchDlg(wx.Dialog):
     # weird bugs when using stdbtndialog here and calling dlg multiple times
     # actual cause not known but buggy original had a setup_btns method
     def __init__(self, fldname, fldtype_choices, fldtypes, 
-             faulty2missing_fld_list, assessing_sample=False):
+             faulty2missing_fld_list, details, assessing_sample=False):
         """
         fldtype_choices -- doesn't include string.
         """
@@ -52,15 +45,21 @@ class FixMismatchDlg(wx.Dialog):
                            style=wx.CAPTION|wx.SYSTEM_MENU)
         self.panel = wx.Panel(self)
         if assessing_sample:
-            choice_txt = _(u"A mix of data types was found in a sample of data "
-                           u"in \"%s\"."
-                           u"\nPlease select the appropriate type.") % fldname
+            choice_txt = (_(u"A mix of data types was found in a sample of "
+                           u"data in \"%(fldname)s\"."
+                           u"\n\nFirst inconsistency:%(details)s"
+                           u"\n\nPlease select the data type you want this "
+                           u"entire column imported as.") % 
+                                {u"fldname": fldname, # no fldtypes if sample
+                                 u"details": details})
         else:
-            choice_txt = _(u"Data was found in \"%(fldname)s\" which doesn't "
-                           u"match the expected data type (%(data_type)s)."
-                           u"\nPlease select the appropriate type.") % \
-                                           {u"fldname": fldname, 
-                                            u"data_type": fldtypes[fldname]}
+            choice_txt = (_(u"Data was found in \"%(fldname)s\" which doesn't "
+               u"match the expected data type (%(data_type)s). "
+               u"\n%(details)s"
+               u"\n\nPlease select the data type you want this entire column "
+               u"imported as.") % {u"fldname": fldname, 
+                                   u"data_type": fldtypes[fldname], 
+                                   u"details": details})
         lbl_choice = wx.StaticText(self.panel, -1, choice_txt)
         types = u" or ".join(["\"%s\"" % x for x in self.fldtype_choices])
         lbl_implications = wx.StaticText(self.panel, -1, _(u"If you choose %s ,"
@@ -113,9 +112,9 @@ class FixMismatchDlg(wx.Dialog):
     
     
 def get_best_fldtype(fldname, type_set, faulty2missing_fld_list, 
-                      testing=False):
+                     first_mismatch=u"", testing=False):
     """
-    type_set may contain empty_str as well as actual types.  Useful to remove
+    type_set may contain empty_str as well as actual types. Useful to remove
         empty str and see what is left.
     faulty2missing_fld_list -- so we can stay with the selected best type by 
         setting faulty values that don't match type to missing.
@@ -140,10 +139,9 @@ def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
             fldtype_choices.append(mg.FLDTYPE_DATE)
         if not testing:
             dlg = FixMismatchDlg(fldname=fldname, 
-                                fldtype_choices=fldtype_choices, 
-                                fldtypes=fldtypes, 
-                                faulty2missing_fld_list=faulty2missing_fld_list, 
-                                assessing_sample=True)
+                            fldtype_choices=fldtype_choices, fldtypes=fldtypes, 
+                            faulty2missing_fld_list=faulty2missing_fld_list, 
+                            details=first_mismatch, assessing_sample=True)
             ret = dlg.ShowModal()
             if ret == wx.ID_CANCEL:
                 raise Exception(u"Inconsistencies in data type.")         
@@ -256,6 +254,8 @@ def assess_sample_fld(sample_data, has_header, ok_fldname, ok_fldnames,
     """
     debug = False
     type_set = set()
+    first_mismatch = u""
+    expected_fldtype = u""
     for row_num, row in enumerate(sample_data, 1):
         if debug: print(row_num, row) # look esp for Nones
         if allow_none:
@@ -265,10 +265,20 @@ def assess_sample_fld(sample_data, has_header, ok_fldname, ok_fldnames,
             if val is None:
                 report_fld_n_mismatch(row, row_num, has_header, ok_fldnames, 
                                       allow_none)
-        lib.update_type_set(type_set, val, comma_dec_sep_ok)
+        val_type = lib.get_val_type(val, comma_dec_sep_ok)
+        if not expected_fldtype and val_type != mg.VAL_EMPTY_STRING:
+            expected_fldtype = val_type
+        type_set.add(val_type)
+        # more than one type (ignoring empty string)?
+        main_type_set = type_set.copy()
+        main_type_set.discard(mg.VAL_EMPTY_STRING)
+        if len(main_type_set) > 1 and not first_mismatch:
+            # identify row and value to report to user
+            first_mismatch = (FIRST_MISMATCH_TPL % {u"row": row_num, 
+                                u"value": val, u"fldtype": expected_fldtype})
     fldtype = get_best_fldtype(fldname=ok_fldname, type_set=type_set, 
                                faulty2missing_fld_list=faulty2missing_fld_list,
-                               testing=testing)
+                               first_mismatch=first_mismatch, testing=testing)
     return fldtype
 
 def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname, 
@@ -345,12 +355,10 @@ def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname,
         if ok_fldname in faulty2missing_fld_list:
             val = u"NULL" # replace faulty value with a null
         else:
-            raise MismatchException(fldname=ok_fldname,
-                                    expected_fldtype=fldtype,
-                                    details=(u"Column: %s" % ok_fldname +
-                                    u"\nRow: %s" % (row_num) +
-                                    u"\nValue: \"%s\"" % raw_val +
-                                    u"\nExpected column type: %s" % fldtype))
+            details = FIRST_MISMATCH_TPL % {u"row": row_num, u"value": raw_val, 
+                                            u"fldtype": fldtype}
+            raise my_exceptions.MismatchException(fldname=ok_fldname,
+                                    expected_fldtype=fldtype, details=details)
     return val
 
 def process_val(feedback, vals, row_num, row, ok_fldname, fldtypes, 
@@ -470,7 +478,7 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fldnames,
             for ok_fldname in ok_fldnames:
                 process_val(feedback, vals, row_num, row, ok_fldname, 
                             fldtypes, faulty2missing_fld_list, comma_dec_sep_ok)
-        except MismatchException, e:
+        except my_exceptions.MismatchException, e:
             if debug: print("A mismatch exception")
             raise # keep this particular type of exception bubbling out
         except Exception, e:
@@ -559,7 +567,7 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
                  steps_per_item, gauge_start=gauge_start, row_num_start=1, 
                  allow_none=allow_none, comma_dec_sep_ok=comma_dec_sep_ok)
         return True
-    except MismatchException, e:
+    except my_exceptions.MismatchException, e:
         feedback[mg.NULLED_DOTS] = False
         con.commit()
         progbar.SetValue(0)
@@ -568,6 +576,7 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
                              fldtype_choices=[e.expected_fldtype,], 
                              fldtypes=fldtypes, 
                              faulty2missing_fld_list=faulty2missing_fld_list, 
+                             details=e.details,
                              assessing_sample=False)
         ret = dlg.ShowModal()
         if ret == wx.ID_CANCEL:

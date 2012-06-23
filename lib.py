@@ -567,6 +567,9 @@ def none2empty(val):
         return val
 
 def get_val_type(val, comma_dec_sep_ok=False):
+    """
+    comma_dec_sep_ok -- Some countries use commas as decimal separators.
+    """
     if is_numeric(val, comma_dec_sep_ok): # anything SQLite can add 
             # _as a number_ into a numeric field
         val_type = mg.VAL_NUMERIC
@@ -581,13 +584,6 @@ def get_val_type(val, comma_dec_sep_ok=False):
         else:
             val_type = mg.VAL_STRING
     return val_type    
-
-def update_type_set(type_set, val, comma_dec_sep_ok=False):
-    """
-    Some countries use commas as decimal separators.
-    """
-    val_type = get_val_type(val, comma_dec_sep_ok)
-    type_set.add(val_type)
 
 def get_overall_fldtype(type_set):
     """

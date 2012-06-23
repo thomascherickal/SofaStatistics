@@ -43,14 +43,14 @@ WAITING_MSG = _("<p>Waiting for at least one field to be configured.</p>")
 
 """
 New tables do not have user-defined functions added as part of data type 
-    constraints.  Data integrity is protected via the data entry grid and its 
-    validation.  Otherwise, only SOFA (or theoretically, any application 
+    constraints. Data integrity is protected via the data entry grid and its 
+    validation. Otherwise, only SOFA (or theoretically, any application 
     providing the same user-defined function names) would be able to open it.
 Modifying an existing table involves making a tmp table with all the data type 
-    constraints added as per new design's field types.  Then data is inserted 
-    into table looking for errors.  If no errors, drop orig table, make new 
+    constraints added as per new design's field types. Then data is inserted 
+    into table looking for errors. If no errors, drop orig table, make new 
     table without strict typing, and mass insert all the records from the temp
-    table into it.  Then drop the temp table to clean up.
+    table into it. Then drop the temp table to clean up.
 """
 
 

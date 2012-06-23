@@ -82,7 +82,7 @@ class OdsImporter(importer.FileImporter):
     
     def import_content(self, progbar, import_status, lbl_feedback):
         """
-        Get field types dict.  Use it to test each and every item before they 
+        Get field types dict. Use it to test each and every item before they 
             are added to database (after adding the records already tested).
         Add to disposable table first and if completely successful, rename
             table to final name.

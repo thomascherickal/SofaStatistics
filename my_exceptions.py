@@ -1,5 +1,15 @@
 import my_globals as mg
 
+class MismatchException(Exception):
+    def __init__(self, fldname, expected_fldtype, details):
+        debug = False
+        if debug: print("A mismatch exception")
+        self.fldname = fldname
+        self.expected_fldtype = expected_fldtype
+        self.details = details
+        Exception.__init__(self, (u"Found data not matching expected "
+                                  u"column type.\n\n%s" % details))
+
 class DoNothingException(Exception):
     def __init__(self, msg=""):
         if msg: print("Nothing to do exception. %s" % msg)
