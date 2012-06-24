@@ -109,8 +109,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.drop_avg.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_vars)
         self.drop_avg.SetToolTipString(variables_rc_msg)
         self.sorted_var_names_avg = []
-        self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT, 
-                       self.sorted_var_names_avg)
+        self.setup_var_dropdown(self.drop_avg, mg.VAR_AVG_DEFAULT, 
+                                self.sorted_var_names_avg)
         szr_vars_top_left_top.Add(self.lbl_avg, 0, wx.TOP|wx.RIGHT, 5)
         szr_vars_top_left_top.Add(self.drop_avg, 0, wx.RIGHT|wx.TOP, 5)
         self.szr_vars_top_left.Add(szr_vars_top_left_top, 0)
@@ -255,8 +255,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
     def refresh_vars(self):
         var_gp, var_avg = self.get_vars()
         self.setup_group_by(var_gp)
-        self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT, 
-                       self.sorted_var_names_avg, var_avg)
+        self.setup_var_dropdown(self.drop_avg, mg.VAR_AVG_DEFAULT, 
+                                self.sorted_var_names_avg, var_avg)
         self.setup_group_by_dropdowns()
         self.update_defaults()
         self.update_phrase()
@@ -275,8 +275,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         # now update var dropdowns
         config_output.update_var_dets(dlg=self)
         self.setup_group_by()
-        self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT,
-                       self.sorted_var_names_avg)
+        self.setup_var_dropdown(self.drop_avg, mg.VAR_AVG_DEFAULT,
+                                self.sorted_var_names_avg)
         self.setup_group_by_dropdowns()
                 
     def on_table_sel(self, event):
@@ -285,7 +285,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         # now update var dropdowns
         config_output.update_var_dets(dlg=self)
         self.setup_group_by()
-        self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT,
+        self.setup_var_dropdown(self.drop_avg, mg.VAR_AVG_DEFAULT,
                        self.sorted_var_names_avg)
         self.setup_group_by_dropdowns()
         
@@ -298,7 +298,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         var_gp, var_avg = self.get_vars()
         config_output.ConfigUI.on_btn_config(self, event)
         self.setup_group_by(var_gp)
-        self.setup_var(self.drop_avg, mg.VAR_AVG_DEFAULT, 
+        self.setup_var_dropdown(self.drop_avg, mg.VAR_AVG_DEFAULT, 
                        self.sorted_var_names_avg, var_avg)
         self.setup_group_by_dropdowns(val_a, val_b)
         self.update_defaults()
@@ -381,8 +381,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
                                            self.var_labels, mg.GROUP_BY_DEFAULT)
         self.drop_group_by.SetSelection(idx_gp)
 
-    def setup_var(self, drop_var, default, sorted_var_names, var_name=None, 
-                  inc_drop_select=False, override_min_data_type=None):
+    def setup_var_dropdown(self, drop_var, default, sorted_var_names, 
+                           var_name=None, inc_drop_select=False, 
+                           override_min_data_type=None):
         """
         Set up dropdown of available variables according to minimum data type 
             e.g. ordinal. Set to display correct item if a variable name 

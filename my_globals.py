@@ -512,6 +512,9 @@ CHART_CONFIG = {
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True}, # dropdown 3
+            {LBL_KEY: CHART_CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 4
             ],
         NON_AVG_KEY: [
             {LBL_KEY: CHART_VALUES,
@@ -520,6 +523,9 @@ CHART_CONFIG = {
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False}, # dropdown 2
+            {LBL_KEY: CHART_CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 3
             ],
     },
     PIE_CHART: {
@@ -543,6 +549,9 @@ CHART_CONFIG = {
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True}, # dropdown 3
+            {LBL_KEY: CHART_CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 4
             ],
         NON_AVG_KEY: [
             {LBL_KEY: CHART_VALUES,
@@ -551,6 +560,9 @@ CHART_CONFIG = {
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True}, # dropdown 2
+            {LBL_KEY: CHART_CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 3
             ],
     },
     AREA_CHART: {
@@ -611,9 +623,9 @@ CHART_CONFIG = {
             ],
     },
 }
-THREE_VAR_CHART_TYPES = [SCATTERPLOT, BOXPLOT] #, LINE_CHART]
+THREE_VAR_CHART_TYPES = [CLUSTERED_BARCHART, LINE_CHART, SCATTERPLOT, BOXPLOT]
 HAS_AVG_OPTION = [SIMPLE_BARCHART, CLUSTERED_BARCHART, LINE_CHART, AREA_CHART,]
-NO_CHART_BY = [CLUSTERED_BARCHART, LINE_CHART, BOXPLOT, ]
+NO_CHART_BY = [BOXPLOT,]
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
     'lightcoral', 'orangered', 'navajowhite', 'slategray', 'palegreen', 
@@ -688,6 +700,7 @@ VAR_AVG_DEFAULT = None
 VAR_1_DEFAULT = None
 VAR_2_DEFAULT = None
 VAR_3_DEFAULT = None
+VAR_4_DEFAULT = None
 GROUP_A_DEFAULT = None
 GROUP_B_DEFAULT = None
 VAL_A_DEFAULT = None
