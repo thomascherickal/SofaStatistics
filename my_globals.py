@@ -625,7 +625,7 @@ CHART_CONFIG = {
 }
 THREE_VAR_CHART_TYPES = [CLUSTERED_BARCHART, LINE_CHART, SCATTERPLOT, BOXPLOT]
 HAS_AVG_OPTION = [SIMPLE_BARCHART, CLUSTERED_BARCHART, LINE_CHART, AREA_CHART,]
-NO_CHART_BY = [BOXPLOT,]
+NO_CHART_BY = [CLUSTERED_BARCHART, LINE_CHART, BOXPLOT,]
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
     'lightcoral', 'orangered', 'navajowhite', 'slategray', 'palegreen', 

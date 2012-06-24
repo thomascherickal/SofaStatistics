@@ -950,40 +950,51 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def test_config_ok(self):
         """
         Are the appropriate selections made to enable an analysis to be run?
+        No longer possible to have a Select showing where Select is not 
+            acceptable. So the only issues are a No Selection followed by a 
+            variable selection or duplicate variable selections.
         """
-        has3vars = (self.chart_type in mg.THREE_VAR_CHART_TYPES
-                    or (self.chart_type in mg.HAS_AVG_OPTION and SHOW_AVG))
-        if has3vars:        
-            setof3 = set([self.drop_var1.GetStringSelection(),
-                        self.drop_var2.GetStringSelection(),
-                        self.drop_var3.GetStringSelection()])
-            if len(setof3) < 3:
-                wx.MessageBox(_(u"The variables for %(var1)s, %(var2)s and "
-                                u"%(var3)s must all be different") % 
-                              {u"var1": self.lbl_var1.GetLabel().rstrip(u":"), 
-                               u"var2": self.lbl_var2.GetLabel().rstrip(u":"),
-                               u"var3": self.lbl_var3.GetLabel().rstrip(u":")})
-                return False
-            if self.drop_var2.GetStringSelection() == mg.DROP_SELECT:
-                wx.MessageBox("Please make a selection for the second variable")
-                return False
-            if (self.chart_type == mg.CLUSTERED_BARCHART 
-                    and self.drop_var3.GetStringSelection() == mg.DROP_SELECT):
-                wx.MessageBox("Please make a selection for the third variable")
-                return False
-        else:
-            setof2 = set([self.drop_var1.GetStringSelection(),
-                        self.drop_var2.GetStringSelection()])
-            if len(setof2) < 2:
-                wx.MessageBox(_(u"Variables %(var1)s and %(var2)s must be "
-                                u"different") % 
-                              {u"var1": self.lbl_var1.GetLabel().rstrip(u":"), 
-                               u"var2": self.lbl_var2.GetLabel().rstrip(u":")})
-                return False
-            # 2 drop downs showing - second must be completed if SHOW_AVG
-            if (self.chart_type in mg.HAS_AVG_OPTION and SHOW_AVG 
-                    and self.drop_var2.GetStringSelection() == mg.DROP_SELECT):
-                wx.MessageBox("Please make a selection for the second variable")
+        debug = False
+        lblctrls = [self.lbl_var1, self.lbl_var2, self.lbl_var3, self.lbl_var4]
+        variables = self.get_vars()
+        if debug: print(variables)
+        if len(lblctrls) != len(variables):
+            raise Exception(u"Mismatch in number of lbls and variables in "
+                            u"charting dlg.")
+        lblctrl_vars = zip(lblctrls, variables)
+        idx_lblctrl_in_lblctrl_vars = 0
+        idx_variable_in_lblctrl_vars = 1
+        used_lblctrl_vars = [x for x in lblctrl_vars 
+                         if x[idx_lblctrl_in_lblctrl_vars].IsShown()]
+        # 1) Variable selected but an earlier one has not (No Selection instead)
+        has_no_select_selected = False
+        lbl_with_no_select = u""
+        for lblctrl, variable in used_lblctrl_vars:
+            if variable == mg.DROP_SELECT:
+                lbl_with_no_select = lblctrl.GetLabel().rstrip(u":")
+                has_no_select_selected = True
+            else:
+                if has_no_select_selected: # already
+                    varlbl = lblctrl.GetLabel().rstrip(u":")
+                    wx.MessageBox(_(u"\"%s\" has a variable selected but the "
+                                    u"previous drop down list \"%s\" does not.") 
+                                  % (varlbl, lbl_with_no_select))
+                    return False
+        # 2) Excluding No Selections, we have duplicate selections
+        selected_lblctrl_vars = [x for x in used_lblctrl_vars 
+                         if x[idx_variable_in_lblctrl_vars] != mg.DROP_SELECT]
+        selected_lblctrls = [x[idx_lblctrl_in_lblctrl_vars] for x 
+                             in selected_lblctrl_vars]
+        selected_lbls = [x.GetLabel().rstrip(u":") for x in selected_lblctrls]
+        selected_vars = [x[idx_variable_in_lblctrl_vars] for x 
+                         in selected_lblctrl_vars]
+        unique_selected_vars = set(selected_vars)
+        if len(unique_selected_vars) < len(selected_vars):
+                final_comma = u"" if len(selected_vars) < 3 else u","
+                varlbls = (u'"' + u'", "'.join(selected_lbls[:-1]) + u'"' 
+                           + final_comma + u" and \"%s\"" % selected_lbls[-1])
+                wx.MessageBox(_(u"The variables selected for %s must be "
+                                u"different.") % varlbls)
                 return False
         return True
 
@@ -999,6 +1010,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             fld_gp_by etc, (If var 2 is By, set to this and if ).
             fld_chart_by etc,
         """
+        debug = False
         dd = mg.DATADETS_OBJ
         is_perc = not(CUR_DATA_OPT == mg.SHOW_FREQ
                       or (self.chart_type in mg.HAS_AVG_OPTION and SHOW_AVG))
@@ -1009,6 +1021,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"subtitles=%s" % unicode(subtitles))
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         varname1, varname2, varname3, varname4 = self.get_vars()
+        if debug: print(varname1, varname2, varname3, varname4)
         # dropdown (var) 1 - always the measure field unless a scatterplot
         var1lbl = u"fld_x_axis" if self.chart_type == mg.SCATTERPLOT \
                                 else mg.FLD_MEASURE
@@ -1058,6 +1071,16 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             script_lst.append("%s=None" % mg.FLD_CHART_BY)
             script_lst.append("%s=None" % mg.FLD_CHART_BY_NAME)
             script_lst.append("%s=None" % mg.FLD_CHART_BY_LBLS)
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
         # other variables to set up
         script_lst.append(u"add_to_report = %s" % ("True" if add_to_report
                                                           else "False"))

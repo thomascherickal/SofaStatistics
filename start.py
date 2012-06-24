@@ -623,6 +623,9 @@ class StartFrame(wx.Frame):
             self.form_pos_left = mg.MAX_WIDTH-(self.form_width+10) 
     
     def make_sized_imgs(self):
+        """
+        Set images according to size constraints (tight_layout).
+        """
         if not self.tight_layout:
             sofabg_img = u"sofastats_start_bg.gif"
             demo_chart_img = u"demo_chart.gif"
