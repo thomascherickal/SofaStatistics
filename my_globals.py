@@ -448,6 +448,10 @@ CHART_SERIES_BY = _("Series By")
 CHART_AVERAGED = _("Averaged")
 Y_AXIS_FREQ_LBL = _("Frequency")
 Y_AXIS_PERC_LBL = _(u"Percentage")
+X_AXIS = _(u"X-axis")
+Y_AXIS = _(u"Y-axis")
+
+
 # charts
 FLD_MEASURE = u"fld_measure"
 FLD_GROUP_BY = u"fld_gp_by"
@@ -456,6 +460,7 @@ FLD_GROUP_BY_LBLS = u"fld_gp_by_lbls"
 FLD_CHART_BY = u"fld_chart_by"
 FLD_CHART_BY_NAME = u"fld_chart_by_name"
 FLD_CHART_BY_LBLS = u"fld_chart_by_lbls"
+# chart gui
 SIMPLE_BARCHART = u"Simple Bar Chart"
 CLUSTERED_BARCHART = u"Clustered Bar Chart"
 PIE_CHART = u"Pie Chart"
@@ -464,25 +469,148 @@ AREA_CHART = u"Area Chart"
 HISTOGRAM = u"Histogram"
 SCATTERPLOT = u"Scatterplot"
 BOXPLOT = u"Box and Whisker Plot"
-OPTIONAL_ONE_VAR_CHART_TYPES = [SIMPLE_BARCHART, PIE_CHART, LINE_CHART, 
-                                AREA_CHART, HISTOGRAM, BOXPLOT]
-CHART_TYPE_TO_MIN_DATA_TYPES = {SIMPLE_BARCHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
-                               CLUSTERED_BARCHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
-                               PIE_CHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
-                               LINE_CHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
-                               AREA_CHART: (VAR_TYPE_CAT, VAR_TYPE_CAT),
-                               HISTOGRAM: (VAR_TYPE_QUANT, VAR_TYPE_CAT),
-                               SCATTERPLOT: (VAR_TYPE_ORD, VAR_TYPE_ORD),
-                               BOXPLOT: (VAR_TYPE_QUANT, VAR_TYPE_CAT),}
-CHART_TYPE_TO_LBLS = {SIMPLE_BARCHART: (CHART_VALUES, CHART_CHART_BY, None),
-                CLUSTERED_BARCHART: (CHART_VALUES, CHART_BY, CHART_CHART_BY),
-                PIE_CHART: (CHART_VALUES, CHART_CHART_BY, None),
-                LINE_CHART: (CHART_VALUES, CHART_BY, CHART_CHART_BY),
-                AREA_CHART: (CHART_VALUES, CHART_CHART_BY, None),
-                HISTOGRAM: (CHART_VALUES, CHART_CHART_BY, None),
-                SCATTERPLOT: (_(u"X-axis"), _(u"Y-axis"), CHART_CHART_BY),
-                BOXPLOT: (CHART_DESCRIBED, CHART_BY, CHART_SERIES_BY),
-                }
+"""
+For each chart type, we need config for avg (if available) and non-avg.
+The config must list drop-down configs in order.
+Each config will need: label, min_data_type, inc_select
+"""
+AVG_KEY = u"avg_key"
+NON_AVG_KEY = u"non_avg_key"
+LBL_KEY = u"lbl_key"
+MIN_DATA_TYPE_KEY = u"min_data_type_key"
+INC_SELECT_KEY = u"inc_select_key"
+CHART_CONFIG = {
+    SIMPLE_BARCHART: {
+        AVG_KEY: [
+            {LBL_KEY: CHART_AVERAGED,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             INC_SELECT_KEY: False}, # dropdown 1
+            {LBL_KEY: CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: False}, # dropdown 2
+            {LBL_KEY: CHART_CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 3
+            ],
+        NON_AVG_KEY: [
+            {LBL_KEY: CHART_VALUES,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: False}, # dropdown 1
+            {LBL_KEY: CHART_CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 2
+            ],
+    },
+    CLUSTERED_BARCHART: {
+        AVG_KEY: [
+            {LBL_KEY: CHART_AVERAGED,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             INC_SELECT_KEY: False}, # dropdown 1
+            {LBL_KEY: CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: False}, # dropdown 2
+            {LBL_KEY: CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 3
+            ],
+        NON_AVG_KEY: [
+            {LBL_KEY: CHART_VALUES,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: False}, # dropdown 1
+            {LBL_KEY: CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: False}, # dropdown 2
+            ],
+    },
+    PIE_CHART: {
+        NON_AVG_KEY: [
+            {LBL_KEY: CHART_VALUES,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: False}, # dropdown 1
+            {LBL_KEY: CHART_CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 2
+            ],
+    },
+    LINE_CHART: {
+        AVG_KEY: [
+            {LBL_KEY: CHART_AVERAGED,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             INC_SELECT_KEY: False}, # dropdown 1
+            {LBL_KEY: CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: False}, # dropdown 2
+            {LBL_KEY: CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 3
+            ],
+        NON_AVG_KEY: [
+            {LBL_KEY: CHART_VALUES,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: False}, # dropdown 1
+            {LBL_KEY: CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 2
+            ],
+    },
+    AREA_CHART: {
+        AVG_KEY: [
+            {LBL_KEY: CHART_AVERAGED,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             INC_SELECT_KEY: False}, # dropdown 1
+            {LBL_KEY: CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 2
+            {LBL_KEY: CHART_CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 3
+            ],
+        NON_AVG_KEY: [
+            {LBL_KEY: CHART_VALUES,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: False}, # dropdown 1
+            {LBL_KEY: CHART_CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 2
+            ],
+    },
+    HISTOGRAM: {
+        NON_AVG_KEY: [
+            {LBL_KEY: CHART_VALUES,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             INC_SELECT_KEY: False}, # dropdown 1
+            {LBL_KEY: CHART_CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 2
+            ],
+    },
+    SCATTERPLOT: {
+        NON_AVG_KEY: [
+            {LBL_KEY: X_AXIS,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             INC_SELECT_KEY: False}, # dropdown 1
+            {LBL_KEY: Y_AXIS,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             INC_SELECT_KEY: False}, # dropdown 2
+            {LBL_KEY: CHART_CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 3
+            ],
+    },
+    BOXPLOT: {
+        NON_AVG_KEY: [
+            {LBL_KEY: CHART_DESCRIBED,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             INC_SELECT_KEY: False}, # dropdown 1
+            {LBL_KEY: CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: False}, # dropdown 2
+            {LBL_KEY: CHART_SERIES_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True}, # dropdown 3
+            ],
+    },
+}
 THREE_VAR_CHART_TYPES = [SCATTERPLOT, BOXPLOT] #, LINE_CHART]
 HAS_AVG_OPTION = [SIMPLE_BARCHART, CLUSTERED_BARCHART, LINE_CHART, AREA_CHART,]
 NO_CHART_BY = [CLUSTERED_BARCHART, LINE_CHART, BOXPLOT, ]

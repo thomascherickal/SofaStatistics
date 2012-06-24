@@ -77,13 +77,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_vars = wx.StaticBoxSizer(bx_vars, wx.HORIZONTAL)
         self.szr_vars_top_left = wx.BoxSizer(wx.VERTICAL)
         szr_chart_btns = wx.BoxSizer(wx.HORIZONTAL)
-        (self.min_data_type1, # according to chart type assuming no avg
-         self.min_data_type2) = mg.CHART_TYPE_TO_MIN_DATA_TYPES.get(
-                                        mg.SIMPLE_BARCHART, (mg.VAR_TYPE_CAT,
-                                                             mg.VAR_TYPE_CAT))        
+        self.chart_type = mg.SIMPLE_BARCHART
+        init_chart_config = mg.CHART_CONFIG[self.chart_type][mg.NON_AVG_KEY]
         # var 1
-        self.lbl_var1 = wx.StaticText(self.panel_top, -1, 
-                                      u"%s:" % mg.CHART_VALUES)
+        lbl1 = init_chart_config[0][mg.LBL_KEY]
+        min_data_type1 = init_chart_config[0][mg.MIN_DATA_TYPE_KEY]
+        self.lbl_var1 = wx.StaticText(self.panel_top, -1, u"%s:" % lbl1)
         self.lbl_var1.SetFont(self.LABEL_FONT)
         self.drop_var1 = wx.Choice(self.panel_top, -1, choices=[], 
                                    size=(210,-1))
@@ -92,10 +91,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.drop_var1.SetToolTipString(variables_rc_msg)
         self.sorted_var_names1 = []
         self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1,
-                       override_min_data_type=self.min_data_type1)
+                       override_min_data_type=min_data_type1)
         # var 2
-        self.lbl_var2 = wx.StaticText(self.panel_top, -1, u"%s:"
-                                      % mg.CHART_CHART_BY)
+        lbl2 = init_chart_config[1][mg.LBL_KEY]
+        min_data_type2 = init_chart_config[1][mg.MIN_DATA_TYPE_KEY]
+        self.lbl_var2 = wx.StaticText(self.panel_top, -1, u"%s:" % lbl2)
         self.lbl_var2.SetFont(self.LABEL_FONT)
         self.drop_var2 = wx.Choice(self.panel_top, -1, choices=[], 
                                    size=(210,-1))
@@ -105,10 +105,17 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.sorted_var_names2 = []
         self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
                        var_name=None, inc_drop_select=True,
-                       override_min_data_type=self.min_data_type2)
+                       override_min_data_type=min_data_type2)
         # var 3
-        self.lbl_var3 = wx.StaticText(self.panel_top, -1, u"%s:" % 
-                                      mg.CHART_CHART_BY)
+        lbl3 = mg.CHART_CHART_BY
+        min_data_type3 = mg.VAR_TYPE_CAT
+        try:
+            lbl3 = init_chart_config[2][mg.LBL_KEY]
+            min_data_type3 = init_chart_config[2][mg.MIN_DATA_TYPE_KEY]
+        except Exception:
+            # OK if not a third drop down for chart
+            my_exceptions.DoNothingException()
+        self.lbl_var3 = wx.StaticText(self.panel_top, -1, u"%s:" % lbl3)
         self.lbl_var3.SetFont(self.LABEL_FONT)
         self.drop_var3 = wx.Choice(self.panel_top, -1, choices=[], 
                                    size=(210,-1))
@@ -118,7 +125,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.sorted_var_names3 = []
         self.setup_var(self.drop_var3, mg.VAR_3_DEFAULT, self.sorted_var_names3, 
                        var_name=None, inc_drop_select=True, 
-                       override_min_data_type=mg.VAR_TYPE_CAT) # inc all
+                       override_min_data_type=min_data_type3) # inc all
+        # var 3 visibility
+        try:
+            init_chart_config[2]
+        except Exception:
+            self.lbl_var3.Hide()
+            self.drop_var3.Hide()
         # layout
         help_down_by = 27 if mg.PLATFORM == mg.MAC else 17
         szr_help_data.Add(self.btn_help, 0, wx.TOP, help_down_by)
@@ -129,9 +142,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_vars.Add(self.drop_var2, 0, wx.RIGHT|wx.TOP, 5)
         szr_vars.Add(self.lbl_var3, 0, wx.TOP|wx.RIGHT, 5)
         szr_vars.Add(self.drop_var3, 0, wx.RIGHT|wx.TOP, 5)
-        # var 3 invisible
-        self.lbl_var3.Hide()
-        self.drop_var3.Hide()
         # assemble sizer for top panel
         static_box_gap = 0 if mg.PLATFORM == mg.MAC else 5
         if static_box_gap:
@@ -143,7 +153,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_top.SetSizer(szr_top)
         szr_top.SetSizeHints(self.panel_top)
         # Charts
-        self.chart_type = mg.SIMPLE_BARCHART
         # chart buttons
         self.panel_mid = wx.Panel(self)
         bx_charts = wx.StaticBox(self.panel_mid, -1, _("Chart Types"))
@@ -523,58 +532,53 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_to_rollback = self.btn_bar_chart
         self.bmp_to_rollback_to = self.bmp_btn_bar_chart
 
-    def set_avg_dropdowns(self, from_scratch=False):
-        """
-        Set drop1 to numeric, change label for drop1 to Averaged and 
-            drop2 to By, add drop3.
-        from_scratch -- setting the average dropdowns while still same chart 
-            type e.g. toggling on an off; vs arriving at new chart type which 
-            has an average option and average has already been ticked since 
-            charts dialog opened. 
-        """
-        unused, varname2, varname3 = self.get_vars()
-        self.min_data_type1 = mg.VAR_TYPE_QUANT
-        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1,
-                       override_min_data_type=self.min_data_type1)
-        if from_scratch:
-            # var 2
-            inc_drop_select = (self.chart_type in 
-                               mg.OPTIONAL_ONE_VAR_CHART_TYPES)
-            self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, 
-                           self.sorted_var_names2, varname2, inc_drop_select, 
-                           override_min_data_type=self.min_data_type2)
-            self.drop_var2.Enable(True)
-            self.lbl_var2.Enable(True)
-        self.lbl_var1.SetLabel(u"%s:" % mg.CHART_AVERAGED)
-        self.lbl_var2.SetLabel(u"%s:" % mg.CHART_BY)
-        if self.chart_type in mg.NO_CHART_BY:
-            self.lbl_var3.SetLabel(u"%s:" % mg.CHART_BY)
-        else:
-            self.lbl_var3.SetLabel(u"%s:" % mg.CHART_CHART_BY)
-        self.setup_var(self.drop_var3, mg.VAR_3_DEFAULT, 
-                       self.sorted_var_names3, varname3, 
-                       inc_drop_select=True, 
-                       override_min_data_type=mg.VAR_TYPE_CAT)
-        self.drop_var3.Show()
-        self.lbl_var3.Show()
-        self.panel_top.Layout()
-
-    def unset_avg_dropdowns(self):
-        # set drop1 to normal for simple bar, change label for drop2, hide
-        # drop3
-        (self.min_data_type1, 
-         self.min_data_type2) = mg.CHART_TYPE_TO_MIN_DATA_TYPES.get(
-                                            self.chart_type, (mg.VAR_TYPE_CAT,
-                                                              mg.VAR_TYPE_CAT))
-        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1,
-                       override_min_data_type=self.min_data_type1)
-        (lbl1, lbl2,
-         unused) = mg.CHART_TYPE_TO_LBLS.get(self.chart_type, (mg.CHART_VALUES, 
-                                                mg.CHART_BY, mg.CHART_CHART_BY))
+    def set_dropdowns(self):
+        debug = False
+        if debug: print(u"Chart type is: %s" % self.chart_type)
+        varname1, varname2, varname3 = self.get_vars()
+        key2use = (mg.AVG_KEY if self.chart_type in mg.HAS_AVG_OPTION 
+                   else mg.NON_AVG_KEY)
+        try:
+            chart_config = mg.CHART_CONFIG[self.chart_type][key2use]
+        except Exception:
+            raise Exception(u"The selected chart type \"%s\"doesn't have the "
+                            u"\"%s\" key." % (self.chart_type, key2use))
+        # var 1
+        lbl1 = chart_config[0][mg.LBL_KEY]
+        min_data_type1 = chart_config[0][mg.MIN_DATA_TYPE_KEY]
+        inc_drop_select1 = chart_config[0][mg.INC_SELECT_KEY]
+        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, 
+                       self.sorted_var_names1, var_name=varname1,
+                       inc_drop_select=inc_drop_select1, 
+                       override_min_data_type=min_data_type1)
         self.lbl_var1.SetLabel(u"%s:" % lbl1)
+        # var 2
+        lbl2 = chart_config[1][mg.LBL_KEY]
+        min_data_type2 = chart_config[1][mg.MIN_DATA_TYPE_KEY]
+        inc_drop_select2 = chart_config[1][mg.INC_SELECT_KEY]
+        self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, 
+                       self.sorted_var_names2, var_name=varname2, 
+                       inc_drop_select=inc_drop_select2, 
+                       override_min_data_type=min_data_type2)
+        self.drop_var2.Enable(True)
+        self.lbl_var2.Enable(True)
         self.lbl_var2.SetLabel(u"%s:" % lbl2)
-        self.drop_var3.Hide()
-        self.lbl_var3.Hide()
+        # var 3
+        try:
+            chart_config[2]
+            lbl3 = chart_config[2][mg.LBL_KEY]
+            min_data_type3 = chart_config[2][mg.MIN_DATA_TYPE_KEY]
+            inc_drop_select3 = chart_config[2][mg.INC_SELECT_KEY]
+            self.setup_var(self.drop_var3, mg.VAR_3_DEFAULT, 
+                           self.sorted_var_names3, var_name=varname3, 
+                           inc_drop_select=inc_drop_select3, 
+                           override_min_data_type=min_data_type3)
+            self.lbl_var3.SetLabel(u"%s:" % lbl3)
+            self.lbl_var3.Show()
+            self.drop_var3.Show()  
+        except Exception:
+            self.lbl_var3.Hide()
+            self.drop_var3.Hide()        
         self.panel_top.Layout()
 
     def on_rad_perc(self, event):
@@ -598,12 +602,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def on_chk_avg(self, chk, rad):
         global SHOW_AVG
         SHOW_AVG = chk.IsChecked()
-        if SHOW_AVG:
-            self.set_avg_dropdowns(from_scratch=False)
-            rad.Enable(False)
-        else:
-            self.unset_avg_dropdowns()
-            rad.Enable(True)
+        self.set_dropdowns()
+        rad.Enable(not SHOW_AVG)
             
     def on_chk_simple_bar_avg(self, event):
         self.on_chk_avg(self.chk_simple_bar_avg, self.rad_simple_bar_perc)
@@ -628,16 +628,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             my_exceptions.DoNothingException()
         if debug: print(u"Current sort option: %s" % CUR_SORT_OPT)
         
-    def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel,
-                  override_min_data_type1=None):
-        """
-        min_data_type is an indep2var thing which we ignore. We need more 
-            fine-grained control -- e.g. numerical only for some drop downs and 
-            categorical upwards for others.
-        override_min_data_type1 -- 1 must be overridden if doing averages 
-            (must be numeric). No need to override 2 and 3 - always 
-            categorical upwards.
-        """
+    def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel):
         btn.SetFocus()
         btn.SetDefault()
         self.btn_to_rollback.SetBitmapLabel(self.bmp_to_rollback_to)
@@ -647,47 +638,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         event.Skip()
         if self.panel_displayed == panel:
             return # just reclicking on same one
-        (self.min_data_type1, 
-         self.min_data_type2) = mg.CHART_TYPE_TO_MIN_DATA_TYPES.get(
-                                            self.chart_type, (mg.VAR_TYPE_CAT,
-                                                              mg.VAR_TYPE_CAT))
-        if (self.chart_type in mg.HAS_AVG_OPTION) and SHOW_AVG:
-            self.set_avg_dropdowns(from_scratch=True)
-        else:
-            (lbl1, lbl2,
-             lbl3) = mg.CHART_TYPE_TO_LBLS.get(self.chart_type, 
-                              (mg.CHART_VALUES, mg.CHART_BY, mg.CHART_CHART_BY))
-            self.lbl_var1.SetLabel(u"%s:" % lbl1)
-            self.lbl_var2.SetLabel(u"%s:" % lbl2)
-            self.lbl_var3.SetLabel(u"%s:" % lbl3)
-            self.panel_top.Layout()
-            varname1, varname2, varname3 = self.get_vars()
-            # var 1
-            if override_min_data_type1:
-                self.min_data_type1 = override_min_data_type1
-            self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, 
-                           self.sorted_var_names1, varname1,
-                           override_min_data_type=self.min_data_type1)
-            # var 2
-            inc_drop_select = (self.chart_type in 
-                               mg.OPTIONAL_ONE_VAR_CHART_TYPES)
-            self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, 
-                           self.sorted_var_names2, varname2, inc_drop_select, 
-                           override_min_data_type=self.min_data_type2)
-            self.drop_var2.Enable(True)
-            self.lbl_var2.Enable(True)
-            # var 3 - always categorical upwards
-            if self.chart_type in mg.THREE_VAR_CHART_TYPES:
-                self.setup_var(self.drop_var3, mg.VAR_3_DEFAULT, 
-                               self.sorted_var_names3, varname3, 
-                               inc_drop_select=True, 
-                               override_min_data_type=mg.VAR_TYPE_CAT)
-                self.drop_var3.Show()
-                self.lbl_var3.Show()
-                self.panel_top.Layout()
-            else:
-                self.drop_var3.Hide()
-                self.lbl_var3.Hide()
+        self.set_dropdowns()
         self.panel_displayed.Show(False)
         self.szr_mid.Remove(self.panel_displayed)
         self.szr_mid.Add(panel, 0, wx.GROW)
@@ -844,21 +795,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                          self.var_labels, self.var_notes, 
                                          self.var_types,  self.val_dics)
         if updated:
-            self.refresh_vars()
-    
-    def refresh_vars(self):
-        varname1, varname2, varname3 = self.get_vars()
-        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
-                       varname1, override_min_data_type=self.min_data_type1)
-        inc_drop_select = (self.chart_type in mg.OPTIONAL_ONE_VAR_CHART_TYPES)
-        self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2,
-                       varname2, inc_drop_select, 
-                       override_min_data_type=self.min_data_type2)
-        self.setup_var(self.drop_var3, mg.VAR_3_DEFAULT, 
-                       self.sorted_var_names3, varname3, 
-                       inc_drop_select=True, 
-                       override_min_data_type=mg.VAR_TYPE_CAT)
-        self.update_defaults()
+            self.set_dropdowns()
+            self.update_defaults()
 
     def on_database_sel(self, event):
         """
@@ -868,50 +806,22 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         config_output.ConfigUI.on_database_sel(self, event)
         # now update var dropdowns
         config_output.update_var_dets(dlg=self)
-        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1,
-                       override_min_data_type=self.min_data_type1)
-        inc_drop_select = (self.chart_type in mg.OPTIONAL_ONE_VAR_CHART_TYPES)
-        self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
-                       var_name=None, inc_drop_select=inc_drop_select,
-                       override_min_data_type=self.min_data_type2)
-        self.setup_var(self.drop_var3, mg.VAR_3_DEFAULT, 
-                       self.sorted_var_names3, var_name=None, 
-                       inc_drop_select=True, 
-                       override_min_data_type=mg.VAR_TYPE_CAT)
+        self.set_dropdowns()
                 
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
         config_output.ConfigUI.on_table_sel(self, event)
         # now update var dropdowns
         config_output.update_var_dets(dlg=self)
-        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1,
-                       override_min_data_type=self.min_data_type1)
-        inc_drop_select = (self.chart_type in mg.OPTIONAL_ONE_VAR_CHART_TYPES)
-        self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
-                       var_name=None, inc_drop_select=inc_drop_select,
-                       override_min_data_type=self.min_data_type2)
-        self.setup_var(self.drop_var3, mg.VAR_3_DEFAULT, 
-                       self.sorted_var_names3, var_name=None, 
-                       inc_drop_select=True, 
-                       override_min_data_type=mg.VAR_TYPE_CAT)
+        self.set_dropdowns()
        
     def on_btn_config(self, event):
         """
         Want to retain already selected item - even though label and even 
             position may have changed.
         """
-        varname1, varname2, varname3 = self.get_vars()
         config_output.ConfigUI.on_btn_config(self, event)
-        self.setup_var(self.drop_var1, mg.VAR_1_DEFAULT, self.sorted_var_names1, 
-                       varname1, override_min_data_type=self.min_data_type1)
-        inc_drop_select = (self.chart_type in mg.OPTIONAL_ONE_VAR_CHART_TYPES)
-        self.setup_var(self.drop_var2, mg.VAR_2_DEFAULT, self.sorted_var_names2, 
-                       varname2, inc_drop_select=inc_drop_select,
-                       override_min_data_type=self.min_data_type2)
-        self.setup_var(self.drop_var3, mg.VAR_3_DEFAULT, 
-                       self.sorted_var_names3, varname3, 
-                       inc_drop_select=True, 
-                       override_min_data_type=mg.VAR_TYPE_CAT)
+        self.set_dropdowns()
         self.update_defaults()
 
     def get_vars(self):

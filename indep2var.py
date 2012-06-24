@@ -396,7 +396,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         inc_drop_select -- include "Select" as first item?
         override_min_data_type -- instead of taking min var type from overall 
             object we override it e.g. if a variable being averaged we must have 
-            numeric.
+            numeric. Always used by charts dlg because it changes depending on 
+            chart and whether average or not.
         """
         debug = False
         min_data_type = (override_min_data_type if override_min_data_type
