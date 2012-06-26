@@ -306,9 +306,10 @@ def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_measure,
     return chart_dets
 
 def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt, 
-                   fld_measure, fld_measure_name, fld_measure_lbls, 
-                   fld_gp_by, fld_gp_by_name, fld_gp_by_lbls,
-                   fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
+                   var_role_avg, var_role_avg_name, var_role_avg_lbls, 
+                   var_role_cat, var_role_cat_name, var_role_cat_lbls,
+                   var_role_series, var_role_series_name, var_role_series_lbls,
+                   var_role_charts, var_role_charts_name, var_role_charts_lbls, 
                    sort_opt, measure, rotate=False, is_perc=False):
     """
     Returns some overall details for the chart plus series details (only the
@@ -319,6 +320,95 @@ def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt,
         them.
     """
     debug = False
+    
+    # nasty temporary hack - just get simple bar chart working by mapping across
+    if chart_type == mg.SIMPLE_BARCHART:
+        if var_role_avg:
+            fld_measure = var_role_avg
+            fld_measure_name = var_role_avg_name
+            fld_measure_lbls = var_role_avg_lbls
+            fld_gp_by = var_role_cat
+            fld_gp_by_name = var_role_cat_name
+            fld_gp_by_lbls = var_role_cat_lbls
+        else:
+            fld_measure = var_role_cat
+            fld_measure_name = var_role_cat_name
+            fld_measure_lbls = var_role_cat_lbls
+            fld_gp_by = None
+            fld_gp_by_name = None
+            fld_gp_by_lbls = None
+        fld_chart_by = var_role_charts
+        fld_chart_by_name = var_role_charts_name
+        fld_chart_by_lbls = var_role_charts_lbls
+    elif chart_type == mg.CLUSTERED_BARCHART:
+        if var_role_avg:
+            fld_measure = var_role_avg
+            fld_measure_name = var_role_avg_name
+            fld_measure_lbls = var_role_avg_lbls
+            fld_gp_by = var_role_cat
+            fld_gp_by_name = var_role_cat_name
+            fld_gp_by_lbls = var_role_cat_lbls
+            fld_chart_by = var_role_series
+            fld_chart_by_name = var_role_series_name
+            fld_chart_by_lbls = var_role_series_lbls
+        else:
+            fld_measure = var_role_cat
+            fld_measure_name = var_role_cat_name
+            fld_measure_lbls = var_role_cat_lbls
+            fld_gp_by = var_role_series
+            fld_gp_by_name = var_role_series_name
+            fld_gp_by_lbls = var_role_series_lbls
+            fld_chart_by = None
+            fld_chart_by_name = None
+            fld_chart_by_lbls = None
+    elif chart_type == mg.PIE_CHART:
+        fld_measure = var_role_cat
+        fld_measure_name = var_role_cat_name
+        fld_measure_lbls = var_role_cat_lbls
+        fld_gp_by = None
+        fld_gp_by_name = None
+        fld_gp_by_lbls = None
+        fld_chart_by = var_role_charts
+        fld_chart_by_name = var_role_charts_name
+        fld_chart_by_lbls = var_role_charts_lbls
+    elif chart_type == mg.LINE_CHART:
+        if var_role_avg:
+            fld_measure = var_role_avg
+            fld_measure_name = var_role_avg_name
+            fld_measure_lbls = var_role_avg_lbls
+            fld_gp_by = var_role_cat
+            fld_gp_by_name = var_role_cat_name
+            fld_gp_by_lbls = var_role_cat_lbls
+        else:
+            fld_measure = var_role_cat
+            fld_measure_name = var_role_cat_name
+            fld_measure_lbls = var_role_cat_lbls
+            fld_gp_by = None
+            fld_gp_by_name = None
+            fld_gp_by_lbls = None
+        fld_chart_by = var_role_series
+        fld_chart_by_name = var_role_series_name
+        fld_chart_by_lbls = var_role_series_lbls
+    elif chart_type == mg.AREA_CHART:
+        if var_role_avg:
+            fld_measure = var_role_avg
+            fld_measure_name = var_role_avg_name
+            fld_measure_lbls = var_role_avg_lbls
+            fld_gp_by = var_role_cat
+            fld_gp_by_name = var_role_cat_name
+            fld_gp_by_lbls = var_role_cat_lbls
+        else:
+            fld_measure = var_role_cat
+            fld_measure_name = var_role_cat_name
+            fld_measure_lbls = var_role_cat_lbls
+            fld_gp_by = None
+            fld_gp_by_name = None
+            fld_gp_by_lbls = None
+        fld_chart_by = var_role_charts
+        fld_chart_by_name = var_role_charts_name
+        fld_chart_by_lbls = var_role_charts_lbls
+        
+    
     # misc setup
     max_items = 150 if chart_type == mg.CLUSTERED_BARCHART else 300
     tbl_quoted = getdata.tblname_qtr(dbe, tbl)
@@ -393,6 +483,10 @@ def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt,
             legend_fldlbls = {}
             chart_fldname = mg.CHART_LBL_SINGLE_CHART
             chart_fldlbls = {}
+            
+            
+            
+            
     # Get data as per setup
     SQL_raw_data = get_SQL_raw_data(dbe, tbl_quoted, 
                                     where_tbl_filt, and_tbl_filt, 

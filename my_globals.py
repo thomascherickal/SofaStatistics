@@ -450,8 +450,6 @@ Y_AXIS_FREQ_LBL = _("Frequency")
 Y_AXIS_PERC_LBL = _(u"Percentage")
 X_AXIS = _(u"X-axis")
 Y_AXIS = _(u"Y-axis")
-
-
 # charts
 FLD_MEASURE = u"fld_measure"
 FLD_GROUP_BY = u"fld_gp_by"
@@ -479,153 +477,202 @@ NON_AVG_KEY = u"non_avg_key"
 LBL_KEY = u"lbl_key"
 MIN_DATA_TYPE_KEY = u"min_data_type_key"
 INC_SELECT_KEY = u"inc_select_key"
+# what role is each dropdown controlling?
+VAR_ROLE_KEY = u"var_role_key" # all keys must be usable as variable names
+VAR_ROLE_AVG = u"var_role_avg" # the variable being averaged
+VAR_ROLE_BIN = u"var_role_bin" # the variable being binned (histogram)
+VAR_ROLE_DESC = u"var_role_desc" # the variable being described e.g. Boxplots
+VAR_ROLE_CATEGORY = u"var_role_cat" # the var supplying the category - usually x-axis category values
+VAR_ROLE_SERIES = u"var_role_series" # if multiple series within a single chart we will have multiple
+VAR_ROLE_CHARTS = u"var_role_charts" # the var charts are split by
+VAR_ROLE_X_AXIS = u"var_role_x_axis" # for scatterplots
+VAR_ROLE_Y_AXIS = u"var_role_y_axis" # for scatterplots
+
 CHART_CONFIG = {
     SIMPLE_BARCHART: {
         AVG_KEY: [
             {LBL_KEY: CHART_AVERAGED,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
-             INC_SELECT_KEY: False}, # dropdown 1
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_AVG}, # dropdown 1
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: False}, # dropdown 2
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
             {LBL_KEY: CHART_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 3
+             INC_SELECT_KEY: True,
+             VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
             ],
         NON_AVG_KEY: [
             {LBL_KEY: CHART_VALUES,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: False}, # dropdown 1
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
             {LBL_KEY: CHART_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 2
+             INC_SELECT_KEY: True,
+             VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
             ],
     },
     CLUSTERED_BARCHART: {
         AVG_KEY: [
             {LBL_KEY: CHART_AVERAGED,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
-             INC_SELECT_KEY: False}, # dropdown 1
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_AVG}, # dropdown 1
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: False}, # dropdown 2
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 3
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 3
             {LBL_KEY: CHART_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 4
+             INC_SELECT_KEY: True,
+             VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 4
             ],
         NON_AVG_KEY: [
             {LBL_KEY: CHART_VALUES,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: False}, # dropdown 1
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: False}, # dropdown 2
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 2
             {LBL_KEY: CHART_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 3
+             INC_SELECT_KEY: True,
+             VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
             ],
     },
     PIE_CHART: {
         NON_AVG_KEY: [
             {LBL_KEY: CHART_VALUES,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: False}, # dropdown 1
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
             {LBL_KEY: CHART_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 2
+             INC_SELECT_KEY: True,
+             VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
             ],
     },
     LINE_CHART: {
         AVG_KEY: [
             {LBL_KEY: CHART_AVERAGED,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
-             INC_SELECT_KEY: False}, # dropdown 1
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_AVG}, # dropdown 1
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: False}, # dropdown 2
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 3
+             INC_SELECT_KEY: True,
+             VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 3
             {LBL_KEY: CHART_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 4
+             INC_SELECT_KEY: True,
+             VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 4
             ],
         NON_AVG_KEY: [
             {LBL_KEY: CHART_VALUES,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: False}, # dropdown 1
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 2
+             INC_SELECT_KEY: True,
+             VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 2
             {LBL_KEY: CHART_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 3
+             INC_SELECT_KEY: True,
+             VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
             ],
     },
     AREA_CHART: {
         AVG_KEY: [
             {LBL_KEY: CHART_AVERAGED,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
-             INC_SELECT_KEY: False}, # dropdown 1
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_AVG}, # dropdown 1
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 2
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
             {LBL_KEY: CHART_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 3
+             INC_SELECT_KEY: True,
+             VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
             ],
         NON_AVG_KEY: [
             {LBL_KEY: CHART_VALUES,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: False}, # dropdown 1
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
             {LBL_KEY: CHART_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 2
+             INC_SELECT_KEY: True,
+             VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
             ],
     },
     HISTOGRAM: {
         NON_AVG_KEY: [
             {LBL_KEY: CHART_VALUES,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
-             INC_SELECT_KEY: False}, # dropdown 1
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_BIN}, # dropdown 1
             {LBL_KEY: CHART_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 2
+             INC_SELECT_KEY: True,
+             VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
             ],
     },
     SCATTERPLOT: {
         NON_AVG_KEY: [
             {LBL_KEY: X_AXIS,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
-             INC_SELECT_KEY: False}, # dropdown 1
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_X_AXIS}, # dropdown 1
             {LBL_KEY: Y_AXIS,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
-             INC_SELECT_KEY: False}, # dropdown 2
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_Y_AXIS}, # dropdown 2
             {LBL_KEY: CHART_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 3
+             INC_SELECT_KEY: True,
+             VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
             ],
     },
     BOXPLOT: {
         NON_AVG_KEY: [
             {LBL_KEY: CHART_DESCRIBED,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
-             INC_SELECT_KEY: False}, # dropdown 1
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_DESC}, # dropdown 1
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: False}, # dropdown 2
+             INC_SELECT_KEY: False,
+             VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
             {LBL_KEY: CHART_SERIES_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: True}, # dropdown 3
+             INC_SELECT_KEY: True,
+             VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 3
             ],
     },
 }
-THREE_VAR_CHART_TYPES = [CLUSTERED_BARCHART, LINE_CHART, SCATTERPLOT, BOXPLOT]
-HAS_AVG_OPTION = [SIMPLE_BARCHART, CLUSTERED_BARCHART, LINE_CHART, AREA_CHART,]
+# common format - all have categories, all use get_chart-dets() etc.
+COMMON_FORMAT_CHARTS = [SIMPLE_BARCHART, CLUSTERED_BARCHART, PIE_CHART, 
+                        LINE_CHART, AREA_CHART]
+GET_CHART_DETS_ROLE_KEYS = [VAR_ROLE_AVG, VAR_ROLE_CATEGORY, VAR_ROLE_SERIES,
+                            VAR_ROLE_CHARTS]
 NO_CHART_BY = [CLUSTERED_BARCHART, LINE_CHART, BOXPLOT,]
+HAS_SERIES_AND_CHARTS = [CLUSTERED_BARCHART, LINE_CHART]
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
     'lightcoral', 'orangered', 'navajowhite', 'slategray', 'palegreen', 
