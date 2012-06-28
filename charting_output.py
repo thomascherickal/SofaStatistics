@@ -250,12 +250,11 @@ def get_prestructured_gen_data(raw_data):
                 same_series_dic[XY_KEY].append((x_val, y_val))
     return prestructure
 
-def structure_gen_data(chart_type, is_chart_by, raw_data, max_items, xlblsdic, 
-                   legend_fldname, legend_fldlbls, chart_fldname, chart_fldlbls,
-                   var_role_avg, var_role_avg_name,
-                   var_role_cat, var_role_cat_name,
-                   var_role_series, var_role_series_name,
-                   var_role_charts, var_role_charts_name,
+def structure_gen_data(chart_type, raw_data, max_items, xlblsdic, 
+                   var_role_avg, var_role_avg_name, var_role_avg_lbls,
+                   var_role_cat, var_role_cat_name, var_role_cat_lbls,
+                   var_role_series, var_role_series_name, var_role_series_lbls,
+                   var_role_charts, var_role_charts_name, var_role_charts_lbls,
                    sort_opt, dp, rotate=False, is_perc=False):
     """
     Structure data for general charts (use different processes preparing data 
@@ -297,9 +296,21 @@ def structure_gen_data(chart_type, is_chart_by, raw_data, max_items, xlblsdic,
         raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
                                            max_items=mg.CHART_MAX_CHARTS_IN_SET)
     multichart = n_charts > 1
+    if multichart:
+        chart_fldname = var_role_charts_name
+        chart_fldlbls = var_role_charts_lbls
+    else: # clustered, line - currently, multiple series but only one chart
+        chart_fldname = mg.CHARTS_CHART_LBL_SINGLE_CHART
+        chart_fldlbls = {}
     for chart_dic in prestructure:
-        chart_series = chart_dic[CHART_SERIES_KEY]
-        multiseries = (len(chart_series) > 1)
+        series = chart_dic[CHART_SERIES_KEY]
+        multiseries = (len(series) > 1)
+        if multiseries:
+            legend_fldname =  var_role_series_name # e.g. Country in orange box
+            legend_fldlbls = var_role_series_lbls # e.g. {1: Japan, ...}
+        else:
+            legend_fldname =  var_role_cat_name # e.g. Country in orange box
+            legend_fldlbls = var_role_cat_lbls # e.g. {1: Japan, ...}
         """
         chart_dic = {CHART_VAL_KEY: 1, 
                      CHART_SERIES_KEY: [
@@ -318,7 +329,7 @@ def structure_gen_data(chart_type, is_chart_by, raw_data, max_items, xlblsdic,
         else:
             chart_lbl = mg.CHARTS_CHART_LBL_SINGLE_CHART
         series_dets = []
-        for series_dic in chart_series:
+        for series_dic in series:
             series_val = series_dic[SERIES_KEY]
             if multiseries:
                 legend_lbl = legend_fldlbls.get(series_val, 
@@ -404,28 +415,13 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
         raise my_exceptions.TooFewValsForDisplay
     # restructure and return data
     dp = 2 if is_avg else 0
-    if chart_type in mg.HAS_MULTI_SERIES_CHARTS:
-        legend_fldname =  var_role_series_name # e.g. Country in orange box
-        legend_fldlbls = var_role_series_lbls # e.g. {1: Japan, ...}
-    else:
-        legend_fldname =  var_role_cat_name # e.g. Country in orange box
-        legend_fldlbls = var_role_cat_lbls # e.g. {1: Japan, ...}
-    is_chart_by = (var_role_charts is not None)
-    if is_chart_by: # currently, one series per chart
-        chart_fldname = var_role_charts_name
-        chart_fldlbls = var_role_charts_lbls
-    else: # clustered, line - currently, multiple series but only one chart
-        chart_fldname = mg.CHARTS_CHART_LBL_SINGLE_CHART
-        chart_fldlbls = {}
-    chart_output_dets = structure_gen_data(chart_type, is_chart_by, raw_data, 
-                                          max_items, xlblsdic, 
-                                          legend_fldname, legend_fldlbls,
-                                          chart_fldname, chart_fldlbls,
-                                          var_role_avg, var_role_avg_name,
-                                          var_role_cat, var_role_cat_name,
-                                          var_role_series, var_role_series_name,
-                                          var_role_charts, var_role_charts_name,
-                                          sort_opt, dp, rotate, is_perc)
+    chart_output_dets = structure_gen_data(chart_type, raw_data, max_items, 
+                    xlblsdic, 
+                    var_role_avg, var_role_avg_name, var_role_avg_lbls,
+                    var_role_cat, var_role_cat_name, var_role_cat_lbls,
+                    var_role_series, var_role_series_name, var_role_series_lbls,
+                    var_role_charts, var_role_charts_name, var_role_charts_lbls,
+                    sort_opt, dp, rotate, is_perc)
     return chart_output_dets
 
 def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
@@ -915,10 +911,9 @@ def get_barchart_sizings(n_clusters, n_bars_in_cluster, max_lbl_width):
     if debug: print(width, xgap, xfontsize, minor_ticks, left_axis_lbl_shift)
     return width, xgap, xfontsize, minor_ticks, left_axis_lbl_shift
 
-def get_linechart_sizings(xaxis_dets, max_lbl_width, series_dets):
+def get_linechart_sizings(xaxis_dets, max_lbl_width):
     debug = False
     n_vals = len(xaxis_dets)
-    # n_lines = len(series_dets)
     px_per_char = 9
     width = (n_vals*max_lbl_width*px_per_char) + 20 # add 20 to be safe
     if width < 850:
@@ -1122,10 +1117,10 @@ def simple_barchart_output(titles, subtitles, y_title, chart_output_dets,
     chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
     for chart_idx, chart_det in enumerate(chart_dets):
         if multichart:
-            indiv_bar_title = ("<p><b>%s</b></p>" % 
+            indiv_chart_title = ("<p><b>%s</b></p>" % 
                                chart_det[mg.CHARTS_CHART_LBL])
         else:
-            indiv_bar_title = u""
+            indiv_chart_title = u""
         # only one series per chart by design
         series_det = chart_det[mg.CHARTS_SERIES_DETS][0]
         xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
@@ -1133,20 +1128,20 @@ def simple_barchart_output(titles, subtitles, y_title, chart_output_dets,
         xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
         pagebreak = (u"" if chart_idx % 2 == 0
                      else u"page-break-after: always;")
-        # build js for every series
+        # build js for the single series (only 1 ever per chart in simple bar charts)
         series_js_list = []
         series_names_list = []
-        series_names_list.append(u"series%s" % chart_idx)
-        series_js_list.append(u"var series%s = new Array();" % chart_idx)
-        series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
-                        % (chart_idx, series_det[mg.CHARTS_SERIES_LEGEND_LBL]))
-        series_js_list.append(u"series%s[\"yVals\"] = %s;" % 
-                              (chart_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
+        series_names_list.append(u"series0")
+        series_js_list.append(u"var series0 = new Array();")
+        series_js_list.append(u"series0[\"seriesLabel\"] = \"%s\";"
+                                     % series_det[mg.CHARTS_SERIES_LEGEND_LBL])
+        series_js_list.append(u"series0[\"yVals\"] = %s;" % 
+                                            series_det[mg.CHARTS_SERIES_Y_VALS])
         tooltips = (u"['" + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
                     + u"']")
-        series_js_list.append(u"series%s[\"options\"] = "
+        series_js_list.append(u"series0[\"options\"] = "
             u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\", "
-            u"yLbls: %s};" % (chart_idx, stroke_width, fill, tooltips))
+            u"yLbls: %s};" % (stroke_width, fill, tooltips))
         series_js_list.append(u"")
         series_js = u"\n    ".join(series_js_list)
         series_js += (u"\n    var series = new Array(%s);"
@@ -1192,7 +1187,7 @@ makechartRenumber%(chart_idx)s = function(){
 </script>
 
 <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
-%(indiv_bar_title)s
+%(indiv_chart_title)s
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx;">
     </div>
@@ -1201,7 +1196,7 @@ makechartRenumber%(chart_idx)s = function(){
 </div>""" % {u"colour_cases": colour_cases,
              u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
              u"width": width, u"height": height, u"ymax": ymax, u"xgap": xgap, 
-             u"xfontsize": xfontsize, u"indiv_bar_title": indiv_bar_title,
+             u"xfontsize": xfontsize, u"indiv_chart_title": indiv_chart_title,
              u"axis_lbl_font_colour": axis_lbl_font_colour,
              u"major_gridline_colour": major_gridline_colour,
              u"gridline_width": gridline_width, u"axis_lbl_drop": axis_lbl_drop,
@@ -1297,10 +1292,10 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
         if debug: print(series_dets)
         multiseries = len(series_dets) > 1
         if multichart:
-            indiv_bar_title = ("<p><b>%s</b></p>" % 
-                               chart_det[mg.CHARTS_CHART_LBL])
+            indiv_chart_title = ("<p><b>%s</b></p>" % 
+                                 chart_det[mg.CHARTS_CHART_LBL])
         else:
-            indiv_bar_title = u""
+            indiv_chart_title = u""
         single_colour = not multiseries
         override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
                                     and single_colour)
@@ -1373,7 +1368,7 @@ makechartRenumber%(chart_idx)s = function(){
 </script>
 
 <div class="screen-float-only" style="margin-right: 10px; ">
-%(indiv_bar_title)s
+%(indiv_chart_title)s
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx;">
     </div>
@@ -1381,7 +1376,7 @@ makechartRenumber%(chart_idx)s = function(){
     </div>
 </div>""" % {u"colour_cases": colour_cases,
              u"series_js": series_js, u"xaxis_lbls": xaxis_lbls,
-             u"indiv_bar_title": indiv_bar_title, 
+             u"indiv_chart_title": indiv_chart_title, 
              u"width": width, u"height": height, u"xgap": xgap, u"ymax": ymax,
              u"xfontsize": xfontsize,
              u"axis_lbl_font_colour": axis_lbl_font_colour,
@@ -1422,8 +1417,7 @@ def piechart_output(titles, subtitles, chart_output_dets, css_fil, css_idx,
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    series_dets = chart_dets[mg.CHARTS_SERIES_DETS]
-    multichart = series_dets[0][mg.CHART_MULTICHART]
+    multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     width = 500 if mg.PLATFORM == mg.WINDOWS else 450
@@ -1436,25 +1430,28 @@ def piechart_output(titles, subtitles, chart_output_dets, css_fil, css_idx,
          unused, unused, unused, 
          tooltip_border_colour, 
          colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
-    outer_bg = u"" if outer_bg == u"" \
-        else u"""chartconf["outerBg"] = "%s";""" % outer_bg
+    outer_bg = (u"" if outer_bg == u""
+                else u"""chartconf["outerBg"] = "%s";""" % outer_bg)
     colour_cases = setup_highlights(colour_mappings, single_colour=False, 
                                     override_first_highlight=False)
     colours = [str(x[0]) for x in colour_mappings]
     colours.extend(mg.DOJO_COLOURS)
     slice_colours = colours[:30]
     lbl_font_colour = axis_lbl_font_colour
+    chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
     slice_fontsize = 14 if len(chart_dets) < 10 else 10
     if multichart:
         slice_fontsize = slice_fontsize*0.8
-    # one series per chart
-    for chart_idx, chart_det in enumerate(series_dets):
+    # loop through charts
+    for chart_idx, chart_det in enumerate(chart_dets):
+        # only one series per chart by design
+        series_det = chart_det[mg.CHARTS_SERIES_DETS][0]
         pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
         slices_js_lst = []
         # build indiv slice details for this chart
-        y_vals = chart_det[mg.CHARTS_SERIES_Y_VALS]
+        y_vals = series_det[mg.CHARTS_SERIES_Y_VALS]
         tot_y_vals = sum(y_vals)
-        xy_dets = zip(chart_det[mg.CHARTS_XAXIS_DETS], y_vals)
+        xy_dets = zip(series_det[mg.CHARTS_XAXIS_DETS], y_vals)
         for ((unused, val_lbl, split_lbl), y_val) in xy_dets:
             tiplbl = val_lbl.replace(u"\n", u" ") # line breaks mean no display
             tooltip = u"%s<br>%s (%s%%)" % (tiplbl, int(y_val), 
@@ -1462,10 +1459,10 @@ def piechart_output(titles, subtitles, chart_output_dets, css_fil, css_idx,
             slices_js_lst.append(u"{\"y\": %(y)s, \"text\": %(text)s, " 
                     u"\"tooltip\": \"%(tooltip)s\"}" % 
                     {u"y": y_val, u"text": split_lbl, u"tooltip": tooltip})
-        slices_js = u"slices = [" + (u",\n" + u" "*4*4).join(slices_js_lst) + \
-                    u"\n];"
-        indiv_pie_title = "<p><b>%s</b></p>" % chart_det[mg.CHARTS_CHART_LBL] \
-                                                        if multichart else u""
+        slices_js = (u"slices = [" + (u",\n" + u" "*4*4).join(slices_js_lst) 
+                     + u"\n];")
+        indiv_pie_title = ("<p><b>%s</b></p>" % chart_det[mg.CHARTS_CHART_LBL]
+                           if multichart else u"")
         html.append(u"""
 <script type="text/javascript">
 makechartRenumber%(chart_idx)s = function(){
@@ -1515,7 +1512,6 @@ makechartRenumber%(chart_idx)s = function(){
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
-
 
 def get_trend_y_vals(y_vals):
     "Returns values to plot a straight line which fits the y_vals provided"
@@ -1569,51 +1565,52 @@ def get_smooth_y_vals(y_vals):
         smooth_y_vals.append(numer/(1.0*denom))
     return smooth_y_vals
 
-def linechart_output(titles, subtitles, x_title, y_title, chart_dets, rotate, 
-                     inc_trend, inc_smooth, css_fil, css_idx, page_break_after):
+def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets, 
+                     rotate, inc_trend, inc_smooth, css_fil, css_idx, 
+                     page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
-    chart_dets --         
-        
-    Even though one xaxis_dets per series, only one is needed for a clustered
-        bar chart ad it will fit all series.
-    Each series (possibly only one) has a chart lbl (possibly not used), a
-        legend lbl, xaxis_dets, and y vals.
-    chart_dets = {mg.CHARTS_MAX_LBL_LEN: ...,
-                  mg.CHARTS_SERIES_DETS: see below}
-                  series_dets = [{mg.CHARTS_CHART_LBL: ...,
-                                  mg.CHARTS_SERIES_LEGEND_LBL: ..., 
-                                  mg.CHART_MULTICHART: ...,
-                                  mg.CHARTS_XAXIS_DETS: ...,
-                                  mg.CHARTS_SERIES_Y_VALS: ...,
-                                  mg.CHARTS_SERIES_TOOLTIPS: ....}]
+    chart_output_dets -- {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+                         mg.CHARTS_CHART_DETS: chart_dets}
+    chart_dets = [        
+        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or a dummy title if only one chart because not displayed
+         mg.CHARTS_SERIES_DETS: series_dets},
+        {mg.CHARTS_CHART_LBL: u"Gender: Female",
+         mg.CHARTS_SERIES_DETS: series_dets}, ...
+    ]
+    series_dets = {mg.CHARTS_SERIES_LEGEND_LBL: u"Italy", # if only one series, use cat label e.g. Age Group
+                   mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
+                   mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
+                   mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
+                                               u"28<br>14%", u"94<br>47%"]}
     css_idx -- css index so can apply    
     """
     debug = False
     axis_lbl_rotate = -90 if rotate else 0
     html = []
+    multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    series_dets = chart_dets[mg.CHARTS_SERIES_DETS]
-    if debug: 
-        print(series_dets)
-    # For multiple, don't split label if the mid tick (clash with x axis label)
-    # NB one xaxis for all lines
-    xaxis_dets = series_dets[0][mg.CHARTS_XAXIS_DETS]
-    lbl_dets = get_lbl_dets(xaxis_dets)
-    xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
+    # following details are same across all charts so look at first
+    chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
+    chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
+    multiseries = len(chart0_series_dets) > 1 
+    xaxis_dets = chart0_series_dets[0][mg.CHARTS_XAXIS_DETS]
+    # don't show x_title if one series and no trend or smoothed lines 
+    if not multiseries:
+        x_title = u""
     axis_lbl_drop = 30 if x_title else -10
-    max_lbl_len = chart_dets[mg.CHARTS_MAX_LBL_LEN]
+    max_lbl_len = chart_output_dets[mg.CHARTS_MAX_LBL_LEN]
     height = 310
     if rotate:
         height += AVG_CHAR_WIDTH_PXLS*max_lbl_len 
     height += axis_lbl_drop  # compensate for loss of bar display height
     max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
     (width, xfontsize, 
-     minor_ticks, micro_ticks) = get_linechart_sizings(xaxis_dets, 
-                                                    max_lbl_width, series_dets)
+     minor_ticks, micro_ticks) = get_linechart_sizings(xaxis_dets,
+                                                       max_lbl_width)
     left_axis_lbl_shift = 20 if width > 1200 else 15 # gets squeezed
     """
     For each series, set colour details.
@@ -1625,141 +1622,155 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
             gridline_width, unused, tooltip_border_colour, 
             colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     # Can't have white for line charts because always a white outer background
-    axis_lbl_font_colour = axis_lbl_font_colour \
-                            if axis_lbl_font_colour != u"white" else u"black"
-    """
-    Build js for every series.
-    If only one series, and trendlines are selected, make an additional series
-        for the trendline.
-    """
-    series_js_list = []
-    series_names_list = []
-    series0 = series_dets[0]
-    dummy_tooltips = [u"",]
-    if inc_trend or inc_smooth:
-        raw_y_vals = series0[mg.CHARTS_SERIES_Y_VALS]
-    if inc_trend:
-        trend_y_vals = get_trend_y_vals(raw_y_vals)
-        # repeat most of it
-        trend_series = {mg.CHARTS_CHART_LBL: series0[mg.CHARTS_SERIES_LEGEND_LBL],
-                        mg.CHARTS_SERIES_LEGEND_LBL: u'Trend line', 
-                        mg.CHART_MULTICHART: series0[mg.CHART_MULTICHART],
-                        mg.CHARTS_XAXIS_DETS: series0[mg.CHARTS_XAXIS_DETS],
-                        mg.CHARTS_SERIES_Y_VALS: trend_y_vals,
-                        mg.CHARTS_SERIES_TOOLTIPS: dummy_tooltips}
-        series_dets.append(trend_series)
-    if inc_smooth:
-        smooth_y_vals = get_smooth_y_vals(raw_y_vals)
-        smooth_series = {mg.CHARTS_CHART_LBL: series0[mg.CHARTS_SERIES_LEGEND_LBL],
-                         mg.CHARTS_SERIES_LEGEND_LBL: u'Smoothed data line', 
-                         mg.CHART_MULTICHART: series0[mg.CHART_MULTICHART],
-                         mg.CHARTS_XAXIS_DETS: series0[mg.CHARTS_XAXIS_DETS],
-                         mg.CHARTS_SERIES_Y_VALS: smooth_y_vals,
-                         mg.CHARTS_SERIES_TOOLTIPS: dummy_tooltips}
-        series_dets.append(smooth_series)
-    if debug: pprint.pprint(series_dets)
-    pagebreak = u"page-break-after: always;"
-    for chart_idx, series_det in enumerate(series_dets):
-        series_names_list.append(u"series%s" % chart_idx)
-        series_js_list.append(u"var series%s = new Array();" % chart_idx)
-        series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
-                              % (chart_idx, series_det[mg.CHARTS_SERIES_LEGEND_LBL]))
-        series_js_list.append(u"series%s[\"yVals\"] = %s;" % 
-                              (chart_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
-        try:
-            stroke = colour_mappings[chart_idx][0]
-        except IndexError:
-            stroke = mg.DOJO_COLOURS[chart_idx]
-        # To set markers explicitly:
-        # http://dojotoolkit.org/api/1.5/dojox/charting/Theme/Markers/CIRCLE
-        # e.g. marker: dojox.charting.Theme.defaultMarkers.CIRCLE"
-        if (chart_idx == 1 and (inc_trend or inc_smooth)
-            or chart_idx == 2 and (inc_trend and inc_smooth)):
-            # curved has tension and no markers
-            # tension has no effect on already straight (trend) line
-            plot_style = u", plot: 'curved'"
+    axis_lbl_font_colour = (axis_lbl_font_colour
+                            if axis_lbl_font_colour != u"white" else u"black")
+    # loop through charts
+    for chart_idx, chart_det in enumerate(chart_dets):
+        series_dets = chart_det[mg.CHARTS_SERIES_DETS]
+        pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
+        if debug: print(series_dets)
+        multiseries = len(series_dets) > 1    
+        if multichart:
+            indiv_chart_title = ("<p><b>%s</b></p>" % 
+                               chart_det[mg.CHARTS_CHART_LBL])
         else:
-            plot_style = u""
-        tooltips = u"['" + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) + u"']"
-        series_js_list.append(u"series%s[\"options\"] = "
-            u"{stroke: {color: '%s', width: '6px'}, yLbls: %s %s};"
-            % (chart_idx, stroke, tooltips, plot_style))
-        series_js_list.append(u"")
-    series_js = u"\n    ".join(series_js_list)
-    series_js += (u"\n    var series = new Array(%s);" %
-                  u", ".join(series_names_list))
-    series_js = series_js.lstrip()
-    html.append(u"""
-<script type="text/javascript">
-
-makechartRenumber00 = function(){
-    %(series_js)s
-    var chartconf = new Array();
-    chartconf["xaxisLabels"] = %(xaxis_lbls)s;
-    chartconf["xfontsize"] = %(xfontsize)s;
-    chartconf["gridlineWidth"] = %(gridline_width)s;
-    chartconf["gridBg"] = "%(grid_bg)s";
-    chartconf["minorTicks"] = %(minor_ticks)s;
-    chartconf["microTicks"] = %(micro_ticks)s;
-    chartconf["axisLabelFontColour"] = "%(axis_lbl_font_colour)s";
-    chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
-    chartconf["xTitle"] = "%(x_title)s";
-    chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
-    chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
-    chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
-    chartconf["yTitle"] = "%(y_title)s";
-    chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
-    chartconf["connectorStyle"] = "%(connector_style)s";
-    makeLineChart("mychartRenumber00", series, chartconf);
-}
-</script>
-%(titles)s
+            indiv_chart_title = u""
+        """
+        If only one series, and trendlines/smoothlines are selected, make 
+            additional series for each as appropriate.
+        """
+        if not multiseries:
+            series0 = series_dets[0]
+            dummy_tooltips = [u"",]
+            if inc_trend or inc_smooth:
+                raw_y_vals = series0[mg.CHARTS_SERIES_Y_VALS]
+            if inc_trend:
+                trend_y_vals = get_trend_y_vals(raw_y_vals)
+                # repeat most of it
+                trend_series = {
+                    mg.CHARTS_SERIES_LEGEND_LBL: u'Trend line', 
+                    mg.CHARTS_XAXIS_DETS: series0[mg.CHARTS_XAXIS_DETS],
+                    mg.CHARTS_SERIES_Y_VALS: trend_y_vals,
+                    mg.CHARTS_SERIES_TOOLTIPS: dummy_tooltips}
+                series_dets.append(trend_series)
+            if inc_smooth:
+                smooth_y_vals = get_smooth_y_vals(raw_y_vals)
+                smooth_series = {
+                     mg.CHARTS_SERIES_LEGEND_LBL: u'Smoothed data line', 
+                     mg.CHARTS_XAXIS_DETS: series0[mg.CHARTS_XAXIS_DETS],
+                     mg.CHARTS_SERIES_Y_VALS: smooth_y_vals,
+                     mg.CHARTS_SERIES_TOOLTIPS: dummy_tooltips}
+                series_dets.append(smooth_series)
+            if debug: pprint.pprint(series_dets) 
+        series_js_list = []
+        series_names_list = []
+        for series_idx, series_det in enumerate(series_dets):
+            xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
+            # For multiple, don't split label if the mid tick (clash with x axis label)
+            lbl_dets = get_lbl_dets(xaxis_dets)
+            xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
+            series_names_list.append(u"series%s" % series_idx)
+            series_js_list.append(u"var series%s = new Array();" % series_idx)
+            series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
+                        % (series_idx, series_det[mg.CHARTS_SERIES_LEGEND_LBL]))
+            series_js_list.append(u"series%s[\"yVals\"] = %s;" % 
+                              (series_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
+            try:
+                stroke = colour_mappings[series_idx][0]
+            except IndexError:
+                stroke = mg.DOJO_COLOURS[series_idx]
+            # To set markers explicitly:
+            # http://dojotoolkit.org/api/1.5/dojox/charting/Theme/Markers/CIRCLE
+            # e.g. marker: dojox.charting.Theme.defaultMarkers.CIRCLE"
+            if (series_idx == 1 and (inc_trend or inc_smooth)
+                or series_idx == 2 and (inc_trend and inc_smooth)):
+                # curved has tension and no markers
+                # tension has no effect on already straight (trend) line
+                plot_style = u", plot: 'curved'"
+            else:
+                plot_style = u""
+            tooltips = (u"['" 
+                + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) + u"']")
+            series_js_list.append(u"series%s[\"options\"] = "
+                u"{stroke: {color: '%s', width: '6px'}, yLbls: %s %s};"
+                % (series_idx, stroke, tooltips, plot_style))
+            series_js_list.append(u"")
+        series_js = u"\n    ".join(series_js_list)
+        series_js += (u"\n    var series = new Array(%s);" %
+                      u", ".join(series_names_list))
+        series_js = series_js.lstrip()
+        html.append(u"""
+    <script type="text/javascript">
     
-<div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
-
-<div id="mychartRenumber00" style="width: %(width)spx; 
-        height: %(height)spx;">
-    </div>
-<div id="legendMychartRenumber00">
-    </div>
-</div>""" % {u"titles": title_dets_html, 
-             u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
-             u"width": width, u"height": height, u"xfontsize": xfontsize, 
-             u"axis_lbl_font_colour": axis_lbl_font_colour,
-             u"major_gridline_colour": major_gridline_colour,
-             u"gridline_width": gridline_width, u"pagebreak": pagebreak,
-             u"axis_lbl_drop": axis_lbl_drop,
-             u"axis_lbl_rotate": axis_lbl_rotate,
-             u"left_axis_lbl_shift": left_axis_lbl_shift,
-             u"x_title": x_title, u"y_title": y_title,
-             u"tooltip_border_colour": tooltip_border_colour,
-             u"connector_style": connector_style, 
-             u"grid_bg": grid_bg, 
-             u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks})
-    if page_break_after:
-        html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
+    makechartRenumber%(chart_idx)s = function(){
+        %(series_js)s
+        var chartconf = new Array();
+        chartconf["xaxisLabels"] = %(xaxis_lbls)s;
+        chartconf["xfontsize"] = %(xfontsize)s;
+        chartconf["gridlineWidth"] = %(gridline_width)s;
+        chartconf["gridBg"] = "%(grid_bg)s";
+        chartconf["minorTicks"] = %(minor_ticks)s;
+        chartconf["microTicks"] = %(micro_ticks)s;
+        chartconf["axisLabelFontColour"] = "%(axis_lbl_font_colour)s";
+        chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
+        chartconf["xTitle"] = "%(x_title)s";
+        chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
+        chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
+        chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
+        chartconf["yTitle"] = "%(y_title)s";
+        chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
+        chartconf["connectorStyle"] = "%(connector_style)s";
+        makeLineChart("mychartRenumber%(chart_idx)s", series, chartconf);
+    }
+    </script>
+    %(titles)s
+        
+    <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
+    %(indiv_chart_title)s
+    <div id="mychartRenumber%(chart_idx)s" style="width: %(width)spx; 
+            height: %(height)spx;">
+        </div>
+    <div id="legendMychartRenumber%(chart_idx)s">
+        </div>
+    </div>""" % {u"titles": title_dets_html, 
+                 u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
+                 u"indiv_chart_title": indiv_chart_title, 
+                 u"width": width, u"height": height, u"xfontsize": xfontsize, 
+                 u"axis_lbl_font_colour": axis_lbl_font_colour,
+                 u"major_gridline_colour": major_gridline_colour,
+                 u"gridline_width": gridline_width, u"pagebreak": pagebreak,
+                 u"axis_lbl_drop": axis_lbl_drop,
+                 u"axis_lbl_rotate": axis_lbl_rotate,
+                 u"left_axis_lbl_shift": left_axis_lbl_shift,
+                 u"x_title": x_title, u"y_title": y_title,
+                 u"tooltip_border_colour": tooltip_border_colour,
+                 u"connector_style": connector_style, 
+                 u"grid_bg": grid_bg, 
+                 u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks,
+                 u"chart_idx": u"%02d" % chart_idx})
+        if page_break_after:
+            html.append(u"<br><hr><br><div class='%s'></div>" % 
+                        CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
     
-def areachart_output(titles, subtitles, x_title, y_title, chart_dets, rotate, 
+def areachart_output(titles, subtitles, y_title, chart_output_dets, rotate, 
                      css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
-    chart_dets --         
-        
-    Even though one xaxis_dets per series, only one is needed for a clustered
-        bar chart ad it will fit all series.
-    Each series (possibly only one) has a chart lbl (possibly not used), a
-        legend lbl, xaxis_dets, and y vals.
-    chart_dets = {mg.CHARTS_MAX_LBL_LEN: ...,
-                  mg.CHARTS_SERIES_DETS: see below}
-                  series_dets = [{mg.CHARTS_CHART_LBL: ...,
-                                  mg.CHARTS_SERIES_LEGEND_LBL: ..., 
-                                  mg.CHART_MULTICHART: ...,
-                                  mg.CHARTS_XAXIS_DETS: ...,
-                                  mg.CHARTS_SERIES_Y_VALS: ...,
-                                  mg.CHARTS_SERIES_TOOLTIPS: ....}]
+    chart_output_dets -- {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+                         mg.CHARTS_CHART_DETS: chart_dets}
+    chart_dets = [        
+        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or a dummy title if only one chart because not displayed
+         mg.CHARTS_SERIES_DETS: series_dets},
+        {mg.CHARTS_CHART_LBL: u"Gender: Female",
+         mg.CHARTS_SERIES_DETS: series_dets}, ...
+    ]
+    series_dets = {mg.CHARTS_SERIES_LEGEND_LBL: u"Italy", # if only one series, use cat label e.g. Age Group
+                   mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
+                   mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
+                   mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
+                                               u"28<br>14%", u"94<br>47%"]}
     css_idx -- css index so can apply    
     """
     debug = False
@@ -1767,29 +1778,26 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    series_dets = chart_dets[mg.CHARTS_SERIES_DETS]
-    if debug: print(series_dets)
-    multichart = series_dets[0][mg.CHART_MULTICHART]
-    # NB one xaxis for all lines
-    xaxis_dets = series_dets[0][mg.CHARTS_XAXIS_DETS]
-    lbl_dets = get_lbl_dets(xaxis_dets)
-    xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
-    max_lbl_len = chart_dets[mg.CHARTS_MAX_LBL_LEN]
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    html.append(title_dets_html)
+    multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
+    max_lbl_len = chart_output_dets[mg.CHARTS_MAX_LBL_LEN]
     max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
+    height = 250 if multichart else 300
+    if rotate:
+        height += AVG_CHAR_WIDTH_PXLS*max_lbl_len   
+    # following details are same across all charts so look at first
+    chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
+    chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
+    xaxis_dets = chart0_series_dets[0][mg.CHARTS_XAXIS_DETS]
     (width, xfontsize, minor_ticks, 
-                micro_ticks) = get_linechart_sizings(xaxis_dets, max_lbl_width, 
-                                                     series_dets)
+                micro_ticks) = get_linechart_sizings(xaxis_dets, max_lbl_width)
     left_axis_lbl_shift = 20 if width > 1200 else 0 # gets squeezed 
+    ymax = get_ymax(chart_output_dets)
     if multichart:
         width = width*0.8
         xfontsize = xfontsize*0.8
         left_axis_lbl_shift = left_axis_lbl_shift + 20
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    html.append(title_dets_html)
-    height = 250 if multichart else 300
-    ymax = get_ymax(chart_dets[mg.CHARTS_SERIES_DETS])
-    if rotate:
-        height += AVG_CHAR_WIDTH_PXLS*max_lbl_len   
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 
@@ -1797,11 +1805,11 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
     From dojox.charting.action2d.Highlight but with extraneous % removed
     """
     (unused, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
-            gridline_width, unused, tooltip_border_colour, 
-            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+     gridline_width, unused, tooltip_border_colour, 
+     colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     # Can't have white for line charts because always a white outer background
-    axis_lbl_font_colour = axis_lbl_font_colour \
-                            if axis_lbl_font_colour != u"white" else u"black"
+    axis_lbl_font_colour = (axis_lbl_font_colour
+                            if axis_lbl_font_colour != u"white" else u"black")
     #unused = setup_highlights(colour_mappings, single_colour=False, 
     #                                override_first_highlight=True)
     try:
@@ -1809,23 +1817,32 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
         fill = colour_mappings[0][1]
     except IndexError:
         stroke = mg.DOJO_COLOURS[0]
-    # build js for every series
-    series_js_list = []
-    series_names_list = []
-    for chart_idx, chart_det in enumerate(series_dets):
+    # loop through charts
+    for chart_idx, chart_det in enumerate(chart_dets):
+        if multichart:
+            indiv_chart_title = ("<p><b>%s</b></p>" % 
+                               chart_det[mg.CHARTS_CHART_LBL])
+        else:
+            indiv_chart_title = u""
+        # only one series per chart by design
+        series_det = chart_det[mg.CHARTS_SERIES_DETS][0]
+        xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
+        lbl_dets = get_lbl_dets(xaxis_dets)
+        xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
         pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
-        indiv_area_title = "<p><b>%s</b></p>" % \
-                chart_det[mg.CHARTS_CHART_LBL] if multichart else u""
-        series_names_list.append(u"series%s" % chart_idx)
-        series_js_list.append(u"var series%s = new Array();" % chart_idx)
-        series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
-                        % (chart_idx, chart_det[mg.CHARTS_SERIES_LEGEND_LBL]))
-        series_js_list.append(u"series%s[\"yVals\"] = %s;" % 
-                              (chart_idx, chart_det[mg.CHARTS_SERIES_Y_VALS]))
-        tooltips = u"['" + "', '".join(chart_det[mg.CHARTS_SERIES_TOOLTIPS]) + u"']"
-        series_js_list.append(u"series%s[\"options\"] = "
+        series_js_list = []
+        series_names_list = []
+        series_names_list.append(u"series0")
+        series_js_list.append(u"var series0 = new Array();")
+        series_js_list.append(u"series0[\"seriesLabel\"] = \"%s\";"
+                                      % series_det[mg.CHARTS_SERIES_LEGEND_LBL])
+        series_js_list.append(u"series0[\"yVals\"] = %s;" % 
+                                            series_det[mg.CHARTS_SERIES_Y_VALS])
+        tooltips = (u"['" + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
+                    + u"']")
+        series_js_list.append(u"series0[\"options\"] = "
             u"{stroke: {color: \"%s\", width: \"6px\"}, fill: \"%s\", "
-            u"yLbls: %s};" % (chart_idx, stroke, fill, tooltips))
+            u"yLbls: %s};" % (stroke, fill, tooltips))
         series_js_list.append(u"")
         series_js = u"\n    ".join(series_js_list)
         series_js += (u"\n    var series = new Array(%s);" %
@@ -1855,14 +1872,14 @@ makechartRenumber%(chart_idx)s = function(){
 </script>
 
 <div style="float: left; margin-right: 10px; %(pagebreak)s">
-%(indiv_area_title)s
+%(indiv_chart_title)s
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx; %(pagebreak)s">
     </div>
 <div id="legendMychartRenumber%(chart_idx)s">
     </div>
 </div>""" % {u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
-             u"indiv_area_title": indiv_area_title,
+             u"indiv_chart_title": indiv_chart_title,
              u"width": width, u"height": height, u"xfontsize": xfontsize, 
              u"axis_lbl_font_colour": axis_lbl_font_colour,
              u"major_gridline_colour": major_gridline_colour,

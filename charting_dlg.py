@@ -1032,12 +1032,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         chart_subtype_key = self.get_chart_subtype_key()
         chart_config = mg.CHART_CONFIG[self.chart_type][chart_subtype_key]
         var_roles_used = set()
-        series_not_sel = True
         for var_val, var_dets in zip(myvars, chart_config):
             var_role = var_dets[mg.VAR_ROLE_KEY]
             role_not_sel = (var_val == mg.DROP_SELECT)
-            if var_role == mg.VAR_ROLE_SERIES and role_not_sel:
-                series_not_sel = False
             var_roles_used.add(var_role)
             if role_not_sel:
                 script_lst.append(u"%s = None" % var_role)
@@ -1167,7 +1164,7 @@ chart_output = charting_output.piechart_output(titles, subtitles,
            u"css_idx": css_idx}
     return script
 
-def get_line_chart_script(is_perc, xtitle2use, ytitle2use, rotate, inc_trend, 
+def get_line_chart_script(is_perc, ytitle2use, rotate, inc_trend, 
                           inc_smooth, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     xy_titles = (u"""
@@ -1208,7 +1205,7 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.AREA_CHART,
 x_title = var_role_cat_name
 y_title = %(ytitle2use)s
 chart_output = charting_output.areachart_output(titles, subtitles, 
-    x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
+    y_title, chart_output_dets, rotate=%(rotate)s, 
     css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)""" %
     {u"dbe": dd.dbe, u"is_perc": str(is_perc), u"rotate": rotate, 

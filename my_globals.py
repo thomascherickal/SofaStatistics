@@ -487,7 +487,6 @@ VAR_ROLE_SERIES = u"var_role_series" # if multiple series within a single chart 
 VAR_ROLE_CHARTS = u"var_role_charts" # the var charts are split by
 VAR_ROLE_X_AXIS = u"var_role_x_axis" # for scatterplots
 VAR_ROLE_Y_AXIS = u"var_role_y_axis" # for scatterplots
-
 CHART_CONFIG = {
     SIMPLE_BARCHART: {
         AVG_KEY: [
@@ -671,8 +670,6 @@ GEN_CHARTS = [SIMPLE_BARCHART, CLUSTERED_BARCHART, PIE_CHART, LINE_CHART,
               AREA_CHART]
 EXPECTED_VAR_ROLE_KEYS = [VAR_ROLE_AVG, VAR_ROLE_CATEGORY, VAR_ROLE_SERIES,
                           VAR_ROLE_CHARTS]
-HAS_MULTI_SERIES_CHARTS = [CLUSTERED_BARCHART, LINE_CHART, BOXPLOT,]
-HAS_SERIES_AND_CHARTS = [CLUSTERED_BARCHART, LINE_CHART]
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
     'lightcoral', 'orangered', 'navajowhite', 'slategray', 'palegreen', 
