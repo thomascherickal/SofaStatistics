@@ -1008,6 +1008,7 @@ def get_title_dets_html(titles, subtitles, css_idx):
     return title_dets_html
 
 def get_lbl_dets(xaxis_dets):
+    # can be a risk that a split label for the middle x value will overlap with x-axis label below
     lbl_dets = []
     for i, xaxis_det in enumerate(xaxis_dets, 1):
         val_lbl = xaxis_det[2] # the split variant of the label
@@ -1612,6 +1613,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
      minor_ticks, micro_ticks) = get_linechart_sizings(xaxis_dets,
                                                        max_lbl_width)
     left_axis_lbl_shift = 20 if width > 1200 else 15 # gets squeezed
+    ymax = get_ymax(chart_output_dets)
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 
@@ -1666,7 +1668,6 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         series_names_list = []
         for series_idx, series_det in enumerate(series_dets):
             xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
-            # For multiple, don't split label if the mid tick (clash with x axis label)
             lbl_dets = get_lbl_dets(xaxis_dets)
             xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
             series_names_list.append(u"series%s" % series_idx)
@@ -1718,6 +1719,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
         chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
         chartconf["yTitle"] = "%(y_title)s";
+        chartconf["ymax"] = %(ymax)s;
         chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
         chartconf["connectorStyle"] = "%(connector_style)s";
         makeLineChart("mychartRenumber%(chart_idx)s", series, chartconf);
@@ -1740,7 +1742,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
                  u"major_gridline_colour": major_gridline_colour,
                  u"gridline_width": gridline_width, u"pagebreak": pagebreak,
                  u"axis_lbl_drop": axis_lbl_drop,
-                 u"axis_lbl_rotate": axis_lbl_rotate,
+                 u"axis_lbl_rotate": axis_lbl_rotate, u"ymax": ymax,
                  u"left_axis_lbl_shift": left_axis_lbl_shift,
                  u"x_title": x_title, u"y_title": y_title,
                  u"tooltip_border_colour": tooltip_border_colour,
@@ -2259,7 +2261,6 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    # For multiple, don't split label if the mid tick (clash with x axis label)
     lbl_dets = get_lbl_dets(xaxis_dets)
     lbl_dets.insert(0, u"""{value: 0, text: ""}""")
     lbl_dets.append(u"""{value: %s, text: ""}""" % len(lbl_dets))

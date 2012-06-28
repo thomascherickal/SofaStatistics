@@ -225,7 +225,9 @@ makeLineChart = function(chartname, series, chartconf){
                     rotation: axisLabelRotate
     });
     mychart.addAxis("y", {title: yTitle,
-                    vertical: true, includeZero: true, font: "normal normal normal 10pt Arial", fontWeight: 12
+                    vertical: true, includeZero: true, 
+                    max: chartconf["ymax"],
+                    font: "normal normal normal 10pt Arial", fontWeight: 12
     });
     mychart.addPlot("default", {type: "Lines", markers: true, shadows: {dx: 2, dy: 2, dw: 2}});
     mychart.addPlot("grid", {type: "Grid", vMajorLines: false});

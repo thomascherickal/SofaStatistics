@@ -966,24 +966,36 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         lblctrl_vars = zip(lblctrls, variables)
         idx_lblctrl_in_lblctrl_vars = 0
         idx_variable_in_lblctrl_vars = 1
-        used_lblctrl_vars = [x for x in lblctrl_vars 
-                         if x[idx_lblctrl_in_lblctrl_vars].IsShown()]
+        shown_lblctrl_vars = [x for x in lblctrl_vars 
+                             if x[idx_lblctrl_in_lblctrl_vars].IsShown()]
         # 1) Variable selected but an earlier one has not (No Selection instead)
+        """
+        Line charts have one exception - can select chart by without series by
+        """
         has_no_select_selected = False
         lbl_with_no_select = u""
-        for lblctrl, variable in used_lblctrl_vars:
+        for var_idx, shown_lblctrl_var in enumerate(shown_lblctrl_vars):
+            lblctrl, variable = shown_lblctrl_var
             if variable == mg.DROP_SELECT:
                 lbl_with_no_select = lblctrl.GetLabel().rstrip(u":")
                 has_no_select_selected = True
             else:
                 if has_no_select_selected: # already
+                    # OK only if a line chart and we are in the chart by var 
+                    if self.chart_type == mg.LINE_CHART:
+                        chart_subtype_key = self.get_chart_subtype_key()
+                        chart_config = mg.CHART_CONFIG[self.chart_type]\
+                                                            [chart_subtype_key]
+                        var_role = chart_config[var_idx][mg.VAR_ROLE_KEY]                         
+                        if var_role == mg.VAR_ROLE_CHARTS:
+                            continue
                     varlbl = lblctrl.GetLabel().rstrip(u":")
                     wx.MessageBox(_(u"\"%s\" has a variable selected but the "
                                     u"previous drop down list \"%s\" does not.") 
                                   % (varlbl, lbl_with_no_select))
                     return False
         # 2) Excluding No Selections, we have duplicate selections
-        selected_lblctrl_vars = [x for x in used_lblctrl_vars 
+        selected_lblctrl_vars = [x for x in shown_lblctrl_vars 
                          if x[idx_variable_in_lblctrl_vars] != mg.DROP_SELECT]
         selected_lblctrls = [x[idx_lblctrl_in_lblctrl_vars] for x 
                              in selected_lblctrl_vars]
