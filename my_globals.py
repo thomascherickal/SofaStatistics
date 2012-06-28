@@ -443,7 +443,7 @@ VERSION_CHECK_OPTS = [VERSION_CHECK_NONE, VERSION_CHECK_MAJOR,
 CHART_VALUES = _("Values")
 CHART_DESCRIBED = _("Described")
 CHART_BY = _("By")
-CHART_CHART_BY = _("Charts By")
+CHARTS_CHART_BY = _("Charts By")
 CHART_SERIES_BY = _("Series By")
 CHART_AVERAGED = _("Averaged")
 Y_AXIS_FREQ_LBL = _("Frequency")
@@ -499,7 +499,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
-            {LBL_KEY: CHART_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
@@ -509,7 +509,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
-            {LBL_KEY: CHART_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
@@ -529,7 +529,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 3
-            {LBL_KEY: CHART_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 4
@@ -543,7 +543,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 2
-            {LBL_KEY: CHART_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
@@ -555,7 +555,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
-            {LBL_KEY: CHART_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
@@ -575,7 +575,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 3
-            {LBL_KEY: CHART_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 4
@@ -589,7 +589,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 2
-            {LBL_KEY: CHART_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
@@ -605,7 +605,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
-            {LBL_KEY: CHART_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
@@ -615,7 +615,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
-            {LBL_KEY: CHART_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
@@ -627,7 +627,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_BIN}, # dropdown 1
-            {LBL_KEY: CHART_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
@@ -643,7 +643,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_Y_AXIS}, # dropdown 2
-            {LBL_KEY: CHART_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
@@ -667,11 +667,11 @@ CHART_CONFIG = {
     },
 }
 # common format - all have categories, all use get_chart-dets() etc.
-COMMON_FORMAT_CHARTS = [SIMPLE_BARCHART, CLUSTERED_BARCHART, PIE_CHART, 
-                        LINE_CHART, AREA_CHART]
-GET_CHART_DETS_ROLE_KEYS = [VAR_ROLE_AVG, VAR_ROLE_CATEGORY, VAR_ROLE_SERIES,
-                            VAR_ROLE_CHARTS]
-NO_CHART_BY = [CLUSTERED_BARCHART, LINE_CHART, BOXPLOT,]
+GEN_CHARTS = [SIMPLE_BARCHART, CLUSTERED_BARCHART, PIE_CHART, LINE_CHART, 
+              AREA_CHART]
+EXPECTED_VAR_ROLE_KEYS = [VAR_ROLE_AVG, VAR_ROLE_CATEGORY, VAR_ROLE_SERIES,
+                          VAR_ROLE_CHARTS]
+HAS_MULTI_SERIES_CHARTS = [CLUSTERED_BARCHART, LINE_CHART, BOXPLOT,]
 HAS_SERIES_AND_CHARTS = [CLUSTERED_BARCHART, LINE_CHART]
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 
@@ -704,19 +704,20 @@ CHART_MAX_CHARTS_IN_SET = 16
 CHART_MAX_SERIES_IN_BOXPLOT = 8
 CHART_MAX_BOXPLOTS_IN_SERIES = 20
 CHART_MIN_DISPLAY_VALS_FOR_BOXPLOT = 15 
-CHART_CHART_BY_LBL = u"chart_by_lbl"
-CHART_LBL = u"Chart lbl"
-CHART_LEGEND_LBL = u"Legend lbl"
-CHART_LBL_SINGLE_CHART = u"Single chart only"
+CHARTS_CHART_DETS = u"chart_dets"
+CHARTS_CHART_BY_LBL = u"chart_by_lbl"
+CHARTS_CHART_LBL = u"Chart lbl" # Label for top of chart e.g. Gender: Male
+CHARTS_SERIES_LEGEND_LBL = u"Legend lbl" # one per series e.g. Male. Goes in legend on bottom
+CHARTS_CHART_LBL_SINGLE_CHART = u"Single chart only" # should never get displayed - just so we can supply a chart label
 CHART_VAL_MEASURES = u"chart_val_measures" # e.g. freqs or avgs
 CHART_MEASURE_DETS = u"measure_dets"
-CHART_MAX_LBL_LEN = u"max_lbl_len"
-CHART_Y_VALS = u"y_vals"
-CHART_TOOLTIPS = u"tooltips"
+CHARTS_MAX_LBL_LEN = u"max_lbl_len" # all charts share same x labels - we need to know max for chart height is x labels rotated
+CHARTS_SERIES_Y_VALS = u"y_vals"
+CHARTS_SERIES_TOOLTIPS = u"tooltips"
 CHART_NORMAL_Y_VALS = u"normal_y_vals"
 CHART_SLICE_DETS = u"slice_dets"
-CHART_XAXIS_DETS = u"xaxis_dets"
-CHART_SERIES_DETS = u"series_dets"
+CHARTS_XAXIS_DETS = u"xaxis_dets"
+CHARTS_SERIES_DETS = u"series_dets"
 CHART_SERIES_LBL = u"series_label"
 CHART_MULTICHART = u"multichart"
 CHART_BOXDETS = u"boxdets"

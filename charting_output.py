@@ -6,10 +6,10 @@ Use English UK spelling e.g. colour and when writing JS use camelcase.
 NB no html headers here - the script generates those beforehand and appends 
     this and then the html footer.
 For most charts we can use freq and AVG - something SQL does just fine using 
-    GROUP BY. Accordingly, we can reuse get_chart_dets in many cases. In other
-    cases, however, e.g. box plots, we need to analyse the values to get results 
-    that SQL can't do well e.g. quartiles. In such cases we have to custom-make 
-    the specific queries we need.
+    GROUP BY. Accordingly, we can reuse get_gen_chart_output_dets in many cases. 
+In other cases, however, e.g. box plots, we need to analyse the values to get 
+    results that SQL can't do well e.g. quartiles. In such cases we have to 
+    custom-make the specific queries we need.
 """
 
 import numpy as np
@@ -25,133 +25,153 @@ import output
 
 AVG_CHAR_WIDTH_PXLS = 4
 TXT_WIDTH_WHEN_ROTATED = 4
+CHART_VAL_KEY = u"chart_val_key"
+CHART_SERIES_KEY = u"chart_series_key"
+SERIES_KEY = u"series_key"
+XY_KEY = u"xy_key"
 
 def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt, 
-                     measure, fld_measure, fld_gp_by, fld_chart_by,
-                     fld_group_series):
+                     var_role_avg, var_role_cat, var_role_series, 
+                     var_role_charts):
     """
-    Don't use freq as my own field name as it may conflict with freq if selected 
-        by user.
+    Returns a list of row tuples.
+    Each row tuple follows the same templates. Dummy values are used to fill 
+        empty fields e.g. series and charts, so that the same structure can be 
+        relied upon irrespective of input.
+    Fields - charts, series, cat, vals (either the result of COUNT() or AVG()).
+    E.g. data = [(1,1,1,56),
+                 (1,1,2,103),
+                 (1,1,3,72),
+                 (1,2,1,13),
+                 (1,2,2,0),
+                 (1,2,3,200),]
+    Note - don't use freq as my own field name as it may conflict with freq if 
+        selected by user.
+    """
+    debug = False
+    is_avg = (var_role_avg is not None)
+    """
+    Because it is much easier to understand using an example, imagine the 
+        following is our raw data:
+        
+    charts   series   cat
+    gender   country  agegroup
+      1        1         1
+      1        1         1
+      1        1         2
+      1        2         4
+      1        2         3
+      2        1         1
+      2        2         5
+      .        1         1  # will not be represented in chart because of 
+          missing value for one of the grouping variables
+      2        .         1  # also not used 
+    
+    Two things to note: 1) the rows with missing values in any of the grouping 
+        variables are discarded as they cannot be plotted; 2) we are going to 
+        have a lot of zero values to display.
+    Imagine displaying those results as a clustered bar chart of frequencies:
+    Chart 1 (Male)
+    Three colours - Japan, Italy, Germany
+    Five x-labels - Under 20, 20-29, 30-39, 40-64, 65+
+    Working from left to right in the chart:
+    1,1,1 has a freq of 2 so we will have a bar 2 high for Japan above the Under 20 label
+    1,2,1 has no values so the display for Italy above the Under 20 label will be 0
+    1,3,1 has no values so the display for Germany above the Under 20 label will be 0
+    1,1,2 has a freq of 1 so there will be a bar 1 high for Japan above the 20-29 label
+    etc
+    NB we can't do a group by on all grouping variables at once because the 
+        combinations with zero freqs (e.g. 1,2,1) would not be included. We have 
+        to do it grouping variable by grouping variable and then do a cartesian
+        join at the end to give us all combinations we need to plot (whether 
+        with zeros or another value).
+    Looking at an individual grouping variable, we want to include all non-null 
+        values where there are no missing values in any of the other grouping 
+        variables (or in the variable being averaged if a chart of averages).
     """
     objqtr = getdata.get_obj_quoter_func(dbe)
+    if not var_role_cat:
+        raise Exception(u"All general charts require a category variable to be "
+                        u"identified")
+    mycat = objqtr(var_role_cat)
+    # Series and charts are optional so we need to autofill them with something 
+    # which will keep them in the same group.
+    myseries = 1 if not var_role_series else objqtr(var_role_series)
+    mycharts = 1 if not var_role_charts else objqtr(var_role_charts)
+    avg_filt = (u" AND %s IS NOT NULL " % objqtr(var_role_avg) if is_avg 
+                else u" ") 
     sql_dic = {u"tbl": tbl_quoted, 
-               u"fld_measure": objqtr(fld_measure),
-               u"fld_group_series": objqtr(fld_group_series),
-               mg.FLD_GROUP_BY: objqtr(fld_gp_by),
-               mg.FLD_CHART_BY: objqtr(fld_chart_by), 
+               u"var_role_charts": mycharts,
+               u"var_role_series": myseries,
+               u"var_role_cat": mycat,
+               u"var_role_avg": objqtr(var_role_avg),
                u"and_tbl_filt": and_tbl_filt,
-               u"where_tbl_filt": where_tbl_filt}
-    if fld_group_series:
-        # series fld, the x vals, and the y vals
-        if measure == mg.CHART_FREQS:
-            """
-            Show zero values.
-            Only include values for either fld_group_series or fld_measure if 
-                at least one non-null value in the other dimension. If a whole 
-                series is zero, then it won't show. If there is any value in 
-                other dim will show that val and zeroes for rest.
-            SQL returns something like (grouped by fld_group_series, 
-                fld_measure, N with zero freqs as needed):
-            data = [(1,1,56),
-                    (1,2,103),
-                    (1,3,72),
-                    (2,1,13),
-                    (2,2,0),
-                    (2,3,200),]
-            """
-            SQL_get_measure_vals = u"""SELECT %(fld_measure)s
-                FROM %(tbl)s
-                WHERE %(fld_group_series)s IS NOT NULL 
-                    AND %(fld_measure)s IS NOT NULL
-                    %(and_tbl_filt)s
-                GROUP BY %(fld_measure)s"""
-            SQL_get_group_vals = u"""SELECT %(fld_group_series)s
-                FROM %(tbl)s
-                WHERE %(fld_measure)s IS NOT NULL 
-                    AND %(fld_group_series)s IS NOT NULL
-                    %(and_tbl_filt)s
-                GROUP BY %(fld_group_series)s"""
-            SQL_cartesian_join = """SELECT * FROM (%s) AS qrymeasure INNER JOIN 
-                (%s) AS qrygp""" % (SQL_get_measure_vals, SQL_get_group_vals)
-            SQL_group_by = u"""SELECT %(fld_group_series)s, %(fld_measure)s,
-                    COUNT(*) AS _sofa_freq
-                FROM %(tbl)s
-                %(where_tbl_filt)s
-                GROUP BY %(fld_group_series)s, %(fld_measure)s"""
-            SQL_cartesian_join = SQL_cartesian_join % sql_dic
-            SQL_group_by = SQL_group_by % sql_dic
-            sql_dic[u"qrycart"] = SQL_cartesian_join
-            sql_dic[u"qrygrouped"] = SQL_group_by
-            SQL_get_raw_data = """SELECT %(fld_group_series)s, %(fld_measure)s,
-                    CASE WHEN _sofa_freq IS NULL THEN 0 ELSE _sofa_freq END AS N
-                FROM (%(qrycart)s) AS qrycart LEFT JOIN (%(qrygrouped)s) 
-                    AS qrygrouped
-                USING(%(fld_group_series)s, %(fld_measure)s)
-                ORDER BY %(fld_group_series)s, %(fld_measure)s""" % sql_dic
-        elif measure == mg.CHART_AVGS:
-            """
-            Must and will have measure, group_by, and chart_by 
-                (the group series). Otherwise fld_group_series would be True.
-            Only include values for either fld_chart_by or fld_gp_by if at 
-                least one non-null value in the other dimension. If a whole 
-                    series is zero, then it won't show. If there is any value 
-                    in other dim will show that val and zeroes for rest.
-            SQL returns something like (grouped by fld_chart_by, fld_gp_by, 
-                averaged measure with zero avgs as needed):
-            data = [(1,1,56),
-                    (1,2,103),
-                    (1,3,72),
-                    (2,1,13),
-                    (2,2,0),
-                    (2,3,200),]
-            """
-            SQL_get_gp_by_vals = u"""SELECT %(fld_gp_by)s
-                FROM %(tbl)s
-                WHERE %(fld_chart_by)s IS NOT NULL AND %(fld_gp_by)s IS NOT NULL
-                    %(and_tbl_filt)s
-                GROUP BY %(fld_gp_by)s"""
-            SQL_get_chart_by_vals = u"""SELECT %(fld_chart_by)s
-                FROM %(tbl)s
-                WHERE %(fld_gp_by)s IS NOT NULL AND %(fld_chart_by)s IS NOT NULL
-                    %(and_tbl_filt)s
-                GROUP BY %(fld_chart_by)s"""
-            SQL_cartesian_join = """SELECT * FROM (%s) AS qryby INNER JOIN 
-                (%s) AS qrygp""" % (SQL_get_gp_by_vals, SQL_get_chart_by_vals)
-            SQL_group_by = u"""SELECT %(fld_chart_by)s, %(fld_gp_by)s,
-                    AVG(%(fld_measure)s) AS measure
-                FROM %(tbl)s
-                %(where_tbl_filt)s
-                GROUP BY %(fld_chart_by)s, %(fld_gp_by)s"""
-            SQL_cartesian_join = SQL_cartesian_join % sql_dic
-            SQL_group_by = SQL_group_by % sql_dic
-            sql_dic[u"qrycart"] = SQL_cartesian_join
-            sql_dic[u"qrygrouped"] = SQL_group_by
-            SQL_get_raw_data = """SELECT %(fld_chart_by)s, %(fld_gp_by)s,
-                    CASE WHEN measure IS NULL THEN 0 ELSE measure END AS val
-                FROM (%(qrycart)s) AS qrycart LEFT JOIN (%(qrygrouped)s) 
-                    AS qrygrouped
-                USING(%(fld_chart_by)s, %(fld_gp_by)s)
-                ORDER BY %(fld_chart_by)s, %(fld_gp_by)s""" % sql_dic
-    else: # no series grouping
-        # the x vals, and the y vals
-        if measure == mg.CHART_FREQS:
-            # group by measure field only, count non-missing vals
-            SQL_get_raw_data = (u"""SELECT %(fld_measure)s, 
-                    COUNT(*) AS measure
-                FROM %(tbl)s
-                WHERE %(fld_measure)s IS NOT NULL %(and_tbl_filt)s
-                GROUP BY %(fld_measure)s
-                ORDER BY %(fld_measure)s""") % sql_dic
-        elif measure == mg.CHART_AVGS:
-            # group by group by field, and get AVG of measure field
-            SQL_get_raw_data = (u"""SELECT %(fld_gp_by)s,
-                    AVG(%(fld_measure)s) AS measure
-                FROM %(tbl)s
-                WHERE %(fld_measure)s IS NOT NULL 
-                    AND %(fld_gp_by)s IS NOT NULL 
-                    %(and_tbl_filt)s
-                GROUP BY %(fld_gp_by)s
-                ORDER BY %(fld_gp_by)s""") % sql_dic           
+               u"where_tbl_filt": where_tbl_filt,
+               u"and_avg_filt": avg_filt}
+    # 1) grouping variables
+    SQL_charts = ("""SELECT %(var_role_charts)s 
+    AS charts
+    FROM %(tbl)s
+    WHERE charts IS NOT NULL 
+        AND %(var_role_series)s IS NOT NULL 
+        AND %(var_role_cat)s IS NOT NULL
+        %(and_tbl_filt)s
+        %(and_avg_filt)s
+    GROUP BY %(var_role_charts)s""" % sql_dic)
+    if debug: print(SQL_charts)
+    SQL_series = ("""SELECT %(var_role_series)s 
+    AS series
+    FROM %(tbl)s
+    WHERE series IS NOT NULL 
+        AND %(var_role_charts)s IS NOT NULL 
+        AND %(var_role_cat)s IS NOT NULL
+        %(and_tbl_filt)s
+        %(and_avg_filt)s
+    GROUP BY %(var_role_series)s""" % sql_dic)
+    if debug: print(SQL_series)
+    SQL_cat = ("""SELECT %(var_role_cat)s 
+    AS cat
+    FROM %(tbl)s
+    WHERE cat IS NOT NULL 
+        AND %(var_role_charts)s IS NOT NULL 
+        AND %(var_role_series)s IS NOT NULL
+        %(and_tbl_filt)s
+        %(and_avg_filt)s
+    GROUP BY %(var_role_cat)s""" % sql_dic)
+    if debug: print(SQL_cat)
+    SQL_group_by_vars = """SELECT * FROM (%s) AS qrycharts INNER JOIN 
+        (%s) AS qryseries INNER JOIN
+        (%s) AS qrycat""" % (SQL_charts, SQL_series, SQL_cat)
+    if debug: print(u"SQL_group_by_vars:\n%s" % SQL_group_by_vars)
+    # 2) Now get measures field with all grouping vars ready to join to full list
+    avg_exp = u" AVG(%(var_role_avg)s) " % sql_dic
+    sql_dic[u"val2show"] = avg_exp if is_avg else u" COUNT(*) "
+    SQL_vals2show = u"""SELECT %(var_role_charts)s
+    AS charts,
+        %(var_role_series)s
+    AS series,
+        %(var_role_cat)s
+    AS cat,
+        %(val2show)s
+    AS val2show
+    FROM %(tbl)s
+    %(where_tbl_filt)s
+    GROUP BY %(var_role_charts)s, 
+        %(var_role_series)s, 
+        %(var_role_cat)s""" % sql_dic
+    if debug: print(u"SQL_vals2show:\n%s" % SQL_vals2show)
+    # 3) Put all group by vars on left side of join with measures by those 
+    # grouping vars.
+    sql_dic[u"SQL_group_by_vars"] = SQL_group_by_vars
+    sql_dic[u"SQL_vals2show"] = SQL_vals2show
+    SQL_get_raw_data = """SELECT charts, series, cat,
+        CASE WHEN val2show IS NULL THEN 0 ELSE val2show END 
+    AS val
+    FROM (%(SQL_group_by_vars)s) AS qrygrouping_vars 
+    LEFT JOIN (%(SQL_vals2show)s) AS qryvals2show
+    USING(charts, series, cat)
+    ORDER BY charts, series, cat""" % sql_dic    
+    if debug: print(u"SQL_get_raw_data:\n%s" % SQL_get_raw_data)
     return SQL_get_raw_data
 
 def get_sorted_y_dets(is_perc, sort_opt, vals_etc_lst):
@@ -170,328 +190,212 @@ def get_sorted_y_dets(is_perc, sort_opt, vals_etc_lst):
     for val, measure, lbl, lbl_split in vals_etc_lst:
         sorted_xaxis_dets.append((val, lbl, lbl_split))
         freq = measure
-        perc = 100*(measure/float(tot_measures))
+        if tot_measures == 0:
+            perc = 0
+        else:
+            perc = 100*(measure/float(tot_measures))
         y_val = perc if is_perc else freq
         sorted_y_vals.append(y_val)
         sorted_tooltips.append(u"%s<br>%s%%" % (int(freq), round(perc,1)))
     return sorted_xaxis_dets, sorted_y_vals, sorted_tooltips
 
-def structure_data(chart_type, raw_data, max_items, xlblsdic, fld_measure, 
-                   fld_gp_by, fld_chart_by, fld_chart_by_name, 
-                   legend_fldname, legend_fldlbls, chart_fldname, chart_fldlbls, 
+def get_prestructured_gen_data(raw_data):
+    """
+    [(1,1,1,56),
+     (1,1,2,103), 
+     ...]
+    becomes
+    [{CHART_VAL_KEY: 1, 
+      CHART_SERIES_KEY: [{SERIES_KEY: 1, 
+                          XY_KEY: [(1,56), (2,103)]
+                             },
+                         {SERIES_KEY: 2, 
+                          XY_KEY: [(1,23), (2,4), ...]
+                             },
+                        ], ... ]
+    """
+    CHART_VAL_KEY = u"chart_val_key"
+    CHART_SERIES_KEY = u"chart_series_key"
+    SERIES_KEY = u"series_key"
+    XY_KEY = u"xy_key"
+    prestructure = []
+    prev_chart_val = None
+    prev_series_val = None
+    for chart_val, series_val, x_val, y_val in raw_data:
+        same_chart = (chart_val == prev_chart_val)
+        if not same_chart:
+            chart_dic = {CHART_VAL_KEY: chart_val,
+                         CHART_SERIES_KEY: 
+                            [{SERIES_KEY: series_val,
+                              XY_KEY: [(x_val, y_val),]}
+                            ]
+                         }
+            prestructure.append(chart_dic)
+            prev_chart_val = chart_val
+            prev_series_val = series_val
+        else: # same chart
+            same_chart_dic = prestructure[-1]
+            # same series?
+            same_series = (series_val == prev_series_val)
+            # add to existing series or set up new one in existing chart
+            if not same_series:
+                # add new series to same (last) chart
+                series2add = {SERIES_KEY: series_val,
+                              XY_KEY: [(x_val, y_val),]}
+                same_chart_dic[CHART_SERIES_KEY].append(series2add)
+                prev_series_val = series_val
+            else:
+                # add xy tuple to same (last) series in same (last) chart
+                same_series_dic = same_chart_dic[CHART_SERIES_KEY][-1]
+                same_series_dic[XY_KEY].append((x_val, y_val))
+    return prestructure
+
+def structure_gen_data(chart_type, is_chart_by, raw_data, max_items, xlblsdic, 
+                   legend_fldname, legend_fldlbls, chart_fldname, chart_fldlbls,
+                   var_role_avg, var_role_avg_name,
+                   var_role_cat, var_role_cat_name,
+                   var_role_series, var_role_series_name,
+                   var_role_charts, var_role_charts_name,
                    sort_opt, dp, rotate=False, is_perc=False):
     """
-    Take raw columns of data from SQL cursor and create required dict.
+    Structure data for general charts (use different processes preparing data 
+        for histograms, scatterplots etc).
+    Take raw columns of data from SQL cursor and create required dict. Note - 
+        source data must be sorted by all grouping variables.
+    raw_data -- 4 cols (even if has 1 as dummy variable in charts and/or series
+        cols): charts, series, cat, vals.
+    e.g. raw_data = [(1,1,1,56), (1,1,2,103), (1,1,3,72), (1,1,4,40),
+                     (1,2,1,13), (1,2,2,59), (1,2,3,200), (1,2,4,0),]
+    Processes to intermediate step first e.g.
+        prestructure = [{CHART_VAL_KEY: 1, 
+                         CHART_SERIES_KEY: [
+              {SERIES_KEY: 1, 
+               XY_KEY: [(1,56), (2,103), (3,72), (4,40)] },
+              {SERIES_KEY: 2, 
+               XY_KEY: [(1,13), (2,59), (3,200), (4,0)] },
+             ]}, ]
+    Returns chart_output_dets:
+    chart_output_dets = {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+                         mg.CHARTS_CHART_DETS: chart_dets}
+    chart_dets = [
+        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or a dummy title if only one chart because not displayed
+         mg.CHARTS_SERIES_DETS: series_dets},
+        {mg.CHARTS_CHART_LBL: u"Gender: Female",
+         mg.CHARTS_SERIES_DETS: series_dets}, ...
+    ]
+    series_dets = {mg.CHARTS_SERIES_LEGEND_LBL: u"Italy", # if only one series, use cat label e.g. Age Group
+                   mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
+                   mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
+                   mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
+                                               u"28<br>14%", u"94<br>47%"]}
     """
-    n_cols = len(raw_data[0])
-    multi_series = (n_cols > 2)
     max_lbl_len = 0
-    if multi_series: # whether multichart or multiple series within a chart
+    prestructure = get_prestructured_gen_data(raw_data)
+    chart_dets = []
+    n_charts = len(prestructure)
+    if n_charts > mg.CHART_MAX_CHARTS_IN_SET:
+        raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
+                                           max_items=mg.CHART_MAX_CHARTS_IN_SET)
+    multichart = n_charts > 1
+    for chart_dic in prestructure:
+        chart_series = chart_dic[CHART_SERIES_KEY]
+        multiseries = (len(chart_series) > 1)
         """
-        Must be sorted by first two so groups and y_vals in order. Apply any 
-            sorting before iterating through.
-        e.g. raw_data = [(1,1,56),
-                         (1,2,103),
-                         (1,3,72),
-                         (1,4,40),
-                         (2,1,13),
-                         (2,2,59),
-                         (2,3,200),
-                         (2,4,0),]
+        chart_dic = {CHART_VAL_KEY: 1, 
+                     CHART_SERIES_KEY: [
+              {SERIES_KEY: 1, 
+               XY_KEY: [(1,56), (2,103), (3,72), (4,40)] },
+              {SERIES_KEY: 2, 
+               XY_KEY: [(1,13), (2,59), (3,200), (4,0)] }, ]}
+        to
+        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or a dummy title if only one chart because not displayed
+         mg.CHARTS_SERIES_DETS: series_dets}
         """
+        if multichart:
+            chart_val = chart_dic[CHART_VAL_KEY]
+            chart_lbl = u"%s: %s" % (chart_fldname, 
+                              chart_fldlbls.get(chart_val, unicode(chart_val)))
+        else:
+            chart_lbl = mg.CHARTS_CHART_LBL_SINGLE_CHART
         series_dets = []
-        multichart = (fld_chart_by is not None 
-                      and chart_type not in mg.NO_CHART_BY)
-        first_group = True
-        (prev_group_val, vals_etc_lst, 
-            chart_lbl, legend_lbl) = None, None, None, None
-        for group_val, x_val, y_val in raw_data:
-            same_group = (group_val == prev_group_val)
-            if not same_group:
-                first_group = (prev_group_val is None)
-                if not first_group: # save previous one
-                    (sorted_xaxis_dets, 
-                     sorted_y_vals, 
-                     sorted_tooltips) = get_sorted_y_dets(is_perc, sort_opt,
-                                                          vals_etc_lst)
-                    series_dets.append({mg.CHART_LBL: chart_lbl,
-                                        mg.CHART_LEGEND_LBL: legend_lbl, 
-                                        mg.CHART_MULTICHART: multichart,
-                                        mg.CHART_XAXIS_DETS: sorted_xaxis_dets,
-                                        mg.CHART_Y_VALS: sorted_y_vals,
-                                        mg.CHART_TOOLTIPS: sorted_tooltips})
-                vals_etc_lst = [] # reinit
-                if multichart:
-                    chart_lbl = u"%s: %s" % (chart_fldname, 
-                                             chart_fldlbls.get(group_val, 
-                                                            unicode(group_val)))
-                    legend_lbl = legend_fldname
-                else:
-                    chart_lbl = mg.CHART_LBL_SINGLE_CHART
-                    legend_lbl = legend_fldlbls.get(group_val, 
-                                                    unicode(group_val))
-                if len(series_dets) > mg.MAX_CHART_SERIES:
-                    if fld_chart_by:
-                        raise my_exceptions.TooManyChartsInSeries(
-                                                    fld_chart_by_name,
-                                                    mg.CHART_MAX_CHARTS_IN_SET)
-                    else:
-                        raise my_exceptions.TooManySeriesInChart(
-                                                        mg.MAX_CHART_SERIES)
-            # depending on sorting, may need one per chart.
-            x_val_lbl = xlblsdic.get(x_val, unicode(x_val))
-            (x_val_split_lbl,
-             actual_lbl_width) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
-                                                       max_width=17, dojo=True,
-                                                       rotate=rotate)
-            if actual_lbl_width > max_lbl_len:
-                max_lbl_len = actual_lbl_width
-            vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
-                                 x_val_split_lbl))
+        for series_dic in chart_series:
+            series_val = series_dic[SERIES_KEY]
+            if multiseries:
+                legend_lbl = legend_fldlbls.get(series_val, 
+                                                unicode(series_val))
+            else:
+                legend_lbl = legend_fldname
+            # process xy vals
+            xy_vals = series_dic[XY_KEY]
+            vals_etc_lst = []
+            for x_val, y_val in xy_vals:
+                x_val_lbl = xlblsdic.get(x_val, unicode(x_val))
+                (x_val_split_lbl,
+                 actual_lbl_width) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
+                                         max_width=17, dojo=True, rotate=rotate)
+                if actual_lbl_width > max_lbl_len:
+                    max_lbl_len = actual_lbl_width
+                vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
+                                     x_val_split_lbl))
             if len(vals_etc_lst) > max_items:
-                raise my_exceptions.TooManyValsInChartSeries(fld_measure, 
+                raise my_exceptions.TooManyValsInChartSeries(var_role_cat, 
                                                              max_items)
             if (chart_type == mg.PIE_CHART 
                     and len(vals_etc_lst) > mg.MAX_PIE_SLICES):
                 raise my_exceptions.TooManySlicesInPieChart
-            prev_group_val = group_val
-        # save last one across
-        (sorted_xaxis_dets, sorted_y_vals, 
-         sorted_tooltips) = get_sorted_y_dets(is_perc, sort_opt, vals_etc_lst)
-        series_dets.append({mg.CHART_LBL: chart_lbl,
-                            mg.CHART_LEGEND_LBL: legend_lbl,
-                            mg.CHART_MULTICHART: multichart,
-                            mg.CHART_XAXIS_DETS: sorted_xaxis_dets,
-                            mg.CHART_Y_VALS: sorted_y_vals,
-                            mg.CHART_TOOLTIPS: sorted_tooltips})
-    else: # single series
-        """
-        Must be sorted by first column.
-        e.g. raw_data = [(1,56),
-                         (2,103),
-                         (3,72),
-                         (4,40),]
-        """
-        vals_etc_lst = []
-        for x_val, y_val in raw_data:
-            x_val_lbl = xlblsdic.get(x_val, unicode(x_val))
-            (x_val_split_lbl, 
-             actual_lbl_width) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
-                                                       max_width=17, dojo=True,
-                                                       rotate=rotate)
-            if actual_lbl_width > max_lbl_len:
-                max_lbl_len = actual_lbl_width
-            vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
-                                 x_val_split_lbl))
-            if len(vals_etc_lst) > max_items:
-                raise my_exceptions.TooManyValsInChartSeries(fld_measure, 
-                                                             max_items)
-        chart_lbl = mg.CHART_LBL_SINGLE_CHART
-        legend_lbl = legend_fldname
-        (sorted_xaxis_dets, sorted_y_vals, 
-         sorted_tooltips) = get_sorted_y_dets(is_perc, sort_opt, vals_etc_lst)
-        series_dets = [{mg.CHART_LBL: chart_lbl,
-                        mg.CHART_LEGEND_LBL: legend_lbl, 
-                        mg.CHART_MULTICHART: False,
-                        mg.CHART_XAXIS_DETS: sorted_xaxis_dets,
-                        mg.CHART_Y_VALS: sorted_y_vals,
-                        mg.CHART_TOOLTIPS: sorted_tooltips}]
-    """
-    Each series (possibly only one) has a chart lbl (possibly not used), a
-        legend lbl, an xaxis_dets (may vary according to sorting used) 
-        and y vals.
-    """
-    chart_dets = {mg.CHART_MAX_LBL_LEN: max_lbl_len,
-                  mg.CHART_SERIES_DETS: series_dets}
-    return chart_dets
+            (sorted_xaxis_dets, 
+             sorted_y_vals, 
+             sorted_tooltips) = get_sorted_y_dets(is_perc, sort_opt,
+                                                  vals_etc_lst)
+            series_det = {mg.CHARTS_SERIES_LEGEND_LBL: legend_lbl,
+                          mg.CHARTS_XAXIS_DETS: sorted_xaxis_dets, 
+                          mg.CHARTS_SERIES_Y_VALS: sorted_y_vals, 
+                          mg.CHARTS_SERIES_TOOLTIPS: sorted_tooltips}
+            series_dets.append(series_det)
+        chart_det = {mg.CHARTS_CHART_LBL: chart_lbl,
+                     mg.CHARTS_SERIES_DETS: series_dets}
+        chart_dets.append(chart_det)
+    chart_output_dets = {mg.CHARTS_MAX_LBL_LEN: max_lbl_len,
+                         mg.CHARTS_CHART_DETS: chart_dets}
+    return chart_output_dets
 
-def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt, 
-                   var_role_avg, var_role_avg_name, var_role_avg_lbls, 
-                   var_role_cat, var_role_cat_name, var_role_cat_lbls,
-                   var_role_series, var_role_series_name, var_role_series_lbls,
-                   var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-                   sort_opt, measure, rotate=False, is_perc=False):
+def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt, 
+                    var_role_avg, var_role_avg_name, var_role_avg_lbls, 
+                    var_role_cat, var_role_cat_name, var_role_cat_lbls, 
+                    var_role_series, var_role_series_name, var_role_series_lbls, 
+                    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
+                    sort_opt, rotate=False, is_perc=False):
     """
+    Note - variables must match values relevant to mg.CHART_CONFIG e.g. 
+        VAR_ROLE_CATEGORY i.e. var_role_cat, for checking to work 
+        (see usage of locals() below).
     Returns some overall details for the chart plus series details (only the
         one series in some cases).
-    Only at most one grouping variable - either group by (e.g. clustered bar 
-        charts) or chart by (e.g. pie charts). May be neither.
     Note - not all charts have x-axis labels and thus the option of rotating 
         them.
     """
     debug = False
-    
-    # nasty temporary hack - just get simple bar chart working by mapping across
-    if chart_type == mg.SIMPLE_BARCHART:
-        if var_role_avg:
-            fld_measure = var_role_avg
-            fld_measure_name = var_role_avg_name
-            fld_measure_lbls = var_role_avg_lbls
-            fld_gp_by = var_role_cat
-            fld_gp_by_name = var_role_cat_name
-            fld_gp_by_lbls = var_role_cat_lbls
-        else:
-            fld_measure = var_role_cat
-            fld_measure_name = var_role_cat_name
-            fld_measure_lbls = var_role_cat_lbls
-            fld_gp_by = None
-            fld_gp_by_name = None
-            fld_gp_by_lbls = None
-        fld_chart_by = var_role_charts
-        fld_chart_by_name = var_role_charts_name
-        fld_chart_by_lbls = var_role_charts_lbls
-    elif chart_type == mg.CLUSTERED_BARCHART:
-        if var_role_avg:
-            fld_measure = var_role_avg
-            fld_measure_name = var_role_avg_name
-            fld_measure_lbls = var_role_avg_lbls
-            fld_gp_by = var_role_cat
-            fld_gp_by_name = var_role_cat_name
-            fld_gp_by_lbls = var_role_cat_lbls
-            fld_chart_by = var_role_series
-            fld_chart_by_name = var_role_series_name
-            fld_chart_by_lbls = var_role_series_lbls
-        else:
-            fld_measure = var_role_cat
-            fld_measure_name = var_role_cat_name
-            fld_measure_lbls = var_role_cat_lbls
-            fld_gp_by = var_role_series
-            fld_gp_by_name = var_role_series_name
-            fld_gp_by_lbls = var_role_series_lbls
-            fld_chart_by = None
-            fld_chart_by_name = None
-            fld_chart_by_lbls = None
-    elif chart_type == mg.PIE_CHART:
-        fld_measure = var_role_cat
-        fld_measure_name = var_role_cat_name
-        fld_measure_lbls = var_role_cat_lbls
-        fld_gp_by = None
-        fld_gp_by_name = None
-        fld_gp_by_lbls = None
-        fld_chart_by = var_role_charts
-        fld_chart_by_name = var_role_charts_name
-        fld_chart_by_lbls = var_role_charts_lbls
-    elif chart_type == mg.LINE_CHART:
-        if var_role_avg:
-            fld_measure = var_role_avg
-            fld_measure_name = var_role_avg_name
-            fld_measure_lbls = var_role_avg_lbls
-            fld_gp_by = var_role_cat
-            fld_gp_by_name = var_role_cat_name
-            fld_gp_by_lbls = var_role_cat_lbls
-        else:
-            fld_measure = var_role_cat
-            fld_measure_name = var_role_cat_name
-            fld_measure_lbls = var_role_cat_lbls
-            fld_gp_by = None
-            fld_gp_by_name = None
-            fld_gp_by_lbls = None
-        fld_chart_by = var_role_series
-        fld_chart_by_name = var_role_series_name
-        fld_chart_by_lbls = var_role_series_lbls
-    elif chart_type == mg.AREA_CHART:
-        if var_role_avg:
-            fld_measure = var_role_avg
-            fld_measure_name = var_role_avg_name
-            fld_measure_lbls = var_role_avg_lbls
-            fld_gp_by = var_role_cat
-            fld_gp_by_name = var_role_cat_name
-            fld_gp_by_lbls = var_role_cat_lbls
-        else:
-            fld_measure = var_role_cat
-            fld_measure_name = var_role_cat_name
-            fld_measure_lbls = var_role_cat_lbls
-            fld_gp_by = None
-            fld_gp_by_name = None
-            fld_gp_by_lbls = None
-        fld_chart_by = var_role_charts
-        fld_chart_by_name = var_role_charts_name
-        fld_chart_by_lbls = var_role_charts_lbls
-        
-    
-    # misc setup
+    is_avg = (var_role_avg is not None)
+    # validate fields supplied (or not)
+    chart_subtype_key = mg.AVG_KEY if is_avg else mg.NON_AVG_KEY
+    chart_config = mg.CHART_CONFIG[chart_type][chart_subtype_key]
+    for var_dets in chart_config: # looping through available dropdowns for chart
+        var_role = var_dets[mg.VAR_ROLE_KEY]
+        allows_missing = var_dets[mg.INC_SELECT_KEY]
+        matching_input_var = locals()[var_role]
+        role_missing = matching_input_var is None
+        if role_missing and not allows_missing:
+            raise Exception(u"The required field %s is missing for the %s "
+                            u"chart type." % (var_role, chart_type))
+    # misc
     max_items = 150 if chart_type == mg.CLUSTERED_BARCHART else 300
     tbl_quoted = getdata.tblname_qtr(dbe, tbl)
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    xlblsdic = fld_measure_lbls if measure == mg.CHART_FREQS else fld_gp_by_lbls
-    # validate fields supplied (or not)
-    # check fld_gp_by and fld_chart_by are present as required
-    if chart_type == mg.CLUSTERED_BARCHART:
-        if fld_gp_by is None:
-            raise Exception(u"%ss must have a field set to cluster by" 
-                            % chart_type)
-    if measure == mg.CHART_AVGS and fld_gp_by is None:
-            raise Exception(u"%ss reporting averages must have a field "
-                            u"set to group by" % chart_type)
-    if (chart_type == mg.CLUSTERED_BARCHART and measure == mg.CHART_AVGS 
-            and fld_chart_by is None):
-        raise Exception(u"%ss must have a field set to cluster by if "
-                        u"charting averages" 
-                        % chart_type)
-    # more setup and validation according to measure type and fields completed
-    if measure == mg.CHART_FREQS:
-        if not (fld_gp_by is None or fld_chart_by is None):
-            raise Exception(u"SOFA doesn't have any charts reporting frequency "
-                            u"with both the group by and chart by fields set.")
-        dp = 0
-        # set up legend and chart by names and labels
-        # Either gp by or chart by
-        if fld_gp_by is not None: # has BY
-            fld_group_series = fld_gp_by
-            legend_fldname = fld_gp_by_name # e.g. Country
-            legend_fldlbls = fld_gp_by_lbls # e.g. {1: Japan, ...}
-            chart_fldname = mg.CHART_LBL_SINGLE_CHART
-            chart_fldlbls = {}
-        elif fld_chart_by is not None: # CHARTS BY
-            fld_group_series = fld_chart_by
-            legend_fldname = fld_measure_name # e.g. Country in orange box
-            legend_fldlbls = fld_measure_lbls
-            chart_fldname = fld_chart_by_name
-            chart_fldlbls = fld_chart_by_lbls
-        else: # e.g. simple bar chart without a chart by selected
-            fld_group_series = None
-            legend_fldname = fld_measure_name # e.g. Age Group in box
-            legend_fldlbls = {}
-            chart_fldname = mg.CHART_LBL_SINGLE_CHART # won't show
-            chart_fldlbls = {}
-    elif measure == mg.CHART_AVGS:
-        """
-        May or may not have fld_chart_by set but must have fld_gp_by to enable 
-            averaging of fld_measure.
-        """
-        dp = 2
-        # in examples, age is measure, country is gp by, and gender is chart by
-        if fld_chart_by is not None:
-            fld_group_series = fld_chart_by
-            """
-            NB for line charts and clustered bar charts, not actually new 
-                charts if chart_by.
-            """
-            if chart_type in mg.NO_CHART_BY:
-                legend_fldname = fld_chart_by_name # e.g. Age Group in orange box
-                legend_fldlbls = fld_chart_by_lbls
-                chart_fldname = mg.CHART_LBL_SINGLE_CHART
-                chart_fldlbls = {}
-            else:
-                legend_fldname = fld_gp_by_name # e.g. Age Group in orange box
-                legend_fldlbls = {}
-                chart_fldname = fld_chart_by_name 
-                chart_fldlbls = fld_chart_by_lbls
-        else:
-            fld_group_series = None
-            legend_fldname = fld_gp_by_name # e.g. Country in orange box
-            legend_fldlbls = {}
-            chart_fldname = mg.CHART_LBL_SINGLE_CHART
-            chart_fldlbls = {}
-            
-            
-            
-            
+    xlblsdic = var_role_cat_lbls
     # Get data as per setup
-    SQL_raw_data = get_SQL_raw_data(dbe, tbl_quoted, 
-                                    where_tbl_filt, and_tbl_filt, 
-                                    measure, fld_measure, 
-                                    fld_gp_by, fld_chart_by, fld_group_series)
+    SQL_raw_data = get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, 
+                                    and_tbl_filt, var_role_avg, var_role_cat, 
+                                    var_role_series, var_role_charts)
     if debug: print(SQL_raw_data)
     cur.execute(SQL_raw_data)
     raw_data = cur.fetchall()
@@ -499,18 +403,35 @@ def get_chart_dets(chart_type, dbe, cur, tbl, tbl_filt,
     if not raw_data:
         raise my_exceptions.TooFewValsForDisplay
     # restructure and return data
-    chart_dets = structure_data(chart_type, raw_data, max_items, xlblsdic, 
-                                fld_measure, fld_gp_by, 
-                                fld_chart_by, fld_chart_by_name, 
-                                legend_fldname, legend_fldlbls,
-                                chart_fldname, chart_fldlbls, 
-                                sort_opt, dp, rotate, is_perc)
-    return chart_dets
+    dp = 2 if is_avg else 0
+    if chart_type in mg.HAS_MULTI_SERIES_CHARTS:
+        legend_fldname =  var_role_series_name # e.g. Country in orange box
+        legend_fldlbls = var_role_series_lbls # e.g. {1: Japan, ...}
+    else:
+        legend_fldname =  var_role_cat_name # e.g. Country in orange box
+        legend_fldlbls = var_role_cat_lbls # e.g. {1: Japan, ...}
+    is_chart_by = (var_role_charts is not None)
+    if is_chart_by: # currently, one series per chart
+        chart_fldname = var_role_charts_name
+        chart_fldlbls = var_role_charts_lbls
+    else: # clustered, line - currently, multiple series but only one chart
+        chart_fldname = mg.CHARTS_CHART_LBL_SINGLE_CHART
+        chart_fldlbls = {}
+    chart_output_dets = structure_gen_data(chart_type, is_chart_by, raw_data, 
+                                          max_items, xlblsdic, 
+                                          legend_fldname, legend_fldlbls,
+                                          chart_fldname, chart_fldlbls,
+                                          var_role_avg, var_role_avg_name,
+                                          var_role_cat, var_role_cat_name,
+                                          var_role_series, var_role_series_name,
+                                          var_role_charts, var_role_charts_name,
+                                          sort_opt, dp, rotate, is_perc)
+    return chart_output_dets
 
-def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name, 
-                     fld_gp_by, fld_gp_by_name, fld_gp_by_lbls, 
-                     fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
-                     rotate=False):
+def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
+                    var_role_cat, var_role_cat_name, var_role_cat_lbls,
+                    var_role_series, var_role_series_name, var_role_series_lbls,
+                    rotate=False):
     """
     NB can't just use group by SQL to get results - need upper and lower 
         quartiles etc and we have to work on the raw values to achieve this. We
@@ -542,72 +463,72 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     boxplot_width = 0.25
     chart_dets = []
-    # get all fld_chart_by_vals where an x_val but OK to be missing a measure 
+    # get all fld_series_vals where an x_val but OK to be missing a measure 
         # (box will be missing in series)
     xaxis_dets = [] # (0, u"''", u"''")]
     max_lbl_len = 0
-    sql_dic = {mg.FLD_CHART_BY: objqtr(fld_chart_by), 
-               mg.FLD_GROUP_BY: objqtr(fld_gp_by), 
-               u"fld_measure": objqtr(fld_measure),
+    sql_dic = {u"var_role_cat": objqtr(var_role_cat), 
+               u"var_role_series": objqtr(var_role_series), 
+               u"var_role_desc": objqtr(var_role_desc),
                u"where_tbl_filt": where_tbl_filt, 
                u"and_tbl_filt": and_tbl_filt, 
                u"tbl": getdata.tblname_qtr(dbe, tbl)}
-    if fld_chart_by: # must have gp_by as well but measure optional
-        SQL_fld_chart_by_vals = u"""SELECT %(fld_chart_by)s 
+    if var_role_series: # must have gp_by as well but measure optional
+        SQL_fld_chart_by_vals = u"""SELECT %(var_role_series)s 
             FROM %(tbl)s 
-            WHERE %(fld_gp_by)s IS NOT NULL %(and_tbl_filt)s 
-            GROUP BY %(fld_chart_by)s""" % sql_dic
+            WHERE %(var_role_cat)s IS NOT NULL %(and_tbl_filt)s 
+            GROUP BY %(var_role_series)s""" % sql_dic
         if debug: print(SQL_fld_chart_by_vals)
         cur.execute(SQL_fld_chart_by_vals)
-        fld_chart_by_vals = [x[0] for x in cur.fetchall()]
-        if len(fld_chart_by_vals) > mg.CHART_MAX_SERIES_IN_BOXPLOT:
+        fld_series_vals = [x[0] for x in cur.fetchall()]
+        if len(fld_series_vals) > mg.CHART_MAX_SERIES_IN_BOXPLOT:
             raise my_exceptions.TooManySeriesInChart( 
                                     max_items=mg.CHART_MAX_SERIES_IN_BOXPLOT)
     else:
-        fld_chart_by_vals = [None,] # Got to have something to loop through ;-)
+        fld_series_vals = [None,] # Got to have something to loop through ;-)
     ymin = None # init
     ymax = 0
     first_chart_by = True
     any_missing_boxes = False
     any_displayed_boxes = False
-    for fld_chart_by_val in fld_chart_by_vals: # e.g. "Boys" and "Girls"
-        # set up series (chart by) filter and 
-        if fld_chart_by:
+    for fld_series_val in fld_series_vals: # e.g. "Boys" and "Girls"
+        # set up series filter and 
+        if var_role_series:
             filt = getdata.make_fld_val_clause(dbe, dd.flds, 
-                                               fldname=fld_chart_by, 
-                                               val=fld_chart_by_val)
-            and_fld_chart_by_filt = u" AND %s" % filt
+                                               fldname=var_role_series, 
+                                               val=fld_series_val)
+            and_var_series_filt = u" AND %s" % filt
             if where_tbl_filt:
                 comb_filt = u"%s AND %s" % (where_tbl_filt , filt)
             else:
                 comb_filt = u"WHERE %s" % filt
             sql_dic[u"comb_filt"] = comb_filt
-            SQL_gp_vals = u"""SELECT %(fld_gp_by)s 
+            SQL_cat_vals = u"""SELECT %(var_role_cat)s 
                 FROM %(tbl)s 
                 %(comb_filt)s 
-                GROUP BY %(fld_gp_by)s""" % sql_dic
-            legend_lbl = fld_chart_by_lbls.get(fld_chart_by_val, 
-                                               unicode(fld_chart_by_val))
+                GROUP BY %(var_role_cat)s""" % sql_dic
+            legend_lbl = var_role_series_lbls.get(fld_series_val, 
+                                                  unicode(fld_series_val))
         else:
-            and_fld_chart_by_filt = u""
-            SQL_gp_vals = u"""SELECT %(fld_gp_by)s 
+            and_var_series_filt = u""
+            SQL_cat_vals = u"""SELECT %(var_role_cat)s 
                 FROM %(tbl)s 
                 %(where_tbl_filt)s 
-                GROUP BY %(fld_gp_by)s""" % sql_dic
-            legend_lbl = fld_gp_by_name
-        sql_dic[u"and_fld_chart_by_filt"] = and_fld_chart_by_filt
-        if debug: print(SQL_gp_vals)
-        cur.execute(SQL_gp_vals)
-        gp_by_vals = [x[0] for x in cur.fetchall()]
-        if len(gp_by_vals) > mg.CHART_MAX_BOXPLOTS_IN_SERIES:
-            raise my_exceptions.TooManyBoxplotsInSeries(fld_gp_by_name, 
+                GROUP BY %(var_role_cat)s""" % sql_dic
+            legend_lbl = var_role_cat_name
+        sql_dic[u"and_var_series_filt"] = and_var_series_filt
+        if debug: print(SQL_cat_vals)
+        cur.execute(SQL_cat_vals)
+        cat_vals = [x[0] for x in cur.fetchall()]
+        if len(cat_vals) > mg.CHART_MAX_BOXPLOTS_IN_SERIES:
+            raise my_exceptions.TooManyBoxplotsInSeries(var_role_cat_name, 
                                 max_items=mg.CHART_MAX_BOXPLOTS_IN_SERIES)            
         # time to get the boxplot information for the series
         boxdet_series = []
-        for i, gp_val in enumerate(gp_by_vals, 1): # e.g. "Mt Albert Grammar", 
+        for i, cat_val in enumerate(cat_vals, 1): # e.g. "Mt Albert Grammar", 
                 # "Epsom Girls Grammar", "Hebron Christian College", ...
             if first_chart_by: # build xaxis_dets once
-                x_val_lbl = fld_gp_by_lbls.get(gp_val, unicode(gp_val))
+                x_val_lbl = var_role_cat_lbls.get(cat_val, unicode(cat_val))
                 (x_val_split_lbl, 
                  actual_lbl_width) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
                                                         max_width=17, dojo=True,
@@ -615,17 +536,17 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, fld_measure, fld_measure_name,
                 if actual_lbl_width > max_lbl_len:
                     max_lbl_len = actual_lbl_width
                 xaxis_dets.append((i, x_val_lbl, x_val_split_lbl))
-            # Now see if any measure values with series_by_val and gp_val
+            # Now see if any measure values with series_by_val and cat_val
             # Apply tbl_filt, series_by filt, and gp_by filt
-            gp_by_filt = getdata.make_fld_val_clause(dbe, dd.flds, 
-                                                     fldname=fld_gp_by, 
-                                                     val=gp_val)
-            sql_dic[u"gp_by_filt"] = gp_by_filt
-            SQL_measure_vals = u"""SELECT %(fld_measure)s
+            cat_filt = getdata.make_fld_val_clause(dbe, dd.flds, 
+                                                     fldname=var_role_cat, 
+                                                     val=cat_val)
+            sql_dic[u"cat_filt"] = cat_filt
+            SQL_measure_vals = u"""SELECT %(var_role_desc)s
                 FROM %(tbl)s
-                WHERE %(gp_by_filt)s
-                %(and_fld_chart_by_filt)s
-                ORDER BY %(fld_measure)s""" % sql_dic
+                WHERE %(cat_filt)s
+                %(and_var_series_filt)s
+                ORDER BY %(var_role_desc)s""" % sql_dic
             cur.execute(SQL_measure_vals)
             measure_vals = [x[0] for x in cur.fetchall()]
             median = round(np.median(measure_vals),2)
@@ -726,13 +647,13 @@ def get_uwhisker(raw_uwhisker, ubox, measure_vals):
         uwhisker = ubox
     return uwhisker
 
-def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, fld_measure,
-                   fld_chart_by, fld_chart_by_name, fld_chart_by_lbls):
+def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin, var_role_charts, 
+                   var_role_charts_name, var_role_charts_lbls):
     """
     Make separate db call each histogram. Getting all values anyway and don't 
         want to store in memory.
     Return list of dicts - one for each histogram. Each contains: 
-        CHART_XAXIS_DETS, CHART_Y_VALS, CHART_MINVAL, CHART_MAXVAL, 
+        CHARTS_XAXIS_DETS, CHARTS_SERIES_Y_VALS, CHART_MINVAL, CHART_MAXVAL, 
         CHART_BIN_LBLS.
     xaxis_dets -- [(1, u""), (2: u"", ...]
     y_vals -- [0.091, ...]
@@ -741,41 +662,42 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, fld_measure,
     debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    sql_dic = {mg.FLD_CHART_BY: objqtr(fld_chart_by), 
-               u"fld_measure": objqtr(fld_measure),
+    sql_dic = {u"var_role_charts": objqtr(var_role_charts), 
+               u"var_role_bin": objqtr(var_role_bin),
                u"and_tbl_filt": and_tbl_filt, 
                u"tbl": getdata.tblname_qtr(dbe, tbl)}
-    if fld_chart_by:
-        SQL_fld_chart_by_vals = u"""SELECT %(fld_chart_by)s 
+    if var_role_charts:
+        SQL_fld_chart_by_vals = u"""SELECT %(var_role_charts)s 
             FROM %(tbl)s 
-            WHERE %(fld_measure)s IS NOT NULL %(and_tbl_filt)s 
-            GROUP BY %(fld_chart_by)s""" % sql_dic
+            WHERE %(var_role_bin)s IS NOT NULL %(and_tbl_filt)s 
+            GROUP BY %(var_role_charts)s""" % sql_dic
         cur.execute(SQL_fld_chart_by_vals)
         fld_chart_by_vals = [x[0] for x in cur.fetchall()]
         if len(fld_chart_by_vals) > mg.CHART_MAX_CHARTS_IN_SET:
-            raise my_exceptions.TooManyChartsInSeries(fld_chart_by_name, 
+            raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
                                            max_items=mg.CHART_MAX_CHARTS_IN_SET)
     else:
         fld_chart_by_vals = [None,] # Got to have something to loop through ;-)
     histo_dets = []
     for fld_chart_by_val in fld_chart_by_vals:
-        if fld_chart_by:
+        if var_role_charts:
             filt = getdata.make_fld_val_clause(dbe, flds, 
-                                               fldname=fld_chart_by, 
+                                               fldname=var_role_charts, 
                                                val=fld_chart_by_val)
             and_fld_chart_by_filt = u" and %s" % filt
-            fld_chart_by_val_lbl = fld_chart_by_lbls.get(fld_chart_by_val, 
+            fld_chart_by_val_lbl = var_role_charts_lbls.get(fld_chart_by_val, 
                                                          fld_chart_by_val)
-            chart_by_lbl = u"%s: %s" % (fld_chart_by_name, fld_chart_by_val_lbl)
+            chart_by_lbl = u"%s: %s" % (var_role_charts_name, 
+                                        fld_chart_by_val_lbl)
         else:
             and_fld_chart_by_filt = u""
-            chart_by_lbl = mg.CHART_LBL_SINGLE_CHART
+            chart_by_lbl = mg.CHARTS_CHART_LBL_SINGLE_CHART
         sql_dic[u"and_fld_chart_by_filt"] = and_fld_chart_by_filt
-        SQL_get_vals = u"""SELECT %(fld_measure)s 
+        SQL_get_vals = u"""SELECT %(var_role_bin)s 
             FROM %(tbl)s
-            WHERE %(fld_measure)s IS NOT NULL
+            WHERE %(var_role_bin)s IS NOT NULL
                 %(and_tbl_filt)s %(and_fld_chart_by_filt)s
-            ORDER BY %(fld_measure)s""" % sql_dic
+            ORDER BY %(var_role_bin)s""" % sql_dic
         if debug: print(SQL_get_vals)
         cur.execute(SQL_get_vals)
         vals = [x[0] for x in cur.fetchall()]
@@ -815,9 +737,9 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, fld_measure,
         norm_multiplier = sum_yval/(1.0*sum_norm_ys)
         norm_ys = [x*norm_multiplier for x in norm_ys]
         if debug: print(minval, maxval, xaxis_dets, y_vals, bin_lbls)
-        histo_dic = {mg.CHART_CHART_BY_LBL: chart_by_lbl,
-                     mg.CHART_XAXIS_DETS: xaxis_dets,
-                     mg.CHART_Y_VALS: y_vals,
+        histo_dic = {mg.CHARTS_CHART_BY_LBL: chart_by_lbl,
+                     mg.CHARTS_XAXIS_DETS: xaxis_dets,
+                     mg.CHARTS_SERIES_Y_VALS: y_vals,
                      mg.CHART_NORMAL_Y_VALS: norm_ys,
                      mg.CHART_MINVAL: minval,
                      mg.CHART_MAXVAL: maxval,
@@ -825,30 +747,30 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, fld_measure,
         histo_dets.append(histo_dic)
     return histo_dets
 
-def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds, fld_x_axis, fld_y_axis, 
-                         fld_chart_by, fld_chart_by_name, fld_chart_by_lbls, 
-                         unique=True):
+def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_x_axis, 
+                         var_role_y_axis, var_role_charts, var_role_charts_name, 
+                         var_role_charts_lbls, unique=True):
     """
     unique -- unique x-y pairs only
     """
     debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    sql_dic = {mg.FLD_CHART_BY: objqtr(fld_chart_by),
-               u"fld_x_axis": objqtr(fld_x_axis),
-               u"fld_y_axis": objqtr(fld_y_axis),
+    sql_dic = {u"var_role_charts": objqtr(var_role_charts),
+               u"fld_x_axis": objqtr(var_role_x_axis),
+               u"fld_y_axis": objqtr(var_role_y_axis),
                u"tbl": getdata.tblname_qtr(dbe, tbl), 
                u"and_tbl_filt": and_tbl_filt}
-    if fld_chart_by:
-        SQL_fld_chart_by_vals = u"""SELECT %(fld_chart_by)s 
+    if var_role_charts:
+        SQL_fld_chart_by_vals = u"""SELECT %(var_role_charts)s 
             FROM %(tbl)s 
             WHERE %(fld_x_axis)s IS NOT NULL AND %(fld_y_axis)s IS NOT NULL  
             %(and_tbl_filt)s 
-            GROUP BY %(fld_chart_by)s""" % sql_dic
+            GROUP BY %(var_role_charts)s""" % sql_dic
         cur.execute(SQL_fld_chart_by_vals)
         fld_chart_by_vals = [x[0] for x in cur.fetchall()]
         if len(fld_chart_by_vals) > mg.CHART_MAX_CHARTS_IN_SET:
-            raise my_exceptions.TooManyChartsInSeries(fld_chart_by_name, 
+            raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
                                            max_items=mg.CHART_MAX_CHARTS_IN_SET)
         elif len(fld_chart_by_vals) == 0:
             raise my_exceptions.TooFewValsForDisplay
@@ -856,17 +778,18 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds, fld_x_axis, fld_y_axis,
         fld_chart_by_vals = [None,] # Got to have something to loop through ;-)
     scatterplot_dets = []
     for fld_chart_by_val in fld_chart_by_vals:
-        if fld_chart_by:
+        if var_role_charts:
             filt = getdata.make_fld_val_clause(dbe, flds, 
-                                               fldname=fld_chart_by, 
+                                               fldname=var_role_charts, 
                                                val=fld_chart_by_val)
             and_fld_chart_by_filt = u" and %s" % filt
-            fld_chart_by_val_lbl = fld_chart_by_lbls.get(fld_chart_by_val, 
+            fld_chart_by_val_lbl = var_role_charts_lbls.get(fld_chart_by_val, 
                                                          fld_chart_by_val)
-            chart_by_lbl = u"%s: %s" % (fld_chart_by_name, fld_chart_by_val_lbl)
+            chart_by_lbl = u"%s: %s" % (var_role_charts_name, 
+                                        fld_chart_by_val_lbl)
         else:
             and_fld_chart_by_filt = u""
-            chart_by_lbl = mg.CHART_LBL_SINGLE_CHART
+            chart_by_lbl = mg.CHARTS_CHART_LBL_SINGLE_CHART
         sql_dic[u"and_fld_chart_by_filt"] = and_fld_chart_by_filt
         if unique:
             SQL_get_pairs = u"""SELECT %(fld_x_axis)s, %(fld_y_axis)s
@@ -886,13 +809,13 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds, fld_x_axis, fld_y_axis,
         if debug: print(SQL_get_pairs)
         cur.execute(SQL_get_pairs)
         data_tups = cur.fetchall()
-        if not fld_chart_by:
+        if not var_role_charts:
             if not data_tups:
                 raise my_exceptions.TooFewValsForDisplay
         lst_x = [x[0] for x in data_tups]
         lst_y = [x[1] for x in data_tups]
         if debug: print(chart_by_lbl)
-        scatterplot_dic = {mg.CHART_CHART_BY_LBL: chart_by_lbl,
+        scatterplot_dic = {mg.CHARTS_CHART_BY_LBL: chart_by_lbl,
                            mg.LIST_X: lst_x, mg.LIST_Y: lst_y,
                            mg.DATA_TUPS: data_tups,}
         scatterplot_dets.append(scatterplot_dic)
@@ -1112,44 +1035,33 @@ def get_left_axis_shift(xaxis_dets):
     if debug: print(left_axis_lbl_shift)
     return left_axis_lbl_shift
 
-def is_multichart(chart_dets):
-    if len(chart_dets) > 1:
-        multichart = True
-    elif len(chart_dets) == 1:
-        # might be only one field group value - still needs indiv chart title
-        multichart = (chart_dets[0][mg.CHART_CHART_BY_LBL] !=
-                      mg.CHART_LBL_SINGLE_CHART) 
-    else:
-        multichart = False
-    return multichart
-
-def get_ymax(series_dets):
+def get_ymax(chart_output_dets):
     all_y_vals = []
-    for series_det in series_dets:
-        all_y_vals += series_det[mg.CHART_Y_VALS]
+    for chart_dets in chart_output_dets[mg.CHARTS_CHART_DETS]:
+        for series_det in chart_dets[mg.CHARTS_SERIES_DETS]:
+            all_y_vals += series_det[mg.CHARTS_SERIES_Y_VALS]
     max_all_y_vals = max(all_y_vals)
     ymax = max_all_y_vals*1.1
     return ymax
 
-def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets, 
+def simple_barchart_output(titles, subtitles, y_title, chart_output_dets, 
                            rotate, css_idx, css_fil, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
-    chart_dets --         
-        
-    If chart by, multiple xaxis_dets so we can have sort order by freq etc 
-        which will vary by chart.
-    Each series (possibly only one) has a chart lbl (possibly not used), a
-        legend lbl, and y vals.
-    chart_dets = {mg.CHART_MAX_LBL_LEN: ...,
-                  mg.CHART_SERIES_DETS: see below}
-                  series_dets = [{mg.CHART_LBL: ...,
-                                  mg.CHART_LEGEND_LBL: ..., 
-                                  mg.CHART_MULTICHART: ...,
-                                  mg.CHART_XAXIS_DETS: ...,
-                                  mg.CHART_Y_VALS: ...,
-                                  mg.CHART_TOOLTIPS: ....}]
+    chart_output_dets -- {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+                         mg.CHARTS_CHART_DETS: chart_dets}
+    chart_dets = [        
+        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or a dummy title if only one chart because not displayed
+         mg.CHARTS_SERIES_DETS: series_dets},
+        {mg.CHARTS_CHART_LBL: u"Gender: Female",
+         mg.CHARTS_SERIES_DETS: series_dets}, ...
+    ]
+    series_dets = {mg.CHARTS_SERIES_LEGEND_LBL: u"Italy", # if only one series, use cat label e.g. Age Group
+                   mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
+                   mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
+                   mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
+                                               u"28<br>14%", u"94<br>47%"]}
     var_numeric -- needs to be quoted or not.
     xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
                    (5, "65+")]
@@ -1161,12 +1073,12 @@ def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
-    multichart = chart_dets[mg.CHART_SERIES_DETS][0][mg.CHART_MULTICHART]
+    multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
     # compensate for loss of bar display height
-    axis_lbl_drop = 30 if x_title else 10
+    axis_lbl_drop = 10
     if multichart:
         axis_lbl_drop = axis_lbl_drop*0.8
-    max_lbl_len = chart_dets[mg.CHART_MAX_LBL_LEN]
+    max_lbl_len = chart_output_dets[mg.CHARTS_MAX_LBL_LEN]
     height = 310
     if rotate:
         height += AVG_CHAR_WIDTH_PXLS*max_lbl_len 
@@ -1193,39 +1105,45 @@ def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
                                     override_first_highlight)
     n_bars_in_cluster = 1
     # always the same number, irrespective of order
-    n_clusters = len(chart_dets[mg.CHART_SERIES_DETS][0][mg.CHART_XAXIS_DETS])
+    n_clusters = len(chart_output_dets[mg.CHARTS_CHART_DETS][0]\
+                     [mg.CHARTS_SERIES_DETS][0][mg.CHARTS_XAXIS_DETS])
     max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
     (width, xgap, xfontsize, 
      minor_ticks, 
      left_axis_lbl_shift) = get_barchart_sizings(n_clusters, n_bars_in_cluster, 
                                                  max_lbl_width)
-    ymax = get_ymax(chart_dets[mg.CHART_SERIES_DETS])
+    ymax = get_ymax(chart_output_dets)
     if multichart:
         width = width*0.8
         xgap = xgap*0.8
         xfontsize = xfontsize*0.8
         left_axis_lbl_shift = left_axis_lbl_shift + 20
-    for (chart_idx, 
-         series_det) in enumerate(chart_dets[mg.CHART_SERIES_DETS]):
-        xaxis_dets = series_det[mg.CHART_XAXIS_DETS]
-        lbl_dets = get_lbl_dets(xaxis_dets)
-        xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
-        pagebreak = u"" if chart_idx % 2 == 0 \
-                        else u"page-break-after: always;"
+    # loop through charts
+    chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
+    for chart_idx, chart_det in enumerate(chart_dets):
         if multichart:
-            indiv_bar_title = "<p><b>%s</b></p>" % series_det[mg.CHART_LBL]
+            indiv_bar_title = ("<p><b>%s</b></p>" % 
+                               chart_det[mg.CHARTS_CHART_LBL])
         else:
             indiv_bar_title = u""
+        # only one series per chart by design
+        series_det = chart_det[mg.CHARTS_SERIES_DETS][0]
+        xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
+        lbl_dets = get_lbl_dets(xaxis_dets)
+        xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
+        pagebreak = (u"" if chart_idx % 2 == 0
+                     else u"page-break-after: always;")
         # build js for every series
         series_js_list = []
         series_names_list = []
         series_names_list.append(u"series%s" % chart_idx)
         series_js_list.append(u"var series%s = new Array();" % chart_idx)
         series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
-                             % (chart_idx, series_det[mg.CHART_LEGEND_LBL]))
+                        % (chart_idx, series_det[mg.CHARTS_SERIES_LEGEND_LBL]))
         series_js_list.append(u"series%s[\"yVals\"] = %s;" % 
-                              (chart_idx, series_det[mg.CHART_Y_VALS]))
-        tooltips = u"['" + "', '".join(series_det[mg.CHART_TOOLTIPS]) + u"']"
+                              (chart_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
+        tooltips = (u"['" + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
+                    + u"']")
         series_js_list.append(u"series%s[\"options\"] = "
             u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\", "
             u"yLbls: %s};" % (chart_idx, stroke_width, fill, tooltips))
@@ -1234,6 +1152,187 @@ def simple_barchart_output(titles, subtitles, x_title, y_title, chart_dets,
         series_js += (u"\n    var series = new Array(%s);"
                       % u", ".join(series_names_list))
         series_js = series_js.lstrip()
+        html.append(u"""
+<script type="text/javascript">
+
+var sofaHlRenumber%(chart_idx)s = function(colour){
+    var hlColour;
+    switch (colour.toHex()){
+        %(colour_cases)s
+        default:
+            hlColour = hl(colour.toHex());
+            break;
+    }
+    return new dojox.color.Color(hlColour);
+}
+
+makechartRenumber%(chart_idx)s = function(){
+    %(series_js)s
+    var chartconf = new Array();
+    chartconf["xaxisLabels"] = %(xaxis_lbls)s;
+    chartconf["xgap"] = %(xgap)s;
+    chartconf["xfontsize"] = %(xfontsize)s;
+    chartconf["sofaHl"] = sofaHlRenumber%(chart_idx)s;
+    chartconf["gridlineWidth"] = %(gridline_width)s;
+    chartconf["gridBg"] = \"%(grid_bg)s\";
+    chartconf["minorTicks"] = %(minor_ticks)s;
+    chartconf["axisLabelFontColour"] = \"%(axis_lbl_font_colour)s\";
+    chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
+    chartconf["xTitle"] = \"\";
+    chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
+    chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
+    chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
+    chartconf["yTitle"] = \"%(y_title)s\";
+    chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
+    chartconf["connectorStyle"] = \"%(connector_style)s\";
+    chartconf["ymax"] = %(ymax)s;
+    %(outer_bg)s
+    makeBarChart("mychartRenumber%(chart_idx)s", series, chartconf);
+}
+</script>
+
+<div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
+%(indiv_bar_title)s
+<div id="mychartRenumber%(chart_idx)s" 
+    style="width: %(width)spx; height: %(height)spx;">
+    </div>
+<div id="legendMychartRenumber%(chart_idx)s">
+    </div>
+</div>""" % {u"colour_cases": colour_cases,
+             u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
+             u"width": width, u"height": height, u"ymax": ymax, u"xgap": xgap, 
+             u"xfontsize": xfontsize, u"indiv_bar_title": indiv_bar_title,
+             u"axis_lbl_font_colour": axis_lbl_font_colour,
+             u"major_gridline_colour": major_gridline_colour,
+             u"gridline_width": gridline_width, u"axis_lbl_drop": axis_lbl_drop,
+             u"axis_lbl_rotate": axis_lbl_rotate,
+             u"left_axis_lbl_shift": left_axis_lbl_shift,
+             u"y_title": y_title, 
+             u"tooltip_border_colour": tooltip_border_colour,
+             u"connector_style": connector_style, 
+             u"outer_bg": outer_bg,  u"pagebreak": pagebreak,
+             u"chart_idx": u"%02d" % chart_idx,
+             u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
+    """
+    zero padding chart_idx so that when we search and replace, and go to 
+        replace Renumber1 with Renumber15, we don't change Renumber16 to 
+        Renumber156 ;-)
+    """
+    html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
+    if page_break_after:
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
+    return u"".join(html)
+
+def clustered_barchart_output(titles, subtitles, x_title, y_title, 
+                              chart_output_dets, rotate, css_idx, css_fil, 
+                              page_break_after):
+    """
+    titles -- list of title lines correct styles
+    subtitles -- list of subtitle lines
+    chart_output_dets -- {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+                         mg.CHARTS_CHART_DETS: chart_dets}
+    chart_dets = [        
+        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or a dummy title if only one chart because not displayed
+         mg.CHARTS_SERIES_DETS: series_dets},
+        {mg.CHARTS_CHART_LBL: u"Gender: Female",
+         mg.CHARTS_SERIES_DETS: series_dets}, ...
+    ]
+    series_dets = {mg.CHARTS_SERIES_LEGEND_LBL: u"Italy", # if only one series, use cat label e.g. Age Group
+                   mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
+                   mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
+                   mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
+                                               u"28<br>14%", u"94<br>47%"]}
+    var_numeric -- needs to be quoted or not.
+    xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
+                   (5, "65+")]
+    css_idx -- css index so can apply appropriate css styles
+    """
+    debug = False
+    axis_lbl_rotate = -90 if rotate else 0
+    html = []
+    multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
+                                                      css_idx)
+    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    html.append(title_dets_html)
+    axis_lbl_drop = 30 if x_title else 10 # compensate for loss of bar display height
+    if multichart:
+        axis_lbl_drop = axis_lbl_drop*0.8
+    max_lbl_len = chart_output_dets[mg.CHARTS_MAX_LBL_LEN]
+    height = 310
+    if rotate:
+        height += AVG_CHAR_WIDTH_PXLS*max_lbl_len 
+    height += axis_lbl_drop  # compensate for loss of bar display height
+    """
+    For each series, set colour details.
+    For the collection of series as a whole, set the highlight mapping from 
+        each series colour.
+    From dojox.charting.action2d.Highlight but with extraneous % removed
+    """
+    (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
+            gridline_width, stroke_width, tooltip_border_colour, 
+            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+    outer_bg = (u"" if outer_bg == u""
+                else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
+    chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
+    # following details are same across all charts so look at first
+    chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
+    n_bars_in_cluster = len(chart0_series_dets)
+    n_clusters = len(chart0_series_dets[0][mg.CHARTS_XAXIS_DETS])
+    max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
+    (width, xgap, xfontsize, 
+     minor_ticks, 
+     left_axis_lbl_shift) = get_barchart_sizings(n_clusters, n_bars_in_cluster, 
+                                                 max_lbl_width)
+    ymax = get_ymax(chart_output_dets)
+    if multichart:
+        width = width*0.8
+        xgap = xgap*0.8
+        xfontsize = xfontsize*0.8
+        left_axis_lbl_shift = left_axis_lbl_shift + 20
+    # loop through charts
+    for chart_idx, chart_det in enumerate(chart_dets):
+        series_dets = chart_det[mg.CHARTS_SERIES_DETS]
+        if debug: print(series_dets)
+        multiseries = len(series_dets) > 1
+        if multichart:
+            indiv_bar_title = ("<p><b>%s</b></p>" % 
+                               chart_det[mg.CHARTS_CHART_LBL])
+        else:
+            indiv_bar_title = u""
+        single_colour = not multiseries
+        override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
+                                    and single_colour)
+        colour_cases = setup_highlights(colour_mappings, single_colour, 
+                                        override_first_highlight)
+        series_js_list = []
+        series_names_list = []
+        for series_idx, series_det in enumerate(series_dets):
+            xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
+            lbl_dets = get_lbl_dets(xaxis_dets)
+            xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
+            series_names_list.append(u"series%s" % series_idx)
+            series_js_list.append(u"var series%s = new Array();" % series_idx)
+            series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
+                      % (series_idx, series_det[mg.CHARTS_SERIES_LEGEND_LBL]))
+            series_js_list.append(u"series%s[\"yVals\"] = %s;" 
+                          % (series_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
+            try:
+                fill = colour_mappings[series_idx][0]
+            except IndexError:
+                fill = mg.DOJO_COLOURS[series_idx]
+            tooltips = (u"['" 
+                        + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
+                        + u"']")
+            series_js_list.append(u"series%s[\"options\"] = "
+                u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\", "
+                u"yLbls: %s};" % (series_idx, stroke_width, fill, tooltips))
+            series_js_list.append(u"")
+            series_js = u"\n    ".join(series_js_list)
+            new_array = u", ".join(series_names_list)
+            series_js += u"\n    var series = new Array(%s);" % new_array
+            series_js = series_js.lstrip()
         html.append(u"""
 <script type="text/javascript">
 
@@ -1273,7 +1372,7 @@ makechartRenumber%(chart_idx)s = function(){
 }
 </script>
 
-<div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
+<div class="screen-float-only" style="margin-right: 10px; ">
 %(indiv_bar_title)s
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx;">
@@ -1281,167 +1380,8 @@ makechartRenumber%(chart_idx)s = function(){
 <div id="legendMychartRenumber%(chart_idx)s">
     </div>
 </div>""" % {u"colour_cases": colour_cases,
-               u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
-               u"width": width, u"height": height, u"ymax": ymax, u"xgap": xgap, 
-               u"xfontsize": xfontsize, u"indiv_bar_title": indiv_bar_title,
-               u"axis_lbl_font_colour": axis_lbl_font_colour,
-               u"major_gridline_colour": major_gridline_colour,
-               u"gridline_width": gridline_width, 
-               u"axis_lbl_drop": axis_lbl_drop,
-               u"axis_lbl_rotate": axis_lbl_rotate,
-               u"left_axis_lbl_shift": left_axis_lbl_shift,
-               u"x_title": x_title, u"y_title": y_title,
-               u"tooltip_border_colour": tooltip_border_colour,
-               u"connector_style": connector_style, 
-               u"outer_bg": outer_bg,  u"pagebreak": pagebreak,
-               u"chart_idx": u"%02d" % chart_idx,
-               u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
-    """
-    zero padding chart_idx so that when we search and replace, and go to 
-        replace Renumber1 with Renumber15, we don't change Renumber16 to 
-        Renumber156 ;-)
-    """
-    html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
-    if page_break_after:
-        html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
-    return u"".join(html)
-
-def clustered_barchart_output(titles, subtitles, x_title, y_title, chart_dets, 
-                              rotate, css_idx, css_fil, page_break_after):
-    """
-    titles -- list of title lines correct styles
-    subtitles -- list of subtitle lines
-    chart_dets --         
-        
-    Even though one xaxis_dets per series, only one is needed for a clustered
-        bar chart ad it will fit all series.
-    Each series (possibly only one) has a chart lbl (possibly not used), a
-        legend lbl, xaxis_dets, and y vals.
-    chart_dets = {mg.CHART_MAX_LBL_LEN: ...,
-                  mg.CHART_SERIES_DETS: see below}
-                  series_dets = [{mg.CHART_LBL: ...,
-                                  mg.CHART_LEGEND_LBL: ..., 
-                                  mg.CHART_MULTICHART: ...,
-                                  mg.CHART_XAXIS_DETS: ...,
-                                  mg.CHART_Y_VALS: ...,
-                                  mg.CHART_TOOLTIPS: ....}]
-    var_numeric -- needs to be quoted or not.
-    xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
-                   (5, "65+")]
-    css_idx -- css index so can apply appropriate css styles
-    """
-    debug = False
-    axis_lbl_rotate = -90 if rotate else 0
-    html = []
-    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                      css_idx)
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    html.append(title_dets_html)
-    axis_lbl_drop = 30 if x_title else 10 # compensate for loss of bar display height
-    max_lbl_len = chart_dets[mg.CHART_MAX_LBL_LEN]
-    height = 310
-    if rotate:
-        height += AVG_CHAR_WIDTH_PXLS*max_lbl_len 
-    height += axis_lbl_drop  # compensate for loss of bar display height
-    """
-    For each series, set colour details.
-    For the collection of series as a whole, set the highlight mapping from 
-        each series colour.
-    From dojox.charting.action2d.Highlight but with extraneous % removed
-    """
-    (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
-            gridline_width, stroke_width, tooltip_border_colour, 
-            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
-    outer_bg = u"" if outer_bg == u"" \
-        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
-    xaxis_dets = chart_dets[mg.CHART_SERIES_DETS][0][mg.CHART_XAXIS_DETS]
-    lbl_dets = get_lbl_dets(xaxis_dets)
-    xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
-    series_dets = chart_dets[mg.CHART_SERIES_DETS]
-    n_bars_in_cluster = len(series_dets)
-    n_clusters = len(xaxis_dets)
-    max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
-    (width, xgap, xfontsize, 
-     minor_ticks, 
-     left_axis_lbl_shift) = get_barchart_sizings(n_clusters, n_bars_in_cluster, 
-                                                 max_lbl_width)
-    ymax = get_ymax(chart_dets[mg.CHART_SERIES_DETS])
-    single_colour = (len(series_dets) == 1)
-    override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
-                                and single_colour)
-    colour_cases = setup_highlights(colour_mappings, single_colour, 
-                                    override_first_highlight)
-    series_js_list = []
-    series_names_list = []
-    if debug: print(series_dets)
-    for chart_idx, series_det in enumerate(series_dets):
-        series_names_list.append(u"series%s" % chart_idx)
-        series_js_list.append(u"var series%s = new Array();" % chart_idx)
-        series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
-                              % (chart_idx, series_det[mg.CHART_LEGEND_LBL]))
-        series_js_list.append(u"series%s[\"yVals\"] = %s;" 
-                              % (chart_idx, series_det[mg.CHART_Y_VALS]))
-        try:
-            fill = colour_mappings[chart_idx][0]
-        except IndexError:
-            fill = mg.DOJO_COLOURS[chart_idx]
-        tooltips = u"['" + "', '".join(series_det[mg.CHART_TOOLTIPS]) + u"']"
-        series_js_list.append(u"series%s[\"options\"] = "
-            u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\", "
-            u"yLbls: %s};" % (chart_idx, stroke_width, fill, tooltips))
-        series_js_list.append(u"")
-    series_js = u"\n    ".join(series_js_list)
-    new_array = u", ".join(series_names_list)
-    series_js += u"\n    var series = new Array(%s);" % new_array
-    series_js = series_js.lstrip()
-    html.append(u"""
-<script type="text/javascript">
-
-var sofaHlRenumber00 = function(colour){
-    var hlColour;
-    switch (colour.toHex()){
-        %(colour_cases)s
-        default:
-            hlColour = hl(colour.toHex());
-            break;
-    }
-    return new dojox.color.Color(hlColour);
-}
-
-makechartRenumber00 = function(){
-    %(series_js)s
-    var chartconf = new Array();
-    chartconf["xaxisLabels"] = %(xaxis_lbls)s;
-    chartconf["xgap"] = %(xgap)s;
-    chartconf["xfontsize"] = %(xfontsize)s;
-    chartconf["sofaHl"] = sofaHlRenumber00;
-    chartconf["gridlineWidth"] = %(gridline_width)s;
-    chartconf["gridBg"] = \"%(grid_bg)s\";
-    chartconf["minorTicks"] = %(minor_ticks)s;
-    chartconf["axisLabelFontColour"] = \"%(axis_lbl_font_colour)s\";
-    chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
-    chartconf["xTitle"] = \"%(x_title)s\";
-    chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
-    chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
-    chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
-    chartconf["yTitle"] = \"%(y_title)s\";
-    chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
-    chartconf["connectorStyle"] = \"%(connector_style)s\";
-    chartconf["ymax"] = %(ymax)s;
-    %(outer_bg)s
-    makeBarChart("mychartRenumber00", series, chartconf);
-}
-</script>
-
-<div class="screen-float-only" style="margin-right: 10px; ">
-<div id="mychartRenumber00" 
-    style="width: %(width)spx; height: %(height)spx;">
-    </div>
-<div id="legendMychartRenumber00">
-    </div>
-</div>""" % {u"colour_cases": colour_cases,
-             u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
+             u"series_js": series_js, u"xaxis_lbls": xaxis_lbls,
+             u"indiv_bar_title": indiv_bar_title, 
              u"width": width, u"height": height, u"xgap": xgap, u"ymax": ymax,
              u"xfontsize": xfontsize,
              u"axis_lbl_font_colour": axis_lbl_font_colour,
@@ -1454,35 +1394,35 @@ makechartRenumber00 = function(){
              u"tooltip_border_colour": tooltip_border_colour, 
              u"connector_style": connector_style, 
              u"outer_bg": outer_bg,
-             u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
-    html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
-    if page_break_after:
-        html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
+             u"grid_bg": grid_bg, u"minor_ticks": minor_ticks,
+             u"chart_idx": u"%02d" % chart_idx,})
+        html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
+        if page_break_after:
+            html.append(u"<br><hr><br><div class='%s'></div>" % 
+                        CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def piechart_output(titles, subtitles, chart_dets, css_fil, css_idx, 
+def piechart_output(titles, subtitles, chart_output_dets, css_fil, css_idx, 
                     page_break_after):
     """
-    chart_dets --         
-        
-    Even though one xaxis_dets per series, only one is needed for a clustered
-        bar chart ad it will fit all series.
-    Each series (possibly only one) has a chart lbl (possibly not used), a
-        legend lbl, xaxis_dets, and y vals.
-    chart_dets = {mg.CHART_MAX_LBL_LEN: ...,
-                  mg.CHART_SERIES_DETS: see below}
-                  series_dets = [{mg.CHART_LBL: ...,
-                                  mg.CHART_LEGEND_LBL: ..., 
-                                  mg.CHART_MULTICHART: ...,
-                                  mg.CHART_XAXIS_DETS: ...,
-                                  mg.CHART_Y_VALS: ...,
-                                  mg.CHART_TOOLTIPS: ....}]
+    chart_output_dets -- {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+                         mg.CHARTS_CHART_DETS: chart_dets}
+    chart_dets = [        
+        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or a dummy title if only one chart because not displayed
+         mg.CHARTS_SERIES_DETS: series_dets},
+        {mg.CHARTS_CHART_LBL: u"Gender: Female",
+         mg.CHARTS_SERIES_DETS: series_dets}, ...
+    ]
+    series_dets = {mg.CHARTS_SERIES_LEGEND_LBL: u"Italy", # if only one series, use cat label e.g. Age Group
+                   mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
+                   mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
+                   mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
+                                               u"28<br>14%", u"94<br>47%"]}
     """
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    series_dets = chart_dets[mg.CHART_SERIES_DETS]
+    series_dets = chart_dets[mg.CHARTS_SERIES_DETS]
     multichart = series_dets[0][mg.CHART_MULTICHART]
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
@@ -1512,9 +1452,9 @@ def piechart_output(titles, subtitles, chart_dets, css_fil, css_idx,
         pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
         slices_js_lst = []
         # build indiv slice details for this chart
-        y_vals = chart_det[mg.CHART_Y_VALS]
+        y_vals = chart_det[mg.CHARTS_SERIES_Y_VALS]
         tot_y_vals = sum(y_vals)
-        xy_dets = zip(chart_det[mg.CHART_XAXIS_DETS], y_vals)
+        xy_dets = zip(chart_det[mg.CHARTS_XAXIS_DETS], y_vals)
         for ((unused, val_lbl, split_lbl), y_val) in xy_dets:
             tiplbl = val_lbl.replace(u"\n", u" ") # line breaks mean no display
             tooltip = u"%s<br>%s (%s%%)" % (tiplbl, int(y_val), 
@@ -1524,7 +1464,7 @@ def piechart_output(titles, subtitles, chart_dets, css_fil, css_idx,
                     {u"y": y_val, u"text": split_lbl, u"tooltip": tooltip})
         slices_js = u"slices = [" + (u",\n" + u" "*4*4).join(slices_js_lst) + \
                     u"\n];"
-        indiv_pie_title = "<p><b>%s</b></p>" % chart_det[mg.CHART_LBL] \
+        indiv_pie_title = "<p><b>%s</b></p>" % chart_det[mg.CHARTS_CHART_LBL] \
                                                         if multichart else u""
         html.append(u"""
 <script type="text/javascript">
@@ -1640,14 +1580,14 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
         bar chart ad it will fit all series.
     Each series (possibly only one) has a chart lbl (possibly not used), a
         legend lbl, xaxis_dets, and y vals.
-    chart_dets = {mg.CHART_MAX_LBL_LEN: ...,
-                  mg.CHART_SERIES_DETS: see below}
-                  series_dets = [{mg.CHART_LBL: ...,
-                                  mg.CHART_LEGEND_LBL: ..., 
+    chart_dets = {mg.CHARTS_MAX_LBL_LEN: ...,
+                  mg.CHARTS_SERIES_DETS: see below}
+                  series_dets = [{mg.CHARTS_CHART_LBL: ...,
+                                  mg.CHARTS_SERIES_LEGEND_LBL: ..., 
                                   mg.CHART_MULTICHART: ...,
-                                  mg.CHART_XAXIS_DETS: ...,
-                                  mg.CHART_Y_VALS: ...,
-                                  mg.CHART_TOOLTIPS: ....}]
+                                  mg.CHARTS_XAXIS_DETS: ...,
+                                  mg.CHARTS_SERIES_Y_VALS: ...,
+                                  mg.CHARTS_SERIES_TOOLTIPS: ....}]
     css_idx -- css index so can apply    
     """
     debug = False
@@ -1656,16 +1596,16 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    series_dets = chart_dets[mg.CHART_SERIES_DETS]
+    series_dets = chart_dets[mg.CHARTS_SERIES_DETS]
     if debug: 
         print(series_dets)
     # For multiple, don't split label if the mid tick (clash with x axis label)
     # NB one xaxis for all lines
-    xaxis_dets = series_dets[0][mg.CHART_XAXIS_DETS]
+    xaxis_dets = series_dets[0][mg.CHARTS_XAXIS_DETS]
     lbl_dets = get_lbl_dets(xaxis_dets)
     xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
     axis_lbl_drop = 30 if x_title else -10
-    max_lbl_len = chart_dets[mg.CHART_MAX_LBL_LEN]
+    max_lbl_len = chart_dets[mg.CHARTS_MAX_LBL_LEN]
     height = 310
     if rotate:
         height += AVG_CHAR_WIDTH_PXLS*max_lbl_len 
@@ -1697,25 +1637,25 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
     series0 = series_dets[0]
     dummy_tooltips = [u"",]
     if inc_trend or inc_smooth:
-        raw_y_vals = series0[mg.CHART_Y_VALS]
+        raw_y_vals = series0[mg.CHARTS_SERIES_Y_VALS]
     if inc_trend:
         trend_y_vals = get_trend_y_vals(raw_y_vals)
         # repeat most of it
-        trend_series = {mg.CHART_LBL: series0[mg.CHART_LEGEND_LBL],
-                        mg.CHART_LEGEND_LBL: u'Trend line', 
+        trend_series = {mg.CHARTS_CHART_LBL: series0[mg.CHARTS_SERIES_LEGEND_LBL],
+                        mg.CHARTS_SERIES_LEGEND_LBL: u'Trend line', 
                         mg.CHART_MULTICHART: series0[mg.CHART_MULTICHART],
-                        mg.CHART_XAXIS_DETS: series0[mg.CHART_XAXIS_DETS],
-                        mg.CHART_Y_VALS: trend_y_vals,
-                        mg.CHART_TOOLTIPS: dummy_tooltips}
+                        mg.CHARTS_XAXIS_DETS: series0[mg.CHARTS_XAXIS_DETS],
+                        mg.CHARTS_SERIES_Y_VALS: trend_y_vals,
+                        mg.CHARTS_SERIES_TOOLTIPS: dummy_tooltips}
         series_dets.append(trend_series)
     if inc_smooth:
         smooth_y_vals = get_smooth_y_vals(raw_y_vals)
-        smooth_series = {mg.CHART_LBL: series0[mg.CHART_LEGEND_LBL],
-                         mg.CHART_LEGEND_LBL: u'Smoothed data line', 
+        smooth_series = {mg.CHARTS_CHART_LBL: series0[mg.CHARTS_SERIES_LEGEND_LBL],
+                         mg.CHARTS_SERIES_LEGEND_LBL: u'Smoothed data line', 
                          mg.CHART_MULTICHART: series0[mg.CHART_MULTICHART],
-                         mg.CHART_XAXIS_DETS: series0[mg.CHART_XAXIS_DETS],
-                         mg.CHART_Y_VALS: smooth_y_vals,
-                         mg.CHART_TOOLTIPS: dummy_tooltips}
+                         mg.CHARTS_XAXIS_DETS: series0[mg.CHARTS_XAXIS_DETS],
+                         mg.CHARTS_SERIES_Y_VALS: smooth_y_vals,
+                         mg.CHARTS_SERIES_TOOLTIPS: dummy_tooltips}
         series_dets.append(smooth_series)
     if debug: pprint.pprint(series_dets)
     pagebreak = u"page-break-after: always;"
@@ -1723,9 +1663,9 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
         series_names_list.append(u"series%s" % chart_idx)
         series_js_list.append(u"var series%s = new Array();" % chart_idx)
         series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
-                              % (chart_idx, series_det[mg.CHART_LEGEND_LBL]))
+                              % (chart_idx, series_det[mg.CHARTS_SERIES_LEGEND_LBL]))
         series_js_list.append(u"series%s[\"yVals\"] = %s;" % 
-                              (chart_idx, series_det[mg.CHART_Y_VALS]))
+                              (chart_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
         try:
             stroke = colour_mappings[chart_idx][0]
         except IndexError:
@@ -1740,7 +1680,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
             plot_style = u", plot: 'curved'"
         else:
             plot_style = u""
-        tooltips = u"['" + "', '".join(series_det[mg.CHART_TOOLTIPS]) + u"']"
+        tooltips = u"['" + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) + u"']"
         series_js_list.append(u"series%s[\"options\"] = "
             u"{stroke: {color: '%s', width: '6px'}, yLbls: %s %s};"
             % (chart_idx, stroke, tooltips, plot_style))
@@ -1812,14 +1752,14 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
         bar chart ad it will fit all series.
     Each series (possibly only one) has a chart lbl (possibly not used), a
         legend lbl, xaxis_dets, and y vals.
-    chart_dets = {mg.CHART_MAX_LBL_LEN: ...,
-                  mg.CHART_SERIES_DETS: see below}
-                  series_dets = [{mg.CHART_LBL: ...,
-                                  mg.CHART_LEGEND_LBL: ..., 
+    chart_dets = {mg.CHARTS_MAX_LBL_LEN: ...,
+                  mg.CHARTS_SERIES_DETS: see below}
+                  series_dets = [{mg.CHARTS_CHART_LBL: ...,
+                                  mg.CHARTS_SERIES_LEGEND_LBL: ..., 
                                   mg.CHART_MULTICHART: ...,
-                                  mg.CHART_XAXIS_DETS: ...,
-                                  mg.CHART_Y_VALS: ...,
-                                  mg.CHART_TOOLTIPS: ....}]
+                                  mg.CHARTS_XAXIS_DETS: ...,
+                                  mg.CHARTS_SERIES_Y_VALS: ...,
+                                  mg.CHARTS_SERIES_TOOLTIPS: ....}]
     css_idx -- css index so can apply    
     """
     debug = False
@@ -1827,14 +1767,14 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    series_dets = chart_dets[mg.CHART_SERIES_DETS]
+    series_dets = chart_dets[mg.CHARTS_SERIES_DETS]
     if debug: print(series_dets)
     multichart = series_dets[0][mg.CHART_MULTICHART]
     # NB one xaxis for all lines
-    xaxis_dets = series_dets[0][mg.CHART_XAXIS_DETS]
+    xaxis_dets = series_dets[0][mg.CHARTS_XAXIS_DETS]
     lbl_dets = get_lbl_dets(xaxis_dets)
     xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
-    max_lbl_len = chart_dets[mg.CHART_MAX_LBL_LEN]
+    max_lbl_len = chart_dets[mg.CHARTS_MAX_LBL_LEN]
     max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
     (width, xfontsize, minor_ticks, 
                 micro_ticks) = get_linechart_sizings(xaxis_dets, max_lbl_width, 
@@ -1847,7 +1787,7 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     height = 250 if multichart else 300
-    ymax = get_ymax(chart_dets[mg.CHART_SERIES_DETS])
+    ymax = get_ymax(chart_dets[mg.CHARTS_SERIES_DETS])
     if rotate:
         height += AVG_CHAR_WIDTH_PXLS*max_lbl_len   
     """
@@ -1875,14 +1815,14 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_dets, rotate,
     for chart_idx, chart_det in enumerate(series_dets):
         pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
         indiv_area_title = "<p><b>%s</b></p>" % \
-                chart_det[mg.CHART_LBL] if multichart else u""
+                chart_det[mg.CHARTS_CHART_LBL] if multichart else u""
         series_names_list.append(u"series%s" % chart_idx)
         series_js_list.append(u"var series%s = new Array();" % chart_idx)
         series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
-                              % (chart_idx, chart_det[mg.CHART_LEGEND_LBL]))
+                        % (chart_idx, chart_det[mg.CHARTS_SERIES_LEGEND_LBL]))
         series_js_list.append(u"series%s[\"yVals\"] = %s;" % 
-                              (chart_idx, chart_det[mg.CHART_Y_VALS]))
-        tooltips = u"['" + "', '".join(chart_det[mg.CHART_TOOLTIPS]) + u"']"
+                              (chart_idx, chart_det[mg.CHARTS_SERIES_Y_VALS]))
+        tooltips = u"['" + "', '".join(chart_det[mg.CHARTS_SERIES_TOOLTIPS]) + u"']"
         series_js_list.append(u"series%s[\"options\"] = "
             u"{stroke: {color: \"%s\", width: \"6px\"}, fill: \"%s\", "
             u"yLbls: %s};" % (chart_idx, stroke, fill, tooltips))
@@ -1955,7 +1895,11 @@ def histogram_output(titles, subtitles, var_lbl, histo_dets, inc_normal,
     """
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    multichart = is_multichart(histo_dets)
+    
+    
+    multichart = True # or False - softwire it
+    
+    
     html = []
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
@@ -1978,13 +1922,13 @@ def histogram_output(titles, subtitles, var_lbl, histo_dets, inc_normal,
     for chart_idx, histo_det in enumerate(histo_dets):
         minval = histo_det[mg.CHART_MINVAL]
         maxval = histo_det[mg.CHART_MAXVAL]
-        xaxis_dets = histo_det[mg.CHART_XAXIS_DETS]
-        y_vals = histo_det[mg.CHART_Y_VALS]
+        xaxis_dets = histo_det[mg.CHARTS_XAXIS_DETS]
+        y_vals = histo_det[mg.CHARTS_SERIES_Y_VALS]
         norm_ys = histo_det[mg.CHART_NORMAL_Y_VALS]
         bin_lbls = histo_det[mg.CHART_BIN_LBLS]
         pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
         indiv_histo_title = "<p><b>%s</b></p>" % \
-                histo_det[mg.CHART_CHART_BY_LBL] if multichart else u""        
+                histo_det[mg.CHARTS_CHART_BY_LBL] if multichart else u""        
         xaxis_lbls = u"[" + \
             u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
                                     for i,x in enumerate(xaxis_dets,1)]) + u"]"
@@ -2252,7 +2196,7 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
     use_mpl = use_mpl_scatterplots(scatterplot_dets)
     ymin, ymax = get_scatterplot_ymin_ymax(scatterplot_dets)
     for chart_idx, scatterplot_det in enumerate(scatterplot_dets):
-        chart_by_lbl = scatterplot_det[mg.CHART_CHART_BY_LBL]
+        chart_by_lbl = scatterplot_det[mg.CHARTS_CHART_BY_LBL]
         data_tups = scatterplot_det[mg.DATA_TUPS]
         list_x = scatterplot_det[mg.LIST_X]
         list_y = scatterplot_det[mg.LIST_Y]
