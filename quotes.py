@@ -76,6 +76,8 @@ QUOTES = [
      u"Unknown"),
     (u"If you live to the age of a hundred you have it made because very few "
      u"people die past the age of a hundred.", u"George Burns"),
+    (u"If we have data, let's look at data. If all we have are opinions, let's "
+     u"go with mine.", u"Jim Barksdale"),
     ]
 
 def get_quote():

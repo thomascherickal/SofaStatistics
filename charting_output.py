@@ -174,7 +174,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     if debug: print(u"SQL_get_raw_data:\n%s" % SQL_get_raw_data)
     return SQL_get_raw_data
 
-def get_sorted_y_dets(is_perc, sort_opt, vals_etc_lst):
+def get_sorted_y_dets(is_perc, sort_opt, vals_etc_lst, dp):
     """
     Sort in place then iterate and build new lists with guaranteed 
         synchronisation.
@@ -189,14 +189,14 @@ def get_sorted_y_dets(is_perc, sort_opt, vals_etc_lst):
     tot_measures = sum(measures)
     for val, measure, lbl, lbl_split in vals_etc_lst:
         sorted_xaxis_dets.append((val, lbl, lbl_split))
-        freq = measure
         if tot_measures == 0:
             perc = 0
         else:
             perc = 100*(measure/float(tot_measures))
-        y_val = perc if is_perc else freq
+        y_val = perc if is_perc else measure
         sorted_y_vals.append(y_val)
-        sorted_tooltips.append(u"%s<br>%s%%" % (int(freq), round(perc,1)))
+        measure2show = int(measure) if dp == 0 else measure # so 12 is 12 not 12.0
+        sorted_tooltips.append(u"%s<br>%s%%" % (measure2show, round(perc,1)))
     return sorted_xaxis_dets, sorted_y_vals, sorted_tooltips
 
 def get_prestructured_gen_data(raw_data):
@@ -357,7 +357,7 @@ def structure_gen_data(chart_type, raw_data, max_items, xlblsdic,
             (sorted_xaxis_dets, 
              sorted_y_vals, 
              sorted_tooltips) = get_sorted_y_dets(is_perc, sort_opt,
-                                                  vals_etc_lst)
+                                                  vals_etc_lst, dp)
             series_det = {mg.CHARTS_SERIES_LEGEND_LBL: legend_lbl,
                           mg.CHARTS_XAXIS_DETS: sorted_xaxis_dets, 
                           mg.CHARTS_SERIES_Y_VALS: sorted_y_vals, 
