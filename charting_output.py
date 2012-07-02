@@ -432,17 +432,12 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
     NB can't just use group by SQL to get results - need upper and lower 
         quartiles etc and we have to work on the raw values to achieve this. We
         have to do more work outside of SQL to get the values we need.
-    chart_by is really series_by in the case of boxplots but it is easier to 
-        use the term used throughout the rest of the code as the outer loop and
-        gp_by as the inner loop.
     xaxis_dets -- [(0, "", ""), (1, "Under 20", ...] NB blanks either end
     series_dets -- [{mg.CHART_SERIES_LBL: "Girls", 
         mg.CHART_BOXDETS: [{mg.CHART_BOXPLOT_DISPLAY: True, 
                                 mg.CHART_BOXPLOT_LWHISKER: 1.7, 
                                 mg.CHART_BOXPLOT_LBOX: 3.2, ...}, 
-                           {mg.CHART_BOXPLOT_DISPLAY: True, etc}, 
-                                    ...]},
-                          ...]
+                           {mg.CHART_BOXPLOT_DISPLAY: True, etc}, ...]}, ...]
     NB supply a boxdet even for an empty box. Put marker that it should be 
         skipped in terms of output to js. mg.CHART_BOXPLOT_DISPLAY
     # list of subseries dicts each of which has a label and a list of dicts 
@@ -459,8 +454,6 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     boxplot_width = 0.25
     chart_dets = []
-    # get all fld_series_vals where an x_val but OK to be missing a measure 
-        # (box will be missing in series)
     xaxis_dets = [] # (0, u"''", u"''")]
     max_lbl_len = 0
     sql_dic = {u"var_role_cat": objqtr(var_role_cat), 
@@ -469,56 +462,62 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
                u"where_tbl_filt": where_tbl_filt, 
                u"and_tbl_filt": and_tbl_filt, 
                u"tbl": getdata.tblname_qtr(dbe, tbl)}
-    if var_role_series: # must have gp_by as well but measure optional
-        SQL_fld_chart_by_vals = u"""SELECT %(var_role_series)s 
+    # 1) Get all series vals appearing in any rows where all fields are 
+    # non-missing.
+    if var_role_series:
+        SQL_series_vals = u"""SELECT %(var_role_series)s 
             FROM %(tbl)s 
-            WHERE %(var_role_cat)s IS NOT NULL %(and_tbl_filt)s 
+            WHERE %(var_role_series)s IS NOT NULL
+            AND %(var_role_cat)s IS NOT NULL 
+            AND %(var_role_desc)s IS NOT NULL
+            %(and_tbl_filt)s 
             GROUP BY %(var_role_series)s""" % sql_dic
-        if debug: print(SQL_fld_chart_by_vals)
-        cur.execute(SQL_fld_chart_by_vals)
-        fld_series_vals = [x[0] for x in cur.fetchall()]
-        if len(fld_series_vals) > mg.CHART_MAX_SERIES_IN_BOXPLOT:
-            raise my_exceptions.TooManySeriesInChart( 
-                                    max_items=mg.CHART_MAX_SERIES_IN_BOXPLOT)
+        if debug: print(SQL_series_vals)
+        cur.execute(SQL_series_vals)
+        series_vals = [x[0] for x in cur.fetchall()]
+        if debug: print(series_vals)
+        if len(series_vals) > mg.CHART_MAX_SERIES_IN_BOXPLOT:
+            max_items = mg.CHART_MAX_SERIES_IN_BOXPLOT
+            raise my_exceptions.TooManySeriesInChart(max_items)
     else:
-        fld_series_vals = [None,] # Got to have something to loop through ;-)
+        series_vals = [None,] # Got to have something to loop through ;-)
+    # 2) Get all cat vals needed for x-axis i.e. all those appearing in any rows 
+    # where all fields are non-missing.
+    and_series_filt = (u"" if not var_role_series 
+                       else " AND %(var_role_series)s IS NOT NULL " % sql_dic)
+    sql_dic[u"and_series_filt"] = and_series_filt
+    SQL_cat_vals = """SELECT %(var_role_cat)s
+        FROM %(tbl)s 
+        WHERE %(var_role_cat)s IS NOT NULL
+        AND %(var_role_desc)s IS NOT NULL
+        %(and_series_filt)s
+        %(and_tbl_filt)s 
+        GROUP BY %(var_role_cat)s""" % sql_dic
+    if debug: print(SQL_cat_vals)
+    cur.execute(SQL_cat_vals)
+    cat_vals = [x[0] for x in cur.fetchall()]
+    if debug: print(cat_vals)
+    if len(cat_vals) > mg.CHART_MAX_BOXPLOTS_IN_SERIES:
+        raise my_exceptions.TooManyBoxplotsInSeries(var_role_cat_name, 
+                            max_items=mg.CHART_MAX_BOXPLOTS_IN_SERIES)   
+    # init
     ymin = None # init
     ymax = 0
     first_chart_by = True
     any_missing_boxes = False
     any_displayed_boxes = False
-    for fld_series_val in fld_series_vals: # e.g. "Boys" and "Girls"
-        # set up series filter and 
-        if var_role_series:
-            filt = getdata.make_fld_val_clause(dbe, dd.flds, 
-                                               fldname=var_role_series, 
-                                               val=fld_series_val)
-            and_var_series_filt = u" AND %s" % filt
-            if where_tbl_filt:
-                comb_filt = u"%s AND %s" % (where_tbl_filt , filt)
-            else:
-                comb_filt = u"WHERE %s" % filt
-            sql_dic[u"comb_filt"] = comb_filt
-            SQL_cat_vals = u"""SELECT %(var_role_cat)s 
-                FROM %(tbl)s 
-                %(comb_filt)s 
-                GROUP BY %(var_role_cat)s""" % sql_dic
-            legend_lbl = var_role_series_lbls.get(fld_series_val, 
-                                                  unicode(fld_series_val))
+    for series_val in series_vals: # e.g. "Boys" and "Girls"
+        if series_val is not None:
+            legend_lbl = var_role_series_lbls.get(series_val, 
+                                                  unicode(series_val))
+            series_val_filt = getdata.make_fld_val_clause(dbe, dd.flds, 
+                                                       fldname=var_role_series, 
+                                                       val=series_val)
+            and_series_val_filt = u" AND %s" % series_val_filt
         else:
-            and_var_series_filt = u""
-            SQL_cat_vals = u"""SELECT %(var_role_cat)s 
-                FROM %(tbl)s 
-                %(where_tbl_filt)s 
-                GROUP BY %(var_role_cat)s""" % sql_dic
             legend_lbl = var_role_cat_name
-        sql_dic[u"and_var_series_filt"] = and_var_series_filt
-        if debug: print(SQL_cat_vals)
-        cur.execute(SQL_cat_vals)
-        cat_vals = [x[0] for x in cur.fetchall()]
-        if len(cat_vals) > mg.CHART_MAX_BOXPLOTS_IN_SERIES:
-            raise my_exceptions.TooManyBoxplotsInSeries(var_role_cat_name, 
-                                max_items=mg.CHART_MAX_BOXPLOTS_IN_SERIES)            
+            and_series_val_filt = u" "
+        sql_dic[u"and_series_val_filt"] = and_series_val_filt
         # time to get the boxplot information for the series
         boxdet_series = []
         for i, cat_val in enumerate(cat_vals, 1): # e.g. "Mt Albert Grammar", 
@@ -532,32 +531,34 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
                 if actual_lbl_width > max_lbl_len:
                     max_lbl_len = actual_lbl_width
                 xaxis_dets.append((i, x_val_lbl, x_val_split_lbl))
-            # Now see if any measure values with series_by_val and cat_val
-            # Apply tbl_filt, series_by filt, and gp_by filt
-            cat_filt = getdata.make_fld_val_clause(dbe, dd.flds, 
-                                                     fldname=var_role_cat, 
-                                                     val=cat_val)
-            sql_dic[u"cat_filt"] = cat_filt
-            SQL_measure_vals = u"""SELECT %(var_role_desc)s
-                FROM %(tbl)s
-                WHERE %(cat_filt)s
-                %(and_var_series_filt)s
-                ORDER BY %(var_role_desc)s""" % sql_dic
-            cur.execute(SQL_measure_vals)
-            measure_vals = [x[0] for x in cur.fetchall()]
-            median = round(np.median(measure_vals),2)
-            lq, uq = core_stats.get_quartiles(measure_vals)
-            lbox = round(lq, 2)
-            ubox = round(uq, 2)
-            enough_vals = (len(measure_vals) > 
+            # Now see if any desc values for particular series_val and cat_val
+            cat_val_filt = getdata.make_fld_val_clause(dbe, dd.flds, 
+                                                   fldname=var_role_cat, 
+                                                   val=cat_val)
+            sql_dic[u"cat_val_filt"] = cat_val_filt
+            SQL_vals2desc = """SELECT %(var_role_desc)s
+            FROM %(tbl)s 
+            WHERE %(var_role_desc)s IS NOT NULL
+            AND %(cat_val_filt)s
+            %(and_series_val_filt)s
+            %(and_tbl_filt)s""" % sql_dic
+            cur.execute(SQL_vals2desc)
+            vals2desc = [x[0] for x in cur.fetchall()]
+            enough_vals = (len(vals2desc) > 
                            mg.CHART_MIN_DISPLAY_VALS_FOR_BOXPLOT)
-            # Round them because even if all vals the same e.g. 1.0 will differ
-            # very slightly because of method used to calc quartiles using 
-            # floating point.
-            line_vals = set([round(lbox,5), round(median,5), round(ubox,5)])
-            enough_diff = (len(line_vals) == 3)
-            if debug: print("%s, %s %s %s %s" % (enough_vals, enough_diff, lbox, 
-                                                 median, ubox))
+            enough_diff = False
+            if enough_vals:
+                median = round(np.median(vals2desc),2)
+                lq, uq = core_stats.get_quartiles(vals2desc)
+                lbox = round(lq, 2)
+                ubox = round(uq, 2)
+                # Round them because even if all vals the same e.g. 1.0 will differ
+                # very slightly because of method used to calc quartiles using 
+                # floating point.
+                line_vals = set([round(lbox,5), round(median,5), round(ubox,5)])
+                enough_diff = (len(line_vals) == 3)
+                if debug: print("%s, %s %s %s %s" % (enough_vals, enough_diff, 
+                                                     lbox, median, ubox))
             boxplot_display = enough_vals and enough_diff
             if not boxplot_display:
                 any_missing_boxes = True
@@ -573,18 +574,18 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
                 any_displayed_boxes = True
                 iqr = ubox-lbox
                 raw_lwhisker = lbox - (1.5*iqr)
-                lwhisker = get_lwhisker(raw_lwhisker, lbox, measure_vals)
-                min_measure = min(measure_vals)
+                lwhisker = get_lwhisker(raw_lwhisker, lbox, vals2desc)
+                min_measure = min(vals2desc)
                 if ymin is None:
                     ymin = min_measure
                 elif min_measure < ymin:
                     ymin = min_measure
                 raw_uwhisker = ubox + (1.5*iqr)
-                uwhisker = get_uwhisker(raw_uwhisker, ubox, measure_vals)
-                max_measure = max(measure_vals)
+                uwhisker = get_uwhisker(raw_uwhisker, ubox, vals2desc)
+                max_measure = max(vals2desc)
                 if max_measure > ymax:
                     ymax = max_measure
-                outliers = [round(x, 2) for x in measure_vals 
+                outliers = [round(x, 2) for x in vals2desc 
                             if x < lwhisker or x > uwhisker]
                 box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
                            mg.CHART_BOXPLOT_DISPLAY: boxplot_display,

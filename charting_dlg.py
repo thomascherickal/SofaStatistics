@@ -579,6 +579,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                              else mg.NON_AVG_KEY)
         return chart_subtype_key
 
+    def refresh_vars(self):
+        self.setup_var_dropdowns()
+        self.update_defaults()
+        self.update_phrase()
+
     def setup_var_dropdowns(self):
         debug = False
         if debug: print(u"Chart type is: %s" % self.chart_type)

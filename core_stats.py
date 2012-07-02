@@ -1058,6 +1058,8 @@ def get_quartiles(vals):
     newvals = vals[:]
     newvals.sort() # leaving vals untouched
     n = len(newvals)
+    if not n:
+        raise Exception(u"No values supplied to get_quartiles.")
     depth = (int(n/2.0)+1.0)/2.0
     if debug: print(depth)
     ldepth = int(depth)
