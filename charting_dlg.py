@@ -1044,7 +1044,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                                     else "False"))
         rptname = lib.escape_pre_write(report_name)
         script_lst.append(u"report_name = u\"%s\"" % rptname)
-        avg_fldname = None
+        avg_fldlbl = None
         category_fldname = None
         chart_subtype_key = self.get_chart_subtype_key()
         chart_config = mg.CHART_CONFIG[self.chart_type][chart_subtype_key]
@@ -1064,7 +1064,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 val_lbls = self.val_dics.get(var_val, {})
                 script_lst.append(u"%s_lbls = %s" % (var_role, val_lbls)) # e.g. var_role_avg_lbls = {}
             if var_role == mg.VAR_ROLE_AVG:
-                avg_fldname = var_val
+                avg_fldlbl = var_name
             if var_role == mg.VAR_ROLE_CATEGORY:
                 category_fldname = var_val
         for expected_var_role in mg.EXPECTED_VAR_ROLE_KEYS:
@@ -1079,7 +1079,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 raise Exception(u"Cannot generate %s script if category field "
                                 u"hasn't been set." % self.chart_type)
             if is_avg:
-                ytitle2use = u'u"Mean %s"' % avg_fldname
+                if avg_fldlbl is None:
+                    raise Exception(u"Label for variable being averaged not "
+                                    u"supplied.")
+                ytitle2use = u'u"Mean %s"' % avg_fldlbl
             else:
                 ytitle2use = (u"mg.Y_AXIS_PERC_LBL" if is_perc 
                               else u"mg.Y_AXIS_FREQ_LBL")
