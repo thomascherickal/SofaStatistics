@@ -143,19 +143,22 @@ def get_approp_var_names(var_types=None, min_data_type=mg.VAR_TYPE_CAT):
         information on the type of each variable to decide whether meets 
         minimum e.g ordinal.
     """
+    debug = True
     dd = mg.DATADETS_OBJ
     if min_data_type == mg.VAR_TYPE_CAT:
         var_names = [x for x in dd.flds]
     elif min_data_type == mg.VAR_TYPE_ORD:
         # check for numeric as well in case user has manually 
         # misconfigured var_type in vdts file.
-        var_names = [x for x in dd.flds if dd.flds[x][mg.FLD_BOLNUMERIC] and \
+        var_names = [x for x in dd.flds if dd.flds[x][mg.FLD_BOLNUMERIC] and
                      var_types.get(x) in (None, mg.VAR_TYPE_ORD, 
                                           mg.VAR_TYPE_QUANT)]
     elif min_data_type == mg.VAR_TYPE_QUANT:
         # check for numeric as well in case user has manually 
         # misconfigured var_type in vdts file.
-        var_names = [x for x in dd.flds if dd.flds[x][mg.FLD_BOLNUMERIC] and \
+        if debug:
+            print(dd.flds)
+        var_names = [x for x in dd.flds if dd.flds[x][mg.FLD_BOLNUMERIC] and
                      var_types.get(x) in (None, mg.VAR_TYPE_QUANT)]
     return var_names
 

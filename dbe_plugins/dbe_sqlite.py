@@ -16,7 +16,11 @@ Row = sqlite.Row # needed for making cursor return dicts
 
 DEFAULT_DB = u"sqlite_default_db"
 DEFAULT_TBL = u"sqlite_default_tbl"
-NUMERIC_TYPES = [u"integer", u"float", u"numeric", u"real"]
+# http://www.sqlite.org/datatype3.html
+NUMERIC_TYPES = [u"int", u"integer", u"tinyint", u"smallint", u"mediumint",
+                 u"bigint", u"unsigned big int", u"int2", u"int8", 
+                 u"float", u"numeric", u"real", u"double", u"double precision",
+                 u"float real", u"numeric"]
 DATE_TYPES = [u"date", u"datetime", u"time", u"timestamp"]
 # no unicode keys for 2.6 bug http://bugs.python.org/issue2646
 DATABASE_KEY = "database"
