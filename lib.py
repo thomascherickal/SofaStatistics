@@ -101,7 +101,7 @@ def get_normal_ys(vals, bins):
     Get np array of y values for normal distribution curve with given values 
         and bins.
     """
-    debug = True
+    debug = False
     import wxmpl
     import pylab # must import after wxmpl so matplotlib.use() is always first
     mu = core_stats.mean(vals)

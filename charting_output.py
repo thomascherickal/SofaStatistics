@@ -1949,7 +1949,8 @@ def histogram_output(titles, subtitles, var_lbl, histo_dets, inc_normal,
             u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
                                     for i,x in enumerate(xaxis_dets,1)]) + u"]"
         bin_labs = u"\"" + u"\", \"".join(bin_lbls) + u"\""
-        width = 700 if len(xaxis_dets) <= 20 else 900
+        n_xvals = len(xaxis_dets)
+        width = 700 if n_xvals <= 10 else 70*n_xvals
         xfontsize = 10 if len(xaxis_dets) <= 20 else 8
         left_axis_lbl_shift = 10 
         if multichart:
