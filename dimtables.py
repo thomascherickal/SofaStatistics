@@ -1,4 +1,5 @@
 from __future__ import print_function
+import math
 import numpy
 
 import my_globals as mg
@@ -1265,4 +1266,9 @@ class SummTable(LiveTable):
                                     u"for %s." % row_fld)
         else:
             raise Exception(u"Measure not available")
+        try:
+            if math.isnan(data_val):
+                data_val = _(u"Not calc")
+        except TypeError:
+            pass
         return data_val

@@ -136,6 +136,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         next_ft = i + 1
         html.append(footnote % (next_ft, next_ft))
     for dic_sample_tup in dic_sample_tups:
+        
         dic, sample = dic_sample_tup
         hist_label = dic["label"]
         # histogram
@@ -146,11 +147,15 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
         (grid_bg, item_colours, 
             line_colour) = output.get_stats_chart_colours(css_fil)
-        charting_pylab.config_hist(fig, sample, label_avg, hist_label, False, 
-                                   grid_bg, item_colours[0], line_colour)
-        img_src = charting_pylab.save_report_img(add_to_report, report_name, 
+        try:
+            charting_pylab.config_hist(fig, sample, label_avg, hist_label, 
+                                   False, grid_bg, item_colours[0], line_colour)
+            img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                                save_func=pylab.savefig, dpi=100)
-        html.append(u"\n<img src='%s'>" % img_src)
+            html.append(u"\n<img src='%s'>" % img_src)
+        except Exception, e:
+            html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
+                        (hist_label, e))
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -287,11 +292,15 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
         fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
         grid_bg, item_colours, line_colour = \
                                         output.get_stats_chart_colours(css_fil)
-        charting_pylab.config_hist(fig, sample, label_avg, hist_label, False, 
-                                   grid_bg, item_colours[0], line_colour)
-        img_src = charting_pylab.save_report_img(add_to_report, report_name, 
+        try:
+            charting_pylab.config_hist(fig, sample, label_avg, hist_label, 
+                                   False, grid_bg, item_colours[0], line_colour)
+            img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                                save_func=pylab.savefig, dpi=100)
-        html.append(u"\n<img src='%s'>" % img_src)
+            html.append(u"\n<img src='%s'>" % img_src)
+        except Exception, e:
+            html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
+                        (hist_label, e))
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
@@ -321,11 +330,15 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
     hist_label = u"Differences between %s and %s" % (dic_a["label"], 
                                                      dic_b["label"])
     grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
-    charting_pylab.config_hist(fig, diffs, _("Differences"), hist_label, False, 
-                               grid_bg, item_colours[0], line_colour)
-    img_src = charting_pylab.save_report_img(add_to_report, report_name, 
-                                             save_func=pylab.savefig, dpi=100)
-    html.append(u"\n<img src='%s'>" % img_src)
+    try:
+        charting_pylab.config_hist(fig, diffs, _("Differences"), hist_label, 
+                                   False, grid_bg, item_colours[0], line_colour)
+        img_src = charting_pylab.save_report_img(add_to_report, report_name, 
+                                               save_func=pylab.savefig, dpi=100)
+        html.append(u"\n<img src='%s'>" % img_src)
+    except Exception, e:
+        html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
+                (hist_label, e))
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx)

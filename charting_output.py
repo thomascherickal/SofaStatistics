@@ -1915,11 +1915,7 @@ def histogram_output(titles, subtitles, var_lbl, histo_dets, inc_normal,
     """
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    
-    
-    multichart = True # or False - softwire it
-    
-    
+    multichart = (len(histo_dets) > 1)
     html = []
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)

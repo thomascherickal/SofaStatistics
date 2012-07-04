@@ -123,9 +123,10 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False,
     #n_vals = len(vals)
     # use nicest bins practical
     n_bins, lower_limit, upper_limit = lib.get_bins(min(vals), max(vals))
-    y_vals, start, bin_width, unused = \
-             core_stats.histogram(vals, n_bins, defaultreallimits=[lower_limit, 
-                                                                   upper_limit])
+    (y_vals, start, 
+     bin_width, unused) = core_stats.histogram(vals, n_bins, 
+                                               defaultreallimits=[lower_limit, 
+                                                                  upper_limit])
     y_vals, start, bin_width = lib.fix_sawtoothing(vals, n_bins, y_vals, start, 
                                                    bin_width)    
     if thumbnail:

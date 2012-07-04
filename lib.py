@@ -101,10 +101,15 @@ def get_normal_ys(vals, bins):
     Get np array of y values for normal distribution curve with given values 
         and bins.
     """
+    debug = True
     import wxmpl
     import pylab # must import after wxmpl so matplotlib.use() is always first
     mu = core_stats.mean(vals)
     sigma = core_stats.stdev(vals)
+    if debug: print(bins, mu, sigma)
+    if sigma == 0:
+        raise Exception(u"Unable to get y-axis values for normal curve with a "
+                        u"sigma of 0.")
     norm_ys = pylab.normpdf(bins, mu, sigma)
     return norm_ys
 

@@ -311,8 +311,13 @@ class NormalityDlg(wx.Dialog, config_output.ConfigUI):
         charting_pylab.gen_config()
         fig = pylab.figure()
         fig.set_size_inches((2.3, 1.0)) # see dpi to get image size in pixels
-        charting_pylab.config_hist(fig, self.vals, self.data_label, 
-                                   thumbnail=True, inc_attrib=False)
+        try:
+            charting_pylab.config_hist(fig, self.vals, self.data_label, 
+                                       thumbnail=True, inc_attrib=False)
+        except Exception, e:
+            msg = u"Unable to produce histogram. Reason: %s" % e
+            self.html.show_html(u"<p>%s</p>" % msg)
+            return
         pylab.savefig(mg.INT_IMG_ROOT + u".png", dpi=100)
         thumbnail_uncropped = wx.Image(mg.INT_IMG_ROOT + u".png", 
                                        wx.BITMAP_TYPE_PNG).ConvertToBitmap()
