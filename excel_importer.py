@@ -26,6 +26,27 @@ class ExcelImporter(importer.FileImporter):
                                        headless, headless_has_header)
         self.ext = u"XLS"
     
+    def has_header_row(self, row1_types, row2_types):
+        """
+        Will return True if nothing but strings in first row and anything in 
+            other rows that is not e.g. a number or a date. Empty is OK.
+        XL_CELL_BLANK = 6
+        XL_CELL_BOOLEAN = 4
+        XL_CELL_DATE = 3
+        XL_CELL_EMPTY = 0
+        XL_CELL_ERROR = 5
+        XL_CELL_NUMBER = 2
+        XL_CELL_TEXT = 1
+        """
+        debug = False
+        if debug: print(row1_types, row2_types)
+        row1_strings_only = (len(row1_types) == 1 
+                             and xlrd.XL_CELL_TEXT in row1_types)
+        non_string_set = {xlrd.XL_CELL_BOOLEAN, xlrd.XL_CELL_DATE, 
+                          xlrd.XL_CELL_NUMBER} # ignore EMPTY and ERROR
+        row2_has_non_strings = len(row2_types.intersection(non_string_set)) > 0
+        return row1_strings_only and row2_has_non_strings
+    
     def get_params(self):
         """
         Display each cell based on cell characteristics only - no attempt to 
@@ -39,8 +60,13 @@ class ExcelImporter(importer.FileImporter):
             wkbook = xlrd.open_workbook(self.file_path)
             wksheet = wkbook.sheet_by_index(0)
             strdata = []
-            for rowx in range(wksheet.nrows):
+            nrows = wksheet.nrows
+            for rowx in range(nrows):
                 rowtypes = wksheet.row_types(rowx)
+                if rowx == 0:
+                    row1_types = set(rowtypes)
+                elif rowx == 1:
+                    row2_types = set(rowtypes)
                 newrow = []
                 for colx in range(wksheet.ncols):
                     rawval = wksheet.cell_value(rowx, colx)
@@ -49,7 +75,12 @@ class ExcelImporter(importer.FileImporter):
                 strdata.append(newrow)
                 if rowx > 2:
                     break
-            dlg = importer.HasHeaderGivenDataDlg(self.parent, self.ext, strdata)
+            try:
+                prob_has_hdr = self.has_header_row(row1_types, row2_types)
+            except Exception:
+                prob_has_hdr = False
+            dlg = importer.HasHeaderGivenDataDlg(self.parent, self.ext, strdata,
+                                                 prob_has_hdr)
             ret = dlg.ShowModal()
             if debug: print(unicode(ret))
             if ret == wx.ID_CANCEL:

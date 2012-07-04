@@ -384,29 +384,27 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
                         u"before the first data row.")
     steps_per_item = prog_steps_left/row_n
     if debug: print("Has %s rows including any headers" % row_n)
-    first_mismatch = u"" # not needed - will pick up mismatches while reading 
-        # data - i.e. before gets down as far as getting best field types
+    fld_first_mismatches = [None,]*len(fldnames) # init
     for row_num, row in enumerate(rows, 1):
         try:
-            if not (has_header and row_num == 1):
-                (col_type_sets, 
-                 valdict, mismatch) = dets_from_row(fldnames, col_type_sets, 
-                                                    row, row_num)
-                if not first_mismatch:
-                    first_mismatch = mismatch
-                if valdict:
-                    datarows.append(valdict)
-                gauge_val = next_prog_val + ((row_num-1)*steps_per_item)
-                progbar.SetValue(gauge_val)
-                wx.Yield()
+            if has_header and row_num == 1:
+                continue
+            col_type_sets, valdict = dets_from_row(fldnames, col_type_sets, 
+                                             fld_first_mismatches, row, row_num)
+            if valdict:
+                datarows.append(valdict)
+            gauge_val = next_prog_val + ((row_num-1)*steps_per_item)
+            progbar.SetValue(gauge_val)
+            wx.Yield()
         except Exception, e:
             raise Exception(u"Error getting details from row %s."
                             u"\nCaused by error: %s" % (row_num, lib.ue(e)))
     if debug: print(datarows)
-    for fldname, type_set in zip(fldnames, col_type_sets):
+    for fldname, type_set, first_mismatch in zip(fldnames, col_type_sets, 
+                                                 fld_first_mismatches):
         fldtype = importer.get_best_fldtype(fldname, type_set,
-                                faulty2missing_fld_list, 
-                                first_mismatch=first_mismatch, testing=testing)
+                                faulty2missing_fld_list, first_mismatch, 
+                                testing)
         fldtypes[fldname] = fldtype
     return fldtypes, datarows
 
@@ -623,7 +621,7 @@ def get_vals_from_row(row, n_flds):
     if debug: print(vals)
     return vals
 
-def dets_from_row(fldnames, col_type_sets, row, row_num):
+def dets_from_row(fldnames, col_type_sets, fld_first_mismatches, row, row_num):
     """
     Update col_type_sets and return dict of values in row (using fldnames as 
         keys).
@@ -632,6 +630,9 @@ def dets_from_row(fldnames, col_type_sets, row, row_num):
     Formula cells with values have a val type attrib as well and will be picked 
         up that way first. It is only if they haven't that they count as an 
         empty cell. Important not to just skip empty formulae cells.
+    fld_first_mismatches --  list with an item for each fld. Init to None for 
+        each. If hit a mismatch, set for that index if not already set (only 
+        want the first per fld).
     """
     debug = False
     verbose = False
@@ -640,12 +641,12 @@ def dets_from_row(fldnames, col_type_sets, row, row_num):
     if debug and verbose:
         print(row)
         print(tbl_cell_el_dets)
-    col_idx = 0
-    first_mismatch = u""
-    for el_det in tbl_cell_el_dets:
+    col_idx = 0 # NB may be several tbl_cell_el_dets in a single col so can't just enumerate
+    for el_det in tbl_cell_el_dets: # moving across row through col cells
         attrib_dict = el_det[ATTRIBS] # already streamlined
         # the defaults unless overridden by actual data
         val2use = u""
+        mismatch_col_idx = col_idx # gets incremented inside process_cells()
         if DATE_VAL in attrib_dict:
             coltype = mg.VAL_DATE
             val2use = attrib_dict[DATE_VAL] # take proper date value
@@ -654,8 +655,8 @@ def dets_from_row(fldnames, col_type_sets, row, row_num):
             (bolcontinue, col_idx, 
              mismatch) = process_cells(attrib_dict, col_type_sets, col_idx, 
                                    fldnames, valdict, coltype, val2use, row_num)
-            if not first_mismatch:
-                first_mismatch = mismatch
+            if mismatch and fld_first_mismatches[mismatch_col_idx] is None:
+                fld_first_mismatches[mismatch_col_idx] = mismatch
             if not bolcontinue:
                 break
         elif VAL_TYPE in attrib_dict:
@@ -665,8 +666,8 @@ def dets_from_row(fldnames, col_type_sets, row, row_num):
             (bolcontinue, col_idx, 
              mismatch) = process_cells(attrib_dict, col_type_sets, col_idx, 
                                    fldnames, valdict, coltype, val2use, row_num)
-            if not first_mismatch:
-                first_mismatch = mismatch
+            if mismatch and fld_first_mismatches[mismatch_col_idx] is None:
+                fld_first_mismatches[mismatch_col_idx] = mismatch
             if not bolcontinue:
                 break
         elif len(el_det[RAW_EL]) == 0 or FORMULA in attrib_dict: # empty cell(s)
@@ -677,11 +678,13 @@ def dets_from_row(fldnames, col_type_sets, row, row_num):
                                        fldnames, valdict, 
                                        coltype=mg.VAL_EMPTY_STRING, val2use=u"", 
                                        row_num=row_num)
-            if not first_mismatch:
-                first_mismatch = mismatch
+            if mismatch and fld_first_mismatches[mismatch_col_idx] is None:
+                fld_first_mismatches[mismatch_col_idx] = mismatch
             if not bolcontinue:
                 break
         else:
             pass
-    if debug: print(unicode(valdict))
-    return col_type_sets, valdict, first_mismatch
+    if debug: 
+        print(unicode(valdict))
+        print(fld_first_mismatches)
+    return col_type_sets, valdict

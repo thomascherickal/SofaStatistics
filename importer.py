@@ -256,7 +256,8 @@ def assess_sample_fld(sample_data, has_header, ok_fldname, ok_fldnames,
     type_set = set()
     first_mismatch = u""
     expected_fldtype = u""
-    for row_num, row in enumerate(sample_data, 1):
+    start_row_num = 2 if has_header else 1
+    for row_num, row in enumerate(sample_data, start_row_num):
         if debug: print(row_num, row) # look esp for Nones
         if allow_none:
             val = lib.if_none(row[ok_fldname], u"")
@@ -441,8 +442,7 @@ def report_fld_n_mismatch(row, row_num, has_header, ok_fldnames, allow_none):
 
 def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fldnames, 
              fldtypes, faulty2missing_fld_list, progbar, steps_per_item, 
-             gauge_start=0, row_num_start=0, allow_none=True, 
-             comma_dec_sep_ok=False):
+             gauge_start=0, allow_none=True, comma_dec_sep_ok=False):
     """
     feedback -- dic with mg.NULLED_DOTS
     Add the rows of data (dicts), processing each cell as you go.
@@ -450,7 +450,6 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fldnames,
         as required.
     If not checking (e.g. because a pre-tested sample) only do the
         empty string to null conversions.
-    row_num_start -- row number (not idx) starting on
     allow_none -- if Excel returns None for an empty cell that is correct bvr.
         If a csv files does, however, it is not. Should be empty str.
     TODO - insert multiple lines at once for performance.
@@ -458,17 +457,17 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fldnames,
     debug = False
     fldnames_clause = u", ".join([dbe_sqlite.quote_obj(x) for x 
                                    in ok_fldnames])
-    for row_idx, row in enumerate(rows):
+    start_row_num = 2 if has_header else 1
+    for row_num, row in enumerate(rows, start_row_num):
         if debug: 
             print(row)
-            print(str(row_idx))
-        if row_idx % 50 == 0:
+            print(str(row_num))
+        if row_num % 50 == 0:
             wx.Yield()
             if import_status[mg.CANCEL_IMPORT]:
                 progbar.SetValue(0)
                 raise my_exceptions.ImportCancelException
         gauge_start += 1
-        row_num = row_num_start + row_idx
         #if debug and row_num == 12:
         #    print("Break on this line :-)")
         vals = []
@@ -564,8 +563,8 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
         # process already.
         add_rows(feedback, import_status, con, cur, data, has_header, 
                  ok_fldnames, fldtypes, faulty2missing_fld_list, progbar, 
-                 steps_per_item, gauge_start=gauge_start, row_num_start=1, 
-                 allow_none=allow_none, comma_dec_sep_ok=comma_dec_sep_ok)
+                 steps_per_item, gauge_start=gauge_start, allow_none=allow_none, 
+                 comma_dec_sep_ok=comma_dec_sep_ok)
         return True
     except my_exceptions.MismatchException, e:
         feedback[mg.NULLED_DOTS] = False
@@ -738,7 +737,7 @@ class HasHeaderDlg(wx.Dialog):
     
     
 class HasHeaderGivenDataDlg(wx.Dialog):
-    def __init__(self, parent, ext, strdata):
+    def __init__(self, parent, ext, strdata, prob_has_hdr=True):
         debug = False
         wx.Dialog.__init__(self, parent=parent, title=_("Header row?"),
                            size=(850, 450), style=wx.CAPTION|wx.SYSTEM_MENU, 
@@ -757,11 +756,14 @@ class HasHeaderGivenDataDlg(wx.Dialog):
         btn_has_header = wx.Button(self.panel, mg.HAS_HEADER, 
                                    _("Has Header Row"))
         btn_has_header.Bind(wx.EVT_BUTTON, self.on_btn_has_header)
-        btn_has_header.SetDefault()
         btn_no_header = wx.Button(self.panel, -1, _("No Header"))
         btn_no_header.Bind(wx.EVT_BUTTON, self.on_btn_no_header)
         btn_cancel = wx.Button(self.panel, wx.ID_CANCEL)
         btn_cancel.Bind(wx.EVT_BUTTON, self.on_btn_cancel)
+        if prob_has_hdr:
+            btn_has_header.SetDefault()
+        else:
+            btn_no_header.SetDefault()
         szr_btns.Add(btn_has_header, 0)
         szr_btns.Add(btn_no_header, 0, wx.LEFT, 5)
         szr_btns.Add(btn_cancel, 0, wx.LEFT, 20)

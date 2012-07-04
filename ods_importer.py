@@ -28,7 +28,30 @@ class OdsImporter(importer.FileImporter):
         importer.FileImporter.__init__(self, parent, file_path, tblname,
                                        headless, headless_has_header)
         self.ext = u"ODS"
-        
+
+    def has_header_row(self, strdata):
+        """
+        Will return True if nothing but strings in first row and anything in 
+            other rows that is not e.g. a number or a date. Empty is OK.
+        """
+        debug = False
+        comma_dec_sep_ok = True
+        if debug: print(strdata)
+        if len(strdata) < 2: # a header row needs a following row to be a header
+            return False
+        first_row = strdata[0]
+        for val in first_row: # must all be non-empty strings to be a header
+            val_type = lib.get_val_type(val, comma_dec_sep_ok)
+            if val_type != mg.VAL_STRING: # empty strings no good as heading values
+                return False
+        for row in strdata[1:]: # Only strings in potential header. Must look 
+                # for any non-strings to be sure.
+            for val in row:
+                val_type = lib.get_val_type(val, comma_dec_sep_ok)
+                if val_type in [mg.VAL_DATE, mg.VAL_NUMERIC]:
+                    return True
+        return False
+    
     def get_params(self):
         """
         Get any user choices required.
@@ -70,8 +93,12 @@ class OdsImporter(importer.FileImporter):
                     strdata.append(strrow)
                     if i > 3:
                         break
+                try:
+                    prob_has_hdr = self.has_header_row(strdata)
+                except Exception:
+                    prob_has_hdr = False
                 dlg = importer.HasHeaderGivenDataDlg(self.parent, self.ext, 
-                                                     strdata)
+                                                     strdata, prob_has_hdr)
                 ret = dlg.ShowModal()
                 if debug: print(unicode(ret))
                 if ret == wx.ID_CANCEL:

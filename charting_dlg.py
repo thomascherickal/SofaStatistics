@@ -582,7 +582,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def refresh_vars(self):
         self.setup_var_dropdowns()
         self.update_defaults()
-        self.update_phrase()
 
     def setup_var_dropdowns(self):
         debug = False
@@ -940,6 +939,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         """
         The values for a variable we try to keep unless it is not in the list.
         """
+        debug = False
         mg.VAR_1_DEFAULT = self.drop_var1.GetStringSelection()
         mg.VAR_2_DEFAULT = self.drop_var2.GetStringSelection()
         try: # might not be visible
@@ -950,6 +950,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             mg.VAR_4_DEFAULT = self.drop_var4.GetStringSelection()
         except Exception:
             my_exceptions.DoNothingException()
+        if debug: print(mg.VAR_1_DEFAULT, mg.VAR_2_DEFAULT, mg.VAR_3_DEFAULT, 
+                        mg.VAR_4_DEFAULT)
    
     def update_phrase(self):
         pass

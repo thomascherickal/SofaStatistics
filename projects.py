@@ -143,7 +143,7 @@ def get_approp_var_names(var_types=None, min_data_type=mg.VAR_TYPE_CAT):
         information on the type of each variable to decide whether meets 
         minimum e.g ordinal.
     """
-    debug = True
+    debug = False
     dd = mg.DATADETS_OBJ
     if min_data_type == mg.VAR_TYPE_CAT:
         var_names = [x for x in dd.flds]
