@@ -254,8 +254,10 @@ makeAreaChart = function(chartname, series, chartconf){
     var tickColour = ("tickColour" in chartconf) ? chartconf["tickColour"] : "black";
     var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
     var microTicks = ("microTicks" in chartconf) ? chartconf["microTicks"] : false;
+    var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "Category";
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
     var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
+    var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
     var axisLabelRotate = ("axisLabelRotate" in chartconf) ? chartconf["axisLabelRotate"] : 0;
 
     var getTooltip = function(val){
@@ -264,7 +266,7 @@ makeAreaChart = function(chartname, series, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: 10+leftAxisLabelShift, t: 10, r: 10, b: 10}});
+    var mychart = new dc.Chart2D(chartname, {margins: {l: 10+leftAxisLabelShift, t: 10, r: 10, b: 10+axisLabelDrop}});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
@@ -303,7 +305,7 @@ makeAreaChart = function(chartname, series, chartconf){
 	    }
     });
     mychart.setTheme(sofa_theme);
-    mychart.addAxis("x", {
+    mychart.addAxis("x", {title: xTitle,
                     labels: chartconf["xaxisLabels"], minorTicks: minorTicks,  microTicks: microTicks, minorLabels: minorTicks,
                     font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial",
                     rotation: axisLabelRotate

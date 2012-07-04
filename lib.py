@@ -825,8 +825,9 @@ def get_lbls_in_lines(orig_txt, max_width, dojo=False, rotate=False):
     if debug: 
         print(line_words)
         print(lines)
+    n_lines = len(lines)
     if dojo:
-        if len(lines) == 1:
+        if n_lines == 1:
             raw_lbl = lines[0].strip()
             wrapped_txt = u"\"" + raw_lbl + u"\""
             actual_lbl_width = len(raw_lbl)
@@ -844,7 +845,7 @@ def get_lbls_in_lines(orig_txt, max_width, dojo=False, rotate=False):
                                u"\" + labelLineBreak + \"".join(lines) + u"\"")
                 actual_lbl_width = max_width # they are centred in max_width
     else:
-        if len(lines) == 1:
+        if n_lines == 1:
             raw_lbl = lines[0].strip()
             wrapped_txt = raw_lbl
             actual_lbl_width = len(raw_lbl)
@@ -852,7 +853,7 @@ def get_lbls_in_lines(orig_txt, max_width, dojo=False, rotate=False):
             wrapped_txt = u"\n".join(lines)
             actual_lbl_width = max_width # they are centred in max_width
     if debug: print(wrapped_txt)
-    return wrapped_txt, actual_lbl_width
+    return wrapped_txt, actual_lbl_width, n_lines
 
 def get_text_to_draw(orig_txt, max_width):
     "Return text broken into new lines so wraps within pixel width"

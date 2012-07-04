@@ -24,6 +24,7 @@ import getdata
 import output
 
 AVG_CHAR_WIDTH_PXLS = 4
+AVG_LINE_HEIGHT_PXLS = 12
 TXT_WIDTH_WHEN_ROTATED = 4
 CHART_VAL_KEY = u"chart_val_key"
 CHART_SERIES_KEY = u"chart_series_key"
@@ -279,20 +280,23 @@ def structure_gen_data(chart_type, raw_data, max_items, xlblsdic,
              ]}, ]
     Returns chart_output_dets:
     chart_output_dets = {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+                         mg.CHARTS_MAX_LBL_LINES: max_lbl_lines, # used to set axis lbl drop
+                         mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
                          mg.CHARTS_CHART_DETS: chart_dets}
     chart_dets = [
-        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or a dummy title if only one chart because not displayed
+        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or None if only one chart
          mg.CHARTS_SERIES_DETS: series_dets},
         {mg.CHARTS_CHART_LBL: u"Gender: Female",
          mg.CHARTS_SERIES_DETS: series_dets}, ...
     ]
-    series_dets = {mg.CHARTS_SERIES_LEGEND_LBL: u"Italy", # if only one series, use cat label e.g. Age Group
+    series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
                    mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
                    mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
                    mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
                                                u"28<br>14%", u"94<br>47%"]}
     """
     max_lbl_len = 0
+    max_lbl_lines = 0
     prestructure = get_prestructured_gen_data(raw_data)
     chart_dets = []
     n_charts = len(prestructure)
@@ -305,17 +309,11 @@ def structure_gen_data(chart_type, raw_data, max_items, xlblsdic,
         chart_fldname = var_role_charts_name
         chart_fldlbls = var_role_charts_lbls
     else: # clustered, line - currently, multiple series but only one chart
-        chart_fldname = mg.CHARTS_CHART_LBL_SINGLE_CHART
+        chart_fldname = None
         chart_fldlbls = {}
     for chart_dic in prestructure:
         series = chart_dic[CHART_SERIES_KEY]
         multiseries = (len(series) > 1)
-        if multiseries:
-            legend_fldname =  var_role_series_name # e.g. Country in orange box
-            legend_fldlbls = var_role_series_lbls # e.g. {1: Japan, ...}
-        else:
-            legend_fldname =  var_role_cat_name # e.g. Country in orange box
-            legend_fldlbls = var_role_cat_lbls # e.g. {1: Japan, ...}
         """
         chart_dic = {CHART_VAL_KEY: 1, 
                      CHART_SERIES_KEY: [
@@ -332,25 +330,28 @@ def structure_gen_data(chart_type, raw_data, max_items, xlblsdic,
             chart_lbl = u"%s: %s" % (chart_fldname, 
                               chart_fldlbls.get(chart_val, unicode(chart_val)))
         else:
-            chart_lbl = mg.CHARTS_CHART_LBL_SINGLE_CHART
+            chart_lbl = None
         series_dets = []
         for series_dic in series:
             series_val = series_dic[SERIES_KEY]
             if multiseries:
-                legend_lbl = legend_fldlbls.get(series_val, 
-                                                unicode(series_val))
+                legend_lbl = var_role_series_lbls.get(series_val, 
+                                                      unicode(series_val))
             else:
-                legend_lbl = legend_fldname
+                legend_lbl = None
             # process xy vals
             xy_vals = series_dic[XY_KEY]
             vals_etc_lst = []
             for x_val, y_val in xy_vals:
                 x_val_lbl = xlblsdic.get(x_val, unicode(x_val))
                 (x_val_split_lbl,
-                 actual_lbl_width) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
-                                         max_width=17, dojo=True, rotate=rotate)
+                 actual_lbl_width,
+                 n_lines) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
+                                        max_width=17, dojo=True, rotate=rotate)
                 if actual_lbl_width > max_lbl_len:
                     max_lbl_len = actual_lbl_width
+                if n_lines > max_lbl_lines:
+                    max_lbl_lines = n_lines
                 vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
                                      x_val_split_lbl))
             if len(vals_etc_lst) > max_items:
@@ -363,7 +364,7 @@ def structure_gen_data(chart_type, raw_data, max_items, xlblsdic,
              sorted_y_vals, 
              sorted_tooltips) = get_sorted_y_dets(is_perc, is_avg, sort_opt,
                                                   vals_etc_lst, dp)
-            series_det = {mg.CHARTS_SERIES_LEGEND_LBL: legend_lbl,
+            series_det = {mg.CHARTS_SERIES_LBL_IN_LEGEND: legend_lbl,
                           mg.CHARTS_XAXIS_DETS: sorted_xaxis_dets, 
                           mg.CHARTS_SERIES_Y_VALS: sorted_y_vals, 
                           mg.CHARTS_SERIES_TOOLTIPS: sorted_tooltips}
@@ -372,6 +373,8 @@ def structure_gen_data(chart_type, raw_data, max_items, xlblsdic,
                      mg.CHARTS_SERIES_DETS: series_dets}
         chart_dets.append(chart_det)
     chart_output_dets = {mg.CHARTS_MAX_LBL_LEN: max_lbl_len,
+                         mg.CHARTS_MAX_LBL_LINES: max_lbl_lines,
+                         mg.CHARTS_OVERALL_LEGEND_LBL: var_role_series_name,
                          mg.CHARTS_CHART_DETS: chart_dets}
     return chart_output_dets
 
@@ -530,9 +533,9 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
             if first_chart_by: # build xaxis_dets once
                 x_val_lbl = var_role_cat_lbls.get(cat_val, unicode(cat_val))
                 (x_val_split_lbl, 
-                 actual_lbl_width) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
-                                                        max_width=17, dojo=True,
-                                                        rotate=rotate)
+                 actual_lbl_width,
+                 n_lines) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
+                                         max_width=17, dojo=True, rotate=rotate)
                 if actual_lbl_width > max_lbl_len:
                     max_lbl_len = actual_lbl_width
                 xaxis_dets.append((i, x_val_lbl, x_val_split_lbl))
@@ -693,7 +696,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin, var_role_charts,
                                         fld_chart_by_val_lbl)
         else:
             and_fld_chart_by_filt = u""
-            chart_by_lbl = mg.CHARTS_CHART_LBL_SINGLE_CHART
+            chart_by_lbl = None
         sql_dic[u"and_fld_chart_by_filt"] = and_fld_chart_by_filt
         SQL_get_vals = u"""SELECT %(var_role_bin)s 
             FROM %(tbl)s
@@ -791,7 +794,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_x_axis,
                                         fld_chart_by_val_lbl)
         else:
             and_fld_chart_by_filt = u""
-            chart_by_lbl = mg.CHARTS_CHART_LBL_SINGLE_CHART
+            chart_by_lbl = None
         sql_dic[u"and_fld_chart_by_filt"] = and_fld_chart_by_filt
         if unique:
             SQL_get_pairs = u"""SELECT %(fld_x_axis)s, %(fld_y_axis)s
@@ -1046,20 +1049,32 @@ def get_ymax(chart_output_dets):
     ymax = max_all_y_vals*1.1
     return ymax
 
-def simple_barchart_output(titles, subtitles, y_title, chart_output_dets, 
-                           rotate, css_idx, css_fil, page_break_after):
+def get_axis_lbl_drop(multichart, rotate, max_lbl_lines):
+    debug = True
+    axis_lbl_drop = 10 if multichart else 15
+    if not rotate:
+        extra_lines = max_lbl_lines - 1
+        axis_lbl_drop += AVG_LINE_HEIGHT_PXLS*extra_lines
+    if debug: print(axis_lbl_drop)
+    return axis_lbl_drop
+
+def simple_barchart_output(titles, subtitles, x_title, y_title, 
+                           chart_output_dets, rotate, css_idx, css_fil, 
+                           page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
-    chart_output_dets -- {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+    chart_output_dets = {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+                         mg.CHARTS_MAX_LBL_LINES: max_lbl_lines, # used to set axis lbl drop
+                         mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
                          mg.CHARTS_CHART_DETS: chart_dets}
-    chart_dets = [        
-        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or a dummy title if only one chart because not displayed
+    chart_dets = [
+        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or None if only one chart
          mg.CHARTS_SERIES_DETS: series_dets},
         {mg.CHARTS_CHART_LBL: u"Gender: Female",
          mg.CHARTS_SERIES_DETS: series_dets}, ...
     ]
-    series_dets = {mg.CHARTS_SERIES_LEGEND_LBL: u"Italy", # if only one series, use cat label e.g. Age Group
+    series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
                    mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
                    mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
                    mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
@@ -1076,14 +1091,12 @@ def simple_barchart_output(titles, subtitles, y_title, chart_output_dets,
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
-    # compensate for loss of bar display height
-    axis_lbl_drop = 10
-    if multichart:
-        axis_lbl_drop = axis_lbl_drop*0.8
     max_lbl_len = chart_output_dets[mg.CHARTS_MAX_LBL_LEN]
+    max_lbl_lines = chart_output_dets[mg.CHARTS_MAX_LBL_LINES]
+    axis_lbl_drop = get_axis_lbl_drop(multichart, rotate, max_lbl_lines)
     height = 310
     if rotate:
-        height += AVG_CHAR_WIDTH_PXLS*max_lbl_len 
+        height += AVG_CHAR_WIDTH_PXLS*max_lbl_len
     height += axis_lbl_drop  # compensate for loss of bar display height
     """
     For each series, set colour details.
@@ -1141,7 +1154,7 @@ def simple_barchart_output(titles, subtitles, y_title, chart_output_dets,
         series_names_list.append(u"series0")
         series_js_list.append(u"var series0 = new Array();")
         series_js_list.append(u"series0[\"seriesLabel\"] = \"%s\";"
-                                     % series_det[mg.CHARTS_SERIES_LEGEND_LBL])
+                                   % series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND])
         series_js_list.append(u"series0[\"yVals\"] = %s;" % 
                                             series_det[mg.CHARTS_SERIES_Y_VALS])
         tooltips = (u"['" + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
@@ -1184,6 +1197,7 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
     chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
     chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
+    chartconf["xTitle"] = \"%(x_title)s\";
     chartconf["yTitle"] = \"%(y_title)s\";
     chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
     chartconf["connectorStyle"] = \"%(connector_style)s\";
@@ -1198,8 +1212,6 @@ makechartRenumber%(chart_idx)s = function(){
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx;">
     </div>
-<div id="legendMychartRenumber%(chart_idx)s">
-    </div>
 </div>""" % {u"colour_cases": colour_cases,
              u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
              u"width": width, u"height": height, u"ymax": ymax, u"xgap": xgap, 
@@ -1209,7 +1221,7 @@ makechartRenumber%(chart_idx)s = function(){
              u"gridline_width": gridline_width, u"axis_lbl_drop": axis_lbl_drop,
              u"axis_lbl_rotate": axis_lbl_rotate,
              u"left_axis_lbl_shift": left_axis_lbl_shift,
-             u"y_title": y_title, 
+             u"x_title": x_title, u"y_title": y_title, 
              u"tooltip_border_colour": tooltip_border_colour,
              u"connector_style": connector_style, 
              u"outer_bg": outer_bg,  u"pagebreak": pagebreak,
@@ -1232,15 +1244,17 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
-    chart_output_dets -- {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+    chart_output_dets = {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+                         mg.CHARTS_MAX_LBL_LINES: max_lbl_lines, # used to set axis lbl drop
+                         mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
                          mg.CHARTS_CHART_DETS: chart_dets}
-    chart_dets = [        
-        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or a dummy title if only one chart because not displayed
+    chart_dets = [
+        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or None if only one chart
          mg.CHARTS_SERIES_DETS: series_dets},
         {mg.CHARTS_CHART_LBL: u"Gender: Female",
          mg.CHARTS_SERIES_DETS: series_dets}, ...
     ]
-    series_dets = {mg.CHARTS_SERIES_LEGEND_LBL: u"Italy", # if only one series, use cat label e.g. Age Group
+    series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
                    mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
                    mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
                    mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
@@ -1258,10 +1272,10 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
-    axis_lbl_drop = 30 if x_title else 10 # compensate for loss of bar display height
-    if multichart:
-        axis_lbl_drop = axis_lbl_drop*0.8
     max_lbl_len = chart_output_dets[mg.CHARTS_MAX_LBL_LEN]
+    max_lbl_lines = chart_output_dets[mg.CHARTS_MAX_LBL_LINES]
+    axis_lbl_drop = get_axis_lbl_drop(multichart, rotate, max_lbl_lines)
+    legend_lbl = chart_output_dets[mg.CHARTS_OVERALL_LEGEND_LBL]
     height = 310
     if rotate:
         height += AVG_CHAR_WIDTH_PXLS*max_lbl_len 
@@ -1297,13 +1311,19 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
     for chart_idx, chart_det in enumerate(chart_dets):
         series_dets = chart_det[mg.CHARTS_SERIES_DETS]
         if debug: print(series_dets)
-        multiseries = len(series_dets) > 1
+        legend = u"""
+        <p style="float: left; font-weight: bold; margin-right: 12px; 
+                margin-top: 9px;">
+            %s:
+        </p>
+        <div id="legendMychartRenumber%02d">
+            </div>""" % (legend_lbl, chart_idx)
         if multichart:
             indiv_chart_title = ("<p><b>%s</b></p>" % 
                                  chart_det[mg.CHARTS_CHART_LBL])
         else:
             indiv_chart_title = u""
-        single_colour = not multiseries
+        single_colour = False
         override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
                                     and single_colour)
         colour_cases = setup_highlights(colour_mappings, single_colour, 
@@ -1317,7 +1337,7 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
             series_names_list.append(u"series%s" % series_idx)
             series_js_list.append(u"var series%s = new Array();" % series_idx)
             series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
-                      % (series_idx, series_det[mg.CHARTS_SERIES_LEGEND_LBL]))
+                     % (series_idx, series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]))
             series_js_list.append(u"series%s[\"yVals\"] = %s;" 
                           % (series_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
             try:
@@ -1379,9 +1399,8 @@ makechartRenumber%(chart_idx)s = function(){
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx;">
     </div>
-<div id="legendMychartRenumber%(chart_idx)s">
-    </div>
-</div>""" % {u"colour_cases": colour_cases,
+%(legend)s
+</div>""" % {u"colour_cases": colour_cases, u"legend": legend,
              u"series_js": series_js, u"xaxis_lbls": xaxis_lbls,
              u"indiv_chart_title": indiv_chart_title, 
              u"width": width, u"height": height, u"xgap": xgap, u"ymax": ymax,
@@ -1415,7 +1434,7 @@ def piechart_output(titles, subtitles, chart_output_dets, css_fil, css_idx,
         {mg.CHARTS_CHART_LBL: u"Gender: Female",
          mg.CHARTS_SERIES_DETS: series_dets}, ...
     ]
-    series_dets = {mg.CHARTS_SERIES_LEGEND_LBL: u"Italy", # if only one series, use cat label e.g. Age Group
+    series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # if only one series, use cat label e.g. Age Group
                    mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
                    mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
                    mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
@@ -1578,15 +1597,17 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
-    chart_output_dets -- {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+    chart_output_dets = {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+                         mg.CHARTS_MAX_LBL_LINES: max_lbl_lines, # used to set axis lbl drop
+                         mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
                          mg.CHARTS_CHART_DETS: chart_dets}
-    chart_dets = [        
-        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or a dummy title if only one chart because not displayed
+    chart_dets = [
+        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or None if only one chart
          mg.CHARTS_SERIES_DETS: series_dets},
         {mg.CHARTS_CHART_LBL: u"Gender: Female",
          mg.CHARTS_SERIES_DETS: series_dets}, ...
     ]
-    series_dets = {mg.CHARTS_SERIES_LEGEND_LBL: u"Italy", # if only one series, use cat label e.g. Age Group
+    series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
                    mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
                    mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
                    mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
@@ -1603,13 +1624,12 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     # following details are same across all charts so look at first
     chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
     chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
-    multiseries = len(chart0_series_dets) > 1 
+    multiseries = len(chart0_series_dets) > 1
     xaxis_dets = chart0_series_dets[0][mg.CHARTS_XAXIS_DETS]
-    # don't show x_title if one series and no trend or smoothed lines 
-    if not multiseries:
-        x_title = u""
-    axis_lbl_drop = 30 if x_title else -10
     max_lbl_len = chart_output_dets[mg.CHARTS_MAX_LBL_LEN]
+    max_lbl_lines = chart_output_dets[mg.CHARTS_MAX_LBL_LINES]
+    axis_lbl_drop = get_axis_lbl_drop(multichart, rotate, max_lbl_lines)
+    legend_lbl = chart_output_dets[mg.CHARTS_OVERALL_LEGEND_LBL]
     height = 310
     if rotate:
         height += AVG_CHAR_WIDTH_PXLS*max_lbl_len 
@@ -1637,7 +1657,16 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         series_dets = chart_det[mg.CHARTS_SERIES_DETS]
         pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
         if debug: print(series_dets)
-        multiseries = len(series_dets) > 1    
+        if multiseries:
+            legend = u"""
+        <p style="float: left; font-weight: bold; margin-right: 12px; 
+                margin-top: 9px;">
+            %s:
+        </p>
+        <div id="legendMychartRenumber%02d">
+            </div>""" % (legend_lbl, chart_idx)
+        else:
+            legend = u"" 
         if multichart:
             indiv_chart_title = ("<p><b>%s</b></p>" % 
                                chart_det[mg.CHARTS_CHART_LBL])
@@ -1656,7 +1685,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
                 trend_y_vals = get_trend_y_vals(raw_y_vals)
                 # repeat most of it
                 trend_series = {
-                    mg.CHARTS_SERIES_LEGEND_LBL: u'Trend line', 
+                    mg.CHARTS_SERIES_LBL_IN_LEGEND: u'Trend line', 
                     mg.CHARTS_XAXIS_DETS: series0[mg.CHARTS_XAXIS_DETS],
                     mg.CHARTS_SERIES_Y_VALS: trend_y_vals,
                     mg.CHARTS_SERIES_TOOLTIPS: dummy_tooltips}
@@ -1664,7 +1693,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
             if inc_smooth:
                 smooth_y_vals = get_smooth_y_vals(raw_y_vals)
                 smooth_series = {
-                     mg.CHARTS_SERIES_LEGEND_LBL: u'Smoothed data line', 
+                     mg.CHARTS_SERIES_LBL_IN_LEGEND: u'Smoothed data line', 
                      mg.CHARTS_XAXIS_DETS: series0[mg.CHARTS_XAXIS_DETS],
                      mg.CHARTS_SERIES_Y_VALS: smooth_y_vals,
                      mg.CHARTS_SERIES_TOOLTIPS: dummy_tooltips}
@@ -1679,7 +1708,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
             series_names_list.append(u"series%s" % series_idx)
             series_js_list.append(u"var series%s = new Array();" % series_idx)
             series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
-                        % (series_idx, series_det[mg.CHARTS_SERIES_LEGEND_LBL]))
+                     % (series_idx, series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]))
             series_js_list.append(u"series%s[\"yVals\"] = %s;" % 
                               (series_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
             try:
@@ -1738,9 +1767,8 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     <div id="mychartRenumber%(chart_idx)s" style="width: %(width)spx; 
             height: %(height)spx;">
         </div>
-    <div id="legendMychartRenumber%(chart_idx)s">
-        </div>
-    </div>""" % {u"titles": title_dets_html, 
+    %(legend)s
+    </div>""" % {u"titles": title_dets_html, u"legend": legend,
                  u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
                  u"indiv_chart_title": indiv_chart_title, 
                  u"width": width, u"height": height, u"xfontsize": xfontsize, 
@@ -1761,27 +1789,28 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
                         CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
     
-def areachart_output(titles, subtitles, y_title, chart_output_dets, rotate, 
-                     css_fil, css_idx, page_break_after):
+def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets, 
+                     rotate, css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
-    chart_output_dets -- {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+    chart_output_dets = {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+                         mg.CHARTS_MAX_LBL_LINES: max_lbl_lines, # used to set axis lbl drop
+                         mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
                          mg.CHARTS_CHART_DETS: chart_dets}
-    chart_dets = [        
-        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or a dummy title if only one chart because not displayed
+    chart_dets = [
+        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or None if only one chart
          mg.CHARTS_SERIES_DETS: series_dets},
         {mg.CHARTS_CHART_LBL: u"Gender: Female",
          mg.CHARTS_SERIES_DETS: series_dets}, ...
     ]
-    series_dets = {mg.CHARTS_SERIES_LEGEND_LBL: u"Italy", # if only one series, use cat label e.g. Age Group
+    series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
                    mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
                    mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
                    mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
                                                u"28<br>14%", u"94<br>47%"]}
     css_idx -- css index so can apply    
     """
-    debug = False
     axis_lbl_rotate = -90 if rotate else 0
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
@@ -1790,6 +1819,8 @@ def areachart_output(titles, subtitles, y_title, chart_output_dets, rotate,
     html.append(title_dets_html)
     multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
     max_lbl_len = chart_output_dets[mg.CHARTS_MAX_LBL_LEN]
+    max_lbl_lines = chart_output_dets[mg.CHARTS_MAX_LBL_LINES]
+    axis_lbl_drop = get_axis_lbl_drop(multichart, rotate, max_lbl_lines)
     max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
     height = 250 if multichart else 300
     if rotate:
@@ -1843,7 +1874,7 @@ def areachart_output(titles, subtitles, y_title, chart_output_dets, rotate,
         series_names_list.append(u"series0")
         series_js_list.append(u"var series0 = new Array();")
         series_js_list.append(u"series0[\"seriesLabel\"] = \"%s\";"
-                                      % series_det[mg.CHARTS_SERIES_LEGEND_LBL])
+                                   % series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND])
         series_js_list.append(u"series0[\"yVals\"] = %s;" % 
                                             series_det[mg.CHARTS_SERIES_Y_VALS])
         tooltips = (u"['" + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
@@ -1868,9 +1899,11 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["minorTicks"] = %(minor_ticks)s;
     chartconf["microTicks"] = %(micro_ticks)s;
     chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
+    chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
     chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
     chartconf["axisLabelFontColour"] = "%(axis_lbl_font_colour)s";
     chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
+    chartconf["xTitle"] = "%(x_title)s";
     chartconf["yTitle"] = "%(y_title)s";
     chartconf["ymax"] = %(ymax)s;
     chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
@@ -1884,16 +1917,15 @@ makechartRenumber%(chart_idx)s = function(){
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx; %(pagebreak)s">
     </div>
-<div id="legendMychartRenumber%(chart_idx)s">
-    </div>
 </div>""" % {u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
              u"indiv_chart_title": indiv_chart_title,
              u"width": width, u"height": height, u"xfontsize": xfontsize, 
              u"axis_lbl_font_colour": axis_lbl_font_colour,
              u"major_gridline_colour": major_gridline_colour,
              u"left_axis_lbl_shift": left_axis_lbl_shift,
+             u"axis_lbl_drop": axis_lbl_drop,
              u"axis_lbl_rotate": axis_lbl_rotate, u"ymax": ymax,
-             u"gridline_width": gridline_width, 
+             u"gridline_width": gridline_width, u"x_title": x_title, 
              u"y_title": y_title, u"pagebreak": pagebreak,
              u"tooltip_border_colour": tooltip_border_colour,
              u"connector_style": connector_style, 

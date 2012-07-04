@@ -756,6 +756,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp_sel = self.bmp_btn_clust_bar_chart_sel
         panel = self.panel_clust_bar_chart
         self.rad_clust_bar_perc.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
+        self.chk_clust_bar_rotate.SetValue(ROTATE)
         self.chk_clust_bar_avg.SetValue(SHOW_AVG)
         self.rad_clust_bar_perc.Enable(not SHOW_AVG)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
@@ -1135,9 +1136,10 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(
                     var_role_charts, var_role_charts_name, var_role_charts_lbls, 
                     sort_opt="%(sort_opt)s", rotate=%(rotate)s, 
                     is_perc=%(is_perc)s)
+x_title = var_role_cat_name
 y_title = %(ytitle2use)s
 chart_output = charting_output.simple_barchart_output(titles, subtitles,
-    y_title, chart_output_dets, rotate=%(rotate)s, 
+    x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
     css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
     page_break_after=False)
     """ % {u"sort_opt": CUR_SORT_OPT, u"is_perc": str(is_perc), 
@@ -1227,7 +1229,7 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.AREA_CHART,
 x_title = var_role_cat_name
 y_title = %(ytitle2use)s
 chart_output = charting_output.areachart_output(titles, subtitles, 
-    y_title, chart_output_dets, rotate=%(rotate)s, 
+    x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
     css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)""" %
     {u"dbe": dd.dbe, u"is_perc": str(is_perc), u"rotate": rotate, 
