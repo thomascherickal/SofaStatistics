@@ -174,7 +174,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     if debug: print(u"SQL_get_raw_data:\n%s" % SQL_get_raw_data)
     return SQL_get_raw_data
 
-def get_sorted_y_dets(is_perc, sort_opt, vals_etc_lst, dp):
+def get_sorted_y_dets(is_perc, is_avg, sort_opt, vals_etc_lst, dp):
     """
     Sort in place then iterate and build new lists with guaranteed 
         synchronisation.
@@ -196,7 +196,11 @@ def get_sorted_y_dets(is_perc, sort_opt, vals_etc_lst, dp):
         y_val = perc if is_perc else measure
         sorted_y_vals.append(y_val)
         measure2show = int(measure) if dp == 0 else measure # so 12 is 12 not 12.0
-        sorted_tooltips.append(u"%s<br>%s%%" % (measure2show, round(perc,1)))
+        if is_avg: # don't show percentage
+            sorted_tooltips.append(u"%s" % measure2show)
+        else:
+            sorted_tooltips.append(u"%s<br>%s%%" % (measure2show, 
+                                                    round(perc,1)))
     return sorted_xaxis_dets, sorted_y_vals, sorted_tooltips
 
 def get_prestructured_gen_data(raw_data):
@@ -296,6 +300,7 @@ def structure_gen_data(chart_type, raw_data, max_items, xlblsdic,
         raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
                                            max_items=mg.CHART_MAX_CHARTS_IN_SET)
     multichart = n_charts > 1
+    is_avg = (var_role_avg is not None)
     if multichart:
         chart_fldname = var_role_charts_name
         chart_fldlbls = var_role_charts_lbls
@@ -356,7 +361,7 @@ def structure_gen_data(chart_type, raw_data, max_items, xlblsdic,
                 raise my_exceptions.TooManySlicesInPieChart
             (sorted_xaxis_dets, 
              sorted_y_vals, 
-             sorted_tooltips) = get_sorted_y_dets(is_perc, sort_opt,
+             sorted_tooltips) = get_sorted_y_dets(is_perc, is_avg, sort_opt,
                                                   vals_etc_lst, dp)
             series_det = {mg.CHARTS_SERIES_LEGEND_LBL: legend_lbl,
                           mg.CHARTS_XAXIS_DETS: sorted_xaxis_dets, 
