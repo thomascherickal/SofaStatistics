@@ -1272,18 +1272,19 @@ def get_boxplot_script(rotate, css_fil, css_idx):
     script = u"""
 (xaxis_dets, xmin, xmax, 
  ymin, ymax, max_label_len, 
- chart_dets, 
+ max_lbl_lines, chart_dets, 
  any_missing_boxes) = charting_output.get_boxplot_dets(dbe, cur, tbl, tbl_filt, 
                     var_role_desc, var_role_desc_name,
                     var_role_cat, var_role_cat_name, var_role_cat_lbls,
                     var_role_series, var_role_series_name, var_role_series_lbls,
                     rotate=%(rotate)s)
-x_title = var_role_charts_name if var_role_charts else u""
+x_title = var_role_cat_name
 y_title = var_role_desc_name 
 chart_output = charting_output.boxplot_output(titles, subtitles, 
-            any_missing_boxes, x_title, y_title, xaxis_dets, max_label_len, 
-            chart_dets, xmin, xmax, ymin, ymax, rotate=%(rotate)s, 
-            css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
+                    any_missing_boxes, x_title, y_title, var_role_series_name, 
+                    xaxis_dets, max_label_len, max_lbl_lines, chart_dets, xmin, 
+                    xmax, ymin, ymax, rotate=%(rotate)s, css_fil=u"%(css_fil)s", 
+                    css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"rotate": rotate, 
            u"css_idx": css_idx}
     return script
