@@ -155,7 +155,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
             html.append(u"\n<img src='%s'>" % img_src)
         except Exception, e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
-                        (hist_label, e))
+                        (hist_label, lib.ue(e)))
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -300,7 +300,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
             html.append(u"\n<img src='%s'>" % img_src)
         except Exception, e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
-                        (hist_label, e))
+                        (hist_label, lib.ue(e)))
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
@@ -338,11 +338,11 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
         html.append(u"\n<img src='%s'>" % img_src)
     except Exception, e:
         html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
-                (hist_label, e))
+                (hist_label, lib.ue(e)))
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
-        html.append(u"<br><hr><br><div class='%s'></div>" % \
+        html.append(u"<br><hr><br><div class='%s'></div>" %
                     CSS_PAGE_BREAK_BEFORE)
     html_str = u"\n".join(html)
     return html_str

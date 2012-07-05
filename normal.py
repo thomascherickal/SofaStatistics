@@ -315,7 +315,7 @@ class NormalityDlg(wx.Dialog, config_output.ConfigUI):
             charting_pylab.config_hist(fig, self.vals, self.data_label, 
                                        thumbnail=True, inc_attrib=False)
         except Exception, e:
-            msg = u"Unable to produce histogram. Reason: %s" % e
+            msg = u"Unable to produce histogram. Reason: %s" % lib.ue(e)
             self.html.show_html(u"<p>%s</p>" % msg)
             return
         pylab.savefig(mg.INT_IMG_ROOT + u".png", dpi=100)

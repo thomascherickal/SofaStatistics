@@ -1301,6 +1301,9 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
     if not is_string(raw_datetime_str):
         if debug: print("%s is not a valid datetime string" % raw_datetime_str)
         return None
+    if raw_datetime_str.strip() == u"":
+        if debug: print("Spaces or empty text are not valid datetime strings")
+        return None
     # evaluate date and/or time components against allowable formats
     date_part, time_part, boldate_then_time = datetime_split(raw_datetime_str)
     if date_part is None and time_part is None:

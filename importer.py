@@ -1213,8 +1213,8 @@ def run_import(self, headless=False, file_path=None, tblname=None,
         if headless:
             raise
         else:
-            wx.MessageBox(_("Unable to import data\n\nError") + u": %s" % 
-                          lib.ue(e))
+            wx.MessageBox(_("Unable to import data after getting "
+                            u"parameters\n\nError") + u": %s" % lib.ue(e))
             lib.safe_end_cursor()
     if proceed:
         try:
