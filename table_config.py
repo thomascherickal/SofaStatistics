@@ -111,7 +111,10 @@ def copy_orig_tbl(orig_tblname):
     SQL_restore_index = u"CREATE UNIQUE INDEX sofa_id_idx on %s (%s)" % \
                         (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2), 
                          getdata.tblname_qtr(mg.DBE_SQLITE, mg.SOFA_ID))
-    dd.cur.execute(SQL_restore_index)
+    try:
+        dd.cur.execute(SQL_restore_index)
+    except Exception:
+        pass # Sofa index is already present so OK if not able to remake it.")
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
 
 def restore_copy_tbl(orig_tblname):
@@ -429,6 +432,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         fld_settings -- add details to it in form of a list of dicts.
         """
         self.new = new
+        self.exiting = False
         self.changes_made = False
         self.readonly = readonly
         if self.new and self.readonly:
@@ -540,7 +544,8 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         except Exception:
             my_exceptions.DoNothingException() # need on Mac or exceptn survives
         finally: # any initial content
-            self.update_demo()
+            if not self.exiting:
+                self.update_demo()
             
     def get_demo_val(self, row_idx, col_label, lbl_type):
         """
@@ -995,6 +1000,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                     else:
                         dd.set_tbl(tbl=None)
                     self.make_changes()
+                    self.exiting = True
                     self.Destroy()
                     self.SetReturnCode(mg.RET_CHANGED_DESIGN)
                 except FldMismatchException:

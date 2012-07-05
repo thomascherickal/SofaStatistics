@@ -1259,8 +1259,8 @@ scatterplot_dets = charting_output.get_scatterplot_dets(dbe, cur, tbl, tbl_filt,
             var_role_charts, var_role_charts_name, var_role_charts_lbls, 
             unique=True)
 chart_output = charting_output.scatterplot_output(titles, subtitles,
-            scatterplot_dets, var_role_x_axis, var_role_y_axis, add_to_report, 
-            report_name, %(dot_border)s, css_fil=u"%(css_fil)s", 
+            scatterplot_dets, var_role_x_axis_name, var_role_y_axis_name, 
+            add_to_report, report_name, %(dot_border)s, css_fil=u"%(css_fil)s", 
             css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"css_idx": css_idx, 
            u"dot_border": dot_border}
