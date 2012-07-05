@@ -1603,6 +1603,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    html.append(title_dets_html)
     # following details are same across all charts so look at first
     chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
     chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
@@ -1743,7 +1744,6 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         makeLineChart("mychartRenumber%(chart_idx)s", series, chartconf);
     }
     </script>
-    %(titles)s
         
     <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
     %(indiv_chart_title)s
@@ -1751,7 +1751,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
             height: %(height)spx;">
         </div>
     %(legend)s
-    </div>""" % {u"titles": title_dets_html, u"legend": legend,
+    </div>""" % {u"legend": legend,
                  u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
                  u"indiv_chart_title": indiv_chart_title, 
                  u"width": width, u"height": height, u"xfontsize": xfontsize, 
@@ -2300,7 +2300,7 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     html = []
     if any_missing_boxes:
         html.append(u"<p>At least one box will not be displayed because it "
-                    u"lacks at least %s values or has inadequate "
+                    u"needed more than %s values or has inadequate "
                     u"variability.</p>" % mg.CHART_MIN_DISPLAY_VALS_FOR_BOXPLOT)
     """
     For each series, set colour details.
