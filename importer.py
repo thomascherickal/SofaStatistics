@@ -23,6 +23,7 @@ GAUGE_STEPS = 50
 FIRST_MISMATCH_TPL = (u"\nRow: %(row)s"
                       u"\nValue: \"%(value)s\""
                       u"\nExpected column type: %(fldtype)s")
+ROWS_TO_SHOW_USER = 4 # only need enough to decide if a header (except for csv when also needing to choose encoding)
 
 
 class FixMismatchDlg(wx.Dialog):
@@ -740,7 +741,7 @@ class HasHeaderGivenDataDlg(wx.Dialog):
     def __init__(self, parent, ext, strdata, prob_has_hdr=True):
         debug = False
         wx.Dialog.__init__(self, parent=parent, title=_("Header row?"),
-                           size=(850, 450), style=wx.CAPTION|wx.SYSTEM_MENU, 
+                           size=(850, 250), style=wx.CAPTION|wx.SYSTEM_MENU, 
                            pos=(mg.HORIZ_OFFSET+200,120))
         self.parent = parent
         self.panel = wx.Panel(self)
@@ -751,7 +752,7 @@ class HasHeaderGivenDataDlg(wx.Dialog):
         lbl_explan = wx.StaticText(self.panel, -1, explan)
         content, unused = get_content_dets(strdata)
         if debug: print(content)
-        html_content = wx.html.HtmlWindow(self.panel, -1, size=(820,440))
+        html_content = wx.html.HtmlWindow(self.panel, -1, size=(820,240))
         html_content.SetPage(content)
         btn_has_header = wx.Button(self.panel, mg.HAS_HEADER, 
                                    _("Has Header Row"))

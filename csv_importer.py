@@ -17,7 +17,8 @@ import my_exceptions
 import getdata
 import importer
 
-ROWS_TO_SAMPLE = 20
+ROWS_TO_SHOW_USER = 10 # need to show enough to choose encoding
+
 ERR_NO_DELIM = u"Could not determine delimiter"
 ERR_NEW_LINE = u"new-line character seen in unquoted field"
 ESC_DOUBLE_QUOTE = "\x14" # won't occur naturally and doesn't break csv module
@@ -492,7 +493,8 @@ class DlgImportDisplay(wx.Dialog):
     
     def get_content(self):
         self.utf8_encoded_csv_sample = csv_to_utf8_byte_lines(self.file_path,
-                                          self.encoding, n_lines=ROWS_TO_SAMPLE)
+                                                      self.encoding, 
+                                                      n_lines=ROWS_TO_SHOW_USER)
         try:
             # don't use dict reader - consumes first row when we don't know
             # field names. And if not a header, we might expect some values to
@@ -583,7 +585,8 @@ class CsvImporter(importer.FileImporter):
                 # empty strings or whatever later.
             gauge_val = i*steps_per_item
             progbar.SetValue(gauge_val)
-            i2break = ROWS_TO_SAMPLE if self.has_header else ROWS_TO_SAMPLE - 1
+            i2break = (ROWS_TO_SHOW_USER if self.has_header 
+                       else ROWS_TO_SHOW_USER - 1)
             if i == i2break:
                 break
         fldtypes = []
@@ -623,7 +626,7 @@ class CsvImporter(importer.FileImporter):
         for encoding in encodings:
             try:
                 unused = csv_to_utf8_byte_lines(self.file_path, encoding,
-                                                n_lines=ROWS_TO_SAMPLE)
+                                                n_lines=ROWS_TO_SHOW_USER)
                 possible_encodings.append(encoding)
             except Exception:
                 continue
@@ -651,7 +654,8 @@ class CsvImporter(importer.FileImporter):
             encoding = self.supplied_encoding
             has_header = self.headless_has_header
             utf8_encoded_csv_sample = csv_to_utf8_byte_lines(self.file_path,
-                                              encoding, n_lines=ROWS_TO_SAMPLE)
+                                                      encoding, 
+                                                      n_lines=ROWS_TO_SHOW_USER)
         else:
             encodings = self.get_possible_encodings()
             probably_has_hdr = get_prob_has_hdr(sample_rows, self.file_path, 
@@ -774,7 +778,7 @@ class CsvImporter(importer.FileImporter):
             raise Exception(u"Unable to create reader for file. "
                             u"\nCaused by error: %s" % lib.ue(e)) 
         default_dd = getdata.get_default_db_dets()
-        sample_n = ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= rows_n else rows_n
+        sample_n = min(ROWS_TO_SHOW_USER, rows_n)
         items_n = rows_n + sample_n + 1 # 1 is for the final tmp to named step
         steps_per_item = importer.get_steps_per_item(items_n)
         try:

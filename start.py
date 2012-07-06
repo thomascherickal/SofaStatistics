@@ -25,7 +25,7 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-dev_debug = True # relates to errors etc once GUI application running.
+dev_debug = False # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 show_more_steps = True
@@ -519,7 +519,7 @@ class StartFrame(wx.Frame):
         if show_more_steps: print(u"Passed check for database problems")
         if mg.MUST_DEL_TMP:
             wx.MessageBox(_(u"Please click on \"Enter/Edit Data\" and delete"
-                u" either of these tables if present- \"%s\" and \"%s\"") 
+                u" either of these tables if present - \"%s\" and \"%s\"") 
                 % (mg.TMP_TBLNAME, mg.TMP_TBLNAME2))
         if show_more_steps: print(u"Passed check for having to delete database")
         wx.CallAfter(lib.check_crack, show_more_steps) # won't stop form load if fails

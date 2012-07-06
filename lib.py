@@ -1231,7 +1231,7 @@ def get_datetime_parts(datetime_str):
     datetime_str = datetime_str.replace(u" AM", u"AM")
     if datetime_str.count(u"T") == 1:
         parts_lst = datetime_str.split(u"T") # e.g. [u"2011-04-14", u"23:33:052"]
-    elif u" " in datetime_str: # split by last one unless ... last one fails time test
+    elif u" " in datetime_str and datetime_str.strip() != u"": # split by last one unless ... last one fails time test
         # So we handle 1 Feb 2009 and 1 Feb 2009 4pm and 2011/03/23 4pm correctly
         # and 4pm 2011/03/23.
         # Assumed no spaces in times (as cleaned up to this point e.g. 4 pm -> 4pm).

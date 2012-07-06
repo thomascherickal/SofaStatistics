@@ -42,8 +42,8 @@ class ExcelImporter(importer.FileImporter):
         if debug: print(row1_types, row2_types)
         row1_strings_only = (len(row1_types) == 1 
                              and xlrd.XL_CELL_TEXT in row1_types)
-        non_string_set = {xlrd.XL_CELL_BOOLEAN, xlrd.XL_CELL_DATE, 
-                          xlrd.XL_CELL_NUMBER} # ignore EMPTY and ERROR
+        non_string_set = set([xlrd.XL_CELL_BOOLEAN, xlrd.XL_CELL_DATE, 
+                              xlrd.XL_CELL_NUMBER]) # ignore EMPTY and ERROR
         row2_has_non_strings = len(row2_types.intersection(non_string_set)) > 0
         return row1_strings_only and row2_has_non_strings
     
@@ -73,7 +73,7 @@ class ExcelImporter(importer.FileImporter):
                     val2show = self.getval2use(wkbook, rowtypes[colx], rawval)
                     newrow.append(val2show)
                 strdata.append(newrow)
-                if rowx > 2:
+                if (rowx+1) >= importer.ROWS_TO_SHOW_USER:
                     break
             try:
                 prob_has_hdr = self.has_header_row(row1_types, row2_types)
@@ -206,8 +206,7 @@ class ExcelImporter(importer.FileImporter):
             raise Exception(u"Unable to read spreadsheet."
                             u"\nCaused by error: %s" % lib.ue(e))
         default_dd = getdata.get_default_db_dets()
-        sample_n = (ROWS_TO_SAMPLE if ROWS_TO_SAMPLE <= n_datarows 
-                                   else n_datarows)
+        sample_n = min(ROWS_TO_SAMPLE, n_datarows)
         items_n = n_datarows + sample_n
         steps_per_item = importer.get_steps_per_item(items_n)
         if debug: 

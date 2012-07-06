@@ -156,9 +156,12 @@ def get_has_data_cells(el):
 
 def get_rows(tbl, inc_empty=True, n=None):
     """
+    Note - not rows of values but element rows. Need special processing to work 
+        with.
     Even if empty rows are included, they are only included if there is a 
         non-empty row afterwards.
     Breaks if any rows repeated.
+    n -- all rows extracted. Only non-empty if inc_empty=False.
     """
     datarows = []
     prev_empty_rows_to_add = []
@@ -169,7 +172,7 @@ def get_rows(tbl, inc_empty=True, n=None):
         if ROWS_REP in el_attribs:
             break
         elif get_has_data_cells(el):
-            datarows.extend(prev_empty_rows_to_add)
+            datarows.extend(prev_empty_rows_to_add) # only something there if inc_empty
             prev_empty_rows_to_add = []
             datarows.append(el)            
         else: # empty
@@ -205,6 +208,8 @@ def get_ok_fldnames(tbl, has_header, rows_to_sample, headless):
     """
     Get cleaned field names. Will be used to create row dicts as required by
         importer.add_to_tmp_tbl().
+    Much more efficient if has a header. Otherwise need to sample as many as 
+        500 rows to confidently establish number of cols.
     """
     debug = False
     if has_header:
@@ -461,7 +466,7 @@ def process_cells(attrib_dict, col_type_sets, col_idx, fldnames, valdict,
     """
     bolcontinue = True
     first_mismatch = u""
-    for unused in range(get_col_rep(attrib_dict)): # looping through col cells
+    for unused in range(get_col_rep(attrib_dict)): # looping through col cells (more than one in this single el if col-repeat)
         update_types_and_val_dict(col_type_sets, col_idx, fldnames, valdict, 
                                   coltype, val2use)
         # sniff for mismatch
@@ -591,15 +596,24 @@ def get_val_and_type(attrib_dict, el_det):
 
 def get_vals_from_row(row, n_flds):
     """
-    Get rows back as list of lists of vals (as unicode  ready for display).
+    Get rows back as list of lists of vals (as unicode ready for display).
     Based on dets_from_row - which lumps more responsibilities for efficiency 
         reasons.
+    Note - must handle number-columns-repeated e.g. 
+    <table:table-cell table:number-columns-repeated="2" 
+            office:value-type="float" office:value="3">
+        <text:p>3</text:p>
+    </table:table-cell>
+    is 3, 3 not just a single 3
     """
     debug = False
     vals = []
     tbl_cell_el_dets = get_tbl_cell_el_dets(row)
     cols = 0
+    got_enough = False
     for el_det in tbl_cell_el_dets:
+        if got_enough:
+            break
         attrib_dict = el_det[ATTRIBS] # already streamlined
         # the defaults unless overridden by actual data
         val2use = None
@@ -614,10 +628,12 @@ def get_vals_from_row(row, n_flds):
         else:
             continue
         if debug: print(val2use)
-        vals.append(val2use)
-        cols += 1
-        if cols == n_flds:
-            break
+        for unused in range(get_col_rep(attrib_dict)):
+            vals.append(val2use)
+            cols += 1
+            if cols == n_flds:
+                got_enough = True
+                break
     if debug: print(vals)
     return vals
 

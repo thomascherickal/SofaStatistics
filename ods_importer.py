@@ -79,19 +79,22 @@ class OdsImporter(importer.FileImporter):
                 wx.BeginBusyCursor()
                 tree = ods_reader.get_contents_xml_tree(self.file_path)
                 tbl = ods_reader.get_tbl(tree)
+                # much less efficient if no header supplied
                 ok_fldnames = ods_reader.get_ok_fldnames(tbl, has_header=False, 
                                                 rows_to_sample=ROWS_TO_SAMPLE, 
                                                 headless=self.headless)
                 if not ok_fldnames:
                     raise Exception(_("Unable to extract or generate field "
                                       "names"))
-                rows = ods_reader.get_rows(tbl, inc_empty=False)
+                rows = ods_reader.get_rows(tbl, inc_empty=False, 
+                                           n=importer.ROWS_TO_SHOW_USER)
                 lib.safe_end_cursor()
                 strdata = []
-                for i, row in enumerate(rows):
+                for i, row in enumerate(rows, 1):
                     strrow = ods_reader.get_vals_from_row(row, len(ok_fldnames))
+                    if debug: print(strrow)
                     strdata.append(strrow)
-                    if i > 3:
+                    if i >= importer.ROWS_TO_SHOW_USER:
                         break
                 try:
                     prob_has_hdr = self.has_header_row(strdata)
