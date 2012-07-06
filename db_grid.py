@@ -1066,23 +1066,24 @@ class TblEditor(wx.Dialog):
                 num_len = fld_dic[mg.FLD_NUM_WIDTH]
                 colwidth = (num_len*pix_per_char if num_len is not None
                             else None)
-            elif fld_dic[mg.FLD_BOLDATETIME]:
-                colwidth = 170
+            #elif fld_dic[mg.FLD_BOLDATETIME]:
+            #    colwidth = 150
+            fldname_width = len(fldname)*pix_per_char
             if colwidth:
                 if debug or self.debug: 
                     print("Width of %s set to %s" % (fldname, colwidth))
-                self.grid.SetColSize(col_idx, colwidth)
+                colwidth2use = max(colwidth, fldname_width)
+                self.grid.SetColSize(col_idx, colwidth2use)
             else:
                 if debug or self.debug: print("Autosizing %s" % fldname)
-                self.grid.AutoSizeColumn(col_idx, setAsMin=False)            
-            fldname_width = len(fldname)*pix_per_char
-            # if actual column width is small and the label width is larger,
-            # use label width.
-            self.grid.ForceRefresh()
-            actual_width = self.grid.GetColSize(col_idx)
-            if actual_width < 15*pix_per_char \
-                    and actual_width < fldname_width:
-                self.grid.SetColSize(col_idx, fldname_width)
+                self.grid.AutoSizeColumn(col_idx, setAsMin=False)
+                # if actual column width is small and the label width is larger,
+                # use label width.
+                self.grid.ForceRefresh()
+                actual_width = self.grid.GetColSize(col_idx)
+                if actual_width < 15*pix_per_char \
+                        and actual_width < fldname_width:
+                    self.grid.SetColSize(col_idx, fldname_width)
             if debug or self.debug: 
                 print("%s %s" % (fldname, self.grid.GetColSize(col_idx)))
         try:
