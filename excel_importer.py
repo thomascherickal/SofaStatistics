@@ -28,7 +28,7 @@ class ExcelImporter(importer.FileImporter):
     
     def has_header_row(self, row1_types, row2_types):
         """
-        Will return True if nothing but strings in first row and anything in 
+        Will return True if nothing but strings or in first row and anything in 
             other rows that is not e.g. a number or a date. Empty is OK.
         XL_CELL_BLANK = 6
         XL_CELL_BOOLEAN = 4
@@ -40,12 +40,12 @@ class ExcelImporter(importer.FileImporter):
         """
         debug = False
         if debug: print(row1_types, row2_types)
-        row1_strings_only = (len(row1_types) == 1 
-                             and xlrd.XL_CELL_TEXT in row1_types)
-        non_string_set = set([xlrd.XL_CELL_BOOLEAN, xlrd.XL_CELL_DATE, 
-                              xlrd.XL_CELL_NUMBER]) # ignore EMPTY and ERROR
-        row2_has_non_strings = len(row2_types.intersection(non_string_set)) > 0
-        return row1_strings_only and row2_has_non_strings
+        str_type = xlrd.XL_CELL_TEXT
+        empty_type = xlrd.XL_CELL_EMPTY
+        non_str_types = [xlrd.XL_CELL_BOOLEAN, xlrd.XL_CELL_DATE, 
+                         xlrd.XL_CELL_NUMBER] # ignore EMPTY and ERROR
+        return importer.has_header_row(row1_types, row2_types, str_type, 
+                                       empty_type, non_str_types)
     
     def get_params(self):
         """
@@ -64,9 +64,9 @@ class ExcelImporter(importer.FileImporter):
             for rowx in range(nrows):
                 rowtypes = wksheet.row_types(rowx)
                 if rowx == 0:
-                    row1_types = set(rowtypes)
+                    row1_types = rowtypes
                 elif rowx == 1:
-                    row2_types = set(rowtypes)
+                    row2_types = rowtypes
                 newrow = []
                 for colx in range(wksheet.ncols):
                     rawval = wksheet.cell_value(rowx, colx)

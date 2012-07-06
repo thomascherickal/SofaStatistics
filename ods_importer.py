@@ -39,19 +39,16 @@ class OdsImporter(importer.FileImporter):
         if debug: print(strdata)
         if len(strdata) < 2: # a header row needs a following row to be a header
             return False
-        first_row = strdata[0]
-        for val in first_row: # must all be non-empty strings to be a header
-            val_type = lib.get_val_type(val, comma_dec_sep_ok)
-            if val_type != mg.VAL_STRING: # empty strings no good as heading values
-                return False
-        for row in strdata[1:]: # Only strings in potential header. Must look 
-                # for any non-strings to be sure.
-            for val in row:
-                val_type = lib.get_val_type(val, comma_dec_sep_ok)
-                if val_type in [mg.VAL_DATE, mg.VAL_NUMERIC]:
-                    return True
-        return False
-    
+        row1_types = [lib.get_val_type(val, comma_dec_sep_ok) 
+                      for val in strdata[0]]
+        row2_types = [lib.get_val_type(val, comma_dec_sep_ok) 
+                      for val in strdata[1]]
+        str_type = mg.VAL_STRING
+        empty_type = mg.VAL_EMPTY_STRING
+        non_str_types = [mg.VAL_DATE, mg.VAL_NUMERIC]
+        return importer.has_header_row(row1_types, row2_types, str_type, 
+                                       empty_type, non_str_types)
+        
     def get_params(self):
         """
         Get any user choices required.

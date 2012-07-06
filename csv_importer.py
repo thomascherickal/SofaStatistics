@@ -145,21 +145,18 @@ def has_header_row(sample_rows, delim, comma_dec_sep_ok=False):
     """
     if len(sample_rows) < 2: # a header row needs a following row to be a header
         return False
-    first_row = sample_rows[0]
     delim_str = delim.encode("utf-8")
-    first_row_vals = first_row.split(delim_str)
-    for val in first_row_vals: # must all be non-empty strings to be a header
-        val_type = lib.get_val_type(val, comma_dec_sep_ok)
-        if val_type != mg.VAL_STRING: # empty strings no good as heading values
-            return False
-    for row in sample_rows[1:]: # Only strings in potential header. Must look 
-            # for any non-strings to be sure.
-        row_vals = row.split(delim_str)
-        for val in row_vals:
-            val_type = lib.get_val_type(val, comma_dec_sep_ok)
-            if val_type in [mg.VAL_DATE, mg.VAL_NUMERIC]:
-                return True
-    return False
+    first_row_vals = sample_rows[0].split(delim_str)
+    second_row_vals = sample_rows[1].split(delim_str)
+    row1_types = [lib.get_val_type(val, comma_dec_sep_ok) 
+                  for val in first_row_vals]
+    row2_types = [lib.get_val_type(val, comma_dec_sep_ok) 
+                  for val in second_row_vals]
+    str_type = mg.VAL_STRING
+    empty_type = mg.VAL_EMPTY_STRING
+    non_str_types = [mg.VAL_DATE, mg.VAL_NUMERIC]
+    return importer.has_header_row(row1_types, row2_types, str_type, empty_type, 
+                                   non_str_types)
 
 def get_prob_has_hdr(sample_rows, file_path, dialect):
     """

@@ -23,7 +23,7 @@ GAUGE_STEPS = 50
 FIRST_MISMATCH_TPL = (u"\nRow: %(row)s"
                       u"\nValue: \"%(value)s\""
                       u"\nExpected column type: %(fldtype)s")
-ROWS_TO_SHOW_USER = 4 # only need enough to decide if a header (except for csv when also needing to choose encoding)
+ROWS_TO_SHOW_USER = 5 # only need enough to decide if a header (except for csv when also needing to choose encoding)
 
 
 class FixMismatchDlg(wx.Dialog):
@@ -110,7 +110,18 @@ class FixMismatchDlg(wx.Dialog):
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
         # (MUST come after Destroy)
-    
+
+def has_header_row(row1_types, row2_types, str_type, empty_type, non_str_types):
+    row1_types_set = set(row1_types)
+    row2_types_set = set(row2_types)
+    n_types = len(row1_types_set)
+    has_strings = str_type in row1_types_set
+    has_empties = empty_type in row1_types_set
+    row1_strings_only = (has_strings and (n_types == 1 
+                                          or (n_types == 2 and has_empties)))
+    non_string_set = set(non_str_types) # ignore EMPTY
+    row2_has_non_strings = len(row2_types_set.intersection(non_string_set)) > 0
+    return row1_strings_only and row2_has_non_strings
     
 def get_best_fldtype(fldname, type_set, faulty2missing_fld_list, 
                      first_mismatch=u"", testing=False):
