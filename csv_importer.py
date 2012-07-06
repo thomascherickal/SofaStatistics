@@ -113,9 +113,9 @@ def fix_text(file_path):
                          caption=_("FIX TEXT?"), style=wx.YES_NO)
     if ret == wx.YES:
         new_file = make_tidied_copy(file_path)
-        wx.MessageBox(_("Please check tidied version \"%s\" "
-                        "before importing.  May have line "
-                        "breaks in the wrong places.") % new_file)
+        wx.MessageBox(_(u"Please check tidied version \"%s\" "
+                        u"before importing/re-importing. May have line "
+                        u"breaks in the wrong places.") % new_file)
     else:
         wx.MessageBox(_("Unable to import file in current form"))
 
@@ -169,30 +169,31 @@ def get_prob_has_hdr(sample_rows, file_path, dialect):
         columns to test.
     Need an additional test looking for all strings in top, and anything below 
         that is numeric or a date.
+    Must always return a result no matter what even if we don't know and just 
+        assume no header i.e. False.
     """
+    prob_has_hdr = False
     try:
         sniffer = csv.Sniffer()
         sample_rows = [x.strip("\n") for x in sample_rows]
         hdr_sample = "\n".join(sample_rows)
         prob_has_hdr = sniffer.has_header(hdr_sample)
+    except csv.Error, e:
+        lib.safe_end_cursor()
+        if lib.ue(e).startswith(ERR_NO_DELIM):
+            pass # I'll have to try it myself
+        elif lib.ue(e).startswith(ERR_NEW_LINE):
+            fix_text(file_path)
+    except Exception, e: # If everything else succeeds don't let this stop things
+        pass
+    try:
         if not prob_has_hdr:
             # test it myself
             delim = dialect.delimiter.decode("utf8")
             comma_dec_sep_ok = not has_comma_delim(dialect)
             prob_has_hdr = has_header_row(sample_rows, delim, comma_dec_sep_ok)        
-    except csv.Error, e:
-        lib.safe_end_cursor()
-        if lib.ue(e).startswith(ERR_NO_DELIM):
-            prob_has_hdr = False # If everything else succeeds don't let this 
-                # stop things. Don't raise error.
-        elif lib.ue(e).startswith(ERR_NEW_LINE):
-            fix_text(file_path)
-            raise my_exceptions.ImportNeededFixException
-        else:
-            raise
     except Exception, e:
-        prob_has_hdr = False # If everything else succeeds don't let this 
-        # stop things. Don't raise error.
+        pass
     return prob_has_hdr
 
 def get_avg_row_size(rows):
