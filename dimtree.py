@@ -34,10 +34,9 @@ class DimTree(object):
     
     # dimension (rows/columns) trees
     """
-    All methods which add items to the tree must at the same
-    time attach an ItemConfig object as its PyData (using
-    set_initial_config().  This includes on_col_config when 
-    col_no_vars_item is added.
+    All methods which add items to the tree must at the same time attach an 
+        ItemConfig object as its PyData (using set_initial_config(). This 
+        includes on_col_config when col_no_vars_item is added.
     """
     
     def __init__(self):
@@ -48,21 +47,21 @@ class DimTree(object):
         Used in set_initial_config() when setting up a fresh item.
         """
         self.default_item_confs = {
-             mg.FREQS_TBL: {mg.COLDIM: {MEASURES: None}, 
-                            mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: None}},
-             mg.CROSSTAB: {mg.COLDIM: {HAS_TOT: None, SORT_ORDER: None, 
-                                       MEASURES: None}, 
-                           mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: None}},
-             mg.ROW_SUMM: {mg.COLDIM: {HAS_TOT: None}, 
-                           mg.ROWDIM: {MEASURES: None}}}
+             mg.FREQS_TBL: {mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: None}, 
+                            mg.COLDIM: {MEASURES: None},},
+             mg.CROSSTAB: {mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: None},
+                           mg.COLDIM: {HAS_TOT: None, SORT_ORDER: None, 
+                                       MEASURES: None},},
+             mg.ROW_SUMM: {mg.ROWDIM: {HAS_TOT: None},
+                           mg.COLDIM: {MEASURES: None},}}
 
     def on_row_item_activated(self, event):
         "Activated row item in tree.  Show config dialog."
         self.config_row()
     
     def on_col_item_activated(self, event):
-        "Activated col item in tree.  Show config dialog."
-        self.config_col()
+        "Activated col item in tree. Show config dialog."
+        self.config_dim(dim=mg.COLDIM)
     
     def on_row_item_rclick(self, event):
         self.show_var_properties(self.rowtree, event)
@@ -76,6 +75,10 @@ class DimTree(object):
             self.show_var_properties(self.coltree, event)
         
     def show_var_properties(self, tree, event):
+        """
+        Open dialog of var properties (val labels etc) and, if changed, reset 
+            item clicked.
+        """
         item = event.GetItem() # NB GUI tree item, not our own Dim Node obj
         tree.SelectItem(item)
         item_conf = tree.GetItemPyData(item)
@@ -106,16 +109,18 @@ class DimTree(object):
     def get_selected_idxs(self, dim, sorted_choices):
         "Where we provide a single or multi choice dialog to select variables."
         selected_idxs = None # init
-        if ((self.tab_type == mg.ROW_SUMM and dim == mg.ROWDIM) 
+        if ((self.tab_type == mg.ROW_SUMM and dim == mg.COLDIM) 
                 or self.tab_type == mg.RAW_DISPLAY):
-            dlg = wx.MultiChoiceDialog(self, _("Select a variable"), 
-                                       _("Variables"), choices=sorted_choices)
+            dlg = wx.MultiChoiceDialog(parent=self, 
+                                 message=_("Select a variable"), 
+                                 caption=_("Variables"), choices=sorted_choices)
             ret = dlg.ShowModal()
             if ret == wx.ID_OK:
                 selected_idxs = dlg.GetSelections()
         else:
-            ret = wx.GetSingleChoiceIndex(_("Select a variable"), 
-                            _("Variables"), choices=sorted_choices, parent=self)
+            ret = wx.GetSingleChoiceIndex(message=_("Select a variable"), 
+                                 caption=_("Variables"), choices=sorted_choices, 
+                                 parent=self)
             if ret != -1:
                 selected_idxs = [ret,]
         return selected_idxs
@@ -128,13 +133,14 @@ class DimTree(object):
             what our config tree looks like in the GUI) from it and then build a 
             label node tree (a tree of what we see in output) from that.
         """
-        if self.tab_type == mg.ROW_SUMM and tree == self.rowtree:
+        if self.tab_type == mg.ROW_SUMM and tree == self.coltree:
             min_data_type = mg.VAR_TYPE_ORD
         else:
             min_data_type = mg.VAR_TYPE_CAT
         var_names = projects.get_approp_var_names(self.var_types, min_data_type)
-        sorted_choices, sorted_vars = lib.get_sorted_choice_items(
-                                    dic_labels=self.var_labels, vals=var_names)
+        (sorted_choices, 
+         sorted_vars) = lib.get_sorted_choice_items(dic_labels=self.var_labels, 
+                                                    vals=var_names)
         selected_idxs = self.get_selected_idxs(dim, sorted_choices)
         if selected_idxs:
             # only use in one dimension
@@ -168,14 +174,14 @@ class DimTree(object):
                 self.setup_row_btns()
             else:
                 self.setup_col_btns()
-            self.setup_action_btns()
-            self.update_demo_display()
+            live_demo = self.update_demo_display()
+            self.setup_action_btns(live_demo)
     
     def set_initial_config(self, tree, dim, new_id, var_name=None):
         """
         Set initial config for new item.
-        Variable name not applicable when a column config item 
-            (col_no_vars_item) rather than a normal column variable.
+        Variable name not applicable when a dim config item 
+            (e.g. col_no_vars_item) rather than a normal dim variable.
         """
         dd = mg.DATADETS_OBJ
         item_conf = lib.ItemConfig()
@@ -183,8 +189,7 @@ class DimTree(object):
         if self.tab_type != mg.RAW_DISPLAY: # Data list has nothing to reuse
             default_item_conf = self.default_item_confs[self.tab_type]
             # availability of config options vary by table type and dimension
-            # If a table type/dim doesn't have a key, the config isn't used by 
-            # it.
+            # If a table type/dim doesn't have a key, the config isn't used by it.
             dim_item_conf = default_item_conf.get(dim) # they all have both
             if HAS_TOT in dim_item_conf:
                 if dim_item_conf[HAS_TOT] is not None:
@@ -196,8 +201,9 @@ class DimTree(object):
                 if dim_item_conf[MEASURES] is not None:
                     item_conf.measures_lst = dim_item_conf[MEASURES]
                 else:
-                    item_conf.measures_lst = \
-                                        [lib.get_default_measure(self.tab_type)]
+                    rpt_config = mg.RPT_CONFIG[self.tab_type]
+                    default_measure = rpt_config[mg.DEFAULT_MEASURE_KEY]
+                    item_conf.measures_lst = [default_measure]
         if var_name:
             item_conf.var_name = var_name
             item_conf.bolnumeric = dd.flds[var_name][mg.FLD_BOLNUMERIC]
@@ -218,9 +224,9 @@ class DimTree(object):
         oth_dim_tree = self.coltree
         oth_dim_root = self.colroot
         selected_ids = tree.GetSelections()
-        if (root not in selected_ids 
-                and self.tab_type not in (mg.FREQS_TBL, mg.CROSSTAB)):
-            msg = _("Rows can only be nested in frequency or crosstab tables")
+        if (self.tab_type == mg.RAW_DISPLAY
+                and root not in selected_ids):
+            msg = _("Rows can't be nested in Raw Display tables")
             wx.MessageBox(msg)
             return
         if len(selected_ids) == 1:
@@ -246,6 +252,10 @@ class DimTree(object):
         oth_dim_tree = self.rowtree
         oth_dim_root = self.rowroot
         selected_ids = tree.GetSelections()
+        if (self.tab_type == mg.ROW_SUMM and root not in selected_ids):
+            msg = _("Columns can't be nested in Row Summary tables")
+            wx.MessageBox(msg)
+            return
         if len(selected_ids) == 1:
             self.try_adding_under(tree, root, dim, oth_dim, selected_ids[0], 
                                   oth_dim_tree, oth_dim_root)
@@ -265,61 +275,59 @@ class DimTree(object):
         """
         dd = mg.DATADETS_OBJ
         var_names = dd.flds.keys()
-        sorted_choices, sorted_vars = lib.get_sorted_choice_items(
-                                                    self.var_labels, var_names)
+        (sorted_choices, 
+         sorted_vars) = lib.get_sorted_choice_items(self.var_labels, var_names)
         selected_idxs = self.get_selected_idxs(dim, sorted_choices)
-        if selected_idxs:
-            for idx in selected_idxs:
-                text = sorted_choices[idx]
-                var_name = sorted_vars[idx]
-                # a text label supplied cannot be in any ancestors
-                ancestor_labels = []
-                parent_text = tree.GetItemText(selected_id)
-                ancestor_labels.append(parent_text)
-                ancestors = lib.get_tree_ancestors(tree, selected_id)
-                parent_ancestor_labels = [tree.GetItemText(x) for
-                                          x in ancestors]
-                ancestor_labels += parent_ancestor_labels
-                # text cannot be anywhere in other dim tree
-                used_in_oth_dim = self.used_in_oth_dim(text, oth_dim_tree, 
-                                                       oth_dim_root)                
-                if text in ancestor_labels:
-                    msg = _("Variable %s cannot be an ancestor of itself")
-                    wx.MessageBox(msg % text)
-                    return
-                elif used_in_oth_dim:
-                    msg = _("Variable %(text)s already used in "
-                            "%(oth_dim)s dimension")
-                    wx.MessageBox(msg % {"text": text, "oth_dim": oth_dim})
-                    return
-            # they all passed the test so proceed
-            for idx in selected_idxs:
-                text = sorted_choices[idx]
-                new_id = tree.AppendItem(selected_id, text)
-                var_name = sorted_vars[idx] 
-                self.set_initial_config(tree, dim, new_id, var_name)
-                # empty all measures from ancestors and ensure sorting 
-                # is appropriate
-                for ancestor in lib.get_tree_ancestors(tree, new_id):
-                    item_conf = tree.GetItemPyData(ancestor)
-                    if item_conf: #ignore root node
-                        item_conf.measures_lst = []
-                        if item_conf.sort_order in [mg.SORT_INCREASING, 
-                                                    mg.SORT_DECREASING]:
-                            item_conf.sort_order = mg.SORT_NONE
-                        tree.SetItemText(ancestor, 
-                                         item_conf.get_summary(), 1)                        
-            tree.ExpandAll(root)
-            tree.UnselectAll() # multiple
-            tree.SelectItem(new_id)
-            self.update_demo_display()
+        if not selected_idxs:
+            return
+        for idx in selected_idxs:
+            text = sorted_choices[idx]
+            var_name = sorted_vars[idx]
+            # a text label supplied cannot be in any ancestors
+            ancestor_labels = []
+            parent_text = tree.GetItemText(selected_id)
+            ancestor_labels.append(parent_text)
+            ancestors = lib.get_tree_ancestors(tree, selected_id)
+            parent_ancestor_labels = [tree.GetItemText(x) for x in ancestors]
+            ancestor_labels += parent_ancestor_labels
+            # text cannot be anywhere in other dim tree
+            used_in_oth_dim = self.used_in_oth_dim(text, oth_dim_tree, 
+                                                   oth_dim_root)                
+            if text in ancestor_labels:
+                msg = _("Variable %s cannot be an ancestor of itself")
+                wx.MessageBox(msg % text)
+                return
+            elif used_in_oth_dim:
+                msg = _("Variable %(text)s already used in "
+                        "%(oth_dim)s dimension")
+                wx.MessageBox(msg % {"text": text, "oth_dim": oth_dim})
+                return
+        # they all passed the test so proceed
+        for idx in selected_idxs:
+            text = sorted_choices[idx]
+            new_id = tree.AppendItem(selected_id, text)
+            var_name = sorted_vars[idx] 
+            self.set_initial_config(tree, dim, new_id, var_name)
+            # empty all measures from ancestors and ensure sorting 
+            # is appropriate
+            for ancestor in lib.get_tree_ancestors(tree, new_id):
+                item_conf = tree.GetItemPyData(ancestor)
+                if item_conf: #ignore root node
+                    item_conf.measures_lst = []
+                    if item_conf.sort_order in [mg.SORT_INCREASING, 
+                                                mg.SORT_DECREASING]:
+                        item_conf.sort_order = mg.SORT_NONE
+                    tree.SetItemText(ancestor, item_conf.get_summary(), 1)                        
+        tree.ExpandAll(root)
+        tree.UnselectAll() # multiple
+        tree.SelectItem(new_id)
+        self.update_demo_display()
     
     def used_in_oth_dim(self, text, oth_dim_tree, oth_dim_root):
         "Is this variable used in the other dimension at all?"
         oth_dim_items = lib.get_tree_ctrl_descendants(oth_dim_tree, 
                                                       oth_dim_root)
-        oth_dim_labels = [oth_dim_tree.GetItemText(x) for \
-                                  x in oth_dim_items]
+        oth_dim_labels = [oth_dim_tree.GetItemText(x) for x in oth_dim_items]
         return text in oth_dim_labels
     
     def used_in_this_dim(self, text, dim_tree, dim_root):
@@ -328,109 +336,165 @@ class DimTree(object):
         dim_labels = [dim_tree.GetItemText(x) for x in dim_items]
         return text in dim_labels
                 
-    def on_row_delete(self, event):
+    def on_item_delete(self, dim=mg.ROWDIM):
         """
-        Delete row var and all its children.
-        If it has a parent, set its measures to the default list.
+        Delete item and all its children.
+        Set selection to previous sibling (if any); or failing that the next 
+            sibling (if any); or failing that the parent (if no siblings);
+            or nowhere if not even a parent.
+        If an alternative item selection can be made, update the default item 
+            measures based on that selected item ready for reuse when adding 
+            new items.
         """
-        selected_ids = self.rowtree.GetSelections()
+        if dim == mg.ROWDIM:
+            itemlbl = u"row"
+            tree = self.rowtree
+            root = self.rowroot
+            btn_setup_func = self.setup_row_btns
+        elif dim == mg.COLDIM:
+            itemlbl = u"column"
+            tree = self.coltree
+            root = self.colroot
+            btn_setup_func = self.setup_col_btns
+        else:
+            raise Exception(u"Missing appropriate dim for on_item_delete().")
+        selected_ids = tree.GetSelections()
         if not selected_ids:
-            wx.MessageBox(_("No row variable selected to delete"))
+            wx.MessageBox(_("No %s variable selected to delete") % itemlbl)
             return
         first_selected_id = selected_ids[0]
-        parent_id = self.rowtree.GetItemParent(first_selected_id)
+        parent_id = tree.GetItemParent(first_selected_id)
         if parent_id:
-            item_conf = self.rowtree.GetItemPyData(parent_id)
+            item_conf = tree.GetItemPyData(parent_id)
             if item_conf:
                 item_conf.measures_lst = [self.demo_tab.default_measure]
-            prev_sibling_id = self.coltree.GetPrevSibling(first_selected_id)
-            next_sibling_id = self.coltree.GetNextSibling(first_selected_id)
+            prev_sibling_id = tree.GetPrevSibling(first_selected_id)
+            next_sibling_id = tree.GetNextSibling(first_selected_id)
             if prev_sibling_id.IsOk():
-                self.rowtree.SelectItem(prev_sibling_id)
+                tree.SelectItem(prev_sibling_id)
             elif next_sibling_id.IsOk():
-                self.rowtree.SelectItem(next_sibling_id)
+                tree.SelectItem(next_sibling_id)
             else:
-                self.rowtree.SelectItem(parent_id)
+                tree.SelectItem(parent_id)
+        # delete children
         for selected_id in selected_ids:
-            self.rowtree.DeleteChildren(selected_id)
-        if self.rowroot not in selected_ids:
+            tree.DeleteChildren(selected_id)
+        if root not in selected_ids:
             for selected_id in selected_ids:
-                self.rowtree.Delete(selected_id)
-        self.setup_row_btns()
-        self.setup_action_btns()
-        self.update_demo_display()
-            
-    def on_col_delete(self, event):
-        """
-        Delete col var and all its children.  Set selection to previous sibling
-            (if any) or parent (if no siblings) or nowhere if not even a parent.
-        """
-        selected_ids = self.coltree.GetSelections()
-        if not selected_ids:
-            wx.MessageBox(_("No column variable selected to delete"))
-            return
-        first_selected_id = selected_ids[0]
-        parent_id = self.coltree.GetItemParent(first_selected_id)
-        if parent_id:
-            item_conf = self.coltree.GetItemPyData(parent_id)
-            if item_conf:
-                item_conf.measures_lst = [self.demo_tab.default_measure]
-            prev_sibling_id = self.coltree.GetPrevSibling(first_selected_id)
-            if prev_sibling_id.IsOk():
-                self.coltree.SelectItem(prev_sibling_id)
-            else:
-                self.coltree.SelectItem(parent_id)
-        for selected_id in selected_ids:
-            self.coltree.DeleteChildren(selected_id)
-        if self.colroot not in selected_ids:
-            for selected_id in selected_ids:
-                self.coltree.Delete(selected_id)
-            self.update_demo_display()
-        if self.col_no_vars_item in selected_ids:
-            self.btn_col_add.Enable()
-            self.btn_col_add_under.Enable()
-            self.col_no_vars_item = None # will be reallocated)
-        self.setup_col_btns()
-        self.setup_action_btns()
-            
-    def on_row_config(self, event):
-        "Configure row button clicked."
-        self.config_row()
+                tree.Delete(selected_id)
+        # misc setup
+        btn_setup_func()
+        live_demo = self.update_demo_display()
+        self.setup_action_btns(live_demo)
     
-    def config_row(self):
+    def on_row_delete(self, event):
+        self.on_item_delete(dim=mg.ROWDIM)
+            
+    def on_col_delete(self, event):        self.on_item_delete(dim=mg.COLDIM)
+
+    def config_dim(self, dim=mg.ROWDIM):
         """
-        Configure row item e.g. measures, total.
-        If a Summary Table, rows are never nested i.e. always terminal.
-        Rows have no sorting options if a row summary table.
-        Terminal nodes can have either label or freq sorting and
-            other nodes can only have label sorting.
+        Configure selected dim item e.g. measures, total.
+        Either with columns variables or without. If without, total doesn't 
+            make sense.
         """
-        if not lib.item_has_children(self.rowtree, self.rowroot):
-            return
-        selected_ids = self.rowtree.GetSelections()
+        debug = False
+        if dim == mg.ROWDIM:
+            itemlbl = u"row"
+            tree = self.rowtree
+            root = self.rowroot
+            no_vars_item = None
+        elif dim == mg.COLDIM:
+            itemlbl = u"column"
+            tree = self.coltree
+            root = self.colroot
+            no_vars_item = self.col_no_vars_item
+        else:
+            raise Exception(u"Missing appropriate dim for config_dim().")
+        # error 1
+        # ItemHasChildren is buggy if root hidden i.e. if only the root there.
+        empty_tree = not lib.item_has_children(tree=tree, parent=root)
+        if empty_tree:
+            raise Exception(u"Cannot configure a missing %s item" % itemlbl)
+        # error 2
+        selected_ids = tree.GetSelections()
         if not selected_ids:
-            wx.MessageBox(_("Please select a row variable and try again"))
+            wx.MessageBox(_("Please select a %s variable and try again") % 
+                          itemlbl)
             return
-        first_selected_id = selected_ids[0] 
-        # get results from appropriate dialog and store as data
-        inc_measures = (self.tab_type == mg.ROW_SUMM)
-        if self.tab_type == mg.ROW_SUMM:
+        # the ids must all have the same parental status.
+        # if one has children, they all must.
+        # if one has no children, none can.
+        have_children_mismatch = False
+        first_has_children = lib.item_has_children(tree=tree,
+                                                   parent=selected_ids[0])
+        for selected_id in selected_ids[1:]:
+            if lib.item_has_children(tree=tree,
+                                     parent=selected_id) != first_has_children:
+                have_children_mismatch = True
+                break
+        if have_children_mismatch:
+            msg = _("If configuring multiple items at once, they must all have "
+                    "children or none can have children")
+            wx.MessageBox(msg)
+            return
+        # ok to open config dlg
+        rpt_config = mg.RPT_CONFIG[self.tab_type]
+        title = _("Configure %s Item") % itemlbl.title()
+        if no_vars_item in selected_ids or self.tab_type == mg.RAW_DISPLAY:
             sort_opt_allowed = SORT_OPT_NONE
-        elif not lib.item_has_children(tree=self.rowtree, 
-                                       parent=first_selected_id):
+        elif not lib.item_has_children(tree, parent=selected_ids[0]):
             sort_opt_allowed = SORT_OPT_ALL
         else:
             sort_opt_allowed = SORT_OPT_BY_LABEL
+        horizontal = rpt_config[mg.MEASURES_HORIZ_KEY]
         item_config_dets = ItemConfigDets()
-        dlg = DlgRowConfig(parent=self, var_labels=self.var_labels,
-                           node_ids=selected_ids, tree=self.rowtree,
-                           sort_opt_allowed=sort_opt_allowed,
-                           inc_measures=inc_measures, 
-                           item_config_dets=item_config_dets)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.update_default_item_conf(mg.ROWDIM, item_config_dets)
-            self.update_demo_display()
+        if no_vars_item in selected_ids:
+            has_vars = False
+        elif root not in selected_ids:
+            has_vars = True
+        else:
+            raise Exception(u"Configuring a %s but lacking either vars OR "
+                            u"a config item" % itemlbl)
+        if dim == mg.ROWDIM:
+            measures = [] # only cols have measures
+        elif dim == mg.COLDIM:
+            # only show measures if has no children
+            # include measures if the selected items have no children
+            has_children = True
+            if not selected_ids:
+                has_children = False
+            else: # only need to test one because they are all required to be the same
+                item, unused = tree.GetFirstChild(selected_ids[0])
+                has_children = True if item else False
+            if not has_children:
+                measures = rpt_config[mg.COL_MEASURES_KEY]
+                if has_vars and rpt_config[mg.ROWPCT_AN_OPTION_KEY]:
+                    measures.append(mg.ROWPCT)
+        if self.tab_type == mg.ROW_SUMM and dim == mg.COLDIM:
+            allow_tot = False
+        else:
+            allow_tot = has_vars
+        any_config2get = (allow_tot or measures or sort_opt_allowed)
+        if any_config2get:
+            if debug: print("Some config to get.")
+            parent = self
+            dlg = DlgConfig(parent, self.var_labels, selected_ids, tree, title,
+                            allow_tot, measures, sort_opt_allowed, horizontal,
+                            item_config_dets)
+            ret = dlg.ShowModal()
+            if ret == wx.ID_OK:
+                self.update_default_item_conf(dim, item_config_dets)
+                self.update_demo_display()
+
+    def on_row_config(self, event):
+        "Configure row button clicked."
+        self.config_dim(dim=mg.ROWDIM)
     
+    def on_col_config(self, event):
+        "Configure column button clicked."
+        self.config_dim(dim=mg.COLDIM)
+
     def update_default_item_conf(self, dim, item_config_dets):
         """
         Store settings for possible reuse.
@@ -444,11 +508,7 @@ class DimTree(object):
         if SORT_ORDER in dim_item_conf:
             dim_item_conf[SORT_ORDER] = item_config_dets.sort_order
         if MEASURES in dim_item_conf:
-            dim_item_conf[MEASURES] = item_config_dets.measures        
-    
-    def on_col_config(self, event):
-        "Configure column button clicked."
-        self.config_col()
+            dim_item_conf[MEASURES] = item_config_dets.measures
 
     def add_default_column_config(self):
         self.col_no_vars_item = self.coltree.AppendItem(self.colroot, 
@@ -459,87 +519,6 @@ class DimTree(object):
         self.coltree.SelectItem(self.col_no_vars_item)
         self.btn_col_add.Disable()
         self.btn_col_add_under.Disable()
-
-    def config_col(self):
-        """
-        Configure selected column item e.g. measures, total.
-        Either with columns variables or without.  If without, total doesn't 
-            make sense.
-        """
-        # error 1
-        # ItemHasChildren is buggy if root hidden i.e. if only the root there.
-        empty_coltree = not lib.item_has_children(tree=self.coltree, 
-                                                  parent=self.colroot)
-        if empty_coltree:
-            raise Exception(u"Cannot configure a missing column item")
-        # error 2
-        selected_ids = self.coltree.GetSelections()
-        if not selected_ids:
-            wx.MessageBox(_("Please select a column variable and try again"))
-            return
-        # the ids must all have the same parental status.
-        # if one has children, they all must.
-        # if one has no children, none can.
-        have_children_mismatch = False
-        first_has_children = lib.item_has_children(tree=self.coltree,
-                                                   parent=selected_ids[0])
-        for selected_id in selected_ids[1:]:
-            if lib.item_has_children(tree=self.coltree,
-                            parent=selected_id) != first_has_children:
-                have_children_mismatch = True
-                break
-        if have_children_mismatch:
-            msg = _("If configuring multiple items at once, they must all have "
-                    "children or none can have children")
-            wx.MessageBox(msg)
-            return
-        # ok to open config dlg
-        if self.col_no_vars_item in selected_ids:
-            has_col_vars = False
-        elif self.colroot not in selected_ids:
-            has_col_vars = True
-        else:
-            raise Exception(u"Configuring a column but no col vars OR a col "
-                            u"config item")
-        self.get_col_config(node_ids=selected_ids, has_col_vars=has_col_vars)
-            
-    def get_col_config(self, node_ids, has_col_vars):
-        """
-        Get results from appropriate dialog and store as data.
-        Only ask for measures if a table with colmeasures and node is terminal.
-        If the column item is col_no_vars_item then no sorting options.
-        If a row summary table, no sorting options.
-        Terminal nodes can have either label or freq sorting and
-            other nodes can only have label sorting.
-        Returns the show modal return value.
-        """
-        # include measures if the selected items have no children
-        # only need to test one because they are all requried to be the same
-        has_children = True
-        if not node_ids:
-            has_children = False
-        else:
-            item, unused = self.coltree.GetFirstChild(node_ids[0])
-            has_children = True if item else False
-        inc_measures = self.tab_type == mg.FREQS_TBL or \
-                       ((self.tab_type == mg.CROSSTAB) and not has_children)
-        if self.col_no_vars_item in node_ids or self.tab_type not in \
-                (mg.FREQS_TBL, mg.CROSSTAB):
-            sort_opt_allowed = SORT_OPT_NONE
-        elif not lib.item_has_children(tree=self.coltree, parent=node_ids[0]):
-            sort_opt_allowed = SORT_OPT_ALL
-        else:
-            sort_opt_allowed = SORT_OPT_BY_LABEL
-        item_config_dets = ItemConfigDets()
-        dlg = DlgColConfig(parent=self, var_labels=self.var_labels,
-                           node_ids=node_ids, tree=self.coltree, 
-                           inc_measures=inc_measures, 
-                           sort_opt_allowed=sort_opt_allowed, 
-                           item_config_dets=item_config_dets,
-                           has_col_vars=has_col_vars)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.update_default_item_conf(mg.COLDIM, item_config_dets)
-            self.update_demo_display()
        
     def setup_dim_tree(self, tree):
         "Setup Dim Tree and return root"
@@ -562,8 +541,7 @@ class DimTree(object):
                                                       else False
         if self.tab_type in (mg.FREQS_TBL, mg.CROSSTAB, mg.ROW_SUMM):
             self.btn_row_add.Enable(True)
-            self.btn_row_add_under.Enable(has_rows 
-                                          and self.tab_type != mg.ROW_SUMM)
+            self.btn_row_add_under.Enable(has_rows)
             self.btn_row_del.Enable(has_rows)
             self.btn_row_conf.Enable(has_rows)
         elif self.tab_type == mg.RAW_DISPLAY:
@@ -592,7 +570,7 @@ class DimTree(object):
             self.btn_col_conf.Enable(enable=has_cols)
         elif self.tab_type == mg.ROW_SUMM:
             self.btn_col_add.Enable(True)
-            self.btn_col_add_under.Enable(enable=has_cols)
+            self.btn_col_add_under.Enable(enable=False)
             self.btn_col_del.Enable(enable=has_cols)
             self.btn_col_conf.Enable(enable=has_cols)
         elif self.tab_type == mg.RAW_DISPLAY:
@@ -629,20 +607,22 @@ class ItemConfigDets(object):
 
 class DlgConfig(wx.Dialog):
     
-    def __init__(self, parent, var_labels, node_ids, tree, title, size, 
-                 allow_tot, sort_opt_allowed, row=True, item_config_dets=None):
+    def __init__(self, parent, var_labels, node_ids, tree, title, allow_tot, 
+                 measures, sort_opt_allowed, horizontal=True, 
+                 item_config_dets=None):
         """
         Parent class for all dialogs collecting configuration details 
             for rows and cols.
         node_ids - list, even if only one item selected.
         """
-        wx.Dialog.__init__(self, parent, id=-1, title=title, size=size)
-        self.tree = tree
-        self.allow_tot = allow_tot
-        self.sort_opt_allowed = sort_opt_allowed
-        self.item_config_dets = item_config_dets
+        wx.Dialog.__init__(self, parent, id=-1, title=title)
         self.node_ids = node_ids
         first_node_id = node_ids[0]
+        self.tree = tree
+        self.allow_tot = allow_tot
+        self.measures = measures
+        self.sort_opt_allowed = sort_opt_allowed
+        self.item_config_dets = item_config_dets
         # base item configuration on first one selected
         item_conf = self.tree.GetItemPyData(first_node_id)
         chk_size = (170, 20)
@@ -679,9 +659,10 @@ class DlgConfig(wx.Dialog):
         self.measure_chks_dic = {}
         if self.measures:
             bx_measures = wx.StaticBox(self, -1, _("Measures"))
-            direction = wx.VERTICAL if row else wx.HORIZONTAL
+            direction = wx.HORIZONTAL if horizontal else wx.VERTICAL
             szr_measures = wx.StaticBoxSizer(bx_measures, direction)
-            for measure, label in self.measures:
+            for measure in self.measures:
+                label = mg.measures_long_lbl_dic[measure]
                 chk = wx.CheckBox(self, -1, label, size=chk_size)
                 if measure in item_conf.measures_lst:
                     chk.SetValue(True)
@@ -714,7 +695,7 @@ class DlgConfig(wx.Dialog):
         # measures
         measures_lst = []
         any_measures = False
-        for measure, unused in self.measures:
+        for measure in self.measures:
             ticked = self.measure_chks_dic[measure].GetValue()
             if ticked:
                 any_measures = True
@@ -752,53 +733,3 @@ class DlgConfig(wx.Dialog):
         "Cancel adding new package"
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL)
-    
-    
-class DlgRowConfig(DlgConfig):
-    
-    def __init__(self, parent, var_labels, node_ids, tree, sort_opt_allowed,
-                 inc_measures, item_config_dets):
-        title = _("Configure Row Item")
-        if inc_measures:
-            self.measures = [
-               (mg.MEAN, mg.measures_long_lbl_dic[mg.MEAN]), 
-               (mg.MEDIAN, mg.measures_long_lbl_dic[mg.MEDIAN]), 
-               (mg.LOWER_QUARTILE, mg.measures_long_lbl_dic[mg.LOWER_QUARTILE]),
-               (mg.UPPER_QUARTILE, mg.measures_long_lbl_dic[mg.UPPER_QUARTILE]),
-               (mg.SUMM_N, mg.measures_long_lbl_dic[mg.SUMM_N]), 
-               (mg.STD_DEV, mg.measures_long_lbl_dic[mg.STD_DEV]),
-               (mg.SUM, mg.measures_long_lbl_dic[mg.SUM]),
-               (mg.MIN, mg.measures_long_lbl_dic[mg.MIN]),
-               (mg.MAX, mg.measures_long_lbl_dic[mg.MAX]),
-               (mg.RANGE, mg.measures_long_lbl_dic[mg.RANGE]),
-               ]
-        else:
-            self.measures = []
-        size = wx.DefaultSize
-        DlgConfig.__init__(self, parent, var_labels, node_ids, tree, 
-                           title, size, allow_tot=not inc_measures,
-                           sort_opt_allowed=sort_opt_allowed, row=True, 
-                           item_config_dets=item_config_dets)
-        
-
-class DlgColConfig(DlgConfig):
-    
-    def __init__(self, parent, var_labels, node_ids, tree, inc_measures, 
-                 sort_opt_allowed, item_config_dets, has_col_vars=True):
-        title = _("Configure Column Item")
-        if inc_measures:
-            self.measures = [
-                (mg.FREQ, mg.measures_long_lbl_dic[mg.FREQ]), 
-                (mg.COLPCT, mg.measures_long_lbl_dic[mg.COLPCT])
-                ]
-            if has_col_vars:
-                self.measures.append((mg.ROWPCT, 
-                                      mg.measures_long_lbl_dic[mg.ROWPCT]))
-        else:
-            self.measures = []
-        size = wx.DefaultSize
-        DlgConfig.__init__(self, parent, var_labels, node_ids, tree, 
-                           title, size, allow_tot=has_col_vars, 
-                           sort_opt_allowed=sort_opt_allowed, row=False, 
-                           item_config_dets=item_config_dets)
-        

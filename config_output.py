@@ -51,8 +51,9 @@ def get_szr_level(parent, panel, horiz=True):
 
 label_divider = " " if mg.PLATFORM == mg.WINDOWS else "\n"
 add_to_report = _("Add to%sreport") % label_divider
-run = _("Show Results") if mg.PLATFORM == mg.MAC else _("Show\nResults")
-
+RUN_LBL = _("Show Results") if mg.PLATFORM == mg.MAC else _("Show\nResults")
+ADD2RPT_LBL = (_("Add to Report") if mg.PLATFORM == mg.MAC 
+               else _("Add to\nReport"))
 
 def style2path(style):
     "Get full path of css file from style name alone"
@@ -231,6 +232,7 @@ class ConfigUI(object):
         # init
         self.vdt_file = None
         self.script_file = None
+        self.rows_n = self.get_rows_n()
 
     def get_gen_config_szrs(self, panel, readonly=False):
         """
@@ -371,7 +373,7 @@ class ConfigUI(object):
                                    ret_dic=ret_dic, vdt_file=self.vdt_file, 
                                    script_file=self.script_file)
         ret = dlg.ShowModal()
-        if ret==wx.ID_OK and self.autoupdate:
+        if ret == wx.ID_OK and self.autoupdate:
             cc[mg.CURRENT_VDTS_PATH] = ret_dic[mg.VDT_RET]
             if mg.ADVANCED:
                 cc[mg.CURRENT_SCRIPT_PATH] = ret_dic[mg.SCRIPT_RET]
@@ -397,17 +399,21 @@ class ConfigUI(object):
         if debug: print("%s %s" % (titles, subtitles))
         return titles, subtitles
     
-    def too_long(self):
+    def get_rows_n(self):
         dd = mg.DATADETS_OBJ
-        # check not a massive table
-        too_long = False
         # count records in table
         unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
-        SQL_get_count = u"SELECT COUNT(*) FROM %s %s" % \
-                          (getdata.tblname_qtr(dd.dbe, dd.tbl), where_tbl_filt)
-        dd.cur.execute(SQL_get_count)
+        tblname = getdata.tblname_qtr(dd.dbe, dd.tbl)
+        s = u"SELECT COUNT(*) FROM %s %s" % (tblname, where_tbl_filt)
+        dd.cur.execute(s)
         rows_n = dd.cur.fetchone()[0]
+        return rows_n
+    
+    def too_long(self):
+        # check not a massive table
+        too_long = False
+        rows_n = self.get_rows_n()
         if rows_n > 250000:
             strn = locale.format('%d', rows_n, True)
             if wx.MessageBox(_("The underlying data table has %s rows. "
@@ -419,7 +425,7 @@ class ConfigUI(object):
 
     def get_szr_output_btns(self, panel, inc_clear=True):
         # main
-        self.btn_run = wx.Button(panel, -1, run)
+        self.btn_run = wx.Button(panel, -1, RUN_LBL)
         self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
         self.btn_run.SetToolTipString(_("Run report and show results"))
         self.chk_add_to_report = wx.CheckBox(panel, -1, add_to_report)
@@ -468,15 +474,18 @@ class ConfigUI(object):
         """
         getdata.refresh_db_dets(self)
         getdata.readonly_enablement(self.chk_readonly)
+        self.rows_n = self.get_rows_n()
         
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
         getdata.refresh_tbl_dets(self)
         getdata.readonly_enablement(self.chk_readonly)
+        self.rows_n = self.get_rows_n()
 
     def filters(self):
         import filtselect # by now, DLG will be available to inherit from
-        dlg = filtselect.FiltSelectDlg(self, self.var_labels, self.var_notes, 
+        parent = self
+        dlg = filtselect.FiltSelectDlg(parent, self.var_labels, self.var_notes, 
                                        self.var_types, self.val_dics)
         dlg.ShowModal()
         self.refresh_vars()
@@ -517,39 +526,46 @@ class ConfigUI(object):
                 {u"report_extras_folder": mg.REPORT_EXTRAS_FOLDER, 
                  u"new_rpt": new_rpt})
         dlg_get_file.Destroy()
-
-    def on_btn_run(self, event, OUTPUT_MODULES, get_script_args, 
-                   new_has_dojo=False):
+    
+    def get_script_output(self, add_to_report, get_script_args, new_has_dojo):
         debug = False
         cc = get_cc()
-        if self.too_long():
-            return
-        wx.BeginBusyCursor()
-        add_to_report = self.chk_add_to_report.IsChecked()
         if debug: print(cc[mg.CURRENT_CSS_PATH])
-        try:
-            css_fils, css_idx = output.get_css_dets()
-        except my_exceptions.MissingCssException, e:
-            lib.update_local_display(self.html, _("Please check the CSS "
-                                    "file exists or set another. "
-                                    "Caused by error: %s") % lib.ue(e), 
-                                    wrap_text=True)
-            lib.safe_end_cursor()
-            event.Skip()
-            return
+        css_fils, css_idx = output.get_css_dets()
         try:
             script = self.get_script(css_idx, *get_script_args)
         except Exception, e:
             raise Exception("Problem getting script. Orig error: %s" % 
                             lib.ue(e))
-        bolran_report, str_content = output.run_report(OUTPUT_MODULES, 
-                                                       add_to_report, css_fils, 
-                                                       new_has_dojo, script)
+        (bolran_report, 
+         str_content) = output.run_report(self.output_modules, add_to_report, 
+                                          css_fils, new_has_dojo, script)
         if debug: print(str_content)
+        return bolran_report, str_content
+    
+    def run_report(self, get_script_args, new_has_dojo=False):
+        debug = False
+        if self.too_long():
+            return
+        add_to_report = self.chk_add_to_report.IsChecked()
+        wx.BeginBusyCursor()
+        (bolran_report, 
+         str_content) = self.get_script_output(add_to_report, get_script_args, 
+                                               new_has_dojo)
         lib.update_local_display(self.html, str_content)
-        self.str_content = str_content
+        self.content2expand = str_content
         self.btn_expand.Enable(bolran_report)
         lib.safe_end_cursor()
+
+    def on_btn_run(self, event, get_script_args, new_has_dojo=False):
+        try:
+            self.run_report(get_script_args, new_has_dojo)
+        except my_exceptions.MissingCssException, e:    
+            lib.update_local_display(self.html, _("Please check the CSS "
+                                             "file exists or set another. "
+                                             "Caused by error: %s") % lib.ue(e), 
+                                             wrap_text=True)
+            lib.safe_end_cursor()
         event.Skip()
         
     def on_btn_view(self, event):
@@ -566,7 +582,7 @@ class ConfigUI(object):
             if self.can_run_report:
                 msg = _("No output yet. Click \"%(run)s\" (with "
                         "\"%(add_to_report)s\" ticked) to add output to this "
-                        "report.") % {u"run": run, 
+                        "report.") % {u"run": RUN_LBL, 
                                       u"add_to_report": add_to_report}
             else:
                 msg = _("The output file has not been created yet.  Nothing to "
@@ -610,7 +626,7 @@ class ConfigUI(object):
         return szr_level
     
     def on_btn_expand(self, event):
-        output.display_report(self, self.str_content, self.url_load)
+        output.display_report(self, self.content2expand, self.url_load)
         event.Skip()
 
 def add_icon(frame):

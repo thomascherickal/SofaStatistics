@@ -17,9 +17,6 @@ import dimtree
 import full_html
 import output
 
-OUTPUT_MODULES = ["my_globals as mg", "dimtables", "rawtables", "output", 
-                  "getdata"]
-
 def replace_titles_subtitles(orig, titles, subtitles):
     """
     Have original html
@@ -61,8 +58,8 @@ def replace_titles_subtitles(orig, titles, subtitles):
     between_title_and_sub = post_title[ : subtitle_start_idx]
     post_subtitle = post_title[post_title.index(mg.TBL_SUBTITLE_END):]
     # put it all back together
-    demo_tbl_html = pre_title + titles_inner_html + between_title_and_sub \
-        + subtitles_inner_html + post_subtitle
+    demo_tbl_html = (pre_title + titles_inner_html + between_title_and_sub
+                     + subtitles_inner_html + post_subtitle)
     if debug: 
         print((u"pre_title: %s\n\ntitles_inner_html: %s\n\n"
                u"between_title_and_sub: %s\n\nsubtitles_inner_html: %s\n\n"
@@ -76,26 +73,33 @@ def get_missing_dets_msg(tab_type, has_rows, has_cols):
     No css - just directly fed into web renderer as is.
     29221c -- dark brown
     """
-    style_template = (u"<p style=\"color: 29221c; font-size: 20px;"
-        u"font-family: Arial; font-weight: bold\">%s</p>")
+    html = [u"<div style=\"color: 29221c; font-size: 20px;"
+        u"font-family: Arial; font-weight: bold\">"]
     if tab_type == mg.FREQS_TBL:
-        return style_template % _("Add and configure rows")
+        html.append(_("Add and configure rows"))
     elif tab_type == mg.CROSSTAB:
         if not has_rows and not has_cols:
-            return style_template % _("Add and configure rows and columns")
+            html.append(_("Add and configure rows and columns"))
         elif not has_rows:
-            return style_template %_("Add and configure rows")
+            html.append(_("Add and configure rows"))
         elif not has_cols:
-            return style_template % _("Add and configure columns")
+            html.append(_("Add and configure columns"))
         else:
-            return style_template % _("Waiting for enough settings ...")
+            html.append(_("Waiting for enough settings ..."))
     elif tab_type == mg.ROW_SUMM:
-        return style_template % _("Add and configure rows "
-                                  "(and optionally columns)")
+        html.append(_("Add and configure columns"))
+        if not has_rows:
+            html.append(_(u" (and optionally rows)"))
+        html.append(u"<p style=\"font-size: 13px; font-weight: normal\">E.g. "
+                u"if you want the average age per country select age as the "
+                u"<u>column</u> variable (configure mean, median etc) and "
+                u"country as the <u>row</u> variable.</p>")
     elif tab_type == mg.RAW_DISPLAY:
-        return style_template % _("Add and configure columns")
+        html.append(_("Add and configure columns"))
     else:
         raise Exception(u"Unknown table type")
+    html.append(u"</div>")
+    return u"\n".join(html)
 
 
 class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
@@ -116,13 +120,15 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                        wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self, autoupdate=True)
         dimtree.DimTree.__init__(self)
+        self.output_modules = ["my_globals as mg", "dimtables", "rawtables", 
+                               "output", "getdata"]
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.url_load = True # btn_expand    
         (self.var_labels, self.var_notes, 
          self.var_types, 
          self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-        self.col_no_vars_item = None # needed if no variable in columns.  Must
-            # reset to None if deleted all col vars
+        self.col_no_vars_item = None #  needed if no variable in columns.  Must
+            # reset to None if deleted all vars
         # set up panel for frame
         self.panel = wx.Panel(self)
         config_output.add_icon(frame=self)
@@ -178,7 +184,8 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                                                 _("Show % symbol?"))
         self.chk_show_perc_symbol.Bind(wx.EVT_CHECKBOX, 
                                        self.on_chk_show_perc_symbol)
-        self.enable_show_perc_symbol_opt(enable=True)
+        has_perc = not mg.RPT_CONFIG[self.tab_type][mg.VAR_SUMMARISED_KEY]
+        self.enable_show_perc_symbol_opt(enable=has_perc)
         self.chk_show_perc_symbol.SetValue(True) # True is default
         #text labels
         lbl_rows = wx.StaticText(self.panel, -1, _("Rows:"))
@@ -224,17 +231,18 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         # setup demo table type
         if debug: print(cc[mg.CURRENT_CSS_PATH])
         self.prev_demo = None
-        self.demo_tab = demotables.GenDemoTable(txt_titles=self.txt_titles, 
-                                 txt_subtitles=self.txt_subtitles,
-                                 colroot=self.colroot, rowroot=self.rowroot, 
-                                 rowtree=self.rowtree, coltree=self.coltree, 
-                                 col_no_vars_item=self.col_no_vars_item, 
-                                 var_labels=self.var_labels, 
-                                 val_dics=self.val_dics)
+        self.demo_tab = demotables.DemoDimTable(txt_titles=self.txt_titles, 
+                                     txt_subtitles=self.txt_subtitles,
+                                     tab_type=mg.FREQS_TBL, # the default
+                                     colroot=self.colroot, rowroot=self.rowroot, 
+                                     rowtree=self.rowtree, coltree=self.coltree, 
+                                     col_no_vars_item=self.col_no_vars_item, 
+                                     var_labels=self.var_labels, 
+                                     val_dics=self.val_dics)
         # freqs tbl is default
         self.setup_row_btns()
         self.setup_col_btns()
-        self.add_default_column_config() # must set up after coltree and demo 
+        self.add_default_column_config() # must set up after coltree and demo
         # html (esp height)
         if mg.PLATFORM == mg.MAC:
             min_height = 80
@@ -358,8 +366,8 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
             self.add_default_column_config()
         self.setup_row_btns()
         self.setup_col_btns()
-        self.setup_action_btns()
-        self.update_demo_display()
+        live_demo = self.update_demo_display()
+        self.setup_action_btns(live_demo)
         
     def update_var_dets(self, update_display=True):
         "Update all labels, including those already displayed"
@@ -400,56 +408,40 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         Delete all col vars. May add back the default col config if a FREQS TBL
         If changed to row summ or raw display, delete all row vars.
         If changing to freq or crosstab, leave row vars alone but wipe their 
-            measures.
+            measures (if any set).
         Don't set show_perc when instantiating here as needs to be checked every 
             time get_demo_html_if_ok() is called.
         """
         self.tab_type = self.rad_tab_type.GetSelection() # for convenience
         self.coltree.DeleteChildren(self.colroot)
         self.col_no_vars_item = None
-        if self.tab_type in (mg.ROW_SUMM, mg.RAW_DISPLAY):
-            self.rowtree.DeleteChildren(self.rowroot)
-        if self.tab_type in (mg.FREQS_TBL, mg.CROSSTAB):
+        if self.tab_type != mg.RAW_DISPLAY:
             rowdescendants = lib.get_tree_ctrl_descendants(tree=self.rowtree, 
                                                            parent=self.rowroot)
             for tree_dims_item in rowdescendants:
                 item_conf = self.rowtree.GetItemPyData(tree_dims_item)
-                item_conf.measures_lst = []
-                self.rowtree.SetItemText(tree_dims_item, 
-                                         item_conf.get_summary(), 1)
+                if item_conf is not None:
+                    item_conf.measures_lst = []
+                    self.rowtree.SetItemText(tree_dims_item, 
+                                             item_conf.get_summary(), 1)    
+        else:
+            self.rowtree.DeleteChildren(self.rowroot)
         # link to appropriate demo table type
-        if self.tab_type == mg.FREQS_TBL:
+        if self.tab_type != mg.RAW_DISPLAY:
             self.enable_raw_display_opts(enable=False)
-            self.enable_show_perc_symbol_opt(enable=True)
-            self.demo_tab = demotables.GenDemoTable(txt_titles=self.txt_titles, 
-                                 txt_subtitles=self.txt_subtitles,
-                                 colroot=self.colroot, rowroot=self.rowroot, 
-                                 rowtree=self.rowtree, coltree=self.coltree, 
-                                 col_no_vars_item=self.col_no_vars_item, 
-                                 var_labels=self.var_labels, 
-                                 val_dics=self.val_dics)
-            self.add_default_column_config()
-        if self.tab_type == mg.CROSSTAB:
-            self.enable_raw_display_opts(enable=False)
-            self.enable_show_perc_symbol_opt(enable=True)
-            self.demo_tab = demotables.GenDemoTable(txt_titles=self.txt_titles, 
-                                 txt_subtitles=self.txt_subtitles,
-                                 colroot=self.colroot, rowroot=self.rowroot, 
-                                 rowtree=self.rowtree, coltree=self.coltree, 
-                                 col_no_vars_item=self.col_no_vars_item, 
-                                 var_labels=self.var_labels, 
-                                 val_dics=self.val_dics)
-        elif self.tab_type == mg.ROW_SUMM:
-            self.enable_raw_display_opts(enable=False)
-            self.enable_show_perc_symbol_opt(enable=False)
-            self.demo_tab = demotables.SummDemoTable(txt_titles=self.txt_titles, 
-                                 txt_subtitles=self.txt_subtitles,
-                                 colroot=self.colroot, rowroot=self.rowroot, 
-                                 rowtree=self.rowtree, coltree=self.coltree, 
-                                 col_no_vars_item=self.col_no_vars_item, 
-                                 var_labels=self.var_labels, 
-                                 val_dics=self.val_dics)
-        elif self.tab_type == mg.RAW_DISPLAY:
+            rpt_config = mg.RPT_CONFIG[self.tab_type]
+            has_perc = rpt_config[mg.VAR_SUMMARISED_KEY]
+            self.enable_show_perc_symbol_opt(enable=has_perc)
+            self.demo_tab = demotables.DemoDimTable(txt_titles=self.txt_titles, 
+                         txt_subtitles=self.txt_subtitles, 
+                         tab_type=self.tab_type,
+                         colroot=self.colroot, rowroot=self.rowroot, 
+                         rowtree=self.rowtree, coltree=self.coltree, 
+                         col_no_vars_item=self.col_no_vars_item, 
+                         var_labels=self.var_labels, val_dics=self.val_dics)
+            if self.tab_type == mg.FREQS_TBL:
+                self.add_default_column_config()
+        else:
             self.enable_raw_display_opts(enable=True)
             self.enable_show_perc_symbol_opt(enable=False)
             self.demo_tab = demotables.DemoRawTable(txt_titles=self.txt_titles, 
@@ -461,8 +453,8 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         # in case they were disabled and then we changed tab type
         self.setup_row_btns()
         self.setup_col_btns()
-        self.setup_action_btns()
-        self.update_demo_display()
+        live_demo = self.update_demo_display()
+        self.setup_action_btns(live_demo)
         self.txt_titles.SetFocus()
         
     def enable_raw_display_opts(self, enable=True):
@@ -503,25 +495,17 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         self.update_demo_display(titles_only=True)
         self.txt_subtitles.SetFocus()
         
-    # run 
+    # run
     def too_long(self):
-        # check not a massive report table.  Overrides default
-        dd = mg.DATADETS_OBJ
+        # check not a massive report table. Overrides default
         too_long = False
         if self.tab_type == mg.RAW_DISPLAY:
-            # count records in table
-            unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
-            where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
-            s = u"SELECT COUNT(*) FROM %s %s" % \
-                        (getdata.tblname_qtr(dd.dbe, dd.tbl), where_tbl_filt)
-            dd.cur.execute(s)
-            rows_n = dd.cur.fetchone()[0]
-            strn = locale.format('%d', rows_n, True)
+            rows_n = config_output.ConfigUI.get_rows_n(self)
             if rows_n > 500:
-                if wx.MessageBox(_("This report has %s rows. "
-                                   "Do you wish to run it?") % strn, 
-                                   caption=_("LONG REPORT"), 
-                                   style=wx.YES_NO) == wx.NO:
+                strn = locale.format('%d', rows_n, True)
+                if (wx.MessageBox(_("This report has %s rows. Do you wish to "
+                                   "run it?") % strn, caption=_("LONG REPORT"), 
+                                   style=wx.YES_NO) == wx.NO):
                     too_long = True
         return too_long
     
@@ -533,7 +517,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         """
         run_ok, has_cols = self.table_config_ok()
         if run_ok:
-            config_output.ConfigUI.on_btn_run(self, event, OUTPUT_MODULES, 
+            config_output.ConfigUI.on_btn_run(self, event, 
                                               get_script_args=[has_cols,])
     
     # export script
@@ -614,6 +598,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
             script_lst.append(u"tab_test = dimtables.GenTable(" +
                             u"titles=%s," % unicode(titles) +
                             u"\n    subtitles=%s," % unicode(subtitles) +
+                            u"\n    tab_type=%s," % self.tab_type +
                             u"\n    dbe=u\"%s\", " % dd.dbe +
                             u"tbl=u\"%s\", " % dd.tbl +
                             u"tbl_filt=tbl_filt," +
@@ -623,6 +608,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
             script_lst.append(u"tab_test = dimtables.SummTable(" +
                             u"titles=%s," % unicode(titles) +
                             u"\n    subtitles=%s," % unicode(subtitles) +
+                            u"\n    tab_type=%s," % self.tab_type +
                             u"\n    dbe=u\"%s\", " % dd.dbe +
                             u"tbl=u\"%s\", " % dd.tbl +
                             u"tbl_filt=tbl_filt," +
@@ -782,15 +768,31 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         return replace_titles_subtitles(orig, titles, subtitles)
     
     # demo table display
+    def get_live_html(self):
+        debug = False
+        run_ok, has_cols = self.table_config_ok(silent=True)
+        if not run_ok:
+            return False, u""
+        add_to_report = False
+        new_has_dojo = False
+        get_script_args = [has_cols,]
+        (bolran_report, 
+         str_content) = config_output.ConfigUI.get_script_output(self, 
+                                   add_to_report, get_script_args, new_has_dojo)
+        return bolran_report, str_content
+    
     def update_demo_display(self, titles_only=False):
         """
-        Update demo table display with random data.
+        Update demo table display. If small data volume, use real data. 
+            Otherwise use random data.
         Always use one css only (the current one).
-        If only changing titles or subtitles, keep the rest constant.
+        If only changing titles or subtitles, keep the rest constant to avoid 
+            random twitching as we add letters to the title.
         """
         debug = False
         demo_html = u""
         self.btn_expand.Enable(False)
+        demo_was_live = False
         if titles_only:
             if self.prev_demo:
                 # replace titles and subtitles
@@ -804,21 +806,29 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         else:
             try: # need to reset here otherwise stays as was set when instantiated
                 self.demo_tab.show_perc = self.chk_show_perc_symbol.IsChecked()
-                demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
+                rpt_config = mg.RPT_CONFIG[self.tab_type]
+                quick_enough = (self.rows_n < rpt_config[mg.QUICK_IF_BELOW_KEY])
+                if quick_enough:
+                    bolran_report, demo_html = self.get_live_html()
+                    self.btn_expand.Enable(bolran_report)
+                    self.content2expand = demo_html
+                    demo_was_live = True
+                else:
+                    demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
             except my_exceptions.MissingCssException, e:
                 lib.update_local_display(self.html, _("Please check the CSS "
                                         "file exists or set another. "
                                         "Caused by error: %s") % lib.ue(e), 
                                         wrap_text=True)
                 lib.safe_end_cursor()
-                return
+                return demo_was_live
             except my_exceptions.TooFewValsForDisplay:
                 lib.update_local_display(self.html,
-                                _("Not enough data to display.  "
-                                "Please check variables and any filtering."),
-                                wrap_text=True)
+                                   _("Not enough data to display.  "
+                                   "Please check variables and any filtering."),
+                                   wrap_text=True)
                 lib.safe_end_cursor()
-                return
+                return demo_was_live
             if demo_html == u"":
                 has_rows, has_cols = self.get_row_col_status()
                 waiting_msg = get_missing_dets_msg(self.tab_type, has_rows, 
@@ -826,13 +836,18 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                 demo_tbl_html = waiting_msg
                 self.prev_demo = None
             else:
-                demo_tbl_html = (_("<p class='gui-msg-medium'>Example data - "
-                       "click '%s' for actual results<br>&nbsp;&nbsp;or "
-                       "keep configuring</p>") % config_output.run)
-                demo_tbl_html += u"\n\n" + demo_html
+                if demo_was_live:
+                    demo_tbl_html = demo_html
+                else:
+                    demo_tbl_html = (_(u"<p class='gui-msg-medium'>Example data"
+                       u" only because of size of table - click '%s' for actual"
+                       u" results<br>&nbsp;&nbsp;or keep configuring</p>") % 
+                                     config_output.RUN_LBL)
+                    demo_tbl_html += u"\n\n" + demo_html
                 self.prev_demo = demo_tbl_html
         if debug: print(u"\n" + demo_tbl_html + "\n")
         self.html.show_html(demo_tbl_html)
+        return demo_was_live
 
     def get_row_col_status(self):
         has_rows = lib.get_tree_ctrl_children(tree=self.rowtree, 
@@ -860,10 +875,10 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
             elif not has_cols and not silent:
                 wx.MessageBox(_("Missing column(s)"))
         elif self.tab_type == mg.ROW_SUMM:
-            if has_rows:
+            if has_cols:
                 export_ok = True
             elif not silent:
-                wx.MessageBox(_("Missing row(s)"))
+                wx.MessageBox(_("Missing column(s)"))
         elif self.tab_type == mg.RAW_DISPLAY:
             if has_cols:
                 export_ok = True
@@ -873,17 +888,26 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
             raise Exception(u"Not an expected table type")
         return (export_ok, has_cols)
 
-    def setup_action_btns(self):
+    def setup_action_btns(self, live_demo=False):
         """
         Enable or disable the action buttons (Run and Export) according to 
             completeness of configuration data.
         """
         ready2run, unused = self.table_config_ok(silent=True)
+        if live_demo:
+            runlbl2use = config_output.ADD2RPT_LBL
+            show_chk_add_to_report = False
+        else:
+            runlbl2use = config_output.RUN_LBL
+            show_chk_add_to_report = True
+        if not self.btn_run.IsEnabled():
+            self.btn_run.Enable()
+        self.btn_run.SetLabel(runlbl2use)
         self.btn_run.Enable(ready2run)
         self.chk_add_to_report.Enable(ready2run)
+        self.chk_add_to_report.Show(show_chk_add_to_report)
         if mg.ADVANCED:
             self.btn_script.Enable(ready2run)
-            
         
     def on_btn_config(self, event):
         """

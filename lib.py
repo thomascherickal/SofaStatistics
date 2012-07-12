@@ -1464,20 +1464,6 @@ def get_sorted_choice_items(dic_labels, vals, inc_drop_select=False):
     return choice_items, sorted_vals
 
 # report tables
-def get_default_measure(tab_type):
-    """
-    Get default measure appropriate for table type
-    NB raw tables don't have measures
-    """
-    if tab_type in (mg.FREQS_TBL, mg.CROSSTAB): 
-        return mg.FREQ
-    elif tab_type == mg.ROW_SUMM:
-        return mg.MEAN
-    elif tab_type == mg.RAW_DISPLAY:
-        raise Exception(u"Data Lists do not have measures")
-    else:
-        raise Exception(u"Unexpected table type in get_default_measure()")
-        
 def get_col_dets(coltree, colroot, var_labels):
     """
     Get names and labels of columns actually selected in GUI column tree.
@@ -2131,6 +2117,7 @@ def check_crack(show_more_steps):
     If so, wipe local records of extensions as being purchased. Nothing else 
         needed as lack of this list will automatically trigger checks later on.
     """
+    debug = False
     try:
         if show_more_steps: print(u"About to get userdets")
         username, unused = get_userdets()
@@ -2139,9 +2126,11 @@ def check_crack(show_more_steps):
         if cracked:
             clear_local_list(mg.PURCHASED_PATH)
     except Exception, e:
-        raise my_exceptions.DoNothingException(u"Unable to check crack. "
-                    u"But more important to keep lib loading successfully. "
-                    u"Orig error: %s" % ue(e))
+        if debug:
+            print(u"Unable to check crack. "
+                  u"But more important to keep lib loading successfully. "
+                  u"Orig error: %s" % ue(e))
+        pass
         
 def is_system_ok(extension):
     # quick exits

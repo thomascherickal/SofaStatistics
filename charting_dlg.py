@@ -12,8 +12,6 @@ import full_html
 import indep2var
 import projects
 
-OUTPUT_MODULES = ["my_globals as mg", "core_stats", "charting_output", "output", 
-                  "getdata"]
 LIMITS_MSG = (u"This chart type is not currently available in this release. "
               u"More chart types coming soon!")
 CUR_SORT_OPT = mg.SORT_NONE
@@ -50,6 +48,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                    wx.CAPTION|wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self, autoupdate=True)
         cc = config_output.get_cc()
+        self.output_modules = ["my_globals as mg", "core_stats", 
+                               "charting_output", "output", "getdata"]
         global SHOW_AVG
         SHOW_AVG = False
         global CUR_DATA_OPT
@@ -822,7 +822,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         
     def on_btn_chart(self, event):
         wx.MessageBox(LIMITS_MSG)
-
+    
     def on_btn_run(self, event):
         # get settings
         cc = config_output.get_cc()
@@ -832,8 +832,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             if run_ok:
                 get_script_args=[cc[mg.CURRENT_CSS_PATH], add_to_report,
                                  cc[mg.CURRENT_REPORT_PATH]]
-                config_output.ConfigUI.on_btn_run(self, event, OUTPUT_MODULES, 
-                                                  get_script_args, 
+                config_output.ConfigUI.on_btn_run(self, event, get_script_args, 
                                                   new_has_dojo=True)
         else:
             wx.MessageBox(LIMITS_MSG)

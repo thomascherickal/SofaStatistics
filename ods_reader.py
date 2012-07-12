@@ -159,7 +159,7 @@ def get_rows(tbl, inc_empty=True, n=None):
     Note - not rows of values but element rows. Need special processing to work 
         with.
     Even if empty rows are included, they are only included if there is a 
-        non-empty row afterwards.
+        non-empty row afterwards (eventually).
     Breaks if any rows repeated.
     n -- all rows extracted. Only non-empty if inc_empty=False.
     """
@@ -171,7 +171,7 @@ def get_rows(tbl, inc_empty=True, n=None):
         el_attribs = get_streamlined_attrib_dict(el.attrib.items())
         if ROWS_REP in el_attribs:
             break
-        elif get_has_data_cells(el):
+        elif get_has_data_cells(el): # put empty rows in first (if any there to add) then the data row
             datarows.extend(prev_empty_rows_to_add) # only something there if inc_empty
             prev_empty_rows_to_add = []
             datarows.append(el)            

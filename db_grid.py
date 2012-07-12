@@ -84,8 +84,7 @@ class TblEditor(wx.Dialog):
         title = _("Data from ") + "%s.%s" % (dd.db, dd.tbl)
         if self.readonly:
             title += _(" (Read Only)")
-        wx.Dialog.__init__(self, None, title=title, 
-                           pos=(mg.HORIZ_OFFSET, 0), 
+        wx.Dialog.__init__(self, parent, title=title, pos=(mg.HORIZ_OFFSET, 0), 
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
                            wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
                            wx.CAPTION|wx.CLIP_CHILDREN)
@@ -973,6 +972,11 @@ class TblEditor(wx.Dialog):
             won't match {5: "5's label"}.
         """
         debug = False
+        if debug: 
+            if type(raw_val) != unicode:
+                print("Non-unicode type: ", raw_val, type(raw_val))
+        if raw_val is None:
+            return u""
         fldname = self.dbtbl.fldnames[col]
         fld_val_dic = self.val_dics.get(fldname, {})
         tip = fld_val_dic.get(raw_val)
@@ -1016,6 +1020,8 @@ class TblEditor(wx.Dialog):
             raw_val = self.get_raw_val(row, col)
             if raw_val == mg.MISSING_VAL_INDICATOR:
                 tip = _("Missing value")
+            elif raw_val is None:
+                tip = u""
             else:
                 tip = self.get_cell_tooltip(col, raw_val)
                 if self.readonly or col in self.readonly_cols:

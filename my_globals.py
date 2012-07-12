@@ -14,7 +14,7 @@ import wx
 
 debug = False
 
-VERSION = u"1.1.7"
+VERSION = u"1.2.0"
 ADVANCED = False
 ATTRIBUTION = u"sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html
@@ -50,24 +50,6 @@ P_EXPLAN_REL = (u"If p is small, "
 # stats output *******************************************************
 OUTPUT_RESULTS_ONLY = u"Output results only"
 # Making tables ******************************************************
-HAS_TOTAL = _("Total") # doubles as display label
-FREQS_TBL = 0 # indexes in tab type
-CROSSTAB = 1
-ROW_SUMM = 2
-RAW_DISPLAY = 3
-COL_CONFIG_ITEM_LBL = _("Column configuration")
-# dimension trees
-ROWDIM = _("row") #double as labels
-COLDIM = _("column")
-# actual options selected ...
-SORT_NONE = _(u"None") # double as labels
-SORT_LBL = _(u"By Label")
-SORT_INCREASING = _(u"Increasing")
-SORT_DECREASING = _(u"Decreasing")
-SORT_OPTS = [SORT_NONE, SORT_LBL, SORT_INCREASING, SORT_DECREASING]
-SHOW_FREQ = _(u"Frequency")
-SHOW_PERC = _(u"Percent")
-DATA_SHOW_OPTS = [SHOW_FREQ, SHOW_PERC]
 # can use content of constant as a short label
 FREQ = _("Freq")
 ROWPCT = _("Row %")
@@ -96,6 +78,63 @@ measures_long_lbl_dic = {FREQ: _("Frequency"),
                          LOWER_QUARTILE: _("Lower Quartile"),
                          UPPER_QUARTILE: _("Upper Quartile"),
                          }
+HAS_TOTAL = _("Total") # doubles as display label
+FREQS_TBL = 0 # indexes in tab type
+CROSSTAB = 1
+ROW_SUMM = 2
+RAW_DISPLAY = 3
+COL_MEASURES_KEY = u"Col measures key"
+ROWPCT_AN_OPTION_KEY = u"Rowpct an option? key"
+MEASURES_HORIZ_KEY = u"measures_horiz_key"
+VAR_SUMMARISED_KEY = u"var_summarised key"
+DEFAULT_MEASURE_KEY = u"default_measure_key"
+NEEDS_ROWS_KEY = u"needs_row_key"
+QUICK_IF_BELOW_KEY = u"quick_live_below_key" # safe assumption that we can run 
+    # live demo output if table has less than this records
+RPT_CONFIG = {
+    FREQS_TBL: {COL_MEASURES_KEY: [FREQ, COLPCT], 
+                VAR_SUMMARISED_KEY: False,
+                NEEDS_ROWS_KEY: True,
+                ROWPCT_AN_OPTION_KEY: True,
+                MEASURES_HORIZ_KEY: True,
+                DEFAULT_MEASURE_KEY: FREQ,
+                QUICK_IF_BELOW_KEY: 5000},
+    CROSSTAB: {COL_MEASURES_KEY: [FREQ, COLPCT], 
+               VAR_SUMMARISED_KEY: False,
+               NEEDS_ROWS_KEY: True,
+               ROWPCT_AN_OPTION_KEY: True,
+               MEASURES_HORIZ_KEY: True,
+               DEFAULT_MEASURE_KEY: FREQ,
+               QUICK_IF_BELOW_KEY: 4000},
+    ROW_SUMM: {COL_MEASURES_KEY: [MEAN, MEDIAN, SUMM_N, MIN, MAX, RANGE,
+                                  LOWER_QUARTILE, UPPER_QUARTILE, SUM],
+               VAR_SUMMARISED_KEY: True,
+               NEEDS_ROWS_KEY: False,
+               ROWPCT_AN_OPTION_KEY: False, 
+               MEASURES_HORIZ_KEY: False,
+               DEFAULT_MEASURE_KEY: MEAN,
+               QUICK_IF_BELOW_KEY: 2000},
+    RAW_DISPLAY: {COL_MEASURES_KEY: [],
+                  VAR_SUMMARISED_KEY: False, 
+                  NEEDS_ROWS_KEY: False,
+                  ROWPCT_AN_OPTION_KEY: False,
+                  MEASURES_HORIZ_KEY: True,
+                  DEFAULT_MEASURE_KEY: None,
+                  QUICK_IF_BELOW_KEY: 750},
+  }
+COL_CONFIG_ITEM_LBL = _("Column configuration")
+# dimension trees
+ROWDIM = _("row") #double as labels
+COLDIM = _("column")
+# actual options selected ...
+SORT_NONE = _(u"None") # double as labels
+SORT_LBL = _(u"By Label")
+SORT_INCREASING = _(u"Increasing")
+SORT_DECREASING = _(u"Decreasing")
+SORT_OPTS = [SORT_NONE, SORT_LBL, SORT_INCREASING, SORT_DECREASING]
+SHOW_FREQ = _(u"Frequency")
+SHOW_PERC = _(u"Percent")
+DATA_SHOW_OPTS = [SHOW_FREQ, SHOW_PERC]
 # content of constant and constant (ready to include in exported script)
 # e.g. "dimtables.%s" "ROWPCT"
 script_export_measures_dic = {FREQ: u"FREQ", 

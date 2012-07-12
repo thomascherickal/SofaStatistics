@@ -44,9 +44,8 @@ class Nodes(object):
             return [start_node]
         else:
             term_nodes_lst = []
-            children_term_nodes = \
-                [child_node.get_terminal_nodes() for child_node in \
-                    start_node.children]
+            children_term_nodes = [child_node.get_terminal_nodes() 
+                                   for child_node in start_node.children]
             for child_term_nodes in children_term_nodes:
                 term_nodes_lst += child_term_nodes
             return term_nodes_lst

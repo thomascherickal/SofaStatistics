@@ -11,9 +11,6 @@ import full_html
 import output
 import projects
 
-OUTPUT_MODULES = ["my_globals as mg", "core_stats", "getdata", "output", 
-                  "stats_output"]
-
 
 class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
     """
@@ -30,6 +27,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
                            wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
                            wx.CAPTION|wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self, autoupdate=True)
+        self.output_modules = ["my_globals as mg", "core_stats", "getdata", 
+                               "output", "stats_output"]
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.url_load = True # btn_expand
         self.html_msg = u""
@@ -298,8 +297,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         if run_ok:
             get_script_args=[cc[mg.CURRENT_CSS_PATH], add_to_report,
                              cc[mg.CURRENT_REPORT_PATH]]
-            config_output.ConfigUI.on_btn_run(self, event, OUTPUT_MODULES, 
-                                              get_script_args)
+            config_output.ConfigUI.on_btn_run(self, event, get_script_args)
     
     def test_config_ok(self):
         """

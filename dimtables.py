@@ -46,6 +46,7 @@ NOTNULL = u" %s IS NOT NULL " # NOT ISNULL() is not universally supported
 # don't use dd - this needs to be runnable as a standalone script - everything 
 # has to be explicit
 
+
 class DimNodeTree(tree.NodeTree):
     """
     A specialist tree for storing dimension nodes.
@@ -61,6 +62,7 @@ class DimNodeTree(tree.NodeTree):
         tree.NodeTree.add_child(self, child_node)
         child_node.filt_flds = [child_node.fld] # may be None
 
+
 class LabelNodeTree(tree.NodeTree):
     """
     A specialist tree for storing label nodes.
@@ -69,6 +71,7 @@ class LabelNodeTree(tree.NodeTree):
     def __init__(self):
         self.root_node = LabelNode(label=u"Root")
         self.root_node.level = 0
+
         
 class DimNode(tree.Node):
     """
@@ -151,6 +154,7 @@ class LabelNode(tree.Node):
 
 
 class DimTable(object):
+
     """
     Functionality that applies to both demo and live tables
     """
@@ -158,7 +162,7 @@ class DimTable(object):
         """
         Set up titles, subtitles, and col labels into table header.
         Having titles, and or subtitles, is optional but there will always be a 
-            row there (may be a row with little height).  May contain heightless
+            row there (may be a row with little height). May contain heightless
             placeholders needed by demo table if not titles or subtitles.
         """
         debug = False
@@ -173,22 +177,22 @@ class DimTable(object):
         col_label_rows_n = tree_col_labels.get_depth()
         col_label_rows_lst = [[u"<tr>"] for x in range(col_label_rows_n)]
         title_dets_html = output.get_title_dets_html(self.titles, 
-                            self.subtitles, CSS_TBL_TITLE, CSS_TBL_SUBTITLE)
+                                self.subtitles, CSS_TBL_TITLE, CSS_TBL_SUBTITLE)
         title_span = len(tree_col_labels.get_terminal_nodes())
         extra_title_row_html = u"<th class='%s' " % CSS_TBL_TITLE_CELL + \
             u"colspan='%s'>%s</th>" % (title_span + row_label_cols_n, 
                                        title_dets_html)
         col_label_rows_lst[0].append(extra_title_row_html)
         # start off with spaceholder heading cell
-        col_label_rows_lst[1].append(u"<th class='%s' rowspan='%s' " % \
-            (CSS_SPACEHOLDER, tree_col_labels.get_depth() - 1) + \
-            u"colspan='%s'>&nbsp;&nbsp;</th>" % \
-            row_label_cols_n)
-        col_label_rows_lst = self.col_label_row_bldr(\
-                        node=tree_col_labels.root_node,
-                        col_label_rows_lst=col_label_rows_lst, 
-                        col_label_rows_n=col_label_rows_n, row_offset=0, 
-                        css_idx=css_idx)
+        col_label_rows_lst[1].append(u"<th class='%s' rowspan='%s' " %
+                            (CSS_SPACEHOLDER, tree_col_labels.get_depth() - 1) +
+                            u"colspan='%s'>&nbsp;&nbsp;</th>" %
+                            row_label_cols_n)
+        col_label_rows_lst = self.col_label_row_bldr(
+                                          node=tree_col_labels.root_node,
+                                          col_label_rows_lst=col_label_rows_lst, 
+                                          col_label_rows_n=col_label_rows_n, 
+                                          row_offset=0, css_idx=css_idx)
         hdr_html = u"\n<thead>"
         for row in col_label_rows_lst:
             # flatten row list
@@ -335,17 +339,24 @@ class DimTable(object):
         rows_to_fill = col_label_rows_n - rows_filled
         rows_below = node.get_depth() - 1 # exclude self
         gap = rows_to_fill - rows_below
-        # styling
+        # styling for this node according to level in hierarchy
         if self.has_col_measures:
-            if rows_below == 0:
-                cellclass=u"class='%s'" % CSS_MEASURE
-            elif rows_below % 2 > 0: # odd
-                cellclass=u"class='%s'" % CSS_COL_VAL
-            else:
-                if rows_filled == 2:
+            if self.var_summarised:
+                # top row coloured, rest not
+                if rows_below == 0:
+                    cellclass=u"class='%s'" % CSS_MEASURE
+                elif rows_below == 1:
                     cellclass=u"class='%s'" % CSS_FIRST_COL_VAR
+            else:
+                if rows_below == 0:
+                    cellclass=u"class='%s'" % CSS_MEASURE
+                elif rows_below % 2 > 0: # odd
+                    cellclass=u"class='%s'" % CSS_COL_VAL
                 else:
-                    cellclass=u"class='%s'" % CSS_COL_VAR
+                    if rows_filled == 2:
+                        cellclass=u"class='%s'" % CSS_FIRST_COL_VAR
+                    else:
+                        cellclass=u"class='%s'" % CSS_COL_VAR
         else:
             if rows_below % 2 == 0: # even
                 cellclass=u"class='%s'" % CSS_COL_VAL
@@ -371,8 +382,8 @@ class DimTable(object):
         row_offset += gap
         for child in node.children:
             col_label_rows_lst = self.col_label_row_bldr(child, 
-                                col_label_rows_lst, col_label_rows_n, 
-                                row_offset, css_idx)
+                                          col_label_rows_lst, col_label_rows_n, 
+                                          row_offset, css_idx)
         return col_label_rows_lst
     
     
@@ -383,8 +394,8 @@ class LiveTable(DimTable):
     and colpct, etc etc.
     """
     
-    def __init__(self, titles, subtitles, dbe, tbl, tbl_filt, cur, flds, 
-                 tree_rows, tree_cols, show_perc=True):
+    def __init__(self, titles, subtitles, tab_type, dbe, tbl, tbl_filt, cur, 
+                 flds, tree_rows, tree_cols, show_perc=True):
         """
         cur - must return tuples, not dictionaries
         """
@@ -393,6 +404,9 @@ class LiveTable(DimTable):
         self.prep_css_idx = None
         self.titles = titles
         self.subtitles = subtitles
+        self.tab_type = tab_type
+        rpt_config = mg.RPT_CONFIG[self.tab_type]
+        self.default_measures = rpt_config[mg.DEFAULT_MEASURE_KEY]
         self.dbe = dbe
         self.tbl = tbl
         self.tbl_filt = tbl_filt
@@ -447,11 +461,11 @@ class LiveTable(DimTable):
         html += u"<table cellspacing='0'>\n" # IE6 no support CSS borderspacing
         if not (self.prepared and self.prep_css_idx == css_idx):
             # need to get fresh - otherwise, can skip this step. Did it in prep.
-            (self.row_label_rows_lst, self.tree_row_labels, 
-                                row_label_cols_n) = self.get_row_dets(css_idx)
-            (self.tree_col_labels, self.hdr_html) = self.get_hdr_dets(
-                                                            row_label_cols_n, 
-                                                            css_idx)
+            (self.row_label_rows_lst, 
+             self.tree_row_labels, 
+             row_label_cols_n) = self.get_row_dets(css_idx)
+            (self.tree_col_labels, 
+             self.hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)
         row_label_rows_lst = self.get_body_html_rows(self.row_label_rows_lst,
                                                      self.tree_row_labels, 
                                                      self.tree_col_labels, 
@@ -465,6 +479,49 @@ class LiveTable(DimTable):
         html += body_html
         html += u"\n</table>"
         return html
+
+    def get_hdr_dets(self, row_label_cols_n, css_idx):
+        """
+        Return tree_col_labels and the table header HTML.
+        For HTML provide everything from <thead> to </thead>.
+        If no column variables, make a special column node.
+        """
+        tree_col_labels = LabelNodeTree()
+        tree_col_labels = self.add_subtrees_to_col_label_tree(tree_col_labels)
+        if tree_col_labels.get_depth() == 1:
+            raise Exception(u"There must always be a column item even if only "
+                            u"the col no vars item")
+        return self.process_hdr_tree(tree_col_labels, row_label_cols_n, css_idx)
+        
+    def get_body_html_rows(self, row_label_rows_lst, tree_row_labels,
+                           tree_col_labels, css_idx):
+        """
+        Make table body rows based on contents of row_label_rows_lst:
+        e.g. [["<tr>", "<td class='firstrowvar' rowspan='8'>Gender</td>" ...],
+        ...]
+        It already contains row label data - we need to add the data cells 
+        into the appropriate row list within row_label_rows_lst before
+        concatenating and appending "</tr>".
+        """
+        debug = False
+        col_term_nodes = tree_col_labels.get_terminal_nodes()
+        row_term_nodes = tree_row_labels.get_terminal_nodes()
+        col_filters_lst = [x.filts for x in col_term_nodes]
+        col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
+        col_tots_lst = [x.is_coltot for x in col_term_nodes]
+        col_measures_lst = [x.measure for x in col_term_nodes]
+        row_filters_lst = [x.filts for x in row_term_nodes]
+        if debug: 
+            print(row_filters_lst)
+            print(col_term_nodes)
+        row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
+        data_cells_n = len(row_term_nodes) * len(col_term_nodes)
+        if self.debug or debug: print(u"%s data cells in table" % data_cells_n)
+        row_label_rows_lst = self.get_row_labels_row_lst(row_filters_lst, 
+                           row_filt_flds_lst, col_measures_lst, col_filters_lst, 
+                           col_tots_lst, col_filt_flds_lst, row_label_rows_lst, 
+                           data_cells_n, col_term_nodes, css_idx)
+        return row_label_rows_lst
     
     def get_row_dets(self, css_idx):
         """
@@ -480,6 +537,8 @@ class LiveTable(DimTable):
                                     tree_labels_node=tree_row_labels.root_node,
                                     dim=mg.ROWDIM, 
                                     oth_dim_root=self.tree_cols.root_node)
+        if tree_row_labels.get_depth() == 1 and self.row_var_optional:
+            tree_row_labels.add_child(LabelNode(label=u"Measures"))
         return self.process_row_tree(tree_row_labels, css_idx)        
     
     def add_subtrees_to_col_label_tree(self, tree_col_labels):
@@ -496,35 +555,43 @@ class LiveTable(DimTable):
                                     dim=mg.COLDIM, 
                                     oth_dim_root=self.tree_rows.root_node)
         else:
-            self.add_subtree_to_label_tree(tree_dims_node=\
-                                   self.tree_cols.root_node, 
-                                   tree_labels_node=tree_col_labels.root_node,
-                                   dim=mg.COLDIM, 
-                                   oth_dim_root=self.tree_rows.root_node)
+            self.add_subtree_to_label_tree(
+                                    tree_dims_node=self.tree_cols.root_node, 
+                                    tree_labels_node=tree_col_labels.root_node,
+                                    dim=mg.COLDIM, 
+                                    oth_dim_root=self.tree_rows.root_node)
         return tree_col_labels
           
     def add_subtree_to_label_tree(self, tree_dims_node, tree_labels_node, 
-                                  dim, oth_dim_root):
+                                     dim, oth_dim_root):
         """
-        Based on information from the variable node, add a subtree
+        Based on information from the variable dim node, add a subtree
         to the node supplied from the labels tree (if appropriate).
+        dim node: fld, label, labels, measures, has_tot, sort_order, bolnumeric.
+        label node: label, filts, measure, is_coltot.
         """
+        debug = False
         has_fld = tree_dims_node.fld # None or a string        
         filt_flds = tree_dims_node.filt_flds
         if dim == mg.ROWDIM:
             if not has_fld:
                 raise Exception(u"All row nodes must have a variable field "
                                 u"specified")
-            if self.has_row_vals:
-                self.add_subtree_if_vals(tree_dims_node, tree_labels_node, 
-                                         oth_dim_root, dim, filt_flds)
-            else:
-                self.add_subtree_measures_only(tree_dims_node, tree_labels_node, 
-                                               filt_flds)
+            self.add_subtree_if_vals(tree_dims_node, tree_labels_node, 
+                                     oth_dim_root, dim, filt_flds)
         elif dim == mg.COLDIM:
             if has_fld:
-                self.add_subtree_if_vals(tree_dims_node, tree_labels_node, 
-                                         oth_dim_root, dim, filt_flds)            
+                if self.var_summarised:
+                    if debug: print(tree_dims_node)
+                    var_label = tree_dims_node.label
+                    var_node2add = LabelNode(label=var_label)
+                    new_var_node = tree_labels_node.add_child(var_node2add)
+                    # add measure label nodes under var
+                    self.add_measures(new_var_node, tree_dims_node.measures, 
+                        is_coltot=False, filt_flds=filt_flds, filts=[])
+                else:
+                    self.add_subtree_if_vals(tree_dims_node, tree_labels_node, 
+                                             oth_dim_root, dim, filt_flds)
             else:
                 if self.has_col_measures:
                     self.add_col_measures_subtree_if_no_fld(tree_dims_node, 
@@ -715,9 +782,8 @@ class LiveTable(DimTable):
                                                      filts=val_node_filts))
             # if node has children, send through again to add further subtree
             if terminal_var: # a terminal node - add measures
-                # only gen table cols and summ table rows can have measures
-                if (dim == mg.COLDIM and self.has_col_measures) or \
-                        (dim == mg.ROWDIM and self.has_row_measures):
+                # only gen and sum table cols can have measures
+                if dim == mg.COLDIM and self.has_col_measures:
                     self.add_measures(label_node=val_node, 
                                     measures=var_measures, is_coltot=is_coltot, 
                                     filt_flds=filt_flds, filts=val_node_filts,
@@ -729,22 +795,6 @@ class LiveTable(DimTable):
                     self.add_subtree_to_label_tree(tree_dims_node=child, 
                                            tree_labels_node=val_node, dim=dim, 
                                            oth_dim_root=oth_dim_root)
-    
-    def add_subtree_measures_only(self, tree_dims_node, tree_labels_node, 
-                                  filt_flds):
-        """
-        For summary table row trees (NB no nesting) we always 
-        display data cells so there is no need to evaluate
-        values etc.  The row will be shown even if they are all 
-        missing symbols. 
-        Instead of value nodes there is a node per measure.
-        """
-        #add level 1 to data tree - the var
-        node_lev1 = tree_labels_node.add_child(LabelNode(label=\
-                                               tree_dims_node.label))
-        self.add_measures(label_node=node_lev1, 
-                          measures=tree_dims_node.measures, 
-                          is_coltot=False, filt_flds=filt_flds, filts=[])
     
     def add_col_measures_subtree_if_no_fld(self, tree_dims_node, 
                                            tree_labels_node):
@@ -761,7 +811,7 @@ class LiveTable(DimTable):
                           is_coltot=False, filt_flds=[], filts=[])
 
     def add_measures(self, label_node, measures, is_coltot, filt_flds, 
-                    filts, force_freq=False):
+                     filts, force_freq=False):
         """
         Add measure label nodes under label node.
         If a column total with rowpct, and frequencies not selected, force it in 
@@ -770,14 +820,12 @@ class LiveTable(DimTable):
         debug = False
         if debug: print("is_coltot: %s; measures: %s" % (is_coltot, measures))
         sep_measures = measures[:]
-        if force_freq and is_coltot and mg.ROWPCT in measures \
-                and mg.FREQ not in measures:
+        if (force_freq and is_coltot and mg.ROWPCT in measures
+                and mg.FREQ not in measures):
             sep_measures.append(mg.FREQ)
         for measure in sep_measures:
-            measure_node = LabelNode(label=measure, 
-                                     filts=filts,
-                                     measure=measure,
-                                     is_coltot=is_coltot)
+            label = measure
+            measure_node = LabelNode(label, filts, measure, is_coltot)
             measure_node.filt_flds = filt_flds
             label_node.add_child(measure_node)
     
@@ -795,12 +843,12 @@ class LiveTable(DimTable):
             subtree_clauses_lst = [] #each subtree needs a parenthesised clause
             #e.g. "( NOT ISNULL(agegp) AND NOT ISNULL(religion) )"
             for subtree_lst in tree_fld_lsts:
-                subtree_clauses = [NOTNULL % self.quote_obj(fld) for fld \
-                                            in subtree_lst]
+                subtree_clauses = [NOTNULL % self.quote_obj(fld) for fld
+                                   in subtree_lst]
                 #e.g. " NOT ISNULL(agegp) ", " NOT ISNULL(religion) "
                 #use AND within subtrees because every field must be filled
-                subtree_clauses_lst.append(u"(" + \
-                                           u" AND ".join(subtree_clauses) + \
+                subtree_clauses_lst.append(u"(" +
+                                           u" AND ".join(subtree_clauses) +
                                            u")")
             #join subtree clauses with OR because a value in any is enough to
             #  retain label 
@@ -812,46 +860,9 @@ class LiveTable(DimTable):
 class GenTable(LiveTable):
     "A general table (not a summary table)"
 
-    has_row_measures = False
-    has_row_vals = True
     has_col_measures = True
-
-    def get_hdr_dets(self, row_label_cols_n, css_idx):
-        """
-        Return tree_col_labels and the table header HTML.
-        For HTML provide everything from <thead> to </thead>.
-        """
-        tree_col_labels = LabelNodeTree()
-        tree_col_labels = self.add_subtrees_to_col_label_tree(tree_col_labels)
-        return self.process_hdr_tree(tree_col_labels, row_label_cols_n, css_idx)
-        
-    def get_body_html_rows(self, row_label_rows_lst, tree_row_labels,
-                           tree_col_labels, css_idx):
-        """
-        Make table body rows based on contents of row_label_rows_lst:
-        e.g. [["<tr>", "<td class='firstrowvar' rowspan='8'>Gender</td>" ...],
-        ...]
-        It already contains row label data - we need to add the data cells 
-        into the appropriate row list within row_label_rows_lst before
-        concatenating and appending "</tr>".
-        """
-        debug = False
-        col_term_nodes = tree_col_labels.get_terminal_nodes()
-        row_term_nodes = tree_row_labels.get_terminal_nodes()
-        col_filters_lst = [x.filts for x in col_term_nodes]
-        col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
-        col_tots_lst = [x.is_coltot for x in col_term_nodes]
-        col_measures_lst = [x.measure for x in col_term_nodes]
-        row_filters_lst = [x.filts for x in row_term_nodes]
-        if debug: print(row_filters_lst)
-        row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
-        data_cells_n = len(row_term_nodes) * len(col_term_nodes)
-        if self.debug or debug: print(u"%s data cells in table" % data_cells_n)
-        row_label_rows_lst = self.get_row_labels_row_lst(row_filters_lst, 
-            row_filt_flds_lst, col_measures_lst, col_filters_lst, 
-            col_tots_lst, col_filt_flds_lst, row_label_rows_lst, 
-            data_cells_n, col_term_nodes, css_idx)
-        return row_label_rows_lst
+    var_summarised = False
+    row_var_optional = False
     
     def get_data_sql(self, SQL_table_select_clauses_lst):
         """
@@ -889,7 +900,7 @@ class GenTable(LiveTable):
                                col_filt_flds_lst, row_label_rows_lst, 
                                data_cells_n, col_term_nodes, css_idx):
         """
-        Get list of row data.  Each row in the list is represented by a row of 
+        Get list of row data. Each row in the list is represented by a row of 
             strings to concatenate, one per data point.
         Build lists of data item HTML (data_item_presn_lst) and data item values 
             (results) ready to combine.
@@ -897,7 +908,7 @@ class GenTable(LiveTable):
             wrappers for data ("<td class='%s'>" % cellclass, "</td>").  
             As each data point is processed, a tuple is added to the list.
         results is built once per batch of data points for database efficiency 
-            reasons.  Each call returns multiple values.
+            reasons. Each call returns multiple values.
         """
         debug = False
         CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL, 
@@ -909,8 +920,8 @@ class GenTable(LiveTable):
         SQL_table_select_clauses_lst = []
         max_select_vars = 1 if debug else 50 # same speed from 30-100 but
             # twice as slow if much smaller or larger.
-        for (row_filter, row_filt_flds) in zip(row_filters_lst, 
-                                               row_filt_flds_lst):
+        for (row_filter, 
+             row_filt_flds) in zip(row_filters_lst, row_filt_flds_lst):
             row_filts_tot4col_lst = self.get_dim_filts_4_oth_dim_tot_lst(
                                                       row_filter, row_filt_flds)
             first = True # styling
@@ -937,10 +948,10 @@ class GenTable(LiveTable):
                                   is_coltot=coltot)
                 SQL_table_select_clauses_lst.append(clause)
                 # process SQL queries when number of clauses reaches threshold
-                if len(SQL_table_select_clauses_lst) == max_select_vars \
-                        or i == data_cells_n - 1:
+                if (len(SQL_table_select_clauses_lst) == max_select_vars
+                        or i == data_cells_n - 1):
                     SQL_select_results = \
-                        self.get_data_sql(SQL_table_select_clauses_lst)
+                                 self.get_data_sql(SQL_table_select_clauses_lst)
                     if debug: print(SQL_select_results)
                     self.cur.execute(SQL_select_results)
                     results += self.cur.fetchone()
@@ -956,8 +967,8 @@ class GenTable(LiveTable):
                 num2display = lib.get_num2display(num=results[i], 
                                   output_type=data_item_presn_lst[i][1], 
                                   inc_perc=self.show_perc)
-                row.append(data_item_presn_lst[i][0] + \
-                           num2display + data_item_presn_lst[i][2])
+                row.append(data_item_presn_lst[i][0] 
+                           + num2display + data_item_presn_lst[i][2])
                 i=i+1
         return row_label_rows_lst
     
@@ -1038,70 +1049,47 @@ class GenTable(LiveTable):
 class SummTable(LiveTable):
     "A summary table - e.g. Median, Mean etc"
     
-    has_row_measures = True
-    has_row_vals = False
-    has_col_measures = False
-
-    def get_hdr_dets(self, row_label_cols_n, css_idx):
-        """
-        Return tree_col_labels and the table header HTML.
-        For HTML provide everything from <thead> to </thead>.
-        If no column variables, make a special column node.
-        """
-        tree_col_labels = LabelNodeTree()
-        tree_col_labels = self.add_subtrees_to_col_label_tree(tree_col_labels)
-        if tree_col_labels.get_depth() == 1:
-            tree_col_labels.add_child(LabelNode(label=_("Measures")))
-        return self.process_hdr_tree(tree_col_labels, row_label_cols_n, css_idx)
-        
-    def get_body_html_rows(self, row_label_rows_lst, tree_row_labels,
-                           tree_col_labels, css_idx):
-        """
-        Make table body rows based on contents of row_label_rows_lst:
-        e.g. [["<tr>", "<td class='firstrowvar' rowspan='8'>Gender</td>" ...],
-        ...]
-        It already contains row label data - we need to add the data cells 
-        into the appropriate row list within row_label_rows_lst before
-        concatenating and appending "</tr>".
-        """
-        col_term_nodes = tree_col_labels.get_terminal_nodes()
-        row_term_nodes = tree_row_labels.get_terminal_nodes()
-        row_measures_lst = [x.measure for x in row_term_nodes]
-        col_filters_lst = [x.filts for x in col_term_nodes] #can be [[],[],[], ...]
-        row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
-        #col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
-        #col_tots_lst = [x.is_coltot for x in col_term_nodes]
-        data_cells_n = len(row_term_nodes) * len(col_term_nodes)
-        if self.debug: print(u"%s data cells in table" % data_cells_n)
-        row_label_rows_lst = self.get_row_labels_row_lst(row_filt_flds_lst, 
-                                row_measures_lst, col_filters_lst, 
-                                row_label_rows_lst, col_term_nodes, css_idx)
-        return row_label_rows_lst
+    has_col_measures = True
+    var_summarised = True
+    row_var_optional = True
     
-    def get_row_labels_row_lst(self, row_flds_lst,  
-                               row_measures_lst, col_filters_lst, 
-                               row_label_rows_lst, col_term_nodes, css_idx):
+    def get_row_labels_row_lst(self, row_filters_lst, row_filt_flds_lst, 
+                               col_measures_lst, col_filters_lst, 
+                               col_tots_lst, col_filt_flds_lst, 
+                               row_label_rows_lst, data_cells_n, 
+                               col_term_nodes, css_idx):
         """
-        Get list of row data.  Each row in the list is represented
+        Get list of row data. Each row in the list is represented
             by a row of strings to concatenate, one per data point.
-        Get data values one at a time (no batches unlike Gen Tables).
+        Get data values one at a time (no batches unlike Gen Tables) and add to 
+            html chunks.
+        Example data if two col variables - mean, median, mean, median
         """
         CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL,
                                                        css_idx)
         CSS_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_DATACELL, css_idx)
         data_item_lst = []
-        for (rowmeasure, row_fld_lst) in zip(row_measures_lst, row_flds_lst):
-            first = True
-            for col_filter_lst in col_filters_lst:
-                #styling
+        """
+        col_measures_lst -- 
+        """
+        debug = False
+        if debug: print(col_measures_lst)
+        data_item_lst = []
+        for (row_filter, 
+             row_filt_flds) in zip(row_filters_lst, row_filt_flds_lst):
+            first = True # styling
+            col_zipped = zip(col_measures_lst, col_filters_lst, 
+                             col_filt_flds_lst)
+            for (colmeasure, col_filter, col_filt_flds) in col_zipped:
+                col_fld = col_filt_flds[0]
+                # styling
                 if first:
                     cellclass = CSS_FIRST_DATACELL
                     first = False
                 else:
                     cellclass = CSS_DATACELL
-                data_val = self.get_data_val(rowmeasure, row_fld_lst[0], 
-                                             col_filter_lst)
-                data_item_lst.append(u"<td class='%s'>%s</td>" % \
+                data_val = self.get_data_val(colmeasure, col_fld, row_filter)
+                data_item_lst.append(u"<td class='%s'>%s</td>" %
                                      (cellclass, data_val))
         i=0
         for row in row_label_rows_lst:
@@ -1125,23 +1113,24 @@ class SummTable(LiveTable):
                 break
         return val
     
-    def get_data_val(self, measure, row_fld, col_filter_lst):
+    def get_data_val(self, measure, col_fld, row_filter_lst):
         """
         measure - e.g. MEAN
-        row_fld - the numeric field we are calculating the summary of. NB if
+        col_fld - the numeric field we are calculating the summary of. NB if
             SQLite, may be a numeric field with some non-numeric values in it.
-        col_filter - so we only look at values in the column.
+        row_filter - so we only look at values in the row.
         """
         debug = False
-        col_filt_clause = u" AND ".join(col_filter_lst)
-        if col_filt_clause:
-            overall_filter = u" WHERE " + col_filt_clause + self.and_tbl_filt
+        dp2_tpl = u"%.2f"
+        row_filt_clause = u" AND ".join(row_filter_lst)
+        if row_filt_clause:
+            overall_filter = u" WHERE " + row_filt_clause + self.and_tbl_filt
         else: 
             overall_filter = self.where_tbl_filt
         # if using raw data (or finding bad data) must handle non-numeric values 
         # myself. Not using SQL to do aggregate calculations - only to get raw 
         # vals which are then processed by numpy or whatever.
-        SQL_get_vals = (u"SELECT %s " % self.quote_obj(row_fld) +
+        SQL_get_vals = (u"SELECT %s " % self.quote_obj(col_fld) +
                       u"FROM %s %s" % (getdata.tblname_qtr(self.dbe, self.tbl), 
                                        overall_filter))
         sql_for_raw_only = [mg.MEDIAN, mg.LOWER_QUARTILE, mg.UPPER_QUARTILE,
@@ -1154,116 +1143,116 @@ class SummTable(LiveTable):
             data = [float(x[0]) for x in raw_vals if x[0]]
             if debug: print(data)
         if measure == mg.MIN:
-            SQL_get_min = (u"SELECT MIN(%s) " % self.quote_obj(row_fld) +
+            SQL_get_min = (u"SELECT MIN(%s) " % self.quote_obj(col_fld) +
                            u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
                            + overall_filter)
             try:
                 self.cur.execute(SQL_get_min)
                 data_val = self.cur.fetchone()[0]
             except Exception:
-                raise Exception(u"Unable to get minimum of %s." % row_fld)
+                raise Exception(u"Unable to get minimum of %s." % col_fld)
         elif measure == mg.MAX:
-            SQL_get_max = (u"SELECT MAX(%s) " % self.quote_obj(row_fld) +
+            SQL_get_max = (u"SELECT MAX(%s) " % self.quote_obj(col_fld) +
                            u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
                            + overall_filter)
             try:
                 self.cur.execute(SQL_get_max)
                 data_val = self.cur.fetchone()[0]
             except Exception:
-                raise Exception(u"Unable to get maximum of %s." % row_fld)
+                raise Exception(u"Unable to get maximum of %s." % col_fld)
         elif measure == mg.RANGE:
             SQL_get_range = (u"SELECT (MAX(%(fld)s) - MIN(%(fld)s)) " %
-                             {u"fld": self.quote_obj(row_fld)} +
+                             {u"fld": self.quote_obj(col_fld)} +
                              u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
                              + overall_filter)
             try:
                 self.cur.execute(SQL_get_range)
                 data_val = self.cur.fetchone()[0]
             except Exception:
-                raise Exception(u"Unable to get range of %s." % row_fld)
+                raise Exception(u"Unable to get range of %s." % col_fld)
         elif measure == mg.SUM:
-            SQL_get_sum = (u"SELECT SUM(%s) " % self.quote_obj(row_fld) +
+            SQL_get_sum = (u"SELECT SUM(%s) " % self.quote_obj(col_fld) +
                            u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
                            + overall_filter)
             try:
                 self.cur.execute(SQL_get_sum)
                 data_val = self.cur.fetchone()[0]
             except Exception:
-                raise Exception(u"Unable to calculate sum of %s." % row_fld)
+                raise Exception(u"Unable to calculate sum of %s." % col_fld)
         elif measure == mg.MEAN:
-            SQL_get_mean = u"SELECT AVG(%s) " % self.quote_obj(row_fld) + \
+            SQL_get_mean = u"SELECT AVG(%s) " % self.quote_obj(col_fld) + \
                 u"FROM %s %s" % (getdata.tblname_qtr(self.dbe, self.tbl), 
                                  overall_filter)
             try:
                 self.cur.execute(SQL_get_mean)
-                data_val = round(self.cur.fetchone()[0],2)
+                data_val = dp2_tpl % round(self.cur.fetchone()[0],2)
             except Exception:
-                raise Exception(u"Unable to calculate mean of %s." % row_fld)
+                raise Exception(u"Unable to calculate mean of %s." % col_fld)
         elif measure == mg.MEDIAN:
             try:
-                data_val = round(numpy.median(data),2)
+                data_val = dp2_tpl % round(numpy.median(data),2)
             except Exception:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
                     raise Exception(
-                            u"Unable to calculate median for %s. " % row_fld +
+                            u"Unable to calculate median for %s. " % col_fld +
                             u"The field contains at least one non-numeric " +
                             u"value: \"%s\"" % bad_val)
                 else:
                     raise Exception(u"Unable to calculate median for %s."
-                                    % row_fld)
+                                    % col_fld)
         elif measure == mg.LOWER_QUARTILE:
             try:
                 lq, unused = core_stats.get_quartiles(data)
-                data_val = round(lq, 2)
+                data_val = dp2_tpl % round(lq, 2)
             except Exception:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
                     raise Exception(u"Unable to calculate lower quartile "
-                        u"for %s. " % row_fld +
+                        u"for %s. " % col_fld +
                         u"The field contains at least one non-numeric " +
                         u"value: \"%s\"" % bad_val)
                 else:
                     raise Exception(u"Unable to calculate lower quartile "
-                                    u"for %s." % row_fld)
+                                    u"for %s." % col_fld)
         elif measure == mg.UPPER_QUARTILE:
             try:
                 unused, uq = core_stats.get_quartiles(data)
-                data_val = round(uq, 2)
+                data_val = dp2_tpl % round(uq, 2)
             except Exception:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
                     raise Exception(u"Unable to calculate upper quartile "
-                        u"for %s. " % row_fld +
+                        u"for %s. " % col_fld +
                         u"The field contains at least one non-numeric " +
                         u"value: \"%s\"" % bad_val)
                 else:
                     raise Exception(u"Unable to calculate upper quartile "
-                                    u"for %s." % row_fld)
+                                    u"for %s." % col_fld)
         elif measure == mg.SUMM_N:
-            SQL_get_n = u"SELECT COUNT(%s) " % self.quote_obj(row_fld) + \
+            SQL_get_n = u"SELECT COUNT(%s) " % self.quote_obj(col_fld) + \
                 u"FROM %s %s" % (getdata.tblname_qtr(self.dbe, self.tbl), 
                                  overall_filter)
             try:
                 self.cur.execute(SQL_get_n)
                 data_val = u"N=%s" % self.cur.fetchone()[0]
             except Exception:
-                raise Exception(u"Unable to calculate N for %s." % row_fld)
+                raise Exception(u"Unable to calculate N for %s." % col_fld)
         elif measure == mg.STD_DEV:
             try:
-                data_val = round(numpy.std(data, ddof=1),2) # use ddof=1 for 
+                data_val = dp2_tpl % round(numpy.std(data, ddof=1),2) # use ddof=1 for 
                                                             # sample sd
             except Exception:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
                     raise Exception(
                             u"Unable to calculate standard deviation for " +
-                            u" %s. " % row_fld +
+                            u" %s. " % col_fld +
                             u"The field contains at least one non-numeric " +
                             u"value: \"%s\"" % bad_val)
                 else:
                     raise Exception(u"Unable to calculate standard deviation "
-                                    u"for %s." % row_fld)
+                                    u"for %s." % col_fld)
         else:
             raise Exception(u"Measure not available")
         try:

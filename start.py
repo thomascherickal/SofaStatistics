@@ -25,7 +25,7 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-dev_debug = False # relates to errors etc once GUI application running.
+dev_debug = True # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 show_more_steps = True
@@ -475,7 +475,7 @@ class StartFrame(wx.Frame):
         except Exception, e:
             lib.safe_end_cursor()
             wx.MessageBox(u"Problem setting up buttons")
-            raise # for debugging
+            raise # for debug
         # text
         # NB cannot have transparent background properly in Windows if using
         # a static ctrl 
@@ -522,7 +522,10 @@ class StartFrame(wx.Frame):
                 u" either of these tables if present - \"%s\" and \"%s\"") 
                 % (mg.TMP_TBLNAME, mg.TMP_TBLNAME2))
         if show_more_steps: print(u"Passed check for having to delete database")
-        wx.CallAfter(lib.check_crack, show_more_steps) # won't stop form load if fails
+        try:
+            wx.CallAfter(lib.check_crack, show_more_steps) # won't stop form load if fails
+        except my_exceptions.DoNothingException:
+            pass
         # any warnings to display once screen visible?
         warning_div = u"\n\n" + u"-"*20 + u"\n\n"
         deferred_warning_msg = warning_div.join(mg.DEFERRED_WARNING_MSGS)
