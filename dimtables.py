@@ -406,7 +406,7 @@ class LiveTable(DimTable):
         self.subtitles = subtitles
         self.tab_type = tab_type
         rpt_config = mg.RPT_CONFIG[self.tab_type]
-        self.default_measures = rpt_config[mg.DEFAULT_MEASURE_KEY]
+        self.default_measure = rpt_config[mg.DEFAULT_MEASURE_KEY]
         self.dbe = dbe
         self.tbl = tbl
         self.tbl_filt = tbl_filt

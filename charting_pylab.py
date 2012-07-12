@@ -96,6 +96,7 @@ def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot,
             print("x_vals: %s" % x_vals)
             print("y_vals: %s" % y_vals)
         cluster.yValues = y_vals
+        if debug: print(i, bar_colours)
         cluster.color = bar_colours[i]
         cluster.edgeColor = "white"
         max_width = 17 if labels_n < 5 else 10

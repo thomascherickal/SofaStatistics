@@ -66,7 +66,7 @@ import showhtml
 def get_stats_chart_colours(css_fil):
     (unused, grid_bg, unused, major_gridline_colour, unused, 
      unused, unused, colour_mappings, unused) = lib.extract_dojo_style(css_fil)
-    item_colours = [x[0] for x in colour_mappings]
+    item_colours = [x[0] for x in colour_mappings] + mg.DOJO_COLOURS
     line_colour = major_gridline_colour
     return grid_bg, item_colours, line_colour
 

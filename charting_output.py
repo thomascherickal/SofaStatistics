@@ -2073,9 +2073,8 @@ def use_mpl_scatterplots(scatterplot_dets):
 def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders, 
                          list_x, list_y, label_x, label_y, ymin, ymax, x_vs_y, 
                          add_to_report, report_name, css_fil, pagebreak):
-    (grid_bg, 
-        item_colours, line_colour) = output.get_stats_chart_colours(css_fil)
-    colours = item_colours + mg.DOJO_COLOURS
+    (grid_bg, colours, 
+     line_colour) = output.get_stats_chart_colours(css_fil)
     dot_colour = colours[0]
     if multichart:
         width_inches, height_inches = (6.0, 3.6)

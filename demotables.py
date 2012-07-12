@@ -195,6 +195,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         self.has_col_measures = len(rpt_config[mg.COL_MEASURES_KEY])
         self.needs_rows = rpt_config[mg.NEEDS_ROWS_KEY]
         self.var_summarised = rpt_config[mg.VAR_SUMMARISED_KEY]
+        self.default_measure = rpt_config[mg.DEFAULT_MEASURE_KEY]
         self.colroot = colroot
         self.rowroot = rowroot
         self.rowtree = rowtree
@@ -202,6 +203,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         self.col_no_vars_item = col_no_vars_item
         self.var_labels = var_labels
         self.val_dics = val_dics
+        
         # show_perc not set here when instantiated as must be checked from UI 
         #    each time get_demo_html_if_ok() is called.
         
