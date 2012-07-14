@@ -1255,6 +1255,7 @@ def get_scatterplot_script(css_fil, css_idx, dot_border):
     script = u"""
 scatterplot_dets = charting_output.get_scatterplot_dets(dbe, cur, tbl, tbl_filt, 
             flds, var_role_x_axis, var_role_y_axis, 
+            var_role_series, var_role_series_name, var_role_series_lbls,
             var_role_charts, var_role_charts_name, var_role_charts_lbls, 
             unique=True)
 chart_output = charting_output.scatterplot_output(titles, subtitles,

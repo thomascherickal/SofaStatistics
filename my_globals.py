@@ -681,10 +681,14 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_Y_AXIS}, # dropdown 2
+            {LBL_KEY: CHART_BY,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             INC_SELECT_KEY: True,
+             VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 3
             {LBL_KEY: CHARTS_CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
-             VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
+             VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 4
             ],
     },
     BOXPLOT: {

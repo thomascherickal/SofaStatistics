@@ -252,9 +252,10 @@ class ListVarsDlg(wx.Dialog):
         Leaves list unselected.  That way we can select something more than 
             once.
         """
-        var_names = get_approp_var_names()
-        var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
-                                    dic_labels=self.var_labels, vals=var_names)
+        vals = get_approp_var_names()
+        dic_labels = self.var_labels
+        (var_choices, 
+         self.sorted_var_names) = lib.get_sorted_choice_items(dic_labels, vals)
         self.lst_vars.SetItems(var_choices)
 
     def get_var(self):

@@ -235,7 +235,7 @@ class SofaApp(wx.App):
             message to pass for support.
         """
         debug = False
-        langid, langname = self.get_langid_and_name(langdir)
+        langid, langname = self.get_langid_and_name(langdir) # may fall back to English
         # Next line will only work if locale installed on computer. On Macs,
         # must be after app starts (http://programming.itags.org/python/2877/)
         mylocale = wx.Locale(langid) #, wx.LOCALE_LOAD_DEFAULT)
@@ -293,6 +293,7 @@ class SofaApp(wx.App):
         except Exception, e:
             localename = u"Unable to get locale name."
         extra_diagnostics = (u"\n\nExtra details for developer:"
+        u"\nGetLanguageName: %(GetLanguageName)s"
         u"\nlangid: %(langid)s"
         u"\nGetlanguage: %(Getlanguage)s" 
         u"\nGetCanonicalName: %(GetCanonicalName)s" 

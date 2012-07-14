@@ -101,13 +101,13 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     mycharts = 1 if not var_role_charts else objqtr(var_role_charts)
     avg_filt = (u" AND %s IS NOT NULL " % objqtr(var_role_avg) if is_avg 
                 else u" ") 
-    sql_dic = {u"tbl": tbl_quoted, 
+    sql_dic = {u"tbl": tbl_quoted,
                u"var_role_charts": mycharts,
                u"var_role_series": myseries,
                u"var_role_cat": mycat,
                u"var_role_avg": objqtr(var_role_avg),
-               u"and_tbl_filt": and_tbl_filt,
                u"where_tbl_filt": where_tbl_filt,
+               u"and_tbl_filt": and_tbl_filt,
                u"and_avg_filt": avg_filt}
     # 1) grouping variables
     SQL_charts = ("""SELECT %(var_role_charts)s 
@@ -308,7 +308,7 @@ def structure_gen_data(chart_type, raw_data, max_items, xlblsdic,
     if multichart:
         chart_fldname = var_role_charts_name
         chart_fldlbls = var_role_charts_lbls
-    else: # clustered, line - currently, multiple series but only one chart
+    else: # clustered, line - can have multiple series but only one chart
         chart_fldname = None
         chart_fldlbls = {}
     for chart_dic in prestructure:
@@ -756,78 +756,107 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin, var_role_charts,
         histo_dets.append(histo_dic)
     return histo_dets
 
-def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_x_axis, 
-                         var_role_y_axis, var_role_charts, var_role_charts_name, 
-                         var_role_charts_lbls, unique=True):
+def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds, 
+                    var_role_x_axis, var_role_y_axis, 
+                    var_role_series, var_role_series_name, var_role_series_lbls,
+                    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
+                    unique=True):
     """
     unique -- unique x-y pairs only
     """
-    debug = False
+    debug = True
     objqtr = getdata.get_obj_quoter_func(dbe)
-    unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    sql_dic = {u"var_role_charts": objqtr(var_role_charts),
+    where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+    fld_x_axis = objqtr(var_role_x_axis)
+    fld_y_axis = objqtr(var_role_y_axis)
+    xy_filt_tpl = (u" %%s %s IS NOT NULL AND %s IS NOT NULL " % (fld_x_axis, 
+                                                                 fld_y_axis))
+    where_xy_filt = (xy_filt_tpl % u"WHERE")
+    and_xy_filt = (xy_filt_tpl % u"AND")
+    # Series and charts are optional so we need to autofill them with something 
+    # which will keep them in the same group.
+    myseries = 1 if not var_role_series else objqtr(var_role_series)
+    mycharts = 1 if not var_role_charts else objqtr(var_role_charts)
+    sql_dic = {u"tbl": getdata.tblname_qtr(dbe, tbl), 
+               u"var_role_charts": mycharts,
+               u"var_role_series": myseries,
                u"fld_x_axis": objqtr(var_role_x_axis),
                u"fld_y_axis": objqtr(var_role_y_axis),
-               u"tbl": getdata.tblname_qtr(dbe, tbl), 
-               u"and_tbl_filt": and_tbl_filt}
-    if var_role_charts:
-        SQL_fld_chart_by_vals = u"""SELECT %(var_role_charts)s 
-            FROM %(tbl)s 
-            WHERE %(fld_x_axis)s IS NOT NULL AND %(fld_y_axis)s IS NOT NULL  
-            %(and_tbl_filt)s 
-            GROUP BY %(var_role_charts)s""" % sql_dic
-        cur.execute(SQL_fld_chart_by_vals)
-        fld_chart_by_vals = [x[0] for x in cur.fetchall()]
-        if len(fld_chart_by_vals) > mg.CHART_MAX_CHARTS_IN_SET:
-            raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
+               u"where_tbl_filt": where_tbl_filt,
+               u"and_tbl_filt": and_tbl_filt,
+               u"where_xy_filt": where_xy_filt,
+               u"and_xy_filt": and_xy_filt,}
+    # only want rows where all variables are not null
+    SQL_get_xy_pairs = (u"""SELECT %(var_role_charts)s 
+    AS charts,
+        %(var_role_series)s 
+    AS series,
+        %(fld_x_axis)s
+    AS x, 
+        %(fld_y_axis)s
+    AS y
+    FROM %(tbl)s
+    WHERE charts IS NOT NULL 
+        AND series IS NOT NULL 
+        %(and_xy_filt)s
+        %(and_tbl_filt)s
+    GROUP BY charts, series""" % sql_dic)
+    if unique:
+        SQL_get_xy_pairs += u", %(fld_x_axis)s, %(fld_y_axis)s" % sql_dic
+    if debug: print(SQL_get_xy_pairs)
+    cur.execute(SQL_get_xy_pairs)
+    raw_data = cur.fetchall()
+    if not raw_data:
+        raise my_exceptions.TooFewValsForDisplay
+    prestructure = get_prestructured_gen_data(raw_data)
+    chart_dets = []
+    n_charts = len(prestructure)
+    if n_charts > mg.CHART_MAX_CHARTS_IN_SET:
+        raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
                                            max_items=mg.CHART_MAX_CHARTS_IN_SET)
-        elif len(fld_chart_by_vals) == 0:
-            raise my_exceptions.TooFewValsForDisplay
-    else:
-        fld_chart_by_vals = [None,] # Got to have something to loop through ;-)
-    scatterplot_dets = []
-    for fld_chart_by_val in fld_chart_by_vals:
-        if var_role_charts:
-            filt = getdata.make_fld_val_clause(dbe, flds, 
-                                               fldname=var_role_charts, 
-                                               val=fld_chart_by_val)
-            and_fld_chart_by_filt = u" and %s" % filt
-            fld_chart_by_val_lbl = var_role_charts_lbls.get(fld_chart_by_val, 
-                                                         fld_chart_by_val)
-            chart_by_lbl = u"%s: %s" % (var_role_charts_name, 
-                                        fld_chart_by_val_lbl)
+    multichart = n_charts > 1
+    if multichart:
+        chart_fldname = var_role_charts_name
+        chart_fldlbls = var_role_charts_lbls
+    else: # can have multiple series but only one chart
+        chart_fldname = None
+        chart_fldlbls = {}
+    for chart_dic in prestructure:
+        series = chart_dic[CHART_SERIES_KEY]
+        multiseries = (len(series) > 1)
+        if multichart:
+            chart_val = chart_dic[CHART_VAL_KEY]
+            chart_lbl = u"%s: %s" % (chart_fldname, 
+                              chart_fldlbls.get(chart_val, unicode(chart_val)))
         else:
-            and_fld_chart_by_filt = u""
-            chart_by_lbl = None
-        sql_dic[u"and_fld_chart_by_filt"] = and_fld_chart_by_filt
-        if unique:
-            SQL_get_pairs = u"""SELECT %(fld_x_axis)s, %(fld_y_axis)s
-                    FROM %(tbl)s
-                    WHERE %(fld_x_axis)s IS NOT NULL
-                    AND %(fld_y_axis)s IS NOT NULL 
-                    %(and_fld_chart_by_filt)s
-                    %(and_tbl_filt)s
-                    GROUP BY %(fld_x_axis)s, %(fld_y_axis)s""" % sql_dic
-        else:
-            SQL_get_pairs = u"""SELECT %(fld_x_axis)s, %(fld_y_axis)s
-                    FROM %(tbl)s
-                    WHERE %(fld_x_axis)s IS NOT NULL
-                    AND %(fld_y_axis)s IS NOT NULL 
-                    %(and_fld_chart_by_filt)s
-                    %(and_tbl_filt)s""" % sql_dic
-        if debug: print(SQL_get_pairs)
-        cur.execute(SQL_get_pairs)
-        data_tups = cur.fetchall()
-        if not var_role_charts:
-            if not data_tups:
-                raise my_exceptions.TooFewValsForDisplay
-        lst_x = [x[0] for x in data_tups]
-        lst_y = [x[1] for x in data_tups]
-        if debug: print(chart_by_lbl)
-        scatterplot_dic = {mg.CHARTS_CHART_BY_LBL: chart_by_lbl,
-                           mg.LIST_X: lst_x, mg.LIST_Y: lst_y,
-                           mg.DATA_TUPS: data_tups,}
-        scatterplot_dets.append(scatterplot_dic)
+            chart_lbl = None
+        series_dets = []
+        for series_dic in series:
+            series_val = series_dic[SERIES_KEY]
+            if multiseries:
+                legend_lbl = var_role_series_lbls.get(series_val, 
+                                                      unicode(series_val))
+            else:
+                legend_lbl = None
+            # process xy vals
+            xy_vals = series_dic[XY_KEY]
+            list_x = []
+            list_y = []
+            data_tups = [] # only for mpl
+            for x_val, y_val in xy_vals:
+                list_x.append(x_val)
+                list_y.append(y_val)
+                data_tups.append((x_val, y_val))
+            series_det = {mg.CHARTS_SERIES_LBL_IN_LEGEND: legend_lbl,
+                          mg.LIST_X: list_x, 
+                          mg.LIST_Y: list_y,
+                          mg.DATA_TUPS: data_tups}
+            series_dets.append(series_det)
+        chart_det = {mg.CHARTS_CHART_LBL: chart_lbl,
+                     mg.CHARTS_SERIES_DETS: series_dets}
+        chart_dets.append(chart_det)
+    scatterplot_dets = {mg.CHARTS_OVERALL_LEGEND_LBL: var_role_series_name,
+                        mg.CHARTS_CHART_DETS: chart_dets}
     return scatterplot_dets
 
 def reshape_sql_crosstab_data(raw_data, dp=0):
@@ -2064,15 +2093,19 @@ def use_mpl_scatterplots(scatterplot_dets):
     And want one style of scatterplots for all plots in a chart series.
     """
     use_mpl = False
-    for indiv_data in scatterplot_dets:
-        if len(indiv_data[mg.DATA_TUPS]) > mg.MAX_POINTS_DOJO_SCATTERPLOT:
-            use_mpl = True
-            break
+    for chart_dets in scatterplot_dets:
+        for series_dets in chart_dets:
+            if len(series_dets[mg.DATA_TUPS]) > mg.MAX_POINTS_DOJO_SCATTERPLOT:
+                use_mpl = True
+                break
     return use_mpl
+            
 
 def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders, 
-                         list_x, list_y, label_x, label_y, ymin, ymax, x_vs_y, 
-                         add_to_report, report_name, css_fil, pagebreak):
+                         legend, series_dets, label_x, label_y, ymin, ymax, 
+                         x_vs_y, add_to_report, report_name, css_fil, 
+                         pagebreak):
+    
     (grid_bg, colours, 
      line_colour) = output.get_stats_chart_colours(css_fil)
     dot_colour = colours[0]
@@ -2211,8 +2244,9 @@ makechartRenumber%(chart_idx)s = function(){
 
 def get_scatterplot_ymin_ymax(scatterplot_dets):
     all_y_vals = []
-    for scatterplot_det in scatterplot_dets:
-        all_y_vals += scatterplot_det[mg.LIST_Y]
+    for chart_dets in scatterplot_dets:
+        for series_dets in chart_dets:
+            all_y_vals += series_dets[mg.LIST_Y]
     ymin, ymax = get_optimal_min_max(min(all_y_vals), max(all_y_vals))
     return ymin, ymax
 
@@ -2220,35 +2254,70 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
                        add_to_report, report_name, dot_borders, css_fil, 
                        css_idx, page_break_after=False):
     """
-    scatter_data -- dict with keys SAMPLE_A, SAMPLE_B, DATA_TUPS
+    scatterplot_dets = {mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
+                        mg.CHARTS_CHART_DETS: chart_dets}
+    chart_dets = [
+        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or None if only one chart
+         mg.CHARTS_SERIES_DETS: series_dets},
+        {mg.CHARTS_CHART_LBL: u"Gender: Female",
+         mg.CHARTS_SERIES_DETS: series_dets}, ...
+    ]
+    series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
+                   mg.LIST_X: [1,1,2,2,2,3,4,6,8,18, ...], 
+                   mg.LIST_Y: [3,5,4,5,6,7,9,12,17,6, ...], 
+                   mg.DATA_TUPS: [(1,3),(1,5), ...]}
     """
+    debug = False
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     pagebreak = u"page-break-after: always;"
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     x_vs_y = '"%s"' % label_x + _(" vs ") + '"%s"' % label_y
+    chart_dets = scatterplot_dets[mg.CHARTS_CHART_DETS]
+    chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
+    multiseries = len(chart0_series_dets) > 1
     html = []
     html.append(title_dets_html)
     multichart = (len(scatterplot_dets) > 1)
     use_mpl = use_mpl_scatterplots(scatterplot_dets)
     ymin, ymax = get_scatterplot_ymin_ymax(scatterplot_dets)
-    for chart_idx, scatterplot_det in enumerate(scatterplot_dets):
-        chart_by_lbl = scatterplot_det[mg.CHARTS_CHART_BY_LBL]
-        data_tups = scatterplot_det[mg.DATA_TUPS]
-        list_x = scatterplot_det[mg.LIST_X]
-        list_y = scatterplot_det[mg.LIST_Y]
-        indiv_scatterplot_title = "<p><b>%s</b></p>" % \
-                                            chart_by_lbl if multichart else u""
+    legend_lbl = scatterplot_dets[mg.CHARTS_OVERALL_LEGEND_LBL]
+    (unused, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
+            gridline_width, unused, unused, 
+            colour_mappings, unused) = lib.extract_dojo_style(css_fil)
+    # Can't have white for scatterplots because always a white outer background
+    axis_lbl_font_colour = (axis_lbl_font_colour
+                            if axis_lbl_font_colour != u"white" else u"black")
+    # loop through charts
+    for chart_idx, chart_det in enumerate(chart_dets):
+        series_dets = chart_det[mg.CHARTS_SERIES_DETS]
+        pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
+        if debug: print(series_dets)
+        if multiseries:
+            legend = u"""
+        <p style="float: left; font-weight: bold; margin-right: 12px; 
+                margin-top: 9px;">
+            %s:
+        </p>
+        <div id="legendMychartRenumber%02d">
+            </div>""" % (legend_lbl, chart_idx)
+        else:
+            legend = u"" 
+        if multichart:
+            indiv_scatterplot_title = ("<p><b>%s</b></p>" % 
+                               chart_det[mg.CHARTS_CHART_LBL])
+        else:
+            indiv_scatterplot_title = u""
         if use_mpl:
             make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, 
-                                 dot_borders, list_x, list_y, 
-                                 label_x, label_y, ymin, ymax, x_vs_y, 
-                                 add_to_report, report_name, css_fil, pagebreak)
+                                 dot_borders, legend, series_dets, label_x, 
+                                 label_y, ymin, ymax, x_vs_y, add_to_report, 
+                                 report_name, css_fil, pagebreak)
         else:
             make_dojo_scatterplot(chart_idx, multichart, html, 
-                                  indiv_scatterplot_title, dot_borders, 
-                                  data_tups, list_x, list_y, label_x, label_y, 
-                                  ymin, ymax, css_fil, pagebreak)
+                                  indiv_scatterplot_title, dot_borders, legend, 
+                                  series_dets, label_x, label_y, ymin, ymax, 
+                                  css_fil, pagebreak)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

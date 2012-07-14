@@ -597,9 +597,9 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
             return False # start again :-)
 
 def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tblname, 
-                   has_header, ok_fldnames, fldtypes, 
-                   faulty2missing_fld_list, data, progbar, steps_per_item, 
-                   gauge_start, allow_none=True, comma_dec_sep_ok=False):
+                   has_header, ok_fldnames, fldtypes, faulty2missing_fld_list, 
+                   data, progbar, steps_per_item, gauge_start, allow_none=True, 
+                   comma_dec_sep_ok=False):
     """
     Create fresh disposable table in SQLite and insert data into it.
     feedback -- dic with mg.NULLED_DOTS
