@@ -255,7 +255,7 @@ def get_prestructured_gen_data(raw_data):
                 same_series_dic[XY_KEY].append((x_val, y_val))
     return prestructure
 
-def structure_gen_data(chart_type, raw_data, max_items, xlblsdic, 
+def structure_gen_data(chart_type, raw_data, xlblsdic, 
                    var_role_avg, var_role_avg_name, var_role_avg_lbls,
                    var_role_cat, var_role_cat_name, var_role_cat_lbls,
                    var_role_series, var_role_series_name, var_role_series_lbls,
@@ -300,9 +300,9 @@ def structure_gen_data(chart_type, raw_data, max_items, xlblsdic,
     prestructure = get_prestructured_gen_data(raw_data)
     chart_dets = []
     n_charts = len(prestructure)
-    if n_charts > mg.CHART_MAX_CHARTS_IN_SET:
+    if n_charts > mg.MAX_CHARTS_IN_SET:
         raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
-                                           max_items=mg.CHART_MAX_CHARTS_IN_SET)
+                                                 max_items=mg.MAX_CHARTS_IN_SET)
     multichart = n_charts > 1
     is_avg = (var_role_avg is not None)
     if multichart:
@@ -313,6 +313,8 @@ def structure_gen_data(chart_type, raw_data, max_items, xlblsdic,
         chart_fldlbls = {}
     for chart_dic in prestructure:
         series = chart_dic[CHART_SERIES_KEY]
+        if len(series) > mg.MAX_CHART_SERIES:
+            raise my_exceptions.TooManySeriesInChart(mg.MAX_CHART_SERIES)
         multiseries = (len(series) > 1)
         """
         chart_dic = {CHART_VAL_KEY: 1, 
@@ -354,12 +356,18 @@ def structure_gen_data(chart_type, raw_data, max_items, xlblsdic,
                     max_lbl_lines = n_lines
                 vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
                                      x_val_split_lbl))
-            if len(vals_etc_lst) > max_items:
-                raise my_exceptions.TooManyValsInChartSeries(var_role_cat, 
-                                                             max_items)
-            if (chart_type == mg.PIE_CHART 
-                    and len(vals_etc_lst) > mg.MAX_PIE_SLICES):
-                raise my_exceptions.TooManySlicesInPieChart
+            n_cats = len(vals_etc_lst)
+            if chart_type == mg.CLUSTERED_BARCHART:
+                if n_cats > mg.MAX_CLUSTERS:
+                    raise my_exceptions.TooManyValsInChartSeries(var_role_cat, 
+                                                                mg.MAX_CLUSTERS)
+            elif chart_type == mg.PIE_CHART:
+                if n_cats > mg.MAX_PIE_SLICES:
+                    raise my_exceptions.TooManySlicesInPieChart
+            else:
+                if n_cats > mg.MAX_CATS_GEN:
+                    raise my_exceptions.TooManyValsInChartSeries(var_role_cat, 
+                                                                mg.MAX_CATS_GEN)
             (sorted_xaxis_dets, 
              sorted_y_vals, 
              sorted_tooltips) = get_sorted_y_dets(is_perc, is_avg, sort_opt,
@@ -407,7 +415,6 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
             raise Exception(u"The required field %s is missing for the %s "
                             u"chart type." % (var_role, chart_type))
     # misc
-    max_items = 150 if chart_type == mg.CLUSTERED_BARCHART else 300
     tbl_quoted = getdata.tblname_qtr(dbe, tbl)
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     xlblsdic = var_role_cat_lbls
@@ -423,8 +430,7 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
         raise my_exceptions.TooFewValsForDisplay
     # restructure and return data
     dp = 2 if is_avg else 0
-    chart_output_dets = structure_gen_data(chart_type, raw_data, max_items, 
-                    xlblsdic, 
+    chart_output_dets = structure_gen_data(chart_type, raw_data, xlblsdic, 
                     var_role_avg, var_role_avg_name, var_role_avg_lbls,
                     var_role_cat, var_role_cat_name, var_role_cat_lbls,
                     var_role_series, var_role_series_name, var_role_series_lbls,
@@ -486,8 +492,8 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
         cur.execute(SQL_series_vals)
         series_vals = [x[0] for x in cur.fetchall()]
         if debug: print(series_vals)
-        if len(series_vals) > mg.CHART_MAX_SERIES_IN_BOXPLOT:
-            max_items = mg.CHART_MAX_SERIES_IN_BOXPLOT
+        if len(series_vals) > mg.MAX_SERIES_IN_BOXPLOT:
+            max_items = mg.MAX_SERIES_IN_BOXPLOT
             raise my_exceptions.TooManySeriesInChart(max_items)
     else:
         series_vals = [None,] # Got to have something to loop through ;-)
@@ -507,9 +513,9 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
     cur.execute(SQL_cat_vals)
     cat_vals = [x[0] for x in cur.fetchall()]
     if debug: print(cat_vals)
-    if len(cat_vals) > mg.CHART_MAX_BOXPLOTS_IN_SERIES:
+    if len(cat_vals) > mg.MAX_BOXPLOTS_IN_SERIES:
         raise my_exceptions.TooManyBoxplotsInSeries(var_role_cat_name, 
-                            max_items=mg.CHART_MAX_BOXPLOTS_IN_SERIES)   
+                                            max_items=mg.MAX_BOXPLOTS_IN_SERIES)   
     # init
     ymin = None # init
     ymax = 0
@@ -556,8 +562,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
             %(and_tbl_filt)s""" % sql_dic
             cur.execute(SQL_vals2desc)
             vals2desc = [x[0] for x in cur.fetchall()]
-            enough_vals = (len(vals2desc) > 
-                           mg.CHART_MIN_DISPLAY_VALS_FOR_BOXPLOT)
+            enough_vals = (len(vals2desc) > mg.MIN_DISPLAY_VALS_FOR_BOXPLOT)
             enough_diff = False
             if enough_vals:
                 median = round(np.median(vals2desc),2)
@@ -682,9 +687,9 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin, var_role_charts,
             GROUP BY %(var_role_charts)s""" % sql_dic
         cur.execute(SQL_fld_chart_by_vals)
         fld_chart_by_vals = [x[0] for x in cur.fetchall()]
-        if len(fld_chart_by_vals) > mg.CHART_MAX_CHARTS_IN_SET:
+        if len(fld_chart_by_vals) > mg.MAX_CHARTS_IN_SET:
             raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
-                                           max_items=mg.CHART_MAX_CHARTS_IN_SET)
+                                                 max_items=mg.MAX_CHARTS_IN_SET)
     else:
         fld_chart_by_vals = [None,] # Got to have something to loop through ;-)
     histo_dets = []
@@ -764,7 +769,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
     """
     unique -- unique x-y pairs only
     """
-    debug = True
+    debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     fld_x_axis = objqtr(var_role_x_axis)
@@ -811,9 +816,9 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
     prestructure = get_prestructured_gen_data(raw_data)
     chart_dets = []
     n_charts = len(prestructure)
-    if n_charts > mg.CHART_MAX_CHARTS_IN_SET:
+    if n_charts > mg.MAX_CHARTS_IN_SET:
         raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
-                                           max_items=mg.CHART_MAX_CHARTS_IN_SET)
+                                                 max_items=mg.MAX_CHARTS_IN_SET)
     multichart = n_charts > 1
     if multichart:
         chart_fldname = var_role_charts_name
@@ -823,6 +828,9 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
         chart_fldlbls = {}
     for chart_dic in prestructure:
         series = chart_dic[CHART_SERIES_KEY]
+        if len(series) > mg.MAX_SCATTERPLOT_SERIES:
+            max_items = mg.MAX_SCATTERPLOT_SERIES
+            raise my_exceptions.TooManySeriesInChart(max_items)
         multiseries = (len(series) > 1)
         if multichart:
             chart_val = chart_dic[CHART_VAL_KEY]
@@ -842,7 +850,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
             xy_vals = series_dic[XY_KEY]
             list_x = []
             list_y = []
-            data_tups = [] # only for mpl
+            data_tups = [] # only for dojo
             for x_val, y_val in xy_vals:
                 list_x.append(x_val)
                 list_y.append(y_val)
@@ -1711,7 +1719,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
                      mg.CHARTS_SERIES_Y_VALS: smooth_y_vals,
                      mg.CHARTS_SERIES_TOOLTIPS: dummy_tooltips}
                 series_dets.append(smooth_series)
-            if debug: pprint.pprint(series_dets) 
+            if debug: pprint.pprint(series_dets)
         series_js_list = []
         series_names_list = []
         for series_idx, series_det in enumerate(series_dets):
@@ -2093,22 +2101,23 @@ def use_mpl_scatterplots(scatterplot_dets):
     And want one style of scatterplots for all plots in a chart series.
     """
     use_mpl = False
-    for chart_dets in scatterplot_dets:
-        for series_dets in chart_dets:
-            if len(series_dets[mg.DATA_TUPS]) > mg.MAX_POINTS_DOJO_SCATTERPLOT:
-                use_mpl = True
-                break
+    chart_dets = scatterplot_dets[mg.CHARTS_CHART_DETS]
+    for chart_det in chart_dets:
+        chart_data_tups = []
+        series_dets = chart_det[mg.CHARTS_SERIES_DETS]
+        for series_det in series_dets:
+            chart_data_tups.extend(series_det[mg.DATA_TUPS])
+        if len(chart_data_tups) > mg.MAX_POINTS_DOJO_SCATTERPLOT:
+            use_mpl = True
+            break
     return use_mpl
             
-
 def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders, 
                          legend, series_dets, label_x, label_y, ymin, ymax, 
                          x_vs_y, add_to_report, report_name, css_fil, 
                          pagebreak):
-    
-    (grid_bg, colours, 
+    (grid_bg, dot_colours, 
      line_colour) = output.get_stats_chart_colours(css_fil)
-    dot_colour = colours[0]
     if multichart:
         width_inches, height_inches = (6.0, 3.6)
     else:
@@ -2117,8 +2126,8 @@ def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders,
     html.append(u"""<div class=screen-float-only style="margin-right: 10px; 
         %(pagebreak)s">""" % {u"pagebreak": pagebreak})
     html.append(indiv_scatterplot_title)
-    charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
-                       line_colour, list_x, list_y, label_x, label_y, x_vs_y, 
+    charting_pylab.add_scatterplot(grid_bg, dot_colours, dot_borders, 
+                       line_colour, series_dets, label_x, label_y, x_vs_y, 
                        title_dets_html, add_to_report, report_name, html, 
                        width_inches, height_inches, ymin=ymin, ymax=ymax)
     html.append(u"</div>")
@@ -2133,43 +2142,75 @@ def get_optimal_min_max(axismin, axismax):
     return axismin, axismax
 
 def make_dojo_scatterplot(chart_idx, multichart, html, indiv_scatterplot_title, 
-                          dot_borders, data_tups, list_x, list_y, label_x, 
-                          label_y, ymin, ymax, css_fil, pagebreak):
+                          dot_borders, legend, series_dets, label_x, label_y, 
+                          ymin, ymax, css_fil, pagebreak):
+    """
+    series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
+                   mg.LIST_X: [1,1,2,2,2,3,4,6,8,18, ...], 
+                   mg.LIST_Y: [3,5,4,5,6,7,9,12,17,6, ...], 
+                   mg.DATA_TUPS: [(1,3),(1,5), ...]}
+    """
     debug = False
-    if multichart:  
+    if multichart:
         width, height = (500, 300)
     else:
         width, height = (700, 350)
     left_axis_lbl_shift = 10
     xfontsize = 10
-    xmin, xmax = get_optimal_min_max(min(list_x), max(list_x))
+    all_x = []
+    for series_det in series_dets:
+        all_x.extend(series_det[mg.LIST_X])
+    xmin, xmax = get_optimal_min_max(min(all_x), max(all_x))
     x_title = label_x
     axis_lbl_drop = 10
     y_title = label_y
     if debug: print(label_x, xmin, xmax, label_y, ymin, ymax)
-    jsdata = []
-    x_set = set()
-    for x, y in data_tups:
-        jsdata.append("{x: %s, y: %s}" % (x, y))
-        x_set.add(x)
-    few_unique_x_vals = (len(x_set) < 10)
-    minor_ticks = u"false" if few_unique_x_vals else u"true"
-    xy_pairs = "[" + ",\n".join(jsdata) + "]"
-    (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
-     gridline_width, stroke_width, tooltip_border_colour, 
-     colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
-    stroke_width = stroke_width if dot_borders else 0 
-    outer_bg = u"" if outer_bg == u"" \
-        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
-    single_colour = True
-    override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
-                                and single_colour)
-    colour_cases = setup_highlights(colour_mappings, single_colour, 
-                                    override_first_highlight)
-    try:
-        fill = colour_mappings[0][0]
-    except IndexError:
-        fill = mg.DOJO_COLOURS[0]
+    series_js_list = []
+    series_names_list = []
+    for series_idx, series_det in enumerate(series_dets):
+        series_names_list.append(u"series%s" % series_idx)
+        series_js_list.append(u"var series%s = new Array();" % series_idx)
+        series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
+                 % (series_idx, series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]))
+        jsdata = []
+        x_set = set()
+        for x, y in series_det[mg.DATA_TUPS]:
+            jsdata.append("{x: %s, y: %s}" % (x, y))
+            x_set.add(x)
+        few_unique_x_vals = (len(x_set) < 10)
+        minor_ticks = u"false" if few_unique_x_vals else u"true"
+        xy_pairs = "[" + ",\n".join(jsdata) + "]"
+        series_js_list.append(u"series%s[\"xyPairs\"] = %s;" % (series_idx, 
+                                                                xy_pairs))
+        (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
+         gridline_width, stroke_width, tooltip_border_colour, 
+         colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+        # Can't have white for scatterplots because always a white outer background
+        axis_lbl_font_colour = (axis_lbl_font_colour
+                              if axis_lbl_font_colour != u"white" else u"black")
+        stroke_width = stroke_width if dot_borders else 0 
+        outer_bg = (u"" if outer_bg == u""
+                    else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
+        single_colour = True
+        override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
+                                    and single_colour)
+        colour_cases = setup_highlights(colour_mappings, single_colour, 
+                                        override_first_highlight)
+        try:
+            fill = colour_mappings[series_idx][0]
+        except IndexError:
+            fill = mg.DOJO_COLOURS[series_idx]
+        series_js_list.append(u"series%(series_idx)s[\"style\"] = "
+                u"{stroke: {color: \"white\","
+                u"width: \"%(stroke_width)spx\"}, fill: \"%(fill)s\","
+                u"marker: \"m-6,0 c0,-8 12,-8 12,0 m-12,0 c0,8 12,8 12,0\"};" % 
+                    {u"series_idx": series_idx, u"stroke_width": stroke_width,
+                     u"fill": fill})
+        series_js_list.append(u"")
+        series_js = u"\n    ".join(series_js_list)
+        series_js += (u"\n    var series = new Array(%s);" %
+                      u", ".join(series_names_list))
+        series_js = series_js.lstrip()
     # marker - http://o.dojotoolkit.org/forum/dojox-dojox/dojox-support/...
     # ...newbie-need-svg-path-segment-string
     html.append(u"""
@@ -2187,12 +2228,7 @@ var sofaHlRenumber%(chart_idx)s = function(colour){
 }    
 
 makechartRenumber%(chart_idx)s = function(){
-    var datadets = new Array();
-    datadets["xyPairs"] = %(xy_pairs)s;
-    datadets["style"] = {stroke: {color: \"white\", 
-        width: "%(stroke_width)spx"}, fill: "%(fill)s",
-        marker: "m-6,0 c0,-8 12,-8 12,0 m-12,0 c0,8 12,8 12,0"};
-    
+    %(series_js)s
     var chartconf = new Array();
     chartconf["xmin"] = %(xmin)s;
     chartconf["ymin"] = %(ymin)s;
@@ -2214,7 +2250,7 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
     chartconf["connectorStyle"] = "%(connector_style)s";
     %(outer_bg)s
-    makeScatterplot("mychartRenumber%(chart_idx)s", datadets, chartconf);
+    makeScatterplot("mychartRenumber%(chart_idx)s", series, chartconf);
 }
 </script>
 
@@ -2223,8 +2259,10 @@ makechartRenumber%(chart_idx)s = function(){
 <div id="mychartRenumber%(chart_idx)s" 
         style="width: %(width)spx; height: %(height)spx;">
     </div>
+%(legend)s
 </div>      
-""" % {u"indiv_scatterplot_title": indiv_scatterplot_title,
+""" % {u"legend": legend, u"series_js": series_js,
+       u"indiv_scatterplot_title": indiv_scatterplot_title,
        u"xy_pairs": xy_pairs, u"xmin": xmin, u"ymin": ymin, 
        u"xmax": xmax, u"ymax": ymax,
        u"x_title": x_title, u"y_title": y_title,
@@ -2244,9 +2282,11 @@ makechartRenumber%(chart_idx)s = function(){
 
 def get_scatterplot_ymin_ymax(scatterplot_dets):
     all_y_vals = []
-    for chart_dets in scatterplot_dets:
-        for series_dets in chart_dets:
-            all_y_vals += series_dets[mg.LIST_Y]
+    chart_dets = scatterplot_dets[mg.CHARTS_CHART_DETS]
+    for chart_det in chart_dets:
+        series_dets = chart_det[mg.CHARTS_SERIES_DETS]
+        for series_det in series_dets:
+            all_y_vals += series_det[mg.LIST_Y]
     ymin, ymax = get_optimal_min_max(min(all_y_vals), max(all_y_vals))
     return ymin, ymax
 
@@ -2278,16 +2318,10 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
     multiseries = len(chart0_series_dets) > 1
     html = []
     html.append(title_dets_html)
-    multichart = (len(scatterplot_dets) > 1)
+    multichart = (len(scatterplot_dets[mg.CHARTS_CHART_DETS]) > 1)
     use_mpl = use_mpl_scatterplots(scatterplot_dets)
     ymin, ymax = get_scatterplot_ymin_ymax(scatterplot_dets)
     legend_lbl = scatterplot_dets[mg.CHARTS_OVERALL_LEGEND_LBL]
-    (unused, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
-            gridline_width, unused, unused, 
-            colour_mappings, unused) = lib.extract_dojo_style(css_fil)
-    # Can't have white for scatterplots because always a white outer background
-    axis_lbl_font_colour = (axis_lbl_font_colour
-                            if axis_lbl_font_colour != u"white" else u"black")
     # loop through charts
     for chart_idx, chart_det in enumerate(chart_dets):
         series_dets = chart_det[mg.CHARTS_SERIES_DETS]
@@ -2369,7 +2403,7 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     if any_missing_boxes:
         html.append(u"<p>At least one box will not be displayed because it "
                     u"needed more than %s values or has inadequate "
-                    u"variability.</p>" % mg.CHART_MIN_DISPLAY_VALS_FOR_BOXPLOT)
+                    u"variability.</p>" % mg.MIN_DISPLAY_VALS_FOR_BOXPLOT)
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 

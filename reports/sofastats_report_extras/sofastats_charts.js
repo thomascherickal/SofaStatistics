@@ -417,7 +417,8 @@ makeHistogram = function(chartname, datadets, chartconf){
     mychart.render();
 }
 
-makeScatterplot = function(chartname, datadets, chartconf){
+makeScatterplot = function(chartname, series, chartconf){
+
     // allow charts made without newest config items to keep working
     var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;
     var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
@@ -487,8 +488,15 @@ makeScatterplot = function(chartname, datadets, chartconf){
     });
     mychart.addPlot("default", {type: "Scatter"});
     mychart.addPlot("grid", {type: "Grid", vMajorLines: true});
-    mychart.addSeries(datadets["seriesLabel"], datadets["xyPairs"], datadets["style"]);
-
+    var i
+    for (i in series){
+        mychart.addSeries(series[i]["seriesLabel"], series[i]["xyPairs"], series[i]["style"]);
+    }
+    var anim_a = new dc.action2d.Magnify(mychart, "default");
+    var anim_b = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 
+        tooltipBorderColour: tooltipBorderColour, connectorStyle: connectorStyle});
+    mychart.render();
+    var legend = new dojox.charting.widget.Legend({chart: mychart}, ("legend" + chartname.substr(0,1).toUpperCase() + chartname.substr(1)));
     var anim_a = new dc.action2d.Highlight(mychart, "default", {
         highlight: chartconf["sofaHl"],
         duration: 450,

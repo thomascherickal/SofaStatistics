@@ -740,10 +740,6 @@ DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred',
     'mediumslateblue', 'darkorange', 'mediumaquamarine', 'darksalmon', 'beige', 
     'blueviolet', 'azure', 'lightsteelblue', 'oldlace']
 LBL_LINE_BREAK_JS = """var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";"""
-CHART_MAX_CHARTS_IN_SET = 16
-CHART_MAX_SERIES_IN_BOXPLOT = 8
-CHART_MAX_BOXPLOTS_IN_SERIES = 20
-CHART_MIN_DISPLAY_VALS_FOR_BOXPLOT = 15 
 CHARTS_CHART_DETS = u"chart_dets"
 CHARTS_CHART_BY_LBL = u"chart_by_lbl"
 CHARTS_CHART_LBL = u"Chart lbl" # Label for top of chart e.g. Gender: Male
@@ -773,8 +769,6 @@ CHART_BOXPLOT_OUTLIERS = u"outliers"
 CHART_MINVAL = u"minval"
 CHART_MAXVAL = u"maxval"
 CHART_BIN_LBLS = u"bin_labels"
-MIN_HISTO_VALS = 5
-MAX_POINTS_DOJO_SCATTERPLOT = 1000
 SAMPLE_A = u"sample_a"
 SAMPLE_B = u"sample_b"
 LIST_X = u"list_x"
@@ -798,7 +792,16 @@ MAX_CHI_DIMS = 6
 MIN_CHI_DIMS = 2
 MAX_CHI_CELLS = 25
 MAX_PIE_SLICES = 30
+MAX_CLUSTERS = 50
+MAX_CATS_GEN = 100
 MAX_CHART_SERIES = 30
+MIN_HISTO_VALS = 5
+MAX_POINTS_DOJO_SCATTERPLOT = 800
+MAX_SCATTERPLOT_SERIES = 5
+MAX_CHARTS_IN_SET = 16
+MAX_SERIES_IN_BOXPLOT = 8
+MAX_BOXPLOTS_IN_SERIES = 20
+MIN_DISPLAY_VALS_FOR_BOXPLOT = 15
 JS_WRAPPER_L = u"\n\n<script type=\"text/javascript\">"
 JS_WRAPPER_R = u"\n</script>"
 REGISTERED = u"registered"

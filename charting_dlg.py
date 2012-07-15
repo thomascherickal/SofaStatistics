@@ -584,6 +584,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.update_defaults()
 
     def setup_var_dropdowns(self):
+        """
+        
+        """
         debug = False
         if debug: print(u"Chart type is: %s" % self.chart_type)
         varname1, varname2, varname3, varname4 = self.get_vars()
@@ -842,7 +845,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         wx.MessageBox(u"This version does not support exporting chart code yet")
     
     def on_var1_sel(self, event):
-        pass
+        self.update_defaults()
     
     def setup_line_extras(self):
         """
@@ -860,12 +863,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         
     def on_var2_sel(self, event):
         self.setup_line_extras()
+        self.update_defaults()
     
     def on_var3_sel(self, event):
         self.setup_line_extras()
+        self.update_defaults()
     
     def on_var4_sel(self, event):
         self.setup_line_extras()
+        self.update_defaults()
     
     def add_other_var_opts(self, szr=None):
         pass
@@ -937,19 +943,21 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     
     def update_defaults(self):
         """
+        Should run this after any change or else might revert to the previous 
+            value when drop vars are refreshed.
         The values for a variable we try to keep unless it is not in the list.
         """
         debug = False
         mg.VAR_1_DEFAULT = self.drop_var1.GetStringSelection()
         mg.VAR_2_DEFAULT = self.drop_var2.GetStringSelection()
-        try: # might not be visible
+        try:
             mg.VAR_3_DEFAULT = self.drop_var3.GetStringSelection()
-        except Exception:
-            pass
-        try: # might not be visible
+        except Exception: # not visible
+            mg.VAR_3_DEFAULT = None
+        try:
             mg.VAR_4_DEFAULT = self.drop_var4.GetStringSelection()
-        except Exception:
-            pass
+        except Exception: # not visible
+            mg.VAR_4_DEFAULT = None
         if debug: print(mg.VAR_1_DEFAULT, mg.VAR_2_DEFAULT, mg.VAR_3_DEFAULT, 
                         mg.VAR_4_DEFAULT)
    
@@ -977,7 +985,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                              if x[idx_lblctrl_in_lblctrl_vars].IsShown()]
         # 1) Variable selected but an earlier one has not (No Selection instead)
         """
-        Line charts have one exception - can select chart by without series by
+        Line charts and Scatterplots have one exception - can select chart by without series by
         """
         has_no_select_selected = False
         lbl_with_no_select = u""
@@ -988,8 +996,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 has_no_select_selected = True
             else:
                 if has_no_select_selected: # already
-                    # OK only if a line chart and we are in the chart by var 
-                    if self.chart_type == mg.LINE_CHART:
+                    # OK only if a line chart or scatterplot and we are in the chart by var 
+                    if self.chart_type in (mg.LINE_CHART, mg.SCATTERPLOT):
                         chart_subtype_key = self.get_chart_subtype_key()
                         chart_config = mg.CHART_CONFIG[self.chart_type]\
                                                             [chart_subtype_key]

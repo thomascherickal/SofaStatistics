@@ -169,8 +169,7 @@ def get_idx_to_select(choice_items, drop_var, var_labels, default):
         of a user reclassification of data type (e.g. was quantitative but
         has been redefined as categorical); or because of a change of filtering.
     If no variable passed in, or it was but couldn't be used (see above),
-        use the default if possible. If not possible, select the first 
-        item.
+        use the default if possible. If not possible, select the first item.
     """
     var_removed = False
     if drop_var:

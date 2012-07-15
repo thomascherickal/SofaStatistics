@@ -544,7 +544,6 @@ class ConfigUI(object):
         return bolran_report, str_content
     
     def run_report(self, get_script_args, new_has_dojo=False):
-        debug = False
         if self.too_long():
             return
         add_to_report = self.chk_add_to_report.IsChecked()

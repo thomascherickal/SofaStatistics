@@ -490,8 +490,7 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
         u"regression line.</p>")
     html.append(u"<ul><li>Slope: %s</li>" % round(slope, dp))
     html.append(u"<li>Intercept: %s</li></ul>" % round(intercept, dp))
-    grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
-    dot_colour = item_colours[0]
+    grid_bg, dot_colours, line_colour = output.get_stats_chart_colours(css_fil)
     title_dets_html = u"" # already got an appropriate title for whole section
     dot_borders = True
     def gety(x, slope, intercept):
@@ -499,12 +498,13 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
         return y
     minx = min(list_x)
     maxx = max(list_x)
+    series_dets = [{mg.CHARTS_SERIES_LBL_IN_LEGEND: None, # None if only one series
+                    mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.DATA_TUPS: None}] # only Dojo needs data_tups
     line_lst = [gety(minx, slope, intercept), gety(maxx, slope, intercept)]
-    charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
-                                   line_colour, list_x, list_y, label_x, 
-                                   label_y, x_vs_y, title_dets_html, 
-                                   add_to_report, report_name, html,
-                                   line_lst=line_lst, 
+    charting_pylab.add_scatterplot(grid_bg, dot_colours, dot_borders, 
+                                   line_colour, series_dets, label_x, label_y, 
+                                   x_vs_y, title_dets_html, add_to_report, 
+                                   report_name, html, line_lst=line_lst, 
                                    line_lbl=u"Regression line")
     for i, footnote in enumerate(footnotes):
         next_ft = i + 1
@@ -528,19 +528,20 @@ def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
-    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
+    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" %
                      mg.P_EXPLAN_REL)
     html.append(u"\n<p>" + _("Spearman's R statistic") + 
                 u": %s</p>" % round(r, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
-    grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
-    dot_colour = item_colours[0]
+    grid_bg, dot_colours, line_colour = output.get_stats_chart_colours(css_fil)
     title_dets_html = u"" # already got an appropriate title for whole section
     dot_borders = True
-    charting_pylab.add_scatterplot(grid_bg, dot_colour, dot_borders, 
-                                   line_colour, list_x, list_y, label_x, 
-                                   label_y, x_vs_y, title_dets_html, 
-                                   add_to_report, report_name, html)
+    series_dets = [{mg.CHARTS_SERIES_LBL_IN_LEGEND: None, # None if only one series
+                    mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.DATA_TUPS: None}] # only Dojo needs data_tups
+    charting_pylab.add_scatterplot(grid_bg, dot_colours, dot_borders, 
+                                   line_colour, series_dets, label_x, label_y, 
+                                   x_vs_y, title_dets_html, add_to_report, 
+                                   report_name, html)
     for i, footnote in enumerate(footnotes):
         next_ft = i + 1
         html.append(footnote % (next_ft, next_ft))

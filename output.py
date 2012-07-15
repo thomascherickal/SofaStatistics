@@ -251,7 +251,7 @@ td, th {
             var keepGoing = true;
         }
     }
-    """ % mg.CHART_MAX_CHARTS_IN_SET
+    """ % mg.MAX_CHARTS_IN_SET
         else:
             make_objs_func_str = u"""
     //n_charts_start
