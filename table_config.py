@@ -542,7 +542,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         try:
             self.html.pizza_magic() # must happen after Show
         except Exception:
-            my_exceptions.DoNothingException() # need on Mac or exceptn survives
+            pass # need on Mac or exceptn survives
         finally: # any initial content
             if not self.exiting:
                 self.update_demo()
@@ -843,8 +843,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
             try:
                 del self.tblname_lst[0] # empty ready to repopulate
             except Exception:
-                my_exceptions.DoNothingException("OK to fail to delete item "
-                                                 "in list if already empty.")
+                pass # OK to fail to delete item in list if already empty.
             self.tblname_lst.append(gui_tblname)
             self.make_new_tbl()
             dd.set_tbl(tbl=gui_tblname)

@@ -133,8 +133,7 @@ class SofaApp(wx.App):
             try:
                 self.setup_i18n()
             except Exception, e:
-                my_exceptions.DoNothingException("OK if unable to get "
-                    "translation settings. English will do.")
+                pass # OK if unable to get translation settings. English will do.
             self.store_screen_dims()
             frame = StartFrame()
             # on dual monitor, wx.BOTH puts in screen 2 (in Ubuntu at least)!
@@ -169,8 +168,7 @@ class SofaApp(wx.App):
             try: # to get some language settings to display properly:
                 os.environ['LANG'] = u"%s.UTF-8" % canon_name
             except (ValueError, KeyError):
-                my_exceptions.DoNothingException("OK if unable to set "
-                                                 "environment settings.")
+                pass # OK if unable to set environment settings.
     
     def get_langid_and_name(self, langdir):
         """
@@ -317,9 +315,7 @@ class SofaApp(wx.App):
                 langinfo = wx.Locale.FindLanguageInfo(locale_pth)
                 langids.append(langinfo.Language)
             except Exception, e:
-                raise my_exceptions.DoNothingException("Don't prevent the user "
-                                       "getting an English version of SOFA "
-                                       "running because of this minor problem.")
+                pass # Don't prevent the user getting an English version of SOFA running because of this minor problem.
         return langids
     
     def get_closest_langid_supplied(self, langdir, orig_langinfo):
@@ -525,7 +521,7 @@ class StartFrame(wx.Frame):
         if show_more_steps: print(u"Passed check for having to delete database")
         try:
             wx.CallAfter(lib.check_crack, show_more_steps) # won't stop form load if fails
-        except my_exceptions.DoNothingException:
+        except Exception:
             pass
         # any warnings to display once screen visible?
         warning_div = u"\n\n" + u"-"*20 + u"\n\n"
@@ -938,8 +934,7 @@ class StartFrame(wx.Frame):
             except Exception, e:
                 if debug: print(u"Unable to connect to sofastatistics.com."
                                 u"/nCaused by error: %s" % lib.ue(e))
-                my_exceptions.DoNothingException("Don't make a fuss if fails "
-                                                 "to contact main website.")
+                pass # Don't make a fuss if fails to contact main website.
         lib.safe_end_cursor()
     
     def update_sofastats_connect_date(self, sofastats_connect_fil, 

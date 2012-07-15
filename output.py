@@ -444,8 +444,7 @@ def get_css_dets():
                 exec css_fils_str in css_dets_dic
                 css_fils = css_dets_dic[u"css_fils"]
             except Exception:
-                my_exceptions.DoNothingException("Don't let css failuer stop "
-                                                 "report production.")
+                pass # Don't let css failuer stop report production.
     if not css_fils:
         css_fils = [cc[mg.CURRENT_CSS_PATH]]
     else:

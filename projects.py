@@ -186,8 +186,7 @@ def get_idx_to_select(choice_items, drop_var, var_labels, default):
             try:
                 idx = choice_items.index(default)
             except ValueError:
-                my_exceptions.DoNothingException("OK if no default - use idx "
-                                                 "of 0.")
+                pass # OK if no default - use idx of 0.
     return idx
     
     
@@ -707,8 +706,7 @@ class ProjectDlg(wx.Dialog, config_output.ConfigUI):
                 self.parent.store_proj_name(u"%s.proj" % proj_name)
             except Exception:
                 print(u"Failed to change to %s.proj" % proj_name)
-                my_exceptions.DoNothingException("Only needed if returning to "
-                                    "projselect form so OK to fail otherwise.")
+                pass # Only needed if returning to projselect form so OK to fail otherwise.
             proj_notes = self.txt_proj_notes.GetValue()
             fil_var_dets = self.vdt_file
             fil_script = self.script_file if self.script_file else u""

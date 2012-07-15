@@ -117,7 +117,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             min_data_type3 = init_chart_config[2][mg.MIN_DATA_TYPE_KEY]
         except Exception:
             # OK if not a third drop down for chart
-            my_exceptions.DoNothingException()
+            pass
         self.lbl_var3 = wx.StaticText(self.panel_top, -1, u"%s:" % lbl3)
         self.lbl_var3.SetFont(self.LABEL_FONT)
         self.drop_var3 = wx.Choice(self.panel_top, -1, choices=[], 
@@ -144,7 +144,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             min_data_type4 = init_chart_config[3][mg.MIN_DATA_TYPE_KEY]
         except Exception:
             # OK if not a third drop down for chart
-            my_exceptions.DoNothingException()
+            pass
         self.lbl_var4 = wx.StaticText(self.panel_top, -1, u"%s:" % lbl4)
         self.lbl_var4.SetFont(self.LABEL_FONT)
         self.drop_var4 = wx.Choice(self.panel_top, -1, choices=[], 
@@ -437,7 +437,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         try:
             self.html.pizza_magic() # must happen after Show
         except Exception:
-            my_exceptions.DoNothingException() # need on Mac or exception survives
+            pass # need on Mac or exception survives
         finally:
             # any initial content
             html2show = _("<p>Waiting for a report to be run.</p>")
@@ -681,7 +681,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         try:
             CUR_DATA_OPT = mg.DATA_SHOW_OPTS[idx_sel]
         except IndexError:
-            my_exceptions.DoNothingException()
+            pass
         if debug: print(u"Current data option: %s" % CUR_DATA_OPT)
     
     def on_chk_rotate(self, event):
@@ -715,7 +715,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         try:
             CUR_SORT_OPT = mg.SORT_OPTS[idx_sel]
         except IndexError:
-            my_exceptions.DoNothingException()
+            pass
         if debug: print(u"Current sort option: %s" % CUR_SORT_OPT)
         
     def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel):
@@ -945,11 +945,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         try: # might not be visible
             mg.VAR_3_DEFAULT = self.drop_var3.GetStringSelection()
         except Exception:
-            my_exceptions.DoNothingException()
+            pass
         try: # might not be visible
             mg.VAR_4_DEFAULT = self.drop_var4.GetStringSelection()
         except Exception:
-            my_exceptions.DoNothingException()
+            pass
         if debug: print(mg.VAR_1_DEFAULT, mg.VAR_2_DEFAULT, mg.VAR_3_DEFAULT, 
                         mg.VAR_4_DEFAULT)
    

@@ -351,11 +351,11 @@ class StatsSelectDlg(wx.Dialog):
         try:
             self.rad_2groups.SetValue(True)
         except:
-            my_exceptions.DoNothingException("OK to fail if disabled.")
+            pass # OK to fail if disabled.
         try:
             self.rad_normal1.SetValue(True)
         except:
-            my_exceptions.DoNothingException("OK to fail if disabled.")
+            pass # OK to fail if disabled.
         self.rad_2groups.Enable(enable)
         self.rad_3groups.Enable(enable)
         self.btn_groups_help.Enable(enable)
@@ -400,7 +400,7 @@ class StatsSelectDlg(wx.Dialog):
         try:
             self.rad_indep.SetValue(True)
         except:
-            my_exceptions.DoNothingException("OK to fail if not enabled.")
+            pass # OK to fail if not enabled.
         self.rad_indep.Enable(enable)
         self.rad_paired.Enable(enable)
         self.btn_indep_help.Enable(enable)
@@ -423,7 +423,7 @@ class StatsSelectDlg(wx.Dialog):
             try:
                 self.rad_nominal.SetValue(True)
             except:
-                my_exceptions.DoNothingException("OK to fail if not enabled.")
+                pass # OK to fail if not enabled.
         self.rad_nominal.Enable(enable)
         self.rad_ordered.Enable(enable)
         self.btn_type_help.Enable(enable)
@@ -483,7 +483,7 @@ class StatsSelectDlg(wx.Dialog):
         try:
             self.rad_normal2.SetValue(True)
         except Exception:
-            my_exceptions.DoNothingException("OK to fail if not enabled.")
+            pass # OK to fail if not enabled.
         self.rad_normal2.Enable(enable)
         self.rad_not_normal2.Enable(enable)
         self.btn_normal_help2.Enable(enable)

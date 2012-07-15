@@ -648,7 +648,7 @@ class DlgConfig(wx.Dialog):
                 idx_sort_opt = mg.SORT_OPTS.index(item_conf.sort_order)
                 self.rad_sort_opts.SetSelection(idx_sort_opt)
             except IndexError:
-                my_exceptions.DoNothingException()
+                pass
             if self.sort_opt_allowed == SORT_OPT_BY_LABEL:
                 # disable freq options
                 idx_freq_asc = mg.SORT_OPTS.index(mg.SORT_INCREASING)

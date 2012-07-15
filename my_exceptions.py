@@ -10,10 +10,6 @@ class MismatchException(Exception):
         Exception.__init__(self, (u"Found data not matching expected "
                                   u"column type.\n\n%s" % details))
 
-class DoNothingException(Exception):
-    def __init__(self, msg=""):
-        if msg: print("Nothing to do exception. %s" % msg)
-
 class MissingConDets(Exception):
     def __init__(self, dbe):
         Exception.__init__(self, u"Missing connection details for %s." % dbe)

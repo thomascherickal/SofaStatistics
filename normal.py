@@ -143,7 +143,7 @@ class NormalityDlg(wx.Dialog, config_output.ConfigUI):
         try:
             self.html.pizza_magic() # must happen after Show
         except Exception, e:
-            my_exceptions.DoNothingException() # need on Mac or exceptn survives
+            pass # need on Mac or exceptn survives
         finally: # any initial content
             self.set_output_to_blank()
 

@@ -1007,8 +1007,7 @@ def is_numeric(val, comma_dec_sep_ok=False):
             if comma_dec_sep_ok:
                 val = val.replace(u",", u".")
         except AttributeError:
-            my_exceptions.DoNothingException("Only needed to succeed if a "
-                                             "string. Presumably wasn't so OK.")
+            pass # Only needed to succeed if a string. Presumably wasn't so OK.
         try:
             unused = float(val)
         except (ValueError, TypeError):

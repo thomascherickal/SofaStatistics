@@ -255,7 +255,7 @@ def init_com_types(parent, panel):
         try:
             h.pizza_magic() # must happen after Show
         except Exception:
-            my_exceptions.DoNothingException()
+            pass
         h.show_html(u"")
         h = None
         # leave tag saying it is done
@@ -539,8 +539,7 @@ def freshen_recovery(prog_path, local_subfolders, subfolders_in_proj):
             shutil.rmtree(mg.RECOVERY_PATH)
             if show_early_steps: print(u"Just deleted %s" % mg.RECOVERY_PATH)
         except OSError:
-            my_exceptions.DoNothingException("OK to fail removing recovery "
-                                             "path if not there.")
+            pass # OK to fail removing recovery path if not there.
         make_local_subfolders(mg.RECOVERY_PATH, local_subfolders)
         default_proj = os.path.join(mg.RECOVERY_PATH, mg.PROJS_FOLDER, 
                                     mg.DEFAULT_PROJ)
@@ -601,7 +600,7 @@ def setup_folders():
                         if show_early_steps: print(u"Just made %s" % 
                                                    REPORT_EXTRAS_PATH)
                     except OSError, e:
-                        my_exceptions.DoNothingException("Already there.")
+                        pass # Already there.
                     except Exception, e:
                         raise Exception(u"Unable to make report extras "
                                         u"path \"%s\"." % REPORT_EXTRAS_PATH +

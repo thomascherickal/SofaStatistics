@@ -276,7 +276,7 @@ class TblEditor(wx.Dialog):
                 try: # won't work if new row
                     self.dbtbl.row_vals_dic[row][col] = mg.MISSING_VAL_INDICATOR
                 except Exception:
-                    my_exceptions.DoNothingException()
+                    pass
                 # Don't set self.dbtbl.new_is_dirty = True because of 
                 # a deletion only.
                 #new_row = self.dbtbl.is_new_row(row)
@@ -490,7 +490,7 @@ class TblEditor(wx.Dialog):
                 try:
                     src_ctrl.SetInsertionPointEnd()
                 except Exception:
-                    my_exceptions.DoNothingException()
+                    pass
     
     def get_move_dets(self, src_row, src_col, dest_row, dest_col, direction):
         """
@@ -984,12 +984,12 @@ class TblEditor(wx.Dialog):
             try:
                 tip = fld_val_dic.get(int(raw_val))
             except Exception:
-                my_exceptions.DoNothingException()
+                pass
         if tip is None:
             try:
                 tip = fld_val_dic.get(float(raw_val))
             except Exception:
-                my_exceptions.DoNothingException()
+                pass
         if tip is None:
             tip = raw_val
         if debug: print(tip)
@@ -1058,7 +1058,7 @@ class TblEditor(wx.Dialog):
                                 (self.dbtbl.GetNumberCols(), self.dbtbl.rows_n))
             self.parent.add_feedback(msg)
         except Exception:
-            my_exceptions.DoNothingException()
+            pass
         pix_per_char = 8
         sorted_fldnames = getdata.fldsdic_to_fldnames_lst(dd.flds)
         for col_idx, fldname in enumerate(sorted_fldnames):
@@ -1095,7 +1095,7 @@ class TblEditor(wx.Dialog):
         try:
             self.parent.add_feedback(u"")
         except Exception:
-            my_exceptions.DoNothingException()
+            pass
         lib.safe_end_cursor()
     
     def is_new_row(self, row):

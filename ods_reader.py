@@ -531,8 +531,7 @@ def get_val_and_type(attrib_dict, el_det):
             try: # so we don't assume 2136 is a year
                 probable_date_formats.remove(u"%Y")
             except ValueError:
-                my_exceptions.DoNothingException("If not there, OK that "
-                                                 "removing it failed")
+                pass # If not there, OK that removing it failed
             usable_datetime = lib.is_usable_datetime_str(raw_datetime_str=text, 
                                           ok_date_formats=probable_date_formats)
             # OK for this purpose to accept invalid dates - we calculate the 
@@ -546,8 +545,7 @@ def get_val_and_type(attrib_dict, el_det):
                     coltype = mg.VAL_DATE
                     if debug: print(xml_value, val2use)
         except Exception:
-            my_exceptions.DoNothingException("Unable to detect if date or not "
-                                             "so will fall back to string.")
+            pass # Unable to detect if date or not so will fall back to string.
     elif xml_type == XML_TYPE_PERC:
         """
         <table:table-cell table:style-name="ce2" office:value-type="percentage" 

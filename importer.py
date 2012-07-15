@@ -353,8 +353,8 @@ def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname,
                     if debug: print(u"Date val: %s" % val)
                     ok_data = True
                 except Exception:
-                    my_exceptions.DoNothingException("no need to set val - not "
-                                                "ok_data so exception later")
+                    pass
+                    # no need to set val - not ok_data so exception later
     elif fldtype == mg.FLDTYPE_STRING:
         # None or empty string we'll turn to NULL
         ok_data = True
@@ -1050,7 +1050,7 @@ def check_tblname(file_path, tblname, headless):
                                 "again"))
                 return None
             elif ret == wx.YES:
-                my_exceptions.DoNothingException() # use name (overwrite orig)
+                pass # use name (overwrite orig)
     return tblname
 
 class DummyProgbar(object):

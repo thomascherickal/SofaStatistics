@@ -583,8 +583,7 @@ class SettingsEntry(object):
                 try:
                     src_ctrl.SetInsertionPointEnd()
                 except Exception:
-                    my_exceptions.DoNothingException("OK if source control has "
-                                        "no ability to set insertion point.")
+                    pass # OK if source control has no ability to set insertion point.
         return stayed_still, saved_new_row
     
     def get_move_dets(self, src_row, src_col, dest_row, dest_col, direction):

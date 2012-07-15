@@ -214,7 +214,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         try:
             self.html.pizza_magic() # must happen after Show
         except Exception:
-            my_exceptions.DoNothingException() # need on Mac or exceptn survives
+            pass # need on Mac or exceptn survives
         finally: # any initial content
             html2show = _("<p>Waiting for a report to be run.</p>")
             self.html.show_html(html2show)
@@ -493,7 +493,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
                 try:
                     idx_a = self.gp_choice_items_sorted.index(mg.VAL_A_DEFAULT)
                 except ValueError:
-                    my_exceptions.DoNothingException("Using idx of 0 is OK")
+                    pass # Using idx of 0 is OK
         self.drop_group_a.SetSelection(idx_a)
         if val_b:
             item_new_version_b = lib.get_choice_item(val_dic, val_b)
@@ -504,7 +504,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
                 try:
                     idx_b = self.gp_choice_items_sorted.index(mg.VAL_B_DEFAULT)
                 except ValueError:
-                    my_exceptions.DoNothingException("Using idx of 0 is OK")
+                    pass # Using idx of 0 is OK
         self.drop_group_b.SetSelection(idx_b)        
     
     def setup_group_by_dropdowns(self, val_a=None, val_b=None):
@@ -668,7 +668,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
                 output.add_end_script_code(f)
                 f.close()
         except Exception:
-            my_exceptions.DoNothingException()
+            pass
         finally:
             self.Destroy()
             event.Skip()
