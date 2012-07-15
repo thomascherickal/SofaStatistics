@@ -501,11 +501,12 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     series_dets = [{mg.CHARTS_SERIES_LBL_IN_LEGEND: None, # None if only one series
                     mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.DATA_TUPS: None}] # only Dojo needs data_tups
     line_lst = [gety(minx, slope, intercept), gety(maxx, slope, intercept)]
-    charting_pylab.add_scatterplot(grid_bg, dot_colours, dot_borders, 
-                                   line_colour, series_dets, label_x, label_y, 
-                                   x_vs_y, title_dets_html, add_to_report, 
+    charting_pylab.add_scatterplot(grid_bg, dot_borders, line_colour, 
+                                   series_dets, label_x, label_y, x_vs_y, 
+                                   title_dets_html, add_to_report, 
                                    report_name, html, line_lst=line_lst, 
-                                   line_lbl=u"Regression line")
+                                   line_lbl=u"Regression line", 
+                                   dot_colour=dot_colours[0])
     for i, footnote in enumerate(footnotes):
         next_ft = i + 1
         html.append(footnote % (next_ft, next_ft))
@@ -538,10 +539,10 @@ def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     dot_borders = True
     series_dets = [{mg.CHARTS_SERIES_LBL_IN_LEGEND: None, # None if only one series
                     mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.DATA_TUPS: None}] # only Dojo needs data_tups
-    charting_pylab.add_scatterplot(grid_bg, dot_colours, dot_borders, 
-                                   line_colour, series_dets, label_x, label_y, 
-                                   x_vs_y, title_dets_html, add_to_report, 
-                                   report_name, html)
+    charting_pylab.add_scatterplot(grid_bg, dot_borders, line_colour, 
+                                   series_dets, label_x, label_y, x_vs_y, 
+                                   title_dets_html, add_to_report, 
+                                   report_name, html, dot_colour=dot_colours[0])
     for i, footnote in enumerate(footnotes):
         next_ft = i + 1
         html.append(footnote % (next_ft, next_ft))

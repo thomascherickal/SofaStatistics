@@ -204,7 +204,7 @@ def get_sorted_y_dets(is_perc, is_avg, sort_opt, vals_etc_lst, dp):
                                                     round(perc,1)))
     return sorted_xaxis_dets, sorted_y_vals, sorted_tooltips
 
-def get_prestructured_gen_data(raw_data):
+def get_prestructured_grouped_data(raw_data):
     """
     [(1,1,1,56),
      (1,1,2,103), 
@@ -297,7 +297,7 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
     """
     max_lbl_len = 0
     max_lbl_lines = 0
-    prestructure = get_prestructured_gen_data(raw_data)
+    prestructure = get_prestructured_grouped_data(raw_data)
     chart_dets = []
     n_charts = len(prestructure)
     if n_charts > mg.MAX_CHARTS_IN_SET:
@@ -813,7 +813,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
     raw_data = cur.fetchall()
     if not raw_data:
         raise my_exceptions.TooFewValsForDisplay
-    prestructure = get_prestructured_gen_data(raw_data)
+    prestructure = get_prestructured_grouped_data(raw_data)
     chart_dets = []
     n_charts = len(prestructure)
     if n_charts > mg.MAX_CHARTS_IN_SET:
@@ -1326,6 +1326,8 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
         xgap = xgap*0.8
         xfontsize = xfontsize*0.8
         left_axis_lbl_shift += 20
+    series_colours_by_lbl = get_series_colours_by_lbl(chart_output_dets, 
+                                                      css_fil)
     # loop through charts
     for chart_idx, chart_det in enumerate(chart_dets):
         series_dets = chart_det[mg.CHARTS_SERIES_DETS]
@@ -1350,19 +1352,17 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
         series_js_list = []
         series_names_list = []
         for series_idx, series_det in enumerate(series_dets):
+            series_lbl = series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]
             xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
             lbl_dets = get_lbl_dets(xaxis_dets)
             xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
             series_names_list.append(u"series%s" % series_idx)
             series_js_list.append(u"var series%s = new Array();" % series_idx)
             series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
-                     % (series_idx, series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]))
+                                                    % (series_idx, series_lbl))
             series_js_list.append(u"series%s[\"yVals\"] = %s;" 
                           % (series_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
-            try:
-                fill = colour_mappings[series_idx][0]
-            except IndexError:
-                fill = mg.DOJO_COLOURS[series_idx]
+            fill = series_colours_by_lbl[series_lbl]
             tooltips = (u"['" 
                         + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
                         + u"']")
@@ -1673,6 +1673,8 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     # Can't have white for line charts because always a white outer background
     axis_lbl_font_colour = (axis_lbl_font_colour
                             if axis_lbl_font_colour != u"white" else u"black")
+    series_colours_by_lbl = get_series_colours_by_lbl(chart_output_dets, 
+                                                      css_fil)
     # loop through charts
     for chart_idx, chart_det in enumerate(chart_dets):
         series_dets = chart_det[mg.CHARTS_SERIES_DETS]
@@ -1723,19 +1725,17 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         series_js_list = []
         series_names_list = []
         for series_idx, series_det in enumerate(series_dets):
+            series_lbl = series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]
             xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
             lbl_dets = get_lbl_dets(xaxis_dets)
             xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
             series_names_list.append(u"series%s" % series_idx)
             series_js_list.append(u"var series%s = new Array();" % series_idx)
             series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
-                     % (series_idx, series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]))
+                                                    % (series_idx, series_lbl))
             series_js_list.append(u"series%s[\"yVals\"] = %s;" % 
                               (series_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
-            try:
-                stroke = colour_mappings[series_idx][0]
-            except IndexError:
-                stroke = mg.DOJO_COLOURS[series_idx]
+            stroke = series_colours_by_lbl[series_lbl]
             # To set markers explicitly:
             # http://dojotoolkit.org/api/1.5/dojox/charting/Theme/Markers/CIRCLE
             # e.g. marker: dojox.charting.Theme.defaultMarkers.CIRCLE"
@@ -2113,9 +2113,9 @@ def use_mpl_scatterplots(scatterplot_dets):
     return use_mpl
             
 def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders, 
-                         legend, series_dets, label_x, label_y, ymin, ymax, 
-                         x_vs_y, add_to_report, report_name, css_fil, 
-                         pagebreak):
+                         legend, series_dets, series_colours_by_lbl, label_x, 
+                         label_y, ymin, ymax, x_vs_y, add_to_report, 
+                         report_name, css_fil, pagebreak):
     (grid_bg, dot_colours, 
      line_colour) = output.get_stats_chart_colours(css_fil)
     if multichart:
@@ -2126,10 +2126,12 @@ def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders,
     html.append(u"""<div class=screen-float-only style="margin-right: 10px; 
         %(pagebreak)s">""" % {u"pagebreak": pagebreak})
     html.append(indiv_scatterplot_title)
-    charting_pylab.add_scatterplot(grid_bg, dot_colours, dot_borders, 
-                       line_colour, series_dets, label_x, label_y, x_vs_y, 
-                       title_dets_html, add_to_report, report_name, html, 
-                       width_inches, height_inches, ymin=ymin, ymax=ymax)
+    charting_pylab.add_scatterplot(grid_bg, dot_borders, line_colour, 
+                            series_dets, label_x, label_y, x_vs_y, 
+                            title_dets_html, add_to_report, report_name, html, 
+                            width_inches, height_inches, ymin=ymin, ymax=ymax,
+                            dot_colour=dot_colours[0], 
+                            series_colours_by_lbl=series_colours_by_lbl)
     html.append(u"</div>")
 
 def get_optimal_min_max(axismin, axismax):
@@ -2142,8 +2144,9 @@ def get_optimal_min_max(axismin, axismax):
     return axismin, axismax
 
 def make_dojo_scatterplot(chart_idx, multichart, html, indiv_scatterplot_title, 
-                          dot_borders, legend, series_dets, label_x, label_y, 
-                          ymin, ymax, css_fil, pagebreak):
+                          dot_borders, legend, series_dets, 
+                          series_colours_by_lbl, label_x, label_y, ymin, ymax, 
+                          css_fil, pagebreak):
     """
     series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
                    mg.LIST_X: [1,1,2,2,2,3,4,6,8,18, ...], 
@@ -2168,10 +2171,11 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_scatterplot_title,
     series_js_list = []
     series_names_list = []
     for series_idx, series_det in enumerate(series_dets):
+        series_lbl = series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]
         series_names_list.append(u"series%s" % series_idx)
         series_js_list.append(u"var series%s = new Array();" % series_idx)
         series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
-                 % (series_idx, series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]))
+                 % (series_idx, series_lbl))
         jsdata = []
         x_set = set()
         for x, y in series_det[mg.DATA_TUPS]:
@@ -2196,10 +2200,7 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_scatterplot_title,
                                     and single_colour)
         colour_cases = setup_highlights(colour_mappings, single_colour, 
                                         override_first_highlight)
-        try:
-            fill = colour_mappings[series_idx][0]
-        except IndexError:
-            fill = mg.DOJO_COLOURS[series_idx]
+        fill = series_colours_by_lbl[series_lbl]
         series_js_list.append(u"series%(series_idx)s[\"style\"] = "
                 u"{stroke: {color: \"white\","
                 u"width: \"%(stroke_width)spx\"}, fill: \"%(fill)s\","
@@ -2290,6 +2291,21 @@ def get_scatterplot_ymin_ymax(scatterplot_dets):
     ymin, ymax = get_optimal_min_max(min(all_y_vals), max(all_y_vals))
     return ymin, ymax
 
+def get_series_colours_by_lbl(chart_output_dets, css_fil):
+    unused, item_colours, unused = output.get_stats_chart_colours(css_fil)
+    # check every series in every chart to get full list
+    series_colours_by_lbl = {}
+    series_lbls = []
+    for chart_dets in chart_output_dets[mg.CHARTS_CHART_DETS]:
+        series_dets = chart_dets[mg.CHARTS_SERIES_DETS]
+        for series_det in series_dets:
+            series_lbl = series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]
+            if series_lbl not in series_lbls: # can't use set because want to retain order
+                series_lbls.append(series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND])
+    for i, series_lbl in enumerate(series_lbls):
+        series_colours_by_lbl[series_lbl] = item_colours[i]
+    return series_colours_by_lbl 
+
 def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y, 
                        add_to_report, report_name, dot_borders, css_fil, 
                        css_idx, page_break_after=False):
@@ -2322,6 +2338,7 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
     use_mpl = use_mpl_scatterplots(scatterplot_dets)
     ymin, ymax = get_scatterplot_ymin_ymax(scatterplot_dets)
     legend_lbl = scatterplot_dets[mg.CHARTS_OVERALL_LEGEND_LBL]
+    series_colours_by_lbl = get_series_colours_by_lbl(scatterplot_dets, css_fil)
     # loop through charts
     for chart_idx, chart_det in enumerate(chart_dets):
         series_dets = chart_det[mg.CHARTS_SERIES_DETS]
@@ -2344,14 +2361,15 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
             indiv_scatterplot_title = u""
         if use_mpl:
             make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, 
-                                 dot_borders, legend, series_dets, label_x, 
-                                 label_y, ymin, ymax, x_vs_y, add_to_report, 
-                                 report_name, css_fil, pagebreak)
+                                 dot_borders, legend, series_dets, 
+                                 series_colours_by_lbl, label_x, label_y, ymin, 
+                                 ymax, x_vs_y, add_to_report, report_name, 
+                                 css_fil, pagebreak)
         else:
             make_dojo_scatterplot(chart_idx, multichart, html, 
                                   indiv_scatterplot_title, dot_borders, legend, 
-                                  series_dets, label_x, label_y, ymin, ymax, 
-                                  css_fil, pagebreak)
+                                  series_dets, series_colours_by_lbl, label_x, 
+                                  label_y, ymin, ymax, css_fil, pagebreak)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
