@@ -584,9 +584,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.update_defaults()
 
     def setup_var_dropdowns(self):
-        """
-        
-        """
         debug = False
         if debug: print(u"Chart type is: %s" % self.chart_type)
         varname1, varname2, varname3, varname4 = self.get_vars()
@@ -651,6 +648,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         except Exception:
             show4 = False
         self.panel_top.Layout()
+        self.freshen_var_dropdowns_layout(show3, show4)
+    
+    def freshen_var_dropdowns_layout(self, show3, show4):
         """
         Make fresh layout (don't want to end up with the drop downs narrower but 
             still as far apart as when wide).
@@ -731,13 +731,19 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         event.Skip()
         if self.panel_displayed == panel:
             return # just reclicking on same one
-        self.setup_var_dropdowns()
         self.panel_displayed.Show(False)
         self.szr_mid.Remove(self.panel_displayed)
         self.szr_mid.Add(panel, 0, wx.GROW)
         self.panel_displayed = panel
         panel.Show(True)
         self.panel_mid.Layout() # self.Layout() doesn't work in Windows
+        self.setup_var_dropdowns()
+        chart_subtype_key = self.get_chart_subtype_key()
+        chart_config = mg.CHART_CONFIG[self.chart_type][chart_subtype_key]
+        show3 = len(chart_config)>=3
+        show4 = len(chart_config)>=4
+        if show3: # need to freshen it up twice otherwise 4th dropdown can be too far right initially - no idea why 
+            self.freshen_var_dropdowns_layout(show3, show4)
            
     def on_btn_bar_chart(self, event):
         self.chart_type = mg.SIMPLE_BARCHART

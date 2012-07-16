@@ -26,14 +26,17 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
     """
     report_name -- full path to report
     If adding to report, save image to a subfolder in reports named after the 
-        report.  Return a relative image source. Make subfolder if not present.
-        Use image name guaranteed not to collide.  Count items in subfolder and
+        report. Return a relative image source. Make subfolder if not present.
+        Use image name guaranteed not to collide. Count items in subfolder and
         use index as part of name.
     If not adding to report, save image to internal folder, and return absolute
         image source.  Remember to alternate sets of names so always the 
         freshest image showing in html (without having to reload etc).
     """
     debug = False
+    kwargs = {"bbox_inches": "tight"}
+    if dpi:
+        kwargs["dpi"] = dpi
     if add_to_report:
         # look in report folder for subfolder
         imgs_path = os.path.join(report_name[:-len(".htm")] + u"_images", u"")
@@ -46,7 +49,6 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         file_name = u"%03d.png" % n_imgs
         img_path = os.path.join(imgs_path, file_name) # absolute
         args = [img_path]
-        kwargs = {"dpi": dpi} if dpi else {}
         save_func(*args, **kwargs)
         if debug: print("Just saved %s" % img_path)
         subfolder = os.path.split(imgs_path[:-1])[1]
@@ -61,7 +63,6 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         img_src = mg.INT_IMG_ROOT + u"_%03d.png" % int_imgs_n
         if debug: print(img_src)
         args = [img_src]
-        kwargs = {"dpi": dpi} if dpi else {}
         save_func(*args, **kwargs)
         if debug: print("Just saved %s" % img_src)
     if debug: print("img_src: %s" % img_src)
@@ -199,7 +200,7 @@ def config_scatterplot(grid_bg, dot_borders, line_colour, fig, series_dets,
     axes.set_ylabel(label_b)
     rect = axes.patch
     rect.set_facecolor(grid_bg)
-    pylab.legend(loc="best", numpoints=1, prop={'size':9}) # http://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
+    pylab.legend(loc="best", numpoints=1, prop={"size": 9}) # http://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
     pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
                    fontsize=7, rotation=270)
 

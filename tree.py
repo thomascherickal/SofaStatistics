@@ -36,7 +36,7 @@ class Nodes(object):
         "Gets list of terminal nodes"
         if isinstance(self, NodeTree):
             if not self.root_node.children:
-                raise my_exceptions.NoNodesException
+                raise my_exceptions.NoNodes
             start_node = self.root_node
         else:
             start_node = self            

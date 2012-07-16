@@ -212,7 +212,7 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
                 if default_if_prob:
                     f = codecs.open(mg.DEFAULT_CSS_PATH, "r", "utf-8")
                 else:
-                    raise my_exceptions.MissingCssException(css_fil)
+                    raise my_exceptions.MissingCss(css_fil)
             css_txt = f.read()
             for css_class in mg.CSS_ELEMENTS:
                 # suffix all report-relevant css entities so distinct
@@ -427,7 +427,7 @@ def get_css_dets():
         if ret == wx.YES:
             cc[mg.CURRENT_CSS_PATH] = mg.DEFAULT_CSS_PATH
         else:
-            raise my_exceptions.MissingCssException(cc[mg.CURRENT_CSS_PATH])
+            raise my_exceptions.MissingCss(cc[mg.CURRENT_CSS_PATH])
     css_fils = None
     # read from report
     if os.path.exists(cc[mg.CURRENT_REPORT_PATH]):
@@ -631,7 +631,7 @@ def extract_html_content(html, start_tag, end_tag):
     try:
         start_idx = html.index(start_tag) + len(start_tag)
     except ValueError:
-        raise my_exceptions.MalformedHtmlError(html)
+        raise my_exceptions.MalformedHtml(html)
     try:
         end_idx = html.index(end_tag)
         extracted = html[start_idx:end_idx]
@@ -919,7 +919,7 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
         try:
             save_to_report(css_fils, source, tbl_filt_label, tbl_filt, 
                            new_has_dojo, raw_results)
-        except my_exceptions.MalformedHtmlError, e:
+        except my_exceptions.MalformedHtml, e:
             wx.MessageBox(_("Problems with the content of the report you are "
                             "saving to. Please fix, or delete report and start "
                             "again.\nCaused by error: %s") % lib.ue(e))

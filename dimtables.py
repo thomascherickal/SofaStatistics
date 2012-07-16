@@ -208,7 +208,7 @@ class DimTable(object):
         row_label_cols_n = tree_row_labels.get_depth() - 1 # exclude root node
         try:
             row_label_rows_n = len(tree_row_labels.get_terminal_nodes())
-        except my_exceptions.NoNodesException:
+        except my_exceptions.NoNodes:
             raise my_exceptions.TooFewValsForDisplay
         row_label_rows_lst = [[u"<tr>"] for x in range(row_label_rows_n)]
         row_offset_dic = {}

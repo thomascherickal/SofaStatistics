@@ -72,7 +72,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"samples = [x[1] for x in sample_dets]")
         script_lst.append(u"""
 if len(samples) < 2:
-    raise my_exceptions.TooFewSamplesForAnalysisException""")
+    raise my_exceptions.TooFewSamplesForAnalysis""")
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"label_avg = u\"%s\"" % label_avg)

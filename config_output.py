@@ -559,7 +559,7 @@ class ConfigUI(object):
     def on_btn_run(self, event, get_script_args, new_has_dojo=False):
         try:
             self.run_report(get_script_args, new_has_dojo)
-        except my_exceptions.MissingCssException, e:    
+        except my_exceptions.MissingCss, e:    
             lib.update_local_display(self.html, _("Please check the CSS "
                                              "file exists or set another. "
                                              "Caused by error: %s") % lib.ue(e), 

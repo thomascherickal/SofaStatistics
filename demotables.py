@@ -122,7 +122,7 @@ class DemoTable(object):
                                         abs_pth=True))
             html.append(u"<table cellspacing='0'>\n") # IE6 no CSS borderspacing
             main_html = self.get_html(css_idx)
-        except my_exceptions.MissingCssException:
+        except my_exceptions.MissingCss:
             raise
         except my_exceptions.TooFewValsForDisplay:
             raise

@@ -4,7 +4,7 @@ import datetime
 import wx
 
 import my_globals as mg
-from my_exceptions import ImportCancelException
+import my_exceptions
 import lib
 import getdata
 import importer
@@ -157,7 +157,7 @@ class ExcelImporter(importer.FileImporter):
                     wx.Yield()
                 if import_status[mg.CANCEL_IMPORT]:
                     progbar.SetValue(0)
-                    raise ImportCancelException
+                    raise my_exceptions.ImportCancel
             if debug: print(wksheet.row(row_idx))
             # if has_header, starts at 1st data row
             has_rows = True

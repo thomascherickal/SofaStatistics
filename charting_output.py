@@ -2112,20 +2112,20 @@ def use_mpl_scatterplots(scatterplot_dets):
             break
     return use_mpl
             
-def make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, dot_borders, 
+def make_mpl_scatterplot(multichart, html, indiv_chart_title, dot_borders, 
                          legend, series_dets, series_colours_by_lbl, label_x, 
                          label_y, ymin, ymax, x_vs_y, add_to_report, 
                          report_name, css_fil, pagebreak):
     (grid_bg, dot_colours, 
      line_colour) = output.get_stats_chart_colours(css_fil)
     if multichart:
-        width_inches, height_inches = (6.0, 3.6)
+        width_inches, height_inches = (6.0, 3.4)
     else:
-        width_inches, height_inches = (7.5, 4.5)
+        width_inches, height_inches = (7.5, 4.1)
     title_dets_html = u"" # handled prior to this step
     html.append(u"""<div class=screen-float-only style="margin-right: 10px; 
-        %(pagebreak)s">""" % {u"pagebreak": pagebreak})
-    html.append(indiv_scatterplot_title)
+        margin-top: 0; %(pagebreak)s">""" % {u"pagebreak": pagebreak})
+    html.append(indiv_chart_title)
     charting_pylab.add_scatterplot(grid_bg, dot_borders, line_colour, 
                             series_dets, label_x, label_y, x_vs_y, 
                             title_dets_html, add_to_report, report_name, html, 
@@ -2143,7 +2143,7 @@ def get_optimal_min_max(axismin, axismax):
     axismax *=1.1
     return axismin, axismax
 
-def make_dojo_scatterplot(chart_idx, multichart, html, indiv_scatterplot_title, 
+def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title, 
                           dot_borders, legend, series_dets, 
                           series_colours_by_lbl, label_x, label_y, ymin, ymax, 
                           css_fil, pagebreak):
@@ -2155,9 +2155,9 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_scatterplot_title,
     """
     debug = False
     if multichart:
-        width, height = (500, 300)
+        width, height = (630, 350)
     else:
-        width, height = (700, 350)
+        width, height = (700, 385)
     left_axis_lbl_shift = 10
     xfontsize = 10
     all_x = []
@@ -2256,16 +2256,15 @@ makechartRenumber%(chart_idx)s = function(){
 </script>
 
 <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
-%(indiv_scatterplot_title)s
+%(indiv_chart_title)s
 <div id="mychartRenumber%(chart_idx)s" 
         style="width: %(width)spx; height: %(height)spx;">
     </div>
 %(legend)s
 </div>      
 """ % {u"legend": legend, u"series_js": series_js,
-       u"indiv_scatterplot_title": indiv_scatterplot_title,
-       u"xy_pairs": xy_pairs, u"xmin": xmin, u"ymin": ymin, 
-       u"xmax": xmax, u"ymax": ymax,
+       u"indiv_chart_title": indiv_chart_title, u"xy_pairs": xy_pairs,
+       u"xmin": xmin, u"ymin": ymin, u"xmax": xmax, u"ymax": ymax,
        u"x_title": x_title, u"y_title": y_title,
        u"stroke_width": stroke_width, u"fill": fill,
        u"colour_cases": colour_cases, 
@@ -2355,19 +2354,19 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
         else:
             legend = u"" 
         if multichart:
-            indiv_scatterplot_title = ("<p><b>%s</b></p>" % 
-                               chart_det[mg.CHARTS_CHART_LBL])
+            indiv_chart_title = ("<p><b>%s</b></p>" % 
+                                 chart_det[mg.CHARTS_CHART_LBL])
         else:
-            indiv_scatterplot_title = u""
+            indiv_chart_title = u""
         if use_mpl:
-            make_mpl_scatterplot(multichart, html, indiv_scatterplot_title, 
+            make_mpl_scatterplot(multichart, html, indiv_chart_title, 
                                  dot_borders, legend, series_dets, 
                                  series_colours_by_lbl, label_x, label_y, ymin, 
                                  ymax, x_vs_y, add_to_report, report_name, 
                                  css_fil, pagebreak)
         else:
             make_dojo_scatterplot(chart_idx, multichart, html, 
-                                  indiv_scatterplot_title, dot_borders, legend, 
+                                  indiv_chart_title, dot_borders, legend, 
                                   series_dets, series_colours_by_lbl, label_x, 
                                   label_y, ymin, ymax, css_fil, pagebreak)
     if page_break_after:

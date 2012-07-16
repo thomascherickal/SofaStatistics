@@ -207,14 +207,14 @@ def extract_dojo_style(css_fil):
     try:
         f = codecs.open(css_fil, "r", "utf-8")
     except IOError, e:
-        raise my_exceptions.MissingCssException(css_fil)
+        raise my_exceptions.MissingCss(css_fil)
     css = f.read()
     f.close()
     try:
         css_dojo_start_idx = css.index(mg.DOJO_STYLE_START)
         css_dojo_end_idx = css.index(mg.DOJO_STYLE_END)
     except ValueError, e:
-        raise my_exceptions.MalformedCssDojoError(css)
+        raise my_exceptions.MalformedCssDojo(css)
     text = css[css_dojo_start_idx + len(mg.DOJO_STYLE_START): css_dojo_end_idx]
     css_dojo = get_exec_ready_text(text)
     css_dojo_dic = {}

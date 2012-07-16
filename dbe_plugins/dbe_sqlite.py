@@ -169,7 +169,7 @@ def get_unsorted_tblnames(cur, db):
         cur.execute(SQL_get_tbls)
     except Exception, e:
         if lib.ue(e).startswith(u"malformed database schema"):
-            raise my_exceptions.MalformedDbError()
+            raise my_exceptions.MalformedDb()
         else:
             print(lib.ue(e))
             raise

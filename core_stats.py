@@ -72,7 +72,7 @@ def get_list(dbe, cur, tbl, tbl_filt, flds, fld_measure, fld_filter,
     # SQLite sometimes returns strings even if REAL
     lst = [float(x[0]) for x in cur.fetchall()]
     if len(lst) < 2:
-        raise my_exceptions.TooFewValsInSamplesForAnalysisException
+        raise my_exceptions.TooFewValsInSamplesForAnalysis
     return lst
 
 def get_paired_data(dbe, cur, tbl, tbl_filt, fld_a, fld_b, unique=False):
@@ -155,9 +155,9 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     except Exception:
         vals_a = [x[0] for x in row_vals_used]
     if len(vals_a) > mg.MAX_CHI_DIMS:
-        raise my_exceptions.TooManyRowsInChiSquareException
+        raise my_exceptions.TooManyRowsInChiSquare
     if len(vals_a) < mg.MIN_CHI_DIMS:
-        raise my_exceptions.TooFewRowsInChiSquareException
+        raise my_exceptions.TooFewRowsInChiSquare
     # B) get COL vals used (almost a repeat) ***********************
     SQL_col_vals_used = u"""SELECT %(qfld_b)s
         FROM %(qtbl)s
@@ -175,11 +175,11 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     except Exception:
         vals_b = [x[0] for x in col_vals_used]
     if len(vals_b) > mg.MAX_CHI_DIMS:
-        raise my_exceptions.TooManyColsInChiSquareException
+        raise my_exceptions.TooManyRowsInChiSquare
     if len(vals_b) < mg.MIN_CHI_DIMS:
-        raise my_exceptions.TooFewColsInChiSquareException
+        raise my_exceptions.TooFewColsInChiSquare
     if len(vals_a)*len(vals_b) > mg.MAX_CHI_CELLS:
-        raise my_exceptions.TooManyCellsInChiSquareException
+        raise my_exceptions.TooManyCellsInChiSquare
     # C) combine results of A) and B) ***********************
     # build SQL to get all observed values (for each a, through b's)
     SQL_get_obs = u"SELECT "

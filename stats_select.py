@@ -729,23 +729,23 @@ class StatsSelectDlg(wx.Dialog):
                     elif self.rad_paired.GetValue():
                         test_type = TEST_TTEST_PAIRED
                     else:
-                        raise my_exceptions.InvalidTestSelectionException
+                        raise my_exceptions.InvalidTestSelection
                 elif self.rad_not_normal1.GetValue():
                     if self.rad_indep.GetValue():
                         test_type = TEST_MANN_WHITNEY
                     elif self.rad_paired.GetValue():
                         test_type = TEST_WILCOXON
                     else:
-                        raise my_exceptions.InvalidTestSelectionException
+                        raise my_exceptions.InvalidTestSelection
                 else:
-                    raise my_exceptions.InvalidTestSelectionException
+                    raise my_exceptions.InvalidTestSelection
             elif self.rad_3groups.GetValue():
                 if self.rad_normal1.GetValue():
                     test_type = TEST_ANOVA
                 else:
                     test_type = TEST_KRUSKAL_WALLIS
             else:
-                raise my_exceptions.InvalidTestSelectionException
+                raise my_exceptions.InvalidTestSelection
         elif self.rad_relationships.GetValue():
             if self.rad_nominal.GetValue():
                 test_type = TEST_CHI_SQUARE
@@ -755,9 +755,9 @@ class StatsSelectDlg(wx.Dialog):
                 elif self.rad_not_normal2.GetValue():
                     test_type = TEST_SPEARMANS_R
                 else:
-                    raise my_exceptions.InvalidTestSelectionException 
+                    raise my_exceptions.InvalidTestSelection 
             else:
-                raise my_exceptions.InvalidTestSelectionException
+                raise my_exceptions.InvalidTestSelection
         else:
             test_type = None
         return test_type

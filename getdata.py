@@ -50,7 +50,7 @@ def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None,
         db_resources = get_db_resources(dbe, cur, db, default_tbls, tbl)
         dbe_resources.update(db_resources)
         if debug: print("Finished updating dbe resources with db resources")
-    except my_exceptions.MalformedDbError:
+    except my_exceptions.MalformedDb:
         if stop:
             raise
         else: # try once but with add_checks set to True.  Might work :-)

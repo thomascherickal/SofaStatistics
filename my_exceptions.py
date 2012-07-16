@@ -1,6 +1,6 @@
 import my_globals as mg
 
-class MismatchException(Exception):
+class Mismatch(Exception):
     def __init__(self, fldname, expected_fldtype, details):
         debug = False
         if debug: print("A mismatch exception")
@@ -14,28 +14,28 @@ class MissingConDets(Exception):
     def __init__(self, dbe):
         Exception.__init__(self, u"Missing connection details for %s." % dbe)
 
-class MalformedDbError(Exception):
+class MalformedDb(Exception):
     def __init__(self):
         Exception.__init__(self, u"Malformed database error")
         
-class MalformedHtmlError(Exception):
+class MalformedHtml(Exception):
     def __init__(self, html):
         Exception.__init__(self, u"Unable to extract content from malformed "
                            u"HTML. Original HTML: %s" % html)
-class MalformedCssDojoError(Exception):
+class MalformedCssDojo(Exception):
     def __init__(self, text):
         Exception.__init__(self, u"Unable to extract style from malformed "
                            u"dojo css. Original text: %s" % text)
 
-class MissingCssException(Exception):
+class MissingCss(Exception):
     def __init__(self, missing_css_fil):
         Exception.__init__(self, u"Missing css file \"%s\"." % missing_css_fil)
 
-class ImportCancelException(Exception):
+class ImportCancel(Exception):
     def __init__(self):
         Exception.__init__(self, u"Importing has been cancelled.")
 
-class ImportNeededFixException(Exception):
+class ImportNeededFix(Exception):
     def __init__(self):
         Exception.__init__(self, u"Import needed fix")
 
@@ -44,14 +44,14 @@ class ImportConfirmationRejected(Exception):
         Exception.__init__(self, _("Unable to process csv file unless settings "
                                    "are confirmed"))
         
-class InvalidTestSelectionException(Exception):
+class InvalidTestSelection(Exception):
     def __init__(self):
         Exception.__init__(self, u"Invalid test selection.")
 
-class NoNodesException(Exception):
+class NoNodes(Exception):
     def __init__(self):
-        Exception.__init__(self, u"Cannot get terminal nodes until " +
-                    u"there is at least one node added to tree")
+        Exception.__init__(self, u"Cannot get terminal nodes until "
+                           u"there is at least one node added to tree")
 
 class ComtypesException(Exception):
     def __init__(self):
@@ -66,7 +66,7 @@ class MatplotlibBackendException(Exception):
            u"need to install a separate matplotlib library for the wx backend "
            u"e.g. python-matplotlib-wx\n\nOrig error: %s" % orig_error)
         
-class InconsistentFileDateException(Exception):
+class InconsistentFileDate(Exception):
     def __init__(self):
         Exception.__init__(self, _(u"SOFA has detected an inconsistent file "
                               u"date. Is your system date/time set correctly?"))
@@ -75,43 +75,43 @@ class InconsistentFileDateException(Exception):
 class OutputException(Exception):
     pass
 
-class TooManyCellsInChiSquareException(OutputException):
+class TooManyCellsInChiSquare(OutputException):
     def __init__(self):
         OutputException.__init__(self, _("Please select variables which have "
                 "fewer different values. More than %s cells in contingency "
                 "table.") % mg.MAX_CHI_CELLS)
 
-class TooManyRowsInChiSquareException(OutputException):
+class TooManyRowsInChiSquare(OutputException):
     def __init__(self):
         OutputException.__init__(self, _("Please select a variable with no "
                                          "more than %s different row values "
                                          "for Group A.") % mg.MAX_CHI_DIMS)
 
-class TooManyColsInChiSquareException(OutputException):
+class TooManyColsInChiSquare(OutputException):
     def __init__(self):
         OutputException.__init__(self, _("Please select a variable with no "
                                          "more than %s different column values "
                                          "for Group B.") % mg.MAX_CHI_DIMS)
 
-class TooFewRowsInChiSquareException(OutputException):
+class TooFewRowsInChiSquare(OutputException):
     def __init__(self):
         OutputException.__init__(self, _("Please select a variable with at "
                                          "least %s different row values for "
                                          "Group A.") % mg.MIN_CHI_DIMS)
 
-class TooFewColsInChiSquareException(OutputException):
+class TooFewColsInChiSquare(OutputException):
     def __init__(self):
         OutputException.__init__(self, _("Please select a variable with at "
                                          "least %s different column values "
                                          "for Group B.") % mg.MIN_CHI_DIMS)
 
-class TooFewValsInSamplesForAnalysisException(OutputException):
+class TooFewValsInSamplesForAnalysis(OutputException):
     def __init__(self):
         OutputException.__init__(self, u"At least two values are needed in "
                            u"each group to run the analysis. Please check "
                            u"filtering or source data.")
 
-class ExcessReportTableCellsException(OutputException):
+class ExcessReportTableCells(OutputException):
     def __init__(self, max_cells):
         OutputException.__init__(self, _(u"Only allowed %s cells in "
                                          u"report table") % max_cells)
@@ -124,7 +124,7 @@ class TooFewValsForDisplay(OutputException):
             msg += " Need at least %s values." % min_n
         OutputException.__init__(self, msg)
 
-class TooFewSamplesForAnalysisException(OutputException):
+class TooFewSamplesForAnalysis(OutputException):
     def __init__(self):
         OutputException.__init__(self, u"At least two samples with non-missing "
                            u"data needed to run the analysis. Please check "

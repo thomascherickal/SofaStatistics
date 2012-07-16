@@ -504,7 +504,7 @@ class DlgImportDisplay(wx.Dialog):
             lib.safe_end_cursor()
             if lib.ue(e).startswith(ERR_NEW_LINE):
                 fix_text(self.file_path)
-                raise my_exceptions.ImportNeededFixException
+                raise my_exceptions.ImportNeededFix
             else:
                 raise
         except Exception, e:
@@ -574,7 +574,7 @@ class CsvImporter(importer.FileImporter):
                     wx.Yield()
                 if import_status[mg.CANCEL_IMPORT]:
                     progbar.SetValue(0)
-                    raise my_exceptions.ImportCancelException
+                    raise my_exceptions.ImportCancel
             if self.has_header and i == 0:
                 continue # skip first line
             bolhas_rows = True
@@ -740,7 +740,7 @@ class CsvImporter(importer.FileImporter):
         try:
             (dialect, encoding, 
              ok_fldnames, row_size) = self.get_init_csv_details()
-        except my_exceptions.ImportNeededFixException:
+        except my_exceptions.ImportNeededFix:
             lib.safe_end_cursor()
             return
         except my_exceptions.ImportConfirmationRejected, e:

@@ -32,7 +32,7 @@ else:
         except Exception, e:
             mytraceback = traceback.format_exc()
             if "Typelib newer than module" in mytraceback:
-                raise my_exceptions.InconsistentFileDateException()
+                raise my_exceptions.InconsistentFileDate()
             elif "comtypes" in mytraceback or "IUnknown" in mytraceback:
                 # No module named comtypes, 
                 # 'module' object has no attribute 'IUnknown' etc

@@ -649,7 +649,7 @@ try:
     import quotes
 except my_exceptions.ComtypesException, e:
     msgapp = ErrMsgApp(lib.ue(e))
-except my_exceptions.InconsistentFileDateException, e:
+except my_exceptions.InconsistentFileDate, e:
     msgapp = ErrMsgApp(lib.ue(e))
 except Exception, e:
     msg = (u"Problem with second round of local importing while "

@@ -370,7 +370,7 @@ def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname,
         else:
             details = FIRST_MISMATCH_TPL % {u"row": row_num, u"value": raw_val, 
                                             u"fldtype": fldtype}
-            raise my_exceptions.MismatchException(fldname=ok_fldname,
+            raise my_exceptions.Mismatch(fldname=ok_fldname,
                                     expected_fldtype=fldtype, details=details)
     return val
 
@@ -478,7 +478,7 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fldnames,
             wx.Yield()
             if import_status[mg.CANCEL_IMPORT]:
                 progbar.SetValue(0)
-                raise my_exceptions.ImportCancelException
+                raise my_exceptions.ImportCancel
         gauge_start += 1
         #if debug and row_num == 12:
         #    print("Break on this line :-)")
@@ -489,7 +489,7 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fldnames,
             for ok_fldname in ok_fldnames:
                 process_val(feedback, vals, row_num, row, ok_fldname, 
                             fldtypes, faulty2missing_fld_list, comma_dec_sep_ok)
-        except my_exceptions.MismatchException, e:
+        except my_exceptions.Mismatch, e:
             if debug: print("A mismatch exception")
             raise # keep this particular type of exception bubbling out
         except Exception, e:
@@ -578,7 +578,7 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
                  steps_per_item, gauge_start=gauge_start, allow_none=allow_none, 
                  comma_dec_sep_ok=comma_dec_sep_ok)
         return True
-    except my_exceptions.MismatchException, e:
+    except my_exceptions.Mismatch, e:
         feedback[mg.NULLED_DOTS] = False
         con.commit()
         progbar.SetValue(0)
@@ -1240,7 +1240,7 @@ def run_import(self, headless=False, file_path=None, tblname=None,
                 raise
             else:
                 wx.MessageBox(lib.ue(e))
-        except my_exceptions.ImportCancelException, e:
+        except my_exceptions.ImportCancel, e:
             lib.safe_end_cursor()
             self.import_status[mg.CANCEL_IMPORT] = False # reinit
             if not headless: # should never occur when headless

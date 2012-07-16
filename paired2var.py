@@ -325,7 +325,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
             add_to_report = self.chk_add_to_report.IsChecked()
             try:
                 css_fils, css_idx = output.get_css_dets()
-            except my_exceptions.MissingCssException, e:
+            except my_exceptions.MissingCss, e:
                 lib.update_local_display(self.html, _("Please check the CSS "
                                         "file exists or set another. "
                                         "Caused by error: %s") % lib.ue(e), 

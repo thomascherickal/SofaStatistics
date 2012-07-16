@@ -52,7 +52,7 @@ sample_%%s = core_stats.get_list(dbe=u"%(dbe)s", cur=cur,
         script_lst.append(str_get_sample % (u"b", val_str_quoted_b))
         script_lst.append(u"""
 if len(sample_a) < 2 or len(sample_b) < 2:
-    raise my_exceptions.TooFewSamplesForAnalysisException""")
+    raise my_exceptions.TooFewSamplesForAnalysis""")
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"label_ranked = u\"%s\"" % label_ranked)

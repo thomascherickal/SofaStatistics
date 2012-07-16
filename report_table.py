@@ -533,7 +533,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         if export_ok:
             try:
                 css_fils, css_idx = output.get_css_dets()
-            except my_exceptions.MissingCssException, e:
+            except my_exceptions.MissingCss, e:
                 lib.update_local_display(self.html, 
                         _(u"Please check the CSS file exists or set another."
                           u"\nCaused by error: %s") % lib.ue(e), wrap_text=True)
@@ -638,8 +638,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                               u"page_break_after=False))")
             script_lst.append(u"else:")
             script_lst.append(u"    "
-                      u"raise my_exceptions.ExcessReportTableCellsException("
-                      u"max_cells)")
+                      u"raise my_exceptions.ExcessReportTableCells(max_cells)")
         else:
             script_lst.append(u"fil.write(tab_test.get_html(%s, " % css_idx + \
                               u"page_break_after=False))")
@@ -815,7 +814,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                     demo_was_live = True
                 else:
                     demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
-            except my_exceptions.MissingCssException, e:
+            except my_exceptions.MissingCss, e:
                 lib.update_local_display(self.html, _("Please check the CSS "
                                         "file exists or set another. "
                                         "Caused by error: %s") % lib.ue(e), 

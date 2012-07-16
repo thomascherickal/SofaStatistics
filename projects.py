@@ -7,7 +7,6 @@ import wx
 
 import my_globals as mg
 import lib
-import my_exceptions
 import getdata
 import config_output
 import settings_grid
