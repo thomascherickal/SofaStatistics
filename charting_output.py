@@ -1129,10 +1129,8 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
     (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
             colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
-    try:
-        fill = colour_mappings[0][0]
-    except IndexError:
-        fill = mg.DOJO_COLOURS[0]
+    item_colours = output.colour_mappings_to_item_colours(colour_mappings)
+    fill = item_colours[0]
     outer_bg = (u"" if outer_bg == u""
                 else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
     single_colour = True
@@ -1482,9 +1480,8 @@ def piechart_output(titles, subtitles, chart_output_dets, css_fil, css_idx,
                 else u"""chartconf["outerBg"] = "%s";""" % outer_bg)
     colour_cases = setup_highlights(colour_mappings, single_colour=False, 
                                     override_first_highlight=False)
-    colours = [str(x[0]) for x in colour_mappings]
-    colours.extend(mg.DOJO_COLOURS)
-    slice_colours = colours[:30]
+    item_colours = output.colour_mappings_to_item_colours(colour_mappings)
+    slice_colours = item_colours[:30]
     lbl_font_colour = axis_lbl_font_colour
     chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
     slice_fontsize = 14 if len(chart_dets) < 10 else 10
@@ -1997,10 +1994,8 @@ def histogram_output(titles, subtitles, var_lbl, histo_dets, inc_normal,
                                 and single_colour)
     colour_cases = setup_highlights(colour_mappings, single_colour, 
                                     override_first_highlight)
-    try:
-        fill = colour_mappings[0][0]
-    except IndexError:
-        fill = mg.DOJO_COLOURS[0]
+    item_colours = output.colour_mappings_to_item_colours(colour_mappings)
+    fill = item_colours[0]
     js_inc_normal = u"true" if inc_normal else u"false"
     for chart_idx, histo_det in enumerate(histo_dets):
         minval = histo_det[mg.CHART_MINVAL]

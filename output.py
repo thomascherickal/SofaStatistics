@@ -63,10 +63,14 @@ import showhtml
 # do not use os.linesep for anything going to be read and exec'd
 # in Windows the \r\n makes it fail.
 
+def colour_mappings_to_item_colours(colour_mappings):
+    item_colours = [x[0] for x in colour_mappings] + mg.DOJO_COLOURS
+    return item_colours
+
 def get_stats_chart_colours(css_fil):
     (unused, grid_bg, unused, major_gridline_colour, unused, 
      unused, unused, colour_mappings, unused) = lib.extract_dojo_style(css_fil)
-    item_colours = [x[0] for x in colour_mappings] + mg.DOJO_COLOURS
+    item_colours = colour_mappings_to_item_colours(colour_mappings)
     line_colour = major_gridline_colour
     return grid_bg, item_colours, line_colour
 
