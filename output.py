@@ -714,8 +714,10 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
     if existing_no_ends:
         f.write(existing_no_ends)
     pagebreak = existing_report
+    f.write(u"\n"*4) # Won't change output but make it easier to shift infdividual outputs around or delete them manually
     f.write(get_divider(source, tbl_filt_label, tbl_filt, pagebreak))
     f.write(new_no_hdr)
+    f.write(u"\n"*4)
     f.write(get_html_ftr())
     f.close()
 
