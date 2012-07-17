@@ -64,7 +64,11 @@ import showhtml
 # in Windows the \r\n makes it fail.
 
 def colour_mappings_to_item_colours(colour_mappings):
-    item_colours = [x[0] for x in colour_mappings] + mg.DOJO_COLOURS
+    """
+    str() so no u"" in front of strings - needs to be ready for Javascript to 
+        read in Dojo.
+    """
+    item_colours = [str(x[0]) for x in colour_mappings] + mg.DOJO_COLOURS
     return item_colours
 
 def get_stats_chart_colours(css_fil):
