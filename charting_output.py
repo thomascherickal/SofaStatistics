@@ -30,6 +30,9 @@ CHART_VAL_KEY = u"chart_val_key"
 CHART_SERIES_KEY = u"chart_series_key"
 SERIES_KEY = u"series_key"
 XY_KEY = u"xy_key"
+TRENDLINE_LBL = u"Trend line"
+SMOOTHLINE_LBL = u"Smoothed data line"
+
 
 def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt, 
                      var_role_avg, var_role_cat, var_role_series, 
@@ -1644,7 +1647,8 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     # following details are same across all charts so look at first
     chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
     chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
-    multiseries = len(chart0_series_dets) > 1
+    n_series = len(chart0_series_dets)
+    multiseries = n_series > 1
     xaxis_dets = chart0_series_dets[0][mg.CHARTS_XAXIS_DETS]
     max_lbl_len = chart_output_dets[mg.CHARTS_MAX_LBL_LEN]
     max_lbl_lines = chart_output_dets[mg.CHARTS_MAX_LBL_LINES]
@@ -1667,9 +1671,10 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         each series colour.
     From dojox.charting.action2d.Highlight but with extraneous % removed
     """
-    (unused, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
+    (unused, unused, axis_lbl_font_colour, major_gridline_colour, 
             gridline_width, unused, tooltip_border_colour, 
-            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+            unused, connector_style) = lib.extract_dojo_style(css_fil)
+    grid_bg, item_colours, unused = output.get_stats_chart_colours(css_fil)
     # Can't have white for line charts because always a white outer background
     axis_lbl_font_colour = (axis_lbl_font_colour
                             if axis_lbl_font_colour != u"white" else u"black")
@@ -1708,19 +1713,23 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
                 trend_y_vals = get_trend_y_vals(raw_y_vals)
                 # repeat most of it
                 trend_series = {
-                    mg.CHARTS_SERIES_LBL_IN_LEGEND: u'Trend line', 
+                    mg.CHARTS_SERIES_LBL_IN_LEGEND: TRENDLINE_LBL, 
                     mg.CHARTS_XAXIS_DETS: series0[mg.CHARTS_XAXIS_DETS],
                     mg.CHARTS_SERIES_Y_VALS: trend_y_vals,
                     mg.CHARTS_SERIES_TOOLTIPS: dummy_tooltips}
                 series_dets.append(trend_series)
+                n_series = len(series_dets)
+                series_colours_by_lbl[TRENDLINE_LBL] = item_colours[n_series]
             if inc_smooth:
                 smooth_y_vals = get_smooth_y_vals(raw_y_vals)
                 smooth_series = {
-                     mg.CHARTS_SERIES_LBL_IN_LEGEND: u'Smoothed data line', 
+                     mg.CHARTS_SERIES_LBL_IN_LEGEND: SMOOTHLINE_LBL, 
                      mg.CHARTS_XAXIS_DETS: series0[mg.CHARTS_XAXIS_DETS],
                      mg.CHARTS_SERIES_Y_VALS: smooth_y_vals,
                      mg.CHARTS_SERIES_TOOLTIPS: dummy_tooltips}
                 series_dets.append(smooth_series)
+                n_series = len(series_dets)
+                series_colours_by_lbl[SMOOTHLINE_LBL] = item_colours[n_series]
             if debug: pprint.pprint(series_dets)
         series_js_list = []
         series_names_list = []
