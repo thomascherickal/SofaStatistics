@@ -31,6 +31,7 @@ class NormalityDlg(wx.Dialog, config_output.ConfigUI):
                            wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
                            wx.CAPTION|wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self, autoupdate=True)
+        self.SetFont(mg.GEN_FONT)
         self.Bind(wx.EVT_CLOSE, self.on_ok)
         # the following properties all required to utilise get_szr_data
         self.var_labels = var_labels
@@ -67,7 +68,16 @@ class NormalityDlg(wx.Dialog, config_output.ConfigUI):
         szr_main = wx.BoxSizer(wx.VERTICAL)
         bxDesc = wx.StaticBox(self.panel, -1, _("Purpose"))
         self.szr_desc = wx.StaticBoxSizer(bxDesc, wx.VERTICAL)
+        # 4 key settings
+        self.drop_tbls_panel = self.panel
+        self.drop_tbls_system_font_size = False
+        self.drop_tbls_sel_evt = self.on_table_sel
+        self.drop_tbls_idx_in_szr = 3
+        self.drop_tbls_rmargin = 10
+        self.drop_tbls_can_grow = False
         self.szr_data = self.get_szr_data(self.panel) # mixin
+        self.drop_tbls_szr = self.szr_data
+        getdata.data_dropdown_settings_correct(parent=self)
         szr_paired = wx.BoxSizer(wx.HORIZONTAL)
         self.bx_vars = wx.StaticBox(self.panel, -1, self.varbox_label_unpaired)
         szr_vars = wx.StaticBoxSizer(self.bx_vars, wx.HORIZONTAL)

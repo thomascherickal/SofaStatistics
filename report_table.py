@@ -119,7 +119,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                        style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|
                        wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self, autoupdate=True)
-        #self.SetFont(mg.GEN_FONT)
+        self.SetFont(mg.GEN_FONT)
         dimtree.DimTree.__init__(self)
         self.output_modules = ["my_globals as mg", "dimtables", "rawtables", 
                                "output", "getdata"]
@@ -136,8 +136,17 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         # sizers
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_top = wx.BoxSizer(wx.HORIZONTAL)
-        # mixin
-        self.szr_data, self.szr_config = self.get_gen_config_szrs(self.panel)
+        # key settings
+        self.drop_tbls_panel = self.panel
+        self.drop_tbls_system_font_size = False
+        self.drop_tbls_sel_evt = self.on_table_sel
+        self.drop_tbls_idx_in_szr = 3
+        self.drop_tbls_rmargin = 10
+        self.drop_tbls_can_grow = False
+        (self.szr_data, 
+         self.szr_config) = self.get_gen_config_szrs(self.panel) # mixin
+        self.drop_tbls_szr = self.szr_data
+        getdata.data_dropdown_settings_correct(parent=self)
         szr_mid = wx.BoxSizer(wx.VERTICAL)
         szr_tab_type = wx.BoxSizer(wx.HORIZONTAL)
         szr_opts = wx.BoxSizer(wx.HORIZONTAL)

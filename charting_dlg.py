@@ -8,6 +8,7 @@ import my_globals as mg
 import lib
 import config_output
 import full_html
+import getdata
 import indep2var
 import projects
 
@@ -65,16 +66,24 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         config_output.add_icon(frame=self)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         # top panel
-        self.panel_help_data = wx.Panel(self)
+        self.panel_data = wx.Panel(self)
         self.szr_help_data = wx.BoxSizer(wx.HORIZONTAL)
-        self.szr_data = self.get_szr_data(self.panel_help_data) # mixin
         self.panel_vars = wx.Panel(self)
+        # key settings
+        self.drop_tbls_panel = self.panel_data
+        self.drop_tbls_system_font_size = False
+        self.drop_tbls_sel_evt = self.on_table_sel
+        self.drop_tbls_idx_in_szr = 3
+        self.drop_tbls_rmargin = 10
+        self.drop_tbls_can_grow = False
+        self.szr_data = self.get_szr_data(self.panel_data) # mixin
+        self.drop_tbls_szr = self.szr_data
+        getdata.data_dropdown_settings_correct(parent=self)
         bx_vars = wx.StaticBox(self.panel_vars, -1, _("Variables"))
         self.szr_vars = wx.StaticBoxSizer(bx_vars, wx.HORIZONTAL)
         if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
             bx_vars.SetToolTipString(self.variables_rc_msg)
-        self.btn_help = wx.Button(self.panel_help_data, wx.ID_HELP)
-        #self.btn_help.SetFont(mg.BTN_FONT)
+        self.btn_help = wx.Button(self.panel_data, wx.ID_HELP)
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         szr_chart_btns = wx.BoxSizer(wx.HORIZONTAL)
         self.chart_type = mg.SIMPLE_BARCHART
@@ -86,8 +95,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_help_data.Add(self.btn_help, 0, wx.TOP, help_down_by)
         self.szr_help_data.Add(self.szr_data, 1, wx.LEFT, 5)
         # assemble sizer for help_data panel
-        self.panel_help_data.SetSizer(self.szr_help_data)
-        self.szr_help_data.SetSizeHints(self.panel_help_data)
+        self.panel_data.SetSizer(self.szr_help_data)
+        self.szr_help_data.SetSizeHints(self.panel_data)
         # Charts
         # chart buttons
         self.panel_mid = wx.Panel(self)
@@ -290,7 +299,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if static_box_gap:
             self.szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 
                               static_box_gap)
-        self.szr_main.Add(self.panel_help_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        self.szr_main.Add(self.panel_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
             self.szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 
                               static_box_gap)

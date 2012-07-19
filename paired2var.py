@@ -8,6 +8,7 @@ import lib
 import my_exceptions
 import config_output
 import full_html
+import getdata
 import output
 import projects
 
@@ -27,7 +28,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
                            wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
                            wx.CAPTION|wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self, autoupdate=True)
-        #self.SetFont(mg.GEN_FONT)
+        self.SetFont(mg.GEN_FONT)
         self.output_modules = ["my_globals as mg", "core_stats", "getdata", 
                                "output", "stats_output"]
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -42,8 +43,17 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         bx_vars = wx.StaticBox(self.panel, -1, _("Variables"))
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         config_output.add_icon(frame=self)
-        # mixins
-        self.szr_data, self.szr_config = self.get_gen_config_szrs(self.panel)
+        # key settings
+        self.drop_tbls_panel = self.panel
+        self.drop_tbls_system_font_size = False
+        self.drop_tbls_idx_in_szr = 3
+        self.drop_tbls_sel_evt = self.on_table_sel
+        self.drop_tbls_rmargin = 10
+        self.drop_tbls_can_grow = False
+        (self.szr_data, 
+         self.szr_config) = self.get_gen_config_szrs(self.panel) # mixin
+        self.drop_tbls_szr = self.szr_data
+        getdata.data_dropdown_settings_correct(parent=self)
         self.szr_output_btns = self.get_szr_output_btns(self.panel,
                                                         inc_clear=False)
         szr_main = wx.BoxSizer(wx.VERTICAL)
@@ -51,11 +61,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
         eg1, eg2, eg3 = self.get_examples()
         lbl_desc1 = wx.StaticText(self.panel, -1, eg1)
-        lbl_desc1.SetFont(mg.GEN_FONT)
         lbl_desc2 = wx.StaticText(self.panel, -1, eg2)
-        lbl_desc2.SetFont(mg.GEN_FONT)
         lbl_desc3 = wx.StaticText(self.panel, -1, eg3)
-        lbl_desc3.SetFont(mg.GEN_FONT)
         szr_desc.Add(lbl_desc1, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc2, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc3, 1, wx.GROW|wx.LEFT, 5)

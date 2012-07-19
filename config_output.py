@@ -246,13 +246,17 @@ class ConfigUI(object):
         self.szr_config = self.get_config_szr(panel, readonly)
         return self.szr_data, self.szr_config
         
-    def get_szr_data(self, panel):
+    def get_szr_data(self, panel, system_font_size=False):
         """
         Returns self.szr_data complete with widgets. dd is updated.
         Widgets include dropdowns for database and tables.
         Each widget has a set of events ready to go as well.
         Assumes self has quite a few properties already set.
         """
+        try:
+            self.drop_tbls_sel_evt
+        except AttributeError:
+            raise Exception(u"Must define self.drop_tbls_sel_evt first")
         bx_data = wx.StaticBox(panel, -1, _("Data Source"))
         # 1) Databases
         lbl_databases = wx.StaticText(panel, -1, _("Database:"))
@@ -260,9 +264,10 @@ class ConfigUI(object):
         # get various db settings
         # set up self.drop_dbs and self.drop_tbls
         dd = mg.DATADETS_OBJ
-        (self.drop_dbs, 
-         self.drop_tbls) = getdata.get_data_dropdowns(self, panel, 
-                                                      dd.default_dbs)
+        (self.drop_dbs, self.drop_tbls, 
+         self.db_choice_items, 
+         self.selected_dbe_db_idx) = getdata.get_data_dropdowns(self, panel, 
+                                                                dd.default_dbs)
         # 2) Tables
         # not wanted in all cases when dropdowns used e.g. data select
         self.drop_tbls.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_tables)
@@ -498,7 +503,9 @@ class ConfigUI(object):
                                        self.var_types, self.val_dics)
         dlg.ShowModal()
         self.refresh_vars()
-        getdata.setup_drop_tbls(self.drop_tbls)
+        parent.drop_tbls = getdata.get_fresh_drop_tbls(parent, 
+                                                       parent.drop_tbls_szr, 
+                                                       parent.drop_tbls_panel)
         lib.safe_end_cursor()
 
     def on_rclick_tables(self, event):

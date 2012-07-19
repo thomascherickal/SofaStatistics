@@ -31,10 +31,6 @@ class DataSelectDlg(wx.Dialog):
         proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
                                                    fil_name=proj_name)
         config_output.update_var_dets(dlg=self)
-        # set up self.drop_dbs and self.drop_tbls
-        (self.drop_dbs, 
-         self.drop_tbls) = getdata.get_data_dropdowns(self, self.panel, 
-                                                proj_dic[mg.PROJ_DEFAULT_DBS])
         self.chk_readonly = wx.CheckBox(self.panel, -1, _("Read Only"))
         self.chk_readonly.SetValue(True)
         self.btn_delete = wx.Button(self.panel, -1, _("Delete"))
@@ -43,16 +39,31 @@ class DataSelectDlg(wx.Dialog):
         self.btn_design.Bind(wx.EVT_BUTTON, self.on_design)
         btn_open = wx.Button(self.panel, wx.ID_OPEN)
         btn_open.Bind(wx.EVT_BUTTON, self.on_open)
-        szr_data = wx.FlexGridSizer(rows=2, cols=2, hgap=5, vgap=5)  
-        szr_data.AddGrowableCol(1, 1)      
+        self.szr_data = wx.FlexGridSizer(rows=2, cols=2, hgap=5, vgap=5)
+        # key settings
+        self.drop_tbls_panel = self.panel
+        self.drop_tbls_system_font_size = True
+        self.drop_tbls_idx_in_szr = 3
+        self.drop_tbls_sel_evt = self.on_table_sel
+        self.drop_tbls_rmargin = 0
+        self.drop_tbls_can_grow = True
+        self.drop_tbls_szr = self.szr_data
+        getdata.data_dropdown_settings_correct(parent=self)
+        # set up self.drop_dbs and self.drop_tbls
+        default_dbs = proj_dic[mg.PROJ_DEFAULT_DBS]
+        (self.drop_dbs, self.drop_tbls,
+         self.db_choice_items, 
+         self.selected_dbe_db_idx) = getdata.get_data_dropdowns(self,
+                                                        self.panel, default_dbs)
+        self.szr_data.AddGrowableCol(1, 1)      
         lbl_dbs = wx.StaticText(self.panel, -1, _("Databases:"))
         lbl_dbs.SetFont(mg.LABEL_FONT)        
-        szr_data.Add(lbl_dbs, 0, wx.RIGHT, 5)
-        szr_data.Add(self.drop_dbs, 1, wx.GROW)     
+        self.szr_data.Add(lbl_dbs, 0, wx.RIGHT, 5)
+        self.szr_data.Add(self.drop_dbs, 1, wx.GROW)     
         lbl_tbls = wx.StaticText(self.panel, -1, _("Data tables:"))
         lbl_tbls.SetFont(mg.LABEL_FONT)
-        szr_data.Add(lbl_tbls, 0, wx.RIGHT, 5)
-        szr_data.Add(self.drop_tbls, 1, wx.GROW)        
+        self.szr_data.Add(lbl_tbls, 0, wx.RIGHT, 5)
+        self.szr_data.Add(self.drop_tbls, 1, wx.GROW)        
         szr_existing_bottom = wx.FlexGridSizer(rows=1, cols=4, hgap=5, vgap=50)
         szr_existing_bottom.AddGrowableCol(2,2) # idx, propn
         szr_existing_bottom.Add(self.btn_delete, 0, wx.RIGHT, 10)
@@ -60,7 +71,7 @@ class DataSelectDlg(wx.Dialog):
         szr_existing_bottom.Add(self.chk_readonly, 0, wx.ALIGN_RIGHT)
         szr_existing_bottom.Add(btn_open, 0, wx.ALIGN_RIGHT)
         szr_existing = wx.StaticBoxSizer(bx_existing, wx.VERTICAL)
-        szr_existing.Add(szr_data, 0, wx.GROW|wx.ALL, 10)
+        szr_existing.Add(self.szr_data, 0, wx.GROW|wx.ALL, 10)
         szr_existing.Add(szr_existing_bottom, 0, wx.GROW|wx.ALL, 10)
         szr_new = wx.StaticBoxSizer(bx_new, wx.HORIZONTAL)
         lbl_new = wx.StaticText(self.panel, -1, _("... or add a new data table "
@@ -111,7 +122,10 @@ class DataSelectDlg(wx.Dialog):
         
     def reset_tbl_dropdown(self):
         "Set tables dropdown items and select item according to dd.tbl"
-        getdata.setup_drop_tbls(self.drop_tbls)
+        parent = self
+        parent.drop_tbls = getdata.get_fresh_drop_tbls(parent, 
+                                                       parent.drop_tbls_szr, 
+                                                       parent.drop_tbls_panel)
     
     def on_table_sel(self, event):
         "Reset key data details after table selection."       

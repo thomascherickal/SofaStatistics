@@ -622,11 +622,25 @@ def open_database(parent, event):
         dlg.ShowModal()
     event.Skip()
 
+# Assumption - drop_tbls is always named as such
+def data_dropdown_settings_correct(parent):
+    try:
+        parent.drop_tbls_panel
+        parent.drop_tbls_szr
+        parent.drop_tbls_idx_in_szr
+        parent.drop_tbls_sel_evt
+        parent.drop_tbls_system_font_size
+        parent.drop_tbls_rmargin
+        parent.drop_tbls_can_grow
+    except AttributeError:
+        raise Exception(u"Working with dropdowns requires all the settings to "
+                        u"be available e.g. self.drop_tbls_panel")
+
 def get_data_dropdowns(parent, panel, default_dbs):
     """
-    Adds drop_dbs and drop_tbls to frame with correct values 
-        and default selection. NB must have exact same names.
-    Adds db_choice_items to parent.
+    Returns drop_dbs and drop_tbls to frame with correct values and default 
+        selection. Also returns some settings to store in the frame.
+    Note - must have exact same names.
     """
     debug = False
     # databases list needs to be tuple including dbe so can get both from 
@@ -651,29 +665,23 @@ def get_data_dropdowns(parent, panel, default_dbs):
             wx.MessageBox(_("Unable to connect to %(oth_dbe)s using the details"
                             " provided.\nCaused by error: %(e)s") % 
                                 {"oth_dbe": oth_dbe, "e": lib.ue(e)})
-    parent.db_choice_items = [get_db_item(x[0], x[1]) for x in db_choices]
-    parent.drop_dbs = wx.Choice(panel, -1, choices=parent.db_choice_items,
+    db_choice_items = [get_db_item(x[0], x[1]) for x in db_choices]
+    drop_dbs = wx.Choice(panel, -1, choices=db_choice_items,
                                 size=(mg.STD_DROP_WIDTH,-1))
-    #parent.drop_dbs.SetFont(mg.GEN_FONT)
-    parent.drop_dbs.Bind(wx.EVT_CHOICE, parent.on_database_sel)
+    drop_dbs.Bind(wx.EVT_CHOICE, parent.on_database_sel)
     dbs_lc = [x.lower() for x in dd.dbs]
     selected_dbe_db_idx = dbs_lc.index(dd.db.lower())
-    parent.drop_dbs.SetSelection(selected_dbe_db_idx)
-    parent.selected_dbe_db_idx = selected_dbe_db_idx
-    parent.drop_tbls = wx.Choice(panel, -1, choices=[], 
-                                 size=(mg.STD_DROP_WIDTH,-1))
-    setup_drop_tbls(parent.drop_tbls)
-    #parent.drop_tbls.SetFont(mg.GEN_FONT)
-    parent.drop_tbls.Bind(wx.EVT_CHOICE, parent.on_table_sel)
-    return parent.drop_dbs, parent.drop_tbls
+    drop_dbs.SetSelection(selected_dbe_db_idx)
+    tbls_with_filts, idx_tbl = get_tblnames_and_idx()
+    drop_tbls = wx.Choice(panel, -1, choices=tbls_with_filts, 
+                          size=(mg.STD_DROP_WIDTH,-1))
+    extra_drop_tbls_setup(parent, drop_tbls, idx_tbl)
+    return drop_dbs, drop_tbls, db_choice_items, selected_dbe_db_idx
 
-def setup_drop_tbls(drop_tbls):
-    """
-    Set-up tables dropdown.  Any tables with filtering should have (filtered)
-        appended to end of name.
-    """
+def get_tblnames_and_idx():
     dd = mg.DATADETS_OBJ
     tbls_with_filts = []
+    idx_tbl = None
     for i, tblname in enumerate(dd.tbls):
         if tblname.lower() == dd.tbl.lower():
             idx_tbl = i
@@ -683,17 +691,44 @@ def setup_drop_tbls(drop_tbls):
         else:
             tbl_with_filt = tblname
         tbls_with_filts.append(tbl_with_filt)
-    drop_tbls.SetItems(tbls_with_filts)
+    return tbls_with_filts, idx_tbl
+
+def extra_drop_tbls_setup(parent, drop_tbls, idx_tbl):
+    dd = mg.DATADETS_OBJ
     try:
         drop_tbls.SetSelection(idx_tbl)
     except NameError:
-        raise Exception(u"Table \"%s\" not found in tables list" % dd.tbl)
+        raise Exception(u"Table \"%s\" not found in tables list" % dd.tbl)    
+    if not parent.drop_tbls_system_font_size:
+        drop_tbls.SetFont(mg.GEN_FONT)
+    try:
+        parent.drop_tbls_sel_evt
+    except AttributeError:
+        raise Exception(u"Must define self.drop_tbls_sel_evt first")
+    drop_tbls.Bind(wx.EVT_CHOICE, parent.drop_tbls_sel_evt)
+    
+def get_fresh_drop_tbls(parent, szr, panel):
+    """
+    Destroy the existing dropdown widget, create a new one (with the non-system 
+        font size), feed it back into the sizer.
+    """
+    parent.drop_tbls.Destroy()
+    tbls_with_filts, idx_tbl = get_tblnames_and_idx()
+    drop_tbls = wx.Choice(panel, -1, choices=tbls_with_filts, 
+                          size=(mg.STD_DROP_WIDTH,-1))
+    extra_drop_tbls_setup(parent, drop_tbls, idx_tbl)
+    flag = wx.RIGHT
+    if parent.drop_tbls_can_grow:
+        flag |= wx.GROW
+    szr.Insert(parent.drop_tbls_idx_in_szr, drop_tbls, 0, flag, 
+               parent.drop_tbls_rmargin)
+    panel.Layout()
+    return drop_tbls
 
 def set_parent_db_dets(parent, dbe, db):
     """
     Set all parent database details including drop down.
     """
-    debug = False
     dd = mg.DATADETS_OBJ
     dd.set_dbe(dbe, db)
     parent.dbe = dd.dbe
@@ -705,11 +740,11 @@ def set_parent_db_dets(parent, dbe, db):
     parent.flds = dd.flds
     parent.idxs = dd.idxs
     parent.has_unique = dd.has_unique
-    if debug: print("About to set %s drop_tbls items" % len(dd.tbls))
-    parent.drop_tbls.SetItems(dd.tbls)
-    if debug: print("Finished setting drop_tbls items")
-    tbls_lc = [x.lower() for x in dd.tbls]
-    parent.drop_tbls.SetSelection(tbls_lc.index(dd.tbl.lower()))
+    parent.drop_tbls = get_fresh_drop_tbls(parent, parent.drop_tbls_szr, 
+                                           parent.drop_tbls_panel)
+    #parent.drop_tbls.SetItems(dd.tbls)
+    #tbls_lc = [x.lower() for x in dd.tbls]
+    #parent.drop_tbls.SetSelection(tbls_lc.index(dd.tbl.lower()))
     
 def refresh_db_dets(parent):
     """
